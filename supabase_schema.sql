@@ -13,6 +13,10 @@ create table if not exists public.chat_history (
 create index if not exists chat_history_client_updated_idx
   on public.chat_history (client_id, updated_at desc);
 
+-- Future login support:
+-- keep client_id for anonymous device-scoped history.
+-- when authentication is added, add account_id/user_id and query by account first.
+
 alter table public.chat_history enable row level security;
 
 create table if not exists public.chucking_test1 (

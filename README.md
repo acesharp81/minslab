@@ -81,6 +81,14 @@ Open `http://127.0.0.1:8000`.
 
 For the current server deployment, the app is managed by the `myservice` systemd service and served behind Nginx.
 
+## Chat History Storage
+
+Chat history is scoped by device while there is no login system. The browser stores a stable `minslab.deviceId` in localStorage and sends it as `client_id` to `/api/history`.
+
+If Supabase `chat_history` exists, history is stored there. If the table is missing or unavailable, the backend falls back to `data/chat_history.json`, which is ignored by git.
+
+The API already accepts optional `account_id` and `scope_type` fields so a future login flow can switch history ownership from device-scoped to account-scoped without changing the chat UI contract.
+
 ## Supabase Tables
 
 Project 05 expects three pgvector-backed tables for selected chunking strategies:

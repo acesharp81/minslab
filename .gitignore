@@ -15,6 +15,7 @@ __pycache__/
 .ruff_cache/
 
 # Local logs and generated outputs
+/data/
 *.log
 analysis/
 *_report_test*.json

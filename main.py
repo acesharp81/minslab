@@ -721,7 +721,7 @@ async def app(scope, receive, send):
           planStatus.textContent=`질문 실행 완료 · ${completed}/${panels.length}`;
         }finally{runButton.disabled=false}
       }
-      compareEl.addEventListener('click',e=>{const button=e.target.closest('[data-detail-panel]');if(!button)return;const detail=document.getElementById(`chunk-detail-${button.dataset.detailPanel}`);if(!detail)return;detail.hidden=!detail.hidden;button.textContent=detail.hidden?'비교 청크 내용 보기':'비교 청크 내용 닫기'});
+      compareEl.addEventListener('click',e=>{const button=e.target.closest('[data-detail-panel]');if(!button)return;const detail=document.getElementById(button.dataset.detailPanel);if(!detail)return;detail.hidden=!detail.hidden;button.textContent=detail.hidden?'비교 청크 내용 보기':'비교 청크 내용 닫기'});
       buildButton.onclick=buildChunks;embedButton.onclick=embedAllPlans;runButton.onclick=runCompare;resetExecution('청킹 실행 전입니다.');
     }
 
@@ -773,20 +773,23 @@ async def app(scope, receive, send):
     copyCode.onclick=async()=>{await navigator.clipboard.writeText(projectCode.textContent);copyCode.textContent='복사 완료 ✓';setTimeout(()=>copyCode.textContent='코드 복사',1400)};
     const modelSelectEl=document.getElementById('modelSelect'),messagesEl=document.getElementById('messages'),inputEl=document.getElementById('chatInput'),sendEl=document.getElementById('sendButton');
     document.querySelector('.ai-mark').innerHTML='<img src="/static/images/logo.png" alt="MinsLab 로고">';
-    let conversation=[],generating=false,currentChatId=crypto.randomUUID();const clientId=localStorage.getItem('minzday.clientId')||crypto.randomUUID();localStorage.setItem('minzday.clientId',clientId);const historyList=document.createElement('div');historyList.className='history-list';document.getElementById('historyTitle').parentElement.append(historyList);
+    let conversation=[],generating=false,currentChatId=crypto.randomUUID();const legacyClientId=localStorage.getItem('minzday.clientId');const deviceId=localStorage.getItem('minslab.deviceId')||legacyClientId||crypto.randomUUID();localStorage.setItem('minslab.deviceId',deviceId);localStorage.setItem('minzday.clientId',deviceId);const accountId=localStorage.getItem('minslab.accountId')||'';const historyScope=accountId?'account':'device';const historyList=document.createElement('div');historyList.className='history-list';document.getElementById('historyTitle').parentElement.append(historyList);
+    function historyQuery(){const params=new URLSearchParams({client_id:deviceId});if(accountId)params.set('account_id',accountId);return params.toString()}
     async function loadHistory(){
       try{
-        const r=await fetch(`/api/history?client_id=${encodeURIComponent(clientId)}`),data=await r.json();if(!r.ok)throw new Error(data.error);
-        historyList.innerHTML=data.items.map(item=>`<button class="history-item ${item.id===currentChatId?'active':''}" data-history="${item.id}">${item.title}</button>`).join('');
+        const r=await fetch(`/api/history?${historyQuery()}`),data=await r.json();if(!r.ok)throw new Error(data.error||'대화 이력을 불러오지 못했습니다.');
+        const storageLabel=data.storage==='local'?'단말기 저장':'Supabase 저장';
+        const warning=data.warning?'<div class="history-db-status">Supabase 테이블이 없어 서버 로컬 저장소를 사용 중입니다.</div>':'';
+        historyList.innerHTML=(data.items?.length?data.items.map(item=>`<button class="history-item ${item.id===currentChatId?'active':''}" data-history="${item.id}">${item.title}<small>${storageLabel}</small></button>`).join(''):`<div class="history-db-status">아직 저장된 대화가 없습니다. 저장 단위: ${historyScope==='account'?'계정':'단말기'}</div>`)+warning;
         historyList.querySelectorAll('button').forEach(b=>b.onclick=()=>{
           const item=data.items.find(entry=>entry.id===b.dataset.history);if(!item)return;
           currentChatId=item.id;conversation=item.messages;messagesEl.innerHTML='';conversation.forEach(m=>addMessage(m.role,m.content));document.getElementById('historyTitle').textContent=item.title;
           if([...modelSelectEl.options].some(o=>o.value===item.model)){modelSelectEl.value=item.model;loadModelSettings()}
           historyList.querySelectorAll('.history-item').forEach(button=>button.classList.toggle('active',button.dataset.history===currentChatId));
         });
-      }catch(e){historyList.innerHTML='<div class="history-db-status">Supabase 연결 후 대화 이력이 표시됩니다.</div>'}
+      }catch(e){historyList.innerHTML=`<div class="history-db-status">대화 이력 연결 실패: ${e.message}</div>`}
     }
-    async function persistHistory(){if(!conversation.length)return;const title=conversation.find(m=>m.role==='user')?.content.slice(0,40)||'새로운 대화';try{await fetch('/api/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentChatId,client_id:clientId,title,model:modelSelectEl.value,messages:conversation})});loadHistory()}catch(e){console.warn('History save failed',e)}}
+    async function persistHistory(){if(!conversation.length)return;const title=conversation.find(m=>m.role==='user')?.content.slice(0,40)||'새로운 대화';try{const r=await fetch('/api/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentChatId,client_id:deviceId,account_id:accountId||null,scope_type:historyScope,title,model:modelSelectEl.value,messages:conversation})});const data=await r.json();if(!r.ok||!data.saved)throw new Error(data.error||'대화 이력을 저장하지 못했습니다.');loadHistory()}catch(e){console.warn('History save failed',e);historyList.insertAdjacentHTML('afterbegin',`<div class="history-db-status">저장 실패: ${e.message}</div>`)}}
     async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}">${m.name}${m.details.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('설치된 모델이 없습니다.')}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>OLLAMA OFFLINE</span>';}}
     async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health'),data=await r.json();wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
     function processPanel(item,start){const box=document.createElement('details');box.className='process-box live';box.open=true;const requestCount=conversation.length;const attachmentCount=attachedData.length;box.innerHTML='<summary><span class="process-summary">생성 중 · 준비 단계</span><span class="process-toggle">자세히 보는 중</span><span class="process-meta">0.0s</span></summary><div class="process-inner"><div class="process-log"></div><div class="references">참고 자료 확인 중...</div></div>';const log=box.querySelector('.process-log');const summaryEl=box.querySelector('.process-summary');const toggleEl=box.querySelector('.process-toggle');const metaEl=box.querySelector('.process-meta');const refs=box.querySelector('.references');const timers=[];let finished=false,firstChunkSeen=false,expansionNoted=false;box.addEventListener('toggle',()=>{if(finished)return;toggleEl.textContent=box.open?'자세히 보는 중':'간단히 보는 중'});function addStep(text,state='done'){const row=document.createElement('div');row.className=`process-step ${state}`.trim();row.innerHTML=`<i></i><span>${text}</span>`;log.append(row);log.parentElement.scrollTop=log.parentElement.scrollHeight;messagesEl.scrollTop=messagesEl.scrollHeight;return row}const intro='요청 수신 · '+requestCount+'개 메시지 맥락 정리 완료'+(attachmentCount?` · 첨부 ${attachmentCount}개 포함`:'');addStep(intro,'done');const stages=[['프롬프트와 모델 설정을 적용하고 있어요.','done','생성 중 · 입력 구성'],['로컬 모델에 요청을 전달했어요.','done','생성 중 · 모델 호출'],['응답 초안을 계산하고 있어요.','active','생성 중 · 초안 생성'],['문장 흐름과 길이를 정리하고 있어요.','active','생성 중 · 답변 다듬기']];stages.forEach(([text,state,summary],index)=>{timers.push(setTimeout(()=>{if(finished)return;addStep(text,state);summaryEl.textContent=summary},450+(index*900)))});const tick=setInterval(()=>{if(finished)return;metaEl.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`},120);item.children[1].append(box);return{stream(answer){if(finished)return;if(!firstChunkSeen&&answer.trim()){firstChunkSeen=true;summaryEl.textContent='생성 중 · 실시간 출력';addStep('첫 응답 조각이 도착해 화면에 바로 표시하고 있어요.','active')}if(!expansionNoted&&answer.length>180){expansionNoted=true;addStep('답변 분량이 늘어나고 있어요. 문단 단위로 이어 붙이는 중입니다.','muted')}},finish(answer,metrics,ok=true){finished=true;timers.forEach(clearTimeout);clearInterval(tick);const seconds=metrics?.total_duration?metrics.total_duration/1e9:(performance.now()-start)/1000;const evalCount=metrics?.eval_count;const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const statusText=ok?`${modelSelectEl.value} 응답 생성 완료`:'응답 생성 중 오류 발생';addStep(statusText+(evalCount?` · ${evalCount} tokens`:''),ok?'done':'error');refs.textContent=urls.length?'참고 자료 · ':'참고 자료 · 외부 자료를 사용하지 않은 로컬 모델 응답';urls.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=`[${i+1}] ${url}`;refs.append(document.createElement('br'),a)});summaryEl.textContent=ok?`생성 완료 · ${seconds.toFixed(1)}초`:`오류로 종료 · ${seconds.toFixed(1)}초`;toggleEl.textContent='요약만 표시';metaEl.textContent=ok?(evalCount?`${evalCount} tok · ${urls.length} refs`:`${urls.length} refs`):'retry needed';box.classList.remove('live');box.classList.add('compact');box.open=false}}}
@@ -937,12 +940,13 @@ async def app(scope, receive, send):
         try:
             query = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
             client_id = query.get("client_id", [""])[0]
+            account_id = query.get("account_id", [""])[0] or None
             if not client_id:
                 raise ValueError("client_id가 필요합니다.")
-            result = await asyncio.to_thread(list_history, client_id)
-            body = json.dumps({"configured": True, "items": result}, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError) as error:
-            status = 503
+            result, storage, warning = await asyncio.to_thread(list_history, client_id, account_id)
+            body = json.dumps({"configured": supabase_configured(), "storage": storage, "warning": warning, "items": result}, ensure_ascii=False).encode("utf-8")
+        except ValueError as error:
+            status = 400
             body = json.dumps({"configured": supabase_configured(), "error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
     elif path == "/api/history" and method == "POST":
@@ -951,8 +955,11 @@ async def app(scope, receive, send):
             required = {"id", "client_id", "title", "model", "messages"}
             if not required.issubset(record) or not isinstance(record["messages"], list):
                 raise ValueError("잘못된 대화 이력 형식입니다.")
-            result = await asyncio.to_thread(save_history, {key: record[key] for key in required})
-            body = json.dumps({"saved": True, "item": result}, ensure_ascii=False).encode("utf-8")
+            payload = {key: record[key] for key in required}
+            payload["account_id"] = record.get("account_id") or None
+            payload["scope_type"] = record.get("scope_type") or ("account" if payload["account_id"] else "device")
+            result, storage, warning = await asyncio.to_thread(save_history, payload)
+            body = json.dumps({"saved": True, "storage": storage, "warning": warning, "item": result}, ensure_ascii=False).encode("utf-8")
         except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 503
             body = json.dumps({"saved": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
