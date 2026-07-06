@@ -1,0 +1,30 @@
+# Secrets and local machine state
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+env/
+
+# Python caches and tooling
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local logs and generated outputs
+*.log
+analysis/
+*_report_test*.json
+gemma*_report*.json
+qwen*_report*.json
+
+# Large or source documents used during local experiments
+*.hwpx
+
+# OS/editor noise
+.DS_Store
+.vscode/
+.idea/
