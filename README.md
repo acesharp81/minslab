@@ -1,6 +1,6 @@
-# Minslab Local AI Portfolio
+# MinsLab
 
-Python ASGI application for a local AI chat page, portfolio archive, and hands-on RAG/chunking comparison labs.
+오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반의 Local AI chat, portfolio archive, and hands-on RAG/chunking comparison labs.
 
 ## What This App Includes
 
