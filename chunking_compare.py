@@ -30,6 +30,7 @@ _resolved_tables: dict[str, str] = {}
 DEFAULT_CHAT_MODEL = "openai/gpt-4o-mini"
 DEFAULT_EMBEDDING_MODEL = "openai/text-embedding-3-small"
 DEFAULT_RERANK_MODEL = "rerank-v4.0-fast"
+RAG_MODE_LABELS = {"naive": "Naive RAG", "advanced": "Advanced RAG"}
 LOCAL_EMBEDDING_DIM = 1536
 TOKEN_RE = re.compile(r"[0-9A-Za-z가-힣_]+")
 
@@ -122,6 +123,8 @@ def _raw_supabase_request(method: str, table: str, query: str = "", payload: Any
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"{table} 요청 실패 · {exc.code} {detail}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError(f"{table} 요청 시간이 초과되었습니다. 잠시 후 다시 시도하세요.") from exc
     except error.URLError as exc:
         raise RuntimeError(f"{table} 연결 실패 · {exc.reason}") from exc
 
@@ -321,6 +324,8 @@ def _openrouter_embedding(text: str) -> list[float]:
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"OpenRouter 임베딩 실패 · {exc.code} {detail}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("OpenRouter 임베딩 요청 시간이 초과되었습니다. 로컬 fallback 임베딩으로 전환합니다.") from exc
     except error.URLError as exc:
         raise RuntimeError(f"OpenRouter 임베딩 연결 실패 · {exc.reason}") from exc
     embedding = (body.get("data") or [{}])[0].get("embedding")
@@ -428,16 +433,81 @@ def _request_rows(table: str, limit: int = 300) -> list[dict[str, Any]]:
     return _supabase_request("GET", table, query=query) or []
 
 
+
+def _keyword_terms(text: str, limit: int = 12) -> list[str]:
+    stopwords = {"이", "그", "저", "것", "수", "등", "및", "또는", "그리고", "대한", "대해", "문서", "내용", "핵심", "요약", "알려줘"}
+    terms: list[str] = []
+    for token in TOKEN_RE.findall((text or "").lower()):
+        if len(token) <= 1 or token in stopwords:
+            continue
+        if token not in terms:
+            terms.append(token)
+        if len(terms) >= limit:
+            break
+    return terms
+
+
+def _advanced_query_variants(prompt: str) -> list[str]:
+    terms = _keyword_terms(prompt, limit=8)
+    variants = [prompt]
+    if terms:
+        variants.append(" ".join(terms))
+        variants.append(f"{prompt}\n관련 핵심어: {' '.join(terms)}")
+    return list(dict.fromkeys(variant.strip() for variant in variants if variant.strip()))[:3]
+
+
+def _compress_content_for_prompt(prompt: str, content: str, max_chars: int = 900) -> str:
+    content = str(content or "").strip()
+    if len(content) <= max_chars:
+        return content
+    terms = set(_keyword_terms(prompt, limit=16))
+    sentences = _split_sentences(content)
+    if not sentences:
+        return content[:max_chars].strip()
+    ranked = []
+    for index, sentence in enumerate(sentences):
+        sentence_terms = set(_keyword_terms(sentence, limit=30))
+        overlap = len(terms & sentence_terms)
+        ranked.append((overlap, -index, sentence))
+    selected = [item[2] for item in sorted(ranked, reverse=True) if item[0] > 0][:5]
+    if not selected:
+        selected = sentences[:4]
+    compressed = " ".join(selected).strip()
+    if len(compressed) > max_chars:
+        compressed = compressed[:max_chars].strip()
+    return compressed or content[:max_chars].strip()
+
+
+def _rows_for_answer(prompt: str, top: list[dict[str, Any]], rag_mode: str) -> list[dict[str, Any]]:
+    rows = []
+    for index, item in enumerate(top, start=1):
+        raw = dict(item.get("raw") or {})
+        raw["citation"] = f"검색 조각 {index}"
+        if rag_mode == "advanced":
+            original = str(raw.get("content") or item.get("content") or "")
+            raw["content"] = _compress_content_for_prompt(prompt, original)
+            metadata = raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {}
+            raw["metadata"] = {**metadata, "context_compressed": len(raw["content"]) < len(original)}
+        rows.append(raw)
+    return rows
+
+
+def _normalize_rag_mode(value: Any) -> str:
+    mode = str(value or "naive").strip().lower()
+    return mode if mode in RAG_MODE_LABELS else "naive"
+
 def _build_context_prompt(prompt: str, rows: list[dict[str, Any]]) -> str:
     context_blocks = []
     for index, row in enumerate(rows[:10], start=1):
         metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
         label = metadata.get("strategy_label") or "청킹 결과"
         content = str(row.get("content") or "").strip()
-        context_blocks.append(f"[검색 조각 {index}] {label} / score {row.get('score', 0):.4f}\n{content}")
+        citation = row.get("citation") or f"검색 조각 {index}"
+        context_blocks.append(f"[{citation}] {label} / score {row.get('score', 0):.4f}\n{content}")
     return (
         "아래 검색 조각만 근거로 한국어 답변을 작성하세요. "
-        "근거에 없는 내용은 없다고 말하고, 청킹 방식 차이가 보이면 짧게 언급하세요.\n\n"
+        "근거에 없는 내용은 없다고 말하고, 중요한 문장 끝에는 반드시 [검색 조각 번호] 형식의 근거를 붙이세요. "
+        "여러 근거가 있으면 [검색 조각 1][검색 조각 3]처럼 붙이고, 청킹/RAG 방식 차이가 보이면 짧게 언급하세요.\n\n"
         f"질문:\n{prompt}\n\n검색 조각:\n" + "\n\n".join(context_blocks)
     )
 
@@ -456,6 +526,8 @@ def _ollama_request(payload: dict[str, Any]) -> dict[str, Any]:
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"Ollama 호출 실패 · {exc.code} {detail}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("Ollama 응답 시간이 초과되었습니다. 모델이 문서를 처리하는 데 너무 오래 걸렸습니다.") from exc
     except error.URLError as exc:
         raise RuntimeError(f"Ollama 연결 실패 · {exc.reason}") from exc
 
@@ -487,6 +559,8 @@ def _call_openrouter(model: str, prompt: str, rows: list[dict[str, Any]], temper
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"OpenRouter 호출 실패 · {exc.code} {detail}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("OpenRouter 답변 생성 시간이 초과되었습니다. 문서/Top-K를 줄이거나 다시 시도하세요.") from exc
     except error.URLError as exc:
         raise RuntimeError(f"OpenRouter 연결 실패 · {exc.reason}") from exc
     choices = body.get("choices") or []
@@ -571,6 +645,8 @@ def _call_cohere_rerank(
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"Cohere reranking 실패 · {exc.code} {detail}") from exc
+    except TimeoutError as exc:
+        raise RuntimeError("Cohere reranking 요청 시간이 초과되었습니다. Reranking을 끄고 다시 시도하세요.") from exc
     except error.URLError as exc:
         raise RuntimeError(f"Cohere reranking 연결 실패 · {exc.reason}") from exc
 
@@ -624,6 +700,7 @@ def compare_tables(
     top_k: int = 5,
     reranking: bool = False,
     rerank_model: str | None = None,
+    rag_mode: str = "naive",
 ) -> dict[str, Any]:
     prompt = (prompt or "").strip()
     if not prompt:
@@ -634,11 +711,14 @@ def compare_tables(
         reranking = reranking.strip().lower() in {"1", "true", "yes", "on"}
     else:
         reranking = bool(reranking)
+    rag_mode = _normalize_rag_mode(rag_mode)
+    advanced = rag_mode == "advanced"
     rerank_model_value = (rerank_model or os.getenv("COHERE_RERANK_MODEL") or DEFAULT_RERANK_MODEL).strip()
     selected_tables = _selected_chucking_tables(tables)
     panels = []
     for table in selected_tables:
         slot = CHUCKING_TABLES.index(table) + 1
+        panel_started = time.perf_counter()
         try:
             rows = _request_rows(table)
             if not rows:
@@ -650,45 +730,71 @@ def compare_tables(
                     "model": model,
                     "temperature": temperature,
                     "top_k": top_k,
-                    "reranking": reranking,
-                    "rerank_model": rerank_model_value if reranking else None,
+                    "rag_mode": rag_mode,
+                    "rag_label": RAG_MODE_LABELS[rag_mode],
+                    "reranking": reranking or advanced,
+                    "rerank_model": rerank_model_value if (reranking or advanced) else None,
                     "status": "ok",
                     "summary": "임베딩된 청크가 없습니다.",
-                    "meta": {"total_rows": 0, "top_count": 0, "top_score": 0, "avg_score": 0, "candidate_count": 0},
+                    "meta": {"total_rows": 0, "top_count": 0, "top_score": 0, "avg_score": 0, "candidate_count": 0, "elapsed_ms": round((time.perf_counter() - panel_started) * 1000)},
                     "answer": "먼저 해당 방식의 임베딩 버튼을 눌러 Supabase에 청크를 저장하세요.",
                     "results": [],
                 })
                 continue
-            query_vector, provider, warning = _query_embedding(prompt, rows)
-            scored = []
-            for row in rows:
-                metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-                content = str(row.get("content") or "")
-                score = _cosine_similarity(query_vector, _parse_vector(row.get("embedding")))
-                scored.append({
-                    "score": score,
-                    "title": f"Chunk {row.get('id', '?')}",
-                    "content": content,
-                    "preview": content[:360],
-                    "metadata": metadata,
-                    "raw": {**row, "score": score},
-                })
+
+            query_variants = _advanced_query_variants(prompt) if advanced else [prompt]
+            scored_by_id: dict[str, dict[str, Any]] = {}
+            provider = ""
+            warning = None
+            for query_text in query_variants:
+                query_vector, provider, warning = _query_embedding(query_text, rows)
+                for row in rows:
+                    metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+                    content = str(row.get("content") or "")
+                    score = _cosine_similarity(query_vector, _parse_vector(row.get("embedding")))
+                    key = str(row.get("id") or hashlib.sha1(content.encode("utf-8")).hexdigest())
+                    existing = scored_by_id.get(key)
+                    if existing and existing["score"] >= score:
+                        existing.setdefault("matched_queries", []).append(query_text)
+                        continue
+                    scored_by_id[key] = {
+                        "score": score,
+                        "title": f"Chunk {row.get('id', '?')}",
+                        "content": content,
+                        "preview": content[:360],
+                        "metadata": metadata,
+                        "matched_queries": [query_text],
+                        "raw": {**row, "score": score},
+                    }
+            scored = list(scored_by_id.values())
             scored.sort(key=lambda item: item["score"], reverse=True)
-            candidate_count = min(len(scored), max(top_k * 3, top_k))
+            candidate_count = min(len(scored), max(top_k * (4 if advanced else 3), top_k))
             candidate_pool = scored[:candidate_count]
-            top = (
-                _call_cohere_rerank(prompt, candidate_pool, top_k, rerank_model_value)
-                if reranking else scored[:top_k]
-            )
+            rerank_used = reranking or advanced
+            rerank_warning = None
+            if rerank_used:
+                try:
+                    top = _call_cohere_rerank(prompt, candidate_pool, top_k, rerank_model_value)
+                except RuntimeError as exc:
+                    if not advanced:
+                        raise
+                    rerank_warning = str(exc)
+                    top = scored[:top_k]
+            else:
+                top = scored[:top_k]
             strategy_label = next(
                 (item["metadata"].get("strategy_label") for item in scored if item["metadata"].get("strategy_label")),
                 f"청킹 방식 {slot}",
             )
             top_scores = [item["score"] for item in top]
-            if reranking:
-                summary = f"총 {len(rows)}개 중 후보 {candidate_count}개 rerank · 최종 {len(top)}개 비교"
+            if advanced:
+                summary = f"Advanced · 질의 {len(query_variants)}개 · 후보 {candidate_count}개 · 최종 {len(top)}개 비교"
+                if rerank_warning:
+                    summary += " · rerank fallback"
+            elif reranking:
+                summary = f"Naive · 총 {len(rows)}개 중 후보 {candidate_count}개 rerank · 최종 {len(top)}개 비교"
             else:
-                summary = f"총 {len(rows)}개 중 상위 {len(top)}개 비교"
+                summary = f"Naive · 총 {len(rows)}개 중 상위 {len(top)}개 비교"
             result_items = []
             for index, item in enumerate(top):
                 result = {
@@ -698,10 +804,16 @@ def compare_tables(
                     "preview": item["preview"],
                     "content": item["content"],
                     "metadata": item["metadata"],
+                    "matched_queries": item.get("matched_queries", [])[:3],
+                    "citation": f"검색 조각 {index + 1}",
                 }
                 if isinstance(item.get("rerank_score"), (int, float)):
                     result["rerank_score"] = round(float(item["rerank_score"]), 4)
                 result_items.append(result)
+            answer_rows = _rows_for_answer(prompt, top, rag_mode)
+            answer_text = _call_selected_model(model, prompt, answer_rows, temperature=temperature, top_k=top_k)
+            elapsed_ms = round((time.perf_counter() - panel_started) * 1000)
+            cited_chunks = sorted({int(match) for match in re.findall(r"\[검색 조각 (\d+)\]", answer_text)})
             panels.append({
                 "slot": slot,
                 "label": strategy_label,
@@ -710,21 +822,31 @@ def compare_tables(
                 "model": model,
                 "temperature": temperature,
                 "top_k": top_k,
-                "reranking": reranking,
-                "rerank_model": rerank_model_value if reranking else None,
+                "rag_mode": rag_mode,
+                "rag_label": RAG_MODE_LABELS[rag_mode],
+                "query_variants": query_variants,
+                "advanced_steps": ["multi-query retrieval", "best-effort rerank", "context compression"] if advanced else ["single-query vector search"],
+                "reranking": rerank_used,
+                "rerank_model": rerank_model_value if rerank_used else None,
                 "status": "ok",
                 "summary": summary,
                 "embedding_provider": provider,
-                "warning": warning,
+                "warning": warning or rerank_warning,
                 "meta": {
                     "total_rows": len(rows),
                     "top_count": len(top),
                     "top_score": round(max(top_scores), 4) if top_scores else 0,
                     "avg_score": round(sum(top_scores) / len(top_scores), 4) if top_scores else 0,
                     "candidate_count": candidate_count,
-                    "reranking": reranking,
+                    "reranking": rerank_used,
+                    "query_count": len(query_variants),
+                    "context_compression": advanced,
+                    "elapsed_ms": elapsed_ms,
+                    "answer_chars": len(answer_text),
+                    "citation_count": len(cited_chunks),
                 },
-                "answer": _call_selected_model(model, prompt, [item["raw"] for item in top], temperature=temperature, top_k=top_k),
+                "citations": [f"검색 조각 {number}" for number in cited_chunks],
+                "answer": answer_text,
                 "results": result_items,
             })
         except (RuntimeError, ValueError) as exc:
@@ -736,11 +858,14 @@ def compare_tables(
                 "model": model,
                 "temperature": temperature,
                 "top_k": top_k,
-                "reranking": reranking,
-                "rerank_model": rerank_model_value if reranking else None,
+                "rag_mode": rag_mode,
+                "rag_label": RAG_MODE_LABELS[rag_mode],
+                "reranking": reranking or advanced,
+                "rerank_model": rerank_model_value if (reranking or advanced) else None,
                 "status": "error",
                 "summary": "검색 또는 답변 생성 실패",
                 "answer": str(exc),
+                "meta": {"elapsed_ms": round((time.perf_counter() - panel_started) * 1000)},
                 "results": [],
             })
     return {
@@ -748,8 +873,10 @@ def compare_tables(
         "model": model,
         "temperature": temperature,
         "top_k": top_k,
-        "reranking": reranking,
-        "rerank_model": rerank_model_value if reranking else None,
+        "rag_mode": rag_mode,
+        "rag_label": RAG_MODE_LABELS[rag_mode],
+        "reranking": reranking or advanced,
+        "rerank_model": rerank_model_value if (reranking or advanced) else None,
         "panels": panels,
     }
 
@@ -815,6 +942,7 @@ def compare_legacy_tables(prompt: str, model: str = DEFAULT_CHAT_MODEL) -> dict[
     prompt_tokens = _tokens(prompt)
     panels = []
     for label, table in LEGACY_COMPARE_TABLES:
+        panel_started = time.perf_counter()
         try:
             rows = _request_legacy_table(table, limit=50)
             scored = []
@@ -862,6 +990,7 @@ def compare_legacy_tables(prompt: str, model: str = DEFAULT_CHAT_MODEL) -> dict[
                 "status": "error",
                 "summary": "테이블 조회 실패",
                 "answer": str(exc),
+                "meta": {"elapsed_ms": round((time.perf_counter() - panel_started) * 1000)},
                 "results": [],
             })
     return {"prompt": prompt, "model": model, "panels": panels}

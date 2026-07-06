@@ -499,6 +499,11 @@ async def app(scope, receive, send):
     const loadedProjects=__PROJECTS_JSON__;
     const projects=loadedProjects.length ? loadedProjects : fallbackProjects;
 
+    async function readJsonResponse(response){
+      const text=await response.text();
+      try{return JSON.parse(text)}catch(e){throw new Error(text.trim().slice(0,220)||`HTTP ${response.status} 응답을 해석하지 못했습니다.`)}
+    }
+
     function renderLegacyChunkingLab(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
@@ -529,7 +534,7 @@ async def app(scope, receive, send):
         runButton.disabled=true;setLoading();
         try{
           const r=await fetch('/api/chunking-legacy-compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,model:modelEl.value})});
-          const data=await r.json();
+          const data=await readJsonResponse(r);
           if(!r.ok)throw new Error(data.error||'비교 결과를 가져오지 못했습니다.');
           data.panels.forEach(renderPanel);
         }catch(e){
@@ -542,7 +547,7 @@ async def app(scope, receive, send):
     function renderChunkingRagLab(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="chunking-shell chunking-lab-v2"><div class="compare-grid-head"><h3>05. 청킹실습(과제)</h3><p>선택한 청킹 방식만 청킹, 임베딩, 질문 비교 대상으로 사용합니다.</p></div><div class="chunking-doc-grid"><label class="chunking-file">첨부 문서<input id="chunkingFileInput" type="file" accept=".hwpx,.txt,.md,.csv,.json,.html,.xml,.py,.js,.css,.log"><span id="chunkingFileName">텍스트 기반 문서 또는 .hwpx를 선택하세요.</span></label><div class="document-input"><label>문서 내용<textarea id="chunkingDocumentInput" placeholder="문서를 붙여넣거나 왼쪽에서 파일을 첨부하세요."></textarea></label></div></div><div class="strategy-picker"><div class="compare-grid-head"><h3>청킹 알고리즘 선택</h3><p>최대 3개까지 선택할 수 있습니다.</p></div><div class="strategy-grid"><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="fixed" checked><span><strong>고정 길이 청킹</strong><span>균일한 크기와 overlap으로 빠르게 분할</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="recursive" checked><span><strong>문단 우선 재귀 청킹</strong><span>문단과 문장 경계를 우선 보존</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="semantic" checked><span><strong>문장 윈도우 의미 청킹</strong><span>겹치는 문장 묶음으로 주변 의미 보존</span></span></label></div><div class="plan-actions"><button id="chunkingBuildButton" type="button">1. 청킹 실행</button><button id="chunkingEmbedButton" type="button" disabled>2. 임베딩 실행</button><span class="embed-status" id="chunkingEmbedProgress">(0/0 완료)</span><span class="embed-status" id="chunkingPlanStatus">문서를 준비하세요.</span></div></div><div class="chunking-plans" id="chunkingPlans"><div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div></div><div class="rag-console"><h3>질문 비교</h3><div class="chunking-controls"><label class="prompt-control">질문 입력<textarea id="chunkingPromptInput" placeholder="임베딩된 문서에 질문하세요.">이 문서의 핵심 내용을 요약해줘</textarea></label><label>모델 선택<select id="chunkingModelSelect"><option value="openai/gpt-4o-mini" selected>OpenRouter · gpt-4o-mini</option><option value="llama3.2:1b">Ollama · llama3.2:1b</option></select></label><label>Temperature<input id="chunkingTemperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label><label>Top-K<input id="chunkingTopK" type="number" min="1" max="10" step="1" value="5"></label><label class="rerank-option"><input id="chunkingRerankToggle" type="checkbox"><span>Reranking</span></label><button class="chunking-run" id="chunkingRunButton" type="button" disabled>3. 질문 실행</button></div><div class="chunking-note">진행 순서 · <b>1. 청킹 실행</b> 후 <b>2. 임베딩 실행</b>이 활성화되고, 임베딩 완료 후 <b>3. 질문 실행</b>이 활성화됩니다. 선택한 청킹 방식이 1개 또는 2개이면 해당 방식만 임베딩하고 검색합니다.</div><div class="chunking-compare vertical" id="chunkingCompare"><div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div></div></div></section>`;
+      projectLab.innerHTML=`<section class="chunking-shell chunking-lab-v2"><div class="compare-grid-head"><h3>05. 청킹실습(과제)</h3><p>선택한 청킹 방식만 청킹, 임베딩, 질문 비교 대상으로 사용합니다.</p></div><div class="chunking-doc-grid"><label class="chunking-file">첨부 문서<input id="chunkingFileInput" type="file" accept=".hwpx,.txt,.md,.csv,.json,.html,.xml,.py,.js,.css,.log"><span id="chunkingFileName">텍스트 기반 문서 또는 .hwpx를 선택하세요.</span></label><div class="document-input"><label>문서 내용<textarea id="chunkingDocumentInput" placeholder="문서를 붙여넣거나 왼쪽에서 파일을 첨부하세요."></textarea></label></div></div><div class="strategy-picker"><div class="compare-grid-head"><h3>청킹 알고리즘 선택</h3><p>최대 3개까지 선택할 수 있습니다.</p></div><div class="strategy-grid"><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="fixed" checked><span><strong>고정 길이 청킹</strong><span>균일한 크기와 overlap으로 빠르게 분할</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="recursive" checked><span><strong>문단 우선 재귀 청킹</strong><span>문단과 문장 경계를 우선 보존</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="semantic" checked><span><strong>문장 윈도우 의미 청킹</strong><span>겹치는 문장 묶음으로 주변 의미 보존</span></span></label></div><div class="plan-actions"><button id="chunkingBuildButton" type="button">1. 청킹 실행</button><button id="chunkingEmbedButton" type="button" disabled>2. 임베딩 실행</button><span class="embed-status" id="chunkingEmbedProgress">(0/0 완료)</span><span class="embed-status" id="chunkingPlanStatus">문서를 준비하세요.</span></div></div><div class="chunking-plans" id="chunkingPlans"><div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div></div><div class="rag-console"><h3>질문 비교</h3><div class="chunking-controls"><label class="prompt-control">질문 입력<textarea id="chunkingPromptInput" placeholder="임베딩된 문서에 질문하세요.">이 문서의 핵심 내용을 요약해줘</textarea></label><label>모델 선택<select id="chunkingModelSelect"><option value="openai/gpt-4o-mini" selected>OpenRouter · gpt-4o-mini</option><option value="llama3.2:1b">Ollama · llama3.2:1b</option></select></label><label>RAG 방식<select id="chunkingRagMode"><option value="both" selected>Naive + Advanced</option><option value="naive">Naive RAG</option><option value="advanced">Advanced RAG</option></select></label><label>Temperature<input id="chunkingTemperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label><label>Top-K<input id="chunkingTopK" type="number" min="1" max="10" step="1" value="5"></label><label class="rerank-option"><input id="chunkingRerankToggle" type="checkbox"><span>Reranking</span></label><button class="chunking-run" id="chunkingRunButton" type="button" disabled>3. 질문 실행</button></div><div class="chunking-note">진행 순서 · <b>1. 청킹 실행</b> 후 <b>2. 임베딩 실행</b>이 활성화되고, 임베딩 완료 후 <b>3. 질문 실행</b>이 활성화됩니다. 선택한 청킹 방식이 1개 또는 2개이면 해당 방식만 임베딩하고 검색합니다.</div><div class="chunking-compare vertical" id="chunkingCompare"><div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div></div></div></section>`;
       const sampleDoc=['인공지능 문서 검색 실습은 문서를 작은 조각으로 나누는 청킹 단계에서 시작합니다. 청킹 방식은 검색 정확도와 답변 품질에 직접적인 영향을 줍니다.','고정 길이 청킹은 구현이 쉽고 속도가 빠르지만 문장 경계를 끊을 수 있습니다. 문단 우선 재귀 청킹은 원문 구조를 더 잘 보존합니다. 문장 윈도우 의미 청킹은 주변 맥락을 겹쳐 담아 검색 누락을 줄이는 데 유리합니다.','각 청크는 임베딩 벡터로 변환되어 Supabase pgvector 테이블에 저장됩니다. 질문이 들어오면 질문도 벡터화한 뒤 유사도가 높은 청크를 검색하고, 선택한 LLM이 검색 문맥을 바탕으로 답변을 생성합니다.'].join('\n\n');
       const fileInput=document.getElementById('chunkingFileInput');
       const fileName=document.getElementById('chunkingFileName');
@@ -555,6 +560,7 @@ async def app(scope, receive, send):
       const compareEl=document.getElementById('chunkingCompare');
       const promptEl=document.getElementById('chunkingPromptInput');
       const modelEl=document.getElementById('chunkingModelSelect');
+      const ragModeEl=document.getElementById('chunkingRagMode');
       const temperatureEl=document.getElementById('chunkingTemperature');
       const topKEl=document.getElementById('chunkingTopK');
       const rerankEl=document.getElementById('chunkingRerankToggle');
@@ -610,39 +616,81 @@ async def app(scope, receive, send):
           embedButton.disabled=!currentPlans.length;
         }
       }
-      function snippetsFor(panel){return (panel.results||[]).map(item=>{const rerank=item.rerank_score!=null?` · rerank ${item.rerank_score}`:'';return `${item.rank}. score ${item.score}${rerank} · ${item.preview||''}`}).join('\n')||'검색 결과가 없습니다.'}
+      function snippetsFor(panel){return (panel.results||[]).map(item=>{const rerank=item.rerank_score!=null?` · rerank ${item.rerank_score}`:'';const queries=item.matched_queries?.length?` · query ${item.matched_queries.length}`:'';const citation=item.citation?`${item.citation} · `:'';return `${item.rank}. ${citation}score ${item.score}${rerank}${queries} · ${item.preview||''}`}).join('\n')||'검색 결과가 없습니다.'}
       function renderComparePanel(panel){
         const meta=panel.meta||{},badgeClass=panel.status==='ok'?'ok':'error';
-        const detailId=`chunk-detail-${panel.table}`;
-        const optionBadges=`<span class="compare-badge">T ${panel.temperature??0.2}</span><span class="compare-badge">Top-K ${panel.top_k??5}</span>${panel.reranking?`<span class="compare-badge">Cohere ${escapeHtml(panel.rerank_model||'rerank')}</span>`:''}`;
-        return `<article class="compare-panel ${panel.status==='error'?'error':''}" data-panel="${escapeHtml(panel.table)}"><div class="compare-head"><strong>청킹 방식 ${panel.slot}: ${escapeHtml(panel.label)}</strong><small>${escapeHtml(panel.table)}</small><div class="compare-meta"><span class="compare-badge ${badgeClass}">${panel.status==='ok'?'조회 완료':'오류'}</span><span class="compare-badge">${escapeHtml(panel.model)}</span>${optionBadges}${panel.embedding_provider?`<span class="compare-badge">${escapeHtml(panel.embedding_provider)}</span>`:''}${panel.actual_table&&panel.actual_table!==panel.table?`<span class="compare-badge">실제 ${escapeHtml(panel.actual_table)}</span>`:''}</div><div class="compare-stats"><div class="compare-stat"><b>${meta.total_rows??0}</b><span>총문서</span></div><div class="compare-stat"><b>${meta.top_count??0}</b><span>비교조각</span></div><div class="compare-stat"><b>${meta.top_score??0}</b><span>최고점수</span></div><div class="compare-stat"><b>${meta.avg_score??0}</b><span>평균점수</span></div></div></div><div class="compare-body"><div class="compare-status">${escapeHtml(panel.summary||'')}${panel.warning?' · 임베딩 fallback 사용':''}</div><label class="compare-status">검색 결과<textarea class="result-snippets" rows="5" readonly>${escapeHtml(snippetsFor(panel))}</textarea></label><div class="compare-answer"><span>LLM ANSWER</span><pre>${escapeHtml(panel.answer||'')}</pre></div><button class="compare-chunk-button" data-detail-panel="${escapeHtml(panel.table)}" type="button">비교 청크 내용 보기</button><div class="compare-chunk-detail" id="${detailId}" hidden>${(panel.results||[]).map(item=>`<article class="compare-chunk"><strong>${item.rank}. ${escapeHtml(item.title)} · score ${item.score}${item.rerank_score!=null?` · rerank ${item.rerank_score}`:''}</strong><pre>${escapeHtml(item.content||item.preview||'')}</pre></article>`).join('')||'<div class="compare-empty">표시할 청크가 없습니다.</div>'}</div></div></article>`
+        const detailId=`chunk-detail-${panel.table}-${panel.rag_mode||'naive'}`;
+        const elapsed=meta.elapsed_ms!=null?`${(meta.elapsed_ms/1000).toFixed(1)}s`:'';
+        const optionBadges=`<span class="compare-badge">RAG ${escapeHtml(panel.rag_label||panel.rag_mode||'Naive')}</span><span class="compare-badge">T ${panel.temperature??0.2}</span><span class="compare-badge">Top-K ${panel.top_k??5}</span>${meta.query_count?`<span class="compare-badge">Query ${meta.query_count}</span>`:''}${meta.context_compression?'<span class="compare-badge">Context 압축</span>':''}${meta.answer_chars?`<span class="compare-badge">답변 ${meta.answer_chars}자</span>`:''}${elapsed?`<span class="compare-badge">${elapsed}</span>`:''}${meta.citation_count!=null?`<span class="compare-badge">근거 ${meta.citation_count}개</span>`:''}${panel.reranking?`<span class="compare-badge">Cohere ${escapeHtml(panel.rerank_model||'rerank')}</span>`:''}`;
+        const queryInfo=panel.query_variants?.length?`<div class="compare-status">질의 변형 · ${escapeHtml(panel.query_variants.join(' / '))}</div>`:'';
+        const citationInfo=panel.citations?.length?`<div class="compare-status">답변 인용 · ${escapeHtml(panel.citations.join(', '))}</div>`:'';
+        return `<article class="compare-panel ${panel.status==='error'?'error':''}" data-panel="${escapeHtml(panel.table)}-${escapeHtml(panel.rag_mode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${panel.slot}: ${escapeHtml(panel.label)}</strong><small>${escapeHtml(panel.table)} · ${escapeHtml(panel.rag_label||panel.rag_mode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge ${badgeClass}">${panel.status==='ok'?'조회 완료':'오류'}</span><span class="compare-badge">${escapeHtml(panel.model)}</span>${optionBadges}${panel.embedding_provider?`<span class="compare-badge">${escapeHtml(panel.embedding_provider)}</span>`:''}${panel.actual_table&&panel.actual_table!==panel.table?`<span class="compare-badge">실제 ${escapeHtml(panel.actual_table)}</span>`:''}</div><div class="compare-stats"><div class="compare-stat"><b>${meta.total_rows??0}</b><span>총문서</span></div><div class="compare-stat"><b>${meta.top_count??0}</b><span>비교조각</span></div><div class="compare-stat"><b>${meta.top_score??0}</b><span>최고점수</span></div><div class="compare-stat"><b>${meta.avg_score??0}</b><span>평균점수</span></div></div></div><div class="compare-body"><div class="compare-status">${escapeHtml(panel.summary||'')}${panel.warning?' · '+escapeHtml(panel.warning):''}</div>${queryInfo}${citationInfo}<label class="compare-status">검색 결과<textarea class="result-snippets" rows="5" readonly>${escapeHtml(snippetsFor(panel))}</textarea></label><div class="compare-answer"><span>LLM ANSWER</span><pre>${escapeHtml(panel.answer||'')}</pre></div><button class="compare-chunk-button" data-detail-panel="${detailId}" type="button">비교 청크 내용 보기</button><div class="compare-chunk-detail" id="${detailId}" hidden>${(panel.results||[]).map(item=>`<article class="compare-chunk"><strong>${item.rank}. ${escapeHtml(item.citation||'검색 조각 '+item.rank)} · ${escapeHtml(item.title)} · score ${item.score}${item.rerank_score!=null?` · rerank ${item.rerank_score}`:''}</strong>${item.matched_queries?.length?`<small>matched · ${escapeHtml(item.matched_queries.join(' / '))}</small>`:''}<pre>${escapeHtml(item.content||item.preview||'')}</pre></article>`).join('')||'<div class="compare-empty">표시할 청크가 없습니다.</div>'}</div></div></article>`
       }
-      function setCompareLoading(){const panels=currentPlans.filter(plan=>embeddedTables.includes(plan.table));compareEl.innerHTML=panels.map(plan=>`<article class="compare-panel compare-loading"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)}</small><div class="compare-meta"><span class="compare-badge">조회 중</span></div></div><div class="compare-body"><div class="compare-answer"><span>LLM ANSWER</span><pre>Supabase에서 유사 청크를 검색하고 있습니다...</pre></div></div></article>`).join('')}
+      function renderProgressPanel(plan,state='pending',message='이전 청킹 방식 답변이 끝나면 시작합니다.'){
+        const badge=state==='active'?'생성 중':state==='done'?'완료':'대기 중';
+        const body=state==='active'?'임시 출력':'진행 상태';
+        return `<article class="compare-panel compare-loading" data-panel="${escapeHtml(plan.table)}-${escapeHtml(plan.ragMode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)} · ${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge">${badge}</span><span class="compare-badge">${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</span><span class="compare-badge">순차 실행</span></div></div><div class="compare-body"><div class="compare-answer"><span>${body}</span><pre>${escapeHtml(message)}</pre></div></div></article>`
+      }
+      function renderCompareErrorPanel(plan,message){
+        return `<article class="compare-panel error" data-panel="${escapeHtml(plan.table)}-${escapeHtml(plan.ragMode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)} · ${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge error">오류</span></div></div><div class="compare-body"><div class="compare-answer"><span>ERROR</span><pre>${escapeHtml(message)}</pre></div></div></article>`
+      }
+      function compareKey(plan){return `${plan.table}-${plan.ragMode||'naive'}`}
+      function selectedRagModes(){return ragModeEl.value==='both'?['naive','advanced']:[ragModeEl.value]}
+      function compareJobs(){return currentPlans.filter(plan=>embeddedTables.includes(plan.table)).flatMap(plan=>selectedRagModes().map(mode=>({...plan,ragMode:mode,ragLabel:mode==='advanced'?'Advanced RAG':'Naive RAG'})))}
+      function replaceComparePanel(key,html){
+        const current=compareEl.querySelector(`[data-panel="${key}"]`);
+        if(current)current.outerHTML=html;else compareEl.insertAdjacentHTML('beforeend',html);
+      }
+      function setCompareLoading(){const panels=compareJobs();compareEl.innerHTML=panels.map((plan,index)=>renderProgressPanel(plan,index===0?'active':'pending',index===0?'Supabase에서 유사 청크를 검색하고 LLM 답변 생성을 시작합니다.':'앞선 비교 답변이 완료되면 자동으로 시작합니다.')).join('')}
       async function runCompare(){
         const prompt=promptEl.value.trim();
         if(!prompt){alert('질문을 입력하세요.');return;}
         if(!embeddedTables.length){alert('먼저 임베딩을 실행하세요.');return;}
+        const panels=compareJobs();
+        if(!panels.length){alert('질문을 실행할 청킹 방식이 없습니다.');return;}
         const rawTemperature=Number(temperatureEl.value||0.2);
         const rawTopK=parseInt(topKEl.value||'5',10);
         const temperature=Number.isFinite(rawTemperature)?Math.max(0,Math.min(1.5,rawTemperature)):0.2;
         const topK=Number.isFinite(rawTopK)?Math.max(1,Math.min(10,rawTopK)):5;
         temperatureEl.value=String(temperature);topKEl.value=String(topK);
         runButton.disabled=true;setCompareLoading();
+        let completed=0;
         try{
-          const r=await fetch('/api/chunking-compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,model:modelEl.value,tables:embeddedTables,temperature,top_k:topK,reranking:rerankEl.checked,rerank_model:'rerank-v4.0-fast'})});
-          const data=await r.json();
-          if(!r.ok)throw new Error(data.error||'비교 결과를 가져오지 못했습니다.');
-          compareEl.innerHTML=data.panels.map(renderComparePanel).join('')
-        }catch(e){
-          compareEl.innerHTML=`<article class="compare-panel error"><div class="compare-body"><div class="compare-answer"><span>ERROR</span><pre>${escapeHtml(e.message)}</pre></div></div></article>`
+          for(const plan of panels){
+            planStatus.textContent=`질문 실행 중... ${completed+1}/${panels.length} · ${plan.label} · ${plan.ragLabel}`;
+            const progressMessages=['Supabase에서 유사 청크를 검색하는 중입니다.','검색된 청크를 질문 문맥으로 정리하고 있습니다.','LLM 답변을 생성하는 중입니다.','응답이 길어질 수 있어 조금만 더 기다려주세요.'];
+            let progressIndex=0;
+            replaceComparePanel(compareKey(plan),renderProgressPanel(plan,'active',progressMessages[progressIndex]));
+            const progressTimer=setInterval(()=>{
+              progressIndex=Math.min(progressIndex+1,progressMessages.length-1);
+              replaceComparePanel(compareKey(plan),renderProgressPanel(plan,'active',progressMessages[progressIndex]));
+            },2500);
+            try{
+              const r=await fetch('/api/chunking-compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,model:modelEl.value,tables:[plan.table],rag_mode:plan.ragMode,temperature,top_k:topK,reranking:rerankEl.checked,rerank_model:'rerank-v4.0-fast'})});
+              const data=await readJsonResponse(r);
+              if(!r.ok)throw new Error(data.error||'비교 결과를 가져오지 못했습니다.');
+              const panel=data.panels?.[0];
+              if(!panel)throw new Error('응답 패널이 비어 있습니다.');
+              replaceComparePanel(compareKey(plan),renderComparePanel(panel));
+            }catch(e){
+              replaceComparePanel(compareKey(plan),renderCompareErrorPanel(plan,e.message));
+            }finally{
+              clearInterval(progressTimer);
+              completed+=1;
+            }
+          }
+          planStatus.textContent=`질문 실행 완료 · ${completed}/${panels.length}`;
         }finally{runButton.disabled=false}
       }
       compareEl.addEventListener('click',e=>{const button=e.target.closest('[data-detail-panel]');if(!button)return;const detail=document.getElementById(`chunk-detail-${button.dataset.detailPanel}`);if(!detail)return;detail.hidden=!detail.hidden;button.textContent=detail.hidden?'비교 청크 내용 보기':'비교 청크 내용 닫기'});
       buildButton.onclick=buildChunks;embedButton.onclick=embedAllPlans;runButton.onclick=runCompare;resetExecution('청킹 실행 전입니다.');
     }
 
+    function lastProjectId(){return projects.at(-1)?.id||projects[0]?.id||''}
+    let currentProjectId=lastProjectId();
     function renderProject(id){
       const p=projects.find(x=>x.id===id)||projects[0];
+      currentProjectId=p.id;
       document.querySelectorAll('.project-button').forEach(b=>b.classList.toggle('active',b.dataset.id===p.id));
       projectMeta.innerHTML=p.tags.map(x=>`<span>${x}</span>`).join(''); projectTitle.textContent=p.title; projectSummary.textContent=p.summary;
       if(p.id==='chunking-lab'){
@@ -655,9 +703,15 @@ async def app(scope, receive, send):
         projectFeatures.innerHTML=p.features.map(x=>`<div class="feature"><b>${x[0]}</b><span>${x[1]}</span></div>`).join(''); codeFile.textContent=p.file; projectCode.textContent=p.code;
         projectUsage.innerHTML=p.usage.map(x=>`<li>${x}</li>`).join(''); projectNote.textContent=p.note;
       }
+      return p;
     }
+    function projectIdFromLocation(){
+      const pathMatch=location.pathname.match(/^\/portfolio\/([^/?#]+)/);
+      return pathMatch ? decodeURIComponent(pathMatch[1]) : new URLSearchParams(location.search).get('project');
+    }
+    function projectUrl(id){return `/portfolio?project=${encodeURIComponent(id)}`}
     projectList.innerHTML=projects.map(p=>`<button class="project-button" data-id="${p.id}"><strong>${p.no}. ${p.title}</strong><small>${p.date}</small></button>`).join('');
-    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){renderProject(b.dataset.id);closeMobileDrawers()}}); renderProject(projects[0].id);
+    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){const p=renderProject(b.dataset.id);if(document.body.classList.contains('portfolio-mode'))history.pushState({},'',projectUrl(p.id));closeMobileDrawers()}}); renderProject(projectIdFromLocation()||lastProjectId());
     const drawerBackdrop=document.getElementById('drawerBackdrop'),chatDrawerToggle=document.getElementById('chatDrawerToggle'),projectDrawerToggle=document.getElementById('projectDrawerToggle'),chatSidebarEl=document.getElementById('chatSidebar'),projectSideMenuEl=document.getElementById('projectSideMenu');
     function setDrawerState(type,open){
       const className=type==='chat'?'chat-drawer-open':'project-drawer-open';
@@ -742,7 +796,7 @@ async def app(scope, receive, send):
     }
     document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessage(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};
     document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessage(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{const saved=localStorage.getItem('minzday.selectedModel');if(saved&&[...modelSelectEl.options].some(o=>o.value===saved))modelSelectEl.value=saved;loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
-    function showPage(page,push=false){const portfolio=page==='portfolio';closeMobileDrawers();document.body.classList.toggle('portfolio-mode',portfolio);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(push)history.pushState({},'',portfolio?'/portfolio':'/');scrollTo(0,0)}
+    function showPage(page,push=false,projectId=null){const portfolio=page==='portfolio';const requestedProject=portfolio?(projectId||projectIdFromLocation()||(push?lastProjectId():currentProjectId||lastProjectId())):null;closeMobileDrawers();document.body.classList.toggle('portfolio-mode',portfolio);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(portfolio)renderProject(requestedProject);if(push)history.pushState({},'',portfolio?(requestedProject?projectUrl(requestedProject):'/portfolio'):'/');scrollTo(0,0)}
     document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(location.pathname.startsWith('/portfolio')?'portfolio':'home'));showPage(location.pathname.startsWith('/portfolio')?'portfolio':'home');
   </script>
 </body>
@@ -860,7 +914,7 @@ async def app(scope, receive, send):
                 raise ValueError("잘못된 대화 이력 형식입니다.")
             result = await asyncio.to_thread(save_history, {key: record[key] for key in required})
             body = json.dumps({"saved": True, "item": result}, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 503
             body = json.dumps({"saved": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -893,7 +947,7 @@ async def app(scope, receive, send):
                 for model in result.get("models", [])
             ]
             body = json.dumps({"models": models}, ensure_ascii=False).encode("utf-8")
-        except (OSError, url_error.URLError, json.JSONDecodeError) as error:
+        except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
             status = 503
             body = json.dumps({"error": f"Ollama 연결 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -902,7 +956,7 @@ async def app(scope, receive, send):
             payload = json.loads((await read_request_body(receive)).decode("utf-8"))
             result = await asyncio.to_thread(extract_hwpx_payload, payload.get("filename", ""), payload.get("data_base64", ""))
             body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 400
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -911,7 +965,7 @@ async def app(scope, receive, send):
             payload = json.loads((await read_request_body(receive)).decode("utf-8"))
             result = await asyncio.to_thread(compare_legacy_tables, payload.get("prompt", ""), payload.get("model", "openai/gpt-4o-mini"))
             body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 502
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -920,7 +974,7 @@ async def app(scope, receive, send):
             payload = json.loads((await read_request_body(receive)).decode("utf-8"))
             result = await asyncio.to_thread(chunk_document, payload.get("text", ""), payload.get("strategies", []))
             body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 400
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -934,7 +988,7 @@ async def app(scope, receive, send):
             else:
                 result = await asyncio.to_thread(embed_plan, payload.get("plan", {}))
                 body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 502
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -949,9 +1003,10 @@ async def app(scope, receive, send):
                 top_k=payload.get("top_k", 5),
                 reranking=payload.get("reranking", False),
                 rerank_model=payload.get("rerank_model"),
+                rag_mode=payload.get("rag_mode", "naive"),
             ))
             body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, RuntimeError, json.JSONDecodeError) as error:
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 502
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
@@ -961,7 +1016,7 @@ async def app(scope, receive, send):
             if not payload.get("model") or not payload.get("messages"):
                 raise ValueError("모델과 메시지가 필요합니다.")
             max_tokens = max(64, min(int(payload.get("max_tokens", 256)), 1024))
-        except (ValueError, OSError, url_error.URLError, json.JSONDecodeError) as error:
+        except (ValueError, OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
             status = 502
             body = json.dumps({"error": f"응답 생성 실패: {error}"}, ensure_ascii=False).encode("utf-8")
             content_type = "application/json; charset=utf-8"
@@ -996,7 +1051,7 @@ async def app(scope, receive, send):
                 try:
                     for chunk in iter_ollama_stream("/api/chat", stream_payload):
                         loop.call_soon_threadsafe(queue.put_nowait, ("chunk", chunk))
-                except (OSError, url_error.URLError, json.JSONDecodeError) as error:
+                except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
                     loop.call_soon_threadsafe(queue.put_nowait, ("error", f"응답 생성 실패: {error}"))
                 finally:
                     loop.call_soon_threadsafe(queue.put_nowait, ("eof", None))
