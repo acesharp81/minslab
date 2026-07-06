@@ -460,41 +460,8 @@ HTML_PAGE = r"""
     const info={data:['INGREDIENT 01','경험을 숫자로 바꾼 데이터','사진, 문장, 소리처럼 세상에서 수집한 사례를 컴퓨터가 읽을 수 있는 숫자로 표현합니다. 데이터의 다양성과 품질은 AI가 바라보는 세계의 경계를 결정합니다.'],model:['INGREDIENT 02','패턴을 담는 계산 구조','모델은 입력을 출력으로 바꾸는 거대한 수학 함수입니다. 수많은 가중치가 어떤 특징에 주목하고 어떻게 조합할지 기억합니다.'],learn:['INGREDIENT 03','실수에서 규칙을 찾는 학습','예측과 정답 사이의 오차를 구하고, 오차가 줄어드는 방향으로 가중치를 조금씩 수정합니다. 이 반복이 기계가 경험을 쌓는 방식입니다.'],infer:['INGREDIENT 04','배운 것을 적용하는 추론','새로운 입력이 들어오면 저장된 패턴으로 가장 가능성 높은 결과를 계산합니다. 챗봇의 답변도 다음 단어를 연속해서 추론한 결과입니다.']};
     document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelector('.tab.active').classList.remove('active');b.classList.add('active');const x=info[b.dataset.key];tag.textContent=x[0];title.textContent=x[1];desc.textContent=x[2]});
 
-    // 새 실습은 아래 배열에 항목 하나만 추가하면 좌측 메뉴와 본문에 자동 반영됩니다.
-    const fallbackProjects=[
-      {id:'calculator',no:'01',date:'Python Basics',title:'함수로 만든 미니 계산기',summary:'조건문과 함수를 이용해 사칙연산을 처리하는 첫 번째 Python 실습입니다.',description:'입력값과 연산자를 함수에 전달하고, 잘못된 연산이나 0으로 나누는 상황을 안전하게 처리했습니다. 작은 예제지만 함수의 책임 분리와 예외 처리의 기초를 담았습니다.',tags:['Python','함수','예외 처리'],features:[['함수 분리','연산 로직을 calculate 함수 하나로 분리했습니다.'],['안전한 입력','지원하지 않는 연산과 0 나누기를 검사합니다.']],file:'calculator.py',code:`def calculate(a, operator, b):
-    if operator == "+":
-        return a + b
-    if operator == "-":
-        return a - b
-    if operator == "*":
-        return a * b
-    if operator == "/" and b != 0:
-        return a / b
-    raise ValueError("올바른 연산을 입력하세요")
-
-print(calculate(12, "*", 3))`,usage:['calculator.py 파일로 저장합니다.','터미널에서 python calculator.py를 실행합니다.','calculate 함수의 숫자와 연산자를 바꿔 결과를 확인합니다.'],note:'배운 점 · 반복되는 계산을 함수로 묶으면 코드의 의도가 선명해지고 테스트도 쉬워집니다.'},
-      {id:'data',no:'02',date:'Data Analysis',title:'CSV 데이터 요약 리포트',summary:'Pandas로 CSV 파일을 읽고 핵심 통계와 결측치를 빠르게 확인하는 실습입니다.',description:'데이터 분석을 시작할 때 가장 먼저 수행하는 구조 확인, 기초 통계, 결측치 집계를 하나의 함수로 정리했습니다. 다양한 CSV 파일에 재사용할 수 있습니다.',tags:['Python','Pandas','CSV'],features:[['빠른 탐색','행·열 크기와 통계 요약을 한 번에 출력합니다.'],['품질 점검','열별 결측치 개수를 자동으로 집계합니다.']],file:'report.py',code:`import pandas as pd
-
-def create_report(file_path):
-    data = pd.read_csv(file_path)
-    print(f"데이터 크기: {data.shape}")
-    print(data.describe(include="all"))
-    print("\\n결측치")
-    print(data.isna().sum())
-
-create_report("sample.csv")`,usage:['pip install pandas로 라이브러리를 설치합니다.','분석할 파일을 sample.csv 이름으로 준비합니다.','python report.py를 실행해 요약 결과를 확인합니다.'],note:'확장 아이디어 · Matplotlib 그래프와 HTML 리포트 저장 기능을 다음 단계로 추가할 수 있습니다.'},
-      {id:'api',no:'03',date:'Web API',title:'Uvicorn 헬스체크 API',summary:'ASGI 규격을 이해하고 서비스 상태를 JSON으로 응답하는 간단한 웹 API입니다.',description:'웹 서버와 애플리케이션이 통신하는 ASGI 구조를 직접 구현했습니다. 운영 환경에서 프록시가 서비스 생존 여부를 확인하는 /health 경로도 제공합니다.',tags:['Python','ASGI','Uvicorn'],features:[['표준 인터페이스','프레임워크 없이 ASGI 요청·응답 흐름을 익혔습니다.'],['상태 확인','/health에서 일관된 JSON 응답을 반환합니다.']],file:'main.py',code:`import json
-
-async def app(scope, receive, send):
-    body = json.dumps({"status": "healthy"}).encode()
-    await send({
-        "type": "http.response.start",
-        "status": 200,
-        "headers": [(b"content-type", b"application/json")],
-    })
-    await send({"type": "http.response.body", "body": body})`,usage:['pip install uvicorn으로 서버를 설치합니다.','uvicorn main:app --reload 명령을 실행합니다.','브라우저에서 http://127.0.0.1:8000/health를 엽니다.'],note:'현재 이 포트폴리오 사이트 자체가 같은 방식으로 서비스되고 있습니다.'}
-    ];
+    // 파일 기반 projects/*/project.json 로딩이 실패하면 빈 상태를 유지합니다.
+    const fallbackProjects=[];
 
     const loadedProjects=__PROJECTS_JSON__;
     const projects=loadedProjects.length ? loadedProjects : fallbackProjects;
@@ -547,7 +514,7 @@ async def app(scope, receive, send):
     function renderChunkingRagLab(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="chunking-shell chunking-lab-v2"><div class="compare-grid-head"><h3>05. 청킹실습(과제)</h3><p>선택한 청킹 방식만 청킹, 임베딩, 질문 비교 대상으로 사용합니다.</p></div><div class="chunking-doc-grid"><label class="chunking-file">첨부 문서<input id="chunkingFileInput" type="file" accept=".hwpx,.txt,.md,.csv,.json,.html,.xml,.py,.js,.css,.log"><span id="chunkingFileName">텍스트 기반 문서 또는 .hwpx를 선택하세요.</span></label><div class="document-input"><label>문서 내용<textarea id="chunkingDocumentInput" placeholder="문서를 붙여넣거나 왼쪽에서 파일을 첨부하세요."></textarea></label></div></div><div class="strategy-picker"><div class="compare-grid-head"><h3>청킹 알고리즘 선택</h3><p>최대 3개까지 선택할 수 있습니다.</p></div><div class="strategy-grid"><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="fixed" checked><span><strong>고정 길이 청킹</strong><span>균일한 크기와 overlap으로 빠르게 분할</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="recursive" checked><span><strong>문단 우선 재귀 청킹</strong><span>문단과 문장 경계를 우선 보존</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="semantic" checked><span><strong>문장 윈도우 의미 청킹</strong><span>겹치는 문장 묶음으로 주변 의미 보존</span></span></label></div><div class="plan-actions"><button id="chunkingBuildButton" type="button">1. 청킹 실행</button><button id="chunkingEmbedButton" type="button" disabled>2. 임베딩 실행</button><span class="embed-status" id="chunkingEmbedProgress">(0/0 완료)</span><span class="embed-status" id="chunkingPlanStatus">문서를 준비하세요.</span></div></div><div class="chunking-plans" id="chunkingPlans"><div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div></div><div class="rag-console"><h3>질문 비교</h3><div class="chunking-controls"><label class="prompt-control">질문 입력<textarea id="chunkingPromptInput" placeholder="임베딩된 문서에 질문하세요.">이 문서의 핵심 내용을 요약해줘</textarea></label><label>모델 선택<select id="chunkingModelSelect"><option value="openai/gpt-4o-mini" selected>OpenRouter · gpt-4o-mini</option><option value="llama3.2:1b">Ollama · llama3.2:1b</option></select></label><label>RAG 방식<select id="chunkingRagMode"><option value="both" selected>Naive + Advanced</option><option value="naive">Naive RAG</option><option value="advanced">Advanced RAG</option></select></label><label>Temperature<input id="chunkingTemperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label><label>Top-K<input id="chunkingTopK" type="number" min="1" max="10" step="1" value="5"></label><label class="rerank-option"><input id="chunkingRerankToggle" type="checkbox"><span>Reranking</span></label><button class="chunking-run" id="chunkingRunButton" type="button" disabled>3. 질문 실행</button></div><div class="chunking-note">진행 순서 · <b>1. 청킹 실행</b> 후 <b>2. 임베딩 실행</b>이 활성화되고, 임베딩 완료 후 <b>3. 질문 실행</b>이 활성화됩니다. 선택한 청킹 방식이 1개 또는 2개이면 해당 방식만 임베딩하고 검색합니다.</div><div class="chunking-compare vertical" id="chunkingCompare"><div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div></div></div></section>`;
+      projectLab.innerHTML=`<section class="chunking-shell chunking-lab-v2"><div class="compare-grid-head"><h3>02. 청킹실습(과제)</h3><p>선택한 청킹 방식만 청킹, 임베딩, 질문 비교 대상으로 사용합니다.</p></div><div class="chunking-doc-grid"><label class="chunking-file">첨부 문서<input id="chunkingFileInput" type="file" accept=".hwpx,.txt,.md,.csv,.json,.html,.xml,.py,.js,.css,.log"><span id="chunkingFileName">텍스트 기반 문서 또는 .hwpx를 선택하세요.</span></label><div class="document-input"><label>문서 내용<textarea id="chunkingDocumentInput" placeholder="문서를 붙여넣거나 왼쪽에서 파일을 첨부하세요."></textarea></label></div></div><div class="strategy-picker"><div class="compare-grid-head"><h3>청킹 알고리즘 선택</h3><p>최대 3개까지 선택할 수 있습니다.</p></div><div class="strategy-grid"><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="fixed" checked><span><strong>고정 길이 청킹</strong><span>균일한 크기와 overlap으로 빠르게 분할</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="recursive" checked><span><strong>문단 우선 재귀 청킹</strong><span>문단과 문장 경계를 우선 보존</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="semantic" checked><span><strong>문장 윈도우 의미 청킹</strong><span>겹치는 문장 묶음으로 주변 의미 보존</span></span></label></div><div class="plan-actions"><button id="chunkingBuildButton" type="button">1. 청킹 실행</button><button id="chunkingEmbedButton" type="button" disabled>2. 임베딩 실행</button><span class="embed-status" id="chunkingEmbedProgress">(0/0 완료)</span><span class="embed-status" id="chunkingPlanStatus">문서를 준비하세요.</span></div></div><div class="chunking-plans" id="chunkingPlans"><div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div></div><div class="rag-console"><h3>질문 비교</h3><div class="chunking-controls"><label class="prompt-control">질문 입력<textarea id="chunkingPromptInput" placeholder="임베딩된 문서에 질문하세요.">이 문서의 핵심 내용을 요약해줘</textarea></label><label>모델 선택<select id="chunkingModelSelect"><option value="openai/gpt-4o-mini" selected>OpenRouter · gpt-4o-mini</option><option value="llama3.2:1b">Ollama · llama3.2:1b</option></select></label><label>RAG 방식<select id="chunkingRagMode"><option value="both" selected>Naive + Advanced</option><option value="naive">Naive RAG</option><option value="advanced">Advanced RAG</option></select></label><label>Temperature<input id="chunkingTemperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label><label>Top-K<input id="chunkingTopK" type="number" min="1" max="10" step="1" value="5"></label><label class="rerank-option"><input id="chunkingRerankToggle" type="checkbox"><span>Reranking</span></label><button class="chunking-run" id="chunkingRunButton" type="button" disabled>3. 질문 실행</button></div><div class="chunking-note">진행 순서 · <b>1. 청킹 실행</b> 후 <b>2. 임베딩 실행</b>이 활성화되고, 임베딩 완료 후 <b>3. 질문 실행</b>이 활성화됩니다. 선택한 청킹 방식이 1개 또는 2개이면 해당 방식만 임베딩하고 검색합니다.</div><div class="chunking-compare vertical" id="chunkingCompare"><div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div></div></div></section>`;
       const sampleDoc=['인공지능 문서 검색 실습은 문서를 작은 조각으로 나누는 청킹 단계에서 시작합니다. 청킹 방식은 검색 정확도와 답변 품질에 직접적인 영향을 줍니다.','고정 길이 청킹은 구현이 쉽고 속도가 빠르지만 문장 경계를 끊을 수 있습니다. 문단 우선 재귀 청킹은 원문 구조를 더 잘 보존합니다. 문장 윈도우 의미 청킹은 주변 맥락을 겹쳐 담아 검색 누락을 줄이는 데 유리합니다.','각 청크는 임베딩 벡터로 변환되어 Supabase pgvector 테이블에 저장됩니다. 질문이 들어오면 질문도 벡터화한 뒤 유사도가 높은 청크를 검색하고, 선택한 LLM이 검색 문맥을 바탕으로 답변을 생성합니다.'].join('\n\n');
       const fileInput=document.getElementById('chunkingFileInput');
       const fileName=document.getElementById('chunkingFileName');

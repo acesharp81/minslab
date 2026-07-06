@@ -7,11 +7,11 @@
 - Local AI chat UI backed by Ollama, with conversation history support through Supabase.
 - Portfolio pages for Python, ASGI, data analysis, and RAG practice projects.
 - Responsive desktop, tablet, and mobile layout with drawer menus for chat history and project navigation.
-- `05. 청킹실습(과제)` lab for document upload, chunking, embedding, and RAG answer comparison.
+- `02. 청킹실습(과제)` lab for document upload, chunking, embedding, and RAG answer comparison.
 - `.hwpx` text extraction from `Contents/section*.xml` files.
 - Naive RAG vs Advanced RAG comparison with sequential answer generation, live progress cards, citations, and an evaluation summary card.
 
-## Project 05: Chunking / Embedding / RAG Lab
+## Project 02: Chunking / Embedding / RAG Lab
 
 The fifth portfolio project is the main RAG experiment page.
 
@@ -91,7 +91,7 @@ The API already accepts optional `account_id` and `scope_type` fields so a futur
 
 ## Supabase Tables
 
-Project 05 expects three pgvector-backed tables for selected chunking strategies:
+Project 02 expects three pgvector-backed tables for selected chunking strategies:
 
 - `chucking_test1`
 - `chucking_test2`

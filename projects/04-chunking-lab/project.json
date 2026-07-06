@@ -1,6 +1,6 @@
 {
   "id": "chunking-lab",
-  "order": 4,
+  "order": 1,
   "title": "청킹 실습",
   "date": "Vector DB / RAG",
   "summary": "Supabase 벡터DB를 바탕으로 청킹 전략별 답변 품질 차이를 비교하는 시뮬레이션 화면입니다.",
