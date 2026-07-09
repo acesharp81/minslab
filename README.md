@@ -5,11 +5,35 @@
 ## What This App Includes
 
 - Local AI chat UI backed by Ollama, with conversation history support through Supabase.
-- Portfolio pages for Python, ASGI, data analysis, and RAG practice projects.
+- Portfolio and PoC archive pages for Python, ASGI, data analysis, RAG, and disaster-safety experiments.
 - Responsive desktop, tablet, and mobile layout with drawer menus for chat history and project navigation.
 - `02. 청킹실습(과제)` lab for document upload, chunking, embedding, and RAG answer comparison.
 - `.hwpx` text extraction from `Contents/section*.xml` files.
 - Naive RAG vs Advanced RAG comparison with sequential answer generation, live progress cards, citations, and an evaluation summary card.
+- `01. AI Safe Agent` PoC for GPS-based disaster risk lookup, KMA rainfall trends, nearby shelters, and LLM safety reports.
+
+## Project 01: AI Safe Agent PoC
+
+The first PoC project combines live weather, spatial disaster records, and selectable LLM reporting for a user-selected location.
+
+Workflow:
+
+1. Open `/poc` and select `01. AI Safe Agent`.
+2. Allow GPS location access, click the map, choose a saved preset, or enter coordinates manually.
+3. Review the 500m radius map markers, compact risk/shelter counters, and legal-dong label when reverse geocoding is configured.
+4. Run analysis to fetch KMA rainfall data and generate an AI disaster-safety report.
+
+AI Safe Agent UI includes:
+
+- Initial GPS-based map positioning with graceful fallback to the default Seoul City Hall coordinates.
+- First map/project selection scroll behavior that centers the map for faster mobile use.
+- A single-line rainfall trend graph from 6 hours ago through 6 hours ahead, sampled hourly.
+- Compact counters for nearby risk history and shelters.
+- Expandable analysis data for flood traces, landslide records, human-casualty risk zones, and shelters.
+- Detail rows that include event dates for risk history and straight-line distance for shelters.
+- A server-side knowledge-base build endpoint that generates dated PKL files from public data sources.
+
+Generated PoC datasets such as CSV snapshots and `integrated_disaster_kb_*.pkl` files are intentionally ignored by Git. Rebuild them locally with the in-app `기초 데이터 만들기` action or the `PoC/01-AISafeAgent/import.py` script.
 
 ## Project 02: Chunking / Embedding / RAG Lab
 
@@ -67,9 +91,13 @@ Required for full functionality:
 Optional:
 
 - `OLLAMA_BASE_URL`, defaults to `http://127.0.0.1:11434`
+- `OPENROUTER_BASE_URL`, defaults to `https://openrouter.ai/api/v1`
 - `OPENROUTER_EMBEDDING_MODEL`, defaults to `openai/text-embedding-3-small`
 - `COHERE_API_KEY`, required for Cohere reranking
 - `COHERE_RERANK_MODEL`, defaults to `rerank-v4.0-fast`
+- `HF_API_KEY`, `KMA_AUTH_KEY`, and public-data keys for full AI Safe Agent functionality
+- `KAKAO_REST_API_KEY` or `VWORLD_API_KEY` for AI Safe Agent legal-dong reverse geocoding
+- `DISASTER_KB_PATH` to pin a specific AI Safe Agent knowledge-base PKL
 
 ## Run Locally
 
@@ -121,6 +149,13 @@ Important local API routes:
 - `POST /api/chunking-plan`: create chunking plans
 - `POST /api/chunking-embed`: embed a selected plan into Supabase
 - `POST /api/chunking-compare`: run Naive or Advanced RAG comparison
+- `GET /api/poc/ai-safe-agent/kb/status`: inspect AI Safe Agent knowledge-base status
+- `POST /api/poc/ai-safe-agent/kb/build`: build AI Safe Agent public-data knowledge base
+- `GET /api/poc/ai-safe-agent/models`: list AI Safe Agent model options
+- `POST /api/poc/ai-safe-agent/reverse-geocode`: resolve legal-dong labels for coordinates
+- `POST /api/poc/ai-safe-agent/spatial`: return nearby risk/shelter details without LLM execution
+- `POST /api/poc/ai-safe-agent/rain`: return KMA hourly rainfall trend data
+- `POST /api/poc/ai-safe-agent/analyze`: run rainfall, spatial lookup, and AI report generation
 
 Example comparison payload:
 
@@ -142,7 +177,7 @@ Example comparison payload:
 Before pushing to GitHub, check:
 
 - `.env` is not tracked.
-- `.venv/`, `__pycache__/`, `analysis/`, generated report JSON files, and local `.hwpx` source documents are not tracked.
+- `.venv/`, `__pycache__/`, `analysis/`, generated report JSON files, local `.hwpx` source documents, PoC CSV snapshots, and generated PKL files are not tracked.
 - Service-role Supabase keys stay only on the backend runtime.
 - If any key was ever committed or pasted publicly, rotate it before publishing.
 

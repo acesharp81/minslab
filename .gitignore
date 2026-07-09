@@ -24,6 +24,9 @@ qwen*_report*.json
 
 # Large or source documents used during local experiments
 *.hwpx
+# Generated PoC data artifacts
+PoC/**/*.csv
+PoC/**/*.pkl
 
 # OS/editor noise
 .DS_Store

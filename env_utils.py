@@ -19,7 +19,12 @@ def load_project_env(env_path: Path | None = None) -> None:
                 if not line or line.startswith("#") or "=" not in line:
                     continue
                 key, value = line.split("=", 1)
-                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+                key = key.strip()
+                value = value.strip().strip(chr(34)).strip(chr(39))
+                if not key or not value or value.startswith("YOUR_"):
+                    continue
+                if not os.environ.get(key):
+                    os.environ[key] = value
     except OSError:
         pass
 

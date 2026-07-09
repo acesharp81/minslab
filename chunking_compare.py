@@ -590,10 +590,25 @@ def _call_ollama(model: str, prompt: str, rows: list[dict[str, Any]], temperatur
     return answer
 
 
+def _normalize_chat_model(model: str | None) -> tuple[str, str]:
+    value = (model or DEFAULT_CHAT_MODEL).strip()
+    if value.startswith("ollama:"):
+        local_model = value.split(":", 1)[1].strip()
+        if not local_model:
+            raise ValueError("Ollama 모델명이 비어 있습니다.")
+        return "ollama", local_model
+    if value.startswith("openrouter:"):
+        return "openrouter", value.split(":", 1)[1].strip() or DEFAULT_CHAT_MODEL
+    if "/" not in value:
+        return "ollama", value
+    return "openrouter", value or DEFAULT_CHAT_MODEL
+
+
 def _call_selected_model(model: str, prompt: str, rows: list[dict[str, Any]], temperature: float = 0.2, top_k: int = 40) -> str:
-    if model == "llama3.2:1b":
-        return _call_ollama(model, prompt, rows, temperature=temperature, top_k=top_k)
-    return _call_openrouter(model or DEFAULT_CHAT_MODEL, prompt, rows, temperature=temperature)
+    provider, model_name = _normalize_chat_model(model)
+    if provider == "ollama":
+        return _call_ollama(model_name, prompt, rows, temperature=temperature, top_k=top_k)
+    return _call_openrouter(model_name, prompt, rows, temperature=temperature)
 
 
 def _clamp_float(value: Any, default: float, minimum: float, maximum: float) -> float:

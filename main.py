@@ -1,16 +1,19 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import asyncio
+import importlib.util
 import json
 import socket
+import sys
+import threading
 import time
 from pathlib import Path
 from urllib import error as url_error
 from urllib import parse as url_parse
 from urllib import request as url_request
 
-from chunking_compare import chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
+from chunking_compare import DEFAULT_CHAT_MODEL, chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
 from env_utils import env_first, load_project_env
-from portfolio_loader import projects_as_json
+from portfolio_loader import poc_projects_as_json, projects_as_json
 from supabase_store import is_configured as supabase_configured
 from supabase_store import list_history, save_history
 
@@ -18,6 +21,11 @@ from supabase_store import list_history, save_history
 load_project_env()
 
 STATIC_DIR = Path(__file__).parent / "static"
+AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
+AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
+AI_SAFE_BUILD_LOCK = threading.Lock()
+AI_SAFE_AGENT_MODULE = None
+AI_SAFE_AGENT_MTIME = None
 
 HTML_PAGE = r"""
 <!DOCTYPE html>
@@ -255,10 +263,72 @@ HTML_PAGE = r"""
     .ethics h2 { font-size:clamp(34px,4vw,52px); margin:8px 0 18px; } .ethics p { color:#ddd7ff; }
     .checks div { padding:15px 0; border-bottom:1px solid rgba(255,255,255,.22); } .checks b { color:#dfff56; margin-right:8px; }
     footer { border-top:1px solid #d6d4ca; padding:34px max(20px, calc((100% - 1120px)/2)); display:flex; justify-content:space-between; font-size:12px; color:#697067; }
-    .main-menu{display:flex;gap:6px;padding:4px;border:1px solid #d6d4ca;border-radius:99px}.main-menu a{padding:8px 17px;border-radius:99px;text-decoration:none;color:#62675e;font-size:13px;font-weight:700}.main-menu a.active{background:#171916;color:white}.portfolio-view{display:none}body.portfolio-mode .home-view{display:none}body.portfolio-mode .portfolio-view{display:block}
+    .main-menu{display:flex;gap:6px;padding:4px;border:1px solid #d6d4ca;border-radius:99px}.main-menu a{padding:8px 17px;border-radius:99px;text-decoration:none;color:#62675e;font-size:13px;font-weight:700}.main-menu a.active{background:#171916;color:white}.portfolio-view{display:none}body.archive-mode .home-view{display:none}body.archive-mode .portfolio-view{display:block}
     .portfolio-hero{padding:64px max(20px,calc((100% - 1120px)/2)) 42px;border-bottom:1px solid #d6d4ca}.portfolio-hero h1{font-size:clamp(40px,5vw,64px);margin:12px 0}.portfolio-layout{max-width:1120px;margin:auto;padding:42px 20px 90px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:36px;align-items:start}.side-menu{position:sticky;top:98px}.project-list{display:grid;gap:7px}.project-button{padding:15px;text-align:left;border:1px solid transparent;border-radius:12px;background:transparent;cursor:pointer}.project-button strong{display:block}.project-button small{color:#858a81}.project-button.active{background:#fffdf6;border-color:#171916;box-shadow:4px 4px 0 #dfff56}
     .project-document{background:#fffdf6;border:1px solid #d6d4ca;border-radius:20px;overflow:hidden;min-width:0}.document-head,.document-body{padding:clamp(28px,5vw,52px);min-width:0}.document-head{border-bottom:1px solid #e0ded5}.project-meta{display:flex;gap:7px;margin-bottom:24px;flex-wrap:wrap}.project-meta span{padding:6px 10px;background:#eeeaff;color:#6246dd;border-radius:99px;font:11px monospace}.document-head h2{font-size:clamp(30px,4vw,45px);margin:0}.document-head p,.document-body p,.document-body li{line-height:1.8;color:#656b62}.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}.feature{padding:18px;border:1px solid #e0ded5;border-radius:12px}.feature b{display:block}.feature span{font-size:13px;color:#747970}.project-lab{display:none;margin-top:10px}.project-lab.active{display:block}.project-default.hidden{display:none}.chunking-shell{display:grid;gap:18px}.chunking-controls{display:grid;grid-template-columns:minmax(0,1fr) 220px 120px;gap:12px;align-items:end}.chunking-controls label{display:block;font-size:12px;font-weight:700;color:#666c63}.chunking-controls textarea,.chunking-controls select,.chunking-controls input{width:100%;margin-top:7px;padding:12px 13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff;font:14px/1.6 inherit}.chunking-controls textarea{min-height:112px;resize:vertical}.chunking-controls input[type=checkbox]{width:auto;margin:0}.rerank-option{min-height:48px;display:flex!important;align-items:center;gap:8px;padding:12px 13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff}.rerank-option input{margin:0}.rerank-option span{font-size:12px;font-weight:800;color:#666c63}.chunking-run{height:48px;border:0;border-radius:14px;background:#171916;color:#dfff56;font-weight:800;cursor:pointer}.chunking-run:disabled{opacity:.45;cursor:wait}.chunking-note{padding:14px 16px;border-radius:14px;background:#f4f0ff;color:#5b47c0;font-size:13px;line-height:1.7}.chunking-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}.compare-panel{border:1px solid #ddd9cf;border-radius:18px;background:#fcfbf7;overflow:hidden}.compare-head{padding:18px 18px 14px;border-bottom:1px solid #e7e3d8;background:linear-gradient(180deg,#fff,#faf8f1)}.compare-head strong{display:block;font-size:17px}.compare-head small{display:block;margin-top:6px;color:#7b8178}.compare-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.compare-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#efede5;color:#666c63;font:11px ui-monospace,monospace}.compare-badge.ok{background:#edf9eb;color:#2b7c3b}.compare-badge.error{background:#fff0eb;color:#b44f32}.compare-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.compare-stat{padding:10px 12px;border:1px solid #e6e2d7;border-radius:12px;background:#fff}.compare-stat b{display:block;font-size:18px;line-height:1.1}.compare-stat span{display:block;margin-top:4px;color:#7b8178;font-size:11px}.compare-body{padding:18px}.compare-answer{padding:16px;border-radius:16px;background:#171916;color:#eff3e9}.compare-answer span{display:block;margin-bottom:8px;color:#dfff56;font:11px ui-monospace,monospace}.compare-answer pre{margin:0;white-space:pre-wrap;word-break:break-word;font:13px/1.75 inherit;color:#eff3e9}.compare-list{display:grid;gap:10px;margin-top:16px}.compare-item{padding:14px;border:1px solid #e6e2d7;border-radius:14px;background:#fff}.compare-item-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.compare-item strong{display:block;font-size:14px}.compare-score{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#f2eeff;color:#6045d4;font:11px ui-monospace,monospace;white-space:nowrap}.compare-item small{display:block;margin-top:6px;color:#7b8178}.compare-empty{padding:18px;border:1px dashed #d8d4ca;border-radius:14px;color:#7a8077;font-size:13px;text-align:center}.compare-loading .compare-answer,.compare-loading .compare-item,.compare-loading .compare-stat{opacity:.55}.compare-loading .compare-answer::after{content:'비교 중...';display:block;margin-top:10px;color:#dfff56;font:11px ui-monospace,monospace}.compare-status{margin-top:12px;font-size:13px;color:#747970}.compare-grid-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.compare-grid-head h3{margin:0;font-size:18px}.compare-grid-head p{margin:0;color:#7a8077;font-size:13px}.compare-panel.error .compare-answer{background:#4b2b22;color:#fff5f2}.compare-panel.error .compare-answer span{color:#ffd9c9}@media(max-width:900px){.chunking-controls{grid-template-columns:1fr}.chunking-compare{grid-template-columns:1fr}.compare-stats{grid-template-columns:1fr 1fr}}
     .chunking-lab-v2{display:grid;gap:20px}.chunking-doc-grid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px}.chunking-file{display:grid;align-content:start;gap:10px;padding:16px;border:1px dashed #bbb8ad;border-radius:14px;background:#f5f2e9;color:#62675e;font-size:12px;font-weight:800}.chunking-file input{width:100%;font:12px inherit}.chunking-file span{font-weight:500;color:#7a8077;line-height:1.5}.document-input label,.rag-console label{display:block;font-size:12px;font-weight:800;color:#666c63}.document-input textarea{width:100%;min-height:190px;margin-top:7px;padding:13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff;font:13px/1.65 inherit;resize:vertical}.strategy-picker{display:grid;gap:12px;padding:16px;border:1px solid #e0ddd2;border-radius:16px;background:#fbfaf5}.strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.strategy-option{display:flex;gap:9px;align-items:flex-start;padding:13px;border:1px solid #d8d4ca;border-radius:12px;background:#fffdf6;cursor:pointer}.strategy-option input{margin-top:3px}.strategy-option strong{display:block;font-size:13px}.strategy-option span{display:block;margin-top:4px;color:#777d73;font-size:11px;line-height:1.45}.plan-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.plan-actions button,.embed-plan,.chunking-run{min-height:44px;padding:0 14px;border:0;border-radius:12px;background:#171916;color:#dfff56;font-weight:800;cursor:pointer}.plan-actions button:disabled,.embed-plan:disabled,.chunking-run:disabled{opacity:.45;cursor:wait}.chunking-plans{display:grid;gap:14px}.plan-card{border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;overflow:hidden}.plan-head{display:flex;justify-content:space-between;gap:12px;align-items:start;padding:16px;border-bottom:1px solid #e5e1d6;background:#fbfaf5}.plan-head strong{font-size:17px}.plan-head small{color:#777d73;font:11px ui-monospace,monospace}.plan-body{padding:16px}.plan-desc{font-size:13px;line-height:1.7;color:#62675e}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.pros-cons div{padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:white}.pros-cons b{font-size:12px}.pros-cons ul{margin:7px 0 0;padding-left:18px;color:#71776e;font-size:12px;line-height:1.6}.embed-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}.embed-status{color:#686e65;font-size:12px}.chunk-list{display:grid;gap:8px;max-height:360px;overflow:auto}.chunk-detail{border:1px solid #e4e0d5;border-radius:12px;background:#fff}.chunk-detail summary{padding:11px 13px;cursor:pointer;font-size:12px;font-weight:800;color:#555b52}.chunk-detail pre{padding:0 13px 13px;margin:0;color:#30342f;background:transparent;white-space:pre-wrap;word-break:break-word;font:12px/1.7 inherit}.rag-console{display:grid;gap:14px;padding-top:10px;border-top:1px solid #e3dfd3;min-width:0;max-width:100%;overflow:hidden}.rag-console .chunking-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;min-width:0;max-width:100%}.rag-console .prompt-control{flex:1 0 100%;min-width:0}.rag-console .prompt-control textarea{min-height:104px}.rag-console .chunking-controls>label:not(.prompt-control){flex:1 1 118px;min-width:0}.rag-console .chunking-controls>label:nth-of-type(2){flex:2 1 220px}.rag-console .rerank-option{flex:1 1 150px}.rag-console .chunking-run{flex:1 1 140px;width:auto;min-width:120px;padding:0 10px;white-space:normal}.rag-console label{min-width:0}.chunking-shell,.chunking-lab-v2,.chunking-note,.chunking-compare{min-width:0;max-width:100%}.chunking-note{overflow-wrap:anywhere}.rag-console h3{margin:0;font-size:18px}.chunking-compare.vertical{grid-template-columns:1fr}.result-snippets{width:100%;height:8.7em;margin-top:12px;padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff;color:#3a3f39;font:12px/1.55 inherit;resize:vertical}.compare-chunk-button{margin-top:12px;min-height:36px;padding:0 12px;border:1px solid #171916;border-radius:10px;background:#fffdf6;color:#171916;font-weight:800;cursor:pointer}.compare-chunk-detail{margin-top:10px;display:grid;gap:8px}.compare-chunk-detail[hidden]{display:none}.compare-chunk{padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff}.compare-chunk strong{display:block;font-size:12px}.compare-chunk pre{padding:8px 0 0;color:#30342f;background:transparent;white-space:pre-wrap;word-break:break-word;font:12px/1.65 inherit}.compare-panel[data-embedded="true"] .compare-head{box-shadow:inset 4px 0 0 #dfff56}.compare-evaluation{border:1px solid #171916;border-radius:16px;background:#fffdf6;box-shadow:5px 5px 0 #dfff56;overflow:hidden}.compare-evaluation .compare-head{background:#171916;color:#fff;border:0}.compare-evaluation .compare-head small{color:#cfd5ca}.evaluation-grid{display:grid;gap:10px;padding:16px}.evaluation-row{display:grid;grid-template-columns:1.1fr .9fr .9fr .8fr;gap:10px;align-items:center;padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff}.evaluation-row b{font-size:13px}.evaluation-row span{font-size:12px;color:#697067}.evaluation-winner{font-weight:800;color:#171916}.evaluation-note{padding:0 16px 16px;color:#697067;font-size:12px;line-height:1.6}@media(max-width:720px){.evaluation-row{grid-template-columns:1fr}.evaluation-row span{display:block}}@media(max-width:900px){.chunking-doc-grid,.strategy-grid,.pros-cons{grid-template-columns:1fr}.rag-console .chunking-controls{display:grid;grid-template-columns:1fr}.rag-console .prompt-control,.rag-console .chunking-controls>label,.rag-console .rerank-option,.rag-console .chunking-run{grid-column:auto;width:100%;min-width:0}}
+    .safe-agent-lab{display:grid;gap:18px}
+    .safe-agent-console{display:grid;grid-template-columns:1fr;gap:16px}
+    .safe-agent-map{width:100%;height:300px;min-height:300px;border:1px solid #d8d4ca;border-radius:16px;background:#dfe8df;position:relative;overflow:hidden;z-index:0}
+    .safe-agent-map.leaflet-container{font:inherit;overflow:hidden}
+    .safe-agent-map .leaflet-pane,.safe-agent-map .leaflet-map-pane,.safe-agent-map .leaflet-tile,.safe-agent-map .leaflet-marker-icon,.safe-agent-map .leaflet-marker-shadow,.safe-agent-map .leaflet-tile-container,.safe-agent-map .leaflet-pane>svg,.safe-agent-map .leaflet-pane>canvas,.safe-agent-map .leaflet-zoom-box,.safe-agent-map .leaflet-image-layer,.safe-agent-map .leaflet-layer{position:absolute;left:0;top:0}
+    .safe-agent-map .leaflet-tile{max-width:none!important;user-select:none}
+    .safe-agent-map .leaflet-tile-pane{z-index:200}.safe-agent-map .leaflet-overlay-pane{z-index:400}.safe-agent-map .leaflet-shadow-pane{z-index:500}.safe-agent-map .leaflet-marker-pane{z-index:600}.safe-agent-map .leaflet-tooltip-pane{z-index:650}.safe-agent-map .leaflet-popup-pane{z-index:700}
+    .safe-agent-map .leaflet-control{position:relative;z-index:800;pointer-events:auto}.safe-agent-map .leaflet-top,.safe-agent-map .leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.safe-agent-map .leaflet-top{top:0}.safe-agent-map .leaflet-right{right:0}.safe-agent-map .leaflet-bottom{bottom:0}.safe-agent-map .leaflet-left{left:0}
+    .safe-agent-map .leaflet-control-attribution{font-size:10px}
+    .safe-agent-map-fallback{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#f8fbff,#eef7f2);color:#62675e;font-size:13px;z-index:1}
+    .safe-agent-map.is-fallback::before{content:"";position:absolute;inset:22px;border:1px dashed rgba(37,99,235,.28);border-radius:50%;z-index:2}
+    .safe-agent-map.is-fallback::after{content:"";position:absolute;inset:48px;border:1px dashed rgba(23,25,22,.18);border-radius:50%;z-index:2}
+    .safe-agent-map-label{position:absolute;left:16px;bottom:16px;z-index:800;padding:10px 12px;border:1px solid #d8d4ca;border-radius:12px;background:rgba(255,253,246,.94);color:#555b52;font:12px ui-monospace,monospace;box-shadow:0 8px 20px rgba(23,25,22,.1);pointer-events:none}
+    .safe-agent-controls,.safe-agent-result article,.safe-agent-status-card{border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;min-width:0}
+    .safe-agent-controls{padding:16px;display:grid;grid-template-columns:1fr;gap:12px;align-items:end;overflow:hidden}
+    .safe-agent-title-row{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+    .safe-agent-title-row h3{margin:0;font-size:18px;line-height:1.25;white-space:nowrap}
+    .safe-agent-title-row .safe-agent-badges{flex:1 1 auto;min-width:0}
+    .safe-agent-fields{display:grid;grid-template-columns:minmax(120px,.55fr) minmax(120px,.55fr) minmax(180px,1fr);gap:10px}
+    .safe-agent-fields label,.safe-agent-execute-row label{display:grid;gap:6px;color:#62675e;font-size:12px;font-weight:800;min-width:0}
+    .safe-agent-fields input,.safe-agent-execute-row select{width:100%;padding:12px 13px;border:1px solid #d7d4ca;border-radius:12px;background:#fff;font:14px/1.4 inherit;min-width:0}
+    .safe-agent-address-field input{color:#30342f;background:#fbfaf5}
+    .safe-agent-execute-row{display:grid;grid-template-columns:minmax(230px,1fr) auto minmax(220px,1.15fr);gap:10px;align-items:end;min-width:0}
+    .safe-agent-model-field{min-width:0}
+    .safe-agent-run{min-height:44px;padding:0 16px;border:0;border-radius:12px;background:#171916;color:#dfff56;font-weight:800;cursor:pointer;white-space:nowrap}
+    .safe-agent-run:disabled{opacity:.5;cursor:wait}
+    .safe-agent-inline-message{min-height:44px;display:flex;align-items:center;padding:10px 12px;border:1px dashed #d8d4ca;border-radius:12px;color:#6f756c;font-size:12px;line-height:1.45;min-width:0;overflow-wrap:anywhere}
+    .safe-agent-toggle{display:flex;align-items:center;gap:8px;color:#62675e;font-size:12px;font-weight:800}
+    .safe-agent-samples{display:flex;gap:8px;flex-wrap:wrap}
+    .safe-agent-samples button{min-height:34px;padding:0 11px;border:1px solid #d8d4ca;border-radius:10px;background:#fbfaf5;color:#555b52;font-size:12px;font-weight:800;cursor:pointer}
+    .safe-agent-status{display:grid;grid-template-columns:minmax(0,1fr) repeat(2,86px);gap:10px;align-items:stretch}
+    .safe-agent-status-card{padding:10px;display:grid;align-content:center;justify-items:center;text-align:center;min-height:132px}
+    .safe-agent-status-card b{display:block;font-size:28px;line-height:1;overflow-wrap:anywhere}
+    .safe-agent-status-card span{display:block;margin-top:7px;color:#747970;font-size:11px;font-weight:800;line-height:1.25}
+    .safe-agent-rain-card{grid-column:auto;padding:12px 14px;border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;min-width:0;display:grid;grid-template-columns:116px minmax(0,1fr);gap:12px;align-items:center;min-height:132px}
+    .safe-agent-rain-head{display:grid;gap:6px;align-content:center;min-width:0}.safe-agent-rain-head strong{font-size:14px}.safe-agent-rain-head span{color:#747970;font-size:11px;line-height:1.35;overflow-wrap:anywhere}.safe-agent-rain-peak{font:11px ui-monospace,monospace;color:#171916}
+    .safe-agent-rain-graph{min-width:0}.safe-agent-rain-svg{display:block;width:100%;height:94px;overflow:visible}.safe-agent-rain-axis{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:2px;margin-top:2px;color:#747970;font:10px ui-monospace,monospace;text-align:center}.safe-agent-rain-axis span{min-width:0;white-space:nowrap}.safe-agent-rain-axis .current{color:#171916;font-weight:900}.safe-agent-rain-line{fill:none;stroke:#2563eb;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.safe-agent-rain-area{fill:rgba(37,99,235,.1)}.safe-agent-rain-dot{fill:#fff;stroke:#2563eb;stroke-width:2}.safe-agent-rain-now{stroke:#171916;stroke-width:1;stroke-dasharray:4 4;opacity:.45}.safe-agent-rain-grid{stroke:#d8d4ca;stroke-width:1;opacity:.7}
+    .safe-agent-result{display:grid;gap:14px}
+    .safe-agent-result article{padding:18px}
+    .safe-agent-result h3{margin:0 0 12px;font-size:17px}
+    .safe-agent-report pre,.safe-agent-context pre{margin:0;padding:0;background:transparent;color:#30342f;white-space:pre-wrap;word-break:break-word;font:13px/1.75 inherit}
+    .safe-agent-report{box-shadow:5px 5px 0 #dfff56}
+    .safe-agent-report pre{font-size:14px}
+    .safe-agent-empty{padding:18px;border:1px dashed #d8d4ca;border-radius:14px;color:#7a8077;text-align:center;font-size:13px}
+    .safe-agent-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .safe-agent-badge{padding:5px 10px;border-radius:999px;background:#efede5;color:#62675e;font:11px ui-monospace,monospace;white-space:nowrap}
+    .safe-agent-badge.ok{background:#edf9eb;color:#2b7c3b}
+    .safe-agent-badge.warn{background:#fff5da;color:#8b6200}
+    .safe-agent-list{display:grid;gap:8px;min-width:0}
+    .safe-agent-list div{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(0,1.3fr);gap:12px;padding:10px 0;border-top:1px solid #ebe7dc;color:#62675e;min-width:0}
+    .safe-agent-list span,.safe-agent-list b{min-width:0;overflow-wrap:anywhere}
+    .safe-agent-list b{color:#171916;text-align:right}
+    .safe-agent-detail-sections{display:grid;gap:10px;margin-top:14px}.safe-agent-detail-section{border:1px solid #e3dfd3;border-radius:12px;background:#fbfaf5;overflow:hidden}.safe-agent-detail-section summary{min-height:44px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;font-size:13px;font-weight:900;color:#30342f;list-style:none}.safe-agent-detail-section summary::-webkit-details-marker{display:none}.safe-agent-detail-section summary::after{content:'펼치기';padding:5px 9px;border:1px solid #d8d4ca;border-radius:999px;background:#fffdf6;color:#555b52;font-size:11px}.safe-agent-detail-section[open] summary::after{content:'접기'}.safe-agent-detail-count{margin-left:auto;color:#747970;font:11px ui-monospace,monospace;white-space:nowrap}.safe-agent-detail-list{display:grid;gap:8px;padding:0 12px 12px}.safe-agent-detail-item{padding:11px;border:1px solid #e7e3d8;border-radius:10px;background:#fff;min-width:0}.safe-agent-detail-item strong{display:block;font-size:13px;line-height:1.35}.safe-agent-detail-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.safe-agent-detail-meta span{padding:4px 7px;border-radius:999px;background:#efede5;color:#60665d;font:10px ui-monospace,monospace}.safe-agent-detail-fields{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:5px 10px;margin:9px 0 0;padding-top:9px;border-top:1px dashed #ddd8cd;font-size:11px;color:#6f756c}.safe-agent-detail-fields dt{font-weight:900;color:#555b52}.safe-agent-detail-fields dd{margin:0;min-width:0;overflow-wrap:anywhere}.safe-agent-detail-empty{padding:12px;border:1px dashed #d8d4ca;border-radius:10px;color:#7a8077;text-align:center;font-size:12px;background:#fff}
+    @media(max-width:1100px){.safe-agent-status{grid-template-columns:1fr 1fr}.safe-agent-rain-card{grid-column:1/-1}}
+    @media(max-width:900px){.safe-agent-fields{grid-template-columns:1fr 1fr}.safe-agent-address-field{grid-column:1/-1}.safe-agent-execute-row{grid-template-columns:minmax(0,1fr) auto}.safe-agent-inline-message{grid-column:1/-1}.safe-agent-status{grid-template-columns:1fr 1fr}.safe-agent-rain-card{grid-column:1/-1}}
+    @media(max-width:560px){.safe-agent-map{height:300px}.safe-agent-fields,.safe-agent-execute-row{grid-template-columns:1fr}.safe-agent-run{width:100%}.safe-agent-title-row h3{white-space:normal}.safe-agent-rain-card{grid-template-columns:1fr}.safe-agent-rain-axis{font-size:9px}.safe-agent-rain-axis span:nth-child(even){visibility:hidden}.safe-agent-status-card{min-height:78px}}
+    .safe-agent-map-legend{position:absolute;right:14px;bottom:14px;z-index:800;display:flex;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid #d8d4ca;border-radius:12px;background:rgba(255,253,246,.94);box-shadow:0 8px 20px rgba(23,25,22,.1);font-size:11px;font-weight:800;color:#555b52;pointer-events:none}
+    .safe-agent-map-legend span{display:flex;align-items:center;gap:6px}.safe-agent-map-legend i{width:10px;height:10px;border-radius:50%;display:inline-block}.safe-agent-map-legend .risk{background:#dc2626}.safe-agent-map-legend .shelter{background:#16a34a}
+    .safe-agent-div-icon{width:18px!important;height:18px!important;margin-left:-9px!important;margin-top:-9px!important;border-radius:50%;border:3px solid #fff;box-shadow:0 7px 18px rgba(23,25,22,.28)}.safe-agent-div-icon.risk{background:#dc2626}.safe-agent-div-icon.shelter{background:#16a34a}.safe-agent-div-icon span{display:block;width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 7px rgba(220,38,38,.18)}.safe-agent-div-icon.shelter span{box-shadow:0 0 0 7px rgba(22,163,74,.18)}
+    .safe-agent-preset-panel{grid-column:1/-1;display:grid;gap:10px}.safe-agent-preset-form{display:grid;grid-template-columns:minmax(150px,1fr) auto auto;gap:10px;align-items:end}.safe-agent-preset-form label{display:grid;gap:6px;color:#62675e;font-size:12px;font-weight:800}.safe-agent-preset-form input{width:100%;padding:10px 12px;border:1px solid #d7d4ca;border-radius:10px;background:#fff;font:13px/1.4 inherit}.safe-agent-preset-form button{min-height:40px;padding:0 13px;border:1px solid #171916;border-radius:10px;background:#fffdf6;color:#171916;font-weight:800;cursor:pointer}.safe-agent-preset-item{display:inline-flex;align-items:center;gap:4px;border:1px solid #d8d4ca;border-radius:10px;background:#fbfaf5;overflow:hidden}.safe-agent-preset-item button{border:0;border-radius:0}.safe-agent-preset-delete{min-width:34px;color:#8b2f21!important;background:#fff6f1!important;border-left:1px solid #e8d6cc!important}
+    @media(max-width:640px){.safe-agent-preset-form{grid-template-columns:1fr 1fr}.safe-agent-preset-form label{grid-column:1/-1}.safe-agent-map-label{left:12px;right:12px;bottom:54px}.safe-agent-map-legend{left:12px;right:12px;justify-content:center}}
+    .safe-agent-data-bar{border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;overflow:hidden}.safe-agent-data-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:16px;border-bottom:1px solid #e5e1d6;background:#fbfaf5;cursor:pointer}.safe-agent-data-head strong{display:block;font-size:16px}.safe-agent-data-head small{display:block;margin-top:5px;color:#777d73;font-size:12px}.safe-agent-data-actions{display:flex;gap:8px;flex-wrap:wrap}.safe-agent-data-actions button{min-height:38px;padding:0 12px;border:1px solid #171916;border-radius:10px;background:#fffdf6;color:#171916;font-size:12px;font-weight:800;cursor:pointer}.safe-agent-data-actions button.primary{background:#171916;color:#dfff56}.safe-agent-data-actions button:disabled{opacity:.45;cursor:wait}.safe-agent-log-toggle{background:#efede5!important;color:#555b52!important;border-color:#d8d4ca!important}.safe-agent-data-log{display:block;width:100%;height:118px;border:0;border-radius:0;padding:14px;background:#1c1f1b;color:#e9ece6;font:12px/1.65 ui-monospace,monospace;resize:vertical}.safe-agent-data-bar.is-collapsed .safe-agent-data-head{border-bottom:0}.safe-agent-data-bar.is-collapsed .safe-agent-data-log{display:none}.safe-agent-refresh{min-height:44px;padding:0 14px;border:1px solid #171916;border-radius:12px;background:#fffdf6;color:#171916;font-weight:800;cursor:pointer}.safe-agent-refresh:disabled{opacity:.5;cursor:wait}.safe-agent-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.safe-agent-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.safe-agent-actions .safe-agent-run{flex:0 0 auto}@media(max-width:640px){.safe-agent-data-head{display:grid}.safe-agent-data-actions{display:grid;grid-template-columns:1fr 1fr}.safe-agent-data-actions button{width:100%}}
     .code-wrap{margin:16px 0 30px;border-radius:14px;overflow:hidden;background:#1c1f1b}.code-head{display:flex;justify-content:space-between;padding:12px 16px;color:#aab0a6;border-bottom:1px solid #383c36;font:12px monospace}.copy-code{border:0;background:transparent;color:#dfff56;cursor:pointer}pre{margin:0;padding:22px;overflow:auto;color:#e9ece6;font:13px/1.75 monospace}.next-note{padding:20px;border-left:4px solid #7054ef;background:#f0edff;color:#5540b9}
     .chat-home{height:calc(100vh - 68px);min-height:620px;display:grid;grid-template-columns:260px 1fr}.chat-sidebar{padding:22px 16px;border-right:1px solid #d6d4ca;display:flex;flex-direction:column;gap:18px;background:#ebe9e0}.new-chat{width:100%;padding:13px 15px;border:1px solid #171916;border-radius:12px;background:#171916;color:white;font-weight:700;cursor:pointer;display:flex;justify-content:space-between}.new-chat:hover{box-shadow:4px 4px 0 #dfff56}.chat-history-label{font:11px monospace;color:#777c73;margin:8px}.history-item{padding:12px;border-radius:10px;font-size:13px;background:#fffdf6;border:1px solid #dad8ce}.chat-sidebar-note{margin-top:auto;padding:14px;border-top:1px solid #d1cfc5;color:#747970;font-size:11px;line-height:1.6}.chat-main{min-width:0;display:grid;grid-template-rows:auto 1fr auto;max-height:calc(100vh - 68px)}.chat-toolbar{height:66px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d6d4ca}.model-select{min-width:210px;padding:10px 13px;border:1px solid #c9c7bd;border-radius:10px;background:#fffdf6;color:#171916;font-weight:700}.ollama-status{display:flex;gap:8px;align-items:center;color:#687066;font-size:12px}.ollama-status i{width:8px;height:8px;border-radius:50%;background:#67c35b;box-shadow:0 0 0 4px #dff0da}
     .messages{overflow-y:auto;padding:38px max(28px,calc((100% - 820px)/2));scroll-behavior:smooth}.empty-chat{text-align:center;min-height:100%;display:grid;place-content:center}.ai-mark{width:64px;height:64px;margin:0 auto 22px;display:grid;place-items:center;border-radius:22px;background:#7054ef;color:white;font-size:28px;box-shadow:8px 8px 0 #dfff56}.empty-chat h1{font-size:clamp(34px,4vw,52px);margin:0 0 12px}.suggestions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:30px;max-width:640px}.suggestion{padding:15px;text-align:left;border:1px solid #d2d0c6;border-radius:12px;background:#fffdf6;cursor:pointer;color:#555b52}.suggestion:hover{border-color:#171916;transform:translateY(-2px)}.message{display:grid;grid-template-columns:38px minmax(0,1fr);gap:14px;margin-bottom:28px}.avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#171916;color:white;font-size:13px}.message.user .avatar{background:#dfff56;color:#171916}.message-body{padding-top:5px;line-height:1.8;white-space:pre-wrap;word-break:break-word}.message-role{font-size:12px;font-weight:800;margin-bottom:6px}.typing{color:#747970}.composer-area{padding:16px max(28px,calc((100% - 820px)/2)) 24px}.composer{display:grid;grid-template-columns:1fr 46px;gap:10px;padding:10px 10px 10px 18px;border:1px solid #aaa99f;border-radius:18px;background:#fffdf6;box-shadow:0 10px 30px rgba(30,32,28,.08)}.composer:focus-within{border-color:#7054ef}.composer textarea{border:0;outline:0;resize:none;background:transparent;min-height:26px;max-height:130px;font:15px/1.65 inherit}.send-button{width:44px;height:44px;border:0;border-radius:13px;background:#171916;color:#dfff56;cursor:pointer;font-size:18px}.send-button:disabled{opacity:.35}.composer-hint{text-align:center;color:#888d84;font-size:10px;margin-top:9px}
@@ -428,16 +498,18 @@ HTML_PAGE = r"""
       body.chat-drawer-open .drawer-backdrop{display:none}
     }
   </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
   <main class="shell"><section class="card">
-    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
+    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a><a href="/poc" data-page="poc">PoC</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
     <div class="home-view">
     <section class="chat-home">
       <button class="mobile-panel-toggle chat-drawer-toggle" id="chatDrawerToggle" type="button" aria-controls="chatSidebar" aria-expanded="false"><span>대화 이력</span></button>
       <aside class="chat-sidebar" id="chatSidebar"><button class="new-chat" id="newChat"><span>＋ 새 대화</span><span>⌘ K</span></button><div><div class="chat-history-label">TODAY</div><div class="history-item" id="historyTitle">새로운 대화</div></div><div class="chat-sidebar-note">MinsLab<br>오늘의 기록으로 내일의 가능성을 실험하는 곳</div></aside>
       <div class="chat-main"><header class="chat-toolbar"><div class="model-wrap"><select class="model-select" id="modelSelect" aria-label="AI 모델 선택"><option>모델 불러오는 중...</option></select></div><div class="ollama-status" id="ollamaStatus"><i></i><span>OLLAMA CONNECTED</span></div></header><div class="messages" id="messages"><div class="empty-chat" id="emptyChat"><div><div class="ai-mark">✦</div><h1>MinsLab</h1><p>오늘의 기록으로 내일의 가능성을 실험하는 곳</p><div class="suggestions"><button class="suggestion">Python 함수와 클래스의 차이를 설명해줘</button><button class="suggestion">오늘 배울 AI 개념 하나를 추천해줘</button><button class="suggestion">REST API 예제 코드를 만들어줘</button><button class="suggestion">내 코드의 오류를 같이 찾아줘</button></div></div></div></div><div class="composer-area"><form class="composer" id="chatForm"><textarea id="chatInput" rows="1" placeholder="메시지를 입력하세요..." aria-label="메시지"></textarea><button class="send-button" id="sendButton" type="submit" aria-label="보내기">↑</button></form><div class="composer-hint">AI는 실수할 수 있습니다. 중요한 정보는 한 번 더 확인하세요.</div></div></div>
-      <aside class="source-panel" id="sourcePanel"><details class="model-settings"><summary>⚙ 모델별 설정</summary><label>시스템 프롬프트<textarea id="systemPrompt" rows="5"></textarea></label><label>최대 출력 토큰<select id="maxTokens"><option value="128">128 · 빠름</option><option value="256" selected>256 · 권장</option><option value="512">512 · 상세</option><option value="1024">1024 · 느림</option></select></label><button id="saveSettings" type="button">이 모델 설정 저장</button></details><div class="attachment-box"><input type="file" id="fileInput" multiple accept=".txt,.md,.csv,.json,.py,.js,.html,.css,.yaml,.yml,.log" hidden><button id="attachButton" type="button">＋ 분석 자료 첨부</button><div id="attachedFiles"></div><small>텍스트·코드 파일, 파일당 최대 200KB</small></div><div class="source-head"><h2>사용한 자료</h2><span class="source-count" id="sourceCount">0</span></div><div id="sourceList"><div class="source-empty"><i>⌕</i><strong>아직 사용한 자료가 없어요</strong><br>웹 검색 또는 RAG 문서가 사용되면<br>이곳에 출처가 표시됩니다.</div></div><div class="source-note">출처는 응답에 실제로 연결된 웹 URL과 RAG 메타데이터만 표시합니다.</div></aside>
+      <aside class="source-panel" id="sourcePanel"><details class="model-settings"><summary>⚙ 모델별 설정</summary><label>시스템 프롬프트<textarea id="systemPrompt" rows="5"></textarea></label><label>최대 출력 토큰<select id="maxTokens"><option value="128">128 · 빠름</option><option value="256" selected>256 · 권장</option><option value="512">512 · 상세</option><option value="1024">1024 · 느림</option></select></label><button id="saveSettings" type="button">이 모델 설정 저장</button></details><div class="attachment-box"><input type="file" id="fileInput" multiple accept=".txt,.md,.csv,.json,.py,.js,.html,.css,.yaml,.yml,.log" hidden><button id="attachButton" type="button">＋ 분석 자료 첨부</button><div id="attachedFiles"></div><small>텍스트·코드 파일, 파일당 최대 5MB · 총 15MB</small></div><div class="source-head"><h2>사용한 자료</h2><span class="source-count" id="sourceCount">0</span></div><div id="sourceList"><div class="source-empty"><i>⌕</i><strong>아직 사용한 자료가 없어요</strong><br>웹 검색 또는 RAG 문서가 사용되면<br>이곳에 출처가 표시됩니다.</div></div><div class="source-note">출처는 응답에 실제로 연결된 웹 URL과 RAG 메타데이터만 표시합니다.</div></aside>
     </section>
     <header class="hero"><div><div class="kicker">MinsLab / LEARNING ARCHIVE</div><h1>오늘의 기록으로<br><span class="marker">내일의 가능성을 실험합니다.</span></h1><p>배운 것, 만든 것, 실패하며 고친 것을 차곡차곡 남기는 개인 AI 실험실입니다. 로컬 AI, RAG, Python 실습을 실제로 만져볼 수 있는 기록으로 정리합니다.</p><div class="actions"><a class="button primary" href="/portfolio" data-page="portfolio">실험 기록 보기 ↓</a><a class="button secondary" href="#concept">AI 개념 살펴보기</a></div></div><div class="hero-art"><div class="orbit"></div><div class="brain">M</div></div></header>
     <section class="section" id="concept"><div class="head"><div><span class="kicker">01 / THE BIG IDEA</span><h2>AI를 움직이는<br>네 가지 재료</h2></div><p>AI는 데이터에서 반복되는 관계를 찾아 내부의 숫자들을 조절합니다. 버튼을 눌러 각 요소의 역할을 확인해 보세요.</p></div><div class="tabs"><button class="tab active" data-key="data">데이터</button><button class="tab" data-key="model">모델</button><button class="tab" data-key="learn">학습</button><button class="tab" data-key="infer">추론</button></div><article class="theory"><div class="theory-copy"><span class="kicker" id="tag">INGREDIENT 01</span><h2 id="title">경험을 숫자로 바꾼 데이터</h2><p id="desc">사진, 문장, 소리처럼 세상에서 수집한 사례를 컴퓨터가 읽을 수 있는 숫자로 표현합니다. 데이터의 다양성과 품질은 AI가 바라보는 세계의 경계를 결정합니다.</p></div><div class="flow"><div class="node"><div><b>01</b>현실 세계</div></div>→<div class="node"><div><b>0·1</b>숫자 표현</div></div>→<div class="node"><div><b>∞</b>패턴</div></div></div></article></section>
@@ -446,10 +518,10 @@ HTML_PAGE = r"""
     <section class="ethics" id="ethics"><div><span class="kicker" style="color:#dfff56">04 / HUMAN IN THE LOOP</span><h2>똑똑함보다<br>중요한 질문</h2><p>AI의 결과는 데이터와 설계자의 선택을 반영합니다. 성능뿐 아니라 누구에게 어떤 영향을 주는지도 함께 살펴야 합니다.</p></div><div class="checks"><div><b>✓</b> 편향: 데이터에서 누가 빠져 있는가?</div><div><b>✓</b> 검증: 그럴듯한 답은 사실인가?</div><div><b>✓</b> 책임: 최종 결정을 사람이 책임지는가?</div></div></section>
     </div>
     <div class="portfolio-view">
-      <header class="portfolio-hero"><span class="kicker">MinsLab / LEARNING ARCHIVE</span><h1>오늘의 기록으로<br>내일의 가능성을 실험합니다.</h1><p>교육과 실습에서 만든 Python, Local AI, RAG 프로젝트를 실행 방법과 배운 점까지 함께 정리하는 성장형 포트폴리오입니다.</p></header>
+      <header class="portfolio-hero"><span class="kicker" id="archiveKicker">MinsLab / LEARNING ARCHIVE</span><h1 id="archiveTitle">오늘의 기록으로<br>내일의 가능성을 실험합니다.</h1><p id="archiveDescription">교육과 실습에서 만든 Python, Local AI, RAG 프로젝트를 실행 방법과 배운 점까지 함께 정리하는 성장형 포트폴리오입니다.</p></header>
       <div class="portfolio-layout">
-        <button class="mobile-panel-toggle project-drawer-toggle" id="projectDrawerToggle" type="button" aria-controls="projectSideMenu" aria-expanded="false"><span>프로젝트</span></button>
-        <aside class="side-menu" id="projectSideMenu"><h2 class="kicker">PROJECT INDEX</h2><div class="project-list" id="projectList"></div></aside>
+        <button class="mobile-panel-toggle project-drawer-toggle" id="projectDrawerToggle" type="button" aria-controls="projectSideMenu" aria-expanded="false"><span id="projectDrawerLabel">프로젝트</span></button>
+        <aside class="side-menu" id="projectSideMenu"><h2 class="kicker" id="projectIndexTitle">PROJECT INDEX</h2><div class="project-list" id="projectList"></div></aside>
         <article class="project-document"><header class="document-head"><div class="project-meta" id="projectMeta"></div><h2 id="projectTitle"></h2><p id="projectSummary"></p></header><div class="document-body"><div class="project-default" id="projectDefaultView"><h3>프로젝트 설명</h3><p id="projectDescription"></p><div class="feature-grid" id="projectFeatures"></div><h3>핵심 코드</h3><div class="code-wrap"><div class="code-head"><span id="codeFile">main.py</span><button class="copy-code" id="copyCode">코드 복사</button></div><pre><code id="projectCode"></code></pre></div><h3>실행 방법</h3><ol id="projectUsage"></ol><div class="next-note" id="projectNote"></div></div><section class="project-lab" id="projectLab"></section></div></article>
       </div>
     </div>
@@ -460,21 +532,34 @@ HTML_PAGE = r"""
     const info={data:['INGREDIENT 01','경험을 숫자로 바꾼 데이터','사진, 문장, 소리처럼 세상에서 수집한 사례를 컴퓨터가 읽을 수 있는 숫자로 표현합니다. 데이터의 다양성과 품질은 AI가 바라보는 세계의 경계를 결정합니다.'],model:['INGREDIENT 02','패턴을 담는 계산 구조','모델은 입력을 출력으로 바꾸는 거대한 수학 함수입니다. 수많은 가중치가 어떤 특징에 주목하고 어떻게 조합할지 기억합니다.'],learn:['INGREDIENT 03','실수에서 규칙을 찾는 학습','예측과 정답 사이의 오차를 구하고, 오차가 줄어드는 방향으로 가중치를 조금씩 수정합니다. 이 반복이 기계가 경험을 쌓는 방식입니다.'],infer:['INGREDIENT 04','배운 것을 적용하는 추론','새로운 입력이 들어오면 저장된 패턴으로 가장 가능성 높은 결과를 계산합니다. 챗봇의 답변도 다음 단어를 연속해서 추론한 결과입니다.']};
     document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelector('.tab.active').classList.remove('active');b.classList.add('active');const x=info[b.dataset.key];tag.textContent=x[0];title.textContent=x[1];desc.textContent=x[2]});
 
-    // 파일 기반 projects/*/project.json 로딩이 실패하면 빈 상태를 유지합니다.
+    // 파일 기반 */project.json 로딩이 실패하면 빈 상태를 유지합니다.
     const fallbackProjects=[];
+    const fallbackPocProjects=[];
 
     const loadedProjects=__PROJECTS_JSON__;
-    const projects=loadedProjects.length ? loadedProjects : fallbackProjects;
+    const loadedPocProjects=__POC_PROJECTS_JSON__;
+    const catalogs={
+      portfolio:{path:'/portfolio',kicker:'MinsLab / LEARNING ARCHIVE',title:'오늘의 기록으로<br>내일의 가능성을 실험합니다.',description:'교육과 실습에서 만든 Python, Local AI, RAG 프로젝트를 실행 방법과 배운 점까지 함께 정리하는 성장형 포트폴리오입니다.',indexLabel:'PROJECT INDEX',drawerLabel:'프로젝트',projects:loadedProjects.length?loadedProjects:fallbackProjects},
+      poc:{path:'/poc',kicker:'MinsLab / PROOF OF CONCEPT',title:'개인 PoC로<br>아이디어를 검증합니다.',description:'개인적으로 만든 프로그램과 실험형 도구를 같은 형식으로 정리합니다. 문제의식, 핵심 코드, 실행 방법을 함께 남겨 다음 실험으로 이어갑니다.',indexLabel:'POC INDEX',drawerLabel:'PoC',projects:loadedPocProjects.length?loadedPocProjects:fallbackPocProjects}
+    };
 
     async function readJsonResponse(response){
       const text=await response.text();
       try{return JSON.parse(text)}catch(e){throw new Error(text.trim().slice(0,220)||`HTTP ${response.status} 응답을 해석하지 못했습니다.`)}
     }
 
+    let chunkingModelRefreshTimer=null;
+    function escapeModelHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+    function fallbackChunkingModels(){return {models:[{value:'openrouter:openai/gpt-4o-mini',label:'OpenRouter · openai/gpt-4o-mini',details:{}}],default:'openrouter:openai/gpt-4o-mini'}}
+    function setChunkingModelOptions(selectEl,data,previousValue=''){const fallback=fallbackChunkingModels();const models=(data.models||[]).length?data.models:fallback.models;const defaultValue=data.default||fallback.default;selectEl.innerHTML=models.map(item=>`<option value="${escapeModelHtml(item.value)}">${escapeModelHtml(item.label)}${item.details?.parameter_size?' · '+escapeModelHtml(item.details.parameter_size):''}</option>`).join('');const values=[...selectEl.options].map(option=>option.value);const preferred=values.includes(previousValue)?previousValue:(values.includes(defaultValue)?defaultValue:values[0]);if(preferred)selectEl.value=preferred}
+    async function loadChunkingModels(selectEl){if(!selectEl)return;const previousValue=selectEl.value;try{const r=await fetch('/api/chunking-models',{cache:'no-store'});const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');setChunkingModelOptions(selectEl,data,previousValue);selectEl.title=''}catch(e){setChunkingModelOptions(selectEl,fallbackChunkingModels(),previousValue);selectEl.title=`모델 목록 조회 실패: ${e.message}`}}
+    function startChunkingModelAutoRefresh(selectEl){if(chunkingModelRefreshTimer)clearInterval(chunkingModelRefreshTimer);loadChunkingModels(selectEl);chunkingModelRefreshTimer=setInterval(()=>{if(!document.body.contains(selectEl)){clearInterval(chunkingModelRefreshTimer);chunkingModelRefreshTimer=null;return;}loadChunkingModels(selectEl)},15000)}
+
     function renderLegacyChunkingLab(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
       projectLab.innerHTML=`<section class="chunking-shell"><div class="compare-grid-head"><h3>청킹 비교 시뮬레이션</h3><p>같은 프롬프트를 두 테이블에 각각 적용해 검색 결과를 나란히 비교합니다.</p></div><div class="chunking-controls"><label>프롬프트 입력<textarea id="legacyChunkingPromptInput" placeholder="질문이나 비교할 요청을 입력하세요.">민원 처리 법에 대해 알려줘</textarea></label><label>모델 선택<select id="legacyChunkingModelSelect"><option value="openai/gpt-4o-mini" selected>openai/gpt-4o-mini</option><option value="llama3.2:1b">llama3.2:1b · local Ollama</option></select></label><button class="chunking-run" id="legacyChunkingRunButton" type="button">비교 실행</button></div><div class="chunking-note">RAG Supabase 비교 대상 · 왼쪽은 <b>documents</b>, 오른쪽은 <b>documents_test</b> 테이블을 사용합니다. 모델은 OpenRouter의 openai/gpt-4o-mini 또는 로컬 Ollama의 llama3.2:1b 중에서 선택할 수 있으며, 검색된 문맥을 바탕으로 실제 답변을 호출합니다.</div><div class="chunking-compare" id="legacyChunkingCompare"><article class="compare-panel" data-panel="documents"><div class="compare-head"><strong>일반 청킹</strong><small>documents</small><div class="compare-meta"><span class="compare-badge">대기 중</span></div></div><div class="compare-body"><div class="compare-empty">프롬프트를 입력하고 비교 실행을 눌러주세요.</div></div></article><article class="compare-panel" data-panel="documents_test"><div class="compare-head"><strong>전처리 청킹</strong><small>documents_test</small><div class="compare-meta"><span class="compare-badge">대기 중</span></div></div><div class="compare-body"><div class="compare-empty">프롬프트를 입력하고 비교 실행을 눌러주세요.</div></div></article></div></section>`;
+      projectLab.querySelector('.chunking-note').innerHTML='RAG Supabase 비교 대상 · 왼쪽은 <b>documents</b>, 오른쪽은 <b>documents_test</b> 테이블을 사용합니다. 로컬 Ollama 모델 목록은 자동 갱신되며, OpenRouter의 openai/gpt-4o-mini 옵션은 계속 사용할 수 있습니다.';
       const compareEl=document.getElementById('legacyChunkingCompare');
       const promptEl=document.getElementById('legacyChunkingPromptInput');
       const modelEl=document.getElementById('legacyChunkingModelSelect');
@@ -509,6 +594,7 @@ HTML_PAGE = r"""
         }finally{runButton.disabled=false}
       }
       runButton.onclick=runCompare;
+      startChunkingModelAutoRefresh(modelEl);
     }
 
     function renderChunkingRagLab(p){
@@ -689,35 +775,106 @@ HTML_PAGE = r"""
         }finally{runButton.disabled=false}
       }
       compareEl.addEventListener('click',e=>{const button=e.target.closest('[data-detail-panel]');if(!button)return;const detail=document.getElementById(button.dataset.detailPanel);if(!detail)return;detail.hidden=!detail.hidden;button.textContent=detail.hidden?'비교 청크 내용 보기':'비교 청크 내용 닫기'});
-      buildButton.onclick=buildChunks;embedButton.onclick=embedAllPlans;runButton.onclick=runCompare;resetExecution('청킹 실행 전입니다.');
+      buildButton.onclick=buildChunks;embedButton.onclick=embedAllPlans;runButton.onclick=runCompare;resetExecution('청킹 실행 전입니다.');startChunkingModelAutoRefresh(modelEl);
     }
 
-    function lastProjectId(){return projects.at(-1)?.id||projects[0]?.id||''}
-    let currentProjectId=lastProjectId();
-    function renderProject(id){
-      const p=projects.find(x=>x.id===id)||projects[0];
-      currentProjectId=p.id;
+    function renderAISafeAgent(p){
+      projectDefaultView.classList.add('hidden');
+      projectLab.classList.add('active');
+      projectLab.innerHTML=`<section class="safe-agent-lab"><div class="safe-agent-data-bar is-collapsed"><div class="safe-agent-data-head" id="safeAgentDataHead" tabindex="0"><div><strong id="safeAgentKbStatus">기초 데이터 확인 중</strong><small id="safeAgentKbDetail">PKL 상태를 불러오고 있습니다.</small></div><div class="safe-agent-data-actions"><button class="primary" id="safeAgentBuildData" type="button">기초 데이터 만들기</button><button id="safeAgentRefreshKb" type="button">새로고침</button><button class="safe-agent-log-toggle" id="safeAgentLogToggle" type="button" aria-expanded="false" aria-controls="safeAgentDataLog">로그 보기</button></div></div><textarea class="safe-agent-data-log" id="safeAgentDataLog" readonly>기초 데이터 로그가 이곳에 표시됩니다.</textarea></div><div class="safe-agent-console"><div class="safe-agent-map" id="safeAgentMap" aria-label="분석 지점 지도"><div class="safe-agent-map-label" id="safeAgentMapLabel">37.5665, 126.9780 · 500m</div><div class="safe-agent-map-legend"><span><i class="risk"></i>위험 요소</span><span><i class="shelter"></i>대피소</span></div></div><div class="safe-agent-controls"><div class="safe-agent-title-row"><h3>위험 요소 중심 복합 재해 분석</h3><div class="safe-agent-badges"><span class="safe-agent-badge">KMA LIVE</span><span class="safe-agent-badge">500M RADIUS</span><span class="safe-agent-badge">LLM REPORT</span></div></div><div class="safe-agent-fields"><label>위도<input id="safeAgentLat" type="number" step="0.000001" value="37.5665"></label><label>경도<input id="safeAgentLng" type="number" step="0.000001" value="126.9780"></label><label class="safe-agent-address-field">법정동<input id="safeAgentAddress" type="text" value="확인 중" readonly></label></div><div class="safe-agent-execute-row"><label class="safe-agent-model-field">AI 모델<select id="safeAgentModel"><option value="">모델 불러오는 중...</option></select></label><button class="safe-agent-run" id="safeAgentRun" type="button">분석 실행</button><div class="safe-agent-inline-message" id="safeAgentMessage">좌표를 입력하거나 지도를 클릭하면 Python PoC가 서버에서 실행됩니다.</div></div><div class="safe-agent-preset-panel"><div class="safe-agent-preset-form"><label>장소명<input id="safeAgentPlaceName" type="text" placeholder="예: 우리집, 현장 A"></label><button id="safeAgentSavePreset" type="button">현재 좌표 저장</button><button id="safeAgentGps" type="button">GPS 위치</button></div><div class="safe-agent-samples" id="safeAgentPresets"></div></div></div></div><div class="safe-agent-status" id="safeAgentStatus"><article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수 추계</strong><span>분석 실행 후 갱신</span></div><div class="safe-agent-rain-bars"><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">6H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">현재</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+1H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+2H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+3H</span></div></div></article><article class="safe-agent-status-card"><b>-</b><span>위험 이력</span></article><article class="safe-agent-status-card"><b>-</b><span>대피소</span></article></div><div class="safe-agent-result" id="safeAgentResult"><div class="safe-agent-empty">실행 결과가 이곳에 표시됩니다.</div></div></section>`;
+      const latEl=document.getElementById('safeAgentLat'),lngEl=document.getElementById('safeAgentLng'),addressEl=document.getElementById('safeAgentAddress'),modelEl=document.getElementById('safeAgentModel'),runButton=document.getElementById('safeAgentRun'),messageEl=document.getElementById('safeAgentMessage'),statusEl=document.getElementById('safeAgentStatus'),resultEl=document.getElementById('safeAgentResult'),mapEl=document.getElementById('safeAgentMap'),mapLabelEl=document.getElementById('safeAgentMapLabel'),kbStatusEl=document.getElementById('safeAgentKbStatus'),kbDetailEl=document.getElementById('safeAgentKbDetail'),buildDataButton=document.getElementById('safeAgentBuildData'),refreshKbButton=document.getElementById('safeAgentRefreshKb'),dataBarEl=document.querySelector('.safe-agent-data-bar'),dataHeadEl=document.getElementById('safeAgentDataHead'),dataLogEl=document.getElementById('safeAgentDataLog'),dataLogToggle=document.getElementById('safeAgentLogToggle'),gpsButton=document.getElementById('safeAgentGps'),placeNameEl=document.getElementById('safeAgentPlaceName'),savePresetButton=document.getElementById('safeAgentSavePreset'),presetsEl=document.getElementById('safeAgentPresets');
+      const presetKey='minzday.aiSafeAgent.presets';
+      const defaultPresets=[{name:'서울시청',lat:37.5665,lng:126.978},{name:'부산시청',lat:35.1796,lng:129.0756}];
+      let lastAnalysisRequest=null,lastSpatialSummary=null,lastSpatialCoords=null,lastRainInfo=null,lastRainCoords=null,safeMap=null,safeMarker=null,safeCircle=null,safeFeatureLayer=null,analysisRunning=false,pendingAnalysis=false,spatialRequestSeq=0,rainRequestSeq=0,geocodeRequestSeq=0,reverseGeocodeEnabled=true,hasCenteredMapOnFirstClick=false;
+      function scheduleMapResize(){if(!safeMap)return;requestAnimationFrame(()=>{safeMap.invalidateSize({animate:false});setTimeout(()=>safeMap&&safeMap.invalidateSize({animate:false}),120);setTimeout(()=>safeMap&&safeMap.invalidateSize({animate:false}),360)})}
+      function scrollMapToCenterOnce(){if(hasCenteredMapOnFirstClick)return;hasCenteredMapOnFirstClick=true;requestAnimationFrame(()=>{mapEl.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});setTimeout(scheduleMapResize,320)})}
+      function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+      function appendDataLog(message,reset=false){const line=`[${new Date().toLocaleTimeString()}] ${message}`;dataLogEl.value=reset?line:`${dataLogEl.value}\n${line}`;dataLogEl.scrollTop=dataLogEl.scrollHeight}
+      function setDataLogOpen(open){dataBarEl.classList.toggle('is-collapsed',!open);dataLogToggle.textContent=open?'로그 닫기':'로그 보기';dataLogToggle.setAttribute('aria-expanded',String(open))}
+      function toggleDataLog(){setDataLogOpen(dataBarEl.classList.contains('is-collapsed'))}
+      function validPresetItems(items){return items.filter(item=>item&&Number.isFinite(Number(item.lat))&&Number.isFinite(Number(item.lng))&&String(item.name||'').trim()).map(item=>({name:String(item.name).trim(),lat:Number(item.lat),lng:Number(item.lng)}))}
+      function loadPresets(){try{const saved=localStorage.getItem(presetKey);if(saved!==null){const parsed=JSON.parse(saved);return Array.isArray(parsed)?validPresetItems(parsed):[]}}catch(e){}return defaultPresets}
+      function savePresets(presets){localStorage.setItem(presetKey,JSON.stringify(presets.map(item=>({name:item.name,lat:Number(item.lat),lng:Number(item.lng)}))))}
+      function renderPresets(){const presets=loadPresets();presetsEl.innerHTML=presets.map((item,index)=>`<span class="safe-agent-preset-item"><button type="button" data-preset-index="${index}">${escapeHtml(item.name)}</button><button class="safe-agent-preset-delete" type="button" data-delete-preset-index="${index}" aria-label="${escapeHtml(item.name)} 삭제">삭제</button></span>`).join('')||'<span class="safe-agent-empty">저장된 좌표가 없습니다.</span>'}
+      function setKbStatus(status){if(status?.exists){kbStatusEl.textContent=status.message||`PKL 파일 생성완료(${status.display_date||status.filename})`;kbDetailEl.textContent=`${status.filename||''}${status.size?` · ${Math.round(status.size/1024).toLocaleString()}KB`:''}`}else{kbStatusEl.textContent='PKL 파일 없음';kbDetailEl.textContent='기초 데이터 만들기를 실행하면 날짜가 붙은 PKL이 생성됩니다.'}}
+      async function loadKbStatus(log=false){const r=await fetch('/api/poc/ai-safe-agent/kb/status');const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'PKL 상태를 불러오지 못했습니다.');setKbStatus(data);if(log)appendDataLog(data.message||'PKL 상태 확인 완료');return data}
+      function initMap(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;if(!window.L){mapEl.classList.add('is-fallback');if(!mapEl.querySelector('.safe-agent-map-fallback'))mapEl.insertAdjacentHTML('afterbegin','<div class="safe-agent-map-fallback">OpenStreetMap을 불러오지 못했습니다.</div>');return;}safeMap=L.map(mapEl,{zoomControl:true,scrollWheelZoom:true}).setView([lat,lng],15);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(safeMap);L.control.scale({metric:true,imperial:false}).addTo(safeMap);safeMarker=L.marker([lat,lng]).addTo(safeMap);safeCircle=L.circle([lat,lng],{radius:500,color:'#2563eb',weight:2,fillColor:'#2563eb',fillOpacity:.12}).addTo(safeMap);safeFeatureLayer=L.layerGroup().addTo(safeMap);safeMap.on('click',event=>{scrollMapToCenterOnce();setCoordinates(event.latlng.lat,event.latlng.lng,{message:'지도에서 선택한 좌표의 공간 데이터를 조회합니다.',preview:true})});scheduleMapResize()}
+      function updateMap(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;mapLabelEl.textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)} · 500m`;if(safeMap&&safeMarker&&safeCircle){const point=[lat,lng];safeMarker.setLatLng(point);safeCircle.setLatLng(point);safeCircle.setRadius(500);safeMap.setView(point,safeMap.getZoom()||15,{animate:true});scheduleMapResize();}}
+      function setCoordinates(lat,lng,options={}){if(!Number.isFinite(lat)||!Number.isFinite(lng))return;latEl.value=Number(lat).toFixed(6);lngEl.value=Number(lng).toFixed(6);updateMap();loadLegalDong(lat,lng);if(options.message)messageEl.textContent=options.message;if(options.preview)loadSpatialPreview();if(options.analyze)runAnalysis()}
+      function markerIcon(category){return L.divIcon({className:`safe-agent-div-icon ${category==='shelter'?'shelter':'risk'}`,html:'<span></span>',iconSize:[18,18],iconAnchor:[9,9]})}
+      function renderMapFeatures(data){if(!safeFeatureLayer||!window.L)return;safeFeatureLayer.clearLayers();const features=(data.spatial_summary?.map_features||[]).filter(item=>Number.isFinite(Number(item.lat))&&Number.isFinite(Number(item.lng)));for(const feature of features){const popup=`<strong>${escapeHtml(feature.kind||feature.category)}</strong><br>${escapeHtml(feature.label||'항목')}<br>${feature.distance_m!=null?`${escapeHtml(feature.distance_m)}m`:''}`;L.marker([Number(feature.lat),Number(feature.lng)],{icon:markerIcon(feature.category)}).bindPopup(popup).addTo(safeFeatureLayer)}}
+      function rainNumber(value){const n=Number(String(value??'0').replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:0}
+      function rainSeries(rain){const fallback=[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6].map(offset=>({offset,label:offset===0?'현재':`${offset>0?'+':''}${offset}H`,value:offset===0?rain.rain_current:(offset===1?rain.rain_1h_after:(offset===2?rain.rain_2h_after:(offset===3?rain.rain_3h_after:'0mm'))),value_mm:null,time:''}));const source=Array.isArray(rain.rain_hourly)&&rain.rain_hourly.length?rain.rain_hourly:fallback;return source.map((item,index)=>{const offset=Number.isFinite(Number(item.offset))?Number(item.offset):index-6;const value=item.value??item.value_mm??'0mm';const valueMm=item.value_mm!==null&&item.value_mm!==undefined&&Number.isFinite(Number(item.value_mm))?Number(item.value_mm):rainNumber(value);return{offset,label:item.label||(offset===0?'현재':`${offset>0?'+':''}${offset}H`),time:item.time||'',value,valueMm}})}
+      function renderRainChart(rain){const items=rainSeries(rain||{});const values=items.map(item=>item.valueMm);const max=Math.max(1,...values);const width=560,height=104,left=18,right=18,top=14,bottom=78;const usableWidth=width-left-right;const points=items.map((item,index)=>{const x=left+(usableWidth*(items.length===1?0:index/(items.length-1)));const y=bottom-((item.valueMm/max)*(bottom-top));return{x,y,item}});const pointAttr=points.map(point=>`${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');const areaAttr=`${left},${bottom} ${pointAttr} ${width-right},${bottom}`;const currentPoint=points.find(point=>point.item.offset===0)||points[Math.floor(points.length/2)]||{x:width/2};const dots=points.map(point=>`<circle class="safe-agent-rain-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3"><title>${escapeHtml(point.item.label)} · ${escapeHtml(point.item.value)}${point.item.time?` · ${escapeHtml(point.item.time)}`:''}</title></circle>`).join('');const axis=items.map(item=>`<span class="${item.offset===0?'current':''}" title="${escapeHtml(item.time)}">${escapeHtml(item.label)}</span>`).join('');const peak=max>0?`${max>=10?max.toFixed(0):max.toFixed(1)}mm max`:'0mm max';return `<article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수 추계</strong><span>${escapeHtml(rain.status||'spatial')}</span><b class="safe-agent-rain-peak">${peak}</b></div><div class="safe-agent-rain-graph"><svg class="safe-agent-rain-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="-6시간부터 +6시간까지 1시간 간격 강수량"><line class="safe-agent-rain-grid" x1="${left}" y1="${bottom}" x2="${width-right}" y2="${bottom}"></line><line class="safe-agent-rain-grid" x1="${left}" y1="${top}" x2="${width-right}" y2="${top}"></line><line class="safe-agent-rain-now" x1="${currentPoint.x.toFixed(1)}" y1="${top}" x2="${currentPoint.x.toFixed(1)}" y2="${bottom}"></line><polygon class="safe-agent-rain-area" points="${areaAttr}"></polygon><polyline class="safe-agent-rain-line" points="${pointAttr}"></polyline>${dots}</svg><div class="safe-agent-rain-axis">${axis}</div></div></article>`}
+      function coordsOf(data){const lat=Number(data?.lat),lng=Number(data?.lng);return {lat:Number.isFinite(lat)?lat:Number(latEl.value),lng:Number.isFinite(lng)?lng:Number(lngEl.value)}}
+      function sameCoords(a,b){return !!(a&&b)&&Math.abs(Number(a.lat)-Number(b.lat))<0.000001&&Math.abs(Number(a.lng)-Number(b.lng))<0.000001}
+      function renderStatus(data){const coords=coordsOf(data),incomingRain=data.rain_info||null;let spatial=data.spatial_summary||null;if(spatial){lastSpatialSummary=spatial;lastSpatialCoords=coords}else if(sameCoords(lastSpatialCoords,coords)){spatial=lastSpatialSummary}spatial=spatial||{};if(incomingRain&&incomingRain.status!=='spatial_only'){lastRainInfo=incomingRain;lastRainCoords=coords}let rain=incomingRain||{};if((!incomingRain||incomingRain.status==='spatial_only')&&sameCoords(lastRainCoords,coords))rain=lastRainInfo||rain;const riskTotal=(spatial.floods_count||0)+(spatial.landslides_count||0)+(spatial.vulnerable_count||0);statusEl.innerHTML=`${renderRainChart(rain)}<article class="safe-agent-status-card"><b>${riskTotal}</b><span>위험이력</span></article><article class="safe-agent-status-card"><b>${spatial.shelters_count||0}</b><span>대피소</span></article>`}
+      function detailFieldsHtml(fields){const entries=Object.entries(fields||{}).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=='');return entries.length?`<dl class="safe-agent-detail-fields">${entries.map(([key,value])=>`<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd>`).join('')}</dl>`:''}
+      function renderDetailList(items=[],type='risk'){if(!items.length)return '<div class="safe-agent-detail-empty">표시할 실제 데이터가 없습니다.</div>';return `<div class="safe-agent-detail-list">${items.map(item=>{const meta=[];if(type==='risk'&&item.date)meta.push(`<span>날짜 ${escapeHtml(item.date)}</span>`);if(item.distance_m!==null&&item.distance_m!==undefined)meta.push(`<span>직선 ${escapeHtml(item.distance_m)}m</span>`);if(item.address)meta.push(`<span>${escapeHtml(item.address)}</span>`);if(item.lat&&item.lng)meta.push(`<span>${Number(item.lat).toFixed(5)}, ${Number(item.lng).toFixed(5)}</span>`);return `<article class="safe-agent-detail-item"><strong>${escapeHtml(item.label||item.kind||'항목')}</strong>${meta.length?`<div class="safe-agent-detail-meta">${meta.join('')}</div>`:''}${detailFieldsHtml(item.fields)}</article>`}).join('')}</div>`}
+      function renderDetailSection(title,count,items,type='risk'){return `<details class="safe-agent-detail-section"><summary><span>${escapeHtml(title)}</span><b class="safe-agent-detail-count">${Number(count||0).toLocaleString()}건</b></summary>${renderDetailList(items||[],type)}</details>`}
+      function resultDataHtml(data){const spatial=data.spatial_summary||{},nearest=spatial.nearest_shelter,details=spatial.details||{};const riskMapCount=(spatial.map_features||[]).filter(x=>x.category==='risk').length,shelterMapCount=(spatial.map_features||[]).filter(x=>x.category==='shelter').length;const sections=[renderDetailSection('침수 흔적',spatial.floods_count,details.floods,'risk'),renderDetailSection('산사태 발생/우려',spatial.landslides_count,details.landslides,'risk'),renderDetailSection('인명피해 우려구역',spatial.vulnerable_count,details.vulnerable,'risk'),renderDetailSection('대피소',spatial.shelters_count,details.shelters,'shelter')].join('');return `<article><h3>분석 데이터</h3><div class="safe-agent-list"><div><span>사용 PKL</span><b>${escapeHtml(data.kb_filename||data.kb_status?.filename||'없음')}</b></div><div><span>분석 좌표</span><b>${Number(data.lat).toFixed(6)}, ${Number(data.lng).toFixed(6)}</b></div><div><span>지도 표기</span><b>위험 ${riskMapCount}건 · 대피소 ${shelterMapCount}건</b></div><div><span>가장 가까운 대피소</span><b>${nearest?escapeHtml((nearest.REARE_NM||nearest.VT_ACM_PLC_NM||'대피소')+' · 직선 '+nearest.distance_m+'m'):'없음'}</b></div></div><div class="safe-agent-detail-sections">${sections}</div></article>`}
+      function renderSpatialResult(data){resultEl.innerHTML=`<article class="safe-agent-report"><h3>공간 데이터 빠른 조회</h3><div class="safe-agent-badges"><span class="safe-agent-badge">PKL MEMORY</span><span class="safe-agent-badge">500M RADIUS</span></div><pre>지도 클릭 좌표의 위험 요소와 대피소를 표시했습니다. 기상 정보와 보고서는 분석 실행 버튼을 눌러 생성하세요.</pre></article>${resultDataHtml(data)}`}
+      function renderResult(data){const rain=data.rain_info||{},config=data.config_status||{};const model=data.model||modelEl.options[modelEl.selectedIndex]?.textContent||'AI 모델';const keyBadges=`<div class="safe-agent-badges"><span class="safe-agent-badge ${config.kma_key?'ok':'warn'}">KMA ${config.kma_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.hf_key?'ok':'warn'}">HF ${config.hf_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.openrouter_key?'ok':'warn'}">OR ${config.openrouter_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge">${escapeHtml(model)}</span><span class="safe-agent-badge">${escapeHtml(rain.status||'status unknown')}</span></div>`;resultEl.innerHTML=`<article class="safe-agent-report"><h3>AI 공간 방재 판단서</h3>${keyBadges}<pre>${escapeHtml(data.report||'보고서가 비어 있습니다.')}</pre></article>${resultDataHtml(data)}`}
+      function currentCoordsMatch(data){return Math.abs(Number(data.lat)-Number(latEl.value))<0.000001&&Math.abs(Number(data.lng)-Number(lngEl.value))<0.000001}
+      async function loadRainPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;const requestId=++rainRequestSeq;messageEl.textContent='기상청 강수 추계를 먼저 가져오는 중...';const r=await fetch('/api/poc/ai-safe-agent/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==rainRequestSeq)return null;if(!r.ok)throw new Error(data.error||'기상청 강수 조회에 실패했습니다.');if(!currentCoordsMatch(data))return null;renderStatus(data);messageEl.textContent='기상청 강수 추계 표기 완료 · AI 보고서 생성 중...';return data}
+      async function loadSpatialPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++spatialRequestSeq;messageEl.textContent='공간 데이터 조회 중...';try{const r=await fetch('/api/poc/ai-safe-agent/spatial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==spatialRequestSeq)return;if(!r.ok)throw new Error(data.error||'공간 데이터 조회에 실패했습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderSpatialResult(data);messageEl.textContent='공간 데이터 표시 완료';}catch(e){if(requestId!==spatialRequestSeq)return;messageEl.textContent='공간 데이터 조회 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}
+      async function loadAiSafeModels(){try{const r=await fetch('/api/poc/ai-safe-agent/models');const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');modelEl.innerHTML=(data.models||[]).map(item=>`<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}${item.details?.parameter_size?' · '+escapeHtml(item.details.parameter_size):''}</option>`).join('')||'<option value="">모델 없음</option>';if(data.default)modelEl.value=data.default;}catch(e){modelEl.innerHTML='<option value="huggingface:Qwen/Qwen2.5-72B-Instruct">Hugging Face · Qwen/Qwen2.5-72B-Instruct</option><option value="openrouter:openai/gpt-4o-mini">OpenRouter · openai/gpt-4o-mini</option>';appendDataLog(`AI 모델 목록 조회 실패: ${e.message}`)}}
+      async function loadLegalDong(lat=Number(latEl.value),lng=Number(lngEl.value)){if(!reverseGeocodeEnabled||!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++geocodeRequestSeq;addressEl.value='법정동 확인 중';try{const r=await fetch('/api/poc/ai-safe-agent/reverse-geocode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==geocodeRequestSeq)return;if(data.status==='unavailable'){reverseGeocodeEnabled=false;addressEl.value='법정동 키 없음';return;}if(data.status==='error'){addressEl.value='법정동 확인 실패';return;}addressEl.value=data.legal_dong||data.address||'확인 불가';}catch(e){if(requestId!==geocodeRequestSeq)return;addressEl.value='확인 실패'}}
+      function loadDefaultLocation(message='기본 좌표로 공간 데이터를 조회합니다.'){updateMap();loadLegalDong();loadSpatialPreview();messageEl.textContent=message}
+      function useGpsLocation(options={}){const auto=!!options.auto;if(!navigator.geolocation){if(auto){loadDefaultLocation('GPS를 사용할 수 없어 기본 좌표로 시작합니다.');return;}alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');return;}gpsButton.disabled=true;messageEl.textContent=auto?'현재 GPS 위치 확인 중...':'GPS 위치 확인 중...';navigator.geolocation.getCurrentPosition(position=>{gpsButton.disabled=false;const lat=position.coords.latitude,lng=position.coords.longitude,accuracy=Math.round(position.coords.accuracy||0);const message=auto?`현재 GPS 위치로 시작합니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`:`GPS 위치로 이동했습니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`;setCoordinates(lat,lng,{message,preview:true});},error=>{gpsButton.disabled=false;const messages={1:'위치 권한이 거부되었습니다.',2:'현재 위치를 확인할 수 없습니다.',3:'위치 확인 시간이 초과되었습니다.'};const message=messages[error.code]||'GPS 위치 확인에 실패했습니다.';if(auto){loadDefaultLocation(`${message} 기본 좌표로 시작합니다.`);return;}messageEl.textContent=message;alert(messageEl.textContent);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
+      async function runAnalysis(){if(analysisRunning){pendingAnalysis=true;messageEl.textContent='새 좌표 분석을 이어서 실행합니다.';return;}const lat=Number(latEl.value),lng=Number(lngEl.value),use_ai=true,ai_model=modelEl.value;if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('올바른 위도와 경도를 입력하세요.');return;}analysisRunning=true;lastAnalysisRequest={lat,lng,use_ai,ai_model};updateMap();runButton.disabled=true;resultEl.innerHTML='<div class="safe-agent-empty">기상청 강수 추계를 먼저 업데이트한 뒤 공간 데이터와 AI 보고서를 생성합니다.</div>';try{try{await loadRainPreview()}catch(rainError){appendDataLog(`기상청 강수 조회 실패: ${rainError.message}`);messageEl.textContent='기상청 강수 조회 실패 · 공간/AI 분석을 계속합니다.'}if(pendingAnalysis)return;messageEl.textContent='공간 데이터와 AI 보고서 생성 중...';const r=await fetch('/api/poc/ai-safe-agent/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lastAnalysisRequest)});const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'분석 실행에 실패했습니다.');if(pendingAnalysis||!currentCoordsMatch(data))return;if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderResult(data);messageEl.textContent='분석 완료';}catch(e){messageEl.textContent='분석 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}finally{analysisRunning=false;runButton.disabled=false;if(pendingAnalysis){pendingAnalysis=false;runAnalysis()}}}
+      async function buildKnowledgeBase(){buildDataButton.disabled=true;refreshKbButton.disabled=true;runButton.disabled=true;gpsButton.disabled=true;savePresetButton.disabled=true;appendDataLog('기초 데이터 만들기 시작',true);try{const r=await fetch('/api/poc/ai-safe-agent/kb/build',{method:'POST'});if(!r.ok&&!r.body){const data=await readJsonResponse(r);throw new Error(data.error||'기초 데이터 생성 실패')}if(!r.body){const data=await readJsonResponse(r);setKbStatus(data);appendDataLog(data.message||'기초 데이터 생성 완료');return;}const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='log')appendDataLog(event.message);else if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}else if(event.type==='error')throw new Error(event.error||'기초 데이터 생성 실패')}}if(buffer.trim()){const event=JSON.parse(buffer);if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{buildDataButton.disabled=false;refreshKbButton.disabled=false;runButton.disabled=false;gpsButton.disabled=false;savePresetButton.disabled=false}}
+      async function refreshKnowledgeBase(){refreshKbButton.disabled=true;try{appendDataLog('PKL 상태 새로고침');await loadKbStatus(true);if(lastAnalysisRequest){await runAnalysis()}else{await loadSpatialPreview();messageEl.textContent='PKL 상태를 다시 읽고 지도 데이터를 갱신했습니다.'}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{refreshKbButton.disabled=false}}
+      presetsEl.onclick=event=>{const deleteButton=event.target.closest('[data-delete-preset-index]');if(deleteButton){const presets=loadPresets();presets.splice(Number(deleteButton.dataset.deletePresetIndex),1);savePresets(presets);renderPresets();return;}const button=event.target.closest('[data-preset-index]');if(!button)return;const item=loadPresets()[Number(button.dataset.presetIndex)];if(item)setCoordinates(item.lat,item.lng,{message:`${item.name} 좌표를 불러왔습니다.`})};
+      savePresetButton.onclick=()=>{const name=placeNameEl.value.trim();const lat=Number(latEl.value),lng=Number(lngEl.value);if(!name){alert('저장할 장소명을 입력하세요.');placeNameEl.focus();return;}if(!Number.isFinite(lat)||!Number.isFinite(lng)){alert('저장할 좌표가 올바르지 않습니다.');return;}const presets=loadPresets();const existing=presets.findIndex(item=>item.name===name);const saved={name,lat,lng};if(existing>=0)presets[existing]=saved;else presets.push(saved);savePresets(presets);renderPresets();placeNameEl.value='';messageEl.textContent=`${name} 좌표를 저장했습니다.`};
+      dataHeadEl.addEventListener('click',event=>{if(event.target.closest('button'))return;toggleDataLog()});dataHeadEl.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();toggleDataLog()}});dataLogToggle.onclick=event=>{event.stopPropagation();toggleDataLog()};latEl.oninput=updateMap;lngEl.oninput=updateMap;runButton.onclick=runAnalysis;gpsButton.onclick=useGpsLocation;buildDataButton.onclick=buildKnowledgeBase;refreshKbButton.onclick=refreshKnowledgeBase;initMap();renderPresets();updateMap();addEventListener('resize',scheduleMapResize);loadAiSafeModels();loadKbStatus().catch(e=>appendDataLog(`PKL 상태 확인 실패: ${e.message}`,true));useGpsLocation({auto:true});
+    }
+
+    const archiveKickerEl=document.getElementById('archiveKicker'),archiveTitleEl=document.getElementById('archiveTitle'),archiveDescriptionEl=document.getElementById('archiveDescription'),projectIndexTitleEl=document.getElementById('projectIndexTitle'),projectDrawerLabelEl=document.getElementById('projectDrawerLabel');
+    function escapeProjectHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+    function archivePageFromLocation(){if(location.pathname.startsWith('/poc'))return 'poc';if(location.pathname.startsWith('/portfolio'))return 'portfolio';return 'home'}
+    function catalog(page){return catalogs[page]||catalogs.portfolio}
+    function lastProjectId(page=currentArchivePage){const list=catalog(page).projects;return list.at(-1)?.id||list[0]?.id||''}
+    let currentArchivePage=archivePageFromLocation()==='home'?'portfolio':archivePageFromLocation();
+    const currentProjectIds={portfolio:lastProjectId('portfolio'),poc:lastProjectId('poc')};
+    function setArchiveChrome(page){
+      const c=catalog(page);
+      archiveKickerEl.textContent=c.kicker;archiveTitleEl.innerHTML=c.title;archiveDescriptionEl.textContent=c.description;projectIndexTitleEl.textContent=c.indexLabel;projectDrawerLabelEl.textContent=c.drawerLabel;
+      projectList.innerHTML=c.projects.map(p=>`<button class="project-button" data-id="${escapeProjectHtml(p.id)}"><strong>${escapeProjectHtml(p.no)}. ${escapeProjectHtml(p.title)}</strong><small>${escapeProjectHtml(p.date)}</small></button>`).join('');
+    }
+    function renderProject(id,page=currentArchivePage){
+      const list=catalog(page).projects;
+      if(!list.length){
+        currentProjectIds[page]='';projectMeta.innerHTML='';projectTitle.textContent='아직 등록된 프로젝트가 없습니다.';projectSummary.textContent='이 컬렉션 폴더에 project.json을 추가하면 같은 형식으로 표시됩니다.';
+        projectLab.classList.remove('active');projectLab.innerHTML='';projectDefaultView.classList.remove('hidden');projectDescription.textContent=`${catalog(page).path.replace('/','')} 컬렉션의 첫 프로젝트를 기다리고 있습니다.`;projectFeatures.innerHTML='';codeFile.textContent='project.json';projectCode.textContent='# project.json과 entry_file을 추가하면 이곳에 코드가 표시됩니다.';projectUsage.innerHTML='';projectNote.textContent='';
+        return null;
+      }
+      const p=list.find(x=>x.id===id)||list[0];
+      currentProjectIds[page]=p.id;
       document.querySelectorAll('.project-button').forEach(b=>b.classList.toggle('active',b.dataset.id===p.id));
-      projectMeta.innerHTML=p.tags.map(x=>`<span>${x}</span>`).join(''); projectTitle.textContent=p.title; projectSummary.textContent=p.summary;
+      projectMeta.innerHTML=(p.tags||[]).map(x=>`<span>${escapeProjectHtml(x)}</span>`).join(''); projectTitle.textContent=p.title; projectSummary.textContent=p.summary;
       if(p.id==='chunking-lab'){
         renderLegacyChunkingLab(p);
       }else if(p.id==='chunking-rag-lab'){
         renderChunkingRagLab(p);
+      }else if(p.id==='ai-safe-agent'){
+        renderAISafeAgent(p);
       }else{
         projectLab.classList.remove('active'); projectLab.innerHTML=''; projectDefaultView.classList.remove('hidden');
         projectDescription.textContent=p.description;
-        projectFeatures.innerHTML=p.features.map(x=>`<div class="feature"><b>${x[0]}</b><span>${x[1]}</span></div>`).join(''); codeFile.textContent=p.file; projectCode.textContent=p.code;
-        projectUsage.innerHTML=p.usage.map(x=>`<li>${x}</li>`).join(''); projectNote.textContent=p.note;
+        projectFeatures.innerHTML=(p.features||[]).map(x=>`<div class="feature"><b>${escapeProjectHtml(x[0])}</b><span>${escapeProjectHtml(x[1])}</span></div>`).join(''); codeFile.textContent=p.file; projectCode.textContent=p.code;
+        projectUsage.innerHTML=(p.usage||[]).map(x=>`<li>${escapeProjectHtml(x)}</li>`).join(''); projectNote.textContent=p.note;
       }
       return p;
     }
-    function projectIdFromLocation(){
-      const pathMatch=location.pathname.match(/^\/portfolio\/([^/?#]+)/);
+    function projectIdFromLocation(page=currentArchivePage){
+      const c=catalog(page),pathMatch=location.pathname.match(new RegExp(`^${c.path}/([^/?#]+)`));
       return pathMatch ? decodeURIComponent(pathMatch[1]) : new URLSearchParams(location.search).get('project');
     }
-    function projectUrl(id){return `/portfolio?project=${encodeURIComponent(id)}`}
-    projectList.innerHTML=projects.map(p=>`<button class="project-button" data-id="${p.id}"><strong>${p.no}. ${p.title}</strong><small>${p.date}</small></button>`).join('');
-    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){const p=renderProject(b.dataset.id);if(document.body.classList.contains('portfolio-mode'))history.pushState({},'',projectUrl(p.id));closeMobileDrawers()}}); renderProject(projectIdFromLocation()||lastProjectId());
+    function projectUrl(id,page=currentArchivePage){const c=catalog(page);return id?`${c.path}?project=${encodeURIComponent(id)}`:c.path}
+    function scrollAISafeMapIntoView(){const map=document.getElementById('safeAgentMap');if(!map)return;requestAnimationFrame(()=>map.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'}))}
+    setArchiveChrome(currentArchivePage);renderProject(projectIdFromLocation(currentArchivePage)||lastProjectId(currentArchivePage),currentArchivePage);
+    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){const p=renderProject(b.dataset.id,currentArchivePage);if(p&&document.body.classList.contains('archive-mode'))history.pushState({},'',projectUrl(p.id,currentArchivePage));closeMobileDrawers();if(p?.id==='ai-safe-agent')scrollAISafeMapIntoView()}});
     const drawerBackdrop=document.getElementById('drawerBackdrop'),chatDrawerToggle=document.getElementById('chatDrawerToggle'),projectDrawerToggle=document.getElementById('projectDrawerToggle'),chatSidebarEl=document.getElementById('chatSidebar'),projectSideMenuEl=document.getElementById('projectSideMenu');
     function setDrawerState(type,open){
       const className=type==='chat'?'chat-drawer-open':'project-drawer-open';
@@ -762,13 +919,15 @@ HTML_PAGE = r"""
     function processPanel(item,start){const box=document.createElement('details');box.className='process-box live';box.open=true;const requestCount=conversation.length;const attachmentCount=attachedData.length;box.innerHTML='<summary><span class="process-summary">생성 중 · 준비 단계</span><span class="process-toggle">자세히 보는 중</span><span class="process-meta">0.0s</span></summary><div class="process-inner"><div class="process-log"></div><div class="references">참고 자료 확인 중...</div></div>';const log=box.querySelector('.process-log');const summaryEl=box.querySelector('.process-summary');const toggleEl=box.querySelector('.process-toggle');const metaEl=box.querySelector('.process-meta');const refs=box.querySelector('.references');const timers=[];let finished=false,firstChunkSeen=false,expansionNoted=false;box.addEventListener('toggle',()=>{if(finished)return;toggleEl.textContent=box.open?'자세히 보는 중':'간단히 보는 중'});function addStep(text,state='done'){const row=document.createElement('div');row.className=`process-step ${state}`.trim();row.innerHTML=`<i></i><span>${text}</span>`;log.append(row);log.parentElement.scrollTop=log.parentElement.scrollHeight;messagesEl.scrollTop=messagesEl.scrollHeight;return row}const intro='요청 수신 · '+requestCount+'개 메시지 맥락 정리 완료'+(attachmentCount?` · 첨부 ${attachmentCount}개 포함`:'');addStep(intro,'done');const stages=[['프롬프트와 모델 설정을 적용하고 있어요.','done','생성 중 · 입력 구성'],['로컬 모델에 요청을 전달했어요.','done','생성 중 · 모델 호출'],['응답 초안을 계산하고 있어요.','active','생성 중 · 초안 생성'],['문장 흐름과 길이를 정리하고 있어요.','active','생성 중 · 답변 다듬기']];stages.forEach(([text,state,summary],index)=>{timers.push(setTimeout(()=>{if(finished)return;addStep(text,state);summaryEl.textContent=summary},450+(index*900)))});const tick=setInterval(()=>{if(finished)return;metaEl.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`},120);item.children[1].append(box);return{stream(answer){if(finished)return;if(!firstChunkSeen&&answer.trim()){firstChunkSeen=true;summaryEl.textContent='생성 중 · 실시간 출력';addStep('첫 응답 조각이 도착해 화면에 바로 표시하고 있어요.','active')}if(!expansionNoted&&answer.length>180){expansionNoted=true;addStep('답변 분량이 늘어나고 있어요. 문단 단위로 이어 붙이는 중입니다.','muted')}},finish(answer,metrics,ok=true){finished=true;timers.forEach(clearTimeout);clearInterval(tick);const seconds=metrics?.total_duration?metrics.total_duration/1e9:(performance.now()-start)/1000;const evalCount=metrics?.eval_count;const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const statusText=ok?`${modelSelectEl.value} 응답 생성 완료`:'응답 생성 중 오류 발생';addStep(statusText+(evalCount?` · ${evalCount} tokens`:''),ok?'done':'error');refs.textContent=urls.length?'참고 자료 · ':'참고 자료 · 외부 자료를 사용하지 않은 로컬 모델 응답';urls.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=`[${i+1}] ${url}`;refs.append(document.createElement('br'),a)});summaryEl.textContent=ok?`생성 완료 · ${seconds.toFixed(1)}초`:`오류로 종료 · ${seconds.toFixed(1)}초`;toggleEl.textContent='요약만 표시';metaEl.textContent=ok?(evalCount?`${evalCount} tok · ${urls.length} refs`:`${urls.length} refs`):'retry needed';box.classList.remove('live');box.classList.add('compact');box.open=false}}}
     function addMessage(role,text,extra=''){document.getElementById('emptyChat')?.remove();const item=document.createElement('article');item.className=`message ${role} ${extra}`;const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=role==='user'?'YOU':'✦';const wrap=document.createElement('div');const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'나':modelSelectEl.value;const body=document.createElement('div');body.className='message-body';body.textContent=text;wrap.append(label,body);item.append(avatar,wrap);messagesEl.append(item);messagesEl.scrollTop=messagesEl.scrollHeight;return item;}
     function renderSources(answer,sources=[]){const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const merged=[...sources,...urls.map(url=>({type:'WEB',title:new URL(url).hostname,url,excerpt:'응답에 포함된 웹 링크'}))];sourceCount.textContent=merged.length;if(!merged.length){sourceList.innerHTML='<div class="source-empty"><i>⌕</i><strong>외부 자료 없음</strong><br>이 답변은 로컬 모델의 학습 지식으로<br>생성되었습니다.</div>';return}sourceList.textContent='';merged.forEach((s,i)=>{const card=document.createElement(s.url?'a':'div');card.className='source-card';if(s.url){card.href=s.url;card.target='_blank';card.rel='noreferrer'};const type=document.createElement('span');type.className='source-type';type.textContent=s.type||'RAG';const title=document.createElement('strong');title.textContent=`${i+1}. ${s.title||s.document||'참고 문서'}`;const detail=document.createElement('small');detail.textContent=s.excerpt||s.url||s.source||'';card.append(type,title,detail);sourceList.append(card)})}
-    const defaultPrompt='항상 자연스러운 한국어로만 답변하세요. 다른 언어 문자를 섞지 마세요. 핵심부터 간결하고 정확하게 설명하고, 모르는 내용은 추측하지 말고 모른다고 말하세요.';let attachedData=[];
-    const composerEl=document.querySelector('.composer'),composerArea=document.querySelector('.composer-area'),attachmentBoxEl=document.querySelector('.attachment-box'),attachButtonEl=document.getElementById('attachButton'),fileInputEl=document.getElementById('fileInput'),attachedFilesEl=document.getElementById('attachedFiles'),fileShelf=document.createElement('div');fileShelf.className='composer-files';fileShelf.innerHTML='<div class="composer-files-head"><b>첨부 자료</b><span>이 대화의 이후 질문에도 계속 사용</span></div>';attachButtonEl.className='composer-attach';attachButtonEl.textContent='＋';attachButtonEl.title='분석 자료 첨부';composerEl.insertBefore(attachButtonEl,inputEl);fileShelf.append(attachedFilesEl);composerArea.insertBefore(fileShelf,composerEl);composerArea.append(fileInputEl);attachmentBoxEl.remove();
+    const defaultPrompt='항상 자연스러운 한국어로만 답변하세요. 다른 언어 문자를 섞지 마세요. 핵심부터 간결하고 정확하게 설명하고, 모르는 내용은 추측하지 말고 모른다고 말하세요.';const ATTACHMENT_MAX_FILE_BYTES=5*1024*1024,ATTACHMENT_MAX_FILES=3,ATTACHMENT_MAX_TOTAL_BYTES=ATTACHMENT_MAX_FILE_BYTES*ATTACHMENT_MAX_FILES,CHAT_REQUEST_MAX_BYTES=18*1024*1024;let attachedData=[];
+    function attachmentBytes(){return attachedData.reduce((sum,file)=>sum+(file.size||0),0)}
+    function formatBytes(bytes){const mb=bytes/(1024*1024);return mb>=1?`${mb.toFixed(mb>=10?0:1).replace(/\.0$/,'')}MB`:`${Math.ceil(bytes/1024)}KB`}
+    const composerEl=document.querySelector('.composer'),composerArea=document.querySelector('.composer-area'),attachmentBoxEl=document.querySelector('.attachment-box'),attachButtonEl=document.getElementById('attachButton'),fileInputEl=document.getElementById('fileInput'),attachedFilesEl=document.getElementById('attachedFiles'),fileShelf=document.createElement('div');fileShelf.className='composer-files';fileShelf.innerHTML='<div class="composer-files-head"><b>첨부 자료</b><span>최대 3개 · 파일당 5MB · 총 15MB</span></div>';attachButtonEl.className='composer-attach';attachButtonEl.textContent='＋';attachButtonEl.title='분석 자료 첨부';composerEl.insertBefore(attachButtonEl,inputEl);fileShelf.append(attachedFilesEl);composerArea.insertBefore(fileShelf,composerEl);composerArea.append(fileInputEl);attachmentBoxEl.remove();
     function settingsKey(){return`minzday.settings.${modelSelectEl.value}`}
     function loadModelSettings(){const saved=JSON.parse(localStorage.getItem(settingsKey())||'{}');systemPrompt.value=saved.prompt||defaultPrompt;maxTokens.value=String(saved.maxTokens||256)}
     saveSettings.onclick=()=>{localStorage.setItem(settingsKey(),JSON.stringify({prompt:systemPrompt.value.trim(),maxTokens:Number(maxTokens.value)}));saveSettings.textContent='저장 완료 ✓';setTimeout(()=>saveSettings.textContent='이 모델 설정 저장',1200)};
-    attachButtonEl.onclick=()=>fileInputEl.click();fileInputEl.onchange=async()=>{for(const file of fileInputEl.files){if(file.size>200*1024){alert(`${file.name}: 200KB를 초과합니다.`);continue}if(attachedData.length>=3){alert('파일은 최대 3개까지 첨부할 수 있습니다.');break}attachedData.push({name:file.name,content:await file.text()})}renderAttachments();fileInputEl.value=''};
-    function renderAttachments(){fileShelf.classList.toggle('active',attachedData.length>0);attachedFilesEl.innerHTML=attachedData.map((f,i)=>`<div class="file-chip"><span>📄 ${f.name}</span><button data-file="${i}" title="첨부 해제">×</button></div>`).join('');attachedFilesEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{attachedData.splice(Number(b.dataset.file),1);renderAttachments()})}
+    attachButtonEl.onclick=()=>fileInputEl.click();fileInputEl.onchange=async()=>{for(const file of fileInputEl.files){if(file.size>ATTACHMENT_MAX_FILE_BYTES){alert(`${file.name}: ${formatBytes(ATTACHMENT_MAX_FILE_BYTES)}를 초과합니다.`);continue}if(attachedData.length>=ATTACHMENT_MAX_FILES){alert(`파일은 최대 ${ATTACHMENT_MAX_FILES}개까지 첨부할 수 있습니다.`);break}if(attachmentBytes()+file.size>ATTACHMENT_MAX_TOTAL_BYTES){alert(`첨부 파일 총 용량은 ${formatBytes(ATTACHMENT_MAX_TOTAL_BYTES)} 이하로 제한됩니다.`);break}attachedData.push({name:file.name,size:file.size,content:await file.text()})}renderAttachments();fileInputEl.value=''};
+    function renderAttachments(){fileShelf.classList.toggle('active',attachedData.length>0);attachedFilesEl.textContent='';attachedData.forEach((f,i)=>{const chip=document.createElement('div');chip.className='file-chip';const label=document.createElement('span');label.textContent=`📄 ${f.name} · ${formatBytes(f.size||0)}`;const remove=document.createElement('button');remove.type='button';remove.dataset.file=String(i);remove.title='첨부 해제';remove.textContent='×';remove.onclick=()=>{attachedData.splice(i,1);renderAttachments()};chip.append(label,remove);attachedFilesEl.append(chip)})}
     async function sendMessage(text){
       text=text.trim();if(!text||generating)return;generating=true;sendEl.disabled=true;
       conversation.push({role:'user',content:text});addMessage('user',text);
@@ -777,7 +936,8 @@ HTML_PAGE = r"""
       const started=performance.now(),pending=addMessage('assistant','응답을 생각하고 있습니다…','typing'),process=processPanel(pending,started);
       const requestMessages=[];if(systemPrompt.value.trim())requestMessages.push({role:'system',content:systemPrompt.value.trim()});if(attachedData.length)requestMessages.push({role:'system',content:'다음 첨부 자료를 바탕으로 질문에 답하세요. 자료에 없는 내용은 구분해서 설명하세요.\n\n'+attachedData.map(f=>`[파일: ${f.name}]\n${f.content}`).join('\n\n')});requestMessages.push(...conversation);
       try{
-        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelSelectEl.value,messages:requestMessages,max_tokens:Number(maxTokens.value),attachments:attachedData.map(f=>f.name)})});
+        const requestBody=JSON.stringify({model:modelSelectEl.value,messages:requestMessages,max_tokens:Number(maxTokens.value),attachments:attachedData.map(f=>f.name)});if(new Blob([requestBody]).size>CHAT_REQUEST_MAX_BYTES)throw new Error(`첨부와 대화 내용을 합친 요청 크기가 ${formatBytes(CHAT_REQUEST_MAX_BYTES)}를 초과합니다. 파일을 줄이거나 일부만 첨부하세요.`);
+        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:requestBody});
         if(!r.ok){const data=await r.json();throw new Error(data.error||'응답을 받지 못했습니다.')}
         if(!r.body)throw new Error('스트리밍 응답을 받을 수 없습니다.');
         const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='',answer='',finalEvent=null;pending.classList.add('streaming');pending.querySelector('.message-body').textContent='';
@@ -805,8 +965,8 @@ HTML_PAGE = r"""
     }
     document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessage(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};
     document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessage(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{const saved=localStorage.getItem('minzday.selectedModel');if(saved&&[...modelSelectEl.options].some(o=>o.value===saved))modelSelectEl.value=saved;loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
-    function showPage(page,push=false,projectId=null){const portfolio=page==='portfolio';const requestedProject=portfolio?(projectId||projectIdFromLocation()||(push?lastProjectId():currentProjectId||lastProjectId())):null;closeMobileDrawers();document.body.classList.toggle('portfolio-mode',portfolio);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(portfolio)renderProject(requestedProject);if(push)history.pushState({},'',portfolio?(requestedProject?projectUrl(requestedProject):'/portfolio'):'/');scrollTo(0,0)}
-    document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(location.pathname.startsWith('/portfolio')?'portfolio':'home'));showPage(location.pathname.startsWith('/portfolio')?'portfolio':'home');
+    function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');scrollTo(0,0)}
+    document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(archivePageFromLocation()));showPage(archivePageFromLocation());
   </script>
 </body>
 </html>
@@ -814,8 +974,251 @@ HTML_PAGE = r"""
 
 
 def build_html():
-    """projects 폴더의 최신 실습 목록을 페이지에 삽입한다."""
-    return HTML_PAGE.replace("__PROJECTS_JSON__", projects_as_json())
+    """projects와 PoC 폴더의 최신 목록을 페이지에 삽입한다."""
+    return (
+        HTML_PAGE.replace("__PROJECTS_JSON__", projects_as_json())
+        .replace("__POC_PROJECTS_JSON__", poc_projects_as_json())
+    )
+
+
+def load_module_from_path(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"{path.name} 파일을 불러오지 못했습니다.")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_ai_safe_agent_module():
+    global AI_SAFE_AGENT_MODULE, AI_SAFE_AGENT_MTIME
+    mtime = AI_SAFE_AGENT_PATH.stat().st_mtime_ns
+    if AI_SAFE_AGENT_MODULE is None or AI_SAFE_AGENT_MTIME != mtime:
+        AI_SAFE_AGENT_MODULE = load_module_from_path("ai_safe_agent_poc", AI_SAFE_AGENT_PATH)
+        AI_SAFE_AGENT_MTIME = mtime
+    return AI_SAFE_AGENT_MODULE
+
+
+def clear_ai_safe_agent_runtime_cache():
+    module = load_ai_safe_agent_module()
+    if hasattr(module, "clear_knowledge_base_cache"):
+        module.clear_knowledge_base_cache()
+
+
+def load_ai_safe_import_module():
+    return load_module_from_path("ai_safe_agent_import", AI_SAFE_IMPORT_PATH)
+
+
+def ai_safe_kb_status():
+    """AI Safe Agent 기초 데이터 PKL 상태를 반환한다."""
+    module = load_ai_safe_import_module()
+    return module.get_pkl_status()
+
+
+def build_ai_safe_kb(progress):
+    """공공데이터 수집부터 날짜 PKL 생성까지 실행한다."""
+    if not AI_SAFE_BUILD_LOCK.acquire(blocking=False):
+        raise RuntimeError("기초 데이터 생성이 이미 진행 중입니다.")
+    try:
+        module = load_ai_safe_import_module()
+        result = module.build_knowledge_base(progress=progress, force=True)
+        clear_ai_safe_agent_runtime_cache()
+        return result
+    finally:
+        AI_SAFE_BUILD_LOCK.release()
+
+
+def parse_ai_safe_coordinates(payload):
+    try:
+        lat = float(payload.get("lat"))
+        lng = float(payload.get("lng"))
+    except (TypeError, ValueError):
+        raise ValueError("위도와 경도를 숫자로 입력하세요.")
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        raise ValueError("위도 또는 경도 범위가 올바르지 않습니다.")
+    return lat, lng
+
+
+def ai_safe_config_status(kb_status):
+    return {
+        "kma_key": bool(env_first("KMA_AUTH_KEY")),
+        "hf_key": bool(env_first("HF_API_KEY")),
+        "openrouter_key": bool(env_first("OPENROUTER_API_KEY")),
+        "kb_path": kb_status.get("filename") or env_first("DISASTER_KB_PATH", default="integrated_disaster_kb.pkl"),
+    }
+
+
+def run_ai_safe_agent_spatial(payload):
+    """지도 클릭용 빠른 공간 조회. KMA/LLM 호출 없이 PKL만 사용한다."""
+    lat, lng = parse_ai_safe_coordinates(payload)
+    module = load_ai_safe_agent_module()
+    result = module.analyze_spatial_location(lat, lng)
+    kb_status = ai_safe_kb_status()
+    result["kb_status"] = kb_status
+    result["config_status"] = ai_safe_config_status(kb_status)
+    return result
+
+
+def run_ai_safe_agent_rain(payload):
+    """분석 버튼에서 먼저 보여줄 KMA 강수 추계만 가져온다."""
+    lat, lng = parse_ai_safe_coordinates(payload)
+    module = load_ai_safe_agent_module()
+    rain = module.get_kma_precipitation_live(lat, lng)
+    kb_status = ai_safe_kb_status()
+    return {
+        "lat": lat,
+        "lng": lng,
+        "rain_info": rain,
+        "config_status": ai_safe_config_status(kb_status),
+    }
+
+
+def run_ai_safe_agent_analysis(payload):
+    """AI Safe Agent PoC 스크립트를 서버에서 실행한다."""
+    lat, lng = parse_ai_safe_coordinates(payload)
+    module = load_ai_safe_agent_module()
+    use_ai = bool(payload.get("use_ai", True))
+    result = module.analyze_location(lat, lng, use_ai=use_ai, model_choice=payload.get("ai_model"))
+    kb_status = ai_safe_kb_status()
+    result["kb_status"] = kb_status
+    result["config_status"] = ai_safe_config_status(kb_status)
+    return result
+
+
+def _is_ollama_chat_model(model):
+    name = str(model.get("name") or "").lower()
+    details = model.get("details") if isinstance(model.get("details"), dict) else {}
+    family = str(details.get("family") or "").lower()
+    families = [str(item).lower() for item in details.get("families", []) if item]
+    if "embed" in name or "embedding" in name:
+        return False
+    if "bert" in family or any("bert" in item for item in families):
+        return False
+    return True
+
+
+def ollama_model_options():
+    try:
+        base_url = env_first("OLLAMA_BASE_URL", default="http://127.0.0.1:11434")
+        parsed = url_parse.urlparse(base_url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        if not _tcp_port_is_open(host, port):
+            return []
+        result = call_ollama("/api/tags")
+        return [
+            {
+                "value": f"ollama:{model['name']}",
+                "label": f"Ollama · {model['name']}",
+                "provider": "ollama",
+                "name": model["name"],
+                "details": model.get("details", {}),
+            }
+            for model in result.get("models", [])
+            if model.get("name") and _is_ollama_chat_model(model)
+        ]
+    except Exception:
+        return []
+
+
+def ai_safe_model_options():
+    local_models = ollama_model_options()
+    hf_model = env_first("AI_SAFE_HF_QWEN25_MODEL", default="Qwen/Qwen2.5-72B-Instruct")
+    openrouter_model = env_first("AI_SAFE_OPENROUTER_MODEL", default="openai/gpt-4o-mini")
+    remote_models = [
+        {"value": f"huggingface:{hf_model}", "label": f"Hugging Face · {hf_model}", "provider": "huggingface", "name": hf_model},
+        {"value": f"openrouter:{openrouter_model}", "label": f"OpenRouter · {openrouter_model}", "provider": "openrouter", "name": openrouter_model},
+    ]
+    models = local_models + remote_models
+    return {"models": models, "default": models[0]["value"] if models else ""}
+
+
+def chunking_model_options():
+    openrouter_model = env_first("CHUNKING_OPENROUTER_MODEL", "OPENROUTER_CHAT_MODEL", default=DEFAULT_CHAT_MODEL)
+    openrouter_option = {
+        "value": f"openrouter:{openrouter_model}",
+        "label": f"OpenRouter · {openrouter_model}",
+        "provider": "openrouter",
+        "name": openrouter_model,
+        "details": {},
+    }
+    models = ollama_model_options() + [openrouter_option]
+    return {"models": models, "default": openrouter_option["value"]}
+
+
+def _join_region(*parts):
+    return " ".join(str(part).strip() for part in parts if str(part or "").strip())
+
+
+def reverse_geocode_location(payload):
+    lat, lng = parse_ai_safe_coordinates(payload)
+    errors = []
+    kakao_key = env_first("KAKAO_REST_API_KEY", "KAKAO_API_KEY")
+    if kakao_key:
+        try:
+            query = url_parse.urlencode({"x": lng, "y": lat})
+            request = url_request.Request(
+                f"https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?{query}",
+                headers={"Authorization": f"KakaoAK {kakao_key}"},
+                method="GET",
+            )
+            with url_request.urlopen(request, timeout=5) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            documents = data.get("documents", [])
+            legal = next((item for item in documents if item.get("region_type") == "B"), documents[0] if documents else {})
+            address = legal.get("address_name") or _join_region(
+                legal.get("region_1depth_name"),
+                legal.get("region_2depth_name"),
+                legal.get("region_3depth_name"),
+            )
+            return {"status": "ok", "provider": "kakao", "legal_dong": address, "address": address, "lat": lat, "lng": lng}
+        except Exception as error:  # noqa: BLE001 - optional enrichment must not break the PoC screen
+            errors.append(f"kakao: {error}")
+
+    vworld_key = env_first("VWORLD_API_KEY", "VWORLD_KEY")
+    if vworld_key:
+        try:
+            params = {
+                "service": "address",
+                "request": "getAddress",
+                "format": "json",
+                "type": "parcel",
+                "crs": "epsg:4326",
+                "point": f"{lng},{lat}",
+                "key": vworld_key,
+            }
+            request = url_request.Request(f"https://api.vworld.kr/req/address?{url_parse.urlencode(params)}", method="GET")
+            with url_request.urlopen(request, timeout=5) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            results = data.get("response", {}).get("result", []) or []
+            first = results[0] if results else {}
+            structure = first.get("structure", {}) if isinstance(first, dict) else {}
+            address = first.get("text") if isinstance(first, dict) else ""
+            legal = _join_region(structure.get("level1"), structure.get("level2"), structure.get("level4L") or structure.get("level4LC")) or address
+            return {"status": "ok", "provider": "vworld", "legal_dong": legal, "address": address or legal, "lat": lat, "lng": lng}
+        except Exception as error:  # noqa: BLE001 - optional enrichment must not break the PoC screen
+            errors.append(f"vworld: {error}")
+
+    if errors:
+        return {
+            "status": "error",
+            "provider": None,
+            "legal_dong": "",
+            "address": "",
+            "message": "; ".join(errors),
+            "lat": lat,
+            "lng": lng,
+        }
+    return {
+        "status": "unavailable",
+        "provider": None,
+        "legal_dong": "",
+        "address": "",
+        "message": "KAKAO_REST_API_KEY 또는 VWORLD_API_KEY가 설정되지 않았습니다.",
+        "lat": lat,
+        "lng": lng,
+    }
 
 
 def _build_ollama_request(path, payload=None):
@@ -972,6 +1375,108 @@ async def app(scope, receive, send):
         except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
             status = 400
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/kb/status" and method == "GET":
+        try:
+            result = await asyncio.to_thread(ai_safe_kb_status)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, RuntimeError, TimeoutError) as error:
+            status = 500
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/models" and method == "GET":
+        try:
+            result = await asyncio.to_thread(ai_safe_model_options)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except Exception as error:
+            status = 502
+            body = json.dumps({"error": f"AI 모델 목록 조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/reverse-geocode" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            result = await asyncio.to_thread(reverse_geocode_location, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError, OSError, url_error.URLError) as error:
+            status = 400
+            body = json.dumps({"status": "error", "error": str(error)}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/kb/build" and method == "POST":
+        headers = [
+            (b"content-type", b"application/x-ndjson; charset=utf-8"),
+            (b"cache-control", b"no-cache"),
+        ]
+        await send({"type": "http.response.start", "status": 200, "headers": headers})
+        queue = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+
+        def progress(message):
+            loop.call_soon_threadsafe(queue.put_nowait, {"type": "log", "message": str(message)})
+
+        def worker():
+            try:
+                result = build_ai_safe_kb(progress)
+                loop.call_soon_threadsafe(queue.put_nowait, {"type": "done", "status": result})
+            except Exception as error:
+                loop.call_soon_threadsafe(queue.put_nowait, {"type": "error", "error": str(error)})
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, {"type": "eof"})
+
+        worker_task = asyncio.create_task(asyncio.to_thread(worker))
+        try:
+            while True:
+                event = await queue.get()
+                if event.get("type") == "eof":
+                    break
+                line = json.dumps(event, ensure_ascii=False, default=str).encode("utf-8") + b"\n"
+                await send({"type": "http.response.body", "body": line, "more_body": True})
+        finally:
+            await worker_task
+        await send({"type": "http.response.body", "body": b"", "more_body": False})
+        return
+    elif path == "/api/poc/ai-safe-agent/rain" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            result = await asyncio.to_thread(run_ai_safe_agent_rain, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = 502
+            body = json.dumps({"error": f"AI Safe Agent 강수조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/spatial" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            result = await asyncio.to_thread(run_ai_safe_agent_spatial, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = 502
+            body = json.dumps({"error": f"AI Safe Agent 공간조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/analyze" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            result = await asyncio.to_thread(run_ai_safe_agent_analysis, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, RuntimeError, json.JSONDecodeError, TimeoutError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = 502
+            body = json.dumps({"error": f"AI Safe Agent 실행 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/chunking-models" and method == "GET":
+        try:
+            result = await asyncio.to_thread(chunking_model_options)
+            body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = 503
+            body = json.dumps({"error": f"청킹 모델 목록 조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
     elif path == "/api/chunking-legacy-compare" and method == "POST":
         try:
