@@ -1,0 +1,13 @@
+{
+  "ollama_base_url": "http://localhost:11434",
+  "recommended_model": "gemma3:1b",
+  "recommended_models": [
+    "gemma3:1b",
+    "gemma3:4b",
+    "gemma3:270m"
+  ],
+  "temperature": 0.3,
+  "num_predict": 500,
+  "num_ctx": 2048,
+  "answer_rule": "민원자료의 사실관계, 조치계획, 필수 포함문구를 반영해 8줄 이내로 생성한다. 앱 화면에는 선택한 민원자료 ID, 담당부서, 담당자 검토 필요 안내를 별도로 표시한다."
+}

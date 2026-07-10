@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<civilReplyMaterials>
+  <styleGuide>
+    <tone>정중하고 간결한 행정문체</tone>
+    <lengthRule>8줄 이내, 문장마다 핵심 조치가 드러나도록 작성</lengthRule>
+    <mustAvoid>확정 보장, 법령 단정, 담당자 확인 전 수치 확정, 개인정보 직접 기재</mustAvoid>
+    <reviewNotice>생성 초안은 담당자가 사실관계와 법령 근거를 확인한 뒤 사용한다.</reviewNotice>
+  </styleGuide>
+  <case id="CASE-001">
+    <replyType>민원 회신 초안</replyType>
+    <title>공원 야간 소음 민원</title>
+    <department>공원녹지과</department>
+    <contact>공원관리팀 02-700-2300</contact>
+    <receivedIssue>주민이 야간 공원 소음과 쓰레기 방치를 신고하며 순찰 강화와 안내문 부착을 요청했다.</receivedIssue>
+    <facts>
+      <fact>최근 2주간 같은 공원 야간 소음 민원이 3건 접수되었다.</fact>
+      <fact>현장 확인 결과 일부 구역에 야간 이용 안내문이 부족했다.</fact>
+      <fact>공원 폐장 시간과 소음 자제 안내를 강화할 필요가 있다.</fact>
+    </facts>
+    <actionPlan>
+      <item>야간 취약 시간대 공원 순찰을 주 3회 이상 실시한다.</item>
+      <item>주요 출입구와 벤치 주변에 소음 자제 및 쓰레기 되가져가기 안내문을 부착한다.</item>
+      <item>반복 민원 구역은 현장 점검 후 추가 조명·안내 시설 필요성을 검토한다.</item>
+    </actionPlan>
+    <requiredSections>접수내용;검토결과;조치계획;문의처</requiredSections>
+    <mustInclude>불편을 드린 점에 대한 유감 표명;순찰 강화 계획;안내문 부착 계획;담당부서 문의처</mustInclude>
+    <reviewNote>순찰 횟수와 안내문 부착 위치는 담당자가 현장 여건을 확인한 뒤 확정한다.</reviewNote>
+    <keywords>공원;야간소음;순찰;안내문;쓰레기;공원녹지과</keywords>
+  </case>
+  <case id="CASE-002">
+    <replyType>주민 안내문 초안</replyType>
+    <title>상수도 공사 단수 안내</title>
+    <department>상수도사업소</department>
+    <contact>급수관리팀 02-700-3100</contact>
+    <receivedIssue>7월 18일 10시부터 15시까지 상수도 공사로 일부 지역 단수가 예정되어 주민 안내문이 필요하다.</receivedIssue>
+    <facts>
+      <fact>공사 일시는 7월 18일 10시부터 15시까지로 예정되어 있다.</fact>
+      <fact>영향 지역은 공사 구간 주변 일부 세대이며 세부 주소는 담당자가 확정한다.</fact>
+      <fact>기상 상황과 현장 여건에 따라 종료 시간이 변동될 수 있다.</fact>
+    </facts>
+    <actionPlan>
+      <item>공사 전 안내문을 게시하고 공동주택 관리사무소에 단수 시간을 공유한다.</item>
+      <item>단수 전 생활용수 사전 확보를 안내한다.</item>
+      <item>공사 종료 후 탁수 발생 가능성을 안내하고 초기 배수 후 사용하도록 고지한다.</item>
+    </actionPlan>
+    <requiredSections>안내배경;단수일시;대상지역;협조사항;문의처</requiredSections>
+    <mustInclude>단수 예정 시간;생활용수 사전 확보;탁수 발생 시 초기 배수 안내;담당부서 문의처</mustInclude>
+    <reviewNote>영향 지역과 공사 종료 예정 시간은 담당자가 최종 확인한다.</reviewNote>
+    <keywords>단수;상수도공사;주민안내문;생활용수;상수도사업소</keywords>
+  </case>
+  <case id="CASE-003">
+    <replyType>민원 회신 초안</replyType>
+    <title>불법 주정차 단속 요청</title>
+    <department>교통지도과</department>
+    <contact>주차지도팀 02-700-1400</contact>
+    <receivedIssue>초등학교 앞 반복 불법 주정차로 보행 안전이 우려되어 단속 강화를 요청했다.</receivedIssue>
+    <facts>
+      <fact>해당 구간은 등하교 시간대 보행자가 집중된다.</fact>
+      <fact>현장 단속은 위치, 시간대, 차량 정체 상황을 함께 확인해야 한다.</fact>
+    </facts>
+    <actionPlan>
+      <item>등하교 시간대 현장 순찰과 계도 활동을 병행한다.</item>
+      <item>안전신문고 신고 방법과 사진 제출 기준을 안내한다.</item>
+    </actionPlan>
+    <requiredSections>접수내용;현장검토;조치계획;신고방법</requiredSections>
+    <mustInclude>보행 안전 우려;단속·계도 병행;안전신문고 안내</mustInclude>
+    <reviewNote>단속 가능 여부는 도로 여건과 관련 규정 확인 후 판단한다.</reviewNote>
+    <keywords>불법주정차;단속;학교앞;안전신문고;교통지도과</keywords>
+  </case>
+  <case id="CASE-004">
+    <replyType>민원 회신 초안</replyType>
+    <title>도로 파손 보수 요청</title>
+    <department>도로관리과</department>
+    <contact>도로보수팀 02-700-2600</contact>
+    <receivedIssue>주택가 골목 포트홀로 차량 파손 우려가 있어 긴급 보수를 요청했다.</receivedIssue>
+    <facts>
+      <fact>현장 위치와 사진이 접수되면 보수 우선순위를 검토한다.</fact>
+      <fact>긴급 위험이 확인되면 임시 안전 조치 후 보수 일정을 잡는다.</fact>
+    </facts>
+    <actionPlan>
+      <item>현장 확인 후 위험 표지 또는 임시 보수를 실시한다.</item>
+      <item>정식 보수 일정은 도로 상태와 장비 배정 상황을 반영해 안내한다.</item>
+    </actionPlan>
+    <requiredSections>민원요지;현장확인;임시조치;향후일정</requiredSections>
+    <mustInclude>현장 확인 예정;긴급 위험 시 임시 조치;보수 일정 별도 안내</mustInclude>
+    <reviewNote>보수 일정은 현장 확인과 예산·장비 상황에 따라 변동될 수 있다.</reviewNote>
+    <keywords>도로파손;포트홀;긴급보수;현장확인;도로관리과</keywords>
+  </case>
+  <case id="CASE-005">
+    <replyType>주민 안내문 초안</replyType>
+    <title>평생교육 프로그램 모집 안내</title>
+    <department>교육지원과</department>
+    <contact>평생학습팀 02-700-1900</contact>
+    <receivedIssue>하반기 평생교육 프로그램 신청 기간과 방법을 주민에게 안내해야 한다.</receivedIssue>
+    <facts>
+      <fact>모집 과정과 정원은 평생학습 포털 공지 기준으로 안내한다.</fact>
+      <fact>선착순 또는 추첨 여부는 과정별 공고문에서 확인한다.</fact>
+    </facts>
+    <actionPlan>
+      <item>신청 기간, 신청 방법, 문의처를 안내문에 포함한다.</item>
+      <item>정원 초과 시 대기자 등록 가능 여부를 별도 안내한다.</item>
+    </actionPlan>
+    <requiredSections>모집개요;신청방법;선정방식;문의처</requiredSections>
+    <mustInclude>평생학습 포털 확인;과정별 정원;문의처</mustInclude>
+    <reviewNote>과정명과 모집 기간은 공고문 기준으로 담당자가 확인한다.</reviewNote>
+    <keywords>평생교육;프로그램;모집;신청;교육지원과</keywords>
+  </case>
+  <case id="CASE-006">
+    <replyType>민원 회신 초안</replyType>
+    <title>가로등 고장 신고</title>
+    <department>도로조명과</department>
+    <contact>조명관리팀 02-700-2700</contact>
+    <receivedIssue>골목길 가로등이 며칠째 꺼져 있어 야간 보행이 불안하다는 신고가 접수되었다.</receivedIssue>
+    <facts>
+      <fact>고장 위치와 등주 번호가 있으면 처리 시간이 단축된다.</fact>
+      <fact>누전 등 안전 문제가 의심되면 긴급 점검 대상으로 분류한다.</fact>
+    </facts>
+    <actionPlan>
+      <item>위치 확인 후 유지보수 업체에 점검을 요청한다.</item>
+      <item>부품 교체가 필요한 경우 처리 예상 일정을 민원인에게 안내한다.</item>
+    </actionPlan>
+    <requiredSections>접수내용;점검계획;처리일정;문의처</requiredSections>
+    <mustInclude>위치 확인;점검 요청;처리 일정 안내</mustInclude>
+    <reviewNote>수리 완료 시점은 현장 확인과 부품 수급 상황에 따라 달라질 수 있다.</reviewNote>
+    <keywords>가로등;고장;야간보행;등주번호;도로조명과</keywords>
+  </case>
+</civilReplyMaterials>

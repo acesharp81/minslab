@@ -1,6 +1,7 @@
 {
   "id": "chunking-rag-lab",
   "order": 2,
+  "display_no": "02",
   "title": "청킹실습(과제)",
   "date": "Chunking / Embedding / RAG",
   "summary": "첨부 문서를 선택한 청킹 알고리즘으로 나누고, 한 번의 임베딩 실행으로 선택 청킹만 저장한 뒤 RAG 답변 품질을 비교하는 실습입니다.",

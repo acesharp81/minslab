@@ -4,7 +4,7 @@
 
 ```text
 projects/
-└── 03-my-practice/
+└── 04-report-draft/
     ├── project.json   # 화면에 표시할 정보
     ├── README.md      # 상세 학습 기록
     ├── main.py        # 대표 소스 코드
@@ -13,7 +13,8 @@ projects/
 
 가장 가까운 기존 프로젝트의 `project.json`을 복사해 내용을 수정하면 됩니다.
 `entry_file`에는 포트폴리오에서 보여줄 Python 또는 JavaScript 파일명을 적습니다.
-`order` 값이 작을수록 좌측 메뉴 위에 표시됩니다. 현재 포트폴리오는 01번부터 자동 재번호화됩니다.
+폴더명의 두 자리 번호, `order`, `display_no`는 같은 프로젝트 번호로 맞춥니다.
+`order` 값이 작을수록 좌측 메뉴 위에 표시됩니다.
 
 ## 외부 API 실습 주의사항
 

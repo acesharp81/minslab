@@ -526,7 +526,58 @@ def _limited_details(records: list[dict[str, Any]], limit: int = 80, **kwargs: A
     return [_compact_detail(record, **kwargs) for record in records[:limit]]
 
 
-def build_prompt_context(lat: float, lng: float, rain: dict[str, str], kb: DisasterKnowledgeBase) -> tuple[str, dict[str, Any]]:
+def _rain_timeline_lines(rain: dict[str, Any]) -> list[str]:
+    hourly = rain.get("rain_hourly") if isinstance(rain, dict) else None
+    if not isinstance(hourly, list) or not hourly:
+        hourly = [
+            {"offset": -6, "label": "-6H", "value": "-"},
+            {"offset": -5, "label": "-5H", "value": "-"},
+            {"offset": -4, "label": "-4H", "value": "-"},
+            {"offset": -3, "label": "-3H", "value": "-"},
+            {"offset": -2, "label": "-2H", "value": "-"},
+            {"offset": -1, "label": "-1H", "value": "-"},
+            {"offset": 0, "label": "현재", "value": rain.get("rain_current", "-") if isinstance(rain, dict) else "-"},
+            {"offset": 1, "label": "+1H", "value": rain.get("rain_1h_after", "-") if isinstance(rain, dict) else "-"},
+            {"offset": 2, "label": "+2H", "value": rain.get("rain_2h_after", "-") if isinstance(rain, dict) else "-"},
+            {"offset": 3, "label": "+3H", "value": rain.get("rain_3h_after", "-") if isinstance(rain, dict) else "-"},
+        ]
+    normalized = sorted(hourly, key=lambda item: int(item.get("offset", 0) or 0))
+    lines = []
+    for item in normalized:
+        offset = item.get("offset", "")
+        label = item.get("label") or ("현재" if offset == 0 else f"{int(offset):+d}H")
+        time = item.get("time") or ""
+        value = item.get("value") or _format_mm(float(item.get("value_mm") or 0))
+        source = item.get("source") or ""
+        source_label = {"observation": "관측", "forecast": "예보", "spatial_only": "공간조회"}.get(source, source)
+        detail = f"{label}"
+        if time:
+            detail += f"({time})"
+        if source_label:
+            detail += f"/{source_label}"
+        lines.append(f"- {detail}: {value}")
+    return lines
+
+
+def _detail_context_lines(title: str, items: list[dict[str, Any]], limit: int = 5) -> list[str]:
+    if not items:
+        return [f"- {title}: 주변 500m 이내 확인된 항목 없음"]
+    lines = []
+    for item in items[:limit]:
+        parts = [str(item.get("label") or item.get("kind") or title)]
+        if item.get("date"):
+            parts.append(f"날짜 {item['date']}")
+        if item.get("distance_m") is not None:
+            parts.append(f"직선거리 {item['distance_m']}m")
+        if item.get("address"):
+            parts.append(str(item["address"]))
+        lines.append(f"- {title}: " + " / ".join(parts))
+    if len(items) > limit:
+        lines.append(f"- {title}: 외 {len(items) - limit}건 추가")
+    return lines
+
+
+def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: DisasterKnowledgeBase) -> tuple[str, dict[str, Any]]:
     floods = nearby_indexed_records(kb, "floods", kb.floods, lat, lng, ("converted_lat", "lat", "LAT", "YCRD"), ("converted_lng", "lng", "LOT", "XCRD"))
     landslides = nearby_indexed_records(kb, "landslides", kb.landslides, lat, lng, ("lat", "YMAP_CRTS"), ("lng", "XMAP_CRTS"))
     vulnerable = nearby_indexed_records(kb, "vulnerable", kb.vulnerable, lat, lng, ("lat", "YCRD", "XCRD"), ("lng", "XCRD", "YCRD"))
@@ -544,6 +595,9 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, str], kb: Disas
 - 1시간 후 예상 강수량: {rain['rain_1h_after']}
 - 2시간 후 예상 강수량: {rain['rain_2h_after']}
 - 3시간 후 예상 강수량: {rain['rain_3h_after']}
+
+[강수 시간 흐름]
+{chr(10).join(_rain_timeline_lines(rain))}
 
 [공간 지식베이스 인프라 정보]
 - 반경 500m 침수 흔적: {len(floods)}건
@@ -659,6 +713,15 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, str], kb: Disas
             field_keys=("REARE_NM", "VT_ACM_PLC_NM", "SHLT_SE_NM", "RONA_DADDR", "MNG_SN", "distance_m"),
         ),
     }
+    context += "\n\n[위험 이력과 대피소 상세 요약]"
+    for line in [
+        *_detail_context_lines("침수 흔적", details["floods"]),
+        *_detail_context_lines("산사태 발생/우려", details["landslides"]),
+        *_detail_context_lines("인명피해 우려구역", details["vulnerable"]),
+        *_detail_context_lines("대피소", details["shelters"]),
+    ]:
+        context += f"\n{line}"
+
     summary = {
         "floods_count": len(floods),
         "landslides_count": len(landslides),
@@ -673,10 +736,16 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, str], kb: Disas
 
 def system_instruction() -> str:
     return (
-        "당신은 실시간 기상 데이터와 지식베이스를 융합해 국민들이 안심하고 대처할 수 있도록 안내하는 "
-        "대국민 방재 서비스 소통 전문가입니다. 확인된 데이터에 근거해 위험 요소 종합 분석, 등급 평가, "
-        "즉각적인 행동 요령만 간결하게 작성하세요. 확인되지 않은 사실은 추측하지 마세요. "
-        "모든 강수량이 0mm이고 주변 위험 기록도 없다면 '주변 반경 500m 이내 특이 위험 요인 없음 (안전)'만 출력하세요."
+        "당신은 시민에게 친절하게 말하는 AI 안전비서입니다. 실시간 강수, 과거 강수 흐름, 예보, "
+        "주변 위험 이력과 대피소 정보처럼 입력에 제공된 데이터만 근거로 안내하세요. "
+        "확인되지 않은 원인, 피해 규모, 현장 상황은 만들지 말고 '확인된 정보만으로는 알 수 없습니다'처럼 말하세요. "
+        "답변은 반드시 다음 3개 제목으로 나누어 작성하세요. "
+        "1. 현재 상황: 지금 현재와 1시간 후 예보를 기준으로 현재 상태와 가능한 위기 상황을 쉬운 말로 안내합니다. "
+        "2. 앞으로의 가능성: 과거 6시간 강수 흐름과 앞으로 6시간 예보를 함께 보아 이어질 수 있는 상황을 가능성 중심으로 설명합니다. "
+        "3. 종합 위험도와 조언: 과거 침수, 산사태, 인명피해 우려구역 같은 이력과 현재/예측 상태를 종합해 낮음, 주의, 높음, 매우 높음 중 하나로 위험도를 안내하고 행동 조언을 제시합니다. "
+        "상습 피해 이력, 이미 내린 비, 앞으로의 강수 증가/감소 흐름을 함께 고려하되 단정하지 말고 '~할 수 있습니다', '~하는 편이 좋겠습니다'처럼 조언하세요. "
+        "비속어, 위협적인 표현, 어려운 전문용어는 쓰지 말고 짧은 문단과 쉬운 문장으로 작성하세요. "
+        "모든 강수량이 0mm이고 주변 위험 기록도 없다면 세 제목을 유지하되 특이 위험 요인이 낮아 보인다고 안내하세요."
     )
 
 

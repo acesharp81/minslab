@@ -1,4 +1,3 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import asyncio
 import importlib.util
 import json
@@ -23,6 +22,10 @@ load_project_env()
 STATIC_DIR = Path(__file__).parent / "static"
 AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
 AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
+REPORT_DRAFT_SERVICE_PATH = Path(__file__).parent / "projects" / "04-report-draft" / "portfolio_service.py"
+REPORT_DRAFT_MODULE = None
+REPORT_DRAFT_MTIME = None
+
 AI_SAFE_BUILD_LOCK = threading.Lock()
 AI_SAFE_AGENT_MODULE = None
 AI_SAFE_AGENT_MTIME = None
@@ -267,6 +270,27 @@ HTML_PAGE = r"""
     .portfolio-hero{padding:64px max(20px,calc((100% - 1120px)/2)) 42px;border-bottom:1px solid #d6d4ca}.portfolio-hero h1{font-size:clamp(40px,5vw,64px);margin:12px 0}.portfolio-layout{max-width:1120px;margin:auto;padding:42px 20px 90px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:36px;align-items:start}.side-menu{position:sticky;top:98px}.project-list{display:grid;gap:7px}.project-button{padding:15px;text-align:left;border:1px solid transparent;border-radius:12px;background:transparent;cursor:pointer}.project-button strong{display:block}.project-button small{color:#858a81}.project-button.active{background:#fffdf6;border-color:#171916;box-shadow:4px 4px 0 #dfff56}
     .project-document{background:#fffdf6;border:1px solid #d6d4ca;border-radius:20px;overflow:hidden;min-width:0}.document-head,.document-body{padding:clamp(28px,5vw,52px);min-width:0}.document-head{border-bottom:1px solid #e0ded5}.project-meta{display:flex;gap:7px;margin-bottom:24px;flex-wrap:wrap}.project-meta span{padding:6px 10px;background:#eeeaff;color:#6246dd;border-radius:99px;font:11px monospace}.document-head h2{font-size:clamp(30px,4vw,45px);margin:0}.document-head p,.document-body p,.document-body li{line-height:1.8;color:#656b62}.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}.feature{padding:18px;border:1px solid #e0ded5;border-radius:12px}.feature b{display:block}.feature span{font-size:13px;color:#747970}.project-lab{display:none;margin-top:10px}.project-lab.active{display:block}.project-default.hidden{display:none}.chunking-shell{display:grid;gap:18px}.chunking-controls{display:grid;grid-template-columns:minmax(0,1fr) 220px 120px;gap:12px;align-items:end}.chunking-controls label{display:block;font-size:12px;font-weight:700;color:#666c63}.chunking-controls textarea,.chunking-controls select,.chunking-controls input{width:100%;margin-top:7px;padding:12px 13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff;font:14px/1.6 inherit}.chunking-controls textarea{min-height:112px;resize:vertical}.chunking-controls input[type=checkbox]{width:auto;margin:0}.rerank-option{min-height:48px;display:flex!important;align-items:center;gap:8px;padding:12px 13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff}.rerank-option input{margin:0}.rerank-option span{font-size:12px;font-weight:800;color:#666c63}.chunking-run{height:48px;border:0;border-radius:14px;background:#171916;color:#dfff56;font-weight:800;cursor:pointer}.chunking-run:disabled{opacity:.45;cursor:wait}.chunking-note{padding:14px 16px;border-radius:14px;background:#f4f0ff;color:#5b47c0;font-size:13px;line-height:1.7}.chunking-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}.compare-panel{border:1px solid #ddd9cf;border-radius:18px;background:#fcfbf7;overflow:hidden}.compare-head{padding:18px 18px 14px;border-bottom:1px solid #e7e3d8;background:linear-gradient(180deg,#fff,#faf8f1)}.compare-head strong{display:block;font-size:17px}.compare-head small{display:block;margin-top:6px;color:#7b8178}.compare-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.compare-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#efede5;color:#666c63;font:11px ui-monospace,monospace}.compare-badge.ok{background:#edf9eb;color:#2b7c3b}.compare-badge.error{background:#fff0eb;color:#b44f32}.compare-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.compare-stat{padding:10px 12px;border:1px solid #e6e2d7;border-radius:12px;background:#fff}.compare-stat b{display:block;font-size:18px;line-height:1.1}.compare-stat span{display:block;margin-top:4px;color:#7b8178;font-size:11px}.compare-body{padding:18px}.compare-answer{padding:16px;border-radius:16px;background:#171916;color:#eff3e9}.compare-answer span{display:block;margin-bottom:8px;color:#dfff56;font:11px ui-monospace,monospace}.compare-answer pre{margin:0;white-space:pre-wrap;word-break:break-word;font:13px/1.75 inherit;color:#eff3e9}.compare-list{display:grid;gap:10px;margin-top:16px}.compare-item{padding:14px;border:1px solid #e6e2d7;border-radius:14px;background:#fff}.compare-item-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.compare-item strong{display:block;font-size:14px}.compare-score{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#f2eeff;color:#6045d4;font:11px ui-monospace,monospace;white-space:nowrap}.compare-item small{display:block;margin-top:6px;color:#7b8178}.compare-empty{padding:18px;border:1px dashed #d8d4ca;border-radius:14px;color:#7a8077;font-size:13px;text-align:center}.compare-loading .compare-answer,.compare-loading .compare-item,.compare-loading .compare-stat{opacity:.55}.compare-loading .compare-answer::after{content:'비교 중...';display:block;margin-top:10px;color:#dfff56;font:11px ui-monospace,monospace}.compare-status{margin-top:12px;font-size:13px;color:#747970}.compare-grid-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.compare-grid-head h3{margin:0;font-size:18px}.compare-grid-head p{margin:0;color:#7a8077;font-size:13px}.compare-panel.error .compare-answer{background:#4b2b22;color:#fff5f2}.compare-panel.error .compare-answer span{color:#ffd9c9}@media(max-width:900px){.chunking-controls{grid-template-columns:1fr}.chunking-compare{grid-template-columns:1fr}.compare-stats{grid-template-columns:1fr 1fr}}
     .chunking-lab-v2{display:grid;gap:20px}.chunking-doc-grid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px}.chunking-file{display:grid;align-content:start;gap:10px;padding:16px;border:1px dashed #bbb8ad;border-radius:14px;background:#f5f2e9;color:#62675e;font-size:12px;font-weight:800}.chunking-file input{width:100%;font:12px inherit}.chunking-file span{font-weight:500;color:#7a8077;line-height:1.5}.document-input label,.rag-console label{display:block;font-size:12px;font-weight:800;color:#666c63}.document-input textarea{width:100%;min-height:190px;margin-top:7px;padding:13px;border:1px solid #d7d4ca;border-radius:14px;background:#fff;font:13px/1.65 inherit;resize:vertical}.strategy-picker{display:grid;gap:12px;padding:16px;border:1px solid #e0ddd2;border-radius:16px;background:#fbfaf5}.strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.strategy-option{display:flex;gap:9px;align-items:flex-start;padding:13px;border:1px solid #d8d4ca;border-radius:12px;background:#fffdf6;cursor:pointer}.strategy-option input{margin-top:3px}.strategy-option strong{display:block;font-size:13px}.strategy-option span{display:block;margin-top:4px;color:#777d73;font-size:11px;line-height:1.45}.plan-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.plan-actions button,.embed-plan,.chunking-run{min-height:44px;padding:0 14px;border:0;border-radius:12px;background:#171916;color:#dfff56;font-weight:800;cursor:pointer}.plan-actions button:disabled,.embed-plan:disabled,.chunking-run:disabled{opacity:.45;cursor:wait}.chunking-plans{display:grid;gap:14px}.plan-card{border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;overflow:hidden}.plan-head{display:flex;justify-content:space-between;gap:12px;align-items:start;padding:16px;border-bottom:1px solid #e5e1d6;background:#fbfaf5}.plan-head strong{font-size:17px}.plan-head small{color:#777d73;font:11px ui-monospace,monospace}.plan-body{padding:16px}.plan-desc{font-size:13px;line-height:1.7;color:#62675e}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.pros-cons div{padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:white}.pros-cons b{font-size:12px}.pros-cons ul{margin:7px 0 0;padding-left:18px;color:#71776e;font-size:12px;line-height:1.6}.embed-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}.embed-status{color:#686e65;font-size:12px}.chunk-list{display:grid;gap:8px;max-height:360px;overflow:auto}.chunk-detail{border:1px solid #e4e0d5;border-radius:12px;background:#fff}.chunk-detail summary{padding:11px 13px;cursor:pointer;font-size:12px;font-weight:800;color:#555b52}.chunk-detail pre{padding:0 13px 13px;margin:0;color:#30342f;background:transparent;white-space:pre-wrap;word-break:break-word;font:12px/1.7 inherit}.rag-console{display:grid;gap:14px;padding-top:10px;border-top:1px solid #e3dfd3;min-width:0;max-width:100%;overflow:hidden}.rag-console .chunking-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;min-width:0;max-width:100%}.rag-console .prompt-control{flex:1 0 100%;min-width:0}.rag-console .prompt-control textarea{min-height:104px}.rag-console .chunking-controls>label:not(.prompt-control){flex:1 1 118px;min-width:0}.rag-console .chunking-controls>label:nth-of-type(2){flex:2 1 220px}.rag-console .rerank-option{flex:1 1 150px}.rag-console .chunking-run{flex:1 1 140px;width:auto;min-width:120px;padding:0 10px;white-space:normal}.rag-console label{min-width:0}.chunking-shell,.chunking-lab-v2,.chunking-note,.chunking-compare{min-width:0;max-width:100%}.chunking-note{overflow-wrap:anywhere}.rag-console h3{margin:0;font-size:18px}.chunking-compare.vertical{grid-template-columns:1fr}.result-snippets{width:100%;height:8.7em;margin-top:12px;padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff;color:#3a3f39;font:12px/1.55 inherit;resize:vertical}.compare-chunk-button{margin-top:12px;min-height:36px;padding:0 12px;border:1px solid #171916;border-radius:10px;background:#fffdf6;color:#171916;font-weight:800;cursor:pointer}.compare-chunk-detail{margin-top:10px;display:grid;gap:8px}.compare-chunk-detail[hidden]{display:none}.compare-chunk{padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff}.compare-chunk strong{display:block;font-size:12px}.compare-chunk pre{padding:8px 0 0;color:#30342f;background:transparent;white-space:pre-wrap;word-break:break-word;font:12px/1.65 inherit}.compare-panel[data-embedded="true"] .compare-head{box-shadow:inset 4px 0 0 #dfff56}.compare-evaluation{border:1px solid #171916;border-radius:16px;background:#fffdf6;box-shadow:5px 5px 0 #dfff56;overflow:hidden}.compare-evaluation .compare-head{background:#171916;color:#fff;border:0}.compare-evaluation .compare-head small{color:#cfd5ca}.evaluation-grid{display:grid;gap:10px;padding:16px}.evaluation-row{display:grid;grid-template-columns:1.1fr .9fr .9fr .8fr;gap:10px;align-items:center;padding:12px;border:1px solid #e3dfd3;border-radius:12px;background:#fff}.evaluation-row b{font-size:13px}.evaluation-row span{font-size:12px;color:#697067}.evaluation-winner{font-weight:800;color:#171916}.evaluation-note{padding:0 16px 16px;color:#697067;font-size:12px;line-height:1.6}@media(max-width:720px){.evaluation-row{grid-template-columns:1fr}.evaluation-row span{display:block}}@media(max-width:900px){.chunking-doc-grid,.strategy-grid,.pros-cons{grid-template-columns:1fr}.rag-console .chunking-controls{display:grid;grid-template-columns:1fr}.rag-console .prompt-control,.rag-console .chunking-controls>label,.rag-console .rerank-option,.rag-console .chunking-run{grid-column:auto;width:100%;min-width:0}}
+    .report-draft-lab{display:grid;gap:16px;min-width:0}
+    .report-draft-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px;border:1px solid #d8d4ca;border-radius:16px;background:#f4f7f2}
+    .report-draft-head h3{margin:0;font-size:19px}.report-draft-head p{margin:6px 0 0;color:#687068;font-size:12px;line-height:1.55}
+    .report-draft-health{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#fff;color:#666c63;font:11px ui-monospace,monospace;white-space:nowrap;border:1px solid #d8d4ca}
+    .report-draft-health::before{content:"";width:8px;height:8px;border-radius:50%;background:#d99b27}.report-draft-health.ok::before{background:#2f9e55}.report-draft-health.error::before{background:#c74b42}
+    .report-draft-grid{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.1fr);gap:16px;align-items:start}
+    .report-draft-panel{padding:18px;border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;min-width:0}
+    .report-draft-panel h4{margin:0 0 14px;font-size:16px}.report-draft-panel label{display:grid;gap:7px;color:#62675e;font-size:12px;font-weight:800;min-width:0}
+    .report-draft-panel textarea,.report-draft-panel select,.report-draft-dialog input,.report-draft-dialog textarea{width:100%;padding:12px 13px;border:1px solid #d7d4ca;border-radius:11px;background:#fff;color:#30342f;font:13px/1.55 inherit}
+    .report-draft-panel textarea{min-height:170px;resize:vertical}.report-draft-presets{display:grid;gap:7px;margin-bottom:13px}.report-draft-presets button{padding:10px 11px;border:1px solid #dedbd1;border-radius:10px;background:#faf9f4;color:#555b52;text-align:left;font-size:12px;line-height:1.45;cursor:pointer}
+    .report-draft-presets button:hover{border-color:#1f7a4d;background:#eef7f0}.report-draft-model-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:end;margin-top:12px}
+    .report-draft-option-button,.report-draft-secondary{min-height:43px;padding:0 13px;border:1px solid #171916;border-radius:11px;background:#fffdf6;color:#171916;font-weight:800;cursor:pointer;white-space:nowrap}
+    .report-draft-option-summary{margin-top:9px;color:#747970;font:11px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+    .report-draft-actions{display:flex;align-items:center;gap:11px;margin-top:14px;flex-wrap:wrap}.report-draft-generate{min-height:46px;padding:0 18px;border:0;border-radius:12px;background:#1f7a4d;color:#fff;font-weight:900;cursor:pointer}.report-draft-generate:disabled{opacity:.5;cursor:wait}
+    .report-draft-status{color:#6e756c;font-size:12px;line-height:1.45}.report-draft-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}.report-draft-meta div{padding:10px;border:1px solid #e2ded4;border-radius:10px;background:#faf9f4;min-width:0}.report-draft-meta span{display:block;color:#777d73;font-size:10px;font-weight:800}.report-draft-meta b{display:block;margin-top:5px;font-size:12px;overflow-wrap:anywhere}
+    .report-draft-answer{min-height:250px;margin:0;padding:16px;border:1px solid #e0ddd3;border-radius:12px;background:#fbfcfb;color:#27312a;white-space:pre-wrap;word-break:break-word;font:14px/1.75 inherit}.report-draft-review{margin-top:12px;padding:12px;border:1px solid #ebcd8b;border-radius:10px;background:#fff3d6;color:#805600;font-size:12px;line-height:1.55}
+    .report-draft-dialog{width:min(680px,calc(100% - 28px));padding:0;border:1px solid #cbc7bd;border-radius:16px;background:#fffdf6;color:#30342f;box-shadow:0 24px 80px rgba(23,25,22,.28)}.report-draft-dialog::backdrop{background:rgba(23,25,22,.45);backdrop-filter:blur(3px)}.report-draft-dialog-box{padding:20px}.report-draft-dialog-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.report-draft-dialog-head h4{margin:0;font-size:18px}.report-draft-dialog-head p{margin:5px 0 0;color:#747970;font-size:12px}.report-draft-dialog-close{border:0;background:transparent;font-size:22px;cursor:pointer}.report-draft-option-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.report-draft-option-grid label{display:grid;gap:7px;color:#62675e;font-size:11px;font-weight:800}.report-draft-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.report-draft-dialog-actions .save{background:#171916;color:#dfff56}
+    .report-draft-system-prompt{grid-column:1/-1}.report-draft-system-prompt textarea{min-height:170px;resize:vertical}.report-draft-system-prompt small{color:#7a8077;font-size:10px;line-height:1.5;font-weight:500}
+    @media(max-width:900px){.report-draft-grid{grid-template-columns:1fr}.report-draft-meta{grid-template-columns:1fr 1fr 1fr}}
+    @media(max-width:560px){.report-draft-head{display:grid}.report-draft-model-row,.report-draft-option-grid,.report-draft-meta{grid-template-columns:1fr}.report-draft-option-button,.report-draft-generate{width:100%}}
+
     .safe-agent-lab{display:grid;gap:18px}
     .safe-agent-console{display:grid;grid-template-columns:1fr;gap:16px}
     .safe-agent-map{width:100%;height:300px;min-height:300px;border:1px solid #d8d4ca;border-radius:16px;background:#dfe8df;position:relative;overflow:hidden;z-index:0}
@@ -814,7 +838,7 @@ HTML_PAGE = r"""
       function renderDetailSection(title,count,items,type='risk'){return `<details class="safe-agent-detail-section"><summary><span>${escapeHtml(title)}</span><b class="safe-agent-detail-count">${Number(count||0).toLocaleString()}건</b></summary>${renderDetailList(items||[],type)}</details>`}
       function resultDataHtml(data){const spatial=data.spatial_summary||{},nearest=spatial.nearest_shelter,details=spatial.details||{};const riskMapCount=(spatial.map_features||[]).filter(x=>x.category==='risk').length,shelterMapCount=(spatial.map_features||[]).filter(x=>x.category==='shelter').length;const sections=[renderDetailSection('침수 흔적',spatial.floods_count,details.floods,'risk'),renderDetailSection('산사태 발생/우려',spatial.landslides_count,details.landslides,'risk'),renderDetailSection('인명피해 우려구역',spatial.vulnerable_count,details.vulnerable,'risk'),renderDetailSection('대피소',spatial.shelters_count,details.shelters,'shelter')].join('');return `<article><h3>분석 데이터</h3><div class="safe-agent-list"><div><span>사용 PKL</span><b>${escapeHtml(data.kb_filename||data.kb_status?.filename||'없음')}</b></div><div><span>분석 좌표</span><b>${Number(data.lat).toFixed(6)}, ${Number(data.lng).toFixed(6)}</b></div><div><span>지도 표기</span><b>위험 ${riskMapCount}건 · 대피소 ${shelterMapCount}건</b></div><div><span>가장 가까운 대피소</span><b>${nearest?escapeHtml((nearest.REARE_NM||nearest.VT_ACM_PLC_NM||'대피소')+' · 직선 '+nearest.distance_m+'m'):'없음'}</b></div></div><div class="safe-agent-detail-sections">${sections}</div></article>`}
       function renderSpatialResult(data){resultEl.innerHTML=`<article class="safe-agent-report"><h3>공간 데이터 빠른 조회</h3><div class="safe-agent-badges"><span class="safe-agent-badge">PKL MEMORY</span><span class="safe-agent-badge">500M RADIUS</span></div><pre>지도 클릭 좌표의 위험 요소와 대피소를 표시했습니다. 기상 정보와 보고서는 분석 실행 버튼을 눌러 생성하세요.</pre></article>${resultDataHtml(data)}`}
-      function renderResult(data){const rain=data.rain_info||{},config=data.config_status||{};const model=data.model||modelEl.options[modelEl.selectedIndex]?.textContent||'AI 모델';const keyBadges=`<div class="safe-agent-badges"><span class="safe-agent-badge ${config.kma_key?'ok':'warn'}">KMA ${config.kma_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.hf_key?'ok':'warn'}">HF ${config.hf_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.openrouter_key?'ok':'warn'}">OR ${config.openrouter_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge">${escapeHtml(model)}</span><span class="safe-agent-badge">${escapeHtml(rain.status||'status unknown')}</span></div>`;resultEl.innerHTML=`<article class="safe-agent-report"><h3>AI 공간 방재 판단서</h3>${keyBadges}<pre>${escapeHtml(data.report||'보고서가 비어 있습니다.')}</pre></article>${resultDataHtml(data)}`}
+      function renderResult(data){const rain=data.rain_info||{},config=data.config_status||{};const model=data.model||modelEl.options[modelEl.selectedIndex]?.textContent||'AI 모델';const keyBadges=`<div class="safe-agent-badges"><span class="safe-agent-badge ${config.kma_key?'ok':'warn'}">KMA ${config.kma_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.hf_key?'ok':'warn'}">HF ${config.hf_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.openrouter_key?'ok':'warn'}">OR ${config.openrouter_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge">${escapeHtml(model)}</span><span class="safe-agent-badge">${escapeHtml(rain.status||'status unknown')}</span></div>`;resultEl.innerHTML=`<article class="safe-agent-report"><h3>AI 안전비서</h3>${keyBadges}<pre>${escapeHtml(data.report||'보고서가 비어 있습니다.')}</pre></article>${resultDataHtml(data)}`}
       function currentCoordsMatch(data){return Math.abs(Number(data.lat)-Number(latEl.value))<0.000001&&Math.abs(Number(data.lng)-Number(lngEl.value))<0.000001}
       async function loadRainPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;const requestId=++rainRequestSeq;messageEl.textContent='기상청 강수 추계를 먼저 가져오는 중...';const r=await fetch('/api/poc/ai-safe-agent/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==rainRequestSeq)return null;if(!r.ok)throw new Error(data.error||'기상청 강수 조회에 실패했습니다.');if(!currentCoordsMatch(data))return null;renderStatus(data);messageEl.textContent='기상청 강수 추계 표기 완료 · AI 보고서 생성 중...';return data}
       async function loadSpatialPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++spatialRequestSeq;messageEl.textContent='공간 데이터 조회 중...';try{const r=await fetch('/api/poc/ai-safe-agent/spatial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==spatialRequestSeq)return;if(!r.ok)throw new Error(data.error||'공간 데이터 조회에 실패했습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderSpatialResult(data);messageEl.textContent='공간 데이터 표시 완료';}catch(e){if(requestId!==spatialRequestSeq)return;messageEl.textContent='공간 데이터 조회 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}
@@ -829,6 +853,27 @@ HTML_PAGE = r"""
       savePresetButton.onclick=()=>{const name=placeNameEl.value.trim();const lat=Number(latEl.value),lng=Number(lngEl.value);if(!name){alert('저장할 장소명을 입력하세요.');placeNameEl.focus();return;}if(!Number.isFinite(lat)||!Number.isFinite(lng)){alert('저장할 좌표가 올바르지 않습니다.');return;}const presets=loadPresets();const existing=presets.findIndex(item=>item.name===name);const saved={name,lat,lng};if(existing>=0)presets[existing]=saved;else presets.push(saved);savePresets(presets);renderPresets();placeNameEl.value='';messageEl.textContent=`${name} 좌표를 저장했습니다.`};
       dataHeadEl.addEventListener('click',event=>{if(event.target.closest('button'))return;toggleDataLog()});dataHeadEl.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();toggleDataLog()}});dataLogToggle.onclick=event=>{event.stopPropagation();toggleDataLog()};latEl.oninput=updateMap;lngEl.oninput=updateMap;runButton.onclick=runAnalysis;gpsButton.onclick=useGpsLocation;buildDataButton.onclick=buildKnowledgeBase;refreshKbButton.onclick=refreshKnowledgeBase;initMap();renderPresets();updateMap();addEventListener('resize',scheduleMapResize);loadAiSafeModels();loadKbStatus().catch(e=>appendDataLog(`PKL 상태 확인 실패: ${e.message}`,true));useGpsLocation({auto:true});
     }
+
+    function renderReportDraftLab(p){
+      projectDefaultView.classList.add('hidden');
+      projectLab.classList.add('active');
+      projectLab.innerHTML=`<section class="report-draft-lab"><div class="report-draft-head"><div><h3>민원 회신 초안 생성</h3><p>XML 민원자료를 선택한 뒤 서버의 로컬 Ollama 모델로 검토 전 초안을 만듭니다.</p></div><span class="report-draft-health" id="reportDraftHealth">모델 확인 중</span></div><div class="report-draft-grid"><article class="report-draft-panel"><h4>요청</h4><div class="report-draft-presets"><button type="button" data-report-preset="공원 야간 소음 민원에 대해 순찰 강화와 안내문 부착 계획을 포함한 민원 회신 초안을 작성해 주세요.">공원 야간 소음 민원</button><button type="button" data-report-preset="7월 18일 10시부터 15시까지 상수도 공사로 일부 지역 단수가 예정된다는 주민 안내문 초안을 작성해 주세요.">상수도 공사 단수 안내</button></div><label>요청 내용<textarea id="reportDraftRequest" maxlength="8000">공원 야간 소음 민원에 대해 순찰 강화와 안내문 부착 계획을 포함한 민원 회신 초안을 작성해 주세요.</textarea></label><div class="report-draft-model-row"><label>로컬 LLM<select id="reportDraftModel"><option value="">설치 모델 불러오는 중...</option></select></label><button class="report-draft-option-button" id="reportDraftOpenOptions" type="button">모델 옵션</button></div><div class="report-draft-option-summary" id="reportDraftOptionSummary">옵션 확인 중...</div><div class="report-draft-actions"><button class="report-draft-generate" id="reportDraftGenerate" type="button" disabled>초안 생성</button><span class="report-draft-status" id="reportDraftStatus">Ollama 모델을 확인하고 있습니다.</span></div></article><article class="report-draft-panel"><h4>응답 결과</h4><div class="report-draft-meta"><div><span>선택 자료</span><b id="reportDraftCase">-</b></div><div><span>담당부서</span><b id="reportDraftDepartment">-</b></div><div><span>문의처</span><b id="reportDraftContact">-</b></div></div><pre class="report-draft-answer" id="reportDraftAnswer">생성된 초안이 이곳에 표시됩니다.</pre><div class="report-draft-review" id="reportDraftReview">담당자 검토 필요: 생성 결과의 사실관계와 법령 근거를 확인하세요.</div></article></div><dialog class="report-draft-dialog" id="reportDraftOptions"><div class="report-draft-dialog-box"><div class="report-draft-dialog-head"><div><h4>모델 생성 옵션</h4><p>현재 브라우저에 저장되며 보고서 생성 요청에만 적용됩니다.</p></div><button class="report-draft-dialog-close" id="reportDraftCloseOptions" type="button" aria-label="닫기">×</button></div><div class="report-draft-option-grid"><label>Temperature<input id="reportDraftTemperature" type="number" min="0" max="2" step="0.1"></label><label>최대 생성 토큰<input id="reportDraftNumPredict" type="number" min="500" max="4096" step="100"></label><label>Context 크기<input id="reportDraftNumCtx" type="number" min="512" max="32768" step="256"></label><label class="report-draft-system-prompt">시스템 프롬프트<textarea id="reportDraftSystemPrompt" maxlength="4000" spellcheck="false"></textarea><small>최대 4,000자 · 출력 JSON 규칙을 변경하면 초안 형식이 달라질 수 있습니다.</small></label></div><div class="report-draft-dialog-actions"><button class="report-draft-secondary" id="reportDraftResetOptions" type="button">기본값</button><button class="report-draft-secondary save" id="reportDraftSaveOptions" type="button">적용</button></div></div></dialog></section>`;
+      const requestEl=document.getElementById('reportDraftRequest'),modelEl=document.getElementById('reportDraftModel'),generateButton=document.getElementById('reportDraftGenerate'),statusEl=document.getElementById('reportDraftStatus'),healthEl=document.getElementById('reportDraftHealth'),answerEl=document.getElementById('reportDraftAnswer'),caseEl=document.getElementById('reportDraftCase'),departmentEl=document.getElementById('reportDraftDepartment'),contactEl=document.getElementById('reportDraftContact'),reviewEl=document.getElementById('reportDraftReview'),dialogEl=document.getElementById('reportDraftOptions'),temperatureEl=document.getElementById('reportDraftTemperature'),numPredictEl=document.getElementById('reportDraftNumPredict'),numCtxEl=document.getElementById('reportDraftNumCtx'),systemPromptEl=document.getElementById('reportDraftSystemPrompt'),summaryEl=document.getElementById('reportDraftOptionSummary');
+      const optionStorageKey='minslab.reportDraft.options';
+      let defaultOptions={temperature:0.3,num_predict:500,num_ctx:2048,system_prompt:''};
+      function currentOptions(){return {temperature:Number(temperatureEl.value),num_predict:Number(numPredictEl.value),num_ctx:Number(numCtxEl.value),system_prompt:systemPromptEl.value}}
+      function setOptions(options){temperatureEl.value=Number(options.temperature??defaultOptions.temperature);numPredictEl.value=Math.max(Number(numPredictEl.min||500),Number(options.num_predict??defaultOptions.num_predict));numCtxEl.value=Math.max(Number(numCtxEl.min||512),Number(options.num_ctx??defaultOptions.num_ctx));systemPromptEl.value=String(options.system_prompt||defaultOptions.system_prompt);updateOptionSummary()}
+      function updateOptionSummary(){const values=currentOptions(),prompt=values.system_prompt.trim(),isDefault=!prompt||prompt===defaultOptions.system_prompt.trim();summaryEl.textContent=`temperature ${values.temperature} · max tokens ${values.num_predict} · context ${values.num_ctx} · system prompt ${isDefault?'기본값':'수정됨'} (${prompt.length.toLocaleString()}자)`}
+      function savedOptions(){try{return JSON.parse(localStorage.getItem(optionStorageKey)||'null')}catch(e){return null}}
+      function openOptions(){if(typeof dialogEl.showModal==='function')dialogEl.showModal();else dialogEl.setAttribute('open','')}
+      function closeOptions(){if(typeof dialogEl.close==='function')dialogEl.close();else dialogEl.removeAttribute('open')}
+      function applyLimits(settings){const limits=settings?.limits||{};for(const [input,key] of [[temperatureEl,'temperature'],[numPredictEl,'num_predict'],[numCtxEl,'num_ctx']]){const rule=limits[key]||{};if(rule.min!=null)input.min=rule.min;if(rule.max!=null)input.max=rule.max;if(rule.step!=null)input.step=rule.step}}
+      async function loadModels(){generateButton.disabled=true;healthEl.className='report-draft-health';healthEl.textContent='모델 확인 중';try{const response=await fetch('/api/portfolio/report-draft/models',{cache:'no-store'});const data=await readJsonResponse(response);if(!response.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');modelEl.innerHTML='';for(const item of data.models||[]){const option=document.createElement('option');option.value=item.value||item.name;const size=item.details?.parameter_size?` · ${item.details.parameter_size}`:'';option.textContent=`${item.label||item.name}${size}`;modelEl.appendChild(option)}if(data.default&&[...modelEl.options].some(option=>option.value===data.default))modelEl.value=data.default;defaultOptions={temperature:Number(data.settings?.temperature??0.3),num_predict:Number(data.settings?.num_predict??500),num_ctx:Number(data.settings?.num_ctx??2048),system_prompt:String(data.settings?.system_prompt||'')};applyLimits(data.settings);setOptions({...defaultOptions,...(savedOptions()||{})});generateButton.disabled=!modelEl.value;healthEl.classList.add(data.warning?'error':'ok');healthEl.textContent=data.warning?'Ollama 연결 확인 필요':`로컬 모델 ${data.models?.filter(item=>item.installed!==false).length||0}개`;statusEl.textContent=data.warning||`${modelEl.value} 모델을 사용할 수 있습니다.`}catch(error){modelEl.innerHTML='<option value="">모델 조회 실패</option>';healthEl.classList.add('error');healthEl.textContent='모델 조회 실패';statusEl.textContent=error.message}}
+      async function generateDraft(){const request=requestEl.value.trim();if(!request){statusEl.textContent='요청 내용을 입력하세요.';requestEl.focus();return}if(!modelEl.value){statusEl.textContent='사용할 로컬 모델을 선택하세요.';return}generateButton.disabled=true;answerEl.textContent='선택 민원자료를 찾고 로컬 LLM이 초안을 생성하고 있습니다...';statusEl.textContent=`${modelEl.value} 생성 중`;try{const response=await fetch('/api/portfolio/report-draft/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request,model:modelEl.value,options:currentOptions()})});const data=await readJsonResponse(response);if(!response.ok)throw new Error(data.error||'초안 생성에 실패했습니다.');answerEl.textContent=data.answer||'응답이 비어 있습니다.';caseEl.textContent=`${data.case?.id||'-'} · ${data.case?.title||'-'}`;departmentEl.textContent=data.case?.department||'-';contactEl.textContent=data.case?.contact||'-';reviewEl.textContent=`담당자 검토 필요: ${data.review_notice||''} ${data.case?.review_note||''}`.trim();statusEl.textContent=`생성 완료 · ${data.model} · system prompt ${data.system_prompt_customized?'수정됨':'기본값'} · ${Number(data.elapsed_seconds||0).toFixed(1)}초`}catch(error){answerEl.textContent=`오류: ${error.message}`;statusEl.textContent='초안 생성 실패'}finally{generateButton.disabled=!modelEl.value}}
+      projectLab.querySelectorAll('[data-report-preset]').forEach(button=>button.onclick=()=>{requestEl.value=button.dataset.reportPreset;requestEl.focus()});
+      document.getElementById('reportDraftOpenOptions').onclick=openOptions;document.getElementById('reportDraftCloseOptions').onclick=closeOptions;document.getElementById('reportDraftResetOptions').onclick=()=>setOptions(defaultOptions);document.getElementById('reportDraftSaveOptions').onclick=()=>{localStorage.setItem(optionStorageKey,JSON.stringify(currentOptions()));updateOptionSummary();closeOptions()};generateButton.onclick=generateDraft;modelEl.onchange=()=>{statusEl.textContent=`${modelEl.value} 모델을 선택했습니다.`};systemPromptEl.oninput=updateOptionSummary;dialogEl.addEventListener('click',event=>{if(event.target===dialogEl)closeOptions()});loadModels();
+    }
+
 
     const archiveKickerEl=document.getElementById('archiveKicker'),archiveTitleEl=document.getElementById('archiveTitle'),archiveDescriptionEl=document.getElementById('archiveDescription'),projectIndexTitleEl=document.getElementById('projectIndexTitle'),projectDrawerLabelEl=document.getElementById('projectDrawerLabel');
     function escapeProjectHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
@@ -857,6 +902,8 @@ HTML_PAGE = r"""
         renderLegacyChunkingLab(p);
       }else if(p.id==='chunking-rag-lab'){
         renderChunkingRagLab(p);
+      }else if(p.id==='report-draft'){
+        renderReportDraftLab(p);
       }else if(p.id==='ai-safe-agent'){
         renderAISafeAgent(p);
       }else{
@@ -1288,6 +1335,29 @@ async def read_request_body(receive):
             return b"".join(chunks)
 
 
+
+def load_report_draft_module():
+    """04 보고서 초안 서비스를 변경 시 자동으로 다시 읽는다."""
+    global REPORT_DRAFT_MODULE, REPORT_DRAFT_MTIME
+    mtime = REPORT_DRAFT_SERVICE_PATH.stat().st_mtime_ns
+    if REPORT_DRAFT_MODULE is None or REPORT_DRAFT_MTIME != mtime:
+        REPORT_DRAFT_MODULE = load_module_from_path(
+            "report_draft_portfolio_service", REPORT_DRAFT_SERVICE_PATH
+        )
+        REPORT_DRAFT_MTIME = mtime
+    return REPORT_DRAFT_MODULE
+
+
+def report_draft_model_options():
+    """04 프로젝트에서 선택할 로컬 Ollama 모델과 기본 옵션을 반환한다."""
+    return load_report_draft_module().model_options()
+
+
+def run_report_draft(payload):
+    """04 프로젝트의 XML 검색과 로컬 LLM 초안 생성을 실행한다."""
+    return load_report_draft_module().generate(payload)
+
+
 async def app(scope, receive, send):
     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
     if scope["type"] == "lifespan":
@@ -1470,6 +1540,31 @@ async def app(scope, receive, send):
             status = 502
             body = json.dumps({"error": f"AI Safe Agent 실행 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
+    elif path == "/api/portfolio/report-draft/models" and method == "GET":
+        try:
+            result = await asyncio.to_thread(report_draft_model_options)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except Exception as error:
+            status = 503
+            body = json.dumps(
+                {"error": f"보고서 모델 목록 조회 실패: {error}"}, ensure_ascii=False
+            ).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif path == "/api/portfolio/report-draft/generate" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            result = await asyncio.to_thread(run_report_draft, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, json.JSONDecodeError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = 502
+            body = json.dumps(
+                {"error": f"보고서 초안 생성 실패: {error}"}, ensure_ascii=False
+            ).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+
     elif path == "/api/chunking-models" and method == "GET":
         try:
             result = await asyncio.to_thread(chunking_model_options)
@@ -1622,51 +1717,3 @@ async def app(scope, receive, send):
         "type": "http.response.body",
         "body": b"" if method == "HEAD" else body,
     })
-
-
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self._send_response(self._build_payload())
-
-    def do_HEAD(self):
-        self._send_response(self._build_payload(), include_body=False)
-
-    def _build_payload(self):
-        if self.path.startswith("/static/"):
-            target = (STATIC_DIR / self.path.removeprefix("/static/")).resolve()
-            try:
-                target.relative_to(STATIC_DIR.resolve())
-                if target.is_file():
-                    content_type = "image/png" if target.suffix.lower() == ".png" else "application/octet-stream"
-                    return target.read_bytes(), content_type
-            except (ValueError, OSError):
-                pass
-
-        if self.path == "/health":
-            body = json.dumps({"status": "healthy", "message": "Main page is running"}).encode("utf-8")
-            return body, "application/json; charset=utf-8"
-
-        body = build_html().encode("utf-8")
-        return body, "text/html; charset=utf-8"
-
-    def _send_response(self, payload, include_body=True):
-        body, content_type = payload
-        self.send_response(200)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        if include_body:
-            self.wfile.write(body)
-
-    def log_message(self, format, *args):
-        return
-
-
-def run_server(host="0.0.0.0", port=8000):
-    server = HTTPServer((host, port), Handler)
-    print(f"Serving temporary landing page at http://{host}:{port}")
-    server.serve_forever()
-
-
-if __name__ == "__main__":
-    run_server()

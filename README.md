@@ -37,7 +37,7 @@ Generated PoC datasets such as CSV snapshots and `integrated_disaster_kb_*.pkl` 
 
 ## Project 02: Chunking / Embedding / RAG Lab
 
-The fifth portfolio project is the main RAG experiment page.
+The second portfolio project is the main RAG experiment page.
 
 Workflow:
 
@@ -149,6 +149,8 @@ Important local API routes:
 - `POST /api/chunking-plan`: create chunking plans
 - `POST /api/chunking-embed`: embed a selected plan into Supabase
 - `POST /api/chunking-compare`: run Naive or Advanced RAG comparison
+- `GET /api/portfolio/report-draft/models`: list installed local Ollama models and report options
+- `POST /api/portfolio/report-draft/generate`: generate a report draft with the selected local model
 - `GET /api/poc/ai-safe-agent/kb/status`: inspect AI Safe Agent knowledge-base status
 - `POST /api/poc/ai-safe-agent/kb/build`: build AI Safe Agent public-data knowledge base
 - `GET /api/poc/ai-safe-agent/models`: list AI Safe Agent model options
