@@ -23,6 +23,8 @@ STATIC_DIR = Path(__file__).parent / "static"
 AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
 AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
 REPORT_DRAFT_SERVICE_PATH = Path(__file__).parent / "projects" / "04-report-draft" / "portfolio_service.py"
+FIELD_INSPECTION_BASE_PATH = "/poc/field-inspection-platform"
+FIELD_INSPECTION_DIST = Path(__file__).parent / "PoC" / "02-field-inspection-platform" / "dist"
 REPORT_DRAFT_MODULE = None
 REPORT_DRAFT_MTIME = None
 
@@ -291,6 +293,15 @@ HTML_PAGE = r"""
     @media(max-width:900px){.report-draft-grid{grid-template-columns:1fr}.report-draft-meta{grid-template-columns:1fr 1fr 1fr}}
     @media(max-width:560px){.report-draft-head{display:grid}.report-draft-model-row,.report-draft-option-grid,.report-draft-meta{grid-template-columns:1fr}.report-draft-option-button,.report-draft-generate{width:100%}}
 
+    .field-inspection-lab{display:grid;gap:14px;min-width:0}
+    .field-inspection-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border:1px solid #ddd9cf;border-radius:16px;background:#fcfbf7}
+    .field-inspection-toolbar strong{display:block;font-size:15px}
+    .field-inspection-toolbar span{display:block;margin-top:4px;color:#747970;font-size:12px;line-height:1.5}
+    .field-inspection-open{flex:none;padding:10px 14px;border-radius:12px;background:#171916;color:#dfff56;text-decoration:none;font-size:12px;font-weight:800}
+    .field-inspection-frame-wrap{overflow:hidden;border:1px solid #d8d5ca;border-radius:18px;background:#eef0f8;box-shadow:0 16px 40px rgba(24,28,38,.12)}
+    .field-inspection-frame{display:block;width:100%;height:clamp(720px,80vh,1080px);border:0;background:#f7f7fb}
+    .field-inspection-policy{padding:12px 15px;border-radius:14px;background:#fff7dc;color:#775b00;font-size:12px;line-height:1.65}
+    @media(max-width:800px){.field-inspection-toolbar{align-items:flex-start;flex-direction:column}.field-inspection-open{width:100%;text-align:center}.field-inspection-frame{height:780px}}
     .safe-agent-lab{display:grid;gap:18px}
     .safe-agent-console{display:grid;grid-template-columns:1fr;gap:16px}
     .safe-agent-map{width:100%;height:300px;min-height:300px;border:1px solid #d8d4ca;border-radius:16px;background:#dfe8df;position:relative;overflow:hidden;z-index:0}
@@ -854,6 +865,14 @@ HTML_PAGE = r"""
       dataHeadEl.addEventListener('click',event=>{if(event.target.closest('button'))return;toggleDataLog()});dataHeadEl.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();toggleDataLog()}});dataLogToggle.onclick=event=>{event.stopPropagation();toggleDataLog()};latEl.oninput=updateMap;lngEl.oninput=updateMap;runButton.onclick=runAnalysis;gpsButton.onclick=useGpsLocation;buildDataButton.onclick=buildKnowledgeBase;refreshKbButton.onclick=refreshKnowledgeBase;initMap();renderPresets();updateMap();addEventListener('resize',scheduleMapResize);loadAiSafeModels();loadKbStatus().catch(e=>appendDataLog(`PKL 상태 확인 실패: ${e.message}`,true));useGpsLocation({auto:true});
     }
 
+    function renderFieldInspectionLab(p){
+      projectDefaultView.classList.add("hidden");
+      projectLab.classList.add("active");
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>재난안전정보시스템 · 현장점검 지원플랫폼</strong><span id="fieldInspectionStatus">기존 서비스 경로에서 Supabase 연결 화면을 불러오는 중입니다.</span></div><a class="field-inspection-open" href="/poc/field-inspection-platform/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">공개 PoC 운영 중 · 현재 관리자 메뉴와 데이터 등록·수정·삭제 기능이 공개되어 있습니다. 운영 전 사용자 로그인과 역할별 권한을 적용할 예정입니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="fieldInspectionFrame" src="/poc/field-inspection-platform/" title="현장점검 지원플랫폼" loading="eager"></iframe></div></section>`;
+      const frame=document.getElementById("fieldInspectionFrame"),status=document.getElementById("fieldInspectionStatus");
+      frame.addEventListener("load",()=>{status.textContent="현장점검 플랫폼 연결 완료 · Supabase 기존 데이터를 사용합니다."},{once:true});
+    }
+
     function renderReportDraftLab(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
@@ -904,6 +923,8 @@ HTML_PAGE = r"""
         renderChunkingRagLab(p);
       }else if(p.id==='report-draft'){
         renderReportDraftLab(p);
+      }else if(p.id==='field-inspection-platform'){
+        renderFieldInspectionLab(p);
       }else if(p.id==='ai-safe-agent'){
         renderAISafeAgent(p);
       }else{
@@ -1404,6 +1425,31 @@ async def app(scope, receive, send):
             status = 503
             body = json.dumps({"saved": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
+    elif (path == FIELD_INSPECTION_BASE_PATH or path.startswith(f"{FIELD_INSPECTION_BASE_PATH}/")) and method in {"GET", "HEAD"}:
+        relative_path = path[len(FIELD_INSPECTION_BASE_PATH):].lstrip("/")
+        requested = (FIELD_INSPECTION_DIST / relative_path).resolve() if relative_path else FIELD_INSPECTION_DIST / "index.html"
+        try:
+            requested.relative_to(FIELD_INSPECTION_DIST.resolve())
+            if requested.is_file():
+                target = requested
+            elif not Path(relative_path).suffix:
+                target = FIELD_INSPECTION_DIST / "index.html"
+            else:
+                raise FileNotFoundError
+            if not target.is_file():
+                raise FileNotFoundError
+            body = await asyncio.to_thread(target.read_bytes)
+            content_type = {
+                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
+                ".woff": "font/woff", ".woff2": "font/woff2",
+            }.get(target.suffix.lower(), "application/octet-stream")
+        except (ValueError, OSError, FileNotFoundError):
+            status = 404
+            body = b"Field inspection application is not built."
+            content_type = "text/plain; charset=utf-8"
     elif path.startswith("/static/") and method in {"GET", "HEAD"}:
         relative_path = path.removeprefix("/static/")
         target = (STATIC_DIR / relative_path).resolve()

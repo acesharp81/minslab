@@ -11,6 +11,7 @@
 - `.hwpx` text extraction from `Contents/section*.xml` files.
 - Naive RAG vs Advanced RAG comparison with sequential answer generation, live progress cards, citations, and an evaluation summary card.
 - `01. AI Safe Agent` PoC for GPS-based disaster risk lookup, KMA rainfall trends, nearby shelters, and LLM safety reports.
+- `02. 현장점검플랫폼` PoC for Supabase-backed inspection tasks, assets, field results, administration, CSV export, and statistics.
 
 ## Project 01: AI Safe Agent PoC
 
@@ -35,7 +36,18 @@ AI Safe Agent UI includes:
 
 Generated PoC datasets such as CSV snapshots and `integrated_disaster_kb_*.pkl` files are intentionally ignored by Git. Rebuild them locally with the in-app `기초 데이터 만들기` action or the `PoC/01-AISafeAgent/import.py` script.
 
-## Project 02: Chunking / Embedding / RAG Lab
+## PoC 02: Field Inspection Platform
+
+The second PoC imports the Lovable-based `acesharp81/ndmsinsptest` application as an independent Vite/React SPA. It is served by the existing ASGI process, so it does not start another web server or open another port.
+
+- Archive entry: `/poc?project=field-inspection-platform`
+- Direct application: `/poc/field-inspection-platform/`
+- Supabase tables: `tasks`, `assets`, and `results`
+- Public PoC mode currently keeps anonymous CRUD and the administrator menu enabled.
+- Before production use, add Supabase Auth and user/organization/role-based RLS.
+- Source and build notes: `PoC/02-field-inspection-platform/README.md`
+
+## Portfolio 02: Chunking / Embedding / RAG Lab
 
 The second portfolio project is the main RAG experiment page.
 
@@ -98,6 +110,7 @@ Optional:
 - `HF_API_KEY`, `KMA_AUTH_KEY`, and public-data keys for full AI Safe Agent functionality
 - `KAKAO_REST_API_KEY` or `VWORLD_API_KEY` for AI Safe Agent legal-dong reverse geocoding
 - `DISASTER_KB_PATH` to pin a specific AI Safe Agent knowledge-base PKL
+- `VITE_FIELD_INSPECTION_SUPABASE_URL` and `VITE_FIELD_INSPECTION_SUPABASE_PUBLISHABLE_KEY` for the public field-inspection client build
 
 ## Run Locally
 

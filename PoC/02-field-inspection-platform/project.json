@@ -1,0 +1,42 @@
+{
+  "id": "field-inspection-platform",
+  "order": 2,
+  "display_no": "02",
+  "title": "현장점검플랫폼",
+  "date": "Disaster Safety / Supabase",
+  "summary": "현장 점검 업무·대상·결과를 한곳에서 등록하고 진행 상태와 통계를 관리하는 통합 현장점검 PoC입니다.",
+  "description": "Lovable로 제작한 ndmsinsptest를 현재 MinsLab 서비스의 독립 React SPA로 이관했습니다. 점검 업무와 물건을 관리하고, 물건별 통합 입력, 업무별 결과 조회, CSV 다운로드, 관할지·물건별 통계를 Supabase 데이터와 연결해 제공합니다.",
+  "tags": [
+    "PoC",
+    "Field Inspection",
+    "React",
+    "Supabase",
+    "Disaster Safety"
+  ],
+  "features": [
+    [
+      "점검 업무 통합 관리",
+      "업무별 목적, 담당부서, 담당자와 사용자 정의 점검 항목을 구성합니다."
+    ],
+    [
+      "물건·결과 현장 입력",
+      "시설물·산·하천·강 등의 점검 대상을 선택하고 사진을 포함한 결과를 입력합니다."
+    ],
+    [
+      "진행 현황과 통계",
+      "등록·점검중·점검완료 상태와 관할지별·물건별 집계를 한 화면에서 확인합니다."
+    ],
+    [
+      "Supabase 실시간 저장",
+      "공용 .env의 프로젝트 URL과 publishable key로 기존 tasks, assets, results 데이터를 사용합니다."
+    ]
+  ],
+  "entry_file": "src/lib/store.ts",
+  "usage": [
+    "PoC 메뉴에서 02. 현장점검플랫폼을 선택하면 통합 화면이 바로 표시됩니다.",
+    "Dashboard에서 물건별 통합 점검을 입력하거나 업무 카드를 선택해 결과를 관리합니다.",
+    "통계 메뉴에서 업무·관할지별 또는 물건별 현황을 조회합니다.",
+    "관리자 메뉴에서 점검 업무, 입력 서식, 점검 대상을 추가·수정·삭제합니다."
+  ],
+  "note": "현재는 공개 PoC 단계로 원본과 동일하게 익명 사용자에게 관리자 메뉴와 전체 CRUD가 열려 있습니다. 운영 전 Supabase Auth와 사용자별 RLS 정책을 적용해야 합니다."
+}
