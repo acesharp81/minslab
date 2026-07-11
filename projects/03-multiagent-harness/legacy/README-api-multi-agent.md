@@ -10,7 +10,7 @@
 - 별도 웹서버 또는 포트: 없음
 - 외부 패키지: 없음
 - 기본 API: OpenRouter의 OpenAI 호환 Chat Completions
-- 공용 설정: 저장소 루트 .env
+- 설정: 프로젝트 폴더 .env
 
 홈페이지에서는 프로젝트 설명과 대표 코드를 보여주며 멀티에이전트 실행은 서버 터미널에서 수행합니다.
 
@@ -44,7 +44,7 @@
 
 ## 환경변수
 
-기본적으로 저장소 루트의 공용 .env를 읽고, 이미 설정된 프로세스 환경변수는 덮어쓰지 않습니다.
+기본적으로 프로젝트 폴더의 `.env`를 읽고, 이미 설정된 프로세스 환경변수는 덮어쓰지 않습니다.
 
 ~~~dotenv
 OPENROUTER_API_KEY=YOUR_OPENROUTER_API_KEY
@@ -68,7 +68,7 @@ MULTI_AGENT_TIMEOUT=60
 프로젝트 폴더로 이동합니다.
 
 ~~~bash
-cd /home/ubuntu/apps/myservice/projects/03-api-multi-agent
+cd 03-multiagent-harness
 ~~~
 
 API 없이 협업 흐름 확인:

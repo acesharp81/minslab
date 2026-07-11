@@ -1,0 +1,37 @@
+{
+  "id": "multiagent-harness",
+  "order": 3,
+  "display_no": "03",
+  "title": "계층형 멀티에이전트 하네스",
+  "date": "Harness Engineering / Hierarchical Agents",
+  "summary": "계층형 Coordinator와 공용 Agent Pool이 제한된 LLM 실행 슬롯을 공유하며 현안 대응 패키지를 만드는 과정을 픽셀 오피스로 시각화합니다.",
+  "description": "Mission Manager, 분야별 Coordinator, 공용 Collector·Summarizer 풀과 전문 에이전트가 업무 DAG를 수행합니다. Local LLM, Hugging Face, OpenRouter 모델을 에이전트별로 배정하되 중앙 Model Broker가 실제 동시 실행 수와 대기열을 통제합니다. 회의, 대면 문서 전달, 리스크 반송과 최종 Filing Cabinet 제출을 실제 하네스 이벤트에 맞춰 보여줍니다.",
+  "tags": [
+    "Harness Engineering",
+    "Hierarchical Agents",
+    "Pixel Office",
+    "Multi-Provider LLM"
+  ],
+  "features": [
+    [
+      "계층형 업무 수행",
+      "Mission Manager와 분야별 Coordinator가 DAG를 만들고 공용 에이전트 풀에 capability 기반으로 작업을 배정합니다."
+    ],
+    [
+      "모델 실행 슬롯 제어",
+      "에이전트 수와 실제 추론 슬롯을 분리해 Ollama 1, Hugging Face 1, OpenRouter 2의 보수적 동시성을 시각화합니다."
+    ],
+    [
+      "대면 협업 시각화",
+      "아바타가 Whiteboard에 모이고 중요 산출물을 직접 전달하며 Risk Checker가 수정 문서를 반송합니다."
+    ]
+  ],
+  "entry_file": "service.py",
+  "usage": [
+    "포트폴리오 03번 화면에서 계층형 데모 실행을 눌러 전체 이벤트 흐름을 재생합니다.",
+    "에이전트 모델 설정에서 Local LLM, Hugging Face, OpenRouter 모델을 역할별로 배정합니다.",
+    "Model Broker 패널에서 provider별 실행 슬롯과 대기열을 확인합니다.",
+    "산출물 패널과 하네스 이벤트 로그에서 생성·전달·수정·검증 이력을 확인합니다."
+  ],
+  "note": "결정적 데모는 LLM 비용 없이 실행됩니다. 실제 실행은 암호로 활성화한 사이트 오너 키 또는 저장하지 않는 개인 키를 선택해 사용합니다."
+}

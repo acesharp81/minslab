@@ -21,7 +21,7 @@ from typing import Callable
 
 
 HERE = Path(__file__).resolve().parent
-PROJECT_ROOT = HERE.parents[1]
+PROJECT_ROOT = HERE.parent
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "openai/gpt-4o-mini"
 
@@ -283,7 +283,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--env-file",
         type=Path,
         default=PROJECT_ROOT / ".env",
-        help="환경설정 파일 경로(기본값: 저장소 루트의 공용 .env)",
+        help="환경설정 파일 경로(기본값: 프로젝트 폴더의 .env)",
     )
     return parser
 
