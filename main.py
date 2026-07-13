@@ -5,11 +5,16 @@ import socket
 import sys
 import threading
 import time
+from datetime import datetime
+from http.cookies import SimpleCookie
 from pathlib import Path
 from urllib import error as url_error
 from urllib import parse as url_parse
 from urllib import request as url_request
 
+from admin_auth import ADMIN_AUTH, SESSION_COOKIE
+from admin_page import ADMIN_HTML
+from analytics_store import analytics_status, get_analytics_summary, increment_local_llm_calls, list_analytics_visits, purge_old_analytics_events, record_visit
 from chunking_compare import DEFAULT_CHAT_MODEL, chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
 from env_utils import env_first, load_project_env
 from portfolio_loader import poc_projects_as_json, projects_as_json
@@ -19,14 +24,29 @@ from supabase_store import list_history, save_history
 
 load_project_env()
 
+APP_STARTED_AT = time.time()
+APP_STARTED_MONOTONIC = time.monotonic()
+
 STATIC_DIR = Path(__file__).parent / "static"
 AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
 AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
 REPORT_DRAFT_SERVICE_PATH = Path(__file__).parent / "projects" / "04-report-draft" / "portfolio_service.py"
+MULTIAGENT_HARNESS_BASE_PATH = "/portfolio/multiagent-harness"
+MULTIAGENT_HARNESS_API_BASE = "/api/portfolio/multiagent-harness"
+MULTIAGENT_HARNESS_APP = Path(__file__).parent / "projects" / "03-multiagent-harness" / "app"
+MULTIAGENT_HARNESS_SERVICE_PATH = Path(__file__).parent / "projects" / "03-multiagent-harness" / "service.py"
 FIELD_INSPECTION_BASE_PATH = "/poc/field-inspection-platform"
 FIELD_INSPECTION_DIST = Path(__file__).parent / "PoC" / "02-field-inspection-platform" / "dist"
+MOIS_KMS_BASE_PATH = "/poc/mois-kms"
+MOIS_KMS_API_BASE = "/api/poc/mois-kms"
+MOIS_KMS_DIST = Path(__file__).parent / "PoC" / "03-mois-kms" / "dist"
+MOIS_KMS_SERVICE_PATH = Path(__file__).parent / "PoC" / "03-mois-kms" / "backend.py"
+MOIS_KMS_MODULE = None
+MOIS_KMS_MTIME = None
 REPORT_DRAFT_MODULE = None
 REPORT_DRAFT_MTIME = None
+MULTIAGENT_HARNESS_MODULE = None
+MULTIAGENT_HARNESS_MTIME = None
 
 AI_SAFE_BUILD_LOCK = threading.Lock()
 AI_SAFE_AGENT_MODULE = None
@@ -228,6 +248,17 @@ HTML_PAGE = r"""
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.03em; }
     .brand i{width:32px;height:32px;display:grid;place-items:center;position:relative;border-radius:10px 10px 50% 50%;background:#171916;color:#dfff56;font:800 15px monospace;font-style:normal;transform:rotate(-3deg)}.brand i::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;right:-3px;top:-3px;background:#ff704d;box-shadow:0 0 0 3px #f3f1e9}
     .health-wrap{position:relative}.health-button{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid #d1cfc5;border-radius:99px;background:#fffdf6;color:#555b52;cursor:default;font-size:12px;font-weight:700}.health-dot{width:9px;height:9px;border-radius:50%;background:#aaa;box-shadow:0 0 0 4px rgba(120,120,120,.12)}.health-wrap.healthy .health-dot,.detail-row.ok i{background:#62be55}.health-wrap.healthy .health-dot{box-shadow:0 0 0 4px rgba(98,190,85,.16)}.health-wrap.unhealthy .health-dot,.detail-row.fail i{background:#ef6048}.health-wrap.unhealthy .health-dot{box-shadow:0 0 0 4px rgba(239,96,72,.16)}.health-popover{visibility:hidden;opacity:0;transform:translateY(-5px);position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:245px;padding:15px;background:#1c1f1b;color:white;border:1px solid #3d413b;border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.22);transition:.18s}.health-wrap:hover .health-popover,.health-wrap:focus-within .health-popover{visibility:visible;opacity:1;transform:none}.health-popover h3{font-size:13px;margin:0 0 10px}.detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid #393d37;font-size:12px;color:#c4c9c0}.detail-row span{display:flex;align-items:center;gap:8px}.detail-row i{width:8px;height:8px;border-radius:50%;background:#888}.detail-row b{font-size:11px;color:#aeb4aa}.health-updated{display:block;margin-top:9px;color:#777e74;font:10px monospace}
+    .health-popover{width:300px;padding:12px}.health-popover h3{margin-bottom:8px}
+    .health-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:8px}
+    .health-stat{position:relative;overflow:hidden;padding:6px 4px;border:1px solid #393d37;border-radius:8px;background:#252923;text-align:center;min-width:0}
+    .health-stat span{display:block;color:#8f978c;font-size:8px;font-weight:800;text-transform:uppercase;white-space:nowrap}
+    .health-stat b{display:block;margin-top:3px;color:#f1f4ed;font:700 12px ui-monospace,monospace;overflow:hidden;text-overflow:ellipsis}
+    .health-stat>span,.health-stat>b{position:relative;z-index:2;text-shadow:0 1px 3px #1c1f1b}
+    .health-spark{position:absolute;z-index:1;inset:auto 0 0;width:100%;height:72%;opacity:.26;pointer-events:none}
+    .health-spark polyline{fill:none;stroke:#dfff56;stroke-width:2.2;vector-effect:non-scaling-stroke}
+    .health-runtime{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border:1px solid #393d37;border-radius:8px;background:#252923}
+    .health-runtime span{color:#8f978c;font-size:9px;font-weight:800}.health-runtime b{color:#f1f4ed;font:700 11px ui-monospace,monospace;white-space:nowrap}
+    .health-popover .detail-row{padding:6px 0;font-size:11px}.health-popover .detail-row b{font-size:10px}.health-updated{margin-top:7px}
     .nav-links { display: flex; gap: 24px; font-size: 13px; }
     .nav-links a { color: #62675e; text-decoration: none; }
     .hero { padding: 82px max(20px, calc((100% - 1120px)/2)); display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; align-items: center; border-bottom: 1px solid #d6d4ca; }
@@ -538,7 +569,7 @@ HTML_PAGE = r"""
 </head>
 <body>
   <main class="shell"><section class="card">
-    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a><a href="/poc" data-page="poc">PoC</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
+    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a><a href="/poc" data-page="poc">PoC</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div class="health-stats" id="healthStats"></div><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
     <div class="home-view">
     <section class="chat-home">
       <button class="mobile-panel-toggle chat-drawer-toggle" id="chatDrawerToggle" type="button" aria-controls="chatSidebar" aria-expanded="false"><span>대화 이력</span></button>
@@ -560,7 +591,7 @@ HTML_PAGE = r"""
         <article class="project-document"><header class="document-head"><div class="project-meta" id="projectMeta"></div><h2 id="projectTitle"></h2><p id="projectSummary"></p></header><div class="document-body"><div class="project-default" id="projectDefaultView"><h3>프로젝트 설명</h3><p id="projectDescription"></p><div class="feature-grid" id="projectFeatures"></div><h3>핵심 코드</h3><div class="code-wrap"><div class="code-head"><span id="codeFile">main.py</span><button class="copy-code" id="copyCode">코드 복사</button></div><pre><code id="projectCode"></code></pre></div><h3>실행 방법</h3><ol id="projectUsage"></ol><div class="next-note" id="projectNote"></div></div><section class="project-lab" id="projectLab"></section></div></article>
       </div>
     </div>
-    <footer><span>MinsLab · 오늘의 기록으로 내일의 가능성을 실험하는 곳</span><a href="/health">SERVICE HEALTH ↗</a></footer>
+    <footer><span>MinsLab · 오늘의 기록으로 내일의 가능성을 실험하는 곳</span><a href="/admin">ADMIN ↗</a></footer>
     <button class="drawer-backdrop" id="drawerBackdrop" type="button" aria-label="메뉴 닫기"></button>
   </section></main>
   <script>
@@ -865,6 +896,22 @@ HTML_PAGE = r"""
       dataHeadEl.addEventListener('click',event=>{if(event.target.closest('button'))return;toggleDataLog()});dataHeadEl.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();toggleDataLog()}});dataLogToggle.onclick=event=>{event.stopPropagation();toggleDataLog()};latEl.oninput=updateMap;lngEl.oninput=updateMap;runButton.onclick=runAnalysis;gpsButton.onclick=useGpsLocation;buildDataButton.onclick=buildKnowledgeBase;refreshKbButton.onclick=refreshKnowledgeBase;initMap();renderPresets();updateMap();addEventListener('resize',scheduleMapResize);loadAiSafeModels();loadKbStatus().catch(e=>appendDataLog(`PKL 상태 확인 실패: ${e.message}`,true));useGpsLocation({auto:true});
     }
 
+    function renderMoisKmsLab(p){
+      projectDefaultView.classList.add("hidden");
+      projectLab.classList.add("active");
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>MoIS KMS · 통합 업무관리시스템</strong><span id="moisKmsStatus">Supabase 인증과 업무 데이터를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/mois-kms/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">사용자 로그인·조직별 RLS·결재 흐름 적용 · AI 보고서는 Local LLM, Hugging Face, OpenRouter 중 선택할 수 있습니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="moisKmsFrame" src="/poc/mois-kms/" title="통합 업무관리시스템" loading="eager"></iframe></div></section>`;
+      const frame=document.getElementById("moisKmsFrame"),status=document.getElementById("moisKmsStatus");
+      frame.addEventListener("load",()=>{status.textContent="통합 업무관리시스템 연결 완료 · 로그인 후 업무와 AI 보고서를 이용하세요."},{once:true});
+    }
+
+    function renderMultiAgentHarnessLab(p){
+      projectDefaultView.classList.add("hidden");
+      projectLab.classList.add("active");
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>03 · 계층형 멀티에이전트 상황실</strong><span id="multiagentHarnessStatus">하네스 이벤트와 픽셀 오피스를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/portfolio/multiagent-harness/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">계층형 Coordinator · 공용 Agent Pool · Local LLM/Hugging Face/OpenRouter 슬롯 제어 · 대면 문서 전달 시각화</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="multiagentHarnessFrame" src="/portfolio/multiagent-harness/" title="계층형 멀티에이전트 하네스" loading="eager"></iframe></div></section>`;
+      const frame=document.getElementById("multiagentHarnessFrame"),status=document.getElementById("multiagentHarnessStatus");
+      frame.addEventListener("load",()=>{status.textContent="픽셀 오피스 연결 완료 · 계층형 데모를 실행할 수 있습니다."},{once:true});
+    }
+
     function renderFieldInspectionLab(p){
       projectDefaultView.classList.add("hidden");
       projectLab.classList.add("active");
@@ -921,10 +968,14 @@ HTML_PAGE = r"""
         renderLegacyChunkingLab(p);
       }else if(p.id==='chunking-rag-lab'){
         renderChunkingRagLab(p);
+      }else if(p.id==='multiagent-harness'||p.id==='api-multi-agent'){
+        renderMultiAgentHarnessLab(p);
       }else if(p.id==='report-draft'){
         renderReportDraftLab(p);
       }else if(p.id==='field-inspection-platform'){
         renderFieldInspectionLab(p);
+      }else if(p.id==='mois-kms'){
+        renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
         renderAISafeAgent(p);
       }else{
@@ -942,7 +993,7 @@ HTML_PAGE = r"""
     function projectUrl(id,page=currentArchivePage){const c=catalog(page);return id?`${c.path}?project=${encodeURIComponent(id)}`:c.path}
     function scrollAISafeMapIntoView(){const map=document.getElementById('safeAgentMap');if(!map)return;requestAnimationFrame(()=>map.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'}))}
     setArchiveChrome(currentArchivePage);renderProject(projectIdFromLocation(currentArchivePage)||lastProjectId(currentArchivePage),currentArchivePage);
-    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){const p=renderProject(b.dataset.id,currentArchivePage);if(p&&document.body.classList.contains('archive-mode'))history.pushState({},'',projectUrl(p.id,currentArchivePage));closeMobileDrawers();if(p?.id==='ai-safe-agent')scrollAISafeMapIntoView()}});
+    projectList.addEventListener('click',e=>{const b=e.target.closest('.project-button');if(b){const p=renderProject(b.dataset.id,currentArchivePage);if(p&&document.body.classList.contains('archive-mode')){history.pushState({},'',projectUrl(p.id,currentArchivePage));trackCurrentPage()}closeMobileDrawers();if(p?.id==='ai-safe-agent')scrollAISafeMapIntoView()}});
     const drawerBackdrop=document.getElementById('drawerBackdrop'),chatDrawerToggle=document.getElementById('chatDrawerToggle'),projectDrawerToggle=document.getElementById('projectDrawerToggle'),chatSidebarEl=document.getElementById('chatSidebar'),projectSideMenuEl=document.getElementById('projectSideMenu');
     function setDrawerState(type,open){
       const className=type==='chat'?'chat-drawer-open':'project-drawer-open';
@@ -966,6 +1017,8 @@ HTML_PAGE = r"""
     const modelSelectEl=document.getElementById('modelSelect'),messagesEl=document.getElementById('messages'),inputEl=document.getElementById('chatInput'),sendEl=document.getElementById('sendButton');
     document.querySelector('.ai-mark').innerHTML='<img src="/static/images/logo.png" alt="MinsLab 로고">';
     let conversation=[],generating=false,currentChatId=crypto.randomUUID();const legacyClientId=localStorage.getItem('minzday.clientId');const deviceId=localStorage.getItem('minslab.deviceId')||legacyClientId||crypto.randomUUID();localStorage.setItem('minslab.deviceId',deviceId);localStorage.setItem('minzday.clientId',deviceId);const accountId=localStorage.getItem('minslab.accountId')||'';const historyScope=accountId?'account':'device';const historyList=document.createElement('div');historyList.className='history-list';document.getElementById('historyTitle').parentElement.append(historyList);
+    let lastTrackedLocation='';
+    function trackCurrentPage(){const target=`${location.pathname}${location.search}`;if(target===lastTrackedLocation||target.startsWith('/admin'))return;lastTrackedLocation=target;fetch('/api/analytics/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitor_id:deviceId,path:target,page_title:document.title,referrer:document.referrer}),keepalive:true}).catch(error=>console.warn('Visit tracking failed',error))}
     function historyQuery(){const params=new URLSearchParams({client_id:deviceId});if(accountId)params.set('account_id',accountId);return params.toString()}
     async function loadHistory(){
       try{
@@ -983,7 +1036,9 @@ HTML_PAGE = r"""
     }
     async function persistHistory(){if(!conversation.length)return;const title=conversation.find(m=>m.role==='user')?.content.slice(0,40)||'새로운 대화';try{const r=await fetch('/api/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentChatId,client_id:deviceId,account_id:accountId||null,scope_type:historyScope,title,model:modelSelectEl.value,messages:conversation})});const data=await r.json();if(!r.ok||!data.saved)throw new Error(data.error||'대화 이력을 저장하지 못했습니다.');loadHistory()}catch(e){console.warn('History save failed',e);historyList.insertAdjacentHTML('afterbegin',`<div class="history-db-status">저장 실패: ${e.message}</div>`)}}
     async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}">${m.name}${m.details.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('설치된 모델이 없습니다.')}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>OLLAMA OFFLINE</span>';}}
-    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health'),data=await r.json();wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
+    function healthUptime(seconds){seconds=Math.max(0,Number(seconds||0));const days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60);return days?`${days}d ${hours}h`:hours?`${hours}h ${minutes}m`:minutes?`${minutes}m`:`${Math.floor(seconds)}s`}
+    function healthSparkline(values){const nums=(Array.isArray(values)?values:[]).slice(-7).map(value=>Math.max(0,Number(value)||0));if(nums.length<2)return'';const max=Math.max(...nums),min=Math.min(...nums),range=Math.max(1,max-min),step=100/(nums.length-1),points=nums.map((value,index)=>`${(index*step).toFixed(1)},${(29-((value-min)/range)*23).toFixed(1)}`).join(' ');return`<svg class="health-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"/></svg>`}
+    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),viewSpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${viewSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${viewSpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM Calls</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
     function processPanel(item,start){const box=document.createElement('details');box.className='process-box live';box.open=true;const requestCount=conversation.length;const attachmentCount=attachedData.length;box.innerHTML='<summary><span class="process-summary">생성 중 · 준비 단계</span><span class="process-toggle">자세히 보는 중</span><span class="process-meta">0.0s</span></summary><div class="process-inner"><div class="process-log"></div><div class="references">참고 자료 확인 중...</div></div>';const log=box.querySelector('.process-log');const summaryEl=box.querySelector('.process-summary');const toggleEl=box.querySelector('.process-toggle');const metaEl=box.querySelector('.process-meta');const refs=box.querySelector('.references');const timers=[];let finished=false,firstChunkSeen=false,expansionNoted=false;box.addEventListener('toggle',()=>{if(finished)return;toggleEl.textContent=box.open?'자세히 보는 중':'간단히 보는 중'});function addStep(text,state='done'){const row=document.createElement('div');row.className=`process-step ${state}`.trim();row.innerHTML=`<i></i><span>${text}</span>`;log.append(row);log.parentElement.scrollTop=log.parentElement.scrollHeight;messagesEl.scrollTop=messagesEl.scrollHeight;return row}const intro='요청 수신 · '+requestCount+'개 메시지 맥락 정리 완료'+(attachmentCount?` · 첨부 ${attachmentCount}개 포함`:'');addStep(intro,'done');const stages=[['프롬프트와 모델 설정을 적용하고 있어요.','done','생성 중 · 입력 구성'],['로컬 모델에 요청을 전달했어요.','done','생성 중 · 모델 호출'],['응답 초안을 계산하고 있어요.','active','생성 중 · 초안 생성'],['문장 흐름과 길이를 정리하고 있어요.','active','생성 중 · 답변 다듬기']];stages.forEach(([text,state,summary],index)=>{timers.push(setTimeout(()=>{if(finished)return;addStep(text,state);summaryEl.textContent=summary},450+(index*900)))});const tick=setInterval(()=>{if(finished)return;metaEl.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`},120);item.children[1].append(box);return{stream(answer){if(finished)return;if(!firstChunkSeen&&answer.trim()){firstChunkSeen=true;summaryEl.textContent='생성 중 · 실시간 출력';addStep('첫 응답 조각이 도착해 화면에 바로 표시하고 있어요.','active')}if(!expansionNoted&&answer.length>180){expansionNoted=true;addStep('답변 분량이 늘어나고 있어요. 문단 단위로 이어 붙이는 중입니다.','muted')}},finish(answer,metrics,ok=true){finished=true;timers.forEach(clearTimeout);clearInterval(tick);const seconds=metrics?.total_duration?metrics.total_duration/1e9:(performance.now()-start)/1000;const evalCount=metrics?.eval_count;const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const statusText=ok?`${modelSelectEl.value} 응답 생성 완료`:'응답 생성 중 오류 발생';addStep(statusText+(evalCount?` · ${evalCount} tokens`:''),ok?'done':'error');refs.textContent=urls.length?'참고 자료 · ':'참고 자료 · 외부 자료를 사용하지 않은 로컬 모델 응답';urls.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=`[${i+1}] ${url}`;refs.append(document.createElement('br'),a)});summaryEl.textContent=ok?`생성 완료 · ${seconds.toFixed(1)}초`:`오류로 종료 · ${seconds.toFixed(1)}초`;toggleEl.textContent='요약만 표시';metaEl.textContent=ok?(evalCount?`${evalCount} tok · ${urls.length} refs`:`${urls.length} refs`):'retry needed';box.classList.remove('live');box.classList.add('compact');box.open=false}}}
     function addMessage(role,text,extra=''){document.getElementById('emptyChat')?.remove();const item=document.createElement('article');item.className=`message ${role} ${extra}`;const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=role==='user'?'YOU':'✦';const wrap=document.createElement('div');const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'나':modelSelectEl.value;const body=document.createElement('div');body.className='message-body';body.textContent=text;wrap.append(label,body);item.append(avatar,wrap);messagesEl.append(item);messagesEl.scrollTop=messagesEl.scrollHeight;return item;}
     function renderSources(answer,sources=[]){const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const merged=[...sources,...urls.map(url=>({type:'WEB',title:new URL(url).hostname,url,excerpt:'응답에 포함된 웹 링크'}))];sourceCount.textContent=merged.length;if(!merged.length){sourceList.innerHTML='<div class="source-empty"><i>⌕</i><strong>외부 자료 없음</strong><br>이 답변은 로컬 모델의 학습 지식으로<br>생성되었습니다.</div>';return}sourceList.textContent='';merged.forEach((s,i)=>{const card=document.createElement(s.url?'a':'div');card.className='source-card';if(s.url){card.href=s.url;card.target='_blank';card.rel='noreferrer'};const type=document.createElement('span');type.className='source-type';type.textContent=s.type||'RAG';const title=document.createElement('strong');title.textContent=`${i+1}. ${s.title||s.document||'참고 문서'}`;const detail=document.createElement('small');detail.textContent=s.excerpt||s.url||s.source||'';card.append(type,title,detail);sourceList.append(card)})}
@@ -1033,7 +1088,7 @@ HTML_PAGE = r"""
     }
     document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessage(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};
     document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessage(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{const saved=localStorage.getItem('minzday.selectedModel');if(saved&&[...modelSelectEl.options].some(o=>o.value===saved))modelSelectEl.value=saved;loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
-    function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');scrollTo(0,0)}
+    function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');trackCurrentPage();scrollTo(0,0)}
     document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(archivePageFromLocation()));showPage(archivePageFromLocation());
   </script>
 </body>
@@ -1309,6 +1364,11 @@ def call_ollama(path, payload=None):
 
 def iter_ollama_stream(path, payload=None):
     """Ollama의 NDJSON 스트림을 순서대로 읽는다."""
+    if path == "/api/chat" and payload is not None:
+        try:
+            increment_local_llm_calls()
+        except Exception:
+            pass
     request = _build_ollama_request(path, payload)
     with url_request.urlopen(request, timeout=120) as response:
         for raw_line in response:
@@ -1324,6 +1384,14 @@ def _tcp_port_is_open(host, port):
             return True
     except OSError:
         return False
+
+
+def host_uptime_seconds():
+    """Linux 운영체제가 부팅된 뒤 경과한 시간을 초 단위로 반환한다."""
+    try:
+        return max(0, int(float(Path("/proc/uptime").read_text(encoding="utf-8").split()[0])))
+    except (OSError, ValueError, IndexError):
+        return None
 
 
 def check_services():
@@ -1342,7 +1410,31 @@ def check_services():
         }
     except (OSError, url_error.URLError, json.JSONDecodeError):
         services["ollama"] = {"label": "Ollama", "ok": False, "detail": "API 연결 실패"}
-    return {"ok": all(item["ok"] for item in services.values()), "services": services, "checked_at": int(time.time())}
+    try:
+        stats = get_analytics_summary()
+        analytics_status()
+        services["analytics"] = {"label": "방문 통계", "ok": True, "detail": "SQLite 기록 정상"}
+    except (OSError, ValueError, RuntimeError) as error:
+        stats = {
+            "total_views": 0,
+            "today_views": 0,
+            "today_visitors": 0,
+            "total_visitors": 0,
+        }
+        services["analytics"] = {
+            "label": "방문 통계", "ok": False, "detail": f"저장소 오류: {error}"
+        }
+    web_uptime = max(0, int(time.monotonic() - APP_STARTED_MONOTONIC))
+    stats["uptime_seconds"] = web_uptime
+    stats["web_uptime_seconds"] = web_uptime
+    stats["host_uptime_seconds"] = host_uptime_seconds()
+    stats["started_at"] = int(APP_STARTED_AT)
+    return {
+        "ok": all(item["ok"] for item in services.values()),
+        "services": services,
+        "stats": stats,
+        "checked_at": int(time.time()),
+    }
 
 
 async def read_request_body(receive):
@@ -1357,6 +1449,49 @@ async def read_request_body(receive):
 
 
 
+def scope_headers(scope):
+    return {
+        key.decode("latin-1").lower(): value.decode("latin-1")
+        for key, value in scope.get("headers", [])
+    }
+
+
+def request_ip(scope):
+    client = scope.get("client") or ("unknown", 0)
+    return str(client[0] or "unknown")
+
+
+def admin_session(scope):
+    raw_cookie = scope_headers(scope).get("cookie", "")
+    cookie = SimpleCookie()
+    try:
+        cookie.load(raw_cookie)
+    except Exception:
+        return None
+    token = cookie.get(SESSION_COOKIE)
+    return ADMIN_AUTH.verify_session(token.value if token else "")
+
+
+def valid_analytics_date(value):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return datetime.strptime(text, "%Y-%m-%d").date().isoformat()
+    except ValueError as error:
+        raise ValueError("날짜는 YYYY-MM-DD 형식이어야 합니다.") from error
+
+
+def load_mois_kms_module():
+    """PoC 03 백엔드를 변경 시 자동으로 다시 읽는다."""
+    global MOIS_KMS_MODULE, MOIS_KMS_MTIME
+    mtime = MOIS_KMS_SERVICE_PATH.stat().st_mtime_ns
+    if MOIS_KMS_MODULE is None or MOIS_KMS_MTIME != mtime:
+        MOIS_KMS_MODULE = load_module_from_path("mois_kms_poc_backend", MOIS_KMS_SERVICE_PATH)
+        MOIS_KMS_MTIME = mtime
+    return MOIS_KMS_MODULE
+
+
 def load_report_draft_module():
     """04 보고서 초안 서비스를 변경 시 자동으로 다시 읽는다."""
     global REPORT_DRAFT_MODULE, REPORT_DRAFT_MTIME
@@ -1367,6 +1502,18 @@ def load_report_draft_module():
         )
         REPORT_DRAFT_MTIME = mtime
     return REPORT_DRAFT_MODULE
+
+
+def load_multiagent_harness_module():
+    """03 계층형 멀티에이전트 하네스 서비스를 변경 시 다시 읽는다."""
+    global MULTIAGENT_HARNESS_MODULE, MULTIAGENT_HARNESS_MTIME
+    mtime = MULTIAGENT_HARNESS_SERVICE_PATH.stat().st_mtime_ns
+    if MULTIAGENT_HARNESS_MODULE is None or MULTIAGENT_HARNESS_MTIME != mtime:
+        MULTIAGENT_HARNESS_MODULE = load_module_from_path(
+            "multiagent_harness_portfolio_service", MULTIAGENT_HARNESS_SERVICE_PATH
+        )
+        MULTIAGENT_HARNESS_MTIME = mtime
+    return MULTIAGENT_HARNESS_MODULE
 
 
 def report_draft_model_options():
@@ -1385,6 +1532,8 @@ async def app(scope, receive, send):
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
+                await asyncio.to_thread(analytics_status)
+                await asyncio.to_thread(purge_old_analytics_events)
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
                 await send({"type": "lifespan.shutdown.complete"})
@@ -1396,8 +1545,127 @@ async def app(scope, receive, send):
     path = scope.get("path", "/")
     method = scope.get("method", "GET").upper()
     status = 200
+    extra_headers = []
 
-    if path == "/api/history" and method == "GET":
+    if path == "/api/analytics/visit" and method == "POST":
+        try:
+            raw_body = await read_request_body(receive)
+            if len(raw_body) > 32_000:
+                raise ValueError("방문 기록 요청이 너무 큽니다.")
+            payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+            if not isinstance(payload, dict):
+                raise ValueError("JSON 객체 형식이 필요합니다.")
+            headers_in = scope_headers(scope)
+            user_agent = headers_in.get("user-agent", "")
+            visitor_id = str(payload.get("visitor_id") or "")
+            if not visitor_id or len(visitor_id) > 160:
+                raise ValueError("방문자 식별자가 필요합니다.")
+            tracked = await asyncio.to_thread(
+                record_visit,
+                visitor_id=visitor_id,
+                ip_address=request_ip(scope),
+                path=str(payload.get("path") or ""),
+                page_title=str(payload.get("page_title") or ""),
+                referrer=str(payload.get("referrer") or headers_in.get("referer", "")),
+                user_agent=user_agent,
+            )
+            status = 201 if tracked else 200
+            body = json.dumps({"tracked": tracked}, ensure_ascii=False).encode("utf-8")
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            status = 400
+            body = json.dumps({"tracked": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except (OSError, RuntimeError) as error:
+            status = 503
+            body = json.dumps({"tracked": False, "error": f"통계 저장 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == "/api/admin/login" and method == "POST":
+        try:
+            raw_body = await read_request_body(receive)
+            if len(raw_body) > 4_096:
+                raise ValueError("로그인 요청이 너무 큽니다.")
+            payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+            if not isinstance(payload, dict):
+                raise ValueError("JSON 객체 형식이 필요합니다.")
+            token = ADMIN_AUTH.authenticate(str(payload.get("password") or ""), request_ip(scope))
+            body = json.dumps({"authenticated": True}, ensure_ascii=False).encode("utf-8")
+            extra_headers.append((b"set-cookie", ADMIN_AUTH.cookie_header(token).encode("latin-1")))
+        except PermissionError as error:
+            status = 429
+            body = json.dumps({"authenticated": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
+            extra_headers.append((b"retry-after", str(ADMIN_AUTH.retry_after(request_ip(scope))).encode("ascii")))
+        except RuntimeError as error:
+            status = 503
+            body = json.dumps({"authenticated": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            status = 401
+            body = json.dumps({"authenticated": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == "/api/admin/logout" and method == "POST":
+        body = json.dumps({"authenticated": False}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.extend([
+            (b"set-cookie", ADMIN_AUTH.clear_cookie_header().encode("latin-1")),
+            (b"cache-control", b"no-store"),
+        ])
+    elif path == "/api/admin/session" and method == "GET":
+        session = admin_session(scope)
+        if session:
+            body = json.dumps(
+                {"authenticated": True, "expires_at": session.get("exp")},
+                ensure_ascii=False,
+            ).encode("utf-8")
+        else:
+            status = 401
+            body = json.dumps(
+                {"authenticated": False, "error": "관리자 로그인이 필요합니다."},
+                ensure_ascii=False,
+            ).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == "/api/admin/analytics" and method == "GET":
+        if not admin_session(scope):
+            status = 401
+            body = json.dumps(
+                {"error": "관리자 로그인이 필요합니다."}, ensure_ascii=False
+            ).encode("utf-8")
+        else:
+            try:
+                query = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
+                target_date = valid_analytics_date(query.get("date", [""])[0])
+                page_number = int(query.get("page", ["1"])[0])
+                page_size = int(query.get("page_size", ["50"])[0])
+                visits = await asyncio.to_thread(
+                    list_analytics_visits,
+                    local_date=target_date,
+                    page=page_number,
+                    page_size=page_size,
+                    ip_filter=query.get("ip", [""])[0],
+                    path_filter=query.get("path", [""])[0],
+                )
+                summary = await asyncio.to_thread(get_analytics_summary)
+                web_uptime = max(0, int(time.monotonic() - APP_STARTED_MONOTONIC))
+                body = json.dumps(
+                    {
+                        "summary": summary,
+                        "visits": visits,
+                        "uptime_seconds": web_uptime,
+                        "web_uptime_seconds": web_uptime,
+                        "host_uptime_seconds": host_uptime_seconds(),
+                        "started_at": int(APP_STARTED_AT),
+                    },
+                    ensure_ascii=False,
+                ).encode("utf-8")
+            except (ValueError, UnicodeDecodeError) as error:
+                status = 400
+                body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+            except (OSError, RuntimeError) as error:
+                status = 503
+                body = json.dumps({"error": f"통계 조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == "/api/history" and method == "GET":
         try:
             query = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
             client_id = query.get("client_id", [""])[0]
@@ -1425,6 +1693,104 @@ async def app(scope, receive, send):
             status = 503
             body = json.dumps({"saved": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
+    elif (path == MULTIAGENT_HARNESS_API_BASE or path.startswith(f"{MULTIAGENT_HARNESS_API_BASE}/")) and method in {"GET", "POST"}:
+        try:
+            payload = {}
+            if method == "POST":
+                raw_body = await read_request_body(receive)
+                if len(raw_body) > 1_000_000:
+                    raise ValueError("요청 본문은 1MB를 넘을 수 없습니다.")
+                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON 객체 형식이 필요합니다.")
+            module = load_multiagent_harness_module()
+            subpath = path[len(MULTIAGENT_HARNESS_API_BASE):] or "/"
+            result = await asyncio.to_thread(module.dispatch, subpath, method, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, json.JSONDecodeError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = int(getattr(error, "status", 500))
+            body = json.dumps({"error": str(error) or "하네스 요청을 처리하지 못했습니다."}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif (path == MULTIAGENT_HARNESS_BASE_PATH or path.startswith(f"{MULTIAGENT_HARNESS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
+        relative_path = path[len(MULTIAGENT_HARNESS_BASE_PATH):].lstrip("/")
+        requested = (MULTIAGENT_HARNESS_APP / relative_path).resolve() if relative_path else MULTIAGENT_HARNESS_APP / "index.html"
+        try:
+            requested.relative_to(MULTIAGENT_HARNESS_APP.resolve())
+            if requested.is_file():
+                target = requested
+            elif not Path(relative_path).suffix:
+                target = MULTIAGENT_HARNESS_APP / "index.html"
+            else:
+                raise FileNotFoundError
+            if not target.is_file():
+                raise FileNotFoundError
+            body = await asyncio.to_thread(target.read_bytes)
+            content_type = {
+                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
+                ".woff": "font/woff", ".woff2": "font/woff2",
+            }.get(target.suffix.lower(), "application/octet-stream")
+        except (ValueError, OSError, FileNotFoundError):
+            status = 404
+            body = b"Multi-agent harness application is not available."
+            content_type = "text/plain; charset=utf-8"
+    elif (path == MOIS_KMS_API_BASE or path.startswith(f"{MOIS_KMS_API_BASE}/")) and method in {"GET", "POST"}:
+        try:
+            payload = {}
+            if method == "POST":
+                raw_body = await read_request_body(receive)
+                if len(raw_body) > 1_000_000:
+                    raise ValueError("요청 본문은 1MB를 넘을 수 없습니다.")
+                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON 객체 형식이 필요합니다.")
+            request_headers = {
+                key.decode("latin-1").lower(): value.decode("latin-1")
+                for key, value in scope.get("headers", [])
+            }
+            authorization = request_headers.get("authorization", "")
+            token = authorization[7:].strip() if authorization.lower().startswith("bearer ") else ""
+            module = load_mois_kms_module()
+            subpath = path[len(MOIS_KMS_API_BASE):] or "/"
+            result = await asyncio.to_thread(module.dispatch, subpath, method, token, payload)
+            body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+        except (ValueError, json.JSONDecodeError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = int(getattr(error, "status", 500))
+            message = str(error) if status < 500 or str(error) else "PoC 03 서버 요청을 처리하지 못했습니다."
+            body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+    elif (path == MOIS_KMS_BASE_PATH or path.startswith(f"{MOIS_KMS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
+        relative_path = path[len(MOIS_KMS_BASE_PATH):].lstrip("/")
+        requested = (MOIS_KMS_DIST / relative_path).resolve() if relative_path else MOIS_KMS_DIST / "index.html"
+        try:
+            requested.relative_to(MOIS_KMS_DIST.resolve())
+            if requested.is_file():
+                target = requested
+            elif not Path(relative_path).suffix:
+                target = MOIS_KMS_DIST / "index.html"
+            else:
+                raise FileNotFoundError
+            if not target.is_file():
+                raise FileNotFoundError
+            body = await asyncio.to_thread(target.read_bytes)
+            content_type = {
+                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
+                ".woff": "font/woff", ".woff2": "font/woff2",
+            }.get(target.suffix.lower(), "application/octet-stream")
+        except (ValueError, OSError, FileNotFoundError):
+            status = 404
+            body = b"MoIS KMS application is not built."
+            content_type = "text/plain; charset=utf-8"
     elif (path == FIELD_INSPECTION_BASE_PATH or path.startswith(f"{FIELD_INSPECTION_BASE_PATH}/")) and method in {"GET", "HEAD"}:
         relative_path = path[len(FIELD_INSPECTION_BASE_PATH):].lstrip("/")
         requested = (FIELD_INSPECTION_DIST / relative_path).resolve() if relative_path else FIELD_INSPECTION_DIST / "index.html"
@@ -1745,6 +2111,14 @@ async def app(scope, receive, send):
 
             await send({"type": "http.response.body", "body": b"", "more_body": False})
             return
+    elif path == "/admin" and method in {"GET", "HEAD"}:
+        body = ADMIN_HTML.encode("utf-8")
+        content_type = "text/html; charset=utf-8"
+        extra_headers.extend([
+            (b"cache-control", b"no-store"),
+            (b"x-frame-options", b"DENY"),
+            (b"referrer-policy", b"same-origin"),
+        ])
     elif path == "/health":
         body = json.dumps(
             {"status": "healthy", "message": "Main page is running"}
@@ -1758,6 +2132,7 @@ async def app(scope, receive, send):
         (b"content-type", content_type.encode("latin-1")),
         (b"content-length", str(len(body)).encode("ascii")),
     ]
+    headers.extend(extra_headers)
     await send({"type": "http.response.start", "status": status, "headers": headers})
     await send({
         "type": "http.response.body",

@@ -83,7 +83,7 @@ export function ResultForm({
   };
 
   return (
-    <div className="glass-strong rounded-2xl p-6 md:p-8 space-y-6">
+    <div className="form-card space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="점검연">
           <select value={year} onChange={(e) => setYear(Number(e.target.value))}
@@ -112,12 +112,11 @@ export function ResultForm({
                 )}
               </div>
               <button type="button" onClick={() => setPickerOpen(true)}
-                className="glass rounded-xl px-4 py-2.5 text-sm hover:bg-white/10 flex items-center gap-1.5">
+                className="app-secondary-button">
                 <Search className="size-4" /> 검색
               </button>
               <button type="button" onClick={() => setAssetFormOpen(true)}
-                className="rounded-xl px-4 py-2.5 text-sm font-medium text-primary-foreground flex items-center gap-1.5"
-                style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+                className="app-primary-button">
                 <Plus className="size-4" /> 추가
               </button>
             </div>
@@ -143,9 +142,9 @@ export function ResultForm({
         <div className="flex flex-wrap gap-2">
           {STATUS_LIST.map((s) => (
             <label key={s}
-              className={`px-4 py-2 rounded-xl cursor-pointer text-sm border flex items-center gap-2 transition-colors ${status === s ? "bg-primary/25 border-primary/50 text-primary" : "glass border-transparent hover:bg-white/10"}`}>
+              className={`px-4 py-2 rounded-xl cursor-pointer text-sm border flex items-center gap-2 transition-colors ${status === s ? "bg-primary/25 border-primary/50 text-primary" : "glass border-border hover:bg-muted"}`}>
               <input type="radio" name={`status-${taskId}-${initial?.resultId ?? "new"}`} className="sr-only" checked={status === s} onChange={() => setStatus(s)} />
-              <span className={`size-2 rounded-full ${status === s ? "bg-primary" : "bg-white/30"}`} />
+              <span className={`size-2 rounded-full ${status === s ? "bg-primary" : "bg-[#aeb3aa]"}`} />
               {s}
             </label>
           ))}
@@ -160,7 +159,7 @@ export function ResultForm({
       </Field>
 
       {customFields.length > 0 && (
-        <div className="space-y-5 pt-2 border-t border-white/10">
+        <div className="space-y-5 pt-2 border-t border-border">
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">점검 항목</div>
           {customFields.map((f) => (
             <Field key={f.id} label={f.name}>
@@ -173,18 +172,17 @@ export function ResultForm({
       )}
 
       {showActions && (
-        <div className="flex flex-col sm:flex-row justify-between gap-2 pt-5 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row justify-between gap-2 pt-5 border-t border-border">
           {onDelete ? (
             <button onClick={onDelete}
-              className="rounded-xl px-5 py-2.5 text-sm font-medium bg-destructive/20 text-destructive hover:bg-destructive/30 border border-destructive/40">
+              className="danger-button">
               삭제
             </button>
           ) : <span />}
           <div className="flex gap-2 justify-end">
-            {onCancel && <button onClick={onCancel} className="glass rounded-xl px-5 py-2.5 hover:bg-white/10 text-sm">취소</button>}
+            {onCancel && <button onClick={onCancel} className="app-secondary-button">취소</button>}
             <button onClick={submit}
-              className="rounded-xl px-5 py-2.5 text-sm font-medium text-primary-foreground"
-              style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+              className="app-primary-button">
               {submitLabel}
             </button>
           </div>

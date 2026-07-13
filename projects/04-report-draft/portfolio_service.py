@@ -203,6 +203,11 @@ def _selected_model(value):
 
 def call_ollama(prompt, model, options, system_prompt):
     """선택된 모델, 생성 옵션, 시스템 프롬프트로 로컬 Ollama를 호출한다."""
+    try:
+        from analytics_store import increment_local_llm_calls
+        increment_local_llm_calls()
+    except Exception:
+        pass
     payload = {
         "model": model,
         "messages": [

@@ -96,7 +96,7 @@ export function AssetFormDialog({ open, initial, onClose, onSaved }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="glass-strong rounded-2xl p-6 w-full max-w-lg">
+      <div className="modal-card w-full max-w-lg">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <div className="size-9 rounded-xl glass grid place-items-center">
@@ -104,7 +104,7 @@ export function AssetFormDialog({ open, initial, onClose, onSaved }: Props) {
             </div>
             <h3 className="text-lg font-semibold">{initial?.assetId ? "물건 수정" : "물건 등록"}</h3>
           </div>
-          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-white/10">
+          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-muted">
             <X className="size-4" />
           </button>
         </div>
@@ -120,7 +120,7 @@ export function AssetFormDialog({ open, initial, onClose, onSaved }: Props) {
             <div className="flex flex-wrap gap-2">
               {ASSET_CATEGORIES.map((c) => (
                 <button key={c} type="button" onClick={() => setCategory(c)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border ${category === c ? "bg-primary/25 border-primary/50 text-primary" : "glass border-transparent hover:bg-white/10"}`}>
+                  className={`px-3 py-1.5 rounded-lg text-sm border ${category === c ? "bg-primary/25 border-primary/50 text-primary" : "glass border-border hover:bg-muted"}`}>
                   {c}
                 </button>
               ))}
@@ -132,7 +132,7 @@ export function AssetFormDialog({ open, initial, onClose, onSaved }: Props) {
               <input value={address} readOnly placeholder="주소 검색을 눌러주세요"
                 className="flex-1 glass rounded-xl px-4 py-2.5 outline-none placeholder:text-muted-foreground/60" />
               <button type="button" onClick={openPostcode}
-                className="glass rounded-xl px-4 py-2.5 hover:bg-white/10 text-sm flex items-center gap-1.5">
+                className="app-secondary-button">
                 <Search className="size-4" /> 검색
               </button>
             </div>
@@ -152,11 +152,10 @@ export function AssetFormDialog({ open, initial, onClose, onSaved }: Props) {
           </Field>
         </div>
 
-        <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-white/10">
-          <button onClick={onClose} className="glass rounded-xl px-4 py-2 hover:bg-white/10 text-sm">취소</button>
+        <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-border">
+          <button onClick={onClose} className="app-secondary-button">취소</button>
           <button onClick={save}
-            className="rounded-xl px-5 py-2 text-sm font-medium text-primary-foreground"
-            style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+            className="app-primary-button">
             저장
           </button>
         </div>

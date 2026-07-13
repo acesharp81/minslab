@@ -1,37 +1,55 @@
 import { Link } from "@tanstack/react-router";
+import {
+  ArrowUpRight,
+  BarChart3,
+  ClipboardList,
+  LayoutDashboard,
+  Settings2,
+} from "lucide-react";
 import { Background } from "./Background";
-import { Sparkles } from "lucide-react";
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const navLink = "px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors";
-  const active = { className: "px-3 py-1.5 rounded-lg bg-white/15" };
+  const navLink = "app-nav-link";
+  const active = { className: "app-nav-link is-active" };
+
   return (
-    <div className="relative min-h-screen">
+    <div className="inspection-app">
       <Background />
-      <header className="sticky top-0 z-30">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 pt-4">
-          <div className="glass rounded-2xl px-5 py-3 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <Link to="/" className="flex min-w-0 items-center gap-2 group cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="size-9 rounded-xl glass-strong grid place-items-center">
-                <Sparkles className="size-4 text-primary" />
-              </div>
-              <div className="leading-tight">
-                <div className="font-display font-semibold tracking-tight">재난안전정보시스템 - 현장점검 지원플랫폼</div>
-                <div className="text-[11px] text-muted-foreground -mt-0.5">Powered by Minisoft</div>
-              </div>
-            </Link>
-            <nav className="flex flex-wrap items-center gap-1 text-xs sm:text-sm">
-              <a href="/poc?project=field-inspection-platform" target="_top" className="px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors">MinsLab PoC</a>
-              <Link to="/" className={navLink} activeOptions={{ exact: true }} activeProps={active}>Dashboard</Link>
-              <Link to="/statistics" className={navLink} activeProps={active}>통계</Link>
-              <Link to="/admin" className="px-3 py-1.5 rounded-lg glass-strong hover:bg-white/15 transition-colors" activeProps={{ className: "px-3 py-1.5 rounded-lg glass-strong bg-white/15" }}>
-                관리자 메뉴
+      <header className="inspection-header">
+        <div className="inspection-header-inner">
+          <Link to="/" className="app-brand">
+            <span className="app-brand-mark">MI</span>
+            <span className="app-brand-copy">
+              <strong>재난안전정보시스템 · 현장점검 지원플랫폼</strong>
+              <small>MINSLAB / FIELD OPERATIONS POC 02</small>
+            </span>
+          </Link>
+
+          <div className="app-header-actions">
+            <nav className="app-nav" aria-label="현장점검 주요 메뉴">
+              <Link to="/" className={navLink} activeOptions={{ exact: true }} activeProps={active}>
+                <LayoutDashboard className="size-3.5" /> 업무 현황
+              </Link>
+              <Link to="/statistics" className={navLink} activeProps={active}>
+                <BarChart3 className="size-3.5" /> 점검 통계
+              </Link>
+              <Link to="/admin" className={navLink} activeProps={active}>
+                <Settings2 className="size-3.5" /> 관리자
               </Link>
             </nav>
+            <a
+              href="/poc?project=field-inspection-platform"
+              target="_top"
+              className="app-home-link"
+            >
+              <ClipboardList className="size-3.5" />
+              MinsLab PoC
+              <ArrowUpRight className="size-3.5" />
+            </a>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 md:px-8 py-8">{children}</main>
+      <main className="app-main">{children}</main>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function PhotoInput({ value, onChange, max = 4 }: { value: string[]; onCh
       ))}
       {value.length < max && (
         <button type="button" onClick={() => inputRef.current?.click()}
-          className="size-24 rounded-xl glass grid place-items-center hover:bg-white/10 transition-colors text-muted-foreground">
+          className="size-24 rounded-xl glass grid place-items-center hover:bg-muted transition-colors text-muted-foreground">
           <ImagePlus className="size-6" />
           <input ref={inputRef} type="file" accept="image/*" multiple className="hidden"
             onChange={(e) => handle(e.target.files)} />

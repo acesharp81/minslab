@@ -798,6 +798,11 @@ def _chat_completion(base_url: str, api_key: str, model: str, messages: list[dic
 
 
 def _ollama_completion(model: str, messages: list[dict[str, str]]) -> str:
+    try:
+        from analytics_store import increment_local_llm_calls
+        increment_local_llm_calls()
+    except Exception:
+        pass
     payload = json.dumps({
         "model": model,
         "messages": messages,

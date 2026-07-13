@@ -37,10 +37,10 @@ export function AssetPickerDialog({ open, onClose, onPick }: Props) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="glass-strong rounded-2xl p-6 w-full max-w-xl max-h-[80vh] flex flex-col">
+      <div className="modal-card w-full max-w-xl max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">점검 대상 검색</h3>
-          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-white/10">
+          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-muted">
             <X className="size-4" />
           </button>
         </div>
@@ -56,7 +56,7 @@ export function AssetPickerDialog({ open, onClose, onPick }: Props) {
           ) : (
             filtered.map((a) => (
               <button key={a.assetId} onClick={() => { onPick(a); onClose(); }}
-                className="w-full text-left glass rounded-xl p-3 hover:bg-white/10 transition-colors flex gap-3 items-start">
+                className="w-full text-left glass rounded-xl p-3 hover:bg-muted transition-colors flex gap-3 items-start">
                 <div className="size-9 rounded-lg glass-strong grid place-items-center shrink-0">
                   <MapPin className="size-4 text-primary" />
                 </div>

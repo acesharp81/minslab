@@ -514,6 +514,11 @@ def _build_context_prompt(prompt: str, rows: list[dict[str, Any]]) -> str:
 
 def _ollama_request(payload: dict[str, Any]) -> dict[str, Any]:
     base_url = env_first("OLLAMA_BASE_URL", default="http://127.0.0.1:11434").rstrip("/")
+    try:
+        from analytics_store import increment_local_llm_calls
+        increment_local_llm_calls()
+    except Exception:
+        pass
     req = request.Request(
         f"{base_url}/api/chat",
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),

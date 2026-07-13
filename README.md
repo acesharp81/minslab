@@ -12,6 +12,7 @@
 - Naive RAG vs Advanced RAG comparison with sequential answer generation, live progress cards, citations, and an evaluation summary card.
 - `01. AI Safe Agent` PoC for GPS-based disaster risk lookup, KMA rainfall trends, nearby shelters, and LLM safety reports.
 - `02. 현장점검플랫폼` PoC for Supabase-backed inspection tasks, assets, field results, administration, CSV export, and statistics.
+- `03. 통합 업무관리시스템` PoC for Supabase Auth, organization-scoped workflows, approval, administration, and Local/Hugging Face/OpenRouter reports.
 
 ## Project 01: AI Safe Agent PoC
 
@@ -46,6 +47,18 @@ The second PoC imports the Lovable-based `acesharp81/ndmsinsptest` application a
 - Public PoC mode currently keeps anonymous CRUD and the administrator menu enabled.
 - Before production use, add Supabase Auth and user/organization/role-based RLS.
 - Source and build notes: `PoC/02-field-inspection-platform/README.md`
+
+## PoC 03: Integrated Work Management System
+
+The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by the existing ASGI process. It adds isolated KMS tables to the existing MinsLab Supabase project, preserving Supabase Auth and RLS, while the original fixed Lovable AI Gateway call is replaced with selectable Local LLM, Hugging Face, and OpenRouter providers.
+
+- Archive entry: `/poc?project=mois-kms`
+- Direct application: `/poc/mois-kms/`
+- User and workflow data: Supabase Auth, `profiles`, `user_roles`, `divisions`, `teams`, `tasks`
+- Shared database: existing `SUPABASE2_URL` with KMS tables added by `20260710000000_minslab_kms.sql`
+- AI options: model, temperature, max output tokens, and editable system prompt
+- No additional Node server or public port
+- Source and security notes: `PoC/03-mois-kms/README.md`
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab
 
@@ -111,6 +124,7 @@ Optional:
 - `KAKAO_REST_API_KEY` or `VWORLD_API_KEY` for AI Safe Agent legal-dong reverse geocoding
 - `DISASTER_KB_PATH` to pin a specific AI Safe Agent knowledge-base PKL
 - `VITE_FIELD_INSPECTION_SUPABASE_URL` and `VITE_FIELD_INSPECTION_SUPABASE_PUBLISHABLE_KEY` for the public field-inspection client build
+- `SUPABASE2_PUBLISHABLE_KEY` for the browser-safe PoC 03 runtime configuration
 
 ## Run Locally
 
@@ -129,6 +143,26 @@ Chat history is scoped by device while there is no login system. The browser sto
 If Supabase `chat_history` exists, history is stored there. If the table is missing or unavailable, the backend falls back to `data/chat_history.json`, which is ignored by git.
 
 The API already accepts optional `account_id` and `scope_type` fields so a future login flow can switch history ownership from device-scoped to account-scoped without changing the chat UI contract.
+
+## Site Analytics and Administration
+
+Page views are stored in the server-local `data/analytics.sqlite3` database through Python's built-in SQLite driver; no separate database server is required. Daily rollups remain available when raw IP visit events pass the configured retention period.
+
+Configure the administrator only in the untracked `.env` file:
+
+```bash
+MINSLAB_ADMIN_PASSWORD=CHANGE_THIS_ADMIN_PASSWORD
+MINSLAB_ADMIN_SESSION_SECRET=YOUR_RANDOM_SESSION_SECRET
+MINSLAB_ANALYTICS_RETENTION_DAYS=90
+```
+
+When `MINSLAB_ADMIN_PASSWORD` is exactly `MULTI_AGENT_LIVE_ENABLED_key`, the administrator uses the value stored under that environment variable. Optional outer quotes in `.env` are removed and are not part of the password entered in the browser.
+
+Open `/admin` to inspect today's IP addresses, visited pages, referrers, and user agents. The password is never included in browser code. Authentication uses a signed, expiring `HttpOnly`, `Secure`, `SameSite=Strict` cookie. `Total` means cumulative page views, while `Today` uses the `Asia/Seoul` calendar date.
+
+Total, Today, and Visitors cards draw a subtle seven-day SQLite trend sparkline behind the current number.
+The status popover distinguishes web-service uptime (the current Uvicorn process) from physical-server uptime (Linux `/proc/uptime`).
+`Local LLM calls` is a persistent SQLite counter of actual Ollama generation attempts; model-list and health checks are excluded, and counting starts when this feature is deployed.
 
 ## Supabase Tables
 
@@ -154,6 +188,11 @@ Metadata stores strategy, rank, token count, embedding provider, and run informa
 Important local API routes:
 
 - `GET /api/health`: service health summary
+- `POST /api/analytics/visit`: record a public page view
+- `POST /api/admin/login`: create an administrator session
+- `POST /api/admin/logout`: clear an administrator session
+- `GET /api/admin/session`: inspect the current administrator session
+- `GET /api/admin/analytics`: list protected visit details and rollups
 - `GET /api/models`: Ollama model list
 - `POST /api/chat`: streaming chat response
 - `GET /api/history`: load chat history
@@ -171,6 +210,10 @@ Important local API routes:
 - `POST /api/poc/ai-safe-agent/spatial`: return nearby risk/shelter details without LLM execution
 - `POST /api/poc/ai-safe-agent/rain`: return KMA hourly rainfall trend data
 - `POST /api/poc/ai-safe-agent/analyze`: run rainfall, spatial lookup, and AI report generation
+- `GET /api/poc/mois-kms/models`: list Local, Hugging Face, and OpenRouter report models
+- `POST /api/poc/mois-kms/report`: generate an authenticated AI report
+- `/api/poc/mois-kms/auth/*`: resolve login, signup metadata, ID checks, and signup
+- `POST /api/poc/mois-kms/admin/delete-user`: delete a user through the protected service-role boundary
 
 Example comparison payload:
 

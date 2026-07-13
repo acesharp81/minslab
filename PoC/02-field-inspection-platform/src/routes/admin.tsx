@@ -19,20 +19,23 @@ function Admin() {
   const [tab, setTab] = useState<"tasks" | "assets">("tasks");
   return (
     <Shell>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="size-10 rounded-xl glass-strong grid place-items-center">
-          <ShieldCheck className="size-5 text-primary" />
+      <div className="app-page-heading">
+        <div className="app-page-heading-icon">
+          <ShieldCheck className="size-5" />
         </div>
         <div>
-          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Admin</div>
-          <h1 className="text-2xl font-semibold">관리자 메뉴</h1>
+          <div className="section-kicker">Administration</div>
+          <h1>관리자 메뉴</h1>
+          <p>점검 업무의 입력 서식과 현장 점검 대상을 관리합니다.</p>
         </div>
       </div>
 
-      <div className="glass-strong rounded-2xl p-1.5 inline-flex gap-1 mb-5">
+      <div className="page-tabs">
         <TabBtn active={tab === "tasks"} onClick={() => setTab("tasks")} icon={<ClipboardList className="size-4" />}>점검 업무</TabBtn>
         <TabBtn active={tab === "assets"} onClick={() => setTab("assets")} icon={<MapPin className="size-4" />}>물건</TabBtn>
       </div>
+
+      <div className="admin-notice"><ShieldCheck className="size-4" /><span><b>공개 PoC 운영 중</b> · 현재 모든 방문자가 관리자 기능을 사용할 수 있습니다. 실제 개인정보나 민감한 시설정보를 입력하지 마세요.</span></div>
 
       {tab === "tasks" ? <TaskAdmin /> : <AssetAdmin />}
     </Shell>
@@ -42,7 +45,7 @@ function Admin() {
 function TabBtn({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: ReactNode; children: ReactNode }) {
   return (
     <button onClick={onClick}
-      className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors ${active ? "bg-white/15 text-foreground" : "text-muted-foreground hover:bg-white/5"}`}>
+      className={"page-tab" + (active ? " is-active" : "")}>
       {icon}{children}
     </button>
   );
@@ -57,12 +60,11 @@ function TaskAdmin() {
   const [delId, setDelId] = useState<string | null>(null);
 
   return (
-    <section className="glass-strong rounded-2xl p-5 md:p-6">
-      <div className="flex items-center justify-between mb-4">
+    <section className="admin-section">
+      <div className="admin-section-head">
         <h2 className="font-semibold">점검 업무 목록</h2>
         <button onClick={() => setCreating(true)}
-          className="rounded-xl px-4 py-2 text-sm font-medium text-primary-foreground flex items-center gap-1.5"
-          style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+          className="app-primary-button">
           <Plus className="size-4" /> 업무 추가
         </button>
       </div>
@@ -70,7 +72,7 @@ function TaskAdmin() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-white/10">
+            <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
               <th className="px-3 py-3">이름</th>
               <th className="px-3 py-3">목적</th>
               <th className="px-3 py-3">주관부서</th>
@@ -83,14 +85,14 @@ function TaskAdmin() {
             {tasks.length === 0 ? (
               <tr><td colSpan={6} className="px-3 py-10 text-center text-muted-foreground">등록된 업무가 없습니다.</td></tr>
             ) : tasks.map((t) => (
-              <tr key={t.taskId} className="border-b border-white/5 last:border-0 hover:bg-white/5">
+              <tr key={t.taskId} className="border-b border-border last:border-0 hover:bg-muted">
                 <td className="px-3 py-3 font-medium">{t.taskName}</td>
                 <td className="px-3 py-3 text-muted-foreground truncate max-w-xs">{t.purpose || "—"}</td>
                 <td className="px-3 py-3">{t.department || "—"}</td>
                 <td className="px-3 py-3">{t.manager || "—"}</td>
                 <td className="px-3 py-3 text-xs text-muted-foreground">{t.customFields.length}개 항목</td>
                 <td className="px-3 py-3 text-right">
-                  <button onClick={() => setEditing(t)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-white/10"><Pencil className="size-4" /></button>
+                  <button onClick={() => setEditing(t)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-muted"><Pencil className="size-4" /></button>
                   <button onClick={() => setDelId(t.taskId)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="size-4" /></button>
                 </td>
               </tr>
@@ -182,7 +184,7 @@ function TaskEditorDialog({ initial, onClose }: { initial: Task | null; onClose:
 
       <div className="pt-2">
         <button type="button" onClick={() => setShowSchema((s) => !s)}
-          className="w-full glass rounded-xl px-4 py-2.5 text-sm hover:bg-white/10 flex items-center justify-between">
+          className="w-full glass rounded-xl px-4 py-2.5 text-sm hover:bg-muted flex items-center justify-between">
           <span><span className="text-primary font-medium">입력 서식 수정</span> · 점검 결과 입력 폼에 노출됩니다</span>
           <span className="text-xs text-muted-foreground">{customFields.length}개 항목 {showSchema ? "▲" : "▼"}</span>
         </button>
@@ -215,9 +217,9 @@ function TaskEditorDialog({ initial, onClose }: { initial: Task | null; onClose:
                   </div>
                   <div className="flex gap-1">
                     <button type="button" onClick={() => move(f.id, -1)} disabled={idx === 0}
-                      className="size-8 grid place-items-center rounded-lg hover:bg-white/10 disabled:opacity-30"><ArrowUp className="size-3.5" /></button>
+                      className="size-8 grid place-items-center rounded-lg hover:bg-muted disabled:opacity-30"><ArrowUp className="size-3.5" /></button>
                     <button type="button" onClick={() => move(f.id, 1)} disabled={idx === customFields.length - 1}
-                      className="size-8 grid place-items-center rounded-lg hover:bg-white/10 disabled:opacity-30"><ArrowDown className="size-3.5" /></button>
+                      className="size-8 grid place-items-center rounded-lg hover:bg-muted disabled:opacity-30"><ArrowDown className="size-3.5" /></button>
                     <button type="button" onClick={() => removeField(f.id)}
                       className="size-8 grid place-items-center rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="size-3.5" /></button>
                   </div>
@@ -225,7 +227,7 @@ function TaskEditorDialog({ initial, onClose }: { initial: Task | null; onClose:
               ))}
             </div>
             <button type="button" onClick={addField}
-              className="w-full glass rounded-xl py-2.5 text-sm hover:bg-white/10 flex items-center justify-center gap-1.5 text-primary">
+              className="w-full glass rounded-xl py-2.5 text-sm hover:bg-muted flex items-center justify-center gap-1.5 text-primary">
               <Plus className="size-4" /> 항목 추가
             </button>
           </div>
@@ -244,12 +246,11 @@ function AssetAdmin() {
   const [delId, setDelId] = useState<string | null>(null);
 
   return (
-    <section className="glass-strong rounded-2xl p-5 md:p-6">
-      <div className="flex items-center justify-between mb-4">
+    <section className="admin-section">
+      <div className="admin-section-head">
         <h2 className="font-semibold">물건 목록</h2>
         <button onClick={() => setCreating(true)}
-          className="rounded-xl px-4 py-2 text-sm font-medium text-primary-foreground flex items-center gap-1.5"
-          style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+          className="app-primary-button">
           <Plus className="size-4" /> 물건 등록
         </button>
       </div>
@@ -257,7 +258,7 @@ function AssetAdmin() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-white/10">
+            <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
               <th className="px-3 py-3">이름</th>
               <th className="px-3 py-3">분류</th>
               <th className="px-3 py-3">주소</th>
@@ -269,13 +270,13 @@ function AssetAdmin() {
             {assets.length === 0 ? (
               <tr><td colSpan={5} className="px-3 py-10 text-center text-muted-foreground">등록된 물건이 없습니다.</td></tr>
             ) : assets.map((a) => (
-              <tr key={a.assetId} className="border-b border-white/5 last:border-0 hover:bg-white/5">
+              <tr key={a.assetId} className="border-b border-border last:border-0 hover:bg-muted">
                 <td className="px-3 py-3 font-medium">{a.name}</td>
                 <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.category}</span></td>
                 <td className="px-3 py-3 text-muted-foreground truncate max-w-xs">{a.address} {a.addressDetail}</td>
                 <td className="px-3 py-3">{a.sido}</td>
                 <td className="px-3 py-3 text-right">
-                  <button onClick={() => setEditing(a)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-white/10"><Pencil className="size-4" /></button>
+                  <button onClick={() => setEditing(a)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-muted"><Pencil className="size-4" /></button>
                   <button onClick={() => setDelId(a.assetId)} className="size-8 inline-grid place-items-center rounded-lg hover:bg-destructive/20 text-destructive"><Trash2 className="size-4" /></button>
                 </td>
               </tr>
@@ -311,13 +312,12 @@ function DialogFrame({
       <div className={`glass-strong rounded-2xl p-6 w-full ${wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-white/10"><XIcon className="size-4" /></button>
+          <button onClick={onClose} className="size-8 grid place-items-center rounded-lg hover:bg-muted"><XIcon className="size-4" /></button>
         </div>
         <div className="space-y-4">{children}</div>
-        <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-white/10">
-          <button onClick={onClose} className="glass rounded-xl px-4 py-2 text-sm hover:bg-white/10">취소</button>
-          <button onClick={onSubmit} className="rounded-xl px-5 py-2 text-sm font-medium text-primary-foreground"
-            style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
+        <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-border">
+          <button onClick={onClose} className="glass rounded-xl px-4 py-2 text-sm hover:bg-muted">취소</button>
+          <button onClick={onSubmit} className="app-primary-button">
             저장
           </button>
         </div>

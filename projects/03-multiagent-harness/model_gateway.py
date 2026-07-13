@@ -354,6 +354,11 @@ class ModelGateway:
         settings: dict[str, Any],
     ) -> str:
         if provider == "ollama":
+            try:
+                from analytics_store import increment_local_llm_calls
+                increment_local_llm_calls()
+            except Exception:
+                pass
             base = _env("OLLAMA_BASE_URL", default=DEFAULT_OLLAMA_BASE_URL).rstrip("/")
             result, _ = _request_json(
                 "POST",

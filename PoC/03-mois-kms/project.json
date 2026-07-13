@@ -1,0 +1,24 @@
+{
+  "id": "mois-kms",
+  "order": 3,
+  "display_no": "03",
+  "title": "통합 업무관리시스템",
+  "date": "Knowledge Management / Supabase / LLM",
+  "summary": "조직·사용자·월간 업무와 결재 흐름을 관리하고 세 가지 LLM 제공자로 보고서 초안을 생성하는 업무관리 PoC입니다.",
+  "description": "Lovable로 제작한 acesharp81/moiskms를 MinsLab의 독립 React SPA로 이관했습니다. Supabase Auth와 조직별 RLS를 유지하고, 기존 Lovable AI Gateway 고정 호출은 서버 로컬 Ollama, Hugging Face, OpenRouter 선택 방식으로 교체했습니다.",
+  "tags": ["PoC", "KMS", "React", "Supabase Auth", "Multi LLM"],
+  "features": [
+    ["조직형 사용자 관리", "가입 신청, 관리자 승인, 부서·팀·직급, 관리자 역할을 Supabase Auth와 RLS로 관리합니다."],
+    ["월간 업무와 결재", "캘린더에서 업무를 등록하고 팀장 검토와 과장 승인 흐름을 처리합니다."],
+    ["AI 보고서", "업무·주간·월간 보고서를 Local LLM, Hugging Face, OpenRouter 중 선택해 생성합니다."],
+    ["모델별 생성 옵션", "온도, 최대 출력 토큰과 시스템 프롬프트를 보고서 화면에서 조정하고 브라우저에 저장합니다."]
+  ],
+  "entry_file": "backend.py",
+  "usage": [
+    "PoC 메뉴에서 03. 통합 업무관리시스템을 선택하고 기존 Supabase 계정으로 로그인합니다.",
+    "업무 현황에서 월을 선택하고 업무를 저장·등록하거나 결재 단계에 따라 검토합니다.",
+    "관리자는 사용자 승인, 조직, 팀, 업무 분류와 보고서 템플릿을 관리합니다.",
+    "보고서 화면에서 LLM 제공자와 모델, 생성 옵션, 시스템 프롬프트를 선택합니다."
+  ],
+  "note": "기존 MinsLab Supabase에 KMS 테이블과 RLS를 추가해 사용합니다. publishable key만 런타임에 브라우저로 전달하고 기존 SUPABASE2 service-role과 LLM API 키는 Python 서버에만 유지합니다."
+}

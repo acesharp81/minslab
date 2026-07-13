@@ -1,157 +1,206 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Shell } from "@/components/Shell";
 import { useStore, taskStatusCounts, summarizeResult, type InspectionStatus } from "@/lib/store";
-import { ArrowLeft, Download, Plus, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ClipboardCheck,
+  Download,
+  Plus,
+  Search,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/tasks/$taskId/")({ component: TaskResults });
 
-const STATUS_TONE: Record<InspectionStatus, string> = {
-  "등록": "bg-white/10 text-muted-foreground",
-  "점검중": "bg-[color:oklch(0.78_0.18_200/.2)] text-[color:oklch(0.85_0.15_200)]",
-  "점검완료": "bg-primary/20 text-primary",
-};
+function statusClass(status: InspectionStatus) {
+  return status === "점검완료"
+    ? "status-pill is-complete"
+    : status === "점검중"
+      ? "status-pill is-progress"
+      : "status-pill";
+}
 
 function TaskResults() {
   const { taskId } = Route.useParams();
   const navigate = useNavigate();
-  const task = useStore((s) => s.tasks.find((t) => t.taskId === taskId));
-  const results = useStore((s) => s.results.filter((r) => r.taskId === taskId));
+  const task = useStore((s) => s.tasks.find((item) => item.taskId === taskId));
+  const results = useStore((s) => s.results.filter((result) => result.taskId === taskId));
   const assets = useStore((s) => s.assets);
   const counts = useStore((s) => taskStatusCounts(taskId, s));
-  const [q, setQ] = useState("");
+  const [query, setQuery] = useState("");
   const [toast, setToast] = useState("");
 
-  const assetMap = useMemo(() => Object.fromEntries(assets.map((a) => [a.assetId, a])), [assets]);
+  const assetMap = useMemo(
+    () => Object.fromEntries(assets.map((asset) => [asset.assetId, asset])),
+    [assets],
+  );
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return results;
-    const n = q.toLowerCase();
-    return results.filter((r) => {
-      const a = assetMap[r.assetId];
-      const summary = summarizeResult(r, task).toLowerCase();
+    if (!query.trim()) return results;
+    const normalized = query.toLowerCase();
+    return results.filter((result) => {
+      const asset = assetMap[result.assetId];
+      const summary = summarizeResult(result, task).toLowerCase();
       return (
-        a?.name.toLowerCase().includes(n) ||
-        a?.address.toLowerCase().includes(n) ||
-        a?.sido.toLowerCase().includes(n) ||
-        r.inspector.toLowerCase().includes(n) ||
-        summary.includes(n) ||
-        String(r.year).includes(n)
+        asset?.name.toLowerCase().includes(normalized) ||
+        asset?.address.toLowerCase().includes(normalized) ||
+        asset?.sido.toLowerCase().includes(normalized) ||
+        result.inspector.toLowerCase().includes(normalized) ||
+        summary.includes(normalized) ||
+        String(result.year).includes(normalized)
       );
     });
-  }, [results, q, assetMap, task]);
+  }, [results, query, assetMap, task]);
 
   if (!task) {
     return (
       <Shell>
-        <div className="glass rounded-2xl p-10 text-center">
-          <p className="text-muted-foreground">Task not found.</p>
-          <Link to="/" className="text-primary mt-3 inline-block">← Dashboard</Link>
+        <div className="empty-state">
+          <ClipboardCheck className="size-7" />
+          <strong>점검 업무를 찾을 수 없습니다.</strong>
+          <Link to="/" className="app-secondary-button mt-2">업무 현황으로 이동</Link>
         </div>
       </Shell>
     );
   }
 
   const exportCsv = () => {
-    const fields = task.customFields;
-    const header = ["점검연", "점검자", "점검일시", "점검대상", "분류", "주소", "관할", ...fields.map((f) => f.name), "상태", "확인자"];
-    const rows = filtered.map((r) => {
-      const a = assetMap[r.assetId];
-      const custom = fields.map((f) => {
-        const v = r.customValues?.[f.id];
-        if (Array.isArray(v)) return `${v.length}장`;
-        return v ?? "";
+    const header = [
+      "점검연", "점검자", "점검일시", "점검대상", "분류", "주소", "관할",
+      ...task.customFields.map((field) => field.name), "상태", "확인자",
+    ];
+    const rows = filtered.map((result) => {
+      const asset = assetMap[result.assetId];
+      const custom = task.customFields.map((field) => {
+        const value = result.customValues?.[field.id];
+        if (Array.isArray(value)) return value.length + "장";
+        return value ?? "";
       });
-      return [r.year, r.inspector, r.inspectedAt, a?.name ?? "", a?.category ?? "", `${a?.address ?? ""} ${a?.addressDetail ?? ""}`.trim(), a?.sido ?? "", ...custom, r.status, r.confirmer]
-        .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",");
+      return [
+        result.year,
+        result.inspector,
+        result.inspectedAt,
+        asset?.name ?? "",
+        asset?.category ?? "",
+        ((asset?.address ?? "") + " " + (asset?.addressDetail ?? "")).trim(),
+        asset?.sido ?? "",
+        ...custom,
+        result.status,
+        result.confirmer,
+      ].map((value) => '"' + String(value ?? "").replace(/"/g, '""') + '"').join(",");
     });
+
     const csv = [header.join(","), ...rows].join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `${task.taskName}.csv`; a.click();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = task.taskName + ".csv";
+    anchor.click();
     URL.revokeObjectURL(url);
-    setToast("Exported to CSV");
+    setToast("CSV 다운로드 완료");
     setTimeout(() => setToast(""), 2000);
   };
 
   return (
     <Shell>
-      <div className="mb-6 flex items-center gap-3">
-        <Link to="/" className="size-10 grid place-items-center glass rounded-xl hover:bg-white/10">
-          <ArrowLeft className="size-4" />
+      <div className="app-page-heading">
+        <Link to="/" className="app-page-heading-icon" aria-label="업무 현황으로 이동">
+          <ArrowLeft className="size-5" />
         </Link>
-        <div className="flex-1">
-          <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Task</div>
-          <h1 className="text-2xl md:text-3xl font-semibold">{task.taskName}</h1>
-          {(task.department || task.manager) && (
-            <p className="text-xs text-muted-foreground mt-1">{task.department}{task.manager ? ` · ${task.manager}` : ""}</p>
-          )}
+        <div>
+          <div className="section-kicker">Inspection task</div>
+          <h1>{task.taskName}</h1>
+          <p>
+            {task.department || "담당부서 미지정"}
+            {task.manager ? " · " + task.manager : ""}
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-        <Card label="총 등록" value={counts.total} />
-        <Card label="등록" value={counts.등록} />
-        <Card label="점검중" value={counts.점검중} tone="accent" />
-        <Card label="점검완료" value={counts.점검완료} tone="primary" />
+      <div className="metric-grid">
+        <MetricCard label="전체 기록" value={counts.total} />
+        <MetricCard label="등록" value={counts.등록} />
+        <MetricCard label="점검중" value={counts.점검중} tone="progress" />
+        <MetricCard label="점검완료" value={counts.점검완료} tone="complete" />
       </div>
 
-      <div className="glass-strong rounded-2xl p-4 md:p-5 flex flex-col md:flex-row gap-3 mb-5">
-        <div className="flex-1 flex items-center gap-2 glass rounded-xl px-4 py-2.5">
-          <Search className="size-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)}
-            placeholder="결과 검색 (이름, 주소, 관할, 항목...)"
-            className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/60" />
+      <div className="list-toolbar">
+        <div className="search-field">
+          <Search className="size-4" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="대상, 주소, 관할, 점검자와 항목 검색"
+          />
         </div>
         <div className="flex gap-2">
-          <button onClick={exportCsv}
-            className="glass rounded-xl px-4 py-2.5 flex items-center gap-2 hover:bg-white/10 text-sm">
+          <button onClick={exportCsv} className="app-secondary-button">
             <Download className="size-4" />
-            Excel 다운로드
+            CSV 다운로드
           </button>
-          <button onClick={() => navigate({ to: "/tasks/$taskId/new", params: { taskId } })}
-            className="rounded-xl px-4 py-2.5 flex items-center gap-2 text-sm font-medium text-primary-foreground"
-            style={{ background: "linear-gradient(135deg, oklch(0.72 0.2 290), oklch(0.78 0.18 200))" }}>
-            <Plus className="size-4" /> 추가
+          <button
+            onClick={() => navigate({ to: "/tasks/$taskId/new", params: { taskId } })}
+            className="app-primary-button"
+          >
+            <Plus className="size-4" />
+            점검 추가
           </button>
         </div>
       </div>
 
-      <div className="glass rounded-2xl overflow-hidden">
+      <div className="data-table-card">
+        <div className="table-title">
+          <ClipboardCheck className="size-4" />
+          점검 기록
+          <span>{filtered.length}건</span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-white/10">
-                <th className="px-4 py-3 font-medium">연도</th>
-                <th className="px-4 py-3 font-medium">점검 대상</th>
-                <th className="px-4 py-3 font-medium">관할</th>
-                <th className="px-4 py-3 font-medium">점검자</th>
-                <th className="px-4 py-3 font-medium">점검일</th>
-                <th className="px-4 py-3 font-medium">항목</th>
-                <th className="px-4 py-3 font-medium">상태</th>
+              <tr>
+                <th className="px-4 py-3 text-left">연도</th>
+                <th className="px-4 py-3 text-left">점검 대상</th>
+                <th className="px-4 py-3 text-left">관할</th>
+                <th className="px-4 py-3 text-left">점검자</th>
+                <th className="px-4 py-3 text-left">점검일</th>
+                <th className="px-4 py-3 text-left">주요 항목</th>
+                <th className="px-4 py-3 text-left">상태</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">결과가 없습니다.</td></tr>
-              ) : filtered.map((r) => {
-                const a = assetMap[r.assetId];
+                <tr>
+                  <td colSpan={7} className="px-4 py-14 text-center text-muted-foreground">
+                    검색 조건에 맞는 점검 기록이 없습니다.
+                  </td>
+                </tr>
+              ) : filtered.map((result) => {
+                const asset = assetMap[result.assetId];
                 return (
-                  <tr key={r.resultId}
-                    onClick={() => navigate({ to: "/tasks/$taskId/$resultId", params: { taskId, resultId: r.resultId } })}
-                    className="border-b border-white/5 last:border-0 hover:bg-white/5 cursor-pointer transition-colors">
-                    <td className="px-4 py-3">{r.year}</td>
-                    <td className="px-4 py-3 truncate max-w-[12rem]">{a?.name ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{a?.sido ?? "—"}</td>
-                    <td className="px-4 py-3">{r.inspector || "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{r.inspectedAt}</td>
-                    <td className="px-4 py-3 truncate max-w-xs">{summarizeResult(r, task) || "—"}</td>
+                  <tr
+                    key={result.resultId}
+                    onClick={() =>
+                      navigate({
+                        to: "/tasks/$taskId/$resultId",
+                        params: { taskId, resultId: result.resultId },
+                      })
+                    }
+                    className="cursor-pointer transition-colors"
+                  >
+                    <td className="px-4 py-3">{result.year}</td>
+                    <td className="px-4 py-3 max-w-[12rem] truncate font-bold">
+                      {asset?.name ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{asset?.sido ?? "—"}</td>
+                    <td className="px-4 py-3">{result.inspector || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{result.inspectedAt}</td>
+                    <td className="px-4 py-3 max-w-xs truncate">
+                      {summarizeResult(result, task) || "—"}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${STATUS_TONE[r.status]}`}>
-                        <span className="size-1.5 rounded-full bg-current" />
-                        {r.status}
-                      </span>
+                      <span className={statusClass(result.status)}>{result.status}</span>
                     </td>
                   </tr>
                 );
@@ -162,7 +211,8 @@ function TaskResults() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 glass-strong rounded-xl px-4 py-2.5 text-sm">
+        <div className="save-toast">
+          <CheckCircle2 className="size-4" />
           {toast}
         </div>
       )}
@@ -170,12 +220,19 @@ function TaskResults() {
   );
 }
 
-function Card({ label, value, tone }: { label: string; value: number; tone?: "primary" | "accent" }) {
-  const color = tone === "primary" ? "text-primary" : tone === "accent" ? "text-[color:oklch(0.85_0.15_200)]" : "text-foreground";
+function MetricCard({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "progress" | "complete";
+}) {
   return (
-    <div className="glass rounded-xl p-4">
-      <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={`text-2xl font-semibold mt-1 ${color}`}>{value}</div>
+    <div className={"metric-card" + (tone === "progress" ? " is-progress" : tone === "complete" ? " is-complete" : "")}>
+      <span>{label}</span>
+      <b>{value}</b>
     </div>
   );
 }
