@@ -12,7 +12,7 @@ import re
 import time
 import uuid
 import zipfile
-from typing import Any
+from typing import Any, Callable
 from urllib import error, parse, request
 from xml.etree import ElementTree
 
@@ -537,7 +537,13 @@ def _ollama_request(payload: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError(f"Ollama 연결 실패 · {exc.reason}") from exc
 
 
-def _call_openrouter(model: str, prompt: str, rows: list[dict[str, Any]], temperature: float = 0.2) -> str:
+def _call_openrouter(
+    model: str,
+    prompt: str,
+    rows: list[dict[str, Any]],
+    temperature: float = 0.2,
+    token_callback: Callable[[str], None] | None = None,
+) -> str:
     if not rows:
         return "검색된 청크가 없어 답변 생성을 생략했습니다."
     payload = {
@@ -548,6 +554,7 @@ def _call_openrouter(model: str, prompt: str, rows: list[dict[str, Any]], temper
         ],
         "temperature": temperature,
         "max_tokens": 700,
+        "stream": bool(token_callback),
     }
     req = request.Request(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -559,7 +566,26 @@ def _call_openrouter(model: str, prompt: str, rows: list[dict[str, Any]], temper
         method="POST",
     )
     try:
-        with request.urlopen(req, timeout=60) as response:
+        with request.urlopen(req, timeout=120) as response:
+            if token_callback:
+                parts: list[str] = []
+                for raw_line in response:
+                    line = raw_line.decode("utf-8", errors="replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if not data or data == "[DONE]":
+                        continue
+                    event = json.loads(data)
+                    choices = event.get("choices") or []
+                    content = choices[0].get("delta", {}).get("content", "") if choices else ""
+                    if content:
+                        parts.append(content)
+                        token_callback(content)
+                answer = "".join(parts).strip()
+                if not answer:
+                    raise RuntimeError("OpenRouter 스트리밍 응답 텍스트가 비어 있습니다.")
+                return answer
             body = json.loads(response.read().decode("utf-8"))
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
@@ -577,18 +603,56 @@ def _call_openrouter(model: str, prompt: str, rows: list[dict[str, Any]], temper
     return answer
 
 
-def _call_ollama(model: str, prompt: str, rows: list[dict[str, Any]], temperature: float = 0.2, top_k: int = 40) -> str:
+def _call_ollama(
+    model: str,
+    prompt: str,
+    rows: list[dict[str, Any]],
+    temperature: float = 0.2,
+    top_k: int = 40,
+    token_callback: Callable[[str], None] | None = None,
+) -> str:
     if not rows:
         return "검색된 청크가 없어 답변 생성을 생략했습니다."
-    body = _ollama_request({
+    payload = {
         "model": model,
-        "stream": False,
+        "stream": bool(token_callback),
         "messages": [
             {"role": "system", "content": "항상 자연스러운 한국어로만 답변하세요. 검색 문맥에 없는 내용은 추측하지 마세요."},
             {"role": "user", "content": _build_context_prompt(prompt, rows)},
         ],
         "options": {"temperature": temperature, "num_predict": 700, "top_p": 0.9, "top_k": top_k},
-    })
+    }
+    if token_callback:
+        base_url = env_first("OLLAMA_BASE_URL", default="http://127.0.0.1:11434").rstrip("/")
+        req = request.Request(
+            f"{base_url}/api/chat",
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        parts: list[str] = []
+        try:
+            with request.urlopen(req, timeout=120) as response:
+                for raw_line in response:
+                    if not raw_line.strip():
+                        continue
+                    event = json.loads(raw_line.decode("utf-8"))
+                    content = event.get("message", {}).get("content", "")
+                    if content:
+                        parts.append(content)
+                        token_callback(content)
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Ollama 호출 실패 · {exc.code} {detail}") from exc
+        except TimeoutError as exc:
+            raise RuntimeError("Ollama 응답 시간이 초과되었습니다.") from exc
+        except error.URLError as exc:
+            raise RuntimeError(f"Ollama 연결 실패 · {exc.reason}") from exc
+        answer = "".join(parts).strip()
+        if not answer:
+            raise RuntimeError("Ollama 스트리밍 응답 텍스트가 비어 있습니다.")
+        return answer
+    body = _ollama_request(payload)
     answer = body.get("message", {}).get("content", "").strip()
     if not answer:
         raise RuntimeError("Ollama 응답 텍스트가 비어 있습니다.")
@@ -609,11 +673,18 @@ def _normalize_chat_model(model: str | None) -> tuple[str, str]:
     return "openrouter", value or DEFAULT_CHAT_MODEL
 
 
-def _call_selected_model(model: str, prompt: str, rows: list[dict[str, Any]], temperature: float = 0.2, top_k: int = 40) -> str:
+def _call_selected_model(
+    model: str,
+    prompt: str,
+    rows: list[dict[str, Any]],
+    temperature: float = 0.2,
+    top_k: int = 40,
+    token_callback: Callable[[str], None] | None = None,
+) -> str:
     provider, model_name = _normalize_chat_model(model)
     if provider == "ollama":
-        return _call_ollama(model_name, prompt, rows, temperature=temperature, top_k=top_k)
-    return _call_openrouter(model_name, prompt, rows, temperature=temperature)
+        return _call_ollama(model_name, prompt, rows, temperature=temperature, top_k=top_k, token_callback=token_callback)
+    return _call_openrouter(model_name, prompt, rows, temperature=temperature, token_callback=token_callback)
 
 
 def _clamp_float(value: Any, default: float, minimum: float, maximum: float) -> float:
@@ -721,6 +792,7 @@ def compare_tables(
     reranking: bool = False,
     rerank_model: str | None = None,
     rag_mode: str = "naive",
+    event_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     prompt = (prompt or "").strip()
     if not prompt:
@@ -740,6 +812,8 @@ def compare_tables(
         slot = CHUCKING_TABLES.index(table) + 1
         panel_started = time.perf_counter()
         try:
+            if event_callback:
+                event_callback({"type": "stage", "stage": "search", "message": "Supabase에서 유사 청크를 검색하고 있습니다."})
             rows = _request_rows(table)
             if not rows:
                 panels.append({
@@ -793,6 +867,8 @@ def compare_tables(
             rerank_used = reranking or advanced
             rerank_warning = None
             if rerank_used:
+                if event_callback:
+                    event_callback({"type": "stage", "stage": "rerank", "message": "검색 후보를 재정렬하고 있습니다."})
                 try:
                     top = _call_cohere_rerank(prompt, candidate_pool, top_k, rerank_model_value)
                 except RuntimeError as exc:
@@ -831,7 +907,17 @@ def compare_tables(
                     result["rerank_score"] = round(float(item["rerank_score"]), 4)
                 result_items.append(result)
             answer_rows = _rows_for_answer(prompt, top, rag_mode)
-            answer_text = _call_selected_model(model, prompt, answer_rows, temperature=temperature, top_k=top_k)
+            if event_callback:
+                event_callback({"type": "context", "stage": "context", "message": f"상위 {len(answer_rows)}개 청크로 답변 문맥을 구성했습니다.", "results": result_items, "summary": summary, "query_variants": query_variants})
+                event_callback({"type": "stage", "stage": "generate", "message": "LLM 답변 생성을 시작합니다."})
+            answer_text = _call_selected_model(
+                model,
+                prompt,
+                answer_rows,
+                temperature=temperature,
+                top_k=top_k,
+                token_callback=(lambda content: event_callback({"type": "token", "content": content})) if event_callback else None,
+            )
             elapsed_ms = round((time.perf_counter() - panel_started) * 1000)
             cited_chunks = sorted({int(match) for match in re.findall(r"\[검색 조각 (\d+)\]", answer_text)})
             panels.append({

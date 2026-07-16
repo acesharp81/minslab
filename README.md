@@ -154,11 +154,14 @@ Configure the administrator only in the untracked `.env` file:
 MINSLAB_ADMIN_PASSWORD=CHANGE_THIS_ADMIN_PASSWORD
 MINSLAB_ADMIN_SESSION_SECRET=YOUR_RANDOM_SESSION_SECRET
 MINSLAB_ANALYTICS_RETENTION_DAYS=90
+MINSLAB_SYSTEM_METRICS_INTERVAL_SECONDS=300
 ```
 
 When `MINSLAB_ADMIN_PASSWORD` is exactly `MULTI_AGENT_LIVE_ENABLED_key`, the administrator uses the value stored under that environment variable. Optional outer quotes in `.env` are removed and are not part of the password entered in the browser.
 
 Open `/admin` to inspect today's IP addresses, visited pages, referrers, and user agents. The password is never included in browser code. Authentication uses a signed, expiring `HttpOnly`, `Secure`, `SameSite=Strict` cookie. `Total` means cumulative page views, while `Today` uses the `Asia/Seoul` calendar date.
+
+The admin dashboard stores Linux host CPU and memory usage in the same SQLite database every five minutes and graphs the most recent 72 hours. Samples older than seven days are removed automatically; the collection interval can be changed with `MINSLAB_SYSTEM_METRICS_INTERVAL_SECONDS` (60–3600 seconds).
 
 Total, Today, and Visitors cards draw a subtle seven-day SQLite trend sparkline behind the current number.
 The status popover distinguishes web-service uptime (the current Uvicorn process) from physical-server uptime (Linux `/proc/uptime`).

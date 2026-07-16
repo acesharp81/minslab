@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import unittest
+from unittest import mock
 
 import main
 
@@ -52,11 +54,45 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("관리자 로그인".encode("utf-8"), body)
         self.assertIn("Local LLM 호출".encode("utf-8"), body)
         self.assertIn("가동 시간".encode("utf-8"), body)
+        self.assertIn("서버 리소스 · 최근 3일".encode("utf-8"), body)
+        self.assertIn(b'id="cpuChart"', body)
+        self.assertIn(b'id="memoryChart"', body)
 
     async def test_admin_analytics_requires_session(self):
         start, body = await call_app("/api/admin/analytics")
         self.assertEqual(start["status"], 401)
         self.assertIn("관리자 로그인이 필요합니다".encode("utf-8"), body)
+
+    async def test_admin_analytics_includes_system_metrics(self):
+        history = {
+            "hours": 72,
+            "range_started_at": "2026-07-13T00:00:00+00:00",
+            "range_ended_at": "2026-07-16T00:00:00+00:00",
+            "points": [],
+            "cpu": {"current": None, "average": None, "maximum": None},
+            "memory": {"current": None, "average": None, "maximum": None},
+        }
+        visits = {
+            "date": "2026-07-16",
+            "items": [],
+            "paths": [],
+            "pagination": {"page": 1, "pages": 1, "page_size": 50, "total": 0},
+        }
+        with (
+            mock.patch.object(main, "admin_session", return_value={"exp": 1}),
+            mock.patch.object(main, "list_analytics_visits", return_value=visits),
+            mock.patch.object(main, "get_analytics_summary", return_value={}),
+            mock.patch.object(main, "get_system_metric_history", return_value=history),
+        ):
+            start, body = await call_app("/api/admin/analytics")
+
+        self.assertEqual(start["status"], 200)
+        payload = json.loads(body)
+        self.assertEqual(payload["system_metrics"]["hours"], 72)
+        self.assertEqual(
+            payload["system_metrics_interval_seconds"],
+            main.SYSTEM_METRICS_INTERVAL_SECONDS,
+        )
 
     async def test_existing_health_route_remains_available(self):
         start, body = await call_app("/health")

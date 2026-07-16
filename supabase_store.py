@@ -168,7 +168,16 @@ def list_history(client_id: str, account_id: str | None = None) -> tuple[list[di
     if account_id:
         return _local_list_history(client_id, account_id), "local", None
     try:
-        return _remote_list_history(client_id), "supabase", None
+        remote_items = _remote_list_history(client_id)
+        local_items = _local_list_history(client_id)
+        merged = {str(item.get("id")): item for item in local_items if item.get("id")}
+        for item in remote_items:
+            if item.get("id"):
+                merged[str(item["id"])] = item
+        items = list(merged.values())
+        items.sort(key=lambda item: item.get("updated_at") or item.get("created_at") or "", reverse=True)
+        storage = "hybrid" if remote_items and local_items else ("supabase" if remote_items else "local")
+        return items[:50], storage, None
     except RuntimeError as exc:
         return _local_list_history(client_id), "local", str(exc)
 

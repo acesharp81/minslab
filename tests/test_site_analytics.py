@@ -9,6 +9,7 @@ from pathlib import Path
 
 from admin_auth import AdminAuth, configured_admin_password
 from analytics_store import AnalyticsStore, normalize_page_path
+from system_metrics import calculate_cpu_percent, read_memory_percent
 
 
 class AnalyticsStoreTests(unittest.TestCase):
@@ -57,9 +58,38 @@ class AnalyticsStoreTests(unittest.TestCase):
         self.assertEqual(summary["today_views"], 3)
         self.assertEqual(summary["today_visitors"], 2)
         self.assertEqual(summary["total_visitors"], 2)
+        self.assertEqual(len(summary["trend"]["cumulative_views"]), 7)
+        self.assertEqual(summary["trend"]["cumulative_views"][-1], 3)
+        self.assertTrue(all(
+            left <= right
+            for left, right in zip(
+                summary["trend"]["cumulative_views"],
+                summary["trend"]["cumulative_views"][1:],
+            )
+        ))
         self.assertEqual(len(summary["trend"]["page_views"]), 7)
         self.assertEqual(summary["trend"]["page_views"][-1], 3)
         self.assertEqual(summary["trend"]["visitors"][-1], 2)
+
+    def test_cumulative_view_trend_includes_pre_window_total(self):
+        self.store.record_visit(
+            visitor_id="older-browser",
+            ip_address="203.0.113.50",
+            path="/",
+            visited_at=self.instant - timedelta(days=10),
+        )
+        self.store.record_visit(
+            visitor_id="current-browser",
+            ip_address="203.0.113.51",
+            path="/poc",
+            visited_at=self.instant,
+        )
+
+        summary = self.store.get_summary("2026-07-11")
+        cumulative = summary["trend"]["cumulative_views"]
+        self.assertEqual(cumulative[0], 1)
+        self.assertEqual(cumulative[-1], summary["total_views"])
+        self.assertTrue(all(left <= right for left, right in zip(cumulative, cumulative[1:])))
 
 
 
@@ -68,6 +98,18 @@ class AnalyticsStoreTests(unittest.TestCase):
         self.assertEqual(self.store.increment_metric("local_llm_calls", 2), 3)
         summary = self.store.get_summary("2026-07-11")
         self.assertEqual(summary["local_llm_calls"], 3)
+
+    def test_system_metrics_returns_only_requested_history(self):
+        now = datetime(2026, 7, 16, 1, 0, tzinfo=timezone.utc)
+        self.store.record_system_metrics(80, 20, now - timedelta(hours=80))
+        self.store.record_system_metrics(25, 40, now - timedelta(hours=71))
+        self.store.record_system_metrics(150, 50, now)
+
+        metrics = self.store.get_system_metrics(72, now)
+        self.assertEqual(len(metrics["points"]), 2)
+        self.assertEqual(metrics["cpu"]["current"], 100)
+        self.assertEqual(metrics["cpu"]["average"], 62.5)
+        self.assertEqual(metrics["memory"]["maximum"], 50)
 
     def test_admin_list_filters_and_retention_keeps_rollup(self):
         old = self.instant - timedelta(days=100)
@@ -129,6 +171,20 @@ class AdminAuthTests(unittest.TestCase):
             auth.authenticate("wrong", "203.0.113.5", now=1_001)
         with self.assertRaises(PermissionError):
             auth.authenticate("correct-password", "203.0.113.5", now=1_002)
+
+
+class SystemMetricsTests(unittest.TestCase):
+    def test_cpu_percent_uses_snapshot_delta(self):
+        self.assertEqual(calculate_cpu_percent((100, 40), (200, 60)), 80)
+
+    def test_memory_percent_uses_available_memory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            meminfo = Path(temp_dir) / "meminfo"
+            meminfo.write_text(
+                "MemTotal:       1000 kB\nMemAvailable:    350 kB\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(read_memory_percent(meminfo), 65)
 
 
 if __name__ == "__main__":

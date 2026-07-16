@@ -131,6 +131,14 @@ class AnalyticsStore:
                         metric_value INTEGER NOT NULL DEFAULT 0,
                         updated_at TEXT NOT NULL
                     );
+
+                    CREATE TABLE IF NOT EXISTS system_metric_samples (
+                        sampled_at TEXT PRIMARY KEY,
+                        cpu_percent REAL NOT NULL,
+                        memory_percent REAL NOT NULL
+                    );
+                    CREATE INDEX IF NOT EXISTS system_metric_samples_time_idx
+                        ON system_metric_samples (sampled_at);
                     """
                 )
             self._initialized = True
@@ -239,6 +247,80 @@ class AnalyticsStore:
             ).fetchone()[0]
         return int(value)
 
+    def record_system_metrics(
+        self,
+        cpu_percent: float,
+        memory_percent: float,
+        sampled_at: datetime | None = None,
+    ) -> None:
+        self.initialize()
+        instant = _as_utc(sampled_at)
+        timestamp = instant.isoformat(timespec="microseconds")
+        cpu = round(max(0.0, min(100.0, float(cpu_percent))), 2)
+        memory = round(max(0.0, min(100.0, float(memory_percent))), 2)
+        cutoff = (instant - timedelta(days=7)).isoformat(timespec="microseconds")
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO system_metric_samples
+                    (sampled_at, cpu_percent, memory_percent)
+                VALUES (?, ?, ?)
+                """,
+                (timestamp, cpu, memory),
+            )
+            connection.execute(
+                "DELETE FROM system_metric_samples WHERE sampled_at < ?",
+                (cutoff,),
+            )
+
+    def get_system_metrics(
+        self,
+        hours: int = 72,
+        now: datetime | None = None,
+    ) -> dict:
+        self.initialize()
+        range_end = _as_utc(now)
+        range_hours = min(168, max(1, int(hours)))
+        range_start = range_end - timedelta(hours=range_hours)
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT sampled_at, cpu_percent, memory_percent
+                FROM system_metric_samples
+                WHERE sampled_at BETWEEN ? AND ?
+                ORDER BY sampled_at ASC
+                """,
+                (
+                    range_start.isoformat(timespec="microseconds"),
+                    range_end.isoformat(timespec="microseconds"),
+                ),
+            ).fetchall()
+        points = [
+            {
+                "sampled_at": row["sampled_at"],
+                "cpu_percent": round(float(row["cpu_percent"]), 2),
+                "memory_percent": round(float(row["memory_percent"]), 2),
+            }
+            for row in rows
+        ]
+
+        def aggregate(key: str) -> dict:
+            values = [float(point[key]) for point in points]
+            return {
+                "current": round(values[-1], 2) if values else None,
+                "average": round(sum(values) / len(values), 2) if values else None,
+                "maximum": round(max(values), 2) if values else None,
+            }
+
+        return {
+            "hours": range_hours,
+            "range_started_at": range_start.isoformat(timespec="seconds"),
+            "range_ended_at": range_end.isoformat(timespec="seconds"),
+            "points": points,
+            "cpu": aggregate("cpu_percent"),
+            "memory": aggregate("memory_percent"),
+        }
+
 
     def get_summary(self, local_date: str | None = None) -> dict:
         self.initialize()
@@ -264,6 +346,10 @@ class AnalyticsStore:
                 "SELECT COALESCE(metric_value, 0) FROM metric_counters WHERE metric_key = ?",
                 ("local_llm_calls",),
             ).fetchone()
+            baseline_views = connection.execute(
+                "SELECT COALESCE(SUM(page_views), 0) FROM daily_stats WHERE local_date < ?",
+                (trend_dates[0],),
+            ).fetchone()[0]
             view_rows = connection.execute(
                 """
                 SELECT local_date, page_views FROM daily_stats
@@ -281,6 +367,11 @@ class AnalyticsStore:
             ).fetchall()
         views_by_date = {row["local_date"]: int(row["page_views"]) for row in view_rows}
         visitors_by_date = {row["local_date"]: int(row["visitors"]) for row in visitor_rows}
+        cumulative_views = []
+        running_views = int(baseline_views or 0)
+        for value in trend_dates:
+            running_views += views_by_date.get(value, 0)
+            cumulative_views.append(running_views)
         return {
             "date": target_date,
             "total_views": int(total_views or 0),
@@ -290,6 +381,7 @@ class AnalyticsStore:
             "local_llm_calls": int(local_llm_calls[0] if local_llm_calls else 0),
             "trend": {
                 "labels": [value[5:] for value in trend_dates],
+                "cumulative_views": cumulative_views,
                 "page_views": [views_by_date.get(value, 0) for value in trend_dates],
                 "visitors": [visitors_by_date.get(value, 0) for value in trend_dates],
             },
@@ -393,6 +485,14 @@ def get_analytics_summary(local_date: str | None = None) -> dict:
 
 def increment_local_llm_calls(amount: int = 1) -> int:
     return DEFAULT_STORE.increment_metric("local_llm_calls", amount)
+
+
+def record_system_metrics(cpu_percent: float, memory_percent: float) -> None:
+    DEFAULT_STORE.record_system_metrics(cpu_percent, memory_percent)
+
+
+def get_system_metric_history(hours: int = 72) -> dict:
+    return DEFAULT_STORE.get_system_metrics(hours)
 
 
 
