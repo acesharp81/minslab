@@ -526,7 +526,7 @@ def _limited_details(records: list[dict[str, Any]], limit: int = 80, **kwargs: A
     return [_compact_detail(record, **kwargs) for record in records[:limit]]
 
 
-def _rain_timeline_lines(rain: dict[str, Any]) -> list[str]:
+def _rain_timeline_summary(rain: dict[str, Any]) -> str:
     hourly = rain.get("rain_hourly") if isinstance(rain, dict) else None
     if not isinstance(hourly, list) or not hourly:
         hourly = [
@@ -542,24 +542,20 @@ def _rain_timeline_lines(rain: dict[str, Any]) -> list[str]:
             {"offset": 3, "label": "+3H", "value": rain.get("rain_3h_after", "-") if isinstance(rain, dict) else "-"},
         ]
     normalized = sorted(hourly, key=lambda item: int(item.get("offset", 0) or 0))
-    lines = []
+    points = []
     for item in normalized:
         offset = item.get("offset", "")
         label = item.get("label") or ("현재" if offset == 0 else f"{int(offset):+d}H")
         time = item.get("time") or ""
         value = item.get("value") or _format_mm(float(item.get("value_mm") or 0))
-        source = item.get("source") or ""
-        source_label = {"observation": "관측", "forecast": "예보", "spatial_only": "공간조회"}.get(source, source)
         detail = f"{label}"
         if time:
             detail += f"({time})"
-        if source_label:
-            detail += f"/{source_label}"
-        lines.append(f"- {detail}: {value}")
-    return lines
+        points.append(f"{detail} {value}")
+    return " | ".join(points)
 
 
-def _detail_context_lines(title: str, items: list[dict[str, Any]], limit: int = 5) -> list[str]:
+def _detail_context_lines(title: str, items: list[dict[str, Any]], limit: int = 3) -> list[str]:
     if not items:
         return [f"- {title}: 주변 500m 이내 확인된 항목 없음"]
     lines = []
@@ -596,8 +592,8 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: Disas
 - 2시간 후 예상 강수량: {rain['rain_2h_after']}
 - 3시간 후 예상 강수량: {rain['rain_3h_after']}
 
-[강수 시간 흐름]
-{chr(10).join(_rain_timeline_lines(rain))}
+[강수 시간 흐름: 과거 6시간~앞으로 6시간]
+{_rain_timeline_summary(rain)}
 
 [공간 지식베이스 인프라 정보]
 - 반경 500m 침수 흔적: {len(floods)}건
@@ -736,16 +732,12 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: Disas
 
 def system_instruction() -> str:
     return (
-        "당신은 시민에게 친절하게 말하는 AI 안전비서입니다. 실시간 강수, 과거 강수 흐름, 예보, "
-        "주변 위험 이력과 대피소 정보처럼 입력에 제공된 데이터만 근거로 안내하세요. "
-        "확인되지 않은 원인, 피해 규모, 현장 상황은 만들지 말고 '확인된 정보만으로는 알 수 없습니다'처럼 말하세요. "
-        "답변은 반드시 다음 3개 제목으로 나누어 작성하세요. "
-        "1. 현재 상황: 지금 현재와 1시간 후 예보를 기준으로 현재 상태와 가능한 위기 상황을 쉬운 말로 안내합니다. "
-        "2. 앞으로의 가능성: 과거 6시간 강수 흐름과 앞으로 6시간 예보를 함께 보아 이어질 수 있는 상황을 가능성 중심으로 설명합니다. "
-        "3. 종합 위험도와 조언: 과거 침수, 산사태, 인명피해 우려구역 같은 이력과 현재/예측 상태를 종합해 낮음, 주의, 높음, 매우 높음 중 하나로 위험도를 안내하고 행동 조언을 제시합니다. "
-        "상습 피해 이력, 이미 내린 비, 앞으로의 강수 증가/감소 흐름을 함께 고려하되 단정하지 말고 '~할 수 있습니다', '~하는 편이 좋겠습니다'처럼 조언하세요. "
-        "비속어, 위협적인 표현, 어려운 전문용어는 쓰지 말고 짧은 문단과 쉬운 문장으로 작성하세요. "
-        "모든 강수량이 0mm이고 주변 위험 기록도 없다면 세 제목을 유지하되 특이 위험 요인이 낮아 보인다고 안내하세요."
+        "당신은 시민에게 자연스러운 한국어로 안내하는 AI 안전비서입니다. 입력 데이터만 근거로 핵심부터 간결하게 답하세요. "
+        "없는 사실을 만들거나 위험을 단정하지 말고, 모르는 내용은 확인할 수 없다고 밝히세요. "
+        "반드시 '1. 현재 상황', '2. 앞으로의 가능성', '3. 종합 위험도와 조언' 순서로 작성하세요. "
+        "현재 상황은 지금과 1시간 후, 앞으로의 가능성은 과거 6시간과 향후 6시간의 강수 흐름, 종합 위험도는 과거 위험 이력과 현재·예측 상태를 함께 판단하세요. "
+        "위험도는 낮음·주의·높음·매우 높음 중 하나로 표시하세요. 각 항목은 1~2개의 짧고 쉬운 문장으로 쓰세요. 입력에 1건 이상인 위험 이력을 없다고 말하지 마세요. "
+        "'~할 수 있습니다', '~하는 편이 좋겠습니다'처럼 가능성과 행동 조언을 안내하고, 비속어·전문용어·입력 데이터의 반복 나열은 피하세요."
     )
 
 
@@ -808,7 +800,8 @@ def _ollama_completion(model: str, messages: list[dict[str, str]]) -> str:
         "messages": messages,
         "stream": False,
         "keep_alive": "5m",
-        "options": {"temperature": 0.2, "top_p": 0.9, "repeat_penalty": 1.1, "num_ctx": 8192},
+        "think": False,
+        "options": {"temperature": 0.2, "top_p": 0.9, "repeat_penalty": 1.1, "num_ctx": 2048, "num_predict": 256},
     }).encode("utf-8")
     request = url_request.Request(
         f"{OLLAMA_BASE_URL.rstrip('/')}/api/chat",
@@ -907,31 +900,44 @@ def analyze_spatial_location(lat: float, lng: float, kb_path: Path | None = None
     }
 
 
+def prepare_analysis(
+    lat: float,
+    lng: float,
+    kb_path: Path | None = None,
+    rain_info: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """LLM 호출 전에 기상·공간 데이터를 한 번만 정리한다."""
+    kb_path = kb_path or latest_kb_path()
+    kb = load_knowledge_base(kb_path)
+    rain = rain_info if isinstance(rain_info, dict) and rain_info.get("rain_hourly") else get_kma_precipitation_live(lat, lng)
+    prompt_context, spatial_summary = build_prompt_context(lat, lng, rain, kb)
+    return {
+        "lat": lat,
+        "lng": lng,
+        "rain_info": rain,
+        "spatial_summary": spatial_summary,
+        "prompt_context": prompt_context,
+        "kb_path": str(kb_path) if kb_path else None,
+        "kb_filename": kb_path.name if kb_path else None,
+    }
+
+
 def analyze_location(
     lat: float,
     lng: float,
     kb_path: Path | None = None,
     use_ai: bool = True,
     model_choice: str | None = None,
+    rain_info: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    kb_path = kb_path or latest_kb_path()
-    kb = load_knowledge_base(kb_path)
-    rain = get_kma_precipitation_live(lat, lng)
-    prompt_context, spatial_summary = build_prompt_context(lat, lng, rain, kb)
+    prepared = prepare_analysis(lat, lng, kb_path, rain_info)
+    prompt_context = prepared.pop("prompt_context")
     if use_ai:
         report, model_label = generate_report(prompt_context, model_choice)
     else:
         report, model_label = prompt_context, None
-    return {
-        "lat": lat,
-        "lng": lng,
-        "model": model_label,
-        "rain_info": rain,
-        "spatial_summary": spatial_summary,
-        "report": report,
-        "kb_path": str(kb_path) if kb_path else None,
-        "kb_filename": kb_path.name if kb_path else None,
-    }
+    prepared.update({"model": model_label, "report": report})
+    return prepared
 
 
 def main() -> None:

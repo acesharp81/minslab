@@ -46,6 +46,9 @@ MOIS_KMS_SERVICE_PATH = Path(__file__).parent / "PoC" / "03-mois-kms" / "backend
 MOIS_KMS_MODULE = None
 MOIS_KMS_MTIME = None
 REPORT_DRAFT_MODULE = None
+REVERSE_GEOCODE_CACHE = {}
+NOMINATIM_LOCK = threading.Lock()
+NOMINATIM_LAST_REQUEST = 0.0
 REPORT_DRAFT_MTIME = None
 MULTIAGENT_HARNESS_MODULE = None
 MULTIAGENT_HARNESS_MTIME = None
@@ -345,6 +348,10 @@ HTML_PAGE = r"""
     .safe-agent-map .leaflet-control{position:relative;z-index:800;pointer-events:auto}.safe-agent-map .leaflet-top,.safe-agent-map .leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.safe-agent-map .leaflet-top{top:0}.safe-agent-map .leaflet-right{right:0}.safe-agent-map .leaflet-bottom{bottom:0}.safe-agent-map .leaflet-left{left:0}
     .safe-agent-map .leaflet-control-attribution{font-size:10px}
     .safe-agent-map-fallback{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#f8fbff,#eef7f2);color:#62675e;font-size:13px;z-index:1}
+    .safe-agent-gps-popup{position:absolute;left:50%;top:50%;z-index:1200;transform:translate(-50%,-50%);display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);padding:13px 16px;border:1px solid #d8d4ca;border-radius:8px;background:rgba(255,253,246,.97);color:#30342f;font-size:13px;font-weight:800;box-shadow:0 14px 34px rgba(23,25,22,.2);pointer-events:none}
+    .safe-agent-gps-popup[hidden]{display:none}.safe-agent-gps-popup i{width:18px;height:18px;flex:0 0 18px;border:2px solid #d4d1c7;border-top-color:#2563eb;border-radius:50%;animation:safe-agent-spin .8s linear infinite}
+    @keyframes safe-agent-spin{to{transform:rotate(360deg)}}
+    .safe-agent-run.is-stop{background:#8b2f21;color:#fff}
     .safe-agent-map.is-fallback::before{content:"";position:absolute;inset:22px;border:1px dashed rgba(37,99,235,.28);border-radius:50%;z-index:2}
     .safe-agent-map.is-fallback::after{content:"";position:absolute;inset:48px;border:1px dashed rgba(23,25,22,.18);border-radius:50%;z-index:2}
     .safe-agent-map-label{position:absolute;left:16px;bottom:16px;z-index:800;padding:10px 12px;border:1px solid #d8d4ca;border-radius:12px;background:rgba(255,253,246,.94);color:#555b52;font:12px ui-monospace,monospace;box-shadow:0 8px 20px rgba(23,25,22,.1);pointer-events:none}
@@ -877,9 +884,11 @@ HTML_PAGE = r"""
       projectLab.classList.add('active');
       projectLab.innerHTML=`<section class="safe-agent-lab"><div class="safe-agent-data-bar is-collapsed"><div class="safe-agent-data-head" id="safeAgentDataHead" tabindex="0"><div><strong id="safeAgentKbStatus">기초 데이터 확인 중</strong><small id="safeAgentKbDetail">PKL 상태를 불러오고 있습니다.</small></div><div class="safe-agent-data-actions"><button class="primary" id="safeAgentBuildData" type="button">기초 데이터 만들기</button><button id="safeAgentRefreshKb" type="button">새로고침</button><button class="safe-agent-log-toggle" id="safeAgentLogToggle" type="button" aria-expanded="false" aria-controls="safeAgentDataLog">로그 보기</button></div></div><textarea class="safe-agent-data-log" id="safeAgentDataLog" readonly>기초 데이터 로그가 이곳에 표시됩니다.</textarea></div><div class="safe-agent-console"><div class="safe-agent-map" id="safeAgentMap" aria-label="분석 지점 지도"><div class="safe-agent-map-label" id="safeAgentMapLabel">37.5665, 126.9780 · 500m</div><div class="safe-agent-map-legend"><span><i class="risk"></i>위험 요소</span><span><i class="shelter"></i>대피소</span></div></div><div class="safe-agent-controls"><div class="safe-agent-title-row"><h3>위험 요소 중심 복합 재해 분석</h3><div class="safe-agent-badges"><span class="safe-agent-badge">KMA LIVE</span><span class="safe-agent-badge">500M RADIUS</span><span class="safe-agent-badge">LLM REPORT</span></div></div><div class="safe-agent-fields"><label>위도<input id="safeAgentLat" type="number" step="0.000001" value="37.5665"></label><label>경도<input id="safeAgentLng" type="number" step="0.000001" value="126.9780"></label><label class="safe-agent-address-field">법정동<input id="safeAgentAddress" type="text" value="확인 중" readonly></label></div><div class="safe-agent-execute-row"><label class="safe-agent-model-field">AI 모델<select id="safeAgentModel"><option value="">모델 불러오는 중...</option></select></label><button class="safe-agent-run" id="safeAgentRun" type="button">분석 실행</button><div class="safe-agent-inline-message" id="safeAgentMessage">좌표를 입력하거나 지도를 클릭하면 Python PoC가 서버에서 실행됩니다.</div></div><div class="safe-agent-preset-panel"><div class="safe-agent-preset-form"><label>장소명<input id="safeAgentPlaceName" type="text" placeholder="예: 우리집, 현장 A"></label><button id="safeAgentSavePreset" type="button">현재 좌표 저장</button><button id="safeAgentGps" type="button">GPS 위치</button></div><div class="safe-agent-samples" id="safeAgentPresets"></div></div></div></div><div class="safe-agent-status" id="safeAgentStatus"><article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수 추계</strong><span>분석 실행 후 갱신</span></div><div class="safe-agent-rain-bars"><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">6H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">현재</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+1H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+2H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+3H</span></div></div></article><article class="safe-agent-status-card"><b>-</b><span>위험 이력</span></article><article class="safe-agent-status-card"><b>-</b><span>대피소</span></article></div><div class="safe-agent-result" id="safeAgentResult"><div class="safe-agent-empty">실행 결과가 이곳에 표시됩니다.</div></div></section>`;
       const latEl=document.getElementById('safeAgentLat'),lngEl=document.getElementById('safeAgentLng'),addressEl=document.getElementById('safeAgentAddress'),modelEl=document.getElementById('safeAgentModel'),runButton=document.getElementById('safeAgentRun'),messageEl=document.getElementById('safeAgentMessage'),statusEl=document.getElementById('safeAgentStatus'),resultEl=document.getElementById('safeAgentResult'),mapEl=document.getElementById('safeAgentMap'),mapLabelEl=document.getElementById('safeAgentMapLabel'),kbStatusEl=document.getElementById('safeAgentKbStatus'),kbDetailEl=document.getElementById('safeAgentKbDetail'),buildDataButton=document.getElementById('safeAgentBuildData'),refreshKbButton=document.getElementById('safeAgentRefreshKb'),dataBarEl=document.querySelector('.safe-agent-data-bar'),dataHeadEl=document.getElementById('safeAgentDataHead'),dataLogEl=document.getElementById('safeAgentDataLog'),dataLogToggle=document.getElementById('safeAgentLogToggle'),gpsButton=document.getElementById('safeAgentGps'),placeNameEl=document.getElementById('safeAgentPlaceName'),savePresetButton=document.getElementById('safeAgentSavePreset'),presetsEl=document.getElementById('safeAgentPresets');
+      const gpsPopupEl=document.createElement('div');gpsPopupEl.className='safe-agent-gps-popup';gpsPopupEl.setAttribute('role','status');gpsPopupEl.setAttribute('aria-live','polite');gpsPopupEl.innerHTML='<i aria-hidden="true"></i><span>GPS 기반 장소로 이동 중입니다.</span>';gpsPopupEl.hidden=true;mapEl.append(gpsPopupEl);
+      function setGpsPopup(open){gpsPopupEl.hidden=!open}
       const presetKey='minzday.aiSafeAgent.presets';
       const defaultPresets=[{name:'서울시청',lat:37.5665,lng:126.978},{name:'부산시청',lat:35.1796,lng:129.0756}];
-      let lastAnalysisRequest=null,lastSpatialSummary=null,lastSpatialCoords=null,lastRainInfo=null,lastRainCoords=null,safeMap=null,safeMarker=null,safeCircle=null,safeFeatureLayer=null,analysisRunning=false,pendingAnalysis=false,spatialRequestSeq=0,rainRequestSeq=0,geocodeRequestSeq=0,reverseGeocodeEnabled=true,hasCenteredMapOnFirstClick=false;
+      let lastAnalysisRequest=null,lastSpatialSummary=null,lastSpatialCoords=null,lastRainInfo=null,lastRainCoords=null,safeMap=null,safeMarker=null,safeCircle=null,safeFeatureLayer=null,analysisRunning=false,analysisController=null,spatialRequestSeq=0,rainRequestSeq=0,geocodeRequestSeq=0,reverseGeocodeEnabled=true,hasCenteredMapOnFirstClick=false;
       function scheduleMapResize(){if(!safeMap)return;requestAnimationFrame(()=>{safeMap.invalidateSize({animate:false});setTimeout(()=>safeMap&&safeMap.invalidateSize({animate:false}),120);setTimeout(()=>safeMap&&safeMap.invalidateSize({animate:false}),360)})}
       function scrollMapToCenterOnce(){if(hasCenteredMapOnFirstClick)return;hasCenteredMapOnFirstClick=true;requestAnimationFrame(()=>{mapEl.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});setTimeout(scheduleMapResize,320)})}
       function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
@@ -913,10 +922,10 @@ HTML_PAGE = r"""
       async function loadRainPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;const requestId=++rainRequestSeq;messageEl.textContent='기상청 강수 추계를 먼저 가져오는 중...';const r=await fetch('/api/poc/ai-safe-agent/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==rainRequestSeq)return null;if(!r.ok)throw new Error(data.error||'기상청 강수 조회에 실패했습니다.');if(!currentCoordsMatch(data))return null;renderStatus(data);messageEl.textContent='기상청 강수 추계 표기 완료 · AI 보고서 생성 중...';return data}
       async function loadSpatialPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++spatialRequestSeq;messageEl.textContent='공간 데이터 조회 중...';try{const r=await fetch('/api/poc/ai-safe-agent/spatial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==spatialRequestSeq)return;if(!r.ok)throw new Error(data.error||'공간 데이터 조회에 실패했습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderSpatialResult(data);messageEl.textContent='공간 데이터 표시 완료';}catch(e){if(requestId!==spatialRequestSeq)return;messageEl.textContent='공간 데이터 조회 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}
       async function loadAiSafeModels(){try{const r=await fetch('/api/poc/ai-safe-agent/models');const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');modelEl.innerHTML=(data.models||[]).map(item=>`<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}${item.details?.parameter_size?' · '+escapeHtml(item.details.parameter_size):''}</option>`).join('')||'<option value="">모델 없음</option>';if(data.default)modelEl.value=data.default;}catch(e){modelEl.innerHTML='<option value="huggingface:Qwen/Qwen2.5-72B-Instruct">Hugging Face · Qwen/Qwen2.5-72B-Instruct</option><option value="openrouter:openai/gpt-4o-mini">OpenRouter · openai/gpt-4o-mini</option>';appendDataLog(`AI 모델 목록 조회 실패: ${e.message}`)}}
-      async function loadLegalDong(lat=Number(latEl.value),lng=Number(lngEl.value)){if(!reverseGeocodeEnabled||!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++geocodeRequestSeq;addressEl.value='법정동 확인 중';try{const r=await fetch('/api/poc/ai-safe-agent/reverse-geocode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==geocodeRequestSeq)return;if(data.status==='unavailable'){reverseGeocodeEnabled=false;addressEl.value='법정동 키 없음';return;}if(data.status==='error'){addressEl.value='법정동 확인 실패';return;}addressEl.value=data.legal_dong||data.address||'확인 불가';}catch(e){if(requestId!==geocodeRequestSeq)return;addressEl.value='확인 실패'}}
+      async function loadLegalDong(lat=Number(latEl.value),lng=Number(lngEl.value)){if(!reverseGeocodeEnabled||!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++geocodeRequestSeq;addressEl.value='법정동 확인 중';try{const r=await fetch('/api/poc/ai-safe-agent/reverse-geocode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==geocodeRequestSeq)return;if(!r.ok||data.status==='error'){addressEl.value='법정동 확인 실패';appendDataLog(`법정동 확인 실패: ${data.message||data.error||r.status}`);return;}addressEl.value=data.legal_dong||data.address||'확인 불가';if(data.provider==='openstreetmap')appendDataLog(`법정동 대체 조회 완료: ${addressEl.value}`);}catch(e){if(requestId!==geocodeRequestSeq)return;addressEl.value='법정동 확인 실패';appendDataLog(`법정동 확인 실패: ${e.message}`)}}
       function loadDefaultLocation(message='기본 좌표로 공간 데이터를 조회합니다.'){updateMap();loadLegalDong();loadSpatialPreview();messageEl.textContent=message}
-      function useGpsLocation(options={}){const auto=!!options.auto;if(!navigator.geolocation){if(auto){loadDefaultLocation('GPS를 사용할 수 없어 기본 좌표로 시작합니다.');return;}alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');return;}gpsButton.disabled=true;messageEl.textContent=auto?'현재 GPS 위치 확인 중...':'GPS 위치 확인 중...';navigator.geolocation.getCurrentPosition(position=>{gpsButton.disabled=false;const lat=position.coords.latitude,lng=position.coords.longitude,accuracy=Math.round(position.coords.accuracy||0);const message=auto?`현재 GPS 위치로 시작합니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`:`GPS 위치로 이동했습니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`;setCoordinates(lat,lng,{message,preview:true});},error=>{gpsButton.disabled=false;const messages={1:'위치 권한이 거부되었습니다.',2:'현재 위치를 확인할 수 없습니다.',3:'위치 확인 시간이 초과되었습니다.'};const message=messages[error.code]||'GPS 위치 확인에 실패했습니다.';if(auto){loadDefaultLocation(`${message} 기본 좌표로 시작합니다.`);return;}messageEl.textContent=message;alert(messageEl.textContent);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
-      async function runAnalysis(){if(analysisRunning){pendingAnalysis=true;messageEl.textContent='새 좌표 분석을 이어서 실행합니다.';return;}const lat=Number(latEl.value),lng=Number(lngEl.value),use_ai=true,ai_model=modelEl.value;if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('올바른 위도와 경도를 입력하세요.');return;}analysisRunning=true;lastAnalysisRequest={lat,lng,use_ai,ai_model};updateMap();runButton.disabled=true;resultEl.innerHTML='<div class="safe-agent-empty">기상청 강수 추계를 먼저 업데이트한 뒤 공간 데이터와 AI 보고서를 생성합니다.</div>';try{try{await loadRainPreview()}catch(rainError){appendDataLog(`기상청 강수 조회 실패: ${rainError.message}`);messageEl.textContent='기상청 강수 조회 실패 · 공간/AI 분석을 계속합니다.'}if(pendingAnalysis)return;messageEl.textContent='공간 데이터와 AI 보고서 생성 중...';const r=await fetch('/api/poc/ai-safe-agent/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lastAnalysisRequest)});const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'분석 실행에 실패했습니다.');if(pendingAnalysis||!currentCoordsMatch(data))return;if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderResult(data);messageEl.textContent='분석 완료';}catch(e){messageEl.textContent='분석 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}finally{analysisRunning=false;runButton.disabled=false;if(pendingAnalysis){pendingAnalysis=false;runAnalysis()}}}
+      function useGpsLocation(options={}){const auto=!!options.auto;setGpsPopup(true);if(!navigator.geolocation){setGpsPopup(false);if(auto){loadDefaultLocation('GPS를 사용할 수 없어 기본 좌표로 시작합니다.');return;}alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');return;}gpsButton.disabled=true;messageEl.textContent='GPS 기반 장소로 이동 중입니다.';navigator.geolocation.getCurrentPosition(position=>{gpsButton.disabled=false;setGpsPopup(false);const lat=position.coords.latitude,lng=position.coords.longitude,accuracy=Math.round(position.coords.accuracy||0);const message=auto?`현재 GPS 위치로 시작합니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`:`GPS 위치로 이동했습니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`;setCoordinates(lat,lng,{message,preview:true});},error=>{gpsButton.disabled=false;setGpsPopup(false);const messages={1:'위치 권한이 거부되었습니다.',2:'현재 위치를 확인할 수 없습니다.',3:'위치 확인 시간이 초과되었습니다.'};const message=messages[error.code]||'GPS 위치 확인에 실패했습니다.';if(auto){loadDefaultLocation(`${message} 기본 좌표로 시작합니다.`);return;}messageEl.textContent=message;alert(messageEl.textContent);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
+      async function runAnalysis(){if(analysisRunning){analysisController?.abort();messageEl.textContent='AI 보고서 생성을 중지하는 중...';return;}const lat=Number(latEl.value),lng=Number(lngEl.value),use_ai=true,ai_model=modelEl.value;if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('올바른 위도와 경도를 입력하세요.');return;}analysisRunning=true;analysisController=new AbortController();updateMap();runButton.disabled=false;runButton.classList.add('is-stop');runButton.textContent='생성 중지';resultEl.innerHTML='<div class="safe-agent-empty">기상청 강수 추계를 먼저 업데이트한 뒤 공간 데이터와 AI 답변을 실시간으로 생성합니다.</div>';let rainData=null,answer='',reportPre=null,finalEvent=null;try{try{rainData=await loadRainPreview()}catch(rainError){appendDataLog(`기상청 강수 조회 실패: ${rainError.message}`);messageEl.textContent='기상청 강수 조회 실패 · 공간/AI 분석을 계속합니다.'}lastAnalysisRequest={lat,lng,use_ai,ai_model,rain_info:rainData?.rain_info||null};messageEl.textContent='공간 데이터를 정리하고 AI 답변을 생성하는 중...';const r=await fetch('/api/poc/ai-safe-agent/analyze-stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lastAnalysisRequest),signal:analysisController.signal});if(!r.ok){const data=await readJsonResponse(r);throw new Error(data.error||'분석 실행에 실패했습니다.')}if(!r.body)throw new Error('실시간 AI 응답을 받을 수 없습니다.');const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';const handleEvent=event=>{if(event.type==='context'){const data={...(event.data||{}),model:event.model,report:'AI 답변 생성 중...'};if(!currentCoordsMatch(data))throw new Error('분석 중 좌표가 변경되었습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderResult(data);reportPre=resultEl.querySelector('.safe-agent-report pre');messageEl.textContent='AI 답변을 실시간으로 표시하는 중...';}else if(event.type==='token'){answer+=event.content||'';if(reportPre)reportPre.textContent=answer;}else if(event.type==='done'){finalEvent=event;}else if(event.type==='error'){throw new Error(event.error||'AI 보고서 생성 실패')}};while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(line.trim())handleEvent(JSON.parse(line))}}buffer+=decoder.decode();if(buffer.trim())handleEvent(JSON.parse(buffer));if(!answer)throw new Error('AI 보고서 내용이 비어 있습니다.');const seconds=finalEvent?.metrics?.total_duration?finalEvent.metrics.total_duration/1e9:null;messageEl.textContent=seconds?`분석 완료 · AI 생성 ${seconds.toFixed(1)}초`:'분석 완료';}catch(e){if(e.name==='AbortError'){messageEl.textContent='AI 보고서 생성을 중지했습니다.';if(reportPre&&!answer)reportPre.textContent='생성이 중지되었습니다.';}else{messageEl.textContent='분석 실패';if(reportPre)reportPre.textContent=answer||`오류: ${e.message}`;else resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}finally{analysisRunning=false;analysisController=null;runButton.classList.remove('is-stop');runButton.textContent='분석 실행';runButton.disabled=false}}
       async function buildKnowledgeBase(){buildDataButton.disabled=true;refreshKbButton.disabled=true;runButton.disabled=true;gpsButton.disabled=true;savePresetButton.disabled=true;appendDataLog('기초 데이터 만들기 시작',true);try{const r=await fetch('/api/poc/ai-safe-agent/kb/build',{method:'POST'});if(!r.ok&&!r.body){const data=await readJsonResponse(r);throw new Error(data.error||'기초 데이터 생성 실패')}if(!r.body){const data=await readJsonResponse(r);setKbStatus(data);appendDataLog(data.message||'기초 데이터 생성 완료');return;}const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='log')appendDataLog(event.message);else if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}else if(event.type==='error')throw new Error(event.error||'기초 데이터 생성 실패')}}if(buffer.trim()){const event=JSON.parse(buffer);if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{buildDataButton.disabled=false;refreshKbButton.disabled=false;runButton.disabled=false;gpsButton.disabled=false;savePresetButton.disabled=false}}
       async function refreshKnowledgeBase(){refreshKbButton.disabled=true;try{appendDataLog('PKL 상태 새로고침');await loadKbStatus(true);if(lastAnalysisRequest){await runAnalysis()}else{await loadSpatialPreview();messageEl.textContent='PKL 상태를 다시 읽고 지도 데이터를 갱신했습니다.'}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{refreshKbButton.disabled=false}}
       presetsEl.onclick=event=>{const deleteButton=event.target.closest('[data-delete-preset-index]');if(deleteButton){const presets=loadPresets();presets.splice(Number(deleteButton.dataset.deletePresetIndex),1);savePresets(presets);renderPresets();return;}const button=event.target.closest('[data-preset-index]');if(!button)return;const item=loadPresets()[Number(button.dataset.presetIndex)];if(item)setCoordinates(item.lat,item.lng,{message:`${item.name} 좌표를 불러왔습니다.`})};
@@ -1242,11 +1251,23 @@ def run_ai_safe_agent_analysis(payload):
     lat, lng = parse_ai_safe_coordinates(payload)
     module = load_ai_safe_agent_module()
     use_ai = bool(payload.get("use_ai", True))
-    result = module.analyze_location(lat, lng, use_ai=use_ai, model_choice=payload.get("ai_model"))
+    result = module.analyze_location(lat, lng, use_ai=use_ai, model_choice=payload.get("ai_model"), rain_info=payload.get("rain_info"))
     kb_status = ai_safe_kb_status()
     result["kb_status"] = kb_status
     result["config_status"] = ai_safe_config_status(kb_status)
     return result
+
+
+def prepare_ai_safe_agent_analysis(payload):
+    """이미 조회한 강수 데이터를 재사용해 스트리밍용 분석 문맥을 준비한다."""
+    lat, lng = parse_ai_safe_coordinates(payload)
+    module = load_ai_safe_agent_module()
+    result = module.prepare_analysis(lat, lng, rain_info=payload.get("rain_info"))
+    kb_status = ai_safe_kb_status()
+    result["kb_status"] = kb_status
+    result["config_status"] = ai_safe_config_status(kb_status)
+    return result
+
 
 
 def _is_ollama_chat_model(model):
@@ -1314,6 +1335,71 @@ def _join_region(*parts):
     return " ".join(str(part).strip() for part in parts if str(part or "").strip())
 
 
+def _nominatim_reverse_geocode(lat, lng):
+    """Kakao/VWorld가 실패할 때 사용하는 저빈도 OSM 역지오코딩 대체 경로."""
+    global NOMINATIM_LAST_REQUEST
+    cache_key = (round(lat, 4), round(lng, 4))
+    cached = REVERSE_GEOCODE_CACHE.get(cache_key)
+    if cached:
+        return dict(cached)
+
+    with NOMINATIM_LOCK:
+        cached = REVERSE_GEOCODE_CACHE.get(cache_key)
+        if cached:
+            return dict(cached)
+        wait_seconds = 1.0 - (time.monotonic() - NOMINATIM_LAST_REQUEST)
+        if wait_seconds > 0:
+            time.sleep(wait_seconds)
+        params = {
+            "format": "jsonv2",
+            "lat": lat,
+            "lon": lng,
+            "zoom": 18,
+            "addressdetails": 1,
+            "accept-language": "ko",
+        }
+        request = url_request.Request(
+            f"https://nominatim.openstreetmap.org/reverse?{url_parse.urlencode(params)}",
+            headers={
+                "User-Agent": "MinsLab-AISafeAgent/1.0 (https://github.com/acesharp81/minslab)",
+                "Accept": "application/json",
+            },
+            method="GET",
+        )
+        try:
+            with url_request.urlopen(request, timeout=6) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        finally:
+            NOMINATIM_LAST_REQUEST = time.monotonic()
+
+    address_parts = data.get("address", {}) if isinstance(data, dict) else {}
+    region1 = address_parts.get("province") or address_parts.get("state") or address_parts.get("city")
+    region2 = (
+        address_parts.get("city_district")
+        or address_parts.get("borough")
+        or address_parts.get("county")
+        or address_parts.get("municipality")
+    )
+    region3 = (
+        address_parts.get("quarter")
+        or address_parts.get("suburb")
+        or address_parts.get("neighbourhood")
+        or address_parts.get("village")
+        or address_parts.get("town")
+    )
+    legal = _join_region(region1, region2, region3)
+    result = {
+        "status": "ok" if legal else "error",
+        "provider": "openstreetmap",
+        "legal_dong": legal,
+        "address": data.get("display_name", "") if isinstance(data, dict) else "",
+        "lat": lat,
+        "lng": lng,
+    }
+    REVERSE_GEOCODE_CACHE[cache_key] = result
+    return dict(result)
+
+
 def reverse_geocode_location(payload):
     lat, lng = parse_ai_safe_coordinates(payload)
     errors = []
@@ -1363,6 +1449,14 @@ def reverse_geocode_location(payload):
         except Exception as error:  # noqa: BLE001 - optional enrichment must not break the PoC screen
             errors.append(f"vworld: {error}")
 
+    try:
+        result = _nominatim_reverse_geocode(lat, lng)
+        if result.get("status") == "ok":
+            result["fallback_errors"] = errors
+            return result
+        errors.append("openstreetmap: 법정동 수준 주소를 찾지 못했습니다.")
+    except Exception as error:  # noqa: BLE001 - final fallback error is returned to the UI
+        errors.append(f"openstreetmap: {error}")
     if errors:
         return {
             "status": "error",
@@ -1712,7 +1806,7 @@ async def app(scope, receive, send):
                     path_filter=query.get("path", [""])[0],
                 )
                 summary = await asyncio.to_thread(get_analytics_summary)
-                system_metrics = await asyncio.to_thread(get_system_metric_history, 72)
+                system_metrics = await asyncio.to_thread(get_system_metric_history, 48)
                 web_uptime = max(0, int(time.monotonic() - APP_STARTED_MONOTONIC))
                 body = json.dumps(
                     {
@@ -2010,6 +2104,96 @@ async def app(scope, receive, send):
             status = 502
             body = json.dumps({"error": f"AI Safe Agent 공간조회 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
+    elif path == "/api/poc/ai-safe-agent/analyze-stream" and method == "POST":
+        try:
+            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
+            prepared = await asyncio.to_thread(prepare_ai_safe_agent_analysis, payload)
+            prompt_context = prepared.pop("prompt_context")
+            module = load_ai_safe_agent_module()
+            provider, model, model_label = module.normalize_model_choice(payload.get("ai_model"))
+        except Exception as error:
+            status = 400
+            body = json.dumps({"error": f"AI Safe Agent 준비 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+            content_type = "application/json; charset=utf-8"
+        else:
+            headers = [
+                (b"content-type", b"application/x-ndjson; charset=utf-8"),
+                (b"cache-control", b"no-cache"),
+                (b"x-accel-buffering", b"no"),
+            ]
+            await send({"type": "http.response.start", "status": 200, "headers": headers})
+            context_line = json.dumps(
+                {"type": "context", "data": prepared, "model": model_label},
+                ensure_ascii=False,
+                default=str,
+            ).encode("utf-8") + b"\n"
+            await send({"type": "http.response.body", "body": context_line, "more_body": True})
+
+            if provider == "ollama":
+                queue = asyncio.Queue()
+                loop = asyncio.get_running_loop()
+                stream_payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": module.system_instruction()},
+                        {"role": "user", "content": prompt_context},
+                    ],
+                    "stream": True,
+                    "think": False,
+                    "keep_alive": "5m",
+                    "options": {
+                        "num_predict": 256,
+                        "temperature": 0.2,
+                        "top_p": 0.9,
+                        "repeat_penalty": 1.1,
+                        "num_ctx": 2048,
+                    },
+                }
+
+                def ai_safe_stream_worker():
+                    try:
+                        for chunk in iter_ollama_stream("/api/chat", stream_payload):
+                            loop.call_soon_threadsafe(queue.put_nowait, ("chunk", chunk))
+                    except Exception as error:
+                        loop.call_soon_threadsafe(queue.put_nowait, ("error", str(error)))
+                    finally:
+                        loop.call_soon_threadsafe(queue.put_nowait, ("eof", None))
+
+                worker_task = asyncio.create_task(asyncio.to_thread(ai_safe_stream_worker))
+                try:
+                    while True:
+                        kind, data = await queue.get()
+                        if kind == "chunk":
+                            content = data.get("message", {}).get("content", "")
+                            if content:
+                                line = json.dumps({"type": "token", "content": content}, ensure_ascii=False).encode("utf-8") + b"\n"
+                                await send({"type": "http.response.body", "body": line, "more_body": True})
+                            if data.get("done"):
+                                line = json.dumps({
+                                    "type": "done",
+                                    "model": model_label,
+                                    "metrics": {
+                                        "total_duration": data.get("total_duration", 0),
+                                        "eval_count": data.get("eval_count", 0),
+                                    },
+                                }, ensure_ascii=False).encode("utf-8") + b"\n"
+                                await send({"type": "http.response.body", "body": line, "more_body": True})
+                        elif kind == "error":
+                            line = json.dumps({"type": "error", "error": f"AI 보고서 생성 실패: {data}"}, ensure_ascii=False).encode("utf-8") + b"\n"
+                            await send({"type": "http.response.body", "body": line, "more_body": True})
+                        elif kind == "eof":
+                            break
+                finally:
+                    await worker_task
+            else:
+                report, model_label = await asyncio.to_thread(module.generate_report, prompt_context, payload.get("ai_model"))
+                token_line = json.dumps({"type": "token", "content": report}, ensure_ascii=False).encode("utf-8") + b"\n"
+                done_line = json.dumps({"type": "done", "model": model_label, "metrics": {}}, ensure_ascii=False).encode("utf-8") + b"\n"
+                await send({"type": "http.response.body", "body": token_line, "more_body": True})
+                await send({"type": "http.response.body", "body": done_line, "more_body": True})
+
+            await send({"type": "http.response.body", "body": b"", "more_body": False})
+            return
     elif path == "/api/poc/ai-safe-agent/analyze" and method == "POST":
         try:
             payload = json.loads((await read_request_body(receive)).decode("utf-8"))

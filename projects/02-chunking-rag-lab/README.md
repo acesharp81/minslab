@@ -138,3 +138,74 @@ supabase_schema.sql # 실습 테이블 참고 스키마
 - local-hash-fallback은 기능 검증용이며 상용 임베딩과 품질이 같지 않습니다.
 - RAG 점수와 자동 평가 카드는 실습 보조 지표입니다.
 - 답변의 사실성과 인용 근거는 원문 청크를 열어 최종 확인합니다.
+
+
+## 기본 알고리즘 설정값
+
+| 전략 | 코드 기본값 | 동작 |
+| --- | --- | --- |
+| Fixed | `size=900`, `overlap=120` | 문자 길이 기준으로 자르고 다음 청크에 120자를 겹침 |
+| Recursive | `max_chars=1100` | 문단 → 문장 단위로 묶고 긴 단위는 다시 분할 |
+| Semantic window | `window_size=5`, `stride=3` | 연속 5문장 윈도우를 3문장씩 이동 |
+| 공통 | 전략별 최대 30청크 | 과도한 저장·호출을 방지 |
+
+입력 텍스트는 줄바꿈과 공백을 정규화합니다. 결과 청크에는 순번, 본문, 문자 수, 간이 토큰 수와 전략 메타데이터가 들어갑니다. 선택한 전략 순서가 슬롯 번호와 `chucking_test1~3` 저장 위치를 결정하므로, 청킹 후 선택 순서를 바꾸면 다시 실행해야 합니다.
+
+## 임베딩 저장 계약
+
+`embed_plan()`은 서버에서 슬롯과 허용 테이블을 다시 검증하고 다음 순서로 저장합니다.
+
+1. OpenRouter `openai/text-embedding-3-small` 호출을 시도합니다.
+2. 키가 없거나 호출이 실패하면 1,536차원 결정적 `local-hash-fallback` 벡터를 사용합니다.
+3. 대상 슬롯 테이블의 기존 행을 삭제합니다.
+4. 현재 청크를 ID, 본문, metadata, vector literal로 일괄 삽입합니다.
+5. 실제 사용 테이블, 임베딩 공급자, fallback 경고와 저장 건수를 반환합니다.
+
+metadata에는 `strategy`, `strategy_label`, `rank`, `char_count`, `token_count`, `embedding_provider`, `embedding_model`과 실행 식별 정보가 저장됩니다. 질의 시 저장 행이 모두 local-hash라면 질문도 같은 방식으로 임베딩해 벡터 공간을 맞춥니다.
+
+## 검색·생성 상세
+
+```text
+선택 테이블 최대 300행 로드
+  → 질문 임베딩
+  → 모든 행과 cosine similarity 계산
+  → Naive: 단일 질의 후보 top_k×3
+  → Advanced: 질의 변형별 후보 병합, top_k×4
+  → 선택 시 Cohere rerank
+  → Advanced 문맥은 질문 관련 문장 중심으로 최대 900자 압축
+  → [검색 조각 N] 레이블과 함께 LLM 생성
+  → 인용 수·점수·시간·답변 길이 메타데이터 반환
+```
+
+서버 입력 제한:
+
+| 설정 | 허용 범위 | 기본값 |
+| --- | --- | --- |
+| `temperature` | 0.0~1.5 | 0.2 |
+| `top_k` | 1~10 | 5 |
+| `rag_mode` | `naive`, `advanced` | `naive` |
+| `reranking` | boolean | false |
+| `tables` | `chucking_test1~3`만 허용 | 전체 |
+
+## 스트리밍 API
+
+현재 화면의 질문 실행은 `POST /api/chunking-compare-stream`을 사용합니다. 응답은 `application/x-ndjson`이며 검색 단계, 문맥 준비, 생성 토큰, 완료 또는 오류 이벤트를 순서대로 보냅니다. 브라우저는 패널을 순차 실행하고 실행 중지 버튼으로 현재 요청을 취소할 수 있습니다.
+
+호환용 `POST /api/chunking-compare`는 같은 엔진의 최종 JSON을 한 번에 반환합니다.
+
+스트림 이벤트 예:
+
+```json
+{"type":"stage","stage":"search","message":"Supabase에서 유사 청크를 검색하고 있습니다."}
+{"type":"context","summary":"Naive · 총 30개 중 상위 5개 비교","results":[]}
+{"type":"token","content":"답변 조각"}
+{"type":"done","panel":{"status":"ok"}}
+```
+
+## 실패와 복구
+
+- 테이블이 없으면 현재 이름과 legacy alias를 순서대로 확인한 뒤 오류를 반환합니다.
+- OpenRouter 임베딩 실패는 실행을 중단하지 않고 local-hash fallback 경고로 전환됩니다.
+- Advanced RAG의 Cohere 실패는 cosine 순위로 계속 진행하지만, Naive에서 명시적으로 reranking을 켠 경우 패널 오류가 됩니다.
+- 청크가 없는 테이블은 “먼저 임베딩” 안내를 정상 패널로 반환합니다.
+- 생성 실패는 해당 테이블·RAG 패널에 격리되며 다른 비교 작업은 계속할 수 있습니다.

@@ -397,3 +397,53 @@ projects/03-multiagent-harness/
 - 402는 재시도하지 않습니다.
 - 개인정보와 실제 내부자료는 데모 입력으로 사용하지 않습니다.
 - 실제 산출물은 Risk Checker와 사람의 최종 검토 전 공식 문서로 사용하지 않습니다.
+
+
+## 홈페이지 통합 API 계약
+
+루트 ASGI는 `/api/portfolio/multiagent-harness/*` 요청을 `service.py dispatch()`로 전달합니다. 프로젝트 서비스는 프레임워크에 의존하지 않는 사전형 응답을 반환하고, 루트가 HTTP 상태와 JSON으로 변환합니다.
+
+| Method | 경로 | 역할 |
+| --- | --- | --- |
+| GET | `/health` | 서비스·실행 가능 상태 |
+| GET | `/config` | 에이전트, DAG, 실제 실행 한도 |
+| GET | `/models` | 사용 가능 provider·모델 목록 |
+| GET | `/gateway/status` | provider lane의 슬롯·대기 상태 |
+| POST | `/demo` | 모델 호출 없는 결정적 실행 생성 |
+| POST | `/live/authorize` | 오너 실행 암호 검증과 10분 일회용 토큰 발급 |
+| POST | `/live` | 실제 LLM 실행 시작 |
+| GET | `/runs/{run_id}` | 실행 상태·이벤트·산출물 폴링 |
+
+실행 기록은 데이터베이스가 아니라 서버 프로세스 메모리의 `OrderedDict`에 최근 12개만 보관됩니다. 서비스 재시작 시 사라지므로 감사·보존이 필요한 운영 시스템에서는 영속 저장소와 사용자 소유권을 추가해야 합니다.
+
+## 실제 실행 제한값
+
+| 항목 | 기본값 | 강제 범위·동작 |
+| --- | --- | --- |
+| 실제 실행 동시성 | 1 | `BoundedSemaphore(1)` |
+| 시간당 실행 | 1 | 환경변수로 1~3 범위 |
+| 모델 호출 수 | 8 | 실행 설정에 고정 |
+| 인증 토큰 TTL | 600초 | 실제 실행 시작 시 소비 |
+| 인증 실패 제한 | 10분 내 5회 | 초과 시 429 |
+| 전체 실행 시간 | 300초 | `MULTI_AGENT_LIVE_MAX_SECONDS` |
+| 호출 타임아웃 | 120초 | `MULTI_AGENT_LIVE_CALL_TIMEOUT` |
+| 호출 출력 | 600토큰 | `MULTI_AGENT_LIVE_MAX_TOKENS` |
+
+개인 키 모드는 `ModelGateway(allow_environment_keys=False)`를 사용하므로 입력하지 않은 원격 provider가 서버 환경키로 조용히 fallback하지 않습니다. 키는 길이와 개행을 검사하고 실행 객체에만 유지합니다.
+
+## 결정적 스케줄링 규칙
+
+`HierarchicalScheduler`는 작업 ID 중복, 존재하지 않는 의존성, DAG 순환을 실행 전에 거부합니다. Capability Router는 같은 capability를 가진 에이전트 중 현재 배정 횟수가 가장 적은 에이전트를 선택하고, 동률이면 ID 순서로 결정합니다. 따라서 동일한 에이전트 목록과 작업 DAG에는 재현 가능한 배정 결과가 나옵니다.
+
+기본 업무 DAG의 병렬 wave는 다음과 같습니다.
+
+```text
+Wave 1: collect-facts, collect-public
+Wave 2: summarize-evidence
+Wave 3: technical-analysis, legal-review
+Wave 4: executive-brief
+Wave 5: risk-check
+Wave 6: final-package
+```
+
+업무 병렬성은 Agent 작업 준비 상태이고 모델 병렬성은 Model Gateway 슬롯입니다. 같은 wave에 두 작업이 있어도 provider 슬롯이 1이면 하나는 `inference.queued` 상태로 기다립니다.

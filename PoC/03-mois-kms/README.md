@@ -109,3 +109,119 @@ npm run build
 - 익명 역할에는 KMS 테이블 권한을 부여하지 않음
 
 AI 보고서는 검토용 초안이며 사실관계와 기관 양식을 담당자가 확인해야 합니다.
+
+
+## 사용자와 업무 상태 모델
+
+### 사용자 상태
+
+`가입신청 → 승인 → 탈퇴` 상태를 사용합니다. 가입 API는 Auth 사용자를 service-role로 만들고 `profiles` 행을 생성합니다. 로그인 화면은 login ID를 서버에서 합성 이메일로 해석한 뒤 Supabase Auth에 로그인하며, profile이 `승인`이 아니면 업무 화면 진입을 막습니다.
+
+직급은 `과장/팀장/팀원/서무`입니다. 전역 관리자는 별도 `user_roles.role=admin`으로 관리하므로 직급과 관리자 권한을 혼동하지 않습니다.
+
+### 업무 결재 단계
+
+```text
+팀원저장 → 팀원등록
+              ↓
+          팀장검토
+          ├─ 팀장반려
+          ├─ 팀장저장
+          └─ 팀장등록
+                 ↓
+             과장승인
+             └─ 과장반려
+```
+
+업무 방식은 `온라인/오프라인` 열거형입니다. task에는 작성자, 분류, 제목, 목적, 내용, 방식, 장소, 일시, 참석자와 현재 결재 단계를 저장합니다.
+
+## 테이블과 RLS
+
+| 테이블 | 핵심 역할 |
+| --- | --- |
+| `divisions` | 과 단위 조직 |
+| `teams` | division 하위 팀 |
+| `task_categories` | 회의·출장·보고·보고 템플릿 분류 |
+| `templates` | category별 보고서 양식 |
+| `profiles` | Auth 사용자와 로그인 ID·조직·직급·승인 상태 |
+| `user_roles` | admin 역할 |
+| `tasks` | 월간 업무와 결재 단계 |
+
+RLS 핵심 규칙:
+
+- 조직·팀·분류·템플릿은 인증 사용자가 읽고 admin만 변경합니다.
+- profile은 인증 사용자가 읽고 본인 또는 admin이 수정합니다.
+- role은 본인 또는 admin이 읽고 admin만 변경합니다.
+- task는 같은 division 또는 admin이 읽습니다.
+- task 생성은 `author_id=auth.uid()`인 본인 행만 가능합니다.
+- 수정은 작성자, 같은 team의 팀장, 같은 division의 과장·서무, admin에게 허용됩니다.
+- 삭제는 작성자 또는 admin만 가능합니다.
+- 익명 역할에는 KMS 테이블 권한을 부여하지 않습니다.
+
+`tasks`, `profiles`는 Supabase Realtime publication에 추가됩니다. `updated_at`은 DB trigger가 갱신합니다.
+
+## Python API 경계
+
+모든 경로의 prefix는 `/api/poc/mois-kms`입니다.
+
+| Method | 경로 | 인증 | 기능 |
+| --- | --- | --- | --- |
+| GET | `/public-config` | 없음 | Supabase URL·publishable key |
+| GET | `/models` | 없음 | 허용 LLM 목록과 provider 상태 |
+| GET | `/auth/signup-meta` | 없음 | 가입용 조직·팀 데이터 |
+| POST | `/auth/check-login-id` | 없음 | 로그인 ID 중복 확인 |
+| POST | `/auth/resolve-login` | 없음 | ID를 Auth 이메일과 상태로 해석 |
+| POST | `/auth/signup` | 없음 | Auth 사용자와 가입신청 profile 생성 |
+| POST | `/admin/delete-user` | admin JWT | profile/Auth 사용자 삭제 |
+| POST | `/report` | 승인 사용자 JWT | 선택 provider 보고서 생성 |
+
+service-role은 가입과 관리자 Auth 삭제 경계에서만 사용합니다. 일반 업무 CRUD는 브라우저 JWT와 RLS를 사용합니다.
+
+## 보고서 생성 흐름
+
+프런트엔드는 보고서 종류에 따라 Supabase에서 task, 작성자, 분류, 템플릿과 기간 업무를 읽어 시스템·사용자 프롬프트를 구성합니다.
+
+- 업무 보고서: 단일 task + 작성자 + 해당 분류 template
+- 월간 보고서: 선택 월의 division 업무 + `월간보고템플릿`
+- 주간 보고서: 선택 주의 division 업무 + `주간보고템플릿`
+
+서버는 매 요청마다 access token으로 Supabase Auth 사용자를 조회하고 profile 상태가 `승인`인지 확인합니다. 모델은 서버가 광고한 목록만 허용합니다.
+
+| 옵션 | 기본값 | 범위 |
+| --- | --- | --- |
+| temperature | 0.2 | 0.0~1.5 |
+| max_tokens | 1200 | 128~4096 |
+| system prompt | 화면 기본값 | 1~8000자 |
+| user prompt | 보고서별 구성 | 1~60000자 |
+| Ollama num_ctx | 8192 | 서버 고정 |
+| Ollama keep_alive | 5m | 서버 고정 |
+
+모델 설정은 브라우저 `minslab.moisKms.reportAISettings.v1` localStorage에 저장됩니다. 비밀키는 저장하지 않습니다.
+
+## 공급자와 실패 조건
+
+- Ollama: `/api/tags`에서 embedding 모델을 제외한 설치 모델을 찾습니다.
+- Hugging Face: `MOIS_KMS_HF_MODELS` 목록과 `HF_API_KEY` 존재 여부를 결합합니다.
+- OpenRouter: `MOIS_KMS_OPENROUTER_MODELS`와 `OPENROUTER_API_KEY`를 사용합니다.
+- `MOIS_KMS_DEFAULT_MODEL`이 허용 목록에 있으면 기본 선택합니다.
+
+선택 provider 키가 없거나 모델이 허용 목록에 없으면 호출 전에 거부합니다. 원격 응답에서 `content`가 비면 `reasoning_content`를 확인하고 둘 다 없으면 오류로 처리합니다.
+
+## 프런트엔드 구조
+
+```text
+src/
+├── routes/                   # login, dashboard, admin, task/weekly/monthly report
+├── components/dashboard/    # calendar, task list/detail/form, profile
+├── components/report/       # model settings, result viewer
+├── lib/
+│   ├── api.ts               # host Python API + Bearer token
+│   ├── auth.functions.ts
+│   ├── profile.functions.ts
+│   ├── tasks.functions.ts
+│   ├── admin.functions.ts
+│   └── report.functions.ts
+└── integrations/supabase/   # browser client and generated types
+```
+
+TanStack Router history 경로는 ASGI가 `dist/index.html`로 fallback합니다. 운영 반영은 반드시 `npm run build`로 `dist/`를 갱신한 뒤 Python 서비스를 재시작합니다.

@@ -110,3 +110,38 @@ https://www.minslab.kr/portfolio
 - 외부 API 응답과 스크린샷에서 개인정보와 인증 토큰을 제거합니다.
 - 생성형 AI 결과는 검토 전 결과로 취급합니다.
 - 실습 테이블과 운영 데이터를 분리합니다.
+
+
+## 공통 통합 동작
+
+`portfolio_loader.py`는 `projects/*/project.json`을 읽고 `order`와 `title`로 정렬합니다. 엔트리 파일은 UTF-8로 읽어 코드 미리보기에 포함하고, 읽기 실패나 JSON 오류가 있는 프로젝트는 서버 로그에 원인을 남긴 뒤 목록에서 제외합니다.
+
+홈페이지 실행형 프로젝트의 책임 경계는 다음과 같습니다.
+
+| 계층 | 책임 |
+| --- | --- |
+| `project.json` | 목록 메타데이터와 대표 소스 지정 |
+| 프로젝트 폴더 | 도메인 로직, 샘플 데이터, 정적 앱, 테스트 |
+| `main.py` | 화면 렌더링, 요청 크기 제한, ASGI 응답과 스트리밍 |
+| 공통 서비스 | Ollama, Supabase, OpenRouter, Hugging Face, Cohere 연결 |
+| 브라우저 | 입력 검증, 진행 상태, 중지, 결과 시각화 |
+
+## 프로젝트별 데이터 변경 범위
+
+| 프로젝트 | 읽기 | 쓰기 |
+| --- | --- | --- |
+| 01 청킹 실습 | Supabase `documents`, `documents_test` | 없음 |
+| 02 청킹·RAG | `chucking_test1~3` 또는 legacy alias | 선택 슬롯 테이블 전체 교체 |
+| 03 멀티에이전트 | 메모리 내 실행 설정 | 최근 실행 12개를 프로세스 메모리에 보관 |
+| 04 보고서 초안 | `data/civil_reply_context.xml` | 브라우저 localStorage의 생성 옵션만 변경 |
+
+## 새 프로젝트 체크리스트
+
+1. 번호 폴더와 `project.json`을 만들고 `id/order/display_no`를 맞춥니다.
+2. 대표 소스인 `entry_file`이 실제로 존재하는지 확인합니다.
+3. 프로젝트 README에 입력, 처리, 출력, 데이터 변경과 실패 모드를 기록합니다.
+4. 외부 서비스가 있다면 루트 `.env.example`에 공개 가능한 변수 이름만 추가합니다.
+5. 전용 화면이 필요하면 `main.py` 렌더러가 정확한 `id`를 처리하는지 확인합니다.
+6. API는 허용 모델·테이블·입력 크기를 서버에서 다시 검증합니다.
+7. 별도 포트를 만들기 전에 기존 ASGI 정적 제공 또는 모듈 API로 통합할 수 있는지 확인합니다.
+8. `python3 -m py_compile`, 프로젝트 테스트, `git diff --check`를 통과시킵니다.

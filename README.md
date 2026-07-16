@@ -2,6 +2,82 @@
 
 오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반의 Local AI chat, portfolio archive, and hands-on RAG/chunking comparison labs.
 
+## 저장소 한눈에 보기
+
+MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포트폴리오 실습 4개, 재난안전·업무관리 PoC 3개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 프로젝트마다 별도 서버를 띄우지 않고 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅합니다.
+
+| 구분 | 프로젝트 | 실행 화면 | 상세 문서 |
+| --- | --- | --- | --- |
+| Home | Local AI Chat | `/` | 이 문서의 Local AI Chat 섹션 |
+| Portfolio 01 | 청킹 실습 | `/portfolio?project=chunking-lab` | [projects/01-chunking-lab](projects/01-chunking-lab/README.md) |
+| Portfolio 02 | 청킹·임베딩·RAG 과제 | `/portfolio?project=chunking-rag-lab` | [projects/02-chunking-rag-lab](projects/02-chunking-rag-lab/README.md) |
+| Portfolio 03 | 계층형 멀티에이전트 하네스 | `/portfolio?project=multiagent-harness` | [projects/03-multiagent-harness](projects/03-multiagent-harness/README.md) |
+| Portfolio 04 | 행정 회신 초안 생성 | `/portfolio?project=report-draft` | [projects/04-report-draft](projects/04-report-draft/README.md) |
+| PoC 01 | AI Safe Agent / AI 안전비서 | `/poc?project=ai-safe-agent` | [PoC/01-AISafeAgent](PoC/01-AISafeAgent/README.md) |
+| PoC 02 | 현장점검플랫폼 | `/poc?project=field-inspection-platform` | [PoC/02-field-inspection-platform](PoC/02-field-inspection-platform/README.md) |
+| PoC 03 | 통합 업무관리시스템 | `/poc?project=mois-kms` | [PoC/03-mois-kms](PoC/03-mois-kms/README.md) |
+
+포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
+
+## 전체 아키텍처
+
+```text
+Browser
+  ├─ Home / Portfolio / PoC HTML
+  ├─ React SPA: Field Inspection, MoIS KMS
+  └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
+          │ HTTPS
+          ▼
+Nginx
+          │ localhost:8000
+          ▼
+Uvicorn + main.py (minimal ASGI)
+  ├─ Ollama proxy and NDJSON streaming
+  ├─ Supabase REST/Auth boundary
+  ├─ OpenRouter / Hugging Face / Cohere / KMA integrations
+  ├─ project module loader
+  ├─ static/dist file serving
+  └─ SQLite analytics and system metrics
+          │
+          ├─ Ollama localhost:11434
+          ├─ Supabase PostgreSQL + pgvector
+          ├─ data/analytics.sqlite3
+          └─ external provider APIs
+```
+
+`main.py`는 프레임워크 라우터 대신 ASGI `scope/receive/send`를 직접 처리합니다. CPU 또는 블로킹 I/O 작업은 `asyncio.to_thread`로 넘기고, 토큰 스트림은 NDJSON으로 브라우저에 전달합니다. 프로젝트 모듈은 파일 수정 시 mtime을 비교해 다시 로드하므로 서비스 재시작 후 최신 코드를 사용합니다.
+
+## 저장소 구조
+
+```text
+.
+├── main.py                    # HTML, 공통 API, 정적 SPA 라우팅
+├── chunking_compare.py        # 청킹·임베딩·검색·RAG 공용 엔진
+├── portfolio_loader.py        # projects/ 및 PoC/ project.json 자동 검색
+├── env_utils.py               # 루트 .env 로딩과 다중 이름 설정 조회
+├── supabase_store.py          # 채팅 기록 Supabase/로컬 fallback
+├── analytics_store.py         # SQLite 방문 통계·LLM 호출 수·시스템 지표
+├── admin_auth.py              # 관리자 암호·서명 세션·요청 제한
+├── admin_page.py              # 관리자 화면
+├── system_metrics.py          # Linux CPU·메모리 측정
+├── supabase_schema.sql        # 채팅/청킹 공통 참고 스키마
+├── projects/                  # 포트폴리오 01~04
+├── PoC/                       # 실행형 PoC 01~03
+├── static/                    # 루트 페이지 공개 정적 파일
+├── data/                      # 로컬 SQLite·채팅 fallback·프로젝트 자료
+├── analysis/                  # 로컬 분석 산출물, Git 제외
+└── tests/                     # 공통 ASGI·통계 회귀 테스트
+```
+
+## 공통 런타임 원칙
+
+- 비밀값은 저장소 루트 `.env`에서만 읽고 `.env.example`에는 이름과 공개 기본값만 기록합니다.
+- 브라우저에는 Supabase publishable key만 전달할 수 있으며 service-role, LLM API key, 관리자 비밀값은 서버에만 둡니다.
+- React PoC는 개발 시 Vite를 사용하지만 운영에서는 빌드된 `dist/`를 기존 ASGI가 제공합니다.
+- 로컬 모델은 브라우저가 Ollama 포트에 직접 접근하지 않고 백엔드 프록시를 통합니다.
+- 생성형 AI 출력은 자동 발송·확정 자료가 아니라 담당자 검토 전 초안입니다.
+- 생성 CSV, PKL, SQLite, 대화 기록, 분석 결과와 실제 환경파일은 Git 추적에서 제외합니다.
+
 ## What This App Includes
 
 - Local AI chat UI backed by Ollama, with conversation history support through Supabase.
@@ -22,18 +98,21 @@ Workflow:
 
 1. Open `/poc` and select `01. AI Safe Agent`.
 2. Allow GPS location access, click the map, choose a saved preset, or enter coordinates manually.
-3. Review the 500m radius map markers, compact risk/shelter counters, and legal-dong label when reverse geocoding is configured.
+3. Review the 500m radius map markers, compact risk/shelter counters, and legal-dong label resolved through Kakao, VWorld, or the rate-limited OpenStreetMap fallback.
 4. Run analysis to fetch KMA rainfall data and generate an AI disaster-safety report.
 
 AI Safe Agent UI includes:
 
 - Initial GPS-based map positioning with graceful fallback to the default Seoul City Hall coordinates.
+- A map-centered GPS progress popup that remains visible until positioning succeeds or falls back.
 - First map/project selection scroll behavior that centers the map for faster mobile use.
 - A single-line rainfall trend graph from 6 hours ago through 6 hours ahead, sampled hourly.
 - Compact counters for nearby risk history and shelters.
 - Expandable analysis data for flood traces, landslide records, human-casualty risk zones, and shelters.
 - Detail rows that include event dates for risk history and straight-line distance for shelters.
 - A server-side knowledge-base build endpoint that generates dated PKL files from public data sources.
+- Streaming AI Safe Assistant output with the same stop-and-live-feedback pattern as the home chat.
+- Reuse of the already fetched KMA rainfall payload, compact LLM context, and bounded local-model output for lower latency.
 
 Generated PoC datasets such as CSV snapshots and `integrated_disaster_kb_*.pkl` files are intentionally ignored by Git. Rebuild them locally with the in-app `기초 데이터 만들기` action or the `PoC/01-AISafeAgent/import.py` script.
 
@@ -154,14 +233,14 @@ Configure the administrator only in the untracked `.env` file:
 MINSLAB_ADMIN_PASSWORD=CHANGE_THIS_ADMIN_PASSWORD
 MINSLAB_ADMIN_SESSION_SECRET=YOUR_RANDOM_SESSION_SECRET
 MINSLAB_ANALYTICS_RETENTION_DAYS=90
-MINSLAB_SYSTEM_METRICS_INTERVAL_SECONDS=300
+# 시스템 지표 수집 주기는 현재 main.py의 SYSTEM_METRICS_INTERVAL_SECONDS(60초)를 사용합니다.
 ```
 
 When `MINSLAB_ADMIN_PASSWORD` is exactly `MULTI_AGENT_LIVE_ENABLED_key`, the administrator uses the value stored under that environment variable. Optional outer quotes in `.env` are removed and are not part of the password entered in the browser.
 
 Open `/admin` to inspect today's IP addresses, visited pages, referrers, and user agents. The password is never included in browser code. Authentication uses a signed, expiring `HttpOnly`, `Secure`, `SameSite=Strict` cookie. `Total` means cumulative page views, while `Today` uses the `Asia/Seoul` calendar date.
 
-The admin dashboard stores Linux host CPU and memory usage in the same SQLite database every five minutes and graphs the most recent 72 hours. Samples older than seven days are removed automatically; the collection interval can be changed with `MINSLAB_SYSTEM_METRICS_INTERVAL_SECONDS` (60–3600 seconds).
+The admin dashboard stores Linux host CPU and memory usage in the same SQLite database every 60 seconds and graphs the most recent 48 hours. Samples older than seven days are removed automatically.
 
 Total, Today, and Visitors cards draw a subtle seven-day SQLite trend sparkline behind the current number.
 The status popover distinguishes web-service uptime (the current Uvicorn process) from physical-server uptime (Linux `/proc/uptime`).
@@ -212,6 +291,7 @@ Important local API routes:
 - `POST /api/poc/ai-safe-agent/reverse-geocode`: resolve legal-dong labels for coordinates
 - `POST /api/poc/ai-safe-agent/spatial`: return nearby risk/shelter details without LLM execution
 - `POST /api/poc/ai-safe-agent/rain`: return KMA hourly rainfall trend data
+- `POST /api/poc/ai-safe-agent/analyze-stream`: stream prepared analysis context and AI report tokens as NDJSON
 - `POST /api/poc/ai-safe-agent/analyze`: run rainfall, spatial lookup, and AI report generation
 - `GET /api/poc/mois-kms/models`: list Local, Hugging Face, and OpenRouter report models
 - `POST /api/poc/mois-kms/report`: generate an authenticated AI report
@@ -250,12 +330,23 @@ git add --dry-run .
 python3 -m py_compile main.py chunking_compare.py
 ```
 
-## Current Publishing Status
+## 운영과 배포
 
-The latest local feature work is committed in this repository, but pushing to GitHub requires GitHub authentication on the server.
-
-If credentials are configured, publish with:
+현재 운영 구조는 Nginx → `myservice` systemd → Uvicorn `127.0.0.1:8000`입니다. React PoC의 `dist/`를 갱신한 경우에도 최종적으로 Python 서비스를 재시작해 정적 파일과 동적 모듈 상태를 함께 확인합니다.
 
 ```bash
-git push origin main
+python3 -m py_compile main.py chunking_compare.py
+python3 -m unittest tests.test_site_api tests.test_site_analytics -v
+sudo systemctl restart myservice
+systemctl status myservice --no-pager
+curl -fsS http://127.0.0.1:8000/health
 ```
+
+프런트엔드를 수정한 프로젝트는 해당 폴더에서 추가로 실행합니다.
+
+```bash
+npm run typecheck
+npm run build
+```
+
+GitHub 배포 전에는 `git diff --check`, 비밀값 미추적 여부, 생성 데이터 제외 여부를 확인합니다. 확인 후 현재 브랜치를 커밋하고 `git push origin main`으로 게시합니다.

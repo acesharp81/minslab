@@ -91,3 +91,51 @@ main.py             # 홈페이지 화면과 API 라우팅
 - Ollama 선택 시 모델이 서버에 설치되어 있어야 합니다.
 - 비교 점수는 실습용 휴리스틱이며 답변 품질의 절대 평가값이 아닙니다.
 - 실제 업무 판단에는 검색 원문과 생성 답변을 사람이 다시 확인해야 합니다.
+
+
+## 내부 동작 상세
+
+`POST /api/chunking-legacy-compare`는 다음 순서로 동작합니다.
+
+```text
+prompt 검증
+  → documents / documents_test에서 각각 최대 50행 조회
+  → 제목·본문 후보 필드 정규화
+  → 질문 토큰과 행 토큰의 중첩 개수 계산
+  → 부분 문자열 일치마다 가중치 2 추가
+  → 점수 내림차순 상위 5행 선택
+  → 선택 모델에 두 테이블의 문맥을 각각 전달
+  → 패널별 통계와 답변 반환
+```
+
+행 제목은 `title`, `name`, `source`, `document_title`, `filename`, `file_name`, `heading` 순서로 찾습니다. 본문은 `content`, `text`, `chunk`, `body`, `document`, `page_content`, `summary`, `description` 순서로 찾고, 모두 없으면 문자열·숫자 필드를 합쳐 미리보기를 만듭니다.
+
+점수는 벡터 유사도가 아니라 질문과 문서의 단어 중첩을 확인하는 결정적 휴리스틱입니다. 따라서 한국어 조사·동의어·문장 의미는 충분히 반영하지 못하며, 이 프로젝트의 목적은 두 기존 테이블 전처리 차이를 빠르게 관찰하는 데 있습니다.
+
+## API 계약
+
+요청:
+
+| 필드 | 형식 | 규칙 |
+| --- | --- | --- |
+| `prompt` | string | 공백 제거 후 비어 있으면 오류 |
+| `model` | string | `ollama:{name}` 또는 `openrouter:{model}` |
+
+응답의 `panels`에는 테이블별로 `status`, `summary`, `meta.total_rows`, `top_count`, `top_score`, `avg_score`, `answer`, `results`가 포함됩니다. 한 테이블이 실패해도 다른 테이블 패널은 독립적으로 반환될 수 있습니다.
+
+## 모델 선택 규칙
+
+- 값이 `ollama:`로 시작하면 로컬 Ollama를 사용합니다.
+- 값이 `openrouter:`로 시작하거나 모델명에 `/`가 있으면 OpenRouter를 사용합니다.
+- 접두사 없이 단순 모델명이면 Ollama 모델로 해석합니다.
+- `GET /api/chunking-models`는 설치된 비임베딩 Ollama 모델과 기본 OpenRouter 모델을 합쳐 반환합니다.
+
+Ollama 요청은 `keep_alive=5m`, `num_predict=700`, `temperature=0.2`, `top_p=0.9`를 사용합니다. OpenRouter도 최대 출력 700토큰을 사용합니다.
+
+## 장애 확인 순서
+
+1. `GET /api/chunking-models`로 모델 목록과 Ollama 연결을 확인합니다.
+2. Supabase REST에서 `documents`, `documents_test`가 존재하는지 확인합니다.
+3. 두 테이블의 행에 제목 또는 본문으로 해석할 문자열 필드가 있는지 확인합니다.
+4. OpenRouter 사용 시 서버 로그의 HTTP 상태와 키 설정을 확인합니다.
+5. 점수가 모두 0이면 질문의 핵심 단어가 원문에 실제로 포함되어 있는지 확인합니다.

@@ -54,7 +54,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("관리자 로그인".encode("utf-8"), body)
         self.assertIn("Local LLM 호출".encode("utf-8"), body)
         self.assertIn("가동 시간".encode("utf-8"), body)
-        self.assertIn("서버 리소스 · 최근 3일".encode("utf-8"), body)
+        self.assertIn("서버 리소스 · 최근 2일".encode("utf-8"), body)
         self.assertIn(b'id="cpuChart"', body)
         self.assertIn(b'id="memoryChart"', body)
 
@@ -65,8 +65,8 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_admin_analytics_includes_system_metrics(self):
         history = {
-            "hours": 72,
-            "range_started_at": "2026-07-13T00:00:00+00:00",
+            "hours": 48,
+            "range_started_at": "2026-07-14T00:00:00+00:00",
             "range_ended_at": "2026-07-16T00:00:00+00:00",
             "points": [],
             "cpu": {"current": None, "average": None, "maximum": None},
@@ -88,7 +88,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(start["status"], 200)
         payload = json.loads(body)
-        self.assertEqual(payload["system_metrics"]["hours"], 72)
+        self.assertEqual(payload["system_metrics"]["hours"], 48)
         self.assertEqual(
             payload["system_metrics_interval_seconds"],
             main.SYSTEM_METRICS_INTERVAL_SECONDS,
