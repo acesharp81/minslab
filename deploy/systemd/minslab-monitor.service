@@ -1,0 +1,15 @@
+[Unit]
+Description=MinsLab external availability probe
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/monitor_probe.py
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

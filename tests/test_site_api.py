@@ -54,9 +54,16 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("관리자 로그인".encode("utf-8"), body)
         self.assertIn("Local LLM 호출".encode("utf-8"), body)
         self.assertIn("가동 시간".encode("utf-8"), body)
-        self.assertIn("서버 리소스 · 최근 2일".encode("utf-8"), body)
+        self.assertIn("서버 운영 모니터 · 최근 2일".encode("utf-8"), body)
         self.assertIn(b'id="cpuChart"', body)
         self.assertIn(b'id="memoryChart"', body)
+        self.assertIn(b'id="serviceMemoryChart"', body)
+        self.assertIn(b'HOST MEMORY', body)
+        self.assertIn(b'WEB SERVICE', body)
+        self.assertIn(b'HTTP LATENCY', body)
+        self.assertIn(b'DISK USAGE', body)
+        self.assertIn("외부 HTTPS".encode("utf-8"), body)
+        self.assertIn("서비스 재시작".encode("utf-8"), body)
 
     async def test_admin_analytics_requires_session(self):
         start, body = await call_app("/api/admin/analytics")

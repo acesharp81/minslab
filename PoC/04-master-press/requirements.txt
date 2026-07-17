@@ -1,0 +1,3 @@
+# PoC 04 additional dependencies used by the existing homepage Python environment.
+cryptography>=42
+trafilatura>=1.12

@@ -18,6 +18,7 @@ from analytics_store import analytics_status, get_analytics_summary, get_system_
 from chunking_compare import DEFAULT_CHAT_MODEL, chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
 from env_utils import env_first, load_project_env
 from portfolio_loader import poc_projects_as_json, projects_as_json
+from runtime_monitor import drain_http_window, observe_http_request
 from supabase_store import is_configured as supabase_configured
 from supabase_store import list_history, save_history
 from system_metrics import read_system_usage
@@ -47,6 +48,13 @@ MOIS_KMS_MODULE = None
 MOIS_KMS_MTIME = None
 REPORT_DRAFT_MODULE = None
 REVERSE_GEOCODE_CACHE = {}
+MASTER_PRESS_BASE_PATH = "/poc/master-press"
+MASTER_PRESS_API_BASE = "/api/poc/master-press"
+MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
+MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
+MASTER_PRESS_MODULE = None
+MASTER_PRESS_MTIME = None
+
 NOMINATIM_LOCK = threading.Lock()
 NOMINATIM_LAST_REQUEST = 0.0
 REPORT_DRAFT_MTIME = None
@@ -376,9 +384,12 @@ HTML_PAGE = r"""
     .safe-agent-status-card{padding:10px;display:grid;align-content:center;justify-items:center;text-align:center;min-height:132px}
     .safe-agent-status-card b{display:block;font-size:28px;line-height:1;overflow-wrap:anywhere}
     .safe-agent-status-card span{display:block;margin-top:7px;color:#747970;font-size:11px;font-weight:800;line-height:1.25}
-    .safe-agent-rain-card{grid-column:auto;padding:12px 14px;border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;min-width:0;display:grid;grid-template-columns:116px minmax(0,1fr);gap:12px;align-items:center;min-height:132px}
+    .safe-agent-rain-card{grid-column:auto;padding:12px 14px;border:1px solid #d8d4ca;border-radius:16px;background:#fffdf6;min-width:0;display:grid;grid-template-columns:116px minmax(0,1fr);gap:12px;align-items:center;min-height:156px}
     .safe-agent-rain-head{display:grid;gap:6px;align-content:center;min-width:0}.safe-agent-rain-head strong{font-size:14px}.safe-agent-rain-head span{color:#747970;font-size:11px;line-height:1.35;overflow-wrap:anywhere}.safe-agent-rain-peak{font:11px ui-monospace,monospace;color:#171916}
-    .safe-agent-rain-graph{min-width:0}.safe-agent-rain-svg{display:block;width:100%;height:94px;overflow:visible}.safe-agent-rain-axis{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:2px;margin-top:2px;color:#747970;font:10px ui-monospace,monospace;text-align:center}.safe-agent-rain-axis span{min-width:0;white-space:nowrap}.safe-agent-rain-axis .current{color:#171916;font-weight:900}.safe-agent-rain-line{fill:none;stroke:#2563eb;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.safe-agent-rain-area{fill:rgba(37,99,235,.1)}.safe-agent-rain-dot{fill:#fff;stroke:#2563eb;stroke-width:2}.safe-agent-rain-now{stroke:#171916;stroke-width:1;stroke-dasharray:4 4;opacity:.45}.safe-agent-rain-grid{stroke:#d8d4ca;stroke-width:1;opacity:.7}
+    .safe-agent-rain-graph{min-width:0}.safe-agent-rain-svg{display:block;width:100%;height:112px;overflow:visible}.safe-agent-rain-axis{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:2px;margin-top:2px;color:#747970;font:10px ui-monospace,monospace;text-align:center}.safe-agent-rain-axis span{min-width:0;white-space:nowrap}.safe-agent-rain-axis .current{color:#171916;font-weight:900}.safe-agent-rain-line{fill:none;stroke:#2563eb;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.safe-agent-rain-area{fill:rgba(37,99,235,.1)}.safe-agent-rain-dot{fill:#fff;stroke:#2563eb;stroke-width:2}.safe-agent-rain-now{stroke:#171916;stroke-width:1;stroke-dasharray:4 4;opacity:.45}.safe-agent-rain-grid{stroke:#d8d4ca;stroke-width:1;opacity:.7}
+    .safe-agent-weather-legend{display:flex;flex-wrap:wrap;gap:8px;color:#555b53;font-size:10px;font-weight:800}.safe-agent-weather-legend span{display:inline-flex;align-items:center;gap:4px;margin:0}.safe-agent-weather-legend i{width:14px;height:3px;border-radius:0;background:#2563eb}.safe-agent-weather-legend i.temp{background:#d9573f}
+    .safe-agent-temp-line{fill:none;stroke:#d9573f;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.safe-agent-temp-dot{fill:#fffdf6;stroke:#d9573f;stroke-width:2}
+    .safe-agent-chart-axis{font:9px ui-monospace,monospace;font-weight:800}.safe-agent-chart-axis.rain{fill:#2563eb}.safe-agent-chart-axis.temp{fill:#d9573f}.safe-agent-weather-icon{fill:#555b53;font:15px sans-serif}.safe-agent-weather-icon.current{font-weight:900;fill:#171916}
     .safe-agent-result{display:grid;gap:14px}
     .safe-agent-result article{padding:18px}
     .safe-agent-result h3{margin:0 0 12px;font-size:17px}
@@ -882,7 +893,7 @@ HTML_PAGE = r"""
     function renderAISafeAgent(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="safe-agent-lab"><div class="safe-agent-data-bar is-collapsed"><div class="safe-agent-data-head" id="safeAgentDataHead" tabindex="0"><div><strong id="safeAgentKbStatus">기초 데이터 확인 중</strong><small id="safeAgentKbDetail">PKL 상태를 불러오고 있습니다.</small></div><div class="safe-agent-data-actions"><button class="primary" id="safeAgentBuildData" type="button">기초 데이터 만들기</button><button id="safeAgentRefreshKb" type="button">새로고침</button><button class="safe-agent-log-toggle" id="safeAgentLogToggle" type="button" aria-expanded="false" aria-controls="safeAgentDataLog">로그 보기</button></div></div><textarea class="safe-agent-data-log" id="safeAgentDataLog" readonly>기초 데이터 로그가 이곳에 표시됩니다.</textarea></div><div class="safe-agent-console"><div class="safe-agent-map" id="safeAgentMap" aria-label="분석 지점 지도"><div class="safe-agent-map-label" id="safeAgentMapLabel">37.5665, 126.9780 · 500m</div><div class="safe-agent-map-legend"><span><i class="risk"></i>위험 요소</span><span><i class="shelter"></i>대피소</span></div></div><div class="safe-agent-controls"><div class="safe-agent-title-row"><h3>위험 요소 중심 복합 재해 분석</h3><div class="safe-agent-badges"><span class="safe-agent-badge">KMA LIVE</span><span class="safe-agent-badge">500M RADIUS</span><span class="safe-agent-badge">LLM REPORT</span></div></div><div class="safe-agent-fields"><label>위도<input id="safeAgentLat" type="number" step="0.000001" value="37.5665"></label><label>경도<input id="safeAgentLng" type="number" step="0.000001" value="126.9780"></label><label class="safe-agent-address-field">법정동<input id="safeAgentAddress" type="text" value="확인 중" readonly></label></div><div class="safe-agent-execute-row"><label class="safe-agent-model-field">AI 모델<select id="safeAgentModel"><option value="">모델 불러오는 중...</option></select></label><button class="safe-agent-run" id="safeAgentRun" type="button">분석 실행</button><div class="safe-agent-inline-message" id="safeAgentMessage">좌표를 입력하거나 지도를 클릭하면 Python PoC가 서버에서 실행됩니다.</div></div><div class="safe-agent-preset-panel"><div class="safe-agent-preset-form"><label>장소명<input id="safeAgentPlaceName" type="text" placeholder="예: 우리집, 현장 A"></label><button id="safeAgentSavePreset" type="button">현재 좌표 저장</button><button id="safeAgentGps" type="button">GPS 위치</button></div><div class="safe-agent-samples" id="safeAgentPresets"></div></div></div></div><div class="safe-agent-status" id="safeAgentStatus"><article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수 추계</strong><span>분석 실행 후 갱신</span></div><div class="safe-agent-rain-bars"><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">6H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">현재</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+1H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+2H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+3H</span></div></div></article><article class="safe-agent-status-card"><b>-</b><span>위험 이력</span></article><article class="safe-agent-status-card"><b>-</b><span>대피소</span></article></div><div class="safe-agent-result" id="safeAgentResult"><div class="safe-agent-empty">실행 결과가 이곳에 표시됩니다.</div></div></section>`;
+      projectLab.innerHTML=`<section class="safe-agent-lab"><div class="safe-agent-data-bar is-collapsed"><div class="safe-agent-data-head" id="safeAgentDataHead" tabindex="0"><div><strong id="safeAgentKbStatus">기초 데이터 확인 중</strong><small id="safeAgentKbDetail">PKL 상태를 불러오고 있습니다.</small></div><div class="safe-agent-data-actions"><button class="primary" id="safeAgentBuildData" type="button">기초 데이터 만들기</button><button id="safeAgentRefreshKb" type="button">새로고침</button><button class="safe-agent-log-toggle" id="safeAgentLogToggle" type="button" aria-expanded="false" aria-controls="safeAgentDataLog">로그 보기</button></div></div><textarea class="safe-agent-data-log" id="safeAgentDataLog" readonly>기초 데이터 로그가 이곳에 표시됩니다.</textarea></div><div class="safe-agent-console"><div class="safe-agent-map" id="safeAgentMap" aria-label="분석 지점 지도"><div class="safe-agent-map-label" id="safeAgentMapLabel">37.5665, 126.9780 · 500m</div><div class="safe-agent-map-legend"><span><i class="risk"></i>위험 요소</span><span><i class="shelter"></i>대피소</span></div></div><div class="safe-agent-controls"><div class="safe-agent-title-row"><h3>위험 요소 중심 복합 재해 분석</h3><div class="safe-agent-badges"><span class="safe-agent-badge">KMA LIVE</span><span class="safe-agent-badge">500M RADIUS</span><span class="safe-agent-badge">LLM REPORT</span></div></div><div class="safe-agent-fields"><label>위도<input id="safeAgentLat" type="number" step="0.000001" value="37.5665"></label><label>경도<input id="safeAgentLng" type="number" step="0.000001" value="126.9780"></label><label class="safe-agent-address-field">법정동<input id="safeAgentAddress" type="text" value="확인 중" readonly></label></div><div class="safe-agent-execute-row"><label class="safe-agent-model-field">AI 모델<select id="safeAgentModel"><option value="">모델 불러오는 중...</option></select></label><button class="safe-agent-run" id="safeAgentRun" type="button">분석 실행</button><div class="safe-agent-inline-message" id="safeAgentMessage">좌표를 입력하거나 지도를 클릭하면 Python PoC가 서버에서 실행됩니다.</div></div><div class="safe-agent-preset-panel"><div class="safe-agent-preset-form"><label>장소명<input id="safeAgentPlaceName" type="text" placeholder="예: 우리집, 현장 A"></label><button id="safeAgentSavePreset" type="button">현재 좌표 저장</button><button id="safeAgentGps" type="button">GPS 위치</button></div><div class="safe-agent-samples" id="safeAgentPresets"></div></div></div></div><div class="safe-agent-status" id="safeAgentStatus"><article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수·기온 추계</strong><span>분석 실행 후 갱신</span></div><div class="safe-agent-rain-bars"><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">6H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">현재</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+1H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+2H</span></div><div class="safe-agent-rain-item"><span class="safe-agent-rain-value">-</span><i class="safe-agent-rain-bar" style="height:6px"></i><span class="safe-agent-rain-label">+3H</span></div></div></article><article class="safe-agent-status-card"><b>-</b><span>위험 이력</span></article><article class="safe-agent-status-card"><b>-</b><span>대피소</span></article></div><div class="safe-agent-result" id="safeAgentResult"><div class="safe-agent-empty">실행 결과가 이곳에 표시됩니다.</div></div></section>`;
       const latEl=document.getElementById('safeAgentLat'),lngEl=document.getElementById('safeAgentLng'),addressEl=document.getElementById('safeAgentAddress'),modelEl=document.getElementById('safeAgentModel'),runButton=document.getElementById('safeAgentRun'),messageEl=document.getElementById('safeAgentMessage'),statusEl=document.getElementById('safeAgentStatus'),resultEl=document.getElementById('safeAgentResult'),mapEl=document.getElementById('safeAgentMap'),mapLabelEl=document.getElementById('safeAgentMapLabel'),kbStatusEl=document.getElementById('safeAgentKbStatus'),kbDetailEl=document.getElementById('safeAgentKbDetail'),buildDataButton=document.getElementById('safeAgentBuildData'),refreshKbButton=document.getElementById('safeAgentRefreshKb'),dataBarEl=document.querySelector('.safe-agent-data-bar'),dataHeadEl=document.getElementById('safeAgentDataHead'),dataLogEl=document.getElementById('safeAgentDataLog'),dataLogToggle=document.getElementById('safeAgentLogToggle'),gpsButton=document.getElementById('safeAgentGps'),placeNameEl=document.getElementById('safeAgentPlaceName'),savePresetButton=document.getElementById('safeAgentSavePreset'),presetsEl=document.getElementById('safeAgentPresets');
       const gpsPopupEl=document.createElement('div');gpsPopupEl.className='safe-agent-gps-popup';gpsPopupEl.setAttribute('role','status');gpsPopupEl.setAttribute('aria-live','polite');gpsPopupEl.innerHTML='<i aria-hidden="true"></i><span>GPS 기반 장소로 이동 중입니다.</span>';gpsPopupEl.hidden=true;mapEl.append(gpsPopupEl);
       function setGpsPopup(open){gpsPopupEl.hidden=!open}
@@ -907,8 +918,36 @@ HTML_PAGE = r"""
       function markerIcon(category){return L.divIcon({className:`safe-agent-div-icon ${category==='shelter'?'shelter':'risk'}`,html:'<span></span>',iconSize:[18,18],iconAnchor:[9,9]})}
       function renderMapFeatures(data){if(!safeFeatureLayer||!window.L)return;safeFeatureLayer.clearLayers();const features=(data.spatial_summary?.map_features||[]).filter(item=>Number.isFinite(Number(item.lat))&&Number.isFinite(Number(item.lng)));for(const feature of features){const popup=`<strong>${escapeHtml(feature.kind||feature.category)}</strong><br>${escapeHtml(feature.label||'항목')}<br>${feature.distance_m!=null?`${escapeHtml(feature.distance_m)}m`:''}`;L.marker([Number(feature.lat),Number(feature.lng)],{icon:markerIcon(feature.category)}).bindPopup(popup).addTo(safeFeatureLayer)}}
       function rainNumber(value){const n=Number(String(value??'0').replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:0}
-      function rainSeries(rain){const fallback=[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6].map(offset=>({offset,label:offset===0?'현재':`${offset>0?'+':''}${offset}H`,value:offset===0?rain.rain_current:(offset===1?rain.rain_1h_after:(offset===2?rain.rain_2h_after:(offset===3?rain.rain_3h_after:'0mm'))),value_mm:null,time:''}));const source=Array.isArray(rain.rain_hourly)&&rain.rain_hourly.length?rain.rain_hourly:fallback;return source.map((item,index)=>{const offset=Number.isFinite(Number(item.offset))?Number(item.offset):index-6;const value=item.value??item.value_mm??'0mm';const valueMm=item.value_mm!==null&&item.value_mm!==undefined&&Number.isFinite(Number(item.value_mm))?Number(item.value_mm):rainNumber(value);return{offset,label:item.label||(offset===0?'현재':`${offset>0?'+':''}${offset}H`),time:item.time||'',value,valueMm}})}
-      function renderRainChart(rain){const items=rainSeries(rain||{});const values=items.map(item=>item.valueMm);const max=Math.max(1,...values);const width=560,height=104,left=18,right=18,top=14,bottom=78;const usableWidth=width-left-right;const points=items.map((item,index)=>{const x=left+(usableWidth*(items.length===1?0:index/(items.length-1)));const y=bottom-((item.valueMm/max)*(bottom-top));return{x,y,item}});const pointAttr=points.map(point=>`${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');const areaAttr=`${left},${bottom} ${pointAttr} ${width-right},${bottom}`;const currentPoint=points.find(point=>point.item.offset===0)||points[Math.floor(points.length/2)]||{x:width/2};const dots=points.map(point=>`<circle class="safe-agent-rain-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3"><title>${escapeHtml(point.item.label)} · ${escapeHtml(point.item.value)}${point.item.time?` · ${escapeHtml(point.item.time)}`:''}</title></circle>`).join('');const axis=items.map(item=>`<span class="${item.offset===0?'current':''}" title="${escapeHtml(item.time)}">${escapeHtml(item.label)}</span>`).join('');const peak=max>0?`${max>=10?max.toFixed(0):max.toFixed(1)}mm max`:'0mm max';return `<article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수 추계</strong><span>${escapeHtml(rain.status||'spatial')}</span><b class="safe-agent-rain-peak">${peak}</b></div><div class="safe-agent-rain-graph"><svg class="safe-agent-rain-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="-6시간부터 +6시간까지 1시간 간격 강수량"><line class="safe-agent-rain-grid" x1="${left}" y1="${bottom}" x2="${width-right}" y2="${bottom}"></line><line class="safe-agent-rain-grid" x1="${left}" y1="${top}" x2="${width-right}" y2="${top}"></line><line class="safe-agent-rain-now" x1="${currentPoint.x.toFixed(1)}" y1="${top}" x2="${currentPoint.x.toFixed(1)}" y2="${bottom}"></line><polygon class="safe-agent-rain-area" points="${areaAttr}"></polygon><polyline class="safe-agent-rain-line" points="${pointAttr}"></polyline>${dots}</svg><div class="safe-agent-rain-axis">${axis}</div></div></article>`}
+      function optionalNumber(value){if(value===null||value===undefined||value==='')return null;const n=Number(value);return Number.isFinite(n)?n:null}
+      function rainSeries(rain){
+        const fallback=[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6].map(offset=>{const known=offset>=0&&offset<=3;return{offset,label:offset===0?'현재':`${offset>0?'+':''}${offset}H`,value:known?(offset===0?rain.rain_current:(offset===1?rain.rain_1h_after:(offset===2?rain.rain_2h_after:rain.rain_3h_after))):'-',value_mm:null,time:'',source:known?'legacy':'none'}});
+        const source=Array.isArray(rain.rain_hourly)&&rain.rain_hourly.length?rain.rain_hourly:fallback;
+        return source.map((item,index)=>{
+          const offset=Number.isFinite(Number(item.offset))?Number(item.offset):index-6,missing=item.source==='none'||item.source==='spatial_only'||item.value==='-'||((item.value===null||item.value===undefined||item.value==='')&&item.value_mm===null);
+          const value=missing?'-':(item.value??item.value_mm??'0mm'),valueMm=missing?null:(item.value_mm!==undefined&&Number.isFinite(Number(item.value_mm))?Number(item.value_mm):rainNumber(value));
+          return{offset,label:item.label||(offset===0?'현재':`${offset>0?'+':''}${offset}H`),time:item.time||'',value,valueMm,temperatureC:optionalNumber(item.temperature_c),humidityPct:optionalNumber(item.humidity_pct),windSpeedMs:optionalNumber(item.wind_speed_ms),windDirectionDeg:optionalNumber(item.wind_direction_deg),precipitationTypeLabel:item.precipitation_type_label||'',precipitationProbabilityPct:optionalNumber(item.precipitation_probability_pct),lightningCode:optionalNumber(item.lightning_code),skyLabel:item.sky_label||''}
+        })
+      }
+      function weatherAxisTime(item){const raw=String(item.time||'').trim(),clock=(raw.split(' ').pop()||'').slice(0,5);return /^\d{2}:\d{2}$/.test(clock)?`${clock.slice(0,2)}시`:item.label}
+      function weatherIcon(item){if(item.lightningCode)return '⚡';const type=item.precipitationTypeLabel||'';if(type.includes('눈'))return '❄';if(type.includes('비')||type.includes('빗')||(item.valueMm!==null&&item.valueMm>0))return '☂';if(item.skyLabel==='맑음')return '☀';if(item.skyLabel==='구름많음')return '⛅';if(item.skyLabel==='흐림')return '☁';if(type==='없음')return '○';return '·'}
+      function weatherTooltip(item){const parts=[item.time||item.label,item.valueMm===null?'강수 자료 없음':`강수 ${item.value}`];if(item.temperatureC!==null)parts.push(`기온 ${item.temperatureC}°C`);if(item.humidityPct!==null)parts.push(`습도 ${item.humidityPct}%`);if(item.windSpeedMs!==null)parts.push(`풍속 ${item.windSpeedMs}m/s${item.windDirectionDeg!==null?` · ${item.windDirectionDeg}°`:''}`);if(item.precipitationTypeLabel)parts.push(`강수형태 ${item.precipitationTypeLabel}`);if(item.precipitationProbabilityPct!==null)parts.push(`강수확률 ${item.precipitationProbabilityPct}%`);if(item.lightningCode)parts.push(`낙뢰 ${item.lightningCode}`);return parts.join(' · ')}
+      function weatherSegments(points,key){const segments=[];let current=[];for(const point of points){if(point[key]===null){if(current.length)segments.push(current);current=[]}else current.push(point)}if(current.length)segments.push(current);return segments}
+      function chartAxisValue(value,unit){if(value===null||value===undefined)return '-';const text=Number.isInteger(value)?value.toFixed(0):value.toFixed(1);return `${text}${unit}`}
+      function renderRainChart(rain){
+        const items=rainSeries(rain||{}),rainValues=items.map(item=>item.valueMm).filter(value=>value!==null),rainDataMax=rainValues.length?Math.max(...rainValues):null,rainScaleMax=Math.max(1,rainDataMax??0),temperatures=items.map(item=>item.temperatureC).filter(value=>value!==null);
+        const tempDataMin=temperatures.length?Math.min(...temperatures):null,tempDataMax=temperatures.length?Math.max(...temperatures):null,tempPadding=temperatures.length?(tempDataMax===tempDataMin?1:Math.max(.5,(tempDataMax-tempDataMin)*.15)):0,tempAxisMin=temperatures.length?Math.floor((tempDataMin-tempPadding)*10)/10:0,tempAxisMax=temperatures.length?Math.ceil((tempDataMax+tempPadding)*10)/10:1,tempRange=Math.max(1,tempAxisMax-tempAxisMin);
+        const width=560,height=124,left=42,right=42,iconY=16,top=34,bottom=98,mid=(top+bottom)/2,usableWidth=width-left-right;
+        const points=items.map((item,index)=>{const x=left+(usableWidth*(items.length===1?0:index/(items.length-1))),rainY=item.valueMm===null?null:bottom-((item.valueMm/rainScaleMax)*(bottom-top)),tempY=item.temperatureC===null?null:bottom-(((item.temperatureC-tempAxisMin)/tempRange)*(bottom-top));return{x,rainY,tempY,item}});
+        const rainSegments=weatherSegments(points,'rainY'),tempSegments=weatherSegments(points,'tempY'),coords=(segment,key)=>segment.map(point=>`${point.x.toFixed(1)},${point[key].toFixed(1)}`).join(' ');
+        const rainAreas=rainSegments.map(segment=>`<polygon class="safe-agent-rain-area" points="${segment[0].x.toFixed(1)},${bottom} ${coords(segment,'rainY')} ${segment[segment.length-1].x.toFixed(1)},${bottom}"></polygon>`).join(''),rainLines=rainSegments.filter(segment=>segment.length>1).map(segment=>`<polyline class="safe-agent-rain-line" points="${coords(segment,'rainY')}"></polyline>`).join(''),tempLines=tempSegments.filter(segment=>segment.length>1).map(segment=>`<polyline class="safe-agent-temp-line" points="${coords(segment,'tempY')}"></polyline>`).join('');
+        const currentPoint=points.find(point=>point.item.offset===0)||points[Math.floor(points.length/2)]||{x:width/2,item:{}};
+        const icons=points.map(point=>`<text class="safe-agent-weather-icon ${point.item.offset===0?'current':''}" x="${point.x.toFixed(1)}" y="${iconY}" text-anchor="middle"><title>${escapeHtml(weatherTooltip(point.item))}</title>${escapeHtml(weatherIcon(point.item))}</text>`).join('');
+        const rainDots=points.filter(point=>point.rainY!==null).map(point=>`<circle class="safe-agent-rain-dot" cx="${point.x.toFixed(1)}" cy="${point.rainY.toFixed(1)}" r="3"><title>${escapeHtml(weatherTooltip(point.item))}</title></circle>`).join(''),tempDots=points.filter(point=>point.tempY!==null).map(point=>`<circle class="safe-agent-temp-dot" cx="${point.x.toFixed(1)}" cy="${point.tempY.toFixed(1)}" r="3"><title>${escapeHtml(weatherTooltip(point.item))}</title></circle>`).join('');
+        const axis=items.map(item=>`<span class="${item.offset===0?'current':''}" title="${escapeHtml(item.time)}">${escapeHtml(weatherAxisTime(item))}</span>`).join(''),rainAxis=[rainScaleMax,rainScaleMax/2,0],tempAxis=temperatures.length?[tempAxisMax,(tempAxisMax+tempAxisMin)/2,tempAxisMin]:[null,null,null],axisY=[top,mid,bottom];
+        const axisLabels=axisY.map((y,index)=>`<text class="safe-agent-chart-axis rain" x="${left-7}" y="${y+3}" text-anchor="end">${chartAxisValue(rainAxis[index],'mm')}</text><text class="safe-agent-chart-axis temp" x="${width-right+7}" y="${y+3}" text-anchor="start">${chartAxisValue(tempAxis[index],'°C')}</text>`).join('');
+        const rainPeak=rainDataMax===null?'강수 자료 없음':`${chartAxisValue(rainDataMax,'mm')} max`,tempRangeText=temperatures.length?`${tempDataMin.toFixed(1)}~${tempDataMax.toFixed(1)}°C`:'기온 없음',currentWeather=[currentPoint.item.temperatureC!==null&&currentPoint.item.temperatureC!==undefined?`${currentPoint.item.temperatureC}°C`:'',currentPoint.item.humidityPct!==null&&currentPoint.item.humidityPct!==undefined?`습도 ${currentPoint.item.humidityPct}%`:'',currentPoint.item.windSpeedMs!==null&&currentPoint.item.windSpeedMs!==undefined?`풍속 ${currentPoint.item.windSpeedMs}m/s`:''].filter(Boolean).join(' · ');
+        return `<article class="safe-agent-rain-card"><div class="safe-agent-rain-head"><strong>강수·기온 추계</strong><div class="safe-agent-weather-legend"><span><i class="rain"></i>강수</span><span><i class="temp"></i>기온</span></div><span>${escapeHtml(currentWeather||rain.status||'spatial')}</span><b class="safe-agent-rain-peak">${rainPeak} · ${tempRangeText}</b></div><div class="safe-agent-rain-graph"><svg class="safe-agent-rain-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="실제 시각별 강수량과 기온, 날씨 아이콘과 좌우 수치축">${icons}<line class="safe-agent-rain-grid" x1="${left}" y1="${bottom}" x2="${width-right}" y2="${bottom}"></line><line class="safe-agent-rain-grid" x1="${left}" y1="${mid}" x2="${width-right}" y2="${mid}"></line><line class="safe-agent-rain-grid" x1="${left}" y1="${top}" x2="${width-right}" y2="${top}"></line><line class="safe-agent-rain-now" x1="${currentPoint.x.toFixed(1)}" y1="${top-8}" x2="${currentPoint.x.toFixed(1)}" y2="${bottom}"></line>${axisLabels}${rainAreas}${rainLines}${rainDots}${tempLines}${tempDots}</svg><div class="safe-agent-rain-axis">${axis}</div></div></article>`
+      }
       function coordsOf(data){const lat=Number(data?.lat),lng=Number(data?.lng);return {lat:Number.isFinite(lat)?lat:Number(latEl.value),lng:Number.isFinite(lng)?lng:Number(lngEl.value)}}
       function sameCoords(a,b){return !!(a&&b)&&Math.abs(Number(a.lat)-Number(b.lat))<0.000001&&Math.abs(Number(a.lng)-Number(b.lng))<0.000001}
       function renderStatus(data){const coords=coordsOf(data),incomingRain=data.rain_info||null;let spatial=data.spatial_summary||null;if(spatial){lastSpatialSummary=spatial;lastSpatialCoords=coords}else if(sameCoords(lastSpatialCoords,coords)){spatial=lastSpatialSummary}spatial=spatial||{};if(incomingRain&&incomingRain.status!=='spatial_only'){lastRainInfo=incomingRain;lastRainCoords=coords}let rain=incomingRain||{};if((!incomingRain||incomingRain.status==='spatial_only')&&sameCoords(lastRainCoords,coords))rain=lastRainInfo||rain;const riskTotal=(spatial.floods_count||0)+(spatial.landslides_count||0)+(spatial.vulnerable_count||0);statusEl.innerHTML=`${renderRainChart(rain)}<article class="safe-agent-status-card"><b>${riskTotal}</b><span>위험이력</span></article><article class="safe-agent-status-card"><b>${spatial.shelters_count||0}</b><span>대피소</span></article>`}
@@ -919,13 +958,13 @@ HTML_PAGE = r"""
       function renderSpatialResult(data){resultEl.innerHTML=`<article class="safe-agent-report"><h3>공간 데이터 빠른 조회</h3><div class="safe-agent-badges"><span class="safe-agent-badge">PKL MEMORY</span><span class="safe-agent-badge">500M RADIUS</span></div><pre>지도 클릭 좌표의 위험 요소와 대피소를 표시했습니다. 기상 정보와 보고서는 분석 실행 버튼을 눌러 생성하세요.</pre></article>${resultDataHtml(data)}`}
       function renderResult(data){const rain=data.rain_info||{},config=data.config_status||{};const model=data.model||modelEl.options[modelEl.selectedIndex]?.textContent||'AI 모델';const keyBadges=`<div class="safe-agent-badges"><span class="safe-agent-badge ${config.kma_key?'ok':'warn'}">KMA ${config.kma_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.hf_key?'ok':'warn'}">HF ${config.hf_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge ${config.openrouter_key?'ok':'warn'}">OR ${config.openrouter_key?'KEY OK':'KEY EMPTY'}</span><span class="safe-agent-badge">${escapeHtml(model)}</span><span class="safe-agent-badge">${escapeHtml(rain.status||'status unknown')}</span></div>`;resultEl.innerHTML=`<article class="safe-agent-report"><h3>AI 안전비서</h3>${keyBadges}<pre>${escapeHtml(data.report||'보고서가 비어 있습니다.')}</pre></article>${resultDataHtml(data)}`}
       function currentCoordsMatch(data){return Math.abs(Number(data.lat)-Number(latEl.value))<0.000001&&Math.abs(Number(data.lng)-Number(lngEl.value))<0.000001}
-      async function loadRainPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;const requestId=++rainRequestSeq;messageEl.textContent='기상청 강수 추계를 먼저 가져오는 중...';const r=await fetch('/api/poc/ai-safe-agent/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==rainRequestSeq)return null;if(!r.ok)throw new Error(data.error||'기상청 강수 조회에 실패했습니다.');if(!currentCoordsMatch(data))return null;renderStatus(data);messageEl.textContent='기상청 강수 추계 표기 완료 · AI 보고서 생성 중...';return data}
+      async function loadRainPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;const requestId=++rainRequestSeq;messageEl.textContent='기상청 강수·기온 추계를 먼저 가져오는 중...';const r=await fetch('/api/poc/ai-safe-agent/rain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==rainRequestSeq)return null;if(!r.ok)throw new Error(data.error||'기상청 기상 정보 조회에 실패했습니다.');if(!currentCoordsMatch(data))return null;renderStatus(data);messageEl.textContent='기상청 강수·기온 추계 표기 완료 · AI 보고서 생성 중...';return data}
       async function loadSpatialPreview(){const lat=Number(latEl.value),lng=Number(lngEl.value);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++spatialRequestSeq;messageEl.textContent='공간 데이터 조회 중...';try{const r=await fetch('/api/poc/ai-safe-agent/spatial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==spatialRequestSeq)return;if(!r.ok)throw new Error(data.error||'공간 데이터 조회에 실패했습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderSpatialResult(data);messageEl.textContent='공간 데이터 표시 완료';}catch(e){if(requestId!==spatialRequestSeq)return;messageEl.textContent='공간 데이터 조회 실패';resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}
       async function loadAiSafeModels(){try{const r=await fetch('/api/poc/ai-safe-agent/models');const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');modelEl.innerHTML=(data.models||[]).map(item=>`<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}${item.details?.parameter_size?' · '+escapeHtml(item.details.parameter_size):''}</option>`).join('')||'<option value="">모델 없음</option>';if(data.default)modelEl.value=data.default;}catch(e){modelEl.innerHTML='<option value="huggingface:Qwen/Qwen2.5-72B-Instruct">Hugging Face · Qwen/Qwen2.5-72B-Instruct</option><option value="openrouter:openai/gpt-4o-mini">OpenRouter · openai/gpt-4o-mini</option>';appendDataLog(`AI 모델 목록 조회 실패: ${e.message}`)}}
       async function loadLegalDong(lat=Number(latEl.value),lng=Number(lngEl.value)){if(!reverseGeocodeEnabled||!Number.isFinite(lat)||!Number.isFinite(lng))return;const requestId=++geocodeRequestSeq;addressEl.value='법정동 확인 중';try{const r=await fetch('/api/poc/ai-safe-agent/reverse-geocode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat,lng})});const data=await readJsonResponse(r);if(requestId!==geocodeRequestSeq)return;if(!r.ok||data.status==='error'){addressEl.value='법정동 확인 실패';appendDataLog(`법정동 확인 실패: ${data.message||data.error||r.status}`);return;}addressEl.value=data.legal_dong||data.address||'확인 불가';if(data.provider==='openstreetmap')appendDataLog(`법정동 대체 조회 완료: ${addressEl.value}`);}catch(e){if(requestId!==geocodeRequestSeq)return;addressEl.value='법정동 확인 실패';appendDataLog(`법정동 확인 실패: ${e.message}`)}}
       function loadDefaultLocation(message='기본 좌표로 공간 데이터를 조회합니다.'){updateMap();loadLegalDong();loadSpatialPreview();messageEl.textContent=message}
       function useGpsLocation(options={}){const auto=!!options.auto;setGpsPopup(true);if(!navigator.geolocation){setGpsPopup(false);if(auto){loadDefaultLocation('GPS를 사용할 수 없어 기본 좌표로 시작합니다.');return;}alert('이 브라우저에서는 위치 정보를 사용할 수 없습니다.');return;}gpsButton.disabled=true;messageEl.textContent='GPS 기반 장소로 이동 중입니다.';navigator.geolocation.getCurrentPosition(position=>{gpsButton.disabled=false;setGpsPopup(false);const lat=position.coords.latitude,lng=position.coords.longitude,accuracy=Math.round(position.coords.accuracy||0);const message=auto?`현재 GPS 위치로 시작합니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`:`GPS 위치로 이동했습니다${accuracy?` · 정확도 약 ${accuracy}m`:''}.`;setCoordinates(lat,lng,{message,preview:true});},error=>{gpsButton.disabled=false;setGpsPopup(false);const messages={1:'위치 권한이 거부되었습니다.',2:'현재 위치를 확인할 수 없습니다.',3:'위치 확인 시간이 초과되었습니다.'};const message=messages[error.code]||'GPS 위치 확인에 실패했습니다.';if(auto){loadDefaultLocation(`${message} 기본 좌표로 시작합니다.`);return;}messageEl.textContent=message;alert(messageEl.textContent);},{enableHighAccuracy:true,timeout:12000,maximumAge:30000})}
-      async function runAnalysis(){if(analysisRunning){analysisController?.abort();messageEl.textContent='AI 보고서 생성을 중지하는 중...';return;}const lat=Number(latEl.value),lng=Number(lngEl.value),use_ai=true,ai_model=modelEl.value;if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('올바른 위도와 경도를 입력하세요.');return;}analysisRunning=true;analysisController=new AbortController();updateMap();runButton.disabled=false;runButton.classList.add('is-stop');runButton.textContent='생성 중지';resultEl.innerHTML='<div class="safe-agent-empty">기상청 강수 추계를 먼저 업데이트한 뒤 공간 데이터와 AI 답변을 실시간으로 생성합니다.</div>';let rainData=null,answer='',reportPre=null,finalEvent=null;try{try{rainData=await loadRainPreview()}catch(rainError){appendDataLog(`기상청 강수 조회 실패: ${rainError.message}`);messageEl.textContent='기상청 강수 조회 실패 · 공간/AI 분석을 계속합니다.'}lastAnalysisRequest={lat,lng,use_ai,ai_model,rain_info:rainData?.rain_info||null};messageEl.textContent='공간 데이터를 정리하고 AI 답변을 생성하는 중...';const r=await fetch('/api/poc/ai-safe-agent/analyze-stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lastAnalysisRequest),signal:analysisController.signal});if(!r.ok){const data=await readJsonResponse(r);throw new Error(data.error||'분석 실행에 실패했습니다.')}if(!r.body)throw new Error('실시간 AI 응답을 받을 수 없습니다.');const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';const handleEvent=event=>{if(event.type==='context'){const data={...(event.data||{}),model:event.model,report:'AI 답변 생성 중...'};if(!currentCoordsMatch(data))throw new Error('분석 중 좌표가 변경되었습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderResult(data);reportPre=resultEl.querySelector('.safe-agent-report pre');messageEl.textContent='AI 답변을 실시간으로 표시하는 중...';}else if(event.type==='token'){answer+=event.content||'';if(reportPre)reportPre.textContent=answer;}else if(event.type==='done'){finalEvent=event;}else if(event.type==='error'){throw new Error(event.error||'AI 보고서 생성 실패')}};while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(line.trim())handleEvent(JSON.parse(line))}}buffer+=decoder.decode();if(buffer.trim())handleEvent(JSON.parse(buffer));if(!answer)throw new Error('AI 보고서 내용이 비어 있습니다.');const seconds=finalEvent?.metrics?.total_duration?finalEvent.metrics.total_duration/1e9:null;messageEl.textContent=seconds?`분석 완료 · AI 생성 ${seconds.toFixed(1)}초`:'분석 완료';}catch(e){if(e.name==='AbortError'){messageEl.textContent='AI 보고서 생성을 중지했습니다.';if(reportPre&&!answer)reportPre.textContent='생성이 중지되었습니다.';}else{messageEl.textContent='분석 실패';if(reportPre)reportPre.textContent=answer||`오류: ${e.message}`;else resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}finally{analysisRunning=false;analysisController=null;runButton.classList.remove('is-stop');runButton.textContent='분석 실행';runButton.disabled=false}}
+      async function runAnalysis(){if(analysisRunning){analysisController?.abort();messageEl.textContent='AI 보고서 생성을 중지하는 중...';return;}const lat=Number(latEl.value),lng=Number(lngEl.value),use_ai=true,ai_model=modelEl.value;if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('올바른 위도와 경도를 입력하세요.');return;}analysisRunning=true;analysisController=new AbortController();updateMap();runButton.disabled=false;runButton.classList.add('is-stop');runButton.textContent='생성 중지';resultEl.innerHTML='<div class="safe-agent-empty">기상청 강수·기온 추계를 먼저 업데이트한 뒤 공간 데이터와 AI 답변을 실시간으로 생성합니다.</div>';let rainData=null,answer='',reportPre=null,finalEvent=null;try{try{rainData=await loadRainPreview()}catch(rainError){appendDataLog(`기상청 기상 정보 조회 실패: ${rainError.message}`);messageEl.textContent='기상청 기상 정보 조회 실패 · 공간/AI 분석을 계속합니다.'}lastAnalysisRequest={lat,lng,use_ai,ai_model,rain_info:rainData?.rain_info||null};messageEl.textContent='공간 데이터를 정리하고 AI 답변을 생성하는 중...';const r=await fetch('/api/poc/ai-safe-agent/analyze-stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lastAnalysisRequest),signal:analysisController.signal});if(!r.ok){const data=await readJsonResponse(r);throw new Error(data.error||'분석 실행에 실패했습니다.')}if(!r.body)throw new Error('실시간 AI 응답을 받을 수 없습니다.');const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';const handleEvent=event=>{if(event.type==='context'){const data={...(event.data||{}),model:event.model,report:'AI 답변 생성 중...'};if(!currentCoordsMatch(data))throw new Error('분석 중 좌표가 변경되었습니다.');if(data.kb_status)setKbStatus(data.kb_status);renderStatus(data);renderMapFeatures(data);renderResult(data);reportPre=resultEl.querySelector('.safe-agent-report pre');messageEl.textContent='AI 답변을 실시간으로 표시하는 중...';}else if(event.type==='token'){answer+=event.content||'';if(reportPre)reportPre.textContent=answer;}else if(event.type==='done'){finalEvent=event;}else if(event.type==='error'){throw new Error(event.error||'AI 보고서 생성 실패')}};while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(line.trim())handleEvent(JSON.parse(line))}}buffer+=decoder.decode();if(buffer.trim())handleEvent(JSON.parse(buffer));if(!answer)throw new Error('AI 보고서 내용이 비어 있습니다.');const seconds=finalEvent?.metrics?.total_duration?finalEvent.metrics.total_duration/1e9:null;messageEl.textContent=seconds?`분석 완료 · AI 생성 ${seconds.toFixed(1)}초`:'분석 완료';}catch(e){if(e.name==='AbortError'){messageEl.textContent='AI 보고서 생성을 중지했습니다.';if(reportPre&&!answer)reportPre.textContent='생성이 중지되었습니다.';}else{messageEl.textContent='분석 실패';if(reportPre)reportPre.textContent=answer||`오류: ${e.message}`;else resultEl.innerHTML=`<div class="safe-agent-empty">${escapeHtml(e.message)}</div>`}}finally{analysisRunning=false;analysisController=null;runButton.classList.remove('is-stop');runButton.textContent='분석 실행';runButton.disabled=false}}
       async function buildKnowledgeBase(){buildDataButton.disabled=true;refreshKbButton.disabled=true;runButton.disabled=true;gpsButton.disabled=true;savePresetButton.disabled=true;appendDataLog('기초 데이터 만들기 시작',true);try{const r=await fetch('/api/poc/ai-safe-agent/kb/build',{method:'POST'});if(!r.ok&&!r.body){const data=await readJsonResponse(r);throw new Error(data.error||'기초 데이터 생성 실패')}if(!r.body){const data=await readJsonResponse(r);setKbStatus(data);appendDataLog(data.message||'기초 데이터 생성 완료');return;}const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='log')appendDataLog(event.message);else if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}else if(event.type==='error')throw new Error(event.error||'기초 데이터 생성 실패')}}if(buffer.trim()){const event=JSON.parse(buffer);if(event.type==='done'){setKbStatus(event.status);appendDataLog(event.status?.message||'기초 데이터 생성 완료')}}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{buildDataButton.disabled=false;refreshKbButton.disabled=false;runButton.disabled=false;gpsButton.disabled=false;savePresetButton.disabled=false}}
       async function refreshKnowledgeBase(){refreshKbButton.disabled=true;try{appendDataLog('PKL 상태 새로고침');await loadKbStatus(true);if(lastAnalysisRequest){await runAnalysis()}else{await loadSpatialPreview();messageEl.textContent='PKL 상태를 다시 읽고 지도 데이터를 갱신했습니다.'}}catch(e){appendDataLog(`오류: ${e.message}`);alert(e.message)}finally{refreshKbButton.disabled=false}}
       presetsEl.onclick=event=>{const deleteButton=event.target.closest('[data-delete-preset-index]');if(deleteButton){const presets=loadPresets();presets.splice(Number(deleteButton.dataset.deletePresetIndex),1);savePresets(presets);renderPresets();return;}const button=event.target.closest('[data-preset-index]');if(!button)return;const item=loadPresets()[Number(button.dataset.presetIndex)];if(item)setCoordinates(item.lat,item.lng,{message:`${item.name} 좌표를 불러왔습니다.`})};
@@ -939,6 +978,14 @@ HTML_PAGE = r"""
       projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>MoIS KMS · 통합 업무관리시스템</strong><span id="moisKmsStatus">Supabase 인증과 업무 데이터를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/mois-kms/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">사용자 로그인·조직별 RLS·결재 흐름 적용 · AI 보고서는 Local LLM, Hugging Face, OpenRouter 중 선택할 수 있습니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="moisKmsFrame" src="/poc/mois-kms/" title="통합 업무관리시스템" loading="eager"></iframe></div></section>`;
       const frame=document.getElementById("moisKmsFrame"),status=document.getElementById("moisKmsStatus");
       frame.addEventListener("load",()=>{status.textContent="통합 업무관리시스템 연결 완료 · 로그인 후 업무와 AI 보고서를 이용하세요."},{once:true});
+    }
+
+    function renderMasterPressLab(p){
+      projectDefaultView.classList.add("hidden");
+      projectLab.classList.add("active");
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>04 · 마스터언론</strong><span id="masterPressStatus">뉴스 모니터링 대시보드를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/master-press/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">공식 검색 API·RSS 우선 · 키워드/임베딩/LLM 복합 관련도 · 개인별 카카오 나에게 보내기</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="masterPressFrame" src="/poc/master-press/" title="마스터언론" loading="eager"></iframe></div></section>`;
+      const frame=document.getElementById("masterPressFrame"),status=document.getElementById("masterPressStatus");
+      frame.addEventListener("load",()=>{status.textContent="마스터언론 연결 완료 · 공개 대시보드와 관리자 설정을 이용할 수 있습니다."},{once:true});
     }
 
     function renderMultiAgentHarnessLab(p){
@@ -1011,6 +1058,8 @@ HTML_PAGE = r"""
         renderReportDraftLab(p);
       }else if(p.id==='field-inspection-platform'){
         renderFieldInspectionLab(p);
+      }else if(p.id==='master-press'){
+        renderMasterPressLab(p);
       }else if(p.id==='mois-kms'){
         renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
@@ -1233,7 +1282,7 @@ def run_ai_safe_agent_spatial(payload):
 
 
 def run_ai_safe_agent_rain(payload):
-    """분석 버튼에서 먼저 보여줄 KMA 강수 추계만 가져온다."""
+    """분석 버튼에서 먼저 보여줄 KMA 강수·기온 추계만 가져온다."""
     lat, lng = parse_ai_safe_coordinates(payload)
     module = load_ai_safe_agent_module()
     rain = module.get_kma_precipitation_live(lat, lng)
@@ -1530,7 +1579,8 @@ def host_uptime_seconds():
 
 def capture_system_metrics():
     usage = read_system_usage()
-    record_system_metrics(usage["cpu_percent"], usage["memory_percent"])
+    usage.update(drain_http_window())
+    record_system_metrics(**usage)
     return usage
 
 
@@ -1641,6 +1691,33 @@ def load_mois_kms_module():
     return MOIS_KMS_MODULE
 
 
+def load_master_press_module():
+    """PoC 04 뉴스 모듈과 하위 Python 소스를 변경 시 다시 읽는다."""
+    global MASTER_PRESS_MODULE, MASTER_PRESS_MTIME
+    source_paths = [MASTER_PRESS_SERVICE_PATH, *MASTER_PRESS_SERVICE_PATH.parent.glob("master_press/*.py")]
+    mtime = max(path.stat().st_mtime_ns for path in source_paths if path.is_file())
+    if MASTER_PRESS_MODULE is None or MASTER_PRESS_MTIME != mtime:
+        if MASTER_PRESS_MODULE is not None:
+            for module_name in [name for name in sys.modules if name == "master_press" or name.startswith("master_press.")]:
+                sys.modules.pop(module_name, None)
+        MASTER_PRESS_MODULE = load_module_from_path("master_press_poc_backend", MASTER_PRESS_SERVICE_PATH)
+        MASTER_PRESS_MTIME = mtime
+    return MASTER_PRESS_MODULE
+
+
+async def collect_master_press():
+    """기존 홈페이지 프로세스 안에서 30초마다 예정된 수집·발송을 확인한다."""
+    while True:
+        try:
+            module = load_master_press_module()
+            await asyncio.to_thread(module.worker_tick)
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            print(f"Master Press background worker failed: {error}", file=sys.stderr)
+        await asyncio.sleep(30)
+
+
 def load_report_draft_module():
     """04 보고서 초안 서비스를 변경 시 자동으로 다시 읽는다."""
     global REPORT_DRAFT_MODULE, REPORT_DRAFT_MTIME
@@ -1679,6 +1756,7 @@ async def app(scope, receive, send):
     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
     if scope["type"] == "lifespan":
         metrics_task = None
+        master_press_task = None
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
@@ -1689,12 +1767,19 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
+                master_press_task = asyncio.create_task(collect_master_press())
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
                 if metrics_task is not None:
                     metrics_task.cancel()
                     try:
                         await metrics_task
+                    except asyncio.CancelledError:
+                        pass
+                if master_press_task is not None:
+                    master_press_task.cancel()
+                    try:
+                        await master_press_task
                     except asyncio.CancelledError:
                         pass
                 await send({"type": "lifespan.shutdown.complete"})
@@ -1705,6 +1790,29 @@ async def app(scope, receive, send):
 
     path = scope.get("path", "/")
     method = scope.get("method", "GET").upper()
+    request_started = time.perf_counter()
+    response_status = 500
+    response_observed = False
+    original_send = send
+
+    async def monitored_send(message):
+        nonlocal response_status, response_observed
+        if message["type"] == "http.response.start":
+            response_status = int(message.get("status", 500))
+        await original_send(message)
+        if (
+            message["type"] == "http.response.body"
+            and not message.get("more_body", False)
+            and not response_observed
+        ):
+            response_observed = True
+            observe_http_request(
+                path,
+                response_status,
+                (time.perf_counter() - request_started) * 1000.0,
+            )
+
+    send = monitored_send
     status = 200
     extra_headers = []
 
@@ -1857,6 +1965,106 @@ async def app(scope, receive, send):
             status = 503
             body = json.dumps({"saved": False, "error": str(error)}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
+    elif (path == MASTER_PRESS_API_BASE or path.startswith(f"{MASTER_PRESS_API_BASE}/")) and method in {"GET", "POST", "PUT", "PATCH", "DELETE"}:
+        try:
+            payload = {}
+            if method in {"POST", "PUT", "PATCH"}:
+                raw_body = await read_request_body(receive)
+                if len(raw_body) > 1_000_000:
+                    raise ValueError("요청 본문은 1MB를 넘을 수 없습니다.")
+                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON 객체 형식이 필요합니다.")
+            query_values = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
+            query = {key: values[-1] if values else "" for key, values in query_values.items()}
+            request_headers = scope_headers(scope)
+            scheme = request_headers.get("x-forwarded-proto", scope.get("scheme", "https")).split(",")[0].strip()
+            host = request_headers.get("x-forwarded-host", request_headers.get("host", "")).split(",")[0].strip()
+            request_base = f"{scheme}://{host}" if host else ""
+            module = load_master_press_module()
+            subpath = path[len(MASTER_PRESS_API_BASE):] or "/"
+            result = await asyncio.to_thread(
+                module.dispatch,
+                subpath,
+                method,
+                payload,
+                query,
+                bool(admin_session(scope)),
+                request_base,
+            )
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = int(getattr(error, "status", 500))
+            message = str(error) if status < 500 or str(error) else "마스터언론 요청을 처리하지 못했습니다."
+            body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path.startswith(f"{MASTER_PRESS_BASE_PATH}/article/") and method == "GET":
+        try:
+            article_id = path[len(f"{MASTER_PRESS_BASE_PATH}/article/"):]
+            location = await asyncio.to_thread(load_master_press_module().article_redirect_url, article_id)
+            status = 302
+            body = b""
+            extra_headers.append((b"location", location.encode("latin-1")))
+        except Exception as error:
+            status = int(getattr(error, "status", 404))
+            body = f"원문 연결 실패\n{str(error)}".encode("utf-8")
+        content_type = "text/plain; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == f"{MASTER_PRESS_BASE_PATH}/connect" and method == "GET":
+        try:
+            query = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
+            invite = query.get("invite", [""])[0]
+            location = await asyncio.to_thread(load_master_press_module().kakao_authorization_url, invite)
+            status = 302
+            body = b""
+            extra_headers.append((b"location", location.encode("latin-1")))
+        except Exception as error:
+            status = int(getattr(error, "status", 400))
+            body = f"수신자 등록 실패\n{str(error)}".encode("utf-8")
+        content_type = "text/plain; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == f"{MASTER_PRESS_BASE_PATH}/oauth/kakao/callback" and method == "GET":
+        try:
+            query = url_parse.parse_qs(scope.get("query_string", b"").decode("utf-8"))
+            if query.get("error"):
+                raise ValueError(query.get("error_description", query["error"])[0])
+            code = query.get("code", [""])[0]
+            state = query.get("state", [""])[0]
+            await asyncio.to_thread(load_master_press_module().complete_kakao_authorization, code, state)
+            status = 302
+            body = b""
+            extra_headers.append((b"location", f"{MASTER_PRESS_BASE_PATH}/?connected=1".encode("latin-1")))
+        except Exception as error:
+            status = int(getattr(error, "status", 400))
+            body = f"카카오 연결 실패\n{str(error)}".encode("utf-8")
+        content_type = "text/plain; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif (path == MASTER_PRESS_BASE_PATH or path.startswith(f"{MASTER_PRESS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
+        relative_path = path[len(MASTER_PRESS_BASE_PATH):].lstrip("/")
+        requested = (MASTER_PRESS_WEB / relative_path).resolve() if relative_path else MASTER_PRESS_WEB / "index.html"
+        try:
+            requested.relative_to(MASTER_PRESS_WEB.resolve())
+            if requested.is_file():
+                target = requested
+            elif not Path(relative_path).suffix:
+                target = MASTER_PRESS_WEB / "index.html"
+            else:
+                raise FileNotFoundError
+            body = await asyncio.to_thread(target.read_bytes)
+            content_type = {
+                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
+            }.get(target.suffix.lower(), "application/octet-stream")
+        except (ValueError, OSError, FileNotFoundError):
+            status = 404
+            body = b"Master Press application is not available."
+            content_type = "text/plain; charset=utf-8"
+
     elif (path == MULTIAGENT_HARNESS_API_BASE or path.startswith(f"{MULTIAGENT_HARNESS_API_BASE}/")) and method in {"GET", "POST"}:
         try:
             payload = {}
@@ -2142,7 +2350,7 @@ async def app(scope, receive, send):
                     "think": False,
                     "keep_alive": "5m",
                     "options": {
-                        "num_predict": 256,
+                        "num_predict": 160,
                         "temperature": 0.2,
                         "top_p": 0.9,
                         "repeat_penalty": 1.1,
@@ -2160,31 +2368,36 @@ async def app(scope, receive, send):
                         loop.call_soon_threadsafe(queue.put_nowait, ("eof", None))
 
                 worker_task = asyncio.create_task(asyncio.to_thread(ai_safe_stream_worker))
+                raw_report = []
+                metrics = {}
+                stream_failed = False
                 try:
                     while True:
                         kind, data = await queue.get()
                         if kind == "chunk":
                             content = data.get("message", {}).get("content", "")
                             if content:
-                                line = json.dumps({"type": "token", "content": content}, ensure_ascii=False).encode("utf-8") + b"\n"
-                                await send({"type": "http.response.body", "body": line, "more_body": True})
+                                raw_report.append(content)
                             if data.get("done"):
-                                line = json.dumps({
-                                    "type": "done",
-                                    "model": model_label,
-                                    "metrics": {
-                                        "total_duration": data.get("total_duration", 0),
-                                        "eval_count": data.get("eval_count", 0),
-                                    },
-                                }, ensure_ascii=False).encode("utf-8") + b"\n"
-                                await send({"type": "http.response.body", "body": line, "more_body": True})
+                                metrics = {
+                                    "total_duration": data.get("total_duration", 0),
+                                    "eval_count": data.get("eval_count", 0),
+                                }
                         elif kind == "error":
+                            stream_failed = True
                             line = json.dumps({"type": "error", "error": f"AI 보고서 생성 실패: {data}"}, ensure_ascii=False).encode("utf-8") + b"\n"
                             await send({"type": "http.response.body", "body": line, "more_body": True})
                         elif kind == "eof":
                             break
                 finally:
                     await worker_task
+                if not stream_failed:
+                    report = module.normalize_report_output(prompt_context, "".join(raw_report))
+                    token_line = json.dumps({"type": "token", "content": report}, ensure_ascii=False).encode("utf-8") + b"\n"
+                    done_line = json.dumps({"type": "done", "model": model_label, "metrics": metrics}, ensure_ascii=False).encode("utf-8") + b"\n"
+                    await send({"type": "http.response.body", "body": token_line, "more_body": True})
+                    await send({"type": "http.response.body", "body": done_line, "more_body": True})
+
             else:
                 report, model_label = await asyncio.to_thread(module.generate_report, prompt_context, payload.get("ai_model"))
                 token_line = json.dumps({"type": "token", "content": report}, ensure_ascii=False).encode("utf-8") + b"\n"

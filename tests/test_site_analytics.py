@@ -9,7 +9,16 @@ from pathlib import Path
 
 from admin_auth import AdminAuth, configured_admin_password
 from analytics_store import AnalyticsStore, normalize_page_path
-from system_metrics import calculate_cpu_percent, read_memory_percent
+from runtime_monitor import drain_http_window, observe_http_request
+from system_metrics import (
+    calculate_cpu_percent,
+    read_memory_details,
+    read_memory_percent,
+    read_memory_pressure_avg10,
+    read_oom_kills,
+    read_filesystem_usage,
+    read_service_memory_bytes,
+)
 
 
 class AnalyticsStoreTests(unittest.TestCase):
@@ -111,6 +120,61 @@ class AnalyticsStoreTests(unittest.TestCase):
         self.assertEqual(metrics["cpu"]["average"], 62.5)
         self.assertEqual(metrics["memory"]["maximum"], 50)
 
+    def test_operational_memory_metrics_detect_oom_risk(self):
+        now = datetime(2026, 7, 16, 1, 0, tzinfo=timezone.utc)
+        details = {
+            "memory_total_bytes": 16 * 1024**3,
+            "memory_available_bytes": 12 * 1024**3,
+            "swap_percent": 0.0,
+            "memory_pressure_avg10": 0.0,
+            "service_memory_bytes": 180 * 1024**2,
+            "service_memory_percent": 1.1,
+        }
+        self.store.record_system_metrics(
+            10, 25, now - timedelta(minutes=1), oom_kills=2, **details
+        )
+        self.store.record_system_metrics(12, 25, now, oom_kills=3, **details)
+
+        metrics = self.store.get_system_metrics(48, now)
+        self.assertEqual(metrics["latest"]["oom_delta"], 1)
+        self.assertEqual(metrics["health"]["level"], "critical")
+        self.assertAlmostEqual(metrics["service_memory"]["current"], 180)
+        self.assertEqual(metrics["latest"]["available_percent"], 75)
+
+    def test_service_probe_and_disk_http_risk_are_reported(self):
+        now = datetime(2026, 7, 16, 1, 0, tzinfo=timezone.utc)
+        self.store.record_system_metrics(
+            20,
+            40,
+            now,
+            memory_total_bytes=16 * 1024**3,
+            memory_available_bytes=10 * 1024**3,
+            disk_total_bytes=100 * 1024**3,
+            disk_available_bytes=4 * 1024**3,
+            disk_used_percent=96,
+            inode_used_percent=20,
+            io_pressure_avg10=0,
+            http_requests=10,
+            http_errors=3,
+            http_p95_ms=6000,
+        )
+        self.store.record_service_probe(
+            probe_ok=False,
+            latency_ms=10,
+            status_code=None,
+            error="connection refused",
+            service_active=False,
+            restart_count=3,
+            exit_status=1,
+            sampled_at=now,
+        )
+
+        metrics = self.store.get_system_metrics(48, now)
+        self.assertEqual(metrics["health"]["level"], "critical")
+        self.assertFalse(metrics["availability"]["current_ok"])
+        self.assertEqual(metrics["http"]["error_rate_15m"], 30)
+        self.assertEqual(metrics["latest"]["disk_used_percent"], 96)
+
     def test_admin_list_filters_and_retention_keeps_rollup(self):
         old = self.instant - timedelta(days=100)
         self.store.record_visit(
@@ -185,6 +249,63 @@ class SystemMetricsTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(read_memory_percent(meminfo), 65)
+
+    def test_operational_linux_memory_sources(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            meminfo = root / "meminfo"
+            pressure = root / "pressure"
+            vmstat = root / "vmstat"
+            cgroup = root / "cgroup"
+            status = root / "status"
+            cgroup_root = root / "sys-fs-cgroup"
+            service_group = cgroup_root / "system.slice" / "myservice.service"
+            service_group.mkdir(parents=True)
+            meminfo.write_text(
+                "MemTotal:       1000 kB\n"
+                "MemAvailable:    350 kB\n"
+                "SwapTotal:       500 kB\n"
+                "SwapFree:        400 kB\n",
+                encoding="utf-8",
+            )
+            pressure.write_text(
+                "some avg10=1.25 avg60=0.50 avg300=0.10 total=10\n",
+                encoding="utf-8",
+            )
+            vmstat.write_text("pgfault 10\noom_kill 3\n", encoding="utf-8")
+            cgroup.write_text(
+                "0::/system.slice/myservice.service\n", encoding="utf-8"
+            )
+            status.write_text("VmRSS: 10 kB\n", encoding="utf-8")
+            (service_group / "memory.current").write_text(
+                str(180 * 1024**2), encoding="utf-8"
+            )
+
+            details = read_memory_details(meminfo)
+            self.assertEqual(details["memory_percent"], 65)
+            self.assertEqual(details["swap_percent"], 20)
+            self.assertEqual(read_memory_pressure_avg10(pressure), 1.25)
+            self.assertEqual(read_oom_kills(vmstat), 3)
+            self.assertEqual(
+                read_service_memory_bytes(cgroup, cgroup_root, status),
+                180 * 1024**2,
+            )
+
+    def test_filesystem_and_http_window_metrics(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            filesystem = read_filesystem_usage(Path(temp_dir))
+        self.assertGreater(filesystem["disk_total_bytes"], 0)
+        self.assertGreaterEqual(filesystem["disk_used_percent"], 0)
+        self.assertGreaterEqual(filesystem["inode_used_percent"], 0)
+
+        drain_http_window()
+        observe_http_request("/", 200, 100)
+        observe_http_request("/api/chat", 503, 500)
+        observe_http_request("/api/health", 500, 900)
+        window = drain_http_window()
+        self.assertEqual(window["http_requests"], 2)
+        self.assertEqual(window["http_errors"], 1)
+        self.assertEqual(window["http_p95_ms"], 500)
 
 
 if __name__ == "__main__":

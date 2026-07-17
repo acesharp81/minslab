@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>마스터언론 · MinsLab PoC 04</title>
+  <link rel="stylesheet" href="/poc/master-press/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/poc?project=master-press"><span>04</span><strong>마스터언론</strong></a>
+    <nav><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+  </header>
+
+  <main>
+    <section id="dashboardView">
+      <div class="hero">
+        <div><p class="eyebrow">NEWS INTELLIGENCE MONITOR</p><h1>필요한 기사만,<br>근거와 함께 전달합니다.</h1><p>공식 검색 API와 RSS에서 수집한 뉴스를 주제·키워드·본문 의미로 평가합니다.</p></div>
+        <div class="hero-status"><span class="pulse"></span><div><b id="activeCaseCount">0개 케이스 가동</b><small id="lastUpdated">데이터 확인 중</small></div></div>
+      </div>
+      <div class="case-strip" id="caseStrip"></div>
+      <div class="metric-grid">
+        <article><span>분석 기사</span><strong id="metricTotal">0</strong><small>선택 기간 누적</small></article>
+        <article><span>전송 후보</span><strong id="metricSend">0</strong><small>임계점 통과</small></article>
+        <article><span>평균 관련도</span><strong id="metricAverage">0%</strong><small>복합 유사도</small></article>
+        <article><span>저유사도</span><strong id="metricLow">0</strong><small>개선 분석 대상</small></article>
+      </div>
+      <div class="dashboard-grid">
+        <section class="panel wide"><div class="panel-head"><div><span>RECENT MATCHES</span><h2>관련 기사</h2></div><select id="caseFilter"><option value="">전체 케이스</option></select></div><div id="articleList" class="article-list"></div></section>
+        <aside class="panel"><div class="panel-head"><div><span>PUBLISHERS</span><h2>언론사 분포</h2></div></div><div id="publisherBars" class="bars"></div></aside>
+        <aside class="panel"><div class="panel-head"><div><span>DELIVERY</span><h2>발송 상태</h2></div></div><div id="deliveryStats" class="delivery-stats"></div></aside>
+      </div>
+    </section>
+
+    <section id="adminView" hidden>
+      <div class="admin-head"><div><p class="eyebrow">CONTROL ROOM</p><h1>마스터언론 설정</h1><p>홈페이지 관리자 세션으로 보호되는 영역입니다.</p></div><div class="admin-actions"><button class="button secondary" id="runTick">수집·발송 실행</button><button class="button" id="newCase">새 케이스</button></div></div>
+      <div id="adminGate" class="gate" hidden><h2>관리자 로그인이 필요합니다</h2><p>홈페이지 관리자에서 로그인한 뒤 다시 돌아오세요.</p><a class="button" href="/admin">관리자 로그인</a></div>
+      <div id="adminContent">
+        <div class="readiness" id="readiness"></div>
+        <div class="admin-grid">
+          <section class="panel"><div class="panel-head"><div><span>CASES</span><h2>모니터링 케이스 <b id="caseCount">0/5</b></h2></div></div><div id="caseList" class="case-list"></div></section>
+          <section class="panel"><div class="panel-head"><div><span>RECIPIENTS</span><h2>카카오 수신자</h2></div><button class="small-button" id="newInvite">등록 링크</button></div><div id="recipientList" class="recipient-list"></div></section>
+          <section class="panel wide"><div class="panel-head"><div><span>LOW SCORE REVIEW</span><h2>저유사도 개선 자료</h2></div><select id="improvementCase"></select></div><div id="improvementContent" class="improvement"></div></section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="caseDialog">
+    <form id="caseForm" class="dialog-card">
+      <div class="dialog-head"><div><span>CASE EDITOR</span><h2 id="caseDialogTitle">새 케이스</h2></div><button type="button" class="icon-button" data-close="caseDialog">×</button></div>
+      <input type="hidden" id="caseId">
+      <div class="form-grid">
+        <label>케이스명<input id="caseName" maxlength="80" required></label>
+        <label>활성 상태<select id="caseActive"><option value="true">사용</option><option value="false">중지</option></select></label>
+        <label class="full">주제 설명<textarea id="caseTopic" rows="3" maxlength="2000" placeholder="기사의 실제 관련성을 판단할 구체적인 대상·행위·지역을 적어주세요."></textarea></label>
+        <label class="full">포함 키워드<input id="caseInclude" placeholder="쉼표로 구분"></label>
+        <label>필수 키워드<input id="caseRequired" placeholder="쉼표로 구분"></label>
+        <label>제외 키워드<input id="caseExclude" placeholder="쉼표로 구분"></label>
+        <label class="full">긴급 키워드<input id="caseUrgent" placeholder="임계점과 예약 시간을 우회해 즉시 발송 · 쉼표 구분"></label>
+        <label>수집 방식<select id="collectionMode"><option value="interval">주기</option><option value="times">지정 시각</option></select></label>
+        <label>수집 주기<select id="collectionInterval"><option value="5">5분</option><option value="10">10분</option><option value="30" selected>30분</option><option value="60">1시간</option></select></label>
+        <label class="full">수집 시각<input id="collectionTimes" placeholder="예: 08:00, 12:30, 18:00"></label>
+        <label>발송 방식<select id="deliveryMode"><option value="immediate">즉시</option><option value="times">지정 시각</option></select></label>
+        <label>발송 시각<input id="deliveryTimes" placeholder="예: 09:00, 18:00"></label>
+        <label>전송 임계점<input id="relevanceThreshold" type="number" min="0" max="100" value="75"></label>
+        <label>보류 임계점<input id="holdThreshold" type="number" min="0" max="100" value="55"></label>
+        <fieldset class="full"><legend>관련도 비중</legend><div class="weight-row"><label>키워드<input id="keywordWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label><label>의미<input id="semanticWeight" type="number" min="0" max="1" step="0.05" value="0.4"></label><label>LLM<input id="llmWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label></div></fieldset>
+        <label class="full">공식 RSS 주소<textarea id="rssUrls" rows="2" placeholder="한 줄에 하나"></textarea></label>
+        <fieldset class="full"><legend>카카오 수신자</legend><div id="caseRecipients" class="checks"></div></fieldset>
+      </div>
+      <div class="dialog-actions"><button type="button" class="button danger" id="deleteCase" hidden>삭제</button><span></span><button type="button" class="button secondary" data-close="caseDialog">취소</button><button class="button" type="submit">저장</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="inviteDialog"><form id="inviteForm" class="dialog-card compact"><div class="dialog-head"><div><span>KAKAO OAUTH</span><h2>수신자 등록 링크</h2></div><button type="button" class="icon-button" data-close="inviteDialog">×</button></div><label>수신자 별칭<input id="inviteLabel" required placeholder="예: 홍길동"></label><label>유효시간<select id="inviteTtl"><option value="60">1시간</option><option value="180">3시간</option><option value="1440">24시간</option></select></label><button class="button" type="submit">링크 생성</button><div id="inviteResult" class="copy-result"></div></form></dialog>
+  <div class="toast" id="toast"></div>
+  <script src="/poc/master-press/app.js"></script>
+</body>
+</html>

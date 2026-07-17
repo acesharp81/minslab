@@ -24,6 +24,7 @@ qwen*_report*.json
 
 # Large or source documents used during local experiments
 *.hwpx
+PoC/04-master-press/data/
 # Generated PoC data artifacts
 PoC/**/*.csv
 PoC/**/*.pkl

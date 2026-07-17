@@ -249,7 +249,7 @@ def _rn1_value(items: list[dict[str, Any]], value_key: str) -> Any:
     for item in items:
         if item.get("category") == "RN1":
             return item.get(value_key)
-    return "0"
+    return None
 
 
 def _base_params(base_time_obj: datetime, nx: int, ny: int, time_format: str) -> dict[str, Any]:
@@ -273,9 +273,19 @@ def _rain_hourly_points(now_floor: datetime) -> dict[int, dict[str, Any]]:
             "label": "현재" if offset == 0 else f"{offset:+d}H",
             "time": target.strftime("%m-%d %H:%M"),
             "time_key": target.strftime("%Y%m%d%H00"),
-            "value": "0mm",
-            "value_mm": 0.0,
+            "value": "-",
+            "value_mm": None,
             "source": "none",
+            "temperature_c": None,
+            "humidity_pct": None,
+            "wind_speed_ms": None,
+            "wind_direction_deg": None,
+            "precipitation_type": None,
+            "precipitation_type_label": "",
+            "lightning_code": None,
+            "precipitation_probability_pct": None,
+            "sky_code": None,
+            "sky_label": "",
         }
     return points
 
@@ -283,10 +293,65 @@ def _rain_hourly_points(now_floor: datetime) -> dict[int, dict[str, Any]]:
 def _set_rain_hourly_value(points: dict[int, dict[str, Any]], offset: int, value: Any, source: str) -> None:
     if offset not in points:
         return
+    if value is None:
+        return
     numeric = round(_rain_number(value), 2)
     points[offset]["value"] = _rain_value(value)
     points[offset]["value_mm"] = numeric
     points[offset]["source"] = source
+
+
+def _weather_number(value: Any) -> float | None:
+    text = str(value if value is not None else "").strip()
+    if not text or text in {"-", "강수없음", "없음"}:
+        return None
+    try:
+        return round(float(text), 2)
+    except ValueError:
+        return None
+
+
+def _precipitation_type_label(value: Any) -> str:
+    return {
+        "0": "없음",
+        "1": "비",
+        "2": "비/눈",
+        "3": "눈",
+        "5": "빗방울",
+        "6": "빗방울/눈날림",
+        "7": "눈날림",
+    }.get(str(value).strip(), f"코드 {value}")
+
+
+def _sky_label(value: Any) -> str:
+    return {"1": "맑음", "3": "구름많음", "4": "흐림"}.get(str(value).strip(), f"코드 {value}")
+
+
+def _set_weather_item(point: dict[str, Any], category: str, value: Any, overwrite: bool = True) -> None:
+    numeric_fields = {
+        "T1H": "temperature_c",
+        "REH": "humidity_pct",
+        "WSD": "wind_speed_ms",
+        "VEC": "wind_direction_deg",
+        "LGT": "lightning_code",
+        "POP": "precipitation_probability_pct",
+    }
+    field = numeric_fields.get(category)
+    if field:
+        if overwrite or point.get(field) is None:
+            point[field] = _weather_number(value)
+        return
+    if category == "PTY" and (overwrite or point.get("precipitation_type") is None):
+        point["precipitation_type"] = _weather_number(value)
+        point["precipitation_type_label"] = _precipitation_type_label(value)
+    elif category == "SKY" and (overwrite or point.get("sky_code") is None):
+        point["sky_code"] = _weather_number(value)
+        point["sky_label"] = _sky_label(value)
+
+
+def _set_weather_items(point: dict[str, Any], items: list[dict[str, Any]], value_key: str, overwrite: bool = True) -> None:
+    for item in items:
+        _set_weather_item(point, str(item.get("category") or ""), item.get(value_key), overwrite)
 
 
 def get_kma_precipitation_live(lat: float, lng: float, auth_key: str | None = None) -> dict[str, Any]:
@@ -320,9 +385,10 @@ def get_kma_precipitation_live(lat: float, lng: float, auth_key: str | None = No
             items = _kma_items(KMA_ULTRA_NCST_URL, _base_params(obs_time, nx, ny, "%H00"), auth_key)
             value = _rn1_value(items, "obsrValue")
             _set_rain_hourly_value(hourly_points, offset, value, "observation")
+            _set_weather_items(hourly_points[offset], items, "obsrValue")
             if offset == 0:
                 rain_data["rain_current"] = _rain_value(value)
-        rain_data["rain_6h_accum"] = _format_mm(sum(point["value_mm"] for offset, point in hourly_points.items() if -6 <= offset <= -1))
+        rain_data["rain_6h_accum"] = _format_mm(sum(float(point["value_mm"] or 0) for offset, point in hourly_points.items() if -6 <= offset <= -1))
     except Exception as error:  # noqa: BLE001 - forecast can still fill part of the display
         errors.append(f"ncst_error: {_extract_kma_error(error)}")
 
@@ -337,12 +403,14 @@ def get_kma_precipitation_live(lat: float, lng: float, auth_key: str | None = No
         filled_forecast_offsets = set()
         future_rn1: list[tuple[str, Any]] = []
         for item in items:
-            if item.get("category") != "RN1":
-                continue
             key = f"{item.get('fcstDate', '')}{item.get('fcstTime', '')}"
             value = item.get("fcstValue")
             offset = target_offsets.get(key)
             if offset is None:
+                continue
+            category = str(item.get("category") or "")
+            _set_weather_item(hourly_points[offset], category, value, overwrite=offset != 0)
+            if category != "RN1":
                 continue
             future_rn1.append((key, value))
             if offset == 0 and hourly_points[0]["source"] == "observation":
@@ -551,7 +619,25 @@ def _rain_timeline_summary(rain: dict[str, Any]) -> str:
         detail = f"{label}"
         if time:
             detail += f"({time})"
-        points.append(f"{detail} {value}")
+        weather = []
+        if item.get("temperature_c") is not None:
+            weather.append(f"{item['temperature_c']:g}°C")
+        if item.get("humidity_pct") is not None:
+            weather.append(f"습도 {item['humidity_pct']:g}%")
+        if item.get("wind_speed_ms") is not None:
+            wind = f"풍속 {item['wind_speed_ms']:g}m/s"
+            if item.get("wind_direction_deg") is not None:
+                wind += f"/{item['wind_direction_deg']:g}°"
+            weather.append(wind)
+        if item.get("precipitation_type_label"):
+            weather.append(str(item["precipitation_type_label"]))
+        if item.get("sky_label"):
+            weather.append(str(item["sky_label"]))
+        if item.get("precipitation_probability_pct") is not None:
+            weather.append(f"강수확률 {item['precipitation_probability_pct']:g}%")
+        if item.get("lightning_code") not in {None, 0, 0.0}:
+            weather.append(f"낙뢰 {item['lightning_code']:g}")
+        points.append(f"{detail} 강수 {value}" + (f", {', '.join(weather)}" if weather else ""))
     return " | ".join(points)
 
 
@@ -573,6 +659,48 @@ def _detail_context_lines(title: str, items: list[dict[str, Any]], limit: int = 
     return lines
 
 
+def _report_output_control(rain: dict[str, Any], nearby_risk_count: int) -> str:
+    hourly = rain.get("rain_hourly") if isinstance(rain, dict) else []
+    points = [item for item in hourly if isinstance(item, dict) and item.get("source") not in {"none", "spatial_only"}]
+    current = next((item for item in points if int(item.get("offset", 99) or 0) == 0), {})
+    future = [item for item in points if int(item.get("offset", 0) or 0) > 0]
+
+    rain_values = [float(item.get("value_mm") or 0) for item in points if item.get("value_mm") is not None]
+    future_rain = [float(item.get("value_mm") or 0) for item in future if item.get("value_mm") is not None]
+    rain_peak = max(rain_values, default=0.0)
+    current_rain = float(current.get("value_mm") or 0)
+    future_total = sum(future_rain[:3])
+    past_total = _rain_number(rain.get("rain_6h_accum"))
+    wind_peak = max((_to_float(item.get("wind_speed_ms")) or 0 for item in points), default=0.0)
+    temperatures = [_to_float(item.get("temperature_c")) for item in points]
+    temperatures = [value for value in temperatures if value is not None]
+    precipitation_types = [str(item.get("precipitation_type_label") or "") for item in points]
+    lightning = any((_to_float(item.get("lightning_code")) or 0) > 0 for item in points)
+
+    hazards = []
+    rain_signal = rain_peak >= 3 or future_total >= 10 or past_total >= 20
+    risk_overlap = nearby_risk_count > 0 and (current_rain > 0 or any(value > 0 for value in future_rain))
+    if risk_overlap:
+        hazards.append("비와 주변 침수·산사태·인명피해 우려 이력이 겹침")
+    elif rain_signal:
+        hazards.append("강하거나 이어질 가능성이 있는 비")
+    if any("눈" in value for value in precipitation_types):
+        hazards.append("눈 또는 비와 눈이 섞인 강수")
+    if lightning:
+        hazards.append("낙뢰")
+    if wind_peak >= 9:
+        hazards.append("강한 바람")
+    if temperatures and max(temperatures) >= 33:
+        hazards.append("고온")
+    if temperatures and min(temperatures) <= -12:
+        hazards.append("저온")
+
+    if not hazards:
+        return "[보고서 출력 제어]\n- 즉시 알릴 특이사항: 없음\n- 과거 위험 이력만으로 현재 위험을 만들지 말 것"
+    return "[보고서 출력 제어]\n- 즉시 알릴 특이사항: 있음\n- 핵심: " + ", ".join(hazards[:2])
+
+
+
 def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: DisasterKnowledgeBase) -> tuple[str, dict[str, Any]]:
     floods = nearby_indexed_records(kb, "floods", kb.floods, lat, lng, ("converted_lat", "lat", "LAT", "YCRD"), ("converted_lng", "lng", "LOT", "XCRD"))
     landslides = nearby_indexed_records(kb, "landslides", kb.landslides, lat, lng, ("lat", "YMAP_CRTS"), ("lng", "XMAP_CRTS"))
@@ -592,7 +720,7 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: Disas
 - 2시간 후 예상 강수량: {rain['rain_2h_after']}
 - 3시간 후 예상 강수량: {rain['rain_3h_after']}
 
-[강수 시간 흐름: 과거 6시간~앞으로 6시간]
+[기상 시간 흐름: 과거 6시간~앞으로 6시간]
 {_rain_timeline_summary(rain)}
 
 [공간 지식베이스 인프라 정보]
@@ -718,6 +846,9 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: Disas
     ]:
         context += f"\n{line}"
 
+    nearby_risk_count = len(floods) + len(landslides) + len(vulnerable)
+    context += "\n\n" + _report_output_control(rain, nearby_risk_count)
+
     summary = {
         "floods_count": len(floods),
         "landslides_count": len(landslides),
@@ -733,11 +864,15 @@ def build_prompt_context(lat: float, lng: float, rain: dict[str, Any], kb: Disas
 def system_instruction() -> str:
     return (
         "당신은 시민에게 자연스러운 한국어로 안내하는 AI 안전비서입니다. 입력 데이터만 근거로 핵심부터 간결하게 답하세요. "
-        "없는 사실을 만들거나 위험을 단정하지 말고, 모르는 내용은 확인할 수 없다고 밝히세요. "
-        "반드시 '1. 현재 상황', '2. 앞으로의 가능성', '3. 종합 위험도와 조언' 순서로 작성하세요. "
-        "현재 상황은 지금과 1시간 후, 앞으로의 가능성은 과거 6시간과 향후 6시간의 강수 흐름, 종합 위험도는 과거 위험 이력과 현재·예측 상태를 함께 판단하세요. "
-        "위험도는 낮음·주의·높음·매우 높음 중 하나로 표시하세요. 각 항목은 1~2개의 짧고 쉬운 문장으로 쓰세요. 입력에 1건 이상인 위험 이력을 없다고 말하지 마세요. "
-        "'~할 수 있습니다', '~하는 편이 좋겠습니다'처럼 가능성과 행동 조언을 안내하고, 비속어·전문용어·입력 데이터의 반복 나열은 피하세요."
+        "답변 전에는 과거 위험 이력, 현재 기상, 향후 기상 흐름을 종합해 즉시 알릴 특이사항이 있는지 먼저 판단하되 그 분석 과정은 출력하지 마세요. "
+        "강하거나 지속·증가하는 비, 눈, 낙뢰, 강풍, 극심한 기온, 또는 관련 위험 이력과 현재·예상 기상이 겹치는 경우는 위험 신호입니다. 위험 신호가 하나라도 있으면 절대로 특이사항이 없다고 답하지 마세요. "
+        "특히 강한 비가 이어지거나 예상되면서 주변에 침수 흔적·산사태·인명피해 우려구역이 있으면 반드시 특이사항으로 안내하세요. "
+        "특이사항이 있으면 최대 4줄로 '특이사항: ...'와 '지금 할 일: ...'만 작성하세요. 여러 특이사항은 안전에 중요한 순서로 합쳐 짧게 쓰세요. "
+        "위험 신호가 하나도 없을 때만 제목·번호·위험등급·행동요령·'특이사항' 표제 없이 자연스러운 한 문장, 한 줄로 끝내세요. "
+        "과거·현재·미래 수치를 시간순으로 읽어 주거나 입력 데이터를 반복 나열하지 말고, 위험 판단에 꼭 필요한 수치만 예외적으로 한 번 사용하세요. "
+        "행동요령은 지금 바로 실행할 수 있는 구체적인 행동만 1~2개 제시하세요. '주의하세요', '대비하세요', '안전에 유의하세요' 같은 막연한 표현은 쓰지 마세요. "
+        "없는 사실을 만들거나 위험을 단정하지 말고 가능성으로 안내하세요. 값이 제공된 요소만 사용하고 누락값은 추정하지 마세요. 입력에 있는 위험 이력을 없다고 말하지 마세요. "
+        "친절하고 담백한 어투를 사용하고 비속어·전문용어·과장된 표현은 피하세요."
     )
 
 
@@ -765,7 +900,7 @@ def _extract_hf_content(result: dict[str, Any]) -> str:
 def _chat_completion(base_url: str, api_key: str, model: str, messages: list[dict[str, str]], timeout: int = 60) -> str:
     if OpenAI is not None:
         client = OpenAI(base_url=base_url, api_key=api_key)
-        completion = client.chat.completions.create(model=model, messages=messages, temperature=0.2)
+        completion = client.chat.completions.create(model=model, messages=messages, temperature=0.2, max_tokens=160)
         content = completion.choices[0].message.content or ""
         if content.strip():
             return content
@@ -774,7 +909,7 @@ def _chat_completion(base_url: str, api_key: str, model: str, messages: list[dic
             return reasoning
         raise RuntimeError("AI 응답 내용이 비어 있습니다.")
 
-    payload = json.dumps({"model": model, "messages": messages, "temperature": 0.2}).encode("utf-8")
+    payload = json.dumps({"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 160}).encode("utf-8")
     request = url_request.Request(
         f"{base_url.rstrip('/')}/chat/completions",
         data=payload,
@@ -801,7 +936,7 @@ def _ollama_completion(model: str, messages: list[dict[str, str]]) -> str:
         "stream": False,
         "keep_alive": "5m",
         "think": False,
-        "options": {"temperature": 0.2, "top_p": 0.9, "repeat_penalty": 1.1, "num_ctx": 2048, "num_predict": 256},
+        "options": {"temperature": 0.2, "top_p": 0.9, "repeat_penalty": 1.1, "num_ctx": 2048, "num_predict": 160},
     }).encode("utf-8")
     request = url_request.Request(
         f"{OLLAMA_BASE_URL.rstrip('/')}/api/chat",
@@ -833,6 +968,79 @@ def normalize_model_choice(model_choice: str | None) -> tuple[str, str, str]:
     return "huggingface", MODEL_NAME, f"Hugging Face · {MODEL_NAME}"
 
 
+def _fallback_immediate_action(report: str) -> str:
+    text = report.lower()
+    if "낙뢰" in text:
+        return "야외 활동을 멈추고 건물 안으로 이동하세요."
+    if "눈" in text or "결빙" in text:
+        return "불필요한 이동을 미루고 실내에 머무르세요."
+    if "강풍" in text or "바람" in text:
+        return "창문을 닫고 간판이나 낙하물 위험이 없는 실내로 이동하세요."
+    if "폭염" in text or "고온" in text:
+        return "그늘이나 냉방 가능한 실내로 이동하고 물을 마시세요."
+    if "한파" in text or "저온" in text:
+        return "실내로 이동해 체온을 유지하고 외출을 미루세요."
+    if "산사태" in text or "급경사" in text:
+        return "산비탈과 급경사지에서 벗어나 가까운 안전한 실내로 이동하세요."
+    if any(word in text for word in ("비", "침수", "강수", "하천")):
+        return "지하공간과 하천변에서 벗어나 가까운 안전한 실내로 이동하세요."
+    return "가까운 안전한 실내로 이동하고 최신 재난 안내를 확인하세요."
+
+
+def normalize_report_output(prompt_context: str, report: str) -> str:
+    """LLM의 판단은 유지하면서 시민에게 보이는 형식만 짧고 실행 가능하게 정리한다."""
+    text = str(report or "").strip()
+    if not text or text.startswith("AI 보고서 생성"):
+        return text
+    compact = " ".join(text.split())
+    forced_safe = "- 즉시 알릴 특이사항: 없음" in prompt_context
+    forced_risk = "- 즉시 알릴 특이사항: 있음" in prompt_context
+    control_core = ""
+    if forced_risk and "- 핵심:" in prompt_context:
+        control_core = prompt_context.split("- 핵심:", 1)[1].splitlines()[0].strip()
+    no_risk_markers = ("특이사항은 없습니다", "특이사항이 없습니다", "특이사항 없음", "위험 없음", "위험 신호가 없습니다", "겹치지 않습니다", "확인되지 않습니다", "조치 불필요")
+    model_says_safe = any(marker in compact for marker in no_risk_markers)
+    if forced_safe or (model_says_safe and not forced_risk):
+        return "현재 즉시 대응이 필요한 특이사항은 없습니다."
+    if forced_risk and model_says_safe:
+        compact = f"특이사항: {control_core or '안전에 영향을 줄 수 있는 상황'}"
+
+    special = ""
+    action = ""
+    if "특이사항:" in compact:
+        remainder = compact.split("특이사항:", 1)[1].strip()
+        if "지금 할 일:" in remainder:
+            special, action = (part.strip() for part in remainder.split("지금 할 일:", 1))
+        else:
+            special = remainder
+    elif "위험:" in compact:
+        special = compact.split("위험:", 1)[1].strip()
+    else:
+        special = compact
+
+    for marker in ("지금 실행할 행동:", "행동요령:", "조치:"):
+        if marker in special:
+            special, candidate = (part.strip() for part in special.split(marker, 1))
+            action = action or candidate
+    special = special.lstrip("-*0123456789. ").strip()
+    action = action.lstrip("-*0123456789. ").strip()
+    special = special.replace("주변 500m 이내에", "주변에")
+    special = special.replace("특별히 주의해야 합니다.", "위험이 커질 가능성이 있습니다.")
+    if ". " in special:
+        special = special.split(". ", 1)[0].rstrip(".") + "."
+    if ". " in action:
+        action = action.split(". ", 1)[0].rstrip(".") + "."
+
+    if not special:
+        special = "안전에 영향을 줄 수 있는 상황이 확인됐습니다."
+    if not action or any(word in action for word in ("주의하세요", "대비하세요", "유의하세요", "조치 불필요")):
+        action = _fallback_immediate_action(f"{special} {prompt_context}")
+    special = special[:160].rstrip()
+    action = action[:160].rstrip()
+    return f"특이사항: {special}\n지금 할 일: {action}"
+
+
+
 def generate_report(prompt_context: str, model_choice: str | None = None) -> tuple[str, str]:
     """선택한 LLM으로 보고서를 생성한다."""
     messages = [
@@ -843,12 +1051,12 @@ def generate_report(prompt_context: str, model_choice: str | None = None) -> tup
 
     try:
         if provider == "ollama":
-            return _ollama_completion(model, messages), label
+            return normalize_report_output(prompt_context, _ollama_completion(model, messages)), label
         if provider == "openrouter":
             api_key = os.getenv("OPENROUTER_API_KEY")
             if not api_key:
                 return "AI 보고서 생성을 위해 OPENROUTER_API_KEY 환경변수가 필요합니다.", label
-            return _chat_completion(OPENROUTER_BASE_URL, api_key, model, messages), label
+            return normalize_report_output(prompt_context, _chat_completion(OPENROUTER_BASE_URL, api_key, model, messages)), label
 
         api_key = os.getenv("HF_API_KEY")
         if not api_key:
@@ -861,7 +1069,7 @@ def generate_report(prompt_context: str, model_choice: str | None = None) -> tup
         last_error = None
         for candidate in models:
             try:
-                return _chat_completion(HF_BASE_URL, api_key, candidate, messages), f"Hugging Face · {candidate}"
+                return normalize_report_output(prompt_context, _chat_completion(HF_BASE_URL, api_key, candidate, messages)), f"Hugging Face · {candidate}"
             except Exception as error:  # noqa: BLE001 - try fallback model if a provider-specific route fails
                 last_error = _extract_hf_error(error)
         return f"AI 보고서 생성 실패: {last_error}", label
@@ -871,7 +1079,25 @@ def generate_report(prompt_context: str, model_choice: str | None = None) -> tup
 
 def _spatial_only_rain() -> dict[str, Any]:
     hourly = [
-        {"offset": offset, "label": "현재" if offset == 0 else f"{offset:+d}H", "time": "", "time_key": "", "value": "-", "value_mm": 0.0, "source": "spatial_only"}
+        {
+            "offset": offset,
+            "label": "현재" if offset == 0 else f"{offset:+d}H",
+            "time": "",
+            "time_key": "",
+            "value": "-",
+            "value_mm": None,
+            "source": "spatial_only",
+            "temperature_c": None,
+            "humidity_pct": None,
+            "wind_speed_ms": None,
+            "wind_direction_deg": None,
+            "precipitation_type": None,
+            "precipitation_type_label": "",
+            "lightning_code": None,
+            "precipitation_probability_pct": None,
+            "sky_code": None,
+            "sky_label": "",
+        }
         for offset in range(-6, 7)
     ]
     return {

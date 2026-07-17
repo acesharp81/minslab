@@ -9,6 +9,7 @@
 | 01 | [01-AISafeAgent](01-AISafeAgent/README.md) | GPS·기상청·공간 방재·AI 안전비서 | Python 모듈 + 루트 UI + NDJSON |
 | 02 | [02-field-inspection-platform](02-field-inspection-platform/README.md) | 점검 업무·대상·결과·통계 | React/Vite 정적 SPA + Supabase |
 | 03 | [03-mois-kms](03-mois-kms/README.md) | 조직·업무·결재·AI 보고서 | React/Vite SPA + Python API + Supabase Auth |
+| 04 | [04-master-press](04-master-press/README.md) | 뉴스 수집·복합 관련도·카카오 알림 | Python 모듈 + 정적 UI + SQLite/Supabase |
 
 ## 등록 방식
 
