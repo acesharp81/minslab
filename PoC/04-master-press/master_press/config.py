@@ -64,6 +64,10 @@ class Settings:
     ollama_base_url: str
     embedding_model: str
     llm_model: str
+    openrouter_api_key: str
+    openrouter_base_url: str
+    openrouter_case_model: str
+    openrouter_daily_soft_limit: int
     supabase_url: str
     supabase_service_role_key: str
     user_agent: str
@@ -73,6 +77,11 @@ class Settings:
     raw_retention_days: int
     metadata_retention_days: int
     rss_feeds: list[str]
+    press_release_rss_url: str
+    press_release_sync_minutes: int
+    press_release_per_sync: int
+    press_release_match_window_days: int
+    press_release_match_threshold: float
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -91,6 +100,13 @@ class Settings:
             ollama_base_url=env("OLLAMA_BASE_URL", default="http://127.0.0.1:11434").rstrip("/"),
             embedding_model=env("MASTER_PRESS_EMBEDDING_MODEL", default="nomic-embed-text:latest"),
             llm_model=env("MASTER_PRESS_LLM_MODEL", default="qwen2.5:1.5b"),
+            openrouter_api_key=env(
+                "MASTER_PRESS_OPENROUTER_API_MYKEY", "OPENROUTER_API_MYKEY",
+                "MASTER_PRESS_OPENROUTER_API_KEY", "OPENROUTER_API_KEY",
+            ),
+            openrouter_base_url=env("MASTER_PRESS_OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1").rstrip("/"),
+            openrouter_case_model=env("MASTER_PRESS_OPENROUTER_CASE_MODEL", default="google/gemma-4-26b-a4b-it:free"),
+            openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 800, 1, 1000),
             supabase_url=env("SUPABASE2_URL", "MASTER_PRESS_SUPABASE_URL").rstrip("/"),
             supabase_service_role_key=env("SUPABASE2_SERVICE_ROLE_KEY", "MASTER_PRESS_SUPABASE_SERVICE_ROLE_KEY"),
             user_agent=env(
@@ -103,6 +119,17 @@ class Settings:
             raw_retention_days=env_int("MASTER_PRESS_RAW_RETENTION_DAYS", 7, 1, 30),
             metadata_retention_days=env_int("MASTER_PRESS_METADATA_RETENTION_DAYS", 90, 7, 3650),
             rss_feeds=[str(item).strip() for item in env_json("MASTER_PRESS_RSS_FEEDS_JSON", []) if str(item).strip()],
+            press_release_rss_url=env(
+                "MASTER_PRESS_MOIS_PRESS_RSS_URL",
+                default="https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1012",
+            ),
+            press_release_sync_minutes=env_int("MASTER_PRESS_PRESS_SYNC_MINUTES", 30, 5, 1440),
+            press_release_per_sync=env_int("MASTER_PRESS_PRESS_PER_SYNC", 8, 1, 30),
+            press_release_match_window_days=env_int("MASTER_PRESS_PRESS_MATCH_WINDOW_DAYS", 45, 1, 365),
+            press_release_match_threshold=max(
+                0.0,
+                min(100.0, float(env("MASTER_PRESS_PRESS_MATCH_THRESHOLD", default="62"))),
+            ),
         )
 
     def ensure_directories(self) -> None:
@@ -116,4 +143,5 @@ class Settings:
             "token_encryption": bool(self.token_encryption_key),
             "supabase": bool(self.supabase_url and self.supabase_service_role_key),
             "ollama": bool(self.ollama_base_url),
+            "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
         }

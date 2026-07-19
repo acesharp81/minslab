@@ -4,42 +4,84 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>마스터언론 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css">
+  <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260720-1">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/poc?project=master-press"><span>04</span><strong>마스터언론</strong></a>
-    <nav><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+    <a class="brand" href="/poc?project=master-press"><span>04</span><strong>AI 언론동향 비서</strong><small>AI읽고 AI로 분류하다</small></a>
+    <nav><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
   </header>
 
   <main>
     <section id="dashboardView">
-      <div class="hero">
-        <div><p class="eyebrow">NEWS INTELLIGENCE MONITOR</p><h1>필요한 기사만,<br>근거와 함께 전달합니다.</h1><p>공식 검색 API와 RSS에서 수집한 뉴스를 주제·키워드·본문 의미로 평가합니다.</p></div>
-        <div class="hero-status"><span class="pulse"></span><div><b id="activeCaseCount">0개 케이스 가동</b><small id="lastUpdated">데이터 확인 중</small></div></div>
-      </div>
-      <div class="case-strip" id="caseStrip"></div>
-      <div class="metric-grid">
-        <article><span>분석 기사</span><strong id="metricTotal">0</strong><small>선택 기간 누적</small></article>
-        <article><span>전송 후보</span><strong id="metricSend">0</strong><small>임계점 통과</small></article>
-        <article><span>평균 관련도</span><strong id="metricAverage">0%</strong><small>복합 유사도</small></article>
-        <article><span>저유사도</span><strong id="metricLow">0</strong><small>개선 분석 대상</small></article>
-      </div>
+      <section class="dashboard-summary" aria-label="AI 언론동향 비서 모니터링 요약">
+        <div class="dashboard-summary-top">
+          <div class="bomi-title"><p class="eyebrow">NEWS INTELLIGENCE MONITOR</p><h1>AI 언론동향 비서 <small>AI읽고 AI로 분류하다</small></h1></div>
+          <div class="monitor-filter">
+            <label><span>기관</span><select id="organizationFilter"><option value="">전체 기관</option></select></label>
+            <label><span>케이스</span><select id="caseFilter" disabled><option value="">전체 케이스</option></select></label>
+            <label class="refresh-control"><span>자동 갱신 <small id="refreshCountdown">(다음 갱신: 01:00초)</small></span><select id="refreshInterval"><option value="10">10초</option><option value="30">30초</option><option value="60" selected>1분</option><option value="0">안함</option></select></label>
+          </div>
+          <div class="summary-status"><span class="pulse"></span><div><b id="activeCaseCount">0개 케이스 가동</b><small id="lastUpdated">전체 데이터 확인 중</small></div></div>
+        </div>
+        <div class="dashboard-summary-bottom">
+          <div class="summary-group"><b class="summary-caption">일일 기사<br>처리 현황</b><div class="summary-metrics">
+            <article><span>분석 기사</span><strong id="metricTotal">0</strong></article>
+            <article><span>주제 일치</span><strong id="metricSend">0</strong></article>
+            <article><span>평균 관련도</span><strong id="metricAverage">0%</strong></article>
+            <article><span>발송 제외</span><strong id="metricLow">0</strong></article>
+          </div></div>
+          <div class="summary-group pipeline-summary"><b class="summary-caption">처리 흐름</b><div class="pipeline-flow">
+            <section class="pipeline-stage"><header><b>① 공통 분석</b><small id="commonProviderMeta">Ollama · 1개</small></header><div><span>대기 <strong id="commonPending">0</strong></span><span class="running">중 <strong id="commonProcessing">0</strong></span><span>완료 <strong id="commonCompleted">0</strong></span></div></section>
+            <i class="pipeline-arrow">→</i>
+            <section class="pipeline-stage"><header><b>② 케이스 판정</b><small id="caseProviderMeta">OpenRouter · 0/800</small></header><div><span>대기 <strong id="casePending">0</strong></span><span class="running">중 <strong id="caseProcessing">0</strong></span><span>완료 <strong id="caseCompleted">0</strong></span></div></section>
+            <i class="pipeline-arrow">→</i>
+            <section class="pipeline-stage delivery-stage"><header><b>③ 발송</b><small id="pipelineProcessingTitle">현재 처리 없음</small></header><div><span>대기 <strong id="deliveryPending">0</strong></span><span>성공 <strong id="deliverySent">0</strong></span><span class="failed">실패 <strong id="pipelineFailed">0</strong></span></div></section>
+            <small class="pipeline-meta">평균 <b id="pipelineAverage">0초</b> · 오늘 <b id="pipelineTotal">0</b></small>
+          </div></div>
+        </div>
+      </section>
+
       <div class="dashboard-grid">
-        <section class="panel wide"><div class="panel-head"><div><span>RECENT MATCHES</span><h2>관련 기사</h2></div><select id="caseFilter"><option value="">전체 케이스</option></select></div><div id="articleList" class="article-list"></div></section>
-        <aside class="panel"><div class="panel-head"><div><span>PUBLISHERS</span><h2>언론사 분포</h2></div></div><div id="publisherBars" class="bars"></div></aside>
-        <aside class="panel"><div class="panel-head"><div><span>DELIVERY</span><h2>발송 상태</h2></div></div><div id="deliveryStats" class="delivery-stats"></div></aside>
+        <section class="panel article-panel"><div class="panel-head"><div><span>RECENT ANALYSIS · 선택 주기 자동 갱신</span><h2>기사 분석 기록 <b>전체 기록</b></h2><div id="tagFilter" class="tag-filter"></div></div><small id="activeFilterLabel">전체 기관</small></div><div id="articleList" class="article-list"></div></section>
+        <div class="insight-rail">
+<aside class="panel dashboard-topic-panel"><div class="panel-head"><div><span>KEY TOPICS</span><h2>주요 화두</h2></div><small id="dashboardWordMeta">케이스를 선택하세요.</small></div><div id="dashboardWordCloud" class="dashboard-word-cloud"><div class="empty compact">기관 또는 케이스별 핵심 화두를 표시합니다.</div></div></aside>
+          <aside class="panel"><div class="panel-head"><div><span>RECENT SENT</span><h2>최근 발송 기사</h2></div></div><div id="recentSent" class="recent-sent"></div></aside>
+          <aside class="panel"><div class="panel-head"><div><span>PUBLISHERS</span><h2>언론사 분포</h2></div></div><div id="publisherBars" class="bars"></div></aside>
+          <aside class="panel"><div class="panel-head"><div><span>CATEGORIES · 기사(발송)</span><h2>분류별 기사 수</h2></div></div><div id="categoryStats" class="category-stats"></div></aside>
+          <aside class="panel"><div class="panel-head"><div><span>DELIVERY</span><h2>발송 상태</h2></div></div><div id="deliveryStats" class="delivery-stats"></div></aside>
+        </div>
       </div>
     </section>
 
+    <section id="neuralView" hidden>
+      <div class="neural-head"><div><p class="eyebrow">CASE SEMANTIC EXPLORER</p><h1>신경망 분석</h1><p>케이스별 발송 완료 기사를 한 단계 상위 주제와 의미 관계로 묶어 3차원 공간에서 탐색합니다.</p></div></div>
+      <div class="neural-controls"><label>기관<select id="neuralOrganizationFilter"><option value="">기관 선택</option></select></label><label>케이스<select id="neuralCaseFilter" disabled><option value="">케이스 선택</option></select></label><label>분석 기간<select id="neuralDays"><option value="1">24시간</option><option value="7" selected>7일</option><option value="30">30일</option></select></label><small>노드를 드래그해 시점을 회전하고, 휠로 확대·축소하세요.</small></div>
+      <div class="neural-grid"><section class="panel neural-canvas-panel"><div class="panel-head"><div><span>3D TOPIC NETWORK</span><h2>기사 주제 관계망</h2></div><small id="neuralMeta">케이스를 선택하세요.</small></div><canvas id="neuralCanvas" width="900" height="560"></canvas></section><aside class="panel neural-detail"><div class="panel-head"><div><span>NODE INSPECTOR</span><h2>노드 분석</h2></div></div><div id="neuralDetail" class="empty compact">관계망의 노드를 선택하면 상위 주제와 직접 명사, 주변 연결을 확인할 수 있습니다.</div></aside><section class="panel neural-word-panel"><div class="panel-head"><div><span>KEY TOPICS</span><h2>주요 화두</h2></div><small>중요 화두일수록 중앙·크게 표시</small></div><div id="neuralWordCloud" class="neural-word-cloud"></div></section></div>
+    </section>
+
+
+    <section id="pressView" hidden>
+      <div class="press-head">
+        <div><p class="eyebrow">PUBLIC RELEASE RAG</p><h1>보도동향</h1><p>행정안전부 공식 보도자료와 관련 언론 기사를 양방향으로 확인합니다.</p></div>
+        <div class="press-controls"><label>기관<select id="pressOrganizationFilter"><option value="">기관 선택</option></select></label><button class="small-button" id="syncPressReleases" hidden>지금 동기화</button><small id="pressStatus">보도자료를 확인하고 있습니다.</small></div>
+      </div>
+      <section class="panel press-list-panel">
+        <div class="panel-head"><div><span>MOIS RSS · MARKDOWN RAG</span><h2>보도자료 리스트</h2></div><small>제목을 선택하면 요약과 관련 기사 현황을 펼칩니다.</small></div>
+        <div id="pressReleaseList" class="press-release-list"><div class="empty">보도자료를 불러오는 중입니다.</div></div>
+      </section>
+    </section>
+
     <section id="adminView" hidden>
-      <div class="admin-head"><div><p class="eyebrow">CONTROL ROOM</p><h1>마스터언론 설정</h1><p>홈페이지 관리자 세션으로 보호되는 영역입니다.</p></div><div class="admin-actions"><button class="button secondary" id="runTick">수집·발송 실행</button><button class="button" id="newCase">새 케이스</button></div></div>
+      <div class="admin-head"><div><p class="eyebrow">CONTROL ROOM</p><h1>AI 언론동향 비서 설정</h1><p>홈페이지 관리자 세션으로 보호되는 영역입니다.</p></div><div class="admin-actions"><button class="button secondary" id="runTick">수집·발송 실행</button><button class="button secondary" id="newOrganization">새 기관</button><button class="button" id="newCase">새 케이스</button></div></div>
       <div id="adminGate" class="gate" hidden><h2>관리자 로그인이 필요합니다</h2><p>홈페이지 관리자에서 로그인한 뒤 다시 돌아오세요.</p><a class="button" href="/admin">관리자 로그인</a></div>
       <div id="adminContent">
         <div class="readiness" id="readiness"></div>
         <div class="admin-grid">
-          <section class="panel"><div class="panel-head"><div><span>CASES</span><h2>모니터링 케이스 <b id="caseCount">0/5</b></h2></div></div><div id="caseList" class="case-list"></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>LOCAL · COMMON ANALYSIS</span><h2>공통분석 모델</h2><small>분류·어조·요약·상위 주제</small></div><button class="small-button" id="saveLlmModel">적용</button></div><select id="llmModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>OPENROUTER · CASE JUDGMENT</span><h2>케이스 판정 모델</h2><small id="openrouterModelStatus">연결 확인 중</small></div><button class="small-button" id="saveCaseLlmModel">적용</button></div><select id="caseLlmModelSelect"></select></section>
+          <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2></div></div><div id="organizationList" class="organization-tree"></div></section>
           <section class="panel"><div class="panel-head"><div><span>RECIPIENTS</span><h2>카카오 수신자</h2></div><button class="small-button" id="newInvite">등록 링크</button></div><div id="recipientList" class="recipient-list"></div></section>
           <section class="panel wide"><div class="panel-head"><div><span>LOW SCORE REVIEW</span><h2>저유사도 개선 자료</h2></div><select id="improvementCase"></select></div><div id="improvementContent" class="improvement"></div></section>
         </div>
@@ -54,19 +96,21 @@
       <div class="form-grid">
         <label>케이스명<input id="caseName" maxlength="80" required></label>
         <label>활성 상태<select id="caseActive"><option value="true">사용</option><option value="false">중지</option></select></label>
-        <label class="full">주제 설명<textarea id="caseTopic" rows="3" maxlength="2000" placeholder="기사의 실제 관련성을 판단할 구체적인 대상·행위·지역을 적어주세요."></textarea></label>
+        <label class="full">주제 검색 사용자 프롬프트<textarea id="caseTopic" rows="5" maxlength="4000" placeholder="예: 행정안전부(행안부)를 비판의 대상으로 하여 비판·시정요구·비난 등의 부정적 어조로 작성된 기사만 찾아 판정해줘."></textarea><small>후보 기사에 대해 LLM이 수행할 사용자 지시입니다. 기관·대상·행위·어조·제외 조건을 구체적으로 작성하세요.</small></label>
         <label class="full">포함 키워드<input id="caseInclude" placeholder="쉼표로 구분"></label>
         <label>필수 키워드<input id="caseRequired" placeholder="쉼표로 구분"></label>
         <label>제외 키워드<input id="caseExclude" placeholder="쉼표로 구분"></label>
-        <label class="full">긴급 키워드<input id="caseUrgent" placeholder="임계점과 예약 시간을 우회해 즉시 발송 · 쉼표 구분"></label>
+        <label class="full">긴급 키워드<input id="caseUrgent" placeholder="주제 일치 판정 후 예약 시간을 우회해 즉시 발송 · 쉼표 구분"></label>
         <label>수집 방식<select id="collectionMode"><option value="interval">주기</option><option value="times">지정 시각</option></select></label>
-        <label>수집 주기<select id="collectionInterval"><option value="5">5분</option><option value="10">10분</option><option value="30" selected>30분</option><option value="60">1시간</option></select></label>
+        <label>수집 주기<select id="collectionInterval"><option value="1">1분</option><option value="5">5분</option><option value="10">10분</option><option value="30" selected>30분</option><option value="60">1시간</option></select></label>
         <label class="full">수집 시각<input id="collectionTimes" placeholder="예: 08:00, 12:30, 18:00"></label>
+        <label class="full">사용 기관<select id="caseOrganization" required><option value="">기관을 선택하세요</option></select></label>
+        <label>LLM 주제 일치 시<select id="sendRelevantImmediately"><option value="true">카카오톡 즉시 발송</option><option value="false">아래 발송 일정 적용</option></select></label>
         <label>발송 방식<select id="deliveryMode"><option value="immediate">즉시</option><option value="times">지정 시각</option></select></label>
         <label>발송 시각<input id="deliveryTimes" placeholder="예: 09:00, 18:00"></label>
-        <label>전송 임계점<input id="relevanceThreshold" type="number" min="0" max="100" value="75"></label>
-        <label>보류 임계점<input id="holdThreshold" type="number" min="0" max="100" value="55"></label>
-        <fieldset class="full"><legend>관련도 비중</legend><div class="weight-row"><label>키워드<input id="keywordWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label><label>의미<input id="semanticWeight" type="number" min="0" max="1" step="0.05" value="0.4"></label><label>LLM<input id="llmWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label></div></fieldset>
+        <label>LLM 전송 기준<input id="relevanceThreshold" type="number" min="0" max="100" value="75"></label>
+        <label>분석 보류 참고점수<input id="holdThreshold" type="number" min="0" max="100" value="55"></label>
+        <fieldset class="full"><legend>후보 진단용 혼합점수 비중 · 표시 유사도와 발송 임계값에는 미사용</legend><div class="weight-row"><label>키워드<input id="keywordWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label><label>의미<input id="semanticWeight" type="number" min="0" max="1" step="0.05" value="0.4"></label><label>LLM<input id="llmWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label></div></fieldset>
         <label class="full">공식 RSS 주소<textarea id="rssUrls" rows="2" placeholder="한 줄에 하나"></textarea></label>
         <fieldset class="full"><legend>카카오 수신자</legend><div id="caseRecipients" class="checks"></div></fieldset>
       </div>
@@ -74,8 +118,34 @@
     </form>
   </dialog>
 
+  <dialog id="organizationDialog">
+    <form id="organizationForm" class="dialog-card">
+      <div class="dialog-head"><div><span>ORGANIZATION EDITOR</span><h2 id="organizationDialogTitle">새 기관</h2></div><button type="button" class="icon-button" data-close="organizationDialog">×</button></div>
+      <input type="hidden" id="organizationId">
+      <div class="form-grid">
+        <label>기관명<input id="organizationName" maxlength="100" required placeholder="예: 행정안전부"></label>
+        <label>활성 상태<select id="organizationActive"><option value="true">사용</option><option value="false">중지</option></select></label>
+        <label class="full">약칭<input id="organizationAbbreviations" placeholder="예: 행안부 · 쉼표 구분"></label>
+        <label class="full">이전 명칭<input id="organizationFormerNames" placeholder="예: 행자부 · 쉼표 구분"></label>
+        <label class="full">관련 인물<input id="organizationPeople" placeholder="예: 윤호중 장관 · 쉼표 구분"></label>
+        <label class="full">제외 키워드<input id="organizationExcludeTerms" placeholder="기관명과 함께 검색되지만 제외할 표현 · 쉼표 구분"></label>
+        <label class="full">기관 도메인<input id="organizationDomains" placeholder="예: mois.go.kr · 쉼표 구분"></label>
+        <label class="full">공식 RSS 주소<textarea id="organizationRssUrls" rows="2" placeholder="한 줄에 하나"></textarea></label>
+        <label>수집 방식<select id="organizationCollectionMode"><option value="interval">주기</option><option value="times">지정 시각</option></select></label>
+        <label>수집 주기<select id="organizationCollectionInterval"><option value="1">1분</option><option value="5">5분</option><option value="10">10분</option><option value="30" selected>30분</option><option value="60">1시간</option><option value="180">3시간</option><option value="360">6시간</option><option value="1440">1일</option></select></label>
+        <label class="full">수집 시각<input id="organizationCollectionTimes" placeholder="예: 08:00, 12:30, 18:00"></label>
+        <label>회차당 검색어 수<input id="organizationMaxQueries" type="number" min="1" max="20" value="8"></label>
+        <label>회차당 기사 한도<input id="organizationMaxArticles" type="number" min="1" max="200" value="50"></label>
+      </div>
+      <div class="dialog-actions"><button type="button" class="button danger" id="deleteOrganization" hidden>사용 중지·보관</button><span></span><button type="button" class="button secondary" data-close="organizationDialog">취소</button><button class="button" type="submit">저장</button></div>
+    </form>
+  </dialog>
+  <dialog id="analysisDialog"><div class="dialog-card"><div class="dialog-head"><div><span>LLM TRACE</span><h2>분석과정</h2></div><button type="button" class="icon-button" data-close="analysisDialog">×</button></div><div id="analysisToast" class="dialog-toast" role="status" aria-live="polite"></div><div id="analysisContent" class="analysis-content"></div><div class="dialog-actions"><span></span><label>재분석 모델<select id="reanalysisModel"></select></label><button type="button" class="button secondary" data-close="analysisDialog">닫기</button><button type="button" class="button" id="reanalyzeButton">재분석</button></div></div></dialog>
   <dialog id="inviteDialog"><form id="inviteForm" class="dialog-card compact"><div class="dialog-head"><div><span>KAKAO OAUTH</span><h2>수신자 등록 링크</h2></div><button type="button" class="icon-button" data-close="inviteDialog">×</button></div><label>수신자 별칭<input id="inviteLabel" required placeholder="예: 홍길동"></label><label>유효시간<select id="inviteTtl"><option value="60">1시간</option><option value="180">3시간</option><option value="1440">24시간</option></select></label><button class="button" type="submit">링크 생성</button><div id="inviteResult" class="copy-result"></div></form></dialog>
+
+  <dialog id="relatedPressDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>RELATED PUBLIC RELEASES</span><h2>관련 보도자료</h2></div><button type="button" class="icon-button" data-close="relatedPressDialog">×</button></div><div id="relatedPressList" class="related-press-list"></div></div></dialog>
+  <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js"></script>
+  <script src="/poc/master-press/app.js?v=20260720-3"></script>
 </body>
 </html>

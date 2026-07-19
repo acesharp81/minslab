@@ -50,8 +50,17 @@ class MainIntegrationTests(unittest.TestCase):
     def test_static_dashboard_and_project_registration(self):
         status, _headers, body = asyncio.run(call_app("/poc/master-press/"))
         self.assertEqual(status, 200)
-        self.assertIn("마스터언론".encode("utf-8"), body)
+        self.assertIn("AI 언론동향 비서".encode("utf-8"), body)
+        self.assertIn("AI읽고 AI로 분류하다".encode("utf-8"), body)
         homepage = main.build_html()
+        self.assertEqual(body.count(b'id="organizationDialog"'), 1)
+        self.assertEqual(body.count(b'id="inviteDialog"'), 1)
+        self.assertIn(b'id="commonPending"', body)
+        self.assertIn(b'id="casePending"', body)
+        self.assertIn(b'id="organizationFilter"', body)
+        self.assertIn(b'id="categoryStats"', body)
+        self.assertIn(b'id="recentSent"', body)
+        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260720-3"></script>'), 1)
         self.assertIn('"id": "master-press"', homepage)
         renderer_order = re.search(
             r"function renderMoisKmsLab\(p\)\{.*?\n    \}\n\n    function renderMasterPressLab\(p\)\{.*?"
@@ -59,12 +68,15 @@ class MainIntegrationTests(unittest.TestCase):
             homepage,
             re.S,
         )
-        self.assertIsNotNone(renderer_order, "마스터언론 렌더러가 다른 렌더러 안에 중첩됐습니다.")
+        self.assertIsNotNone(renderer_order, "AI 언론동향 비서 렌더러가 다른 렌더러 안에 중첩됐습니다.")
 
     def test_public_api_and_admin_protection(self):
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/dashboard"))
         self.assertEqual(status, 200)
-        self.assertEqual(json.loads(body)["project"]["id"], "master-press")
+        data = json.loads(body)
+        self.assertEqual(data["project"]["id"], "master-press")
+        self.assertIn("organizations", data)
+        self.assertLessEqual(len(data["dashboard"]["articles"]), 20)
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/admin/bootstrap"))
         self.assertEqual(status, 401)
         self.assertIn("관리자", json.loads(body)["error"])

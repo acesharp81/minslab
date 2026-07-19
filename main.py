@@ -983,9 +983,9 @@ HTML_PAGE = r"""
     function renderMasterPressLab(p){
       projectDefaultView.classList.add("hidden");
       projectLab.classList.add("active");
-      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>04 · 마스터언론</strong><span id="masterPressStatus">뉴스 모니터링 대시보드를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/master-press/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">공식 검색 API·RSS 우선 · 키워드/임베딩/LLM 복합 관련도 · 개인별 카카오 나에게 보내기</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="masterPressFrame" src="/poc/master-press/" title="마스터언론" loading="eager"></iframe></div></section>`;
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>04 - AI 언론동향 비서</strong><span id="masterPressStatus">뉴스 모니터링 대시보드를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/master-press/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">공식 검색 API·RSS 우선 · 키워드/임베딩/LLM 복합 관련도 · 개인별 카카오 나에게 보내기</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="masterPressFrame" src="/poc/master-press/" title="AI 언론동향 비서" loading="eager"></iframe></div></section>`;
       const frame=document.getElementById("masterPressFrame"),status=document.getElementById("masterPressStatus");
-      frame.addEventListener("load",()=>{status.textContent="마스터언론 연결 완료 · 공개 대시보드와 관리자 설정을 이용할 수 있습니다."},{once:true});
+      frame.addEventListener("load",()=>{status.textContent="AI 언론동향 비서 연결 완료 · 공개 대시보드와 관리자 설정을 이용할 수 있습니다."},{once:true});
     }
 
     function renderMultiAgentHarnessLab(p){
@@ -1265,7 +1265,7 @@ def ai_safe_config_status(kb_status):
     return {
         "kma_key": bool(env_first("KMA_AUTH_KEY")),
         "hf_key": bool(env_first("HF_API_KEY")),
-        "openrouter_key": bool(env_first("OPENROUTER_API_KEY")),
+        "openrouter_key": bool(env_first("OPENROUTER_API_MYKEY", "OPENROUTER_API_KEY")),
         "kb_path": kb_status.get("filename") or env_first("DISASTER_KB_PATH", default="integrated_disaster_kb.pkl"),
     }
 
@@ -1706,7 +1706,7 @@ def load_master_press_module():
 
 
 async def collect_master_press():
-    """기존 홈페이지 프로세스 안에서 30초마다 예정된 수집·발송을 확인한다."""
+    """수집·예약 발송은 LLM 단계와 독립적으로 30초마다 확인한다."""
     while True:
         try:
             module = load_master_press_module()
@@ -1714,8 +1714,23 @@ async def collect_master_press():
         except asyncio.CancelledError:
             raise
         except Exception as error:
-            print(f"Master Press background worker failed: {error}", file=sys.stderr)
+            print(f"Master Press orchestration worker failed: {error}", file=sys.stderr)
         await asyncio.sleep(30)
+
+
+async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
+    """Continuously drain one independent pipeline stage without blocking the other stages."""
+    while True:
+        result = None
+        try:
+            module = load_master_press_module()
+            function = getattr(module, function_name)
+            result = await asyncio.to_thread(function, burst) if function_name == "case_worker_tick" else await asyncio.to_thread(function)
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            print(f"Master Press {function_name} failed: {error}", file=sys.stderr)
+        await asyncio.sleep(0.5 if result else idle_seconds)
 
 
 def load_report_draft_module():
@@ -1756,7 +1771,7 @@ async def app(scope, receive, send):
     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
     if scope["type"] == "lifespan":
         metrics_task = None
-        master_press_task = None
+        master_press_tasks = []
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
@@ -1767,7 +1782,12 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
-                master_press_task = asyncio.create_task(collect_master_press())
+                master_press_tasks = [
+                    asyncio.create_task(collect_master_press()),
+                    asyncio.create_task(run_master_press_stage("common_worker_tick", idle_seconds=2.0)),
+                    asyncio.create_task(run_master_press_stage("case_worker_tick", idle_seconds=2.0, burst=False)),
+                    asyncio.create_task(run_master_press_stage("case_worker_tick", idle_seconds=3.0, burst=True)),
+                ]
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
                 if metrics_task is not None:
@@ -1776,8 +1796,9 @@ async def app(scope, receive, send):
                         await metrics_task
                     except asyncio.CancelledError:
                         pass
-                if master_press_task is not None:
+                for master_press_task in master_press_tasks:
                     master_press_task.cancel()
+                for master_press_task in master_press_tasks:
                     try:
                         await master_press_task
                     except asyncio.CancelledError:
@@ -1998,7 +2019,7 @@ async def app(scope, receive, send):
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
         except Exception as error:
             status = int(getattr(error, "status", 500))
-            message = str(error) if status < 500 or str(error) else "마스터언론 요청을 처리하지 못했습니다."
+            message = str(error) if status < 500 or str(error) else "AI 언론동향 비서 요청을 처리하지 못했습니다."
             body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
         extra_headers.append((b"cache-control", b"no-store"))

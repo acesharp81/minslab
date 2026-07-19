@@ -148,10 +148,10 @@ class NewsCollector:
             return " ".join(included[:8])
         return str(case.get("topic_description") or case.get("name") or "").strip()[:200]
 
-    def collect_naver(self, case: dict) -> list[Candidate]:
+    def collect_naver_query(self, query: str) -> list[Candidate]:
         if not (self.settings.naver_client_id and self.settings.naver_client_secret):
             return []
-        query = self.query_for_case(case)
+        query = str(query or "").strip()[:200]
         if not query:
             return []
         params = urllib.parse.urlencode({"query": query, "display": 100, "start": 1, "sort": "date"})
@@ -181,6 +181,9 @@ class NewsCollector:
                 source_type="naver",
             ))
         return results
+
+    def collect_naver(self, case: dict) -> list[Candidate]:
+        return self.collect_naver_query(self.query_for_case(case))
 
     def collect_rss(self, urls: Iterable[str]) -> list[Candidate]:
         results = []
@@ -235,6 +238,34 @@ class NewsCollector:
             item["collector_errors"] = errors
         return results
 
+    def collect_organization(self, organization: dict) -> list[dict]:
+        search_terms = [
+            organization.get("name", ""),
+            *organization.get("abbreviations", []),
+            *organization.get("former_names", []),
+            *organization.get("people", []),
+        ]
+        queries = list(dict.fromkeys(str(term).strip() for term in search_terms if str(term).strip()))
+        queries = queries[: max(1, int(organization.get("max_search_queries", 8)))]
+        candidates: list[Candidate] = []
+        errors: list[str] = []
+        for query in queries:
+            try:
+                candidates.extend(self.collect_naver_query(query))
+            except Exception as error:
+                errors.append(f"naver({query[:30]}): {error}")
+        # 기관 수집은 전역 RSS를 절대 합치지 않습니다. 기관이 직접 등록한 RSS만 허용합니다.
+        rss_urls = list(organization.get("rss_urls", []))
+        candidates.extend(self.collect_rss(rss_urls))
+        deduped: dict[str, Candidate] = {}
+        for candidate in candidates:
+            deduped.setdefault(candidate.canonical_url, candidate)
+        results = [candidate.as_dict() for candidate in deduped.values()]
+        for item in results:
+            item["collector_errors"] = errors
+        return results
+
+
     def fetch_body(self, url: str) -> dict:
         if not self.http.allowed(url):
             return {"body": "", "error": "robots_disallowed"}
@@ -262,12 +293,26 @@ class NewsCollector:
 
 
 def quick_candidate_match(case: dict, candidate: dict) -> bool:
-    text = f"{candidate.get('title', '')} {candidate.get('snippet', '')}".casefold()
-    excluded = [str(term).casefold() for term in case.get("exclude_terms", []) if str(term).strip()]
+    text = f"{candidate.get('title', '')} {candidate.get('snippet', '')} {candidate.get('body', '')}".casefold()
+    required = [str(term).casefold() for term in case.get("required_terms", []) if str(term).strip()]
+    included = [str(term).casefold() for term in case.get("include_terms", []) if str(term).strip()]
+    urgent = [str(term).casefold() for term in case.get("urgent_terms", []) if str(term).strip()]
+    search_terms = list(dict.fromkeys([*required, *included, *urgent]))
+    return not search_terms or any(term in text for term in search_terms)
+
+
+def organization_candidate_match(organization: dict, candidate: dict) -> bool:
+    text = f"{candidate.get('title', '')} {candidate.get('snippet', '')} {candidate.get('body', '')}".casefold()
+    excluded = [str(term).strip().casefold() for term in organization.get("exclude_terms", []) if str(term).strip()]
     if any(term in text for term in excluded):
         return False
-    required = [str(term).casefold() for term in case.get("required_terms", []) if str(term).strip()]
-    if required and not all(term in text for term in required):
-        return False
-    included = [str(term).casefold() for term in case.get("include_terms", []) if str(term).strip()]
-    return not included or any(term in text for term in included) or bool(required)
+    identity_terms = [
+        organization.get("name", ""),
+        *organization.get("abbreviations", []),
+        *organization.get("former_names", []),
+        *organization.get("people", []),
+    ]
+    identity_terms = [str(term).strip().casefold() for term in identity_terms if str(term).strip()]
+    url = str(candidate.get("original_url") or candidate.get("canonical_url") or "").casefold()
+    domains = [str(domain).strip().casefold().removeprefix("https://").removeprefix("http://").strip("/") for domain in organization.get("domains", []) if str(domain).strip()]
+    return (not identity_terms and not domains) or any(term in text for term in identity_terms) or any(domain in url for domain in domains)

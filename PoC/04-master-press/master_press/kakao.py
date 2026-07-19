@@ -151,6 +151,17 @@ class KakaoClient:
                 raise
             raise KakaoError("카카오 토큰을 사용할 수 없어 재동의가 필요합니다.", 401) from error
 
+    def connection_status(self, recipient_id: str) -> dict:
+        """Refresh an expiring access token and return an operator-friendly connection result."""
+        try:
+            self.access_token(recipient_id)
+            recipient = self.store.get_recipient(recipient_id) or {}
+            if recipient.get("status") != "active" or recipient.get("last_error"):
+                self.store.update_recipient_tokens(recipient_id, {"status": "active", "last_error": None})
+            return {"connected": True, "label": "연결 성공", "error": ""}
+        except KakaoError as error:
+            return {"connected": False, "label": "연결 실패", "error": str(error)[:180]}
+
     def send_to_me(self, recipient_id: str, text: str, original_url: str) -> tuple[int, dict]:
         token = self.access_token(recipient_id)
         message = {
