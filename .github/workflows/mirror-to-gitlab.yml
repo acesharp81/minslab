@@ -34,4 +34,4 @@ jobs:
           cd repository.git
 
           git push --mirror \
-            "https://${GITLAB_USERNAME}:${GITLAB_TOKEN}@gitlab.com/${GITLAB_REPOSITORY}"
+            "https://${GITLAB_USERNAME}:${GITLAB_TOKEN}@gitlab.aigov.go.kr/${GITLAB_REPOSITORY}"
