@@ -14,7 +14,10 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from master_press.collectors import canonicalize_url, organization_candidate_match, quick_candidate_match
 from master_press.kakao import TokenCipher
-from master_press.press_releases import PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown, parse_mois_date
+from master_press.press_releases import (
+    PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
+    lexical_similarity, parse_mois_date, supported_topic_concepts,
+)
 from master_press.scoring import OpenRouterClient, RelevanceEngine, keyword_relevance
 from master_press.service import MasterPressService, delivery_at, next_collection_at
 from master_press.storage import KST, Store, centered_semantic_similarity, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
@@ -585,6 +588,14 @@ class PressReleaseTests(unittest.TestCase):
         first = '---\nsource_url: "https://mois.go.kr/a"\n---\n\n# 같은 제목\n\n본문입니다.\n\n*담당자: 안전과 홍길동(044-205-1234)'
         second = '---\nsource_url: "https://mois.go.kr/b"\n---\n\n# 같은 제목\n\n본문입니다.\n\n* 담당자: 안전과 홍길동(044-205-1234)'
         self.assertEqual(document_fingerprint("같은 제목", first), document_fingerprint("같은 제목", second))
+
+    def test_v4_lite_normalizes_korean_topics_without_single_mention_false_anchor(self):
+        self.assertGreater(lexical_similarity("중부 장맛비 피해 신고", "호우지역 피해 대응"), 0)
+        article = supported_topic_concepts("중부지방 호우 피해", "인명피해는 없는 것으로 확인됐다")
+        release = supported_topic_concepts("중앙재난안전대책본부장 긴급 지시", "호우와 침수, 산사태 대응")
+        self.assertIn("호우·풍수해", article & release)
+        incidental = supported_topic_concepts("긴급 지시", "지난해 산불 지역의 추가 산사태를 점검했다")
+        self.assertNotIn("산불·화재", incidental)
 
     def test_article_press_pair_is_matched_only_once(self):
         with tempfile.TemporaryDirectory() as directory:

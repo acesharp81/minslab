@@ -10,6 +10,7 @@ import urllib.parse
 import urllib.request
 import uuid
 import xml.etree.ElementTree as ET
+from collections import Counter
 from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
@@ -19,7 +20,7 @@ from .storage import KST, Store, json_value, now_iso
 
 
 MOIS_PRESS_RSS = "https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1012"
-MATCHER_VERSION = "press-rag-v3"
+MATCHER_VERSION = "press-rag-v4-lite"
 TOKEN_RE = re.compile(r"[가-힣A-Za-z0-9]{2,}")
 CONTACT_RE = re.compile(
     r"담당자\s*[:：]\s*(?P<department>[^\n()]{2,40}?)\s+(?P<name>[가-힣A-Za-z]{2,20})\s*\((?P<phone>0\d{1,2}-\d{3,4}-\d{4})\)"
@@ -228,16 +229,100 @@ def cosine_similarity(left: list[float], right: list[float]) -> float:
     return max(-1.0, min(1.0, sum(a * b for a, b in zip(left, right)) / (left_norm * right_norm)))
 
 
-def lexical_similarity(left: str, right: str) -> float:
-    left_terms, right_terms = set(TOKEN_RE.findall(str(left or "").casefold())), set(TOKEN_RE.findall(str(right or "").casefold()))
-    stop = {"행정안전부", "행안부", "정부", "관련", "대한", "통해", "위해", "밝혔다"}
-    left_terms -= stop
-    right_terms -= stop
-    if not left_terms or not right_terms:
-        return 0.0
-    overlap = left_terms & right_terms
-    return min(1.0, len(overlap) / max(1, min(len(left_terms), len(right_terms))))
+TOPIC_ALIASES = (
+    ("중앙재난안전대책본부", "중대본"), ("지방자치단체", "지자체"),
+    ("집중 호우", "호우"), ("집중호우", "호우"), ("호우 경보", "호우"), ("호우경보", "호우"),
+    ("장맛비", "호우"), ("폭우", "호우"), ("물폭탄", "호우"),
+    ("인공 지능", "인공지능"), ("인공지능", "ai"), ("주민 등록", "주민등록"),
+    ("지방 보조금", "지방보조금"), ("자치 경찰", "자치경찰"), ("공유 재산", "공유재산"),
+    ("환경 미화원", "환경미화원"), ("지역 관광", "지역관광"),
+)
+TOPIC_RULES = (
+    ("호우·풍수해", ("호우", "풍수해", "수해", "침수", "산사태", "토석류", "중대본")),
+    ("폭염", ("폭염", "무더위", "열대야")), ("가뭄", ("가뭄", "운문댐")),
+    ("태풍", ("태풍",)), ("지진", ("지진",)), ("산불·화재", ("산불", "화재")),
+    ("재난피해·회복", ("이재민", "재난 피해자", "피해 복구", "일상 회복", "재난지원")),
+    ("오송참사", ("오송 참사", "오송참사", "궁평2지하차도")),
+    ("다중운집 안전", ("다중운집", "인파사고", "인파 사고")), ("자치경찰", ("자치경찰",)),
+    ("지방보조금", ("지방보조금", "보조금 부정수급")), ("주민등록", ("주민등록", "사실조사")),
+    ("공유재산", ("공유재산",)), ("환경미화원", ("환경미화원", "청소용역")),
+    ("지역관광", ("지역관광", "관광 정책")), ("지역경제", ("지역경제", "소상공인")),
+    ("ai·디지털", (" ai ", "인공지능", "파운데이션 모델")),
+    ("사이버보안", ("취약점", "보안 패치", "사이버보안")), ("적극행정", ("적극행정",)),
+    ("재난안전 교육", ("재난안전교육", "재난 안전 교육")),
+)
+TOPIC_STOP_TERMS = {
+    "행정안전부", "행안부", "정부", "지방정부", "지자체", "기관", "관계기관", "관련", "대한",
+    "통해", "위해", "위한", "따라", "대상", "중심", "현재", "이번", "지난", "오는", "오늘",
+    "내일", "오전", "오후", "밝혔다", "밝혀", "계획", "추진", "진행", "지원", "강화", "확대",
+    "개최", "운영", "실시", "점검", "대응", "상황", "조치", "관리", "결과", "사례", "업무",
+    "정책", "사업", "제도", "분야", "지역", "전국", "국민", "주민", "공무원", "대통령", "장관",
+    "윤호중", "이재명", "김광용", "내용", "자료", "보도", "보도자료", "보도참고자료", "행정",
+    "실태조사", "재난안전관리본부장",
+}
+PARTICLE_SUFFIXES = (
+    "으로부터", "에게서는", "에서는", "에게서", "으로써", "으로서", "에게", "한테", "까지", "부터",
+    "으로", "이나", "에는", "에도", "에서", "처럼", "보다", "만큼", "라고", "이라는", "로서", "로써",
+    "은", "는", "이", "가", "을", "를", "과", "와", "의", "에", "도", "만", "로", "나",
+)
 
+def normalize_topic_text(value: str) -> str:
+    text = re.sub(r"\s+", " ", str(value or "").casefold()).strip()
+    text = re.sub(r"\bai\b", " ai ", text)
+    for source, target in TOPIC_ALIASES:
+        text = text.replace(source, f" {target} ")
+    return re.sub(r"\s+", " ", text).strip()
+
+def _topic_term(value: str) -> str:
+    term = str(value or "").casefold().strip()
+    if not term or term.isdigit() or re.fullmatch(r"\d+(?:년|월|일|시|분|건|명|개|억|만)?", term): return ""
+    for suffix in PARTICLE_SUFFIXES:
+        if term.endswith(suffix) and len(term) - len(suffix) >= 2:
+            term = term[:-len(suffix)]; break
+    return "" if len(term) < 2 or term in TOPIC_STOP_TERMS else term
+
+def topic_terms(value: str) -> set[str]:
+    return {term for token in TOKEN_RE.findall(normalize_topic_text(value)) if (term := _topic_term(token))}
+
+def topic_concepts(value: str) -> set[str]:
+    raw = f" {normalize_topic_text(value)} "
+    return {label for label, variants in TOPIC_RULES if label.casefold() in raw or any(str(v).casefold() in raw for v in variants)}
+
+def supported_topic_concepts(primary: str, secondary: str) -> set[str]:
+    """Accept a concept from a primary field, or from two distinct clues in supporting text."""
+    supported = topic_concepts(primary)
+    normalized = f" {normalize_topic_text(secondary)} "
+    for label, variants in TOPIC_RULES:
+        hits = sum(str(variant).casefold() in normalized for variant in variants)
+        if hits >= 2:
+            supported.add(label)
+    return supported
+
+
+def weighted_topic_terms(fields: list[tuple[str, float]]) -> Counter:
+    weighted: Counter = Counter()
+    for value, weight in fields:
+        for term, count in Counter(topic_terms(value)).items(): weighted[term] += float(weight) * min(2, count)
+    return weighted
+
+def sparse_topic_similarity(left: Counter, right: Counter, document_frequency: dict[str, int], document_count: int) -> float:
+    shared = set(left) & set(right)
+    if not shared: return 0.0
+    def idf(term: str) -> float: return math.log((1 + max(1, document_count)) / (1 + document_frequency.get(term, 0))) + 1.0
+    left_norm = math.sqrt(sum((value * idf(term)) ** 2 for term, value in left.items()))
+    right_norm = math.sqrt(sum((value * idf(term)) ** 2 for term, value in right.items()))
+    if left_norm <= 1e-12 or right_norm <= 1e-12: return 0.0
+    return max(0.0, min(1.0, sum(left[t] * right[t] * idf(t) ** 2 for t in shared) / (left_norm * right_norm)))
+
+def lexical_similarity(left: str, right: str) -> float:
+    """Compatibility helper using normalized Korean terms from the v4-lite matcher."""
+    left_terms, right_terms = topic_terms(left), topic_terms(right)
+    if not left_terms or not right_terms: return 0.0
+    return min(1.0, len(left_terms & right_terms) / max(1, min(len(left_terms), len(right_terms))))
+
+def parse_timestamp(value: str | None) -> datetime | None:
+    try: return datetime.fromisoformat(str(value or "").replace("Z", "+00:00"))
+    except ValueError: return None
 
 class PressReleaseManager:
     def __init__(self, settings, store: Store, ollama, mirror):
@@ -245,6 +330,7 @@ class PressReleaseManager:
         self.store = store
         self.ollama = ollama
         self.mirror = mirror
+        self._press_term_stats_cache: tuple[dict[str, int], int] | None = None
         self.markdown_root = Path(settings.data_dir) / "press_releases" / "mois"
         self.markdown_root.mkdir(parents=True, exist_ok=True)
         stale_before = (datetime.now(KST) - timedelta(minutes=15)).isoformat(timespec="seconds")
@@ -287,6 +373,21 @@ class PressReleaseManager:
             connection.execute(
                 "UPDATE press_releases SET embedding_status='pending' WHERE embedding_status='processing' AND updated_at<?",
                 (stale_before,),
+            )
+            migration_time = now_iso()
+            connection.execute(
+                """UPDATE press_release_match_jobs SET status='pending',queued_at=?,started_at=NULL,finished_at=NULL,error=NULL
+                   WHERE EXISTS (
+                     SELECT 1 FROM article_press_release_matches m
+                     WHERE m.article_id=press_release_match_jobs.article_id
+                       AND m.press_release_id=press_release_match_jobs.press_release_id
+                       AND m.matcher_version<>?)""",
+                (migration_time, MATCHER_VERSION),
+            )
+            connection.execute(
+                """INSERT INTO app_settings(key,value,updated_at) VALUES('press_release_matcher_migration_version',?,?)
+                   ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
+                (MATCHER_VERSION, migration_time),
             )
 
     def _mois_organization(self) -> dict | None:
@@ -485,6 +586,7 @@ class PressReleaseManager:
                 )
                 chunk_rows.append(row)
             connection.execute("UPDATE press_releases SET embedding_status='completed',embedding_model=?,last_error=NULL,updated_at=? WHERE id=?", (model, now, release["id"]))
+            self._press_term_stats_cache = None
             completed = connection.execute("SELECT * FROM press_releases WHERE id=?", (release["id"],)).fetchone()
         release_ok = self.mirror.press_release(dict(completed), self._release_markdown(dict(completed)))
         chunks_ok = self.mirror.press_release_chunks(chunk_rows)
@@ -506,12 +608,30 @@ class PressReleaseManager:
                     return None
         return dict(row) if row else None
 
+    def _press_term_statistics(self) -> tuple[dict[str, int], int]:
+        if self._press_term_stats_cache is not None:
+            return self._press_term_stats_cache
+        with self.store.connect() as connection:
+            rows = connection.execute(
+                "SELECT title,summary FROM press_releases WHERE embedding_status='completed'"
+            ).fetchall()
+        frequency: Counter = Counter()
+        for row in rows:
+            frequency.update(topic_terms(f'{row["title"]} {row["summary"]}'))
+        self._press_term_stats_cache = (dict(frequency), len(rows))
+        return self._press_term_stats_cache
+
     def _process_match(self, job: dict) -> dict:
         with self.store.connect() as connection:
             row = connection.execute(
-                """SELECT a.id article_id,a.title article_title,a.snippet,a.body,ae.vector article_vector,
-                          pr.*,GROUP_CONCAT(pc.vector,'\n') chunk_vectors
+                """SELECT a.id article_id,a.title article_title,a.snippet,
+                          a.published_at article_published_at,a.first_seen_at article_first_seen_at,
+                          aa.summary article_summary,aa.classification_tags,aa.entities,aa.topic_concepts,
+                          ae.vector article_vector,pr.title press_title,pr.summary press_summary,
+                          pr.published_at press_published_at,pr.created_at press_created_at,
+                          GROUP_CONCAT(pc.vector,'\n') chunk_vectors
                    FROM articles a JOIN article_processing_flags apf ON apf.article_id=a.id
+                   JOIN article_analyses aa ON aa.id=apf.analysis_id
                    JOIN article_embeddings ae ON ae.article_analysis_id=apf.analysis_id
                    JOIN press_releases pr ON pr.id=? JOIN press_release_chunks pc ON pc.press_release_id=pr.id
                    WHERE a.id=? GROUP BY a.id,pr.id""",
@@ -523,36 +643,95 @@ class PressReleaseManager:
         article_vector = json_value(item.get("article_vector"), [])
         vectors = [json_value(value, []) for value in str(item.get("chunk_vectors") or "").splitlines() if value]
         semantic = max([cosine_similarity(article_vector, vector) for vector in vectors] or [0.0])
-        # Korean institutional documents share a high cosine baseline simply because they
-        # mention the same ministry and administrative vocabulary. Remove that corpus-level
-        # floor, then retain lexical evidence as an independent topic anchor.
         semantic_calibrated = max(0.0, min(1.0, (semantic - 0.68) / 0.22))
-        lexical = lexical_similarity(
-            f'{item.get("article_title", "")} {item.get("snippet", "")} {str(item.get("body") or "")[:3000]}',
-            f'{item.get("title", "")} {item.get("summary", "")}',
+
+        article_topics = " ".join(str(value) for value in json_value(item.get("topic_concepts"), []))
+        article_entities = " ".join(str(value) for value in json_value(item.get("entities"), []))
+        article_fields = [
+            (item.get("article_title", ""), 4.0), (article_topics, 3.0),
+            (article_entities, 2.5), (item.get("article_summary", ""), 1.8),
+            (item.get("snippet", ""), 1.0),
+        ]
+        press_fields = [(item.get("press_title", ""), 4.0), (item.get("press_summary", ""), 1.6)]
+        article_terms = weighted_topic_terms(article_fields)
+        press_terms = weighted_topic_terms(press_fields)
+        document_frequency, document_count = self._press_term_statistics()
+        sparse = sparse_topic_similarity(article_terms, press_terms, document_frequency, document_count)
+
+        article_primary = f'{item.get("article_title", "")} {article_topics} {article_entities}'
+        article_secondary = f'{item.get("article_summary", "")} {item.get("snippet", "")}'
+        press_primary = str(item.get("press_title", ""))
+        press_secondary = str(item.get("press_summary", ""))
+        shared_concepts = (
+            supported_topic_concepts(article_primary, article_secondary)
+            & supported_topic_concepts(press_primary, press_secondary)
         )
-        similarity = max(0.0, min(100.0, (semantic_calibrated * 0.8 + lexical * 0.2) * 100.0))
+        shared_terms = set(article_terms) & set(press_terms)
+        anchor_terms = topic_terms(f'{item.get("article_title", "")} {article_topics} {article_entities}')
+        press_anchor_terms = topic_terms(item.get("press_title", ""))
+        rare_cutoff = max(2, math.ceil(max(1, document_count) * 0.12))
+        strong_terms = {
+            term for term in anchor_terms & press_anchor_terms
+            if len(term) >= 4 and document_frequency.get(term, 0) <= rare_cutoff
+        }
+        if shared_concepts:
+            evidence = 1.0
+        elif strong_terms and sparse >= 0.12:
+            evidence = min(1.0, 0.82 + 0.06 * (len(strong_terms) - 1))
+        elif len(shared_terms) >= 2 and sparse >= 0.22:
+            evidence = min(0.82, 0.62 + sparse)
+        else:
+            evidence = 0.0
+
+        article_time = parse_timestamp(item.get("article_published_at") or item.get("article_first_seen_at"))
+        press_time = parse_timestamp(item.get("press_published_at") or item.get("press_created_at"))
+        window = max(1, int(getattr(self.settings, "press_release_match_window_days", 45)))
+        try:
+            distance_days = abs((article_time - press_time).total_seconds()) / 86400.0 if article_time and press_time else window / 2
+        except TypeError:
+            distance_days = window / 2
+        temporal = max(0.0, 1.0 - min(float(window), distance_days) / float(window))
+
+        similarity = max(0.0, min(100.0, (
+            semantic_calibrated * 0.35 + sparse * 0.25 + evidence * 0.30 + temporal * 0.10
+        ) * 100.0))
+        lexical = sparse * 0.65 + evidence * 0.35
         threshold = float(getattr(self.settings, "press_release_match_threshold", 62.0))
-        topic_evidence = lexical >= 0.15
-        related = similarity >= threshold and topic_evidence
+        related = similarity >= threshold and evidence > 0.0
         now = now_iso()
         with self.store.connect() as connection:
             connection.execute(
                 """INSERT INTO article_press_release_matches(article_id,press_release_id,status,is_related,semantic_score,lexical_score,similarity_score,matcher_version,matched_at,created_at,updated_at)
                    VALUES(?,?,'completed',?,?,?,?,?,?,?,?)
-                   ON CONFLICT(article_id,press_release_id) DO NOTHING""",
-                (job["article_id"], job["press_release_id"], int(related), round(semantic * 100, 2), round(lexical * 100, 2), round(similarity, 2), MATCHER_VERSION, now, now, now),
+                   ON CONFLICT(article_id,press_release_id) DO UPDATE SET
+                     status='completed',is_related=excluded.is_related,semantic_score=excluded.semantic_score,
+                     lexical_score=excluded.lexical_score,similarity_score=excluded.similarity_score,
+                     matcher_version=excluded.matcher_version,matched_at=excluded.matched_at,
+                     updated_at=excluded.updated_at,supabase_synced_at=NULL""",
+                (job["article_id"], job["press_release_id"], int(related), round(semantic * 100, 2),
+                 round(lexical * 100, 2), round(similarity, 2), MATCHER_VERSION, now, now, now),
             )
-            connection.execute("UPDATE press_release_match_jobs SET status='completed',finished_at=?,error=NULL WHERE article_id=? AND press_release_id=?", (now, job["article_id"], job["press_release_id"]))
+            connection.execute(
+                "UPDATE press_release_match_jobs SET status='completed',finished_at=?,error=NULL WHERE article_id=? AND press_release_id=?",
+                (now, job["article_id"], job["press_release_id"]),
+            )
         if related:
-            mirrored = self.mirror.press_release_match({"article_id": job["article_id"], "press_release_id": job["press_release_id"], "similarity_score": round(similarity, 2), "semantic_score": round(semantic * 100, 2), "lexical_score": round(lexical * 100, 2), "matcher_version": MATCHER_VERSION, "matched_at": now})
+            mirrored = self.mirror.press_release_match({
+                "article_id": job["article_id"], "press_release_id": job["press_release_id"],
+                "similarity_score": round(similarity, 2), "semantic_score": round(semantic * 100, 2),
+                "lexical_score": round(lexical * 100, 2), "matcher_version": MATCHER_VERSION, "matched_at": now,
+            })
             if mirrored:
                 with self.store.connect() as connection:
                     connection.execute(
                         "UPDATE article_press_release_matches SET supabase_synced_at=? WHERE article_id=? AND press_release_id=?",
                         (now_iso(), job["article_id"], job["press_release_id"]),
                     )
-        return {"stage": "press_match", "article_id": job["article_id"], "press_release_id": job["press_release_id"], "related": related, "similarity_score": round(similarity, 2)}
+        return {
+            "stage": "press_match", "article_id": job["article_id"], "press_release_id": job["press_release_id"],
+            "related": related, "similarity_score": round(similarity, 2),
+            "shared_concepts": sorted(shared_concepts), "strong_terms": sorted(strong_terms),
+        }
 
     def process_next(self) -> dict | None:
         release = self._next_pending_release()

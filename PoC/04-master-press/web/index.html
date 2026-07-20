@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260720-1">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260720-4">
 </head>
 <body>
   <header class="topbar">
@@ -44,7 +44,7 @@
       </section>
 
       <div class="dashboard-grid">
-        <section class="panel article-panel"><div class="panel-head"><div><span>RECENT ANALYSIS · 선택 주기 자동 갱신</span><h2>기사 분석 기록 <b>전체 기록</b></h2><div id="tagFilter" class="tag-filter"></div></div><small id="activeFilterLabel">전체 기관</small></div><div id="articleList" class="article-list"></div></section>
+        <section class="panel article-panel"><div class="panel-head"><div><span>RECENT ANALYSIS · 선택 주기 자동 갱신</span><div class="article-list-title"><h2>기사 분석 기록</h2><div class="article-delivery-filter" role="group" aria-label="기사 발송 여부 필터"><button class="active" type="button" data-article-delivery-filter="all" aria-pressed="true">전체 목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="sent" aria-pressed="false">발송목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="unsent" aria-pressed="false">미발송목록</button></div></div><div id="tagFilter" class="tag-filter"></div></div><small id="activeFilterLabel">전체 기관</small></div><div id="articleList" class="article-list"></div></section>
         <div class="insight-rail">
 <aside class="panel dashboard-topic-panel"><div class="panel-head"><div><span>KEY TOPICS</span><h2>주요 화두</h2></div><small id="dashboardWordMeta">케이스를 선택하세요.</small></div><div id="dashboardWordCloud" class="dashboard-word-cloud"><div class="empty compact">기관 또는 케이스별 핵심 화두를 표시합니다.</div></div></aside>
           <aside class="panel"><div class="panel-head"><div><span>RECENT SENT</span><h2>최근 발송 기사</h2></div></div><div id="recentSent" class="recent-sent"></div></aside>
@@ -146,6 +146,6 @@
   <dialog id="relatedPressDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>RELATED PUBLIC RELEASES</span><h2>관련 보도자료</h2></div><button type="button" class="icon-button" data-close="relatedPressDialog">×</button></div><div id="relatedPressList" class="related-press-list"></div></div></dialog>
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260720-3"></script>
+  <script src="/poc/master-press/app.js?v=20260720-5"></script>
 </body>
 </html>

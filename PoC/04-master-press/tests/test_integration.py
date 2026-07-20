@@ -60,7 +60,11 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'id="organizationFilter"', body)
         self.assertIn(b'id="categoryStats"', body)
         self.assertIn(b'id="recentSent"', body)
-        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260720-3"></script>'), 1)
+        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260720-5"></script>'), 1)
+        self.assertEqual(body.count(b'data-article-delivery-filter='), 3)
+        self.assertIn("전체 목록".encode("utf-8"), body)
+        self.assertIn("발송목록".encode("utf-8"), body)
+        self.assertIn("미발송목록".encode("utf-8"), body)
         self.assertIn('"id": "master-press"', homepage)
         renderer_order = re.search(
             r"function renderMoisKmsLab\(p\)\{.*?\n    \}\n\n    function renderMasterPressLab\(p\)\{.*?"

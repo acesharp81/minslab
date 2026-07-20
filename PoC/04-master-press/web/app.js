@@ -1,5 +1,5 @@
 const $=function(id){return document.getElementById(id)};
-const state={cases:[],organizations:[],recipients:[],activeOrganization:'',activeCase:'',activeTags:[],topicTagsExpanded:false,llmModels:[],caseLlmModels:[],analysis:null,dashboardLoading:false,lastArticleId:'',refreshSeconds:60,refreshRemaining:60,refreshTimer:null,countdownTimer:null,isAdmin:false,neuralOrganization:'',neuralCase:'',neuralDays:7,neuralScene:null,neuralSelected:'',neuralRotation:{x:-.18,y:.35,zoom:1},pressOrganization:''};
+const state={cases:[],organizations:[],recipients:[],activeOrganization:'',activeCase:'',activeTags:[],topicTagsExpanded:false,articleDeliveryFilter:'all',dashboardArticles:[],llmModels:[],caseLlmModels:[],analysis:null,dashboardLoading:false,lastArticleId:'',refreshSeconds:60,refreshRemaining:60,refreshTimer:null,countdownTimer:null,isAdmin:false,neuralOrganization:'',neuralCase:'',neuralDays:7,neuralScene:null,neuralSelected:'',neuralRotation:{x:-.18,y:.35,zoom:1},pressOrganization:''};
 function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
 function csv(value){return String(value||'').split(/[\n,]/).map(function(item){return item.trim()}).filter(Boolean)}
 function fmt(value){return value?new Date(value).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-'}
@@ -31,8 +31,14 @@ $('caseFilter').onchange=function(event){state.activeCase=event.target.value;loa
 
 function articleStatusLabel(item){var labels={pending:'공통 분석 대기',processing:'공통 분석 중',completed:'공통 분석 완료',failed:'공통 분석 실패'};return labels[item.status]||item.status||'수집됨'}
 function caseStatusLabel(item){var delivery=item.deliveries||{};if(item.evaluation_status==='excluded')return '후보 제외';if(item.evaluation_status==='pending')return '유사도 판정 대기';if(item.evaluation_status==='processing')return '유사도 판정 중';if(item.evaluation_status==='failed')return '판정 실패';if(item.decision==='send'){if(delivery.sent)return '발송 완료';if(delivery.pending||delivery.retry)return '발송 예정';return '조건 충족'}return item.decision==='low'?'발송 제외':'판정 대기'}
+function articleHasSentDelivery(item){return Number((item.case_summary||{}).sent||0)>0}
+function renderArticleDeliveryFilter(){
+  document.querySelectorAll('[data-article-delivery-filter]').forEach(function(button){var active=button.dataset.articleDeliveryFilter===state.articleDeliveryFilter;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
+  var items=state.dashboardArticles.filter(function(item){var sent=articleHasSentDelivery(item);return state.articleDeliveryFilter==='all'||(state.articleDeliveryFilter==='sent'&&sent)||(state.articleDeliveryFilter==='unsent'&&!sent)});
+  renderArticles(items);
+}
 function renderArticles(items){
-  if(!items.length){$('articleList').innerHTML='<div class="empty">아직 수집·분석된 기사가 없습니다.</div>';return}
+  if(!items.length){var messages={sent:'발송된 기사가 없습니다.',unsent:'미발송 기사가 없습니다.'};$('articleList').innerHTML='<div class="empty">'+(messages[state.articleDeliveryFilter]||'아직 수집·분석된 기사가 없습니다.')+'</div>';return}
   $('articleList').innerHTML=items.map(function(item){
     var cases=item.case_results||[],summary=item.case_summary||{},topScore=cases.reduce(function(max,value){return Math.max(max,Number(value.similarity_score!=null?value.similarity_score:(value.llm_score||0)))},0);
     var org=cases[0]&&cases[0].organization_name||'기관 미확인';
@@ -41,7 +47,9 @@ function renderArticles(items){
     var progress='케이스 '+Number(summary.total||0)+'개 · 충족 '+Number(summary.matched||0)+' · 제외 '+Number(summary.excluded||0)+' · 대기 '+Number(summary.pending||0);
     var details=cases.length?'<details class="case-status-details"><summary>'+esc(progress)+'</summary><div class="case-status-list">'+cases.map(function(value){var delivery=value.deliveries||{};var score=value.evaluation_status==='completed'?'유사도 '+Math.round(value.similarity_score!=null?value.similarity_score:(value.llm_score||0))+'% · ':'';var send=delivery.sent?' · 발송 '+delivery.sent+'건':delivery.pending?' · 발송 예정 '+delivery.pending+'건':'';return '<div><b>'+esc(value.case_name||'케이스')+'</b><span class="case-state '+esc(value.decision||value.evaluation_status)+'">'+esc(caseStatusLabel(value))+'</span><small>'+score+esc(send||'')+'</small></div>'}).join('')+'</div></details>':'<div class="case-progress">'+esc(item.status==='completed'?'케이스 후보 분배 대기':'공통 분석 완료 후 케이스별로 판정합니다.')+'</div>';
     var commonStatus='<span class="badge '+(item.status==='completed'?'':'low')+'">'+esc(articleStatusLabel(item))+'</span>';
-    return '<article class="article article-group"><div class="article-score-column"><div class="score" style="--score:'+topScore+'"><b>'+(topScore?Math.round(topScore)+'%':'-')+'</b></div><button class="related-press-button" type="button" data-article-press="'+esc(item.id)+'">관련 보도자료 ('+Number(item.related_press_count||0)+')</button></div><div><div class="score-parts article-tags">'+classificationTags+'</div><div class="article-meta">'+commonStatus+'<span>'+esc(item.publisher||'언론사 미확인')+'</span><span>'+fmt(item.published_at||item.first_seen_at)+'</span></div><h3><a href="'+esc(item.original_url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title)+'</a></h3><p>'+esc(item.summary||'공통 요약 대기')+'</p><div class="score-parts"><span>'+esc(item.article_type||'분류 대기')+'</span><span>어조 '+esc(item.tone||'사실전달')+'</span><span>'+esc(progress)+'</span></div>'+details+'</div></article>'
+    var checked=Number(item.press_match_checked_count||0),matchTotal=Number(item.press_match_total_count||0);
+    var pressProgress=matchTotal?('검사 '+checked+'/'+matchTotal):'검사 대기';
+    return '<article class="article article-group"><div class="article-score-column"><div class="score" style="--score:'+topScore+'"><b>'+(topScore?Math.round(topScore)+'%':'-')+'</b></div><button class="related-press-button" type="button" data-article-press="'+esc(item.id)+'">관련 보도자료 ('+Number(item.related_press_count||0)+')<small>'+pressProgress+'</small></button></div><div><div class="score-parts article-tags">'+classificationTags+'</div><div class="article-meta">'+commonStatus+'<span>'+esc(item.publisher||'언론사 미확인')+'</span><span>'+fmt(item.published_at||item.first_seen_at)+'</span></div><h3><a href="'+esc(item.original_url)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title)+'</a></h3><p>'+esc(item.summary||'공통 요약 대기')+'</p><div class="score-parts"><span>'+esc(item.article_type||'분류 대기')+'</span><span>어조 '+esc(item.tone||'사실전달')+'</span><span>'+esc(progress)+'</span></div>'+details+'</div></article>'
   }).join('');
   $('articleList').querySelectorAll('[data-article-press]').forEach(function(button){button.onclick=function(){openArticlePress(button.dataset.articlePress)}});
 }
@@ -62,7 +70,7 @@ function renderRecentSent(items){$('recentSent').innerHTML=items.length?items.ma
 function renderDashboardSnapshot(data){
   var dashboard=data.dashboard||{},stats=dashboard.stats||{},articles=dashboard.articles||[];
   renderFilters(data.organizations||[],data.cases||[]);
-  renderArticles(articles);renderTagFilter(dashboard.tags||[]);renderBars(dashboard.publishers||[]);renderCategories(dashboard.categories||[]);
+  state.dashboardArticles=articles;renderArticleDeliveryFilter();renderTagFilter(dashboard.tags||[]);renderBars(dashboard.publishers||[]);renderCategories(dashboard.categories||[]);
   renderDeliveries(dashboard.deliveries||[]);renderRecentSent(dashboard.recent_sent||[]);renderPipelineStats(dashboard.pipeline||dashboard.llm||{},dashboard.deliveries||[]);
   $('metricTotal').textContent=Number(stats.total||0).toLocaleString();$('metricSend').textContent=Number(stats.sent_candidates||0).toLocaleString();$('metricAverage').textContent=Number(stats.average_score||0).toFixed(0)+'%';$('metricLow').textContent=Number(stats.low||0).toLocaleString();
   var latest=articles[0]&&articles[0].id||'';if(state.lastArticleId&&latest&&state.lastArticleId!==latest)toast('새 분석 기사가 기사 목록과 통계에 반영되었습니다.');state.lastArticleId=latest;
@@ -212,6 +220,7 @@ $('deleteOrganization').onclick=async function(){var id=$('organizationId').valu
 
 
 document.querySelectorAll('[data-close]').forEach(function(button){button.onclick=function(){$(button.dataset.close).close()}});
+document.querySelectorAll('[data-article-delivery-filter]').forEach(function(button){button.onclick=function(){state.articleDeliveryFilter=button.dataset.articleDeliveryFilter;renderArticleDeliveryFilter()}});
 
 $('newInvite').onclick=function(){$('inviteResult').innerHTML='';$('inviteLabel').value='';$('inviteDialog').showModal()};
 $('inviteForm').onsubmit=async function(event){event.preventDefault();try{var data=await req('/api/poc/master-press/admin/invites',{method:'POST',body:JSON.stringify({label:$('inviteLabel').value,ttl_minutes:Number($('inviteTtl').value)})});var url=data.invite.url;$('inviteResult').innerHTML='<b>수신자에게 아래 링크를 전달하세요.</b><p>'+esc(url)+'</p><button type="button" class="small-button" id="copyInvite">링크 복사</button>';$('copyInvite').onclick=async function(){await navigator.clipboard.writeText(url);toast('등록 링크를 복사했습니다.')}}catch(error){toast(error.message)}};

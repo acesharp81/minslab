@@ -1897,7 +1897,11 @@ class Store:
             params.extend([f'%"{tag}"%', tag, tag])
         sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
                   a.id,a.title,a.original_url,a.publisher,a.published_at,a.first_seen_at,
-                  (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1) related_press_count,
+                  (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
+                    AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
+                  (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id
+                    AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) press_match_checked_count,
+                  (SELECT COUNT(*) FROM press_release_match_jobs prmj WHERE prmj.article_id=a.id) press_match_total_count,
                   ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
                   c.name case_name,o.name organization_name
                   FROM article_processing_flags apf
@@ -1962,6 +1966,8 @@ class Store:
                 continue
             article = grouped.setdefault(analysis_id, {
                 "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "publisher": item["publisher"], "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
+                "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
+                "press_match_total_count": int(item.get("press_match_total_count") or 0),
                 "status": item["analysis_status"], "analyzed_at": item["analyzed_at"], "summary": item["summary"], "article_type": item["article_type"], "tone": item["tone"], "classification_tags": tags_value, "entities": json_value(item.get("entities"), []), "evidence": json_value(item.get("evidence"), []), "model": item["model"], "error": item["analysis_error"], "case_results": []})
             if item.get("evaluation_id"):
                 result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_score", "llm_score", "final_score", "evidence_status", "decision", "completed_at", "evaluation_updated_at")}
