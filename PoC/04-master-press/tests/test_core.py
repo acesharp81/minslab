@@ -275,7 +275,8 @@ class ScoringTests(unittest.TestCase):
             captured["payload"] = payload
             return {
                 "message": {"content": json.dumps({
-                    "is_relevant": True, "score": 88, "target_is_primary": True,
+                    "is_relevant": True, "score": 88, "required_topic_met": True,
+                    "topic_evidence_ids": ["Q1"], "target_is_primary": True,
                     "target_evidence_ids": ["T1"], "stance_evidence_ids": ["S1"],
                     "reasons": ["직접 비판 근거 확인"], "exclusion_reason": "none",
                     "low_score_categories": [],
@@ -288,7 +289,7 @@ class ScoringTests(unittest.TestCase):
             **case_payload(),
             "name": "행안부 부정 기사",
             "topic_search_prompt": "ADMIN_PROMPT_SENTINEL 행정안전부를 비판하는 기사",
-            "include_terms": ["SECRET_KEYWORD_SENTINEL"],
+            "include_terms": ["인공지능"],
             "organization_terms": ["행정안전부", "행안부", "윤호중 장관"],
         }
         article = {
@@ -296,19 +297,19 @@ class ScoringTests(unittest.TestCase):
             "snippet": "대응이 늦었다는 지적이다.",
             "body": "행정안전부 대응이 늦었다는 비판이 나왔다. RAW_BODY_SENTINEL 관련 없는 문장이다.",
         }
-        common = {"summary": "행정안전부 대응 지연을 비판한 기사", "tone": "부정적"}
+        common = {"summary": "인공지능 행정 대응 지연을 비판한 기사", "tone": "부정적"}
         result = client.judge_case(case, article, common)
         transmitted = json.dumps(captured["payload"]["messages"], ensure_ascii=False)
 
         self.assertEqual(captured["path"], "/api/chat")
         self.assertIn(article["title"], transmitted)
-        self.assertIn("행정안전부 대응 지연을 비판한 기사", transmitted)
-        self.assertNotIn("ADMIN_PROMPT_SENTINEL", transmitted)
-        self.assertNotIn("SECRET_KEYWORD_SENTINEL", transmitted)
+        self.assertIn("인공지능 행정 대응 지연을 비판한 기사", transmitted)
+        self.assertIn("ADMIN_PROMPT_SENTINEL", transmitted)
+        self.assertIn("인공지능", transmitted)
         self.assertNotIn("RAW_BODY_SENTINEL", transmitted)
-        self.assertEqual(result["analysis_report"]["privacy_mode"], "public_evidence_only")
+        self.assertEqual(result["analysis_report"]["privacy_mode"], "public_evidence_and_case_requirements")
         self.assertFalse(result["analysis_report"]["input_content"]["body_transmitted"])
-        self.assertFalse(result["analysis_report"]["input_content"]["user_case_prompt_transmitted"])
+        self.assertTrue(result["analysis_report"]["input_content"]["user_case_prompt_transmitted"])
 
     def test_keyword_score_and_exclusion(self):
         case = case_payload()
@@ -325,6 +326,16 @@ class ScoringTests(unittest.TestCase):
         self.assertTrue(quick_candidate_match(case, {"title": "인공지능 정책", "snippet": ""}))
         self.assertTrue(quick_candidate_match(case, {"title": "인공지능 광고", "snippet": ""}))
         self.assertFalse(quick_candidate_match(case, {"title": "체육 경기 결과", "snippet": ""}))
+
+    def test_ai_copyright_notice_is_not_a_case_candidate(self):
+        case = {**case_payload(), "include_terms": ["AI", "인공지능", "공통기반"]}
+        article = {
+            "title": "경찰 인사 쇄신안 논란",
+            "snippet": "행정안전부가 인사 개선안을 발표했다.",
+            "body": "경찰 내부에서는 조직 연좌제라는 반발이 나왔다. 무단전재 배포금지, AI 학습 및 활용 금지",
+        }
+        self.assertFalse(quick_candidate_match(case, article))
+        self.assertEqual(keyword_relevance(case, article)["matched_terms"], [])
 
     def test_organization_candidate_filter(self):
         organization = {
@@ -375,7 +386,8 @@ class ScoringTests(unittest.TestCase):
         class FakeCaseLlm:
             def judge_case(self, _case, _article, _common, _model):
                 return {
-                    "score": 82, "is_relevant": False, "target_is_primary": False,
+                    "score": 82, "is_relevant": True, "required_topic_met": True,
+                    "topic_evidence": ["인공지능 행정 혁신"], "target_is_primary": False,
                     "target_evidence": [], "stance_evidence": [], "reasons": ["직접 유사도"],
                     "categories": [], "analysis_report": {},
                 }
@@ -390,6 +402,35 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(result["final_score"], 82)
         self.assertEqual(result["decision"], "send")
         self.assertNotEqual(result["analysis_report"]["components"]["candidate_blend_score"], result["similarity_score"])
+
+    def test_required_ai_topic_blocks_high_institution_score(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 85, "is_relevant": True, "required_topic_met": False,
+                    "topic_evidence": [], "target_is_primary": True,
+                    "target_evidence": ["행정안전부가 경찰 인사 개선안을 발표했다."],
+                    "stance_evidence": [], "reasons": ["기관은 직접 관련됨"],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "주제는 반드시 AI 및 인공지능 관련 기술이어야 한다.",
+            "include_terms": ["AI", "인공지능", "공통기반"],
+            "organization_terms": ["행정안전부", "행안부"],
+            "relevance_threshold": 75,
+        }
+        article = {
+            "title": "경찰 인사 쇄신안 논란", "snippet": "행정안전부가 경찰 인사 개선안을 발표했다.",
+            "body": "경찰 내부 반발이 나왔다. 무단전재 배포금지, AI 학습 및 활용 금지",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(case, article, {"summary": "경찰 인사 개선안 기사", "tone": "사실전달", "id": "common-1"})
+        self.assertEqual(result["llm_score"], 39)
+        self.assertEqual(result["decision"], "low")
+        self.assertIn("required_topic_not_verified", result["low_score_categories"])
 
     def test_raw_llm_score_is_preserved_when_evidence_is_unverified(self):
         class FakeOllama:

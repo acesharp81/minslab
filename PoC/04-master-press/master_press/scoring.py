@@ -13,6 +13,7 @@ from email.utils import parsedate_to_datetime
 from typing import Any
 
 from .config import Settings
+from .matching import article_topic_fields, expanded_case_terms, strip_article_boilerplate, term_in_text
 
 
 JSON_OBJECT_RE = re.compile(r"\{.*\}", re.S)
@@ -112,7 +113,7 @@ def operational_factual_exclusion(case: dict, article: dict) -> bool:
 
 
 def article_sentences(article: dict, limit: int = 40) -> list[str]:
-    values = [str(article.get("title") or "").strip(), str(article.get("body") or "").strip(), str(article.get("snippet") or "").strip()]
+    values = [str(article.get("title") or "").strip(), strip_article_boilerplate(article.get("body") or ""), str(article.get("snippet") or "").strip()]
     chunks = re.split(r"(?<=[.!?。！？])\s+|\n+", "\n".join(value for value in values if value))
     results: list[str] = []
     seen: set[str] = set()
@@ -150,6 +151,50 @@ def evidence_candidates(case: dict, article: dict) -> dict[str, list[dict[str, s
         "stance": [{"id": f"S{index}", "text": sentence} for index, sentence in enumerate(stance, 1)],
     }
 
+def topic_evidence_candidates(case: dict, article: dict, common: dict | None = None) -> list[dict[str, str]]:
+    """Return substantive evidence for the case topic, excluding publisher boilerplate."""
+    expanded = expanded_case_terms(case)
+    variants = list(dict.fromkeys(value for values in expanded.values() for value in values))
+    sources = article_sentences(article, limit=30)
+    summary = str((common or {}).get("summary") or "").strip()
+    if summary:
+        sources.insert(1, summary[:500])
+    matched = [sentence for sentence in sources if any(term_in_text(term, sentence) for term in variants)]
+    return [{"id": f"Q{index}", "text": sentence[:300]} for index, sentence in enumerate(dict.fromkeys(matched), 1)][:8]
+
+
+def local_topic_requirement(case: dict, article: dict, common: dict | None = None) -> dict:
+    """Enforce explicit mandatory topic wording before a case can be delivered."""
+    prompt = normalized_text(case.get("topic_search_prompt") or case.get("topic_description") or "")
+    required = [str(value).strip() for value in case.get("required_terms", []) if str(value).strip()]
+    included = [str(value).strip() for value in case.get("include_terms", []) if str(value).strip()]
+    expanded = expanded_case_terms(case)
+    common_text = " ".join([
+        str((common or {}).get("summary") or ""),
+        " ".join(str(value) for value in (common or {}).get("classification_tags", [])),
+        " ".join(str(value) for value in (common or {}).get("entities", [])),
+        " ".join(str(value) for value in (common or {}).get("topic_concepts", [])),
+    ])
+    fields = (*article_topic_fields(article), common_text)
+
+    def matched(term: str) -> bool:
+        return any(term_in_text(variant, field) for variant in expanded.get(term, [term]) for field in fields)
+
+    missing_required = [term for term in required if not matched(term)]
+    mandatory_include = bool(included) and any(
+        marker in prompt for marker in ("반드시", "핵심 주제", "주제는", "주제가", "주제로")
+    )
+    include_matched = [term for term in included if matched(term)]
+    required_gate = bool(required) or mandatory_include
+    verified = not missing_required and (not mandatory_include or bool(include_matched))
+    return {
+        "required": required_gate,
+        "verified": verified,
+        "missing_required": missing_required,
+        "matched_terms": list(dict.fromkeys([term for term in required if matched(term)] + include_matched)),
+        "mandatory_include": mandatory_include,
+    }
+
 
 def selected_candidate_texts(values: object, candidates: list[dict[str, str]]) -> list[str]:
     lookup = {str(item.get("id") or "").upper(): str(item.get("text") or "") for item in candidates}
@@ -177,9 +222,10 @@ def topic_requires_negative_stance(case: dict) -> bool:
 
 
 def keyword_relevance(case: dict, article: dict) -> dict:
-    title = normalized_text(article.get("title", ""))
-    snippet = normalized_text(article.get("snippet", ""))
-    body = normalized_text(article.get("body", ""))
+    raw_title, raw_snippet, raw_body = article_topic_fields(article)
+    title = normalized_text(raw_title)
+    snippet = normalized_text(raw_snippet)
+    body = normalized_text(raw_body)
     weighted_texts = ((title, 3.0), (snippet, 1.5), (body, 1.0))
     included = [normalized_text(term) for term in case.get("include_terms", []) if normalized_text(term)]
     required = [normalized_text(term) for term in case.get("required_terms", []) if normalized_text(term)]
@@ -203,12 +249,12 @@ def keyword_relevance(case: dict, article: dict) -> dict:
         maximum_points += 3.0
         best = 0.0
         for field_text, weight in weighted_texts:
-            if any(variant in field_text for variant in variants):
+            if any(term_in_text(variant, field_text) for variant in variants):
                 best = max(best, weight)
         if best:
             matched_terms.append(term)
             coverage_points += best
-            if any(variant in title for variant in variants):
+            if any(term_in_text(variant, title) for variant in variants):
                 title_matches.add(term)
 
     if not required and not included:
@@ -217,7 +263,7 @@ def keyword_relevance(case: dict, article: dict) -> dict:
         score = 100.0 * coverage_points / max(1.0, maximum_points)
 
     missing_required = [term for term in required if term not in matched_terms]
-    excluded_hits = [term for term in excluded if any(term in text for text, _weight in weighted_texts)]
+    excluded_hits = [term for term in excluded if any(term_in_text(term, text) for text, _weight in weighted_texts)]
     categories = []
     reasons = []
     if missing_required:
@@ -228,7 +274,7 @@ def keyword_relevance(case: dict, article: dict) -> dict:
         score = max(0, score - 70)
         categories.append("excluded_term")
         reasons.append(f"제외 키워드 일치: {', '.join(excluded_hits[:5])}")
-    if matched_terms and set(matched_terms) == title_matches and not any(term in body for term in matched_terms):
+    if matched_terms and set(matched_terms) == title_matches and not any(term_in_text(term, body) for term in matched_terms):
         score = min(score, 55)
         categories.append("title_only_match")
         reasons.append("키워드가 제목에만 집중되어 있습니다.")
@@ -242,7 +288,7 @@ def keyword_relevance(case: dict, article: dict) -> dict:
         "matched_terms": matched_terms,
         "categories": list(dict.fromkeys(categories)),
         "reasons": reasons,
-        "urgent": any(normalized_text(term) in f"{title} {snippet} {body}" for term in case.get("urgent_terms", [])),
+        "urgent": any(term_in_text(term, f"{title} {snippet} {body}") for term in case.get("urgent_terms", [])),
     }
 
 
@@ -641,7 +687,9 @@ class OpenRouterClient(OllamaClient):
             self.store.record_llm_api_call(provider="openrouter", stage="case", **values)
 
     def judge_case(self, case: dict, article: dict, common: dict, model: str | None = None) -> dict:
-        """Privacy-minimized remote judgment: never sends raw body, keywords, or the user's prompt."""
+        """Judge a case using its explicit requirements without transmitting the raw article body."""
+        case_prompt = str(case.get("topic_search_prompt") or case.get("topic_description") or "").strip()[:1200]
+        case_terms = expanded_case_terms(case)
         combined_hint = normalized_text(" ".join([
             str(case.get("name") or ""),
             " ".join(str(value) for value in case.get("include_terms", [])),
@@ -658,24 +706,37 @@ class OpenRouterClient(OllamaClient):
             target_candidates = [{"id": f"T{index}", "text": sentence[:260]} for index, sentence in enumerate(source_sentences[:8], 1)]
         else:
             target_candidates = [{"id": item["id"], "text": str(item["text"])[:260]} for item in original_candidates["target"][:8]]
+        topic_candidates = topic_evidence_candidates(case, article, common)
         stance_candidates = [{"id": item["id"], "text": str(item["text"])[:260]} for item in original_candidates["stance"][:6]]
-        candidates = {"target": target_candidates, "stance": stance_candidates}
+        candidates = {"topic": topic_candidates, "target": target_candidates, "stance": stance_candidates}
+        topic_lines = "\n".join(f"{item['id']}: {item['text']}" for item in topic_candidates) or "없음"
         target_lines = "\n".join(f"{item['id']}: {item['text']}" for item in target_candidates) or "없음"
         stance_lines = "\n".join(f"{item['id']}: {item['text']}" for item in stance_candidates) or "없음"
         public_targets = list(dict.fromkeys(str(value).strip() for value in case.get("organization_terms", []) if str(value).strip()))[:8]
+        term_summary = "; ".join(f"{key}: {' | '.join(values)}" for key, values in case_terms.items())[:800]
         system_prompt = """당신은 공개 뉴스 근거만 검토하는 케이스 판정기입니다.
-사용자 원문 프롬프트와 기사 본문 전체는 제공되지 않습니다. 제공된 공개 제목·로컬 요약·근거 후보만 사용하세요.
+기사 본문 전체는 제공되지 않습니다. 제공된 케이스 요구사항·공개 제목·로컬 요약·근거 후보만 사용하세요.
+케이스 요구사항은 최우선 판정 기준입니다. 기관 관련성만으로 주제 일치를 대신하거나 높은 점수를 주지 마세요.
+required_topic_met는 기사의 핵심 주제가 케이스 요구사항과 직접 일치하고 Q 근거가 있을 때만 true입니다. 저작권 문구, 단순 키워드 언급, 주변 사례는 false입니다.
+target_is_primary는 대상 기관·공개 인물이 기사 속 업무를 직접 수행·참여하거나 직접 평가 대상이고 T 근거가 있을 때만 true입니다.
 `기관 직접 비판 보도`는 대상 기관·공개 인물이 비판·책임·시정 요구의 직접 대상일 때만 관련입니다. 중대본 가동·호우 대비·점검 같은 운영 사실은 관련이 아닙니다.
 `주요 재난·사건`은 실제 피해·위험·구조·대피·대응이 발생한 중요한 재난 또는 사건일 때 관련입니다.
 근거 ID가 없거나 불충분하면 관련 없음으로 판정하세요.
-score는 임계값과 직접 비교할 실제 케이스 유사도입니다. 다음 네 항목을 각각 채점해 합산하세요: 대상 일치 0~35, 요구 사건·행위 일치 0~30, 요구 어조·관점 일치 0~20, 구체적 근거 품질 0~15.
+score는 임계값과 직접 비교할 실제 케이스 유사도입니다. 다음 네 항목을 각각 채점해 합산하세요: 필수 주제·요구사항 일치 0~45, 대상 기관의 직접 수행·참여 0~25, 요구 어조·관점 일치 0~15, 구체적 근거 품질 0~15.
+필수 주제가 불일치하면 score는 최대 39, 대상의 직접 수행·참여가 불확실하면 최대 59로 제한하세요.
 0점이나 49점을 관행적으로 반복하지 마세요. 0~19는 다른 주제, 20~39는 단순 언급, 40~59는 부분 관련, 60~74는 상당한 관련이나 핵심 조건 부족, 75~89는 직접 일치, 90~100은 거의 완전 일치입니다.
-is_relevant는 점수 60 이상이면서 핵심 대상 근거가 있을 때만 true로 하되, 최종 발송 여부는 서버의 사용자 임계값이 결정합니다. JSON만 반환하세요."""
+is_relevant는 required_topic_met와 target_is_primary가 모두 true이고 점수 60 이상일 때만 true로 하되, 최종 발송 여부는 서버가 결정합니다. JSON만 반환하세요."""
         user_prompt = f"""[고정 케이스 유형]
 {case_type}
 
 [공개 대상명]
 {', '.join(public_targets) or '공개 대상 없음'}
+[사용자 케이스 요구사항]
+{case_prompt or '별도 요구사항 없음'}
+
+[주제 키워드·동의어]
+{term_summary or '별도 키워드 없음'}
+
 
 [공개 기사 제목]
 {str(article.get('title') or '')[:300]}
@@ -685,6 +746,9 @@ is_relevant는 점수 60 이상이면서 핵심 대상 근거가 있을 때만 t
 
 [로컬 확정 어조]
 {str(common.get('tone') or '사실전달')}
+
+[주제 근거 후보]
+{topic_lines}
 
 [대상·사건 근거 후보]
 {target_lines}
@@ -700,21 +764,26 @@ is_relevant는 점수 60 이상이면서 핵심 대상 근거가 있을 때만 t
         raw = response.get("message", {}).get("content", "")
         provider_meta = response.get("_provider_meta", {})
         data = parse_llm_json(raw)
-        article_text = " ".join([str(article.get("title") or ""), str(article.get("snippet") or ""), str(article.get("body") or "")])
+        article_text = " ".join(article_topic_fields(article))
+        topic_validation_text = f"{article_text} {str(common.get('summary') or '')}"
+        topic = selected_candidate_texts(data.get("topic_evidence_ids", []), topic_candidates)
         target = selected_candidate_texts(data.get("target_evidence_ids", []), target_candidates)
         stance = selected_candidate_texts(data.get("stance_evidence_ids", []), stance_candidates)
         relevant = data.get("is_relevant") is True or str(data.get("is_relevant", "")).strip().lower() in {"true", "yes", "1"}
         return {"score": clamp(float(data.get("score", 0))), "is_relevant": relevant,
+            "required_topic_met": data.get("required_topic_met") is True or str(data.get("required_topic_met", "")).strip().lower() in {"true", "yes", "1"},
             "target_is_primary": data.get("target_is_primary") is True or str(data.get("target_is_primary", "")).strip().lower() in {"true", "yes", "1"},
-            "target_evidence": valid_evidence(target, article_text), "stance_evidence": valid_evidence(stance, article_text),
+            "topic_evidence": valid_evidence(topic, topic_validation_text),
+            "target_evidence": valid_evidence(target, article_text),
+            "stance_evidence": valid_evidence(stance, article_text),
             "reasons": [str(value)[:300] for value in data.get("reasons", [])] if isinstance(data.get("reasons"), list) else [],
             "categories": [str(value)[:80] for value in data.get("low_score_categories", [])] if isinstance(data.get("low_score_categories"), list) else [],
             "exclusion_reason": str(data.get("exclusion_reason") or "insufficient_relevance")[:80],
-            "analysis_report": {"provider": "openrouter", "privacy_mode": "public_evidence_only", "case_type": case_type,
+            "analysis_report": {"provider": "openrouter", "privacy_mode": "public_evidence_and_case_requirements", "case_type": case_type,
                 "upstream_provider": provider_meta.get("upstream_provider", ""), "request_id": provider_meta.get("request_id", ""),
                 "usage": provider_meta.get("usage", {}), "model": model, "system_prompt": system_prompt, "user_prompt": user_prompt,
                 "input_content": {"source": "공개 제목 + 로컬 220자 요약 + 추출 근거", "body_transmitted": False,
-                                  "user_case_prompt_transmitted": False, "evidence_candidates": candidates},
+                                  "user_case_prompt_transmitted": True, "evidence_candidates": candidates},
                 "raw_response": raw, "llm": data}}
 
     def models(self) -> list[str]:
@@ -762,13 +831,15 @@ is_relevant는 점수 60 이상이면서 핵심 대상 근거가 있을 때만 t
             "schema": {"type": "object", "additionalProperties": False,
                 "properties": {
                     "is_relevant": {"type": "boolean"}, "score": {"type": "number", "minimum": 0, "maximum": 100},
+                    "required_topic_met": {"type": "boolean"},
                     "target_is_primary": {"type": "boolean"},
+                    "topic_evidence_ids": {"type": "array", "items": {"type": "string"}},
                     "target_evidence_ids": {"type": "array", "items": {"type": "string"}},
                     "stance_evidence_ids": {"type": "array", "items": {"type": "string"}},
                     "reasons": {"type": "array", "items": {"type": "string"}},
                     "exclusion_reason": {"type": "string"},
                     "low_score_categories": {"type": "array", "items": {"type": "string"}}},
-                "required": ["is_relevant", "score", "target_is_primary", "target_evidence_ids", "stance_evidence_ids", "reasons", "exclusion_reason", "low_score_categories"]}}
+                "required": ["is_relevant", "score", "required_topic_met", "target_is_primary", "topic_evidence_ids", "target_evidence_ids", "stance_evidence_ids", "reasons", "exclusion_reason", "low_score_categories"]}}
         body = {"model": model, "messages": payload.get("messages", []), "stream": False,
                 "temperature": float(options.get("temperature", 0.1)), "max_tokens": 500,
                 "response_format": {"type": "json_schema", "json_schema": schema},
@@ -852,6 +923,7 @@ class RelevanceEngine:
 
     def evaluate_case_with_common(self, case: dict, article: dict, common: dict, model: str | None = None) -> dict:
         keyword = keyword_relevance(case, article)
+        local_topic = local_topic_requirement(case, article, common)
         # The remote privacy-minimized judge owns case semantics. Avoid a second local embedding
         # call so Ollama can continue shared analysis concurrently.
         semantic_score, semantic_error, llm_error = 0.0, "handled_by_remote_case_llm", ""
@@ -860,17 +932,20 @@ class RelevanceEngine:
         except OpenRouterError:
             raise
         except Exception as error:
-            llm, llm_error = {"score": 0, "is_relevant": False, "target_is_primary": False, "target_evidence": [], "stance_evidence": [], "reasons": [], "categories": []}, type(error).__name__
+            llm, llm_error = {"score": 0, "is_relevant": False, "required_topic_met": False, "topic_evidence": [], "target_is_primary": False, "target_evidence": [], "stance_evidence": [], "reasons": [], "categories": []}, type(error).__name__
         raw_score = clamp(float(llm.get("score", 0)))
         factual_operational = operational_factual_exclusion(case, article)
-        model_score = min(raw_score, 49.0) if factual_operational else raw_score
-        article_text = " ".join([str(article.get("title") or ""), str(article.get("snippet") or ""), str(article.get("body") or "")])
+        llm_topic_ok = bool(llm.get("required_topic_met")) and bool(llm.get("topic_evidence"))
+        topic_ok = llm_topic_ok and (not local_topic["required"] or local_topic["verified"])
+        model_score = min(raw_score, 39.0) if not topic_ok else (min(raw_score, 49.0) if factual_operational else raw_score)
+        article_text = " ".join(article_topic_fields(article))
         organization_terms = [str(value).strip() for value in case.get("organization_terms", []) if str(value).strip()]
         direct_target = not organization_terms or any(normalized_text(term) in normalized_text(article_text) for term in organization_terms)
         requires_target = bool(organization_terms) or topic_requires_negative_stance(case)
         target_ok = (not requires_target) or (direct_target and bool(llm.get("target_is_primary")) and bool(llm.get("target_evidence")))
         stance_ok = (not topic_requires_negative_stance(case)) or (common.get("tone") == "부정적" and bool(llm.get("stance_evidence")))
-        evidence_status = "verified" if target_ok and stance_ok else ("target_and_stance_unverified" if not target_ok and not stance_ok else "target_unverified" if not target_ok else "stance_unverified")
+        failed_evidence = [name for name, okay in (("topic", topic_ok), ("target", target_ok), ("stance", stance_ok)) if not okay]
+        evidence_status = "verified" if not failed_evidence else "_and_".join(failed_evidence) + "_unverified"
         # Keyword coverage selects candidates; it must not distort the user-facing similarity.
         # Keep the former blend only as a diagnostic component. The displayed percentage and
         # the adjustable threshold both use the same case LLM score.
@@ -879,10 +954,13 @@ class RelevanceEngine:
         candidate_blend_score = sum(score * weight for score, weight, available in weights if available) / max(total_weight, .001)
         similarity_score = model_score
         threshold = float(case.get("relevance_threshold", 75))
-        eligible = bool(similarity_score >= threshold and target_ok and stance_ok and not factual_operational and not llm_error)
+        eligible = bool(similarity_score >= threshold and topic_ok and target_ok and stance_ok and not factual_operational and not llm_error)
         decision = "hold" if llm_error else ("send" if eligible else "low")
         categories = [*keyword["categories"], *llm.get("categories", [])]
         reasons = [*keyword["reasons"], *llm.get("reasons", [])]
+        if not topic_ok:
+            categories.append("required_topic_not_verified")
+            reasons.append("사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.")
         if factual_operational:
             categories.append("operational_factual_report")
             reasons.append("재난·대응 운영 사실 보도로, 기관 직접 비판 근거가 없어 발송에서 제외했습니다.")
@@ -892,7 +970,9 @@ class RelevanceEngine:
         if llm_error: categories.append("llm_unavailable"); reasons.append(f"케이스 LLM 판정 실패: {llm_error}")
         report = dict(llm.get("analysis_report") or {})
         report["components"] = {"keyword_score": round(keyword["score"],1), "semantic_score": round(semantic_score,1),
-            "candidate_blend_score": round(clamp(candidate_blend_score),1), "llm_raw_score": round(model_score,1),
+            "candidate_blend_score": round(clamp(candidate_blend_score),1), "llm_raw_score": round(raw_score,1),
+            "required_topic_verified": topic_ok, "local_topic_gate": local_topic,
+            "topic_evidence": llm.get("topic_evidence", []),
             "similarity_score": round(similarity_score,1), "final_score": round(similarity_score,1),
             "evidence_status": evidence_status, "delivery_eligible": eligible, "threshold": threshold,
             "common_analysis_id": common.get("id", "")}

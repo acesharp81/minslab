@@ -16,6 +16,7 @@ from html.parser import HTMLParser
 from typing import Iterable
 
 from .config import Settings
+from .matching import article_topic_fields, expanded_case_terms, term_in_text
 from .storage import KST
 
 
@@ -293,12 +294,13 @@ class NewsCollector:
 
 
 def quick_candidate_match(case: dict, candidate: dict) -> bool:
-    text = f"{candidate.get('title', '')} {candidate.get('snippet', '')} {candidate.get('body', '')}".casefold()
-    required = [str(term).casefold() for term in case.get("required_terms", []) if str(term).strip()]
-    included = [str(term).casefold() for term in case.get("include_terms", []) if str(term).strip()]
-    urgent = [str(term).casefold() for term in case.get("urgent_terms", []) if str(term).strip()]
-    search_terms = list(dict.fromkeys([*required, *included, *urgent]))
-    return not search_terms or any(term in text for term in search_terms)
+    fields = article_topic_fields(candidate)
+    expanded = expanded_case_terms(case)
+    search_groups = list(expanded.values())
+    return not search_groups or any(
+        any(term_in_text(variant, field) for variant in variants for field in fields)
+        for variants in search_groups
+    )
 
 
 def organization_candidate_match(organization: dict, candidate: dict) -> bool:
