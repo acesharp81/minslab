@@ -881,6 +881,12 @@ class OpenRouterClient(OllamaClient):
                 pass
         return (datetime.now(timezone.utc) + timedelta(seconds=seconds)).astimezone().isoformat(timespec="seconds")
 
+    @staticmethod
+    def _next_kst_midnight() -> str:
+        kst = timezone(timedelta(hours=9))
+        now = datetime.now(kst)
+        return (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(timespec="seconds")
+
     def _record(self, **values) -> None:
         if self.store:
             self.store.record_llm_api_call(provider="openrouter", stage="case", **values)
@@ -1148,8 +1154,10 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
             raise OpenRouterError("openrouter_api_key_missing", status=401)
         usage = self.store.openrouter_usage_today(self.settings.openrouter_daily_soft_limit) if self.store else {"attempts": 0}
         if int(usage.get("attempts", 0)) >= int(self.settings.openrouter_daily_soft_limit):
-            tomorrow = (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).astimezone().isoformat(timespec="seconds")
-            raise OpenRouterError("openrouter_daily_soft_limit", status=429, retryable=True, retry_after=tomorrow, deferred=True)
+            raise OpenRouterError(
+                "openrouter_daily_soft_limit", status=429, retryable=True,
+                retry_after=self._next_kst_midnight(), deferred=True,
+            )
         global _OPENROUTER_LAST_STARTED
         with _OPENROUTER_RATE_LOCK:
             wait = max(0.0, 3.4 - (time.monotonic() - _OPENROUTER_LAST_STARTED))

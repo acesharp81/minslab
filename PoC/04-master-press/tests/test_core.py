@@ -19,7 +19,7 @@ from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
-from master_press.scoring import OllamaClient, OpenRouterClient, RelevanceEngine, keyword_relevance
+from master_press.scoring import OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at
 from master_press.storage import KST, Store, centered_semantic_similarity, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 
@@ -205,6 +205,25 @@ class StorageTests(unittest.TestCase):
         usage = self.store.openrouter_usage_today()
         self.assertEqual(usage["period"], "KST day")
         self.assertEqual(usage["day_start"], start)
+
+    def test_openrouter_daily_limit_counts_failed_api_calls_and_defers(self):
+        settings = SimpleNamespace(openrouter_api_key="test-key", openrouter_daily_soft_limit=3)
+        for index in range(3):
+            self.store.record_llm_api_call(
+                "openrouter", "case", "test-model", "failed", 10,
+                http_status=429, error=f"rate-{index}",
+            )
+        usage = self.store.openrouter_usage_today(3)
+        self.assertEqual(usage["attempts"], 3)
+        self.assertEqual(usage["failed"], 3)
+        self.assertEqual(usage["remaining"], 0)
+
+        client = OpenRouterClient(settings, self.store)
+        with self.assertRaises(OpenRouterError) as captured:
+            client.request("/chat/completions", {"model": "test-model", "messages": []})
+        self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
+        self.assertTrue(captured.exception.deferred)
+        self.assertTrue(captured.exception.retry_after.endswith("T00:00:00+09:00"))
 
     def test_article_search_and_published_time_order(self):
         rows = [

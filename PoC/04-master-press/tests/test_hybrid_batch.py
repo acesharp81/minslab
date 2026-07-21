@@ -105,6 +105,9 @@ class BatchLeaseTests(unittest.TestCase):
                 )
                 self.assertFalse(duplicate_created)
 
+            with store.connect() as connection:
+                connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+
             first = store.next_case_evaluation_batch(limit=2)
             second = store.next_case_evaluation_batch(limit=2)
             third = store.next_case_evaluation_batch(limit=2)

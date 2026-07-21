@@ -60,7 +60,7 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'id="organizationFilter"', body)
         self.assertIn(b'id="categoryStats"', body)
         self.assertIn(b'id="recentSent"', body)
-        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260721-16"></script>'), 1)
+        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260721-17"></script>'), 1)
         self.assertIn(b'id="signupView"', body)
         self.assertIn("구독 신청".encode("utf-8"), body)
         self.assertIn(b'id="articleSearch"', body)

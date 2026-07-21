@@ -118,7 +118,7 @@ class Settings:
             ),
             openrouter_base_url=env("MASTER_PRESS_OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1").rstrip("/"),
             openrouter_case_model=env("MASTER_PRESS_OPENROUTER_CASE_MODEL", default="google/gemma-4-26b-a4b-it:free"),
-            openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 800, 1, 1000),
+            openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 1000, 1, 1000),
             supabase_url=env("SUPABASE2_URL", "MASTER_PRESS_SUPABASE_URL").rstrip("/"),
             supabase_service_role_key=env("SUPABASE2_SERVICE_ROLE_KEY", "MASTER_PRESS_SUPABASE_SERVICE_ROLE_KEY"),
             user_agent=env(
