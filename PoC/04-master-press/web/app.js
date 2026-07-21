@@ -10,7 +10,7 @@ function toast(message){var dialog=$('analysisDialog');var el=dialog&&dialog.ope
 async function req(path,options){options=options||{};var response=await fetch(path,Object.assign({cache:'no-store',credentials:'same-origin'},options,{headers:Object.assign({'Content-Type':'application/json'},options.headers||{})}));var data={};try{data=await response.json()}catch(e){}if(!response.ok){var error=new Error(data.error||'요청 실패 ('+response.status+')');error.status=response.status;throw error}return data}
 
 function showView(name,focusId){$('signupView').hidden=name!=='signup';$('dashboardView').hidden=name!=='dashboard';$('neuralView').hidden=name!=='neural';$('pressView').hidden=name!=='press';$('adminView').hidden=name!=='admin';document.querySelectorAll('.nav').forEach(function(button){button.classList.toggle('active',button.dataset.view===name)});if(name==='admin')loadAdmin();else if(name==='neural')loadNeural();else if(name==='press')loadPress(focusId);else if(name==='signup')loadSignup();else loadDashboard(state.activeCase,state.activeOrganization)}
-document.querySelectorAll('.nav').forEach(function(button){button.onclick=function(){showView(button.dataset.view)}});
+document.querySelectorAll('.nav[data-view]').forEach(function(button){button.onclick=function(){showView(button.dataset.view)}});
 
 function signupStatusLabel(value){return {requested:'구독 요청',kakao_registered:'카카오 구독등록완료',approved:'구독 승인',partial:'일부 승인',rejected:'반려',revoked:'구독 해지'}[value]||value||'구독 요청'}
 function signupCaseStatusLabel(value){return {pending:'검토 대기',approved:'수신중',rejected:'반려',revoked:'해지'}[value]||value||'검토 대기'}
