@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260721-16">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260721-17">
 </head>
 <body>
   <header class="topbar">
@@ -93,7 +93,7 @@
           <section class="panel model-settings"><div class="panel-head"><div><span>OLLAMA · EMBEDDING ONLY</span><h2>로컬 임베딩 모델</h2><small id="embeddingModelStatus">연결 확인 중</small></div><button class="small-button" id="saveEmbeddingModel">적용</button></div><select id="embeddingModelSelect"></select></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>ARTICLE × CASE BATCH</span><h2>하이브리드 배치 판정</h2><small>기사 1건에 케이스를 묶어 1회 호출</small></div><button class="small-button" id="saveCaseBatch">적용</button></div><div class="weight-row"><label>호출당 케이스<select id="caseBatchSize"><option>1</option><option>2</option><option>5</option><option selected>10</option></select></label><label>벡터 후보 기준<input id="semanticCandidateThreshold" type="number" min="0" max="100" step="1" value="35"></label></div></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>PRESS RAG</span><h2>관련 보도자료 기준</h2><small>대시보드와 보도동향에 표시할 최소 유사도</small></div><button class="small-button" id="savePressMatch">적용</button></div><div class="weight-row"><label>보도자료 유사도 기준<input id="pressMatchThreshold" type="number" min="0" max="100" step="1" value="65"></label></div></section>
-          <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2></div></div><div id="organizationList" class="organization-tree"></div></section>
+          <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2><small>케이스 행을 드래그하면 표시 순서가 저장되고 콤보·대시보드·신경망 기본 선택에 반영됩니다.</small></div></div><div id="organizationList" class="organization-tree"></div></section>
           <section class="panel wide"><div class="panel-head"><div><span>LOW SCORE REVIEW</span><h2>저유사도 개선 자료</h2></div><select id="improvementCase"></select></div><div id="improvementContent" class="improvement"></div></section>
         </div>
       </div>
@@ -157,6 +157,6 @@
   <dialog id="relatedPressDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>RELATED PUBLIC RELEASES</span><h2>관련 보도자료</h2></div><button type="button" class="icon-button" data-close="relatedPressDialog">×</button></div><div id="relatedPressList" class="related-press-list"></div></div></dialog>
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260721-16"></script>
+  <script src="/poc/master-press/app.js?v=20260721-17"></script>
 </body>
 </html>

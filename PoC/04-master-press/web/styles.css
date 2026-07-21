@@ -84,3 +84,4 @@
 
 /* 케이스별 LLM 분석/재분석 버튼 */
 .case-status-list>div{grid-template-columns:minmax(0,1fr) auto auto}
+.sortable-case-list{display:grid;gap:9px}.sortable-case{display:grid;grid-template-columns:auto 1fr auto;align-items:center;cursor:grab}.sortable-case:active{cursor:grabbing}.sortable-case.dragging{opacity:.55;border-style:dashed;background:#f1f7f3}.drag-handle{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--wash);color:var(--muted);font-weight:800;user-select:none}.case-order-no{display:inline-grid;place-items:center;min-width:22px;height:22px;margin-right:7px;border-radius:999px;background:var(--ink);color:#fff;font-size:11px}.organization-case-list .empty.compact{pointer-events:none}

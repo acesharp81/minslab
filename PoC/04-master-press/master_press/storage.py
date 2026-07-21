@@ -198,6 +198,7 @@ CREATE TABLE IF NOT EXISTS cases (
   llm_weight REAL NOT NULL DEFAULT 0.75,
   max_articles_per_message INTEGER NOT NULL DEFAULT 2,
   is_active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
   version INTEGER NOT NULL DEFAULT 1,
   next_collect_at TEXT,
   last_collected_at TEXT,
@@ -653,9 +654,12 @@ class Store:
                 )
             if "monitor_from" not in columns:
                 connection.execute("ALTER TABLE cases ADD COLUMN monitor_from TEXT")
+            if "sort_order" not in columns:
+                connection.execute("ALTER TABLE cases ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0")
             connection.execute(
                 "UPDATE cases SET monitor_from=created_at WHERE monitor_from IS NULL OR monitor_from=''"
             )
+            self._backfill_case_sort_order(connection)
             common_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_analyses)")}
             if "organization_id" not in common_columns:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL")
@@ -747,6 +751,28 @@ class Store:
             self._sync_article_processing_flags(connection)
             self._discard_pre_case_pending_evaluations(connection)
         self.path.chmod(0o600)
+
+    @staticmethod
+    def _backfill_case_sort_order(connection: sqlite3.Connection) -> int:
+        if connection.execute("SELECT value FROM app_settings WHERE key='case_sort_order_v1'").fetchone():
+            return 0
+        rows = connection.execute(
+            "SELECT id,COALESCE(organization_id,'') organization_id FROM cases ORDER BY COALESCE(organization_id,''),created_at,rowid"
+        ).fetchall()
+        count = 0
+        current_org, index = None, 0
+        for row in rows:
+            organization_id = str(row["organization_id"] or "")
+            if organization_id != current_org:
+                current_org, index = organization_id, 0
+            index += 1
+            connection.execute("UPDATE cases SET sort_order=? WHERE id=?", (index * 10, row["id"]))
+            count += 1
+        connection.execute(
+            "INSERT INTO app_settings(key,value,updated_at) VALUES('case_sort_order_v1','applied',?)",
+            (now_iso(),),
+        )
+        return count
 
     @staticmethod
     def _backfill_article_source_metadata(connection: sqlite3.Connection) -> int:
@@ -1000,7 +1026,7 @@ class Store:
         query = "SELECT * FROM cases"
         if active_only:
             query += " WHERE is_active=1"
-        query += " ORDER BY created_at"
+        query += " ORDER BY COALESCE(organization_id,''),sort_order,created_at"
         with self.connect() as connection:
             return [self.decode_case(row) for row in connection.execute(query)]
 
@@ -1008,7 +1034,7 @@ class Store:
         query = "SELECT * FROM cases WHERE organization_id=?"
         if active_only:
             query += " AND is_active=1"
-        query += " ORDER BY created_at"
+        query += " ORDER BY sort_order,created_at"
         with self.connect() as connection:
             return [self.decode_case(row) for row in connection.execute(query, (organization_id,))]
 
@@ -1044,6 +1070,8 @@ class Store:
             "max_articles_per_message": max(1, min(5, int(payload.get("max_articles_per_message", (existing or {}).get("max_articles_per_message", 2))))),
             "is_active": 1 if payload.get("is_active", (existing or {}).get("is_active", True)) else 0,
         }
+        if existing:
+            values["sort_order"] = int(payload.get("sort_order", existing.get("sort_order") or 0))
         if values["collection_mode"] not in {"interval", "times"}:
             raise ValueError("올바르지 않은 수집 방식입니다.")
         if values["delivery_mode"] not in {"immediate", "times"}:
@@ -1069,6 +1097,12 @@ class Store:
         case_id = case_id or str(uuid.uuid4())
         version = int((existing or {}).get("version", 0)) + 1
         with self._lock, self.connect() as connection:
+            if not existing:
+                row = connection.execute(
+                    "SELECT COALESCE(MAX(sort_order),0) value FROM cases WHERE COALESCE(organization_id,'')=COALESCE(?, '')",
+                    (organization_id,),
+                ).fetchone()
+                values["sort_order"] = int(row["value"] or 0) + 10
             if existing:
                 assignments = ",".join(f"{key}=?" for key in values)
                 connection.execute(
@@ -1104,6 +1138,29 @@ class Store:
         with self.connect() as connection:
             cursor = connection.execute("DELETE FROM cases WHERE id=?", (case_id,))
             return cursor.rowcount > 0
+
+    def reorder_cases(self, organization_id: str, case_ids: Iterable[str]) -> list[dict]:
+        ordered_ids = [str(value).strip() for value in case_ids if str(value).strip()]
+        if not ordered_ids:
+            raise ValueError("정렬할 케이스가 없습니다.")
+        unique_ids = list(dict.fromkeys(ordered_ids))
+        if len(unique_ids) != len(ordered_ids):
+            raise ValueError("중복된 케이스가 포함되어 있습니다.")
+        now = now_iso()
+        with self._lock, self.connect() as connection:
+            rows = connection.execute(
+                "SELECT id FROM cases WHERE organization_id=? ORDER BY sort_order,created_at",
+                (organization_id,),
+            ).fetchall()
+            existing_ids = [str(row["id"]) for row in rows]
+            if set(unique_ids) != set(existing_ids):
+                raise ValueError("해당 기관의 전체 케이스 순서를 보내야 합니다.")
+            for index, case_id in enumerate(unique_ids, start=1):
+                connection.execute(
+                    "UPDATE cases SET sort_order=?,updated_at=? WHERE id=? AND organization_id=?",
+                    (index * 10, now, case_id, organization_id),
+                )
+        return self.list_cases_for_organization(organization_id, active_only=False)
 
     def set_case_recipients(self, case_id: str, recipient_ids: Iterable[str]) -> None:
         with self.connect() as connection:
@@ -2706,7 +2763,7 @@ class Store:
                   LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
                   LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
         if article_where: sql += " WHERE " + " AND ".join(article_where)
-        sql += " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
+        sql += " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(c.sort_order,999999),COALESCE(c.created_at,''),COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
         delivery_scope, delivery_params = "", []
         if case_id:
             delivery_scope, delivery_params = " AND d.case_id=?", [case_id]

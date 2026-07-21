@@ -117,6 +117,22 @@ class StorageTests(unittest.TestCase):
             self.store.save_case(case_payload(index))
         self.assertEqual(len(self.store.list_cases()), 6)
 
+    def test_case_display_order_can_be_reordered_per_organization(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        first = self.store.save_case({**case_payload(1), "name": "첫 번째", "organization_id": organization["id"]})
+        second = self.store.save_case({**case_payload(2), "name": "두 번째", "organization_id": organization["id"]})
+        third = self.store.save_case({**case_payload(3), "name": "세 번째", "organization_id": organization["id"]})
+
+        self.assertEqual([item["name"] for item in self.store.list_cases_for_organization(organization["id"])], ["첫 번째", "두 번째", "세 번째"])
+        reordered = self.store.reorder_cases(organization["id"], [third["id"], first["id"], second["id"]])
+        self.assertEqual([item["name"] for item in reordered], ["세 번째", "첫 번째", "두 번째"])
+        self.assertEqual([item["name"] for item in self.store.list_cases_for_organization(organization["id"])], ["세 번째", "첫 번째", "두 번째"])
+        self.assertEqual([item["name"] for item in self.store.list_cases(active_only=True)], ["세 번째", "첫 번째", "두 번째"])
+        self.assertLess(reordered[0]["sort_order"], reordered[1]["sort_order"])
+
+        with self.assertRaisesRegex(ValueError, "전체 케이스"):
+            self.store.reorder_cases(organization["id"], [first["id"], second["id"]])
+
     def test_article_case_processing_flag_blocks_new_case_versions(self):
         case = self.store.save_case(case_payload())
         article, _ = self.store.upsert_article({

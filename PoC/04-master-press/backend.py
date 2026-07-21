@@ -53,6 +53,7 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
             "relevance_threshold": case["relevance_threshold"],
             "next_collect_at": case["next_collect_at"],
             "last_collected_at": case["last_collected_at"],
+            "sort_order": case.get("sort_order", 0),
         })
     organizations = [
         {
@@ -379,6 +380,11 @@ def dispatch(
             if organization:
                 service.mirror.organization(organization)
             return {"archived": archived}
+        if len(suffix) >= 3 and suffix[1] == "cases" and suffix[2] == "order" and method in {"PUT", "PATCH"}:
+            ordered = service.store.reorder_cases(organization_id, payload.get("case_ids", []))
+            for case in ordered:
+                service.mirror.case(case)
+            return {"organization_id": organization_id, "cases": ordered}
         if action == "run" and method == "POST":
             return service.run_organization(organization_id)
 
