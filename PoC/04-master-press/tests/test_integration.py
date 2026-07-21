@@ -60,8 +60,11 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'id="organizationFilter"', body)
         self.assertIn(b'id="categoryStats"', body)
         self.assertIn(b'id="recentSent"', body)
-        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260721-17"></script>'), 1)
+        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260721-18"></script>'), 1)
         self.assertIn(b'id="signupView"', body)
+        self.assertIn("사용설명서 다운로드".encode("utf-8"), body)
+        self.assertLess(body.index("사용설명서 다운로드".encode("utf-8")), body.index("구독 신청".encode("utf-8")))
+        self.assertIn(b'href="/poc/master-press/manual.pdf"', body)
         self.assertIn("구독 신청".encode("utf-8"), body)
         self.assertIn(b'id="articleSearch"', body)
         self.assertNotIn(b'id="activeFilterLabel"', body)
@@ -80,6 +83,13 @@ class MainIntegrationTests(unittest.TestCase):
             re.S,
         )
         self.assertIsNotNone(renderer_order, "AI 언론동향 비서 렌더러가 다른 렌더러 안에 중첩됐습니다.")
+
+    def test_master_press_manual_pdf_download(self):
+        status, headers, body = asyncio.run(call_app("/poc/master-press/manual.pdf"))
+        self.assertEqual(status, 200)
+        self.assertEqual(headers.get(b"content-type"), b"application/pdf")
+        self.assertIn(b"manual.pdf", headers.get(b"content-disposition", b""))
+        self.assertTrue(body.startswith(b"%PDF"))
 
     def test_public_api_and_admin_protection(self):
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/dashboard"))

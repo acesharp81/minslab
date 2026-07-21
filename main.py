@@ -51,6 +51,7 @@ REVERSE_GEOCODE_CACHE = {}
 MASTER_PRESS_BASE_PATH = "/poc/master-press"
 MASTER_PRESS_API_BASE = "/api/poc/master-press"
 MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
+MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "master_press" / "manual.pdf"
 MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
 MASTER_PRESS_MODULE = None
 MASTER_PRESS_MTIME = None
@@ -2086,6 +2087,18 @@ async def app(scope, receive, send):
             body = f"카카오 연결 실패\n{str(error)}".encode("utf-8")
         content_type = "text/plain; charset=utf-8"
         extra_headers.append((b"cache-control", b"no-store"))
+    elif path == f"{MASTER_PRESS_BASE_PATH}/manual.pdf" and method in {"GET", "HEAD"}:
+        try:
+            body = await asyncio.to_thread(MASTER_PRESS_MANUAL_PATH.read_bytes)
+            content_type = "application/pdf"
+            extra_headers.extend([
+                (b"cache-control", b"no-cache"),
+                (b"content-disposition", b'attachment; filename="manual.pdf"'),
+            ])
+        except OSError:
+            status = 404
+            body = b"Master Press manual is not available."
+            content_type = "text/plain; charset=utf-8"
     elif (path == MASTER_PRESS_BASE_PATH or path.startswith(f"{MASTER_PRESS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
         relative_path = path[len(MASTER_PRESS_BASE_PATH):].lstrip("/")
         requested = (MASTER_PRESS_WEB / relative_path).resolve() if relative_path else MASTER_PRESS_WEB / "index.html"
