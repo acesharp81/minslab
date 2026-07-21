@@ -105,7 +105,9 @@ class KakaoClient:
         }
         if not token_data["kakao_user_id"]:
             raise KakaoError("카카오 사용자 식별자를 확인하지 못했습니다.")
-        return self.store.consume_invite(invite_token, token_data)
+        recipient = self.store.consume_invite(invite_token, token_data)
+        self.store.mark_signup_request_kakao_registered(invite_token, recipient["id"])
+        return recipient
 
     def _refresh(self, recipient: dict) -> str:
         refresh_token = self.cipher.decrypt(recipient["refresh_token_ciphertext"])

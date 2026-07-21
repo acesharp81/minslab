@@ -14,6 +14,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from .article_metadata import publisher_name, reporter_name
+
 
 KST = timezone(timedelta(hours=9))
 DASHBOARD_TOPIC_TYPES = (
@@ -31,6 +33,19 @@ NON_NOUN_ENTITY_ENDINGS = (
 
 def now_iso() -> str:
     return datetime.now(KST).isoformat(timespec="seconds")
+
+
+def candidate_exclusion_message(reason: str) -> str:
+    labels = {
+        "publisher_filtered": "허용된 언론사가 아니라 후보에서 제외했습니다.",
+        "exclude_terms_matched": "제외 키워드가 포함되어 후보에서 제외했습니다.",
+        "required_terms_missing": "필수 키워드가 확인되지 않아 후보에서 제외했습니다.",
+        "include_terms_missing": "포함 키워드가 확인되지 않아 후보에서 제외했습니다.",
+        "negative_signal_missing": "부정 이슈를 찾는 케이스지만 기사에서 부정 신호가 확인되지 않았습니다.",
+        "semantic_below_threshold": "케이스 주제와 의미 유사도가 낮아 후보에서 제외했습니다.",
+    }
+    clean = str(reason or "").strip()
+    return labels.get(clean, "케이스 조건과 맞지 않아 LLM 판정 전에 제외했습니다." if clean else "")
 
 
 def kst_day_start_iso(reference: datetime | None = None) -> str:
@@ -176,16 +191,17 @@ CREATE TABLE IF NOT EXISTS cases (
   delivery_mode TEXT NOT NULL DEFAULT 'immediate',
   delivery_times TEXT NOT NULL DEFAULT '[]',
   send_relevant_immediately INTEGER NOT NULL DEFAULT 1,
-  relevance_threshold REAL NOT NULL DEFAULT 75,
+  relevance_threshold REAL NOT NULL DEFAULT 70,
   hold_threshold REAL NOT NULL DEFAULT 55,
-  keyword_weight REAL NOT NULL DEFAULT 0.3,
-  semantic_weight REAL NOT NULL DEFAULT 0.4,
-  llm_weight REAL NOT NULL DEFAULT 0.3,
+  keyword_weight REAL NOT NULL DEFAULT 0,
+  semantic_weight REAL NOT NULL DEFAULT 0.25,
+  llm_weight REAL NOT NULL DEFAULT 0.75,
   max_articles_per_message INTEGER NOT NULL DEFAULT 2,
   is_active INTEGER NOT NULL DEFAULT 1,
   version INTEGER NOT NULL DEFAULT 1,
   next_collect_at TEXT,
   last_collected_at TEXT,
+  monitor_from TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -227,6 +243,31 @@ CREATE TABLE IF NOT EXISTS recipient_invites (
   used_at TEXT,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS signup_requests (
+  id TEXT PRIMARY KEY,
+  invite_id TEXT NOT NULL REFERENCES recipient_invites(id) ON DELETE CASCADE,
+  recipient_id TEXT REFERENCES recipients(id) ON DELETE SET NULL,
+  applicant_name TEXT NOT NULL,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'requested',
+  admin_note TEXT NOT NULL DEFAULT '',
+  kakao_registered_at TEXT,
+  decided_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS signup_request_cases (
+  request_id TEXT NOT NULL REFERENCES signup_requests(id) ON DELETE CASCADE,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  decided_at TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(request_id,case_id)
+);
+CREATE INDEX IF NOT EXISTS idx_signup_requests_status ON signup_requests(status,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_signup_request_cases_case ON signup_request_cases(case_id,status);
 
 CREATE TABLE IF NOT EXISTS articles (
   id TEXT PRIMARY KEY,
@@ -375,6 +416,8 @@ CREATE TABLE IF NOT EXISTS article_analyses (
   model TEXT NOT NULL DEFAULT '',
   prompt_version TEXT NOT NULL DEFAULT 'article-v1',
   summary TEXT NOT NULL DEFAULT '',
+  publisher_name TEXT NOT NULL DEFAULT '',
+  reporter_name TEXT NOT NULL DEFAULT '',
   article_type TEXT NOT NULL DEFAULT '분류대기',
   tone TEXT NOT NULL DEFAULT '사실전달',
   classification_tags TEXT NOT NULL DEFAULT '[]',
@@ -414,6 +457,7 @@ CREATE TABLE IF NOT EXISTS case_evaluations (
   status TEXT NOT NULL DEFAULT 'pending',
   model TEXT NOT NULL DEFAULT '',
   keyword_score REAL NOT NULL DEFAULT 0,
+  semantic_raw REAL NOT NULL DEFAULT 0,
   semantic_score REAL NOT NULL DEFAULT 0,
   llm_score REAL NOT NULL DEFAULT 0,
   final_score REAL NOT NULL DEFAULT 0,
@@ -463,8 +507,25 @@ CREATE TABLE IF NOT EXISTS case_evaluation_jobs (
   duration_ms INTEGER,
   attempts INTEGER NOT NULL DEFAULT 0,
   retry_after TEXT,
+  batch_id TEXT NOT NULL DEFAULT '',
+  batch_size INTEGER NOT NULL DEFAULT 1,
   error TEXT,
   UNIQUE(case_evaluation_id)
+);
+
+CREATE TABLE IF NOT EXISTS case_embeddings (
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  case_version INTEGER NOT NULL,
+  model TEXT NOT NULL,
+  retrieval_text TEXT NOT NULL,
+  dimensions INTEGER NOT NULL DEFAULT 0,
+  vector TEXT NOT NULL DEFAULT '[]',
+  calibration TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'completed',
+  error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(case_id,case_version,model)
 );
 
 CREATE TABLE IF NOT EXISTS article_embeddings (
@@ -550,6 +611,7 @@ CREATE INDEX IF NOT EXISTS idx_article_analyses_status ON article_analyses(statu
 CREATE INDEX IF NOT EXISTS idx_article_analysis_jobs_status ON article_analysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_case_evaluations_article ON case_evaluations(article_analysis_id, status);
 CREATE INDEX IF NOT EXISTS idx_case_evaluation_jobs_status ON case_evaluation_jobs(status, queued_at);
+CREATE INDEX IF NOT EXISTS idx_case_embeddings_status ON case_embeddings(status,updated_at);
 
 CREATE INDEX IF NOT EXISTS idx_scores_case_created ON article_scores(case_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_scores_final ON article_scores(final_score);
@@ -589,11 +651,20 @@ class Store:
                 connection.execute(
                     "ALTER TABLE cases ADD COLUMN send_relevant_immediately INTEGER NOT NULL DEFAULT 1"
                 )
+            if "monitor_from" not in columns:
+                connection.execute("ALTER TABLE cases ADD COLUMN monitor_from TEXT")
+            connection.execute(
+                "UPDATE cases SET monitor_from=created_at WHERE monitor_from IS NULL OR monitor_from=''"
+            )
             common_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_analyses)")}
             if "organization_id" not in common_columns:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL")
             if "topic_concepts" not in common_columns:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN topic_concepts TEXT NOT NULL DEFAULT '[]'")
+            if "publisher_name" not in common_columns:
+                connection.execute("ALTER TABLE article_analyses ADD COLUMN publisher_name TEXT NOT NULL DEFAULT ''")
+            if "reporter_name" not in common_columns:
+                connection.execute("ALTER TABLE article_analyses ADD COLUMN reporter_name TEXT NOT NULL DEFAULT ''")
             common_job_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_analysis_jobs)")}
             if "organization_id" not in common_job_columns:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL")
@@ -608,6 +679,27 @@ class Store:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0")
             if "retry_after" not in case_job_columns:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN retry_after TEXT")
+            if "batch_id" not in case_job_columns:
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN batch_id TEXT NOT NULL DEFAULT ''")
+            if "batch_size" not in case_job_columns:
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN batch_size INTEGER NOT NULL DEFAULT 1")
+            evaluation_columns = {row[1] for row in connection.execute("PRAGMA table_info(case_evaluations)")}
+            if "semantic_raw" not in evaluation_columns:
+                connection.execute("ALTER TABLE case_evaluations ADD COLUMN semantic_raw REAL NOT NULL DEFAULT 0")
+            hybrid_migration = connection.execute("SELECT value FROM app_settings WHERE key='case_hybrid_weights_v1'").fetchone()
+            if not hybrid_migration:
+                connection.execute("UPDATE cases SET keyword_weight=0,semantic_weight=0.5,llm_weight=0.5")
+                connection.execute(
+                    "INSERT INTO app_settings(key,value,updated_at) VALUES('case_hybrid_weights_v1','applied',?)",
+                    (now_iso(),),
+                )
+            delivery_defaults_migration = connection.execute("SELECT value FROM app_settings WHERE key='case_delivery_defaults_70_llm75_v1'").fetchone()
+            if not delivery_defaults_migration:
+                connection.execute("UPDATE cases SET relevance_threshold=70,keyword_weight=0,semantic_weight=0.25,llm_weight=0.75")
+                connection.execute(
+                    "INSERT INTO app_settings(key,value,updated_at) VALUES('case_delivery_defaults_70_llm75_v1','applied',?)",
+                    (now_iso(),),
+                )
             # One-time recovery for timeouts recorded before retry scheduling was introduced.
             connection.execute("UPDATE article_analysis_jobs SET status='pending',retry_after=NULL WHERE status='failed' AND attempts=0 AND error LIKE '%timed out%'")
             connection.execute("UPDATE article_analyses SET status='pending',error=NULL WHERE id IN (SELECT article_analysis_id FROM article_analysis_jobs WHERE status='pending') AND status='failed'")
@@ -651,8 +743,54 @@ class Store:
                    ),'')"""
             )
             self._migrate_legacy_scores(connection)
+            self._backfill_article_source_metadata(connection)
             self._sync_article_processing_flags(connection)
+            self._discard_pre_case_pending_evaluations(connection)
         self.path.chmod(0o600)
+
+    @staticmethod
+    def _backfill_article_source_metadata(connection: sqlite3.Connection) -> int:
+        if connection.execute("SELECT value FROM app_settings WHERE key='article_source_metadata_v1'").fetchone():
+            return 0
+        rows = connection.execute(
+            """SELECT aa.id,a.publisher,a.original_url,a.title,a.snippet,a.body
+               FROM article_analyses aa JOIN articles a ON a.id=aa.article_id"""
+        ).fetchall()
+        for row in rows:
+            source_text = " ".join([str(row["title"] or ""), str(row["snippet"] or ""), str(row["body"] or "")])
+            connection.execute(
+                "UPDATE article_analyses SET publisher_name=?,reporter_name=? WHERE id=?",
+                (publisher_name(row["publisher"], row["original_url"]), reporter_name(source_text), row["id"]),
+            )
+        connection.execute(
+            "INSERT INTO app_settings(key,value,updated_at) VALUES('article_source_metadata_v1','applied',?)",
+            (now_iso(),),
+        )
+        return len(rows)
+
+    @staticmethod
+    def _discard_pre_case_pending_evaluations(connection: sqlite3.Connection) -> int:
+        """Remove unfinished automatic work for articles collected before a case existed."""
+        rows = connection.execute(
+            """SELECT ce.id FROM case_evaluations ce
+               JOIN cases c ON c.id=ce.case_id
+               JOIN articles a ON a.id=ce.article_id
+               WHERE a.first_seen_at < COALESCE(NULLIF(c.monitor_from,''),c.created_at)
+                 AND ce.status IN ('pending','processing','failed')"""
+        ).fetchall()
+        evaluation_ids = [str(row["id"]) for row in rows]
+        if not evaluation_ids:
+            return 0
+        marks = ",".join("?" for _ in evaluation_ids)
+        connection.execute(
+            f"DELETE FROM article_case_processing_flags WHERE evaluation_id IN ({marks})",
+            evaluation_ids,
+        )
+        connection.execute(
+            f"DELETE FROM case_evaluations WHERE id IN ({marks})",
+            evaluation_ids,
+        )
+        return len(evaluation_ids)
 
     def _migrate_legacy_scores(self, connection: sqlite3.Connection) -> None:
         """Keep old completed case scores visible in the article-first dashboard without any new LLM call."""
@@ -898,11 +1036,11 @@ class Store:
             "send_relevant_immediately": 1 if payload.get(
                 "send_relevant_immediately", (existing or {}).get("send_relevant_immediately", True)
             ) else 0,
-            "relevance_threshold": max(0, min(100, float(payload.get("relevance_threshold", (existing or {}).get("relevance_threshold", 75))))),
+            "relevance_threshold": max(0, min(100, float(payload.get("relevance_threshold", (existing or {}).get("relevance_threshold", 70))))),
             "hold_threshold": max(0, min(100, float(payload.get("hold_threshold", (existing or {}).get("hold_threshold", 55))))),
-            "keyword_weight": max(0, float(payload.get("keyword_weight", (existing or {}).get("keyword_weight", 0.3)))),
-            "semantic_weight": max(0, float(payload.get("semantic_weight", (existing or {}).get("semantic_weight", 0.4)))),
-            "llm_weight": max(0, float(payload.get("llm_weight", (existing or {}).get("llm_weight", 0.3)))),
+            "keyword_weight": max(0, float(payload.get("keyword_weight", (existing or {}).get("keyword_weight", 0)))),
+            "semantic_weight": max(0, float(payload.get("semantic_weight", (existing or {}).get("semantic_weight", 0.25)))),
+            "llm_weight": max(0, float(payload.get("llm_weight", (existing or {}).get("llm_weight", 0.75)))),
             "max_articles_per_message": max(1, min(5, int(payload.get("max_articles_per_message", (existing or {}).get("max_articles_per_message", 2))))),
             "is_active": 1 if payload.get("is_active", (existing or {}).get("is_active", True)) else 0,
         }
@@ -925,7 +1063,7 @@ class Store:
         if values["hold_threshold"] > values["relevance_threshold"]:
             raise ValueError("보류 기준은 전송 기준보다 높을 수 없습니다.")
 
-        weight_total = values["keyword_weight"] + values["semantic_weight"] + values["llm_weight"]
+        weight_total = values["semantic_weight"] + values["llm_weight"]
         if weight_total <= 0:
             raise ValueError("관련도 가중치 합은 0보다 커야 합니다.")
         case_id = case_id or str(uuid.uuid4())
@@ -938,11 +1076,11 @@ class Store:
                     (*values.values(), version, now, case_id),
                 )
             else:
-                columns = ["id", *values, "version", "created_at", "updated_at"]
+                columns = ["id", *values, "version", "monitor_from", "created_at", "updated_at"]
                 marks = ",".join("?" for _ in columns)
                 connection.execute(
                     f"INSERT INTO cases ({','.join(columns)}) VALUES ({marks})",
-                    (case_id, *values.values(), version, now, now),
+                    (case_id, *values.values(), version, now, now, now),
                 )
             row = connection.execute("SELECT * FROM cases WHERE id=?", (case_id,)).fetchone()
             snapshot = self.decode_case(row) if row else {"id": case_id, **values, "version": version}
@@ -981,10 +1119,328 @@ class Store:
 
     def list_recipients(self) -> list[dict]:
         with self.connect() as connection:
+            self._cleanup_expired_signup_requests(connection)
             rows = connection.execute(
-                "SELECT id,label,kakao_user_id,access_token_expires_at,refresh_token_expires_at,status,last_error,created_at,updated_at FROM recipients ORDER BY created_at DESC"
+                "SELECT id,label,kakao_user_id,access_token_expires_at,refresh_token_expires_at,status,last_error,created_at,updated_at FROM recipients WHERE status<>'deleted' ORDER BY created_at DESC"
             ).fetchall()
         return [dict(row) for row in rows]
+
+    @staticmethod
+    def mask_applicant_name(value: str) -> str:
+        name = re.sub(r"\s+", "", str(value or "").strip())
+        if not name:
+            return "신청자"
+        if len(name) == 1:
+            return "*"
+        if len(name) == 2:
+            return name[0] + "*"
+        return name[0] + "*" * (len(name) - 2) + name[-1]
+
+    def _signup_request_cases(self, connection: sqlite3.Connection, request_id: str) -> list[dict]:
+        rows = connection.execute(
+            """SELECT src.case_id,src.status,src.decided_at,c.name case_name,c.organization_id,c.is_active
+               FROM signup_request_cases src JOIN cases c ON c.id=src.case_id
+               WHERE src.request_id=? ORDER BY c.created_at""",
+            (request_id,),
+        ).fetchall()
+        return [{**dict(row), "is_active": bool(row["is_active"])} for row in rows]
+
+    def _decode_signup_request(self, connection: sqlite3.Connection, row: sqlite3.Row | dict, include_private: bool = False) -> dict:
+        item = dict(row)
+        cases = self._signup_request_cases(connection, str(item["id"]))
+        result = {
+            "id": item["id"],
+            "masked_name": self.mask_applicant_name(str(item.get("applicant_name") or "")),
+            "organization_id": item.get("organization_id"),
+            "organization_name": item.get("organization_name") or "",
+            "status": item.get("status") or "requested",
+            "kakao_registered": bool(item.get("recipient_id")),
+            "kakao_registered_at": item.get("kakao_registered_at"),
+            "case_requests": cases,
+            "admin_note": item.get("admin_note") or "",
+            "created_at": item.get("created_at"),
+            "updated_at": item.get("updated_at"),
+        }
+        if include_private:
+            result.update({
+                "applicant_name": item.get("applicant_name") or "",
+                "recipient_id": item.get("recipient_id"),
+                "invite_id": item.get("invite_id"),
+            })
+        return result
+
+    def list_signup_requests(self, include_private: bool = False, limit: int = 80) -> list[dict]:
+        with self.connect() as connection:
+            self._cleanup_expired_signup_requests(connection)
+            rows = connection.execute(
+                """SELECT sr.*,o.name organization_name
+                   FROM signup_requests sr JOIN organizations o ON o.id=sr.organization_id
+                   ORDER BY sr.created_at DESC LIMIT ?""",
+                (max(1, min(int(limit), 200)),),
+            ).fetchall()
+            return [self._decode_signup_request(connection, row, include_private) for row in rows]
+
+    def _cleanup_expired_signup_requests(self, connection: sqlite3.Connection, hours: int = 6) -> int:
+        cutoff = (datetime.now(KST) - timedelta(hours=max(1, int(hours)))).isoformat(timespec="seconds")
+        expired = connection.execute(
+            """DELETE FROM signup_requests
+               WHERE status IN ('approved','partial','rejected','revoked')
+                 AND COALESCE(decided_at,updated_at,created_at) < ?""",
+            (cutoff,),
+        ).rowcount or 0
+        orphaned = connection.execute(
+            """DELETE FROM signup_requests
+               WHERE recipient_id IS NULL AND kakao_registered_at IS NOT NULL"""
+        ).rowcount or 0
+        return int(expired + orphaned)
+
+    def create_signup_request(self, applicant_name: str, organization_id: str, case_ids: Iterable[str], ttl_minutes: int = 1440) -> tuple[dict, str]:
+        name = re.sub(r"\s+", " ", str(applicant_name or "").strip())[:80]
+        if not name:
+            raise ValueError("신청자 이름을 입력하세요.")
+        organization = self.get_organization(str(organization_id or ""))
+        if not organization or not organization.get("is_active"):
+            raise ValueError("활성화된 부처를 선택하세요.")
+        requested_case_ids = [str(value) for value in dict.fromkeys(case_ids) if str(value).strip()]
+        active_cases = {
+            item["id"]: item for item in self.list_cases_for_organization(organization["id"], active_only=True)
+        }
+        invalid = [case_id for case_id in requested_case_ids if case_id not in active_cases]
+        if invalid:
+            raise ValueError("선택한 부처의 활성 케이스만 신청할 수 있습니다.")
+        invite, token = self.create_invite(name, ttl_minutes)
+        now, request_id = now_iso(), str(uuid.uuid4())
+        with self.connect() as connection:
+            connection.execute(
+                """INSERT INTO signup_requests(
+                   id,invite_id,applicant_name,organization_id,status,created_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?)""",
+                (request_id, invite["id"], name, organization["id"], "requested", now, now),
+            )
+            connection.executemany(
+                "INSERT INTO signup_request_cases(request_id,case_id,status,updated_at) VALUES(?,?, 'pending',?)",
+                [(request_id, case_id, now) for case_id in requested_case_ids],
+            )
+            row = connection.execute(
+                """SELECT sr.*,o.name organization_name FROM signup_requests sr
+                   JOIN organizations o ON o.id=sr.organization_id WHERE sr.id=?""",
+                (request_id,),
+            ).fetchone()
+            record = self._decode_signup_request(connection, row, include_private=False)
+        return record, token
+
+    def mark_signup_request_kakao_registered(self, token: str, recipient_id: str) -> dict | None:
+        token_hash, now = hashlib.sha256(str(token).encode()).hexdigest(), now_iso()
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT sr.id FROM signup_requests sr JOIN recipient_invites ri ON ri.id=sr.invite_id
+                   WHERE ri.token_hash=?""",
+                (token_hash,),
+            ).fetchone()
+            if not row:
+                return None
+            connection.execute(
+                """UPDATE signup_requests
+                   SET recipient_id=?,status=CASE WHEN status='requested' THEN 'kakao_registered' ELSE status END,
+                       kakao_registered_at=COALESCE(kakao_registered_at,?),updated_at=?
+                   WHERE id=?""",
+                (recipient_id, now, now, row["id"]),
+            )
+            updated = connection.execute(
+                """SELECT sr.*,o.name organization_name FROM signup_requests sr
+                   JOIN organizations o ON o.id=sr.organization_id WHERE sr.id=?""",
+                (row["id"],),
+            ).fetchone()
+            return self._decode_signup_request(connection, updated, include_private=True) if updated else None
+
+    def delete_signup_request(self, request_id: str) -> bool:
+        with self.connect() as connection:
+            return connection.execute("DELETE FROM signup_requests WHERE id=?", (str(request_id),)).rowcount > 0
+
+    def add_case_recipient(self, case_id: str, recipient_id: str) -> None:
+        with self.connect() as connection:
+            connection.execute(
+                "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                (case_id, recipient_id),
+            )
+
+    def _refresh_signup_request_status(self, connection: sqlite3.Connection, request_id: str, admin_note: str = "") -> sqlite3.Row:
+        now = now_iso()
+        request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+        if not request:
+            raise ValueError("구독 요청을 찾지 못했습니다.")
+        counts = connection.execute(
+            """SELECT SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) pending_count,
+                      SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) approved_count,
+                      SUM(CASE WHEN status='rejected' THEN 1 ELSE 0 END) rejected_count,
+                      SUM(CASE WHEN status='revoked' THEN 1 ELSE 0 END) revoked_count,
+                      COUNT(*) total_count
+               FROM signup_request_cases WHERE request_id=?""",
+            (request_id,),
+        ).fetchone()
+        pending = int(counts["pending_count"] or 0)
+        approved = int(counts["approved_count"] or 0)
+        rejected = int(counts["rejected_count"] or 0)
+        revoked = int(counts["revoked_count"] or 0)
+        total = int(counts["total_count"] or 0)
+        if total == 0:
+            status = "revoked" if request["recipient_id"] else "requested"
+            decided_at = now if request["recipient_id"] else request["decided_at"]
+        elif pending:
+            status = "kakao_registered" if request["recipient_id"] else "requested"
+            decided_at = request["decided_at"]
+        elif approved == total:
+            status, decided_at = "approved", now
+        elif approved:
+            status, decided_at = "partial", now
+        elif revoked == total or revoked:
+            status, decided_at = "revoked", now
+        elif rejected == total:
+            status, decided_at = "rejected", now
+        else:
+            status, decided_at = "rejected", now
+        connection.execute(
+            "UPDATE signup_requests SET status=?,admin_note=?,decided_at=?,updated_at=? WHERE id=?",
+            (status, str(admin_note or "").strip()[:300], decided_at, now, request_id),
+        )
+        row = connection.execute(
+            """SELECT sr.*,o.name organization_name FROM signup_requests sr
+               JOIN organizations o ON o.id=sr.organization_id WHERE sr.id=?""",
+            (request_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError("구독 요청을 찾지 못했습니다.")
+        return row
+
+    def signup_case_context(self, request_id: str, case_id: str) -> dict:
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT sr.*,o.name organization_name,c.name case_name,src.status case_status
+                   FROM signup_requests sr
+                   JOIN organizations o ON o.id=sr.organization_id
+                   JOIN signup_request_cases src ON src.request_id=sr.id
+                   JOIN cases c ON c.id=src.case_id
+                   WHERE sr.id=? AND src.case_id=?""",
+                (request_id, case_id),
+            ).fetchone()
+        if not row:
+            raise ValueError("구독 요청 또는 케이스를 찾지 못했습니다.")
+        return dict(row)
+
+    def decide_signup_case(self, request_id: str, case_id: str, decision: str, admin_note: str = "") -> dict:
+        decision = str(decision or "").strip()
+        if decision not in {"approved", "rejected"}:
+            raise ValueError("승인 또는 반려만 선택할 수 있습니다.")
+        now = now_iso()
+        with self.connect() as connection:
+            request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+            if not request:
+                raise ValueError("구독 요청을 찾지 못했습니다.")
+            case_row = connection.execute(
+                "SELECT 1 FROM signup_request_cases WHERE request_id=? AND case_id=?",
+                (request_id, case_id),
+            ).fetchone()
+            if not case_row:
+                raise ValueError("신청한 케이스가 아닙니다.")
+            if decision == "approved" and not request["recipient_id"]:
+                raise ValueError("카카오 수신 등록이 완료된 신청만 승인할 수 있습니다.")
+            connection.execute(
+                """UPDATE signup_request_cases SET status=?,decided_at=?,updated_at=?
+                   WHERE request_id=? AND case_id=?""",
+                (decision, now, now, request_id, case_id),
+            )
+            if decision == "approved":
+                connection.execute(
+                    "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                    (case_id, request["recipient_id"]),
+                )
+            row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            return self._decode_signup_request(connection, row, include_private=True)
+
+    def revoke_signup_case(self, request_id: str, case_id: str, admin_note: str = "") -> dict:
+        now = now_iso()
+        with self.connect() as connection:
+            request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+            if not request:
+                raise ValueError("구독 요청을 찾지 못했습니다.")
+            case_row = connection.execute(
+                "SELECT status FROM signup_request_cases WHERE request_id=? AND case_id=?",
+                (request_id, case_id),
+            ).fetchone()
+            if not case_row:
+                raise ValueError("신청한 케이스가 아닙니다.")
+            if case_row["status"] != "approved":
+                raise ValueError("승인된 케이스만 해제할 수 있습니다.")
+            if request["recipient_id"]:
+                connection.execute(
+                    "DELETE FROM case_recipients WHERE case_id=? AND recipient_id=?",
+                    (case_id, request["recipient_id"]),
+                )
+            connection.execute(
+                """UPDATE signup_request_cases SET status='revoked',decided_at=?,updated_at=?
+                   WHERE request_id=? AND case_id=?""",
+                (now, now, request_id, case_id),
+            )
+            row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            return self._decode_signup_request(connection, row, include_private=True)
+
+    def set_signup_request_subscriptions(self, request_id: str, case_ids: Iterable[str], admin_note: str = "") -> dict:
+        selected = {str(value).strip() for value in case_ids if str(value).strip()}
+        now = now_iso()
+        with self.connect() as connection:
+            request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+            if not request:
+                raise ValueError("구독 요청을 찾지 못했습니다.")
+            active_rows = connection.execute(
+                "SELECT id FROM cases WHERE organization_id=? AND is_active=1",
+                (request["organization_id"],),
+            ).fetchall()
+            active_case_ids = {str(row["id"]) for row in active_rows}
+            invalid = selected - active_case_ids
+            if invalid:
+                raise ValueError("선택한 부처의 활성 케이스만 구독할 수 있습니다.")
+            existing_rows = connection.execute(
+                "SELECT case_id,status FROM signup_request_cases WHERE request_id=?",
+                (request_id,),
+            ).fetchall()
+            existing = {str(row["case_id"]): str(row["status"] or "pending") for row in existing_rows}
+            recipient_id = str(request["recipient_id"] or "")
+            for case_id in active_case_ids:
+                if case_id in selected:
+                    if case_id not in existing:
+                        connection.execute(
+                            "INSERT INTO signup_request_cases(request_id,case_id,status,updated_at) VALUES(?,?, 'pending',?)",
+                            (request_id, case_id, now),
+                        )
+                    status = "approved" if recipient_id else "pending"
+                    connection.execute(
+                        "UPDATE signup_request_cases SET status=?,decided_at=?,updated_at=? WHERE request_id=? AND case_id=?",
+                        (status, now if recipient_id else None, now, request_id, case_id),
+                    )
+                    if recipient_id:
+                        connection.execute(
+                            "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                            (case_id, recipient_id),
+                        )
+                elif recipient_id or case_id in existing:
+                    if recipient_id:
+                        connection.execute(
+                            "DELETE FROM case_recipients WHERE case_id=? AND recipient_id=?",
+                            (case_id, recipient_id),
+                        )
+                    status = "revoked" if recipient_id or existing.get(case_id) in {"approved", "revoked"} else "rejected"
+                    if case_id not in existing:
+                        connection.execute(
+                            "INSERT INTO signup_request_cases(request_id,case_id,status,decided_at,updated_at) VALUES(?,?,?,?,?)",
+                            (request_id, case_id, status, now, now),
+                        )
+                    else:
+                        connection.execute(
+                            "UPDATE signup_request_cases SET status=?,decided_at=?,updated_at=? WHERE request_id=? AND case_id=?",
+                            (status, now, now, request_id, case_id),
+                        )
+            row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            return self._decode_signup_request(connection, row, include_private=True)
 
     def get_setting(self, key: str, default: str = "") -> str:
         with self.connect() as connection:
@@ -1007,7 +1463,26 @@ class Store:
                  str(error)[:1000] or None, now_iso()),
             )
 
-    def openrouter_usage_today(self, soft_limit: int = 800) -> dict:
+    def provider_usage_total(self, provider: str, stage: str) -> dict:
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(*) attempts,
+                          SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
+                          SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
+                          COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,
+                          COALESCE(AVG(CASE WHEN status='completed' THEN duration_ms END),0) average_ms
+                   FROM llm_api_calls WHERE provider=? AND stage=?""",
+                (str(provider), str(stage)),
+            ).fetchone()
+        tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
+        return {
+            "attempts": int(row["attempts"] or 0), "completed": int(row["completed"] or 0),
+            "failed": int(row["failed"] or 0), "input_tokens": int(row["input_tokens"] or 0),
+            "output_tokens": int(row["output_tokens"] or 0), "tokens": tokens,
+            "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2), "period": "all",
+        }
+
+    def provider_usage_today(self, provider: str, stage: str, request_limit: int, token_limit: int = 0) -> dict:
         day_start = kst_day_start_iso()
         with self.connect() as connection:
             row = connection.execute(
@@ -1016,14 +1491,36 @@ class Store:
                           SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
                           COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,
                           COALESCE(AVG(CASE WHEN status='completed' THEN duration_ms END),0) average_ms
-                   FROM llm_api_calls WHERE provider='openrouter' AND stage='case' AND created_at>=?""",
-                (day_start,),
+                   FROM llm_api_calls WHERE provider=? AND stage=? AND created_at>=?""",
+                (str(provider), str(stage), day_start),
             ).fetchone()
         attempts = int(row["attempts"] or 0)
-        return {"attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
-                "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
-                "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2), "soft_limit": int(soft_limit),
-                "remaining": max(0, int(soft_limit) - attempts), "period": "KST day", "day_start": day_start}
+        tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
+        return {
+            "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
+            "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
+            "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
+            "soft_limit": int(request_limit), "remaining": max(0, int(request_limit) - attempts),
+            "token_soft_limit": int(token_limit), "token_remaining": max(0, int(token_limit) - tokens) if token_limit else 0,
+            "period": "KST day", "day_start": day_start,
+        }
+
+    def provider_usage_last_minute(self, provider: str, stage: str) -> dict:
+        since = (datetime.now(KST) - timedelta(seconds=60)).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(*) attempts,COALESCE(SUM(input_tokens),0)+COALESCE(SUM(output_tokens),0) tokens
+                   FROM llm_api_calls WHERE provider=? AND stage=? AND created_at>=?""",
+                (str(provider), str(stage), since),
+            ).fetchone()
+        return {"attempts": int(row["attempts"] or 0), "tokens": int(row["tokens"] or 0), "since": since}
+
+    def openrouter_usage_today(self, soft_limit: int = 800) -> dict:
+        return self.provider_usage_today("openrouter", "case", soft_limit)
+
+    def groq_usage_today(self, request_limit: int = 900, token_limit: int = 450000) -> dict:
+        return self.provider_usage_today("groq", "common", request_limit, token_limit)
+
 
     def get_article(self, article_id: str) -> dict | None:
         with self.connect() as connection:
@@ -1100,7 +1597,17 @@ class Store:
 
     def delete_recipient(self, recipient_id: str) -> bool:
         with self.connect() as connection:
-            return connection.execute("DELETE FROM recipients WHERE id=?", (recipient_id,)).rowcount > 0
+            connection.execute("DELETE FROM signup_requests WHERE recipient_id=?", (recipient_id,))
+            connection.execute("DELETE FROM case_recipients WHERE recipient_id=?", (recipient_id,))
+            connection.execute("DELETE FROM deliveries WHERE recipient_id=? AND status IN ('pending','retry')", (recipient_id,))
+            now = now_iso()
+            return connection.execute(
+                """UPDATE recipients
+                   SET label='삭제된 구독자',kakao_user_id=?,access_token_ciphertext='',refresh_token_ciphertext='',
+                       access_token_expires_at='',refresh_token_expires_at='',status='deleted',last_error='관리자 수신 해제',updated_at=?
+                   WHERE id=?""",
+                (f"deleted:{recipient_id}", now, recipient_id),
+            ).rowcount > 0
 
     def upsert_article(self, article: dict) -> tuple[dict, bool]:
         now = now_iso()
@@ -1235,8 +1742,8 @@ class Store:
         now = now_iso()
         with self.connect() as connection:
             connection.execute(
-                """UPDATE article_analyses SET status='completed',model=?,summary=?,article_type=?,tone=?,classification_tags=?,entities=?,topic_concepts=?,evidence=?,analysis_report=?,error=NULL,analyzed_at=?,updated_at=? WHERE id=?""",
-                (str(model)[:120], result.get("summary", ""), result.get("article_type", "기타"), result.get("tone", "사실전달"),
+                """UPDATE article_analyses SET status='completed',model=?,summary=?,publisher_name=?,reporter_name=?,article_type=?,tone=?,classification_tags=?,entities=?,topic_concepts=?,evidence=?,analysis_report=?,error=NULL,analyzed_at=?,updated_at=? WHERE id=?""",
+                (str(model)[:120], result.get("summary", ""), result.get("publisher_name", ""), result.get("reporter_name", ""), result.get("article_type", "기타"), result.get("tone", "사실전달"),
                  json.dumps(result.get("classification_tags", []), ensure_ascii=False), json.dumps(result.get("entities", []), ensure_ascii=False),
                  json.dumps(result.get("topic_concepts", []), ensure_ascii=False), json.dumps(result.get("evidence", []), ensure_ascii=False),
                  json.dumps(result.get("analysis_report", {}), ensure_ascii=False), now, now, analysis_id),
@@ -1248,26 +1755,42 @@ class Store:
             )
         return self._decode_article_analysis(row) or {}
 
-    def finish_article_analysis_job(self, job_id: str, ok: bool, duration_ms: int, error: str = "") -> None:
+    def finish_article_analysis_job(self, job_id: str, ok: bool, duration_ms: int, error: str = "",
+                                    retryable: bool = False, retry_after: str | None = None,
+                                    keep_pending: bool = False) -> None:
         now = now_iso()
         with self.connect() as connection:
             row = connection.execute("SELECT attempts FROM article_analysis_jobs WHERE id=?", (job_id,)).fetchone()
             attempts = int(row["attempts"] or 0) if row else 0
-            # CPU LLM timeout: retry after 2 then 5 minutes, then retain the failure for review.
-            delay_minutes = 2 if attempts == 1 else (5 if attempts == 2 else 0)
-            retry_after = (datetime.now(KST) + timedelta(minutes=delay_minutes)).isoformat(timespec="seconds") if delay_minutes else None
-            status = "completed" if ok else ("pending" if delay_minutes else "failed")
-            connection.execute("UPDATE article_analysis_jobs SET status=?,finished_at=?,duration_ms=?,retry_after=?,error=? WHERE id=?", (status, now, max(0, int(duration_ms)), retry_after, error[:1000] or None, job_id))
+            should_retry = bool(not ok and retryable and (keep_pending or attempts < 3))
+            if should_retry and not retry_after:
+                delay = 1 if attempts <= 1 else 5
+                retry_after = (datetime.now(KST) + timedelta(minutes=delay)).isoformat(timespec="seconds")
+            status = "completed" if ok else ("pending" if should_retry else "failed")
+            connection.execute(
+                "UPDATE article_analysis_jobs SET status=?,started_at=CASE WHEN ?='pending' THEN NULL ELSE started_at END,finished_at=?,duration_ms=?,retry_after=?,error=? WHERE id=?",
+                (status, status, now, max(0, int(duration_ms)), retry_after if should_retry else None, error[:1000] or None, job_id),
+            )
             if not ok:
-                analysis_status = "pending" if delay_minutes else "failed"
+                analysis_status = "pending" if should_retry else "failed"
                 connection.execute("UPDATE article_analyses SET status=?,error=?,updated_at=? WHERE id=(SELECT article_analysis_id FROM article_analysis_jobs WHERE id=?)", (analysis_status, error[:1000] or None, now, job_id))
 
     def get_article_analysis(self, analysis_id: str) -> dict | None:
         with self.connect() as connection:
             row = connection.execute("SELECT * FROM article_analyses WHERE id=?", (analysis_id,)).fetchone()
         return self._decode_article_analysis(row)
+    def get_current_article_analysis(self, article_id: str) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT aa.* FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id WHERE apf.article_id=?",
+                (article_id,),
+            ).fetchone()
+        return self._decode_article_analysis(row)
 
-    def create_case_evaluation(self, analysis_id: str, article_id: str, case: dict, candidate: bool) -> tuple[dict, bool]:
+
+    def create_case_evaluation(self, analysis_id: str, article_id: str, case: dict, candidate: bool,
+                               semantic_raw: float = 0.0, semantic_score: float = 0.0,
+                               exclusion_reason: str = "") -> tuple[dict, bool]:
         """Create at most one automatic second-stage evaluation per article analysis and case."""
         now, evaluation_id = now_iso(), str(uuid.uuid4())
         status, decision = ("pending", "pending") if candidate else ("excluded", "excluded")
@@ -1286,11 +1809,16 @@ class Store:
                     ).fetchone()
                 return self._decode_case_evaluation(row) or {}, False
 
+            reason = str(exclusion_reason or "")[:160]
+            reasons = [] if candidate or not reason else [candidate_exclusion_message(reason)]
+            categories = [] if candidate or not reason else [reason]
             inserted = connection.execute(
                 """INSERT OR IGNORE INTO case_evaluations(
-                   id,article_analysis_id,article_id,case_id,case_version,candidate_status,status,decision,created_at,updated_at
-                ) VALUES(?,?,?,?,?,?,?,?,?,?)""",
-                (evaluation_id, analysis_id, article_id, case_id, case_version, "candidate" if candidate else "excluded", status, decision, now, now),
+                   id,article_analysis_id,article_id,case_id,case_version,candidate_status,status,semantic_raw,semantic_score,reasons,low_score_categories,decision,error,created_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (evaluation_id, analysis_id, article_id, case_id, case_version, "candidate" if candidate else "excluded", status,
+                 float(semantic_raw), float(semantic_score), json.dumps(reasons, ensure_ascii=False),
+                 json.dumps(categories, ensure_ascii=False), decision, reason or None, now, now),
             ).rowcount
             row = connection.execute(
                 "SELECT * FROM case_evaluations WHERE article_analysis_id=? AND case_id=? ORDER BY case_version DESC,updated_at DESC LIMIT 1",
@@ -1308,21 +1836,66 @@ class Store:
             ).rowcount
         return self._decode_case_evaluation(row) or {}, bool(inserted and flag_inserted)
 
-    def queue_case_evaluation(self, evaluation_id: str) -> str:
+    def reset_case_evaluation_for_requeue(self, analysis_id: str, article_id: str, case: dict, candidate: bool,
+                                          semantic_raw: float = 0.0, semantic_score: float = 0.0,
+                                          exclusion_reason: str = "") -> tuple[dict, bool]:
+        """Reset the current article/case evaluation so the normal case worker overwrites it with fresh results."""
+        case_id, case_version = str(case["id"]), int(case.get("version", 1))
+        status, decision = ("pending", "pending") if candidate else ("excluded", "excluded")
+        reason = str(exclusion_reason or "")[:160]
+        reasons = [] if candidate or not reason else [candidate_exclusion_message(reason)]
+        categories = [] if candidate or not reason else [reason]
+        now = now_iso()
+        with self.connect() as connection:
+            flag = connection.execute(
+                "SELECT evaluation_id FROM article_case_processing_flags WHERE article_id=? AND case_id=?",
+                (article_id, case_id),
+            ).fetchone()
+            if not flag:
+                return self.create_case_evaluation(analysis_id, article_id, case, candidate, semantic_raw, semantic_score, reason)
+            evaluation_id = str(flag["evaluation_id"])
+            connection.execute("DELETE FROM case_evaluation_jobs WHERE case_evaluation_id=?", (evaluation_id,))
+            connection.execute(
+                "DELETE FROM deliveries WHERE article_id=? AND case_id=? AND status IN ('pending','retry','failed')",
+                (article_id, case_id),
+            )
+            connection.execute("DELETE FROM article_scores WHERE article_id=? AND case_id=?", (article_id, case_id))
+            updated = connection.execute(
+                """UPDATE case_evaluations SET article_analysis_id=?,case_version=?,candidate_status=?,status=?,decision=?,
+                   keyword_score=0,semantic_raw=?,semantic_score=?,llm_score=0,final_score=0,evidence_status='',
+                   reasons=?,matched_terms='[]',low_score_categories=?,analysis_report='{}',error=?,completed_at=NULL,updated_at=?
+                   WHERE id=?""",
+                (analysis_id, case_version, "candidate" if candidate else "excluded", status, decision,
+                 float(semantic_raw), float(semantic_score), json.dumps(reasons, ensure_ascii=False),
+                 json.dumps(categories, ensure_ascii=False), reason or None, now, evaluation_id),
+            ).rowcount
+            if not updated:
+                return self.create_case_evaluation(analysis_id, article_id, case, candidate, semantic_raw, semantic_score, reason)
+            connection.execute(
+                """UPDATE article_case_processing_flags SET analysis_id=?,evaluation_id=?,case_version=?,
+                   common_analysis_completed=1,case_evaluation_completed=?,delivery_classified=?,updated_at=?
+                   WHERE article_id=? AND case_id=?""",
+                (analysis_id, evaluation_id, case_version, 0 if candidate else 1, 0 if candidate else 1, now, article_id, case_id),
+            )
+            row = connection.execute("SELECT * FROM case_evaluations WHERE id=?", (evaluation_id,)).fetchone()
+        return self._decode_case_evaluation(row) or {}, False
+
+    def queue_case_evaluation(self, evaluation_id: str, ready_at: str | None = None) -> str:
         job_id, now = str(uuid.uuid4()), now_iso()
+        ready_at = ready_at or now
         with self.connect() as connection:
             row = connection.execute("SELECT status FROM case_evaluations WHERE id=?", (evaluation_id,)).fetchone()
             if not row or row["status"] in {"completed", "excluded"}:
                 return ""
             connection.execute(
-                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,status,queued_at) VALUES(?,?, 'pending',?)
+                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,status,queued_at,retry_after) VALUES(?,?, 'pending',?,?)
                    ON CONFLICT(case_evaluation_id) DO UPDATE SET
                    status=CASE WHEN case_evaluation_jobs.status='failed' THEN 'pending' ELSE case_evaluation_jobs.status END,
                    queued_at=CASE WHEN case_evaluation_jobs.status='failed' THEN excluded.queued_at ELSE case_evaluation_jobs.queued_at END,
                    started_at=CASE WHEN case_evaluation_jobs.status='failed' THEN NULL ELSE case_evaluation_jobs.started_at END,
                    finished_at=CASE WHEN case_evaluation_jobs.status='failed' THEN NULL ELSE case_evaluation_jobs.finished_at END,
                    error=CASE WHEN case_evaluation_jobs.status='failed' THEN NULL ELSE case_evaluation_jobs.error END""",
-                (job_id, evaluation_id, now),
+                (job_id, evaluation_id, now, ready_at),
             )
             connection.execute("UPDATE case_evaluations SET status='pending',updated_at=? WHERE id=? AND status NOT IN ('completed','excluded')", (now, evaluation_id))
             current = connection.execute("SELECT id FROM case_evaluation_jobs WHERE case_evaluation_id=?", (evaluation_id,)).fetchone()
@@ -1330,8 +1903,56 @@ class Store:
 
     def next_case_evaluation_job(self) -> dict | None:
         with self.connect() as connection:
-            row = connection.execute("SELECT * FROM case_evaluation_jobs WHERE status='pending' AND (retry_after IS NULL OR retry_after<=?) ORDER BY queued_at,rowid LIMIT 1", (now_iso(),)).fetchone()
+            row = connection.execute(
+                """SELECT j.* FROM case_evaluation_jobs j
+                   JOIN case_evaluations ce ON ce.id=j.case_evaluation_id
+                   JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id
+                   WHERE j.status='pending' AND (j.retry_after IS NULL OR j.retry_after<=?)
+                     AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at)
+                   ORDER BY j.queued_at,j.rowid LIMIT 1""",
+                (now_iso(),),
+            ).fetchone()
         return dict(row) if row else None
+
+    def next_case_evaluation_batch(self, limit: int = 10, provider: str = "openrouter") -> list[dict]:
+        """Atomically lease up to ten case jobs sharing one article analysis."""
+        limit, now = max(1, min(10, int(limit))), now_iso()
+        batch_id = str(uuid.uuid4())
+        with self._lock, self.connect() as connection:
+            first = connection.execute(
+                "SELECT ce.article_analysis_id,MIN(j.queued_at) first_queued,COUNT(*) pending_count "
+                "FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
+                "WHERE j.status='pending' AND (j.retry_after IS NULL OR j.retry_after<=?) "
+                "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
+                "GROUP BY ce.article_analysis_id "
+                "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1", (now,),
+            ).fetchone()
+            if not first:
+                return []
+            rows = connection.execute(
+                "SELECT j.*,ce.article_analysis_id,ce.article_id,ce.case_id FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
+                "WHERE j.status='pending' AND (j.retry_after IS NULL OR j.retry_after<=?) "
+                "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
+                "AND ce.article_analysis_id=? ORDER BY j.queued_at,j.rowid LIMIT ?",
+                (now, first["article_analysis_id"], limit),
+            ).fetchall()
+            if not rows:
+                return []
+            job_ids = [str(row["id"]) for row in rows]
+            marks = ",".join("?" for _ in job_ids)
+            connection.execute(
+                f"UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,error=NULL,retry_after=NULL,attempts=attempts+1,batch_id=?,batch_size=? WHERE id IN ({marks}) AND status='pending'",
+                (provider, now, batch_id, len(job_ids), *job_ids),
+            )
+            connection.execute(
+                f"UPDATE case_evaluations SET status='processing',updated_at=? WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id IN ({marks}))",
+                (now, *job_ids),
+            )
+        return [{**dict(row), "batch_id": batch_id, "batch_size": len(rows)} for row in rows]
 
     def pending_case_evaluation_jobs(self) -> int:
         with self.connect() as connection:
@@ -1350,8 +1971,8 @@ class Store:
         now = now_iso()
         with self.connect() as connection:
             connection.execute(
-                """UPDATE case_evaluations SET status='completed',model=?,keyword_score=?,semantic_score=?,llm_score=?,final_score=?,evidence_status=?,reasons=?,matched_terms=?,low_score_categories=?,analysis_report=?,decision=?,error=NULL,completed_at=?,updated_at=? WHERE id=?""",
-                (str(model)[:120], result.get("keyword_score", 0), result.get("semantic_score", 0), result.get("llm_score", 0), result.get("final_score", 0), result.get("evidence_status", ""),
+                """UPDATE case_evaluations SET status='completed',model=?,keyword_score=?,semantic_raw=?,semantic_score=?,llm_score=?,final_score=?,evidence_status=?,reasons=?,matched_terms=?,low_score_categories=?,analysis_report=?,decision=?,error=NULL,completed_at=?,updated_at=? WHERE id=?""",
+                (str(model)[:120], result.get("keyword_score", 0), result.get("semantic_raw", 0), result.get("semantic_score", 0), result.get("llm_score", 0), result.get("final_score", 0), result.get("evidence_status", ""),
                  json.dumps(result.get("reasons", []), ensure_ascii=False), json.dumps(result.get("matched_terms", []), ensure_ascii=False), json.dumps(result.get("low_score_categories", []), ensure_ascii=False),
                  json.dumps(result.get("analysis_report", {}), ensure_ascii=False), result.get("decision", "low"), now, now, evaluation_id),
             )
@@ -1389,6 +2010,14 @@ class Store:
             row = connection.execute("SELECT * FROM case_evaluations WHERE id=?", (evaluation_id,)).fetchone()
         return self._decode_case_evaluation(row)
 
+    def get_current_case_evaluation(self, article_id: str, case_id: str) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT ce.* FROM article_case_processing_flags flag JOIN case_evaluations ce ON ce.id=flag.evaluation_id WHERE flag.article_id=? AND flag.case_id=?",
+                (article_id, case_id),
+            ).fetchone()
+        return self._decode_case_evaluation(row)
+
     def activate_worker_session(self, session_id: str) -> int:
         """A changed web-process session means any processing job was interrupted and is safe to retry."""
         key = "master_press_worker_session"
@@ -1408,6 +2037,31 @@ class Store:
                 (key, str(session_id), now_iso()),
             )
         return cursor.rowcount + recovered_common + recovered_cases
+
+    def recover_incomplete_pipeline_jobs(self) -> dict:
+        """Requeue bounded failures whose prerequisites now exist."""
+        with self.connect() as connection:
+            common = connection.execute(
+                """UPDATE article_analysis_jobs SET status='pending',started_at=NULL,finished_at=NULL,retry_after=NULL
+                   WHERE status='failed' AND attempts<3"""
+            ).rowcount
+            connection.execute(
+                """UPDATE article_analyses SET status='pending',error=NULL,updated_at=?
+                   WHERE id IN (SELECT article_analysis_id FROM article_analysis_jobs WHERE status='pending')""",
+                (now_iso(),),
+            )
+            cases = connection.execute(
+                """UPDATE case_evaluation_jobs SET status='pending',started_at=NULL,finished_at=NULL,retry_after=NULL
+                   WHERE status='failed' AND error='article_case_or_common_analysis_missing'
+                     AND EXISTS (SELECT 1 FROM case_evaluations ce JOIN article_analyses aa ON aa.id=ce.article_analysis_id
+                                 WHERE ce.id=case_evaluation_jobs.case_evaluation_id AND aa.status='completed')"""
+            ).rowcount
+            connection.execute(
+                """UPDATE case_evaluations SET status='pending',error=NULL,updated_at=?
+                   WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE status='pending')""",
+                (now_iso(),),
+            )
+        return {"common": int(common), "cases": int(cases)}
 
     def queue_llm_job(self, article_id: str, case_id: str, case_version: int, organization_id: str | None = None) -> str:
         job_id = str(uuid.uuid4())
@@ -1545,6 +2199,13 @@ class Store:
     def analysis_report(self, article_id: str, case_id: str) -> dict:
         with self.connect() as connection:
             score = connection.execute("SELECT analysis_report FROM article_scores WHERE article_id=? AND case_id=?", (article_id, case_id)).fetchone()
+            if not score:
+                score = connection.execute(
+                    """SELECT ce.analysis_report FROM article_case_processing_flags flag
+                       JOIN case_evaluations ce ON ce.id=flag.evaluation_id
+                       WHERE flag.article_id=? AND flag.case_id=?""",
+                    (article_id, case_id),
+                ).fetchone()
             job = connection.execute("SELECT * FROM reanalysis_jobs WHERE article_id=? AND case_id=? ORDER BY queued_at DESC LIMIT 1", (article_id, case_id)).fetchone()
         return {"current": json_value(score["analysis_report"], {}) if score else {}, "reanalysis": self._decode_reanalysis(job) if job else None}
 
@@ -1592,7 +2253,7 @@ class Store:
             rows = connection.execute(
                 """SELECT d.*,a.title,a.original_url,a.publisher,a.published_at,
                           COALESCE(aa.summary,s.summary,a.snippet,'') summary,
-                          COALESCE(ce.llm_score,s.llm_score,0) similarity_score,
+                          COALESCE(ce.final_score,s.final_score,0) similarity_score,
                           COALESCE(ce.final_score,s.final_score,0) final_score,
                           COALESCE(o.name,s.organization_tag,'') organization_tag,
                           COALESCE(aa.article_type,s.article_type,'기타') article_type,
@@ -1618,9 +2279,12 @@ class Store:
     def finish_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
         now = now_iso()
         with self.connect() as connection:
+            row = connection.execute("SELECT attempts FROM deliveries WHERE id=?", (delivery_id,)).fetchone()
+            attempts = int(row["attempts"] or 0) + 1 if row else 1
+            status = "sent" if ok else ("failed" if attempts >= 3 else "retry")
             connection.execute(
-                """UPDATE deliveries SET status=?,attempts=attempts+1,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?""",
-                ("sent" if ok else "retry", response_code, error[:1000], now if ok else None, now, delivery_id),
+                """UPDATE deliveries SET status=?,attempts=?,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?""",
+                (status, attempts, response_code, error[:1000], now if ok else None, now, delivery_id),
             )
 
     def start_run(self, case_id: str | None = None, organization_id: str | None = None) -> str:
@@ -1688,6 +2352,61 @@ class Store:
                 (analysis_id, str(model)[:120], len(vector), json.dumps(vector), status, error[:1000] or None, now, now),
             )
 
+    def get_article_embedding(self, analysis_id: str) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM article_embeddings WHERE article_analysis_id=? AND status='completed'",
+                (analysis_id,),
+            ).fetchone()
+        return {**dict(row), "vector": json_value(row["vector"], [])} if row else None
+
+    def list_article_embedding_vectors(self, model: str) -> list[list[float]]:
+        with self.connect() as connection:
+            rows = connection.execute("SELECT vector FROM article_embeddings WHERE status='completed' AND model=?", (model,)).fetchall()
+        return [json_value(row["vector"], []) for row in rows]
+
+    def get_case_embedding(self, case_id: str, case_version: int, model: str) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute("SELECT * FROM case_embeddings WHERE case_id=? AND case_version=? AND model=?", (case_id, int(case_version), model)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["vector"] = json_value(item.get("vector"), [])
+        item["calibration"] = json_value(item.get("calibration"), {})
+        return item
+
+    def save_case_embedding(self, case: dict, model: str, retrieval_text: str, vector: list[float], calibration: dict, error: str = "") -> dict | None:
+        now, status = now_iso(), "failed" if error else "completed"
+        with self.connect() as connection:
+            connection.execute(
+                """INSERT INTO case_embeddings(case_id,case_version,model,retrieval_text,dimensions,vector,calibration,status,error,created_at,updated_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(case_id,case_version,model) DO UPDATE SET retrieval_text=excluded.retrieval_text,dimensions=excluded.dimensions,vector=excluded.vector,calibration=excluded.calibration,status=excluded.status,error=excluded.error,updated_at=excluded.updated_at""",
+                (case["id"], int(case.get("version", 1)), model, retrieval_text[:5000], len(vector), json.dumps(vector), json.dumps(calibration), status, error[:1000] or None, now, now),
+            )
+        return self.get_case_embedding(case["id"], int(case.get("version", 1)), model)
+
+    def reset_embedding_indexes(self) -> dict:
+        """Remove only derived vectors/matches so a new embedding model can rebuild them safely."""
+        now = now_iso()
+        with self.connect() as connection:
+            counts = {
+                "article_embeddings": int(connection.execute("SELECT COUNT(*) FROM article_embeddings").fetchone()[0]),
+                "case_embeddings": int(connection.execute("SELECT COUNT(*) FROM case_embeddings").fetchone()[0]),
+                "press_release_chunks": int(connection.execute("SELECT COUNT(*) FROM press_release_chunks").fetchone()[0]),
+                "matches": int(connection.execute("SELECT COUNT(*) FROM article_press_release_matches").fetchone()[0]),
+            }
+            connection.execute("DELETE FROM article_press_release_matches")
+            connection.execute("DELETE FROM press_release_match_jobs")
+            connection.execute("DELETE FROM article_embeddings")
+            connection.execute("DELETE FROM case_embeddings")
+            connection.execute("DELETE FROM press_release_chunks")
+            connection.execute(
+                """UPDATE press_releases SET embedding_status='pending',embedding_model='',
+                   last_error=NULL,supabase_synced_at=NULL,updated_at=?""",
+                (now,),
+            )
+        return counts
+
     def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False) -> dict:
         days = max(1, min(90, int(days)))
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
@@ -1708,7 +2427,7 @@ class Store:
             where.append("EXISTS (SELECT 1 FROM case_evaluations delivery_case WHERE delivery_case.article_analysis_id=aa.id AND delivery_case.decision='send')")
         sql = f"""SELECT aa.id,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.analyzed_at,
                          a.title,a.snippet,a.body,a.publisher,a.published_at,MAX(e.vector) vector,
-                         MAX(COALESCE(ce.llm_score,0)) score,
+                         MAX(COALESCE(ce.final_score,0)) score,
                          MAX(CASE WHEN ce.decision='send' THEN 1 ELSE 0 END) matched
                   FROM article_analyses aa JOIN articles a ON a.id=aa.article_id
                   LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id AND e.status='completed'
@@ -1818,6 +2537,10 @@ class Store:
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
         """Current queue plus today's completed/failed counts, reset at 00:00 KST."""
         day_start = kst_day_start_iso()
+        speed_reset_at = str(self.get_setting("pipeline_speed_reset_at", "") or "")
+        speed_start = speed_reset_at if speed_reset_at and speed_reset_at > day_start else day_start
+        error_reset_at = str(self.get_setting("pipeline_error_reset_at", "") or "")
+        error_start = error_reset_at if error_reset_at and error_reset_at > day_start else day_start
         latest_case = "ce.id IN (SELECT evaluation_id FROM article_case_processing_flags) AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=ce.case_id AND active_case.is_active=1)"
         common_scope, common_params = "", []
         if organization_id:
@@ -1858,34 +2581,101 @@ class Store:
                 case_scope + " GROUP BY j.status",
                 [day_start, *case_params],
             ).fetchall()
+            common_error_row = connection.execute(
+                "SELECT "
+                "COALESCE(SUM(CASE WHEN j.status IN ('pending','failed') AND COALESCE(j.error,'') NOT IN ('','worker_restarted') THEN 1 ELSE 0 END),0) current_errors "
+                "FROM article_analysis_jobs j "
+                "JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "WHERE (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.started_at,j.queued_at)>=?)" + common_scope,
+                [day_start, *common_params],
+            ).fetchone()
+            case_error_row = connection.execute(
+                "SELECT "
+                "COALESCE(SUM(CASE WHEN j.status IN ('pending','failed') AND COALESCE(j.error,'') NOT IN ('','worker_restarted') THEN 1 ELSE 0 END),0) current_errors "
+                "FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "WHERE " + latest_case +
+                " AND (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.started_at,j.queued_at)>=?)" + case_scope,
+                [day_start, *case_params],
+            ).fetchone()
+            common_api_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='groq' AND stage='common' AND status='failed' AND created_at>=?",
+                (error_start,),
+            ).fetchone()
+            case_api_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='openrouter' AND stage='case' AND status='failed' AND created_at>=?",
+                (error_start,),
+            ).fetchone()
+            embedding_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='ollama' AND stage='embedding' AND status='failed' AND created_at>=?",
+                (error_start,),
+            ).fetchone()
+            embedding = connection.execute(
+                "SELECT COALESCE(SUM(CASE WHEN e.article_analysis_id IS NULL THEN 1 ELSE 0 END),0) pending,"
+                " 0 processing,COALESCE(SUM(CASE WHEN e.status='completed' AND e.updated_at>=? THEN 1 ELSE 0 END),0) completed,"
+                " COALESCE(SUM(CASE WHEN e.status='failed' AND e.updated_at>=? THEN 1 ELSE 0 END),0) failed "
+                "FROM article_analyses aa JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id WHERE aa.status='completed'" + common_scope,
+                [day_start, day_start, *common_params],
+            ).fetchone()
+            flow = connection.execute(
+                """WITH article_flow AS (
+                     SELECT aa.id,aj.queued_at,e.updated_at embedding_at,
+                            MAX(COALESCE(ce.completed_at,ce.updated_at)) case_at,
+                            COUNT(ce.id) case_count,
+                            SUM(CASE WHEN ce.status IN ('pending','processing') THEN 1 ELSE 0 END) unfinished
+                     FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id
+                     JOIN article_analysis_jobs aj ON aj.article_analysis_id=aa.id
+                     JOIN article_embeddings e ON e.article_analysis_id=aa.id
+                     LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id
+                     LEFT JOIN cases flow_case ON flow_case.id=acpf.case_id AND flow_case.is_active=1
+                     LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id AND flow_case.id IS NOT NULL
+                     WHERE aj.status='completed' AND e.status='completed'
+                       AND aj.queued_at>=?
+                       AND (?='' OR ce.case_id=?) AND (?='' OR aa.organization_id=?)
+                     GROUP BY aa.id,aj.queued_at,e.updated_at
+                   ), completed_flow AS (
+                     SELECT queued_at,CASE WHEN case_at>embedding_at THEN case_at ELSE embedding_at END finalized_at
+                     FROM article_flow WHERE case_count>0 AND unfinished=0
+                   )
+                   SELECT COUNT(*) processed_articles,
+                          COALESCE(AVG(MAX(0,(julianday(finalized_at)-julianday(queued_at))*86400.0)),0) average_seconds
+                   FROM completed_flow WHERE finalized_at>=?""",
+                (speed_start, str(case_id or ""), str(case_id or ""), str(organization_id or ""), str(organization_id or ""), speed_start),
+            ).fetchone()
             title = connection.execute(
                 """SELECT a.title FROM article_analysis_jobs j JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN articles a ON a.id=aa.article_id WHERE j.status='processing'
                    UNION ALL SELECT a.title FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN articles a ON a.id=ce.article_id WHERE j.status='processing' LIMIT 1"""
             ).fetchone()
-            common_durations = connection.execute(
-                "SELECT j.duration_ms FROM article_analysis_jobs j JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
-                "WHERE j.status='completed' AND j.finished_at>=?" + common_scope,
-                [day_start, *common_params],
-            ).fetchall()
-            case_durations = connection.execute(
-                "SELECT j.duration_ms FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
-                "JOIN article_analyses aa ON aa.id=ce.article_analysis_id WHERE j.status='completed' AND j.finished_at>=? "
-                "AND " + latest_case + case_scope,
-                [day_start, *case_params],
-            ).fetchall()
         def counts(rows): return {str(row["status"]): int(row["value"]) for row in rows}
         common_counts, case_counts, job_counts, case_job_counts = counts(common), counts(cases), counts(jobs), counts(case_jobs)
-        durations = [*common_durations, *case_durations]
-        return {"common": common_counts, "cases": case_counts, "article_jobs": job_counts, "case_jobs": case_job_counts,
+        def error_counts(row, api_row=None, current_fallback=0):
+            data = dict(row) if row else {}
+            api_data = dict(api_row) if api_row else {}
+            return {
+                "failed_current": int(data.get("current_errors") or current_fallback or 0),
+                "failed_total": int(api_data.get("total_errors") or 0),
+            }
+        common_job_errors = error_counts(common_error_row, common_api_error_row, job_counts.get("failed", 0))
+        case_job_errors = error_counts(case_error_row, case_api_error_row, case_job_counts.get("failed", 0))
+        embedding_counts = {key: int(embedding[key] or 0) for key in ("pending", "processing", "completed", "failed")}
+        embedding_counts["failed_current"] = embedding_counts.get("failed", 0)
+        embedding_counts["failed_total"] = max(embedding_counts.get("failed", 0), int(embedding_error_row["total_errors"] or 0) if embedding_error_row else 0)
+        job_counts.update(common_job_errors)
+        case_job_counts.update(case_job_errors)
+        return {"common": common_counts, "cases": case_counts, "article_jobs": job_counts, "embedding": embedding_counts, "case_jobs": case_job_counts,
             "pending": job_counts.get("pending", 0) + case_job_counts.get("pending", 0),
             "processing": job_counts.get("processing", 0) + case_job_counts.get("processing", 0),
             "completed": job_counts.get("completed", 0) + case_job_counts.get("completed", 0),
             "failed": job_counts.get("failed", 0) + case_job_counts.get("failed", 0),
-            "total": sum(job_counts.values()) + sum(case_job_counts.values()),
-            "average_seconds": round(sum(int(row["duration_ms"] or 0) for row in durations) / max(1, len(durations)) / 1000.0, 2),
-            "processing_title": str(title["title"]) if title else "", "period": "KST day", "day_start": day_start}
+            "total": int(flow["processed_articles"] or 0), "processed_articles": int(flow["processed_articles"] or 0),
+            "average_seconds": round(float(flow["average_seconds"] or 0), 2),
+            "processing_title": str(title["title"]) if title else "", "period": "KST day",
+            "day_start": day_start, "speed_start": speed_start, "speed_reset_at": speed_reset_at,
+            "error_start": error_start, "error_reset_at": error_reset_at}
 
-    def pipeline_dashboard(self, case_id: str | None = None, organization_id: str | None = None, tags: list[str] | None = None, limit: int = 100) -> dict:
+    def pipeline_dashboard(self, case_id: str | None = None, organization_id: str | None = None, tags: list[str] | None = None, limit: int = 100, search: str = "") -> dict:
         day_start = kst_day_start_iso()
         where, params = [], []
         if organization_id:
@@ -1895,34 +2685,40 @@ class Store:
         for tag in tags or []:
             where.append("(aa.classification_tags LIKE ? OR aa.article_type=? OR aa.tone=?)")
             params.extend([f'%"{tag}"%', tag, tag])
-        sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                  a.id,a.title,a.original_url,a.publisher,a.published_at,a.first_seen_at,
+        article_where, article_params = list(where), list(params)
+        search = str(search or "").strip()[:100]
+        if search:
+            article_where.append("(a.title LIKE ? OR a.publisher LIKE ? OR aa.publisher_name LIKE ? OR aa.reporter_name LIKE ?)")
+            article_params.extend([f"%{search}%"] * 4)
+        sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
+                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,
                   (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
+                    AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
                     AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
                   (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id
                     AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) press_match_checked_count,
                   (SELECT COUNT(*) FROM press_release_match_jobs prmj WHERE prmj.article_id=a.id) press_match_total_count,
-                  ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
+                  ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_raw,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.analysis_report evaluation_report,ce.error evaluation_error,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
                   c.name case_name,o.name organization_name
                   FROM article_processing_flags apf
                   JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
                   LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
                   LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
                   LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
-        if where: sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?"
+        if article_where: sql += " WHERE " + " AND ".join(article_where)
+        sql += " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
         delivery_scope, delivery_params = "", []
         if case_id:
             delivery_scope, delivery_params = " AND d.case_id=?", [case_id]
         elif organization_id:
             delivery_scope, delivery_params = " AND c.organization_id=?", [organization_id]
         with self.connect() as connection:
-            rows = connection.execute(sql, (*params, min(10000, max(1, int(limit) * 12)))).fetchall()
+            rows = connection.execute(sql, (*article_params, min(10000, max(1, int(limit) * 12)))).fetchall()
             daily_sql = """SELECT
                     COUNT(DISTINCT CASE WHEN aa.analyzed_at>=? OR COALESCE(ce.completed_at,ce.updated_at)>=? THEN a.id END) total,
                     COALESCE(SUM(CASE WHEN COALESCE(ce.completed_at,ce.updated_at)>=? AND ce.decision='send' THEN 1 ELSE 0 END),0) sent_candidates,
                     COALESCE(SUM(CASE WHEN COALESCE(ce.completed_at,ce.updated_at)>=? AND ce.decision IN ('low','excluded') THEN 1 ELSE 0 END),0) low,
-                    COALESCE(AVG(CASE WHEN ce.completed_at>=? AND ce.status='completed' THEN ce.llm_score END),0) average_score
+                    COALESCE(AVG(CASE WHEN ce.completed_at>=? AND ce.status='completed' THEN ce.final_score END),0) average_score
                   FROM article_processing_flags apf
                   JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
                   LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
@@ -1944,6 +2740,18 @@ class Store:
                 + delivery_scope + " GROUP BY d.status",
                 [day_start, *delivery_params],
             ).fetchall()
+            delivery_error_row = connection.execute(
+                "SELECT "
+                "COALESCE(SUM(CASE WHEN d.status IN ('retry','failed') AND COALESCE(d.last_error,'')<>'' THEN 1 ELSE 0 END),0) current_errors,"
+                "COALESCE(SUM(CASE "
+                "WHEN d.status='sent' THEN MAX(d.attempts-1,0) "
+                "WHEN d.status IN ('retry','failed') THEN MAX(d.attempts,0) "
+                "ELSE 0 END),0) total_errors "
+                "FROM deliveries d JOIN cases c ON c.id=d.case_id "
+                "WHERE (d.status IN ('pending','retry') OR COALESCE(d.sent_at,d.updated_at)>=?)"
+                + delivery_scope,
+                [day_start, *delivery_params],
+            ).fetchone()
             recent_sent_rows = connection.execute(
                 """SELECT a.id,a.title,a.original_url,MAX(d.sent_at) sent_at,
                           c.name AS case_name,o.name AS organization_name
@@ -1955,6 +2763,9 @@ class Store:
             ).fetchall()
         deliveries: dict[tuple[str, str], dict[str, int]] = {}
         delivery_totals = {str(row["status"]): int(row["value"]) for row in delivery_total_rows}
+        delivery_error_data = dict(delivery_error_row) if delivery_error_row else {}
+        delivery_totals["failed_current"] = int(delivery_error_data.get("current_errors") or delivery_totals.get("failed", 0) or 0)
+        delivery_totals["failed_total"] = int(delivery_error_data.get("total_errors") or 0)
         for row in delivery_rows:
             status, value = str(row["status"]), int(row["value"])
             deliveries.setdefault((str(row["article_id"]), str(row["case_id"])), {})[status] = value
@@ -1965,15 +2776,20 @@ class Store:
             if tags and not all(tag in tags_value or tag == item.get("article_type") or tag == item.get("tone") for tag in tags):
                 continue
             article = grouped.setdefault(analysis_id, {
-                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "publisher": item["publisher"], "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
+                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
                 "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
                 "press_match_total_count": int(item.get("press_match_total_count") or 0),
                 "status": item["analysis_status"], "analyzed_at": item["analyzed_at"], "summary": item["summary"], "article_type": item["article_type"], "tone": item["tone"], "classification_tags": tags_value, "entities": json_value(item.get("entities"), []), "evidence": json_value(item.get("evidence"), []), "model": item["model"], "error": item["analysis_error"], "case_results": []})
             if item.get("evaluation_id"):
-                result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_score", "llm_score", "final_score", "evidence_status", "decision", "completed_at", "evaluation_updated_at")}
-                result["similarity_score"] = float(item.get("llm_score") or 0)
+                result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_raw", "semantic_score", "llm_score", "final_score", "evidence_status", "evaluation_error", "decision", "completed_at", "evaluation_updated_at")}
+                report = json_value(item.get("evaluation_report"), {})
+                categories = json_value(item.get("low_score_categories"), [])
+                llm_error = bool(result.get("evaluation_status") == "failed" or result.get("evidence_status") in {"case_llm_unavailable", "llm_unavailable"} or "case_llm_unavailable" in categories or "llm_unavailable" in categories or report.get("fallback") or (report.get("components") or {}).get("llm_error"))
+                result["similarity_score"] = float(item.get("final_score") or 0)
+                result["llm_status"] = "unavailable" if llm_error else str(result.get("evaluation_status") or "pending")
+                result["llm_retry_needed"] = bool(llm_error or result.get("evaluation_status") in {"failed", "pending", "processing"})
                 result["reasons"] = json_value(item.get("reasons"), [])
-                result["low_score_categories"] = json_value(item.get("low_score_categories"), [])
+                result["low_score_categories"] = categories
                 result["deliveries"] = deliveries.get((str(item["id"]), str(item["case_id"])), {})
                 article["case_results"].append(result)
         articles = list(grouped.values())[:limit]
@@ -1981,7 +2797,9 @@ class Store:
             results = article["case_results"]
             article["case_summary"] = {
                 "total": len(results), "pending": sum(value.get("evaluation_status") in {"pending", "processing"} for value in results),
-                "matched": sum(value.get("decision") == "send" for value in results), "excluded": sum(value.get("decision") in {"low", "excluded"} for value in results),
+                "matched": sum(value.get("decision") == "send" for value in results),
+                "candidate_excluded": sum(value.get("decision") == "excluded" or value.get("evaluation_status") == "excluded" for value in results),
+                "delivery_excluded": sum(value.get("decision") == "low" for value in results), "excluded": sum(value.get("decision") in {"low", "excluded"} for value in results),
                 "sent": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("sent",)) for value in results),
                 "scheduled": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("pending", "retry")) for value in results),
             }
@@ -2006,7 +2824,8 @@ class Store:
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
             "tags": [{"label": key, "value": value} for key, value in sorted(tag_counts.items(), key=lambda pair: -pair[1])],
-            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items())],
+            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total"}],
+            "delivery_errors": {"failed_current": delivery_totals.get("failed_current", 0), "failed_total": delivery_totals.get("failed_total", 0)},
             "recent_sent": [dict(row) for row in recent_sent_rows], "recent_runs": [],
             "llm": self.pipeline_stats(case_id, organization_id), "pipeline": self.pipeline_stats(case_id, organization_id)}
 
@@ -2063,7 +2882,7 @@ class Store:
                     COALESCE(SUM(CASE WHEN decision='send' THEN 1 ELSE 0 END),0) sent_candidates,
                     COALESCE(SUM(CASE WHEN decision='hold' THEN 1 ELSE 0 END),0) held,
                     COALESCE(SUM(CASE WHEN decision='low' THEN 1 ELSE 0 END),0) low,
-                    COALESCE(ROUND(AVG(llm_score),1),0) average_score
+                    COALESCE(ROUND(AVG(final_score),1),0) average_score
                     FROM article_scores s {filters}""",
                 params,
             ).fetchone()
@@ -2142,6 +2961,68 @@ class Store:
             "llm": self.llm_processing_stats(case_id, organization_id),
         }
 
+    def case_sent_keyword_suggestions(self, case_id: str, days: int = 30, limit: int = 5) -> dict:
+        """Rank source-verifiable nouns in sent articles, excluding configured and common terms."""
+        days = max(1, min(365, int(days)))
+        limit = max(1, min(20, int(limit)))
+        case = self.get_case(case_id)
+        if not case:
+            return {"days": days, "sent_articles": 0, "keywords": []}
+        organization = self.get_organization(str(case.get("organization_id") or "")) if case.get("organization_id") else None
+        identity_terms = [
+            str((organization or {}).get("name") or ""),
+            *((organization or {}).get("abbreviations") or []),
+            *((organization or {}).get("former_names") or []),
+            *((organization or {}).get("people") or []),
+        ]
+        configured_terms = [
+            str(value).strip()
+            for value in [*case.get("include_terms", []), *case.get("required_terms", [])]
+            if str(value).strip()
+        ]
+        synonyms = case.get("synonym_terms") if isinstance(case.get("synonym_terms"), dict) else {}
+        for values in synonyms.values():
+            if isinstance(values, list):
+                configured_terms.extend(str(value).strip() for value in values if str(value).strip())
+        stopwords = {
+            "기사", "보도", "관련", "대한", "통해", "위해", "이번", "정부", "기관", "정책", "발표",
+            "지원", "추진", "확대", "강화", "현장", "오늘", "최근", "관계자", "사실전달", "부정적",
+            "긍정적", "분류대기", "비판", "부정", "논란", "문제", "기타",
+            *DASHBOARD_TOPIC_TYPES, *DASHBOARD_TONES, *configured_terms,
+        }
+        since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            rows = connection.execute(
+                """SELECT a.id,a.title,a.snippet,a.body,aa.summary,aa.entities,MAX(d.sent_at) sent_at
+                   FROM deliveries d
+                   JOIN articles a ON a.id=d.article_id
+                   JOIN case_evaluations ce ON ce.article_id=d.article_id AND ce.case_id=d.case_id
+                     AND ce.status='completed' AND ce.decision='send'
+                   JOIN article_analyses aa ON aa.id=ce.article_analysis_id AND aa.status='completed'
+                   WHERE d.case_id=? AND d.status='sent' AND COALESCE(d.sent_at,d.updated_at)>=?
+                   GROUP BY a.id ORDER BY sent_at DESC""",
+                (case_id, since),
+            ).fetchall()
+        counts: dict[str, int] = {}
+        configured_compact = [re.sub(r"\s+", "", value).casefold() for value in configured_terms]
+        for row in rows:
+            item = dict(row)
+            article_text = " ".join([
+                str(item.get("title") or ""), str(item.get("snippet") or ""),
+                str(item.get("body") or ""), str(item.get("summary") or ""),
+            ])
+            terms = verified_content_nouns(json_value(item.get("entities"), []), article_text, stopwords, identity_terms)
+            for term in set(terms):
+                compact = re.sub(r"\s+", "", term).casefold()
+                if any(value in compact or compact in value for value in configured_compact):
+                    continue
+                counts[term] = counts.get(term, 0) + 1
+        keywords = [
+            {"keyword": keyword, "count": count, "coverage_pct": round(count / max(1, len(rows)) * 100, 1)}
+            for keyword, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:limit]
+        ]
+        return {"days": days, "sent_articles": len(rows), "keywords": keywords}
+
     def low_score_analysis(self, case_id: str, days: int = 7) -> dict:
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
         with self.connect() as connection:
@@ -2165,7 +3046,11 @@ class Store:
         for key, _count in sorted(categories.items(), key=lambda item: item[1], reverse=True)[:5]:
             if key in mapping:
                 suggestions.append(mapping[key])
-        return {"sample_count": len(rows), "average_score": round(average, 1), "categories": categories, "suggestions": suggestions}
+        return {
+            "sample_count": len(rows), "average_score": round(average, 1),
+            "categories": categories, "suggestions": suggestions,
+            "sent_keyword_suggestions": self.case_sent_keyword_suggestions(case_id, days=30, limit=5),
+        }
 
     def cleanup(self, raw_days: int, metadata_days: int) -> dict:
         raw_cutoff = (datetime.now(KST) - timedelta(days=raw_days)).isoformat(timespec="seconds")

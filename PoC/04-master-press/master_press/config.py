@@ -64,6 +64,12 @@ class Settings:
     ollama_base_url: str
     embedding_model: str
     llm_model: str
+    groq_api_key: str
+    groq_base_url: str
+    groq_common_model: str
+    groq_daily_request_soft_limit: int
+    groq_daily_token_soft_limit: int
+    groq_minute_token_soft_limit: int
     openrouter_api_key: str
     openrouter_base_url: str
     openrouter_case_model: str
@@ -100,6 +106,12 @@ class Settings:
             ollama_base_url=env("OLLAMA_BASE_URL", default="http://127.0.0.1:11434").rstrip("/"),
             embedding_model=env("MASTER_PRESS_EMBEDDING_MODEL", default="nomic-embed-text:latest"),
             llm_model=env("MASTER_PRESS_LLM_MODEL", default="qwen2.5:1.5b"),
+            groq_api_key=env("MASTER_PRESS_GROQ_API_KEY", "GROQ_API_KEY"),
+            groq_base_url=env("MASTER_PRESS_GROQ_BASE_URL", default="https://api.groq.com/openai/v1").rstrip("/"),
+            groq_common_model=env("MASTER_PRESS_GROQ_COMMON_MODEL", default="llama-3.1-8b-instant"),
+            groq_daily_request_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_REQUEST_SOFT_LIMIT", 900, 1, 14000),
+            groq_daily_token_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_TOKEN_SOFT_LIMIT", 450000, 1000, 500000),
+            groq_minute_token_soft_limit=env_int("MASTER_PRESS_GROQ_MINUTE_TOKEN_SOFT_LIMIT", 5400, 500, 6000),
             openrouter_api_key=env(
                 "MASTER_PRESS_OPENROUTER_API_MYKEY", "OPENROUTER_API_MYKEY",
                 "MASTER_PRESS_OPENROUTER_API_KEY", "OPENROUTER_API_KEY",
@@ -128,7 +140,7 @@ class Settings:
             press_release_match_window_days=env_int("MASTER_PRESS_PRESS_MATCH_WINDOW_DAYS", 45, 1, 365),
             press_release_match_threshold=max(
                 0.0,
-                min(100.0, float(env("MASTER_PRESS_PRESS_MATCH_THRESHOLD", default="62"))),
+                min(100.0, float(env("MASTER_PRESS_PRESS_MATCH_THRESHOLD", default="65"))),
             ),
         )
 
@@ -143,5 +155,6 @@ class Settings:
             "token_encryption": bool(self.token_encryption_key),
             "supabase": bool(self.supabase_url and self.supabase_service_role_key),
             "ollama": bool(self.ollama_base_url),
+            "groq": bool(self.groq_api_key and self.groq_common_model),
             "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
         }

@@ -293,9 +293,16 @@ class NewsCollector:
             return {"body": "", "error": f"fetch_error:{type(error).__name__}"}
 
 
+def case_excluded_match(case: dict, candidate: dict) -> bool:
+    fields = article_topic_fields(candidate)
+    return any(term_in_text(term, field) for term in case.get("exclude_terms", []) for field in fields if str(term).strip())
+
+
 def quick_candidate_match(case: dict, candidate: dict) -> bool:
     fields = article_topic_fields(candidate)
     expanded = expanded_case_terms(case)
+    if case_excluded_match(case, candidate):
+        return False
     search_groups = list(expanded.values())
     return not search_groups or any(
         any(term_in_text(variant, field) for variant in variants for field in fields)
