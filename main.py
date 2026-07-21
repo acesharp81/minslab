@@ -2078,10 +2078,11 @@ async def app(scope, receive, send):
                 raise ValueError(query.get("error_description", query["error"])[0])
             code = query.get("code", [""])[0]
             state = query.get("state", [""])[0]
-            await asyncio.to_thread(load_master_press_module().complete_kakao_authorization, code, state)
+            recipient = await asyncio.to_thread(load_master_press_module().complete_kakao_authorization, code, state)
+            recipient_id = url_parse.quote(str((recipient or {}).get("id") or ""))
             status = 302
             body = b""
-            extra_headers.append((b"location", f"{MASTER_PRESS_BASE_PATH}/?connected=1".encode("latin-1")))
+            extra_headers.append((b"location", f"{MASTER_PRESS_BASE_PATH}/?connected=1&recipient_id={recipient_id}".encode("latin-1")))
         except Exception as error:
             status = int(getattr(error, "status", 400))
             body = f"카카오 연결 실패\n{str(error)}".encode("utf-8")

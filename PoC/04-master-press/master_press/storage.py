@@ -53,6 +53,11 @@ def kst_day_start_iso(reference: datetime | None = None) -> str:
     return current.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
 
 
+def utc_day_start_kst_iso(reference: datetime | None = None) -> str:
+    current = reference.astimezone(timezone.utc) if reference else datetime.now(timezone.utc)
+    return current.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(KST).isoformat(timespec="seconds")
+
+
 def json_value(value, default):
     if value is None:
         return default
@@ -224,6 +229,7 @@ CREATE TABLE IF NOT EXISTS recipients (
   refresh_token_ciphertext TEXT,
   access_token_expires_at TEXT,
   refresh_token_expires_at TEXT,
+  scopes TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'pending',
   last_error TEXT,
   created_at TEXT NOT NULL,
@@ -319,6 +325,18 @@ CREATE TABLE IF NOT EXISTS app_settings (
   value TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS announcements (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  starts_at TEXT NOT NULL DEFAULT '',
+  ends_at TEXT NOT NULL DEFAULT '',
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_announcements_active ON announcements(is_active,ends_at,created_at DESC);
 
 CREATE TABLE IF NOT EXISTS llm_api_calls (
   id TEXT PRIMARY KEY,
@@ -642,6 +660,9 @@ class Store:
         with self.connect() as connection:
             connection.executescript(SCHEMA)
             self._migrate_article_case_flag_schema(connection)
+            recipient_columns = {row[1] for row in connection.execute("PRAGMA table_info(recipients)")}
+            if "scopes" not in recipient_columns:
+                connection.execute("ALTER TABLE recipients ADD COLUMN scopes TEXT NOT NULL DEFAULT '[]'")
             connection.execute("DROP TRIGGER IF EXISTS cases_max_five")
             columns = {row[1] for row in connection.execute("PRAGMA table_info(cases)")}
             if "organization_id" not in columns:
@@ -882,6 +903,27 @@ class Store:
 
     def _sync_article_processing_flags(self, connection: sqlite3.Connection) -> None:
         """Backfill durable one-time flags by article and by article/case."""
+        marker = connection.execute("SELECT value FROM app_settings WHERE key='article_processing_flags_sync_v1'").fetchone()
+        if marker:
+            freshness = connection.execute(
+                "SELECT "
+                "MAX((SELECT MAX(updated_at) FROM article_analyses),(SELECT MAX(updated_at) FROM case_evaluations)) source_latest, "
+                "MAX((SELECT MAX(updated_at) FROM article_processing_flags),(SELECT MAX(updated_at) FROM article_case_processing_flags)) flag_latest"
+            ).fetchone()
+            if str(freshness["source_latest"] or "") <= str(freshness["flag_latest"] or ""):
+                return
+        if not marker:
+            existing = connection.execute(
+                "SELECT (SELECT COUNT(*) FROM article_processing_flags) article_flags, "
+                "(SELECT COUNT(*) FROM article_case_processing_flags) case_flags"
+            ).fetchone()
+            if int(existing["article_flags"] or 0) and int(existing["case_flags"] or 0):
+                connection.execute(
+                    """INSERT INTO app_settings(key,value,updated_at) VALUES('article_processing_flags_sync_v1','existing',?)
+                       ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
+                    (now_iso(),),
+                )
+                return
         connection.execute(
             """INSERT INTO article_processing_flags(article_id,analysis_id,common_analysis_completed,created_at,updated_at)
                SELECT aa.article_id,aa.id,CASE WHEN aa.status='completed' THEN 1 ELSE 0 END,aa.created_at,aa.updated_at
@@ -921,6 +963,11 @@ class Store:
                    case_evaluation_completed=MAX(article_case_processing_flags.case_evaluation_completed,excluded.case_evaluation_completed),
                    delivery_classified=MAX(article_case_processing_flags.delivery_classified,excluded.delivery_classified),
                    updated_at=MAX(article_case_processing_flags.updated_at,excluded.updated_at)"""
+        )
+        connection.execute(
+            """INSERT INTO app_settings(key,value,updated_at) VALUES('article_processing_flags_sync_v1','completed',?)
+               ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
+            (now_iso(),),
         )
 
     @contextmanager
@@ -1182,6 +1229,18 @@ class Store:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def mark_recipient_reauthorize(self, recipient_id: str, message: str) -> None:
+        with self.connect() as connection:
+            connection.execute(
+                "UPDATE recipients SET status='reauthorize',last_error=?,updated_at=? WHERE id=?",
+                (str(message)[:500], now_iso(), str(recipient_id)),
+            )
+            connection.execute(
+                """UPDATE deliveries SET status='failed',attempts=3,response_code=403,last_error=?,updated_at=?
+                   WHERE recipient_id=? AND status IN ('pending','retry')""",
+                (str(message)[:500], now_iso(), str(recipient_id)),
+            )
+
     @staticmethod
     def mask_applicant_name(value: str) -> str:
         name = re.sub(r"\s+", "", str(value or "").strip())
@@ -1251,7 +1310,7 @@ class Store:
         ).rowcount or 0
         return int(expired + orphaned)
 
-    def create_signup_request(self, applicant_name: str, organization_id: str, case_ids: Iterable[str], ttl_minutes: int = 1440) -> tuple[dict, str]:
+    def create_signup_request(self, applicant_name: str, organization_id: str, case_ids: Iterable[str], ttl_minutes: int = 1440, recipient_id: str = "") -> tuple[dict, str]:
         name = re.sub(r"\s+", " ", str(applicant_name or "").strip())[:80]
         if not name:
             raise ValueError("신청자 이름을 입력하세요.")
@@ -1265,14 +1324,24 @@ class Store:
         invalid = [case_id for case_id in requested_case_ids if case_id not in active_cases]
         if invalid:
             raise ValueError("선택한 부처의 활성 케이스만 신청할 수 있습니다.")
-        invite, token = self.create_invite(name, ttl_minutes)
         now, request_id = now_iso(), str(uuid.uuid4())
+        recipient_id = str(recipient_id or "").strip()
+        invite, token = self.create_invite(name, ttl_minutes)
         with self.connect() as connection:
+            if recipient_id:
+                recipient = connection.execute(
+                    "SELECT id,status FROM recipients WHERE id=? AND status<>'deleted'",
+                    (recipient_id,),
+                ).fetchone()
+                if not recipient:
+                    raise ValueError("카카오 메시지 동의 상태를 먼저 확인하세요.")
+                connection.execute("UPDATE recipient_invites SET used_at=COALESCE(used_at,?) WHERE id=?", (now, invite["id"]))
+                connection.execute("UPDATE recipients SET label=?,updated_at=? WHERE id=?", (name, now, recipient_id))
             connection.execute(
                 """INSERT INTO signup_requests(
-                   id,invite_id,applicant_name,organization_id,status,created_at,updated_at
-                   ) VALUES(?,?,?,?,?,?,?)""",
-                (request_id, invite["id"], name, organization["id"], "requested", now, now),
+                   id,invite_id,recipient_id,applicant_name,organization_id,status,kakao_registered_at,created_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                (request_id, invite["id"], recipient_id or None, name, organization["id"], "kakao_registered" if recipient_id else "requested", now if recipient_id else None, now, now),
             )
             connection.executemany(
                 "INSERT INTO signup_request_cases(request_id,case_id,status,updated_at) VALUES(?,?, 'pending',?)",
@@ -1284,7 +1353,7 @@ class Store:
                 (request_id,),
             ).fetchone()
             record = self._decode_signup_request(connection, row, include_private=False)
-        return record, token
+        return record, "" if recipient_id else token
 
     def mark_signup_request_kakao_registered(self, token: str, recipient_id: str) -> dict | None:
         token_hash, now = hashlib.sha256(str(token).encode()).hexdigest(), now_iso()
@@ -1572,12 +1641,104 @@ class Store:
             ).fetchone()
         return {"attempts": int(row["attempts"] or 0), "tokens": int(row["tokens"] or 0), "since": since}
 
+    def provider_usage_since(self, provider: str, since: str, request_limit: int = 0, token_limit: int = 0, stage: str = "") -> dict:
+        query = """SELECT COUNT(*) attempts,
+                          SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
+                          SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
+                          COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,
+                          COALESCE(AVG(CASE WHEN status='completed' THEN duration_ms END),0) average_ms
+                   FROM llm_api_calls WHERE provider=? AND created_at>=?"""
+        params: list[Any] = [str(provider), str(since)]
+        if stage:
+            query += " AND stage=?"
+            params.append(str(stage))
+        with self.connect() as connection:
+            row = connection.execute(query, tuple(params)).fetchone()
+        attempts = int(row["attempts"] or 0)
+        tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
+        return {
+            "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
+            "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
+            "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
+            "soft_limit": int(request_limit or 0), "remaining": max(0, int(request_limit or 0) - attempts) if request_limit else 0,
+            "token_soft_limit": int(token_limit or 0), "token_remaining": max(0, int(token_limit or 0) - tokens) if token_limit else 0,
+            "period": "custom", "day_start": str(since), "scope": "provider_total" if not stage else "provider_stage",
+        }
+
     def openrouter_usage_today(self, soft_limit: int = 800) -> dict:
-        return self.provider_usage_today("openrouter", "case", soft_limit)
+        day_start = utc_day_start_kst_iso()
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(*) attempts,
+                          SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
+                          SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
+                          COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,
+                          COALESCE(AVG(CASE WHEN status='completed' THEN duration_ms END),0) average_ms
+                   FROM llm_api_calls WHERE provider='openrouter' AND created_at>=?""",
+                (day_start,),
+            ).fetchone()
+        attempts = int(row["attempts"] or 0)
+        tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
+        return {
+            "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
+            "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
+            "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
+            "soft_limit": int(soft_limit), "remaining": max(0, int(soft_limit) - attempts),
+            "token_soft_limit": 0, "token_remaining": 0,
+            "period": "UTC day", "day_start": day_start, "scope": "provider_total",
+        }
 
     def groq_usage_today(self, request_limit: int = 900, token_limit: int = 450000) -> dict:
         return self.provider_usage_today("groq", "common", request_limit, token_limit)
 
+
+    def list_announcements(self, include_inactive: bool = False) -> list[dict]:
+        where = "" if include_inactive else "WHERE is_active=1"
+        with self.connect() as connection:
+            rows = connection.execute(
+                f"SELECT * FROM announcements {where} ORDER BY created_at DESC LIMIT 50"
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def current_announcements(self, reference: datetime | None = None) -> list[dict]:
+        now = (reference.astimezone(KST) if reference else datetime.now(KST)).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            rows = connection.execute(
+                """SELECT * FROM announcements
+                   WHERE is_active=1 AND (starts_at='' OR starts_at<=?) AND (ends_at='' OR ends_at>=?)
+                   ORDER BY created_at DESC LIMIT 3""",
+                (now, now),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def save_announcement(self, payload: dict, announcement_id: str = "") -> dict:
+        now = now_iso()
+        item_id = str(announcement_id or payload.get("id") or uuid.uuid4())
+        title = str(payload.get("title") or "").strip()[:120]
+        body = str(payload.get("body") or "").strip()[:2000]
+        starts_at = str(payload.get("starts_at") or "").strip()[:40]
+        ends_at = str(payload.get("ends_at") or "").strip()[:40]
+        if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$", starts_at):
+            starts_at += ":00+09:00"
+        if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$", ends_at):
+            ends_at += ":59+09:00"
+        is_active = 1 if payload.get("is_active", True) is not False else 0
+        if not title and not body:
+            raise ValueError("공지 제목 또는 내용을 입력하세요.")
+        with self.connect() as connection:
+            connection.execute(
+                """INSERT INTO announcements(id,title,body,starts_at,ends_at,is_active,created_at,updated_at)
+                   VALUES(?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET title=excluded.title,body=excluded.body,starts_at=excluded.starts_at,
+                     ends_at=excluded.ends_at,is_active=excluded.is_active,updated_at=excluded.updated_at""",
+                (item_id, title, body, starts_at, ends_at, is_active, now, now),
+            )
+            row = connection.execute("SELECT * FROM announcements WHERE id=?", (item_id,)).fetchone()
+        return dict(row)
+
+    def delete_announcement(self, announcement_id: str) -> bool:
+        with self.connect() as connection:
+            return connection.execute("UPDATE announcements SET is_active=0,updated_at=? WHERE id=?", (now_iso(), str(announcement_id))).rowcount > 0
 
     def get_article(self, article_id: str) -> dict | None:
         with self.connect() as connection:
@@ -1585,7 +1746,7 @@ class Store:
         return dict(row) if row else None
 
     def get_recipient(self, recipient_id: str, include_tokens: bool = False) -> dict | None:
-        fields = "*" if include_tokens else "id,label,kakao_user_id,access_token_expires_at,refresh_token_expires_at,status,last_error,created_at,updated_at"
+        fields = "*" if include_tokens else "id,label,kakao_user_id,access_token_expires_at,refresh_token_expires_at,scopes,status,last_error,created_at,updated_at"
         with self.connect() as connection:
             row = connection.execute(f"SELECT {fields} FROM recipients WHERE id=?", (recipient_id,)).fetchone()
         return dict(row) if row else None
@@ -1625,18 +1786,18 @@ class Store:
             connection.execute(
                 """INSERT INTO recipients(
                    id,label,kakao_user_id,access_token_ciphertext,refresh_token_ciphertext,
-                   access_token_expires_at,refresh_token_expires_at,status,created_at,updated_at
-                ) VALUES(?,?,?,?,?,?,?,?,?,?)
+                   access_token_expires_at,refresh_token_expires_at,scopes,status,created_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
                 ON CONFLICT(kakao_user_id) DO UPDATE SET
                    label=excluded.label,access_token_ciphertext=excluded.access_token_ciphertext,
                    refresh_token_ciphertext=excluded.refresh_token_ciphertext,
                    access_token_expires_at=excluded.access_token_expires_at,
-                   refresh_token_expires_at=excluded.refresh_token_expires_at,status='active',updated_at=excluded.updated_at""",
+                   refresh_token_expires_at=excluded.refresh_token_expires_at,scopes=excluded.scopes,status='active',updated_at=excluded.updated_at""",
                 (
                     recipient_id, invite["label"], str(token_data["kakao_user_id"]),
                     token_data["access_token_ciphertext"], token_data["refresh_token_ciphertext"],
                     token_data["access_token_expires_at"], token_data["refresh_token_expires_at"],
-                    "active", now, now,
+                    json.dumps(token_data.get("scopes", []), ensure_ascii=False), "active", now, now,
                 ),
             )
             connection.execute("UPDATE recipient_invites SET used_at=? WHERE id=?", (now, invite["id"]))
@@ -2318,6 +2479,7 @@ class Store:
                           c.name AS case_name
                    FROM deliveries d JOIN articles a ON a.id=d.article_id
                    JOIN cases c ON c.id=d.case_id
+                   JOIN recipients r ON r.id=d.recipient_id AND r.status='active'
                    LEFT JOIN article_scores s ON s.article_id=d.article_id AND s.case_id=d.case_id
                    LEFT JOIN case_evaluations ce ON ce.id=(
                      SELECT ce2.id FROM case_evaluations ce2
@@ -2332,6 +2494,14 @@ class Store:
                 (now_iso(), limit),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def fail_delivery_permanently(self, delivery_id: str, response_code: int | None = None, error: str = "") -> None:
+        now = now_iso()
+        with self.connect() as connection:
+            connection.execute(
+                """UPDATE deliveries SET status='failed',attempts=3,response_code=?,last_error=?,sent_at=NULL,updated_at=? WHERE id=?""",
+                (response_code, str(error)[:1000], now, delivery_id),
+            )
 
     def finish_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
         now = now_iso()
@@ -2534,6 +2704,13 @@ class Store:
             centroid = [sum(vector[index] for vector in semantic_vectors.values()) / len(semantic_vectors) for index in range(vector_length)]
         candidate_edges = []
         topic_items = list(topic_terms_by_id.items())
+        node_count = len(topic_items)
+        # As the graph grows, weak common-context similarities create one giant blob.
+        # Keep edges only when article-to-article similarity is strong enough.
+        semantic_min = max(0.0, min(1.0, float(self.get_setting("similar_article_threshold", "65")) / 100.0))
+        concept_semantic_min = max(0.48, semantic_min - 0.08)
+        direct_noun_min = 0.42 if node_count >= 35 else 0.36
+        fallback_noun_min = 0.58 if node_count >= 35 else 0.50
         for index, (left_id, left_topics) in enumerate(topic_items):
             for right_id, right_topics in topic_items[index + 1:]:
                 shared_topics = left_topics & right_topics
@@ -2542,15 +2719,26 @@ class Store:
                 semantic_similarity = 0.0
                 if centroid and left_id in semantic_vectors and right_id in semantic_vectors:
                     semantic_similarity = centered_semantic_similarity(semantic_vectors[left_id], semantic_vectors[right_id], centroid)
-                concept_similarity = 0.72 if shared_concepts else 0.0
-                if noun_similarity < 0.16 and semantic_similarity < 0.38 and not shared_concepts:
+                has_semantic = bool(left_id in semantic_vectors and right_id in semantic_vectors and centroid)
+                semantic_strong = has_semantic and semantic_similarity >= semantic_min
+                concept_supported = bool(shared_concepts) and (
+                    (has_semantic and semantic_similarity >= concept_semantic_min) or noun_similarity >= direct_noun_min
+                )
+                direct_supported = bool(shared_topics) and (
+                    (has_semantic and semantic_similarity >= max(0.34, semantic_min - 0.18) and noun_similarity >= 0.22)
+                    or (not has_semantic and noun_similarity >= fallback_noun_min)
+                    or noun_similarity >= max(0.50, direct_noun_min + 0.10)
+                )
+                if not (semantic_strong or concept_supported or direct_supported):
                     continue
-                relation_level = "abstract_topic" if shared_concepts or semantic_similarity >= 0.38 else "direct_topic"
-                candidate_edges.append({"source": left_id, "target": right_id, "weight": round(max(noun_similarity, concept_similarity, semantic_similarity), 4),
-                                        "relation_level": relation_level, "noun_similarity": noun_similarity, "semantic_similarity": semantic_similarity,
+                relation_level = "abstract_topic" if semantic_strong or concept_supported else "direct_topic"
+                concept_similarity = 0.62 if concept_supported else 0.0
+                edge_weight = max(noun_similarity, concept_similarity, semantic_similarity if has_semantic else 0.0)
+                candidate_edges.append({"source": left_id, "target": right_id, "weight": round(edge_weight, 4),
+                                        "relation_level": relation_level, "noun_similarity": round(noun_similarity, 4), "semantic_similarity": round(semantic_similarity, 4),
                                         "shared_topics": sorted(shared_topics, key=lambda term: (-len(term), term))[:5],
                                         "shared_concepts": sorted(shared_concepts)[:4],
-                                        "rank_score": round(max(0.0, semantic_similarity) + noun_similarity * 0.35, 4)})
+                                        "rank_score": round(max(0.0, semantic_similarity if has_semantic else 0.0) + noun_similarity * 0.25 + (0.08 if concept_supported else 0.0), 4)})
         # Avoid a fully connected hairball: each abstract concept uses its most semantically
         # central real article as the hub. No synthetic node is introduced.
         edge_lookup = {tuple(sorted((edge["source"], edge["target"]))): edge for edge in candidate_edges}
@@ -2574,19 +2762,61 @@ class Store:
                     if key in edge_lookup:
                         selected_keys.add(key)
         # For concept-free semantic relations retain only the two strongest neighbors per node.
-        semantic_only = [edge for edge in candidate_edges if not edge["shared_concepts"] and edge["relation_level"] == "abstract_topic"]
+        semantic_only = [edge for edge in candidate_edges if not edge["shared_concepts"] and edge["relation_level"] == "abstract_topic" and edge["semantic_similarity"] >= semantic_min]
         for article_id in topic_terms_by_id:
             neighbors = sorted((edge for edge in semantic_only if article_id in (edge["source"], edge["target"])),
-                               key=lambda edge: (-edge["rank_score"], edge["source"], edge["target"]))[:2]
+                               key=lambda edge: (-edge["rank_score"], edge["source"], edge["target"]))[:1]
             selected_keys.update(tuple(sorted((edge["source"], edge["target"]))) for edge in neighbors)
+        # Final pruning: keep only the strongest local article similarities.
+        # This prevents one weak bridge from pulling unrelated topics into a single mass.
+        parent = {node["id"]: node["id"] for node in nodes}
+        component_size = {node["id"]: 1 for node in nodes}
+
+        def find(value: str) -> str:
+            while parent[value] != value:
+                parent[value] = parent[parent[value]]
+                value = parent[value]
+            return value
+
+        def union(left: str, right: str) -> None:
+            left_root, right_root = find(left), find(right)
+            if left_root == right_root:
+                return
+            if component_size[left_root] < component_size[right_root]:
+                left_root, right_root = right_root, left_root
+            parent[right_root] = left_root
+            component_size[left_root] += component_size[right_root]
+
+        max_component = 14 if len(nodes) >= 45 else (12 if len(nodes) >= 25 else 10)
+        degree_limit = 2 if len(nodes) >= 25 else 3
+        edge_limit = min(70, max(16, int(len(nodes) * 1.15)))
         edges = []
-        for key in selected_keys:
-            edge = dict(edge_lookup[key])
-            edge.pop("rank_score", None)
-            edges.append(edge)
-        edges = sorted(edges, key=lambda item: (-item["weight"], item["source"], item["target"]))[:150]
+        degree: dict[str, int] = {}
+        proposed_edges = sorted((edge_lookup[key] for key in selected_keys),
+                                key=lambda item: (-item["weight"], -item.get("semantic_similarity", 0), -item.get("noun_similarity", 0), item["source"], item["target"]))
+        for edge in proposed_edges:
+            source, target = edge["source"], edge["target"]
+            strong_duplicate = float(edge.get("weight") or 0) >= 0.94 and float(edge.get("semantic_similarity") or 0) >= 0.70
+            current_degree_limit = degree_limit + (1 if strong_duplicate else 0)
+            if degree.get(source, 0) >= current_degree_limit or degree.get(target, 0) >= current_degree_limit:
+                continue
+            source_root, target_root = find(source), find(target)
+            merged_size = component_size[source_root] if source_root == target_root else component_size[source_root] + component_size[target_root]
+            if source_root != target_root and merged_size > max_component and not strong_duplicate:
+                continue
+            item = dict(edge)
+            item.pop("rank_score", None)
+            edges.append(item)
+            degree[source] = degree.get(source, 0) + 1
+            degree[target] = degree.get(target, 0) + 1
+            union(source, target)
+            if len(edges) >= edge_limit:
+                break
+        edges = sorted(edges, key=lambda item: (-item["weight"], item["source"], item["target"]))
         all_concepts = sorted({concept for concepts in concepts_by_id.values() for concept in concepts})
-        return {"period_days": days, "sent_only": bool(sent_only), "delivery_only": bool(delivery_only), "similarity_basis": "topic_concepts_centered_semantic", "article_count": len(nodes),
+        return {"period_days": days, "sent_only": bool(sent_only), "delivery_only": bool(delivery_only), "similarity_basis": "strict_article_similarity",
+                "edge_thresholds": {"semantic_min": round(semantic_min, 2), "concept_semantic_min": round(concept_semantic_min, 2), "direct_noun_min": round(direct_noun_min, 2), "degree_limit": degree_limit, "max_component": max_component},
+                "article_count": len(nodes),
                 "topic_node_count": sum(bool(terms) for terms in topic_terms_by_id.values()), "abstract_topic_count": len(all_concepts), "semantic_vector_count": len(semantic_vectors),
                 "words": [{"label": key, "value": round(value, 1)} for key, value in sorted(words.items(), key=lambda pair: (-pair[1], pair[0]))[:35]],
                 "nodes": nodes, "edges": edges}
@@ -2748,7 +2978,7 @@ class Store:
             article_where.append("(a.title LIKE ? OR a.publisher LIKE ? OR aa.publisher_name LIKE ? OR aa.reporter_name LIKE ?)")
             article_params.extend([f"%{search}%"] * 4)
         sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,
+                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,ae.vector article_vector,
                   (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
                     AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
                     AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
@@ -2759,6 +2989,7 @@ class Store:
                   c.name case_name,o.name organization_name
                   FROM article_processing_flags apf
                   JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
+                  LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
                   LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
                   LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
                   LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
@@ -2836,6 +3067,7 @@ class Store:
                 "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
                 "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
                 "press_match_total_count": int(item.get("press_match_total_count") or 0),
+                "semantic_vector": json_value(item.get("article_vector"), []),
                 "status": item["analysis_status"], "analyzed_at": item["analyzed_at"], "summary": item["summary"], "article_type": item["article_type"], "tone": item["tone"], "classification_tags": tags_value, "entities": json_value(item.get("entities"), []), "evidence": json_value(item.get("evidence"), []), "model": item["model"], "error": item["analysis_error"], "case_results": []})
             if item.get("evaluation_id"):
                 result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_raw", "semantic_score", "llm_score", "final_score", "evidence_status", "evaluation_error", "decision", "completed_at", "evaluation_updated_at")}
@@ -2877,7 +3109,8 @@ class Store:
                 filter_tags.append(tone)
             for tag in filter_tags:
                 tag_counts[str(tag)] = tag_counts.get(str(tag), 0) + 1
-        return {"stats": stats, "articles": articles,
+        similar_article_threshold = max(0.0, min(100.0, float(self.get_setting("similar_article_threshold", "65"))))
+        return {"stats": stats, "articles": articles, "similar_article_threshold": similar_article_threshold,
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
             "tags": [{"label": key, "value": value} for key, value in sorted(tag_counts.items(), key=lambda pair: -pair[1])],

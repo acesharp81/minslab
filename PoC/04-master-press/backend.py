@@ -95,23 +95,33 @@ def admin_bootstrap() -> dict:
     for case in cases:
         case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
         case["sent_keyword_suggestions"] = service.store.case_sent_keyword_suggestions(case["id"], days=30, limit=5)
+    common_model = service.selected_common_llm_model()
+    case_model = service.selected_case_llm_model()
     return {
         "readiness": service.settings.readiness(),
         "settings": {
-            "common_llm_model": service.selected_common_llm_model(),
-            "common_llm_models": service.available_common_llm_models(),
-            "llm_model": service.selected_common_llm_model(),
-            "llm_models": service.available_common_llm_models(),
-            "groq": service.groq_status(probe=True),
-            "case_llm_model": service.selected_case_llm_model(),
-            "case_llm_models": service.available_case_llm_models(),
-            "openrouter": service.openrouter_status(probe=True),
+            "common_llm_model": common_model,
+            "common_llm_models": [common_model] if common_model else [],
+            "llm_model": common_model,
+            "llm_models": [common_model] if common_model else [],
+            "groq": service.groq_status(probe=False),
+            "case_llm_model": case_model,
+            "case_llm_models": [case_model] if case_model else [],
+            "openrouter": service.openrouter_status(probe=False),
+            "reserve1_llm_model": service.selected_reserve1_model(),
+            "reserve1_llm_models": service.available_reserve1_models(),
+            "cloudflare": service.cloudflare_status(probe=False),
+            "reserve2_llm_model": service.selected_reserve2_model(),
+            "reserve2_llm_models": service.available_reserve2_models(),
+            "gemini": service.gemini_status(probe=False),
+            "announcements": service.store.list_announcements(include_inactive=True),
             "embedding_model": service.selected_embedding_model(),
             "embedding_models": service.available_embedding_models(),
             "ollama_embedding": service.ollama_embedding_status(probe=True),
             "case_batch_size": service.selected_case_batch_size(),
             "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
             "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
+            "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
             "raw_retention_days": service.settings.raw_retention_days,
             "metadata_retention_days": service.settings.metadata_retention_days,
             "per_run_article_limit": service.settings.per_run_article_limit,
@@ -149,18 +159,50 @@ def dispatch(
     if path == "/signup/bootstrap" and method == "GET":
         return signup_bootstrap()
 
+    if path == "/announcements/current" and method == "GET":
+        return {"items": service.store.current_announcements()}
+
+    if path == "/signup/kakao-registration" and method == "POST":
+        invite, token = service.store.create_invite("구독 신청자", 1440)
+        base = request_base.rstrip("/")
+        invite["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
+        return {"registration": invite}
+
+    if path == "/signup/kakao-status" and method == "GET":
+        recipient_id = str(query.get("recipient_id") or "").strip()
+        recipient = service.store.get_recipient(recipient_id) if recipient_id else None
+        scopes = recipient and recipient.get("scopes") or "[]"
+        try:
+            granted_scopes = json.loads(scopes) if isinstance(scopes, str) else scopes
+        except Exception:
+            granted_scopes = []
+        kakao_registered = bool(recipient and recipient.get("status") != "deleted" and "talk_message" in set(granted_scopes or []))
+        return {"kakao_registered": kakao_registered, "recipient_id": recipient_id if kakao_registered else ""}
+
     if path == "/signup/requests" and method == "POST":
         case_ids = payload.get("case_ids", [])
         if not isinstance(case_ids, list):
             raise MasterPressError("케이스 선택값이 올바르지 않습니다.")
+        recipient_id = str(payload.get("recipient_id") or "").strip()
+        if recipient_id:
+            recipient = service.store.get_recipient(recipient_id)
+            raw_scopes = recipient and recipient.get("scopes") or "[]"
+            try:
+                granted_scopes = json.loads(raw_scopes) if isinstance(raw_scopes, str) else raw_scopes
+            except Exception:
+                granted_scopes = []
+            if not (recipient and recipient.get("status") != "deleted" and "talk_message" in set(granted_scopes or [])):
+                raise MasterPressError("카카오 메시지 전송 동의가 확인된 뒤 구독 요청할 수 있습니다.")
         request, token = service.store.create_signup_request(
             str(payload.get("applicant_name") or ""),
             str(payload.get("organization_id") or ""),
             case_ids,
             1440,
+            recipient_id,
         )
-        base = request_base.rstrip("/")
-        request["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
+        if not recipient_id:
+            base = request_base.rstrip("/")
+            request["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
         return {"request": request}
 
     if path == "/analysis/insights" and method == "GET":
@@ -290,6 +332,36 @@ def dispatch(
         service.store.set_setting("case_llm_model", model)
         return {"case_llm_model": model, "case_llm_models": models, "openrouter": service.openrouter_status(probe=True)}
 
+    if path == "/admin/settings/reserve-llm-models" and method == "PUT":
+        _require_admin(admin_authenticated)
+        reserve1 = str(payload.get("reserve1_model") or "").strip()[:180]
+        reserve2 = str(payload.get("reserve2_model") or "").strip()[:180]
+        if not reserve1:
+            raise MasterPressError("예비1 Cloudflare 모델을 입력하세요.")
+        if not reserve2:
+            raise MasterPressError("예비2 Gemini 모델을 입력하세요.")
+        service.store.set_setting("reserve1_llm_model", reserve1)
+        service.store.set_setting("reserve2_llm_model", reserve2)
+        return {
+            "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "cloudflare": service.cloudflare_status(probe=True),
+            "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True),
+        }
+
+    if path == "/admin/announcements" and method == "POST":
+        _require_admin(admin_authenticated)
+        try:
+            item = service.store.save_announcement(payload)
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+        return {"item": item, "items": service.store.list_announcements(include_inactive=True)}
+
+    if path.startswith("/admin/announcements/") and method == "DELETE":
+        _require_admin(admin_authenticated)
+        item_id = path[len("/admin/announcements/"):].strip("/")
+        if not service.store.delete_announcement(item_id):
+            raise MasterPressError("공지사항을 찾지 못했습니다.", 404)
+        return {"deleted": True, "items": service.store.list_announcements(include_inactive=True)}
+
     if path == "/admin/settings/case-batch" and method == "PUT":
         _require_admin(admin_authenticated)
         try:
@@ -309,6 +381,16 @@ def dispatch(
             raise MasterPressError("관련 보도자료 유사도 기준이 올바르지 않습니다.")
         service.store.set_setting("press_release_match_threshold", str(threshold))
         return {"press_release_match_threshold": threshold}
+
+
+    if path == "/admin/settings/similar-articles" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            threshold = max(0.0, min(100.0, float(payload.get("threshold", 65))))
+        except (TypeError, ValueError):
+            raise MasterPressError("유사 기사 묶음 기준이 올바르지 않습니다.")
+        service.store.set_setting("similar_article_threshold", str(threshold))
+        return {"similar_article_threshold": threshold}
 
     if path.startswith("/admin/analysis/"):
         _require_admin(admin_authenticated)

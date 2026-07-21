@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260721-19">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260721-20">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/poc?project=master-press"><span>04</span><strong>AI 언론동향 비서</strong><small>AI읽고 AI로 분류하다</small></a>
     <nav><a class="nav manual-download" href="/poc/master-press/manual.pdf" download>사용설명서 다운로드</a><button class="nav" data-view="signup">구독 신청</button><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+    <div id="operationNotice" class="operation-notice" hidden></div>
   </header>
 
   <main>
@@ -19,9 +20,9 @@
       <div class="signup-grid">
         <section class="panel signup-form-panel"><div class="panel-head"><div><span>REQUEST FLOW</span><h2>구독 신청</h2></div></div>
           <form id="signupForm" class="signup-form signup-flow">
-            <div class="signup-step"><b>1. 이름·기관 선택</b><label>신청자 이름<input id="signupName" maxlength="40" required placeholder="예: 김철수"></label><label>부처<select id="signupOrganization" required><option value="">부처 선택</option></select></label></div>
-            <div class="signup-step"><b>2. 구독 대상 선택</b><p class="signup-volume-warning">여러 케이스를 함께 구독하면 알림이 많이 도착할 수 있습니다. 특히 정책동향, 간부 언론 동향처럼 발송량이 많은 케이스는 시간당 30건 이상 메시지가 갈 수 있으니 필요한 항목만 신중히 선택해 주세요.</p><fieldset><legend>구독 케이스</legend><div id="signupCaseList" class="signup-case-list"><div class="empty compact">부처를 선택하세요.</div></div></fieldset></div>
-            <div class="signup-step signup-send-step"><b>3. 카카오 전송</b><p>선택한 전체 구독 내용을 카카오 등록 URL로 전송합니다. 관리자가 승인하면 해당 케이스를 수신합니다.</p><button class="button" type="submit">구독 요청</button><div id="signupResult" class="signup-result" hidden></div></div>
+            <div class="signup-step signup-send-step"><b>1. 카카오 전송</b><p>먼저 카카오 로그인 후 [선택] 카카오 메시지 전송에 동의해 주세요. 동의가 확인되어야 다음 입력 단계가 열립니다.</p><p class="signup-kakao-warning">반드시 카카오 로그인 후, [선택] 카카오 메시지 전송을 선택하셔야지 실제 메시지가 발송됩니다.</p><button class="button" type="button" id="startKakaoSignup">카카오 로그인/메시지 전송 동의하기</button><div id="signupKakaoStatus" class="signup-gate-status">카카오 메시지 동의 확인 전입니다.</div><div id="signupResult" class="signup-result" hidden></div></div>
+            <div class="signup-step signup-profile-step"><b>2. 이름·기관 선택</b><label>신청자 이름<input id="signupName" maxlength="40" required placeholder="예: 김철수" disabled></label><label>부처<select id="signupOrganization" required disabled><option value="">부처 선택</option></select></label></div>
+            <div class="signup-step signup-case-step"><b>3. 구독 대상 선택</b><p class="signup-volume-warning">여러 케이스를 함께 구독하면 알림이 많이 도착할 수 있습니다. 특히 정책동향, 간부 언론 동향처럼 발송량이 많은 케이스는 시간당 30건 이상 메시지가 갈 수 있으니 필요한 항목만 신중히 선택해 주세요.</p><fieldset id="signupCaseFieldset" disabled><legend>구독 케이스</legend><div id="signupCaseList" class="signup-case-list"><div class="empty compact">부처를 선택하세요.</div></div></fieldset><p class="signup-kakao-warning">반드시 카카오 로그인 후, [선택] 카카오 메시지 전송을 선택하셔야지 실제 메시지가 발송됩니다.</p><button class="button" id="submitSignupRequest" type="submit" disabled>구독 요청</button></div>
           </form>
         </section>
         <section class="panel signup-status-panel"><div class="panel-head"><div><span>STATUS</span><h2>신청기록</h2><small>승인 및 반려된 신청 기록은 6시간 뒤 자동 삭제됩니다.</small></div><button class="small-button" id="reloadSignup" type="button">새로고침</button></div><div id="signupRequestList" class="signup-request-list"><div class="empty">구독 요청 내역을 불러오는 중입니다.</div></div></section>
@@ -90,9 +91,13 @@
           <section class="panel wide"><div class="panel-head"><div><span>MEMBER MANAGEMENT</span><h2>회원 관리</h2><small>구독 요청과 카카오 구독자 상태를 한 곳에서 관리합니다.</small></div><button class="small-button" id="newInvite">수동 등록 링크</button></div><div id="adminSignupRequests" class="admin-signup-list"></div></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>GROQ · COMMON ANALYSIS</span><h2>공통분석 모델</h2><small id="groqModelStatus">연결 확인 중</small></div><button class="small-button" id="saveLlmModel">적용</button></div><select id="llmModelSelect"></select></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>OPENROUTER · CASE JUDGMENT</span><h2>케이스 판정 모델</h2><small id="openrouterModelStatus">연결 확인 중</small></div><button class="small-button" id="saveCaseLlmModel">적용</button></div><select id="caseLlmModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>RESERVE 1 · CLOUDFLARE</span><h2>예비1 모델</h2><small id="cloudflareModelStatus">연결 확인 중</small></div><button class="small-button" id="saveReserveModels">적용</button></div><select id="reserve1ModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>RESERVE 2 · GEMINI</span><h2>예비2 모델</h2><small id="geminiModelStatus">연결 확인 중</small></div><button class="small-button" id="saveReserveModels2">적용</button></div><select id="reserve2ModelSelect"></select></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>OLLAMA · EMBEDDING ONLY</span><h2>로컬 임베딩 모델</h2><small id="embeddingModelStatus">연결 확인 중</small></div><button class="small-button" id="saveEmbeddingModel">적용</button></div><select id="embeddingModelSelect"></select></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>ARTICLE × CASE BATCH</span><h2>하이브리드 배치 판정</h2><small>기사 1건에 케이스를 묶어 1회 호출</small></div><button class="small-button" id="saveCaseBatch">적용</button></div><div class="weight-row"><label>호출당 케이스<select id="caseBatchSize"><option>1</option><option>2</option><option>5</option><option selected>10</option></select></label><label>벡터 후보 기준<input id="semanticCandidateThreshold" type="number" min="0" max="100" step="1" value="35"></label></div></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>PRESS RAG</span><h2>관련 보도자료 기준</h2><small>대시보드와 보도동향에 표시할 최소 유사도</small></div><button class="small-button" id="savePressMatch">적용</button></div><div class="weight-row"><label>보도자료 유사도 기준<input id="pressMatchThreshold" type="number" min="0" max="100" step="1" value="65"></label></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>SIMILAR ARTICLES</span><h2>유사 기사 묶음 기준</h2><small>대시보드 묶음과 신경망 연결 기준에 적용</small></div><button class="small-button" id="saveSimilarArticles">적용</button></div><div class="weight-row"><label>기사 유사도 기준<input id="similarArticleThreshold" type="number" min="0" max="100" step="1" value="65"></label></div></section>
+          <section class="panel wide"><div class="panel-head"><div><span>NOTICE POPUP</span><h2>공지사항</h2><small>게시기한 안의 공지는 첫 접속 시 팝업으로 표시됩니다.</small></div><button class="small-button" id="saveAnnouncement">게시</button></div><div class="announcement-form"><label>제목<input id="announcementTitle" maxlength="120" placeholder="공지 제목"></label><label>게시 종료<input id="announcementEndsAt" type="datetime-local"></label><label class="full">내용<textarea id="announcementBody" rows="3" maxlength="2000" placeholder="방문자에게 안내할 내용을 입력하세요."></textarea></label></div><div id="announcementList" class="announcement-list"></div></section>
           <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2><small>케이스 행을 드래그하면 표시 순서가 저장되고 콤보·대시보드·신경망 기본 선택에 반영됩니다.</small></div></div><div id="organizationList" class="organization-tree"></div></section>
           <section class="panel wide"><div class="panel-head"><div><span>LOW SCORE REVIEW</span><h2>저유사도 개선 자료</h2></div><select id="improvementCase"></select></div><div id="improvementContent" class="improvement"></div></section>
         </div>
@@ -156,7 +161,8 @@
 
   <dialog id="relatedPressDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>RELATED PUBLIC RELEASES</span><h2>관련 보도자료</h2></div><button type="button" class="icon-button" data-close="relatedPressDialog">×</button></div><div id="relatedPressList" class="related-press-list"></div></div></dialog>
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
+  <dialog id="announcementDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>NOTICE</span><h2 id="announcementPopupTitle">공지사항</h2></div><button type="button" class="icon-button" data-close="announcementDialog">×</button></div><div id="announcementPopupBody" class="announcement-popup-body"></div><label class="week-hide"><input type="checkbox" id="announcementHideWeek"> 일주일 동안 다시 보지 않기</label><div class="dialog-actions"><span></span><button type="button" class="button" id="closeAnnouncementPopup">확인</button></div></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260721-19"></script>
+  <script src="/poc/master-press/app.js?v=20260722-05"></script>
 </body>
 </html>

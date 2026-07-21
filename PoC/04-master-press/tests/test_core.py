@@ -200,10 +200,11 @@ class StorageTests(unittest.TestCase):
         self.assertNotEqual(first["id"], "evaluation-new")
 
     def test_kst_daily_counter_starts_at_midnight(self):
-        start = kst_day_start_iso()
-        self.assertTrue(start.endswith("T00:00:00+09:00"))
+        from master_press.storage import utc_day_start_kst_iso
+        start = utc_day_start_kst_iso()
+        self.assertTrue(start.endswith("T09:00:00+09:00"))
         usage = self.store.openrouter_usage_today()
-        self.assertEqual(usage["period"], "KST day")
+        self.assertEqual(usage["period"], "UTC day")
         self.assertEqual(usage["day_start"], start)
 
     def test_openrouter_daily_limit_counts_failed_api_calls_and_defers(self):
@@ -223,7 +224,17 @@ class StorageTests(unittest.TestCase):
             client.request("/chat/completions", {"model": "test-model", "messages": []})
         self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
         self.assertTrue(captured.exception.deferred)
-        self.assertTrue(captured.exception.retry_after.endswith("T00:00:00+09:00"))
+        self.assertTrue(captured.exception.retry_after.endswith("T09:00:00+09:00"))
+
+    def test_openrouter_daily_limit_counts_common_fallback_calls(self):
+        self.store.record_llm_api_call("openrouter", "case", "test-model", "completed", 10)
+        self.store.record_llm_api_call("openrouter", "common_fallback", "test-model", "failed", 10)
+        usage = self.store.openrouter_usage_today(3)
+        self.assertEqual(usage["attempts"], 2)
+        self.assertEqual(usage["completed"], 1)
+        self.assertEqual(usage["failed"], 1)
+        self.assertEqual(usage["remaining"], 1)
+        self.assertEqual(usage["scope"], "provider_total")
 
     def test_article_search_and_published_time_order(self):
         rows = [
@@ -463,6 +474,22 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(public["masked_name"], "김*수")
         self.assertTrue(self.store.delete_recipient(recipient["id"]))
         self.assertEqual(self.store.list_signup_requests(include_private=True), [])
+
+    def test_signup_request_can_start_after_kakao_message_consent(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("구독 신청자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-consent", "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        request, returned_token = self.store.create_signup_request("김철수", organization["id"], [case["id"]], recipient_id=recipient["id"])
+        self.assertEqual(returned_token, "")
+        self.assertEqual(request["status"], "kakao_registered")
+        self.assertTrue(request["kakao_registered"])
+        self.assertEqual(request["masked_name"], "김*수")
+        self.assertEqual((self.store.get_recipient(recipient["id"]) or {}).get("label"), "김철수")
 
     def test_completed_signup_requests_expire_after_six_hours(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
@@ -728,6 +755,66 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(result["final_score"], 85)
         self.assertEqual(result["decision"], "low")
         self.assertIn("required_topic_not_verified", result["low_score_categories"])
+
+    def test_high_confidence_case_llm_allows_missing_batch_evidence_ids(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 85, "required_topic_met": True, "target_is_primary": True,
+                    "topic_evidence": [], "target_evidence": [], "stance_evidence": [],
+                    "reasons": ["행안부 공모 사업과 AI 기술 도입 사실을 확인했습니다."],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "행정안전부 공공부문 AI 서비스 지원 공모와 AI 정책 기사",
+            "include_terms": ["AI", "인공지능", "공통기반"], "required_terms": [],
+            "organization_terms": ["행정안전부", "행안부"],
+            "_semantic_raw": 0.722425, "_semantic_score": 93.8,
+            "semantic_weight": 0.25, "llm_weight": 0.75, "relevance_threshold": 70,
+        }
+        article = {
+            "title": "경북 22개 시·군 행정 서비스 한곳에…AI 민원실 구축",
+            "snippet": "경북도가 행정안전부 공모에 선정되어 AI 민원실 구축을 추진한다.",
+            "body": "행정안전부 공공부문 AI 서비스 지원 공모에 선정되어 국비를 확보했다.",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(case, article, {"summary": "AI 민원실 구축", "tone": "긍정적", "id": "common-ai"})
+        self.assertEqual(result["decision"], "send")
+        self.assertTrue(result["analysis_report"]["components"]["high_confidence_llm"])
+        self.assertEqual(result["evidence_status"], "verified")
+
+    def test_indirect_local_government_prompt_can_send_high_confidence_match(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 90, "required_topic_met": True, "target_is_primary": True,
+                    "topic_evidence": [], "target_evidence": [], "stance_evidence": [],
+                    "reasons": ["지방정부가 수행한 하천·계곡 정비 실적입니다."],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "행안부에서 추진 중인 하천 계곡 정비 사업. 실제 정비하는 주체가 행안부가 아닌 지방정부가 수행한 실적도 포함한다.",
+            "include_terms": ["하천", "계곡", "철거", "정비"], "required_terms": ["하천", "계곡"],
+            "organization_terms": ["행정안전부", "행안부"],
+            "_semantic_raw": 0.819311, "_semantic_score": 52.2,
+            "semantic_weight": 0.25, "llm_weight": 0.75, "relevance_threshold": 70,
+        }
+        article = {
+            "title": "예천군, 하천·계곡 불법점용 510건 적발…138건 정비 완료",
+            "snippet": "예천군이 하천 및 계곡 불법점용 시설을 정비했다.",
+            "body": "하천 계곡 불법점용 시설 510건을 확인하고 138건을 철거·정비했다.",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(case, article, {"summary": "하천 계곡 정비", "tone": "사실전달", "id": "common-river"})
+        self.assertEqual(result["decision"], "send")
+        self.assertTrue(result["analysis_report"]["components"]["allows_indirect_target"])
+        self.assertEqual(result["evidence_status"], "verified")
 
     def test_prompt_must_not_promote_include_terms_to_hard_gate(self):
         class FakeCaseLlm:

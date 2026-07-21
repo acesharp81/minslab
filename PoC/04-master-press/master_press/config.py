@@ -74,6 +74,17 @@ class Settings:
     openrouter_base_url: str
     openrouter_case_model: str
     openrouter_daily_soft_limit: int
+    worker_ai_key: str
+    worker_ai_account_id: str
+    worker_ai_base_url: str
+    worker_ai_model: str
+    worker_ai_daily_neuron_soft_limit: int
+    worker_ai_daily_request_soft_limit: int
+    gemini_api_key: str
+    gemini_base_url: str
+    gemini_model: str
+    gemini_daily_request_soft_limit: int
+    gemini_daily_token_soft_limit: int
     supabase_url: str
     supabase_service_role_key: str
     user_agent: str
@@ -119,6 +130,17 @@ class Settings:
             openrouter_base_url=env("MASTER_PRESS_OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1").rstrip("/"),
             openrouter_case_model=env("MASTER_PRESS_OPENROUTER_CASE_MODEL", default="google/gemma-4-26b-a4b-it:free"),
             openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 1000, 1, 1000),
+            worker_ai_key=env("MASTER_PRESS_WORKER_AI_KEY", "WORKER_AI_KEY", "WORKER_AI_API_KEY", "WORKERS_AI_KEY", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_WORKERS_AI_TOKEN", "CF_API_TOKEN"),
+            worker_ai_account_id=env("MASTER_PRESS_WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACOUNT_ID", "WORKERS_AI_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID", "CF_ACCOUNT_ID"),
+            worker_ai_base_url=env("MASTER_PRESS_WORKER_AI_BASE_URL", default="https://api.cloudflare.com/client/v4").rstrip("/"),
+            worker_ai_model=env("MASTER_PRESS_WORKER_AI_MODEL", default="@cf/google/gemma-4-26b-a4b-it"),
+            worker_ai_daily_neuron_soft_limit=env_int("MASTER_PRESS_WORKER_AI_DAILY_NEURON_SOFT_LIMIT", 10000, 1, 1000000),
+            worker_ai_daily_request_soft_limit=env_int("MASTER_PRESS_WORKER_AI_DAILY_REQUEST_SOFT_LIMIT", 3000, 1, 100000),
+            gemini_api_key=env("MASTER_PRESS_GEMINI_API_KEY", "Google_AI_STUDIO_API_KEY", "GOOGLE_AI_STUDIO_API_KEY", "GEMINI_API_KEY"),
+            gemini_base_url=env("MASTER_PRESS_GEMINI_BASE_URL", default="https://generativelanguage.googleapis.com/v1beta").rstrip("/"),
+            gemini_model=env("MASTER_PRESS_GEMINI_MODEL", default="gemini-3.5-flash-lite"),
+            gemini_daily_request_soft_limit=env_int("MASTER_PRESS_GEMINI_DAILY_REQUEST_SOFT_LIMIT", 1000, 1, 100000),
+            gemini_daily_token_soft_limit=env_int("MASTER_PRESS_GEMINI_DAILY_TOKEN_SOFT_LIMIT", 0, 0, 100000000),
             supabase_url=env("SUPABASE2_URL", "MASTER_PRESS_SUPABASE_URL").rstrip("/"),
             supabase_service_role_key=env("SUPABASE2_SERVICE_ROLE_KEY", "MASTER_PRESS_SUPABASE_SERVICE_ROLE_KEY"),
             user_agent=env(
@@ -157,4 +179,6 @@ class Settings:
             "ollama": bool(self.ollama_base_url),
             "groq": bool(self.groq_api_key and self.groq_common_model),
             "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
+            "cloudflare_workers_ai": bool(self.worker_ai_key and self.worker_ai_account_id and self.worker_ai_model),
+            "gemini": bool(self.gemini_api_key and self.gemini_model),
         }
