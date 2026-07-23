@@ -18,7 +18,7 @@ if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
 from master_press.kakao import KakaoError
-from master_press.service import case_worker_tick, common_worker_tick, get_service, worker_tick
+from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, get_service, worker_tick
 from master_press.storage import now_iso
 
 
@@ -33,7 +33,7 @@ def _require_admin(admin_authenticated: bool) -> None:
         raise MasterPressError("홈페이지 관리자 로그인이 필요합니다.", 401)
 
 
-def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[str] | None = None) -> dict:
+def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[str] | None = None, search: str = "") -> dict:
     service = get_service()
     cases = []
     for case in service.store.list_cases(active_only=True):
@@ -53,6 +53,7 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
             "relevance_threshold": case["relevance_threshold"],
             "next_collect_at": case["next_collect_at"],
             "last_collected_at": case["last_collected_at"],
+            "sort_order": case.get("sort_order", 0),
         })
     organizations = [
         {
@@ -64,7 +65,7 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
         }
         for item in service.store.list_organizations(active_only=True)
     ]
-    dashboard = service.store.pipeline_dashboard(case_id or None, organization_id or None, tags=tags or [], limit=100)
+    dashboard = service.store.pipeline_dashboard(case_id or None, organization_id or None, tags=tags or [], limit=100, search=search)
     dashboard.setdefault("pipeline", {})["providers"] = service.pipeline_provider_status()
     return {
         "project": {"id": "master-press", "title": "AI 언론동향 비서", "display_no": "04"},
@@ -74,29 +75,96 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
     }
 
 
+def signup_bootstrap(admin: bool = False) -> dict:
+    service = get_service()
+    with service.store.connect() as connection:
+        rows = connection.execute(
+            """SELECT case_id,COUNT(DISTINCT recipient_id) total FROM (
+                   SELECT case_id,recipient_id FROM case_recipients
+                   UNION ALL
+                   SELECT src.case_id,sr.recipient_id
+                   FROM signup_request_cases src
+                   JOIN signup_requests sr ON sr.id=src.request_id
+                   WHERE src.status='approved' AND sr.recipient_id IS NOT NULL
+               ) GROUP BY case_id"""
+        ).fetchall()
+    subscriber_counts = {str(row["case_id"]): int(row["total"] or 0) for row in rows}
+    organizations = []
+    for organization in service.store.list_organizations(active_only=True):
+        cases = service.store.list_cases_for_organization(organization["id"], active_only=True)
+        organizations.append({
+            "id": organization["id"],
+            "name": organization["name"],
+            "cases": [
+                {
+                    "id": case["id"],
+                    "name": case["name"],
+                    "topic_search_prompt": case.get("topic_search_prompt") or case.get("topic_description") or "",
+                    "semantic_weight": case.get("semantic_weight", 0.25),
+                    "llm_weight": case.get("llm_weight", 0.75),
+                    "subscriber_count": subscriber_counts.get(str(case["id"]), 0),
+                }
+                for case in cases
+            ],
+        })
+    return {"organizations": organizations, "requests": service.store.list_signup_requests(include_private=False), "case_proposals": service.store.list_case_proposals(admin=admin)}
+
+
+
+def fast_recipient_statuses(service) -> list[dict]:
+    recipients = service.store.list_recipients()
+    for recipient in recipients:
+        ok = recipient.get("status") == "active" and not recipient.get("last_error")
+        recipient["connection_status"] = "connected" if ok else "failed"
+        recipient["connection_label"] = "저장된 상태 정상" if ok else (recipient.get("last_error") or "재확인 필요")
+        recipient["connection_error"] = recipient.get("last_error") or ""
+    return recipients
+
+
 def admin_bootstrap() -> dict:
     service = get_service()
     cases = service.store.list_cases()
     organizations = service.store.list_organizations()
     for case in cases:
         case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
+        case["sent_keyword_suggestions"] = service.store.case_sent_keyword_suggestions(case["id"], days=30, limit=5)
+    common_model = service.selected_common_llm_model()
+    case_model = service.selected_case_llm_model()
     return {
         "readiness": service.settings.readiness(),
         "settings": {
-            "llm_model": service.selected_llm_model(),
-            "llm_models": service.available_llm_models(),
-            "case_llm_model": service.selected_case_llm_model(),
-            "case_llm_models": service.available_case_llm_models(),
-            "openrouter": service.openrouter_status(probe=True),
-            "embedding_model": service.settings.embedding_model,
+            "common_llm_model": common_model,
+            "common_llm_models": service.configured_common_reserve_models(common_model),
+            "llm_model": common_model,
+            "llm_models": service.configured_common_reserve_models(common_model),
+            "common_provider": service._status_for_switchable_llm_model(service.selected_common_llm_model(), probe=False),
+            "groq": service.groq_status(probe=False),
+            "case_llm_model": case_model,
+            "case_llm_models": [case_model] if case_model else [],
+            "openrouter": service.openrouter_status(probe=False),
+            "reserve1_llm_model": service.selected_reserve1_model(),
+            "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
+            "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
+            "cloudflare": service.cloudflare_status(probe=False),
+            "reserve2_llm_model": service.selected_reserve2_model(),
+            "reserve2_llm_models": service.available_reserve2_models(),
+            "gemini": service.gemini_status(probe=False),
+            "announcements": service.store.list_announcements(include_inactive=True),
+            "embedding_model": service.selected_embedding_model(),
+            "embedding_models": [service.selected_embedding_model()] if service.selected_embedding_model() else [],
+            "ollama_embedding": service.ollama_embedding_status(probe=False),
+            "case_batch_size": service.selected_case_batch_size(),
+            "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
+            "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
+            "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
             "raw_retention_days": service.settings.raw_retention_days,
             "metadata_retention_days": service.settings.metadata_retention_days,
             "per_run_article_limit": service.settings.per_run_article_limit,
         },
         "organizations": organizations,
         "cases": cases,
-        "recipients": service.recipients_with_connection_status(),
-        "dashboard": {**service.store.pipeline_dashboard(limit=100), "provider_status": service.pipeline_provider_status()},
+        "recipients": fast_recipient_statuses(service),
+        "signup_requests": service.store.list_signup_requests(include_private=True),
     }
 
 
@@ -119,7 +187,89 @@ def dispatch(
             str(query.get("case_id") or ""),
             str(query.get("organization_id") or ""),
             [value for value in str(query.get("tags") or "").split(",") if value],
+            str(query.get("q") or ""),
         )
+
+    if path == "/signup/bootstrap" and method == "GET":
+        return signup_bootstrap(admin_authenticated)
+
+    if path == "/announcements/current" and method == "GET":
+        return {"items": service.store.current_announcements()}
+
+    if path == "/case-proposals" and method == "GET":
+        return {"items": service.store.list_case_proposals(admin=admin_authenticated)}
+
+    if path == "/case-proposals" and method == "POST":
+        try:
+            item = service.store.save_case_proposal(payload)
+            return {"item": service.store.get_case_proposal(item["id"], admin=admin_authenticated), "items": service.store.list_case_proposals(admin=admin_authenticated)}
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+
+    if path.startswith("/case-proposals/"):
+        proposal_id = path[len("/case-proposals/"):].strip("/")
+        if method == "PUT":
+            try:
+                item = service.store.save_case_proposal(payload, proposal_id, password_required=not admin_authenticated)
+                return {"item": service.store.get_case_proposal(item["id"], admin=admin_authenticated), "items": service.store.list_case_proposals(admin=admin_authenticated)}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
+        if method == "DELETE":
+            try:
+                if admin_authenticated:
+                    # Admin hard-delete without knowing the user password.
+                    with service.store.connect() as connection:
+                        deleted = connection.execute("DELETE FROM case_proposals WHERE id=?", (proposal_id,)).rowcount > 0
+                else:
+                    deleted = service.store.delete_case_proposal(proposal_id, str(payload.get("password") or ""))
+                if not deleted:
+                    raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+                return {"deleted": True, "items": service.store.list_case_proposals(admin=admin_authenticated)}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
+
+    if path == "/signup/kakao-registration" and method == "POST":
+        invite, token = service.store.create_invite("구독 신청자", 1440)
+        base = request_base.rstrip("/")
+        invite["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
+        return {"registration": invite}
+
+    if path == "/signup/kakao-status" and method == "GET":
+        recipient_id = str(query.get("recipient_id") or "").strip()
+        recipient = service.store.get_recipient(recipient_id) if recipient_id else None
+        scopes = recipient and recipient.get("scopes") or "[]"
+        try:
+            granted_scopes = json.loads(scopes) if isinstance(scopes, str) else scopes
+        except Exception:
+            granted_scopes = []
+        kakao_registered = bool(recipient and recipient.get("status") != "deleted" and "talk_message" in set(granted_scopes or []))
+        return {"kakao_registered": kakao_registered, "recipient_id": recipient_id if kakao_registered else ""}
+
+    if path == "/signup/requests" and method == "POST":
+        case_ids = payload.get("case_ids", [])
+        if not isinstance(case_ids, list):
+            raise MasterPressError("케이스 선택값이 올바르지 않습니다.")
+        recipient_id = str(payload.get("recipient_id") or "").strip()
+        if recipient_id:
+            recipient = service.store.get_recipient(recipient_id)
+            raw_scopes = recipient and recipient.get("scopes") or "[]"
+            try:
+                granted_scopes = json.loads(raw_scopes) if isinstance(raw_scopes, str) else raw_scopes
+            except Exception:
+                granted_scopes = []
+            if not (recipient and recipient.get("status") != "deleted" and "talk_message" in set(granted_scopes or [])):
+                raise MasterPressError("카카오 메시지 전송 동의가 확인된 뒤 구독 요청할 수 있습니다.")
+        request, token = service.store.create_signup_request(
+            str(payload.get("applicant_name") or ""),
+            str(payload.get("organization_id") or ""),
+            case_ids,
+            1440,
+            recipient_id,
+        )
+        if not recipient_id:
+            base = request_base.rstrip("/")
+            request["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
+        return {"request": request}
 
     if path == "/analysis/insights" and method == "GET":
         case_id = str(query.get("case_id") or "").strip()
@@ -138,7 +288,9 @@ def dispatch(
     if path == "/press-releases" and method == "GET":
         return {
             "items": service.press_releases.list_releases(
-                str(query.get("organization_id") or ""), int(query.get("limit") or 50)
+                str(query.get("organization_id") or ""),
+                int(query.get("limit") or 50),
+                str(query.get("q") or ""),
             ),
             "status": service.press_releases.status(),
         }
@@ -160,16 +312,116 @@ def dispatch(
         _require_admin(admin_authenticated)
         return admin_bootstrap()
 
-    if path == "/admin/settings/llm-model" and method == "PUT":
+    if path.startswith("/admin/case-proposals/"):
+        _require_admin(admin_authenticated)
+        suffix = path[len("/admin/case-proposals/"):].strip("/").split("/")
+        proposal_id = suffix[0]
+        if len(suffix) == 1 and method == "GET":
+            item = service.store.get_case_proposal(proposal_id, admin=True)
+            if not item:
+                raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+            return {"item": item}
+        if len(suffix) >= 2 and suffix[1] == "allow" and method == "POST":
+            item = service.store.allow_case_proposal(proposal_id)
+            if not item:
+                raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+            return {"item": item, "items": service.store.list_case_proposals(admin=True)}
+
+    if path == "/admin/model-status" and method == "GET":
+        _require_admin(admin_authenticated)
+        target = str(query.get("target") or "").strip().lower()
+        if target == "common":
+            model = service.selected_common_llm_model()
+            models = service.configured_common_reserve_models(model)
+            return {"target": target, "common_llm_model": model, "common_llm_models": models, "llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True)}
+        if target == "case":
+            model = service.selected_case_llm_model()
+            return {"target": target, "case_llm_model": model, "case_llm_models": [model] if model else [], "openrouter": service.openrouter_status(probe=False)}
+        if target == "reserve1":
+            model = service.selected_reserve1_model()
+            return {"target": target, "reserve1_llm_model": model, "reserve1_llm_models": service.configured_common_reserve_models(model), "reserve1_provider": service._status_for_switchable_llm_model(model, probe=False)}
+        if target == "reserve2":
+            model = service.selected_reserve2_model()
+            return {"target": target, "reserve2_llm_model": model, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True)}
+        if target == "embedding":
+            model = service.selected_embedding_model()
+            return {"target": target, "embedding_model": model, "embedding_models": service.available_embedding_models(), "ollama_embedding": service.ollama_embedding_status(probe=True)}
+        raise MasterPressError("확인할 모델 영역을 찾지 못했습니다.", 404)
+
+    if path.startswith("/admin/signup-requests/"):
+        _require_admin(admin_authenticated)
+        suffix = path[len("/admin/signup-requests/"):].split("/")
+        request_id = suffix[0]
+        if len(suffix) == 1 and method == "DELETE":
+            deleted = service.store.delete_signup_request(request_id)
+            if not deleted:
+                raise MasterPressError("구독 요청을 찾지 못했습니다.", 404)
+            return {"deleted": True}
+        if len(suffix) >= 2 and suffix[1] == "subscriptions" and method in {"PUT", "POST"}:
+            case_ids = payload.get("case_ids", [])
+            if not isinstance(case_ids, list):
+                raise MasterPressError("구독 케이스 선택값이 올바르지 않습니다.")
+            try:
+                return {"request": service.store.set_signup_request_subscriptions(
+                    request_id, case_ids, str(payload.get("admin_note") or "관리자 구독 조정")
+                )}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
+        if len(suffix) >= 3 and suffix[1] == "cases" and method in {"PUT", "POST"}:
+            case_id = suffix[2]
+            action = suffix[3] if len(suffix) > 3 else ""
+            try:
+                if action == "revoke":
+                    context = service.store.signup_case_context(request_id, case_id)
+                    recipient_id = str(context.get("recipient_id") or "")
+                    if not recipient_id:
+                        raise ValueError("카카오 수신 등록 정보가 없어 해제 안내를 보낼 수 없습니다.")
+                    base = request_base.rstrip("/")
+                    service.kakao.send_to_me(
+                        recipient_id,
+                        "[AI 언론동향 비서] 케이스 수신이 해제되었습니다\n\n"
+                        f"해제 케이스: {context.get('case_name') or '케이스'}\n"
+                        "이후 해당 케이스의 알림은 발송되지 않습니다.",
+                        f"{base}/poc/master-press/signup",
+                    )
+                    return {"request": service.store.revoke_signup_case(
+                        request_id, case_id, str(payload.get("admin_note") or "수신 해제")
+                    )}
+                return {"request": service.store.decide_signup_case(
+                    request_id, case_id, str(payload.get("decision") or ""), str(payload.get("admin_note") or "")
+                )}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
+
+    if path in {"/admin/settings/common-llm-model", "/admin/settings/llm-model"} and method == "PUT":
         _require_admin(admin_authenticated)
         model = str(payload.get("model") or "").strip()[:120]
         if not model:
-            raise MasterPressError("Ollama 모델을 선택하세요.")
-        models = service.available_llm_models()
+            raise MasterPressError("공통분석 모델을 선택하세요.")
+        models = service.available_common_llm_models()
         if models and model not in models:
-            raise MasterPressError("현재 Ollama에 설치된 모델만 선택할 수 있습니다.")
-        service.store.set_setting("llm_model", model)
-        return {"llm_model": model, "llm_models": models}
+            raise MasterPressError("현재 공통분석/예비1에서 지원하는 모델만 선택할 수 있습니다.")
+        service.store.set_setting("common_llm_model", model)
+        return {"common_llm_model": model, "common_llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True), "cloudflare": service.cloudflare_status(probe=False), "groq": service.groq_status(probe=False)}
+
+    if path == "/admin/settings/embedding-model" and method == "PUT":
+        _require_admin(admin_authenticated)
+        model = str(payload.get("model") or "").strip()[:120]
+        if not model:
+            raise MasterPressError("Ollama 임베딩 모델을 선택하세요.")
+        models = service.available_embedding_models()
+        if models and model not in models:
+            raise MasterPressError("현재 Ollama에 설치된 임베딩 모델만 선택할 수 있습니다.")
+        previous = service.selected_embedding_model()
+        rebuilt = {}
+        if previous and previous != model:
+            rebuilt = service.store.reset_embedding_indexes()
+        service.store.set_setting("embedding_model", model)
+        service.scoring.ollama.embedding_model = model
+        return {
+            "embedding_model": model, "embedding_models": models,
+            "rebuilt": rebuilt, "ollama_embedding": service.ollama_embedding_status(probe=True),
+        }
 
     if path == "/admin/settings/case-llm-model" and method == "PUT":
         _require_admin(admin_authenticated)
@@ -182,23 +434,92 @@ def dispatch(
         service.store.set_setting("case_llm_model", model)
         return {"case_llm_model": model, "case_llm_models": models, "openrouter": service.openrouter_status(probe=True)}
 
+    if path == "/admin/settings/reserve-llm-models" and method == "PUT":
+        _require_admin(admin_authenticated)
+        reserve1 = str(payload.get("reserve1_model") or "").strip()[:180]
+        reserve2 = str(payload.get("reserve2_model") or "").strip()[:180]
+        if not reserve1:
+            raise MasterPressError("예비1 모델을 입력하세요.")
+        if not reserve2:
+            raise MasterPressError("예비2 Gemini 모델을 입력하세요.")
+        service.store.set_setting("reserve1_llm_model", reserve1)
+        service.store.set_setting("reserve2_llm_model", reserve2)
+        return {
+            "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "reserve1_provider": service._status_for_switchable_llm_model(reserve1, probe=True), "groq": service.groq_status(probe=False), "cloudflare": service.cloudflare_status(probe=False),
+            "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True),
+        }
+
+    if path == "/admin/announcements" and method == "POST":
+        _require_admin(admin_authenticated)
+        try:
+            item = service.store.save_announcement(payload)
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+        return {"item": item, "items": service.store.list_announcements(include_inactive=True)}
+
+    if path.startswith("/admin/announcements/") and method == "DELETE":
+        _require_admin(admin_authenticated)
+        item_id = path[len("/admin/announcements/"):].strip("/")
+        hard_delete = str(query.get("hard") or "").lower() in {"1", "true", "yes"}
+        if not service.store.delete_announcement(item_id, hard=hard_delete):
+            raise MasterPressError("공지사항을 찾지 못했습니다.", 404)
+        return {"deleted": True, "hard_deleted": hard_delete, "items": service.store.list_announcements(include_inactive=True)}
+
+    if path == "/admin/settings/case-batch" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            batch_size = max(1, min(10, int(payload.get("batch_size", 10))))
+            semantic_threshold = max(0.0, min(100.0, float(payload.get("semantic_candidate_threshold", 65))))
+        except (TypeError, ValueError):
+            raise MasterPressError("배치 크기 또는 벡터 후보 기준이 올바르지 않습니다.")
+        service.store.set_setting("case_batch_size", str(batch_size))
+        service.store.set_setting("semantic_candidate_threshold", str(semantic_threshold))
+        return {"case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold}
+
+    if path == "/admin/settings/press-release-match" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            threshold = max(0.0, min(100.0, float(payload.get("threshold", 65))))
+        except (TypeError, ValueError):
+            raise MasterPressError("관련 보도자료 유사도 기준이 올바르지 않습니다.")
+        service.store.set_setting("press_release_match_threshold", str(threshold))
+        return {"press_release_match_threshold": threshold}
+
+
+    if path == "/admin/settings/similar-articles" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            threshold = max(0.0, min(100.0, float(payload.get("threshold", 65))))
+        except (TypeError, ValueError):
+            raise MasterPressError("유사 기사 묶음 기준이 올바르지 않습니다.")
+        service.store.set_setting("similar_article_threshold", str(threshold))
+        return {"similar_article_threshold": threshold}
+
     if path.startswith("/admin/analysis/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/analysis/"):].split("/")
+        if len(suffix) >= 2 and suffix[1] == "reanalyze" and method == "POST":
+            article = service.store.get_article(suffix[0])
+            if not article:
+                raise MasterPressError("기사를 찾지 못했습니다.", 404)
+            try:
+                return service.requeue_article_case_evaluations(article["id"])
+            except ValueError as error:
+                raise MasterPressError(str(error), 409)
         if len(suffix) >= 3 and suffix[2] == "report" and method == "GET":
             return {
                 **service.analysis_report(suffix[0], suffix[1]),
-                "llm_models": service.available_llm_models(),
-                "selected_llm_model": service.selected_llm_model(),
+                "llm_models": service.available_case_llm_models(),
+                "selected_llm_model": service.selected_case_llm_model(),
             }
         if len(suffix) >= 3 and suffix[2] == "reanalyze" and method == "POST":
             article, case = service.store.get_article(suffix[0]), service.store.get_case(suffix[1])
             if not article or not case:
                 raise MasterPressError("기사 또는 케이스를 찾지 못했습니다.", 404)
-            model = str(payload.get("model") or service.selected_llm_model()).strip()
-            models = service.available_llm_models()
+            model = str(payload.get("model") or service.selected_case_llm_model()).strip()
+            models = service.available_case_llm_models()
             if models and model not in models:
-                raise MasterPressError("현재 Ollama에 설치된 모델만 선택할 수 있습니다.")
+                raise MasterPressError("현재 OpenRouter 케이스 판정 모델만 선택할 수 있습니다.")
             return {"job": service.store.queue_reanalysis(article["id"], case["id"], model)}
         if len(suffix) >= 2 and suffix[1] == "apply" and method == "POST":
             job = service.store.get_reanalysis(suffix[0])
@@ -207,9 +528,13 @@ def dispatch(
             result, case, article = job.get("result") or {}, service.store.get_case(job["case_id"]), service.store.get_article(job["article_id"])
             if not case or not article:
                 raise MasterPressError("기사 또는 케이스를 찾지 못했습니다.", 404)
+            current_evaluation = service.store.get_current_case_evaluation(article["id"], case["id"])
+            updated_evaluation = None
+            if current_evaluation:
+                updated_evaluation = service.store.save_case_evaluation(current_evaluation["id"], result, str(job.get("model") or result.get("analysis_report", {}).get("model") or ""))
             saved = service.store.save_score(article["id"], case["id"], int(case.get("version", 1)), result)
             service.mirror.article_score(article, saved)
-            return {"score": saved, "send_eligible": result.get("decision") == "send", "job_id": job["id"]}
+            return {"score": saved, "evaluation": updated_evaluation, "send_eligible": result.get("decision") == "send", "job_id": job["id"]}
         if len(suffix) >= 2 and suffix[1] == "send" and method == "POST":
             job = service.store.get_reanalysis(suffix[0])
             if not job or job.get("status") != "completed":
@@ -240,6 +565,11 @@ def dispatch(
             if organization:
                 service.mirror.organization(organization)
             return {"archived": archived}
+        if len(suffix) >= 3 and suffix[1] == "cases" and suffix[2] == "order" and method in {"PUT", "PATCH"}:
+            ordered = service.store.reorder_cases(organization_id, payload.get("case_ids", []))
+            for case in ordered:
+                service.mirror.case(case)
+            return {"organization_id": organization_id, "cases": ordered}
         if action == "run" and method == "POST":
             return service.run_organization(organization_id)
 
@@ -284,8 +614,14 @@ def dispatch(
         recipient_id = suffix[0]
         action = suffix[1] if len(suffix) > 1 else ""
         if not action and method == "DELETE":
+            base = request_base.rstrip("/")
+            status, response = service.kakao.send_to_me(
+                recipient_id,
+                "[AI 언론동향 비서] 구독 해지 안내\n\n관리자 권한으로 구독이 해지되었습니다. 이후 해당 카카오 계정으로 알림이 발송되지 않습니다.",
+                f"{base}/poc/master-press/",
+            )
             service.kakao.disconnect(recipient_id)
-            return {"deleted": True}
+            return {"deleted": True, "notice_sent": True, "notice_status": status, "notice_response": response}
         if action == "test" and method == "POST":
             base = request_base.rstrip("/")
             status, response = service.kakao.send_to_me(

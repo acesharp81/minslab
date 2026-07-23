@@ -63,6 +63,21 @@ class KakaoClient:
                 detail = {"message": str(error)}
             raise KakaoError(str(detail.get("msg") or detail.get("error_description") or detail.get("message") or error), error.code) from error
 
+    def _granted_scopes(self, access_token: str, token_scope: str = "") -> list[str]:
+        scopes = {value.strip() for value in str(token_scope or "").replace(",", " " ).split() if value.strip()}
+        try:
+            _status, data = self._request("https://kapi.kakao.com/v2/user/scopes", None, access_token, "GET")
+            for item in data.get("scopes", []) if isinstance(data, dict) else []:
+                if not isinstance(item, dict):
+                    continue
+                scope_id = str(item.get("id") or item.get("scope") or item.get("name") or "").strip()
+                if scope_id and (item.get("agreed") is True or item.get("granted") is True):
+                    scopes.add(scope_id)
+        except KakaoError:
+            if not scopes:
+                raise KakaoError("카카오 메시지 전송 동의 상태를 확인하지 못했습니다. 다시 시도해 주세요.", 400)
+        return sorted(scopes)
+
     def authorization_url(self, invite_token: str) -> str:
         if not self.store.valid_invite(invite_token):
             raise KakaoError("수신자 등록 링크가 만료되었거나 이미 사용되었습니다.", 400)
@@ -94,6 +109,9 @@ class KakaoClient:
         refresh_token = tokens.get("refresh_token")
         if not access_token or not refresh_token:
             raise KakaoError("카카오 토큰 응답에 필요한 값이 없습니다.")
+        scopes = self._granted_scopes(access_token, str(tokens.get("scope") or ""))
+        if "talk_message" not in scopes:
+            raise KakaoError("카카오 로그인 후 [선택] 카카오 메시지 전송에 동의해야 실제 메시지를 받을 수 있습니다.", 400)
         _status, profile = self._request("https://kapi.kakao.com/v2/user/me", None, access_token, "GET")
         now = datetime.now(KST)
         token_data = {
@@ -102,10 +120,13 @@ class KakaoClient:
             "refresh_token_ciphertext": self.cipher.encrypt(refresh_token),
             "access_token_expires_at": (now + timedelta(seconds=int(tokens.get("expires_in", 0)))).isoformat(timespec="seconds"),
             "refresh_token_expires_at": (now + timedelta(seconds=int(tokens.get("refresh_token_expires_in", 0)))).isoformat(timespec="seconds"),
+            "scopes": scopes,
         }
         if not token_data["kakao_user_id"]:
             raise KakaoError("카카오 사용자 식별자를 확인하지 못했습니다.")
-        return self.store.consume_invite(invite_token, token_data)
+        recipient = self.store.consume_invite(invite_token, token_data)
+        self.store.mark_signup_request_kakao_registered(invite_token, recipient["id"])
+        return recipient
 
     def _refresh(self, recipient: dict) -> str:
         refresh_token = self.cipher.decrypt(recipient["refresh_token_ciphertext"])
@@ -162,14 +183,53 @@ class KakaoClient:
         except KakaoError as error:
             return {"connected": False, "label": "연결 실패", "error": str(error)[:180]}
 
-    def send_to_me(self, recipient_id: str, text: str, original_url: str) -> tuple[int, dict]:
-        token = self.access_token(recipient_id)
-        message = {
+    @staticmethod
+    def _link(original_url: str) -> dict:
+        return {"web_url": original_url, "mobile_web_url": original_url}
+
+    @staticmethod
+    def _text_message(text: str, original_url: str) -> dict:
+        return {
             "object_type": "text",
             "text": str(text)[:200],
-            "link": {"web_url": original_url, "mobile_web_url": original_url},
+            "link": KakaoClient._link(original_url),
             "button_title": "원문 보기",
         }
+
+    @staticmethod
+    def _feed_message(text: str, original_url: str, image_url: str, title: str = "", description: str = "") -> dict:
+        lines = [line.strip() for line in str(text or "").splitlines() if line.strip()]
+        clean_title = str(title or "").strip() or next((line for line in lines if not line.startswith("[")), "") or "AI 언론동향 비서"
+        clean_description = str(description or "").strip() or " · ".join(lines[:3]) or str(text or "")
+        return {
+            "object_type": "feed",
+            "content": {
+                "title": clean_title[:80],
+                "description": clean_description[:180],
+                "image_url": str(image_url).strip()[:1000],
+                "link": KakaoClient._link(original_url),
+            },
+            "button_title": "원문 보기",
+        }
+
+    @staticmethod
+    def _valid_image_url(image_url: str) -> bool:
+        parsed = urllib.parse.urlsplit(str(image_url or "").strip())
+        return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+    def send_to_me(self, recipient_id: str, text: str, original_url: str, image_url: str = "", title: str = "", description: str = "") -> tuple[int, dict]:
+        token = self.access_token(recipient_id)
+        if self._valid_image_url(image_url):
+            message = self._feed_message(text, original_url, image_url, title, description)
+            try:
+                return self._request(
+                    "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+                    {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},
+                    token,
+                )
+            except KakaoError:
+                pass
+        message = self._text_message(text, original_url)
         return self._request(
             "https://kapi.kakao.com/v2/api/talk/memo/default/send",
             {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},

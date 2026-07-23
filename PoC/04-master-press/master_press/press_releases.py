@@ -390,6 +390,16 @@ class PressReleaseManager:
                 (MATCHER_VERSION, migration_time),
             )
 
+    def match_threshold(self) -> float:
+        try:
+            value = float(self.store.get_setting(
+                "press_release_match_threshold",
+                str(getattr(self.settings, "press_release_match_threshold", 65.0)),
+            ))
+        except (TypeError, ValueError):
+            value = 65.0
+        return max(0.0, min(100.0, value))
+
     def _mois_organization(self) -> dict | None:
         for organization in self.store.list_organizations(active_only=True):
             domains = " ".join(str(value) for value in organization.get("domains", []))
@@ -566,10 +576,16 @@ class PressReleaseManager:
         chunks = chunk_markdown(markdown)
         if not chunks:
             raise ValueError("press_release_markdown_empty")
-        model = str(self.settings.embedding_model)
-        vectors = self.ollama.embeddings([f"search_document: {chunk}" for chunk in chunks])
-        if len(vectors) != len(chunks) or not all(vectors):
-            raise ValueError("press_release_embedding_empty")
+        model = str(getattr(self.ollama, "embedding_model", "") or self.settings.embedding_model)
+        started = time.monotonic()
+        try:
+            vectors = self.ollama.embeddings([f"search_document: {chunk}" for chunk in chunks])
+            if len(vectors) != len(chunks) or not all(vectors):
+                raise ValueError("press_release_embedding_empty")
+            self.store.record_llm_api_call("ollama", "embedding", model, "completed", round((time.monotonic() - started) * 1000))
+        except Exception as error:
+            self.store.record_llm_api_call("ollama", "embedding", model, "failed", round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raise
         now = now_iso()
         chunk_rows = []
         with self.store.connect() as connection:
@@ -696,7 +712,7 @@ class PressReleaseManager:
             semantic_calibrated * 0.35 + sparse * 0.25 + evidence * 0.30 + temporal * 0.10
         ) * 100.0))
         lexical = sparse * 0.65 + evidence * 0.35
-        threshold = float(getattr(self.settings, "press_release_match_threshold", 62.0))
+        threshold = self.match_threshold()
         related = similarity >= threshold and evidence > 0.0
         now = now_iso()
         with self.store.connect() as connection:
@@ -761,23 +777,34 @@ class PressReleaseManager:
         return {"stage": "press_match", "processed": len(results), "related": sum(bool(item.get("related")) for item in results),
                 "failed": len(errors), "errors": errors[:3], "results": results}
 
-    def list_releases(self, organization_id: str = "", limit: int = 50) -> list[dict]:
-        where, params = "", []
+    def list_releases(self, organization_id: str = "", limit: int = 50, search: str = "") -> list[dict]:
+        threshold = self.match_threshold()
+        conditions, params = [], []
         if organization_id:
-            where, params = "WHERE pr.organization_id=?", [organization_id]
+            conditions.append("pr.organization_id=?")
+            params.append(organization_id)
+        search = str(search or "").strip()[:100]
+        if search:
+            conditions.append(
+                "(instr(lower(COALESCE(pr.title,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(pr.department,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(pr.contact_name,'')),lower(?))>0)"
+            )
+            params.extend([search, search, search])
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         with self.store.connect() as connection:
             rows = connection.execute(
                 f"""SELECT pr.*,o.name organization_name,
-                       COUNT(DISTINCT CASE WHEN m.is_related=1 THEN m.article_id END) related_article_count,
-                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND aa.tone='사실전달' THEN m.article_id END) factual_count,
-                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND aa.tone='부정적' THEN m.article_id END) negative_count,
-                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND aa.tone='긍정적' THEN m.article_id END) positive_count
+                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND m.similarity_score>=? THEN m.article_id END) related_article_count,
+                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND m.similarity_score>=? AND aa.tone='사실전달' THEN m.article_id END) factual_count,
+                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND m.similarity_score>=? AND aa.tone='부정적' THEN m.article_id END) negative_count,
+                       COUNT(DISTINCT CASE WHEN m.is_related=1 AND m.similarity_score>=? AND aa.tone='긍정적' THEN m.article_id END) positive_count
                     FROM press_releases pr JOIN organizations o ON o.id=pr.organization_id
                     LEFT JOIN article_press_release_matches m ON m.press_release_id=pr.id
                     LEFT JOIN article_processing_flags apf ON apf.article_id=m.article_id
                     LEFT JOIN article_analyses aa ON aa.id=apf.analysis_id
                     {where} GROUP BY pr.id ORDER BY COALESCE(pr.published_at,pr.created_at) DESC LIMIT ?""",
-                (*params, max(1, min(200, int(limit)))),
+                (threshold, threshold, threshold, threshold, *params, max(1, min(200, int(limit)))),
             ).fetchall()
         return [dict(row) for row in rows]
 
@@ -790,8 +817,8 @@ class PressReleaseManager:
                 """SELECT a.id,a.title,a.original_url,a.publisher,a.published_at,aa.summary,aa.tone,m.similarity_score
                    FROM article_press_release_matches m JOIN articles a ON a.id=m.article_id
                    JOIN article_processing_flags apf ON apf.article_id=a.id JOIN article_analyses aa ON aa.id=apf.analysis_id
-                   WHERE m.press_release_id=? AND m.is_related=1 ORDER BY m.similarity_score DESC,COALESCE(a.published_at,a.first_seen_at) DESC""",
-                (release_id,),
+                   WHERE m.press_release_id=? AND m.is_related=1 AND m.similarity_score>=? ORDER BY m.similarity_score DESC,COALESCE(a.published_at,a.first_seen_at) DESC""",
+                (release_id, self.match_threshold()),
             ).fetchall()
         item = dict(row)
         item["related_articles"] = [dict(article) for article in articles]
@@ -804,8 +831,8 @@ class PressReleaseManager:
             rows = connection.execute(
                 """SELECT pr.id,pr.title,pr.department,pr.contact_name,pr.contact_phone,pr.published_at,pr.summary,pr.canonical_url,m.similarity_score
                    FROM article_press_release_matches m JOIN press_releases pr ON pr.id=m.press_release_id
-                   WHERE m.article_id=? AND m.is_related=1 ORDER BY m.similarity_score DESC,COALESCE(pr.published_at,pr.created_at) DESC""",
-                (article_id,),
+                   WHERE m.article_id=? AND m.is_related=1 AND m.similarity_score>=? ORDER BY m.similarity_score DESC,COALESCE(pr.published_at,pr.created_at) DESC""",
+                (article_id, self.match_threshold()),
             ).fetchall()
         return [dict(row) for row in rows]
 

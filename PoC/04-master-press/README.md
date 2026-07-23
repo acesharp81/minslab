@@ -1,270 +1,1028 @@
-# 04 - AI 언론동향 비서
+# 04 - AI 언론동향 비서 README
 
-AI 언론동향 비서는 기관 키워드로 뉴스를 공동 수집하고, 로컬 Ollama가 기사별 공통 분류·어조·요약을 한 번 확정한 뒤 OpenRouter의 `google/gemma-4-26b-a4b-it:free`가 케이스 적합성을 병렬 판정하는 뉴스 모니터링 PoC입니다. 외부 모델에는 공개 제목, 220자 이내 로컬 요약, 추출 근거 후보, 공개 기관·인물명과 고정 케이스 유형만 전달합니다. 로컬 근거 검증과 전송 기준을 모두 통과한 기사만 카카오톡 개인별 `나와의 채팅`에 제목, 요약, 원문 링크를 전송합니다.
+> 문서 기준일: 2026-07-24 KST
+> 현재 단계: PoC 운영 검증 버전
+> 화면 경로: `/poc/master-press/`
+> API prefix: `/api/poc/master-press`
+> 목적: 사용자 매뉴얼, 운영 매뉴얼, LLM 시스템 분석 문서
 
-이 폴더는 뉴스 도메인 로직과 화면을 모두 포함합니다. 다른 `projects/` 또는 `PoC/` 코드를 import하지 않습니다. 배포와 관리자 인증만 기존 홈페이지의 `main.py`, `/admin`, 루트 `.env`, Uvicorn 프로세스를 그대로 사용합니다. 별도 포트·Node.js·Docker 컨테이너·웹서비스는 띄우지 않습니다.
+AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공통 AI 분석과 케이스별 의미 판정을 거쳐 실제로 필요한 기사만 카카오톡으로 발송하는 언론 모니터링 PoC다. 현재 버전은 단순 키워드 알림이 아니라, 기관 단위 수집, 기사 공통분석, 로컬 임베딩, 케이스별 LLM 판정, 보도자료 RAG 매칭, 구독자 승인 관리, 클린 AI 게시판까지 하나의 운영 흐름으로 묶는다.
 
-## 동작 구조
+이 문서는 두 가지 목적으로 작성한다.
+
+1. 일반 사용자와 관리자가 실제 화면을 보고 사용할 수 있는 매뉴얼
+2. 다른 LLM 또는 개발자가 시스템 전체 구조와 데이터 흐름을 빠르게 이해할 수 있는 분석 문서
+
+## 1. 서비스가 해결하는 문제
+
+기존 언론 모니터링은 보통 키워드 검색 결과를 사람이 훑고, 관련성이 낮은 기사까지 많이 확인해야 한다. 이 PoC는 다음 문제를 줄이는 것을 목표로 한다.
+
+- 같은 기관 기사 본문을 케이스마다 반복 수집하지 않는다.
+- 기사 1건당 공통분석을 한 번만 수행한다.
+- 명백히 관련 없는 케이스는 LLM 판정 전에 후보 제외한다.
+- 케이스 판정은 여러 케이스를 한 요청으로 묶어 호출 수를 줄인다.
+- 발송 제외 사유를 사용자 친화적인 문장으로 보여준다.
+- 행안부 보도자료와 언론 기사를 RAG/임베딩 기준으로 연결한다.
+- 구독자는 카카오 메시지 권한을 명확히 동의해야 실제 발송 대상이 된다.
+- 카카오 발송은 대표 이미지가 있으면 카드형 feed 메시지를 우선 사용하고, 실패 시 기존 text 메시지로 자동 fallback한다.
+- 관리자는 회원, 신청, 승인, 해제, 케이스 순서, 모델, 공지사항을 한 곳에서 관리한다.
+- 모델 무료 사용량 또는 토큰이 소진되면 예비 모델로 전환하고, 모두 소진되면 영업중지 메시지를 표시한다.
+
+## 2. 사용자 화면 한눈에 보기
+
+상단 메뉴는 다음으로 구성된다.
+
+| 메뉴 | 사용자 | 목적 |
+| --- | --- | --- |
+| 사용설명서 | 일반/관리자 | 앱 안에서 보는 좌측 트리형 사용 매뉴얼, 기존 PDF 다운로드 링크 포함 |
+| 구독 및 케이스 신청 | 일반/관리자 | 카카오 구독 요청, 케이스 신청 게시판 |
+| 대시보드 | 일반/관리자 | 기사 분석 기록, 처리 현황, 발송 상태 |
+| 신경망 분석 | 일반/관리자 | 발송 기사 기반 의미 관계망 |
+| 보도동향 | 일반/관리자 | 행안부 보도자료와 관련 기사 확인 |
+| 관리 설정 | 관리자 | 기관, 케이스, 회원, 모델, 공지, 기준값 관리 |
+
+`사용설명서`는 앱 안에서 열리는 구조화 매뉴얼이다. 좌측 트리 메뉴, 항목별 설명, 하이퍼링크, 화면 설명 이미지를 제공하며 기존 `manual.pdf`도 보조 링크로 내려받을 수 있다.
+
+## 3. 일반 사용자 매뉴얼
+
+### 3.1 구독 및 케이스 신청 메뉴
+
+이 메뉴는 세 가지 영역으로 구성된다.
+
+1. 구독 신청 프레임
+2. 케이스 신청 게시판
+3. 신청기록
+
+#### 3.1.1 구독 신청 기본 원칙
+
+구독 신청 페이지는 개인의 어떠한 정보도 수집하지 않는다는 안내를 표시한다. 다만 서비스 동작을 위해 다음 입력은 필요하다.
+
+- 카카오 메시지 전송 동의 상태
+- 신청자 이름
+- 소속 기관 또는 구독할 기관
+- 구독 대상 케이스
+
+신청자 이름은 관리자 화면에서도 기본적으로 첫 글자만 보이고 나머지는 마스킹된다. 관리자가 `이름 표시`를 켜야 전체 이름이 보인다.
+
+구독 변경 시에는 추가·삭제분만 고르는 방식이 아니다. 변경 후 구독할 전체 케이스를 다시 체크해서 요청해야 한다. 해지는 모든 체크를 해제하는 방식으로 요청한다.
+
+#### 3.1.2 카카오 동의 절차
+
+구독 신청은 반드시 다음 순서로 진행한다.
+
+1. `1. 카카오 전송`에서 `카카오 로그인/메시지 전송 동의하기`를 누른다.
+2. 카카오 로그인 화면에서 `[선택] 카카오 메시지 전송`에 동의한다.
+3. 서비스로 돌아오면 서버가 `talk_message` 권한을 확인한다.
+4. 권한 확인이 끝난 뒤에만 이름, 기관, 구독 대상 선택이 열린다.
+
+화면에는 빨간색 안내가 표시된다.
+
+> 반드시 카카오 로그인 후, [선택] 카카오 메시지 전송을 선택하셔야지 실제 메시지가 발송됩니다.
+
+이 권한이 없으면 관리자가 승인해도 카카오 메시지 발송이 실패한다.
+
+#### 3.1.3 이름·기관 선택
+
+카카오 메시지 동의가 확인되면 `2. 이름·기관 선택` 영역이 활성화된다.
+
+- 신청자 이름을 입력한다.
+- 구독할 기관을 선택한다.
+- 기관을 선택하면 해당 기관의 활성 케이스 목록이 표시된다.
+
+#### 3.1.4 구독 대상 선택
+
+`3. 구독 대상 선택`에서는 케이스 목록이 2열로 표시된다. `모두 선택` 체크박스로 한 번에 선택할 수 있다.
+
+케이스별 `?` 아이콘에 마우스를 올리면 다음 정보가 툴팁으로 표시된다.
+
+- 케이스 프롬프트
+- 벡터/LLM 분석 비율
+- 현재 구독자 수
+
+다수 케이스를 동시에 구독하면 알림이 많아질 수 있다. 정책동향, 간부 언론 동향처럼 발송량이 많은 케이스는 시간당 30건 이상 메시지가 갈 수 있다.
+
+#### 3.1.5 구독 요청 제출
+
+`구독 요청`을 누르면 선택한 전체 케이스가 구독 요청 정보로 저장된다. 이후 관리자가 회원 관리에서 케이스별로 승인하면 실제 수신 대상이 된다.
+
+### 3.2 케이스 신청 게시판
+
+구독 신청 프레임과 신청기록 사이에는 `케이스 신청 게시판`이 있다. 사용자는 현재 없는 모니터링 케이스를 익명 닉네임으로 제안할 수 있다.
+
+#### 3.2.1 글 등록
+
+입력값은 다음과 같다.
+
+| 입력값 | 설명 |
+| --- | --- |
+| 닉네임 | 게시판에 표시되는 익명 이름 |
+| 수정·삭제 암호 | 사용자가 나중에 글을 수정/삭제할 때 사용 |
+| 케이스 제목 | 제안할 케이스명 |
+| 케이스 프롬프트 | AI가 어떤 기사를 관련 기사로 볼지 설명하는 지시문 |
+| 키워드 | 후보 기사 선별에 사용할 포함 키워드 |
+| 필수키워드 | 반드시 포함되어야 하는 키워드 |
+
+프롬프트 예시는 화면 placeholder에 제공된다.
+
+> 예: 행정안전부 또는 행안부가 AI·디지털 행정과 관련해 직접 추진·발표·비판 대상으로 언급된 기사만 찾아줘. 단순 기술 소개나 타 기관 사례는 제외해줘.
+
+암호는 평문 저장하지 않고 salt+hash 형태로 저장한다.
+
+#### 3.2.2 글 목록 보기
+
+게시판 목록에는 기본적으로 다음만 보인다.
+
+- 케이스 제목
+- 닉네임
+- 게시 상태
+
+게시글을 클릭하면 내용이 확장된다. 확장 내용에는 프롬프트, 키워드, 필수키워드가 표시된다.
+
+#### 3.2.3 수정과 삭제
+
+사용자는 등록 시 입력한 암호로 글을 수정하거나 삭제할 수 있다.
+
+- 수정하면 다시 클린 AI 검사 대기 상태가 된다.
+- 삭제하면 게시글이 제거된다.
+- 암호가 맞지 않으면 수정/삭제할 수 없다.
+
+### 3.3 클린 AI 블라인드 처리
+
+케이스 신청 글이 등록되거나 수정되면 `pending` 상태가 된다. 이후 로컬 LLM이 유휴 상태일 때 글 내용을 검사한다.
+
+검사 대상은 다음이다.
+
+- 욕설
+- 혐오·비하
+- 개인 공격
+- 명예훼손성 비방
+- 음란·폭력 조장
+- 개인정보 노출
+- 광고·스팸
+
+문제가 확인되면 일반 사용자에게 제목은 아래 문구로 대체된다.
+
+> 클린 AI에 의해서 블라인드 처리되었습니다.
+
+이 경우 내용 확장은 잠긴다. 관리자는 원문 제목과 내용을 볼 수 있고, 필요하면 `게시 허용`으로 예외 처리할 수 있다. 예외 처리 후 글이 다시 수정되면 다시 검사 대상이 된다.
+
+## 4. 대시보드 사용자 매뉴얼
+
+대시보드는 기사 분석과 발송 상태를 확인하는 중심 화면이다.
+
+### 4.1 서비스 세부 상태
+
+상단에는 오늘 처리 상태가 표시된다.
+
+- 분석 기사
+- 공통분석 대기/완료/오류
+- 임베딩 대기/완료/오류
+- 케이스별 판정 대기/완료/오류
+- 발송 대기/완료/오류
+- 평균 처리 속도
+- 처리 건수
+
+오류 표기는 현재 대기 중인 오류와 누적 오류를 함께 보여준다.
 
 ```text
-기존 Nginx
-  └─ 기존 Uvicorn main.py
-       ├─ /poc/master-press/                 정적 대시보드
-       ├─ /api/poc/master-press/*            PoC 04 API
-       ├─ 기존 /admin 세션                   관리자 API 보호
-       └─ 기존 ASGI lifespan
-            ├─ 30초 오케스트레이터: 기관 수집·후보 배분·발송 큐
-            ├─ Local Worker 1개: Ollama 공통 분류·어조·요약·임베딩
-            ├─ Remote Worker 1개: OpenRouter Gemma 케이스 판정
-            ├─ Remote Burst Worker 1개: 대기 10건 이상일 때 추가 처리
-            ├─ SQLite 원본 DB·단계별 작업 큐·호출 사용량
-            ├─ Supabase 메타데이터 미러
-            └─ Kakao OAuth 사용자별 나에게 보내기
+현재 오류 발생해서 대기 건수(누적: n건)
 ```
 
-## 폴더 구조
+대시보드에는 모델 토큰 수를 직접 노출하지 않는다. 모델명은 단순화하고 플랫폼까지만 표시한다.
+
+예시:
 
 ```text
-04-master-press/
-├── backend.py                  # 홈페이지가 동적 로드하는 단일 진입점
-├── project.json                # PoC 메뉴 메타데이터
-├── requirements.txt            # 추가 Python 의존성
-├── .env.example                # 필요한 루트 .env 변수 설명
-├── supabase_schema.sql         # 격리된 Supabase 미러 테이블
-├── master_press/
-│   ├── config.py               # 루트/폴더 .env와 운영 제한
-│   ├── storage.py              # SQLite 스키마·CRUD·큐·집계
-│   ├── collectors.py           # NAVER API, RSS, robots, 본문 추출
-│   ├── scoring.py              # 키워드·임베딩·LLM 복합 관련도
-│   ├── kakao.py                # OAuth, 토큰 암호화·갱신, 나에게 보내기
-│   ├── supabase_mirror.py      # 장애 격리형 best-effort 미러
-│   └── service.py              # 수집·분석·발송 스케줄 오케스트레이션
-├── web/
-│   ├── index.html              # 공개 대시보드와 관리자 화면
-│   ├── styles.css
-│   └── app.js
-└── tests/
+Cloudflare · Gemma 4 26B · 사용 가능
+OpenRouter · Gemma 4 26B · 사용 가능
+Ollama · nomic-embed · 사용 가능
 ```
 
-생성되는 `data/master_press.sqlite3`는 Git에 포함하지 않습니다.
-
-## 케이스 설정
-
-홈페이지 `/admin`에서 로그인한 뒤 `AI 언론동향 비서` 탭을 엽니다. 관리자 화면은 기존 `minslab_admin_session` HttpOnly 쿠키를 사용합니다.
-
-기관별 설정:
-
-- 기관명, 약칭, 이전 명칭, 관련 인물, 제외 키워드
-- 기관 공식 도메인과 RSS 주소
-- 1/5/10/30/60분, 3/6시간, 1일 또는 지정 시각 수집
-- 활성/중지 상태
-- 회차당 검색어 수와 기사 수 제한
-- 삭제 대신 중지·보관하여 기존 통계 유지
-
-기관명·약칭·이전 명칭·인물은 각각 검색어로 요청하고 URL 기준으로 합칩니다. 기관 기사 본문은 한 번만 수집한 뒤 연결된 여러 케이스로 재분배합니다.
-
-
-케이스별 설정:
-
-- 이름, 주제 검색 사용자 프롬프트, 활성 상태
-- 포함·필수·제외·긴급 키워드
-- 포함·제외 언론사와 공식 RSS
-- 1/5/10/30/60분 수집 또는 지정 시각
-- LLM 주제 일치 시 즉시 발송 또는 기존 발송 일정 적용
-- LLM 전송 기준점과 분석 보류 참고점수
-- 후보 진단 보고서용 키워드·의미·LLM 혼합점수 비중(표시 유사도·발송에는 미사용)
-- 복수 카카오 수신자
-
-케이스 전체 개수 제한은 제거했습니다. 운영 케이스는 반드시 사용 기관에 종속되며 기관 공동 수집 주기를 사용합니다. 관리 화면에서도 기관 카드 안에서 소속 케이스를 생성·수정합니다. 설정을 저장할 때마다 버전과 JSON snapshot을 SQLite에 보관합니다.
-
-## 업무 정의와 프롬프트 구조
+모든 LLM 제공자가 사용량 한도에 도달하면 상단 메뉴에 다음 메시지를 표시한다.
 
 ```text
-1. 기관 키워드 수집
-   기관명·약칭·이전 명칭·인물·공식 RSS로 기사 수집 및 URL 중복 제거
-2. Local 공통 분석
-   Ollama가 기사별 본문을 한 번 읽고 주제 분류·배타적 어조·요약·엔터티·공통 근거를 확정
-3. 케이스 후보 선정
-   기관에 속한 케이스의 포함·필수·제외 키워드로 후보를 좁혀 독립 평가 작업 생성
-4. Remote 케이스 판정
-   OpenRouter Gemma가 공개 제목·220자 요약·추출 근거와 고정 케이스 유형만 받아 엄격한 JSON으로 관련 여부와 점수를 반환
-5. Local 근거 재검증·발송
-   모델이 고른 근거 ID가 실제 기사에 존재하는지 로컬에서 다시 확인하고 케이스별 기준을 통과한 건만 독립 발송
+영업중지-토큰이 다 떨어졌어요. 낼 00시에 뵈어요~
 ```
 
-`주제 검색 사용자 프롬프트`는 로컬에서 케이스 유형과 근거 조건을 해석하는 운영 설정입니다. 외부 모델에는 원문을 보내지 않습니다. 현재 PoC의 부정 모니터링은 `행정안전부 관련 부정적 기사`처럼 짧게 작성해도 공통 시스템 규칙이 기관 직접 비판과 운영 사실 예외를 적용합니다. 재난 케이스는 이름 또는 설정에 `재난`, `사건`, `사고`, `안전` 중 핵심 범위를 명시합니다.
+### 4.2 기사 분석 기록
 
-## 수집 정책
+기사 목록은 기사화 시각 기준으로 표시된다. 우측 상단에는 다음 필터가 있다.
 
-1. 기관명·약칭·이전 명칭·인물별로 NAVER 뉴스 검색 API의 최신 100건을 요청합니다.
-2. 기관과 환경변수의 공식 RSS를 합칩니다.
-3. 추적 파라미터를 제거한 URL로 중복을 제거하고 기관 제외 키워드를 적용합니다.
-4. 기관 기사 본문을 한 번 수집한 뒤 연결된 케이스의 키워드로 후보를 재분배합니다.
-5. `article_id` 공통분석 플래그와 `article_id + case_id` 케이스판정 플래그를 영구 관리합니다. 본문 해시나 케이스 버전이 바뀌어도 완료된 자동 분석은 다시 처리하지 않으며, 명시적인 관리자 재분석만 별도 기록으로 실행합니다.
-6. 로컬 공통분석은 본문을 한 번만 읽고, OpenRouter 케이스평가는 최소 공개 증거만 사용합니다. 케이스별 결과와 발송 상태는 서로 덮어쓰지 않습니다.
-7. 도메인별 요청 간격을 1초 이상 두고 응답 본문을 2MB로 제한합니다.
-8. 정밀 추출은 `trafilatura`, 미설치 시 표준 HTML parser를 사용합니다.
-9. 원문 본문은 기본 7일, 메타데이터는 90일 보관합니다.
+- 전체 목록
+- 발송목록
+- 미발송목록
+- 기사 검색: 제목, 신문사, 기자
+- 유사 기사 묶어서 보기
 
-차단·유료·robots 비허용 페이지는 우회하지 않고 제목과 검색 요약문만 평가합니다.
+기사 카드에는 다음 정보가 표시된다.
 
-## 관련도와 개선 자료
+- 기사 제목
+- 대표 썸네일
+- 언론사, 기자, 시각
+- 공통분석 요약
+- 기사 유형
+- 어조
+- 분류 태그
+- 관련 보도자료 버튼
+- 유사도 퍼센트
+- 발송 건수
 
-사용자 표시 유사도와 발송 임계값:
+대표 썸네일은 기사 원문 HTML의 `og:image`, `twitter:image`, `image_src`를 우선 사용하고, 없으면 본문 이미지 후보를 보조로 사용한다. 이미지가 없거나 외부 표시가 차단되면 `대표 이미지 없음` 플레이스홀더를 표시한다.
+
+태그는 기사 상단에만 표시한다. 하단 중복 태그는 제거했다.
+
+### 4.3 유사 기사 묶어서 보기
+
+`유사 기사 묶어서 보기`는 기본 선택되어 있다. 기준값은 관리 설정의 `유사 기사 묶음 기준`을 따른다. 기본값은 65%다.
+
+묶음은 두 단계로 동작한다.
+
+1. 초기에는 키워드 기반으로 임시 묶음을 표시한다.
+2. 임베딩이 완료되면 의미 유사도까지 반영해 최종 묶음으로 갱신한다.
+
+묶을 때는 최신 기사 1건만 대표로 표시하고, 하단의 `유사 기사 묶음 보기(n건)`을 누르면 나머지 기사를 확장한다.
+
+### 4.4 + 케이스 영역
+
+기사 카드의 `+ 케이스`를 펼치면 해당 기사가 각 케이스에서 어떤 상태인지 볼 수 있다.
+
+상태 예시는 다음과 같다.
+
+- 처리 전
+- 후보 제외
+- 유사도 판정 대기
+- 유사도 판정 중
+- 발송 제외
+- 발송 예정
+- 발송 완료
+- 판정 실패
+
+요약 표기는 다음 형식이다.
 
 ```text
-실제 유사도 = OpenRouter Gemma 케이스 점수(0~100)
-발송 조건 = 실제 유사도 ≥ 케이스 임계값 + 로컬 대상·어조 근거 검증 통과
+케이스 n개 분석: n 처리전, n 후보제외, n 발송제외, n 발송완료
 ```
 
-키워드 점수는 후보 선정과 분석보고서 진단값으로만 사용하며 표시 퍼센트에 섞지 않습니다. 기사 임베딩은 신경망·이벤트 분석에 보존하지만 케이스 판정 때 두 번째 로컬 임베딩 호출은 생략합니다. 과거 혼합점수는 감사 기록으로 남지만 기사 카드·일일 평균·신경망·카카오 메시지는 임계값과 같은 Gemma 유사도를 사용합니다. 실제 발송은 유사도가 전송 기준점 이상이고 로컬 대상·어조 근거 검증까지 통과할 때만 허용합니다. 단순 언급·연관성 부족·다른 맥락·본문 부족은 대시보드에 `발송 제외`로 남습니다. LLM 장애 시에는 `확인 대기`로 기록하고 발송하지 않습니다.
+후보 제외와 발송 제외 사유는 내부 코드가 아니라 일반 사용자가 이해할 수 있는 짧은 한국어 문장으로 표시한다.
 
-`LLM 주제 일치 시 즉시 발송`을 사용하면 기사 판정 직후 발송 큐를 처리합니다. 긴급 키워드는 주제 일치 판정을 통과한 기사에 한해 예약 시간을 우회합니다. 분석·카카오 메시지의 분류 태그 첫머리에는 기관 태그를 붙입니다. 대시보드는 기관을 먼저 선택한 뒤 해당 기관의 케이스만 선택할 수 있고, 최신 기사 20건을 스크롤로 표시하며 1분마다 자동 갱신합니다. 언론사 분포 아래에는 분류별 `기사 수(발송 수)`, 발송 상태와 최근 발송 기사를 함께 표시합니다.
+### 4.5 기사 재분석
 
-저유사도 분류 예:
+관리자 로그인 상태에서는 기사 단위 재분석 버튼이 관련 보도자료 아래, `+ 케이스` 왼쪽에 표시된다. 재분석은 케이스별 버튼이 아니다. 기사를 기준으로 모든 케이스 판정을 다시 대기 상태로 돌린다.
 
-대시보드의 처리 현황은 한국시간 00:00부터 오늘의 처리 전·처리 중·완료·실패 건수와 완료 작업의 평균 처리시간을 보여줍니다. 기존 평가 기록은 배포 시 완료 작업으로 자동 이관하되 처리시간 평균에서는 제외합니다.
+재분석 동작은 다음과 같다.
 
-LLM은 관련도 판정과 함께 대표 분야와 세부 태그를 생성합니다. 대표 분야는 통계 기준이 흔들리지 않도록 다음 15개 중 하나로 정규화합니다.
+1. 해당 기사의 케이스 판정을 다시 대기 상태로 변경한다.
+2. 기존 결과는 최신 결과가 나오면 덮어쓴다.
+3. 발송 조건을 만족하면 카카오 발송까지 진행한다.
+
+## 5. 신경망 분석 사용자 매뉴얼
+
+신경망 분석은 발송 완료 기사 중심의 의미 관계망이다.
+
+### 5.1 사용 방법
+
+1. 기관을 선택한다.
+2. 케이스를 선택한다.
+3. 분석 기간을 선택한다.
+4. 3D 관계망에서 노드를 클릭해 세부 내용을 확인한다.
+
+### 5.2 관계망 기준
+
+신경망 분석은 기사 임베딩과 상위 주제 개념을 활용한다. 관련 없는 기사까지 한 덩어리로 뭉치지 않도록 기사 유사도가 높은 경우만 연결한다.
+
+현재 UI 조정 방향은 다음과 같다.
+
+- 같은 군집 내 거리는 기존보다 약 30% 넓힘
+- 군집 간 거리는 너무 멀어지지 않도록 조정
+- 유사하지 않은 군집은 충분히 떨어뜨려 가시성 확보
+- 대시보드 유사 기사 묶음 기준과 같은 기본 유사도 기준값을 사용
+
+## 6. 보도동향 사용자 매뉴얼
+
+보도동향은 행정안전부 보도자료와 언론 기사 연결을 확인하는 화면이다.
+
+### 6.1 검색
+
+검색 입력칸에서 다음 항목을 검색할 수 있다.
+
+- 보도자료 제목
+- 담당과
+- 담당자 이름
+
+### 6.2 보도자료 목록
+
+보도자료 목록에는 다음 정보가 표시된다.
+
+- 제목
+- 게시일
+- 담당과
+- 담당자
+- 관련 기사 수
+- Markdown 원문 보기
+- 관련 기사 펼치기
+
+관련 보도자료 표시 기준은 관리 설정의 `관련 보도자료 기준`을 따른다. 기본값은 65%다.
+
+### 6.3 즐겨찾기
+
+보도자료 제목 앞의 별표를 클릭하면 즐겨찾기로 고정할 수 있다. 이 값은 브라우저 로컬 저장소에만 저장되고 서버 DB에는 저장하지 않는다.
+
+## 7. 관리자 매뉴얼
+
+관리 설정은 홈페이지 관리자 세션으로 보호된다. 별도 로그인 시스템은 만들지 않고 기존 `/admin` 세션을 공유한다.
+
+### 7.1 회원 관리
+
+회원 관리는 관리 설정 최상단에 위치한다.
+
+#### 표시 방식
+
+- 최대 5명까지 보이도록 하고 그 이상은 스크롤 처리한다.
+- 접힌 상태에서는 이름과 신청 상태만 보인다.
+- 이름은 기본적으로 첫 글자만 표시하고 나머지는 마스킹한다.
+- 우측 `이름 표시` 체크박스를 켜면 전체 이름이 표시된다.
+- 회원 행을 클릭하면 구독 상세 목록이 확장된다.
+
+접힌 상태의 신청 상태 예시:
 
 ```text
-정책·행정, 정치·입법, 경제·산업, 사회·안전, 재난·환경,
-과학·기술, AI·디지털, 보건·복지, 교육, 지역, 국제,
-문화·생활, 인사·조직, 사건·논란, 기타
+n 케이스 승인요청, n 케이스 승인완료
 ```
 
+#### 확장 상태에서 가능한 작업
+
+- 케이스별 승인/반려 상태 확인
+- 체크박스로 수신 케이스 조정
+- `적용` 버튼으로 변경 반영
+- 테스트 메시지 발송
+- `해제(관리자 권한)` 실행
+
+해제를 실행하면 먼저 구독 해지 알림 메시지를 보낸 뒤 카카오 수신 등록을 해제한다.
+
+카카오 동의 단계에서는 아직 이름 입력 전이므로 임시 수신자 라벨이 `구독 신청자`로 생성될 수 있다. 같은 카카오 계정이 다시 인증되더라도 이 임시 라벨은 기존 이름을 덮어쓰지 않는다. 구독 요청 제출이 완료되어 실제 신청자 이름이 들어온 경우에만 수신자 이름을 업데이트한다. 신청 기록 없이 카카오 동의만 완료된 임시 등록자는 회원관리에서 `신청 미완료`로 구분 표시한다.
+
+### 7.2 수동 등록 링크
+
+카카오 구독을 사용자가 직접 신청하지 못하는 경우, 관리자가 `수동 등록 링크`를 만들 수 있다. 링크를 받은 사용자가 카카오 메시지 권한에 동의하면 수동 등록 구독자로 표시된다.
+
+### 7.3 기관 관리
+
+기관은 기사 수집의 최상위 단위다. 케이스는 반드시 기관에 속한다.
+
+기관 설정 항목:
+
+- 기관명
+- 활성 상태
+- 약칭
+- 이전 명칭
+- 관련 인물
+- 제외 키워드
+- 기관 도메인
+- 공식 RSS 주소
+- 수집 방식
+- 수집 주기 또는 지정 시각
+- 회차당 검색어 수
+- 회차당 기사 한도
+
+기관 기준으로 NAVER 검색어와 RSS 수집 대상이 만들어진다.
+
+### 7.4 케이스 관리
+
+케이스는 기관 아래에서 실제 발송 여부를 결정하는 규칙이다.
+
+케이스 설정 항목:
+
+- 케이스명
+- 활성 상태
+- 주제 검색 사용자 프롬프트
+- 포함 키워드
+- 필수 키워드
+- 제외 키워드
+- 긴급 키워드
+- 사용 기관
+- LLM 주제 일치 시 즉시 발송 여부
+- 발송 방식
+- 발송 시각
+- LLM 전송 기준
+- 분석 보류 참고점수
+- 하이브리드 유사도 비중
+- 공식 RSS 주소
+- 카카오 구독자
+
+기본 발송 기준은 70%다. 기본 하이브리드 비중은 벡터 25%, LLM 75%다.
+
+LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 있도록 최종 판단은 LLM 비중을 크게 둔다. 현재 기본값은 `semantic_weight=0.25`, `llm_weight=0.75`다.
+
+### 7.5 케이스 정렬 순서
+
+관리 설정의 `사용 기관과 소속 케이스`에서 케이스 행을 드래그해 순서를 바꿀 수 있다. 이 순서는 다음 화면에 반영된다.
+
+- 구독 신청 케이스 목록
+- 대시보드 콤보박스
+- 신경망 분석 기본 선택
+- 관리 설정 케이스 목록
+
+과거에는 10, 20, 30 같은 내부 sort_order 값이 보였지만, 현재는 표시하지 않는다. 대신 케이스 목록에는 구독자 수가 표시된다.
+
+### 7.6 모델 설정
+
+관리 설정의 모델 설정은 작은 카드 형태로 표시된다. 초기 로딩에서는 저장된 값만 먼저 보여주고, 모델 상태는 순차적으로 확인한다.
+
+확인 순서:
+
+1. 공통분석 모델
+2. 케이스 판정 모델
+3. 예비1 모델
+4. 예비2 모델
+5. 로컬 임베딩 모델
+
+모델 상태 확인 때문에 관리 설정 페이지 전체가 늦게 열리지 않도록 설계했다.
+
+#### 공통분석 모델
+
+현재 기본값은 Cloudflare Workers AI의 Gemma 4 26B다.
+
+- 기본: Cloudflare Workers AI `@cf/google/gemma-4-26b-a4b-it`
+- 예비1: Groq `llama-3.1-8b-instant`
+- 예비2: Gemini `gemini-3.5-flash-lite`
+
+기존에는 Groq Llama 3.1 8B가 공통분석 기본 모델이었지만, 정확성 측면에서 Gemma 4 26B가 공통분석에 더 적합하다고 판단해 기본 모델을 Cloudflare Gemma로 바꾸고 Groq를 예비로 조정했다.
+
+#### 케이스 판정 모델
+
+케이스 판정은 OpenRouter 무료 모델을 기본 사용한다. 일일 실제 호출 기준 한도는 1000회다. 오류 포함 실 호출 기준으로 카운트한다.
+
+OpenRouter 무료 사용량이 한도에 도달하면 예비 모델로 넘어간다.
+
+#### 예비 모델 체계
+
+예비 모델은 다음 순서로 사용된다.
+
+1. Cloudflare Workers AI
+2. Groq
+3. Gemini
+
+공통분석 또는 케이스 판정에서 일일 사용량, 무료 토큰, rate limit, 무료 소진 메시지가 감지되면 예비 모델로 전환한다. 모든 예비까지 소진되면 해당 작업은 다음 초기화 시각까지 대기하거나 제외 처리된다.
+
+### 7.7 사용량과 초기화 시각
+
+관리 설정에서는 모델별 사용량과 초기화 시각을 한국 시간으로 표시한다.
+
+- Groq: UTC 일일 기준을 한국시간으로 환산
+- OpenRouter: 무료 호출 한도 1000회, 실제 호출 기준
+- Cloudflare Workers AI: Cloudflare 사용량 기준과 설정된 안전 한도
+- Gemini: Google AI Studio/Gemini 기준과 설정된 안전 한도
+- Ollama: 로컬 임베딩 호출 수, 생성형 호출과 별도 집계
+
+대시보드에는 토큰 숫자를 노출하지 않는다. 관리자 설정에서만 상세 사용량을 확인한다.
+
+### 7.8 공지사항 관리
+
+공지사항은 2열 구조다.
+
+- 왼쪽: 새 공지 등록
+- 오른쪽: 등록된 공지 목록
+
+목록 탭:
+
+- 게시중
+- 전체
+
+가능한 작업:
+
+- 제목 입력
+- 게시 종료 시각 입력
+- 내용 입력
+- 게시
+- 내리기
+- 삭제
+
+`내리기`는 팝업 노출을 중단하지만 기록은 보관한다. `삭제`는 DB에서 완전 삭제한다.
+
+공지사항은 사용자가 처음 접속할 때 팝업으로 표시된다. `일주일 동안 다시 보지 않기`를 체크하면 브라우저 로컬 저장소에 해당 공지의 숨김 만료 시각이 저장된다.
+
+### 7.9 저유사도 개선 자료
+
+발송 제외나 낮은 유사도 판정은 개선 자료로 쌓인다. 관리자는 케이스별로 제외 사유, 키워드 제안, 판정 근거를 확인해 프롬프트와 키워드를 다듬을 수 있다.
+
+## 8. 기사 처리 파이프라인
+
+전체 처리 흐름은 다음과 같다.
+
+```text
+기관 설정
+  ↓
+NAVER News API / RSS 수집
+  ↓
+URL 정규화·중복 제거·기관 후보 필터
+  ↓
+articles 저장 및 본문·대표 이미지 추출
+  ↓
+article_analysis_jobs 생성
+  ↓
+공통분석 LLM
+  ↓
+article_analyses 저장
+  ↓
+Ollama 기사 임베딩
+  ↓
+케이스 후보 게이트
+  ↓
+case_evaluations / case_evaluation_jobs 생성
+  ↓
+케이스별 LLM 판정
+  ↓
+하이브리드 점수 계산·하드 게이트 검증
+  ↓
+deliveries 큐 생성
+  ↓
+Kakao 나에게 보내기 발송
+  - 대표 이미지가 있으면 feed 카드형 메시지
+  - 이미지가 없거나 feed 전송 실패 시 text 메시지 fallback
+```
+
+### 8.1 기관 단위 수집
+
+수집은 케이스가 아니라 기관 기준이다. 기관에는 이름, 약칭, 이전 명칭, 관련 인물, 도메인, RSS, 제외 키워드가 들어간다.
+
+장점:
+
+- 같은 기관의 기사를 한 번만 수집한다.
+- 여러 케이스가 같은 기사 본문을 공유한다.
+- 케이스가 늘어나도 수집량이 선형 증가하지 않는다.
+
+### 8.2 공통분석
+
+공통분석은 기사 1건당 한 번 수행한다. 산출물은 모든 케이스가 공유한다.
+
+공통분석 결과:
+
+- 요약
+- 대표 기사 유형
+- 분류 태그
+- 어조
+- 주요 엔터티
+- 상위 주제 개념
+- 근거 문장
+- 분석 리포트
+
+공통분석은 기사 본문 전체를 가능한 한 압축해 후속 판정에 필요한 공통 정보를 만든다. 공통분석 품질은 전체 시스템 품질에 큰 영향을 준다.
+
+### 8.3 임베딩
+
+공통분석이 완료되면 로컬 Ollama 임베딩을 생성한다.
+
+사용처:
+
+- 케이스 프롬프트와 기사 의미 유사도 계산
+- 유사 기사 묶음
+- 신경망 분석
+- 보도자료 매칭
+- 케이스 신청 게시판 클린 AI 검사 유휴 판단과 같은 로컬 작업 스케줄링
+
+임베딩 호출은 로컬 호출 수로 별도 집계한다. 외부 LLM 호출량에는 포함하지 않는다.
+
+### 8.4 케이스 후보 게이트
+
+LLM 비용을 줄이기 위해 케이스 판정 전에 후보 제외를 수행한다.
+
+검사 항목:
+
+- 제외 키워드 매칭
 - 필수 키워드 누락
-- 제외 키워드 일치
-- 제목에만 키워드 존재
-- 낮은 의미 유사도
-- 본문 접근 불가
-- LLM이 판정한 동음이의어·단순 언급·주제 불일치
+- 포함 키워드 누락
+- 부정 모니터링 케이스의 부정 신호 부족
+- 벡터 후보 기준 미달
 
-관리자 화면은 최근 7일 저점 표본 수, 평균 점수, 원인 분포와 설정 개선 제안을 보여줍니다. 자동으로 키워드를 바꾸지 않으므로 설정 drift를 방지합니다.
+후보 제외 사유는 사용자에게 내부 코드가 아니라 짧은 한국어 문장으로 보인다.
 
-## 카카오 수신자 방식
+예시:
 
-수신자에게 API 키나 토큰 문자열을 요구하지 않습니다.
+- 필수 키워드가 기사에 없어 케이스 판정에서 제외했습니다.
+- 제외 키워드가 포함되어 후보에서 제외했습니다.
+- 케이스가 요구한 부정적 맥락이 확인되지 않았습니다.
 
-1. 관리자가 일회용 수신자 등록 링크를 생성합니다.
-2. 수신자가 링크에서 같은 Kakao Developers 앱에 로그인합니다.
-3. `talk_message`에 동의합니다.
-4. 서버가 사용자별 access/refresh token을 발급받습니다.
-5. 토큰은 `MASTER_PRESS_TOKEN_ENCRYPTION_KEY`로 암호화해 SQLite에 저장합니다.
-6. 발송 시 해당 사용자의 토큰으로 `나에게 보내기`를 호출합니다.
-7. 만료 5분 전 access token을 자동 갱신합니다.
+### 8.5 케이스 판정
 
-이 방식은 각 수신자의 `나와의 채팅`에 보내는 것이며 일반 단체방 자동 발송이 아닙니다. 수신자 테스트, 재동의 상태, 연결 해제를 관리자에서 처리합니다.
+케이스 판정은 여러 케이스를 한 번에 묶어 처리한다. 기본 배치 크기는 10이다. 관리 설정에서 조정할 수 있다.
 
-카카오 기본 텍스트 템플릿의 200자 제한에 맞춰 케이스명, 최종 관련도, 제목과 압축 요약을 전송합니다. `원문 보기` 버튼은 등록된 홈페이지 도메인의 기사 ID 경로를 거쳐 저장된 실제 원문 URL로 이동합니다.
+판정 결과:
 
-## 환경설정
+- LLM 점수
+- 관련 여부
+- 어조
+- 근거 상태
+- 사용자용 사유
+- 최종 결정
 
-루트 `.env`에 [`.env.example`](.env.example)의 값을 추가합니다. 특히 다음 값이 필요합니다.
+최종 점수는 벡터와 LLM 점수를 가중 결합한다. 기본값은 벡터 25%, LLM 75%다.
 
-- 뉴스 수집: `MASTER_PRESS_NAVER_CLIENT_ID`, `MASTER_PRESS_NAVER_CLIENT_SECRET`
-- 카카오: REST API key, client secret, 정확히 등록한 redirect URI
-- 토큰 암호화: `MASTER_PRESS_TOKEN_ENCRYPTION_KEY`
-- 로컬 AI: 기존 `OLLAMA_BASE_URL`, 설치 모델
-- 케이스 AI: `OPENROUTER_API_MYKEY`, `MASTER_PRESS_OPENROUTER_CASE_MODEL`
-- 일일 안전 한도: `MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT`(기본 800회)
-- 선택 미러: 기존 `SUPABASE2_URL`, `SUPABASE2_SERVICE_ROLE_KEY`
+### 8.6 발송
 
-Fernet 키 생성:
+발송 조건을 충족하면 `deliveries` 큐를 만든다. 수신자가 여러 명이면 수신자별 delivery row가 생성된다. 즉 발송 건수는 기사 1건이 아니라 실제 수신자에게 보내는 메시지 단위로 누적될 수 있다.
 
-```bash
-.venv/bin/python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-```
+발송 실패 시 재시도 상태로 남고, 오류 대기 건수와 누적 오류 건수에 반영된다.
 
-카카오 Redirect URI:
+카카오 발송은 대표 이미지가 있는 기사에 대해 기본 텍스트 템플릿 대신 feed 카드형 템플릿을 우선 사용한다. feed 카드에는 기사 제목, 요약, 대표 이미지, `원문 보기` 버튼이 들어간다. 대표 이미지 URL이 없거나 카카오가 외부 이미지 URL을 거절하면 기존 text 템플릿으로 자동 재시도한다. 따라서 이미지 품질이 불안정해도 발송 자체는 유지된다.
+
+카카오 `talk_message` 권한이 없으면 수신자를 재동의 필요 상태로 표시하고 대기 발송을 실패 처리한다.
+
+## 9. 보도자료 RAG와 보도동향
+
+보도자료 매니저는 행안부 RSS에서 보도자료를 수집하고 Markdown 원문을 보관한다.
+
+처리 흐름:
 
 ```text
-https://홈페이지도메인/poc/master-press/oauth/kakao/callback
+행안부 RSS 수집
+  ↓
+보도자료 원문 Markdown 추출
+  ↓
+press_releases 저장
+  ↓
+press_release_chunks 생성
+  ↓
+Ollama 임베딩
+  ↓
+기사 임베딩과 매칭
+  ↓
+보도동향/대시보드 관련 보도자료 표시
 ```
 
-키와 토큰은 브라우저 응답, JavaScript, 로그, Supabase에 저장하지 않습니다.
+관련 보도자료 기준 기본값은 65%다. 관리 설정에서 조정 가능하다.
 
-## Supabase
+## 10. 구독자와 회원 관리 데이터 흐름
 
-먼저 [supabase_schema.sql](supabase_schema.sql)을 기존 프로젝트 SQL Editor에 적용합니다. RLS는 활성화하지만 브라우저용 정책은 만들지 않습니다. 홈페이지 Python service-role 경계만 미러 테이블에 접근합니다.
+구독 신청 데이터는 `signup_requests`와 `signup_request_cases`에 저장된다. 카카오 수신 등록 정보는 `recipients`에 저장된다.
 
-SQLite가 운영 원본이므로 Supabase 장애가 수집·점수화·발송 큐를 중단시키지 않습니다. 언론 기사 원문 본문과 카카오 토큰은 Supabase에 보내지 않고 케이스, 기사 메타데이터, 요약, 관련도만 미러링합니다. 공개된 행안부 보도자료는 RAG 검색을 위해 Markdown 본문과 청크 임베딩을 저장합니다.
+흐름:
 
+```text
+사용자 카카오 동의
+  ↓
+recipient_invites 생성/검증
+  ↓
+recipients 저장
+  ↓
+signup_requests 생성
+  ↓
+signup_request_cases에 케이스별 pending 저장
+  ↓
+관리자 승인
+  ↓
+approved 상태 케이스가 발송 대상이 됨
+```
 
-## 행안부 보도자료 RAG와 보도동향
+관리자 화면에서는 같은 카카오 등록 정보를 가진 사용자를 하나로 묶어 보여준다.
 
-- 행정안전부 공식 보도자료 RSS(ctxCd=1012)로 신규 게시물을 찾고 상세 페이지의 #desc_pc 본문을 수집합니다.
-- 원문은 data/press_releases/mois/{연도}/{nttId}.md에 front matter가 포함된 Markdown으로 저장합니다.
-- 1,200자 단위(160자 겹침)로 청킹하고 기존 nomic-embed-text 임베딩을 사용합니다. 생성형 LLM 호출은 추가하지 않습니다.
-- 기사–보도자료 조합은 press_release_match_jobs의 복합 PK와 article_press_release_matches 완료 기록으로 한 번만 처리합니다.
-- `press-rag-v4-lite`는 기존 벡터와 저장된 공통분석 메타데이터만 재사용해 보정 의미 35% + 한국어 희소 주제 25% + 주제 증거 30% + 게시시점 10%로 연관도를 계산합니다. 추가 LLM·OpenRouter·임베딩 호출은 없습니다.
-- `집중호우↔호우`, `중앙재난안전대책본부↔중대본` 등 한국어 복합어·약칭을 정규화하고 제목·추출 주제·개체명을 우선하되, 단순 언급은 관련 근거로 인정하지 않습니다.
-- 보도동향에서는 보도자료별 사실전달·부정적·긍정적 기사 수, 요약, 담당부서·담당자·연락처, Markdown 전체와 관련 기사를 확인합니다.
-- 기사 카드의 '관련 보도자료 (N)' 버튼은 연관 보도자료 팝업을 열고, 제목 선택 시 보도동향 상세로 이동합니다.
+카카오 동의만 완료하고 구독 요청을 제출하지 않은 수신자는 실제 이름 정보가 없으므로 `신청 미완료`로 표시한다. 신청 기록에 실제 이름이 남아 있는 과거 임시 라벨은 서비스 시작 시 자동 복구한다.
 
-Supabase RAG 테이블은 [supabase_schema.sql](supabase_schema.sql)을 SQL Editor에서 한 번 적용해야 합니다. 이후에는 30초마다 예약 상태를 확인하고 30분 주기로 행안부 RSS 수집, Markdown 저장, 768차원 임베딩, Supabase 미러링과 관련 기사 매칭을 자동 수행합니다. Supabase 장애나 스키마 지연으로 실패한 데이터도 `supabase_synced_at`이 비어 있는 건만 다음 주기에 자동 재시도하므로 수동 버튼은 즉시 실행이 필요할 때만 사용합니다. SQL 적용 전에도 SQLite 운영 DB를 사용해 화면·매칭은 정상 동작하며 'Supabase 스키마 적용 대기'로 표시됩니다.
+승인/반려/해지된 신청 기록은 6시간 뒤 자동 삭제된다.
 
-공개 API:
+## 11. 케이스 신청 게시판 데이터 흐름
 
-- GET /api/poc/master-press/press-releases
-- GET /api/poc/master-press/press-releases/{release_id}
-- GET /api/poc/master-press/articles/{article_id}/press-releases
+`case_proposals` 테이블에 저장된다.
 
-관리자 API:
+주요 필드:
 
-- POST /api/poc/master-press/admin/press-releases/sync
+| 필드 | 설명 |
+| --- | --- |
+| nickname | 공개 닉네임 |
+| password_salt/password_hash | 수정·삭제용 암호 검증값 |
+| title | 케이스 제목 |
+| prompt | 케이스 프롬프트 |
+| include_terms | 키워드 JSON |
+| required_terms | 필수키워드 JSON |
+| moderation_status | pending, clean, blocked, allowed |
+| moderation_flagged | 클린 AI 문제 감지 여부 |
+| moderation_exempt | 관리자 예외 허용 여부 |
+| moderation_reason | 관리자용 검사 사유 |
+| moderation_model | 검사에 사용한 로컬 모델 |
 
-## API
+공개 응답은 블라인드 상태일 때 원문을 내려주지 않는다. 관리자 응답은 원문과 검사 사유를 함께 내려준다.
 
-공개:
+검사 워커는 임베딩 워커가 처리할 기사/보도자료 임베딩이 없을 때 한 건씩 실행된다.
 
-- `GET /api/poc/master-press/dashboard`
-- `GET /api/poc/master-press/dashboard?case_id={uuid}`
+## 12. 모델과 제공자 구조
 
-기존 관리자 세션 필요:
+### 12.1 로컬 Ollama
 
-- `GET /api/poc/master-press/admin/bootstrap`
-- `POST /api/poc/master-press/admin/organizations`
-- `PUT|DELETE /api/poc/master-press/admin/organizations/{id}`
-- `POST /api/poc/master-press/admin/organizations/{id}/run`
-- `POST /api/poc/master-press/admin/cases`
-- `PUT|DELETE /api/poc/master-press/admin/cases/{id}`
-- `POST /api/poc/master-press/admin/cases/{id}/run`
-- `GET /api/poc/master-press/admin/cases/{id}/improvements`
-- `PUT /api/poc/master-press/admin/settings/llm-model`
-- `PUT /api/poc/master-press/admin/settings/case-llm-model`
-- `POST /api/poc/master-press/admin/invites`
-- `POST /api/poc/master-press/admin/recipients/{id}/test`
-- `DELETE /api/poc/master-press/admin/recipients/{id}`
-- `POST /api/poc/master-press/admin/tick`
+역할:
 
-OAuth:
+- 기사 임베딩
+- 케이스 임베딩
+- 보도자료 임베딩
+- 케이스 신청 게시판 클린 AI 검사
+- 일부 로컬 fallback
 
-- `GET /poc/master-press/connect?invite=...`
-- `GET /poc/master-press/oauth/kakao/callback`
-- `GET /poc/master-press/article/{article_id}`
+기본 임베딩 모델:
 
-## 설치와 배포
+```text
+nomic-embed-text:latest
+```
 
-기존 가상환경에 의존성을 추가합니다.
+### 12.2 Cloudflare Workers AI
+
+현재 공통분석 기본 모델로 사용한다.
+
+```text
+@cf/google/gemma-4-26b-a4b-it
+```
+
+환경변수:
+
+```text
+MASTER_PRESS_WORKER_AI_KEY 또는 WORKER_AI_KEY
+MASTER_PRESS_WORKER_AI_ACCOUNT_ID 또는 WORKER_AI_ACCOUNT_ID
+```
+
+### 12.3 Groq
+
+현재 예비 공통분석 모델로 사용한다.
+
+```text
+llama-3.1-8b-instant
+```
+
+환경변수:
+
+```text
+MASTER_PRESS_GROQ_API_KEY 또는 GROQ_API_KEY
+MASTER_PRESS_GROQ_COMMON_MODEL
+```
+
+### 12.4 OpenRouter
+
+케이스 판정 기본 제공자다. 무료 호출 안전장치 기본값은 실제 호출 기준 1000회다.
+
+환경변수:
+
+```text
+MASTER_PRESS_OPENROUTER_API_MYKEY
+OPENROUTER_API_MYKEY
+MASTER_PRESS_OPENROUTER_API_KEY
+OPENROUTER_API_KEY
+MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
+```
+
+### 12.5 Gemini
+
+예비2 모델로 사용한다.
+
+환경변수:
+
+```text
+MASTER_PRESS_GEMINI_API_KEY
+Google_AI_STUDIO_API_KEY
+GOOGLE_AI_STUDIO_API_KEY
+GEMINI_API_KEY
+```
+
+## 13. 안전장치와 영업중지 정책
+
+모델별 사용량은 `llm_api_calls`에 기록된다.
+
+기록 항목:
+
+- provider
+- stage
+- model
+- status
+- http_status
+- input_tokens
+- output_tokens
+- duration_ms
+- error
+- created_at
+
+사용량 한도 도달 판단은 다음 신호를 함께 본다.
+
+- 설정된 일일 요청 한도
+- 설정된 토큰 한도
+- provider 응답의 rate limit / quota / 무료 소진 메시지
+- 실패 응답 상태 코드
+
+공통분석 또는 케이스 판정의 주 모델이 소진되면 예비 모델로 넘어간다. 모든 모델이 소진되면 운영 메시지를 표시하고 작업은 다음 초기화 시각 이후 다시 처리한다.
+
+## 14. 주요 API
+
+### 공개 API
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/dashboard` | 대시보드 데이터 |
+| GET | `/signup/bootstrap` | 구독 신청 초기 데이터, 케이스 신청 게시판 목록 |
+| POST | `/signup/kakao-registration` | 카카오 등록 URL 생성 |
+| GET | `/signup/kakao-status` | 카카오 메시지 동의 상태 확인 |
+| POST | `/signup/requests` | 구독 요청 저장 |
+| GET | `/case-proposals` | 케이스 신청 글 목록 |
+| POST | `/case-proposals` | 케이스 신청 글 등록 |
+| PUT | `/case-proposals/{id}` | 암호 기반 케이스 신청 글 수정 |
+| DELETE | `/case-proposals/{id}` | 암호 기반 케이스 신청 글 삭제 |
+| GET | `/announcements/current` | 현재 표시할 공지사항 |
+| GET | `/analysis/insights` | 신경망/화두 분석 데이터 |
+| GET | `/press-releases` | 보도자료 목록 |
+| GET | `/press-releases/{id}` | 보도자료 원문 |
+| GET | `/articles/{id}/press-releases` | 기사 관련 보도자료 |
+
+### 관리자 API
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| GET | `/admin/bootstrap` | 관리 설정 초기 데이터 |
+| GET | `/admin/model-status?target=...` | 모델별 순차 상태 확인 |
+| GET | `/admin/case-proposals/{id}` | 케이스 신청 글 원문 조회 |
+| POST | `/admin/case-proposals/{id}/allow` | 블라인드 글 게시 허용 |
+| POST | `/admin/signup-requests/{id}/cases/{case_id}` | 케이스별 승인/반려 |
+| POST | `/admin/signup-requests/{id}/cases/{case_id}/revoke` | 구독 해제 |
+| PUT | `/admin/signup-requests/{id}/subscriptions` | 체크박스 구독 일괄 적용 |
+| PUT | `/admin/settings/common-llm-model` | 공통분석 모델 저장 |
+| PUT | `/admin/settings/case-llm-model` | 케이스 판정 모델 저장 |
+| PUT | `/admin/settings/reserve-llm-models` | 예비 모델 저장 |
+| PUT | `/admin/settings/embedding-model` | 임베딩 모델 저장 및 재색인 |
+| POST | `/admin/announcements` | 공지 등록 |
+| DELETE | `/admin/announcements/{id}` | 공지 내리기 또는 삭제 |
+| POST | `/admin/organizations` | 기관 생성 |
+| PUT | `/admin/organizations/{id}` | 기관 수정 |
+| PUT | `/admin/organizations/{id}/cases/order` | 케이스 표시 순서 저장 |
+| POST | `/admin/cases` | 케이스 생성 |
+| PUT | `/admin/cases/{id}` | 케이스 수정 |
+| POST | `/admin/tick` | 수집·발송 tick 수동 실행 |
+| POST | `/admin/press-releases/sync` | 보도자료 수동 동기화 |
+| POST | `/admin/deliveries/send` | 발송 큐 수동 처리 |
+
+## 15. 주요 파일 구조
+
+```text
+PoC/04-master-press/
+├── backend.py                    # 홈페이지 main.py가 호출하는 PoC 04 API dispatcher
+├── project.json                  # PoC 아카이브 등록 정보
+├── requirements.txt              # PoC 보조 의존성
+├── supabase_schema.sql           # Supabase 미러 스키마 참고
+├── master_press/
+│   ├── article_metadata.py       # 언론사·기자명 추출 유틸
+│   ├── collectors.py             # NAVER/RSS/본문·대표 이미지 수집
+│   ├── config.py                 # .env 설정 로딩
+│   ├── kakao.py                  # Kakao OAuth/Send to me, feed 카드/text fallback
+│   ├── matching.py               # 기관·케이스 텍스트 매칭
+│   ├── press_releases.py         # 보도자료 수집·Markdown·RAG 매칭
+│   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/Gemini 클라이언트와 판정 로직
+│   ├── service.py                # 서비스 오케스트레이션과 worker tick
+│   ├── storage.py                # SQLite 스키마, 마이그레이션, CRUD, 대시보드 집계
+│   └── supabase_mirror.py        # Supabase 메타데이터 미러
+├── web/
+│   ├── index.html                # 단일 HTML 화면
+│   ├── app.js                    # 프론트 상태·렌더링·API 호출
+│   ├── styles.css                # 반응형 UI 스타일
+│   └── manual-assets/            # 앱 내 사용설명서 화면 설명 이미지
+└── tests/
+    ├── test_core.py
+    ├── test_hybrid_batch.py
+    └── test_integration.py
+```
+
+## 16. SQLite 주요 테이블
+
+| 테이블 | 역할 |
+| --- | --- |
+| organizations | 기관 설정 |
+| cases | 케이스 설정 |
+| case_versions | 케이스 버전 이력 |
+| recipients | 카카오 수신자 토큰/상태 |
+| signup_requests | 구독 신청 |
+| signup_request_cases | 구독 신청의 케이스별 상태 |
+| case_proposals | 케이스 신청 게시판 |
+| articles | 수집 기사 원문/요약/대표 이미지 URL |
+| article_analyses | 공통분석 결과 |
+| article_analysis_jobs | 공통분석 큐 |
+| article_embeddings | 기사 임베딩 |
+| case_embeddings | 케이스 프롬프트 임베딩 |
+| case_evaluations | 케이스별 판정 결과 |
+| case_evaluation_jobs | 케이스 판정 큐 |
+| deliveries | 카카오 발송 큐/결과 |
+| press_releases | 보도자료 원문 |
+| press_release_chunks | 보도자료 chunk |
+| article_press_release_matches | 기사·보도자료 매칭 결과 |
+| announcements | 공지사항 |
+| app_settings | 운영 설정값 |
+| llm_api_calls | 모델 호출·토큰·오류 사용량 |
+| reanalysis_jobs | 재분석 작업 |
+
+## 17. 운영 환경변수
+
+최소 운영에 필요한 주요 값:
 
 ```bash
-cd /home/ubuntu/apps/myservice
-.venv/bin/pip install -r requirements.txt
-python3 -m py_compile main.py PoC/04-master-press/backend.py PoC/04-master-press/master_press/*.py
-sudo systemctl restart myservice
-curl -fsS http://127.0.0.1:8000/api/poc/master-press/dashboard
+MASTER_PRESS_DB_PATH=PoC/04-master-press/data/master_press.sqlite3
+MASTER_PRESS_TOKEN_ENCRYPTION_KEY=...
+MASTER_PRESS_NAVER_CLIENT_ID=...
+MASTER_PRESS_NAVER_CLIENT_SECRET=...
+MASTER_PRESS_KAKAO_REST_API_KEY=...
+MASTER_PRESS_KAKAO_CLIENT_SECRET=...
+MASTER_PRESS_KAKAO_REDIRECT_URI=https://도메인/poc/master-press/oauth/kakao/callback
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+MASTER_PRESS_EMBEDDING_MODEL=nomic-embed-text:latest
+MASTER_PRESS_LLM_MODEL=qwen2.5:1.5b
+MASTER_PRESS_WORKER_AI_KEY=...
+MASTER_PRESS_WORKER_AI_ACCOUNT_ID=...
+MASTER_PRESS_WORKER_AI_MODEL=@cf/google/gemma-4-26b-a4b-it
+MASTER_PRESS_GROQ_API_KEY=...
+MASTER_PRESS_GROQ_COMMON_MODEL=llama-3.1-8b-instant
+MASTER_PRESS_OPENROUTER_API_MYKEY=...
+MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
+MASTER_PRESS_GEMINI_API_KEY=...
+MASTER_PRESS_GEMINI_MODEL=gemini-3.5-flash-lite
+SUPABASE2_URL=...
+SUPABASE2_SERVICE_ROLE_KEY=...
 ```
 
-별도 Worker service는 만들지 않습니다. 예약 수집은 기존 Uvicorn lifespan이 관리합니다. 운영에서 Uvicorn worker 수를 늘릴 경우 중복 Worker를 막기 위한 프로세스 간 lease를 추가해야 합니다. 현재처럼 단일 프로세스에서는 모듈의 실행 lock으로 수동 실행과 예약 실행의 겹침을 막습니다.
+`.env`는 루트 또는 `PoC/04-master-press/.env`에서 읽을 수 있다. 실제 비밀값은 Git에 커밋하지 않는다.
 
-## 운영 전 확인
+## 18. 운영 명령
 
-- NAVER API 애플리케이션과 무료 호출량
-- Kakao Login 활성화, 제품 연결 Web domain `https://www.minslab.kr`, Redirect URI, `talk_message` 동의항목
-- Fernet 키 백업과 파일 권한
-- Supabase 스키마 적용 여부
-- 5분 수집 시 CPU/LLM 대기열
-- 언론사별 robots.txt와 이용약관
-- 카카오 발신자·수신자·pair 일일 쿼터
-- 낮은 점수 사례의 주간 설정 개선
+로컬 실행:
+
+```bash
+uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+운영 서비스:
+
+```bash
+sudo systemctl restart myservice
+systemctl status myservice --no-pager
+curl -fsS http://127.0.0.1:8000/health
+```
+
+검증:
+
+```bash
+python3 -m py_compile PoC/04-master-press/backend.py PoC/04-master-press/master_press/storage.py PoC/04-master-press/master_press/service.py PoC/04-master-press/master_press/kakao.py
+python3 -m unittest PoC/04-master-press/tests/test_core.py PoC/04-master-press/tests/test_integration.py
+git diff --check
+```
+
+## 19. 장애 대응 체크리스트
+
+### 관리 설정이 느릴 때
+
+- `/admin/bootstrap`은 저장값 중심으로 먼저 로드한다.
+- 모델 상태는 `/admin/model-status`가 순차 확인한다.
+- 카카오 연결 상태 실시간 재확인은 첫 로딩에서 하지 않는다.
+- 대시보드 집계는 관리 설정 초기 응답에 포함하지 않는다.
+
+### LLM 0%가 보일 때
+
+0%가 실제 무관인지, 판정 중단/실패인지 구분해야 한다.
+
+확인 순서:
+
+1. 케이스 상태가 `completed`인지 본다.
+2. `failed`, `pending`, `processing`이면 재시도 또는 대기 상태다.
+3. 분석과정에서 원시 LLM 응답과 점수 컴포넌트를 확인한다.
+4. 기사 단위 재분석 버튼으로 최신 판정을 덮어쓴다.
+
+### 발송 건수가 0일 때
+
+- 수신자가 삭제되었는지 확인한다.
+- 케이스에 승인된 수신자가 있는지 확인한다.
+- 카카오 `talk_message` 권한이 남아 있는지 확인한다.
+- delivery row가 생성되었는지 확인한다.
+
+발송 건수는 실제 수신자별 메시지 기준이다. 수신자가 여러 명이면 기사 1건이라도 여러 발송 건이 될 수 있다.
+
+### 오류 누적이 갑자기 커질 때
+
+- 현재 대기 오류와 누적 오류를 구분한다.
+- 누적 오류는 당일 실제 API 호출 관련 오류만 집계하는 방향이다.
+- 이전 개발 과정의 왜곡된 평균/오류는 일회성 초기화할 수 있다.
+
+### 모델 사용량 소진
+
+- 관리자 설정에서 제공자별 사용량과 초기화 시각을 확인한다.
+- 주 모델이 소진되면 예비1/예비2로 전환된다.
+- 모든 제공자가 소진되면 영업중지 메시지가 표시된다.
+- 00시 또는 provider별 초기화 시각 이후 메인 모델로 복귀하는지 확인한다.
+
+## 20. 개발·변경 시 주의사항
+
+- 기사 수집/분석/발송은 모두 큐 기반이다. 화면에서 즉시 결과가 안 보여도 worker가 후속 처리할 수 있다.
+- 기존 결과를 일괄 재분석하면 외부 모델 호출량이 급증할 수 있다.
+- 케이스 프롬프트를 바꾸면 케이스 임베딩과 판정 결과가 달라질 수 있다.
+- 임베딩 모델을 바꾸면 기사·보도자료 벡터 재생성이 필요하다.
+- OpenRouter 무료 호출은 오류 포함 실 호출 기준으로 카운트한다.
+- 공통분석 프롬프트는 토큰 사용량에 직접 영향을 준다.
+- 클린 AI 게시판 검사는 로컬 LLM 유휴 시간에 실행되므로 즉시 반영되지 않을 수 있다.
+- 공개 사용자에게는 블라인드 원문을 내려주지 않는다.
+- 관리자 API는 반드시 기존 관리자 세션을 확인한다.
+
+## 21. 현재 정적 버전
+
+브라우저 캐시 회피용 정적 파일 버전:
+
+```text
+styles.css?v=20260723-10
+app.js?v=20260724-01
+```
+
+이 값이 HTML에서 바뀌어야 배포 후 브라우저가 최신 UI를 받는다.

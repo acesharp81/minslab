@@ -5,15 +5,84 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260720-4">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260723-10">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/poc?project=master-press"><span>04</span><strong>AI 언론동향 비서</strong><small>AI읽고 AI로 분류하다</small></a>
-    <nav><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+    <nav><button class="nav manual-download" data-view="manual">사용설명서</button><button class="nav" data-view="signup">구독 및 케이스 신청</button><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+    <div id="operationNotice" class="operation-notice" hidden></div>
   </header>
 
   <main>
+    <section id="manualView" class="manual-view" hidden>
+      <aside class="manual-tree" aria-label="사용설명서 목차">
+        <div class="manual-tree-title"><span>USER GUIDE</span><b>사용설명서</b></div>
+        <a href="#manual-start">처음 보는 분</a>
+        <a href="#manual-subscribe">구독 신청</a>
+        <a href="#manual-case-board">케이스 신청 게시판</a>
+        <a href="#manual-dashboard">대시보드</a>
+        <a href="#manual-network">신경망·보도동향</a>
+        <a href="#manual-admin">관리자 설정</a>
+        <a href="#manual-faq">자주 묻는 질문</a>
+        <a href="/poc/master-press/manual.pdf" download>PDF 내려받기</a>
+      </aside>
+      <article class="manual-doc">
+        <section id="manual-start" class="manual-hero panel">
+          <p class="eyebrow">AI PRESS MONITOR GUIDE</p>
+          <h1>AI 언론동향 비서 사용설명서</h1>
+          <p>이 페이지는 PDF 대신 화면 안에서 보는 구조화된 매뉴얼입니다. 왼쪽 목차를 누르면 필요한 항목으로 바로 이동하고, 복잡한 흐름은 화면 설명 이미지와 함께 확인할 수 있습니다.</p>
+          <div class="manual-quick-links"><a href="#manual-subscribe">구독 시작하기</a><a href="#manual-dashboard">기사 확인하기</a><a href="#manual-admin">관리자 업무 보기</a><a href="/poc/master-press/manual.pdf" download>기존 PDF 다운로드</a></div>
+          <figure><img src="/poc/master-press/manual-assets/manual-flow.png" alt="AI 언론동향 비서 전체 업무 흐름"><figcaption>기관 설정부터 기사 수집, AI 분석, 케이스 판정, 카카오 발송까지 이어지는 전체 흐름입니다.</figcaption></figure>
+        </section>
+
+        <section id="manual-subscribe" class="manual-section panel">
+          <div class="manual-section-head"><span>01</span><div><h2>구독 신청은 카카오 동의가 먼저입니다</h2><p>메시지를 실제로 받으려면 카카오 로그인 후 [선택] 카카오 메시지 전송 권한에 동의해야 합니다.</p></div></div>
+          <div class="manual-two-col"><div><h3>진행 순서</h3><ol><li>상단 메뉴에서 <b>구독 및 케이스 신청</b>을 엽니다.</li><li><b>카카오 로그인/메시지 전송 동의하기</b>를 누릅니다.</li><li>카카오 화면에서 [선택] 카카오 메시지 전송을 선택합니다.</li><li>화면으로 돌아와 이름과 기관을 선택합니다.</li><li>구독 대상 케이스를 전체 기준으로 다시 체크하고 요청합니다.</li></ol><p class="manual-note">구독 변경은 추가·삭제분만 보내는 방식이 아닙니다. 변경 후 받고 싶은 전체 케이스를 다시 체크해 주세요. 모든 체크를 해제하면 해지 요청입니다.</p></div><figure><img src="/poc/master-press/manual-assets/manual-signup.png" alt="구독 및 케이스 신청 화면 설명"><figcaption>카카오 동의, 이름·기관 선택, 구독 대상 선택, 케이스 신청 게시판이 한 화면에서 이어집니다.</figcaption></figure></div>
+        </section>
+
+        <section id="manual-case-board" class="manual-section panel">
+          <div class="manual-section-head"><span>02</span><div><h2>새 모니터링 주제는 케이스 신청 게시판에 제안합니다</h2><p>일반 사용자는 닉네임으로 필요한 케이스를 제안하고, 관리자는 이를 바로 새 케이스 등록창으로 가져갈 수 있습니다.</p></div></div>
+          <div class="manual-card-grid"><div><h3>사용자 입력</h3><p>닉네임, 수정·삭제 암호, 케이스 제목, 케이스 프롬프트, 키워드, 필수키워드를 입력합니다. 암호는 평문 저장하지 않습니다.</p></div><div><h3>목록 표시</h3><p>목록에는 제목과 닉네임만 먼저 보이고, 글을 클릭하면 프롬프트와 키워드가 펼쳐집니다.</p></div><div><h3>클린 AI</h3><p>등록·수정 글은 로컬 LLM이 유휴 시간에 검사합니다. 문제 표현이 있으면 “클린 AI에 의해서 블라인드 처리되었습니다.”로 잠깁니다.</p></div><div><h3>관리자 등록</h3><p>관리자 로그인 상태에서는 <b>케이스 등록</b> 버튼으로 관리 설정의 새 케이스 창을 열고 신청 내용을 자동 입력할 수 있습니다.</p></div></div>
+        </section>
+
+        <section id="manual-dashboard" class="manual-section panel">
+          <div class="manual-section-head"><span>03</span><div><h2>대시보드는 오늘 처리 상태와 기사별 결과를 봅니다</h2><p>공통분석, 임베딩, 케이스 판정, 발송 단계가 어디까지 진행됐는지 한눈에 확인합니다.</p></div></div>
+          <div class="manual-two-col"><figure><img src="/poc/master-press/manual-assets/manual-dashboard.png" alt="대시보드 화면 설명"><figcaption>오류는 현재 대기 건수와 누적 건수를 함께 보고, 발송 건수는 실제 수신자 메시지 수 기준입니다.</figcaption></figure><div><h3>중요한 표시</h3><ul><li><b>+ 케이스</b>: 케이스별 후보 제외, 발송 제외, 발송 완료 상태를 봅니다.</li><li><b>유사 기사 묶어서 보기</b>: 기본 선택이며, 임베딩 완료 후 의미 유사도 기준으로 갱신됩니다.</li><li><b>재분석</b>: 관리자만 사용할 수 있으며 기사 단위로 모든 케이스 판정을 다시 대기 상태로 돌립니다.</li><li><b>관련 보도자료</b>: 보도자료 유사도 기준을 넘은 공식 자료를 연결합니다.</li></ul></div></div>
+        </section>
+
+        <section id="manual-network" class="manual-section panel">
+          <div class="manual-section-head"><span>04</span><div><h2>신경망 분석과 보도동향은 관계를 보는 화면입니다</h2><p>대시보드가 개별 기사 중심이라면, 신경망과 보도동향은 기사 묶음과 공식 보도자료의 관계를 보여줍니다.</p></div></div>
+          <div class="manual-card-grid"><div><h3>신경망 분석</h3><p>기관, 케이스, 기간을 선택하면 발송 완료 기사 중심의 3D 의미 관계망을 봅니다. 관련 기사끼리만 묶이도록 유사도 기준을 적용합니다.</p></div><div><h3>주요 화두</h3><p>노드와 화두를 함께 보며 해당 케이스에서 반복되는 주제와 단어를 확인합니다.</p></div><div><h3>보도동향 검색</h3><p>제목, 담당과, 담당자 이름으로 행안부 보도자료를 검색할 수 있습니다.</p></div><div><h3>관련 기사</h3><p>보도자료별 관련 기사 수와 Markdown 원문을 확인해 공식 발표와 언론 보도의 연결을 봅니다.</p></div></div>
+        </section>
+
+        <section id="manual-admin" class="manual-section panel">
+          <div class="manual-section-head"><span>05</span><div><h2>관리자는 회원, 케이스, 모델, 공지를 한 곳에서 관리합니다</h2><p>관리 설정은 기존 홈페이지 관리자 로그인 세션으로 보호됩니다.</p></div></div>
+          <div class="manual-two-col"><figure><img src="/poc/master-press/manual-assets/manual-admin.png" alt="관리 설정 화면 설명"><figcaption>회원 목록은 2열로 보이고, 모델 상태는 순차 확인해 관리 설정 첫 로딩을 가볍게 합니다.</figcaption></figure><div><h3>관리자 업무</h3><ul><li>회원 이름은 기본 마스킹, <b>이름 표시</b> 체크 시 전체 표시</li><li>회원 행 클릭 후 케이스별 구독 체크박스 조정</li><li>기관 아래 케이스를 드래그해 표시 순서 변경</li><li>공통분석·케이스판정·예비모델·임베딩 모델 설정</li><li>공지사항 등록, 내리기, 삭제</li><li>관련 보도자료 기준과 유사 기사 묶음 기준 조정</li></ul></div></div>
+        </section>
+
+        <section id="manual-faq" class="manual-section panel">
+          <div class="manual-section-head"><span>06</span><div><h2>자주 묻는 질문</h2><p>운영 중 헷갈리기 쉬운 지점을 짧게 정리했습니다.</p></div></div>
+          <div class="manual-faq"><details open><summary>발송 건수는 기사 수인가요?</summary><p>아닙니다. 실제 수신자에게 발송되는 메시지 단위입니다. 수신자가 3명이면 기사 1건도 발송 3건이 될 수 있습니다.</p></details><details><summary>LLM 0%는 항상 무관하다는 뜻인가요?</summary><p>아닙니다. 판정 실패나 중단 상태일 수 있으므로 케이스 상태가 completed인지 먼저 확인해야 합니다.</p></details><details><summary>관리 설정이 늦게 뜨면 어떻게 하나요?</summary><p>현재는 저장값을 먼저 보여주고 모델 상태는 순차 확인합니다. 화면은 먼저 열리고, 모델 상태 문구가 하나씩 갱신됩니다.</p></details><details><summary>토큰이 다 떨어지면 어떻게 되나요?</summary><p>주 모델이 소진되면 예비 모델로 전환합니다. 모든 제공자가 소진되면 영업중지 메시지가 표시되고 다음 초기화 시각 이후 재개합니다.</p></details></div>
+        </section>
+      </article>
+    </section>
+
+    <section id="signupView" hidden>
+      <div class="signup-head"><div><p class="eyebrow">KAKAO SUBSCRIPTION REQUEST</p><h1>구독 및 케이스 신청</h1><p>카카오 수신 등록 후 필요한 부처와 케이스를 선택하거나, 새 모니터링 케이스를 제안할 수 있습니다.</p><div class="signup-notice">본 페이지는 개인의 어떠한 정보도 수집하지 않습니다. 구독 변경 시 추가·삭제분만 보내지 말고 구독할 내용을 전체로 다시 체크해 요청하세요. 해지는 모든 체크를 삭제한 상태로 구독 요청하면 됩니다.</div></div></div>
+      <div class="signup-grid">
+        <section class="panel signup-form-panel"><div class="panel-head"><div><span>REQUEST FLOW</span><h2>구독 신청</h2></div></div>
+          <form id="signupForm" class="signup-form signup-flow">
+            <div class="signup-step signup-send-step"><b>1. 카카오 전송</b><p>먼저 카카오 로그인 후 [선택] 카카오 메시지 전송에 동의해 주세요. 동의가 확인되어야 다음 입력 단계가 열립니다.</p><p class="signup-kakao-warning">반드시 카카오 로그인 후, [선택] 카카오 메시지 전송을 선택하셔야지 실제 메시지가 발송됩니다.</p><button class="button" type="button" id="startKakaoSignup">카카오 로그인/메시지 전송 동의하기</button><div id="signupKakaoStatus" class="signup-gate-status">카카오 메시지 동의 확인 전입니다.</div><div id="signupResult" class="signup-result" hidden></div></div>
+            <div class="signup-step signup-profile-step"><b>2. 이름·기관 선택</b><label>신청자 이름<input id="signupName" maxlength="40" required placeholder="예: 김철수" disabled></label><label>부처<select id="signupOrganization" required disabled><option value="">부처 선택</option></select></label></div>
+            <div class="signup-step signup-case-step"><div class="signup-step-title"><b>3. 구독 대상 선택</b><label class="signup-select-all"><input type="checkbox" id="signupSelectAll">모두 선택</label></div><p class="signup-volume-warning">여러 케이스를 함께 구독하면 알림이 많이 도착할 수 있습니다. 특히 정책동향, 간부 언론 동향처럼 발송량이 많은 케이스는 시간당 30건 이상 메시지가 갈 수 있으니 필요한 항목만 신중히 선택해 주세요.</p><fieldset id="signupCaseFieldset" disabled><legend>구독 케이스</legend><div id="signupCaseList" class="signup-case-list"><div class="empty compact">부처를 선택하세요.</div></div></fieldset><button class="button" id="submitSignupRequest" type="submit" disabled>구독 요청</button></div>
+          </form>
+        </section>
+        <section class="panel case-proposal-panel"><div class="panel-head"><div><span>CASE REQUEST BOARD</span><h2>케이스 신청 게시판</h2><small>필요한 언론 모니터링 케이스를 익명 닉네임으로 제안할 수 있습니다.</small></div><button class="small-button" id="resetCaseProposal" type="button">새 글</button></div><div class="case-proposal-grid"><form id="caseProposalForm" class="case-proposal-form"><input type="hidden" id="caseProposalId"><label>닉네임<input id="caseProposalNickname" maxlength="40" required placeholder="예: 정책알림"></label><label>수정·삭제 암호<input id="caseProposalPassword" type="password" minlength="4" required placeholder="4자 이상"></label><label class="full">케이스 제목<input id="caseProposalTitle" maxlength="120" required placeholder="예: 행안부 AI 관련 기사"></label><label class="full">케이스 프롬프트<textarea id="caseProposalPrompt" rows="4" maxlength="4000" required placeholder="예: 행정안전부 또는 행안부가 AI·디지털 행정과 관련해 직접 추진·발표·비판 대상으로 언급된 기사만 찾아줘. 단순 기술 소개나 타 기관 사례는 제외해줘."></textarea></label><label>키워드<input id="caseProposalInclude" placeholder="쉼표로 구분 · 예: 행안부, AI, 디지털플랫폼"></label><label>필수키워드<input id="caseProposalRequired" placeholder="쉼표로 구분 · 예: 행안부"></label><button class="button" id="saveCaseProposal" type="submit">케이스 신청 등록</button></form><div id="caseProposalList" class="case-proposal-list"><div class="empty compact">케이스 신청 글을 불러오는 중입니다.</div></div></div></section>
+        <section class="panel signup-status-panel"><div class="panel-head"><div><span>STATUS</span><h2>신청기록</h2><small>승인 및 반려된 신청 기록은 6시간 뒤 자동 삭제됩니다.</small></div><button class="small-button" id="reloadSignup" type="button">새로고침</button></div><div id="signupRequestList" class="signup-request-list"><div class="empty">구독 요청 내역을 불러오는 중입니다.</div></div></section>
+      </div>
+    </section>
+
     <section id="dashboardView">
       <section class="dashboard-summary" aria-label="AI 언론동향 비서 모니터링 요약">
         <div class="dashboard-summary-top">
@@ -26,25 +95,19 @@
           <div class="summary-status"><span class="pulse"></span><div><b id="activeCaseCount">0개 케이스 가동</b><small id="lastUpdated">전체 데이터 확인 중</small></div></div>
         </div>
         <div class="dashboard-summary-bottom">
-          <div class="summary-group"><b class="summary-caption">일일 기사<br>처리 현황</b><div class="summary-metrics">
-            <article><span>분석 기사</span><strong id="metricTotal">0</strong></article>
-            <article><span>주제 일치</span><strong id="metricSend">0</strong></article>
-            <article><span>평균 관련도</span><strong id="metricAverage">0%</strong></article>
-            <article><span>발송 제외</span><strong id="metricLow">0</strong></article>
-          </div></div>
-          <div class="summary-group pipeline-summary"><b class="summary-caption">처리 흐름</b><div class="pipeline-flow">
-            <section class="pipeline-stage"><header><b>① 공통 분석</b><small id="commonProviderMeta">Ollama · 1개</small></header><div><span>대기 <strong id="commonPending">0</strong></span><span class="running">중 <strong id="commonProcessing">0</strong></span><span>완료 <strong id="commonCompleted">0</strong></span></div></section>
-            <i class="pipeline-arrow">→</i>
-            <section class="pipeline-stage"><header><b>② 케이스 판정</b><small id="caseProviderMeta">OpenRouter · 0/800</small></header><div><span>대기 <strong id="casePending">0</strong></span><span class="running">중 <strong id="caseProcessing">0</strong></span><span>완료 <strong id="caseCompleted">0</strong></span></div></section>
-            <i class="pipeline-arrow">→</i>
-            <section class="pipeline-stage delivery-stage"><header><b>③ 발송</b><small id="pipelineProcessingTitle">현재 처리 없음</small></header><div><span>대기 <strong id="deliveryPending">0</strong></span><span>성공 <strong id="deliverySent">0</strong></span><span class="failed">실패 <strong id="pipelineFailed">0</strong></span></div></section>
-            <small class="pipeline-meta">평균 <b id="pipelineAverage">0초</b> · 오늘 <b id="pipelineTotal">0</b></small>
+          <div class="summary-group pipeline-summary"><b class="summary-caption">일일 기사<br>처리 현황</b><div class="pipeline-flow">
+            <section class="pipeline-stage article-total-stage"><header><b>분석 기사</b><small>KST 00:00 기준</small></header><strong id="metricTotal">0</strong></section>
+            <section class="pipeline-stage"><header><b>① 공통분석</b><small id="commonProviderMeta">Cloudflare · 모델 확인 중</small></header><div><span>대기 <strong id="commonPending">0</strong></span><span>완료 <strong id="commonCompleted">0</strong></span><span class="failed">오류 <strong id="commonFailed">0</strong></span></div></section>
+            <section class="pipeline-stage"><header><b>② 임베딩</b><small id="embeddingProviderMeta">Ollama · 모델 확인 중</small></header><div><span>대기 <strong id="embeddingPending">0</strong></span><span>완료 <strong id="embeddingCompleted">0</strong></span><span class="failed">오류 <strong id="embeddingFailed">0</strong></span></div></section>
+            <section class="pipeline-stage"><header><b>③ 케이스별 판정</b><small id="caseProviderMeta">OpenRouter · 모델 확인 중</small></header><div><span>대기 <strong id="casePending">0</strong></span><span>완료 <strong id="caseCompleted">0</strong></span><span class="failed">오류 <strong id="caseFailed">0</strong></span></div></section>
+            <section class="pipeline-stage delivery-stage"><header><b>④ 발송</b><small>카카오톡</small></header><div><span>대기 <strong id="deliveryPending">0</strong></span><span>완료 <strong id="deliverySent">0</strong></span><span class="failed">오류 <strong id="pipelineFailed">0</strong></span></div></section>
+            <small class="pipeline-meta"><span>평균 처리 속도</span><b id="pipelineAverage">0초</b><span>처리 건수</span><b id="pipelineTotal">0건</b></small>
           </div></div>
         </div>
       </section>
 
       <div class="dashboard-grid">
-        <section class="panel article-panel"><div class="panel-head"><div><span>RECENT ANALYSIS · 선택 주기 자동 갱신</span><div class="article-list-title"><h2>기사 분석 기록</h2><div class="article-delivery-filter" role="group" aria-label="기사 발송 여부 필터"><button class="active" type="button" data-article-delivery-filter="all" aria-pressed="true">전체 목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="sent" aria-pressed="false">발송목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="unsent" aria-pressed="false">미발송목록</button></div></div><div id="tagFilter" class="tag-filter"></div></div><small id="activeFilterLabel">전체 기관</small></div><div id="articleList" class="article-list"></div></section>
+        <section class="panel article-panel"><div class="panel-head"><div><span>RECENT ANALYSIS · 기사화 시각순</span><div class="article-list-title"><h2>기사 분석 기록</h2><div class="article-delivery-filter" role="group" aria-label="기사 발송 여부 필터"><button class="active" type="button" data-article-delivery-filter="all" aria-pressed="true">전체 목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="sent" aria-pressed="false">발송목록</button><i aria-hidden="true">|</i><button type="button" data-article-delivery-filter="unsent" aria-pressed="false">미발송목록</button></div></div><div id="tagFilter" class="tag-filter"></div></div><label class="article-search"><span>기사 검색</span><input id="articleSearch" type="search" maxlength="100" placeholder="제목, 신문사, 기자"></label></div><div id="articleList" class="article-list"></div></section>
         <div class="insight-rail">
 <aside class="panel dashboard-topic-panel"><div class="panel-head"><div><span>KEY TOPICS</span><h2>주요 화두</h2></div><small id="dashboardWordMeta">케이스를 선택하세요.</small></div><div id="dashboardWordCloud" class="dashboard-word-cloud"><div class="empty compact">기관 또는 케이스별 핵심 화두를 표시합니다.</div></div></aside>
           <aside class="panel"><div class="panel-head"><div><span>RECENT SENT</span><h2>최근 발송 기사</h2></div></div><div id="recentSent" class="recent-sent"></div></aside>
@@ -65,7 +128,7 @@
     <section id="pressView" hidden>
       <div class="press-head">
         <div><p class="eyebrow">PUBLIC RELEASE RAG</p><h1>보도동향</h1><p>행정안전부 공식 보도자료와 관련 언론 기사를 양방향으로 확인합니다.</p></div>
-        <div class="press-controls"><label>기관<select id="pressOrganizationFilter"><option value="">기관 선택</option></select></label><button class="small-button" id="syncPressReleases" hidden>지금 동기화</button><small id="pressStatus">보도자료를 확인하고 있습니다.</small></div>
+        <div class="press-controls"><label>검색<input id="pressSearch" type="search" maxlength="100" placeholder="제목, 담당과, 담당자 이름"></label><label>기관<select id="pressOrganizationFilter"><option value="">기관 선택</option></select></label><button class="small-button" id="syncPressReleases" hidden>지금 동기화</button><small id="pressStatus">보도자료를 확인하고 있습니다.</small></div>
       </div>
       <section class="panel press-list-panel">
         <div class="panel-head"><div><span>MOIS RSS · MARKDOWN RAG</span><h2>보도자료 리스트</h2></div><small>제목을 선택하면 요약과 관련 기사 현황을 펼칩니다.</small></div>
@@ -79,10 +142,17 @@
       <div id="adminContent">
         <div class="readiness" id="readiness"></div>
         <div class="admin-grid">
-          <section class="panel model-settings"><div class="panel-head"><div><span>LOCAL · COMMON ANALYSIS</span><h2>공통분석 모델</h2><small>분류·어조·요약·상위 주제</small></div><button class="small-button" id="saveLlmModel">적용</button></div><select id="llmModelSelect"></select></section>
+          <section class="panel wide member-management-panel"><div class="panel-head"><div><span>MEMBER MANAGEMENT</span><h2>회원 관리</h2><small>구독 요청과 카카오 구독자 상태를 한 곳에서 관리합니다.</small></div><div class="member-head-actions"><label class="admin-name-toggle"><input type="checkbox" id="showAdminMemberNames">이름 표시</label><button class="small-button" id="newInvite">수동 등록 링크</button></div></div><div id="adminSignupRequests" class="admin-signup-list compact-members"></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>COMMON ANALYSIS</span><h2>공통분석 모델</h2><small id="groqModelStatus">연결 확인 중</small></div><button class="small-button" id="saveLlmModel">적용</button></div><select id="llmModelSelect"></select></section>
           <section class="panel model-settings"><div class="panel-head"><div><span>OPENROUTER · CASE JUDGMENT</span><h2>케이스 판정 모델</h2><small id="openrouterModelStatus">연결 확인 중</small></div><button class="small-button" id="saveCaseLlmModel">적용</button></div><select id="caseLlmModelSelect"></select></section>
-          <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2></div></div><div id="organizationList" class="organization-tree"></div></section>
-          <section class="panel"><div class="panel-head"><div><span>RECIPIENTS</span><h2>카카오 수신자</h2></div><button class="small-button" id="newInvite">등록 링크</button></div><div id="recipientList" class="recipient-list"></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>RESERVE 1</span><h2>예비1 모델</h2><small id="cloudflareModelStatus">연결 확인 중</small></div><button class="small-button" id="saveReserveModels">적용</button></div><select id="reserve1ModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>RESERVE 2 · GEMINI</span><h2>예비2 모델</h2><small id="geminiModelStatus">연결 확인 중</small></div><button class="small-button" id="saveReserveModels2">적용</button></div><select id="reserve2ModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>OLLAMA · EMBEDDING ONLY</span><h2>로컬 임베딩 모델</h2><small id="embeddingModelStatus">연결 확인 중</small></div><button class="small-button" id="saveEmbeddingModel">적용</button></div><select id="embeddingModelSelect"></select></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>ARTICLE × CASE BATCH</span><h2>하이브리드 배치 판정</h2><small>기사 1건에 케이스를 묶어 1회 호출</small></div><button class="small-button" id="saveCaseBatch">적용</button></div><div class="weight-row"><label>호출당 케이스<select id="caseBatchSize"><option>1</option><option>2</option><option>5</option><option selected>10</option></select></label><label>벡터 후보 기준<input id="semanticCandidateThreshold" type="number" min="0" max="100" step="1" value="35"></label></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>PRESS RAG</span><h2>관련 보도자료 기준</h2><small>대시보드와 보도동향에 표시할 최소 유사도</small></div><button class="small-button" id="savePressMatch">적용</button></div><div class="weight-row"><label>보도자료 유사도 기준<input id="pressMatchThreshold" type="number" min="0" max="100" step="1" value="65"></label></div></section>
+          <section class="panel model-settings"><div class="panel-head"><div><span>SIMILAR ARTICLES</span><h2>유사 기사 묶음 기준</h2><small>대시보드 묶음과 신경망 연결 기준에 적용</small></div><button class="small-button" id="saveSimilarArticles">적용</button></div><div class="weight-row"><label>기사 유사도 기준<input id="similarArticleThreshold" type="number" min="0" max="100" step="1" value="65"></label></div></section>
+          <section class="panel wide announcement-panel"><div class="panel-head"><div><span>NOTICE POPUP</span><h2>공지사항</h2><small>게시기한 안의 공지는 첫 접속 시 팝업으로 표시됩니다.</small></div></div><div class="announcement-admin-grid"><section class="announcement-compose"><div class="mini-panel-head"><b>새 공지 등록</b><button class="small-button" id="saveAnnouncement">게시</button></div><div class="announcement-form"><label>제목<input id="announcementTitle" maxlength="120" placeholder="공지 제목"></label><label>게시 종료<input id="announcementEndsAt" type="datetime-local"></label><label class="full">내용<textarea id="announcementBody" rows="4" maxlength="2000" placeholder="방문자에게 안내할 내용을 입력하세요."></textarea></label></div></section><section class="announcement-history"><div class="mini-panel-head"><b>등록된 공지</b><div class="announcement-tabs" role="tablist" aria-label="공지 목록 필터"><button type="button" class="active" data-announcement-tab="active">게시중</button><button type="button" data-announcement-tab="all">전체</button></div></div><div id="announcementList" class="announcement-list"></div></section></div></section>
+          <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2><small>케이스 행을 드래그하면 표시 순서가 저장되고 콤보·대시보드·신경망 기본 선택에 반영됩니다.</small></div></div><div id="organizationList" class="organization-tree"></div></section>
           <section class="panel wide"><div class="panel-head"><div><span>LOW SCORE REVIEW</span><h2>저유사도 개선 자료</h2></div><select id="improvementCase"></select></div><div id="improvementContent" class="improvement"></div></section>
         </div>
       </div>
@@ -108,11 +178,11 @@
         <label>LLM 주제 일치 시<select id="sendRelevantImmediately"><option value="true">카카오톡 즉시 발송</option><option value="false">아래 발송 일정 적용</option></select></label>
         <label>발송 방식<select id="deliveryMode"><option value="immediate">즉시</option><option value="times">지정 시각</option></select></label>
         <label>발송 시각<input id="deliveryTimes" placeholder="예: 09:00, 18:00"></label>
-        <label>LLM 전송 기준<input id="relevanceThreshold" type="number" min="0" max="100" value="75"></label>
+        <label>LLM 전송 기준<input id="relevanceThreshold" type="number" min="0" max="100" value="70"></label>
         <label>분석 보류 참고점수<input id="holdThreshold" type="number" min="0" max="100" value="55"></label>
-        <fieldset class="full"><legend>후보 진단용 혼합점수 비중 · 표시 유사도와 발송 임계값에는 미사용</legend><div class="weight-row"><label>키워드<input id="keywordWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label><label>의미<input id="semanticWeight" type="number" min="0" max="1" step="0.05" value="0.4"></label><label>LLM<input id="llmWeight" type="number" min="0" max="1" step="0.05" value="0.3"></label></div></fieldset>
+        <fieldset class="full"><legend>하이브리드 유사도 비중</legend><div class="weight-row"><label>키워드 진단<input id="keywordWeight" type="number" min="0" max="1" step="0.05" value="0"></label><label>벡터 유사도<input id="semanticWeight" type="number" min="0" max="1" step="0.05" value="0.25"></label><label>LLM 의미판정<input id="llmWeight" type="number" min="0" max="1" step="0.05" value="0.75"></label></div><small>최종 유사도는 벡터와 LLM 비중을 정규화해 계산하며, 키워드는 후보 진단에만 사용합니다.</small></fieldset>
         <label class="full">공식 RSS 주소<textarea id="rssUrls" rows="2" placeholder="한 줄에 하나"></textarea></label>
-        <fieldset class="full"><legend>카카오 수신자</legend><div id="caseRecipients" class="checks"></div></fieldset>
+        <fieldset class="full"><legend>카카오 구독자</legend><div id="caseRecipients" class="checks"></div></fieldset>
       </div>
       <div class="dialog-actions"><button type="button" class="button danger" id="deleteCase" hidden>삭제</button><span></span><button type="button" class="button secondary" data-close="caseDialog">취소</button><button class="button" type="submit">저장</button></div>
     </form>
@@ -141,11 +211,12 @@
     </form>
   </dialog>
   <dialog id="analysisDialog"><div class="dialog-card"><div class="dialog-head"><div><span>LLM TRACE</span><h2>분석과정</h2></div><button type="button" class="icon-button" data-close="analysisDialog">×</button></div><div id="analysisToast" class="dialog-toast" role="status" aria-live="polite"></div><div id="analysisContent" class="analysis-content"></div><div class="dialog-actions"><span></span><label>재분석 모델<select id="reanalysisModel"></select></label><button type="button" class="button secondary" data-close="analysisDialog">닫기</button><button type="button" class="button" id="reanalyzeButton">재분석</button></div></div></dialog>
-  <dialog id="inviteDialog"><form id="inviteForm" class="dialog-card compact"><div class="dialog-head"><div><span>KAKAO OAUTH</span><h2>수신자 등록 링크</h2></div><button type="button" class="icon-button" data-close="inviteDialog">×</button></div><label>수신자 별칭<input id="inviteLabel" required placeholder="예: 홍길동"></label><label>유효시간<select id="inviteTtl"><option value="60">1시간</option><option value="180">3시간</option><option value="1440">24시간</option></select></label><button class="button" type="submit">링크 생성</button><div id="inviteResult" class="copy-result"></div></form></dialog>
+  <dialog id="inviteDialog"><form id="inviteForm" class="dialog-card compact"><div class="dialog-head"><div><span>KAKAO OAUTH</span><h2>구독자 등록 링크</h2></div><button type="button" class="icon-button" data-close="inviteDialog">×</button></div><label>구독자 별칭<input id="inviteLabel" required placeholder="예: 홍길동"></label><label>유효시간<select id="inviteTtl"><option value="60">1시간</option><option value="180">3시간</option><option value="1440">24시간</option></select></label><button class="button" type="submit">링크 생성</button><div id="inviteResult" class="copy-result"></div></form></dialog>
 
   <dialog id="relatedPressDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>RELATED PUBLIC RELEASES</span><h2>관련 보도자료</h2></div><button type="button" class="icon-button" data-close="relatedPressDialog">×</button></div><div id="relatedPressList" class="related-press-list"></div></div></dialog>
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
+  <dialog id="announcementDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>NOTICE</span><h2 id="announcementPopupTitle">공지사항</h2></div><button type="button" class="icon-button" data-close="announcementDialog">×</button></div><div id="announcementPopupBody" class="announcement-popup-body"></div><label class="week-hide"><input type="checkbox" id="announcementHideWeek"> 일주일 동안 다시 보지 않기</label><div class="dialog-actions"><span></span><button type="button" class="button" id="closeAnnouncementPopup">확인</button></div></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260720-5"></script>
+  <script src="/poc/master-press/app.js?v=20260724-01"></script>
 </body>
 </html>
