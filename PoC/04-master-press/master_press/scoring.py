@@ -345,6 +345,13 @@ class OllamaClient:
         with urllib.request.urlopen(request, timeout=max(120, self.settings.request_timeout_seconds * 12)) as response:
             return json.loads(response.read().decode("utf-8"))
 
+    def _request_stage(self, payload: dict) -> str:
+        messages = payload.get("messages") or []
+        joined = " ".join(str((message or {}).get("content") or "") for message in messages if isinstance(message, dict))
+        if "JSON results" in joined or "case_id" in joined or "케이스 판정" in joined:
+            return "case"
+        return "common"
+
     def models(self) -> list[str]:
         return self._models_with_capability("completion")
 
@@ -719,9 +726,9 @@ class GroqClient(OllamaClient):
         super().__init__(settings)
         self.store = store
 
-    def _record(self, **values) -> None:
+    def _record(self, stage: str = "common", **values) -> None:
         if self.store:
-            self.store.record_llm_api_call(provider="groq", stage="common", **values)
+            self.store.record_llm_api_call(provider="groq", stage=stage, **values)
 
     @staticmethod
     def _retry_at(headers, fallback_seconds: int = 30) -> str:
@@ -763,10 +770,20 @@ class GroqClient(OllamaClient):
         if seconds > 0:
             reset_at = (datetime.now().astimezone() + timedelta(seconds=seconds)).isoformat(timespec="seconds")
             try:
-                self.store.set_setting("llm_provider_reset_at:groq", reset_at)
-                self.store.set_setting("llm_provider_reset_raw:groq", raw[:80])
+                self.store.set_setting("llm_provider_rate_reset_at:groq", reset_at)
+                self.store.set_setting("llm_provider_rate_reset_raw:groq", raw[:80])
+                if seconds >= 3600:
+                    self.store.set_setting("llm_provider_reset_at:groq", reset_at)
+                    self.store.set_setting("llm_provider_reset_raw:groq", raw[:80])
             except Exception:
                 pass
+
+    def _usage_since(self) -> str:
+        kst = timezone(timedelta(hours=9))
+        return (datetime.now(kst) - timedelta(hours=24)).isoformat(timespec="seconds")
+
+    def _usage_retry_after(self) -> str:
+        return (datetime.now().astimezone() + timedelta(hours=1)).isoformat(timespec="seconds")
 
     def models(self) -> list[str]:
         if not self.settings.groq_api_key:
@@ -796,17 +813,18 @@ class GroqClient(OllamaClient):
     def request(self, path: str, payload: dict) -> dict:
         if not self.settings.groq_api_key:
             raise GroqError("groq_api_key_missing", status=401)
+        stage = self._request_stage(payload)
         if self.store:
-            since = (datetime.now(timezone(timedelta(hours=9))) - timedelta(hours=24)).isoformat(timespec="seconds")
+            since = self._usage_since()
             usage = self.store.provider_usage_since(
-                "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit, "common"
+                "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit
             )
             if int(usage.get("attempts", 0)) >= self.settings.groq_daily_request_soft_limit:
                 raise GroqError("groq_daily_request_soft_limit", status=429, retryable=True,
-                                retry_after=self._next_kst_midnight(), deferred=True)
+                                retry_after=self._usage_retry_after(), deferred=True)
             if int(usage.get("tokens", 0)) >= self.settings.groq_daily_token_soft_limit:
                 raise GroqError("groq_daily_token_soft_limit", status=429, retryable=True,
-                                retry_after=self._next_kst_midnight(), deferred=True)
+                                retry_after=self._usage_retry_after(), deferred=True)
             minute = self.store.provider_usage_last_minute("groq", "common")
             if int(minute.get("tokens", 0)) >= self.settings.groq_minute_token_soft_limit:
                 raise GroqError("groq_minute_token_soft_limit", status=429, retryable=True,
@@ -868,7 +886,7 @@ class GroqClient(OllamaClient):
                 message = raw[:500]
             self._remember_reset_headers(error.headers)
             duration_ms = round((time.monotonic() - started) * 1000)
-            self._record(model=model, status="failed", duration_ms=duration_ms, http_status=error.code, error=message)
+            self._record(stage=stage, model=model, status="failed", duration_ms=duration_ms, http_status=error.code, error=message)
             failed_generation = error.code == 400 and "failed_generation" in f"{raw} {message}".casefold()
             retryable = error.code in {408, 429, 500, 502, 503, 504} or failed_generation
             raise GroqError(
@@ -878,7 +896,7 @@ class GroqClient(OllamaClient):
             ) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             duration_ms = round((time.monotonic() - started) * 1000)
-            self._record(model=model, status="failed", duration_ms=duration_ms, error=type(error).__name__)
+            self._record(stage=stage, model=model, status="failed", duration_ms=duration_ms, error=type(error).__name__)
             raise GroqError(
                 type(error).__name__, retryable=True,
                 retry_after=(datetime.now().astimezone() + timedelta(seconds=30)).isoformat(timespec="seconds"),
@@ -1569,6 +1587,8 @@ class RelevanceEngine:
             return self.case_llm
         if provider == "cloudflare":
             return self.reserve1_llm
+        if provider == "groq":
+            return self.common_llm
         if provider == "gemini":
             return self.reserve2_llm
         raise ValueError(f"unknown_provider:{provider}")

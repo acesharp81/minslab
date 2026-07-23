@@ -338,6 +338,27 @@ CREATE TABLE IF NOT EXISTS announcements (
 );
 CREATE INDEX IF NOT EXISTS idx_announcements_active ON announcements(is_active,ends_at,created_at DESC);
 
+CREATE TABLE IF NOT EXISTS case_proposals (
+  id TEXT PRIMARY KEY,
+  nickname TEXT NOT NULL DEFAULT '',
+  password_salt TEXT NOT NULL DEFAULT '',
+  password_hash TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  prompt TEXT NOT NULL DEFAULT '',
+  include_terms TEXT NOT NULL DEFAULT '[]',
+  required_terms TEXT NOT NULL DEFAULT '[]',
+  moderation_status TEXT NOT NULL DEFAULT 'pending',
+  moderation_flagged INTEGER NOT NULL DEFAULT 0,
+  moderation_exempt INTEGER NOT NULL DEFAULT 0,
+  moderation_reason TEXT NOT NULL DEFAULT '',
+  moderation_model TEXT NOT NULL DEFAULT '',
+  moderated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_case_proposals_created ON case_proposals(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_case_proposals_moderation ON case_proposals(moderation_status,updated_at);
+
 CREATE TABLE IF NOT EXISTS llm_api_calls (
   id TEXT PRIMARY KEY,
   provider TEXT NOT NULL,
@@ -1736,9 +1757,161 @@ class Store:
             row = connection.execute("SELECT * FROM announcements WHERE id=?", (item_id,)).fetchone()
         return dict(row)
 
-    def delete_announcement(self, announcement_id: str) -> bool:
+    def delete_announcement(self, announcement_id: str, hard: bool = False) -> bool:
         with self.connect() as connection:
+            if hard:
+                return connection.execute("DELETE FROM announcements WHERE id=?", (str(announcement_id),)).rowcount > 0
             return connection.execute("UPDATE announcements SET is_active=0,updated_at=? WHERE id=?", (now_iso(), str(announcement_id))).rowcount > 0
+
+    @staticmethod
+    def _case_proposal_terms(value: Any) -> list[str]:
+        if isinstance(value, str):
+            try:
+                loaded = json.loads(value)
+                if isinstance(loaded, list):
+                    value = loaded
+                else:
+                    value = re.split(r"[\n,]", value)
+            except json.JSONDecodeError:
+                value = re.split(r"[\n,]", value)
+        return [str(item).strip()[:80] for item in (value or []) if str(item).strip()][:30]
+
+    @staticmethod
+    def _case_proposal_password_hash(password: str, salt: str) -> str:
+        return hashlib.sha256((str(salt) + ":" + str(password or "")).encode("utf-8")).hexdigest()
+
+    def _decode_case_proposal(self, row: sqlite3.Row | dict, admin: bool = False) -> dict:
+        item = dict(row)
+        include_terms = self._case_proposal_terms(item.get("include_terms"))
+        required_terms = self._case_proposal_terms(item.get("required_terms"))
+        flagged = bool(item.get("moderation_flagged")) and not bool(item.get("moderation_exempt"))
+        result = {
+            "id": item.get("id"),
+            "nickname": item.get("nickname") or "익명",
+            "title": "클린 AI에 의해서 블라인드 처리되었습니다." if flagged and not admin else item.get("title", ""),
+            "prompt": "" if flagged and not admin else item.get("prompt", ""),
+            "include_terms": [] if flagged and not admin else include_terms,
+            "required_terms": [] if flagged and not admin else required_terms,
+            "content_locked": bool(flagged and not admin),
+            "moderation_status": item.get("moderation_status") or "pending",
+            "moderation_flagged": bool(item.get("moderation_flagged")),
+            "moderation_exempt": bool(item.get("moderation_exempt")),
+            "created_at": item.get("created_at"),
+            "updated_at": item.get("updated_at"),
+        }
+        if admin:
+            result.update({
+                "original_title": item.get("title", ""),
+                "original_prompt": item.get("prompt", ""),
+                "original_include_terms": include_terms,
+                "original_required_terms": required_terms,
+                "moderation_reason": item.get("moderation_reason") or "",
+                "moderation_model": item.get("moderation_model") or "",
+                "moderated_at": item.get("moderated_at"),
+            })
+        return result
+
+    def list_case_proposals(self, admin: bool = False, limit: int = 80) -> list[dict]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM case_proposals ORDER BY created_at DESC LIMIT ?",
+                (max(1, min(int(limit), 200)),),
+            ).fetchall()
+        return [self._decode_case_proposal(row, admin=admin) for row in rows]
+
+    def get_case_proposal(self, proposal_id: str, admin: bool = False) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
+        return self._decode_case_proposal(row, admin=admin) if row else None
+
+    def save_case_proposal(self, payload: dict, proposal_id: str = "", password_required: bool = False) -> dict:
+        now = now_iso()
+        title = str(payload.get("title") or "").strip()[:120]
+        prompt = str(payload.get("prompt") or "").strip()[:4000]
+        nickname = str(payload.get("nickname") or "익명").strip()[:40] or "익명"
+        include_terms = self._case_proposal_terms(payload.get("include_terms"))
+        required_terms = self._case_proposal_terms(payload.get("required_terms"))
+        password = str(payload.get("password") or "")
+        new_password = str(payload.get("new_password") or "")
+        if not title:
+            raise ValueError("케이스 제목을 입력하세요.")
+        if not prompt:
+            raise ValueError("케이스 프롬프트를 입력하세요.")
+        if not proposal_id and len(password) < 4:
+            raise ValueError("수정·삭제용 암호는 4자 이상 입력하세요.")
+        with self.connect() as connection:
+            if proposal_id:
+                row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
+                if not row:
+                    raise ValueError("케이스 신청 글을 찾지 못했습니다.")
+                if password_required:
+                    expected = self._case_proposal_password_hash(password, row["password_salt"])
+                    if not password or not secrets.compare_digest(expected, row["password_hash"]):
+                        raise ValueError("암호가 일치하지 않습니다.")
+                salt = row["password_salt"]
+                password_hash = row["password_hash"]
+                if new_password:
+                    if len(new_password) < 4:
+                        raise ValueError("새 암호는 4자 이상 입력하세요.")
+                    salt = secrets.token_hex(8)
+                    password_hash = self._case_proposal_password_hash(new_password, salt)
+                connection.execute(
+                    """UPDATE case_proposals
+                       SET nickname=?,title=?,prompt=?,include_terms=?,required_terms=?,password_salt=?,password_hash=?,
+                           moderation_status='pending',moderation_flagged=0,moderation_exempt=0,moderation_reason='',moderation_model='',moderated_at=NULL,updated_at=?
+                       WHERE id=?""",
+                    (nickname, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), salt, password_hash, now, str(proposal_id)),
+                )
+                item_id = str(proposal_id)
+            else:
+                item_id = str(uuid.uuid4())
+                salt = secrets.token_hex(8)
+                password_hash = self._case_proposal_password_hash(password, salt)
+                connection.execute(
+                    """INSERT INTO case_proposals(id,nickname,password_salt,password_hash,title,prompt,include_terms,required_terms,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                    (item_id, nickname, salt, password_hash, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), now, now),
+                )
+            row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (item_id,)).fetchone()
+        return self._decode_case_proposal(row, admin=True)
+
+    def delete_case_proposal(self, proposal_id: str, password: str) -> bool:
+        with self.connect() as connection:
+            row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
+            if not row:
+                return False
+            expected = self._case_proposal_password_hash(str(password or ""), row["password_salt"])
+            if not password or not secrets.compare_digest(expected, row["password_hash"]):
+                raise ValueError("암호가 일치하지 않습니다.")
+            return connection.execute("DELETE FROM case_proposals WHERE id=?", (str(proposal_id),)).rowcount > 0
+
+    def next_case_proposal_for_moderation(self) -> dict | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM case_proposals WHERE moderation_status='pending' ORDER BY updated_at ASC LIMIT 1"
+            ).fetchone()
+        return self._decode_case_proposal(row, admin=True) if row else None
+
+    def finish_case_proposal_moderation(self, proposal_id: str, flagged: bool, reason: str = "", model: str = "") -> dict | None:
+        status = "blocked" if flagged else "clean"
+        with self.connect() as connection:
+            connection.execute(
+                """UPDATE case_proposals SET moderation_status=?,moderation_flagged=?,moderation_reason=?,moderation_model=?,moderated_at=?,updated_at=?
+                   WHERE id=?""",
+                (status, 1 if flagged else 0, str(reason or "")[:500], str(model or "")[:120], now_iso(), now_iso(), str(proposal_id)),
+            )
+            row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
+        return self._decode_case_proposal(row, admin=True) if row else None
+
+    def allow_case_proposal(self, proposal_id: str) -> dict | None:
+        with self.connect() as connection:
+            connection.execute(
+                """UPDATE case_proposals SET moderation_status='allowed',moderation_flagged=0,moderation_exempt=1,
+                   moderation_reason='',moderated_at=?,updated_at=? WHERE id=?""",
+                (now_iso(), now_iso(), str(proposal_id)),
+            )
+            row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
+        return self._decode_case_proposal(row, admin=True) if row else None
 
     def get_article(self, article_id: str) -> dict | None:
         with self.connect() as connection:
@@ -2962,6 +3135,189 @@ class Store:
             "day_start": day_start, "speed_start": speed_start, "speed_reset_at": speed_reset_at,
             "error_start": error_start, "error_reset_at": error_reset_at}
 
+    def _dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None) -> dict[str, dict]:
+        """Build dashboard article bundles with the same strictness used by the neural graph.
+
+        The first pass works with verified nouns/topic concepts. When article embeddings are
+        available, centered semantic similarity upgrades the temporary keyword bundle into a
+        finalized hybrid/semantic bundle. No remote LLM call is made here.
+        """
+        if len(articles) < 2:
+            return {}
+        try:
+            threshold = max(0.0, min(1.0, float(self.get_setting("similar_article_threshold", "65")) / 100.0))
+        except Exception:
+            threshold = 0.65
+        selected_case = self.get_case(case_id) if case_id else None
+        selected_organization = self.get_organization(organization_id or (selected_case or {}).get("organization_id", "")) if (organization_id or (selected_case or {}).get("organization_id")) else None
+        stop = {"기사","보도","관련","대한","통해","위해","이번","정부","기관","정책","발표","지원","추진","확대","강화","현장","오늘","최근","관계자","있다","있어","있으며","했다","한다","된다","위한","것으로","따라","대해","에서","으로","까지","또한","사실전달","부정적","긍정적","분류대기","정책행정","정치입법","경제산업","사회안전","재난환경","과학기술","디지털","기타","행정안전부","행안부"}
+        identity_terms = [str((selected_organization or {}).get("name") or ""), *((selected_organization or {}).get("abbreviations") or []), *((selected_organization or {}).get("former_names") or []), *((selected_organization or {}).get("people") or [])]
+        for value in identity_terms:
+            clean = str(value).strip()
+            if clean:
+                stop.add(clean)
+        topic_terms_by_id: dict[str, set[str]] = {}
+        concepts_by_id: dict[str, set[str]] = {}
+        vectors_by_id: dict[str, list[float]] = {}
+        order = {str(article.get("id")): index for index, article in enumerate(articles)}
+        for article in articles:
+            article_id = str(article.get("id") or "")
+            if not article_id:
+                continue
+            text = str(article.get("_group_text") or " ".join([str(article.get("title") or ""), str(article.get("summary") or "")]))
+            entities = article.get("entities") if isinstance(article.get("entities"), list) else []
+            topic_terms_by_id[article_id] = set(verified_content_nouns(entities, text, stop, identity_terms))
+            stored_concepts = [str(value).strip()[:60] for value in article.get("topic_concepts", []) if str(value).strip()] if isinstance(article.get("topic_concepts"), list) else []
+            concept_source = " ".join([str(article.get("title") or ""), str(article.get("summary") or "")])
+            concepts_by_id[article_id] = set(list(dict.fromkeys(stored_concepts))[:4] or inferred_topic_concepts(concept_source))
+            vector = article.get("semantic_vector") if isinstance(article.get("semantic_vector"), list) else []
+            if vector and all(isinstance(value, (int, float)) for value in vector):
+                vectors_by_id[article_id] = [float(value) for value in vector]
+        topic_frequency: dict[str, int] = {}
+        for terms in topic_terms_by_id.values():
+            for term in terms:
+                topic_frequency[term] = topic_frequency.get(term, 0) + 1
+        dimensions = {len(vector) for vector in vectors_by_id.values()}
+        semantic_vectors = vectors_by_id if len(dimensions) == 1 and len(vectors_by_id) >= 3 else {}
+        centroid: list[float] = []
+        if semantic_vectors:
+            vector_length = next(iter(dimensions))
+            centroid = [sum(vector[index] for vector in semantic_vectors.values()) / len(semantic_vectors) for index in range(vector_length)]
+        ids = [str(article.get("id")) for article in articles if article.get("id")]
+        node_count = len(ids)
+        semantic_min = threshold
+        concept_semantic_min = max(0.48, semantic_min - 0.08)
+        direct_noun_min = 0.42 if node_count >= 35 else 0.36
+        fallback_noun_min = 0.58 if node_count >= 35 else 0.50
+        candidate_edges: list[dict] = []
+        for index, left_id in enumerate(ids):
+            left_topics = topic_terms_by_id.get(left_id, set())
+            for right_id in ids[index + 1:]:
+                right_topics = topic_terms_by_id.get(right_id, set())
+                shared_topics = left_topics & right_topics
+                shared_concepts = concepts_by_id.get(left_id, set()) & concepts_by_id.get(right_id, set())
+                noun_similarity = topic_noun_similarity(left_topics, right_topics, topic_frequency, max(1, node_count))
+                semantic_similarity = 0.0
+                has_semantic = bool(centroid and left_id in semantic_vectors and right_id in semantic_vectors)
+                if has_semantic:
+                    semantic_similarity = centered_semantic_similarity(semantic_vectors[left_id], semantic_vectors[right_id], centroid)
+                semantic_strong = has_semantic and semantic_similarity >= semantic_min
+                concept_supported = bool(shared_concepts) and ((has_semantic and semantic_similarity >= concept_semantic_min) or noun_similarity >= direct_noun_min)
+                direct_supported = bool(shared_topics) and (
+                    (has_semantic and semantic_similarity >= max(0.34, semantic_min - 0.18) and noun_similarity >= 0.22)
+                    or (not has_semantic and noun_similarity >= fallback_noun_min)
+                    or noun_similarity >= max(0.50, direct_noun_min + 0.10)
+                )
+                if not (semantic_strong or concept_supported or direct_supported):
+                    continue
+                if semantic_strong and not (shared_topics or shared_concepts):
+                    basis = "semantic"
+                elif has_semantic:
+                    basis = "hybrid"
+                else:
+                    basis = "keyword"
+                weight = max(noun_similarity, 0.62 if concept_supported else 0.0, semantic_similarity if has_semantic else 0.0)
+                candidate_edges.append({"source": left_id, "target": right_id, "weight": round(weight, 4), "basis": basis,
+                                        "status": "finalized" if has_semantic else "temporary",
+                                        "noun_similarity": round(noun_similarity, 4), "semantic_similarity": round(semantic_similarity, 4),
+                                        "shared_topics": sorted(shared_topics, key=lambda term: (-len(term), term))[:5],
+                                        "shared_concepts": sorted(shared_concepts)[:4],
+                                        "rank_score": round(max(0.0, semantic_similarity if has_semantic else 0.0) + noun_similarity * 0.25 + (0.08 if concept_supported else 0.0), 4),
+                                        "relation_level": "abstract_topic" if semantic_strong or concept_supported else "direct_topic"})
+        if not candidate_edges:
+            return {}
+        edge_lookup = {tuple(sorted((edge["source"], edge["target"]))): edge for edge in candidate_edges}
+        selected_keys = {key for key, edge in edge_lookup.items() if edge["relation_level"] == "direct_topic"}
+        concept_groups: dict[str, set[str]] = {}
+        for article_id, concepts in concepts_by_id.items():
+            for concept in concepts:
+                concept_groups.setdefault(concept, set()).add(article_id)
+        for article_ids in concept_groups.values():
+            if len(article_ids) < 2:
+                continue
+            candidates = []
+            for article_id in sorted(article_ids):
+                scores = [edge_lookup[key]["rank_score"] for other_id in article_ids if other_id != article_id
+                          if (key := tuple(sorted((article_id, other_id)))) in edge_lookup]
+                candidates.append((sum(scores) / max(1, len(scores)), article_id))
+            hub_id = max(candidates, key=lambda item: (item[0], -order.get(item[1], 999999)))[1]
+            for article_id in article_ids:
+                key = tuple(sorted((hub_id, article_id)))
+                if article_id != hub_id and key in edge_lookup:
+                    selected_keys.add(key)
+        semantic_only = [edge for edge in candidate_edges if not edge["shared_concepts"] and edge["relation_level"] == "abstract_topic" and edge["semantic_similarity"] >= semantic_min]
+        for article_id in ids:
+            neighbors = sorted((edge for edge in semantic_only if article_id in (edge["source"], edge["target"])),
+                               key=lambda edge: (-edge["rank_score"], edge["source"], edge["target"]))[:1]
+            selected_keys.update(tuple(sorted((edge["source"], edge["target"]))) for edge in neighbors)
+        parent = {article_id: article_id for article_id in ids}
+        component_size = {article_id: 1 for article_id in ids}
+        group_edges: list[dict] = []
+        degree: dict[str, int] = {}
+
+        def find(value: str) -> str:
+            while parent[value] != value:
+                parent[value] = parent[parent[value]]
+                value = parent[value]
+            return value
+
+        def union(left: str, right: str) -> None:
+            left_root, right_root = find(left), find(right)
+            if left_root == right_root:
+                return
+            if component_size[left_root] < component_size[right_root]:
+                left_root, right_root = right_root, left_root
+            parent[right_root] = left_root
+            component_size[left_root] += component_size[right_root]
+
+        max_component = 14 if node_count >= 45 else (12 if node_count >= 25 else 10)
+        degree_limit = 2 if node_count >= 25 else 3
+        edge_limit = min(70, max(16, int(node_count * 1.15)))
+        proposed_edges = sorted((edge_lookup[key] for key in selected_keys),
+                                key=lambda item: (-item["weight"], -item.get("semantic_similarity", 0), -item.get("noun_similarity", 0), order.get(item["source"], 999999), order.get(item["target"], 999999)))
+        for edge in proposed_edges:
+            source, target = edge["source"], edge["target"]
+            strong_duplicate = float(edge.get("weight") or 0) >= 0.94 and float(edge.get("semantic_similarity") or 0) >= 0.70
+            current_degree_limit = degree_limit + (1 if strong_duplicate else 0)
+            if degree.get(source, 0) >= current_degree_limit or degree.get(target, 0) >= current_degree_limit:
+                continue
+            source_root, target_root = find(source), find(target)
+            merged_size = component_size[source_root] if source_root == target_root else component_size[source_root] + component_size[target_root]
+            if source_root != target_root and merged_size > max_component and not strong_duplicate:
+                continue
+            group_edges.append(edge)
+            degree[source] = degree.get(source, 0) + 1
+            degree[target] = degree.get(target, 0) + 1
+            union(source, target)
+            if len(group_edges) >= edge_limit:
+                break
+        components: dict[str, list[str]] = {}
+        for article_id in ids:
+            components.setdefault(find(article_id), []).append(article_id)
+        result: dict[str, dict] = {}
+        edges_by_node: dict[str, list[dict]] = {}
+        for edge in group_edges:
+            edges_by_node.setdefault(edge["source"], []).append(edge)
+            edges_by_node.setdefault(edge["target"], []).append(edge)
+        for members in components.values():
+            if len(members) < 2:
+                continue
+            representative = min(members, key=lambda article_id: order.get(article_id, 999999))
+            member_edges = [edge for edge in group_edges if edge["source"] in members and edge["target"] in members]
+            best = max(member_edges, key=lambda edge: (edge["weight"], edge.get("semantic_similarity", 0), edge.get("noun_similarity", 0))) if member_edges else {}
+            basis_order = {"semantic": 3, "hybrid": 2, "keyword": 1}
+            basis = max((edge.get("basis", "keyword") for edge in member_edges), key=lambda value: basis_order.get(value, 0), default="keyword")
+            finalized = bool(member_edges) and all(edge.get("status") == "finalized" for edge in member_edges) and all(member in semantic_vectors for member in members)
+            for member in members:
+                nearest = max(edges_by_node.get(member, []), key=lambda edge: edge["weight"], default=best)
+                result[member] = {"group_id": representative, "size": len(members), "basis": basis,
+                                  "status": "finalized" if finalized else "temporary",
+                                  "score": round(float((nearest or best).get("weight") or 0) * 100, 1),
+                                  "semantic_score": round(float((nearest or best).get("semantic_similarity") or 0) * 100, 1),
+                                  "noun_score": round(float((nearest or best).get("noun_similarity") or 0) * 100, 1),
+                                  "topics": (nearest or best).get("shared_topics", []), "concepts": (nearest or best).get("shared_concepts", [])}
+        return result
+
     def pipeline_dashboard(self, case_id: str | None = None, organization_id: str | None = None, tags: list[str] | None = None, limit: int = 100, search: str = "") -> dict:
         day_start = kst_day_start_iso()
         where, params = [], []
@@ -2977,8 +3333,8 @@ class Store:
         if search:
             article_where.append("(a.title LIKE ? OR a.publisher LIKE ? OR aa.publisher_name LIKE ? OR aa.reporter_name LIKE ?)")
             article_params.extend([f"%{search}%"] * 4)
-        sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,ae.vector article_vector,
+        sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
+                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,substr(a.body,1,5000) source_body,ae.vector article_vector,
                   (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
                     AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
                     AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
@@ -3068,6 +3424,8 @@ class Store:
                 "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
                 "press_match_total_count": int(item.get("press_match_total_count") or 0),
                 "semantic_vector": json_value(item.get("article_vector"), []),
+                "topic_concepts": json_value(item.get("topic_concepts"), []),
+                "_group_text": " ".join([str(item.get("title") or ""), str(item.get("source_snippet") or ""), str(item.get("source_body") or ""), str(item.get("summary") or "")])[:12000],
                 "status": item["analysis_status"], "analyzed_at": item["analyzed_at"], "summary": item["summary"], "article_type": item["article_type"], "tone": item["tone"], "classification_tags": tags_value, "entities": json_value(item.get("entities"), []), "evidence": json_value(item.get("evidence"), []), "model": item["model"], "error": item["analysis_error"], "case_results": []})
             if item.get("evaluation_id"):
                 result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_raw", "semantic_score", "llm_score", "final_score", "evidence_status", "evaluation_error", "decision", "completed_at", "evaluation_updated_at")}
@@ -3092,6 +3450,17 @@ class Store:
                 "sent": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("sent",)) for value in results),
                 "scheduled": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("pending", "retry")) for value in results),
             }
+        similar_groups = self._dashboard_article_groups(articles, organization_id=organization_id, case_id=case_id)
+        for article in articles:
+            group = similar_groups.get(str(article.get("id") or ""), {})
+            article["similar_group_id"] = group.get("group_id", "")
+            article["similar_group_size"] = int(group.get("size") or 1)
+            article["similar_group_basis"] = group.get("basis", "")
+            article["similar_group_status"] = group.get("status", "")
+            article["similar_group_score"] = float(group.get("score") or 0)
+            article["similar_group_topics"] = group.get("topics", [])
+            article["similar_group_concepts"] = group.get("concepts", [])
+            article.pop("_group_text", None)
         stats = {"total": int(daily_stats_row["total"] or 0),
                  "sent_candidates": int(daily_stats_row["sent_candidates"] or 0),
                  "low": int(daily_stats_row["low"] or 0),

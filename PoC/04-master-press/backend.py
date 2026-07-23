@@ -75,17 +75,50 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
     }
 
 
-def signup_bootstrap() -> dict:
+def signup_bootstrap(admin: bool = False) -> dict:
     service = get_service()
+    with service.store.connect() as connection:
+        rows = connection.execute(
+            """SELECT case_id,COUNT(DISTINCT recipient_id) total FROM (
+                   SELECT case_id,recipient_id FROM case_recipients
+                   UNION ALL
+                   SELECT src.case_id,sr.recipient_id
+                   FROM signup_request_cases src
+                   JOIN signup_requests sr ON sr.id=src.request_id
+                   WHERE src.status='approved' AND sr.recipient_id IS NOT NULL
+               ) GROUP BY case_id"""
+        ).fetchall()
+    subscriber_counts = {str(row["case_id"]): int(row["total"] or 0) for row in rows}
     organizations = []
     for organization in service.store.list_organizations(active_only=True):
         cases = service.store.list_cases_for_organization(organization["id"], active_only=True)
         organizations.append({
             "id": organization["id"],
             "name": organization["name"],
-            "cases": [{"id": case["id"], "name": case["name"]} for case in cases],
+            "cases": [
+                {
+                    "id": case["id"],
+                    "name": case["name"],
+                    "topic_search_prompt": case.get("topic_search_prompt") or case.get("topic_description") or "",
+                    "semantic_weight": case.get("semantic_weight", 0.25),
+                    "llm_weight": case.get("llm_weight", 0.75),
+                    "subscriber_count": subscriber_counts.get(str(case["id"]), 0),
+                }
+                for case in cases
+            ],
         })
-    return {"organizations": organizations, "requests": service.store.list_signup_requests(include_private=False)}
+    return {"organizations": organizations, "requests": service.store.list_signup_requests(include_private=False), "case_proposals": service.store.list_case_proposals(admin=admin)}
+
+
+
+def fast_recipient_statuses(service) -> list[dict]:
+    recipients = service.store.list_recipients()
+    for recipient in recipients:
+        ok = recipient.get("status") == "active" and not recipient.get("last_error")
+        recipient["connection_status"] = "connected" if ok else "failed"
+        recipient["connection_label"] = "저장된 상태 정상" if ok else (recipient.get("last_error") or "재확인 필요")
+        recipient["connection_error"] = recipient.get("last_error") or ""
+    return recipients
 
 
 def admin_bootstrap() -> dict:
@@ -101,23 +134,25 @@ def admin_bootstrap() -> dict:
         "readiness": service.settings.readiness(),
         "settings": {
             "common_llm_model": common_model,
-            "common_llm_models": [common_model] if common_model else [],
+            "common_llm_models": service.configured_common_reserve_models(common_model),
             "llm_model": common_model,
-            "llm_models": [common_model] if common_model else [],
+            "llm_models": service.configured_common_reserve_models(common_model),
+            "common_provider": service._status_for_switchable_llm_model(service.selected_common_llm_model(), probe=False),
             "groq": service.groq_status(probe=False),
             "case_llm_model": case_model,
             "case_llm_models": [case_model] if case_model else [],
             "openrouter": service.openrouter_status(probe=False),
             "reserve1_llm_model": service.selected_reserve1_model(),
-            "reserve1_llm_models": service.available_reserve1_models(),
+            "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
+            "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
             "cloudflare": service.cloudflare_status(probe=False),
             "reserve2_llm_model": service.selected_reserve2_model(),
             "reserve2_llm_models": service.available_reserve2_models(),
             "gemini": service.gemini_status(probe=False),
             "announcements": service.store.list_announcements(include_inactive=True),
             "embedding_model": service.selected_embedding_model(),
-            "embedding_models": service.available_embedding_models(),
-            "ollama_embedding": service.ollama_embedding_status(probe=True),
+            "embedding_models": [service.selected_embedding_model()] if service.selected_embedding_model() else [],
+            "ollama_embedding": service.ollama_embedding_status(probe=False),
             "case_batch_size": service.selected_case_batch_size(),
             "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
             "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
@@ -128,9 +163,8 @@ def admin_bootstrap() -> dict:
         },
         "organizations": organizations,
         "cases": cases,
-        "recipients": service.recipients_with_connection_status(),
+        "recipients": fast_recipient_statuses(service),
         "signup_requests": service.store.list_signup_requests(include_private=True),
-        "dashboard": {**service.store.pipeline_dashboard(limit=100), "provider_status": service.pipeline_provider_status()},
     }
 
 
@@ -157,10 +191,42 @@ def dispatch(
         )
 
     if path == "/signup/bootstrap" and method == "GET":
-        return signup_bootstrap()
+        return signup_bootstrap(admin_authenticated)
 
     if path == "/announcements/current" and method == "GET":
         return {"items": service.store.current_announcements()}
+
+    if path == "/case-proposals" and method == "GET":
+        return {"items": service.store.list_case_proposals(admin=admin_authenticated)}
+
+    if path == "/case-proposals" and method == "POST":
+        try:
+            item = service.store.save_case_proposal(payload)
+            return {"item": service.store.get_case_proposal(item["id"], admin=admin_authenticated), "items": service.store.list_case_proposals(admin=admin_authenticated)}
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+
+    if path.startswith("/case-proposals/"):
+        proposal_id = path[len("/case-proposals/"):].strip("/")
+        if method == "PUT":
+            try:
+                item = service.store.save_case_proposal(payload, proposal_id, password_required=not admin_authenticated)
+                return {"item": service.store.get_case_proposal(item["id"], admin=admin_authenticated), "items": service.store.list_case_proposals(admin=admin_authenticated)}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
+        if method == "DELETE":
+            try:
+                if admin_authenticated:
+                    # Admin hard-delete without knowing the user password.
+                    with service.store.connect() as connection:
+                        deleted = connection.execute("DELETE FROM case_proposals WHERE id=?", (proposal_id,)).rowcount > 0
+                else:
+                    deleted = service.store.delete_case_proposal(proposal_id, str(payload.get("password") or ""))
+                if not deleted:
+                    raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+                return {"deleted": True, "items": service.store.list_case_proposals(admin=admin_authenticated)}
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
 
     if path == "/signup/kakao-registration" and method == "POST":
         invite, token = service.store.create_invite("구독 신청자", 1440)
@@ -246,6 +312,42 @@ def dispatch(
         _require_admin(admin_authenticated)
         return admin_bootstrap()
 
+    if path.startswith("/admin/case-proposals/"):
+        _require_admin(admin_authenticated)
+        suffix = path[len("/admin/case-proposals/"):].strip("/").split("/")
+        proposal_id = suffix[0]
+        if len(suffix) == 1 and method == "GET":
+            item = service.store.get_case_proposal(proposal_id, admin=True)
+            if not item:
+                raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+            return {"item": item}
+        if len(suffix) >= 2 and suffix[1] == "allow" and method == "POST":
+            item = service.store.allow_case_proposal(proposal_id)
+            if not item:
+                raise MasterPressError("케이스 신청 글을 찾지 못했습니다.", 404)
+            return {"item": item, "items": service.store.list_case_proposals(admin=True)}
+
+    if path == "/admin/model-status" and method == "GET":
+        _require_admin(admin_authenticated)
+        target = str(query.get("target") or "").strip().lower()
+        if target == "common":
+            model = service.selected_common_llm_model()
+            models = service.configured_common_reserve_models(model)
+            return {"target": target, "common_llm_model": model, "common_llm_models": models, "llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True)}
+        if target == "case":
+            model = service.selected_case_llm_model()
+            return {"target": target, "case_llm_model": model, "case_llm_models": [model] if model else [], "openrouter": service.openrouter_status(probe=False)}
+        if target == "reserve1":
+            model = service.selected_reserve1_model()
+            return {"target": target, "reserve1_llm_model": model, "reserve1_llm_models": service.configured_common_reserve_models(model), "reserve1_provider": service._status_for_switchable_llm_model(model, probe=False)}
+        if target == "reserve2":
+            model = service.selected_reserve2_model()
+            return {"target": target, "reserve2_llm_model": model, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True)}
+        if target == "embedding":
+            model = service.selected_embedding_model()
+            return {"target": target, "embedding_model": model, "embedding_models": service.available_embedding_models(), "ollama_embedding": service.ollama_embedding_status(probe=True)}
+        raise MasterPressError("확인할 모델 영역을 찾지 못했습니다.", 404)
+
     if path.startswith("/admin/signup-requests/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/signup-requests/"):].split("/")
@@ -295,12 +397,12 @@ def dispatch(
         _require_admin(admin_authenticated)
         model = str(payload.get("model") or "").strip()[:120]
         if not model:
-            raise MasterPressError("Groq 공통분석 모델을 선택하세요.")
+            raise MasterPressError("공통분석 모델을 선택하세요.")
         models = service.available_common_llm_models()
         if models and model not in models:
-            raise MasterPressError("현재 Groq에서 사용할 수 있는 공통분석 모델만 선택할 수 있습니다.")
+            raise MasterPressError("현재 공통분석/예비1에서 지원하는 모델만 선택할 수 있습니다.")
         service.store.set_setting("common_llm_model", model)
-        return {"common_llm_model": model, "common_llm_models": models, "groq": service.groq_status(probe=True)}
+        return {"common_llm_model": model, "common_llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True), "cloudflare": service.cloudflare_status(probe=False), "groq": service.groq_status(probe=False)}
 
     if path == "/admin/settings/embedding-model" and method == "PUT":
         _require_admin(admin_authenticated)
@@ -337,13 +439,13 @@ def dispatch(
         reserve1 = str(payload.get("reserve1_model") or "").strip()[:180]
         reserve2 = str(payload.get("reserve2_model") or "").strip()[:180]
         if not reserve1:
-            raise MasterPressError("예비1 Cloudflare 모델을 입력하세요.")
+            raise MasterPressError("예비1 모델을 입력하세요.")
         if not reserve2:
             raise MasterPressError("예비2 Gemini 모델을 입력하세요.")
         service.store.set_setting("reserve1_llm_model", reserve1)
         service.store.set_setting("reserve2_llm_model", reserve2)
         return {
-            "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "cloudflare": service.cloudflare_status(probe=True),
+            "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "reserve1_provider": service._status_for_switchable_llm_model(reserve1, probe=True), "groq": service.groq_status(probe=False), "cloudflare": service.cloudflare_status(probe=False),
             "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True),
         }
 
@@ -358,9 +460,10 @@ def dispatch(
     if path.startswith("/admin/announcements/") and method == "DELETE":
         _require_admin(admin_authenticated)
         item_id = path[len("/admin/announcements/"):].strip("/")
-        if not service.store.delete_announcement(item_id):
+        hard_delete = str(query.get("hard") or "").lower() in {"1", "true", "yes"}
+        if not service.store.delete_announcement(item_id, hard=hard_delete):
             raise MasterPressError("공지사항을 찾지 못했습니다.", 404)
-        return {"deleted": True, "items": service.store.list_announcements(include_inactive=True)}
+        return {"deleted": True, "hard_deleted": hard_delete, "items": service.store.list_announcements(include_inactive=True)}
 
     if path == "/admin/settings/case-batch" and method == "PUT":
         _require_admin(admin_authenticated)

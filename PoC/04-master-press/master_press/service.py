@@ -13,7 +13,7 @@ from .config import Settings
 from .kakao import KakaoClient
 from .matching import article_topic_fields, expanded_case_terms, term_in_text
 from .press_releases import PressReleaseManager
-from .scoring import GroqError, OpenRouterError, RelevanceEngine, calibrated_semantic_score, case_retrieval_text, cosine_similarity
+from .scoring import GroqError, OpenRouterError, RelevanceEngine, calibrated_semantic_score, case_retrieval_text, cosine_similarity, parse_llm_json
 from .storage import KST, Store, now_iso
 from .supabase_mirror import SupabaseMirror
 
@@ -147,6 +147,7 @@ class MasterPressService:
         self.store = store
         self.collector = NewsCollector(settings)
         self.scoring = RelevanceEngine(settings, store)
+        self._migrate_common_reserve_defaults()
         self.scoring.ollama.embedding_model = self.selected_embedding_model()
         self.mirror = SupabaseMirror(settings)
         self.press_releases = PressReleaseManager(settings, store, self.scoring.ollama, self.mirror)
@@ -155,8 +156,18 @@ class MasterPressService:
         self.recovered_pipeline_jobs = self.store.recover_incomplete_pipeline_jobs()
         self.recovered_llm_jobs += sum(self.recovered_pipeline_jobs.values())
 
+    def _migrate_common_reserve_defaults(self) -> None:
+        """Swap the old Groq-primary/Cloudflare-reserve defaults once, preserving custom choices."""
+        old_common = str(getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant") or "llama-3.1-8b-instant")
+        old_reserve = str(getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or "@cf/google/gemma-4-26b-a4b-it")
+        current_common = self.store.get_setting("common_llm_model", "")
+        current_reserve = self.store.get_setting("reserve1_llm_model", "")
+        if current_common in {"", old_common} and current_reserve in {"", old_reserve}:
+            self.store.set_setting("common_llm_model", old_reserve)
+            self.store.set_setting("reserve1_llm_model", old_common)
+
     def selected_common_llm_model(self) -> str:
-        default = getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant")
+        default = getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it")
         return self.store.get_setting("common_llm_model", default)
 
     def selected_llm_model(self) -> str:
@@ -168,7 +179,7 @@ class MasterPressService:
         return self.store.get_setting("case_llm_model", default)
 
     def selected_reserve1_model(self) -> str:
-        default = getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it")
+        default = getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant")
         return self.store.get_setting("reserve1_llm_model", default)
 
     def selected_reserve2_model(self) -> str:
@@ -185,11 +196,29 @@ class MasterPressService:
         default = getattr(getattr(self, "settings", None), "embedding_model", "nomic-embed-text:latest")
         return self.store.get_setting("embedding_model", default)
 
-    def available_common_llm_models(self) -> list[str]:
+    def configured_common_reserve_models(self, selected: str = "") -> list[str]:
+        models = [
+            getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it"),
+            getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant"),
+        ]
+        if selected:
+            models.append(selected)
+        return list(dict.fromkeys(value for value in models if value))
+
+    def _switchable_common_reserve_models(self, selected: str = "") -> list[str]:
+        models = self.configured_common_reserve_models(selected)
         try:
-            return self.scoring.common_llm.models()
+            models.extend(self.scoring.reserve1_llm.models())
         except Exception:
-            return [self.selected_common_llm_model()] if self.selected_common_llm_model() else []
+            pass
+        try:
+            models.extend(self.scoring.common_llm.models())
+        except Exception:
+            pass
+        return list(dict.fromkeys(value for value in models if value))
+
+    def available_common_llm_models(self) -> list[str]:
+        return self._switchable_common_reserve_models(self.selected_common_llm_model())
 
     def available_llm_models(self) -> list[str]:
         return self.available_common_llm_models()
@@ -201,8 +230,7 @@ class MasterPressService:
             return [self.selected_case_llm_model()] if self.selected_case_llm_model() else []
 
     def available_reserve1_models(self) -> list[str]:
-        models = [self.selected_reserve1_model(), getattr(self.settings, "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it")]
-        return list(dict.fromkeys(value for value in models if value))
+        return self._switchable_common_reserve_models(self.selected_reserve1_model())
 
     def available_reserve2_models(self) -> list[str]:
         models = [self.selected_reserve2_model(), getattr(self.settings, "gemini_model", "gemini-3.5-flash-lite"), "gemini-3.5-flash", "gemini-3.1-flash-lite"]
@@ -214,17 +242,70 @@ class MasterPressService:
         except Exception:
             return [self.selected_embedding_model()] if self.selected_embedding_model() else []
 
-    def groq_status(self, probe: bool = False) -> dict:
+    def _provider_for_switchable_llm_model(self, model: str) -> str:
+        model = str(model or "").strip()
+        if not model:
+            return ""
+        if model == getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or model.startswith("@cf/"):
+            return "cloudflare"
+        if model == getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant") or model in {"llama-3.1-8b-instant"}:
+            return "groq"
+        if model.startswith("gemini-"):
+            return "gemini"
+        return "groq"
+
+    def _status_for_switchable_llm_model(self, model: str, probe: bool = False) -> dict:
+        provider = self._provider_for_switchable_llm_model(model)
+        if provider == "cloudflare":
+            status = self.cloudflare_status(probe)
+        elif provider == "groq":
+            status = self.groq_status(probe)
+        elif provider == "gemini":
+            status = self.gemini_status(probe)
+        else:
+            status = {"connected": False, "available": False, "error": "모델 제공자를 확인할 수 없습니다.", "attempts": 0, "soft_limit": 0}
+        status["model"] = model
+        status["provider"] = provider
+        return status
+
+    def _active_provider_chain(self, chain: list[tuple[str, str]]) -> list[tuple[str, str]]:
+        active = []
+        seen = set()
+        current = now_iso()
+        for provider, model in chain:
+            provider = str(provider or "").strip().lower()
+            model = str(model or "").strip()
+            if not provider or not model:
+                continue
+            key = (provider, model)
+            if key in seen:
+                continue
+            disabled_until = self._provider_disabled_until(provider)
+            if disabled_until and disabled_until > current:
+                continue
+            seen.add(key)
+            active.append(key)
+        return active
+
+    def _groq_usage_window(self) -> tuple[str, str, str]:
         since = (datetime.now(KST) - timedelta(hours=24)).isoformat(timespec="seconds")
+        rate_reset = self.store.get_setting("llm_provider_rate_reset_at:groq", "")
+        try:
+            reset_label = datetime.fromisoformat(rate_reset).astimezone(KST).strftime("%H:%M:%S") if rate_reset else ""
+        except Exception:
+            reset_label = ""
+        label = "최근 24시간 기준" + (f" · 단기 rate reset {reset_label}" if reset_label else "")
+        return since, "", label
+
+    def groq_status(self, probe: bool = False) -> dict:
+        since, reset_at, reset_label = self._groq_usage_window()
         usage = self.store.provider_usage_since(
-            "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit, "common"
+            "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit
         )
         status = self.scoring.common_llm.key_status() if probe else {"connected": bool(self.settings.groq_api_key)}
-        reset_at = self.store.get_setting("llm_provider_reset_at:groq", "")
-        raw = self.store.get_setting("llm_provider_reset_raw:groq", "")
-        result = {**status, **usage, "model": self.selected_common_llm_model(), "provider": "groq",
-                  "period": "rolling 24h", "day_start": since, "reset_basis": "Groq rate-limit header",
-                  "reset_at": reset_at, "reset_label": "Groq 응답 헤더 기준" + (f" · {raw}" if raw else " · 최근 응답 대기")}
+        result = {**status, **usage, "model": self.selected_reserve1_model(), "provider": "groq",
+                  "period": "Groq window", "day_start": since, "reset_basis": "Groq rate-limit header",
+                  "reset_at": reset_at, "reset_label": reset_label}
         return self._attach_provider_guard(result)
 
     def openrouter_status(self, probe: bool = False) -> dict:
@@ -243,7 +324,7 @@ class MasterPressService:
             status = self.scoring.reserve1_llm.key_status()
         else:
             status = {"connected": connected, "error": "" if connected else ("Cloudflare API 키 미설정" if not has_key else "Cloudflare Account ID 미설정")}
-        result = {**status, **usage, "model": self.selected_reserve1_model(), "provider": "cloudflare",
+        result = {**status, **usage, "model": self.selected_common_llm_model(), "provider": "cloudflare",
                   "neuron_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000),
                   "reset_basis": "UTC 00:00", "reset_at": reset_at,
                   "reset_label": "한국시간 09:00"}
@@ -347,8 +428,19 @@ class MasterPressService:
         chain = []
         if include_openrouter:
             chain.append(("openrouter", self.selected_case_llm_model()))
-        chain.extend([("cloudflare", self.selected_reserve1_model()), ("gemini", self.selected_reserve2_model())])
-        return [(provider, model) for provider, model in chain if model and not (self._provider_disabled_until(provider) and self._provider_disabled_until(provider) > now_iso())]
+        reserve1_model = self.selected_reserve1_model()
+        chain.extend([(self._provider_for_switchable_llm_model(reserve1_model), reserve1_model), ("gemini", self.selected_reserve2_model())])
+        return self._active_provider_chain(chain)
+
+    def _common_provider_chain(self) -> list[tuple[str, str]]:
+        common_model = self.selected_common_llm_model()
+        reserve1_model = self.selected_reserve1_model()
+        chain = [
+            (self._provider_for_switchable_llm_model(common_model), common_model),
+            (self._provider_for_switchable_llm_model(reserve1_model), reserve1_model),
+            ("gemini", self.selected_reserve2_model()),
+        ]
+        return self._active_provider_chain(chain)
 
     def _remember_provider_failure(self, provider: str, error: Exception) -> None:
         if isinstance(error, OpenRouterError) and self._is_provider_quota_error(error):
@@ -360,9 +452,20 @@ class MasterPressService:
 
     def _try_common_reserve(self, article: dict) -> tuple[str, str, dict]:
         last_error: Exception | None = None
-        for provider, model in self._remote_provider_chain(include_openrouter=False):
+        for index, (provider, model) in enumerate(self._common_provider_chain()):
             try:
-                return provider, model, self.scoring.analyze_article_common_with_provider(provider, article, model)
+                if hasattr(self.scoring, "analyze_article_common_with_provider"):
+                    result = self.scoring.analyze_article_common_with_provider(provider, article, model)
+                else:
+                    result = self.scoring.analyze_article_common(article, model)
+                report = result.setdefault("analysis_report", {})
+                if index == 0:
+                    report.pop("fallback", None)
+                    report.pop("fallback_reason", None)
+                else:
+                    report["fallback"] = True
+                    report["fallback_reason"] = "common_primary_unavailable"
+                return provider, model, result
             except json.JSONDecodeError as error:
                 last_error = error
                 continue
@@ -399,8 +502,8 @@ class MasterPressService:
         raise OpenRouterError("case_llm_providers_unavailable", status=503, retryable=True, retry_after=self._next_kst_midnight_iso(), deferred=True)
 
     def pipeline_provider_status(self) -> dict:
-        common = {**self.groq_status(False), "concurrency": 1}
-        reserve1 = self.cloudflare_status(False)
+        common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1}
+        reserve1 = self._status_for_switchable_llm_model(self.selected_reserve1_model(), False)
         reserve2 = self.gemini_status(False)
         case = {**self.openrouter_status(False), "concurrency": 1, "burst_concurrency": 2, "burst_threshold": 10, "batch_size": self.selected_case_batch_size()}
         common_daily_exhausted = int(common.get("attempts") or 0) >= int(common.get("soft_limit") or 0)
@@ -666,12 +769,13 @@ class MasterPressService:
                 self.store.finish_article_analysis_job(job["id"], False, 0, "article_or_analysis_missing")
                 return {"id": job["id"], "status": "failed"}
             started = time.monotonic()
-            provider = "groq"
+            provider = "cloudflare"
             common_model = self.selected_common_llm_model()
             fallback = False
             try:
                 try:
-                    result = self.scoring.analyze_article_common(article, common_model)
+                    provider, common_model, result = self._try_common_reserve(article)
+                    fallback = provider != "cloudflare"
                 except json.JSONDecodeError as error:
                     if int(job.get("attempts") or 0) < 1:
                         duration = round((time.monotonic() - started) * 1000)
@@ -680,12 +784,8 @@ class MasterPressService:
                     result = self.scoring.fallback_article_common(article, common_model, str(error))
                     fallback = True
                     provider = "local_fallback"
-                except GroqError as error:
-                    if not self._is_common_daily_limit(error):
-                        raise
-                    self._remember_provider_failure("groq", error)
-                    provider, common_model, result = self._try_common_reserve(article)
-                    fallback = True
+                except OpenRouterError as error:
+                    raise
                 saved = self.store.save_article_analysis(analysis["id"], result, common_model)
                 self.store.finish_article_analysis_job(job["id"], True, round((time.monotonic() - started) * 1000))
                 routed = {"case_candidates": 0, "case_excluded": 0, "case_queued": 0, "embedded": 0, "fallback": int(fallback), "provider": provider}
@@ -1107,6 +1207,40 @@ class MasterPressService:
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
 
+    def process_next_case_proposal_moderation(self) -> dict | None:
+        proposal = self.store.next_case_proposal_for_moderation()
+        if not proposal:
+            return None
+        model = str(getattr(self.settings, "llm_model", "") or "qwen2.5:1.5b")
+        text = "\n".join([
+            f"제목: {proposal.get('original_title') or proposal.get('title') or ''}",
+            f"닉네임: {proposal.get('nickname') or ''}",
+            f"프롬프트: {proposal.get('original_prompt') or proposal.get('prompt') or ''}",
+            "키워드: " + ", ".join(proposal.get("original_include_terms") or proposal.get("include_terms") or []),
+            "필수키워드: " + ", ".join(proposal.get("original_required_terms") or proposal.get("required_terms") or []),
+        ])[:6000]
+        started = time.monotonic()
+        try:
+            response = self.scoring.ollama.request("/api/chat", {
+                "model": model, "stream": False, "format": "json",
+                "messages": [
+                    {"role": "system", "content": "당신은 공개 게시판 클린 AI입니다. 욕설, 혐오·비하, 개인 공격, 명예훼손성 비방, 음란·폭력 조장, 개인정보 노출, 광고·스팸이 있으면 unsafe=true로 판단하세요. 공공기관 정책 비판이나 케이스 제안 자체는 허용하세요. JSON만 반환하세요."},
+                    {"role": "user", "content": "다음 케이스 신청 게시글을 검사하세요. JSON 형식: {\"unsafe\":false,\"reason\":\"짧은 한국어 사유\"}\n\n" + text},
+                ],
+                "options": {"temperature": 0, "num_predict": 120, "num_ctx": 4096}, "keep_alive": "5m",
+            })
+            raw = response.get("message", {}).get("content", "")
+            data = parse_llm_json(raw)
+            unsafe = data.get("unsafe") is True or str(data.get("unsafe", "")).strip().lower() in {"true", "1", "yes"}
+            reason = str(data.get("reason") or ("문제 표현 감지" if unsafe else "문제 표현 없음"))[:500]
+            self.store.record_llm_api_call("ollama", "moderation", model, "completed", round((time.monotonic() - started) * 1000))
+            item = self.store.finish_case_proposal_moderation(proposal["id"], unsafe, reason, model)
+            return {"proposal_id": proposal["id"], "flagged": unsafe, "reason": reason, "item": item}
+        except Exception as error:
+            self.store.record_llm_api_call("ollama", "moderation", model, "failed", round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            item = self.store.finish_case_proposal_moderation(proposal["id"], False, f"클린 AI 검사 실패: {type(error).__name__}", model)
+            return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": item}
+
     def orchestration_tick(self) -> dict:
         results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "cleanup": {}}
         results["delivery"] = self.send_due()
@@ -1144,7 +1278,10 @@ class MasterPressService:
             return None
         try:
             press = self.press_releases.process_next()
-            return {"stage": "press_release", "result": press} if press else None
+            if press:
+                return {"stage": "press_release", "result": press}
+            moderation = self.process_next_case_proposal_moderation()
+            return {"stage": "case_proposal_moderation", "result": moderation} if moderation else None
         finally:
             LOCAL_EMBEDDING_LOCK.release()
 
