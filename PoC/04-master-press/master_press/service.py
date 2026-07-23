@@ -1190,6 +1190,9 @@ class MasterPressService:
                     delivery["recipient_id"],
                     self.message_text(delivery),
                     self.article_link(delivery["article_id"], delivery["original_url"]),
+                    image_url=str(delivery.get("image_url") or ""),
+                    title=str(delivery.get("title") or ""),
+                    description=str(delivery.get("summary") or ""),
                 )
                 self.store.finish_delivery(delivery["id"], True, status)
                 sent += 1

@@ -14,7 +14,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from master_press.collectors import canonicalize_url, organization_candidate_match, quick_candidate_match
 from master_press.article_metadata import publisher_name, reporter_name
-from master_press.kakao import TokenCipher
+from master_press.kakao import KakaoClient, KakaoError, TokenCipher
 from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
@@ -437,6 +437,26 @@ class StorageTests(unittest.TestCase):
         invite, token = self.store.create_invite("테스트", 60)
         self.assertEqual(self.store.valid_invite(token)["id"], invite["id"])
         self.assertIsNone(self.store.valid_invite("wrong-token"))
+
+    def test_placeholder_kakao_signup_does_not_overwrite_existing_recipient_name(self):
+        _invite, token = self.store.create_invite("김민", 60)
+        first = self.store.consume_invite(token, {
+            "kakao_user_id": "same-kakao-user", "access_token_ciphertext": "access1",
+            "refresh_token_ciphertext": "refresh1", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        self.assertEqual(first["label"], "김민")
+
+        _invite2, token2 = self.store.create_invite("구독 신청자", 60)
+        second = self.store.consume_invite(token2, {
+            "kakao_user_id": "same-kakao-user", "access_token_ciphertext": "access2",
+            "refresh_token_ciphertext": "refresh2", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        self.assertEqual(second["id"], first["id"])
+        self.assertEqual(second["label"], "김민")
+        private = self.store.get_recipient(second["id"], include_tokens=True)
+        self.assertEqual(private["access_token_ciphertext"], "access2")
 
     def test_signup_request_links_kakao_recipient_after_admin_approval(self):
         organization = self.store.save_organization({
@@ -1218,6 +1238,54 @@ class SecurityTests(unittest.TestCase):
         self.assertNotIn(plaintext, encrypted)
         self.assertEqual(cipher.decrypt(encrypted), plaintext)
 
+
+    def test_kakao_send_uses_feed_template_when_image_exists(self):
+        client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())
+        captured = []
+        client.access_token = lambda recipient_id: "token"
+
+        def fake_request(url, payload=None, access_token="", method="POST"):
+            captured.append(json.loads(payload["template_object"]))
+            return 200, {"result_code": 0}
+
+        client._request = fake_request
+        status, response = client.send_to_me(
+            "recipient-1",
+            "[행정안전부]\n[케이스] 유사도 88.0%\n기사 제목\n\n요약",
+            "https://www.minslab.kr/poc/master-press/article/abc",
+            image_url="https://example.com/thumb.jpg",
+            title="대표 기사 제목",
+            description="대표 기사 요약",
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(response["result_code"], 0)
+        self.assertEqual(captured[0]["object_type"], "feed")
+        self.assertEqual(captured[0]["content"]["title"], "대표 기사 제목")
+        self.assertEqual(captured[0]["content"]["description"], "대표 기사 요약")
+        self.assertEqual(captured[0]["content"]["image_url"], "https://example.com/thumb.jpg")
+
+    def test_kakao_send_falls_back_to_text_when_feed_fails(self):
+        client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())
+        captured = []
+        client.access_token = lambda recipient_id: "token"
+
+        def fake_request(url, payload=None, access_token="", method="POST"):
+            message = json.loads(payload["template_object"])
+            captured.append(message)
+            if len(captured) == 1:
+                raise KakaoError("이미지 URL을 표시할 수 없습니다.", 400)
+            return 200, {"result_code": 0}
+
+        client._request = fake_request
+        status, response = client.send_to_me(
+            "recipient-1",
+            "fallback text",
+            "https://www.minslab.kr/poc/master-press/article/abc",
+            image_url="https://example.com/thumb.jpg",
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(response["result_code"], 0)
+        self.assertEqual([item["object_type"] for item in captured], ["feed", "text"])
 
     def test_kakao_text_respects_200_character_limit(self):
         delivery = {

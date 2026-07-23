@@ -5,16 +5,69 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260723-06">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260723-10">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/poc?project=master-press"><span>04</span><strong>AI 언론동향 비서</strong><small>AI읽고 AI로 분류하다</small></a>
-    <nav><a class="nav manual-download" href="/poc/master-press/manual.pdf" download>사용설명서 다운로드</a><button class="nav" data-view="signup">구독 및 케이스 신청</button><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
+    <nav><button class="nav manual-download" data-view="manual">사용설명서</button><button class="nav" data-view="signup">구독 및 케이스 신청</button><button class="nav active" data-view="dashboard">대시보드</button><button class="nav" data-view="neural">신경망 분석</button><button class="nav" data-view="press">보도동향</button><button class="nav" data-view="admin">관리 설정</button><a href="/poc?project=master-press">PoC 소개 ↗</a></nav>
     <div id="operationNotice" class="operation-notice" hidden></div>
   </header>
 
   <main>
+    <section id="manualView" class="manual-view" hidden>
+      <aside class="manual-tree" aria-label="사용설명서 목차">
+        <div class="manual-tree-title"><span>USER GUIDE</span><b>사용설명서</b></div>
+        <a href="#manual-start">처음 보는 분</a>
+        <a href="#manual-subscribe">구독 신청</a>
+        <a href="#manual-case-board">케이스 신청 게시판</a>
+        <a href="#manual-dashboard">대시보드</a>
+        <a href="#manual-network">신경망·보도동향</a>
+        <a href="#manual-admin">관리자 설정</a>
+        <a href="#manual-faq">자주 묻는 질문</a>
+        <a href="/poc/master-press/manual.pdf" download>PDF 내려받기</a>
+      </aside>
+      <article class="manual-doc">
+        <section id="manual-start" class="manual-hero panel">
+          <p class="eyebrow">AI PRESS MONITOR GUIDE</p>
+          <h1>AI 언론동향 비서 사용설명서</h1>
+          <p>이 페이지는 PDF 대신 화면 안에서 보는 구조화된 매뉴얼입니다. 왼쪽 목차를 누르면 필요한 항목으로 바로 이동하고, 복잡한 흐름은 화면 설명 이미지와 함께 확인할 수 있습니다.</p>
+          <div class="manual-quick-links"><a href="#manual-subscribe">구독 시작하기</a><a href="#manual-dashboard">기사 확인하기</a><a href="#manual-admin">관리자 업무 보기</a><a href="/poc/master-press/manual.pdf" download>기존 PDF 다운로드</a></div>
+          <figure><img src="/poc/master-press/manual-assets/manual-flow.png" alt="AI 언론동향 비서 전체 업무 흐름"><figcaption>기관 설정부터 기사 수집, AI 분석, 케이스 판정, 카카오 발송까지 이어지는 전체 흐름입니다.</figcaption></figure>
+        </section>
+
+        <section id="manual-subscribe" class="manual-section panel">
+          <div class="manual-section-head"><span>01</span><div><h2>구독 신청은 카카오 동의가 먼저입니다</h2><p>메시지를 실제로 받으려면 카카오 로그인 후 [선택] 카카오 메시지 전송 권한에 동의해야 합니다.</p></div></div>
+          <div class="manual-two-col"><div><h3>진행 순서</h3><ol><li>상단 메뉴에서 <b>구독 및 케이스 신청</b>을 엽니다.</li><li><b>카카오 로그인/메시지 전송 동의하기</b>를 누릅니다.</li><li>카카오 화면에서 [선택] 카카오 메시지 전송을 선택합니다.</li><li>화면으로 돌아와 이름과 기관을 선택합니다.</li><li>구독 대상 케이스를 전체 기준으로 다시 체크하고 요청합니다.</li></ol><p class="manual-note">구독 변경은 추가·삭제분만 보내는 방식이 아닙니다. 변경 후 받고 싶은 전체 케이스를 다시 체크해 주세요. 모든 체크를 해제하면 해지 요청입니다.</p></div><figure><img src="/poc/master-press/manual-assets/manual-signup.png" alt="구독 및 케이스 신청 화면 설명"><figcaption>카카오 동의, 이름·기관 선택, 구독 대상 선택, 케이스 신청 게시판이 한 화면에서 이어집니다.</figcaption></figure></div>
+        </section>
+
+        <section id="manual-case-board" class="manual-section panel">
+          <div class="manual-section-head"><span>02</span><div><h2>새 모니터링 주제는 케이스 신청 게시판에 제안합니다</h2><p>일반 사용자는 닉네임으로 필요한 케이스를 제안하고, 관리자는 이를 바로 새 케이스 등록창으로 가져갈 수 있습니다.</p></div></div>
+          <div class="manual-card-grid"><div><h3>사용자 입력</h3><p>닉네임, 수정·삭제 암호, 케이스 제목, 케이스 프롬프트, 키워드, 필수키워드를 입력합니다. 암호는 평문 저장하지 않습니다.</p></div><div><h3>목록 표시</h3><p>목록에는 제목과 닉네임만 먼저 보이고, 글을 클릭하면 프롬프트와 키워드가 펼쳐집니다.</p></div><div><h3>클린 AI</h3><p>등록·수정 글은 로컬 LLM이 유휴 시간에 검사합니다. 문제 표현이 있으면 “클린 AI에 의해서 블라인드 처리되었습니다.”로 잠깁니다.</p></div><div><h3>관리자 등록</h3><p>관리자 로그인 상태에서는 <b>케이스 등록</b> 버튼으로 관리 설정의 새 케이스 창을 열고 신청 내용을 자동 입력할 수 있습니다.</p></div></div>
+        </section>
+
+        <section id="manual-dashboard" class="manual-section panel">
+          <div class="manual-section-head"><span>03</span><div><h2>대시보드는 오늘 처리 상태와 기사별 결과를 봅니다</h2><p>공통분석, 임베딩, 케이스 판정, 발송 단계가 어디까지 진행됐는지 한눈에 확인합니다.</p></div></div>
+          <div class="manual-two-col"><figure><img src="/poc/master-press/manual-assets/manual-dashboard.png" alt="대시보드 화면 설명"><figcaption>오류는 현재 대기 건수와 누적 건수를 함께 보고, 발송 건수는 실제 수신자 메시지 수 기준입니다.</figcaption></figure><div><h3>중요한 표시</h3><ul><li><b>+ 케이스</b>: 케이스별 후보 제외, 발송 제외, 발송 완료 상태를 봅니다.</li><li><b>유사 기사 묶어서 보기</b>: 기본 선택이며, 임베딩 완료 후 의미 유사도 기준으로 갱신됩니다.</li><li><b>재분석</b>: 관리자만 사용할 수 있으며 기사 단위로 모든 케이스 판정을 다시 대기 상태로 돌립니다.</li><li><b>관련 보도자료</b>: 보도자료 유사도 기준을 넘은 공식 자료를 연결합니다.</li></ul></div></div>
+        </section>
+
+        <section id="manual-network" class="manual-section panel">
+          <div class="manual-section-head"><span>04</span><div><h2>신경망 분석과 보도동향은 관계를 보는 화면입니다</h2><p>대시보드가 개별 기사 중심이라면, 신경망과 보도동향은 기사 묶음과 공식 보도자료의 관계를 보여줍니다.</p></div></div>
+          <div class="manual-card-grid"><div><h3>신경망 분석</h3><p>기관, 케이스, 기간을 선택하면 발송 완료 기사 중심의 3D 의미 관계망을 봅니다. 관련 기사끼리만 묶이도록 유사도 기준을 적용합니다.</p></div><div><h3>주요 화두</h3><p>노드와 화두를 함께 보며 해당 케이스에서 반복되는 주제와 단어를 확인합니다.</p></div><div><h3>보도동향 검색</h3><p>제목, 담당과, 담당자 이름으로 행안부 보도자료를 검색할 수 있습니다.</p></div><div><h3>관련 기사</h3><p>보도자료별 관련 기사 수와 Markdown 원문을 확인해 공식 발표와 언론 보도의 연결을 봅니다.</p></div></div>
+        </section>
+
+        <section id="manual-admin" class="manual-section panel">
+          <div class="manual-section-head"><span>05</span><div><h2>관리자는 회원, 케이스, 모델, 공지를 한 곳에서 관리합니다</h2><p>관리 설정은 기존 홈페이지 관리자 로그인 세션으로 보호됩니다.</p></div></div>
+          <div class="manual-two-col"><figure><img src="/poc/master-press/manual-assets/manual-admin.png" alt="관리 설정 화면 설명"><figcaption>회원 목록은 2열로 보이고, 모델 상태는 순차 확인해 관리 설정 첫 로딩을 가볍게 합니다.</figcaption></figure><div><h3>관리자 업무</h3><ul><li>회원 이름은 기본 마스킹, <b>이름 표시</b> 체크 시 전체 표시</li><li>회원 행 클릭 후 케이스별 구독 체크박스 조정</li><li>기관 아래 케이스를 드래그해 표시 순서 변경</li><li>공통분석·케이스판정·예비모델·임베딩 모델 설정</li><li>공지사항 등록, 내리기, 삭제</li><li>관련 보도자료 기준과 유사 기사 묶음 기준 조정</li></ul></div></div>
+        </section>
+
+        <section id="manual-faq" class="manual-section panel">
+          <div class="manual-section-head"><span>06</span><div><h2>자주 묻는 질문</h2><p>운영 중 헷갈리기 쉬운 지점을 짧게 정리했습니다.</p></div></div>
+          <div class="manual-faq"><details open><summary>발송 건수는 기사 수인가요?</summary><p>아닙니다. 실제 수신자에게 발송되는 메시지 단위입니다. 수신자가 3명이면 기사 1건도 발송 3건이 될 수 있습니다.</p></details><details><summary>LLM 0%는 항상 무관하다는 뜻인가요?</summary><p>아닙니다. 판정 실패나 중단 상태일 수 있으므로 케이스 상태가 completed인지 먼저 확인해야 합니다.</p></details><details><summary>관리 설정이 늦게 뜨면 어떻게 하나요?</summary><p>현재는 저장값을 먼저 보여주고 모델 상태는 순차 확인합니다. 화면은 먼저 열리고, 모델 상태 문구가 하나씩 갱신됩니다.</p></details><details><summary>토큰이 다 떨어지면 어떻게 되나요?</summary><p>주 모델이 소진되면 예비 모델로 전환합니다. 모든 제공자가 소진되면 영업중지 메시지가 표시되고 다음 초기화 시각 이후 재개합니다.</p></details></div>
+        </section>
+      </article>
+    </section>
+
     <section id="signupView" hidden>
       <div class="signup-head"><div><p class="eyebrow">KAKAO SUBSCRIPTION REQUEST</p><h1>구독 및 케이스 신청</h1><p>카카오 수신 등록 후 필요한 부처와 케이스를 선택하거나, 새 모니터링 케이스를 제안할 수 있습니다.</p><div class="signup-notice">본 페이지는 개인의 어떠한 정보도 수집하지 않습니다. 구독 변경 시 추가·삭제분만 보내지 말고 구독할 내용을 전체로 다시 체크해 요청하세요. 해지는 모든 체크를 삭제한 상태로 구독 요청하면 됩니다.</div></div></div>
       <div class="signup-grid">
@@ -164,6 +217,6 @@
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
   <dialog id="announcementDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>NOTICE</span><h2 id="announcementPopupTitle">공지사항</h2></div><button type="button" class="icon-button" data-close="announcementDialog">×</button></div><div id="announcementPopupBody" class="announcement-popup-body"></div><label class="week-hide"><input type="checkbox" id="announcementHideWeek"> 일주일 동안 다시 보지 않기</label><div class="dialog-actions"><span></span><button type="button" class="button" id="closeAnnouncementPopup">확인</button></div></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260723-09"></script>
+  <script src="/poc/master-press/app.js?v=20260724-01"></script>
 </body>
 </html>

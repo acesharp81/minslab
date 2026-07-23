@@ -285,6 +285,7 @@ CREATE TABLE IF NOT EXISTS articles (
   published_at TEXT,
   snippet TEXT NOT NULL DEFAULT '',
   body TEXT NOT NULL DEFAULT '',
+  image_url TEXT NOT NULL DEFAULT '',
   body_expires_at TEXT,
   content_hash TEXT,
   source_type TEXT NOT NULL DEFAULT 'naver',
@@ -681,9 +682,26 @@ class Store:
         with self.connect() as connection:
             connection.executescript(SCHEMA)
             self._migrate_article_case_flag_schema(connection)
+            article_columns = {row[1] for row in connection.execute("PRAGMA table_info(articles)")}
+            if "image_url" not in article_columns:
+                connection.execute("ALTER TABLE articles ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
             recipient_columns = {row[1] for row in connection.execute("PRAGMA table_info(recipients)")}
             if "scopes" not in recipient_columns:
                 connection.execute("ALTER TABLE recipients ADD COLUMN scopes TEXT NOT NULL DEFAULT '[]'")
+            connection.execute(
+                """UPDATE recipients
+                   SET label=(
+                     SELECT sr.applicant_name FROM signup_requests sr
+                     WHERE sr.recipient_id=recipients.id AND COALESCE(sr.applicant_name,'')<>''
+                     ORDER BY COALESCE(sr.updated_at,sr.created_at) DESC LIMIT 1
+                   ),updated_at=?
+                   WHERE label IN ('구독 신청자','카카오 수신자','')
+                     AND EXISTS (
+                       SELECT 1 FROM signup_requests sr
+                       WHERE sr.recipient_id=recipients.id AND COALESCE(sr.applicant_name,'')<>''
+                     )""",
+                (now_iso(),),
+            )
             connection.execute("DROP TRIGGER IF EXISTS cases_max_five")
             columns = {row[1] for row in connection.execute("PRAGMA table_info(cases)")}
             if "organization_id" not in columns:
@@ -1962,7 +1980,11 @@ class Store:
                    access_token_expires_at,refresh_token_expires_at,scopes,status,created_at,updated_at
                 ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
                 ON CONFLICT(kakao_user_id) DO UPDATE SET
-                   label=excluded.label,access_token_ciphertext=excluded.access_token_ciphertext,
+                   label=CASE
+                     WHEN excluded.label IN ('구독 신청자','카카오 수신자','') THEN recipients.label
+                     ELSE excluded.label
+                   END,
+                   access_token_ciphertext=excluded.access_token_ciphertext,
                    refresh_token_ciphertext=excluded.refresh_token_ciphertext,
                    access_token_expires_at=excluded.access_token_expires_at,
                    refresh_token_expires_at=excluded.refresh_token_expires_at,scopes=excluded.scopes,status='active',updated_at=excluded.updated_at""",
@@ -2008,11 +2030,13 @@ class Store:
                 connection.execute(
                     """UPDATE articles SET original_url=?,title=?,publisher=?,published_at=?,snippet=?,
                        body=CASE WHEN ?<>'' THEN ? ELSE body END,
+                       image_url=CASE WHEN ?<>'' THEN ? ELSE image_url END,
                        body_expires_at=CASE WHEN ?<>'' THEN ? ELSE body_expires_at END,
                        content_hash=COALESCE(?,content_hash),updated_at=? WHERE id=?""",
                     (
                         article["original_url"], article["title"], article.get("publisher", ""), article.get("published_at"),
-                        article.get("snippet", ""), article.get("body", ""), article.get("body", ""), article.get("body", ""),
+                        article.get("snippet", ""), article.get("body", ""), article.get("body", ""),
+                        article.get("image_url", ""), article.get("image_url", ""), article.get("body", ""),
                         article.get("body_expires_at"), article.get("content_hash"), now, existing["id"],
                     ),
                 )
@@ -2021,11 +2045,11 @@ class Store:
                 article_id, created = str(uuid.uuid4()), True
                 connection.execute(
                     """INSERT INTO articles(id,canonical_url,original_url,title,publisher,published_at,snippet,body,
-                       body_expires_at,content_hash,source_type,first_seen_at,updated_at)
-                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                       image_url,body_expires_at,content_hash,source_type,first_seen_at,updated_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (
                         article_id, article["canonical_url"], article["original_url"], article["title"], article.get("publisher", ""),
-                        article.get("published_at"), article.get("snippet", ""), article.get("body", ""), article.get("body_expires_at"),
+                        article.get("published_at"), article.get("snippet", ""), article.get("body", ""), article.get("image_url", ""), article.get("body_expires_at"),
                         article.get("content_hash"), article.get("source_type", "naver"), now, now,
                     ),
                 )
@@ -2642,7 +2666,7 @@ class Store:
     def due_deliveries(self, limit: int = 20) -> list[dict]:
         with self.connect() as connection:
             rows = connection.execute(
-                """SELECT d.*,a.title,a.original_url,a.publisher,a.published_at,
+                """SELECT d.*,a.title,a.original_url,a.image_url,a.publisher,a.published_at,
                           COALESCE(aa.summary,s.summary,a.snippet,'') summary,
                           COALESCE(ce.final_score,s.final_score,0) similarity_score,
                           COALESCE(ce.final_score,s.final_score,0) final_score,
@@ -3334,7 +3358,7 @@ class Store:
             article_where.append("(a.title LIKE ? OR a.publisher LIKE ? OR aa.publisher_name LIKE ? OR aa.reporter_name LIKE ?)")
             article_params.extend([f"%{search}%"] * 4)
         sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,substr(a.body,1,5000) source_body,ae.vector article_vector,
+                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,substr(a.body,1,5000) source_body,ae.vector article_vector,
                   (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
                     AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
                     AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
@@ -3420,7 +3444,7 @@ class Store:
             if tags and not all(tag in tags_value or tag == item.get("article_type") or tag == item.get("tone") for tag in tags):
                 continue
             article = grouped.setdefault(analysis_id, {
-                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
+                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "image_url": item.get("image_url") or "", "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
                 "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
                 "press_match_total_count": int(item.get("press_match_total_count") or 0),
                 "semantic_vector": json_value(item.get("article_vector"), []),

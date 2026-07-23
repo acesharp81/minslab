@@ -82,6 +82,65 @@ class TextExtractor(HTMLParser):
         return "\n".join(line for line in lines if len(line) > 1)
 
 
+IMAGE_META_KEYS = {"og:image", "og:image:url", "twitter:image", "twitter:image:src", "thumbnail", "thumbnailurl", "image"}
+IMAGE_SKIP_RE = re.compile(r"(logo|icon|sprite|banner|ad-|ads/|advert|profile|avatar|button|favicon)", re.I)
+IMAGE_EXT_RE = re.compile(r"\.(?:jpe?g|png|webp)(?:[?#]|$)", re.I)
+
+
+class ImageMetaParser(HTMLParser):
+    def __init__(self, base_url: str):
+        super().__init__()
+        self.base_url = base_url
+        self.meta_images: list[str] = []
+        self.fallback_images: list[str] = []
+
+    def _clean_url(self, value: str) -> str:
+        value = html.unescape(str(value or "")).strip()
+        if not value:
+            return ""
+        resolved = urllib.parse.urljoin(self.base_url, value)
+        parsed = urllib.parse.urlsplit(resolved)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return ""
+        return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))[:1000]
+
+    def handle_starttag(self, tag, attrs):
+        attr = {str(key).lower(): str(value or "") for key, value in attrs}
+        tag = tag.lower()
+        if tag == "meta":
+            key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").lower()
+            if key in IMAGE_META_KEYS:
+                url = self._clean_url(attr.get("content", ""))
+                if url:
+                    self.meta_images.append(url)
+        elif tag == "link":
+            rel = attr.get("rel", "").lower()
+            if "image_src" in rel:
+                url = self._clean_url(attr.get("href", ""))
+                if url:
+                    self.meta_images.append(url)
+        elif tag == "img" and len(self.fallback_images) < 3:
+            raw = attr.get("src") or attr.get("data-src") or attr.get("data-original") or ""
+            url = self._clean_url(raw)
+            if url and IMAGE_EXT_RE.search(url) and not IMAGE_SKIP_RE.search(url):
+                self.fallback_images.append(url)
+
+    def image_url(self) -> str:
+        for url in [*self.meta_images, *self.fallback_images]:
+            if url:
+                return url
+        return ""
+
+
+def extract_representative_image(raw_html: str, base_url: str) -> str:
+    parser = ImageMetaParser(base_url)
+    try:
+        parser.feed(raw_html or "")
+    except Exception:
+        return ""
+    return parser.image_url()
+
+
 @dataclass
 class Candidate:
     canonical_url: str
@@ -283,8 +342,10 @@ class NewsCollector:
                 parser.feed(raw_html)
                 body = parser.text()
             body = body.strip()[: self.settings.article_body_limit]
+            image_url = extract_representative_image(raw_html, url)
             return {
                 "body": body,
+                "image_url": image_url,
                 "content_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
                 "body_expires_at": (datetime.now(KST) + timedelta(days=self.settings.raw_retention_days)).isoformat(timespec="seconds"),
                 "error": "" if body else "body_unavailable",

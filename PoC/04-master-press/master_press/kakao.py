@@ -183,14 +183,53 @@ class KakaoClient:
         except KakaoError as error:
             return {"connected": False, "label": "연결 실패", "error": str(error)[:180]}
 
-    def send_to_me(self, recipient_id: str, text: str, original_url: str) -> tuple[int, dict]:
-        token = self.access_token(recipient_id)
-        message = {
+    @staticmethod
+    def _link(original_url: str) -> dict:
+        return {"web_url": original_url, "mobile_web_url": original_url}
+
+    @staticmethod
+    def _text_message(text: str, original_url: str) -> dict:
+        return {
             "object_type": "text",
             "text": str(text)[:200],
-            "link": {"web_url": original_url, "mobile_web_url": original_url},
+            "link": KakaoClient._link(original_url),
             "button_title": "원문 보기",
         }
+
+    @staticmethod
+    def _feed_message(text: str, original_url: str, image_url: str, title: str = "", description: str = "") -> dict:
+        lines = [line.strip() for line in str(text or "").splitlines() if line.strip()]
+        clean_title = str(title or "").strip() or next((line for line in lines if not line.startswith("[")), "") or "AI 언론동향 비서"
+        clean_description = str(description or "").strip() or " · ".join(lines[:3]) or str(text or "")
+        return {
+            "object_type": "feed",
+            "content": {
+                "title": clean_title[:80],
+                "description": clean_description[:180],
+                "image_url": str(image_url).strip()[:1000],
+                "link": KakaoClient._link(original_url),
+            },
+            "button_title": "원문 보기",
+        }
+
+    @staticmethod
+    def _valid_image_url(image_url: str) -> bool:
+        parsed = urllib.parse.urlsplit(str(image_url or "").strip())
+        return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+    def send_to_me(self, recipient_id: str, text: str, original_url: str, image_url: str = "", title: str = "", description: str = "") -> tuple[int, dict]:
+        token = self.access_token(recipient_id)
+        if self._valid_image_url(image_url):
+            message = self._feed_message(text, original_url, image_url, title, description)
+            try:
+                return self._request(
+                    "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+                    {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},
+                    token,
+                )
+            except KakaoError:
+                pass
+        message = self._text_message(text, original_url)
         return self._request(
             "https://kapi.kakao.com/v2/api/talk/memo/default/send",
             {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},
