@@ -550,6 +550,9 @@ class MasterPressService:
     def analysis_report(self, article_id: str, case_id: str) -> dict:
         report = self.store.analysis_report(article_id, case_id)
         article, case = self.store.get_article(article_id), self.store.get_case(case_id)
+        if report is None:
+            report = {}
+        report["feedback"] = self.store.analysis_feedback_summary(article_id, case_id)
         if not article or not case:
             return report
         evaluation_case, _organization = self.analysis_case(case)
@@ -1244,8 +1247,84 @@ class MasterPressService:
             item = self.store.finish_case_proposal_moderation(proposal["id"], False, f"클린 AI 검사 실패: {type(error).__name__}", model)
             return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": item}
 
+    def _body_backfill_config(self) -> tuple[int, int, int]:
+        try:
+            window_days = max(1, min(30, int(self.store.get_setting("body_backfill_window_days", "7"))))
+        except ValueError:
+            window_days = 7
+        try:
+            retry_hours = max(1, min(72, int(self.store.get_setting("body_backfill_retry_hours", "24"))))
+        except ValueError:
+            retry_hours = 24
+        try:
+            batch_size = max(0, min(10, int(self.store.get_setting("body_backfill_batch_size", "0"))))
+        except ValueError:
+            batch_size = 0
+        return window_days, retry_hours, batch_size
+
+    def body_backfill_status(self) -> dict:
+        window_days, retry_hours, batch_size = self._body_backfill_config()
+        now = datetime.now(KST)
+        retry_before = (now - timedelta(hours=retry_hours)).isoformat(timespec="seconds")
+        first_seen_after = (now - timedelta(days=window_days)).isoformat(timespec="seconds")
+        status = self.store.missing_body_status(retry_before, first_seen_after)
+        counter_key = f"body_backfill_processed:{now.strftime('%Y%m%d')}"
+        try:
+            processed_today = int(self.store.get_setting(counter_key, "0") or "0")
+        except ValueError:
+            processed_today = 0
+        status.update({
+            "window_days": window_days,
+            "retry_hours": retry_hours,
+            "batch_size": batch_size,
+            "processed_today": max(0, processed_today),
+            "paused": batch_size <= 0,
+        })
+        return status
+
+    def backfill_missing_article_bodies(self) -> dict:
+        window_days, retry_hours, batch_size = self._body_backfill_config()
+        if batch_size <= 0:
+            return {"paused": True, "processed": 0, "filled": 0, "failed": 0, "selected": 0}
+        now = datetime.now(KST)
+        retry_before = (now - timedelta(hours=retry_hours)).isoformat(timespec="seconds")
+        first_seen_after = (now - timedelta(days=window_days)).isoformat(timespec="seconds")
+        rows = self.store.list_articles_missing_body(retry_before, first_seen_after, batch_size)
+        result = {"processed": 0, "filled": 0, "failed": 0, "selected": len(rows)}
+        counter_key = f"body_backfill_processed:{now.strftime('%Y%m%d')}"
+
+        for row in rows:
+            original_url = str(row.get("original_url") or "").strip()
+            if not original_url:
+                continue
+            fetched = self.collector.fetch_body(original_url)
+            article = {
+                "canonical_url": row["canonical_url"],
+                "original_url": row.get("original_url", ""),
+                "title": row.get("title", ""),
+                "publisher": row.get("publisher", ""),
+                "published_at": row.get("published_at"),
+                "snippet": row.get("snippet", ""),
+                "image_url": row.get("image_url", ""),
+                "content_hash": row.get("content_hash"),
+                "source_type": row.get("source_type", "naver"),
+                "body": str(fetched.get("body") or ""),
+            }
+            if article["body"]:
+                article["body_error"] = ""
+                article["body_expires_at"] = row.get("body_expires_at")
+                result["filled"] += 1
+            else:
+                article["body_error"] = str(fetched.get("error") or "body_unavailable")[:120]
+                article["body_expires_at"] = (datetime.now(KST) + timedelta(hours=retry_hours)).isoformat(timespec="seconds")
+                result["failed"] += 1
+            self.store.upsert_article(article)
+            self.store.increment_setting_counter(counter_key, 1)
+            result["processed"] += 1
+        return result
+
     def orchestration_tick(self) -> dict:
-        results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "cleanup": {}}
+        results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "body_backfill": {}, "cleanup": {}}
         results["delivery"] = self.send_due()
         results["press_releases"] = self.press_releases.sync()
         for organization in self.store.list_due_organizations():
@@ -1264,6 +1343,10 @@ class MasterPressService:
                 break
             except Exception as error:
                 results["cases"].append({"case_id": case["id"], "error": str(error)})
+        try:
+            results["body_backfill"] = self.backfill_missing_article_bodies()
+        except Exception as error:
+            results["body_backfill"] = {"error": str(error)}
         now = datetime.now(KST)
         if now.hour == 3 and now.minute < 2:
             results["cleanup"] = self.store.cleanup(self.settings.raw_retention_days, self.settings.metadata_retention_days)

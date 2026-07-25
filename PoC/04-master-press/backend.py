@@ -8,6 +8,7 @@ runs worker_tick() from its existing ASGI lifespan.
 from __future__ import annotations
 
 import json
+import sqlite3
 import sys
 from pathlib import Path
 from urllib.parse import quote
@@ -33,7 +34,51 @@ def _require_admin(admin_authenticated: bool) -> None:
         raise MasterPressError("홈페이지 관리자 로그인이 필요합니다.", 401)
 
 
-def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[str] | None = None, search: str = "") -> dict:
+_ADMIN_BOOTSTRAP_CACHE: dict | None = None
+
+
+def _is_db_locked_error(error: Exception) -> bool:
+    return "locked" in str(error).lower()
+
+
+def _clone_payload(payload: dict) -> dict:
+    # Keep cache mutations isolated between requests.
+    return json.loads(json.dumps(payload, ensure_ascii=False))
+
+
+def _db_quick_lock_probe(database_path: str) -> bool:
+    connection = None
+    try:
+        connection = sqlite3.connect(str(database_path), timeout=0.05)
+        connection.execute("SELECT 1")
+        return False
+    except sqlite3.OperationalError as error:
+        return _is_db_locked_error(error)
+    finally:
+        if connection is not None:
+            connection.close()
+
+
+def _cached_admin_bootstrap(reason: str = "") -> dict | None:
+    if not _ADMIN_BOOTSTRAP_CACHE:
+        return None
+    cached = _clone_payload(_ADMIN_BOOTSTRAP_CACHE)
+    cached["degraded"] = {
+        "reason": reason or "database_locked",
+        "generated_at": now_iso(),
+    }
+    return cached
+
+
+def public_dashboard(
+    case_id: str = "",
+    organization_id: str = "",
+    tags: list[str] | None = None,
+    search: str = "",
+    include_groups: bool = True,
+    limit: int = 100,
+    include_press_stats: bool = True,
+) -> dict:
     service = get_service()
     cases = []
     for case in service.store.list_cases(active_only=True):
@@ -65,7 +110,15 @@ def public_dashboard(case_id: str = "", organization_id: str = "", tags: list[st
         }
         for item in service.store.list_organizations(active_only=True)
     ]
-    dashboard = service.store.pipeline_dashboard(case_id or None, organization_id or None, tags=tags or [], limit=100, search=search)
+    dashboard = service.store.pipeline_dashboard(
+        case_id or None,
+        organization_id or None,
+        tags=tags or [],
+        limit=max(1, min(100, int(limit))),
+        search=search,
+        include_groups=include_groups,
+        include_press_stats=include_press_stats,
+    )
     dashboard.setdefault("pipeline", {})["providers"] = service.pipeline_provider_status()
     return {
         "project": {"id": "master-press", "title": "AI 언론동향 비서", "display_no": "04"},
@@ -122,50 +175,65 @@ def fast_recipient_statuses(service) -> list[dict]:
 
 
 def admin_bootstrap() -> dict:
+    global _ADMIN_BOOTSTRAP_CACHE
     service = get_service()
-    cases = service.store.list_cases()
-    organizations = service.store.list_organizations()
-    for case in cases:
-        case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
-        case["sent_keyword_suggestions"] = service.store.case_sent_keyword_suggestions(case["id"], days=30, limit=5)
-    common_model = service.selected_common_llm_model()
-    case_model = service.selected_case_llm_model()
-    return {
-        "readiness": service.settings.readiness(),
-        "settings": {
-            "common_llm_model": common_model,
-            "common_llm_models": service.configured_common_reserve_models(common_model),
-            "llm_model": common_model,
-            "llm_models": service.configured_common_reserve_models(common_model),
-            "common_provider": service._status_for_switchable_llm_model(service.selected_common_llm_model(), probe=False),
-            "groq": service.groq_status(probe=False),
-            "case_llm_model": case_model,
-            "case_llm_models": [case_model] if case_model else [],
-            "openrouter": service.openrouter_status(probe=False),
-            "reserve1_llm_model": service.selected_reserve1_model(),
-            "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
-            "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
-            "cloudflare": service.cloudflare_status(probe=False),
-            "reserve2_llm_model": service.selected_reserve2_model(),
-            "reserve2_llm_models": service.available_reserve2_models(),
-            "gemini": service.gemini_status(probe=False),
-            "announcements": service.store.list_announcements(include_inactive=True),
-            "embedding_model": service.selected_embedding_model(),
-            "embedding_models": [service.selected_embedding_model()] if service.selected_embedding_model() else [],
-            "ollama_embedding": service.ollama_embedding_status(probe=False),
-            "case_batch_size": service.selected_case_batch_size(),
-            "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
-            "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
-            "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
-            "raw_retention_days": service.settings.raw_retention_days,
-            "metadata_retention_days": service.settings.metadata_retention_days,
-            "per_run_article_limit": service.settings.per_run_article_limit,
-        },
-        "organizations": organizations,
-        "cases": cases,
-        "recipients": fast_recipient_statuses(service),
-        "signup_requests": service.store.list_signup_requests(include_private=True),
-    }
+    if _ADMIN_BOOTSTRAP_CACHE and _db_quick_lock_probe(str(service.settings.database_path)):
+        cached = _cached_admin_bootstrap("database_locked_probe")
+        if cached:
+            return cached
+
+    try:
+        cases = service.store.list_cases()
+        organizations = service.store.list_organizations()
+        for case in cases:
+            case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
+        common_model = service.selected_common_llm_model()
+        case_model = service.selected_case_llm_model()
+        payload = {
+            "readiness": service.settings.readiness(),
+            "settings": {
+                "common_llm_model": common_model,
+                "common_llm_models": service.configured_common_reserve_models(common_model),
+                "llm_model": common_model,
+                "llm_models": service.configured_common_reserve_models(common_model),
+                "common_provider": service._status_for_switchable_llm_model(service.selected_common_llm_model(), probe=False),
+                "groq": service.groq_status(probe=False),
+                "case_llm_model": case_model,
+                "case_llm_models": [case_model] if case_model else [],
+                "openrouter": service.openrouter_status(probe=False),
+                "reserve1_llm_model": service.selected_reserve1_model(),
+                "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
+                "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
+                "cloudflare": service.cloudflare_status(probe=False),
+                "reserve2_llm_model": service.selected_reserve2_model(),
+                "reserve2_llm_models": service.available_reserve2_models(),
+                "gemini": service.gemini_status(probe=False),
+                "announcements": service.store.list_announcements(include_inactive=True),
+                "embedding_model": service.selected_embedding_model(),
+                "embedding_models": [service.selected_embedding_model()] if service.selected_embedding_model() else [],
+                "ollama_embedding": service.ollama_embedding_status(probe=False),
+                "case_batch_size": service.selected_case_batch_size(),
+                "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
+                "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
+                "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
+                "raw_retention_days": service.settings.raw_retention_days,
+                "metadata_retention_days": service.settings.metadata_retention_days,
+                "per_run_article_limit": service.settings.per_run_article_limit,
+                "body_backfill": service.body_backfill_status(),
+            },
+            "organizations": organizations,
+            "cases": cases,
+            "recipients": fast_recipient_statuses(service),
+            "signup_requests": service.store.list_signup_requests(include_private=True),
+        }
+        _ADMIN_BOOTSTRAP_CACHE = _clone_payload(payload)
+        return payload
+    except sqlite3.OperationalError as error:
+        if _is_db_locked_error(error):
+            cached = _cached_admin_bootstrap("database_locked")
+            if cached:
+                return cached
+        raise
 
 
 def dispatch(
@@ -183,11 +251,20 @@ def dispatch(
     method = method.upper()
 
     if path in {"/", "/dashboard"} and method == "GET":
+        # Emergency safeguard: always use the lightweight dashboard path.
+        fast_mode = True
+        try:
+            requested_limit = int(query.get("limit") or 15)
+        except (TypeError, ValueError):
+            requested_limit = 15
         return public_dashboard(
             str(query.get("case_id") or ""),
             str(query.get("organization_id") or ""),
             [value for value in str(query.get("tags") or "").split(",") if value],
             str(query.get("q") or ""),
+            include_groups=False,
+            limit=max(5, min(20, requested_limit)),
+            include_press_stats=False,
         )
 
     if path == "/signup/bootstrap" and method == "GET":
@@ -348,6 +425,25 @@ def dispatch(
             return {"target": target, "embedding_model": model, "embedding_models": service.available_embedding_models(), "ollama_embedding": service.ollama_embedding_status(probe=True)}
         raise MasterPressError("확인할 모델 영역을 찾지 못했습니다.", 404)
 
+    if path == "/admin/case-keyword-suggestions" and method == "GET":
+        _require_admin(admin_authenticated)
+        raw_case_ids = [value.strip() for value in str(query.get("case_ids") or "").split(",") if value.strip()]
+        if raw_case_ids:
+            selected = {item["id"] for item in service.store.list_cases()}
+            case_ids = [value for value in raw_case_ids if value in selected]
+        else:
+            case_ids = [item["id"] for item in service.store.list_cases()]
+        days = int(query.get("days") or 30)
+        limit = int(query.get("limit") or 5)
+        items = [
+            {
+                "case_id": case_id,
+                "sent_keyword_suggestions": service.store.case_sent_keyword_suggestions(case_id, days=days, limit=limit),
+            }
+            for case_id in case_ids
+        ]
+        return {"items": items}
+
     if path.startswith("/admin/signup-requests/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/signup-requests/"):].split("/")
@@ -495,6 +591,27 @@ def dispatch(
         service.store.set_setting("similar_article_threshold", str(threshold))
         return {"similar_article_threshold": threshold}
 
+    if path.startswith("/analysis/"):
+        suffix = path[len("/analysis/"):].split("/")
+        if len(suffix) >= 3 and suffix[2] == "report" and method == "GET":
+            return {
+                **service.analysis_report(suffix[0], suffix[1]),
+                "llm_models": service.available_case_llm_models(),
+                "selected_llm_model": service.selected_case_llm_model(),
+            }
+        if len(suffix) >= 3 and suffix[2] == "feedback" and method == "POST":
+            article_id, case_id = suffix[0], suffix[1]
+            reasons = payload.get("reasons")
+            comment = str(payload.get("comment") or "").strip()[:1000]
+            if not isinstance(reasons, list) or not reasons:
+                raise MasterPressError("피드백 사유를 하나 이상 선택하세요.", 400)
+            saved = []
+            for reason in dict.fromkeys(str(item or "").strip() for item in reasons):
+                if not reason:
+                    continue
+                saved.append(service.store.save_analysis_feedback(article_id, case_id, reason, comment))
+            return {"saved": len(saved), "feedback": service.store.analysis_feedback_summary(article_id, case_id)}
+
     if path.startswith("/admin/analysis/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/analysis/"):].split("/")
@@ -512,6 +629,18 @@ def dispatch(
                 "llm_models": service.available_case_llm_models(),
                 "selected_llm_model": service.selected_case_llm_model(),
             }
+        if len(suffix) >= 3 and suffix[2] == "feedback" and method == "POST":
+            article_id, case_id = suffix[0], suffix[1]
+            reasons = payload.get("reasons")
+            comment = str(payload.get("comment") or "").strip()[:1000]
+            if not isinstance(reasons, list) or not reasons:
+                raise MasterPressError("피드백 사유를 하나 이상 선택하세요.", 400)
+            saved = []
+            for reason in dict.fromkeys(str(item or "").strip() for item in reasons):
+                if not reason:
+                    continue
+                saved.append(service.store.save_analysis_feedback(article_id, case_id, reason, comment))
+            return {"saved": len(saved), "feedback": service.store.analysis_feedback_summary(article_id, case_id)}
         if len(suffix) >= 3 and suffix[2] == "reanalyze" and method == "POST":
             article, case = service.store.get_article(suffix[0]), service.store.get_case(suffix[1])
             if not article or not case:
@@ -549,6 +678,10 @@ def dispatch(
     if path == "/admin/organizations" and method == "POST":
         _require_admin(admin_authenticated)
         return {"organization": service.store.save_organization(payload)}
+
+    if path == "/admin/operation-logs" and method == "GET":
+        _require_admin(admin_authenticated)
+        return service.store.operation_logs(int(query.get("days") or 7), int(query.get("limit") or 1000))
 
     if path.startswith("/admin/organizations/"):
         _require_admin(admin_authenticated)
@@ -600,6 +733,20 @@ def dispatch(
             return {"case_id": case_id, "recipient_ids": service.store.case_recipient_ids(case_id)}
         if action == "improvements" and method == "GET":
             return service.store.low_score_analysis(case_id, int(query.get("days") or 7))
+        if action == "feedback-analysis" and method == "GET":
+            try:
+                case = service.store.get_case(case_id)
+                if not case:
+                    raise MasterPressError("케이스를 찾지 못했습니다.", 404)
+                feedback_summary = service.store.analysis_feedback_summary(None, case_id)
+                # Generate feedback-based guidance
+                if feedback_summary.get("total", 0) > 0:
+                    guidance = _generate_feedback_guidance(case, feedback_summary)
+                    if guidance:
+                        feedback_summary["guidance"] = guidance
+                return {"feedback": feedback_summary, "case": case}
+            except Exception as error:
+                raise MasterPressError(str(error), 500)
 
     if path == "/admin/invites" and method == "POST":
         _require_admin(admin_authenticated)
@@ -669,3 +816,78 @@ def status() -> dict:
         "case_count": len(service.store.list_cases()),
         "recipient_count": len(service.store.list_recipients()),
     }
+
+
+def _generate_feedback_analysis_prompt(case: dict, feedback_summary: dict) -> str:
+    """Generate a prompt for feedback-based case analysis."""
+    case_name = case.get("name", "케이스")
+    total_feedback = feedback_summary.get("total", 0)
+    breakdown = feedback_summary.get("breakdown", [])
+    
+    feedback_reasons = "\n".join([
+        f"- {reason.get('reason', 'unknown')}: {reason.get('count', 0)}건"
+        for reason in breakdown[:10]
+    ]) if breakdown else "피드백 없음"
+    
+    recent_comments = "\n".join([
+        f"- {comment.get('comment', '')}"
+        for comment in feedback_summary.get("recent_comments", [])[:3]
+    ]) if feedback_summary.get("recent_comments") else "최근 코멘트 없음"
+    
+    prompt = f"""
+다음 케이스의 판정 결과에 대해 사용자들로부터 받은 피드백을 분석하고, 개선 방안을 제시해주세요.
+
+케이스: {case_name}
+전체 피드백: {total_feedback}건
+
+주요 피드백 사유:
+{feedback_reasons}
+
+최근 코멘트:
+{recent_comments}
+
+위 피드백을 분석하여 이 케이스의 판정 기준 개선에 도움이 될 만한 조언을 3-5개 항목으로 정리해 주세요.
+각 항목은 "- "로 시작하고, 구체적이고 실행 가능한 개선 사항이어야 합니다.
+"""
+    return prompt.strip()
+
+
+def _generate_feedback_guidance(case: dict, feedback_summary: dict) -> list:
+    """Generate actionable guidance based on feedback patterns."""
+    guidance = []
+    breakdown = feedback_summary.get("breakdown", [])
+    total = feedback_summary.get("total", 0)
+    
+    # Analyze feedback patterns and generate guidance
+    if breakdown:
+        top_reasons = breakdown[:3]
+        
+        # Reason-specific guidance
+        reason_guidance_map = {
+            "required_terms_missing": "필수 키워드 검사 기준을 재검토하세요. 본문에서 핵심 키워드가 명시적으로 나타나는지 확인하는 로직을 강화할 수 있습니다.",
+            "include_terms_missing": "포함 키워드 기준을 더 정교하게 설정하세요. 주제 관련 동의어나 표현을 추가로 인식하도록 조정할 수 있습니다.",
+            "topic_target_not_verified": "대상 기관이나 인물이 기사의 중심인지 판단하는 기준을 강화해보세요. 단순 언급이 아닌 주요 행위자인지 확인하는 로직이 필요할 수 있습니다.",
+            "llm_insufficient_relevance": "LLM 판정 임계값을 조정하거나, 추가 컨텍스트 정보를 제공하면 판정 정확도를 높일 수 있습니다.",
+            "body_unavailable": "기사 본문 수집 과정을 점검하세요. 페이로드나 API 오류로 본문을 완전히 확보하지 못하는 경우가 있는지 확인하세요.",
+        }
+        
+        for reason_item in top_reasons:
+            reason = reason_item.get("reason", "")
+            count = reason_item.get("count", 0)
+            if reason in reason_guidance_map:
+                guidance.append(reason_guidance_map[reason])
+        
+        # Pattern-based guidance
+        if total >= 10:
+            guidance.append(f"피드백이 {total}건 이상으로 많습니다. 이 케이스의 판정 기준을 전반적으로 재검토하는 것을 권장합니다.")
+    
+    # Default guidance if no breakdown
+    if not guidance:
+        guidance = [
+            "사용자 피드백을 정기적으로 검토하여 판정 기준 개선에 반영하세요.",
+            "케이스의 핵심 조건(필수 키워드, 대상, 어조)이 명확히 정의되어 있는지 확인하세요.",
+            "새로운 판정 규칙을 적용할 때는 과거 피드백 데이터를 함께 검토하면 좋습니다.",
+        ]
+    
+    return guidance[:5]  # Return top 5 guidance items
+

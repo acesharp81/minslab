@@ -286,6 +286,7 @@ CREATE TABLE IF NOT EXISTS articles (
   snippet TEXT NOT NULL DEFAULT '',
   body TEXT NOT NULL DEFAULT '',
   image_url TEXT NOT NULL DEFAULT '',
+    body_error TEXT NOT NULL DEFAULT '',
   body_expires_at TEXT,
   content_hash TEXT,
   source_type TEXT NOT NULL DEFAULT 'naver',
@@ -445,6 +446,15 @@ CREATE TABLE IF NOT EXISTS improvement_reports (
   average_score REAL NOT NULL,
   categories TEXT NOT NULL,
   suggestions TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS analysis_feedback (
+  id TEXT PRIMARY KEY,
+  article_id TEXT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  comment TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL
 );
 
@@ -685,6 +695,8 @@ class Store:
             article_columns = {row[1] for row in connection.execute("PRAGMA table_info(articles)")}
             if "image_url" not in article_columns:
                 connection.execute("ALTER TABLE articles ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
+            if "body_error" not in article_columns:
+                connection.execute("ALTER TABLE articles ADD COLUMN body_error TEXT NOT NULL DEFAULT ''")
             recipient_columns = {row[1] for row in connection.execute("PRAGMA table_info(recipients)")}
             if "scopes" not in recipient_columns:
                 connection.execute("ALTER TABLE recipients ADD COLUMN scopes TEXT NOT NULL DEFAULT '[]'")
@@ -1011,14 +1023,16 @@ class Store:
 
     @contextmanager
     def connect(self):
-        connection = sqlite3.connect(self.path, timeout=20)
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA foreign_keys=ON")
-        try:
-            yield connection
-            connection.commit()
-        finally:
-            connection.close()
+        with self._lock:
+            connection = sqlite3.connect(self.path, timeout=60)
+            connection.row_factory = sqlite3.Row
+            connection.execute("PRAGMA foreign_keys=ON")
+            connection.execute("PRAGMA busy_timeout=60000")
+            try:
+                yield connection
+                connection.commit()
+            finally:
+                connection.close()
 
     @classmethod
     def decode_case(cls, row: sqlite3.Row | dict) -> dict:
@@ -1616,6 +1630,20 @@ class Store:
         with self.connect() as connection:
             connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (key, str(value), now_iso()))
 
+    def increment_setting_counter(self, key: str, delta: int = 1) -> int:
+        with self.connect() as connection:
+            row = connection.execute("SELECT value FROM app_settings WHERE key=?", (key,)).fetchone()
+            try:
+                current = int(row["value"] or 0) if row else 0
+            except (TypeError, ValueError):
+                current = 0
+            updated = current + int(delta)
+            connection.execute(
+                "INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+                (key, str(updated), now_iso()),
+            )
+        return updated
+
     def record_llm_api_call(self, provider: str, stage: str, model: str, status: str, duration_ms: int = 0,
                             http_status: int | None = None, request_id: str = "", input_tokens: int = 0,
                             output_tokens: int = 0, error: str = "") -> None:
@@ -2024,6 +2052,8 @@ class Store:
 
     def upsert_article(self, article: dict) -> tuple[dict, bool]:
         now = now_iso()
+        body_error = str(article.get("body_error") or article.get("error") or "")[:120]
+        body_value = str(article.get("body") or "")
         with self.connect() as connection:
             existing = connection.execute("SELECT * FROM articles WHERE canonical_url=?", (article["canonical_url"],)).fetchone()
             if existing:
@@ -2031,12 +2061,13 @@ class Store:
                     """UPDATE articles SET original_url=?,title=?,publisher=?,published_at=?,snippet=?,
                        body=CASE WHEN ?<>'' THEN ? ELSE body END,
                        image_url=CASE WHEN ?<>'' THEN ? ELSE image_url END,
-                       body_expires_at=CASE WHEN ?<>'' THEN ? ELSE body_expires_at END,
+                       body_error=CASE WHEN ?<>'' THEN ? WHEN ?<>'' THEN '' ELSE body_error END,
+                       body_expires_at=COALESCE(?,body_expires_at),
                        content_hash=COALESCE(?,content_hash),updated_at=? WHERE id=?""",
                     (
                         article["original_url"], article["title"], article.get("publisher", ""), article.get("published_at"),
-                        article.get("snippet", ""), article.get("body", ""), article.get("body", ""),
-                        article.get("image_url", ""), article.get("image_url", ""), article.get("body", ""),
+                        article.get("snippet", ""), body_value, body_value,
+                        article.get("image_url", ""), article.get("image_url", ""), body_error, body_error, body_value,
                         article.get("body_expires_at"), article.get("content_hash"), now, existing["id"],
                     ),
                 )
@@ -2045,11 +2076,11 @@ class Store:
                 article_id, created = str(uuid.uuid4()), True
                 connection.execute(
                     """INSERT INTO articles(id,canonical_url,original_url,title,publisher,published_at,snippet,body,
-                       image_url,body_expires_at,content_hash,source_type,first_seen_at,updated_at)
-                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                       image_url,body_error,body_expires_at,content_hash,source_type,first_seen_at,updated_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (
                         article_id, article["canonical_url"], article["original_url"], article["title"], article.get("publisher", ""),
-                        article.get("published_at"), article.get("snippet", ""), article.get("body", ""), article.get("image_url", ""), article.get("body_expires_at"),
+                        article.get("published_at"), article.get("snippet", ""), body_value, article.get("image_url", ""), body_error, article.get("body_expires_at"),
                         article.get("content_hash"), article.get("source_type", "naver"), now, now,
                     ),
                 )
@@ -2611,6 +2642,61 @@ class Store:
             row = connection.execute("SELECT * FROM article_scores WHERE article_id=? AND case_id=?", (article_id, case_id)).fetchone()
         return dict(row)
 
+    def save_analysis_feedback(self, article_id: str, case_id: str, reason: str, comment: str = "") -> dict:
+        reason = str(reason or "").strip()[:120]
+        comment = str(comment or "").strip()[:1000]
+        if not reason:
+            raise ValueError("피드백 사유를 입력하세요.")
+        now = now_iso()
+        feedback_id = str(uuid.uuid4())
+        with self.connect() as connection:
+            connection.execute(
+                "INSERT INTO analysis_feedback(id,article_id,case_id,reason,comment,created_at) VALUES(?,?,?,?,?,?)",
+                (feedback_id, article_id, case_id, reason, comment, now),
+            )
+        return {"id": feedback_id, "article_id": article_id, "case_id": case_id, "reason": reason, "comment": comment, "created_at": now}
+
+    def analysis_feedback_summary(self, article_id: str, case_id: str, days: int = 30, limit: int = 5) -> dict:
+        days = max(1, min(365, int(days)))
+        since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT reason,COUNT(*) value FROM analysis_feedback WHERE article_id=? AND case_id=? AND created_at>=? GROUP BY reason ORDER BY value DESC",
+                (article_id, case_id, since),
+            ).fetchall()
+            comments = connection.execute(
+                "SELECT comment,created_at FROM analysis_feedback WHERE article_id=? AND case_id=? AND comment<>'' ORDER BY created_at DESC LIMIT ?",
+                (article_id, case_id, limit),
+            ).fetchall()
+        breakdown = [{"reason": str(row["reason"] or ""), "count": int(row["value"] or 0)} for row in rows]
+        guidance_map = {
+            "required_terms_missing": "필수 키워드를 case.required_terms에 명확히 추가하거나, 케이스 주제 설명에 핵심 표현을 보강하세요.",
+            "include_terms_missing": "include_terms에 더 많은 핵심 표현을 포함하고, 검색 프롬프트를 보다 구체적으로 만드세요.",
+            "negative_signal_missing": "부정 어조 요청 케이스는 기사 본문에 명확한 부정 신호가 포함되도록 프롬프트를 다듬으세요.",
+            "topic_target_not_verified": "대상 기관·인물이 기사 본문에서 핵심 주체로 확인되도록 케이스 키워드와 설명을 조정하세요.",
+            "topic_stance_not_verified": "요구한 어조가 본문 근거와 일치하도록 케이스 프롬프트를 보완하세요.",
+            "body_unavailable": "본문을 확보하지 못하는 기사에도 대응할 수 있도록 검색 요약문과 키워드를 보강하세요.",
+            "llm_insufficient_relevance": "LLM 판정이 낮다면 케이스 주제 설명을 구체화하고 일반 용어는 줄여주세요.",
+            "llm_topic_mismatch": "기사 주제가 케이스 주제와 어긋날 때는 핵심 대상·행위·맥락을 더 선명히 표현하세요.",
+            "llm_different_context": "비슷한 표현이 다른 맥락일 경우, 케이스 프롬프트에서 맥락을 보다 명확히 설명하세요.",
+            "llm_body_insufficient": "본문 근거가 부족할 때는 검색어와 핵심 문장을 보완하여 충분한 근거를 확보하세요.",
+            "required_topic_not_verified": "필수 주제를 본문에서 검증 가능한 근거와 연결하도록 케이스 설정을 보강하세요.",
+            "excluded_term": "제외 키워드가 너무 넓거나 애매할 수 있습니다. 제외 기준을 다시 검토하세요.",
+            "other": "추가 의견을 통해 케이스 프롬프트와 필수 조건을 세밀히 점검하세요.",
+        }
+        guidance = []
+        for item in breakdown:
+            text = guidance_map.get(item["reason"])
+            if text and text not in guidance:
+                guidance.append(text)
+        return {
+            "days": days,
+            "total": sum(item["count"] for item in breakdown),
+            "breakdown": breakdown,
+            "guidance": guidance,
+            "recent_comments": [{"comment": str(row["comment"] or ""), "created_at": str(row["created_at"] or "")} for row in comments],
+        }
+
     def analysis_report(self, article_id: str, case_id: str) -> dict:
         with self.connect() as connection:
             score = connection.execute("SELECT analysis_report FROM article_scores WHERE article_id=? AND case_id=?", (article_id, case_id)).fetchone()
@@ -2754,6 +2840,60 @@ class Store:
                 (now_iso(),),
             ).fetchall()
         return [self.decode_organization(row) for row in rows]
+
+    def list_articles_missing_body(self, retry_before: str, first_seen_after: str, limit: int = 1) -> list[dict]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """SELECT * FROM articles
+                   WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                     AND COALESCE(body_error,'')='robots_disallowed'
+                     AND COALESCE(body_expires_at,updated_at)<=? AND first_seen_at>=?
+                   ORDER BY COALESCE(published_at,first_seen_at) DESC,COALESCE(body_expires_at,updated_at) ASC
+                   LIMIT ?""",
+                (retry_before, first_seen_after, max(1, min(20, int(limit)))),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def missing_body_status(self, retry_before: str, first_seen_after: str) -> dict:
+        with self.connect() as connection:
+            overall = connection.execute(
+                """SELECT
+                       COUNT(*) total_articles,
+                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' THEN 1 ELSE 0 END),0) missing_total,
+                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')='robots_disallowed' THEN 1 ELSE 0 END),0) blocked_total,
+                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total
+                   FROM articles"""
+            ).fetchone()
+            counts = connection.execute(
+                """SELECT
+                       COUNT(*) window_total,
+                       COALESCE(SUM(CASE WHEN COALESCE(body_expires_at,updated_at)<=? THEN 1 ELSE 0 END),0) retry_due,
+                       COALESCE(SUM(CASE WHEN COALESCE(body_expires_at,updated_at)>? THEN 1 ELSE 0 END),0) cooling_down
+                   FROM articles
+                   WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                     AND COALESCE(body_error,'')='robots_disallowed'
+                     AND first_seen_at>=?""",
+                (retry_before, retry_before, first_seen_after),
+            ).fetchone()
+            latest = connection.execute(
+                """SELECT id,title,original_url,first_seen_at,updated_at,snippet
+                   FROM articles
+                   WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                     AND COALESCE(body_error,'')='robots_disallowed'
+                     AND first_seen_at>=?
+                   ORDER BY COALESCE(published_at,first_seen_at) DESC,COALESCE(body_expires_at,updated_at) ASC LIMIT 1""",
+                (first_seen_after,),
+            ).fetchone()
+        return {
+            "total_articles": int((overall or {})["total_articles"] if overall else 0),
+            "missing_total": int((overall or {})["missing_total"] if overall else 0),
+            "blocked_total": int((overall or {})["blocked_total"] if overall else 0),
+            "non_blocked_total": int((overall or {})["non_blocked_total"] if overall else 0),
+            "window_total": int((counts or {})["window_total"] if counts else 0),
+            "retry_due": int((counts or {})["retry_due"] if counts else 0),
+            "cooling_down": int((counts or {})["cooling_down"] if counts else 0),
+            "latest": dict(latest) if latest else None,
+        }
 
     def next_embedding_analysis(self) -> dict | None:
         """Low-priority backfill: one local embedding per completed common analysis."""
@@ -3342,7 +3482,16 @@ class Store:
                                   "topics": (nearest or best).get("shared_topics", []), "concepts": (nearest or best).get("shared_concepts", [])}
         return result
 
-    def pipeline_dashboard(self, case_id: str | None = None, organization_id: str | None = None, tags: list[str] | None = None, limit: int = 100, search: str = "") -> dict:
+    def pipeline_dashboard(
+        self,
+        case_id: str | None = None,
+        organization_id: str | None = None,
+        tags: list[str] | None = None,
+        limit: int = 100,
+        search: str = "",
+        include_groups: bool = True,
+        include_press_stats: bool = True,
+    ) -> dict:
         day_start = kst_day_start_iso()
         where, params = [], []
         if organization_id:
@@ -3355,24 +3504,36 @@ class Store:
         article_where, article_params = list(where), list(params)
         search = str(search or "").strip()[:100]
         if search:
-            article_where.append("(a.title LIKE ? OR a.publisher LIKE ? OR aa.publisher_name LIKE ? OR aa.reporter_name LIKE ?)")
-            article_params.extend([f"%{search}%"] * 4)
-        sql = """SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                  a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,substr(a.body,1,5000) source_body,ae.vector article_vector,
-                  (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
-                    AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
-                    AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
-                  (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id
-                    AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) press_match_checked_count,
-                  (SELECT COUNT(*) FROM press_release_match_jobs prmj WHERE prmj.article_id=a.id) press_match_total_count,
-                  ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_raw,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.analysis_report evaluation_report,ce.error evaluation_error,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
-                  c.name case_name,o.name organization_name
-                  FROM article_processing_flags apf
-                  JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
-                  LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
-                  LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
-                  LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
-                  LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
+            article_where.append(
+                "(instr(lower(COALESCE(a.title,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(a.publisher,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(aa.publisher_name,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(aa.reporter_name,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(a.snippet,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(a.body,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(aa.summary,'')),lower(?))>0)"
+            )
+            article_params.extend([search] * 7)
+        source_body_expr = "substr(a.body,1,5000)" if include_groups else "''"
+        press_stats_fields = """
+                                    (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
+                                        AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
+                                        AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
+                                    (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id
+                                        AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) press_match_checked_count,
+                                    (SELECT COUNT(*) FROM press_release_match_jobs prmj WHERE prmj.article_id=a.id) press_match_total_count,
+        """ if include_press_stats else "0 related_press_count,0 press_match_checked_count,0 press_match_total_count,"
+        sql = f"""SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
+                                    a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,{source_body_expr} source_body,ae.vector article_vector,
+                                    {press_stats_fields}
+                                    ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_raw,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.analysis_report evaluation_report,ce.error evaluation_error,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
+                                    c.name case_name,o.name organization_name
+                                    FROM article_processing_flags apf
+                                    JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
+                                    LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
+                                    LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
+                                    LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                                    LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
         if article_where: sql += " WHERE " + " AND ".join(article_where)
         sql += " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(c.sort_order,999999),COALESCE(c.created_at,''),COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
         delivery_scope, delivery_params = "", []
@@ -3474,7 +3635,7 @@ class Store:
                 "sent": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("sent",)) for value in results),
                 "scheduled": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("pending", "retry")) for value in results),
             }
-        similar_groups = self._dashboard_article_groups(articles, organization_id=organization_id, case_id=case_id)
+        similar_groups = self._dashboard_article_groups(articles, organization_id=organization_id, case_id=case_id) if include_groups else {}
         for article in articles:
             group = similar_groups.get(str(article.get("id") or ""), {})
             article["similar_group_id"] = group.get("group_id", "")
@@ -3705,6 +3866,197 @@ class Store:
             for keyword, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:limit]
         ]
         return {"days": days, "sent_articles": len(rows), "keywords": keywords}
+
+    @staticmethod
+    def _operation_error_reason(error: str) -> str:
+        lowered = str(error or "").casefold()
+        if not lowered:
+            return "오류 상세가 기록되지 않았습니다."
+        if any(marker in lowered for marker in ("quota", "daily_soft_limit", "free-models-per-day", "token_soft_limit", "resource_exhausted", "allocation")):
+            return "무료 사용량 또는 토큰 한도에 도달했습니다."
+        if any(marker in lowered for marker in ("rate limit", "429", "too many requests")):
+            return "제공자 요청 제한(rate limit)이 발생했습니다."
+        if any(marker in lowered for marker in ("timeout", "timed out", "read timed")):
+            return "모델 또는 외부 API 응답 시간이 초과되었습니다."
+        if any(marker in lowered for marker in ("json", "parse", "schema")):
+            return "모델 응답 형식이 기대한 JSON 구조와 맞지 않았습니다."
+        if any(marker in lowered for marker in ("401", "403", "scope", "token", "reauthorize")):
+            return "인증 권한 또는 토큰 상태 확인이 필요합니다."
+        if any(marker in lowered for marker in ("connection", "network", "urlopen", "502", "503", "504")):
+            return "외부 서비스 연결 또는 일시 장애가 발생했습니다."
+        return str(error or "")[:180]
+
+    @staticmethod
+    def _operation_stage_label(stage: str) -> str:
+        return {
+            "common": "공통분석", "case": "케이스판정", "embedding": "임베딩",
+            "moderation": "클린 AI", "delivery": "카카오 발송", "provider": "모델 전환",
+            "collection": "기사 수집",
+        }.get(str(stage or ""), str(stage or "기타"))
+
+    @staticmethod
+    def _operation_provider_label(provider: str) -> str:
+        return {
+            "groq": "Groq", "openrouter": "OpenRouter", "cloudflare": "Cloudflare Workers AI",
+            "gemini": "Gemini", "ollama": "Ollama", "kakao": "Kakao",
+        }.get(str(provider or ""), str(provider or ""))
+
+    def operation_logs(self, days: int = 7, limit: int = 200) -> dict:
+        days = max(1, min(30, int(days)))
+        limit = max(1, min(1000, int(limit)))
+        since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        now = now_iso()
+        events: list[dict[str, Any]] = []
+
+        def append_event(kind: str, stage: str, title: str, message: str, occurred_at: str, **extra: Any) -> None:
+            events.append({
+                "kind": kind,
+                "stage": stage,
+                "stage_label": self._operation_stage_label(stage),
+                "title": title,
+                "message": str(message or "")[:1000],
+                "occurred_at": occurred_at,
+                "severity": extra.pop("severity", "warning"),
+                **extra,
+            })
+
+        with self.connect() as connection:
+            disabled_rows = connection.execute(
+                "SELECT key,value,updated_at FROM app_settings WHERE key LIKE 'llm_provider_disabled_until:%' ORDER BY updated_at DESC"
+            ).fetchall()
+            disabled_reasons = {
+                str(row["key"]).split(":", 1)[1]: str(row["value"] or "")
+                for row in connection.execute("SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_disabled_reason:%'").fetchall()
+            }
+            api_rows = connection.execute(
+                """SELECT * FROM llm_api_calls
+                   WHERE status='failed' AND created_at>=?
+                   ORDER BY created_at DESC LIMIT ?""",
+                (since, limit),
+            ).fetchall()
+            case_rows = connection.execute(
+                """SELECT j.id,j.status,j.provider,j.error,j.queued_at,j.started_at,j.finished_at,j.retry_after,j.attempts,
+                          a.title article_title,c.name case_name
+                   FROM case_evaluation_jobs j
+                   JOIN case_evaluations ce ON ce.id=j.case_evaluation_id
+                   JOIN articles a ON a.id=ce.article_id
+                   JOIN cases c ON c.id=ce.case_id
+                   WHERE COALESCE(j.error,'')<>'' AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?
+                   ORDER BY COALESCE(j.finished_at,j.started_at,j.queued_at) DESC LIMIT ?""",
+                (since, limit),
+            ).fetchall()
+            common_rows = connection.execute(
+                """SELECT j.id,j.status,j.error,j.queued_at,j.started_at,j.finished_at,j.retry_after,j.attempts,a.title article_title
+                   FROM article_analysis_jobs j
+                   JOIN article_analyses aa ON aa.id=j.article_analysis_id
+                   JOIN articles a ON a.id=aa.article_id
+                   WHERE COALESCE(j.error,'')<>'' AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?
+                   ORDER BY COALESCE(j.finished_at,j.started_at,j.queued_at) DESC LIMIT ?""",
+                (since, limit),
+            ).fetchall()
+            delivery_rows = connection.execute(
+                """SELECT d.id,d.status,d.last_error,d.response_code,d.updated_at,d.sent_at,d.attempts,a.title article_title,c.name case_name
+                   FROM deliveries d JOIN articles a ON a.id=d.article_id JOIN cases c ON c.id=d.case_id
+                   WHERE COALESCE(d.last_error,'')<>'' AND COALESCE(d.updated_at,d.created_at)>=?
+                   ORDER BY COALESCE(d.updated_at,d.created_at) DESC LIMIT ?""",
+                (since, limit),
+            ).fetchall()
+
+            for row in disabled_rows:
+                provider = str(row["key"]).split(":", 1)[1]
+                disabled_until = str(row["value"] or "")
+                reason = disabled_reasons.get(provider, "")
+                if not disabled_until and not reason:
+                    continue
+                active = bool(disabled_until and disabled_until > now)
+                occurred_at = str(row["updated_at"] or disabled_until or now)
+                if not active and occurred_at < since:
+                    continue
+                append_event(
+                    "provider_failover", "provider",
+                    f"{self._operation_provider_label(provider)} 무료 사용량/토큰 소진 감지",
+                    ("안전장치가 동작해 예비 모델 체인으로 전환했습니다. " if active else "초기화 시각이 지나 주 모델 복귀 가능 상태입니다. ")
+                    + (f"원인: {self._operation_error_reason(reason)}" if reason else "원인 상세는 제공자 응답에 기록되지 않았습니다."),
+                    occurred_at,
+                    provider=provider, provider_label=self._operation_provider_label(provider),
+                    status="active" if active else "resolved", resolved_at="" if active else disabled_until,
+                    disabled_until=disabled_until, raw_error=reason[:500], severity="critical" if active else "info",
+                )
+
+            for row in api_rows:
+                item = dict(row)
+                provider, stage, model = str(item.get("provider") or ""), str(item.get("stage") or ""), str(item.get("model") or "")
+                resolved = connection.execute(
+                    """SELECT created_at FROM llm_api_calls
+                       WHERE provider=? AND stage=? AND status='completed' AND created_at>?
+                       ORDER BY created_at LIMIT 1""",
+                    (provider, stage, item.get("created_at") or ""),
+                ).fetchone()
+                reason = self._operation_error_reason(str(item.get("error") or ""))
+                append_event(
+                    "api_error", stage,
+                    f"{self._operation_stage_label(stage)} API 호출 실패",
+                    f"{self._operation_provider_label(provider)} {model} 호출에서 오류가 발생했습니다. 원인: {reason}"
+                    + (" 이후 같은 단계 호출이 성공해 해소된 것으로 보입니다." if resolved else " 현재 로그상 후속 성공 기록은 아직 없습니다."),
+                    str(item.get("created_at") or ""),
+                    provider=provider, provider_label=self._operation_provider_label(provider), model=model,
+                    status="resolved" if resolved else "open", resolved_at=(resolved["created_at"] if resolved else ""),
+                    raw_error=str(item.get("error") or "")[:500], http_status=item.get("http_status"),
+                    severity="warning" if resolved else "critical",
+                )
+
+        for row in case_rows:
+            item = dict(row); error = str(item.get("error") or "")
+            retry_after = str(item.get("retry_after") or "")
+            resolved = item.get("status") == "completed"
+            retrying = item.get("status") == "pending" and bool(retry_after)
+            append_event(
+                "case_job_error", "case", "케이스판정 작업 오류",
+                f"'{item.get('case_name') or '케이스'}' 판정 중 '{str(item.get('article_title') or '')[:80]}' 기사에서 오류가 발생했습니다. 원인: {self._operation_error_reason(error)}"
+                + (f" 재시도 예정: {retry_after}" if retrying else (" 완료 상태로 정리됐습니다." if resolved else " 확인 또는 재시도가 필요합니다.")),
+                str(item.get("finished_at") or item.get("started_at") or item.get("queued_at") or ""),
+                provider=str(item.get("provider") or ""), provider_label=self._operation_provider_label(str(item.get("provider") or "")),
+                status="resolved" if resolved else ("retrying" if retrying else str(item.get("status") or "open")),
+                resolved_at=str(item.get("finished_at") or "") if resolved else "", raw_error=error[:500], severity="warning" if retrying or resolved else "critical",
+            )
+
+        for row in common_rows:
+            item = dict(row); error = str(item.get("error") or "")
+            retry_after = str(item.get("retry_after") or "")
+            retrying = item.get("status") == "pending" and bool(retry_after)
+            append_event(
+                "common_job_error", "common", "공통분석 작업 오류",
+                f"'{str(item.get('article_title') or '')[:80]}' 기사 공통분석 중 오류가 발생했습니다. 원인: {self._operation_error_reason(error)}"
+                + (f" 재시도 예정: {retry_after}" if retrying else " 확인 또는 재시도가 필요합니다."),
+                str(item.get("finished_at") or item.get("started_at") or item.get("queued_at") or ""),
+                status="retrying" if retrying else str(item.get("status") or "open"), raw_error=error[:500], severity="warning" if retrying else "critical",
+            )
+
+        for row in delivery_rows:
+            item = dict(row); error = str(item.get("last_error") or "")
+            sent = item.get("status") == "sent"
+            append_event(
+                "delivery_error", "delivery", "카카오 발송 오류",
+                f"'{str(item.get('article_title') or '')[:80]}' 기사 발송 중 오류가 발생했습니다. 원인: {self._operation_error_reason(error)}"
+                + (" 이후 발송 완료 상태입니다." if sent else " 재시도 또는 재동의가 필요할 수 있습니다."),
+                str(item.get("updated_at") or item.get("sent_at") or ""),
+                status="resolved" if sent else str(item.get("status") or "open"), raw_error=error[:500], http_status=item.get("response_code"),
+                resolved_at=str(item.get("sent_at") or "") if sent else "", severity="warning" if sent else "critical",
+            )
+
+        events = sorted(events, key=lambda item: str(item.get("occurred_at") or ""), reverse=True)[:limit]
+        summary: dict[str, int] = {"total": len(events), "open": 0, "retrying": 0, "resolved": 0, "critical": 0}
+        for event in events:
+            status = str(event.get("status") or "open")
+            if status in summary:
+                summary[status] += 1
+            elif status == "active":
+                summary["open"] += 1
+            elif status not in {"resolved", "sent"}:
+                summary["open"] += 1
+            if event.get("severity") == "critical":
+                summary["critical"] += 1
+        return {"days": days, "limit": limit, "since": since, "summary": summary, "items": events}
 
     def low_score_analysis(self, case_id: str, days: int = 7) -> dict:
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")

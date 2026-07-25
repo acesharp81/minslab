@@ -451,6 +451,32 @@ LLM 입력 기사 내용 상태: {source}
         ambiguous = isinstance(raw_tone_value, list) or len(tone_terms) > 1 or any(mark in raw_tone for mark in ("|", "/", ","))
         return exact_tone if exact_tone and not ambiguous else "사실전달", raw_tone, ambiguous
 
+    def _common_analysis_missing_fields(self, data: dict) -> list[str]:
+        missing = []
+        if not str(data.get("summary") or "").strip():
+            missing.append("summary")
+        if not str(data.get("article_type") or "").strip():
+            missing.append("article_type")
+        if not str(data.get("tone") or "").strip():
+            missing.append("tone")
+        if not isinstance(data.get("entities"), list):
+            missing.append("entities")
+        if not isinstance(data.get("topic_concepts"), list):
+            missing.append("topic_concepts")
+        if not isinstance(data.get("evidence_ids"), list):
+            missing.append("evidence_ids")
+        return missing
+
+    def _repair_common_analysis_fields(self, article: dict, model: str, system_prompt: str, user_prompt: str, missing_fields: list[str]) -> tuple[dict, str]:
+        prompt = f"{user_prompt}\n\n[추가 지침]\n아래 필드가 누락되었습니다: {', '.join(missing_fields)}. 누락된 필드를 포함하여 JSON 형식을 유지하고, article_type, tone, summary, entities, topic_concepts, evidence_ids를 모두 반환하세요."
+        response = self.request("/api/chat", {
+            "model": model, "stream": False, "format": "json",
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+            "options": {"temperature": 0.0, "num_predict": 180, "num_ctx": 4096}, "keep_alive": "5m",
+        })
+        raw = response.get("message", {}).get("content", "")
+        return parse_llm_json(raw), raw
+
     def _repair_evidence(self, case: dict, article: dict, model: str, candidates: dict[str, list[dict[str, str]]]) -> tuple[dict, str]:
         target_lines = "\n".join(f"{item['id']}: {item['text']}" for item in candidates["target"]) or "없음"
         stance_lines = "\n".join(f"{item['id']}: {item['text']}" for item in candidates["stance"]) or "없음"
@@ -466,6 +492,31 @@ JSON만 반환: {{"target_is_primary":false,"target_evidence_ids":[],"tone":"사
             "model": model, "stream": False, "format": "json",
             "messages": [{"role": "system", "content": "문장 ID 검증기입니다. 임의 문장·자리표시자를 만들지 말고 JSON만 반환하세요."}, {"role": "user", "content": prompt}],
             "options": {"temperature": 0, "num_predict": 120, "num_ctx": 4096}, "keep_alive": "5m",
+        })
+        raw = response.get("message", {}).get("content", "")
+        return parse_llm_json(raw), raw
+
+    def _common_analysis_required_terms_missing(self, case: dict, common: dict) -> list[str]:
+        required = [str(value).strip() for value in case.get("required_terms", []) if str(value).strip()]
+        if not required:
+            return []
+        common_text = " ".join([
+            str(common.get("summary") or ""),
+            " ".join(str(value) for value in common.get("classification_tags", [])),
+            " ".join(str(value) for value in common.get("entities", [])),
+            " ".join(str(value) for value in common.get("topic_concepts", [])),
+        ])
+        expanded = expanded_case_terms(case)
+        return [term for term in required if not any(term_in_text(variant, common_text) for variant in expanded.get(term, [term]))]
+
+    def _repair_common_analysis(self, case: dict, article: dict, model: str, candidates: dict[str, list[dict[str, str]]], missing_required: list[str]) -> tuple[dict, str]:
+        system_prompt, user_prompt, _input_content = self.build_analysis_prompts(case, article)
+        missing_text = ", ".join(missing_required)
+        user_prompt = f"{user_prompt}\n\n[추가 지침]\n공통 분석 결과에서 다음 필수 키워드가 빠졌습니다: {missing_text}\n요약, classification_tags, entities, topic_concepts, 이유에 이 키워드를 반영하고 JSON 형식을 유지하세요."
+        response = self.request("/api/chat", {
+            "model": model, "stream": False, "format": "json",
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            "options": {"temperature": 0.0, "num_predict": 240, "num_ctx": 4096}, "keep_alive": "5m",
         })
         raw = response.get("message", {}).get("content", "")
         return parse_llm_json(raw), raw
@@ -496,10 +547,47 @@ JSON만 반환: {{"target_is_primary":false,"target_evidence_ids":[],"tone":"사
         tone, raw_tone, tone_ambiguous = self._tone(data.get("tone"))
         repair_raw = ""
         repair_attempted = False
+        repair_summary = ""
+        repair_context = None
+        missing_required = self._common_analysis_required_terms_missing(case, {
+            "summary": data.get("summary"),
+            "classification_tags": data.get("classification_tags", []),
+            "entities": data.get("entities", []),
+            "topic_concepts": data.get("topic_concepts", []),
+        })
+        if missing_required:
+            repair_attempted = True
+            repair_summary = f"공통 분석에서 필수 키워드 누락({', '.join(missing_required)})으로 재질의했습니다."
+            repair_context = "missing_required_terms"
+            try:
+                repaired, repair_raw = self._repair_common_analysis(case, article, model, candidates, missing_required)
+                data = {**data, **repaired}
+                article_type = str(data.get("article_type") or "기타").strip()
+                if article_type not in ARTICLE_TYPES:
+                    article_type = "기타"
+                raw_tags = data.get("classification_tags") if isinstance(data.get("classification_tags"), list) else []
+                tags = [article_type, tone]
+                for value in raw_tags:
+                    tag = str(value).strip().strip("#[]")[:30]
+                    if tag and tag not in tags and tag not in EVIDENCE_PLACEHOLDERS:
+                        tags.append(tag)
+                entities = [str(value).strip()[:80] for value in data.get("entities", [])] if isinstance(data.get("entities"), list) else []
+                topic_concepts = list(dict.fromkeys(str(value).strip().strip("#[]")[:60] for value in data.get("topic_concepts", []) if str(value).strip()))[:2]
+                tone, raw_tone, tone_ambiguous = self._tone(data.get("tone"))
+                target_ids = data.get("target_evidence_ids", [])
+                stance_ids = data.get("stance_evidence_ids", [])
+                target_evidence = selected_candidate_texts(target_ids, candidates["target"]) or target_evidence
+                stance_evidence = selected_candidate_texts(stance_ids, candidates["stance"]) or stance_evidence
+                if repaired.get("target_is_primary") is True or str(repaired.get("target_is_primary", "")).lower() in {"true", "1", "yes"}:
+                    data["target_is_primary"] = True
+            except Exception as error:
+                repair_raw = f"repair_error:{type(error).__name__}"
         needs_target = bool(case.get("organization_terms", []))
         needs_stance = topic_requires_negative_stance(case)
-        if relevant and score >= threshold and ((needs_target and not target_evidence) or (needs_stance and not stance_evidence)):
+        if not repair_attempted and relevant and score >= threshold and ((needs_target and not target_evidence) or (needs_stance and not stance_evidence)):
             repair_attempted = True
+            repair_summary = "공통 분석 판정 근거가 부족해 케이스 판정 근거 보정을 시도했습니다."
+            repair_context = "evidence_repair"
             try:
                 repaired, repair_raw = self._repair_evidence(case, article, model, candidates)
                 target_evidence = selected_candidate_texts(repaired.get("target_evidence_ids", []), candidates["target"]) or target_evidence
@@ -533,6 +621,8 @@ JSON만 반환: {{"target_is_primary":false,"target_evidence_ids":[],"tone":"사
             "analysis_report": {
                 "model": model, "system_prompt": system_prompt, "user_prompt": user_prompt, "prompt": user_prompt,
                 "input_content": input_content, "raw_response": raw,
+                "repair_summary": repair_summary,
+                "repair_context": repair_context,
                 "evidence_validation": {"target_evidence": target_evidence, "stance_evidence": stance_evidence, "repair_attempted": repair_attempted, "repair_raw_response": repair_raw},
                 "llm": {"article_type": article_type, "classification_tags": tags[:5], "is_relevant": data.get("is_relevant"), "score": data.get("score"), "target_is_primary": target_primary, "target_evidence": target_evidence, "tone": tone, "raw_tone": raw_tone, "tone_ambiguous": tone_ambiguous, "stance_evidence": stance_evidence, "reasons": data.get("reasons", [])},
             },
@@ -613,6 +703,14 @@ topic_concepts에 기관·어조·사회·정책 제외. 호우·대피·중대�
         raw = response.get("message", {}).get("content", "")
         provider_meta = response.get("_provider_meta", {}) if isinstance(response, dict) else {}
         data = parse_llm_json(raw)
+        missing_fields = self._common_analysis_missing_fields(data)
+        if missing_fields:
+            repaired, repair_raw = self._repair_common_analysis_fields(article, model, system_prompt, user_prompt, missing_fields)
+            try:
+                data = {**data, **repaired}
+            except Exception:
+                data = repaired
+            raw = repair_raw
         article_type = str(data.get("article_type") or "기타").strip()
         if article_type not in ARTICLE_TYPES:
             article_type = "기타"

@@ -788,9 +788,19 @@ class PressReleaseManager:
             conditions.append(
                 "(instr(lower(COALESCE(pr.title,'')),lower(?))>0 "
                 "OR instr(lower(COALESCE(pr.department,'')),lower(?))>0 "
-                "OR instr(lower(COALESCE(pr.contact_name,'')),lower(?))>0)"
+                "OR instr(lower(COALESCE(pr.contact_name,'')),lower(?))>0 "
+                "OR EXISTS("
+                "SELECT 1 FROM article_press_release_matches sm "
+                "JOIN articles sa ON sa.id=sm.article_id "
+                "LEFT JOIN article_processing_flags sapf ON sapf.article_id=sa.id "
+                "LEFT JOIN article_analyses saa ON saa.id=sapf.analysis_id "
+                "WHERE sm.press_release_id=pr.id AND sm.is_related=1 AND sm.similarity_score>=? AND ("
+                "instr(lower(COALESCE(sa.title,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(sa.snippet,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(sa.body,'')),lower(?))>0 "
+                "OR instr(lower(COALESCE(saa.summary,'')),lower(?))>0)))"
             )
-            params.extend([search, search, search])
+            params.extend([search, search, search, threshold, search, search, search, search])
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
         with self.store.connect() as connection:
             rows = connection.execute(

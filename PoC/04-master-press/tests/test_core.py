@@ -133,6 +133,23 @@ class StorageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "전체 케이스"):
             self.store.reorder_cases(organization["id"], [first["id"], second["id"]])
 
+    def test_analysis_feedback_summary_and_guidance(self):
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/feedback", "original_url": "https://example.com/feedback",
+            "title": "피드백 테스트 기사", "publisher": "example.com", "published_at": None,
+            "snippet": "피드백 저장 테스트", "source_type": "test",
+        })
+        self.store.save_analysis_feedback(article["id"], case["id"], "required_terms_missing", "필수 키워드가 빠졌습니다.")
+        self.store.save_analysis_feedback(article["id"], case["id"], "llm_topic_mismatch", "기사 주제가 명확하지 않습니다.")
+        summary = self.store.analysis_feedback_summary(article["id"], case["id"])
+
+        self.assertEqual(summary["total"], 2)
+        self.assertEqual({item["reason"] for item in summary["breakdown"]}, {"required_terms_missing", "llm_topic_mismatch"})
+        self.assertIn("필수 키워드를 case.required_terms에 명확히 추가하거나", " ".join(summary["guidance"]))
+        self.assertEqual(len(summary["recent_comments"]), 2)
+        self.assertTrue(all(item["comment"] for item in summary["recent_comments"]))
+
     def test_article_case_processing_flag_blocks_new_case_versions(self):
         case = self.store.save_case(case_payload())
         article, _ = self.store.upsert_article({
@@ -225,6 +242,26 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
         self.assertTrue(captured.exception.deferred)
         self.assertTrue(captured.exception.retry_after.endswith("T09:00:00+09:00"))
+
+
+    def test_operation_logs_summarize_errors_and_failover(self):
+        self.store.record_llm_api_call(
+            "openrouter", "case", "test-model", "failed", 25,
+            http_status=429, error="free-models-per-day quota reached",
+        )
+        self.store.set_setting(
+            "llm_provider_disabled_until:openrouter",
+            (datetime.now(KST) + timedelta(hours=2)).isoformat(timespec="seconds"),
+        )
+        self.store.set_setting("llm_provider_disabled_reason:openrouter", "free-models-per-day quota reached")
+        logs = self.store.operation_logs(days=7, limit=10)
+        self.assertGreaterEqual(logs["summary"]["total"], 2)
+        self.assertGreaterEqual(logs["summary"]["open"], 1)
+        kinds = {item["kind"] for item in logs["items"]}
+        self.assertIn("api_error", kinds)
+        self.assertIn("provider_failover", kinds)
+        messages = "\n".join(item["message"] for item in logs["items"])
+        self.assertIn("무료 사용량", messages)
 
     def test_openrouter_daily_limit_counts_common_fallback_calls(self):
         self.store.record_llm_api_call("openrouter", "case", "test-model", "completed", 10)
@@ -633,6 +670,42 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(len(result["topic_concepts"]), 2)
         self.assertEqual(result["publisher_name"], "연합뉴스")
         self.assertEqual(result["reporter_name"], "구정모")
+
+    def test_ollama_common_analysis_retries_missing_required_terms(self):
+        settings = SimpleNamespace(llm_model="test-model")
+        client = OllamaClient(settings)
+        call_count = {"count": 0}
+
+        def fake_request(path, payload):
+            call_count["count"] += 1
+            if call_count["count"] == 1:
+                return {"message": {"content": json.dumps({
+                    "article_type": "정치·입법",
+                    "classification_tags": ["정치·입법", "사실전달"],
+                    "tone": "사실전달",
+                    "summary": "국회에서 새로운 법안이 논의되었습니다.",
+                    "entities": ["국회", "의원"],
+                    "topic_concepts": ["입법"],
+                    "evidence_ids": ["E1"],
+                }, ensure_ascii=False)}}
+            return {"message": {"content": json.dumps({
+                "article_type": "정치·입법",
+                "classification_tags": ["정치·입법", "사실전달"],
+                "tone": "사실전달",
+                "summary": "국회에서 새로운 법안이 논의되었습니다. 행정안전부 예산 배분에 대한 언급이 포함되었습니다.",
+                "entities": ["국회", "의원", "행정안전부"],
+                "topic_concepts": ["입법", "공공예산"],
+                "evidence_ids": ["E1"],
+            }, ensure_ascii=False)}}
+
+        client.request = fake_request
+        case = {**case_payload(), "topic_search_prompt": "행정안전부 관련 예산 법안을 다룹니다.", "required_terms": ["행정안전부"]}
+        article = {"title": "국회 법안 논의", "publisher": "example.com", "body": "국회에서 법안이 논의되었고, 행정안전부 예산에 대한 언급이 있었습니다."}
+
+        result = client.classify_and_summarize(case, article)
+        self.assertGreaterEqual(call_count["count"], 2)
+        self.assertIn("행정안전부", result["summary"])
+        self.assertTrue(result["analysis_report"]["evidence_validation"]["repair_attempted"])
 
     def test_keyword_score_and_exclusion(self):
         case = case_payload()
