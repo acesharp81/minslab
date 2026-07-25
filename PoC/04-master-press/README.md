@@ -971,6 +971,28 @@ python3 -m unittest PoC/04-master-press/tests/test_core.py PoC/04-master-press/t
 git diff --check
 ```
 
+### 본문 재수집 운영
+
+본문을 확보하지 못한 기사는 별도 저부하 재수집 경로로만 복구한다. 이 경로는 기사 원문 HTTP 요청과 HTML 추출만 수행하며, 공통분석·임베딩·케이스 판정 등 LLM 작업을 큐에 넣거나 호출하지 않는다.
+
+- `robots.txt`가 수집을 금지한 기사와 `401`, `403`, `404`, `410`, `451` 응답은 자동 재시도하지 않는다.
+- robots 확인이 불가능하면 원문을 요청하지 않고 보류한다.
+- 일시적 네트워크·타임아웃·`429`·`5xx` 실패만 최대 3회, 6시간 → 24시간 → 72시간 간격으로 재시도한다.
+- 현재 운영값은 새벽 01:00~04:00(KST), 10분 간격, 회차당 1건, 동일 도메인 30분 간격, 하루 최대 50건이다.
+- 관리 설정의 **본문 재수집 현황**에서 `오늘 재수집 수`, 일일 한도, 허용 시간 창, 재시도 가능 건수를 확인한다.
+
+전용 실행기는 `master_press_body_backfill.py`이며, 일반 Master Press 분석 worker와 분리돼 있다. systemd에 다음 유닛을 설치·활성화한다.
+
+```bash
+sudo install -m 644 deploy/systemd/master-press-body-backfill.service /etc/systemd/system/
+sudo install -m 644 deploy/systemd/master-press-body-backfill.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now master-press-body-backfill.timer
+systemctl status master-press-body-backfill.timer --no-pager
+```
+
+타이머는 10분마다 실행되지만, 허용 시간 밖에서는 수집하지 않고 즉시 종료한다. 시험 운용에서는 10건 중 7건의 본문을 확보했고, 3건은 robots 금지로 안전하게 제외했다.
+
 ## 19. 장애 대응 체크리스트
 
 ### 관리 설정이 느릴 때

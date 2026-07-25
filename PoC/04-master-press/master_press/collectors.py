@@ -5,8 +5,10 @@ import hashlib
 import html
 import json
 import re
+import socket
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import urllib.robotparser
 import xml.etree.ElementTree as ET
@@ -159,9 +161,10 @@ class HttpClient:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.last_domain_request: dict[str, float] = {}
-        self.robots: dict[str, urllib.robotparser.RobotFileParser] = {}
+        self.robots: dict[str, dict] = {}
 
-    def request(self, url: str, headers: dict | None = None, data: bytes | None = None, method: str = "GET") -> bytes:
+    def request(self, url: str, headers: dict | None = None, data: bytes | None = None,
+                method: str = "GET", max_bytes: int = 2_000_000) -> bytes:
         parsed = urllib.parse.urlsplit(str(url or ""))
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise ValueError("HTTP(S) 주소만 수집할 수 있습니다.")
@@ -169,21 +172,36 @@ class HttpClient:
         request_headers.update(headers or {})
         request = urllib.request.Request(url, headers=request_headers, data=data, method=method)
         with urllib.request.urlopen(request, timeout=self.settings.request_timeout_seconds) as response:
-            return response.read(2_000_000)
+            return response.read(max(1, min(2_000_000, int(max_bytes))))
 
-    def allowed(self, url: str) -> bool:
+    def robots_access(self, url: str) -> dict:
+        """Never turn an unavailable robots.txt into permission to fetch."""
         parsed = urllib.parse.urlsplit(url)
         origin = f"{parsed.scheme}://{parsed.netloc}"
-        if origin not in self.robots:
+        if origin in self.robots:
+            return dict(self.robots[origin])
+        robots_url = f"{origin}/robots.txt"
+        try:
+            raw = self.request(robots_url, headers={"Accept": "text/plain,*/*;q=0.1"}, max_bytes=256_000)
             parser = urllib.robotparser.RobotFileParser()
-            parser.set_url(f"{origin}/robots.txt")
-            try:
-                parser.read()
-            except Exception:
-                parser = urllib.robotparser.RobotFileParser()
-                parser.parse([])
-            self.robots[origin] = parser
-        return self.robots[origin].can_fetch(self.settings.user_agent, url)
+            parser.set_url(robots_url)
+            parser.parse(raw.decode("utf-8", errors="replace").splitlines())
+            allowed = bool(parser.can_fetch(self.settings.user_agent, url))
+            decision = {"allowed": allowed, "state": "allowed" if allowed else "disallowed"}
+        except urllib.error.HTTPError as error:
+            if error.code in {404, 410}:
+                decision = {"allowed": True, "state": "allowed"}
+            elif error.code in {401, 403}:
+                decision = {"allowed": False, "state": "disallowed"}
+            else:
+                decision = {"allowed": False, "state": "unknown"}
+        except (urllib.error.URLError, socket.timeout, TimeoutError, ValueError):
+            decision = {"allowed": False, "state": "unknown"}
+        self.robots[origin] = decision
+        return dict(decision)
+
+    def allowed(self, url: str) -> bool:
+        return bool(self.robots_access(url).get("allowed"))
 
     def throttle(self, url: str, minimum_seconds: float = 1.0) -> None:
         domain = urllib.parse.urlsplit(url).netloc
@@ -327,8 +345,10 @@ class NewsCollector:
 
 
     def fetch_body(self, url: str) -> dict:
-        if not self.http.allowed(url):
-            return {"body": "", "error": "robots_disallowed"}
+        robots = self.http.robots_access(url)
+        if not robots.get("allowed"):
+            error = "robots_disallowed" if robots.get("state") == "disallowed" else "robots_unavailable"
+            return {"body": "", "error": error, "retryable": error != "robots_disallowed"}
         try:
             self.http.throttle(url)
             payload = self.http.request(url, headers={"Accept": "text/html,application/xhtml+xml"})
@@ -338,20 +358,25 @@ class NewsCollector:
                 import trafilatura
                 body = trafilatura.extract(raw_html, include_comments=False, include_tables=False, favor_precision=True) or ""
             except (ImportError, RuntimeError):
-                parser = TextExtractor()
-                parser.feed(raw_html)
-                body = parser.text()
+                body = ""
+            if not body:
+                parser = TextExtractor(); parser.feed(raw_html); body = parser.text()
             body = body.strip()[: self.settings.article_body_limit]
-            image_url = extract_representative_image(raw_html, url)
-            return {
-                "body": body,
-                "image_url": image_url,
-                "content_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
-                "body_expires_at": (datetime.now(KST) + timedelta(days=self.settings.raw_retention_days)).isoformat(timespec="seconds"),
-                "error": "" if body else "body_unavailable",
-            }
+            return {"body": body, "image_url": extract_representative_image(raw_html, url),
+                    "content_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
+                    "body_expires_at": (datetime.now(KST) + timedelta(days=self.settings.raw_retention_days)).isoformat(timespec="seconds"),
+                    "error": "" if body else "body_unavailable", "retryable": not bool(body)}
+        except urllib.error.HTTPError as error:
+            status = int(error.code or 0)
+            return {"body": "", "error": f"http_{status}", "http_status": status,
+                    "retry_after": str(error.headers.get("Retry-After", "") or ""),
+                    "retryable": status in {408, 425, 429} or status >= 500}
+        except (socket.timeout, TimeoutError):
+            return {"body": "", "error": "timeout", "retryable": True}
+        except urllib.error.URLError:
+            return {"body": "", "error": "network_error", "retryable": True}
         except Exception as error:
-            return {"body": "", "error": f"fetch_error:{type(error).__name__}"}
+            return {"body": "", "error": f"fetch_error:{type(error).__name__}", "retryable": True}
 
 
 def case_excluded_match(case: dict, candidate: dict) -> bool:

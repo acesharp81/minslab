@@ -60,6 +60,29 @@ class StorageTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_body_backfill_excludes_robots_and_keeps_retryable_failures(self):
+        robots, _ = self.store.upsert_article({"canonical_url":"https://example.com/robots","original_url":"https://example.com/robots","title":"robots","publisher":"example.com","body_error":"robots_disallowed"})
+        retry, _ = self.store.upsert_article({"canonical_url":"https://example.net/timeout","original_url":"https://example.net/timeout","title":"timeout","publisher":"example.net","body_error":"timeout"})
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET body_retryable=0 WHERE id=?", (robots["id"],))
+        rows = self.store.list_articles_missing_body("2099-01-01T00:00:00+09:00", "2000-01-01T00:00:00+09:00", 20)
+        self.assertEqual([item["id"] for item in rows], [retry["id"]])
+        self.store.save_body_backfill_result(retry["id"], {"error":"http_403","http_status":403}, False)
+        with self.store.connect() as connection:
+            row = connection.execute("SELECT body_retryable,body_http_status,body_attempts FROM articles WHERE id=?", (retry["id"],)).fetchone()
+        self.assertEqual((row["body_retryable"], row["body_http_status"], row["body_attempts"]), (0, 403, 1))
+
+    def test_body_backfill_is_disabled_without_an_explicit_opt_in(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        class NoFetch:
+            def fetch_body(self, _url):
+                raise AssertionError("disabled recovery must not fetch")
+        service.collector = NoFetch()
+        result = service.backfill_missing_article_bodies()
+        self.assertTrue(result["paused"])
+        self.assertEqual(result["reason"], "disabled")
+
     def test_pipeline_error_total_counts_api_failures_not_job_retries(self):
         article, _ = self.store.upsert_article({
             "canonical_url": "https://example.com/api-error",

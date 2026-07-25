@@ -697,6 +697,17 @@ class Store:
                 connection.execute("ALTER TABLE articles ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
             if "body_error" not in article_columns:
                 connection.execute("ALTER TABLE articles ADD COLUMN body_error TEXT NOT NULL DEFAULT ''")
+            for column, definition in (
+                ("body_attempts", "INTEGER NOT NULL DEFAULT 0"),
+                ("body_last_attempt_at", "TEXT"),
+                ("body_next_attempt_at", "TEXT"),
+                ("body_retryable", "INTEGER NOT NULL DEFAULT 1"),
+                ("body_http_status", "INTEGER"),
+            ):
+                if column not in article_columns:
+                    connection.execute(f"ALTER TABLE articles ADD COLUMN {column} {definition}")
+            connection.execute("UPDATE articles SET body_retryable=0 WHERE COALESCE(body,'')='' AND body_error='robots_disallowed'")
+            connection.execute("CREATE INDEX IF NOT EXISTS idx_articles_body_backfill ON articles(body_retryable,body_next_attempt_at,first_seen_at)")
             recipient_columns = {row[1] for row in connection.execute("PRAGMA table_info(recipients)")}
             if "scopes" not in recipient_columns:
                 connection.execute("ALTER TABLE recipients ADD COLUMN scopes TEXT NOT NULL DEFAULT '[]'")
@@ -2842,58 +2853,42 @@ class Store:
         return [self.decode_organization(row) for row in rows]
 
     def list_articles_missing_body(self, retry_before: str, first_seen_after: str, limit: int = 1) -> list[dict]:
+        """Only return non-prohibited, due recovery candidates; never select robots bans."""
         with self.connect() as connection:
             rows = connection.execute(
                 """SELECT * FROM articles
                    WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
-                     AND COALESCE(body_error,'')='robots_disallowed'
-                     AND COALESCE(body_expires_at,updated_at)<=? AND first_seen_at>=?
-                   ORDER BY COALESCE(published_at,first_seen_at) DESC,COALESCE(body_expires_at,updated_at) ASC
-                   LIMIT ?""",
-                (retry_before, first_seen_after, max(1, min(20, int(limit)))),
-            ).fetchall()
+                     AND COALESCE(body_retryable,1)=1
+                     AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
+                     AND COALESCE(body_attempts,0)<3
+                     AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?
+                   ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC,COALESCE(published_at,first_seen_at) DESC
+                   LIMIT ?""", (retry_before, first_seen_after, max(1, min(20, int(limit))))).fetchall()
         return [dict(row) for row in rows]
 
     def missing_body_status(self, retry_before: str, first_seen_after: str) -> dict:
         with self.connect() as connection:
-            overall = connection.execute(
-                """SELECT
-                       COUNT(*) total_articles,
-                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' THEN 1 ELSE 0 END),0) missing_total,
-                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')='robots_disallowed' THEN 1 ELSE 0 END),0) blocked_total,
-                       COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total
-                   FROM articles"""
-            ).fetchone()
-            counts = connection.execute(
-                """SELECT
-                       COUNT(*) window_total,
-                       COALESCE(SUM(CASE WHEN COALESCE(body_expires_at,updated_at)<=? THEN 1 ELSE 0 END),0) retry_due,
-                       COALESCE(SUM(CASE WHEN COALESCE(body_expires_at,updated_at)>? THEN 1 ELSE 0 END),0) cooling_down
-                   FROM articles
-                   WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
-                     AND COALESCE(body_error,'')='robots_disallowed'
-                     AND first_seen_at>=?""",
-                (retry_before, retry_before, first_seen_after),
-            ).fetchone()
-            latest = connection.execute(
-                """SELECT id,title,original_url,first_seen_at,updated_at,snippet
-                   FROM articles
-                   WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
-                     AND COALESCE(body_error,'')='robots_disallowed'
-                     AND first_seen_at>=?
-                   ORDER BY COALESCE(published_at,first_seen_at) DESC,COALESCE(body_expires_at,updated_at) ASC LIMIT 1""",
-                (first_seen_after,),
-            ).fetchone()
-        return {
-            "total_articles": int((overall or {})["total_articles"] if overall else 0),
-            "missing_total": int((overall or {})["missing_total"] if overall else 0),
-            "blocked_total": int((overall or {})["blocked_total"] if overall else 0),
-            "non_blocked_total": int((overall or {})["non_blocked_total"] if overall else 0),
-            "window_total": int((counts or {})["window_total"] if counts else 0),
-            "retry_due": int((counts or {})["retry_due"] if counts else 0),
-            "cooling_down": int((counts or {})["cooling_down"] if counts else 0),
-            "latest": dict(latest) if latest else None,
-        }
+            overall = connection.execute("""SELECT COUNT(*) total_articles,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' THEN 1 ELSE 0 END),0) missing_total,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND body_error='robots_disallowed' THEN 1 ELSE 0 END),0) blocked_total,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total
+                FROM articles""").fetchone()
+            due = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                AND COALESCE(body_retryable,1)=1 AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
+                AND COALESCE(body_attempts,0)<3 AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?""", (retry_before, first_seen_after)).fetchone()
+            latest = connection.execute("""SELECT id,title,original_url,first_seen_at,updated_at,snippet FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                AND COALESCE(body_retryable,1)=1 AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?
+                ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC LIMIT 1""", (retry_before, first_seen_after)).fetchone()
+        return {"total_articles": int(overall["total_articles"]), "missing_total": int(overall["missing_total"]), "blocked_total": int(overall["blocked_total"]), "non_blocked_total": int(overall["non_blocked_total"]), "retry_due": int(due["value"]), "cooling_down": 0, "latest": dict(latest) if latest else None}
+
+    def save_body_backfill_result(self, article_id: str, fetched: dict, retryable: bool, next_attempt_at: str = "") -> None:
+        now = now_iso(); body = str(fetched.get("body") or ""); error = str(fetched.get("error") or "")[:120]
+        with self.connect() as connection:
+            connection.execute("""UPDATE articles SET body=CASE WHEN ?<>'' THEN ? ELSE body END,
+                image_url=CASE WHEN ?<>'' THEN ? ELSE image_url END, content_hash=COALESCE(?,content_hash),
+                body_error=?, body_attempts=body_attempts+1, body_last_attempt_at=?, body_next_attempt_at=?,
+                body_retryable=?, body_http_status=?, body_expires_at=CASE WHEN ?<>'' THEN ? ELSE body_expires_at END, updated_at=? WHERE id=?""",
+                (body,body,str(fetched.get("image_url") or ""),str(fetched.get("image_url") or ""),fetched.get("content_hash"),error,now,next_attempt_at or None,1 if retryable else 0,fetched.get("http_status"),body,str(fetched.get("body_expires_at") or ""),now,article_id))
 
     def next_embedding_analysis(self) -> dict | None:
         """Low-priority backfill: one local embedding per completed common analysis."""

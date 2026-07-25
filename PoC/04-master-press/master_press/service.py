@@ -1247,81 +1247,67 @@ class MasterPressService:
             item = self.store.finish_case_proposal_moderation(proposal["id"], False, f"클린 AI 검사 실패: {type(error).__name__}", model)
             return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": item}
 
-    def _body_backfill_config(self) -> tuple[int, int, int]:
-        try:
-            window_days = max(1, min(30, int(self.store.get_setting("body_backfill_window_days", "7"))))
-        except ValueError:
-            window_days = 7
-        try:
-            retry_hours = max(1, min(72, int(self.store.get_setting("body_backfill_retry_hours", "24"))))
-        except ValueError:
-            retry_hours = 24
-        try:
-            batch_size = max(0, min(10, int(self.store.get_setting("body_backfill_batch_size", "0"))))
-        except ValueError:
-            batch_size = 0
-        return window_days, retry_hours, batch_size
+    def _body_backfill_config(self) -> tuple[int, int, int, int, int, int]:
+        def setting(name: str, default: int, low: int, high: int) -> int:
+            try: return max(low, min(high, int(self.store.get_setting(name, str(default)))))
+            except (TypeError, ValueError): return default
+        start_hour = setting("body_backfill_start_hour", 0, 0, 23)
+        end_hour = setting("body_backfill_end_hour", 24, 1, 24)
+        if start_hour >= end_hour:
+            start_hour, end_hour = 0, 24
+        return (setting("body_backfill_window_days", 7, 1, 30), setting("body_backfill_daily_limit", 12, 1, 50),
+                setting("body_backfill_interval_seconds", 600, 60, 3600), setting("body_backfill_domain_interval_seconds", 1800, 300, 86400), start_hour, end_hour)
+
+    def _body_backfill_enabled(self) -> bool:
+        return str(self.store.get_setting("body_backfill_enabled", "0") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+    @staticmethod
+    def _body_retry_at(error: str, attempts: int, now: datetime) -> tuple[bool, str]:
+        permanent = {"robots_disallowed", "http_401", "http_403", "http_404", "http_410", "http_451"}
+        if error in permanent: return False, ""
+        max_attempts = 2 if error == "body_unavailable" else 3
+        if attempts >= max_attempts: return False, ""
+        hours = (6, 24, 72)[min(max(0, attempts - 1), 2)]
+        return True, (now + timedelta(hours=hours)).isoformat(timespec="seconds")
 
     def body_backfill_status(self) -> dict:
-        window_days, retry_hours, batch_size = self._body_backfill_config()
-        now = datetime.now(KST)
-        retry_before = (now - timedelta(hours=retry_hours)).isoformat(timespec="seconds")
-        first_seen_after = (now - timedelta(days=window_days)).isoformat(timespec="seconds")
-        status = self.store.missing_body_status(retry_before, first_seen_after)
-        counter_key = f"body_backfill_processed:{now.strftime('%Y%m%d')}"
-        try:
-            processed_today = int(self.store.get_setting(counter_key, "0") or "0")
-        except ValueError:
-            processed_today = 0
-        status.update({
-            "window_days": window_days,
-            "retry_hours": retry_hours,
-            "batch_size": batch_size,
-            "processed_today": max(0, processed_today),
-            "paused": batch_size <= 0,
-        })
+        window_days, daily_limit, interval_seconds, domain_interval_seconds, start_hour, end_hour = self._body_backfill_config(); now = datetime.now(KST)
+        status = self.store.missing_body_status(now.isoformat(timespec="seconds"), (now-timedelta(days=window_days)).isoformat(timespec="seconds"))
+        key=f"body_backfill_processed:{now.strftime('%Y%m%d')}"
+        try: processed=int(self.store.get_setting(key,"0") or 0)
+        except ValueError: processed=0
+        status.update({"window_days":window_days,"batch_size":1,"processed_today":max(0,processed),"daily_limit":daily_limit,
+            "daily_remaining":max(0,daily_limit-processed),"next_run_at":self.store.get_setting("body_backfill_next_run_at",""),
+            "enabled":self._body_backfill_enabled(),"paused":not self._body_backfill_enabled(),"interval_seconds":interval_seconds,"domain_interval_seconds":domain_interval_seconds,
+            "start_hour":start_hour,"end_hour":end_hour,"within_schedule":start_hour <= now.hour < end_hour})
         return status
 
     def backfill_missing_article_bodies(self) -> dict:
-        window_days, retry_hours, batch_size = self._body_backfill_config()
-        if batch_size <= 0:
-            return {"paused": True, "processed": 0, "filled": 0, "failed": 0, "selected": 0}
-        now = datetime.now(KST)
-        retry_before = (now - timedelta(hours=retry_hours)).isoformat(timespec="seconds")
-        first_seen_after = (now - timedelta(days=window_days)).isoformat(timespec="seconds")
-        rows = self.store.list_articles_missing_body(retry_before, first_seen_after, batch_size)
-        result = {"processed": 0, "filled": 0, "failed": 0, "selected": len(rows)}
-        counter_key = f"body_backfill_processed:{now.strftime('%Y%m%d')}"
-
+        window_days, daily_limit, interval_seconds, domain_interval_seconds, start_hour, end_hour = self._body_backfill_config(); now=datetime.now(KST)
+        result={"paused":False,"processed":0,"filled":0,"failed":0,"selected":0,"reason":""}
+        if not self._body_backfill_enabled(): result.update(paused=True,reason="disabled"); return result
+        if not (start_hour <= now.hour < end_hour): result.update(paused=True,reason="scheduled_window"); return result
+        key=f"body_backfill_processed:{now.strftime('%Y%m%d')}"
+        try: processed=int(self.store.get_setting(key,"0") or 0)
+        except ValueError: processed=0
+        next_run=self.store.get_setting("body_backfill_next_run_at","")
+        if processed>=daily_limit: result["reason"]="daily_limit"; return result
+        if next_run and next_run>now.isoformat(timespec="seconds"): result["reason"]="interval"; return result
+        rows=self.store.list_articles_missing_body(now.isoformat(timespec="seconds"),(now-timedelta(days=window_days)).isoformat(timespec="seconds"),20)
+        result["selected"]=len(rows)
         for row in rows:
-            original_url = str(row.get("original_url") or "").strip()
-            if not original_url:
-                continue
-            fetched = self.collector.fetch_body(original_url)
-            article = {
-                "canonical_url": row["canonical_url"],
-                "original_url": row.get("original_url", ""),
-                "title": row.get("title", ""),
-                "publisher": row.get("publisher", ""),
-                "published_at": row.get("published_at"),
-                "snippet": row.get("snippet", ""),
-                "image_url": row.get("image_url", ""),
-                "content_hash": row.get("content_hash"),
-                "source_type": row.get("source_type", "naver"),
-                "body": str(fetched.get("body") or ""),
-            }
-            if article["body"]:
-                article["body_error"] = ""
-                article["body_expires_at"] = row.get("body_expires_at")
-                result["filled"] += 1
-            else:
-                article["body_error"] = str(fetched.get("error") or "body_unavailable")[:120]
-                article["body_expires_at"] = (datetime.now(KST) + timedelta(hours=retry_hours)).isoformat(timespec="seconds")
-                result["failed"] += 1
-            self.store.upsert_article(article)
-            self.store.increment_setting_counter(counter_key, 1)
-            result["processed"] += 1
-        return result
+            host=urllib.parse.urlsplit(str(row.get("original_url") or "")).netloc.lower()
+            if not host: continue
+            domain_key="body_backfill_domain_next_at:"+host
+            if self.store.get_setting(domain_key,"")>now.isoformat(timespec="seconds"): continue
+            fetched=self.collector.fetch_body(str(row["original_url"]))
+            attempts=int(row.get("body_attempts") or 0)+1; body=str(fetched.get("body") or "")
+            retryable,next_attempt=(False,"") if body else self._body_retry_at(str(fetched.get("error") or "body_unavailable"),attempts,now)
+            self.store.save_body_backfill_result(row["id"],fetched,retryable,next_attempt)
+            self.store.increment_setting_counter(key,1); self.store.set_setting(domain_key,(now+timedelta(seconds=domain_interval_seconds)).isoformat(timespec="seconds"))
+            self.store.set_setting("body_backfill_next_run_at",(now+timedelta(seconds=interval_seconds)).isoformat(timespec="seconds"))
+            result.update(processed=1,filled=1 if body else 0,failed=0 if body else 1); return result
+        self.store.set_setting("body_backfill_next_run_at",(now+timedelta(seconds=interval_seconds)).isoformat(timespec="seconds")); result["reason"]="no_eligible_candidate"; return result
 
     def orchestration_tick(self) -> dict:
         results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "body_backfill": {}, "cleanup": {}}

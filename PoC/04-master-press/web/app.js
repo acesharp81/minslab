@@ -275,15 +275,9 @@ function renderDashboardWords(words,scopeLabel){var root=$('dashboardWordCloud')
 async function loadDashboardWords(){var params=new URLSearchParams({days:'7',delivery_only:'1'}),scopeLabel='';if(state.activeCase){params.set('case_id',state.activeCase);if(state.activeOrganization)params.set('organization_id',state.activeOrganization);scopeLabel='발송 대상 · 케이스 · 최근 7일'}else if(state.activeOrganization){params.set('organization_id',state.activeOrganization);params.set('scope','organization');scopeLabel='발송 대상 · 기관 전체 · 최근 7일'}else{renderDashboardWords([]);return}var requestedCase=state.activeCase,requestedOrganization=state.activeOrganization;try{var data=await req('/api/poc/master-press/analysis/insights?'+params.toString());if(requestedCase===state.activeCase&&requestedOrganization===state.activeOrganization)renderDashboardWords(data.words||[],scopeLabel)}catch(error){var meta=$('dashboardWordMeta');if(meta)meta.textContent='화두 집계 실패'}}
 
 async function requestDashboardFullIfNeeded(reason){
-  var pending=state.dashboardFullPending;
-  if(!pending||state.dashboardFullLoading)return;
-  if(state.dashboardRun!==pending.run){state.dashboardFullPending=null;return}
-  state.dashboardFullLoading=true;
-  try{
-    var fullParams=new URLSearchParams(pending.params);fullParams.set('_',String(Date.now()));
-    renderDashboardSnapshot(await req('/api/poc/master-press/dashboard?'+fullParams.toString()));
-    if(state.dashboardRun===pending.run)state.dashboardFullPending=null;
-  }catch(error){}finally{state.dashboardFullLoading=false}
+  // Stabilization mode: skip expensive full dashboard query and keep fast path only.
+  state.dashboardFullPending=null;
+  state.dashboardFullLoading=false;
 }
 
 function maybeTriggerDashboardFullByScroll(){
@@ -304,9 +298,7 @@ async function loadDashboard(caseId,organizationId,eagerFull){
     var baseParams=new URLSearchParams();if(state.activeOrganization)baseParams.set('organization_id',state.activeOrganization);if(state.activeCase)baseParams.set('case_id',state.activeCase);if(state.activeTags.length)baseParams.set('tags',state.activeTags.join(','));if(state.articleSearch)baseParams.set('q',state.articleSearch);
     var fastParams=new URLSearchParams(baseParams);fastParams.set('fast','1');fastParams.set('limit',String(state.dashboardFastLimit||15));fastParams.set('_',String(Date.now()));
     renderDashboardSnapshot(await req('/api/poc/master-press/dashboard?'+fastParams.toString()));
-    state.dashboardFullPending={run:run,params:baseParams.toString()};
-    if(eagerFull)requestDashboardFullIfNeeded('filter');else maybeTriggerDashboardFullByScroll();
-    if(!state.dashboardScrollHooked){window.addEventListener('scroll',maybeTriggerDashboardFullByScroll,{passive:true});state.dashboardScrollHooked=true}
+    state.dashboardFullPending=null;
     loadDashboardWords();
   }catch(error){toast(error.message)}finally{state.dashboardLoading=false;hideLoading();if(state.dashboardReloadRequested){state.dashboardReloadRequested=false;loadDashboard(state.activeCase,state.activeOrganization)}}
 }
@@ -422,7 +414,7 @@ function renderBodyBackfillStatus(data){
   summaryEl.innerHTML=cards.map(function(card){return '<span><b>'+Number(card[1]||0).toLocaleString()+'</b><small>'+esc(card[0])+'</small></span>'}).join('');
   var latest=data.latest||null;
   var blocked='차단 '+Number(data.blocked_total||0).toLocaleString()+'건',nonBlocked='차단 아님 '+Number(data.non_blocked_total||0).toLocaleString()+'건';
-  metaEl.textContent=latest?'최근 대상 · '+String(latest.title||'기사').slice(0,60)+' · 마지막 확인 '+fmt(latest.updated_at)+' · '+blocked+' · '+nonBlocked+' · 재시도 가능 '+Number(data.retry_due||0).toLocaleString()+'건 · 회차당 '+Number(data.batch_size||0)+'건':'최근 '+Number(data.window_days||0)+'일 기준 본문 미확보 기사가 없습니다. · '+blocked+' · '+nonBlocked+' · 회차당 '+Number(data.batch_size||0)+'건';
+  var schedule='수행 시간 '+String(data.start_hour!=null?data.start_hour:0)+'~'+String(data.end_hour!=null?data.end_hour:24)+'시';metaEl.textContent=latest?'최근 대상 · '+String(latest.title||'기사').slice(0,60)+' · 마지막 확인 '+fmt(latest.updated_at)+' · '+blocked+' · '+nonBlocked+' · 재시도 가능 '+Number(data.retry_due||0).toLocaleString()+'건 · 오늘 '+Number(data.processed_today||0).toLocaleString()+'/'+Number(data.daily_limit||0).toLocaleString()+'건 · '+schedule:'최근 '+Number(data.window_days||0)+'일 기준 본문 미확보 기사가 없습니다. · '+blocked+' · '+nonBlocked+' · 오늘 '+Number(data.processed_today||0).toLocaleString()+'/'+Number(data.daily_limit||0).toLocaleString()+'건 · '+schedule;
 }
 
 function renderAdmin(data){

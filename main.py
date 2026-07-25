@@ -1815,16 +1815,25 @@ def release_master_press_worker_lock() -> None:
 
 
 async def collect_master_press():
-    """수집·예약 발송은 LLM 단계와 독립적으로 30초마다 확인한다."""
+    """Run one bounded collection/analysis cycle at a time in the lock-owning process."""
     while True:
+        progressed = False
         try:
             module = load_master_press_module()
-            await asyncio.to_thread(module.worker_tick)
+            cycle = await asyncio.to_thread(module.worker_tick)
+            progressed = bool((cycle or {}).get("organizations") or (cycle or {}).get("cases"))
+            progressed = bool(await asyncio.to_thread(module.common_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.embedding_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.case_worker_tick, False)) or progressed
         except asyncio.CancelledError:
             raise
         except Exception as error:
             print(f"Master Press orchestration worker failed: {error}", file=sys.stderr)
-        await asyncio.sleep(30)
+            if "database is locked" in str(error).lower():
+                await asyncio.sleep(8)
+                continue
+        # Network collection and SQLite writes must yield long enough for dashboard requests.
+        await asyncio.sleep(12 if progressed else 30)
 
 
 async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
@@ -1902,9 +1911,6 @@ async def app(scope, receive, send):
                     if owns_master_press_worker_lock:
                         master_press_tasks = [
                             asyncio.create_task(collect_master_press()),
-                            asyncio.create_task(run_master_press_stage("common_worker_tick", idle_seconds=4.0)),
-                            asyncio.create_task(run_master_press_stage("embedding_worker_tick", idle_seconds=4.0)),
-                            asyncio.create_task(run_master_press_stage("case_worker_tick", idle_seconds=4.0, burst=False)),
                         ]
                     else:
                         print("Master Press workers skipped in this process (lock held by another process).", file=sys.stderr)
