@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -22,6 +23,9 @@ from master_press.press_releases import (
 from master_press.scoring import OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at
 from master_press.storage import KST, Store, centered_semantic_similarity, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.supabase_mirror import SupabaseMirror
+from master_press.supabase_seed import SupabaseSeed
+from master_press.supabase_daily_metrics import SupabaseDailyMetrics
 
 
 def case_payload(index: int = 1) -> dict:
@@ -59,6 +63,121 @@ class StorageTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_supabase_outbox_is_idempotent_and_retries_without_remote_io(self):
+        first = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "첫값"}])
+        second = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "갱신값"}])
+        self.assertEqual((first, second), (1, 1))
+        events = self.store.due_supabase_outbox(10)
+        self.assertEqual(len(events), 1)
+        self.assertIn("갱신값", events[0]["payload"])
+        self.store.finish_supabase_outbox(events[0]["id"], False, "temporary")
+        self.assertEqual(self.store.due_supabase_outbox(10), [])
+        self.assertEqual(self.store.supabase_outbox_status()["pending"], 1)
+
+    def test_supabase_outbox_does_not_requeue_completed_identical_payload(self):
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "동일값"}])
+        event = self.store.due_supabase_outbox(10)[0]
+        self.assertTrue(self.store.finish_supabase_outbox(event["id"], True, expected_payload=event["payload"]))
+        self.store.queue_supabase_outbox("master_press_articles", [{"title": "동일값", "id": "article-1"}])
+        self.assertEqual(self.store.due_supabase_outbox(10), [])
+        self.assertEqual(self.store.supabase_outbox_status()["completed"], 1)
+
+    def test_supabase_outbox_preserves_a_newer_payload(self):
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "이전값"}])
+        stale = self.store.due_supabase_outbox(10)[0]
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "새값"}])
+        self.assertFalse(self.store.finish_supabase_outbox(stale["id"], True, expected_payload=stale["payload"]))
+        current = self.store.due_supabase_outbox(10)[0]
+        self.assertIn("새값", current["payload"])
+
+    def test_embedding_outbox_queues_parent_article_before_embedding(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/embedding-parent", "original_url": "https://example.com/embedding-parent",
+            "title": "임베딩 부모 기사", "publisher": "example.com", "source_type": "test",
+        })
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test")
+        mirror = SupabaseMirror(settings, self.store)
+        self.assertTrue(mirror.article_embedding({"id": "analysis-parent", "updated_at": "2026-07-27T00:00:00+09:00"}, article, [0.0] * 768, "test"))
+        events = self.store.due_supabase_outbox(10)
+        self.assertEqual([event["table_name"] for event in events], [
+            "master_press_articles", "master_press_article_embeddings",
+        ])
+
+    def test_supabase_history_read_cache_and_circuit_breaker(self):
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test", request_timeout_seconds=3)
+        mirror = SupabaseMirror(settings)
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = '[{"id":"score-1","article":{"title":"원격 기사"}}]'.encode("utf-8")
+        with mock.patch("master_press.supabase_mirror.urllib.request.urlopen", return_value=response) as urlopen:
+            self.assertEqual(mirror.recent_score_history(5)[0]["id"], "score-1")
+            self.assertEqual(mirror.recent_score_history(5)[0]["article"]["title"], "원격 기사")
+            self.assertEqual(urlopen.call_count, 1)
+        self.assertEqual(mirror.history_read_status()["source"], "cache")
+        with mock.patch("master_press.supabase_mirror.urllib.request.urlopen", side_effect=OSError("offline")) as urlopen:
+            for _ in range(3):
+                mirror._history_cache.clear()
+                self.assertIsNone(mirror.recent_score_history(6))
+            self.assertTrue(mirror.history_read_status()["circuit_open"])
+            self.assertIsNone(mirror.recent_score_history(6))
+            self.assertEqual(urlopen.call_count, 3)
+
+    def test_supabase_daily_metrics_queues_compact_score_history_only_when_enabled(self):
+        organization = self.store.save_organization({"name": "통계 기관"})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/daily", "original_url": "https://example.com/daily",
+            "title": "일별 통계 기사", "publisher": "example.com", "source_type": "test",
+        })
+        self.store.save_score(article["id"], case["id"], 1, {
+            "keyword_score": 80, "semantic_score": 80, "llm_score": 80, "final_score": 80,
+            "article_type": "정책·행정", "decision": "send",
+        })
+        class Mirror:
+            enabled = True
+            def __init__(self): self.rows = []
+            def daily_metrics(self, rows): self.rows = rows; return True
+            def daily_metrics_history(self, _limit): return [dict(row) for row in self.rows]
+        mirror = Mirror()
+        metrics = SupabaseDailyMetrics(self.store, mirror)
+        self.assertEqual(metrics.run_once()["status"], "disabled")
+        self.store.set_setting("supabase_daily_metrics_enabled", "1")
+        result = metrics.run_once()
+        self.assertEqual((result["status"], result["rows"]), ("queued", 1))
+        self.assertEqual(mirror.rows[0]["sent_count"], 1)
+        self.assertEqual(mirror.rows[0]["top_topics"], [{"label": "정책·행정", "value": 1}])
+        self.assertNotIn("body", mirror.rows[0])
+        self.assertEqual(metrics.shadow_compare()["status"], "ready")
+
+    def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
+        organization = self.store.save_organization({"name": "동기화 테스트 기관"})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        mirror = SupabaseMirror(SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test"), self.store)
+        seed = SupabaseSeed(self.store, mirror)
+        night = datetime(2026, 7, 26, 1, 0, tzinfo=KST)
+        self.assertEqual(seed.run_once(night)["phase"], "organizations")
+        self.assertEqual(seed.run_once(night)["status"], "waiting_remote")
+        organization_event = self.store.due_supabase_outbox(10)[0]
+        self.assertIn("master_press_organizations", organization_event["id"])
+        self.assertTrue(self.store.finish_supabase_outbox(organization_event["id"], True, expected_payload=organization_event["payload"]))
+        self.assertEqual(seed.run_once(night)["phase"], "cases")
+        case_result = seed.run_once(night)
+        self.assertEqual((case_result["status"], case_result["phase"], case_result["queued"]), ("queued", "cases", 1))
+        self.assertEqual(seed.run_once(datetime(2026, 7, 26, 12, 0, tzinfo=KST))["status"], "outside_window")
+        self.assertEqual(case["organization_id"], organization["id"])
+
+    def test_supabase_seed_article_checkpoint_requires_explicit_continue(self):
+        self.store.upsert_article({"canonical_url": "https://example.com/seed", "original_url": "https://example.com/seed", "title": "단계 동기화", "publisher": "example.com"})
+        self.store.set_setting("supabase_seed_phase", "articles")
+        mirror = SupabaseMirror(SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test"), self.store)
+        seed = SupabaseSeed(self.store, mirror)
+        result = seed.run_once(datetime(2026, 7, 26, 1, 0, tzinfo=KST))
+        self.assertEqual(result["status"], "checkpoint")
+        self.assertTrue(seed.status()["paused"])
+        resumed = seed.continue_next_stage()
+        self.assertFalse(resumed["paused"])
+        self.assertEqual(resumed["phase"], "articles_wait")
 
     def test_body_backfill_excludes_robots_and_keeps_retryable_failures(self):
         robots, _ = self.store.upsert_article({"canonical_url":"https://example.com/robots","original_url":"https://example.com/robots","title":"robots","publisher":"example.com","body_error":"robots_disallowed"})
@@ -112,6 +231,43 @@ class StorageTests(unittest.TestCase):
         self.store.set_setting("pipeline_error_reset_at", reset_after_log)
         self.assertEqual(self.store.pipeline_stats()["article_jobs"]["failed_total"], 0)
 
+    def test_body_status_separates_recent_and_historical_missing_articles(self):
+        recent, _ = self.store.upsert_article({"canonical_url":"https://example.com/recent","original_url":"https://example.com/recent","title":"최근 누락","publisher":"example.com"})
+        historical, _ = self.store.upsert_article({"canonical_url":"https://example.com/historical","original_url":"https://example.com/historical","title":"과거 누락","publisher":"example.com"})
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at='2020-01-01T00:00:00+09:00' WHERE id=?", (historical["id"],))
+        status = self.store.missing_body_status("2099-01-01T00:00:00+09:00", "2025-01-01T00:00:00+09:00")
+        self.assertEqual(status["missing_total"], 2)
+        self.assertEqual(status["recent_missing_total"], 1)
+        self.assertEqual(status["historical_missing_total"], 1)
+
+    def test_neural_insights_only_uses_candidate_articles_for_selected_case(self):
+        first_case = self.store.save_case(case_payload(1))
+        second_case = self.store.save_case(case_payload(2))
+        first_article, _ = self.store.upsert_article({"canonical_url":"https://example.com/first","original_url":"https://example.com/first","title":"첫 케이스 기사","publisher":"example.com","snippet":"첫 주제"})
+        second_article, _ = self.store.upsert_article({"canonical_url":"https://example.com/second","original_url":"https://example.com/second","title":"둘째 케이스 기사","publisher":"example.com","snippet":"둘째 주제"})
+        first_analysis, _ = self.store.ensure_article_analysis(first_article)
+        second_analysis, _ = self.store.ensure_article_analysis(second_article)
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='완료',analyzed_at=?,updated_at=? WHERE id IN (?,?)", (now, now, first_analysis["id"], second_analysis["id"]))
+        self.store.create_case_evaluation(first_analysis["id"], first_article["id"], first_case, True)
+        self.store.create_case_evaluation(first_analysis["id"], first_article["id"], second_case, False)
+        self.store.create_case_evaluation(second_analysis["id"], second_article["id"], first_case, False)
+        self.store.create_case_evaluation(second_analysis["id"], second_article["id"], second_case, True)
+        first_titles = {node["label"] for node in self.store.analysis_insights(first_case["id"], days=7)["nodes"]}
+        second_titles = {node["label"] for node in self.store.analysis_insights(second_case["id"], days=7)["nodes"]}
+        self.assertEqual(first_titles, {"첫 케이스 기사"})
+        self.assertEqual(second_titles, {"둘째 케이스 기사"})
+
+    def test_pipeline_monitor_reports_last_collection_and_queue_state(self):
+        run_id = self.store.start_run()
+        self.store.finish_run(run_id, "completed", {"collected": 4, "new": 2})
+        monitor = self.store.pipeline_monitor_status()
+        self.assertEqual(monitor["last_success"]["id"], run_id)
+        self.assertEqual(monitor["last_success"]["new_count"], 2)
+        self.assertIsInstance(monitor["article_jobs"], dict)
+
     def test_topic_similarity_uses_shared_nouns_only(self):
         frequency = {"충북도": 2, "파크골프장": 2, "경찰": 1}
         related = topic_noun_similarity({"충북도", "파크골프장"}, {"충북도", "파크골프장", "사업"}, frequency, 3)
@@ -129,6 +285,62 @@ class StorageTests(unittest.TestCase):
         unrelated = centered_semantic_similarity([11.0, 9.0, 10.0], [9.0, 11.0, 10.0], centroid)
         self.assertGreater(related, 0.9)
         self.assertLess(unrelated, 0)
+
+
+    def test_similarity_groups_attach_small_split_bundle_after_strict_pass(self):
+        articles = [
+            {
+                "id": f"article-{index}", "title": "공통사건 핵심현장",
+                "summary": f"공통사건 핵심현장 개별{index} 관련 보도", "entities": ["공통사건", "핵심현장", f"개별{index}"],
+                "topic_concepts": [], "semantic_vector": [float(index), 1.0, 0.0],
+                "published_at": "2026-07-27T10:00:00+09:00",
+            }
+            for index in range(11)
+        ]
+        # A high semantic match simulates strict, degree-limited bundles. The second
+        # pass may attach a singleton split article, but must not form one large bundle.
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.84):
+            groups = self.store._dashboard_article_groups(articles)
+        sizes = sorted({group["size"] for group in groups.values()}, reverse=True)
+        self.assertEqual(sizes[0], 5)
+        self.assertNotIn(11, sizes)
+    def test_dashboard_keeps_a_similar_bundle_on_one_page(self):
+        analyses, article_ids = [], []
+        for index in range(3):
+            article, _ = self.store.upsert_article({"canonical_url": f"https://example.com/bundle-{index}", "original_url": f"https://example.com/bundle-{index}", "title": f"같은 행사 기사 {index}", "publisher": "example.com", "snippet": "공통 행사"})
+            analysis, _ = self.store.ensure_article_analysis(article)
+            article_ids.append(article["id"]); analyses.append(analysis["id"])
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='공통 행사 보도',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
+        group_id = article_ids[0]
+        groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 행사"], "concepts": ["공통 행사"]} for article_id in article_ids}
+        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+            dashboard = self.store.pipeline_dashboard(limit=1)
+        self.assertEqual(len(dashboard["articles"]), 3)
+        self.assertEqual(dashboard["next_offset"], 3)
+        self.assertFalse(dashboard["has_more"])
+        self.assertEqual({item["similar_group_id"] for item in dashboard["articles"]}, {group_id})
+
+    def test_neural_uses_dashboard_bundle_to_join_split_nodes(self):
+        case = self.store.save_case(case_payload())
+        analyses, article_ids = [], []
+        for index, title in enumerate(["철도 개통 소식", "산불 피해 현장", "농산물 수출 확대"]):
+            article, _ = self.store.upsert_article({"canonical_url": f"https://example.com/neural-bundle-{index}", "original_url": f"https://example.com/neural-bundle-{index}", "title": title, "publisher": "example.com", "snippet": title})
+            analysis, _ = self.store.ensure_article_analysis(article)
+            article_ids.append(article["id"]); analyses.append(analysis["id"])
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='완료',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
+        for article_id, analysis_id in zip(article_ids, analyses):
+            self.store.create_case_evaluation(analysis_id, article_id, case, True)
+        group_id = article_ids[0]
+        groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 화두"], "concepts": ["공통 화두"]} for article_id in article_ids}
+        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+            insight = self.store.analysis_insights(case["id"])
+        self.assertEqual((insight["group_count"], insight["grouped_article_count"]), (1, 3))
+        self.assertGreaterEqual(len(insight["edges"]), 2)
+        self.assertEqual({node["similar_group_id"] for node in insight["nodes"]}, {group_id})
 
     def test_case_versions_and_scale(self):
         first = self.store.save_case(case_payload(1))
@@ -318,6 +530,8 @@ class StorageTests(unittest.TestCase):
         dashboard = self.store.pipeline_dashboard(limit=10)
         self.assertEqual([item["title"] for item in dashboard["articles"][:2]], ["최신 관광 기사", "이전 기사"])
         self.assertEqual(self.store.pipeline_dashboard(search="홍길동")["articles"][0]["title"], "이전 기사")
+        next_page = self.store.pipeline_dashboard(limit=1, offset=1)
+        self.assertEqual(next_page["offset"], 1)
         self.assertEqual(self.store.pipeline_dashboard(search="뉴시스")["articles"][0]["title"], "최신 관광 기사")
 
     def test_press_release_searches_title_department_and_contact_name(self):

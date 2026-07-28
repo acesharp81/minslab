@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import urllib.parse
 import urllib.request
+import time
 
 from .config import Settings
 
@@ -10,9 +11,20 @@ from .config import Settings
 class SupabaseMirror:
     """Best-effort metadata mirror; operational work never depends on it."""
 
-    def __init__(self, settings: Settings):
+    HISTORY_CACHE_TTL_SECONDS = 45
+    HISTORY_FAILURE_LIMIT = 3
+    HISTORY_CIRCUIT_SECONDS = 300
+
+    def __init__(self, settings: Settings, outbox_store=None):
         self.settings = settings
+        self.outbox_store = outbox_store
         self.last_error = ""
+        self.last_status = 0
+        self.last_duration_ms = 0
+        self._history_cache: dict[str, tuple[float, list[dict]]] = {}
+        self._history_failures = 0
+        self._history_disabled_until = 0.0
+        self.last_history_source = "not_requested"
 
     @property
     def enabled(self) -> bool:
@@ -21,6 +33,11 @@ class SupabaseMirror:
     def upsert(self, table: str, rows: list[dict], on_conflict: str = "id") -> bool:
         if not self.enabled or not rows:
             return False
+        if self.outbox_store is not None:
+            queued = self.outbox_store.queue_supabase_outbox(table, rows, on_conflict)
+            self.last_error = "" if queued == len(rows) else "outbox_enqueue_incomplete"
+            self.last_status = 0
+            return queued == len(rows)
         query = urllib.parse.urlencode({"on_conflict": on_conflict})
         request = urllib.request.Request(
             f"{self.settings.supabase_url}/rest/v1/{table}?{query}",
@@ -37,9 +54,11 @@ class SupabaseMirror:
             with urllib.request.urlopen(request, timeout=self.settings.request_timeout_seconds) as response:
                 response.read()
             self.last_error = ""
+            self.last_status = 0
             return True
         except Exception as error:
             self.last_error = str(error)
+            self.last_status = int(getattr(error, "code", 0) or 0)
             return False
 
     def organization(self, organization: dict) -> bool:
@@ -84,13 +103,134 @@ class SupabaseMirror:
             "created_at": case.get("created_at"), "updated_at": case.get("updated_at"),
         }])
 
-    def article_score(self, article: dict, score: dict) -> bool:
-        article_ok = self.upsert("master_press_articles", [{
+    def recent_score_history(self, limit: int = 20, case_id: str = "") -> list[dict] | None:
+        """Read compact score history with a bounded remote-read safety layer.
+
+        SQLite remains the fallback. Successful remote results are cached briefly;
+        after repeated remote errors the circuit opens and callers fall back without
+        waiting for more network timeouts.
+        """
+        if not self.enabled:
+            self.last_history_source = "disabled"
+            return None
+        safe_limit = max(1, min(100, int(limit)))
+        clean_case_id = str(case_id or "").strip()
+        cache_key = f"{safe_limit}:{clean_case_id}"
+        now = time.monotonic()
+        cached = self._history_cache.get(cache_key)
+        if cached and now - cached[0] < self.HISTORY_CACHE_TTL_SECONDS:
+            self.last_history_source = "cache"
+            self.last_duration_ms = 0
+            self.last_error = ""
+            return [dict(item) for item in cached[1]]
+        if now < self._history_disabled_until:
+            self.last_history_source = "circuit_open"
+            self.last_duration_ms = 0
+            self.last_error = "history_circuit_open"
+            return None
+        params = {
+            "select": "id,article_id,case_id,final_score,summary,organization_tag,article_type,decision,created_at,article:master_press_articles(title,publisher,published_at,original_url)",
+            "order": "created_at.desc",
+            "limit": safe_limit,
+        }
+        if clean_case_id:
+            params["case_id"] = f"eq.{clean_case_id}"
+        request = urllib.request.Request(
+            f"{self.settings.supabase_url}/rest/v1/master_press_scores?{urllib.parse.urlencode(params)}",
+            headers={
+                "apikey": self.settings.supabase_service_role_key,
+                "Authorization": f"Bearer {self.settings.supabase_service_role_key}",
+            },
+        )
+        started = time.perf_counter()
+        try:
+            with urllib.request.urlopen(request, timeout=min(5, self.settings.request_timeout_seconds)) as response:
+                rows = json.loads(response.read().decode("utf-8"))
+            self.last_duration_ms = round((time.perf_counter() - started) * 1000, 1)
+            self.last_error = ""
+            self.last_history_source = "remote"
+            self._history_failures = 0
+            self._history_disabled_until = 0.0
+            items = [dict(item) for item in rows if isinstance(item, dict)]
+            self._history_cache[cache_key] = (now, items)
+            return [dict(item) for item in items]
+        except Exception as error:
+            self.last_duration_ms = round((time.perf_counter() - started) * 1000, 1)
+            self.last_error = str(error)
+            self.last_history_source = "error"
+            self._history_failures += 1
+            if self._history_failures >= self.HISTORY_FAILURE_LIMIT:
+                self._history_disabled_until = time.monotonic() + self.HISTORY_CIRCUIT_SECONDS
+            return None
+
+    def history_read_status(self) -> dict:
+        now = time.monotonic()
+        return {
+            "source": self.last_history_source,
+            "consecutive_failures": self._history_failures,
+            "circuit_open": now < self._history_disabled_until,
+            "cache_entries": len(self._history_cache),
+        }
+
+    def match_press_release_chunks(self, query_vector: list[float], organization_id: str = "", limit: int = 12) -> list[dict]:
+        """Read-only pgvector lookup for the press-RAG candidate fast path.
+
+        Failures deliberately return an empty list: local candidate generation
+        remains the source of truth and continues without a remote dependency.
+        """
+        if not self.enabled or not query_vector:
+            return []
+        started = time.perf_counter()
+        try:
+            payload = {
+                "query_embedding": "[" + ",".join(str(float(value)) for value in query_vector) + "]",
+                "match_count": max(1, min(50, int(limit))),
+                "target_organization": organization_id or None,
+            }
+            request = urllib.request.Request(
+                f"{self.settings.supabase_url}/rest/v1/rpc/match_master_press_release_chunks",
+                data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                headers={
+                    "apikey": self.settings.supabase_service_role_key,
+                    "Authorization": f"Bearer {self.settings.supabase_service_role_key}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(request, timeout=min(5, self.settings.request_timeout_seconds)) as response:
+                rows = json.loads(response.read().decode("utf-8"))
+            self.last_error = ""
+            self.last_duration_ms = round((time.perf_counter() - started) * 1000, 1)
+            return [dict(item) for item in rows if isinstance(item, dict)]
+        except Exception as error:
+            self.last_error = str(error)
+            self.last_duration_ms = round((time.perf_counter() - started) * 1000, 1)
+            return []
+
+    def article(self, article: dict) -> bool:
+        return self.upsert("master_press_articles", [{
             "id": article["id"], "canonical_url": article["canonical_url"], "original_url": article["original_url"],
             "title": article["title"], "publisher": article.get("publisher", ""), "published_at": article.get("published_at"),
             "snippet": article.get("snippet", ""), "source_type": article.get("source_type", "naver"),
             "first_seen_at": article.get("first_seen_at"), "updated_at": article.get("updated_at"),
         }])
+
+    def article_embedding(self, analysis: dict, article: dict, vector: list[float], model: str) -> bool:
+        if len(vector) != 768:
+            return False
+        # The embedding has a foreign key to the article in Supabase. Queue the
+        # parent first so the outbox priority can satisfy that dependency.
+        article_ok = self.article(article)
+        embedding_ok = self.upsert("master_press_article_embeddings", [{
+            "analysis_id": analysis["id"], "article_id": article["id"], "organization_id": analysis.get("organization_id"),
+            "embedding_model": str(model)[:120], "dimensions": len(vector),
+            "embedding": "[" + ",".join(str(float(value)) for value in vector) + ",]".replace(",]", "]"),
+            "updated_at": analysis.get("updated_at"),
+        }], "analysis_id")
+
+        return bool(article_ok and embedding_ok)
+    def article_score(self, article: dict, score: dict) -> bool:
+        article_ok = self.article(article)
         score_ok = self.upsert("master_press_scores", [{
             "id": score["id"], "article_id": score["article_id"], "case_id": score["case_id"],
             "case_version": score["case_version"], "keyword_score": score["keyword_score"],
@@ -105,6 +245,35 @@ class SupabaseMirror:
         }])
         return article_ok and score_ok
 
+
+    def daily_metrics(self, rows: list[dict]) -> bool:
+        """Queue compact daily score aggregates for the remote read model."""
+        return self.upsert("master_press_daily_metrics", rows)
+
+    def daily_metrics_history(self, limit: int = 500) -> list[dict] | None:
+        """Read only the compact daily score read model for shadow comparison."""
+        if not self.enabled:
+            return None
+        params = {
+            "select": "id,metric_date,organization_id,case_id,score_count,article_count,sent_count,hold_count,low_count,average_score,top_publishers,top_topics,created_at,updated_at",
+            "order": "metric_date.desc",
+            "limit": max(1, min(1000, int(limit))),
+        }
+        request = urllib.request.Request(
+            f"{self.settings.supabase_url}/rest/v1/master_press_daily_metrics?{urllib.parse.urlencode(params)}",
+            headers={
+                "apikey": self.settings.supabase_service_role_key,
+                "Authorization": f"Bearer {self.settings.supabase_service_role_key}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=min(5, self.settings.request_timeout_seconds)) as response:
+                rows = json.loads(response.read().decode("utf-8"))
+            self.last_error = ""
+            return [dict(item) for item in rows if isinstance(item, dict)]
+        except Exception as error:
+            self.last_error = str(error)
+            return None
 
     def press_release(self, release: dict, markdown: str) -> bool:
         return self.upsert("master_press_press_releases", [{
@@ -136,6 +305,11 @@ class SupabaseMirror:
 
     def press_release_matches(self, matches: list[dict]) -> bool:
         rows = []
+        if self.outbox_store is not None:
+            for article_id in dict.fromkeys(str(match.get("article_id") or "") for match in matches):
+                article = self.outbox_store.get_article(article_id) if article_id else None
+                if article:
+                    self.article(article)
         for match in matches:
             rows.append({
                 "id": f'{match["article_id"]}:{match["press_release_id"]}',

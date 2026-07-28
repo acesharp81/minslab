@@ -185,6 +185,62 @@ as $$
   limit greatest(1, least(match_count, 50));
 $$;
 
+-- 기사 임베딩은 관련 기사 군집의 원격 후보 검색에만 사용한다.
+create table if not exists public.master_press_article_embeddings (
+  analysis_id text primary key,
+  article_id uuid not null references public.master_press_articles(id) on delete cascade,
+  organization_id uuid references public.master_press_organizations(id) on delete set null,
+  embedding_model text not null,
+  dimensions integer not null default 768,
+  embedding vector(768) not null,
+  updated_at timestamptz not null
+);
+create index if not exists master_press_article_embeddings_hnsw_idx
+  on public.master_press_article_embeddings using hnsw (embedding vector_cosine_ops);
+
+alter table public.master_press_article_embeddings alter column analysis_id type text using analysis_id::text;
+
+drop function if exists public.match_master_press_article_embeddings(vector, integer, uuid);
+create function public.match_master_press_article_embeddings(
+  query_embedding vector(768), match_count integer default 20, target_organization uuid default null
+)
+returns table (analysis_id text, article_id uuid, similarity double precision)
+language sql stable
+as $$
+  select ae.analysis_id, ae.article_id, 1 - (ae.embedding <=> query_embedding) as similarity
+  from public.master_press_article_embeddings ae
+  where target_organization is null or ae.organization_id=target_organization
+  order by ae.embedding <=> query_embedding
+  limit greatest(1, least(match_count, 50));
+$$;
+
 alter table public.master_press_press_releases enable row level security;
 alter table public.master_press_press_release_chunks enable row level security;
 alter table public.master_press_article_press_matches enable row level security;
+alter table public.master_press_article_embeddings enable row level security;
+
+
+-- 장기 분석 이력 전용 읽기 모델: 실시간 수집·발송·LLM 원문은 포함하지 않는다.
+create table if not exists public.master_press_daily_metrics (
+  id text primary key,
+  metric_date date not null,
+  organization_id uuid not null references public.master_press_organizations(id) on delete cascade,
+  case_id uuid not null references public.master_press_cases(id) on delete cascade,
+  score_count integer not null default 0,
+  article_count integer not null default 0,
+  sent_count integer not null default 0,
+  hold_count integer not null default 0,
+  low_count integer not null default 0,
+  average_score numeric(5,2) not null default 0,
+  top_publishers jsonb not null default '[]'::jsonb,
+  top_topics jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null,
+  updated_at timestamptz not null,
+  unique(metric_date, organization_id, case_id)
+);
+
+create index if not exists master_press_daily_metrics_org_date_idx
+  on public.master_press_daily_metrics(organization_id, metric_date desc);
+create index if not exists master_press_daily_metrics_case_date_idx
+  on public.master_press_daily_metrics(case_id, metric_date desc);
+alter table public.master_press_daily_metrics enable row level security;

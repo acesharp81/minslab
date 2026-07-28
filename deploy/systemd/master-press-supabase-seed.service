@@ -1,0 +1,10 @@
+[Unit]
+Description=Queue bounded Master Press Supabase historical metadata
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/master_press_supabase_seed.py

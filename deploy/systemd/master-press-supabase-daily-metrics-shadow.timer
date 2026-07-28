@@ -1,0 +1,10 @@
+[Unit]
+Description=Compare Master Press daily Supabase score read model
+
+[Timer]
+OnCalendar=*-*-* 04:40:00
+Persistent=true
+Unit=master-press-supabase-daily-metrics-shadow.service
+
+[Install]
+WantedBy=timers.target

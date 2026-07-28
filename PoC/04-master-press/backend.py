@@ -21,6 +21,9 @@ if str(PROJECT_DIR) not in sys.path:
 from master_press.kakao import KakaoError
 from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, get_service, worker_tick
 from master_press.storage import now_iso
+from master_press.supabase_seed import SupabaseSeed
+from master_press.supabase_daily_metrics import SupabaseDailyMetrics
+from master_press.supabase_reconcile import SupabaseReconciler
 
 
 class MasterPressError(RuntimeError):
@@ -77,7 +80,10 @@ def public_dashboard(
     search: str = "",
     include_groups: bool = True,
     limit: int = 100,
+    offset: int = 0,
     include_press_stats: bool = True,
+    delivery_filter: str = "all",
+    days: int = 7,
 ) -> dict:
     service = get_service()
     cases = []
@@ -115,7 +121,10 @@ def public_dashboard(
         organization_id or None,
         tags=tags or [],
         limit=max(1, min(100, int(limit))),
+        offset=max(0, int(offset)),
         search=search,
+        delivery_filter=delivery_filter,
+        days=max(1, min(30, int(days))),
         include_groups=include_groups,
         include_press_stats=include_press_stats,
     )
@@ -220,6 +229,13 @@ def admin_bootstrap() -> dict:
                 "metadata_retention_days": service.settings.metadata_retention_days,
                 "per_run_article_limit": service.settings.per_run_article_limit,
                 "body_backfill": service.body_backfill_status(),
+                "supabase_outbox": service.store.supabase_outbox_status(),
+                "processing_summary": service.store.processing_summary(14),
+                "pipeline_monitor": service.store.pipeline_monitor_status(),
+                "supabase_seed": SupabaseSeed(service.store, service.mirror).status(),
+                "supabase_daily_metrics": SupabaseDailyMetrics(service.store, service.mirror).status(),
+                "press_rag": service.press_releases.status(),
+                "supabase_reconcile": SupabaseReconciler(service.settings, service.store).status(),
             },
             "organizations": organizations,
             "cases": cases,
@@ -251,20 +267,27 @@ def dispatch(
     method = method.upper()
 
     if path in {"/", "/dashboard"} and method == "GET":
-        # Emergency safeguard: always use the lightweight dashboard path.
-        fast_mode = True
+        # Keep every page lightweight; the client asks for the next page only
+        # after the article list itself is scrolled near its bottom.
         try:
             requested_limit = int(query.get("limit") or 15)
         except (TypeError, ValueError):
             requested_limit = 15
+        try:
+            requested_offset = int(query.get("offset") or 0)
+        except (TypeError, ValueError):
+            requested_offset = 0
         return public_dashboard(
             str(query.get("case_id") or ""),
             str(query.get("organization_id") or ""),
             [value for value in str(query.get("tags") or "").split(",") if value],
             str(query.get("q") or ""),
-            include_groups=False,
-            limit=max(5, min(20, requested_limit)),
-            include_press_stats=False,
+            include_groups=True,
+            limit=max(5, min(30, requested_limit)),
+            offset=max(0, requested_offset),
+            delivery_filter=str(query.get("delivery_filter") or "all"),
+            days=max(1, min(30, int(query.get("days") or 7))),
+            include_press_stats=True,
         )
 
     if path == "/signup/bootstrap" and method == "GET":
@@ -360,15 +383,19 @@ def dispatch(
             raise MasterPressError("발송 완료 기사 분석은 케이스를 선택한 뒤 실행할 수 있습니다.")
         return service.store.analysis_insights(
             case_id or None, organization_id or None, int(query.get("days") or 7), sent_only=sent_only, delivery_only=delivery_only,
+            article_limit=max(1, min(5000, int(query.get("article_limit") or 60))),
         )
 
     if path == "/press-releases" and method == "GET":
+        limit = max(1, min(50, int(query.get("limit") or 20)))
+        offset = max(0, int(query.get("offset") or 0))
+        items = service.press_releases.list_releases(
+            str(query.get("organization_id") or ""), limit + 1,
+            str(query.get("q") or ""), offset,
+        )
         return {
-            "items": service.press_releases.list_releases(
-                str(query.get("organization_id") or ""),
-                int(query.get("limit") or 50),
-                str(query.get("q") or ""),
-            ),
+            "items": items[:limit], "offset": offset, "limit": limit,
+            "has_more": len(items) > limit,
             "status": service.press_releases.status(),
         }
 
@@ -530,6 +557,48 @@ def dispatch(
         service.store.set_setting("case_llm_model", model)
         return {"case_llm_model": model, "case_llm_models": models, "openrouter": service.openrouter_status(probe=True)}
 
+    if path == "/admin/settings/activate-primary-model" and method == "PUT":
+        _require_admin(admin_authenticated)
+        target = str(payload.get("target") or "").strip().lower()
+        model = str(payload.get("model") or "").strip()[:160]
+        if target == "common":
+            models = service.available_common_llm_models()
+            if not model or (models and model not in models):
+                raise MasterPressError("공통분석 기본 모델을 선택하세요.")
+            service.store.set_setting("common_llm_model", model)
+            if bool(payload.get("force")):
+                provider = service._provider_for_switchable_llm_model(model)
+                service.store.set_setting(f"llm_provider_disabled_until:{provider}", "")
+                service.store.set_setting(f"llm_provider_disabled_reason:{provider}", "")
+            status = service._status_for_switchable_llm_model(model, probe=False)
+        elif target == "case":
+            models = service.available_case_llm_models()
+            if not model or not model.endswith(":free") or (models and model not in models):
+                raise MasterPressError("OpenRouter 무료 케이스 판정 모델을 선택하세요.")
+            service.store.set_setting("case_llm_model", model)
+            if bool(payload.get("force")):
+                service.store.set_setting("llm_provider_disabled_until:openrouter", "")
+                service.store.set_setting("llm_provider_disabled_reason:openrouter", "")
+            status = service.openrouter_status(probe=False)
+        else:
+            raise MasterPressError("전환할 기본 모델 영역을 찾지 못했습니다.")
+        waiting_until = str(status.get("disabled_until") or status.get("reset_at") or "") if status.get("exhausted") else ""
+        return {"target": target, "model": model, "activated": not bool(waiting_until), "waiting_until": waiting_until, "provider": status}
+
+    if path == "/admin/settings/promote-reserve-model" and method == "PUT":
+        _require_admin(admin_authenticated)
+        reserve = str(payload.get("reserve") or "").strip()
+        if reserve not in {"1", "2"}:
+            raise MasterPressError("예비1 또는 예비2 모델만 기본 모델로 전환할 수 있습니다.")
+        openrouter = service.openrouter_status(probe=False)
+        if not openrouter.get("exhausted"):
+            raise MasterPressError("예비 모델이 사용 중일 때만 기본 모델로 전환할 수 있습니다.")
+        model = service.selected_reserve1_model() if reserve == "1" else service.selected_reserve2_model()
+        if not model:
+            raise MasterPressError("전환할 예비 모델을 찾지 못했습니다.")
+        service.store.set_setting("common_llm_model", model)
+        return {"common_llm_model": model, "reserve": reserve, "common_provider": service._status_for_switchable_llm_model(model, probe=True)}
+
     if path == "/admin/settings/reserve-llm-models" and method == "PUT":
         _require_admin(admin_authenticated)
         reserve1 = str(payload.get("reserve1_model") or "").strip()[:180]
@@ -561,6 +630,57 @@ def dispatch(
             raise MasterPressError("공지사항을 찾지 못했습니다.", 404)
         return {"deleted": True, "hard_deleted": hard_delete, "items": service.store.list_announcements(include_inactive=True)}
 
+    if path == "/admin/supabase-history" and method == "GET":
+        _require_admin(admin_authenticated)
+        try:
+            limit = max(1, min(100, int(query.get("limit") or 20)))
+        except (TypeError, ValueError):
+            limit = 20
+        case_id = str(query.get("case_id") or "").strip()
+        remote_items = service.mirror.recent_score_history(limit, case_id)
+        remote_status = service.mirror.history_read_status()
+        if remote_items is not None:
+            return {"source": "supabase", "read_source": remote_status["source"], "read_status": remote_status,
+                    "items": remote_items, "latency_ms": service.mirror.last_duration_ms}
+        with service.store.connect() as connection:
+            where, params = ("WHERE s.case_id=?", [case_id]) if case_id else ("", [])
+            rows = connection.execute(
+                f"""SELECT s.id,s.article_id,s.case_id,s.final_score,s.summary,s.organization_tag,s.article_type,s.decision,s.created_at,
+                           a.title,a.publisher,a.published_at,a.original_url
+                    FROM article_scores s JOIN articles a ON a.id=s.article_id
+                    {where} ORDER BY s.created_at DESC LIMIT ?""", (*params, limit)
+            ).fetchall()
+        return {"source": "sqlite_fallback", "read_source": remote_status["source"], "read_status": remote_status,
+                "items": [dict(row) for row in rows], "latency_ms": service.mirror.last_duration_ms, "error": service.mirror.last_error}
+
+    if path == "/admin/supabase-seed/control" and method == "POST":
+        _require_admin(admin_authenticated)
+        seed = SupabaseSeed(service.store, service.mirror)
+        action = str(payload.get("action") or "").strip().lower()
+        if action == "pause":
+            return {"supabase_seed": seed.pause(), "supabase_outbox": service.store.supabase_outbox_status()}
+        if action == "continue":
+            return {"supabase_seed": seed.continue_next_stage(), "supabase_outbox": service.store.supabase_outbox_status()}
+        raise MasterPressError("동기화 제어 동작을 찾지 못했습니다.", 400)
+
+    if path == "/admin/supabase-daily-metrics/control" and method == "POST":
+        _require_admin(admin_authenticated)
+        metrics = SupabaseDailyMetrics(service.store, service.mirror)
+        action = str(payload.get("action") or "").strip().lower()
+        if action == "enable":
+            if payload.get("schema_applied") is not True:
+                raise MasterPressError("Supabase 스키마 적용을 확인한 뒤 활성화할 수 있습니다.")
+            service.store.set_setting(metrics.ENABLED_KEY, "1")
+            return {"supabase_daily_metrics": metrics.status(), "result": metrics.run_once(),
+                    "supabase_outbox": service.store.supabase_outbox_status()}
+        if action == "disable":
+            service.store.set_setting(metrics.ENABLED_KEY, "0")
+            return {"supabase_daily_metrics": metrics.status(), "supabase_outbox": service.store.supabase_outbox_status()}
+        if action == "run":
+            return {"supabase_daily_metrics": metrics.status(), "result": metrics.run_once(),
+                    "supabase_outbox": service.store.supabase_outbox_status()}
+        raise MasterPressError("분석 이력 동기화 제어 동작을 찾지 못했습니다.", 400)
+
     if path == "/admin/settings/case-batch" and method == "PUT":
         _require_admin(admin_authenticated)
         try:
@@ -571,6 +691,21 @@ def dispatch(
         service.store.set_setting("case_batch_size", str(batch_size))
         service.store.set_setting("semantic_candidate_threshold", str(semantic_threshold))
         return {"case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold}
+
+    if path == "/admin/settings/analysis-thresholds" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            batch_size = max(1, min(10, int(payload.get("batch_size", 10))))
+            semantic_threshold = max(0.0, min(100.0, float(payload.get("semantic_candidate_threshold", 65))))
+            press_threshold = max(0.0, min(100.0, float(payload.get("press_release_match_threshold", 65))))
+            similar_threshold = max(0.0, min(100.0, float(payload.get("similar_article_threshold", 65))))
+        except (TypeError, ValueError):
+            raise MasterPressError("분석 기준 값이 올바르지 않습니다.")
+        for key, value in (("case_batch_size", batch_size), ("semantic_candidate_threshold", semantic_threshold),
+                           ("press_release_match_threshold", press_threshold), ("similar_article_threshold", similar_threshold)):
+            service.store.set_setting(key, str(value))
+        return {"case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold,
+                "press_release_match_threshold": press_threshold, "similar_article_threshold": similar_threshold}
 
     if path == "/admin/settings/press-release-match" and method == "PUT":
         _require_admin(admin_authenticated)

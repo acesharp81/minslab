@@ -99,6 +99,7 @@ class Settings:
     press_release_per_sync: int
     press_release_match_window_days: int
     press_release_match_threshold: float
+    web_body_backfill_enabled: bool
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -164,6 +165,7 @@ class Settings:
                 0.0,
                 min(100.0, float(env("MASTER_PRESS_PRESS_MATCH_THRESHOLD", default="65"))),
             ),
+            web_body_backfill_enabled=env("MASTER_PRESS_WEB_BODY_BACKFILL_ENABLED", default="0").casefold() in {"1", "true", "yes", "on"},
         )
 
     def ensure_directories(self) -> None:

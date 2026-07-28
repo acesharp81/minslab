@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import threading
 import time
 import urllib.parse
@@ -149,12 +150,15 @@ class MasterPressService:
         self.scoring = RelevanceEngine(settings, store)
         self._migrate_common_reserve_defaults()
         self.scoring.ollama.embedding_model = self.selected_embedding_model()
-        self.mirror = SupabaseMirror(settings)
+        # Request paths only enqueue mirror work; a separate worker performs remote I/O.
+        self.mirror = SupabaseMirror(settings, store)
         self.press_releases = PressReleaseManager(settings, store, self.scoring.ollama, self.mirror)
         self.kakao = KakaoClient(settings, store)
         self.recovered_llm_jobs = self.store.activate_worker_session(str(os.getpid()))
         self.recovered_pipeline_jobs = self.store.recover_incomplete_pipeline_jobs()
         self.recovered_llm_jobs += sum(self.recovered_pipeline_jobs.values())
+        self._next_case_stall_recovery_at = 0.0
+        self._next_common_stall_recovery_at = 0.0
 
     def _migrate_common_reserve_defaults(self) -> None:
         """Swap the old Groq-primary/Cloudflare-reserve defaults once, preserving custom choices."""
@@ -269,6 +273,8 @@ class MasterPressService:
         return status
 
     def _active_provider_chain(self, chain: list[tuple[str, str]]) -> list[tuple[str, str]]:
+        """Return available providers in configured primary/reserve order."""
+        # Apply existing local usage guards before a provider can be selected.
         active = []
         seen = set()
         current = now_iso()
@@ -283,9 +289,51 @@ class MasterPressService:
             disabled_until = self._provider_disabled_until(provider)
             if disabled_until and disabled_until > current:
                 continue
+            if not hasattr(self, "settings"):
+                seen.add(key)
+                active.append(key)
+                continue
+            status = self._provider_status(provider, model)
+            if not status.get("available"):
+                if status.get("exhausted"):
+                    self._mark_provider_exhausted(
+                        provider,
+                        str(status.get("disabled_until") or status.get("reset_at") or self._provider_reset_at(provider)),
+                        str(status.get("disabled_reason") or "local_usage_soft_limit"),
+                    )
+                continue
             seen.add(key)
             active.append(key)
         return active
+
+    def _provider_status(self, provider: str, model: str = "") -> dict:
+        """Read local provider availability without issuing a remote probe."""
+        if provider == "openrouter":
+            status = self.openrouter_status(False)
+        elif provider == "cloudflare":
+            status = self.cloudflare_status(False)
+        elif provider == "groq":
+            status = self.groq_status(False)
+        elif provider == "gemini":
+            status = self.gemini_status(False)
+        else:
+            return {"provider": provider, "model": model, "available": False, "connected": False}
+        if model:
+            status["model"] = model
+        return status
+
+    def _next_provider_reset(self, providers: list[str]) -> str:
+        """Return the earliest real reset among unavailable providers."""
+        current = now_iso()
+        reset_points = []
+        for provider in dict.fromkeys(str(item or "").strip().lower() for item in providers):
+            if not provider:
+                continue
+            status = self._provider_status(provider)
+            reset_at = str(self._provider_disabled_until(provider) or status.get("reset_at") or self._provider_reset_at(provider))
+            if reset_at and reset_at > current:
+                reset_points.append(reset_at)
+        return min(reset_points) if reset_points else self._next_kst_midnight_iso()
 
     def _groq_usage_window(self) -> tuple[str, str, str]:
         since = (datetime.now(KST) - timedelta(hours=24)).isoformat(timespec="seconds")
@@ -382,7 +430,12 @@ class MasterPressService:
         return start.astimezone(KST).isoformat(timespec="seconds"), end.astimezone(KST).isoformat(timespec="seconds")
 
     def _provider_disabled_until(self, provider: str) -> str:
-        return self.store.get_setting(f"llm_provider_disabled_until:{provider}", "")
+        disabled_until = self.store.get_setting(f"llm_provider_disabled_until:{provider}", "")
+        if disabled_until and disabled_until <= now_iso():
+            self.store.set_setting(f"llm_provider_disabled_until:{provider}", "")
+            self.store.set_setting(f"llm_provider_disabled_reason:{provider}", "")
+            return ""
+        return disabled_until
 
     def _mark_provider_exhausted(self, provider: str, retry_after: str = "", reason: str = "") -> None:
         retry_after = retry_after or self._provider_reset_at(provider)
@@ -428,8 +481,18 @@ class MasterPressService:
         chain = []
         if include_openrouter:
             chain.append(("openrouter", self.selected_case_llm_model()))
+        # Case evaluation requires the multi-case judge interface. Groq is
+        # reserved for shared article analysis; trying it here after a rate
+        # limit prevents the next compatible provider from being tried.
+        common_model = self.selected_common_llm_model()
+        common_provider = self._provider_for_switchable_llm_model(common_model)
+        if common_provider != "groq":
+            chain.append((common_provider, common_model))
         reserve1_model = self.selected_reserve1_model()
-        chain.extend([(self._provider_for_switchable_llm_model(reserve1_model), reserve1_model), ("gemini", self.selected_reserve2_model())])
+        reserve1_provider = self._provider_for_switchable_llm_model(reserve1_model)
+        if reserve1_provider != "groq":
+            chain.append((reserve1_provider, reserve1_model))
+        chain.append(("gemini", self.selected_reserve2_model()))
         return self._active_provider_chain(chain)
 
     def _common_provider_chain(self) -> list[tuple[str, str]]:
@@ -443,16 +506,19 @@ class MasterPressService:
         return self._active_provider_chain(chain)
 
     def _remember_provider_failure(self, provider: str, error: Exception) -> None:
-        if isinstance(error, OpenRouterError) and self._is_provider_quota_error(error):
+        if isinstance(error, OpenRouterError) and (self._is_provider_quota_error(error) or error.status == 429):
             reason = str(error)
             lowered = reason.casefold()
-            daily_like = any(marker in lowered for marker in ("free-models-per-day", "daily_soft_limit", "daily request", "daily token", "resource_exhausted", "quota"))
+            # A bare 429 (for example, "Provider returned error") must also
+            # disable this provider, or every subsequent batch repeats it.
+            daily_like = error.status == 429 or any(marker in lowered for marker in ("free-models-per-day", "daily_soft_limit", "daily request", "daily token", "resource_exhausted", "quota"))
             retry_after = self._provider_reset_at(provider) if daily_like else (error.retry_after or self._provider_reset_at(provider))
             self._mark_provider_exhausted(provider, retry_after, reason)
 
     def _try_common_reserve(self, article: dict) -> tuple[str, str, dict]:
         last_error: Exception | None = None
-        for index, (provider, model) in enumerate(self._common_provider_chain()):
+        chain = self._common_provider_chain()
+        for index, (provider, model) in enumerate(chain):
             try:
                 if hasattr(self.scoring, "analyze_article_common_with_provider"):
                     result = self.scoring.analyze_article_common_with_provider(provider, article, model)
@@ -473,13 +539,19 @@ class MasterPressService:
                 last_error = error
                 self._remember_provider_failure(provider, error)
                 continue
-        if last_error:
+        if last_error and self._active_provider_chain(chain):
             raise last_error
-        raise OpenRouterError("reserve_llm_unavailable", status=503, retryable=True, retry_after=self._next_kst_midnight_iso(), deferred=True)
+        raise OpenRouterError("reserve_llm_unavailable", status=503, retryable=True,
+                              retry_after=self._next_provider_reset([
+                                  self._provider_for_switchable_llm_model(self.selected_common_llm_model()),
+                                  self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
+                                  "gemini",
+                              ]), deferred=True)
 
     def _evaluate_cases_with_provider_chain(self, cases: list[dict], article: dict, analysis: dict) -> tuple[str, str, dict[str, dict]]:
         last_error: Exception | None = None
-        for provider, model in self._remote_provider_chain(include_openrouter=True):
+        chain = self._remote_provider_chain(include_openrouter=True)
+        for provider, model in chain:
             try:
                 if hasattr(self.scoring, "evaluate_cases_with_common_provider"):
                     results = self.scoring.evaluate_cases_with_common_provider(provider, cases, article, analysis, model)
@@ -497,9 +569,14 @@ class MasterPressService:
             except json.JSONDecodeError as error:
                 last_error = error
                 continue
-        if last_error:
+        if last_error and self._active_provider_chain(chain):
             raise last_error
-        raise OpenRouterError("case_llm_providers_unavailable", status=503, retryable=True, retry_after=self._next_kst_midnight_iso(), deferred=True)
+        raise OpenRouterError("case_llm_providers_unavailable", status=503, retryable=True,
+                              retry_after=self._next_provider_reset([
+                                  "openrouter",
+                                  self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
+                                  "gemini",
+                              ]), deferred=True)
 
     def pipeline_provider_status(self) -> dict:
         common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1}
@@ -735,6 +812,9 @@ class MasterPressService:
             self.store.record_llm_api_call("ollama", "embedding", embedding_model, "completed", round((time.monotonic() - started) * 1000))
             recorded = True
             self.store.save_article_embedding(analysis["id"], embedding_model, vector)
+            if hasattr(self.mirror, "article_embedding"): self.mirror.article_embedding(analysis, article, vector, embedding_model)
+            # Persist a bounded recent-window cluster map so dashboard pages share stable group IDs.
+            self.store.rebuild_article_similarity_groups()
             self.press_releases.queue_for_article(analysis["id"])
             self._route_article_analysis(analysis, article, analysis.get("organization_id"))
             return True
@@ -1247,16 +1327,22 @@ class MasterPressService:
             item = self.store.finish_case_proposal_moderation(proposal["id"], False, f"클린 AI 검사 실패: {type(error).__name__}", model)
             return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": item}
 
-    def _body_backfill_config(self) -> tuple[int, int, int, int, int, int]:
+    def _body_backfill_config(self) -> tuple[int, int, int, int, int, int, int]:
         def setting(name: str, default: int, low: int, high: int) -> int:
             try: return max(low, min(high, int(self.store.get_setting(name, str(default)))))
             except (TypeError, ValueError): return default
         start_hour = setting("body_backfill_start_hour", 0, 0, 23)
-        end_hour = setting("body_backfill_end_hour", 24, 1, 24)
+        end_hour = setting("body_backfill_end_hour", 6, 1, 24)
         if start_hour >= end_hour:
             start_hour, end_hour = 0, 24
-        return (setting("body_backfill_window_days", 7, 1, 30), setting("body_backfill_daily_limit", 12, 1, 50),
-                setting("body_backfill_interval_seconds", 600, 60, 3600), setting("body_backfill_domain_interval_seconds", 1800, 300, 86400), start_hour, end_hour)
+        return (
+            setting("body_backfill_window_days", 30, 1, 365),
+            setting("body_backfill_daily_limit", 180, 1, 500),
+            setting("body_backfill_interval_seconds", 600, 60, 3600),
+            setting("body_backfill_domain_interval_seconds", 600, 60, 86400),
+            setting("body_backfill_batch_size", 6, 1, 20),
+            start_hour, end_hour,
+        )
 
     def _body_backfill_enabled(self) -> bool:
         return str(self.store.get_setting("body_backfill_enabled", "0") or "").strip().lower() in {"1", "true", "yes", "on"}
@@ -1271,19 +1357,19 @@ class MasterPressService:
         return True, (now + timedelta(hours=hours)).isoformat(timespec="seconds")
 
     def body_backfill_status(self) -> dict:
-        window_days, daily_limit, interval_seconds, domain_interval_seconds, start_hour, end_hour = self._body_backfill_config(); now = datetime.now(KST)
+        window_days, daily_limit, interval_seconds, domain_interval_seconds, batch_size, start_hour, end_hour = self._body_backfill_config(); now = datetime.now(KST)
         status = self.store.missing_body_status(now.isoformat(timespec="seconds"), (now-timedelta(days=window_days)).isoformat(timespec="seconds"))
         key=f"body_backfill_processed:{now.strftime('%Y%m%d')}"
         try: processed=int(self.store.get_setting(key,"0") or 0)
         except ValueError: processed=0
-        status.update({"window_days":window_days,"batch_size":1,"processed_today":max(0,processed),"daily_limit":daily_limit,
+        status.update({"window_days":window_days,"batch_size":batch_size,"processed_today":max(0,processed),"daily_limit":daily_limit,
             "daily_remaining":max(0,daily_limit-processed),"next_run_at":self.store.get_setting("body_backfill_next_run_at",""),
             "enabled":self._body_backfill_enabled(),"paused":not self._body_backfill_enabled(),"interval_seconds":interval_seconds,"domain_interval_seconds":domain_interval_seconds,
             "start_hour":start_hour,"end_hour":end_hour,"within_schedule":start_hour <= now.hour < end_hour})
         return status
 
     def backfill_missing_article_bodies(self) -> dict:
-        window_days, daily_limit, interval_seconds, domain_interval_seconds, start_hour, end_hour = self._body_backfill_config(); now=datetime.now(KST)
+        window_days, daily_limit, interval_seconds, domain_interval_seconds, batch_size, start_hour, end_hour = self._body_backfill_config(); now=datetime.now(KST)
         result={"paused":False,"processed":0,"filled":0,"failed":0,"selected":0,"reason":""}
         if not self._body_backfill_enabled(): result.update(paused=True,reason="disabled"); return result
         if not (start_hour <= now.hour < end_hour): result.update(paused=True,reason="scheduled_window"); return result
@@ -1293,7 +1379,9 @@ class MasterPressService:
         next_run=self.store.get_setting("body_backfill_next_run_at","")
         if processed>=daily_limit: result["reason"]="daily_limit"; return result
         if next_run and next_run>now.isoformat(timespec="seconds"): result["reason"]="interval"; return result
-        rows=self.store.list_articles_missing_body(now.isoformat(timespec="seconds"),(now-timedelta(days=window_days)).isoformat(timespec="seconds"),20)
+        remaining=max(1,daily_limit-processed)
+        candidate_limit=min(20,max(batch_size,min(batch_size*4,remaining*4)))
+        rows=self.store.list_articles_missing_body(now.isoformat(timespec="seconds"),(now-timedelta(days=window_days)).isoformat(timespec="seconds"),candidate_limit)
         result["selected"]=len(rows)
         for row in rows:
             host=urllib.parse.urlsplit(str(row.get("original_url") or "")).netloc.lower()
@@ -1304,10 +1392,15 @@ class MasterPressService:
             attempts=int(row.get("body_attempts") or 0)+1; body=str(fetched.get("body") or "")
             retryable,next_attempt=(False,"") if body else self._body_retry_at(str(fetched.get("error") or "body_unavailable"),attempts,now)
             self.store.save_body_backfill_result(row["id"],fetched,retryable,next_attempt)
-            self.store.increment_setting_counter(key,1); self.store.set_setting(domain_key,(now+timedelta(seconds=domain_interval_seconds)).isoformat(timespec="seconds"))
-            self.store.set_setting("body_backfill_next_run_at",(now+timedelta(seconds=interval_seconds)).isoformat(timespec="seconds"))
-            result.update(processed=1,filled=1 if body else 0,failed=0 if body else 1); return result
-        self.store.set_setting("body_backfill_next_run_at",(now+timedelta(seconds=interval_seconds)).isoformat(timespec="seconds")); result["reason"]="no_eligible_candidate"; return result
+            self.store.increment_setting_counter(key,1)
+            self.store.set_setting(domain_key,(now+timedelta(seconds=domain_interval_seconds)).isoformat(timespec="seconds"))
+            result["processed"]+=1
+            result["filled"]+=1 if body else 0
+            result["failed"]+=0 if body else 1
+            if result["processed"]>=min(batch_size,remaining): break
+        self.store.set_setting("body_backfill_next_run_at",(now+timedelta(seconds=interval_seconds)).isoformat(timespec="seconds"))
+        if not result["processed"]: result["reason"]="no_eligible_candidate"
+        return result
 
     def orchestration_tick(self) -> dict:
         results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "body_backfill": {}, "cleanup": {}}
@@ -1329,16 +1422,26 @@ class MasterPressService:
                 break
             except Exception as error:
                 results["cases"].append({"case_id": case["id"], "error": str(error)})
-        try:
-            results["body_backfill"] = self.backfill_missing_article_bodies()
-        except Exception as error:
-            results["body_backfill"] = {"error": str(error)}
+        if getattr(self.settings, "web_body_backfill_enabled", False):
+            try:
+                results["body_backfill"] = self.backfill_missing_article_bodies()
+            except Exception as error:
+                results["body_backfill"] = {"error": str(error)}
+        else:
+            results["body_backfill"] = {"deferred": "systemd"}
         now = datetime.now(KST)
+        if now.hour == 23 and now.minute >= 55:
+            self.store.processing_summary(14)
+
         if now.hour == 3 and now.minute < 2:
             results["cleanup"] = self.store.cleanup(self.settings.raw_retention_days, self.settings.metadata_retention_days)
         return results
 
     def common_worker_tick(self) -> dict | None:
+        now = time.monotonic()
+        if now >= self._next_common_stall_recovery_at:
+            self._next_common_stall_recovery_at = now + 60.0
+            self.store.recover_stalled_article_analysis_jobs()
         article = self.process_next_article_analysis()
         return {"stage": "article", "result": article} if article else None
 
@@ -1358,6 +1461,10 @@ class MasterPressService:
             LOCAL_EMBEDDING_LOCK.release()
 
     def case_worker_tick(self, burst: bool = False) -> dict | None:
+        now = time.monotonic()
+        if now >= self._next_case_stall_recovery_at:
+            self._next_case_stall_recovery_at = now + 60.0
+            self.store.recover_stalled_case_evaluation_jobs()
         if burst and self.store.pending_case_evaluation_jobs() < 10:
             return None
         if not burst:
@@ -1401,7 +1508,14 @@ def get_service() -> MasterPressService:
         return _SERVICE
     with _SERVICE_LOCK:
         if _SERVICE is None or _SERVICE_KEY != key:
-            _SERVICE = MasterPressService(settings, Store(settings.database_path))
+            # Avoid DDL on a normal web request, which can wait behind a collector write.
+            # Empty databases (test/fresh deployment) still receive their initial schema.
+            store = Store(settings.database_path, initialize=False)
+            try:
+                with store.connect() as connection: connection.execute("SELECT 1 FROM app_settings LIMIT 1")
+            except sqlite3.OperationalError:
+                store = Store(settings.database_path)
+            _SERVICE = MasterPressService(settings, store)
             _SERVICE_KEY = key
         return _SERVICE
 

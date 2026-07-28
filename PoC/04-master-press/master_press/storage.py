@@ -657,7 +657,21 @@ CREATE INDEX IF NOT EXISTS idx_article_press_release_related ON article_press_re
 CREATE INDEX IF NOT EXISTS idx_press_release_articles_related ON article_press_release_matches(press_release_id,is_related,similarity_score DESC);
 
 CREATE INDEX IF NOT EXISTS idx_article_embeddings_status ON article_embeddings(status, updated_at);
+CREATE TABLE IF NOT EXISTS article_similarity_groups (
+  article_id TEXT PRIMARY KEY REFERENCES articles(id) ON DELETE CASCADE,
+  group_id TEXT NOT NULL DEFAULT '',
+  group_size INTEGER NOT NULL DEFAULT 1,
+  basis TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT '',
+  score REAL NOT NULL DEFAULT 0,
+  semantic_score REAL NOT NULL DEFAULT 0,
+  noun_score REAL NOT NULL DEFAULT 0,
+  topics TEXT NOT NULL DEFAULT '[]',
+  concepts TEXT NOT NULL DEFAULT '[]',
+  computed_at TEXT NOT NULL
 
+);
+CREATE INDEX IF NOT EXISTS idx_article_similarity_groups_group ON article_similarity_groups(group_id, computed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_article_analyses_status ON article_analyses(status, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_article_analysis_jobs_status ON article_analysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_case_evaluations_article ON case_evaluations(article_analysis_id, status);
@@ -671,7 +685,30 @@ CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(
 CREATE INDEX IF NOT EXISTS idx_organizations_due ON organizations(is_active, next_collect_at);
 CREATE INDEX IF NOT EXISTS idx_deliveries_due ON deliveries(status, scheduled_at);
 CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(published_at DESC);
+CREATE TABLE IF NOT EXISTS supabase_outbox (
+  id TEXT PRIMARY KEY,
+  table_name TEXT NOT NULL,
+  conflict_key TEXT NOT NULL DEFAULT 'id',
+  payload TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  next_attempt_at TEXT,
+  last_error TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(table_name, conflict_key, id)
+);
+CREATE INDEX IF NOT EXISTS idx_supabase_outbox_due ON supabase_outbox(status,next_attempt_at,created_at);
+
+CREATE TABLE IF NOT EXISTS processing_daily_stats (
+  day TEXT PRIMARY KEY,
+  article_count INTEGER NOT NULL DEFAULT 0,
+  recorded_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_processing_daily_stats_day ON processing_daily_stats(day DESC);
 """
+
+
 
 
 class Store:
@@ -685,10 +722,12 @@ class Store:
         "domains": [], "rss_urls": [], "collection_times": [],
     }
 
-    def __init__(self, path: str | Path):
+    def __init__(self, path: str | Path, initialize: bool = True):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
+        if not initialize:
+            return
         with self.connect() as connection:
             connection.executescript(SCHEMA)
             self._migrate_article_case_flag_schema(connection)
@@ -1655,6 +1694,234 @@ class Store:
             )
         return updated
 
+
+    def queue_supabase_outbox(self, table_name: str, rows: list[dict], conflict_key: str = "id") -> int:
+        """Durably stage idempotent Supabase writes outside request handling."""
+        if not table_name or not rows:
+            return 0
+        now = now_iso(); queued = 0
+        with self.connect() as connection:
+            for row in rows:
+                item = dict(row or {})
+                identifier = str(item.get(conflict_key) or item.get("id") or "")
+                if not identifier:
+                    continue
+                event_id = f"{table_name}:{identifier}"
+                payload = json.dumps(item, ensure_ascii=False, default=str, sort_keys=True, separators=(",", ":"))
+                existing = connection.execute(
+                    "SELECT payload FROM supabase_outbox WHERE id=?", (event_id,)
+                ).fetchone()
+                # A completed (or retry-delayed) event with identical content must
+                # remain untouched. This lets source scans run safely without
+                # turning already-sent data back into network work.
+                if existing and str(existing["payload"]) == payload:
+                    queued += 1
+                    continue
+                connection.execute(
+                    """INSERT INTO supabase_outbox(id,table_name,conflict_key,payload,status,attempts,next_attempt_at,last_error,created_at,updated_at)
+                       VALUES(?,?,?,?, 'pending',0,NULL,NULL,?,?)
+                       ON CONFLICT(id) DO UPDATE SET table_name=excluded.table_name,conflict_key=excluded.conflict_key,payload=excluded.payload,
+                         status='pending',next_attempt_at=NULL,last_error=NULL,updated_at=excluded.updated_at""",
+                    (event_id, table_name, conflict_key, payload, now, now),
+                )
+                queued += 1
+        return queued
+
+    def due_supabase_outbox(self, limit: int = 100) -> list[dict]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """SELECT * FROM supabase_outbox WHERE status='pending' AND COALESCE(next_attempt_at,'')<=?
+                   ORDER BY CASE table_name
+                       WHEN 'master_press_organizations' THEN 10
+                       WHEN 'master_press_cases' THEN 20
+                       WHEN 'master_press_articles' THEN 30
+                       WHEN 'master_press_article_embeddings' THEN 35
+                       WHEN 'master_press_scores' THEN 40
+                       WHEN 'master_press_press_releases' THEN 50
+                       WHEN 'master_press_press_release_chunks' THEN 60
+                       WHEN 'master_press_article_press_matches' THEN 70
+                       WHEN 'master_press_daily_metrics' THEN 80
+                       ELSE 99 END,
+                       created_at,id LIMIT ?""", (now_iso(), max(1, min(500, int(limit))))
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def finish_supabase_outbox(self, event_id: str, ok: bool, error: str = "", expected_payload: str | None = None,
+                               retryable: bool = True) -> bool:
+        """Record a send result, without overwriting a newer queued payload.
+
+        On a confirmed remote write, release and relation source markers are
+        advanced in the same local transaction. Other tables are represented
+        entirely by the outbox event itself.
+        """
+        now = now_iso()
+        with self.connect() as connection:
+            row = connection.execute("SELECT attempts,payload,table_name FROM supabase_outbox WHERE id=?", (event_id,)).fetchone()
+            if not row or (expected_payload is not None and str(row["payload"]) != expected_payload):
+                return False
+            attempts = int(row["attempts"] or 0) + 1
+            if ok:
+                try:
+                    payload = json.loads(str(row["payload"]))
+                except (TypeError, ValueError):
+                    payload = {}
+                if row["table_name"] == "master_press_press_releases" and payload.get("id"):
+                    connection.execute("UPDATE press_releases SET supabase_synced_at=? WHERE id=?", (now, payload["id"]))
+                elif row["table_name"] == "master_press_article_press_matches" and payload.get("article_id") and payload.get("press_release_id"):
+                    connection.execute(
+                        "UPDATE article_press_release_matches SET supabase_synced_at=? WHERE article_id=? AND press_release_id=?",
+                        (now, payload["article_id"], payload["press_release_id"]),
+                    )
+                connection.execute("UPDATE supabase_outbox SET status='completed',attempts=?,next_attempt_at=NULL,last_error=NULL,updated_at=? WHERE id=?", (attempts, now, event_id))
+            elif retryable:
+                delay = min(24 * 60, 5 * (2 ** min(attempts - 1, 8)))
+                retry_at = (datetime.now(KST) + timedelta(minutes=delay)).isoformat(timespec="seconds")
+                connection.execute("UPDATE supabase_outbox SET status='pending',attempts=?,next_attempt_at=?,last_error=?,updated_at=? WHERE id=?", (attempts, retry_at, error[:1000], now, event_id))
+            else:
+                connection.execute("UPDATE supabase_outbox SET status='failed',attempts=?,next_attempt_at=NULL,last_error=?,updated_at=? WHERE id=?", (attempts, error[:1000], now, event_id))
+        return True
+
+    def recover_stalled_case_evaluation_jobs(self, max_age_seconds: int = 180) -> int:
+        """Return abandoned case batches to the queue without restarting web."""
+        cutoff = (datetime.now(KST) - timedelta(seconds=max(30, int(max_age_seconds)))).isoformat(timespec="seconds")
+        now = now_iso()
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT id,case_evaluation_id FROM case_evaluation_jobs WHERE status='processing' AND COALESCE(started_at,'')<=?",
+                (cutoff,),
+            ).fetchall()
+            if not rows:
+                return 0
+            job_ids = [str(row["id"]) for row in rows]
+            evaluation_ids = [str(row["case_evaluation_id"]) for row in rows]
+            job_marks = ",".join("?" for _ in job_ids)
+            evaluation_marks = ",".join("?" for _ in evaluation_ids)
+            connection.execute(
+                f"UPDATE case_evaluation_jobs SET status='pending',started_at=NULL,finished_at=NULL,retry_after=NULL,error='worker_stalled' WHERE id IN ({job_marks})",
+                job_ids,
+            )
+            connection.execute(
+                f"UPDATE case_evaluations SET status='pending',error='worker_stalled',updated_at=? WHERE id IN ({evaluation_marks})",
+                (now, *evaluation_ids),
+            )
+        return len(job_ids)
+
+    def recover_stalled_article_analysis_jobs(self, max_age_seconds: int = 180) -> dict[str, int]:
+        """Requeue common-analysis jobs interrupted by a lock or lost worker."""
+        cutoff = (datetime.now(KST) - timedelta(seconds=max(30, int(max_age_seconds)))).isoformat(timespec="seconds")
+        now = now_iso()
+        with self.connect() as connection:
+            stalled = connection.execute(
+                "UPDATE article_analysis_jobs SET status='pending',started_at=NULL,finished_at=NULL,duration_ms=NULL,retry_after=NULL,error='worker_stalled' WHERE status='processing' AND COALESCE(started_at,'')<=?",
+                (cutoff,),
+            ).rowcount
+            locked = connection.execute(
+                "UPDATE article_analysis_jobs SET status='pending',started_at=NULL,finished_at=NULL,duration_ms=NULL,retry_after=NULL,error='database_locked_retry' WHERE status='failed' AND error='database is locked' AND attempts<3",
+            ).rowcount
+            if stalled or locked:
+                connection.execute(
+                    """UPDATE article_analyses SET status='pending',error=NULL,updated_at=?
+                       WHERE id IN (SELECT article_analysis_id FROM article_analysis_jobs
+                                    WHERE status='pending' AND error IN ('worker_stalled','database_locked_retry'))
+                         AND status<>'completed'""",
+                    (now,),
+                )
+        return {"stalled": int(stalled), "locked": int(locked)}
+
+    def supabase_outbox_status(self) -> dict:
+        with self.connect() as connection:
+            rows = connection.execute("SELECT status,COUNT(*) value FROM supabase_outbox GROUP BY status").fetchall()
+        return {str(row["status"]): int(row["value"] or 0) for row in rows}
+
+    def pipeline_monitor_status(self) -> dict:
+        """Small, read-only operational snapshot for the admin monitoring panel."""
+        now = now_iso()
+        day_start = kst_day_start_iso()
+        with self.connect() as connection:
+            last_run = connection.execute("SELECT * FROM collection_runs ORDER BY started_at DESC LIMIT 1").fetchone()
+            last_success = connection.execute(
+                "SELECT * FROM collection_runs WHERE status IN ('completed','completed_with_errors') ORDER BY finished_at DESC LIMIT 1"
+            ).fetchone()
+            last_article = connection.execute(
+                "SELECT id,title,first_seen_at FROM articles ORDER BY first_seen_at DESC LIMIT 1"
+            ).fetchone()
+            due = connection.execute(
+                "SELECT "
+                "SUM(CASE WHEN organization_id IS NOT NULL THEN 1 ELSE 0 END) organizations,"
+                "SUM(CASE WHEN organization_id IS NULL THEN 1 ELSE 0 END) cases "
+                "FROM (SELECT id AS organization_id FROM organizations WHERE is_active=1 AND archived_at IS NULL AND (next_collect_at IS NULL OR next_collect_at<=?) "
+                "UNION ALL SELECT NULL FROM cases WHERE is_active=1 AND organization_id IS NULL AND (next_collect_at IS NULL OR next_collect_at<=?))",
+                (now, now),
+            ).fetchone()
+            running = connection.execute("SELECT COUNT(*) value FROM collection_runs WHERE status='running'").fetchone()
+            failed = connection.execute("SELECT COUNT(*) value FROM collection_runs WHERE status='failed' AND started_at>=?", (day_start,)).fetchone()
+            article_jobs = connection.execute("SELECT status,COUNT(*) value FROM article_analysis_jobs WHERE status IN ('pending','processing','failed') GROUP BY status").fetchall()
+            case_jobs = connection.execute("SELECT status,COUNT(*) value FROM case_evaluation_jobs WHERE status IN ('pending','processing','failed') GROUP BY status").fetchall()
+            outbox_rows = connection.execute("SELECT status,COUNT(*) value FROM supabase_outbox GROUP BY status").fetchall()
+
+        def as_dict(row):
+            return dict(row) if row else None
+
+        def seconds_since(value: str) -> int | None:
+            try:
+                return max(0, int((datetime.now(KST) - datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(KST)).total_seconds()))
+            except (AttributeError, TypeError, ValueError):
+                return None
+
+        def counts(rows):
+            return {str(row['status']): int(row['value'] or 0) for row in rows}
+
+        success = as_dict(last_success)
+        latest_article = as_dict(last_article)
+        return {
+            "now": now,
+            "last_run": as_dict(last_run),
+            "last_success": success,
+            "last_article": latest_article,
+            "seconds_since_last_success": seconds_since(str((success or {}).get('finished_at') or '')),
+            "seconds_since_last_article": seconds_since(str((latest_article or {}).get('first_seen_at') or '')),
+            "due_organizations": int((due['organizations'] if due else 0) or 0),
+            "due_cases": int((due['cases'] if due else 0) or 0),
+            "running_collection_runs": int((running['value'] if running else 0) or 0),
+            "failed_collection_runs_today": int((failed['value'] if failed else 0) or 0),
+            "article_jobs": counts(article_jobs),
+            "case_jobs": counts(case_jobs),
+            "outbox": counts(outbox_rows),
+        }
+
+    def processing_summary(self, days: int = 7) -> dict:
+        """Persist KST daily completed-article totals so dashboard day resets lose no history."""
+        days = max(7, min(90, int(days)))
+        today = datetime.now(KST).date()
+        first_day = today - timedelta(days=days - 1)
+        with self.connect() as connection:
+            rows = connection.execute("""SELECT substr(COALESCE(analyzed_at,updated_at),1,10) day,COUNT(DISTINCT article_id) article_count
+                FROM article_analyses WHERE status='completed' AND COALESCE(analyzed_at,updated_at)>=? GROUP BY substr(COALESCE(analyzed_at,updated_at),1,10)""",
+                (datetime.combine(first_day, datetime.min.time(), tzinfo=KST).isoformat(timespec="seconds"),)).fetchall()
+            now = now_iso()
+            connection.executemany("""INSERT INTO processing_daily_stats(day,article_count,recorded_at) VALUES(?,?,?)
+                ON CONFLICT(day) DO UPDATE SET article_count=excluded.article_count,recorded_at=excluded.recorded_at""",
+                [(str(row["day"]), int(row["article_count"] or 0), now) for row in rows if row["day"]])
+            saved = {str(row["day"]): int(row["article_count"] or 0) for row in connection.execute(
+                "SELECT day,article_count FROM processing_daily_stats WHERE day>=? ORDER BY day", (first_day.isoformat(),)).fetchall()}
+            total = int(connection.execute("SELECT COUNT(DISTINCT article_id) value FROM article_analyses WHERE status='completed'").fetchone()["value"] or 0)
+        daily = [{"day": (first_day + timedelta(days=offset)).isoformat(), "article_count": int(saved.get((first_day + timedelta(days=offset)).isoformat(), 0))} for offset in range(days)]
+        recent_week = daily[-7:]
+        week_total = sum(item["article_count"] for item in recent_week)
+        return {"total": total, "week": week_total, "week_average": round(week_total / 7, 1),
+                "yesterday": int(saved.get((today - timedelta(days=1)).isoformat(), 0)), "today": int(saved.get(today.isoformat(), 0)), "daily": daily}
+
+    def supabase_outbox_pending_for_tables(self, table_names: list[str]) -> int:
+        names = [str(name) for name in table_names if str(name)]
+        if not names:
+            return 0
+        placeholders = ",".join("?" for _ in names)
+        with self.connect() as connection:
+            row = connection.execute(
+                f"SELECT COUNT(*) value FROM supabase_outbox WHERE status='pending' AND table_name IN ({placeholders})", names
+            ).fetchone()
+        return int(row["value"] or 0)
+
     def record_llm_api_call(self, provider: str, stage: str, model: str, status: str, duration_ms: int = 0,
                             http_status: int | None = None, request_id: str = "", input_tokens: int = 0,
                             output_tokens: int = 0, error: str = "") -> None:
@@ -2190,7 +2457,7 @@ class Store:
     def start_article_analysis_job(self, job_id: str) -> bool:
         now = now_iso()
         with self.connect() as connection:
-            cursor = connection.execute("UPDATE article_analysis_jobs SET status='processing',started_at=?,error=NULL,retry_after=NULL,attempts=attempts+1 WHERE id=? AND status='pending' AND (retry_after IS NULL OR retry_after<=?)", (now, job_id, now))
+            cursor = connection.execute("UPDATE article_analysis_jobs SET status='processing',started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,retry_after=NULL,attempts=attempts+1 WHERE id=? AND status='pending' AND (retry_after IS NULL OR retry_after<=?)", (now, job_id, now))
             if cursor.rowcount:
                 connection.execute("UPDATE article_analyses SET status='processing',updated_at=? WHERE id=(SELECT article_analysis_id FROM article_analysis_jobs WHERE id=?)", (now, job_id))
         return cursor.rowcount > 0
@@ -2402,7 +2669,7 @@ class Store:
             job_ids = [str(row["id"]) for row in rows]
             marks = ",".join("?" for _ in job_ids)
             connection.execute(
-                f"UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,error=NULL,retry_after=NULL,attempts=attempts+1,batch_id=?,batch_size=? WHERE id IN ({marks}) AND status='pending'",
+                f"UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,retry_after=NULL,attempts=attempts+1,batch_id=?,batch_size=? WHERE id IN ({marks}) AND status='pending'",
                 (provider, now, batch_id, len(job_ids), *job_ids),
             )
             connection.execute(
@@ -2419,7 +2686,7 @@ class Store:
     def start_case_evaluation_job(self, job_id: str, provider: str = "openrouter") -> bool:
         now = now_iso()
         with self.connect() as connection:
-            cursor = connection.execute("UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,error=NULL,retry_after=NULL,attempts=attempts+1 WHERE id=? AND status='pending' AND (retry_after IS NULL OR retry_after<=?)", (provider, now, job_id, now))
+            cursor = connection.execute("UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,retry_after=NULL,attempts=attempts+1 WHERE id=? AND status='pending' AND (retry_after IS NULL OR retry_after<=?)", (provider, now, job_id, now))
             if cursor.rowcount:
                 connection.execute("UPDATE case_evaluations SET status='processing',updated_at=? WHERE id=(SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id=?)", (now, job_id))
         return cursor.rowcount > 0
@@ -2861,9 +3128,9 @@ class Store:
                      AND COALESCE(body_retryable,1)=1
                      AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
                      AND COALESCE(body_attempts,0)<3
-                     AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?
+                     AND COALESCE(body_next_attempt_at,updated_at)<=?
                    ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC,COALESCE(published_at,first_seen_at) DESC
-                   LIMIT ?""", (retry_before, first_seen_after, max(1, min(20, int(limit))))).fetchall()
+                   LIMIT ?""", (retry_before, max(1, min(20, int(limit))))).fetchall()
         return [dict(row) for row in rows]
 
     def missing_body_status(self, retry_before: str, first_seen_after: str) -> dict:
@@ -2871,15 +3138,20 @@ class Store:
             overall = connection.execute("""SELECT COUNT(*) total_articles,
                 COALESCE(SUM(CASE WHEN COALESCE(body,'')='' THEN 1 ELSE 0 END),0) missing_total,
                 COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND body_error='robots_disallowed' THEN 1 ELSE 0 END),0) blocked_total,
-                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total
-                FROM articles""").fetchone()
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND first_seen_at>=? THEN 1 ELSE 0 END),0) recent_missing_total,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND first_seen_at<? THEN 1 ELSE 0 END),0) historical_missing_total
+                FROM articles""", (first_seen_after, first_seen_after)).fetchone()
+            recollectable = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                AND COALESCE(body_retryable,1)=1 AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
+                AND COALESCE(body_attempts,0)<3""").fetchone()
             due = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
                 AND COALESCE(body_retryable,1)=1 AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
-                AND COALESCE(body_attempts,0)<3 AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?""", (retry_before, first_seen_after)).fetchone()
+                AND COALESCE(body_attempts,0)<3 AND COALESCE(body_next_attempt_at,updated_at)<=?""", (retry_before,)).fetchone()
             latest = connection.execute("""SELECT id,title,original_url,first_seen_at,updated_at,snippet FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
-                AND COALESCE(body_retryable,1)=1 AND COALESCE(body_next_attempt_at,updated_at)<=? AND first_seen_at>=?
-                ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC LIMIT 1""", (retry_before, first_seen_after)).fetchone()
-        return {"total_articles": int(overall["total_articles"]), "missing_total": int(overall["missing_total"]), "blocked_total": int(overall["blocked_total"]), "non_blocked_total": int(overall["non_blocked_total"]), "retry_due": int(due["value"]), "cooling_down": 0, "latest": dict(latest) if latest else None}
+                AND COALESCE(body_retryable,1)=1 AND COALESCE(body_next_attempt_at,updated_at)<=?
+                ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC LIMIT 1""", (retry_before,)).fetchone()
+        return {"total_articles": int(overall["total_articles"]), "missing_total": int(overall["missing_total"]), "blocked_total": int(overall["blocked_total"]), "non_blocked_total": int(overall["non_blocked_total"]), "recent_missing_total": int(overall["recent_missing_total"]), "historical_missing_total": int(overall["historical_missing_total"]), "recollectable_total": int(recollectable["value"]), "retry_due": int(due["value"]), "cooling_down": 0, "latest": dict(latest) if latest else None}
 
     def save_body_backfill_result(self, article_id: str, fetched: dict, retryable: bool, next_attempt_at: str = "") -> None:
         now = now_iso(); body = str(fetched.get("body") or ""); error = str(fetched.get("error") or "")[:120]
@@ -2918,6 +3190,32 @@ class Store:
                 (analysis_id,),
             ).fetchone()
         return {**dict(row), "vector": json_value(row["vector"], [])} if row else None
+
+    def save_article_similarity_groups(self, articles: list[dict]) -> int:
+        now, rows = now_iso(), []
+        for article in articles:
+            article_id = str(article.get("id") or "")
+            if not article_id:
+                continue
+            rows.append((article_id, str(article.get("similar_group_id") or ""), int(article.get("similar_group_size") or 1), str(article.get("similar_group_basis") or ""), str(article.get("similar_group_status") or ""), float(article.get("similar_group_score") or 0), float(article.get("similar_group_semantic_score") or 0), float(article.get("similar_group_noun_score") or 0), json.dumps(article.get("similar_group_topics") or [], ensure_ascii=False), json.dumps(article.get("similar_group_concepts") or [], ensure_ascii=False), now))
+        if rows:
+            with self.connect() as connection:
+                connection.executemany("""INSERT INTO article_similarity_groups(article_id,group_id,group_size,basis,status,score,semantic_score,noun_score,topics,concepts,computed_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(article_id) DO UPDATE SET group_id=excluded.group_id,group_size=excluded.group_size,basis=excluded.basis,status=excluded.status,score=excluded.score,semantic_score=excluded.semantic_score,noun_score=excluded.noun_score,topics=excluded.topics,concepts=excluded.concepts,computed_at=excluded.computed_at""", rows)
+        return len(rows)
+
+    def article_similarity_groups(self, article_ids: list[str]) -> dict[str, dict]:
+        clean = [str(value) for value in article_ids if str(value)]
+        if not clean:
+            return {}
+        with self.connect() as connection:
+            rows = connection.execute("SELECT * FROM article_similarity_groups WHERE article_id IN (" + ",".join("?" for _ in clean) + ")", clean).fetchall()
+        return {str(row["article_id"]): {"group_id": row["group_id"], "size": int(row["group_size"] or 1), "basis": row["basis"], "status": row["status"], "score": float(row["score"] or 0), "semantic_score": float(row["semantic_score"] or 0), "noun_score": float(row["noun_score"] or 0), "topics": json_value(row["topics"], []), "concepts": json_value(row["concepts"], [])} for row in rows}
+
+    def rebuild_article_similarity_groups(self, limit: int = 240) -> int:
+        with self.connect() as connection:
+            connection.execute("DELETE FROM article_similarity_groups")
+        dashboard = self.pipeline_dashboard(limit=max(2, min(500, int(limit))), include_groups=True)
+        return self.save_article_similarity_groups(dashboard.get("articles", []))
 
     def list_article_embedding_vectors(self, model: str) -> list[list[float]]:
         with self.connect() as connection:
@@ -2966,36 +3264,41 @@ class Store:
             )
         return counts
 
-    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False) -> dict:
+    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False, article_limit: int = 60) -> dict:
         days = max(1, min(90, int(days)))
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        article_limit = max(1, min(5000, int(article_limit)))
         join_params: list[Any] = []
         case_join = "LEFT JOIN case_evaluations ce ON ce.article_analysis_id=aa.id"
         where = ["aa.status='completed'", "COALESCE(aa.analyzed_at,aa.updated_at)>=?"]
         params: list[Any] = [since]
         if case_id:
-            case_join = "JOIN case_evaluations ce ON ce.article_analysis_id=aa.id AND ce.case_id=?"
+            # Each common analysis receives an evaluation row for every case. Only
+            # candidate rows are related to this case; excluded rows previously made
+            # the graph and word cloud identical across cases.
+            case_join = "JOIN case_evaluations ce ON ce.article_analysis_id=aa.id AND ce.case_id=? AND ce.candidate_status='candidate'"
             join_params.append(case_id)
         if organization_id:
             where.append("aa.organization_id=?"); params.append(organization_id)
         if sent_only:
-            # 신경망의 노드는 실제 카카오 발송이 성공(status=sent)한 케이스 기사만 사용한다.
-            where.append("EXISTS (SELECT 1 FROM deliveries d WHERE d.article_id=aa.article_id AND d.case_id=ce.case_id AND d.status='sent')")
+            # 신경망은 해당 케이스에 최근 기간 안에 실제 발송 성공한 기사만 사용한다.
+            where.append("EXISTS (SELECT 1 FROM deliveries d WHERE d.article_id=aa.article_id AND d.case_id=ce.case_id AND d.status='sent' AND COALESCE(d.sent_at,d.updated_at)>=?)")
+            params.append(since)
         if delivery_only:
             # 대시보드 화두는 발송 대상(send)으로 확정된 기사만 사용한다.
             where.append("EXISTS (SELECT 1 FROM case_evaluations delivery_case WHERE delivery_case.article_analysis_id=aa.id AND delivery_case.decision='send')")
-        sql = f"""SELECT aa.id,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.analyzed_at,
-                         a.title,a.snippet,a.body,a.publisher,a.published_at,MAX(e.vector) vector,
+        sql = f"""SELECT aa.id,a.id article_id,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.analyzed_at,
+                         a.title,a.snippet,a.body,a.publisher,a.published_at,a.original_url,a.image_url,MAX(e.vector) vector,
                          MAX(COALESCE(ce.final_score,0)) score,
                          MAX(CASE WHEN ce.decision='send' THEN 1 ELSE 0 END) matched
                   FROM article_analyses aa JOIN articles a ON a.id=aa.article_id
                   LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id AND e.status='completed'
                   {case_join}
-                  WHERE {' AND '.join(where)} GROUP BY aa.id ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT 60"""
+                  WHERE {' AND '.join(where)} GROUP BY aa.id ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?"""
         selected_case = self.get_case(case_id) if case_id else None
         selected_organization = self.get_organization(organization_id or (selected_case or {}).get("organization_id", "")) if (organization_id or (selected_case or {}).get("organization_id")) else None
         with self.connect() as connection:
-            rows = connection.execute(sql, (*join_params, *params)).fetchall()
+            rows = connection.execute(sql, (*join_params, *params, article_limit)).fetchall()
         # The cloud remains strict: only source-verifiable noun/proper-noun phrases are counted.
         stop = {"기사","보도","관련","대한","통해","위해","이번","정부","기관","정책","발표","지원","추진","확대","강화","현장","오늘","최근","관계자","있다","있어","있으며","했다","한다","된다","위한","위해","것으로","따라","대해","에서","으로","까지","또한","사실전달","부정적","긍정적","분류대기","정책행정","정치입법","경제산업","사회안전","재난환경","과학기술","디지털","기타"}
         identity_terms = [str((selected_organization or {}).get("name") or ""), *((selected_organization or {}).get("abbreviations") or []), *((selected_organization or {}).get("former_names") or []), *((selected_organization or {}).get("people") or [])]
@@ -3003,7 +3306,7 @@ class Store:
             clean = str(value).strip()
             if clean:
                 stop.add(clean)
-        words: dict[str, float] = {}
+        words: dict[str, float] = {}; word_sources: dict[str, dict[str, Any]] = {}; word_tones: dict[str, dict[str, int]] = {}
         nodes, topic_terms_by_id, concepts_by_id, vectors_by_id = [], {}, {}, {}
         for row in rows:
             item = dict(row)
@@ -3020,10 +3323,27 @@ class Store:
             if isinstance(vector, list) and vector and all(isinstance(value, (int, float)) for value in vector):
                 vectors_by_id[str(item["id"])] = [float(value) for value in vector]
             for clean in topic_terms:
-                words[clean] = words.get(clean, 0) + weight
+                words[clean] = words.get(clean, 0) + 1
+                tone_counts = word_tones.setdefault(clean, {"negative": 0, "positive": 0, "neutral": 0})
+                tone = str(item.get("tone") or "사실전달")
+                tone_key = "negative" if tone == "부정적" else ("positive" if tone == "긍정적" else "neutral")
+                tone_counts[tone_key] += 1
+                image_url = str(item.get("image_url") or "").strip()
+                title = str(item.get("title") or "").strip()
+                source_priority = (2.0 if image_url else 0.0) + (1.0 if clean.casefold() in title.casefold() else 0.0) + min(1.0, float(item.get("score") or 0) / 100.0)
+                previous = word_sources.get(clean)
+                if previous is None or source_priority > float(previous.get("priority") or 0):
+                    word_sources[clean] = {
+                        "priority": source_priority,
+                        "image_url": image_url,
+                        "article_title": title[:160],
+                        "article_url": str(item.get("original_url") or "").strip(),
+                    }
+            if len(nodes) >= 60:
+                continue
             topic_terms_by_id[str(item["id"])] = set(topic_terms)
             concepts_by_id[str(item["id"])] = set(concepts)
-            nodes.append({"id": str(item["id"]), "label": str(item.get("title") or "")[:42], "summary": str(item.get("summary") or "")[:500], "entities": entities, "topics": topic_terms, "topic_concepts": concepts, "article_type": item.get("article_type") or "기타", "tone": item.get("tone") or "사실전달", "score": round(float(item.get("score") or 0), 1), "matched": bool(item.get("matched"))})
+            nodes.append({"id": str(item["id"]), "article_id": str(item.get("article_id") or ""), "label": str(item.get("title") or "")[:42], "summary": str(item.get("summary") or "")[:500], "entities": entities, "topics": topic_terms, "topic_concepts": concepts, "semantic_vector": vectors_by_id.get(str(item["id"]), []), "published_at": item.get("published_at") or "", "article_type": item.get("article_type") or "기타", "tone": item.get("tone") or "사실전달", "score": round(float(item.get("score") or 0), 1), "matched": bool(item.get("matched"))})
         topic_frequency: dict[str, int] = {}
         for terms in topic_terms_by_id.values():
             for term in terms:
@@ -3144,13 +3464,71 @@ class Store:
             union(source, target)
             if len(edges) >= edge_limit:
                 break
-        edges = sorted(edges, key=lambda item: (-item["weight"], item["source"], item["target"]))
+        # Reuse the dashboard's completed two-pass hybrid grouping. The first graph
+        # pass remains useful for sparse, explainable links; these bridge links ensure
+        # the neural layout never splits a bundle that the dashboard presents as one.
+        cluster_inputs = [
+            {"id": node.get("article_id") or node["id"], "title": node["label"], "summary": node["summary"],
+             "entities": node["entities"], "topic_concepts": node["topic_concepts"],
+             "semantic_vector": node.get("semantic_vector", []), "published_at": node.get("published_at", "")}
+            for node in nodes
+        ]
+        shared_groups = self._dashboard_article_groups(cluster_inputs, organization_id=organization_id, case_id=case_id)
+        bundles: dict[str, list[str]] = {}
+        for node in nodes:
+            group = shared_groups.get(node.get("article_id") or node["id"], {})
+            node["similar_group_id"] = group.get("group_id", "")
+            node["similar_group_size"] = int(group.get("size") or 1)
+            node["similar_group_basis"] = group.get("basis", "")
+            node["similar_group_topics"] = group.get("topics", [])
+            node["similar_group_concepts"] = group.get("concepts", [])
+            node["similar_group_score"] = float(group.get("score") or 0)
+            node.pop("semantic_vector", None)
+            node.pop("published_at", None)
+            if node["similar_group_id"] and node["similar_group_size"] > 1:
+                bundles.setdefault(node["similar_group_id"], []).append(node["id"])
+        network_parent = {node["id"]: node["id"] for node in nodes}
+        def network_find(value: str) -> str:
+            while network_parent[value] != value:
+                network_parent[value] = network_parent[network_parent[value]]
+                value = network_parent[value]
+            return value
+        def network_union(left: str, right: str) -> None:
+            left_root, right_root = network_find(left), network_find(right)
+            if left_root != right_root:
+                network_parent[right_root] = left_root
+        for edge in edges:
+            network_union(edge["source"], edge["target"])
+        known_pairs = {tuple(sorted((edge["source"], edge["target"]))) for edge in edges}
+        bridge_edges = []
+        for members in bundles.values():
+            head = members[0]
+            for member in members[1:]:
+                key = tuple(sorted((head, member)))
+                if key in known_pairs or network_find(head) == network_find(member):
+                    continue
+                group = shared_groups.get(member, {})
+                bridge_edges.append({"source": head, "target": member,
+                                     "weight": round(float(group.get("score") or 0) / 100, 4),
+                                     "relation_level": "bundle_bridge",
+                                     "noun_similarity": round(float(group.get("noun_score") or 0) / 100, 4),
+                                     "semantic_similarity": round(float(group.get("semantic_score") or 0) / 100, 4),
+                                     "shared_topics": group.get("topics", []),
+                                     "shared_concepts": group.get("concepts", [])})
+                known_pairs.add(key)
+                network_union(head, member)
+        edges = sorted(edges + bridge_edges, key=lambda item: (-item["weight"], item["source"], item["target"]))
         all_concepts = sorted({concept for concepts in concepts_by_id.values() for concept in concepts})
         return {"period_days": days, "sent_only": bool(sent_only), "delivery_only": bool(delivery_only), "similarity_basis": "strict_article_similarity",
                 "edge_thresholds": {"semantic_min": round(semantic_min, 2), "concept_semantic_min": round(concept_semantic_min, 2), "direct_noun_min": round(direct_noun_min, 2), "degree_limit": degree_limit, "max_component": max_component},
-                "article_count": len(nodes),
+                "article_count": len(rows), "graph_article_count": len(nodes), "group_count": len(bundles), "grouped_article_count": sum(len(members) for members in bundles.values()), "grouping_version": "hybrid-v2",
                 "topic_node_count": sum(bool(terms) for terms in topic_terms_by_id.values()), "abstract_topic_count": len(all_concepts), "semantic_vector_count": len(semantic_vectors),
-                "words": [{"label": key, "value": round(value, 1)} for key, value in sorted(words.items(), key=lambda pair: (-pair[1], pair[0]))[:35]],
+                "words": [{"label": key, "value": round(value, 1),
+                           "image_url": word_sources.get(key, {}).get("image_url", ""),
+                           "article_title": word_sources.get(key, {}).get("article_title", ""),
+                           "article_url": word_sources.get(key, {}).get("article_url", ""),
+                           "tone_counts": word_tones.get(key, {"negative": 0, "positive": 0, "neutral": 0})}
+                          for key, value in sorted(words.items(), key=lambda pair: (-pair[1], pair[0]))[:35]],
                 "nodes": nodes, "edges": edges}
 
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
@@ -3319,10 +3697,15 @@ class Store:
         concepts_by_id: dict[str, set[str]] = {}
         vectors_by_id: dict[str, list[float]] = {}
         order = {str(article.get("id")): index for index, article in enumerate(articles)}
+        published_days: dict[str, object] = {}
         for article in articles:
             article_id = str(article.get("id") or "")
             if not article_id:
                 continue
+            try:
+                published_days[article_id] = datetime.fromisoformat(str(article.get("published_at") or article.get("first_seen_at") or "").replace("Z", "+00:00")).date()
+            except (TypeError, ValueError):
+                pass
             text = str(article.get("_group_text") or " ".join([str(article.get("title") or ""), str(article.get("summary") or "")]))
             entities = article.get("entities") if isinstance(article.get("entities"), list) else []
             topic_terms_by_id[article_id] = set(verified_content_nouns(entities, text, stop, identity_terms))
@@ -3360,6 +3743,9 @@ class Store:
                 has_semantic = bool(centroid and left_id in semantic_vectors and right_id in semantic_vectors)
                 if has_semantic:
                     semantic_similarity = centered_semantic_similarity(semantic_vectors[left_id], semantic_vectors[right_id], centroid)
+                left_day, right_day = published_days.get(left_id), published_days.get(right_id)
+                if left_day and right_day and abs((left_day - right_day).days) > 14 and semantic_similarity < 0.88:
+                    continue
                 semantic_strong = has_semantic and semantic_similarity >= semantic_min
                 concept_supported = bool(shared_concepts) and ((has_semantic and semantic_similarity >= concept_semantic_min) or noun_similarity >= direct_noun_min)
                 direct_supported = bool(shared_topics) and (
@@ -3453,6 +3839,84 @@ class Store:
         components: dict[str, list[str]] = {}
         for article_id in ids:
             components.setdefault(find(article_id), []).append(article_id)
+        # The edge pass above is deliberately conservative: it limits node degree and
+        # component size so a broad subject cannot turn into one giant bundle. That
+        # can leave a small, genuinely related bundle (or a single article) beside the
+        # main bundle. Compare those bundles once more, using their combined evidence,
+        # and attach only when both the semantic signal and topic evidence agree.
+        attachment_max_component = min(18, max_component + 4)
+
+        def component_profile(members: list[str]) -> dict[str, object]:
+            topics: set[str] = set()
+            concepts: set[str] = set()
+            vectors: list[list[float]] = []
+            dates = []
+            for member in members:
+                topics.update(topic_terms_by_id.get(member, set()))
+                concepts.update(concepts_by_id.get(member, set()))
+                if member in semantic_vectors:
+                    vectors.append(semantic_vectors[member])
+                if member in published_days:
+                    dates.append(published_days[member])
+            vector: list[float] = []
+            if vectors and len(vectors) == len(members) and len({len(value) for value in vectors}) == 1:
+                vector = [sum(value[index] for value in vectors) / len(vectors) for index in range(len(vectors[0]))]
+            return {"members": members, "topics": topics, "concepts": concepts, "vector": vector, "dates": dates}
+
+        profiles = [(root, component_profile(members)) for root, members in components.items()]
+        attachment_candidates: list[dict] = []
+        attachment_semantic_min = max(0.72, semantic_min + 0.08)
+        attachment_noun_min = max(0.42, direct_noun_min + 0.08)
+        for left_index, (left_root, left_profile) in enumerate(profiles):
+            left_members = left_profile["members"]
+            for right_root, right_profile in profiles[left_index + 1:]:
+                right_members = right_profile["members"]
+                if min(len(left_members), len(right_members)) > 3 or len(left_members) + len(right_members) > attachment_max_component:
+                    continue
+                left_vector, right_vector = left_profile["vector"], right_profile["vector"]
+                if not centroid or not left_vector or not right_vector:
+                    continue
+                semantic_similarity = centered_semantic_similarity(left_vector, right_vector, centroid)
+                if semantic_similarity < attachment_semantic_min:
+                    continue
+                shared_topics = left_profile["topics"] & right_profile["topics"]
+                shared_concepts = left_profile["concepts"] & right_profile["concepts"]
+                noun_similarity = topic_noun_similarity(left_profile["topics"], right_profile["topics"], topic_frequency, max(1, node_count))
+                supported = bool(shared_concepts) or len(shared_topics) >= 2 or noun_similarity >= attachment_noun_min
+                if not supported:
+                    continue
+                left_dates, right_dates = left_profile["dates"], right_profile["dates"]
+                if left_dates and right_dates and min(abs((left_day - right_day).days) for left_day in left_dates for right_day in right_dates) > 14 and semantic_similarity < 0.90:
+                    continue
+                if len(left_members) <= len(right_members):
+                    small_root, large_root = left_root, right_root
+                else:
+                    small_root, large_root = right_root, left_root
+                attachment_candidates.append({
+                    "source": min(left_members, key=lambda article_id: order.get(article_id, 999999)),
+                    "target": min(right_members, key=lambda article_id: order.get(article_id, 999999)),
+                    "small_root": small_root, "large_root": large_root,
+                    "weight": round(max(semantic_similarity, noun_similarity), 4), "basis": "hybrid", "status": "finalized",
+                    "noun_similarity": round(noun_similarity, 4), "semantic_similarity": round(semantic_similarity, 4),
+                    "shared_topics": sorted(shared_topics, key=lambda term: (-len(term), term))[:5],
+                    "shared_concepts": sorted(shared_concepts)[:4],
+                })
+        attached_component_roots: set[str] = set()
+        for edge in sorted(attachment_candidates, key=lambda item: (-item["weight"], -item["semantic_similarity"], -item["noun_similarity"], order.get(item["source"], 999999), order.get(item["target"], 999999))):
+            small_root = edge["small_root"]
+            if small_root in attached_component_roots or edge["large_root"] in attached_component_roots:
+                continue
+            source_root, target_root = find(edge["source"]), find(edge["target"])
+            if source_root == target_root:
+                continue
+            if component_size[source_root] + component_size[target_root] > attachment_max_component:
+                continue
+            group_edges.append(edge)
+            union(edge["source"], edge["target"])
+            attached_component_roots.update((small_root, edge["large_root"]))
+        components = {}
+        for article_id in ids:
+            components.setdefault(find(article_id), []).append(article_id)
         result: dict[str, dict] = {}
         edges_by_node: dict[str, list[dict]] = {}
         for edge in group_edges:
@@ -3483,16 +3947,36 @@ class Store:
         organization_id: str | None = None,
         tags: list[str] | None = None,
         limit: int = 100,
+        offset: int = 0,
         search: str = "",
         include_groups: bool = True,
+        delivery_filter: str = "all",
+        days: int = 3650,
         include_press_stats: bool = True,
     ) -> dict:
         day_start = kst_day_start_iso()
+        limit = min(10000, max(1, int(limit)))
+        offset = max(0, int(offset))
+        days = max(1, min(3650, int(days)))
+        delivery_filter = delivery_filter if delivery_filter in {"all", "sent", "unsent"} else "all"
         where, params = [], []
         if organization_id:
             where.append("aa.organization_id=?"); params.append(organization_id)
         if case_id:
             where.append("ce.case_id=?"); params.append(case_id)
+        where.append("COALESCE(a.published_at,a.first_seen_at)>=?")
+        params.append((datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds"))
+        if delivery_filter != "all":
+            delivery_where = "EXISTS (SELECT 1 FROM deliveries df WHERE df.article_id=a.id AND df.status='sent')"
+            delivery_params: list[Any] = []
+            if case_id:
+                delivery_where = "EXISTS (SELECT 1 FROM deliveries df WHERE df.article_id=a.id AND df.case_id=? AND df.status='sent')"
+                delivery_params.append(case_id)
+            elif organization_id:
+                delivery_where = "EXISTS (SELECT 1 FROM deliveries df JOIN cases dc ON dc.id=df.case_id WHERE df.article_id=a.id AND dc.organization_id=? AND df.status='sent')"
+                delivery_params.append(organization_id)
+            where.append(delivery_where if delivery_filter == "sent" else "NOT " + delivery_where)
+            params.extend(delivery_params)
         for tag in tags or []:
             where.append("(aa.classification_tags LIKE ? OR aa.article_type=? OR aa.tone=?)")
             params.extend([f'%"{tag}"%', tag, tag])
@@ -3509,15 +3993,8 @@ class Store:
                 "OR instr(lower(COALESCE(aa.summary,'')),lower(?))>0)"
             )
             article_params.extend([search] * 7)
-        source_body_expr = "substr(a.body,1,5000)" if include_groups else "''"
-        press_stats_fields = """
-                                    (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id AND aprm.is_related=1
-                                        AND aprm.similarity_score>=COALESCE((SELECT CAST(value AS REAL) FROM app_settings WHERE key='press_release_match_threshold'),65)
-                                        AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) related_press_count,
-                                    (SELECT COUNT(*) FROM article_press_release_matches aprm WHERE aprm.article_id=a.id
-                                        AND aprm.matcher_version=COALESCE((SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'),'press-rag-v4-lite')) press_match_checked_count,
-                                    (SELECT COUNT(*) FROM press_release_match_jobs prmj WHERE prmj.article_id=a.id) press_match_total_count,
-        """ if include_press_stats else "0 related_press_count,0 press_match_checked_count,0 press_match_total_count,"
+        source_body_expr = "substr(a.body,1,1800)" if include_groups else "''"
+        press_stats_fields = "0 related_press_count,0 press_match_checked_count,0 press_match_total_count,"
         sql = f"""SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
                                     a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,{source_body_expr} source_body,ae.vector article_vector,
                                     {press_stats_fields}
@@ -3537,7 +4014,10 @@ class Store:
         elif organization_id:
             delivery_scope, delivery_params = " AND c.organization_id=?", [organization_id]
         with self.connect() as connection:
-            rows = connection.execute(sql, (*article_params, min(10000, max(1, int(limit) * 12)))).fetchall()
+            # One article can have several case-evaluation rows. Fetch enough rows
+            # to build this page plus one article for the has_more marker.
+            row_limit = min(10000, max(120, (offset + limit + 31) * 12))
+            rows = connection.execute(sql, (*article_params, row_limit)).fetchall()
             daily_sql = """SELECT
                     COUNT(DISTINCT CASE WHEN aa.analyzed_at>=? OR COALESCE(ce.completed_at,ce.updated_at)>=? THEN a.id END) total,
                     COALESCE(SUM(CASE WHEN COALESCE(ce.completed_at,ce.updated_at)>=? AND ce.decision='send' THEN 1 ELSE 0 END),0) sent_candidates,
@@ -3619,8 +4099,13 @@ class Store:
                 result["low_score_categories"] = categories
                 result["deliveries"] = deliveries.get((str(item["id"]), str(item["case_id"])), {})
                 article["case_results"].append(result)
-        articles = list(grouped.values())[:limit]
-        for article in articles:
+        # Grouping a single dashboard page made the result depend on scroll position:
+        # two related articles on pages 1 and 2 were never compared. Build one bounded
+        # scope first, then paginate whole bundles below.
+        all_articles = list(grouped.values())
+        group_start = min(offset, len(all_articles))
+        group_scope = all_articles[group_start:min(len(all_articles), group_start + 30)]
+        for article in all_articles:
             results = article["case_results"]
             article["case_summary"] = {
                 "total": len(results), "pending": sum(value.get("evaluation_status") in {"pending", "processing"} for value in results),
@@ -3630,8 +4115,11 @@ class Store:
                 "sent": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("sent",)) for value in results),
                 "scheduled": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("pending", "retry")) for value in results),
             }
-        similar_groups = self._dashboard_article_groups(articles, organization_id=organization_id, case_id=case_id) if include_groups else {}
-        for article in articles:
+        # A global persisted group can have another case, time window, or threshold.
+        # Recompute against this exact scope so the dashboard uses the same hybrid
+        # grouping rule as the neural view.
+        similar_groups = self._dashboard_article_groups(group_scope, organization_id=organization_id, case_id=case_id) if include_groups else {}
+        for article in all_articles:
             group = similar_groups.get(str(article.get("id") or ""), {})
             article["similar_group_id"] = group.get("group_id", "")
             article["similar_group_size"] = int(group.get("size") or 1)
@@ -3641,6 +4129,43 @@ class Store:
             article["similar_group_topics"] = group.get("topics", [])
             article["similar_group_concepts"] = group.get("concepts", [])
             article.pop("_group_text", None)
+        # Keep every bundle intact in the response. The client advances its offset by
+        # the returned count, so its next request starts on a bundle boundary.
+        buckets: list[list[dict]] = []
+        bucket_by_key: dict[str, list[dict]] = {}
+        for article in all_articles:
+            article_id = str(article.get("id") or "")
+            group_id = str(article.get("similar_group_id") or "")
+            key = group_id if group_id and int(article.get("similar_group_size") or 1) > 1 else article_id
+            if key not in bucket_by_key:
+                bucket_by_key[key] = []
+                buckets.append(bucket_by_key[key])
+            bucket_by_key[key].append(article)
+        page_buckets, consumed = [], 0
+        for bucket in buckets:
+            if consumed < offset:
+                consumed += len(bucket)
+                continue
+            if page_buckets and sum(len(item) for item in page_buckets) >= limit:
+                break
+            page_buckets.append(bucket)
+        articles = [article for bucket in page_buckets for article in bucket]
+        if include_press_stats and articles:
+            article_ids = [str(article["id"]) for article in articles]
+            marks = ",".join("?" for _ in article_ids)
+            try: threshold = float(self.get_setting("press_release_match_threshold", "65") or 65)
+            except (TypeError, ValueError): threshold = 65.0
+            version = self.get_setting("press_release_matcher_migration_version", "press-rag-v4-lite") or "press-rag-v4-lite"
+            with self.connect() as connection:
+                match_rows = connection.execute(f"""SELECT article_id,COALESCE(SUM(CASE WHEN is_related=1 AND similarity_score>=? AND matcher_version=? THEN 1 ELSE 0 END),0) related_count,COALESCE(SUM(CASE WHEN matcher_version=? THEN 1 ELSE 0 END),0) checked_count FROM article_press_release_matches WHERE article_id IN ({marks}) GROUP BY article_id""", (threshold, version, version, *article_ids)).fetchall()
+                job_rows = connection.execute(f"SELECT article_id,COUNT(*) total_count FROM press_release_match_jobs WHERE article_id IN ({marks}) GROUP BY article_id", article_ids).fetchall()
+            press_stats = {str(row["article_id"]): (int(row["related_count"] or 0), int(row["checked_count"] or 0)) for row in match_rows}
+            press_totals = {str(row["article_id"]): int(row["total_count"] or 0) for row in job_rows}
+            for article in articles:
+                related_count, checked_count = press_stats.get(str(article["id"]), (0, 0))
+                article["related_press_count"], article["press_match_checked_count"], article["press_match_total_count"] = related_count, checked_count, press_totals.get(str(article["id"]), 0)
+        next_offset = offset + len(articles)
+        has_more = next_offset < len(all_articles)
         stats = {"total": int(daily_stats_row["total"] or 0),
                  "sent_candidates": int(daily_stats_row["sent_candidates"] or 0),
                  "low": int(daily_stats_row["low"] or 0),
@@ -3659,7 +4184,7 @@ class Store:
             for tag in filter_tags:
                 tag_counts[str(tag)] = tag_counts.get(str(tag), 0) + 1
         similar_article_threshold = max(0.0, min(100.0, float(self.get_setting("similar_article_threshold", "65"))))
-        return {"stats": stats, "articles": articles, "similar_article_threshold": similar_article_threshold,
+        return {"stats": stats, "articles": articles, "offset": offset, "next_offset": next_offset, "limit": limit, "has_more": has_more, "similar_article_threshold": similar_article_threshold,
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
             "tags": [{"label": key, "value": value} for key, value in sorted(tag_counts.items(), key=lambda pair: -pair[1])],
@@ -3924,9 +4449,14 @@ class Store:
                 for row in connection.execute("SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_disabled_reason:%'").fetchall()
             }
             api_rows = connection.execute(
-                """SELECT * FROM llm_api_calls
-                   WHERE status='failed' AND created_at>=?
-                   ORDER BY created_at DESC LIMIT ?""",
+                """SELECT failed.*,MIN(succeeded.created_at) resolved_at
+                   FROM llm_api_calls failed
+                   LEFT JOIN llm_api_calls succeeded
+                     ON succeeded.provider=failed.provider AND succeeded.stage=failed.stage
+                    AND succeeded.status='completed' AND succeeded.created_at>failed.created_at
+                   WHERE failed.status='failed' AND failed.created_at>=?
+                   GROUP BY failed.id
+                   ORDER BY failed.created_at DESC LIMIT ?""",
                 (since, limit),
             ).fetchall()
             case_rows = connection.execute(
@@ -3981,12 +4511,8 @@ class Store:
             for row in api_rows:
                 item = dict(row)
                 provider, stage, model = str(item.get("provider") or ""), str(item.get("stage") or ""), str(item.get("model") or "")
-                resolved = connection.execute(
-                    """SELECT created_at FROM llm_api_calls
-                       WHERE provider=? AND stage=? AND status='completed' AND created_at>?
-                       ORDER BY created_at LIMIT 1""",
-                    (provider, stage, item.get("created_at") or ""),
-                ).fetchone()
+                resolved_at = str(item.get("resolved_at") or "")
+                resolved = bool(resolved_at)
                 reason = self._operation_error_reason(str(item.get("error") or ""))
                 append_event(
                     "api_error", stage,
@@ -3995,7 +4521,7 @@ class Store:
                     + (" 이후 같은 단계 호출이 성공해 해소된 것으로 보입니다." if resolved else " 현재 로그상 후속 성공 기록은 아직 없습니다."),
                     str(item.get("created_at") or ""),
                     provider=provider, provider_label=self._operation_provider_label(provider), model=model,
-                    status="resolved" if resolved else "open", resolved_at=(resolved["created_at"] if resolved else ""),
+                    status="resolved" if resolved else "open", resolved_at=resolved_at,
                     raw_error=str(item.get("error") or "")[:500], http_status=item.get("http_status"),
                     severity="warning" if resolved else "critical",
                 )

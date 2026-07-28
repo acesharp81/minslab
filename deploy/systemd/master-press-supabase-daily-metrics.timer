@@ -1,0 +1,10 @@
+[Unit]
+Description=Queue Master Press daily Supabase score read model
+
+[Timer]
+OnCalendar=*-*-* 04:35:00
+Persistent=true
+Unit=master-press-supabase-daily-metrics.service
+
+[Install]
+WantedBy=timers.target

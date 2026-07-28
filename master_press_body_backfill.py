@@ -24,7 +24,7 @@ def main() -> int:
     # backfill_missing_article_bodies().
     service = object.__new__(MasterPressService)
     service.settings = settings
-    service.store = Store(settings.database_path)
+    service.store = Store(settings.database_path, initialize=False)
     service.collector = NewsCollector(settings)
     print(json.dumps(service.backfill_missing_article_bodies(), ensure_ascii=False))
     return 0

@@ -1836,6 +1836,19 @@ async def collect_master_press():
         await asyncio.sleep(12 if progressed else 30)
 
 
+async def supervise_master_press():
+    """Restart the orchestration coroutine if a non-standard exception ends it."""
+    while True:
+        try:
+            await collect_master_press()
+            print("Master Press orchestration worker exited unexpectedly; restarting.", file=sys.stderr)
+        except asyncio.CancelledError:
+            raise
+        except BaseException as error:
+            print(f"Master Press orchestration supervisor restarting after {type(error).__name__}: {error}", file=sys.stderr)
+        await asyncio.sleep(5)
+
+
 async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
     """Continuously drain one independent pipeline stage without blocking the other stages."""
     while True:
@@ -1910,7 +1923,7 @@ async def app(scope, receive, send):
                     owns_master_press_worker_lock = acquire_master_press_worker_lock()
                     if owns_master_press_worker_lock:
                         master_press_tasks = [
-                            asyncio.create_task(collect_master_press()),
+                            asyncio.create_task(supervise_master_press()),
                         ]
                     else:
                         print("Master Press workers skipped in this process (lock held by another process).", file=sys.stderr)

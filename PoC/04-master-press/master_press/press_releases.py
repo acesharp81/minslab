@@ -559,17 +559,75 @@ class PressReleaseManager:
                 (now, release_id, window),
             ).rowcount
 
+    def _remote_candidate_release_ids(self, article_analysis_id: str) -> list[str]:
+        if self.store.get_setting("supabase_rag_read_enabled", "0") != "1":
+            return []
+        disabled_until = self.store.get_setting("supabase_rag_read_disabled_until", "")
+        if disabled_until and disabled_until > now_iso():
+            self.store.increment_setting_counter("supabase_rag_read_circuit_skips")
+            self.store.set_setting("supabase_rag_read_status", "circuit_open")
+            return []
+        with self.store.connect() as connection:
+            row = connection.execute(
+                """SELECT aa.organization_id,ae.vector FROM article_analyses aa
+                   JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
+                   WHERE aa.id=?""", (article_analysis_id,)
+            ).fetchone()
+        if not row:
+            return []
+        matches = self.mirror.match_press_release_chunks(json_value(row["vector"], []), str(row["organization_id"] or ""), 16)
+        release_ids = list(dict.fromkeys(str(item.get("press_release_id") or "") for item in matches if item.get("press_release_id")))
+        self.store.increment_setting_counter("supabase_rag_read_total")
+        self.store.increment_setting_counter("supabase_rag_read_latency_total_ms", int(getattr(self.mirror, "last_duration_ms", 0) or 0))
+        if release_ids:
+            self.store.increment_setting_counter("supabase_rag_read_hits")
+            self.store.set_setting("supabase_rag_read_consecutive_failures", "0")
+            self.store.set_setting("supabase_rag_read_disabled_until", "")
+            self.store.set_setting("supabase_rag_read_status", "ready")
+            self.store.set_setting("supabase_rag_read_error", "")
+        elif self.mirror.last_error:
+            failures = self.store.increment_setting_counter("supabase_rag_read_consecutive_failures")
+            self.store.increment_setting_counter("supabase_rag_read_fallbacks")
+            if failures >= 3:
+                until = (datetime.now(KST) + timedelta(minutes=10)).isoformat(timespec="seconds")
+                self.store.set_setting("supabase_rag_read_disabled_until", until)
+                self.store.set_setting("supabase_rag_read_status", "circuit_open")
+            else:
+                self.store.set_setting("supabase_rag_read_status", "fallback")
+            self.store.set_setting("supabase_rag_read_error", str(self.mirror.last_error)[:500])
+        else:
+            self.store.increment_setting_counter("supabase_rag_read_fallbacks")
+            self.store.set_setting("supabase_rag_read_consecutive_failures", "0")
+            self.store.set_setting("supabase_rag_read_status", "no_candidates")
+            self.store.set_setting("supabase_rag_read_error", "")
+        return release_ids
+
     def queue_for_article(self, article_analysis_id: str) -> int:
         window = int(getattr(self.settings, "press_release_match_window_days", 45))
         now = now_iso()
+        remote_ids = self._remote_candidate_release_ids(article_analysis_id)
+        prioritized = 0
+        if remote_ids:
+            placeholders = ",".join("?" for _ in remote_ids)
+            priority_time = (datetime.now(KST) - timedelta(seconds=1)).isoformat(timespec="seconds")
+            with self.store.connect() as connection:
+                prioritized = connection.execute(
+                    f"""INSERT OR IGNORE INTO press_release_match_jobs(article_id,press_release_id,status,queued_at)
+                         SELECT aa.article_id,pr.id,'pending',? FROM article_analyses aa
+                         JOIN articles a ON a.id=aa.article_id JOIN press_releases pr ON pr.organization_id=aa.organization_id AND pr.embedding_status='completed'
+                         WHERE aa.id=? AND pr.id IN ({placeholders})
+                           AND ABS(julianday(COALESCE(a.published_at,a.first_seen_at))-julianday(COALESCE(pr.published_at,pr.created_at)))<=?""",
+                    (priority_time, article_analysis_id, *remote_ids, window),
+                ).rowcount
         with self.store.connect() as connection:
-            return connection.execute(
+            queued = connection.execute(
                 """INSERT OR IGNORE INTO press_release_match_jobs(article_id,press_release_id,status,queued_at)
                    SELECT aa.article_id,pr.id,'pending',? FROM article_analyses aa
                    JOIN articles a ON a.id=aa.article_id JOIN press_releases pr ON pr.organization_id=aa.organization_id AND pr.embedding_status='completed'
                    WHERE aa.id=? AND ABS(julianday(COALESCE(a.published_at,a.first_seen_at))-julianday(COALESCE(pr.published_at,pr.created_at)))<=?""",
                 (now, article_analysis_id, window),
             ).rowcount
+        return prioritized + queued
 
     def _embed_release(self, release: dict) -> dict:
         markdown = self._release_markdown(release)
@@ -607,10 +665,11 @@ class PressReleaseManager:
         release_ok = self.mirror.press_release(dict(completed), self._release_markdown(dict(completed)))
         chunks_ok = self.mirror.press_release_chunks(chunk_rows)
         if self.mirror.enabled:
-            if release_ok and chunks_ok:
+            queued = bool(getattr(self.mirror, "outbox_store", None))
+            if release_ok and chunks_ok and not queued:
                 with self.store.connect() as connection:
                     connection.execute("UPDATE press_releases SET supabase_synced_at=? WHERE id=?", (now_iso(), release["id"]))
-            self.store.set_setting("press_release_supabase_status", "ready" if release_ok and chunks_ok else "schema_required")
+            self.store.set_setting("press_release_supabase_status", "queued" if queued and release_ok and chunks_ok else ("ready" if release_ok and chunks_ok else "schema_required"))
             self.store.set_setting("press_release_supabase_error", str(self.mirror.last_error or "")[:1000])
         queued = self._queue_release_pairs(release["id"])
         return {"stage": "press_embedding", "press_release_id": release["id"], "chunks": len(chunks), "queued_matches": queued}
@@ -777,7 +836,7 @@ class PressReleaseManager:
         return {"stage": "press_match", "processed": len(results), "related": sum(bool(item.get("related")) for item in results),
                 "failed": len(errors), "errors": errors[:3], "results": results}
 
-    def list_releases(self, organization_id: str = "", limit: int = 50, search: str = "") -> list[dict]:
+    def list_releases(self, organization_id: str = "", limit: int = 50, search: str = "", offset: int = 0) -> list[dict]:
         threshold = self.match_threshold()
         conditions, params = [], []
         if organization_id:
@@ -813,8 +872,8 @@ class PressReleaseManager:
                     LEFT JOIN article_press_release_matches m ON m.press_release_id=pr.id
                     LEFT JOIN article_processing_flags apf ON apf.article_id=m.article_id
                     LEFT JOIN article_analyses aa ON aa.id=apf.analysis_id
-                    {where} GROUP BY pr.id ORDER BY COALESCE(pr.published_at,pr.created_at) DESC LIMIT ?""",
-                (threshold, threshold, threshold, threshold, *params, max(1, min(200, int(limit)))),
+                    {where} GROUP BY pr.id ORDER BY COALESCE(pr.published_at,pr.created_at) DESC LIMIT ? OFFSET ?""",
+                (threshold, threshold, threshold, threshold, *params, max(1, min(200, int(limit))), max(0, int(offset))),
             ).fetchall()
         return [dict(row) for row in rows]
 
@@ -849,6 +908,8 @@ class PressReleaseManager:
     def mirror_backfill(self, limit: int = 20) -> dict:
         if not self.mirror.enabled:
             return {"status": "disabled", "mirrored": 0}
+        # Queueing is idempotent; completion is owned by the outbox worker.
+        queued_mode = bool(getattr(self.mirror, "outbox_store", None))
         with self.store.connect() as connection:
             releases = connection.execute(
                 "SELECT * FROM press_releases WHERE embedding_status='completed' AND supabase_synced_at IS NULL ORDER BY COALESCE(published_at,created_at) DESC LIMIT ?",
@@ -871,8 +932,9 @@ class PressReleaseManager:
                 break
             if not self.mirror.press_release_chunks(chunks):
                 break
-            with self.store.connect() as connection:
-                connection.execute("UPDATE press_releases SET supabase_synced_at=? WHERE id=?", (now_iso(), release["id"]))
+            if not queued_mode:
+                with self.store.connect() as connection:
+                    connection.execute("UPDATE press_releases SET supabase_synced_at=? WHERE id=?", (now_iso(), release["id"]))
             mirrored += 1
         with self.store.connect() as connection:
             match_rows = connection.execute(
@@ -884,12 +946,13 @@ class PressReleaseManager:
         match_items = [dict(row) for row in match_rows]
         matched = 0
         if match_items and self.mirror.press_release_matches(match_items):
-            synced_at = now_iso()
-            with self.store.connect() as connection:
-                connection.executemany(
-                    "UPDATE article_press_release_matches SET supabase_synced_at=? WHERE article_id=? AND press_release_id=?",
-                    [(synced_at, item["article_id"], item["press_release_id"]) for item in match_items],
-                )
+            if not queued_mode:
+                synced_at = now_iso()
+                with self.store.connect() as connection:
+                    connection.executemany(
+                        "UPDATE article_press_release_matches SET supabase_synced_at=? WHERE article_id=? AND press_release_id=?",
+                        [(synced_at, item["article_id"], item["press_release_id"]) for item in match_items],
+                    )
             matched = len(match_items)
         with self.store.connect() as connection:
             pending_releases = int(connection.execute("SELECT COUNT(*) FROM press_releases WHERE embedding_status='completed' AND supabase_synced_at IS NULL").fetchone()[0])
@@ -917,4 +980,16 @@ class PressReleaseManager:
                 "supabase_enabled": bool(self.mirror.enabled),
                 "supabase_status": self.store.get_setting("press_release_supabase_status", "schema_required" if self.mirror.enabled else "disabled"),
                 "supabase_pending": supabase_pending,
-                "supabase_error": self.store.get_setting("press_release_supabase_error", "")}
+                "supabase_error": self.store.get_setting("press_release_supabase_error", ""),
+                "supabase_rag_read_enabled": self.store.get_setting("supabase_rag_read_enabled", "0") == "1",
+                "supabase_rag_read_status": self.store.get_setting("supabase_rag_read_status", "disabled"),
+                "supabase_rag_read_error": self.store.get_setting("supabase_rag_read_error", ""),
+                "supabase_rag_read_total": int(self.store.get_setting("supabase_rag_read_total", "0") or 0),
+                "supabase_rag_read_hits": int(self.store.get_setting("supabase_rag_read_hits", "0") or 0),
+                "supabase_rag_read_fallbacks": int(self.store.get_setting("supabase_rag_read_fallbacks", "0") or 0),
+                "supabase_rag_read_average_ms": round(
+                    int(self.store.get_setting("supabase_rag_read_latency_total_ms", "0") or 0) /
+                    max(1, int(self.store.get_setting("supabase_rag_read_total", "0") or 0)), 1),
+                "supabase_rag_read_consecutive_failures": int(self.store.get_setting("supabase_rag_read_consecutive_failures", "0") or 0),
+                "supabase_rag_read_circuit_skips": int(self.store.get_setting("supabase_rag_read_circuit_skips", "0") or 0),
+                "supabase_rag_read_disabled_until": self.store.get_setting("supabase_rag_read_disabled_until", "")}
