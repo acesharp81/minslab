@@ -26,6 +26,8 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 
 - 본문 없는 기사는 별도 재수집 큐에서 처리한다. 관리 설정에는 전체 기사 수, 수집 차단 기사 수, 재수집 대상 수, 오늘 재수집 수를 표시하며 새벽 시간대 처리량을 분리한다.
 - 관리 화면에는 최근 처리량 추이, 마지막 정상 수집 시각, 대기·오류 상태, 모델 제공자 사용 상태와 분석/매칭 기준값을 제공한다.
+- 유사 기사 그룹 지도는 최근 완료 기사 720건을 백그라운드에서 재구축한다. 대시보드 요청은 저장된 지도를 우선 사용하고, 아직 지도에 없는 최신 기사만 최대 30건 범위에서 기존 hybrid 규칙으로 즉시 계산한다.
+- 그룹 지도 재구축 상태, 저장/목표 건수, 마지막 완료 시각, 처리 시간, 오류는 관리자 수집 모니터에서 확인한다.
 - Supabase는 실시간 처리의 원장이 아니다. SQLite를 원장으로 유지하고, 장기 조회용 요약 이력·초기 시드·정합성 점검을 outbox 기반 비동기 작업으로 운영한다. 본문, LLM 원문, 수신자 정보는 동기화 대상에서 제외한다.
 
 이 문서는 두 가지 목적으로 작성한다.
@@ -261,6 +263,12 @@ Ollama · nomic-embed · 사용 가능
 2. 임베딩이 완료되면 의미 유사도까지 반영해 최종 묶음으로 갱신한다.
 
 묶을 때는 최신 기사 1건만 대표로 표시하고, 하단의 `유사 기사 묶음 보기(n건)`을 누르면 나머지 기사를 확장한다.
+
+#### 4.3.1 성능과 최신성 운영
+
+- 최근 완료 기사 720건의 hybrid 그룹 결과는 SQLite `article_similarity_groups`에 저장한다. 현재 수집량 기준으로 최근 24시간 범위를 커버하도록 잡은 값이며, 수집량이 늘면 관리자 화면의 저장/목표 건수를 보고 조정한다.
+- 일반 대시보드 요청은 이 저장 지도를 사용하므로 목록 후보 전체의 본문·임베딩을 읽지 않는다.
+- 새 기사 또는 새 임베딩으로 지도가 아직 최신이 아닐 때만 현재 페이지 앞쪽 최대 30건을 기존과 같은 본문·임베딩·hybrid 규칙으로 계산한다. 따라서 최신 기사 묶음은 즉시 유지한다.
 
 ### 4.4 + 케이스 영역
 
@@ -990,6 +998,20 @@ python3 -m py_compile PoC/04-master-press/backend.py PoC/04-master-press/master_
 python3 -m unittest PoC/04-master-press/tests/test_core.py PoC/04-master-press/tests/test_integration.py
 git diff --check
 ```
+
+### 유사 기사 그룹 지도 timer
+
+`master_press_similarity_groups.py`는 웹 요청과 분리해 최근 기사 720건의 그룹 지도를 재구축한다. 신규 임베딩이 생겼거나 저장 건수가 달라질 때만 작업하며, 기본 주기는 5분이다.
+
+```bash
+sudo install -m 644 deploy/systemd/master-press-similarity-groups.service /etc/systemd/system/
+sudo install -m 644 deploy/systemd/master-press-similarity-groups.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now master-press-similarity-groups.timer
+systemctl status master-press-similarity-groups.timer --no-pager
+```
+
+timer가 정상이어도 새 임베딩이 계속 들어오면 관리자 모니터에는 `그룹 지도 갱신 대기`가 잠시 보일 수 있다. 최근 실행의 처리 시간·오류·저장/목표 건수를 함께 보고, 재구축 시간이 2분을 넘거나 저장 건수가 목표보다 작을 때만 범위를 조정한다.
 
 ### Supabase 분석 이력 읽기 모델
 

@@ -1,0 +1,11 @@
+[Unit]
+Description=Rebuild Master Press related article groups
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Nice=10
+IOSchedulingClass=idle
+WorkingDirectory=/home/ubuntu/apps/myservice
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/master_press_similarity_groups.py

@@ -25,6 +25,13 @@ LOCAL_EMBEDDING_LOCK = threading.Lock()
 REMOTE_CASE_SEMAPHORE = threading.BoundedSemaphore(2)
 DELIVERY_LOCK = threading.Lock()
 
+# Permanent failover is reserved for measured near-exhaustion. Ordinary API
+# instability uses this short, self-clearing reserve window.
+PROVIDER_NEAR_LIMIT_RATIO = 0.95
+PROVIDER_TEMPORARY_RETRY_MINUTES = 10
+PROVIDER_TRANSIENT_FAILURE_THRESHOLD = 3
+
+
 
 def parse_clock(value: str) -> tuple[int, int] | None:
     try:
@@ -204,6 +211,9 @@ class MasterPressService:
         models = [
             getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it"),
             getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant"),
+            # Keep the configured OpenRouter free model in the common-analysis
+            # selector without making the admin screen depend on a catalogue API call.
+            getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free"),
         ]
         if selected:
             models.append(selected)
@@ -252,6 +262,8 @@ class MasterPressService:
             return ""
         if model == getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or model.startswith("@cf/"):
             return "cloudflare"
+        if model == getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or model.endswith(":free"):
+            return "openrouter"
         if model == getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant") or model in {"llama-3.1-8b-instant"}:
             return "groq"
         if model.startswith("gemini-"):
@@ -262,6 +274,8 @@ class MasterPressService:
         provider = self._provider_for_switchable_llm_model(model)
         if provider == "cloudflare":
             status = self.cloudflare_status(probe)
+        elif provider == "openrouter":
+            status = self.openrouter_status(probe)
         elif provider == "groq":
             status = self.groq_status(probe)
         elif provider == "gemini":
@@ -288,6 +302,8 @@ class MasterPressService:
                 continue
             disabled_until = self._provider_disabled_until(provider)
             if disabled_until and disabled_until > current:
+                continue
+            if self._provider_temporarily_paused(provider):
                 continue
             if not hasattr(self, "settings"):
                 seen.add(key)
@@ -335,6 +351,20 @@ class MasterPressService:
                 reset_points.append(reset_at)
         return min(reset_points) if reset_points else self._next_kst_midnight_iso()
 
+    def _next_provider_retry(self, providers: list[str]) -> str:
+        """Use a short retry window for transient failures; resets for hard stops."""
+        current = now_iso()
+        retry_points = []
+        for provider in dict.fromkeys(str(item or "").strip().lower() for item in providers):
+            if not provider:
+                continue
+            pause_until = self._provider_temporary_until(provider)
+            reset_at = self._provider_disabled_until(provider) or self._provider_reset_at(provider)
+            candidate = pause_until or reset_at
+            if candidate and candidate > current:
+                retry_points.append(candidate)
+        return min(retry_points) if retry_points else (datetime.now(KST) + timedelta(minutes=PROVIDER_TEMPORARY_RETRY_MINUTES)).isoformat(timespec="seconds")
+
     def _groq_usage_window(self) -> tuple[str, str, str]:
         since = (datetime.now(KST) - timedelta(hours=24)).isoformat(timespec="seconds")
         rate_reset = self.store.get_setting("llm_provider_rate_reset_at:groq", "")
@@ -373,7 +403,7 @@ class MasterPressService:
         else:
             status = {"connected": connected, "error": "" if connected else ("Cloudflare API 키 미설정" if not has_key else "Cloudflare Account ID 미설정")}
         result = {**status, **usage, "model": self.selected_common_llm_model(), "provider": "cloudflare",
-                  "neuron_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000),
+                  "unit_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000), "neuron_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000),
                   "reset_basis": "UTC 00:00", "reset_at": reset_at,
                   "reset_label": "한국시간 09:00"}
         return self._attach_provider_guard(result)
@@ -437,6 +467,40 @@ class MasterPressService:
             return ""
         return disabled_until
 
+    def _provider_temporary_until(self, provider: str) -> str:
+        key = f"llm_provider_temporary_until:{provider}"
+        paused_until = self.store.get_setting(key, "")
+        if paused_until and paused_until <= now_iso():
+            self.store.set_setting(key, "")
+            self.store.set_setting(f"llm_provider_temporary_reason:{provider}", "")
+            return ""
+        return paused_until
+
+    def _provider_temporarily_paused(self, provider: str) -> bool:
+        paused_until = self._provider_temporary_until(provider)
+        return bool(paused_until and paused_until > now_iso())
+
+    def _mark_provider_temporary(self, provider: str, reason: str = "") -> str:
+        retry_after = (datetime.now(KST) + timedelta(minutes=PROVIDER_TEMPORARY_RETRY_MINUTES)).isoformat(timespec="seconds")
+        self.store.set_setting(f"llm_provider_temporary_until:{provider}", retry_after)
+        self.store.set_setting(f"llm_provider_temporary_reason:{provider}", str(reason)[:300])
+        return retry_after
+
+    def _clear_provider_transient_failures(self, provider: str) -> None:
+        self.store.set_setting(f"llm_provider_transient_failures:{provider}", "0")
+
+    def _remember_provider_success(self, provider: str) -> None:
+        self._clear_provider_transient_failures(provider)
+
+    @staticmethod
+    def _provider_usage_ratio(status: dict) -> float:
+        ratios = []
+        for used_key, limit_key in (("attempts", "soft_limit"), ("tokens", "token_soft_limit"), ("usage_units", "unit_soft_limit")):
+            limit = int(status.get(limit_key) or 0)
+            if limit > 0:
+                ratios.append(max(0.0, float(status.get(used_key) or 0) / limit))
+        return max(ratios, default=0.0)
+
     def _mark_provider_exhausted(self, provider: str, retry_after: str = "", reason: str = "") -> None:
         retry_after = retry_after or self._provider_reset_at(provider)
         self.store.set_setting(f"llm_provider_disabled_until:{provider}", retry_after)
@@ -454,14 +518,18 @@ class MasterPressService:
     def _attach_provider_guard(self, status: dict) -> dict:
         provider = str(status.get("provider") or "")
         disabled_until = self._provider_disabled_until(provider) if provider else ""
+        temporary_until = self._provider_temporary_until(provider) if provider else ""
+        usage_ratio = self._provider_usage_ratio(status)
+        near_limit = usage_ratio >= PROVIDER_NEAR_LIMIT_RATIO
         status["disabled_until"] = disabled_until
         status["disabled_reason"] = self.store.get_setting(f"llm_provider_disabled_reason:{provider}", "") if provider else ""
-        status["exhausted"] = bool(disabled_until and disabled_until > now_iso())
-        if int(status.get("soft_limit") or 0) and int(status.get("attempts") or 0) >= int(status.get("soft_limit") or 0):
-            status["exhausted"] = True
-        if int(status.get("token_soft_limit") or 0) and int(status.get("tokens") or 0) >= int(status.get("token_soft_limit") or 0):
-            status["exhausted"] = True
-        status["available"] = bool(status.get("connected") and not status.get("exhausted"))
+        status["temporary_until"] = temporary_until
+        status["temporary_reason"] = self.store.get_setting(f"llm_provider_temporary_reason:{provider}", "") if provider else ""
+        status["usage_ratio"] = round(usage_ratio, 4)
+        status["near_limit"] = near_limit
+        status["exhausted"] = bool((disabled_until and disabled_until > now_iso()) or near_limit)
+        status["temporarily_paused"] = bool(temporary_until and temporary_until > now_iso())
+        status["available"] = bool(status.get("connected") and not status["exhausted"] and not status["temporarily_paused"])
         return status
 
     @staticmethod
@@ -469,7 +537,7 @@ class MasterPressService:
         lowered = str(error or "").casefold()
         return str(error) in {"groq_daily_request_soft_limit", "groq_daily_token_soft_limit", "openrouter_daily_soft_limit",
                               "cloudflare_daily_request_soft_limit", "gemini_daily_request_soft_limit", "gemini_daily_token_soft_limit"} or any(
-            marker in lowered for marker in ("quota", "rate limit exceeded", "free-models-per-day", "daily_soft_limit",
+            marker in lowered for marker in ("quota", "free-models-per-day", "daily_soft_limit",
                                              "neurons", "allocation", "resource_exhausted", "token_soft_limit")
         )
 
@@ -506,14 +574,25 @@ class MasterPressService:
         return self._active_provider_chain(chain)
 
     def _remember_provider_failure(self, provider: str, error: Exception) -> None:
-        if isinstance(error, OpenRouterError) and (self._is_provider_quota_error(error) or error.status == 429):
-            reason = str(error)
-            lowered = reason.casefold()
-            # A bare 429 (for example, "Provider returned error") must also
-            # disable this provider, or every subsequent batch repeats it.
-            daily_like = error.status == 429 or any(marker in lowered for marker in ("free-models-per-day", "daily_soft_limit", "daily request", "daily token", "resource_exhausted", "quota"))
-            retry_after = self._provider_reset_at(provider) if daily_like else (error.retry_after or self._provider_reset_at(provider))
-            self._mark_provider_exhausted(provider, retry_after, reason)
+        if str(error) in {"reserve_llm_unavailable", "case_llm_providers_unavailable"}:
+            return
+        if not isinstance(error, OpenRouterError):
+            return
+        reason = str(error)
+        status = self._provider_status(provider)
+        at_or_above_near_limit = self._provider_usage_ratio(status) >= PROVIDER_NEAR_LIMIT_RATIO
+        if at_or_above_near_limit:
+            self._mark_provider_exhausted(provider, self._provider_reset_at(provider), reason)
+            return
+        if error.retryable or error.status in {408, 429, 500, 502, 503, 504}:
+            count_key = f"llm_provider_transient_failures:{provider}"
+            try:
+                failure_count = max(0, int(self.store.get_setting(count_key, "0"))) + 1
+            except ValueError:
+                failure_count = 1
+            self.store.set_setting(count_key, str(failure_count))
+            if failure_count >= PROVIDER_TRANSIENT_FAILURE_THRESHOLD:
+                self._mark_provider_temporary(provider, reason)
 
     def _try_common_reserve(self, article: dict) -> tuple[str, str, dict]:
         last_error: Exception | None = None
@@ -524,6 +603,7 @@ class MasterPressService:
                     result = self.scoring.analyze_article_common_with_provider(provider, article, model)
                 else:
                     result = self.scoring.analyze_article_common(article, model)
+                self._remember_provider_success(provider)
                 report = result.setdefault("analysis_report", {})
                 if index == 0:
                     report.pop("fallback", None)
@@ -534,6 +614,29 @@ class MasterPressService:
                 return provider, model, result
             except json.JSONDecodeError as error:
                 last_error = error
+                # Workers AI can occasionally return an incomplete JSON body despite
+                # a successful HTTP response. Retry its primary common-analysis call
+                # once before consuming a reserve provider.
+                if provider == "cloudflare":
+                    try:
+                        if hasattr(self.scoring, "analyze_article_common_with_provider"):
+                            result = self.scoring.analyze_article_common_with_provider(provider, article, model)
+                        else:
+                            result = self.scoring.analyze_article_common(article, model)
+                        self._remember_provider_success(provider)
+                        report = result.setdefault("analysis_report", {})
+                        if index == 0:
+                            report.pop("fallback", None)
+                            report.pop("fallback_reason", None)
+                        else:
+                            report["fallback"] = True
+                            report["fallback_reason"] = "common_primary_unavailable"
+                        return provider, model, result
+                    except json.JSONDecodeError as retry_error:
+                        last_error = retry_error
+                    except OpenRouterError as retry_error:
+                        last_error = retry_error
+                        self._remember_provider_failure(provider, retry_error)
                 continue
             except OpenRouterError as error:
                 last_error = error
@@ -542,7 +645,7 @@ class MasterPressService:
         if last_error and self._active_provider_chain(chain):
             raise last_error
         raise OpenRouterError("reserve_llm_unavailable", status=503, retryable=True,
-                              retry_after=self._next_provider_reset([
+                              retry_after=self._next_provider_retry([
                                   self._provider_for_switchable_llm_model(self.selected_common_llm_model()),
                                   self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
                                   "gemini",
@@ -572,7 +675,7 @@ class MasterPressService:
         if last_error and self._active_provider_chain(chain):
             raise last_error
         raise OpenRouterError("case_llm_providers_unavailable", status=503, retryable=True,
-                              retry_after=self._next_provider_reset([
+                              retry_after=self._next_provider_retry([
                                   "openrouter",
                                   self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
                                   "gemini",
@@ -583,25 +686,31 @@ class MasterPressService:
         reserve1 = self._status_for_switchable_llm_model(self.selected_reserve1_model(), False)
         reserve2 = self.gemini_status(False)
         case = {**self.openrouter_status(False), "concurrency": 1, "burst_concurrency": 2, "burst_threshold": 10, "batch_size": self.selected_case_batch_size()}
-        common_daily_exhausted = int(common.get("attempts") or 0) >= int(common.get("soft_limit") or 0)
-        common_token_exhausted = bool(int(common.get("token_soft_limit") or 0) and int(common.get("tokens") or 0) >= int(common.get("token_soft_limit") or 0))
-        if common_daily_exhausted or common_token_exhausted:
+        primary_unavailable = not bool(common.get("available"))
+        if primary_unavailable:
             fallback = next((item for item in (reserve1, reserve2) if item.get("available")), {})
             common["fallback_provider"] = fallback.get("provider", "")
             common["fallback_active"] = bool(fallback)
             common["fallback_model"] = fallback.get("model", "")
-            common["state_label"] = f"{fallback.get('provider','예비')} 예비 사용 중" if fallback else "공통분석 충전 대기"
+            if common.get("temporarily_paused"):
+                common["state_label"] = f"기본 모델 10분 재시도 · {fallback.get('provider','예비')} 임시 사용 중" if fallback else "기본 모델 10분 재시도 대기"
+            else:
+                common["state_label"] = f"{fallback.get('provider','예비')} 예비 사용 중" if fallback else "공통분석 초기화 대기"
         chain_item = lambda item: {key: value for key, value in item.items() if key != "chain"}
         common["chain"] = [chain_item(common), chain_item(reserve1), chain_item(reserve2)]
+        temporary_waiting = any(item.get("temporarily_paused") for item in (common, case, reserve1, reserve2))
         case["chain"] = [chain_item(case), chain_item(reserve1), chain_item(reserve2)]
-        common_available = bool(common.get("connected") and not (common_daily_exhausted or common_token_exhausted)) or any(item.get("available") for item in (reserve1, reserve2))
+        common_available = bool(common.get("available")) or any(item.get("available") for item in (reserve1, reserve2))
         case_available = bool(case.get("available")) or any(item.get("available") for item in (reserve1, reserve2))
-        halted = not (common_available and case_available)
+        providers_waiting = not (common_available and case_available)
+        # A ten-minute retry is a live, recoverable state, never an end-of-day shutdown.
+        halted = bool(providers_waiting and not temporary_waiting)
         operation = {
             "halted": halted,
-            "message": "영업중지-토큰이 다 떨어졌어요. 낼 00시에 뵈어요~" if halted else "",
-            "retry_after": min([value for value in [common.get("reset_at"), case.get("reset_at"), reserve1.get("reset_at"), reserve2.get("reset_at")] if value] or [self._next_kst_midnight_iso()]) if halted else "",
-            "reason": "all_llm_providers_exhausted" if halted else "",
+            "waiting": bool(providers_waiting),
+            "message": ("기본 모델 재시도 대기 · 예비 체인을 10분 뒤 다시 확인합니다." if temporary_waiting else "영업중지-토큰이 다 떨어졌어요. 낼 00시에 뵈어요~") if providers_waiting else "",
+            "retry_after": min([value for value in [common.get("temporary_until"), common.get("reset_at"), case.get("temporary_until"), case.get("reset_at"), reserve1.get("temporary_until"), reserve1.get("reset_at"), reserve2.get("temporary_until"), reserve2.get("reset_at")] if value] or [self._next_kst_midnight_iso()]) if providers_waiting else "",
+            "reason": ("temporary_provider_retry" if temporary_waiting else "all_llm_providers_exhausted") if providers_waiting else "",
         }
         return {"common": common, "case": case, "reserve1": reserve1, "reserve2": reserve2, "embedding": self.ollama_embedding_status(), "operation": operation}
 
@@ -813,9 +922,9 @@ class MasterPressService:
             recorded = True
             self.store.save_article_embedding(analysis["id"], embedding_model, vector)
             if hasattr(self.mirror, "article_embedding"): self.mirror.article_embedding(analysis, article, vector, embedding_model)
-            # Persist a bounded recent-window cluster map so dashboard pages share stable group IDs.
-            self.store.rebuild_article_similarity_groups()
-            self.press_releases.queue_for_article(analysis["id"])
+            queued_matches = self.press_releases.queue_for_article(analysis["id"])
+            if queued_matches and hasattr(self.press_releases, "process_article_matches"):
+                self.press_releases.process_article_matches(article["id"], limit=256)
             self._route_article_analysis(analysis, article, analysis.get("organization_id"))
             return True
         except Exception as error:
@@ -864,7 +973,7 @@ class MasterPressService:
                         duration = round((time.monotonic() - started) * 1000)
                         self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True)
                         return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "error": "invalid_json_retry"}
-                    result = self.scoring.fallback_article_common(article, common_model, str(error))
+                    result = self.scoring.ollama.fallback_article_common(article, common_model, str(error))
                     fallback = True
                     provider = "local_fallback"
                 except OpenRouterError as error:
@@ -881,7 +990,7 @@ class MasterPressService:
                 if getattr(error, "deferred", False) or (getattr(error, "retryable", False) and int(job.get("attempts") or 0) < 2):
                     self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=getattr(error, "deferred", False))
                     return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "http_status": getattr(error, "status", 0), "error": str(error), "retry_after": retry_after}
-                result = self.scoring.fallback_article_common(article, common_model, str(error))
+                result = self.scoring.ollama.fallback_article_common(article, common_model, str(error))
                 self.store.save_article_analysis(analysis["id"], result, common_model)
                 self.store.finish_article_analysis_job(job["id"], True, duration)
                 routed = {"case_candidates": 0, "case_excluded": 0, "case_queued": 0, "embedded": 0, "fallback": 1, "provider": "local_fallback"}
@@ -1446,13 +1555,15 @@ class MasterPressService:
         return {"stage": "article", "result": article} if article else None
 
     def embedding_worker_tick(self) -> dict | None:
+        # Press-release matching is part of the live article pipeline.  Keep
+        # draining an existing batch even while article embeddings are arriving.
         embedding = self.process_next_embedding()
-        if embedding:
-            return {"stage": "embedding", "result": embedding}
         if not LOCAL_EMBEDDING_LOCK.acquire(blocking=False):
-            return None
+            return {"stage": "embedding", "result": embedding} if embedding else None
         try:
-            press = self.press_releases.process_next()
+            press = self.press_releases.process_next(match_limit=48)
+            if embedding:
+                return {"stage": "embedding", "result": embedding, "press_release": press}
             if press:
                 return {"stage": "press_release", "result": press}
             moderation = self.process_next_case_proposal_moderation()

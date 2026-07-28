@@ -346,6 +346,9 @@ class OllamaClient:
             return json.loads(response.read().decode("utf-8"))
 
     def _request_stage(self, payload: dict) -> str:
+        explicit_stage = str(payload.get("_stage") or "").strip()
+        if explicit_stage:
+            return explicit_stage
         messages = payload.get("messages") or []
         joined = " ".join(str((message or {}).get("content") or "") for message in messages if isinstance(message, dict))
         if "JSON results" in joined or "case_id" in joined or "케이스 판정" in joined:
@@ -470,7 +473,7 @@ LLM 입력 기사 내용 상태: {source}
     def _repair_common_analysis_fields(self, article: dict, model: str, system_prompt: str, user_prompt: str, missing_fields: list[str]) -> tuple[dict, str]:
         prompt = f"{user_prompt}\n\n[추가 지침]\n아래 필드가 누락되었습니다: {', '.join(missing_fields)}. 누락된 필드를 포함하여 JSON 형식을 유지하고, article_type, tone, summary, entities, topic_concepts, evidence_ids를 모두 반환하세요."
         response = self.request("/api/chat", {
-            "model": model, "stream": False, "format": "json",
+            "model": model, "stream": False, "format": "json", "_stage": "common", "reasoning": {"effort": "minimal", "exclude": True},
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
             "options": {"temperature": 0.0, "num_predict": 180, "num_ctx": 4096}, "keep_alive": "5m",
         })
@@ -514,7 +517,7 @@ JSON만 반환: {{"target_is_primary":false,"target_evidence_ids":[],"tone":"사
         missing_text = ", ".join(missing_required)
         user_prompt = f"{user_prompt}\n\n[추가 지침]\n공통 분석 결과에서 다음 필수 키워드가 빠졌습니다: {missing_text}\n요약, classification_tags, entities, topic_concepts, 이유에 이 키워드를 반영하고 JSON 형식을 유지하세요."
         response = self.request("/api/chat", {
-            "model": model, "stream": False, "format": "json",
+            "model": model, "stream": False, "format": "json", "_stage": "common", "reasoning": {"effort": "minimal", "exclude": True},
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             "options": {"temperature": 0.0, "num_predict": 240, "num_ctx": 4096}, "keep_alive": "5m",
         })
@@ -696,7 +699,7 @@ topic_concepts에 기관·어조·사회·정책 제외. 호우·대피·중대�
 {evidence_lines}"""
         model = str(model or getattr(self.settings, "groq_common_model", getattr(self.settings, "llm_model", "")))
         response = self.request("/api/chat", {
-            "model": model, "stream": False, "format": "json",
+            "model": model, "stream": False, "format": "json", "_stage": "common", "reasoning": {"effort": "minimal", "exclude": True},
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             "options": {"temperature": 0.0, "num_predict": 180, "num_ctx": 3072, "num_thread": 4}, "keep_alive": "10m",
         })
@@ -1407,7 +1410,21 @@ class _ReserveModelMixin:
         return value
 
     def analyze_article_common(self, article: dict, model: str | None = None) -> dict:
-        result = OllamaClient.analyze_article_common(self, article, model or self.default_model())
+        selected_model = model or self.default_model()
+        try:
+            result = OllamaClient.analyze_article_common(self, article, selected_model)
+        except json.JSONDecodeError as error:
+            if self.provider_name != "cloudflare":
+                raise
+            # Some Workers AI responses spend their completion budget in internal
+            # reasoning and never close the JSON body. Keep the selected primary
+            # provider, then complete the fixed common schema locally instead of
+            # unnecessarily consuming a reserve-model call.
+            result = OllamaClient.fallback_article_common(self, article, selected_model, str(error))
+            report = result.setdefault("analysis_report", {})
+            report["provider"] = "cloudflare"
+            report["response_recovery"] = "cloudflare_unparseable_json_local_schema"
+            return result
         report = result.setdefault("analysis_report", {})
         report["provider"] = self.provider_name
         report["fallback"] = True
@@ -1483,10 +1500,12 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
         body = {
             "messages": payload.get("messages", []),
             "temperature": float(options.get("temperature", 0.1)),
-            "max_tokens": max(300, min(4000, int(options.get("num_predict", 500)))),
+            "max_tokens": max(1200 if stage == "common" else 300, min(4000, int(options.get("num_predict", 500)))),
         }
         if payload.get("format") == "json" or payload.get("response_schema"):
             body["response_format"] = {"type": "json_object"}
+        if payload.get("reasoning"):
+            body["reasoning"] = payload["reasoning"]
         encoded_model = urllib.parse.quote(model, safe="@/")
         url = f"{str(getattr(self.settings, 'worker_ai_base_url', 'https://api.cloudflare.com/client/v4')).rstrip('/')}/accounts/{urllib.parse.quote(account_id, safe='')}/ai/run/{encoded_model}"
         started = time.monotonic()
@@ -1497,7 +1516,7 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=max(45, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
+            with urllib.request.urlopen(request, timeout=max(90, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
                 data = json.loads(response.read().decode("utf-8"))
             if data.get("success") is False:
                 errors = data.get("errors") or []
@@ -1506,6 +1525,15 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             result = data.get("result") if isinstance(data.get("result"), dict) else data.get("result")
             if isinstance(result, dict):
                 content = result.get("response") or result.get("text") or result.get("content") or result.get("result") or ""
+                # The current Workers AI OpenAI-compatible response places the
+                # generated text in choices[0].message.content.
+                choices = result.get("choices") or []
+                message = choices[0].get("message") if choices and isinstance(choices[0], dict) else {}
+                reasoning_content = message.get("reasoning_content") if isinstance(message, dict) else ""
+                if not content:
+                    content = message.get("content") if isinstance(message, dict) else ""
+                if not content:
+                    content = reasoning_content or ""
                 usage = result.get("usage") or data.get("usage") or {}
             else:
                 content = result or ""
@@ -1516,7 +1544,8 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             self._record(stage=stage, model=model, status="completed", duration_ms=duration_ms, http_status=200,
                          request_id=str(data.get("request_id") or ""),
                          input_tokens=int(usage.get("prompt_tokens") or usage.get("input_tokens") or 0),
-                         output_tokens=int(usage.get("completion_tokens") or usage.get("output_tokens") or 0))
+                         output_tokens=int(usage.get("completion_tokens") or usage.get("output_tokens") or 0),
+                         usage_units=int(usage.get("neurons") or usage.get("neural_units") or usage.get("usage_units") or 0))
             return {"message": {"content": str(content)}, "_provider_meta": {"provider": "cloudflare", "stage": stage, "request_id": str(data.get("request_id") or ""), "usage": usage}}
         except urllib.error.HTTPError as error:
             raw = error.read().decode("utf-8", "replace")

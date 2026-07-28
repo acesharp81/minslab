@@ -158,7 +158,7 @@ Current user-facing modules include dashboard monitoring, similar-article groupi
 - User menu: `구독 및 케이스 신청`, `대시보드`, `신경망 분석`, `보도동향`
 - Admin menu: member management, organization/case management, model settings, notices, thresholds, and reanalysis controls
 - Shared homepage administrator session; no separate web service or port
-- SQLite operational queue/cache with optional Supabase metadata mirror
+- SQLite operational queue/cache with optional Supabase metadata mirror; persisted similar-article map refreshes in a separate five-minute systemd timer
 - Detailed user manual and system analysis: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab

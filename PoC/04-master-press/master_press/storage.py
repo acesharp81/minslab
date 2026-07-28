@@ -371,6 +371,7 @@ CREATE TABLE IF NOT EXISTS llm_api_calls (
   request_id TEXT,
   input_tokens INTEGER NOT NULL DEFAULT 0,
   output_tokens INTEGER NOT NULL DEFAULT 0,
+  usage_units INTEGER NOT NULL DEFAULT 0,
   duration_ms INTEGER NOT NULL DEFAULT 0,
   error TEXT,
   created_at TEXT NOT NULL
@@ -679,6 +680,8 @@ CREATE INDEX IF NOT EXISTS idx_case_evaluation_jobs_status ON case_evaluation_jo
 CREATE INDEX IF NOT EXISTS idx_case_embeddings_status ON case_embeddings(status,updated_at);
 
 CREATE INDEX IF NOT EXISTS idx_scores_case_created ON article_scores(case_id, created_at DESC);
+-- Supports the unfiltered dashboard's newest-first score history without a full sort.
+CREATE INDEX IF NOT EXISTS idx_scores_created ON article_scores(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_scores_final ON article_scores(final_score);
 CREATE INDEX IF NOT EXISTS idx_llm_jobs_status_queued ON llm_jobs(status, queued_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(status, queued_at);
@@ -721,11 +724,14 @@ class Store:
         "abbreviations": [], "former_names": [], "people": [], "exclude_terms": [],
         "domains": [], "rss_urls": [], "collection_times": [],
     }
+    PIPELINE_SUMMARY_CACHE_TTL_SECONDS = 20
+    SIMILARITY_GROUP_REBUILD_LIMIT = 720
 
     def __init__(self, path: str | Path, initialize: bool = True):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
+        self._pipeline_summary_cache: dict[tuple, tuple[float, tuple[int, int, int, int], dict]] = {}
         if not initialize:
             return
         with self.connect() as connection:
@@ -792,6 +798,9 @@ class Store:
             if "reporter_name" not in common_columns:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN reporter_name TEXT NOT NULL DEFAULT ''")
             common_job_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_analysis_jobs)")}
+            api_call_columns = {row[1] for row in connection.execute("PRAGMA table_info(llm_api_calls)")}
+            if "usage_units" not in api_call_columns:
+                connection.execute("ALTER TABLE llm_api_calls ADD COLUMN usage_units INTEGER NOT NULL DEFAULT 0")
             if "organization_id" not in common_job_columns:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL")
             if "attempts" not in common_job_columns:
@@ -1081,8 +1090,39 @@ class Store:
             try:
                 yield connection
                 connection.commit()
+                # Local writes invalidate immediately; external worker writes are
+                # detected through the database/WAL file marker on the next read.
+                if connection.total_changes:
+                    self._pipeline_summary_cache.clear()
             finally:
                 connection.close()
+
+    def _database_change_marker(self) -> tuple[int, int, int, int]:
+        marker: list[int] = []
+        for path in (self.path, self.path.with_name(self.path.name + "-wal")):
+            try:
+                state = path.stat()
+                marker.extend((state.st_mtime_ns, state.st_size))
+            except OSError:
+                marker.extend((0, 0))
+        return tuple(marker)  # type: ignore[return-value]
+
+    def _pipeline_summary_cache_get(self, key: tuple, change_marker: tuple[int, int, int, int]) -> dict | None:
+        cached = self._pipeline_summary_cache.get(key)
+        if not cached:
+            return None
+        expires_at, cached_marker, payload = cached
+        if time.monotonic() >= expires_at or cached_marker != change_marker:
+            self._pipeline_summary_cache.pop(key, None)
+            return None
+        return json.loads(json.dumps(payload, ensure_ascii=False))
+
+    def _pipeline_summary_cache_set(self, key: tuple, change_marker: tuple[int, int, int, int], payload: dict) -> None:
+        self._pipeline_summary_cache[key] = (
+            time.monotonic() + self.PIPELINE_SUMMARY_CACHE_TTL_SECONDS,
+            change_marker,
+            json.loads(json.dumps(payload, ensure_ascii=False)),
+        )
 
     @classmethod
     def decode_case(cls, row: sqlite3.Row | dict) -> dict:
@@ -1924,13 +1964,13 @@ class Store:
 
     def record_llm_api_call(self, provider: str, stage: str, model: str, status: str, duration_ms: int = 0,
                             http_status: int | None = None, request_id: str = "", input_tokens: int = 0,
-                            output_tokens: int = 0, error: str = "") -> None:
+                            output_tokens: int = 0, usage_units: int = 0, error: str = "") -> None:
         with self.connect() as connection:
             connection.execute(
-                """INSERT INTO llm_api_calls(id,provider,stage,model,status,http_status,request_id,input_tokens,output_tokens,duration_ms,error,created_at)
-                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                """INSERT INTO llm_api_calls(id,provider,stage,model,status,http_status,request_id,input_tokens,output_tokens,usage_units,duration_ms,error,created_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (str(uuid.uuid4()), str(provider)[:30], str(stage)[:30], str(model)[:160], str(status)[:30], http_status,
-                 str(request_id)[:200] or None, max(0, int(input_tokens)), max(0, int(output_tokens)), max(0, int(duration_ms)),
+                 str(request_id)[:200] or None, max(0, int(input_tokens)), max(0, int(output_tokens)), max(0, int(usage_units)), max(0, int(duration_ms)),
                  str(error)[:1000] or None, now_iso()),
             )
 
@@ -1990,7 +2030,7 @@ class Store:
         query = """SELECT COUNT(*) attempts,
                           SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
                           SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
-                          COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,
+                          COALESCE(SUM(input_tokens),0) input_tokens,COALESCE(SUM(output_tokens),0) output_tokens,COALESCE(SUM(usage_units),0) usage_units,
                           COALESCE(AVG(CASE WHEN status='completed' THEN duration_ms END),0) average_ms
                    FROM llm_api_calls WHERE provider=? AND created_at>=?"""
         params: list[Any] = [str(provider), str(since)]
@@ -2004,7 +2044,7 @@ class Store:
         return {
             "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
             "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
-            "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
+            "tokens": tokens, "usage_units": int(row["usage_units"] or 0), "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
             "soft_limit": int(request_limit or 0), "remaining": max(0, int(request_limit or 0) - attempts) if request_limit else 0,
             "token_soft_limit": int(token_limit or 0), "token_remaining": max(0, int(token_limit or 0) - tokens) if token_limit else 0,
             "period": "custom", "day_start": str(since), "scope": "provider_total" if not stage else "provider_stage",
@@ -2033,7 +2073,7 @@ class Store:
             "period": "UTC day", "day_start": day_start, "scope": "provider_total",
         }
 
-    def groq_usage_today(self, request_limit: int = 900, token_limit: int = 450000) -> dict:
+    def groq_usage_today(self, request_limit: int = 900, token_limit: int = 650000) -> dict:
         return self.provider_usage_today("groq", "common", request_limit, token_limit)
 
 
@@ -3211,11 +3251,67 @@ class Store:
             rows = connection.execute("SELECT * FROM article_similarity_groups WHERE article_id IN (" + ",".join("?" for _ in clean) + ")", clean).fetchall()
         return {str(row["article_id"]): {"group_id": row["group_id"], "size": int(row["group_size"] or 1), "basis": row["basis"], "status": row["status"], "score": float(row["score"] or 0), "semantic_score": float(row["semantic_score"] or 0), "noun_score": float(row["noun_score"] or 0), "topics": json_value(row["topics"], []), "concepts": json_value(row["concepts"], [])} for row in rows}
 
-    def rebuild_article_similarity_groups(self, limit: int = 240) -> int:
+    def similarity_groups_stale(self) -> bool:
+        with self.connect() as connection:
+            latest_embedding = connection.execute("SELECT MAX(updated_at) FROM article_embeddings WHERE status='completed'").fetchone()[0]
+            latest_groups = connection.execute("SELECT MAX(computed_at) FROM article_similarity_groups").fetchone()[0]
+            expected = connection.execute("SELECT COUNT(*) FROM (SELECT aa.id FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?)", (self.SIMILARITY_GROUP_REBUILD_LIMIT,)).fetchone()[0]
+            current = connection.execute("SELECT COUNT(*) FROM article_similarity_groups").fetchone()[0]
+        return bool(int(current or 0) != int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups))))
+
+    def similarity_groups_status(self) -> dict:
+        """Return the persisted related-article map health for the admin monitor."""
+        keys = (
+            "similarity_groups_last_status", "similarity_groups_last_at",
+            "similarity_groups_last_articles", "similarity_groups_last_duration_ms",
+            "similarity_groups_last_error",
+        )
+        with self.connect() as connection:
+            latest_embedding = connection.execute("SELECT MAX(updated_at) FROM article_embeddings WHERE status='completed'").fetchone()[0]
+            latest_groups = connection.execute("SELECT MAX(computed_at) FROM article_similarity_groups").fetchone()[0]
+            expected = connection.execute("SELECT COUNT(*) FROM (SELECT aa.id FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?)", (self.SIMILARITY_GROUP_REBUILD_LIMIT,)).fetchone()[0]
+            current = connection.execute("SELECT COUNT(*) FROM article_similarity_groups").fetchone()[0]
+            rows = connection.execute("SELECT key,value FROM app_settings WHERE key IN (" + ",".join("?" for _ in keys) + ")", keys).fetchall()
+        settings = {str(row["key"]): str(row["value"] or "") for row in rows}
+        return {
+            "status": settings.get("similarity_groups_last_status", "rebuilt" if latest_groups else "not_run"),
+            "last_at": settings.get("similarity_groups_last_at", str(latest_groups or "")),
+            "last_articles": int(settings.get("similarity_groups_last_articles", str(current or 0)) or 0),
+            "last_duration_ms": float(settings.get("similarity_groups_last_duration_ms", "0") or 0),
+            "last_error": settings.get("similarity_groups_last_error", ""),
+            "stored": int(current or 0), "expected": int(expected or 0),
+            "stale": bool(int(current or 0) != int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups)))),
+            "computed_at": str(latest_groups or ""),
+        }
+
+    def rebuild_article_similarity_groups(self, limit: int = SIMILARITY_GROUP_REBUILD_LIMIT) -> int:
+        """Rebuild a broad recent group map outside the dashboard request path."""
+        safe_limit = max(2, min(1000, int(limit)))
+        with self.connect() as connection:
+            rows = connection.execute("SELECT a.id,a.title,a.snippet,a.body,a.published_at,a.first_seen_at,aa.summary,aa.entities,aa.topic_concepts,ae.vector article_vector FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed' WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?", (safe_limit,)).fetchall()
+        articles = []
+        for row in rows:
+            item = dict(row)
+            articles.append({
+                "id": item["id"], "title": item["title"], "summary": item.get("summary") or "",
+                "entities": json_value(item.get("entities"), []), "topic_concepts": json_value(item.get("topic_concepts"), []),
+                "semantic_vector": json_value(item.get("article_vector"), []), "published_at": item.get("published_at"),
+                "first_seen_at": item.get("first_seen_at"),
+                "_group_text": " ".join(str(item.get(key) or "") for key in ("title", "snippet", "body", "summary"))[:12000],
+            })
+        groups = self._dashboard_article_groups(articles)
+        for article in articles:
+            group = groups.get(str(article["id"]), {})
+            article.update({
+                "similar_group_id": group.get("group_id", ""), "similar_group_size": int(group.get("size") or 1),
+                "similar_group_basis": group.get("basis", ""), "similar_group_status": group.get("status", ""),
+                "similar_group_score": float(group.get("score") or 0), "similar_group_semantic_score": float(group.get("semantic_score") or 0),
+                "similar_group_noun_score": float(group.get("noun_score") or 0), "similar_group_topics": group.get("topics", []),
+                "similar_group_concepts": group.get("concepts", []),
+            })
         with self.connect() as connection:
             connection.execute("DELETE FROM article_similarity_groups")
-        dashboard = self.pipeline_dashboard(limit=max(2, min(500, int(limit))), include_groups=True)
-        return self.save_article_similarity_groups(dashboard.get("articles", []))
+        return self.save_article_similarity_groups(articles)
 
     def list_article_embedding_vectors(self, model: str) -> list[list[float]]:
         with self.connect() as connection:
@@ -3534,6 +3630,11 @@ class Store:
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
         """Current queue plus today's completed/failed counts, reset at 00:00 KST."""
         day_start = kst_day_start_iso()
+        cache_key = ("pipeline_stats_v1", str(case_id or ""), str(organization_id or ""), day_start)
+        cache_marker = self._database_change_marker()
+        cached_stats = self._pipeline_summary_cache_get(cache_key, cache_marker)
+        if cached_stats is not None:
+            return cached_stats
         speed_reset_at = str(self.get_setting("pipeline_speed_reset_at", "") or "")
         speed_start = speed_reset_at if speed_reset_at and speed_reset_at > day_start else day_start
         error_reset_at = str(self.get_setting("pipeline_error_reset_at", "") or "")
@@ -3661,7 +3762,7 @@ class Store:
         embedding_counts["failed_total"] = max(embedding_counts.get("failed", 0), int(embedding_error_row["total_errors"] or 0) if embedding_error_row else 0)
         job_counts.update(common_job_errors)
         case_job_counts.update(case_job_errors)
-        return {"common": common_counts, "cases": case_counts, "article_jobs": job_counts, "embedding": embedding_counts, "case_jobs": case_job_counts,
+        result = {"common": common_counts, "cases": case_counts, "article_jobs": job_counts, "embedding": embedding_counts, "case_jobs": case_job_counts,
             "pending": job_counts.get("pending", 0) + case_job_counts.get("pending", 0),
             "processing": job_counts.get("processing", 0) + case_job_counts.get("processing", 0),
             "completed": job_counts.get("completed", 0) + case_job_counts.get("completed", 0),
@@ -3671,6 +3772,29 @@ class Store:
             "processing_title": str(title["title"]) if title else "", "period": "KST day",
             "day_start": day_start, "speed_start": speed_start, "speed_reset_at": speed_reset_at,
             "error_start": error_start, "error_reset_at": error_reset_at}
+        self._pipeline_summary_cache_set(cache_key, self._database_change_marker(), result)
+        return result
+
+    def _hydrate_dashboard_group_scope(self, articles: list[dict]) -> None:
+        """Load group-only body/vector data for the bounded new-article fallback."""
+        analysis_ids = [str(article.get("analysis_id") or "") for article in articles if str(article.get("analysis_id") or "")]
+        if not analysis_ids:
+            return
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT aa.id analysis_id,a.title,a.snippet,substr(a.body,1,1800) source_body,aa.summary,ae.vector article_vector "
+                "FROM article_analyses aa JOIN articles a ON a.id=aa.article_id "
+                "LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed' "
+                "WHERE aa.id IN (" + ",".join("?" for _ in analysis_ids) + ")",
+                analysis_ids,
+            ).fetchall()
+        source = {str(row["analysis_id"]): dict(row) for row in rows}
+        for article in articles:
+            row = source.get(str(article.get("analysis_id") or ""), {})
+            article["semantic_vector"] = json_value(row.get("article_vector"), [])
+            article["_group_text"] = " ".join(
+                str(row.get(key) or "") for key in ("title", "snippet", "source_body", "summary")
+            )[:12000]
 
     def _dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None) -> dict[str, dict]:
         """Build dashboard article bundles with the same strictness used by the neural graph.
@@ -3993,16 +4117,17 @@ class Store:
                 "OR instr(lower(COALESCE(aa.summary,'')),lower(?))>0)"
             )
             article_params.extend([search] * 7)
-        source_body_expr = "substr(a.body,1,1800)" if include_groups else "''"
+        # The persisted map serves completed articles. Keep the broad dashboard
+        # query lean; only the small missing fallback scope is hydrated below.
+        source_body_expr = "''"
         press_stats_fields = "0 related_press_count,0 press_match_checked_count,0 press_match_total_count,"
         sql = f"""SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
-                                    a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,{source_body_expr} source_body,ae.vector article_vector,
+                                    a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,{source_body_expr} source_body,'' article_vector,
                                     {press_stats_fields}
                                     ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_raw,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.analysis_report evaluation_report,ce.error evaluation_error,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
                                     c.name case_name,o.name organization_name
                                     FROM article_processing_flags apf
                                     JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
-                                    LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
                                     LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
                                     LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
                                     LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
@@ -4115,10 +4240,15 @@ class Store:
                 "sent": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("sent",)) for value in results),
                 "scheduled": sum(sum(value.get("deliveries", {}).get(status, 0) for status in ("pending", "retry")) for value in results),
             }
-        # A global persisted group can have another case, time window, or threshold.
-        # Recompute against this exact scope so the dashboard uses the same hybrid
-        # grouping rule as the neural view.
-        similar_groups = self._dashboard_article_groups(group_scope, organization_id=organization_id, case_id=case_id) if include_groups else {}
+        similar_groups: dict[str, dict] = {}
+        if include_groups:
+            group_ids = [str(article.get("id") or "") for article in all_articles]
+            persisted_groups = self.article_similarity_groups(group_ids)
+            missing_scope = [article for article in group_scope if str(article.get("id") or "") not in persisted_groups]
+            if missing_scope:
+                self._hydrate_dashboard_group_scope(group_scope)
+                persisted_groups.update(self._dashboard_article_groups(group_scope, organization_id=organization_id, case_id=case_id))
+            similar_groups = persisted_groups
         for article in all_articles:
             group = similar_groups.get(str(article.get("id") or ""), {})
             article["similar_group_id"] = group.get("group_id", "")
@@ -4184,6 +4314,7 @@ class Store:
             for tag in filter_tags:
                 tag_counts[str(tag)] = tag_counts.get(str(tag), 0) + 1
         similar_article_threshold = max(0.0, min(100.0, float(self.get_setting("similar_article_threshold", "65"))))
+        pipeline_stats = self.pipeline_stats(case_id, organization_id)
         return {"stats": stats, "articles": articles, "offset": offset, "next_offset": next_offset, "limit": limit, "has_more": has_more, "similar_article_threshold": similar_article_threshold,
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
@@ -4191,7 +4322,7 @@ class Store:
             "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total"}],
             "delivery_errors": {"failed_current": delivery_totals.get("failed_current", 0), "failed_total": delivery_totals.get("failed_total", 0)},
             "recent_sent": [dict(row) for row in recent_sent_rows], "recent_runs": [],
-            "llm": self.pipeline_stats(case_id, organization_id), "pipeline": self.pipeline_stats(case_id, organization_id)}
+            "llm": pipeline_stats, "pipeline": pipeline_stats}
 
     def dashboard(
         self,

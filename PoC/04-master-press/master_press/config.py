@@ -122,7 +122,10 @@ class Settings:
             groq_base_url=env("MASTER_PRESS_GROQ_BASE_URL", default="https://api.groq.com/openai/v1").rstrip("/"),
             groq_common_model=env("MASTER_PRESS_GROQ_COMMON_MODEL", default="llama-3.1-8b-instant"),
             groq_daily_request_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_REQUEST_SOFT_LIMIT", 900, 1, 14000),
-            groq_daily_token_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_TOKEN_SOFT_LIMIT", 450000, 1000, 500000),
+            # Groq's configured allocation can exceed the legacy 500k free-tier
+            # default. Keep the guard configurable up to 1M tokens so an
+            # assigned 650k budget is not prematurely locked.
+            groq_daily_token_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_TOKEN_SOFT_LIMIT", 650000, 1000, 1000000),
             groq_minute_token_soft_limit=env_int("MASTER_PRESS_GROQ_MINUTE_TOKEN_SOFT_LIMIT", 5400, 500, 6000),
             openrouter_api_key=env(
                 "MASTER_PRESS_OPENROUTER_API_MYKEY", "OPENROUTER_API_MYKEY",

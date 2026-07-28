@@ -525,7 +525,7 @@ def dispatch(
         if models and model not in models:
             raise MasterPressError("현재 공통분석/예비1에서 지원하는 모델만 선택할 수 있습니다.")
         service.store.set_setting("common_llm_model", model)
-        return {"common_llm_model": model, "common_llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True), "cloudflare": service.cloudflare_status(probe=False), "groq": service.groq_status(probe=False)}
+        return {"common_llm_model": model, "common_llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True), "cloudflare": service.cloudflare_status(probe=False), "groq": service.groq_status(probe=False), "openrouter": service.openrouter_status(probe=False)}
 
     if path == "/admin/settings/embedding-model" and method == "PUT":
         _require_admin(admin_authenticated)

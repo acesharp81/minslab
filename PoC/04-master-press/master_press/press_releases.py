@@ -674,11 +674,16 @@ class PressReleaseManager:
         queued = self._queue_release_pairs(release["id"])
         return {"stage": "press_embedding", "press_release_id": release["id"], "chunks": len(chunks), "queued_matches": queued}
 
-    def _next_match_job(self) -> dict | None:
+    def _next_match_job(self, article_id: str = "") -> dict | None:
+        now = now_iso()
+        clause, params = "status='pending' AND COALESCE(queued_at,'')<=?", [now]
+        if article_id:
+            clause += " AND article_id=?"
+            params.append(article_id)
         with self.store.connect() as connection:
-            row = connection.execute("SELECT * FROM press_release_match_jobs WHERE status='pending' ORDER BY queued_at LIMIT 1").fetchone()
+            row = connection.execute(f"SELECT * FROM press_release_match_jobs WHERE {clause} ORDER BY queued_at LIMIT 1", params).fetchone()
             if row:
-                changed = connection.execute("UPDATE press_release_match_jobs SET status='processing',started_at=? WHERE article_id=? AND press_release_id=? AND status='pending'", (now_iso(), row["article_id"], row["press_release_id"])).rowcount
+                changed = connection.execute("UPDATE press_release_match_jobs SET status='processing',started_at=? WHERE article_id=? AND press_release_id=? AND status='pending'", (now, row["article_id"], row["press_release_id"])).rowcount
                 if not changed:
                     return None
         return dict(row) if row else None
@@ -808,7 +813,7 @@ class PressReleaseManager:
             "shared_concepts": sorted(shared_concepts), "strong_terms": sorted(strong_terms),
         }
 
-    def process_next(self) -> dict | None:
+    def process_next(self, match_limit: int = 24) -> dict | None:
         release = self._next_pending_release()
         if release:
             try:
@@ -818,23 +823,37 @@ class PressReleaseManager:
                     connection.execute("UPDATE press_releases SET embedding_status='failed',last_error=?,updated_at=? WHERE id=?", (str(error)[:1000], now_iso(), release["id"]))
                 return {"stage": "press_embedding", "status": "failed", "press_release_id": release["id"], "error": str(error)}
         results, errors = [], []
-        for _index in range(12):
+        for _index in range(max(1, min(48, int(match_limit)))):
             job = self._next_match_job()
             if not job:
                 break
             try:
                 results.append(self._process_match(job))
             except Exception as error:
-                with self.store.connect() as connection:
-                    connection.execute(
-                        "UPDATE press_release_match_jobs SET status='failed',finished_at=?,error=? WHERE article_id=? AND press_release_id=?",
-                        (now_iso(), str(error)[:1000], job["article_id"], job["press_release_id"]),
-                    )
+                self._defer_match_job(job, error)
                 errors.append(str(error))
         if not results and not errors:
             return None
         return {"stage": "press_match", "processed": len(results), "related": sum(bool(item.get("related")) for item in results),
                 "failed": len(errors), "errors": errors[:3], "results": results}
+
+    def process_article_matches(self, article_id: str, limit: int = 256) -> dict | None:
+        """Run a bounded set of matches for the article that just completed."""
+        results, errors = [], []
+        for _index in range(max(1, min(256, int(limit)))):
+            job = self._next_match_job(article_id)
+            if not job:
+                break
+            try:
+                results.append(self._process_match(job))
+            except Exception as error:
+                self._defer_match_job(job, error)
+                errors.append(str(error))
+        if not results and not errors:
+            return None
+        return {"stage": "press_match", "article_id": article_id, "processed": len(results),
+                "related": sum(bool(item.get("related")) for item in results), "deferred": len(errors),
+                "errors": errors[:3], "results": results}
 
     def list_releases(self, organization_id: str = "", limit: int = 50, search: str = "", offset: int = 0) -> list[dict]:
         threshold = self.match_threshold()
