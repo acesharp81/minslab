@@ -18,6 +18,8 @@ PROJECT_DIR = Path(__file__).resolve().parent
 if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
+
+from master_press.magazine import MagazinePublisher
 from master_press.kakao import KakaoError
 from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, get_service, worker_tick
 from master_press.storage import now_iso
@@ -290,6 +292,21 @@ def dispatch(
             include_press_stats=True,
         )
 
+    if path == "/magazines" and method == "GET":
+        publisher = MagazinePublisher(service.store)
+        organization_id = str(query.get("organization_id") or "").strip()
+        return {
+            "organizations": [{"id": item["id"], "name": item["name"]} for item in service.store.list_organizations(active_only=True)],
+            "items": publisher.editions(organization_id, int(query.get("limit") or 365)),
+        }
+
+    if path.startswith("/magazines/") and method == "GET":
+        edition_id = path[len("/magazines/"):].strip("/")
+        edition = MagazinePublisher(service.store).edition(edition_id)
+        if not edition:
+            raise MasterPressError("매거진 에디션을 찾지 못했습니다.", 404)
+        return {"edition": edition}
+
     if path == "/signup/bootstrap" and method == "GET":
         return signup_bootstrap(admin_authenticated)
 
@@ -349,6 +366,8 @@ def dispatch(
         case_ids = payload.get("case_ids", [])
         if not isinstance(case_ids, list):
             raise MasterPressError("케이스 선택값이 올바르지 않습니다.")
+        magazine_slots = payload.get("magazine_slots", [])
+        if not isinstance(magazine_slots, list): raise MasterPressError("매거진 에디션 선택값이 올바르지 않습니다.")
         recipient_id = str(payload.get("recipient_id") or "").strip()
         if recipient_id:
             recipient = service.store.get_recipient(recipient_id)
@@ -365,6 +384,7 @@ def dispatch(
             case_ids,
             1440,
             recipient_id,
+            magazine_slots,
         )
         if not recipient_id:
             base = request_base.rstrip("/")
@@ -384,7 +404,12 @@ def dispatch(
         return service.store.analysis_insights(
             case_id or None, organization_id or None, int(query.get("days") or 7), sent_only=sent_only, delivery_only=delivery_only,
             article_limit=max(1, min(5000, int(query.get("article_limit") or 60))),
+            include_detail=str(query.get("detail") or "") in {"1", "true", "yes"},
         )
+
+    if path == "/delivery-trends" and method == "GET":
+        organization_id = str(query.get("organization_id") or "").strip()
+        return service.store.case_delivery_trends(organization_id or None, int(query.get("days") or 14))
 
     if path == "/press-releases" and method == "GET":
         limit = max(1, min(50, int(query.get("limit") or 20)))

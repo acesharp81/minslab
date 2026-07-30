@@ -687,6 +687,48 @@ CREATE INDEX IF NOT EXISTS idx_llm_jobs_status_queued ON llm_jobs(status, queued
 CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_organizations_due ON organizations(is_active, next_collect_at);
 CREATE INDEX IF NOT EXISTS idx_deliveries_due ON deliveries(status, scheduled_at);
+
+-- A magazine is an immutable, shared editorial snapshot. Browser-specific
+-- case choices are deliberately not stored here.
+CREATE TABLE IF NOT EXISTS magazine_editions (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  organization_name TEXT NOT NULL DEFAULT '',
+  edition_date TEXT NOT NULL,
+  edition_slot TEXT NOT NULL CHECK(edition_slot IN ('morning','lunch','evening','daily')),
+  window_start_at TEXT NOT NULL,
+  window_end_at TEXT NOT NULL,
+  case_catalog TEXT NOT NULL DEFAULT '[]',
+  issue_count INTEGER NOT NULL DEFAULT 0,
+  article_count INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'published',
+  generated_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(organization_id, edition_date, edition_slot)
+);
+CREATE INDEX IF NOT EXISTS idx_magazine_editions_org_date
+  ON magazine_editions(organization_id,edition_date DESC,edition_slot);
+
+CREATE TABLE IF NOT EXISTS magazine_issue_members (
+  edition_id TEXT NOT NULL REFERENCES magazine_editions(id) ON DELETE CASCADE,
+  article_id TEXT NOT NULL,
+  issue_key TEXT NOT NULL,
+  rank INTEGER NOT NULL DEFAULT 0,
+  title TEXT NOT NULL DEFAULT '',
+  summary TEXT NOT NULL DEFAULT '',
+  publisher TEXT NOT NULL DEFAULT '',
+  tone TEXT NOT NULL DEFAULT '사실전달',
+  article_type TEXT NOT NULL DEFAULT '기타',
+  published_at TEXT,
+  original_url TEXT NOT NULL DEFAULT '',
+  image_url TEXT NOT NULL DEFAULT '',
+  case_matches TEXT NOT NULL DEFAULT '[]',
+  related_press_releases TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  PRIMARY KEY(edition_id, article_id)
+);
+CREATE INDEX IF NOT EXISTS idx_magazine_members_issue
+  ON magazine_issue_members(edition_id,issue_key,rank);
 CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(published_at DESC);
 CREATE TABLE IF NOT EXISTS supabase_outbox (
   id TEXT PRIMARY KEY,
@@ -711,6 +753,7 @@ CREATE TABLE IF NOT EXISTS processing_daily_stats (
 CREATE INDEX IF NOT EXISTS idx_processing_daily_stats_day ON processing_daily_stats(day DESC);
 """
 
+MAGAZINE_EXTENSION_SCHEMA = "CREATE TABLE IF NOT EXISTS signup_request_magazine_slots (request_id TEXT NOT NULL REFERENCES signup_requests(id) ON DELETE CASCADE,edition_slot TEXT NOT NULL CHECK(edition_slot IN ('morning','lunch','evening','daily')),PRIMARY KEY(request_id,edition_slot));\nCREATE TABLE IF NOT EXISTS recipient_magazine_subscriptions (organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,recipient_id TEXT NOT NULL REFERENCES recipients(id) ON DELETE CASCADE,edition_slots TEXT NOT NULL DEFAULT '[]',case_ids TEXT NOT NULL DEFAULT '[]',updated_at TEXT NOT NULL,PRIMARY KEY(organization_id,recipient_id));\nCREATE INDEX IF NOT EXISTS idx_magazine_subscriptions_recipient ON recipient_magazine_subscriptions(recipient_id,organization_id);\nCREATE TABLE IF NOT EXISTS magazine_deliveries (id TEXT PRIMARY KEY,edition_id TEXT NOT NULL REFERENCES magazine_editions(id) ON DELETE CASCADE,recipient_id TEXT NOT NULL REFERENCES recipients(id) ON DELETE CASCADE,selected_case_ids TEXT NOT NULL DEFAULT '[]',scheduled_at TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,response_code INTEGER,last_error TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,sent_at TEXT,UNIQUE(edition_id,recipient_id));\nCREATE INDEX IF NOT EXISTS idx_magazine_deliveries_due ON magazine_deliveries(status,scheduled_at);"
 
 
 
@@ -732,10 +775,14 @@ class Store:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._pipeline_summary_cache: dict[tuple, tuple[float, tuple[int, int, int, int], dict]] = {}
+        self._magazine_schema_ready = False
         if not initialize:
             return
         with self.connect() as connection:
             connection.executescript(SCHEMA)
+            magazine_member_columns = {row[1] for row in connection.execute("PRAGMA table_info(magazine_issue_members)")}
+            if "image_url" not in magazine_member_columns:
+                connection.execute("ALTER TABLE magazine_issue_members ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
             self._migrate_article_case_flag_schema(connection)
             article_columns = {row[1] for row in connection.execute("PRAGMA table_info(articles)")}
             if "image_url" not in article_columns:
@@ -1080,6 +1127,40 @@ class Store:
             (now_iso(),),
         )
 
+    def ensure_magazine_schema(self) -> None:
+        if self._magazine_schema_ready:
+            return
+        with self.connect() as connection:
+            row = connection.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='magazine_editions'").fetchone()
+            definition = str(row["sql"] or "") if row else ""
+            if definition and "'daily'" not in definition:
+                connection.execute("PRAGMA foreign_keys=OFF")
+                connection.execute("ALTER TABLE magazine_issue_members RENAME TO magazine_issue_members_legacy")
+                connection.execute("ALTER TABLE magazine_editions RENAME TO magazine_editions_legacy")
+                connection.executescript("CREATE TABLE magazine_editions (id TEXT PRIMARY KEY,organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,organization_name TEXT NOT NULL DEFAULT '',edition_date TEXT NOT NULL,edition_slot TEXT NOT NULL CHECK(edition_slot IN ('morning','lunch','evening','daily')),window_start_at TEXT NOT NULL,window_end_at TEXT NOT NULL,case_catalog TEXT NOT NULL DEFAULT '[]',issue_count INTEGER NOT NULL DEFAULT 0,article_count INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'published',generated_at TEXT NOT NULL,updated_at TEXT NOT NULL,UNIQUE(organization_id,edition_date,edition_slot));\nCREATE TABLE magazine_issue_members (edition_id TEXT NOT NULL REFERENCES magazine_editions(id) ON DELETE CASCADE,article_id TEXT NOT NULL,issue_key TEXT NOT NULL,rank INTEGER NOT NULL DEFAULT 0,title TEXT NOT NULL DEFAULT '',summary TEXT NOT NULL DEFAULT '',publisher TEXT NOT NULL DEFAULT '',tone TEXT NOT NULL DEFAULT '사실전달',article_type TEXT NOT NULL DEFAULT '기타',published_at TEXT,original_url TEXT NOT NULL DEFAULT '',image_url TEXT NOT NULL DEFAULT '',case_matches TEXT NOT NULL DEFAULT '[]',related_press_releases TEXT NOT NULL DEFAULT '[]',created_at TEXT NOT NULL,PRIMARY KEY(edition_id,article_id));")
+                connection.execute("INSERT INTO magazine_editions SELECT * FROM magazine_editions_legacy")
+                connection.execute("INSERT INTO magazine_issue_members SELECT * FROM magazine_issue_members_legacy")
+                connection.execute("DROP TABLE magazine_issue_members_legacy")
+                connection.execute("DROP TABLE magazine_editions_legacy")
+                connection.execute("CREATE INDEX IF NOT EXISTS idx_magazine_editions_org_date ON magazine_editions(organization_id,edition_date DESC,edition_slot)")
+                connection.execute("CREATE INDEX IF NOT EXISTS idx_magazine_members_issue ON magazine_issue_members(edition_id,issue_key,rank)")
+                connection.execute("PRAGMA foreign_keys=ON")
+            connection.executescript(MAGAZINE_EXTENSION_SCHEMA)
+            # Early snapshots were written while image_url was appended to the
+            # table; their final four values are shifted by one column. This
+            # scans historical snapshots, so retain a one-time repair marker.
+            repaired = connection.execute("SELECT 1 FROM app_settings WHERE key='magazine_member_columns_repaired_v1'").fetchone()
+            if not repaired:
+                connection.execute(
+                    "UPDATE magazine_issue_members SET image_url=created_at,case_matches=image_url,related_press_releases=case_matches,created_at=related_press_releases WHERE image_url LIKE '[%' AND case_matches LIKE '[%' AND related_press_releases GLOB '????-??-??T*'"
+                )
+                connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES('magazine_member_columns_repaired_v1','1',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (now_iso(),))
+        self._magazine_schema_ready = True
+
+    def magazine_edition_exists(self, organization_id: str, edition_date: str, slot: str) -> bool:
+        with self.connect() as connection:
+            return bool(connection.execute("SELECT 1 FROM magazine_editions WHERE organization_id=? AND edition_date=? AND edition_slot=?", (organization_id, edition_date, slot)).fetchone())
+
     @contextmanager
     def connect(self):
         with self._lock:
@@ -1404,8 +1485,14 @@ class Store:
         ).fetchall()
         return [{**dict(row), "is_active": bool(row["is_active"])} for row in rows]
 
+    def _signup_request_magazine_slots(self, connection: sqlite3.Connection, request_id: str) -> list[str]:
+        return [str(row["edition_slot"]) for row in connection.execute(
+            "SELECT edition_slot FROM signup_request_magazine_slots WHERE request_id=? ORDER BY CASE edition_slot WHEN 'morning' THEN 1 WHEN 'lunch' THEN 2 WHEN 'evening' THEN 3 ELSE 4 END", (request_id,)
+        ).fetchall()]
+
     def _decode_signup_request(self, connection: sqlite3.Connection, row: sqlite3.Row | dict, include_private: bool = False) -> dict:
         item = dict(row)
+        magazine_slots = self._signup_request_magazine_slots(connection, str(item["id"]))
         cases = self._signup_request_cases(connection, str(item["id"]))
         result = {
             "id": item["id"],
@@ -1416,6 +1503,7 @@ class Store:
             "kakao_registered": bool(item.get("recipient_id")),
             "kakao_registered_at": item.get("kakao_registered_at"),
             "case_requests": cases,
+            "magazine_slots": magazine_slots,
             "admin_note": item.get("admin_note") or "",
             "created_at": item.get("created_at"),
             "updated_at": item.get("updated_at"),
@@ -1453,7 +1541,8 @@ class Store:
         ).rowcount or 0
         return int(expired + orphaned)
 
-    def create_signup_request(self, applicant_name: str, organization_id: str, case_ids: Iterable[str], ttl_minutes: int = 1440, recipient_id: str = "") -> tuple[dict, str]:
+    def create_signup_request(self, applicant_name: str, organization_id: str, case_ids: Iterable[str], ttl_minutes: int = 1440, recipient_id: str = "", magazine_slots: Iterable[str] = ()) -> tuple[dict, str]:
+        self.ensure_magazine_schema()
         name = re.sub(r"\s+", " ", str(applicant_name or "").strip())[:80]
         if not name:
             raise ValueError("신청자 이름을 입력하세요.")
@@ -1461,6 +1550,12 @@ class Store:
         if not organization or not organization.get("is_active"):
             raise ValueError("활성화된 부처를 선택하세요.")
         requested_case_ids = [str(value) for value in dict.fromkeys(case_ids) if str(value).strip()]
+        requested_magazine_slots = [str(value).strip() for value in dict.fromkeys(magazine_slots) if str(value).strip()]
+        invalid_slots = set(requested_magazine_slots) - {"morning", "lunch", "evening", "daily"}
+        if invalid_slots:
+            raise ValueError("선택한 매거진 에디션이 올바르지 않습니다.")
+        if requested_magazine_slots and not requested_case_ids:
+            raise ValueError("매거진 구독은 주요뉴스를 고를 케이스를 하나 이상 선택해야 합니다.")
         active_cases = {
             item["id"]: item for item in self.list_cases_for_organization(organization["id"], active_only=True)
         }
@@ -1489,6 +1584,10 @@ class Store:
             connection.executemany(
                 "INSERT INTO signup_request_cases(request_id,case_id,status,updated_at) VALUES(?,?, 'pending',?)",
                 [(request_id, case_id, now) for case_id in requested_case_ids],
+            )
+            connection.executemany(
+                "INSERT INTO signup_request_magazine_slots(request_id,edition_slot) VALUES(?,?)",
+                [(request_id, slot) for slot in requested_magazine_slots],
             )
             row = connection.execute(
                 """SELECT sr.*,o.name organization_name FROM signup_requests sr
@@ -1653,7 +1752,19 @@ class Store:
             row = self._refresh_signup_request_status(connection, request_id, admin_note)
             return self._decode_signup_request(connection, row, include_private=True)
 
+    def _sync_magazine_subscription(self, connection: sqlite3.Connection, request_id: str) -> None:
+        request = connection.execute("SELECT organization_id,recipient_id FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+        if not request or not request["recipient_id"]:
+            return
+        slots = self._signup_request_magazine_slots(connection, request_id)
+        cases = [str(row["case_id"]) for row in connection.execute("SELECT case_id FROM signup_request_cases WHERE request_id=? AND status='approved'", (request_id,)).fetchall()]
+        if slots and cases:
+            connection.execute("INSERT INTO recipient_magazine_subscriptions(organization_id,recipient_id,edition_slots,case_ids,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(organization_id,recipient_id) DO UPDATE SET edition_slots=excluded.edition_slots,case_ids=excluded.case_ids,updated_at=excluded.updated_at", (request["organization_id"], request["recipient_id"], json.dumps(slots), json.dumps(cases), now_iso()))
+        else:
+            connection.execute("DELETE FROM recipient_magazine_subscriptions WHERE organization_id=? AND recipient_id=?", (request["organization_id"], request["recipient_id"]))
+
     def set_signup_request_subscriptions(self, request_id: str, case_ids: Iterable[str], admin_note: str = "") -> dict:
+        self.ensure_magazine_schema()
         selected = {str(value).strip() for value in case_ids if str(value).strip()}
         now = now_iso()
         with self.connect() as connection:
@@ -1709,6 +1820,7 @@ class Store:
                             (status, now, now, request_id, case_id),
                         )
             row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            self._sync_magazine_subscription(connection, request_id)
             return self._decode_signup_request(connection, row, include_private=True)
 
     def get_setting(self, key: str, default: str = "") -> str:
@@ -1781,6 +1893,9 @@ class Store:
                        WHEN 'master_press_press_release_chunks' THEN 60
                        WHEN 'master_press_article_press_matches' THEN 70
                        WHEN 'master_press_daily_metrics' THEN 80
+                       WHEN 'master_press_daily_operations' THEN 81
+                       WHEN 'master_press_daily_keyword_metrics' THEN 82
+                       WHEN 'master_press_daily_model_metrics' THEN 83
                        ELSE 99 END,
                        created_at,id LIMIT ?""", (now_iso(), max(1, min(500, int(limit))))
             ).fetchall()
@@ -3115,6 +3230,36 @@ class Store:
                 (status, attempts, response_code, error[:1000], now if ok else None, now, delivery_id),
             )
 
+    def queue_magazine_deliveries(self, edition: dict) -> int:
+        self.ensure_magazine_schema()
+        now, queued = now_iso(), 0
+        with self.connect() as connection:
+            rows = connection.execute("SELECT s.recipient_id,s.edition_slots,s.case_ids FROM recipient_magazine_subscriptions s JOIN recipients r ON r.id=s.recipient_id AND r.status='active' WHERE s.organization_id=?", (edition["organization_id"],)).fetchall()
+            for row in rows:
+                slots, case_ids = json_value(row["edition_slots"], []), json_value(row["case_ids"], [])
+                if edition.get("edition_slot") not in slots or not case_ids:
+                    continue
+                connection.execute("INSERT OR IGNORE INTO magazine_deliveries(id,edition_id,recipient_id,selected_case_ids,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?)", (str(uuid.uuid4()), edition["id"], row["recipient_id"], json.dumps(case_ids), now, now, now))
+                queued += int(connection.execute("SELECT changes()").fetchone()[0] or 0)
+        return queued
+
+    def due_magazine_deliveries(self, limit: int = 20) -> list[dict]:
+        self.ensure_magazine_schema()
+        with self.connect() as connection:
+            rows = connection.execute("SELECT d.*,e.organization_name,e.edition_date,e.edition_slot FROM magazine_deliveries d JOIN magazine_editions e ON e.id=d.edition_id JOIN recipients r ON r.id=d.recipient_id AND r.status='active' WHERE d.status IN ('pending','retry') AND d.scheduled_at<=? AND d.attempts<3 ORDER BY d.scheduled_at LIMIT ?", (now_iso(), limit)).fetchall()
+        return [dict(row) for row in rows]
+
+    def finish_magazine_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
+        now = now_iso()
+        with self.connect() as connection:
+            row = connection.execute("SELECT attempts FROM magazine_deliveries WHERE id=?", (delivery_id,)).fetchone()
+            attempts = int(row["attempts"] or 0) + 1 if row else 1
+            status = "sent" if ok else ("failed" if attempts >= 3 else "retry")
+            connection.execute(
+                "UPDATE magazine_deliveries SET status=?,attempts=?,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?",
+                (status, attempts, response_code, str(error)[:1000], now if ok else None, now, delivery_id),
+            )
+
     def start_run(self, case_id: str | None = None, organization_id: str | None = None) -> str:
         run_id = str(uuid.uuid4())
         with self.connect() as connection:
@@ -3360,7 +3505,7 @@ class Store:
             )
         return counts
 
-    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False, article_limit: int = 60) -> dict:
+    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False, article_limit: int = 60, include_detail: bool = False) -> dict:
         days = max(1, min(90, int(days)))
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
         article_limit = max(1, min(5000, int(article_limit)))
@@ -3383,12 +3528,14 @@ class Store:
         if delivery_only:
             # 대시보드 화두는 발송 대상(send)으로 확정된 기사만 사용한다.
             where.append("EXISTS (SELECT 1 FROM case_evaluations delivery_case WHERE delivery_case.article_analysis_id=aa.id AND delivery_case.decision='send')")
+        detail_fields = "a.body,MAX(e.vector) vector," if include_detail else "'' body,'' vector,"
+        detail_join = "LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id AND e.status='completed'" if include_detail else ""
         sql = f"""SELECT aa.id,a.id article_id,aa.summary,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.analyzed_at,
-                         a.title,a.snippet,a.body,a.publisher,a.published_at,a.original_url,a.image_url,MAX(e.vector) vector,
+                         a.title,a.snippet,{detail_fields}a.publisher,a.published_at,a.original_url,a.image_url,
                          MAX(COALESCE(ce.final_score,0)) score,
                          MAX(CASE WHEN ce.decision='send' THEN 1 ELSE 0 END) matched
                   FROM article_analyses aa JOIN articles a ON a.id=aa.article_id
-                  LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id AND e.status='completed'
+                  {detail_join}
                   {case_join}
                   WHERE {' AND '.join(where)} GROUP BY aa.id ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?"""
         selected_case = self.get_case(case_id) if case_id else None
@@ -3625,7 +3772,33 @@ class Store:
                            "article_url": word_sources.get(key, {}).get("article_url", ""),
                            "tone_counts": word_tones.get(key, {"negative": 0, "positive": 0, "neutral": 0})}
                           for key, value in sorted(words.items(), key=lambda pair: (-pair[1], pair[0]))[:35]],
-                "nodes": nodes, "edges": edges}
+                "nodes": nodes, "edges": edges, "delivery_trends": self.case_delivery_trends((selected_organization or {}).get("id") or None, 14)}
+
+    def case_delivery_trends(self, organization_id: str | None = None, days: int = 14) -> dict:
+        days = max(1, min(31, int(days)))
+        today = datetime.now(KST).date()
+        dates = [today - timedelta(days=days - index - 1) for index in range(days)]
+        since = datetime.combine(dates[0], datetime.min.time(), tzinfo=KST).isoformat(timespec="seconds")
+        case_where, case_params = ["c.is_active=1"], []
+        delivery_where, delivery_params = ["d.status='sent'", "COALESCE(d.sent_at,d.updated_at,d.created_at)>=?"], [since]
+        if organization_id:
+            case_where.append("c.organization_id=?"); case_params.append(organization_id)
+            delivery_where.append("c.organization_id=?"); delivery_params.append(organization_id)
+        with self.connect() as connection:
+            cases = connection.execute("SELECT c.id,c.name FROM cases c WHERE " + " AND ".join(case_where) + " ORDER BY c.sort_order,c.name", case_params).fetchall()
+            rows = connection.execute(
+                """SELECT d.case_id,SUBSTR(COALESCE(d.sent_at,d.updated_at,d.created_at),1,10) day,
+                          COUNT(DISTINCT d.article_id) article_count
+                   FROM deliveries d JOIN cases c ON c.id=d.case_id
+                   WHERE """ + " AND ".join(delivery_where) + " GROUP BY d.case_id,day",
+                delivery_params).fetchall()
+        values = {(str(row["case_id"]), str(row["day"])): int(row["article_count"] or 0) for row in rows}
+        series = []
+        for item in cases:
+            case_id = str(item["id"])
+            points = [values.get((case_id, day.isoformat()), 0) for day in dates]
+            series.append({"id": case_id, "name": str(item["name"]), "values": points, "total": sum(points)})
+        return {"period_days": days, "dates": [day.isoformat() for day in dates], "series": series}
 
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
         """Current queue plus today's completed/failed counts, reset at 00:00 KST."""
@@ -3795,6 +3968,51 @@ class Store:
             article["_group_text"] = " ".join(
                 str(row.get(key) or "") for key in ("title", "snippet", "source_body", "summary")
             )[:12000]
+
+    def editorial_article_groups(self, articles: list[dict], organization_id: str | None = None) -> dict[str, dict]:
+        """Conservative, explainable groups used by user-facing article lists."""
+        if len(articles) < 2:
+            return {}
+        generic = {"정부", "정책", "발표", "지원", "추진", "확대", "강화", "관련", "기사", "보도", "안전", "관리", "현장", "사업", "지역", "행정안전부", "행안부", "윤호중"}
+        evidence: dict[str, set[str]] = {}
+        titles: dict[str, str] = {}
+        order: dict[str, int] = {}
+        for index, article in enumerate(articles):
+            article_id = str(article.get("id") or "")
+            if not article_id:
+                continue
+            values = [*(article.get("entities") or []), *(article.get("topic_concepts") or [])]
+            evidence[article_id] = {str(value).strip().casefold() for value in values if len(str(value).strip()) >= 3 and str(value).strip().casefold() not in generic}
+            titles[article_id] = "".join(character for character in str(article.get("title") or "").casefold() if not character.isspace() and not character.isdigit())
+            order[article_id] = index
+        parent = {article_id: article_id for article_id in order}
+        def find(value: str) -> str:
+            while parent[value] != value:
+                parent[value] = parent[parent[value]]
+                value = parent[value]
+            return value
+        def union(left: str, right: str) -> None:
+            left_root, right_root = find(left), find(right)
+            if left_root != right_root:
+                parent[right_root] = left_root
+        article_ids = list(order)
+        for index, left_id in enumerate(article_ids):
+            for right_id in article_ids[index + 1:]:
+                shared = evidence.get(left_id, set()) & evidence.get(right_id, set())
+                if len(shared) >= 2 or (len(titles.get(left_id, "")) >= 6 and titles[left_id] == titles.get(right_id, "")):
+                    union(left_id, right_id)
+        components: dict[str, list[str]] = {}
+        for article_id in article_ids:
+            components.setdefault(find(article_id), []).append(article_id)
+        result: dict[str, dict] = {}
+        for members in components.values():
+            if len(members) < 2:
+                continue
+            representative = min(members, key=lambda article_id: order[article_id])
+            common = set.intersection(*(evidence[article_id] for article_id in members)) if all(evidence[article_id] for article_id in members) else set()
+            for article_id in members:
+                result[article_id] = {"group_id": representative, "size": len(members), "basis": "editorial", "status": "finalized", "score": 100.0 if titles.get(article_id) == titles.get(representative) else 90.0, "semantic_score": 0.0, "noun_score": 90.0, "topics": sorted(common)[:5], "concepts": sorted(common)[:4]}
+        return result
 
     def _dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None) -> dict[str, dict]:
         """Build dashboard article bundles with the same strictness used by the neural graph.
@@ -4242,13 +4460,11 @@ class Store:
             }
         similar_groups: dict[str, dict] = {}
         if include_groups:
-            group_ids = [str(article.get("id") or "") for article in all_articles]
-            persisted_groups = self.article_similarity_groups(group_ids)
-            missing_scope = [article for article in group_scope if str(article.get("id") or "") not in persisted_groups]
-            if missing_scope:
-                self._hydrate_dashboard_group_scope(group_scope)
-                persisted_groups.update(self._dashboard_article_groups(group_scope, organization_id=organization_id, case_id=case_id))
-            similar_groups = persisted_groups
+            # Keep the request path bounded: the client renders one page at a time.
+            # Full-history regrouping here turned every dashboard load into an O(n²)
+            # scan and contended with the SQLite workers.
+            similar_groups = self.editorial_article_groups(group_scope, organization_id=organization_id)
+
         for article in all_articles:
             group = similar_groups.get(str(article.get("id") or ""), {})
             article["similar_group_id"] = group.get("group_id", "")

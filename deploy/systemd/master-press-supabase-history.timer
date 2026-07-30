@@ -1,0 +1,11 @@
+[Unit]
+Description=Queue Master Press compact long-term history in the quiet window
+
+[Timer]
+OnCalendar=*-*-* 01:05:00
+# A missed run must not start during daytime after a reboot.
+Persistent=false
+Unit=master-press-supabase-history.service
+
+[Install]
+WantedBy=timers.target

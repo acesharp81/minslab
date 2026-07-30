@@ -149,16 +149,16 @@ The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by 
 
 ## PoC 04: AI 언론동향 비서
 
-The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, and sends qualifying items through KakaoTalk `Send to me`.
+The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, sends qualifying items through KakaoTalk `Send to me`, and publishes scheduled CaseON magazine editions.
 
-Current user-facing modules include dashboard monitoring, similar-article grouping, neural topic analysis, press-release trends, Kakao subscription approval, an anonymous case-request board with local Clean AI moderation, administrator notices, model usage controls, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
+Current user-facing modules include dashboard monitoring with persisted similar-article grouping, neural topic analysis, press-release trends, CaseON AM/NOON/PM/DAILY magazines, Kakao subscription approval, an anonymous case-request board with local Clean AI moderation, administrator notices, model usage controls, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
 
 - Archive entry: `/poc?project=master-press`
 - Direct dashboard: `/poc/master-press/`
-- User menu: `구독 및 케이스 신청`, `대시보드`, `신경망 분석`, `보도동향`
+- User menu: `매뉴얼`, `구독 및 케이스 신청`, `대시보드`, `보도자료 동향`, `신경망 분석`, `매거진`
 - Admin menu: member management, organization/case management, model settings, notices, thresholds, and reanalysis controls
 - Shared homepage administrator session; no separate web service or port
-- SQLite operational queue/cache with optional Supabase metadata mirror; persisted similar-article map refreshes in a separate five-minute systemd timer
+- SQLite operational queue/cache with optional Supabase metadata mirror; persisted similar-article map refreshes in a separate five-minute systemd timer, while magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
 - Detailed user manual and system analysis: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab

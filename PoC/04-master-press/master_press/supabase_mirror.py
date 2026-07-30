@@ -250,6 +250,15 @@ class SupabaseMirror:
         """Queue compact daily score aggregates for the remote read model."""
         return self.upsert("master_press_daily_metrics", rows)
 
+    def history_operations(self, rows: list[dict]) -> bool:
+        return self.upsert("master_press_daily_operations", rows)
+
+    def history_keywords(self, rows: list[dict]) -> bool:
+        return self.upsert("master_press_daily_keyword_metrics", rows)
+
+    def history_models(self, rows: list[dict]) -> bool:
+        return self.upsert("master_press_daily_model_metrics", rows)
+
     def daily_metrics_history(self, limit: int = 500) -> list[dict] | None:
         """Read only the compact daily score read model for shadow comparison."""
         if not self.enabled:

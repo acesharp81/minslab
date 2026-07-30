@@ -2,7 +2,7 @@
 Description=Check Master Press Supabase replica daily
 
 [Timer]
-OnCalendar=*-*-* 04:20:00
+OnCalendar=*-*-* 01:45:00
 Persistent=true
 Unit=master-press-supabase-reconcile.service
 

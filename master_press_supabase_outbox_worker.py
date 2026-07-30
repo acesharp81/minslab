@@ -31,6 +31,9 @@ def main() -> int:
         "master_press_press_release_chunks": 60,
         "master_press_article_press_matches": 70,
         "master_press_daily_metrics": 80,
+        "master_press_daily_operations": 81,
+        "master_press_daily_keyword_metrics": 82,
+        "master_press_daily_model_metrics": 83,
     }
     for (table, conflict_key), items in sorted(grouped.items(), key=lambda group: (table_priority.get(group[0][0], 99), group[0])):
         rows = [json.loads(item["payload"]) for item in items]

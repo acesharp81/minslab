@@ -1,0 +1,12 @@
+[Unit]
+Description=Publish Master Press magazine at 08:00, 12:00 and 18:00 KST
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+OnCalendar=*-*-* 12:00:00
+OnCalendar=*-*-* 18:00:00
+Persistent=true
+Unit=master-press-magazine.service
+
+[Install]
+WantedBy=timers.target

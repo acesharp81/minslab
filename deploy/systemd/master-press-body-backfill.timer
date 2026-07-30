@@ -1,8 +1,12 @@
 [Unit]
-Description=Run Master Press body backfill every 10 minutes
+Description=Run Master Press body backfill every minute from 02:00 to 05:00 KST
 
 [Timer]
-OnCalendar=*:0/10
+# One small sequential batch per minute only in the 02:00–05:00 KST window.
+# The application keeps the per-domain 10-minute cooldown.
+OnCalendar=*-*-* 02:*:00
+OnCalendar=*-*-* 03:*:00
+OnCalendar=*-*-* 04:*:00
 Persistent=true
 Unit=master-press-body-backfill.service
 

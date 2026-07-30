@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 from .collectors import NewsCollector, case_excluded_match, organization_candidate_match, quick_candidate_match
 from .config import Settings
 from .kakao import KakaoClient
+from .magazine import MagazinePublisher, edition_title
 from .matching import article_topic_fields, expanded_case_terms, term_in_text
 from .press_releases import PressReleaseManager
 from .scoring import GroqError, OpenRouterError, RelevanceEngine, calibrated_semantic_score, case_retrieval_text, cosine_similarity, parse_llm_json
@@ -1365,11 +1366,36 @@ class MasterPressService:
             return f"{redirect.scheme}://{redirect.netloc}/poc/master-press/article/{article_id}"
         return fallback
 
+    def magazine_link(self, edition_id: str) -> str:
+        redirect = urllib.parse.urlsplit(self.settings.kakao_redirect_uri)
+        edition_id = urllib.parse.quote(str(edition_id), safe="")
+        if redirect.scheme in {"http", "https"} and redirect.netloc:
+            return f"{redirect.scheme}://{redirect.netloc}/poc/master-press/?view=magazine&edition={edition_id}"
+        return f"/poc/master-press/?view=magazine&edition={edition_id}"
+
+    @staticmethod
+    def magazine_message_text(edition: dict, selected_case_ids: list[str]) -> str:
+        selected, issue_keys, headlines = set(selected_case_ids), set(), []
+        for member in edition.get("members") or []:
+            matches = {str(item.get("id") or "") for item in member.get("case_matches") or []}
+            if not (selected & matches) or member.get("issue_key") in issue_keys:
+                continue
+            issue_keys.add(member.get("issue_key"))
+            headlines.append(str(member.get("title") or "주요 뉴스")[:24])
+            if len(headlines) == 5:
+                break
+        title = str(edition.get("title") or edition_title(edition.get("organization_name") or "기관", edition.get("edition_slot") or "morning"))
+        lines = [f"{title} 발간되었습니다.", "", "주요뉴스"]
+        lines.extend(f"- {headline}" for headline in headlines)
+        return "\n".join(lines)[:200]
+
     def send_due(self, limit: int = 20) -> dict:
         if not DELIVERY_LOCK.acquire(blocking=False):
             return {"sent": 0, "failed": 0, "errors": []}
         try:
-            return self._send_due(limit)
+            article = self._send_due(limit)
+            magazine = self._send_due_magazines(limit)
+            return {"sent": article["sent"] + magazine["sent"], "failed": article["failed"] + magazine["failed"], "errors": article["errors"] + magazine["errors"], "magazine": magazine}
         finally:
             DELIVERY_LOCK.release()
 
@@ -1399,6 +1425,35 @@ class MasterPressService:
                 else:
                     self.store.finish_delivery(delivery["id"], False, code, message)
                     errors.append(message)
+                failed += 1
+        return {"sent": sent, "failed": failed, "errors": errors}
+
+    def publish_due_magazines(self) -> dict:
+        publisher = MagazinePublisher(self.store)
+        editions = publisher.publish_due()
+        queued = sum(self.store.queue_magazine_deliveries(edition) for edition in editions)
+        return {"published": len(editions), "queued": queued, "edition_ids": [edition.get("id") for edition in editions]}
+
+    def _send_due_magazines(self, limit: int = 20) -> dict:
+        sent = failed = 0
+        errors: list[str] = []
+        publisher = MagazinePublisher(self.store)
+        for delivery in self.store.due_magazine_deliveries(limit):
+            try:
+                edition = publisher.edition(str(delivery["edition_id"])) or {}
+                selected_case_ids = json.loads(str(delivery.get("selected_case_ids") or "[]"))
+                text = self.magazine_message_text(edition, selected_case_ids)
+                status, _response = self.kakao.send_to_me(
+                    delivery["recipient_id"], text, self.magazine_link(delivery["edition_id"]),
+                    title=str(edition.get("title") or "CaseON 매거진"), description=text,
+                    button_title="매거진 바로가기",
+                )
+                self.store.finish_magazine_delivery(delivery["id"], True, status)
+                sent += 1
+            except Exception as error:
+                code, message = int(getattr(error, "status", 502)), str(error)
+                self.store.finish_magazine_delivery(delivery["id"], False, code, message)
+                errors.append(message)
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
 
@@ -1512,7 +1567,11 @@ class MasterPressService:
         return result
 
     def orchestration_tick(self) -> dict:
-        results = {"organizations": [], "cases": [], "delivery": {}, "press_releases": {}, "body_backfill": {}, "cleanup": {}}
+        results = {"organizations": [], "cases": [], "magazine": {}, "delivery": {}, "press_releases": {}, "body_backfill": {}, "cleanup": {}}
+        try:
+            results["magazine"] = self.publish_due_magazines()
+        except Exception as error:
+            results["magazine"] = {"error": str(error)}
         results["delivery"] = self.send_due()
         results["press_releases"] = self.press_releases.sync()
         for organization in self.store.list_due_organizations():

@@ -26,6 +26,7 @@ from master_press.storage import KST, Store, centered_semantic_similarity, infer
 from master_press.supabase_mirror import SupabaseMirror
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
+from master_press.history_metrics import SupabaseHistoryMetrics
 
 
 def case_payload(index: int = 1) -> dict:
@@ -149,6 +150,21 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(mirror.rows[0]["top_topics"], [{"label": "정책·행정", "value": 1}])
         self.assertNotIn("body", mirror.rows[0])
         self.assertEqual(metrics.shadow_compare()["status"], "ready")
+
+    def test_history_trial_is_aggregate_only_and_does_not_queue_by_default(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/history", "original_url": "https://example.com/history",
+            "title": "장기 이력 시험 기사", "publisher": "example.com", "source_type": "test", "body": "저장하면 안 되는 원문",
+        })
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+        mirror = mock.MagicMock(enabled=True)
+        result = SupabaseHistoryMetrics(self.store, mirror).trial(days=14)
+        self.assertEqual(result["status"], "preview")
+        self.assertGreaterEqual(result["counts"]["operations"], 1)
+        self.assertEqual(result["counts"]["keywords"], 0)
+        self.assertNotIn("body", str(result["payload"]))
+        mirror.history_operations.assert_not_called()
 
     def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
         organization = self.store.save_organization({"name": "동기화 테스트 기관"})
@@ -315,7 +331,7 @@ class StorageTests(unittest.TestCase):
             connection.execute("UPDATE article_analyses SET status='completed',summary='공통 행사 보도',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
         group_id = article_ids[0]
         groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 행사"], "concepts": ["공통 행사"]} for article_id in article_ids}
-        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+        with mock.patch.object(self.store, "editorial_article_groups", return_value=groups):
             dashboard = self.store.pipeline_dashboard(limit=1)
         self.assertEqual(len(dashboard["articles"]), 3)
         self.assertEqual(dashboard["next_offset"], 3)
