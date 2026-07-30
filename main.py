@@ -1,6 +1,8 @@
 import asyncio
+import fcntl
 import importlib.util
 import json
+import os
 import socket
 import sys
 import threading
@@ -51,9 +53,19 @@ REVERSE_GEOCODE_CACHE = {}
 MASTER_PRESS_BASE_PATH = "/poc/master-press"
 MASTER_PRESS_API_BASE = "/api/poc/master-press"
 MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
+MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "master_press" / "manual.pdf"
 MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
 MASTER_PRESS_MODULE = None
 MASTER_PRESS_MTIME = None
+
+WORKER_LOCK_PATH = Path(__file__).parent / "data" / "master_press_workers.lock"
+WORKER_LOCK_HANDLE = None
+MASTER_PRESS_BACKGROUND_ENABLED = env_first("MASTER_PRESS_BACKGROUND_ENABLED", "0") == "1"
+HEALTH_CACHE_TTL_SECONDS = max(5, int(env_first("HEALTH_CACHE_TTL_SECONDS", "20") or "20"))
+HEALTH_OLLAMA_TIMEOUT_SECONDS = max(1, int(env_first("HEALTH_OLLAMA_TIMEOUT_SECONDS", "2") or "2"))
+HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING = env_first("HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING", "0") == "1"
+HEALTH_CACHE_LOCK = threading.Lock()
+HEALTH_CACHE: dict[str, object] = {"expires_at": 0.0, "value": None}
 
 NOMINATIM_LOCK = threading.Lock()
 NOMINATIM_LAST_REQUEST = 0.0
@@ -260,7 +272,7 @@ HTML_PAGE = r"""
     .site-nav { position: sticky; top: 0; z-index: 10; height: 68px; padding: 0 max(20px, calc((100% - 1120px)/2)); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #d6d4ca; background: rgba(243,241,233,.9); backdrop-filter: blur(14px); }
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.03em; }
     .brand i{width:32px;height:32px;display:grid;place-items:center;position:relative;border-radius:10px 10px 50% 50%;background:#171916;color:#dfff56;font:800 15px monospace;font-style:normal;transform:rotate(-3deg)}.brand i::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;right:-3px;top:-3px;background:#ff704d;box-shadow:0 0 0 3px #f3f1e9}
-    .health-wrap{position:relative}.health-button{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid #d1cfc5;border-radius:99px;background:#fffdf6;color:#555b52;cursor:default;font-size:12px;font-weight:700}.health-dot{width:9px;height:9px;border-radius:50%;background:#aaa;box-shadow:0 0 0 4px rgba(120,120,120,.12)}.health-wrap.healthy .health-dot,.detail-row.ok i{background:#62be55}.health-wrap.healthy .health-dot{box-shadow:0 0 0 4px rgba(98,190,85,.16)}.health-wrap.unhealthy .health-dot,.detail-row.fail i{background:#ef6048}.health-wrap.unhealthy .health-dot{box-shadow:0 0 0 4px rgba(239,96,72,.16)}.health-popover{visibility:hidden;opacity:0;transform:translateY(-5px);position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:245px;padding:15px;background:#1c1f1b;color:white;border:1px solid #3d413b;border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.22);transition:.18s}.health-wrap:hover .health-popover,.health-wrap:focus-within .health-popover{visibility:visible;opacity:1;transform:none}.health-popover h3{font-size:13px;margin:0 0 10px}.detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid #393d37;font-size:12px;color:#c4c9c0}.detail-row span{display:flex;align-items:center;gap:8px}.detail-row i{width:8px;height:8px;border-radius:50%;background:#888}.detail-row b{font-size:11px;color:#aeb4aa}.health-updated{display:block;margin-top:9px;color:#777e74;font:10px monospace}
+    .health-wrap{position:relative}.health-button{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid #d1cfc5;border-radius:99px;background:#fffdf6;color:#555b52;cursor:default;font-size:12px;font-weight:700}.health-dot{width:9px;height:9px;border-radius:50%;background:#aaa;box-shadow:0 0 0 4px rgba(120,120,120,.12)}.health-wrap.healthy .health-dot,.detail-row.ok i{background:#62be55}.health-wrap.healthy .health-dot{box-shadow:0 0 0 4px rgba(98,190,85,.16)}.health-wrap.unhealthy .health-dot,.detail-row.fail i{background:#ef6048}.health-wrap.unhealthy .health-dot{box-shadow:0 0 0 4px rgba(239,96,72,.16)}.health-popover{visibility:hidden;opacity:0;transform:translateY(-5px);position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:245px;padding:15px;background:#1c1f1b;color:white;border:1px solid #3d413b;border-radius:14px;box-shadow:0 14px 38px rgba(0,0,0,.22);transition:.18s}.health-wrap:hover .health-popover,.health-wrap:focus-within .health-popover{visibility:visible;opacity:1;transform:none}.health-popover h3{font-size:13px;margin:0 0 10px}.detail-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #393d37;font-size:12px;color:#c4c9c0}.detail-row span{display:flex;align-items:center;gap:8px;min-width:0}.detail-row i{width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:#888}.detail-row b{min-width:0;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-size:11px;color:#aeb4aa}.health-updated{display:block;margin-top:9px;color:#777e74;font:10px monospace}
     .health-popover{width:300px;padding:12px}.health-popover h3{margin-bottom:8px}
     .health-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:8px}
     .health-stat{position:relative;overflow:hidden;padding:6px 4px;border:1px solid #393d37;border-radius:8px;background:#252923;text-align:center;min-width:0}
@@ -1129,7 +1141,7 @@ HTML_PAGE = r"""
     async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}">${m.name}${m.details.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('설치된 모델이 없습니다.')}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>OLLAMA OFFLINE</span>';}}
     function healthUptime(seconds){seconds=Math.max(0,Number(seconds||0));const days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60);return days?`${days}d ${hours}h`:hours?`${hours}h ${minutes}m`:minutes?`${minutes}m`:`${Math.floor(seconds)}s`}
     function healthSparkline(values){const nums=(Array.isArray(values)?values:[]).slice(-7).map(value=>Math.max(0,Number(value)||0));if(nums.length<2)return'';const max=Math.max(...nums),min=Math.min(...nums),range=Math.max(1,max-min),step=100/(nums.length-1),points=nums.map((value,index)=>`${(index*step).toFixed(1)},${(29-((value-min)/range)*23).toFixed(1)}`).join(' ');return`<svg class="health-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"/></svg>`}
-    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),totalSpark=healthSparkline(stats.trend?.cumulative_views),todaySpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${totalSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${todaySpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM Calls</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
+    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),totalSpark=healthSparkline(stats.trend?.cumulative_views),todaySpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${totalSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${todaySpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM+Embed</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
     function processPanel(item,start){const box=document.createElement('details');box.className='process-box live';box.open=true;const requestCount=conversation.length;const attachmentCount=attachedData.length;box.innerHTML='<summary><span class="process-summary">생성 중 · 준비 단계</span><span class="process-toggle">자세히 보는 중</span><span class="process-meta">0.0s</span></summary><div class="process-inner"><div class="process-log"></div><div class="references">참고 자료 확인 중...</div></div>';const log=box.querySelector('.process-log');const summaryEl=box.querySelector('.process-summary');const toggleEl=box.querySelector('.process-toggle');const metaEl=box.querySelector('.process-meta');const refs=box.querySelector('.references');const timers=[];let finished=false,firstChunkSeen=false,expansionNoted=false;box.addEventListener('toggle',()=>{if(finished)return;toggleEl.textContent=box.open?'자세히 보는 중':'간단히 보는 중'});function addStep(text,state='done'){const row=document.createElement('div');row.className=`process-step ${state}`.trim();row.innerHTML=`<i></i><span>${text}</span>`;log.append(row);log.parentElement.scrollTop=log.parentElement.scrollHeight;messagesEl.scrollTop=messagesEl.scrollHeight;return row}const intro='요청 수신 · '+requestCount+'개 메시지 맥락 정리 완료'+(attachmentCount?` · 첨부 ${attachmentCount}개 포함`:'');addStep(intro,'done');const stages=[['프롬프트와 모델 설정을 적용하고 있어요.','done','생성 중 · 입력 구성'],['로컬 모델에 요청을 전달했어요.','done','생성 중 · 모델 호출'],['응답 초안을 계산하고 있어요.','active','생성 중 · 초안 생성'],['문장 흐름과 길이를 정리하고 있어요.','active','생성 중 · 답변 다듬기']];stages.forEach(([text,state,summary],index)=>{timers.push(setTimeout(()=>{if(finished)return;addStep(text,state);summaryEl.textContent=summary},450+(index*900)))});const tick=setInterval(()=>{if(finished)return;metaEl.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`},120);item.children[1].append(box);return{stream(answer){if(finished)return;if(!firstChunkSeen&&answer.trim()){firstChunkSeen=true;summaryEl.textContent='생성 중 · 실시간 출력';addStep('첫 응답 조각이 도착해 화면에 바로 표시하고 있어요.','active')}if(!expansionNoted&&answer.length>180){expansionNoted=true;addStep('답변 분량이 늘어나고 있어요. 문단 단위로 이어 붙이는 중입니다.','muted')}},finish(answer,metrics,ok=true){finished=true;timers.forEach(clearTimeout);clearInterval(tick);const seconds=metrics?.total_duration?metrics.total_duration/1e9:(performance.now()-start)/1000;const evalCount=metrics?.eval_count;const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const statusText=ok?`${modelSelectEl.value} 응답 생성 완료`:'응답 생성 중 오류 발생';addStep(statusText+(evalCount?` · ${evalCount} tokens`:''),ok?'done':'error');refs.textContent=urls.length?'참고 자료 · ':'참고 자료 · 외부 자료를 사용하지 않은 로컬 모델 응답';urls.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=`[${i+1}] ${url}`;refs.append(document.createElement('br'),a)});summaryEl.textContent=ok?`생성 완료 · ${seconds.toFixed(1)}초`:`오류로 종료 · ${seconds.toFixed(1)}초`;toggleEl.textContent='요약만 표시';metaEl.textContent=ok?(evalCount?`${evalCount} tok · ${urls.length} refs`:`${urls.length} refs`):'retry needed';box.classList.remove('live');box.classList.add('compact');box.open=false}}}
     function addMessage(role,text,extra=''){document.getElementById('emptyChat')?.remove();const item=document.createElement('article');item.className=`message ${role} ${extra}`;const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=role==='user'?'YOU':'✦';const wrap=document.createElement('div');const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'나':modelSelectEl.value;const body=document.createElement('div');body.className='message-body';body.textContent=text;wrap.append(label,body);item.append(avatar,wrap);messagesEl.append(item);messagesEl.scrollTop=messagesEl.scrollHeight;return item;}
     function renderChatMarkdown(text){const lines=escapeChatHtml(text).split('\n');let html=[],inCode=false,list='';const closeList=()=>{if(list){html.push(`</${list}>`);list=''}};for(const raw of lines){if(raw.startsWith('```')){closeList();html.push(inCode?'</code></pre>':'<pre><code>');inCode=!inCode;continue}if(inCode){html.push(raw+'\n');continue}let line=raw.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');const h=line.match(/^(#{1,3})\s+(.+)/),bullet=line.match(/^[-*]\s+(.+)/),numbered=line.match(/^\d+\.\s+(.+)/);if(h){closeList();html.push(`<h${h[1].length}>${h[2]}</h${h[1].length}>`)}else if(bullet||numbered){const wanted=bullet?'ul':'ol';if(list!==wanted){closeList();list=wanted;html.push(`<${list}>`)}html.push(`<li>${(bullet||numbered)[1]}</li>`)}else{closeList();if(line.startsWith('&gt; '))html.push(`<blockquote>${line.slice(5)}</blockquote>`);else html.push(line.trim()?`<p>${line}</p>`:'<br>')}}closeList();if(inCode)html.push('</code></pre>');return html.join('')}
@@ -1545,6 +1557,13 @@ def call_ollama(path, payload=None):
         return json.loads(response.read().decode("utf-8"))
 
 
+def call_ollama_quick(path, payload=None, timeout_seconds=2):
+    """짧은 타임아웃으로 상태 점검만 수행한다."""
+    request = _build_ollama_request(path, payload)
+    with url_request.urlopen(request, timeout=max(1, int(timeout_seconds))) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def iter_ollama_stream(path, payload=None):
     """Ollama의 NDJSON 스트림을 순서대로 읽는다."""
     if path == "/api/chat" and payload is not None:
@@ -1602,12 +1621,12 @@ def check_services():
         "detail": f"포트 {nginx_port} 응답 정상" if nginx_port else "포트 연결 실패",
     }
     try:
-        models = call_ollama("/api/tags").get("models", [])
+        models = call_ollama_quick("/api/tags", timeout_seconds=HEALTH_OLLAMA_TIMEOUT_SECONDS).get("models", [])
         services["ollama"] = {
             "label": "Ollama", "ok": True,
             "detail": f"실행 중 · 모델 {len(models)}개",
         }
-    except (OSError, url_error.URLError, json.JSONDecodeError):
+    except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
         services["ollama"] = {"label": "Ollama", "ok": False, "detail": "API 연결 실패"}
     try:
         stats = get_analytics_summary()
@@ -1619,9 +1638,38 @@ def check_services():
             "today_views": 0,
             "today_visitors": 0,
             "total_visitors": 0,
+            "local_llm_calls": 0,
         }
         services["analytics"] = {
             "label": "방문 통계", "ok": False, "detail": f"저장소 오류: {error}"
+        }
+    stats.setdefault("local_llm_chat_calls", int(stats.get("local_llm_calls") or 0))
+    stats.setdefault("master_press_embedding_calls", 0)
+    stats.setdefault("master_press_embedding_calls_today", 0)
+    if HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING:
+        try:
+            master_press = load_master_press_module()
+            embedding = master_press.get_service().ollama_embedding_status(False)
+            embedding_today = int(embedding.get("attempts") or 0)
+            embedding_total = int(embedding.get("total_attempts") or embedding_today)
+            stats["master_press_embedding_calls"] = embedding_total
+            stats["master_press_embedding_calls_today"] = embedding_today
+            stats["local_llm_calls"] = stats["local_llm_chat_calls"] + embedding_total
+            services["ollama_embedding"] = {
+                "label": "Ollama 임베딩",
+                "ok": bool(embedding.get("connected")),
+                "detail": f"오늘 {embedding_today:,} · 누적 {embedding_total:,}",
+            }
+        except Exception as error:
+            services["ollama_embedding"] = {
+                "label": "Ollama 임베딩", "ok": False, "detail": f"집계 실패: {error}"
+            }
+    else:
+        stats["local_llm_calls"] = stats["local_llm_chat_calls"]
+        services["ollama_embedding"] = {
+            "label": "Ollama 임베딩",
+            "ok": True,
+            "detail": "빠른 상태 점검 모드(기본 비활성)",
         }
     web_uptime = max(0, int(time.monotonic() - APP_STARTED_MONOTONIC))
     stats["uptime_seconds"] = web_uptime
@@ -1634,6 +1682,33 @@ def check_services():
         "stats": stats,
         "checked_at": int(time.time()),
     }
+
+
+def _clone_health_payload(payload):
+    return json.loads(json.dumps(payload, ensure_ascii=False))
+
+
+def cached_health_status():
+    with HEALTH_CACHE_LOCK:
+        now = time.time()
+        cached_value = HEALTH_CACHE.get("value")
+        expires_at = float(HEALTH_CACHE.get("expires_at") or 0.0)
+        if isinstance(cached_value, dict) and expires_at > now:
+            return _clone_health_payload(cached_value)
+
+        stale = _clone_health_payload(cached_value) if isinstance(cached_value, dict) else None
+        try:
+            fresh = check_services()
+        except Exception as error:
+            if stale is not None:
+                stale["degraded"] = {"reason": f"health_check_failed: {error}"}
+                stale["checked_at"] = int(now)
+                return stale
+            raise
+
+        HEALTH_CACHE["value"] = _clone_health_payload(fresh)
+        HEALTH_CACHE["expires_at"] = now + float(HEALTH_CACHE_TTL_SECONDS)
+        return fresh
 
 
 async def read_request_body(receive):
@@ -1705,32 +1780,93 @@ def load_master_press_module():
     return MASTER_PRESS_MODULE
 
 
+def acquire_master_press_worker_lock() -> bool:
+    """Ensure only one process runs background master-press workers."""
+    global WORKER_LOCK_HANDLE
+    if WORKER_LOCK_HANDLE is not None:
+        return True
+    WORKER_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(WORKER_LOCK_PATH, "a+", encoding="utf-8")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return False
+    handle.seek(0)
+    handle.truncate(0)
+    handle.write(f"pid={os.getpid()} started_at={datetime.now().isoformat(timespec='seconds')}\n")
+    handle.flush()
+    WORKER_LOCK_HANDLE = handle
+    return True
+
+
+def release_master_press_worker_lock() -> None:
+    global WORKER_LOCK_HANDLE
+    if WORKER_LOCK_HANDLE is None:
+        return
+    try:
+        fcntl.flock(WORKER_LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        pass
+    try:
+        WORKER_LOCK_HANDLE.close()
+    finally:
+        WORKER_LOCK_HANDLE = None
+
+
 async def collect_master_press():
-    """수집·예약 발송은 LLM 단계와 독립적으로 30초마다 확인한다."""
+    """Run one bounded collection/analysis cycle at a time in the lock-owning process."""
     while True:
+        progressed = False
         try:
             module = load_master_press_module()
-            await asyncio.to_thread(module.worker_tick)
+            cycle = await asyncio.to_thread(module.worker_tick)
+            progressed = bool((cycle or {}).get("organizations") or (cycle or {}).get("cases"))
+            progressed = bool(await asyncio.to_thread(module.common_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.embedding_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.case_worker_tick, False)) or progressed
         except asyncio.CancelledError:
             raise
         except Exception as error:
             print(f"Master Press orchestration worker failed: {error}", file=sys.stderr)
-        await asyncio.sleep(30)
+            if "database is locked" in str(error).lower():
+                await asyncio.sleep(8)
+                continue
+        # Network collection and SQLite writes must yield long enough for dashboard requests.
+        await asyncio.sleep(12 if progressed else 30)
+
+
+async def supervise_master_press():
+    """Restart the orchestration coroutine if a non-standard exception ends it."""
+    while True:
+        try:
+            await collect_master_press()
+            print("Master Press orchestration worker exited unexpectedly; restarting.", file=sys.stderr)
+        except asyncio.CancelledError:
+            raise
+        except BaseException as error:
+            print(f"Master Press orchestration supervisor restarting after {type(error).__name__}: {error}", file=sys.stderr)
+        await asyncio.sleep(5)
 
 
 async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
     """Continuously drain one independent pipeline stage without blocking the other stages."""
     while True:
         result = None
+        next_sleep = idle_seconds
         try:
             module = load_master_press_module()
             function = getattr(module, function_name)
             result = await asyncio.to_thread(function, burst) if function_name == "case_worker_tick" else await asyncio.to_thread(function)
+            # Keep loops responsive but avoid hot spinning under sustained backlog.
+            next_sleep = max(1.5, idle_seconds * 0.75) if result else idle_seconds
         except asyncio.CancelledError:
             raise
         except Exception as error:
             print(f"Master Press {function_name} failed: {error}", file=sys.stderr)
-        await asyncio.sleep(0.5 if result else idle_seconds)
+            if "database is locked" in str(error).lower():
+                next_sleep = max(5.0, idle_seconds)
+        await asyncio.sleep(next_sleep)
 
 
 def load_report_draft_module():
@@ -1772,6 +1908,7 @@ async def app(scope, receive, send):
     if scope["type"] == "lifespan":
         metrics_task = None
         master_press_tasks = []
+        owns_master_press_worker_lock = False
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
@@ -1782,12 +1919,16 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
-                master_press_tasks = [
-                    asyncio.create_task(collect_master_press()),
-                    asyncio.create_task(run_master_press_stage("common_worker_tick", idle_seconds=2.0)),
-                    asyncio.create_task(run_master_press_stage("case_worker_tick", idle_seconds=2.0, burst=False)),
-                    asyncio.create_task(run_master_press_stage("case_worker_tick", idle_seconds=3.0, burst=True)),
-                ]
+                if MASTER_PRESS_BACKGROUND_ENABLED:
+                    owns_master_press_worker_lock = acquire_master_press_worker_lock()
+                    if owns_master_press_worker_lock:
+                        master_press_tasks = [
+                            asyncio.create_task(supervise_master_press()),
+                        ]
+                    else:
+                        print("Master Press workers skipped in this process (lock held by another process).", file=sys.stderr)
+                else:
+                    print("Master Press background workers disabled (set MASTER_PRESS_BACKGROUND_ENABLED=1 to enable).", file=sys.stderr)
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
                 if metrics_task is not None:
@@ -1803,6 +1944,8 @@ async def app(scope, receive, send):
                         await master_press_task
                     except asyncio.CancelledError:
                         pass
+                if owns_master_press_worker_lock:
+                    release_master_press_worker_lock()
                 await send({"type": "lifespan.shutdown.complete"})
                 return
 
@@ -2002,15 +2145,25 @@ async def app(scope, receive, send):
             scheme = request_headers.get("x-forwarded-proto", scope.get("scheme", "https")).split(",")[0].strip()
             host = request_headers.get("x-forwarded-host", request_headers.get("host", "")).split(",")[0].strip()
             request_base = f"{scheme}://{host}" if host else ""
-            module = load_master_press_module()
             subpath = path[len(MASTER_PRESS_API_BASE):] or "/"
+            is_admin_authenticated = bool(admin_session(scope))
+            if subpath == "/admin/bootstrap" and not is_admin_authenticated:
+                status = 401
+                body = json.dumps({"error": "홈페이지 관리자 로그인이 필요합니다."}, ensure_ascii=False).encode("utf-8")
+                content_type = "application/json; charset=utf-8"
+                extra_headers.append((b"cache-control", b"no-store"))
+                await send({"type": "http.response.start", "status": status,
+                            "headers": [(b"content-type", content_type.encode("latin-1"))] + extra_headers})
+                await send({"type": "http.response.body", "body": body})
+                return
+            module = load_master_press_module()
             result = await asyncio.to_thread(
                 module.dispatch,
                 subpath,
                 method,
                 payload,
                 query,
-                bool(admin_session(scope)),
+                is_admin_authenticated,
                 request_base,
             )
             body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
@@ -2055,15 +2208,28 @@ async def app(scope, receive, send):
                 raise ValueError(query.get("error_description", query["error"])[0])
             code = query.get("code", [""])[0]
             state = query.get("state", [""])[0]
-            await asyncio.to_thread(load_master_press_module().complete_kakao_authorization, code, state)
+            recipient = await asyncio.to_thread(load_master_press_module().complete_kakao_authorization, code, state)
+            recipient_id = url_parse.quote(str((recipient or {}).get("id") or ""))
             status = 302
             body = b""
-            extra_headers.append((b"location", f"{MASTER_PRESS_BASE_PATH}/?connected=1".encode("latin-1")))
+            extra_headers.append((b"location", f"{MASTER_PRESS_BASE_PATH}/?connected=1&recipient_id={recipient_id}".encode("latin-1")))
         except Exception as error:
             status = int(getattr(error, "status", 400))
             body = f"카카오 연결 실패\n{str(error)}".encode("utf-8")
         content_type = "text/plain; charset=utf-8"
         extra_headers.append((b"cache-control", b"no-store"))
+    elif path == f"{MASTER_PRESS_BASE_PATH}/manual.pdf" and method in {"GET", "HEAD"}:
+        try:
+            body = await asyncio.to_thread(MASTER_PRESS_MANUAL_PATH.read_bytes)
+            content_type = "application/pdf"
+            extra_headers.extend([
+                (b"cache-control", b"no-cache"),
+                (b"content-disposition", b'attachment; filename="manual.pdf"'),
+            ])
+        except OSError:
+            status = 404
+            body = b"Master Press manual is not available."
+            content_type = "text/plain; charset=utf-8"
     elif (path == MASTER_PRESS_BASE_PATH or path.startswith(f"{MASTER_PRESS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
         relative_path = path[len(MASTER_PRESS_BASE_PATH):].lstrip("/")
         requested = (MASTER_PRESS_WEB / relative_path).resolve() if relative_path else MASTER_PRESS_WEB / "index.html"
@@ -2227,7 +2393,7 @@ async def app(scope, receive, send):
             body = b"Not Found"
             content_type = "text/plain; charset=utf-8"
     elif path == "/api/health" and method == "GET":
-        result = await asyncio.to_thread(check_services)
+        result = await asyncio.to_thread(cached_health_status)
         body = json.dumps(result, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
     elif path == "/api/models" and method == "GET":

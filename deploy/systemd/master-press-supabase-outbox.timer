@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync Master Press Supabase outbox every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=true
+Unit=master-press-supabase-outbox.service
+
+[Install]
+WantedBy=timers.target

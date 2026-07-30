@@ -16,7 +16,7 @@ MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포�
 | PoC 01 | AI Safe Agent / AI 안전비서 | `/poc?project=ai-safe-agent` | [PoC/01-AISafeAgent](PoC/01-AISafeAgent/README.md) |
 | PoC 02 | 현장점검플랫폼 | `/poc?project=field-inspection-platform` | [PoC/02-field-inspection-platform](PoC/02-field-inspection-platform/README.md) |
 | PoC 03 | 통합 업무관리시스템 | `/poc?project=mois-kms` | [PoC/03-mois-kms](PoC/03-mois-kms/README.md) |
-| PoC 04 | 마스터언론 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
+| PoC 04 | AI 언론동향 비서 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -147,16 +147,19 @@ The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by 
 - No additional Node server or public port
 - Source and security notes: `PoC/03-mois-kms/README.md`
 
-## PoC 04: Master Press
+## PoC 04: AI 언론동향 비서
 
-The fourth PoC monitors up to five news topics through the official NAVER News Search API and publisher RSS feeds. It combines keyword, local embedding, and local LLM relevance scores, keeps low-score cases for rule improvement, and sends qualifying headlines, summaries, and source links through each recipient's KakaoTalk "Send to me" OAuth token.
+The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, sends qualifying items through KakaoTalk `Send to me`, and publishes scheduled CaseON magazine editions.
+
+Current user-facing modules include dashboard monitoring with persisted similar-article grouping, neural topic analysis, press-release trends, CaseON AM/NOON/PM/DAILY magazines, Kakao subscription approval, an anonymous case-request board with local Clean AI moderation, administrator notices, model usage controls, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
 
 - Archive entry: `/poc?project=master-press`
 - Direct dashboard: `/poc/master-press/`
+- User menu: `매뉴얼`, `구독 및 케이스 신청`, `대시보드`, `보도자료 동향`, `신경망 분석`, `매거진`
+- Admin menu: member management, organization/case management, model settings, notices, thresholds, and reanalysis controls
 - Shared homepage administrator session; no separate web service or port
-- SQLite operational queue/cache with optional Supabase metadata mirror
-- Existing Ollama models with serialized inference
-- Source, Kakao OAuth, scoring and security notes: `PoC/04-master-press/README.md`
+- SQLite operational queue/cache with optional Supabase metadata mirror; persisted similar-article map refreshes in a separate five-minute systemd timer, while magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
+- Detailed user manual and system analysis: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab
 

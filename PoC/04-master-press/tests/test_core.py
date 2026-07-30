@@ -4,7 +4,8 @@ import json
 import sys
 import tempfile
 import unittest
-from datetime import datetime
+from unittest import mock
+from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -13,14 +14,19 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from master_press.collectors import canonicalize_url, organization_candidate_match, quick_candidate_match
-from master_press.kakao import TokenCipher
+from master_press.article_metadata import publisher_name, reporter_name
+from master_press.kakao import KakaoClient, KakaoError, TokenCipher
 from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
-from master_press.scoring import OpenRouterClient, RelevanceEngine, keyword_relevance
-from master_press.service import MasterPressService, delivery_at, next_collection_at
+from master_press.scoring import OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, keyword_relevance
+from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at
 from master_press.storage import KST, Store, centered_semantic_similarity, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.supabase_mirror import SupabaseMirror
+from master_press.supabase_seed import SupabaseSeed
+from master_press.supabase_daily_metrics import SupabaseDailyMetrics
+from master_press.history_metrics import SupabaseHistoryMetrics
 
 
 def case_payload(index: int = 1) -> dict:
@@ -41,11 +47,11 @@ def case_payload(index: int = 1) -> dict:
         "delivery_mode": "immediate",
         "delivery_times": [],
         "send_relevant_immediately": True,
-        "relevance_threshold": 75,
+        "relevance_threshold": 70,
         "hold_threshold": 55,
-        "keyword_weight": 0.3,
-        "semantic_weight": 0.4,
-        "llm_weight": 0.3,
+        "keyword_weight": 0,
+        "semantic_weight": 0.25,
+        "llm_weight": 0.75,
         "max_articles_per_message": 2,
         "is_active": True,
     }
@@ -58,6 +64,225 @@ class StorageTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_supabase_outbox_is_idempotent_and_retries_without_remote_io(self):
+        first = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "첫값"}])
+        second = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "갱신값"}])
+        self.assertEqual((first, second), (1, 1))
+        events = self.store.due_supabase_outbox(10)
+        self.assertEqual(len(events), 1)
+        self.assertIn("갱신값", events[0]["payload"])
+        self.store.finish_supabase_outbox(events[0]["id"], False, "temporary")
+        self.assertEqual(self.store.due_supabase_outbox(10), [])
+        self.assertEqual(self.store.supabase_outbox_status()["pending"], 1)
+
+    def test_supabase_outbox_does_not_requeue_completed_identical_payload(self):
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "동일값"}])
+        event = self.store.due_supabase_outbox(10)[0]
+        self.assertTrue(self.store.finish_supabase_outbox(event["id"], True, expected_payload=event["payload"]))
+        self.store.queue_supabase_outbox("master_press_articles", [{"title": "동일값", "id": "article-1"}])
+        self.assertEqual(self.store.due_supabase_outbox(10), [])
+        self.assertEqual(self.store.supabase_outbox_status()["completed"], 1)
+
+    def test_supabase_outbox_preserves_a_newer_payload(self):
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "이전값"}])
+        stale = self.store.due_supabase_outbox(10)[0]
+        self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "새값"}])
+        self.assertFalse(self.store.finish_supabase_outbox(stale["id"], True, expected_payload=stale["payload"]))
+        current = self.store.due_supabase_outbox(10)[0]
+        self.assertIn("새값", current["payload"])
+
+    def test_embedding_outbox_queues_parent_article_before_embedding(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/embedding-parent", "original_url": "https://example.com/embedding-parent",
+            "title": "임베딩 부모 기사", "publisher": "example.com", "source_type": "test",
+        })
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test")
+        mirror = SupabaseMirror(settings, self.store)
+        self.assertTrue(mirror.article_embedding({"id": "analysis-parent", "updated_at": "2026-07-27T00:00:00+09:00"}, article, [0.0] * 768, "test"))
+        events = self.store.due_supabase_outbox(10)
+        self.assertEqual([event["table_name"] for event in events], [
+            "master_press_articles", "master_press_article_embeddings",
+        ])
+
+    def test_supabase_history_read_cache_and_circuit_breaker(self):
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test", request_timeout_seconds=3)
+        mirror = SupabaseMirror(settings)
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = '[{"id":"score-1","article":{"title":"원격 기사"}}]'.encode("utf-8")
+        with mock.patch("master_press.supabase_mirror.urllib.request.urlopen", return_value=response) as urlopen:
+            self.assertEqual(mirror.recent_score_history(5)[0]["id"], "score-1")
+            self.assertEqual(mirror.recent_score_history(5)[0]["article"]["title"], "원격 기사")
+            self.assertEqual(urlopen.call_count, 1)
+        self.assertEqual(mirror.history_read_status()["source"], "cache")
+        with mock.patch("master_press.supabase_mirror.urllib.request.urlopen", side_effect=OSError("offline")) as urlopen:
+            for _ in range(3):
+                mirror._history_cache.clear()
+                self.assertIsNone(mirror.recent_score_history(6))
+            self.assertTrue(mirror.history_read_status()["circuit_open"])
+            self.assertIsNone(mirror.recent_score_history(6))
+            self.assertEqual(urlopen.call_count, 3)
+
+    def test_supabase_daily_metrics_queues_compact_score_history_only_when_enabled(self):
+        organization = self.store.save_organization({"name": "통계 기관"})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/daily", "original_url": "https://example.com/daily",
+            "title": "일별 통계 기사", "publisher": "example.com", "source_type": "test",
+        })
+        self.store.save_score(article["id"], case["id"], 1, {
+            "keyword_score": 80, "semantic_score": 80, "llm_score": 80, "final_score": 80,
+            "article_type": "정책·행정", "decision": "send",
+        })
+        class Mirror:
+            enabled = True
+            def __init__(self): self.rows = []
+            def daily_metrics(self, rows): self.rows = rows; return True
+            def daily_metrics_history(self, _limit): return [dict(row) for row in self.rows]
+        mirror = Mirror()
+        metrics = SupabaseDailyMetrics(self.store, mirror)
+        self.assertEqual(metrics.run_once()["status"], "disabled")
+        self.store.set_setting("supabase_daily_metrics_enabled", "1")
+        result = metrics.run_once()
+        self.assertEqual((result["status"], result["rows"]), ("queued", 1))
+        self.assertEqual(mirror.rows[0]["sent_count"], 1)
+        self.assertEqual(mirror.rows[0]["top_topics"], [{"label": "정책·행정", "value": 1}])
+        self.assertNotIn("body", mirror.rows[0])
+        self.assertEqual(metrics.shadow_compare()["status"], "ready")
+
+    def test_history_trial_is_aggregate_only_and_does_not_queue_by_default(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/history", "original_url": "https://example.com/history",
+            "title": "장기 이력 시험 기사", "publisher": "example.com", "source_type": "test", "body": "저장하면 안 되는 원문",
+        })
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+        mirror = mock.MagicMock(enabled=True)
+        result = SupabaseHistoryMetrics(self.store, mirror).trial(days=14)
+        self.assertEqual(result["status"], "preview")
+        self.assertGreaterEqual(result["counts"]["operations"], 1)
+        self.assertEqual(result["counts"]["keywords"], 0)
+        self.assertNotIn("body", str(result["payload"]))
+        mirror.history_operations.assert_not_called()
+
+    def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
+        organization = self.store.save_organization({"name": "동기화 테스트 기관"})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        mirror = SupabaseMirror(SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test"), self.store)
+        seed = SupabaseSeed(self.store, mirror)
+        night = datetime(2026, 7, 26, 1, 0, tzinfo=KST)
+        self.assertEqual(seed.run_once(night)["phase"], "organizations")
+        self.assertEqual(seed.run_once(night)["status"], "waiting_remote")
+        organization_event = self.store.due_supabase_outbox(10)[0]
+        self.assertIn("master_press_organizations", organization_event["id"])
+        self.assertTrue(self.store.finish_supabase_outbox(organization_event["id"], True, expected_payload=organization_event["payload"]))
+        self.assertEqual(seed.run_once(night)["phase"], "cases")
+        case_result = seed.run_once(night)
+        self.assertEqual((case_result["status"], case_result["phase"], case_result["queued"]), ("queued", "cases", 1))
+        self.assertEqual(seed.run_once(datetime(2026, 7, 26, 12, 0, tzinfo=KST))["status"], "outside_window")
+        self.assertEqual(case["organization_id"], organization["id"])
+
+    def test_supabase_seed_article_checkpoint_requires_explicit_continue(self):
+        self.store.upsert_article({"canonical_url": "https://example.com/seed", "original_url": "https://example.com/seed", "title": "단계 동기화", "publisher": "example.com"})
+        self.store.set_setting("supabase_seed_phase", "articles")
+        mirror = SupabaseMirror(SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test"), self.store)
+        seed = SupabaseSeed(self.store, mirror)
+        result = seed.run_once(datetime(2026, 7, 26, 1, 0, tzinfo=KST))
+        self.assertEqual(result["status"], "checkpoint")
+        self.assertTrue(seed.status()["paused"])
+        resumed = seed.continue_next_stage()
+        self.assertFalse(resumed["paused"])
+        self.assertEqual(resumed["phase"], "articles_wait")
+
+    def test_body_backfill_excludes_robots_and_keeps_retryable_failures(self):
+        robots, _ = self.store.upsert_article({"canonical_url":"https://example.com/robots","original_url":"https://example.com/robots","title":"robots","publisher":"example.com","body_error":"robots_disallowed"})
+        retry, _ = self.store.upsert_article({"canonical_url":"https://example.net/timeout","original_url":"https://example.net/timeout","title":"timeout","publisher":"example.net","body_error":"timeout"})
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET body_retryable=0 WHERE id=?", (robots["id"],))
+        rows = self.store.list_articles_missing_body("2099-01-01T00:00:00+09:00", "2000-01-01T00:00:00+09:00", 20)
+        self.assertEqual([item["id"] for item in rows], [retry["id"]])
+        self.store.save_body_backfill_result(retry["id"], {"error":"http_403","http_status":403}, False)
+        with self.store.connect() as connection:
+            row = connection.execute("SELECT body_retryable,body_http_status,body_attempts FROM articles WHERE id=?", (retry["id"],)).fetchone()
+        self.assertEqual((row["body_retryable"], row["body_http_status"], row["body_attempts"]), (0, 403, 1))
+
+    def test_body_backfill_is_disabled_without_an_explicit_opt_in(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        class NoFetch:
+            def fetch_body(self, _url):
+                raise AssertionError("disabled recovery must not fetch")
+        service.collector = NoFetch()
+        result = service.backfill_missing_article_bodies()
+        self.assertTrue(result["paused"])
+        self.assertEqual(result["reason"], "disabled")
+
+    def test_pipeline_error_total_counts_api_failures_not_job_retries(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/api-error",
+            "original_url": "https://example.com/api-error",
+            "title": "API 오류 집계 테스트",
+            "publisher": "example.com",
+            "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE article_analysis_jobs SET status='completed',attempts=11,finished_at=?,error=NULL WHERE id=?",
+                (now, job_id),
+            )
+            connection.execute(
+                "INSERT INTO llm_api_calls(id,provider,stage,model,status,http_status,duration_ms,error,created_at) "
+                "VALUES('failed-groq','groq','common','test-model','failed',522,100,'timeout',?)",
+                (now,),
+            )
+        stats = self.store.pipeline_stats()
+        self.assertEqual(stats["article_jobs"]["failed_current"], 0)
+        self.assertEqual(stats["article_jobs"]["failed_total"], 1)
+
+        reset_after_log = (datetime.now(KST) + timedelta(seconds=1)).isoformat(timespec="seconds")
+        self.store.set_setting("pipeline_error_reset_at", reset_after_log)
+        self.assertEqual(self.store.pipeline_stats()["article_jobs"]["failed_total"], 0)
+
+    def test_body_status_separates_recent_and_historical_missing_articles(self):
+        recent, _ = self.store.upsert_article({"canonical_url":"https://example.com/recent","original_url":"https://example.com/recent","title":"최근 누락","publisher":"example.com"})
+        historical, _ = self.store.upsert_article({"canonical_url":"https://example.com/historical","original_url":"https://example.com/historical","title":"과거 누락","publisher":"example.com"})
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at='2020-01-01T00:00:00+09:00' WHERE id=?", (historical["id"],))
+        status = self.store.missing_body_status("2099-01-01T00:00:00+09:00", "2025-01-01T00:00:00+09:00")
+        self.assertEqual(status["missing_total"], 2)
+        self.assertEqual(status["recent_missing_total"], 1)
+        self.assertEqual(status["historical_missing_total"], 1)
+
+    def test_neural_insights_only_uses_candidate_articles_for_selected_case(self):
+        first_case = self.store.save_case(case_payload(1))
+        second_case = self.store.save_case(case_payload(2))
+        first_article, _ = self.store.upsert_article({"canonical_url":"https://example.com/first","original_url":"https://example.com/first","title":"첫 케이스 기사","publisher":"example.com","snippet":"첫 주제"})
+        second_article, _ = self.store.upsert_article({"canonical_url":"https://example.com/second","original_url":"https://example.com/second","title":"둘째 케이스 기사","publisher":"example.com","snippet":"둘째 주제"})
+        first_analysis, _ = self.store.ensure_article_analysis(first_article)
+        second_analysis, _ = self.store.ensure_article_analysis(second_article)
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='완료',analyzed_at=?,updated_at=? WHERE id IN (?,?)", (now, now, first_analysis["id"], second_analysis["id"]))
+        self.store.create_case_evaluation(first_analysis["id"], first_article["id"], first_case, True)
+        self.store.create_case_evaluation(first_analysis["id"], first_article["id"], second_case, False)
+        self.store.create_case_evaluation(second_analysis["id"], second_article["id"], first_case, False)
+        self.store.create_case_evaluation(second_analysis["id"], second_article["id"], second_case, True)
+        first_titles = {node["label"] for node in self.store.analysis_insights(first_case["id"], days=7)["nodes"]}
+        second_titles = {node["label"] for node in self.store.analysis_insights(second_case["id"], days=7)["nodes"]}
+        self.assertEqual(first_titles, {"첫 케이스 기사"})
+        self.assertEqual(second_titles, {"둘째 케이스 기사"})
+
+    def test_pipeline_monitor_reports_last_collection_and_queue_state(self):
+        run_id = self.store.start_run()
+        self.store.finish_run(run_id, "completed", {"collected": 4, "new": 2})
+        monitor = self.store.pipeline_monitor_status()
+        self.assertEqual(monitor["last_success"]["id"], run_id)
+        self.assertEqual(monitor["last_success"]["new_count"], 2)
+        self.assertIsInstance(monitor["article_jobs"], dict)
 
     def test_topic_similarity_uses_shared_nouns_only(self):
         frequency = {"충북도": 2, "파크골프장": 2, "경찰": 1}
@@ -77,6 +302,62 @@ class StorageTests(unittest.TestCase):
         self.assertGreater(related, 0.9)
         self.assertLess(unrelated, 0)
 
+
+    def test_similarity_groups_attach_small_split_bundle_after_strict_pass(self):
+        articles = [
+            {
+                "id": f"article-{index}", "title": "공통사건 핵심현장",
+                "summary": f"공통사건 핵심현장 개별{index} 관련 보도", "entities": ["공통사건", "핵심현장", f"개별{index}"],
+                "topic_concepts": [], "semantic_vector": [float(index), 1.0, 0.0],
+                "published_at": "2026-07-27T10:00:00+09:00",
+            }
+            for index in range(11)
+        ]
+        # A high semantic match simulates strict, degree-limited bundles. The second
+        # pass may attach a singleton split article, but must not form one large bundle.
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.84):
+            groups = self.store._dashboard_article_groups(articles)
+        sizes = sorted({group["size"] for group in groups.values()}, reverse=True)
+        self.assertEqual(sizes[0], 5)
+        self.assertNotIn(11, sizes)
+    def test_dashboard_keeps_a_similar_bundle_on_one_page(self):
+        analyses, article_ids = [], []
+        for index in range(3):
+            article, _ = self.store.upsert_article({"canonical_url": f"https://example.com/bundle-{index}", "original_url": f"https://example.com/bundle-{index}", "title": f"같은 행사 기사 {index}", "publisher": "example.com", "snippet": "공통 행사"})
+            analysis, _ = self.store.ensure_article_analysis(article)
+            article_ids.append(article["id"]); analyses.append(analysis["id"])
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='공통 행사 보도',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
+        group_id = article_ids[0]
+        groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 행사"], "concepts": ["공통 행사"]} for article_id in article_ids}
+        with mock.patch.object(self.store, "editorial_article_groups", return_value=groups):
+            dashboard = self.store.pipeline_dashboard(limit=1)
+        self.assertEqual(len(dashboard["articles"]), 3)
+        self.assertEqual(dashboard["next_offset"], 3)
+        self.assertFalse(dashboard["has_more"])
+        self.assertEqual({item["similar_group_id"] for item in dashboard["articles"]}, {group_id})
+
+    def test_neural_uses_dashboard_bundle_to_join_split_nodes(self):
+        case = self.store.save_case(case_payload())
+        analyses, article_ids = [], []
+        for index, title in enumerate(["철도 개통 소식", "산불 피해 현장", "농산물 수출 확대"]):
+            article, _ = self.store.upsert_article({"canonical_url": f"https://example.com/neural-bundle-{index}", "original_url": f"https://example.com/neural-bundle-{index}", "title": title, "publisher": "example.com", "snippet": title})
+            analysis, _ = self.store.ensure_article_analysis(article)
+            article_ids.append(article["id"]); analyses.append(analysis["id"])
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analyses SET status='completed',summary='완료',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
+        for article_id, analysis_id in zip(article_ids, analyses):
+            self.store.create_case_evaluation(analysis_id, article_id, case, True)
+        group_id = article_ids[0]
+        groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 화두"], "concepts": ["공통 화두"]} for article_id in article_ids}
+        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+            insight = self.store.analysis_insights(case["id"])
+        self.assertEqual((insight["group_count"], insight["grouped_article_count"]), (1, 3))
+        self.assertGreaterEqual(len(insight["edges"]), 2)
+        self.assertEqual({node["similar_group_id"] for node in insight["nodes"]}, {group_id})
+
     def test_case_versions_and_scale(self):
         first = self.store.save_case(case_payload(1))
         self.assertEqual(first["version"], 1)
@@ -86,6 +367,39 @@ class StorageTests(unittest.TestCase):
         for index in range(2, 7):
             self.store.save_case(case_payload(index))
         self.assertEqual(len(self.store.list_cases()), 6)
+
+    def test_case_display_order_can_be_reordered_per_organization(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        first = self.store.save_case({**case_payload(1), "name": "첫 번째", "organization_id": organization["id"]})
+        second = self.store.save_case({**case_payload(2), "name": "두 번째", "organization_id": organization["id"]})
+        third = self.store.save_case({**case_payload(3), "name": "세 번째", "organization_id": organization["id"]})
+
+        self.assertEqual([item["name"] for item in self.store.list_cases_for_organization(organization["id"])], ["첫 번째", "두 번째", "세 번째"])
+        reordered = self.store.reorder_cases(organization["id"], [third["id"], first["id"], second["id"]])
+        self.assertEqual([item["name"] for item in reordered], ["세 번째", "첫 번째", "두 번째"])
+        self.assertEqual([item["name"] for item in self.store.list_cases_for_organization(organization["id"])], ["세 번째", "첫 번째", "두 번째"])
+        self.assertEqual([item["name"] for item in self.store.list_cases(active_only=True)], ["세 번째", "첫 번째", "두 번째"])
+        self.assertLess(reordered[0]["sort_order"], reordered[1]["sort_order"])
+
+        with self.assertRaisesRegex(ValueError, "전체 케이스"):
+            self.store.reorder_cases(organization["id"], [first["id"], second["id"]])
+
+    def test_analysis_feedback_summary_and_guidance(self):
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/feedback", "original_url": "https://example.com/feedback",
+            "title": "피드백 테스트 기사", "publisher": "example.com", "published_at": None,
+            "snippet": "피드백 저장 테스트", "source_type": "test",
+        })
+        self.store.save_analysis_feedback(article["id"], case["id"], "required_terms_missing", "필수 키워드가 빠졌습니다.")
+        self.store.save_analysis_feedback(article["id"], case["id"], "llm_topic_mismatch", "기사 주제가 명확하지 않습니다.")
+        summary = self.store.analysis_feedback_summary(article["id"], case["id"])
+
+        self.assertEqual(summary["total"], 2)
+        self.assertEqual({item["reason"] for item in summary["breakdown"]}, {"required_terms_missing", "llm_topic_mismatch"})
+        self.assertIn("필수 키워드를 case.required_terms에 명확히 추가하거나", " ".join(summary["guidance"]))
+        self.assertEqual(len(summary["recent_comments"]), 2)
+        self.assertTrue(all(item["comment"] for item in summary["recent_comments"]))
 
     def test_article_case_processing_flag_blocks_new_case_versions(self):
         case = self.store.save_case(case_payload())
@@ -154,11 +468,115 @@ class StorageTests(unittest.TestCase):
         self.assertNotEqual(first["id"], "evaluation-new")
 
     def test_kst_daily_counter_starts_at_midnight(self):
-        start = kst_day_start_iso()
-        self.assertTrue(start.endswith("T00:00:00+09:00"))
+        from master_press.storage import utc_day_start_kst_iso
+        start = utc_day_start_kst_iso()
+        self.assertTrue(start.endswith("T09:00:00+09:00"))
         usage = self.store.openrouter_usage_today()
-        self.assertEqual(usage["period"], "KST day")
+        self.assertEqual(usage["period"], "UTC day")
         self.assertEqual(usage["day_start"], start)
+
+    def test_openrouter_daily_limit_counts_failed_api_calls_and_defers(self):
+        settings = SimpleNamespace(openrouter_api_key="test-key", openrouter_daily_soft_limit=3)
+        for index in range(3):
+            self.store.record_llm_api_call(
+                "openrouter", "case", "test-model", "failed", 10,
+                http_status=429, error=f"rate-{index}",
+            )
+        usage = self.store.openrouter_usage_today(3)
+        self.assertEqual(usage["attempts"], 3)
+        self.assertEqual(usage["failed"], 3)
+        self.assertEqual(usage["remaining"], 0)
+
+        client = OpenRouterClient(settings, self.store)
+        with self.assertRaises(OpenRouterError) as captured:
+            client.request("/chat/completions", {"model": "test-model", "messages": []})
+        self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
+        self.assertTrue(captured.exception.deferred)
+        self.assertTrue(captured.exception.retry_after.endswith("T09:00:00+09:00"))
+
+
+    def test_operation_logs_summarize_errors_and_failover(self):
+        self.store.record_llm_api_call(
+            "openrouter", "case", "test-model", "failed", 25,
+            http_status=429, error="free-models-per-day quota reached",
+        )
+        self.store.set_setting(
+            "llm_provider_disabled_until:openrouter",
+            (datetime.now(KST) + timedelta(hours=2)).isoformat(timespec="seconds"),
+        )
+        self.store.set_setting("llm_provider_disabled_reason:openrouter", "free-models-per-day quota reached")
+        logs = self.store.operation_logs(days=7, limit=10)
+        self.assertGreaterEqual(logs["summary"]["total"], 2)
+        self.assertGreaterEqual(logs["summary"]["open"], 1)
+        kinds = {item["kind"] for item in logs["items"]}
+        self.assertIn("api_error", kinds)
+        self.assertIn("provider_failover", kinds)
+        messages = "\n".join(item["message"] for item in logs["items"])
+        self.assertIn("무료 사용량", messages)
+
+    def test_openrouter_daily_limit_counts_common_fallback_calls(self):
+        self.store.record_llm_api_call("openrouter", "case", "test-model", "completed", 10)
+        self.store.record_llm_api_call("openrouter", "common_fallback", "test-model", "failed", 10)
+        usage = self.store.openrouter_usage_today(3)
+        self.assertEqual(usage["attempts"], 2)
+        self.assertEqual(usage["completed"], 1)
+        self.assertEqual(usage["failed"], 1)
+        self.assertEqual(usage["remaining"], 1)
+        self.assertEqual(usage["scope"], "provider_total")
+
+    def test_article_search_and_published_time_order(self):
+        rows = [
+            ("older", "이전 기사", "https://yna.co.kr/older", "2026-07-20T09:00:00+09:00", "홍길동"),
+            ("newer", "최신 관광 기사", "https://newsis.com/newer", "2026-07-21T09:00:00+09:00", "김민지"),
+        ]
+        for key, title, url, published_at, reporter in rows:
+            article, _ = self.store.upsert_article({
+                "canonical_url": url, "original_url": url, "title": title,
+                "publisher": url.split("/")[2], "published_at": published_at,
+                "body": f"{reporter} 기자가 취재했다.", "source_type": "test",
+            })
+            analysis, _ = self.store.ensure_article_analysis(article)
+            self.store.save_article_analysis(analysis["id"], {
+                "summary": title, "publisher_name": publisher_name(article["publisher"], url),
+                "reporter_name": reporter, "article_type": "정책·행정", "tone": "사실전달",
+                "classification_tags": ["정책·행정", "사실전달"], "entities": [],
+                "topic_concepts": [], "evidence": [], "analysis_report": {},
+            }, "test-model")
+
+        dashboard = self.store.pipeline_dashboard(limit=10)
+        self.assertEqual([item["title"] for item in dashboard["articles"][:2]], ["최신 관광 기사", "이전 기사"])
+        self.assertEqual(self.store.pipeline_dashboard(search="홍길동")["articles"][0]["title"], "이전 기사")
+        next_page = self.store.pipeline_dashboard(limit=1, offset=1)
+        self.assertEqual(next_page["offset"], 1)
+        self.assertEqual(self.store.pipeline_dashboard(search="뉴시스")["articles"][0]["title"], "최신 관광 기사")
+
+    def test_press_release_searches_title_department_and_contact_name(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        timestamp = now_iso()
+        with self.store.connect() as connection:
+            connection.execute(
+                """INSERT INTO press_releases(
+                       id,organization_id,external_id,canonical_url,title,department,contact_name,
+                       markdown_path,content_hash,created_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    "release-target", organization["id"], "1", "https://example.com/release/1",
+                    "여름철 재난 대응 강화", "안전정책과", "김담당", "", "hash-1",
+                    timestamp, timestamp,
+                ),
+            )
+        manager = PressReleaseManager(
+            SimpleNamespace(data_dir=Path(self.temp.name)), self.store, None, None
+        )
+
+        for search in ("재난 대응", "안전정책과", "김담당"):
+            results = manager.list_releases(organization["id"], search=search)
+            self.assertEqual([item["id"] for item in results], ["release-target"])
+        self.assertEqual(manager.list_releases(organization["id"], search="없는 검색어"), [])
+
+    def test_article_source_metadata_helpers(self):
+        self.assertEqual(publisher_name("yna.co.kr", "https://www.yna.co.kr/view/1"), "연합뉴스")
+        self.assertEqual(reporter_name("(서울=연합뉴스) 구정모 기자 = 정책 소식입니다."), "구정모")
 
     def test_organization_crud_and_case_link(self):
         organization = self.store.save_organization({
@@ -206,6 +624,47 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(stats["total"], 1)
 
 
+    def test_reset_case_evaluation_requeues_and_preserves_sent_history(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"], "recipient_ids": []})
+        article, _ = self.store.upsert_article({
+            "original_url": "https://news.example/reset", "canonical_url": "https://news.example/reset",
+            "title": "인공지능 행정 서비스", "publisher": "뉴스", "published_at": now_iso(),
+            "snippet": "행정 인공지능 서비스 확대", "body": "인공지능 행정 서비스를 확대한다.",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article, organization["id"])
+        self.store.save_article_analysis(analysis["id"], {
+            "summary": "행정 인공지능 서비스 확대", "article_type": "정책·행정", "tone": "사실전달",
+            "classification_tags": ["정책·행정"], "entities": [], "topic_concepts": [], "evidence": [], "analysis_report": {},
+        }, "common")
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True, 0.7, 70)
+        self.store.save_case_evaluation(evaluation["id"], {
+            "keyword_score": 0, "semantic_raw": 0.7, "semantic_score": 70, "llm_score": 85, "final_score": 81.25,
+            "evidence_status": "verified", "reasons": ["관련 있음"], "matched_terms": [], "low_score_categories": [],
+            "analysis_report": {"old": True}, "decision": "send",
+        }, "case-model")
+        self.store.queue_case_evaluation(evaluation["id"] + "-missing")
+        _invite, token = self.store.create_invite("테스트", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-reset", "access_token_ciphertext": "access", "refresh_token_ciphertext": "refresh",
+            "access_token_expires_at": now_iso(), "refresh_token_expires_at": now_iso(),
+        })
+        self.store.queue_delivery(article["id"], case["id"], recipient["id"], now_iso())
+        delivery = self.store.due_deliveries(1)[0]
+        self.store.finish_delivery(delivery["id"], True, 200, "")
+
+        reset, _ = self.store.reset_case_evaluation_for_requeue(analysis["id"], article["id"], case, True, 0.6, 60, "")
+        self.assertEqual(reset["status"], "pending")
+        self.assertEqual(reset["decision"], "pending")
+        self.assertEqual(reset["analysis_report"], {})
+        job_id = self.store.queue_case_evaluation(reset["id"], ready_at=now_iso())
+        self.assertTrue(job_id)
+        with self.store.connect() as connection:
+            sent = connection.execute("SELECT COUNT(*) FROM deliveries WHERE article_id=? AND case_id=? AND status='sent'", (article["id"], case["id"])).fetchone()[0]
+            pending = connection.execute("SELECT COUNT(*) FROM case_evaluation_jobs WHERE case_evaluation_id=? AND status='pending'", (reset["id"],)).fetchone()[0]
+        self.assertEqual(sent, 1)
+        self.assertEqual(pending, 1)
+
     def test_article_score_dashboard(self):
         case = self.store.save_case(case_payload())
         article, created = self.store.upsert_article({
@@ -250,10 +709,122 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(self.store.activate_worker_session("worker-b"), 1)
         self.assertEqual(self.store.next_llm_job()["id"], first_job)
 
+    def test_failed_common_analysis_is_requeued_for_bounded_retry(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/retry-common",
+            "original_url": "https://example.com/retry-common",
+            "title": "재시도 기사", "publisher": "example.com", "snippet": "재시도", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        self.assertTrue(self.store.start_article_analysis_job(job_id))
+        self.store.finish_article_analysis_job(job_id, False, 10, "failed_generation")
+        recovered = self.store.recover_incomplete_pipeline_jobs()
+        self.assertEqual(recovered["common"], 1)
+        self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
+
     def test_invite_is_one_time(self):
         invite, token = self.store.create_invite("테스트", 60)
         self.assertEqual(self.store.valid_invite(token)["id"], invite["id"])
         self.assertIsNone(self.store.valid_invite("wrong-token"))
+
+    def test_placeholder_kakao_signup_does_not_overwrite_existing_recipient_name(self):
+        _invite, token = self.store.create_invite("김민", 60)
+        first = self.store.consume_invite(token, {
+            "kakao_user_id": "same-kakao-user", "access_token_ciphertext": "access1",
+            "refresh_token_ciphertext": "refresh1", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        self.assertEqual(first["label"], "김민")
+
+        _invite2, token2 = self.store.create_invite("구독 신청자", 60)
+        second = self.store.consume_invite(token2, {
+            "kakao_user_id": "same-kakao-user", "access_token_ciphertext": "access2",
+            "refresh_token_ciphertext": "refresh2", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        self.assertEqual(second["id"], first["id"])
+        self.assertEqual(second["label"], "김민")
+        private = self.store.get_recipient(second["id"], include_tokens=True)
+        self.assertEqual(private["access_token_ciphertext"], "access2")
+
+    def test_signup_request_links_kakao_recipient_after_admin_approval(self):
+        organization = self.store.save_organization({
+            "name": "행정안전부", "abbreviations": ["행안부"], "former_names": [],
+            "people": [], "exclude_terms": [], "domains": [], "rss_urls": [],
+            "collection_mode": "interval", "collection_interval_minutes": 30, "collection_times": [],
+            "max_search_queries": 8, "max_articles_per_run": 50, "is_active": True,
+        })
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        case2 = self.store.save_case({**case_payload(), "name": "정책 발표", "organization_id": organization["id"]})
+        request, token = self.store.create_signup_request("김철수", organization["id"], [case["id"]])
+        self.assertEqual(request["masked_name"], "김*수")
+        self.assertEqual(request["status"], "requested")
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-1", "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+        })
+        updated = self.store.mark_signup_request_kakao_registered(token, recipient["id"])
+        self.assertEqual(updated["status"], "kakao_registered")
+        approved = self.store.decide_signup_case(request["id"], case["id"], "approved")
+        self.assertEqual(approved["status"], "approved")
+        self.assertIn(recipient["id"], self.store.case_recipient_ids(case["id"]))
+        changed = self.store.set_signup_request_subscriptions(request["id"], [case2["id"]])
+        statuses = {item["case_id"]: item["status"] for item in changed["case_requests"]}
+        self.assertEqual(statuses[case["id"]], "revoked")
+        self.assertEqual(statuses[case2["id"]], "approved")
+        self.assertNotIn(recipient["id"], self.store.case_recipient_ids(case["id"]))
+        self.assertIn(recipient["id"], self.store.case_recipient_ids(case2["id"]))
+        revoked = self.store.set_signup_request_subscriptions(request["id"], [], "전체 해지")
+        self.assertEqual(revoked["status"], "revoked")
+        self.assertNotIn(recipient["id"], self.store.case_recipient_ids(case2["id"]))
+        public = self.store.list_signup_requests(include_private=False)[0]
+        self.assertNotIn("applicant_name", public)
+        self.assertEqual(public["masked_name"], "김*수")
+        self.assertTrue(self.store.delete_recipient(recipient["id"]))
+        self.assertEqual(self.store.list_signup_requests(include_private=True), [])
+
+    def test_signup_request_can_start_after_kakao_message_consent(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("구독 신청자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-consent", "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(), "scopes": ["talk_message"],
+        })
+        request, returned_token = self.store.create_signup_request("김철수", organization["id"], [case["id"]], recipient_id=recipient["id"])
+        self.assertEqual(returned_token, "")
+        self.assertEqual(request["status"], "kakao_registered")
+        self.assertTrue(request["kakao_registered"])
+        self.assertEqual(request["masked_name"], "김*수")
+        self.assertEqual((self.store.get_recipient(recipient["id"]) or {}).get("label"), "김철수")
+
+    def test_completed_signup_requests_expire_after_six_hours(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        request, token = self.store.create_signup_request("김철수", organization["id"], [case["id"]])
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-cleanup", "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh", "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+        })
+        self.store.mark_signup_request_kakao_registered(token, recipient["id"])
+        self.store.decide_signup_case(request["id"], case["id"], "approved")
+        old = (datetime.now(KST) - timedelta(hours=7)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE signup_requests SET decided_at=?,updated_at=? WHERE id=?",
+                (old, old, request["id"]),
+            )
+        self.assertEqual(self.store.list_signup_requests(include_private=True), [])
+        with self.store.connect() as connection:
+            count = connection.execute(
+                "SELECT COUNT(*) count FROM signup_request_cases WHERE request_id=?",
+                (request["id"],),
+            ).fetchone()["count"]
+        self.assertEqual(count, 0)
 
     def test_schedule_and_threshold_validation(self):
         invalid_time = {**case_payload(), "collection_mode": "times", "collection_times": ["25:99"]}
@@ -311,6 +882,84 @@ class ScoringTests(unittest.TestCase):
         self.assertFalse(result["analysis_report"]["input_content"]["body_transmitted"])
         self.assertTrue(result["analysis_report"]["input_content"]["user_case_prompt_transmitted"])
 
+    def test_ollama_common_analysis_uses_cpu_15b_profile(self):
+        settings = SimpleNamespace(llm_model="qwen2.5:1.5b")
+        client = OllamaClient(settings)
+        captured = {}
+
+        def fake_request(path, payload):
+            captured["path"] = path
+            captured["payload"] = payload
+            return {"message": {"content": json.dumps({
+                "article_type": "AI·디지털",
+                "classification_tags": ["AI·디지털", "사실전달", "추가 태그"],
+                "tone": "사실전달",
+                "summary": "요약" * 120,
+                "publisher_name": "연합뉴스",
+                "reporter_name": "구정모",
+                "entities": ["인공지능", "디지털정부", "공통기반", "데이터센터", "행정서비스", "플랫폼", "추가명사"],
+                "topic_concepts": ["디지털 행정", "공공 AI 전환", "제외 개념"],
+                "evidence_ids": ["E1", "E2", "E3", "E4", "E5", "E6"],
+            }, ensure_ascii=False)}}
+
+        client.request = fake_request
+        result = client.analyze_article_common({
+            "title": "디지털정부 공통기반 전환",
+            "publisher": "yna.co.kr",
+            "original_url": "https://yna.co.kr/article/1",
+            "body": "구정모 기자가 취재했다. " + ("인공지능과 디지털정부 공통기반, 데이터센터, 행정서비스, 플랫폼을 설명한다. " * 100),
+        })
+
+        self.assertEqual(captured["path"], "/api/chat")
+        self.assertEqual(captured["payload"]["model"], "qwen2.5:1.5b")
+        self.assertEqual(captured["payload"]["options"], {
+            "temperature": 0.0, "num_predict": 180, "num_ctx": 3072, "num_thread": 4,
+        })
+        self.assertEqual(captured["payload"]["keep_alive"], "10m")
+        self.assertLessEqual(result["analysis_report"]["input_content"]["input_length"], 2200)
+        self.assertLessEqual(len(result["summary"]), 160)
+        self.assertEqual(len(result["classification_tags"]), 2)
+        self.assertEqual(len(result["entities"]), 6)
+        self.assertEqual(len(result["topic_concepts"]), 2)
+        self.assertEqual(result["publisher_name"], "연합뉴스")
+        self.assertEqual(result["reporter_name"], "구정모")
+
+    def test_ollama_common_analysis_retries_missing_required_terms(self):
+        settings = SimpleNamespace(llm_model="test-model")
+        client = OllamaClient(settings)
+        call_count = {"count": 0}
+
+        def fake_request(path, payload):
+            call_count["count"] += 1
+            if call_count["count"] == 1:
+                return {"message": {"content": json.dumps({
+                    "article_type": "정치·입법",
+                    "classification_tags": ["정치·입법", "사실전달"],
+                    "tone": "사실전달",
+                    "summary": "국회에서 새로운 법안이 논의되었습니다.",
+                    "entities": ["국회", "의원"],
+                    "topic_concepts": ["입법"],
+                    "evidence_ids": ["E1"],
+                }, ensure_ascii=False)}}
+            return {"message": {"content": json.dumps({
+                "article_type": "정치·입법",
+                "classification_tags": ["정치·입법", "사실전달"],
+                "tone": "사실전달",
+                "summary": "국회에서 새로운 법안이 논의되었습니다. 행정안전부 예산 배분에 대한 언급이 포함되었습니다.",
+                "entities": ["국회", "의원", "행정안전부"],
+                "topic_concepts": ["입법", "공공예산"],
+                "evidence_ids": ["E1"],
+            }, ensure_ascii=False)}}
+
+        client.request = fake_request
+        case = {**case_payload(), "topic_search_prompt": "행정안전부 관련 예산 법안을 다룹니다.", "required_terms": ["행정안전부"]}
+        article = {"title": "국회 법안 논의", "publisher": "example.com", "body": "국회에서 법안이 논의되었고, 행정안전부 예산에 대한 언급이 있었습니다."}
+
+        result = client.classify_and_summarize(case, article)
+        self.assertGreaterEqual(call_count["count"], 2)
+        self.assertIn("행정안전부", result["summary"])
+        self.assertTrue(result["analysis_report"]["evidence_validation"]["repair_attempted"])
+
     def test_keyword_score_and_exclusion(self):
         case = case_payload()
         article = {"title": "인공지능 행정 혁신", "snippet": "공공 서비스 개선", "body": "행정 업무에 인공지능을 적용한다."}
@@ -324,7 +973,7 @@ class ScoringTests(unittest.TestCase):
     def test_quick_candidate_filter(self):
         case = case_payload()
         self.assertTrue(quick_candidate_match(case, {"title": "인공지능 정책", "snippet": ""}))
-        self.assertTrue(quick_candidate_match(case, {"title": "인공지능 광고", "snippet": ""}))
+        self.assertFalse(quick_candidate_match(case, {"title": "인공지능 광고", "snippet": ""}))
         self.assertFalse(quick_candidate_match(case, {"title": "체육 경기 결과", "snippet": ""}))
 
     def test_ai_copyright_notice_is_not_a_case_candidate(self):
@@ -336,6 +985,23 @@ class ScoringTests(unittest.TestCase):
         }
         self.assertFalse(quick_candidate_match(case, article))
         self.assertEqual(keyword_relevance(case, article)["matched_terms"], [])
+
+    def test_case_candidate_gate_requires_mandatory_terms_before_llm(self):
+        case = {**case_payload(), "include_terms": ["인공지능"], "required_terms": ["쿠팡"]}
+        article = {"title": "행안부 인공지능 정책", "snippet": "AI 행정서비스 확대", "body": "행정안전부가 서비스를 발표했다."}
+        ok, reason = case_candidate_gate(case, article, {"summary": "인공지능 정책", "tone": "사실전달"}, 95, 65)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "required_terms_missing")
+
+    def test_case_candidate_gate_does_not_use_low_semantic_as_include_bypass(self):
+        case = {**case_payload(), "include_terms": ["인공지능"], "required_terms": []}
+        article = {"title": "행안부 재난 대응", "snippet": "호우 피해 복구", "body": "행정안전부가 중대본 회의를 열었다."}
+        low_ok, low_reason = case_candidate_gate(case, article, {"summary": "호우 대응", "tone": "사실전달"}, 70, 65)
+        high_ok, high_reason = case_candidate_gate(case, article, {"summary": "호우 대응", "tone": "사실전달"}, 91, 65)
+        self.assertFalse(low_ok)
+        self.assertEqual(low_reason, "include_terms_missing")
+        self.assertTrue(high_ok)
+        self.assertEqual(high_reason, "keyword_or_semantic_candidate")
 
     def test_organization_candidate_filter(self):
         organization = {
@@ -392,7 +1058,10 @@ class ScoringTests(unittest.TestCase):
                     "categories": [], "analysis_report": {},
                 }
 
-        case = {**case_payload(), "relevance_threshold": 75, "organization_terms": []}
+        case = {
+            **case_payload(), "relevance_threshold": 75, "organization_terms": [],
+            "keyword_weight": 0.25, "semantic_weight": 0.25, "llm_weight": 0.5,
+        }
         article = {"title": "인공지능 행정 혁신", "snippet": "행정 서비스", "body": "인공지능 행정 서비스를 확대한다."}
         engine = RelevanceEngine(None)
         engine.case_llm = FakeCaseLlm()
@@ -428,9 +1097,106 @@ class ScoringTests(unittest.TestCase):
         engine = RelevanceEngine(None)
         engine.case_llm = FakeCaseLlm()
         result = engine.evaluate_case_with_common(case, article, {"summary": "경찰 인사 개선안 기사", "tone": "사실전달", "id": "common-1"})
-        self.assertEqual(result["llm_score"], 39)
+        self.assertEqual(result["llm_score"], 85)
+        self.assertEqual(result["final_score"], 85)
         self.assertEqual(result["decision"], "low")
         self.assertIn("required_topic_not_verified", result["low_score_categories"])
+
+    def test_high_confidence_case_llm_allows_missing_batch_evidence_ids(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 85, "required_topic_met": True, "target_is_primary": True,
+                    "topic_evidence": [], "target_evidence": [], "stance_evidence": [],
+                    "reasons": ["행안부 공모 사업과 AI 기술 도입 사실을 확인했습니다."],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "행정안전부 공공부문 AI 서비스 지원 공모와 AI 정책 기사",
+            "include_terms": ["AI", "인공지능", "공통기반"], "required_terms": [],
+            "organization_terms": ["행정안전부", "행안부"],
+            "_semantic_raw": 0.722425, "_semantic_score": 93.8,
+            "semantic_weight": 0.25, "llm_weight": 0.75, "relevance_threshold": 70,
+        }
+        article = {
+            "title": "경북 22개 시·군 행정 서비스 한곳에…AI 민원실 구축",
+            "snippet": "경북도가 행정안전부 공모에 선정되어 AI 민원실 구축을 추진한다.",
+            "body": "행정안전부 공공부문 AI 서비스 지원 공모에 선정되어 국비를 확보했다.",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(case, article, {"summary": "AI 민원실 구축", "tone": "긍정적", "id": "common-ai"})
+        self.assertEqual(result["decision"], "send")
+        self.assertTrue(result["analysis_report"]["components"]["high_confidence_llm"])
+        self.assertEqual(result["evidence_status"], "verified")
+
+    def test_indirect_local_government_prompt_can_send_high_confidence_match(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 90, "required_topic_met": True, "target_is_primary": True,
+                    "topic_evidence": [], "target_evidence": [], "stance_evidence": [],
+                    "reasons": ["지방정부가 수행한 하천·계곡 정비 실적입니다."],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "행안부에서 추진 중인 하천 계곡 정비 사업. 실제 정비하는 주체가 행안부가 아닌 지방정부가 수행한 실적도 포함한다.",
+            "include_terms": ["하천", "계곡", "철거", "정비"], "required_terms": ["하천", "계곡"],
+            "organization_terms": ["행정안전부", "행안부"],
+            "_semantic_raw": 0.819311, "_semantic_score": 52.2,
+            "semantic_weight": 0.25, "llm_weight": 0.75, "relevance_threshold": 70,
+        }
+        article = {
+            "title": "예천군, 하천·계곡 불법점용 510건 적발…138건 정비 완료",
+            "snippet": "예천군이 하천 및 계곡 불법점용 시설을 정비했다.",
+            "body": "하천 계곡 불법점용 시설 510건을 확인하고 138건을 철거·정비했다.",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(case, article, {"summary": "하천 계곡 정비", "tone": "사실전달", "id": "common-river"})
+        self.assertEqual(result["decision"], "send")
+        self.assertTrue(result["analysis_report"]["components"]["allows_indirect_target"])
+        self.assertEqual(result["evidence_status"], "verified")
+
+    def test_prompt_must_not_promote_include_terms_to_hard_gate(self):
+        class FakeCaseLlm:
+            def judge_case(self, _case, _article, _common, _model):
+                return {
+                    "score": 85, "is_relevant": True, "required_topic_met": True,
+                    "topic_evidence": ["송경주 지방재정경제실장이 정책 의미를 설명했다."],
+                    "target_is_primary": True,
+                    "target_evidence": ["행안부 송경주 지방재정경제실장이 정책 의미를 설명했다."],
+                    "stance_evidence": [], "reasons": ["행안부 실국장 발언"],
+                    "categories": [], "analysis_report": {},
+                }
+
+        case = {
+            **case_payload(),
+            "topic_search_prompt": "행안부 실국장의 의미 있는 발언인지 판정한다. 반드시 현직 실국장이어야 한다.",
+            "include_terms": ["인터뷰", "발언", "답변", "현장방문", "주재", "브리핑"],
+            "required_terms": [], "organization_terms": ["행정안전부", "행안부"],
+            "_semantic_raw": 0.879012, "_semantic_score": 95.3,
+            "semantic_weight": 0.5, "llm_weight": 0.5, "relevance_threshold": 75,
+        }
+        article = {
+            "title": "문체부·행안부, 지역관광정책 경진대회 신설",
+            "snippet": "행정안전부와 문화체육관광부가 공동 사업을 추진한다.",
+            "body": "행안부 송경주 지방재정경제실장이 정책 의미를 설명했다.",
+        }
+        engine = RelevanceEngine(None)
+        engine.case_llm = FakeCaseLlm()
+        result = engine.evaluate_case_with_common(
+            case, article, {"summary": "행안부 실장의 정책 설명", "tone": "사실전달", "id": "common-1"}
+        )
+
+        self.assertEqual(result["final_score"], 90.2)
+        self.assertEqual(result["decision"], "send")
+        self.assertFalse(result["analysis_report"]["components"]["local_topic_gate"]["required"])
+        self.assertNotIn("required_topic_not_verified", result["low_score_categories"])
 
     def test_raw_llm_score_is_preserved_when_evidence_is_unverified(self):
         class FakeOllama:
@@ -486,8 +1252,8 @@ class ScoringTests(unittest.TestCase):
         engine = RelevanceEngine(None)
         engine.ollama = FakeOllama()
         result = engine.evaluate(case, article)
-        self.assertLessEqual(result["llm_score"], 49)
-        self.assertLessEqual(result["final_score"], 49)
+        self.assertEqual(result["llm_score"], 95)
+        self.assertEqual(result["final_score"], 95)
         self.assertEqual(result["decision"], "low")
         self.assertEqual(result["tone"], "사실전달")
         self.assertIn("operational_factual_report", result["low_score_categories"])
@@ -528,6 +1294,37 @@ class ScoringTests(unittest.TestCase):
 
 
 class OrganizationPipelineTests(unittest.TestCase):
+    def test_new_case_ignores_articles_collected_before_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "case-start.sqlite3")
+            organization = store.save_organization({"name": "행정안전부", "is_active": True})
+            article, _ = store.upsert_article({
+                "canonical_url": "https://example.com/before-case",
+                "original_url": "https://example.com/before-case",
+                "title": "케이스 생성 전 수집 기사",
+                "body": "행정안전부 인공지능 정책 기사",
+            })
+            with store.connect() as connection:
+                connection.execute(
+                    "UPDATE articles SET first_seen_at='2020-01-01T00:00:00+09:00' WHERE id=?",
+                    (article["id"],),
+                )
+            article = store.get_article(article["id"])
+            analysis, _ = store.ensure_article_analysis(article, organization["id"])
+            case = store.save_case({**case_payload(), "organization_id": organization["id"]})
+
+            service = MasterPressService.__new__(MasterPressService)
+            service.store = store
+            routed = service._route_article_analysis(analysis, article, organization["id"])
+
+            self.assertEqual(routed["case_before_start"], 1)
+            with store.connect() as connection:
+                count = connection.execute(
+                    "SELECT COUNT(*) value FROM case_evaluations WHERE article_id=? AND case_id=?",
+                    (article["id"], case["id"]),
+                ).fetchone()["value"]
+            self.assertEqual(count, 0)
+
     def test_collect_once_and_distribute_to_linked_case(self):
         with tempfile.TemporaryDirectory() as directory:
             store = Store(Path(directory) / "pipeline.sqlite3")
@@ -547,21 +1344,29 @@ class OrganizationPipelineTests(unittest.TestCase):
                         "original_url": "https://example.com/org-news",
                         "title": "행안부 인공지능 행정 확대",
                         "publisher": "example.com",
-                        "snippet": "행정안전부가 인공지능 행정 서비스를 확대한다.",
+                        "snippet": "행정안전부가 인공지능 디지털정부 행정 서비스를 확대한다.",
                         "source_type": "test",
                     }]
 
                 def fetch_body(self, _url):
-                    return {"body": "행정안전부가 인공지능 행정 서비스를 확대한다."}
+                    return {"body": "행정안전부가 인공지능 디지털정부 행정 서비스를 확대한다."}
 
             class FakeScoring:
+                class FakeOllama:
+                    def embeddings(self, _texts):
+                        return [[1.0, 0.0, 0.0]]
+                ollama = FakeOllama()
+
                 def analyze_article_common(self, _article, _model):
                     return {
                         "summary": "행정 서비스 확대", "article_type": "정책·행정", "tone": "사실전달",
                         "classification_tags": ["정책·행정", "AI·디지털", "사실전달"],
-                        "entities": ["행정안전부", "인공지능", "행정 서비스", "확대한다", "기사에 없음"], "evidence": [],
+                        "entities": ["행정안전부", "인공지능", "디지털정부", "행정 서비스", "확대한다", "기사에 없음"], "evidence": [],
                         "analysis_report": {},
                     }
+
+                def evaluate_cases_with_common(self, _cases, _article, _common, _model):
+                    return {}
 
                 def evaluate_case_with_common(self, _case, _article, _common, _model):
                     return {
@@ -569,6 +1374,10 @@ class OrganizationPipelineTests(unittest.TestCase):
                         "evidence_status": "verified", "reasons": ["관련"], "matched_terms": ["인공지능"],
                         "low_score_categories": [], "decision": "low", "urgent": False, "llm_error": "", "analysis_report": {},
                     }
+
+            class FakePressReleases:
+                def queue_for_article(self, _analysis_id):
+                    return 0
 
             class FakeMirror:
                 def article_score(self, _article, _score):
@@ -582,14 +1391,20 @@ class OrganizationPipelineTests(unittest.TestCase):
             service.collector = FakeCollector()
             service.scoring = FakeScoring()
             service.mirror = FakeMirror()
+            service.press_releases = FakePressReleases()
             result = service.run_organization(organization["id"])
             self.assertEqual(result["counts"]["collected"], 1)
             self.assertEqual(result["counts"]["analysis_queued"], 1)
             self.assertEqual(result["counts"]["scored"], 0)
             common = service.process_next_article_analysis()
             self.assertEqual(common["stage"], "article")
+            embedded = service.process_next_embedding()
+            self.assertTrue(embedded["embedded"])
+            with store.connect() as connection:
+                connection.execute("UPDATE case_evaluation_jobs SET retry_after='' WHERE status='pending'")
             processed = service.process_next_case_evaluation()
             self.assertEqual(processed["counts"]["scored"], 1)
+            self.assertEqual(processed["counts"]["missing"], 0)
             insight_labels = {item["label"] for item in store.analysis_insights(organization_id=organization["id"])["words"]}
             self.assertIn("인공지능", insight_labels)
             self.assertIn("행정 서비스", insight_labels)
@@ -598,12 +1413,15 @@ class OrganizationPipelineTests(unittest.TestCase):
             self.assertNotIn("기사에 없음", insight_labels)
             dashboard = store.pipeline_dashboard(organization_id=organization["id"])
             self.assertEqual(dashboard["stats"]["total"], 1)
+            self.assertEqual(dashboard["pipeline"]["processed_articles"], 1)
+            self.assertGreaterEqual(dashboard["pipeline"]["average_seconds"], 0)
             self.assertEqual(dashboard["articles"][0]["organization_name"] if "organization_name" in dashboard["articles"][0] else dashboard["articles"][0]["case_results"][0]["organization_name"], "행정안전부")
             self.assertEqual(dashboard["articles"][0]["case_results"][0]["decision"], "low")
             self.assertEqual(dashboard["categories"][0], {"label": "정책·행정", "article_count": 1, "sent_count": 0})
             self.assertEqual({item["label"] for item in dashboard["tags"]}, {"정책·행정", "사실전달"})
 
             with store.connect() as connection:
+                connection.execute("UPDATE case_evaluations SET decision='send' WHERE article_id=? AND case_id=?", (dashboard["articles"][0]["id"], case["id"]))
                 connection.execute(
                     "INSERT INTO recipients(id,label,status,created_at,updated_at) VALUES(?,?,?,?,?)",
                     ("recipient-1", "테스트 수신자", "connected", "2026-07-17T10:00:00+09:00", "2026-07-17T10:00:00+09:00"),
@@ -614,6 +1432,11 @@ class OrganizationPipelineTests(unittest.TestCase):
             store.finish_delivery(delivery_id, True, 200)
             dashboard = store.pipeline_dashboard(case_id=case["id"])
             self.assertEqual(dashboard["recent_sent"][0]["title"], "행안부 인공지능 행정 확대")
+            keyword_suggestions = store.case_sent_keyword_suggestions(case["id"])
+            self.assertEqual(keyword_suggestions["sent_articles"], 1)
+            self.assertEqual([item["keyword"] for item in keyword_suggestions["keywords"]], ["디지털정부"])
+            self.assertNotIn("인공지능", [item["keyword"] for item in keyword_suggestions["keywords"]])
+            self.assertNotIn("행정", [item["keyword"] for item in keyword_suggestions["keywords"]])
             self.assertEqual(dashboard["recent_sent"][0]["case_name"], case["name"])
 
 
@@ -698,7 +1521,16 @@ class PressReleaseTests(unittest.TestCase):
             with store.connect() as connection:
                 self.assertEqual(connection.execute("SELECT COUNT(*) FROM article_press_release_matches").fetchone()[0], 1)
                 self.assertIsNotNone(connection.execute("SELECT supabase_synced_at FROM article_press_release_matches").fetchone()[0])
-                connection.execute("UPDATE article_press_release_matches SET supabase_synced_at=NULL")
+                connection.execute("UPDATE article_press_release_matches SET similarity_score=64,is_related=1,supabase_synced_at=NULL")
+            store.set_setting("press_release_match_threshold", "65")
+            self.assertEqual(manager.releases_for_article(article["id"]), [])
+            self.assertEqual(manager.get_release(release_id)["related_articles"], [])
+            self.assertEqual(manager.list_releases()[0]["related_article_count"], 0)
+            self.assertEqual(store.pipeline_dashboard(limit=5)["articles"][0]["related_press_count"], 0)
+            store.set_setting("press_release_match_threshold", "60")
+            self.assertEqual(len(manager.releases_for_article(article["id"])), 1)
+            self.assertEqual(manager.list_releases()[0]["related_article_count"], 1)
+            self.assertEqual(store.pipeline_dashboard(limit=5)["articles"][0]["related_press_count"], 1)
             sync_result = manager.mirror_backfill()
             self.assertEqual(sync_result["status"], "ready")
             self.assertEqual(sync_result["pending"], 0)
@@ -733,6 +1565,54 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(cipher.decrypt(encrypted), plaintext)
 
 
+    def test_kakao_send_uses_feed_template_when_image_exists(self):
+        client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())
+        captured = []
+        client.access_token = lambda recipient_id: "token"
+
+        def fake_request(url, payload=None, access_token="", method="POST"):
+            captured.append(json.loads(payload["template_object"]))
+            return 200, {"result_code": 0}
+
+        client._request = fake_request
+        status, response = client.send_to_me(
+            "recipient-1",
+            "[행정안전부]\n[케이스] 유사도 88.0%\n기사 제목\n\n요약",
+            "https://www.minslab.kr/poc/master-press/article/abc",
+            image_url="https://example.com/thumb.jpg",
+            title="대표 기사 제목",
+            description="대표 기사 요약",
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(response["result_code"], 0)
+        self.assertEqual(captured[0]["object_type"], "feed")
+        self.assertEqual(captured[0]["content"]["title"], "대표 기사 제목")
+        self.assertEqual(captured[0]["content"]["description"], "대표 기사 요약")
+        self.assertEqual(captured[0]["content"]["image_url"], "https://example.com/thumb.jpg")
+
+    def test_kakao_send_falls_back_to_text_when_feed_fails(self):
+        client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())
+        captured = []
+        client.access_token = lambda recipient_id: "token"
+
+        def fake_request(url, payload=None, access_token="", method="POST"):
+            message = json.loads(payload["template_object"])
+            captured.append(message)
+            if len(captured) == 1:
+                raise KakaoError("이미지 URL을 표시할 수 없습니다.", 400)
+            return 200, {"result_code": 0}
+
+        client._request = fake_request
+        status, response = client.send_to_me(
+            "recipient-1",
+            "fallback text",
+            "https://www.minslab.kr/poc/master-press/article/abc",
+            image_url="https://example.com/thumb.jpg",
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(response["result_code"], 0)
+        self.assertEqual([item["object_type"] for item in captured], ["feed", "text"])
+
     def test_kakao_text_respects_200_character_limit(self):
         delivery = {
             "case_name": "매우 긴 케이스 이름" * 10,
@@ -745,7 +1625,7 @@ class SecurityTests(unittest.TestCase):
         }
         message = MasterPressService.message_text(delivery)
         self.assertLessEqual(len(message), 200)
-        self.assertIn("유사도 88%", message)
+        self.assertIn("유사도 88.0%", message)
         self.assertTrue(message.startswith("[행정안전부] [정책·행정] [AI·디지털]\n"))
         self.assertIn("긴 뉴스 제목", message)
 

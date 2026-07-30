@@ -1,0 +1,10 @@
+[Unit]
+Description=Queue Master Press historical metadata every 10 minutes
+
+[Timer]
+OnCalendar=*:0/10
+Persistent=true
+Unit=master-press-supabase-seed.service
+
+[Install]
+WantedBy=timers.target

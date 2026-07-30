@@ -1,0 +1,10 @@
+[Unit]
+Description=Verify Master Press compact history after the quiet-window transfer
+
+[Timer]
+OnCalendar=*-*-* 01:55:00
+Persistent=false
+Unit=master-press-supabase-history-verify.service
+
+[Install]
+WantedBy=timers.target

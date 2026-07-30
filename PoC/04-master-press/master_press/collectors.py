@@ -5,8 +5,10 @@ import hashlib
 import html
 import json
 import re
+import socket
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import urllib.robotparser
 import xml.etree.ElementTree as ET
@@ -82,6 +84,65 @@ class TextExtractor(HTMLParser):
         return "\n".join(line for line in lines if len(line) > 1)
 
 
+IMAGE_META_KEYS = {"og:image", "og:image:url", "twitter:image", "twitter:image:src", "thumbnail", "thumbnailurl", "image"}
+IMAGE_SKIP_RE = re.compile(r"(logo|icon|sprite|banner|ad-|ads/|advert|profile|avatar|button|favicon)", re.I)
+IMAGE_EXT_RE = re.compile(r"\.(?:jpe?g|png|webp)(?:[?#]|$)", re.I)
+
+
+class ImageMetaParser(HTMLParser):
+    def __init__(self, base_url: str):
+        super().__init__()
+        self.base_url = base_url
+        self.meta_images: list[str] = []
+        self.fallback_images: list[str] = []
+
+    def _clean_url(self, value: str) -> str:
+        value = html.unescape(str(value or "")).strip()
+        if not value:
+            return ""
+        resolved = urllib.parse.urljoin(self.base_url, value)
+        parsed = urllib.parse.urlsplit(resolved)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            return ""
+        return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))[:1000]
+
+    def handle_starttag(self, tag, attrs):
+        attr = {str(key).lower(): str(value or "") for key, value in attrs}
+        tag = tag.lower()
+        if tag == "meta":
+            key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").lower()
+            if key in IMAGE_META_KEYS:
+                url = self._clean_url(attr.get("content", ""))
+                if url:
+                    self.meta_images.append(url)
+        elif tag == "link":
+            rel = attr.get("rel", "").lower()
+            if "image_src" in rel:
+                url = self._clean_url(attr.get("href", ""))
+                if url:
+                    self.meta_images.append(url)
+        elif tag == "img" and len(self.fallback_images) < 3:
+            raw = attr.get("src") or attr.get("data-src") or attr.get("data-original") or ""
+            url = self._clean_url(raw)
+            if url and IMAGE_EXT_RE.search(url) and not IMAGE_SKIP_RE.search(url):
+                self.fallback_images.append(url)
+
+    def image_url(self) -> str:
+        for url in [*self.meta_images, *self.fallback_images]:
+            if url:
+                return url
+        return ""
+
+
+def extract_representative_image(raw_html: str, base_url: str) -> str:
+    parser = ImageMetaParser(base_url)
+    try:
+        parser.feed(raw_html or "")
+    except Exception:
+        return ""
+    return parser.image_url()
+
+
 @dataclass
 class Candidate:
     canonical_url: str
@@ -100,9 +161,10 @@ class HttpClient:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.last_domain_request: dict[str, float] = {}
-        self.robots: dict[str, urllib.robotparser.RobotFileParser] = {}
+        self.robots: dict[str, dict] = {}
 
-    def request(self, url: str, headers: dict | None = None, data: bytes | None = None, method: str = "GET") -> bytes:
+    def request(self, url: str, headers: dict | None = None, data: bytes | None = None,
+                method: str = "GET", max_bytes: int = 2_000_000) -> bytes:
         parsed = urllib.parse.urlsplit(str(url or ""))
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise ValueError("HTTP(S) 주소만 수집할 수 있습니다.")
@@ -110,21 +172,36 @@ class HttpClient:
         request_headers.update(headers or {})
         request = urllib.request.Request(url, headers=request_headers, data=data, method=method)
         with urllib.request.urlopen(request, timeout=self.settings.request_timeout_seconds) as response:
-            return response.read(2_000_000)
+            return response.read(max(1, min(2_000_000, int(max_bytes))))
 
-    def allowed(self, url: str) -> bool:
+    def robots_access(self, url: str) -> dict:
+        """Never turn an unavailable robots.txt into permission to fetch."""
         parsed = urllib.parse.urlsplit(url)
         origin = f"{parsed.scheme}://{parsed.netloc}"
-        if origin not in self.robots:
+        if origin in self.robots:
+            return dict(self.robots[origin])
+        robots_url = f"{origin}/robots.txt"
+        try:
+            raw = self.request(robots_url, headers={"Accept": "text/plain,*/*;q=0.1"}, max_bytes=256_000)
             parser = urllib.robotparser.RobotFileParser()
-            parser.set_url(f"{origin}/robots.txt")
-            try:
-                parser.read()
-            except Exception:
-                parser = urllib.robotparser.RobotFileParser()
-                parser.parse([])
-            self.robots[origin] = parser
-        return self.robots[origin].can_fetch(self.settings.user_agent, url)
+            parser.set_url(robots_url)
+            parser.parse(raw.decode("utf-8", errors="replace").splitlines())
+            allowed = bool(parser.can_fetch(self.settings.user_agent, url))
+            decision = {"allowed": allowed, "state": "allowed" if allowed else "disallowed"}
+        except urllib.error.HTTPError as error:
+            if error.code in {404, 410}:
+                decision = {"allowed": True, "state": "allowed"}
+            elif error.code in {401, 403}:
+                decision = {"allowed": False, "state": "disallowed"}
+            else:
+                decision = {"allowed": False, "state": "unknown"}
+        except (urllib.error.URLError, socket.timeout, TimeoutError, ValueError):
+            decision = {"allowed": False, "state": "unknown"}
+        self.robots[origin] = decision
+        return dict(decision)
+
+    def allowed(self, url: str) -> bool:
+        return bool(self.robots_access(url).get("allowed"))
 
     def throttle(self, url: str, minimum_seconds: float = 1.0) -> None:
         domain = urllib.parse.urlsplit(url).netloc
@@ -268,8 +345,10 @@ class NewsCollector:
 
 
     def fetch_body(self, url: str) -> dict:
-        if not self.http.allowed(url):
-            return {"body": "", "error": "robots_disallowed"}
+        robots = self.http.robots_access(url)
+        if not robots.get("allowed"):
+            error = "robots_disallowed" if robots.get("state") == "disallowed" else "robots_unavailable"
+            return {"body": "", "error": error, "retryable": error != "robots_disallowed"}
         try:
             self.http.throttle(url)
             payload = self.http.request(url, headers={"Accept": "text/html,application/xhtml+xml"})
@@ -279,23 +358,37 @@ class NewsCollector:
                 import trafilatura
                 body = trafilatura.extract(raw_html, include_comments=False, include_tables=False, favor_precision=True) or ""
             except (ImportError, RuntimeError):
-                parser = TextExtractor()
-                parser.feed(raw_html)
-                body = parser.text()
+                body = ""
+            if not body:
+                parser = TextExtractor(); parser.feed(raw_html); body = parser.text()
             body = body.strip()[: self.settings.article_body_limit]
-            return {
-                "body": body,
-                "content_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
-                "body_expires_at": (datetime.now(KST) + timedelta(days=self.settings.raw_retention_days)).isoformat(timespec="seconds"),
-                "error": "" if body else "body_unavailable",
-            }
+            return {"body": body, "image_url": extract_representative_image(raw_html, url),
+                    "content_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else None,
+                    "body_expires_at": (datetime.now(KST) + timedelta(days=self.settings.raw_retention_days)).isoformat(timespec="seconds"),
+                    "error": "" if body else "body_unavailable", "retryable": not bool(body)}
+        except urllib.error.HTTPError as error:
+            status = int(error.code or 0)
+            return {"body": "", "error": f"http_{status}", "http_status": status,
+                    "retry_after": str(error.headers.get("Retry-After", "") or ""),
+                    "retryable": status in {408, 425, 429} or status >= 500}
+        except (socket.timeout, TimeoutError):
+            return {"body": "", "error": "timeout", "retryable": True}
+        except urllib.error.URLError:
+            return {"body": "", "error": "network_error", "retryable": True}
         except Exception as error:
-            return {"body": "", "error": f"fetch_error:{type(error).__name__}"}
+            return {"body": "", "error": f"fetch_error:{type(error).__name__}", "retryable": True}
+
+
+def case_excluded_match(case: dict, candidate: dict) -> bool:
+    fields = article_topic_fields(candidate)
+    return any(term_in_text(term, field) for term in case.get("exclude_terms", []) for field in fields if str(term).strip())
 
 
 def quick_candidate_match(case: dict, candidate: dict) -> bool:
     fields = article_topic_fields(candidate)
     expanded = expanded_case_terms(case)
+    if case_excluded_match(case, candidate):
+        return False
     search_groups = list(expanded.values())
     return not search_groups or any(
         any(term_in_text(variant, field) for variant in variants for field in fields)

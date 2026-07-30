@@ -18,6 +18,34 @@ import main
 from admin_auth import SESSION_COOKIE
 
 
+def case_payload(index: int = 1) -> dict:
+    return {
+        "name": f"케이스 {index}",
+        "topic_description": "인공지능 행정 서비스 정책",
+        "include_terms": ["인공지능", "행정"],
+        "required_terms": [],
+        "exclude_terms": ["광고"],
+        "urgent_terms": ["긴급"],
+        "synonym_terms": {},
+        "include_publishers": [],
+        "exclude_publishers": [],
+        "rss_urls": [],
+        "collection_mode": "interval",
+        "collection_interval_minutes": 10,
+        "collection_times": [],
+        "delivery_mode": "immediate",
+        "delivery_times": [],
+        "send_relevant_immediately": True,
+        "relevance_threshold": 70,
+        "hold_threshold": 55,
+        "keyword_weight": 0,
+        "semantic_weight": 0.25,
+        "llm_weight": 0.75,
+        "max_articles_per_message": 2,
+        "is_active": True,
+    }
+
+
 async def call_app(path: str, method: str = "GET", payload: dict | None = None, cookie: str = ""):
     query_string = b""
     if "?" in path:
@@ -60,9 +88,30 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'id="organizationFilter"', body)
         self.assertIn(b'id="categoryStats"', body)
         self.assertIn(b'id="recentSent"', body)
-        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v=20260720-5"></script>'), 1)
+        self.assertEqual(body.count(b'<script src="/poc/master-press/app.js?v='), 1)
+        self.assertIn(b'<script src="/poc/master-press/app.js?v=', body)
+        self.assertIn(b'id="signupView"', body)
+        self.assertIn("매뉴얼".encode("utf-8"), body)
+        self.assertLess(body.index("매뉴얼".encode("utf-8")), body.index("구독 및 케이스 신청".encode("utf-8")))
+        self.assertIn(b'id="magazineView"', body)
+        self.assertIn(b'href="/poc/master-press/manual.pdf"', body)
+        self.assertIn(b'id="manualView"', body)
+        self.assertIn("시간당 30건 이상 메시지".encode("utf-8"), body)
+        self.assertIn("카카오 메시지 동의 확인 전".encode("utf-8"), body)
+        self.assertIn("유사 기사 묶음 기준".encode("utf-8"), body)
+        self.assertIn("오류·전환 분석 로그".encode("utf-8"), body)
+        self.assertIn(b'id="operationLogList"', body)
+        self.assertNotIn("저유사도 개선 자료".encode("utf-8"), body)
+        self.assertIn(b'id="startKakaoSignup"', body)
+        self.assertIn(b'id="submitSignupRequest"', body)
+        self.assertIn("구독 신청".encode("utf-8"), body)
+        self.assertIn(b'id="articleSearch"', body)
+        self.assertNotIn(b'id="activeFilterLabel"', body)
         self.assertEqual(body.count(b'data-article-delivery-filter='), 3)
         self.assertIn("전체 목록".encode("utf-8"), body)
+        self.assertIn(b'id="pressSearch"', body)
+        self.assertIn(b'id="pressMatchThreshold"', body)
+        self.assertIn(b'id="bodyBackfillSummary"', body)
         self.assertIn("발송목록".encode("utf-8"), body)
         self.assertIn("미발송목록".encode("utf-8"), body)
         self.assertIn('"id": "master-press"', homepage)
@@ -74,6 +123,13 @@ class MainIntegrationTests(unittest.TestCase):
         )
         self.assertIsNotNone(renderer_order, "AI 언론동향 비서 렌더러가 다른 렌더러 안에 중첩됐습니다.")
 
+    def test_master_press_manual_pdf_download(self):
+        status, headers, body = asyncio.run(call_app("/poc/master-press/manual.pdf"))
+        self.assertEqual(status, 200)
+        self.assertEqual(headers.get(b"content-type"), b"application/pdf")
+        self.assertIn(b"manual.pdf", headers.get(b"content-disposition", b""))
+        self.assertTrue(body.startswith(b"%PDF"))
+
     def test_public_api_and_admin_protection(self):
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/dashboard"))
         self.assertEqual(status, 200)
@@ -81,6 +137,9 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertEqual(data["project"]["id"], "master-press")
         self.assertIn("organizations", data)
         self.assertLessEqual(len(data["dashboard"]["articles"]), 20)
+        status, _headers, body = asyncio.run(call_app("/api/poc/master-press/signup/bootstrap"))
+        self.assertEqual(status, 200)
+        self.assertIn("requests", json.loads(body))
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/admin/bootstrap"))
         self.assertEqual(status, 401)
         self.assertIn("관리자", json.loads(body)["error"])
@@ -104,6 +163,44 @@ class MainIntegrationTests(unittest.TestCase):
             headers[b"location"],
             b"https://news.example/article/redirect-test?from=masterpress",
         )
+
+    def test_admin_analysis_feedback_route_stores_and_reports_feedback(self):
+        module = main.load_master_press_module()
+        service = module.get_service()
+        case = service.store.save_case(case_payload())
+        article, _created = service.store.upsert_article({
+            "canonical_url": "https://example.com/admin-feedback",
+            "original_url": "https://example.com/admin-feedback",
+            "title": "관리자 피드백 기사",
+            "publisher": "example.com",
+            "published_at": None,
+            "snippet": "관리자 피드백 API 테스트",
+            "source_type": "test",
+        })
+        token = main.ADMIN_AUTH.issue_session()
+        cookie = f"{SESSION_COOKIE}={token}"
+        status, _headers, body = asyncio.run(call_app(
+            f"/api/poc/master-press/admin/analysis/{article['id']}/{case['id']}/feedback",
+            "POST",
+            {"reasons": ["negative_signal_missing"], "comment": "부정 신호가 부족합니다."},
+            cookie,
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        response = json.loads(body)
+        self.assertEqual(response["saved"], 1)
+        self.assertEqual(response["feedback"]["total"], 1)
+        self.assertEqual(response["feedback"]["breakdown"][0]["reason"], "negative_signal_missing")
+
+        status, _headers, body = asyncio.run(call_app(
+            f"/api/poc/master-press/admin/analysis/{article['id']}/{case['id']}/report",
+            "GET",
+            None,
+            cookie,
+        ))
+        self.assertEqual(status, 200)
+        report = json.loads(body)
+        self.assertEqual(report["feedback"]["total"], 1)
+        self.assertEqual(report["feedback"]["breakdown"][0]["reason"], "negative_signal_missing")
 
     def test_shared_admin_cookie_creates_case(self):
         token = main.ADMIN_AUTH.issue_session()

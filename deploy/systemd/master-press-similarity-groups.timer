@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh Master Press related article groups every five minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=master-press-similarity-groups.service
+
+[Install]
+WantedBy=timers.target
