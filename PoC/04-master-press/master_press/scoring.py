@@ -128,6 +128,12 @@ EVIDENCE_PLACEHOLDERS = {
 }
 NEGATIVE_CUES = ("비판", "비난", "질타", "시정", "문제", "논란", "책임", "부실", "실패", "우려", "반발", "지적")
 DIRECT_NEGATIVE_CUES = ("비판", "비난", "질타", "시정", "책임", "부실", "실패", "늑장", "사과", "개선", "논란", "반발", "지적")
+FALLBACK_NEGATIVE_PATTERNS = (
+    r"(?:비판|비난|질타|논란|반발|지적)(?:했다|이|이\s*제기|이\s*나오|을\s*받)",
+    r"(?:부실|실패|늑장)(?:하다|했다|한|으로|이라는|에\s*대한)",
+    r"(?:책임|사과)(?:을|을\s*묻|을\s*요구|론|해야|했다|하라)",
+    r"(?:개선|시정)(?:이|을)\s*(?:필요|요구|촉구)",
+)
 OPERATIONAL_FACTUAL_CUES = ("중대본", "호우특보", "특보 발효", "비상근무", "대응 지시", "대응태세", "점검", "대피", "복구", "예찰", "재난문자", "단계 가동", "단계 상향")
 
 
@@ -146,6 +152,10 @@ def operational_factual_exclusion(case: dict, article: dict) -> bool:
             return False
     return True
 
+
+def fallback_negative_tone(text: str) -> bool:
+    """Use contextual criticism phrases for degraded common-analysis recovery."""
+    return any(re.search(pattern, normalized_text(text)) for pattern in FALLBACK_NEGATIVE_PATTERNS)
 
 def article_sentences(article: dict, limit: int = 40) -> list[str]:
     values = [str(article.get("title") or "").strip(), strip_article_boilerplate(article.get("body") or ""), str(article.get("snippet") or "").strip()]
@@ -656,7 +666,7 @@ JSON만 반환: {{"target_is_primary":false,"target_evidence_ids":[],"tone":"사
             article_type = "정치·입법"
         else:
             article_type = "기타"
-        tone = "부정적" if any(word in normalized for word in DIRECT_NEGATIVE_CUES) else "사실전달"
+        tone = "부정적" if fallback_negative_tone(text) else "사실전달"
         summary = str(article.get("snippet") or article.get("title") or "")[:1200]
         source_text = " ".join([str(article.get("title") or ""), str(article.get("snippet") or ""), str(article.get("body") or "")])
         return {
@@ -1411,20 +1421,8 @@ class _ReserveModelMixin:
 
     def analyze_article_common(self, article: dict, model: str | None = None) -> dict:
         selected_model = model or self.default_model()
-        try:
-            result = OllamaClient.analyze_article_common(self, article, selected_model)
-        except json.JSONDecodeError as error:
-            if self.provider_name != "cloudflare":
-                raise
-            # Some Workers AI responses spend their completion budget in internal
-            # reasoning and never close the JSON body. Keep the selected primary
-            # provider, then complete the fixed common schema locally instead of
-            # unnecessarily consuming a reserve-model call.
-            result = OllamaClient.fallback_article_common(self, article, selected_model, str(error))
-            report = result.setdefault("analysis_report", {})
-            report["provider"] = "cloudflare"
-            report["response_recovery"] = "cloudflare_unparseable_json_local_schema"
-            return result
+        # Malformed JSON must reach the provider chain so a reserve model can retry.
+        result = OllamaClient.analyze_article_common(self, article, selected_model)
         report = result.setdefault("analysis_report", {})
         report["provider"] = self.provider_name
         report["fallback"] = True
@@ -1450,6 +1448,76 @@ class _ReserveModelMixin:
         markers = ("quota", "rate limit", "rate_limit", "too many", "exceeded", "resource_exhausted",
                    "free-models-per-day", "neurons", "allocation", "daily")
         return any(marker in lowered for marker in markers)
+
+
+class OpenAIShadowClient(OpenRouterClient):
+    """OpenAI GPT shadow judge; its output never controls delivery."""
+
+    def _record(self, stage: str = "shadow_case", **values) -> None:
+        if self.store:
+            self.store.record_llm_api_call(provider="openai", stage=stage, **values)
+
+    def request(self, path: str, payload: dict) -> dict:
+        if not getattr(self.settings, "openai_api_key", ""):
+            raise OpenRouterError("openai_api_key_missing", status=401)
+        options = payload.get("options") or {}
+        schema = payload.get("response_schema")
+        stage = str(payload.get("record_stage") or "shadow_case")
+        model = str(payload.get("model") or getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        body = {
+            "model": model,
+            "messages": payload.get("messages", []),
+            "temperature": float(options.get("temperature", 0.0)),
+            "max_completion_tokens": max(800, min(2200, int(options.get("num_predict", 1200)))),
+            "reasoning_effort": "none",
+        }
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": schema}
+        started = time.monotonic()
+        request = urllib.request.Request(
+            f"{str(getattr(self.settings, 'openai_base_url', 'https://api.openai.com/v1')).rstrip('/')}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.settings.openai_api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=max(45, self.settings.request_timeout_seconds * 5)) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            message = ((data.get("choices") or [{}])[0].get("message") or {})
+            if message.get("refusal"):
+                raise OpenRouterError("openai_refusal", status=400)
+            usage = data.get("usage") or {}
+            self._record(
+                stage=stage,
+                model=model, status="completed", duration_ms=round((time.monotonic() - started) * 1000),
+                http_status=200, request_id=str(data.get("id") or ""),
+                input_tokens=int(usage.get("prompt_tokens") or 0),
+                output_tokens=int(usage.get("completion_tokens") or 0),
+            )
+            return {
+                "message": {"content": str(message.get("content") or "")},
+                "_provider_meta": {"provider": "openai", "stage": stage, "request_id": str(data.get("id") or ""), "usage": usage},
+            }
+        except OpenRouterError:
+            raise
+        except urllib.error.HTTPError as error:
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=f"http_{error.code}")
+            raise OpenRouterError(f"openai_http_{error.code}", status=error.code, retryable=error.code in {408, 429, 500, 502, 503, 504}) from error
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raise OpenRouterError(type(error).__name__, retryable=True) from error
+
+    def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
+        results = super().judge_cases(cases, article, common, model or self.settings.openai_shadow_model)
+        for value in results.values():
+            report = value.setdefault("analysis_report", {})
+            report["provider"] = "openai"
+            report["model"] = model or self.settings.openai_shadow_model
+        return results
 
 
 class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
@@ -1705,6 +1773,7 @@ class RelevanceEngine:
         self.ollama = OllamaClient(self.settings)
         self.common_llm = GroqClient(self.settings, self.store)
         self.case_llm = OpenRouterClient(self.settings, self.store)
+        self.shadow_llm = OpenAIShadowClient(self.settings, self.store)
         self.reserve1_llm = CloudflareWorkersAIClient(self.settings, self.store)
         self.reserve2_llm = GeminiClient(self.settings, self.store)
 
