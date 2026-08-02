@@ -151,14 +151,14 @@ The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by 
 
 The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, sends qualifying items through KakaoTalk `Send to me`, and publishes scheduled CaseON magazine editions.
 
-Current user-facing modules include dashboard monitoring with persisted similar-article grouping, neural topic analysis, press-release trends, CaseON AM/NOON/PM/DAILY magazines, Kakao subscription approval, an anonymous case-request board with local Clean AI moderation, administrator notices, model usage controls, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
+Current user-facing modules include period-aware dashboard monitoring, explicit include/exclude judgment feedback with multi-select reasons, persisted similar-article grouping, neural topic analysis with a two-week case delivery trend, press-release trends, CaseON 07:00/12:00/18:00 magazines, Kakao case and magazine subscriptions, an anonymous case-request board with OpenAI Clean AI moderation, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
 
 - Archive entry: `/poc?project=master-press`
 - Direct dashboard: `/poc/master-press/`
 - User menu: `매뉴얼`, `구독 및 케이스 신청`, `대시보드`, `보도자료 동향`, `신경망 분석`, `매거진`
-- Admin menu: member management, organization/case management, model settings, notices, thresholds, and reanalysis controls
+- Admin menu: member auto/bulk approval and subscription editing, organization/case management, model settings, notices, thresholds, reanalysis controls, non-blocking GPT-5.4 mini shadow comparison, unreviewed disagreements, and text feedback history
 - Shared homepage administrator session; no separate web service or port
-- SQLite operational queue/cache with optional Supabase metadata mirror; persisted similar-article map refreshes in a separate five-minute systemd timer, while magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
+- SQLite operational queue/cache with optional Supabase metadata mirror; the main pipeline and GPT shadow evaluator run in isolated low-priority systemd services, short-retention cleanup runs only after successful Supabase history verification, and magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
 - Detailed user manual and system analysis: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab

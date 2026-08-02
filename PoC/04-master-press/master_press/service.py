@@ -15,6 +15,7 @@ from .kakao import KakaoClient
 from .magazine import MagazinePublisher, edition_title
 from .matching import article_topic_fields, expanded_case_terms, term_in_text
 from .press_releases import PressReleaseManager
+from .shadow import ShadowCaseStore
 from .scoring import GroqError, OpenRouterError, RelevanceEngine, calibrated_semantic_score, case_retrieval_text, cosine_similarity, parse_llm_json
 from .storage import KST, Store, now_iso
 from .supabase_mirror import SupabaseMirror
@@ -23,6 +24,7 @@ from .supabase_mirror import SupabaseMirror
 COLLECTION_LOCK = threading.Lock()
 COMMON_LLM_LOCK = threading.Lock()
 LOCAL_EMBEDDING_LOCK = threading.Lock()
+SHADOW_CASE_SEMAPHORE = threading.BoundedSemaphore(1)
 REMOTE_CASE_SEMAPHORE = threading.BoundedSemaphore(2)
 DELIVERY_LOCK = threading.Lock()
 
@@ -31,6 +33,34 @@ DELIVERY_LOCK = threading.Lock()
 PROVIDER_NEAR_LIMIT_RATIO = 0.95
 PROVIDER_TEMPORARY_RETRY_MINUTES = 10
 PROVIDER_TRANSIENT_FAILURE_THRESHOLD = 3
+CASE_PROPOSAL_HARMFUL_EXPRESSIONS = (
+    "씨발", "시발", "ㅆㅂ", "개새끼", "병신", "ㅂㅅ", "좆", "지랄",
+    "미친놈", "미친년", "멍청이", "등신", "닥쳐", "꺼져", "죽어버려",
+)
+
+
+def verified_case_proposal_moderation(text: str, result: dict) -> tuple[bool, str, list[str]]:
+    """Accept a blocked verdict only when its quoted evidence exists in the submitted text."""
+    raw_unsafe = result.get("unsafe") is True or str(result.get("unsafe", "")).strip().lower() in {"true", "1", "yes"}
+    evidence = result.get("evidence") or result.get("matched_text") or []
+    if isinstance(evidence, str):
+        evidence = [evidence]
+    normalized_text = " ".join(str(text or "").casefold().split())
+    harmful_matches = [value for value in CASE_PROPOSAL_HARMFUL_EXPRESSIONS if value in normalized_text]
+    verified = []
+    for value in evidence if isinstance(evidence, list) else []:
+        excerpt = " ".join(str(value or "").strip().casefold().split())
+        harmful_evidence = any(value in excerpt for value in CASE_PROPOSAL_HARMFUL_EXPRESSIONS)
+        if len(excerpt) >= 2 and excerpt in normalized_text and harmful_evidence and excerpt not in verified:
+            verified.append(excerpt)
+    unsafe = bool(raw_unsafe and verified and harmful_matches)
+    if unsafe:
+        reason = str(result.get("reason") or "원문에서 문제 표현 감지")[:500]
+    elif raw_unsafe:
+        reason = "모델이 문제를 제기했으나 원문에서 일치하는 위반 표현을 확인하지 못했습니다."
+    else:
+        reason = str(result.get("reason") or "문제 표현 없음")[:500]
+    return unsafe, reason, verified
 
 
 
@@ -161,6 +191,8 @@ class MasterPressService:
         # Request paths only enqueue mirror work; a separate worker performs remote I/O.
         self.mirror = SupabaseMirror(settings, store)
         self.press_releases = PressReleaseManager(settings, store, self.scoring.ollama, self.mirror)
+        self.store.ensure_shadow_case_schema()
+        self.shadow_cases = ShadowCaseStore(store)
         self.kakao = KakaoClient(settings, store)
         self.recovered_llm_jobs = self.store.activate_worker_session(str(os.getpid()))
         self.recovered_pipeline_jobs = self.store.recover_incomplete_pipeline_jobs()
@@ -203,6 +235,25 @@ class MasterPressService:
             return max(1, min(10, int(self.store.get_setting("case_batch_size", "10"))))
         except ValueError:
             return 10
+    def shadow_enabled(self) -> bool:
+        return self.store.get_setting("openai_shadow_enabled", "1").casefold() not in {"0", "false", "off", "no"}
+
+    def shadow_daily_limit(self) -> int:
+        configured = int(getattr(self.settings, "openai_shadow_daily_limit", 150) or 150)
+        try:
+            return max(1, min(1000, int(self.store.get_setting("openai_shadow_daily_limit", str(configured)))))
+        except ValueError:
+            return configured
+
+    def shadow_status(self) -> dict:
+        status = self.shadow_cases.status(self.shadow_daily_limit())
+        status["enabled"] = self.shadow_enabled()
+        status["available"] = bool(getattr(self.settings, "openai_api_key", "") and getattr(self.settings, "openai_shadow_model", ""))
+        status["model"] = str(getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        status["state"] = "running" if status["enabled"] and status["available"] else ("disabled" if not status["enabled"] else "key_missing")
+        return status
+
+
 
     def selected_embedding_model(self) -> str:
         default = getattr(getattr(self, "settings", None), "embedding_model", "nomic-embed-text:latest")
@@ -1002,6 +1053,69 @@ class MasterPressService:
         finally:
             COMMON_LLM_LOCK.release()
 
+    def _queue_shadow_case_evaluation(self, evaluation: dict, case: dict, article: dict, analysis: dict, result: dict, model: str) -> bool:
+        settings = getattr(self, "settings", None)
+        if not hasattr(self, "shadow_cases") or not self.shadow_enabled() or not getattr(settings, "openai_api_key", ""):
+            return False
+        if result.get("llm_error") or str(model).startswith("gpt-5.4-mini"):
+            return False
+        score = float(result.get("final_score") or 0)
+        threshold = float(case.get("relevance_threshold", 70) or 70)
+        components = (result.get("analysis_report") or {}).get("components") or {}
+        boundary = abs(score - threshold) <= 10
+        evidence_gap = str(result.get("evidence_status") or "") != "verified"
+        sensitive = _case_has_negative_intent(case) or _article_has_negative_signal(article, analysis)
+        target_gap = components.get("target_verified") is False
+        if not (boundary or evidence_gap or sensitive or target_gap):
+            return False
+        status = self.shadow_status()
+        if status["requested"] >= status["daily_limit"] or status["queue_depth"] >= status["daily_limit"]:
+            return False
+        payload = {
+            **evaluation, **result, "model": model,
+            "id": evaluation["id"], "decision": result.get("decision", "low"),
+        }
+        return self.shadow_cases.queue(payload)
+
+    def process_next_shadow_case_evaluation(self) -> dict | None:
+        if not SHADOW_CASE_SEMAPHORE.acquire(blocking=False):
+            return None
+        try:
+            status = self.shadow_status()
+            if not status["enabled"] or not status["available"] or status["requested"] >= status["daily_limit"]:
+                return None
+            job = self.shadow_cases.next_job()
+            if not job:
+                return None
+            started = time.monotonic()
+            try:
+                evaluation = self.store.get_case_evaluation(str(job["case_evaluation_id"]))
+                article = self.store.get_article(str(job["article_id"]))
+                case = self.store.get_case(str(job["case_id"]))
+                analysis = self.store.get_article_analysis(str(job["article_analysis_id"]))
+                if not all((evaluation, article, case, analysis)) or analysis.get("status") != "completed":
+                    raise RuntimeError("shadow_source_missing")
+                evaluation_case, _organization = self.analysis_case(case)
+                evaluation_case["_semantic_raw"] = float(evaluation.get("semantic_raw") or 0)
+                evaluation_case["_semantic_score"] = float(evaluation.get("semantic_score") or 0)
+                model = str(getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+                judgments = self.scoring.shadow_llm.judge_cases([evaluation_case], article, analysis, model)
+                judgment = judgments.get(str(evaluation_case["id"]))
+                if not judgment:
+                    raise RuntimeError("shadow_result_missing")
+                result = self.scoring.evaluate_case_with_common(evaluation_case, article, analysis, model, judgment)
+                self.shadow_cases.finish(str(job["id"]), result, duration_ms=round((time.monotonic() - started) * 1000))
+                return {
+                    "id": job["id"], "stage": "shadow_case", "status": "completed",
+                    "decision_match": result.get("decision") == job.get("primary_decision"),
+                    "tokens": int(((result.get("analysis_report") or {}).get("usage") or {}).get("total_tokens") or 0),
+                }
+            except Exception as error:
+                self.shadow_cases.finish(str(job["id"]), error=type(error).__name__, duration_ms=round((time.monotonic() - started) * 1000))
+                return {"id": job["id"], "stage": "shadow_case", "status": "failed", "error": type(error).__name__}
+        finally:
+            SHADOW_CASE_SEMAPHORE.release()
+
     def process_next_case_evaluation(self) -> dict | None:
         if not REMOTE_CASE_SEMAPHORE.acquire(blocking=False):
             return None
@@ -1068,6 +1182,7 @@ class MasterPressService:
                             counts["missing"] += 1
                             continue
                     self.store.save_case_evaluation(evaluation["id"], result, case_model)
+                    self._queue_shadow_case_evaluation(evaluation, case, article, analysis, result, case_model)
                     self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000))
                     counts["scored"] += 1
                     if result.get("decision") != "send":
@@ -1138,6 +1253,7 @@ class MasterPressService:
                 evaluation_case, _organization = self.analysis_case(case)
                 case_model = self.selected_case_llm_model()
                 result = self.scoring.evaluate_case_with_common(evaluation_case, article, analysis, case_model)
+                self._queue_shadow_case_evaluation(evaluation, evaluation_case, article, analysis, result, case_model)
                 saved = self.store.save_case_evaluation(evaluation["id"], result, case_model)
                 self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000))
                 counts = {"scored": 1, "queued": 0, "sent": 0, "delivery_failed": 0}
@@ -1374,6 +1490,11 @@ class MasterPressService:
         return f"/poc/master-press/?view=magazine&edition={edition_id}"
 
     @staticmethod
+    def magazine_kakao_title(edition: dict) -> str:
+        raw = str(edition.get("title") or "매거진")
+        return " ".join(raw.replace("CaseON", "").split()) or "매거진"
+
+    @staticmethod
     def magazine_message_text(edition: dict, selected_case_ids: list[str]) -> str:
         selected, issue_keys, headlines = set(selected_case_ids), set(), []
         for member in edition.get("members") or []:
@@ -1384,7 +1505,10 @@ class MasterPressService:
             headlines.append(str(member.get("title") or "주요 뉴스")[:24])
             if len(headlines) == 5:
                 break
-        title = str(edition.get("title") or edition_title(edition.get("organization_name") or "기관", edition.get("edition_slot") or "morning"))
+        title = MasterPressService.magazine_kakao_title({
+            **edition,
+            "title": edition.get("title") or edition_title(edition.get("organization_name") or "기관", edition.get("edition_slot") or "morning"),
+        })
         lines = [f"{title} 발간되었습니다.", "", "주요뉴스"]
         lines.extend(f"- {headline}" for headline in headlines)
         return "\n".join(lines)[:200]
@@ -1445,7 +1569,7 @@ class MasterPressService:
                 text = self.magazine_message_text(edition, selected_case_ids)
                 status, _response = self.kakao.send_to_me(
                     delivery["recipient_id"], text, self.magazine_link(delivery["edition_id"]),
-                    title=str(edition.get("title") or "CaseON 매거진"), description=text,
+                    title=self.magazine_kakao_title(edition), description=text,
                     button_title="매거진 바로가기",
                 )
                 self.store.finish_magazine_delivery(delivery["id"], True, status)
@@ -1457,11 +1581,38 @@ class MasterPressService:
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
 
+    def resend_recent_magazines(self, recipient_id: str, limit: int = 3) -> dict:
+        recipient = self.store.get_recipient(str(recipient_id))
+        if not recipient or recipient.get("status") != "active":
+            raise ValueError("활성 카카오 수신자를 찾지 못했습니다.")
+        recent = self.store.recent_magazines_for_recipient(str(recipient_id), limit)
+        if not recent:
+            raise ValueError("재발송할 매거진이 없거나 매거진 알림 구독이 설정되지 않았습니다.")
+        publisher = MagazinePublisher(self.store)
+        sent = []
+        for item in reversed(recent):
+            edition = publisher.edition(str(item["id"])) or {}
+            selected_case_ids = item.get("selected_case_ids") or []
+            text = self.magazine_message_text(edition, selected_case_ids)
+            status, _response = self.kakao.send_to_me(
+                str(recipient_id), text, self.magazine_link(str(item["id"])),
+                title=self.magazine_kakao_title(edition), description=text,
+                button_title="매거진 바로가기",
+            )
+            sent.append({
+                "edition_id": str(item["id"]),
+                "title": self.magazine_kakao_title(edition),
+                "edition_date": item.get("edition_date"),
+                "edition_slot": item.get("edition_slot"),
+                "status": status,
+            })
+        return {"sent": len(sent), "items": sent}
+
     def process_next_case_proposal_moderation(self) -> dict | None:
         proposal = self.store.next_case_proposal_for_moderation()
         if not proposal:
             return None
-        model = str(getattr(self.settings, "llm_model", "") or "qwen2.5:1.5b")
+        model = str(getattr(self.settings, "openai_moderation_model", "") or "gpt-5.4-mini")
         text = "\n".join([
             f"제목: {proposal.get('original_title') or proposal.get('title') or ''}",
             f"닉네임: {proposal.get('nickname') or ''}",
@@ -1471,25 +1622,36 @@ class MasterPressService:
         ])[:6000]
         started = time.monotonic()
         try:
-            response = self.scoring.ollama.request("/api/chat", {
+            response = self.scoring.shadow_llm.request("/chat/completions", {
                 "model": model, "stream": False, "format": "json",
+                "record_stage": "moderation",
                 "messages": [
-                    {"role": "system", "content": "당신은 공개 게시판 클린 AI입니다. 욕설, 혐오·비하, 개인 공격, 명예훼손성 비방, 음란·폭력 조장, 개인정보 노출, 광고·스팸이 있으면 unsafe=true로 판단하세요. 공공기관 정책 비판이나 케이스 제안 자체는 허용하세요. JSON만 반환하세요."},
-                    {"role": "user", "content": "다음 케이스 신청 게시글을 검사하세요. JSON 형식: {\"unsafe\":false,\"reason\":\"짧은 한국어 사유\"}\n\n" + text},
+                    {"role": "system", "content": "당신은 공개 게시판 클린 AI입니다. 욕설, 혐오·비하, 개인 공격, 명예훼손성 비방, 음란·폭력 조장, 개인정보 노출, 광고·스팸이 있으면 unsafe=true로 판단하세요. 공공기관 정책 비판이나 케이스 제안 자체는 허용하세요. unsafe=true이면 원문에 실제 존재하는 위반 표현을 evidence 배열에 정확히 인용하세요. 근거 표현을 정확히 인용할 수 없으면 unsafe=false입니다. JSON만 반환하세요."},
+                    {"role": "user", "content": "다음 케이스 신청 게시글을 검사하세요. JSON 형식: {\"unsafe\":false,\"reason\":\"짧은 한국어 사유\",\"evidence\":[\"원문의 정확한 위반 표현\"]}\n\n" + text},
                 ],
-                "options": {"temperature": 0, "num_predict": 120, "num_ctx": 4096}, "keep_alive": "5m",
+                "options": {"temperature": 0, "num_predict": 300},
+                "response_schema": {
+                    "name": "case_proposal_moderation",
+                    "strict": True,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "unsafe": {"type": "boolean"},
+                            "reason": {"type": "string"},
+                            "evidence": {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["unsafe", "reason", "evidence"],
+                        "additionalProperties": False,
+                    },
+                },
             })
             raw = response.get("message", {}).get("content", "")
             data = parse_llm_json(raw)
-            unsafe = data.get("unsafe") is True or str(data.get("unsafe", "")).strip().lower() in {"true", "1", "yes"}
-            reason = str(data.get("reason") or ("문제 표현 감지" if unsafe else "문제 표현 없음"))[:500]
-            self.store.record_llm_api_call("ollama", "moderation", model, "completed", round((time.monotonic() - started) * 1000))
+            unsafe, reason, evidence = verified_case_proposal_moderation(text, data)
             item = self.store.finish_case_proposal_moderation(proposal["id"], unsafe, reason, model)
-            return {"proposal_id": proposal["id"], "flagged": unsafe, "reason": reason, "item": item}
+            return {"proposal_id": proposal["id"], "flagged": unsafe, "reason": reason, "evidence": evidence, "item": item}
         except Exception as error:
-            self.store.record_llm_api_call("ollama", "moderation", model, "failed", round((time.monotonic() - started) * 1000), error=type(error).__name__)
-            item = self.store.finish_case_proposal_moderation(proposal["id"], False, f"클린 AI 검사 실패: {type(error).__name__}", model)
-            return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": item}
+            return {"proposal_id": proposal["id"], "flagged": False, "error": str(error), "item": proposal}
 
     def _body_backfill_config(self) -> tuple[int, int, int, int, int, int, int]:
         def setting(name: str, default: int, low: int, high: int) -> int:
@@ -1500,8 +1662,8 @@ class MasterPressService:
         if start_hour >= end_hour:
             start_hour, end_hour = 0, 24
         return (
-            setting("body_backfill_window_days", 30, 1, 365),
-            setting("body_backfill_daily_limit", 180, 1, 500),
+            setting("body_backfill_window_days", 7, 1, 7),
+            setting("body_backfill_daily_limit", 180, 1, 1000),
             setting("body_backfill_interval_seconds", 600, 60, 3600),
             setting("body_backfill_domain_interval_seconds", 600, 60, 86400),
             setting("body_backfill_batch_size", 6, 1, 20),
@@ -1544,7 +1706,9 @@ class MasterPressService:
         if processed>=daily_limit: result["reason"]="daily_limit"; return result
         if next_run and next_run>now.isoformat(timespec="seconds"): result["reason"]="interval"; return result
         remaining=max(1,daily_limit-processed)
-        candidate_limit=min(20,max(batch_size,min(batch_size*4,remaining*4)))
+        # Look beyond one publisher's newest rows so the existing per-domain
+        # cooldown can still yield a diverse batch without relaxing safety.
+        candidate_limit=min(200,max(batch_size*20,min(batch_size*40,remaining*4)))
         rows=self.store.list_articles_missing_body(now.isoformat(timespec="seconds"),(now-timedelta(days=window_days)).isoformat(timespec="seconds"),candidate_limit)
         result["selected"]=len(rows)
         for row in rows:
@@ -1644,6 +1808,10 @@ class MasterPressService:
         result = self.process_next_case_evaluation()
         return {"stage": "case", "result": result} if result else None
 
+    def shadow_worker_tick(self) -> dict | None:
+        result = self.process_next_shadow_case_evaluation()
+        return {"stage": "shadow_case", "result": result} if result else None
+
     def tick(self) -> dict:
         return self.orchestration_tick()
 
@@ -1704,3 +1872,6 @@ def embedding_worker_tick() -> dict | None:
 
 def case_worker_tick(burst: bool = False) -> dict | None:
     return get_service().case_worker_tick(burst=burst)
+
+def shadow_worker_tick() -> dict | None:
+    return get_service().shadow_worker_tick()

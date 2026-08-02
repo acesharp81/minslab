@@ -20,9 +20,9 @@ from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
-from master_press.scoring import OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, keyword_relevance
-from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at
-from master_press.storage import KST, Store, centered_semantic_similarity, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.scoring import CloudflareWorkersAIClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
+from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
+from master_press.storage import KST, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
@@ -64,6 +64,62 @@ class StorageTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_case_proposal_admin_approval_is_visible_and_never_moderated_again(self):
+        item = self.store.save_case_proposal({
+            "nickname": "tester", "password": "1234", "title": "안전 정책",
+            "prompt": "여름철 수상 안전 정책을 점검해 주세요.",
+        })
+        pending = self.store.next_case_proposal_for_moderation()
+        self.assertEqual(pending["id"], item["id"])
+        allowed = self.store.allow_case_proposal(item["id"])
+        self.assertEqual(allowed["moderation_status"], "allowed")
+        self.assertTrue(allowed["moderation_exempt"])
+        self.assertIsNone(self.store.next_case_proposal_for_moderation())
+        self.store.finish_case_proposal_moderation(item["id"], True, "늦게 도착한 오탐", "test")
+        public = self.store.get_case_proposal(item["id"], admin=False)
+        self.assertFalse(public["content_locked"])
+        self.assertEqual(public["title"], "안전 정책")
+        self.assertEqual(public["moderation_status"], "allowed")
+
+    def test_case_proposal_moderation_requires_evidence_from_original_text(self):
+        text = "제목: 여름철 수상 안전\n프롬프트: 안전 정책을 점검해 주세요."
+        unsafe, reason, evidence = verified_case_proposal_moderation(text, {
+            "unsafe": True, "reason": "욕설 포함", "evidence": ["여름철 수상 안전"],
+        })
+        self.assertFalse(unsafe)
+        self.assertEqual(evidence, [])
+        self.assertIn("확인하지 못했습니다", reason)
+        unsafe, _reason, evidence = verified_case_proposal_moderation(text + " 이 멍청이야", {
+            "unsafe": True, "reason": "개인 공격", "evidence": ["멍청이"],
+        })
+        self.assertTrue(unsafe)
+        self.assertEqual(evidence, ["멍청이"])
+
+    def test_case_proposal_uses_openai_mini_once_per_content_version(self):
+        item = self.store.save_case_proposal({
+            "nickname": "tester", "password": "1234", "title": "안전 정책",
+            "prompt": "여름철 수상 안전 정책을 점검해 주세요.",
+        })
+        client = mock.MagicMock()
+        client.request.return_value = {
+            "message": {"content": json.dumps({"unsafe": False, "reason": "문제 표현 없음", "evidence": []}, ensure_ascii=False)}
+        }
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(openai_moderation_model="gpt-5.4-mini")
+        service.scoring = SimpleNamespace(shadow_llm=client)
+        result = service.process_next_case_proposal_moderation()
+        self.assertEqual(result["proposal_id"], item["id"])
+        self.assertFalse(result["flagged"])
+        self.assertEqual(client.request.call_args.args[0], "/chat/completions")
+        self.assertEqual(client.request.call_args.args[1]["model"], "gpt-5.4-mini")
+        self.assertEqual(client.request.call_args.args[1]["record_stage"], "moderation")
+        self.assertIsNone(service.process_next_case_proposal_moderation())
+        self.assertEqual(client.request.call_count, 1)
+        stored = self.store.get_case_proposal(item["id"], admin=True)
+        self.assertEqual(stored["moderation_status"], "clean")
+        self.assertEqual(stored["moderation_model"], "gpt-5.4-mini")
 
     def test_supabase_outbox_is_idempotent_and_retries_without_remote_io(self):
         first = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "첫값"}])
@@ -166,6 +222,20 @@ class StorageTests(unittest.TestCase):
         self.assertNotIn("body", str(result["payload"]))
         mirror.history_operations.assert_not_called()
 
+    def test_short_retention_cleanup_deletes_expired_source_but_keeps_pending_delivery(self):
+        expired, _ = self.store.upsert_article({"canonical_url": "https://example.com/expired", "original_url": "https://example.com/expired", "title": "만료 기사", "publisher": "example.com"})
+        pending, _ = self.store.upsert_article({"canonical_url": "https://example.com/pending", "original_url": "https://example.com/pending", "title": "대기 기사", "publisher": "example.com"})
+        case = self.store.save_case(case_payload())
+        old = "2000-01-01T00:00:00+09:00"
+        with self.store.connect() as connection:
+            connection.execute("INSERT INTO recipients(id,label,kakao_user_id,status,created_at,updated_at) VALUES(?,?,?,'active',?,?)", ("retention-recipient", "보존 테스트", "retention-test", old, old))
+            connection.execute("UPDATE articles SET first_seen_at=? WHERE id IN (?,?)", (old, expired["id"], pending["id"]))
+            connection.execute("INSERT INTO deliveries(id,article_id,case_id,recipient_id,scheduled_at,status,created_at,updated_at) VALUES(?,?,?,?,?,'pending',?,?)", ("pending-retention", pending["id"], case["id"], "retention-recipient", old, old, old))
+        result = self.store.cleanup_short_retention(7, 8, 100, 10, Path(self.temp.name) / "press")
+        self.assertEqual(result["source_deleted_articles"], 1)
+        self.assertIsNone(self.store.get_article(expired["id"]))
+        self.assertIsNotNone(self.store.get_article(pending["id"]))
+
     def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
         organization = self.store.save_organization({"name": "동기화 테스트 기관"})
         case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
@@ -206,6 +276,17 @@ class StorageTests(unittest.TestCase):
         with self.store.connect() as connection:
             row = connection.execute("SELECT body_retryable,body_http_status,body_attempts FROM articles WHERE id=?", (retry["id"],)).fetchone()
         self.assertEqual((row["body_retryable"], row["body_http_status"], row["body_attempts"]), (0, 403, 1))
+
+    def test_body_backfill_selects_recent_articles_newest_first(self):
+        old, _ = self.store.upsert_article({"canonical_url":"https://old.example.com/article","original_url":"https://old.example.com/article","title":"보존기간 밖 기사","publisher":"old.example.com"})
+        recent, _ = self.store.upsert_article({"canonical_url":"https://recent.example.com/article","original_url":"https://recent.example.com/article","title":"최근 기사","publisher":"recent.example.com"})
+        newest, _ = self.store.upsert_article({"canonical_url":"https://newest.example.com/article","original_url":"https://newest.example.com/article","title":"가장 최근 기사","publisher":"newest.example.com"})
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at='2026-08-02T12:00:00+09:00',published_at='2026-07-01T00:00:00+09:00' WHERE id=?", (old["id"],))
+            connection.execute("UPDATE articles SET first_seen_at='2026-08-01T00:00:00+09:00',published_at='2026-08-01T00:00:00+09:00' WHERE id=?", (recent["id"],))
+            connection.execute("UPDATE articles SET first_seen_at='2026-08-02T00:00:00+09:00',published_at='2026-08-02T00:00:00+09:00' WHERE id=?", (newest["id"],))
+        rows = self.store.list_articles_missing_body("2099-01-01T00:00:00+09:00", "2026-07-27T00:00:00+09:00", 20)
+        self.assertEqual([row["id"] for row in rows], [newest["id"], recent["id"]])
 
     def test_body_backfill_is_disabled_without_an_explicit_opt_in(self):
         service = object.__new__(MasterPressService)
@@ -294,6 +375,13 @@ class StorageTests(unittest.TestCase):
     def test_abstract_topic_concepts_group_related_events(self):
         self.assertIn("호우·재난 대응", inferred_topic_concepts("집중호우로 중대본을 가동하고 주민 대피를 실시했다"))
         self.assertIn("수사기관 개혁·사법제도", inferred_topic_concepts("광주경찰청 장윤기 사건과 경찰개혁 수사권 논의"))
+
+    def test_inferred_content_nouns_backfills_empty_llm_entities(self):
+        terms = inferred_content_nouns(
+            "신한은행, 폭염 피해 쉬어가세요…전국 영업점 쉼터 운영",
+            {"피해"}, [],
+        )
+        self.assertEqual(terms[:3], ["신한은행", "폭염", "영업점"])
 
     def test_centered_semantic_similarity_removes_shared_context(self):
         centroid = [10.0, 10.0, 10.0]
@@ -801,6 +889,70 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(request["masked_name"], "김*수")
         self.assertEqual((self.store.get_recipient(recipient["id"]) or {}).get("label"), "김철수")
 
+    def test_signup_auto_and_bulk_approval_sync_magazine_choices(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+
+        def connected_recipient(label: str, kakao_user_id: str) -> dict:
+            _invite, token = self.store.create_invite(label, 60)
+            return self.store.consume_invite(token, {
+                "kakao_user_id": kakao_user_id,
+                "access_token_ciphertext": f"access-{kakao_user_id}",
+                "refresh_token_ciphertext": f"refresh-{kakao_user_id}",
+                "access_token_expires_at": now_iso(),
+                "refresh_token_expires_at": now_iso(),
+                "scopes": ["talk_message"],
+            })
+
+        self.store.set_setting("signup_auto_approve", "1")
+        auto_recipient = connected_recipient("자동 신청자", "kakao-auto")
+        auto_request, token = self.store.create_signup_request(
+            "자동 신청자", organization["id"], [case["id"]],
+            recipient_id=auto_recipient["id"], magazine_slots=["morning", "lunch"],
+        )
+        self.assertEqual(token, "")
+        self.assertEqual(auto_request["status"], "approved")
+        self.assertEqual(auto_request["magazine_slots"], ["morning", "lunch"])
+        self.assertIn(auto_recipient["id"], self.store.case_recipient_ids(case["id"]))
+        with self.store.connect() as connection:
+            subscription = connection.execute(
+                "SELECT edition_slots,case_ids FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (auto_recipient["id"],),
+            ).fetchone()
+        self.assertEqual(json.loads(subscription["edition_slots"]), ["morning", "lunch"])
+        self.assertEqual(json.loads(subscription["case_ids"]), [case["id"]])
+
+        self.store.set_setting("signup_auto_approve", "0")
+        pending_recipient = connected_recipient("일괄 신청자", "kakao-bulk")
+        pending_request, _token = self.store.create_signup_request(
+            "일괄 신청자", organization["id"], [case["id"]],
+            recipient_id=pending_recipient["id"], magazine_slots=["evening"],
+        )
+        _waiting_request, _waiting_token = self.store.create_signup_request(
+            "연결 대기", organization["id"], [case["id"]], magazine_slots=["morning"],
+        )
+        self.assertEqual(pending_request["status"], "kakao_registered")
+        approved = self.store.approve_all_pending_signup_requests()
+        self.assertEqual(approved, {
+            "requests_approved": 1,
+            "cases_approved": 1,
+            "skipped_without_kakao": 1,
+        })
+        stored = next(item for item in self.store.list_signup_requests(include_private=True) if item["id"] == pending_request["id"])
+        self.assertEqual(stored["status"], "approved")
+        self.assertEqual(stored["magazine_slots"], ["evening"])
+
+        changed = self.store.set_signup_request_subscriptions(
+            pending_request["id"], [case["id"]], "관리자 구독 조정", magazine_slots=["morning"],
+        )
+        self.assertEqual(changed["magazine_slots"], ["morning"])
+        with self.store.connect() as connection:
+            subscription = connection.execute(
+                "SELECT edition_slots FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (pending_recipient["id"],),
+            ).fetchone()
+        self.assertEqual(json.loads(subscription["edition_slots"]), ["morning"])
+
     def test_completed_signup_requests_expire_after_six_hours(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
         case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
@@ -836,6 +988,18 @@ class StorageTests(unittest.TestCase):
 
 
 class ScoringTests(unittest.TestCase):
+    def test_fallback_negative_tone_requires_critical_context(self):
+        self.assertFalse(fallback_negative_tone("공공기관 책임자와 수상자 등 50명이 참석했다."))
+        self.assertFalse(fallback_negative_tone("개선 방안을 발표했다."))
+        self.assertTrue(fallback_negative_tone("대응이 늦었다는 비판이 제기됐다."))
+
+    def test_cloudflare_malformed_common_json_reaches_provider_chain(self):
+        settings = SimpleNamespace(worker_ai_model="@cf/google/gemma-test")
+        client = CloudflareWorkersAIClient(settings)
+        client.request = lambda _path, _payload: {"message": {"content": "{"}}
+        with self.assertRaises(json.JSONDecodeError):
+            client.analyze_article_common({"title": "폭염 대응", "snippet": "중대본 격상"})
+
     def test_openrouter_case_judgment_sends_only_minimized_public_evidence(self):
         settings = SimpleNamespace(openrouter_case_model="google/gemma-4-26b-a4b-it:free")
         client = OpenRouterClient(settings)

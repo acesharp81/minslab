@@ -74,6 +74,11 @@ class Settings:
     openrouter_base_url: str
     openrouter_case_model: str
     openrouter_daily_soft_limit: int
+    openai_api_key: str
+    openai_base_url: str
+    openai_shadow_model: str
+    openai_moderation_model: str
+    openai_shadow_daily_limit: int
     worker_ai_key: str
     worker_ai_account_id: str
     worker_ai_base_url: str
@@ -134,6 +139,11 @@ class Settings:
             openrouter_base_url=env("MASTER_PRESS_OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1").rstrip("/"),
             openrouter_case_model=env("MASTER_PRESS_OPENROUTER_CASE_MODEL", default="google/gemma-4-26b-a4b-it:free"),
             openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 1000, 1, 1000),
+            openai_api_key=env("OPENAI_API_KEY", "OpenAI_API_KEY", "openai_api_key"),
+            openai_base_url=env("MASTER_PRESS_OPENAI_BASE_URL", default="https://api.openai.com/v1").rstrip("/"),
+            openai_shadow_model=env("MASTER_PRESS_OPENAI_SHADOW_MODEL", default="gpt-5.4-mini"),
+            openai_moderation_model=env("MASTER_PRESS_OPENAI_MODERATION_MODEL", default="gpt-5.4-mini"),
+            openai_shadow_daily_limit=env_int("MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT", 150, 1, 1000),
             worker_ai_key=env("MASTER_PRESS_WORKER_AI_KEY", "WORKER_AI_KEY", "WORKER_AI_API_KEY", "WORKERS_AI_KEY", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_WORKERS_AI_TOKEN", "CF_API_TOKEN"),
             worker_ai_account_id=env("MASTER_PRESS_WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACOUNT_ID", "WORKERS_AI_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID", "CF_ACCOUNT_ID"),
             worker_ai_base_url=env("MASTER_PRESS_WORKER_AI_BASE_URL", default="https://api.cloudflare.com/client/v4").rstrip("/"),
@@ -184,6 +194,7 @@ class Settings:
             "ollama": bool(self.ollama_base_url),
             "groq": bool(self.groq_api_key and self.groq_common_model),
             "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
+            "openai": bool(self.openai_api_key and self.openai_shadow_model),
             "cloudflare_workers_ai": bool(self.worker_ai_key and self.worker_ai_account_id and self.worker_ai_model),
             "gemini": bool(self.gemini_api_key and self.gemini_model),
         }

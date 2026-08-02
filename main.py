@@ -1920,13 +1920,7 @@ async def app(scope, receive, send):
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
                 if MASTER_PRESS_BACKGROUND_ENABLED:
-                    owns_master_press_worker_lock = acquire_master_press_worker_lock()
-                    if owns_master_press_worker_lock:
-                        master_press_tasks = [
-                            asyncio.create_task(supervise_master_press()),
-                        ]
-                    else:
-                        print("Master Press workers skipped in this process (lock held by another process).", file=sys.stderr)
+                    print("Master Press workers run in the isolated system service.", file=sys.stderr)
                 else:
                     print("Master Press background workers disabled (set MASTER_PRESS_BACKGROUND_ENABLED=1 to enable).", file=sys.stderr)
                 await send({"type": "lifespan.startup.complete"})

@@ -1,0 +1,10 @@
+[Unit]
+Description=Clean Master Press data after the history verification
+
+[Timer]
+OnCalendar=*-*-* 01:58:00
+Persistent=false
+Unit=master-press-retention-cleanup.service
+
+[Install]
+WantedBy=timers.target

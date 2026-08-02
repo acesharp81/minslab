@@ -103,6 +103,36 @@ def verified_content_nouns(values: Any, article_text: str, stopwords: set[str], 
             result.append(clean)
     return result
 
+def inferred_content_nouns(article_text: str, stopwords: set[str], identity_terms: list[str]) -> list[str]:
+    """Extract conservative, source-verifiable headline terms when LLM entities are absent."""
+    fallback_stopwords = {
+        "기자", "뉴스", "단독", "종합", "속보", "포토", "영상", "오늘", "어제", "내일",
+        "올해", "지난", "이번", "이날", "최근", "전국", "관련", "대해", "통해", "위해",
+        "운영", "진행", "실시", "예정", "밝혀", "밝혔다", "나서", "나선다", "한다",
+    }
+    compact_stopwords = {re.sub(r"\s+", "", value).casefold() for value in {*stopwords, *fallback_stopwords}}
+    compact_identities = [re.sub(r"\s+", "", value).casefold() for value in identity_terms if value]
+    particles = ("으로부터", "에게서", "에서는", "으로는", "까지도", "부터는", "에게", "에서", "으로", "와의", "과의", "에는", "에도", "까지", "부터", "은", "는", "이", "가", "을", "를", "에", "의", "와", "과", "도", "만")
+    result: list[str] = []
+    for raw in re.findall(r"[가-힣A-Za-z][가-힣A-Za-z0-9·.+_-]{1,39}", str(article_text or "")):
+        clean = raw.strip("#[]\\\"'")
+        for particle in particles:
+            if clean.endswith(particle) and len(clean) >= len(particle) + 2:
+                clean = clean[:-len(particle)]
+                break
+        compact = re.sub(r"\s+", "", clean).casefold()
+        if len(compact) < 2 or compact in compact_stopwords or compact.isdigit():
+            continue
+        if any(identity in compact for identity in compact_identities):
+            continue
+        if compact.endswith(("세요", "습니다")) or any(compact.endswith(ending) for ending in NON_NOUN_ENTITY_ENDINGS):
+            continue
+        if clean not in result:
+            result.append(clean)
+        if len(result) >= 8:
+            break
+    return result
+
 
 def topic_noun_similarity(left: set[str], right: set[str], document_frequency: dict[str, int], document_count: int) -> float:
     """IDF-weighted topic overlap; institution, tone and full-text embeddings are intentionally absent."""
@@ -687,6 +717,10 @@ CREATE INDEX IF NOT EXISTS idx_llm_jobs_status_queued ON llm_jobs(status, queued
 CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_organizations_due ON organizations(is_active, next_collect_at);
 CREATE INDEX IF NOT EXISTS idx_deliveries_due ON deliveries(status, scheduled_at);
+-- Used by the administrator's sent-article keyword preview. Keep the
+-- case/status/date lookup narrow so it never has to read article bodies for
+-- every delivery in the system.
+CREATE INDEX IF NOT EXISTS idx_deliveries_case_status_sent_at ON deliveries(case_id, status, sent_at DESC, article_id);
 
 -- A magazine is an immutable, shared editorial snapshot. Browser-specific
 -- case choices are deliberately not stored here.
@@ -699,6 +733,7 @@ CREATE TABLE IF NOT EXISTS magazine_editions (
   window_start_at TEXT NOT NULL,
   window_end_at TEXT NOT NULL,
   case_catalog TEXT NOT NULL DEFAULT '[]',
+  daily_topics TEXT NOT NULL DEFAULT '[]',
   issue_count INTEGER NOT NULL DEFAULT 0,
   article_count INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'published',
@@ -755,6 +790,44 @@ CREATE INDEX IF NOT EXISTS idx_processing_daily_stats_day ON processing_daily_st
 
 MAGAZINE_EXTENSION_SCHEMA = "CREATE TABLE IF NOT EXISTS signup_request_magazine_slots (request_id TEXT NOT NULL REFERENCES signup_requests(id) ON DELETE CASCADE,edition_slot TEXT NOT NULL CHECK(edition_slot IN ('morning','lunch','evening','daily')),PRIMARY KEY(request_id,edition_slot));\nCREATE TABLE IF NOT EXISTS recipient_magazine_subscriptions (organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,recipient_id TEXT NOT NULL REFERENCES recipients(id) ON DELETE CASCADE,edition_slots TEXT NOT NULL DEFAULT '[]',case_ids TEXT NOT NULL DEFAULT '[]',updated_at TEXT NOT NULL,PRIMARY KEY(organization_id,recipient_id));\nCREATE INDEX IF NOT EXISTS idx_magazine_subscriptions_recipient ON recipient_magazine_subscriptions(recipient_id,organization_id);\nCREATE TABLE IF NOT EXISTS magazine_deliveries (id TEXT PRIMARY KEY,edition_id TEXT NOT NULL REFERENCES magazine_editions(id) ON DELETE CASCADE,recipient_id TEXT NOT NULL REFERENCES recipients(id) ON DELETE CASCADE,selected_case_ids TEXT NOT NULL DEFAULT '[]',scheduled_at TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',attempts INTEGER NOT NULL DEFAULT 0,response_code INTEGER,last_error TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,sent_at TEXT,UNIQUE(edition_id,recipient_id));\nCREATE INDEX IF NOT EXISTS idx_magazine_deliveries_due ON magazine_deliveries(status,scheduled_at);"
 
+SHADOW_CASE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS shadow_case_evaluations (
+  id TEXT PRIMARY KEY,
+  case_evaluation_id TEXT NOT NULL UNIQUE REFERENCES case_evaluations(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending',
+  queued_at TEXT NOT NULL,
+  started_at TEXT,
+  completed_at TEXT,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  primary_model TEXT NOT NULL DEFAULT '',
+  primary_decision TEXT NOT NULL DEFAULT '',
+  primary_final_score REAL NOT NULL DEFAULT 0,
+  primary_llm_score REAL NOT NULL DEFAULT 0,
+  shadow_model TEXT NOT NULL DEFAULT '',
+  shadow_decision TEXT NOT NULL DEFAULT '',
+  shadow_final_score REAL NOT NULL DEFAULT 0,
+  shadow_llm_score REAL NOT NULL DEFAULT 0,
+  decision_match INTEGER,
+  input_tokens INTEGER NOT NULL DEFAULT 0,
+  output_tokens INTEGER NOT NULL DEFAULT 0,
+  error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_shadow_case_evaluations_due ON shadow_case_evaluations(status,queued_at);
+CREATE INDEX IF NOT EXISTS idx_shadow_case_evaluations_review ON shadow_case_evaluations(status,decision_match,queued_at DESC);
+CREATE INDEX IF NOT EXISTS idx_shadow_case_evaluations_completed ON shadow_case_evaluations(completed_at DESC);
+CREATE TABLE IF NOT EXISTS shadow_case_feedback (
+  id TEXT PRIMARY KEY,
+  shadow_case_evaluation_id TEXT NOT NULL UNIQUE REFERENCES shadow_case_evaluations(id) ON DELETE CASCADE,
+  verdict TEXT NOT NULL CHECK(verdict IN ('primary_correct','shadow_correct','uncertain')),
+  reason TEXT NOT NULL DEFAULT '',
+  comment TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_shadow_case_feedback_verdict ON shadow_case_feedback(verdict,updated_at DESC);
+"""
+
 
 
 class Store:
@@ -780,6 +853,7 @@ class Store:
             return
         with self.connect() as connection:
             connection.executescript(SCHEMA)
+            connection.executescript(SHADOW_CASE_SCHEMA)
             magazine_member_columns = {row[1] for row in connection.execute("PRAGMA table_info(magazine_issue_members)")}
             if "image_url" not in magazine_member_columns:
                 connection.execute("ALTER TABLE magazine_issue_members ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
@@ -1146,6 +1220,9 @@ class Store:
                 connection.execute("CREATE INDEX IF NOT EXISTS idx_magazine_members_issue ON magazine_issue_members(edition_id,issue_key,rank)")
                 connection.execute("PRAGMA foreign_keys=ON")
             connection.executescript(MAGAZINE_EXTENSION_SCHEMA)
+            edition_columns = {row[1] for row in connection.execute("PRAGMA table_info(magazine_editions)")}
+            if "daily_topics" not in edition_columns:
+                connection.execute("ALTER TABLE magazine_editions ADD COLUMN daily_topics TEXT NOT NULL DEFAULT '[]'")
             # Early snapshots were written while image_url was appended to the
             # table; their final four values are shifted by one column. This
             # scans historical snapshots, so retain a one-time repair marker.
@@ -1157,9 +1234,75 @@ class Store:
                 connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES('magazine_member_columns_repaired_v1','1',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (now_iso(),))
         self._magazine_schema_ready = True
 
-    def magazine_edition_exists(self, organization_id: str, edition_date: str, slot: str) -> bool:
+    def ensure_shadow_case_schema(self) -> None:
         with self.connect() as connection:
-            return bool(connection.execute("SELECT 1 FROM magazine_editions WHERE organization_id=? AND edition_date=? AND edition_slot=?", (organization_id, edition_date, slot)).fetchone())
+            connection.executescript(SHADOW_CASE_SCHEMA)
+
+    def shadow_disagreements(self, limit: int = 50) -> dict[str, Any]:
+        """Read-only review list; never participates in delivery or worker queues."""
+        limit = max(1, min(100, int(limit)))
+        with self.connect() as connection:
+            total = connection.execute("SELECT COUNT(*) value FROM shadow_case_evaluations s LEFT JOIN shadow_case_feedback f ON f.shadow_case_evaluation_id=s.id WHERE s.status='completed' AND s.decision_match=0 AND f.shadow_case_evaluation_id IS NULL").fetchone()["value"]
+            rows = connection.execute(
+                """SELECT s.id,s.queued_at,s.completed_at,s.primary_model,s.shadow_model,s.primary_decision,s.shadow_decision,
+                          s.primary_final_score,s.shadow_final_score,s.primary_llm_score,s.shadow_llm_score,s.duration_ms,
+                          a.title,a.original_url,c.name case_name,ce.reasons,ce.low_score_categories,ce.evidence_status,f.verdict feedback_verdict,f.reason feedback_reason,f.comment feedback_comment,f.updated_at feedback_updated_at
+                   FROM shadow_case_evaluations s
+                   JOIN case_evaluations ce ON ce.id=s.case_evaluation_id
+                   JOIN articles a ON a.id=ce.article_id
+                   JOIN cases c ON c.id=ce.case_id
+                   LEFT JOIN shadow_case_feedback f ON f.shadow_case_evaluation_id=s.id
+                   WHERE s.status='completed' AND s.decision_match=0 AND f.shadow_case_evaluation_id IS NULL
+                   ORDER BY s.queued_at DESC LIMIT ?""", (limit,)
+            ).fetchall()
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["score_gap"] = round(float(item.get("shadow_final_score") or 0) - float(item.get("primary_final_score") or 0), 1)
+            item["priority"] = "high" if abs(float(item["score_gap"])) >= 15 else "normal"
+            item["reasons"] = json_value(item.get("reasons"), [])
+            item["low_score_categories"] = json_value(item.get("low_score_categories"), [])
+            items.append(item)
+        return {"total": int(total or 0), "items": items}
+
+    def shadow_feedback_history(self, limit: int = 100) -> dict[str, Any]:
+        """Text-only record of completed shadow reviews."""
+        limit = max(1, min(200, int(limit)))
+        with self.connect() as connection:
+            total = connection.execute("SELECT COUNT(*) value FROM shadow_case_feedback").fetchone()["value"]
+            rows = connection.execute(
+                """SELECT f.verdict,f.reason,f.comment,f.updated_at,c.name case_name,a.title,a.original_url
+                   FROM shadow_case_feedback f
+                   JOIN shadow_case_evaluations s ON s.id=f.shadow_case_evaluation_id
+                   JOIN case_evaluations ce ON ce.id=s.case_evaluation_id
+                   JOIN articles a ON a.id=ce.article_id JOIN cases c ON c.id=ce.case_id
+                   ORDER BY f.updated_at DESC LIMIT ?""", (limit,)
+            ).fetchall()
+        return {"total": int(total or 0), "items": [dict(row) for row in rows]}
+
+    def save_shadow_feedback(self, evaluation_id: str, verdict: str, reason: str = "", comment: str = "") -> dict[str, Any]:
+        """Save an admin review only; it never changes a case decision or delivery."""
+        evaluation_id = str(evaluation_id or "").strip()
+        verdict = str(verdict or "").strip()
+        reason = str(reason or "").strip()[:120]
+        comment = str(comment or "").strip()[:1000]
+        if verdict not in {"primary_correct", "shadow_correct", "uncertain"}:
+            raise ValueError("검토 의견이 올바르지 않습니다.")
+        with self.connect() as connection:
+            exists = connection.execute("SELECT 1 FROM shadow_case_evaluations WHERE id=?", (evaluation_id,)).fetchone()
+            if not exists:
+                raise ValueError("그림자 판정 결과를 찾지 못했습니다.")
+            now = now_iso()
+            connection.execute(
+                """INSERT INTO shadow_case_feedback(id,shadow_case_evaluation_id,verdict,reason,comment,created_at,updated_at)
+                   VALUES(?,?,?,?,?,?,?)
+                   ON CONFLICT(shadow_case_evaluation_id) DO UPDATE SET verdict=excluded.verdict,reason=excluded.reason,comment=excluded.comment,updated_at=excluded.updated_at""",
+                (str(uuid.uuid4()), evaluation_id, verdict, reason, comment, now, now),
+            )
+            row = connection.execute(
+                "SELECT verdict,reason,comment,updated_at FROM shadow_case_feedback WHERE shadow_case_evaluation_id=?", (evaluation_id,)
+            ).fetchone()
+        return dict(row)
 
     @contextmanager
     def connect(self):
@@ -1595,10 +1738,13 @@ class Store:
                 (request_id,),
             ).fetchone()
             record = self._decode_signup_request(connection, row, include_private=False)
+        if recipient_id and self.signup_auto_approve_enabled():
+            record = self.approve_signup_request(request_id, "자동 승인")
         return record, "" if recipient_id else token
 
     def mark_signup_request_kakao_registered(self, token: str, recipient_id: str) -> dict | None:
         token_hash, now = hashlib.sha256(str(token).encode()).hexdigest(), now_iso()
+        request_id = ""
         with self.connect() as connection:
             row = connection.execute(
                 """SELECT sr.id FROM signup_requests sr JOIN recipient_invites ri ON ri.id=sr.invite_id
@@ -1607,19 +1753,23 @@ class Store:
             ).fetchone()
             if not row:
                 return None
+            request_id = str(row["id"])
             connection.execute(
                 """UPDATE signup_requests
                    SET recipient_id=?,status=CASE WHEN status='requested' THEN 'kakao_registered' ELSE status END,
                        kakao_registered_at=COALESCE(kakao_registered_at,?),updated_at=?
                    WHERE id=?""",
-                (recipient_id, now, now, row["id"]),
+                (recipient_id, now, now, request_id),
             )
             updated = connection.execute(
                 """SELECT sr.*,o.name organization_name FROM signup_requests sr
                    JOIN organizations o ON o.id=sr.organization_id WHERE sr.id=?""",
-                (row["id"],),
+                (request_id,),
             ).fetchone()
-            return self._decode_signup_request(connection, updated, include_private=True) if updated else None
+            result = self._decode_signup_request(connection, updated, include_private=True) if updated else None
+        if result and self.signup_auto_approve_enabled():
+            return self.approve_signup_request(request_id, "자동 승인")
+        return result
 
     def delete_signup_request(self, request_id: str) -> bool:
         with self.connect() as connection:
@@ -1723,6 +1873,7 @@ class Store:
                     (case_id, request["recipient_id"]),
                 )
             row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            self._sync_magazine_subscription(connection, request_id)
             return self._decode_signup_request(connection, row, include_private=True)
 
     def revoke_signup_case(self, request_id: str, case_id: str, admin_note: str = "") -> dict:
@@ -1750,6 +1901,7 @@ class Store:
                 (now, now, request_id, case_id),
             )
             row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            self._sync_magazine_subscription(connection, request_id)
             return self._decode_signup_request(connection, row, include_private=True)
 
     def _sync_magazine_subscription(self, connection: sqlite3.Connection, request_id: str) -> None:
@@ -1763,9 +1915,18 @@ class Store:
         else:
             connection.execute("DELETE FROM recipient_magazine_subscriptions WHERE organization_id=? AND recipient_id=?", (request["organization_id"], request["recipient_id"]))
 
-    def set_signup_request_subscriptions(self, request_id: str, case_ids: Iterable[str], admin_note: str = "") -> dict:
+    def set_signup_request_subscriptions(self, request_id: str, case_ids: Iterable[str], admin_note: str = "", magazine_slots: Iterable[str] | None = None) -> dict:
         self.ensure_magazine_schema()
         selected = {str(value).strip() for value in case_ids if str(value).strip()}
+        selected_slots = None if magazine_slots is None else {
+            str(value).strip() for value in magazine_slots if str(value).strip()
+        }
+        if selected_slots is not None:
+            invalid_slots = selected_slots - {"morning", "lunch", "evening"}
+            if invalid_slots:
+                raise ValueError("선택한 매거진 알림이 올바르지 않습니다.")
+            if selected_slots and not selected:
+                raise ValueError("매거진 알림은 구독 케이스를 하나 이상 선택해야 합니다.")
         now = now_iso()
         with self.connect() as connection:
             request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
@@ -1819,9 +1980,69 @@ class Store:
                             "UPDATE signup_request_cases SET status=?,decided_at=?,updated_at=? WHERE request_id=? AND case_id=?",
                             (status, now, now, request_id, case_id),
                         )
+            if selected_slots is not None:
+                connection.execute("DELETE FROM signup_request_magazine_slots WHERE request_id=?", (request_id,))
+                connection.executemany(
+                    "INSERT INTO signup_request_magazine_slots(request_id,edition_slot) VALUES(?,?)",
+                    [(request_id, slot) for slot in sorted(selected_slots)],
+                )
             row = self._refresh_signup_request_status(connection, request_id, admin_note)
             self._sync_magazine_subscription(connection, request_id)
             return self._decode_signup_request(connection, row, include_private=True)
+
+    def signup_auto_approve_enabled(self) -> bool:
+        return self.get_setting("signup_auto_approve", "0").casefold() in {"1", "true", "on", "yes"}
+
+    def approve_signup_request(self, request_id: str, admin_note: str = "") -> dict:
+        self.ensure_magazine_schema()
+        now = now_iso()
+        with self.connect() as connection:
+            request = connection.execute("SELECT * FROM signup_requests WHERE id=?", (request_id,)).fetchone()
+            if not request:
+                raise ValueError("구독 요청을 찾지 못했습니다.")
+            recipient_id = str(request["recipient_id"] or "")
+            if not recipient_id:
+                raise ValueError("카카오 수신 등록이 완료된 신청만 승인할 수 있습니다.")
+            pending = connection.execute(
+                "SELECT case_id FROM signup_request_cases WHERE request_id=? AND status='pending'",
+                (request_id,),
+            ).fetchall()
+            for row in pending:
+                case_id = str(row["case_id"])
+                connection.execute(
+                    "UPDATE signup_request_cases SET status='approved',decided_at=?,updated_at=? WHERE request_id=? AND case_id=?",
+                    (now, now, request_id, case_id),
+                )
+                connection.execute(
+                    "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                    (case_id, recipient_id),
+                )
+            row = self._refresh_signup_request_status(connection, request_id, admin_note)
+            self._sync_magazine_subscription(connection, request_id)
+            return self._decode_signup_request(connection, row, include_private=True)
+
+    def approve_all_pending_signup_requests(self, admin_note: str = "일괄 승인") -> dict:
+        with self.connect() as connection:
+            request_ids = [str(row["id"]) for row in connection.execute(
+                """SELECT DISTINCT sr.id FROM signup_requests sr
+                   JOIN signup_request_cases src ON src.request_id=sr.id AND src.status='pending'
+                   WHERE sr.recipient_id IS NOT NULL AND sr.recipient_id<>''
+                   ORDER BY sr.created_at"""
+            ).fetchall()]
+            skipped = int(connection.execute(
+                """SELECT COUNT(DISTINCT sr.id) value FROM signup_requests sr
+                   JOIN signup_request_cases src ON src.request_id=sr.id AND src.status='pending'
+                   WHERE sr.recipient_id IS NULL OR sr.recipient_id=''"""
+            ).fetchone()["value"] or 0)
+        cases_approved = 0
+        for request_id in request_ids:
+            with self.connect() as connection:
+                cases_approved += int(connection.execute(
+                    "SELECT COUNT(*) value FROM signup_request_cases WHERE request_id=? AND status='pending'",
+                    (request_id,),
+                ).fetchone()["value"] or 0)
+            self.approve_signup_request(request_id, admin_note)
+        return {"requests_approved": len(request_ids), "cases_approved": cases_approved, "skipped_without_kakao": skipped}
 
     def get_setting(self, key: str, default: str = "") -> str:
         with self.connect() as connection:
@@ -2367,7 +2588,9 @@ class Store:
     def next_case_proposal_for_moderation(self) -> dict | None:
         with self.connect() as connection:
             row = connection.execute(
-                "SELECT * FROM case_proposals WHERE moderation_status='pending' ORDER BY updated_at ASC LIMIT 1"
+                """SELECT * FROM case_proposals
+                   WHERE moderation_status='pending' AND moderation_exempt=0
+                   ORDER BY updated_at ASC LIMIT 1"""
             ).fetchone()
         return self._decode_case_proposal(row, admin=True) if row else None
 
@@ -2376,7 +2599,7 @@ class Store:
         with self.connect() as connection:
             connection.execute(
                 """UPDATE case_proposals SET moderation_status=?,moderation_flagged=?,moderation_reason=?,moderation_model=?,moderated_at=?,updated_at=?
-                   WHERE id=?""",
+                   WHERE id=? AND moderation_status='pending' AND moderation_exempt=0""",
                 (status, 1 if flagged else 0, str(reason or "")[:500], str(model or "")[:120], now_iso(), now_iso(), str(proposal_id)),
             )
             row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (str(proposal_id),)).fetchone()
@@ -3089,20 +3312,30 @@ class Store:
             )
         return {"id": feedback_id, "article_id": article_id, "case_id": case_id, "reason": reason, "comment": comment, "created_at": now}
 
-    def analysis_feedback_summary(self, article_id: str, case_id: str, days: int = 30, limit: int = 5) -> dict:
+    def analysis_feedback_summary(self, article_id: str | None, case_id: str, days: int = 30, limit: int = 5) -> dict:
         days = max(1, min(365, int(days)))
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        article_filter = "AND article_id=?" if article_id else ""
+        params = (case_id, article_id, since) if article_id else (case_id, since)
+        comment_params = (case_id, article_id, limit) if article_id else (case_id, limit)
         with self.connect() as connection:
             rows = connection.execute(
-                "SELECT reason,COUNT(*) value FROM analysis_feedback WHERE article_id=? AND case_id=? AND created_at>=? GROUP BY reason ORDER BY value DESC",
-                (article_id, case_id, since),
+                f"SELECT reason,COUNT(*) value FROM analysis_feedback WHERE case_id=? {article_filter} AND created_at>=? GROUP BY reason ORDER BY value DESC",
+                params,
             ).fetchall()
             comments = connection.execute(
-                "SELECT comment,created_at FROM analysis_feedback WHERE article_id=? AND case_id=? AND comment<>'' ORDER BY created_at DESC LIMIT ?",
-                (article_id, case_id, limit),
+                f"SELECT comment,created_at FROM analysis_feedback WHERE case_id=? {article_filter} AND comment<>'' ORDER BY created_at DESC LIMIT ?",
+                comment_params,
             ).fetchall()
         breakdown = [{"reason": str(row["reason"] or ""), "count": int(row["value"] or 0)} for row in rows]
         guidance_map = {
+            "expected_send": "실제로 포함해야 한다는 평가입니다. 누락 원인이 임계치인지 대상·주제 근거 규칙인지 함께 점검하세요.",
+            "expected_exclude": "실제로 제외해야 한다는 평가입니다. 과대 매칭된 표현과 맥락을 제외 기준에 반영하세요.",
+            "topic_or_target_error": "케이스가 찾는 주제와 대상을 프롬프트에서 더 명확하게 구분하세요.",
+            "condition_or_keyword_error": "필수 조건·키워드와 동의어 범위가 실제 케이스 의도와 맞는지 점검하세요.",
+            "context_or_subject_error": "단순 언급과 핵심 주체를 구분하는 기사 맥락 판정 기준을 조정하세요.",
+            "stance_error": "긍정·부정·사실 전달 어조를 구분하는 근거와 예외를 프롬프트에 보강하세요.",
+            "evidence_or_body_error": "본문 확보 상태와 근거 문장 판정이 결과에 미친 영향을 점검하세요.",
             "required_terms_missing": "필수 키워드를 case.required_terms에 명확히 추가하거나, 케이스 주제 설명에 핵심 표현을 보강하세요.",
             "include_terms_missing": "include_terms에 더 많은 핵심 표현을 포함하고, 검색 프롬프트를 보다 구체적으로 만드세요.",
             "negative_signal_missing": "부정 어조 요청 케이스는 기사 본문에 명확한 부정 신호가 포함되도록 프롬프트를 다듬으세요.",
@@ -3243,6 +3476,37 @@ class Store:
                 queued += int(connection.execute("SELECT changes()").fetchone()[0] or 0)
         return queued
 
+    def recent_magazines_for_recipient(self, recipient_id: str, limit: int = 3) -> list[dict]:
+        self.ensure_magazine_schema()
+        with self.connect() as connection:
+            subscriptions = [dict(row) for row in connection.execute(
+                "SELECT organization_id,edition_slots,case_ids FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (str(recipient_id),),
+            ).fetchall()]
+            if not subscriptions:
+                return []
+            organization_ids = [str(row["organization_id"]) for row in subscriptions]
+            marks = ",".join("?" for _ in organization_ids)
+            editions = [dict(row) for row in connection.execute(
+                f"""SELECT * FROM magazine_editions
+                    WHERE status='published' AND edition_slot<>'daily' AND organization_id IN ({marks})
+                    ORDER BY window_end_at DESC,generated_at DESC LIMIT 60""",
+                organization_ids,
+            ).fetchall()]
+        by_organization = {str(row["organization_id"]): row for row in subscriptions}
+        selected = []
+        for edition in editions:
+            subscription = by_organization.get(str(edition["organization_id"])) or {}
+            slots = json_value(subscription.get("edition_slots"), [])
+            case_ids = json_value(subscription.get("case_ids"), [])
+            if edition.get("edition_slot") not in slots or not case_ids:
+                continue
+            edition["selected_case_ids"] = [str(value) for value in case_ids]
+            selected.append(edition)
+            if len(selected) >= max(1, min(10, int(limit))):
+                break
+        return selected
+
     def due_magazine_deliveries(self, limit: int = 20) -> list[dict]:
         self.ensure_magazine_schema()
         with self.connect() as connection:
@@ -3305,17 +3569,18 @@ class Store:
         return [self.decode_organization(row) for row in rows]
 
     def list_articles_missing_body(self, retry_before: str, first_seen_after: str, limit: int = 1) -> list[dict]:
-        """Only return non-prohibited, due recovery candidates; never select robots bans."""
+        """Return recent, due recovery candidates newest-first; never select robots bans."""
         with self.connect() as connection:
             rows = connection.execute(
                 """SELECT * FROM articles
                    WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                     AND COALESCE(NULLIF(published_at,''),first_seen_at)>=?
                      AND COALESCE(body_retryable,1)=1
                      AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
                      AND COALESCE(body_attempts,0)<3
                      AND COALESCE(body_next_attempt_at,updated_at)<=?
-                   ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC,COALESCE(published_at,first_seen_at) DESC
-                   LIMIT ?""", (retry_before, max(1, min(20, int(limit))))).fetchall()
+                   ORDER BY COALESCE(NULLIF(published_at,''),first_seen_at) DESC,COALESCE(body_next_attempt_at,updated_at) ASC,id
+                   LIMIT ?""", (first_seen_after, retry_before, max(1, min(200, int(limit))))).fetchall()
         return [dict(row) for row in rows]
 
     def missing_body_status(self, retry_before: str, first_seen_after: str) -> dict:
@@ -3324,18 +3589,18 @@ class Store:
                 COALESCE(SUM(CASE WHEN COALESCE(body,'')='' THEN 1 ELSE 0 END),0) missing_total,
                 COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND body_error='robots_disallowed' THEN 1 ELSE 0 END),0) blocked_total,
                 COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(body_error,'')<>'robots_disallowed' THEN 1 ELSE 0 END),0) non_blocked_total,
-                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND first_seen_at>=? THEN 1 ELSE 0 END),0) recent_missing_total,
-                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND first_seen_at<? THEN 1 ELSE 0 END),0) historical_missing_total
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(NULLIF(published_at,''),first_seen_at)>=? THEN 1 ELSE 0 END),0) recent_missing_total,
+                COALESCE(SUM(CASE WHEN COALESCE(body,'')='' AND COALESCE(NULLIF(published_at,''),first_seen_at)<? THEN 1 ELSE 0 END),0) historical_missing_total
                 FROM articles""", (first_seen_after, first_seen_after)).fetchone()
-            recollectable = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+            recollectable = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>'' AND COALESCE(NULLIF(published_at,''),first_seen_at)>=?
                 AND COALESCE(body_retryable,1)=1 AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
-                AND COALESCE(body_attempts,0)<3""").fetchone()
-            due = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                AND COALESCE(body_attempts,0)<3""", (first_seen_after,)).fetchone()
+            due = connection.execute("""SELECT COUNT(*) value FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>'' AND COALESCE(NULLIF(published_at,''),first_seen_at)>=?
                 AND COALESCE(body_retryable,1)=1 AND COALESCE(body_error,'') NOT IN ('robots_disallowed','http_401','http_403','http_404','http_410','http_451')
-                AND COALESCE(body_attempts,0)<3 AND COALESCE(body_next_attempt_at,updated_at)<=?""", (retry_before,)).fetchone()
-            latest = connection.execute("""SELECT id,title,original_url,first_seen_at,updated_at,snippet FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>''
+                AND COALESCE(body_attempts,0)<3 AND COALESCE(body_next_attempt_at,updated_at)<=?""", (first_seen_after, retry_before)).fetchone()
+            latest = connection.execute("""SELECT id,title,original_url,first_seen_at,updated_at,snippet FROM articles WHERE COALESCE(body,'')='' AND COALESCE(original_url,'')<>'' AND COALESCE(NULLIF(published_at,''),first_seen_at)>=?
                 AND COALESCE(body_retryable,1)=1 AND COALESCE(body_next_attempt_at,updated_at)<=?
-                ORDER BY COALESCE(body_next_attempt_at,updated_at) ASC LIMIT 1""", (retry_before,)).fetchone()
+                ORDER BY COALESCE(NULLIF(published_at,''),first_seen_at) DESC,COALESCE(body_next_attempt_at,updated_at) ASC,id LIMIT 1""", (first_seen_after, retry_before)).fetchone()
         return {"total_articles": int(overall["total_articles"]), "missing_total": int(overall["missing_total"]), "blocked_total": int(overall["blocked_total"]), "non_blocked_total": int(overall["non_blocked_total"]), "recent_missing_total": int(overall["recent_missing_total"]), "historical_missing_total": int(overall["historical_missing_total"]), "recollectable_total": int(recollectable["value"]), "retry_due": int(due["value"]), "cooling_down": 0, "latest": dict(latest) if latest else None}
 
     def save_body_backfill_result(self, article_id: str, fetched: dict, retryable: bool, next_attempt_at: str = "") -> None:
@@ -3505,14 +3770,19 @@ class Store:
             )
         return counts
 
-    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False, article_limit: int = 60, include_detail: bool = False) -> dict:
+    def analysis_insights(self, case_id: str | None = None, organization_id: str | None = None, days: int = 7, sent_only: bool = False, delivery_only: bool = False, article_limit: int = 60, include_detail: bool = False, period_start: str | None = None, period_end: str | None = None, article_ids: list[str] | None = None) -> dict:
         days = max(1, min(90, int(days)))
-        since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        since = str(period_start or (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds"))
         article_limit = max(1, min(5000, int(article_limit)))
         join_params: list[Any] = []
         case_join = "LEFT JOIN case_evaluations ce ON ce.article_analysis_id=aa.id"
-        where = ["aa.status='completed'", "COALESCE(aa.analyzed_at,aa.updated_at)>=?"]
+        # Dashboard periods follow news time, regardless of analysis queue delay.
+        period_column = "COALESCE(a.published_at,a.first_seen_at)"
+        where = ["aa.status='completed'", period_column + ">=?"]
         params: list[Any] = [since]
+        if period_end:
+            where.append(period_column + "<?")
+            params.append(str(period_end))
         if case_id:
             # Each common analysis receives an evaluation row for every case. Only
             # candidate rows are related to this case; excluded rows previously made
@@ -3521,6 +3791,13 @@ class Store:
             join_params.append(case_id)
         if organization_id:
             where.append("aa.organization_id=?"); params.append(organization_id)
+        if article_ids is not None:
+            selected_article_ids = list(dict.fromkeys(str(article_id) for article_id in article_ids if str(article_id)))
+            if selected_article_ids:
+                where.append("a.id IN (" + ",".join("?" for _ in selected_article_ids) + ")")
+                params.extend(selected_article_ids)
+            else:
+                where.append("1=0")
         if sent_only:
             # 신경망은 해당 케이스에 최근 기간 안에 실제 발송 성공한 기사만 사용한다.
             where.append("EXISTS (SELECT 1 FROM deliveries d WHERE d.article_id=aa.article_id AND d.case_id=ce.case_id AND d.status='sent' AND COALESCE(d.sent_at,d.updated_at)>=?)")
@@ -3556,11 +3833,13 @@ class Store:
             entities = json_value(item.get("entities"), [])
             text = " ".join([str(item.get("title") or ""), str(item.get("snippet") or ""), str(item.get("body") or "")])
             weight = 1.0 + min(1.0, float(item.get("score") or 0) / 100.0) + (0.35 if item.get("matched") else 0)
+            concept_source = " ".join([str(item.get("title") or ""), str(item.get("snippet") or "")])
             topic_terms = verified_content_nouns(entities, text, stop, identity_terms)
+            if not topic_terms:
+                topic_terms = inferred_content_nouns(concept_source, stop, identity_terms)
             stored_concepts = [str(value).strip()[:60] for value in json_value(item.get("topic_concepts"), []) if str(value).strip()]
             # Historical body extraction can contain unrelated recommendation/footer text.
             # Use title + search snippet for deterministic backfill; new analyses use stored LLM concepts.
-            concept_source = " ".join([str(item.get("title") or ""), str(item.get("snippet") or "")])
             concepts = list(dict.fromkeys(stored_concepts))[:4] or inferred_topic_concepts(concept_source)
             vector = json_value(item.get("vector"), [])
             if isinstance(vector, list) and vector and all(isinstance(value, (int, float)) for value in vector):
@@ -4434,7 +4713,7 @@ class Store:
                 result = {key: item.get(key) for key in ("evaluation_id", "case_id", "case_name", "organization_name", "evaluation_status", "candidate_status", "keyword_score", "semantic_raw", "semantic_score", "llm_score", "final_score", "evidence_status", "evaluation_error", "decision", "completed_at", "evaluation_updated_at")}
                 report = json_value(item.get("evaluation_report"), {})
                 categories = json_value(item.get("low_score_categories"), [])
-                llm_error = bool(result.get("evaluation_status") == "failed" or result.get("evidence_status") in {"case_llm_unavailable", "llm_unavailable"} or "case_llm_unavailable" in categories or "llm_unavailable" in categories or report.get("fallback") or (report.get("components") or {}).get("llm_error"))
+                llm_error = bool(result.get("evaluation_status") == "failed" or result.get("evidence_status") in {"case_llm_unavailable", "llm_unavailable"} or "case_llm_unavailable" in categories or "llm_unavailable" in categories or (report.get("components") or {}).get("llm_error"))
                 result["similarity_score"] = float(item.get("final_score") or 0)
                 result["llm_status"] = "unavailable" if llm_error else str(result.get("evaluation_status") or "pending")
                 result["llm_retry_needed"] = bool(llm_error or result.get("evaluation_status") in {"failed", "pending", "processing"})
@@ -4703,16 +4982,33 @@ class Store:
         }
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
         with self.connect() as connection:
+            # Existing installations predate this index. Creating it is
+            # idempotent and much cheaper than repeatedly scanning article
+            # bodies while an administrator is viewing settings.
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_deliveries_case_status_sent_at "
+                "ON deliveries(case_id, status, sent_at DESC, article_id)"
+            )
+            # A keyword preview does not need every historical sent article.
+            # First select a bounded, newest-first delivery set, then fetch
+            # the comparatively large article body only for that sample.
             rows = connection.execute(
-                """SELECT a.id,a.title,a.snippet,a.body,aa.summary,aa.entities,MAX(d.sent_at) sent_at
-                   FROM deliveries d
-                   JOIN articles a ON a.id=d.article_id
-                   JOIN case_evaluations ce ON ce.article_id=d.article_id AND ce.case_id=d.case_id
+                """WITH recent_sent AS (
+                       SELECT article_id, MAX(sent_at) AS sent_at
+                       FROM deliveries
+                       WHERE case_id=? AND status='sent' AND sent_at>=?
+                       GROUP BY article_id
+                       ORDER BY sent_at DESC
+                       LIMIT 80
+                   )
+                   SELECT a.id,a.title,a.snippet,a.body,aa.summary,aa.entities,recent_sent.sent_at
+                   FROM recent_sent
+                   JOIN articles a ON a.id=recent_sent.article_id
+                   JOIN case_evaluations ce ON ce.article_id=recent_sent.article_id AND ce.case_id=?
                      AND ce.status='completed' AND ce.decision='send'
                    JOIN article_analyses aa ON aa.id=ce.article_analysis_id AND aa.status='completed'
-                   WHERE d.case_id=? AND d.status='sent' AND COALESCE(d.sent_at,d.updated_at)>=?
-                   GROUP BY a.id ORDER BY sent_at DESC""",
-                (case_id, since),
+                   ORDER BY recent_sent.sent_at DESC""",
+                (case_id, since, case_id),
             ).fetchall()
         counts: dict[str, int] = {}
         configured_compact = [re.sub(r"\s+", "", value).casefold() for value in configured_terms]
@@ -4966,3 +5262,80 @@ class Store:
             ).rowcount
             connection.execute("DELETE FROM recipient_invites WHERE expires_at<?", (now_iso(),))
         return {"cleared_bodies": raw, "deleted_articles": meta}
+
+    def cleanup_short_retention(self, analysis_days: int, source_days: int, article_limit: int,
+                                press_limit: int, press_markdown_root: str | Path) -> dict:
+        """Bounded cleanup for the 7-day analysis / 8-day source policy."""
+        now = datetime.now(KST)
+        analysis_cutoff = (now - timedelta(days=max(1, int(analysis_days)))).isoformat(timespec="seconds")
+        source_cutoff = (now - timedelta(days=max(int(analysis_days), int(source_days)))).isoformat(timespec="seconds")
+        article_limit = max(1, min(500, int(article_limit)))
+        press_limit = max(1, min(100, int(press_limit)))
+        root = Path(press_markdown_root)
+        result: dict[str, Any] = {"analysis_cutoff": analysis_cutoff, "source_cutoff": source_cutoff}
+        removed_paths: list[str] = []
+        with self.connect() as connection:
+            eligible = """first_seen_at<? AND id NOT IN (SELECT article_id FROM deliveries WHERE status IN ('pending','retry'))"""
+            result["analysis_candidates"] = int(connection.execute(f"SELECT COUNT(*) FROM articles WHERE {eligible}", (analysis_cutoff,)).fetchone()[0])
+            result["source_candidates"] = int(connection.execute(f"SELECT COUNT(*) FROM articles WHERE {eligible}", (source_cutoff,)).fetchone()[0])
+            analysis_ids = [str(row[0]) for row in connection.execute(
+                f"SELECT id FROM articles WHERE {eligible} ORDER BY first_seen_at,id LIMIT ?", (analysis_cutoff, article_limit)
+            ).fetchall()]
+            source_ids = [str(row[0]) for row in connection.execute(
+                f"SELECT id FROM articles WHERE {eligible} ORDER BY first_seen_at,id LIMIT ?", (source_cutoff, article_limit)
+            ).fetchall()]
+            if analysis_ids:
+                marks = ",".join("?" for _ in analysis_ids)
+                for table in ("article_scores", "article_press_release_matches", "press_release_match_jobs", "reanalysis_jobs", "llm_jobs", "analysis_feedback", "article_case_processing_flags", "article_processing_flags"):
+                    connection.execute(f"DELETE FROM {table} WHERE article_id IN ({marks})", analysis_ids)
+                analysis_deleted = connection.execute(f"DELETE FROM article_analyses WHERE article_id IN ({marks})", analysis_ids).rowcount
+            else:
+                analysis_deleted = 0
+            if source_ids:
+                marks = ",".join("?" for _ in source_ids)
+                source_deleted = connection.execute(f"DELETE FROM articles WHERE id IN ({marks})", source_ids).rowcount
+            else:
+                source_deleted = 0
+            press_eligible = "COALESCE(published_at,created_at)<?"
+            result["press_analysis_candidates"] = int(connection.execute(f"SELECT COUNT(*) FROM press_releases WHERE {press_eligible}", (analysis_cutoff,)).fetchone()[0])
+            result["press_source_candidates"] = int(connection.execute(f"SELECT COUNT(*) FROM press_releases WHERE {press_eligible}", (source_cutoff,)).fetchone()[0])
+            press_analysis_ids = [str(row[0]) for row in connection.execute(
+                f"SELECT id FROM press_releases WHERE {press_eligible} ORDER BY COALESCE(published_at,created_at),id LIMIT ?", (analysis_cutoff, press_limit)
+            ).fetchall()]
+            if press_analysis_ids:
+                marks = ",".join("?" for _ in press_analysis_ids)
+                connection.execute(f"DELETE FROM article_press_release_matches WHERE press_release_id IN ({marks})", press_analysis_ids)
+                connection.execute(f"DELETE FROM press_release_match_jobs WHERE press_release_id IN ({marks})", press_analysis_ids)
+                press_chunks_deleted = connection.execute(f"DELETE FROM press_release_chunks WHERE press_release_id IN ({marks})", press_analysis_ids).rowcount
+            else:
+                press_chunks_deleted = 0
+            source_press_rows = connection.execute(
+                f"SELECT id,markdown_path FROM press_releases WHERE {press_eligible} ORDER BY COALESCE(published_at,created_at),id LIMIT ?", (source_cutoff, press_limit)
+            ).fetchall()
+            source_press_ids = [str(row["id"]) for row in source_press_rows]
+            if source_press_ids:
+                marks = ",".join("?" for _ in source_press_ids)
+                press_deleted = connection.execute(f"DELETE FROM press_releases WHERE id IN ({marks})", source_press_ids).rowcount
+                removed_paths = [str(row["markdown_path"] or "") for row in source_press_rows]
+            else:
+                press_deleted = 0
+        deleted_files = file_errors = 0
+        try:
+            root_resolved = root.resolve()
+        except OSError:
+            root_resolved = root
+        for raw_path in removed_paths:
+            try:
+                path = Path(raw_path)
+                path.resolve().relative_to(root_resolved)
+                if path.is_file():
+                    path.unlink()
+                    deleted_files += 1
+            except (OSError, ValueError):
+                file_errors += 1
+        result.update({
+            "analysis_pruned_articles": analysis_deleted, "source_deleted_articles": source_deleted,
+            "press_pruned_chunks": press_chunks_deleted, "source_deleted_press_releases": press_deleted,
+            "deleted_markdown_files": deleted_files, "markdown_file_errors": file_errors,
+        })
+        return result

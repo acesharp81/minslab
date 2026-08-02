@@ -15,12 +15,12 @@ from master_press.storage import KST, Store
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Publish shared Master Press magazine editions.")
-    parser.add_argument("slot", nargs="?", choices=sorted(SLOT_LABELS), default="")
+    parser.add_argument("slot", nargs="?", choices=sorted(SLOT_LABELS), default=None)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     settings = Settings.from_env()
     settings.ensure_directories()
-    slot = args.slot or {8: "morning", 12: "lunch", 18: "evening"}.get(datetime.now(KST).hour, "")
+    slot = args.slot or {7: "morning", 12: "lunch", 18: "evening"}.get(datetime.now(KST).hour, "")
     if not slot:
         parser.error("slot을 지정하거나 KST 08시, 12시, 18시에 실행해야 합니다.")
     publisher = MagazinePublisher(Store(settings.database_path))

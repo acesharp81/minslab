@@ -21,7 +21,7 @@ if str(PROJECT_DIR) not in sys.path:
 
 from master_press.magazine import MagazinePublisher
 from master_press.kakao import KakaoError
-from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, get_service, worker_tick
+from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, shadow_worker_tick, get_service, worker_tick
 from master_press.storage import now_iso
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
@@ -40,6 +40,11 @@ def _require_admin(admin_authenticated: bool) -> None:
 
 
 _ADMIN_BOOTSTRAP_CACHE: dict | None = None
+
+
+def _invalidate_admin_bootstrap_cache() -> None:
+    global _ADMIN_BOOTSTRAP_CACHE
+    _ADMIN_BOOTSTRAP_CACHE = None
 
 
 def _is_db_locked_error(error: Exception) -> bool:
@@ -212,6 +217,7 @@ def admin_bootstrap() -> dict:
                 "case_llm_model": case_model,
                 "case_llm_models": [case_model] if case_model else [],
                 "openrouter": service.openrouter_status(probe=False),
+                "openai_shadow": service.shadow_status(),
                 "reserve1_llm_model": service.selected_reserve1_model(),
                 "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
                 "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
@@ -224,6 +230,7 @@ def admin_bootstrap() -> dict:
                 "embedding_models": [service.selected_embedding_model()] if service.selected_embedding_model() else [],
                 "ollama_embedding": service.ollama_embedding_status(probe=False),
                 "case_batch_size": service.selected_case_batch_size(),
+                "signup_auto_approve": service.store.signup_auto_approve_enabled(),
                 "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
                 "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
                 "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
@@ -386,6 +393,7 @@ def dispatch(
             recipient_id,
             magazine_slots,
         )
+        _invalidate_admin_bootstrap_cache()
         if not recipient_id:
             base = request_base.rstrip("/")
             request["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
@@ -436,6 +444,24 @@ def dispatch(
         if not service.store.get_article(article_id):
             raise MasterPressError("기사를 찾지 못했습니다.", 404)
         return {"items": service.press_releases.releases_for_article(article_id)}
+
+    if path == "/admin/shadow/disagreements" and method == "GET":
+        _require_admin(admin_authenticated)
+        return service.store.shadow_disagreements(int(query.get("limit") or 50))
+
+    if path == "/admin/shadow/feedback" and method == "GET":
+        _require_admin(admin_authenticated)
+        return service.store.shadow_feedback_history(int(query.get("limit") or 100))
+
+    if path.startswith("/admin/shadow/disagreements/") and method == "POST":
+        _require_admin(admin_authenticated)
+        suffix = path[len("/admin/shadow/disagreements/"):].strip("/").split("/")
+        if len(suffix) == 2 and suffix[1] == "feedback":
+            try:
+                return {"feedback": service.store.save_shadow_feedback(suffix[0], payload.get("verdict"), payload.get("reason"), payload.get("comment"))}
+            except ValueError as error:
+                raise MasterPressError(str(error), 400)
+        raise MasterPressError("그림자 판정 피드백 경로가 올바르지 않습니다.", 404)
 
     if path == "/admin/bootstrap" and method == "GET":
         _require_admin(admin_authenticated)
@@ -496,6 +522,12 @@ def dispatch(
         ]
         return {"items": items}
 
+    if path == "/admin/signup-requests/approve-pending" and method == "POST":
+        _require_admin(admin_authenticated)
+        result = service.store.approve_all_pending_signup_requests("관리자 일괄 승인")
+        _invalidate_admin_bootstrap_cache()
+        return result
+
     if path.startswith("/admin/signup-requests/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/signup-requests/"):].split("/")
@@ -509,10 +541,16 @@ def dispatch(
             case_ids = payload.get("case_ids", [])
             if not isinstance(case_ids, list):
                 raise MasterPressError("구독 케이스 선택값이 올바르지 않습니다.")
+            magazine_slots = payload.get("magazine_slots", [])
+            if not isinstance(magazine_slots, list):
+                raise MasterPressError("매거진 알림 선택값이 올바르지 않습니다.")
             try:
-                return {"request": service.store.set_signup_request_subscriptions(
-                    request_id, case_ids, str(payload.get("admin_note") or "관리자 구독 조정")
-                )}
+                request = service.store.set_signup_request_subscriptions(
+                    request_id, case_ids, str(payload.get("admin_note") or "관리자 구독 조정"),
+                    magazine_slots=magazine_slots,
+                )
+                _invalidate_admin_bootstrap_cache()
+                return {"request": request}
             except ValueError as error:
                 raise MasterPressError(str(error)) from error
         if len(suffix) >= 3 and suffix[1] == "cases" and method in {"PUT", "POST"}:
@@ -540,6 +578,13 @@ def dispatch(
                 )}
             except ValueError as error:
                 raise MasterPressError(str(error)) from error
+
+    if path == "/admin/settings/signup-auto-approve" and method == "PUT":
+        _require_admin(admin_authenticated)
+        enabled = payload.get("enabled") is True
+        service.store.set_setting("signup_auto_approve", "1" if enabled else "0")
+        _invalidate_admin_bootstrap_cache()
+        return {"signup_auto_approve": enabled}
 
     if path in {"/admin/settings/common-llm-model", "/admin/settings/llm-model"} and method == "PUT":
         _require_admin(admin_authenticated)
@@ -724,13 +769,25 @@ def dispatch(
             semantic_threshold = max(0.0, min(100.0, float(payload.get("semantic_candidate_threshold", 65))))
             press_threshold = max(0.0, min(100.0, float(payload.get("press_release_match_threshold", 65))))
             similar_threshold = max(0.0, min(100.0, float(payload.get("similar_article_threshold", 65))))
+            shadow_enabled = bool(payload.get("openai_shadow_enabled", True))
+            shadow_daily_limit = max(1, min(1000, int(payload.get("openai_shadow_daily_limit", service.shadow_daily_limit()))))
+            magazine_threshold = max(70.0, min(99.0, float(payload.get("magazine_similarity_threshold", 90))))
         except (TypeError, ValueError):
             raise MasterPressError("분석 기준 값이 올바르지 않습니다.")
-        for key, value in (("case_batch_size", batch_size), ("semantic_candidate_threshold", semantic_threshold),
-                           ("press_release_match_threshold", press_threshold), ("similar_article_threshold", similar_threshold)):
+        for key, value in (
+            ("case_batch_size", batch_size), ("semantic_candidate_threshold", semantic_threshold),
+            ("press_release_match_threshold", press_threshold), ("similar_article_threshold", similar_threshold),
+            ("magazine_similarity_threshold", magazine_threshold),
+            ("openai_shadow_enabled", "1" if shadow_enabled else "0"),
+            ("openai_shadow_daily_limit", shadow_daily_limit),
+        ):
             service.store.set_setting(key, str(value))
-        return {"case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold,
-                "press_release_match_threshold": press_threshold, "similar_article_threshold": similar_threshold}
+        return {
+            "case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold,
+            "press_release_match_threshold": press_threshold, "similar_article_threshold": similar_threshold,
+            "magazine_similarity_threshold": magazine_threshold, "openai_shadow_enabled": shadow_enabled,
+            "openai_shadow_daily_limit": shadow_daily_limit, "openai_shadow": service.shadow_status(),
+        }
 
     if path == "/admin/settings/press-release-match" and method == "PUT":
         _require_admin(admin_authenticated)
@@ -937,6 +994,11 @@ def dispatch(
                 f"{base}/poc/master-press/",
             )
             return {"sent": True, "status": status, "response": response}
+        if action == "magazine-test" and method == "POST":
+            try:
+                return service.resend_recent_magazines(recipient_id, 3)
+            except ValueError as error:
+                raise MasterPressError(str(error)) from error
 
     if path == "/admin/tick" and method == "POST":
         _require_admin(admin_authenticated)
@@ -1024,6 +1086,13 @@ def _generate_feedback_guidance(case: dict, feedback_summary: dict) -> list:
         
         # Reason-specific guidance
         reason_guidance_map = {
+            "expected_send": "실제로 포함해야 한다는 평가가 누적되었습니다. 누락된 기사의 공통 조건을 분석하세요.",
+            "expected_exclude": "실제로 제외해야 한다는 평가가 누적되었습니다. 과대 매칭 패턴을 제외 기준에 반영하세요.",
+            "topic_or_target_error": "케이스의 주제와 대상 정의를 더 명확하게 구분해보세요.",
+            "condition_or_keyword_error": "필수 조건과 키워드·동의어 범위를 재검토하세요.",
+            "context_or_subject_error": "단순 언급과 핵심 주체를 구분하는 맥락 판정을 보강하세요.",
+            "stance_error": "어조·긍부정 판단 근거와 예외를 프롬프트에 추가하세요.",
+            "evidence_or_body_error": "본문 수집 상태와 근거 문장 판정 과정을 점검하세요.",
             "required_terms_missing": "필수 키워드 검사 기준을 재검토하세요. 본문에서 핵심 키워드가 명시적으로 나타나는지 확인하는 로직을 강화할 수 있습니다.",
             "include_terms_missing": "포함 키워드 기준을 더 정교하게 설정하세요. 주제 관련 동의어나 표현을 추가로 인식하도록 조정할 수 있습니다.",
             "topic_target_not_verified": "대상 기관이나 인물이 기사의 중심인지 판단하는 기준을 강화해보세요. 단순 언급이 아닌 주요 행위자인지 확인하는 로직이 필요할 수 있습니다.",
@@ -1050,4 +1119,3 @@ def _generate_feedback_guidance(case: dict, feedback_summary: dict) -> list:
         ]
     
     return guidance[:5]  # Return top 5 guidance items
-
