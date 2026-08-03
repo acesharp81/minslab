@@ -1,12 +1,47 @@
 # 04 - AI 언론동향 비서 README
 
-> 문서 기준일: 2026-08-03 KST
+> 문서 기준일: 2026-08-04 KST
 > 현재 단계: PoC 운영 검증 버전
 > 화면 경로: `/poc/master-press/`
 > API prefix: `/api/poc/master-press`
 > 목적: 사용자 매뉴얼, 운영 매뉴얼, LLM 시스템 분석 문서
 
 AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공통 AI 분석과 케이스별 의미 판정을 거쳐 실제로 필요한 기사만 카카오톡으로 발송하는 언론 모니터링 PoC다. 현재 버전은 단순 키워드 알림이 아니라, 기관 단위 수집, 기사 공통분석, 로컬 임베딩, 케이스별 LLM 판정, 보도자료 RAG 매칭, 구독자 승인 관리, 클린 AI 게시판까지 하나의 운영 흐름으로 묶는다.
+
+## 2026-08-04 누적 반영사항
+
+이 절은 현재 작업 브랜치에서 2026-08-03 이후 반영한 변경을 요약한다. 아래 과거 날짜의 설명과 충돌하면 이 절과 현재 매뉴얼 본문을 우선한다. 기사 처리 파이프라인의 상세 상태 전이와 운영 방법은 [8. 기사 처리 파이프라인](#8-기사-처리-파이프라인)을 함께 참고한다.
+
+### 기사 처리 파이프라인 재구성
+
+- 기존 단일 `master_press.worker` 안에서 순차 처리하던 공통분석·임베딩·케이스 판정을 `master_press.common_worker`, `master_press.embedding_worker`, `master_press.case_worker`의 독립 프로세스로 분리했다. 한 단계의 외부 API 지연이나 로컬 임베딩 부하가 다른 단계의 큐 소비를 막지 않는다.
+- 공통분석 완료 직후 같은 프로세스에서 임베딩과 케이스 판정을 연쇄 실행하지 않는다. 공통분석은 `article_analyses` 저장까지만 책임지고, 임베딩 worker가 벡터 생성·보도자료 매칭·케이스 후보 라우팅을 이어받는다.
+- 공통분석 job과 케이스 판정 job에 `lease_owner`, `lease_expires_at`, `provider_lane`을 추가했다. SQLite `BEGIN IMMEDIATE` 안에서 읽기와 claim을 묶어 기본 worker와 Turbo worker가 동시에 실행되어도 같은 job 또는 같은 기사 배치를 중복 처리하지 않는다.
+- worker가 비정상 종료되면 5분 lease 만료 또는 3분 stalled 점검을 기준으로 job을 `pending`으로 되돌린다. 저장과 완료 처리는 현재 lease 소유자가 일치할 때만 허용해 늦게 도착한 과거 worker 응답이 최신 결과를 덮어쓰지 못하게 했다.
+- 케이스 판정은 단순 FIFO 개별 job이 아니라 `article_analysis_id`가 같은 케이스를 최대 10개까지 하나의 배치로 원자적 claim한다. 대기 케이스가 많은 기사부터 처리하고, 배치 응답에서 특정 케이스만 누락되면 해당 케이스만 단건 보완 판정한다.
+- 공통분석 기본/예비와 케이스 판정 기본/예비를 단계별로 분리했다. 현재 기본 토폴로지는 공통분석 `Groq → Gemini`, 케이스 판정 `OpenRouter → Cloudflare`이며, 케이스 Cloudflare 예비는 canary 품질 확인 전까지 기본 비활성이다.
+- 대기열이 설정 임계값(기본 5개 기사 또는 5개 기사 배치)에 도달하면 별도 `master_press.burst_worker`가 GPT-5.4 mini로 backlog를 병렬 소진한다. 시작/중지 임계값에 hysteresis를 두고, Turbo lane은 provider 재시도 시각으로 보류된 job도 가져올 수 있다.
+- 공통분석과 케이스 판정의 JSON 형식 오류, 일시 장애, quota 소진을 구분한다. 일시 장애는 10분 재시도 또는 제한 횟수 재시도, quota는 제공자 초기화 시각까지 보류하며, 공통분석은 최종적으로 로컬 fallback을 사용할 수 있다.
+- Cloudflare Workers AI의 `response_schema`를 실제 JSON schema 응답 형식으로 전달하고, 이미 객체로 반환된 응답은 `json.dumps`로 직렬화해 Python dict 문자열 때문에 JSON 파싱이 깨지는 문제를 막았다. 운영과 동일한 rolling 24시간 quota 재시도 시각도 반영했다.
+- 관리 화면의 처리량은 단순 수집 기사 수가 아니라 공통분석 후 활성 케이스 판정이 모두 `completed` 또는 `excluded`가 된 고유 기사 수로 집계한다. 발송되지 않은 완료 기사도 포함하며, 동일 필터 대시보드 요청은 짧게 병합해 DB 중복 조회를 줄였다.
+
+### 유사 기사·매거진·보도자료
+
+- 대시보드와 신경망의 유사 기사 계산을 `similarity.py` 공통 엔진으로 옮겼다. raw cosine과 centered cosine, 검증 명사, 상위 개념, 명시적 사건 용어를 결합하고 48시간 범위의 저장된 그룹 지도를 사용한다.
+- `terminology.py`에 편집 용어 정규화와 사건 개념 추론을 분리했다. 폭염 상황실처럼 반복되는 상위 주제는 유지하되 방문·점검·회의·축제처럼 실제 사건이 다른 기사가 약한 공통어만으로 합쳐지지 않게 했다.
+- 매거진은 같은 입력 신호를 사용하되 대시보드보다 엄격한 전용 `build_magazine_issue_groups`를 적용한다. 제목 n-gram, 장소, 행위, 날짜, 엔터티·화두, 임베딩을 함께 확인하며 저장된 유사 기사 지도는 후보 근거로만 사용하고 최종 권위로 간주하지 않는다.
+- 매거진 발행은 시간창 종료 뒤 기본 5분 유예를 두고, 대상 기사들의 공통분석·임베딩·케이스 라우팅·판정이 모두 완료될 때까지 보류한다. 불완전한 기사 묶음으로 먼저 발행되는 문제를 막는다.
+- 매거진 이슈 순서는 **관련 기사 수 내림차순 → 고유 보도자료 수 내림차순**이다. 보도자료는 URL, URL이 없으면 제목으로 중복 제거한다. 케이스 필터로 표시 기사 구성이 바뀌면 브라우저에서도 같은 기준으로 다시 정렬한다.
+- 관리자에게 `매거진 재발행`과 `매거진 재발송`을 분리했다. 재발행은 최신 완료 기사와 묶음만 갱신하고 기존 배송 row를 건드리지 않는다. 재발송은 기존 수신자 delivery를 다시 큐잉하므로 이중 확인 후 실행한다.
+- 보도자료는 본문 fingerprint를 저장하고 기관+fingerprint 고유 인덱스를 적용한다. 동일 문서가 RSS의 다른 항목으로 들어온 과거 중복은 최신 항목 하나만 남기고 정리한다.
+
+### 구독·관리 화면·운영
+
+- 사용자가 카카오 로그인으로 본인 계정을 확인한 뒤 모든 케이스·매거진 구독을 해지할 수 있는 흐름을 추가했다. 해지용 OAuth는 메시지 권한을 다시 요구하지 않으며, 신청 이력은 화면 확인용으로 6시간 유지한다.
+- 관리자 모델 설정을 공통분석 기본/예비, 케이스 판정 기본/예비, GPT Turbo, 로컬 임베딩의 역할별 카드로 재구성했다. 각 상태는 병렬 조회하고 예비·Turbo 모델 및 대기 임계값은 한 번에 저장한다.
+- 대시보드 파이프라인에 공통분석·케이스 판정 Turbo 상태를 표시한다. 기사 목록에도 실제 burst lane을 거친 기사인지 `turbo_used`로 표시한다.
+- 매거진 유사도 기준은 70~99 범위에서만 저장하며 성공·실패 상태를 즉시 보여 준다. 매거진 관리자 도구는 관리자 세션이 확인된 경우에만 노출한다.
+- 예약 매거진 실행기는 전체 스키마 마이그레이션을 반복하지 않고 기존 DB를 열어 발행 서비스만 호출한다. 독립 worker용 systemd unit에는 단계별 CPU quota, nice, Ollama 의존성과 자동 재시작 정책을 지정했다.
 
 
 ## 2026-08-03 누적 반영사항
@@ -45,7 +80,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 
 - OpenAI 연결 설정 `OPENAI_API_KEY`, `MASTER_PRESS_OPENAI_BASE_URL`, `MASTER_PRESS_OPENAI_MODERATION_MODEL`, 그림자 모델·일일 한도 설정을 추가했다.
 - 케이스 신청 게시판의 클린 AI 검증은 제출된 콘텐츠 버전마다 OpenAI 구조화 응답을 확인하며, 제공자 오류나 불완전한 응답을 안전하게 처리한다.
-- 공통분석, 임베딩, 케이스 판정, 수집 사이클은 웹 요청 프로세스에서 제거하고 독립 `master_press.worker` systemd 서비스에서 실행한다. 서비스는 낮은 우선순위와 CPU 제한을 사용한다.
+- 수집 사이클은 웹 요청 프로세스에서 제거해 `master_press.worker`가 담당하고, 공통분석·임베딩·케이스 판정은 단계별 독립 systemd worker가 담당한다. 각 서비스는 역할에 맞는 nice와 CPU 제한을 사용한다.
 - 모델 JSON 응답이 불완전하면 예비 제공자 체인이 재시도할 수 있도록 오류를 숨기지 않는다. 예비 모델로 판정한 경우 사용자 화면에는 최종 의미 유사도와 성공·실패만 표시한다.
 
 ### 저장소 보존·운영 배포
@@ -54,7 +89,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 - `master_press_retention_cleanup.py`와 01:58 KST systemd timer를 추가했다. 분석 데이터는 7일, 원문성 데이터는 8일 기준으로 제한된 배치만 삭제하며 첫 실행은 더 작은 범위로 수행한다.
 - 메인 파이프라인 작업자와 그림자 작업자의 systemd 단위 파일을 추가했다. 웹 서비스는 더 이상 내부 백그라운드 작업자를 소유하지 않는다.
 - 매거진 systemd timer는 07:00, 12:00, 18:00 발행 기준과 일치하도록 조정했다.
-- 관련 저장 스키마, 관리자 API, 통합·매거진·핵심 테스트를 확장했으며 현재 전체 자동 테스트 102건을 통과한다.
+- 관련 저장 스키마, 관리자 API, 통합·매거진·핵심 테스트를 확장했으며 현재 전체 자동 테스트 130건을 통과한다.
 
 ## 2026-07-30 추가 반영사항
 
@@ -118,7 +153,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 | 대시보드 | 일반/관리자 | 기사 분석 기록, 처리 현황, 발송 상태 |
 | 신경망 분석 | 일반/관리자 | 발송 기사 기반 의미 관계망 |
 | 보도동향 | 일반/관리자 | 행안부 보도자료와 관련 기사 확인 |
-| 매거진 | 일반/관리자 | 케이스별 주요 이슈를 읽는 CaseON AM/NOON/PM/DAILY 에디션 |
+| 매거진 | 일반/관리자 | 케이스별 주요 이슈를 읽는 모닝·커피탐·퇴근 에디션 |
 | 관리 설정 | 관리자 | 기관, 케이스, 회원, 모델, 공지, 기준값 관리 |
 
 `사용설명서`는 앱 안에서 열리는 구조화 매뉴얼이다. 좌측 트리 메뉴, 항목별 설명, 하이퍼링크, 화면 설명 이미지를 제공하며 기존 `manual.pdf`도 보조 링크로 내려받을 수 있다.
@@ -189,10 +224,9 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 
 기사 알림 케이스를 선택한 뒤, `CaseON 매거진 수신`에서 받을 에디션을 함께 고른다.
 
-- **AM**: 08:00 발행, 전날 18:00부터 당일 08:00 전 기사
-- **NOON**: 12:00 발행, 08:00부터 12:00 전 기사
-- **PM**: 18:00 발행, 12:00부터 18:00 전 기사
-- **DAILY**: 07:00 발행, 전날 07:00부터 당일 07:00 전 기사
+- **모닝 브리핑**: 07:00 발행, 전날 07:00부터 당일 07:00 전 기사
+- **커피탐 포스트**: 12:00 발행, 당일 07:00부터 12:00 전 기사
+- **퇴근 메이트**: 18:00 발행, 당일 12:00부터 18:00 전 기사
 
 매거진만 선택하더라도 주요뉴스를 고를 케이스는 하나 이상 선택해야 한다. 관리자가 케이스를 승인하면 선택한 에디션이 발행된 뒤 카카오톡으로 자동 발송된다.
 ### 3.2 케이스 신청 게시판
@@ -375,6 +409,8 @@ Ollama · nomic-embed · 사용 가능
 
 화면의 `N개 케이스 선택 중 · 펼쳐보기`는 이 브라우저에서만 유지되는 보기 필터다. 케이스를 바꾸면 주요 이슈 수·기사 수와 지면 구성이 즉시 다시 계산되며, 발행본 원본이나 다른 사용자의 선택값은 바뀌지 않는다.
 
+이슈는 선택 케이스에 포함된 **관련 기사 수가 많은 순**, 기사 수가 같으면 **연결된 고유 보도자료가 많은 순**으로 표시된다. 같은 보도자료가 여러 관련 기사에 반복 연결돼도 한 건으로 센다.
+
 카카오 메시지에는 발행 안내, 선택 케이스 기준 주요 이슈 최대 5개와 `매거진 바로가기` 버튼이 포함된다.
 
 ### 4.5 기사 재분석
@@ -538,43 +574,38 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 
 ### 7.6 모델 설정
 
-관리 설정의 모델 설정은 작은 카드 형태로 표시된다. 초기 로딩에서는 저장된 값만 먼저 보여주고, 모델 상태는 순차적으로 확인한다.
+관리 설정은 모델을 제공자 순서가 아니라 업무 단계와 역할별로 표시한다. 초기 화면은 저장된 값을 즉시 그리고, 공통 기본·케이스 기본·공통 예비·케이스 예비·Turbo·임베딩의 연결 상태를 병렬로 확인한다.
 
-확인 순서:
+현재 역할:
 
-1. 공통분석 모델
-2. 케이스 판정 모델
-3. 예비1 모델
-4. 예비2 모델
-5. 로컬 임베딩 모델
+1. 공통분석 기본: Groq `llama-3.1-8b-instant`
+2. 공통분석 예비: Gemini `gemini-3.5-flash`
+3. 케이스 판정 기본: OpenRouter `google/gemma-4-26b-a4b-it:free`
+4. 케이스 판정 예비: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
+5. backlog Turbo: OpenAI `gpt-5.4-mini`
+6. 임베딩: 로컬 Ollama `nomic-embed-text:latest`
 
-모델 상태 확인 때문에 관리 설정 페이지 전체가 늦게 열리지 않도록 설계했다.
+케이스 예비는 read-only canary에서 JSON 완결성과 운영 판정 일치율을 확인한 뒤 `case_fallback_enabled`를 켜는 방식이며 기본값은 비활성이다. canary는 판정이나 delivery를 저장하지 않는다.
 
-#### 공통분석 모델
+#### 기본·예비 전환
 
-현재 기본값은 Cloudflare Workers AI의 Gemma 4 26B다.
+공통분석과 케이스 판정은 서로 독립된 두 개의 provider chain을 사용한다.
 
-- 기본: Cloudflare Workers AI `@cf/google/gemma-4-26b-a4b-it`
-- 예비1: Groq `llama-3.1-8b-instant`
-- 예비2: Gemini `gemini-3.5-flash-lite`
+- 공통분석: Groq 기본 → Gemini 예비
+- 케이스 판정: OpenRouter 기본 → Cloudflare 예비(활성화한 경우)
 
-기존에는 Groq Llama 3.1 8B가 공통분석 기본 모델이었지만, 정확성 측면에서 Gemma 4 26B가 공통분석에 더 적합하다고 판단해 기본 모델을 Cloudflare Gemma로 바꾸고 Groq를 예비로 조정했다.
+기본 모델을 즉시 전환하면 공통분석의 `retry_after`와 오류 대기를 풀어 새 모델이 기존 backlog를 바로 처리할 수 있다. quota 또는 rate limit이 감지되면 provider별 초기화 시각까지 보류하고 사용 가능한 예비로 넘어간다. 단순 일시 장애는 provider를 10분간만 멈춘 뒤 다시 확인한다.
 
-#### 케이스 판정 모델
+#### GPT Turbo
 
-케이스 판정은 OpenRouter 무료 모델을 기본 사용한다. 일일 실제 호출 기준 한도는 1000회다. 오류 포함 실 호출 기준으로 카운트한다.
+`gpt-5.4-mini` Turbo는 공통분석과 케이스 판정의 정상 기본 모델을 대체하지 않는다. 각 단계의 backlog가 설정 임계값 이상일 때만 별도 burst lane으로 병렬 처리한다.
 
-OpenRouter 무료 사용량이 한도에 도달하면 예비 모델로 넘어간다.
-
-#### 예비 모델 체계
-
-예비 모델은 다음 순서로 사용된다.
-
-1. Cloudflare Workers AI
-2. Groq
-3. Gemini
-
-공통분석 또는 케이스 판정에서 일일 사용량, 무료 토큰, rate limit, 무료 소진 메시지가 감지되면 예비 모델로 전환한다. 모든 예비까지 소진되면 해당 작업은 다음 초기화 시각까지 대기하거나 제외 처리된다.
+- 시작 임계값: 기본 5, 관리 화면에서 5~100으로 설정
+- 공통분석 단위: 대기 기사 수
+- 케이스 판정 단위: 개별 case job 수가 아닌 대기 기사 배치 수
+- 중지 임계값: 시작값보다 낮은 1~3 범위
+- 중지 판정: 두 번 연속 중지 임계값 이하일 때 비활성화
+- 화면 표시: 실제 `provider_lane='burst'` 처리 이력과 최근 2분 상태를 기준으로 Turbo 표시
 
 ### 7.7 사용량과 초기화 시각
 
@@ -582,8 +613,9 @@ OpenRouter 무료 사용량이 한도에 도달하면 예비 모델로 넘어간
 
 - Groq: UTC 일일 기준을 한국시간으로 환산
 - OpenRouter: 무료 호출 한도 1000회, 실제 호출 기준
-- Cloudflare Workers AI: Cloudflare 사용량 기준과 설정된 안전 한도
+- Cloudflare Workers AI: rolling 24시간 요청·neuron 안전 한도
 - Gemini: Google AI Studio/Gemini 기준과 설정된 안전 한도
+- OpenAI: Turbo와 그림자 판정의 역할별 처리량
 - Ollama: 로컬 임베딩 호출 수, 생성형 호출과 별도 집계
 
 대시보드에는 토큰 숫자를 노출하지 않는다. 관리자 설정에서만 상세 사용량을 확인한다.
@@ -627,38 +659,35 @@ OpenRouter 무료 사용량이 한도에 도달하면 예비 모델로 넘어간
 
 ## 8. 기사 처리 파이프라인
 
-전체 처리 흐름은 다음과 같다.
+현재 파이프라인은 “수집 오케스트레이션”과 “기사 처리 단계 worker”를 분리한다. SQLite가 실시간 원장이며 각 단계는 선행 단계의 완료 row만 읽는다.
 
 ```text
-기관 설정
-  ↓
-NAVER News API / RSS 수집
-  ↓
-URL 정규화·중복 제거·기관 후보 필터
-  ↓
-articles 저장 및 본문·대표 이미지 추출
-  ↓
-article_analysis_jobs 생성
-  ↓
-공통분석 LLM
-  ↓
-article_analyses 저장
-  ↓
-Ollama 기사 임베딩
-  ↓
-케이스 후보 게이트
-  ↓
-case_evaluations / case_evaluation_jobs 생성
-  ↓
-케이스별 LLM 판정
-  ↓
-하이브리드 점수 계산·하드 게이트 검증
-  ↓
-deliveries 큐 생성
-  ↓
-Kakao 나에게 보내기 발송
-  - 대표 이미지가 있으면 feed 카드형 메시지
-  - 이미지가 없거나 feed 전송 실패 시 text 메시지 fallback
+master_press.worker
+  └─ 기관별 NAVER/RSS 수집
+      └─ articles + article_analyses(pending)
+          └─ article_analysis_jobs(pending)
+
+master_press.common_worker
+  └─ job lease claim
+      └─ 공통분석 기본 → 공통 예비 → 제한적 로컬 fallback
+          └─ article_analyses(completed)
+
+master_press.embedding_worker
+  └─ 기사 임베딩 생성
+      ├─ 보도자료 후보 생성·매칭
+      └─ 활성 케이스 후보 게이트
+          ├─ 제외: case_evaluations(excluded)
+          └─ 후보: case_evaluation_jobs(pending)
+
+master_press.case_worker
+  └─ 같은 기사의 케이스 최대 10개를 하나의 lease batch로 claim
+      └─ 케이스 기본 → 활성화된 케이스 예비
+          └─ 하이브리드 점수·하드 게이트
+              ├─ low/excluded
+              └─ send → recipients별 deliveries
+
+master_press.burst_worker --stage common|case
+  └─ backlog가 임계값 이상일 때 GPT Turbo lane 병렬 처리
 ```
 
 ### 8.1 기관 단위 수집
@@ -671,9 +700,11 @@ Kakao 나에게 보내기 발송
 - 여러 케이스가 같은 기사 본문을 공유한다.
 - 케이스가 늘어나도 수집량이 선형 증가하지 않는다.
 
+URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 키 기준의 `article_analyses`와 유일한 `article_analysis_jobs`를 만든다. 이 시점에는 케이스별 job을 만들지 않는다.
+
 ### 8.2 공통분석
 
-공통분석은 기사 1건당 한 번 수행한다. 산출물은 모든 케이스가 공유한다.
+공통분석은 기사 1건당 한 번 수행하며 모든 케이스가 공유한다. `master_press.common_worker`는 기본 lane에서 한 job씩 claim하고, 저장이 끝나면 다음 job으로 넘어간다.
 
 공통분석 결과:
 
@@ -686,11 +717,13 @@ Kakao 나에게 보내기 발송
 - 근거 문장
 - 분석 리포트
 
-공통분석은 기사 본문 전체를 가능한 한 압축해 후속 판정에 필요한 공통 정보를 만든다. 공통분석 품질은 전체 시스템 품질에 큰 영향을 준다.
+공통 provider chain은 기본 Groq, 예비 Gemini다. 구조화 JSON 오류는 재시도하며, provider가 일시 중단되거나 quota를 소진하면 `retry_after`를 남긴다. 외부 provider 재시도 가능 횟수를 넘긴 뒤에도 분석을 비워 두지 않도록 제한적인 Ollama 공통분석 fallback을 저장할 수 있다.
+
+공통분석 성공은 `article_analyses.status='completed'`까지만 의미한다. 임베딩과 케이스 라우팅 완료는 각각 별도 상태이므로 공통분석 worker가 느린 후속 작업을 기다리지 않는다.
 
 ### 8.3 임베딩
 
-공통분석이 완료되면 로컬 Ollama 임베딩을 생성한다.
+공통분석이 완료되면 `master_press.embedding_worker`가 오래된 미처리 순으로 로컬 Ollama 임베딩을 생성한다. 성공 또는 실패 결과를 `article_embeddings`에 명시적으로 저장한다.
 
 사용처:
 
@@ -698,13 +731,12 @@ Kakao 나에게 보내기 발송
 - 유사 기사 묶음
 - 신경망 분석
 - 보도자료 매칭
-- 케이스 신청 게시판 클린 AI 검사 유휴 판단과 같은 로컬 작업 스케줄링
 
-임베딩 호출은 로컬 호출 수로 별도 집계한다. 외부 LLM 호출량에는 포함하지 않는다.
+기사 벡터가 저장되면 같은 worker tick에서 보도자료 매칭 큐를 처리하고 케이스 후보 라우팅을 실행한다. 기사 임베딩과 처리할 보도자료 작업이 없을 때만 케이스 신청 게시판 moderation을 한 건 처리한다. 임베딩 호출은 로컬 호출 수로 별도 집계하며 외부 LLM 호출량에 포함하지 않는다.
 
 ### 8.4 케이스 후보 게이트
 
-LLM 비용을 줄이기 위해 케이스 판정 전에 후보 제외를 수행한다.
+임베딩 이후 활성 케이스를 조회하고 케이스 버전별 임베딩을 준비한 뒤 LLM 비용을 줄이기 위한 후보 게이트를 적용한다.
 
 검사 항목:
 
@@ -721,24 +753,10 @@ LLM 비용을 줄이기 위해 케이스 판정 전에 후보 제외를 수행�
 - 필수 키워드가 기사에 없어 케이스 판정에서 제외했습니다.
 - 제외 키워드가 포함되어 후보에서 제외했습니다.
 - 케이스가 요구한 부정적 맥락이 확인되지 않았습니다.
-### 8.7 CaseON 매거진 발행·발송
-
-매거진은 일반 기사 알림과 별도의 `magazine_editions` 및 `magazine_deliveries` 큐를 사용한다.
-
-```text
-발행 시각 도달
-  ↓
-기관별 발송 대상 완료 기사 조회
-  ↓
-에디션 범위에서 이슈 묶음 새로 계산·스냅샷 저장
-  ↓
-구독 에디션·승인 케이스가 일치하는 수신자별 delivery 생성
-  ↓
-카카오톡 발행 안내 및 매거진 바로가기 발송
 
 ### 8.5 케이스 판정
 
-케이스 판정은 여러 케이스를 한 번에 묶어 처리한다. 기본 배치 크기는 10이다. 관리 설정에서 조정할 수 있다.
+후보로 남은 케이스만 `case_evaluation_jobs`에 들어간다. `master_press.case_worker`는 같은 `article_analysis_id`를 가진 job을 최대 10개까지 하나의 batch로 원자적 claim하며, 대기 케이스 수가 많은 기사부터 처리한다.
 
 판정 결과:
 
@@ -751,6 +769,10 @@ LLM 비용을 줄이기 위해 케이스 판정 전에 후보 제외를 수행�
 
 최종 점수는 벡터와 LLM 점수를 가중 결합한다. 기본값은 벡터 25%, LLM 75%다.
 
+배치 응답에 일부 케이스 결과가 없으면 전체 batch를 성공 처리하지 않고 누락 케이스만 단건 요청으로 보완한다. 그래도 실패하면 그 job만 재시도 상태로 남긴다. 케이스가 비활성화됐거나 선행 공통분석이 아직 없으면 각각 안전한 제외 또는 짧은 재대기를 적용한다.
+
+케이스 provider chain은 OpenRouter 기본과, 관리자가 canary 확인 후 활성화한 Cloudflare 예비로 구성된다. 결과가 저장될 때 `article_case_processing_flags.case_evaluation_completed`와 `delivery_classified`가 함께 갱신되어 기사 전체 완료 여부를 계산할 수 있다.
+
 ### 8.6 발송
 
 발송 조건을 충족하면 `deliveries` 큐를 만든다. 수신자가 여러 명이면 수신자별 delivery row가 생성된다. 즉 발송 건수는 기사 1건이 아니라 실제 수신자에게 보내는 메시지 단위로 누적될 수 있다.
@@ -760,6 +782,68 @@ LLM 비용을 줄이기 위해 케이스 판정 전에 후보 제외를 수행�
 카카오 발송은 대표 이미지가 있는 기사에 대해 기본 텍스트 템플릿 대신 feed 카드형 템플릿을 우선 사용한다. feed 카드에는 기사 제목, 요약, 대표 이미지, `원문 보기` 버튼이 들어간다. 대표 이미지 URL이 없거나 카카오가 외부 이미지 URL을 거절하면 기존 text 템플릿으로 자동 재시도한다. 따라서 이미지 품질이 불안정해도 발송 자체는 유지된다.
 
 카카오 `talk_message` 권한이 없으면 수신자를 재동의 필요 상태로 표시하고 대기 발송을 실패 처리한다.
+
+### 8.7 Lease, 재시도와 중복 방지
+
+`article_analysis_jobs`와 `case_evaluation_jobs`는 다음 공통 필드를 사용한다.
+
+| 필드 | 의미 |
+| --- | --- |
+| `lease_owner` | job을 claim한 프로세스의 PID+UUID |
+| `lease_expires_at` | 비정상 종료 시 다른 worker가 회수할 수 있는 시각 |
+| `provider_lane` | `primary` 또는 `burst` |
+| `retry_after` | 일시 장애·quota로 다시 처리할 수 있는 시각 |
+| `attempts` | 실제 claim 횟수 |
+
+claim은 `BEGIN IMMEDIATE` 트랜잭션 안에서 대상 조회와 `processing` 전환을 함께 수행한다. 결과 저장과 job 완료도 `lease_owner`가 현재 소유자와 일치할 때만 성공한다. 각 기본 worker는 60초마다 stalled job을 검사하고, lease가 끝났거나 lease 도입 전 3분 이상 멈춘 job을 다시 `pending`으로 전환한다.
+
+프로세스가 여러 개이므로 웹 프로세스 PID 변경을 근거로 모든 처리 중 job을 되돌리는 과거 방식은 사용하지 않는다. 재시작 복구는 lease 만료와 선행 조건이 복구된 제한된 실패 job만 대상으로 한다.
+
+### 8.8 GPT Turbo lane
+
+공통분석과 케이스 판정에는 각각 독립 `master_press.burst_worker`가 있다.
+
+- 대기량이 `burst_threshold` 이상이면 활성화한다. 기본값은 5다.
+- 공통분석은 pending 기사 수, 케이스 판정은 pending 기사 batch 수를 센다.
+- Turbo가 활성화된 동안에는 provider 초기화 시각 때문에 deferred된 job도 가져와 GPT로 backlog를 해소할 수 있다.
+- 시작/중지 경계에서 worker가 반복적으로 켜지고 꺼지지 않도록 낮은 중지 임계값과 2회 연속 확인을 사용한다.
+- `provider_lane='burst'`를 저장하므로 관리자 화면과 기사 목록은 실제 Turbo 사용 여부를 구분할 수 있다.
+- 기본 worker와 Turbo worker는 같은 DB lease 규칙을 사용하므로 동시 claim이 불가능하다.
+
+### 8.9 완료 기사와 매거진 발행 준비
+
+“판정 완료 기사”는 공통분석만 끝난 기사가 아니다. 활성 케이스에 대해 생성된 모든 evaluation이 `completed` 또는 `excluded`이고 미완료 job이 없어야 한다. 발송 결정이 `low`여서 메시지를 보내지 않은 기사도 분석 완료 건수에는 포함한다.
+
+매거진 예약 발행은 다음 조건을 모두 확인한다.
+
+1. 에디션 시간창이 종료되고 `magazine_completion_grace_minutes` 기본 5분이 지났다.
+2. 시간창 안의 공통분석 대상이 완료됐다.
+3. 기사 임베딩과 케이스 라우팅(`case_routed_at`)이 끝났다.
+4. 활성 케이스의 판정 job이 완료 또는 제외 상태다.
+
+하나라도 남아 있으면 에디션을 불완전하게 발행하지 않고 다음 scheduler 실행으로 미룬다.
+
+### 8.10 CaseON 매거진 발행·발송
+
+매거진은 일반 기사 알림과 별도의 `magazine_editions`, `magazine_issue_members`, `magazine_deliveries`를 사용한다.
+
+```text
+발행 준비 조건 충족
+  ↓
+에디션 시간창의 발송 대상 완료 기사 조회
+  ↓
+매거진 전용 고정밀 이슈 묶음 재계산
+  ↓
+기사 수 → 고유 보도자료 수 기준 정렬
+  ↓
+에디션과 issue member 스냅샷 저장
+  ↓
+구독 회차·승인 케이스가 일치하는 수신자별 delivery 생성
+  ↓
+카카오톡 발행 안내 및 매거진 바로가기 발송
+```
+
+재발행은 같은 에디션 ID에 기사·이슈 스냅샷만 다시 만들며 기존 `magazine_deliveries`는 변경하지 않는다. 재발송은 별도 관리자 동작으로 기존 delivery를 다시 pending 처리한 뒤 실제 발송한다.
 
 ## 9. 보도자료 RAG와 보도동향
 
@@ -857,10 +941,10 @@ nomic-embed-text:latest
 
 ### 12.2 Cloudflare Workers AI
 
-현재 공통분석 기본 모델로 사용한다.
+현재 케이스 판정 예비 provider다. JSON schema 응답 완결성과 운영 판정 일치율을 canary로 확인한 뒤에만 운영 fallback을 활성화한다.
 
 ```text
-@cf/google/gemma-4-26b-a4b-it
+@cf/meta/llama-3.1-8b-instruct-fast
 ```
 
 환경변수:
@@ -872,7 +956,7 @@ MASTER_PRESS_WORKER_AI_ACCOUNT_ID 또는 WORKER_AI_ACCOUNT_ID
 
 ### 12.3 Groq
 
-현재 예비 공통분석 모델로 사용한다.
+현재 공통분석 기본 provider다.
 
 ```text
 llama-3.1-8b-instant
@@ -889,6 +973,10 @@ MASTER_PRESS_GROQ_COMMON_MODEL
 
 케이스 판정 기본 제공자다. 무료 호출 안전장치 기본값은 실제 호출 기준 1000회다.
 
+```text
+google/gemma-4-26b-a4b-it:free
+```
+
 환경변수:
 
 ```text
@@ -901,7 +989,11 @@ MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
 
 ### 12.5 Gemini
 
-예비2 모델로 사용한다.
+공통분석 예비 provider다.
+
+```text
+gemini-3.5-flash
+```
 
 환경변수:
 
@@ -910,6 +1002,21 @@ MASTER_PRESS_GEMINI_API_KEY
 Google_AI_STUDIO_API_KEY
 GOOGLE_AI_STUDIO_API_KEY
 GEMINI_API_KEY
+```
+
+### 12.6 OpenAI
+
+GPT-5.4 mini는 두 가지 격리된 역할을 갖는다.
+
+- Turbo: 공통분석 또는 케이스 기사 batch backlog가 임계값 이상일 때 별도 burst lane에서 처리
+- 그림자 판정: 운영 판정을 바꾸지 않는 경계·민감 사례 비교
+
+Turbo 결과는 운영 결과로 저장되지만, 그림자 판정은 별도 shadow 테이블에만 저장되고 delivery를 만들지 않는다.
+
+```text
+OPENAI_API_KEY
+MASTER_PRESS_OPENAI_BASE_URL
+MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 ```
 
 ## 13. 안전장치와 영업중지 정책
@@ -936,7 +1043,7 @@ GEMINI_API_KEY
 - provider 응답의 rate limit / quota / 무료 소진 메시지
 - 실패 응답 상태 코드
 
-공통분석 또는 케이스 판정의 주 모델이 소진되면 예비 모델로 넘어간다. 모든 모델이 소진되면 운영 메시지를 표시하고 작업은 다음 초기화 시각 이후 다시 처리한다.
+공통분석 또는 케이스 판정의 기본 모델이 소진되면 해당 단계의 예비 모델로 넘어간다. 사용할 수 있는 예비가 없으면 job을 실패 확정하지 않고 `retry_after`까지 보류한다. backlog가 Turbo 기준 이상이면 GPT burst lane이 보류 job을 가져올 수 있다. 모든 경로가 비활성인 동안에는 운영 메시지와 다음 재시도 시각을 표시한다.
 
 ## 14. 주요 API
 
@@ -947,6 +1054,7 @@ GEMINI_API_KEY
 | GET | `/dashboard` | 대시보드 데이터 |
 | GET | `/signup/bootstrap` | 구독 신청 초기 데이터, 케이스 신청 게시판 목록 |
 | POST | `/signup/kakao-registration` | 카카오 등록 URL 생성 |
+| POST | `/signup/kakao-unsubscribe` | 카카오 본인 확인 기반 전체 구독 해지 URL 생성 |
 | GET | `/signup/kakao-status` | 카카오 메시지 동의 상태 확인 |
 | POST | `/signup/requests` | 구독 요청 저장 |
 | GET | `/case-proposals` | 케이스 신청 글 목록 |
@@ -976,7 +1084,11 @@ GEMINI_API_KEY
 | PUT | `/admin/settings/common-llm-model` | 공통분석 모델 저장 |
 | PUT | `/admin/settings/case-llm-model` | 케이스 판정 모델 저장 |
 | PUT | `/admin/settings/reserve-llm-models` | 예비 모델 저장 |
+| PUT | `/admin/settings/pipeline-models` | 공통·케이스 예비, GPT Turbo 모델과 시작 임계값 저장 |
+| PUT | `/admin/settings/analysis-thresholds` | 후보·보도자료·유사기사·매거진 기준 일괄 저장 |
 | PUT | `/admin/settings/embedding-model` | 임베딩 모델 저장 및 재색인 |
+| POST | `/admin/magazines/{id}/republish` | 배송 변경 없이 선택 에디션 기사·묶음 재산출 |
+| POST | `/admin/magazines/{id}/resend` | 선택 에디션의 기존 수신자 delivery 재큐잉·발송 |
 | POST | `/admin/announcements` | 공지 등록 |
 | DELETE | `/admin/announcements/{id}` | 공지 내리기 또는 삭제 |
 | POST | `/admin/organizations` | 기관 생성 |
@@ -998,16 +1110,29 @@ PoC/04-master-press/
 ├── supabase_schema.sql           # Supabase 미러 스키마 참고
 ├── master_press/
 │   ├── article_metadata.py       # 언론사·기자명 추출 유틸
+│   ├── burst_worker.py           # backlog 임계 기반 GPT 공통/케이스 Turbo worker
+│   ├── case_fallback_canary.py   # 케이스 예비 모델 read-only 품질 검증
+│   ├── case_worker.py            # 기사 단위 케이스 batch 판정 worker
 │   ├── collectors.py             # NAVER/RSS/본문·대표 이미지 수집
+│   ├── common_worker.py          # 공통분석 전용 worker
 │   ├── config.py                 # .env 설정 로딩
+│   ├── embedding_worker.py       # 기사 임베딩·보도자료 매칭·케이스 라우팅 worker
 │   ├── kakao.py                  # Kakao OAuth/Send to me, feed 카드/text fallback
 │   ├── magazine.py               # CaseON 에디션 발행, 이슈 묶음, 발행본 조회
 │   ├── matching.py               # 기관·케이스 텍스트 매칭
 │   ├── press_releases.py         # 보도자료 수집·Markdown·RAG 매칭
 │   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/Gemini 클라이언트와 판정 로직
 │   ├── service.py                # 서비스 오케스트레이션과 worker tick
+│   ├── similarity.py             # 대시보드/신경망 공통 및 매거진 고정밀 기사 묶음
 │   ├── storage.py                # SQLite 스키마, 마이그레이션, CRUD, 대시보드 집계
+│   ├── terminology.py            # 편집 용어 정규화와 명시적 사건 개념 추론
 │   └── supabase_mirror.py        # Supabase 메타데이터 미러
+├── deploy/
+│   ├── master-press-common.service
+│   ├── master-press-embedding.service
+│   ├── master-press-case.service
+│   ├── master-press-burst-common.service
+│   └── master-press-burst-case.service
 ├── web/
 │   ├── index.html                # 단일 HTML 화면
 │   ├── app.js                    # 프론트 상태·렌더링·API 호출
@@ -1050,6 +1175,8 @@ PoC/04-master-press/
 | llm_api_calls | 모델 호출·토큰·오류 사용량 |
 | reanalysis_jobs | 재분석 작업 |
 
+`article_analysis_jobs`와 `case_evaluation_jobs`에는 다중 프로세스 claim을 위한 `lease_owner`, `lease_expires_at`, `provider_lane`이 있다. `article_analyses.case_routed_at`은 임베딩 이후 활성 케이스 후보 라우팅이 끝났음을 나타낸다. 이 필드들은 매거진 발행 준비와 판정 완료 기사 집계의 선행 조건이다.
+
 ## 17. 운영 환경변수
 
 최소 운영에 필요한 주요 값:
@@ -1073,7 +1200,9 @@ MASTER_PRESS_GROQ_COMMON_MODEL=llama-3.1-8b-instant
 MASTER_PRESS_OPENROUTER_API_MYKEY=...
 MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
 MASTER_PRESS_GEMINI_API_KEY=...
-MASTER_PRESS_GEMINI_MODEL=gemini-3.5-flash-lite
+MASTER_PRESS_GEMINI_MODEL=gemini-3.5-flash
+OPENAI_API_KEY=...
+MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 SUPABASE2_URL=...
 SUPABASE2_SERVICE_ROLE_KEY=...
 ```
@@ -1100,13 +1229,40 @@ curl -fsS http://127.0.0.1:8000/health
 
 ```bash
 python3 -m py_compile PoC/04-master-press/backend.py PoC/04-master-press/master_press/storage.py PoC/04-master-press/master_press/service.py PoC/04-master-press/master_press/kakao.py
-python3 -m unittest PoC/04-master-press/tests/test_core.py PoC/04-master-press/tests/test_magazine.py PoC/04-master-press/tests/test_integration.py
+python3 -m unittest discover -s PoC/04-master-press/tests -p 'test_*.py'
 git diff --check
 ```
 
+### 기사 처리 worker
+
+`master-press-worker.service`는 수집 일정, 일반·매거진 발송, 보도자료 동기화 같은 오케스트레이션을 담당한다. 공통분석·임베딩·케이스 판정과 두 Turbo lane은 다음 독립 서비스를 사용한다.
+
+```bash
+cd /home/ubuntu/apps/myservice/PoC/04-master-press
+sudo install -m 644 deploy/master-press-common.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-embedding.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-case.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-burst-common.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-burst-case.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now master-press-common.service master-press-embedding.service master-press-case.service
+sudo systemctl enable --now master-press-burst-common.service master-press-burst-case.service
+systemctl status master-press-common.service master-press-embedding.service master-press-case.service --no-pager
+systemctl status master-press-burst-common.service master-press-burst-case.service --no-pager
+```
+
+케이스 Cloudflare 예비를 활성화하기 전에는 최근 운영 batch를 읽기 전용으로 비교한다.
+
+```bash
+cd /home/ubuntu/apps/myservice/PoC/04-master-press
+/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_fallback_canary --batches 5 --largest
+```
+
+canary는 JSON 유효률, 결과 완결률, 운영 판정 일치율과 batch 평균 시간을 출력할 뿐 판정·delivery·큐 상태를 바꾸지 않는다.
+
 ### 유사 기사 그룹 지도 timer
 
-`master_press_similarity_groups.py`는 웹 요청과 분리해 최근 기사 720건의 그룹 지도를 재구축한다. 신규 임베딩이 생겼거나 저장 건수가 달라질 때만 작업하며, 기본 주기는 5분이다.
+`master_press_similarity_groups.py`는 웹 요청과 분리해 최근 30시간의 그룹 지도를 재구축한다. 이 범위는 24시간 대시보드와 지연된 매거진 발행 창을 함께 포함한다. 신규 임베딩이 생겼거나 시간창 내 저장 건수가 달라질 때만 작업하며, 기본 주기는 5분이다. 후보 쌍은 공통 개념·복수 고유 주제·동일 제목 역색인으로 제한해 전수 쌍 비교를 피한다.
 
 ```bash
 sudo install -m 644 deploy/systemd/master-press-similarity-groups.service /etc/systemd/system/
@@ -1190,9 +1346,10 @@ systemctl status master-press-body-backfill.timer --no-pager
 ### 모델 사용량 소진
 
 - 관리자 설정에서 제공자별 사용량과 초기화 시각을 확인한다.
-- 주 모델이 소진되면 예비1/예비2로 전환된다.
-- 모든 제공자가 소진되면 영업중지 메시지가 표시된다.
-- 00시 또는 provider별 초기화 시각 이후 메인 모델로 복귀하는지 확인한다.
+- 공통분석은 공통 예비, 케이스 판정은 활성화된 케이스 예비로 전환되는지 확인한다.
+- backlog가 임계값 이상이면 해당 단계의 Turbo 표시와 burst lane 처리 이력을 확인한다.
+- 모든 제공자가 소진되면 영업중지 또는 재시도 대기 메시지와 `retry_after`를 확인한다.
+- provider별 초기화 시각 또는 10분 임시 중지 뒤 기본 모델로 복귀하는지 확인한다.
 
 ## 20. 개발·변경 시 주의사항
 
@@ -1211,8 +1368,8 @@ systemctl status master-press-body-backfill.timer --no-pager
 브라우저 캐시 회피용 정적 파일 버전:
 
 ```text
-styles.css?v=20260723-10
-app.js?v=20260724-02
+styles.css?v=20260803-settings-fix-v7
+app.js?v=20260804-neural-catalog-v1
 ```
 
 이 값이 HTML에서 바뀌어야 배포 후 브라우저가 최신 UI를 받는다.

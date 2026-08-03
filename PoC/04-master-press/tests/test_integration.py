@@ -6,6 +6,7 @@ import os
 import re
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -95,15 +96,22 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertLess(body.index("구독 및 케이스 신청".encode("utf-8")), body.index("매거진".encode("utf-8")))
         self.assertLess(body.index("매거진".encode("utf-8")), body.index("대시보드".encode("utf-8")))
         self.assertIn(b'id="magazineView"', body)
+        self.assertIn(b'id="magazineAdminActions"', body)
+        self.assertIn(b'id="republishMagazine"', body)
+        self.assertIn(b'id="resendMagazine"', body)
+        self.assertIn(b'id="analysisThresholdStatus"', body)
         self.assertIn(b'href="/poc/master-press/manual.pdf"', body)
         self.assertIn(b'id="manualView"', body)
         self.assertIn("시간당 30건 이상 메시지".encode("utf-8"), body)
+
         self.assertIn("카카오 메시지 동의 확인 전".encode("utf-8"), body)
         self.assertIn("유사 기사 묶음 기준".encode("utf-8"), body)
         self.assertIn("오류·전환 분석 로그".encode("utf-8"), body)
         self.assertIn(b'id="operationLogList"', body)
         self.assertNotIn("저유사도 개선 자료".encode("utf-8"), body)
         self.assertIn(b'id="startKakaoSignup"', body)
+        self.assertIn(b'id="startKakaoUnsubscribe"', body)
+        self.assertIn("메시지는 '나와의 채팅'으로 발송됩니다.".encode("utf-8"), body)
         self.assertIn(b'id="submitSignupRequest"', body)
         self.assertIn("구독 신청".encode("utf-8"), body)
         self.assertIn(b'id="articleSearch"', body)
@@ -123,6 +131,27 @@ class MainIntegrationTests(unittest.TestCase):
             re.S,
         )
         self.assertIsNotNone(renderer_order, "AI 언론동향 비서 렌더러가 다른 렌더러 안에 중첩됐습니다.")
+
+    def test_unsubscribe_oauth_callback_returns_to_signup(self):
+        module = type("Module", (), {
+            "complete_kakao_authorization": staticmethod(
+                lambda code, state: {"_oauth_action": "unsubscribe", "deleted": True}
+            ),
+        })()
+        with mock.patch.object(main, "load_master_press_module", return_value=module):
+            status, headers, _body = asyncio.run(call_app(
+                "/poc/master-press/oauth/kakao/callback?code=test-code&state=test-state"
+            ))
+        self.assertEqual(status, 302)
+        self.assertEqual(headers[b"location"], b"/poc/master-press/?view=signup&unsubscribed=1")
+
+    def test_public_unsubscribe_starts_short_lived_kakao_login(self):
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/signup/kakao-unsubscribe", "POST", {}
+        ))
+        self.assertEqual(status, 200)
+        data = json.loads(body)
+        self.assertIn("/poc/master-press/connect?invite=", data["registration"]["registration_url"])
 
     def test_master_press_manual_pdf_download(self):
         status, headers, body = asyncio.run(call_app("/poc/master-press/manual.pdf"))
@@ -144,6 +173,44 @@ class MainIntegrationTests(unittest.TestCase):
         status, _headers, body = asyncio.run(call_app("/api/poc/master-press/admin/bootstrap"))
         self.assertEqual(status, 401)
         self.assertIn("관리자", json.loads(body)["error"])
+
+    def test_public_dashboard_coalesces_same_filter_requests(self):
+        module = main.load_master_press_module()
+        module._PUBLIC_DASHBOARD_CACHE.clear()
+        module._PUBLIC_DASHBOARD_LOCKS.clear()
+        expected = {"project": {"id": "master-press"}, "dashboard": {"articles": []}}
+        with mock.patch.object(module, "_build_public_dashboard", return_value=expected) as build:
+            first = module.public_dashboard(organization_id="organization-1", limit=30)
+            first["dashboard"]["articles"].append({"id": "mutated"})
+            second = module.public_dashboard(organization_id="organization-1", limit=30)
+        self.assertEqual(build.call_count, 1)
+        self.assertEqual(second, expected)
+
+    def test_analysis_threshold_save_is_returned_by_fresh_admin_bootstrap(self):
+        token = main.ADMIN_AUTH.issue_session()
+        cookie = f"{SESSION_COOKIE}={token}"
+        payload = {
+            "batch_size": 10,
+            "semantic_candidate_threshold": 50,
+            "press_release_match_threshold": 70,
+            "similar_article_threshold": 70,
+            "magazine_similarity_threshold": 82,
+            "openai_shadow_enabled": False,
+            "openai_shadow_daily_limit": 150,
+        }
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/admin/settings/analysis-thresholds", "PUT", payload, cookie
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        self.assertEqual(json.loads(body)["magazine_similarity_threshold"], 82)
+
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/admin/bootstrap", "GET", None, cookie
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        settings = json.loads(body)["settings"]
+        self.assertEqual(settings["magazine_similarity_threshold"], 82)
+        self.assertFalse(settings["openai_shadow_enabled"])
 
     def test_article_link_redirects_to_saved_original(self):
         module = main.load_master_press_module()

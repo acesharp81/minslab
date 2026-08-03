@@ -1,0 +1,17 @@
+[Unit]
+Description=Master Press case judgment worker
+After=network-online.target myservice.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_worker
+Restart=always
+RestartSec=5
+Nice=5
+CPUQuota=35%
+
+[Install]
+WantedBy=multi-user.target

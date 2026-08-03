@@ -1,0 +1,19 @@
+[Unit]
+Description=Master Press local embedding worker
+After=network-online.target ollama.service myservice.service
+Wants=network-online.target
+Requires=ollama.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.embedding_worker
+Restart=always
+RestartSec=5
+Nice=10
+CPUQuota=25%
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target

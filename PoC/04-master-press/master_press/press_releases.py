@@ -337,35 +337,41 @@ class PressReleaseManager:
         with self.store.connect() as connection:
             connection.executescript(PRESS_RELEASE_SCHEMA)
             release_columns = {row[1] for row in connection.execute("PRAGMA table_info(press_releases)")}
-            if "document_fingerprint" not in release_columns:
+            fingerprint_column_added = "document_fingerprint" not in release_columns
+            if fingerprint_column_added:
                 connection.execute("ALTER TABLE press_releases ADD COLUMN document_fingerprint TEXT NOT NULL DEFAULT ''")
             if "supabase_synced_at" not in release_columns:
                 connection.execute("ALTER TABLE press_releases ADD COLUMN supabase_synced_at TEXT")
             match_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_press_release_matches)")}
             if "supabase_synced_at" not in match_columns:
                 connection.execute("ALTER TABLE article_press_release_matches ADD COLUMN supabase_synced_at TEXT")
-            connection.execute("DROP INDEX IF EXISTS idx_press_releases_org_fingerprint")
-            rows = connection.execute("SELECT id,title,markdown_path FROM press_releases").fetchall()
-            for row in rows:
-                markdown_path = Path(str(row["markdown_path"] or ""))
-                markdown = markdown_path.read_text(encoding="utf-8") if markdown_path.is_file() else ""
-                connection.execute(
-                    "UPDATE press_releases SET document_fingerprint=? WHERE id=?",
-                    (document_fingerprint(row["title"], markdown), row["id"]),
-                )
-            duplicates = connection.execute(
-                "SELECT organization_id,document_fingerprint FROM press_releases WHERE document_fingerprint<>'' GROUP BY organization_id,document_fingerprint HAVING COUNT(*)>1"
-            ).fetchall()
-            for duplicate in duplicates:
-                records = connection.execute(
-                    "SELECT id FROM press_releases WHERE organization_id=? AND document_fingerprint=? ORDER BY CAST(external_id AS INTEGER) DESC,id DESC",
-                    (duplicate["organization_id"], duplicate["document_fingerprint"]),
+            fingerprint_index_exists = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='index' AND name='idx_press_releases_org_fingerprint'"
+            ).fetchone()
+            if fingerprint_column_added or not fingerprint_index_exists:
+                rows = connection.execute(
+                    "SELECT id,title,markdown_path FROM press_releases WHERE document_fingerprint=''"
                 ).fetchall()
-                for record in records[1:]:
-                    connection.execute("DELETE FROM press_releases WHERE id=?", (record["id"],))
-            connection.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS idx_press_releases_org_fingerprint ON press_releases(organization_id,document_fingerprint) WHERE document_fingerprint<>''"
-            )
+                for row in rows:
+                    markdown_path = Path(str(row["markdown_path"] or ""))
+                    markdown = markdown_path.read_text(encoding="utf-8") if markdown_path.is_file() else ""
+                    connection.execute(
+                        "UPDATE press_releases SET document_fingerprint=? WHERE id=?",
+                        (document_fingerprint(row["title"], markdown), row["id"]),
+                    )
+                duplicates = connection.execute(
+                    "SELECT organization_id,document_fingerprint FROM press_releases WHERE document_fingerprint<>'' GROUP BY organization_id,document_fingerprint HAVING COUNT(*)>1"
+                ).fetchall()
+                for duplicate in duplicates:
+                    records = connection.execute(
+                        "SELECT id FROM press_releases WHERE organization_id=? AND document_fingerprint=? ORDER BY CAST(external_id AS INTEGER) DESC,id DESC",
+                        (duplicate["organization_id"], duplicate["document_fingerprint"]),
+                    ).fetchall()
+                    for record in records[1:]:
+                        connection.execute("DELETE FROM press_releases WHERE id=?", (record["id"],))
+                connection.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_press_releases_org_fingerprint ON press_releases(organization_id,document_fingerprint) WHERE document_fingerprint<>''"
+                )
             connection.execute(
                 "UPDATE press_release_match_jobs SET status='pending',started_at=NULL WHERE status='processing' AND started_at<?",
                 (stale_before,),

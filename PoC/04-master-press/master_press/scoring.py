@@ -1462,7 +1462,7 @@ class OpenAIShadowClient(OpenRouterClient):
             raise OpenRouterError("openai_api_key_missing", status=401)
         options = payload.get("options") or {}
         schema = payload.get("response_schema")
-        stage = str(payload.get("record_stage") or "shadow_case")
+        stage = str(payload.get("record_stage") or payload.get("_stage") or self._request_stage(payload))
         model = str(payload.get("model") or getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
         body = {
             "model": model,
@@ -1511,6 +1511,18 @@ class OpenAIShadowClient(OpenRouterClient):
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
             raise OpenRouterError(type(error).__name__, retryable=True) from error
 
+    def key_status(self) -> dict:
+        return {"connected": bool(getattr(self.settings, "openai_api_key", "")),
+                "error": "" if getattr(self.settings, "openai_api_key", "") else "API 키 미설정"}
+
+    def analyze_article_common(self, article: dict, model: str | None = None) -> dict:
+        result = super().analyze_article_common(article, model or self.settings.openai_shadow_model)
+        report = result.setdefault("analysis_report", {})
+        report["provider"] = "openai"
+        report["fallback"] = True
+        report["fallback_reason"] = "primary_model_unavailable"
+        return result
+
     def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
         results = super().judge_cases(cases, article, common, model or self.settings.openai_shadow_model)
         for value in results.values():
@@ -1536,6 +1548,15 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
         now = datetime.now(timezone.utc)
         return (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).astimezone(timezone(timedelta(hours=9))).isoformat(timespec="seconds")
 
+    @staticmethod
+    def _rolling_24h_start_kst() -> str:
+        return (datetime.now(timezone.utc) - timedelta(hours=24)).astimezone(timezone(timedelta(hours=9))).isoformat(timespec="seconds")
+
+    @staticmethod
+    def _rolling_quota_retry_kst() -> str:
+        # Production behaves like a rolling window despite the UTC reset docs.
+        return (datetime.now(timezone.utc) + timedelta(minutes=10)).astimezone(timezone(timedelta(hours=9))).isoformat(timespec="seconds")
+
     def _record(self, stage: str = "case", **values) -> None:
         if self.store:
             self.store.record_llm_api_call(provider="cloudflare", stage=stage, **values)
@@ -1560,20 +1581,33 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
         stage = self._request_stage(payload)
         if self.store:
             limit = int(getattr(self.settings, "worker_ai_daily_request_soft_limit", 3000) or 3000)
-            usage = self.store.provider_usage_since("cloudflare", self._utc_day_start_kst(), limit)
+            usage = self.store.provider_usage_since("cloudflare", self._rolling_24h_start_kst(), limit)
             if limit and int(usage.get("attempts", 0)) >= limit:
-                raise OpenRouterError("cloudflare_daily_request_soft_limit", status=429, retryable=True, retry_after=self._next_utc_midnight_kst(), deferred=True)
+                raise OpenRouterError("cloudflare_rolling_request_soft_limit", status=429, retryable=True, retry_after=self._rolling_quota_retry_kst(), deferred=True)
+            neuron_limit = int(getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000) or 10000)
+            if neuron_limit and int(usage.get("usage_units", 0)) >= int(neuron_limit * 0.95):
+                raise OpenRouterError("cloudflare_rolling_neuron_soft_limit", status=429, retryable=True, retry_after=self._rolling_quota_retry_kst(), deferred=True)
         model = str(payload.get("model") or self.default_model())
         options = payload.get("options") or {}
+        requested_tokens = min(4000, int(options.get("num_predict", 500)))
+        if stage == "case" and isinstance(payload.get("response_schema"), dict):
+            requested_tokens = min(4000, max(800, requested_tokens * 2))
         body = {
             "messages": payload.get("messages", []),
             "temperature": float(options.get("temperature", 0.1)),
-            "max_tokens": max(1200 if stage == "common" else 300, min(4000, int(options.get("num_predict", 500)))),
+            "max_completion_tokens": max(320 if stage == "common" else 300, requested_tokens),
         }
-        if payload.get("format") == "json" or payload.get("response_schema"):
+        response_schema = payload.get("response_schema")
+        if isinstance(response_schema, dict):
+            schema_body = response_schema.get("schema") if isinstance(response_schema.get("schema"), dict) else response_schema
+            body["response_format"] = {"type": "json_schema", "json_schema": schema_body}
+        elif payload.get("format") == "json":
             body["response_format"] = {"type": "json_object"}
-        if payload.get("reasoning"):
-            body["reasoning"] = payload["reasoning"]
+        reasoning = payload.get("reasoning")
+        if isinstance(reasoning, dict) and reasoning.get("effort"):
+            body["reasoning_effort"] = str(reasoning["effort"])
+        elif isinstance(reasoning, str) and reasoning:
+            body["reasoning_effort"] = reasoning
         encoded_model = urllib.parse.quote(model, safe="@/")
         url = f"{str(getattr(self.settings, 'worker_ai_base_url', 'https://api.cloudflare.com/client/v4')).rstrip('/')}/accounts/{urllib.parse.quote(account_id, safe='')}/ai/run/{encoded_model}"
         started = time.monotonic()
@@ -1584,7 +1618,8 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=max(90, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
+            timeout_seconds = 30 if stage == "case" else 15
+            with urllib.request.urlopen(request, timeout=max(timeout_seconds, int(getattr(self.settings, "request_timeout_seconds", 10)))) as response:
                 data = json.loads(response.read().decode("utf-8"))
             if data.get("success") is False:
                 errors = data.get("errors") or []
@@ -1606,8 +1641,20 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             else:
                 content = result or ""
                 usage = data.get("usage") or {}
-            if isinstance(content, list):
-                content = "".join(str(part.get("text") if isinstance(part, dict) else part) for part in content)
+            if isinstance(content, dict):
+                # Workers AI JSON mode may return an already-decoded object.
+                # str(dict) produces Python single quotes and is not valid JSON.
+                content = json.dumps(content, ensure_ascii=False)
+            elif isinstance(content, list):
+                text_parts = [
+                    part.get("text") for part in content
+                    if isinstance(part, dict) and isinstance(part.get("text"), str)
+                ]
+                content = (
+                    "".join(text_parts)
+                    if text_parts and len(text_parts) == len(content)
+                    else json.dumps(content, ensure_ascii=False)
+                )
             duration_ms = round((time.monotonic() - started) * 1000)
             self._record(stage=stage, model=model, status="completed", duration_ms=duration_ms, http_status=200,
                          request_id=str(data.get("request_id") or ""),
@@ -1625,7 +1672,7 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             message = message[:500]
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
             quota = self._quota_message(message)
-            raise OpenRouterError(message, status=error.code, retryable=error.code in {408,429,500,502,503,504}, retry_after=self._next_utc_midnight_kst() if quota else OpenRouterClient._retry_at(error.headers, 60), deferred=quota or error.code == 429) from error
+            raise OpenRouterError(message, status=error.code, retryable=error.code in {408,429,500,502,503,504}, retry_after=self._rolling_quota_retry_kst() if quota else OpenRouterClient._retry_at(error.headers, 60), deferred=quota or error.code == 429) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
             raise OpenRouterError(type(error).__name__, retryable=True, retry_after=(datetime.now().astimezone() + timedelta(seconds=30)).isoformat(timespec="seconds")) from error
@@ -1710,7 +1757,9 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=max(45, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
+            # Gemini is a fast failover lane. A long provider stall must return
+            # the job to the queue instead of blocking all common-analysis capacity.
+            with urllib.request.urlopen(request, timeout=max(15, int(getattr(self.settings, "request_timeout_seconds", 10)))) as response:
                 data = json.loads(response.read().decode("utf-8"))
             parts = (((data.get("candidates") or [{}])[0].get("content") or {}).get("parts") or [])
             content = "".join(str(part.get("text") or "") for part in parts if isinstance(part, dict))
@@ -1787,6 +1836,8 @@ class RelevanceEngine:
             return self.common_llm
         if provider == "gemini":
             return self.reserve2_llm
+        if provider == "openai":
+            return self.shadow_llm
         raise ValueError(f"unknown_provider:{provider}")
 
     def analyze_article_common(self, article: dict, model: str | None = None) -> dict:

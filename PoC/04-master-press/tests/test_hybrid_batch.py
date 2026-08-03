@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -116,6 +117,47 @@ class BatchLeaseTests(unittest.TestCase):
             self.assertEqual(third, [])
             self.assertEqual(len({item["article_analysis_id"] for item in first + second}), 1)
             self.assertEqual(first[0]["batch_size"], 2)
+
+    def test_two_process_stores_cannot_claim_the_same_case_bundle(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "concurrent-batch.sqlite3"
+            seed = Store(path)
+            organization = seed.save_organization({"name": "행정안전부", "is_active": True})
+            article, _ = seed.upsert_article({
+                "canonical_url": "https://example.com/concurrent-ai",
+                "original_url": "https://example.com/concurrent-ai",
+                "title": "행안부 인공지능 동시 처리",
+                "body": "행정안전부가 인공지능 정책을 동시에 발표했다.",
+            })
+            analysis, _ = seed.ensure_article_analysis(article, organization["id"])
+            for index in range(3):
+                case = seed.save_case({**case_data(index), "organization_id": organization["id"]})
+                evaluation, _ = seed.create_case_evaluation(
+                    analysis["id"], article["id"], case, True, 0.7, 60
+                )
+                seed.queue_case_evaluation(evaluation["id"], ready_at=now_iso())
+            with seed.connect() as connection:
+                connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+
+            barrier = threading.Barrier(2)
+            claims: list[list[dict]] = []
+
+            def claim(owner: str) -> None:
+                store = Store(path, initialize=False)
+                store.ensure_pipeline_lease_schema()
+                barrier.wait()
+                claims.append(store.next_case_evaluation_batch(10, "openrouter", owner))
+
+            workers = [threading.Thread(target=claim, args=(f"worker-{index}",)) for index in range(2)]
+            for worker in workers:
+                worker.start()
+            for worker in workers:
+                worker.join()
+
+            claimed_ids = [str(job["id"]) for batch in claims for job in batch]
+            self.assertEqual(len(claimed_ids), 3)
+            self.assertEqual(len(set(claimed_ids)), 3)
+            self.assertEqual(sorted(len(batch) for batch in claims), [0, 3])
 
 
 class OpenRouterBatchPromptTests(unittest.TestCase):

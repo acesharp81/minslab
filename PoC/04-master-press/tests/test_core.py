@@ -22,7 +22,7 @@ from master_press.press_releases import (
 )
 from master_press.scoring import CloudflareWorkersAIClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
-from master_press.storage import KST, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
@@ -376,6 +376,45 @@ class StorageTests(unittest.TestCase):
         self.assertIn("호우·재난 대응", inferred_topic_concepts("집중호우로 중대본을 가동하고 주민 대피를 실시했다"))
         self.assertIn("수사기관 개혁·사법제도", inferred_topic_concepts("광주경찰청 장윤기 사건과 경찰개혁 수사권 논의"))
 
+    def test_heatwave_hq_dictionary_separates_event_threads_without_sharding(self):
+        stage_titles = [
+            "폭염 중대본 2단계 격상 범정부 대응",
+            "정부, 폭염 중앙재난안전대책본부 2단계 가동",
+        ] * 8
+        meeting_titles = [
+            "중대본 폭염 대응 점검회의 최고 수준 태세 유지",
+            "중앙재난안전대책본부 폭염 긴급 상황점검",
+        ] * 6
+        articles = [
+            {
+                "id": f"heat-{index}", "title": title, "summary": title,
+                "entities": ["중대본", "폭염"], "topic_concepts": [],
+                "semantic_vector": [1.0, index / 1000, 0.1],
+                "published_at": "2026-08-03T10:00:00+09:00",
+            }
+            for index, title in enumerate([*stage_titles, *meeting_titles])
+        ]
+        event_count = len(articles)
+        articles.append({
+            "id": "generic-heat", "title": "열대야에 집에서도 잠 못 이루는 시민들",
+            "summary": "폭염 중대본 2단계 격상 이후에도 무더위가 이어졌다",
+            "entities": ["폭염"], "topic_concepts": [], "semantic_vector": [1.0, 0.02, 0.1],
+            "published_at": "2026-08-03T10:00:00+09:00",
+        })
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.86):
+            groups = self.store._dashboard_article_groups(articles)
+        stage_ids = {groups[f"heat-{index}"]["group_id"] for index in range(len(stage_titles))}
+        meeting_ids = {
+            groups[f"heat-{index}"]["group_id"]
+            for index in range(len(stage_titles), event_count)
+        }
+        self.assertEqual(len(stage_ids), 1)
+        self.assertEqual(len(meeting_ids), 1)
+        self.assertNotEqual(stage_ids, meeting_ids)
+        self.assertNotIn("generic-heat", groups)
+        self.assertEqual(groups["heat-0"]["size"], len(stage_titles))
+        self.assertEqual(groups[f"heat-{len(stage_titles)}"]["size"], len(meeting_titles))
+
     def test_inferred_content_nouns_backfills_empty_llm_entities(self):
         terms = inferred_content_nouns(
             "신한은행, 폭염 피해 쉬어가세요…전국 영업점 쉼터 운영",
@@ -408,6 +447,18 @@ class StorageTests(unittest.TestCase):
         sizes = sorted({group["size"] for group in groups.values()}, reverse=True)
         self.assertEqual(sizes[0], 5)
         self.assertNotIn(11, sizes)
+
+    def test_raw_cosine_restores_distinctive_topic_when_centering_collapses(self):
+        articles = [
+            {"id": "sun-one", "title": "햇빛소득마을 태양광 수익 확대", "summary": "주민 소득 공유", "entities": ["햇빛소득마을", "태양광"], "topic_concepts": ["햇빛소득마을"], "semantic_vector": [1.0, 0.10, 0.05]},
+            {"id": "sun-two", "title": "태양광 햇빛소득마을 확산", "summary": "마을 주민 수익", "entities": ["햇빛소득마을", "태양광"], "topic_concepts": ["햇빛소득마을"], "semantic_vector": [0.99, 0.11, 0.05]},
+            {"id": "other", "title": "경찰 순환인사 확대", "summary": "수사 조직 개편", "entities": ["경찰", "순환인사"], "topic_concepts": ["수사기관"], "semantic_vector": [0.05, 1.0, 0.10]},
+        ]
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.10):
+            groups = self.store._dashboard_article_groups(articles)
+        self.assertEqual(groups["sun-one"]["group_id"], groups["sun-two"]["group_id"])
+        self.assertNotIn("other", groups)
+        self.assertGreater(groups["sun-one"]["semantic_score"], 95)
     def test_dashboard_keeps_a_similar_bundle_on_one_page(self):
         analyses, article_ids = [], []
         for index in range(3):
@@ -419,8 +470,9 @@ class StorageTests(unittest.TestCase):
             connection.execute("UPDATE article_analyses SET status='completed',summary='공통 행사 보도',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
         group_id = article_ids[0]
         groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 행사"], "concepts": ["공통 행사"]} for article_id in article_ids}
-        with mock.patch.object(self.store, "editorial_article_groups", return_value=groups):
+        with mock.patch.object(self.store, "article_similarity_groups", return_value=groups) as snapshot_reader:
             dashboard = self.store.pipeline_dashboard(limit=1)
+        snapshot_reader.assert_called_once()
         self.assertEqual(len(dashboard["articles"]), 3)
         self.assertEqual(dashboard["next_offset"], 3)
         self.assertFalse(dashboard["has_more"])
@@ -440,7 +492,7 @@ class StorageTests(unittest.TestCase):
             self.store.create_case_evaluation(analysis_id, article_id, case, True)
         group_id = article_ids[0]
         groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 화두"], "concepts": ["공통 화두"]} for article_id in article_ids}
-        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+        with mock.patch.object(self.store, "article_similarity_groups", return_value=groups):
             insight = self.store.analysis_insights(case["id"])
         self.assertEqual((insight["group_count"], insight["grouped_article_count"]), (1, 3))
         self.assertGreaterEqual(len(insight["edges"]), 2)
@@ -638,6 +690,93 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(next_page["offset"], 1)
         self.assertEqual(self.store.pipeline_dashboard(search="뉴시스")["articles"][0]["title"], "최신 관광 기사")
 
+    def test_processing_count_requires_all_case_judgments_and_includes_unsent(self):
+        first_case = self.store.save_case(case_payload(1))
+        second_case = self.store.save_case(case_payload(2))
+
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/case-complete-1",
+            "original_url": "https://example.com/case-complete-1",
+            "title": "모든 판정을 기다리는 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        self.store.save_article_analysis(analysis["id"], {
+            "summary": "요약", "publisher_name": "example.com", "reporter_name": "",
+            "article_type": "정책·행정", "tone": "사실전달", "classification_tags": [],
+            "entities": [], "topic_concepts": [], "evidence": [], "analysis_report": {},
+        }, "test-model")
+        pending, _ = self.store.create_case_evaluation(analysis["id"], article["id"], first_case, True)
+        self.store.create_case_evaluation(analysis["id"], article["id"], second_case, False, exclusion_reason="include_terms_missing")
+        self.assertEqual(self.store.processing_summary(7)["today"], 0)
+
+        self.store.save_case_evaluation(pending["id"], {
+            "decision": "low", "final_score": 20, "reasons": ["llm_insufficient_relevance"],
+        }, "test-model")
+        summary = self.store.processing_summary(7)
+        self.assertEqual(summary["today"], 1)
+        self.assertEqual(summary["total"], 1)
+        self.assertEqual(self.store.pipeline_dashboard()["stats"]["total"], 1)
+        self.assertFalse(any(self.store.pipeline_dashboard()["articles"][0]["case_summary"][key] for key in ("sent", "scheduled")))
+
+    def test_dashboard_marks_burst_lane_articles_as_turbo(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-article",
+            "original_url": "https://example.com/turbo-article",
+            "title": "Turbo 처리 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analysis_jobs SET provider_lane='burst' WHERE id=?", (job_id,))
+        self.store.save_article_analysis(analysis["id"], {
+            "summary": "요약", "publisher_name": "example.com", "reporter_name": "",
+            "article_type": "정책·행정", "tone": "사실전달", "classification_tags": [],
+            "entities": [], "topic_concepts": [], "evidence": [], "analysis_report": {},
+        }, "test-model")
+        self.assertTrue(self.store.pipeline_dashboard()["articles"][0]["turbo_used"])
+
+    def test_burst_common_claims_provider_deferred_backlog(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-deferred",
+            "original_url": "https://example.com/turbo-deferred",
+            "title": "기본 모델 재시도 대기 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analysis_jobs SET retry_after='2099-01-01T00:00:00+09:00' WHERE id=?", (job_id,))
+        self.assertEqual(self.store.pending_article_analysis_jobs(), 0)
+        self.assertEqual(self.store.pending_article_analysis_jobs(include_deferred=True), 1)
+        claimed = self.store.claim_next_article_analysis_job("burst-test", provider_lane="burst")
+        self.assertEqual(claimed["id"], job_id)
+        self.assertEqual(claimed["provider_lane"], "burst")
+
+    def test_burst_threshold_defaults_to_five_and_is_configurable(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        self.assertEqual(service.selected_burst_threshold(), 5)
+        self.assertEqual(service.selected_burst_stop_threshold(), 3)
+        self.store.set_setting("burst_threshold", "15")
+        self.assertEqual(service.selected_burst_threshold(), 15)
+        self.store.set_setting("burst_threshold", "invalid")
+        self.assertEqual(service.selected_burst_threshold(), 5)
+
+    def test_burst_case_claims_provider_deferred_bundle(self):
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-case-deferred",
+            "original_url": "https://example.com/turbo-case-deferred",
+            "title": "케이스 재시도 대기 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+        self.store.queue_case_evaluation(evaluation["id"], "2099-01-01T00:00:00+09:00")
+        self.assertEqual(self.store.pending_case_evaluation_bundles(), 0)
+        self.assertEqual(self.store.pending_case_evaluation_bundles(include_deferred=True), 1)
+        claimed = self.store.next_case_evaluation_batch(10, "openai", "burst-test", "burst")
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(claimed[0]["provider_lane"], "burst")
+
     def test_press_release_searches_title_department_and_contact_name(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
         timestamp = now_iso()
@@ -811,6 +950,85 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(recovered["common"], 1)
         self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
 
+    def test_manual_model_switch_releases_common_analysis_retries(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/manual-switch",
+            "original_url": "https://example.com/manual-switch",
+            "title": "수동 전환 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        self.assertTrue(self.store.start_article_analysis_job(job_id))
+        retry_after = (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds")
+        self.store.finish_article_analysis_job(
+            job_id, False, 10, "reserve_llm_unavailable",
+            retryable=True, retry_after=retry_after, keep_pending=True,
+        )
+        self.assertIsNone(self.store.next_article_analysis_job())
+        released = self.store.release_article_analysis_retries()
+        self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
+        self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
+
+    def test_gpt_54_mini_is_available_for_both_reserves_and_defaults_reserve2(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
+            groq_common_model="llama-3.1-8b-instant",
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            openai_shadow_model="gpt-5.4-mini",
+            gemini_model="gemini-3.5-flash-lite",
+        )
+        service.scoring = SimpleNamespace(
+            reserve1_llm=SimpleNamespace(models=lambda: []),
+            common_llm=SimpleNamespace(models=lambda: []),
+        )
+        self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
+        service._migrate_reserve2_default()
+        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
+        self.assertIn("gpt-5.4-mini", service.available_reserve1_models())
+        self.assertIn("gpt-5.4-mini", service.available_reserve2_models())
+        self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
+
+    def test_primary_model_switch_releases_common_analysis_retry_wait(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/switch-common",
+            "original_url": "https://example.com/switch-common",
+            "title": "모델 전환 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        self.assertTrue(self.store.start_article_analysis_job(job_id))
+        retry_at = (datetime.now(KST) + timedelta(hours=6)).isoformat(timespec="seconds")
+        self.store.finish_article_analysis_job(job_id, False, 10, "reserve_llm_unavailable", retryable=True, retry_after=retry_at, keep_pending=True)
+        self.assertIsNone(self.store.next_article_analysis_job())
+        released = self.store.release_article_analysis_retries()
+        self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
+        self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
+
+    def test_gpt_mini_is_available_for_both_reserves_and_defaults_reserve2(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
+            groq_common_model="llama-3.1-8b-instant",
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            openai_shadow_model="gpt-5.4-mini",
+            gemini_model="gemini-3.5-flash-lite",
+        )
+        service.scoring = SimpleNamespace(
+            reserve1_llm=SimpleNamespace(models=lambda: []),
+            common_llm=SimpleNamespace(models=lambda: []),
+        )
+        self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
+        service._migrate_reserve2_default()
+        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
+        self.assertIn("gpt-5.4-mini", service.available_reserve1_models())
+        self.assertIn("gpt-5.4-mini", service.available_reserve2_models())
+        self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
+
     def test_invite_is_one_time(self):
         invite, token = self.store.create_invite("테스트", 60)
         self.assertEqual(self.store.valid_invite(token)["id"], invite["id"])
@@ -953,6 +1171,87 @@ class StorageTests(unittest.TestCase):
             ).fetchone()
         self.assertEqual(json.loads(subscription["edition_slots"]), ["morning"])
 
+    def test_verified_kakao_unsubscribe_removes_subscriptions_and_keeps_history_six_hours(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("해지 신청자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-unsubscribe-user",
+            "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh",
+            "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+            "scopes": ["talk_message"],
+        })
+        request, _token = self.store.create_signup_request(
+            "해지 신청자", organization["id"], [case["id"]], recipient_id=recipient["id"],
+            magazine_slots=["morning", "lunch", "evening"],
+        )
+        self.store.set_signup_request_subscriptions(
+            request["id"], [case["id"]], magazine_slots=["morning", "lunch", "evening"],
+        )
+        _unsubscribe_invite, unsubscribe_token = self.store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+
+        result = self.store.unsubscribe_recipient_by_kakao_user_id("kakao-unsubscribe-user", unsubscribe_token)
+
+        self.assertTrue(result["deleted"])
+        self.assertEqual(result["history_count"], 1)
+        self.assertEqual(self.store.get_recipient(recipient["id"])["status"], "deleted")
+        self.assertNotIn(recipient["id"], self.store.case_recipient_ids(case["id"]))
+        with self.store.connect() as connection:
+            subscription_count = connection.execute(
+                "SELECT COUNT(*) value FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (recipient["id"],),
+            ).fetchone()["value"]
+        self.assertEqual(subscription_count, 0)
+        history = next(item for item in self.store.list_signup_requests(include_private=True) if item["id"] == request["id"])
+        self.assertEqual(history["status"], "revoked")
+        self.assertEqual(history["admin_note"], "사용자 직접 해지")
+        self.assertEqual({item["status"] for item in history["case_requests"]}, {"revoked"})
+        self.assertEqual(history["magazine_slots"], ["morning", "lunch", "evening"])
+        self.assertIsNone(self.store.valid_invite(unsubscribe_token))
+
+        old = (datetime.now(KST) - timedelta(hours=7)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE signup_requests SET decided_at=?,updated_at=? WHERE id=?",
+                (old, old, request["id"]),
+            )
+        self.assertFalse(any(item["id"] == request["id"] for item in self.store.list_signup_requests(include_private=True)))
+
+    def test_unsubscribe_creates_history_for_recipient_without_signup_request(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("수동 등록자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "manual-unsubscribe-user",
+            "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh",
+            "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+            "scopes": ["talk_message"],
+        })
+        self.store.add_case_recipient(case["id"], recipient["id"])
+        self.store.ensure_magazine_schema()
+        with self.store.connect() as connection:
+            connection.execute(
+                """INSERT INTO recipient_magazine_subscriptions(
+                   organization_id,recipient_id,edition_slots,case_ids,updated_at
+                   ) VALUES(?,?,?,?,?)""",
+                (organization["id"], recipient["id"], '["lunch"]', json.dumps([case["id"]]), now_iso()),
+            )
+        _unsubscribe_invite, unsubscribe_token = self.store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+
+        result = self.store.unsubscribe_recipient_by_kakao_user_id("manual-unsubscribe-user", unsubscribe_token)
+
+        self.assertTrue(result["deleted"])
+        self.assertEqual(result["history_count"], 1)
+        history = self.store.list_signup_requests(include_private=True)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["status"], "revoked")
+        self.assertEqual(history[0]["magazine_slots"], ["lunch"])
+        self.assertEqual([item["case_id"] for item in history[0]["case_requests"]], [case["id"]])
+
     def test_completed_signup_requests_expire_after_six_hours(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
         case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
@@ -999,6 +1298,33 @@ class ScoringTests(unittest.TestCase):
         client.request = lambda _path, _payload: {"message": {"content": "{"}}
         with self.assertRaises(json.JSONDecodeError):
             client.analyze_article_common({"title": "폭염 대응", "snippet": "중대본 격상"})
+
+    def test_cloudflare_json_schema_and_object_response_remain_valid_json(self):
+        settings = SimpleNamespace(
+            worker_ai_key="token", worker_ai_account_id="account",
+            worker_ai_base_url="https://api.cloudflare.test/client/v4",
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            request_timeout_seconds=10, user_agent="test",
+        )
+        client = CloudflareWorkersAIClient(settings)
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({
+            "success": True,
+            "result": {"response": {"results": [{"case_id": "case-1"}]}, "usage": {}},
+        }).encode("utf-8")
+        response.__enter__.return_value = response
+        schema = {"type": "object", "properties": {"results": {"type": "array"}}, "required": ["results"]}
+        with mock.patch("urllib.request.urlopen", return_value=response) as opened:
+            result = client.request("/api/chat", {
+                "model": settings.worker_ai_model,
+                "messages": [{"role": "user", "content": "test"}],
+                "options": {"num_predict": 420},
+                "response_schema": {"name": "case_batch", "strict": True, "schema": schema},
+            })
+        sent = json.loads(opened.call_args.args[0].data.decode("utf-8"))
+        self.assertEqual(sent["response_format"], {"type": "json_schema", "json_schema": schema})
+        self.assertEqual(sent["max_completion_tokens"], 840)
+        self.assertEqual(json.loads(result["message"]["content"]), {"results": [{"case_id": "case-1"}]})
 
     def test_openrouter_case_judgment_sends_only_minimized_public_evidence(self):
         settings = SimpleNamespace(openrouter_case_model="google/gemma-4-26b-a4b-it:free")
@@ -1579,6 +1905,8 @@ class OrganizationPipelineTests(unittest.TestCase):
             self.assertEqual(dashboard["stats"]["total"], 1)
             self.assertEqual(dashboard["pipeline"]["processed_articles"], 1)
             self.assertGreaterEqual(dashboard["pipeline"]["average_seconds"], 0)
+            self.assertNotIn("articles_per_minute", dashboard["pipeline"])
+            self.assertNotIn("throughput_window_minutes", dashboard["pipeline"])
             self.assertEqual(dashboard["articles"][0]["organization_name"] if "organization_name" in dashboard["articles"][0] else dashboard["articles"][0]["case_results"][0]["organization_name"], "행정안전부")
             self.assertEqual(dashboard["articles"][0]["case_results"][0]["decision"], "low")
             self.assertEqual(dashboard["categories"][0], {"label": "정책·행정", "article_count": 1, "sent_count": 0})
@@ -1727,6 +2055,19 @@ class SecurityTests(unittest.TestCase):
         self.assertNotEqual(encrypted, plaintext)
         self.assertNotIn(plaintext, encrypted)
         self.assertEqual(cipher.decrypt(encrypted), plaintext)
+
+    def test_kakao_unsubscribe_login_does_not_request_message_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "unsubscribe.sqlite3")
+            _invite, unsubscribe_token = store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+            _regular, regular_token = store.create_invite("구독 신청자", 15)
+            settings = SimpleNamespace(
+                kakao_rest_api_key="rest-key",
+                kakao_redirect_uri="https://example.com/oauth/callback",
+            )
+            client = KakaoClient(settings, store)
+            self.assertNotIn("scope=talk_message", client.authorization_url(unsubscribe_token))
+            self.assertIn("scope=talk_message", client.authorization_url(regular_token))
 
 
     def test_kakao_send_uses_feed_template_when_image_exists(self):

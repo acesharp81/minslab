@@ -1,0 +1,17 @@
+[Unit]
+Description=Master Press GPT burst worker for common analysis
+After=network-online.target myservice.service master-press-common.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.burst_worker --stage common
+Restart=always
+RestartSec=10
+Nice=10
+CPUQuota=20%
+
+[Install]
+WantedBy=multi-user.target

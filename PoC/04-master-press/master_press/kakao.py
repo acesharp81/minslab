@@ -8,7 +8,7 @@ import urllib.request
 from datetime import datetime, timedelta
 
 from .config import Settings
-from .storage import KST, Store
+from .storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store
 
 
 class KakaoError(RuntimeError):
@@ -79,19 +79,56 @@ class KakaoClient:
         return sorted(scopes)
 
     def authorization_url(self, invite_token: str) -> str:
-        if not self.store.valid_invite(invite_token):
+        invite = self.store.valid_invite(invite_token)
+        if not invite:
             raise KakaoError("수신자 등록 링크가 만료되었거나 이미 사용되었습니다.", 400)
         if not (self.settings.kakao_rest_api_key and self.settings.kakao_redirect_uri):
             raise KakaoError("카카오 앱 키와 Redirect URI가 설정되지 않았습니다.", 503)
-        params = urllib.parse.urlencode({
+        authorization = {
             "client_id": self.settings.kakao_rest_api_key,
             "redirect_uri": self.settings.kakao_redirect_uri,
             "response_type": "code",
-            "scope": "talk_message",
             "state": invite_token,
             "prompt": "login",
-        })
+        }
+        if invite.get("label") != RECIPIENT_UNSUBSCRIBE_INVITE_LABEL:
+            authorization["scope"] = "talk_message"
+        params = urllib.parse.urlencode(authorization)
         return f"https://kauth.kakao.com/oauth/authorize?{params}"
+
+    def complete_unsubscribe_authorization(self, code: str, invite_token: str) -> dict:
+        invite = self.store.valid_invite(invite_token)
+        if not invite or invite.get("label") != RECIPIENT_UNSUBSCRIBE_INVITE_LABEL:
+            raise KakaoError("구독 해지 인증이 만료되었거나 이미 사용되었습니다.", 400)
+        payload = {
+            "grant_type": "authorization_code",
+            "client_id": self.settings.kakao_rest_api_key,
+            "redirect_uri": self.settings.kakao_redirect_uri,
+            "code": code,
+        }
+        if self.settings.kakao_client_secret:
+            payload["client_secret"] = self.settings.kakao_client_secret
+        _status, tokens = self._request("https://kauth.kakao.com/oauth/token", payload)
+        access_token = str(tokens.get("access_token") or "")
+        if not access_token:
+            raise KakaoError("카카오 로그인 정보를 확인하지 못했습니다.")
+        _status, profile = self._request("https://kapi.kakao.com/v2/user/me", None, access_token, "GET")
+        kakao_user_id = str(profile.get("id") or "")
+        if not kakao_user_id:
+            raise KakaoError("카카오 사용자 식별자를 확인하지 못했습니다.")
+        unlink_error = ""
+        try:
+            self._request("https://kapi.kakao.com/v1/user/unlink", {}, access_token)
+        except KakaoError as error:
+            # Identity has already been verified, so local subscriptions must be
+            # stopped even if Kakao's optional unlink call is temporarily unavailable.
+            unlink_error = str(error)[:300]
+        try:
+            result = self.store.unsubscribe_recipient_by_kakao_user_id(kakao_user_id, invite_token)
+        except ValueError as error:
+            raise KakaoError(str(error), 400) from error
+        result.update({"kakao_unlinked": not unlink_error, "unlink_error": unlink_error})
+        return result
 
     def complete_authorization(self, code: str, invite_token: str) -> dict:
         if not self.store.valid_invite(invite_token):
