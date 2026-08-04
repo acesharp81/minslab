@@ -20,7 +20,8 @@ from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
-from master_press.scoring import CloudflareWorkersAIClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
+from master_press.provider_quota import confirmed_free_quota_exhaustion, quota_lock_decision
+from master_press.scoring import CloudflareWorkersAIClient, GroqClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
 from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
@@ -221,6 +222,26 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(result["counts"]["keywords"], 0)
         self.assertNotIn("body", str(result["payload"]))
         mirror.history_operations.assert_not_called()
+
+    def test_history_run_records_the_exact_queued_snapshot(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/history-snapshot", "original_url": "https://example.com/history-snapshot",
+            "title": "이력 스냅샷 기사", "publisher": "example.com", "source_type": "test",
+        })
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+        mirror = mock.MagicMock(enabled=True)
+        mirror.history_operations.return_value = True
+        mirror.history_keywords.return_value = True
+        mirror.history_models.return_value = True
+        result = SupabaseHistoryMetrics(self.store, mirror).run(days=2)
+        snapshot = json.loads(self.store.get_setting("supabase_history_last_snapshot", "{}"))
+        self.assertEqual(result["status"], "queued")
+        self.assertEqual(self.store.get_setting("supabase_history_last_snapshot_days", ""), "2")
+        for name in ("operations", "keywords", "models"):
+            self.assertEqual(len(snapshot["ids"][name]), result["counts"][name])
+            if snapshot["ids"][name]:
+                self.assertTrue(snapshot["updated_at"][name])
 
     def test_short_retention_cleanup_deletes_expired_source_but_keeps_pending_delivery(self):
         expired, _ = self.store.upsert_article({"canonical_url": "https://example.com/expired", "original_url": "https://example.com/expired", "title": "만료 기사", "publisher": "example.com"})
@@ -615,8 +636,12 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(usage["period"], "UTC day")
         self.assertEqual(usage["day_start"], start)
 
-    def test_openrouter_daily_limit_counts_failed_api_calls_and_defers(self):
-        settings = SimpleNamespace(openrouter_api_key="test-key", openrouter_daily_soft_limit=3)
+    def test_openrouter_local_daily_count_does_not_preempt_provider_request(self):
+        settings = SimpleNamespace(
+            openrouter_api_key="test-key", openrouter_daily_soft_limit=3,
+            openrouter_base_url="https://openrouter.test", request_timeout_seconds=1,
+            user_agent="test", openrouter_case_model="test-model",
+        )
         for index in range(3):
             self.store.record_llm_api_call(
                 "openrouter", "case", "test-model", "failed", 10,
@@ -628,11 +653,13 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(usage["remaining"], 0)
 
         client = OpenRouterClient(settings, self.store)
-        with self.assertRaises(OpenRouterError) as captured:
-            client.request("/chat/completions", {"model": "test-model", "messages": []})
-        self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
-        self.assertTrue(captured.exception.deferred)
-        self.assertTrue(captured.exception.retry_after.endswith("T09:00:00+09:00"))
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({"choices": [{"message": {"content": "{}"}}], "usage": {}}).encode()
+        response.__enter__.return_value = response
+        with mock.patch("urllib.request.urlopen", return_value=response) as urlopen:
+            result = client.request("/chat/completions", {"model": "test-model", "messages": []})
+        self.assertEqual(result["message"]["content"], "{}")
+        urlopen.assert_called_once()
 
 
     def test_operation_logs_summarize_errors_and_failover(self):
@@ -969,7 +996,7 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
         self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
 
-    def test_gpt_54_mini_is_available_for_both_reserves_and_defaults_reserve2(self):
+    def test_fixed_model_candidates_keep_gpt_only_in_final_turbo_lane(self):
         service = object.__new__(MasterPressService)
         service.store = self.store
         service.settings = SimpleNamespace(
@@ -987,8 +1014,9 @@ class StorageTests(unittest.TestCase):
         service._migrate_reserve2_default()
         self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
-        self.assertIn("gpt-5.4-mini", service.available_reserve1_models())
-        self.assertIn("gpt-5.4-mini", service.available_reserve2_models())
+        self.assertEqual(service.available_reserve1_models(), ["llama-3.1-8b-instant"])
+        self.assertEqual(service.available_reserve2_models(), ["gpt-5.4-mini"])
+        self.assertEqual(service.available_burst_models(), ["gpt-5.4-mini"])
         self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
 
     def test_primary_model_switch_releases_common_analysis_retry_wait(self):
@@ -1007,7 +1035,7 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
         self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
 
-    def test_gpt_mini_is_available_for_both_reserves_and_defaults_reserve2(self):
+    def test_fixed_fallback_candidates_match_verified_topology(self):
         service = object.__new__(MasterPressService)
         service.store = self.store
         service.settings = SimpleNamespace(
@@ -1025,9 +1053,201 @@ class StorageTests(unittest.TestCase):
         service._migrate_reserve2_default()
         self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
-        self.assertIn("gpt-5.4-mini", service.available_reserve1_models())
-        self.assertIn("gpt-5.4-mini", service.available_reserve2_models())
+        self.assertEqual(service.available_common_fallback_models(), ["@cf/meta/llama-3.1-8b-instruct-fast"])
+        self.assertEqual(service.available_case_fallback_models(), ["gemini-3.1-flash-lite"])
+        self.assertEqual(service.available_burst_models(), ["gpt-5.4-mini"])
         self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
+
+    def test_only_daily_quota_errors_disable_until_provider_reset(self):
+        self.assertTrue(MasterPressService._is_provider_quota_error(OpenRouterError("free-models-per-day limit reached", status=429)))
+        self.assertTrue(MasterPressService._is_provider_quota_error(OpenRouterError("GenerateRequestsPerDay quota", status=429)))
+        self.assertFalse(MasterPressService._is_provider_quota_error(OpenRouterError("RESOURCE_EXHAUSTED: retry in 27s", status=429)))
+
+    def test_quota_lock_uses_exact_retry_from_confirmed_error_body(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "tokens per day (TPD): Limit 500000, Used 499900. Please try again in 1m27.5s.",
+            status=429, retryable=True,
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertTrue(decision.confirmed_exhaustion)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.confidence, "high")
+        self.assertEqual(decision.reset_source, "error_body")
+        self.assertEqual(decision.lock_until, "2026-08-04T18:01:27+09:00")
+
+    def test_subsecond_explicit_retry_is_a_one_second_exact_lock(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "tokens per day (TPD) limit reached. Please try again in 518.4ms.",
+            status=429, retryable=True,
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.lock_until, "2026-08-04T18:00:01+09:00")
+
+    def test_groq_quota_retry_uses_the_exhausted_resource_header(self):
+        retry_at, source = GroqClient._quota_retry_metadata(
+            {"x-ratelimit-reset-tokens": "2m", "x-ratelimit-reset-requests": "6s"},
+            "tokens per day (TPD) limit reached",
+        )
+        remaining = (datetime.fromisoformat(retry_at) - datetime.now().astimezone()).total_seconds()
+        self.assertEqual(source, "resource_header")
+        self.assertGreaterEqual(remaining, 118)
+        self.assertLessEqual(remaining, 121)
+
+    def test_missing_retry_header_is_not_marked_as_a_trusted_source(self):
+        _retry_at, source = GroqClient._quota_retry_metadata({}, "tokens per day limit reached")
+        self.assertEqual(source, "")
+        self.assertEqual(OpenRouterClient._retry_source({}), "")
+
+    def test_quota_lock_uses_hourly_recheck_when_reset_is_not_confirmed(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "you have used up your daily free allocation", status=429, retryable=True,
+            retry_after="2026-08-05T09:00:00+09:00", retry_source="provider_schedule",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertTrue(decision.confirmed_exhaustion)
+        self.assertEqual(decision.lock_mode, "hourly_recheck")
+        self.assertEqual(decision.confidence, "low")
+        self.assertEqual(decision.lock_until, "2026-08-04T19:00:00+09:00")
+
+    def test_quota_lock_accepts_trusted_response_retry_header(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "free-models-per-day limit reached", status=429, retryable=True,
+            retry_after="2026-08-04T20:00:00+09:00", retry_source="response_header",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.lock_until, "2026-08-04T20:00:00+09:00")
+
+    def test_past_retry_header_falls_back_to_hourly_recheck(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "free-models-per-day limit reached", status=429, retryable=True,
+            retry_after="2026-08-04T17:00:00+09:00", retry_source="response_header",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "hourly_recheck")
+        self.assertEqual(decision.lock_until, "2026-08-04T19:00:00+09:00")
+
+    def test_plain_429_never_becomes_a_quota_lock(self):
+        for message in ("Provider returned error", "rate limit", "RESOURCE_EXHAUSTED: retry in 27s"):
+            error = OpenRouterError(message, status=429, retryable=True)
+            self.assertFalse(confirmed_free_quota_exhaustion(message, 429))
+            self.assertFalse(quota_lock_decision(error).confirmed_exhaustion)
+
+    def test_plain_429_uses_transient_pause_not_quota_lock(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError("Provider returned error", status=429, retryable=True)
+        for _index in range(3):
+            self.assertEqual(service._remember_provider_failure("openrouter", error), "")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:openrouter"), "")
+        self.assertTrue(self.store.get_setting("llm_provider_temporary_until:openrouter") > now_iso())
+
+    def test_provider_quota_lock_metadata_and_successful_clear(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError(
+            "daily free allocation used up", status=429, retryable=True,
+        )
+        lock_until = service._remember_provider_failure("cloudflare", error)
+        self.assertTrue(lock_until > now_iso())
+        self.assertEqual(self.store.get_setting("llm_provider_lock_mode:cloudflare"), "hourly_recheck")
+        self.assertFalse(service._provider_attempt_allowed("cloudflare"))
+        service._remember_provider_success("cloudflare")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:cloudflare"), "")
+        self.assertEqual(self.store.get_setting("llm_provider_lock_mode:cloudflare"), "")
+        self.assertTrue(service._provider_attempt_allowed("cloudflare"))
+
+    def test_expired_quota_lock_allows_only_one_cross_process_probe(self):
+        expired = (datetime.now(KST) - timedelta(seconds=1)).isoformat(timespec="seconds")
+        self.store.set_setting("llm_provider_disabled_until:groq", expired)
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        self.assertTrue(service._provider_attempt_allowed("groq"))
+        self.assertFalse(service._provider_attempt_allowed("groq"))
+        self.assertTrue(self.store.get_setting("llm_provider_probe_until:groq") > now_iso())
+
+    def test_status_read_keeps_expired_lock_for_auditable_recheck(self):
+        expired = (datetime.now(KST) - timedelta(seconds=1)).isoformat(timespec="seconds")
+        self.store.set_settings({
+            "llm_provider_disabled_until:groq": expired,
+            "llm_provider_disabled_reason:groq": "tokens per day limit reached",
+            "llm_provider_lock_mode:groq": "exact_reset",
+            "llm_provider_lock_confidence:groq": "high",
+            "llm_provider_lock_reset_source:groq": "error_body",
+        })
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        status = service._attach_provider_guard({"provider": "groq", "connected": True})
+        self.assertTrue(status["quota_recheck_due"])
+        self.assertFalse(status["exhausted"])
+        self.assertEqual(status["lock_mode"], "exact_reset")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:groq"), expired)
+
+    def test_locked_primary_uses_fallback_and_records_fallback(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            groq_common_model="llama-3.1-8b-instant",
+        )
+        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
+        service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
+        called = []
+
+        def analyze(provider, _article, model):
+            called.append((provider, model))
+            return {"analysis_report": {"provider": provider}}
+
+        service.scoring = SimpleNamespace(analyze_article_common_with_provider=analyze)
+        self.store.set_setting(
+            "llm_provider_disabled_until:groq",
+            (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds"),
+        )
+        provider, model, result = service._try_common_reserve({"title": "test"})
+        self.assertEqual((provider, model), ("cloudflare", "@cf/meta/llama-3.1-8b-instruct-fast"))
+        self.assertEqual(called, [("cloudflare", "@cf/meta/llama-3.1-8b-instruct-fast")])
+        self.assertTrue(result["analysis_report"]["fallback"])
+        self.assertEqual(result["analysis_report"]["fallback_reason"], "common_primary_unavailable")
+
+    def test_all_common_providers_locked_defers_without_remote_call(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            groq_common_model="llama-3.1-8b-instant",
+        )
+        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
+        service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
+        service.scoring = SimpleNamespace(analyze_article_common_with_provider=mock.Mock())
+        groq_until = (datetime.now(KST) + timedelta(minutes=30)).isoformat(timespec="seconds")
+        cloudflare_until = (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds")
+        self.store.set_settings({
+            "llm_provider_disabled_until:groq": groq_until,
+            "llm_provider_disabled_until:cloudflare": cloudflare_until,
+        })
+        with self.assertRaisesRegex(OpenRouterError, "reserve_llm_unavailable") as raised:
+            service._try_common_reserve({"title": "test"})
+        self.assertEqual(raised.exception.retry_after, groq_until)
+        service.scoring.analyze_article_common_with_provider.assert_not_called()
+
+    def test_ollama_embedding_records_exact_prompt_tokens(self):
+        store = mock.Mock()
+        settings = SimpleNamespace(embedding_model="nomic-embed-text:latest")
+        client = OllamaClient(settings, store)
+        client.request = mock.Mock(return_value={"embeddings": [[0.1, 0.2]], "prompt_eval_count": 42})
+        self.assertEqual(client.embeddings(["hello"]), [[0.1, 0.2]])
+        kwargs = store.record_llm_api_call.call_args.kwargs
+        self.assertEqual(kwargs["provider"], "ollama")
+        self.assertEqual(kwargs["stage"], "embedding")
+        self.assertEqual(kwargs["input_tokens"], 42)
 
     def test_invite_is_one_time(self):
         invite, token = self.store.create_invite("테스트", 60)

@@ -736,8 +736,7 @@ def dispatch(
             service.store.set_setting("common_llm_model", model)
             if bool(payload.get("force")):
                 provider = service._provider_for_switchable_llm_model(model)
-                service.store.set_setting(f"llm_provider_disabled_until:{provider}", "")
-                service.store.set_setting(f"llm_provider_disabled_reason:{provider}", "")
+                service._clear_provider_quota_lock(provider)
                 service.store.set_setting(f"llm_provider_temporary_until:{provider}", "")
                 service.store.set_setting(f"llm_provider_temporary_reason:{provider}", "")
                 service.store.set_setting(f"llm_provider_transient_failures:{provider}", "0")
@@ -751,8 +750,7 @@ def dispatch(
                 raise MasterPressError("OpenRouter 무료 케이스 판정 모델을 선택하세요.")
             service.store.set_setting("case_llm_model", model)
             if bool(payload.get("force")):
-                service.store.set_setting("llm_provider_disabled_until:openrouter", "")
-                service.store.set_setting("llm_provider_disabled_reason:openrouter", "")
+                service._clear_provider_quota_lock("openrouter")
             status = service.openrouter_status(probe=False)
         else:
             raise MasterPressError("전환할 기본 모델 영역을 찾지 못했습니다.")
@@ -797,12 +795,12 @@ def dispatch(
             burst_threshold = int(payload.get("burst_threshold", 5))
         except (TypeError, ValueError):
             raise MasterPressError("업무집중 지원 대기 임계값을 확인하세요.")
-        if not common_fallback.startswith("gemini-"):
-            raise MasterPressError("공통분석 예비 모델은 Gemini 모델을 선택하세요.")
-        if not case_fallback.startswith("@cf/"):
-            raise MasterPressError("케이스 판정 예비 모델은 Cloudflare 모델을 선택하세요.")
-        if not burst.startswith("gpt-"):
-            raise MasterPressError("폭주 처리 모델은 GPT 모델을 선택하세요.")
+        if common_fallback not in service.available_common_fallback_models():
+            raise MasterPressError("공통분석 예비 모델은 확정된 Cloudflare 모델만 사용할 수 있습니다.")
+        if case_fallback not in service.available_case_fallback_models():
+            raise MasterPressError("케이스 판정 예비 모델은 검증된 Gemini 모델만 사용할 수 있습니다.")
+        if burst not in service.available_burst_models():
+            raise MasterPressError("폭주 처리 모델은 확정된 GPT 모델만 사용할 수 있습니다.")
         if burst_threshold < 5 or burst_threshold > 100:
             raise MasterPressError("업무집중 지원 대기 임계값은 5~100건으로 설정하세요.")
         service.store.set_setting("common_fallback_llm_model", common_fallback)

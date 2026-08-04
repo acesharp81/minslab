@@ -113,7 +113,7 @@
         <div class="dashboard-summary-bottom">
           <div class="summary-group pipeline-summary"><b class="summary-caption">일일 기사<br>처리 현황</b><div class="pipeline-flow">
             <section class="pipeline-stage article-total-stage"><header><b>판정 완료 기사</b><small>KST 00:00 · 고유 기사</small></header><strong id="metricTotal">0</strong></section>
-            <section class="pipeline-stage"><header><b>① 공통분석 <em id="commonTurboMark" class="pipeline-turbo-mark" hidden>Turbo</em></b><small id="commonProviderMeta">Cloudflare · 모델 확인 중</small></header><div><span>대기 <strong id="commonPending">0</strong></span><span>완료 <strong id="commonCompleted">0</strong></span><span class="failed">오류 <strong id="commonFailed">0</strong></span></div></section>
+            <section class="pipeline-stage"><header><b>① 공통분석 <em id="commonTurboMark" class="pipeline-turbo-mark" hidden>Turbo</em></b><small id="commonProviderMeta">Groq · 모델 확인 중</small></header><div><span>대기 <strong id="commonPending">0</strong></span><span>완료 <strong id="commonCompleted">0</strong></span><span class="failed">오류 <strong id="commonFailed">0</strong></span></div></section>
             <section class="pipeline-stage"><header><b>② 임베딩</b><small id="embeddingProviderMeta">Ollama · 모델 확인 중</small></header><div><span>대기 <strong id="embeddingPending">0</strong></span><span>완료 <strong id="embeddingCompleted">0</strong></span><span class="failed">오류 <strong id="embeddingFailed">0</strong></span></div></section>
             <section class="pipeline-stage"><header><b>③ 케이스별 판정 <em id="caseTurboMark" class="pipeline-turbo-mark" hidden>Turbo</em></b><small id="caseProviderMeta">OpenRouter · 모델 확인 중</small></header><div><span>대기 <strong id="casePending">0</strong></span><span>완료 <strong id="caseCompleted">0</strong></span><span class="failed">오류 <strong id="caseFailed">0</strong></span></div></section>
             <section class="pipeline-stage delivery-stage"><header><b>④ 발송</b><small>카카오톡</small></header><div><span>대기 <strong id="deliveryPending">0</strong></span><span>완료 <strong id="deliverySent">0</strong></span><span class="failed">오류 <strong id="pipelineFailed">0</strong></span></div></section>
@@ -253,6 +253,6 @@
   <dialog id="pressMarkdownDialog"><div class="dialog-card"><div class="dialog-head"><div><span>MARKDOWN ARCHIVE</span><h2 id="pressMarkdownTitle">보도자료 전체 보기</h2></div><button type="button" class="icon-button" data-close="pressMarkdownDialog">×</button></div><pre id="pressMarkdownContent" class="press-markdown-content"></pre></div></dialog>
   <dialog id="announcementDialog"><div class="dialog-card compact"><div class="dialog-head"><div><span>NOTICE</span><h2 id="announcementPopupTitle">공지사항</h2></div><button type="button" class="icon-button" data-close="announcementDialog">×</button></div><div id="announcementPopupBody" class="announcement-popup-body"></div><label class="week-hide"><input type="checkbox" id="announcementHideWeek"> 일주일 동안 다시 보지 않기</label><div class="dialog-actions"><span></span><button type="button" class="button" id="closeAnnouncementPopup">확인</button></div></div></dialog>
   <div class="toast" id="toast"></div>
-  <script src="/poc/master-press/app.js?v=20260804-neural-catalog-v1"></script>
+  <script src="/poc/master-press/app.js?v=20260804-quota-lock-v1"></script>
 </body>
 </html>

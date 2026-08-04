@@ -19,11 +19,21 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 - 공통분석 job과 케이스 판정 job에 `lease_owner`, `lease_expires_at`, `provider_lane`을 추가했다. SQLite `BEGIN IMMEDIATE` 안에서 읽기와 claim을 묶어 기본 worker와 Turbo worker가 동시에 실행되어도 같은 job 또는 같은 기사 배치를 중복 처리하지 않는다.
 - worker가 비정상 종료되면 5분 lease 만료 또는 3분 stalled 점검을 기준으로 job을 `pending`으로 되돌린다. 저장과 완료 처리는 현재 lease 소유자가 일치할 때만 허용해 늦게 도착한 과거 worker 응답이 최신 결과를 덮어쓰지 못하게 했다.
 - 케이스 판정은 단순 FIFO 개별 job이 아니라 `article_analysis_id`가 같은 케이스를 최대 10개까지 하나의 배치로 원자적 claim한다. 대기 케이스가 많은 기사부터 처리하고, 배치 응답에서 특정 케이스만 누락되면 해당 케이스만 단건 보완 판정한다.
-- 공통분석 기본/예비와 케이스 판정 기본/예비를 단계별로 분리했다. 현재 기본 토폴로지는 공통분석 `Groq → Gemini`, 케이스 판정 `OpenRouter → Cloudflare`이며, 케이스 Cloudflare 예비는 canary 품질 확인 전까지 기본 비활성이다.
+- 공통분석 기본/예비와 케이스 판정 기본/예비를 단계별로 분리했다. 현재 운영 설정은 공통분석 `Groq → Cloudflare`, 케이스 판정 `OpenRouter → Gemini 3.1 Flash-Lite`다. 다만 Gemini 3.1 Flash-Lite는 2026-08-04 대배치 canary에서 완결성 기준에 미달해 교체 후보 검증 전까지 품질 승인 상태로 보지 않는다.
 - 대기열이 설정 임계값(기본 5개 기사 또는 5개 기사 배치)에 도달하면 별도 `master_press.burst_worker`가 GPT-5.4 mini로 backlog를 병렬 소진한다. 시작/중지 임계값에 hysteresis를 두고, Turbo lane은 provider 재시도 시각으로 보류된 job도 가져올 수 있다.
-- 공통분석과 케이스 판정의 JSON 형식 오류, 일시 장애, quota 소진을 구분한다. 일시 장애는 10분 재시도 또는 제한 횟수 재시도, quota는 제공자 초기화 시각까지 보류하며, 공통분석은 최종적으로 로컬 fallback을 사용할 수 있다.
-- Cloudflare Workers AI의 `response_schema`를 실제 JSON schema 응답 형식으로 전달하고, 이미 객체로 반환된 응답은 `json.dumps`로 직렬화해 Python dict 문자열 때문에 JSON 파싱이 깨지는 문제를 막았다. 운영과 동일한 rolling 24시간 quota 재시도 시각도 반영했다.
+- 공통분석과 케이스 판정의 JSON 형식 오류, 일시 장애, 명시적 무료 quota 소진을 구분한다. 일반 429/RPM은 단기 재시도하고, 확정 소진만 정확 초기화 시각 또는 불확실 시 1시간까지 잠근다. 기본·예비가 모두 불가하면 GPT Turbo가 임계값과 관계없이 최종 처리하며 GPT까지 소진된 경우에만 영업 종료한다.
+- Cloudflare Workers AI의 `response_schema`를 실제 JSON schema 응답 형식으로 전달하고, 이미 객체로 반환된 응답은 `json.dumps`로 직렬화한다. 로컬 rolling/soft quota 추정과 공급자별 잠금 예외를 제거하고 실제 API 응답을 공통 판정기로 처리한다.
 - 관리 화면의 처리량은 단순 수집 기사 수가 아니라 공통분석 후 활성 케이스 판정이 모두 `completed` 또는 `excluded`가 된 고유 기사 수로 집계한다. 발송되지 않은 완료 기사도 포함하며, 동일 필터 대시보드 요청은 짧게 병합해 DB 중복 조회를 줄였다.
+
+### 공통 quota 잠금 및 예비 모델 품질 검증
+
+- 원격 LLM 전체에 `provider_quota.py`의 공통 판정기를 적용했다. 무료·일일 quota 소진이 명확하고 오류 본문이나 신뢰 가능한 응답 헤더의 초기화 시각이 정확하면 해당 시각까지 잠그며, 소진은 확실하지만 시각이 불명확하면 1시간 후 한 worker만 probe한다. 일반 429·타임아웃·서버 오류는 quota 잠금으로 확대하지 않는다.
+- 운영에서 Groq TPD 500,000 중 499,992 사용 후 반환된 `retry in` 오류를 `exact_reset`, `high`, `error_body`로 저장하고 Cloudflare 예비 모델로 공통분석을 완료했다. 예측 시각 만료 뒤 Groq를 다시 호출했으며, 후속 요청에서 소진이 재확인되자 새 시각까지 재잠금하고 Cloudflare로 계속 처리했다. 검증 시점의 공통분석 활성 작업은 0건이었다.
+- provider 잠금은 기본·예비, 공통·케이스, 일반·burst 경로에서 동일하게 적용한다. 만료된 잠금의 확인 호출은 SQLite `BEGIN IMMEDIATE` 기반 probe lease로 한 프로세스만 수행하고, 성공하면 잠금·신뢰도·reset source 메타데이터를 함께 지운다.
+- 관련 Python 컴파일, diff 검사와 전체 핵심 테스트 147건을 통과했으며 `myservice`, 일반 worker와 공통·케이스·burst worker를 재기동해 운영 상태를 확인했다.
+- Gemini 3.1 Flash-Lite 운영 저장 결과 124건은 모두 완료됐고 발송 10건은 모두 근거 검증을 통과했다. 그러나 122건이 5점 단위 점수를 사용했고, 75점 이상이면서 핵심 대상 근거가 없어 후처리에서 차단된 결과가 12건이었다.
+- 승인된 최근 대배치 canary 5개, 47케이스에서는 정상 JSON이 3개 배치뿐이어서 JSON 유효률 60%, 전체 결과 완결률 59.6%였다. 정상 반환된 28건의 기존 운영 판정 일치율은 96.4%였지만 2개 배치가 닫는 괄호 없이 잘린 응답으로 실패했다. 따라서 Gemini 3.1 Flash-Lite는 현재 대배치 품질 기준 미달이며, canary 통과 전에는 검증된 예비 모델로 간주하지 않는다.
+- 신규 직접 provider 1순위 후보는 Cerebras의 `gpt-oss-120b`다. OpenAI 호환 API와 strict JSON schema 출력을 제공하고 소액 선불 Developer 전환을 지원한다. 아직 계정·API 키 등록, 코드 연동 또는 운영 전환은 하지 않았으며, 도입 시 동일한 2·4·9·10케이스 read-only canary를 먼저 통과해야 한다.
 
 ### 유사 기사·매거진·보도자료
 
@@ -579,26 +589,26 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 현재 역할:
 
 1. 공통분석 기본: Groq `llama-3.1-8b-instant`
-2. 공통분석 예비: Gemini `gemini-3.5-flash`
+2. 공통분석 예비: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
 3. 케이스 판정 기본: OpenRouter `google/gemma-4-26b-a4b-it:free`
-4. 케이스 판정 예비: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
+4. 케이스 판정 예비: Gemini `gemini-3.1-flash-lite`
 5. backlog Turbo: OpenAI `gpt-5.4-mini`
 6. 임베딩: 로컬 Ollama `nomic-embed-text:latest`
 
-케이스 예비는 read-only canary에서 JSON 완결성과 운영 판정 일치율을 확인한 뒤 `case_fallback_enabled`를 켜는 방식이며 기본값은 비활성이다. canary는 판정이나 delivery를 저장하지 않는다.
+케이스 예비 설정은 Gemini 3.1 Flash-Lite지만 최신 9·10케이스 대배치 canary에서 JSON 완결성 기준에 미달했다. canary 도구는 판정이나 delivery를 저장하지 않으며, 대체 provider가 같은 기준을 통과하기 전까지 현재 설정을 품질 승인 상태로 해석하지 않는다.
 
 #### 기본·예비 전환
 
 공통분석과 케이스 판정은 서로 독립된 두 개의 provider chain을 사용한다.
 
-- 공통분석: Groq 기본 → Gemini 예비
-- 케이스 판정: OpenRouter 기본 → Cloudflare 예비(활성화한 경우)
+- 공통분석: Groq 기본 → Cloudflare 예비 → GPT Turbo 최종
+- 케이스 판정: OpenRouter 기본 → Gemini 예비 → GPT Turbo 최종
 
-기본 모델을 즉시 전환하면 공통분석의 `retry_after`와 오류 대기를 풀어 새 모델이 기존 backlog를 바로 처리할 수 있다. quota 또는 rate limit이 감지되면 provider별 초기화 시각까지 보류하고 사용 가능한 예비로 넘어간다. 단순 일시 장애는 provider를 10분간만 멈춘 뒤 다시 확인한다.
+기본 모델을 즉시 전환하면 공통분석의 `retry_after`와 오류 대기를 풀어 새 모델이 기존 backlog를 바로 처리할 수 있다. 무료 사용량 소진이 명확하고 같은 오류의 초기화 시각 신뢰도가 높으면 그 시각까지 잠그고, 초기화 시각이 불확실하면 1시간만 잠근 뒤 한 worker가 사용 가능 여부를 재확인한다. 단순 429·일시 장애는 quota 소진으로 확정하지 않고 기존 10분 임시 중지 정책을 적용한다.
 
 #### GPT Turbo
 
-`gpt-5.4-mini` Turbo는 공통분석과 케이스 판정의 정상 기본 모델을 대체하지 않는다. 각 단계의 backlog가 설정 임계값 이상일 때만 별도 burst lane으로 병렬 처리한다.
+`gpt-5.4-mini` Turbo는 정상 상태에서는 각 단계의 backlog가 설정 임계값 이상일 때 별도 burst lane으로 병렬 처리한다. 기본·예비가 모두 불가하면 backlog 크기와 관계없이 최종 처리자로 기동한다. GPT도 명시적 quota 소진 상태면 영업 종료한다.
 
 - 시작 임계값: 기본 5, 관리 화면에서 5~100으로 설정
 - 공통분석 단위: 대기 기사 수
@@ -609,14 +619,13 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 
 ### 7.7 사용량과 초기화 시각
 
-관리 설정에서는 모델별 사용량과 초기화 시각을 한국 시간으로 표시한다.
+관리 설정에서는 모델별 사용량과 quota 잠금·재확인 시각을 한국 시간으로 표시한다. 모든 원격 provider는 같은 판정기를 사용한다.
 
-- Groq: UTC 일일 기준을 한국시간으로 환산
-- OpenRouter: 무료 호출 한도 1000회, 실제 호출 기준
-- Cloudflare Workers AI: rolling 24시간 요청·neuron 안전 한도
-- Gemini: Google AI Studio/Gemini 기준과 설정된 안전 한도
-- OpenAI: Turbo와 그림자 판정의 역할별 처리량
-- Ollama: 로컬 임베딩 호출 수, 생성형 호출과 별도 집계
+- 명확한 소진: `daily free allocation`, `free-models-per-day`, TPD/RPD, free-tier quota처럼 전체 무료 할당량 도달을 설명하는 응답
+- 정확 초기화: 같은 오류 본문의 `retry in`, 신뢰 가능한 `Retry-After`, 소진 자원과 일치하는 reset 신호
+- 불확실 초기화: 1시간 잠금 후 DB lease를 획득한 worker 한 개만 재확인
+- 일반 429·`Provider returned error`·타임아웃: quota 잠금이 아닌 일시 장애로 처리
+- Ollama: KST 00:00 기준 임베딩 호출 수와 `/api/embed`의 `prompt_eval_count` 토큰
 
 대시보드에는 토큰 숫자를 노출하지 않는다. 관리자 설정에서만 상세 사용량을 확인한다.
 
@@ -717,7 +726,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 - 근거 문장
 - 분석 리포트
 
-공통 provider chain은 기본 Groq, 예비 Gemini다. 구조화 JSON 오류는 재시도하며, provider가 일시 중단되거나 quota를 소진하면 `retry_after`를 남긴다. 외부 provider 재시도 가능 횟수를 넘긴 뒤에도 분석을 비워 두지 않도록 제한적인 Ollama 공통분석 fallback을 저장할 수 있다.
+공통 provider chain은 기본 Groq, 예비 Cloudflare다. 구조화 JSON 오류는 재시도하며, provider가 일시 중단되거나 quota를 소진하면 `retry_after`를 남긴다. 정상 체인이 모두 불가하면 GPT Turbo가 최종 처리한다.
 
 공통분석 성공은 `article_analyses.status='completed'`까지만 의미한다. 임베딩과 케이스 라우팅 완료는 각각 별도 상태이므로 공통분석 worker가 느린 후속 작업을 기다리지 않는다.
 
@@ -771,7 +780,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 
 배치 응답에 일부 케이스 결과가 없으면 전체 batch를 성공 처리하지 않고 누락 케이스만 단건 요청으로 보완한다. 그래도 실패하면 그 job만 재시도 상태로 남긴다. 케이스가 비활성화됐거나 선행 공통분석이 아직 없으면 각각 안전한 제외 또는 짧은 재대기를 적용한다.
 
-케이스 provider chain은 OpenRouter 기본과, 관리자가 canary 확인 후 활성화한 Cloudflare 예비로 구성된다. 결과가 저장될 때 `article_case_processing_flags.case_evaluation_completed`와 `delivery_classified`가 함께 갱신되어 기사 전체 완료 여부를 계산할 수 있다.
+케이스 provider chain의 운영 설정은 OpenRouter 기본과 Gemini 3.1 Flash-Lite 예비로 구성된다. Gemini는 최신 대배치 canary 완결성 기준에 미달했으므로 교체 또는 재검증 대상이다. 정상 체인이 모두 불가하면 GPT Turbo가 기사 단위 케이스 묶음을 그대로 claim한다. 결과가 저장될 때 `article_case_processing_flags.case_evaluation_completed`와 `delivery_classified`가 함께 갱신되어 기사 전체 완료 여부를 계산할 수 있다.
 
 ### 8.6 발송
 
@@ -941,7 +950,7 @@ nomic-embed-text:latest
 
 ### 12.2 Cloudflare Workers AI
 
-현재 케이스 판정 예비 provider다. JSON schema 응답 완결성과 운영 판정 일치율을 canary로 확인한 뒤에만 운영 fallback을 활성화한다.
+현재 공통분석 예비 provider다. 공식 UTC 00:00 일일 초기화와 실제 API quota 응답을 기준으로 전환한다.
 
 ```text
 @cf/meta/llama-3.1-8b-instruct-fast
@@ -971,7 +980,7 @@ MASTER_PRESS_GROQ_COMMON_MODEL
 
 ### 12.4 OpenRouter
 
-케이스 판정 기본 제공자다. 무료 호출 안전장치 기본값은 실제 호출 기준 1000회다.
+케이스 판정 기본 제공자다. 로컬 추정 호출 한도는 적용하지 않고 실제 API 응답을 기준으로 전환한다.
 
 ```text
 google/gemma-4-26b-a4b-it:free
@@ -989,10 +998,10 @@ MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
 
 ### 12.5 Gemini
 
-공통분석 예비 provider다.
+현재 케이스 판정 예비 설정이지만 2026-08-04의 9·10케이스 canary에서 JSON 유효률 60%, 결과 완결률 59.6%로 품질 기준에 미달했다. 소배치 통과만으로 고정 사용하지 않고 운영 최대 배치까지 검증해야 한다.
 
 ```text
-gemini-3.5-flash
+gemini-3.1-flash-lite
 ```
 
 환경변수:
@@ -1036,14 +1045,13 @@ MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 - error
 - created_at
 
-사용량 한도 도달 판단은 다음 신호를 함께 본다.
+무료 사용량 소진 판단은 다음의 강한 신호만 사용한다.
 
-- 설정된 일일 요청 한도
-- 설정된 토큰 한도
-- provider 응답의 rate limit / quota / 무료 소진 메시지
-- 실패 응답 상태 코드
+- 일일 무료 할당량을 모두 사용했다는 명시적 문구
+- TPD/RPD 또는 per-day 한도와 Limit/Used/Requested 정보
+- free-tier quota/limit 초과 또는 `insufficient_quota`
 
-공통분석 또는 케이스 판정의 기본 모델이 소진되면 해당 단계의 예비 모델로 넘어간다. 사용할 수 있는 예비가 없으면 job을 실패 확정하지 않고 `retry_after`까지 보류한다. backlog가 Turbo 기준 이상이면 GPT burst lane이 보류 job을 가져올 수 있다. 모든 경로가 비활성인 동안에는 운영 메시지와 다음 재시도 시각을 표시한다.
+HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 공통분석 또는 케이스 판정의 기본 모델이 확정 소진되면 해당 단계의 예비 모델로 넘어간다. 사용할 수 있는 예비가 없으면 job을 실패 확정하지 않고 quota lock 시각까지 보류한다. backlog가 Turbo 기준 이상이면 GPT burst lane이 보류 job을 가져올 수 있다. 모든 경로가 비활성인 동안에는 운영 메시지와 다음 재시도 시각을 표시한다.
 
 ## 14. 주요 API
 
@@ -1200,7 +1208,7 @@ MASTER_PRESS_GROQ_COMMON_MODEL=llama-3.1-8b-instant
 MASTER_PRESS_OPENROUTER_API_MYKEY=...
 MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
 MASTER_PRESS_GEMINI_API_KEY=...
-MASTER_PRESS_GEMINI_MODEL=gemini-3.5-flash
+MASTER_PRESS_GEMINI_MODEL=gemini-3.1-flash-lite
 OPENAI_API_KEY=...
 MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 SUPABASE2_URL=...
@@ -1251,7 +1259,7 @@ systemctl status master-press-common.service master-press-embedding.service mast
 systemctl status master-press-burst-common.service master-press-burst-case.service --no-pager
 ```
 
-케이스 Cloudflare 예비를 활성화하기 전에는 최근 운영 batch를 읽기 전용으로 비교한다.
+케이스 Gemini 예비를 활성화하기 전에는 합성 또는 승인된 입력 batch를 읽기 전용으로 비교한다.
 
 ```bash
 cd /home/ubuntu/apps/myservice/PoC/04-master-press
@@ -1349,7 +1357,7 @@ systemctl status master-press-body-backfill.timer --no-pager
 - 공통분석은 공통 예비, 케이스 판정은 활성화된 케이스 예비로 전환되는지 확인한다.
 - backlog가 임계값 이상이면 해당 단계의 Turbo 표시와 burst lane 처리 이력을 확인한다.
 - 모든 제공자가 소진되면 영업중지 또는 재시도 대기 메시지와 `retry_after`를 확인한다.
-- provider별 초기화 시각 또는 10분 임시 중지 뒤 기본 모델로 복귀하는지 확인한다.
+- 정확 초기화 잠금 또는 불확실한 1시간 잠금 뒤 단일 재확인을 거쳐 기본 모델로 복귀하는지 확인한다.
 
 ## 20. 개발·변경 시 주의사항
 

@@ -2103,6 +2103,48 @@ class Store:
         with self.connect() as connection:
             connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (key, str(value), now_iso()))
 
+    def set_settings(self, values: dict[str, Any]) -> None:
+        if not values:
+            return
+        updated_at = now_iso()
+        with self.connect() as connection:
+            connection.executemany(
+                "INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+                [(str(key), str(value), updated_at) for key, value in values.items()],
+            )
+
+    def claim_provider_quota_probe(self, provider: str, lease_seconds: int = 120) -> bool:
+        """Allow one cross-process provider check after a quota lock expires."""
+        provider = str(provider or "").strip().lower()
+        if not provider:
+            return False
+        current = datetime.now(KST)
+        current_iso = current.isoformat(timespec="seconds")
+        lease_until = (current + timedelta(seconds=max(30, int(lease_seconds)))).isoformat(timespec="seconds")
+        disabled_key = f"llm_provider_disabled_until:{provider}"
+        probe_key = f"llm_provider_probe_until:{provider}"
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            disabled = connection.execute("SELECT value FROM app_settings WHERE key=?", (disabled_key,)).fetchone()
+            disabled_until = str(disabled["value"] or "") if disabled else ""
+            if not disabled_until:
+                return True
+            if disabled_until > current_iso:
+                return False
+            probe = connection.execute("SELECT value FROM app_settings WHERE key=?", (probe_key,)).fetchone()
+            if probe and str(probe["value"] or "") > current_iso:
+                return False
+            connection.execute(
+                "INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+                (probe_key, lease_until, current_iso),
+            )
+        return True
+
+    def release_provider_quota_probe(self, provider: str) -> None:
+        self.set_setting(f"llm_provider_probe_until:{str(provider or '').strip().lower()}", "")
+
     def increment_setting_counter(self, key: str, delta: int = 1) -> int:
         with self.connect() as connection:
             row = connection.execute("SELECT value FROM app_settings WHERE key=?", (key,)).fetchone()
@@ -5743,6 +5785,13 @@ class Store:
                 str(row["key"]).split(":", 1)[1]: str(row["value"] or "")
                 for row in connection.execute("SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_disabled_reason:%'").fetchall()
             }
+            quota_lock_meta: dict[str, dict[str, str]] = {}
+            for row in connection.execute(
+                "SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_lock_%:%'"
+            ).fetchall():
+                key, provider = str(row["key"]).split(":", 1)
+                field = key.removeprefix("llm_provider_lock_")
+                quota_lock_meta.setdefault(provider, {})[field] = str(row["value"] or "")
             api_rows = connection.execute(
                 """SELECT failed.*,MIN(succeeded.created_at) resolved_at
                    FROM llm_api_calls failed
@@ -5786,6 +5835,8 @@ class Store:
                 provider = str(row["key"]).split(":", 1)[1]
                 disabled_until = str(row["value"] or "")
                 reason = disabled_reasons.get(provider, "")
+                lock_meta = quota_lock_meta.get(provider, {})
+                lock_mode = lock_meta.get("mode", "")
                 if not disabled_until and not reason:
                     continue
                 active = bool(disabled_until and disabled_until > now)
@@ -5795,12 +5846,15 @@ class Store:
                 append_event(
                     "provider_failover", "provider",
                     f"{self._operation_provider_label(provider)} 무료 사용량/토큰 소진 감지",
-                    ("안전장치가 동작해 예비 모델 체인으로 전환했습니다. " if active else "초기화 시각이 지나 주 모델 복귀 가능 상태입니다. ")
+                    (("정확한 초기화 예측 시각까지 잠그고 예비 모델 체인으로 전환했습니다. " if lock_mode == "exact_reset" else "초기화 시각이 불확실해 1시간 잠그고 예비 모델 체인으로 전환했습니다. ") if active else "잠금 시각이 지나 공급자 사용량 재확인이 가능한 상태입니다. ")
                     + (f"원인: {self._operation_error_reason(reason)}" if reason else "원인 상세는 제공자 응답에 기록되지 않았습니다."),
                     occurred_at,
                     provider=provider, provider_label=self._operation_provider_label(provider),
                     status="active" if active else "resolved", resolved_at="" if active else disabled_until,
-                    disabled_until=disabled_until, raw_error=reason[:500], severity="critical" if active else "info",
+                    disabled_until=disabled_until, lock_mode=lock_mode,
+                    lock_confidence=lock_meta.get("confidence", ""),
+                    lock_reset_source=lock_meta.get("reset_source", ""),
+                    raw_error=reason[:500], severity="critical" if active else "info",
                 )
 
             for row in api_rows:
