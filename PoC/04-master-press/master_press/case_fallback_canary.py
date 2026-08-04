@@ -17,9 +17,13 @@ def main() -> None:
     parser.add_argument("--max-cases", type=int, default=10)
     parser.add_argument("--largest", action="store_true")
     parser.add_argument("--model", default="")
+    parser.add_argument("--provider", default="")
     args = parser.parse_args()
     service = get_service()
     model = str(args.model or service.selected_case_fallback_model()).strip()
+    provider = str(args.provider or service._provider_for_switchable_llm_model(model)).strip().lower()
+    if provider not in {"cloudflare", "gemini", "groq", "openrouter", "openai"}:
+        raise SystemExit(f"unsupported provider: {provider or '(empty)'}")
     with service.store.connect() as connection:
         order_by = "case_count DESC,completed_at DESC" if args.largest else "completed_at DESC"
         groups = connection.execute(
@@ -32,7 +36,7 @@ def main() -> None:
                ORDER BY {order_by} LIMIT ? OFFSET ?""",
             (max(1, min(50, int(args.batches))), max(0, int(args.offset))),
         ).fetchall()
-    summary = {"provider": "cloudflare", "model": model, "requested_batches": len(groups),
+    summary = {"provider": provider, "model": model, "requested_batches": len(groups),
                "completed_batches": 0, "failed_batches": 0, "cases": 0,
                "results": 0, "decision_matches": 0, "duration_ms": 0,
                "decision_matrix": {}, "errors": [], "response_diagnostics": []}
@@ -88,7 +92,7 @@ def main() -> None:
         scoring_module.parse_llm_json = diagnostic_parser
         try:
             results = service.scoring.evaluate_cases_with_common_provider(
-                "cloudflare", prepared, article, analysis, model,
+                provider, prepared, article, analysis, model,
             )
             summary["completed_batches"] += 1
             summary["cases"] += len(prepared)

@@ -9,6 +9,7 @@ remain suitable for trend charts in Supabase.
 
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
+import json
 import re
 
 from .storage import KST, Store, json_value, now_iso
@@ -216,4 +217,13 @@ class SupabaseHistoryMetrics:
             "keywords": self.mirror.history_keywords(payload["keywords"]),
             "models": self.mirror.history_models(payload["models"]),
         }
-        return {"status": "queued" if all(outcomes.values()) else "queue_failed", "days": days, "counts": counts, "outcomes": outcomes}
+        status = "queued" if all(outcomes.values()) else "queue_failed"
+        if status == "queued":
+            snapshot = {
+                "ids": {name: [str(row["id"]) for row in rows] for name, rows in payload.items()},
+                "updated_at": {name: str(rows[0].get("updated_at") or "") if rows else "" for name, rows in payload.items()},
+            }
+            self.store.set_setting("supabase_history_last_snapshot_at", now_iso())
+            self.store.set_setting("supabase_history_last_snapshot_days", str(days))
+            self.store.set_setting("supabase_history_last_snapshot", json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")))
+        return {"status": status, "days": days, "counts": counts, "outcomes": outcomes}

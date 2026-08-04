@@ -36,13 +36,18 @@ def main() -> None:
             )
             start_threshold = service.selected_burst_threshold()
             stop_threshold = service.selected_burst_stop_threshold()
+            primary_available = service.stage_primary_available(args.stage)
+            if not service.burst_provider_available():
+                active = False
+                time.sleep(3.0)
+                continue
             if not active:
-                if pending < start_threshold:
+                if pending < start_threshold and primary_available:
                     time.sleep(3.0)
                     continue
                 active = True
                 below_stop_count = 0
-            if pending <= stop_threshold:
+            if pending <= stop_threshold and primary_available:
                 below_stop_count += 1
                 if below_stop_count >= 2:
                     active = False

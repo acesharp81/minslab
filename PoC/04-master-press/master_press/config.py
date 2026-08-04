@@ -152,7 +152,7 @@ class Settings:
             worker_ai_daily_request_soft_limit=env_int("MASTER_PRESS_WORKER_AI_DAILY_REQUEST_SOFT_LIMIT", 3000, 1, 100000),
             gemini_api_key=env("MASTER_PRESS_GEMINI_API_KEY", "Google_AI_STUDIO_API_KEY", "GOOGLE_AI_STUDIO_API_KEY", "GEMINI_API_KEY"),
             gemini_base_url=env("MASTER_PRESS_GEMINI_BASE_URL", default="https://generativelanguage.googleapis.com/v1beta").rstrip("/"),
-            gemini_model=env("MASTER_PRESS_GEMINI_MODEL", default="gemini-3.5-flash-lite"),
+            gemini_model=env("MASTER_PRESS_GEMINI_MODEL", default="gemini-3.1-flash-lite"),
             gemini_daily_request_soft_limit=env_int("MASTER_PRESS_GEMINI_DAILY_REQUEST_SOFT_LIMIT", 1000, 1, 100000),
             gemini_daily_token_soft_limit=env_int("MASTER_PRESS_GEMINI_DAILY_TOKEN_SOFT_LIMIT", 0, 0, 100000000),
             supabase_url=env("SUPABASE2_URL", "MASTER_PRESS_SUPABASE_URL").rstrip("/"),

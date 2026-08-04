@@ -276,6 +276,12 @@ create table if not exists public.master_press_daily_model_metrics (
 create index if not exists master_press_daily_operations_date_idx on public.master_press_daily_operations(dataset, metric_date desc);
 create index if not exists master_press_daily_keyword_trend_idx on public.master_press_daily_keyword_metrics(dataset, keyword, metric_date);
 create index if not exists master_press_daily_keyword_org_date_idx on public.master_press_daily_keyword_metrics(dataset, organization_id, metric_date desc);
+create or replace view public.master_press_daily_keyword_metrics_current
+with (security_invoker = true) as
+select ranked.* from (
+  select metrics.*,max(updated_at) over (partition by dataset,metric_date,organization_id,source_kind) snapshot_updated_at
+  from public.master_press_daily_keyword_metrics metrics
+) ranked where ranked.updated_at=ranked.snapshot_updated_at;
 create index if not exists master_press_daily_model_date_idx on public.master_press_daily_model_metrics(dataset, metric_date desc);
 alter table public.master_press_daily_operations enable row level security;
 alter table public.master_press_daily_keyword_metrics enable row level security;
