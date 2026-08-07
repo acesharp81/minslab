@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .article_metadata import publisher_name, reporter_name
+from .provider_quota import confirmed_free_quota_exhaustion
 from .similarity import SIMILARITY_GROUPING_VERSION, build_article_similarity_groups, raw_semantic_similarity
 from .terminology import canonical_editorial_term, inferred_editorial_events
 
@@ -457,9 +458,25 @@ CREATE TABLE IF NOT EXISTS deliveries (
   response_code INTEGER,
   last_error TEXT,
   sent_at TEXT,
+  started_at TEXT,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  lease_expires_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE(article_id, case_id, recipient_id)
+);
+
+CREATE TABLE IF NOT EXISTS delivery_attempts (
+  id TEXT PRIMARY KEY,
+  delivery_id TEXT NOT NULL REFERENCES deliveries(id) ON DELETE CASCADE,
+  attempt_number INTEGER NOT NULL,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  status TEXT NOT NULL DEFAULT 'processing',
+  response_code INTEGER,
+  error TEXT,
+  UNIQUE(delivery_id, attempt_number)
 );
 
 CREATE TABLE IF NOT EXISTS collection_runs (
@@ -593,7 +610,7 @@ CREATE TABLE IF NOT EXISTS article_case_processing_flags (
 CREATE TABLE IF NOT EXISTS case_evaluation_jobs (
   id TEXT PRIMARY KEY,
   case_evaluation_id TEXT NOT NULL REFERENCES case_evaluations(id) ON DELETE CASCADE,
-  provider TEXT NOT NULL DEFAULT 'openrouter',
+  provider TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending',
   queued_at TEXT NOT NULL,
   started_at TEXT,
@@ -732,6 +749,8 @@ CREATE INDEX IF NOT EXISTS idx_llm_jobs_status_queued ON llm_jobs(status, queued
 CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_organizations_due ON organizations(is_active, next_collect_at);
 CREATE INDEX IF NOT EXISTS idx_deliveries_due ON deliveries(status, scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_delivery_attempts_delivery ON delivery_attempts(delivery_id, attempt_number);
+CREATE INDEX IF NOT EXISTS idx_delivery_attempts_status_finished ON delivery_attempts(status, finished_at);
 -- Used by the administrator's sent-article keyword preview. Keep the
 -- case/status/date lookup narrow so it never has to read article bodies for
 -- every delivery in the system.
@@ -962,7 +981,16 @@ class Store:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN provider_lane TEXT NOT NULL DEFAULT 'primary'")
             case_job_columns = {row[1] for row in connection.execute("PRAGMA table_info(case_evaluation_jobs)")}
             if "provider" not in case_job_columns:
-                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN provider TEXT NOT NULL DEFAULT 'openrouter'")
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN provider TEXT NOT NULL DEFAULT ''")
+            parallel_case_migration = connection.execute(
+                "SELECT value FROM app_settings WHERE key='case_parallel_provider_affinity_v1'"
+            ).fetchone()
+            if not parallel_case_migration:
+                connection.execute("UPDATE case_evaluation_jobs SET provider='' WHERE status='pending'")
+                connection.execute(
+                    "INSERT INTO app_settings(key,value,updated_at) VALUES('case_parallel_provider_affinity_v1','applied',?)",
+                    (now_iso(),),
+                )
             if "attempts" not in case_job_columns:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0")
             if "retry_after" not in case_job_columns:
@@ -1380,6 +1408,32 @@ class Store:
                     connection.execute(f"ALTER TABLE {table} ADD COLUMN lease_expires_at TEXT")
                 if "provider_lane" not in columns:
                     connection.execute(f"ALTER TABLE {table} ADD COLUMN provider_lane TEXT NOT NULL DEFAULT 'primary'")
+            delivery_columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(deliveries)")}
+            for column, definition in (
+                ("started_at", "TEXT"),
+                ("lease_owner", "TEXT NOT NULL DEFAULT ''"),
+                ("lease_expires_at", "TEXT"),
+            ):
+                if column not in delivery_columns:
+                    connection.execute(f"ALTER TABLE deliveries ADD COLUMN {column} {definition}")
+            connection.executescript(
+                """CREATE TABLE IF NOT EXISTS delivery_attempts (
+                     id TEXT PRIMARY KEY,
+                     delivery_id TEXT NOT NULL REFERENCES deliveries(id) ON DELETE CASCADE,
+                     attempt_number INTEGER NOT NULL,
+                     lease_owner TEXT NOT NULL DEFAULT '',
+                     started_at TEXT NOT NULL,
+                     finished_at TEXT,
+                     status TEXT NOT NULL DEFAULT 'processing',
+                     response_code INTEGER,
+                     error TEXT,
+                     UNIQUE(delivery_id, attempt_number)
+                   );
+                   CREATE INDEX IF NOT EXISTS idx_delivery_attempts_delivery
+                     ON delivery_attempts(delivery_id, attempt_number);
+                   CREATE INDEX IF NOT EXISTS idx_delivery_attempts_status_finished
+                     ON delivery_attempts(status, finished_at);"""
+            )
 
     def _pipeline_summary_cache_get(self, key: tuple, change_marker: tuple[int, int, int, int]) -> dict | None:
         cached = self._pipeline_summary_cache.get(key)
@@ -3312,7 +3366,7 @@ class Store:
             if not row or row["status"] in {"completed", "excluded"}:
                 return ""
             connection.execute(
-                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,status,queued_at,retry_after) VALUES(?,?, 'pending',?,?)
+                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,provider,status,queued_at,retry_after) VALUES(?,?,'','pending',?,?)
                    ON CONFLICT(case_evaluation_id) DO UPDATE SET
                    status=CASE WHEN case_evaluation_jobs.status='failed' THEN 'pending' ELSE case_evaluation_jobs.status END,
                    queued_at=CASE WHEN case_evaluation_jobs.status='failed' THEN excluded.queued_at ELSE case_evaluation_jobs.queued_at END,
@@ -3340,8 +3394,9 @@ class Store:
 
     def next_case_evaluation_batch(self, limit: int = 10, provider: str = "openrouter",
                                    lease_owner: str = "", provider_lane: str = "primary",
-                                   lease_seconds: int = 300) -> list[dict]:
-        """Atomically lease up to ten case jobs sharing one article analysis."""
+                                   lease_seconds: int = 300, single_unowned_only: bool = False,
+                                   allow_unowned_single: bool = True) -> list[dict]:
+        """Atomically lease one provider-affine article bundle chunk."""
         limit, now = max(1, min(10, int(limit))), now_iso()
         batch_id = str(uuid.uuid4())
         owner = str(lease_owner or f"legacy:{batch_id}").strip()
@@ -3349,6 +3404,16 @@ class Store:
         ready_clause = "" if lane == "burst" else " AND (j.retry_after IS NULL OR j.retry_after<=?)"
         ready_params = [] if lane == "burst" else [now]
         expires_at = (datetime.now(KST) + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
+        having_clause = (
+            """HAVING COUNT(*)=1 AND (
+                 SELECT COUNT(*) FROM case_evaluation_jobs all_pending
+                 JOIN case_evaluations all_ce ON all_ce.id=all_pending.case_evaluation_id
+                 WHERE all_pending.status='pending'
+                   AND all_ce.article_analysis_id=ce.article_analysis_id
+               )=1 """ if single_unowned_only else
+            "HAVING (COUNT(*)>=2 OR MAX(CASE WHEN j.provider=? THEN 1 ELSE 0 END)=1 OR ?=1) "
+        )
+        routing_clause = " AND aa.case_routed_at IS NOT NULL " if single_unowned_only else ""
         with self.connect() as connection:
             # BEGIN IMMEDIATE serializes the read-and-claim sequence across
             # independent primary and burst worker processes.
@@ -3357,22 +3422,36 @@ class Store:
                 "SELECT ce.article_analysis_id,MIN(j.queued_at) first_queued,COUNT(*) pending_count "
                 "FROM case_evaluation_jobs j "
                 "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
-                "WHERE j.status='pending'" + ready_clause + " "
+                "WHERE j.status='pending'" + ready_clause + routing_clause +
+                "AND COALESCE(j.provider,'') IN ('',?) "
                 "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
+                "AND NOT EXISTS (SELECT 1 FROM case_evaluation_jobs active "
+                "JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id "
+                "WHERE active_ce.article_analysis_id=ce.article_analysis_id AND active.status='processing') "
                 "GROUP BY ce.article_analysis_id "
-                "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1", ready_params,
+                + having_clause +
+                "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1",
+                (*ready_params, provider) if single_unowned_only else
+                (*ready_params, provider, provider, int(bool(allow_unowned_single))),
             ).fetchone()
             if not first:
                 return []
+            connection.execute(
+                "UPDATE case_evaluation_jobs SET provider=? WHERE status='pending' AND COALESCE(provider,'')='' "
+                "AND case_evaluation_id IN (SELECT id FROM case_evaluations WHERE article_analysis_id=?)",
+                (provider, first["article_analysis_id"]),
+            )
             rows = connection.execute(
                 "SELECT j.*,ce.article_analysis_id,ce.article_id,ce.case_id FROM case_evaluation_jobs j "
                 "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
                 "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
                 "WHERE j.status='pending'" + ready_clause + " "
+                "AND j.provider=? "
                 "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
                 "AND ce.article_analysis_id=? ORDER BY j.queued_at,j.rowid LIMIT ?",
-                (*ready_params, first["article_analysis_id"], limit),
+                (*ready_params, provider, first["article_analysis_id"], limit),
             ).fetchall()
             if not rows:
                 return []
@@ -3403,12 +3482,87 @@ class Store:
             )
         return [{**dict(row), "batch_id": batch_id, "batch_size": len(claimed)} for row in claimed]
 
+    def release_case_bundle_provider(self, article_analysis_id: str, provider: str = "") -> int:
+        """Release an idle pending bundle so another primary provider can continue it."""
+        with self.connect() as connection:
+            active = connection.execute(
+                "SELECT 1 FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "WHERE ce.article_analysis_id=? AND j.status='processing' LIMIT 1",
+                (str(article_analysis_id),),
+            ).fetchone()
+            if active:
+                return 0
+            provider_clause = " AND provider=?" if provider else ""
+            params = (str(provider), str(article_analysis_id)) if provider else (str(article_analysis_id),)
+            changed = connection.execute(
+                "UPDATE case_evaluation_jobs SET provider='' WHERE status='pending'" + provider_clause +
+                " AND case_evaluation_id IN (SELECT id FROM case_evaluations WHERE article_analysis_id=?)",
+                params,
+            ).rowcount
+        return int(changed or 0)
+
+    def release_invalid_openrouter_case_bundles(self) -> int:
+        """Release idle multi-case bundles that the OpenRouter single lane cannot process."""
+        with self.connect() as connection:
+            changed = connection.execute(
+                """UPDATE case_evaluation_jobs SET provider=''
+                   WHERE id IN (
+                     SELECT candidate.id
+                     FROM case_evaluation_jobs candidate
+                     JOIN case_evaluations candidate_ce ON candidate_ce.id=candidate.case_evaluation_id
+                     WHERE candidate.status='pending' AND candidate.provider='openrouter'
+                       AND candidate_ce.article_analysis_id IN (
+                         SELECT ce.article_analysis_id
+                         FROM case_evaluation_jobs pending
+                         JOIN case_evaluations ce ON ce.id=pending.case_evaluation_id
+                         WHERE pending.status='pending'
+                         GROUP BY ce.article_analysis_id
+                         HAVING COUNT(*)>1
+                       )
+                       AND NOT EXISTS (
+                         SELECT 1 FROM case_evaluation_jobs active
+                         JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id
+                         WHERE active_ce.article_analysis_id=candidate_ce.article_analysis_id
+                           AND active.status='processing'
+                       )
+                   )"""
+            ).rowcount
+        return int(changed or 0)
+
+    def release_pending_case_provider(self, provider: str) -> int:
+        """Release every idle pending bundle owned by an unavailable provider."""
+        with self.connect() as connection:
+            changed = connection.execute(
+                "UPDATE case_evaluation_jobs AS pending SET provider='' "
+                "WHERE pending.status='pending' AND pending.provider=? "
+                "AND NOT EXISTS (SELECT 1 FROM case_evaluation_jobs active "
+                "JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id "
+                "JOIN case_evaluations pending_ce ON pending_ce.id=pending.case_evaluation_id "
+                "WHERE active_ce.article_analysis_id=pending_ce.article_analysis_id AND active.status='processing')",
+                (str(provider),),
+            ).rowcount
+        return int(changed or 0)
+
     def pending_case_evaluation_jobs(self, include_deferred: bool = False) -> int:
         ready_clause = "" if include_deferred else " AND (retry_after IS NULL OR retry_after<=?)"
         params = [] if include_deferred else [now_iso()]
         with self.connect() as connection:
             row = connection.execute("SELECT COUNT(*) value FROM case_evaluation_jobs WHERE status='pending'" + ready_clause, params).fetchone()
         return int(row["value"] or 0)
+    def ready_case_evaluation_jobs_older_than(self, seconds: int, provider: str = "") -> bool:
+        cutoff = (datetime.now(KST) - timedelta(seconds=max(0, int(seconds)))).isoformat(timespec="seconds")
+        provider_clause = " AND COALESCE(provider,'') IN ('',?)" if provider else ""
+        params: list[Any] = [now_iso(), cutoff]
+        if provider:
+            params.append(str(provider))
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM case_evaluation_jobs WHERE status='pending' "
+                "AND (retry_after IS NULL OR retry_after<=?) AND queued_at<=?" + provider_clause + " LIMIT 1",
+                params,
+            ).fetchone()
+        return bool(row)
+
 
     def pending_case_evaluation_bundles(self, include_deferred: bool = False) -> int:
         """Count article-level batches, optionally including provider-deferred work."""
@@ -3555,12 +3709,39 @@ class Store:
                      AND EXISTS (SELECT 1 FROM case_evaluations ce JOIN article_analyses aa ON aa.id=ce.article_analysis_id
                                  WHERE ce.id=case_evaluation_jobs.case_evaluation_id AND aa.status='completed')"""
             ).rowcount
+            case_provider_affinity = connection.execute(
+                """UPDATE case_evaluation_jobs SET provider=''
+                   WHERE id IN (
+                     SELECT candidate.id
+                     FROM case_evaluation_jobs candidate
+                     JOIN case_evaluations candidate_ce ON candidate_ce.id=candidate.case_evaluation_id
+                     WHERE candidate.status='pending' AND candidate.provider='openrouter'
+                       AND candidate_ce.article_analysis_id IN (
+                         SELECT ce.article_analysis_id
+                         FROM case_evaluation_jobs pending
+                         JOIN case_evaluations ce ON ce.id=pending.case_evaluation_id
+                         WHERE pending.status='pending'
+                         GROUP BY ce.article_analysis_id
+                         HAVING COUNT(*)>1
+                       )
+                       AND NOT EXISTS (
+                         SELECT 1 FROM case_evaluation_jobs active
+                         JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id
+                         WHERE active_ce.article_analysis_id=candidate_ce.article_analysis_id
+                           AND active.status='processing'
+                       )
+                   )"""
+            ).rowcount
             connection.execute(
                 """UPDATE case_evaluations SET status='pending',error=NULL,updated_at=?
                    WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE status='pending')""",
                 (now_iso(),),
             )
-        return {"common": int(common), "cases": int(cases)}
+        return {
+            "common": int(common),
+            "cases": int(cases),
+            "case_provider_affinity": int(case_provider_affinity),
+        }
 
     def queue_llm_job(self, article_id: str, case_id: str, case_version: int, organization_id: str | None = None) -> str:
         job_id = str(uuid.uuid4())
@@ -3812,8 +3993,49 @@ class Store:
                 (str(uuid.uuid4()), article_id, case_id, recipient_id, scheduled_at, now, now),
             )
 
-    def due_deliveries(self, limit: int = 20) -> list[dict]:
+    def due_deliveries(self, limit: int = 20, lease_owner: str = "", lease_seconds: int = 900) -> list[dict]:
+        limit = max(1, min(100, int(limit)))
+        owner = str(lease_owner or f"delivery:{uuid.uuid4()}")
+        current = datetime.now(KST)
+        now = current.isoformat(timespec="seconds")
+        lease_expires_at = (current + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
         with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            # A worker may commit the parent delivery just before termination,
+            # leaving only its audit row open. The parent is the source of truth;
+            # close those rows without turning a recovered send into a failure.
+            connection.execute(
+                """UPDATE delivery_attempts
+                   SET status='recovered',
+                       finished_at=COALESCE(
+                         (SELECT COALESCE(d.sent_at,d.updated_at) FROM deliveries d WHERE d.id=delivery_attempts.delivery_id),
+                         ?
+                       ),
+                       response_code=COALESCE(
+                         response_code,
+                         (SELECT d.response_code FROM deliveries d WHERE d.id=delivery_attempts.delivery_id)
+                       ),
+                       error=COALESCE(error,'delivery_parent_already_sent')
+                   WHERE status='processing' AND EXISTS (
+                     SELECT 1 FROM deliveries d
+                     WHERE d.id=delivery_attempts.delivery_id AND d.status='sent'
+                   )""",
+                (now,),
+            )
+            expired = connection.execute(
+                "SELECT id,attempts FROM deliveries WHERE status='sending' AND lease_expires_at IS NOT NULL AND lease_expires_at<=?",
+                (now,),
+            ).fetchall()
+            for stale in expired:
+                stale_status = "failed" if int(stale["attempts"] or 0) >= 3 else "retry"
+                connection.execute(
+                    "UPDATE deliveries SET status=?,last_error='delivery_lease_expired',lease_owner='',lease_expires_at=NULL,updated_at=? WHERE id=? AND status='sending'",
+                    (stale_status, now, stale["id"]),
+                )
+                connection.execute(
+                    "UPDATE delivery_attempts SET status='failed',finished_at=?,error='delivery_lease_expired' WHERE delivery_id=? AND attempt_number=? AND status='processing'",
+                    (now, stale["id"], int(stale["attempts"] or 0)),
+                )
             rows = connection.execute(
                 """SELECT d.*,a.title,a.original_url,a.image_url,a.publisher,a.published_at,
                           COALESCE(aa.summary,s.summary,a.snippet,'') summary,
@@ -3837,28 +4059,110 @@ class Store:
                    WHERE d.status IN ('pending','retry') AND d.scheduled_at<=? AND d.attempts<3
                      AND (ce.id IS NOT NULL OR s.article_id IS NOT NULL)
                    ORDER BY d.scheduled_at LIMIT ?""",
-                (now_iso(), limit),
+                (now, limit),
             ).fetchall()
-        return [dict(row) for row in rows]
+            claimed = []
+            for raw in rows:
+                item = dict(raw)
+                result = connection.execute(
+                    "UPDATE deliveries SET status='sending',attempts=attempts+1,started_at=?,lease_owner=?,lease_expires_at=?,last_error=NULL,updated_at=? WHERE id=? AND status IN ('pending','retry') AND attempts<3",
+                    (now, owner, lease_expires_at, now, item["id"]),
+                )
+                if result.rowcount != 1:
+                    continue
+                attempts = int(item.get("attempts") or 0) + 1
+                connection.execute(
+                    "INSERT INTO delivery_attempts(id,delivery_id,attempt_number,lease_owner,started_at) VALUES(?,?,?,?,?)",
+                    (str(uuid.uuid4()), item["id"], attempts, owner, now),
+                )
+                item.update({
+                    "status": "sending", "attempts": attempts, "started_at": now,
+                    "lease_owner": owner, "lease_expires_at": lease_expires_at,
+                })
+                claimed.append(item)
+        return claimed
 
-    def fail_delivery_permanently(self, delivery_id: str, response_code: int | None = None, error: str = "") -> None:
+    def _record_delivery_result(
+        self,
+        delivery_id: str,
+        ok: bool,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+        permanent: bool = False,
+    ) -> bool:
         now = now_iso()
+        message = str(error or "")[:1000]
         with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT status,attempts,started_at,lease_owner FROM deliveries WHERE id=?",
+                (delivery_id,),
+            ).fetchone()
+            if not row:
+                return False
+            current_status = str(row["status"] or "")
+            actual_owner = str(row["lease_owner"] or "")
+            attempts = int(row["attempts"] or 0)
+            if current_status == "sending":
+                if lease_owner and actual_owner != lease_owner:
+                    return False
+            elif not lease_owner and current_status in {"pending", "retry"}:
+                actual_owner = f"legacy:{uuid.uuid4()}"
+                claimed = connection.execute(
+                    "UPDATE deliveries SET status='sending',attempts=attempts+1,started_at=?,lease_owner=?,lease_expires_at=?,updated_at=? WHERE id=? AND status=?",
+                    (now, actual_owner, now, now, delivery_id, current_status),
+                )
+                if claimed.rowcount != 1:
+                    return False
+                attempts += 1
+            else:
+                return False
             connection.execute(
-                """UPDATE deliveries SET status='failed',attempts=3,response_code=?,last_error=?,sent_at=NULL,updated_at=? WHERE id=?""",
-                (response_code, str(error)[:1000], now, delivery_id),
+                """INSERT OR IGNORE INTO delivery_attempts(
+                     id,delivery_id,attempt_number,lease_owner,started_at
+                   ) VALUES(?,?,?,?,?)""",
+                (str(uuid.uuid4()), delivery_id, attempts, actual_owner, str(row["started_at"] or now)),
             )
+            status = "sent" if ok else ("failed" if permanent or attempts >= 3 else "retry")
+            updated = connection.execute(
+                """UPDATE deliveries
+                   SET status=?,response_code=?,last_error=?,sent_at=?,lease_owner='',lease_expires_at=NULL,updated_at=?
+                   WHERE id=? AND status='sending' AND lease_owner=?""",
+                (status, response_code, None if ok else message, now if ok else None, now, delivery_id, actual_owner),
+            )
+            if updated.rowcount != 1:
+                return False
+            connection.execute(
+                """UPDATE delivery_attempts
+                   SET status=?,finished_at=?,response_code=?,error=?
+                   WHERE delivery_id=? AND attempt_number=? AND status='processing'""",
+                ("completed" if ok else "failed", now, response_code, None if ok else message, delivery_id, attempts),
+            )
+        return True
 
-    def finish_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
-        now = now_iso()
-        with self.connect() as connection:
-            row = connection.execute("SELECT attempts FROM deliveries WHERE id=?", (delivery_id,)).fetchone()
-            attempts = int(row["attempts"] or 0) + 1 if row else 1
-            status = "sent" if ok else ("failed" if attempts >= 3 else "retry")
-            connection.execute(
-                """UPDATE deliveries SET status=?,attempts=?,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?""",
-                (status, attempts, response_code, error[:1000], now if ok else None, now, delivery_id),
-            )
+    def fail_delivery_permanently(
+        self,
+        delivery_id: str,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+    ) -> bool:
+        return self._record_delivery_result(
+            delivery_id, False, response_code, error, lease_owner=lease_owner, permanent=True,
+        )
+
+    def finish_delivery(
+        self,
+        delivery_id: str,
+        ok: bool,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+    ) -> bool:
+        return self._record_delivery_result(
+            delivery_id, ok, response_code, error, lease_owner=lease_owner,
+        )
 
     def queue_magazine_deliveries(self, edition: dict) -> int:
         self.ensure_magazine_schema()
@@ -4687,7 +4991,7 @@ class Store:
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
         """Current queue plus today's completed/failed counts, reset at 00:00 KST."""
         day_start = kst_day_start_iso()
-        cache_key = ("pipeline_stats_v1", str(case_id or ""), str(organization_id or ""), day_start)
+        cache_key = ("pipeline_stats_v2", str(case_id or ""), str(organization_id or ""), day_start)
         cache_marker = self._database_change_marker()
         cached_stats = self._pipeline_summary_cache_get(cache_key, cache_marker)
         if cached_stats is not None:
@@ -4754,13 +5058,39 @@ class Store:
                 " AND (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.started_at,j.queued_at)>=?)" + case_scope,
                 [day_start, *case_params],
             ).fetchone()
-            common_api_error_row = connection.execute(
-                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='groq' AND stage='common' AND status='failed' AND created_at>=?",
+            common_api_error_rows = connection.execute(
+                "SELECT error,http_status FROM llm_api_calls WHERE stage='common' AND status='failed' AND created_at>=?",
                 (error_start,),
+            ).fetchall()
+            case_api_error_rows = connection.execute(
+                "SELECT error,http_status FROM llm_api_calls WHERE stage='case' AND status='failed' AND created_at>=?",
+                (error_start,),
+            ).fetchall()
+            common_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM article_analysis_jobs j "
+                "JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "WHERE j.status='failed' AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?" + common_scope,
+                [error_start, *common_params],
             ).fetchone()
-            case_api_error_row = connection.execute(
-                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='openrouter' AND stage='case' AND status='failed' AND created_at>=?",
-                (error_start,),
+            case_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "WHERE " + latest_case + " AND j.status='failed' "
+                "AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?" + case_scope,
+                [error_start, *case_params],
+            ).fetchone()
+            common_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM article_analysis_jobs j "
+                "JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "WHERE j.status='completed' AND j.attempts>1 AND COALESCE(j.finished_at,j.queued_at)>=?" + common_scope,
+                [error_start, *common_params],
+            ).fetchone()
+            case_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "WHERE " + latest_case + " AND j.status='completed' AND j.attempts>1 "
+                "AND COALESCE(j.finished_at,j.queued_at)>=?" + case_scope,
+                [error_start, *case_params],
             ).fetchone()
             embedding_error_row = connection.execute(
                 "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='ollama' AND stage='embedding' AND status='failed' AND created_at>=?",
@@ -4803,17 +5133,36 @@ class Store:
                 """SELECT a.title FROM article_analysis_jobs j JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN articles a ON a.id=aa.article_id WHERE j.status='processing'
                    UNION ALL SELECT a.title FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN articles a ON a.id=ce.article_id WHERE j.status='processing' LIMIT 1"""
             ).fetchone()
+        def api_failure_count(rows):
+            return sum(
+                1 for row in rows
+                if not confirmed_free_quota_exhaustion(
+                    str(row["error"] or ""), int(row["http_status"] or 0),
+                )
+            )
+        common_api_error_row = {"total_errors": api_failure_count(common_api_error_rows)}
+        case_api_error_row = {"total_errors": api_failure_count(case_api_error_rows)}
         def counts(rows): return {str(row["status"]): int(row["value"]) for row in rows}
         common_counts, case_counts, job_counts, case_job_counts = counts(common), counts(cases), counts(jobs), counts(case_jobs)
-        def error_counts(row, api_row=None, current_fallback=0):
+        def error_counts(row, final_row=None, recovered_row=None, api_row=None, current_fallback=0):
             data = dict(row) if row else {}
+            final_data = dict(final_row) if final_row else {}
+            recovered_data = dict(recovered_row) if recovered_row else {}
             api_data = dict(api_row) if api_row else {}
             return {
                 "failed_current": int(data.get("current_errors") or current_fallback or 0),
-                "failed_total": int(api_data.get("total_errors") or 0),
+                "failed_total": int(final_data.get("total_errors") or 0),
+                "recovered_total": int(recovered_data.get("recovered") or 0),
+                "api_failed_total": int(api_data.get("total_errors") or 0),
             }
-        common_job_errors = error_counts(common_error_row, common_api_error_row, job_counts.get("failed", 0))
-        case_job_errors = error_counts(case_error_row, case_api_error_row, case_job_counts.get("failed", 0))
+        common_job_errors = error_counts(
+            common_error_row, common_final_error_row, common_recovered_row,
+            common_api_error_row, job_counts.get("failed", 0),
+        )
+        case_job_errors = error_counts(
+            case_error_row, case_final_error_row, case_recovered_row,
+            case_api_error_row, case_job_counts.get("failed", 0),
+        )
         embedding_counts = {key: int(embedding[key] or 0) for key in ("pending", "processing", "completed", "failed")}
         embedding_counts["failed_current"] = embedding_counts.get("failed", 0)
         embedding_counts["failed_total"] = max(embedding_counts.get("failed", 0), int(embedding_error_row["total_errors"] or 0) if embedding_error_row else 0)
@@ -5213,6 +5562,8 @@ class Store:
         include_press_stats: bool = True,
     ) -> dict:
         day_start = kst_day_start_iso()
+        error_reset_at = str(self.get_setting("pipeline_error_reset_at", "") or "")
+        error_start = error_reset_at if error_reset_at and error_reset_at > day_start else day_start
         limit = min(10000, max(1, int(limit)))
         offset = max(0, int(offset))
         days = max(1, min(3650, int(days)))
@@ -5336,7 +5687,7 @@ class Store:
             ).fetchall()
             delivery_total_rows = connection.execute(
                 "SELECT d.status,COUNT(*) value FROM deliveries d JOIN cases c ON c.id=d.case_id "
-                "WHERE (d.status IN ('pending','retry') OR COALESCE(d.sent_at,d.updated_at)>=?)"
+                "WHERE (d.status IN ('pending','retry','sending') OR COALESCE(d.sent_at,d.updated_at)>=?)"
                 + delivery_scope + " GROUP BY d.status",
                 [day_start, *delivery_params],
             ).fetchall()
@@ -5355,16 +5706,30 @@ class Store:
                 [*completion_params, day_start],
             ).fetchone()
             delivery_error_row = connection.execute(
-                "SELECT "
-                "COALESCE(SUM(CASE WHEN d.status IN ('retry','failed') AND COALESCE(d.last_error,'')<>'' THEN 1 ELSE 0 END),0) current_errors,"
-                "COALESCE(SUM(CASE "
-                "WHEN d.status='sent' THEN MAX(d.attempts-1,0) "
-                "WHEN d.status IN ('retry','failed') THEN MAX(d.attempts,0) "
-                "ELSE 0 END),0) total_errors "
+                "SELECT COALESCE(SUM(CASE WHEN d.status IN ('retry','failed') AND COALESCE(d.last_error,'')<>'' THEN 1 ELSE 0 END),0) current_errors "
                 "FROM deliveries d JOIN cases c ON c.id=d.case_id "
-                "WHERE (d.status IN ('pending','retry') OR COALESCE(d.sent_at,d.updated_at)>=?)"
+                "WHERE (d.status IN ('pending','retry','sending') OR COALESCE(d.sent_at,d.updated_at)>=?)"
                 + delivery_scope,
                 [day_start, *delivery_params],
+            ).fetchone()
+            delivery_attempt_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM delivery_attempts da "
+                "JOIN deliveries d ON d.id=da.delivery_id JOIN cases c ON c.id=d.case_id "
+                "WHERE da.status='failed' AND COALESCE(da.finished_at,da.started_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
+            ).fetchone()
+            delivery_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM deliveries d JOIN cases c ON c.id=d.case_id "
+                "WHERE d.status='sent' AND d.attempts>1 AND COALESCE(d.sent_at,d.updated_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
+            ).fetchone()
+            delivery_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM deliveries d JOIN cases c ON c.id=d.case_id "
+                "WHERE d.status='failed' AND COALESCE(d.updated_at,d.created_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
             ).fetchone()
             recent_sent_rows = connection.execute(
                 """SELECT a.id,a.title,a.original_url,MAX(d.sent_at) sent_at,
@@ -5379,7 +5744,9 @@ class Store:
         delivery_totals = {str(row["status"]): int(row["value"]) for row in delivery_total_rows}
         delivery_error_data = dict(delivery_error_row) if delivery_error_row else {}
         delivery_totals["failed_current"] = int(delivery_error_data.get("current_errors") or delivery_totals.get("failed", 0) or 0)
-        delivery_totals["failed_total"] = int(delivery_error_data.get("total_errors") or 0)
+        delivery_totals["failed_total"] = int(delivery_final_error_row["total_errors"] or 0) if delivery_final_error_row else 0
+        delivery_totals["recovered_total"] = int(delivery_recovered_row["recovered"] or 0) if delivery_recovered_row else 0
+        delivery_totals["attempt_failed_total"] = int(delivery_attempt_error_row["total_errors"] or 0) if delivery_attempt_error_row else 0
         for row in delivery_rows:
             status, value = str(row["status"]), int(row["value"])
             deliveries.setdefault((str(row["article_id"]), str(row["case_id"])), {})[status] = value
@@ -5508,8 +5875,13 @@ class Store:
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
             "tags": [{"label": key, "value": value} for key, value in sorted(tag_counts.items(), key=lambda pair: -pair[1])],
-            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total"}],
-            "delivery_errors": {"failed_current": delivery_totals.get("failed_current", 0), "failed_total": delivery_totals.get("failed_total", 0)},
+            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total", "recovered_total", "attempt_failed_total"}],
+            "delivery_errors": {
+                "failed_current": delivery_totals.get("failed_current", 0),
+                "failed_total": delivery_totals.get("failed_total", 0),
+                "recovered_total": delivery_totals.get("recovered_total", 0),
+                "attempt_failed_total": delivery_totals.get("attempt_failed_total", 0),
+            },
             "recent_sent": [dict(row) for row in recent_sent_rows], "recent_runs": [],
             "llm": pipeline_stats, "pipeline": pipeline_stats}
 
@@ -5975,7 +6347,7 @@ class Store:
         now = datetime.now(KST)
         analysis_cutoff = (now - timedelta(days=max(1, int(analysis_days)))).isoformat(timespec="seconds")
         source_cutoff = (now - timedelta(days=max(int(analysis_days), int(source_days)))).isoformat(timespec="seconds")
-        article_limit = max(1, min(500, int(article_limit)))
+        article_limit = max(1, min(1000, int(article_limit)))
         press_limit = max(1, min(100, int(press_limit)))
         root = Path(press_markdown_root)
         result: dict[str, Any] = {"analysis_cutoff": analysis_cutoff, "source_cutoff": source_cutoff}

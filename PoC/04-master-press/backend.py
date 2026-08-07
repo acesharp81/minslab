@@ -257,7 +257,7 @@ def admin_bootstrap() -> dict:
         for case in cases:
             case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
         common_model = service.selected_common_llm_model()
-        case_model = service.selected_case_llm_model()
+        case_model = service.selected_case_model1()
         payload = {
             "readiness": service.settings.readiness(),
             "settings": {
@@ -270,17 +270,24 @@ def admin_bootstrap() -> dict:
                 "case_llm_model": case_model,
                 "case_llm_models": [case_model] if case_model else [],
                 "openrouter": service.model_role_status(case_model, "case", probe=False),
+                "case_model1": service.selected_case_model1(),
+                "case_model1_provider": service.model_role_status(service.selected_case_model1(), "case", probe=False),
+                "case_model2": service.selected_case_model2(),
+                "case_model2_provider": service.model_role_status(service.selected_case_model2(), "case", probe=False),
+                "case_single_model": service.selected_case_single_model(),
+                "case_single_provider": service.model_role_status(service.selected_case_single_model(), "case", probe=False),
+                "nvidia": service.nvidia_status(probe=False),
                 "openai_shadow": service.shadow_status(),
                 "common_fallback_llm_model": service.selected_common_fallback_model(),
                 "common_fallback_llm_models": service.available_common_fallback_models(),
                 "common_fallback_provider": service.model_role_status(service.selected_common_fallback_model(), "common", probe=False),
-                "case_fallback_llm_model": service.selected_case_fallback_model(),
-                "case_fallback_llm_models": service.available_case_fallback_models(),
-                "case_fallback_provider": {**service.model_role_status(service.selected_case_fallback_model(), "case", probe=False), "enabled": service.case_fallback_enabled()},
-                "case_fallback_enabled": service.case_fallback_enabled(),
-                "burst_llm_model": service.selected_burst_model(),
+                "case_fallback_llm_model": service.selected_case_model2(),
+                "case_fallback_llm_models": [service.selected_case_model2()],
+                "case_fallback_provider": {**service.model_role_status(service.selected_case_model2(), "case", probe=False), "enabled": True},
+                "case_fallback_enabled": True,
+                "burst_llm_model": service.selected_common_turbo_model(),
                 "burst_llm_models": service.available_burst_models(),
-                "burst_provider": service.model_role_status(service.selected_burst_model(), ["common", "case"], probe=False),
+                "burst_provider": service.model_role_status(service.selected_common_turbo_model(), "common", probe=False),
                 "burst_threshold": service.selected_burst_threshold(),
                 "reserve1_llm_model": service.selected_reserve1_model(),
                 "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
@@ -579,17 +586,20 @@ def dispatch(
             models = service.configured_common_reserve_models(model)
             return {"target": target, "common_llm_model": model, "common_llm_models": models, "llm_models": models, "common_provider": service.model_role_status(model, "common", probe=True)}
         if target == "case":
-            model = service.selected_case_llm_model()
-            return {"target": target, "case_llm_model": model, "case_llm_models": [model] if model else [], "openrouter": service.model_role_status(model, "case", probe=False)}
+            model = service.selected_case_model1()
+            return {"target": target, "case_llm_model": model, "case_llm_models": [model], "case_provider": service.model_role_status(model, "case", probe=True), "openrouter": service.model_role_status(model, "case", probe=False)}
         if target == "common_fallback":
             model = service.selected_common_fallback_model()
             return {"target": target, "common_fallback_llm_model": model, "common_fallback_llm_models": service.available_common_fallback_models(), "common_fallback_provider": service.model_role_status(model, "common", probe=True)}
         if target == "case_fallback":
-            model = service.selected_case_fallback_model()
-            return {"target": target, "case_fallback_llm_model": model, "case_fallback_llm_models": service.available_case_fallback_models(), "case_fallback_provider": {**service.model_role_status(model, "case", probe=True), "enabled": service.case_fallback_enabled()}}
+            model = service.selected_case_model2()
+            return {"target": target, "case_fallback_llm_model": model, "case_fallback_llm_models": [model], "case_fallback_provider": {**service.model_role_status(model, "case", probe=True), "enabled": True}}
+        if target == "case_single":
+            model = service.selected_case_single_model()
+            return {"target": target, "case_single_model": model, "case_single_models": [model], "case_single_provider": service.model_role_status(model, "case", probe=True)}
         if target == "burst":
-            model = service.selected_burst_model()
-            return {"target": target, "burst_llm_model": model, "burst_llm_models": service.available_burst_models(), "burst_provider": service.model_role_status(model, ["common", "case"], probe=True), "burst_threshold": service.selected_burst_threshold()}
+            model = service.selected_common_turbo_model()
+            return {"target": target, "burst_llm_model": model, "burst_llm_models": [model], "burst_provider": service.model_role_status(model, "common", probe=True), "burst_threshold": service.selected_burst_threshold()}
         if target == "reserve1":
             model = service.selected_reserve1_model()
             return {"target": target, "reserve1_llm_model": model, "reserve1_llm_models": service.configured_common_reserve_models(model), "reserve1_provider": service._status_for_switchable_llm_model(model, probe=False)}
@@ -797,10 +807,10 @@ def dispatch(
             raise MasterPressError("업무집중 지원 대기 임계값을 확인하세요.")
         if common_fallback not in service.available_common_fallback_models():
             raise MasterPressError("공통분석 예비 모델은 확정된 Cloudflare 모델만 사용할 수 있습니다.")
-        if case_fallback not in service.available_case_fallback_models():
-            raise MasterPressError("케이스 판정 예비 모델은 검증된 Gemini 모델만 사용할 수 있습니다.")
-        if burst not in service.available_burst_models():
-            raise MasterPressError("폭주 처리 모델은 확정된 GPT 모델만 사용할 수 있습니다.")
+        if case_fallback != service.selected_case_model2():
+            raise MasterPressError("케이스 모델2는 NVIDIA gpt-oss-120b로 고정됩니다.")
+        if burst != service.selected_common_turbo_model():
+            raise MasterPressError("공통 Turbo는 OpenRouter 단건 모델로 고정됩니다.")
         if burst_threshold < 5 or burst_threshold > 100:
             raise MasterPressError("업무집중 지원 대기 임계값은 5~100건으로 설정하세요.")
         service.store.set_setting("common_fallback_llm_model", common_fallback)

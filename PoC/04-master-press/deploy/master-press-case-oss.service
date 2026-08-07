@@ -1,5 +1,5 @@
 [Unit]
-Description=Master Press retired case Turbo worker (no-op; keep disabled)
+Description=Master Press NVIDIA gpt-oss-120b case worker
 After=network-online.target myservice.service master-press-case.service
 Wants=network-online.target
 
@@ -7,11 +7,12 @@ Wants=network-online.target
 Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
-ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.burst_worker --stage case
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_worker --slot oss
 Restart=always
-RestartSec=10
-Nice=10
-CPUQuota=20%
+RestartSec=5
+TimeoutStopSec=5min
+Nice=5
+CPUQuota=25%
 
 [Install]
 WantedBy=multi-user.target

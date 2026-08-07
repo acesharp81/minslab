@@ -21,13 +21,15 @@ from master_press.press_releases import (
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
 from master_press.provider_quota import confirmed_free_quota_exhaustion, quota_lock_decision
-from master_press.scoring import CloudflareWorkersAIClient, GroqClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
+from master_press.scoring import CloudflareWorkersAIClient, GroqClient, NvidiaNIMClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
 from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
 from master_press.supabase_seed import SupabaseSeed
+from master_press.supabase_reconcile import SupabaseReconciler
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
 from master_press.history_metrics import SupabaseHistoryMetrics
+from master_press_retention_cleanup import adaptive_article_limit
 
 
 def case_payload(index: int = 1) -> dict:
@@ -65,6 +67,77 @@ class StorageTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def _queue_delivery_fixture(self) -> tuple[dict, dict, str]:
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/delivery-lease",
+            "original_url": "https://example.com/delivery-lease",
+            "title": "발송 임대 테스트 기사",
+            "publisher": "example.com",
+            "snippet": "인공지능 행정 서비스",
+        })
+        self.store.save_score(article["id"], case["id"], 1, {
+            "keyword_score": 80, "semantic_score": 80, "llm_score": 80,
+            "final_score": 80, "article_type": "정책·행정", "decision": "send",
+        })
+        recipient_id = "recipient-delivery-lease"
+        with self.store.connect() as connection:
+            connection.execute(
+                "INSERT INTO recipients(id,label,status,created_at,updated_at) VALUES(?,?,'active',?,?)",
+                (recipient_id, "발송 테스트", now_iso(), now_iso()),
+            )
+        self.store.queue_delivery(article["id"], case["id"], recipient_id, now_iso())
+        return article, case, recipient_id
+
+    def test_delivery_claim_is_atomic_across_store_instances(self):
+        self._queue_delivery_fixture()
+        competing = Store(self.store.path, initialize=False)
+        first = self.store.due_deliveries(1, lease_owner="worker-a")
+        second = competing.due_deliveries(1, lease_owner="worker-b")
+        self.assertEqual(len(first), 1)
+        self.assertEqual(second, [])
+        self.assertEqual(first[0]["status"], "sending")
+        self.assertEqual(first[0]["attempts"], 1)
+        self.assertFalse(self.store.finish_delivery(first[0]["id"], True, 200, lease_owner="worker-b"))
+        self.assertTrue(self.store.finish_delivery(first[0]["id"], True, 200, lease_owner="worker-a"))
+        with self.store.connect() as connection:
+            delivery = connection.execute(
+                "SELECT status,attempts FROM deliveries WHERE id=?", (first[0]["id"],),
+            ).fetchone()
+            attempt = connection.execute(
+                "SELECT status,response_code FROM delivery_attempts WHERE delivery_id=?", (first[0]["id"],),
+            ).fetchone()
+        self.assertEqual(dict(delivery), {"status": "sent", "attempts": 1})
+        self.assertEqual(dict(attempt), {"status": "completed", "response_code": 200})
+
+    def test_delivery_dashboard_separates_recovered_attempts_from_final_failures(self):
+        self._queue_delivery_fixture()
+        first = self.store.due_deliveries(1, lease_owner="worker-a")[0]
+        self.assertTrue(self.store.finish_delivery(first["id"], False, 502, "timeout", lease_owner="worker-a"))
+        second = self.store.due_deliveries(1, lease_owner="worker-b")[0]
+        self.assertTrue(self.store.finish_delivery(second["id"], True, 200, lease_owner="worker-b"))
+        dashboard = self.store.pipeline_dashboard()
+        self.assertEqual(dashboard["delivery_errors"]["failed_current"], 0)
+        self.assertEqual(dashboard["delivery_errors"]["failed_total"], 0)
+        self.assertEqual(dashboard["delivery_errors"]["recovered_total"], 1)
+        self.assertEqual(dashboard["delivery_errors"]["attempt_failed_total"], 1)
+        with self.store.connect() as connection:
+            statuses = connection.execute(
+                "SELECT attempt_number,status FROM delivery_attempts ORDER BY attempt_number",
+            ).fetchall()
+        self.assertEqual([tuple(row) for row in statuses], [(1, "failed"), (2, "completed")])
+
+    def test_sent_delivery_closes_orphan_processing_attempt_as_recovered(self):
+        self._queue_delivery_fixture()
+        claimed = self.store.due_deliveries(1, lease_owner="worker-interrupted")[0]
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE deliveries SET status='sent',response_code=200,sent_at=?,updated_at=?,lease_owner='',lease_expires_at=NULL WHERE id=?", (now, now, claimed["id"]))
+        self.store.due_deliveries(1, lease_owner="worker-next")
+        with self.store.connect() as connection:
+            attempt = connection.execute("SELECT status,finished_at FROM delivery_attempts WHERE delivery_id=?", (claimed["id"],)).fetchone()
+        self.assertEqual(attempt["status"], "recovered")
 
     def test_case_proposal_admin_approval_is_visible_and_never_moderated_again(self):
         item = self.store.save_case_proposal({
@@ -132,6 +205,15 @@ class StorageTests(unittest.TestCase):
         self.store.finish_supabase_outbox(events[0]["id"], False, "temporary")
         self.assertEqual(self.store.due_supabase_outbox(10), [])
         self.assertEqual(self.store.supabase_outbox_status()["pending"], 1)
+
+    def test_supabase_reconcile_accepts_the_expected_remote_retention_superset(self):
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test", request_timeout_seconds=3)
+        reconciler = SupabaseReconciler(settings, self.store)
+        with mock.patch.object(reconciler, "_remote_count", return_value=10_000):
+            result = reconciler.run()
+        self.assertEqual(result["status"], "ready")
+        self.assertTrue(all(item["ok"] for item in result["details"].values()))
+        self.assertTrue(all(item["mode"] == "remote_superset" for item in result["details"].values()))
 
     def test_supabase_outbox_does_not_requeue_completed_identical_payload(self):
         self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "동일값"}])
@@ -257,6 +339,12 @@ class StorageTests(unittest.TestCase):
         self.assertIsNone(self.store.get_article(expired["id"]))
         self.assertIsNotNone(self.store.get_article(pending["id"]))
 
+    def test_short_retention_limit_ramps_and_backs_off_by_duration(self):
+        self.assertEqual(adaptive_article_limit(True, 1000), 100)
+        self.assertEqual(adaptive_article_limit(False, 800, 500, 38_000), 800)
+        self.assertEqual(adaptive_article_limit(False, 800, 800, 75_000), 1000)
+        self.assertEqual(adaptive_article_limit(False, 1000, 1000, 121_000), 500)
+
     def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
         organization = self.store.save_organization({"name": "동기화 테스트 기관"})
         case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
@@ -320,7 +408,7 @@ class StorageTests(unittest.TestCase):
         self.assertTrue(result["paused"])
         self.assertEqual(result["reason"], "disabled")
 
-    def test_pipeline_error_total_counts_api_failures_not_job_retries(self):
+    def test_pipeline_error_totals_separate_recovery_from_api_attempt_failure(self):
         article, _ = self.store.upsert_article({
             "canonical_url": "https://example.com/api-error",
             "original_url": "https://example.com/api-error",
@@ -343,11 +431,35 @@ class StorageTests(unittest.TestCase):
             )
         stats = self.store.pipeline_stats()
         self.assertEqual(stats["article_jobs"]["failed_current"], 0)
-        self.assertEqual(stats["article_jobs"]["failed_total"], 1)
+        self.assertEqual(stats["article_jobs"]["failed_total"], 0)
+        self.assertEqual(stats["article_jobs"]["recovered_total"], 1)
+        self.assertEqual(stats["article_jobs"]["api_failed_total"], 1)
 
         reset_after_log = (datetime.now(KST) + timedelta(seconds=1)).isoformat(timespec="seconds")
         self.store.set_setting("pipeline_error_reset_at", reset_after_log)
         self.assertEqual(self.store.pipeline_stats()["article_jobs"]["failed_total"], 0)
+
+    def test_pipeline_error_total_excludes_confirmed_free_quota_exhaustion(self):
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.executemany(
+                """INSERT INTO llm_api_calls(
+                     id,provider,stage,model,status,http_status,duration_ms,error,created_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                [
+                    (
+                        "quota-groq", "groq", "common", "test-model", "failed", 429, 100,
+                        "Rate limit reached for tokens per day (TPD). Please try again in 1h", now,
+                    ),
+                    (
+                        "timeout-cloudflare", "cloudflare", "common", "test-model", "failed", 522, 100,
+                        "upstream timeout", now,
+                    ),
+                ],
+            )
+        stats = self.store.pipeline_stats()
+        self.assertEqual(stats["article_jobs"]["failed_total"], 0)
+        self.assertEqual(stats["article_jobs"]["api_failed_total"], 1)
 
     def test_body_status_separates_recent_and_historical_missing_articles(self):
         recent, _ = self.store.upsert_article({"canonical_url":"https://example.com/recent","original_url":"https://example.com/recent","title":"최근 누락","publisher":"example.com"})
@@ -804,6 +916,239 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(len(claimed), 1)
         self.assertEqual(claimed[0]["provider_lane"], "burst")
 
+    def test_case_bundle_provider_affinity_keeps_seven_as_nvidia_five_plus_two(self):
+        cases = [
+            self.store.save_case({**case_payload(), "name": f"affinity-{index}"})
+            for index in range(7)
+        ]
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/nvidia-seven",
+            "original_url": "https://example.com/nvidia-seven",
+            "title": "NVIDIA 7건 묶음", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        for case in cases:
+            evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+            self.store.queue_case_evaluation(evaluation["id"])
+        first = self.store.next_case_evaluation_batch(
+            5, "nvidia", "oss-worker", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(first), 5)
+        self.assertEqual({item["provider"] for item in first}, {"nvidia"})
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        for job in first:
+            self.store.finish_case_evaluation_job(job["id"], True, 1, lease_owner="oss-worker")
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker-2", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        second = self.store.next_case_evaluation_batch(
+            5, "nvidia", "oss-worker-2", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(second), 2)
+        self.assertEqual({item["provider"] for item in second}, {"nvidia"})
+
+    def test_single_worker_claims_only_unowned_single_article(self):
+        case = self.store.save_case({**case_payload(), "name": "single-only"})
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/single-only",
+            "original_url": "https://example.com/single-only",
+            "title": "단건 전용", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+        self.store.queue_case_evaluation(evaluation["id"])
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE article_analyses SET case_routed_at=? WHERE id=?",
+                (now_iso(), analysis["id"]),
+            )
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        claimed = self.store.next_case_evaluation_batch(
+            1, "openrouter", "single-worker", "case_single",
+            single_unowned_only=True,
+        )
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(claimed[0]["provider"], "openrouter")
+    def test_unavailable_provider_releases_only_idle_case_bundle(self):
+        cases = [
+            self.store.save_case({**case_payload(), "name": f"release-{index}"})
+            for index in range(2)
+        ]
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/release-provider",
+            "original_url": "https://example.com/release-provider",
+            "title": "provider 인계", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        for case in cases:
+            evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+            self.store.queue_case_evaluation(evaluation["id"])
+        claimed = self.store.next_case_evaluation_batch(
+            1, "nvidia", "oss-release", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(self.store.release_pending_case_provider("nvidia"), 0)
+        self.store.finish_case_evaluation_job(
+            claimed[0]["id"], True, 1, lease_owner="oss-release",
+        )
+        self.assertEqual(self.store.release_pending_case_provider("nvidia"), 1)
+        handed_off = self.store.next_case_evaluation_batch(
+            10, "openai", "mini-handoff", "case_mini", allow_unowned_single=True,
+        )
+        self.assertEqual(len(handed_off), 1)
+        self.assertEqual(handed_off[0]["provider"], "openai")
+
+    def test_openai_daily_token_budget_stops_mini_until_utc_reset(self):
+        service = object.__new__(MasterPressService)
+        tokens = {"value": 2449999}
+        observed_limits = []
+
+        def usage(_provider, _since, request_limit=0, token_limit=0, stage=""):
+            observed_limits.append(token_limit)
+            total = tokens["value"]
+            return {"attempts": 1, "completed": 1, "failed": 0, "input_tokens": total, "output_tokens": 0, "tokens": total, "usage_units": 0, "average_seconds": 0, "token_soft_limit": token_limit, "token_remaining": max(0, token_limit - total)}
+
+        service.settings = SimpleNamespace(
+            openai_api_key="test",
+            openai_shadow_model="gpt-5.4-mini",
+            openai_daily_token_soft_limit=2450000,
+        )
+        service.store = SimpleNamespace(
+            provider_usage_since=usage,
+            get_setting=lambda _key, default="": default,
+        )
+        service._utc_day_window_kst = lambda: ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00")
+
+        status = service.openai_status(False)
+        self.assertTrue(status["available"])
+        self.assertEqual(observed_limits[-1], 2450000)
+        self.assertEqual(status["token_remaining"], 1)
+
+        tokens["value"] = 2450000
+        status = service.openai_status(False)
+        self.assertFalse(status["available"])
+        self.assertTrue(status["token_budget_exhausted"])
+        self.assertEqual(status["token_budget_reset_at"], "2026-08-06T09:00:00+09:00")
+
+        released = []
+        service._next_case_stall_recovery_at = float("inf")
+        service.process_next_reanalysis = lambda: None
+        service.selected_case_model2 = lambda: "gpt-5.4-mini"
+        service.store.release_pending_case_provider = lambda provider: released.append(provider)
+        result = service.case_worker_tick(slot="mini")
+        self.assertIsNone(result)
+        self.assertEqual(released, ["openai"])
+
+    def test_mini_yields_fresh_case_jobs_to_available_oss_model1(self):
+        service = object.__new__(MasterPressService)
+        service._next_case_stall_recovery_at = float("inf")
+        service.process_next_reanalysis = lambda: None
+        service.selected_case_model2 = lambda: "gpt-5.4-mini"
+        service.selected_case_model1 = lambda: "openai/gpt-oss-120b"
+        service.selected_case_single_model = lambda: "single-model"
+        service._provider_status = lambda _provider, _model: {"available": True}
+        ready = {"value": False}
+        calls = []
+        service.store = SimpleNamespace(
+            recover_stalled_case_evaluation_jobs=lambda: 0,
+            release_invalid_openrouter_case_bundles=lambda: 0,
+            release_pending_case_provider=lambda _provider: 0,
+            ready_case_evaluation_jobs_older_than=lambda _seconds, provider="": ready["value"],
+        )
+        service.process_next_case_evaluation = (
+            lambda *args, **kwargs: calls.append((args, kwargs)) or {"ok": True}
+        )
+        self.assertIsNone(service.case_worker_tick(slot="mini"))
+        self.assertEqual(calls, [])
+        ready["value"] = True
+        result = service.case_worker_tick(slot="mini")
+        self.assertEqual(result["slot"], "mini")
+        self.assertEqual(calls[-1][0][:3], ("openai", "gpt-5.4-mini", "case_mini"))
+        result = service.case_worker_tick(slot="oss")
+        self.assertEqual(result["slot"], "oss")
+        self.assertEqual(calls[-1][0][:3], ("nvidia", "openai/gpt-oss-120b", "case_oss"))
+
+    def test_nvidia_usage_window_resets_at_utc_midnight(self):
+        service = object.__new__(MasterPressService)
+        observed_since = []
+
+        def usage(_provider, since, request_limit=0, token_limit=0, stage=""):
+            observed_since.append(since)
+            return {"attempts": 0, "completed": 0, "failed": 0, "input_tokens": 0, "output_tokens": 0, "tokens": 0, "usage_units": 0, "average_seconds": 0}
+
+        service.settings = SimpleNamespace(nvidia_api_key="test", nvidia_case_model="openai/gpt-oss-120b")
+        service.store = SimpleNamespace(
+            provider_usage_since=usage,
+            get_setting=lambda _key, default="": default,
+        )
+        service._utc_day_window_kst = lambda: ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00")
+
+        status = service.nvidia_status(False)
+        self.assertEqual(observed_since, ["2026-08-05T09:00:00+09:00"])
+        self.assertEqual(status["period"], "UTC day")
+        self.assertEqual(status["reset_basis"], "UTC 00:00")
+        self.assertEqual(status["reset_at"], "2026-08-06T09:00:00+09:00")
+        self.assertEqual(status["reset_label"], "한국시간 09:00")
+        self.assertEqual(service._provider_usage_window("nvidia"), ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00", "UTC day", "한국시간 09:00"))
+
+    def test_invalid_nvidia_batch_recovers_with_openrouter_single_calls(self):
+        service = object.__new__(MasterPressService)
+        calls = []
+        successes = []
+
+        def evaluate(provider, case, _article, _analysis, model):
+            calls.append((provider, case["id"], model))
+            return {"decision": "low", "analysis_report": {}}
+
+        service.selected_case_single_model = lambda: "google/gemma-4-26b-a4b-it:free"
+        service._provider_status = lambda _provider, _model: {"available": True}
+        service._provider_attempt_allowed = lambda _provider: True
+        service._remember_provider_success = lambda provider: successes.append(provider)
+        service._remember_provider_failure = lambda _provider, _error: None
+        service.scoring = SimpleNamespace(
+            evaluate_case_with_common_provider=evaluate,
+        )
+        cases = [{"id": "case-1"}, {"id": "case-2"}]
+        model, results = service._recover_case_batch_json_with_single(
+            cases, {"id": "article"}, {"id": "analysis"}, "nvidia",
+            json.JSONDecodeError("bad json", "{}", 1),
+        )
+        self.assertEqual(model, "google/gemma-4-26b-a4b-it:free")
+        self.assertEqual(set(results), {"case-1", "case-2"})
+        self.assertEqual([value[0] for value in calls], ["openrouter", "openrouter"])
+        self.assertEqual(successes, ["openrouter", "openrouter"])
+        for value in results.values():
+            report = value["analysis_report"]
+            self.assertEqual(report["batch_fallback_reason"], "batch_json_invalid")
+            self.assertEqual(report["batch_fallback_from_provider"], "nvidia")
+
+    def test_common_turbo_preserves_openrouter_case_reserve(self):
+        service = object.__new__(MasterPressService)
+        usage = {"attempts": 899}
+        service.store = SimpleNamespace(openrouter_usage_today=lambda _limit: usage)
+        service.settings = SimpleNamespace(
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            openrouter_daily_soft_limit=1000,
+            openrouter_case_reserve_calls=100,
+        )
+        service._active_provider_chain = lambda chain: chain
+        self.assertTrue(service.common_turbo_available())
+        usage["attempts"] = 900
+        self.assertFalse(service.common_turbo_available())
+
     def test_press_release_searches_title_department_and_contact_name(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
         timestamp = now_iso()
@@ -1003,6 +1348,7 @@ class StorageTests(unittest.TestCase):
             worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
             groq_common_model="llama-3.1-8b-instant",
             openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            nvidia_case_model="openai/gpt-oss-120b",
             openai_shadow_model="gpt-5.4-mini",
             gemini_model="gemini-3.5-flash-lite",
         )
@@ -1016,7 +1362,12 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
         self.assertEqual(service.available_reserve1_models(), ["llama-3.1-8b-instant"])
         self.assertEqual(service.available_reserve2_models(), ["gpt-5.4-mini"])
-        self.assertEqual(service.available_burst_models(), ["gpt-5.4-mini"])
+        self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
+        self.assertEqual(service.selected_case_model1(), "openai/gpt-oss-120b")
+        self.assertEqual(service.selected_case_model2(), "gpt-5.4-mini")
+        self.assertEqual(service.case_batch_size_for_provider("openai"), 10)
+        self.assertEqual(service.case_batch_size_for_provider("nvidia"), 5)
+        self.assertEqual(service.case_batch_size_for_provider("openrouter"), 1)
         self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
 
     def test_primary_model_switch_releases_common_analysis_retry_wait(self):
@@ -1042,6 +1393,7 @@ class StorageTests(unittest.TestCase):
             worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
             groq_common_model="llama-3.1-8b-instant",
             openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            nvidia_case_model="openai/gpt-oss-120b",
             openai_shadow_model="gpt-5.4-mini",
             gemini_model="gemini-3.5-flash-lite",
         )
@@ -1055,7 +1407,8 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
         self.assertEqual(service.available_common_fallback_models(), ["@cf/meta/llama-3.1-8b-instruct-fast"])
         self.assertEqual(service.available_case_fallback_models(), ["gemini-3.1-flash-lite"])
-        self.assertEqual(service.available_burst_models(), ["gpt-5.4-mini"])
+        self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
+        self.assertEqual(service._provider_for_switchable_llm_model("openai/gpt-oss-120b"), "nvidia")
         self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
 
     def test_only_daily_quota_errors_disable_until_provider_reset(self):
@@ -1507,6 +1860,11 @@ class StorageTests(unittest.TestCase):
 
 
 class ScoringTests(unittest.TestCase):
+    def test_nvidia_batch_reserves_enough_completion_tokens_for_valid_json(self):
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 1140}), 3200)
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 2040}), 4080)
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 3000}), 4096)
+
     def test_fallback_negative_tone_requires_critical_context(self):
         self.assertFalse(fallback_negative_tone("공공기관 책임자와 수상자 등 50명이 참석했다."))
         self.assertFalse(fallback_negative_tone("개선 방안을 발표했다."))

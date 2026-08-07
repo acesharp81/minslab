@@ -1556,6 +1556,106 @@ class OpenAIShadowClient(OpenRouterClient):
         return results
 
 
+class NvidiaNIMClient(OpenRouterClient):
+    """NVIDIA NIM case judge using the OpenAI-compatible chat endpoint."""
+
+    def _record(self, stage: str = "case", **values) -> None:
+        if self.store:
+            self.store.record_llm_api_call(provider="nvidia", stage=stage, **values)
+
+    @staticmethod
+    def _completion_token_limit(options: dict) -> int:
+        requested = int((options or {}).get("num_predict", 2200))
+        return max(3200, min(4096, requested * 2))
+
+    def request(self, path: str, payload: dict) -> dict:
+        api_key = str(getattr(self.settings, "nvidia_api_key", "") or "")
+        if not api_key:
+            raise OpenRouterError("nvidia_api_key_missing", status=401)
+        options = payload.get("options") or {}
+        schema = payload.get("response_schema")
+        model = str(payload.get("model") or getattr(self.settings, "nvidia_case_model", "openai/gpt-oss-120b"))
+        body = {
+            "model": model,
+            "messages": payload.get("messages", []),
+            "stream": False,
+            "temperature": float(options.get("temperature", 0.0)),
+            "max_tokens": self._completion_token_limit(options),
+        }
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": schema}
+        started = time.monotonic()
+        request = urllib.request.Request(
+            f"{str(getattr(self.settings, 'nvidia_base_url', 'https://integrate.api.nvidia.com/v1')).rstrip('/')}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=max(90, self.settings.request_timeout_seconds * 8)) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            usage = data.get("usage") or {}
+            duration_ms = round((time.monotonic() - started) * 1000)
+            self._record(
+                stage="case", model=model, status="completed", duration_ms=duration_ms,
+                http_status=200, request_id=str(data.get("id") or ""),
+                input_tokens=int(usage.get("prompt_tokens") or 0),
+                output_tokens=int(usage.get("completion_tokens") or 0),
+            )
+            return {
+                "message": {"content": str(message.get("content") or "")},
+                "_provider_meta": {
+                    "provider": "nvidia", "stage": "case",
+                    "request_id": str(data.get("id") or ""), "usage": usage,
+                    "finish_reason": str(choice.get("finish_reason") or ""),
+                },
+            }
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode("utf-8", "replace")
+            try:
+                message = str((json.loads(raw).get("error") or {}).get("message") or raw)[:500]
+            except Exception:
+                message = raw[:500] or f"nvidia_http_{error.code}"
+            self._record(stage="case", model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
+            quota = confirmed_free_quota_exhaustion(message, error.code)
+            raised = OpenRouterError(
+                message, status=error.code,
+                retryable=error.code in {408, 429, 500, 502, 503, 504},
+                retry_after=self._retry_at(error.headers, 60), deferred=quota,
+                retry_source=self._retry_source(error.headers),
+            )
+            setattr(raised, "provider", "nvidia")
+            raise raised from error
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            self._record(stage="case", model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raised = OpenRouterError(type(error).__name__, retryable=True)
+            setattr(raised, "provider", "nvidia")
+            raise raised from error
+
+    def key_status(self) -> dict:
+        configured = bool(getattr(self.settings, "nvidia_api_key", ""))
+        return {"connected": configured, "error": "" if configured else "API 키 미설정"}
+
+    def judge_case(self, case: dict, article: dict, common: dict, model: str | None = None) -> dict:
+        result = super().judge_case(case, article, common, model or self.settings.nvidia_case_model)
+        report = result.setdefault("analysis_report", {})
+        report["provider"], report["model"] = "nvidia", model or self.settings.nvidia_case_model
+        return result
+
+    def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
+        results = super().judge_cases(cases, article, common, model or self.settings.nvidia_case_model)
+        for value in results.values():
+            report = value.setdefault("analysis_report", {})
+            report["provider"], report["model"] = "nvidia", model or self.settings.nvidia_case_model
+        return results
+
+
 class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
     """Cloudflare Workers AI reserve model. Requires API token and Account ID."""
     provider_name = "cloudflare"
@@ -1852,6 +1952,7 @@ class RelevanceEngine:
         self.ollama = OllamaClient(self.settings, self.store)
         self.common_llm = GroqClient(self.settings, self.store)
         self.case_llm = OpenRouterClient(self.settings, self.store)
+        self.nvidia_llm = NvidiaNIMClient(self.settings, self.store)
         self.shadow_llm = OpenAIShadowClient(self.settings, self.store)
         self.reserve1_llm = CloudflareWorkersAIClient(self.settings, self.store)
         self.reserve2_llm = GeminiClient(self.settings, self.store)
@@ -1860,6 +1961,8 @@ class RelevanceEngine:
         provider = str(provider or "").lower()
         if provider == "openrouter":
             return self.case_llm
+        if provider == "nvidia":
+            return self.nvidia_llm
         if provider == "cloudflare":
             return self.reserve1_llm
         if provider == "groq":

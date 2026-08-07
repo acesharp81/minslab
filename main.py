@@ -1,8 +1,10 @@
 import asyncio
 import fcntl
+import gzip
 import importlib.util
 import json
 import os
+import re
 import socket
 import sys
 import threading
@@ -57,6 +59,16 @@ MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "
 MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
 MASTER_PRESS_MODULE = None
 MASTER_PRESS_MTIME = None
+NORTH_KOREA_LIGHTS_BASE_PATH = "/poc/north-korea-night-lights/map"
+NORTH_KOREA_LIGHTS_OUTPUT = (
+    Path(__file__).parent
+    / "PoC"
+    / "05-north-korea-night-lights"
+    / "output"
+)
+NORTH_KOREA_LIGHTS_DATA = NORTH_KOREA_LIGHTS_OUTPUT / "data"
+NORTH_KOREA_LIGHTS_PLAYER = Path(__file__).parent / "PoC" / "05-north-korea-night-lights" / "player.html"
+NORTH_KOREA_LIGHTS_TOP3 = NORTH_KOREA_LIGHTS_OUTPUT / "top3_locations.json"
 
 WORKER_LOCK_PATH = Path(__file__).parent / "data" / "master_press_workers.lock"
 WORKER_LOCK_HANDLE = None
@@ -357,7 +369,13 @@ HTML_PAGE = r"""
     .field-inspection-frame-wrap{overflow:hidden;border:1px solid #d8d5ca;border-radius:18px;background:#eef0f8;box-shadow:0 16px 40px rgba(24,28,38,.12)}
     .field-inspection-frame{display:block;width:100%;height:clamp(720px,80vh,1080px);border:0;background:#f7f7fb}
     .field-inspection-policy{padding:12px 15px;border-radius:14px;background:#fff7dc;color:#775b00;font-size:12px;line-height:1.65}
+    .night-lights-timeline{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 15px;border:1px solid #d8d5ca;border-radius:16px;background:#171916;color:#f6f7ef}
+    .night-lights-play{min-width:92px;padding:10px 14px;border:1px solid #dfff56;border-radius:11px;background:#dfff56;color:#171916;font-weight:900;cursor:pointer}.night-lights-play.is-playing{background:transparent;color:#dfff56}
+    .night-lights-city-toggle{display:flex;align-items:center;gap:7px;padding:9px 10px;border:1px solid #51554d;border-radius:10px;color:#e4e7df;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.night-lights-city-toggle input{width:15px;height:15px;margin:0;accent-color:#dfff56;cursor:pointer}
+    .night-lights-list{display:flex;gap:7px;min-width:0;overflow-x:auto;padding:2px;scrollbar-width:thin}.night-lights-month{flex:none;padding:8px 11px;border:1px solid #51554d;border-radius:10px;background:#292c28;color:#c8ccc3;font:700 11px ui-monospace,monospace;cursor:pointer}.night-lights-month.partial{border-color:#c28d37;color:#8b5e12}.night-lights-month.sparse{border-color:#b35c57;color:#9a3d38}.night-lights-month.active{border-color:#dfff56;background:#dfff56;color:#171916}
+    .night-lights-current{min-width:90px;text-align:right}.night-lights-current b{display:block;color:#dfff56;font:800 13px ui-monospace,monospace}.night-lights-current span{display:block;margin-top:3px;color:#9da298;font-size:10px}
     @media(max-width:800px){.field-inspection-toolbar{align-items:flex-start;flex-direction:column}.field-inspection-open{width:100%;text-align:center}.field-inspection-frame{height:780px}}
+    @media(max-width:680px){.night-lights-timeline{grid-template-columns:auto auto 1fr}.night-lights-list{grid-column:1/-1;grid-row:2}.night-lights-current{min-width:0}}
     .safe-agent-lab{display:grid;gap:18px}
     .safe-agent-console{display:grid;grid-template-columns:1fr;gap:16px}
     .safe-agent-map{width:100%;height:300px;min-height:300px;border:1px solid #d8d4ca;border-radius:16px;background:#dfe8df;position:relative;overflow:hidden;z-index:0}
@@ -1000,6 +1018,21 @@ HTML_PAGE = r"""
       frame.addEventListener("load",()=>{status.textContent="AI 언론동향 비서 연결 완료 · 공개 대시보드와 관리자 설정을 이용할 수 있습니다."},{once:true});
     }
 
+    let northKoreaPlaybackTimer=null;
+    function renderNorthKoreaNightLightsLab(p){
+      projectDefaultView.classList.add("hidden");
+      projectLab.classList.add("active");
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>05 · 북한 VIIRS 야간조명 3D 지도</strong><span id="northKoreaLightsStatus">사용 가능한 북한 월별 데이터를 확인하는 중입니다.</span></div><a class="field-inspection-open" id="northKoreaLightsOpen" href="/poc/north-korea-night-lights/map" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="night-lights-timeline"><button class="night-lights-play" id="northKoreaLightsPlay" type="button">▶ 재생</button><label class="night-lights-city-toggle"><input id="northKoreaLightsCityLabels" type="checkbox">도시 이름 표시</label><div class="night-lights-list" id="northKoreaLightsList" aria-label="월별 야간조명 지도"></div><div class="night-lights-current"><b id="northKoreaLightsCurrent">--</b><span>1.5초 / 장 · 무한 반복</span></div></div><div class="field-inspection-policy">북한 경계만 · 약 463.83m 격자 · cf_cvg &gt; 0 · 막대 높이 log1p(avg_rad) · 회전·확대·격자별 툴팁 지원</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="northKoreaLightsFrame" src="/poc/north-korea-night-lights/map?embed=1" title="북한 VIIRS 야간조명 3D 지도" loading="eager"></iframe></div></section>`;
+      const frame=document.getElementById("northKoreaLightsFrame"),status=document.getElementById("northKoreaLightsStatus"),play=document.getElementById("northKoreaLightsPlay"),cityLabels=document.getElementById("northKoreaLightsCityLabels"),list=document.getElementById("northKoreaLightsList"),current=document.getElementById("northKoreaLightsCurrent");
+      let maps=[],activeIndex=0,playing=false;
+      function selectMap(index){if(!maps.length)return;activeIndex=(index+maps.length)%maps.length;const item=maps[activeIndex];list.querySelectorAll("button").forEach((button,i)=>button.classList.toggle("active",i===activeIndex));list.querySelector(".active")?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});current.textContent=item.month;frame.contentWindow?.postMessage({type:"north-korea-lights-month",month:item.month},location.origin);status.textContent=`${item.month} 북한 지도를 선택했습니다.`}
+      function stopPlayback(){playing=false;play.classList.remove("is-playing");play.textContent="▶ 재생";if(northKoreaPlaybackTimer){clearInterval(northKoreaPlaybackTimer);northKoreaPlaybackTimer=null}}
+      play.onclick=()=>{if(playing){stopPlayback();return}if(!maps.length)return;playing=true;play.classList.add("is-playing");play.textContent="■ 정지";northKoreaPlaybackTimer=setInterval(()=>selectMap(activeIndex+1),1500)};
+      cityLabels.onchange=()=>frame.contentWindow?.postMessage({type:"north-korea-lights-city-labels",visible:cityLabels.checked},location.origin);
+      frame.addEventListener("load",()=>{frame.contentWindow?.postMessage({type:"north-korea-lights-city-labels",visible:cityLabels.checked},location.origin);if(maps.length)selectMap(activeIndex)});
+      fetch("/api/poc/north-korea-night-lights/maps",{cache:"no-store"}).then(response=>response.json()).then(data=>{maps=data.maps||[];if(!maps.length)throw new Error("생성된 북한 월별 데이터가 없습니다.");list.innerHTML=maps.map((item,index)=>`<button class="night-lights-month ${item.coverage_status||''}" type="button" data-index="${index}" title="유효 관측 격자 ${Number(item.count||0).toLocaleString()}개 · 기준 대비 ${item.coverage_pct}%">${escapeProjectHtml(item.month)}${item.coverage_status==='full'?'':' ◐'}</button>`).join("");list.onclick=event=>{const button=event.target.closest("[data-index]");if(button){stopPlayback();selectMap(Number(button.dataset.index))}};selectMap(Math.max(0,maps.findIndex(item=>item.month===data.default_month)));status.textContent=`북한 한정 ${maps.length}개월 · ◐ 표시는 관측 범위가 좁은 월입니다.`}).catch(error=>{stopPlayback();status.textContent=`시계열 목록 조회 실패: ${error.message}`;play.disabled=true});
+    }
+
     function renderMultiAgentHarnessLab(p){
       projectDefaultView.classList.add("hidden");
       projectLab.classList.add("active");
@@ -1050,6 +1083,7 @@ HTML_PAGE = r"""
       projectList.innerHTML=c.projects.map(p=>`<button class="project-button" data-id="${escapeProjectHtml(p.id)}"><strong>${escapeProjectHtml(p.no)}. ${escapeProjectHtml(p.title)}</strong><small>${escapeProjectHtml(p.date)}</small></button>`).join('');
     }
     function renderProject(id,page=currentArchivePage){
+      if(northKoreaPlaybackTimer){clearInterval(northKoreaPlaybackTimer);northKoreaPlaybackTimer=null}
       const list=catalog(page).projects;
       if(!list.length){
         currentProjectIds[page]='';projectMeta.innerHTML='';projectTitle.textContent='아직 등록된 프로젝트가 없습니다.';projectSummary.textContent='이 컬렉션 폴더에 project.json을 추가하면 같은 형식으로 표시됩니다.';
@@ -1072,6 +1106,8 @@ HTML_PAGE = r"""
         renderFieldInspectionLab(p);
       }else if(p.id==='master-press'){
         renderMasterPressLab(p);
+      }else if(p.id==='north-korea-night-lights'){
+        renderNorthKoreaNightLightsLab(p);
       }else if(p.id==='mois-kms'){
         renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
@@ -1903,6 +1939,86 @@ def run_report_draft(payload):
     return load_report_draft_module().generate(payload)
 
 
+async def stream_html_file(send, file_path, method, cache_control=b"public, max-age=3600"):
+    """대용량 정적 HTML을 프로세스 메모리에 통째로 올리지 않고 전송한다."""
+    if not file_path.is_file():
+        body = "PoC 5 지도가 아직 생성되지 않았습니다. README의 생성 절차를 실행하세요.".encode("utf-8")
+        await send({
+            "type": "http.response.start",
+            "status": 404,
+            "headers": [
+                (b"content-type", b"text/plain; charset=utf-8"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+            ],
+        })
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
+        return
+
+    file_size = file_path.stat().st_size
+    await send({
+        "type": "http.response.start",
+        "status": 200,
+        "headers": [
+            (b"content-type", b"text/html; charset=utf-8"),
+            (b"content-length", str(file_size).encode("ascii")),
+            (b"cache-control", cache_control),
+            (b"x-content-type-options", b"nosniff"),
+            (b"x-frame-options", b"SAMEORIGIN"),
+            (b"referrer-policy", b"same-origin"),
+        ],
+    })
+    if method == "HEAD":
+        await send({"type": "http.response.body", "body": b""})
+        return
+
+    with file_path.open("rb") as source:
+        while True:
+            chunk = await asyncio.to_thread(source.read, 1024 * 1024)
+            if not chunk:
+                break
+            await send({"type": "http.response.body", "body": chunk, "more_body": True})
+    await send({"type": "http.response.body", "body": b"", "more_body": False})
+
+
+def north_korea_light_maps():
+    """생성된 북한 한정 YYYY-MM 압축 데이터만 안전한 공개 목록으로 반환한다."""
+    maps = []
+    top3_by_month = {}
+    try:
+        top3_by_month = json.loads(NORTH_KOREA_LIGHTS_TOP3.read_text(encoding="utf-8")).get("months", {})
+    except (OSError, json.JSONDecodeError, AttributeError):
+        pass
+    for file_path in sorted(NORTH_KOREA_LIGHTS_DATA.glob("north_korea_viirs_????-??.json.gz")):
+        month = file_path.name.removeprefix("north_korea_viirs_").removesuffix(".json.gz")
+        try:
+            datetime.strptime(month, "%Y-%m")
+        except ValueError:
+            continue
+        count = 0
+        try:
+            with gzip.open(file_path, "rb") as stream:
+                header = stream.read(4096)
+            match = re.search(rb'"count":(\d+)', header)
+            count = int(match.group(1)) if match else 0
+        except (OSError, EOFError, ValueError):
+            continue
+        maps.append({
+            "month": month,
+            "data_url": f"/api/poc/north-korea-night-lights/data/{month}",
+            "size_bytes": file_path.stat().st_size,
+            "count": count,
+            "top3": top3_by_month.get(month, []),
+            "path": file_path,
+        })
+    maximum_count = max((item["count"] for item in maps), default=0)
+    for item in maps:
+        ratio = item["count"] / maximum_count if maximum_count else 0.0
+        item["coverage_pct"] = round(ratio * 100, 1)
+        item["coverage_status"] = "full" if ratio >= 0.9 else "partial" if ratio >= 0.5 else "sparse"
+    return maps
+
+
 async def app(scope, receive, send):
     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
     if scope["type"] == "lifespan":
@@ -1971,6 +2087,56 @@ async def app(scope, receive, send):
             )
 
     send = monitored_send
+
+    data_base_path = "/api/poc/north-korea-night-lights/data/"
+    if path.startswith(data_base_path) and method in {"GET", "HEAD"}:
+        requested_month = path.removeprefix(data_base_path).rstrip("/")
+        selected = next((item for item in north_korea_light_maps() if item["month"] == requested_month), None)
+        if not selected:
+            await stream_html_file(send, NORTH_KOREA_LIGHTS_DATA / "missing.json.gz", method)
+            return
+        file_path = selected["path"]
+        file_size = file_path.stat().st_size
+        await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"application/json; charset=utf-8"), (b"content-encoding", b"gzip"), (b"content-length", str(file_size).encode("ascii")), (b"cache-control", b"public, max-age=31536000, immutable"), (b"x-content-type-options", b"nosniff")]})
+        if method == "HEAD":
+            await send({"type": "http.response.body", "body": b""})
+            return
+        with file_path.open("rb") as source:
+            while True:
+                chunk = await asyncio.to_thread(source.read, 1024 * 1024)
+                if not chunk:
+                    break
+                await send({"type": "http.response.body", "body": chunk, "more_body": True})
+        await send({"type": "http.response.body", "body": b"", "more_body": False})
+        return
+
+    if path == "/api/poc/north-korea-night-lights/maps" and method in {"GET", "HEAD"}:
+        maps = north_korea_light_maps()
+        payload = {
+            "maps": [{key: value for key, value in item.items() if key != "path"} for item in maps],
+            "default_month": maps[-1]["month"] if maps else None,
+            "interval_ms": 1500,
+            "loop": True,
+            "coverage_summary": {
+                status_name: sum(item["coverage_status"] == status_name for item in maps)
+                for status_name in ("full", "partial", "sparse")
+            },
+        }
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store")]})
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
+        return
+
+    map_path = path.rstrip("/")
+    if map_path == NORTH_KOREA_LIGHTS_BASE_PATH and method in {"GET", "HEAD"}:
+        await stream_html_file(send, NORTH_KOREA_LIGHTS_PLAYER, method, cache_control=b"no-cache")
+        return
+    if map_path.startswith(f"{NORTH_KOREA_LIGHTS_BASE_PATH}/") and method in {"GET", "HEAD"}:
+        requested_month = map_path.removeprefix(f"{NORTH_KOREA_LIGHTS_BASE_PATH}/")
+        legacy_path = NORTH_KOREA_LIGHTS_OUTPUT / f"north_korea_viirs_{requested_month}.html"
+        await stream_html_file(send, legacy_path, method)
+        return
+
     status = 200
     extra_headers = []
 

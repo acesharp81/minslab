@@ -26,6 +26,7 @@ from .supabase_mirror import SupabaseMirror
 COLLECTION_LOCK = threading.Lock()
 COMMON_LLM_LOCK = threading.Lock()
 LOCAL_EMBEDDING_LOCK = threading.Lock()
+CASE_MODEL1_PRIORITY_SECONDS = 5
 SHADOW_CASE_SEMAPHORE = threading.BoundedSemaphore(1)
 REMOTE_CASE_SEMAPHORE = threading.BoundedSemaphore(2)
 DELIVERY_LOCK = threading.Lock()
@@ -266,6 +267,23 @@ class MasterPressService:
         default = getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free")
         return self.store.get_setting("case_llm_model", default)
 
+    def selected_case_model1(self) -> str:
+        """RPM-limited NVIDIA primary worker: provider-affine chunks of five."""
+        return str(getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "openai/gpt-oss-120b")
+
+    def selected_case_model2(self) -> str:
+        """Token-budgeted OpenAI secondary worker: up to ten cases per request."""
+        return str(getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+
+    def selected_case_single_model(self) -> str:
+        return str(getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or "google/gemma-4-26b-a4b-it:free")
+
+    def selected_common_turbo_model(self) -> str:
+        return self.selected_case_single_model()
+
+    def case_batch_size_for_provider(self, provider: str) -> int:
+        return {"openai": 10, "nvidia": 5, "openrouter": 1}.get(str(provider or "").lower(), self.selected_case_batch_size())
+
     def selected_common_fallback_model(self) -> str:
         return self.store.get_setting("common_fallback_llm_model", "@cf/meta/llama-3.1-8b-instruct-fast")
 
@@ -313,10 +331,21 @@ class MasterPressService:
 
     def shadow_status(self) -> dict:
         status = self.shadow_cases.status(self.shadow_daily_limit())
+        provider_status = self.openai_status(False)
         status["enabled"] = self.shadow_enabled()
-        status["available"] = bool(getattr(self.settings, "openai_api_key", "") and getattr(self.settings, "openai_shadow_model", ""))
+        status["available"] = bool(
+            getattr(self.settings, "openai_api_key", "")
+            and getattr(self.settings, "openai_shadow_model", "")
+            and provider_status.get("available")
+        )
         status["model"] = str(getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        status["token_soft_limit"] = int(provider_status.get("token_soft_limit") or 0)
+        status["token_remaining"] = int(provider_status.get("token_remaining") or 0)
+        status["token_budget_exhausted"] = bool(provider_status.get("token_budget_exhausted"))
+        status["token_budget_reset_at"] = str(provider_status.get("token_budget_reset_at") or "")
         status["state"] = "running" if status["enabled"] and status["available"] else ("disabled" if not status["enabled"] else "key_missing")
+        if status["enabled"] and status["token_budget_exhausted"]:
+            status["state"] = "token_budget_wait"
         return status
 
 
@@ -338,7 +367,7 @@ class MasterPressService:
         return self.available_common_llm_models()
 
     def available_case_llm_models(self) -> list[str]:
-        return ["google/gemma-4-26b-a4b-it:free"]
+        return [self.selected_case_model1(), self.selected_case_model2(), self.selected_case_single_model()]
 
     def available_reserve1_models(self) -> list[str]:
         return ["llama-3.1-8b-instant"]
@@ -353,7 +382,7 @@ class MasterPressService:
         return ["gemini-3.1-flash-lite"]
 
     def available_burst_models(self) -> list[str]:
-        return ["gpt-5.4-mini"]
+        return [self.selected_common_turbo_model()]
 
     def available_embedding_models(self) -> list[str]:
         model = self.selected_embedding_model()
@@ -365,6 +394,8 @@ class MasterPressService:
             return ""
         if model == getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or model.startswith("@cf/"):
             return "cloudflare"
+        if model == getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "gpt-oss-120b" in model:
+            return "nvidia"
         if model == getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or model.endswith(":free"):
             return "openrouter"
         if model == getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant") or model in {"llama-3.1-8b-instant"}:
@@ -381,6 +412,8 @@ class MasterPressService:
             status = self.cloudflare_status(probe)
         elif provider == "openrouter":
             status = self.openrouter_status(probe)
+        elif provider == "nvidia":
+            status = self.nvidia_status(probe)
         elif provider == "groq":
             status = self.groq_status(probe)
         elif provider == "gemini":
@@ -459,18 +492,31 @@ class MasterPressService:
         if stage == "common":
             return bool(self._common_provider_chain())
         if stage == "case":
-            return bool(self._remote_provider_chain(include_openrouter=True))
+            return any(self._provider_status(provider, model).get("available") for provider, model in (
+                ("nvidia", self.selected_case_model1()),
+                ("openai", self.selected_case_model2()),
+                ("openrouter", self.selected_case_single_model()),
+            ))
         return False
 
     def burst_provider_available(self) -> bool:
-        model = self.selected_burst_model()
-        provider = self._provider_for_switchable_llm_model(model)
-        return bool(self._active_provider_chain([(provider, model)]))
+        return self.common_turbo_available()
+
+    def common_turbo_available(self) -> bool:
+        model = self.selected_common_turbo_model()
+        if not self._active_provider_chain([("openrouter", model)]):
+            return False
+        limit = int(getattr(self.settings, "openrouter_daily_soft_limit", 1000) or 1000)
+        reserve = min(limit - 1, int(getattr(self.settings, "openrouter_case_reserve_calls", 100) or 100))
+        usage = self.store.openrouter_usage_today(limit)
+        return int(usage.get("attempts") or 0) < max(0, limit - reserve)
 
     def _provider_status(self, provider: str, model: str = "") -> dict:
         """Read local provider availability without issuing a remote probe."""
         if provider == "openrouter":
             status = self.openrouter_status(False)
+        elif provider == "nvidia":
+            status = self.nvidia_status(False)
         elif provider == "cloudflare":
             status = self.cloudflare_status(False)
         elif provider == "groq":
@@ -537,7 +583,18 @@ class MasterPressService:
         since, reset_at = self._utc_day_window_kst()
         usage = self.store.provider_usage_since("openrouter", since)
         status = self.scoring.case_llm.key_status() if probe else {"connected": bool(self.settings.openrouter_api_key)}
-        result = {**status, **usage, "model": self.selected_case_llm_model(), "provider": "openrouter", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
+        result = {**status, **usage, "model": self.selected_case_single_model(), "provider": "openrouter", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
+        return self._attach_provider_guard(result)
+
+    def nvidia_status(self, probe: bool = False) -> dict:
+        since, reset_at = self._utc_day_window_kst()
+        usage = self.store.provider_usage_since("nvidia", since)
+        status = self.scoring.nvidia_llm.key_status() if probe else {
+            "connected": bool(getattr(self.settings, "nvidia_api_key", ""))
+        }
+        result = {**status, **usage, "model": self.selected_case_model1(), "provider": "nvidia",
+                  "period": "UTC day", "reset_basis": "UTC 00:00",
+                  "reset_at": reset_at, "reset_label": "한국시간 09:00"}
         return self._attach_provider_guard(result)
 
     def cloudflare_status(self, probe: bool = False) -> dict:
@@ -565,11 +622,18 @@ class MasterPressService:
 
     def openai_status(self, probe: bool = False) -> dict:
         since, reset_at = self._utc_day_window_kst()
-        usage = self.store.provider_usage_since("openai", since)
+        token_limit = int(getattr(self.settings, "openai_daily_token_soft_limit", 2450000) or 2450000)
+        usage = self.store.provider_usage_since("openai", since, token_limit=token_limit)
         status = self.scoring.shadow_llm.key_status() if probe else {"connected": bool(getattr(self.settings, "openai_api_key", ""))}
         result = {**status, **usage, "model": getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"),
                   "provider": "openai", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
-        return self._attach_provider_guard(result)
+        result = self._attach_provider_guard(result)
+        result["token_budget_exhausted"] = bool(token_limit and int(result.get("tokens") or 0) >= token_limit)
+        result["token_budget_reset_at"] = reset_at
+        if result["token_budget_exhausted"]:
+            result["available"] = False
+            result["state_label"] = "Mini 일일 토큰 예산 소진 · OSS 처리 중"
+        return result
 
     def ollama_embedding_status(self, probe: bool = False) -> dict:
         selected = self.selected_embedding_model()
@@ -616,7 +680,7 @@ class MasterPressService:
 
     def _provider_usage_window(self, provider: str) -> tuple[str, str, str, str]:
         provider = str(provider or "").strip().lower()
-        if provider in {"cloudflare", "openrouter", "openai"}:
+        if provider in {"cloudflare", "openrouter", "openai", "nvidia"}:
             start, reset = self._utc_day_window_kst()
             return start, reset, "UTC day", "한국시간 09:00"
         if provider == "gemini":
@@ -871,15 +935,14 @@ class MasterPressService:
     def pipeline_provider_status(self) -> dict:
         burst_start_threshold = self.selected_burst_threshold()
         burst_stop_threshold = self.selected_burst_stop_threshold()
-        common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1}
-        common_fallback = self._status_for_switchable_llm_model(self.selected_common_fallback_model(), False)
-        case_fallback = self._status_for_switchable_llm_model(self.selected_case_fallback_model(), False)
-        case_fallback["enabled"] = self.case_fallback_enabled()
-        if not case_fallback["enabled"]:
-            case_fallback["available"] = False
-            case_fallback["state_label"] = "카나리 품질 기준 미달 · 운영 폴백 비활성"
-        burst = self._status_for_switchable_llm_model(self.selected_burst_model(), False)
-        case = {**self.openrouter_status(False), "concurrency": 1, "burst_concurrency": 1, "burst_threshold": burst_start_threshold, "batch_size": self.selected_case_batch_size()}
+        common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1, "slot": "model1"}
+        common_fallback = {**self._status_for_switchable_llm_model(self.selected_common_fallback_model(), False), "concurrency": 1, "slot": "model2"}
+        case = {**self.nvidia_status(False), "concurrency": 1, "batch_size": 5, "slot": "model1", "worker_slot": "oss"}
+        case_fallback = {**self.openai_status(False), "concurrency": 1, "batch_size": 10, "slot": "model2", "worker_slot": "mini", "enabled": True}
+        case_single = {**self.openrouter_status(False), "concurrency": 1, "batch_size": 1, "slot": "single"}
+        burst = {**self.openrouter_status(False), "model": self.selected_common_turbo_model(),
+                 "available": self.common_turbo_available(), "stage": "common",
+                 "burst_threshold": burst_start_threshold}
         primary_unavailable = not bool(common.get("available"))
         if primary_unavailable:
             fallback = next((item for item in (common_fallback,) if item.get("available")), {})
@@ -892,20 +955,20 @@ class MasterPressService:
                 common["state_label"] = f"{fallback.get('provider','예비')} 예비 사용 중" if fallback else "공통분석 초기화 대기"
         chain_item = lambda item: {key: value for key, value in item.items() if key != "chain"}
         common["chain"] = [chain_item(common), chain_item(common_fallback)]
-        temporary_waiting = any(item.get("temporarily_paused") for item in (common, case, common_fallback, case_fallback, burst))
-        case["chain"] = [chain_item(case), chain_item(case_fallback)]
+        temporary_waiting = any(item.get("temporarily_paused") for item in (common, case, common_fallback, case_fallback, case_single, burst))
+        case["chain"] = [chain_item(case), chain_item(case_fallback), chain_item(case_single)]
         common_available = bool(common.get("available")) or bool(common_fallback.get("available"))
-        case_available = bool(case.get("available")) or bool(case_fallback.get("available"))
+        case_available = bool(case.get("available")) or bool(case_fallback.get("available")) or bool(case_single.get("available"))
         burst_available = bool(burst.get("available"))
         common_operational = common_available or burst_available
-        case_operational = case_available or burst_available
+        case_operational = case_available
         providers_waiting = not (common_operational and case_operational)
         # A ten-minute retry is a live, recoverable state, never an end-of-day shutdown.
         halted = bool(providers_waiting and not temporary_waiting)
         operation = {
             "halted": halted,
             "waiting": bool(providers_waiting),
-            "message": ("기본 모델 재시도 대기 · 예비 체인을 10분 뒤 다시 확인합니다." if temporary_waiting else "영업 종료 · 기본·예비·GPT Turbo가 모두 소진되었습니다. 가장 이른 공급자 초기화 후 재개합니다.") if providers_waiting else "",
+            "message": ("일시 중단된 모델을 10분 뒤 다시 확인합니다." if temporary_waiting else "사용 가능한 병렬 분석 모델이 없습니다. 가장 이른 공급자 초기화 후 재개합니다.") if providers_waiting else "",
             "retry_after": min([value for value in [common.get("temporary_until"), common.get("reset_at"), case.get("temporary_until"), case.get("reset_at"), common_fallback.get("temporary_until"), common_fallback.get("reset_at"), case_fallback.get("temporary_until"), case_fallback.get("reset_at"), burst.get("temporary_until"), burst.get("reset_at")] if value] or [self._next_kst_midnight_iso()]) if providers_waiting else "",
             "reason": ("temporary_provider_retry" if temporary_waiting else "all_llm_providers_exhausted") if providers_waiting else "",
         }
@@ -918,18 +981,14 @@ class MasterPressService:
         recent_burst_start = (datetime.now(KST) - timedelta(minutes=2)).isoformat(timespec="seconds")
         with self.store.connect() as connection:
             recent_common_burst = connection.execute(
-                "SELECT 1 FROM article_analysis_jobs WHERE provider_lane='burst' "
+                "SELECT 1 FROM article_analysis_jobs WHERE provider_lane='turbo' "
                 "AND COALESCE(finished_at,started_at,queued_at)>=? LIMIT 1", (recent_burst_start,),
             ).fetchone()
-            recent_case_burst = connection.execute(
-                "SELECT 1 FROM case_evaluation_jobs WHERE provider_lane='burst' "
-                "AND COALESCE(finished_at,started_at,queued_at)>=? LIMIT 1", (recent_burst_start,),
-            ).fetchone()
-        common_turbo = burst_available and common_pending > 0 and (not common_available or common_pending >= burst_start_threshold or (common_pending > burst_stop_threshold and bool(recent_common_burst)))
-        case_turbo = burst_available and case_pending_bundles > 0 and (not case_available or case_pending_bundles >= burst_start_threshold or (case_pending_bundles > burst_stop_threshold and bool(recent_case_burst)))
+        common_turbo = burst_available and common_pending >= burst_start_threshold
+        case_turbo = False
         return {
             "common": common, "case": case,
-            "common_fallback": common_fallback, "case_fallback": case_fallback,
+            "common_fallback": common_fallback, "case_fallback": case_fallback, "case_single": case_single,
             "burst": burst,
             "queues": {
                 "common_pending": common_pending,
@@ -1214,6 +1273,14 @@ class MasterPressService:
                         self.selected_common_llm_model(),
                     )
                 except json.JSONDecodeError as error:
+                    if forced_provider:
+                        retry_after = now_iso()
+                        self.store.finish_article_analysis_job(
+                            job["id"], False, round((time.monotonic() - started) * 1000),
+                            str(error), retryable=True, retry_after=retry_after,
+                            keep_pending=True, lease_owner=lease_owner,
+                        )
+                        return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "retry_after": retry_after, "handoff": True}
                     if int(job.get("attempts") or 0) < 1:
                         duration = round((time.monotonic() - started) * 1000)
                         self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, lease_owner=lease_owner)
@@ -1233,7 +1300,9 @@ class MasterPressService:
                 duration = round((time.monotonic() - started) * 1000)
                 provider = str(getattr(error, "provider", provider) or provider)
                 lock_until = self._remember_provider_failure(provider, error)
-                retry_after = lock_until or getattr(error, "retry_after", "") or self._next_provider_retry([provider])
+                retry_after = now_iso() if forced_provider else (
+                    lock_until or getattr(error, "retry_after", "") or self._next_provider_retry([provider])
+                )
                 defer = bool(getattr(error, "deferred", False) or self._is_provider_quota_error(error))
                 if defer or (getattr(error, "retryable", False) and int(job.get("attempts") or 0) < 2):
                     self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=defer, lease_owner=lease_owner)
@@ -1314,16 +1383,48 @@ class MasterPressService:
         finally:
             SHADOW_CASE_SEMAPHORE.release()
 
+    def _recover_case_batch_json_with_single(
+        self, cases: list[dict], article: dict, analysis: dict,
+        failed_provider: str, batch_error: Exception,
+    ) -> tuple[str, dict[str, dict]]:
+        model = self.selected_case_single_model()
+        if not self._provider_status("openrouter", model).get("available"):
+            return model, {}
+        results: dict[str, dict] = {}
+        for case in cases:
+            if not self._provider_attempt_allowed("openrouter"):
+                break
+            try:
+                result = self.scoring.evaluate_case_with_common_provider(
+                    "openrouter", case, article, analysis, model,
+                )
+            except OpenRouterError as error:
+                self._remember_provider_failure("openrouter", error)
+                break
+            except (json.JSONDecodeError, ValueError, TypeError):
+                break
+            report = result.setdefault("analysis_report", {})
+            report["batch_fallback_reason"] = "batch_json_invalid"
+            report["batch_fallback_from_provider"] = failed_provider
+            report["batch_fallback_error"] = str(batch_error)[:200]
+            results[str(case["id"])] = result
+            self._remember_provider_success("openrouter")
+        return model, results
+
     def process_next_case_evaluation(self, forced_provider: str = "", forced_model: str = "",
-                                     provider_lane: str = "primary") -> dict | None:
+                                     provider_lane: str = "primary", batch_size: int | None = None,
+                                     single_unowned_only: bool = False,
+                                     allow_unowned_single: bool = True) -> dict | None:
         if not REMOTE_CASE_SEMAPHORE.acquire(blocking=False):
             return None
         try:
             lease_owner = self._lease_owner()
             claim_provider = forced_provider or "openrouter"
             jobs = self.store.next_case_evaluation_batch(
-                self.selected_case_batch_size(), claim_provider,
+                batch_size or self.case_batch_size_for_provider(claim_provider), claim_provider,
                 lease_owner=lease_owner, provider_lane=provider_lane,
+                single_unowned_only=single_unowned_only,
+                allow_unowned_single=allow_unowned_single,
             )
             if not jobs:
                 return None
@@ -1368,42 +1469,81 @@ class MasterPressService:
                 cases = [item[2] for item in prepared]
                 if forced_provider and forced_model:
                     if not self._provider_attempt_allowed(forced_provider):
-                        retry_after = self._next_provider_retry([forced_provider])
+                        retry_after = now_iso()
                         for job, _evaluation, _case in prepared:
                             self.store.finish_case_evaluation_job(
                                 job["id"], False, 0, "provider_quota_locked", retryable=True,
                                 retry_after=retry_after, keep_pending=True, lease_owner=lease_owner,
                             )
-                        return {"id": batch_id, "status": "pending", "stage": "case_batch", "provider": forced_provider, "retry_after": retry_after, "counts": counts}
-                    results = self.scoring.evaluate_cases_with_common_provider(
-                        forced_provider, cases, article, analysis, forced_model,
-                    )
-                    self._remember_provider_success(forced_provider)
+                        article_analysis_id = str(jobs[0].get("article_analysis_id") or "")
+                        if article_analysis_id:
+                            self.store.release_case_bundle_provider(article_analysis_id, forced_provider)
+                        return {"id": batch_id, "status": "pending", "stage": "case_batch", "provider": forced_provider, "retry_after": retry_after, "counts": counts, "handoff": True}
+                    try:
+                        results = self.scoring.evaluate_cases_with_common_provider(
+                            forced_provider, cases, article, analysis, forced_model,
+                        )
+                    except json.JSONDecodeError as batch_error:
+                        if forced_provider == "openrouter":
+                            raise
+                        case_model, results = self._recover_case_batch_json_with_single(
+                            cases, article, analysis, forced_provider, batch_error,
+                        )
+                        if not results:
+                            raise
+                        provider = "openrouter"
+                    else:
+                        self._remember_provider_success(forced_provider)
                 else:
                     provider, case_model, results = self._evaluate_cases_with_provider_chain(cases, article, analysis)
                 should_send = False
                 for job, evaluation, case in prepared:
                     result = results.get(str(case["id"]))
+                    result_model = case_model
                     if not result:
+                        single_model = self.selected_case_single_model()
+                        if not self._provider_attempt_allowed("openrouter"):
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                "batch_result_missing", retryable=True, lease_owner=lease_owner,
+                            )
+                            counts["missing"] += 1
+                            continue
                         try:
                             if hasattr(self.scoring, "evaluate_case_with_common_provider"):
-                                result = self.scoring.evaluate_case_with_common_provider(provider, case, article, analysis, case_model)
+                                result = self.scoring.evaluate_case_with_common_provider(
+                                    "openrouter", case, article, analysis, single_model,
+                                )
                             else:
-                                result = self.scoring.evaluate_case_with_common(case, article, analysis, case_model)
-                            result.setdefault("analysis_report", {})["batch_fallback_reason"] = "batch_result_missing"
-                        except OpenRouterError:
-                            self.store.finish_case_evaluation_job(job["id"], False, round((time.monotonic() - started) * 1000), "batch_result_missing", retryable=True, lease_owner=lease_owner)
+                                result = self.scoring.evaluate_case_with_common(
+                                    case, article, analysis, single_model,
+                                )
+                            self._remember_provider_success("openrouter")
+                            result_model = single_model
+                            report = result.setdefault("analysis_report", {})
+                            report["batch_fallback_reason"] = "batch_result_missing"
+                            report["batch_fallback_from_provider"] = provider
+                        except OpenRouterError as error:
+                            self._remember_provider_failure("openrouter", error)
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                "batch_result_missing", retryable=True, lease_owner=lease_owner,
+                            )
                             counts["missing"] += 1
                             continue
                         except Exception as error:
-                            self.store.finish_case_evaluation_job(job["id"], False, round((time.monotonic() - started) * 1000), f"batch_fallback_failed:{type(error).__name__}", retryable=True, lease_owner=lease_owner)
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                f"batch_fallback_failed:{type(error).__name__}", retryable=True,
+                                lease_owner=lease_owner,
+                            )
                             counts["missing"] += 1
                             continue
-                    saved = self.store.save_case_evaluation(evaluation["id"], result, case_model, job["id"], lease_owner)
+                    saved = self.store.save_case_evaluation(evaluation["id"], result, result_model, job["id"], lease_owner)
                     if not saved:
                         counts["missing"] += 1
                         continue
-                    self._queue_shadow_case_evaluation(evaluation, case, article, analysis, result, case_model)
+                    self._queue_shadow_case_evaluation(evaluation, case, article, analysis, result, result_model)
                     self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000), lease_owner=lease_owner)
                     counts["scored"] += 1
                     if result.get("decision") != "send":
@@ -1427,6 +1567,27 @@ class MasterPressService:
                     lock_until = self._remember_provider_failure(provider, error)
                 else:
                     self._clear_provider_quota_lock(provider)
+                if forced_provider:
+                    if isinstance(error, json.JSONDecodeError):
+                        max_attempts = max(int(job.get("attempts") or 1) for job, _evaluation, _case in prepared)
+                        cooldown_seconds = min(900, max(60, max_attempts * 30))
+                        handoff_at = (datetime.now(KST) + timedelta(seconds=cooldown_seconds)).isoformat(timespec="seconds")
+                    else:
+                        handoff_at = now_iso()
+                    for job, _evaluation, _case in prepared:
+                        self.store.finish_case_evaluation_job(
+                            job["id"], False, duration, str(error), retryable=True,
+                            retry_after=handoff_at, keep_pending=True, lease_owner=lease_owner,
+                        )
+                    article_analysis_id = str(jobs[0].get("article_analysis_id") or "")
+                    if article_analysis_id:
+                        self.store.release_case_bundle_provider(article_analysis_id, forced_provider)
+                    return {
+                        "id": batch_id, "status": "pending", "stage": "case_batch",
+                        "provider": provider, "http_status": getattr(error, "status", 0),
+                        "error": str(error), "retry_after": handoff_at, "counts": counts,
+                        "handoff": True,
+                    }
                 retry_after = lock_until or getattr(error, "retry_after", "") or self._next_provider_retry([provider])
                 defer = bool(getattr(error, "deferred", False) or self._is_provider_quota_error(error))
                 pending = 0
@@ -1755,7 +1916,8 @@ class MasterPressService:
     def _send_due(self, limit: int = 20) -> dict:
         sent = failed = 0
         errors = []
-        for delivery in self.store.due_deliveries(limit):
+        owner = self._lease_owner()
+        for delivery in self.store.due_deliveries(limit, lease_owner=owner):
             try:
                 status, _response = self.kakao.send_to_me(
                     delivery["recipient_id"],
@@ -1765,18 +1927,25 @@ class MasterPressService:
                     title=str(delivery.get("title") or ""),
                     description=str(delivery.get("summary") or ""),
                 )
-                self.store.finish_delivery(delivery["id"], True, status)
-                sent += 1
+                if self.store.finish_delivery(delivery["id"], True, status, lease_owner=owner):
+                    sent += 1
+                else:
+                    errors.append(f"delivery_lease_lost:{delivery['id']}")
+                    failed += 1
             except Exception as error:
                 code = int(getattr(error, "status", 502))
                 message = str(error)
                 if code == 403 and "insufficient" in message.casefold() and "scope" in message.casefold():
                     notice = "카카오 메시지 발송 권한이 없어 재동의가 필요합니다."
                     self.store.mark_recipient_reauthorize(delivery["recipient_id"], notice)
-                    self.store.fail_delivery_permanently(delivery["id"], code, notice)
+                    self.store.fail_delivery_permanently(
+                        delivery["id"], code, notice, lease_owner=owner,
+                    )
                     errors.append(notice)
                 else:
-                    self.store.finish_delivery(delivery["id"], False, code, message)
+                    self.store.finish_delivery(
+                        delivery["id"], False, code, message, lease_owner=owner,
+                    )
                     errors.append(message)
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
@@ -2065,20 +2234,27 @@ class MasterPressService:
             results["cleanup"] = self.store.cleanup(self.settings.raw_retention_days, self.settings.metadata_retention_days)
         return results
 
-    def common_worker_tick(self, burst: bool = False) -> dict | None:
+    def common_worker_tick(self, burst: bool = False, slot: str = "model1") -> dict | None:
         now = time.monotonic()
         if now >= self._next_common_stall_recovery_at:
             self._next_common_stall_recovery_at = now + 60.0
             self.store.recover_stalled_article_analysis_jobs()
-        if burst and self.store.pending_article_analysis_jobs(include_deferred=True) < self.selected_burst_threshold() and self.stage_primary_available("common"):
-            return None
         if burst:
-            model = self.selected_burst_model()
-            provider = self._provider_for_switchable_llm_model(model)
-            article = self.process_next_article_analysis(provider, model, "burst")
+            if self.store.pending_article_analysis_jobs(include_deferred=True) < self.selected_burst_threshold():
+                return None
+            if not self.common_turbo_available():
+                return None
+            provider, model, lane = "openrouter", self.selected_common_turbo_model(), "turbo"
+        elif slot == "model2":
+            model = self.selected_common_fallback_model()
+            provider, lane = self._provider_for_switchable_llm_model(model), "common_model2"
         else:
-            article = self.process_next_article_analysis(provider_lane="primary")
-        return {"stage": "article", "result": article} if article else None
+            model = self.selected_common_llm_model()
+            provider, lane = self._provider_for_switchable_llm_model(model), "common_model1"
+        if not self._provider_status(provider, model).get("available"):
+            return None
+        article = self.process_next_article_analysis(provider, model, lane)
+        return {"stage": "article", "slot": slot if not burst else "turbo", "result": article} if article else None
 
     def embedding_worker_tick(self) -> dict | None:
         # Press-release matching is part of the live article pipeline.  Keep
@@ -2097,24 +2273,40 @@ class MasterPressService:
         finally:
             LOCAL_EMBEDDING_LOCK.release()
 
-    def case_worker_tick(self, burst: bool = False) -> dict | None:
+    def case_worker_tick(self, burst: bool = False, slot: str = "mini") -> dict | None:
+        if burst:
+            return None
         now = time.monotonic()
         if now >= self._next_case_stall_recovery_at:
             self._next_case_stall_recovery_at = now + 60.0
             self.store.recover_stalled_case_evaluation_jobs()
-        if burst and self.store.pending_case_evaluation_bundles(include_deferred=True) < self.selected_burst_threshold() and self.stage_primary_available("case"):
-            return None
-        if not burst:
+            self.store.release_invalid_openrouter_case_bundles()
+        if slot == "mini":
             reanalysis = self.process_next_reanalysis()
             if reanalysis:
                 return {"stage": "reanalysis", "result": reanalysis}
-        if burst:
-            model = self.selected_burst_model()
-            provider = self._provider_for_switchable_llm_model(model)
-            result = self.process_next_case_evaluation(provider, model, "burst")
+            provider, model, batch_size = "openai", self.selected_case_model2(), 10
+        elif slot == "oss":
+            provider, model, batch_size = "nvidia", self.selected_case_model1(), 5
+        elif slot == "single":
+            provider, model, batch_size = "openrouter", self.selected_case_single_model(), 1
         else:
-            result = self.process_next_case_evaluation(provider_lane="primary")
-        return {"stage": "case", "result": result} if result else None
+            raise ValueError(f"unknown_case_worker_slot:{slot}")
+        if not self._provider_status(provider, model).get("available"):
+            self.store.release_pending_case_provider(provider)
+            return None
+        if slot == "mini" and self._provider_status("nvidia", self.selected_case_model1()).get("available"):
+            if not self.store.ready_case_evaluation_jobs_older_than(
+                CASE_MODEL1_PRIORITY_SECONDS, provider="openai",
+            ):
+                return None
+        single_available = bool(self._provider_status("openrouter", self.selected_case_single_model()).get("available"))
+        result = self.process_next_case_evaluation(
+            provider, model, f"case_{slot}", batch_size=batch_size,
+            single_unowned_only=(slot == "single"),
+            allow_unowned_single=(slot == "single" or not single_available),
+        )
+        return {"stage": "case", "slot": slot, "result": result} if result else None
 
     def shadow_worker_tick(self) -> dict | None:
         result = self.process_next_shadow_case_evaluation()
@@ -2136,6 +2328,10 @@ def _service_key(settings: Settings) -> tuple:
         settings.groq_daily_request_soft_limit, settings.groq_daily_token_soft_limit,
         settings.embedding_model, bool(settings.openrouter_api_key), settings.openrouter_base_url,
         settings.openrouter_case_model, settings.openrouter_daily_soft_limit,
+        getattr(settings, "openrouter_case_reserve_calls", 100),
+        bool(getattr(settings, "nvidia_api_key", "")), getattr(settings, "nvidia_base_url", ""),
+        getattr(settings, "nvidia_case_model", ""),
+        getattr(settings, "openai_daily_token_soft_limit", 2450000),
         bool(getattr(settings, "worker_ai_key", "")), getattr(settings, "worker_ai_account_id", ""),
         getattr(settings, "worker_ai_base_url", ""), getattr(settings, "worker_ai_model", ""),
         getattr(settings, "worker_ai_daily_request_soft_limit", 0), getattr(settings, "worker_ai_daily_neuron_soft_limit", 0),
@@ -2170,16 +2366,16 @@ def worker_tick() -> dict:
     return get_service().orchestration_tick()
 
 
-def common_worker_tick(burst: bool = False) -> dict | None:
-    return get_service().common_worker_tick(burst=burst)
+def common_worker_tick(burst: bool = False, slot: str = "model1") -> dict | None:
+    return get_service().common_worker_tick(burst=burst, slot=slot)
 
 
 def embedding_worker_tick() -> dict | None:
     return get_service().embedding_worker_tick()
 
 
-def case_worker_tick(burst: bool = False) -> dict | None:
-    return get_service().case_worker_tick(burst=burst)
+def case_worker_tick(burst: bool = False, slot: str = "mini") -> dict | None:
+    return get_service().case_worker_tick(burst=burst, slot=slot)
 
 def shadow_worker_tick() -> dict | None:
     return get_service().shadow_worker_tick()

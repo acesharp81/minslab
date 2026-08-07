@@ -7,9 +7,10 @@ Wants=network-online.target
 Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
-ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_worker
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_worker --slot mini
 Restart=always
 RestartSec=5
+TimeoutStopSec=5min
 Nice=5
 CPUQuota=35%
 

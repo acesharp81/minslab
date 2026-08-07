@@ -110,13 +110,130 @@ class BatchLeaseTests(unittest.TestCase):
                 connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
 
             first = store.next_case_evaluation_batch(limit=2)
+            blocked_while_bundle_active = store.next_case_evaluation_batch(limit=2)
+            for item in first:
+                self.assertTrue(store.finish_case_evaluation_job(item["id"], True, 1))
             second = store.next_case_evaluation_batch(limit=2)
             third = store.next_case_evaluation_batch(limit=2)
             self.assertEqual(len(first), 2)
+            self.assertEqual(blocked_while_bundle_active, [])
             self.assertEqual(len(second), 1)
             self.assertEqual(third, [])
             self.assertEqual(len({item["article_analysis_id"] for item in first + second}), 1)
             self.assertEqual(first[0]["batch_size"], 2)
+
+    def test_openrouter_single_can_reclaim_its_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "single-retry.sqlite3")
+            organization = store.save_organization({"name": "행정안전부", "is_active": True})
+            article, _ = store.upsert_article({
+                "canonical_url": "https://example.com/single-retry",
+                "original_url": "https://example.com/single-retry",
+                "title": "OpenRouter 단건 재시도",
+                "body": "행정안전부가 인공지능 정책을 발표했다.",
+            })
+            analysis, _ = store.ensure_article_analysis(article, organization["id"])
+            case = store.save_case({**case_data(1), "organization_id": organization["id"]})
+            evaluation, _ = store.create_case_evaluation(
+                analysis["id"], article["id"], case, True, 0.7, 60,
+            )
+            store.queue_case_evaluation(evaluation["id"], ready_at=now_iso())
+            with store.connect() as connection:
+                current = now_iso()
+                connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (current, article["id"]))
+                connection.execute("UPDATE article_analyses SET case_routed_at=? WHERE id=?", (current, analysis["id"]))
+            first = store.next_case_evaluation_batch(
+                1, "openrouter", "single-a", provider_lane="case_single",
+                single_unowned_only=True,
+            )
+            self.assertEqual(len(first), 1)
+            self.assertTrue(store.finish_case_evaluation_job(
+                first[0]["id"], False, 1, "temporary", retryable=True,
+                retry_after=now_iso(), keep_pending=True, lease_owner="single-a",
+            ))
+            self.assertEqual(store.release_invalid_openrouter_case_bundles(), 0)
+            retry = store.next_case_evaluation_batch(
+                1, "openrouter", "single-b", provider_lane="case_single",
+                single_unowned_only=True,
+            )
+            self.assertEqual([item["id"] for item in retry], [first[0]["id"]])
+            self.assertEqual(retry[0]["attempts"], 2)
+
+    def test_openrouter_single_waits_for_routing_and_counts_deferred_siblings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "single-routing.sqlite3")
+            organization = store.save_organization({"name": "행정안전부", "is_active": True})
+            article, _ = store.upsert_article({
+                "canonical_url": "https://example.com/single-routing",
+                "original_url": "https://example.com/single-routing",
+                "title": "단건 라우팅 완료 검증",
+                "body": "행정안전부가 인공지능 정책을 발표했다.",
+            })
+            analysis, _ = store.ensure_article_analysis(article, organization["id"])
+            for index, ready_at in enumerate((now_iso(), "2099-01-01T00:00:00+09:00")):
+                case = store.save_case({**case_data(index), "organization_id": organization["id"]})
+                evaluation, _ = store.create_case_evaluation(
+                    analysis["id"], article["id"], case, True, 0.7, 60,
+                )
+                store.queue_case_evaluation(evaluation["id"], ready_at=ready_at)
+            with store.connect() as connection:
+                connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+            self.assertEqual(store.next_case_evaluation_batch(
+                1, "openrouter", "single-before-routing", provider_lane="case_single",
+                single_unowned_only=True,
+            ), [])
+            with store.connect() as connection:
+                connection.execute(
+                    "UPDATE article_analyses SET case_routed_at=? WHERE id=?",
+                    (now_iso(), analysis["id"]),
+                )
+            self.assertEqual(store.next_case_evaluation_batch(
+                1, "openrouter", "single-after-routing", provider_lane="case_single",
+                single_unowned_only=True,
+            ), [])
+            with store.connect() as connection:
+                providers = connection.execute(
+                    "SELECT DISTINCT provider FROM case_evaluation_jobs",
+                ).fetchall()
+            self.assertEqual([row["provider"] for row in providers], [""])
+
+    def test_startup_recovery_releases_only_idle_openrouter_multi_bundles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "affinity-recovery.sqlite3")
+            organization = store.save_organization({"name": "행정안전부", "is_active": True})
+            article, _ = store.upsert_article({
+                "canonical_url": "https://example.com/affinity-recovery",
+                "original_url": "https://example.com/affinity-recovery",
+                "title": "다건 affinity 복구",
+                "body": "행정안전부가 인공지능 정책을 발표했다.",
+            })
+            analysis, _ = store.ensure_article_analysis(article, organization["id"])
+            job_ids = []
+            for index in range(3):
+                case = store.save_case({**case_data(index), "organization_id": organization["id"]})
+                evaluation, _ = store.create_case_evaluation(
+                    analysis["id"], article["id"], case, True, 0.7, 60,
+                )
+                job_ids.append(store.queue_case_evaluation(evaluation["id"], ready_at=now_iso()))
+            with store.connect() as connection:
+                marks = ",".join("?" for _ in job_ids)
+                connection.execute(
+                    f"UPDATE case_evaluation_jobs SET provider='openrouter' WHERE id IN ({marks})",
+                    job_ids,
+                )
+            self.assertEqual(store.release_invalid_openrouter_case_bundles(), 3)
+            with store.connect() as connection:
+                connection.execute(
+                    f"UPDATE case_evaluation_jobs SET provider='openrouter' WHERE id IN ({marks})",
+                    job_ids,
+                )
+            recovered = store.recover_incomplete_pipeline_jobs()
+            with store.connect() as connection:
+                providers = connection.execute(
+                    "SELECT DISTINCT provider FROM case_evaluation_jobs WHERE id IN (" + marks + ")",
+                    job_ids,
+                ).fetchall()
+            self.assertEqual([row["provider"] for row in providers], [""])
 
     def test_two_process_stores_cannot_claim_the_same_case_bundle(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -29,25 +29,23 @@ def main() -> None:
     while _running:
         try:
             service = get_service()
-            pending = (
-                service.store.pending_article_analysis_jobs(include_deferred=True)
-                if args.stage == "common"
-                else service.store.pending_case_evaluation_bundles(include_deferred=True)
-            )
+            if args.stage == "case":
+                # Case turbo was retired: mini/OSS/single workers own that queue.
+                active = False
+                time.sleep(30.0)
+                continue
+            pending = service.store.pending_article_analysis_jobs(include_deferred=True)
             start_threshold = service.selected_burst_threshold()
             stop_threshold = service.selected_burst_stop_threshold()
-            primary_available = service.stage_primary_available(args.stage)
-            if not service.burst_provider_available():
+            if pending < start_threshold or not service.common_turbo_available():
                 active = False
+                below_stop_count = 0
                 time.sleep(3.0)
                 continue
             if not active:
-                if pending < start_threshold and primary_available:
-                    time.sleep(3.0)
-                    continue
                 active = True
                 below_stop_count = 0
-            if pending <= stop_threshold and primary_available:
+            if pending <= stop_threshold:
                 below_stop_count += 1
                 if below_stop_count >= 2:
                     active = False
@@ -55,12 +53,8 @@ def main() -> None:
                     continue
             else:
                 below_stop_count = 0
-            model = service.selected_burst_model()
-            provider = service._provider_for_switchable_llm_model(model)
-            if args.stage == "common":
-                result = service.process_next_article_analysis(provider, model, "burst")
-            else:
-                result = service.process_next_case_evaluation(provider, model, "burst")
+            model = service.selected_common_turbo_model()
+            result = service.process_next_article_analysis("openrouter", model, "turbo")
             time.sleep(0.5 if result else 2.0)
         except Exception as error:
             print(f"Master Press {args.stage} burst worker failed: {type(error).__name__}: {error}", flush=True)

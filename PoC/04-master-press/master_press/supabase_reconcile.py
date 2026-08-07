@@ -68,8 +68,17 @@ class SupabaseReconciler:
                     local_count = int(connection.execute(local_query).fetchone()[0])
                     try:
                         remote_count = self._remote_count(remote_table)
-                        details[label] = {"local": local_count, "remote": remote_count, "ok": local_count == remote_count}
-                        if local_count != remote_count:
+                        # Operational rows expire locally after 7/8 days while
+                        # the remote replica is retained longer. A remote
+                        # superset is therefore expected; only a remote deficit
+                        # indicates that mirroring has fallen behind.
+                        ok = remote_count >= local_count
+                        details[label] = {
+                            "local": local_count, "remote": remote_count,
+                            "remote_only": max(0, remote_count - local_count),
+                            "mode": "remote_superset", "ok": ok,
+                        }
+                        if not ok:
                             errors.append(label)
                     except Exception as error:
                         details[label] = {"local": local_count, "remote": None, "ok": False, "error": type(error).__name__}

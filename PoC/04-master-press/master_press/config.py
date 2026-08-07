@@ -74,11 +74,16 @@ class Settings:
     openrouter_base_url: str
     openrouter_case_model: str
     openrouter_daily_soft_limit: int
+    nvidia_api_key: str
+    nvidia_base_url: str
+    nvidia_case_model: str
+    openrouter_case_reserve_calls: int
     openai_api_key: str
     openai_base_url: str
     openai_shadow_model: str
     openai_moderation_model: str
     openai_shadow_daily_limit: int
+    openai_daily_token_soft_limit: int
     worker_ai_key: str
     worker_ai_account_id: str
     worker_ai_base_url: str
@@ -139,11 +144,20 @@ class Settings:
             openrouter_base_url=env("MASTER_PRESS_OPENROUTER_BASE_URL", default="https://openrouter.ai/api/v1").rstrip("/"),
             openrouter_case_model=env("MASTER_PRESS_OPENROUTER_CASE_MODEL", default="google/gemma-4-26b-a4b-it:free"),
             openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 1000, 1, 1000),
+            nvidia_api_key=env("MASTER_PRESS_NVIDIA_API_KEY", "NVIDIA_API_KEY"),
+            nvidia_base_url=env("MASTER_PRESS_NVIDIA_BASE_URL", "NVIDIA_BASE_URL", default="https://integrate.api.nvidia.com/v1").rstrip("/"),
+            nvidia_case_model=env("MASTER_PRESS_NVIDIA_CASE_MODEL", "NVIDIA_MODEL", default="openai/gpt-oss-120b"),
+            openrouter_case_reserve_calls=env_int("MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS", 100, 1, 500),
             openai_api_key=env("OPENAI_API_KEY", "OpenAI_API_KEY", "openai_api_key"),
             openai_base_url=env("MASTER_PRESS_OPENAI_BASE_URL", default="https://api.openai.com/v1").rstrip("/"),
             openai_shadow_model=env("MASTER_PRESS_OPENAI_SHADOW_MODEL", default="gpt-5.4-mini"),
             openai_moderation_model=env("MASTER_PRESS_OPENAI_MODERATION_MODEL", default="gpt-5.4-mini"),
             openai_shadow_daily_limit=env_int("MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT", 150, 1, 1000),
+            # The published free allowance is 2.5M tokens per UTC day. Stop
+            # optional/new Mini work early enough to absorb an in-flight batch.
+            openai_daily_token_soft_limit=env_int(
+                "MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT", 2450000, 1000, 100000000,
+            ),
             worker_ai_key=env("MASTER_PRESS_WORKER_AI_KEY", "WORKER_AI_KEY", "WORKER_AI_API_KEY", "WORKERS_AI_KEY", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_WORKERS_AI_TOKEN", "CF_API_TOKEN"),
             worker_ai_account_id=env("MASTER_PRESS_WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACOUNT_ID", "WORKERS_AI_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID", "CF_ACCOUNT_ID"),
             worker_ai_base_url=env("MASTER_PRESS_WORKER_AI_BASE_URL", default="https://api.cloudflare.com/client/v4").rstrip("/"),
@@ -164,7 +178,7 @@ class Settings:
             article_body_limit=env_int("MASTER_PRESS_ARTICLE_BODY_LIMIT", 15000, 2000, 50000),
             per_run_article_limit=env_int("MASTER_PRESS_PER_RUN_ARTICLE_LIMIT", 20, 1, 100),
             request_timeout_seconds=env_int("MASTER_PRESS_REQUEST_TIMEOUT", 10, 3, 30),
-            raw_retention_days=env_int("MASTER_PRESS_RAW_RETENTION_DAYS", 7, 1, 30),
+            raw_retention_days=env_int("MASTER_PRESS_RAW_RETENTION_DAYS", 8, 1, 30),
             metadata_retention_days=env_int("MASTER_PRESS_METADATA_RETENTION_DAYS", 90, 7, 3650),
             rss_feeds=[str(item).strip() for item in env_json("MASTER_PRESS_RSS_FEEDS_JSON", []) if str(item).strip()],
             press_release_rss_url=env(
@@ -194,6 +208,7 @@ class Settings:
             "ollama": bool(self.ollama_base_url),
             "groq": bool(self.groq_api_key and self.groq_common_model),
             "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
+            "nvidia": bool(self.nvidia_api_key and self.nvidia_case_model),
             "openai": bool(self.openai_api_key and self.openai_shadow_model),
             "cloudflare_workers_ai": bool(self.worker_ai_key and self.worker_ai_account_id and self.worker_ai_model),
             "gemini": bool(self.gemini_api_key and self.gemini_model),

@@ -18,10 +18,10 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 - 공통분석 완료 직후 같은 프로세스에서 임베딩과 케이스 판정을 연쇄 실행하지 않는다. 공통분석은 `article_analyses` 저장까지만 책임지고, 임베딩 worker가 벡터 생성·보도자료 매칭·케이스 후보 라우팅을 이어받는다.
 - 공통분석 job과 케이스 판정 job에 `lease_owner`, `lease_expires_at`, `provider_lane`을 추가했다. SQLite `BEGIN IMMEDIATE` 안에서 읽기와 claim을 묶어 기본 worker와 Turbo worker가 동시에 실행되어도 같은 job 또는 같은 기사 배치를 중복 처리하지 않는다.
 - worker가 비정상 종료되면 5분 lease 만료 또는 3분 stalled 점검을 기준으로 job을 `pending`으로 되돌린다. 저장과 완료 처리는 현재 lease 소유자가 일치할 때만 허용해 늦게 도착한 과거 worker 응답이 최신 결과를 덮어쓰지 못하게 했다.
-- 케이스 판정은 단순 FIFO 개별 job이 아니라 `article_analysis_id`가 같은 케이스를 최대 10개까지 하나의 배치로 원자적 claim한다. 대기 케이스가 많은 기사부터 처리하고, 배치 응답에서 특정 케이스만 누락되면 해당 케이스만 단건 보완 판정한다.
-- 공통분석 기본/예비와 케이스 판정 기본/예비를 단계별로 분리했다. 현재 운영 설정은 공통분석 `Groq → Cloudflare`, 케이스 판정 `OpenRouter → Gemini 3.1 Flash-Lite`다. 다만 Gemini 3.1 Flash-Lite는 2026-08-04 대배치 canary에서 완결성 기준에 미달해 교체 후보 검증 전까지 품질 승인 상태로 보지 않는다.
-- 대기열이 설정 임계값(기본 5개 기사 또는 5개 기사 배치)에 도달하면 별도 `master_press.burst_worker`가 GPT-5.4 mini로 backlog를 병렬 소진한다. 시작/중지 임계값에 hysteresis를 두고, Turbo lane은 provider 재시도 시각으로 보류된 job도 가져올 수 있다.
-- 공통분석과 케이스 판정의 JSON 형식 오류, 일시 장애, 명시적 무료 quota 소진을 구분한다. 일반 429/RPM은 단기 재시도하고, 확정 소진만 정확 초기화 시각 또는 불확실 시 1시간까지 잠근다. 기본·예비가 모두 불가하면 GPT Turbo가 임계값과 관계없이 최종 처리하며 GPT까지 소진된 경우에만 영업 종료한다.
+- 공통분석은 Groq 모델1과 Cloudflare 모델2 worker가 같은 대기열의 서로 다른 기사를 동시에 처리한다. 대기 기사 수가 5건 이상이면 OpenRouter가 공통 Turbo로 추가 투입되지만, 케이스 단건 판정을 위한 일일 호출 reserve(기본 100회)를 침범하지 않는다.
+- 케이스 판정은 GPT-5.4 mini 모델1(요청당 최대 10케이스)과 NVIDIA NIM `openai/gpt-oss-120b` 모델2(최대 5케이스)가 서로 다른 기사 묶음을 병렬 처리한다. 처음부터 정확히 1케이스인 기사와 배치 응답의 개별 누락은 OpenRouter 무료 Gemma가 단건 처리하며 케이스 Turbo는 사용하지 않는다.
+- 기사 묶음에는 provider affinity를 적용한다. 예를 들어 NVIDIA가 7케이스 기사를 가져가면 5건 처리 뒤 남은 2건도 NVIDIA가 이어서 처리하고, 해당 provider가 실패하거나 잠긴 경우에만 affinity를 해제해 다른 worker가 인계한다.
+- 공통분석과 케이스 판정의 JSON 형식 오류, 일시 장애, 명시적 무료 quota 소진을 구분한다. 일반 429/RPM은 단기 재시도하고, 확정 소진만 정확 초기화 시각 또는 불확실 시 1시간까지 잠근 뒤 다른 가용 worker가 대기 작업을 가져간다.
 - Cloudflare Workers AI의 `response_schema`를 실제 JSON schema 응답 형식으로 전달하고, 이미 객체로 반환된 응답은 `json.dumps`로 직렬화한다. 로컬 rolling/soft quota 추정과 공급자별 잠금 예외를 제거하고 실제 API 응답을 공통 판정기로 처리한다.
 - 관리 화면의 처리량은 단순 수집 기사 수가 아니라 공통분석 후 활성 케이스 판정이 모두 `completed` 또는 `excluded`가 된 고유 기사 수로 집계한다. 발송되지 않은 완료 기사도 포함하며, 동일 필터 대시보드 요청은 짧게 병합해 DB 중복 조회를 줄였다.
 
@@ -29,11 +29,11 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 
 - 원격 LLM 전체에 `provider_quota.py`의 공통 판정기를 적용했다. 무료·일일 quota 소진이 명확하고 오류 본문이나 신뢰 가능한 응답 헤더의 초기화 시각이 정확하면 해당 시각까지 잠그며, 소진은 확실하지만 시각이 불명확하면 1시간 후 한 worker만 probe한다. 일반 429·타임아웃·서버 오류는 quota 잠금으로 확대하지 않는다.
 - 운영에서 Groq TPD 500,000 중 499,992 사용 후 반환된 `retry in` 오류를 `exact_reset`, `high`, `error_body`로 저장하고 Cloudflare 예비 모델로 공통분석을 완료했다. 예측 시각 만료 뒤 Groq를 다시 호출했으며, 후속 요청에서 소진이 재확인되자 새 시각까지 재잠금하고 Cloudflare로 계속 처리했다. 검증 시점의 공통분석 활성 작업은 0건이었다.
-- provider 잠금은 기본·예비, 공통·케이스, 일반·burst 경로에서 동일하게 적용한다. 만료된 잠금의 확인 호출은 SQLite `BEGIN IMMEDIATE` 기반 probe lease로 한 프로세스만 수행하고, 성공하면 잠금·신뢰도·reset source 메타데이터를 함께 지운다.
-- 관련 Python 컴파일, diff 검사와 전체 핵심 테스트 147건을 통과했으며 `myservice`, 일반 worker와 공통·케이스·burst worker를 재기동해 운영 상태를 확인했다.
+- provider 잠금은 모든 공통·케이스 병렬 worker와 Turbo 경로에 동일하게 적용한다. 만료된 잠금의 확인 호출은 SQLite `BEGIN IMMEDIATE` 기반 probe lease로 한 프로세스만 수행하고, 성공하면 잠금·신뢰도·reset source 메타데이터를 함께 지운다.
+- 기존 quota 전환 변경은 관련 Python 컴파일, diff 검사와 핵심 회귀 테스트를 통과했고 운영 worker 재기동 상태를 확인했다.
 - Gemini 3.1 Flash-Lite 운영 저장 결과 124건은 모두 완료됐고 발송 10건은 모두 근거 검증을 통과했다. 그러나 122건이 5점 단위 점수를 사용했고, 75점 이상이면서 핵심 대상 근거가 없어 후처리에서 차단된 결과가 12건이었다.
 - 승인된 최근 대배치 canary 5개, 47케이스에서는 정상 JSON이 3개 배치뿐이어서 JSON 유효률 60%, 전체 결과 완결률 59.6%였다. 정상 반환된 28건의 기존 운영 판정 일치율은 96.4%였지만 2개 배치가 닫는 괄호 없이 잘린 응답으로 실패했다. 따라서 Gemini 3.1 Flash-Lite는 현재 대배치 품질 기준 미달이며, canary 통과 전에는 검증된 예비 모델로 간주하지 않는다.
-- 신규 직접 provider 1순위 후보는 Cerebras의 `gpt-oss-120b`다. OpenAI 호환 API와 strict JSON schema 출력을 제공하고 소액 선불 Developer 전환을 지원한다. 아직 계정·API 키 등록, 코드 연동 또는 운영 전환은 하지 않았으며, 도입 시 동일한 2·4·9·10케이스 read-only canary를 먼저 통과해야 한다.
+- NVIDIA NIM의 `openai/gpt-oss-120b`를 케이스 모델1로 연동했다. 10케이스 canary는 첫 호출이 JSON 형식 오류, 두 번째 호출이 10건 중 9건만 반환해 운영 batch는 5건으로 제한했다. 5건 응답이 1,200토큰에서 잘려 같은 묶음을 반복하던 운영 장애를 수정해 출력 상한을 최소 3,200토큰으로 높였고, 그래도 JSON이 깨지면 OpenRouter 단건 판정으로 복구하며 재복구 불가 묶음은 1~15분 뒤로 미뤄 FIFO 정체를 방지한다.
 
 ### 유사 기사·매거진·보도자료
 
@@ -48,8 +48,8 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 ### 구독·관리 화면·운영
 
 - 사용자가 카카오 로그인으로 본인 계정을 확인한 뒤 모든 케이스·매거진 구독을 해지할 수 있는 흐름을 추가했다. 해지용 OAuth는 메시지 권한을 다시 요구하지 않으며, 신청 이력은 화면 확인용으로 6시간 유지한다.
-- 관리자 모델 설정을 공통분석 기본/예비, 케이스 판정 기본/예비, GPT Turbo, 로컬 임베딩의 역할별 카드로 재구성했다. 각 상태는 병렬 조회하고 예비·Turbo 모델 및 대기 임계값은 한 번에 저장한다.
-- 대시보드 파이프라인에 공통분석·케이스 판정 Turbo 상태를 표시한다. 기사 목록에도 실제 burst lane을 거친 기사인지 `turbo_used`로 표시한다.
+- 관리자 모델 설정을 공통 모델1·모델2, 케이스 mini·OSS·single, OpenRouter 공통 Turbo, 로컬 임베딩의 역할별 카드로 구성했다. 각 상태는 병렬 조회한다.
+- 대시보드 파이프라인에는 공통분석 Turbo 상태만 표시한다. 기사 목록에도 실제 `turbo` lane을 거친 기사인지 `turbo_used`로 표시한다.
 - 매거진 유사도 기준은 70~99 범위에서만 저장하며 성공·실패 상태를 즉시 보여 준다. 매거진 관리자 도구는 관리자 세션이 확인된 경우에만 노출한다.
 - 예약 매거진 실행기는 전체 스키마 마이그레이션을 반복하지 않고 기존 DB를 열어 발행 서비스만 호출한다. 독립 worker용 systemd unit에는 단계별 CPU quota, nice, Ollama 의존성과 자동 재시작 정책을 지정했다.
 
@@ -316,7 +316,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 - 평균 처리 속도
 - 처리 건수
 
-오류 표기는 현재 대기 중인 오류와 누적 오류를 함께 보여준다.
+오류 표기는 현재 대기 중인 오류와 누적 오류를 함께 보여준다. 공통·케이스 누적 오류는 모든 provider의 실제 API 실패 중 명확한 무료 할당량 소진을 제외해 집계한다. quota 소진과 다음 재확인 시각은 관리 설정의 provider 상태에서 별도로 확인한다. 발송 누적 오류는 재시도 횟수를 추정하지 않고 `delivery_attempts`에 기록된 실제 실패 시도만 센다.
 
 ```text
 현재 오류 발생해서 대기 건수(누적: n건)
@@ -584,38 +584,37 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 
 ### 7.6 모델 설정
 
-관리 설정은 모델을 제공자 순서가 아니라 업무 단계와 역할별로 표시한다. 초기 화면은 저장된 값을 즉시 그리고, 공통 기본·케이스 기본·공통 예비·케이스 예비·Turbo·임베딩의 연결 상태를 병렬로 확인한다.
+관리 설정은 모델을 제공자 순서가 아니라 업무 단계와 역할별로 표시한다. 공통 모델1·모델2·Turbo와 케이스 OSS·mini·single의 연결 상태와 quota 잠금을 확인한다.
 
 현재 역할:
 
-1. 공통분석 기본: Groq `llama-3.1-8b-instant`
-2. 공통분석 예비: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
-3. 케이스 판정 기본: OpenRouter `google/gemma-4-26b-a4b-it:free`
-4. 케이스 판정 예비: Gemini `gemini-3.1-flash-lite`
-5. backlog Turbo: OpenAI `gpt-5.4-mini`
-6. 임베딩: 로컬 Ollama `nomic-embed-text:latest`
+1. 공통분석 모델1: Groq `llama-3.1-8b-instant`
+2. 공통분석 모델2: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
+3. 공통분석 Turbo: OpenRouter `google/gemma-4-26b-a4b-it:free`
+4. 케이스 모델1: NVIDIA NIM `openai/gpt-oss-120b`, batch 5, 신규 작업 5초 우선권
+5. 케이스 모델2: OpenAI `gpt-5.4-mini`, batch 10, 보조 처리
+6. 케이스 단건·누락 보완: OpenRouter 무료 Gemma, batch 1
+7. 임베딩: 로컬 Ollama `nomic-embed-text:latest`
 
-케이스 예비 설정은 Gemini 3.1 Flash-Lite지만 최신 9·10케이스 대배치 canary에서 JSON 완결성 기준에 미달했다. canary 도구는 판정이나 delivery를 저장하지 않으며, 대체 provider가 같은 기준을 통과하기 전까지 현재 설정을 품질 승인 상태로 해석하지 않는다.
+Gemini 3.1 Flash-Lite와 기존 케이스 burst worker는 운영 판정 경로에서 제외했다.
 
-#### 기본·예비 전환
+#### 병렬 처리와 전환
 
-공통분석과 케이스 판정은 서로 독립된 두 개의 provider chain을 사용한다.
+공통 모델1·모델2와 케이스 모델1·모델2는 같은 작업을 중복 판정하지 않고 대기 작업을 나눠 처리한다.
 
-- 공통분석: Groq 기본 → Cloudflare 예비 → GPT Turbo 최종
-- 케이스 판정: OpenRouter 기본 → Gemini 예비 → GPT Turbo 최종
+- 공통분석: Groq + Cloudflare 병렬, 대기 기사 5건 이상이면 OpenRouter Turbo 추가
+- 케이스 판정: NVIDIA OSS 120B(batch 5) 우선 + GPT-5.4 mini(batch 10) 보조 병렬. OSS가 가용하면 mini는 신규 작업을 5초간 양보하며, OpenRouter는 단건·누락 전용
 
-기본 모델을 즉시 전환하면 공통분석의 `retry_after`와 오류 대기를 풀어 새 모델이 기존 backlog를 바로 처리할 수 있다. 무료 사용량 소진이 명확하고 같은 오류의 초기화 시각 신뢰도가 높으면 그 시각까지 잠그고, 초기화 시각이 불확실하면 1시간만 잠근 뒤 한 worker가 사용 가능 여부를 재확인한다. 단순 429·일시 장애는 quota 소진으로 확정하지 않고 기존 10분 임시 중지 정책을 적용한다.
+무료 사용량 소진이 명확하고 초기화 시각 신뢰도가 높으면 그 시각까지 해당 provider만 잠근다. 초기화 시각이 불확실하면 1시간만 잠근 뒤 한 worker가 재확인한다. 단순 429·일시 장애는 quota 소진으로 확정하지 않고 10분 임시 중지 정책을 적용하며, 다른 가용 worker가 미처리 묶음을 인계한다.
 
-#### GPT Turbo
+#### OpenRouter 공통 Turbo
 
-`gpt-5.4-mini` Turbo는 정상 상태에서는 각 단계의 backlog가 설정 임계값 이상일 때 별도 burst lane으로 병렬 처리한다. 기본·예비가 모두 불가하면 backlog 크기와 관계없이 최종 처리자로 기동한다. GPT도 명시적 quota 소진 상태면 영업 종료한다.
+OpenRouter Turbo는 공통분석 대기 기사 수가 설정 임계값 이상일 때만 추가 worker로 기동한다. 일일 soft limit에서 `MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS`(기본 100회)를 뺀 범위까지만 사용해 케이스 단건·누락 복구 호출을 보호한다.
 
 - 시작 임계값: 기본 5, 관리 화면에서 5~100으로 설정
 - 공통분석 단위: 대기 기사 수
-- 케이스 판정 단위: 개별 case job 수가 아닌 대기 기사 배치 수
-- 중지 임계값: 시작값보다 낮은 1~3 범위
-- 중지 판정: 두 번 연속 중지 임계값 이하일 때 비활성화
-- 화면 표시: 실제 `provider_lane='burst'` 처리 이력과 최근 2분 상태를 기준으로 Turbo 표시
+- 케이스 Turbo: 없음
+- 화면 표시: 실제 `provider_lane='turbo'` 처리 이력과 최근 2분 상태를 기준으로 Turbo 표시
 
 ### 7.7 사용량과 초기화 시각
 
@@ -625,6 +624,7 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 - 정확 초기화: 같은 오류 본문의 `retry in`, 신뢰 가능한 `Retry-After`, 소진 자원과 일치하는 reset 신호
 - 불확실 초기화: 1시간 잠금 후 DB lease를 획득한 worker 한 개만 재확인
 - 일반 429·`Provider returned error`·타임아웃: quota 잠금이 아닌 일시 장애로 처리
+- NVIDIA 모델2: 사용량 표시는 UTC 00:00(한국시간 09:00)에 초기화하며, 40 RPM 제한은 기존 일시 장애 재시도 정책으로 처리
 - Ollama: KST 00:00 기준 임베딩 호출 수와 `/api/embed`의 `prompt_eval_count` 토큰
 
 대시보드에는 토큰 숫자를 노출하지 않는다. 관리자 설정에서만 상세 사용량을 확인한다.
@@ -676,9 +676,9 @@ master_press.worker
       └─ articles + article_analyses(pending)
           └─ article_analysis_jobs(pending)
 
-master_press.common_worker
-  └─ job lease claim
-      └─ 공통분석 기본 → 공통 예비 → 제한적 로컬 fallback
+master_press.common_worker --slot model1|model2
+  └─ 서로 다른 job lease claim
+      └─ Groq + Cloudflare 병렬 처리
           └─ article_analyses(completed)
 
 master_press.embedding_worker
@@ -688,15 +688,15 @@ master_press.embedding_worker
           ├─ 제외: case_evaluations(excluded)
           └─ 후보: case_evaluation_jobs(pending)
 
-master_press.case_worker
-  └─ 같은 기사의 케이스 최대 10개를 하나의 lease batch로 claim
-      └─ 케이스 기본 → 활성화된 케이스 예비
+master_press.case_worker --slot mini|oss|single
+  └─ 기사 묶음에 provider affinity를 지정해 서로 다른 묶음을 claim
+      └─ GPT-5.4 mini 10건 + NVIDIA OSS 5건 + OpenRouter 단건
           └─ 하이브리드 점수·하드 게이트
               ├─ low/excluded
               └─ send → recipients별 deliveries
 
-master_press.burst_worker --stage common|case
-  └─ backlog가 임계값 이상일 때 GPT Turbo lane 병렬 처리
+master_press.burst_worker --stage common
+  └─ 공통 backlog가 임계값 이상이고 reserve가 남을 때 OpenRouter Turbo 병렬 처리
 ```
 
 ### 8.1 기관 단위 수집
@@ -713,7 +713,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 
 ### 8.2 공통분석
 
-공통분석은 기사 1건당 한 번 수행하며 모든 케이스가 공유한다. `master_press.common_worker`는 기본 lane에서 한 job씩 claim하고, 저장이 끝나면 다음 job으로 넘어간다.
+공통분석은 기사 1건당 한 번 수행하며 모든 케이스가 공유한다. Groq 모델1과 Cloudflare 모델2 worker가 동일 큐에서 서로 다른 job을 원자적으로 claim하고, 저장이 끝나면 다음 job으로 넘어간다.
 
 공통분석 결과:
 
@@ -726,7 +726,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 - 근거 문장
 - 분석 리포트
 
-공통 provider chain은 기본 Groq, 예비 Cloudflare다. 구조화 JSON 오류는 재시도하며, provider가 일시 중단되거나 quota를 소진하면 `retry_after`를 남긴다. 정상 체인이 모두 불가하면 GPT Turbo가 최종 처리한다.
+공통 모델1 Groq와 모델2 Cloudflare는 항상 병렬로 대기 작업을 나눠 처리한다. 구조화 JSON 오류나 provider 중단 시 작업을 즉시 대기 상태로 돌려 다른 worker가 인계한다. 대기 기사가 5건 이상이고 OpenRouter case reserve가 남아 있을 때만 OpenRouter Turbo가 세 번째 worker로 참여한다.
 
 공통분석 성공은 `article_analyses.status='completed'`까지만 의미한다. 임베딩과 케이스 라우팅 완료는 각각 별도 상태이므로 공통분석 worker가 느린 후속 작업을 기다리지 않는다.
 
@@ -765,7 +765,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 
 ### 8.5 케이스 판정
 
-후보로 남은 케이스만 `case_evaluation_jobs`에 들어간다. `master_press.case_worker`는 같은 `article_analysis_id`를 가진 job을 최대 10개까지 하나의 batch로 원자적 claim하며, 대기 케이스 수가 많은 기사부터 처리한다.
+후보로 남은 케이스만 `case_evaluation_jobs`에 들어간다. mini worker는 기사 묶음당 최대 10케이스, OSS worker는 최대 5케이스를 원자적으로 claim한다. 처음부터 정확히 1케이스인 미소유 묶음은 OpenRouter single worker만 claim한다.
 
 판정 결과:
 
@@ -778,15 +778,15 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 
 최종 점수는 벡터와 LLM 점수를 가중 결합한다. 기본값은 벡터 25%, LLM 75%다.
 
-배치 응답에 일부 케이스 결과가 없으면 전체 batch를 성공 처리하지 않고 누락 케이스만 단건 요청으로 보완한다. 그래도 실패하면 그 job만 재시도 상태로 남긴다. 케이스가 비활성화됐거나 선행 공통분석이 아직 없으면 각각 안전한 제외 또는 짧은 재대기를 적용한다.
+배치 응답에 일부 케이스 결과가 없으면 누락 케이스만 OpenRouter 단건 요청으로 보완한다. 그래도 실패하면 그 job만 재시도 상태로 남긴다. 케이스가 비활성화됐거나 선행 공통분석이 아직 없으면 각각 안전한 제외 또는 짧은 재대기를 적용한다.
 
-케이스 provider chain의 운영 설정은 OpenRouter 기본과 Gemini 3.1 Flash-Lite 예비로 구성된다. Gemini는 최신 대배치 canary 완결성 기준에 미달했으므로 교체 또는 재검증 대상이다. 정상 체인이 모두 불가하면 GPT Turbo가 기사 단위 케이스 묶음을 그대로 claim한다. 결과가 저장될 때 `article_case_processing_flags.case_evaluation_completed`와 `delivery_classified`가 함께 갱신되어 기사 전체 완료 여부를 계산할 수 있다.
+케이스 운영 worker는 OpenAI GPT-5.4 mini(batch 10), NVIDIA NIM OSS 120B(batch 5), OpenRouter single(batch 1) 세 개다. 기사 묶음은 첫 claim provider에 귀속되고 해당 provider 실패·잠금 때만 affinity를 해제한다. 케이스 Turbo는 없다. 결과가 저장될 때 `article_case_processing_flags.case_evaluation_completed`와 `delivery_classified`가 함께 갱신되어 기사 전체 완료 여부를 계산한다.
 
 ### 8.6 발송
 
 발송 조건을 충족하면 `deliveries` 큐를 만든다. 수신자가 여러 명이면 수신자별 delivery row가 생성된다. 즉 발송 건수는 기사 1건이 아니라 실제 수신자에게 보내는 메시지 단위로 누적될 수 있다.
 
-발송 실패 시 재시도 상태로 남고, 오류 대기 건수와 누적 오류 건수에 반영된다.
+발송 실패 시 재시도 상태로 남고, 오류 대기 건수와 누적 오류 건수에 반영된다. 누적 오류는 `attempts-1` 같은 추정값이 아니라 `delivery_attempts`의 실제 실패 이력을 사용하므로, 정상 발송이 중복 실행된 정황을 오류로 오인하지 않는다.
 
 카카오 발송은 대표 이미지가 있는 기사에 대해 기본 텍스트 템플릿 대신 feed 카드형 템플릿을 우선 사용한다. feed 카드에는 기사 제목, 요약, 대표 이미지, `원문 보기` 버튼이 들어간다. 대표 이미지 URL이 없거나 카카오가 외부 이미지 URL을 거절하면 기존 text 템플릿으로 자동 재시도한다. 따라서 이미지 품질이 불안정해도 발송 자체는 유지된다.
 
@@ -800,7 +800,7 @@ URL 정규화와 중복 제거 뒤 `articles`를 저장하고 기관+콘텐츠 �
 | --- | --- |
 | `lease_owner` | job을 claim한 프로세스의 PID+UUID |
 | `lease_expires_at` | 비정상 종료 시 다른 worker가 회수할 수 있는 시각 |
-| `provider_lane` | `primary` 또는 `burst` |
+| `provider_lane` | `common_model1`, `common_model2`, `turbo`, `case_mini`, `case_oss`, `case_single` |
 | `retry_after` | 일시 장애·quota로 다시 처리할 수 있는 시각 |
 | `attempts` | 실제 claim 횟수 |
 
@@ -808,15 +808,18 @@ claim은 `BEGIN IMMEDIATE` 트랜잭션 안에서 대상 조회와 `processing` 
 
 프로세스가 여러 개이므로 웹 프로세스 PID 변경을 근거로 모든 처리 중 job을 되돌리는 과거 방식은 사용하지 않는다. 재시작 복구는 lease 만료와 선행 조건이 복구된 제한된 실패 job만 대상으로 한다.
 
-### 8.8 GPT Turbo lane
+OpenRouter single worker는 케이스 라우팅이 끝났고 deferred 작업까지 포함한 전체 pending이 정확히 1건인 기사만 claim한다. 미귀속 단건뿐 아니라 자신에게 귀속된 정상 단건 재시도도 다시 처리한다. 현재 OpenRouter는 다건 케이스 worker가 아니므로, 처리 중 job이 없는 OpenRouter 다건 묶음이 발견되면 서비스 시작 시와 각 case worker의 60초 복구 주기에서 잘못 남은 provider affinity를 해제해 OpenAI mini와 NVIDIA OSS가 다시 분배받도록 한다.
 
-공통분석과 케이스 판정에는 각각 독립 `master_press.burst_worker`가 있다.
+일반 카카오 발송도 같은 원칙으로 `BEGIN IMMEDIATE` 안에서 `pending/retry → sending`을 선점한다. 선점 시 `attempts`, `lease_owner`, `lease_expires_at`과 `delivery_attempts` 처리 이력을 함께 기록하고, 같은 소유자만 성공·실패 결과를 확정할 수 있다. 따라서 여러 worker·API 프로세스가 동시에 `send_due`를 실행해도 같은 delivery를 중복으로 가져가지 않는다. 발송 lease는 기본 15분이며 만료된 시도는 실패 이력으로 남긴 뒤 최대 3회 범위에서 회수한다.
 
-- 대기량이 `burst_threshold` 이상이면 활성화한다. 기본값은 5다.
-- 공통분석은 pending 기사 수, 케이스 판정은 pending 기사 batch 수를 센다.
-- Turbo가 활성화된 동안에는 provider 초기화 시각 때문에 deferred된 job도 가져와 GPT로 backlog를 해소할 수 있다.
-- 시작/중지 경계에서 worker가 반복적으로 켜지고 꺼지지 않도록 낮은 중지 임계값과 2회 연속 확인을 사용한다.
-- `provider_lane='burst'`를 저장하므로 관리자 화면과 기사 목록은 실제 Turbo 사용 여부를 구분할 수 있다.
+### 8.8 OpenRouter 공통 Turbo lane
+
+공통분석에만 독립 `master_press.burst_worker --stage common`이 있다.
+
+- pending 기사 수가 `burst_threshold` 이상이면 활성화한다. 기본값은 5다.
+- OpenRouter 일일 soft limit에서 케이스 reserve를 제외한 호출 수가 남아 있어야 한다.
+- `provider_lane='turbo'`를 저장하므로 관리자 화면과 기사 목록은 실제 Turbo 사용 여부를 구분할 수 있다.
+- 케이스 분석에는 Turbo가 없으며 mini·OSS·single worker가 고정 역할로 병렬 처리한다.
 - 기본 worker와 Turbo worker는 같은 DB lease 규칙을 사용하므로 동시 claim이 불가능하다.
 
 ### 8.9 완료 기사와 매거진 발행 준비
@@ -980,7 +983,7 @@ MASTER_PRESS_GROQ_COMMON_MODEL
 
 ### 12.4 OpenRouter
 
-케이스 판정 기본 제공자다. 로컬 추정 호출 한도는 적용하지 않고 실제 API 응답을 기준으로 전환한다.
+처음부터 정확히 1케이스인 기사, 배치 누락 복구, 공통분석 Turbo를 담당한다. 공통 Turbo는 케이스 reserve를 침범하지 않는다.
 
 ```text
 google/gemma-4-26b-a4b-it:free
@@ -994,38 +997,39 @@ OPENROUTER_API_MYKEY
 MASTER_PRESS_OPENROUTER_API_KEY
 OPENROUTER_API_KEY
 MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
+MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS=100
 ```
 
-### 12.5 Gemini
+### 12.5 NVIDIA NIM
 
-현재 케이스 판정 예비 설정이지만 2026-08-04의 9·10케이스 canary에서 JSON 유효률 60%, 결과 완결률 59.6%로 품질 기준에 미달했다. 소배치 통과만으로 고정 사용하지 않고 운영 최대 배치까지 검증해야 한다.
+케이스 모델1 provider다. `openai/gpt-oss-120b`가 기사 묶음을 최대 5케이스씩 우선 처리한다. 7케이스 묶음을 claim하면 5+2로 같은 provider가 끝까지 처리한다.
 
 ```text
-gemini-3.1-flash-lite
+openai/gpt-oss-120b
 ```
 
 환경변수:
 
 ```text
-MASTER_PRESS_GEMINI_API_KEY
-Google_AI_STUDIO_API_KEY
-GOOGLE_AI_STUDIO_API_KEY
-GEMINI_API_KEY
+NVIDIA_API_KEY 또는 MASTER_PRESS_NVIDIA_API_KEY
+MASTER_PRESS_NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+MASTER_PRESS_NVIDIA_CASE_MODEL=openai/gpt-oss-120b
 ```
 
 ### 12.6 OpenAI
 
-GPT-5.4 mini는 두 가지 격리된 역할을 갖는다.
+GPT-5.4 mini는 케이스 모델2 보조 처리와 그림자 판정 역할을 갖는다.
 
-- Turbo: 공통분석 또는 케이스 기사 batch backlog가 임계값 이상일 때 별도 burst lane에서 처리
+- 운영 케이스: 기사 묶음을 최대 10케이스씩 처리
 - 그림자 판정: 운영 판정을 바꾸지 않는 경계·민감 사례 비교
 
-Turbo 결과는 운영 결과로 저장되지만, 그림자 판정은 별도 shadow 테이블에만 저장되고 delivery를 만들지 않는다.
+운영 케이스 결과는 실제 판정과 delivery에 반영되지만, 그림자 판정은 별도 shadow 테이블에만 저장되고 delivery를 만들지 않는다.
 
 ```text
 OPENAI_API_KEY
 MASTER_PRESS_OPENAI_BASE_URL
 MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
+MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT=2450000
 ```
 
 ## 13. 안전장치와 영업중지 정책
@@ -1051,7 +1055,7 @@ MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 - TPD/RPD 또는 per-day 한도와 Limit/Used/Requested 정보
 - free-tier quota/limit 초과 또는 `insufficient_quota`
 
-HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 공통분석 또는 케이스 판정의 기본 모델이 확정 소진되면 해당 단계의 예비 모델로 넘어간다. 사용할 수 있는 예비가 없으면 job을 실패 확정하지 않고 quota lock 시각까지 보류한다. backlog가 Turbo 기준 이상이면 GPT burst lane이 보류 job을 가져올 수 있다. 모든 경로가 비활성인 동안에는 운영 메시지와 다음 재시도 시각을 표시한다.
+HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 병렬 worker 하나의 명확한 무료 할당량 소진이 확인되면 정확한 초기화 시각 또는 불확실 시 1시간 동안 해당 provider만 잠그고, affinity를 해제해 다른 가용 worker가 미처리 묶음을 인계한다. 공통 backlog가 Turbo 기준 이상이고 OpenRouter case reserve가 남아 있을 때만 공통 Turbo가 참여한다. 모든 경로가 비활성인 동안에는 운영 메시지와 다음 재시도 시각을 표시한다.
 
 ## 14. 주요 API
 
@@ -1092,7 +1096,7 @@ HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 공통�
 | PUT | `/admin/settings/common-llm-model` | 공통분석 모델 저장 |
 | PUT | `/admin/settings/case-llm-model` | 케이스 판정 모델 저장 |
 | PUT | `/admin/settings/reserve-llm-models` | 예비 모델 저장 |
-| PUT | `/admin/settings/pipeline-models` | 공통·케이스 예비, GPT Turbo 모델과 시작 임계값 저장 |
+| PUT | `/admin/settings/pipeline-models` | 공통 모델2와 공통 Turbo 시작 임계값 저장 |
 | PUT | `/admin/settings/analysis-thresholds` | 후보·보도자료·유사기사·매거진 기준 일괄 저장 |
 | PUT | `/admin/settings/embedding-model` | 임베딩 모델 저장 및 재색인 |
 | POST | `/admin/magazines/{id}/republish` | 배송 변경 없이 선택 에디션 기사·묶음 재산출 |
@@ -1118,9 +1122,9 @@ PoC/04-master-press/
 ├── supabase_schema.sql           # Supabase 미러 스키마 참고
 ├── master_press/
 │   ├── article_metadata.py       # 언론사·기자명 추출 유틸
-│   ├── burst_worker.py           # backlog 임계 기반 GPT 공통/케이스 Turbo worker
+│   ├── burst_worker.py           # backlog 임계 기반 OpenRouter 공통 Turbo worker
 │   ├── case_fallback_canary.py   # 케이스 예비 모델 read-only 품질 검증
-│   ├── case_worker.py            # 기사 단위 케이스 batch 판정 worker
+│   ├── case_worker.py            # mini/OSS/single 케이스 batch 판정 worker
 │   ├── collectors.py             # NAVER/RSS/본문·대표 이미지 수집
 │   ├── common_worker.py          # 공통분석 전용 worker
 │   ├── config.py                 # .env 설정 로딩
@@ -1129,7 +1133,7 @@ PoC/04-master-press/
 │   ├── magazine.py               # CaseON 에디션 발행, 이슈 묶음, 발행본 조회
 │   ├── matching.py               # 기관·케이스 텍스트 매칭
 │   ├── press_releases.py         # 보도자료 수집·Markdown·RAG 매칭
-│   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/Gemini 클라이언트와 판정 로직
+│   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/OpenAI/NVIDIA 클라이언트와 판정 로직
 │   ├── service.py                # 서비스 오케스트레이션과 worker tick
 │   ├── similarity.py             # 대시보드/신경망 공통 및 매거진 고정밀 기사 묶음
 │   ├── storage.py                # SQLite 스키마, 마이그레이션, CRUD, 대시보드 집계
@@ -1137,10 +1141,12 @@ PoC/04-master-press/
 │   └── supabase_mirror.py        # Supabase 메타데이터 미러
 ├── deploy/
 │   ├── master-press-common.service
+│   ├── master-press-common-secondary.service
 │   ├── master-press-embedding.service
 │   ├── master-press-case.service
-│   ├── master-press-burst-common.service
-│   └── master-press-burst-case.service
+│   ├── master-press-case-oss.service
+│   ├── master-press-case-single.service
+│   └── master-press-burst-common.service
 ├── web/
 │   ├── index.html                # 단일 HTML 화면
 │   ├── app.js                    # 프론트 상태·렌더링·API 호출
@@ -1174,7 +1180,8 @@ PoC/04-master-press/
 | magazine_deliveries | 수신자별 매거진 카카오 발송 큐/결과 |
 | case_evaluations | 케이스별 판정 결과 |
 | case_evaluation_jobs | 케이스 판정 큐 |
-| deliveries | 카카오 발송 큐/결과 |
+| deliveries | 카카오 발송 큐/최종 결과와 DB lease |
+| delivery_attempts | 카카오 발송의 실제 시도별 성공·실패 이력 |
 | press_releases | 보도자료 원문 |
 | press_release_chunks | 보도자료 chunk |
 | article_press_release_matches | 기사·보도자료 매칭 결과 |
@@ -1207,8 +1214,9 @@ MASTER_PRESS_GROQ_API_KEY=...
 MASTER_PRESS_GROQ_COMMON_MODEL=llama-3.1-8b-instant
 MASTER_PRESS_OPENROUTER_API_MYKEY=...
 MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
-MASTER_PRESS_GEMINI_API_KEY=...
-MASTER_PRESS_GEMINI_MODEL=gemini-3.1-flash-lite
+MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS=100
+NVIDIA_API_KEY=...
+MASTER_PRESS_NVIDIA_CASE_MODEL=openai/gpt-oss-120b
 OPENAI_API_KEY=...
 MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
 SUPABASE2_URL=...
@@ -1243,30 +1251,33 @@ git diff --check
 
 ### 기사 처리 worker
 
-`master-press-worker.service`는 수집 일정, 일반·매거진 발송, 보도자료 동기화 같은 오케스트레이션을 담당한다. 공통분석·임베딩·케이스 판정과 두 Turbo lane은 다음 독립 서비스를 사용한다.
+`master-press-worker.service`는 수집 일정, 일반·매거진 발송, 보도자료 동기화 같은 오케스트레이션을 담당한다. 공통 모델1·모델2, 임베딩, 케이스 mini·OSS·single, 공통 Turbo는 다음 독립 서비스를 사용한다.
 
 ```bash
 cd /home/ubuntu/apps/myservice/PoC/04-master-press
 sudo install -m 644 deploy/master-press-common.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-common-secondary.service /etc/systemd/system/
 sudo install -m 644 deploy/master-press-embedding.service /etc/systemd/system/
 sudo install -m 644 deploy/master-press-case.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-case-oss.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-case-single.service /etc/systemd/system/
 sudo install -m 644 deploy/master-press-burst-common.service /etc/systemd/system/
-sudo install -m 644 deploy/master-press-burst-case.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now master-press-common.service master-press-embedding.service master-press-case.service
-sudo systemctl enable --now master-press-burst-common.service master-press-burst-case.service
-systemctl status master-press-common.service master-press-embedding.service master-press-case.service --no-pager
-systemctl status master-press-burst-common.service master-press-burst-case.service --no-pager
+sudo systemctl disable --now master-press-burst-case.service
+sudo systemctl enable --now master-press-common.service master-press-common-secondary.service master-press-embedding.service
+sudo systemctl enable --now master-press-case.service master-press-case-oss.service master-press-case-single.service master-press-burst-common.service
+systemctl status master-press-common.service master-press-common-secondary.service master-press-embedding.service --no-pager
+systemctl status master-press-case.service master-press-case-oss.service master-press-case-single.service master-press-burst-common.service --no-pager
 ```
 
-케이스 Gemini 예비를 활성화하기 전에는 합성 또는 승인된 입력 batch를 읽기 전용으로 비교한다.
+외부 할당량을 쓸 수 있는 날에는 승인된 입력 batch로 read-only 품질 canary를 수행할 수 있다.
 
 ```bash
 cd /home/ubuntu/apps/myservice/PoC/04-master-press
 /home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_fallback_canary --batches 5 --largest
 ```
 
-canary는 JSON 유효률, 결과 완결률, 운영 판정 일치율과 batch 평균 시간을 출력할 뿐 판정·delivery·큐 상태를 바꾸지 않는다.
+canary는 JSON 유효률, 결과 완결률, 운영 판정 일치율과 batch 평균 시간을 출력할 뿐 판정·delivery·큐 상태를 바꾸지 않는다. 할당량이 임박한 날에는 mock/로컬 테스트만 실행한다.
 
 ### 유사 기사 그룹 지도 timer
 
@@ -1348,14 +1359,15 @@ systemctl status master-press-body-backfill.timer --no-pager
 ### 오류 누적이 갑자기 커질 때
 
 - 현재 대기 오류와 누적 오류를 구분한다.
-- 누적 오류는 당일 실제 API 호출 관련 오류만 집계하는 방향이다.
+- 공통·케이스 누적 오류는 당일 실제 API 실패에서 명확한 무료 할당량 소진을 제외하며, quota 상태는 관리 설정에서 별도로 확인한다.
+- 발송 누적 오류는 `delivery_attempts`의 실제 실패 시도만 집계한다. 과거 `attempts` 값만 있고 시도 이력이 없는 행은 오류로 추정하지 않는다.
 - 이전 개발 과정의 왜곡된 평균/오류는 일회성 초기화할 수 있다.
 
 ### 모델 사용량 소진
 
 - 관리자 설정에서 제공자별 사용량과 초기화 시각을 확인한다.
-- 공통분석은 공통 예비, 케이스 판정은 활성화된 케이스 예비로 전환되는지 확인한다.
-- backlog가 임계값 이상이면 해당 단계의 Turbo 표시와 burst lane 처리 이력을 확인한다.
+- 잠긴 provider의 미처리 작업이 다른 공통·케이스 worker로 인계되는지 확인한다.
+- 공통 backlog가 임계값 이상이고 OpenRouter reserve가 남으면 `turbo` lane 처리 이력을 확인한다.
 - 모든 제공자가 소진되면 영업중지 또는 재시도 대기 메시지와 `retry_after`를 확인한다.
 - 정확 초기화 잠금 또는 불확실한 1시간 잠금 뒤 단일 재확인을 거쳐 기본 모델로 복귀하는지 확인한다.
 

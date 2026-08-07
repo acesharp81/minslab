@@ -2,7 +2,9 @@
 Description=Clean Master Press data after the history verification
 
 [Timer]
-OnCalendar=*-*-* 01:58:00
+# Leave three minutes before the 02:00 body-backfill window. The shared flock
+# still prevents overlap if a large cleanup takes longer than expected.
+OnCalendar=*-*-* 01:57:00
 Persistent=false
 Unit=master-press-retention-cleanup.service
 
