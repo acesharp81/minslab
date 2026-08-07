@@ -2312,6 +2312,10 @@ class MasterPressService:
         result = self.process_next_shadow_case_evaluation()
         return {"stage": "shadow_case", "result": result} if result else None
 
+    def shadow_worker_tick(self) -> dict | None:
+        result = self.process_next_shadow_case_evaluation()
+        return {"stage": "shadow_case", "result": result} if result else None
+
     def tick(self) -> dict:
         return self.orchestration_tick()
 

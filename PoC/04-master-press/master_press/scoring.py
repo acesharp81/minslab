@@ -1656,6 +1656,76 @@ class NvidiaNIMClient(OpenRouterClient):
         return results
 
 
+class OpenAIShadowClient(OpenRouterClient):
+    """OpenAI GPT shadow judge; its output never controls delivery."""
+
+    def _record(self, stage: str = "shadow_case", **values) -> None:
+        if self.store:
+            self.store.record_llm_api_call(provider="openai", stage=stage, **values)
+
+    def request(self, path: str, payload: dict) -> dict:
+        if not getattr(self.settings, "openai_api_key", ""):
+            raise OpenRouterError("openai_api_key_missing", status=401)
+        options = payload.get("options") or {}
+        schema = payload.get("response_schema")
+        stage = str(payload.get("record_stage") or "shadow_case")
+        model = str(payload.get("model") or getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        body = {
+            "model": model,
+            "messages": payload.get("messages", []),
+            "temperature": float(options.get("temperature", 0.0)),
+            "max_completion_tokens": max(800, min(2200, int(options.get("num_predict", 1200)))),
+            "reasoning_effort": "none",
+        }
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": schema}
+        started = time.monotonic()
+        request = urllib.request.Request(
+            f"{str(getattr(self.settings, 'openai_base_url', 'https://api.openai.com/v1')).rstrip('/')}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.settings.openai_api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=max(45, self.settings.request_timeout_seconds * 5)) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            message = ((data.get("choices") or [{}])[0].get("message") or {})
+            if message.get("refusal"):
+                raise OpenRouterError("openai_refusal", status=400)
+            usage = data.get("usage") or {}
+            self._record(
+                stage=stage,
+                model=model, status="completed", duration_ms=round((time.monotonic() - started) * 1000),
+                http_status=200, request_id=str(data.get("id") or ""),
+                input_tokens=int(usage.get("prompt_tokens") or 0),
+                output_tokens=int(usage.get("completion_tokens") or 0),
+            )
+            return {
+                "message": {"content": str(message.get("content") or "")},
+                "_provider_meta": {"provider": "openai", "stage": stage, "request_id": str(data.get("id") or ""), "usage": usage},
+            }
+        except OpenRouterError:
+            raise
+        except urllib.error.HTTPError as error:
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=f"http_{error.code}")
+            raise OpenRouterError(f"openai_http_{error.code}", status=error.code, retryable=error.code in {408, 429, 500, 502, 503, 504}) from error
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raise OpenRouterError(type(error).__name__, retryable=True) from error
+
+    def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
+        results = super().judge_cases(cases, article, common, model or self.settings.openai_shadow_model)
+        for value in results.values():
+            report = value.setdefault("analysis_report", {})
+            report["provider"] = "openai"
+            report["model"] = model or self.settings.openai_shadow_model
+        return results
+
+
 class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
     """Cloudflare Workers AI reserve model. Requires API token and Account ID."""
     provider_name = "cloudflare"

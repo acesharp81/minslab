@@ -187,7 +187,8 @@ class MagazinePublisher:
         """Build high-precision issue keys inside the current edition scope."""
         for item in items:
             item["issue_key"] = "article:" + str(item.get("article_id") or "")
-        article_ids = [str(item.get("article_id") or "") for item in items if item.get("article_id")]
+        by_id = {str(item.get("article_id") or ""): item for item in items if item.get("article_id")}
+        article_ids = list(by_id)
         if len(article_ids) < 2:
             return items
         marks = ",".join("?" for _ in article_ids)

@@ -139,6 +139,36 @@ def inferred_content_nouns(article_text: str, stopwords: set[str], identity_term
             break
     return result
 
+def inferred_content_nouns(article_text: str, stopwords: set[str], identity_terms: list[str]) -> list[str]:
+    """Extract conservative, source-verifiable headline terms when LLM entities are absent."""
+    fallback_stopwords = {
+        "기자", "뉴스", "단독", "종합", "속보", "포토", "영상", "오늘", "어제", "내일",
+        "올해", "지난", "이번", "이날", "최근", "전국", "관련", "대해", "통해", "위해",
+        "운영", "진행", "실시", "예정", "밝혀", "밝혔다", "나서", "나선다", "한다",
+    }
+    compact_stopwords = {re.sub(r"\s+", "", value).casefold() for value in {*stopwords, *fallback_stopwords}}
+    compact_identities = [re.sub(r"\s+", "", value).casefold() for value in identity_terms if value]
+    particles = ("으로부터", "에게서", "에서는", "으로는", "까지도", "부터는", "에게", "에서", "으로", "와의", "과의", "에는", "에도", "까지", "부터", "은", "는", "이", "가", "을", "를", "에", "의", "와", "과", "도", "만")
+    result: list[str] = []
+    for raw in re.findall(r"[가-힣A-Za-z][가-힣A-Za-z0-9·.+_-]{1,39}", str(article_text or "")):
+        clean = raw.strip("#[]\\\"'")
+        for particle in particles:
+            if clean.endswith(particle) and len(clean) >= len(particle) + 2:
+                clean = clean[:-len(particle)]
+                break
+        compact = re.sub(r"\s+", "", clean).casefold()
+        if len(compact) < 2 or compact in compact_stopwords or compact.isdigit():
+            continue
+        if any(identity in compact for identity in compact_identities):
+            continue
+        if compact.endswith(("세요", "습니다")) or any(compact.endswith(ending) for ending in NON_NOUN_ENTITY_ENDINGS):
+            continue
+        if clean not in result:
+            result.append(clean)
+        if len(result) >= 8:
+            break
+    return result
+
 
 def topic_noun_similarity(left: set[str], right: set[str], document_frequency: dict[str, int], document_count: int) -> float:
     """IDF-weighted topic overlap; institution, tone and full-text embeddings are intentionally absent."""
