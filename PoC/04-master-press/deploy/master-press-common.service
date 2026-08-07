@@ -1,5 +1,5 @@
 [Unit]
-Description=Master Press pipeline worker
+Description=Master Press common analysis worker
 After=network-online.target myservice.service
 Wants=network-online.target
 
@@ -7,13 +7,12 @@ Wants=network-online.target
 Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
-ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.worker
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.common_worker --slot model1
 Restart=always
-RestartSec=10
+RestartSec=5
 TimeoutStopSec=5min
-Nice=10
-CPUQuota=50%
-IOSchedulingClass=idle
+Nice=5
+CPUQuota=35%
 
 [Install]
 WantedBy=multi-user.target

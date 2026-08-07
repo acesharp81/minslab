@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timedelta
 
 from .scoring import cosine_similarity
+from .similarity import build_magazine_issue_groups
 from .storage import KST, Store, now_iso
 
 SLOT_LABELS = {"morning": "모닝 브리핑", "lunch": "커피탐 포스트", "evening": "퇴근 메이트", "daily": "DAILY"}
@@ -33,14 +34,48 @@ class MagazinePublisher:
     def __init__(self, store: Store):
         self.store = store
         self.store.ensure_magazine_schema()
+        self.deferred: list[dict] = []
+
+    def window_readiness(self, organization_id: str, window_start: str, window_end: str, reference: datetime | None = None) -> dict:
+        status = self.store.magazine_window_readiness(organization_id, window_start, window_end)
+        try:
+            grace_minutes = max(0, min(60, int(self.store.get_setting("magazine_completion_grace_minutes", "5") or 5)))
+        except (TypeError, ValueError):
+            grace_minutes = 5
+        current = (reference or datetime.now(KST)).astimezone(KST)
+        end = datetime.fromisoformat(str(window_end).replace("Z", "+00:00")).astimezone(KST)
+        eligible_at = end + timedelta(minutes=grace_minutes)
+        status.update({"grace_minutes": grace_minutes, "eligible_at": eligible_at.isoformat(timespec="seconds")})
+        status["ready"] = bool(status.get("ready") and current >= eligible_at)
+        if current < eligible_at:
+            status["reason"] = "completion_grace"
+        elif not status["ready"]:
+            status["reason"] = "pipeline_pending"
+        else:
+            status["reason"] = "ready"
+        return status
 
     def publish_for_slot(self, slot: str, reference: datetime | None = None, force: bool = False) -> list[dict]:
         edition_date, window_start, window_end = edition_window(slot, reference)
-        return [self.publish(item["id"], edition_date, slot, window_start, window_end, force) for item in self.store.list_organizations(active_only=True)]
+        current = (reference or datetime.now(KST)).astimezone(KST)
+        editions: list[dict] = []
+        self.deferred = []
+        for organization in self.store.list_organizations(active_only=True):
+            organization_id = str(organization["id"])
+            if not force and self.store.magazine_edition_exists(organization_id, edition_date, slot):
+                continue
+            if not force:
+                readiness = self.window_readiness(organization_id, window_start, window_end, current)
+                if not readiness["ready"]:
+                    self.deferred.append({"organization_id": organization_id, "slot": slot, **readiness})
+                    continue
+            editions.append(self.publish(organization_id, edition_date, slot, window_start, window_end, force))
+        return editions
 
     def publish_due(self, reference: datetime | None = None) -> list[dict]:
         current = (reference or datetime.now(KST)).astimezone(KST)
         editions: list[dict] = []
+        self.deferred = []
         for slot in PUBLISHED_SLOTS:
             hour = SLOT_HOURS[slot]
             if current.hour < hour:
@@ -48,6 +83,10 @@ class MagazinePublisher:
             edition_date, window_start, window_end = edition_window(slot, current)
             for organization in self.store.list_organizations(active_only=True):
                 if self.store.magazine_edition_exists(organization["id"], edition_date, slot):
+                    continue
+                readiness = self.window_readiness(organization["id"], window_start, window_end, current)
+                if not readiness["ready"]:
+                    self.deferred.append({"organization_id": organization["id"], "slot": slot, **readiness})
                     continue
                 editions.append(self.publish(
                     organization["id"], edition_date, slot, window_start, window_end
@@ -79,8 +118,7 @@ class MagazinePublisher:
             # 만든다. 분석 엔터티가 비어 있는 과거 기사도 제목에는 남아 있으므로,
             # 빈 화두나 지면 밖 화두를 만들지 않는다.
             daily_topics = self._daily_topics(items) if slot in {"daily", "morning"} else []
-            issue_sizes = {key: sum(1 for item in items if item["issue_key"] == key) for key in {item["issue_key"] for item in items}}
-            items.sort(key=lambda item: (-issue_sizes[item["issue_key"]], -float(item["score"]), -bool(item.get("image_url")), -len(str(item.get("summary") or "")), str(item["published_at"] or "")))
+            items = self._order_issue_items(items)
             generated, edition_id = now_iso(), str(existing["id"]) if existing else str(uuid.uuid4())
             values = (organization["name"], window_start, window_end, json.dumps(catalog, ensure_ascii=False), json.dumps(daily_topics, ensure_ascii=False), len({item["issue_key"] for item in items}), len(items), generated, generated)
             if existing:
@@ -101,7 +139,144 @@ class MagazinePublisher:
             return []
         return decoded if isinstance(decoded, list) else []
 
+    @staticmethod
+    def _order_issue_items(items: list[dict]) -> list[dict]:
+        """Order issues by article count, then unique linked press releases."""
+        buckets: dict[str, list[dict]] = {}
+        for item in items:
+            key = str(item.get("issue_key") or "article:" + str(item.get("article_id") or ""))
+            buckets.setdefault(key, []).append(item)
+
+        def press_keys(members: list[dict]) -> set[str]:
+            result: set[str] = set()
+            for member in members:
+                for release in member.get("related_press_releases") or []:
+                    url = str(release.get("url") or "").strip()
+                    title = str(release.get("title") or "").strip()
+                    key = url or ("title:" + title if title else "")
+                    if key:
+                        result.add(key)
+            return result
+
+        ordered_buckets = sorted(
+            buckets.values(),
+            key=lambda members: (
+                -len(members),
+                -len(press_keys(members)),
+                -max(float(member.get("score") or 0) for member in members),
+                -max(bool(member.get("image_url")) for member in members),
+                max(str(member.get("published_at") or "") for member in members),
+                min(str(member.get("article_id") or "") for member in members),
+            ),
+        )
+        ordered: list[dict] = []
+        for members in ordered_buckets:
+            members.sort(
+                key=lambda item: (
+                    -float(item.get("score") or 0),
+                    -bool(item.get("image_url")),
+                    -len(str(item.get("summary") or "")),
+                    str(item.get("published_at") or ""),
+                    str(item.get("article_id") or ""),
+                )
+            )
+            ordered.extend(members)
+        return ordered
+
     def _finalize_issue_keys(self, items: list[dict], organization_id: str) -> list[dict]:
+        """Build high-precision issue keys inside the current edition scope."""
+        for item in items:
+            item["issue_key"] = "article:" + str(item.get("article_id") or "")
+        by_id = {str(item.get("article_id") or ""): item for item in items if item.get("article_id")}
+        article_ids = list(by_id)
+        if len(article_ids) < 2:
+            return items
+        marks = ",".join("?" for _ in article_ids)
+        with self.store.connect() as connection:
+            rows = connection.execute(
+                f"""SELECT aa.article_id,aa.entities,aa.topic_concepts,ae.vector
+                       FROM article_processing_flags apf
+                       JOIN article_analyses aa ON aa.id=apf.analysis_id
+                       LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
+                      WHERE aa.article_id IN ({marks}) AND aa.organization_id=? AND aa.status='completed'""",
+                (*article_ids, organization_id),
+            ).fetchall()
+        signals = {str(row["article_id"]): dict(row) for row in rows}
+        snapshot_groups = self.store.article_similarity_groups(article_ids)
+        try:
+            threshold = float(self.store.get_setting("magazine_similarity_threshold", "90")) / 100.0
+        except (TypeError, ValueError):
+            threshold = 0.90
+        group_inputs = []
+        for item in items:
+            article_id = str(item.get("article_id") or "")
+            row = signals.get(article_id, {})
+            group_inputs.append({
+                "id": article_id,
+                "title": item.get("title") or "",
+                "summary": item.get("summary") or "",
+                "published_at": item.get("published_at") or "",
+                "score": item.get("score") or 0,
+                "entities": self._json_list(row.get("entities")),
+                "topic_concepts": self._json_list(row.get("topic_concepts")),
+                "semantic_vector": self._json_list(row.get("vector")),
+            })
+        groups = build_magazine_issue_groups(
+            group_inputs, threshold=threshold, snapshot_groups=snapshot_groups
+        )
+        for item in items:
+            article_id = str(item.get("article_id") or "")
+            group = groups.get(article_id, {})
+            if group.get("group_id") and int(group.get("size") or 1) > 1:
+                item["issue_key"] = "issue:" + str(group["group_id"])
+        return items
+
+    def _legacy_recalculate_issue_keys(self, items: list[dict], organization_id: str) -> list[dict]:
+        """Assign issue keys with the same engine used by dashboard and neural graph."""
+        for item in items:
+            item["issue_key"] = "article:" + str(item.get("article_id") or "")
+        article_ids = [str(item.get("article_id") or "") for item in items if item.get("article_id")]
+        if len(article_ids) < 2:
+            return items
+        marks = ",".join("?" for _ in article_ids)
+        with self.store.connect() as connection:
+            rows = connection.execute(
+                f"""SELECT a.id article_id,aa.entities,aa.topic_concepts,ae.vector
+                       FROM articles a JOIN article_analyses aa ON aa.article_id=a.id
+                       LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed'
+                      WHERE a.id IN ({marks}) AND aa.organization_id=? AND aa.status='completed'""",
+                (*article_ids, organization_id),
+            ).fetchall()
+        signals = {str(row["article_id"]): dict(row) for row in rows}
+        group_inputs = []
+        for item in items:
+            article_id = str(item.get("article_id") or "")
+            row = signals.get(article_id, {})
+            group_inputs.append({
+                "id": article_id,
+                "title": item.get("title") or "",
+                "summary": item.get("summary") or "",
+                "published_at": item.get("published_at") or "",
+                "entities": self._json_list(row.get("entities")),
+                "topic_concepts": self._json_list(row.get("topic_concepts")),
+                "semantic_vector": self._json_list(row.get("vector")),
+                "_group_text": " ".join((str(item.get("title") or ""), str(item.get("summary") or ""))),
+            })
+        try:
+            threshold = float(self.store.get_setting("magazine_similarity_threshold", "90")) / 100.0
+        except (TypeError, ValueError):
+            threshold = 0.90
+        groups = self.store._dashboard_article_groups(
+            group_inputs, organization_id=organization_id, threshold_override=threshold
+        )
+        for item in items:
+            article_id = str(item.get("article_id") or "")
+            group = groups.get(article_id, {})
+            if group.get("group_id") and int(group.get("size") or 1) > 1:
+                item["issue_key"] = "issue:" + str(group["group_id"])
+        return items
+
+    def _legacy_finalize_issue_keys(self, items: list[dict], organization_id: str) -> list[dict]:
         """Group an edition with stored analysis signals and no new model calls.
 
         Candidate pairs need corroborating editorial evidence. Clusters are built

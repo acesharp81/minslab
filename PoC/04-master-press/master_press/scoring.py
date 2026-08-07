@@ -17,6 +17,7 @@ from typing import Any
 from .config import Settings
 from .article_metadata import publisher_name, reporter_name
 from .matching import article_topic_fields, expanded_case_terms, strip_article_boilerplate, term_in_text
+from .provider_quota import confirmed_free_quota_exhaustion
 
 
 JSON_OBJECT_RE = re.compile(r"\{.*\}", re.S)
@@ -334,8 +335,9 @@ def keyword_relevance(case: dict, article: dict) -> dict:
 
 
 class OllamaClient:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, store: Any = None):
         self.settings = settings
+        self.store = store
 
     def request(self, path: str, payload: dict) -> dict:
         if path == "/api/chat":
@@ -383,18 +385,36 @@ class OllamaClient:
 
     def embeddings(self, values: list[str]) -> list[list[float]]:
         model = str(getattr(self, "embedding_model", "") or self.settings.embedding_model)
+        started = time.monotonic()
+        prompt_tokens = 0
         try:
             response = self.request("/api/embed", {"model": model, "input": values, "truncate": True})
             embeddings = response.get("embeddings") or []
             if len(embeddings) == len(values):
+                prompt_tokens = int(response.get("prompt_eval_count") or 0)
+                if self.store:
+                    self.store.record_llm_api_call(provider="ollama", stage="embedding", model=model,
+                        status="completed", duration_ms=round((time.monotonic() - started) * 1000),
+                        input_tokens=prompt_tokens, output_tokens=0)
                 return embeddings
         except Exception:
             pass
         results = []
-        for value in values:
-            response = self.request("/api/embeddings", {"model": model, "prompt": value})
-            results.append(response.get("embedding") or [])
-        return results
+        try:
+            for value in values:
+                response = self.request("/api/embeddings", {"model": model, "prompt": value})
+                prompt_tokens += int(response.get("prompt_eval_count") or 0)
+                results.append(response.get("embedding") or [])
+            if self.store:
+                self.store.record_llm_api_call(provider="ollama", stage="embedding", model=model,
+                    status="completed", duration_ms=round((time.monotonic() - started) * 1000),
+                    input_tokens=prompt_tokens, output_tokens=0)
+            return results
+        except Exception as error:
+            if self.store:
+                self.store.record_llm_api_call(provider="ollama", stage="embedding", model=model,
+                    status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raise
 
     def build_analysis_prompts(self, case: dict, article: dict) -> tuple[str, str, dict]:
         body = str(article.get("body") or "").strip()
@@ -816,12 +836,15 @@ _GROQ_LAST_STARTED = 0.0
 
 
 class OpenRouterError(RuntimeError):
-    def __init__(self, message: str, status: int = 0, retryable: bool = False, retry_after: str | None = None, deferred: bool = False):
+    def __init__(self, message: str, status: int = 0, retryable: bool = False,
+                 retry_after: str | None = None, deferred: bool = False,
+                 retry_source: str = ""):
         super().__init__(message)
         self.status = int(status or 0)
         self.retryable = bool(retryable)
         self.retry_after = retry_after
         self.deferred = bool(deferred)
+        self.retry_source = str(retry_source or "")
 
 
 class GroqError(OpenRouterError):
@@ -834,8 +857,7 @@ class GroqClient(OllamaClient):
     ALLOWED_MODELS = {"llama-3.1-8b-instant"}
 
     def __init__(self, settings: Settings, store: Any = None):
-        super().__init__(settings)
-        self.store = store
+        super().__init__(settings, store)
 
     def _record(self, stage: str = "common", **values) -> None:
         if self.store:
@@ -876,18 +898,30 @@ class GroqClient(OllamaClient):
     def _remember_reset_headers(self, headers) -> None:
         if not self.store or not headers:
             return
-        raw = str(headers.get("x-ratelimit-reset-requests") or headers.get("retry-after") or "").strip()
+        raw = str(headers.get("x-ratelimit-reset-tokens") or headers.get("x-ratelimit-reset-requests") or headers.get("retry-after") or "").strip()
         seconds = self._duration_seconds(raw)
         if seconds > 0:
             reset_at = (datetime.now().astimezone() + timedelta(seconds=seconds)).isoformat(timespec="seconds")
             try:
                 self.store.set_setting("llm_provider_rate_reset_at:groq", reset_at)
                 self.store.set_setting("llm_provider_rate_reset_raw:groq", raw[:80])
-                if seconds >= 3600:
-                    self.store.set_setting("llm_provider_reset_at:groq", reset_at)
-                    self.store.set_setting("llm_provider_reset_raw:groq", raw[:80])
             except Exception:
                 pass
+
+    @classmethod
+    def _quota_retry_metadata(cls, headers, message: str, fallback_seconds: int = 60) -> tuple[str, str]:
+        lowered = str(message or "").casefold()
+        resource_header = ""
+        if "tokens per day" in lowered or "tokens_per_day" in lowered or re.search(r"\btpd\b", lowered):
+            resource_header = str(headers.get("x-ratelimit-reset-tokens") or "").strip() if headers else ""
+        elif "requests per day" in lowered or "requests_per_day" in lowered or re.search(r"\brpd\b", lowered):
+            resource_header = str(headers.get("x-ratelimit-reset-requests") or "").strip() if headers else ""
+        seconds = cls._duration_seconds(resource_header)
+        if seconds > 0:
+            retry_at = (datetime.now().astimezone() + timedelta(seconds=max(1.0, seconds))).isoformat(timespec="seconds")
+            return retry_at, "resource_header"
+        retry_header = str(headers.get("Retry-After") or "").strip() if headers else ""
+        return cls._retry_at(headers, fallback_seconds), "response_header" if retry_header else ""
 
     def _usage_since(self) -> str:
         kst = timezone(timedelta(hours=9))
@@ -925,22 +959,6 @@ class GroqClient(OllamaClient):
         if not self.settings.groq_api_key:
             raise GroqError("groq_api_key_missing", status=401)
         stage = self._request_stage(payload)
-        if self.store:
-            since = self._usage_since()
-            usage = self.store.provider_usage_since(
-                "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit
-            )
-            if int(usage.get("attempts", 0)) >= self.settings.groq_daily_request_soft_limit:
-                raise GroqError("groq_daily_request_soft_limit", status=429, retryable=True,
-                                retry_after=self._usage_retry_after(), deferred=True)
-            if int(usage.get("tokens", 0)) >= self.settings.groq_daily_token_soft_limit:
-                raise GroqError("groq_daily_token_soft_limit", status=429, retryable=True,
-                                retry_after=self._usage_retry_after(), deferred=True)
-            minute = self.store.provider_usage_last_minute("groq", "common")
-            if int(minute.get("tokens", 0)) >= self.settings.groq_minute_token_soft_limit:
-                raise GroqError("groq_minute_token_soft_limit", status=429, retryable=True,
-                                retry_after=(datetime.now().astimezone() + timedelta(seconds=15)).isoformat(timespec="seconds"),
-                                deferred=True)
         global _GROQ_LAST_STARTED
         with _GROQ_RATE_LOCK:
             wait = max(0.0, 2.1 - (time.monotonic() - _GROQ_LAST_STARTED))
@@ -1000,10 +1018,12 @@ class GroqClient(OllamaClient):
             self._record(stage=stage, model=model, status="failed", duration_ms=duration_ms, http_status=error.code, error=message)
             failed_generation = error.code == 400 and "failed_generation" in f"{raw} {message}".casefold()
             retryable = error.code in {408, 429, 500, 502, 503, 504} or failed_generation
+            retry_after, retry_source = self._quota_retry_metadata(error.headers, message, 60 if error.code == 429 else 30)
             raise GroqError(
                 message, status=error.code, retryable=retryable,
-                retry_after=self._retry_at(error.headers, 60 if error.code == 429 else 30),
+                retry_after=retry_after,
                 deferred=error.code == 429,
+                retry_source=retry_source,
             ) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             duration_ms = round((time.monotonic() - started) * 1000)
@@ -1017,8 +1037,7 @@ class GroqClient(OllamaClient):
 class OpenRouterClient(OllamaClient):
     """OpenAI-compatible remote client used only for case-level judgment."""
     def __init__(self, settings: Settings, store: Any = None):
-        super().__init__(settings)
-        self.store = store
+        super().__init__(settings, store)
 
     @staticmethod
     def _retry_at(headers, fallback_seconds: int = 60) -> str:
@@ -1032,6 +1051,10 @@ class OpenRouterClient(OllamaClient):
             except Exception:
                 pass
         return (datetime.now(timezone.utc) + timedelta(seconds=seconds)).astimezone().isoformat(timespec="seconds")
+
+    @staticmethod
+    def _retry_source(headers) -> str:
+        return "response_header" if headers and str(headers.get("Retry-After") or "").strip() else ""
 
     @staticmethod
     def _next_kst_midnight() -> str:
@@ -1337,12 +1360,6 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
         if not self.settings.openrouter_api_key:
             raise OpenRouterError("openrouter_api_key_missing", status=401)
         stage = self._request_stage(payload)
-        usage = self.store.openrouter_usage_today(self.settings.openrouter_daily_soft_limit) if self.store else {"attempts": 0}
-        if int(usage.get("attempts", 0)) >= int(self.settings.openrouter_daily_soft_limit):
-            raise OpenRouterError(
-                "openrouter_daily_soft_limit", status=429, retryable=True,
-                retry_after=self._next_kst_midnight(), deferred=True,
-            )
         global _OPENROUTER_LAST_STARTED
         with _OPENROUTER_RATE_LOCK:
             wait = max(0.0, 3.4 - (time.monotonic() - _OPENROUTER_LAST_STARTED))
@@ -1402,7 +1419,8 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
             self._record(stage=stage, model=model, status="failed", duration_ms=duration_ms, http_status=error.code, error=message)
             retryable = error.code in {408, 429, 500, 502, 503, 504}
             raise OpenRouterError(message, status=error.code, retryable=retryable,
-                                  retry_after=self._retry_at(error.headers, 60 if error.code == 429 else 30), deferred=error.code == 429) from error
+                                  retry_after=self._retry_at(error.headers, 60 if error.code == 429 else 30),
+                                  deferred=error.code == 429, retry_source=self._retry_source(error.headers)) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             duration_ms = round((time.monotonic() - started) * 1000)
             self._record(stage=stage, model=model, status="failed", duration_ms=duration_ms, error=type(error).__name__)
@@ -1444,10 +1462,198 @@ class _ReserveModelMixin:
 
     @staticmethod
     def _quota_message(message: str) -> bool:
-        lowered = str(message or "").casefold()
-        markers = ("quota", "rate limit", "rate_limit", "too many", "exceeded", "resource_exhausted",
-                   "free-models-per-day", "neurons", "allocation", "daily")
-        return any(marker in lowered for marker in markers)
+        return confirmed_free_quota_exhaustion(str(message or ""))
+
+
+class OpenAIShadowClient(OpenRouterClient):
+    """OpenAI GPT shadow judge; its output never controls delivery."""
+
+    def _record(self, stage: str = "shadow_case", **values) -> None:
+        if self.store:
+            self.store.record_llm_api_call(provider="openai", stage=stage, **values)
+
+    def request(self, path: str, payload: dict) -> dict:
+        if not getattr(self.settings, "openai_api_key", ""):
+            raise OpenRouterError("openai_api_key_missing", status=401)
+        options = payload.get("options") or {}
+        schema = payload.get("response_schema")
+        stage = str(payload.get("record_stage") or payload.get("_stage") or self._request_stage(payload))
+        model = str(payload.get("model") or getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        body = {
+            "model": model,
+            "messages": payload.get("messages", []),
+            "temperature": float(options.get("temperature", 0.0)),
+            "max_completion_tokens": max(800, min(2200, int(options.get("num_predict", 1200)))),
+            "reasoning_effort": "none",
+        }
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": schema}
+        started = time.monotonic()
+        request = urllib.request.Request(
+            f"{str(getattr(self.settings, 'openai_base_url', 'https://api.openai.com/v1')).rstrip('/')}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.settings.openai_api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=max(45, self.settings.request_timeout_seconds * 5)) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            message = ((data.get("choices") or [{}])[0].get("message") or {})
+            if message.get("refusal"):
+                raise OpenRouterError("openai_refusal", status=400)
+            usage = data.get("usage") or {}
+            self._record(
+                stage=stage,
+                model=model, status="completed", duration_ms=round((time.monotonic() - started) * 1000),
+                http_status=200, request_id=str(data.get("id") or ""),
+                input_tokens=int(usage.get("prompt_tokens") or 0),
+                output_tokens=int(usage.get("completion_tokens") or 0),
+            )
+            return {
+                "message": {"content": str(message.get("content") or "")},
+                "_provider_meta": {"provider": "openai", "stage": stage, "request_id": str(data.get("id") or ""), "usage": usage},
+            }
+        except OpenRouterError:
+            raise
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode("utf-8", "replace")
+            try:
+                message = str((json.loads(raw).get("error") or {}).get("message") or raw)[:500]
+            except Exception:
+                message = raw[:500] or f"openai_http_{error.code}"
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
+            quota = _ReserveModelMixin._quota_message(message)
+            retry_source = self._retry_source(error.headers)
+            raise OpenRouterError(message, status=error.code, retryable=error.code in {408, 429, 500, 502, 503, 504},
+                                  retry_after=self._retry_at(error.headers, 60) if retry_source else (self._next_kst_midnight() if quota else self._retry_at(error.headers, 60)),
+                                  deferred=quota, retry_source=retry_source or ("provider_schedule" if quota else "")) from error
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raise OpenRouterError(type(error).__name__, retryable=True) from error
+
+    def key_status(self) -> dict:
+        return {"connected": bool(getattr(self.settings, "openai_api_key", "")),
+                "error": "" if getattr(self.settings, "openai_api_key", "") else "API 키 미설정"}
+
+    def analyze_article_common(self, article: dict, model: str | None = None) -> dict:
+        result = super().analyze_article_common(article, model or self.settings.openai_shadow_model)
+        report = result.setdefault("analysis_report", {})
+        report["provider"] = "openai"
+        report["fallback"] = True
+        report["fallback_reason"] = "primary_model_unavailable"
+        return result
+
+    def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
+        results = super().judge_cases(cases, article, common, model or self.settings.openai_shadow_model)
+        for value in results.values():
+            report = value.setdefault("analysis_report", {})
+            report["provider"] = "openai"
+            report["model"] = model or self.settings.openai_shadow_model
+        return results
+
+
+class NvidiaNIMClient(OpenRouterClient):
+    """NVIDIA NIM case judge using the OpenAI-compatible chat endpoint."""
+
+    def _record(self, stage: str = "case", **values) -> None:
+        if self.store:
+            self.store.record_llm_api_call(provider="nvidia", stage=stage, **values)
+
+    @staticmethod
+    def _completion_token_limit(options: dict) -> int:
+        requested = int((options or {}).get("num_predict", 2200))
+        return max(3200, min(4096, requested * 2))
+
+    def request(self, path: str, payload: dict) -> dict:
+        api_key = str(getattr(self.settings, "nvidia_api_key", "") or "")
+        if not api_key:
+            raise OpenRouterError("nvidia_api_key_missing", status=401)
+        options = payload.get("options") or {}
+        schema = payload.get("response_schema")
+        model = str(payload.get("model") or getattr(self.settings, "nvidia_case_model", "openai/gpt-oss-120b"))
+        body = {
+            "model": model,
+            "messages": payload.get("messages", []),
+            "stream": False,
+            "temperature": float(options.get("temperature", 0.0)),
+            "max_tokens": self._completion_token_limit(options),
+        }
+        if schema:
+            body["response_format"] = {"type": "json_schema", "json_schema": schema}
+        started = time.monotonic()
+        request = urllib.request.Request(
+            f"{str(getattr(self.settings, 'nvidia_base_url', 'https://integrate.api.nvidia.com/v1')).rstrip('/')}/chat/completions",
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=max(90, self.settings.request_timeout_seconds * 8)) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            usage = data.get("usage") or {}
+            duration_ms = round((time.monotonic() - started) * 1000)
+            self._record(
+                stage="case", model=model, status="completed", duration_ms=duration_ms,
+                http_status=200, request_id=str(data.get("id") or ""),
+                input_tokens=int(usage.get("prompt_tokens") or 0),
+                output_tokens=int(usage.get("completion_tokens") or 0),
+            )
+            return {
+                "message": {"content": str(message.get("content") or "")},
+                "_provider_meta": {
+                    "provider": "nvidia", "stage": "case",
+                    "request_id": str(data.get("id") or ""), "usage": usage,
+                    "finish_reason": str(choice.get("finish_reason") or ""),
+                },
+            }
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode("utf-8", "replace")
+            try:
+                message = str((json.loads(raw).get("error") or {}).get("message") or raw)[:500]
+            except Exception:
+                message = raw[:500] or f"nvidia_http_{error.code}"
+            self._record(stage="case", model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
+            quota = confirmed_free_quota_exhaustion(message, error.code)
+            raised = OpenRouterError(
+                message, status=error.code,
+                retryable=error.code in {408, 429, 500, 502, 503, 504},
+                retry_after=self._retry_at(error.headers, 60), deferred=quota,
+                retry_source=self._retry_source(error.headers),
+            )
+            setattr(raised, "provider", "nvidia")
+            raise raised from error
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            self._record(stage="case", model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
+            raised = OpenRouterError(type(error).__name__, retryable=True)
+            setattr(raised, "provider", "nvidia")
+            raise raised from error
+
+    def key_status(self) -> dict:
+        configured = bool(getattr(self.settings, "nvidia_api_key", ""))
+        return {"connected": configured, "error": "" if configured else "API 키 미설정"}
+
+    def judge_case(self, case: dict, article: dict, common: dict, model: str | None = None) -> dict:
+        result = super().judge_case(case, article, common, model or self.settings.nvidia_case_model)
+        report = result.setdefault("analysis_report", {})
+        report["provider"], report["model"] = "nvidia", model or self.settings.nvidia_case_model
+        return result
+
+    def judge_cases(self, cases: list[dict], article: dict, common: dict, model: str | None = None) -> dict[str, dict]:
+        results = super().judge_cases(cases, article, common, model or self.settings.nvidia_case_model)
+        for value in results.values():
+            report = value.setdefault("analysis_report", {})
+            report["provider"], report["model"] = "nvidia", model or self.settings.nvidia_case_model
+        return results
 
 
 class OpenAIShadowClient(OpenRouterClient):
@@ -1558,22 +1764,29 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
         if not account_id:
             raise OpenRouterError("cloudflare_worker_ai_account_id_missing", status=401)
         stage = self._request_stage(payload)
-        if self.store:
-            limit = int(getattr(self.settings, "worker_ai_daily_request_soft_limit", 3000) or 3000)
-            usage = self.store.provider_usage_since("cloudflare", self._utc_day_start_kst(), limit)
-            if limit and int(usage.get("attempts", 0)) >= limit:
-                raise OpenRouterError("cloudflare_daily_request_soft_limit", status=429, retryable=True, retry_after=self._next_utc_midnight_kst(), deferred=True)
         model = str(payload.get("model") or self.default_model())
         options = payload.get("options") or {}
+        requested_tokens = min(4000, int(options.get("num_predict", 500)))
+        if stage == "case" and isinstance(payload.get("response_schema"), dict):
+            requested_tokens = min(4000, max(800, requested_tokens * 2))
         body = {
             "messages": payload.get("messages", []),
             "temperature": float(options.get("temperature", 0.1)),
-            "max_tokens": max(1200 if stage == "common" else 300, min(4000, int(options.get("num_predict", 500)))),
+            "max_completion_tokens": max(320 if stage == "common" else 300, requested_tokens),
         }
-        if payload.get("format") == "json" or payload.get("response_schema"):
+        response_schema = payload.get("response_schema")
+        if isinstance(response_schema, dict):
+            schema_body = response_schema.get("schema") if isinstance(response_schema.get("schema"), dict) else response_schema
+            body["response_format"] = {"type": "json_schema", "json_schema": schema_body}
+        elif payload.get("format") == "json":
             body["response_format"] = {"type": "json_object"}
-        if payload.get("reasoning"):
-            body["reasoning"] = payload["reasoning"]
+        reasoning = payload.get("reasoning")
+        if isinstance(reasoning, dict) and reasoning.get("effort"):
+            effort = str(reasoning["effort"]).strip().lower()
+            body["reasoning_effort"] = "none" if effort == "minimal" else effort
+        elif isinstance(reasoning, str) and reasoning:
+            effort = reasoning.strip().lower()
+            body["reasoning_effort"] = "none" if effort == "minimal" else effort
         encoded_model = urllib.parse.quote(model, safe="@/")
         url = f"{str(getattr(self.settings, 'worker_ai_base_url', 'https://api.cloudflare.com/client/v4')).rstrip('/')}/accounts/{urllib.parse.quote(account_id, safe='')}/ai/run/{encoded_model}"
         started = time.monotonic()
@@ -1584,12 +1797,18 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=max(90, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
+            timeout_seconds = 30 if stage == "case" else 15
+            with urllib.request.urlopen(request, timeout=max(timeout_seconds, int(getattr(self.settings, "request_timeout_seconds", 10)))) as response:
                 data = json.loads(response.read().decode("utf-8"))
             if data.get("success") is False:
                 errors = data.get("errors") or []
                 message = "; ".join(str(item.get("message") or item) for item in errors)[:500] or "cloudflare_worker_ai_error"
-                raise OpenRouterError(message, status=502, retryable=True, deferred=self._quota_message(message), retry_after=self._next_utc_midnight_kst() if self._quota_message(message) else None)
+                quota = self._quota_message(message)
+                raise OpenRouterError(
+                    message, status=502, retryable=True, deferred=quota,
+                    retry_after=self._next_utc_midnight_kst() if quota else None,
+                    retry_source="provider_schedule" if quota else "",
+                )
             result = data.get("result") if isinstance(data.get("result"), dict) else data.get("result")
             if isinstance(result, dict):
                 content = result.get("response") or result.get("text") or result.get("content") or result.get("result") or ""
@@ -1606,8 +1825,20 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             else:
                 content = result or ""
                 usage = data.get("usage") or {}
-            if isinstance(content, list):
-                content = "".join(str(part.get("text") if isinstance(part, dict) else part) for part in content)
+            if isinstance(content, dict):
+                # Workers AI JSON mode may return an already-decoded object.
+                # str(dict) produces Python single quotes and is not valid JSON.
+                content = json.dumps(content, ensure_ascii=False)
+            elif isinstance(content, list):
+                text_parts = [
+                    part.get("text") for part in content
+                    if isinstance(part, dict) and isinstance(part.get("text"), str)
+                ]
+                content = (
+                    "".join(text_parts)
+                    if text_parts and len(text_parts) == len(content)
+                    else json.dumps(content, ensure_ascii=False)
+                )
             duration_ms = round((time.monotonic() - started) * 1000)
             self._record(stage=stage, model=model, status="completed", duration_ms=duration_ms, http_status=200,
                          request_id=str(data.get("request_id") or ""),
@@ -1625,7 +1856,13 @@ class CloudflareWorkersAIClient(_ReserveModelMixin, OpenRouterClient):
             message = message[:500]
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
             quota = self._quota_message(message)
-            raise OpenRouterError(message, status=error.code, retryable=error.code in {408,429,500,502,503,504}, retry_after=self._next_utc_midnight_kst() if quota else OpenRouterClient._retry_at(error.headers, 60), deferred=quota or error.code == 429) from error
+            retry_source = OpenRouterClient._retry_source(error.headers)
+            raise OpenRouterError(
+                message, status=error.code, retryable=error.code in {408,429,500,502,503,504},
+                retry_after=OpenRouterClient._retry_at(error.headers, 60) if retry_source else (self._next_utc_midnight_kst() if quota else OpenRouterClient._retry_at(error.headers, 60)),
+                deferred=quota or error.code == 429,
+                retry_source=retry_source or ("provider_schedule" if quota else ""),
+            ) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
             raise OpenRouterError(type(error).__name__, retryable=True, retry_after=(datetime.now().astimezone() + timedelta(seconds=30)).isoformat(timespec="seconds")) from error
@@ -1636,7 +1873,7 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
     provider_name = "gemini"
 
     def default_model(self) -> str:
-        return str(getattr(self.settings, "gemini_model", "gemini-3.5-flash-lite") or "gemini-3.5-flash-lite")
+        return str(getattr(self.settings, "gemini_model", "gemini-3.1-flash-lite") or "gemini-3.1-flash-lite")
 
     @staticmethod
     def _pacific_day_start_kst() -> str:
@@ -1655,7 +1892,7 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
             self.store.record_llm_api_call(provider="gemini", stage=stage, **values)
 
     def models(self) -> list[str]:
-        return [self.default_model(), "gemini-3.5-flash", "gemini-3.1-flash-lite"] if getattr(self.settings, "gemini_api_key", "") else []
+        return [self.default_model()] if getattr(self.settings, "gemini_api_key", "") else []
 
     def key_status(self) -> dict:
         if not getattr(self.settings, "gemini_api_key", ""):
@@ -1680,14 +1917,6 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
         if not api_key:
             raise OpenRouterError("gemini_api_key_missing", status=401)
         stage = self._request_stage(payload)
-        if self.store:
-            req_limit = int(getattr(self.settings, "gemini_daily_request_soft_limit", 1000) or 1000)
-            token_limit = int(getattr(self.settings, "gemini_daily_token_soft_limit", 0) or 0)
-            usage = self.store.provider_usage_since("gemini", self._pacific_day_start_kst(), req_limit, token_limit)
-            if req_limit and int(usage.get("attempts", 0)) >= req_limit:
-                raise OpenRouterError("gemini_daily_request_soft_limit", status=429, retryable=True, retry_after=self._next_pacific_midnight_kst(), deferred=True)
-            if token_limit and int(usage.get("tokens", 0)) >= token_limit:
-                raise OpenRouterError("gemini_daily_token_soft_limit", status=429, retryable=True, retry_after=self._next_pacific_midnight_kst(), deferred=True)
         model = str(payload.get("model") or self.default_model())
         options = payload.get("options") or {}
         system_instruction, contents = self._gemini_contents(payload.get("messages") or [])
@@ -1699,8 +1928,19 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
                 "responseMimeType": "application/json",
             },
         }
+        response_schema = payload.get("response_schema")
+        if isinstance(response_schema, dict):
+            schema_body = response_schema.get("schema") if isinstance(response_schema.get("schema"), dict) else response_schema
+            body["generationConfig"]["responseJsonSchema"] = schema_body
         if system_instruction:
             body["systemInstruction"] = system_instruction
+        if model.startswith("gemini-3"):
+            reasoning = payload.get("reasoning")
+            effort = reasoning.get("effort") if isinstance(reasoning, dict) else reasoning
+            effort = str(effort or "minimal").strip().upper()
+            if effort not in {"MINIMAL", "LOW", "MEDIUM", "HIGH"}:
+                effort = "MINIMAL"
+            body["generationConfig"]["thinkingConfig"] = {"thinkingLevel": effort}
         url = f"{str(getattr(self.settings, 'gemini_base_url', 'https://generativelanguage.googleapis.com/v1beta')).rstrip('/')}/models/{urllib.parse.quote(model, safe='')}:generateContent"
         started = time.monotonic()
         request = urllib.request.Request(
@@ -1710,7 +1950,10 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=max(45, int(getattr(self.settings, "request_timeout_seconds", 10)) * 5)) as response:
+            # Gemini is a fast failover lane. A long provider stall must return
+            # the job to the queue instead of blocking all common-analysis capacity.
+            timeout_seconds = 45 if stage == "case" else 15
+            with urllib.request.urlopen(request, timeout=max(timeout_seconds, int(getattr(self.settings, "request_timeout_seconds", 10)))) as response:
                 data = json.loads(response.read().decode("utf-8"))
             parts = (((data.get("candidates") or [{}])[0].get("content") or {}).get("parts") or [])
             content = "".join(str(part.get("text") or "") for part in parts if isinstance(part, dict))
@@ -1731,8 +1974,14 @@ class GeminiClient(_ReserveModelMixin, OpenRouterClient):
                 message, status_text = raw, ""
             message = message[:500]
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), http_status=error.code, error=message)
-            quota = self._quota_message(f"{status_text} {message}")
-            raise OpenRouterError(message, status=error.code, retryable=error.code in {408,429,500,502,503,504}, retry_after=self._next_pacific_midnight_kst() if quota else OpenRouterClient._retry_at(error.headers, 60), deferred=quota or error.code == 429) from error
+            quota = self._quota_message(message)
+            retry_source = OpenRouterClient._retry_source(error.headers)
+            raise OpenRouterError(
+                message, status=error.code, retryable=error.code in {408,429,500,502,503,504},
+                retry_after=OpenRouterClient._retry_at(error.headers, 60) if retry_source else (self._next_pacific_midnight_kst() if quota else OpenRouterClient._retry_at(error.headers, 60)),
+                deferred=quota or error.code == 429,
+                retry_source=retry_source or ("provider_schedule" if quota else ""),
+            ) from error
         except (urllib.error.URLError, TimeoutError, OSError) as error:
             self._record(stage=stage, model=model, status="failed", duration_ms=round((time.monotonic() - started) * 1000), error=type(error).__name__)
             raise OpenRouterError(type(error).__name__, retryable=True, retry_after=(datetime.now().astimezone() + timedelta(seconds=30)).isoformat(timespec="seconds")) from error
@@ -1770,9 +2019,10 @@ class RelevanceEngine:
     store: Any = None
 
     def __post_init__(self):
-        self.ollama = OllamaClient(self.settings)
+        self.ollama = OllamaClient(self.settings, self.store)
         self.common_llm = GroqClient(self.settings, self.store)
         self.case_llm = OpenRouterClient(self.settings, self.store)
+        self.nvidia_llm = NvidiaNIMClient(self.settings, self.store)
         self.shadow_llm = OpenAIShadowClient(self.settings, self.store)
         self.reserve1_llm = CloudflareWorkersAIClient(self.settings, self.store)
         self.reserve2_llm = GeminiClient(self.settings, self.store)
@@ -1781,12 +2031,16 @@ class RelevanceEngine:
         provider = str(provider or "").lower()
         if provider == "openrouter":
             return self.case_llm
+        if provider == "nvidia":
+            return self.nvidia_llm
         if provider == "cloudflare":
             return self.reserve1_llm
         if provider == "groq":
             return self.common_llm
         if provider == "gemini":
             return self.reserve2_llm
+        if provider == "openai":
+            return self.shadow_llm
         raise ValueError(f"unknown_provider:{provider}")
 
     def analyze_article_common(self, article: dict, model: str | None = None) -> dict:

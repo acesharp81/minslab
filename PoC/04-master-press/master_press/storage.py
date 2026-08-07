@@ -15,9 +15,13 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .article_metadata import publisher_name, reporter_name
+from .provider_quota import confirmed_free_quota_exhaustion
+from .similarity import SIMILARITY_GROUPING_VERSION, build_article_similarity_groups, raw_semantic_similarity
+from .terminology import canonical_editorial_term, inferred_editorial_events
 
 
 KST = timezone(timedelta(hours=9))
+RECIPIENT_UNSUBSCRIBE_INVITE_LABEL = "__recipient_unsubscribe__"
 DASHBOARD_TOPIC_TYPES = (
     "정책·행정", "정치·입법", "경제·산업", "사회·안전", "재난·환경",
     "과학·기술", "AI·디지털", "보건·복지", "교육", "지역",
@@ -99,8 +103,40 @@ def verified_content_nouns(values: Any, article_text: str, stopwords: set[str], 
             continue
         if any(identity in compact for identity in compact_identities):
             continue
-        if clean not in result:
-            result.append(clean)
+        canonical = canonical_editorial_term(clean)
+        if canonical not in result:
+            result.append(canonical)
+    return result
+
+def inferred_content_nouns(article_text: str, stopwords: set[str], identity_terms: list[str]) -> list[str]:
+    """Extract conservative, source-verifiable headline terms when LLM entities are absent."""
+    fallback_stopwords = {
+        "기자", "뉴스", "단독", "종합", "속보", "포토", "영상", "오늘", "어제", "내일",
+        "올해", "지난", "이번", "이날", "최근", "전국", "관련", "대해", "통해", "위해",
+        "운영", "진행", "실시", "예정", "밝혀", "밝혔다", "나서", "나선다", "한다",
+    }
+    compact_stopwords = {re.sub(r"\s+", "", value).casefold() for value in {*stopwords, *fallback_stopwords}}
+    compact_identities = [re.sub(r"\s+", "", value).casefold() for value in identity_terms if value]
+    particles = ("으로부터", "에게서", "에서는", "으로는", "까지도", "부터는", "에게", "에서", "으로", "와의", "과의", "에는", "에도", "까지", "부터", "은", "는", "이", "가", "을", "를", "에", "의", "와", "과", "도", "만")
+    result: list[str] = []
+    for raw in re.findall(r"[가-힣A-Za-z][가-힣A-Za-z0-9·.+_-]{1,39}", str(article_text or "")):
+        clean = raw.strip("#[]\\\"'")
+        for particle in particles:
+            if clean.endswith(particle) and len(clean) >= len(particle) + 2:
+                clean = clean[:-len(particle)]
+                break
+        compact = re.sub(r"\s+", "", clean).casefold()
+        if len(compact) < 2 or compact in compact_stopwords or compact.isdigit():
+            continue
+        if any(identity in compact for identity in compact_identities):
+            continue
+        if compact.endswith(("세요", "습니다")) or any(compact.endswith(ending) for ending in NON_NOUN_ENTITY_ENDINGS):
+            continue
+        canonical = canonical_editorial_term(clean)
+        if canonical not in result:
+            result.append(canonical)
+        if len(result) >= 8:
+            break
     return result
 
 def inferred_content_nouns(article_text: str, stopwords: set[str], identity_terms: list[str]) -> list[str]:
@@ -150,6 +186,9 @@ def topic_noun_similarity(left: set[str], right: set[str], document_frequency: d
 
 ABSTRACT_TOPIC_RULES = (
     ("호우·재난 대응", ("호우", "폭우", "집중호우", "물폭탄", "침수", "산사태", "대피", "중대본", "수해", "재난 대응", "비상 대응")),
+    ("폭염 대응", ("폭염", "열대야", "온열질환", "무더위", "폭염 대응", "폭염 대책")),
+    ("재생에너지·햇빛소득마을", ("햇빛소득마을", "햇빛 소득마을", "태양광", "재생에너지", "마을 태양광")),
+    ("적극행정·공직혁신", ("적극행정", "공직혁신", "적극행정 우수", "적극행정 면책")),
     ("수사기관 개혁·사법제도", ("검찰", "경찰", "수사권", "보완수사권", "검경", "수사기관", "순환인사", "사법개혁", "검찰개혁", "경찰개혁", "광주경찰청", "장윤기")),
     ("지방재정·투자심사", ("중앙투자심사", "중투심", "지방재정", "국비", "보조금", "재정투자")),
     ("지방행정·의회 감시", ("지방의회", "시의원", "도의원", "집행부", "조례", "행정사무감사")),
@@ -161,11 +200,11 @@ ABSTRACT_TOPIC_RULES = (
 def inferred_topic_concepts(article_text: str) -> list[str]:
     """Backfill one-level-up concepts for historical analyses without another LLM call."""
     normalized = re.sub(r"\s+", " ", str(article_text or "")).casefold().strip()
-    concepts = []
+    concepts = inferred_editorial_events(normalized)
     for label, terms in ABSTRACT_TOPIC_RULES:
         if any(str(term).casefold() in normalized for term in terms):
             concepts.append(label)
-    return concepts[:3]
+    return concepts[:4]
 
 
 def centered_semantic_similarity(left: list[float], right: list[float], centroid: list[float]) -> float:
@@ -449,9 +488,25 @@ CREATE TABLE IF NOT EXISTS deliveries (
   response_code INTEGER,
   last_error TEXT,
   sent_at TEXT,
+  started_at TEXT,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  lease_expires_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE(article_id, case_id, recipient_id)
+);
+
+CREATE TABLE IF NOT EXISTS delivery_attempts (
+  id TEXT PRIMARY KEY,
+  delivery_id TEXT NOT NULL REFERENCES deliveries(id) ON DELETE CASCADE,
+  attempt_number INTEGER NOT NULL,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  started_at TEXT NOT NULL,
+  finished_at TEXT,
+  status TEXT NOT NULL DEFAULT 'processing',
+  response_code INTEGER,
+  error TEXT,
+  UNIQUE(delivery_id, attempt_number)
 );
 
 CREATE TABLE IF NOT EXISTS collection_runs (
@@ -509,6 +564,7 @@ CREATE TABLE IF NOT EXISTS article_analyses (
   analysis_report TEXT NOT NULL DEFAULT '{}',
   error TEXT,
   analyzed_at TEXT,
+  case_routed_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   UNIQUE(article_id, content_key)
@@ -525,6 +581,9 @@ CREATE TABLE IF NOT EXISTS article_analysis_jobs (
   duration_ms INTEGER,
   attempts INTEGER NOT NULL DEFAULT 0,
   retry_after TEXT,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  lease_expires_at TEXT,
+  provider_lane TEXT NOT NULL DEFAULT 'primary',
   error TEXT,
   UNIQUE(article_analysis_id)
 );
@@ -581,7 +640,7 @@ CREATE TABLE IF NOT EXISTS article_case_processing_flags (
 CREATE TABLE IF NOT EXISTS case_evaluation_jobs (
   id TEXT PRIMARY KEY,
   case_evaluation_id TEXT NOT NULL REFERENCES case_evaluations(id) ON DELETE CASCADE,
-  provider TEXT NOT NULL DEFAULT 'openrouter',
+  provider TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending',
   queued_at TEXT NOT NULL,
   started_at TEXT,
@@ -591,6 +650,9 @@ CREATE TABLE IF NOT EXISTS case_evaluation_jobs (
   retry_after TEXT,
   batch_id TEXT NOT NULL DEFAULT '',
   batch_size INTEGER NOT NULL DEFAULT 1,
+  lease_owner TEXT NOT NULL DEFAULT '',
+  lease_expires_at TEXT,
+  provider_lane TEXT NOT NULL DEFAULT 'primary',
   error TEXT,
   UNIQUE(case_evaluation_id)
 );
@@ -717,6 +779,8 @@ CREATE INDEX IF NOT EXISTS idx_llm_jobs_status_queued ON llm_jobs(status, queued
 CREATE INDEX IF NOT EXISTS idx_reanalysis_jobs_status_queued ON reanalysis_jobs(status, queued_at);
 CREATE INDEX IF NOT EXISTS idx_organizations_due ON organizations(is_active, next_collect_at);
 CREATE INDEX IF NOT EXISTS idx_deliveries_due ON deliveries(status, scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_delivery_attempts_delivery ON delivery_attempts(delivery_id, attempt_number);
+CREATE INDEX IF NOT EXISTS idx_delivery_attempts_status_finished ON delivery_attempts(status, finished_at);
 -- Used by the administrator's sent-article keyword preview. Keep the
 -- case/status/date lookup narrow so it never has to read article bodies for
 -- every delivery in the system.
@@ -841,7 +905,9 @@ class Store:
         "domains": [], "rss_urls": [], "collection_times": [],
     }
     PIPELINE_SUMMARY_CACHE_TTL_SECONDS = 20
-    SIMILARITY_GROUP_REBUILD_LIMIT = 720
+    # Cover the full 24-hour dashboard and the previous-day morning magazine
+    # window, with enough grace for delayed embedding/snapshot completion.
+    SIMILARITY_GROUP_LOOKBACK_HOURS = 48
 
     def __init__(self, path: str | Path, initialize: bool = True):
         self.path = Path(path)
@@ -918,6 +984,15 @@ class Store:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN publisher_name TEXT NOT NULL DEFAULT ''")
             if "reporter_name" not in common_columns:
                 connection.execute("ALTER TABLE article_analyses ADD COLUMN reporter_name TEXT NOT NULL DEFAULT ''")
+            if "case_routed_at" not in common_columns:
+                connection.execute("ALTER TABLE article_analyses ADD COLUMN case_routed_at TEXT")
+                connection.execute(
+                    """UPDATE article_analyses SET case_routed_at=COALESCE(
+                         (SELECT MAX(j.finished_at) FROM article_analysis_jobs j WHERE j.article_analysis_id=article_analyses.id AND j.status='completed'),
+                         analyzed_at,updated_at)
+                       WHERE status='completed' AND EXISTS (
+                         SELECT 1 FROM article_embeddings ae WHERE ae.article_analysis_id=article_analyses.id AND ae.status='completed')"""
+                )
             common_job_columns = {row[1] for row in connection.execute("PRAGMA table_info(article_analysis_jobs)")}
             api_call_columns = {row[1] for row in connection.execute("PRAGMA table_info(llm_api_calls)")}
             if "usage_units" not in api_call_columns:
@@ -928,9 +1003,24 @@ class Store:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0")
             if "retry_after" not in common_job_columns:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN retry_after TEXT")
+            if "lease_owner" not in common_job_columns:
+                connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN lease_owner TEXT NOT NULL DEFAULT ''")
+            if "lease_expires_at" not in common_job_columns:
+                connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN lease_expires_at TEXT")
+            if "provider_lane" not in common_job_columns:
+                connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN provider_lane TEXT NOT NULL DEFAULT 'primary'")
             case_job_columns = {row[1] for row in connection.execute("PRAGMA table_info(case_evaluation_jobs)")}
             if "provider" not in case_job_columns:
-                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN provider TEXT NOT NULL DEFAULT 'openrouter'")
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN provider TEXT NOT NULL DEFAULT ''")
+            parallel_case_migration = connection.execute(
+                "SELECT value FROM app_settings WHERE key='case_parallel_provider_affinity_v1'"
+            ).fetchone()
+            if not parallel_case_migration:
+                connection.execute("UPDATE case_evaluation_jobs SET provider='' WHERE status='pending'")
+                connection.execute(
+                    "INSERT INTO app_settings(key,value,updated_at) VALUES('case_parallel_provider_affinity_v1','applied',?)",
+                    (now_iso(),),
+                )
             if "attempts" not in case_job_columns:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0")
             if "retry_after" not in case_job_columns:
@@ -939,6 +1029,12 @@ class Store:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN batch_id TEXT NOT NULL DEFAULT ''")
             if "batch_size" not in case_job_columns:
                 connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN batch_size INTEGER NOT NULL DEFAULT 1")
+            if "lease_owner" not in case_job_columns:
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN lease_owner TEXT NOT NULL DEFAULT ''")
+            if "lease_expires_at" not in case_job_columns:
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN lease_expires_at TEXT")
+            if "provider_lane" not in case_job_columns:
+                connection.execute("ALTER TABLE case_evaluation_jobs ADD COLUMN provider_lane TEXT NOT NULL DEFAULT 'primary'")
             evaluation_columns = {row[1] for row in connection.execute("PRAGMA table_info(case_evaluations)")}
             if "semantic_raw" not in evaluation_columns:
                 connection.execute("ALTER TABLE case_evaluations ADD COLUMN semantic_raw REAL NOT NULL DEFAULT 0")
@@ -1330,6 +1426,44 @@ class Store:
             except OSError:
                 marker.extend((0, 0))
         return tuple(marker)  # type: ignore[return-value]
+
+    def ensure_pipeline_lease_schema(self) -> None:
+        """Install the small worker-lease migration even for fast, non-DDL store startup."""
+        with self.connect() as connection:
+            for table in ("article_analysis_jobs", "case_evaluation_jobs"):
+                columns = {str(row[1]) for row in connection.execute(f"PRAGMA table_info({table})")}
+                if "lease_owner" not in columns:
+                    connection.execute(f"ALTER TABLE {table} ADD COLUMN lease_owner TEXT NOT NULL DEFAULT ''")
+                if "lease_expires_at" not in columns:
+                    connection.execute(f"ALTER TABLE {table} ADD COLUMN lease_expires_at TEXT")
+                if "provider_lane" not in columns:
+                    connection.execute(f"ALTER TABLE {table} ADD COLUMN provider_lane TEXT NOT NULL DEFAULT 'primary'")
+            delivery_columns = {str(row[1]) for row in connection.execute("PRAGMA table_info(deliveries)")}
+            for column, definition in (
+                ("started_at", "TEXT"),
+                ("lease_owner", "TEXT NOT NULL DEFAULT ''"),
+                ("lease_expires_at", "TEXT"),
+            ):
+                if column not in delivery_columns:
+                    connection.execute(f"ALTER TABLE deliveries ADD COLUMN {column} {definition}")
+            connection.executescript(
+                """CREATE TABLE IF NOT EXISTS delivery_attempts (
+                     id TEXT PRIMARY KEY,
+                     delivery_id TEXT NOT NULL REFERENCES deliveries(id) ON DELETE CASCADE,
+                     attempt_number INTEGER NOT NULL,
+                     lease_owner TEXT NOT NULL DEFAULT '',
+                     started_at TEXT NOT NULL,
+                     finished_at TEXT,
+                     status TEXT NOT NULL DEFAULT 'processing',
+                     response_code INTEGER,
+                     error TEXT,
+                     UNIQUE(delivery_id, attempt_number)
+                   );
+                   CREATE INDEX IF NOT EXISTS idx_delivery_attempts_delivery
+                     ON delivery_attempts(delivery_id, attempt_number);
+                   CREATE INDEX IF NOT EXISTS idx_delivery_attempts_status_finished
+                     ON delivery_attempts(status, finished_at);"""
+            )
 
     def _pipeline_summary_cache_get(self, key: tuple, change_marker: tuple[int, int, int, int]) -> dict | None:
         cached = self._pipeline_summary_cache.get(key)
@@ -2053,6 +2187,48 @@ class Store:
         with self.connect() as connection:
             connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (key, str(value), now_iso()))
 
+    def set_settings(self, values: dict[str, Any]) -> None:
+        if not values:
+            return
+        updated_at = now_iso()
+        with self.connect() as connection:
+            connection.executemany(
+                "INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+                [(str(key), str(value), updated_at) for key, value in values.items()],
+            )
+
+    def claim_provider_quota_probe(self, provider: str, lease_seconds: int = 120) -> bool:
+        """Allow one cross-process provider check after a quota lock expires."""
+        provider = str(provider or "").strip().lower()
+        if not provider:
+            return False
+        current = datetime.now(KST)
+        current_iso = current.isoformat(timespec="seconds")
+        lease_until = (current + timedelta(seconds=max(30, int(lease_seconds)))).isoformat(timespec="seconds")
+        disabled_key = f"llm_provider_disabled_until:{provider}"
+        probe_key = f"llm_provider_probe_until:{provider}"
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            disabled = connection.execute("SELECT value FROM app_settings WHERE key=?", (disabled_key,)).fetchone()
+            disabled_until = str(disabled["value"] or "") if disabled else ""
+            if not disabled_until:
+                return True
+            if disabled_until > current_iso:
+                return False
+            probe = connection.execute("SELECT value FROM app_settings WHERE key=?", (probe_key,)).fetchone()
+            if probe and str(probe["value"] or "") > current_iso:
+                return False
+            connection.execute(
+                "INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+                (probe_key, lease_until, current_iso),
+            )
+        return True
+
+    def release_provider_quota_probe(self, provider: str) -> None:
+        self.set_setting(f"llm_provider_probe_until:{str(provider or '').strip().lower()}", "")
+
     def increment_setting_counter(self, key: str, delta: int = 1) -> int:
         with self.connect() as connection:
             row = connection.execute("SELECT value FROM app_settings WHERE key=?", (key,)).fetchone()
@@ -2163,8 +2339,11 @@ class Store:
         now = now_iso()
         with self.connect() as connection:
             rows = connection.execute(
-                "SELECT id,case_evaluation_id FROM case_evaluation_jobs WHERE status='processing' AND COALESCE(started_at,'')<=?",
-                (cutoff,),
+                """SELECT id,case_evaluation_id FROM case_evaluation_jobs
+                   WHERE status='processing'
+                     AND ((lease_expires_at IS NOT NULL AND lease_expires_at<=?)
+                       OR (lease_expires_at IS NULL AND COALESCE(started_at,'')<=?))""",
+                (now, cutoff),
             ).fetchall()
             if not rows:
                 return 0
@@ -2173,7 +2352,8 @@ class Store:
             job_marks = ",".join("?" for _ in job_ids)
             evaluation_marks = ",".join("?" for _ in evaluation_ids)
             connection.execute(
-                f"UPDATE case_evaluation_jobs SET status='pending',started_at=NULL,finished_at=NULL,retry_after=NULL,error='worker_stalled' WHERE id IN ({job_marks})",
+                f"UPDATE case_evaluation_jobs SET status='pending',started_at=NULL,finished_at=NULL,retry_after=NULL,"
+                f"error='worker_stalled',lease_owner='',lease_expires_at=NULL WHERE id IN ({job_marks})",
                 job_ids,
             )
             connection.execute(
@@ -2188,8 +2368,13 @@ class Store:
         now = now_iso()
         with self.connect() as connection:
             stalled = connection.execute(
-                "UPDATE article_analysis_jobs SET status='pending',started_at=NULL,finished_at=NULL,duration_ms=NULL,retry_after=NULL,error='worker_stalled' WHERE status='processing' AND COALESCE(started_at,'')<=?",
-                (cutoff,),
+                """UPDATE article_analysis_jobs
+                   SET status='pending',started_at=NULL,finished_at=NULL,duration_ms=NULL,retry_after=NULL,
+                       error='worker_stalled',lease_owner='',lease_expires_at=NULL
+                   WHERE status='processing'
+                     AND ((lease_expires_at IS NOT NULL AND lease_expires_at<=?)
+                       OR (lease_expires_at IS NULL AND COALESCE(started_at,'')<=?))""",
+                (now, cutoff),
             ).rowcount
             locked = connection.execute(
                 "UPDATE article_analysis_jobs SET status='pending',started_at=NULL,finished_at=NULL,duration_ms=NULL,retry_after=NULL,error='database_locked_retry' WHERE status='failed' AND error='database is locked' AND attempts<3",
@@ -2203,6 +2388,32 @@ class Store:
                     (now,),
                 )
         return {"stalled": int(stalled), "locked": int(locked)}
+
+    def release_article_analysis_retries(self) -> dict[str, int]:
+        """Make queued common-analysis work immediately eligible after an admin model switch."""
+        now = now_iso()
+        with self.connect() as connection:
+            pending = connection.execute(
+                "UPDATE article_analysis_jobs SET retry_after=NULL,error=NULL "
+                "WHERE status='pending' AND (retry_after IS NOT NULL OR error IS NOT NULL)"
+            ).rowcount
+            failed = connection.execute(
+                """UPDATE article_analysis_jobs
+                   SET status='pending',attempts=0,started_at=NULL,finished_at=NULL,
+                       duration_ms=NULL,retry_after=NULL,error=NULL
+                   WHERE status='failed'
+                     AND EXISTS (SELECT 1 FROM article_analyses aa
+                                 WHERE aa.id=article_analysis_jobs.article_analysis_id
+                                   AND aa.status<>'completed')"""
+            ).rowcount
+            if pending or failed:
+                connection.execute(
+                    """UPDATE article_analyses SET status='pending',error=NULL,updated_at=?
+                       WHERE id IN (SELECT article_analysis_id FROM article_analysis_jobs WHERE status='pending')
+                         AND status<>'completed'""",
+                    (now,),
+                )
+        return {"pending_released": int(pending), "failed_requeued": int(failed)}
 
     def supabase_outbox_status(self) -> dict:
         with self.connect() as connection:
@@ -2266,21 +2477,41 @@ class Store:
         }
 
     def processing_summary(self, days: int = 7) -> dict:
-        """Persist KST daily completed-article totals so dashboard day resets lose no history."""
+        """Persist KST daily counts of distinct articles whose case judgments all finished."""
         days = max(7, min(90, int(days)))
         today = datetime.now(KST).date()
         first_day = today - timedelta(days=days - 1)
         with self.connect() as connection:
-            rows = connection.execute("""SELECT substr(COALESCE(analyzed_at,updated_at),1,10) day,COUNT(DISTINCT article_id) article_count
-                FROM article_analyses WHERE status='completed' AND COALESCE(analyzed_at,updated_at)>=? GROUP BY substr(COALESCE(analyzed_at,updated_at),1,10)""",
+            rows = connection.execute("""WITH completed_articles AS (
+                    SELECT aa.article_id,MAX(COALESCE(ce.completed_at,ce.updated_at)) completed_at
+                    FROM article_processing_flags apf
+                    JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
+                    JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
+                    JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
+                    JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                    GROUP BY aa.article_id
+                    HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
+                )
+                SELECT substr(completed_at,1,10) day,COUNT(*) article_count
+                FROM completed_articles WHERE completed_at>=? GROUP BY substr(completed_at,1,10)""",
                 (datetime.combine(first_day, datetime.min.time(), tzinfo=KST).isoformat(timespec="seconds"),)).fetchall()
             now = now_iso()
+            counts = {str(row["day"]): int(row["article_count"] or 0) for row in rows if row["day"]}
             connection.executemany("""INSERT INTO processing_daily_stats(day,article_count,recorded_at) VALUES(?,?,?)
                 ON CONFLICT(day) DO UPDATE SET article_count=excluded.article_count,recorded_at=excluded.recorded_at""",
-                [(str(row["day"]), int(row["article_count"] or 0), now) for row in rows if row["day"]])
+                [((first_day + timedelta(days=offset)).isoformat(), counts.get((first_day + timedelta(days=offset)).isoformat(), 0), now) for offset in range(days)])
             saved = {str(row["day"]): int(row["article_count"] or 0) for row in connection.execute(
                 "SELECT day,article_count FROM processing_daily_stats WHERE day>=? ORDER BY day", (first_day.isoformat(),)).fetchall()}
-            total = int(connection.execute("SELECT COUNT(DISTINCT article_id) value FROM article_analyses WHERE status='completed'").fetchone()["value"] or 0)
+            total = int(connection.execute("""WITH completed_articles AS (
+                    SELECT aa.article_id
+                    FROM article_processing_flags apf
+                    JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
+                    JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
+                    JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
+                    JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                    GROUP BY aa.article_id
+                    HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
+                ) SELECT COUNT(*) value FROM completed_articles""").fetchone()["value"] or 0)
         daily = [{"day": (first_day + timedelta(days=offset)).isoformat(), "article_count": int(saved.get((first_day + timedelta(days=offset)).isoformat(), 0))} for offset in range(days)]
         recent_week = daily[-7:]
         week_total = sum(item["article_count"] for item in recent_week)
@@ -2683,6 +2914,122 @@ class Store:
             row = connection.execute("SELECT id FROM recipients WHERE kakao_user_id=?", (str(token_data["kakao_user_id"]),)).fetchone()
         return self.get_recipient(row["id"]) or {}
 
+    def unsubscribe_recipient_by_kakao_user_id(self, kakao_user_id: str, invite_token: str) -> dict:
+        """Remove a verified Kakao recipient while retaining a six-hour audit row."""
+        token_hash = hashlib.sha256(str(invite_token).encode()).hexdigest()
+        now = now_iso()
+        with self.connect() as connection:
+            invite = connection.execute(
+                """SELECT * FROM recipient_invites
+                   WHERE token_hash=? AND label=? AND used_at IS NULL AND expires_at>?""",
+                (token_hash, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, now),
+            ).fetchone()
+            if not invite:
+                raise ValueError("구독 해지 인증이 만료되었거나 이미 사용되었습니다.")
+            connection.execute("UPDATE recipient_invites SET used_at=? WHERE id=?", (now, invite["id"]))
+            recipient = connection.execute(
+                "SELECT id,label FROM recipients WHERE kakao_user_id=? AND status<>'deleted'",
+                (str(kakao_user_id or ""),),
+            ).fetchone()
+            if not recipient:
+                return {"deleted": False, "history_count": 0}
+
+            recipient_id = str(recipient["id"])
+            applicant_name = str(recipient["label"] or "구독자")
+            cases_by_organization: dict[str, set[str]] = {}
+            for row in connection.execute(
+                """SELECT c.organization_id,cr.case_id FROM case_recipients cr
+                   JOIN cases c ON c.id=cr.case_id WHERE cr.recipient_id=?""",
+                (recipient_id,),
+            ).fetchall():
+                cases_by_organization.setdefault(str(row["organization_id"]), set()).add(str(row["case_id"]))
+            slots_by_organization: dict[str, set[str]] = {}
+            for row in connection.execute(
+                "SELECT organization_id,edition_slots,case_ids FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (recipient_id,),
+            ).fetchall():
+                organization_id = str(row["organization_id"])
+                slots_by_organization[organization_id] = {
+                    str(value) for value in json_value(row["edition_slots"], []) if str(value).strip()
+                }
+                cases_by_organization.setdefault(organization_id, set()).update(
+                    str(value) for value in json_value(row["case_ids"], []) if str(value).strip()
+                )
+
+            active_requests = connection.execute(
+                """SELECT id,organization_id FROM signup_requests
+                   WHERE recipient_id=? AND status NOT IN ('rejected','revoked')
+                   ORDER BY created_at""",
+                (recipient_id,),
+            ).fetchall()
+            covered_organizations: set[str] = set()
+            history_count = 0
+            for request in active_requests:
+                request_id = str(request["id"])
+                organization_id = str(request["organization_id"])
+                covered_organizations.add(organization_id)
+                connection.executemany(
+                    """INSERT OR IGNORE INTO signup_request_cases(
+                       request_id,case_id,status,decided_at,updated_at
+                       ) VALUES(?,?, 'revoked',?,?)""",
+                    [(request_id, case_id, now, now) for case_id in sorted(cases_by_organization.get(organization_id, set()))],
+                )
+                connection.execute(
+                    """UPDATE signup_request_cases SET status='revoked',decided_at=?,updated_at=?
+                       WHERE request_id=?""",
+                    (now, now, request_id),
+                )
+                connection.executemany(
+                    "INSERT OR IGNORE INTO signup_request_magazine_slots(request_id,edition_slot) VALUES(?,?)",
+                    [(request_id, slot) for slot in sorted(slots_by_organization.get(organization_id, set()))],
+                )
+                connection.execute(
+                    """UPDATE signup_requests SET status='revoked',admin_note='사용자 직접 해지',
+                       decided_at=?,updated_at=? WHERE id=?""",
+                    (now, now, request_id),
+                )
+                history_count += 1
+
+            current_organizations = set(cases_by_organization) | set(slots_by_organization)
+            for organization_id in sorted(current_organizations - covered_organizations):
+                request_id = str(uuid.uuid4())
+                connection.execute(
+                    """INSERT INTO signup_requests(
+                       id,invite_id,recipient_id,applicant_name,organization_id,status,admin_note,
+                       kakao_registered_at,decided_at,created_at,updated_at
+                       ) VALUES(?,?,?,?,?,'revoked','사용자 직접 해지',?,?,?,?)""",
+                    (request_id, invite["id"], recipient_id, applicant_name, organization_id, now, now, now, now),
+                )
+                connection.executemany(
+                    """INSERT INTO signup_request_cases(request_id,case_id,status,decided_at,updated_at)
+                       VALUES(?,?, 'revoked',?,?)""",
+                    [(request_id, case_id, now, now) for case_id in sorted(cases_by_organization.get(organization_id, set()))],
+                )
+                connection.executemany(
+                    "INSERT INTO signup_request_magazine_slots(request_id,edition_slot) VALUES(?,?)",
+                    [(request_id, slot) for slot in sorted(slots_by_organization.get(organization_id, set()))],
+                )
+                history_count += 1
+
+            connection.execute("DELETE FROM case_recipients WHERE recipient_id=?", (recipient_id,))
+            connection.execute("DELETE FROM recipient_magazine_subscriptions WHERE recipient_id=?", (recipient_id,))
+            connection.execute(
+                "DELETE FROM deliveries WHERE recipient_id=? AND status IN ('pending','retry')",
+                (recipient_id,),
+            )
+            connection.execute(
+                "DELETE FROM magazine_deliveries WHERE recipient_id=? AND status IN ('pending','retry','sending')",
+                (recipient_id,),
+            )
+            deleted = connection.execute(
+                """UPDATE recipients
+                   SET label='삭제된 구독자',kakao_user_id=?,access_token_ciphertext='',refresh_token_ciphertext='',
+                       access_token_expires_at='',refresh_token_expires_at='',status='deleted',
+                       last_error='사용자 직접 해지',updated_at=? WHERE id=?""",
+                (f"deleted:{recipient_id}", now, recipient_id),
+            ).rowcount > 0
+            return {"deleted": deleted, "history_count": history_count, "recipient_id": recipient_id}
+
     def update_recipient_tokens(self, recipient_id: str, values: dict) -> None:
         allowed = {"access_token_ciphertext", "refresh_token_ciphertext", "access_token_expires_at", "refresh_token_expires_at", "status", "last_error"}
         clean = {key: value for key, value in values.items() if key in allowed}
@@ -2832,6 +3179,47 @@ class Store:
             row = connection.execute("SELECT * FROM article_analysis_jobs WHERE status='pending' AND (retry_after IS NULL OR retry_after<=?) ORDER BY queued_at,rowid LIMIT 1", (now_iso(),)).fetchone()
         return dict(row) if row else None
 
+    def claim_next_article_analysis_job(self, lease_owner: str, provider_lane: str = "primary",
+                                        lease_seconds: int = 300) -> dict | None:
+        """Claim one common-analysis job in a database transaction shared by all processes."""
+        owner = str(lease_owner or "").strip()
+        if not owner:
+            raise ValueError("lease_owner_required")
+        now = now_iso()
+        lane = str(provider_lane or "primary")[:30]
+        ready_clause = "" if lane == "burst" else " AND (retry_after IS NULL OR retry_after<=?)"
+        ready_params = [] if lane == "burst" else [now]
+        expires_at = (datetime.now(KST) + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT id FROM article_analysis_jobs WHERE status='pending'" + ready_clause +
+                " ORDER BY queued_at,rowid LIMIT 1",
+                ready_params,
+            ).fetchone()
+            if not row:
+                return None
+            job_id = str(row["id"])
+            changed = connection.execute(
+                """UPDATE article_analysis_jobs
+                   SET status='processing',started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,
+                       retry_after=NULL,attempts=attempts+1,lease_owner=?,lease_expires_at=?,provider_lane=?
+                   WHERE id=? AND status='pending'""" + ready_clause,
+                (now, owner, expires_at, lane, job_id, *ready_params),
+            ).rowcount
+            if not changed:
+                return None
+            connection.execute(
+                "UPDATE article_analyses SET status='processing',updated_at=? "
+                "WHERE id=(SELECT article_analysis_id FROM article_analysis_jobs WHERE id=?)",
+                (now, job_id),
+            )
+            claimed = connection.execute(
+                "SELECT * FROM article_analysis_jobs WHERE id=? AND status='processing' AND lease_owner=?",
+                (job_id, owner),
+            ).fetchone()
+        return dict(claimed) if claimed else None
+
     def start_article_analysis_job(self, job_id: str) -> bool:
         now = now_iso()
         with self.connect() as connection:
@@ -2840,9 +3228,18 @@ class Store:
                 connection.execute("UPDATE article_analyses SET status='processing',updated_at=? WHERE id=(SELECT article_analysis_id FROM article_analysis_jobs WHERE id=?)", (now, job_id))
         return cursor.rowcount > 0
 
-    def save_article_analysis(self, analysis_id: str, result: dict, model: str) -> dict:
+    def save_article_analysis(self, analysis_id: str, result: dict, model: str,
+                              job_id: str = "", lease_owner: str = "") -> dict:
         now = now_iso()
         with self.connect() as connection:
+            if job_id and lease_owner:
+                owned = connection.execute(
+                    "SELECT 1 FROM article_analysis_jobs WHERE id=? AND article_analysis_id=? "
+                    "AND status='processing' AND lease_owner=?",
+                    (job_id, analysis_id, lease_owner),
+                ).fetchone()
+                if not owned:
+                    return {}
             connection.execute(
                 """UPDATE article_analyses SET status='completed',model=?,summary=?,publisher_name=?,reporter_name=?,article_type=?,tone=?,classification_tags=?,entities=?,topic_concepts=?,evidence=?,analysis_report=?,error=NULL,analyzed_at=?,updated_at=? WHERE id=?""",
                 (str(model)[:120], result.get("summary", ""), result.get("publisher_name", ""), result.get("reporter_name", ""), result.get("article_type", "기타"), result.get("tone", "사실전달"),
@@ -2859,7 +3256,7 @@ class Store:
 
     def finish_article_analysis_job(self, job_id: str, ok: bool, duration_ms: int, error: str = "",
                                     retryable: bool = False, retry_after: str | None = None,
-                                    keep_pending: bool = False) -> None:
+                                    keep_pending: bool = False, lease_owner: str = "") -> bool:
         now = now_iso()
         with self.connect() as connection:
             row = connection.execute("SELECT attempts FROM article_analysis_jobs WHERE id=?", (job_id,)).fetchone()
@@ -2869,13 +3266,22 @@ class Store:
                 delay = 1 if attempts <= 1 else 5
                 retry_after = (datetime.now(KST) + timedelta(minutes=delay)).isoformat(timespec="seconds")
             status = "completed" if ok else ("pending" if should_retry else "failed")
-            connection.execute(
-                "UPDATE article_analysis_jobs SET status=?,started_at=CASE WHEN ?='pending' THEN NULL ELSE started_at END,finished_at=?,duration_ms=?,retry_after=?,error=? WHERE id=?",
-                (status, status, now, max(0, int(duration_ms)), retry_after if should_retry else None, error[:1000] or None, job_id),
-            )
+            owner_clause = " AND lease_owner=?" if lease_owner else ""
+            values: list[Any] = [status, status, now, max(0, int(duration_ms)), retry_after if should_retry else None, error[:1000] or None, job_id]
+            if lease_owner:
+                values.append(lease_owner)
+            changed = connection.execute(
+                "UPDATE article_analysis_jobs SET status=?,started_at=CASE WHEN ?='pending' THEN NULL ELSE started_at END,"
+                "finished_at=?,duration_ms=?,retry_after=?,error=?,lease_owner='',lease_expires_at=NULL "
+                f"WHERE id=?{owner_clause}",
+                values,
+            ).rowcount
+            if not changed:
+                return False
             if not ok:
                 analysis_status = "pending" if should_retry else "failed"
                 connection.execute("UPDATE article_analyses SET status=?,error=?,updated_at=? WHERE id=(SELECT article_analysis_id FROM article_analysis_jobs WHERE id=?)", (analysis_status, error[:1000] or None, now, job_id))
+        return True
 
     def get_article_analysis(self, analysis_id: str) -> dict | None:
         with self.connect() as connection:
@@ -2990,7 +3396,7 @@ class Store:
             if not row or row["status"] in {"completed", "excluded"}:
                 return ""
             connection.execute(
-                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,status,queued_at,retry_after) VALUES(?,?, 'pending',?,?)
+                """INSERT INTO case_evaluation_jobs(id,case_evaluation_id,provider,status,queued_at,retry_after) VALUES(?,?,'','pending',?,?)
                    ON CONFLICT(case_evaluation_id) DO UPDATE SET
                    status=CASE WHEN case_evaluation_jobs.status='failed' THEN 'pending' ELSE case_evaluation_jobs.status END,
                    queued_at=CASE WHEN case_evaluation_jobs.status='failed' THEN excluded.queued_at ELSE case_evaluation_jobs.queued_at END,
@@ -3016,49 +3422,202 @@ class Store:
             ).fetchone()
         return dict(row) if row else None
 
-    def next_case_evaluation_batch(self, limit: int = 10, provider: str = "openrouter") -> list[dict]:
-        """Atomically lease up to ten case jobs sharing one article analysis."""
+    def next_case_evaluation_batch(self, limit: int = 10, provider: str = "openrouter",
+                                   lease_owner: str = "", provider_lane: str = "primary",
+                                   lease_seconds: int = 300, single_unowned_only: bool = False,
+                                   allow_unowned_single: bool = True) -> list[dict]:
+        """Atomically lease one provider-affine article bundle chunk."""
         limit, now = max(1, min(10, int(limit))), now_iso()
         batch_id = str(uuid.uuid4())
-        with self._lock, self.connect() as connection:
+        owner = str(lease_owner or f"legacy:{batch_id}").strip()
+        lane = str(provider_lane or "primary")[:30]
+        ready_clause = "" if lane == "burst" else " AND (j.retry_after IS NULL OR j.retry_after<=?)"
+        ready_params = [] if lane == "burst" else [now]
+        expires_at = (datetime.now(KST) + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
+        having_clause = (
+            """HAVING COUNT(*)=1 AND (
+                 SELECT COUNT(*) FROM case_evaluation_jobs all_pending
+                 JOIN case_evaluations all_ce ON all_ce.id=all_pending.case_evaluation_id
+                 WHERE all_pending.status='pending'
+                   AND all_ce.article_analysis_id=ce.article_analysis_id
+               )=1 """ if single_unowned_only else
+            "HAVING (COUNT(*)>=2 OR MAX(CASE WHEN j.provider=? THEN 1 ELSE 0 END)=1 OR ?=1) "
+        )
+        routing_clause = " AND aa.case_routed_at IS NOT NULL " if single_unowned_only else ""
+        with self.connect() as connection:
+            # BEGIN IMMEDIATE serializes the read-and-claim sequence across
+            # independent primary and burst worker processes.
+            connection.execute("BEGIN IMMEDIATE")
             first = connection.execute(
                 "SELECT ce.article_analysis_id,MIN(j.queued_at) first_queued,COUNT(*) pending_count "
                 "FROM case_evaluation_jobs j "
                 "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
-                "WHERE j.status='pending' AND (j.retry_after IS NULL OR j.retry_after<=?) "
+                "WHERE j.status='pending'" + ready_clause + routing_clause +
+                "AND COALESCE(j.provider,'') IN ('',?) "
                 "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
+                "AND NOT EXISTS (SELECT 1 FROM case_evaluation_jobs active "
+                "JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id "
+                "WHERE active_ce.article_analysis_id=ce.article_analysis_id AND active.status='processing') "
                 "GROUP BY ce.article_analysis_id "
-                "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1", (now,),
+                + having_clause +
+                "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1",
+                (*ready_params, provider) if single_unowned_only else
+                (*ready_params, provider, provider, int(bool(allow_unowned_single))),
             ).fetchone()
             if not first:
                 return []
+            connection.execute(
+                "UPDATE case_evaluation_jobs SET provider=? WHERE status='pending' AND COALESCE(provider,'')='' "
+                "AND case_evaluation_id IN (SELECT id FROM case_evaluations WHERE article_analysis_id=?)",
+                (provider, first["article_analysis_id"]),
+            )
             rows = connection.execute(
                 "SELECT j.*,ce.article_analysis_id,ce.article_id,ce.case_id FROM case_evaluation_jobs j "
                 "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
                 "JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id "
-                "WHERE j.status='pending' AND (j.retry_after IS NULL OR j.retry_after<=?) "
+                "WHERE j.status='pending'" + ready_clause + " "
+                "AND j.provider=? "
                 "AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at) "
                 "AND ce.article_analysis_id=? ORDER BY j.queued_at,j.rowid LIMIT ?",
-                (now, first["article_analysis_id"], limit),
+                (*ready_params, provider, first["article_analysis_id"], limit),
             ).fetchall()
             if not rows:
                 return []
             job_ids = [str(row["id"]) for row in rows]
             marks = ",".join("?" for _ in job_ids)
             connection.execute(
-                f"UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,retry_after=NULL,attempts=attempts+1,batch_id=?,batch_size=? WHERE id IN ({marks}) AND status='pending'",
-                (provider, now, batch_id, len(job_ids), *job_ids),
+                f"UPDATE case_evaluation_jobs SET status='processing',provider=?,started_at=?,finished_at=NULL,"
+                f"duration_ms=NULL,error=NULL,retry_after=NULL,attempts=attempts+1,batch_id=?,batch_size=?,"
+                f"lease_owner=?,lease_expires_at=?,provider_lane=? "
+                f"WHERE id IN ({marks}) AND status='pending'" + ("" if lane == "burst" else " AND (retry_after IS NULL OR retry_after<=?)"),
+                (provider, now, batch_id, len(job_ids), owner, expires_at,
+                 lane, *job_ids, *ready_params),
             )
+            claimed = connection.execute(
+                "SELECT j.*,ce.article_analysis_id,ce.article_id,ce.case_id "
+                "FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "WHERE j.batch_id=? AND j.status='processing' AND j.lease_owner=? ORDER BY j.queued_at,j.rowid",
+                (batch_id, owner),
+            ).fetchall()
+            if not claimed:
+                return []
+            claimed_ids = [str(row["id"]) for row in claimed]
+            claimed_marks = ",".join("?" for _ in claimed_ids)
             connection.execute(
-                f"UPDATE case_evaluations SET status='processing',updated_at=? WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id IN ({marks}))",
-                (now, *job_ids),
+                f"UPDATE case_evaluations SET status='processing',updated_at=? "
+                f"WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id IN ({claimed_marks}))",
+                (now, *claimed_ids),
             )
-        return [{**dict(row), "batch_id": batch_id, "batch_size": len(rows)} for row in rows]
+        return [{**dict(row), "batch_id": batch_id, "batch_size": len(claimed)} for row in claimed]
 
-    def pending_case_evaluation_jobs(self) -> int:
+    def release_case_bundle_provider(self, article_analysis_id: str, provider: str = "") -> int:
+        """Release an idle pending bundle so another primary provider can continue it."""
         with self.connect() as connection:
-            row = connection.execute("SELECT COUNT(*) value FROM case_evaluation_jobs WHERE status='pending' AND (retry_after IS NULL OR retry_after<=?)", (now_iso(),)).fetchone()
+            active = connection.execute(
+                "SELECT 1 FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "WHERE ce.article_analysis_id=? AND j.status='processing' LIMIT 1",
+                (str(article_analysis_id),),
+            ).fetchone()
+            if active:
+                return 0
+            provider_clause = " AND provider=?" if provider else ""
+            params = (str(provider), str(article_analysis_id)) if provider else (str(article_analysis_id),)
+            changed = connection.execute(
+                "UPDATE case_evaluation_jobs SET provider='' WHERE status='pending'" + provider_clause +
+                " AND case_evaluation_id IN (SELECT id FROM case_evaluations WHERE article_analysis_id=?)",
+                params,
+            ).rowcount
+        return int(changed or 0)
+
+    def release_invalid_openrouter_case_bundles(self) -> int:
+        """Release idle multi-case bundles that the OpenRouter single lane cannot process."""
+        with self.connect() as connection:
+            changed = connection.execute(
+                """UPDATE case_evaluation_jobs SET provider=''
+                   WHERE id IN (
+                     SELECT candidate.id
+                     FROM case_evaluation_jobs candidate
+                     JOIN case_evaluations candidate_ce ON candidate_ce.id=candidate.case_evaluation_id
+                     WHERE candidate.status='pending' AND candidate.provider='openrouter'
+                       AND candidate_ce.article_analysis_id IN (
+                         SELECT ce.article_analysis_id
+                         FROM case_evaluation_jobs pending
+                         JOIN case_evaluations ce ON ce.id=pending.case_evaluation_id
+                         WHERE pending.status='pending'
+                         GROUP BY ce.article_analysis_id
+                         HAVING COUNT(*)>1
+                       )
+                       AND NOT EXISTS (
+                         SELECT 1 FROM case_evaluation_jobs active
+                         JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id
+                         WHERE active_ce.article_analysis_id=candidate_ce.article_analysis_id
+                           AND active.status='processing'
+                       )
+                   )"""
+            ).rowcount
+        return int(changed or 0)
+
+    def release_pending_case_provider(self, provider: str) -> int:
+        """Release every idle pending bundle owned by an unavailable provider."""
+        with self.connect() as connection:
+            changed = connection.execute(
+                "UPDATE case_evaluation_jobs AS pending SET provider='' "
+                "WHERE pending.status='pending' AND pending.provider=? "
+                "AND NOT EXISTS (SELECT 1 FROM case_evaluation_jobs active "
+                "JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id "
+                "JOIN case_evaluations pending_ce ON pending_ce.id=pending.case_evaluation_id "
+                "WHERE active_ce.article_analysis_id=pending_ce.article_analysis_id AND active.status='processing')",
+                (str(provider),),
+            ).rowcount
+        return int(changed or 0)
+
+    def pending_case_evaluation_jobs(self, include_deferred: bool = False) -> int:
+        ready_clause = "" if include_deferred else " AND (retry_after IS NULL OR retry_after<=?)"
+        params = [] if include_deferred else [now_iso()]
+        with self.connect() as connection:
+            row = connection.execute("SELECT COUNT(*) value FROM case_evaluation_jobs WHERE status='pending'" + ready_clause, params).fetchone()
+        return int(row["value"] or 0)
+    def ready_case_evaluation_jobs_older_than(self, seconds: int, provider: str = "") -> bool:
+        cutoff = (datetime.now(KST) - timedelta(seconds=max(0, int(seconds)))).isoformat(timespec="seconds")
+        provider_clause = " AND COALESCE(provider,'') IN ('',?)" if provider else ""
+        params: list[Any] = [now_iso(), cutoff]
+        if provider:
+            params.append(str(provider))
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM case_evaluation_jobs WHERE status='pending' "
+                "AND (retry_after IS NULL OR retry_after<=?) AND queued_at<=?" + provider_clause + " LIMIT 1",
+                params,
+            ).fetchone()
+        return bool(row)
+
+
+    def pending_case_evaluation_bundles(self, include_deferred: bool = False) -> int:
+        """Count article-level batches, optionally including provider-deferred work."""
+        ready_clause = "" if include_deferred else " AND (j.retry_after IS NULL OR j.retry_after<=?)"
+        params = [] if include_deferred else [now_iso()]
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(DISTINCT ce.article_analysis_id) value
+                   FROM case_evaluation_jobs j
+                   JOIN case_evaluations ce ON ce.id=j.case_evaluation_id
+                   JOIN cases c ON c.id=ce.case_id JOIN articles a ON a.id=ce.article_id
+                   WHERE j.status='pending'""" + ready_clause + """
+                     AND a.first_seen_at>=COALESCE(NULLIF(c.monitor_from,''),c.created_at)""",
+                params,
+            ).fetchone()
+        return int(row["value"] or 0)
+
+    def pending_article_analysis_jobs(self, include_deferred: bool = False) -> int:
+        ready_clause = "" if include_deferred else " AND (retry_after IS NULL OR retry_after<=?)"
+        params = [] if include_deferred else [now_iso()]
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT COUNT(*) value FROM article_analysis_jobs WHERE status='pending'" + ready_clause,
+                params,
+            ).fetchone()
         return int(row["value"] or 0)
 
     def start_case_evaluation_job(self, job_id: str, provider: str = "openrouter") -> bool:
@@ -3069,9 +3628,18 @@ class Store:
                 connection.execute("UPDATE case_evaluations SET status='processing',updated_at=? WHERE id=(SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id=?)", (now, job_id))
         return cursor.rowcount > 0
 
-    def save_case_evaluation(self, evaluation_id: str, result: dict, model: str) -> dict:
+    def save_case_evaluation(self, evaluation_id: str, result: dict, model: str,
+                             job_id: str = "", lease_owner: str = "") -> dict:
         now = now_iso()
         with self.connect() as connection:
+            if job_id and lease_owner:
+                owned = connection.execute(
+                    "SELECT 1 FROM case_evaluation_jobs WHERE id=? AND case_evaluation_id=? "
+                    "AND status='processing' AND lease_owner=?",
+                    (job_id, evaluation_id, lease_owner),
+                ).fetchone()
+                if not owned:
+                    return {}
             connection.execute(
                 """UPDATE case_evaluations SET status='completed',model=?,keyword_score=?,semantic_raw=?,semantic_score=?,llm_score=?,final_score=?,evidence_status=?,reasons=?,matched_terms=?,low_score_categories=?,analysis_report=?,decision=?,error=NULL,completed_at=?,updated_at=? WHERE id=?""",
                 (str(model)[:120], result.get("keyword_score", 0), result.get("semantic_raw", 0), result.get("semantic_score", 0), result.get("llm_score", 0), result.get("final_score", 0), result.get("evidence_status", ""),
@@ -3092,7 +3660,8 @@ class Store:
         return self._decode_case_evaluation(row) or {}
 
     def finish_case_evaluation_job(self, job_id: str, ok: bool, duration_ms: int, error: str = "", retryable: bool = False,
-                                   retry_after: str | None = None, keep_pending: bool = False) -> None:
+                                   retry_after: str | None = None, keep_pending: bool = False,
+                                   lease_owner: str = "") -> bool:
         now = now_iso()
         with self.connect() as connection:
             row = connection.execute("SELECT attempts FROM case_evaluation_jobs WHERE id=?", (job_id,)).fetchone()
@@ -3102,10 +3671,22 @@ class Store:
             if should_retry and not retry_after:
                 delay = 1 if attempts <= 1 else (2 if attempts == 2 else 5)
                 retry_after = (datetime.now(KST) + timedelta(minutes=delay)).isoformat(timespec="seconds")
-            connection.execute("UPDATE case_evaluation_jobs SET status=?,started_at=CASE WHEN ?='pending' THEN NULL ELSE started_at END,finished_at=?,duration_ms=?,retry_after=?,error=? WHERE id=?", (status, status, now, max(0, int(duration_ms)), retry_after if should_retry else None, error[:1000] or None, job_id))
+            owner_clause = " AND lease_owner=?" if lease_owner else ""
+            values: list[Any] = [status, status, now, max(0, int(duration_ms)), retry_after if should_retry else None, error[:1000] or None, job_id]
+            if lease_owner:
+                values.append(lease_owner)
+            changed = connection.execute(
+                "UPDATE case_evaluation_jobs SET status=?,started_at=CASE WHEN ?='pending' THEN NULL ELSE started_at END,"
+                "finished_at=?,duration_ms=?,retry_after=?,error=?,lease_owner='',lease_expires_at=NULL "
+                f"WHERE id=?{owner_clause}",
+                values,
+            ).rowcount
+            if not changed:
+                return False
             if not ok:
                 evaluation_status = "pending" if should_retry else "failed"
                 connection.execute("UPDATE case_evaluations SET status=?,error=?,updated_at=? WHERE id=(SELECT case_evaluation_id FROM case_evaluation_jobs WHERE id=?)", (evaluation_status, error[:1000] or None, now, job_id))
+        return True
 
     def get_case_evaluation(self, evaluation_id: str) -> dict | None:
         with self.connect() as connection:
@@ -3158,12 +3739,39 @@ class Store:
                      AND EXISTS (SELECT 1 FROM case_evaluations ce JOIN article_analyses aa ON aa.id=ce.article_analysis_id
                                  WHERE ce.id=case_evaluation_jobs.case_evaluation_id AND aa.status='completed')"""
             ).rowcount
+            case_provider_affinity = connection.execute(
+                """UPDATE case_evaluation_jobs SET provider=''
+                   WHERE id IN (
+                     SELECT candidate.id
+                     FROM case_evaluation_jobs candidate
+                     JOIN case_evaluations candidate_ce ON candidate_ce.id=candidate.case_evaluation_id
+                     WHERE candidate.status='pending' AND candidate.provider='openrouter'
+                       AND candidate_ce.article_analysis_id IN (
+                         SELECT ce.article_analysis_id
+                         FROM case_evaluation_jobs pending
+                         JOIN case_evaluations ce ON ce.id=pending.case_evaluation_id
+                         WHERE pending.status='pending'
+                         GROUP BY ce.article_analysis_id
+                         HAVING COUNT(*)>1
+                       )
+                       AND NOT EXISTS (
+                         SELECT 1 FROM case_evaluation_jobs active
+                         JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id
+                         WHERE active_ce.article_analysis_id=candidate_ce.article_analysis_id
+                           AND active.status='processing'
+                       )
+                   )"""
+            ).rowcount
             connection.execute(
                 """UPDATE case_evaluations SET status='pending',error=NULL,updated_at=?
                    WHERE id IN (SELECT case_evaluation_id FROM case_evaluation_jobs WHERE status='pending')""",
                 (now_iso(),),
             )
-        return {"common": int(common), "cases": int(cases)}
+        return {
+            "common": int(common),
+            "cases": int(cases),
+            "case_provider_affinity": int(case_provider_affinity),
+        }
 
     def queue_llm_job(self, article_id: str, case_id: str, case_version: int, organization_id: str | None = None) -> str:
         job_id = str(uuid.uuid4())
@@ -3415,8 +4023,49 @@ class Store:
                 (str(uuid.uuid4()), article_id, case_id, recipient_id, scheduled_at, now, now),
             )
 
-    def due_deliveries(self, limit: int = 20) -> list[dict]:
+    def due_deliveries(self, limit: int = 20, lease_owner: str = "", lease_seconds: int = 900) -> list[dict]:
+        limit = max(1, min(100, int(limit)))
+        owner = str(lease_owner or f"delivery:{uuid.uuid4()}")
+        current = datetime.now(KST)
+        now = current.isoformat(timespec="seconds")
+        lease_expires_at = (current + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
         with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            # A worker may commit the parent delivery just before termination,
+            # leaving only its audit row open. The parent is the source of truth;
+            # close those rows without turning a recovered send into a failure.
+            connection.execute(
+                """UPDATE delivery_attempts
+                   SET status='recovered',
+                       finished_at=COALESCE(
+                         (SELECT COALESCE(d.sent_at,d.updated_at) FROM deliveries d WHERE d.id=delivery_attempts.delivery_id),
+                         ?
+                       ),
+                       response_code=COALESCE(
+                         response_code,
+                         (SELECT d.response_code FROM deliveries d WHERE d.id=delivery_attempts.delivery_id)
+                       ),
+                       error=COALESCE(error,'delivery_parent_already_sent')
+                   WHERE status='processing' AND EXISTS (
+                     SELECT 1 FROM deliveries d
+                     WHERE d.id=delivery_attempts.delivery_id AND d.status='sent'
+                   )""",
+                (now,),
+            )
+            expired = connection.execute(
+                "SELECT id,attempts FROM deliveries WHERE status='sending' AND lease_expires_at IS NOT NULL AND lease_expires_at<=?",
+                (now,),
+            ).fetchall()
+            for stale in expired:
+                stale_status = "failed" if int(stale["attempts"] or 0) >= 3 else "retry"
+                connection.execute(
+                    "UPDATE deliveries SET status=?,last_error='delivery_lease_expired',lease_owner='',lease_expires_at=NULL,updated_at=? WHERE id=? AND status='sending'",
+                    (stale_status, now, stale["id"]),
+                )
+                connection.execute(
+                    "UPDATE delivery_attempts SET status='failed',finished_at=?,error='delivery_lease_expired' WHERE delivery_id=? AND attempt_number=? AND status='processing'",
+                    (now, stale["id"], int(stale["attempts"] or 0)),
+                )
             rows = connection.execute(
                 """SELECT d.*,a.title,a.original_url,a.image_url,a.publisher,a.published_at,
                           COALESCE(aa.summary,s.summary,a.snippet,'') summary,
@@ -3440,28 +4089,110 @@ class Store:
                    WHERE d.status IN ('pending','retry') AND d.scheduled_at<=? AND d.attempts<3
                      AND (ce.id IS NOT NULL OR s.article_id IS NOT NULL)
                    ORDER BY d.scheduled_at LIMIT ?""",
-                (now_iso(), limit),
+                (now, limit),
             ).fetchall()
-        return [dict(row) for row in rows]
+            claimed = []
+            for raw in rows:
+                item = dict(raw)
+                result = connection.execute(
+                    "UPDATE deliveries SET status='sending',attempts=attempts+1,started_at=?,lease_owner=?,lease_expires_at=?,last_error=NULL,updated_at=? WHERE id=? AND status IN ('pending','retry') AND attempts<3",
+                    (now, owner, lease_expires_at, now, item["id"]),
+                )
+                if result.rowcount != 1:
+                    continue
+                attempts = int(item.get("attempts") or 0) + 1
+                connection.execute(
+                    "INSERT INTO delivery_attempts(id,delivery_id,attempt_number,lease_owner,started_at) VALUES(?,?,?,?,?)",
+                    (str(uuid.uuid4()), item["id"], attempts, owner, now),
+                )
+                item.update({
+                    "status": "sending", "attempts": attempts, "started_at": now,
+                    "lease_owner": owner, "lease_expires_at": lease_expires_at,
+                })
+                claimed.append(item)
+        return claimed
 
-    def fail_delivery_permanently(self, delivery_id: str, response_code: int | None = None, error: str = "") -> None:
+    def _record_delivery_result(
+        self,
+        delivery_id: str,
+        ok: bool,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+        permanent: bool = False,
+    ) -> bool:
         now = now_iso()
+        message = str(error or "")[:1000]
         with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT status,attempts,started_at,lease_owner FROM deliveries WHERE id=?",
+                (delivery_id,),
+            ).fetchone()
+            if not row:
+                return False
+            current_status = str(row["status"] or "")
+            actual_owner = str(row["lease_owner"] or "")
+            attempts = int(row["attempts"] or 0)
+            if current_status == "sending":
+                if lease_owner and actual_owner != lease_owner:
+                    return False
+            elif not lease_owner and current_status in {"pending", "retry"}:
+                actual_owner = f"legacy:{uuid.uuid4()}"
+                claimed = connection.execute(
+                    "UPDATE deliveries SET status='sending',attempts=attempts+1,started_at=?,lease_owner=?,lease_expires_at=?,updated_at=? WHERE id=? AND status=?",
+                    (now, actual_owner, now, now, delivery_id, current_status),
+                )
+                if claimed.rowcount != 1:
+                    return False
+                attempts += 1
+            else:
+                return False
             connection.execute(
-                """UPDATE deliveries SET status='failed',attempts=3,response_code=?,last_error=?,sent_at=NULL,updated_at=? WHERE id=?""",
-                (response_code, str(error)[:1000], now, delivery_id),
+                """INSERT OR IGNORE INTO delivery_attempts(
+                     id,delivery_id,attempt_number,lease_owner,started_at
+                   ) VALUES(?,?,?,?,?)""",
+                (str(uuid.uuid4()), delivery_id, attempts, actual_owner, str(row["started_at"] or now)),
             )
+            status = "sent" if ok else ("failed" if permanent or attempts >= 3 else "retry")
+            updated = connection.execute(
+                """UPDATE deliveries
+                   SET status=?,response_code=?,last_error=?,sent_at=?,lease_owner='',lease_expires_at=NULL,updated_at=?
+                   WHERE id=? AND status='sending' AND lease_owner=?""",
+                (status, response_code, None if ok else message, now if ok else None, now, delivery_id, actual_owner),
+            )
+            if updated.rowcount != 1:
+                return False
+            connection.execute(
+                """UPDATE delivery_attempts
+                   SET status=?,finished_at=?,response_code=?,error=?
+                   WHERE delivery_id=? AND attempt_number=? AND status='processing'""",
+                ("completed" if ok else "failed", now, response_code, None if ok else message, delivery_id, attempts),
+            )
+        return True
 
-    def finish_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
-        now = now_iso()
-        with self.connect() as connection:
-            row = connection.execute("SELECT attempts FROM deliveries WHERE id=?", (delivery_id,)).fetchone()
-            attempts = int(row["attempts"] or 0) + 1 if row else 1
-            status = "sent" if ok else ("failed" if attempts >= 3 else "retry")
-            connection.execute(
-                """UPDATE deliveries SET status=?,attempts=?,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?""",
-                (status, attempts, response_code, error[:1000], now if ok else None, now, delivery_id),
-            )
+    def fail_delivery_permanently(
+        self,
+        delivery_id: str,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+    ) -> bool:
+        return self._record_delivery_result(
+            delivery_id, False, response_code, error, lease_owner=lease_owner, permanent=True,
+        )
+
+    def finish_delivery(
+        self,
+        delivery_id: str,
+        ok: bool,
+        response_code: int | None = None,
+        error: str = "",
+        lease_owner: str = "",
+    ) -> bool:
+        return self._record_delivery_result(
+            delivery_id, ok, response_code, error, lease_owner=lease_owner,
+        )
 
     def queue_magazine_deliveries(self, edition: dict) -> int:
         self.ensure_magazine_schema()
@@ -3475,6 +4206,73 @@ class Store:
                 connection.execute("INSERT OR IGNORE INTO magazine_deliveries(id,edition_id,recipient_id,selected_case_ids,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?)", (str(uuid.uuid4()), edition["id"], row["recipient_id"], json.dumps(case_ids), now, now, now))
                 queued += int(connection.execute("SELECT changes()").fetchone()[0] or 0)
         return queued
+
+    def magazine_edition_exists(self, organization_id: str, edition_date: str, slot: str) -> bool:
+        self.ensure_magazine_schema()
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM magazine_editions WHERE organization_id=? AND edition_date=? AND edition_slot=? LIMIT 1",
+                (organization_id, edition_date, slot),
+            ).fetchone()
+        return bool(row)
+
+    def requeue_magazine_deliveries(self, edition: dict) -> int:
+        """Queue the selected edition again for every currently eligible subscriber."""
+        self.ensure_magazine_schema()
+        now, queued = now_iso(), 0
+        with self.connect() as connection:
+            rows = connection.execute(
+                """SELECT s.recipient_id,s.edition_slots,s.case_ids
+                   FROM recipient_magazine_subscriptions s
+                   JOIN recipients r ON r.id=s.recipient_id AND r.status='active'
+                   WHERE s.organization_id=?""", (edition["organization_id"],),
+            ).fetchall()
+            for row in rows:
+                slots, case_ids = json_value(row["edition_slots"], []), json_value(row["case_ids"], [])
+                if edition.get("edition_slot") not in slots or not case_ids:
+                    continue
+                connection.execute(
+                    """INSERT INTO magazine_deliveries(id,edition_id,recipient_id,selected_case_ids,scheduled_at,status,attempts,response_code,last_error,created_at,updated_at,sent_at)
+                       VALUES(?,?,?,?,?,'pending',0,NULL,NULL,?,?,NULL)
+                       ON CONFLICT(edition_id,recipient_id) DO UPDATE SET
+                         selected_case_ids=excluded.selected_case_ids,scheduled_at=excluded.scheduled_at,
+                         status='pending',attempts=0,response_code=NULL,last_error=NULL,updated_at=excluded.updated_at,sent_at=NULL""",
+                    (str(uuid.uuid4()), edition["id"], row["recipient_id"], json.dumps(case_ids), now, now, now),
+                )
+                queued += 1
+        return queued
+
+    def magazine_window_readiness(self, organization_id: str, window_start: str, window_end: str) -> dict:
+        """Return whether every known article in an edition window has finalized."""
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(*) total,
+                          COALESCE(SUM(analysis_status<>'completed'),0) pending_common,
+                          COALESCE(SUM(analysis_status='completed' AND embedding_done=0),0) pending_embedding,
+                          COALESCE(SUM(case_route_pending>0 OR pending_cases>0),0) pending_case_articles,
+                          COALESCE(SUM(analysis_status='completed' AND embedding_done=1 AND similarity_ready=0),0) pending_similarity
+                   FROM (
+                     SELECT aa.article_id,aa.status analysis_status,
+                            CASE WHEN ae.status='completed' THEN 1 ELSE 0 END embedding_done,
+                            CASE WHEN sg.article_id IS NOT NULL AND sg.computed_at>=ae.updated_at THEN 1 ELSE 0 END similarity_ready,
+                            CASE WHEN aa.case_routed_at IS NULL THEN 1 ELSE 0 END case_route_pending,
+                            (SELECT COUNT(*) FROM article_case_processing_flags acpf
+                              JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
+                              JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                             WHERE acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
+                               AND ce.status NOT IN ('completed','excluded')) pending_cases
+                       FROM article_processing_flags apf
+                       JOIN article_analyses aa ON aa.id=apf.analysis_id
+                       JOIN articles a ON a.id=aa.article_id
+                       LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id
+                       LEFT JOIN article_similarity_groups sg ON sg.article_id=aa.article_id
+                      WHERE aa.organization_id=? AND COALESCE(a.published_at,a.first_seen_at)>=?
+                        AND COALESCE(a.published_at,a.first_seen_at)<?
+                   ) scoped""", (organization_id, window_start, window_end),
+            ).fetchone()
+        result = {key: int(row[key] or 0) for key in ("total", "pending_common", "pending_embedding", "pending_case_articles", "pending_similarity")}
+        result["ready"] = not any(result[key] for key in ("pending_common", "pending_embedding", "pending_case_articles", "pending_similarity"))
+        return result
 
     def recent_magazines_for_recipient(self, recipient_id: str, limit: int = 3) -> list[dict]:
         self.ensure_magazine_schema()
@@ -3509,15 +4307,52 @@ class Store:
 
     def due_magazine_deliveries(self, limit: int = 20) -> list[dict]:
         self.ensure_magazine_schema()
+        now = now_iso()
+        stale_before = (datetime.now(KST) - timedelta(minutes=10)).isoformat(timespec="seconds")
         with self.connect() as connection:
-            rows = connection.execute("SELECT d.*,e.organization_name,e.edition_date,e.edition_slot FROM magazine_deliveries d JOIN magazine_editions e ON e.id=d.edition_id JOIN recipients r ON r.id=d.recipient_id AND r.status='active' WHERE d.status IN ('pending','retry') AND d.scheduled_at<=? AND d.attempts<3 ORDER BY d.scheduled_at LIMIT ?", (now_iso(), limit)).fetchall()
-        return [dict(row) for row in rows]
+            # A timer and the long-running worker can wake up together. Recover a
+            # stale claim, then atomically claim each delivery before Kakao I/O so
+            # only one process can send the same edition to the same recipient.
+            connection.execute(
+                """UPDATE magazine_deliveries
+                   SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'retry' END,
+                       last_error=CASE WHEN COALESCE(last_error,'')='' THEN '발송 작업 중단 후 자동 복구' ELSE last_error END,
+                       updated_at=?
+                   WHERE status='sending' AND updated_at<?""",
+                (now, stale_before),
+            )
+            candidate_ids = [str(row["id"]) for row in connection.execute(
+                """SELECT d.id FROM magazine_deliveries d
+                   JOIN recipients r ON r.id=d.recipient_id AND r.status='active'
+                   WHERE d.status IN ('pending','retry') AND d.scheduled_at<=? AND d.attempts<3
+                   ORDER BY d.scheduled_at LIMIT ?""",
+                (now, max(1, int(limit))),
+            ).fetchall()]
+            claimed = []
+            for delivery_id in candidate_ids:
+                changed = connection.execute(
+                    """UPDATE magazine_deliveries
+                       SET status='sending',attempts=attempts+1,updated_at=?
+                       WHERE id=? AND status IN ('pending','retry') AND attempts<3""",
+                    (now, delivery_id),
+                ).rowcount
+                if not changed:
+                    continue
+                row = connection.execute(
+                    """SELECT d.*,e.organization_name,e.edition_date,e.edition_slot
+                       FROM magazine_deliveries d JOIN magazine_editions e ON e.id=d.edition_id
+                       WHERE d.id=?""",
+                    (delivery_id,),
+                ).fetchone()
+                if row:
+                    claimed.append(dict(row))
+        return claimed
 
     def finish_magazine_delivery(self, delivery_id: str, ok: bool, response_code: int | None = None, error: str = "") -> None:
         now = now_iso()
         with self.connect() as connection:
             row = connection.execute("SELECT attempts FROM magazine_deliveries WHERE id=?", (delivery_id,)).fetchone()
-            attempts = int(row["attempts"] or 0) + 1 if row else 1
+            attempts = max(1, int(row["attempts"] or 0)) if row else 1
             status = "sent" if ok else ("failed" if attempts >= 3 else "retry")
             connection.execute(
                 "UPDATE magazine_deliveries SET status=?,attempts=?,response_code=?,last_error=?,sent_at=?,updated_at=? WHERE id=?",
@@ -3619,7 +4454,7 @@ class Store:
                 """SELECT aa.*,a.title,a.snippet,a.body FROM article_analyses aa JOIN articles a ON a.id=aa.article_id
                    LEFT JOIN article_embeddings e ON e.article_analysis_id=aa.id
                    WHERE aa.status='completed' AND (e.article_analysis_id IS NULL OR e.status='failed')
-                   ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT 1"""
+                   ORDER BY COALESCE(aa.analyzed_at,aa.updated_at) ASC LIMIT 1"""
             ).fetchone()
         return self._decode_article_analysis(row) if row else None
 
@@ -3641,6 +4476,10 @@ class Store:
             ).fetchone()
         return {**dict(row), "vector": json_value(row["vector"], [])} if row else None
 
+    def mark_article_cases_routed(self, analysis_id: str) -> None:
+        with self.connect() as connection:
+            connection.execute("UPDATE article_analyses SET case_routed_at=?,updated_at=? WHERE id=?", (now_iso(), now_iso(), analysis_id))
+
     def save_article_similarity_groups(self, articles: list[dict]) -> int:
         now, rows = now_iso(), []
         for article in articles:
@@ -3654,20 +4493,46 @@ class Store:
         return len(rows)
 
     def article_similarity_groups(self, article_ids: list[str]) -> dict[str, dict]:
-        clean = [str(value) for value in article_ids if str(value)]
+        clean = list(dict.fromkeys(str(value) for value in article_ids if str(value)))
         if not clean:
             return {}
+        rows = []
         with self.connect() as connection:
-            rows = connection.execute("SELECT * FROM article_similarity_groups WHERE article_id IN (" + ",".join("?" for _ in clean) + ")", clean).fetchall()
+            for index in range(0, len(clean), 500):
+                chunk = clean[index:index + 500]
+                rows.extend(connection.execute(
+                    "SELECT * FROM article_similarity_groups WHERE article_id IN (" + ",".join("?" for _ in chunk) + ")",
+                    chunk,
+                ).fetchall())
+        return {str(row["article_id"]): {"group_id": row["group_id"], "size": int(row["group_size"] or 1), "basis": row["basis"], "status": row["status"], "score": float(row["score"] or 0), "semantic_score": float(row["semantic_score"] or 0), "noun_score": float(row["noun_score"] or 0), "topics": json_value(row["topics"], []), "concepts": json_value(row["concepts"], [])} for row in rows}
+
+    def article_similarity_group_members(self, group_ids: list[str]) -> dict[str, dict]:
+        """Read every stored member of selected groups without recalculating similarity."""
+        clean = list(dict.fromkeys(str(value) for value in group_ids if str(value)))
+        if not clean:
+            return {}
+        rows = []
+        with self.connect() as connection:
+            for index in range(0, len(clean), 500):
+                chunk = clean[index:index + 500]
+                rows.extend(connection.execute(
+                    "SELECT * FROM article_similarity_groups WHERE group_size>1 AND group_id IN (" + ",".join("?" for _ in chunk) + ")",
+                    chunk,
+                ).fetchall())
         return {str(row["article_id"]): {"group_id": row["group_id"], "size": int(row["group_size"] or 1), "basis": row["basis"], "status": row["status"], "score": float(row["score"] or 0), "semantic_score": float(row["semantic_score"] or 0), "noun_score": float(row["noun_score"] or 0), "topics": json_value(row["topics"], []), "concepts": json_value(row["concepts"], [])} for row in rows}
 
     def similarity_groups_stale(self) -> bool:
+        cutoff = (datetime.now(KST) - timedelta(hours=self.SIMILARITY_GROUP_LOOKBACK_HOURS)).isoformat(timespec="seconds")
         with self.connect() as connection:
-            latest_embedding = connection.execute("SELECT MAX(updated_at) FROM article_embeddings WHERE status='completed'").fetchone()[0]
+            latest_embedding = connection.execute("SELECT MAX(ae.updated_at) FROM article_embeddings ae JOIN article_analyses aa ON aa.id=ae.article_analysis_id JOIN articles a ON a.id=aa.article_id WHERE ae.status='completed' AND COALESCE(a.published_at,a.first_seen_at)>=?", (cutoff,)).fetchone()[0]
             latest_groups = connection.execute("SELECT MAX(computed_at) FROM article_similarity_groups").fetchone()[0]
-            expected = connection.execute("SELECT COUNT(*) FROM (SELECT aa.id FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?)", (self.SIMILARITY_GROUP_REBUILD_LIMIT,)).fetchone()[0]
+            expected = connection.execute("SELECT COUNT(*) FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' AND COALESCE(a.published_at,a.first_seen_at)>=?", (cutoff,)).fetchone()[0]
             current = connection.execute("SELECT COUNT(*) FROM article_similarity_groups").fetchone()[0]
-        return bool(int(current or 0) != int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups))))
+        stored_version = self.get_setting("similarity_groups_algorithm_version", "")
+        # Rows naturally age out of the rolling window between rebuilds. Having a
+        # few extra older rows is harmless; rebuild immediately only when new
+        # in-window articles/embeddings are missing.
+        return bool(stored_version != SIMILARITY_GROUPING_VERSION or int(current or 0) < int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups))))
 
     def similarity_groups_status(self) -> dict:
         """Return the persisted related-article map health for the admin monitor."""
@@ -3675,11 +4540,13 @@ class Store:
             "similarity_groups_last_status", "similarity_groups_last_at",
             "similarity_groups_last_articles", "similarity_groups_last_duration_ms",
             "similarity_groups_last_error",
+            "similarity_groups_algorithm_version",
         )
+        cutoff = (datetime.now(KST) - timedelta(hours=self.SIMILARITY_GROUP_LOOKBACK_HOURS)).isoformat(timespec="seconds")
         with self.connect() as connection:
-            latest_embedding = connection.execute("SELECT MAX(updated_at) FROM article_embeddings WHERE status='completed'").fetchone()[0]
+            latest_embedding = connection.execute("SELECT MAX(ae.updated_at) FROM article_embeddings ae JOIN article_analyses aa ON aa.id=ae.article_analysis_id JOIN articles a ON a.id=aa.article_id WHERE ae.status='completed' AND COALESCE(a.published_at,a.first_seen_at)>=?", (cutoff,)).fetchone()[0]
             latest_groups = connection.execute("SELECT MAX(computed_at) FROM article_similarity_groups").fetchone()[0]
-            expected = connection.execute("SELECT COUNT(*) FROM (SELECT aa.id FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?)", (self.SIMILARITY_GROUP_REBUILD_LIMIT,)).fetchone()[0]
+            expected = connection.execute("SELECT COUNT(*) FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id WHERE aa.status='completed' AND COALESCE(a.published_at,a.first_seen_at)>=?", (cutoff,)).fetchone()[0]
             current = connection.execute("SELECT COUNT(*) FROM article_similarity_groups").fetchone()[0]
             rows = connection.execute("SELECT key,value FROM app_settings WHERE key IN (" + ",".join("?" for _ in keys) + ")", keys).fetchall()
         settings = {str(row["key"]): str(row["value"] or "") for row in rows}
@@ -3690,15 +4557,22 @@ class Store:
             "last_duration_ms": float(settings.get("similarity_groups_last_duration_ms", "0") or 0),
             "last_error": settings.get("similarity_groups_last_error", ""),
             "stored": int(current or 0), "expected": int(expected or 0),
-            "stale": bool(int(current or 0) != int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups)))),
+            "version": settings.get("similarity_groups_algorithm_version", ""),
+            "window_hours": self.SIMILARITY_GROUP_LOOKBACK_HOURS,
+            "stale": bool(settings.get("similarity_groups_algorithm_version", "") != SIMILARITY_GROUPING_VERSION or int(current or 0) < int(expected or 0) or (latest_embedding and (not latest_groups or str(latest_embedding) > str(latest_groups)))),
             "computed_at": str(latest_groups or ""),
         }
 
-    def rebuild_article_similarity_groups(self, limit: int = SIMILARITY_GROUP_REBUILD_LIMIT) -> int:
-        """Rebuild a broad recent group map outside the dashboard request path."""
-        safe_limit = max(2, min(1000, int(limit)))
+    def rebuild_article_similarity_groups(self, limit: int | None = None) -> int:
+        """Rebuild the rolling time-window map outside the dashboard request path."""
+        cutoff = (datetime.now(KST) - timedelta(hours=self.SIMILARITY_GROUP_LOOKBACK_HOURS)).isoformat(timespec="seconds")
         with self.connect() as connection:
-            rows = connection.execute("SELECT a.id,a.title,a.snippet,a.body,a.published_at,a.first_seen_at,aa.summary,aa.entities,aa.topic_concepts,ae.vector article_vector FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed' WHERE aa.status='completed' ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC LIMIT ?", (safe_limit,)).fetchall()
+            sql = "SELECT a.id,a.title,a.snippet,a.body,a.published_at,a.first_seen_at,aa.summary,aa.entities,aa.topic_concepts,ae.vector article_vector FROM article_processing_flags apf JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id LEFT JOIN article_embeddings ae ON ae.article_analysis_id=aa.id AND ae.status='completed' WHERE aa.status='completed' AND COALESCE(a.published_at,a.first_seen_at)>=? ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC"
+            params: list[Any] = [cutoff]
+            if limit is not None:
+                sql += " LIMIT ?"
+                params.append(max(2, int(limit)))
+            rows = connection.execute(sql, params).fetchall()
         articles = []
         for row in rows:
             item = dict(row)
@@ -3719,9 +4593,32 @@ class Store:
                 "similar_group_noun_score": float(group.get("noun_score") or 0), "similar_group_topics": group.get("topics", []),
                 "similar_group_concepts": group.get("concepts", []),
             })
+        # Publish the snapshot atomically. Concurrent readers keep seeing the
+        # previous complete map until this transaction commits; there is no empty
+        # or half-written interval.
+        computed_at = now_iso()
+        snapshot_rows = []
+        for article in articles:
+            snapshot_rows.append((
+                str(article.get("id") or ""), str(article.get("similar_group_id") or ""),
+                int(article.get("similar_group_size") or 1), str(article.get("similar_group_basis") or ""),
+                str(article.get("similar_group_status") or ""), float(article.get("similar_group_score") or 0),
+                float(article.get("similar_group_semantic_score") or 0), float(article.get("similar_group_noun_score") or 0),
+                json.dumps(article.get("similar_group_topics") or [], ensure_ascii=False),
+                json.dumps(article.get("similar_group_concepts") or [], ensure_ascii=False), computed_at,
+            ))
         with self.connect() as connection:
             connection.execute("DELETE FROM article_similarity_groups")
-        return self.save_article_similarity_groups(articles)
+            connection.executemany(
+                """INSERT INTO article_similarity_groups(article_id,group_id,group_size,basis,status,score,semantic_score,noun_score,topics,concepts,computed_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?)""", snapshot_rows,
+            )
+            connection.execute(
+                """INSERT INTO app_settings(key,value,updated_at) VALUES('similarity_groups_algorithm_version',?,?)
+                   ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
+                (SIMILARITY_GROUPING_VERSION, computed_at),
+            )
+        return len(snapshot_rows)
 
     def list_article_embedding_vectors(self, model: str) -> list[list[float]]:
         with self.connect() as connection:
@@ -3819,6 +4716,29 @@ class Store:
         selected_organization = self.get_organization(organization_id or (selected_case or {}).get("organization_id", "")) if (organization_id or (selected_case or {}).get("organization_id")) else None
         with self.connect() as connection:
             rows = connection.execute(sql, (*join_params, *params, article_limit)).fetchall()
+        insight_items = [dict(row) for row in rows]
+        # Keep the newest seed set, but place every in-scope member of each seed
+        # bundle beside it. A plain first-60 slice left almost every counterpart
+        # outside the graph and made valid stored groups look disconnected.
+        seed_article_ids = [str(item.get("article_id") or "") for item in insight_items[:60]]
+        graph_groups = self.article_similarity_groups(seed_article_ids)
+        seed_group_ids = [
+            str(group.get("group_id") or "") for group in graph_groups.values()
+            if group.get("group_id") and int(group.get("size") or 1) > 1
+        ]
+        graph_groups.update(self.article_similarity_group_members(seed_group_ids))
+        insight_buckets: list[list[dict]] = []
+        insight_bucket_by_key: dict[str, list[dict]] = {}
+        for item in insight_items:
+            article_id = str(item.get("article_id") or "")
+            group = graph_groups.get(article_id, {})
+            group_id = str(group.get("group_id") or "")
+            key = "group:" + group_id if group_id and int(group.get("size") or 1) > 1 else "article:" + article_id
+            if key not in insight_bucket_by_key:
+                insight_bucket_by_key[key] = []
+                insight_buckets.append(insight_bucket_by_key[key])
+            insight_bucket_by_key[key].append(item)
+        ordered_insight_items = [item for bucket in insight_buckets for item in bucket]
         # The cloud remains strict: only source-verifiable noun/proper-noun phrases are counted.
         stop = {"기사","보도","관련","대한","통해","위해","이번","정부","기관","정책","발표","지원","추진","확대","강화","현장","오늘","최근","관계자","있다","있어","있으며","했다","한다","된다","위한","위해","것으로","따라","대해","에서","으로","까지","또한","사실전달","부정적","긍정적","분류대기","정책행정","정치입법","경제산업","사회안전","재난환경","과학기술","디지털","기타"}
         identity_terms = [str((selected_organization or {}).get("name") or ""), *((selected_organization or {}).get("abbreviations") or []), *((selected_organization or {}).get("former_names") or []), *((selected_organization or {}).get("people") or [])]
@@ -3828,8 +4748,7 @@ class Store:
                 stop.add(clean)
         words: dict[str, float] = {}; word_sources: dict[str, dict[str, Any]] = {}; word_tones: dict[str, dict[str, int]] = {}
         nodes, topic_terms_by_id, concepts_by_id, vectors_by_id = [], {}, {}, {}
-        for row in rows:
-            item = dict(row)
+        for item in ordered_insight_items:
             entities = json_value(item.get("entities"), [])
             text = " ".join([str(item.get("title") or ""), str(item.get("snippet") or ""), str(item.get("body") or "")])
             weight = 1.0 + min(1.0, float(item.get("score") or 0) / 100.0) + (0.35 if item.get("matched") else 0)
@@ -3885,34 +4804,60 @@ class Store:
         concept_semantic_min = max(0.48, semantic_min - 0.08)
         direct_noun_min = 0.42 if node_count >= 35 else 0.36
         fallback_noun_min = 0.58 if node_count >= 35 else 0.50
-        for index, (left_id, left_topics) in enumerate(topic_items):
-            for right_id, right_topics in topic_items[index + 1:]:
-                shared_topics = left_topics & right_topics
-                shared_concepts = concepts_by_id.get(left_id, set()) & concepts_by_id.get(right_id, set())
-                noun_similarity = topic_noun_similarity(left_topics, right_topics, topic_frequency, len(topic_items))
-                semantic_similarity = 0.0
-                if centroid and left_id in semantic_vectors and right_id in semantic_vectors:
-                    semantic_similarity = centered_semantic_similarity(semantic_vectors[left_id], semantic_vectors[right_id], centroid)
-                has_semantic = bool(left_id in semantic_vectors and right_id in semantic_vectors and centroid)
-                semantic_strong = has_semantic and semantic_similarity >= semantic_min
-                concept_supported = bool(shared_concepts) and (
-                    (has_semantic and semantic_similarity >= concept_semantic_min) or noun_similarity >= direct_noun_min
-                )
-                direct_supported = bool(shared_topics) and (
-                    (has_semantic and semantic_similarity >= max(0.34, semantic_min - 0.18) and noun_similarity >= 0.22)
-                    or (not has_semantic and noun_similarity >= fallback_noun_min)
-                    or noun_similarity >= max(0.50, direct_noun_min + 0.10)
-                )
-                if not (semantic_strong or concept_supported or direct_supported):
-                    continue
-                relation_level = "abstract_topic" if semantic_strong or concept_supported else "direct_topic"
-                concept_similarity = 0.62 if concept_supported else 0.0
-                edge_weight = max(noun_similarity, concept_similarity, semantic_similarity if has_semantic else 0.0)
-                candidate_edges.append({"source": left_id, "target": right_id, "weight": round(edge_weight, 4),
-                                        "relation_level": relation_level, "noun_similarity": round(noun_similarity, 4), "semantic_similarity": round(semantic_similarity, 4),
-                                        "shared_topics": sorted(shared_topics, key=lambda term: (-len(term), term))[:5],
-                                        "shared_concepts": sorted(shared_concepts)[:4],
-                                        "rank_score": round(max(0.0, semantic_similarity if has_semantic else 0.0) + noun_similarity * 0.25 + (0.08 if concept_supported else 0.0), 4)})
+        # Similarity is precomputed by the background snapshot worker. Build the
+        # lighter cross-bundle topic network from inverted indexes instead of an
+        # O(n²) embedding scan on every user request.
+        node_by_id = {str(node["id"]): node for node in nodes}
+        article_id_by_node = {str(node["id"]): str(node.get("article_id") or node["id"]) for node in nodes}
+        indexed_edges: dict[tuple[str, str], dict] = {}
+
+        def add_indexed_edge(left_id: str, right_id: str, term: str, relation_level: str, weight: float) -> None:
+            if left_id == right_id:
+                return
+            left_group = str(graph_groups.get(article_id_by_node.get(left_id, left_id), {}).get("group_id") or "")
+            right_group = str(graph_groups.get(article_id_by_node.get(right_id, right_id), {}).get("group_id") or "")
+            if left_group and left_group == right_group:
+                return
+            source, target = sorted((left_id, right_id))
+            key = (source, target)
+            edge = indexed_edges.setdefault(key, {
+                "source": source, "target": target, "weight": weight,
+                "relation_level": relation_level, "noun_similarity": weight if relation_level == "direct_topic" else 0.0,
+                "semantic_similarity": 0.0, "shared_topics": [], "shared_concepts": [], "rank_score": weight,
+            })
+            edge["weight"] = max(float(edge["weight"]), weight)
+            edge["rank_score"] = max(float(edge["rank_score"]), weight)
+            if relation_level == "direct_topic":
+                edge["relation_level"] = "direct_topic"
+                edge["noun_similarity"] = max(float(edge["noun_similarity"]), weight)
+                if term not in edge["shared_topics"]:
+                    edge["shared_topics"].append(term)
+            elif term not in edge["shared_concepts"]:
+                edge["shared_concepts"].append(term)
+
+        concept_index: dict[str, list[str]] = {}
+        topic_index: dict[str, list[str]] = {}
+        for node_id, concepts in concepts_by_id.items():
+            for concept in concepts:
+                concept_index.setdefault(concept, []).append(node_id)
+        for node_id, topics in topic_terms_by_id.items():
+            for topic in topics:
+                topic_index.setdefault(topic, []).append(node_id)
+        for term, member_ids in concept_index.items():
+            unique_ids = list(dict.fromkeys(member_ids))
+            if not 2 <= len(unique_ids) <= 8:
+                continue
+            ordered_ids = sorted(unique_ids, key=lambda node_id: (-float(node_by_id.get(node_id, {}).get("score") or 0), node_id))
+            for member_id in ordered_ids[1:6]:
+                add_indexed_edge(ordered_ids[0], member_id, term, "abstract_topic", 0.68)
+        for term, member_ids in topic_index.items():
+            unique_ids = list(dict.fromkeys(member_ids))
+            if len(str(term).strip()) < 3 or not 2 <= len(unique_ids) <= 5:
+                continue
+            ordered_ids = sorted(unique_ids, key=lambda node_id: (-float(node_by_id.get(node_id, {}).get("score") or 0), node_id))
+            for member_id in ordered_ids[1:5]:
+                add_indexed_edge(ordered_ids[0], member_id, term, "direct_topic", 0.64)
+        candidate_edges = list(indexed_edges.values())
         # Avoid a fully connected hairball: each abstract concept uses its most semantically
         # central real article as the hub. No synthetic node is introduced.
         edge_lookup = {tuple(sorted((edge["source"], edge["target"]))): edge for edge in candidate_edges}
@@ -3986,16 +4931,9 @@ class Store:
             union(source, target)
             if len(edges) >= edge_limit:
                 break
-        # Reuse the dashboard's completed two-pass hybrid grouping. The first graph
-        # pass remains useful for sparse, explainable links; these bridge links ensure
-        # the neural layout never splits a bundle that the dashboard presents as one.
-        cluster_inputs = [
-            {"id": node.get("article_id") or node["id"], "title": node["label"], "summary": node["summary"],
-             "entities": node["entities"], "topic_concepts": node["topic_concepts"],
-             "semantic_vector": node.get("semantic_vector", []), "published_at": node.get("published_at", "")}
-            for node in nodes
-        ]
-        shared_groups = self._dashboard_article_groups(cluster_inputs, organization_id=organization_id, case_id=case_id)
+        # Read the last complete snapshot. New articles remain temporarily ungrouped
+        # until the background worker atomically publishes the next snapshot.
+        shared_groups = graph_groups
         bundles: dict[str, list[str]] = {}
         for node in nodes:
             group = shared_groups.get(node.get("article_id") or node["id"], {})
@@ -4023,13 +4961,14 @@ class Store:
             network_union(edge["source"], edge["target"])
         known_pairs = {tuple(sorted((edge["source"], edge["target"]))) for edge in edges}
         bridge_edges = []
+        article_id_by_node = {node["id"]: str(node.get("article_id") or node["id"]) for node in nodes}
         for members in bundles.values():
             head = members[0]
             for member in members[1:]:
                 key = tuple(sorted((head, member)))
                 if key in known_pairs or network_find(head) == network_find(member):
                     continue
-                group = shared_groups.get(member, {})
+                group = shared_groups.get(article_id_by_node.get(member, member), {})
                 bridge_edges.append({"source": head, "target": member,
                                      "weight": round(float(group.get("score") or 0) / 100, 4),
                                      "relation_level": "bundle_bridge",
@@ -4042,8 +4981,8 @@ class Store:
         edges = sorted(edges + bridge_edges, key=lambda item: (-item["weight"], item["source"], item["target"]))
         all_concepts = sorted({concept for concepts in concepts_by_id.values() for concept in concepts})
         return {"period_days": days, "sent_only": bool(sent_only), "delivery_only": bool(delivery_only), "similarity_basis": "strict_article_similarity",
-                "edge_thresholds": {"semantic_min": round(semantic_min, 2), "concept_semantic_min": round(concept_semantic_min, 2), "direct_noun_min": round(direct_noun_min, 2), "degree_limit": degree_limit, "max_component": max_component},
-                "article_count": len(rows), "graph_article_count": len(nodes), "group_count": len(bundles), "grouped_article_count": sum(len(members) for members in bundles.values()), "grouping_version": "hybrid-v2",
+                "edge_thresholds": {"semantic_min": round(semantic_min, 2), "raw_evidence_min": round(max(0.86, semantic_min), 2), "concept_semantic_min": round(concept_semantic_min, 2), "direct_noun_min": round(direct_noun_min, 2), "degree_limit": degree_limit, "max_component": max_component},
+                "article_count": len(rows), "graph_article_count": len(nodes), "group_count": len(bundles), "grouped_article_count": sum(len(members) for members in bundles.values()), "grouping_version": SIMILARITY_GROUPING_VERSION,
                 "topic_node_count": sum(bool(terms) for terms in topic_terms_by_id.values()), "abstract_topic_count": len(all_concepts), "semantic_vector_count": len(semantic_vectors),
                 "words": [{"label": key, "value": round(value, 1),
                            "image_url": word_sources.get(key, {}).get("image_url", ""),
@@ -4082,7 +5021,7 @@ class Store:
     def pipeline_stats(self, case_id: str | None = None, organization_id: str | None = None) -> dict:
         """Current queue plus today's completed/failed counts, reset at 00:00 KST."""
         day_start = kst_day_start_iso()
-        cache_key = ("pipeline_stats_v1", str(case_id or ""), str(organization_id or ""), day_start)
+        cache_key = ("pipeline_stats_v2", str(case_id or ""), str(organization_id or ""), day_start)
         cache_marker = self._database_change_marker()
         cached_stats = self._pipeline_summary_cache_get(cache_key, cache_marker)
         if cached_stats is not None:
@@ -4149,13 +5088,39 @@ class Store:
                 " AND (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.started_at,j.queued_at)>=?)" + case_scope,
                 [day_start, *case_params],
             ).fetchone()
-            common_api_error_row = connection.execute(
-                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='groq' AND stage='common' AND status='failed' AND created_at>=?",
+            common_api_error_rows = connection.execute(
+                "SELECT error,http_status FROM llm_api_calls WHERE stage='common' AND status='failed' AND created_at>=?",
                 (error_start,),
+            ).fetchall()
+            case_api_error_rows = connection.execute(
+                "SELECT error,http_status FROM llm_api_calls WHERE stage='case' AND status='failed' AND created_at>=?",
+                (error_start,),
+            ).fetchall()
+            common_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM article_analysis_jobs j "
+                "JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "WHERE j.status='failed' AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?" + common_scope,
+                [error_start, *common_params],
             ).fetchone()
-            case_api_error_row = connection.execute(
-                "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='openrouter' AND stage='case' AND status='failed' AND created_at>=?",
-                (error_start,),
+            case_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "WHERE " + latest_case + " AND j.status='failed' "
+                "AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?" + case_scope,
+                [error_start, *case_params],
+            ).fetchone()
+            common_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM article_analysis_jobs j "
+                "JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
+                "WHERE j.status='completed' AND j.attempts>1 AND COALESCE(j.finished_at,j.queued_at)>=?" + common_scope,
+                [error_start, *common_params],
+            ).fetchone()
+            case_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM case_evaluation_jobs j "
+                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "WHERE " + latest_case + " AND j.status='completed' AND j.attempts>1 "
+                "AND COALESCE(j.finished_at,j.queued_at)>=?" + case_scope,
+                [error_start, *case_params],
             ).fetchone()
             embedding_error_row = connection.execute(
                 "SELECT COUNT(*) total_errors FROM llm_api_calls WHERE provider='ollama' AND stage='embedding' AND status='failed' AND created_at>=?",
@@ -4198,17 +5163,36 @@ class Store:
                 """SELECT a.title FROM article_analysis_jobs j JOIN article_analyses aa ON aa.id=j.article_analysis_id JOIN articles a ON a.id=aa.article_id WHERE j.status='processing'
                    UNION ALL SELECT a.title FROM case_evaluation_jobs j JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN articles a ON a.id=ce.article_id WHERE j.status='processing' LIMIT 1"""
             ).fetchone()
+        def api_failure_count(rows):
+            return sum(
+                1 for row in rows
+                if not confirmed_free_quota_exhaustion(
+                    str(row["error"] or ""), int(row["http_status"] or 0),
+                )
+            )
+        common_api_error_row = {"total_errors": api_failure_count(common_api_error_rows)}
+        case_api_error_row = {"total_errors": api_failure_count(case_api_error_rows)}
         def counts(rows): return {str(row["status"]): int(row["value"]) for row in rows}
         common_counts, case_counts, job_counts, case_job_counts = counts(common), counts(cases), counts(jobs), counts(case_jobs)
-        def error_counts(row, api_row=None, current_fallback=0):
+        def error_counts(row, final_row=None, recovered_row=None, api_row=None, current_fallback=0):
             data = dict(row) if row else {}
+            final_data = dict(final_row) if final_row else {}
+            recovered_data = dict(recovered_row) if recovered_row else {}
             api_data = dict(api_row) if api_row else {}
             return {
                 "failed_current": int(data.get("current_errors") or current_fallback or 0),
-                "failed_total": int(api_data.get("total_errors") or 0),
+                "failed_total": int(final_data.get("total_errors") or 0),
+                "recovered_total": int(recovered_data.get("recovered") or 0),
+                "api_failed_total": int(api_data.get("total_errors") or 0),
             }
-        common_job_errors = error_counts(common_error_row, common_api_error_row, job_counts.get("failed", 0))
-        case_job_errors = error_counts(case_error_row, case_api_error_row, case_job_counts.get("failed", 0))
+        common_job_errors = error_counts(
+            common_error_row, common_final_error_row, common_recovered_row,
+            common_api_error_row, job_counts.get("failed", 0),
+        )
+        case_job_errors = error_counts(
+            case_error_row, case_final_error_row, case_recovered_row,
+            case_api_error_row, case_job_counts.get("failed", 0),
+        )
         embedding_counts = {key: int(embedding[key] or 0) for key in ("pending", "processing", "completed", "failed")}
         embedding_counts["failed_current"] = embedding_counts.get("failed", 0)
         embedding_counts["failed_total"] = max(embedding_counts.get("failed", 0), int(embedding_error_row["total_errors"] or 0) if embedding_error_row else 0)
@@ -4293,7 +5277,39 @@ class Store:
                 result[article_id] = {"group_id": representative, "size": len(members), "basis": "editorial", "status": "finalized", "score": 100.0 if titles.get(article_id) == titles.get(representative) else 90.0, "semantic_score": 0.0, "noun_score": 90.0, "topics": sorted(common)[:5], "concepts": sorted(common)[:4]}
         return result
 
-    def _dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None) -> dict[str, dict]:
+    def _dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None, threshold_override: float | None = None) -> dict[str, dict]:
+        """Use the shared similarity engine for dashboard, neural graph and magazine."""
+        if len(articles) < 2:
+            return {}
+        if threshold_override is None:
+            try:
+                threshold = float(self.get_setting("similar_article_threshold", "65")) / 100.0
+            except (TypeError, ValueError):
+                threshold = 0.65
+        else:
+            threshold = float(threshold_override)
+        selected_case = self.get_case(case_id) if case_id else None
+        organization_key = organization_id or (selected_case or {}).get("organization_id", "")
+        selected_organization = self.get_organization(organization_key) if organization_key else None
+        identity_terms = [
+            str((selected_organization or {}).get("name") or ""),
+            *((selected_organization or {}).get("abbreviations") or []),
+            *((selected_organization or {}).get("former_names") or []),
+            *((selected_organization or {}).get("people") or []),
+        ]
+        stop = {"기사","보도","관련","대한","통해","위해","이번","정부","기관","정책","발표","지원","추진","확대","강화","현장","오늘","최근","관계자","있다","있어","있으며","했다","한다","된다","위한","것으로","따라","대해","에서","으로","까지","또한","사실전달","부정적","긍정적","분류대기","정책행정","정치입법","경제산업","사회안전","재난환경","과학기술","디지털","기타","행정안전부","행안부"}
+        return build_article_similarity_groups(
+            articles,
+            threshold=threshold,
+            identity_terms=identity_terms,
+            stopwords=stop,
+            noun_extractor=verified_content_nouns,
+            concept_inferer=inferred_topic_concepts,
+            noun_similarity_fn=topic_noun_similarity,
+            centered_similarity_fn=centered_semantic_similarity,
+        )
+
+    def _legacy_dashboard_article_groups(self, articles: list[dict], organization_id: str | None = None, case_id: str | None = None) -> dict[str, dict]:
         """Build dashboard article bundles with the same strictness used by the neural graph.
 
         The first pass works with verified nouns/topic concepts. When article embeddings are
@@ -4576,6 +5592,8 @@ class Store:
         include_press_stats: bool = True,
     ) -> dict:
         day_start = kst_day_start_iso()
+        error_reset_at = str(self.get_setting("pipeline_error_reset_at", "") or "")
+        error_start = error_reset_at if error_reset_at and error_reset_at > day_start else day_start
         limit = min(10000, max(1, int(limit)))
         offset = max(0, int(offset))
         days = max(1, min(3650, int(days)))
@@ -4620,6 +5638,14 @@ class Store:
         press_stats_fields = "0 related_press_count,0 press_match_checked_count,0 press_match_total_count,"
         sql = f"""SELECT aa.id analysis_id,aa.status analysis_status,aa.summary,aa.publisher_name,aa.reporter_name,aa.article_type,aa.tone,aa.classification_tags,aa.entities,aa.topic_concepts,aa.evidence,aa.model,aa.error analysis_error,aa.analyzed_at,
                                     a.id,a.title,a.original_url,a.publisher source_publisher,a.published_at,a.first_seen_at,a.snippet source_snippet,a.image_url,{source_body_expr} source_body,'' article_vector,
+                                    CASE WHEN EXISTS (
+                                      SELECT 1 FROM article_analysis_jobs turbo_common
+                                      WHERE turbo_common.article_analysis_id=aa.id AND turbo_common.provider_lane='burst'
+                                    ) OR EXISTS (
+                                      SELECT 1 FROM case_evaluation_jobs turbo_case_job
+                                      JOIN case_evaluations turbo_case ON turbo_case.id=turbo_case_job.case_evaluation_id
+                                      WHERE turbo_case.article_analysis_id=aa.id AND turbo_case_job.provider_lane='burst'
+                                    ) THEN 1 ELSE 0 END turbo_used,
                                     {press_stats_fields}
                                     ce.id evaluation_id,ce.case_id,ce.status evaluation_status,ce.candidate_status,ce.keyword_score,ce.semantic_raw,ce.semantic_score,ce.llm_score,ce.final_score,ce.evidence_status,ce.reasons,ce.low_score_categories,ce.analysis_report evaluation_report,ce.error evaluation_error,ce.decision,ce.completed_at,ce.updated_at evaluation_updated_at,
                                     c.name case_name,o.name organization_name
@@ -4629,17 +5655,46 @@ class Store:
                                     LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
                                     LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
         if article_where: sql += " WHERE " + " AND ".join(article_where)
-        sql += " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(c.sort_order,999999),COALESCE(c.created_at,''),COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
+        article_sql_base = sql
+        article_order_sql = " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(c.sort_order,999999),COALESCE(c.created_at,''),COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
+        sql = article_sql_base + article_order_sql
         delivery_scope, delivery_params = "", []
+        completion_scope, completion_params = "", []
         if case_id:
             delivery_scope, delivery_params = " AND d.case_id=?", [case_id]
+            completion_scope, completion_params = " AND c.id=?", [case_id]
         elif organization_id:
             delivery_scope, delivery_params = " AND c.organization_id=?", [organization_id]
+            completion_scope, completion_params = " AND c.organization_id=?", [organization_id]
         with self.connect() as connection:
             # One article can have several case-evaluation rows. Fetch enough rows
             # to build this page plus one article for the has_more marker.
             row_limit = min(10000, max(120, (offset + limit + 31) * 12))
-            rows = connection.execute(sql, (*article_params, row_limit)).fetchall()
+            rows = list(connection.execute(sql, (*article_params, row_limit)).fetchall())
+            snapshot_groups: dict[str, dict] = {}
+            if include_groups and rows:
+                seed_article_ids = list(dict.fromkeys(str(row["id"]) for row in rows if row["id"]))
+                snapshot_groups = self.article_similarity_groups(seed_article_ids)
+                seed_group_ids = [
+                    str(group.get("group_id") or "") for group in snapshot_groups.values()
+                    if group.get("group_id") and int(group.get("size") or 1) > 1
+                ]
+                member_groups = self.article_similarity_group_members(seed_group_ids)
+                snapshot_groups.update(member_groups)
+                missing_member_ids = [article_id for article_id in member_groups if article_id not in set(seed_article_ids)]
+                if missing_member_ids:
+                    marks = ",".join("?" for _ in missing_member_ids)
+                    member_sql = article_sql_base + (" AND " if article_where else " WHERE ") + f"a.id IN ({marks})" + article_order_sql
+                    member_row_limit = min(10000, max(120, len(missing_member_ids) * 20))
+                    extra_rows = connection.execute(
+                        member_sql, (*article_params, *missing_member_ids, member_row_limit)
+                    ).fetchall()
+                    known_rows = {(str(row["analysis_id"]), str(row["evaluation_id"] or "")) for row in rows}
+                    for row in extra_rows:
+                        key = (str(row["analysis_id"]), str(row["evaluation_id"] or ""))
+                        if key not in known_rows:
+                            rows.append(row)
+                            known_rows.add(key)
             daily_sql = """SELECT
                     COUNT(DISTINCT CASE WHEN aa.analyzed_at>=? OR COALESCE(ce.completed_at,ce.updated_at)>=? THEN a.id END) total,
                     COALESCE(SUM(CASE WHEN COALESCE(ce.completed_at,ce.updated_at)>=? AND ce.decision='send' THEN 1 ELSE 0 END),0) sent_candidates,
@@ -4662,21 +5717,49 @@ class Store:
             ).fetchall()
             delivery_total_rows = connection.execute(
                 "SELECT d.status,COUNT(*) value FROM deliveries d JOIN cases c ON c.id=d.case_id "
-                "WHERE (d.status IN ('pending','retry') OR COALESCE(d.sent_at,d.updated_at)>=?)"
+                "WHERE (d.status IN ('pending','retry','sending') OR COALESCE(d.sent_at,d.updated_at)>=?)"
                 + delivery_scope + " GROUP BY d.status",
                 [day_start, *delivery_params],
             ).fetchall()
+            completed_article_daily_row = connection.execute(
+                """WITH completed_articles AS (
+                       SELECT aa.article_id,MAX(COALESCE(ce.completed_at,ce.updated_at)) completed_at
+                       FROM article_processing_flags apf
+                       JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
+                       JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
+                       JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
+                       JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                       WHERE 1=1""" + completion_scope + """
+                       GROUP BY aa.article_id
+                       HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
+                   ) SELECT COUNT(*) value FROM completed_articles WHERE completed_at>=?""",
+                [*completion_params, day_start],
+            ).fetchone()
             delivery_error_row = connection.execute(
-                "SELECT "
-                "COALESCE(SUM(CASE WHEN d.status IN ('retry','failed') AND COALESCE(d.last_error,'')<>'' THEN 1 ELSE 0 END),0) current_errors,"
-                "COALESCE(SUM(CASE "
-                "WHEN d.status='sent' THEN MAX(d.attempts-1,0) "
-                "WHEN d.status IN ('retry','failed') THEN MAX(d.attempts,0) "
-                "ELSE 0 END),0) total_errors "
+                "SELECT COALESCE(SUM(CASE WHEN d.status IN ('retry','failed') AND COALESCE(d.last_error,'')<>'' THEN 1 ELSE 0 END),0) current_errors "
                 "FROM deliveries d JOIN cases c ON c.id=d.case_id "
-                "WHERE (d.status IN ('pending','retry') OR COALESCE(d.sent_at,d.updated_at)>=?)"
+                "WHERE (d.status IN ('pending','retry','sending') OR COALESCE(d.sent_at,d.updated_at)>=?)"
                 + delivery_scope,
                 [day_start, *delivery_params],
+            ).fetchone()
+            delivery_attempt_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM delivery_attempts da "
+                "JOIN deliveries d ON d.id=da.delivery_id JOIN cases c ON c.id=d.case_id "
+                "WHERE da.status='failed' AND COALESCE(da.finished_at,da.started_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
+            ).fetchone()
+            delivery_recovered_row = connection.execute(
+                "SELECT COUNT(*) recovered FROM deliveries d JOIN cases c ON c.id=d.case_id "
+                "WHERE d.status='sent' AND d.attempts>1 AND COALESCE(d.sent_at,d.updated_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
+            ).fetchone()
+            delivery_final_error_row = connection.execute(
+                "SELECT COUNT(*) total_errors FROM deliveries d JOIN cases c ON c.id=d.case_id "
+                "WHERE d.status='failed' AND COALESCE(d.updated_at,d.created_at)>=?"
+                + delivery_scope,
+                [error_start, *delivery_params],
             ).fetchone()
             recent_sent_rows = connection.execute(
                 """SELECT a.id,a.title,a.original_url,MAX(d.sent_at) sent_at,
@@ -4691,7 +5774,9 @@ class Store:
         delivery_totals = {str(row["status"]): int(row["value"]) for row in delivery_total_rows}
         delivery_error_data = dict(delivery_error_row) if delivery_error_row else {}
         delivery_totals["failed_current"] = int(delivery_error_data.get("current_errors") or delivery_totals.get("failed", 0) or 0)
-        delivery_totals["failed_total"] = int(delivery_error_data.get("total_errors") or 0)
+        delivery_totals["failed_total"] = int(delivery_final_error_row["total_errors"] or 0) if delivery_final_error_row else 0
+        delivery_totals["recovered_total"] = int(delivery_recovered_row["recovered"] or 0) if delivery_recovered_row else 0
+        delivery_totals["attempt_failed_total"] = int(delivery_attempt_error_row["total_errors"] or 0) if delivery_attempt_error_row else 0
         for row in delivery_rows:
             status, value = str(row["status"]), int(row["value"])
             deliveries.setdefault((str(row["article_id"]), str(row["case_id"])), {})[status] = value
@@ -4702,7 +5787,7 @@ class Store:
             if tags and not all(tag in tags_value or tag == item.get("article_type") or tag == item.get("tone") for tag in tags):
                 continue
             article = grouped.setdefault(analysis_id, {
-                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "image_url": item.get("image_url") or "", "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "related_press_count": int(item.get("related_press_count") or 0),
+                "id": item["id"], "analysis_id": analysis_id, "title": item["title"], "original_url": item["original_url"], "image_url": item.get("image_url") or "", "publisher": item.get("publisher_name") or item.get("source_publisher") or "", "source_publisher": item.get("source_publisher") or "", "reporter_name": item.get("reporter_name") or "", "published_at": item["published_at"], "first_seen_at": item["first_seen_at"], "turbo_used": bool(item.get("turbo_used")), "related_press_count": int(item.get("related_press_count") or 0),
                 "press_match_checked_count": int(item.get("press_match_checked_count") or 0),
                 "press_match_total_count": int(item.get("press_match_total_count") or 0),
                 "semantic_vector": json_value(item.get("article_vector"), []),
@@ -4725,8 +5810,6 @@ class Store:
         # two related articles on pages 1 and 2 were never compared. Build one bounded
         # scope first, then paginate whole bundles below.
         all_articles = list(grouped.values())
-        group_start = min(offset, len(all_articles))
-        group_scope = all_articles[group_start:min(len(all_articles), group_start + 30)]
         for article in all_articles:
             results = article["case_results"]
             article["case_summary"] = {
@@ -4739,15 +5822,23 @@ class Store:
             }
         similar_groups: dict[str, dict] = {}
         if include_groups:
-            # Keep the request path bounded: the client renders one page at a time.
-            # Full-history regrouping here turned every dashboard load into an O(n²)
-            # scan and contended with the SQLite workers.
-            similar_groups = self.editorial_article_groups(group_scope, organization_id=organization_id)
+            # DB-only snapshot read: no embedding hydration or similarity work is
+            # allowed in the request path.
+            similar_groups = snapshot_groups
+
+        scoped_group_sizes: dict[str, int] = {}
+        for article in all_articles:
+            group = similar_groups.get(str(article.get("id") or ""), {})
+            group_id = str(group.get("group_id") or "")
+            if group_id and int(group.get("size") or 1) > 1:
+                scoped_group_sizes[group_id] = scoped_group_sizes.get(group_id, 0) + 1
 
         for article in all_articles:
             group = similar_groups.get(str(article.get("id") or ""), {})
-            article["similar_group_id"] = group.get("group_id", "")
-            article["similar_group_size"] = int(group.get("size") or 1)
+            group_id = str(group.get("group_id") or "")
+            scoped_size = int(scoped_group_sizes.get(group_id, 0))
+            article["similar_group_id"] = group_id if scoped_size > 1 else ""
+            article["similar_group_size"] = scoped_size if scoped_size > 1 else 1
             article["similar_group_basis"] = group.get("basis", "")
             article["similar_group_status"] = group.get("status", "")
             article["similar_group_score"] = float(group.get("score") or 0)
@@ -4791,7 +5882,7 @@ class Store:
                 article["related_press_count"], article["press_match_checked_count"], article["press_match_total_count"] = related_count, checked_count, press_totals.get(str(article["id"]), 0)
         next_offset = offset + len(articles)
         has_more = next_offset < len(all_articles)
-        stats = {"total": int(daily_stats_row["total"] or 0),
+        stats = {"total": int(completed_article_daily_row["value"] or 0) if completed_article_daily_row else 0,
                  "sent_candidates": int(daily_stats_row["sent_candidates"] or 0),
                  "low": int(daily_stats_row["low"] or 0),
                  "average_score": round(float(daily_stats_row["average_score"] or 0), 1),
@@ -4814,8 +5905,13 @@ class Store:
             "publishers": [{"label": key, "value": value} for key, value in sorted(publishers.items(), key=lambda pair: -pair[1])[:10]],
             "categories": [{"label": key, **value} for key, value in sorted(categories.items(), key=lambda pair: -pair[1]["article_count"])],
             "tags": [{"label": key, "value": value} for key, value in sorted(tag_counts.items(), key=lambda pair: -pair[1])],
-            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total"}],
-            "delivery_errors": {"failed_current": delivery_totals.get("failed_current", 0), "failed_total": delivery_totals.get("failed_total", 0)},
+            "deliveries": [{"status": key, "value": value} for key, value in sorted(delivery_totals.items()) if key not in {"failed_current", "failed_total", "recovered_total", "attempt_failed_total"}],
+            "delivery_errors": {
+                "failed_current": delivery_totals.get("failed_current", 0),
+                "failed_total": delivery_totals.get("failed_total", 0),
+                "recovered_total": delivery_totals.get("recovered_total", 0),
+                "attempt_failed_total": delivery_totals.get("attempt_failed_total", 0),
+            },
             "recent_sent": [dict(row) for row in recent_sent_rows], "recent_runs": [],
             "llm": pipeline_stats, "pipeline": pipeline_stats}
 
@@ -5091,6 +6187,13 @@ class Store:
                 str(row["key"]).split(":", 1)[1]: str(row["value"] or "")
                 for row in connection.execute("SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_disabled_reason:%'").fetchall()
             }
+            quota_lock_meta: dict[str, dict[str, str]] = {}
+            for row in connection.execute(
+                "SELECT key,value FROM app_settings WHERE key LIKE 'llm_provider_lock_%:%'"
+            ).fetchall():
+                key, provider = str(row["key"]).split(":", 1)
+                field = key.removeprefix("llm_provider_lock_")
+                quota_lock_meta.setdefault(provider, {})[field] = str(row["value"] or "")
             api_rows = connection.execute(
                 """SELECT failed.*,MIN(succeeded.created_at) resolved_at
                    FROM llm_api_calls failed
@@ -5134,6 +6237,8 @@ class Store:
                 provider = str(row["key"]).split(":", 1)[1]
                 disabled_until = str(row["value"] or "")
                 reason = disabled_reasons.get(provider, "")
+                lock_meta = quota_lock_meta.get(provider, {})
+                lock_mode = lock_meta.get("mode", "")
                 if not disabled_until and not reason:
                     continue
                 active = bool(disabled_until and disabled_until > now)
@@ -5143,12 +6248,15 @@ class Store:
                 append_event(
                     "provider_failover", "provider",
                     f"{self._operation_provider_label(provider)} 무료 사용량/토큰 소진 감지",
-                    ("안전장치가 동작해 예비 모델 체인으로 전환했습니다. " if active else "초기화 시각이 지나 주 모델 복귀 가능 상태입니다. ")
+                    (("정확한 초기화 예측 시각까지 잠그고 예비 모델 체인으로 전환했습니다. " if lock_mode == "exact_reset" else "초기화 시각이 불확실해 1시간 잠그고 예비 모델 체인으로 전환했습니다. ") if active else "잠금 시각이 지나 공급자 사용량 재확인이 가능한 상태입니다. ")
                     + (f"원인: {self._operation_error_reason(reason)}" if reason else "원인 상세는 제공자 응답에 기록되지 않았습니다."),
                     occurred_at,
                     provider=provider, provider_label=self._operation_provider_label(provider),
                     status="active" if active else "resolved", resolved_at="" if active else disabled_until,
-                    disabled_until=disabled_until, raw_error=reason[:500], severity="critical" if active else "info",
+                    disabled_until=disabled_until, lock_mode=lock_mode,
+                    lock_confidence=lock_meta.get("confidence", ""),
+                    lock_reset_source=lock_meta.get("reset_source", ""),
+                    raw_error=reason[:500], severity="critical" if active else "info",
                 )
 
             for row in api_rows:
@@ -5269,7 +6377,7 @@ class Store:
         now = datetime.now(KST)
         analysis_cutoff = (now - timedelta(days=max(1, int(analysis_days)))).isoformat(timespec="seconds")
         source_cutoff = (now - timedelta(days=max(int(analysis_days), int(source_days)))).isoformat(timespec="seconds")
-        article_limit = max(1, min(500, int(article_limit)))
+        article_limit = max(1, min(1000, int(article_limit)))
         press_limit = max(1, min(100, int(press_limit)))
         root = Path(press_markdown_root)
         result: dict[str, Any] = {"analysis_cutoff": analysis_cutoff, "source_cutoff": source_cutoff}

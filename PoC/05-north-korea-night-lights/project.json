@@ -1,0 +1,26 @@
+{
+  "id": "north-korea-night-lights",
+  "order": 5,
+  "display_no": "05",
+  "title": "북한 야간조명 3D 지도",
+  "date": "Google Earth Engine / VIIRS / pydeck",
+  "summary": "북한 경계 안의 VIIRS 월별 야간조명도를 약 464m 격자 단위 3D 막대로 탐색하는 지리공간 PoC입니다.",
+  "description": "Earth Engine에서 avg_rad와 cf_cvg를 수집하고 cloud-free 관측이 있는 격자만 남깁니다. 조명도는 log1p로 높이를 보정하고 고정 색상 범위로 표현해 향후 월별 시계열 비교로 확장할 수 있습니다.",
+  "tags": ["PoC", "Google Earth Engine", "VIIRS", "Nighttime Lights", "pydeck", "3D Map"],
+  "features": [
+    ["월별 VIIRS 수집", "NOAA 월 합성 자료에서 avg_rad와 cf_cvg를 북한 경계로 잘라 내려받습니다."],
+    ["유효 관측 필터", "cf_cvg가 0보다 큰 약 463.83m 격자만 결과에 포함합니다."],
+    ["3D 로그 표현", "음수 배경 잡음을 시각화 단계에서 0으로 제한하고 log1p 높이와 방사휘도별 색상을 계산합니다."],
+    ["경량 시계열", "북한 격자만 월별 compact JSON.gz로 저장하고 공통 GridCellLayer 플레이어에서 불러옵니다."],
+    ["Top 3 도시", "월별 avg_rad 상위 3개 격자와 GeoNames 최근접 북한 도시를 점·라벨·툴팁으로 표시합니다."],
+    ["시계열 확장 기준", "월마다 동일한 색상 상한과 높이 배율을 적용할 수 있게 CLI 옵션으로 노출합니다."]
+  ],
+  "entry_file": "generate_map.py",
+  "usage": [
+    "Earth Engine 사용 권한이 있는 Google Cloud 프로젝트를 준비하고 사용자 인증을 완료합니다.",
+    "requirements.txt 패키지를 가상환경에 설치합니다.",
+    "--month와 --project를 지정해 generate_map.py를 실행합니다.",
+    "collect_all.py로 Earth Engine 전체 월을 북한 한정 압축 데이터로 수집한 뒤 홈페이지 또는 큰 창 플레이어에서 재생합니다."
+  ],
+  "note": "검증 시 Earth Engine 169개월 중 북한 내 cf_cvg > 0 관측이 있는 147개월을 수집했습니다. 월별 압축 데이터는 약 3~8MiB이며 큰 창에서도 1초 간격 무한 반복 재생을 지원합니다."
+}

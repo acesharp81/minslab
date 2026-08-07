@@ -10,6 +10,7 @@
 | 02 | [02-field-inspection-platform](02-field-inspection-platform/README.md) | 점검 업무·대상·결과·통계 | React/Vite 정적 SPA + Supabase |
 | 03 | [03-mois-kms](03-mois-kms/README.md) | 조직·업무·결재·AI 보고서 | React/Vite SPA + Python API + Supabase Auth |
 | 04 | [04-master-press](04-master-press/README.md) | 뉴스 수집·복합 관련도·카카오 알림·CaseON 매거진 | Python 모듈 + 정적 UI + SQLite/Supabase |
+| 05 | [05-north-korea-night-lights](05-north-korea-night-lights/README.md) | 북한 VIIRS 월별 야간조명 3D 격자 지도 | Earth Engine Python API + pydeck 단일 HTML |
 
 ## 등록 방식
 
@@ -103,4 +104,3 @@ curl -fsS http://127.0.0.1:8000/health
 - PoC 03은 Supabase Auth, 승인 상태와 RLS를 적용하고 service-role 작업만 Python API로 격리합니다.
 - AI 출력은 공식 재난 판단, 행정 결재 또는 확정 보고서를 대체하지 않습니다.
 - 프로젝트 구현을 변경할 때 `project.json`, 하위 `README.md`, 루트 `.env.example`의 설정 이름을 함께 확인합니다.
-

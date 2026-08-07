@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+import threading
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -22,7 +24,7 @@ if str(PROJECT_DIR) not in sys.path:
 from master_press.magazine import MagazinePublisher
 from master_press.kakao import KakaoError
 from master_press.service import case_worker_tick, common_worker_tick, embedding_worker_tick, shadow_worker_tick, get_service, worker_tick
-from master_press.storage import now_iso
+from master_press.storage import RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, now_iso
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
 from master_press.supabase_reconcile import SupabaseReconciler
@@ -80,7 +82,7 @@ def _cached_admin_bootstrap(reason: str = "") -> dict | None:
     return cached
 
 
-def public_dashboard(
+def _build_public_dashboard(
     case_id: str = "",
     organization_id: str = "",
     tags: list[str] | None = None,
@@ -136,12 +138,63 @@ def public_dashboard(
         include_press_stats=include_press_stats,
     )
     dashboard.setdefault("pipeline", {})["providers"] = service.pipeline_provider_status()
+    monitor = service.store.pipeline_monitor_status()
+    seconds_since_success = monitor.get("seconds_since_last_success")
+    collection_healthy = seconds_since_success is not None and float(seconds_since_success) <= 300
+    dashboard["collection_health"] = {
+        "healthy": collection_healthy,
+        "label": "수집 정상" if collection_healthy else "수집 중단",
+        "seconds_since_last_success": seconds_since_success,
+        "last_success_at": (monitor.get("last_success") or {}).get("finished_at", ""),
+    }
     return {
         "project": {"id": "master-press", "title": "AI 언론동향 비서", "display_no": "04"},
         "organizations": organizations,
         "cases": cases,
         "dashboard": dashboard,
     }
+
+
+_PUBLIC_DASHBOARD_CACHE: dict[tuple, tuple[float, dict]] = {}
+_PUBLIC_DASHBOARD_LOCKS: dict[tuple, threading.Lock] = {}
+_PUBLIC_DASHBOARD_CACHE_GUARD = threading.Lock()
+_PUBLIC_DASHBOARD_CACHE_SECONDS = 15.0
+
+
+def public_dashboard(
+    case_id: str = "", organization_id: str = "", tags: list[str] | None = None,
+    search: str = "", include_groups: bool = True, limit: int = 100, offset: int = 0,
+    include_press_stats: bool = True, delivery_filter: str = "all", days: int = 7,
+) -> dict:
+    """Short shared cache prevents a same-filter request stampede."""
+    key = (
+        str(case_id), str(organization_id), tuple(sorted(str(value) for value in (tags or []))),
+        str(search), bool(include_groups), int(limit), int(offset), bool(include_press_stats),
+        str(delivery_filter), int(days),
+    )
+    now = time.monotonic()
+    with _PUBLIC_DASHBOARD_CACHE_GUARD:
+        cached = _PUBLIC_DASHBOARD_CACHE.get(key)
+        if cached and now - cached[0] <= _PUBLIC_DASHBOARD_CACHE_SECONDS:
+            return _clone_payload(cached[1])
+        key_lock = _PUBLIC_DASHBOARD_LOCKS.setdefault(key, threading.Lock())
+    with key_lock:
+        now = time.monotonic()
+        with _PUBLIC_DASHBOARD_CACHE_GUARD:
+            cached = _PUBLIC_DASHBOARD_CACHE.get(key)
+            if cached and now - cached[0] <= _PUBLIC_DASHBOARD_CACHE_SECONDS:
+                return _clone_payload(cached[1])
+        result = _build_public_dashboard(
+            case_id, organization_id, tags, search, include_groups, limit, offset,
+            include_press_stats, delivery_filter, days,
+        )
+        with _PUBLIC_DASHBOARD_CACHE_GUARD:
+            _PUBLIC_DASHBOARD_CACHE[key] = (time.monotonic(), result)
+            if len(_PUBLIC_DASHBOARD_CACHE) > 64:
+                oldest = min(_PUBLIC_DASHBOARD_CACHE, key=lambda item: _PUBLIC_DASHBOARD_CACHE[item][0])
+                _PUBLIC_DASHBOARD_CACHE.pop(oldest, None)
+                _PUBLIC_DASHBOARD_LOCKS.pop(oldest, None)
+        return _clone_payload(result)
 
 
 def signup_bootstrap(admin: bool = False) -> dict:
@@ -204,7 +257,7 @@ def admin_bootstrap() -> dict:
         for case in cases:
             case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
         common_model = service.selected_common_llm_model()
-        case_model = service.selected_case_llm_model()
+        case_model = service.selected_case_model1()
         payload = {
             "readiness": service.settings.readiness(),
             "settings": {
@@ -212,18 +265,37 @@ def admin_bootstrap() -> dict:
                 "common_llm_models": service.configured_common_reserve_models(common_model),
                 "llm_model": common_model,
                 "llm_models": service.configured_common_reserve_models(common_model),
-                "common_provider": service._status_for_switchable_llm_model(service.selected_common_llm_model(), probe=False),
+                "common_provider": service.model_role_status(service.selected_common_llm_model(), "common", probe=False),
                 "groq": service.groq_status(probe=False),
                 "case_llm_model": case_model,
                 "case_llm_models": [case_model] if case_model else [],
-                "openrouter": service.openrouter_status(probe=False),
+                "openrouter": service.model_role_status(case_model, "case", probe=False),
+                "case_model1": service.selected_case_model1(),
+                "case_model1_provider": service.model_role_status(service.selected_case_model1(), "case", probe=False),
+                "case_model2": service.selected_case_model2(),
+                "case_model2_provider": service.model_role_status(service.selected_case_model2(), "case", probe=False),
+                "case_single_model": service.selected_case_single_model(),
+                "case_single_provider": service.model_role_status(service.selected_case_single_model(), "case", probe=False),
+                "nvidia": service.nvidia_status(probe=False),
                 "openai_shadow": service.shadow_status(),
+                "common_fallback_llm_model": service.selected_common_fallback_model(),
+                "common_fallback_llm_models": service.available_common_fallback_models(),
+                "common_fallback_provider": service.model_role_status(service.selected_common_fallback_model(), "common", probe=False),
+                "case_fallback_llm_model": service.selected_case_model2(),
+                "case_fallback_llm_models": [service.selected_case_model2()],
+                "case_fallback_provider": {**service.model_role_status(service.selected_case_model2(), "case", probe=False), "enabled": True},
+                "case_fallback_enabled": True,
+                "burst_llm_model": service.selected_common_turbo_model(),
+                "burst_llm_models": service.available_burst_models(),
+                "burst_provider": service.model_role_status(service.selected_common_turbo_model(), "common", probe=False),
+                "burst_threshold": service.selected_burst_threshold(),
                 "reserve1_llm_model": service.selected_reserve1_model(),
                 "reserve1_llm_models": service.configured_common_reserve_models(service.selected_reserve1_model()),
                 "reserve1_provider": service._status_for_switchable_llm_model(service.selected_reserve1_model(), probe=False),
                 "cloudflare": service.cloudflare_status(probe=False),
                 "reserve2_llm_model": service.selected_reserve2_model(),
                 "reserve2_llm_models": service.available_reserve2_models(),
+                "reserve2_provider": service._status_for_switchable_llm_model(service.selected_reserve2_model(), probe=False),
                 "gemini": service.gemini_status(probe=False),
                 "announcements": service.store.list_announcements(include_inactive=True),
                 "embedding_model": service.selected_embedding_model(),
@@ -234,13 +306,15 @@ def admin_bootstrap() -> dict:
                 "semantic_candidate_threshold": float(service.store.get_setting("semantic_candidate_threshold", "65")),
                 "press_release_match_threshold": float(service.store.get_setting("press_release_match_threshold", str(service.settings.press_release_match_threshold))),
                 "similar_article_threshold": float(service.store.get_setting("similar_article_threshold", "65")),
+                "magazine_similarity_threshold": float(service.store.get_setting("magazine_similarity_threshold", "90")),
+                "openai_shadow_enabled": service.shadow_enabled(),
+                "openai_shadow_daily_limit": service.shadow_daily_limit(),
                 "raw_retention_days": service.settings.raw_retention_days,
                 "metadata_retention_days": service.settings.metadata_retention_days,
                 "per_run_article_limit": service.settings.per_run_article_limit,
                 "body_backfill": service.body_backfill_status(),
                 "supabase_outbox": service.store.supabase_outbox_status(),
                 "processing_summary": service.store.processing_summary(14),
-                "pipeline_monitor": service.store.pipeline_monitor_status(),
                 "supabase_seed": SupabaseSeed(service.store, service.mirror).status(),
                 "supabase_daily_metrics": SupabaseDailyMetrics(service.store, service.mirror).status(),
                 "press_rag": service.press_releases.status(),
@@ -299,6 +373,22 @@ def dispatch(
             include_press_stats=True,
         )
 
+    if path == "/catalog" and method == "GET":
+        organizations = [
+            {"id": item["id"], "name": item["name"]}
+            for item in service.store.list_organizations(active_only=True)
+        ]
+        cases = [
+            {
+                "id": item["id"],
+                "name": item["name"],
+                "organization_id": item.get("organization_id"),
+                "sort_order": item.get("sort_order", 0),
+            }
+            for item in service.store.list_cases(active_only=True)
+        ]
+        return {"organizations": organizations, "cases": cases}
+
     if path == "/magazines" and method == "GET":
         publisher = MagazinePublisher(service.store)
         organization_id = str(query.get("organization_id") or "").strip()
@@ -354,6 +444,12 @@ def dispatch(
 
     if path == "/signup/kakao-registration" and method == "POST":
         invite, token = service.store.create_invite("구독 신청자", 1440)
+        base = request_base.rstrip("/")
+        invite["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
+        return {"registration": invite}
+
+    if path == "/signup/kakao-unsubscribe" and method == "POST":
+        invite, token = service.store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
         base = request_base.rstrip("/")
         invite["registration_url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
         return {"registration": invite}
@@ -488,16 +584,28 @@ def dispatch(
         if target == "common":
             model = service.selected_common_llm_model()
             models = service.configured_common_reserve_models(model)
-            return {"target": target, "common_llm_model": model, "common_llm_models": models, "llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True)}
+            return {"target": target, "common_llm_model": model, "common_llm_models": models, "llm_models": models, "common_provider": service.model_role_status(model, "common", probe=True)}
         if target == "case":
-            model = service.selected_case_llm_model()
-            return {"target": target, "case_llm_model": model, "case_llm_models": [model] if model else [], "openrouter": service.openrouter_status(probe=False)}
+            model = service.selected_case_model1()
+            return {"target": target, "case_llm_model": model, "case_llm_models": [model], "case_provider": service.model_role_status(model, "case", probe=True), "openrouter": service.model_role_status(model, "case", probe=False)}
+        if target == "common_fallback":
+            model = service.selected_common_fallback_model()
+            return {"target": target, "common_fallback_llm_model": model, "common_fallback_llm_models": service.available_common_fallback_models(), "common_fallback_provider": service.model_role_status(model, "common", probe=True)}
+        if target == "case_fallback":
+            model = service.selected_case_model2()
+            return {"target": target, "case_fallback_llm_model": model, "case_fallback_llm_models": [model], "case_fallback_provider": {**service.model_role_status(model, "case", probe=True), "enabled": True}}
+        if target == "case_single":
+            model = service.selected_case_single_model()
+            return {"target": target, "case_single_model": model, "case_single_models": [model], "case_single_provider": service.model_role_status(model, "case", probe=True)}
+        if target == "burst":
+            model = service.selected_common_turbo_model()
+            return {"target": target, "burst_llm_model": model, "burst_llm_models": [model], "burst_provider": service.model_role_status(model, "common", probe=True), "burst_threshold": service.selected_burst_threshold()}
         if target == "reserve1":
             model = service.selected_reserve1_model()
             return {"target": target, "reserve1_llm_model": model, "reserve1_llm_models": service.configured_common_reserve_models(model), "reserve1_provider": service._status_for_switchable_llm_model(model, probe=False)}
         if target == "reserve2":
             model = service.selected_reserve2_model()
-            return {"target": target, "reserve2_llm_model": model, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True)}
+            return {"target": target, "reserve2_llm_model": model, "reserve2_llm_models": service.available_reserve2_models(), "reserve2_provider": service._status_for_switchable_llm_model(model, probe=True), "gemini": service.gemini_status(probe=False)}
         if target == "embedding":
             model = service.selected_embedding_model()
             return {"target": target, "embedding_model": model, "embedding_models": service.available_embedding_models(), "ollama_embedding": service.ollama_embedding_status(probe=True)}
@@ -638,8 +746,13 @@ def dispatch(
             service.store.set_setting("common_llm_model", model)
             if bool(payload.get("force")):
                 provider = service._provider_for_switchable_llm_model(model)
-                service.store.set_setting(f"llm_provider_disabled_until:{provider}", "")
-                service.store.set_setting(f"llm_provider_disabled_reason:{provider}", "")
+                service._clear_provider_quota_lock(provider)
+                service.store.set_setting(f"llm_provider_temporary_until:{provider}", "")
+                service.store.set_setting(f"llm_provider_temporary_reason:{provider}", "")
+                service.store.set_setting(f"llm_provider_transient_failures:{provider}", "0")
+                released = service.store.release_article_analysis_retries()
+            else:
+                released = {"pending_released": 0, "failed_requeued": 0}
             status = service._status_for_switchable_llm_model(model, probe=False)
         elif target == "case":
             models = service.available_case_llm_models()
@@ -647,13 +760,12 @@ def dispatch(
                 raise MasterPressError("OpenRouter 무료 케이스 판정 모델을 선택하세요.")
             service.store.set_setting("case_llm_model", model)
             if bool(payload.get("force")):
-                service.store.set_setting("llm_provider_disabled_until:openrouter", "")
-                service.store.set_setting("llm_provider_disabled_reason:openrouter", "")
+                service._clear_provider_quota_lock("openrouter")
             status = service.openrouter_status(probe=False)
         else:
             raise MasterPressError("전환할 기본 모델 영역을 찾지 못했습니다.")
         waiting_until = str(status.get("disabled_until") or status.get("reset_at") or "") if status.get("exhausted") else ""
-        return {"target": target, "model": model, "activated": not bool(waiting_until), "waiting_until": waiting_until, "provider": status}
+        return {"target": target, "model": model, "activated": not bool(waiting_until), "waiting_until": waiting_until, "provider": status, "released_jobs": released if target == "common" else {"pending_released": 0, "failed_requeued": 0}}
 
     if path == "/admin/settings/promote-reserve-model" and method == "PUT":
         _require_admin(admin_authenticated)
@@ -676,12 +788,43 @@ def dispatch(
         if not reserve1:
             raise MasterPressError("예비1 모델을 입력하세요.")
         if not reserve2:
-            raise MasterPressError("예비2 Gemini 모델을 입력하세요.")
+            raise MasterPressError("예비2 모델을 입력하세요.")
         service.store.set_setting("reserve1_llm_model", reserve1)
         service.store.set_setting("reserve2_llm_model", reserve2)
         return {
             "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "reserve1_provider": service._status_for_switchable_llm_model(reserve1, probe=True), "groq": service.groq_status(probe=False), "cloudflare": service.cloudflare_status(probe=False),
-            "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "gemini": service.gemini_status(probe=True),
+            "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "reserve2_provider": service._status_for_switchable_llm_model(reserve2, probe=True), "gemini": service.gemini_status(probe=False),
+        }
+
+    if path == "/admin/settings/pipeline-models" and method == "PUT":
+        _require_admin(admin_authenticated)
+        common_fallback = str(payload.get("common_fallback_model") or "").strip()[:180]
+        case_fallback = str(payload.get("case_fallback_model") or "").strip()[:180]
+        burst = str(payload.get("burst_model") or "").strip()[:180]
+        try:
+            burst_threshold = int(payload.get("burst_threshold", 5))
+        except (TypeError, ValueError):
+            raise MasterPressError("업무집중 지원 대기 임계값을 확인하세요.")
+        if common_fallback not in service.available_common_fallback_models():
+            raise MasterPressError("공통분석 예비 모델은 확정된 Cloudflare 모델만 사용할 수 있습니다.")
+        if case_fallback != service.selected_case_model2():
+            raise MasterPressError("케이스 모델2는 NVIDIA gpt-oss-120b로 고정됩니다.")
+        if burst != service.selected_common_turbo_model():
+            raise MasterPressError("공통 Turbo는 OpenRouter 단건 모델로 고정됩니다.")
+        if burst_threshold < 5 or burst_threshold > 100:
+            raise MasterPressError("업무집중 지원 대기 임계값은 5~100건으로 설정하세요.")
+        service.store.set_setting("common_fallback_llm_model", common_fallback)
+        service.store.set_setting("case_fallback_llm_model", case_fallback)
+        service.store.set_setting("burst_llm_model", burst)
+        service.store.set_setting("burst_threshold", str(burst_threshold))
+        return {
+            "common_fallback_llm_model": common_fallback,
+            "case_fallback_llm_model": case_fallback,
+            "burst_llm_model": burst,
+            "burst_threshold": burst_threshold,
+            "common_fallback_provider": service._status_for_switchable_llm_model(common_fallback, probe=False),
+            "case_fallback_provider": service._status_for_switchable_llm_model(case_fallback, probe=False),
+            "burst_provider": service._status_for_switchable_llm_model(burst, probe=False),
         }
 
     if path == "/admin/announcements" and method == "POST":
@@ -782,6 +925,7 @@ def dispatch(
             ("openai_shadow_daily_limit", shadow_daily_limit),
         ):
             service.store.set_setting(key, str(value))
+        _invalidate_admin_bootstrap_cache()
         return {
             "case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold,
             "press_release_match_threshold": press_threshold, "similar_article_threshold": similar_threshold,
@@ -972,6 +1116,19 @@ def dispatch(
         invite["url"] = f"{base}/poc/master-press/connect?invite={quote(token)}"
         return {"invite": invite}
 
+    if path.startswith("/admin/magazines/") and method == "POST":
+        _require_admin(admin_authenticated)
+        suffix = path[len("/admin/magazines/"):].strip("/").split("/")
+        edition_id = suffix[0] if suffix else ""
+        action = suffix[1] if len(suffix) > 1 else ""
+        try:
+            if action == "republish":
+                return service.republish_magazine(edition_id)
+            if action == "resend":
+                return service.resend_magazine(edition_id)
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+
     if path.startswith("/admin/recipients/"):
         _require_admin(admin_authenticated)
         suffix = path[len("/admin/recipients/"):].split("/")
@@ -1020,7 +1177,14 @@ def kakao_authorization_url(invite_token: str) -> str:
 
 
 def complete_kakao_authorization(code: str, state: str) -> dict:
-    return get_service().kakao.complete_authorization(code, state)
+    service = get_service()
+    invite = service.store.valid_invite(state)
+    if invite and invite.get("label") == RECIPIENT_UNSUBSCRIBE_INVITE_LABEL:
+        result = service.kakao.complete_unsubscribe_authorization(code, state)
+        result["_oauth_action"] = "unsubscribe"
+        _invalidate_admin_bootstrap_cache()
+        return result
+    return service.kakao.complete_authorization(code, state)
 
 
 def article_redirect_url(article_id: str) -> str:

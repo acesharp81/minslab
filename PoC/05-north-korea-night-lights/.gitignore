@@ -1,0 +1,7 @@
+/output/
+/*.tif
+/*.tiff
+/*.json
+!/project.json
+/*.pem
+/*.p12

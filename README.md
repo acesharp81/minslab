@@ -151,7 +151,7 @@ The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by 
 
 The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, sends qualifying items through KakaoTalk `Send to me`, and publishes scheduled CaseON magazine editions.
 
-Current user-facing modules include period-aware dashboard monitoring, explicit include/exclude judgment feedback with multi-select reasons, persisted similar-article grouping, neural topic analysis with a two-week case delivery trend, press-release trends, CaseON 07:00/12:00/18:00 magazines, Kakao case and magazine subscriptions, an anonymous case-request board with OpenAI Clean AI moderation, and reserve-provider failover across Cloudflare Workers AI, Groq, OpenRouter, Gemini, and local Ollama.
+Current user-facing modules include period-aware dashboard monitoring, explicit include/exclude judgment feedback with multi-select reasons, persisted similar-article grouping, neural topic analysis with a two-week case delivery trend, press-release trends, CaseON 07:00/12:00/18:00 magazines, Kakao case and magazine subscriptions, an anonymous case-request board with OpenAI Clean AI moderation, and parallel model workers across Cloudflare Workers AI, Groq, OpenRouter, OpenAI, NVIDIA NIM, and local Ollama.
 
 - Archive entry: `/poc?project=master-press`
 - Direct dashboard: `/poc/master-press/`

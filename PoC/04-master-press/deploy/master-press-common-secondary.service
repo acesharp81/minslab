@@ -1,0 +1,18 @@
+[Unit]
+Description=Master Press common analysis worker model2
+After=network-online.target myservice.service master-press-common.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.common_worker --slot model2
+Restart=always
+RestartSec=5
+TimeoutStopSec=5min
+Nice=5
+CPUQuota=35%
+
+[Install]
+WantedBy=multi-user.target

@@ -6,6 +6,7 @@ import sqlite3
 import threading
 import time
 import urllib.parse
+import uuid
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,7 @@ from .kakao import KakaoClient
 from .magazine import MagazinePublisher, edition_title
 from .matching import article_topic_fields, expanded_case_terms, term_in_text
 from .press_releases import PressReleaseManager
+from .provider_quota import QuotaLockDecision, confirmed_free_quota_exhaustion, quota_lock_decision
 from .shadow import ShadowCaseStore
 from .scoring import GroqError, OpenRouterError, RelevanceEngine, calibrated_semantic_score, case_retrieval_text, cosine_similarity, parse_llm_json
 from .storage import KST, Store, now_iso
@@ -24,13 +26,13 @@ from .supabase_mirror import SupabaseMirror
 COLLECTION_LOCK = threading.Lock()
 COMMON_LLM_LOCK = threading.Lock()
 LOCAL_EMBEDDING_LOCK = threading.Lock()
+CASE_MODEL1_PRIORITY_SECONDS = 5
 SHADOW_CASE_SEMAPHORE = threading.BoundedSemaphore(1)
 REMOTE_CASE_SEMAPHORE = threading.BoundedSemaphore(2)
 DELIVERY_LOCK = threading.Lock()
 
 # Permanent failover is reserved for measured near-exhaustion. Ordinary API
 # instability uses this short, self-clearing reserve window.
-PROVIDER_NEAR_LIMIT_RATIO = 0.95
 PROVIDER_TEMPORARY_RETRY_MINUTES = 10
 PROVIDER_TRANSIENT_FAILURE_THRESHOLD = 3
 CASE_PROPOSAL_HARMFUL_EXPRESSIONS = (
@@ -184,9 +186,13 @@ class MasterPressService:
     def __init__(self, settings: Settings, store: Store):
         self.settings = settings
         self.store = store
+        self.store.ensure_pipeline_lease_schema()
+        self.worker_id = f"{os.getpid()}:{uuid.uuid4()}"
         self.collector = NewsCollector(settings)
         self.scoring = RelevanceEngine(settings, store)
         self._migrate_common_reserve_defaults()
+        self._migrate_reserve2_default()
+        self._migrate_stage_model_defaults()
         self.scoring.ollama.embedding_model = self.selected_embedding_model()
         # Request paths only enqueue mirror work; a separate worker performs remote I/O.
         self.mirror = SupabaseMirror(settings, store)
@@ -194,11 +200,42 @@ class MasterPressService:
         self.store.ensure_shadow_case_schema()
         self.shadow_cases = ShadowCaseStore(store)
         self.kakao = KakaoClient(settings, store)
-        self.recovered_llm_jobs = self.store.activate_worker_session(str(os.getpid()))
+        # Multiple stage workers intentionally share the database. A process-id
+        # session reset would requeue another live worker's jobs, so recovery is
+        # exclusively lease-expiry based for this pipeline.
+        self.recovered_llm_jobs = 0
         self.recovered_pipeline_jobs = self.store.recover_incomplete_pipeline_jobs()
         self.recovered_llm_jobs += sum(self.recovered_pipeline_jobs.values())
         self._next_case_stall_recovery_at = 0.0
         self._next_common_stall_recovery_at = 0.0
+
+    def _lease_owner(self) -> str:
+        """Return a stable owner even for lightweight test/service constructions."""
+        owner = str(getattr(self, "worker_id", "") or "")
+        if not owner:
+            owner = f"{os.getpid()}:{uuid.uuid4()}"
+            self.worker_id = owner
+        return owner
+
+    def _migrate_stage_model_defaults(self) -> None:
+        """Install the verified fixed provider topology once."""
+        if self.store.get_setting("stage_model_topology_v2", ""):
+            return
+        common_primary = str(getattr(self.settings, "groq_common_model", "llama-3.1-8b-instant") or "llama-3.1-8b-instant")
+        common_fallback = "@cf/meta/llama-3.1-8b-instruct-fast"
+        case_primary = str(getattr(self.settings, "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or "google/gemma-4-26b-a4b-it:free")
+        case_fallback = "gemini-3.1-flash-lite"
+        burst = str(getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+        for key, value in (
+            ("common_llm_model", common_primary),
+            ("common_fallback_llm_model", common_fallback),
+            ("case_llm_model", case_primary),
+            ("case_fallback_llm_model", case_fallback),
+            ("burst_llm_model", burst),
+        ):
+            self.store.set_setting(key, value)
+        self.store.set_setting("case_fallback_enabled", "1")
+        self.store.set_setting("stage_model_topology_v2", now_iso())
 
     def _migrate_common_reserve_defaults(self) -> None:
         """Swap the old Groq-primary/Cloudflare-reserve defaults once, preserving custom choices."""
@@ -210,8 +247,16 @@ class MasterPressService:
             self.store.set_setting("common_llm_model", old_reserve)
             self.store.set_setting("reserve1_llm_model", old_common)
 
+    def _migrate_reserve2_default(self) -> None:
+        """Move the previous Gemini reserve2 default to GPT-5.4 mini once."""
+        old_default = str(getattr(getattr(self, "settings", None), "gemini_model", "gemini-3.5-flash-lite") or "gemini-3.5-flash-lite")
+        new_default = str(getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+        current = self.store.get_setting("reserve2_llm_model", "")
+        if current in {"", old_default}:
+            self.store.set_setting("reserve2_llm_model", new_default)
+
     def selected_common_llm_model(self) -> str:
-        default = getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it")
+        default = getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant")
         return self.store.get_setting("common_llm_model", default)
 
     def selected_llm_model(self) -> str:
@@ -222,12 +267,51 @@ class MasterPressService:
         default = getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free")
         return self.store.get_setting("case_llm_model", default)
 
+    def selected_case_model1(self) -> str:
+        """RPM-limited NVIDIA primary worker: provider-affine chunks of five."""
+        return str(getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "openai/gpt-oss-120b")
+
+    def selected_case_model2(self) -> str:
+        """Token-budgeted OpenAI secondary worker: up to ten cases per request."""
+        return str(getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+
+    def selected_case_single_model(self) -> str:
+        return str(getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or "google/gemma-4-26b-a4b-it:free")
+
+    def selected_common_turbo_model(self) -> str:
+        return self.selected_case_single_model()
+
+    def case_batch_size_for_provider(self, provider: str) -> int:
+        return {"openai": 10, "nvidia": 5, "openrouter": 1}.get(str(provider or "").lower(), self.selected_case_batch_size())
+
+    def selected_common_fallback_model(self) -> str:
+        return self.store.get_setting("common_fallback_llm_model", "@cf/meta/llama-3.1-8b-instruct-fast")
+
+    def selected_case_fallback_model(self) -> str:
+        return self.store.get_setting("case_fallback_llm_model", "gemini-3.1-flash-lite")
+
+    def case_fallback_enabled(self) -> bool:
+        return self.store.get_setting("case_fallback_enabled", "1").casefold() in {"1", "true", "yes", "on"}
+
+    def selected_burst_model(self) -> str:
+        default = getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini")
+        return self.store.get_setting("burst_llm_model", default)
+
+    def selected_burst_threshold(self) -> int:
+        try:
+            return max(5, min(100, int(self.store.get_setting("burst_threshold", "5"))))
+        except (TypeError, ValueError):
+            return 5
+
+    def selected_burst_stop_threshold(self) -> int:
+        return max(1, min(3, self.selected_burst_threshold() - 2))
+
     def selected_reserve1_model(self) -> str:
         default = getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant")
         return self.store.get_setting("reserve1_llm_model", default)
 
     def selected_reserve2_model(self) -> str:
-        default = getattr(getattr(self, "settings", None), "gemini_model", "gemini-3.5-flash-lite")
+        default = getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini")
         return self.store.get_setting("reserve2_llm_model", default)
 
     def selected_case_batch_size(self) -> int:
@@ -247,10 +331,21 @@ class MasterPressService:
 
     def shadow_status(self) -> dict:
         status = self.shadow_cases.status(self.shadow_daily_limit())
+        provider_status = self.openai_status(False)
         status["enabled"] = self.shadow_enabled()
-        status["available"] = bool(getattr(self.settings, "openai_api_key", "") and getattr(self.settings, "openai_shadow_model", ""))
+        status["available"] = bool(
+            getattr(self.settings, "openai_api_key", "")
+            and getattr(self.settings, "openai_shadow_model", "")
+            and provider_status.get("available")
+        )
         status["model"] = str(getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"))
+        status["token_soft_limit"] = int(provider_status.get("token_soft_limit") or 0)
+        status["token_remaining"] = int(provider_status.get("token_remaining") or 0)
+        status["token_budget_exhausted"] = bool(provider_status.get("token_budget_exhausted"))
+        status["token_budget_reset_at"] = str(provider_status.get("token_budget_reset_at") or "")
         status["state"] = "running" if status["enabled"] and status["available"] else ("disabled" if not status["enabled"] else "key_missing")
+        if status["enabled"] and status["token_budget_exhausted"]:
+            status["state"] = "token_budget_wait"
         return status
 
 
@@ -260,28 +355,10 @@ class MasterPressService:
         return self.store.get_setting("embedding_model", default)
 
     def configured_common_reserve_models(self, selected: str = "") -> list[str]:
-        models = [
-            getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it"),
-            getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant"),
-            # Keep the configured OpenRouter free model in the common-analysis
-            # selector without making the admin screen depend on a catalogue API call.
-            getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free"),
-        ]
-        if selected:
-            models.append(selected)
-        return list(dict.fromkeys(value for value in models if value))
+        return ["llama-3.1-8b-instant"]
 
     def _switchable_common_reserve_models(self, selected: str = "") -> list[str]:
-        models = self.configured_common_reserve_models(selected)
-        try:
-            models.extend(self.scoring.reserve1_llm.models())
-        except Exception:
-            pass
-        try:
-            models.extend(self.scoring.common_llm.models())
-        except Exception:
-            pass
-        return list(dict.fromkeys(value for value in models if value))
+        return self.configured_common_reserve_models(selected)
 
     def available_common_llm_models(self) -> list[str]:
         return self._switchable_common_reserve_models(self.selected_common_llm_model())
@@ -290,23 +367,26 @@ class MasterPressService:
         return self.available_common_llm_models()
 
     def available_case_llm_models(self) -> list[str]:
-        try:
-            return self.scoring.case_llm.models()
-        except Exception:
-            return [self.selected_case_llm_model()] if self.selected_case_llm_model() else []
+        return [self.selected_case_model1(), self.selected_case_model2(), self.selected_case_single_model()]
 
     def available_reserve1_models(self) -> list[str]:
-        return self._switchable_common_reserve_models(self.selected_reserve1_model())
+        return ["llama-3.1-8b-instant"]
 
     def available_reserve2_models(self) -> list[str]:
-        models = [self.selected_reserve2_model(), getattr(self.settings, "gemini_model", "gemini-3.5-flash-lite"), "gemini-3.5-flash", "gemini-3.1-flash-lite"]
-        return list(dict.fromkeys(value for value in models if value))
+        return ["gpt-5.4-mini"]
+
+    def available_common_fallback_models(self) -> list[str]:
+        return ["@cf/meta/llama-3.1-8b-instruct-fast"]
+
+    def available_case_fallback_models(self) -> list[str]:
+        return ["gemini-3.1-flash-lite"]
+
+    def available_burst_models(self) -> list[str]:
+        return [self.selected_common_turbo_model()]
 
     def available_embedding_models(self) -> list[str]:
-        try:
-            return self.scoring.ollama.embedding_models()
-        except Exception:
-            return [self.selected_embedding_model()] if self.selected_embedding_model() else []
+        model = self.selected_embedding_model()
+        return [model] if model else []
 
     def _provider_for_switchable_llm_model(self, model: str) -> str:
         model = str(model or "").strip()
@@ -314,12 +394,16 @@ class MasterPressService:
             return ""
         if model == getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or model.startswith("@cf/"):
             return "cloudflare"
+        if model == getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "gpt-oss-120b" in model:
+            return "nvidia"
         if model == getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or model.endswith(":free"):
             return "openrouter"
         if model == getattr(getattr(self, "settings", None), "groq_common_model", "llama-3.1-8b-instant") or model in {"llama-3.1-8b-instant"}:
             return "groq"
         if model.startswith("gemini-"):
             return "gemini"
+        if model.startswith("gpt-"):
+            return "openai"
         return "groq"
 
     def _status_for_switchable_llm_model(self, model: str, probe: bool = False) -> dict:
@@ -328,19 +412,55 @@ class MasterPressService:
             status = self.cloudflare_status(probe)
         elif provider == "openrouter":
             status = self.openrouter_status(probe)
+        elif provider == "nvidia":
+            status = self.nvidia_status(probe)
         elif provider == "groq":
             status = self.groq_status(probe)
         elif provider == "gemini":
             status = self.gemini_status(probe)
+        elif provider == "openai":
+            status = self.openai_status(probe)
         else:
             status = {"connected": False, "available": False, "error": "모델 제공자를 확인할 수 없습니다.", "attempts": 0, "soft_limit": 0}
         status["model"] = model
         status["provider"] = provider
         return status
 
+    def model_role_status(self, model: str, stages: str | list[str], probe: bool = False) -> dict:
+        """Return role usage in the provider's documented reset window."""
+        status = self._status_for_switchable_llm_model(model, probe)
+        stage_names = [str(stages)] if isinstance(stages, str) else [str(value) for value in stages]
+        provider = str(status.get("provider") or "")
+        day_start, reset_at, reset_basis, reset_label = self._provider_usage_window(provider)
+        usage_rows = [self.store.provider_usage_since(status.get("provider", ""), day_start, stage=stage) for stage in stage_names]
+        completed = sum(int(row.get("completed") or 0) for row in usage_rows)
+        attempts = sum(int(row.get("attempts") or 0) for row in usage_rows)
+        failed = sum(int(row.get("failed") or 0) for row in usage_rows)
+        input_tokens = sum(int(row.get("input_tokens") or 0) for row in usage_rows)
+        output_tokens = sum(int(row.get("output_tokens") or 0) for row in usage_rows)
+        usage_units = sum(int(row.get("usage_units") or 0) for row in usage_rows)
+        weighted_seconds = sum(float(row.get("average_seconds") or 0) * int(row.get("completed") or 0) for row in usage_rows)
+        status.update({
+            "attempts": attempts,
+            "completed": completed,
+            "failed": failed,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "tokens": input_tokens + output_tokens,
+            "usage_units": usage_units,
+            "average_seconds": round(weighted_seconds / completed, 2) if completed else 0,
+            "period": reset_basis,
+            "usage_period": reset_basis,
+            "usage_day_start": day_start,
+            "usage_stages": stage_names,
+            "reset_at": reset_at,
+            "reset_basis": reset_basis,
+            "reset_label": reset_label,
+        })
+        return status
+
     def _active_provider_chain(self, chain: list[tuple[str, str]]) -> list[tuple[str, str]]:
         """Return available providers in configured primary/reserve order."""
-        # Apply existing local usage guards before a provider can be selected.
         active = []
         seen = set()
         current = now_iso()
@@ -363,27 +483,48 @@ class MasterPressService:
                 continue
             status = self._provider_status(provider, model)
             if not status.get("available"):
-                if status.get("exhausted"):
-                    self._mark_provider_exhausted(
-                        provider,
-                        str(status.get("disabled_until") or status.get("reset_at") or self._provider_reset_at(provider)),
-                        str(status.get("disabled_reason") or "local_usage_soft_limit"),
-                    )
                 continue
             seen.add(key)
             active.append(key)
         return active
 
+    def stage_primary_available(self, stage: str) -> bool:
+        if stage == "common":
+            return bool(self._common_provider_chain())
+        if stage == "case":
+            return any(self._provider_status(provider, model).get("available") for provider, model in (
+                ("nvidia", self.selected_case_model1()),
+                ("openai", self.selected_case_model2()),
+                ("openrouter", self.selected_case_single_model()),
+            ))
+        return False
+
+    def burst_provider_available(self) -> bool:
+        return self.common_turbo_available()
+
+    def common_turbo_available(self) -> bool:
+        model = self.selected_common_turbo_model()
+        if not self._active_provider_chain([("openrouter", model)]):
+            return False
+        limit = int(getattr(self.settings, "openrouter_daily_soft_limit", 1000) or 1000)
+        reserve = min(limit - 1, int(getattr(self.settings, "openrouter_case_reserve_calls", 100) or 100))
+        usage = self.store.openrouter_usage_today(limit)
+        return int(usage.get("attempts") or 0) < max(0, limit - reserve)
+
     def _provider_status(self, provider: str, model: str = "") -> dict:
         """Read local provider availability without issuing a remote probe."""
         if provider == "openrouter":
             status = self.openrouter_status(False)
+        elif provider == "nvidia":
+            status = self.nvidia_status(False)
         elif provider == "cloudflare":
             status = self.cloudflare_status(False)
         elif provider == "groq":
             status = self.groq_status(False)
         elif provider == "gemini":
             status = self.gemini_status(False)
+        elif provider == "openai":
+            status = self.openai_status(False)
         else:
             return {"provider": provider, "model": model, "available": False, "connected": False}
         if model:
@@ -391,17 +532,16 @@ class MasterPressService:
         return status
 
     def _next_provider_reset(self, providers: list[str]) -> str:
-        """Return the earliest real reset among unavailable providers."""
+        """Return the earliest confirmed quota lock expiry among providers."""
         current = now_iso()
         reset_points = []
         for provider in dict.fromkeys(str(item or "").strip().lower() for item in providers):
             if not provider:
                 continue
-            status = self._provider_status(provider)
-            reset_at = str(self._provider_disabled_until(provider) or status.get("reset_at") or self._provider_reset_at(provider))
+            reset_at = self._provider_disabled_until(provider)
             if reset_at and reset_at > current:
                 reset_points.append(reset_at)
-        return min(reset_points) if reset_points else self._next_kst_midnight_iso()
+        return min(reset_points) if reset_points else (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds")
 
     def _next_provider_retry(self, providers: list[str]) -> str:
         """Use a short retry window for transient failures; resets for hard stops."""
@@ -410,28 +550,29 @@ class MasterPressService:
         for provider in dict.fromkeys(str(item or "").strip().lower() for item in providers):
             if not provider:
                 continue
-            pause_until = self._provider_temporary_until(provider)
-            reset_at = self._provider_disabled_until(provider) or self._provider_reset_at(provider)
-            candidate = pause_until or reset_at
-            if candidate and candidate > current:
-                retry_points.append(candidate)
+            for candidate in (
+                self._provider_temporary_until(provider),
+                self._provider_disabled_until(provider),
+                self._provider_probe_until(provider),
+            ):
+                if candidate and candidate > current:
+                    retry_points.append(candidate)
         return min(retry_points) if retry_points else (datetime.now(KST) + timedelta(minutes=PROVIDER_TEMPORARY_RETRY_MINUTES)).isoformat(timespec="seconds")
 
     def _groq_usage_window(self) -> tuple[str, str, str]:
         since = (datetime.now(KST) - timedelta(hours=24)).isoformat(timespec="seconds")
         rate_reset = self.store.get_setting("llm_provider_rate_reset_at:groq", "")
         try:
-            reset_label = datetime.fromisoformat(rate_reset).astimezone(KST).strftime("%H:%M:%S") if rate_reset else ""
+            reset_at = rate_reset if rate_reset and rate_reset > now_iso() else ""
+            reset_label = datetime.fromisoformat(reset_at).astimezone(KST).strftime("%H:%M:%S") if reset_at else ""
         except Exception:
-            reset_label = ""
-        label = "최근 24시간 기준" + (f" · 단기 rate reset {reset_label}" if reset_label else "")
-        return since, "", label
+            reset_label, reset_at = "", ""
+        label = "Groq 응답 헤더" + (f" · 다음 초기화 {reset_label}" if reset_label else "")
+        return since, reset_at, label
 
     def groq_status(self, probe: bool = False) -> dict:
         since, reset_at, reset_label = self._groq_usage_window()
-        usage = self.store.provider_usage_since(
-            "groq", since, self.settings.groq_daily_request_soft_limit, self.settings.groq_daily_token_soft_limit
-        )
+        usage = self.store.provider_usage_since("groq", since)
         status = self.scoring.common_llm.key_status() if probe else {"connected": bool(self.settings.groq_api_key)}
         result = {**status, **usage, "model": self.selected_reserve1_model(), "provider": "groq",
                   "period": "Groq window", "day_start": since, "reset_basis": "Groq rate-limit header",
@@ -439,14 +580,26 @@ class MasterPressService:
         return self._attach_provider_guard(result)
 
     def openrouter_status(self, probe: bool = False) -> dict:
-        usage = self.store.openrouter_usage_today(self.settings.openrouter_daily_soft_limit)
+        since, reset_at = self._utc_day_window_kst()
+        usage = self.store.provider_usage_since("openrouter", since)
         status = self.scoring.case_llm.key_status() if probe else {"connected": bool(self.settings.openrouter_api_key)}
-        result = {**status, **usage, "model": self.selected_case_llm_model(), "provider": "openrouter", "reset_basis": "UTC 00:00", "reset_at": self._utc_day_window_kst()[1], "reset_label": "한국시간 09:00"}
+        result = {**status, **usage, "model": self.selected_case_single_model(), "provider": "openrouter", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
+        return self._attach_provider_guard(result)
+
+    def nvidia_status(self, probe: bool = False) -> dict:
+        since, reset_at = self._utc_day_window_kst()
+        usage = self.store.provider_usage_since("nvidia", since)
+        status = self.scoring.nvidia_llm.key_status() if probe else {
+            "connected": bool(getattr(self.settings, "nvidia_api_key", ""))
+        }
+        result = {**status, **usage, "model": self.selected_case_model1(), "provider": "nvidia",
+                  "period": "UTC day", "reset_basis": "UTC 00:00",
+                  "reset_at": reset_at, "reset_label": "한국시간 09:00"}
         return self._attach_provider_guard(result)
 
     def cloudflare_status(self, probe: bool = False) -> dict:
         since, reset_at = self._utc_day_window_kst()
-        usage = self.store.provider_usage_since("cloudflare", since, getattr(self.settings, "worker_ai_daily_request_soft_limit", 3000), 0)
+        usage = self.store.provider_usage_since("cloudflare", since)
         has_key = bool(getattr(self.settings, "worker_ai_key", ""))
         has_account = bool(getattr(self.settings, "worker_ai_account_id", ""))
         connected = bool(has_key and has_account)
@@ -454,21 +607,33 @@ class MasterPressService:
             status = self.scoring.reserve1_llm.key_status()
         else:
             status = {"connected": connected, "error": "" if connected else ("Cloudflare API 키 미설정" if not has_key else "Cloudflare Account ID 미설정")}
-        result = {**status, **usage, "model": self.selected_common_llm_model(), "provider": "cloudflare",
-                  "unit_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000), "neuron_soft_limit": getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 10000),
-                  "reset_basis": "UTC 00:00", "reset_at": reset_at,
-                  "reset_label": "한국시간 09:00"}
+        result = {**status, **usage, "model": self.selected_common_fallback_model(), "provider": "cloudflare",
+                  "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
         return self._attach_provider_guard(result)
 
     def gemini_status(self, probe: bool = False) -> dict:
         since, reset_at = self._pacific_day_window_kst()
-        usage = self.store.provider_usage_since("gemini", since, getattr(self.settings, "gemini_daily_request_soft_limit", 1000), getattr(self.settings, "gemini_daily_token_soft_limit", 0))
+        usage = self.store.provider_usage_since("gemini", since)
         status = self.scoring.reserve2_llm.key_status() if probe else {"connected": bool(getattr(self.settings, "gemini_api_key", ""))}
-        pacific_name = datetime.now(ZoneInfo("America/Los_Angeles")).tzname() or "PT"
-        result = {**status, **usage, "model": self.selected_reserve2_model(), "provider": "gemini",
-                  "reset_basis": "Pacific 00:00", "reset_at": reset_at,
+        result = {**status, **usage, "model": self.selected_case_fallback_model(), "provider": "gemini",
+                  "period": "Pacific day", "reset_basis": "Pacific 00:00", "reset_at": reset_at,
                   "reset_label": f"한국시간 {datetime.fromisoformat(reset_at).astimezone(KST).strftime('%H:%M')}"}
         return self._attach_provider_guard(result)
+
+    def openai_status(self, probe: bool = False) -> dict:
+        since, reset_at = self._utc_day_window_kst()
+        token_limit = int(getattr(self.settings, "openai_daily_token_soft_limit", 2450000) or 2450000)
+        usage = self.store.provider_usage_since("openai", since, token_limit=token_limit)
+        status = self.scoring.shadow_llm.key_status() if probe else {"connected": bool(getattr(self.settings, "openai_api_key", ""))}
+        result = {**status, **usage, "model": getattr(self.settings, "openai_shadow_model", "gpt-5.4-mini"),
+                  "provider": "openai", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
+        result = self._attach_provider_guard(result)
+        result["token_budget_exhausted"] = bool(token_limit and int(result.get("tokens") or 0) >= token_limit)
+        result["token_budget_reset_at"] = reset_at
+        if result["token_budget_exhausted"]:
+            result["available"] = False
+            result["state_label"] = "Mini 일일 토큰 예산 소진 · OSS 처리 중"
+        return result
 
     def ollama_embedding_status(self, probe: bool = False) -> dict:
         selected = self.selected_embedding_model()
@@ -488,7 +653,9 @@ class MasterPressService:
         usage["total_failed"] = int(total_usage.get("failed") or 0)
         return {
             "connected": bool(models), "provider": "ollama", "model": selected,
-            "models": models, "probed": bool(probe), **usage,
+            "models": models, "probed": bool(probe), "period": "KST day",
+            "reset_basis": "KST 00:00", "reset_at": self._next_kst_midnight_iso(),
+            "reset_label": "한국시간 00:00", **usage,
         }
 
     @staticmethod
@@ -511,13 +678,36 @@ class MasterPressService:
         end = start + timedelta(days=1)
         return start.astimezone(KST).isoformat(timespec="seconds"), end.astimezone(KST).isoformat(timespec="seconds")
 
+    def _provider_usage_window(self, provider: str) -> tuple[str, str, str, str]:
+        provider = str(provider or "").strip().lower()
+        if provider in {"cloudflare", "openrouter", "openai", "nvidia"}:
+            start, reset = self._utc_day_window_kst()
+            return start, reset, "UTC day", "한국시간 09:00"
+        if provider == "gemini":
+            start, reset = self._pacific_day_window_kst()
+            label = f"한국시간 {datetime.fromisoformat(reset).astimezone(KST).strftime('%H:%M')}"
+            return start, reset, "Pacific day", label
+        if provider == "groq":
+            since, reset, label = self._groq_usage_window()
+            return since, reset, "Groq rate-limit window", label
+        start = datetime.now(KST).replace(hour=0, minute=0, second=0, microsecond=0)
+        reset = start + timedelta(days=1)
+        return start.isoformat(timespec="seconds"), reset.isoformat(timespec="seconds"), "KST day", "한국시간 00:00"
+
     def _provider_disabled_until(self, provider: str) -> str:
-        disabled_until = self.store.get_setting(f"llm_provider_disabled_until:{provider}", "")
-        if disabled_until and disabled_until <= now_iso():
-            self.store.set_setting(f"llm_provider_disabled_until:{provider}", "")
-            self.store.set_setting(f"llm_provider_disabled_reason:{provider}", "")
-            return ""
-        return disabled_until
+        return self.store.get_setting(f"llm_provider_disabled_until:{provider}", "")
+
+    def _provider_probe_until(self, provider: str) -> str:
+        return self.store.get_setting(f"llm_provider_probe_until:{provider}", "")
+
+    def _provider_attempt_allowed(self, provider: str) -> bool:
+        """Honor a live lock and serialize the first check after it expires."""
+        disabled_until = self._provider_disabled_until(provider)
+        if not disabled_until:
+            return True
+        if disabled_until > now_iso():
+            return False
+        return self.store.claim_provider_quota_probe(provider)
 
     def _provider_temporary_until(self, provider: str) -> str:
         key = f"llm_provider_temporary_until:{provider}"
@@ -541,57 +731,58 @@ class MasterPressService:
     def _clear_provider_transient_failures(self, provider: str) -> None:
         self.store.set_setting(f"llm_provider_transient_failures:{provider}", "0")
 
+    def _clear_provider_quota_lock(self, provider: str) -> None:
+        self.store.set_settings({
+            f"llm_provider_disabled_until:{provider}": "",
+            f"llm_provider_disabled_reason:{provider}": "",
+            f"llm_provider_lock_mode:{provider}": "",
+            f"llm_provider_lock_confidence:{provider}": "",
+            f"llm_provider_lock_reset_source:{provider}": "",
+            f"llm_provider_lock_detected_at:{provider}": "",
+            f"llm_provider_probe_until:{provider}": "",
+        })
+
     def _remember_provider_success(self, provider: str) -> None:
         self._clear_provider_transient_failures(provider)
+        self._clear_provider_quota_lock(provider)
 
-    @staticmethod
-    def _provider_usage_ratio(status: dict) -> float:
-        ratios = []
-        for used_key, limit_key in (("attempts", "soft_limit"), ("tokens", "token_soft_limit"), ("usage_units", "unit_soft_limit")):
-            limit = int(status.get(limit_key) or 0)
-            if limit > 0:
-                ratios.append(max(0.0, float(status.get(used_key) or 0) / limit))
-        return max(ratios, default=0.0)
-
-    def _mark_provider_exhausted(self, provider: str, retry_after: str = "", reason: str = "") -> None:
-        retry_after = retry_after or self._provider_reset_at(provider)
-        self.store.set_setting(f"llm_provider_disabled_until:{provider}", retry_after)
-        self.store.set_setting(f"llm_provider_disabled_reason:{provider}", str(reason)[:300])
-
-    def _provider_reset_at(self, provider: str) -> str:
-        if provider in {"cloudflare", "openrouter"}:
-            return self._utc_day_window_kst()[1]
-        if provider == "gemini":
-            return self._pacific_day_window_kst()[1]
-        if provider == "groq":
-            return self.store.get_setting("llm_provider_reset_at:groq", "") or (datetime.now(KST) + timedelta(hours=24)).isoformat(timespec="seconds")
-        return self._next_kst_midnight_iso()
+    def _mark_provider_exhausted(self, provider: str, decision: QuotaLockDecision) -> str:
+        self.store.set_settings({
+            f"llm_provider_disabled_until:{provider}": decision.lock_until,
+            f"llm_provider_disabled_reason:{provider}": decision.reason[:500],
+            f"llm_provider_lock_mode:{provider}": decision.lock_mode,
+            f"llm_provider_lock_confidence:{provider}": decision.confidence,
+            f"llm_provider_lock_reset_source:{provider}": decision.reset_source,
+            f"llm_provider_lock_detected_at:{provider}": now_iso(),
+            f"llm_provider_probe_until:{provider}": "",
+            f"llm_provider_transient_failures:{provider}": "0",
+        })
+        return decision.lock_until
 
     def _attach_provider_guard(self, status: dict) -> dict:
         provider = str(status.get("provider") or "")
         disabled_until = self._provider_disabled_until(provider) if provider else ""
         temporary_until = self._provider_temporary_until(provider) if provider else ""
-        usage_ratio = self._provider_usage_ratio(status)
-        near_limit = usage_ratio >= PROVIDER_NEAR_LIMIT_RATIO
+        probe_until = self._provider_probe_until(provider) if provider else ""
         status["disabled_until"] = disabled_until
         status["disabled_reason"] = self.store.get_setting(f"llm_provider_disabled_reason:{provider}", "") if provider else ""
+        status["lock_mode"] = self.store.get_setting(f"llm_provider_lock_mode:{provider}", "") if provider else ""
+        status["lock_confidence"] = self.store.get_setting(f"llm_provider_lock_confidence:{provider}", "") if provider else ""
+        status["lock_reset_source"] = self.store.get_setting(f"llm_provider_lock_reset_source:{provider}", "") if provider else ""
+        status["lock_detected_at"] = self.store.get_setting(f"llm_provider_lock_detected_at:{provider}", "") if provider else ""
+        status["probe_until"] = probe_until
         status["temporary_until"] = temporary_until
         status["temporary_reason"] = self.store.get_setting(f"llm_provider_temporary_reason:{provider}", "") if provider else ""
-        status["usage_ratio"] = round(usage_ratio, 4)
-        status["near_limit"] = near_limit
-        status["exhausted"] = bool((disabled_until and disabled_until > now_iso()) or near_limit)
+        status["exhausted"] = bool(disabled_until and disabled_until > now_iso())
+        status["quota_recheck_due"] = bool(disabled_until and disabled_until <= now_iso())
+        status["quota_probe_in_flight"] = bool(status["quota_recheck_due"] and probe_until and probe_until > now_iso())
         status["temporarily_paused"] = bool(temporary_until and temporary_until > now_iso())
-        status["available"] = bool(status.get("connected") and not status["exhausted"] and not status["temporarily_paused"])
+        status["available"] = bool(status.get("connected") and not status["exhausted"] and not status["temporarily_paused"] and not status["quota_probe_in_flight"])
         return status
 
     @staticmethod
     def _is_provider_quota_error(error: Exception) -> bool:
-        lowered = str(error or "").casefold()
-        return str(error) in {"groq_daily_request_soft_limit", "groq_daily_token_soft_limit", "openrouter_daily_soft_limit",
-                              "cloudflare_daily_request_soft_limit", "gemini_daily_request_soft_limit", "gemini_daily_token_soft_limit"} or any(
-            marker in lowered for marker in ("quota", "free-models-per-day", "daily_soft_limit",
-                                             "neurons", "allocation", "resource_exhausted", "token_soft_limit")
-        )
+        return confirmed_free_quota_exhaustion(str(error or ""), int(getattr(error, "status", 0) or 0))
 
     @staticmethod
     def _is_common_daily_limit(error: Exception) -> bool:
@@ -601,41 +792,36 @@ class MasterPressService:
         chain = []
         if include_openrouter:
             chain.append(("openrouter", self.selected_case_llm_model()))
-        # Case evaluation requires the multi-case judge interface. Groq is
-        # reserved for shared article analysis; trying it here after a rate
-        # limit prevents the next compatible provider from being tried.
-        common_model = self.selected_common_llm_model()
-        common_provider = self._provider_for_switchable_llm_model(common_model)
-        if common_provider != "groq":
-            chain.append((common_provider, common_model))
-        reserve1_model = self.selected_reserve1_model()
-        reserve1_provider = self._provider_for_switchable_llm_model(reserve1_model)
-        if reserve1_provider != "groq":
-            chain.append((reserve1_provider, reserve1_model))
-        chain.append(("gemini", self.selected_reserve2_model()))
+        if self.case_fallback_enabled():
+            fallback = self.selected_case_fallback_model()
+            chain.append((self._provider_for_switchable_llm_model(fallback), fallback))
         return self._active_provider_chain(chain)
 
     def _common_provider_chain(self) -> list[tuple[str, str]]:
         common_model = self.selected_common_llm_model()
-        reserve1_model = self.selected_reserve1_model()
+        fallback_model = self.selected_common_fallback_model()
         chain = [
             (self._provider_for_switchable_llm_model(common_model), common_model),
-            (self._provider_for_switchable_llm_model(reserve1_model), reserve1_model),
-            ("gemini", self.selected_reserve2_model()),
+            (self._provider_for_switchable_llm_model(fallback_model), fallback_model),
         ]
         return self._active_provider_chain(chain)
 
-    def _remember_provider_failure(self, provider: str, error: Exception) -> None:
+    def _remember_provider_failure(self, provider: str, error: Exception) -> str:
         if str(error) in {"reserve_llm_unavailable", "case_llm_providers_unavailable"}:
-            return
+            return ""
         if not isinstance(error, OpenRouterError):
-            return
+            return ""
         reason = str(error)
-        status = self._provider_status(provider)
-        at_or_above_near_limit = self._provider_usage_ratio(status) >= PROVIDER_NEAR_LIMIT_RATIO
-        if at_or_above_near_limit:
-            self._mark_provider_exhausted(provider, self._provider_reset_at(provider), reason)
-            return
+        decision = quota_lock_decision(error)
+        if decision.confirmed_exhaustion:
+            existing = self._provider_disabled_until(provider)
+            if existing and existing > now_iso():
+                return existing
+            return self._mark_provider_exhausted(provider, decision)
+        if self._provider_disabled_until(provider):
+            self._clear_provider_quota_lock(provider)
+        else:
+            self.store.release_provider_quota_probe(provider)
         if error.retryable or error.status in {408, 429, 500, 502, 503, 504}:
             count_key = f"llm_provider_transient_failures:{provider}"
             try:
@@ -645,11 +831,18 @@ class MasterPressService:
             self.store.set_setting(count_key, str(failure_count))
             if failure_count >= PROVIDER_TRANSIENT_FAILURE_THRESHOLD:
                 self._mark_provider_temporary(provider, reason)
+        return ""
 
     def _try_common_reserve(self, article: dict) -> tuple[str, str, dict]:
         last_error: Exception | None = None
         chain = self._common_provider_chain()
-        for index, (provider, model) in enumerate(chain):
+        primary = (
+            self._provider_for_switchable_llm_model(self.selected_common_llm_model()),
+            self.selected_common_llm_model(),
+        )
+        for provider, model in chain:
+            if not self._provider_attempt_allowed(provider):
+                continue
             try:
                 if hasattr(self.scoring, "analyze_article_common_with_provider"):
                     result = self.scoring.analyze_article_common_with_provider(provider, article, model)
@@ -657,7 +850,7 @@ class MasterPressService:
                     result = self.scoring.analyze_article_common(article, model)
                 self._remember_provider_success(provider)
                 report = result.setdefault("analysis_report", {})
-                if index == 0:
+                if (provider, model) == primary:
                     report.pop("fallback", None)
                     report.pop("fallback_reason", None)
                 else:
@@ -666,6 +859,7 @@ class MasterPressService:
                 return provider, model, result
             except json.JSONDecodeError as error:
                 last_error = error
+                self._clear_provider_quota_lock(provider)
                 # Workers AI can occasionally return an incomplete JSON body despite
                 # a successful HTTP response. Retry its primary common-analysis call
                 # once before consuming a reserve provider.
@@ -677,7 +871,7 @@ class MasterPressService:
                             result = self.scoring.analyze_article_common(article, model)
                         self._remember_provider_success(provider)
                         report = result.setdefault("analysis_report", {})
-                        if index == 0:
+                        if (provider, model) == primary:
                             report.pop("fallback", None)
                             report.pop("fallback_reason", None)
                         else:
@@ -688,10 +882,12 @@ class MasterPressService:
                         last_error = retry_error
                     except OpenRouterError as retry_error:
                         last_error = retry_error
+                        setattr(retry_error, "provider", provider)
                         self._remember_provider_failure(provider, retry_error)
                 continue
             except OpenRouterError as error:
                 last_error = error
+                setattr(error, "provider", provider)
                 self._remember_provider_failure(provider, error)
                 continue
         if last_error and self._active_provider_chain(chain):
@@ -699,14 +895,15 @@ class MasterPressService:
         raise OpenRouterError("reserve_llm_unavailable", status=503, retryable=True,
                               retry_after=self._next_provider_retry([
                                   self._provider_for_switchable_llm_model(self.selected_common_llm_model()),
-                                  self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
-                                  "gemini",
+                                  self._provider_for_switchable_llm_model(self.selected_common_fallback_model()),
                               ]), deferred=True)
 
     def _evaluate_cases_with_provider_chain(self, cases: list[dict], article: dict, analysis: dict) -> tuple[str, str, dict[str, dict]]:
         last_error: Exception | None = None
         chain = self._remote_provider_chain(include_openrouter=True)
         for provider, model in chain:
+            if not self._provider_attempt_allowed(provider):
+                continue
             try:
                 if hasattr(self.scoring, "evaluate_cases_with_common_provider"):
                     results = self.scoring.evaluate_cases_with_common_provider(provider, cases, article, analysis, model)
@@ -714,33 +911,41 @@ class MasterPressService:
                     results = self.scoring.evaluate_cases_with_common(cases, article, analysis, model)
                 else:
                     raise OpenRouterError(f"{provider}_client_unavailable", status=503, retryable=True)
+                self._remember_provider_success(provider)
                 return provider, model, results
             except OpenRouterError as error:
                 last_error = error
+                setattr(error, "provider", provider)
                 self._remember_provider_failure(provider, error)
                 if self._is_provider_quota_error(error) or error.status in {408, 429, 500, 502, 503, 504}:
                     continue
                 raise
             except json.JSONDecodeError as error:
                 last_error = error
+                self._clear_provider_quota_lock(provider)
                 continue
         if last_error and self._active_provider_chain(chain):
             raise last_error
         raise OpenRouterError("case_llm_providers_unavailable", status=503, retryable=True,
                               retry_after=self._next_provider_retry([
                                   "openrouter",
-                                  self._provider_for_switchable_llm_model(self.selected_reserve1_model()),
-                                  "gemini",
+                                  self._provider_for_switchable_llm_model(self.selected_case_fallback_model()),
                               ]), deferred=True)
 
     def pipeline_provider_status(self) -> dict:
-        common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1}
-        reserve1 = self._status_for_switchable_llm_model(self.selected_reserve1_model(), False)
-        reserve2 = self.gemini_status(False)
-        case = {**self.openrouter_status(False), "concurrency": 1, "burst_concurrency": 2, "burst_threshold": 10, "batch_size": self.selected_case_batch_size()}
+        burst_start_threshold = self.selected_burst_threshold()
+        burst_stop_threshold = self.selected_burst_stop_threshold()
+        common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1, "slot": "model1"}
+        common_fallback = {**self._status_for_switchable_llm_model(self.selected_common_fallback_model(), False), "concurrency": 1, "slot": "model2"}
+        case = {**self.nvidia_status(False), "concurrency": 1, "batch_size": 5, "slot": "model1", "worker_slot": "oss"}
+        case_fallback = {**self.openai_status(False), "concurrency": 1, "batch_size": 10, "slot": "model2", "worker_slot": "mini", "enabled": True}
+        case_single = {**self.openrouter_status(False), "concurrency": 1, "batch_size": 1, "slot": "single"}
+        burst = {**self.openrouter_status(False), "model": self.selected_common_turbo_model(),
+                 "available": self.common_turbo_available(), "stage": "common",
+                 "burst_threshold": burst_start_threshold}
         primary_unavailable = not bool(common.get("available"))
         if primary_unavailable:
-            fallback = next((item for item in (reserve1, reserve2) if item.get("available")), {})
+            fallback = next((item for item in (common_fallback,) if item.get("available")), {})
             common["fallback_provider"] = fallback.get("provider", "")
             common["fallback_active"] = bool(fallback)
             common["fallback_model"] = fallback.get("model", "")
@@ -749,22 +954,58 @@ class MasterPressService:
             else:
                 common["state_label"] = f"{fallback.get('provider','예비')} 예비 사용 중" if fallback else "공통분석 초기화 대기"
         chain_item = lambda item: {key: value for key, value in item.items() if key != "chain"}
-        common["chain"] = [chain_item(common), chain_item(reserve1), chain_item(reserve2)]
-        temporary_waiting = any(item.get("temporarily_paused") for item in (common, case, reserve1, reserve2))
-        case["chain"] = [chain_item(case), chain_item(reserve1), chain_item(reserve2)]
-        common_available = bool(common.get("available")) or any(item.get("available") for item in (reserve1, reserve2))
-        case_available = bool(case.get("available")) or any(item.get("available") for item in (reserve1, reserve2))
-        providers_waiting = not (common_available and case_available)
+        common["chain"] = [chain_item(common), chain_item(common_fallback)]
+        temporary_waiting = any(item.get("temporarily_paused") for item in (common, case, common_fallback, case_fallback, case_single, burst))
+        case["chain"] = [chain_item(case), chain_item(case_fallback), chain_item(case_single)]
+        common_available = bool(common.get("available")) or bool(common_fallback.get("available"))
+        case_available = bool(case.get("available")) or bool(case_fallback.get("available")) or bool(case_single.get("available"))
+        burst_available = bool(burst.get("available"))
+        common_operational = common_available or burst_available
+        case_operational = case_available
+        providers_waiting = not (common_operational and case_operational)
         # A ten-minute retry is a live, recoverable state, never an end-of-day shutdown.
         halted = bool(providers_waiting and not temporary_waiting)
         operation = {
             "halted": halted,
             "waiting": bool(providers_waiting),
-            "message": ("기본 모델 재시도 대기 · 예비 체인을 10분 뒤 다시 확인합니다." if temporary_waiting else "영업중지-토큰이 다 떨어졌어요. 낼 00시에 뵈어요~") if providers_waiting else "",
-            "retry_after": min([value for value in [common.get("temporary_until"), common.get("reset_at"), case.get("temporary_until"), case.get("reset_at"), reserve1.get("temporary_until"), reserve1.get("reset_at"), reserve2.get("temporary_until"), reserve2.get("reset_at")] if value] or [self._next_kst_midnight_iso()]) if providers_waiting else "",
+            "message": ("일시 중단된 모델을 10분 뒤 다시 확인합니다." if temporary_waiting else "사용 가능한 병렬 분석 모델이 없습니다. 가장 이른 공급자 초기화 후 재개합니다.") if providers_waiting else "",
+            "retry_after": min([value for value in [common.get("temporary_until"), common.get("reset_at"), case.get("temporary_until"), case.get("reset_at"), common_fallback.get("temporary_until"), common_fallback.get("reset_at"), case_fallback.get("temporary_until"), case_fallback.get("reset_at"), burst.get("temporary_until"), burst.get("reset_at")] if value] or [self._next_kst_midnight_iso()]) if providers_waiting else "",
             "reason": ("temporary_provider_retry" if temporary_waiting else "all_llm_providers_exhausted") if providers_waiting else "",
         }
-        return {"common": common, "case": case, "reserve1": reserve1, "reserve2": reserve2, "embedding": self.ollama_embedding_status(), "operation": operation}
+        common_pending = self.store.pending_article_analysis_jobs(include_deferred=True)
+        common_ready = self.store.pending_article_analysis_jobs()
+        case_pending_jobs = self.store.pending_case_evaluation_jobs(include_deferred=True)
+        case_ready_jobs = self.store.pending_case_evaluation_jobs()
+        case_pending_bundles = self.store.pending_case_evaluation_bundles(include_deferred=True)
+        case_ready_bundles = self.store.pending_case_evaluation_bundles()
+        recent_burst_start = (datetime.now(KST) - timedelta(minutes=2)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            recent_common_burst = connection.execute(
+                "SELECT 1 FROM article_analysis_jobs WHERE provider_lane='turbo' "
+                "AND COALESCE(finished_at,started_at,queued_at)>=? LIMIT 1", (recent_burst_start,),
+            ).fetchone()
+        common_turbo = burst_available and common_pending >= burst_start_threshold
+        case_turbo = False
+        return {
+            "common": common, "case": case,
+            "common_fallback": common_fallback, "case_fallback": case_fallback, "case_single": case_single,
+            "burst": burst,
+            "queues": {
+                "common_pending": common_pending,
+                "common_ready": common_ready,
+                "common_turbo": common_turbo,
+                "case_pending_jobs": case_pending_jobs,
+                "case_ready_jobs": case_ready_jobs,
+                "case_pending_bundles": case_pending_bundles,
+                "case_ready_bundles": case_ready_bundles,
+                "case_turbo": case_turbo,
+                "burst_start_threshold": burst_start_threshold,
+                "burst_stop_threshold": burst_stop_threshold,
+            },
+            # Backward-compatible aliases for older dashboard clients.
+            "reserve1": common_fallback, "reserve2": case_fallback,
+            "embedding": self.ollama_embedding_status(), "operation": operation,
+        }
 
     def analysis_case(self, case: dict) -> tuple[dict, dict | None]:
         organization = self.store.get_organization(str(case.get("organization_id"))) if case.get("organization_id") else None
@@ -907,6 +1148,7 @@ class MasterPressService:
                     counts["case_queued"] += 1
             else:
                 counts["case_excluded"] += int(created)
+        self.store.mark_article_cases_routed(analysis["id"])
         return counts
 
     def requeue_article_case_evaluations(self, article_id: str) -> dict:
@@ -963,15 +1205,11 @@ class MasterPressService:
         if not text:
             self.store.save_article_embedding(analysis["id"], embedding_model, [], "article_text_missing")
             return False
-        started = time.monotonic()
-        recorded = False
         try:
             vectors = self.scoring.ollama.embeddings([f"search_document: {text}"])
             vector = vectors[0] if vectors else []
             if not vector:
                 raise ValueError("embedding_empty")
-            self.store.record_llm_api_call("ollama", "embedding", embedding_model, "completed", round((time.monotonic() - started) * 1000))
-            recorded = True
             self.store.save_article_embedding(analysis["id"], embedding_model, vector)
             if hasattr(self.mirror, "article_embedding"): self.mirror.article_embedding(analysis, article, vector, embedding_model)
             queued_matches = self.press_releases.queue_for_article(analysis["id"])
@@ -980,8 +1218,6 @@ class MasterPressService:
             self._route_article_analysis(analysis, article, analysis.get("organization_id"))
             return True
         except Exception as error:
-            if not recorded:
-                self.store.record_llm_api_call("ollama", "embedding", embedding_model, "failed", round((time.monotonic() - started) * 1000), error=type(error).__name__)
             self.store.save_article_embedding(analysis["id"], embedding_model, [], type(error).__name__)
             return False
 
@@ -1000,55 +1236,86 @@ class MasterPressService:
         finally:
             LOCAL_EMBEDDING_LOCK.release()
 
-    def process_next_article_analysis(self) -> dict | None:
+    def process_next_article_analysis(self, forced_provider: str = "", forced_model: str = "",
+                                      provider_lane: str = "primary") -> dict | None:
         if not COMMON_LLM_LOCK.acquire(blocking=False):
             return None
         try:
-            job = self.store.next_article_analysis_job()
-            if not job or not self.store.start_article_analysis_job(job["id"]):
+            lease_owner = self._lease_owner()
+            job = self.store.claim_next_article_analysis_job(lease_owner, provider_lane)
+            if not job:
                 return None
             analysis = self.store.get_article_analysis(job["article_analysis_id"])
             article = self.store.get_article(analysis["article_id"]) if analysis else None
             if not analysis or not article:
-                self.store.finish_article_analysis_job(job["id"], False, 0, "article_or_analysis_missing")
+                self.store.finish_article_analysis_job(job["id"], False, 0, "article_or_analysis_missing", lease_owner=lease_owner)
                 return {"id": job["id"], "status": "failed"}
             started = time.monotonic()
-            provider = "cloudflare"
-            common_model = self.selected_common_llm_model()
+            provider = forced_provider or self._provider_for_switchable_llm_model(self.selected_common_llm_model())
+            common_model = forced_model or self.selected_common_llm_model()
             fallback = False
             try:
                 try:
-                    provider, common_model, result = self._try_common_reserve(article)
-                    fallback = provider != "cloudflare"
+                    if forced_provider and forced_model:
+                        if not self._provider_attempt_allowed(forced_provider):
+                            retry_after = self._next_provider_retry([forced_provider])
+                            self.store.finish_article_analysis_job(
+                                job["id"], False, 0, "provider_quota_locked", retryable=True,
+                                retry_after=retry_after, keep_pending=True, lease_owner=lease_owner,
+                            )
+                            return {"id": job["id"], "status": "pending", "stage": "article", "provider": forced_provider, "retry_after": retry_after}
+                        result = self.scoring.analyze_article_common_with_provider(forced_provider, article, forced_model)
+                        self._remember_provider_success(forced_provider)
+                    else:
+                        provider, common_model, result = self._try_common_reserve(article)
+                    fallback = (provider, common_model) != (
+                        self._provider_for_switchable_llm_model(self.selected_common_llm_model()),
+                        self.selected_common_llm_model(),
+                    )
                 except json.JSONDecodeError as error:
+                    if forced_provider:
+                        retry_after = now_iso()
+                        self.store.finish_article_analysis_job(
+                            job["id"], False, round((time.monotonic() - started) * 1000),
+                            str(error), retryable=True, retry_after=retry_after,
+                            keep_pending=True, lease_owner=lease_owner,
+                        )
+                        return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "retry_after": retry_after, "handoff": True}
                     if int(job.get("attempts") or 0) < 1:
                         duration = round((time.monotonic() - started) * 1000)
-                        self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True)
+                        self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, lease_owner=lease_owner)
                         return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "error": "invalid_json_retry"}
                     result = self.scoring.ollama.fallback_article_common(article, common_model, str(error))
                     fallback = True
                     provider = "local_fallback"
                 except OpenRouterError as error:
                     raise
-                saved = self.store.save_article_analysis(analysis["id"], result, common_model)
-                self.store.finish_article_analysis_job(job["id"], True, round((time.monotonic() - started) * 1000))
+                saved = self.store.save_article_analysis(analysis["id"], result, common_model, job["id"], lease_owner)
+                if not saved:
+                    return {"id": job["id"], "status": "stale", "stage": "article", "provider": provider}
+                self.store.finish_article_analysis_job(job["id"], True, round((time.monotonic() - started) * 1000), lease_owner=lease_owner)
                 routed = {"case_candidates": 0, "case_excluded": 0, "case_queued": 0, "embedded": 0, "fallback": int(fallback), "provider": provider}
                 return {"id": job["id"], "status": "completed", "stage": "article", "provider": provider, "counts": routed}
             except (GroqError, OpenRouterError) as error:
                 duration = round((time.monotonic() - started) * 1000)
-                if isinstance(error, OpenRouterError):
-                    self._remember_provider_failure(provider, error)
-                retry_after = getattr(error, "retry_after", "") or self._provider_reset_at(provider if provider in {"groq", "openrouter", "cloudflare", "gemini"} else "groq")
-                if getattr(error, "deferred", False) or (getattr(error, "retryable", False) and int(job.get("attempts") or 0) < 2):
-                    self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=getattr(error, "deferred", False))
+                provider = str(getattr(error, "provider", provider) or provider)
+                lock_until = self._remember_provider_failure(provider, error)
+                retry_after = now_iso() if forced_provider else (
+                    lock_until or getattr(error, "retry_after", "") or self._next_provider_retry([provider])
+                )
+                defer = bool(getattr(error, "deferred", False) or self._is_provider_quota_error(error))
+                if defer or (getattr(error, "retryable", False) and int(job.get("attempts") or 0) < 2):
+                    self.store.finish_article_analysis_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=defer, lease_owner=lease_owner)
                     return {"id": job["id"], "status": "pending", "stage": "article", "provider": provider, "http_status": getattr(error, "status", 0), "error": str(error), "retry_after": retry_after}
                 result = self.scoring.ollama.fallback_article_common(article, common_model, str(error))
-                self.store.save_article_analysis(analysis["id"], result, common_model)
-                self.store.finish_article_analysis_job(job["id"], True, duration)
+                saved = self.store.save_article_analysis(analysis["id"], result, common_model, job["id"], lease_owner)
+                if not saved:
+                    return {"id": job["id"], "status": "stale", "stage": "article", "provider": provider}
+                self.store.finish_article_analysis_job(job["id"], True, duration, lease_owner=lease_owner)
                 routed = {"case_candidates": 0, "case_excluded": 0, "case_queued": 0, "embedded": 0, "fallback": 1, "provider": "local_fallback"}
                 return {"id": job["id"], "status": "completed", "stage": "article", "provider": "local_fallback", "counts": routed}
             except Exception as error:
-                self.store.finish_article_analysis_job(job["id"], False, round((time.monotonic() - started) * 1000), str(error))
+                self.store.finish_article_analysis_job(job["id"], False, round((time.monotonic() - started) * 1000), str(error), lease_owner=lease_owner)
                 return {"id": job["id"], "status": "failed", "stage": "article", "error": str(error)}
         finally:
             COMMON_LLM_LOCK.release()
@@ -1116,11 +1383,49 @@ class MasterPressService:
         finally:
             SHADOW_CASE_SEMAPHORE.release()
 
-    def process_next_case_evaluation(self) -> dict | None:
+    def _recover_case_batch_json_with_single(
+        self, cases: list[dict], article: dict, analysis: dict,
+        failed_provider: str, batch_error: Exception,
+    ) -> tuple[str, dict[str, dict]]:
+        model = self.selected_case_single_model()
+        if not self._provider_status("openrouter", model).get("available"):
+            return model, {}
+        results: dict[str, dict] = {}
+        for case in cases:
+            if not self._provider_attempt_allowed("openrouter"):
+                break
+            try:
+                result = self.scoring.evaluate_case_with_common_provider(
+                    "openrouter", case, article, analysis, model,
+                )
+            except OpenRouterError as error:
+                self._remember_provider_failure("openrouter", error)
+                break
+            except (json.JSONDecodeError, ValueError, TypeError):
+                break
+            report = result.setdefault("analysis_report", {})
+            report["batch_fallback_reason"] = "batch_json_invalid"
+            report["batch_fallback_from_provider"] = failed_provider
+            report["batch_fallback_error"] = str(batch_error)[:200]
+            results[str(case["id"])] = result
+            self._remember_provider_success("openrouter")
+        return model, results
+
+    def process_next_case_evaluation(self, forced_provider: str = "", forced_model: str = "",
+                                     provider_lane: str = "primary", batch_size: int | None = None,
+                                     single_unowned_only: bool = False,
+                                     allow_unowned_single: bool = True) -> dict | None:
         if not REMOTE_CASE_SEMAPHORE.acquire(blocking=False):
             return None
         try:
-            jobs = self.store.next_case_evaluation_batch(self.selected_case_batch_size(), "openrouter")
+            lease_owner = self._lease_owner()
+            claim_provider = forced_provider or "openrouter"
+            jobs = self.store.next_case_evaluation_batch(
+                batch_size or self.case_batch_size_for_provider(claim_provider), claim_provider,
+                lease_owner=lease_owner, provider_lane=provider_lane,
+                single_unowned_only=single_unowned_only,
+                allow_unowned_single=allow_unowned_single,
+            )
             if not jobs:
                 return None
             batch_id = str(jobs[0].get("batch_id") or "")
@@ -1128,26 +1433,26 @@ class MasterPressService:
             prepared: list[tuple[dict, dict, dict]] = []
             article = None
             analysis = None
-            default_case_model = self.selected_case_llm_model()
+            default_case_model = forced_model or self.selected_case_llm_model()
             for job in jobs:
                 evaluation = self.store.get_case_evaluation(job["case_evaluation_id"])
                 item_article = self.store.get_article(evaluation["article_id"]) if evaluation else None
                 case = self.store.get_case(evaluation["case_id"]) if evaluation else None
                 item_analysis = self.store.get_article_analysis(evaluation["article_analysis_id"]) if evaluation else None
                 if not evaluation or not item_article or not case or not item_analysis:
-                    self.store.finish_case_evaluation_job(job["id"], False, 0, "article_case_or_common_analysis_missing", retryable=True)
+                    self.store.finish_case_evaluation_job(job["id"], False, 0, "article_case_or_common_analysis_missing", retryable=True, lease_owner=lease_owner)
                     counts["missing"] += 1
                     continue
                 article, analysis = item_article, item_analysis
                 if not case.get("is_active"):
                     result = self.scoring.fallback_case_evaluation(case, article, analysis, "case_inactive", default_case_model)
-                    self.store.save_case_evaluation(evaluation["id"], result, default_case_model)
-                    self.store.finish_case_evaluation_job(job["id"], True, 0)
+                    self.store.save_case_evaluation(evaluation["id"], result, default_case_model, job["id"], lease_owner)
+                    self.store.finish_case_evaluation_job(job["id"], True, 0, lease_owner=lease_owner)
                     counts["scored"] += 1
                     continue
                 if analysis.get("status") != "completed":
                     retry_at = (datetime.now(KST) + timedelta(seconds=30)).isoformat(timespec="seconds")
-                    self.store.finish_case_evaluation_job(job["id"], False, 0, "common_analysis_pending", retryable=True, retry_after=retry_at, keep_pending=True)
+                    self.store.finish_case_evaluation_job(job["id"], False, 0, "common_analysis_pending", retryable=True, retry_after=retry_at, keep_pending=True, lease_owner=lease_owner)
                     counts["missing"] += 1
                     continue
                 evaluation_case, _organization = self.analysis_case(case)
@@ -1158,32 +1463,88 @@ class MasterPressService:
                 return {"id": batch_id, "status": "partial", "stage": "case_batch", "counts": counts}
 
             started = time.monotonic()
-            provider = "openrouter"
+            provider = forced_provider or "openrouter"
             case_model = default_case_model
             try:
                 cases = [item[2] for item in prepared]
-                provider, case_model, results = self._evaluate_cases_with_provider_chain(cases, article, analysis)
+                if forced_provider and forced_model:
+                    if not self._provider_attempt_allowed(forced_provider):
+                        retry_after = now_iso()
+                        for job, _evaluation, _case in prepared:
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, 0, "provider_quota_locked", retryable=True,
+                                retry_after=retry_after, keep_pending=True, lease_owner=lease_owner,
+                            )
+                        article_analysis_id = str(jobs[0].get("article_analysis_id") or "")
+                        if article_analysis_id:
+                            self.store.release_case_bundle_provider(article_analysis_id, forced_provider)
+                        return {"id": batch_id, "status": "pending", "stage": "case_batch", "provider": forced_provider, "retry_after": retry_after, "counts": counts, "handoff": True}
+                    try:
+                        results = self.scoring.evaluate_cases_with_common_provider(
+                            forced_provider, cases, article, analysis, forced_model,
+                        )
+                    except json.JSONDecodeError as batch_error:
+                        if forced_provider == "openrouter":
+                            raise
+                        case_model, results = self._recover_case_batch_json_with_single(
+                            cases, article, analysis, forced_provider, batch_error,
+                        )
+                        if not results:
+                            raise
+                        provider = "openrouter"
+                    else:
+                        self._remember_provider_success(forced_provider)
+                else:
+                    provider, case_model, results = self._evaluate_cases_with_provider_chain(cases, article, analysis)
                 should_send = False
                 for job, evaluation, case in prepared:
                     result = results.get(str(case["id"]))
+                    result_model = case_model
                     if not result:
+                        single_model = self.selected_case_single_model()
+                        if not self._provider_attempt_allowed("openrouter"):
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                "batch_result_missing", retryable=True, lease_owner=lease_owner,
+                            )
+                            counts["missing"] += 1
+                            continue
                         try:
                             if hasattr(self.scoring, "evaluate_case_with_common_provider"):
-                                result = self.scoring.evaluate_case_with_common_provider(provider, case, article, analysis, case_model)
+                                result = self.scoring.evaluate_case_with_common_provider(
+                                    "openrouter", case, article, analysis, single_model,
+                                )
                             else:
-                                result = self.scoring.evaluate_case_with_common(case, article, analysis, case_model)
-                            result.setdefault("analysis_report", {})["batch_fallback_reason"] = "batch_result_missing"
-                        except OpenRouterError:
-                            self.store.finish_case_evaluation_job(job["id"], False, round((time.monotonic() - started) * 1000), "batch_result_missing", retryable=True)
+                                result = self.scoring.evaluate_case_with_common(
+                                    case, article, analysis, single_model,
+                                )
+                            self._remember_provider_success("openrouter")
+                            result_model = single_model
+                            report = result.setdefault("analysis_report", {})
+                            report["batch_fallback_reason"] = "batch_result_missing"
+                            report["batch_fallback_from_provider"] = provider
+                        except OpenRouterError as error:
+                            self._remember_provider_failure("openrouter", error)
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                "batch_result_missing", retryable=True, lease_owner=lease_owner,
+                            )
                             counts["missing"] += 1
                             continue
                         except Exception as error:
-                            self.store.finish_case_evaluation_job(job["id"], False, round((time.monotonic() - started) * 1000), f"batch_fallback_failed:{type(error).__name__}", retryable=True)
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False, round((time.monotonic() - started) * 1000),
+                                f"batch_fallback_failed:{type(error).__name__}", retryable=True,
+                                lease_owner=lease_owner,
+                            )
                             counts["missing"] += 1
                             continue
-                    self.store.save_case_evaluation(evaluation["id"], result, case_model)
-                    self._queue_shadow_case_evaluation(evaluation, case, article, analysis, result, case_model)
-                    self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000))
+                    saved = self.store.save_case_evaluation(evaluation["id"], result, result_model, job["id"], lease_owner)
+                    if not saved:
+                        counts["missing"] += 1
+                        continue
+                    self._queue_shadow_case_evaluation(evaluation, case, article, analysis, result, result_model)
+                    self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000), lease_owner=lease_owner)
                     counts["scored"] += 1
                     if result.get("decision") != "send":
                         continue
@@ -1200,23 +1561,50 @@ class MasterPressService:
                 return {"id": batch_id, "status": status, "stage": "case_batch", "provider": provider, "model": case_model, "counts": counts}
             except (OpenRouterError, json.JSONDecodeError) as error:
                 duration = round((time.monotonic() - started) * 1000)
-                retry_after = getattr(error, "retry_after", "") or self._provider_reset_at(provider)
+                lock_until = ""
+                if isinstance(error, OpenRouterError):
+                    provider = str(getattr(error, "provider", provider) or provider)
+                    lock_until = self._remember_provider_failure(provider, error)
+                else:
+                    self._clear_provider_quota_lock(provider)
+                if forced_provider:
+                    if isinstance(error, json.JSONDecodeError):
+                        max_attempts = max(int(job.get("attempts") or 1) for job, _evaluation, _case in prepared)
+                        cooldown_seconds = min(900, max(60, max_attempts * 30))
+                        handoff_at = (datetime.now(KST) + timedelta(seconds=cooldown_seconds)).isoformat(timespec="seconds")
+                    else:
+                        handoff_at = now_iso()
+                    for job, _evaluation, _case in prepared:
+                        self.store.finish_case_evaluation_job(
+                            job["id"], False, duration, str(error), retryable=True,
+                            retry_after=handoff_at, keep_pending=True, lease_owner=lease_owner,
+                        )
+                    article_analysis_id = str(jobs[0].get("article_analysis_id") or "")
+                    if article_analysis_id:
+                        self.store.release_case_bundle_provider(article_analysis_id, forced_provider)
+                    return {
+                        "id": batch_id, "status": "pending", "stage": "case_batch",
+                        "provider": provider, "http_status": getattr(error, "status", 0),
+                        "error": str(error), "retry_after": handoff_at, "counts": counts,
+                        "handoff": True,
+                    }
+                retry_after = lock_until or getattr(error, "retry_after", "") or self._next_provider_retry([provider])
                 defer = bool(getattr(error, "deferred", False) or self._is_provider_quota_error(error))
                 pending = 0
                 for job, evaluation, case in prepared:
                     if defer or (getattr(error, "retryable", False) and int(job.get("attempts") or 0) < 3):
-                        self.store.finish_case_evaluation_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=defer)
+                        self.store.finish_case_evaluation_job(job["id"], False, duration, str(error), retryable=True, retry_after=retry_after, keep_pending=defer, lease_owner=lease_owner)
                         pending += 1
                     else:
                         result = self.scoring.fallback_case_evaluation(case, article, analysis, str(error), case_model)
-                        self.store.save_case_evaluation(evaluation["id"], result, case_model)
-                        self.store.finish_case_evaluation_job(job["id"], True, duration)
+                        self.store.save_case_evaluation(evaluation["id"], result, case_model, job["id"], lease_owner)
+                        self.store.finish_case_evaluation_job(job["id"], True, duration, lease_owner=lease_owner)
                         counts["scored"] += 1
                 return {"id": batch_id, "status": "pending" if pending else "completed", "stage": "case_batch", "provider": provider, "http_status": getattr(error, "status", 0), "error": str(error), "retry_after": retry_after, "counts": counts}
             except Exception as error:
                 duration = round((time.monotonic() - started) * 1000)
                 for job, _evaluation, _case in prepared:
-                    self.store.finish_case_evaluation_job(job["id"], False, duration, str(error), retryable=True)
+                    self.store.finish_case_evaluation_job(job["id"], False, duration, str(error), retryable=True, lease_owner=lease_owner)
                 return {"id": batch_id, "status": "pending", "stage": "case_batch", "provider": provider, "error": str(error), "counts": counts}
         finally:
             REMOTE_CASE_SEMAPHORE.release()
@@ -1252,7 +1640,8 @@ class MasterPressService:
             try:
                 evaluation_case, _organization = self.analysis_case(case)
                 case_model = self.selected_case_llm_model()
-                result = self.scoring.evaluate_case_with_common(evaluation_case, article, analysis, case_model)
+                provider, case_model, results = self._evaluate_cases_with_provider_chain([evaluation_case], article, analysis)
+                result = results[str(evaluation_case["id"])]
                 self._queue_shadow_case_evaluation(evaluation, evaluation_case, article, analysis, result, case_model)
                 saved = self.store.save_case_evaluation(evaluation["id"], result, case_model)
                 self.store.finish_case_evaluation_job(job["id"], True, round((time.monotonic() - started) * 1000))
@@ -1270,10 +1659,12 @@ class MasterPressService:
                 return {"id": job["id"], "status": "completed", "stage": "case", "counts": counts}
             except OpenRouterError as error:
                 duration = round((time.monotonic() - started) * 1000)
+                provider = str(getattr(error, "provider", "openrouter") or "openrouter")
+                lock_until = self._remember_provider_failure(provider, error)
                 if error.deferred or (error.retryable and int(job.get("attempts") or 0) < 3):
                     self.store.finish_case_evaluation_job(
                         job["id"], False, duration, str(error), retryable=True,
-                        retry_after=error.retry_after, keep_pending=error.deferred,
+                        retry_after=lock_until or error.retry_after or self._next_provider_retry(["openrouter"]), keep_pending=error.deferred,
                     )
                     return {"id": job["id"], "status": "pending", "stage": "case", "provider": "openrouter", "http_status": error.status, "error": str(error)}
                 result = self.scoring.fallback_case_evaluation(evaluation_case, article, analysis, str(error), case_model)
@@ -1295,9 +1686,8 @@ class MasterPressService:
             common = self.store.get_current_article_analysis(article["id"])
             if not common or common.get("status") != "completed":
                 raise RuntimeError("common_analysis_missing")
-            result = self.scoring.evaluate_case_with_common(
-                evaluation_case, article, common, self.selected_case_llm_model()
-            )
+            _provider, _model, results = self._evaluate_cases_with_provider_chain([evaluation_case], article, common)
+            result = results[str(evaluation_case["id"])]
             result["organization_tag"] = str((organization or {}).get("name") or "")
             duration_ms = round((time.monotonic() - started) * 1000)
             llm_error = str(result.get("llm_error") or "")
@@ -1526,7 +1916,8 @@ class MasterPressService:
     def _send_due(self, limit: int = 20) -> dict:
         sent = failed = 0
         errors = []
-        for delivery in self.store.due_deliveries(limit):
+        owner = self._lease_owner()
+        for delivery in self.store.due_deliveries(limit, lease_owner=owner):
             try:
                 status, _response = self.kakao.send_to_me(
                     delivery["recipient_id"],
@@ -1536,18 +1927,25 @@ class MasterPressService:
                     title=str(delivery.get("title") or ""),
                     description=str(delivery.get("summary") or ""),
                 )
-                self.store.finish_delivery(delivery["id"], True, status)
-                sent += 1
+                if self.store.finish_delivery(delivery["id"], True, status, lease_owner=owner):
+                    sent += 1
+                else:
+                    errors.append(f"delivery_lease_lost:{delivery['id']}")
+                    failed += 1
             except Exception as error:
                 code = int(getattr(error, "status", 502))
                 message = str(error)
                 if code == 403 and "insufficient" in message.casefold() and "scope" in message.casefold():
                     notice = "카카오 메시지 발송 권한이 없어 재동의가 필요합니다."
                     self.store.mark_recipient_reauthorize(delivery["recipient_id"], notice)
-                    self.store.fail_delivery_permanently(delivery["id"], code, notice)
+                    self.store.fail_delivery_permanently(
+                        delivery["id"], code, notice, lease_owner=owner,
+                    )
                     errors.append(notice)
                 else:
-                    self.store.finish_delivery(delivery["id"], False, code, message)
+                    self.store.finish_delivery(
+                        delivery["id"], False, code, message, lease_owner=owner,
+                    )
                     errors.append(message)
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
@@ -1556,7 +1954,74 @@ class MasterPressService:
         publisher = MagazinePublisher(self.store)
         editions = publisher.publish_due()
         queued = sum(self.store.queue_magazine_deliveries(edition) for edition in editions)
-        return {"published": len(editions), "queued": queued, "edition_ids": [edition.get("id") for edition in editions]}
+        return {"published": len(editions), "queued": queued, "edition_ids": [edition.get("id") for edition in editions], "deferred": publisher.deferred}
+
+    @staticmethod
+    def magazine_edition_metrics(edition: dict | None) -> dict:
+        """Summarize a snapshot so an admin can verify that republishing changed it."""
+        members = list((edition or {}).get("members") or [])
+        issue_sizes: dict[str, int] = {}
+        for member in members:
+            issue_key = str(member.get("issue_key") or "article:" + str(member.get("article_id") or ""))
+            issue_sizes[issue_key] = issue_sizes.get(issue_key, 0) + 1
+        return {
+            "issue_count": len(issue_sizes), "article_count": len(members),
+            "grouped_issue_count": sum(1 for size in issue_sizes.values() if size > 1),
+            "grouped_article_count": sum(size for size in issue_sizes.values() if size > 1),
+            "generated_at": str((edition or {}).get("generated_at") or ""),
+        }
+
+    def republish_magazine(self, edition_id: str) -> dict:
+        publisher = MagazinePublisher(self.store)
+        edition = publisher.edition(str(edition_id))
+        if not edition:
+            raise ValueError("재발행할 매거진을 찾지 못했습니다.")
+        readiness = publisher.window_readiness(
+            str(edition["organization_id"]), str(edition["window_start_at"]), str(edition["window_end_at"])
+        )
+        if not readiness["ready"]:
+            pending = sum(int(readiness.get(key) or 0) for key in ("pending_common", "pending_embedding", "pending_case_articles", "pending_similarity"))
+            raise ValueError(f"기사 묶음 처리가 아직 끝나지 않았습니다. 대기 {pending}건")
+        refreshed = publisher.publish(
+            str(edition["organization_id"]), str(edition["edition_date"]), str(edition["edition_slot"]),
+            str(edition["window_start_at"]), str(edition["window_end_at"]), force=True,
+        )
+        try:
+            similarity_threshold = float(self.store.get_setting("magazine_similarity_threshold", "90"))
+        except (TypeError, ValueError):
+            similarity_threshold = 90.0
+        return {
+            "republished": True, "edition": refreshed, "readiness": readiness,
+            "similarity_threshold": similarity_threshold,
+            "previous": self.magazine_edition_metrics(edition),
+            "current": self.magazine_edition_metrics(refreshed),
+        }
+
+    def resend_magazine(self, edition_id: str) -> dict:
+        publisher = MagazinePublisher(self.store)
+        edition = publisher.edition(str(edition_id))
+        if not edition:
+            raise ValueError("재발송할 매거진을 찾지 못했습니다.")
+        queued = self.store.requeue_magazine_deliveries(edition)
+        delivery = self.send_due_magazines(max(20, queued))
+        return {"edition_id": str(edition_id), "queued": queued, "delivery": delivery}
+
+    def publish_magazine_slot(self, slot: str, reference: datetime | None = None, force: bool = False) -> dict:
+        publisher = MagazinePublisher(self.store)
+        editions = publisher.publish_for_slot(slot, reference=reference, force=force)
+        queued = sum(self.store.queue_magazine_deliveries(edition) for edition in editions)
+        delivery = self.send_due_magazines(max(20, queued))
+        return {
+            "slot": slot,
+            "published": len(editions),
+            "queued": queued,
+            "edition_ids": [str(edition.get("id") or "") for edition in editions],
+            "delivery": delivery,
+            "deferred": publisher.deferred,
+        }
+
+    def send_due_magazines(self, limit: int = 20) -> dict:
+        return self._send_due_magazines(limit)
 
     def _send_due_magazines(self, limit: int = 20) -> dict:
         sent = failed = 0
@@ -1769,13 +2234,27 @@ class MasterPressService:
             results["cleanup"] = self.store.cleanup(self.settings.raw_retention_days, self.settings.metadata_retention_days)
         return results
 
-    def common_worker_tick(self) -> dict | None:
+    def common_worker_tick(self, burst: bool = False, slot: str = "model1") -> dict | None:
         now = time.monotonic()
         if now >= self._next_common_stall_recovery_at:
             self._next_common_stall_recovery_at = now + 60.0
             self.store.recover_stalled_article_analysis_jobs()
-        article = self.process_next_article_analysis()
-        return {"stage": "article", "result": article} if article else None
+        if burst:
+            if self.store.pending_article_analysis_jobs(include_deferred=True) < self.selected_burst_threshold():
+                return None
+            if not self.common_turbo_available():
+                return None
+            provider, model, lane = "openrouter", self.selected_common_turbo_model(), "turbo"
+        elif slot == "model2":
+            model = self.selected_common_fallback_model()
+            provider, lane = self._provider_for_switchable_llm_model(model), "common_model2"
+        else:
+            model = self.selected_common_llm_model()
+            provider, lane = self._provider_for_switchable_llm_model(model), "common_model1"
+        if not self._provider_status(provider, model).get("available"):
+            return None
+        article = self.process_next_article_analysis(provider, model, lane)
+        return {"stage": "article", "slot": slot if not burst else "turbo", "result": article} if article else None
 
     def embedding_worker_tick(self) -> dict | None:
         # Press-release matching is part of the live article pipeline.  Keep
@@ -1794,19 +2273,44 @@ class MasterPressService:
         finally:
             LOCAL_EMBEDDING_LOCK.release()
 
-    def case_worker_tick(self, burst: bool = False) -> dict | None:
+    def case_worker_tick(self, burst: bool = False, slot: str = "mini") -> dict | None:
+        if burst:
+            return None
         now = time.monotonic()
         if now >= self._next_case_stall_recovery_at:
             self._next_case_stall_recovery_at = now + 60.0
             self.store.recover_stalled_case_evaluation_jobs()
-        if burst and self.store.pending_case_evaluation_jobs() < 10:
-            return None
-        if not burst:
+            self.store.release_invalid_openrouter_case_bundles()
+        if slot == "mini":
             reanalysis = self.process_next_reanalysis()
             if reanalysis:
                 return {"stage": "reanalysis", "result": reanalysis}
-        result = self.process_next_case_evaluation()
-        return {"stage": "case", "result": result} if result else None
+            provider, model, batch_size = "openai", self.selected_case_model2(), 10
+        elif slot == "oss":
+            provider, model, batch_size = "nvidia", self.selected_case_model1(), 5
+        elif slot == "single":
+            provider, model, batch_size = "openrouter", self.selected_case_single_model(), 1
+        else:
+            raise ValueError(f"unknown_case_worker_slot:{slot}")
+        if not self._provider_status(provider, model).get("available"):
+            self.store.release_pending_case_provider(provider)
+            return None
+        if slot == "mini" and self._provider_status("nvidia", self.selected_case_model1()).get("available"):
+            if not self.store.ready_case_evaluation_jobs_older_than(
+                CASE_MODEL1_PRIORITY_SECONDS, provider="openai",
+            ):
+                return None
+        single_available = bool(self._provider_status("openrouter", self.selected_case_single_model()).get("available"))
+        result = self.process_next_case_evaluation(
+            provider, model, f"case_{slot}", batch_size=batch_size,
+            single_unowned_only=(slot == "single"),
+            allow_unowned_single=(slot == "single" or not single_available),
+        )
+        return {"stage": "case", "slot": slot, "result": result} if result else None
+
+    def shadow_worker_tick(self) -> dict | None:
+        result = self.process_next_shadow_case_evaluation()
+        return {"stage": "shadow_case", "result": result} if result else None
 
     def shadow_worker_tick(self) -> dict | None:
         result = self.process_next_shadow_case_evaluation()
@@ -1828,6 +2332,10 @@ def _service_key(settings: Settings) -> tuple:
         settings.groq_daily_request_soft_limit, settings.groq_daily_token_soft_limit,
         settings.embedding_model, bool(settings.openrouter_api_key), settings.openrouter_base_url,
         settings.openrouter_case_model, settings.openrouter_daily_soft_limit,
+        getattr(settings, "openrouter_case_reserve_calls", 100),
+        bool(getattr(settings, "nvidia_api_key", "")), getattr(settings, "nvidia_base_url", ""),
+        getattr(settings, "nvidia_case_model", ""),
+        getattr(settings, "openai_daily_token_soft_limit", 2450000),
         bool(getattr(settings, "worker_ai_key", "")), getattr(settings, "worker_ai_account_id", ""),
         getattr(settings, "worker_ai_base_url", ""), getattr(settings, "worker_ai_model", ""),
         getattr(settings, "worker_ai_daily_request_soft_limit", 0), getattr(settings, "worker_ai_daily_neuron_soft_limit", 0),
@@ -1862,16 +2370,16 @@ def worker_tick() -> dict:
     return get_service().orchestration_tick()
 
 
-def common_worker_tick() -> dict | None:
-    return get_service().common_worker_tick()
+def common_worker_tick(burst: bool = False, slot: str = "model1") -> dict | None:
+    return get_service().common_worker_tick(burst=burst, slot=slot)
 
 
 def embedding_worker_tick() -> dict | None:
     return get_service().embedding_worker_tick()
 
 
-def case_worker_tick(burst: bool = False) -> dict | None:
-    return get_service().case_worker_tick(burst=burst)
+def case_worker_tick(burst: bool = False, slot: str = "mini") -> dict | None:
+    return get_service().case_worker_tick(burst=burst, slot=slot)
 
 def shadow_worker_tick() -> dict | None:
     return get_service().shadow_worker_tick()

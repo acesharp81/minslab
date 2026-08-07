@@ -10,7 +10,9 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "PoC" / "04-master-press"))
 
 from master_press.config import Settings
-from master_press.magazine import MagazinePublisher, SLOT_LABELS
+from master_press.kakao import KakaoClient
+from master_press.magazine import SLOT_LABELS
+from master_press.service import MasterPressService
 from master_press.storage import KST, Store
 
 def main() -> int:
@@ -22,11 +24,18 @@ def main() -> int:
     settings.ensure_directories()
     slot = args.slot or {7: "morning", 12: "lunch", 18: "evening"}.get(datetime.now(KST).hour, "")
     if not slot:
-        parser.error("slot을 지정하거나 KST 08시, 12시, 18시에 실행해야 합니다.")
-    publisher = MagazinePublisher(Store(settings.database_path))
-    editions = publisher.publish_for_slot(slot, force=args.force)
-    print(json.dumps({"slot": slot, "published": len(editions), "editions": editions}, ensure_ascii=False, default=str))
-    return 0
+        parser.error("slot을 지정하거나 KST 07시, 12시, 18시에 실행해야 합니다.")
+    # The long-running application services own base-schema migrations. This
+    # scheduled publisher must not rerun historical backfills while pipeline
+    # workers are writing to SQLite.
+    store = Store(settings.database_path, initialize=False)
+    service = object.__new__(MasterPressService)
+    service.settings = settings
+    service.store = store
+    service.kakao = KakaoClient(settings, store)
+    result = service.publish_magazine_slot(slot, force=args.force)
+    print(json.dumps(result, ensure_ascii=False, default=str), flush=True)
+    return 1 if int((result.get("delivery") or {}).get("failed") or 0) else 0
 
 if __name__ == "__main__":
     raise SystemExit(main())

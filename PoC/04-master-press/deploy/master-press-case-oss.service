@@ -1,0 +1,18 @@
+[Unit]
+Description=Master Press NVIDIA gpt-oss-120b case worker
+After=network-online.target myservice.service master-press-case.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 -m master_press.case_worker --slot oss
+Restart=always
+RestartSec=5
+TimeoutStopSec=5min
+Nice=5
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

@@ -20,13 +20,16 @@ from master_press.press_releases import (
     PressReleaseManager, chunk_markdown, document_fingerprint, html_to_markdown,
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
-from master_press.scoring import CloudflareWorkersAIClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
+from master_press.provider_quota import confirmed_free_quota_exhaustion, quota_lock_decision
+from master_press.scoring import CloudflareWorkersAIClient, GroqClient, NvidiaNIMClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
-from master_press.storage import KST, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
 from master_press.supabase_seed import SupabaseSeed
+from master_press.supabase_reconcile import SupabaseReconciler
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
 from master_press.history_metrics import SupabaseHistoryMetrics
+from master_press_retention_cleanup import adaptive_article_limit
 
 
 def case_payload(index: int = 1) -> dict:
@@ -64,6 +67,77 @@ class StorageTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def _queue_delivery_fixture(self) -> tuple[dict, dict, str]:
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/delivery-lease",
+            "original_url": "https://example.com/delivery-lease",
+            "title": "발송 임대 테스트 기사",
+            "publisher": "example.com",
+            "snippet": "인공지능 행정 서비스",
+        })
+        self.store.save_score(article["id"], case["id"], 1, {
+            "keyword_score": 80, "semantic_score": 80, "llm_score": 80,
+            "final_score": 80, "article_type": "정책·행정", "decision": "send",
+        })
+        recipient_id = "recipient-delivery-lease"
+        with self.store.connect() as connection:
+            connection.execute(
+                "INSERT INTO recipients(id,label,status,created_at,updated_at) VALUES(?,?,'active',?,?)",
+                (recipient_id, "발송 테스트", now_iso(), now_iso()),
+            )
+        self.store.queue_delivery(article["id"], case["id"], recipient_id, now_iso())
+        return article, case, recipient_id
+
+    def test_delivery_claim_is_atomic_across_store_instances(self):
+        self._queue_delivery_fixture()
+        competing = Store(self.store.path, initialize=False)
+        first = self.store.due_deliveries(1, lease_owner="worker-a")
+        second = competing.due_deliveries(1, lease_owner="worker-b")
+        self.assertEqual(len(first), 1)
+        self.assertEqual(second, [])
+        self.assertEqual(first[0]["status"], "sending")
+        self.assertEqual(first[0]["attempts"], 1)
+        self.assertFalse(self.store.finish_delivery(first[0]["id"], True, 200, lease_owner="worker-b"))
+        self.assertTrue(self.store.finish_delivery(first[0]["id"], True, 200, lease_owner="worker-a"))
+        with self.store.connect() as connection:
+            delivery = connection.execute(
+                "SELECT status,attempts FROM deliveries WHERE id=?", (first[0]["id"],),
+            ).fetchone()
+            attempt = connection.execute(
+                "SELECT status,response_code FROM delivery_attempts WHERE delivery_id=?", (first[0]["id"],),
+            ).fetchone()
+        self.assertEqual(dict(delivery), {"status": "sent", "attempts": 1})
+        self.assertEqual(dict(attempt), {"status": "completed", "response_code": 200})
+
+    def test_delivery_dashboard_separates_recovered_attempts_from_final_failures(self):
+        self._queue_delivery_fixture()
+        first = self.store.due_deliveries(1, lease_owner="worker-a")[0]
+        self.assertTrue(self.store.finish_delivery(first["id"], False, 502, "timeout", lease_owner="worker-a"))
+        second = self.store.due_deliveries(1, lease_owner="worker-b")[0]
+        self.assertTrue(self.store.finish_delivery(second["id"], True, 200, lease_owner="worker-b"))
+        dashboard = self.store.pipeline_dashboard()
+        self.assertEqual(dashboard["delivery_errors"]["failed_current"], 0)
+        self.assertEqual(dashboard["delivery_errors"]["failed_total"], 0)
+        self.assertEqual(dashboard["delivery_errors"]["recovered_total"], 1)
+        self.assertEqual(dashboard["delivery_errors"]["attempt_failed_total"], 1)
+        with self.store.connect() as connection:
+            statuses = connection.execute(
+                "SELECT attempt_number,status FROM delivery_attempts ORDER BY attempt_number",
+            ).fetchall()
+        self.assertEqual([tuple(row) for row in statuses], [(1, "failed"), (2, "completed")])
+
+    def test_sent_delivery_closes_orphan_processing_attempt_as_recovered(self):
+        self._queue_delivery_fixture()
+        claimed = self.store.due_deliveries(1, lease_owner="worker-interrupted")[0]
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute("UPDATE deliveries SET status='sent',response_code=200,sent_at=?,updated_at=?,lease_owner='',lease_expires_at=NULL WHERE id=?", (now, now, claimed["id"]))
+        self.store.due_deliveries(1, lease_owner="worker-next")
+        with self.store.connect() as connection:
+            attempt = connection.execute("SELECT status,finished_at FROM delivery_attempts WHERE delivery_id=?", (claimed["id"],)).fetchone()
+        self.assertEqual(attempt["status"], "recovered")
 
     def test_case_proposal_admin_approval_is_visible_and_never_moderated_again(self):
         item = self.store.save_case_proposal({
@@ -131,6 +205,15 @@ class StorageTests(unittest.TestCase):
         self.store.finish_supabase_outbox(events[0]["id"], False, "temporary")
         self.assertEqual(self.store.due_supabase_outbox(10), [])
         self.assertEqual(self.store.supabase_outbox_status()["pending"], 1)
+
+    def test_supabase_reconcile_accepts_the_expected_remote_retention_superset(self):
+        settings = SimpleNamespace(supabase_url="https://supabase.invalid", supabase_service_role_key="test", request_timeout_seconds=3)
+        reconciler = SupabaseReconciler(settings, self.store)
+        with mock.patch.object(reconciler, "_remote_count", return_value=10_000):
+            result = reconciler.run()
+        self.assertEqual(result["status"], "ready")
+        self.assertTrue(all(item["ok"] for item in result["details"].values()))
+        self.assertTrue(all(item["mode"] == "remote_superset" for item in result["details"].values()))
 
     def test_supabase_outbox_does_not_requeue_completed_identical_payload(self):
         self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "동일값"}])
@@ -222,6 +305,26 @@ class StorageTests(unittest.TestCase):
         self.assertNotIn("body", str(result["payload"]))
         mirror.history_operations.assert_not_called()
 
+    def test_history_run_records_the_exact_queued_snapshot(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/history-snapshot", "original_url": "https://example.com/history-snapshot",
+            "title": "이력 스냅샷 기사", "publisher": "example.com", "source_type": "test",
+        })
+        with self.store.connect() as connection:
+            connection.execute("UPDATE articles SET first_seen_at=? WHERE id=?", (now_iso(), article["id"]))
+        mirror = mock.MagicMock(enabled=True)
+        mirror.history_operations.return_value = True
+        mirror.history_keywords.return_value = True
+        mirror.history_models.return_value = True
+        result = SupabaseHistoryMetrics(self.store, mirror).run(days=2)
+        snapshot = json.loads(self.store.get_setting("supabase_history_last_snapshot", "{}"))
+        self.assertEqual(result["status"], "queued")
+        self.assertEqual(self.store.get_setting("supabase_history_last_snapshot_days", ""), "2")
+        for name in ("operations", "keywords", "models"):
+            self.assertEqual(len(snapshot["ids"][name]), result["counts"][name])
+            if snapshot["ids"][name]:
+                self.assertTrue(snapshot["updated_at"][name])
+
     def test_short_retention_cleanup_deletes_expired_source_but_keeps_pending_delivery(self):
         expired, _ = self.store.upsert_article({"canonical_url": "https://example.com/expired", "original_url": "https://example.com/expired", "title": "만료 기사", "publisher": "example.com"})
         pending, _ = self.store.upsert_article({"canonical_url": "https://example.com/pending", "original_url": "https://example.com/pending", "title": "대기 기사", "publisher": "example.com"})
@@ -235,6 +338,12 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(result["source_deleted_articles"], 1)
         self.assertIsNone(self.store.get_article(expired["id"]))
         self.assertIsNotNone(self.store.get_article(pending["id"]))
+
+    def test_short_retention_limit_ramps_and_backs_off_by_duration(self):
+        self.assertEqual(adaptive_article_limit(True, 1000), 100)
+        self.assertEqual(adaptive_article_limit(False, 800, 500, 38_000), 800)
+        self.assertEqual(adaptive_article_limit(False, 800, 800, 75_000), 1000)
+        self.assertEqual(adaptive_article_limit(False, 1000, 1000, 121_000), 500)
 
     def test_supabase_seed_queues_metadata_in_dependency_order_only_at_night(self):
         organization = self.store.save_organization({"name": "동기화 테스트 기관"})
@@ -299,7 +408,7 @@ class StorageTests(unittest.TestCase):
         self.assertTrue(result["paused"])
         self.assertEqual(result["reason"], "disabled")
 
-    def test_pipeline_error_total_counts_api_failures_not_job_retries(self):
+    def test_pipeline_error_totals_separate_recovery_from_api_attempt_failure(self):
         article, _ = self.store.upsert_article({
             "canonical_url": "https://example.com/api-error",
             "original_url": "https://example.com/api-error",
@@ -322,11 +431,35 @@ class StorageTests(unittest.TestCase):
             )
         stats = self.store.pipeline_stats()
         self.assertEqual(stats["article_jobs"]["failed_current"], 0)
-        self.assertEqual(stats["article_jobs"]["failed_total"], 1)
+        self.assertEqual(stats["article_jobs"]["failed_total"], 0)
+        self.assertEqual(stats["article_jobs"]["recovered_total"], 1)
+        self.assertEqual(stats["article_jobs"]["api_failed_total"], 1)
 
         reset_after_log = (datetime.now(KST) + timedelta(seconds=1)).isoformat(timespec="seconds")
         self.store.set_setting("pipeline_error_reset_at", reset_after_log)
         self.assertEqual(self.store.pipeline_stats()["article_jobs"]["failed_total"], 0)
+
+    def test_pipeline_error_total_excludes_confirmed_free_quota_exhaustion(self):
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.executemany(
+                """INSERT INTO llm_api_calls(
+                     id,provider,stage,model,status,http_status,duration_ms,error,created_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                [
+                    (
+                        "quota-groq", "groq", "common", "test-model", "failed", 429, 100,
+                        "Rate limit reached for tokens per day (TPD). Please try again in 1h", now,
+                    ),
+                    (
+                        "timeout-cloudflare", "cloudflare", "common", "test-model", "failed", 522, 100,
+                        "upstream timeout", now,
+                    ),
+                ],
+            )
+        stats = self.store.pipeline_stats()
+        self.assertEqual(stats["article_jobs"]["failed_total"], 0)
+        self.assertEqual(stats["article_jobs"]["api_failed_total"], 1)
 
     def test_body_status_separates_recent_and_historical_missing_articles(self):
         recent, _ = self.store.upsert_article({"canonical_url":"https://example.com/recent","original_url":"https://example.com/recent","title":"최근 누락","publisher":"example.com"})
@@ -376,6 +509,45 @@ class StorageTests(unittest.TestCase):
         self.assertIn("호우·재난 대응", inferred_topic_concepts("집중호우로 중대본을 가동하고 주민 대피를 실시했다"))
         self.assertIn("수사기관 개혁·사법제도", inferred_topic_concepts("광주경찰청 장윤기 사건과 경찰개혁 수사권 논의"))
 
+    def test_heatwave_hq_dictionary_separates_event_threads_without_sharding(self):
+        stage_titles = [
+            "폭염 중대본 2단계 격상 범정부 대응",
+            "정부, 폭염 중앙재난안전대책본부 2단계 가동",
+        ] * 8
+        meeting_titles = [
+            "중대본 폭염 대응 점검회의 최고 수준 태세 유지",
+            "중앙재난안전대책본부 폭염 긴급 상황점검",
+        ] * 6
+        articles = [
+            {
+                "id": f"heat-{index}", "title": title, "summary": title,
+                "entities": ["중대본", "폭염"], "topic_concepts": [],
+                "semantic_vector": [1.0, index / 1000, 0.1],
+                "published_at": "2026-08-03T10:00:00+09:00",
+            }
+            for index, title in enumerate([*stage_titles, *meeting_titles])
+        ]
+        event_count = len(articles)
+        articles.append({
+            "id": "generic-heat", "title": "열대야에 집에서도 잠 못 이루는 시민들",
+            "summary": "폭염 중대본 2단계 격상 이후에도 무더위가 이어졌다",
+            "entities": ["폭염"], "topic_concepts": [], "semantic_vector": [1.0, 0.02, 0.1],
+            "published_at": "2026-08-03T10:00:00+09:00",
+        })
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.86):
+            groups = self.store._dashboard_article_groups(articles)
+        stage_ids = {groups[f"heat-{index}"]["group_id"] for index in range(len(stage_titles))}
+        meeting_ids = {
+            groups[f"heat-{index}"]["group_id"]
+            for index in range(len(stage_titles), event_count)
+        }
+        self.assertEqual(len(stage_ids), 1)
+        self.assertEqual(len(meeting_ids), 1)
+        self.assertNotEqual(stage_ids, meeting_ids)
+        self.assertNotIn("generic-heat", groups)
+        self.assertEqual(groups["heat-0"]["size"], len(stage_titles))
+        self.assertEqual(groups[f"heat-{len(stage_titles)}"]["size"], len(meeting_titles))
+
     def test_inferred_content_nouns_backfills_empty_llm_entities(self):
         terms = inferred_content_nouns(
             "신한은행, 폭염 피해 쉬어가세요…전국 영업점 쉼터 운영",
@@ -408,6 +580,18 @@ class StorageTests(unittest.TestCase):
         sizes = sorted({group["size"] for group in groups.values()}, reverse=True)
         self.assertEqual(sizes[0], 5)
         self.assertNotIn(11, sizes)
+
+    def test_raw_cosine_restores_distinctive_topic_when_centering_collapses(self):
+        articles = [
+            {"id": "sun-one", "title": "햇빛소득마을 태양광 수익 확대", "summary": "주민 소득 공유", "entities": ["햇빛소득마을", "태양광"], "topic_concepts": ["햇빛소득마을"], "semantic_vector": [1.0, 0.10, 0.05]},
+            {"id": "sun-two", "title": "태양광 햇빛소득마을 확산", "summary": "마을 주민 수익", "entities": ["햇빛소득마을", "태양광"], "topic_concepts": ["햇빛소득마을"], "semantic_vector": [0.99, 0.11, 0.05]},
+            {"id": "other", "title": "경찰 순환인사 확대", "summary": "수사 조직 개편", "entities": ["경찰", "순환인사"], "topic_concepts": ["수사기관"], "semantic_vector": [0.05, 1.0, 0.10]},
+        ]
+        with mock.patch("master_press.storage.centered_semantic_similarity", return_value=0.10):
+            groups = self.store._dashboard_article_groups(articles)
+        self.assertEqual(groups["sun-one"]["group_id"], groups["sun-two"]["group_id"])
+        self.assertNotIn("other", groups)
+        self.assertGreater(groups["sun-one"]["semantic_score"], 95)
     def test_dashboard_keeps_a_similar_bundle_on_one_page(self):
         analyses, article_ids = [], []
         for index in range(3):
@@ -419,8 +603,9 @@ class StorageTests(unittest.TestCase):
             connection.execute("UPDATE article_analyses SET status='completed',summary='공통 행사 보도',analyzed_at=?,updated_at=? WHERE id IN (?,?,?)", (now, now, *analyses))
         group_id = article_ids[0]
         groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 행사"], "concepts": ["공통 행사"]} for article_id in article_ids}
-        with mock.patch.object(self.store, "editorial_article_groups", return_value=groups):
+        with mock.patch.object(self.store, "article_similarity_groups", return_value=groups) as snapshot_reader:
             dashboard = self.store.pipeline_dashboard(limit=1)
+        snapshot_reader.assert_called_once()
         self.assertEqual(len(dashboard["articles"]), 3)
         self.assertEqual(dashboard["next_offset"], 3)
         self.assertFalse(dashboard["has_more"])
@@ -440,7 +625,7 @@ class StorageTests(unittest.TestCase):
             self.store.create_case_evaluation(analysis_id, article_id, case, True)
         group_id = article_ids[0]
         groups = {article_id: {"group_id": group_id, "size": 3, "basis": "hybrid", "status": "finalized", "score": 90, "topics": ["공통 화두"], "concepts": ["공통 화두"]} for article_id in article_ids}
-        with mock.patch.object(self.store, "_dashboard_article_groups", return_value=groups):
+        with mock.patch.object(self.store, "article_similarity_groups", return_value=groups):
             insight = self.store.analysis_insights(case["id"])
         self.assertEqual((insight["group_count"], insight["grouped_article_count"]), (1, 3))
         self.assertGreaterEqual(len(insight["edges"]), 2)
@@ -563,8 +748,12 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(usage["period"], "UTC day")
         self.assertEqual(usage["day_start"], start)
 
-    def test_openrouter_daily_limit_counts_failed_api_calls_and_defers(self):
-        settings = SimpleNamespace(openrouter_api_key="test-key", openrouter_daily_soft_limit=3)
+    def test_openrouter_local_daily_count_does_not_preempt_provider_request(self):
+        settings = SimpleNamespace(
+            openrouter_api_key="test-key", openrouter_daily_soft_limit=3,
+            openrouter_base_url="https://openrouter.test", request_timeout_seconds=1,
+            user_agent="test", openrouter_case_model="test-model",
+        )
         for index in range(3):
             self.store.record_llm_api_call(
                 "openrouter", "case", "test-model", "failed", 10,
@@ -576,11 +765,13 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(usage["remaining"], 0)
 
         client = OpenRouterClient(settings, self.store)
-        with self.assertRaises(OpenRouterError) as captured:
-            client.request("/chat/completions", {"model": "test-model", "messages": []})
-        self.assertEqual(str(captured.exception), "openrouter_daily_soft_limit")
-        self.assertTrue(captured.exception.deferred)
-        self.assertTrue(captured.exception.retry_after.endswith("T09:00:00+09:00"))
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({"choices": [{"message": {"content": "{}"}}], "usage": {}}).encode()
+        response.__enter__.return_value = response
+        with mock.patch("urllib.request.urlopen", return_value=response) as urlopen:
+            result = client.request("/chat/completions", {"model": "test-model", "messages": []})
+        self.assertEqual(result["message"]["content"], "{}")
+        urlopen.assert_called_once()
 
 
     def test_operation_logs_summarize_errors_and_failover(self):
@@ -637,6 +828,326 @@ class StorageTests(unittest.TestCase):
         next_page = self.store.pipeline_dashboard(limit=1, offset=1)
         self.assertEqual(next_page["offset"], 1)
         self.assertEqual(self.store.pipeline_dashboard(search="뉴시스")["articles"][0]["title"], "최신 관광 기사")
+
+    def test_processing_count_requires_all_case_judgments_and_includes_unsent(self):
+        first_case = self.store.save_case(case_payload(1))
+        second_case = self.store.save_case(case_payload(2))
+
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/case-complete-1",
+            "original_url": "https://example.com/case-complete-1",
+            "title": "모든 판정을 기다리는 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        self.store.save_article_analysis(analysis["id"], {
+            "summary": "요약", "publisher_name": "example.com", "reporter_name": "",
+            "article_type": "정책·행정", "tone": "사실전달", "classification_tags": [],
+            "entities": [], "topic_concepts": [], "evidence": [], "analysis_report": {},
+        }, "test-model")
+        pending, _ = self.store.create_case_evaluation(analysis["id"], article["id"], first_case, True)
+        self.store.create_case_evaluation(analysis["id"], article["id"], second_case, False, exclusion_reason="include_terms_missing")
+        self.assertEqual(self.store.processing_summary(7)["today"], 0)
+
+        self.store.save_case_evaluation(pending["id"], {
+            "decision": "low", "final_score": 20, "reasons": ["llm_insufficient_relevance"],
+        }, "test-model")
+        summary = self.store.processing_summary(7)
+        self.assertEqual(summary["today"], 1)
+        self.assertEqual(summary["total"], 1)
+        self.assertEqual(self.store.pipeline_dashboard()["stats"]["total"], 1)
+        self.assertFalse(any(self.store.pipeline_dashboard()["articles"][0]["case_summary"][key] for key in ("sent", "scheduled")))
+
+    def test_dashboard_marks_burst_lane_articles_as_turbo(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-article",
+            "original_url": "https://example.com/turbo-article",
+            "title": "Turbo 처리 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analysis_jobs SET provider_lane='burst' WHERE id=?", (job_id,))
+        self.store.save_article_analysis(analysis["id"], {
+            "summary": "요약", "publisher_name": "example.com", "reporter_name": "",
+            "article_type": "정책·행정", "tone": "사실전달", "classification_tags": [],
+            "entities": [], "topic_concepts": [], "evidence": [], "analysis_report": {},
+        }, "test-model")
+        self.assertTrue(self.store.pipeline_dashboard()["articles"][0]["turbo_used"])
+
+    def test_burst_common_claims_provider_deferred_backlog(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-deferred",
+            "original_url": "https://example.com/turbo-deferred",
+            "title": "기본 모델 재시도 대기 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        with self.store.connect() as connection:
+            connection.execute("UPDATE article_analysis_jobs SET retry_after='2099-01-01T00:00:00+09:00' WHERE id=?", (job_id,))
+        self.assertEqual(self.store.pending_article_analysis_jobs(), 0)
+        self.assertEqual(self.store.pending_article_analysis_jobs(include_deferred=True), 1)
+        claimed = self.store.claim_next_article_analysis_job("burst-test", provider_lane="burst")
+        self.assertEqual(claimed["id"], job_id)
+        self.assertEqual(claimed["provider_lane"], "burst")
+
+    def test_burst_threshold_defaults_to_five_and_is_configurable(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        self.assertEqual(service.selected_burst_threshold(), 5)
+        self.assertEqual(service.selected_burst_stop_threshold(), 3)
+        self.store.set_setting("burst_threshold", "15")
+        self.assertEqual(service.selected_burst_threshold(), 15)
+        self.store.set_setting("burst_threshold", "invalid")
+        self.assertEqual(service.selected_burst_threshold(), 5)
+
+    def test_burst_case_claims_provider_deferred_bundle(self):
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/turbo-case-deferred",
+            "original_url": "https://example.com/turbo-case-deferred",
+            "title": "케이스 재시도 대기 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+        self.store.queue_case_evaluation(evaluation["id"], "2099-01-01T00:00:00+09:00")
+        self.assertEqual(self.store.pending_case_evaluation_bundles(), 0)
+        self.assertEqual(self.store.pending_case_evaluation_bundles(include_deferred=True), 1)
+        claimed = self.store.next_case_evaluation_batch(10, "openai", "burst-test", "burst")
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(claimed[0]["provider_lane"], "burst")
+
+    def test_case_bundle_provider_affinity_keeps_seven_as_nvidia_five_plus_two(self):
+        cases = [
+            self.store.save_case({**case_payload(), "name": f"affinity-{index}"})
+            for index in range(7)
+        ]
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/nvidia-seven",
+            "original_url": "https://example.com/nvidia-seven",
+            "title": "NVIDIA 7건 묶음", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        for case in cases:
+            evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+            self.store.queue_case_evaluation(evaluation["id"])
+        first = self.store.next_case_evaluation_batch(
+            5, "nvidia", "oss-worker", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(first), 5)
+        self.assertEqual({item["provider"] for item in first}, {"nvidia"})
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        for job in first:
+            self.store.finish_case_evaluation_job(job["id"], True, 1, lease_owner="oss-worker")
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker-2", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        second = self.store.next_case_evaluation_batch(
+            5, "nvidia", "oss-worker-2", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(second), 2)
+        self.assertEqual({item["provider"] for item in second}, {"nvidia"})
+
+    def test_single_worker_claims_only_unowned_single_article(self):
+        case = self.store.save_case({**case_payload(), "name": "single-only"})
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/single-only",
+            "original_url": "https://example.com/single-only",
+            "title": "단건 전용", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+        self.store.queue_case_evaluation(evaluation["id"])
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE article_analyses SET case_routed_at=? WHERE id=?",
+                (now_iso(), analysis["id"]),
+            )
+        self.assertEqual(
+            self.store.next_case_evaluation_batch(
+                10, "openai", "mini-worker", "case_mini", allow_unowned_single=False,
+            ),
+            [],
+        )
+        claimed = self.store.next_case_evaluation_batch(
+            1, "openrouter", "single-worker", "case_single",
+            single_unowned_only=True,
+        )
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(claimed[0]["provider"], "openrouter")
+    def test_unavailable_provider_releases_only_idle_case_bundle(self):
+        cases = [
+            self.store.save_case({**case_payload(), "name": f"release-{index}"})
+            for index in range(2)
+        ]
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/release-provider",
+            "original_url": "https://example.com/release-provider",
+            "title": "provider 인계", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        for case in cases:
+            evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+            self.store.queue_case_evaluation(evaluation["id"])
+        claimed = self.store.next_case_evaluation_batch(
+            1, "nvidia", "oss-release", "case_oss", allow_unowned_single=False,
+        )
+        self.assertEqual(len(claimed), 1)
+        self.assertEqual(self.store.release_pending_case_provider("nvidia"), 0)
+        self.store.finish_case_evaluation_job(
+            claimed[0]["id"], True, 1, lease_owner="oss-release",
+        )
+        self.assertEqual(self.store.release_pending_case_provider("nvidia"), 1)
+        handed_off = self.store.next_case_evaluation_batch(
+            10, "openai", "mini-handoff", "case_mini", allow_unowned_single=True,
+        )
+        self.assertEqual(len(handed_off), 1)
+        self.assertEqual(handed_off[0]["provider"], "openai")
+
+    def test_openai_daily_token_budget_stops_mini_until_utc_reset(self):
+        service = object.__new__(MasterPressService)
+        tokens = {"value": 2449999}
+        observed_limits = []
+
+        def usage(_provider, _since, request_limit=0, token_limit=0, stage=""):
+            observed_limits.append(token_limit)
+            total = tokens["value"]
+            return {"attempts": 1, "completed": 1, "failed": 0, "input_tokens": total, "output_tokens": 0, "tokens": total, "usage_units": 0, "average_seconds": 0, "token_soft_limit": token_limit, "token_remaining": max(0, token_limit - total)}
+
+        service.settings = SimpleNamespace(
+            openai_api_key="test",
+            openai_shadow_model="gpt-5.4-mini",
+            openai_daily_token_soft_limit=2450000,
+        )
+        service.store = SimpleNamespace(
+            provider_usage_since=usage,
+            get_setting=lambda _key, default="": default,
+        )
+        service._utc_day_window_kst = lambda: ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00")
+
+        status = service.openai_status(False)
+        self.assertTrue(status["available"])
+        self.assertEqual(observed_limits[-1], 2450000)
+        self.assertEqual(status["token_remaining"], 1)
+
+        tokens["value"] = 2450000
+        status = service.openai_status(False)
+        self.assertFalse(status["available"])
+        self.assertTrue(status["token_budget_exhausted"])
+        self.assertEqual(status["token_budget_reset_at"], "2026-08-06T09:00:00+09:00")
+
+        released = []
+        service._next_case_stall_recovery_at = float("inf")
+        service.process_next_reanalysis = lambda: None
+        service.selected_case_model2 = lambda: "gpt-5.4-mini"
+        service.store.release_pending_case_provider = lambda provider: released.append(provider)
+        result = service.case_worker_tick(slot="mini")
+        self.assertIsNone(result)
+        self.assertEqual(released, ["openai"])
+
+    def test_mini_yields_fresh_case_jobs_to_available_oss_model1(self):
+        service = object.__new__(MasterPressService)
+        service._next_case_stall_recovery_at = float("inf")
+        service.process_next_reanalysis = lambda: None
+        service.selected_case_model2 = lambda: "gpt-5.4-mini"
+        service.selected_case_model1 = lambda: "openai/gpt-oss-120b"
+        service.selected_case_single_model = lambda: "single-model"
+        service._provider_status = lambda _provider, _model: {"available": True}
+        ready = {"value": False}
+        calls = []
+        service.store = SimpleNamespace(
+            recover_stalled_case_evaluation_jobs=lambda: 0,
+            release_invalid_openrouter_case_bundles=lambda: 0,
+            release_pending_case_provider=lambda _provider: 0,
+            ready_case_evaluation_jobs_older_than=lambda _seconds, provider="": ready["value"],
+        )
+        service.process_next_case_evaluation = (
+            lambda *args, **kwargs: calls.append((args, kwargs)) or {"ok": True}
+        )
+        self.assertIsNone(service.case_worker_tick(slot="mini"))
+        self.assertEqual(calls, [])
+        ready["value"] = True
+        result = service.case_worker_tick(slot="mini")
+        self.assertEqual(result["slot"], "mini")
+        self.assertEqual(calls[-1][0][:3], ("openai", "gpt-5.4-mini", "case_mini"))
+        result = service.case_worker_tick(slot="oss")
+        self.assertEqual(result["slot"], "oss")
+        self.assertEqual(calls[-1][0][:3], ("nvidia", "openai/gpt-oss-120b", "case_oss"))
+
+    def test_nvidia_usage_window_resets_at_utc_midnight(self):
+        service = object.__new__(MasterPressService)
+        observed_since = []
+
+        def usage(_provider, since, request_limit=0, token_limit=0, stage=""):
+            observed_since.append(since)
+            return {"attempts": 0, "completed": 0, "failed": 0, "input_tokens": 0, "output_tokens": 0, "tokens": 0, "usage_units": 0, "average_seconds": 0}
+
+        service.settings = SimpleNamespace(nvidia_api_key="test", nvidia_case_model="openai/gpt-oss-120b")
+        service.store = SimpleNamespace(
+            provider_usage_since=usage,
+            get_setting=lambda _key, default="": default,
+        )
+        service._utc_day_window_kst = lambda: ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00")
+
+        status = service.nvidia_status(False)
+        self.assertEqual(observed_since, ["2026-08-05T09:00:00+09:00"])
+        self.assertEqual(status["period"], "UTC day")
+        self.assertEqual(status["reset_basis"], "UTC 00:00")
+        self.assertEqual(status["reset_at"], "2026-08-06T09:00:00+09:00")
+        self.assertEqual(status["reset_label"], "한국시간 09:00")
+        self.assertEqual(service._provider_usage_window("nvidia"), ("2026-08-05T09:00:00+09:00", "2026-08-06T09:00:00+09:00", "UTC day", "한국시간 09:00"))
+
+    def test_invalid_nvidia_batch_recovers_with_openrouter_single_calls(self):
+        service = object.__new__(MasterPressService)
+        calls = []
+        successes = []
+
+        def evaluate(provider, case, _article, _analysis, model):
+            calls.append((provider, case["id"], model))
+            return {"decision": "low", "analysis_report": {}}
+
+        service.selected_case_single_model = lambda: "google/gemma-4-26b-a4b-it:free"
+        service._provider_status = lambda _provider, _model: {"available": True}
+        service._provider_attempt_allowed = lambda _provider: True
+        service._remember_provider_success = lambda provider: successes.append(provider)
+        service._remember_provider_failure = lambda _provider, _error: None
+        service.scoring = SimpleNamespace(
+            evaluate_case_with_common_provider=evaluate,
+        )
+        cases = [{"id": "case-1"}, {"id": "case-2"}]
+        model, results = service._recover_case_batch_json_with_single(
+            cases, {"id": "article"}, {"id": "analysis"}, "nvidia",
+            json.JSONDecodeError("bad json", "{}", 1),
+        )
+        self.assertEqual(model, "google/gemma-4-26b-a4b-it:free")
+        self.assertEqual(set(results), {"case-1", "case-2"})
+        self.assertEqual([value[0] for value in calls], ["openrouter", "openrouter"])
+        self.assertEqual(successes, ["openrouter", "openrouter"])
+        for value in results.values():
+            report = value["analysis_report"]
+            self.assertEqual(report["batch_fallback_reason"], "batch_json_invalid")
+            self.assertEqual(report["batch_fallback_from_provider"], "nvidia")
+
+    def test_common_turbo_preserves_openrouter_case_reserve(self):
+        service = object.__new__(MasterPressService)
+        usage = {"attempts": 899}
+        service.store = SimpleNamespace(openrouter_usage_today=lambda _limit: usage)
+        service.settings = SimpleNamespace(
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            openrouter_daily_soft_limit=1000,
+            openrouter_case_reserve_calls=100,
+        )
+        service._active_provider_chain = lambda chain: chain
+        self.assertTrue(service.common_turbo_available())
+        usage["attempts"] = 900
+        self.assertFalse(service.common_turbo_available())
 
     def test_press_release_searches_title_department_and_contact_name(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
@@ -811,6 +1322,286 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(recovered["common"], 1)
         self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
 
+    def test_manual_model_switch_releases_common_analysis_retries(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/manual-switch",
+            "original_url": "https://example.com/manual-switch",
+            "title": "수동 전환 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        self.assertTrue(self.store.start_article_analysis_job(job_id))
+        retry_after = (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds")
+        self.store.finish_article_analysis_job(
+            job_id, False, 10, "reserve_llm_unavailable",
+            retryable=True, retry_after=retry_after, keep_pending=True,
+        )
+        self.assertIsNone(self.store.next_article_analysis_job())
+        released = self.store.release_article_analysis_retries()
+        self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
+        self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
+
+    def test_fixed_model_candidates_keep_gpt_only_in_final_turbo_lane(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
+            groq_common_model="llama-3.1-8b-instant",
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            nvidia_case_model="openai/gpt-oss-120b",
+            openai_shadow_model="gpt-5.4-mini",
+            gemini_model="gemini-3.5-flash-lite",
+        )
+        service.scoring = SimpleNamespace(
+            reserve1_llm=SimpleNamespace(models=lambda: []),
+            common_llm=SimpleNamespace(models=lambda: []),
+        )
+        self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
+        service._migrate_reserve2_default()
+        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
+        self.assertEqual(service.available_reserve1_models(), ["llama-3.1-8b-instant"])
+        self.assertEqual(service.available_reserve2_models(), ["gpt-5.4-mini"])
+        self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
+        self.assertEqual(service.selected_case_model1(), "openai/gpt-oss-120b")
+        self.assertEqual(service.selected_case_model2(), "gpt-5.4-mini")
+        self.assertEqual(service.case_batch_size_for_provider("openai"), 10)
+        self.assertEqual(service.case_batch_size_for_provider("nvidia"), 5)
+        self.assertEqual(service.case_batch_size_for_provider("openrouter"), 1)
+        self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
+
+    def test_primary_model_switch_releases_common_analysis_retry_wait(self):
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/switch-common",
+            "original_url": "https://example.com/switch-common",
+            "title": "모델 전환 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        job_id = self.store.queue_article_analysis(analysis["id"])
+        self.assertTrue(self.store.start_article_analysis_job(job_id))
+        retry_at = (datetime.now(KST) + timedelta(hours=6)).isoformat(timespec="seconds")
+        self.store.finish_article_analysis_job(job_id, False, 10, "reserve_llm_unavailable", retryable=True, retry_after=retry_at, keep_pending=True)
+        self.assertIsNone(self.store.next_article_analysis_job())
+        released = self.store.release_article_analysis_retries()
+        self.assertEqual(released, {"pending_released": 1, "failed_requeued": 0})
+        self.assertEqual(self.store.next_article_analysis_job()["id"], job_id)
+
+    def test_fixed_fallback_candidates_match_verified_topology(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
+            groq_common_model="llama-3.1-8b-instant",
+            openrouter_case_model="google/gemma-4-26b-a4b-it:free",
+            nvidia_case_model="openai/gpt-oss-120b",
+            openai_shadow_model="gpt-5.4-mini",
+            gemini_model="gemini-3.5-flash-lite",
+        )
+        service.scoring = SimpleNamespace(
+            reserve1_llm=SimpleNamespace(models=lambda: []),
+            common_llm=SimpleNamespace(models=lambda: []),
+        )
+        self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
+        service._migrate_reserve2_default()
+        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
+        self.assertEqual(service.available_common_fallback_models(), ["@cf/meta/llama-3.1-8b-instruct-fast"])
+        self.assertEqual(service.available_case_fallback_models(), ["gemini-3.1-flash-lite"])
+        self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
+        self.assertEqual(service._provider_for_switchable_llm_model("openai/gpt-oss-120b"), "nvidia")
+        self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
+
+    def test_only_daily_quota_errors_disable_until_provider_reset(self):
+        self.assertTrue(MasterPressService._is_provider_quota_error(OpenRouterError("free-models-per-day limit reached", status=429)))
+        self.assertTrue(MasterPressService._is_provider_quota_error(OpenRouterError("GenerateRequestsPerDay quota", status=429)))
+        self.assertFalse(MasterPressService._is_provider_quota_error(OpenRouterError("RESOURCE_EXHAUSTED: retry in 27s", status=429)))
+
+    def test_quota_lock_uses_exact_retry_from_confirmed_error_body(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "tokens per day (TPD): Limit 500000, Used 499900. Please try again in 1m27.5s.",
+            status=429, retryable=True,
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertTrue(decision.confirmed_exhaustion)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.confidence, "high")
+        self.assertEqual(decision.reset_source, "error_body")
+        self.assertEqual(decision.lock_until, "2026-08-04T18:01:27+09:00")
+
+    def test_subsecond_explicit_retry_is_a_one_second_exact_lock(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "tokens per day (TPD) limit reached. Please try again in 518.4ms.",
+            status=429, retryable=True,
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.lock_until, "2026-08-04T18:00:01+09:00")
+
+    def test_groq_quota_retry_uses_the_exhausted_resource_header(self):
+        retry_at, source = GroqClient._quota_retry_metadata(
+            {"x-ratelimit-reset-tokens": "2m", "x-ratelimit-reset-requests": "6s"},
+            "tokens per day (TPD) limit reached",
+        )
+        remaining = (datetime.fromisoformat(retry_at) - datetime.now().astimezone()).total_seconds()
+        self.assertEqual(source, "resource_header")
+        self.assertGreaterEqual(remaining, 118)
+        self.assertLessEqual(remaining, 121)
+
+    def test_missing_retry_header_is_not_marked_as_a_trusted_source(self):
+        _retry_at, source = GroqClient._quota_retry_metadata({}, "tokens per day limit reached")
+        self.assertEqual(source, "")
+        self.assertEqual(OpenRouterClient._retry_source({}), "")
+
+    def test_quota_lock_uses_hourly_recheck_when_reset_is_not_confirmed(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "you have used up your daily free allocation", status=429, retryable=True,
+            retry_after="2026-08-05T09:00:00+09:00", retry_source="provider_schedule",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertTrue(decision.confirmed_exhaustion)
+        self.assertEqual(decision.lock_mode, "hourly_recheck")
+        self.assertEqual(decision.confidence, "low")
+        self.assertEqual(decision.lock_until, "2026-08-04T19:00:00+09:00")
+
+    def test_quota_lock_accepts_trusted_response_retry_header(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "free-models-per-day limit reached", status=429, retryable=True,
+            retry_after="2026-08-04T20:00:00+09:00", retry_source="response_header",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "exact_reset")
+        self.assertEqual(decision.lock_until, "2026-08-04T20:00:00+09:00")
+
+    def test_past_retry_header_falls_back_to_hourly_recheck(self):
+        reference = datetime(2026, 8, 4, 18, 0, tzinfo=KST)
+        error = OpenRouterError(
+            "free-models-per-day limit reached", status=429, retryable=True,
+            retry_after="2026-08-04T17:00:00+09:00", retry_source="response_header",
+        )
+        decision = quota_lock_decision(error, reference)
+        self.assertEqual(decision.lock_mode, "hourly_recheck")
+        self.assertEqual(decision.lock_until, "2026-08-04T19:00:00+09:00")
+
+    def test_plain_429_never_becomes_a_quota_lock(self):
+        for message in ("Provider returned error", "rate limit", "RESOURCE_EXHAUSTED: retry in 27s"):
+            error = OpenRouterError(message, status=429, retryable=True)
+            self.assertFalse(confirmed_free_quota_exhaustion(message, 429))
+            self.assertFalse(quota_lock_decision(error).confirmed_exhaustion)
+
+    def test_plain_429_uses_transient_pause_not_quota_lock(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError("Provider returned error", status=429, retryable=True)
+        for _index in range(3):
+            self.assertEqual(service._remember_provider_failure("openrouter", error), "")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:openrouter"), "")
+        self.assertTrue(self.store.get_setting("llm_provider_temporary_until:openrouter") > now_iso())
+
+    def test_provider_quota_lock_metadata_and_successful_clear(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError(
+            "daily free allocation used up", status=429, retryable=True,
+        )
+        lock_until = service._remember_provider_failure("cloudflare", error)
+        self.assertTrue(lock_until > now_iso())
+        self.assertEqual(self.store.get_setting("llm_provider_lock_mode:cloudflare"), "hourly_recheck")
+        self.assertFalse(service._provider_attempt_allowed("cloudflare"))
+        service._remember_provider_success("cloudflare")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:cloudflare"), "")
+        self.assertEqual(self.store.get_setting("llm_provider_lock_mode:cloudflare"), "")
+        self.assertTrue(service._provider_attempt_allowed("cloudflare"))
+
+    def test_expired_quota_lock_allows_only_one_cross_process_probe(self):
+        expired = (datetime.now(KST) - timedelta(seconds=1)).isoformat(timespec="seconds")
+        self.store.set_setting("llm_provider_disabled_until:groq", expired)
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        self.assertTrue(service._provider_attempt_allowed("groq"))
+        self.assertFalse(service._provider_attempt_allowed("groq"))
+        self.assertTrue(self.store.get_setting("llm_provider_probe_until:groq") > now_iso())
+
+    def test_status_read_keeps_expired_lock_for_auditable_recheck(self):
+        expired = (datetime.now(KST) - timedelta(seconds=1)).isoformat(timespec="seconds")
+        self.store.set_settings({
+            "llm_provider_disabled_until:groq": expired,
+            "llm_provider_disabled_reason:groq": "tokens per day limit reached",
+            "llm_provider_lock_mode:groq": "exact_reset",
+            "llm_provider_lock_confidence:groq": "high",
+            "llm_provider_lock_reset_source:groq": "error_body",
+        })
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        status = service._attach_provider_guard({"provider": "groq", "connected": True})
+        self.assertTrue(status["quota_recheck_due"])
+        self.assertFalse(status["exhausted"])
+        self.assertEqual(status["lock_mode"], "exact_reset")
+        self.assertEqual(self.store.get_setting("llm_provider_disabled_until:groq"), expired)
+
+    def test_locked_primary_uses_fallback_and_records_fallback(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            groq_common_model="llama-3.1-8b-instant",
+        )
+        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
+        service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
+        called = []
+
+        def analyze(provider, _article, model):
+            called.append((provider, model))
+            return {"analysis_report": {"provider": provider}}
+
+        service.scoring = SimpleNamespace(analyze_article_common_with_provider=analyze)
+        self.store.set_setting(
+            "llm_provider_disabled_until:groq",
+            (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds"),
+        )
+        provider, model, result = service._try_common_reserve({"title": "test"})
+        self.assertEqual((provider, model), ("cloudflare", "@cf/meta/llama-3.1-8b-instruct-fast"))
+        self.assertEqual(called, [("cloudflare", "@cf/meta/llama-3.1-8b-instruct-fast")])
+        self.assertTrue(result["analysis_report"]["fallback"])
+        self.assertEqual(result["analysis_report"]["fallback_reason"], "common_primary_unavailable")
+
+    def test_all_common_providers_locked_defers_without_remote_call(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            groq_common_model="llama-3.1-8b-instant",
+        )
+        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
+        service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
+        service.scoring = SimpleNamespace(analyze_article_common_with_provider=mock.Mock())
+        groq_until = (datetime.now(KST) + timedelta(minutes=30)).isoformat(timespec="seconds")
+        cloudflare_until = (datetime.now(KST) + timedelta(hours=1)).isoformat(timespec="seconds")
+        self.store.set_settings({
+            "llm_provider_disabled_until:groq": groq_until,
+            "llm_provider_disabled_until:cloudflare": cloudflare_until,
+        })
+        with self.assertRaisesRegex(OpenRouterError, "reserve_llm_unavailable") as raised:
+            service._try_common_reserve({"title": "test"})
+        self.assertEqual(raised.exception.retry_after, groq_until)
+        service.scoring.analyze_article_common_with_provider.assert_not_called()
+
+    def test_ollama_embedding_records_exact_prompt_tokens(self):
+        store = mock.Mock()
+        settings = SimpleNamespace(embedding_model="nomic-embed-text:latest")
+        client = OllamaClient(settings, store)
+        client.request = mock.Mock(return_value={"embeddings": [[0.1, 0.2]], "prompt_eval_count": 42})
+        self.assertEqual(client.embeddings(["hello"]), [[0.1, 0.2]])
+        kwargs = store.record_llm_api_call.call_args.kwargs
+        self.assertEqual(kwargs["provider"], "ollama")
+        self.assertEqual(kwargs["stage"], "embedding")
+        self.assertEqual(kwargs["input_tokens"], 42)
+
     def test_invite_is_one_time(self):
         invite, token = self.store.create_invite("테스트", 60)
         self.assertEqual(self.store.valid_invite(token)["id"], invite["id"])
@@ -953,6 +1744,87 @@ class StorageTests(unittest.TestCase):
             ).fetchone()
         self.assertEqual(json.loads(subscription["edition_slots"]), ["morning"])
 
+    def test_verified_kakao_unsubscribe_removes_subscriptions_and_keeps_history_six_hours(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("해지 신청자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "kakao-unsubscribe-user",
+            "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh",
+            "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+            "scopes": ["talk_message"],
+        })
+        request, _token = self.store.create_signup_request(
+            "해지 신청자", organization["id"], [case["id"]], recipient_id=recipient["id"],
+            magazine_slots=["morning", "lunch", "evening"],
+        )
+        self.store.set_signup_request_subscriptions(
+            request["id"], [case["id"]], magazine_slots=["morning", "lunch", "evening"],
+        )
+        _unsubscribe_invite, unsubscribe_token = self.store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+
+        result = self.store.unsubscribe_recipient_by_kakao_user_id("kakao-unsubscribe-user", unsubscribe_token)
+
+        self.assertTrue(result["deleted"])
+        self.assertEqual(result["history_count"], 1)
+        self.assertEqual(self.store.get_recipient(recipient["id"])["status"], "deleted")
+        self.assertNotIn(recipient["id"], self.store.case_recipient_ids(case["id"]))
+        with self.store.connect() as connection:
+            subscription_count = connection.execute(
+                "SELECT COUNT(*) value FROM recipient_magazine_subscriptions WHERE recipient_id=?",
+                (recipient["id"],),
+            ).fetchone()["value"]
+        self.assertEqual(subscription_count, 0)
+        history = next(item for item in self.store.list_signup_requests(include_private=True) if item["id"] == request["id"])
+        self.assertEqual(history["status"], "revoked")
+        self.assertEqual(history["admin_note"], "사용자 직접 해지")
+        self.assertEqual({item["status"] for item in history["case_requests"]}, {"revoked"})
+        self.assertEqual(history["magazine_slots"], ["morning", "lunch", "evening"])
+        self.assertIsNone(self.store.valid_invite(unsubscribe_token))
+
+        old = (datetime.now(KST) - timedelta(hours=7)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE signup_requests SET decided_at=?,updated_at=? WHERE id=?",
+                (old, old, request["id"]),
+            )
+        self.assertFalse(any(item["id"] == request["id"] for item in self.store.list_signup_requests(include_private=True)))
+
+    def test_unsubscribe_creates_history_for_recipient_without_signup_request(self):
+        organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
+        case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
+        _invite, token = self.store.create_invite("수동 등록자", 60)
+        recipient = self.store.consume_invite(token, {
+            "kakao_user_id": "manual-unsubscribe-user",
+            "access_token_ciphertext": "access",
+            "refresh_token_ciphertext": "refresh",
+            "access_token_expires_at": now_iso(),
+            "refresh_token_expires_at": now_iso(),
+            "scopes": ["talk_message"],
+        })
+        self.store.add_case_recipient(case["id"], recipient["id"])
+        self.store.ensure_magazine_schema()
+        with self.store.connect() as connection:
+            connection.execute(
+                """INSERT INTO recipient_magazine_subscriptions(
+                   organization_id,recipient_id,edition_slots,case_ids,updated_at
+                   ) VALUES(?,?,?,?,?)""",
+                (organization["id"], recipient["id"], '["lunch"]', json.dumps([case["id"]]), now_iso()),
+            )
+        _unsubscribe_invite, unsubscribe_token = self.store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+
+        result = self.store.unsubscribe_recipient_by_kakao_user_id("manual-unsubscribe-user", unsubscribe_token)
+
+        self.assertTrue(result["deleted"])
+        self.assertEqual(result["history_count"], 1)
+        history = self.store.list_signup_requests(include_private=True)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["status"], "revoked")
+        self.assertEqual(history[0]["magazine_slots"], ["lunch"])
+        self.assertEqual([item["case_id"] for item in history[0]["case_requests"]], [case["id"]])
+
     def test_completed_signup_requests_expire_after_six_hours(self):
         organization = self.store.save_organization({"name": "행정안전부", "is_active": True})
         case = self.store.save_case({**case_payload(), "organization_id": organization["id"]})
@@ -988,6 +1860,11 @@ class StorageTests(unittest.TestCase):
 
 
 class ScoringTests(unittest.TestCase):
+    def test_nvidia_batch_reserves_enough_completion_tokens_for_valid_json(self):
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 1140}), 3200)
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 2040}), 4080)
+        self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 3000}), 4096)
+
     def test_fallback_negative_tone_requires_critical_context(self):
         self.assertFalse(fallback_negative_tone("공공기관 책임자와 수상자 등 50명이 참석했다."))
         self.assertFalse(fallback_negative_tone("개선 방안을 발표했다."))
@@ -999,6 +1876,33 @@ class ScoringTests(unittest.TestCase):
         client.request = lambda _path, _payload: {"message": {"content": "{"}}
         with self.assertRaises(json.JSONDecodeError):
             client.analyze_article_common({"title": "폭염 대응", "snippet": "중대본 격상"})
+
+    def test_cloudflare_json_schema_and_object_response_remain_valid_json(self):
+        settings = SimpleNamespace(
+            worker_ai_key="token", worker_ai_account_id="account",
+            worker_ai_base_url="https://api.cloudflare.test/client/v4",
+            worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
+            request_timeout_seconds=10, user_agent="test",
+        )
+        client = CloudflareWorkersAIClient(settings)
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({
+            "success": True,
+            "result": {"response": {"results": [{"case_id": "case-1"}]}, "usage": {}},
+        }).encode("utf-8")
+        response.__enter__.return_value = response
+        schema = {"type": "object", "properties": {"results": {"type": "array"}}, "required": ["results"]}
+        with mock.patch("urllib.request.urlopen", return_value=response) as opened:
+            result = client.request("/api/chat", {
+                "model": settings.worker_ai_model,
+                "messages": [{"role": "user", "content": "test"}],
+                "options": {"num_predict": 420},
+                "response_schema": {"name": "case_batch", "strict": True, "schema": schema},
+            })
+        sent = json.loads(opened.call_args.args[0].data.decode("utf-8"))
+        self.assertEqual(sent["response_format"], {"type": "json_schema", "json_schema": schema})
+        self.assertEqual(sent["max_completion_tokens"], 840)
+        self.assertEqual(json.loads(result["message"]["content"]), {"results": [{"case_id": "case-1"}]})
 
     def test_openrouter_case_judgment_sends_only_minimized_public_evidence(self):
         settings = SimpleNamespace(openrouter_case_model="google/gemma-4-26b-a4b-it:free")
@@ -1579,6 +2483,8 @@ class OrganizationPipelineTests(unittest.TestCase):
             self.assertEqual(dashboard["stats"]["total"], 1)
             self.assertEqual(dashboard["pipeline"]["processed_articles"], 1)
             self.assertGreaterEqual(dashboard["pipeline"]["average_seconds"], 0)
+            self.assertNotIn("articles_per_minute", dashboard["pipeline"])
+            self.assertNotIn("throughput_window_minutes", dashboard["pipeline"])
             self.assertEqual(dashboard["articles"][0]["organization_name"] if "organization_name" in dashboard["articles"][0] else dashboard["articles"][0]["case_results"][0]["organization_name"], "행정안전부")
             self.assertEqual(dashboard["articles"][0]["case_results"][0]["decision"], "low")
             self.assertEqual(dashboard["categories"][0], {"label": "정책·행정", "article_count": 1, "sent_count": 0})
@@ -1727,6 +2633,19 @@ class SecurityTests(unittest.TestCase):
         self.assertNotEqual(encrypted, plaintext)
         self.assertNotIn(plaintext, encrypted)
         self.assertEqual(cipher.decrypt(encrypted), plaintext)
+
+    def test_kakao_unsubscribe_login_does_not_request_message_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "unsubscribe.sqlite3")
+            _invite, unsubscribe_token = store.create_invite(RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, 15)
+            _regular, regular_token = store.create_invite("구독 신청자", 15)
+            settings = SimpleNamespace(
+                kakao_rest_api_key="rest-key",
+                kakao_redirect_uri="https://example.com/oauth/callback",
+            )
+            client = KakaoClient(settings, store)
+            self.assertNotIn("scope=talk_message", client.authorization_url(unsubscribe_token))
+            self.assertIn("scope=talk_message", client.authorization_url(regular_token))
 
 
     def test_kakao_send_uses_feed_template_when_image_exists(self):

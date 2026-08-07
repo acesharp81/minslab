@@ -71,6 +71,19 @@ create index if not exists master_press_daily_keyword_trend_idx
 create index if not exists master_press_daily_keyword_org_date_idx
   on public.master_press_daily_keyword_metrics(dataset, organization_id, metric_date desc);
 
+-- A mutable two-day transfer can leave rows from an earlier intraday snapshot.
+-- This view exposes only the newest complete snapshot per day/source bucket,
+-- while retaining older snapshots for audit and recovery.
+create or replace view public.master_press_daily_keyword_metrics_current
+with (security_invoker = true) as
+select ranked.*
+from (
+  select metrics.*,
+         max(updated_at) over (partition by dataset, metric_date, organization_id, source_kind) as snapshot_updated_at
+  from public.master_press_daily_keyword_metrics metrics
+) ranked
+where ranked.updated_at = ranked.snapshot_updated_at;
+
 create table if not exists public.master_press_daily_model_metrics (
   id text primary key,
   dataset text not null default 'production' check (dataset in ('production','trial')),
