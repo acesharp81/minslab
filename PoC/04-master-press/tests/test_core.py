@@ -631,6 +631,30 @@ class StorageTests(unittest.TestCase):
         self.assertGreaterEqual(len(insight["edges"]), 2)
         self.assertEqual({node["similar_group_id"] for node in insight["nodes"]}, {group_id})
 
+    def test_neural_sent_delivery_index_guard_restores_and_verifies_query_plan(self):
+        with self.store.connect() as connection:
+            connection.execute("DROP INDEX idx_deliveries_article_case_status_sent_at")
+        health = self.store.ensure_performance_indexes()
+        self.assertEqual(
+            health["columns"], ["article_id", "case_id", "status", "sent_at"]
+        )
+        self.assertTrue(
+            any(
+                "idx_deliveries_article_case_status_sent_at" in detail
+                for detail in health["query_plan"]
+            )
+        )
+
+    def test_neural_sent_delivery_index_guard_rejects_column_order_drift(self):
+        with self.store.connect() as connection:
+            connection.execute("DROP INDEX idx_deliveries_article_case_status_sent_at")
+            connection.execute(
+                """CREATE INDEX idx_deliveries_article_case_status_sent_at
+                   ON deliveries(case_id,status,sent_at DESC,article_id)"""
+            )
+        with self.assertRaisesRegex(RuntimeError, "critical index"):
+            self.store.ensure_performance_indexes()
+
     def test_case_versions_and_scale(self):
         first = self.store.save_case(case_payload(1))
         self.assertEqual(first["version"], 1)

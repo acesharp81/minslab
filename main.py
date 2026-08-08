@@ -22,6 +22,7 @@ from analytics_store import analytics_status, get_analytics_summary, get_system_
 from chunking_compare import DEFAULT_CHAT_MODEL, chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
 from env_utils import env_first, load_project_env
 from portfolio_loader import poc_projects_as_json, projects_as_json
+from presentation_loader import load_presentations, presentation_file, presentations_as_json, save_presentation, update_presentation
 from runtime_monitor import drain_http_window, observe_http_request
 from supabase_store import is_configured as supabase_configured
 from supabase_store import list_history, save_history
@@ -35,6 +36,7 @@ APP_STARTED_MONOTONIC = time.monotonic()
 SYSTEM_METRICS_INTERVAL_SECONDS = 60
 
 STATIC_DIR = Path(__file__).parent / "static"
+PRESENTATION_BASE_PATH = "/presentations/view"
 AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
 AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
 REPORT_DRAFT_SERVICE_PATH = Path(__file__).parent / "projects" / "04-report-draft" / "portfolio_service.py"
@@ -628,7 +630,7 @@ HTML_PAGE = r"""
 </head>
 <body>
   <main class="shell"><section class="card">
-    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a><a href="/poc" data-page="poc">PoC</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div class="health-stats" id="healthStats"></div><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
+    <nav class="site-nav"><div class="brand"><i>M</i> MinsLab</div><div class="main-menu"><a href="/" data-page="home">홈</a><a href="/portfolio" data-page="portfolio">포트폴리오</a><a href="/poc" data-page="poc">PoC</a><a href="/presentations" data-page="presentations">설명자료</a></div><div class="health-wrap" id="healthWrap"><div class="health-button" tabindex="0"><span class="health-dot"></span><span id="healthLabel">서버 확인 중</span></div><div class="health-popover"><h3>서비스 세부 상태</h3><div class="health-stats" id="healthStats"></div><div id="healthDetails"></div><small class="health-updated" id="healthUpdated">확인 중...</small></div></div></nav>
     <div class="home-view">
     <section class="chat-home">
       <button class="mobile-panel-toggle chat-drawer-toggle" id="chatDrawerToggle" type="button" aria-controls="chatSidebar" aria-expanded="false"><span>대화 이력</span></button>
@@ -660,12 +662,15 @@ HTML_PAGE = r"""
     // 파일 기반 */project.json 로딩이 실패하면 빈 상태를 유지합니다.
     const fallbackProjects=[];
     const fallbackPocProjects=[];
+    const fallbackPresentations=[];
 
     const loadedProjects=__PROJECTS_JSON__;
     const loadedPocProjects=__POC_PROJECTS_JSON__;
+    const loadedPresentations=__PRESENTATIONS_JSON__;
     const catalogs={
       portfolio:{path:'/portfolio',kicker:'MinsLab / LEARNING ARCHIVE',title:'오늘의 기록으로<br>내일의 가능성을 실험합니다.',description:'교육과 실습에서 만든 Python, Local AI, RAG 프로젝트를 실행 방법과 배운 점까지 함께 정리하는 성장형 포트폴리오입니다.',indexLabel:'PROJECT INDEX',drawerLabel:'프로젝트',projects:loadedProjects.length?loadedProjects:fallbackProjects},
-      poc:{path:'/poc',kicker:'MinsLab / PROOF OF CONCEPT',title:'개인 PoC로<br>아이디어를 검증합니다.',description:'개인적으로 만든 프로그램과 실험형 도구를 같은 형식으로 정리합니다. 문제의식, 핵심 코드, 실행 방법을 함께 남겨 다음 실험으로 이어갑니다.',indexLabel:'POC INDEX',drawerLabel:'PoC',projects:loadedPocProjects.length?loadedPocProjects:fallbackPocProjects}
+      poc:{path:'/poc',kicker:'MinsLab / PROOF OF CONCEPT',title:'개인 PoC로<br>아이디어를 검증합니다.',description:'개인적으로 만든 프로그램과 실험형 도구를 같은 형식으로 정리합니다. 문제의식, 핵심 코드, 실행 방법을 함께 남겨 다음 실험으로 이어갑니다.',indexLabel:'POC INDEX',drawerLabel:'PoC',projects:loadedPocProjects.length?loadedPocProjects:fallbackPocProjects},
+      presentations:{path:'/presentations',kicker:'MinsLab / PRESENTATION ARCHIVE',title:'설명자료를<br>큰 화면으로 발표합니다.',description:'관리자가 등록한 HTML 설명자료를 선택해 화면에서 확인하고 큰 화면으로 발표할 수 있습니다.',indexLabel:'PRESENTATION INDEX',drawerLabel:'설명자료',projects:loadedPresentations.length?loadedPresentations:fallbackPresentations}
     };
 
     async function readJsonResponse(response){
@@ -1072,11 +1077,11 @@ HTML_PAGE = r"""
 
     const archiveKickerEl=document.getElementById('archiveKicker'),archiveTitleEl=document.getElementById('archiveTitle'),archiveDescriptionEl=document.getElementById('archiveDescription'),projectIndexTitleEl=document.getElementById('projectIndexTitle'),projectDrawerLabelEl=document.getElementById('projectDrawerLabel');
     function escapeProjectHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-    function archivePageFromLocation(){if(location.pathname.startsWith('/poc'))return 'poc';if(location.pathname.startsWith('/portfolio'))return 'portfolio';return 'home'}
+    function archivePageFromLocation(){if(location.pathname.startsWith('/presentations'))return 'presentations';if(location.pathname.startsWith('/poc'))return 'poc';if(location.pathname.startsWith('/portfolio'))return 'portfolio';return 'home'}
     function catalog(page){return catalogs[page]||catalogs.portfolio}
-    function lastProjectId(page=currentArchivePage){const list=catalog(page).projects;return list.at(-1)?.id||list[0]?.id||''}
+    function lastProjectId(page=currentArchivePage){const list=catalog(page).projects;return (page==='presentations'?list[0]:list.at(-1))?.id||list[0]?.id||''}
     let currentArchivePage=archivePageFromLocation()==='home'?'portfolio':archivePageFromLocation();
-    const currentProjectIds={portfolio:lastProjectId('portfolio'),poc:lastProjectId('poc')};
+    const currentProjectIds={portfolio:lastProjectId('portfolio'),poc:lastProjectId('poc'),presentations:lastProjectId('presentations')};
     function setArchiveChrome(page){
       const c=catalog(page);
       archiveKickerEl.textContent=c.kicker;archiveTitleEl.innerHTML=c.title;archiveDescriptionEl.textContent=c.description;projectIndexTitleEl.textContent=c.indexLabel;projectDrawerLabelEl.textContent=c.drawerLabel;
@@ -1086,7 +1091,7 @@ HTML_PAGE = r"""
       if(northKoreaPlaybackTimer){clearInterval(northKoreaPlaybackTimer);northKoreaPlaybackTimer=null}
       const list=catalog(page).projects;
       if(!list.length){
-        currentProjectIds[page]='';projectMeta.innerHTML='';projectTitle.textContent='아직 등록된 프로젝트가 없습니다.';projectSummary.textContent='이 컬렉션 폴더에 project.json을 추가하면 같은 형식으로 표시됩니다.';
+        const isPresentation=page==='presentations';currentProjectIds[page]='';projectMeta.innerHTML='';projectTitle.textContent=isPresentation?'아직 등록된 설명자료가 없습니다.':'아직 등록된 프로젝트가 없습니다.';projectSummary.textContent=isPresentation?'관리자 메뉴에서 제목과 발표용 HTML을 등록하면 이곳에 자동으로 표시됩니다.':'이 컬렉션 폴더에 project.json을 추가하면 같은 형식으로 표시됩니다.';
         projectLab.classList.remove('active');projectLab.innerHTML='';projectDefaultView.classList.remove('hidden');projectDescription.textContent=`${catalog(page).path.replace('/','')} 컬렉션의 첫 프로젝트를 기다리고 있습니다.`;projectFeatures.innerHTML='';codeFile.textContent='project.json';projectCode.textContent='# project.json과 entry_file을 추가하면 이곳에 코드가 표시됩니다.';projectUsage.innerHTML='';projectNote.textContent='';
         return null;
       }
@@ -1094,7 +1099,9 @@ HTML_PAGE = r"""
       currentProjectIds[page]=p.id;
       document.querySelectorAll('.project-button').forEach(b=>b.classList.toggle('active',b.dataset.id===p.id));
       projectMeta.innerHTML=(p.tags||[]).map(x=>`<span>${escapeProjectHtml(x)}</span>`).join(''); projectTitle.textContent=p.title; projectSummary.textContent=p.summary;
-      if(p.id==='chunking-lab'){
+      if(page==='presentations'){
+        renderPresentation(p);
+      }else if(p.id==='chunking-lab'){
         renderLegacyChunkingLab(p);
       }else if(p.id==='chunking-rag-lab'){
         renderChunkingRagLab(p);
@@ -1119,6 +1126,11 @@ HTML_PAGE = r"""
         projectUsage.innerHTML=(p.usage||[]).map(x=>`<li>${escapeProjectHtml(x)}</li>`).join(''); projectNote.textContent=p.note;
       }
       return p;
+    }
+    function renderPresentation(p){
+      projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
+      const presentationUrl=String(p.url||'');
+      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>${escapeProjectHtml(p.title)}</strong><span>HTML 설명자료 · 키보드와 자료 내부 버튼으로 발표를 진행하세요.</span></div><a class="field-inspection-open" href="${escapeProjectHtml(presentationUrl)}" target="_blank" rel="noopener">큰 화면 보기 ↗</a></div><div class="field-inspection-policy">업로드한 HTML은 홈페이지 로그인 정보와 분리된 보안 영역에서 실행됩니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="${escapeProjectHtml(presentationUrl)}" title="${escapeProjectHtml(p.title)}" loading="eager" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe></div></section>`;
     }
     function projectIdFromLocation(page=currentArchivePage){
       const c=catalog(page),pathMatch=location.pathname.match(new RegExp(`^${c.path}/([^/?#]+)`));
@@ -1234,7 +1246,7 @@ HTML_PAGE = r"""
     }
     async function sendMessageLive(text){if(generating){activeChatController?.abort();return}text=text.trim();if(!text)return;generating=true;const controller=new AbortController();activeChatController=controller;sendEl.disabled=false;sendEl.classList.add('is-stop');sendEl.textContent='■';sendEl.title='생성 중지';conversation.push({role:'user',content:text});addMessage('user',text);if(conversation.length===1)document.getElementById('historyTitle').textContent=text.slice(0,28);inputEl.value='';inputEl.style.height='auto';chatAutoFollow=true;const started=performance.now(),pending=addMessage('assistant','응답을 생각하고 있습니다…','typing'),process=processPanel(pending,started),bodyEl=pending.querySelector('.message-body');const requestMessages=[];if(systemPrompt.value.trim())requestMessages.push({role:'system',content:systemPrompt.value.trim()});if(attachedData.length)requestMessages.push({role:'system',content:'다음 첨부 자료를 바탕으로 질문에 답하세요. 자료에 없는 내용은 구분해서 설명하세요.\n\n'+attachedData.map(f=>`[파일: ${f.name}]\n${f.content}`).join('\n\n')});requestMessages.push(...conversation);let answer='',displayed='',tokenQueue=[],finalEvent=null,followButton=null;const follow=()=>{if(chatAutoFollow){messagesEl.scrollTop=messagesEl.scrollHeight;followButton?.remove();followButton=null}else if(!followButton){followButton=document.createElement('button');followButton.className='chat-follow-paused';followButton.type='button';followButton.textContent='↓ 실시간 답변으로 이동';followButton.onclick=()=>{chatAutoFollow=true;follow()};messagesEl.append(followButton)}};const draw=force=>{if(force){displayed=answer;tokenQueue=[]}else if(tokenQueue.length){const take=Math.max(1,Math.ceil(tokenQueue.length/12));displayed+=tokenQueue.splice(0,take).join('')}bodyEl.textContent=displayed;follow()};const flushTimer=setInterval(()=>draw(false),18);try{const requestBody=JSON.stringify({model:modelSelectEl.value,messages:requestMessages,max_tokens:Number(maxTokens.value),attachments:attachedData.map(f=>f.name)});if(new Blob([requestBody]).size>CHAT_REQUEST_MAX_BYTES)throw new Error(`첨부와 대화 내용을 합친 요청 크기가 ${formatBytes(CHAT_REQUEST_MAX_BYTES)}를 초과합니다.`);const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:requestBody,signal:controller.signal});if(!r.ok){const data=await r.json();throw new Error(data.error||'응답을 받지 못했습니다.')}if(!r.body)throw new Error('스트리밍 응답을 받을 수 없습니다.');const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';pending.classList.add('streaming');bodyEl.textContent='';while(true){const chunk=await reader.read();if(chunk.done)break;buffer+=decoder.decode(chunk.value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='token'){answer+=event.content||'';tokenQueue.push(...Array.from(event.content||''));process.stream(answer)}else if(event.type==='done')finalEvent=event;else if(event.type==='error')throw new Error(event.error||'응답 생성 실패')}}buffer+=decoder.decode();if(buffer.trim()){const event=JSON.parse(buffer);if(event.type==='done')finalEvent=event;else if(event.type==='error')throw new Error(event.error||'응답 생성 실패')}if(!answer&&finalEvent?.message?.content)answer=finalEvent.message.content;if(!answer)answer='응답 내용이 없습니다.';clearInterval(flushTimer);draw(true);conversation.push({role:'assistant',content:answer});pending.classList.add('done');pending.classList.remove('streaming','typing');finishChatMarkdown(pending,answer);process.finish(answer,finalEvent?.metrics,true);renderSources(answer,finalEvent?.sources||[]);persistHistory()}catch(e){clearInterval(flushTimer);draw(true);pending.classList.add('done');pending.classList.remove('streaming','typing');if(e.name==='AbortError'){answer=answer||'생성이 중지되었습니다.';bodyEl.textContent=answer;conversation.push({role:'assistant',content:answer});process.finish(answer,null,false);persistHistory()}else{answer=`오류: ${e.message}`;if(conversation.at(-1)?.role==='user')conversation.pop();bodyEl.textContent=answer;process.finish(answer,null,false);const retry=document.createElement('button');retry.type='button';retry.className='chat-retry';retry.textContent='다시 생성';retry.onclick=()=>sendMessageLive(text);pending.children[1].append(retry)}renderSources(answer,[])}finally{clearInterval(flushTimer);followButton?.remove();if(activeChatController===controller)activeChatController=null;generating=false;sendEl.classList.remove('is-stop');sendEl.textContent='↑';sendEl.title='보내기';sendEl.disabled=false;inputEl.focus();if(chatAutoFollow)messagesEl.scrollTop=messagesEl.scrollHeight}}
     document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessageLive(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessageLive(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessageLive(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{const saved=localStorage.getItem('minzday.selectedModel');if(saved&&[...modelSelectEl.options].some(o=>o.value===saved))modelSelectEl.value=saved;loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
-    function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');trackCurrentPage();scrollTo(0,0)}
+    function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc'||page==='presentations';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');trackCurrentPage();scrollTo(0,0)}
     document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(archivePageFromLocation()));showPage(archivePageFromLocation());
   </script>
 </body>
@@ -1243,10 +1255,11 @@ HTML_PAGE = r"""
 
 
 def build_html():
-    """projects와 PoC 폴더의 최신 목록을 페이지에 삽입한다."""
+    """projects, PoC와 설명자료 폴더의 최신 목록을 페이지에 삽입한다."""
     return (
         HTML_PAGE.replace("__PROJECTS_JSON__", projects_as_json())
         .replace("__POC_PROJECTS_JSON__", poc_projects_as_json())
+        .replace("__PRESENTATIONS_JSON__", presentations_as_json())
     )
 
 
@@ -1939,10 +1952,10 @@ def run_report_draft(payload):
     return load_report_draft_module().generate(payload)
 
 
-async def stream_html_file(send, file_path, method, cache_control=b"public, max-age=3600"):
+async def stream_html_file(send, file_path, method, cache_control=b"public, max-age=3600", extra_headers=None, missing_message=None):
     """대용량 정적 HTML을 프로세스 메모리에 통째로 올리지 않고 전송한다."""
     if not file_path.is_file():
-        body = "PoC 5 지도가 아직 생성되지 않았습니다. README의 생성 절차를 실행하세요.".encode("utf-8")
+        body = (missing_message or "PoC 5 지도가 아직 생성되지 않았습니다. README의 생성 절차를 실행하세요.").encode("utf-8")
         await send({
             "type": "http.response.start",
             "status": 404,
@@ -1956,17 +1969,19 @@ async def stream_html_file(send, file_path, method, cache_control=b"public, max-
         return
 
     file_size = file_path.stat().st_size
+    headers = [
+        (b"content-type", b"text/html; charset=utf-8"),
+        (b"content-length", str(file_size).encode("ascii")),
+        (b"cache-control", cache_control),
+        (b"x-content-type-options", b"nosniff"),
+        (b"x-frame-options", b"SAMEORIGIN"),
+        (b"referrer-policy", b"same-origin"),
+    ]
+    headers.extend(extra_headers or [])
     await send({
         "type": "http.response.start",
         "status": 200,
-        "headers": [
-            (b"content-type", b"text/html; charset=utf-8"),
-            (b"content-length", str(file_size).encode("ascii")),
-            (b"cache-control", cache_control),
-            (b"x-content-type-options", b"nosniff"),
-            (b"x-frame-options", b"SAMEORIGIN"),
-            (b"referrer-policy", b"same-origin"),
-        ],
+        "headers": headers,
     })
     if method == "HEAD":
         await send({"type": "http.response.body", "body": b""})
@@ -2087,6 +2102,23 @@ async def app(scope, receive, send):
             )
 
     send = monitored_send
+
+    presentation_prefix = f"{PRESENTATION_BASE_PATH}/"
+    if path.startswith(presentation_prefix) and method in {"GET", "HEAD"}:
+        slug = path.removeprefix(presentation_prefix).strip("/")
+        target = presentation_file(slug)
+        await stream_html_file(
+            send,
+            target or Path("/presentation-not-found"),
+            method,
+            cache_control=b"no-cache",
+            extra_headers=[
+                (b"content-security-policy", b"sandbox allow-scripts allow-forms allow-modals allow-popups allow-downloads"),
+                (b"cross-origin-resource-policy", b"same-origin"),
+            ],
+            missing_message="설명자료를 찾을 수 없습니다.",
+        )
+        return
 
     data_base_path = "/api/poc/north-korea-night-lights/data/"
     if path.startswith(data_base_path) and method in {"GET", "HEAD"}:
@@ -2215,6 +2247,57 @@ async def app(scope, receive, send):
                 {"authenticated": False, "error": "관리자 로그인이 필요합니다."},
                 ensure_ascii=False,
             ).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif path == "/api/admin/presentations" and method in {"GET", "POST", "PUT"}:
+        if not admin_session(scope):
+            status = 401
+            body = json.dumps(
+                {"error": "관리자 로그인이 필요합니다."}, ensure_ascii=False
+            ).encode("utf-8")
+        else:
+            try:
+                changed = None
+                if method in {"POST", "PUT"}:
+                    content_length = int(scope_headers(scope).get("content-length") or 0)
+                    if content_length > 20 * 1024 * 1024:
+                        raise ValueError("업로드 요청이 너무 큽니다.")
+                    raw_body = await read_request_body(receive)
+                    if len(raw_body) > 20 * 1024 * 1024:
+                        raise ValueError("업로드 요청이 너무 큽니다.")
+                    payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                    if not isinstance(payload, dict):
+                        raise ValueError("JSON 객체 형식이 필요합니다.")
+                    if method == "POST":
+                        changed = await asyncio.to_thread(
+                            save_presentation,
+                            payload.get("title", ""),
+                            payload.get("html", ""),
+                            payload.get("filename", ""),
+                        )
+                        status = 201
+                    else:
+                        changed = await asyncio.to_thread(
+                            update_presentation,
+                            payload.get("id", ""),
+                            payload.get("title", ""),
+                            payload.get("html") if "html" in payload else None,
+                            payload.get("filename", ""),
+                        )
+                body = json.dumps(
+                    {
+                        "created": changed if method == "POST" else None,
+                        "updated": changed if method == "PUT" else None,
+                        "items": await asyncio.to_thread(load_presentations),
+                    },
+                    ensure_ascii=False,
+                ).encode("utf-8")
+            except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
+                status = 400
+                body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+            except OSError as error:
+                status = 500
+                body = json.dumps({"error": f"설명자료 저장 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
         extra_headers.append((b"cache-control", b"no-store"))
     elif path == "/api/admin/analytics" and method == "GET":

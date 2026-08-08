@@ -29,13 +29,18 @@ function bindEnterSearch(input,submit){
 
 function syncViewLocation(name){if(!history.replaceState)return;var url=new URL(location.href);if(url.searchParams.get('view')===name)return;url.searchParams.set('view',name);if(name!=='magazine')url.searchParams.delete('edition');history.replaceState(null,'',url.pathname+(url.search||'')+url.hash)}
 function showView(name,focusId){syncViewLocation(name);$('manualView').hidden=name!=='manual';$('signupView').hidden=name!=='signup';$('dashboardView').hidden=name!=='dashboard';$('neuralView').hidden=name!=='neural';$('pressView').hidden=name!=='press';$('magazineView').hidden=name!=='magazine';$('adminView').hidden=name!=='admin';document.querySelectorAll('.nav').forEach(function(button){button.classList.toggle('active',button.dataset.view===name)});if(name==='manual')return;else if(name==='admin')loadAdmin(false);else if(name==='neural')loadNeural();else if(name==='press')loadPress(focusId);else if(name==='magazine')loadMagazine();else if(name==='signup')loadSignup();else loadDashboard(state.activeCase,state.activeOrganization,false,true)}
-function magazineStorageKey(){return 'masterPress:magazine:selectedCases:'+String(state.magazineOrganization||'')}
-function selectedMagazineCases(cases){var saved;try{saved=JSON.parse(localStorage.getItem(magazineStorageKey())||'null')}catch(error){}return Array.isArray(saved)?saved.filter(function(id){return cases.some(function(item){return item.id===id})}):cases.map(function(item){return item.id})}
+function magazineLegacyCaseStorageKey(){return 'masterPress:magazine:selectedCases:'+String(state.magazineOrganization||'')}
+function magazinePreferencesKey(){return 'masterPress:magazine:preferences:'+String(state.magazineOrganization||'default')}
+function magazineRateOptions(){return [1,1.25,1.5,1.75,2]}
+function defaultMagazineReadRate(){var mobileData=navigator.userAgentData&&typeof navigator.userAgentData.mobile==='boolean'?navigator.userAgentData.mobile:null,mobileAgent=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||''),compactTouch=window.matchMedia&&window.matchMedia('(pointer: coarse) and (max-width: 900px)').matches;return mobileData===true||mobileData===null&&(mobileAgent||compactTouch)?1.25:1.5}
+function readMagazinePreferences(){var preferences={},changed=false;try{var parsed=JSON.parse(localStorage.getItem(magazinePreferencesKey())||'null');if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))preferences=parsed}catch(error){}if(!Array.isArray(preferences.selectedCaseIds)){try{var legacyCases=JSON.parse(localStorage.getItem(magazineLegacyCaseStorageKey())||'null');if(Array.isArray(legacyCases)){preferences.selectedCaseIds=legacyCases;changed=true}}catch(error){}}if(magazineRateOptions().indexOf(Number(preferences.readRate))<0){try{var legacyRate=Number(localStorage.getItem('masterPress:magazine:readRate'));if(magazineRateOptions().indexOf(legacyRate)>=0){preferences.readRate=legacyRate;changed=true}}catch(error){}}if(changed)try{localStorage.setItem(magazinePreferencesKey(),JSON.stringify(preferences))}catch(error){}return preferences}
+function saveMagazinePreferences(changes){var preferences=Object.assign({},readMagazinePreferences(),changes||{});try{localStorage.setItem(magazinePreferencesKey(),JSON.stringify(preferences))}catch(error){}return preferences}
+function selectedMagazineCases(cases){var saved=readMagazinePreferences().selectedCaseIds;return Array.isArray(saved)?saved.filter(function(id){return cases.some(function(item){return item.id===id})}):cases.map(function(item){return item.id})}
 function updateMagazineCaseSelection(){var selected=state.magazineSelectedCases||[],summary=$('magazineCaseSelectionSummary');if(summary)summary.textContent=selected.length+'개 케이스 선택 중'}
 function setMagazineCaseEditor(open){var editor=$('magazineCaseEditor'),button=$('magazineCaseToggle');if(editor)editor.hidden=!open;if(button){button.textContent=open?'접기':'펼쳐보기';button.setAttribute('aria-expanded',open?'true':'false')}}
 var renderMagazineCasesBase=renderMagazineCases;
-function renderMagazineCases(){var edition=state.magazineEditionData||{},cases=edition.case_catalog||[],selected=state.magazineSelectedCases||[],root=$('magazineCaseList');root.innerHTML=cases.length?cases.map(function(item){return '<label><input type="checkbox" value="'+esc(item.id)+'"'+(selected.indexOf(item.id)>=0?' checked':'')+'><span>'+esc(item.name)+'</span></label>'}).join(''):'<div class="empty compact">이 에디션에 등록된 케이스가 없습니다.</div>';root.querySelectorAll('input').forEach(function(input){input.onchange=function(){state.magazineSelectedCases=Array.from(root.querySelectorAll('input:checked')).map(function(node){return node.value});localStorage.setItem(magazineStorageKey(),JSON.stringify(state.magazineSelectedCases));renderMagazinePaper()}})}
-renderMagazineCases=function(){renderMagazineCasesBase();updateMagazineCaseSelection();var root=$('magazineCaseList');root.querySelectorAll('input').forEach(function(input){input.onchange=function(){state.magazineSelectedCases=Array.from(root.querySelectorAll('input:checked')).map(function(node){return node.value});localStorage.setItem(magazineStorageKey(),JSON.stringify(state.magazineSelectedCases));updateMagazineCaseSelection();renderMagazinePaper()}})};
+function renderMagazineCases(){var edition=state.magazineEditionData||{},cases=edition.case_catalog||[],selected=state.magazineSelectedCases||[],root=$('magazineCaseList');root.innerHTML=cases.length?cases.map(function(item){return '<label><input type="checkbox" value="'+esc(item.id)+'"'+(selected.indexOf(item.id)>=0?' checked':'')+'><span>'+esc(item.name)+'</span></label>'}).join(''):'<div class="empty compact">이 에디션에 등록된 케이스가 없습니다.</div>';root.querySelectorAll('input').forEach(function(input){input.onchange=function(){state.magazineSelectedCases=Array.from(root.querySelectorAll('input:checked')).map(function(node){return node.value});saveMagazinePreferences({selectedCaseIds:state.magazineSelectedCases});renderMagazinePaper()}})}
+renderMagazineCases=function(){renderMagazineCasesBase();updateMagazineCaseSelection();var root=$('magazineCaseList');root.querySelectorAll('input').forEach(function(input){input.onchange=function(){state.magazineSelectedCases=Array.from(root.querySelectorAll('input:checked')).map(function(node){return node.value});saveMagazinePreferences({selectedCaseIds:state.magazineSelectedCases});updateMagazineCaseSelection();renderMagazinePaper()}})};
 
 function renderMagazinePaper(){var edition=state.magazineEditionData||{},selected=state.magazineSelectedCases||[],groups={};(edition.members||[]).forEach(function(member){var matches=(member.case_matches||[]).filter(function(item){return selected.indexOf(item.id)>=0});if(!matches.length)return;var group=groups[member.issue_key]||(groups[member.issue_key]=[]);member._magazineMatches=matches;group.push(member)});var issues=Object.keys(groups).map(function(key){var members=groups[key].sort(function(a,b){return Math.max.apply(null,b._magazineMatches.map(function(x){return x.score||0}))-Math.max.apply(null,a._magazineMatches.map(function(x){return x.score||0}))}),press={};members.forEach(function(member){(member.related_press_releases||[]).forEach(function(item){var key=String(item.url||'').trim()||'title:'+String(item.title||'').trim();if(key)press[key]=true})});return {lead:members[0],members:members,pressCount:Object.keys(press).length}}).sort(function(a,b){return b.members.length-a.members.length||b.pressCount-a.pressCount||Number(a.lead.rank||0)-Number(b.lead.rank||0)}),publishers={},tones={};issues.forEach(function(issue){publishers[issue.lead.publisher||'미확인']=(publishers[issue.lead.publisher||'미확인']||0)+1;tones[issue.lead.tone||'사실전달']=(tones[issue.lead.tone||'사실전달']||0)+1});$('magazineTitle').textContent=(edition.organization_name||'AI 뉴스')+' 매거진';$('magazineSubhead').textContent='선택한 케이스의 주요 언론보도를 이슈별로 읽어보세요.';$('magazineEditionLabel').textContent=(edition.slot_label||'에디션')+' EDITION';$('magazineDate').textContent=(edition.edition_date||'')+' · '+fmt(edition.window_start_at)+' ~ '+fmt(edition.window_end_at);$('magazineStats').innerHTML='<span><b>'+issues.length+'</b> 주요 이슈</span><span><b>'+Object.keys(publishers).length+'</b> 언론사</span><span><b>'+Object.keys(tones).length+'</b> 어조</span>';$('magazineIssues').innerHTML=issues.length?issues.map(function(issue,index){var lead=issue.lead,caseNames=lead._magazineMatches.map(function(item){return item.name}).join(' · '),related=(lead.related_press_releases||[]).map(function(item){return '<a href="'+esc(item.url)+'" target="_blank" rel="noopener">관련 보도자료: '+esc(item.title)+'</a>'}).join(''),others=issue.members.slice(1).map(function(item){return '<li><a href="'+esc(item.original_url)+'" target="_blank" rel="noopener">'+esc(item.title)+'</a> <small>'+esc(item.publisher||'')+'</small></li>'}).join('');return '<article class="magazine-issue '+(index===0?'lead':'')+'"><div class="magazine-kicker"><span>'+esc(lead.article_type||'기타')+'</span><span>'+esc(lead.tone||'사실전달')+'</span></div>'+(lead.image_url?'<img class="magazine-image" src="'+esc(lead.image_url)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<a class="magazine-headline" href="'+esc(lead.original_url)+'" target="_blank" rel="noopener">'+esc(lead.title)+'</a><p>'+esc(lead.summary||'AI 요약이 준비되지 않았습니다.')+'</p><small>'+esc(lead.publisher||'언론사 미확인')+' · '+fmt(lead.published_at)+' · 관련 케이스 '+esc(caseNames)+' · 관련 기사 '+issue.members.length+'건</small>'+(others?'<ul class="magazine-related">'+others+'</ul>':'')+related+'</article>'}).join(''):'<div class="empty">선택한 케이스에 포함되는 기사가 없습니다.</div>'}
 function collapseMagazineRelated(){document.querySelectorAll('.magazine-issue>.magazine-related').forEach(function(list){var items=Array.from(list.children),limit=list.parentElement.classList.contains('lead')?10:5;if(items.length<=limit)return;var more=document.createElement('details'),summary=document.createElement('summary'),extra=document.createElement('ul');more.className='magazine-related-more';summary.textContent=(items.length-limit)+'개 관련 기사 더보기';extra.className='magazine-related';items.slice(limit).forEach(function(item){extra.appendChild(item)});more.appendChild(summary);more.appendChild(extra);list.after(more)})}
@@ -52,7 +57,7 @@ async function openMagazineEdition(id){if(!id)return;try{var data=await req('/ap
 var openMagazineEditionBase=openMagazineEdition;
 openMagazineEdition=function(id){var requested=state.magazineRequestedEdition||'';state.magazineRequestedEdition='';return openMagazineEditionBase(requested||id)};
 async function loadMagazine(){try{var adminCheck=await fetch('/api/admin/session',{cache:'no-store',credentials:'same-origin'});state.isAdmin=adminCheck.ok;state.adminSessionChecked=true;if($('magazineAdminActions'))$('magazineAdminActions').hidden=!state.isAdmin;var data=await req('/api/poc/master-press/magazines?limit=365&_='+Date.now());state.magazineOrganizations=data.organizations||[];state.magazineEditions=data.items||[];if(!state.magazineOrganization||!state.magazineOrganizations.some(function(item){return item.id===state.magazineOrganization}))state.magazineOrganization=(state.magazineEditions[0]||state.magazineOrganizations[0]||{}).organization_id||(state.magazineOrganizations[0]||{}).id||'';$('magazineOrganization').innerHTML=state.magazineOrganizations.map(function(item){return '<option value="'+esc(item.id)+'">'+esc(item.name)+'</option>'}).join('');$('magazineOrganization').value=state.magazineOrganization;var editions=state.magazineEditions.filter(function(item){return item.organization_id===state.magazineOrganization});$('magazineEdition').innerHTML=editions.map(function(item){return '<option value="'+esc(item.id)+'">'+esc(item.edition_date)+' · '+esc(item.slot_label)+'</option>'}).join('');var selected=state.magazineEditionData&&state.magazineEditionData.id;if(!selected||!editions.some(function(item){return item.id===selected}))selected=editions[0]&&editions[0].id;$('magazineEdition').value=selected||'';if(selected)await openMagazineEdition(selected);else{$('magazineIssues').innerHTML='<div class="empty">아직 발행된 매거진이 없습니다.</div>';$('magazineCaseList').innerHTML=''}}catch(error){toast(error.message)}}
-if($('magazineOrganization'))$('magazineOrganization').onchange=function(){state.magazineOrganization=this.value;state.magazineEditionData=null;loadMagazine()};if($('magazineEdition'))$('magazineEdition').onchange=function(){openMagazineEdition(this.value)};if($('magazineSelectAll'))$('magazineSelectAll').onclick=function(){var cases=(state.magazineEditionData||{}).case_catalog||[];state.magazineSelectedCases=cases.map(function(item){return item.id});localStorage.setItem(magazineStorageKey(),JSON.stringify(state.magazineSelectedCases));renderMagazineCases();renderMagazinePaper()}
+if($('magazineOrganization'))$('magazineOrganization').onchange=function(){state.magazineOrganization=this.value;state.magazineEditionData=null;loadMagazine()};if($('magazineEdition'))$('magazineEdition').onchange=function(){openMagazineEdition(this.value)};if($('magazineSelectAll'))$('magazineSelectAll').onclick=function(){var cases=(state.magazineEditionData||{}).case_catalog||[];state.magazineSelectedCases=cases.map(function(item){return item.id});saveMagazinePreferences({selectedCaseIds:state.magazineSelectedCases});renderMagazineCases();renderMagazinePaper()}
 if($('magazineCaseToggle'))$('magazineCaseToggle').onclick=function(){var editor=$('magazineCaseEditor');setMagazineCaseEditor(!editor||editor.hidden)};
 function magazineEditionClientMetrics(edition){var sizes={};((edition||{}).members||[]).forEach(function(member){var key=member.issue_key||'article:'+String(member.article_id||'');sizes[key]=(sizes[key]||0)+1});return {issue_count:Object.keys(sizes).length,grouped_article_count:Object.keys(sizes).reduce(function(total,key){return total+(sizes[key]>1?sizes[key]:0)},0)}}
 function renderMagazineCurrentStatus(){if(!state.isAdmin||!$('magazineAdminStatus'))return;var edition=state.magazineEditionData||{},metrics=magazineEditionClientMetrics(edition);$('magazineAdminStatus').textContent='현재 지면 · '+fmt(edition.generated_at)+' · 전체 이슈 '+metrics.issue_count.toLocaleString()+' · 묶인 기사 '+metrics.grouped_article_count.toLocaleString();$('magazineAdminStatus').classList.remove('success')}
@@ -826,3 +831,222 @@ if((initialAdmin||initialConnected||initialUnsubscribed!==null) && history.repla
   history.replaceState(null,'',location.pathname);
 }
 if(initialAdmin)showView('admin');else if(initialConnected){showView('signup');toast('카카오 메시지 동의가 완료되었습니다. 다음 정보를 입력해 주세요.')}else if(initialUnsubscribed!==null){showView('signup');toast(initialUnsubscribed==='1'?'구독이 해지되었습니다. 신청 기록은 6시간 동안 표시됩니다.':'해지할 활성 구독을 찾지 못했습니다.')}else showView(initialView);
+
+var magazineSpeechController=null;
+var magazineReadPreparedCount=0;
+var magazineReadPreparedKey='';
+var magazineReadLifecycleMessage='';
+var magazineReadHighlightedKey='';
+var magazineWakeLock=null;
+var magazineWakeLockRequesting=false;
+var magazineReadUiState={status:'idle',issueCount:0,currentIssue:0,segment:null,error:''};
+
+async function acquireMagazineWakeLock(){
+  if(!navigator.wakeLock||typeof navigator.wakeLock.request!=='function'||document.visibilityState!=='visible'||magazineWakeLock||magazineWakeLockRequesting)return false;
+  magazineWakeLockRequesting=true;
+  try{
+    var sentinel=await navigator.wakeLock.request('screen');
+    if(magazineReadUiState.status!=='speaking'||document.visibilityState!=='visible'){try{await sentinel.release()}catch(error){}return false}
+    magazineWakeLock=sentinel;
+    sentinel.addEventListener('release',function(){if(magazineWakeLock===sentinel){magazineWakeLock=null;renderMagazineReadControls()}});
+    renderMagazineReadControls();
+    return true;
+  }catch(error){return false}finally{magazineWakeLockRequesting=false}
+}
+
+async function releaseMagazineWakeLock(){
+  var sentinel=magazineWakeLock;magazineWakeLock=null;
+  if(sentinel)try{await sentinel.release()}catch(error){}
+}
+
+function magazineNarration(){
+  if(!window.MagazineReader)return {issueCount:0,segments:[]};
+  return window.MagazineReader.buildNarration(state.magazineEditionData||{},state.magazineSelectedCases||[]);
+}
+
+function magazineReadStatusText(snapshot){
+  var status=snapshot.status,segment=snapshot.segment;
+  if(status==='unsupported')return '이 브라우저에서는 음성 읽어주기를 지원하지 않습니다.';
+  if(status==='error')return '음성 재생 중 오류가 발생했습니다. 다시 시도해 주세요.';
+  if(status==='idle'&&magazineReadLifecycleMessage)return magazineReadLifecycleMessage;
+  if(status==='empty'||!magazineReadPreparedCount)return '선택한 케이스에 읽을 이슈가 없습니다.';
+  if(status==='paused')return snapshot.currentIssue?snapshot.currentIssue+'번째 이슈에서 일시정지했습니다.':'매거진 안내에서 일시정지했습니다.';
+  if(status==='speaking'){
+    var wakeText=magazineWakeLock?' · 화면 켜짐 유지 중':'';
+    if(segment&&segment.kind==='issue')return snapshot.currentIssue+'번째 이슈를 읽고 있습니다.'+wakeText;
+    if(segment&&segment.kind==='outro')return '매거진 읽기를 마무리하고 있습니다.'+wakeText;
+    return '매거진 안내를 읽고 있습니다.'+wakeText;
+  }
+  if(status==='completed')return '매거진 읽기를 마쳤습니다.';
+  return '읽기 준비됨 · 주요 이슈 '+magazineReadPreparedCount+'건';
+}
+
+function magazineNarrationKey(narration){
+  return (narration.segments||[]).map(function(segment){
+    return [segment.kind||'',segment.issueKey||'',segment.articleId||'',segment.text||''].join(':');
+  }).join('|');
+}
+
+function magazineReadIsActive(){return magazineReadUiState.status==='speaking'||magazineReadUiState.status==='paused'}
+
+function stopMagazineReadForContext(message){
+  if(!magazineSpeechController||!magazineReadIsActive())return false;
+  magazineSpeechController.stop();
+  magazineReadLifecycleMessage=message||'화면 내용이 변경되어 읽기를 중지했습니다.';
+  renderMagazineReadControls();
+  return true;
+}
+
+function syncMagazineReadIssueTargets(narration){
+  var nodes=Array.from(document.querySelectorAll('#magazineIssues>.magazine-issue:not(.magazine-topic-slot)'));
+  nodes.forEach(function(node,index){
+    var issue=(narration.issues||[])[index];
+    if(!issue){delete node.dataset.readerIssueKey;delete node.dataset.readerArticleId;return;}
+    node.dataset.readerIssueKey=String(issue.issueKey||'');
+    node.dataset.readerArticleId=String((issue.lead||{}).article_id||'');
+  });
+}
+
+function scrollMagazineReadIssueToTop(target,reduced){
+  var topbar=document.querySelector('.topbar'),topbarBottom=topbar?Math.max(0,topbar.getBoundingClientRect().bottom):0;
+  var targetTop=window.scrollY+target.getBoundingClientRect().top;
+  window.scrollTo({top:Math.max(0,targetTop-topbarBottom-12),behavior:reduced?'auto':'smooth'});
+}
+
+function updateMagazineReadIssueHighlight(){
+  var nodes=Array.from(document.querySelectorAll('#magazineIssues>.magazine-issue'));
+  nodes.forEach(function(node){node.classList.remove('is-reading');node.removeAttribute('aria-current')});
+  var segment=magazineReadUiState.segment;
+  if(!segment||segment.kind!=='issue'){magazineReadHighlightedKey='';return;}
+  var target=nodes.find(function(node){return node.dataset.readerIssueKey===String(segment.issueKey||'')&&node.dataset.readerArticleId===String(segment.articleId||'')});
+  if(!target)return;
+  target.classList.add('is-reading');target.setAttribute('aria-current','true');
+  var key=String(segment.issueKey||'')+':'+String(segment.articleId||'');
+  if(key!==magazineReadHighlightedKey){
+    magazineReadHighlightedKey=key;
+    var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scrollMagazineReadIssueToTop(target,reduced);
+  }
+}
+
+function renderMagazineReadControls(){
+  var start=$('magazineReadStart'),pause=$('magazineReadPause'),stop=$('magazineReadStop'),rate=$('magazineReadRate'),progress=$('magazineReadProgress'),status=$('magazineReadStatus'),floating=$('magazineReadFloatingToggle');
+  if(!start||!pause||!stop||!rate||!progress||!status)return;
+  var supported=!!(magazineSpeechController&&magazineSpeechController.supported());
+  var active=magazineReadUiState.status==='speaking'||magazineReadUiState.status==='paused';
+  var region=start.closest('.magazine-reader');
+  start.disabled=!supported||!magazineReadPreparedCount;
+  pause.disabled=!supported||!active;
+  stop.disabled=!supported||!active;
+  rate.disabled=!supported;
+  pause.textContent=magazineReadUiState.status==='paused'?'계속':'일시정지';
+  pause.setAttribute('aria-label',magazineReadUiState.status==='paused'?'매거진 읽기 계속':'매거진 읽기 일시정지');
+  pause.setAttribute('aria-pressed',magazineReadUiState.status==='paused'?'true':'false');
+  if(region){region.dataset.state=magazineReadUiState.status;region.setAttribute('aria-busy',magazineReadUiState.status==='speaking'?'true':'false');region.setAttribute('aria-disabled',supported?'false':'true')}
+  progress.textContent=Number(magazineReadUiState.currentIssue||0)+' / '+magazineReadPreparedCount+'번째 이슈';
+  status.textContent=magazineReadStatusText(magazineReadUiState);
+  if(floating){
+    floating.hidden=!supported||!magazineReadPreparedCount;
+    floating.disabled=!supported||!magazineReadPreparedCount;
+    floating.textContent=magazineReadUiState.status==='speaking'?'Ⅱ':'▶';
+    floating.setAttribute('aria-label',magazineReadUiState.status==='speaking'?'매거진 읽기 일시정지':magazineReadUiState.status==='paused'?'매거진 읽기 계속':'매거진 처음부터 듣기');
+    floating.setAttribute('aria-pressed',magazineReadUiState.status==='speaking'?'true':'false');
+    floating.dataset.state=magazineReadUiState.status;
+    floating.title=magazineWakeLock?'화면 켜짐 유지 중':'매거진 읽기 제어';
+  }
+  updateMagazineReadIssueHighlight();
+}
+
+function refreshMagazineReadAvailability(){
+  var narration=magazineNarration();
+  var nextKey=magazineNarrationKey(narration),contentChanged=!!magazineReadPreparedKey&&nextKey!==magazineReadPreparedKey;
+  if(contentChanged&&magazineSpeechController&&['speaking','paused','completed'].indexOf(magazineReadUiState.status)>=0){
+    magazineSpeechController.stop();
+    magazineReadLifecycleMessage='매거진 내용이 변경되어 읽기를 중지했습니다.';
+  }
+  magazineReadPreparedKey=nextKey;
+  magazineReadPreparedCount=Number(narration.issueCount||0);
+  syncMagazineReadIssueTargets(narration);
+  if(magazineReadUiState.status!=='speaking'&&magazineReadUiState.status!=='paused'){
+    magazineReadUiState=Object.assign({},magazineReadUiState,{issueCount:magazineReadPreparedCount,currentIssue:magazineReadUiState.status==='completed'?magazineReadPreparedCount:0,segment:null});
+  }
+  renderMagazineReadControls();
+}
+
+function applyMagazineReadRatePreference(){
+  if(!magazineSpeechController||!$('magazineReadRate'))return;
+  var stored=Number(readMagazinePreferences().readRate),preferred=magazineRateOptions().indexOf(stored)>=0?stored:defaultMagazineReadRate();
+  preferred=magazineSpeechController.setRate(preferred);
+  $('magazineReadRate').value=String(preferred);
+}
+
+function setupMagazineSpeech(){
+  var start=$('magazineReadStart'),pause=$('magazineReadPause'),stop=$('magazineReadStop'),rate=$('magazineReadRate'),floating=$('magazineReadFloatingToggle');
+  if(!start||!pause||!stop||!rate)return;
+  if(!window.MagazineSpeech){magazineReadUiState.status='error';renderMagazineReadControls();return;}
+  magazineSpeechController=window.MagazineSpeech.createController({
+    synthesis:window.speechSynthesis,
+    Utterance:window.SpeechSynthesisUtterance,
+    onChange:function(snapshot){magazineReadUiState=snapshot;if(snapshot.status==='speaking')acquireMagazineWakeLock();else releaseMagazineWakeLock();renderMagazineReadControls()}
+  });
+  var savedRate=defaultMagazineReadRate();
+  savedRate=magazineSpeechController.setRate(savedRate);
+  rate.value=String(savedRate);
+  start.onclick=function(){
+    var narration=magazineNarration();
+    magazineReadPreparedCount=Number(narration.issueCount||0);
+    if(!magazineReadPreparedCount){renderMagazineReadControls();toast('선택한 케이스에 읽을 이슈가 없습니다.');return;}
+    magazineReadPreparedKey=magazineNarrationKey(narration);
+    magazineReadLifecycleMessage='';
+    magazineSpeechController.start(narration.segments);
+  };
+  pause.onclick=function(){
+    if(magazineReadUiState.status==='paused')magazineSpeechController.resume();else magazineSpeechController.pause();
+  };
+  stop.onclick=function(){magazineSpeechController.stop()};
+  if(floating)floating.onclick=function(){
+    if(magazineReadUiState.status==='speaking')magazineSpeechController.pause();
+    else if(magazineReadUiState.status==='paused')magazineSpeechController.resume();
+    else start.click();
+  };
+  rate.onchange=function(){
+    var selected=magazineSpeechController.setRate(this.value);this.value=String(selected);
+    saveMagazinePreferences({readRate:selected});
+  };
+  if(!magazineSpeechController.supported())magazineReadUiState.status='unsupported';
+  refreshMagazineReadAvailability();
+}
+
+var renderMagazinePaperWithReaderAvailability=renderMagazinePaper;
+renderMagazinePaper=function(){renderMagazinePaperWithReaderAvailability();refreshMagazineReadAvailability()};
+setupMagazineSpeech();
+
+var openMagazineEditionWithReadPreferences=openMagazineEdition;
+openMagazineEdition=function(id){applyMagazineReadRatePreference();return openMagazineEditionWithReadPreferences(id)};
+
+var showViewWithMagazineSpeechLifecycle=showView;
+showView=function(name,focusId){
+  if(name!=='magazine')stopMagazineReadForContext('다른 화면으로 이동하여 읽기를 중지했습니다.');
+  return showViewWithMagazineSpeechLifecycle(name,focusId);
+};
+
+function wrapMagazineReadContextHandler(elementId,message){
+  var element=$(elementId);if(!element||typeof element.onchange!=='function')return;
+  var original=element.onchange;element.onchange=function(event){stopMagazineReadForContext(message);return original.call(this,event)};
+}
+wrapMagazineReadContextHandler('magazineOrganization','부처가 변경되어 읽기를 중지했습니다.');
+wrapMagazineReadContextHandler('magazineEdition','매거진 일자가 변경되어 읽기를 중지했습니다.');
+
+var magazineSelectAllWithSpeechLifecycle=$('magazineSelectAll')&&$('magazineSelectAll').onclick;
+if(magazineSelectAllWithSpeechLifecycle)$('magazineSelectAll').onclick=function(event){
+  stopMagazineReadForContext('케이스 선택이 변경되어 읽기를 중지했습니다.');
+  return magazineSelectAllWithSpeechLifecycle.call(this,event);
+};
+var republishMagazineWithSpeechLifecycle=$('republishMagazine')&&$('republishMagazine').onclick;
+if(republishMagazineWithSpeechLifecycle)$('republishMagazine').onclick=function(event){
+  var result=republishMagazineWithSpeechLifecycle.call(this,event);
+  if(this.disabled)stopMagazineReadForContext('매거진 재발행을 시작하여 읽기를 중지했습니다.');
+  return result;
+};
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&magazineReadUiState.status==='speaking')acquireMagazineWakeLock();else releaseMagazineWakeLock()});
+window.addEventListener('pagehide',function(){releaseMagazineWakeLock();if(magazineSpeechController&&magazineReadIsActive())magazineSpeechController.stop()});

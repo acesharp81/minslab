@@ -187,6 +187,10 @@ class MasterPressService:
         self.settings = settings
         self.store = store
         self.store.ensure_pipeline_lease_schema()
+        # Fast startup skips the full schema script for an existing database.
+        # Keep critical user-facing query indexes self-installing and fail fast
+        # if SQLite can no longer use them for the intended access pattern.
+        self.performance_index_health = self.store.ensure_performance_indexes()
         self.worker_id = f"{os.getpid()}:{uuid.uuid4()}"
         self.collector = NewsCollector(settings)
         self.scoring = RelevanceEngine(settings, store)
