@@ -21,6 +21,8 @@ from .terminology import canonical_editorial_term, inferred_editorial_events
 
 
 KST = timezone(timedelta(hours=9))
+NEURAL_SENT_DELIVERY_INDEX = "idx_deliveries_article_case_status_sent_at"
+NEURAL_SENT_DELIVERY_INDEX_COLUMNS = ("article_id", "case_id", "status", "sent_at")
 RECIPIENT_UNSUBSCRIBE_INVITE_LABEL = "__recipient_unsubscribe__"
 DASHBOARD_TOPIC_TYPES = (
     "정책·행정", "정치·입법", "경제·산업", "사회·안전", "재난·환경",
@@ -785,6 +787,10 @@ CREATE INDEX IF NOT EXISTS idx_delivery_attempts_status_finished ON delivery_att
 -- case/status/date lookup narrow so it never has to read article bodies for
 -- every delivery in the system.
 CREATE INDEX IF NOT EXISTS idx_deliveries_case_status_sent_at ON deliveries(case_id, status, sent_at DESC, article_id);
+-- Neural insights check whether each candidate article was actually sent. The
+-- case-first index above serves trend queries, but its sent_at range prevents
+-- SQLite from narrowing by article_id and caused one delivery scan per article.
+CREATE INDEX IF NOT EXISTS idx_deliveries_article_case_status_sent_at ON deliveries(article_id, case_id, status, sent_at DESC);
 
 -- A magazine is an immutable, shared editorial snapshot. Browser-specific
 -- case choices are deliberately not stored here.
@@ -1416,6 +1422,51 @@ class Store:
                     self._pipeline_summary_cache.clear()
             finally:
                 connection.close()
+
+    def ensure_performance_indexes(self) -> dict:
+        """Install and verify indexes whose absence causes user-facing query stalls."""
+        index_name = NEURAL_SENT_DELIVERY_INDEX
+        with self.connect() as connection:
+            connection.execute(
+                f"CREATE INDEX IF NOT EXISTS {index_name} "
+                "ON deliveries(article_id, case_id, status, sent_at DESC)"
+            )
+            columns = tuple(
+                str(row["name"])
+                for row in connection.execute(f"PRAGMA index_info({index_name})").fetchall()
+            )
+            if columns != NEURAL_SENT_DELIVERY_INDEX_COLUMNS:
+                raise RuntimeError(
+                    f"critical index {index_name} has columns {columns}, "
+                    f"expected {NEURAL_SENT_DELIVERY_INDEX_COLUMNS}"
+                )
+            plan = [
+                str(row["detail"])
+                for row in connection.execute(
+                    """EXPLAIN QUERY PLAN
+                       SELECT aa.id
+                       FROM article_analyses aa
+                       JOIN case_evaluations ce
+                         ON ce.article_analysis_id=aa.id
+                        AND ce.case_id=?
+                        AND ce.candidate_status='candidate'
+                       WHERE aa.status='completed'
+                         AND EXISTS (
+                           SELECT 1 FROM deliveries d
+                           WHERE d.article_id=aa.article_id
+                             AND d.case_id=ce.case_id
+                             AND d.status='sent'
+                             AND COALESCE(d.sent_at,d.updated_at)>=?
+                         )
+                       LIMIT 60""",
+                    ("query-plan-case", "2000-01-01T00:00:00+09:00"),
+                ).fetchall()
+            ]
+        if not any(index_name in detail for detail in plan):
+            raise RuntimeError(
+                f"critical neural query does not use {index_name}: {' | '.join(plan)}"
+            )
+        return {"index": index_name, "columns": list(columns), "query_plan": plan}
 
     def _database_change_marker(self) -> tuple[int, int, int, int]:
         marker: list[int] = []
