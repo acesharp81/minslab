@@ -71,6 +71,12 @@ NORTH_KOREA_LIGHTS_OUTPUT = (
 NORTH_KOREA_LIGHTS_DATA = NORTH_KOREA_LIGHTS_OUTPUT / "data"
 NORTH_KOREA_LIGHTS_PLAYER = Path(__file__).parent / "PoC" / "05-north-korea-night-lights" / "player.html"
 NORTH_KOREA_LIGHTS_TOP3 = NORTH_KOREA_LIGHTS_OUTPUT / "top3_locations.json"
+AIWORKS_BASE_PATH = "/poc/aiworks"
+AIWORKS_WEB = Path(__file__).parent / "PoC" / "06-AIWorks" / "web"
+AIWORKS_API_BASE = "/api/poc/aiworks"
+AIWORKS_SERVICE_PATH = Path(__file__).parent / "PoC" / "06-AIWorks" / "backend.py"
+AIWORKS_MODULE = None
+AIWORKS_MTIME = None
 
 WORKER_LOCK_PATH = Path(__file__).parent / "data" / "master_press_workers.lock"
 WORKER_LOCK_HANDLE = None
@@ -1115,6 +1121,8 @@ HTML_PAGE = r"""
         renderMasterPressLab(p);
       }else if(p.id==='north-korea-night-lights'){
         renderNorthKoreaNightLightsLab(p);
+      }else if(p.id==='aiworks'){
+        projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>06 · AIWorks</strong><span>문서·MCP·공통데이터를 하나의 승인 기반 작업공간에서 실행합니다.</span></div><a class="field-inspection-open" href="/poc/aiworks/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">로컬 샌드박스 초기 버전 · 외부 MCP 및 모델 전송 전 명시적 승인 · 실행별 감사 로그</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="/poc/aiworks/" title="AIWorks" loading="eager"></iframe></div></section>`;projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
       }else if(p.id==='mois-kms'){
         renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
@@ -1829,6 +1837,16 @@ def load_master_press_module():
     return MASTER_PRESS_MODULE
 
 
+def load_aiworks_module():
+    """PoC 06 서버 모듈을 변경 시 자동으로 다시 읽는다."""
+    global AIWORKS_MODULE, AIWORKS_MTIME
+    mtime = AIWORKS_SERVICE_PATH.stat().st_mtime_ns
+    if AIWORKS_MODULE is None or AIWORKS_MTIME != mtime:
+        AIWORKS_MODULE = load_module_from_path("aiworks_poc_backend", AIWORKS_SERVICE_PATH)
+        AIWORKS_MTIME = mtime
+    return AIWORKS_MODULE
+
+
 def acquire_master_press_worker_lock() -> bool:
     """Ensure only one process runs background master-press workers."""
     global WORKER_LOCK_HANDLE
@@ -2172,7 +2190,57 @@ async def app(scope, receive, send):
     status = 200
     extra_headers = []
 
-    if path == "/api/analytics/visit" and method == "POST":
+    if (path == AIWORKS_API_BASE or path.startswith(f"{AIWORKS_API_BASE}/")) and method in {"GET", "POST"}:
+        try:
+            payload = {}
+            if method == "POST":
+                raw_body = await read_request_body(receive)
+                if len(raw_body) > 15_000_000:
+                    raise ValueError("AIWorks 요청 본문은 15MB를 넘을 수 없습니다.")
+                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON 객체 형식이 필요합니다.")
+            module = load_aiworks_module()
+            subpath = path[len(AIWORKS_API_BASE):] or "/"
+            result = await asyncio.to_thread(module.dispatch, subpath, method, payload)
+            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
+            status = 400
+            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
+        except Exception as error:
+            status = int(getattr(error, "status", 500))
+            body = json.dumps(
+                {"error": str(error) or "AIWorks 요청을 처리하지 못했습니다."},
+                ensure_ascii=False,
+            ).encode("utf-8")
+        content_type = "application/json; charset=utf-8"
+        extra_headers.append((b"cache-control", b"no-store"))
+    elif (path == AIWORKS_BASE_PATH or path.startswith(f"{AIWORKS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
+        relative_path = path[len(AIWORKS_BASE_PATH):].lstrip("/")
+        requested = (AIWORKS_WEB / relative_path).resolve() if relative_path else AIWORKS_WEB / "index.html"
+        try:
+            requested.relative_to(AIWORKS_WEB.resolve())
+            if requested.is_file():
+                target = requested
+            elif requested.is_dir() and (requested / "index.html").is_file():
+                target = requested / "index.html"
+            elif not Path(relative_path).suffix:
+                target = AIWORKS_WEB / "index.html"
+            else:
+                raise FileNotFoundError
+            body = await asyncio.to_thread(target.read_bytes)
+            content_type = {
+                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+                ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
+                ".wasm": "application/wasm", ".woff2": "font/woff2", ".woff": "font/woff",
+            }.get(target.suffix.lower(), "application/octet-stream")
+            extra_headers.append((b"cache-control", b"no-cache"))
+        except (ValueError, OSError, FileNotFoundError):
+            status = 404
+            body = b"AIWorks application is not available."
+            content_type = "text/plain; charset=utf-8"
+    elif path == "/api/analytics/visit" and method == "POST":
         try:
             raw_body = await read_request_body(receive)
             if len(raw_body) > 32_000:

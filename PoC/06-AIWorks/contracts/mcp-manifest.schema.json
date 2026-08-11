@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/mcp-manifest.schema.json",
+  "title": "AIWorks MCP Manifest",
+  "type": "object",
+  "required": ["id", "name", "version", "runtime", "inputs", "outputs", "permissions"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "name": {"type": "string", "minLength": 2},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "runtime": {"enum": ["local", "remote", "hybrid"]},
+    "description": {"type": "string"},
+    "inputs": {"type": "object"},
+    "outputs": {"type": "object"},
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scope", "reason", "required"],
+        "properties": {
+          "scope": {"enum": ["document.read", "document.write", "common-data.read", "common-data.write", "network.send", "model.invoke"]},
+          "reason": {"type": "string"},
+          "required": {"type": "boolean"}
+        }
+      }
+    },
+    "supports": {"type": "array", "items": {"type": "string"}},
+    "dependencies": {"type": "array", "items": {"type": "string"}},
+    "visibility": {"enum": ["private", "organization", "public"]},
+    "sourceIncluded": {"type": "boolean"}
+    ,"references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "filename", "mediaType", "bytes", "sha256"],
+        "properties": {
+          "id": {"type": "string"},
+          "filename": {"type": "string"},
+          "mediaType": {"type": "string"},
+          "bytes": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

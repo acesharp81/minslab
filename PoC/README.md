@@ -11,6 +11,7 @@
 | 03 | [03-mois-kms](03-mois-kms/README.md) | 조직·업무·결재·AI 보고서 | React/Vite SPA + Python API + Supabase Auth |
 | 04 | [04-master-press](04-master-press/README.md) | 뉴스 수집·복합 관련도·카카오 알림·CaseON 매거진 | Python 모듈 + 정적 UI + SQLite/Supabase |
 | 05 | [05-north-korea-night-lights](05-north-korea-night-lights/README.md) | 북한 VIIRS 월별 야간조명 3D 격자 지도 | Earth Engine Python API + pydeck 단일 HTML |
+| 06 | [06-AIWorks](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + JSON Schema 샌드박스 |
 
 ## 등록 방식
 

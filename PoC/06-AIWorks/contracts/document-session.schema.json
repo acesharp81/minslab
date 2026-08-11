@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/document-session.schema.json",
+  "title": "AIWorks MCP Native Document Session",
+  "type": "object",
+  "required": ["id", "filename", "format", "adapter", "runtime", "revision", "intentAnalysis", "orchestration", "snapshot", "artifactSha256"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^docsession_[a-f0-9]{32}$"},
+    "filename": {"type": "string", "minLength": 1},
+    "format": {"enum": ["hwp", "hwpx", "hwt", "hml", "md", "txt", "py", "js", "ts", "json"]},
+    "adapter": {"enum": ["document.rhwp@1.0.0", "document.rhwp-web@0.8.2", "document.hwpx@1.2.0", "document.markdown@1.0.0", "code.editor@1.0.0"]},
+    "runtime": {"enum": ["windows-native-bridge", "server-python-fallback", "browser-editor-plugin", "browser-wasm"]},
+    "status": {"const": "active"},
+    "revision": {"type": "integer", "minimum": 1},
+    "intentAnalysis": {"type": "object"},
+    "orchestration": {
+      "type": "object",
+      "required": ["requestedAdapter", "selectedAdapter", "fallback", "reason"],
+      "properties": {
+        "requestedAdapter": {"type": "string"},
+        "selectedAdapter": {"type": "string"},
+        "fallback": {"type": "boolean"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "snapshot": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "previewPdfBase64"],
+          "properties": {
+            "kind": {"const": "native-pdf"},
+            "previewPdfBase64": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "document"],
+          "properties": {
+            "kind": {"const": "structured-hwpx"},
+            "document": {"type": "object"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "language", "content"],
+          "properties": {
+            "kind": {"const": "text-editor"},
+            "language": {"type": "string"},
+            "content": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "sourceFormat"],
+          "properties": {
+            "kind": {"const": "rhwp-web"},
+            "sourceFormat": {"enum": ["hwp", "hwt", "hml"]}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "artifactSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "contentBase64": {"type": "string"},
+    "createdAt": {"type": "string"},
+    "updatedAt": {"type": "string"}
+  },
+  "additionalProperties": false
+}

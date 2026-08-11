@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/knowledge-node.schema.json",
+  "title": "AIWorks Grounded Knowledge Node",
+  "type": "object",
+  "required": ["id", "nodeType", "title", "content", "classification", "sources"],
+  "properties": {
+    "id": {"type": "string", "minLength": 3},
+    "nodeType": {"enum": ["document", "common-data", "note"]},
+    "title": {"type": "string", "minLength": 1},
+    "content": {"type": "string"},
+    "classification": {"enum": ["public", "internal", "confidential", "personal"]},
+    "metadata": {"type": "object"},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["documentId", "locator", "confidence"],
+        "properties": {
+          "documentId": {"type": "string"},
+          "locator": {"type": "string"},
+          "excerpt": {"type": "string"},
+          "effectiveDate": {"type": ["string", "null"], "format": "date"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
