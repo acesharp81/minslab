@@ -2469,7 +2469,42 @@ class Store:
     def supabase_outbox_status(self) -> dict:
         with self.connect() as connection:
             rows = connection.execute("SELECT status,COUNT(*) value FROM supabase_outbox GROUP BY status").fetchall()
-        return {str(row["status"]): int(row["value"] or 0) for row in rows}
+            today = datetime.now(KST).date()
+            first_day = today - timedelta(days=6)
+            daily_rows = connection.execute(
+                """SELECT substr(updated_at,1,10) day,
+                          SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
+                          SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed
+                   FROM supabase_outbox WHERE updated_at>=?
+                   GROUP BY substr(updated_at,1,10)""",
+                (datetime.combine(first_day, datetime.min.time(), tzinfo=KST).isoformat(timespec="seconds"),),
+            ).fetchall()
+        result = {str(row["status"]): int(row["value"] or 0) for row in rows}
+        daily_map = {str(row["day"]): row for row in daily_rows if row["day"]}
+        result["daily"] = [{
+            "day": (first_day + timedelta(days=offset)).isoformat(),
+            "completed": int((daily_map.get((first_day + timedelta(days=offset)).isoformat()) or {"completed": 0})["completed"] or 0),
+            "failed": int((daily_map.get((first_day + timedelta(days=offset)).isoformat()) or {"failed": 0})["failed"] or 0),
+        } for offset in range(7)]
+        return result
+
+    def body_backfill_daily_stats(self, days: int = 7) -> list[dict]:
+        days = max(1, min(31, int(days)))
+        today = datetime.now(KST).date()
+        first_day = today - timedelta(days=days - 1)
+        keys = [f"body_backfill_processed:{(first_day + timedelta(days=offset)).strftime('%Y%m%d')}" for offset in range(days)]
+        placeholders = ",".join("?" for _ in keys)
+        with self.connect() as connection:
+            rows = connection.execute(f"SELECT key,value FROM app_settings WHERE key IN ({placeholders})", keys).fetchall()
+        values = {str(row["key"]): str(row["value"] or "0") for row in rows}
+        result = []
+        for offset, key in enumerate(keys):
+            try:
+                processed = max(0, int(values.get(key, "0")))
+            except ValueError:
+                processed = 0
+            result.append({"day": (first_day + timedelta(days=offset)).isoformat(), "processed": processed})
+        return result
 
     def pipeline_monitor_status(self) -> dict:
         """Small, read-only operational snapshot for the admin monitoring panel."""
@@ -2549,7 +2584,7 @@ class Store:
             now = now_iso()
             counts = {str(row["day"]): int(row["article_count"] or 0) for row in rows if row["day"]}
             connection.executemany("""INSERT INTO processing_daily_stats(day,article_count,recorded_at) VALUES(?,?,?)
-                ON CONFLICT(day) DO UPDATE SET article_count=excluded.article_count,recorded_at=excluded.recorded_at""",
+                ON CONFLICT(day) DO UPDATE SET article_count=MAX(processing_daily_stats.article_count,excluded.article_count),recorded_at=excluded.recorded_at""",
                 [((first_day + timedelta(days=offset)).isoformat(), counts.get((first_day + timedelta(days=offset)).isoformat(), 0), now) for offset in range(days)])
             saved = {str(row["day"]): int(row["article_count"] or 0) for row in connection.execute(
                 "SELECT day,article_count FROM processing_daily_stats WHERE day>=? ORDER BY day", (first_day.isoformat(),)).fetchall()}
@@ -2563,11 +2598,84 @@ class Store:
                     GROUP BY aa.article_id
                     HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
                 ) SELECT COUNT(*) value FROM completed_articles""").fetchone()["value"] or 0)
+            lifetime_total = int(connection.execute("SELECT COALESCE(SUM(article_count),0) value FROM processing_daily_stats").fetchone()["value"] or 0)
+            token_rows = connection.execute(
+                """SELECT model,provider,COUNT(*) calls,
+                          COALESCE(SUM(input_tokens),0)+COALESCE(SUM(output_tokens),0) tokens
+                   FROM llm_api_calls WHERE created_at>=? AND status='completed'
+                   GROUP BY model,provider ORDER BY tokens DESC,calls DESC""",
+                (kst_day_start_iso(),),
+            ).fetchall()
+            common_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
+                """SELECT model,COUNT(*) processed FROM article_analyses
+                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (kst_day_start_iso(),)
+            ).fetchall()}
+            case_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
+                """SELECT model,COUNT(*) processed FROM case_evaluations
+                   WHERE status='completed' AND COALESCE(completed_at,updated_at)>=? GROUP BY model""", (kst_day_start_iso(),)
+            ).fetchall()}
+            embedding_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
+                """SELECT model,COUNT(*) processed FROM article_embeddings
+                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (kst_day_start_iso(),)
+            ).fetchall()}
         daily = [{"day": (first_day + timedelta(days=offset)).isoformat(), "article_count": int(saved.get((first_day + timedelta(days=offset)).isoformat(), 0))} for offset in range(days)]
         recent_week = daily[-7:]
         week_total = sum(item["article_count"] for item in recent_week)
-        return {"total": total, "week": week_total, "week_average": round(week_total / 7, 1),
-                "yesterday": int(saved.get((today - timedelta(days=1)).isoformat(), 0)), "today": int(saved.get(today.isoformat(), 0)), "daily": daily}
+        return {"total": lifetime_total, "retained_total": total, "week": week_total, "week_average": round(week_total / 7, 1),
+                "yesterday": int(saved.get((today - timedelta(days=1)).isoformat(), 0)), "today": int(saved.get(today.isoformat(), 0)), "daily": daily,
+                "model_tokens": [{"model": str(row["model"] or "unknown"), "provider": str(row["provider"] or ""),
+                                  "tokens": int(row["tokens"] or 0), "calls": int(row["calls"] or 0),
+                                  "processed": common_processed.get(str(row["model"] or "unknown"), 0) + case_processed.get(str(row["model"] or "unknown"), 0) + embedding_processed.get(str(row["model"] or "unknown"), 0),
+                                  "common_processed": common_processed.get(str(row["model"] or "unknown"), 0),
+                                  "case_processed": case_processed.get(str(row["model"] or "unknown"), 0),
+                                  "embedding_processed": embedding_processed.get(str(row["model"] or "unknown"), 0)} for row in token_rows]}
+
+    def model_processed_since(self, model: str, stage: str, since: str) -> int:
+        """Count business units, not API requests: articles for common and cases for case analysis."""
+        with self.connect() as connection:
+            if str(stage) == "case":
+                row = connection.execute(
+                    """SELECT COUNT(*) value FROM case_evaluations
+                       WHERE status='completed' AND model=? AND COALESCE(completed_at,updated_at)>=?""",
+                    (str(model), str(since)),
+                ).fetchone()
+            elif str(stage) == "embedding":
+                row = connection.execute(
+                    """SELECT COUNT(*) value FROM article_embeddings
+                       WHERE status='completed' AND model=? AND updated_at>=?""",
+                    (str(model), str(since)),
+                ).fetchone()
+            else:
+                row = connection.execute(
+                    """SELECT COUNT(*) value FROM article_analyses
+                       WHERE status='completed' AND model=? AND updated_at>=?""",
+                    (str(model), str(since)),
+                ).fetchone()
+        return int((row["value"] if row else 0) or 0)
+
+    def retention_cleanup_status(self) -> dict:
+        """Expose the latest bounded deletion run as a compact admin status."""
+        last_at = self.get_setting("short_retention_last_cleanup_at", "")
+        try:
+            result = json.loads(self.get_setting("short_retention_last_cleanup_result", "{}") or "{}")
+        except (TypeError, ValueError, json.JSONDecodeError):
+            result = {}
+        today = datetime.now(KST).date().isoformat()
+        daily_key = f"short_retention_deleted:{datetime.now(KST).strftime('%Y%m%d')}"
+        try:
+            deleted_today = int(self.get_setting(daily_key, "") or 0)
+        except (TypeError, ValueError):
+            deleted_today = 0
+        if not deleted_today and str(last_at).startswith(today):
+            deleted_today = int(result.get("source_deleted_articles") or 0)
+        return {
+            "delete_targets": int(result.get("source_candidates") or 0),
+            "deleted_today": max(0, deleted_today),
+            "failure_count": max(0, int(result.get("markdown_file_errors") or 0) + (1 if result.get("status") not in {None, "", "unknown", "completed", "skipped"} else 0)),
+            "last_at": last_at,
+            "status": str(result.get("status") or "unknown"),
+            "retention_days": 8,
+        }
 
     def supabase_outbox_pending_for_tables(self, table_names: list[str]) -> int:
         names = [str(name) for name in table_names if str(name)]
@@ -2667,6 +2775,14 @@ class Store:
             "token_soft_limit": int(token_limit or 0), "token_remaining": max(0, int(token_limit or 0) - tokens) if token_limit else 0,
             "period": "custom", "day_start": str(since), "scope": "provider_total" if not stage else "provider_stage",
         }
+
+    def provider_model_count_since(self, provider: str, since: str) -> int:
+        with self.connect() as connection:
+            row = connection.execute(
+                """SELECT COUNT(DISTINCT model) value FROM llm_api_calls
+                   WHERE provider=? AND created_at>=?""", (str(provider), str(since)),
+            ).fetchone()
+        return int((row["value"] if row else 0) or 0)
 
     def openrouter_usage_today(self, soft_limit: int = 800) -> dict:
         day_start = utc_day_start_kst_iso()
@@ -3970,6 +4086,16 @@ class Store:
                 (feedback_id, article_id, case_id, reason, comment, now),
             )
         return {"id": feedback_id, "article_id": article_id, "case_id": case_id, "reason": reason, "comment": comment, "created_at": now}
+
+    def analysis_feedback_counts_by_case(self, days: int = 30) -> dict[str, int]:
+        days = max(1, min(365, int(days)))
+        since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT case_id,COUNT(*) value FROM analysis_feedback WHERE created_at>=? GROUP BY case_id",
+                (since,),
+            ).fetchall()
+        return {str(row["case_id"]): int(row["value"] or 0) for row in rows}
 
     def analysis_feedback_summary(self, article_id: str | None, case_id: str, days: int = 30, limit: int = 5) -> dict:
         days = max(1, min(365, int(days)))

@@ -57,6 +57,12 @@ def main() -> int:
         result.update({"status": "completed", "article_limit": article_limit, "first_run": first_run, "duration_ms": duration_ms})
         store.set_setting("short_retention_last_completed_limit", str(article_limit))
         store.set_setting("short_retention_last_completed_duration_ms", str(duration_ms))
+        deleted_key = f"short_retention_deleted:{datetime.now(KST).strftime('%Y%m%d')}"
+        try:
+            deleted_before = int(store.get_setting(deleted_key, "0") or 0)
+        except ValueError:
+            deleted_before = 0
+        store.set_setting(deleted_key, str(deleted_before + int(result.get("source_deleted_articles") or 0)))
         if first_run:
             store.set_setting("short_retention_initial_cleanup_completed", "1")
     store.set_setting("short_retention_last_cleanup_at", now_iso())
