@@ -254,8 +254,10 @@ def admin_bootstrap() -> dict:
     try:
         cases = service.store.list_cases()
         organizations = service.store.list_organizations()
+        feedback_counts = service.store.analysis_feedback_counts_by_case(30)
         for case in cases:
             case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
+            case["feedback_count"] = int(feedback_counts.get(str(case["id"]), 0))
         common_model = service.selected_common_llm_model()
         case_model = service.selected_case_model1()
         payload = {
@@ -313,8 +315,10 @@ def admin_bootstrap() -> dict:
                 "metadata_retention_days": service.settings.metadata_retention_days,
                 "per_run_article_limit": service.settings.per_run_article_limit,
                 "body_backfill": service.body_backfill_status(),
+                "retention_cleanup": service.store.retention_cleanup_status(),
                 "supabase_outbox": service.store.supabase_outbox_status(),
                 "processing_summary": service.store.processing_summary(14),
+                "model_role_enabled": {target: service.model_role_enabled(target) for target in ("common", "common_fallback", "case", "case_fallback", "case_single", "burst", "embedding")},
                 "supabase_seed": SupabaseSeed(service.store, service.mirror).status(),
                 "supabase_daily_metrics": SupabaseDailyMetrics(service.store, service.mirror).status(),
                 "press_rag": service.press_releases.status(),
@@ -767,6 +771,43 @@ def dispatch(
         waiting_until = str(status.get("disabled_until") or status.get("reset_at") or "") if status.get("exhausted") else ""
         return {"target": target, "model": model, "activated": not bool(waiting_until), "waiting_until": waiting_until, "provider": status, "released_jobs": released if target == "common" else {"pending_released": 0, "failed_requeued": 0}}
 
+    if path == "/admin/settings/model-role-enabled" and method == "PUT":
+        _require_admin(admin_authenticated)
+        target = str(payload.get("target") or "").strip().lower()
+        if target not in {"common", "common_fallback", "case", "case_fallback", "case_single", "burst", "embedding"}:
+            raise MasterPressError("전환할 모델 영역을 찾지 못했습니다.")
+        enabled = bool(payload.get("enabled"))
+        service.store.set_setting(f"model_role_enabled:{target}", "1" if enabled else "0")
+        _invalidate_admin_bootstrap_cache()
+        return {"target": target, "enabled": enabled}
+
+    if path == "/admin/settings/apply-model-selection" and method == "PUT":
+        _require_admin(admin_authenticated)
+        selections = payload.get("models") if isinstance(payload.get("models"), dict) else {}
+        allowed = {
+            "common": ("common_llm_model", service.available_common_llm_models()),
+            "common_fallback": ("common_fallback_llm_model", service.available_common_fallback_models()),
+            "burst": ("case_single_model", service.available_burst_models()),
+            "case": ("case_model1", [service.selected_case_model1()]),
+            "case_fallback": ("case_model2", [service.selected_case_model2()]),
+            "case_single": ("case_single_model", [service.selected_case_single_model()]),
+            "embedding": ("embedding_model", service.available_embedding_models()),
+        }
+        if str(selections.get("burst") or "").strip() != str(selections.get("case_single") or "").strip():
+            raise MasterPressError("OpenRouter Turbo와 단건 판정은 같은 공유 모델을 선택하세요.")
+        applied = {}
+        for target, (setting_key, available) in allowed.items():
+            model = str(selections.get(target) or "").strip()[:180]
+            if not model:
+                raise MasterPressError(f"{target} 모델을 선택하세요.")
+            if available and model not in available:
+                raise MasterPressError(f"{target}에서 사용할 수 없는 모델입니다.")
+            service.store.set_setting(setting_key, model)
+            applied[target] = model
+        service.scoring.ollama.embedding_model = applied["embedding"]
+        _invalidate_admin_bootstrap_cache()
+        return {"applied": applied, "effective_from": "next_job"}
+
     if path == "/admin/settings/promote-reserve-model" and method == "PUT":
         _require_admin(admin_authenticated)
         reserve = str(payload.get("reserve") or "").strip()
@@ -897,18 +938,18 @@ def dispatch(
     if path == "/admin/settings/case-batch" and method == "PUT":
         _require_admin(admin_authenticated)
         try:
-            batch_size = max(1, min(10, int(payload.get("batch_size", 10))))
+            burst_threshold = max(5, min(100, int(payload.get("burst_threshold", payload.get("batch_size", service.selected_burst_threshold())))))
             semantic_threshold = max(0.0, min(100.0, float(payload.get("semantic_candidate_threshold", 65))))
         except (TypeError, ValueError):
-            raise MasterPressError("배치 크기 또는 벡터 후보 기준이 올바르지 않습니다.")
-        service.store.set_setting("case_batch_size", str(batch_size))
+            raise MasterPressError("Turbo 대기 기준 또는 벡터 후보 기준이 올바르지 않습니다.")
+        service.store.set_setting("burst_threshold", str(burst_threshold))
         service.store.set_setting("semantic_candidate_threshold", str(semantic_threshold))
-        return {"case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold}
+        return {"burst_threshold": burst_threshold, "semantic_candidate_threshold": semantic_threshold}
 
     if path == "/admin/settings/analysis-thresholds" and method == "PUT":
         _require_admin(admin_authenticated)
         try:
-            batch_size = max(1, min(10, int(payload.get("batch_size", 10))))
+            burst_threshold = max(5, min(100, int(payload.get("burst_threshold", payload.get("batch_size", service.selected_burst_threshold())))))
             semantic_threshold = max(0.0, min(100.0, float(payload.get("semantic_candidate_threshold", 65))))
             press_threshold = max(0.0, min(100.0, float(payload.get("press_release_match_threshold", 65))))
             similar_threshold = max(0.0, min(100.0, float(payload.get("similar_article_threshold", 65))))
@@ -918,7 +959,7 @@ def dispatch(
         except (TypeError, ValueError):
             raise MasterPressError("분석 기준 값이 올바르지 않습니다.")
         for key, value in (
-            ("case_batch_size", batch_size), ("semantic_candidate_threshold", semantic_threshold),
+            ("burst_threshold", burst_threshold), ("semantic_candidate_threshold", semantic_threshold),
             ("press_release_match_threshold", press_threshold), ("similar_article_threshold", similar_threshold),
             ("magazine_similarity_threshold", magazine_threshold),
             ("openai_shadow_enabled", "1" if shadow_enabled else "0"),
@@ -927,7 +968,7 @@ def dispatch(
             service.store.set_setting(key, str(value))
         _invalidate_admin_bootstrap_cache()
         return {
-            "case_batch_size": batch_size, "semantic_candidate_threshold": semantic_threshold,
+            "burst_threshold": burst_threshold, "semantic_candidate_threshold": semantic_threshold,
             "press_release_match_threshold": press_threshold, "similar_article_threshold": similar_threshold,
             "magazine_similarity_threshold": magazine_threshold, "openai_shadow_enabled": shadow_enabled,
             "openai_shadow_daily_limit": shadow_daily_limit, "openai_shadow": service.shadow_status(),
