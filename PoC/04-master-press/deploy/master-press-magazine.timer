@@ -1,10 +1,10 @@
 [Unit]
-Description=Publish Master Press magazine at 07:00, 12:00 and 18:00 KST
+Description=Publish Master Press magazine after the 07:00, 12:00 and 18:00 KST completion grace
 
 [Timer]
-OnCalendar=*-*-* 07:00:00
-OnCalendar=*-*-* 12:00:00
-OnCalendar=*-*-* 18:00:00
+OnCalendar=*-*-* 07:05:00
+OnCalendar=*-*-* 12:05:00
+OnCalendar=*-*-* 18:05:00
 Persistent=true
 Unit=master-press-magazine.service
 

@@ -172,6 +172,11 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn("발송목록".encode("utf-8"), body)
         self.assertIn("미발송목록".encode("utf-8"), body)
         self.assertIn('"id": "master-press"', homepage)
+
+        timer = (Path("PoC/04-master-press/deploy/master-press-magazine.timer")
+                 .read_text(encoding="utf-8"))
+        self.assertIn("OnCalendar=*-*-* 12:05:00", timer)
+        self.assertNotIn("OnCalendar=*-*-* 12:00:00", timer)
         renderer_order = re.search(
             r"function renderMoisKmsLab\(p\)\{.*?\n    \}\n\n    function renderMasterPressLab\(p\)\{.*?"
             r"\n    \}\n\n    function renderMultiAgentHarnessLab\(p\)\{",
