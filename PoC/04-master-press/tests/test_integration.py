@@ -143,6 +143,11 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'aria-describedby="magazineReadProgress magazineReadStatus"', body)
         self.assertIn(b'aria-pressed="false"', body)
         self.assertIn(b'id="analysisThresholdStatus"', body)
+        self.assertIn(b'id="applyModelSelection"', body)
+        self.assertEqual(body.count(b'data-model-toggle='), 7)
+        self.assertIn(b'data-model-role="common"', body)
+        self.assertIn(b'data-model-role="case_single"', body)
+        self.assertIn(b'data-model-role="embedding"', body)
         self.assertIn(b'href="/poc/master-press/manual.pdf"', body)
         self.assertIn(b'id="manualView"', body)
         self.assertIn("시간당 30건 이상 메시지".encode("utf-8"), body)
@@ -233,7 +238,7 @@ class MainIntegrationTests(unittest.TestCase):
         token = main.ADMIN_AUTH.issue_session()
         cookie = f"{SESSION_COOKIE}={token}"
         payload = {
-            "batch_size": 10,
+            "burst_threshold": 15,
             "semantic_candidate_threshold": 50,
             "press_release_match_threshold": 70,
             "similar_article_threshold": 70,
@@ -245,7 +250,9 @@ class MainIntegrationTests(unittest.TestCase):
             "/api/poc/master-press/admin/settings/analysis-thresholds", "PUT", payload, cookie
         ))
         self.assertEqual(status, 200, body.decode("utf-8"))
-        self.assertEqual(json.loads(body)["magazine_similarity_threshold"], 82)
+        saved = json.loads(body)
+        self.assertEqual(saved["magazine_similarity_threshold"], 82)
+        self.assertEqual(saved["burst_threshold"], 15)
 
         status, _headers, body = asyncio.run(call_app(
             "/api/poc/master-press/admin/bootstrap", "GET", None, cookie
@@ -254,6 +261,31 @@ class MainIntegrationTests(unittest.TestCase):
         settings = json.loads(body)["settings"]
         self.assertEqual(settings["magazine_similarity_threshold"], 82)
         self.assertFalse(settings["openai_shadow_enabled"])
+
+    def test_model_role_toggle_is_persisted_in_admin_bootstrap(self):
+        token = main.ADMIN_AUTH.issue_session()
+        cookie = f"{SESSION_COOKIE}={token}"
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/admin/settings/model-role-enabled",
+            "PUT",
+            {"target": "burst", "enabled": False},
+            cookie,
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        self.assertFalse(json.loads(body)["enabled"])
+
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/admin/bootstrap", "GET", None, cookie
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        self.assertFalse(json.loads(body)["settings"]["model_role_enabled"]["burst"])
+
+        asyncio.run(call_app(
+            "/api/poc/master-press/admin/settings/model-role-enabled",
+            "PUT",
+            {"target": "burst", "enabled": True},
+            cookie,
+        ))
 
     def test_article_link_redirects_to_saved_original(self):
         module = main.load_master_press_module()
