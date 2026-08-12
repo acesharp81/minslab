@@ -1,0 +1,10 @@
+[Unit]
+Description=Publish Master Press shared magazine edition
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Environment=TZ=Asia/Seoul
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/PoC/04-master-press/scripts/master_press_magazine.py

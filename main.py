@@ -78,7 +78,7 @@ AIWORKS_SERVICE_PATH = Path(__file__).parent / "PoC" / "06-AIWorks" / "backend.p
 AIWORKS_MODULE = None
 AIWORKS_MTIME = None
 
-WORKER_LOCK_PATH = Path(__file__).parent / "data" / "master_press_workers.lock"
+WORKER_LOCK_PATH = MASTER_PRESS_SERVICE_PATH.parent / "data" / "master_press_workers.lock"
 WORKER_LOCK_HANDLE = None
 MASTER_PRESS_BACKGROUND_ENABLED = env_first("MASTER_PRESS_BACKGROUND_ENABLED", "0") == "1"
 HEALTH_CACHE_TTL_SECONDS = max(5, int(env_first("HEALTH_CACHE_TTL_SECONDS", "20") or "20"))

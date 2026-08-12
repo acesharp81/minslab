@@ -1,0 +1,10 @@
+[Unit]
+Description=Verify Master Press Supabase replica consistency
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/PoC/04-master-press/scripts/master_press_supabase_reconcile.py

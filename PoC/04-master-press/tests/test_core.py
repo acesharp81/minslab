@@ -29,7 +29,7 @@ from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_reconcile import SupabaseReconciler
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
 from master_press.history_metrics import SupabaseHistoryMetrics
-from master_press_retention_cleanup import adaptive_article_limit
+from scripts.master_press_retention_cleanup import adaptive_article_limit
 
 
 def case_payload(index: int = 1) -> dict:

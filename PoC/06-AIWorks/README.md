@@ -102,7 +102,8 @@ network.send 권한 승인이 완료된 경우에만 OpenRouter 호출을 실행
 - 독립 화면: /poc/aiworks/
 - 포트폴리오 셸: /poc?project=aiworks
 - 계약: contracts/*.schema.json
-- 구축 계획: docs/BUILD_PLAN.md
+- 프로젝트 중심 플랫폼 전환 로드맵: [docs/PROJECT_PLATFORM_ROADMAP.md](docs/PROJECT_PLATFORM_ROADMAP.md)
+- 1~17단계 PoC 구축 이력: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)
 - 서버 API: /api/poc/aiworks/bootstrap
 
 ## 서버 실행 흐름

@@ -6,9 +6,8 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
-PROJECT = ROOT / "PoC" / "04-master-press"
-sys.path.insert(0, str(PROJECT))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from master_press.collectors import NewsCollector
 from master_press.config import Settings

@@ -7,15 +7,16 @@ import sys
 import time
 from pathlib import Path
 
-from env_utils import load_project_env
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from master_press.config import load_env
 
 
-load_project_env()
-
-BASE_DIR = Path(__file__).resolve().parent
+load_env()
 # This is deliberately the same lock used by main.py.  Either the web process
 # or this standalone runner may own the pipeline, never both.
-LOCK_PATH = BASE_DIR / "data" / "master_press_workers.lock"
+LOCK_PATH = PROJECT_ROOT / "data" / "master_press_workers.lock"
 
 STOP = False
 
@@ -51,7 +52,7 @@ def main() -> int:
 
     from importlib import util
 
-    backend_path = BASE_DIR / "PoC" / "04-master-press" / "backend.py"
+    backend_path = PROJECT_ROOT / "backend.py"
     spec = util.spec_from_file_location("master_press_backend_worker", backend_path)
     module = util.module_from_spec(spec)
     assert spec and spec.loader

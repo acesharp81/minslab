@@ -10,5 +10,5 @@ IOSchedulingClass=idle
 # Related-article regrouping is a background convenience task. Keep enough
 # CPU available for the public web service even while a full rebuild runs.
 CPUQuota=50%
-WorkingDirectory=/home/ubuntu/apps/myservice
-ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/master_press_similarity_groups.py
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/04-master-press
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python3 /home/ubuntu/apps/myservice/PoC/04-master-press/scripts/master_press_similarity_groups.py

@@ -107,7 +107,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 ### 저장소 보존·운영 배포
 
 - SQLite는 실시간 원장으로 유지하되 단기 운영 데이터는 Supabase 장기 이력 검증이 같은 날 성공한 뒤에만 정리한다.
-- `master_press_retention_cleanup.py`와 01:58 KST systemd timer를 추가했다. 분석 데이터는 7일, 원문성 데이터는 8일 기준으로 제한된 배치만 삭제하며 첫 실행은 더 작은 범위로 수행한다.
+- `scripts/master_press_retention_cleanup.py`와 01:58 KST systemd timer를 추가했다. 분석 데이터는 7일, 원문성 데이터는 8일 기준으로 제한된 배치만 삭제하며 첫 실행은 더 작은 범위로 수행한다.
 - 메인 파이프라인 작업자와 그림자 작업자의 systemd 단위 파일을 추가했다. 웹 서비스는 더 이상 내부 백그라운드 작업자를 소유하지 않는다.
 - 매거진 systemd timer는 07:00, 12:00, 18:00 발행 기준과 일치하도록 조정했다.
 - 관련 저장 스키마, 관리자 API, 통합·매거진·핵심 테스트를 확장했으며 현재 전체 자동 테스트 130건을 통과한다.
@@ -1201,8 +1201,11 @@ HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 병렬 w
 PoC/04-master-press/
 ├── backend.py                    # 홈페이지 main.py가 호출하는 PoC 04 API dispatcher
 ├── project.json                  # PoC 아카이브 등록 정보
+├── .env.example                  # PoC 04 전용 환경변수 템플릿
 ├── requirements.txt              # PoC 보조 의존성
 ├── supabase_schema.sql           # Supabase 미러 스키마 참고
+├── scripts/                      # 예약 발행·정리·Supabase 동기화 독립 실행기
+│   └── master_press_*.py
 ├── master_press/
 │   ├── article_metadata.py       # 언론사·기자명 추출 유틸
 │   ├── burst_worker.py           # backlog 임계 기반 OpenRouter 공통 Turbo worker
@@ -1223,6 +1226,8 @@ PoC/04-master-press/
 │   ├── terminology.py            # 편집 용어 정규화와 명시적 사건 개념 추론
 │   └── supabase_mirror.py        # Supabase 메타데이터 미러
 ├── deploy/
+│   ├── master-press-*.service    # 단계별 worker와 유지보수 실행 유닛
+│   ├── master-press-*.timer      # 발행·정리·동기화 예약
 │   ├── master-press-common.service
 │   ├── master-press-common-secondary.service
 │   ├── master-press-embedding.service
@@ -1380,11 +1385,11 @@ canary는 JSON 유효률, 결과 완결률, 운영 판정 일치율과 batch 평
 
 ### 유사 기사 그룹 지도 timer
 
-`master_press_similarity_groups.py`는 웹 요청과 분리해 최근 30시간의 그룹 지도를 재구축한다. 이 범위는 24시간 대시보드와 지연된 매거진 발행 창을 함께 포함한다. 신규 임베딩이 생겼거나 시간창 내 저장 건수가 달라질 때만 작업하며, 기본 주기는 5분이다. 후보 쌍은 공통 개념·복수 고유 주제·동일 제목 역색인으로 제한해 전수 쌍 비교를 피한다.
+`scripts/master_press_similarity_groups.py`는 웹 요청과 분리해 최근 30시간의 그룹 지도를 재구축한다. 이 범위는 24시간 대시보드와 지연된 매거진 발행 창을 함께 포함한다. 신규 임베딩이 생겼거나 시간창 내 저장 건수가 달라질 때만 작업하며, 기본 주기는 5분이다. 후보 쌍은 공통 개념·복수 고유 주제·동일 제목 역색인으로 제한해 전수 쌍 비교를 피한다.
 
 ```bash
-sudo install -m 644 deploy/systemd/master-press-similarity-groups.service /etc/systemd/system/
-sudo install -m 644 deploy/systemd/master-press-similarity-groups.timer /etc/systemd/system/
+sudo install -m 644 deploy/master-press-similarity-groups.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-similarity-groups.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now master-press-similarity-groups.timer
 systemctl status master-press-similarity-groups.timer --no-pager
@@ -1399,8 +1404,8 @@ timer가 정상이어도 새 임베딩이 계속 들어오면 관리자 모니�
 1. `supabase_daily_metrics_schema.sql` 전체를 Supabase SQL Editor에서 적용한다.
 2. 관리자 **Supabase 동기화 현황**의 **요약 이력 활성화**를 눌러 스키마 적용을 확인한다.
 3. 최근 35일의 점수 집계만 기존 outbox에 넣고, 전용 outbox worker가 비동기로 전송한다. 기본값은 비활성이라 스키마 적용 전에는 원격 요청을 만들지 않는다.
-4. 전용 실행기는 `master_press_supabase_daily_metrics.py`이며, 준비된 timer는 매일 04:35(KST)에 실행하도록 `deploy/systemd/master-press-supabase-daily-metrics.*`에 제공한다.
-5. `master_press_supabase_daily_metrics_shadow.py`는 로컬·원격 요약값을 읽기 전용으로 비교한다. shadow 결과가 지속적으로 일치하기 전에는 운영 대시보드를 Supabase 읽기로 전환하지 않는다.
+4. 전용 실행기는 `scripts/master_press_supabase_daily_metrics.py`이며, 준비된 timer는 매일 04:35(KST)에 실행하도록 `deploy/master-press-supabase-daily-metrics.*`에 제공한다.
+5. `scripts/master_press_supabase_daily_metrics_shadow.py`는 로컬·원격 요약값을 읽기 전용으로 비교한다. shadow 결과가 지속적으로 일치하기 전에는 운영 대시보드를 Supabase 읽기로 전환하지 않는다.
 
 이 단계는 관리자/장기 통계 읽기 전용이다. 현재 실시간 대시보드, 작업 큐, 카카오 토큰, 기사 본문 및 LLM 원문은 전환하지 않는다.
 
@@ -1414,11 +1419,11 @@ timer가 정상이어도 새 임베딩이 계속 들어오면 관리자 모니�
 - 현재 운영값은 새벽 01:00~04:00(KST), 10분 간격, 회차당 1건, 동일 도메인 30분 간격, 하루 최대 50건이다.
 - 관리 설정의 **본문 재수집 현황**에서 `오늘 재수집 수`, 일일 한도, 허용 시간 창, 재시도 가능 건수를 확인한다.
 
-전용 실행기는 `master_press_body_backfill.py`이며, 일반 Master Press 분석 worker와 분리돼 있다. systemd에 다음 유닛을 설치·활성화한다.
+전용 실행기는 `scripts/master_press_body_backfill.py`이며, 일반 Master Press 분석 worker와 분리돼 있다. systemd에 다음 유닛을 설치·활성화한다.
 
 ```bash
-sudo install -m 644 deploy/systemd/master-press-body-backfill.service /etc/systemd/system/
-sudo install -m 644 deploy/systemd/master-press-body-backfill.timer /etc/systemd/system/
+sudo install -m 644 deploy/master-press-body-backfill.service /etc/systemd/system/
+sudo install -m 644 deploy/master-press-body-backfill.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now master-press-body-backfill.timer
 systemctl status master-press-body-backfill.timer --no-pager
