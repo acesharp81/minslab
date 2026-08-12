@@ -1,0 +1,68 @@
+{
+  "contract": "aiworks.document-adapter",
+  "version": "1.0.0",
+  "operations": {
+    "inspect": {
+      "input": {"documentBytes": "base64", "filename": "string"},
+      "output": {"documentId": "string", "blocks": "DocumentBlock[]", "sha256": "string"}
+    },
+    "applyPatch": {
+      "input": {"documentBytes": "base64", "patch": "DocumentPatch"},
+      "output": {"artifactBytes": "base64", "artifactSha256": "string", "changeId": "string"}
+    }
+  },
+  "adapters": {
+    "hwpx": {
+      "runtime": "server-python",
+      "status": "implemented",
+      "preserves": ["zip entries", "unmodified XML", "embedded assets"]
+    },
+    "rhwp": {
+      "runtime": "windows-native-bridge",
+      "status": "implemented",
+      "mcp": "document.rhwp@1.0.0",
+      "transport": "authenticated stdio IPC",
+      "requiredCapabilities": [
+        "session lifecycle",
+        "open and create",
+        "read document and selection",
+        "insert and replace",
+        "fields and controls",
+        "HAction and HParameterSet",
+        "save and save as",
+        "PDF export and print",
+        "undo and redo"
+      ],
+      "tools": [
+        "rhwp.capabilities",
+        "rhwp.session.status",
+        "rhwp.session.new",
+        "rhwp.session.open",
+        "rhwp.session.close",
+        "rhwp.document.inspect",
+        "rhwp.document.read",
+        "rhwp.document.fields",
+        "rhwp.document.position",
+        "rhwp.document.insert",
+        "rhwp.document.replace",
+        "rhwp.document.set_fields",
+        "rhwp.document.action",
+        "rhwp.document.method",
+        "rhwp.document.save",
+        "rhwp.document.save_as",
+        "rhwp.document.export_pdf",
+        "rhwp.document.print",
+        "rhwp.document.undo",
+        "rhwp.document.redo"
+        ,"rhwp.document.transform"
+      ],
+      "restrictions": [
+        "no direct internet access",
+        "same-user child process",
+        "HMAC signed request with nonce and expiry",
+        "allowed document roots only",
+        "macro shell network and OLE actions blocked"
+      ]
+    }
+  }
+}

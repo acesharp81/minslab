@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/mcp-draft.schema.json",
+  "title": "AIWorks MCP Builder Draft",
+  "type": "object",
+  "required": ["id", "owner", "status", "manifest", "validation", "references", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {"type": "string"},
+    "owner": {"type": "string"},
+    "status": {"enum": ["draft", "validated", "rejected", "published"]},
+    "manifest": {"$ref": "mcp-manifest.schema.json"},
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "filename", "mediaType", "bytes", "sha256", "summary", "createdAt"],
+        "properties": {
+          "id": {"type": "string"},
+          "filename": {"type": "string"},
+          "mediaType": {"type": "string"},
+          "bytes": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "summary": {"type": "object"},
+          "createdAt": {"type": "string", "format": "date-time"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["passed", "tests"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "passed", "detail"],
+            "properties": {
+              "id": {"type": "string"},
+              "passed": {"type": "boolean"},
+              "detail": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "publishedPackageId": {"type": ["string", "null"]},
+    "publishedVersion": {"type": ["string", "null"]},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

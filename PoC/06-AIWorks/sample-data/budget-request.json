@@ -1,0 +1,12 @@
+{
+  "document": {
+    "id": "doc-budget-2027-01",
+    "name": "2027년 지능형 민원지원 사업 예산요청서.hwpx",
+    "classification": "internal"
+  },
+  "commonData": [
+    {"id": "project.name", "label": "사업명", "kind": "fixed", "valueType": "string", "versions": [{"effectiveDate": "2026-08-11", "value": "지능형 민원지원 기반 구축", "source": {"documentId": "doc-budget-2027-01", "locator": "1쪽 > 사업개요", "excerpt": "사업명: 지능형 민원지원 기반 구축"}, "confidence": 0.99}]},
+    {"id": "project.period", "label": "사업기간", "kind": "fixed", "valueType": "string", "versions": [{"effectiveDate": "2026-08-11", "value": "2027.01–2027.12", "source": {"documentId": "doc-budget-2027-01", "locator": "1쪽 > 사업개요", "excerpt": "사업기간: 2027년 1월부터 12월"}, "confidence": 0.98}]},
+    {"id": "cost.engineer.monthly", "label": "SW 기술자 월평균임금", "kind": "temporal", "valueType": "currency", "unit": "원/월", "versions": [{"effectiveDate": "2025-01-01", "value": 8200000, "source": {"documentId": "sw-cost-guide-2025", "locator": "표 2 > 중급기술자"}, "confidence": 0.96}, {"effectiveDate": "2026-01-01", "value": 8560000, "source": {"documentId": "sw-cost-guide-2026", "locator": "표 2 > 중급기술자"}, "confidence": 0.97}]}
+  ]
+}

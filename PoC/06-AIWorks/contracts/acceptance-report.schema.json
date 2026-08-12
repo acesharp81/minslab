@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/acceptance-report.schema.json",
+  "title": "AIWorks Acceptance Report",
+  "type": "object",
+  "required": ["id", "scenario", "status", "checks", "startedAt", "completedAt"],
+  "properties": {
+    "id": {"type": "string"},
+    "scenario": {"const": "budget-request-e2e"},
+    "status": {"enum": ["passed", "failed"]},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "passed", "detail"],
+        "properties": {
+          "id": {"type": "string"},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {"type": "object"},
+    "error": {"type": ["string", "null"]},
+    "startedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

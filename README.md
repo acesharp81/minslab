@@ -4,7 +4,7 @@
 
 ## 저장소 한눈에 보기
 
-MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포트폴리오 실습 4개, 재난안전·업무관리·뉴스 모니터링 PoC 4개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 프로젝트마다 별도 서버를 띄우지 않고 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅합니다.
+MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포트폴리오 실습 4개, 실행형 PoC 6개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 프로젝트마다 별도 서버를 띄우지 않고 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅합니다.
 
 | 구분 | 프로젝트 | 실행 화면 | 상세 문서 |
 | --- | --- | --- | --- |
@@ -17,6 +17,8 @@ MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포�
 | PoC 02 | 현장점검플랫폼 | `/poc?project=field-inspection-platform` | [PoC/02-field-inspection-platform](PoC/02-field-inspection-platform/README.md) |
 | PoC 03 | 통합 업무관리시스템 | `/poc?project=mois-kms` | [PoC/03-mois-kms](PoC/03-mois-kms/README.md) |
 | PoC 04 | AI 언론동향 비서 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
+| PoC 05 | 북한 야간조명 3D 지도 | `/poc?project=north-korea-night-lights` | [PoC/05-north-korea-night-lights](PoC/05-north-korea-night-lights/README.md) |
+| PoC 06 | AIWorks | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -26,6 +28,8 @@ MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포�
 Browser
   ├─ Home / Portfolio / PoC HTML
   ├─ React SPA: Field Inspection, MoIS KMS
+  ├─ deck.gl player: North Korea Night Lights
+  ├─ static workspace: AIWorks
   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
           │ HTTPS
           ▼
@@ -69,16 +73,17 @@ systemd minslab-monitor.timer
 ├── deploy/systemd/            # 1분 주기 모니터 서비스·타이머 유닛
 ├── supabase_schema.sql        # 채팅/청킹 공통 참고 스키마
 ├── projects/                  # 포트폴리오 01~04
-├── PoC/                       # 실행형 PoC 01~04
+├── PoC/                       # 실행형 PoC 01~06
 ├── static/                    # 루트 페이지 공개 정적 파일
-├── data/                      # 로컬 SQLite·채팅 fallback·프로젝트 자료
+├── data/                      # 루트 공통 SQLite·채팅 fallback
 ├── analysis/                  # 로컬 분석 산출물, Git 제외
 └── tests/                     # 공통 ASGI·통계 회귀 테스트
 ```
 
 ## 공통 런타임 원칙
 
-- 비밀값은 저장소 루트 `.env`에서만 읽고 `.env.example`에는 이름과 공개 기본값만 기록합니다.
+- 공통 비밀값은 루트 `.env`, 프로젝트 전용 비밀값은 해당 PoC의 `.env`에 두며 실제 값은 커밋하지 않습니다.
+- 변수 이름과 공개 기본값은 가장 가까운 `.env.example`에 기록합니다.
 - 브라우저에는 Supabase publishable key만 전달할 수 있으며 service-role, LLM API key, 관리자 비밀값은 서버에만 둡니다.
 - React PoC는 개발 시 Vite를 사용하지만 운영에서는 빌드된 `dist/`를 기존 ASGI가 제공합니다.
 - 로컬 모델은 브라우저가 Ollama 포트에 직접 접근하지 않고 백엔드 프록시를 통합니다.
@@ -97,6 +102,8 @@ systemd minslab-monitor.timer
 - `02. 현장점검플랫폼` PoC for Supabase-backed inspection tasks, assets, field results, administration, CSV export, and statistics.
 - `03. 통합 업무관리시스템` PoC for Supabase Auth, organization-scoped workflows, approval, administration, and Local/Hugging Face/OpenRouter reports.
 - `04. 마스터언론` PoC for NAVER News/RSS collection, hybrid relevance scoring, encrypted Kakao OAuth tokens, and per-recipient delivery.
+- `05. 북한 야간조명 3D 지도` PoC for monthly VIIRS collection, compact time-series data, and deck.gl visualization.
+- `06. AIWorks` PoC for approval-based document automation, MCP creation/distribution, and auditable execution.
 
 ## Project 01: AI Safe Agent PoC
 
@@ -162,6 +169,28 @@ Current user-facing modules include period-aware dashboard monitoring, explicit 
 - Shared homepage administrator session; no separate web service or port
 - SQLite operational queue/cache with optional Supabase metadata mirror; the main pipeline and GPT shadow evaluator run in isolated low-priority systemd services, short-retention cleanup runs only after successful Supabase history verification, and magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
 - Detailed user manual, reproducible read-aloud architecture, lifecycle rules, test commands, and background-audio migration design: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
+
+## PoC 05: 북한 야간조명 3D 지도
+
+The fifth PoC collects monthly VIIRS night-light observations inside the North Korean boundary and serves compact gzip datasets through a shared deck.gl player.
+
+- Archive entry: `/poc?project=north-korea-night-lights`
+- Direct map: `/poc/north-korea-night-lights/map`
+- Data APIs: `/api/poc/north-korea-night-lights/maps`, `/api/poc/north-korea-night-lights/data/YYYY-MM`
+- Collection: Google Earth Engine `NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG`
+- Reproducible collection, observation-quality rules, and map controls: [PoC/05-north-korea-night-lights/README.md](PoC/05-north-korea-night-lights/README.md)
+
+## PoC 06: AIWorks
+
+The sixth PoC combines document editing, MCP creation and installation, explicit permission approval, versioned artifacts, and audit logs in one local-first workspace.
+
+- Archive entry: `/poc?project=aiworks`
+- Direct workspace: `/poc/aiworks/`
+- Server boundary: `/api/poc/aiworks/*`
+- Current baseline: completed 1~17 stage PoC with RHWP/HWPX editing, MCP contracts, and acceptance tests
+- Next direction: project-scoped context, artifacts, facts, capability resolution, and durable workflow execution
+- Implementation and operations: [PoC/06-AIWorks/README.md](PoC/06-AIWorks/README.md)
+- Product roadmap: [PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md](PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab
 

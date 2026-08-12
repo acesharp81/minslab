@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/document-patch.schema.json",
+  "title": "AIWorks Document Patch",
+  "type": "object",
+  "required": ["op", "target", "expectedBefore", "after", "sourceSha256"],
+  "properties": {
+    "op": {"const": "replace"},
+    "target": {
+      "type": "string",
+      "pattern": "^Contents/section[0-9]+\\.xml#p[1-9][0-9]*$"
+    },
+    "expectedBefore": {"type": "string", "maxLength": 50000},
+    "after": {"type": "string", "maxLength": 50000},
+    "sourceSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "executionId": {"type": ["string", "null"]},
+    "sources": {"type": "array", "items": {"type": "object"}}
+  },
+  "additionalProperties": false
+}

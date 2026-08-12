@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/workflow-preset.schema.json",
+  "title": "AIWorks Multimodal Workflow Preset",
+  "type": "object",
+  "required": ["id", "name", "modality", "acceptedFormats", "steps", "status"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "name": {"type": "string", "minLength": 2},
+    "description": {"type": "string"},
+    "modality": {"enum": ["document", "code", "image", "audio", "video"]},
+    "acceptedFormats": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "maxBytes": {"type": "integer", "minimum": 1},
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "adapter", "operation", "runtime", "status", "permissions"],
+        "properties": {
+          "id": {"type": "string"},
+          "adapter": {"type": "string"},
+          "operation": {"type": "string"},
+          "runtime": {"enum": ["local", "external"]},
+          "status": {"enum": ["implemented", "contract-only"]},
+          "permissions": {
+            "type": "array",
+            "items": {"enum": ["asset.read", "asset.write", "model.invoke", "network.send"]}
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "status": {"enum": ["ready", "preview"]},
+    "modelPersonality": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

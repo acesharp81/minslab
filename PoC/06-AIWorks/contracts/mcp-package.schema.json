@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/mcp-package.schema.json",
+  "title": "AIWorks Signed MCP Package",
+  "type": "object",
+  "required": ["packageId", "version", "publisher", "manifest", "bundleSha256", "signature"],
+  "properties": {
+    "packageId": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "publisher": {"type": "string", "minLength": 2},
+    "manifest": {"$ref": "mcp-manifest.schema.json"},
+    "bundleSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "signature": {
+      "type": "object",
+      "required": ["algorithm", "keyId", "value"],
+      "properties": {
+        "algorithm": {"const": "HMAC-SHA256"},
+        "keyId": {"const": "aiworks-org-store-v1"},
+        "value": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+        "verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "includedFiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "filename", "bytes", "sha256"],
+        "properties": {
+          "id": {"type": "string"},
+          "filename": {"type": "string"},
+          "bytes": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation": {"type": "object"},
+    "publishedAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

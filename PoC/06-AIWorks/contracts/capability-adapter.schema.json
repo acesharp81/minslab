@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/capability-adapter.schema.json",
+  "title": "AIWorks Capability Adapter",
+  "type": "object",
+  "required": ["id", "version", "modality", "runtime", "operations", "permissions", "status"],
+  "properties": {
+    "id": {"type": "string"},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "modality": {"enum": ["document", "code", "image", "audio", "video"]},
+    "runtime": {"enum": ["local", "external"]},
+    "operations": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "permissions": {"type": "array", "items": {"type": "string"}},
+    "status": {"enum": ["implemented", "contract-only"]},
+    "limits": {"type": "object"}
+  },
+  "additionalProperties": false
+}

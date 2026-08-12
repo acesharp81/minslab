@@ -273,16 +273,21 @@ class MasterPressService:
 
     def selected_case_model1(self) -> str:
         """RPM-limited NVIDIA primary worker: provider-affine chunks of five."""
-        return str(getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "openai/gpt-oss-120b")
+        default = str(getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "openai/gpt-oss-120b")
+        return self.store.get_setting("case_model1", default) if hasattr(self.store, "get_setting") else default
 
     def selected_case_model2(self) -> str:
         """Token-budgeted OpenAI secondary worker: up to ten cases per request."""
-        return str(getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+        default = str(getattr(getattr(self, "settings", None), "openai_shadow_model", "gpt-5.4-mini") or "gpt-5.4-mini")
+        return self.store.get_setting("case_model2", default) if hasattr(self.store, "get_setting") else default
 
     def selected_case_single_model(self) -> str:
-        return str(getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or "google/gemma-4-26b-a4b-it:free")
+        default = str(getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or "google/gemma-4-26b-a4b-it:free")
+        return self.store.get_setting("case_single_model", default) if hasattr(self.store, "get_setting") else default
 
     def selected_common_turbo_model(self) -> str:
+        # Turbo and single-case analysis intentionally share the same
+        # OpenRouter Gemma model and provider-wide free allowance.
         return self.selected_case_single_model()
 
     def case_batch_size_for_provider(self, provider: str) -> int:
@@ -323,6 +328,14 @@ class MasterPressService:
             return max(1, min(10, int(self.store.get_setting("case_batch_size", "10"))))
         except ValueError:
             return 10
+
+    def model_role_enabled(self, target: str) -> bool:
+        target = str(target or "").strip().lower()
+        if target not in {"common", "common_fallback", "case", "case_fallback", "case_single", "burst", "embedding"}:
+            return False
+        if not hasattr(self.store, "get_setting"):
+            return True
+        return self.store.get_setting(f"model_role_enabled:{target}", "1").casefold() in {"1", "true", "yes", "on"}
     def shadow_enabled(self) -> bool:
         return self.store.get_setting("openai_shadow_enabled", "1").casefold() not in {"0", "false", "off", "no"}
 
@@ -435,8 +448,16 @@ class MasterPressService:
         status = self._status_for_switchable_llm_model(model, probe)
         stage_names = [str(stages)] if isinstance(stages, str) else [str(value) for value in stages]
         provider = str(status.get("provider") or "")
-        day_start, reset_at, reset_basis, reset_label = self._provider_usage_window(provider)
-        usage_rows = [self.store.provider_usage_since(status.get("provider", ""), day_start, stage=stage) for stage in stage_names]
+        # The admin model-selection panel compares every provider in one
+        # consistent UTC calendar-day window, regardless of provider billing UI.
+        day_start, reset_at = self._utc_day_window_kst()
+        reset_basis, reset_label = "UTC day", "UTC 00:00 · 한국시간 09:00"
+        if provider == "openrouter":
+            usage_rows = [self.store.provider_usage_since(provider, day_start)]
+            usage_stages = ["common", "case"]
+        else:
+            usage_rows = [self.store.provider_usage_since(provider, day_start, stage=stage) for stage in stage_names]
+            usage_stages = stage_names
         completed = sum(int(row.get("completed") or 0) for row in usage_rows)
         attempts = sum(int(row.get("attempts") or 0) for row in usage_rows)
         failed = sum(int(row.get("failed") or 0) for row in usage_rows)
@@ -444,6 +465,10 @@ class MasterPressService:
         output_tokens = sum(int(row.get("output_tokens") or 0) for row in usage_rows)
         usage_units = sum(int(row.get("usage_units") or 0) for row in usage_rows)
         weighted_seconds = sum(float(row.get("average_seconds") or 0) * int(row.get("completed") or 0) for row in usage_rows)
+        processed = (sum(self.store.model_processed_since(model, stage, day_start) for stage in stage_names)
+                     if hasattr(self.store, "model_processed_since") else completed)
+        provider_total = self.store.provider_usage_since(provider, day_start) if provider else {"attempts": attempts}
+        provider_model_count = self.store.provider_model_count_since(provider, day_start) if provider and hasattr(self.store, "provider_model_count_since") else 1
         status.update({
             "attempts": attempts,
             "completed": completed,
@@ -456,7 +481,10 @@ class MasterPressService:
             "period": reset_basis,
             "usage_period": reset_basis,
             "usage_day_start": day_start,
-            "usage_stages": stage_names,
+            "usage_stages": usage_stages,
+            "processed": processed,
+            "provider_total_attempts": int(provider_total.get("attempts") or 0),
+            "provider_model_count": int(provider_model_count or 0),
             "reset_at": reset_at,
             "reset_basis": reset_basis,
             "reset_label": reset_label,
@@ -507,6 +535,8 @@ class MasterPressService:
         return self.common_turbo_available()
 
     def common_turbo_available(self) -> bool:
+        if not self.model_role_enabled("burst"):
+            return False
         model = self.selected_common_turbo_model()
         if not self._active_provider_chain([("openrouter", model)]):
             return False
@@ -576,7 +606,11 @@ class MasterPressService:
 
     def groq_status(self, probe: bool = False) -> dict:
         since, reset_at, reset_label = self._groq_usage_window()
-        usage = self.store.provider_usage_since("groq", since)
+        usage = self.store.provider_usage_since(
+            "groq", since,
+            request_limit=int(getattr(self.settings, "groq_daily_request_soft_limit", 0) or 0),
+            token_limit=int(getattr(self.settings, "groq_daily_token_soft_limit", 0) or 0),
+        )
         status = self.scoring.common_llm.key_status() if probe else {"connected": bool(self.settings.groq_api_key)}
         result = {**status, **usage, "model": self.selected_reserve1_model(), "provider": "groq",
                   "period": "Groq window", "day_start": since, "reset_basis": "Groq rate-limit header",
@@ -585,7 +619,10 @@ class MasterPressService:
 
     def openrouter_status(self, probe: bool = False) -> dict:
         since, reset_at = self._utc_day_window_kst()
-        usage = self.store.provider_usage_since("openrouter", since)
+        usage = self.store.provider_usage_since(
+            "openrouter", since,
+            request_limit=int(getattr(self.settings, "openrouter_daily_soft_limit", 0) or 0),
+        )
         status = self.scoring.case_llm.key_status() if probe else {"connected": bool(self.settings.openrouter_api_key)}
         result = {**status, **usage, "model": self.selected_case_single_model(), "provider": "openrouter", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
         return self._attach_provider_guard(result)
@@ -603,7 +640,11 @@ class MasterPressService:
 
     def cloudflare_status(self, probe: bool = False) -> dict:
         since, reset_at = self._utc_day_window_kst()
-        usage = self.store.provider_usage_since("cloudflare", since)
+        usage = self.store.provider_usage_since(
+            "cloudflare", since,
+            request_limit=int(getattr(self.settings, "worker_ai_daily_request_soft_limit", 0) or 0),
+        )
+        usage["usage_unit_limit"] = int(getattr(self.settings, "worker_ai_daily_neuron_soft_limit", 0) or 0)
         has_key = bool(getattr(self.settings, "worker_ai_key", ""))
         has_account = bool(getattr(self.settings, "worker_ai_account_id", ""))
         connected = bool(has_key and has_account)
@@ -642,9 +683,10 @@ class MasterPressService:
     def ollama_embedding_status(self, probe: bool = False) -> dict:
         selected = self.selected_embedding_model()
         models = self.available_embedding_models() if probe else ([selected] if selected else [])
-        usage = self.store.provider_usage_today("ollama", "embedding", 0)
+        day_start, reset_at = self._utc_day_window_kst()
+        usage = self.store.provider_usage_since("ollama", day_start, stage="embedding")
+        provider_total = self.store.provider_usage_since("ollama", day_start)
         total_usage = self.store.provider_usage_total("ollama", "embedding")
-        day_start = str(usage.get("day_start") or "")
         with self.store.connect() as connection:
             inferred = connection.execute(
                 "SELECT (SELECT COUNT(*) FROM article_embeddings WHERE updated_at>=?) + "
@@ -652,14 +694,17 @@ class MasterPressService:
                 (day_start, day_start),
             ).fetchone()
         usage["embedding_outputs_today"] = int(inferred["value"] or 0) if inferred else 0
+        usage["processed"] = usage["embedding_outputs_today"]
+        usage["provider_total_attempts"] = int(provider_total.get("attempts") or 0)
+        usage["provider_model_count"] = self.store.provider_model_count_since("ollama", day_start) if hasattr(self.store, "provider_model_count_since") else 1
         usage["total_attempts"] = int(total_usage.get("attempts") or 0)
         usage["total_completed"] = int(total_usage.get("completed") or 0)
         usage["total_failed"] = int(total_usage.get("failed") or 0)
         return {
             "connected": bool(models), "provider": "ollama", "model": selected,
-            "models": models, "probed": bool(probe), "period": "KST day",
-            "reset_basis": "KST 00:00", "reset_at": self._next_kst_midnight_iso(),
-            "reset_label": "한국시간 00:00", **usage,
+            "models": models, "probed": bool(probe), "period": "UTC day",
+            "reset_basis": "UTC 00:00", "reset_at": reset_at,
+            "reset_label": "UTC 00:00 · 한국시간 09:00", **usage,
         }
 
     @staticmethod
@@ -794,9 +839,9 @@ class MasterPressService:
 
     def _remote_provider_chain(self, include_openrouter: bool = False) -> list[tuple[str, str]]:
         chain = []
-        if include_openrouter:
+        if include_openrouter and self.model_role_enabled("case_single"):
             chain.append(("openrouter", self.selected_case_llm_model()))
-        if self.case_fallback_enabled():
+        if self.case_fallback_enabled() and self.model_role_enabled("case_fallback"):
             fallback = self.selected_case_fallback_model()
             chain.append((self._provider_for_switchable_llm_model(fallback), fallback))
         return self._active_provider_chain(chain)
@@ -804,10 +849,11 @@ class MasterPressService:
     def _common_provider_chain(self) -> list[tuple[str, str]]:
         common_model = self.selected_common_llm_model()
         fallback_model = self.selected_common_fallback_model()
-        chain = [
-            (self._provider_for_switchable_llm_model(common_model), common_model),
-            (self._provider_for_switchable_llm_model(fallback_model), fallback_model),
-        ]
+        chain = []
+        if self.model_role_enabled("common"):
+            chain.append((self._provider_for_switchable_llm_model(common_model), common_model))
+        if self.model_role_enabled("common_fallback"):
+            chain.append((self._provider_for_switchable_llm_model(fallback_model), fallback_model))
         return self._active_provider_chain(chain)
 
     def _remember_provider_failure(self, provider: str, error: Exception) -> str:
@@ -1227,6 +1273,8 @@ class MasterPressService:
 
     def process_next_embedding(self) -> dict | None:
         """Backfill one historical article only when no LLM analysis work is waiting."""
+        if not self.model_role_enabled("embedding"):
+            return None
         if not LOCAL_EMBEDDING_LOCK.acquire(blocking=False):
             return None
         try:
@@ -1242,6 +1290,9 @@ class MasterPressService:
 
     def process_next_article_analysis(self, forced_provider: str = "", forced_model: str = "",
                                       provider_lane: str = "primary") -> dict | None:
+        role = "burst" if provider_lane == "turbo" else ("common_fallback" if forced_model and forced_model == self.selected_common_fallback_model() else "common")
+        if not self.model_role_enabled(role):
+            return None
         if not COMMON_LLM_LOCK.acquire(blocking=False):
             return None
         try:
@@ -1419,6 +1470,9 @@ class MasterPressService:
                                      provider_lane: str = "primary", batch_size: int | None = None,
                                      single_unowned_only: bool = False,
                                      allow_unowned_single: bool = True) -> dict | None:
+        role = {"nvidia": "case", "openai": "case_fallback", "openrouter": "case_single"}.get(str(forced_provider or "").lower(), "case_single")
+        if not self.model_role_enabled(role):
+            return None
         if not REMOTE_CASE_SEMAPHORE.acquire(blocking=False):
             return None
         try:
@@ -2160,7 +2214,8 @@ class MasterPressService:
         status.update({"window_days":window_days,"batch_size":batch_size,"processed_today":max(0,processed),"daily_limit":daily_limit,
             "daily_remaining":max(0,daily_limit-processed),"next_run_at":self.store.get_setting("body_backfill_next_run_at",""),
             "enabled":self._body_backfill_enabled(),"paused":not self._body_backfill_enabled(),"interval_seconds":interval_seconds,"domain_interval_seconds":domain_interval_seconds,
-            "start_hour":start_hour,"end_hour":end_hour,"within_schedule":start_hour <= now.hour < end_hour})
+            "start_hour":start_hour,"end_hour":end_hour,"within_schedule":start_hour <= now.hour < end_hour,
+            "daily":self.store.body_backfill_daily_stats(7)})
         return status
 
     def backfill_missing_article_bodies(self) -> dict:
