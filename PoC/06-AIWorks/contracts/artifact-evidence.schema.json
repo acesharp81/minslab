@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/artifact-evidence.schema.json",
+  "title": "AIWorks Artifact Evidence",
+  "type": "object",
+  "required": [
+    "id",
+    "projectId",
+    "artifactId",
+    "artifactVersionId",
+    "locator",
+    "excerpt",
+    "excerptSha256",
+    "confidence",
+    "metadata",
+    "createdBy",
+    "createdAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^evidence_[a-f0-9]+$"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "artifactId": {
+      "type": "string",
+      "pattern": "^gart_[a-f0-9]+$"
+    },
+    "artifactVersionId": {
+      "type": "string",
+      "pattern": "^gartver_[a-f0-9]+$"
+    },
+    "sourceArtifactId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sourceVersionId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "excerpt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "excerptSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

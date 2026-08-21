@@ -1,0 +1,8 @@
+{
+  "VCONFBILLLIST": [
+    {"head": [{"list_total_count": 1}, {"RESULT": {"CODE": "INFO-000", "MESSAGE": "TEST_OK"}}]},
+    {"row": [
+      {"CONF_ID": "N999001", "ERACO": "제22대", "SESS": "제999회", "DGR": "제1차", "BILL_ID": "PRC_SYNTHETIC_001", "BILL_NM": "1. 합성 법률안", "LINK_URL": "https://example.invalid/bill"}
+    ]}
+  ]
+}

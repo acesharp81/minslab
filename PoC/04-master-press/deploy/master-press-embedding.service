@@ -2,6 +2,7 @@
 Description=Master Press local embedding worker
 After=network-online.target ollama.service myservice.service
 Wants=network-online.target
+PartOf=myservice.service
 Requires=ollama.service
 
 [Service]

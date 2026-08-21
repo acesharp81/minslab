@@ -82,7 +82,13 @@ class Settings:
     openai_base_url: str
     openai_shadow_model: str
     openai_moderation_model: str
+    openai_case_draft_model: str
+    upstage_api_key: str
+    upstage_base_url: str
+    upstage_solar_model: str
+    upstage_max_tokens: int
     openai_shadow_daily_limit: int
+    openai_shadow_daily_token_limit: int
     openai_daily_token_soft_limit: int
     worker_ai_key: str
     worker_ai_account_id: str
@@ -130,7 +136,7 @@ class Settings:
             llm_model=env("MASTER_PRESS_LLM_MODEL", default="qwen2.5:1.5b"),
             groq_api_key=env("MASTER_PRESS_GROQ_API_KEY", "GROQ_API_KEY"),
             groq_base_url=env("MASTER_PRESS_GROQ_BASE_URL", default="https://api.groq.com/openai/v1").rstrip("/"),
-            groq_common_model=env("MASTER_PRESS_GROQ_COMMON_MODEL", default="llama-3.1-8b-instant"),
+            groq_common_model=env("MASTER_PRESS_GROQ_COMMON_MODEL", default="openai/gpt-oss-20b"),
             groq_daily_request_soft_limit=env_int("MASTER_PRESS_GROQ_DAILY_REQUEST_SOFT_LIMIT", 900, 1, 14000),
             # Groq's configured allocation can exceed the legacy 500k free-tier
             # default. Keep the guard configurable up to 1M tokens so an
@@ -150,13 +156,19 @@ class Settings:
             openrouter_case_reserve_calls=env_int("MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS", 100, 1, 500),
             openai_api_key=env("OPENAI_API_KEY", "OpenAI_API_KEY", "openai_api_key"),
             openai_base_url=env("MASTER_PRESS_OPENAI_BASE_URL", default="https://api.openai.com/v1").rstrip("/"),
+            upstage_api_key=env("MASTER_PRESS_UPSTAGE_API_KEY", "UPSTAGE_API_KEY", "SOLAR_API_KEY", "Solar_API_KEY"),
+            upstage_base_url=env("MASTER_PRESS_UPSTAGE_BASE_URL", default="https://api.upstage.ai/v1").rstrip("/"),
+            upstage_solar_model=env("MASTER_PRESS_UPSTAGE_SOLAR_MODEL", default="solar-pro4"),
+            upstage_max_tokens=env_int("MASTER_PRESS_UPSTAGE_MAX_TOKENS", 65536, 1, 65536),
             openai_shadow_model=env("MASTER_PRESS_OPENAI_SHADOW_MODEL", default="gpt-5.4-mini"),
             openai_moderation_model=env("MASTER_PRESS_OPENAI_MODERATION_MODEL", default="gpt-5.4-mini"),
-            openai_shadow_daily_limit=env_int("MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT", 150, 1, 1000),
-            # The published free allowance is 2.5M tokens per UTC day. Stop
-            # optional/new Mini work early enough to absorb an in-flight batch.
+            openai_case_draft_model=env("MASTER_PRESS_OPENAI_CASE_DRAFT_MODEL", default="gpt-5.4-mini"),
+            openai_shadow_daily_limit=env_int("MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT", 150, 1, 150),
+            openai_shadow_daily_token_limit=env_int("MASTER_PRESS_OPENAI_SHADOW_DAILY_TOKEN_LIMIT", 300000, 1000, 300000),
+            # Reserve 300k for shadow checks and stop other optional/new Mini
+            # work at 2.2M tokens per UTC day.
             openai_daily_token_soft_limit=env_int(
-                "MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT", 2450000, 1000, 100000000,
+                "MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT", 2200000, 1000, 100000000,
             ),
             worker_ai_key=env("MASTER_PRESS_WORKER_AI_KEY", "WORKER_AI_KEY", "WORKER_AI_API_KEY", "WORKERS_AI_KEY", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_WORKERS_AI_TOKEN", "CF_API_TOKEN"),
             worker_ai_account_id=env("MASTER_PRESS_WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACCOUNT_ID", "WORKER_AI_ACOUNT_ID", "WORKERS_AI_ACCOUNT_ID", "CLOUDFLARE_ACCOUNT_ID", "CF_ACCOUNT_ID"),
@@ -207,6 +219,7 @@ class Settings:
             "supabase": bool(self.supabase_url and self.supabase_service_role_key),
             "ollama": bool(self.ollama_base_url),
             "groq": bool(self.groq_api_key and self.groq_common_model),
+            "upstage": bool(self.upstage_api_key and self.upstage_solar_model),
             "openrouter": bool(self.openrouter_api_key and self.openrouter_case_model),
             "nvidia": bool(self.nvidia_api_key and self.nvidia_case_model),
             "openai": bool(self.openai_api_key and self.openai_shadow_model),

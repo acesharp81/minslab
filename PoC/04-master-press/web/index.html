@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>AI 언론동향 비서 · AI읽고 AI로 분류하다 · MinsLab PoC 04</title>
-  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260811-admin-v2">
+  <link rel="stylesheet" href="/poc/master-press/styles.css?v=20260814-solar-v1">
 </head>
 <body>
   <header class="topbar">
@@ -94,7 +94,31 @@
             <div class="signup-step signup-case-step"><div class="signup-step-title"><b>3. 구독 대상 선택</b><label class="signup-select-all"><input type="checkbox" id="signupSelectAll">모두 선택</label></div><p class="signup-volume-warning">여러 케이스를 함께 구독하면 알림이 많이 도착할 수 있습니다. 특히 정책동향, 간부 언론 동향처럼 발송량이 많은 케이스는 시간당 30건 이상 메시지가 갈 수 있으니 필요한 항목만 신중히 선택해 주세요.</p><fieldset id="signupCaseFieldset" disabled><legend>구독 케이스</legend><div id="signupCaseList" class="signup-case-list"><div class="empty compact">부처를 선택하세요.</div></div></fieldset><fieldset id="signupMagazineFieldset" disabled><legend>신규 매거진 알림 받기</legend><div class="signup-magazine-list"><label><input type="checkbox" name="magazine_slot" value="morning"><span><b>모닝 브리핑</b><small>전일 07:00~금일 07:00, 07시 발행</small></span></label><label><input type="checkbox" name="magazine_slot" value="lunch"><span><b>커피탐 포스트</b><small>금일 07:00~12:00, 12시 발행</small></span></label><label><input type="checkbox" name="magazine_slot" value="evening"><span><b>퇴근 메이트</b><small>금일 12:00~18:00, 18시 발행</small></span></label></div></fieldset><button class="button" id="submitSignupRequest" type="submit" disabled>구독 요청</button></div>
           </form>
         </section>
-        <section class="panel case-proposal-panel"><div class="panel-head"><div><span>CASE REQUEST BOARD</span><h2>케이스 신청 게시판</h2><small>필요한 언론 모니터링 케이스를 익명 닉네임으로 제안할 수 있습니다.</small></div><button class="small-button" id="resetCaseProposal" type="button">새 글</button></div><div class="case-proposal-grid"><form id="caseProposalForm" class="case-proposal-form"><input type="hidden" id="caseProposalId"><label>닉네임<input id="caseProposalNickname" maxlength="40" required placeholder="예: 정책알림"></label><label>수정·삭제 암호<input id="caseProposalPassword" type="password" minlength="4" required placeholder="4자 이상"></label><label class="full">케이스 제목<input id="caseProposalTitle" maxlength="120" required placeholder="예: 행안부 AI 관련 기사"></label><label class="full">케이스 프롬프트<textarea id="caseProposalPrompt" rows="4" maxlength="4000" required placeholder="예: 행정안전부 또는 행안부가 AI·디지털 행정과 관련해 직접 추진·발표·비판 대상으로 언급된 기사만 찾아줘. 단순 기술 소개나 타 기관 사례는 제외해줘."></textarea></label><label>키워드<input id="caseProposalInclude" placeholder="쉼표로 구분 · 예: 행안부, AI, 디지털플랫폼"></label><label>필수키워드<input id="caseProposalRequired" placeholder="쉼표로 구분 · 예: 행안부"></label><button class="button" id="saveCaseProposal" type="submit">케이스 신청 등록</button></form><div id="caseProposalList" class="case-proposal-list"><div class="empty compact">케이스 신청 글을 불러오는 중입니다.</div></div></div></section>
+        <section class="panel case-proposal-panel">
+          <div class="panel-head"><div><span>AI CASE REQUEST</span><h2>찾고 싶은 기사만 말씀해 주세요</h2><small>기관에 설정된 AI가 실제 기사 판정 기준에 맞춰 신청 양식을 작성합니다. 생성 결과를 확인한 뒤 등록하세요.</small></div><button class="small-button" id="resetCaseProposal" type="button">새 글</button></div>
+          <div class="case-proposal-grid">
+            <form id="caseProposalForm" class="case-proposal-form">
+              <input type="hidden" id="caseProposalId">
+              <label class="full">사용 기관<select id="caseProposalOrganization" required><option value="">기관 선택</option></select></label>
+              <label class="full case-intent-label">어떤 기사를 찾고 싶나요?<textarea id="caseProposalIntent" rows="4" maxlength="2000" placeholder="예: 행정안전부의 AI 행정서비스가 실제 현장에서 문제되거나 개선을 요구받은 기사를 찾고 싶어. 단순 행사 소개는 빼줘."></textarea></label>
+              <div class="full case-draft-actions"><button class="button case-generate-button" id="generateCaseProposal" type="button">AI로 신청 양식 만들기</button><button class="small-button" id="showCaseProposalFields" type="button">직접 입력</button></div>
+              <div id="caseProposalDraftStatus" class="full case-draft-status" hidden></div>
+              <div id="caseProposalDraftFields" class="case-proposal-draft-fields" hidden>
+                <div id="caseProposalInterpretation" class="case-draft-interpretation" hidden></div>
+                <label>닉네임<input id="caseProposalNickname" maxlength="40" required placeholder="예: 정책알림"></label>
+                <label>수정·삭제 암호<input id="caseProposalPassword" type="password" minlength="4" required placeholder="4자 이상"></label>
+                <label class="full">AI가 작성한 케이스 제목<input id="caseProposalTitle" maxlength="120" required></label>
+                <label class="full">기사 판정 프롬프트<textarea id="caseProposalPrompt" rows="6" maxlength="4000" required></textarea></label>
+                <label>포함 키워드<input id="caseProposalInclude" placeholder="쉼표로 구분"></label>
+                <label>필수 키워드<input id="caseProposalRequired"></label>
+                <label class="full">제외 키워드<input id="caseProposalExclude"></label>
+                <p class="full case-review-note">AI 초안은 제안입니다. 의도와 다르면 내용을 고친 뒤 신청하세요. 관리자가 최종 검토·승인합니다.</p>
+                <button class="button" id="saveCaseProposal" type="submit">검토한 내용으로 케이스 신청</button>
+              </div>
+            </form>
+            <div id="caseProposalList" class="case-proposal-list"><div class="empty compact">케이스 신청 글을 불러오는 중입니다.</div></div>
+          </div>
+        </section>
         <section class="panel signup-status-panel"><div class="panel-head"><div><span>STATUS</span><h2>신청기록</h2><small>승인 및 반려된 신청 기록은 6시간 뒤 자동 삭제됩니다.</small></div><button class="small-button" id="reloadSignup" type="button">새로고침</button></div><div id="signupRequestList" class="signup-request-list"><div class="empty">구독 요청 내역을 불러오는 중입니다.</div></div></section>
       </div>
     </section>
@@ -184,9 +208,9 @@
           <section class="panel wide"><div class="panel-head"><div><span>ORGANIZATION → CASES</span><h2>사용 기관과 소속 케이스 <b id="organizationCount">0</b></h2><small>케이스 행을 드래그하면 표시 순서가 저장되고 콤보·대시보드·신경망 기본 선택에 반영됩니다.</small></div></div><div id="organizationList" class="organization-tree"></div></section>
           <section class="panel wide announcement-panel"><div class="panel-head"><div><span>NOTICE POPUP</span><h2>공지사항</h2><small>게시기한 안의 공지는 첫 접속 시 팝업으로 표시됩니다.</small></div></div><div class="announcement-admin-grid"><section class="announcement-compose"><div class="mini-panel-head"><b>새 공지 등록</b><button class="small-button" id="saveAnnouncement">게시</button></div><div class="announcement-form"><label>제목<input id="announcementTitle" maxlength="120" placeholder="공지 제목"></label><label>게시 종료<input id="announcementEndsAt" type="datetime-local"></label><label class="full">내용<textarea id="announcementBody" rows="4" maxlength="2000" placeholder="방문자에게 안내할 내용을 입력하세요."></textarea></label></div></section><section class="announcement-history"><div class="mini-panel-head"><b>등록된 공지</b><div class="announcement-tabs" role="tablist" aria-label="공지 목록 필터"><button type="button" class="active" data-announcement-tab="active">게시중</button><button type="button" data-announcement-tab="all">전체</button></div></div><div id="announcementList" class="announcement-list"></div></section></div></section>
           <div class="wide shadow-control-grid">
-            <section class="panel model-settings openai-shadow-panel shadow-control-panel"><div class="panel-head"><div><span>GPT-5.4 MINI · SHADOW CHECK</span><h2>그림자 판정 검증</h2><small>운영 판정에는 반영하지 않는 비교 현황입니다.</small></div><button class="small-button" id="saveShadowSettings">저장</button></div><div class="weight-row"><label>그림자 처리<select id="openaiShadowEnabled"><option value="true">사용</option><option value="false">중지</option></select></label><label>일일 비교 한도<input id="openaiShadowDailyLimit" type="number" min="1" max="1000" step="1" value="150"></label></div><small id="openaiShadowMeta">그림자 판정 현황을 불러오는 중입니다.</small><div id="openaiShadowSummary" class="operation-log-summary"></div></section>
-            <section class="panel shadow-review-panel shadow-control-panel"><div class="panel-head"><div><span>SHADOW REVIEW QUEUE</span><h2>미검토 그림자 판정</h2><small>피드백을 남기면 목록에서 제외됩니다.</small></div><button class="small-button" id="loadShadowReview" type="button">새로고침</button></div><div id="shadowReviewList" class="shadow-review-list shadow-control-scroll"><div class="empty compact">미검토 목록을 불러오는 중입니다.</div></div></section>
-            <section class="panel shadow-feedback-history-panel shadow-control-panel"><div class="panel-head"><div><span>SHADOW FEEDBACK HISTORY</span><h2>그림자 판정 피드백 기록</h2><small>완료된 검토 기록을 한눈에 확인합니다.</small></div><button class="small-button" id="loadShadowFeedbackHistory" type="button">새로고침</button></div><div id="shadowFeedbackHistory" class="shadow-feedback-history shadow-control-scroll"><div class="empty compact">피드백 기록을 불러오는 중입니다.</div></div></section>
+            <section class="panel model-settings openai-shadow-panel shadow-control-panel"><div class="panel-head"><div><span>SHADOW CHECK</span><h2>그림자 판정 검증</h2><small>운영 판정과 분리된 비교 분석입니다.</small></div></div><input id="openaiShadowEnabled" type="hidden" value="true"><div class="shadow-model-row"><div class="model-row-title"><span>OPENAI</span><b>GPT-5.4 mini</b></div><div id="shadowModelUsage" class="model-usage">오늘 처리량 확인 중</div><button class="model-toggle" id="shadowEnabledToggle" type="button" aria-label="그림자 판정 활성 상태"></button></div><div class="shadow-settings-row"><label>일일 최대 <input id="openaiShadowDailyLimit" type="number" min="1" max="150" step="1" value="150"><span>건</span></label><button class="small-button" id="saveShadowSettings" type="button">적용</button></div><div class="shadow-trend-head"><b>최근 7일 판정</b><span><i class="matching"></i>일치</span><span><i class="different"></i>불일치</span></div><div id="shadowDecisionTrend" class="shadow-decision-trend"><div class="empty compact">판정 추이를 불러오는 중입니다.</div></div><small id="openaiShadowMeta">그림자 판정 현황을 불러오는 중입니다.</small><div id="openaiShadowSummary" class="shadow-compact-summary"></div></section>
+            <section class="panel shadow-review-panel shadow-control-panel"><div class="panel-head"><div><span>SHADOW REVIEW QUEUE</span><h2>그림자 판정 확인 대상</h2><small>송출 판단이 다르거나 분석 점수가 20점 이상 차이 나는 결과만 표시합니다.</small></div><button class="small-button" id="loadShadowReview" type="button">새로고침</button></div><div id="shadowReviewList" class="shadow-review-list shadow-control-scroll"><div class="empty compact">확인 대상을 불러오는 중입니다.</div></div></section>
+            <section class="panel shadow-feedback-history-panel shadow-control-panel"><div class="panel-head"><div><span>SHADOW FEEDBACK HISTORY</span><h2>그림자 판정 피드백 이력</h2><small>기사 보존기간과 무관하게 텍스트 분석 이력을 유지합니다.</small></div><button class="small-button" id="loadShadowFeedbackHistory" type="button">새로고침</button></div><div id="shadowFeedbackHistory" class="shadow-feedback-history shadow-control-scroll"><div class="empty compact">피드백 기록을 불러오는 중입니다.</div></div></section>
           </div>
           <section class="panel wide operation-log-panel"><div class="panel-head"><div><span>ERROR & FAILOVER LOG</span><h2>오류·전환 분석 로그</h2><small>케이스판정 오류, 공통분석 실패, 카카오 발송 문제, 모델 무료 사용량 소진에 따른 예비 모델 전환 기록을 확인합니다.</small></div><button class="small-button" id="reloadOperationLogs" type="button">새로고침</button></div><div id="operationLogSummary" class="operation-log-summary"></div><div id="operationLogList" class="operation-log-list"><div class="empty compact">오류 기록을 불러오는 중입니다.</div></div></section>
         </div>
@@ -230,6 +254,8 @@
       <div class="form-grid">
         <label>기관명<input id="organizationName" maxlength="100" required placeholder="예: 행정안전부"></label>
         <label>활성 상태<select id="organizationActive"><option value="true">사용</option><option value="false">중지</option></select></label>
+        <label>신청서 생성 LLM<select id="organizationCaseDraftModel"><option value="gpt-5.4-mini">GPT-5.4 mini</option><option value="solar-pro4">Solar Pro 4</option></select></label>
+        <div id="organizationCaseDraftUsage" class="full model-usage">오늘 사용량 0토큰</div>
         <label class="full">약칭<input id="organizationAbbreviations" placeholder="예: 행안부 · 쉼표 구분"></label>
         <label class="full">이전 명칭<input id="organizationFormerNames" placeholder="예: 행자부 · 쉼표 구분"></label>
         <label class="full">관련 인물<input id="organizationPeople" placeholder="예: 윤호중 장관 · 쉼표 구분"></label>
@@ -254,6 +280,6 @@
   <div class="toast" id="toast"></div>
   <script src="/poc/master-press/magazine_reader.js?v=20260808-reader-v1"></script>
   <script src="/poc/master-press/magazine_speech.js?v=20260808-speech-v4"></script>
-  <script src="/poc/master-press/app.js?v=20260811-admin-v2"></script>
+  <script src="/poc/master-press/app.js?v=20260814-article-highlight-v2"></script>
 </body>
 </html>

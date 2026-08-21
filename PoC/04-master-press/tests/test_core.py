@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import io
 import json
 import sys
 import tempfile
 import unittest
+import urllib.error
 from unittest import mock
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -21,10 +23,12 @@ from master_press.press_releases import (
     lexical_similarity, parse_mois_date, supported_topic_concepts,
 )
 from master_press.provider_quota import confirmed_free_quota_exhaustion, quota_lock_decision
-from master_press.scoring import CloudflareWorkersAIClient, GroqClient, NvidiaNIMClient, OllamaClient, OpenRouterClient, OpenRouterError, RelevanceEngine, fallback_negative_tone, keyword_relevance
-from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, verified_case_proposal_moderation
+from master_press.scoring import CloudflareWorkersAIClient, GroqClient, NvidiaNIMClient, OllamaClient, OpenAIShadowClient, OpenRouterClient, OpenRouterError, RelevanceEngine, UpstageSolarClient, fallback_negative_tone, keyword_relevance
+from master_press.shadow import ShadowCaseStore
+from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, same_model, verified_case_proposal_moderation
 from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
 from master_press.supabase_mirror import SupabaseMirror
+from scripts.master_press_supabase_outbox_worker import SupabaseOutboxFlusher
 from master_press.supabase_seed import SupabaseSeed
 from master_press.supabase_reconcile import SupabaseReconciler
 from master_press.supabase_daily_metrics import SupabaseDailyMetrics
@@ -68,6 +72,28 @@ class StorageTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_same_model_accepts_provider_prefixes_and_spelling_variants(self):
+        self.assertTrue(same_model("gpt-5.4-mini", "gpt-5.4-mini"))
+        self.assertTrue(same_model("openai/gpt-5.4-mini", "gpt-5.4-mini"))
+        self.assertTrue(same_model("openai:GPT-5.4-MINI", "gpt-5.4-mini"))
+        self.assertTrue(same_model("openai/gpt-5.4_mini", "gpt-5.4-mini"))
+        self.assertFalse(same_model("openai/gpt-oss-120b", "gpt-5.4-mini"))
+
+    def test_openai_mini_infers_case_stage_unless_shadow_is_explicit(self):
+        client = object.__new__(OpenAIShadowClient)
+        client.settings = SimpleNamespace(openai_shadow_model="gpt-5.4-mini", openrouter_case_model="test")
+        self.assertEqual(client._request_stage({"messages": [{"role": "user", "content": "케이스 판정"}]}), "case")
+        client.request = mock.MagicMock(side_effect=RuntimeError("capture"))
+        case = {**case_payload(), "id": "case-stage"}
+        article = {"id": "article-stage", "title": "인공지능 행정 정책", "snippet": "정책 점검"}
+        common = {"summary": "인공지능 행정 정책 점검", "article_type": "정책", "tone": "사실전달"}
+        with self.assertRaisesRegex(RuntimeError, "capture"):
+            client.judge_cases([case], article, common, "gpt-5.4-mini")
+        self.assertEqual(client.request.call_args.args[1]["record_stage"], "")
+        with self.assertRaisesRegex(RuntimeError, "capture"):
+            client.judge_cases([case], article, common, "gpt-5.4-mini", record_stage="shadow_case")
+        self.assertEqual(client.request.call_args.args[1]["record_stage"], "shadow_case")
+
     def _queue_delivery_fixture(self) -> tuple[dict, dict, str]:
         case = self.store.save_case(case_payload())
         article, _ = self.store.upsert_article({
@@ -89,6 +115,78 @@ class StorageTests(unittest.TestCase):
             )
         self.store.queue_delivery(article["id"], case["id"], recipient_id, now_iso())
         return article, case, recipient_id
+
+    def _complete_shadow_fixture(self, suffix: str, primary_decision: str, primary_score: float,
+                                 shadow_decision: str, shadow_score: float) -> tuple[dict, dict]:
+        case = self.store.save_case(case_payload())
+        article, _ = self.store.upsert_article({
+            "canonical_url": f"https://example.com/shadow-{suffix}",
+            "original_url": f"https://example.com/shadow-{suffix}",
+            "title": f"그림자 테스트 {suffix}", "publisher": "example.com", "snippet": "기사 원문 요약",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        self.store.save_article_analysis(analysis["id"], {"summary": "사진 없는 기사 요약"}, "summary-model")
+        evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+        evaluation = self.store.save_case_evaluation(evaluation["id"], {
+            "final_score": primary_score, "llm_score": primary_score,
+            "decision": primary_decision, "reasons": ["운영 모델 근거"],
+        }, "primary-model")
+        shadow = ShadowCaseStore(self.store)
+        self.assertTrue(shadow.queue(evaluation))
+        job = shadow.next_job()
+        shadow.finish(job["id"], {
+            "final_score": shadow_score, "llm_score": shadow_score,
+            "decision": shadow_decision, "reasons": ["그림자 모델 근거"],
+            "analysis_report": {"model": "shadow-model"},
+        })
+        return article, job
+
+    def test_shadow_review_queue_uses_decision_split_or_twenty_point_gap(self):
+        self._complete_shadow_fixture("ignored", "low", 50, "low", 69.9)
+        self.assertEqual(self.store.shadow_disagreements()["total"], 0)
+        self._complete_shadow_fixture("gap", "low", 50, "low", 70)
+        gap_item = self.store.shadow_disagreements()["items"][0]
+        self.assertFalse(gap_item["decision_split"])
+        self.assertEqual(gap_item["score_gap"], 20)
+        self._complete_shadow_fixture("split", "send", 72, "low", 71)
+        items = self.store.shadow_disagreements()["items"]
+        self.assertEqual(len(items), 2)
+        self.assertTrue(any(item["decision_split"] for item in items))
+
+    def test_shadow_daily_limits_count_actual_starts_and_shadow_tokens(self):
+        _article, job = self._complete_shadow_fixture("daily-budget", "low", 50, "low", 50)
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE shadow_case_evaluations SET queued_at='2020-01-01T00:00:00+09:00',input_tokens=299000,output_tokens=1000 WHERE id=?",
+                (job["id"],),
+            )
+        status = ShadowCaseStore(self.store).status(150, 300000)
+        self.assertEqual(status["requested"], 1)
+        self.assertEqual(status["daily_limit"], 150)
+        self.assertEqual(status["daily_token_limit"], 300000)
+        self.assertEqual(status["shadow_token_remaining"], 0)
+        self.assertTrue(status["token_limit_exhausted"])
+        self.assertEqual(status["reset_basis"], "UTC 00:00")
+        self.assertTrue(status["day_start"].endswith("T09:00:00+09:00"))
+        self.assertTrue(status["reset_at"].endswith("T09:00:00+09:00"))
+        self.assertEqual(len(status["daily"]), 7)
+        self.assertEqual(sum(item["matching"] for item in status["daily"]), 1)
+
+    def test_shadow_feedback_archives_minimal_snapshot_and_survives_article_delete(self):
+        article, job = self._complete_shadow_fixture("archive", "send", 80, "low", 79)
+        saved = self.store.save_shadow_feedback(job["id"], "primary_correct", "shadow_overmatch", "운영 판정이 적절함")
+        self.assertEqual(self.store.shadow_disagreements()["total"], 0)
+        self.assertEqual(saved["case_name"], "케이스 1")
+        self.assertEqual(saved["article_url"], "https://example.com/shadow-archive")
+        self.assertEqual(saved["article_summary"], "사진 없는 기사 요약")
+        self.assertEqual(saved["primary_reasons"], ["운영 모델 근거"])
+        self.assertEqual(saved["shadow_reasons"], ["그림자 모델 근거"])
+        self.assertNotIn("image", saved)
+        with self.store.connect() as connection:
+            connection.execute("DELETE FROM articles WHERE id=?", (article["id"],))
+        history = self.store.shadow_feedback_history()
+        self.assertEqual(history["total"], 1)
+        self.assertEqual(history["items"][0]["feedback_comment"], "운영 판정이 적절함")
 
     def test_delivery_claim_is_atomic_across_store_instances(self):
         self._queue_delivery_fixture()
@@ -194,6 +292,59 @@ class StorageTests(unittest.TestCase):
         stored = self.store.get_case_proposal(item["id"], admin=True)
         self.assertEqual(stored["moderation_status"], "clean")
         self.assertEqual(stored["moderation_model"], "gpt-5.4-mini")
+    def test_case_proposal_draft_uses_openai_mini_and_normalizes_fields(self):
+        client = mock.MagicMock()
+        client.request.return_value = {"message": {"content": json.dumps({
+            "title": "행안부 AI 행정서비스 현장 문제",
+            "topic_search_prompt": "행정안전부의 AI 행정서비스가 현장에서 오류, 불편, 개선 요구의 직접 대상인 기사를 포함하고 단순 행사 소개는 제외한다.",
+            "include_terms": ["행정안전부", "AI 행정", "AI 행정"],
+            "required_terms": ["행정안전부"],
+            "exclude_terms": ["채용"],
+            "interpretation": "현장 문제와 개선 요구를 중심으로 찾습니다.",
+            "assumptions": ["기간 제한은 두지 않습니다."],
+        }, ensure_ascii=False)}}
+        service = object.__new__(MasterPressService)
+        service.settings = SimpleNamespace(openai_case_draft_model="gpt-5.4-mini")
+        service.scoring = SimpleNamespace(shadow_llm=client)
+        draft = service.generate_case_proposal_draft("행안부 AI 행정서비스의 현장 문제와 개선 요구 기사를 찾아줘")
+        self.assertEqual(draft["include_terms"], ["행정안전부", "AI 행정"])
+        self.assertEqual(draft["required_terms"], [])
+        self.assertEqual(draft["exclude_terms"], [])
+        request_payload = client.request.call_args.args[1]
+        self.assertEqual(request_payload["model"], "gpt-5.4-mini")
+        self.assertEqual(request_payload["record_stage"], "case_proposal_draft")
+        self.assertTrue(request_payload["response_schema"]["strict"])
+
+    def test_upstage_solar_uses_draft_token_limit_not_model_ceiling(self):
+        settings = SimpleNamespace(
+            upstage_api_key="test", upstage_base_url="https://api.upstage.ai/v1",
+            upstage_solar_model="solar-pro4", upstage_max_tokens=65536, request_timeout_seconds=10,
+        )
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps({
+            "id": "solar-test", "choices": [{"message": {"content": "{}"}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 2},
+        }).encode()
+        with mock.patch("urllib.request.urlopen", return_value=response) as urlopen:
+            UpstageSolarClient(settings).request("/chat/completions", {
+                "messages": [], "options": {"num_predict": 1000},
+            })
+        request_body = json.loads(urlopen.call_args.args[0].data)
+        self.assertEqual(request_body["model"], "solar-pro4")
+        self.assertEqual(request_body["max_tokens"], 1000)
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], 120)
+
+    def test_case_proposal_persists_ai_generated_exclude_terms(self):
+        item = self.store.save_case_proposal({
+            "nickname": "tester", "password": "1234", "title": "AI 정책 문제",
+            "prompt": "AI 정책이 직접 비판 또는 개선 요구의 대상인 기사만 찾습니다.",
+            "include_terms": ["AI 정책"], "exclude_terms": ["채용", "광고"],
+        })
+        public = self.store.get_case_proposal(item["id"])
+        admin = self.store.get_case_proposal(item["id"], admin=True)
+        self.assertEqual(public["exclude_terms"], ["채용", "광고"])
+        self.assertEqual(admin["original_exclude_terms"], ["채용", "광고"])
+
 
     def test_supabase_outbox_is_idempotent_and_retries_without_remote_io(self):
         first = self.store.queue_supabase_outbox("master_press_articles", [{"id": "article-1", "title": "첫값"}])
@@ -784,9 +935,10 @@ class StorageTests(unittest.TestCase):
                 http_status=429, error=f"rate-{index}",
             )
         usage = self.store.openrouter_usage_today(3)
-        self.assertEqual(usage["attempts"], 3)
+        self.assertEqual(usage["attempts"], 0)
+        self.assertEqual(usage["transport_attempts"], 3)
         self.assertEqual(usage["failed"], 3)
-        self.assertEqual(usage["remaining"], 0)
+        self.assertEqual(usage["remaining"], 3)
 
         client = OpenRouterClient(settings, self.store)
         response = mock.MagicMock()
@@ -796,13 +948,105 @@ class StorageTests(unittest.TestCase):
             result = client.request("/chat/completions", {"model": "test-model", "messages": []})
         self.assertEqual(result["message"]["content"], "{}")
         urlopen.assert_called_once()
+        sent = json.loads(urlopen.call_args.args[0].data)
+        self.assertEqual(sent["response_format"], {"type": "json_object"})
 
+    def test_openrouter_status_stops_at_successful_daily_soft_limit(self):
+        for _index in range(2):
+            self.store.record_llm_api_call("openrouter", "case", "test-model", "completed", 10)
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(openrouter_api_key="test", openrouter_daily_soft_limit=2)
+        service.selected_case_single_model = lambda: "test-model"
+        status = service.openrouter_status(False)
+        self.assertEqual(status["attempts"], 2)
+        self.assertEqual(status["transport_attempts"], 2)
+        self.assertTrue(status["request_budget_exhausted"])
+        self.assertTrue(status["exhausted"])
+        self.assertFalse(status["available"])
+        client = OpenRouterClient(SimpleNamespace(
+            openrouter_api_key="test", openrouter_daily_soft_limit=2,
+        ), self.store)
+        with mock.patch("urllib.request.urlopen") as opened, self.assertRaisesRegex(OpenRouterError, "local_daily_soft_limit"):
+            client.request("/chat/completions", {"model": "test-model", "messages": []})
+        opened.assert_not_called()
+
+    def test_openrouter_http_error_preserves_provider_metadata(self):
+
+        settings = SimpleNamespace(
+            openrouter_api_key="test-key", openrouter_daily_soft_limit=1000,
+            openrouter_base_url="https://openrouter.test", request_timeout_seconds=1,
+            user_agent="test", openrouter_case_model="test-model",
+        )
+        client = OpenRouterClient(settings, self.store)
+        body = json.dumps({
+            "error": {
+                "message": "Provider returned error",
+                "metadata": {
+                    "provider_name": "Google AI Studio",
+                    "provider_error_code": "rate_limit_exceeded",
+                    "limit_source": "upstream_provider_shared_pool",
+                    "retry_after_seconds": 22,
+                    "raw": "test-model is temporarily rate-limited upstream",
+                },
+            },
+        }).encode()
+        failure = urllib.error.HTTPError(
+            "https://openrouter.test/chat/completions", 429, "Too Many Requests",
+            {"Retry-After": "22"}, io.BytesIO(body),
+        )
+        with self.assertRaises(OpenRouterError) as raised:
+            with mock.patch("urllib.request.urlopen", side_effect=failure):
+                client.request("/chat/completions", {"model": "test-model", "messages": []})
+        self.assertEqual(raised.exception.upstream_provider, "Google AI Studio")
+        self.assertEqual(raised.exception.error_type, "rate_limit_exceeded")
+        self.assertEqual(raised.exception.limit_source, "upstream_provider_shared_pool")
+        self.assertEqual(raised.exception.retry_after_seconds, 22)
+        with self.store.connect() as connection:
+            row = connection.execute("SELECT error FROM llm_api_calls ORDER BY created_at DESC LIMIT 1").fetchone()
+        stored = json.loads(row["error"])
+        self.assertEqual(stored["upstream_provider"], "Google AI Studio")
+        self.assertEqual(stored["error_type"], "rate_limit_exceeded")
+        self.assertEqual(stored["retry_after_seconds"], 22)
+
+    def test_openrouter_endpoint_404_opens_provider_circuit(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError(
+            "No endpoints found that can handle the requested parameters.",
+            status=404,
+        )
+        paused_until = service._remember_provider_failure("openrouter", error)
+        self.assertGreater(paused_until, now_iso())
+        self.assertEqual(self.store.get_setting("llm_provider_temporary_until:openrouter"), paused_until)
+        self.assertIn("No endpoints found", self.store.get_setting("llm_provider_temporary_reason:openrouter"))
+
+
+        client = OpenRouterClient(SimpleNamespace(
+            openrouter_api_key="test", openrouter_daily_soft_limit=1000,
+        ), self.store)
+        with mock.patch("urllib.request.urlopen") as opened, self.assertRaisesRegex(OpenRouterError, "temporarily_paused"):
+            client.request("/chat/completions", {"model": "test-model", "messages": []})
+        opened.assert_not_called()
+
+    def test_openrouter_shared_free_pool_uses_long_circuit_pause(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        error = OpenRouterError(
+            "Provider returned error", status=429, retryable=True,
+            limit_source="upstream_provider_shared_pool",
+        )
+        paused_until = service._remember_provider_failure("openrouter", error)
+        remaining = (datetime.fromisoformat(paused_until) - datetime.now(KST)).total_seconds()
+        self.assertGreaterEqual(remaining, 29 * 60)
+        self.assertEqual(self.store.get_setting("llm_provider_transient_failures:openrouter"), "0")
 
     def test_operation_logs_summarize_errors_and_failover(self):
-        self.store.record_llm_api_call(
-            "openrouter", "case", "test-model", "failed", 25,
-            http_status=429, error="free-models-per-day quota reached",
-        )
+        for _index in range(3):
+            self.store.record_llm_api_call(
+                "openrouter", "case", "test-model", "failed", 25,
+                http_status=429, error="free-models-per-day quota reached",
+            )
         self.store.set_setting(
             "llm_provider_disabled_until:openrouter",
             (datetime.now(KST) + timedelta(hours=2)).isoformat(timespec="seconds"),
@@ -810,21 +1054,47 @@ class StorageTests(unittest.TestCase):
         self.store.set_setting("llm_provider_disabled_reason:openrouter", "free-models-per-day quota reached")
         logs = self.store.operation_logs(days=7, limit=10)
         self.assertGreaterEqual(logs["summary"]["total"], 2)
-        self.assertGreaterEqual(logs["summary"]["open"], 1)
+        self.assertGreaterEqual(logs["summary"]["retrying"], 1)
+        self.assertEqual(logs["summary"]["critical"], 0)
         kinds = {item["kind"] for item in logs["items"]}
         self.assertIn("api_error", kinds)
         self.assertIn("provider_failover", kinds)
+        api_items = [item for item in logs["items"] if item["kind"] == "api_error"]
+        self.assertEqual(len(api_items), 1)
+        self.assertEqual(api_items[0]["occurrence_count"], 3)
+        self.assertGreaterEqual(logs["summary"]["occurrences"], 4)
         messages = "\n".join(item["message"] for item in logs["items"])
         self.assertIn("무료 사용량", messages)
+
+    def test_operation_logs_close_old_route_404_after_later_provider_response(self):
+        self.store.record_llm_api_call(
+            "openrouter", "case", "test-model", "failed", 25,
+            http_status=404, error="No endpoints found that can handle the requested parameters.",
+        )
+        self.store.record_llm_api_call(
+            "openrouter", "case", "test-model", "failed", 25,
+            http_status=429, error="Provider returned error",
+        )
+        older = (datetime.now(KST) - timedelta(minutes=10)).isoformat(timespec="seconds")
+        later = (datetime.now(KST) - timedelta(minutes=5)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            connection.execute("UPDATE llm_api_calls SET created_at=? WHERE http_status=404", (older,))
+            connection.execute("UPDATE llm_api_calls SET created_at=? WHERE http_status=429", (later,))
+        logs = self.store.operation_logs(days=7, limit=10)
+        route_error = next(item for item in logs["items"] if item.get("http_status") == 404)
+        self.assertEqual(route_error["status"], "resolved")
+        self.assertEqual(route_error["resolved_at"], later)
+        self.assertEqual(route_error["severity"], "warning")
 
     def test_openrouter_daily_limit_counts_common_fallback_calls(self):
         self.store.record_llm_api_call("openrouter", "case", "test-model", "completed", 10)
         self.store.record_llm_api_call("openrouter", "common_fallback", "test-model", "failed", 10)
         usage = self.store.openrouter_usage_today(3)
-        self.assertEqual(usage["attempts"], 2)
+        self.assertEqual(usage["attempts"], 1)
+        self.assertEqual(usage["transport_attempts"], 2)
         self.assertEqual(usage["completed"], 1)
         self.assertEqual(usage["failed"], 1)
-        self.assertEqual(usage["remaining"], 1)
+        self.assertEqual(usage["remaining"], 2)
         self.assertEqual(usage["scope"], "provider_total")
 
     def test_article_search_and_published_time_order(self):
@@ -1037,7 +1307,7 @@ class StorageTests(unittest.TestCase):
 
     def test_openai_daily_token_budget_stops_mini_until_utc_reset(self):
         service = object.__new__(MasterPressService)
-        tokens = {"value": 2449999}
+        tokens = {"value": 2199999}
         observed_limits = []
 
         def usage(_provider, _since, request_limit=0, token_limit=0, stage=""):
@@ -1048,7 +1318,7 @@ class StorageTests(unittest.TestCase):
         service.settings = SimpleNamespace(
             openai_api_key="test",
             openai_shadow_model="gpt-5.4-mini",
-            openai_daily_token_soft_limit=2450000,
+            openai_daily_token_soft_limit=2200000,
         )
         service.store = SimpleNamespace(
             provider_usage_since=usage,
@@ -1058,10 +1328,10 @@ class StorageTests(unittest.TestCase):
 
         status = service.openai_status(False)
         self.assertTrue(status["available"])
-        self.assertEqual(observed_limits[-1], 2450000)
+        self.assertEqual(observed_limits[-1], 2200000)
         self.assertEqual(status["token_remaining"], 1)
 
-        tokens["value"] = 2450000
+        tokens["value"] = 2200000
         status = service.openai_status(False)
         self.assertFalse(status["available"])
         self.assertTrue(status["token_budget_exhausted"])
@@ -1370,7 +1640,7 @@ class StorageTests(unittest.TestCase):
         service.store = self.store
         service.settings = SimpleNamespace(
             worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
-            groq_common_model="llama-3.1-8b-instant",
+            groq_common_model="openai/gpt-oss-20b",
             openrouter_case_model="google/gemma-4-26b-a4b-it:free",
             nvidia_case_model="openai/gpt-oss-120b",
             openai_shadow_model="gpt-5.4-mini",
@@ -1382,9 +1652,9 @@ class StorageTests(unittest.TestCase):
         )
         self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
         service._migrate_reserve2_default()
-        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve1_model(), "openai/gpt-oss-20b")
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
-        self.assertEqual(service.available_reserve1_models(), ["llama-3.1-8b-instant"])
+        self.assertEqual(service.available_reserve1_models(), ["openai/gpt-oss-20b"])
         self.assertEqual(service.available_reserve2_models(), ["gpt-5.4-mini"])
         self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
         self.assertEqual(service.selected_case_model1(), "openai/gpt-oss-120b")
@@ -1415,7 +1685,7 @@ class StorageTests(unittest.TestCase):
         service.store = self.store
         service.settings = SimpleNamespace(
             worker_ai_model="@cf/google/gemma-4-26b-a4b-it",
-            groq_common_model="llama-3.1-8b-instant",
+            groq_common_model="openai/gpt-oss-20b",
             openrouter_case_model="google/gemma-4-26b-a4b-it:free",
             nvidia_case_model="openai/gpt-oss-120b",
             openai_shadow_model="gpt-5.4-mini",
@@ -1427,7 +1697,7 @@ class StorageTests(unittest.TestCase):
         )
         self.store.set_setting("reserve2_llm_model", "gemini-3.5-flash-lite")
         service._migrate_reserve2_default()
-        self.assertEqual(service.selected_reserve1_model(), "llama-3.1-8b-instant")
+        self.assertEqual(service.selected_reserve1_model(), "openai/gpt-oss-20b")
         self.assertEqual(service.selected_reserve2_model(), "gpt-5.4-mini")
         self.assertEqual(service.available_common_fallback_models(), ["@cf/meta/llama-3.1-8b-instruct-fast"])
         self.assertEqual(service.available_case_fallback_models(), ["gemini-3.1-flash-lite"])
@@ -1571,9 +1841,9 @@ class StorageTests(unittest.TestCase):
         service.store = self.store
         service.settings = SimpleNamespace(
             worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
-            groq_common_model="llama-3.1-8b-instant",
+            groq_common_model="openai/gpt-oss-20b",
         )
-        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_llm_model = lambda: "openai/gpt-oss-20b"
         service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
         service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
         called = []
@@ -1598,9 +1868,9 @@ class StorageTests(unittest.TestCase):
         service.store = self.store
         service.settings = SimpleNamespace(
             worker_ai_model="@cf/meta/llama-3.1-8b-instruct-fast",
-            groq_common_model="llama-3.1-8b-instant",
+            groq_common_model="openai/gpt-oss-20b",
         )
-        service.selected_common_llm_model = lambda: "llama-3.1-8b-instant"
+        service.selected_common_llm_model = lambda: "openai/gpt-oss-20b"
         service.selected_common_fallback_model = lambda: "@cf/meta/llama-3.1-8b-instruct-fast"
         service._provider_status = lambda provider, model="": {"provider": provider, "model": model, "connected": True, "available": True}
         service.scoring = SimpleNamespace(analyze_article_common_with_provider=mock.Mock())
@@ -1881,6 +2151,122 @@ class StorageTests(unittest.TestCase):
         reversed_thresholds = {**case_payload(), "relevance_threshold": 50, "hold_threshold": 70}
         with self.assertRaisesRegex(ValueError, "보류 기준"):
             self.store.save_case(reversed_thresholds)
+    def test_retired_groq_model_migrates_to_current_free_model(self):
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(groq_common_model="openai/gpt-oss-20b")
+        self.store.set_settings({
+            "common_llm_model": "llama-3.1-8b-instant",
+            "reserve1_llm_model": "llama-3.1-8b-instant",
+        })
+        service._migrate_retired_groq_model()
+        self.assertEqual(self.store.get_setting("common_llm_model"), "openai/gpt-oss-20b")
+        self.assertEqual(self.store.get_setting("reserve1_llm_model"), "openai/gpt-oss-20b")
+
+    def test_groq_gpt_oss_uses_reasoning_safe_json_budget(self):
+        settings = SimpleNamespace(
+            groq_api_key="test", groq_base_url="https://groq.invalid",
+            groq_common_model="openai/gpt-oss-20b", request_timeout_seconds=3,
+            user_agent="test-agent",
+        )
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.headers = {}
+        response.read.return_value = json.dumps({
+            "id": "groq-test", "choices": [{"message": {"content": "{}"}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+        }).encode()
+        with mock.patch("master_press.scoring.urllib.request.urlopen", return_value=response) as urlopen:
+            result = GroqClient(settings).request("/chat/completions", {
+                "model": "openai/gpt-oss-20b", "messages": [],
+                "options": {"temperature": 0, "num_predict": 180},
+            })
+        body = json.loads(urlopen.call_args.args[0].data)
+        self.assertEqual(result["message"]["content"], "{}")
+        self.assertEqual(body["max_completion_tokens"], 1080)
+        self.assertEqual(body["reasoning_effort"], "low")
+        self.assertEqual(body["reasoning_format"], "hidden")
+        self.assertEqual(body["response_format"], {"type": "json_object"})
+
+    def test_supabase_http_error_preserves_postgrest_detail(self):
+        settings = SimpleNamespace(
+            supabase_url="https://supabase.invalid", supabase_service_role_key="test",
+            request_timeout_seconds=3,
+        )
+        body = json.dumps({
+            "code": "23505", "message": "duplicate key value violates unique constraint",
+            "details": "Key (canonical_url) already exists.", "hint": None,
+        }).encode()
+        failure = urllib.error.HTTPError(
+            "https://supabase.invalid/rest/v1/master_press_articles", 409, "Conflict", {}, io.BytesIO(body),
+        )
+        mirror = SupabaseMirror(settings)
+        with mock.patch("master_press.supabase_mirror.urllib.request.urlopen", side_effect=failure):
+            self.assertFalse(mirror.upsert("master_press_articles", [{"id": "article-1"}]))
+        stored = json.loads(mirror.last_error)
+        self.assertEqual(stored["http_status"], 409)
+        self.assertEqual(stored["code"], "23505")
+        self.assertIn("canonical_url", stored["details"])
+
+    def test_supabase_flusher_isolates_permanent_bad_row(self):
+        for article_id in ("good-1", "bad", "good-2"):
+            self.store.queue_supabase_outbox(
+                "master_press_articles", [{"id": article_id, "canonical_url": f"https://example.com/{article_id}"}],
+            )
+
+        class Mirror:
+            last_status = 0
+            last_error = ""
+
+            def upsert(inner, _table, rows, _conflict):
+                if any(row["id"] == "bad" for row in rows):
+                    inner.last_status = 409; inner.last_error = '{"code":"23505"}'
+                    return False
+                inner.last_status = 0; inner.last_error = ""
+                return True
+
+            def find_article_by_canonical_url(inner, _url):
+                return None
+
+        result = SupabaseOutboxFlusher(self.store, Mirror()).run(100)
+        self.assertEqual(result["completed"], 2)
+        self.assertEqual(result["failed"], 1)
+        self.assertGreaterEqual(result["isolated_requests"], 1)
+        self.assertEqual(self.store.supabase_outbox_event_status("master_press_articles:bad"), "failed")
+
+    def test_supabase_flusher_maps_remote_article_id_into_children(self):
+        local_id = "11111111-1111-4111-8111-111111111111"
+        remote_id = "22222222-2222-4222-8222-222222222222"
+        self.store.queue_supabase_outbox("master_press_articles", [{
+            "id": local_id, "canonical_url": "https://example.com/shared",
+        }])
+        self.store.queue_supabase_outbox("master_press_article_embeddings", [{
+            "analysis_id": "analysis-1", "article_id": local_id, "embedding": "[0]",
+        }], "analysis_id")
+
+        class Mirror:
+            last_status = 0
+            last_error = ""
+            sent = []
+
+            def upsert(inner, table, rows, _conflict):
+                inner.sent.append((table, [dict(row) for row in rows]))
+                if table == "master_press_articles" and rows[0]["id"] == local_id:
+                    inner.last_status = 409; inner.last_error = '{"code":"23505"}'
+                    return False
+                inner.last_status = 0; inner.last_error = ""
+                return True
+
+            def find_article_by_canonical_url(inner, _url):
+                return {"id": remote_id, "canonical_url": "https://example.com/shared"}
+
+        mirror = Mirror()
+        result = SupabaseOutboxFlusher(self.store, mirror).run(100)
+        self.assertEqual(result["completed"], 2)
+        self.assertEqual(self.store.supabase_remote_id("article", local_id), remote_id)
+        embedding_rows = [rows for table, rows in mirror.sent if table == "master_press_article_embeddings"]
+        self.assertEqual(embedding_rows[-1][0]["article_id"], remote_id)
+
 
 
 class ScoringTests(unittest.TestCase):
@@ -2554,6 +2940,51 @@ class PressReleaseTests(unittest.TestCase):
         self.assertIn("호우·풍수해", article & release)
         incidental = supported_topic_concepts("긴급 지시", "지난해 산불 지역의 추가 산사태를 점검했다")
         self.assertNotIn("산불·화재", incidental)
+
+    def test_match_job_is_deferred_and_eventually_failed_without_stalling_processing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = Store(Path(directory) / "press.sqlite3")
+            organization = store.save_organization({
+                "name": "행정안전부", "abbreviations": [], "former_names": [], "people": [],
+                "exclude_terms": [], "domains": [], "rss_urls": [], "collection_mode": "interval",
+                "collection_interval_minutes": 30, "collection_times": [], "max_search_queries": 1,
+                "max_articles_per_run": 1, "is_active": True,
+            })
+            article, _ = store.upsert_article({
+                "canonical_url": "https://example.com/defer", "original_url": "https://example.com/defer",
+                "title": "재시도 테스트", "publisher": "테스트", "published_at": now_iso(),
+                "snippet": "", "body": "", "source_type": "test",
+            })
+            manager = PressReleaseManager(
+                SimpleNamespace(data_dir=Path(directory)), store, SimpleNamespace(),
+                SimpleNamespace(enabled=False, last_error=""),
+            )
+            release_id, current = "00000000-0000-4000-8000-000000000088", now_iso()
+            with store.connect() as connection:
+                connection.execute(
+                    """INSERT INTO press_releases(
+                         id,organization_id,external_id,canonical_url,title,markdown_path,content_hash,created_at,updated_at
+                       ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                    (release_id, organization["id"], "88", "https://mois.go.kr/88", "재시도", "", "hash", current, current),
+                )
+                connection.execute(
+                    "INSERT INTO press_release_match_jobs(article_id,press_release_id,status,queued_at) VALUES(?,?,'processing',?)",
+                    (article["id"], release_id, current),
+                )
+            job = {"article_id": article["id"], "press_release_id": release_id, "error": ""}
+            outcome = manager._defer_match_job(job, ValueError("article_or_press_embedding_missing"))
+            self.assertEqual(outcome["status"], "pending")
+            with store.connect() as connection:
+                row = connection.execute("SELECT * FROM press_release_match_jobs").fetchone()
+            self.assertEqual(row["status"], "pending")
+            self.assertTrue(str(row["error"]).startswith("deferred_retry:1:"))
+            exhausted = manager._defer_match_job(
+                {**job, "error": "deferred_retry:3:article_or_press_embedding_missing"},
+                ValueError("article_or_press_embedding_missing"),
+            )
+            self.assertEqual(exhausted["status"], "failed")
+            with store.connect() as connection:
+                self.assertEqual(connection.execute("SELECT status FROM press_release_match_jobs").fetchone()[0], "failed")
 
     def test_article_press_pair_is_matched_only_once(self):
         with tempfile.TemporaryDirectory() as directory:

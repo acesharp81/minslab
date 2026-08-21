@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/document-format-adapter.schema.json",
+  "title": "AIWorks Document Format Adapter",
+  "type": "object",
+  "required": ["format", "capability", "mcp", "status", "sourceOfTruth"],
+  "properties": {
+    "format": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,20}$"},
+    "capability": {"type": "string", "pattern": "^document\\.(?:markdown\\.export|hwpx\\.render|format\\.convert\\.[a-z0-9._-]+)$"},
+    "mcp": {"type": "string", "minLength": 3},
+    "status": {"enum": ["ready", "installed", "unavailable"]},
+    "sourceOfTruth": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

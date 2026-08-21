@@ -4,7 +4,7 @@
 
 ## 저장소 한눈에 보기
 
-MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포트폴리오 실습 4개, 실행형 PoC 6개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 프로젝트마다 별도 서버를 띄우지 않고 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅합니다.
+MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채팅, 포트폴리오 실습 4개, 실행형 PoC 7개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅하고, 독립 런타임이 필요한 PoC 07만 같은 출처 경로로 reverse proxy합니다.
 
 | 구분 | 프로젝트 | 실행 화면 | 상세 문서 |
 | --- | --- | --- | --- |
@@ -19,6 +19,7 @@ MinsLab은 하나의 Python ASGI 애플리케이션에서 로컬 AI 채팅, 포�
 | PoC 04 | AI 언론동향 비서 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
 | PoC 05 | 북한 야간조명 3D 지도 | `/poc?project=north-korea-night-lights` | [PoC/05-north-korea-night-lights](PoC/05-north-korea-night-lights/README.md) |
 | PoC 06 | AIWorks | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
+| PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -30,6 +31,7 @@ Browser
   ├─ React SPA: Field Inspection, MoIS KMS
   ├─ deck.gl player: North Korea Night Lights
   ├─ static workspace: AIWorks
+  ├─ proxied independent app: National Assembly
   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
           │ HTTPS
           ▼
@@ -37,9 +39,9 @@ Nginx
           │ localhost:8000
           ▼
 Uvicorn + main.py (minimal ASGI)
-  ├─ Ollama proxy and NDJSON streaming
+  ├─ Ollama/Upstage chat and NDJSON streaming
   ├─ Supabase REST/Auth boundary
-  ├─ OpenRouter / Hugging Face / Cohere / KMA integrations
+  ├─ Upstage / OpenRouter / Hugging Face / Cohere / KMA integrations
   ├─ project module loader
   ├─ static/dist file serving
   └─ SQLite analytics and system metrics
@@ -73,7 +75,7 @@ systemd minslab-monitor.timer
 ├── deploy/systemd/            # 1분 주기 모니터 서비스·타이머 유닛
 ├── supabase_schema.sql        # 채팅/청킹 공통 참고 스키마
 ├── projects/                  # 포트폴리오 01~04
-├── PoC/                       # 실행형 PoC 01~06
+├── PoC/                       # 실행형 PoC 01~07
 ├── static/                    # 루트 페이지 공개 정적 파일
 ├── data/                      # 루트 공통 SQLite·채팅 fallback
 ├── analysis/                  # 로컬 분석 산출물, Git 제외
@@ -86,13 +88,13 @@ systemd minslab-monitor.timer
 - 변수 이름과 공개 기본값은 가장 가까운 `.env.example`에 기록합니다.
 - 브라우저에는 Supabase publishable key만 전달할 수 있으며 service-role, LLM API key, 관리자 비밀값은 서버에만 둡니다.
 - React PoC는 개발 시 Vite를 사용하지만 운영에서는 빌드된 `dist/`를 기존 ASGI가 제공합니다.
-- 로컬 모델은 브라우저가 Ollama 포트에 직접 접근하지 않고 백엔드 프록시를 통합니다.
+- 브라우저는 Ollama나 Upstage에 직접 접근하지 않고 백엔드의 통합 모델 목록과 스트리밍 API를 사용합니다.
 - 생성형 AI 출력은 자동 발송·확정 자료가 아니라 담당자 검토 전 초안입니다.
 - 생성 CSV, PKL, SQLite, 대화 기록, 분석 결과와 실제 환경파일은 Git 추적에서 제외합니다.
 
 ## What This App Includes
 
-- Local AI chat UI backed by Ollama, with conversation history support through Supabase.
+- Local AI chat UI backed by Ollama and optional Upstage Solar modes, with conversation history support through Supabase.
 - Portfolio and PoC archive pages for Python, ASGI, data analysis, RAG, and disaster-safety experiments.
 - Responsive desktop, tablet, and mobile layout with drawer menus for chat history and project navigation.
 - `02. 청킹실습(과제)` lab for document upload, chunking, embedding, and RAG answer comparison.
@@ -104,6 +106,20 @@ systemd minslab-monitor.timer
 - `04. 마스터언론` PoC for NAVER News/RSS collection, hybrid relevance scoring, encrypted Kakao OAuth tokens, and per-recipient delivery.
 - `05. 북한 야간조명 3D 지도` PoC for monthly VIIRS collection, compact time-series data, and deck.gl visualization.
 - `06. AIWorks` PoC for approval-based document automation, MCP creation/distribution, and auditable execution.
+- `07. 지금 우리 국회에선` PoC for provenance-first Cabinet/National Assembly meetings, bills, votes, and policy-flow exploration.
+
+## Local AI Chat
+
+홈 채팅은 `/api/models`에서 사용 가능한 모델을 하나의 목록으로 제공합니다. `UPSTAGE_API_KEY`가
+있으면 Solar Pro 4, Solar Pro 3, Solar Pro 3 Fast가 Ollama 모델보다 먼저 표시되고 Solar Pro 4가
+기본값이 됩니다. 키가 없으면 설치된 Ollama 채팅 모델만 사용합니다. API 모델은 최대 출력 선택지를
+4,096~65,536으로, Ollama는 128~1,024로 분리하며 모델별 시스템 프롬프트와 출력 설정을
+브라우저에 저장합니다.
+
+모든 공급자는 같은 `/api/chat` NDJSON 계약으로 토큰을 스트리밍합니다. Solar Pro 4/3 요청에는
+중간 추론 때문에 최종 답변 예산이 지나치게 줄지 않도록 `UPSTAGE_REASONING_MIN_TOKENS` 하한을
+적용하고, Pro 3 Fast에는 별도의 reasoning effort를 요청하지 않습니다. API 키와 공급자 오류는
+브라우저에 노출하지 않고 서버 경계에서 정규화합니다.
 
 ## Project 01: AI Safe Agent PoC
 
@@ -187,10 +203,21 @@ The sixth PoC combines document editing, MCP creation and installation, explicit
 - Archive entry: `/poc?project=aiworks`
 - Direct workspace: `/poc/aiworks/`
 - Server boundary: `/api/poc/aiworks/*`
-- Current baseline: completed 1~17 stage PoC with RHWP/HWPX editing, MCP contracts, and acceptance tests
-- Next direction: project-scoped context, artifacts, facts, capability resolution, and durable workflow execution
+- Current baseline: AIWorks 0.30.0 with immutable Markdown source revisions, derived HWPX, project backup/restore, Artifact/Evidence lineage, Recipe Library, RBAC, permission grants, and resumable workflow attempts
+- Model/runtime boundary: approval-gated Solar routing plus fixed local stdio or explicitly approved Streamable HTTP MCP execution
 - Implementation and operations: [PoC/06-AIWorks/README.md](PoC/06-AIWorks/README.md)
 - Product roadmap: [PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md](PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md)
+
+## PoC 07: 지금 우리 국회에선
+
+The seventh PoC is an independent FastAPI/PostgreSQL service that connects official Cabinet material with National Assembly committee meetings, minutes, bills, and votes while preserving source versions and separating official facts from provisional relationships.
+
+- Archive entry: `/poc?project=national-assembly`
+- Same-origin application: `/poc/national-assembly/`
+- Independent runtime: defaults to `http://127.0.0.1:18070`, configured with `NATIONAL_ASSEMBLY_UPSTREAM`
+- Scope: 행정안전위원회, 예산결산특별위원회, 법제사법위원회 and the latest verified Cabinet records
+- Provenance policy: raw-first ingestion, SHA-256 versions, source spans, and explicit `OFFICIAL` / `PROVISIONAL` / `SIMULATION` labels
+- Development, ingestion, LIVE workers, and operations: [PoC/07-NationalAssembly/README.md](PoC/07-NationalAssembly/README.md)
 
 ## Portfolio 02: Chunking / Embedding / RAG Lab
 
@@ -248,6 +275,10 @@ Required for full functionality:
 Optional:
 
 - `OLLAMA_BASE_URL`, defaults to `http://127.0.0.1:11434`
+- `UPSTAGE_API_KEY`, enables Solar Pro 4, Solar Pro 3, and Solar Pro 3 Fast in the main chat
+- `UPSTAGE_BASE_URL`, defaults to `https://api.upstage.ai/v1`
+- `UPSTAGE_REASONING_MIN_TOKENS`, defaults to `4096` so reasoning does not consume the final answer budget
+- `NATIONAL_ASSEMBLY_UPSTREAM`, defaults to `http://127.0.0.1:18070` for the PoC 07 same-origin proxy
 - `OPENROUTER_BASE_URL`, defaults to `https://openrouter.ai/api/v1`
 - `OPENROUTER_EMBEDDING_MODEL`, defaults to `openai/text-embedding-3-small`
 - `COHERE_API_KEY`, required for Cohere reranking
@@ -331,8 +362,8 @@ Important local API routes:
 - `POST /api/admin/logout`: clear an administrator session
 - `GET /api/admin/session`: inspect the current administrator session
 - `GET /api/admin/analytics`: list protected visit details and rollups
-- `GET /api/models`: Ollama model list
-- `POST /api/chat`: streaming chat response
+- `GET /api/models`: configured Upstage Solar modes followed by available Ollama chat models
+- `POST /api/chat`: provider-normalized streaming chat response
 - `GET /api/history`: load chat history
 - `POST /api/history`: save chat history
 - `POST /api/hwpx-extract`: extract text from `.hwpx`

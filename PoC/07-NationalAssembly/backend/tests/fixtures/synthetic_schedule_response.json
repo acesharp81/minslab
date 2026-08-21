@@ -1,0 +1,26 @@
+{
+  "ALLSCHEDULE": [
+    {
+      "head": [
+        {"list_total_count": 1},
+        {"RESULT": {"CODE": "INFO-000", "MESSAGE": "TEST_OK"}}
+      ]
+    },
+    {
+      "row": [
+        {
+          "SCH_KIND": "위원회",
+          "SCH_CN": "합성 일정 데이터",
+          "SCH_DT": "2099-01-02",
+          "SCH_TM": "10:00",
+          "CONF_DIV": "합성회의",
+          "CMIT_NM": "테스트위원회",
+          "CONF_SESS": "1",
+          "CONF_DGR": "2",
+          "EV_INST_NM": null,
+          "EV_PLC": "테스트 회의실"
+        }
+      ]
+    }
+  ]
+}

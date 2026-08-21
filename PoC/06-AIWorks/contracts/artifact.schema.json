@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/artifact.schema.json",
+  "title": "AIWorks Artifact and Immutable Version",
+  "type": "object",
+  "required": [
+    "id",
+    "projectId",
+    "artifactType",
+    "title",
+    "status",
+    "currentVersionId",
+    "versions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^gart_[a-f0-9]+$"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "artifactType": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "archived",
+        "deleted"
+      ]
+    },
+    "currentVersionId": {
+      "type": "string",
+      "pattern": "^gartver_[a-f0-9]+$"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "artifactId",
+          "version",
+          "mediaType",
+          "contentSha256",
+          "metadata"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^gartver_[a-f0-9]+$"
+          },
+          "artifactId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "mediaType": {
+            "type": "string"
+          },
+          "filename": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contentSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "workflowRunId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

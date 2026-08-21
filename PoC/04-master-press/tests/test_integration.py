@@ -116,6 +116,8 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertIn(b'masterPress:magazine:preferences:', app_body)
         self.assertIn(b'defaultMagazineReadRate', app_body)
         self.assertIn(b'saveMagazinePreferences({readRate:selected})', app_body)
+        self.assertIn(b'articleHighlightUrl', app_body)
+        self.assertIn("encodeURIComponent('행정안전부')".encode("utf-8"), app_body)
         styles_status, _styles_headers, styles_body = asyncio.run(call_app("/poc/master-press/styles.css"))
         self.assertEqual(styles_status, 200)
         self.assertIn(b'.magazine-issue.is-reading', styles_body)
@@ -290,6 +292,23 @@ class MainIntegrationTests(unittest.TestCase):
             "PUT",
             {"target": "burst", "enabled": True},
             cookie,
+        ))
+
+    def test_shadow_settings_toggle_and_limit_are_independent(self):
+        token = main.ADMIN_AUTH.issue_session()
+        cookie = f"{SESSION_COOKIE}={token}"
+        status, _headers, body = asyncio.run(call_app(
+            "/api/poc/master-press/admin/settings/shadow", "PUT",
+            {"enabled": True, "daily_limit": 120}, cookie,
+        ))
+        self.assertEqual(status, 200, body.decode("utf-8"))
+        saved = json.loads(body)
+        self.assertTrue(saved["enabled"])
+        self.assertEqual(saved["daily_limit"], 120)
+        self.assertEqual(len(saved["openai_shadow"]["daily"]), 7)
+        asyncio.run(call_app(
+            "/api/poc/master-press/admin/settings/shadow", "PUT",
+            {"enabled": True, "daily_limit": 150}, cookie,
         ))
 
     def test_article_link_redirects_to_saved_original(self):

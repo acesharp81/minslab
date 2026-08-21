@@ -2,6 +2,7 @@
 Description=Master Press OpenRouter Turbo worker for common analysis
 After=network-online.target myservice.service master-press-common.service
 Wants=network-online.target
+PartOf=myservice.service
 
 [Service]
 Type=simple

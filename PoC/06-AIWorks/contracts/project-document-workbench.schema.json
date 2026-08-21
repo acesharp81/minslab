@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/project-document-workbench.schema.json",
+  "title": "AIWorks Project Document Workbench",
+  "type": "object",
+  "required": ["project", "document", "tabs", "artifacts", "factCounts", "events"],
+  "properties": {
+    "project": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}}, "additionalProperties": true},
+    "document": {"type": "object"},
+    "tabs": {"type": "array", "items": {"type": "string"}},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["documentId", "format", "status", "renderMap"],
+        "properties": {
+          "id": {"type": ["string", "null"]},
+          "documentId": {"type": "string"},
+          "format": {"type": "string"},
+          "status": {"enum": ["missing", "rendering", "synced", "stale", "failed"]},
+          "sourceVersionId": {"type": ["string", "null"]},
+          "sourceRevision": {"type": ["integer", "null"]},
+          "renderMap": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "factCounts": {"type": "object"},
+    "events": {"type": "array", "items": {"type": "object"}}
+  },
+  "additionalProperties": false
+}

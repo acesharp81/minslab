@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/project-backup.schema.json",
+  "title": "AIWorks Portable Project Backup",
+  "type": "object",
+  "required": [
+    "format",
+    "schemaVersion",
+    "exportedAt",
+    "project",
+    "data",
+    "integrity"
+  ],
+  "properties": {
+    "format": {
+      "const": "aiworks-project-backup"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "filename": {
+      "type": "string"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "classification"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "classification": {
+          "enum": [
+            "public",
+            "internal",
+            "confidential"
+          ]
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "markdownDocuments",
+        "markdownVersions",
+        "documentArtifacts",
+        "facts",
+        "factValues",
+        "artifacts",
+        "artifactVersions",
+        "artifactRelations",
+        "artifactEvidence"
+      ],
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "sha256"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "SHA-256"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "additionalProperties": false
+}

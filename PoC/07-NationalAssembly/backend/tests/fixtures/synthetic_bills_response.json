@@ -1,0 +1,18 @@
+{
+  "ALLBILLV2": [
+    {"head": [{"list_total_count": 1}, {"RESULT": {"CODE": "INFO-000", "MESSAGE": "TEST_OK"}}]},
+    {"row": [{
+      "ERACO": "제22대", "BILL_ID": "PRC_SYNTHETIC_001", "BILL_NO": "2299999",
+      "BILL_KND": "법률안", "BILL_NM": "합성 법률안", "PPSR_KND": "의원",
+      "PPSR_NM": "테스트의원 등 10인", "PPSL_SESS": "제999회", "PPSL_DT": "2099-01-02",
+      "JRCMIT_NM": "법제사법위원회", "JRCMIT_CMMT_DT": null,
+      "JRCMIT_PRSNT_DT": "2099-01-03", "JRCMIT_PROC_DT": "2099-01-04",
+      "JRCMIT_PROC_RSLT": "원안가결", "LAW_CMMT_DT": null, "LAW_PRSNT_DT": null,
+      "LAW_PROC_DT": null, "LAW_PROC_RSLT": null, "RGS_PRSNT_DT": "2099-01-05",
+      "RGS_RSLN_DT": "2099-01-06", "RGS_CONF_NM": "제999회", "RGS_CONF_RSLT": "원안가결",
+      "GVRN_TRSF_DT": "2099-01-07", "PROM_LAW_NM": "합성법", "PROM_DT": "2099-01-08",
+      "PROM_NO": "99999", "LINK_URL": "https://example.invalid/bill", "PASSGUBN": "처리의안",
+      "PROC_STAGE_CD": "공포", "HWP_URL1": null, "HWP_URL2": null, "PDF_URL1": null, "PDF_URL2": null
+    }]}
+  ]
+}

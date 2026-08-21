@@ -2,6 +2,7 @@
 Description=Master Press pipeline worker
 After=network-online.target myservice.service
 Wants=network-online.target
+PartOf=myservice.service
 
 [Service]
 Type=simple

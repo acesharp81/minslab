@@ -1,0 +1,8 @@
+{
+  "xlist": [
+    {"xcode":"21","xcgcd":"","xname":"예결위","xstat":"0","xsubj":"","xdesc":"생중계 없음","xsami":"1","xqvod":"0","qlink":"","xthmb":""},
+    {"xcode":"25","xcgcd":"SIM-LAW-001","xname":"법사위","xstat":"1","xsubj":"합성 법사위 회의","xdesc":"생중계 중","xsami":"1","xqvod":"0","qlink":"","xthmb":"//example.invalid/law.jpg"},
+    {"xcode":"45","xcgcd":"","xname":"행안위","xstat":"0","xsubj":"","xdesc":"생중계 없음","xsami":"1","xqvod":"1","qlink":"https://example.invalid/vod","xthmb":""}
+  ],
+  "qtime": "2099-01-02 03:04:05"
+}

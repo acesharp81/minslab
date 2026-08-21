@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/project-policy.schema.json",
+  "title": "AIWorks Project Policy",
+  "type": "object",
+  "required": [
+    "autoApprovalScopes",
+    "finalConfirmationActions",
+    "resolver"
+  ],
+  "properties": {
+    "autoApprovalScopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "finalConfirmationActions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "resolver": {
+      "type": "object",
+      "required": [
+        "intentWeight",
+        "qualityWeight",
+        "costWeight",
+        "latencyWeight",
+        "preferenceWeight",
+        "preferredPackages"
+      ],
+      "properties": {
+        "intentWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "qualityWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "costWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "latencyWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preferenceWeight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preferredPackages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

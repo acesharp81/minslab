@@ -1,0 +1,9 @@
+{
+  "ncwgseseafwbuheph": [
+    {"head": [{"list_total_count": 2}, {"RESULT": {"CODE": "INFO-000", "MESSAGE": "TEST_OK"}}]},
+    {"row": [
+      {"CONFER_NUM": 90001, "TITLE": "제22대 제999회 제1차 행정안전위원회", "CLASS_NAME": "상임위원회", "DAE_NUM": 22, "COMM_NAME": "행정안전위원회", "VODCOMM_CODE": null, "CONF_DATE": "2099-01-02", "SUB_NAME": "1. 합성 안건", "VOD_LINK_URL": "https://example.invalid/vod", "CONF_LINK_URL": "https://example.invalid/minutes", "PDF_LINK_URL": "https://example.invalid/minutes.pdf", "PDF_FILE_ID": 70001, "DEPT_CD": "9700000", "CONF_ID": "N999001"},
+      {"CONFER_NUM": 90001, "TITLE": "제22대 제999회 제1차 행정안전위원회", "CLASS_NAME": "상임위원회", "DAE_NUM": 22, "COMM_NAME": "행정안전위원회", "VODCOMM_CODE": null, "CONF_DATE": "2099-01-02", "SUB_NAME": "2. 합성 보고", "VOD_LINK_URL": "https://example.invalid/vod", "CONF_LINK_URL": "https://example.invalid/minutes", "PDF_LINK_URL": "https://example.invalid/minutes.pdf", "PDF_FILE_ID": 70001, "DEPT_CD": "9700000", "CONF_ID": "N999001"}
+    ]}
+  ]
+}

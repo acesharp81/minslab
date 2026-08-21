@@ -1,0 +1,100 @@
+services:
+  api:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+      PROCESSED_DATA_DIR: /app/data/processed
+    ports:
+      - "${NATIONAL_ASSEMBLY_PORT:-8070}:8070"
+    volumes:
+      - ./data:/app/data
+      - ./web:/app/web:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-national_assembly}
+      POSTGRES_USER: ${POSTGRES_USER:-national_assembly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-national_assembly}
+    volumes:
+      - national_assembly_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-national_assembly} -d ${POSTGRES_DB:-national_assembly}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  live-monitor:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+      PROCESSED_DATA_DIR: /app/data/processed
+    command: ["python", "-m", "app.ingestion.live_monitor", "--interval", "30"]
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caption-worker:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+      PROCESSED_DATA_DIR: /app/data/processed
+    command: ["python", "-m", "app.ingestion.caption_worker", "--workers", "3"]
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  review-worker:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+    command: ["python", "-m", "app.ingestion.review_worker", "--interval", "10"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  official-minutes-worker:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+    command: ["python", "-m", "app.ingestion.official_minutes_worker", "--interval", "3600"]
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  national_assembly_pgdata:

@@ -31,6 +31,18 @@ from system_metrics import read_system_usage
 
 load_project_env()
 
+UPSTAGE_BASE_URL = env_first("UPSTAGE_BASE_URL", default="https://api.upstage.ai/v1").rstrip("/")
+UPSTAGE_REASONING_MIN_TOKENS = max(
+    256,
+    int(env_first("UPSTAGE_REASONING_MIN_TOKENS", default="4096") or "4096"),
+)
+UPSTAGE_CHAT_MODELS = (
+    {"name": "upstage:solar-pro4", "label": "Solar Pro 4", "api_model": "solar-pro4", "reasoning_effort": "medium"},
+    {"name": "upstage:solar-pro3", "label": "Solar Pro 3", "api_model": "solar-pro3", "reasoning_effort": "medium"},
+    {"name": "upstage:solar-pro3-fast", "label": "Solar Pro 3 Fast", "api_model": "solar-pro3", "reasoning_effort": None},
+)
+UPSTAGE_DEFAULT_CHAT_MODEL = UPSTAGE_CHAT_MODELS[0]["name"]
+
 APP_STARTED_AT = time.time()
 APP_STARTED_MONOTONIC = time.monotonic()
 SYSTEM_METRICS_INTERVAL_SECONDS = 60
@@ -77,6 +89,10 @@ AIWORKS_API_BASE = "/api/poc/aiworks"
 AIWORKS_SERVICE_PATH = Path(__file__).parent / "PoC" / "06-AIWorks" / "backend.py"
 AIWORKS_MODULE = None
 AIWORKS_MTIME = None
+NATIONAL_ASSEMBLY_BASE_PATH = "/poc/national-assembly"
+NATIONAL_ASSEMBLY_UPSTREAM = env_first(
+    "NATIONAL_ASSEMBLY_UPSTREAM", default="http://127.0.0.1:18070"
+).rstrip("/")
 
 WORKER_LOCK_PATH = MASTER_PRESS_SERVICE_PATH.parent / "data" / "master_press_workers.lock"
 WORKER_LOCK_HANDLE = None
@@ -1127,6 +1143,9 @@ HTML_PAGE = r"""
         renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
         renderAISafeAgent(p);
+      }else if(p.app_path){
+        const appPath=String(p.app_path),caption=String(p.app_caption||'독립 실행 화면을 불러오는 중입니다.'),policy=String(p.app_policy||'PoC 독립 실행 환경');
+        projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>${escapeProjectHtml(p.no)} · ${escapeProjectHtml(p.title)}</strong><span>${escapeProjectHtml(caption)}</span></div><a class="field-inspection-open" href="${escapeProjectHtml(appPath)}" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">${escapeProjectHtml(policy)}</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="${escapeProjectHtml(appPath)}" title="${escapeProjectHtml(p.title)}" loading="eager"></iframe></div></section>`;projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
       }else{
         projectLab.classList.remove('active'); projectLab.innerHTML=''; projectDefaultView.classList.remove('hidden');
         projectDescription.textContent=p.description;
@@ -1140,6 +1159,14 @@ HTML_PAGE = r"""
       const presentationUrl=String(p.url||'');
       projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>${escapeProjectHtml(p.title)}</strong><span>HTML 설명자료 · 키보드와 자료 내부 버튼으로 발표를 진행하세요.</span></div><a class="field-inspection-open" href="${escapeProjectHtml(presentationUrl)}" target="_blank" rel="noopener">큰 화면 보기 ↗</a></div><div class="field-inspection-policy">업로드한 HTML은 홈페이지 로그인 정보와 분리된 보안 영역에서 실행됩니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="${escapeProjectHtml(presentationUrl)}" title="${escapeProjectHtml(p.title)}" loading="eager" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads"></iframe></div></section>`;
     }
+    const trustedPresentationPaths=new Set(['/poc/master-press/']);
+    addEventListener('message',event=>{
+      const presentationFrame=projectLab.querySelector('.field-inspection-frame');
+      if(event.source!==presentationFrame?.contentWindow||event.data?.type!=='minslab:navigate')return;
+      const path=String(event.data.path||'');
+      if(!trustedPresentationPaths.has(path))return;
+      location.assign(path);
+    });
     function projectIdFromLocation(page=currentArchivePage){
       const c=catalog(page),pathMatch=location.pathname.match(new RegExp(`^${c.path}/([^/?#]+)`));
       return pathMatch ? decodeURIComponent(pathMatch[1]) : new URLSearchParams(location.search).get('project');
@@ -1194,7 +1221,7 @@ HTML_PAGE = r"""
       }catch(e){historyList.innerHTML=`<div class="history-db-status">대화 이력 연결 실패: ${e.message}</div>`}
     }
     async function persistHistory(){if(!conversation.length)return;const title=conversation.find(m=>m.role==='user')?.content.slice(0,40)||'새로운 대화';try{const r=await fetch('/api/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentChatId,client_id:deviceId,account_id:accountId||null,scope_type:historyScope,title,model:modelSelectEl.value,messages:conversation})});const data=await r.json();if(!r.ok||!data.saved)throw new Error(data.error||'대화 이력을 저장하지 못했습니다.');loadHistory()}catch(e){console.warn('History save failed',e);historyList.insertAdjacentHTML('afterbegin',`<div class="history-db-status">저장 실패: ${e.message}</div>`)}}
-    async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}">${m.name}${m.details.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('설치된 모델이 없습니다.')}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>OLLAMA OFFLINE</span>';}}
+    async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}" data-provider="${m.provider||'ollama'}">${m.label||m.name}${m.details?.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('사용 가능한 모델이 없습니다.');if(data.default&&[...modelSelectEl.options].some(option=>option.value===data.default))modelSelectEl.value=data.default;const hasUpstage=data.models.some(model=>model.provider==='upstage'),hasOllama=data.models.some(model=>model.provider==='ollama'),status=hasUpstage&&hasOllama?'UPSTAGE + OLLAMA':hasUpstage?'UPSTAGE CONNECTED':'OLLAMA CONNECTED';document.getElementById('ollamaStatus').innerHTML=`<i></i><span>${status}</span>`}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>MODEL OFFLINE</span>';}}
     function healthUptime(seconds){seconds=Math.max(0,Number(seconds||0));const days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60);return days?`${days}d ${hours}h`:hours?`${hours}h ${minutes}m`:minutes?`${minutes}m`:`${Math.floor(seconds)}s`}
     function healthSparkline(values){const nums=(Array.isArray(values)?values:[]).slice(-7).map(value=>Math.max(0,Number(value)||0));if(nums.length<2)return'';const max=Math.max(...nums),min=Math.min(...nums),range=Math.max(1,max-min),step=100/(nums.length-1),points=nums.map((value,index)=>`${(index*step).toFixed(1)},${(29-((value-min)/range)*23).toFixed(1)}`).join(' ');return`<svg class="health-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"/></svg>`}
     async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),totalSpark=healthSparkline(stats.trend?.cumulative_views),todaySpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${totalSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${todaySpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM+Embed</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
@@ -1213,7 +1240,9 @@ HTML_PAGE = r"""
     processDockObserver.observe(composerArea,{subtree:true,attributes:true,attributeFilter:['class']});
     processDockObserver.takeRecords();
     function settingsKey(){return`minzday.settings.${modelSelectEl.value}`}
-    function loadModelSettings(){const saved=JSON.parse(localStorage.getItem(settingsKey())||'{}');systemPrompt.value=saved.prompt||defaultPrompt;maxTokens.value=String(saved.maxTokens||256)}
+    function isApiChatModel(){const provider=modelSelectEl.selectedOptions[0]?.dataset.provider;return Boolean(provider&&provider!=='ollama')}
+    function configureMaxTokens(preferred){const api=isApiChatModel(),values=api?[4096,8192,16384,32768,65536]:[128,256,512,1024],recommended=api?16384:256;maxTokens.innerHTML=values.map(value=>`<option value="${value}"${value===recommended?' selected':''}>${value.toLocaleString('ko-KR')}${value===recommended?' · 권장':''}</option>`).join('');const wanted=Number(preferred||recommended);maxTokens.value=String(values.includes(wanted)?wanted:recommended)}
+    function loadModelSettings(){const saved=JSON.parse(localStorage.getItem(settingsKey())||'{}');systemPrompt.value=saved.prompt||defaultPrompt;configureMaxTokens(saved.maxTokens)}
     saveSettings.onclick=()=>{localStorage.setItem(settingsKey(),JSON.stringify({prompt:systemPrompt.value.trim(),maxTokens:Number(maxTokens.value)}));saveSettings.textContent='저장 완료 ✓';setTimeout(()=>saveSettings.textContent='이 모델 설정 저장',1200)};
     attachButtonEl.onclick=()=>fileInputEl.click();fileInputEl.onchange=async()=>{for(const file of fileInputEl.files){if(file.size>ATTACHMENT_MAX_FILE_BYTES){alert(`${file.name}: ${formatBytes(ATTACHMENT_MAX_FILE_BYTES)}를 초과합니다.`);continue}if(attachedData.length>=ATTACHMENT_MAX_FILES){alert(`파일은 최대 ${ATTACHMENT_MAX_FILES}개까지 첨부할 수 있습니다.`);break}if(attachmentBytes()+file.size>ATTACHMENT_MAX_TOTAL_BYTES){alert(`첨부 파일 총 용량은 ${formatBytes(ATTACHMENT_MAX_TOTAL_BYTES)} 이하로 제한됩니다.`);break}attachedData.push({name:file.name,size:file.size,content:await file.text()})}renderAttachments();fileInputEl.value=''};
     function renderAttachments(){fileShelf.classList.toggle('active',attachedData.length>0);attachedFilesEl.textContent='';attachedData.forEach((f,i)=>{const chip=document.createElement('div');chip.className='file-chip';const label=document.createElement('span');label.textContent=`📄 ${f.name} · ${formatBytes(f.size||0)}`;const remove=document.createElement('button');remove.type='button';remove.dataset.file=String(i);remove.title='첨부 해제';remove.textContent='×';remove.onclick=()=>{attachedData.splice(i,1);renderAttachments()};chip.append(label,remove);attachedFilesEl.append(chip)})}
@@ -1253,7 +1282,7 @@ HTML_PAGE = r"""
       finally{generating=false;sendEl.disabled=false;inputEl.focus();messagesEl.scrollTop=messagesEl.scrollHeight}
     }
     async function sendMessageLive(text){if(generating){activeChatController?.abort();return}text=text.trim();if(!text)return;generating=true;const controller=new AbortController();activeChatController=controller;sendEl.disabled=false;sendEl.classList.add('is-stop');sendEl.textContent='■';sendEl.title='생성 중지';conversation.push({role:'user',content:text});addMessage('user',text);if(conversation.length===1)document.getElementById('historyTitle').textContent=text.slice(0,28);inputEl.value='';inputEl.style.height='auto';chatAutoFollow=true;const started=performance.now(),pending=addMessage('assistant','응답을 생각하고 있습니다…','typing'),process=processPanel(pending,started),bodyEl=pending.querySelector('.message-body');const requestMessages=[];if(systemPrompt.value.trim())requestMessages.push({role:'system',content:systemPrompt.value.trim()});if(attachedData.length)requestMessages.push({role:'system',content:'다음 첨부 자료를 바탕으로 질문에 답하세요. 자료에 없는 내용은 구분해서 설명하세요.\n\n'+attachedData.map(f=>`[파일: ${f.name}]\n${f.content}`).join('\n\n')});requestMessages.push(...conversation);let answer='',displayed='',tokenQueue=[],finalEvent=null,followButton=null;const follow=()=>{if(chatAutoFollow){messagesEl.scrollTop=messagesEl.scrollHeight;followButton?.remove();followButton=null}else if(!followButton){followButton=document.createElement('button');followButton.className='chat-follow-paused';followButton.type='button';followButton.textContent='↓ 실시간 답변으로 이동';followButton.onclick=()=>{chatAutoFollow=true;follow()};messagesEl.append(followButton)}};const draw=force=>{if(force){displayed=answer;tokenQueue=[]}else if(tokenQueue.length){const take=Math.max(1,Math.ceil(tokenQueue.length/12));displayed+=tokenQueue.splice(0,take).join('')}bodyEl.textContent=displayed;follow()};const flushTimer=setInterval(()=>draw(false),18);try{const requestBody=JSON.stringify({model:modelSelectEl.value,messages:requestMessages,max_tokens:Number(maxTokens.value),attachments:attachedData.map(f=>f.name)});if(new Blob([requestBody]).size>CHAT_REQUEST_MAX_BYTES)throw new Error(`첨부와 대화 내용을 합친 요청 크기가 ${formatBytes(CHAT_REQUEST_MAX_BYTES)}를 초과합니다.`);const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:requestBody,signal:controller.signal});if(!r.ok){const data=await r.json();throw new Error(data.error||'응답을 받지 못했습니다.')}if(!r.body)throw new Error('스트리밍 응답을 받을 수 없습니다.');const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';pending.classList.add('streaming');bodyEl.textContent='';while(true){const chunk=await reader.read();if(chunk.done)break;buffer+=decoder.decode(chunk.value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='token'){answer+=event.content||'';tokenQueue.push(...Array.from(event.content||''));process.stream(answer)}else if(event.type==='done')finalEvent=event;else if(event.type==='error')throw new Error(event.error||'응답 생성 실패')}}buffer+=decoder.decode();if(buffer.trim()){const event=JSON.parse(buffer);if(event.type==='done')finalEvent=event;else if(event.type==='error')throw new Error(event.error||'응답 생성 실패')}if(!answer&&finalEvent?.message?.content)answer=finalEvent.message.content;if(!answer)answer='응답 내용이 없습니다.';clearInterval(flushTimer);draw(true);conversation.push({role:'assistant',content:answer});pending.classList.add('done');pending.classList.remove('streaming','typing');finishChatMarkdown(pending,answer);process.finish(answer,finalEvent?.metrics,true);renderSources(answer,finalEvent?.sources||[]);persistHistory()}catch(e){clearInterval(flushTimer);draw(true);pending.classList.add('done');pending.classList.remove('streaming','typing');if(e.name==='AbortError'){answer=answer||'생성이 중지되었습니다.';bodyEl.textContent=answer;conversation.push({role:'assistant',content:answer});process.finish(answer,null,false);persistHistory()}else{answer=`오류: ${e.message}`;if(conversation.at(-1)?.role==='user')conversation.pop();bodyEl.textContent=answer;process.finish(answer,null,false);const retry=document.createElement('button');retry.type='button';retry.className='chat-retry';retry.textContent='다시 생성';retry.onclick=()=>sendMessageLive(text);pending.children[1].append(retry)}renderSources(answer,[])}finally{clearInterval(flushTimer);followButton?.remove();if(activeChatController===controller)activeChatController=null;generating=false;sendEl.classList.remove('is-stop');sendEl.textContent='↑';sendEl.title='보내기';sendEl.disabled=false;inputEl.focus();if(chatAutoFollow)messagesEl.scrollTop=messagesEl.scrollHeight}}
-    document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessageLive(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessageLive(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessageLive(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{const saved=localStorage.getItem('minzday.selectedModel');if(saved&&[...modelSelectEl.options].some(o=>o.value===saved))modelSelectEl.value=saved;loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
+    document.getElementById('chatForm').onsubmit=e=>{e.preventDefault();sendMessageLive(inputEl.value)};inputEl.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessageLive(inputEl.value)}};inputEl.oninput=()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,130)+'px'};document.querySelectorAll('.suggestion').forEach(b=>b.onclick=()=>sendMessageLive(b.textContent));document.getElementById('newChat').onclick=()=>{conversation=[];location.reload()};modelSelectEl.onchange=()=>{localStorage.setItem('minzday.selectedModel',modelSelectEl.value);conversation=[];currentChatId=crypto.randomUUID();document.getElementById('historyTitle').textContent='새로운 대화';loadModelSettings()};loadModels().then(()=>{loadModelSettings();loadHistory()});loadHealth();setInterval(loadHealth,15000);
     function showPage(page,push=false,projectId=null){const archive=page==='portfolio'||page==='poc'||page==='presentations';const requestedProject=archive?(projectId||projectIdFromLocation(page)||(push?lastProjectId(page):currentProjectIds[page]||lastProjectId(page))):null;closeMobileDrawers();document.body.classList.toggle('archive-mode',archive);document.querySelectorAll('[data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));if(archive){currentArchivePage=page;setArchiveChrome(page);renderProject(requestedProject,page)}if(push)history.pushState({},'',archive?projectUrl(requestedProject,page):'/');trackCurrentPage();scrollTo(0,0)}
     document.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();showPage(a.dataset.page,true)});addEventListener('popstate',()=>showPage(archivePageFromLocation()));showPage(archivePageFromLocation());
   </script>
@@ -1398,6 +1427,28 @@ def _is_ollama_chat_model(model):
     if "bert" in family or any("bert" in item for item in families):
         return False
     return True
+
+
+def upstage_chat_model_options():
+    """Return configured Solar chat modes in the requested display order."""
+    if not env_first("UPSTAGE_API_KEY", "UPSTAGE_SECRET_KEY"):
+        return []
+    return [
+        {
+            "name": model["name"],
+            "label": f"{model['label']} · Upstage",
+            "provider": "upstage",
+            "details": {},
+        }
+        for model in UPSTAGE_CHAT_MODELS
+    ]
+
+
+def resolve_upstage_chat_model(model_name):
+    return next(
+        (model for model in UPSTAGE_CHAT_MODELS if model["name"] == model_name),
+        None,
+    )
 
 
 def ollama_model_options():
@@ -1635,6 +1686,65 @@ def iter_ollama_stream(path, payload=None):
             if not line:
                 continue
             yield json.loads(line)
+
+
+def iter_upstage_chat_stream(model_config, messages, max_tokens):
+    """Stream an Upstage OpenAI-compatible chat response as normalized chunks."""
+    api_key = env_first("UPSTAGE_API_KEY", "UPSTAGE_SECRET_KEY")
+    if not api_key:
+        raise RuntimeError("UPSTAGE_API_KEY가 설정되지 않았습니다.")
+    request_max_tokens = (
+        max(max_tokens, UPSTAGE_REASONING_MIN_TOKENS)
+        if model_config.get("reasoning_effort")
+        else max_tokens
+    )
+    payload = {
+        "model": model_config["api_model"],
+        "messages": messages,
+        "max_tokens": request_max_tokens,
+        "temperature": 0.2,
+        "stream": True,
+    }
+    if model_config.get("reasoning_effort"):
+        payload["reasoning_effort"] = model_config["reasoning_effort"]
+    request = url_request.Request(
+        f"{UPSTAGE_BASE_URL}/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        done_sent = False
+        with url_request.urlopen(request, timeout=120) as response:
+            for raw_line in response:
+                line = raw_line.decode("utf-8").strip()
+                if not line or line.startswith(":") or not line.startswith("data:"):
+                    continue
+                data = line.removeprefix("data:").strip()
+                if data == "[DONE]":
+                    if not done_sent:
+                        yield {"done": True, "message": {"content": ""}}
+                    break
+                event = json.loads(data)
+                choice = (event.get("choices") or [{}])[0]
+                content = (choice.get("delta") or {}).get("content") or ""
+                done = choice.get("finish_reason") is not None
+                done_sent = done_sent or done
+                yield {
+                    "done": done,
+                    "message": {"content": content},
+                    "usage": event.get("usage") or {},
+                }
+    except url_error.HTTPError as error:
+        try:
+            error_data = json.loads(error.read().decode("utf-8"))
+            message = error_data.get("error", {}).get("message") or str(error)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            message = str(error)
+        raise RuntimeError(f"Upstage API 오류 ({error.code}): {message}") from error
 
 
 def _tcp_port_is_open(host, port):
@@ -2122,6 +2232,46 @@ async def app(scope, receive, send):
     send = monitored_send
 
     presentation_prefix = f"{PRESENTATION_BASE_PATH}/"
+    if path == NATIONAL_ASSEMBLY_BASE_PATH and method in {"GET", "HEAD"}:
+        location = f"{NATIONAL_ASSEMBLY_BASE_PATH}/"
+        await send({"type": "http.response.start", "status": 307, "headers": [(b"location", location.encode("ascii")), (b"cache-control", b"no-store")]})
+        await send({"type": "http.response.body", "body": b""})
+        return
+
+    if path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/") and method in {"GET", "HEAD"}:
+        relative_path = path[len(NATIONAL_ASSEMBLY_BASE_PATH):] or "/"
+        query_string = scope.get("query_string", b"").decode("ascii", errors="ignore")
+        upstream_url = f"{NATIONAL_ASSEMBLY_UPSTREAM}{relative_path}"
+        if query_string:
+            upstream_url = f"{upstream_url}?{query_string}"
+        try:
+            request = url_request.Request(upstream_url, method=method, headers={"Accept": "*/*"})
+            try:
+                response = await asyncio.to_thread(url_request.urlopen, request, timeout=8)
+            except url_error.HTTPError as error:
+                response = error
+            with response:
+                status = int(response.status)
+                body = b"" if method == "HEAD" else await asyncio.to_thread(response.read)
+                content_type = response.headers.get("content-type", "application/octet-stream")
+            headers = [
+                (b"content-type", content_type.encode("latin-1")),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+                (b"x-frame-options", b"SAMEORIGIN"),
+                (b"x-content-type-options", b"nosniff"),
+            ]
+        except (OSError, url_error.URLError, TimeoutError) as error:
+            status = 503
+            body = json.dumps(
+                {"detail": "국회 PoC 독립 서비스에 연결할 수 없습니다."},
+                ensure_ascii=False,
+            ).encode("utf-8")
+            headers = [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store")]
+            print(f"National Assembly upstream unavailable: {error}", file=sys.stderr)
+        await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": body})
+        return
     if path.startswith(presentation_prefix) and method in {"GET", "HEAD"}:
         slug = path.removeprefix(presentation_prefix).strip("/")
         target = presentation_file(slug)
@@ -2190,10 +2340,10 @@ async def app(scope, receive, send):
     status = 200
     extra_headers = []
 
-    if (path == AIWORKS_API_BASE or path.startswith(f"{AIWORKS_API_BASE}/")) and method in {"GET", "POST"}:
+    if (path == AIWORKS_API_BASE or path.startswith(f"{AIWORKS_API_BASE}/")) and method in {"GET", "POST", "DELETE"}:
         try:
             payload = {}
-            if method == "POST":
+            if method in {"POST", "DELETE"}:
                 raw_body = await read_request_body(receive)
                 if len(raw_body) > 15_000_000:
                     raise ValueError("AIWorks 요청 본문은 15MB를 넘을 수 없습니다.")
@@ -2714,15 +2864,30 @@ async def app(scope, receive, send):
         content_type = "application/json; charset=utf-8"
     elif path == "/api/models" and method == "GET":
         try:
-            result = await asyncio.to_thread(call_ollama, "/api/tags")
-            models = [
-                {"name": model["name"], "size": model.get("size", 0), "details": model.get("details", {})}
-                for model in result.get("models", [])
-            ]
-            body = json.dumps({"models": models}, ensure_ascii=False).encode("utf-8")
-        except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
+            remote_models = upstage_chat_model_options()
+            try:
+                result = await asyncio.to_thread(call_ollama, "/api/tags")
+                local_models = [
+                    {
+                        "name": model["name"],
+                        "label": model["name"],
+                        "provider": "ollama",
+                        "size": model.get("size", 0),
+                        "details": model.get("details", {}),
+                    }
+                    for model in result.get("models", [])
+                    if model.get("name") and _is_ollama_chat_model(model)
+                ]
+            except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
+                local_models = []
+            models = remote_models + local_models
+            if not models:
+                raise RuntimeError("Upstage 키가 없고 Ollama에도 연결할 수 없습니다.")
+            default_model = UPSTAGE_DEFAULT_CHAT_MODEL if remote_models else models[0]["name"]
+            body = json.dumps({"models": models, "default": default_model}, ensure_ascii=False).encode("utf-8")
+        except (OSError, RuntimeError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
             status = 503
-            body = json.dumps({"error": f"Ollama 연결 실패: {error}"}, ensure_ascii=False).encode("utf-8")
+            body = json.dumps({"error": f"모델 연결 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
     elif path == "/api/hwpx-extract" and method == "POST":
         try:
@@ -3058,7 +3223,10 @@ async def app(scope, receive, send):
             payload = json.loads((await read_request_body(receive)).decode("utf-8"))
             if not payload.get("model") or not payload.get("messages"):
                 raise ValueError("모델과 메시지가 필요합니다.")
-            max_tokens = max(64, min(int(payload.get("max_tokens", 256)), 1024))
+            upstage_model = resolve_upstage_chat_model(payload["model"])
+            default_max_tokens = 16384 if upstage_model else 256
+            max_token_limit = 65536 if upstage_model else 1024
+            max_tokens = max(64, min(int(payload.get("max_tokens", default_max_tokens)), max_token_limit))
         except (ValueError, OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
             status = 502
             body = json.dumps({"error": f"응답 생성 실패: {error}"}, ensure_ascii=False).encode("utf-8")
@@ -3092,9 +3260,14 @@ async def app(scope, receive, send):
 
             def worker():
                 try:
-                    for chunk in iter_ollama_stream("/api/chat", stream_payload):
+                    chunks = (
+                        iter_upstage_chat_stream(upstage_model, payload["messages"], max_tokens)
+                        if upstage_model
+                        else iter_ollama_stream("/api/chat", stream_payload)
+                    )
+                    for chunk in chunks:
                         loop.call_soon_threadsafe(queue.put_nowait, ("chunk", chunk))
-                except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
+                except (OSError, RuntimeError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
                     loop.call_soon_threadsafe(queue.put_nowait, ("error", f"응답 생성 실패: {error}"))
                 finally:
                     loop.call_soon_threadsafe(queue.put_nowait, ("eof", None))

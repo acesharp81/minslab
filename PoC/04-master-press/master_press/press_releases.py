@@ -694,6 +694,42 @@ class PressReleaseManager:
                     return None
         return dict(row) if row else None
 
+    def _defer_match_job(self, job: dict, error: Exception) -> dict:
+        """Return a claimed match job to the queue, or fail it after bounded retries."""
+        message = str(error or type(error).__name__)[:800]
+        previous = str(job.get("error") or "")
+        retry_match = re.match(r"^deferred_retry:(\d+):", previous)
+        previous_retries = int(retry_match.group(1)) if retry_match else 0
+        retryable = (
+            message == "article_or_press_embedding_missing"
+            or "database is locked" in message.casefold()
+            or "database table is locked" in message.casefold()
+        )
+        retry_number = previous_retries + 1
+        now = datetime.now(KST)
+        if retryable and retry_number <= 3:
+            delay_seconds = (120, 300, 900)[retry_number - 1]
+            queued_at = (now + timedelta(seconds=delay_seconds)).isoformat(timespec="seconds")
+            error_value = f"deferred_retry:{retry_number}:{message}"
+            with self.store.connect() as connection:
+                connection.execute(
+                    """UPDATE press_release_match_jobs
+                       SET status='pending',queued_at=?,started_at=NULL,finished_at=NULL,error=?
+                       WHERE article_id=? AND press_release_id=?""",
+                    (queued_at, error_value, job["article_id"], job["press_release_id"]),
+                )
+            return {"status": "pending", "retry_after": queued_at, "retry": retry_number}
+
+        error_value = f"retry_exhausted:{message}" if retryable else message
+        with self.store.connect() as connection:
+            connection.execute(
+                """UPDATE press_release_match_jobs
+                   SET status='failed',finished_at=?,error=?
+                   WHERE article_id=? AND press_release_id=?""",
+                (now.isoformat(timespec="seconds"), error_value, job["article_id"], job["press_release_id"]),
+            )
+        return {"status": "failed", "retry": previous_retries}
+
     def _press_term_statistics(self) -> tuple[dict[str, int], int]:
         if self._press_term_stats_cache is not None:
             return self._press_term_stats_cache
@@ -829,6 +865,7 @@ class PressReleaseManager:
                     connection.execute("UPDATE press_releases SET embedding_status='failed',last_error=?,updated_at=? WHERE id=?", (str(error)[:1000], now_iso(), release["id"]))
                 return {"stage": "press_embedding", "status": "failed", "press_release_id": release["id"], "error": str(error)}
         results, errors = [], []
+        deferred = failed = 0
         for _index in range(max(1, min(48, int(match_limit)))):
             job = self._next_match_job()
             if not job:
@@ -836,16 +873,19 @@ class PressReleaseManager:
             try:
                 results.append(self._process_match(job))
             except Exception as error:
-                self._defer_match_job(job, error)
+                outcome = self._defer_match_job(job, error)
+                deferred += int(outcome.get("status") == "pending")
+                failed += int(outcome.get("status") == "failed")
                 errors.append(str(error))
         if not results and not errors:
             return None
         return {"stage": "press_match", "processed": len(results), "related": sum(bool(item.get("related")) for item in results),
-                "failed": len(errors), "errors": errors[:3], "results": results}
+                "deferred": deferred, "failed": failed, "errors": errors[:3], "results": results}
 
     def process_article_matches(self, article_id: str, limit: int = 256) -> dict | None:
         """Run a bounded set of matches for the article that just completed."""
         results, errors = [], []
+        deferred = failed = 0
         for _index in range(max(1, min(256, int(limit)))):
             job = self._next_match_job(article_id)
             if not job:
@@ -853,12 +893,14 @@ class PressReleaseManager:
             try:
                 results.append(self._process_match(job))
             except Exception as error:
-                self._defer_match_job(job, error)
+                outcome = self._defer_match_job(job, error)
+                deferred += int(outcome.get("status") == "pending")
+                failed += int(outcome.get("status") == "failed")
                 errors.append(str(error))
         if not results and not errors:
             return None
         return {"stage": "press_match", "article_id": article_id, "processed": len(results),
-                "related": sum(bool(item.get("related")) for item in results), "deferred": len(errors),
+                "related": sum(bool(item.get("related")) for item in results), "deferred": deferred, "failed": failed,
                 "errors": errors[:3], "results": results}
 
     def list_releases(self, organization_id: str = "", limit: int = 50, search: str = "", offset: int = 0) -> list[dict]:

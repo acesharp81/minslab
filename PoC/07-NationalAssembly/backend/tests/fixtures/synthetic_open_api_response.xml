@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <header>
+    <resultCode>00</resultCode>
+    <resultMsg>TEST_OK</resultMsg>
+  </header>
+  <body>
+    <items>
+      <row>
+        <EXTERNAL_ID>fixture-001</EXTERNAL_ID>
+        <TITLE>합성 회의 데이터</TITLE>
+        <OPTIONAL_VALUE />
+      </row>
+    </items>
+    <totalCount>1</totalCount>
+  </body>
+</response>

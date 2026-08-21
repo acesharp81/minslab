@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.parse
 import urllib.request
 import time
@@ -30,6 +31,50 @@ class SupabaseMirror:
     def enabled(self) -> bool:
         return bool(self.settings.supabase_url and self.settings.supabase_service_role_key)
 
+    @staticmethod
+    def _http_error_text(error: urllib.error.HTTPError) -> str:
+        """Preserve PostgREST's actionable error body without leaking headers."""
+        raw = error.read().decode("utf-8", "replace")[:4000]
+        try:
+            detail = json.loads(raw)
+        except (TypeError, ValueError):
+            detail = {}
+        if not isinstance(detail, dict):
+            detail = {}
+        record = {
+            "http_status": int(error.code or 0),
+            "code": str(detail.get("code") or "")[:80],
+            "message": str(detail.get("message") or raw or error.reason or "")[:600],
+            "details": str(detail.get("details") or "")[:600],
+            "hint": str(detail.get("hint") or "")[:300],
+        }
+        return json.dumps(
+            {key: value for key, value in record.items() if value not in (None, "")},
+            ensure_ascii=False, separators=(",", ":"),
+        )
+
+    def find_article_by_canonical_url(self, canonical_url: str) -> dict | None:
+        """Return the authoritative remote article identity for reconciliation."""
+        if not self.enabled or not str(canonical_url or "").strip():
+            return None
+        query = urllib.parse.urlencode({
+            "select": "id,canonical_url", "canonical_url": f"eq.{canonical_url}", "limit": 1,
+        })
+        request = urllib.request.Request(
+            f"{self.settings.supabase_url}/rest/v1/master_press_articles?{query}",
+            headers={
+                "apikey": self.settings.supabase_service_role_key,
+                "Authorization": f"Bearer {self.settings.supabase_service_role_key}",
+                "Accept": "application/json",
+            }, method="GET",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.settings.request_timeout_seconds) as response:
+                rows = json.loads(response.read().decode("utf-8"))
+            return dict(rows[0]) if isinstance(rows, list) and rows else None
+        except Exception:
+            return None
+
     def upsert(self, table: str, rows: list[dict], on_conflict: str = "id") -> bool:
         if not self.enabled or not rows:
             return False
@@ -56,8 +101,12 @@ class SupabaseMirror:
             self.last_error = ""
             self.last_status = 0
             return True
+        except urllib.error.HTTPError as error:
+            self.last_error = self._http_error_text(error)
+            self.last_status = int(error.code or 0)
+            return False
         except Exception as error:
-            self.last_error = str(error)
+            self.last_error = f"{type(error).__name__}: {error}"[:1000]
             self.last_status = int(getattr(error, "code", 0) or 0)
             return False
 

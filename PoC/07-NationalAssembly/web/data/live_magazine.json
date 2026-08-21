@@ -1,0 +1,320 @@
+{
+  "schema_version": "live-replay-result.v1",
+  "simulation": true,
+  "simulation_id": "SIM-LIVE-20260812-001",
+  "generated_at": "2026-08-12T18:20:00+09:00",
+  "source": {
+    "type": "SYNTHETIC_FIXTURE",
+    "fixture_name": "synthetic_live_broadcast.json",
+    "content_hash": "406caea65132e6daa8a676f3f5eaad1c19df03dccdf3949e3976d845633a2d02"
+  },
+  "lifecycle_status": "ENDED",
+  "authority_status": "PROVISIONAL",
+  "reconciliation_status": "UNRESOLVED",
+  "event_count": 12,
+  "segment_count": 4,
+  "events": [
+    {
+      "event": "caption.partial",
+      "at_ms": 13000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-001",
+      "revision": 1,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 취약계층의 법률",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 15000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-001",
+      "revision": 1,
+      "speaker_label": "시뮬레이션 주재자",
+      "text": "집중 호우 피해 지역의 복구 상황을",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 21000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-001",
+      "revision": 2,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 취약계층의 법률구조 지원과 권리",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 22000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-001",
+      "revision": 2,
+      "speaker_label": "시뮬레이션 주재자",
+      "text": "집중호우 피해 지역의 복구 상황을 행정안전부가",
+      "is_final": false
+    },
+    {
+      "event": "caption.final",
+      "at_ms": 30000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-001",
+      "revision": 3,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 취약계층의 법률구조 지원과 권리 보호를 위해 법무부의 집행 상황을 점검하겠습니다.",
+      "is_final": true
+    },
+    {
+      "event": "caption.final",
+      "at_ms": 32000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-001",
+      "revision": 3,
+      "speaker_label": "시뮬레이션 주재자",
+      "text": "집중호우 피해 지역의 복구 상황을 행정안전부가 매일 점검하고 재난 대응 속도를 높여야 합니다.",
+      "is_final": true
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 39000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-002",
+      "revision": 1,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 복구 예산의 집행",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 43000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-002",
+      "revision": 1,
+      "speaker_label": "시뮬레이션 보고자",
+      "text": "복구 예산은 필요한 곳에",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 47000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-002",
+      "revision": 2,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 복구 예산의 집행 속도와 재원",
+      "is_final": false
+    },
+    {
+      "event": "caption.partial",
+      "at_ms": 50000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-002",
+      "revision": 2,
+      "speaker_label": "시뮬레이션 보고자",
+      "text": "복구 예산은 필요한 곳에 먼저 집행하고 재정",
+      "is_final": false
+    },
+    {
+      "event": "caption.final",
+      "at_ms": 55000,
+      "broadcast_id": "SIM-LEG-001",
+      "segment_id": "LEG-SEG-002",
+      "revision": 3,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 복구 예산의 집행 속도와 추가 재원 확보 계획을 예산 심사에서 함께 확인하겠습니다.",
+      "is_final": true
+    },
+    {
+      "event": "caption.final",
+      "at_ms": 59000,
+      "broadcast_id": "SIM-EXEC-001",
+      "segment_id": "EXEC-SEG-002",
+      "revision": 3,
+      "speaker_label": "시뮬레이션 보고자",
+      "text": "복구 예산은 필요한 곳에 먼저 집행하고 기획재정부는 추가 재원 계획을 신속히 마련해 주십시오.",
+      "is_final": true
+    }
+  ],
+  "segments": [
+    {
+      "broadcast_id": "SIM-EXEC-001",
+      "institution": "EXECUTIVE",
+      "segment_id": "EXEC-SEG-001",
+      "start_ms": 12000,
+      "end_ms": 32000,
+      "speaker_label": "시뮬레이션 주재자",
+      "text": "집중호우 피해 지역의 복구 상황을 행정안전부가 매일 점검하고 재난 대응 속도를 높여야 합니다.",
+      "topics": [
+        "재난 대응"
+      ],
+      "ministries": [
+        "행정안전부"
+      ],
+      "committees": [
+        "행정안전위원회"
+      ],
+      "revision_count": 3,
+      "authority_status": "PROVISIONAL",
+      "reconciliation_status": "UNRESOLVED",
+      "simulation": true
+    },
+    {
+      "broadcast_id": "SIM-EXEC-001",
+      "institution": "EXECUTIVE",
+      "segment_id": "EXEC-SEG-002",
+      "start_ms": 38000,
+      "end_ms": 59000,
+      "speaker_label": "시뮬레이션 보고자",
+      "text": "복구 예산은 필요한 곳에 먼저 집행하고 기획재정부는 추가 재원 계획을 신속히 마련해 주십시오.",
+      "topics": [
+        "재난 대응",
+        "재정 집행"
+      ],
+      "ministries": [
+        "행정안전부",
+        "기획재정부"
+      ],
+      "committees": [
+        "예산결산특별위원회"
+      ],
+      "revision_count": 3,
+      "authority_status": "PROVISIONAL",
+      "reconciliation_status": "UNRESOLVED",
+      "simulation": true
+    },
+    {
+      "broadcast_id": "SIM-LEG-001",
+      "institution": "LEGISLATURE",
+      "segment_id": "LEG-SEG-001",
+      "start_ms": 9000,
+      "end_ms": 30000,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 취약계층의 법률구조 지원과 권리 보호를 위해 법무부의 집행 상황을 점검하겠습니다.",
+      "topics": [
+        "재난 대응",
+        "재정 집행",
+        "법률 지원"
+      ],
+      "ministries": [
+        "행정안전부",
+        "법무부"
+      ],
+      "committees": [
+        "행정안전위원회",
+        "법제사법위원회"
+      ],
+      "revision_count": 3,
+      "authority_status": "PROVISIONAL",
+      "reconciliation_status": "UNRESOLVED",
+      "simulation": true
+    },
+    {
+      "broadcast_id": "SIM-LEG-001",
+      "institution": "LEGISLATURE",
+      "segment_id": "LEG-SEG-002",
+      "start_ms": 35000,
+      "end_ms": 55000,
+      "speaker_label": "시뮬레이션 위원",
+      "text": "재난 복구 예산의 집행 속도와 추가 재원 확보 계획을 예산 심사에서 함께 확인하겠습니다.",
+      "topics": [
+        "재난 대응",
+        "재정 집행"
+      ],
+      "ministries": [
+        "행정안전부",
+        "기획재정부"
+      ],
+      "committees": [
+        "행정안전위원회",
+        "예산결산특별위원회"
+      ],
+      "revision_count": 3,
+      "authority_status": "PROVISIONAL",
+      "reconciliation_status": "UNRESOLVED",
+      "simulation": true
+    }
+  ],
+  "magazine": [
+    {
+      "card_id": "SIM-EXEC-001:EXEC-SEG-001",
+      "institution": "EXECUTIVE",
+      "meeting_title": "국무회의형 테스트 방송",
+      "meeting_date": "2026-08-05",
+      "speaker_label": "시뮬레이션 주재자",
+      "major_quote": "집중호우 피해 지역의 복구 상황을 행정안전부가 매일 점검하고 재난 대응 속도를 높여야 합니다.",
+      "topic": "재난 대응",
+      "ministries": [
+        "행정안전부"
+      ],
+      "committees": [
+        "행정안전위원회"
+      ],
+      "image_url": "assets/magazine/sim-cabinet-meeting.png",
+      "image_alt": "실제 인물이 아닌 국무회의형 시뮬레이션 이미지",
+      "authority_status": "PROVISIONAL",
+      "simulation": true
+    },
+    {
+      "card_id": "SIM-EXEC-001:EXEC-SEG-002",
+      "institution": "EXECUTIVE",
+      "meeting_title": "국무회의형 테스트 방송",
+      "meeting_date": "2026-08-05",
+      "speaker_label": "시뮬레이션 보고자",
+      "major_quote": "복구 예산은 필요한 곳에 먼저 집행하고 기획재정부는 추가 재원 계획을 신속히 마련해 주십시오.",
+      "topic": "재난 대응",
+      "ministries": [
+        "행정안전부",
+        "기획재정부"
+      ],
+      "committees": [
+        "예산결산특별위원회"
+      ],
+      "image_url": "assets/magazine/sim-policy-briefing.png",
+      "image_alt": "실제 인물이 아닌 정책 브리핑 시뮬레이션 이미지",
+      "authority_status": "PROVISIONAL",
+      "simulation": true
+    },
+    {
+      "card_id": "SIM-LEG-001:LEG-SEG-001",
+      "institution": "LEGISLATURE",
+      "meeting_title": "법제사법위원회형 테스트 방송",
+      "meeting_date": "2026-08-06",
+      "speaker_label": "시뮬레이션 위원",
+      "major_quote": "재난 취약계층의 법률구조 지원과 권리 보호를 위해 법무부의 집행 상황을 점검하겠습니다.",
+      "topic": "재난 대응",
+      "ministries": [
+        "행정안전부",
+        "법무부"
+      ],
+      "committees": [
+        "행정안전위원회",
+        "법제사법위원회"
+      ],
+      "image_url": "assets/magazine/sim-committee-hearing.png",
+      "image_alt": "실제 인물이 아닌 국회 위원회형 시뮬레이션 이미지",
+      "authority_status": "PROVISIONAL",
+      "simulation": true
+    },
+    {
+      "card_id": "SIM-LEG-001:LEG-SEG-002",
+      "institution": "LEGISLATURE",
+      "meeting_title": "법제사법위원회형 테스트 방송",
+      "meeting_date": "2026-08-06",
+      "speaker_label": "시뮬레이션 위원",
+      "major_quote": "재난 복구 예산의 집행 속도와 추가 재원 확보 계획을 예산 심사에서 함께 확인하겠습니다.",
+      "topic": "재난 대응",
+      "ministries": [
+        "행정안전부",
+        "기획재정부"
+      ],
+      "committees": [
+        "행정안전위원회",
+        "예산결산특별위원회"
+      ],
+      "image_url": "assets/magazine/sim-committee-hearing.png",
+      "image_alt": "실제 인물이 아닌 국회 위원회형 시뮬레이션 이미지",
+      "authority_status": "PROVISIONAL",
+      "simulation": true
+    }
+  ]
+}

@@ -11,7 +11,8 @@
 | 03 | [03-mois-kms](03-mois-kms/README.md) | 조직·업무·결재·AI 보고서 | React/Vite SPA + Python API + Supabase Auth |
 | 04 | [04-master-press](04-master-press/README.md) | 뉴스 수집·복합 관련도·카카오 알림·CaseON 매거진 | Python 모듈 + 정적 UI + SQLite/Supabase |
 | 05 | [05-north-korea-night-lights](05-north-korea-night-lights/README.md) | 북한 VIIRS 월별 야간조명 3D 격자 지도 | Earth Engine Python API + pydeck 단일 HTML |
-| 06 | [06-AIWorks](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + JSON Schema 샌드박스 |
+| 06 | [06-AIWorks](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
+| 07 | [07-NationalAssembly](07-NationalAssembly/README.md) | 국무회의·국회 회의·의안·표결의 공식 원문 기반 정책 흐름 | 독립 FastAPI + PostgreSQL + 루트 reverse proxy |
 
 ## 등록 방식
 
@@ -65,11 +66,14 @@ PoC는 폴더 하나만으로 기능·설정·운영·테스트를 이해하고 
 /poc/aiworks/*
   └─ PoC 06 정적 작업공간 + SQLite 기반 승인·문서·MCP API
 
+/poc/national-assembly/*
+  └─ PoC 07 독립 FastAPI 서비스(기본 localhost:18070) reverse proxy
+
 /api/poc/*
   └─ 서버 비밀값, 외부 API, 관리자 권한, LLM 호출 경계
 ```
 
-PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다. 운영에서는 별도 Node 프로세스나 포트를 열지 않고 루트 ASGI가 `dist/` 파일을 제공합니다.
+PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다. 운영에서는 별도 Node 프로세스나 포트를 열지 않고 루트 ASGI가 `dist/` 파일을 제공합니다. PoC 07은 부모 저장소와 런타임을 공유하지 않는 독립 서비스이며, 루트 ASGI는 같은 출처의 `/poc/national-assembly/` 경로로만 프록시합니다.
 
 ## 공통 환경설정
 
@@ -81,12 +85,13 @@ PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다
 | --- | --- |
 | Supabase 공통 | `SUPABASE2_URL`, `SUPABASE2_PUBLISHABLE_KEY`, `SUPABASE2_SERVICE_ROLE_KEY` |
 | Local LLM | `OLLAMA_BASE_URL` |
-| Remote LLM | `HF_API_KEY`, `HF_BASE_URL`, `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` |
+| Remote LLM | `HF_API_KEY`, `HF_BASE_URL`, `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `UPSTAGE_API_KEY` |
 | AI Safe Agent | `KMA_AUTH_KEY`, `SAFETYDATA_*_KEY`, `KAKAO_REST_API_KEY`, `VWORLD_API_KEY` |
 | Field Inspection | `VITE_FIELD_INSPECTION_SUPABASE_URL`, `VITE_FIELD_INSPECTION_SUPABASE_PUBLISHABLE_KEY` |
 | MoIS KMS | `MOIS_KMS_HF_MODELS`, `MOIS_KMS_OPENROUTER_MODELS`, `MOIS_KMS_DEFAULT_MODEL` |
 | 북한 야간조명 | `GEE_PROJECT` |
-| AIWorks | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_OPENROUTER_LIVE`, `AIWORKS_RHWP_*` |
+| AIWorks | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_SOLAR_LIVE`, `AIWORKS_LOCAL_MCP_LIVE`, `AIWORKS_RHWP_*` |
+| 국회 PoC 프록시 | `NATIONAL_ASSEMBLY_UPSTREAM` |
 
 Vite의 `VITE_*` 값과 Supabase publishable key는 브라우저 공개값입니다. service-role과 LLM API key는 어떤 경우에도 브라우저 번들에 넣지 않습니다.
 
@@ -102,6 +107,7 @@ python3 -m py_compile \
   PoC/05-north-korea-night-lights/collect_all.py \
   PoC/06-AIWorks/backend.py
 python3 -m unittest discover -s PoC/06-AIWorks/tests -v
+python3 -m unittest discover -s PoC/07-NationalAssembly/backend/tests -v
 ```
 
 React PoC 검증:
@@ -131,5 +137,6 @@ curl -fsS http://127.0.0.1:8000/health
 - PoC 03은 Supabase Auth, 승인 상태와 RLS를 적용하고 service-role 작업만 Python API로 격리합니다.
 - PoC 05의 Earth Engine OAuth 자격증명과 생성된 월별 데이터는 저장소에 커밋하지 않습니다.
 - PoC 06은 외부 전송과 문서 변경을 기본 거부하며 서명된 승인, 버전 충돌 검사와 감사 로그를 거칩니다.
+- PoC 07은 공식 자료와 자동 분류를 분리하고, raw 원본·버전·source span을 보존하며, 검증되지 않은 API 필드나 관계를 공식 사실로 표시하지 않습니다.
 - AI 출력은 공식 재난 판단, 행정 결재 또는 확정 보고서를 대체하지 않습니다.
 - 프로젝트 구현을 변경할 때 `project.json`, 하위 `README.md`, 루트 `.env.example`의 설정 이름을 함께 확인합니다.
