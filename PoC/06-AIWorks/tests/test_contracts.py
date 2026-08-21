@@ -41,6 +41,8 @@ class AIWorksContractTests(unittest.TestCase):
         self.assertIn("no direct internet access", bridge["adapters"]["rhwp"]["restrictions"])
         session = self.load("contracts/document-session.schema.json")
         self.assertIn("orchestration", session["required"])
+        self.assertIn("purpose", session["required"])
+        self.assertEqual(set(session["properties"]["purpose"]["enum"]), {"document", "template-authoring"})
         self.assertEqual(
             session["properties"]["orchestration"]["properties"]["requestedAdapter"]["type"],
             "string",
@@ -68,6 +70,19 @@ class AIWorksContractTests(unittest.TestCase):
         test = draft["properties"]["validation"]["properties"]["tests"]["items"]
         self.assertEqual(test["required"], ["id", "passed", "detail"])
         self.assertIn("publishedPackageId", draft["properties"])
+        reference_roles = draft["properties"]["references"]["items"]["properties"]["role"]["enum"]
+        self.assertIn("data-source", reference_roles)
+
+    def test_dynamic_capability_binding_is_versioned_and_signed(self):
+        manifest = self.load("contracts/mcp-manifest.schema.json")
+        binding = self.load("contracts/capability-binding.schema.json")
+        self.assertIn("executionAdapter", manifest["properties"])
+        self.assertIn("packageRef", binding["required"])
+        self.assertIn("score", binding["required"])
+        self.assertEqual(binding["properties"]["signatureVerified"]["const"], True)
+        self.assertEqual(set(binding["properties"]["executionAdapter"]["enum"]), {"prompt", "composite", "retrieval", "external-mcp"})
+        self.assertEqual(manifest["properties"]["retrieval"]["properties"]["kind"]["const"], "local-rag")
+        self.assertEqual(set(manifest["properties"]["externalMcp"]["properties"]["transport"]["enum"]), {"stdio", "streamable-http"})
 
     def test_grounded_knowledge_contract_requires_sources(self):
         knowledge = self.load("contracts/knowledge-node.schema.json")
@@ -77,6 +92,46 @@ class AIWorksContractTests(unittest.TestCase):
         self.assertIn("documentId", source["required"])
         self.assertIn("locator", source["required"])
         self.assertIn("confidence", source["required"])
+
+    def test_report_document_contract_separates_content_facts_and_presentation(self):
+        contract = self.load("contracts/report-document.schema.json")
+        self.assertIn("blocks", contract["required"])
+        self.assertIn("factRefs", contract["required"])
+        self.assertIn("normalizedMarkdown", contract["required"])
+        self.assertEqual(contract["properties"]["blocks"]["items"]["properties"]["type"]["enum"], ["heading", "paragraph", "list_item", "table", "note"])
+
+    def test_project_markdown_and_format_adapter_contracts(self):
+        document = self.load("contracts/project-markdown-document.schema.json")
+        adapter = self.load("contracts/document-format-adapter.schema.json")
+        workbench = self.load("contracts/project-document-workbench.schema.json")
+        self.assertIn("markdown", document["required"])
+        self.assertIn("markdownSha256", document["required"])
+        self.assertIn("factSnapshot", document["required"])
+        self.assertEqual(adapter["properties"]["sourceOfTruth"]["type"], "boolean")
+        self.assertIn("document", adapter["properties"]["capability"]["pattern"])
+        self.assertIn("artifacts", workbench["required"])
+        self.assertIn("stale", workbench["properties"]["artifacts"]["items"]["properties"]["status"]["enum"])
+
+    def test_project_governance_artifact_workflow_and_recipe_contracts(self):
+        policy = self.load("contracts/project-policy.schema.json")
+        grant = self.load("contracts/permission-grant.schema.json")
+        artifact = self.load("contracts/artifact.schema.json")
+        relation = self.load("contracts/artifact-relation.schema.json")
+        workflow = self.load("contracts/workflow-run.schema.json")
+        recipe = self.load("contracts/workflow-recipe.schema.json")
+        self.assertIn("resolver", policy["properties"])
+        evidence = self.load("contracts/artifact-evidence.schema.json")
+        backup = self.load("contracts/project-backup.schema.json")
+        self.assertIn("scopes", grant["required"])
+        self.assertIn("currentVersionId", artifact["required"])
+        self.assertIn("derived_from", relation["properties"]["relation"]["enum"])
+        self.assertIn("resumedFromRunId", workflow["properties"])
+        self.assertEqual(recipe["properties"]["versions"]["items"]["properties"]["definition"]["properties"]["contractVersion"]["const"], "1.0")
+        self.assertEqual(recipe["properties"]["visibility"]["enum"], ["private", "organization", "public"])
+        self.assertIn("preview", recipe["properties"])
+        self.assertIn("excerptSha256", evidence["required"])
+        self.assertEqual(backup["properties"]["format"]["const"], "aiworks-project-backup")
+        self.assertEqual(backup["properties"]["integrity"]["properties"]["algorithm"]["const"], "SHA-256")
 
     def test_multimodal_adapter_and_preset_contracts(self):
         adapter = self.load("contracts/capability-adapter.schema.json")

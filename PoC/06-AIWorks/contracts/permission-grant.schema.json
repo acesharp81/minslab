@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/permission-grant.schema.json",
+  "title": "AIWorks Project Permission Grant",
+  "type": "object",
+  "required": [
+    "id",
+    "projectId",
+    "actor",
+    "packageId",
+    "versionRange",
+    "scopes",
+    "classification",
+    "status",
+    "grantedBy"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^grant_[a-f0-9]+$"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "actor": {
+      "type": "string"
+    },
+    "packageId": {
+      "type": "string"
+    },
+    "versionRange": {
+      "type": "string"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "classification": {
+      "enum": [
+        "public",
+        "internal",
+        "confidential"
+      ]
+    },
+    "status": {
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    },
+    "grantedBy": {
+      "type": "string"
+    },
+    "expiresAt": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

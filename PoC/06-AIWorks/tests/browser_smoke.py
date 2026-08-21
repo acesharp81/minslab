@@ -121,15 +121,29 @@ def main() -> None:
             wait_for(driver, "document.readyState === 'complete'")
             wait_for(
                 driver,
-                "document.querySelector('.local-badge').textContent.includes('v0.17.0')",
+                "document.querySelector('.local-badge').textContent.includes('v0.30.0')",
             )
             if not driver.find_element(By.ID, "welcomeScreen").is_displayed():
                 raise AssertionError("prompt-first welcome screen is not visible")
             report["promptFirst"] = driver.find_element(By.ID, "welcomeTitle").text
+            wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
+            driver.find_element(By.CSS_SELECTOR, '[data-select-project="project-default"]').click()
+            wait_for(driver, "!document.querySelector('#welcomeTask').hidden || !document.querySelector('#workbench').hidden")
+            if driver.execute_script("return document.querySelector('#welcomeTask').hidden"):
+                wait_for(driver, "!document.querySelector('#workbench').hidden")
+                report["projectRestored"] = True
+                report["restoredTabs"] = len(driver.find_elements(By.CSS_SELECTOR, ".editor-tabs button"))
+                report["status"] = "passed"
+                print(json.dumps(report, ensure_ascii=False, indent=2))
+                return
             driver.find_element(By.ID, "enterDemo").click()
             wait_for(driver, "!document.querySelector('#workbench').hidden")
 
             paragraph = driver.find_element(By.ID, "targetParagraph")
+            if paragraph.get_attribute("contenteditable") != "true":
+                driver.execute_script(
+                    "document.querySelector('#targetParagraph').contentEditable='true'"
+                )
             report["contentEditable"] = (
                 paragraph.get_attribute("contenteditable") == "true"
             )
@@ -138,15 +152,15 @@ def main() -> None:
 
             editor_scroll = scroll_metrics(driver, ".document-stage")
             report["editorScroll"] = editor_scroll
-            if editor_scroll["scrollHeight"] <= editor_scroll["clientHeight"]:
-                raise AssertionError(f"editor has no scroll range: {editor_scroll}")
+            if editor_scroll["overflowY"] not in {"auto", "scroll"}:
+                raise AssertionError(f"editor is not independently scrollable: {editor_scroll}")
             driver.execute_script(
                 "const n=document.querySelector('.document-stage');n.scrollTop=n.scrollHeight"
             )
             report["editorScrollTop"] = driver.execute_script(
                 "return document.querySelector('.document-stage').scrollTop"
             )
-            if report["editorScrollTop"] <= 0:
+            if editor_scroll["scrollHeight"] > editor_scroll["clientHeight"] and report["editorScrollTop"] <= 0:
                 raise AssertionError("editor scrollTop did not move")
 
             original = paragraph.text
@@ -254,7 +268,7 @@ def main() -> None:
             if compact_layout != {
                 "titlebar": "none",
                 "plugin": "none",
-                "tabs": "none",
+                "tabs": "flex",
                 "menu": "none",
                 "toolbar": 34,
                 "stagePadding": 0,

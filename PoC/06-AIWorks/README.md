@@ -2,9 +2,41 @@
 
 여러 MCP와 AI 모델을 업무 목적에 맞게 조합하는 승인 기반 AI 업무 플랫폼의 초기 PoC입니다.
 
+현재 문서 기준 버전은 `0.30.0`입니다. 2026-08-19 수용성 검증 결과와 이후 반영 상태는
+[수용성 검증 보고서](docs/ACCEPTANCE_REPORT_2026-08-19.md)를 단일 진행 현황으로 사용합니다.
+
+프로젝트 문서 내용의 단일 원본은 불변 revision으로 저장되는 Markdown입니다. LLM은 Markdown을
+생성·갱신하고, 양식 MCP가 내용과 표현 규칙을 결합한 뒤 KODAK 또는 설치형
+`document.format.convert.*` 어댑터가 HWPX와 제3자 형식의 파생 산출물을 만듭니다. HWPX를
+업로드하거나 RHWP에서 내용을 수정하면 텍스트·표를 다시 Markdown으로 역변환해 새 revision을
+기록합니다. 이때 KODAK 표지·제목 상자·자동 날짜 같은 렌더러 장식은 제거하고 의미 본문만
+복원합니다. HWPX 자체는 편집·배포용 산출물이지 프로젝트 문서 내용의 원본이 아닙니다.
+
 ## 현재 구현
 
+- 프로젝트 문서별 `MD 원본 / HWPX·파생 형식 / 메타정보 / 변경 이력` 탭, 명시적 MD↔HWPX 승격, 문단·표 셀 Render Map, 동시 편집 충돌 저장·선택 해결과 revision/SHA 기반 편집기 캐시
+- 양식 HWPX 제목·본문·목록 슬롯 시각 보정과 실렌더링 검증, Workflow/Step Run 체크포인트·재승인 재시도, exact-duplicate MD 보관, Fact 시간변화/오기 결정, 산출물 재현 관계 그래프
+- 최신 구현·직접 테스트·남은 항목: [docs/ACCEPTANCE_REPORT_2026-08-19.md](docs/ACCEPTANCE_REPORT_2026-08-19.md)
+- 프로젝트 멤버십/RBAC·정책·Permission Grant·보관/복원, 범용 Artifact/Version 계보와 순환 방지
+- 프로젝트 선택 화면의 AIWorks JSON 가져오기와 설정→프로젝트 거버넌스의 백업 다운로드. MD revision·메타정보·HWPX·Artifact 계보·Evidence를 SHA-256 무결성 검증 후 새 프로젝트로 복원
+- Artifact Evidence 원본 Version·위치·발췌·해시·신뢰도 API와 문서 변경 이력 표시
+- Recipe 이름/ID/태그 검색, 설치 전 권한·비용·지연·라이선스·출처·보안 미리보기와 취약 버전 차단
+- 실패 Workflow 재승인 시 동일 Run ID에 attempt를 누적하는 in-place 재개와 실행 attempt 감사 이력
+- TemplateSchema 1.1 메타·결재·병합표 탐지, DOCX/XLSX 로컬 추출→RAG/Markdown 입력
+- Workflow Recipe 1.0 버전 게시·공유·포크·프로젝트 설치·폐기와 설정 화면 Recipe Library
 - GPT형 첫 화면에서 명령과 문서를 함께 제출하면 의도 분석 결과에 따라 업무 MCP와 편집기 MCP를 동적으로 로딩
+- 파일 미첨부 질의 → 채팅 답변 → 파생 보고서 → 선택 문구 변경으로 이어지는 피드백 흐름
+- 첨부 자료 → 결산 양식 보고서 → 선택 문구 법률 검토로 이어지는 피드백 흐름
+- 파생 보고서를 실제 HWPX로 패키징해 자체 호스팅 RHWP 문서 세션에서 열고, 같은 화면에서 선택·수정·버전 저장
+- `행안부 보고서 양식으로 바꿔줘` 요청 시 로컬 양식 MCP를 동적 로딩해 본문을 보존한 HWPX 새 revision 적용
+- 하나의 범용 MCP Builder에서 양식·처리·데이터·일반 도구 유형을 선택하고 파일·유의사항·처리 절차·호출 예시를 가이드 패키지로 제작
+- 게시·설치된 Builder MCP의 Capability를 Registry에 색인하고, 채팅 요청·호출 예시·등록 자료 주제를 Resolver가 비교해 서명된 고정 버전을 승인 후 Prompt/Composite/Retrieval 런타임으로 실행
+- 데이터 MCP에서 여러 PDF·HWPX·텍스트 파일을 페이지 단위로 추출·청크화하고, 게시 전 RAG 검색과 게시·설치 후 자동 선택·연도별 근거 정리·페이지 인용·편집 가능한 HWPX 보고서를 제공
+- 전체 폭 MCP Studio에서 4개 유형 예시를 선택해 초안→자료→검증→게시→설치를 진행하고, 설치 Registry의 호출 문구를 바로 채팅과 RHWP 산출물로 시험
+- 플레이스홀더가 포함된 HWPX 시작 양식을 내려받아 실제 양식 MCP 제작 자료로 재업로드
+- Solar 전용 자동 라우팅: 빠른 조회는 `upstage:solar-pro3-fast`, 문서·RAG 종합은 `upstage:solar-pro3`, 복합 비교·검증은 `upstage:solar-pro4`; 외부 전송 승인 전에는 로컬 근거 보고서로 실행
+- 체험 절차와 현재 데이터 커넥터 범위: [docs/FEEDBACK_SLICE_0.20.md](docs/FEEDBACK_SLICE_0.20.md)
+- 범용 제작기 제품 기준과 후속 실행 계층: [docs/MCP_BUILDER_VNEXT.md](docs/MCP_BUILDER_VNEXT.md)
 - 좌측 Orchestrator와 우측 편집기 MCP의 공통 작업공간, 선택 영역 컨텍스트와 변경 전·후 제안·적용 흐름
 - MIT 오픈소스 [rhwp](https://github.com/edwardkim/rhwp) 0.8.2 Studio/WASM 자체 호스팅: HWP/HWPX/HWT/HML 네이티브 UI 직접 편집 및 원본 형식 내보내기
 - Markdown 분할 편집·미리보기와 코드 편집기 플러그인, 공통 revision 저장·다운로드 계약
@@ -42,7 +74,9 @@ document.rhwp@1.0.0 MCP와 Windows 네이티브 에이전트로 구현했습니�
 굵게·기울임·목록 서식은 허용된 HTML만 저장하고 미리보기와 즉시 동기화됩니다. HWPX를 열면 모든
 본문 문단이 편집 목록으로 전환되고, 저장 시 실제로 변경된 문단만 순서대로 원문과 SHA-256을
 재확인한 뒤 새 HWPX에 반영합니다. 저장된 HWPX 산출물은 서버에서 다시 열 수 있습니다. 원본
-구조 보존을 위해 HWPX 직접 편집은 현재 텍스트 변경만 지원하며, 기본 문서는 HTML로 내보냅니다.
+구조 보존을 위해 HWPX 직접 편집은 현재 텍스트 변경만 지원합니다. 새 빈 작업공간의 레거시
+샘플 문서만 HTML 초안으로 유지하며, 대화에서 생성하는 파생 보고서는
+`document.report-hwpx@0.1.0`이 HWPX로 패키징하고 `document.rhwp@1.0.0` 편집기에서 엽니다.
 브라우저 구조 렌더러는 표와 병합 셀을 선택 가능한 구조 미리보기로 표시합니다. 그림·수식·OLE 개체는
 텍스트와 섞지 않고 위치를 알 수 있는 개체 블록으로 표시하며, 정확한 글꼴·도형 좌표·페이지
 나눔은 Windows RHWP 원본 미리보기에서 확인합니다.
@@ -64,13 +98,16 @@ AI 선택 모드를 함께 제공합니다. AIWorks 커스텀 `selection-edit-v1
 게시자 서명을 설치 전에 다시 검증합니다. 설치·업데이트·롤백은 모두 감사 로그에 남고 이후
 실행 계획은 현재 고정 설치된 MCP 버전을 사용합니다. PoC 서명은 서버 비밀키 기반
 HMAC-SHA256이며, 운영 배포에서는 게시자별 비대칭 서명과 KMS로 교체해야 합니다.
+Manifest가 선택적 `configuration` 계약을 선언하면 설치된 Store 카드에 `환경설정` 버튼이
+자동으로 나타납니다. 문자열·숫자·체크박스·선택값을 공통 폼으로 렌더링하고 타입·허용값을
+서버에서 다시 검증하며, revision 충돌 방지와 변경 감사 기록을 적용합니다.
 
 MCP 제작기는 자연어 설명과 공개 범위, 원본 포함 여부, 외부 전송 허용 여부를 서버 초안으로
 저장합니다. 계약·고정 의존성·최소권한·네트워크 경계·입출력 Schema 검사를 모두 통과해야
 게시할 수 있으며, 게시 시 공개 범위와 원본 포함 여부를 다시 확인합니다. 게시된 패키지는
 동일한 조직 서명 검증을 거쳐 스토어에 즉시 나타나고 정확한 버전으로 설치됩니다.
-기준 문서는 파일당 최대 5MB이며 브라우저에서 서버 로컬 저장소로만 전달됩니다. HWPX는 문단과
-공통데이터 후보, PDF는 컨테이너·암호화 여부와 페이지 표식, Markdown·TXT는 UTF-8 구조를
+기준 문서는 파일당 최대 10MB이며 브라우저에서 서버 로컬 저장소로만 전달됩니다. HWPX는 문단과
+공통데이터 후보, PDF는 암호화 여부를 검사한 뒤 페이지별 텍스트를 추출·청크화하고, Markdown·TXT는 UTF-8 구조를
 검사합니다. 원본 포함을 선택한 경우에만 게시 패키지 파일로 복사되고 설치 전 해시를 다시
 검증합니다. 실패한 패키지는 설치 목록에서 격리되며 운영 진단이 실패 상태가 됩니다.
 
@@ -83,19 +120,24 @@ WAV 재생정보와 MP4 컨테이너 검사는 로컬에서 동작합니다. 문
 준비 상태이며 이미지 생성, 음성 전사와 영상 요약은 전용 모델·런타임이 연결될 때까지
 contract-only로 차단됩니다.
 
-운영 화면은 SQLite 무결성, MCP 패키지 서명, 출처 연결, 무료 모델 제한, 승인·스토어 키와
+운영 화면은 SQLite 무결성, MCP 패키지 서명, 출처 연결, 모델 레지스트리, 승인·스토어 키와
 어댑터 준비상태를 점검합니다. E2E 수용성 테스트는 외부 모델을 호출하지 않는 합성 모드에서
 HWPX 분석, 실행 계획, 서명 승인, 일회용 실행, 문단 패치, 자산 보존과 감사 추적을 검증합니다.
 stale-document 실패 주입으로 원본 변경 충돌 차단도 확인할 수 있습니다.
 
-## 무료 모델 자동 라우팅
+## Solar 자동 라우팅과 전송 경계
 
-- Google Gemma 4 26B A4B 무료: 문서 작성, 요약, 공문체와 번역
-- OpenAI gpt-oss-20b 무료: 복합 추론, 계획, 계산과 근거 검증
+- Solar Pro 3 Fast: 단순 조회·확인·짧은 요약
+- Solar Pro 3: 문서 작성·문장 편집·RAG 근거 종합
+- Solar Pro 4: 복합 비교·계산·정책·법률 검증
 
-의도 분석 MCP는 사용자 요청을 로컬에서 먼저 분류합니다. 모델 관리 MCP는 입력·출력 가격이
-모두 0이고 ID가 :free로 끝나는 모델만 허용합니다. 외부 전송 체크와 model.invoke,
-network.send 권한 승인이 완료된 경우에만 OpenRouter 호출을 실행합니다.
+의도 분석 MCP는 사용자 요청을 로컬에서 먼저 분류하고 모델 관리 MCP가 위 세 모드를 자동으로
+선택합니다. 새 보고서·계획서·초안을 처음 생성하는 요청은 품질을 우선해 Solar Pro 4를
+기본 선택하며, Store의 `의도 분석 MCP → 환경설정`에서 Pro 4·Pro 3·Fast·자동 판단으로 바꿀 수 있습니다.
+Solar 실호출이 활성화되어 있으며 실행 계획에서 `model.invoke`와 `network.send`를 명시 승인한
+요청만 Upstage API로 전송합니다. 데이터 MCP 기반 최초 보고서는 검색 근거를 Solar Pro 4가
+종합하고 인용 검증을 통과한 본문을 편집 가능한 HWPX로 만듭니다. 승인을 거부하거나 실행기가
+비활성이면 로컬 근거 보고서로 동작하며, `confidential`·`personal` 문맥은 외부 모델로 라우팅하지 않습니다.
 
 ## 경로
 
@@ -103,8 +145,24 @@ network.send 권한 승인이 완료된 경우에만 OpenRouter 호출을 실행
 - 포트폴리오 셸: /poc?project=aiworks
 - 계약: contracts/*.schema.json
 - 프로젝트 중심 플랫폼 전환 로드맵: [docs/PROJECT_PLATFORM_ROADMAP.md](docs/PROJECT_PLATFORM_ROADMAP.md)
+- 2026-08-19 구현·수용성 검증과 테스트법: [docs/ACCEPTANCE_REPORT_2026-08-19.md](docs/ACCEPTANCE_REPORT_2026-08-19.md)
+- 양식 MCP 정석화 진행상태: [docs/TEMPLATE_MCP_STANDARD_PLAN.md](docs/TEMPLATE_MCP_STANDARD_PLAN.md)
 - 1~17단계 PoC 구축 이력: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)
 - 서버 API: /api/poc/aiworks/bootstrap
+
+## 주요 계약과 모듈
+
+- 프로젝트·문서: `project-policy`, `project-backup`, `project-markdown-document`, `project-document-workbench`
+- 범용 산출물: `artifact`, `artifact-relation`, `artifact-evidence`와 불변 Version 계보
+- 실행·권한: `workflow-recipe`, `workflow-run`, `capability-binding`, `permission-grant`
+- 문서 변환: `report-document`, `document-format-adapter`, `document-session`
+- MCP 패키지: `mcp-manifest`, `mcp-draft`와 선택적 환경설정 계약
+- Python 구현: `mcp/workspace_orchestration.py`, `report_document.py`, `report_hwpx.py`,
+  `rewrite_output.py`, `template_mois_report.py`, `template_report_style.py`
+
+JSON Schema는 `contracts/`가 원본이며 API·UI는 같은 계약의 ID와 revision을 사용합니다. 프로젝트
+백업은 Markdown revision, 메타정보, HWPX, Artifact 관계와 Evidence를 SHA-256으로 검증하고 기존
+프로젝트를 덮어쓰지 않는 새 ID로 복원합니다.
 
 ## 서버 실행 흐름
 
@@ -133,15 +191,24 @@ network.send 권한 승인이 완료된 경우에만 OpenRouter 호출을 실행
 23. POST /api/poc/aiworks/builder/drafts/{draft_id}/validate
 24. POST /api/poc/aiworks/builder/drafts/{draft_id}/publish
 25. POST /api/poc/aiworks/builder/drafts/{draft_id}/references
-26. GET·POST /api/poc/aiworks/documents/workspace
-27. GET /api/poc/aiworks/documents/workspace/{workdoc_id}
-28. GET /api/poc/aiworks/documents/versions/{docver_id}
-29. GET /api/poc/aiworks/rhwp/capabilities
-30. POST /api/poc/aiworks/rhwp/invoke
-31. POST /api/poc/aiworks/documents/sessions
-32. GET /api/poc/aiworks/documents/sessions/{docsession_id}
-33. POST /api/poc/aiworks/documents/sessions/{docsession_id}/commands
-34. GET /api/poc/aiworks/documents/sessions/{docsession_id}/artifact
+26. POST /api/poc/aiworks/builder/drafts/{draft_id}/rag/query
+27. GET·POST /api/poc/aiworks/documents/workspace
+28. GET /api/poc/aiworks/documents/workspace/{workdoc_id}
+29. GET /api/poc/aiworks/documents/versions/{docver_id}
+30. GET /api/poc/aiworks/rhwp/capabilities
+31. POST /api/poc/aiworks/rhwp/invoke
+32. POST /api/poc/aiworks/documents/sessions
+33. GET /api/poc/aiworks/documents/sessions/{docsession_id}
+34. POST /api/poc/aiworks/documents/sessions/{docsession_id}/commands
+35. GET /api/poc/aiworks/documents/sessions/{docsession_id}/artifact
+
+위 목록은 초기 실행·문서·Builder 경계의 대표 흐름입니다. 아래 경로도 모두
+`/api/poc/aiworks` 아래에 있으며, 0.30.0에서 추가된 프로젝트 플랫폼 API를 다음 범주로 관리합니다.
+
+- `GET /projects/{id}/backup`, `POST /projects/import`: SHA-256 프로젝트 백업·비파괴 복원
+- `GET /projects/{id}/governance`, `POST /projects/{id}/members`, `policy`, `grants`, `status`: 멤버십·정책·권한·보관 상태
+- `GET|POST /projects/{id}/artifacts`, `POST /projects/{id}/artifact-relations`, `GET|POST /projects/{id}/artifact-evidence`: 범용 산출물 계보와 근거
+- `GET|POST /recipes`, `POST /recipes/search`, `POST /recipes/{id}/fork`, `deprecate`, `POST /projects/{id}/recipes/{id}/install`: Workflow Recipe 생명주기
 
 ## RHWP Windows 브리지
 
@@ -158,17 +225,41 @@ RHWP의 HAction과 HParameterSet을 그대로 사용합니다.
 
 ## MCP 제작기 사용 순서
 
-1. MCP 제작기에서 이름, 업무 설명, 공개 범위와 외부 전송 여부를 입력하고 새 초안을 생성합니다.
+1. MCP 제작기에서 양식·처리·데이터·일반 도구·외부 MCP 연결 유형을 고르고 이름, 업무 설명, 공개 범위와 외부 전송 여부를 입력해 새 초안을 생성합니다.
 2. 기준 문서 첨부에서 HWPX, PDF, Markdown 또는 TXT 파일을 선택합니다.
+   데이터 MCP는 `검색 데이터 원본` 역할로 여러 파일을 선택하고 `등록 자료 RAG 미리보기`에서 질문·근거·페이지를 확인합니다.
+   양식 MCP는 HWPX의 플레이스홀더, 작성요령·예시, 완성 보고서 구조를 자동 판별해 현재 보고서 내용을 대응합니다.
 3. Manifest와 문서 해시를 확인하고 샌드박스 계약 테스트를 실행합니다.
 4. 검증 통과 후 스토어 등록을 누르면 공개 범위와 원본 포함 선택대로 서명 게시됩니다.
 5. 스토어에서 권한을 확인하고 정확한 버전을 고정 설치합니다.
-6. 중단한 작업은 제작기 상단의 저장된 제작 작업에서 다시 엽니다.
+6. 스토어의 `수정`은 서명된 버전을 보존하고 다음 patch 버전 초안을 Builder에서 열며, `삭제`는 사용자 제작 버전만 확인 후 제거하고 초안은 남깁니다.
+   설정 계약이 있는 MCP는 `환경설정`에서 운영값을 저장하며, 저장값은 다음 실행 계획부터 적용됩니다.
+7. 외부 MCP 연결은 승인된 로컬 stdio 프로필 또는 Streamable HTTP를 선택하고 도구명·Capability·입출력 어댑터를 `tools/list`로 확인합니다. 로컬 프로필은 임의 명령을 받지 않고 고정 버전만 실행하며, 원격 실행은 매번 전송 승인을 거칩니다.
+8. 기본 `integration.kordoc@1.0.0`은 `kordoc@4.7.3`을 `KORDOC_OFFLINE=1`과 작업별 임시 루트로 실행합니다. 보고서 산출 시 `generate_document`를 자동 불러 정부 보고서 HWPX로 만들고, 생성 파일의 HWPX 무결성 검사 후 RHWP 세션에서 엽니다.
 
 ## 검증
 
     python3 -m unittest discover -s PoC/06-AIWorks/tests -v
     python3 -m py_compile PoC/06-AIWorks/backend.py
+    npm install --prefix PoC/06-AIWorks/vendor/kordoc-runtime --omit=dev --omit=optional
     .venv/bin/python PoC/06-AIWorks/tests/browser_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/builder_flow_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/data_mcp_flow_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/feedback_flow_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/project_portability_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/project_workbench_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/rhwp_toolbox_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/store_builder_smoke.py
+    .venv/bin/python PoC/06-AIWorks/tests/studio_runtime_smoke.py
+
+운영 DB에는 샘플 지식과 기준정보를 넣지 않는다. `AIWORKS_ENABLE_DEMO_SEED=0`이 기본값이며,
+데모 전용 임시 DB에서만 `1`로 설정한다. 브라우저 스모크도 별도 `AIWORKS_DB_PATH` 서버에서 실행해야 한다.
+`project_workbench_smoke.py`는 예외적으로 자신이 만든 문서·세션·메타 후보를 종료 시 자동 삭제하고 이전
+작업공간 상태를 복원한다.
+
+누적된 명시적 테스트 fixture는 먼저 dry-run으로 확인하고 적용 시 자동 백업 후 정리한다.
+
+    python3 PoC/06-AIWorks/scripts/cleanup_test_data.py
+    python3 PoC/06-AIWorks/scripts/cleanup_test_data.py --apply
 
 제품명은 가칭이며 폴더는 요청대로 PoC/06-AIWorks를 사용합니다.

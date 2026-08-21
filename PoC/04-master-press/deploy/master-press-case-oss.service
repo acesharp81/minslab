@@ -2,6 +2,7 @@
 Description=Master Press NVIDIA gpt-oss-120b case worker
 After=network-online.target myservice.service master-press-case.service
 Wants=network-online.target
+PartOf=myservice.service
 
 [Service]
 Type=simple

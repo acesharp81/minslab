@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   abbreviations TEXT NOT NULL DEFAULT '[]',
   former_names TEXT NOT NULL DEFAULT '[]',
   people TEXT NOT NULL DEFAULT '[]',
+  case_draft_model TEXT NOT NULL DEFAULT 'gpt-5.4-mini',
   exclude_terms TEXT NOT NULL DEFAULT '[]',
   domains TEXT NOT NULL DEFAULT '[]',
   rss_urls TEXT NOT NULL DEFAULT '[]',
@@ -420,6 +421,7 @@ CREATE TABLE IF NOT EXISTS case_proposals (
   prompt TEXT NOT NULL DEFAULT '',
   include_terms TEXT NOT NULL DEFAULT '[]',
   required_terms TEXT NOT NULL DEFAULT '[]',
+  exclude_terms TEXT NOT NULL DEFAULT '[]',
   moderation_status TEXT NOT NULL DEFAULT 'pending',
   moderation_flagged INTEGER NOT NULL DEFAULT 0,
   moderation_exempt INTEGER NOT NULL DEFAULT 0,
@@ -434,6 +436,7 @@ CREATE INDEX IF NOT EXISTS idx_case_proposals_moderation ON case_proposals(moder
 
 CREATE TABLE IF NOT EXISTS llm_api_calls (
   id TEXT PRIMARY KEY,
+  organization_id TEXT,
   provider TEXT NOT NULL,
   stage TEXT NOT NULL,
   model TEXT NOT NULL,
@@ -448,6 +451,10 @@ CREATE TABLE IF NOT EXISTS llm_api_calls (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_llm_api_calls_provider_created ON llm_api_calls(provider,stage,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_api_calls_resolution
+  ON llm_api_calls(provider,stage,status,created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_api_calls_route_resolution
+  ON llm_api_calls(provider,stage,model,created_at,http_status);
 
 CREATE TABLE IF NOT EXISTS reanalysis_jobs (
   id TEXT PRIMARY KEY,
@@ -850,6 +857,18 @@ CREATE TABLE IF NOT EXISTS supabase_outbox (
 );
 CREATE INDEX IF NOT EXISTS idx_supabase_outbox_due ON supabase_outbox(status,next_attempt_at,created_at);
 
+CREATE TABLE IF NOT EXISTS supabase_identity_aliases (
+  entity_type TEXT NOT NULL,
+  local_id TEXT NOT NULL,
+  remote_id TEXT NOT NULL,
+  identity_key TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(entity_type, local_id),
+  UNIQUE(entity_type, remote_id)
+);
+CREATE INDEX IF NOT EXISTS idx_supabase_identity_alias_remote ON supabase_identity_aliases(entity_type,remote_id);
+
 CREATE TABLE IF NOT EXISTS processing_daily_stats (
   day TEXT PRIMARY KEY,
   article_count INTEGER NOT NULL DEFAULT 0,
@@ -896,6 +915,23 @@ CREATE TABLE IF NOT EXISTS shadow_case_feedback (
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_shadow_case_feedback_verdict ON shadow_case_feedback(verdict,updated_at DESC);
+CREATE TABLE IF NOT EXISTS shadow_review_queue (
+  id TEXT PRIMARY KEY,
+  case_name TEXT NOT NULL DEFAULT '', article_url TEXT NOT NULL DEFAULT '', article_summary TEXT NOT NULL DEFAULT '',
+  primary_model TEXT NOT NULL DEFAULT '', primary_decision TEXT NOT NULL DEFAULT '', primary_score REAL NOT NULL DEFAULT 0, primary_reasons TEXT NOT NULL DEFAULT '[]',
+  shadow_model TEXT NOT NULL DEFAULT '', shadow_decision TEXT NOT NULL DEFAULT '', shadow_score REAL NOT NULL DEFAULT 0, shadow_reasons TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_shadow_review_queue_created ON shadow_review_queue(created_at DESC);
+CREATE TABLE IF NOT EXISTS shadow_review_history (
+  id TEXT PRIMARY KEY,
+  case_name TEXT NOT NULL DEFAULT '', article_url TEXT NOT NULL DEFAULT '', article_summary TEXT NOT NULL DEFAULT '',
+  primary_model TEXT NOT NULL DEFAULT '', primary_decision TEXT NOT NULL DEFAULT '', primary_score REAL NOT NULL DEFAULT 0, primary_reasons TEXT NOT NULL DEFAULT '[]',
+  shadow_model TEXT NOT NULL DEFAULT '', shadow_decision TEXT NOT NULL DEFAULT '', shadow_score REAL NOT NULL DEFAULT 0, shadow_reasons TEXT NOT NULL DEFAULT '[]',
+  verdict TEXT NOT NULL CHECK(verdict IN ('primary_correct','shadow_correct','uncertain')),
+  feedback_reason TEXT NOT NULL DEFAULT '', feedback_comment TEXT NOT NULL DEFAULT '', reviewed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_shadow_review_history_reviewed ON shadow_review_history(reviewed_at DESC);
 """
 
 
@@ -949,6 +985,12 @@ class Store:
             recipient_columns = {row[1] for row in connection.execute("PRAGMA table_info(recipients)")}
             if "scopes" not in recipient_columns:
                 connection.execute("ALTER TABLE recipients ADD COLUMN scopes TEXT NOT NULL DEFAULT '[]'")
+            proposal_columns = {row[1] for row in connection.execute("PRAGMA table_info(case_proposals)")}
+            if "exclude_terms" not in proposal_columns:
+                connection.execute("ALTER TABLE case_proposals ADD COLUMN exclude_terms TEXT NOT NULL DEFAULT '[]'")
+            organization_columns = {row[1] for row in connection.execute("PRAGMA table_info(organizations)")}
+            if "case_draft_model" not in organization_columns:
+                connection.execute("ALTER TABLE organizations ADD COLUMN case_draft_model TEXT NOT NULL DEFAULT 'gpt-5.4-mini'")
             connection.execute(
                 """UPDATE recipients
                    SET label=(
@@ -1003,6 +1045,8 @@ class Store:
             api_call_columns = {row[1] for row in connection.execute("PRAGMA table_info(llm_api_calls)")}
             if "usage_units" not in api_call_columns:
                 connection.execute("ALTER TABLE llm_api_calls ADD COLUMN usage_units INTEGER NOT NULL DEFAULT 0")
+            if "organization_id" not in api_call_columns:
+                connection.execute("ALTER TABLE llm_api_calls ADD COLUMN organization_id TEXT")
             if "organization_id" not in common_job_columns:
                 connection.execute("ALTER TABLE article_analysis_jobs ADD COLUMN organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL")
             if "attempts" not in common_job_columns:
@@ -1336,54 +1380,54 @@ class Store:
                 connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES('magazine_member_columns_repaired_v1','1',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (now_iso(),))
         self._magazine_schema_ready = True
 
+    def ensure_supabase_outbox_schema(self) -> None:
+        with self.connect() as connection:
+            connection.executescript(
+                """CREATE TABLE IF NOT EXISTS supabase_identity_aliases (
+                     entity_type TEXT NOT NULL, local_id TEXT NOT NULL, remote_id TEXT NOT NULL,
+                     identity_key TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                     PRIMARY KEY(entity_type,local_id), UNIQUE(entity_type,remote_id));
+                   CREATE INDEX IF NOT EXISTS idx_supabase_identity_alias_remote
+                     ON supabase_identity_aliases(entity_type,remote_id);"""
+            )
+
     def ensure_shadow_case_schema(self) -> None:
         with self.connect() as connection:
             connection.executescript(SHADOW_CASE_SCHEMA)
 
     def shadow_disagreements(self, limit: int = 50) -> dict[str, Any]:
-        """Read-only review list; never participates in delivery or worker queues."""
+        """Return durable review candidates, independent of article retention."""
         limit = max(1, min(100, int(limit)))
         with self.connect() as connection:
-            total = connection.execute("SELECT COUNT(*) value FROM shadow_case_evaluations s LEFT JOIN shadow_case_feedback f ON f.shadow_case_evaluation_id=s.id WHERE s.status='completed' AND s.decision_match=0 AND f.shadow_case_evaluation_id IS NULL").fetchone()["value"]
-            rows = connection.execute(
-                """SELECT s.id,s.queued_at,s.completed_at,s.primary_model,s.shadow_model,s.primary_decision,s.shadow_decision,
-                          s.primary_final_score,s.shadow_final_score,s.primary_llm_score,s.shadow_llm_score,s.duration_ms,
-                          a.title,a.original_url,c.name case_name,ce.reasons,ce.low_score_categories,ce.evidence_status,f.verdict feedback_verdict,f.reason feedback_reason,f.comment feedback_comment,f.updated_at feedback_updated_at
-                   FROM shadow_case_evaluations s
-                   JOIN case_evaluations ce ON ce.id=s.case_evaluation_id
-                   JOIN articles a ON a.id=ce.article_id
-                   JOIN cases c ON c.id=ce.case_id
-                   LEFT JOIN shadow_case_feedback f ON f.shadow_case_evaluation_id=s.id
-                   WHERE s.status='completed' AND s.decision_match=0 AND f.shadow_case_evaluation_id IS NULL
-                   ORDER BY s.queued_at DESC LIMIT ?""", (limit,)
-            ).fetchall()
+            total = connection.execute("SELECT COUNT(*) value FROM shadow_review_queue").fetchone()["value"]
+            rows = connection.execute("SELECT * FROM shadow_review_queue ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
         items = []
         for row in rows:
             item = dict(row)
-            item["score_gap"] = round(float(item.get("shadow_final_score") or 0) - float(item.get("primary_final_score") or 0), 1)
-            item["priority"] = "high" if abs(float(item["score_gap"])) >= 15 else "normal"
-            item["reasons"] = json_value(item.get("reasons"), [])
-            item["low_score_categories"] = json_value(item.get("low_score_categories"), [])
+            item["score_gap"] = round(float(item.get("shadow_score") or 0) - float(item.get("primary_score") or 0), 1)
+            item["decision_split"] = str(item.get("primary_decision") or "") != str(item.get("shadow_decision") or "")
+            item["primary_reasons"] = json_value(item.get("primary_reasons"), [])
+            item["shadow_reasons"] = json_value(item.get("shadow_reasons"), [])
             items.append(item)
         return {"total": int(total or 0), "items": items}
 
     def shadow_feedback_history(self, limit: int = 100) -> dict[str, Any]:
-        """Text-only record of completed shadow reviews."""
+        """Permanent, article-independent record of completed shadow reviews."""
         limit = max(1, min(200, int(limit)))
         with self.connect() as connection:
-            total = connection.execute("SELECT COUNT(*) value FROM shadow_case_feedback").fetchone()["value"]
-            rows = connection.execute(
-                """SELECT f.verdict,f.reason,f.comment,f.updated_at,c.name case_name,a.title,a.original_url
-                   FROM shadow_case_feedback f
-                   JOIN shadow_case_evaluations s ON s.id=f.shadow_case_evaluation_id
-                   JOIN case_evaluations ce ON ce.id=s.case_evaluation_id
-                   JOIN articles a ON a.id=ce.article_id JOIN cases c ON c.id=ce.case_id
-                   ORDER BY f.updated_at DESC LIMIT ?""", (limit,)
-            ).fetchall()
-        return {"total": int(total or 0), "items": [dict(row) for row in rows]}
+            total = connection.execute("SELECT COUNT(*) value FROM shadow_review_history").fetchone()["value"]
+            rows = connection.execute("SELECT * FROM shadow_review_history ORDER BY reviewed_at DESC LIMIT ?", (limit,)).fetchall()
+        items = []
+        for row in rows:
+            item = dict(row)
+            item["primary_reasons"] = json_value(item.get("primary_reasons"), [])
+            item["shadow_reasons"] = json_value(item.get("shadow_reasons"), [])
+            item["score_gap"] = round(float(item.get("shadow_score") or 0) - float(item.get("primary_score") or 0), 1)
+            items.append(item)
+        return {"total": int(total or 0), "items": items}
 
     def save_shadow_feedback(self, evaluation_id: str, verdict: str, reason: str = "", comment: str = "") -> dict[str, Any]:
-        """Save an admin review only; it never changes a case decision or delivery."""
+        """Archive the minimal review snapshot, then remove it from the review queue."""
         evaluation_id = str(evaluation_id or "").strip()
         verdict = str(verdict or "").strip()
         reason = str(reason or "").strip()[:120]
@@ -1391,20 +1435,29 @@ class Store:
         if verdict not in {"primary_correct", "shadow_correct", "uncertain"}:
             raise ValueError("검토 의견이 올바르지 않습니다.")
         with self.connect() as connection:
-            exists = connection.execute("SELECT 1 FROM shadow_case_evaluations WHERE id=?", (evaluation_id,)).fetchone()
-            if not exists:
-                raise ValueError("그림자 판정 결과를 찾지 못했습니다.")
+            item = connection.execute("SELECT * FROM shadow_review_queue WHERE id=?", (evaluation_id,)).fetchone()
+            if not item:
+                raise ValueError("그림자 판정 검토 대상을 찾지 못했습니다.")
             now = now_iso()
+            history_id = str(uuid.uuid4())
             connection.execute(
-                """INSERT INTO shadow_case_feedback(id,shadow_case_evaluation_id,verdict,reason,comment,created_at,updated_at)
-                   VALUES(?,?,?,?,?,?,?)
-                   ON CONFLICT(shadow_case_evaluation_id) DO UPDATE SET verdict=excluded.verdict,reason=excluded.reason,comment=excluded.comment,updated_at=excluded.updated_at""",
-                (str(uuid.uuid4()), evaluation_id, verdict, reason, comment, now, now),
+                """INSERT INTO shadow_review_history(
+                       id,case_name,article_url,article_summary,
+                       primary_model,primary_decision,primary_score,primary_reasons,
+                       shadow_model,shadow_decision,shadow_score,shadow_reasons,
+                       verdict,feedback_reason,feedback_comment,reviewed_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (history_id, item["case_name"], item["article_url"], item["article_summary"],
+                 item["primary_model"], item["primary_decision"], item["primary_score"], item["primary_reasons"],
+                 item["shadow_model"], item["shadow_decision"], item["shadow_score"], item["shadow_reasons"],
+                 verdict, reason, comment, now),
             )
-            row = connection.execute(
-                "SELECT verdict,reason,comment,updated_at FROM shadow_case_feedback WHERE shadow_case_evaluation_id=?", (evaluation_id,)
-            ).fetchone()
-        return dict(row)
+            connection.execute("DELETE FROM shadow_review_queue WHERE id=?", (evaluation_id,))
+            row = connection.execute("SELECT * FROM shadow_review_history WHERE id=?", (history_id,)).fetchone()
+        result = dict(row)
+        result["primary_reasons"] = json_value(result.get("primary_reasons"), [])
+        result["shadow_reasons"] = json_value(result.get("shadow_reasons"), [])
+        return result
 
     @contextmanager
     def connect(self):
@@ -1422,6 +1475,18 @@ class Store:
                     self._pipeline_summary_cache.clear()
             finally:
                 connection.close()
+
+    def ensure_case_draft_schema(self) -> None:
+        """Install the small case-draft migration for existing production DBs."""
+        with self.connect() as connection:
+            organization_columns = {row[1] for row in connection.execute("PRAGMA table_info(organizations)")}
+            if "case_draft_model" not in organization_columns:
+                connection.execute(
+                    "ALTER TABLE organizations ADD COLUMN case_draft_model TEXT NOT NULL DEFAULT 'gpt-5.4-mini'"
+                )
+            api_call_columns = {row[1] for row in connection.execute("PRAGMA table_info(llm_api_calls)")}
+            if "organization_id" not in api_call_columns:
+                connection.execute("ALTER TABLE llm_api_calls ADD COLUMN organization_id TEXT")
 
     def ensure_performance_indexes(self) -> dict:
         """Install and verify indexes whose absence causes user-facing query stalls."""
@@ -1574,6 +1639,7 @@ class Store:
         values: dict[str, Any] = {
             "name": name,
             "collection_mode": payload.get("collection_mode", (existing or {}).get("collection_mode", "interval")),
+            "case_draft_model": str(payload.get("case_draft_model", (existing or {}).get("case_draft_model", "gpt-5.4-mini")) or "gpt-5.4-mini")[:160],
             "collection_interval_minutes": max(1, min(1440, int(payload.get("collection_interval_minutes", (existing or {}).get("collection_interval_minutes", 30))))),
             "max_search_queries": max(1, min(20, int(payload.get("max_search_queries", (existing or {}).get("max_search_queries", 8))))),
             "max_articles_per_run": max(1, min(200, int(payload.get("max_articles_per_run", (existing or {}).get("max_articles_per_run", 50))))),
@@ -2349,6 +2415,83 @@ class Store:
             ).fetchall()
         return [dict(row) for row in rows]
 
+    def supabase_outbox_event_status(self, event_id: str) -> str:
+        with self.connect() as connection:
+            row = connection.execute("SELECT status FROM supabase_outbox WHERE id=?", (event_id,)).fetchone()
+        return str(row["status"] or "") if row else ""
+
+    def supabase_remote_id(self, entity_type: str, local_id: str) -> str:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT remote_id FROM supabase_identity_aliases WHERE entity_type=? AND local_id=?",
+                (str(entity_type), str(local_id)),
+            ).fetchone()
+        return str(row["remote_id"] or local_id) if row else str(local_id)
+
+    def save_supabase_identity_alias(self, entity_type: str, local_id: str, remote_id: str,
+                                     identity_key: str = "") -> None:
+        now = now_iso()
+        with self.connect() as connection:
+            connection.execute(
+                """INSERT INTO supabase_identity_aliases(entity_type,local_id,remote_id,identity_key,created_at,updated_at)
+                   VALUES(?,?,?,?,?,?) ON CONFLICT(entity_type,local_id) DO UPDATE SET
+                     remote_id=excluded.remote_id,identity_key=excluded.identity_key,updated_at=excluded.updated_at""",
+                (str(entity_type), str(local_id), str(remote_id), str(identity_key), now, now),
+            )
+
+    def block_supabase_outbox(self, event_id: str, dependency_event_id: str,
+                              expected_payload: str | None = None) -> bool:
+        now = now_iso()
+        with self.connect() as connection:
+            row = connection.execute("SELECT payload FROM supabase_outbox WHERE id=?", (event_id,)).fetchone()
+            if not row or (expected_payload is not None and str(row["payload"]) != expected_payload):
+                return False
+            connection.execute(
+                "UPDATE supabase_outbox SET status='blocked',next_attempt_at=NULL,last_error=?,updated_at=? WHERE id=?",
+                (f"dependency_wait:{dependency_event_id}"[:1000], now, event_id),
+            )
+        return True
+
+    def release_supabase_dependents(self, entity_type: str, local_id: str) -> int:
+        field = "article_id" if entity_type == "article" else "press_release_id"
+        released = 0; now = now_iso()
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT id,payload FROM supabase_outbox WHERE status='blocked'"
+            ).fetchall()
+            for row in rows:
+                try:
+                    payload = json.loads(str(row["payload"]))
+                except (TypeError, ValueError):
+                    continue
+                if str(payload.get(field) or "") != str(local_id):
+                    continue
+                released += connection.execute(
+                    "UPDATE supabase_outbox SET status='pending',next_attempt_at=NULL,last_error=NULL,updated_at=? WHERE id=? AND status='blocked'",
+                    (now, row["id"]),
+                ).rowcount
+        return int(released)
+
+    def requeue_failed_supabase_outbox(self, error_contains: str = "", limit: int = 500) -> int:
+        now = now_iso(); params: list[Any] = []
+        where = "status='failed'"
+        if error_contains:
+            where += " AND last_error LIKE ?"; params.append(f"%{error_contains}%")
+        params.append(max(1, min(5000, int(limit))))
+        with self.connect() as connection:
+            rows = connection.execute(
+                f"SELECT id FROM supabase_outbox WHERE {where} ORDER BY updated_at,id LIMIT ?", params
+            ).fetchall()
+            if not rows:
+                return 0
+            ids = [str(row["id"]) for row in rows]
+            marks = ",".join("?" for _ in ids)
+            connection.execute(
+                f"UPDATE supabase_outbox SET status='pending',next_attempt_at=NULL,last_error=NULL,updated_at=? WHERE id IN ({marks})",
+                (now, *ids),
+            )
+        return len(ids)
+
     def finish_supabase_outbox(self, event_id: str, ok: bool, error: str = "", expected_payload: str | None = None,
                                retryable: bool = True) -> bool:
         """Record a send result, without overwriting a newer queued payload.
@@ -2601,6 +2744,7 @@ class Store:
             lifetime_total = int(connection.execute("SELECT COALESCE(SUM(article_count),0) value FROM processing_daily_stats").fetchone()["value"] or 0)
             token_rows = connection.execute(
                 """SELECT model,provider,COUNT(*) calls,
+                          SUM(CASE WHEN stage='case_proposal_draft' THEN 1 ELSE 0 END) case_draft_processed,
                           COALESCE(SUM(input_tokens),0)+COALESCE(SUM(output_tokens),0) tokens
                    FROM llm_api_calls WHERE created_at>=? AND status='completed'
                    GROUP BY model,provider ORDER BY tokens DESC,calls DESC""",
@@ -2625,6 +2769,7 @@ class Store:
                 "yesterday": int(saved.get((today - timedelta(days=1)).isoformat(), 0)), "today": int(saved.get(today.isoformat(), 0)), "daily": daily,
                 "model_tokens": [{"model": str(row["model"] or "unknown"), "provider": str(row["provider"] or ""),
                                   "tokens": int(row["tokens"] or 0), "calls": int(row["calls"] or 0),
+                                  "case_draft_processed": int(row["case_draft_processed"] or 0),
                                   "processed": common_processed.get(str(row["model"] or "unknown"), 0) + case_processed.get(str(row["model"] or "unknown"), 0) + embedding_processed.get(str(row["model"] or "unknown"), 0),
                                   "common_processed": common_processed.get(str(row["model"] or "unknown"), 0),
                                   "case_processed": case_processed.get(str(row["model"] or "unknown"), 0),
@@ -2690,15 +2835,35 @@ class Store:
 
     def record_llm_api_call(self, provider: str, stage: str, model: str, status: str, duration_ms: int = 0,
                             http_status: int | None = None, request_id: str = "", input_tokens: int = 0,
-                            output_tokens: int = 0, usage_units: int = 0, error: str = "") -> None:
+                            output_tokens: int = 0, usage_units: int = 0, error: str = "", organization_id: str = "") -> None:
         with self.connect() as connection:
             connection.execute(
-                """INSERT INTO llm_api_calls(id,provider,stage,model,status,http_status,request_id,input_tokens,output_tokens,usage_units,duration_ms,error,created_at)
-                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (str(uuid.uuid4()), str(provider)[:30], str(stage)[:30], str(model)[:160], str(status)[:30], http_status,
+                """INSERT INTO llm_api_calls(id,provider,organization_id,stage,model,status,http_status,request_id,input_tokens,output_tokens,usage_units,duration_ms,error,created_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (str(uuid.uuid4()), str(provider)[:30], str(organization_id)[:100] or None, str(stage)[:30], str(model)[:160], str(status)[:30], http_status,
                  str(request_id)[:200] or None, max(0, int(input_tokens)), max(0, int(output_tokens)), max(0, int(usage_units)), max(0, int(duration_ms)),
                  str(error)[:1000] or None, now_iso()),
             )
+
+    def case_draft_usage(self, organization_id: str = "") -> dict:
+        clauses = ["stage='case_proposal_draft'", "created_at>=?"]
+        values: list[Any] = [kst_day_start_iso()]
+        if organization_id:
+            clauses.append("organization_id=?")
+            values.append(str(organization_id))
+        with self.connect() as connection:
+            row = connection.execute(
+                f"""SELECT COUNT(*) attempts,
+                           SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed,
+                           SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed,
+                           COALESCE(SUM(input_tokens),0) input_tokens,
+                           COALESCE(SUM(output_tokens),0) output_tokens
+                    FROM llm_api_calls WHERE {' AND '.join(clauses)}""", values,
+            ).fetchone()
+        input_tokens, output_tokens = int(row["input_tokens"] or 0), int(row["output_tokens"] or 0)
+        return {"attempts": int(row["attempts"] or 0), "completed": int(row["completed"] or 0),
+                "failed": int(row["failed"] or 0), "input_tokens": input_tokens,
+                "output_tokens": output_tokens, "tokens": input_tokens + output_tokens, "period": "KST day"}
 
     def provider_usage_total(self, provider: str, stage: str) -> dict:
         with self.connect() as connection:
@@ -2765,10 +2930,14 @@ class Store:
             params.append(str(stage))
         with self.connect() as connection:
             row = connection.execute(query, tuple(params)).fetchone()
-        attempts = int(row["attempts"] or 0)
+        transport_attempts = int(row["attempts"] or 0)
+        # OpenRouter allowance is consumed by accepted inference calls. Local
+        # routing rejections remain errors but do not inflate its usage meter.
+        attempts = int(row["completed"] or 0) if str(provider).lower() == "openrouter" else transport_attempts
         tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
         return {
             "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
+            "transport_attempts": transport_attempts,
             "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
             "tokens": tokens, "usage_units": int(row["usage_units"] or 0), "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
             "soft_limit": int(request_limit or 0), "remaining": max(0, int(request_limit or 0) - attempts) if request_limit else 0,
@@ -2796,10 +2965,12 @@ class Store:
                    FROM llm_api_calls WHERE provider='openrouter' AND created_at>=?""",
                 (day_start,),
             ).fetchone()
-        attempts = int(row["attempts"] or 0)
+        transport_attempts = int(row["attempts"] or 0)
+        attempts = int(row["completed"] or 0)
         tokens = int(row["input_tokens"] or 0) + int(row["output_tokens"] or 0)
         return {
             "attempts": attempts, "completed": int(row["completed"] or 0), "failed": int(row["failed"] or 0),
+            "transport_attempts": transport_attempts,
             "input_tokens": int(row["input_tokens"] or 0), "output_tokens": int(row["output_tokens"] or 0),
             "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
             "soft_limit": int(soft_limit), "remaining": max(0, int(soft_limit) - attempts),
@@ -2883,6 +3054,7 @@ class Store:
         include_terms = self._case_proposal_terms(item.get("include_terms"))
         required_terms = self._case_proposal_terms(item.get("required_terms"))
         flagged = bool(item.get("moderation_flagged")) and not bool(item.get("moderation_exempt"))
+        exclude_terms = self._case_proposal_terms(item.get("exclude_terms"))
         result = {
             "id": item.get("id"),
             "nickname": item.get("nickname") or "익명",
@@ -2893,6 +3065,7 @@ class Store:
             "content_locked": bool(flagged and not admin),
             "moderation_status": item.get("moderation_status") or "pending",
             "moderation_flagged": bool(item.get("moderation_flagged")),
+            "exclude_terms": [] if flagged and not admin else exclude_terms,
             "moderation_exempt": bool(item.get("moderation_exempt")),
             "created_at": item.get("created_at"),
             "updated_at": item.get("updated_at"),
@@ -2903,6 +3076,7 @@ class Store:
                 "original_prompt": item.get("prompt", ""),
                 "original_include_terms": include_terms,
                 "original_required_terms": required_terms,
+                "original_exclude_terms": exclude_terms,
                 "moderation_reason": item.get("moderation_reason") or "",
                 "moderation_model": item.get("moderation_model") or "",
                 "moderated_at": item.get("moderated_at"),
@@ -2931,6 +3105,7 @@ class Store:
         required_terms = self._case_proposal_terms(payload.get("required_terms"))
         password = str(payload.get("password") or "")
         new_password = str(payload.get("new_password") or "")
+        exclude_terms = self._case_proposal_terms(payload.get("exclude_terms"))
         if not title:
             raise ValueError("케이스 제목을 입력하세요.")
         if not prompt:
@@ -2955,10 +3130,10 @@ class Store:
                     password_hash = self._case_proposal_password_hash(new_password, salt)
                 connection.execute(
                     """UPDATE case_proposals
-                       SET nickname=?,title=?,prompt=?,include_terms=?,required_terms=?,password_salt=?,password_hash=?,
+                       SET nickname=?,title=?,prompt=?,include_terms=?,required_terms=?,exclude_terms=?,password_salt=?,password_hash=?,
                            moderation_status='pending',moderation_flagged=0,moderation_exempt=0,moderation_reason='',moderation_model='',moderated_at=NULL,updated_at=?
                        WHERE id=?""",
-                    (nickname, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), salt, password_hash, now, str(proposal_id)),
+                    (nickname, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), json.dumps(exclude_terms, ensure_ascii=False), salt, password_hash, now, str(proposal_id)),
                 )
                 item_id = str(proposal_id)
             else:
@@ -2966,9 +3141,9 @@ class Store:
                 salt = secrets.token_hex(8)
                 password_hash = self._case_proposal_password_hash(password, salt)
                 connection.execute(
-                    """INSERT INTO case_proposals(id,nickname,password_salt,password_hash,title,prompt,include_terms,required_terms,created_at,updated_at)
-                       VALUES(?,?,?,?,?,?,?,?,?,?)""",
-                    (item_id, nickname, salt, password_hash, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), now, now),
+                    """INSERT INTO case_proposals(id,nickname,password_salt,password_hash,title,prompt,include_terms,required_terms,exclude_terms,created_at,updated_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                    (item_id, nickname, salt, password_hash, title, prompt, json.dumps(include_terms, ensure_ascii=False), json.dumps(required_terms, ensure_ascii=False), json.dumps(exclude_terms, ensure_ascii=False), now, now),
                 )
             row = connection.execute("SELECT * FROM case_proposals WHERE id=?", (item_id,)).fetchone()
         return self._decode_case_proposal(row, admin=True)
@@ -6304,13 +6479,38 @@ class Store:
         return {"days": days, "sent_articles": len(rows), "keywords": keywords}
 
     @staticmethod
-    def _operation_error_reason(error: str) -> str:
-        lowered = str(error or "").casefold()
+    def _operation_error_detail(error: str, http_status: int | None = None) -> dict[str, Any]:
+        raw = str(error or "")
+        parsed: dict[str, Any] = {}
+        if raw.lstrip().startswith("{"):
+            try:
+                value = json.loads(raw)
+                parsed = value if isinstance(value, dict) else {}
+            except (json.JSONDecodeError, TypeError):
+                parsed = {}
+        message = str(parsed.get("message") or raw)
+        upstream_message = str(parsed.get("upstream_message") or "")
+        searchable = " ".join(filter(None, (message, upstream_message, str(parsed.get("error_type") or ""), str(http_status or ""))))
+        return {
+            "message": message[:500],
+            "searchable": searchable,
+            "error_type": str(parsed.get("error_type") or "")[:120],
+            "upstream_provider": str(parsed.get("upstream_provider") or "")[:120],
+            "limit_source": str(parsed.get("limit_source") or "")[:120],
+            "retry_after_seconds": parsed.get("retry_after_seconds"),
+            "upstream_message": upstream_message[:1000],
+            "raw": raw[:1500],
+        }
+
+    @classmethod
+    def _operation_error_reason(cls, error: str, http_status: int | None = None) -> str:
+        detail = cls._operation_error_detail(error, http_status)
+        lowered = str(detail["searchable"] or "").casefold()
         if not lowered:
             return "오류 상세가 기록되지 않았습니다."
         if any(marker in lowered for marker in ("quota", "daily_soft_limit", "free-models-per-day", "token_soft_limit", "resource_exhausted", "allocation")):
             return "무료 사용량 또는 토큰 한도에 도달했습니다."
-        if any(marker in lowered for marker in ("rate limit", "429", "too many requests")):
+        if int(http_status or 0) == 429 or any(marker in lowered for marker in ("rate limit", "rate_limit", "429", "too many requests")):
             return "제공자 요청 제한(rate limit)이 발생했습니다."
         if any(marker in lowered for marker in ("timeout", "timed out", "read timed")):
             return "모델 또는 외부 API 응답 시간이 초과되었습니다."
@@ -6320,7 +6520,7 @@ class Store:
             return "인증 권한 또는 토큰 상태 확인이 필요합니다."
         if any(marker in lowered for marker in ("connection", "network", "urlopen", "502", "503", "504")):
             return "외부 서비스 연결 또는 일시 장애가 발생했습니다."
-        return str(error or "")[:180]
+        return str(detail["message"] or "")[:180]
 
     @staticmethod
     def _operation_stage_label(stage: str) -> str:
@@ -6372,14 +6572,26 @@ class Store:
                 field = key.removeprefix("llm_provider_lock_")
                 quota_lock_meta.setdefault(provider, {})[field] = str(row["value"] or "")
             api_rows = connection.execute(
-                """SELECT failed.*,MIN(succeeded.created_at) resolved_at
-                   FROM llm_api_calls failed
-                   LEFT JOIN llm_api_calls succeeded
-                     ON succeeded.provider=failed.provider AND succeeded.stage=failed.stage
-                    AND succeeded.status='completed' AND succeeded.created_at>failed.created_at
-                   WHERE failed.status='failed' AND failed.created_at>=?
-                   GROUP BY failed.id
-                   ORDER BY failed.created_at DESC LIMIT ?""",
+                """WITH failed_groups AS (
+                     SELECT provider,stage,model,http_status,error,
+                            COUNT(*) occurrence_count,MIN(created_at) first_occurred_at,
+                            MAX(created_at) created_at
+                     FROM llm_api_calls
+                     WHERE status='failed' AND created_at>=?
+                     GROUP BY provider,stage,model,http_status,error
+                     ORDER BY created_at DESC LIMIT ?
+                   )
+                   SELECT failed.*,
+                          (SELECT MIN(later.created_at) FROM llm_api_calls later
+                           WHERE later.provider=failed.provider AND later.stage=failed.stage
+                             AND later.status='completed' AND later.created_at>failed.created_at) success_resolved_at,
+                          (SELECT MIN(later.created_at) FROM llm_api_calls later
+                           WHERE failed.http_status=404 AND later.provider=failed.provider
+                             AND later.stage=failed.stage AND later.model=failed.model
+                             AND later.created_at>failed.created_at
+                             AND COALESCE(later.http_status,0)>0 AND later.http_status<>404) route_resolved_at
+                   FROM failed_groups failed
+                   ORDER BY failed.created_at DESC""",
                 (since, limit),
             ).fetchall()
             case_rows = connection.execute(
@@ -6429,29 +6641,66 @@ class Store:
                     + (f"원인: {self._operation_error_reason(reason)}" if reason else "원인 상세는 제공자 응답에 기록되지 않았습니다."),
                     occurred_at,
                     provider=provider, provider_label=self._operation_provider_label(provider),
-                    status="active" if active else "resolved", resolved_at="" if active else disabled_until,
+                    status="retrying" if active else "resolved", resolved_at="" if active else disabled_until,
                     disabled_until=disabled_until, lock_mode=lock_mode,
                     lock_confidence=lock_meta.get("confidence", ""),
                     lock_reset_source=lock_meta.get("reset_source", ""),
-                    raw_error=reason[:500], severity="critical" if active else "info",
+                    raw_error=reason[:500], severity="warning" if active else "info",
                 )
 
             for row in api_rows:
                 item = dict(row)
                 provider, stage, model = str(item.get("provider") or ""), str(item.get("stage") or ""), str(item.get("model") or "")
-                resolved_at = str(item.get("resolved_at") or "")
+                http_status = int(item.get("http_status") or 0)
+                error_value = str(item.get("error") or "")
+                detail = self._operation_error_detail(error_value, http_status)
+                success_resolved_at = str(item.get("success_resolved_at") or "")
+                route_resolved_at = str(item.get("route_resolved_at") or "")
+                resolved_at = success_resolved_at or route_resolved_at
                 resolved = bool(resolved_at)
-                reason = self._operation_error_reason(str(item.get("error") or ""))
+                route_resolved = bool(route_resolved_at and not success_resolved_at)
+                reason = self._operation_error_reason(error_value, http_status)
+                retry_at = ""
+                try:
+                    retry_seconds = int(detail.get("retry_after_seconds") or 0)
+                    if retry_seconds > 0:
+                        retry_at = (datetime.fromisoformat(str(item.get("created_at") or now)) + timedelta(seconds=retry_seconds)).isoformat(timespec="seconds")
+                except (TypeError, ValueError):
+                    retry_at = ""
+                detail_notes: list[str] = []
+                if detail["upstream_provider"]:
+                    detail_notes.append(f"실제 공급자 {detail['upstream_provider']}")
+                if detail["error_type"]:
+                    detail_notes.append(f"오류 유형 {detail['error_type']}")
+                if detail["limit_source"]:
+                    detail_notes.append(f"제한 출처 {detail['limit_source']}")
+                if retry_at:
+                    detail_notes.append(f"공급자 재시도 안내 {retry_at}")
+                detail_text = (" 상세: " + " · ".join(detail_notes) + ".") if detail_notes else ""
+                managed_limit = bool(http_status == 429 and not resolved)
+                if resolved:
+                    resolution_text = (
+                        " 이후 동일 모델이 공급자 응답 단계까지 도달해 라우팅 오류는 해소됐습니다."
+                        if route_resolved else " 이후 같은 단계 호출이 성공해 해소된 것으로 보입니다."
+                    )
+                elif managed_limit:
+                    resolution_text = " 제한 해제 후 자동 재시도하며 그동안 예비 모델 체인이 처리를 이어갑니다."
+                else:
+                    resolution_text = " 현재 로그상 후속 성공 기록은 아직 없습니다."
                 append_event(
                     "api_error", stage,
-                    f"{self._operation_stage_label(stage)} API 호출 실패",
+                    f"{self._operation_stage_label(stage)} API {'요청 제한' if http_status == 429 else '호출 실패'}",
                     f"{self._operation_provider_label(provider)} {model} 호출에서 오류가 발생했습니다. 원인: {reason}"
-                    + (" 이후 같은 단계 호출이 성공해 해소된 것으로 보입니다." if resolved else " 현재 로그상 후속 성공 기록은 아직 없습니다."),
+                    + detail_text + resolution_text,
                     str(item.get("created_at") or ""),
                     provider=provider, provider_label=self._operation_provider_label(provider), model=model,
-                    status="resolved" if resolved else "open", resolved_at=resolved_at,
-                    raw_error=str(item.get("error") or "")[:500], http_status=item.get("http_status"),
-                    severity="warning" if resolved else "critical",
+                    status="resolved" if resolved else ("retrying" if managed_limit else "open"), resolved_at=resolved_at,
+                    raw_error=detail["raw"], http_status=http_status,
+                    severity="warning" if resolved or managed_limit else "critical",
+                    upstream_provider=detail["upstream_provider"], error_type=detail["error_type"],
+                    limit_source=detail["limit_source"], retry_after_seconds=detail["retry_after_seconds"],
+                    retry_at=retry_at, occurrence_count=int(item.get("occurrence_count") or 1),
+                    first_occurred_at=str(item.get("first_occurred_at") or item.get("created_at") or ""),
                 )
 
         for row in case_rows:
@@ -6493,8 +6742,48 @@ class Store:
                 resolved_at=str(item.get("sent_at") or "") if sent else "", severity="warning" if sent else "critical",
             )
 
-        events = sorted(events, key=lambda item: str(item.get("occurred_at") or ""), reverse=True)[:limit]
-        summary: dict[str, int] = {"total": len(events), "open": 0, "retrying": 0, "resolved": 0, "critical": 0}
+        api_groups: dict[tuple, dict[str, Any]] = {}
+        grouped_events: list[dict[str, Any]] = []
+        for event in events:
+            if event.get("kind") != "api_error":
+                grouped_events.append(event)
+                continue
+            group_key = (event.get("stage"), event.get("provider"), event.get("model"), event.get("http_status"), event.get("status"), event.get("error_type"), event.get("upstream_provider"), event.get("limit_source"), self._operation_error_reason(str(event.get("raw_error") or ""), int(event.get("http_status") or 0)))
+            existing = api_groups.get(group_key)
+            if existing is None:
+                event["occurrence_count"] = max(1, int(event.get("occurrence_count") or 1))
+                event["first_occurred_at"] = str(event.get("first_occurred_at") or event.get("occurred_at") or "")
+                event["last_occurred_at"] = str(event.get("occurred_at") or "")
+                api_groups[group_key] = event
+                grouped_events.append(event)
+                continue
+            existing["occurrence_count"] = int(existing.get("occurrence_count") or 1) + max(1, int(event.get("occurrence_count") or 1))
+            existing["first_occurred_at"] = min(str(existing.get("first_occurred_at") or ""), str(event.get("first_occurred_at") or event.get("occurred_at") or ""))
+            if str(event.get("occurred_at") or "") > str(existing.get("occurred_at") or ""):
+                for field in ("occurred_at", "raw_error", "retry_at", "retry_after_seconds"):
+                    existing[field] = event.get(field)
+            existing["last_occurred_at"] = max(str(existing.get("last_occurred_at") or ""), str(event.get("occurred_at") or ""))
+            existing["resolved_at"] = max(str(existing.get("resolved_at") or ""), str(event.get("resolved_at") or ""))
+
+        for event in api_groups.values():
+            count = int(event.get("occurrence_count") or 1)
+            if count > 1:
+                base = str(event.get("message") or "")
+                for marker in (" 이후 같은 단계", " 이후 동일 모델", " 제한 해제 후", " 현재 로그상"):
+                    base = base.split(marker, 1)[0]
+                suffix = (
+                    " 이후 같은 단계 호출이 성공하거나 공급자 응답 단계까지 도달해 해소됐습니다."
+                    if event.get("status") == "resolved"
+                    else (" 제한 해제 후 자동 재시도하며 예비 모델이 처리 중입니다." if event.get("status") == "retrying" else " 후속 성공 기록은 아직 없습니다.")
+                )
+                event["message"] = f"{base} 동일 원인이 {count:,}회 발생했습니다.{suffix}"
+                event["title"] = f"{event.get('title') or 'API 오류'} · {count:,}회"
+
+        events = sorted(grouped_events, key=lambda item: str(item.get("occurred_at") or ""), reverse=True)[:limit]
+        summary: dict[str, int] = {
+            "total": len(events), "occurrences": sum(int(item.get("occurrence_count") or 1) for item in events),
+            "open": 0, "retrying": 0, "resolved": 0, "critical": 0,
+        }
         for event in events:
             status = str(event.get("status") or "open")
             if status in summary:

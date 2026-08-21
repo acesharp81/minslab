@@ -255,6 +255,13 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 
 구독 신청 프레임과 신청기록 사이에는 `케이스 신청 게시판`이 있다. 사용자는 현재 없는 모니터링 케이스를 익명 닉네임으로 제안할 수 있다.
 
+사용자는 먼저 찾고 싶은 기사 조건을 자연어로 입력하고 `AI로 신청 양식 만들기`를 눌러 검토 가능한
+초안을 만들 수 있다. 서버는 선택 기관에 지정된 GPT-5.4 mini 또는 Solar Pro 4를 호출해 제목,
+정밀 판정 프롬프트, 포함 키워드와 해석·확인할 가정을 제안한다. 필수·제외 키워드는 AI가 임의로
+확정하지 않고 빈 값으로 두므로 사용자가 직접 보완한다. 생성 결과는 즉시 등록되지 않으며,
+사용자가 모든 필드를 확인·수정하고 암호를 입력한 뒤 제출해야 게시판에 저장된다. 기관별 모델과
+호출량은 관리자 설정에서 확인할 수 있고 API 키가 없는 모델은 자동 작성에 사용할 수 없다.
+
 #### 3.2.1 글 등록
 
 입력값은 다음과 같다.
@@ -267,6 +274,7 @@ AI 언론동향 비서는 부처·기관별 언론 기사를 수집하고, 공�
 | 케이스 프롬프트 | AI가 어떤 기사를 관련 기사로 볼지 설명하는 지시문 |
 | 키워드 | 후보 기사 선별에 사용할 포함 키워드 |
 | 필수키워드 | 반드시 포함되어야 하는 키워드 |
+| 제외키워드 | 후보에서 명시적으로 제외할 표현 |
 
 프롬프트 예시는 화면 placeholder에 제공된다.
 
@@ -627,7 +635,7 @@ LLM 판독 결과가 매우 높으면 벡터 점수가 낮아도 발송될 수 �
 
 현재 역할:
 
-1. 공통분석 모델1: Groq `llama-3.1-8b-instant`
+1. 공통분석 모델1: Groq `openai/gpt-oss-20b`
 2. 공통분석 모델2: Cloudflare `@cf/meta/llama-3.1-8b-instruct-fast`
 3. 공통분석 Turbo: OpenRouter `google/gemma-4-26b-a4b-it:free`
 4. 케이스 모델1: NVIDIA NIM `openai/gpt-oss-120b`, batch 5, 신규 작업 5초 우선권
@@ -1061,7 +1069,7 @@ MASTER_PRESS_WORKER_AI_ACCOUNT_ID 또는 WORKER_AI_ACCOUNT_ID
 현재 공통분석 기본 provider다.
 
 ```text
-llama-3.1-8b-instant
+openai/gpt-oss-20b
 ```
 
 환경변수:
@@ -1119,8 +1127,12 @@ GPT-5.4 mini는 케이스 모델2 보조 처리와 그림자 판정 역할을 �
 OPENAI_API_KEY
 MASTER_PRESS_OPENAI_BASE_URL
 MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
-MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT=2450000
+MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT=150
+MASTER_PRESS_OPENAI_SHADOW_DAILY_TOKEN_LIMIT=300000
+MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT=2200000
 ```
+
+그림자 판정의 일일 150건·30만 토큰 한도는 모델 선택 사용량과 동일하게 UTC 00:00(한국시간 09:00)에 초기화된다.
 
 ## 13. 안전장치와 영업중지 정책
 
@@ -1160,6 +1172,7 @@ HTTP 429만으로는 무료 사용량 소진을 확정하지 않는다. 병렬 w
 | GET | `/signup/kakao-status` | 카카오 메시지 동의 상태 확인 |
 | POST | `/signup/requests` | 구독 요청 저장 |
 | GET | `/case-proposals` | 케이스 신청 글 목록 |
+| POST | `/case-proposals/draft` | 자연어 요청을 검토 가능한 케이스 신청 양식으로 변환 |
 | POST | `/case-proposals` | 케이스 신청 글 등록 |
 | PUT | `/case-proposals/{id}` | 암호 기반 케이스 신청 글 수정 |
 | DELETE | `/case-proposals/{id}` | 암호 기반 케이스 신청 글 삭제 |
@@ -1226,7 +1239,7 @@ PoC/04-master-press/
 │   ├── magazine.py               # CaseON 에디션 발행, 이슈 묶음, 발행본 조회
 │   ├── matching.py               # 기관·케이스 텍스트 매칭
 │   ├── press_releases.py         # 보도자료 수집·Markdown·RAG 매칭
-│   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/OpenAI/NVIDIA 클라이언트와 판정 로직
+│   ├── scoring.py                # Ollama/Groq/OpenRouter/Cloudflare/OpenAI/NVIDIA/Upstage 클라이언트와 판정 로직
 │   ├── service.py                # 서비스 오케스트레이션과 worker tick
 │   ├── similarity.py             # 대시보드/신경망 공통 및 매거진 고정밀 기사 묶음
 │   ├── storage.py                # SQLite 스키마, 마이그레이션, CRUD, 대시보드 집계
@@ -1310,7 +1323,7 @@ MASTER_PRESS_WORKER_AI_KEY=...
 MASTER_PRESS_WORKER_AI_ACCOUNT_ID=...
 MASTER_PRESS_WORKER_AI_MODEL=@cf/google/gemma-4-26b-a4b-it
 MASTER_PRESS_GROQ_API_KEY=...
-MASTER_PRESS_GROQ_COMMON_MODEL=llama-3.1-8b-instant
+MASTER_PRESS_GROQ_COMMON_MODEL=openai/gpt-oss-20b
 MASTER_PRESS_OPENROUTER_API_MYKEY=...
 MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT=1000
 MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS=100
@@ -1318,6 +1331,14 @@ NVIDIA_API_KEY=...
 MASTER_PRESS_NVIDIA_CASE_MODEL=openai/gpt-oss-120b
 OPENAI_API_KEY=...
 MASTER_PRESS_OPENAI_SHADOW_MODEL=gpt-5.4-mini
+MASTER_PRESS_OPENAI_CASE_DRAFT_MODEL=gpt-5.4-mini
+MASTER_PRESS_OPENAI_SHADOW_DAILY_LIMIT=150
+MASTER_PRESS_OPENAI_SHADOW_DAILY_TOKEN_LIMIT=300000
+MASTER_PRESS_OPENAI_DAILY_TOKEN_SOFT_LIMIT=2200000
+UPSTAGE_API_KEY=...
+MASTER_PRESS_UPSTAGE_BASE_URL=https://api.upstage.ai/v1
+MASTER_PRESS_UPSTAGE_SOLAR_MODEL=solar-pro4
+MASTER_PRESS_UPSTAGE_MAX_TOKENS=65536
 SUPABASE2_URL=...
 SUPABASE2_SERVICE_ROLE_KEY=...
 ```

@@ -217,6 +217,7 @@ def signup_bootstrap(admin: bool = False) -> dict:
         organizations.append({
             "id": organization["id"],
             "name": organization["name"],
+            "case_draft_model": organization.get("case_draft_model") or service.case_draft_models()[0]["model"],
             "cases": [
                 {
                     "id": case["id"],
@@ -246,6 +247,7 @@ def fast_recipient_statuses(service) -> list[dict]:
 def admin_bootstrap() -> dict:
     global _ADMIN_BOOTSTRAP_CACHE
     service = get_service()
+    service.store.ensure_case_draft_schema()
     if _ADMIN_BOOTSTRAP_CACHE and _db_quick_lock_probe(str(service.settings.database_path)):
         cached = _cached_admin_bootstrap("database_locked_probe")
         if cached:
@@ -254,6 +256,8 @@ def admin_bootstrap() -> dict:
     try:
         cases = service.store.list_cases()
         organizations = service.store.list_organizations()
+        for organization in organizations:
+            organization["case_draft"] = service.case_draft_organization_status(organization)
         feedback_counts = service.store.analysis_feedback_counts_by_case(30)
         for case in cases:
             case["recipient_ids"] = service.store.case_recipient_ids(case["id"])
@@ -263,6 +267,7 @@ def admin_bootstrap() -> dict:
         payload = {
             "readiness": service.settings.readiness(),
             "settings": {
+                "case_draft_models": service.case_draft_models(),
                 "common_llm_model": common_model,
                 "common_llm_models": service.configured_common_reserve_models(common_model),
                 "llm_model": common_model,
@@ -416,6 +421,19 @@ def dispatch(
 
     if path == "/case-proposals" and method == "GET":
         return {"items": service.store.list_case_proposals(admin=admin_authenticated)}
+
+    if path == "/case-proposals/draft" and method == "POST":
+        try:
+            return {"draft": service.generate_case_proposal_draft(
+                str(payload.get("intent") or ""), str(payload.get("organization_id") or ""),
+            )}
+        except ValueError as error:
+            raise MasterPressError(str(error)) from error
+        except Exception as error:
+            message = str(error)
+            if "api_key_missing" in message:
+                message = "선택한 신청서 생성 LLM의 API 키가 설정되지 않아 자동 작성할 수 없습니다."
+            raise MasterPressError(message or "AI 신청 양식 생성에 실패했습니다.", 503) from error
 
     if path == "/case-proposals" and method == "POST":
         try:
@@ -954,7 +972,7 @@ def dispatch(
             press_threshold = max(0.0, min(100.0, float(payload.get("press_release_match_threshold", 65))))
             similar_threshold = max(0.0, min(100.0, float(payload.get("similar_article_threshold", 65))))
             shadow_enabled = bool(payload.get("openai_shadow_enabled", True))
-            shadow_daily_limit = max(1, min(1000, int(payload.get("openai_shadow_daily_limit", service.shadow_daily_limit()))))
+            shadow_daily_limit = max(1, min(150, int(payload.get("openai_shadow_daily_limit", service.shadow_daily_limit()))))
             magazine_threshold = max(70.0, min(99.0, float(payload.get("magazine_similarity_threshold", 90))))
         except (TypeError, ValueError):
             raise MasterPressError("분석 기준 값이 올바르지 않습니다.")
@@ -973,6 +991,18 @@ def dispatch(
             "magazine_similarity_threshold": magazine_threshold, "openai_shadow_enabled": shadow_enabled,
             "openai_shadow_daily_limit": shadow_daily_limit, "openai_shadow": service.shadow_status(),
         }
+
+    if path == "/admin/settings/shadow" and method == "PUT":
+        _require_admin(admin_authenticated)
+        try:
+            enabled = bool(payload.get("enabled", True))
+            daily_limit = max(1, min(150, int(payload.get("daily_limit", service.shadow_daily_limit()))))
+        except (TypeError, ValueError):
+            raise MasterPressError("그림자 판정 설정 값이 올바르지 않습니다.")
+        service.store.set_setting("openai_shadow_enabled", "1" if enabled else "0")
+        service.store.set_setting("openai_shadow_daily_limit", str(daily_limit))
+        _invalidate_admin_bootstrap_cache()
+        return {"enabled": enabled, "daily_limit": daily_limit, "openai_shadow": service.shadow_status()}
 
     if path == "/admin/settings/press-release-match" and method == "PUT":
         _require_admin(admin_authenticated)

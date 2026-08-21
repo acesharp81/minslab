@@ -28,6 +28,7 @@ PoC/04-master-press/data/
 # Generated PoC data artifacts
 PoC/**/*.csv
 PoC/**/*.pkl
+PoC/06-AIWorks/vendor/kordoc-runtime/node_modules/
 
 # OS/editor noise
 .DS_Store

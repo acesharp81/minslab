@@ -13,13 +13,14 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "filename", "mediaType", "bytes", "sha256", "summary", "createdAt"],
+        "required": ["id", "filename", "mediaType", "bytes", "sha256", "role", "summary", "createdAt"],
         "properties": {
           "id": {"type": "string"},
           "filename": {"type": "string"},
           "mediaType": {"type": "string"},
           "bytes": {"type": "integer", "minimum": 1},
           "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "role": {"enum": ["template-source", "guide", "sample-input", "sample-output", "data-source", "data-schema"]},
           "summary": {"type": "object"},
           "createdAt": {"type": "string", "format": "date-time"}
         },

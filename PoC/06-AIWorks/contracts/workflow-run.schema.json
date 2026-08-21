@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/workflow-run.schema.json",
+  "title": "AIWorks Persistent Workflow Run",
+  "type": "object",
+  "required": [
+    "id",
+    "executionId",
+    "planId",
+    "status",
+    "input",
+    "output",
+    "executionAttempts",
+    "checkpoint",
+    "steps"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^wfrun_[a-f0-9]+$"
+    },
+    "executionId": {
+      "type": "string"
+    },
+    "planId": {
+      "type": "string"
+    },
+    "projectId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "currentStepKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resumedFromRunId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resumeStepKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "input": {
+      "type": "object"
+    },
+    "output": {
+      "type": "object"
+    },
+    "checkpoint": {
+      "type": "object"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "stepKey",
+          "label",
+          "status",
+          "attempt",
+          "input",
+          "output",
+          "checkpoint"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stepKey": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "input": {
+            "type": "object"
+          },
+          "output": {
+            "type": "object"
+          },
+          "checkpoint": {
+            "type": "object"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

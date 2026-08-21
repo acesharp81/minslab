@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>AIWorks · AI 업무 작업공간</title>
-  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260811-v19">
+  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260821-v53">
 </head>
 <body>
   <div class="app-shell">
@@ -16,7 +16,7 @@
         <span class="preview-chip">PREVIEW</span>
       </a>
       <nav class="top-menu" aria-label="주 메뉴">
-        <button>파일</button><button>편집</button><button>실행</button><button>보기</button>
+        <button type="button" data-top-view="builder">MCP 만들기</button><button type="button" data-top-view="store">Store</button><button type="button" data-top-view="settings">설정</button>
       </nav>
       <button class="command-bar" id="commandButton"><span>⌕</span><span>무엇을 만들까요?</span><kbd>⌘ K</kbd></button>
       <div class="title-actions"><span class="local-badge"><i></i> 로컬 샌드박스</span><button class="icon-button" id="notificationsButton" aria-label="알림">♢</button><button class="avatar">민</button></div>
@@ -25,24 +25,40 @@
     <section class="welcome-screen" id="welcomeScreen" aria-labelledby="welcomeTitle">
       <div class="welcome-content">
         <span class="welcome-orb">✦</span>
-        <h1 id="welcomeTitle">무엇을 도와드릴까요?</h1>
-        <p>문서를 첨부하고 원하는 결과를 말해 주세요. 오케스트레이터가 업무 MCP와 편집기 MCP를 함께 불러옵니다.</p>
-        <form class="welcome-composer" id="welcomeForm">
-          <textarea id="welcomePrompt" rows="3" placeholder="예: 이 사업계획서를 기획처 예산자료 형식으로 만들어줘"></textarea>
-          <div class="welcome-file" id="welcomeFileChip" hidden><span id="welcomeFileName"></span><button type="button" id="welcomeFileRemove" aria-label="첨부 제거">×</button></div>
-          <div class="welcome-actions">
-            <button type="button" id="welcomeAttach">＋ 파일 첨부</button>
-            <span>HWPX · MD · TXT · PY · JS · TS · JSON</span>
-            <button class="welcome-send" aria-label="작업 시작">↑</button>
+        <section class="project-gate" id="projectGate">
+          <div class="project-gate-head"><span>PROJECT WORKSPACE</span><h1 id="welcomeTitle">프로젝트를 선택해 시작하세요</h1><p>모든 대화, Markdown 원본, 메타정보와 파생 파일은 선택한 프로젝트에 함께 저장됩니다.</p></div>
+          <div class="project-entry-grid">
+            <form class="project-create-card" id="projectCreateForm">
+              <span class="project-entry-icon">＋</span><div><strong>새 프로젝트 만들기</strong><p>새 업무의 문서와 공통 메타정보를 독립적으로 관리합니다.</p></div>
+              <label><span>프로젝트 이름</span><input id="projectNameInput" maxlength="120" placeholder="예: 2026년 인공지능 예산 분석" required></label>
+              <button class="primary" type="submit">프로젝트 생성 후 시작</button>
+              <input id="projectBackupFile" type="file" accept=".json,.aiworks.json,application/json" hidden>
+              <button class="project-import-button" id="importProjectBackup" type="button">AIWorks 백업 파일 가져오기</button>
+            </form>
+            <section class="project-existing-card"><div class="project-existing-head"><div><strong>기존 프로젝트 사용</strong><p>기존 MD·메타정보·파생 문서를 즉시 복원합니다.</p></div><button id="refreshProjects" type="button" title="프로젝트 새로고침">↻</button></div><div class="project-list" id="projectList"><div class="project-list-loading">프로젝트를 불러오는 중입니다.</div></div></section>
           </div>
-          <input id="welcomeFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.md,.txt,.py,.js,.ts,.json" hidden>
-        </form>
-        <div class="welcome-suggestions">
-          <button data-welcome-prompt="기획처 예산자료 형식으로 만들어줘">기획처 예산자료로 변환</button>
-          <button data-welcome-prompt="핵심 내용을 Markdown 보고서로 정리해줘">Markdown 보고서 작성</button>
-          <button data-welcome-prompt="이 코드를 검토하고 개선안을 적용해줘">코드 검토 및 개선</button>
-        </div>
-        <button class="welcome-demo" id="enterDemo" type="button">샘플 작업공간 둘러보기 →</button>
+        </section>
+        <section class="welcome-task" id="welcomeTask" hidden>
+          <button class="active-project-pill" id="changeProject" type="button"><span>현재 프로젝트</span><strong id="welcomeProjectName">-</strong><small>변경 ›</small></button>
+          <h1>무엇을 도와드릴까요?</h1>
+          <p>파일을 첨부하거나 대화만으로 시작하세요. 요청할 때마다 필요한 MCP와 빠른 Solar 모델을 조합합니다.</p>
+          <form class="welcome-composer" id="welcomeForm">
+            <textarea id="welcomePrompt" rows="3" placeholder="예: 우리부 예산 현황을 확인하고 주요 내용을 요약해줘"></textarea>
+            <div class="welcome-file" id="welcomeFileChip" hidden><span id="welcomeFileName"></span><button type="button" id="welcomeFileRemove" aria-label="첨부 제거">×</button></div>
+            <div class="welcome-actions">
+              <button type="button" id="welcomeAttach">＋ 파일 첨부</button>
+              <span>HWP · HWPX · PDF · MD · TXT · 코드</span>
+              <button class="welcome-send" aria-label="작업 시작">↑</button>
+            </div>
+            <input id="welcomeFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.pdf,.docx,.xlsx,.md,.txt,.py,.js,.ts,.json" hidden>
+          </form>
+          <div class="welcome-suggestions">
+            <button data-welcome-prompt="우리부 예산 현황을 확인하고 요약해줘">예산 현황 확인</button>
+            <button data-welcome-prompt="분석 내용에 시사점을 추가해서 보고서로 작성해줘">파생 보고서 작성</button>
+            <button data-welcome-prompt="첨부 문서를 기준으로 올해 결산 보고서 양식으로 작성해줘">첨부 문서로 결산 보고서</button>
+          </div>
+          <button class="welcome-demo" id="enterDemo" type="button">선택한 프로젝트 작업공간 열기 →</button>
+        </section>
       </div>
     </section>
 
@@ -63,8 +79,10 @@
       </aside>
 
       <main class="main-area">
-        <div class="editor-tabs">
-          <button class="active"><span class="file-icon">한</span><span id="activeFileName">예산요청서_초안.hwpx</span><i>●</i></button>
+        <div class="editor-tabs" id="editorTabs">
+          <div class="project-workbench-tabs" id="projectWorkbenchTabs">
+            <button class="active"><span class="file-icon">한</span><span id="activeFileName">예산요청서_초안.hwpx</span><i>●</i></button>
+          </div>
           <div class="editor-tools"><button id="splitButton" title="분할 보기">◫</button><button title="더보기">•••</button></div>
         </div>
         <section class="view active" id="editorView">
@@ -72,7 +90,7 @@
           <div class="hwp-menu-bar" id="hwpMenuBar"><button>파일</button><button>편집</button><button>보기</button><button>입력</button><button>서식</button><button>쪽</button><button>표</button><button>도구</button></div>
           <div class="document-toolbar">
             <div class="tool-group"><button class="selectlike" id="formatParagraph">본문</button><button id="formatBold" title="굵게"><b>B</b></button><button id="formatItalic" title="기울임"><i>I</i></button><button id="formatAlign" title="왼쪽 정렬">≡</button><button id="formatList" title="글머리표">☷</button></div>
-            <div class="document-state"><span id="documentSaveState">직접 편집 가능 · 저장됨</span><button id="undoDirectEdit">편집 되돌리기</button><button id="saveDocument">저장</button><button id="importHwpx">파일 열기</button><input id="hwpxFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.md,.txt,.py,.js,.ts,.json,application/hwp+zip" hidden><button id="previewToggle">미리보기</button><button class="primary small" id="exportButton">내보내기</button></div>
+            <div class="document-state"><span id="documentSaveState">직접 편집 가능 · 저장됨</span><button id="undoDirectEdit">편집 되돌리기</button><button id="saveDocument">저장</button><button class="sync-action" id="syncMdToHwpx" hidden>MD → HWPX 반영</button><button class="sync-action" id="syncHwpxToMd" hidden>HWPX → MD 반영</button><button class="sync-action" id="downloadProjectHwpx" hidden>적용 HWPX 다운로드</button><button id="importHwpx">파일 열기</button><input id="hwpxFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.docx,.xlsx,.md,.txt,.py,.js,.ts,.json,application/hwp+zip" hidden><button id="previewToggle">미리보기</button><button class="primary small" id="exportButton">내보내기</button></div>
           </div>
           <div class="document-stage">
             <article class="paper" id="documentPaper" aria-label="직접 편집 가능한 문서">
@@ -126,8 +144,12 @@
       </main>
 
       <aside class="assistant-panel">
-        <div class="assistant-head"><div><span class="ai-orb">✦</span><div><strong>Orchestrator</strong><small id="orchestratorState">문서 컨텍스트 사용 중</small></div></div><button id="clearChat">↻</button></div>
-        <div class="context-strip"><span id="contextFile">⌁ 예산요청서_초안.hwpx</span><span id="contextSelection">선택 영역 없음</span></div>
+        <div class="assistant-head"><div><span class="ai-orb">✦</span><div><strong>AI 업무 오케스트레이터</strong><small id="orchestratorState">프로젝트 문맥 준비 중</small></div></div><button id="clearChat" title="대화 문맥 초기화">↻</button></div>
+        <div class="context-strip"><span class="project-context" id="contextProject">◫ 프로젝트 미선택</span><span id="contextFile">⌁ 문서 없음</span><span id="contextSelection">선택 영역 없음</span></div>
+        <section class="orchestration-dock" id="orchestrationDock" aria-live="polite">
+          <div class="orchestration-current"><i id="orchestrationPulse"></i><div><small>현재 작업</small><strong id="orchestrationPhase">프로젝트 작업 준비</strong></div><span id="orchestrationProgress">대기</span></div>
+          <div class="orchestration-context"><span><small>모델 경로</small><b id="orchestrationModel">Solar 자동 선택</b></span><span><small>프로젝트 문맥</small><b id="orchestrationResources">MD 0 · 메타 0 · 파생 0</b></span></div>
+        </section>
         <div class="chat" id="chat">
           <div class="message assistant">
             <span class="mini-orb">✦</span>
@@ -142,10 +164,11 @@
         </div>
         <form class="composer" id="chatForm">
           <textarea id="chatInput" rows="3" placeholder="문서에 대해 요청하세요..."></textarea>
-          <div><button type="button" title="파일 첨부">＋</button><button type="button" class="model-select">OpenRouter 무료 · 의도 기반 자동 선택</button><button class="send-button" aria-label="전송">↑</button></div>
+          <div><button type="button" title="파일 첨부">＋</button><button type="button" class="model-select">Solar Pro 3 · 빠른 기본 모델</button><button class="send-button" aria-label="전송">↑</button></div>
           <small>외부 전송은 실행 전에 반드시 승인받습니다.</small>
         </form>
       </aside>
+      <div class="workspace-resizer" id="workspaceResizer" role="separator" aria-label="대화창과 편집창 너비 조절" aria-orientation="vertical" tabindex="0"><i></i><span>드래그하여 비율 조절</span></div>
     </div>
 
     <footer class="statusbar">
@@ -167,7 +190,28 @@
     </form>
   </dialog>
 
+  <dialog id="templateMappingDialog">
+    <form method="dialog" class="approval-card template-mapping-card">
+      <header><span class="shield">⌘</span><div><small>TEMPLATE SCHEMA</small><h2>양식 슬롯 시각 보정</h2></div><button value="cancel" aria-label="닫기">×</button></header>
+      <p class="template-mapping-help" id="templateMappingHelp">HWPX의 실제 문단을 제목·본문 슬롯과 목록 서식 원형으로 지정합니다.</p>
+      <div class="template-mapping-grid">
+        <label class="field"><span>제목 슬롯 · 필수</span><select id="mappingTitle"></select></label>
+        <label class="field"><span>본문 시작 슬롯 · 필수</span><select id="mappingBody"></select></label>
+        <label class="field"><span>○ 소제목 원형 · 선택</span><select id="mappingMain"></select></label>
+        <label class="field"><span>- 세부내용 원형 · 선택</span><select id="mappingSub"></select></label>
+        <label class="field"><span>※ 참조내용 원형 · 선택</span><select id="mappingNote"></select></label>
+        <label class="field"><span>담당 부서 슬롯 · 선택</span><select id="mappingDepartment"></select></label>
+        <label class="field"><span>작성자 슬롯 · 선택</span><select id="mappingAuthor"></select></label>
+        <label class="field"><span>문서번호 슬롯 · 선택</span><select id="mappingDocumentNumber"></select></label>
+        <label class="field"><span>결재란 문단 · 선택</span><select id="mappingApproval"></select></label>
+      </div>
+      <div class="template-mapping-preview" id="templateMappingPreview">문단을 선택하면 현재 텍스트와 위치를 확인할 수 있습니다.</div>
+      <footer><button value="cancel">취소</button><button type="button" class="primary" id="applyTemplateMapping">보정·실검증 후 반영</button></footer>
+    </form>
+  </dialog>
+
+
   <div class="toast" id="toast" role="status"></div>
-  <script src="/poc/aiworks/app.js?v=20260811-v20"></script>
+  <script src="/poc/aiworks/app.js?v=20260821-v62"></script>
 </body>
 </html>

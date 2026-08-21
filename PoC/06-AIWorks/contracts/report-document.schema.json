@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/report-document.schema.json",
+  "title": "AIWorks Report Document",
+  "type": "object",
+  "required": ["contractVersion", "title", "styleProfile", "blocks", "factRefs", "source", "normalizedMarkdown", "validation"],
+  "properties": {
+    "contractVersion": {"const": "1.0"},
+    "title": {"type": "string", "minLength": 1},
+    "styleProfile": {
+      "type": "object",
+      "required": ["id", "name", "listMarker", "sentenceStyle"],
+      "properties": {
+        "id": {"enum": ["standard", "central-government-outline"]},
+        "name": {"type": "string"},
+        "listMarker": {"type": "string"},
+        "sentenceStyle": {"enum": ["preserve", "nominal-outline"]}
+      },
+      "additionalProperties": false
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"enum": ["heading", "paragraph", "list_item", "table", "note"]},
+          "text": {"type": "string"},
+          "level": {"type": "integer", "minimum": 1, "maximum": 6},
+          "rows": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "factRefs": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "factSnapshot": {
+      "type": "object",
+      "required": ["projectId", "asOf", "valueIds", "facts"],
+      "properties": {
+        "projectId": {"type": ["string", "null"]},
+        "asOf": {"type": ["string", "null"]},
+        "valueIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "facts": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "template": {"type": "object"},
+    "presentation": {
+      "type": "object",
+      "required": ["rendererProfile", "rendererOptions", "listStyle", "markerOwnership"],
+      "properties": {
+        "rendererProfile": {"type": "string"},
+        "rendererOptions": {
+          "type": "object",
+          "properties": {"preset": {"type": "string"}},
+          "additionalProperties": true
+        },
+        "listStyle": {"type": "object"},
+        "markerOwnership": {"const": "renderer"}
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["format", "content"],
+      "properties": {"format": {"const": "markdown"}, "content": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "normalizedMarkdown": {"type": "string", "minLength": 1},
+    "validation": {
+      "type": "object",
+      "required": ["passed", "errors", "blocks"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "errors": {"type": "array", "items": {"type": "string"}},
+        "blocks": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

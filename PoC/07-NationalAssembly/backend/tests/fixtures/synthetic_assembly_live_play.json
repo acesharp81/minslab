@@ -1,0 +1,14 @@
+{
+  "xcode": "25",
+  "xcgcd": "SIM-LAW-001",
+  "qtime": "2099-01-02 03:04:06",
+  "xname": "법사위",
+  "xfull": "법제사법위원회",
+  "xsubj": "합성 법사위 회의",
+  "xdesc": "생중계 중",
+  "xstat": "1",
+  "xsami": "wss://example.invalid:8091/aistt/law",
+  "xqvod": "0",
+  "qlink": "",
+  "xhls": [{"default":"https://example.invalid/law.m3u8","480p":"https://example.invalid/law-480.m3u8"}]
+}

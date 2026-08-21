@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/artifact-relation.schema.json",
+  "title": "AIWorks Artifact Version Relation",
+  "type": "object",
+  "required": [
+    "id",
+    "projectId",
+    "sourceVersionId",
+    "targetVersionId",
+    "relation"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^gartrel_[a-f0-9]+$"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "sourceVersionId": {
+      "type": "string",
+      "pattern": "^gartver_[a-f0-9]+$"
+    },
+    "targetVersionId": {
+      "type": "string",
+      "pattern": "^gartver_[a-f0-9]+$"
+    },
+    "relation": {
+      "enum": [
+        "derived_from",
+        "references",
+        "summarizes",
+        "transforms",
+        "validates",
+        "supersedes",
+        "conflicts_with"
+      ]
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/capability-binding.schema.json",
+  "title": "AIWorks Dynamic Capability Binding",
+  "type": "object",
+  "required": ["capabilityId", "packageId", "version", "packageRef", "mcpType", "executionAdapter", "permissions", "score", "signatureVerified"],
+  "properties": {
+    "capabilityId": {"type": "string", "minLength": 1},
+    "packageId": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"},
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "packageRef": {"type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*@\\d+\\.\\d+\\.\\d+$"},
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+    "mcpType": {"enum": ["template", "process", "data", "tool", "external"]},
+    "executionAdapter": {"enum": ["prompt", "composite", "retrieval", "external-mcp"]},
+    "permissions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "triggerExamples": {"type": "array", "items": {"type": "string"}},
+    "score": {"type": "integer", "minimum": 80},
+    "matchedBy": {"type": "array", "items": {"type": "string"}},
+    "rankScore": {"type": "number", "minimum": 0, "maximum": 100},
+    "ranking": {
+      "type": "object",
+      "properties": {
+        "components": {"type": "object", "additionalProperties": {"type": "number"}},
+        "weights": {"type": "object", "additionalProperties": {"type": "number"}}
+      },
+      "required": ["components", "weights"],
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "quality": {"type": "number"}, "successRate": {"type": "number"},
+        "latencyMs": {"type": "number"}, "costPerRun": {"type": "number"},
+        "sampleCount": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "guideVersion": {"type": "string"},
+    "signatureVerified": {"const": true},
+    "indexedAt": {"type": "string"}
+  },
+  "additionalProperties": false
+}

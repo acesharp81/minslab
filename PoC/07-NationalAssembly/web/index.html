@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="국무회의와 국회의 실시간 국정 흐름을 주제·소관별로 보는 PoC" />
+    <title>지금 우리 국회에선</title>
+    <link rel="stylesheet" href="assets/styles.css?v=20260813-16" />
+    <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20260813-4" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="지금 우리 국회에선 홈">
+        <span class="brand-mark">NOW</span>
+        <span><b>지금 우리 국회에선</b><small>국정 흐름 워크스페이스</small></span>
+      </a>
+      <nav class="topnav" aria-label="국정 정보 영역" role="tablist">
+        <a id="topTabLive" href="#live" role="tab" aria-selected="true" aria-controls="live" data-workspace-tab="live"><i aria-hidden="true"></i>LIVE</a>
+        <a id="topTabCabinet" href="#cabinet" role="tab" aria-selected="false" aria-controls="presidential" data-workspace-tab="cabinet">국무회의</a>
+        <a id="topTabAssembly" href="#assembly" role="tab" aria-selected="false" aria-controls="committees" data-workspace-tab="assembly">국회</a>
+      </nav>
+      <label class="scope-select">
+        <span>관심 분야</span>
+        <select id="departmentScope">
+          <option value="">전체 국정 흐름</option>
+          <option value="행정안전위원회">행정안전 분야</option>
+          <option value="예산결산특별위원회">예산·재정 분야</option>
+          <option value="법제사법위원회">법무·사법 분야</option>
+        </select>
+      </label>
+    </header>
+
+    <main>
+      <section class="live-section" id="live" role="tabpanel" aria-labelledby="topTabLive" data-workspace-panel="live">
+        <section class="broadcast-hub" aria-labelledby="broadcastHubTitle">
+          <section class="follow-up-board" aria-labelledby="followUpTitle">
+            <header>
+              <div><span>아직 끝나지 않은 일</span><strong id="followUpTitle">방송에서 남은 후속 과제</strong></div>
+              <div><b id="followUpCount">0건</b><select id="followUpMinistry" aria-label="후속 과제 담당 부서 필터"><option value="">전체 부서</option></select></div>
+            </header>
+            <div class="follow-up-list" id="followUpTasks" aria-live="polite">
+              <p>저장된 final 자막에서 명시된 미해결 과제를 확인하는 중입니다.</p>
+            </div>
+          </section>
+
+          <header><div><span>현재·예정·지난 방송</span><h3 id="broadcastHubTitle">방송 기록</h3></div><small>방송을 선택하면 저장된 전체 맥락이 펼쳐집니다</small></header>
+          <div class="broadcast-rows" id="liveBroadcastRows"><p>공식 방송 상태와 오늘 일정을 확인하는 중입니다.</p></div>
+          <div class="live-expanded" id="liveExpanded" hidden>
+            <header><strong id="liveExpandedTitle">방송 분석</strong><button id="liveExpandedClose" type="button">접기 ×</button></header>
+            <div id="liveExpandedStage"></div>
+          </div>
+        </section>
+
+        <div class="official-rotation-title"><span>OFFICIAL BRIEF · 5초 자동 전환</span><strong>지금 확인할 공식 정보</strong><small>생방송이 없을 때도 최근 확정 내용을 이어서 보여줍니다</small></div>
+
+        <div class="live-grid">
+          <article class="live-channel executive-live">
+            <header><div><span class="channel-kicker">EXECUTIVE</span><h3>정부·국무회의</h3></div><span class="off-air" id="executiveLiveBadge">OFFICIAL</span></header>
+            <div class="broadcast-stage" id="executiveMagazine">
+              <div class="signal-mark"><span></span><span></span><span></span></div>
+              <strong>현재 진행 중인 국무회의가 없습니다</strong>
+              <p>방송 시작 시 실시간 자막이 주제·소관 부처별로 분류됩니다.</p>
+            </div>
+            <div class="fallback-feed" id="executiveFallback">
+              <div class="fallback-head"><span>최근 공식 정보</span><b>OFFICIAL</b></div>
+              <div class="feed-empty"><strong>청와대 공식 자료 연결 준비 중</strong><span>확인된 브리핑과 발언문만 표시합니다.</span></div>
+            </div>
+          </article>
+
+          <article class="live-channel assembly-live">
+            <header><div><span class="channel-kicker">LEGISLATURE</span><h3>국회·위원회</h3></div><span class="off-air" id="assemblyLiveBadge">OFFICIAL</span></header>
+            <div class="broadcast-stage" id="assemblyMagazine">
+              <div class="signal-mark"><span></span><span></span><span></span></div>
+              <strong>현재 확인된 생중계가 없습니다</strong>
+              <p>방송 시작 시 영상과 자막을 함께 보며 질문·답변·후속 과제를 주제별로 묶습니다.</p>
+            </div>
+            <div class="fallback-feed" id="meetingState">
+              <div class="fallback-head"><span>최근 공식 정보</span><b>OFFICIAL</b></div>
+              <div class="feed-empty"><strong>최근 위원회 정보를 불러오는 중</strong><span>회의록 기준으로 대체 표시합니다.</span></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="live-classification" aria-label="생방송 분류 결과 영역">
+          <span>실시간 분류</span>
+          <div><b>질문 ↔ 답변</b><em>같은 주제의 질의와 답변을 함께 묶습니다</em></div>
+          <i>→</i>
+          <div><b>미해결 과제</b><em>회의 안에서 해소되지 않은 약속과 요구만 남깁니다</em></div>
+          <i>→</i>
+          <div><b>담당 부서</b><em>명시되거나 검토된 소관 부서를 연결합니다</em></div>
+        </div>
+      </section>
+
+      <section class="visual-section presidential-section" id="presidential" role="tabpanel" aria-labelledby="topTabCabinet" data-workspace-panel="cabinet" hidden>
+        <header class="section-title">
+          <div><p class="eyebrow">POLICY BY TOPIC &amp; MINISTRY</p><h2 id="presidentialTitle">정부 정책 브리핑</h2><p class="section-description">공식 안건과 발언을 주제·담당 부처 기준으로 빠르게 좁혀봅니다.</p></div>
+          <div class="view-tabs" aria-label="청와대 자료 보기 방식"><button class="active" type="button">주제별</button><button type="button">소관별</button></div>
+        </header>
+        <form class="executive-filter-bar" id="executiveFilterForm">
+          <label><span>공식 소관 부처</span><select id="executiveMinistry"><option value="">전체 부처</option></select></label>
+          <label class="executive-query"><span>공식 안건 검색</span><input id="executiveQuery" type="search" maxlength="80" placeholder="안건명·공식 내용 검색" /></label>
+          <button type="submit">적용</button><button type="reset">초기화</button>
+          <output id="executiveFilterMeta">최근 공식본 전체</output>
+        </form>
+        <div class="policy-visual">
+          <aside class="policy-summary">
+            <span class="official-stamp">OFFICIAL SOURCE</span>
+            <strong>정책 방향을<br />주제에서 부처까지</strong>
+            <p>브리핑·모두발언·공식 문서를 하나의 정책 흐름으로 정리합니다.</p>
+            <dl><div><dt>최근 공식본</dt><dd id="executiveLatestMeeting">불러오는 중</dd></div><div><dt>공식 안건</dt><dd id="executiveAgendaMetric">-</dd></div><div><dt>대통령 메시지</dt><dd id="executiveMessageMetric">-</dd></div></dl>
+          </aside>
+          <div class="policy-stream" id="presidentialState">
+            <div class="stream-columns"><span>정책 주제</span><span>핵심 발언</span><span>소관·관련 부처</span><span>국회 진행</span></div>
+            <div class="policy-empty"><span class="empty-orbit"></span><div><strong>공식 자료 연결 후 정책 흐름이 표시됩니다</strong><p>검증되지 않은 발언이나 주제는 예시로 만들지 않습니다.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="visual-section cross-flow-section" id="crossFlow" data-workspace-panel="cabinet" hidden>
+        <header class="section-title">
+          <div><p class="eyebrow">EXECUTIVE ↔ LEGISLATURE</p><h2 id="crossFlowTitle">정부와 국회, 같은 주제에서 보기</h2><p class="section-description">양쪽의 공식 근거가 만나는 정책 흐름을 함께 확인합니다.</p></div>
+          <p class="cross-flow-meta" id="crossFlowMeta">양쪽 공식 근거의 공통 정책 주제를 대조하는 중입니다.</p>
+        </header>
+        <div class="cross-flow-list" id="crossInstitutionFlow" aria-live="polite">
+          <div class="loading-card">행정부와 국회의 정책 흐름을 연결하는 중입니다.</div>
+        </div>
+      </section>
+
+      <section class="visual-section committee-section" id="committees" role="tabpanel" aria-labelledby="topTabAssembly" data-workspace-panel="assembly" hidden>
+        <header class="section-title">
+          <div><p class="eyebrow">COMMITTEE FLOW</p><h2 id="committeeTitle">위원회 논의와 의안 결과</h2><p class="section-description">행안위·예결위·법사위의 회차, 정책 신호, 의안 처리 결과를 연결합니다.</p></div>
+          <div class="metric-line"><span>회의 <b id="meetingMetric">-</b></span><span>회의록 <b id="minuteMetric">-</b></span><span>의안 <b id="billMetric">-</b></span></div>
+        </header>
+        <div class="committee-scope"><span>대상 위원회</span><b>행안위</b><b>예결위</b><b>법사위</b><em>위원회 → 의안 → 본회의 표결</em></div>
+        <section class="policy-flow-overview" aria-labelledby="policyFlowTitle">
+          <div class="policy-flow-head"><div><span>POLICY SIGNALS</span><h3 id="policyFlowTitle">위원회 통합 정책 흐름</h3></div><p id="policyFlowMeta">공식 발언의 정책 신호를 집계하는 중입니다.</p></div>
+          <div id="committeePolicyFlow" aria-live="polite"><div class="loading-card">정책 흐름을 불러오는 중입니다.</div></div>
+        </section>
+        <div class="committee-grid" id="committeeMeetingList" aria-live="polite"><div class="loading-card">공식 회의 데이터를 불러오는 중입니다.</div></div>
+
+        <div class="bill-subsection" id="bills">
+          <div class="subsection-title"><div><span>LEGISLATION & VOTE</span><h3>의안과 표결 흐름</h3></div><p>행을 선택하면 처리 요약과 공식 표결을 확인할 수 있습니다.</p></div>
+          <div id="billExplorer" aria-live="polite"><div class="loading-card">공식 의안을 불러오는 중입니다.</div></div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="transcript-dialog" id="officialTranscriptDialog" aria-labelledby="officialTranscriptTitle">
+      <div class="transcript-dialog-head">
+        <div><span id="officialTranscriptStage">OFFICIAL SOURCE</span><h2 id="officialTranscriptTitle">공식 회의록</h2><p id="officialTranscriptMeta"></p></div>
+        <button type="button" id="officialTranscriptClose" aria-label="공식 회의록 닫기">×</button>
+      </div>
+      <div class="transcript-insights" id="officialTranscriptInsights"></div>
+      <div class="transcript-dialog-body" id="officialTranscriptBody"></div>
+      <div class="transcript-dialog-foot"><a id="officialTranscriptSource" target="_blank" rel="noopener noreferrer">국회 회의록 원문 ↗</a></div>
+    </dialog>
+
+    <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
+    <script src="assets/app.js?v=20260813-20" defer></script>
+    <script src="assets/dashboard.js?v=20260813-6" defer></script>
+  </body>
+</html>
