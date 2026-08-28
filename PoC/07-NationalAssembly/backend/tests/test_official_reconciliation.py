@@ -1,0 +1,110 @@
+from __future__ import annotations
+
+import unittest
+import uuid
+
+from app.services.official_reconciliation import (
+    align_live_segments,
+    apply_official_edits,
+    inline_diff,
+    speaker_reconciliation_stats,
+)
+
+
+class OfficialReconciliationTests(unittest.TestCase):
+    def test_alignment_uses_official_speaker_without_llm(self):
+        revision_id = uuid.uuid4()
+        matches = align_live_segments(
+            [{
+                "revision_id": revision_id,
+                "segment_id": "live-1",
+                "speaker_label": "0",
+                "text": "정부는 재난 피해 복구를 위한 예산을 신속히 편성하겠습니다",
+            }],
+            [{
+                "utterance_id": uuid.uuid4(),
+                "sequence_number": 3,
+                "speaker_name": "행정안전부장관",
+                "speaker_role": "국무위원",
+                "text": "정부는 재난 피해 복구를 위한 예산을 신속히 편성하겠습니다.",
+            }],
+        )
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["official_speaker_name"], "행정안전부장관")
+        self.assertGreaterEqual(matches[0]["confidence"], 0.9)
+
+    def test_speaker_stats_detect_split_and_merge_without_history_ui(self):
+        stats = speaker_reconciliation_stats([
+            {"source_speaker_label": "0", "official_speaker_name": "김 의원"},
+            {"source_speaker_label": "0", "official_speaker_name": "박 장관"},
+            {"source_speaker_label": "1", "official_speaker_name": "박 장관"},
+        ])
+        self.assertEqual(stats["split_source_labels"], 1)
+        self.assertEqual(stats["merged_source_labels"], 1)
+
+    def test_inline_diff_marks_changed_and_deleted_text(self):
+        spans = inline_diff("행안부가 검토한다", "행안부와 경찰청이 추진한다")
+        kinds = {item["kind"] for item in spans}
+        self.assertIn("changed", kinds)
+        self.assertIn("deleted", kinds)
+
+    def test_official_edits_are_composed_without_overwriting_base(self):
+        base = {
+            "headline": "잠정 제목", "summary": "잠정 요약",
+            "topics": [{"id": "topic-1", "title": "재난 대응", "summary": "검토"}],
+            "tasks": [{"id": "task-1", "title": "대책 검토", "ministries": ["행안부"]}],
+        }
+        integrated, changes = apply_official_edits(base, [{
+            "entity_type": "task", "entity_id": "task-1",
+            "operation": "UPDATE", "field": "title",
+            "new_text": "재난 대책 즉시 추진", "new_values": [],
+            "official_utterance_ids": ["official-1"],
+        }])
+        self.assertEqual(base["tasks"][0]["title"], "대책 검토")
+        self.assertEqual(integrated["tasks"][0]["title"], "재난 대책 즉시 추진")
+        self.assertEqual(len(changes), 1)
+        self.assertIn("_official_diffs", integrated["tasks"][0])
+        self.assertEqual(
+            integrated["tasks"][0]["official_evidence_ids"], ["official-1"]
+        )
+
+    def test_duplicate_official_topic_reuses_existing_topic_and_skips_child_task(self):
+        base = {
+            "headline": "법사위 결과", "summary": "사법 현안을 점검했다.",
+            "topics": [{
+                "id": "topic-1",
+                "title": "대법관 제청 지연과 사법부 독립성 훼손 논란",
+                "summary": "대법관 제청 지연과 청와대·대법원 협의 절차를 논의했다.",
+            }],
+            "tasks": [],
+        }
+        edits = [
+            {
+                "entity_type": "topic", "entity_id": "new-topic-1",
+                "operation": "ADD", "topic_id": "new-topic-1",
+                "title": "대법관 제청권과 임명권의 헌법적 절차 재정립",
+                "summary": "대법관 제청권 행사와 청와대 협의 절차를 재검토했다.",
+                "official_utterance_ids": ["official-1"],
+            },
+            {
+                "entity_type": "task", "entity_id": "new-task-1",
+                "operation": "ADD", "topic_id": "new-topic-1",
+                "title": "대법관 제청권과 임명권 절차 재정립 TF 구성",
+                "summary": "특별 TF 구성을 추진한다.",
+                "official_utterance_ids": ["official-1"],
+            },
+        ]
+        integrated, changes = apply_official_edits(base, edits)
+        self.assertEqual(len(integrated["topics"]), 1)
+        self.assertEqual(
+            integrated["topics"][0]["title"],
+            "대법관 제청 지연과 사법부 독립성 훼손 논란",
+        )
+        self.assertEqual(
+            integrated["topics"][0]["official_evidence_ids"], ["official-1"],
+        )
+        self.assertEqual(integrated["tasks"], [])
+
+
+if __name__ == "__main__":
+    unittest.main()

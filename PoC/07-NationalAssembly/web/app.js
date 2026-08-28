@@ -1,4 +1,3 @@
-const departmentScope = document.querySelector("#departmentScope");
 const viewTabs = document.querySelectorAll(".view-tabs button");
 const workspaceTabs = [...document.querySelectorAll("[data-workspace-tab]")];
 const workspacePanels = [...document.querySelectorAll("[data-workspace-panel]")];
@@ -9,18 +8,47 @@ const assemblyTranscriptState = {
   generation: 0,
   cursor: 0,
   committee: "",
+  broadcastId: "",
+  briefPollTimer: null,
   pollIntervalMs: 2000,
   pollTimer: null,
+  summaryRefreshTimer: null,
+  summaryRefreshAttempts: 0,
+  layoutObserver: null,
+  lastActiveUtteranceId: null,
   nodes: new Map(),
   segments: new Map(),
+  cachedSummaries: new Map(),
   expanded: false,
   expandedMode: null,
   selectedBroadcastId: null,
   liveItems: [],
+  betaAutoOpened: false,
 };
 const liveInsightFilterState = {
   mode: "ALL",
   ministry: "",
+};
+const todayScheduleState = {
+  items: [],
+  index: 0,
+  signature: null,
+  timer: null,
+  resetTimer: null,
+};
+const TODAY_SCHEDULE_HOLD_MS = 5000;
+const TODAY_SCHEDULE_TRANSITION_MS = 2000;
+const MEETING_HISTORY_INITIAL_LIMIT = 20;
+const MEETING_HISTORY_PAGE_SIZE = 10;
+const meetingRailHistoryState = {
+  items: [],
+  nextOffset: 0,
+  hasMore: true,
+  endReached: false,
+  loading: false,
+  initialized: false,
+  statusPayload: null,
+  executivePayload: { items: [] },
 };
 
 for (const button of viewTabs) {
@@ -79,16 +107,6 @@ for (const tab of workspaceTabs) {
 window.addEventListener("hashchange", () => activateWorkspaceTab(workspaceTabFromHash(), { updateHash: false }));
 activateWorkspaceTab(workspaceTabFromHash(), { updateHash: false });
 
-departmentScope.addEventListener("change", () => {
-  document.dispatchEvent(new CustomEvent("department-scope-change", {
-    detail: { committee: departmentScope.value },
-  }));
-  if (departmentScope.value) {
-    activateWorkspaceTab("assembly");
-    document.querySelector("#committees").scrollIntoView({ behavior: "smooth" });
-  }
-  loadOfficialRotations(departmentScope.value).finally(loadLiveStatus);
-});
 
 function magazineElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -116,8 +134,8 @@ function showMagazineCard(institution, nextIndex) {
   const labels = magazineElement("div", "magazine-labels", "");
   labels.append(magazineElement(
     "span",
-    card.simulation ? "simulation-label" : "review-label",
-    card.simulation ? "SIMULATION" : card.authority_status === "OFFICIAL" ? "OFFICIAL" : "AUTO REVIEW",
+    "review-label",
+    card.authority_status === "OFFICIAL" ? "OFFICIAL" : "AUTO REVIEW",
   ));
   if (card.authority_status !== "OFFICIAL") {
     labels.append(magazineElement("span", "provisional-label", card.authority_status));
@@ -133,7 +151,7 @@ function showMagazineCard(institution, nextIndex) {
     chips.append(magazineElement("span", "", label));
   }
   content.append(chips);
-  if (!card.simulation && card.official_published) {
+  if (card.official_published) {
     const bodyCount = Number(card.official_utterance_count || 0);
     const stage = card.official_publication_stage === "TEMPORARY" ? "잠정본" : "정본";
     const label = card.official_link_label || (bodyCount ? `${stage} ${bodyCount}문장 · 원문 확인 ↗` : "공식 원문 확인 ↗");
@@ -173,7 +191,7 @@ function showEmptyMagazine(container, scope) {
   container.append(
     mark,
     magazineElement("strong", "", `${scope} 관련 과거 방송 기록이 없습니다`),
-    magazineElement("p", "", "전체 국정 흐름을 선택하면 모든 시뮬레이션 기록을 볼 수 있습니다."),
+    magazineElement("p", "", "수집·정리가 완료된 실제 회의 기록만 표시합니다."),
   );
 }
 
@@ -182,7 +200,7 @@ function startMagazine(institution, container, cards, rotationMs) {
   if (previousState?.timer) window.clearInterval(previousState.timer);
   if (!cards.length) {
     magazineState.delete(institution);
-    showEmptyMagazine(container, departmentScope.selectedOptions[0].textContent);
+    showEmptyMagazine(container, "전체 국정");
     return;
   }
   const state = { cards: cards.slice(0, 5), container, index: 0, paused: false };
@@ -203,95 +221,337 @@ function stopAssemblyTranscript() {
   assemblyTranscriptState.active = false;
   assemblyTranscriptState.generation += 1;
   if (assemblyTranscriptState.pollTimer) window.clearTimeout(assemblyTranscriptState.pollTimer);
+  if (assemblyTranscriptState.summaryRefreshTimer) window.clearTimeout(assemblyTranscriptState.summaryRefreshTimer);
+  if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
+  if (assemblyTranscriptState.layoutObserver) assemblyTranscriptState.layoutObserver.disconnect();
   assemblyTranscriptState.pollTimer = null;
+  assemblyTranscriptState.summaryRefreshTimer = null;
+  assemblyTranscriptState.briefPollTimer = null;
+  assemblyTranscriptState.summaryRefreshAttempts = 0;
+  assemblyTranscriptState.layoutObserver = null;
+  assemblyTranscriptState.lastActiveUtteranceId = null;
   assemblyTranscriptState.nodes.clear();
   assemblyTranscriptState.segments.clear();
+  assemblyTranscriptState.cachedSummaries.clear();
+  assemblyTranscriptState.broadcastId = "";
 }
 
 function transcriptParams(extra = {}) {
   const params = new URLSearchParams(extra);
   if (assemblyTranscriptState.committee) params.set("committee", assemblyTranscriptState.committee);
+  if (assemblyTranscriptState.broadcastId) params.set("broadcast_id", assemblyTranscriptState.broadcastId);
   return params;
 }
 
+function summarizeUtterance(text, maxChars = 180) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxChars) return normalized;
+  const clipped = normalized.slice(0, maxChars + 1);
+  const boundary = clipped.lastIndexOf(" ");
+  const summary = boundary >= Math.floor(maxChars / 2)
+    ? clipped.slice(0, boundary) : clipped.slice(0, maxChars);
+  return `${summary.trimEnd()}…`;
+}
+
+function groupTranscriptSegments(items = [...assemblyTranscriptState.segments.values()]) {
+  const ordered = [...items]
+    .filter((item) => String(item.text || "").trim())
+    .sort((a, b) => new Date(a.received_at) - new Date(b.received_at) || Number(a.cursor || 0) - Number(b.cursor || 0));
+  const groups = [];
+  for (const item of ordered) {
+    const sourceLabel = String(item.source_speaker_label ?? item.speaker_label ?? "");
+    const previous = groups.at(-1);
+    const transientUnknown = ["", "-1"].includes(sourceLabel)
+      && item.is_final !== true
+      && previous
+      && previous.broadcast_id === item.broadcast_id;
+    const effectiveSourceLabel = transientUnknown ? previous.source_speaker_label : sourceLabel;
+    const merge = previous
+      && previous.broadcast_id === item.broadcast_id
+      && previous.source_speaker_label === effectiveSourceLabel;
+    if (!merge) {
+      groups.push({
+        ...item,
+        utterance_id: item.segment_id,
+        source_speaker_label: effectiveSourceLabel,
+        speaker_label: transientUnknown ? previous.speaker_label : item.speaker_label,
+        segment_ids: [item.segment_id],
+        segment_count: 1,
+        summary: summarizeUtterance(item.text),
+        summary_kind: "EXTRACTIVE_FALLBACK",
+        start_at: item.received_at,
+      });
+      continue;
+    }
+    previous.text = `${previous.text} ${String(item.text).trim()}`.trim();
+    previous.summary = summarizeUtterance(previous.text);
+    previous.received_at = item.received_at;
+    previous.cursor = item.cursor;
+    previous.segment_ids.push(item.segment_id);
+    previous.segment_count += 1;
+    previous.is_final = previous.is_final === true && item.is_final === true;
+    if (item.official_reconciliation?.status === "MATCHED") {
+      previous.official_reconciliation = item.official_reconciliation;
+    }
+  }
+  return groups;
+}
+
+function normalizePreparedTranscriptGroups(preparedGroups = []) {
+  return preparedGroups
+    .filter((group) => String(group.text || "").trim())
+    .map((group) => {
+      const firstSegment = assemblyTranscriptState.segments.get(group.segment_ids?.[0]);
+      const reconciliations = group.official_reconciliations || [];
+      return {
+        ...firstSegment,
+        ...group,
+        received_at: group.end_at || group.start_at || firstSegment?.received_at,
+        cursor: group.last_cursor ?? group.first_cursor ?? firstSegment?.cursor,
+        official_reconciliation: group.official_reconciliation
+          || reconciliations.find((item) => item?.status === "MATCHED")
+          || firstSegment?.official_reconciliation,
+      };
+    });
+}
+
+function renderTranscriptGroups(groups = groupTranscriptSegments()) {
+  const lines = document.querySelector("#assemblyTranscriptLines");
+  if (!lines) return;
+  const expandedOriginalIds = new Set(
+    [...assemblyTranscriptState.nodes.entries()]
+      .filter(([, line]) => line.querySelector(".transcript-original")?.open)
+      .map(([lineId]) => lineId),
+  );
+  lines.replaceChildren();
+  assemblyTranscriptState.nodes.clear();
+  const visible = groups.slice(-160);
+  const rawSummary = document.querySelector(".raw-transcript > summary");
+  if (rawSummary) {
+    rawSummary.textContent = `발언 묶음별 요약 + 원문 · ${groups.length.toLocaleString("ko-KR")}개`;
+  }
+  const latest = visible.at(-1);
+  for (const group of visible) {
+    const line = transcriptLine({
+      ...group,
+      original_open: expandedOriginalIds.has(group.utterance_id || group.segment_id),
+      is_active_turn: group === latest
+        && ["LIVE", "EXECUTIVE_LIVE"].includes(assemblyTranscriptState.expandedMode),
+    });
+    if (group === latest) {
+      line.classList.add("is-latest");
+      line.setAttribute("aria-current", "true");
+    }
+  }
+  if (groups.length > visible.length) {
+    const notice = magazineElement("p", "transcript-history-note", `이전 ${groups.length - visible.length}개 발언 묶음은 요약에서 확인할 수 있습니다.`);
+    lines.prepend(notice);
+  }
+  if (!groups.length) lines.append(magazineElement("p", "transcript-waiting", "저장된 자막을 기다리고 있습니다."));
+  if (visible.length) {
+    window.requestAnimationFrame(() => { lines.scrollTop = lines.scrollHeight; });
+  }
+}
+
 function transcriptLine(item) {
-  let line = assemblyTranscriptState.nodes.get(item.segment_id);
+  const lineId = item.utterance_id || item.segment_id;
+  let line = assemblyTranscriptState.nodes.get(lineId);
   if (!line) {
     line = magazineElement("div", "transcript-line", "");
-    line.append(
-      magazineElement("span", "transcript-speaker", ""),
-      magazineElement("p", "transcript-text", ""),
-      magazineElement("time", "transcript-time", ""),
+    const body = magazineElement("div", "transcript-body", "");
+    const summary = magazineElement("div", "transcript-summary", "");
+    summary.append(
+      magazineElement("small", "transcript-summary-label", "자동 발췌 요약"),
+      magazineElement("p", "transcript-summary-text", ""),
     );
-    assemblyTranscriptState.nodes.set(item.segment_id, line);
+    const original = magazineElement("details", "transcript-original", "");
+    original.append(
+      magazineElement("summary", "", "원문 전체 보기"),
+      magazineElement("p", "transcript-text", ""),
+    );
+    body.append(summary, original);
+    const speaker = assemblyTranscriptState.expandedMode === "REVIEW"
+      ? magazineElement("span", "transcript-speaker", "") : null;
+    line.append(...[
+      speaker, body, magazineElement("time", "transcript-time", ""),
+    ].filter(Boolean));
+    assemblyTranscriptState.nodes.set(lineId, line);
     document.querySelector("#assemblyTranscriptLines")?.append(line);
   }
   line.classList.toggle("is-final", item.is_final === true);
+  line.classList.toggle("is-active-turn", item.is_active_turn === true);
   const speaker = line.querySelector(".transcript-speaker");
-  speaker.replaceChildren(document.createTextNode(item.speaker_label || item.committee_name || "발언자 확인 중"));
   const reconciliation = item.official_reconciliation;
-  if (reconciliation?.status === "MATCHED") {
-    const badge = magazineElement("span", "reconciliation-badge is-matched", "공식본 일치");
-    badge.title = `${reconciliation.publication_stage || "공식본"} · ${reconciliation.match_method}`;
-    speaker.append(badge);
-  } else if (item.official_status === "PUBLISHED" && item.is_final === true) {
-    const badge = magazineElement("span", "reconciliation-badge is-unresolved", "공식본 미확인");
-    badge.title = "공식 회의록에서 유일한 exact 일치 문장을 확인하지 못했습니다.";
-    speaker.append(badge);
+  if (speaker) {
+    const officialSpeaker = reconciliation?.status === "MATCHED"
+      ? reconciliation.official_speaker_name : null;
+    speaker.replaceChildren(document.createTextNode(officialSpeaker || "공식 화자 확인 중"));
+    if (Number(item.segment_count || 1) > 1) {
+      speaker.append(magazineElement("small", "transcript-segment-count", `${item.segment_count}개 자막 연결`));
+    }
+    if (reconciliation?.status === "MATCHED") {
+      const badge = magazineElement("span", "reconciliation-badge is-matched", "공식본 일치");
+      badge.title = `${reconciliation.publication_stage || "공식본"} · ${reconciliation.match_method}`;
+      speaker.append(badge);
+    } else if (item.official_status === "PUBLISHED" && item.is_final === true) {
+      const badge = magazineElement("span", "reconciliation-badge is-unresolved", "공식본 미확인");
+      badge.title = "공식 회의록에서 유일한 exact 일치 문장을 확인하지 못했습니다.";
+      speaker.append(badge);
+    }
+  }
+  const summaryProviderLabel = {
+    gemini: "Gemini Flash",
+    mistral: "Mistral Small",
+    openrouter: "OpenRouter",
+  }[item.summary_provider] || "AI";
+  const activeTurn = item.is_active_turn === true;
+  line.querySelector(".transcript-summary-label").textContent = activeTurn
+    ? "현재 발언 · 실시간 누적"
+    : item.summary_kind === "AI_CACHED" ? `${summaryProviderLabel} 요약 · DB 저장` : "요약 준비 중 · 원문 보존";
+  const activeSummary = line.querySelector(".transcript-summary-text");
+  activeSummary.textContent = activeTurn
+    ? item.text : item.summary || summarizeUtterance(item.text);
+  if (activeTurn) {
+    window.requestAnimationFrame(() => {
+      if (activeSummary.isConnected) {
+        activeSummary.scrollTop = activeSummary.scrollHeight;
+      }
+    });
   }
   line.querySelector(".transcript-text").textContent = item.text;
+  const original = line.querySelector(".transcript-original");
+  original.hidden = activeTurn;
+  if (!activeTurn) original.open = item.original_open === true;
+  line.querySelector(".transcript-original > summary").textContent = `원문 전체 보기 · ${String(item.text || "").length.toLocaleString("ko-KR")}자`;
   const received = new Date(item.received_at);
   line.querySelector(".transcript-time").textContent = Number.isNaN(received.valueOf())
     ? "LIVE" : received.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   return line;
 }
 
-const liveTopicRules = [
-  { id: "disaster-recovery", topic: "재난 피해·복구", words: ["호우", "재난", "피해", "복구"] },
-  { id: "recovery-budget", topic: "예산·재정 집행", words: ["예산", "재원", "집행", "재정"] },
-  { id: "legal-support", topic: "법률 지원·권리 보호", words: ["법률", "권리", "구제", "법무"] },
-  { id: "public-safety", topic: "국민 안전", words: ["안전", "소방", "경찰"] },
-];
-
-const liveMinistryRules = ["행정안전부", "기획재정부", "법무부", "국토교통부", "보건복지부", "고용노동부"];
-
 function inferLiveHint(item) {
+  const insight = item.live_insight;
+  if (insight?.topic && insight?.topic_key) {
+    const topicKey = String(insight.topic_key).toLocaleLowerCase("ko-KR")
+      .replace(/[^가-힣a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return {
+      topic_id: `ai:${topicKey || insight.topic}`,
+      topic_key: insight.topic_key,
+      topic: insight.topic,
+      role: insight.role || "STATEMENT",
+      task: insight.task || null,
+      task_id: insight.task ? item.utterance_id || item.segment_id : null,
+      task_status: insight.task ? "OPEN" : null,
+      resolution: false,
+      ministries: Array.isArray(insight.owners) ? insight.owners : [],
+      derived: false,
+    };
+  }
   if (item.insight_hint?.topic_id && item.insight_hint?.role) return item.insight_hint;
-  const text = item.text || "";
-  const matched = liveTopicRules.find((rule) => rule.words.some((word) => text.includes(word)));
-  const question = /[?？]$|습니까|합니까|했습니까|겠습니까|는지/.test(text);
-  const ministries = liveMinistryRules.filter((ministry) => text.includes(ministry));
-  const resolved = /완료했(?:습니다|다)|조치했(?:습니다|다)|처리했(?:습니다|다)|해소됐(?:습니다|다)|반영했(?:습니다|다)/.test(text);
-  const openCommitment = /알아보겠(?:습니다|다)|확인하겠(?:습니다|다)|검토하겠(?:습니다|다)|추진하겠(?:습니다|다)|마련하겠(?:습니다|다)|점검하겠(?:습니다|다)|보고하겠(?:습니다|다)|조치하겠(?:습니다|다)|해야 (?:합니다|한다|됩니다)|필요(?:합니다|하다)/.test(text);
-  return {
-    topic_id: matched?.id || "other-live-topic",
-    topic: matched?.topic || "기타 현안",
-    role: question ? "QUESTION" : "ANSWER",
-    task: openCommitment && !resolved ? text : null,
-    task_id: openCommitment ? item.segment_id : null,
-    task_status: openCommitment && !resolved ? "OPEN" : null,
-    resolution: resolved,
-    ministries,
-    derived: true,
-  };
+  return null;
+}
+
+function liveTopicTokens(...values) {
+  const stop = new Set(["관련", "정책", "지원", "방안", "개선", "필요", "필요성", "요청", "검토", "추진"]);
+  return new Set(
+    values.flatMap((value) => (
+      String(value || "").toLocaleLowerCase("ko-KR").match(/[가-힣a-z0-9]{2,}/g) || []
+    ))
+      .filter((token) => !stop.has(token)),
+  );
+}
+
+function liveOwnerTokens(values = []) {
+  const source = Array.isArray(values) ? values : [values];
+  const tokens = source.flatMap((value) => {
+    const normalized = String(value || "").toLocaleLowerCase("ko-KR").replace(/[^가-힣a-z0-9]+/g, "");
+    if (!normalized) return [];
+    const stem = normalized.replace(
+      /(위원회|위원장|본부|부처|청|처|부|원)$/u,
+      "",
+    );
+    return stem && stem !== normalized ? [normalized, stem] : [normalized];
+  });
+  return new Set(tokens);
+}
+
+function liveTopicTokenRelated(left, right) {
+  if (left === right) return true;
+  const [shorter, longer] = left.length <= right.length ? [left, right] : [right, left];
+  return shorter.length >= 2 && longer.includes(shorter);
+}
+
+function liveTopicOverlap(left, right) {
+  const [smaller, larger] = left.size <= right.size ? [left, right] : [right, left];
+  return [...smaller].filter((token) => (
+    [...larger].some((candidate) => liveTopicTokenRelated(token, candidate))
+  )).length;
+}
+
+function liveTopicSetsOverlap(left, right) {
+  return [...left].some((token) => (
+    [...right].some((candidate) => liveTopicTokenRelated(token, candidate))
+  ));
+}
+
+function similarLiveTopic(groups, hintTokens, hintOwners, sequence) {
+  if (!hintTokens.size) return null;
+  let best = null;
+  let bestScore = 0;
+  for (const candidate of new Set(groups.values())) {
+    const candidateTokens = candidate.topicTokens || new Set();
+    const overlap = liveTopicOverlap(hintTokens, candidateTokens);
+    const score = overlap / Math.min(hintTokens.size, candidateTokens.size || Infinity);
+    const ownerMatch = liveTopicSetsOverlap(hintOwners, candidate.ownerTokens || new Set());
+    const recent = sequence - Number(candidate.lastSeen || 0) <= 8;
+    const highConfidence = overlap >= 2 && score >= 0.6;
+    const lexicalMatch = overlap >= 2 && score >= 0.42;
+    const contextualMatch = ownerMatch && recent && overlap >= 2;
+    const rank = score + (ownerMatch ? 0.24 : 0) + (recent ? 0.08 : 0);
+    if (
+      (highConfidence || lexicalMatch || contextualMatch)
+      && rank > bestScore
+    ) {
+      best = candidate;
+      bestScore = rank;
+    }
+  }
+  return best;
 }
 
 function buildLiveTopics(segmentItems = null) {
   const groups = new Map();
+  let insightSequence = 0;
   const items = [...(segmentItems || assemblyTranscriptState.segments.values())]
     .filter((item) => item.is_final === true)
     .sort((a, b) => Number(a.cursor || 0) - Number(b.cursor || 0));
   for (const item of items) {
     const hint = inferLiveHint(item);
-    let group = groups.get(hint.topic_id);
+    if (!hint) continue;
+    const sequence = insightSequence;
+    insightSequence += 1;
+    const hintTokens = liveTopicTokens(hint.topic_key, hint.topic);
+    const hintOwners = liveOwnerTokens(hint.ministries);
+    let group = groups.get(hint.topic_id) || similarLiveTopic(groups, hintTokens, hintOwners, sequence);
     if (!group) {
-      group = { topic: hint.topic, questions: [], answers: [], tasks: new Map(), ministries: new Set(), derived: false };
-      groups.set(hint.topic_id, group);
+      group = {
+        topic: hint.topic,
+        topicTokens: new Set(),
+        ownerTokens: new Set(),
+        lastSeen: sequence,
+        questions: [], answers: [], tasks: new Map(), ministries: new Set(), derived: false,
+      };
     }
+    for (const token of hintTokens) group.topicTokens.add(token);
+    for (const owner of hintOwners) group.ownerTokens.add(owner);
+    group.lastSeen = sequence;
+    groups.set(hint.topic_id, group);
     const evidence = {
       speaker: item.speaker_label || "발언자 확인 중",
+      summary: item.summary || summarizeUtterance(item.text),
       text: item.text,
-      segmentId: item.segment_id,
+      segmentCount: Number(item.segment_count || 1),
+      segmentId: item.utterance_id || item.segment_id,
       officialReconciliation: item.official_reconciliation || null,
       officialStatus: item.official_status || null,
     };
@@ -309,7 +569,7 @@ function buildLiveTopics(segmentItems = null) {
     for (const ministry of hint.ministries || []) group.ministries.add(ministry);
     group.derived ||= hint.derived === true;
   }
-  return [...groups.values()];
+  return [...new Set(groups.values())];
 }
 
 function renderInsightToolbar(container, groups, segmentItems) {
@@ -360,6 +620,12 @@ function renderInsightToolbar(container, groups, segmentItems) {
 function renderLiveInsights(container = document.querySelector("#assemblyLiveInsights"), segmentItems = null) {
   if (!container) return;
   const allGroups = buildLiveTopics(segmentItems);
+  const compactMode = ["LIVE", "EXECUTIVE_LIVE"].includes(assemblyTranscriptState.expandedMode);
+  container.classList.toggle("is-compact", compactMode);
+  if (compactMode) {
+    renderCompactLiveInsights(container, allGroups);
+    return;
+  }
   container.replaceChildren();
   renderInsightToolbar(container, allGroups, segmentItems);
   if (!allGroups.length) {
@@ -379,7 +645,7 @@ function renderLiveInsights(container = document.querySelector("#assemblyLiveIns
     const head = magazineElement("header", "", "");
     head.append(
       magazineElement("strong", "", group.topic),
-      magazineElement("span", group.derived ? "draft-label" : "structured-label", group.derived ? "AUTO GROUP · DRAFT" : "STRUCTURED · SIMULATION"),
+      magazineElement("span", group.derived ? "draft-label" : "structured-label", group.derived ? "AUTO GROUP · DRAFT" : "STRUCTURED"),
     );
     const qa = magazineElement("div", "live-qa-list", "");
     for (const [label, entries, empty] of [
@@ -392,13 +658,24 @@ function renderLiveInsights(container = document.querySelector("#assemblyLiveIns
       if (entries.length) {
         for (const entry of entries) {
           const quote = magazineElement("div", "live-utterance", "");
-          const speaker = magazineElement("small", "", entry.speaker);
+          const officialSpeaker = entry.officialReconciliation?.status === "MATCHED"
+            ? entry.officialReconciliation.official_speaker_name : null;
+          const speaker = magazineElement("small", "", officialSpeaker || "발언 묶음");
           if (entry.officialReconciliation?.status === "MATCHED") {
             speaker.append(magazineElement("span", "reconciliation-badge is-matched", "공식본 일치"));
           } else if (entry.officialStatus === "PUBLISHED") {
             speaker.append(magazineElement("span", "reconciliation-badge is-unresolved", "공식본 미확인"));
           }
-          quote.append(speaker, magazineElement("p", "", entry.text));
+          const original = magazineElement("details", "live-utterance-original", "");
+          original.append(
+            magazineElement("summary", "", `원문 전체 보기 · ${entry.segmentCount}개 자막`),
+            magazineElement("p", "", entry.text),
+          );
+          quote.append(
+            speaker,
+            magazineElement("p", "live-utterance-summary", entry.summary),
+            original,
+          );
           if (entry.officialReconciliation?.status === "MATCHED") {
             const official = document.createElement("details");
             official.className = "official-match-evidence";
@@ -439,28 +716,110 @@ function renderLiveInsights(container = document.querySelector("#assemblyLiveIns
   }
 }
 
+function renderCompactLiveInsights(container, groups) {
+  container.replaceChildren();
+  const taskCount = groups.reduce((sum, group) => sum + group.tasks.size, 0);
+  const head = magazineElement("header", "live-compact-head", "");
+  const titleGroup = magazineElement("div", "", "");
+  titleGroup.append(
+    magazineElement("small", "", "현재까지 확인"),
+    magazineElement("strong", "", "주요 주제와 과제"),
+  );
+  const actions = magazineElement("div", "live-compact-head-actions", "");
+  const metrics = magazineElement("span", "", `주제 ${groups.length} · 과제 ${taskCount}`);
+  const cinemaButton = magazineElement("button", "cinema-mode-toggle", "시네마 모드");
+  cinemaButton.type = "button";
+  const stage = document.querySelector("#liveExpandedStage");
+  cinemaButton.setAttribute("aria-pressed", String(stage?.classList.contains("is-cinema") || false));
+  cinemaButton.addEventListener("click", () => toggleCinemaMode(stage));
+  actions.append(metrics, cinemaButton);
+  head.append(titleGroup, actions);
+  container.append(head);
+  if (!groups.length) {
+    container.append(magazineElement(
+      "p", "live-insight-empty",
+      "완료된 발언을 기다리며 주제를 확인하고 있습니다.",
+    ));
+    return;
+  }
+  const list = magazineElement("div", "live-compact-list", "");
+  list.setAttribute("aria-live", "polite");
+  for (const group of groups) {
+    const item = magazineElement("article", "live-compact-topic", "");
+    const rawMinistries = [...new Set([
+      ...(group.ministries || []),
+      ...[...group.tasks.values()].flatMap((task) => task.ministries || []),
+    ].filter(Boolean))];
+    const ministries = rawMinistries.filter((ministry) => !rawMinistries.some(
+      (other) => other !== ministry && other.length > ministry.length && other.includes(ministry),
+    ));
+    const ministryLabel = ministries.length
+      ? `${ministries.slice(0, 2).join("·")}${ministries.length > 2 ? ` +${ministries.length - 2}` : ""}`
+      : "소관 확인 중";
+    const ministryBadge = magazineElement("b", "live-compact-owner", ministryLabel);
+    ministryBadge.title = ministries.length ? `대상 부처: ${ministries.join(" · ")}` : "대상 부처 확인 중";
+    item.title = `${ministryBadge.title} · ${group.topic}`;
+    item.append(
+      ministryBadge,
+      magazineElement("strong", "", group.topic),
+      magazineElement(
+        "span", "",
+        group.tasks.size
+          ? `과제 ${group.tasks.size}`
+          : `발언 ${group.questions.length + group.answers.length}`,
+      ),
+    );
+    list.append(item);
+  }
+  container.append(list);
+  window.requestAnimationFrame(() => list.scrollTo({ top: list.scrollHeight, behavior: "smooth" }));
+}
+
+function syncLiveInsightHeight(media, insights) {
+  const sync = () => {
+    if (!media.isConnected || !insights.isConnected) return;
+    if (!window.matchMedia("(min-width: 1101px)").matches) {
+      insights.style.removeProperty("height");
+      insights.style.removeProperty("max-height");
+      return;
+    }
+    const height = Math.round(media.getBoundingClientRect().height);
+    if (height > 0) {
+      insights.style.height = `${height}px`;
+      insights.style.maxHeight = `${height}px`;
+    }
+  };
+  window.requestAnimationFrame(sync);
+  if (!("ResizeObserver" in window)) return;
+  assemblyTranscriptState.layoutObserver?.disconnect();
+  assemblyTranscriptState.layoutObserver = new ResizeObserver(sync);
+  assemblyTranscriptState.layoutObserver.observe(media);
+}
+
 function liveMedia(liveItem) {
   const media = magazineElement("div", "live-media", "");
-  if (liveItem?.stream_url) {
+  if (liveItem?.source_system === "poc07.test") {
+    media.classList.add("is-test-meeting");
+    const testStage = magazineElement("div", "test-meeting-stage", "");
+    testStage.append(
+      magazineElement("span", "test-meeting-live", "TEST LIVE"),
+      magazineElement("strong", "", "가상 국무회의 방송 화면"),
+      magazineElement("p", "", "자막·화자 전환·주제·과제 갱신을 5분 동안 점검합니다."),
+      magazineElement("small", "", "운영 방송과 분리된 테스트 데이터"),
+    );
+    media.append(testStage);
+  } else if (liveItem?.stream_url) {
     const video = document.createElement("video");
     video.controls = true;
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
     video.src = liveItem.stream_url;
-    media.append(video, magazineElement("span", "live-media-label", "OFFICIAL HLS STREAM"));
+    media.append(video);
     video.addEventListener("error", () => media.classList.add("stream-error"));
-  } else if (liveItem?.simulation) {
-    const image = document.createElement("img");
-    image.src = liveItem.thumbnail_url || "assets/magazine/sim-committee-hearing.png";
-    image.alt = "실제 영상이 아닌 라이브 처리 데모 이미지";
-    media.append(image, magazineElement("span", "live-media-label simulation-label", "VIDEO PLACEHOLDER · SIMULATION"));
   } else {
     media.append(magazineElement("p", "live-media-unavailable", "검증된 영상 스트림 주소를 기다리고 있습니다."));
   }
-  const overlay = magazineElement("div", "live-caption-overlay", "자막 수신 대기 중");
-  overlay.id = "assemblyCaptionOverlay";
-  media.append(overlay);
   return media;
 }
 
@@ -515,34 +874,163 @@ function renderTranscriptShell(liveItems, mode = "LIVE") {
   stage.replaceChildren();
   const head = magazineElement("div", "transcript-head", "");
   const title = magazineElement("div", "", "");
-  const simulation = liveItems.every((item) => item.simulation === true);
   const reviewMode = mode === "REVIEW";
+  if (reviewMode) {
+    title.append(magazineElement(
+      "span", "detected-live-label",
+      "LAST LIVE REVIEW · PROVISIONAL",
+    ));
+  }
   title.append(
-    magazineElement("span", "detected-live-label", reviewMode
-      ? simulation ? "LAST LIVE REVIEW · SIMULATION" : "LAST LIVE REVIEW · PROVISIONAL"
-      : simulation ? "DEMO LIVE · SIMULATION" : "OFFICIAL LIVE CAPTION"),
     magazineElement("strong", "", liveItems.map((item) => item.title || item.committee_name).join(" · ")),
   );
-  head.append(title, magazineElement("span", "transcript-continuity", reviewMode ? "처음부터 끝까지 · 공식본 대조" : "처음부터 현재까지 · 자동 갱신"));
-  const workspace = magazineElement("div", "live-workspace", "");
-  const insights = magazineElement("div", "live-insights", "");
+  const headActions = magazineElement("div", "transcript-head-actions", "");
+  headActions.append(magazineElement(
+    "span", "transcript-continuity",
+    reviewMode ? "처음부터 끝까지 · 공식본 대조" : "처음부터 현재까지 · 자동 갱신",
+  ));
+  head.append(title, headActions);
+  const workspace = magazineElement("div", `live-workspace${reviewMode ? "" : " is-live-layout"}`, "");
+  const insights = magazineElement("aside", `live-insights${reviewMode ? "" : " is-compact"}`, "");
   insights.id = "assemblyLiveInsights";
+  insights.setAttribute("aria-label", "현재까지 확인된 주요 주제와 과제");
   insights.append(magazineElement("p", "live-insight-empty", "저장된 발언을 주제별로 묶는 중입니다."));
-  workspace.append(liveMedia(liveItems[0]), insights);
+  const media = liveMedia(liveItems[0]);
+  workspace.append(media, insights);
   const raw = document.createElement("details");
-  raw.className = "raw-transcript";
-  const summary = magazineElement("summary", "", "전체 자막을 시간순으로 보기");
+  raw.className = `raw-transcript${reviewMode ? " is-review" : " is-live"}`;
+  raw.open = true;
+  const summary = magazineElement("summary", "", reviewMode
+    ? "발언 묶음별 요약 + 원문" : "실시간 자막 + 발언 묶음별 요약");
   const lines = magazineElement("div", "transcript-lines", "");
   lines.id = "assemblyTranscriptLines";
+  lines.setAttribute("aria-live", "polite");
+  lines.setAttribute("aria-label", "최신 자막으로 자동 이동하는 실시간 발언 묶음");
   lines.append(magazineElement("p", "transcript-waiting", "저장된 자막을 불러오는 중입니다."));
   raw.append(summary, lines);
+  const cinemaExitButton = magazineElement("button", "cinema-mode-toggle cinema-mode-exit", "기본 보기");
+  cinemaExitButton.type = "button";
+  cinemaExitButton.setAttribute("aria-pressed", "true");
+  cinemaExitButton.addEventListener("click", () => toggleCinemaMode(stage));
   if (reviewMode) {
     const officialContext = magazineElement("div", "official-context", "");
     officialContext.id = "assemblyOfficialContext";
     stage.append(head, officialContext, workspace, raw);
     renderOfficialContext(liveItems[0]);
   } else {
-    stage.append(head, workspace, raw);
+    stage.append(head, workspace, raw, cinemaExitButton);
+    syncLiveInsightHeight(media, insights);
+  }
+}
+
+function toggleCinemaMode(stage) {
+  if (!stage) return;
+  const enabled = !stage.classList.contains("is-cinema");
+  stage.classList.toggle("is-cinema", enabled);
+  stage.querySelectorAll(".cinema-mode-toggle").forEach((button) => {
+    button.setAttribute("aria-pressed", String(enabled));
+    button.textContent = button.classList.contains("cinema-mode-exit")
+      ? "기본 보기"
+      : enabled ? "기본 보기" : "시네마 모드";
+  });
+  if (enabled) {
+    stage.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function applySpeakerDisplay(broadcastId, sourceLabel, displayName, overridden) {
+  for (const [segmentId, item] of assemblyTranscriptState.segments) {
+    if (item.broadcast_id !== broadcastId || String(item.source_speaker_label || "") !== sourceLabel) continue;
+    assemblyTranscriptState.segments.set(segmentId, {
+      ...item,
+      speaker_label: displayName,
+      speaker_overridden: overridden,
+    });
+  }
+  const groups = groupTranscriptSegments();
+  renderTranscriptGroups(groups);
+  renderLiveInsights(document.querySelector("#assemblyLiveInsights"), groups);
+}
+
+function renderSpeakerEditor(broadcast, options = []) {
+  const editor = document.querySelector("#assemblySpeakerEditor");
+  if (!editor || !broadcast?.broadcast_id) return;
+  const list = editor.querySelector(".speaker-editor-list");
+  const status = editor.querySelector(".speaker-editor-status");
+  list.replaceChildren();
+  status.textContent = options.length
+    ? "이름 수정은 원본 자막을 바꾸지 않고 이 방송의 표시 계층에만 적용됩니다."
+    : "수집된 화자 코드가 없습니다.";
+  for (const option of options) {
+    const row = magazineElement("div", "speaker-editor-row", "");
+    const sourceLabel = String(option.source_speaker_label || "");
+    const label = document.createElement("label");
+    label.append(
+      document.createTextNode("원본 코드 "),
+      magazineElement("b", "", sourceLabel || "-"),
+      document.createTextNode(` · 자막 ${Number(option.segment_count || 0).toLocaleString("ko-KR")}개`),
+    );
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 80;
+    input.value = option.display_name || "";
+    input.placeholder = option.effective_display_name || "실제 화자 이름";
+    input.setAttribute("aria-label", `화자 코드 ${sourceLabel || "-"}의 표시 이름`);
+    const save = magazineElement("button", "primary", "저장");
+    save.type = "button";
+    const reset = magazineElement("button", "", "초기화");
+    reset.type = "button";
+    reset.disabled = !option.overridden;
+    save.addEventListener("click", async () => {
+      const displayName = input.value.trim();
+      if (!displayName) {
+        status.textContent = "표시할 화자 이름을 입력해 주세요.";
+        input.focus();
+        return;
+      }
+      save.disabled = true;
+      status.textContent = "화자 이름을 저장하는 중입니다.";
+      try {
+        const response = await fetch(
+          `api/live/broadcasts/${encodeURIComponent(broadcast.broadcast_id)}/speakers/${encodeURIComponent(sourceLabel)}`,
+          { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ display_name: displayName }) },
+        );
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `저장 실패 (${response.status})`);
+        option.display_name = payload.effective_display_name;
+        option.effective_display_name = payload.effective_display_name;
+        option.overridden = true;
+        reset.disabled = false;
+        applySpeakerDisplay(broadcast.broadcast_id, sourceLabel, payload.effective_display_name, true);
+        status.textContent = `화자 코드 ${sourceLabel}을(를) ${payload.effective_display_name}(으)로 표시합니다.`;
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        save.disabled = false;
+      }
+    });
+    reset.addEventListener("click", async () => {
+      reset.disabled = true;
+      try {
+        const response = await fetch(
+          `api/live/broadcasts/${encodeURIComponent(broadcast.broadcast_id)}/speakers/${encodeURIComponent(sourceLabel)}`,
+          { method: "DELETE" },
+        );
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `초기화 실패 (${response.status})`);
+        input.value = "";
+        option.display_name = null;
+        option.effective_display_name = payload.effective_display_name;
+        option.overridden = false;
+        applySpeakerDisplay(broadcast.broadcast_id, sourceLabel, payload.effective_display_name, false);
+        status.textContent = `화자 코드 ${sourceLabel}의 표시 이름을 초기화했습니다.`;
+      } catch (error) {
+        status.textContent = error.message;
+        reset.disabled = false;
+      }
+    });
+    row.append(label, input, save, reset);
+    list.append(row);
   }
 }
 
@@ -551,6 +1039,7 @@ function collapseLiveExpansion() {
   assemblyTranscriptState.expandedMode = null;
   assemblyTranscriptState.selectedBroadcastId = null;
   stopAssemblyTranscript();
+  document.querySelector("#liveExpandedStage")?.classList.remove("is-cinema");
   document.querySelector("#liveExpanded").hidden = true;
   document.querySelectorAll(".broadcast-row").forEach((row) => row.removeAttribute("aria-current"));
 }
@@ -565,6 +1054,788 @@ function expandLiveBroadcast(item, row) {
   row.setAttribute("aria-current", "true");
   startAssemblyTranscript([item]);
   document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function expandExecutiveLiveBroadcast(item, row) {
+  assemblyTranscriptState.expanded = true;
+  assemblyTranscriptState.expandedMode = "EXECUTIVE_LIVE";
+  assemblyTranscriptState.selectedBroadcastId = item.broadcast_id || item.external_id;
+  document.querySelector("#liveExpanded").hidden = false;
+  document.querySelector("#liveExpandedTitle").textContent = item.title || "국무회의 생중계";
+  document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
+  row.setAttribute("aria-current", "true");
+  startAssemblyTranscript([{ ...item, committee_name: "" }]);
+  const continuity = document.querySelector(".transcript-continuity");
+  if (continuity) continuity.textContent = "KTV 공식 방송 · AI 음성 전사 · 종료 후 공식자료 교정";
+  document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function expandEndedExecutiveBroadcast(item, row) {
+  stopAssemblyTranscript();
+  assemblyTranscriptState.expanded = true;
+  assemblyTranscriptState.expandedMode = "EXECUTIVE_ENDED";
+  assemblyTranscriptState.selectedBroadcastId = item.broadcast_id || item.external_id;
+  document.querySelector("#liveExpanded").hidden = false;
+  document.querySelector("#liveExpandedTitle").textContent = item.title || "국무회의 결과";
+  document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
+  row?.setAttribute?.("aria-current", "true");
+  const stage = document.querySelector("#liveExpandedStage");
+  const root = magazineElement("section", "meeting-brief-view meeting-executive-view", "");
+  const hero = magazineElement("header", "meeting-brief-hero", "");
+  const labels = magazineElement("div", "meeting-brief-labels", "");
+  labels.append(
+    magazineElement("span", "institution-label", "국무회의"),
+    magazineElement("span", "provisional-label", "LIVE 감지 기록"),
+  );
+  const detectedAt = item.detected_at ? new Date(item.detected_at).toLocaleString("ko-KR") : "감지 시각 미상";
+  const endedAt = item.ended_at ? new Date(item.ended_at).toLocaleString("ko-KR") : "종료 시각 미상";
+  hero.append(
+    labels,
+    magazineElement("h3", "", item.title || "국무회의 결과"),
+    magazineElement("p", "", `${detectedAt} 감지 · ${endedAt} 종료`),
+  );
+  const tabs = magazineElement("div", "meeting-source-tabs", "");
+  const liveTab = magazineElement("button", "", "LIVE 감지 기록 · 자막 없음");
+  liveTab.type = "button";
+  liveTab.setAttribute("aria-selected", "true");
+  const officialTab = magazineElement("button", "", "공식 자료 · 발행 대기");
+  officialTab.type = "button";
+  officialTab.disabled = true;
+  tabs.append(liveTab, officialTab);
+  const notice = magazineElement("section", "executive-agenda-view", "");
+  notice.append(
+    magazineElement("strong", "", "공식 결과 자료를 기다리고 있습니다."),
+    magazineElement("p", "meeting-result-empty", "KTV 편성에서 방송 시작과 종료는 확인했지만 기계 판독 자막이 없어 임시 발언 요약은 생성하지 않았습니다."),
+    magazineElement("small", "", "공식 브리핑이 발행되면 같은 회의 번호로 이 카드에 자동 통합됩니다."),
+  );
+  const link = magazineElement("a", "meeting-official-source-link", "KTV 공식 온에어 확인 ↗");
+  link.href = "https://www.ktv.go.kr/onair/tv";
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  notice.append(link);
+  root.append(hero, tabs, notice);
+  stage.replaceChildren(root);
+  document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function meetingBriefStatusLabel(task) {
+  if (task.status === "OPEN" && task.owner_basis === "EXPLICIT") return "명시된 후속 조치";
+  if (task.status === "RESOLVED") return "회의 내 해소";
+  return "AI 검토 후보";
+}
+
+function meetingBriefOwnerLabel(task) {
+  if (task.owner_basis === "EXPLICIT") return "발언에 명시";
+  if (task.owner_basis === "INFERRED") return "AI 잠정 연결";
+  return "담당부처 미확정";
+}
+
+function meetingEvidenceButton(item, entityType, entityId, label, title) {
+  const button = magazineElement("button", "meeting-evidence-button", label);
+  button.type = "button";
+  button.addEventListener("click", () => {
+    openMeetingBriefEvidence(item, entityType, entityId, title);
+  });
+  return button;
+}
+
+function meetingHighlightTerms(title) {
+  const stop = new Set(["관련", "대한", "위한", "검토", "마련", "회의", "발언", "정부", "국회", "위원회"]);
+  return [...new Set(String(title || "").match(/[가-힣A-Za-z0-9]{2,}/g) || [])]
+    .filter((term) => !stop.has(term))
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 8);
+}
+
+const MAX_MEETING_EVIDENCE_HIGHLIGHTS = 3;
+
+function meetingSentenceRanges(value) {
+  const sourceText = String(value || "");
+  const ranges = [];
+  const pattern = /[^.!?\n]+[.!?]?|\n+/g;
+  let match;
+  while ((match = pattern.exec(sourceText)) !== null) {
+    if (match[0].trim()) ranges.push({ text: match[0], start: match.index, end: pattern.lastIndex });
+  }
+  return ranges;
+}
+
+function bestMeetingHighlightPhrase(value, context) {
+  const sourceText = String(value || "");
+  const terms = meetingHighlightTerms(context);
+  let best = null;
+  for (const sentence of meetingSentenceRanges(sourceText)) {
+    const normalized = sentence.text.toLocaleLowerCase("ko-KR");
+    const matchedTerms = terms.filter((term) => normalized.includes(term.toLocaleLowerCase("ko-KR")));
+    if (!matchedTerms.length) continue;
+    const tokens = [...sentence.text.matchAll(/[^\s,.;:!?]+/g)];
+    if (tokens.length < 3) continue;
+    const anchor = matchedTerms
+      .map((term) => ({ term, index: normalized.indexOf(term.toLocaleLowerCase("ko-KR")) }))
+      .filter((item) => item.index >= 0)
+      .sort((left, right) => right.term.length - left.term.length || left.index - right.index)[0];
+    const foundToken = tokens.findIndex((token) => (
+      Number(token.index) <= anchor.index
+      && Number(token.index) + token[0].length >= anchor.index + anchor.term.length
+    ));
+    const anchorToken = foundToken >= 0 ? foundToken : 0;
+    let first = Math.max(0, anchorToken - 2);
+    let last = Math.min(tokens.length - 1, anchorToken + 3);
+    while (last - first < 2 && (first > 0 || last < tokens.length - 1)) {
+      if (last < tokens.length - 1) last += 1;
+      else first -= 1;
+    }
+    // A highlight is an explanatory phrase, never the whole sentence. Keep
+    // one surrounding token unmarked when the source sentence is long enough.
+    if (first === 0 && last === tokens.length - 1 && tokens.length > 2) {
+      if (anchorToken - first > last - anchorToken) first += 1;
+      else last -= 1;
+    }
+    const localStart = Number(tokens[first].index);
+    const localEnd = Number(tokens[last].index) + tokens[last][0].length;
+    const score = matchedTerms.reduce((total, term) => total + term.length, 0)
+      + matchedTerms.length * 4;
+    const candidate = {
+      start: sentence.start + localStart,
+      end: sentence.start + localEnd,
+      score,
+    };
+    if (!best || candidate.score > best.score) best = candidate;
+  }
+  return best;
+}
+
+function selectMeetingEvidenceHighlights(items, title, limit = MAX_MEETING_EVIDENCE_HIGHLIGHTS) {
+  return new Map(items
+    .map((utterance, itemIndex) => {
+      const summary = utterance.summary || summarizeUtterance(utterance.text);
+      const candidate = bestMeetingHighlightPhrase(utterance.text, title + " " + summary);
+      return { itemIndex, range: candidate, score: candidate?.score || 0 };
+    })
+    .filter((candidate) => candidate.range && candidate.score > 0)
+    .sort((left, right) => right.score - left.score || left.itemIndex - right.itemIndex)
+    .slice(0, limit)
+    .map((candidate) => [candidate.itemIndex, candidate.range]));
+}
+
+function appendHighlightedPhrase(element, value, range = null) {
+  const sourceText = String(value || "");
+  if (!range || range.start < 0 || range.end <= range.start || range.end > sourceText.length) {
+    element.textContent = sourceText;
+    return element;
+  }
+  element.append(
+    document.createTextNode(sourceText.slice(0, range.start)),
+    magazineElement("mark", "", sourceText.slice(range.start, range.end)),
+    document.createTextNode(sourceText.slice(range.end)),
+  );
+  return element;
+}
+
+function renderEvidencePlaceholder(panel) {
+  panel.replaceChildren();
+  const icon = magazineElement("span", "meeting-evidence-placeholder-icon", "↖");
+  const copy = magazineElement("div", "", "");
+  copy.append(
+    magazineElement("span", "", "발언 확인"),
+    magazineElement("strong", "", "주제·화자·과제를 선택하세요"),
+    magazineElement("p", "", "선택한 내용과 연결된 화자별 자막 묶음 전체를 보여주고, 근거가 되는 핵심 문구만 표시합니다."),
+  );
+  panel.append(icon, copy);
+}
+
+function meetingEvidenceButton(item, entityType, entityId, label, title) {
+  const button = magazineElement("button", "meeting-evidence-button", label);
+  button.type = "button";
+  button.dataset.evidenceType = entityType;
+  button.dataset.evidenceId = entityId;
+  button.setAttribute("aria-pressed", "false");
+  button.addEventListener("click", () => {
+    openMeetingBriefEvidence(item, entityType, entityId, title);
+    const focusTopicId = button.dataset.focusTopicId;
+    if (focusTopicId) {
+      window.requestAnimationFrame(() => {
+        const target = document.querySelector("#meeting-topic-detail-" + focusTopicId);
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        target?.focus({ preventScroll: true });
+        target?.classList.add("is-focused");
+        window.setTimeout(() => target?.classList.remove("is-focused"), 1400);
+      });
+    }
+  });
+  return button;
+}
+
+function setMeetingEvidenceSelection(entityType, entityId) {
+  document.querySelectorAll("[data-evidence-id]").forEach((button) => {
+    button.setAttribute(
+      "aria-pressed",
+      String(button.dataset.evidenceType === entityType && button.dataset.evidenceId === entityId),
+    );
+  });
+}
+
+function officialEvidenceDetails(item) {
+  const evidence = item.official_evidence || [];
+  if (!evidence.length) {
+    return magazineElement("p", "official-link-empty", "현재 공식 회의록에서 직접 연결할 근거를 찾지 못했습니다.");
+  }
+  const details = magazineElement("details", "official-evidence-details", "");
+  details.append(magazineElement("summary", "", `관련 공식 발언 ${evidence.length}건 보기`));
+  for (const record of evidence) {
+    const row = magazineElement("article", "official-evidence-row", "");
+    const meta = magazineElement("div", "", "");
+    meta.append(
+      magazineElement("strong", "", `공식 발언 #${record.sequence_number} · ${record.speaker_name}`),
+      magazineElement("span", "", (record.agenda_titles || []).join(" · ") || "공식 회의록 본문"),
+    );
+    const tags = magazineElement("div", "official-evidence-tags", "");
+    for (const ministry of record.ministries || []) {
+      tags.append(magazineElement("b", "", ministry));
+    }
+    for (const term of record.shared_terms || []) {
+      tags.append(magazineElement("em", "", term));
+    }
+    row.append(meta, magazineElement("p", "", record.excerpt), tags);
+    details.append(row);
+  }
+  return details;
+}
+
+function renderOfficialBriefIntegration(integration) {
+  const section = magazineElement("section", "meeting-official-integration", "");
+  const head = magazineElement("header", "", "");
+  head.append(
+    magazineElement("span", "", "LIVE 분석 ↔ 공식 회의록"),
+    magazineElement("h5", "", "주제와 과제별 관련 공식 근거"),
+    magazineElement("p", "", integration.interpretation),
+  );
+  section.append(head);
+  const categories = magazineElement("div", "official-category-chips", "");
+  for (const category of integration.official_categories || []) {
+    const chip = magazineElement("span", "", category.title);
+    chip.append(magazineElement("b", "", String(category.official_utterance_count)));
+    chip.title = (category.ministries || []).join(" · ");
+    categories.append(chip);
+  }
+  if (categories.children.length) section.append(categories);
+
+  const grid = magazineElement("div", "official-integration-grid", "");
+  for (const [title, items, kind] of [
+    ["논의 주제", integration.topics || [], "topic"],
+    ["도출 과제", integration.tasks || [], "task"],
+  ]) {
+    const column = magazineElement("section", "official-integration-column", "");
+    column.append(magazineElement("h6", "", title));
+    for (const item of items) {
+      const related = item.status === "OFFICIAL_RELATED";
+      const card = magazineElement("article", `official-link-card ${related ? "is-related" : ""}`, "");
+      const cardHead = magazineElement("header", "", "");
+      cardHead.append(
+        magazineElement("span", "", related ? `관련 공식 발언 ${item.official_evidence.length}건` : "공식 근거 미연결"),
+        magazineElement("strong", "", item.title),
+      );
+      if (kind === "task" && (item.ministries || []).length) {
+        const owners = magazineElement("div", "official-link-owners", "");
+        for (const ministry of item.ministries) owners.append(magazineElement("b", "", ministry));
+        cardHead.append(owners);
+      }
+      card.append(cardHead, officialEvidenceDetails(item));
+      column.append(card);
+    }
+    if (!items.length) {
+      column.append(magazineElement("p", "official-link-empty", "연결할 LIVE 분석 항목이 없습니다."));
+    }
+    grid.append(column);
+  }
+  section.append(grid);
+  return section;
+}
+
+async function renderOfficialMeetingPanel(item) {
+  const view = document.querySelector("#meetingBriefSourceView");
+  if (!view) return;
+  document.querySelectorAll(".meeting-source-tabs button").forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.sourceTab === "official"));
+  });
+  view.replaceChildren(magazineElement("p", "meeting-brief-loading", "공식 자료와 LIVE 저장본의 매칭 상태를 확인하는 중입니다."));
+  try {
+    const response = await fetch(
+      "api/live/broadcasts/" + encodeURIComponent(item.broadcast_id) + "/brief/official",
+      { cache: "no-store" },
+    );
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "HTTP " + response.status);
+    const context = payload.context || {};
+    const integration = payload.integration;
+    const documentRecord = payload.document || {};
+    const panel = magazineElement("section", "meeting-official-view", "");
+    const status = magazineElement("header", "", "");
+    const integrated = payload.status === "INTEGRATED";
+    const documentStage = documentRecord.publication_stage === "FINAL"
+      ? "정본" : documentRecord.publication_stage === "TEMPORARY" ? "임시회의록" : "공식 자료";
+    status.append(
+      magazineElement(
+        "span", integrated ? "is-matched" : "",
+        integrated ? `${documentStage} 통합 완료`
+          : payload.status === "PUBLISHED" ? "공식본 분류 중" : "공식본 발행 대기",
+      ),
+      magazineElement("h4", "", payload.message),
+      magazineElement(
+        "p", "",
+        integrated
+          ? `${documentStage}의 공식 발언을 LIVE 잠정 분석과 나란히 연결했습니다. 연결 표시는 공식 승인이나 과제 확정을 뜻하지 않습니다.`
+          : "LIVE 저장본은 빠른 이해를 위한 잠정 정보이며 공식 자료가 준비되면 별도 출처로 연결됩니다.",
+      ),
+    );
+    const summary = integration?.summary || {};
+    const metricItems = integration ? [
+      ["공식 정책 발언", Number(summary.official_policy_utterances || 0).toLocaleString("ko-KR")],
+      ["주제 관련 근거", `${summary.related_topic_count || 0}/${summary.live_topic_count || 0}`],
+      ["과제 관련 근거", `${summary.related_task_count || 0}/${summary.live_task_count || 0}`],
+    ] : [
+      ["LIVE 최종 자막", Number(context.final_segment_count || 0).toLocaleString("ko-KR")],
+      ["공식본 직접 일치", Number(context.matched_segment_count || 0).toLocaleString("ko-KR")],
+      ["직접 일치율", Number(payload.match_rate || 0).toLocaleString("ko-KR") + "%"],
+    ];
+    const metrics = magazineElement("dl", "meeting-official-metrics", "");
+    for (const [label, value] of metricItems) {
+      const metric = document.createElement("div");
+      metric.append(magazineElement("dt", "", label), magazineElement("dd", "", value));
+      metrics.append(metric);
+    }
+    const links = magazineElement("div", "meeting-official-links", "");
+    if (context.official_url) {
+      const link = magazineElement("a", "", "공식 회의록 열기 ↗");
+      link.href = context.official_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      links.append(link);
+    }
+    if (context.official_pdf_url) {
+      const link = magazineElement("a", "", "공식 PDF 열기 ↗");
+      link.href = context.official_pdf_url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      links.append(link);
+    }
+    if (!links.children.length) links.append(magazineElement("small", "", "공식 원문이 발행되면 이곳에 바로 연결됩니다."));
+    const exact = payload.exact_match || {};
+    const exactNote = magazineElement(
+      "p", "meeting-official-exact-note",
+      `자막 문장 직접 일치 ${Number(exact.matched_segments || 0).toLocaleString("ko-KR")}/${Number(exact.final_segments || 0).toLocaleString("ko-KR")} · 관련 공식 근거 연결은 별도 보수 기준`,
+    );
+    panel.append(status, metrics, exactNote, links);
+    if (integration) {
+      panel.append(renderOfficialBriefIntegration(integration));
+    }
+    view.replaceChildren(panel);
+  } catch (error) {
+    view.replaceChildren(magazineElement("p", "meeting-result-empty", error.message));
+  }
+}
+
+function renderMeetingBrief(item, record) {
+  const stage = document.querySelector("#liveExpandedStage");
+  const brief = record?.brief || {};
+  stage.replaceChildren();
+  const root = magazineElement("section", "meeting-brief-view", "");
+  const hero = magazineElement("header", "meeting-brief-hero", "");
+  const identity = magazineElement("div", "", "");
+  const labels = magazineElement("div", "meeting-brief-labels", "");
+  const resultLabel = record?.provider === "deterministic"
+    ? "자동 정리 · 잠정"
+    : record?.provider === "pending" ? "결과 생성 대기" : "AI 요약 · 잠정";
+  labels.append(
+    magazineElement("span", "institution-label", item.institution_label || "국회"),
+    magazineElement("span", "provisional-label", resultLabel),
+    magazineElement("span", "", item.committee_name || "회의"),
+  );
+  identity.append(
+    labels,
+    officialTextElement("h3", "", brief.headline || item.title || "회의 결과 정리 중", brief, "headline"),
+    officialTextElement("p", "", brief.summary || "저장된 회의 결과를 정리하는 중입니다.", brief, "summary"),
+  );
+  const metrics = magazineElement("dl", "meeting-brief-metrics", "");
+  for (const [label, value] of [
+    ["핵심 주제", brief.topics?.length || 0],
+    ["도출 과제", brief.tasks?.filter((task) => task.status !== "RESOLVED").length || 0],
+    ["근거 발언", brief.utterance_count || item.utterance_count || 0],
+  ]) {
+    const metric = document.createElement("div");
+    metric.append(magazineElement("dt", "", label), magazineElement("dd", "", String(value)));
+    metrics.append(metric);
+  }
+  hero.append(identity, metrics);
+
+  const integrationBar = meetingIntegrationBar(item, record);
+
+  const sourceView = magazineElement("div", "meeting-source-view", "");
+  sourceView.id = "meetingBriefSourceView";
+  const openTasks = (brief.tasks || []).filter((task) => task.status !== "RESOLVED");
+
+  const topicTaskOverview = magazineElement("section", "meeting-topic-task-overview", "");
+  const overviewHead = magazineElement("header", "", "");
+  overviewHead.append(
+    magazineElement("strong", "", "요약된 논의 주제"),
+    magazineElement("strong", "", "도출 과제"),
+  );
+  topicTaskOverview.append(overviewHead);
+  const linkedTaskIds = new Set();
+  for (const topic of brief.topics || []) {
+    const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
+    const topicButton = meetingEvidenceButton(item, "topic", topic.id, "", topic.title);
+    topicButton.classList.add("meeting-topic-summary-button");
+    topicButton.dataset.focusTopicId = topic.id;
+    topicButton.append(officialTextElement("strong", "", topic.title, topic, "title"));
+    const taskCell = magazineElement("div", "meeting-topic-task-cell", "");
+    const linkedTasks = openTasks.filter((task) => task.topic_id ? task.topic_id === topic.id : task.topic_title === topic.title);
+    for (const task of linkedTasks) {
+      linkedTaskIds.add(task.id);
+      const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
+      taskButton.classList.add("meeting-topic-task-button");
+      taskButton.append(officialTextElement("strong", "", task.title, task, "title"));
+      taskButton.dataset.focusTopicId = topic.id;
+      taskCell.append(taskButton);
+    }
+    if (!linkedTasks.length) {
+      taskCell.append(magazineElement("span", "meeting-topic-no-task", "이 주제에서 확인된 도출 과제가 없습니다."));
+    }
+    overviewRow.append(topicButton, taskCell);
+    topicTaskOverview.append(overviewRow);
+  }
+  const unlinkedTasks = openTasks.filter((task) => !linkedTaskIds.has(task.id));
+  if (unlinkedTasks.length) {
+    const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
+    overviewRow.append(magazineElement("div", "meeting-topic-unlinked", "주제 연결 확인 필요"));
+    const taskCell = magazineElement("div", "meeting-topic-task-cell", "");
+    for (const task of unlinkedTasks) {
+      const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
+      taskButton.classList.add("meeting-topic-task-button");
+      taskButton.append(officialTextElement("strong", "", task.title, task, "title"));
+      taskButton.dataset.focusTopicId = (brief.topics || [])[0]?.id || "";
+      taskCell.append(taskButton);
+    }
+    overviewRow.append(taskCell);
+    topicTaskOverview.append(overviewRow);
+  }
+  if (!(brief.topics || []).length) {
+    topicTaskOverview.append(magazineElement("p", "meeting-result-empty", "요약된 논의 주제를 준비하는 중입니다."));
+  }
+
+  const actions = magazineElement("div", "meeting-beta-actions", "");
+  const fullTranscript = magazineElement("button", "", "전체 발언 기록 보기");
+  fullTranscript.type = "button";
+  fullTranscript.addEventListener("click", () => {
+    const row = document.querySelector('.broadcast-row[data-broadcast-id="' + item.broadcast_id + '"]');
+    expandEndedBroadcast(item, row || fullTranscript);
+  });
+  actions.append(
+    magazineElement("small", "", "주제나 과제를 선택하면 해당 주요 논의 내용과 근거 발언으로 이동합니다."),
+    fullTranscript,
+  );
+
+  const workspace = magazineElement("div", "meeting-result-workspace", "");
+  const topics = magazineElement("section", "meeting-topic-board", "");
+  topics.append(magazineElement("header", "", "주요 논의 내용"));
+  if (!brief.topics?.length) {
+    topics.append(magazineElement("p", "meeting-result-empty", "근거가 확인된 주요 주제가 없습니다."));
+  }
+  for (const topic of brief.topics || []) {
+    const card = magazineElement("article", "meeting-result-topic", "");
+    card.id = "meeting-topic-detail-" + topic.id;
+    card.tabIndex = -1;
+    const head = magazineElement("div", "meeting-result-topic-head", "");
+    head.append(
+      magazineElement("div", "", ""),
+      meetingEvidenceButton(item, "topic", topic.id, "근거 발언 " + (topic.evidence_ids?.length || 0) + "개", topic.title),
+    );
+    head.firstElementChild.append(
+      officialTextElement("h4", "", topic.title, topic, "title"),
+      officialTextElement("p", "", topic.summary, topic, "summary"),
+    );
+    const speakerList = magazineElement("div", "meeting-speaker-points", "");
+    for (const point of topic.speaker_points || []) {
+      const pointRow = meetingEvidenceButton(item, "speaker", point.id, "", topic.title + " · " + point.speaker_label);
+      pointRow.append(
+        magazineElement("strong", "", point.speaker_label || "화자 미확인"),
+        magazineElement("span", "", point.summary),
+        magazineElement("i", "", "발언 확인"),
+      );
+      speakerList.append(pointRow);
+    }
+    const topicTasks = openTasks.filter((task) => task.topic_id ? task.topic_id === topic.id : task.topic_title === topic.title);
+    for (const task of topicTasks) {
+      const taskRow = meetingEvidenceButton(item, "task", task.id, "", task.title);
+      taskRow.classList.add("meeting-topic-task-detail");
+      taskRow.append(
+        magazineElement("strong", "", "과제"),
+        officialTextElement("span", "", task.title, task, "title"),
+        magazineElement("i", "", "원문 보기"),
+      );
+      speakerList.append(taskRow);
+    }
+    card.append(head, speakerList);
+    topics.append(card);
+  }
+
+  const evidence = magazineElement("aside", "meeting-evidence-panel", "");
+  evidence.id = "meetingBriefEvidence";
+  renderEvidencePlaceholder(evidence);
+  workspace.append(topics, evidence);
+  sourceView.append(topicTaskOverview, actions, workspace);
+  root.append(hero, integrationBar, sourceView);
+  stage.append(root);
+
+  const firstTopic = brief.topics?.[0];
+  if (firstTopic) openMeetingBriefEvidence(item, "topic", firstTopic.id, firstTopic.title);
+}
+
+async function openMeetingBriefEvidence(item, entityType, entityId, title) {
+  const panel = document.querySelector("#meetingBriefEvidence");
+  if (!panel) return;
+  setMeetingEvidenceSelection(entityType, entityId);
+  panel.replaceChildren(
+    magazineElement("header", "", title),
+    magazineElement("p", "meeting-evidence-loading", "연결된 근거 발언을 불러오는 중입니다."),
+  );
+  try {
+    const params = new URLSearchParams({ entity_type: entityType, entity_id: entityId });
+    const response = await fetch(
+      "api/live/broadcasts/" + encodeURIComponent(item.broadcast_id) + "/brief/evidence?" + params,
+      { cache: "no-store" },
+    );
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "HTTP " + response.status);
+    panel.replaceChildren();
+    const head = magazineElement("header", "", "");
+    const close = magazineElement("button", "", "선택 해제");
+    close.type = "button";
+    close.addEventListener("click", () => {
+      setMeetingEvidenceSelection("", "");
+      renderEvidencePlaceholder(panel);
+    });
+    head.append(magazineElement("div", "", ""), close);
+    const officialPresentation = payload.source === "OFFICIAL_TRANSCRIPT_PRESENTATION";
+    const publicationLabel = payload.publication_stage === "FINAL"
+      ? "공식 최종본"
+      : payload.publication_stage === "TEMPORARY" ? "임시회의록 반영" : "공식 회의록";
+    const changedCount = (payload.items || []).reduce(
+      (total, utterance) => total + Number(utterance.change_count || 0), 0,
+    );
+    head.firstElementChild.append(
+      magazineElement(
+        "span", "",
+        officialPresentation
+          ? `발언 확인 · ${publicationLabel}`
+          : "발언 확인 · LIVE 저장본",
+      ),
+      magazineElement("strong", "", title),
+      magazineElement(
+        "small", "",
+        officialPresentation
+          ? `${payload.count}개 공식 발언 · LIVE 대비 수정 문구 ${changedCount}곳`
+          : payload.count + "개 발언 묶음 · 핵심 문구 최대 3개를 표시합니다",
+      ),
+    );
+    panel.append(head);
+    const evidenceItems = payload.items || [];
+    const highlightPlan = selectMeetingEvidenceHighlights(evidenceItems, title);
+    if (!evidenceItems.length) {
+      panel.append(magazineElement("p", "meeting-result-empty", "이 주제에 연결된 발언을 다시 대조하고 있습니다."));
+      return;
+    }
+    for (const [utteranceIndex, utterance] of evidenceItems.entries()) {
+      const official = utterance.source === "OFFICIAL_TRANSCRIPT_UTTERANCE";
+      const row = magazineElement(
+        "article",
+        `meeting-evidence-utterance${official ? " is-official" : ""}`,
+        "",
+      );
+      const speaker = magazineElement("div", "meeting-evidence-speaker", "");
+      const sourceLabel = official
+        ? utterance.publication_stage === "FINAL"
+          ? "공식 최종본"
+          : "임시회의록"
+        : (utterance.segment_count || 1) + "개 자막 연결";
+      speaker.append(
+        magazineElement("strong", "", utterance.speaker_label || "화자 미확인"),
+        magazineElement(
+          "small", "",
+          [utterance.speaker_role, sourceLabel].filter(Boolean).join(" · "),
+        ),
+      );
+      const transcript = magazineElement("p", "meeting-evidence-transcript", "");
+      if (official) {
+        const importantRange = highlightPlan.get(utteranceIndex);
+        if (Number(utterance.change_count || 0) > 0) {
+          appendOfficialInlineDiff(
+            transcript, utterance.text, utterance.diff_spans,
+          );
+        } else {
+          appendHighlightedPhrase(transcript, utterance.text, importantRange);
+        }
+      } else {
+        appendHighlightedPhrase(
+          transcript, utterance.text, highlightPlan.get(utteranceIndex),
+        );
+      }
+      row.append(speaker, transcript);
+      if (official && utterance.comparison_status === "LOW_CONFIDENCE") {
+        row.append(magazineElement(
+          "small", "meeting-evidence-compare-note",
+          "공식 문장을 반영했습니다 · LIVE 자막과 문장 구조 차이가 커 세부 변경 표시는 생략합니다.",
+        ));
+      } else if (official && Number(utterance.change_count || 0) > 0) {
+        row.append(magazineElement(
+          "small", "meeting-evidence-compare-note",
+          "색상 문구에 마우스를 올리거나 키보드로 선택하면 기존 LIVE 자막 문구를 확인할 수 있습니다.",
+        ));
+      }
+      panel.append(row);
+    }
+  } catch (error) {
+    panel.replaceChildren(
+      magazineElement("header", "", title),
+      magazineElement("p", "meeting-result-empty", error.message),
+    );
+  }
+}
+
+function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}, record = item.meeting_brief) {
+  const stage = document.querySelector("#liveExpandedStage");
+  if (!stage) return;
+  const brief = record?.brief || {};
+  const total = Number(progress.total_utterances || brief.utterance_count || item.utterance_count || 0);
+  const completed = Math.min(total, Number(progress.processed_utterances || 0));
+  const percent = total ? Math.round(completed / total * 100) : 0;
+  const phaseLabel = progress.phase === "SYNTHESIZING"
+    ? "전체 주제 통합 중"
+    : progress.status === "DEFERRED" || progress.status === "FAILED"
+      ? "재시도 대기 중" : "발언별 주제 분석 중";
+  const root = magazineElement("section", "meeting-brief-view meeting-brief-processing", "");
+  root.setAttribute("aria-busy", "true");
+  const preview = magazineElement("div", "meeting-processing-preview", "");
+  preview.setAttribute("aria-hidden", "true");
+  const hero = magazineElement("header", "meeting-brief-hero", "");
+  const identity = magazineElement("div", "", "");
+  identity.append(
+    magazineElement("span", "provisional-label", "AI 요약 · 잠정"),
+    magazineElement("h3", "", item.title || item.committee_name || "회의 결과"),
+    magazineElement("p", "", "회의에서 논의된 주제와 도출 과제를 발언 근거에 연결하고 있습니다."),
+  );
+  const metrics = magazineElement("dl", "meeting-brief-metrics", "");
+  for (const [label, value] of [["수집 발언", total], ["정리 완료", completed], ["진행률", `${percent}%`]]) {
+    const metric = document.createElement("div");
+    metric.append(magazineElement("dt", "", label), magazineElement("dd", "", String(value)));
+    metrics.append(metric);
+  }
+  hero.append(identity, metrics);
+  const integrationBar = meetingIntegrationBar(item, record);
+  const sourceView = magazineElement("div", "meeting-source-view", "");
+  const processingArea = magazineElement("section", "meeting-topic-task-overview meeting-topic-task-processing", "");
+  const processingHead = magazineElement("header", "", "");
+  processingHead.append(
+    magazineElement("strong", "", "요약된 논의 주제"),
+    magazineElement("strong", "", "도출 과제"),
+  );
+  processingArea.append(processingHead);
+  for (const width of ["92%", "74%", "86%", "64%", "81%", "70%"]) {
+    const line = magazineElement("i", "", "");
+    line.style.width = width;
+    preview.append(line);
+  }
+  const overlay = magazineElement("div", "meeting-processing-overlay", "");
+  overlay.setAttribute("role", "status");
+  overlay.setAttribute("aria-live", "polite");
+  const spinner = magazineElement("i", "meeting-processing-spinner", "");
+  spinner.setAttribute("aria-hidden", "true");
+  const progressTrack = magazineElement("div", "meeting-processing-progress", "");
+  const progressFill = magazineElement("i", "", "");
+  progressFill.style.width = `${percent}%`;
+  progressTrack.append(progressFill);
+  const loadingCard = magazineElement("div", "meeting-processing-card", "");
+  loadingCard.append(
+    spinner,
+    magazineElement("span", "", "방송 종료 · LIVE 저장본 분석"),
+    magazineElement("strong", "", "결과 정리 중"),
+    magazineElement("p", "meeting-processing-count", total ? `전체 ${total.toLocaleString("ko-KR")}개 발언 중 ${completed.toLocaleString("ko-KR")}개 정리 완료` : "저장된 발언 수를 확인하고 있습니다."),
+    progressTrack,
+    magazineElement("small", "", `${phaseLabel} · 완료되면 자동으로 결과를 표시합니다.`),
+  );
+  const processingBody = magazineElement("div", "meeting-processing-body", "");
+  processingBody.append(preview, overlay);
+  overlay.append(loadingCard);
+  processingArea.append(processingBody);
+  const actions = magazineElement("div", "meeting-beta-actions", "");
+  const fullTranscript = magazineElement("button", "", "전체 발언 기록 보기");
+  fullTranscript.type = "button";
+  fullTranscript.addEventListener("click", () => {
+    const selectedRow = document.querySelector('.broadcast-row[data-broadcast-id="' + item.broadcast_id + '"]');
+    expandEndedBroadcast(item, selectedRow || fullTranscript);
+  });
+  actions.append(
+    magazineElement("small", "", "주제·과제 정리 중에도 저장된 전체 발언은 확인할 수 있습니다."),
+    fullTranscript,
+  );
+  sourceView.append(processingArea, actions);
+  root.append(hero, integrationBar, sourceView);
+  stage.replaceChildren(root);
+}
+
+function meetingBriefIsReady(record) {
+  return record?.brief_status === "READY" || record?.provider === "mistral";
+}
+function expandMeetingBrief(item, row, options = {}) {
+  stopAssemblyTranscript();
+  assemblyTranscriptState.expanded = true;
+  assemblyTranscriptState.expandedMode = "BRIEF";
+  assemblyTranscriptState.selectedBroadcastId = item.broadcast_id;
+  document.querySelector("#liveExpanded").hidden = false;
+  document.querySelector("#liveExpandedTitle").textContent = item.title || item.committee_name || "회의 결과";
+  document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
+  row?.setAttribute?.("aria-current", "true");
+  if (!meetingBriefIsReady(item.meeting_brief)) renderMeetingBriefProcessing(item);
+  const loadBrief = () => {
+    const ready = fetch(
+      `api/live/broadcasts/${encodeURIComponent(item.broadcast_id)}/brief`,
+      { cache: "no-store" },
+    ).then(async (response) => {
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+      return payload;
+    });
+    ready.then((record) => {
+      if (assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+      if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
+      assemblyTranscriptState.briefPollTimer = null;
+      item.meeting_brief = record;
+      item.brief_progress = record.brief_progress || item.brief_progress || {};
+      if (!meetingBriefIsReady(record)) {
+        item.brief_status = "PROCESSING";
+        renderMeetingBriefProcessing(item, item.brief_progress, record);
+        assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
+        return;
+      }
+
+      item.brief_status = "READY";
+      renderMeetingBrief(item, record);
+      if (options.evidence) {
+        openMeetingBriefEvidence(
+          item, options.evidence.type, options.evidence.id, options.evidence.title,
+        );
+      }
+    }).catch(() => {
+      if (assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+      renderMeetingBriefProcessing(item, item.brief_progress, item.meeting_brief);
+      if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
+      assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
+    });
+  };
+  loadBrief();
+  if (!options.auto) {
+    document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
 function expandEndedBroadcast(item, row) {
@@ -591,7 +1862,8 @@ function expandEndedBroadcast(item, row) {
         ...segment,
         official_status: payload.official_context?.official_status,
       }));
-      applyTranscriptItems(segments);
+      applyTranscriptItems(segments, payload.utterances || []);
+      renderSpeakerEditor(broadcast, payload.speaker_options?.[String(broadcast.broadcast_id)] || []);
       if (!segments.length) {
         const waiting = document.querySelector(".transcript-waiting");
         if (waiting) waiting.textContent = "저장된 자막이 없는 종료 방송입니다.";
@@ -604,26 +1876,93 @@ function expandEndedBroadcast(item, row) {
   document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function applyTranscriptItems(items) {
-  const waiting = document.querySelector(".transcript-waiting");
-  if (items.length && waiting) waiting.remove();
+function applyTranscriptItems(items, preparedGroups = [], options = {}) {
+  const previousActiveUtteranceId = assemblyTranscriptState.lastActiveUtteranceId;
+  let activeSourceRevision = "";
   for (const item of items) {
-    transcriptLine(item);
-    assemblyTranscriptState.segments.set(item.segment_id, item);
-    const overlay = document.querySelector("#assemblyCaptionOverlay");
-    if (overlay) overlay.textContent = `${item.speaker_label || "발언자 확인 중"} · ${item.text}`;
-  }
-  renderLiveInsights();
-  const lines = document.querySelector("#assemblyTranscriptLines");
-  while (lines && lines.children.length > 80) {
-    const oldest = lines.firstElementChild;
-    if (!oldest) break;
-    for (const [key, value] of assemblyTranscriptState.nodes) {
-      if (value === oldest) assemblyTranscriptState.nodes.delete(key);
+    const parentId = String(item.source_parent_segment_id || "");
+    const sourceRevision = parentId ? `${parentId}:${item.cursor}` : "";
+    if (parentId && sourceRevision !== activeSourceRevision) {
+      for (const [segmentId, existing] of assemblyTranscriptState.segments) {
+        if (String(segmentId) === parentId
+            || String(existing.source_parent_segment_id || "") === parentId) {
+          assemblyTranscriptState.segments.delete(segmentId);
+        }
+      }
+      activeSourceRevision = sourceRevision;
+    } else if (!parentId) {
+      activeSourceRevision = "";
     }
-    oldest.remove();
+    assemblyTranscriptState.segments.set(item.segment_id, item);
   }
-  if (lines && items.length) lines.scrollTop = lines.scrollHeight;
+  for (const group of preparedGroups) {
+    if (group.summary_kind === "AI_CACHED") {
+      assemblyTranscriptState.cachedSummaries.set(group.utterance_id, {
+        summary: group.summary,
+        summary_kind: group.summary_kind,
+        summary_model: group.summary_model,
+        summary_provider: group.summary_provider,
+        live_insight: group.live_insight,
+      });
+    }
+  }
+  // Snapshot/review responses already contain the canonical server-side turns.
+  // Use those directly so the browser never invents different boundaries.
+  const groups = preparedGroups.length
+    ? normalizePreparedTranscriptGroups(preparedGroups)
+    : groupTranscriptSegments();
+  for (const group of groups) {
+    const cached = assemblyTranscriptState.cachedSummaries.get(group.utterance_id);
+    if (cached) Object.assign(group, cached);
+  }
+  renderTranscriptGroups(groups);
+  renderLiveInsights(document.querySelector("#assemblyLiveInsights"), groups);
+  const latest = groups.at(-1);
+  const activeUtteranceId = latest?.utterance_id || null;
+  assemblyTranscriptState.lastActiveUtteranceId = activeUtteranceId;
+  if (options.detectTransition !== false
+      && previousActiveUtteranceId
+      && activeUtteranceId
+      && previousActiveUtteranceId !== activeUtteranceId) {
+    assemblyTranscriptState.summaryRefreshAttempts = 0;
+    scheduleTranscriptSummaryRefresh(assemblyTranscriptState.generation, 3000);
+  }
+}
+
+function scheduleTranscriptSummaryRefresh(generation, delay = 3000) {
+  if (!assemblyTranscriptState.active || generation !== assemblyTranscriptState.generation) return;
+  if (assemblyTranscriptState.summaryRefreshTimer) window.clearTimeout(assemblyTranscriptState.summaryRefreshTimer);
+  assemblyTranscriptState.summaryRefreshTimer = window.setTimeout(() => {
+    refreshTranscriptPresentation(generation);
+  }, delay);
+}
+
+function refreshTranscriptPresentation(generation) {
+  if (!assemblyTranscriptState.active || generation !== assemblyTranscriptState.generation) return;
+  assemblyTranscriptState.summaryRefreshTimer = null;
+  fetch(`api/live/transcript/snapshot?${transcriptParams()}`, { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then((payload) => {
+      if (!assemblyTranscriptState.active || generation !== assemblyTranscriptState.generation) return;
+      const broadcastById = new Map((payload.broadcasts || []).map((item) => [item.broadcast_id, item]));
+      const items = (payload.segments || []).map((item) => ({ ...broadcastById.get(item.broadcast_id), ...item }));
+      applyTranscriptItems(items, payload.utterances || [], { detectTransition: false });
+      const closedTurn = (payload.utterances || []).at(-2);
+      if (closedTurn && closedTurn.summary_kind !== "AI_CACHED" && assemblyTranscriptState.summaryRefreshAttempts < 4) {
+        assemblyTranscriptState.summaryRefreshAttempts += 1;
+        scheduleTranscriptSummaryRefresh(generation, 4000);
+      } else {
+        assemblyTranscriptState.summaryRefreshAttempts = 0;
+      }
+    })
+    .catch(() => {
+      if (assemblyTranscriptState.summaryRefreshAttempts >= 4) return;
+      assemblyTranscriptState.summaryRefreshAttempts += 1;
+      scheduleTranscriptSummaryRefresh(generation, 4000);
+    });
 }
 
 function scheduleTranscriptDelta(generation, delay) {
@@ -649,11 +1988,15 @@ function pollTranscriptDelta(generation) {
 }
 
 function startAssemblyTranscript(liveItems) {
-  const committee = liveItems.length === 1 ? liveItems[0].committee_name : departmentScope.value;
-  if (assemblyTranscriptState.active && assemblyTranscriptState.committee === committee) return;
+  const committee = liveItems.length === 1 ? liveItems[0].committee_name : "";
+  const broadcastId = liveItems.length === 1 ? (liveItems[0].broadcast_id || "") : "";
+  if (assemblyTranscriptState.active
+      && assemblyTranscriptState.committee === committee
+      && assemblyTranscriptState.broadcastId === broadcastId) return;
   stopAssemblyTranscript();
   assemblyTranscriptState.active = true;
   assemblyTranscriptState.committee = committee;
+  assemblyTranscriptState.broadcastId = broadcastId;
   const generation = assemblyTranscriptState.generation;
   renderTranscriptShell(liveItems);
   fetch(`api/live/transcript/snapshot?${transcriptParams()}`, { cache: "no-store" })
@@ -667,10 +2010,14 @@ function startAssemblyTranscript(liveItems) {
       assemblyTranscriptState.pollIntervalMs = Number(payload.poll_interval_ms || 2000);
       const broadcastById = new Map((payload.broadcasts || []).map((item) => [item.broadcast_id, item]));
       const items = (payload.segments || []).map((item) => ({ ...broadcastById.get(item.broadcast_id), ...item }));
-      applyTranscriptItems(items);
+      const selectedBroadcast = payload.broadcasts?.[0];
+      renderSpeakerEditor(selectedBroadcast, payload.speaker_options?.[String(selectedBroadcast?.broadcast_id)] || []);
+      applyTranscriptItems(items, payload.utterances || []);
       if (!items.length) {
         const waiting = document.querySelector(".transcript-waiting");
-        if (waiting) waiting.textContent = "방송을 감지했습니다. 첫 공식 자막을 기다리고 있습니다.";
+        if (waiting) waiting.textContent = liveItems[0]?.institution === "EXECUTIVE"
+          ? "방송을 감지했습니다. 첫 AI 음성 전사를 준비하고 있습니다."
+          : "방송을 감지했습니다. 첫 공식 자막을 기다리고 있습니다.";
       }
       scheduleTranscriptDelta(generation, 0);
     })
@@ -691,74 +2038,621 @@ function renderDetectedAssemblyLive(items) {
   return true;
 }
 
-function addBroadcastRow(container, status, title, meta, onClick = null, broadcastId = null) {
-  const row = document.createElement(onClick ? "button" : "div");
-  row.className = `broadcast-row is-${status.toLowerCase()}`;
-  if (broadcastId) row.dataset.broadcastId = broadcastId;
-  if (broadcastId && broadcastId === assemblyTranscriptState.selectedBroadcastId) {
-    row.setAttribute("aria-current", "true");
-  }
-  if (onClick) {
+function addMeetingRailCard(container, card) {
+  const row = document.createElement(card.onClick ? "button" : "article");
+  row.className = "broadcast-row meeting-card is-" + card.state;
+  const tags = card.tags || [
+    { label: card.status, tone: card.state },
+    { label: card.institution, tone: "institution" },
+  ];
+  if (card.id) row.dataset.broadcastId = card.id;
+  if (card.id && card.id === assemblyTranscriptState.selectedBroadcastId) row.setAttribute("aria-current", "true");
+  if (card.onClick) {
     row.type = "button";
-    row.addEventListener("click", () => onClick(row));
+    row.addEventListener("click", () => card.onClick(row));
   }
+  row.setAttribute("aria-label", [...tags.map((tag) => tag.label), card.title, card.date, card.place, card.onClick ? "상세보기" : ""].filter(Boolean).join(" · "));
+  const top = magazineElement("span", "meeting-card-tags", "");
+  for (const tag of tags) {
+    top.append(magazineElement("em", `meeting-card-tag is-${tag.tone || "default"}`, tag.label));
+  }
+  const bottom = magazineElement("span", "meeting-card-bottom", "");
+  const meta = magazineElement("span", "meeting-card-meta", "");
+  meta.append(
+    magazineElement("small", "meeting-card-date", card.date || "일시 미정"),
+    magazineElement("small", "meeting-card-place", card.place || "장소 미표기"),
+  );
+  bottom.append(
+    meta,
+    magazineElement("i", "", card.onClick ? "상세보기" : card.hint || "상세 준비 중"),
+  );
+  const title = magazineElement("strong", "meeting-card-title", card.title);
+  title.title = card.title || "";
   row.append(
-    magazineElement("span", "broadcast-status", status),
-    magazineElement("strong", "", title),
-    magazineElement("small", "", meta),
-    magazineElement("i", "", onClick ? "열기" : ""),
+    top,
+    title,
+    bottom,
   );
   container.append(row);
 }
 
-function renderBroadcastRows(statusPayload, schedulePayload, historyPayload) {
+function expandScheduledMeeting(item, row) {
+  stopAssemblyTranscript();
+  assemblyTranscriptState.expanded = true;
+  assemblyTranscriptState.expandedMode = "SCHEDULE";
+  assemblyTranscriptState.selectedBroadcastId = String(item.id || item.meeting_id || item.title);
+  document.querySelector("#liveExpanded").hidden = false;
+  document.querySelector("#liveExpandedTitle").textContent = item.title || "예정 회의";
+  document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
+  row?.setAttribute?.("aria-current", "true");
+  const stage = document.querySelector("#liveExpandedStage");
+  const root = magazineElement("section", "meeting-schedule-view", "");
+  root.append(
+    magazineElement("span", "meeting-institution-badge", "국회"),
+    magazineElement("h3", "", item.title || "예정 회의"),
+    magazineElement("p", "", scheduleDateLabel(item) + " · " + (item.place || "장소 미표기")),
+    magazineElement("strong", "", "회의가 시작되면 LIVE 저장본이 연결되고, 종료 후 결과 요약이 이 자리에 표시됩니다."),
+  );
+  if (item.source_url) {
+    const link = magazineElement("a", "", "공식 일정 원문 보기 ↗");
+    link.href = item.source_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    root.append(link);
+  }
+  stage.replaceChildren(root);
+}
+
+function expandExecutiveBriefing(meeting, row, options = {}) {
+  stopAssemblyTranscript();
+  assemblyTranscriptState.expanded = true;
+  assemblyTranscriptState.expandedMode = "EXECUTIVE_OFFICIAL";
+  assemblyTranscriptState.selectedBroadcastId = "executive-" + (meeting.id || meeting.source_url || meeting.published_date);
+  document.querySelector("#liveExpanded").hidden = false;
+  document.querySelector("#liveExpandedTitle").textContent = meeting.title || "국무회의 결과";
+  document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
+  row?.setAttribute?.("aria-current", "true");
+  const stage = document.querySelector("#liveExpandedStage");
+  const root = magazineElement("section", "meeting-brief-view meeting-executive-view", "");
+  const hero = magazineElement("header", "meeting-brief-hero", "");
+  const identity = magazineElement("div", "", "");
+  const labels = magazineElement("div", "meeting-brief-labels", "");
+  labels.append(
+    magazineElement("span", "institution-label", "정부 정책 흐름"),
+    magazineElement("span", "official-label", "공식 자료"),
+  );
+  identity.append(
+    labels,
+    magazineElement("h3", "", meeting.title || "국무회의 결과"),
+    magazineElement("p", "", meeting.agendas?.[0]?.summary || "공식 배포 자료의 주요 안건입니다."),
+  );
+  hero.append(identity);
+  const tabs = magazineElement("div", "meeting-source-tabs", "");
+  const liveCapture = meeting.live_capture;
+  const liveMatch = meeting.live_match;
+  const liveTab = magazineElement(
+    "button", "", liveCapture
+      ? liveMatch?.status === "VERIFIED"
+        ? Number(liveCapture.segment_count || 0) > 0
+          ? "LIVE 저장본 연결됨 · 회차·날짜 일치"
+          : "LIVE 감지 기록 연결됨 · 자막 저장 전 감지"
+        : "LIVE 감지 기록 · 자막 없음"
+      : "LIVE 저장본 없음",
+  );
+  liveTab.type = "button";
+  liveTab.disabled = true;
+  liveTab.setAttribute("aria-selected", "false");
+  const officialTab = magazineElement("button", "", "국무회의 공식 결과 · 발행됨");
+  officialTab.type = "button";
+  officialTab.setAttribute("aria-selected", "true");
+  tabs.append(liveTab, officialTab);
+  const presidential = meeting.presidential_briefing;
+  const renderAgendaCard = (agenda) => {
+    const card = magazineElement("article", "", "");
+    if ((agenda.ministries || []).length) {
+      card.append(magazineElement("span", "", (agenda.ministries || []).join(" · ")));
+    }
+    card.append(
+      magazineElement("h4", "", agenda.topic || "공식 안건"),
+      magazineElement("b", "executive-summary-label", "핵심 내용"),
+      magazineElement("p", "", agenda.summary || "공식 요약 없음"),
+    );
+    for (const guidance of agenda.presidential_guidance || []) {
+      const directive = magazineElement("section", "presidential-guidance", "");
+      const directiveHeader = magazineElement("header", "", "");
+      directiveHeader.append(magazineElement(
+        "strong", "", guidance.label || "대통령 지시사항",
+      ));
+      const targets = magazineElement("div", "presidential-guidance-targets", "");
+      for (const ministry of guidance.target_ministries || []) {
+        targets.append(magazineElement("b", "", ministry));
+      }
+      directiveHeader.append(targets);
+      directive.append(
+        directiveHeader,
+        magazineElement("p", "", guidance.text || ""),
+      );
+      card.append(directive);
+    }
+    for (const briefing of agenda.related_ministry_briefings || []) {
+      const related = magazineElement("section", "related-ministry-briefing", "");
+      related.append(
+        magazineElement("span", "", "부처 브리핑"),
+        magazineElement("strong", "", briefing.title || "부처 공식 브리핑"),
+      );
+      if (briefing.summary) {
+        related.append(magazineElement("p", "", briefing.summary));
+      }
+      if (briefing.source_url) {
+        const link = magazineElement("a", "", "부처 브리핑 원문 보기 ↗");
+        link.href = briefing.source_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        related.append(link);
+      }
+      card.append(related);
+    }
+    return card;
+  };
+  const fallbackGroups = [
+    {
+      key: "ministry_reports", label: "부처보고",
+      description: "국무회의에서 관계 부처가 보고한 정책·현안",
+      items: (meeting.agendas || []).filter((agenda) => agenda.agenda_type === "REPORT"),
+    },
+    {
+      key: "deliberated_agendas", label: "심의안건",
+      description: "국무회의가 심의·의결한 법률안·대통령령안 등",
+      items: (meeting.agendas || []).filter((agenda) => agenda.agenda_type !== "REPORT"),
+    },
+    {
+      key: "spokesperson_briefing", label: "대변인 브리핑",
+      description: "같은 회차·날짜로 확인된 대통령실 공식 설명",
+      items: presidential ? [presidential] : [],
+    },
+  ];
+  const groups = meeting.content_groups?.length ? meeting.content_groups : fallbackGroups;
+  const view = magazineElement("section", "executive-agenda-view executive-content-groups", "");
+  let spokespersonView = null;
+  for (const group of groups) {
+    const groupSection = magazineElement(
+      "section", `executive-content-group is-${group.key || "other"}`, "",
+    );
+    const groupHeader = magazineElement("header", "", "");
+    const groupTitle = magazineElement("div", "", "");
+    groupTitle.append(
+      magazineElement("h4", "", group.label || "공식 내용"),
+      magazineElement("p", "", group.description || ""),
+    );
+    groupHeader.append(
+      groupTitle,
+      magazineElement("span", "", `${group.count ?? group.items?.length ?? 0}건`),
+    );
+    const groupBody = magazineElement("div", "executive-content-group-body", "");
+    if (group.key === "spokesperson_briefing") {
+      spokespersonView = groupSection;
+      for (const briefing of group.items || []) {
+        const presidentialCard = magazineElement("section", "presidential-briefing-view", "");
+        const head = magazineElement("header", "", "");
+        head.append(magazineElement(
+          "strong", "", briefing.title || "대통령실 공식 브리핑",
+        ));
+        if (briefing.source_url) {
+          const link = magazineElement("a", "", "대통령실 원문 ↗");
+          link.href = briefing.source_url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          head.append(link);
+        }
+        presidentialCard.append(head);
+        for (const message of (briefing.messages || []).slice(0, 3)) {
+          const article = magazineElement("article", "", "");
+          article.append(
+            magazineElement("span", "", message.speaker || "대통령"),
+            magazineElement("p", "", message.text || ""),
+          );
+          presidentialCard.append(article);
+        }
+        groupBody.append(presidentialCard);
+      }
+    } else {
+      for (const agenda of group.items || []) groupBody.append(renderAgendaCard(agenda));
+    }
+    if (!groupBody.children.length) {
+      groupBody.append(magazineElement(
+        "p", "meeting-result-empty", `확인된 ${group.label || "공식 내용"}이 없습니다.`,
+      ));
+    }
+    groupSection.append(groupHeader, groupBody);
+    view.append(groupSection);
+  }
+  if (meeting.source_url) {
+    const link = magazineElement("a", "meeting-official-source-link", "공식 배포 자료 원문 보기 ↗");
+    link.href = meeting.source_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    view.append(link);
+  }
+  root.append(hero, tabs);
+  root.append(view);
+  stage.replaceChildren(root);
+  if (options.focus === "presidential" && spokespersonView) {
+    window.requestAnimationFrame(() => spokespersonView.scrollIntoView({
+      behavior: "smooth", block: "start",
+    }));
+  }
+}
+
+
+function localIsoDate(value = new Date()) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function scheduleStartDate(item) {
+  const dateText = String(item.scheduled_date || "");
+  const timeText = String(item.start_time || item.time_text || "").match(/\d{1,2}:\d{2}/)?.[0];
+  if (!dateText || !timeText) return null;
+  const parsed = new Date(`${dateText}T${timeText}:00`);
+  return Number.isNaN(parsed.valueOf()) ? null : parsed;
+}
+
+function scheduleDateLabel(item) {
+  const start = scheduleStartDate(item);
+  if (!start) return item.time_text || item.start_time || "시간 미정";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(start);
+  target.setHours(0, 0, 0, 0);
+  const dayOffset = Math.round((target - today) / 86_400_000);
+  const dateLabel = dayOffset === 0
+    ? "오늘"
+    : dayOffset === 1
+      ? "내일"
+      : start.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
+  return `${dateLabel} · ${start.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function mergedOfficialSchedules(statusPayload, schedulePayload) {
+  const items = [...(schedulePayload.items || [])];
+  const today = localIsoDate();
+  const keys = new Set(items.map((item) => (
+    `${item.scheduled_date}|${item.committee_name}|${String(item.start_time || item.time_text || "").slice(0, 5)}`
+  )));
+  for (const liveItem of statusPayload.assembly?.items || []) {
+    if (liveItem.is_live || !liveItem.meeting_external_id || !String(liveItem.status_text || "").includes("예정")) continue;
+    const timeText = String(liveItem.status_text || liveItem.title || "").match(/\d{1,2}:\d{2}/)?.[0];
+    if (!timeText) continue;
+    const key = `${today}|${liveItem.committee_name}|${timeText}`;
+    if (keys.has(key)) continue;
+    keys.add(key);
+    items.push({
+      id: liveItem.meeting_external_id,
+      meeting_external_id: liveItem.meeting_external_id,
+      title: liveItem.title || liveItem.committee_name,
+      committee_name: liveItem.committee_name,
+      scheduled_date: today,
+      start_time: timeText,
+      time_text: timeText,
+      place: "국회 의사중계",
+      is_target_committee: true,
+      authority_status: "OFFICIAL",
+      source_url: "https://assembly.webcast.go.kr/",
+    });
+  }
+  return items;
+}
+
+function todayScheduledItems(statusPayload, schedulePayload) {
+  const now = new Date();
+  const today = localIsoDate(now);
+  const liveItems = (statusPayload.assembly?.items || []).filter((item) => item.is_live);
+  const liveIds = new Set(liveItems.map((item) => String(item.meeting_external_id || item.broadcast_id || "")));
+  const liveCommittees = new Set(liveItems.map((item) => item.committee_name));
+  return mergedOfficialSchedules(statusPayload, schedulePayload)
+    .filter((item) => {
+      if (!item.is_target_committee || String(item.scheduled_date || "") !== today) return false;
+      if (liveIds.has(String(item.meeting_external_id || item.id || ""))) return false;
+      const start = scheduleStartDate(item);
+      if (start && start < now) return false;
+      return !(start && start <= now && liveCommittees.has(item.committee_name));
+    })
+    .sort((left, right) => {
+      const leftStart = scheduleStartDate(left);
+      const rightStart = scheduleStartDate(right);
+      if (!leftStart) return 1;
+      if (!rightStart) return -1;
+      return leftStart - rightStart;
+    });
+}
+
+function todayScheduleRow(item) {
+  const row = magazineElement("button", "today-schedule-row", "");
+  row.type = "button";
+  const title = item.title || item.committee_name || "예정 회의";
+  const time = scheduleDateLabel(item).replace(/^오늘 · /, "");
+  const metadata = [time, item.committee_name, item.place].filter(Boolean).join(" · ");
+  row.append(
+    magazineElement("strong", "", title),
+    magazineElement("small", "", metadata || "시간·장소 확인 중"),
+  );
+  row.title = `${title} · ${metadata}`;
+  row.addEventListener("click", () => expandScheduledMeeting(item, row));
+  return row;
+}
+
+function setTodayScheduleOffset(animated) {
+  const track = document.querySelector("#todayScheduleTrack");
+  if (!track) return;
+  track.style.transition = animated
+    ? `transform ${TODAY_SCHEDULE_TRANSITION_MS}ms cubic-bezier(.22,.8,.32,1)`
+    : "none";
+  track.style.transform = `translateY(calc(var(--schedule-row-step) * -${todayScheduleState.index}))`;
+}
+
+function startTodayScheduleRotation(delay = TODAY_SCHEDULE_HOLD_MS) {
+  if (todayScheduleState.timer) window.clearTimeout(todayScheduleState.timer);
+  if (todayScheduleState.items.length <= 2) return;
+  todayScheduleState.timer = window.setTimeout(() => {
+    moveTodaySchedule(1);
+    startTodayScheduleRotation(
+      TODAY_SCHEDULE_TRANSITION_MS + TODAY_SCHEDULE_HOLD_MS,
+    );
+  }, delay);
+}
+
+function moveTodaySchedule(direction, fromUser = false) {
+  const count = todayScheduleState.items.length;
+  if (count <= 2) return;
+  if (todayScheduleState.resetTimer) window.clearTimeout(todayScheduleState.resetTimer);
+  if (direction < 0 && todayScheduleState.index === 0) {
+    todayScheduleState.index = count;
+    setTodayScheduleOffset(false);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      todayScheduleState.index = count - 1;
+      setTodayScheduleOffset(true);
+    }));
+  } else {
+    todayScheduleState.index += direction;
+    setTodayScheduleOffset(true);
+    if (todayScheduleState.index >= count) {
+      todayScheduleState.resetTimer = window.setTimeout(() => {
+        todayScheduleState.index = 0;
+        setTodayScheduleOffset(false);
+      }, TODAY_SCHEDULE_TRANSITION_MS + 40);
+    }
+  }
+  if (fromUser) startTodayScheduleRotation(
+    TODAY_SCHEDULE_TRANSITION_MS + TODAY_SCHEDULE_HOLD_MS,
+  );
+}
+
+function renderTodayScheduleBoard(statusPayload, schedulePayload) {
+  const items = todayScheduledItems(statusPayload, schedulePayload);
+  const signature = items.map((item) => [
+    item.id || item.meeting_id || item.title, item.start_time || item.time_text, item.title,
+  ].join("|")).join("::");
+  document.querySelector("#todayScheduleCount").textContent = `${items.length}건`;
+  if (signature === todayScheduleState.signature) return;
+  if (todayScheduleState.timer) window.clearTimeout(todayScheduleState.timer);
+  if (todayScheduleState.resetTimer) window.clearTimeout(todayScheduleState.resetTimer);
+  todayScheduleState.items = items;
+  todayScheduleState.signature = signature;
+  todayScheduleState.index = 0;
+  const track = document.querySelector("#todayScheduleTrack");
+  track.replaceChildren();
+  if (!items.length) {
+    track.append(magazineElement("p", "today-schedule-empty", "오늘 남은 예정 회의가 없습니다."));
+    setTodayScheduleOffset(false);
+    return;
+  }
+  const visibleItems = items.length > 2 ? items.concat(items.slice(0, 2)) : items;
+  for (const item of visibleItems) track.append(todayScheduleRow(item));
+  setTodayScheduleOffset(false);
+  startTodayScheduleRotation();
+}
+
+function executiveMeetingNumber(value) {
+  return String(value || "").match(/제\s*(\d+)\s*회/)?.[1] || null;
+}
+function normalizeExecutiveDate(value) {
+  const digits = String(value || "").replace(/[^0-9]/g, "");
+  if (digits.length < 8) return null;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+}
+function seoulDateFromTimestamp(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.valueOf())) return null;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(parsed);
+}
+function executiveOfficialMatchKey(item, liveRecord = false) {
+  const meetingNumber = executiveMeetingNumber(item?.title);
+  const meetingDate = liveRecord
+    ? normalizeExecutiveDate(item?.schedule_date)
+      || seoulDateFromTimestamp(item?.detected_at)
+    : normalizeExecutiveDate(item?.published_date);
+  return meetingNumber && meetingDate ? `${meetingNumber}|${meetingDate}` : null;
+}
+function renderBroadcastRows(statusPayload, historyPayload, executivePayload = { items: [] }) {
   const container = document.querySelector("#liveBroadcastRows");
   container.replaceChildren();
+  const officialExecutiveByKey = new Map();
+  const officialExecutiveByNumber = new Map();
+  const officialExecutiveById = new Map();
+  for (const meeting of executivePayload.items || []) {
+    const meetingNumber = executiveMeetingNumber(meeting.title);
+    const matchKey = executiveOfficialMatchKey(meeting);
+    if (matchKey) officialExecutiveByKey.set(matchKey, meeting);
+    if (meeting.news_id) officialExecutiveById.set(String(meeting.news_id), meeting);
+    if (meetingNumber) {
+      const candidates = officialExecutiveByNumber.get(meetingNumber) || [];
+      candidates.push(meeting);
+      officialExecutiveByNumber.set(meetingNumber, candidates);
+    }
+  }
+  const matchedExecutiveKeys = new Set();
   const liveItems = (statusPayload.assembly?.items || []).filter((item) => item.is_live);
   for (const item of liveItems) {
-    addBroadcastRow(
-      container,
-      "LIVE",
-      item.title || item.committee_name,
-      `${item.committee_name} · ${item.simulation ? "SIMULATION" : "공식 생중계"}`,
-      (row) => expandLiveBroadcast(item, row),
-      item.broadcast_id || item.meeting_external_id,
-    );
+    addMeetingRailCard(container, {
+      state: "live", status: "진행중 · 기록 중", institution: "국회",
+      tags: [
+        { label: "진행중", tone: "active" },
+        { label: "기록 중", tone: "recording" },
+        { label: "국회", tone: "institution" },
+      ],
+      title: item.title || item.committee_name,
+      date: "지금 LIVE", place: item.place || "국회", id: item.broadcast_id || item.meeting_external_id,
+      onClick: (row) => expandLiveBroadcast(item, row),
+    });
   }
   if (statusPayload.executive?.is_live === true) {
-    addBroadcastRow(container, "LIVE", statusPayload.executive.title || "국무회의 생중계", "KTV 공식 플레이어 · 스트림 계약 확인 중");
+    const executiveLive = {
+      ...statusPayload.executive,
+      institution: "EXECUTIVE",
+      committee_name: "국무회의",
+      place: statusPayload.executive.place || "KTV 국민방송",
+    };
+    addMeetingRailCard(container, {
+      state: "live", status: "진행중 · 기록 중", institution: "국무회의",
+      tags: [
+        { label: "진행중", tone: "active" },
+        { label: "기록 중", tone: "recording" },
+        { label: "국무회의", tone: "institution" },
+      ],
+      title: executiveLive.title || "국무회의 생중계",
+      date: "지금 LIVE", place: executiveLive.place,
+      id: executiveLive.external_id,
+      onClick: (row) => expandExecutiveLiveBroadcast(executiveLive, row),
+    });
+    const liveMatchKey = executiveOfficialMatchKey(executiveLive, true);
+    if (liveMatchKey && officialExecutiveByKey.has(liveMatchKey)) {
+      matchedExecutiveKeys.add(liveMatchKey);
+    }
   }
-  const now = new Date();
-  const scheduled = (schedulePayload.items || []).filter((item) => {
-    if (!item.is_target_committee || !item.start_time) return false;
-    const start = new Date(`${schedulePayload.date}T${item.start_time}`);
-    return !Number.isNaN(start.valueOf()) && start > now;
-  });
-  for (const item of scheduled.slice(0, 5)) {
-    addBroadcastRow(container, "예정", item.title, `${item.time_text || item.start_time} · ${item.committee_name} · ${item.place || "장소 미표기"}`);
+  for (const ended of historyPayload.items || []) {
+    const isExecutive = ended.institution === "EXECUTIVE";
+    const meetingNumber = isExecutive ? executiveMeetingNumber(ended.title) : null;
+    const matchKey = isExecutive ? executiveOfficialMatchKey(ended, true) : null;
+    const sameNumberCandidates = meetingNumber
+      ? officialExecutiveByNumber.get(meetingNumber) || []
+      : [];
+    const serverMatchedExecutive = ended.official_briefing_id
+      ? officialExecutiveById.get(String(ended.official_briefing_id)) : null;
+    const officialExecutive = serverMatchedExecutive || (matchKey
+      ? officialExecutiveByKey.get(matchKey)
+      : sameNumberCandidates.length === 1 ? sameNumberCandidates[0] : null);
+    if (officialExecutive) {
+      matchedExecutiveKeys.add(executiveOfficialMatchKey(officialExecutive));
+    }
+    ended.institution_label = isExecutive ? "국무회의" : "국회";
+    const startedAt = new Date(ended.detected_at);
+    const endedLabel = Number.isNaN(startedAt.valueOf())
+      ? "시작 시각 미상"
+      : `시작 ${startedAt.toLocaleString("ko-KR", {
+        month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })}`;
+    const hasProvisionalResult = ended.brief_status === "READY";
+    const hasOfficialResult = isExecutive
+      ? Boolean(officialExecutive)
+      : ended.official_status === "PUBLISHED";
+    const resultTags = [];
+    if (ended.capture_status === "POST_PROCESSING"
+        || (!hasProvisionalResult && !hasOfficialResult)) {
+      resultTags.push({ label: "정리중", tone: "processing" });
+    } else if (hasProvisionalResult) {
+      resultTags.push({ label: "비공식 정리", tone: "provisional" });
+    }
+    if (hasOfficialResult) {
+      resultTags.push({ label: "공식정리", tone: "official" });
+    }
+    addMeetingRailCard(container, {
+      state: "result", status: resultTags.map((tag) => tag.label).join(" · ") || "완료",
+      institution: ended.institution_label,
+      tags: [
+        { label: "완료", tone: "complete" },
+        ...resultTags,
+        { label: ended.institution_label, tone: "institution" },
+      ],
+      title: ended.title || ended.committee_name,
+      date: endedLabel,
+      place: ended.place || (isExecutive ? "KTV 국민방송" : "국회"),
+      id: ended.broadcast_id,
+      onClick: (row) => officialExecutive ? expandExecutiveBriefing({
+        ...officialExecutive,
+        live_capture: ended,
+        live_match: {
+          status: "VERIFIED",
+          match_type: matchKey ? "MEETING_NUMBER_AND_DATE" : "UNIQUE_MEETING_NUMBER",
+          meeting_number: meetingNumber,
+          meeting_date: matchKey?.split("|")[1] || null,
+        },
+      }, row) : isExecutive && Number(ended.segment_count || 0) === 0
+          && ended.capture_status !== "POST_PROCESSING"
+        ? expandEndedExecutiveBroadcast(ended, row)
+        : expandMeetingBrief(ended, row),
+    });
   }
-  for (const ended of (historyPayload.items || []).slice(0, 5)) {
-    const endedAt = new Date(ended.ended_at);
-    const endedLabel = Number.isNaN(endedAt.valueOf())
-      ? "종료 시각 미상"
-      : endedAt.toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
-    addBroadcastRow(
-      container,
-      "종료",
-      ended.title || ended.committee_name,
-      `${ended.committee_name || "국회"} · ${endedLabel} · 자막 ${ended.segment_count || 0}건 · ${officialStatusLabel(ended.official_status)}`,
-      (row) => expandEndedBroadcast(ended, row),
-      ended.broadcast_id,
-    );
+  for (const meeting of (executivePayload.items || []).slice(0, 4)) {
+    const matchKey = executiveOfficialMatchKey(meeting);
+    if (matchKey && matchedExecutiveKeys.has(matchKey)) continue;
+    const identity = "executive-" + (meeting.id || meeting.source_url || meeting.published_date);
+    addMeetingRailCard(container, {
+      state: "result", status: "공식 정리", institution: "국무회의",
+      tags: [
+        { label: "완료", tone: "complete" },
+        { label: "공식정리", tone: "official" },
+        { label: "국무회의", tone: "institution" },
+      ],
+      title: meeting.title || "국무회의",
+      date: meeting.published_date || "",
+      place: meeting.place || "장소 미표기",
+      id: identity,
+      onClick: (row) => expandExecutiveBriefing(meeting, row),
+    });
+  }
+  const preferred = (historyPayload.items || []).find((item) => item.meeting_brief);
+  if (preferred && !assemblyTranscriptState.expanded && !assemblyTranscriptState.betaAutoOpened) {
+    assemblyTranscriptState.betaAutoOpened = true;
+    const row = container.querySelector('.broadcast-row[data-broadcast-id="' + preferred.broadcast_id + '"]');
+    expandMeetingBrief(preferred, row, { auto: true });
   }
   if (!container.children.length) {
-    container.append(magazineElement("p", "broadcast-empty", "현재 확인된 LIVE·예정·종료 방송 기록이 없습니다."));
+    container.append(magazineElement("p", "broadcast-empty", "현재 확인된 진행 중·결과 회의가 없습니다."));
   }
+}
+
+function meetingBriefTasks(historyItems = []) {
+  return historyItems.flatMap((broadcast) => {
+    const brief = broadcast.meeting_brief?.brief;
+    return (brief?.tasks || [])
+      .filter((task) => task.status !== "RESOLVED")
+      .map((task) => ({
+        ...task,
+        task: task.title,
+        topic: task.topic_title || "주제 미분류",
+        broadcast_id: broadcast.broadcast_id,
+        broadcast_title: broadcast.title,
+        committee_name: broadcast.committee_name,
+        lifecycle_status: broadcast.lifecycle_status,
+        brief_entity_id: task.id,
+        broadcast,
+      }));
+  });
 }
 
 let followUpPayload = { items: [] };
 
 function openTaskBroadcast(item, row) {
+  if (item.brief_entity_id && item.broadcast) {
+    expandMeetingBrief(item.broadcast, row, {
+      evidence: { type: "task", id: item.brief_entity_id, title: item.task },
+    });
+    return;
+  }
   liveInsightFilterState.mode = "OPEN";
   liveInsightFilterState.ministry = item.ministries?.length === 1 ? item.ministries[0] : "";
   const broadcastRow = document.querySelector(`.broadcast-row[data-broadcast-id="${item.broadcast_id}"]`);
@@ -769,11 +2663,9 @@ function openTaskBroadcast(item, row) {
   const broadcast = {
     ...item,
     title: item.broadcast_title,
-    simulation: item.simulation,
-    thumbnail_url: item.simulation ? "assets/magazine/sim-committee-hearing.png" : null,
   };
   if (item.lifecycle_status === "LIVE") expandLiveBroadcast(broadcast, row);
-  else expandEndedBroadcast(broadcast, row);
+  else expandMeetingBrief(broadcast, row);
 }
 
 function followUpTaskRow(item) {
@@ -810,32 +2702,134 @@ function renderFollowUpTasks(payload = followUpPayload) {
   for (const item of visible.slice(0, 8)) container.append(followUpTaskRow(item));
 }
 
+function renderCollectionOverview(payload) {
+  const container = document.querySelector("#liveCollectionOverview");
+  if (!container || !payload) return;
+  const values = container.querySelectorAll("strong");
+  const hours = Number(payload.captured_seconds || 0) / 3600;
+  const metrics = [
+    `${Number(payload.broadcast_count || 0).toLocaleString("ko-KR")}건`,
+    `${hours.toFixed(1)}시간`,
+    `${Number(payload.segment_count || 0).toLocaleString("ko-KR")}개`,
+    `${Number(payload.utterance_count || 0).toLocaleString("ko-KR")}묶음`,
+  ];
+  values.forEach((node, index) => { node.textContent = metrics[index]; });
+  const start = payload.period_start ? new Date(payload.period_start).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "수집 전";
+  const end = payload.period_end ? new Date(payload.period_end).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : "";
+  const named = Number(payload.named_speaker_count || 0);
+  const sourceSpeakers = Number(payload.source_speaker_count || 0);
+  container.querySelector("p").innerHTML = `<span><b>${start}${end && end !== start ? `–${end}` : ""}</b> 수집분 · 화자 코드 ${sourceSpeakers}개 중 이름 확정 ${named}개</span>`;
+}
+
+function formatUsageValue(value, unit) {
+  const amount = Number(value || 0);
+  if (unit === "requests") return `${amount.toLocaleString("ko-KR")}회`;
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(amount >= 10_000_000 ? 1 : 2)}M`;
+  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K`;
+  return amount.toLocaleString("ko-KR");
+}
+
+function renderAiUsage(payload) {
+  document.querySelector("#aiPlatform").textContent = payload.provider_label || payload.provider || "AI 요약";
+  document.querySelector("#aiModel").textContent = payload.model || "모델 미설정";
+  const period = payload.period === "DAILY" ? "오늘" : "이번 달";
+  document.querySelector("#aiUsageAmount").textContent = `${period} · ${Number(payload.request_count || 0).toLocaleString("ko-KR")}회 호출`;
+  const used = formatUsageValue(payload.used, payload.unit);
+  const limitNode = document.querySelector("#aiUsageLimit");
+  if (payload.provider === "mistral") {
+    limitNode.textContent = `${used} 토큰 · $${Number(payload.cost_usd || 0).toFixed(2)} / $${Number(payload.credit_usd || 0).toFixed(2)}`;
+    limitNode.title = `입력 ${Number(payload.input_tokens || 0).toLocaleString("ko-KR")} · 출력 ${Number(payload.output_tokens || 0).toLocaleString("ko-KR")} 토큰`;
+  } else {
+    const limit = formatUsageValue(payload.limit, payload.unit);
+    limitNode.textContent = `${used} / ${limit}`;
+    limitNode.title = `${Number(payload.used || 0).toLocaleString("ko-KR")} / ${Number(payload.limit || 0).toLocaleString("ko-KR")}`;
+  }
+  const reset = new Date(payload.resets_at);
+  document.querySelector("#aiUsageReset").textContent = Number.isNaN(reset.valueOf())
+    ? "갱신 시간 확인 필요"
+    : `${reset.toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} 갱신`;
+  document.querySelector("#aiUsageMeter").style.width = `${Math.min(100, Math.max(0, Number(payload.usage_percent || 0)))}%`;
+  document.querySelector("#aiUsage").classList.toggle("is-unavailable", payload.status === "UNAVAILABLE");
+}
+
+function loadAiUsage() {
+  return fetch("api/ai/usage", { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
+    .then(renderAiUsage)
+    .catch(() => {
+      document.querySelector("#aiUsageAmount").textContent = "사용량 확인 필요";
+      document.querySelector("#aiUsage").classList.add("is-unavailable");
+    });
+}
+
 function loadLiveStatus() {
   const getJson = (url, fallback) => fetch(url, { cache: "no-store" })
     .then((response) => response.ok ? response.json() : fallback)
     .catch(() => fallback);
-  const historyParams = new URLSearchParams({ limit: "5" });
-  if (departmentScope.value) historyParams.set("committee", departmentScope.value);
+  const historyParams = new URLSearchParams({
+    limit: String(MEETING_HISTORY_INITIAL_LIMIT), offset: "0",
+  });
   return Promise.all([
     getJson("api/live/status", null),
     getJson("api/schedule/today", { items: [] }),
-    getJson(`api/live/broadcasts?${historyParams}`, { items: [] }),
-    getJson(`api/live/tasks?${historyParams}`, { items: [] }),
-  ]).then(([payload, schedule, history, tasks]) => {
+    getJson("api/live/broadcasts?" + historyParams, { items: [] }),
+    getJson("api/executive/briefings?limit=5", { items: [] }),
+    getJson("api/live/transcript/snapshot", { broadcasts: [] }),
+  ]).then(([payload, schedule, history, executive, activeTranscript]) => {
       if (!payload) throw new Error("live status unavailable");
+      const testExecutive = (activeTranscript.broadcasts || []).find(
+        (item) => item.lifecycle_status === "LIVE" && item.source_system === "poc07.test",
+      );
+      if (testExecutive && payload.executive?.is_live !== true) {
+        payload.executive = {
+          ...(payload.executive || {}),
+          ...testExecutive,
+          is_live: true,
+          institution: "EXECUTIVE",
+          source_status: "TEST",
+          place: "가상 국무회의 테스트",
+        };
+      }
       const assemblyLive = renderDetectedAssemblyLive(payload.assembly.items || []);
-      renderBroadcastRows(payload, schedule, history);
-      renderFollowUpTasks(tasks);
-      const demoLiveCount = Number(payload.assembly.demo_live_count || 0);
+      renderTodayScheduleBoard(payload, schedule);
+      const merged = new Map(
+        meetingRailHistoryState.items.map((item) => [item.broadcast_id, item]),
+      );
+      for (const item of history.items || []) merged.set(item.broadcast_id, item);
+      meetingRailHistoryState.items = [...merged.values()].sort(
+        (left, right) => new Date(right.detected_at) - new Date(left.detected_at),
+      );
+      meetingRailHistoryState.nextOffset = Math.max(
+        meetingRailHistoryState.nextOffset, Number(history.next_offset || 0),
+      );
+      if (!meetingRailHistoryState.initialized) {
+        meetingRailHistoryState.hasMore = Boolean(history.has_more);
+        meetingRailHistoryState.initialized = true;
+      } else if (!meetingRailHistoryState.endReached) {
+        meetingRailHistoryState.hasMore = Boolean(history.has_more);
+      }
+      meetingRailHistoryState.statusPayload = payload;
+      meetingRailHistoryState.executivePayload = executive;
+      const meetingRail = document.querySelector("#liveBroadcastRows");
+      const preservedScrollLeft = meetingRail?.scrollLeft || 0;
+      renderBroadcastRows(
+        payload, { ...history, items: meetingRailHistoryState.items }, executive,
+      );
+      window.requestAnimationFrame(() => {
+        if (meetingRail) meetingRail.scrollLeft = preservedScrollLeft;
+      });
       const anyLive = assemblyLive || payload.executive.is_live === true;
       const liveLabel = assemblyLive
-        ? demoLiveCount > 0
-          ? ` 자동 기록 중 · E2E 데모 LIVE ${demoLiveCount}건 · ${payload.assembly.source_time}`
-          : ` 자동 기록 중 · 국회 LIVE ${payload.assembly.live_count}건 · ${payload.assembly.source_time}`
+        ? ` 자동 기록 중 · 국회 LIVE ${payload.assembly.live_count}건 · ${payload.assembly.source_time}`
         : payload.executive.is_live === true
           ? ` 자동 기록 중 · 국무회의 LIVE · ${payload.assembly.source_time}`
           : ` 현재 대상 생방송 없음 · ${payload.assembly.source_time}`;
       liveNavTab?.classList.toggle("has-live", anyLive);
+      const liveStatus = document.querySelector("#topLiveStatus");
+      if (liveStatus) liveStatus.textContent = anyLive ? "생방송 중" : "방송없음";
       if (liveNavTab) {
         liveNavTab.title = liveLabel.trim();
         liveNavTab.setAttribute("aria-label", anyLive ? `LIVE 방송 중. ${liveLabel}` : `LIVE. ${liveLabel}`);
@@ -843,6 +2837,8 @@ function loadLiveStatus() {
     })
     .catch(() => {
       liveNavTab?.classList.remove("has-live");
+      const liveStatus = document.querySelector("#topLiveStatus");
+      if (liveStatus) liveStatus.textContent = "방송없음";
       liveNavTab?.setAttribute("aria-label", "LIVE 방송 상태 확인 필요");
     });
 }
@@ -887,6 +2883,91 @@ function loadOfficialRotations(scope = "") {
 }
 
 document.querySelector("#liveExpandedClose").addEventListener("click", collapseLiveExpansion);
-loadOfficialRotations().finally(loadLiveStatus);
+loadLiveStatus();
+loadAiUsage();
 window.setInterval(loadLiveStatus, 30_000);
-document.querySelector("#followUpMinistry").addEventListener("change", () => renderFollowUpTasks());
+window.setInterval(loadAiUsage, 60_000);
+function scrollMeetingRailByOneCard(rail, direction) {
+  const card = rail?.querySelector(".meeting-card.broadcast-row");
+  if (!card) return;
+  const styles = window.getComputedStyle(rail);
+  const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
+  const cardStep = card.getBoundingClientRect().width + gap;
+  rail.scrollBy({ left: direction * cardStep, behavior: "smooth" });
+}
+
+function meetingRailNearLoadedEnd(rail) {
+  const card = rail?.querySelector(".meeting-card.broadcast-row");
+  if (!card) return false;
+  const styles = window.getComputedStyle(rail);
+  const gap = Number.parseFloat(styles.columnGap || styles.gap || "0") || 0;
+  const threshold = (card.getBoundingClientRect().width + gap) * 2;
+  return rail.scrollWidth - rail.clientWidth - rail.scrollLeft <= threshold;
+}
+
+async function loadMoreMeetingHistory() {
+  if (
+    meetingRailHistoryState.loading
+    || !meetingRailHistoryState.hasMore
+    || meetingRailHistoryState.endReached
+  ) return false;
+  meetingRailHistoryState.loading = true;
+  const rail = document.querySelector("#liveBroadcastRows");
+  rail?.setAttribute("aria-busy", "true");
+  try {
+    const params = new URLSearchParams({
+      limit: String(MEETING_HISTORY_PAGE_SIZE),
+      offset: String(meetingRailHistoryState.nextOffset),
+    });
+    const response = await fetch("api/live/broadcasts?" + params, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const page = await response.json();
+    const before = meetingRailHistoryState.items.length;
+    const merged = new Map(
+      meetingRailHistoryState.items.map((item) => [item.broadcast_id, item]),
+    );
+    for (const item of page.items || []) merged.set(item.broadcast_id, item);
+    meetingRailHistoryState.items = [...merged.values()].sort(
+      (left, right) => new Date(right.detected_at) - new Date(left.detected_at),
+    );
+    meetingRailHistoryState.nextOffset = Number(
+      page.next_offset ?? meetingRailHistoryState.nextOffset,
+    );
+    meetingRailHistoryState.hasMore = Boolean(page.has_more);
+    meetingRailHistoryState.endReached = !meetingRailHistoryState.hasMore;
+    const scrollLeft = rail?.scrollLeft || 0;
+    renderBroadcastRows(
+      meetingRailHistoryState.statusPayload,
+      { ...page, items: meetingRailHistoryState.items },
+      meetingRailHistoryState.executivePayload,
+    );
+    const refreshed = document.querySelector("#liveBroadcastRows");
+    if (refreshed) refreshed.scrollLeft = scrollLeft;
+    return meetingRailHistoryState.items.length > before;
+  } catch (_error) {
+    return false;
+  } finally {
+    meetingRailHistoryState.loading = false;
+    document.querySelector("#liveBroadcastRows")?.removeAttribute("aria-busy");
+  }
+}
+
+for (const [selector, direction] of [["#meetingRailPrev", -1], ["#meetingRailNext", 1]]) {
+  document.querySelector(selector)?.addEventListener("click", async () => {
+    const rail = document.querySelector("#liveBroadcastRows");
+    if (direction > 0 && meetingRailNearLoadedEnd(rail)) {
+      await loadMoreMeetingHistory();
+    }
+    scrollMeetingRailByOneCard(rail, direction);
+  });
+}
+
+for (const [selector, direction] of [["#todaySchedulePrev", -1], ["#todayScheduleNext", 1]]) {
+  document.querySelector(selector)?.addEventListener("click", () => moveTodaySchedule(direction, true));
+}
+
+document.querySelector("#todayScheduleViewport")?.addEventListener("keydown", (event) => {
+  if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+  event.preventDefault();
+  moveTodaySchedule(event.key === "ArrowUp" ? -1 : 1, true);
+});

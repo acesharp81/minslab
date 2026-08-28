@@ -10,9 +10,11 @@ from urllib import request as url_request
 
 from .national_assembly.base import AdapterError, SourcePayload
 
-
 ASSEMBLY_LIVE_LIST_URL = "https://assembly.webcast.go.kr/main/service/live_list.asp"
 KTV_REFERENCE_URL = "https://www.ktv.go.kr/content/player?content_id=758125"
+KTV_ONAIR_SCHEDULE_URL = "https://www.ktv.go.kr/onair/scheduleAjax"
+KTV_ONAIR_PAGE_URL = "https://www.ktv.go.kr/onair/tv"
+KTV_LIVE_STREAM_URL = "https://hlive.ktv.go.kr/live/klive_h.stream/playlist.m3u8"
 ASSEMBLY_LIVE_PLAY_URL = "https://assembly.webcast.go.kr/main/service/live_play.asp"
 PARSER_VERSION = "live-source-probe/1.0"
 TARGET_NAMES = {
@@ -108,6 +110,58 @@ def parse_ktv_player_contract(content: bytes) -> dict[str, object]:
         "machine_caption_track_detected": any(marker.lower() in text.lower() for marker in machine_caption_markers),
         "caption_contract_status": "UNVERIFIED",
         "live_detection_status": "PAGE_DISCOVERY_ONLY",
+    }
+
+
+def parse_ktv_onair_schedule(content: bytes) -> dict[str, object]:
+    """Return the official current/upcoming State Council broadcast contract."""
+    try:
+        rows = json.loads(content.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AdapterError("invalid KTV on-air schedule JSON") from exc
+    if not isinstance(rows, list):
+        raise AdapterError("KTV on-air schedule is not a list")
+    council_rows = []
+    for raw in rows:
+        if not isinstance(raw, dict):
+            continue
+        title = " ".join(str(value or "").strip() for value in (
+            raw.get("program_name"), raw.get("bis_pgm_seq_title"),
+        )).strip()
+        if "국무회의" not in title:
+            continue
+        council_rows.append({
+            "external_id": "ktv-{today}-{program_id}-{program_seq}".format(
+                today=str(raw.get("today") or "unknown"),
+                program_id=str(raw.get("program_id") or "unknown"),
+                program_seq=str(raw.get("program_seq") or "0"),
+            ),
+            "title": str(raw.get("bis_pgm_seq_title") or title).strip(),
+            "program_name": str(raw.get("program_name") or "").strip(),
+            "program_id": str(raw.get("program_id") or "").strip(),
+            "program_seq": raw.get("program_seq"),
+            "schedule_date": str(raw.get("today") or "").strip(),
+            "start_time": str(raw.get("time") or "").strip(),
+            "end_time": str(raw.get("next_time") or "").strip(),
+            "is_live": str(raw.get("onair") or "") == "ONAIR",
+            "internet_available": str(raw.get("internet_yn") or "") == "Y",
+        })
+    live = next((
+        item for item in council_rows
+        if item["is_live"] and item["internet_available"]
+    ), None)
+    return {
+        "institution": "EXECUTIVE",
+        "is_live": live is not None,
+        "source_status": "OFFICIAL",
+        "caption_contract_status": "UNAVAILABLE_NO_MACHINE_CAPTIONS",
+        "ai_transcription_status": "READY_TO_CAPTURE" if live else "STANDBY",
+        "live_detection_status": "OFFICIAL_SCHEDULE_ONAIR",
+        "stream_url": KTV_LIVE_STREAM_URL if live else None,
+        "source_url": KTV_ONAIR_PAGE_URL,
+        "current": live,
+        "scheduled_items": council_rows,
+        **(live or {}),
     }
 
 

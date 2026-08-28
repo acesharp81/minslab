@@ -189,7 +189,10 @@ class ReviewRepository:
         scope: str | None = None,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
-        where = ["broadcast.review_status = 'COMPLETED'"]
+        where = [
+            "broadcast.review_status = 'COMPLETED'",
+            "broadcast.source_system <> 'poc07.demo'",
+        ]
         parameters: list[Any] = []
         if institution:
             where.append("broadcast.institution = %s")
@@ -207,7 +210,8 @@ class ReviewRepository:
                 ORDER BY broadcast_id, generated_at DESC, id DESC
             )
             SELECT topic.id, broadcast.institution, broadcast.title,
-                   broadcast.detected_at, topic.speaker_label, topic.major_quote,
+                   broadcast.detected_at,
+                   COALESCE(speaker_override.display_name, topic.speaker_label), topic.major_quote,
                    topic.topic, topic.ministries, topic.committees,
                    broadcast.thumbnail_url, review.generated_at,
                    review.classification_method, topic.segment_count,
@@ -220,6 +224,9 @@ class ReviewRepository:
             FROM latest_review review
             JOIN live_broadcasts broadcast ON broadcast.id = review.broadcast_id
             JOIN broadcast_review_topics topic ON topic.review_id = review.id
+            LEFT JOIN transcript_speaker_overrides speaker_override
+              ON speaker_override.broadcast_id = broadcast.id
+             AND speaker_override.source_speaker_label = COALESCE(topic.speaker_label, '')
             LEFT JOIN LATERAL (
                 SELECT publication.official_url, publication.pdf_url,
                        publication.conference_id, publication.body_contract_status,
@@ -256,14 +263,11 @@ class ReviewRepository:
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         for item in items:
             item["meeting_date"] = item["meeting_date"].date().isoformat()
-            item["simulation"] = item["source_system"] == "poc07.demo"
             image_url = item.get("image_url")
-            allowed_demo_image = item["simulation"] and isinstance(image_url, str) and image_url.startswith("assets/magazine/")
-            if not isinstance(image_url, str) or not (image_url.startswith("https://") or allowed_demo_image):
+            if not isinstance(image_url, str) or not image_url.startswith("https://"):
                 item["image_url"] = None
             item["image_alt"] = (
-                "실제 방송이 아닌 E2E 데모 이미지" if item["simulation"]
-                else "국회 공식 생중계 썸네일" if item["image_url"] else ""
+                "국회 공식 생중계 썸네일" if item["image_url"] else ""
             )
             item["authority_status"] = "PROVISIONAL"
             item["reconciliation_status"] = "UNRESOLVED"

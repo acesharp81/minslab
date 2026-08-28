@@ -794,7 +794,7 @@ async function initializeDashboard() {
 }
 
 initializeDashboard();
-document.querySelector("#refreshButton").addEventListener("click", initializeDashboard);
+document.querySelector("#refreshButton")?.addEventListener("click", initializeDashboard);
 
 dashboard.executiveFilterForm.addEventListener("submit", (event) => {
   event.preventDefault();

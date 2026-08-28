@@ -43,23 +43,6 @@ class LiveSchemaTests(unittest.TestCase):
         field = LiveBroadcastObservation.__dataclass_fields__["source_system"]
         self.assertEqual(field.default, "assembly.webcast.go.kr")
 
-    def test_demo_replay_uses_an_isolated_source_system(self):
-        script = (
-            Path(__file__).parents[1]
-            / "app"
-            / "ingestion"
-            / "demo_live_replay.py"
-        ).read_text(encoding="utf-8")
-        self.assertIn('source_system="poc07.demo"', script)
-        self.assertIn('"simulation": True', script)
-        self.assertIn('"task_status": "OPEN"', script)
-        repository = (
-            Path(__file__).parents[1] / "app" / "db" / "live_repository.py"
-        ).read_text(encoding="utf-8")
-        self.assertIn("observation.source_system", repository)
-        self.assertIn("WHERE source_system = %s AND lifecycle_status = 'LIVE'", repository)
-
-
     def test_ended_broadcast_history_has_list_and_detail_contracts(self):
         app_source = (Path(__file__).parents[1] / "app" / "main.py").read_text(
             encoding="utf-8"
@@ -70,11 +53,29 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn('@app.get("/api/live/broadcasts"', app_source)
         self.assertIn('@app.get("/api/live/broadcasts/{broadcast_id}/transcript"', app_source)
         self.assertIn("def list_ended_broadcasts", repository)
+        self.assertIn("official_integration_updated_at", repository)
+        self.assertIn("ORDER BY broadcast.detected_at DESC", repository)
+        self.assertIn("LIMIT %s OFFSET %s", repository)
+        self.assertIn("offset: int = 0", app_source)
+        self.assertIn('"next_offset": offset + len(items)', app_source)
+        self.assertIn('"has_more": has_more', app_source)
         self.assertIn("def ended_transcript_snapshot", repository)
         self.assertIn("broadcast.thumbnail_url", repository)
         self.assertIn("def broadcast_official_context", repository)
         self.assertIn("matched_segment_count", repository)
         self.assertIn('"official_context": official_context', app_source)
+        self.assertIn("broadcast.institution,", repository)
+        self.assertIn("broadcast.caption_source_status", repository)
+        self.assertNotIn(
+            "WHERE broadcast.institution = 'LEGISLATURE'\n              AND broadcast.lifecycle_status = 'ENDED'", repository,
+        )
+        self.assertIn("capture_status = 'POST_PROCESSING'", repository)
+        self.assertIn("WHEN lifecycle_status = 'ENDED' AND %s THEN 'POST_PROCESSING'", repository)
+        worker = (
+            Path(__file__).parents[1] / "app" / "ingestion" / "executive_caption_worker.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn('claim.get("lifecycle_status") == "ENDED"', worker)
+        self.assertIn('"terminal_failure": terminal_failure', worker)
 
         self.assertIn('@app.get("/api/live/tasks"', app_source)
         self.assertIn("def list_open_follow_up_tasks", repository)

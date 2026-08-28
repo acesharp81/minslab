@@ -26,6 +26,20 @@ class Settings(BaseSettings):
     ai_enrichment_enabled: bool = False
     llm_provider: str = "disabled"
     llm_model: str = ""
+    gemini_api_key: str = ""
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_daily_limit: int = 500
+    mistral_api_key: str = ""
+    mistral_base_url: str = "https://api.mistral.ai/v1"
+    # Mistral Small 4 standard API pricing as of 2026-08-25.
+    # The free monthly API credit is enforced by calculated USD cost.
+    mistral_monthly_credit_usd: float = 10.0
+    mistral_input_usd_per_million: float = 0.15
+    mistral_output_usd_per_million: float = 0.60
+    executive_transcription_model: str = "voxtral-mini-latest"
+    executive_audio_chunk_seconds: int = 60
+    executive_transcription_usd_per_minute: float = 0.003
 
 
 @lru_cache

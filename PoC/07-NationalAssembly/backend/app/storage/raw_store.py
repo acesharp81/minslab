@@ -62,6 +62,10 @@ class RawStore:
         if prefix in {b"{", b"["}:
             return "json"
         lowered = content_type.lower()
+        if content.startswith(b"ID3") or "audio/mpeg" in lowered or "audio/mp3" in lowered:
+            return "mp3"
+        if content.startswith(b"RIFF") and content[8:12] == b"WAVE":
+            return "wav"
         if prefix == b"<" and "html" in lowered:
             return "html"
         if prefix == b"<":
@@ -72,6 +76,8 @@ class RawStore:
             return "html"
         if "pdf" in lowered:
             return "pdf"
+        if "audio" in lowered:
+            return "audio"
         return "xml"
 
     @staticmethod

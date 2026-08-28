@@ -50,6 +50,23 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+
+  schedule-worker:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+      PROCESSED_DATA_DIR: /app/data/processed
+    command: ["python", "-m", "app.ingestion.schedule_worker", "--interval", "600", "--days", "7"]
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
   caption-worker:
     build:
       context: ./backend
@@ -80,7 +97,66 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  executive-caption-worker:
+    container_name: poc07-national-assembly-executive-caption-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      RAW_DATA_DIR: /app/data/raw
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      EXECUTIVE_TRANSCRIPTION_MODEL: ${EXECUTIVE_TRANSCRIPTION_MODEL:-voxtral-mini-latest}
+      EXECUTIVE_AUDIO_CHUNK_SECONDS: ${EXECUTIVE_AUDIO_CHUNK_SECONDS:-60}
+      EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE: ${EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE:-0.003}
+    command: ["python", "-m", "app.ingestion.executive_caption_worker", "--interval", "5"]
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  summary-worker:
+    container_name: poc07-national-assembly-summary-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      # The root .env may be used for Compose interpolation, but it must never
+      # be injected wholesale into a container. Only this allowlisted secret
+      # crosses the service boundary.
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+    command: ["python", "-m", "app.ingestion.summary_worker", "--interval", "2"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  meeting-brief-worker:
+    container_name: poc07-national-assembly-meeting-brief-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+    command: ["python", "-m", "app.ingestion.meeting_brief_worker", "--interval", "60"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
   official-minutes-worker:
+    container_name: poc07-national-assembly-official-minutes-worker
+    image: poc07-national-assembly-api:local
     build:
       context: ./backend
     env_file:
@@ -88,6 +164,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
     command: ["python", "-m", "app.ingestion.official_minutes_worker", "--interval", "3600"]
     volumes:
       - ./data:/app/data
@@ -98,3 +175,8 @@ services:
 
 volumes:
   national_assembly_pgdata:
+
+networks:
+  default:
+    name: poc07-national-assembly
+    external: true

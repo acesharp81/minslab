@@ -7,9 +7,9 @@ from app.adapters.live_sources import (
     parse_assembly_caption_message,
     parse_assembly_live_list,
     parse_assembly_live_play,
+    parse_ktv_onair_schedule,
     parse_ktv_player_contract,
 )
-
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -29,6 +29,22 @@ class LiveSourcesAdapterTests(unittest.TestCase):
         self.assertTrue(result["player_detected"])
         self.assertFalse(result["machine_caption_track_detected"])
         self.assertEqual(result["caption_contract_status"], "UNVERIFIED")
+
+    def test_parses_current_state_council_from_official_ktv_schedule(self):
+        payload = [{
+            "today": "20260825", "onair": "ONAIR", "internet_yn": "Y",
+            "program_name": "LIVE 정책 K 1부",
+            "bis_pgm_seq_title": "제37회 국무회의",
+            "program_id": "P0001", "program_seq": 37,
+            "time": "0950", "next_time": "1159",
+        }]
+        result = parse_ktv_onair_schedule(
+            __import__("json").dumps(payload).encode(),
+        )
+        self.assertTrue(result["is_live"])
+        self.assertEqual(result["title"], "제37회 국무회의")
+        self.assertEqual(result["caption_contract_status"], "UNAVAILABLE_NO_MACHINE_CAPTIONS")
+        self.assertIn(".m3u8", result["stream_url"])
 
     def test_parses_live_play_caption_websocket_contract(self):
         result = parse_assembly_live_play((FIXTURES / "synthetic_assembly_live_play.json").read_bytes())

@@ -1,0 +1,66 @@
+.meeting-integration-bar {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 30px;
+  border-bottom: 1px solid var(--ws-line);
+  color: #526a88;
+  background: #f7faff;
+  font-size: 11px;
+}
+.meeting-integration-bar strong { color: #153f77; font-size: 12px; }
+.meeting-integration-bar span + span::before {
+  margin-right: 10px;
+  color: #b2c2d6;
+  content: "·";
+}
+.meeting-integration-bar a {
+  margin-left: auto;
+  color: #175fae;
+  font-weight: 800;
+  text-decoration: none;
+}
+.official-inline-change {
+  position: relative;
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 850;
+  text-decoration: none;
+}
+.official-inline-change.is-changed { color: #075eb5; background: #e7f2ff; }
+.official-inline-change.is-added { color: #08764e; background: #e6f7ef; }
+.official-inline-change.is-deleted {
+  color: #a33a45;
+  background: #fff0f1;
+  text-decoration: line-through;
+}
+.official-inline-change:hover::after,
+.official-inline-change:focus-visible::after {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 7px);
+  left: 0;
+  width: max-content;
+  max-width: min(360px, 72vw);
+  padding: 8px 10px;
+  border: 1px solid #b9cce6;
+  border-radius: 7px;
+  color: #17324f;
+  background: white;
+  box-shadow: 0 8px 22px rgba(20,57,101,.18);
+  content: attr(data-change-description);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+@media (max-width: 760px) {
+  .meeting-integration-bar {
+    flex-wrap: wrap;
+    gap: 5px 8px;
+    padding: 9px 16px;
+  }
+  .meeting-integration-bar a { margin-left: 0; }
+}

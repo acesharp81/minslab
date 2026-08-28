@@ -147,7 +147,7 @@ STT MVP의 1순위 후보는 한국어 실시간 전사와 화자 분리 구성�
 - [x] 국회 LIVE 화면의 저장 자막 + 2초 delta 연속 표시
 - [x] 종료 60초 debounce와 DB lease 기반 review worker
 - [x] final 자막의 규칙 기반 주제·대표 발언·근거 revision 저장
-- [x] 실제 AUTO REVIEW 우선, 기관별 SIMULATION fallback 매거진
+- [x] 실제 수집 방송의 AUTO REVIEW만 제공하는 매거진
 - [x] 종료 방송 날짜의 공식 위원회 회의록 1시간 polling
 - [x] 위원회+서울 날짜 유일 후보만 공식 게시 링크로 연결
 - [x] AUTO REVIEW 카드의 공식 회의록 원문 이동
@@ -157,7 +157,6 @@ STT MVP의 1순위 후보는 한국어 실시간 전사와 화자 분리 구성�
 - [x] 담당 부서별 후속 과제 보드와 해당 방송의 미해결 과제 화면 이동
 - [x] 종료 방송 final 자막별 공식 회의록 exact 일치·미확인 상태와 대조 공식 문장 표시
 - [ ] 실제 대상 LIVE 종료 건의 final 자막과 후속 정본 간 장시간 회귀 검증
-- [x] 격리된 SIMULATION 방송을 실제 DB lifecycle·snapshot/delta·review 경로로 재생하는 E2E 운영 데모
 - 최근 KTV 자막 생중계와 다시보기 각 3건에서 방송 URL, 시작·종료시각, 자막 track/segment 존재 여부를 확인한다.
 - 자막이 별도 기계 판독 track인지 화면에 합성된 자막인지 구분한다.
 - 접근·재처리·보존 범위를 KTV 이용조건과 robots/서비스 정책에서 확인한다.

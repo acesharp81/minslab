@@ -101,12 +101,30 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "match_method": "EXACT_ITEM_REF_AGENDA_PREFIX",
         })
     try:
+        from .official_integration_worker import process_available
+        integrations = process_available(limit=5)
+        results.append({
+            "event": "official.live-integrations.completed",
+            "items": integrations,
+        })
+    except Exception as exc:
+        results.append({
+            "event": "official.live-integrations.error",
+            "error": type(exc).__name__,
+        })
+    try:
         from .executive_briefings import collect
         executive = collect(settings)
+        from ..services.executive_official_match import reconcile_executive_official_matches
+        with connect(settings.database_url) as connection:
+            matched_live = reconcile_executive_official_matches(
+                connection, list(executive.get("items") or []),
+            )
         results.append({
             "event": "executive.official.completed",
             "briefings": executive["count"],
             "source_status": executive["source_status"],
+            "matched_live_broadcasts": matched_live,
         })
     except Exception as exc:
         results.append({

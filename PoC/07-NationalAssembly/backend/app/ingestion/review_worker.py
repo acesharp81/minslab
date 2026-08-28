@@ -7,7 +7,7 @@ import socket
 import time
 from datetime import datetime, timezone
 
-from ..services.broadcast_review import (
+from ..services.broadcast_review_v2 import (
     CLASSIFICATION_METHOD,
     GENERATOR_VERSION,
     build_broadcast_review,

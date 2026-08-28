@@ -3,68 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="국무회의와 국회의 실시간 국정 흐름을 주제·소관별로 보는 PoC" />
-    <title>지금 우리 국회에선</title>
-    <link rel="stylesheet" href="assets/styles.css?v=20260813-16" />
+    <meta name="description" content="국회·대통령실·국무회의·부처의 국정 흐름을 주제·소관별로 보는 PoC" />
+    <title>지금 우리 회의에선</title>
+    <link rel="stylesheet" href="assets/styles.css?v=20260825-26" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20260813-4" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20260827-35" />
+    <link rel="stylesheet" href="assets/official-integration.css?v=20260825-1" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./" aria-label="지금 우리 국회에선 홈">
+      <a class="brand" href="./" aria-label="지금 우리 회의에선 홈">
         <span class="brand-mark">NOW</span>
-        <span><b>지금 우리 국회에선</b><small>국정 흐름 워크스페이스</small></span>
+        <span><b>지금 우리 회의에선</b><small>국회·정부 정책 통합 흐름</small></span>
       </a>
+      <section class="today-schedule-board" id="todayScheduleBoard" aria-label="오늘 예정 회의">
+        <div class="today-schedule-label"><span>오늘 예정</span><b id="todayScheduleCount">확인 중</b></div>
+        <div class="today-schedule-viewport" id="todayScheduleViewport" tabindex="0" aria-live="polite">
+          <div class="today-schedule-track" id="todayScheduleTrack"><p>오늘 회의 일정을 확인하는 중입니다.</p></div>
+        </div>
+        <div class="today-schedule-controls">
+          <button id="todaySchedulePrev" type="button" aria-label="이전 예정 회의">↑</button>
+          <button id="todayScheduleNext" type="button" aria-label="다음 예정 회의">↓</button>
+        </div>
+      </section>
       <nav class="topnav" aria-label="국정 정보 영역" role="tablist">
-        <a id="topTabLive" href="#live" role="tab" aria-selected="true" aria-controls="live" data-workspace-tab="live"><i aria-hidden="true"></i>LIVE</a>
-        <a id="topTabCabinet" href="#cabinet" role="tab" aria-selected="false" aria-controls="presidential" data-workspace-tab="cabinet">국무회의</a>
-        <a id="topTabAssembly" href="#assembly" role="tab" aria-selected="false" aria-controls="committees" data-workspace-tab="assembly">국회</a>
+        <a id="topTabLive" href="#live" role="tab" aria-selected="true" aria-controls="live" data-workspace-tab="live"><i aria-hidden="true"></i><b id="topLiveStatus">방송없음</b></a>
       </nav>
-      <label class="scope-select">
-        <span>관심 분야</span>
-        <select id="departmentScope">
-          <option value="">전체 국정 흐름</option>
-          <option value="행정안전위원회">행정안전 분야</option>
-          <option value="예산결산특별위원회">예산·재정 분야</option>
-          <option value="법제사법위원회">법무·사법 분야</option>
-        </select>
-      </label>
+      <section class="ai-usage" id="aiUsage" aria-label="AI 요약 사용량">
+        <div class="ai-usage-identity"><span id="aiPlatform">요약 플랫폼 확인 중</span><strong id="aiModel">모델 확인 중</strong></div>
+        <div class="ai-usage-quota">
+          <span id="aiUsageAmount">사용량 확인 중</span>
+          <strong id="aiUsageLimit">- / -</strong>
+          <div class="ai-usage-meter" aria-hidden="true"><i id="aiUsageMeter"></i></div>
+          <small id="aiUsageReset">갱신 시간 확인 중</small>
+        </div>
+      </section>
     </header>
 
     <main>
       <section class="live-section" id="live" role="tabpanel" aria-labelledby="topTabLive" data-workspace-panel="live">
-        <section class="broadcast-hub" aria-labelledby="broadcastHubTitle">
-          <section class="follow-up-board" aria-labelledby="followUpTitle">
-            <header>
-              <div><span>아직 끝나지 않은 일</span><strong id="followUpTitle">방송에서 남은 후속 과제</strong></div>
-              <div><b id="followUpCount">0건</b><select id="followUpMinistry" aria-label="후속 과제 담당 부서 필터"><option value="">전체 부서</option></select></div>
-            </header>
-            <div class="follow-up-list" id="followUpTasks" aria-live="polite">
-              <p>저장된 final 자막에서 명시된 미해결 과제를 확인하는 중입니다.</p>
-            </div>
-          </section>
-
-          <header><div><span>현재·예정·지난 방송</span><h3 id="broadcastHubTitle">방송 기록</h3></div><small>방송을 선택하면 저장된 전체 맥락이 펼쳐집니다</small></header>
-          <div class="broadcast-rows" id="liveBroadcastRows"><p>공식 방송 상태와 오늘 일정을 확인하는 중입니다.</p></div>
+        <section class="broadcast-hub" aria-label="진행 중 및 최근 결과 회의">
+          <div class="meeting-rail-shell">
+            <button class="meeting-rail-arrow is-prev" id="meetingRailPrev" type="button" aria-label="이전 회의 보기">‹</button>
+            <div class="broadcast-rows meeting-rail" id="liveBroadcastRows" tabindex="0" aria-label="진행 중 및 결과 회의"><p>공식 방송 상태와 최근 결과를 확인하는 중입니다.</p></div>
+            <button class="meeting-rail-arrow is-next" id="meetingRailNext" type="button" aria-label="다음 회의 보기">›</button>
+          </div>
           <div class="live-expanded" id="liveExpanded" hidden>
-            <header><strong id="liveExpandedTitle">방송 분석</strong><button id="liveExpandedClose" type="button">접기 ×</button></header>
+            <header><strong id="liveExpandedTitle">회의 결과</strong><button id="liveExpandedClose" type="button">접기 ×</button></header>
             <div id="liveExpandedStage"></div>
           </div>
         </section>
 
-        <div class="official-rotation-title"><span>OFFICIAL BRIEF · 5초 자동 전환</span><strong>지금 확인할 공식 정보</strong><small>생방송이 없을 때도 최근 확정 내용을 이어서 보여줍니다</small></div>
+        <div class="official-rotation-title" hidden><span>OFFICIAL BRIEF · 5초 자동 전환</span><strong>지금 확인할 공식 정보</strong><small>생방송이 없을 때도 최근 확정 내용을 이어서 보여줍니다</small></div>
 
-        <div class="live-grid">
+        <div class="live-grid" hidden>
           <article class="live-channel executive-live">
-            <header><div><span class="channel-kicker">EXECUTIVE</span><h3>정부·국무회의</h3></div><span class="off-air" id="executiveLiveBadge">OFFICIAL</span></header>
+            <header><div><span class="channel-kicker">EXECUTIVE</span><h3>정부 회의·공식 발표</h3></div><span class="off-air" id="executiveLiveBadge">OFFICIAL</span></header>
             <div class="broadcast-stage" id="executiveMagazine">
               <div class="signal-mark"><span></span><span></span><span></span></div>
-              <strong>현재 진행 중인 국무회의가 없습니다</strong>
-              <p>방송 시작 시 실시간 자막이 주제·소관 부처별로 분류됩니다.</p>
+              <strong>현재 진행 중인 정부 공식 생중계가 없습니다</strong>
+              <p>국무회의 방송과 대통령실·부처 공식 자료를 정책 흐름으로 연결합니다.</p>
             </div>
             <div class="fallback-feed" id="executiveFallback">
               <div class="fallback-head"><span>최근 공식 정보</span><b>OFFICIAL</b></div>
-              <div class="feed-empty"><strong>청와대 공식 자료 연결 준비 중</strong><span>확인된 브리핑과 발언문만 표시합니다.</span></div>
+              <div class="feed-empty"><strong>대통령실·부처 공식 자료 연결</strong><span>확인된 브리핑과 공식 소관 관계만 표시합니다.</span></div>
             </div>
           </article>
 
@@ -157,7 +159,8 @@
     </dialog>
 
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
-    <script src="assets/app.js?v=20260813-20" defer></script>
-    <script src="assets/dashboard.js?v=20260813-6" defer></script>
+    <script src="assets/official-integration.js?v=20260825-1" defer></script>
+    <script src="assets/app.js?v=20260827-72" defer></script>
+    <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

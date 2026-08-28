@@ -19,8 +19,11 @@ AIAnnotation N ─ N AIAnnotationEvidence ─ SourceDocumentVersion + SourceSpan
 
 LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
    └─ N TranscriptSegment 1 ─ N TranscriptSegmentRevision
+   └─ N TranscriptUtteranceSummary (summary + PROVISIONAL live_insight JSON)
    └─ N BroadcastReview 1 ─ N BroadcastReviewTopic
                               └─ N BroadcastReviewEvidence ─ TranscriptSegmentRevision
+   └─ N MeetingBrief (PROVISIONAL JSON read model)
+          └─ topic / speaker point / task evidence ─ TranscriptSegment(Utterance id)
    └─ N BroadcastOfficialPublication ─ Meeting + SourceDocumentVersion
           └─ N OfficialTranscriptDocument ─ N OfficialTranscriptUtterance
                  └─ N TranscriptOfficialReconciliation ─ TranscriptSegmentRevision
@@ -42,6 +45,11 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 ## LIVE 영구 기록
 
 - `LiveBroadcast`는 브라우저 접속 여부와 무관하게 worker가 생성하고 `LIVE → ENDED` 생명주기를 관리합니다.
+- `TranscriptSpeakerOverride`는 방송별 원본 화자 코드와 사람이 확인한 표시 이름만 연결합니다. 원본 segment/revision의 `speaker_label`은 수정하지 않으며 보정값 삭제 시 즉시 원본 코드 기반 표시로 돌아갑니다.
+- 화면용 `Utterance`는 별도 canonical table이 아닌 읽기 모델입니다. 같은 방송에서 바로 이어지는 동일 원본 화자의 자막을 시간·길이 제한 없이 연속 병합하고 포함 segment/revision ID와 180자 자동 발췌 요약, 전체 원문을 함께 반환합니다.
+- `TranscriptUtteranceSummary`는 방송·원문 해시·provider·model·prompt version 조합을 유일 키로 사용해 성공한 외부 LLM 요약을 저장합니다. `live_insight` JSON은 같은 호출에서 생성한 잠정 주제·주제 key·발언 역할·명시적 과제·담당 기관 후보를 `PROVISIONAL`로 보존합니다. 원문 근거는 `content_hash`와 읽기 모델의 포함 segment/revision ID로 역추적하며 공식 자료 필드와 혼합하지 않습니다. API 요청은 이 캐시만 읽으며 외부 LLM을 호출하지 않습니다.
+- 프롬프트 버전이 바뀌어도 이미 성공한 동일 방송·원문 hash는 비용 제어를 위해 재호출하지 않습니다. 새 발언은 최신 계약으로 저장하고, 기존 행은 요약값을 유지한 채 `live_insight={}`로 남을 수 있습니다.
+- 수동 화자명은 공식 발언자 확정값이 아니라 운영자 검토 표시값입니다. 공식 회의록의 `OfficialTranscriptUtterance.speaker_name` 및 reconciliation과 혼합하지 않습니다.
 - `(source_system, external_id)`로 동일 방송의 중복 생성을 막고 관측한 모든 공식 player 버전을 `LiveBroadcastSourceVersion`으로 연결합니다.
 - `TranscriptSegment`는 현재 읽기 모델이며 `TranscriptSegmentRevision`은 partial/final 변경 이력을 content hash로 중복 없이 보존합니다.
 - 각 revision은 원본 WebSocket 메시지의 `SourceDocumentVersion`을 직접 참조합니다. 메시지는 구조화 전에 raw artifact로 먼저 저장합니다.
@@ -49,6 +57,8 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - caption worker는 만료 가능한 DB lease를 획득하므로 재시작 후 수집을 이어가되 같은 방송을 동시에 중복 수집하지 않습니다.
 - 자막 원문은 `LIVE` 권위 상태로 저장합니다. 종료 후 보정본과 공식 회의록은 원문을 덮어쓰지 않고 별도 버전·대조 관계로 추가합니다.
 - `BroadcastReview`는 종료된 방송의 final revision만 입력으로 사용하는 `PROVISIONAL` 산출물입니다. 주제별 대표 발언은 원문을 그대로 사용하며 모든 포함 segment를 `BroadcastReviewEvidence`로 연결합니다.
+- `MeetingBrief`는 공식 원문과 분리된 오픈 베타용 `PROVISIONAL · DRAFT` 읽기 모델입니다. Mistral이 발언 묶음을 구간별로 분석한 뒤 회의 전체의 headline·summary·topic·speaker point·task를 통합하며, 모든 항목의 `evidence_ids`는 해당 방송의 실제 Utterance 시작 segment ID로 검증합니다. 각 task는 공통 evidence를 우선해 하나의 canonical `topic_id`와 정식 `topic_title`에 연결하며 생성된 제목 문자열을 관계 키로 사용하지 않습니다. `(broadcast_id, transcript_hash, provider, model, prompt_version)`을 캐시 키로 사용하고 API는 저장 결과만 읽습니다.
+- `LlmProviderDailyUsage`는 OpenRouter의 일 500회 요청 상한만 관리합니다. `LlmProviderTokenUsageEvent`는 Mistral 성공 응답을 provider·request ID로 한 번만 저장하며, `LlmProviderMonthlyTokenUsage`는 입력·출력·전체 토큰을 provider·model·UTC 월 단위로 누적합니다. 실시간 발언 요약과 회의 브리프가 같은 장부를 사용합니다.
 - 현재 review generator는 `DETERMINISTIC_KEYWORD_RULE`이며 생성형 요약을 만들지 않습니다. 규칙 버전과 마지막 입력 cursor를 함께 저장해 재생성 결과를 덮어쓰지 않습니다.
 - `BroadcastOfficialPublication`은 공식 `CONF_ID`, 회의록/PDF 링크와 source version을 보존합니다. 위원회+서울 날짜에 후보가 정확히 하나일 때만 연결하고 본문 미수집 상태는 `LINK_ONLY`, 대조 상태는 `UNRESOLVED`로 둡니다.
 - `OfficialTranscriptDocument`는 회의록시스템 HTML 원본 hash별 버전입니다. 화면에 명시된 임시회의록은 `TEMPORARY + PROVISIONAL`, 정본은 `FINAL + OFFICIAL`로 분리하고 이전 버전을 덮어쓰지 않습니다.
@@ -59,6 +69,8 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - 설명 가능한 annotation v2는 `utterance_kind`(POLICY/PROCEDURAL/OTHER), 실제 일치 keyword, topic link와 `RELATED` ministry link를 함께 저장합니다. 이전 rule version은 삭제하지 않습니다.
 - 통합 정책 흐름은 별도 canonical table이 아니라 각 Meeting의 최신 공식 본문과 annotation v2에서 계산하는 읽기 모델입니다. POLICY 발언만 포함하고 주제별 위원회·관련 부처 count와 가장 긴 원문 발언을 대표 evidence로 반환합니다.
 - `OfficialUtteranceAgendaLink`는 공식 발언의 `itemN`과 같은 Meeting의 `N.` 의안만 연결합니다. 관계마다 reconciliation 상태, match method와 confidence를 보존하고 번호가 없거나 대응 의안이 없으면 row를 만들지 않습니다.
+- `MeetingOfficialIntegration`은 특정 `MeetingBrief`와 특정 `OfficialTranscriptDocument` 버전의 파생 대조 결과입니다. LIVE 잠정 원본과 공식 원본은 수정하지 않고, 통합 브리프·본문 변경 span·공식 근거 ID·화자 매칭 통계·LLM 사용량만 캐시합니다. 캐시 키는 `(meeting_brief_id, official_document_id, integration_version)`입니다.
+- 공식 화자 매칭은 `TranscriptOfficialReconciliation`의 파생 관계를 현재 문서 기준으로 교체합니다. 화면은 이 관계를 발언 묶음 키로 사용해 공식 화자가 바뀌면 분리하고, 인접 자막이 같은 공식 화자로 확인되면 병합하지만 별도 화자 변경 이력 UI는 만들지 않습니다.
 
 ## Provenance 최소값
 

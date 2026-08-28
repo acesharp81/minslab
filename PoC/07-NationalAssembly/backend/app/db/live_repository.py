@@ -3,9 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable
+from typing import Any
 
 from .schedule_repository import SourceVersionInput
 
@@ -22,6 +23,7 @@ class LiveBroadcastObservation:
     observed_at: datetime
     source: SourceVersionInput
     source_system: str = "assembly.webcast.go.kr"
+    media_stream_url: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,7 +48,6 @@ class LiveRepository:
         self.connection = connection
 
     def observe_broadcast(self, observation: LiveBroadcastObservation) -> uuid.UUID:
-        from psycopg.types.json import Jsonb
 
         document_id = self._upsert_document(observation.source, observation.source_system)
         version_id = self._upsert_source_version(document_id, observation.source)
@@ -57,8 +58,8 @@ class LiveRepository:
                 id, institution, source_system, external_id, committee_name, title,
                 lifecycle_status, caption_source_status, detected_at, last_seen_at,
                 latest_source_document_version_id, caption_websocket_url, capture_status
-                , thumbnail_url
-            ) VALUES (%s, %s, %s, %s, %s, %s, 'LIVE', %s, %s, %s, %s, %s, %s, %s)
+                , thumbnail_url, media_stream_url
+            ) VALUES (%s, %s, %s, %s, %s, %s, 'LIVE', %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_system, external_id) DO UPDATE SET
                 committee_name = EXCLUDED.committee_name,
                 title = EXCLUDED.title,
@@ -73,6 +74,7 @@ class LiveRepository:
                     ELSE EXCLUDED.capture_status
                 END,
                 thumbnail_url = COALESCE(EXCLUDED.thumbnail_url, live_broadcasts.thumbnail_url),
+                media_stream_url = COALESCE(EXCLUDED.media_stream_url, live_broadcasts.media_stream_url),
                 review_status = 'PENDING', review_lease_owner = NULL,
                 review_lease_expires_at = NULL,
                 updated_at = now()
@@ -84,8 +86,13 @@ class LiveRepository:
                 observation.title, observation.caption_source_status,
                 observation.observed_at, observation.observed_at, version_id,
                 observation.caption_websocket_url,
-                "READY" if observation.caption_websocket_url else "UNAVAILABLE",
+                (
+                    "READY" if observation.caption_websocket_url
+                    else "AUDIO_READY" if observation.media_stream_url
+                    else "UNAVAILABLE"
+                ),
                 observation.thumbnail_url,
+                observation.media_stream_url,
             ),
         ).fetchone()
         broadcast_id = row[0]
@@ -105,8 +112,18 @@ class LiveRepository:
             """
             UPDATE live_broadcasts
             SET lifecycle_status = 'ENDED', ended_at = %s, last_seen_at = %s,
-                capture_status = 'COMPLETED', capture_lease_owner = NULL,
-                capture_lease_expires_at = NULL, review_status = 'READY',
+                capture_status = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN 'POST_PROCESSING' ELSE 'COMPLETED' END,
+                capture_lease_owner = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN capture_lease_owner ELSE NULL END,
+                capture_lease_expires_at = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN capture_lease_expires_at ELSE NULL END,
+                review_status = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN 'PENDING' ELSE 'READY' END,
                 updated_at = now()
             WHERE id = %s AND lifecycle_status = 'LIVE'
             RETURNING id
@@ -116,19 +133,37 @@ class LiveRepository:
         return row is not None
 
     def finish_poll(self, active_external_ids: Iterable[str], observed_at: datetime) -> int:
+        return self.finish_source_poll(
+            self.source_system, active_external_ids, observed_at,
+        )
+
+    def finish_source_poll(
+        self, source_system: str, active_external_ids: Iterable[str],
+        observed_at: datetime,
+    ) -> int:
         active = list(active_external_ids)
         row = self.connection.execute(
             """
             UPDATE live_broadcasts
             SET lifecycle_status = 'ENDED', ended_at = %s,
-                capture_status = 'COMPLETED', capture_lease_owner = NULL,
-                capture_lease_expires_at = NULL, review_status = 'READY',
+                capture_status = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN 'POST_PROCESSING' ELSE 'COMPLETED' END,
+                capture_lease_owner = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN capture_lease_owner ELSE NULL END,
+                capture_lease_expires_at = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN capture_lease_expires_at ELSE NULL END,
+                review_status = CASE
+                    WHEN institution = 'EXECUTIVE' AND capture_status = 'CAPTURING'
+                    THEN 'PENDING' ELSE 'READY' END,
                 updated_at = now()
             WHERE source_system = %s AND lifecycle_status = 'LIVE'
               AND NOT (external_id = ANY(%s))
             RETURNING id
             """,
-            (observed_at, self.source_system, active),
+            (observed_at, source_system, active),
         ).fetchall()
         return len(row)
 
@@ -163,6 +198,52 @@ class LiveRepository:
             strict=True,
         ))
 
+    def claim_executive_audio_capture(
+        self, worker_id: str, lease_seconds: int = 180
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            WITH candidate AS (
+                SELECT id FROM live_broadcasts
+                WHERE institution = 'EXECUTIVE'
+                  AND source_system = 'ktv.go.kr'
+                  AND (
+                    (
+                      lifecycle_status = 'LIVE'
+                      AND media_stream_url IS NOT NULL
+                      AND capture_status IN ('AUDIO_READY', 'RETRY_WAIT', 'CAPTURING')
+                    )
+                    OR (
+                      lifecycle_status = 'ENDED'
+                      AND capture_status = 'POST_PROCESSING'
+                    )
+                  )
+                  AND (capture_lease_expires_at IS NULL OR capture_lease_expires_at < now())
+                ORDER BY (lifecycle_status = 'LIVE') DESC, detected_at
+                FOR UPDATE SKIP LOCKED LIMIT 1
+            )
+            UPDATE live_broadcasts broadcast
+            SET capture_status = CASE
+                    WHEN broadcast.lifecycle_status = 'ENDED' THEN 'POST_PROCESSING'
+                    ELSE 'CAPTURING'
+                END,
+                capture_lease_owner = %s,
+                capture_lease_expires_at = now() + (%s * interval '1 second'),
+                updated_at = now()
+            FROM candidate WHERE broadcast.id = candidate.id
+            RETURNING broadcast.id, broadcast.external_id,
+                      broadcast.media_stream_url, broadcast.lifecycle_status
+            """,
+            (worker_id, lease_seconds),
+        ).fetchone()
+        if not row:
+            return None
+        return dict(zip(
+            ("broadcast_id", "external_id", "media_stream_url", "lifecycle_status"),
+            row,
+            strict=True,
+        ))
+
     def heartbeat_capture(
         self, broadcast_id: uuid.UUID, worker_id: str, lease_seconds: int = 45
     ) -> bool:
@@ -180,22 +261,31 @@ class LiveRepository:
         return row is not None
 
     def release_caption_capture(
-        self, broadcast_id: uuid.UUID, worker_id: str, *, retry: bool
+        self, broadcast_id: uuid.UUID, worker_id: str, *, retry: bool,
+        failed: bool = False,
     ) -> bool:
         row = self.connection.execute(
             """
             UPDATE live_broadcasts
             SET capture_status = CASE
+                    WHEN lifecycle_status = 'ENDED' AND %s THEN 'FAILED'
+                    WHEN lifecycle_status = 'ENDED' AND %s THEN 'POST_PROCESSING'
                     WHEN lifecycle_status = 'ENDED' THEN 'COMPLETED'
                     WHEN %s THEN 'RETRY_WAIT' ELSE 'FAILED'
                 END,
                 capture_lease_owner = NULL, capture_lease_expires_at = NULL,
+                review_status = CASE
+                    WHEN lifecycle_status = 'ENDED' AND %s THEN 'FAILED'
+                    WHEN lifecycle_status = 'ENDED' AND %s THEN 'PENDING'
+                    WHEN lifecycle_status = 'ENDED' THEN 'READY'
+                    ELSE review_status
+                END,
                 reconnect_attempts = reconnect_attempts + CASE WHEN %s THEN 1 ELSE 0 END,
                 updated_at = now()
             WHERE id = %s AND capture_lease_owner = %s
             RETURNING id
             """,
-            (retry, retry, broadcast_id, worker_id),
+            (failed, retry, retry, failed, retry, retry, broadcast_id, worker_id),
         ).fetchone()
         return row is not None
 
@@ -292,9 +382,12 @@ class LiveRepository:
         return segment_id, inserted is not None
 
     def active_transcript_snapshot(
-        self, committee_name: str | None = None
+        self, committee_name: str | None = None,
+        broadcast_id: uuid.UUID | None = None,
     ) -> dict[str, Any]:
-        return self._transcript_snapshot(committee_name, lifecycle_status="LIVE")
+        return self._transcript_snapshot(
+            committee_name, lifecycle_status="LIVE", broadcast_id=broadcast_id,
+        )
 
     def recent_transcript_snapshot(
         self, committee_name: str | None = None
@@ -302,8 +395,13 @@ class LiveRepository:
         return self._transcript_snapshot(committee_name, lifecycle_status="ENDED")
 
     def ended_transcript_snapshot(self, broadcast_id: uuid.UUID) -> dict[str, Any]:
+        return self.broadcast_transcript_snapshot(broadcast_id, lifecycle_status="ENDED")
+
+    def broadcast_transcript_snapshot(
+        self, broadcast_id: uuid.UUID, *, lifecycle_status: str,
+    ) -> dict[str, Any]:
         return self._transcript_snapshot(
-            None, lifecycle_status="ENDED", broadcast_id=broadcast_id
+            None, lifecycle_status=lifecycle_status, broadcast_id=broadcast_id,
         )
 
     def broadcast_reconciliation_details(
@@ -315,7 +413,7 @@ class LiveRepository:
                    reconciliation.transcript_revision_id,
                    reconciliation.reconciliation_status,
                    reconciliation.match_method, reconciliation.match_confidence,
-                   utterance.sequence_number, utterance.speaker_name,
+                   utterance.id, utterance.sequence_number, utterance.speaker_name,
                    utterance.speaker_role, utterance.text,
                    utterance.source_locator, document.publication_stage,
                    document.authority_status
@@ -335,7 +433,7 @@ class LiveRepository:
         ).fetchall()
         columns = (
             "revision_id", "status", "match_method", "match_confidence",
-            "official_sequence_number", "official_speaker_name",
+            "official_utterance_id", "official_sequence_number", "official_speaker_name",
             "official_speaker_role", "official_text", "source_locator",
             "publication_stage", "official_authority_status",
         )
@@ -349,42 +447,95 @@ class LiveRepository:
         return result
 
     def list_ended_broadcasts(
-        self, committee_name: str | None = None, *, limit: int = 5
+        self, committee_name: str | None = None, *, limit: int = 5,
+        offset: int = 0,
     ) -> list[dict[str, Any]]:
         parameters: list[Any] = []
         committee_filter = ""
         if committee_name:
-            committee_filter = " AND broadcast.committee_name = %s"
+            committee_filter = (
+                " AND broadcast.institution = 'LEGISLATURE'"
+                " AND broadcast.committee_name = %s"
+            )
             parameters.append(committee_name)
         parameters.append(limit)
+        parameters.append(offset)
         rows = self.connection.execute(
             f"""
-            SELECT broadcast.id, broadcast.external_id, broadcast.committee_name,
+            SELECT broadcast.id, broadcast.external_id, broadcast.institution,
+                   broadcast.committee_name,
                    broadcast.title, broadcast.lifecycle_status, broadcast.source_system,
-                   broadcast.capture_status, broadcast.detected_at, broadcast.ended_at,
+                   broadcast.caption_source_status, broadcast.capture_status,
+                   broadcast.detected_at, broadcast.ended_at,
                    broadcast.last_caption_received_at, broadcast.thumbnail_url,
                    broadcast.review_status, broadcast.official_status,
                    broadcast.official_last_checked_at,
-                   (SELECT COUNT(*) FROM transcript_segments segment
-                    WHERE segment.broadcast_id = broadcast.id) AS segment_count
+                   executive_match.official_briefing_id,
+                   executive_match.match_method,
+                   caption_stats.segment_count, caption_stats.utterance_count,
+                   caption_stats.source_speaker_count,
+                   (SELECT COUNT(*) FROM transcript_speaker_overrides speaker_override
+                    WHERE speaker_override.broadcast_id = broadcast.id)
+                       AS named_speaker_count,
+                   official_activity.generated_at AS official_integration_updated_at,
+                   GREATEST(
+                       COALESCE(broadcast.ended_at, broadcast.detected_at),
+                       COALESCE(brief_activity.generated_at, '-infinity'::timestamptz),
+                       COALESCE(official_activity.generated_at, '-infinity'::timestamptz)
+                   ) AS result_updated_at
             FROM live_broadcasts broadcast
-            WHERE broadcast.institution = 'LEGISLATURE'
-              AND broadcast.lifecycle_status = 'ENDED'
+            LEFT JOIN LATERAL (
+                SELECT COUNT(*) AS segment_count,
+                       COUNT(*) FILTER (
+                           WHERE ordered.speaker_label IS DISTINCT FROM ordered.previous_speaker
+                       ) AS utterance_count,
+                       COUNT(DISTINCT ordered.speaker_label) AS source_speaker_count
+                FROM (
+                    SELECT segment.speaker_label,
+                           lag(segment.speaker_label) OVER (
+                               ORDER BY segment.last_received_at, segment.source_segment_id
+                           ) AS previous_speaker
+                    FROM transcript_segments segment
+                    WHERE segment.broadcast_id = broadcast.id
+                ) ordered
+            ) caption_stats ON true
+            LEFT JOIN LATERAL (
+                SELECT brief.generated_at
+                FROM meeting_briefs brief
+                WHERE brief.broadcast_id = broadcast.id
+                ORDER BY (brief.provider = 'mistral') DESC,
+                         brief.generated_at DESC, brief.id DESC
+                LIMIT 1
+            ) brief_activity ON true
+            LEFT JOIN LATERAL (
+                SELECT integration.generated_at
+                FROM meeting_official_integrations integration
+                WHERE integration.broadcast_id = broadcast.id
+                  AND integration.status = 'READY'
+                ORDER BY integration.generated_at DESC, integration.id DESC
+                LIMIT 1
+            ) official_activity ON true
+            LEFT JOIN executive_official_matches executive_match
+              ON executive_match.broadcast_id = broadcast.id
+            WHERE broadcast.lifecycle_status = 'ENDED'
+              AND broadcast.source_system <> 'poc07.demo'
               {committee_filter}
-            ORDER BY broadcast.ended_at DESC NULLS LAST, broadcast.detected_at DESC
-            LIMIT %s
+            ORDER BY broadcast.detected_at DESC, broadcast.id DESC
+            LIMIT %s OFFSET %s
             """,
             parameters,
         ).fetchall()
         columns = (
-            "broadcast_id", "external_id", "committee_name", "title",
-            "lifecycle_status", "source_system", "capture_status", "detected_at",
-            "ended_at", "last_caption_received_at", "thumbnail_url", "review_status",
-            "official_status", "official_last_checked_at", "segment_count",
+            "broadcast_id", "external_id", "institution", "committee_name",
+            "title", "lifecycle_status", "source_system", "caption_source_status",
+            "capture_status", "detected_at", "ended_at", "last_caption_received_at",
+            "thumbnail_url", "review_status", "official_status",
+            "official_last_checked_at", "official_briefing_id",
+            "executive_match_method", "segment_count", "utterance_count",
+            "source_speaker_count", "named_speaker_count",
+            "official_integration_updated_at", "result_updated_at",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
-        for item in items:
-            item["simulation"] = item["source_system"] == "poc07.demo"
         return items
 
     def broadcast_official_context(self, broadcast_id: uuid.UUID) -> dict[str, Any] | None:
@@ -441,6 +592,96 @@ class LiveRepository:
         )
         return item
 
+    def broadcast_official_material(
+        self, broadcast_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        document_row = self.connection.execute(
+            """
+            SELECT document.id, document.conference_id, document.publication_stage,
+                   document.authority_status, document.status_text, document.title,
+                   document.utterance_count, document.retrieved_at,
+                   publication.official_url, publication.pdf_url
+            FROM broadcast_official_publications publication
+            JOIN LATERAL (
+                SELECT id, conference_id, publication_stage, authority_status,
+                       status_text, title, utterance_count, retrieved_at
+                FROM official_transcript_documents
+                WHERE publication_id = publication.id
+                ORDER BY
+                    (publication_stage = 'FINAL') DESC,
+                    EXISTS (
+                        SELECT 1
+                        FROM official_transcript_utterances candidate_utterance
+                        JOIN official_utterance_annotations candidate_annotation
+                          ON candidate_annotation.utterance_id = candidate_utterance.id
+                        WHERE candidate_utterance.document_id =
+                              official_transcript_documents.id
+                    ) DESC,
+                    retrieved_at DESC, id DESC
+                LIMIT 1
+            ) document ON true
+            WHERE publication.broadcast_id = %s
+            ORDER BY publication.matched_at DESC, publication.id DESC
+            LIMIT 1
+            """,
+            (broadcast_id,),
+        ).fetchone()
+        if not document_row:
+            return {"document": None, "utterances": []}
+        document_columns = (
+            "document_id", "conference_id", "publication_stage",
+            "authority_status", "status_text", "title",
+            "utterance_count", "retrieved_at", "official_url", "official_pdf_url",
+        )
+        document = dict(zip(document_columns, document_row, strict=True))
+        rows = self.connection.execute(
+            """
+            SELECT utterance.id, utterance.sequence_number,
+                   utterance.speaker_name, utterance.speaker_role,
+                   utterance.text, utterance.source_locator,
+                   COALESCE(annotation.topics, ARRAY[]::text[]),
+                   COALESCE(annotation.ministries, ARRAY[]::text[]),
+                   COALESCE(annotation.utterance_kind, 'OTHER'),
+                   COALESCE(annotation.evidence_keywords, ARRAY[]::text[]),
+                   COALESCE(
+                       array_agg(DISTINCT agenda.agenda_name)
+                           FILTER (WHERE agenda.agenda_name IS NOT NULL),
+                       ARRAY[]::text[]
+                   ) AS agenda_titles
+            FROM official_transcript_utterances utterance
+            LEFT JOIN LATERAL (
+                SELECT topics, ministries, utterance_kind, evidence_keywords
+                FROM official_utterance_annotations
+                WHERE utterance_id = utterance.id
+                ORDER BY generated_at DESC, id DESC
+                LIMIT 1
+            ) annotation ON true
+            LEFT JOIN official_utterance_agenda_links agenda_link
+              ON agenda_link.utterance_id = utterance.id
+             AND agenda_link.reconciliation_status = 'MATCHED'
+            LEFT JOIN agenda_items agenda ON agenda.id = agenda_link.agenda_item_id
+            WHERE utterance.document_id = %s
+            GROUP BY utterance.id, utterance.sequence_number,
+                     utterance.speaker_name, utterance.speaker_role,
+                     utterance.text, utterance.source_locator,
+                     annotation.topics, annotation.ministries,
+                     annotation.utterance_kind, annotation.evidence_keywords
+            ORDER BY utterance.sequence_number
+            """,
+            (document["document_id"],),
+        ).fetchall()
+        columns = (
+            "utterance_id", "sequence_number", "speaker_name", "speaker_role",
+            "text", "source_locator", "topics", "ministries",
+            "utterance_kind", "evidence_keywords", "agenda_titles",
+        )
+        return {
+            "document": document,
+            "utterances": [
+                dict(zip(columns, row, strict=True)) for row in rows
+            ],
+        }
+
     def list_open_follow_up_tasks(
         self,
         committee_name: str | None = None,
@@ -465,6 +706,7 @@ class LiveRepository:
             JOIN transcript_segment_revisions revision ON revision.segment_id = segment.id
             JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
             WHERE broadcast.institution = 'LEGISLATURE'
+              AND broadcast.source_system <> 'poc07.demo'
               AND revision.is_final = true
               AND (broadcast.lifecycle_status = 'LIVE'
                    OR broadcast.ended_at >= now() - interval '30 days')
@@ -512,7 +754,6 @@ class LiveRepository:
                 "topic_id": topic_id,
                 "topic": str(insight.get("topic") or "기타 현안"),
                 "ministries": ministries,
-                "simulation": item["source_system"] == "poc07.demo",
                 "authority_status": "PROVISIONAL",
             }
         result = sorted(
@@ -549,7 +790,8 @@ class LiveRepository:
                    source_system, capture_status, detected_at, last_seen_at,
                    last_caption_received_at, thumbnail_url, ended_at
             FROM live_broadcasts
-            WHERE institution = 'LEGISLATURE' AND lifecycle_status = %s
+            WHERE lifecycle_status = %s
+              AND source_system <> 'poc07.demo'
             {committee_filter}
             {broadcast_filter}
             {order_and_limit}
@@ -562,8 +804,6 @@ class LiveRepository:
             "last_caption_received_at", "thumbnail_url", "ended_at",
         )
         broadcast_items = [dict(zip(columns, row, strict=True)) for row in broadcasts]
-        for item in broadcast_items:
-            item["simulation"] = item["source_system"] == "poc07.demo"
         broadcast_ids = [item["broadcast_id"] for item in broadcast_items]
         if not broadcast_ids:
             return {"broadcasts": [], "segments": [], "cursor": 0}
@@ -599,6 +839,9 @@ class LiveRepository:
         segments = [dict(zip(segment_columns, row, strict=True)) for row in rows]
         for item in segments:
             source_payload = item.pop("source_payload", {})
+            speaker_segments = source_payload.get("speaker_segments") if isinstance(source_payload, dict) else None
+            item["source_speaker_segments"] = (
+                speaker_segments if isinstance(speaker_segments, list) else [])
             hint = source_payload.get("insight") if isinstance(source_payload, dict) else None
             item["insight_hint"] = hint if isinstance(hint, dict) else None
         segments.sort(key=lambda item: (item["received_at"], item["cursor"]))
@@ -609,6 +852,7 @@ class LiveRepository:
         cursor: int,
         *,
         committee_name: str | None = None,
+        broadcast_id: uuid.UUID | None = None,
         limit: int = 200,
     ) -> list[dict[str, Any]]:
         parameters: list[Any] = [cursor]
@@ -616,6 +860,10 @@ class LiveRepository:
         if committee_name:
             committee_filter = " AND broadcast.committee_name = %s"
             parameters.append(committee_name)
+        broadcast_filter = ""
+        if broadcast_id:
+            broadcast_filter = " AND broadcast.id = %s"
+            parameters.append(broadcast_id)
         parameters.append(limit)
         rows = self.connection.execute(
             f"""
@@ -628,7 +876,7 @@ class LiveRepository:
             JOIN transcript_segments segment ON segment.id = revision.segment_id
             JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
             WHERE revision.event_cursor > %s
-              AND broadcast.lifecycle_status = 'LIVE' {committee_filter}
+              AND broadcast.lifecycle_status = 'LIVE' {committee_filter} {broadcast_filter}
             ORDER BY revision.event_cursor
             LIMIT %s
             """,
@@ -644,6 +892,9 @@ class LiveRepository:
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         for item in items:
             source_payload = item.pop("source_payload", {})
+            speaker_segments = source_payload.get("speaker_segments") if isinstance(source_payload, dict) else None
+            item["source_speaker_segments"] = (
+                speaker_segments if isinstance(speaker_segments, list) else [])
             hint = source_payload.get("insight") if isinstance(source_payload, dict) else None
             item["insight_hint"] = hint if isinstance(hint, dict) else None
         return items

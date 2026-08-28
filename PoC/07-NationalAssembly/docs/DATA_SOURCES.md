@@ -27,7 +27,7 @@
 
 현행 resource와 필드 계약은 `backend/app/adapters/national_assembly/contracts.py`에 기록합니다. 공식 응답은 Git에 넣지 않고 `data/raw/`에 저장합니다. repository fixture는 실제 값이 아닌 명시적인 합성 JSON/XML만 사용합니다.
 
-일정 API는 `Type=json` 요청에도 HTTP Content-Type을 XML로 반환하는 경우가 확인되어 raw 저장 시 본문 signature를 우선 판별합니다.
+일정 API는 `Type=json` 요청에도 HTTP Content-Type을 XML로 반환하는 경우가 확인되어 raw 저장 시 본문 signature를 우선 판별합니다. 2026-08-24에는 `SCH_DT=YYYY-MM-DD`가 해당 날짜만 반환하는 것을 오늘·내일 응답으로 재검증했으며, `schedule-worker`는 이 필터만 사용해 향후 7일을 10분마다 raw-first 동기화합니다.
 
 ## 공식 확인 출발점
 
@@ -79,8 +79,6 @@
 
 회의록 소비자 앱의 화면이나 비공개 export를 긁어오는 방식은 사용하지 않습니다. LIVE 결과는 수정 가능한 segment revision으로 저장하고, 공식 브리핑·발언문이 게시되면 동일 회의에 연결해 `MATCHED`, `UNRESOLVED`, `CONFLICT`로 대조합니다.
 
-합성 LIVE fixture는 파이프라인·화면 검증 전용이며 공식 source catalog에 포함하지 않습니다. 결과는 항상 `SYNTHETIC_FIXTURE`, `PROVISIONAL`, `SIMULATION`으로 표시합니다.
-
 ### LIVE source contract 검증 결과
 
 - 국회: `https://assembly.webcast.go.kr/main/service/live_list.asp` 공개 JSON에서 대상 위원회의 `xstat`, `xcgcd`, 회의명, 썸네일, 퀵 VOD, 자막 서비스 제공 여부를 판별합니다.
@@ -88,7 +86,9 @@
 - 국회 영상: 같은 `live_play.asp` 응답의 검증된 `xhls` profile 중 HTTPS `.m3u8` 주소만 LIVE 화면의 native video 입력으로 사용합니다. 브라우저 HLS 지원이나 원본 CORS 정책으로 재생에 실패할 수 있으며 이때 다른 주소를 추정하지 않습니다.
 - 국회 자막 메시지: 공개 플레이어 JavaScript에서 `segment`, `transcript`, `transcripts`, `scd`, `final` 필드를 확인해 파서를 고정했습니다. 대상 위원회 방송 중 실제 WebSocket 메시지로 최종 회귀 검증하기 전까지 `READY_TO_CAPTURE`는 연결 준비 상태이지 공식 발언 확정 상태가 아닙니다.
 - 감시 주기: `live-monitor` worker가 30초마다 목록을 검사하고 원본 hash·parser version·조회 시각을 보존합니다. 대상 LIVE에 한해 상세 player 계약을 추가 수집합니다.
-- KTV: 콘텐츠 ID, `WeNMediaPlayer`, HLS player library와 방송 본문은 확인했지만 별도 VTT/자막 URL은 공개 HTML에서 확인되지 않았습니다. `caption_contract_status=UNVERIFIED`를 유지합니다.
+- KTV 편성: `https://www.ktv.go.kr/onair/scheduleAjax`의 `ONAIR`, `internet_yn`, 회차명과 편성 시각으로 국무회의 시작·종료를 판정합니다.
+- KTV 영상: 공식 온에어 페이지 `https://www.ktv.go.kr/onair/tv`가 사용하는 `https://hlive.ktv.go.kr/live/klive_h.stream/playlist.m3u8`만 표시합니다.
+- KTV 자막: 2026-08-25 제37회 국무회의 표본의 HLS manifest와 공식 페이지에서 별도 VTT·subtitle group을 확인하지 못했습니다. `caption_contract_status=UNAVAILABLE_NO_MACHINE_CAPTIONS`로 표시하며 자막이나 화자를 추정하지 않습니다.
 - 이용 제한: 국회 회의 영상은 공식 도움말에 따라 상업적 이용 대상에서 제외합니다. POC의 영상 표출은 내부 검증 범위이며 외부 배포 전 이용 범위와 재송출 조건을 다시 확인합니다.
 
 ### 위원회 공식 회의록 본문 contract 검증 결과
