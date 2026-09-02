@@ -4,6 +4,8 @@
 
 제품의 우선 대상은 행정안전위원회, 예산결산특별위원회, 법제사법위원회입니다. `is_target_committee`는 제품 scope이며 자료 권위나 회의 매칭 상태와 별개입니다.
 
+`assembly_reference.json`은 canonical 의원 테이블이 아니라 공식 `ALLNAMEMBER` 원본 버전에서 하루 한 번 계산하는 공개 읽기 스냅샷입니다. 현행 대수·직책 존재 규칙, 정당별 의석·선출구분·성별·위원회 수와 각 raw content hash를 보존합니다. 화면 조회는 이 스냅샷만 읽으며 외부 API나 LLM을 호출하지 않습니다. 월간 달력은 `ScheduleEntry`의 최대 42일 범위 읽기 모델이고 저장되지 않은 미래 일정을 추정하지 않습니다.
+
 ```text
 ScheduleEntry N ─ 1 SourceDocumentVersion, N ─ 0..1 Meeting
 Meeting 1 ─ N MeetingSource N ─ 1 SourceDocument
@@ -28,6 +30,8 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
           └─ N OfficialTranscriptDocument ─ N OfficialTranscriptUtterance
                  └─ N TranscriptOfficialReconciliation ─ TranscriptSegmentRevision
 ```
+
+관심주제 계층은 `WatchSubscriber → WatchRule → WatchRuleRevision`으로 설정 버전을 보존하고, `WatchDetectionEvent → WatchSession → WatchMatch`로 빠른 감지와 사용자 발언 묶음을 분리합니다. `WatchNotification.notification_type`은 `MATCH`와 `DIGEST`를 구분하며 dedupe key로 재시작 중복을 막습니다. `WatchMatchOfficialVerification`은 FINAL 공식 문서별로 `PENDING_OFFICIAL / OFFICIAL_CONFIRMED / OFFICIAL_CORRECTED / OFFICIAL_NOT_CONFIRMED / REVIEW_REQUIRED`를 별도 파생 상태로 보존하고 LIVE 원문을 수정하지 않습니다.
 
 ## 식별자
 
@@ -67,9 +71,11 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - `TranscriptOfficialReconciliation`은 LIVE final revision과 공식 문장의 관계입니다. 공백·문장부호만 제거한 문자열이 단 하나의 공식 문장과 포함 일치할 때만 `MATCHED`로 기록하며 짧거나 복수 후보인 문장은 `UNRESOLVED`로 남깁니다.
 - `OfficialUtteranceAnnotation`은 공식 문장을 변경하지 않는 파생 레이어입니다. rule version, 분류 방법, 주제·관련 부처, 원문 hash, `PROVISIONAL`, `DRAFT/REVIEWED/APPROVED` 검토 상태를 별도 저장합니다.
 - 설명 가능한 annotation v2는 `utterance_kind`(POLICY/PROCEDURAL/OTHER), 실제 일치 keyword, topic link와 `RELATED` ministry link를 함께 저장합니다. 이전 rule version은 삭제하지 않습니다.
-- 통합 정책 흐름은 별도 canonical table이 아니라 각 Meeting의 최신 공식 본문과 annotation v2에서 계산하는 읽기 모델입니다. POLICY 발언만 포함하고 주제별 위원회·관련 부처 count와 가장 긴 원문 발언을 대표 evidence로 반환합니다.
+- 통합 정책 흐름은 별도 canonical table이 아니라 각 Meeting의 최신 공식 본문과 annotation v2에서 계산하는 읽기 모델입니다. POLICY 발언만 포함하고 주제별 위원회·관련 부처 count와 가장 긴 원문 발언을 대표 evidence로 반환합니다. 주제별 `meeting_count`와 날짜별 고유 회의·공식 정책 발언 수의 `timeline`도 반환하며 최근 14일 증감 표시는 이 읽기 모델에서 계산한 화면 파생값입니다.
 - `OfficialUtteranceAgendaLink`는 공식 발언의 `itemN`과 같은 Meeting의 `N.` 의안만 연결합니다. 관계마다 reconciliation 상태, match method와 confidence를 보존하고 번호가 없거나 대응 의안이 없으면 row를 만들지 않습니다.
 - `MeetingOfficialIntegration`은 특정 `MeetingBrief`와 특정 `OfficialTranscriptDocument` 버전의 파생 대조 결과입니다. LIVE 잠정 원본과 공식 원본은 수정하지 않고, 통합 브리프·본문 변경 span·공식 근거 ID·화자 매칭 통계·LLM 사용량만 캐시합니다. 캐시 키는 `(meeting_brief_id, official_document_id, integration_version)`입니다.
+- `MeetingOfficialChangeReport`는 하나의 READY `MeetingOfficialIntegration`에서 서버가 검증한 변경 snapshot과 hash, OpenRouter 설명 결과, 사용량·상태·lease를 저장합니다. LLM은 제공된 change ID만 묶을 수 있고 변경 0건은 결정론 결과를 저장합니다.
+- `OfficialChangeReportDailyUsage`는 공식화 변화 보고 전용 UTC 일일 요청 수를 원자적으로 제한하며 실제 호출은 공용 `LlmProviderDailyUsage` 한도도 함께 예약합니다.
 - 공식 화자 매칭은 `TranscriptOfficialReconciliation`의 파생 관계를 현재 문서 기준으로 교체합니다. 화면은 이 관계를 발언 묶음 키로 사용해 공식 화자가 바뀌면 분리하고, 인접 자막이 같은 공식 화자로 확인되면 병합하지만 별도 화자 변경 이력 UI는 만들지 않습니다.
 
 ## Provenance 최소값
@@ -98,3 +104,14 @@ AIAnnotation은 canonical official table에 요약 필드로 삽입하지 않습
 - CrossInstitutionLink: 국무회의 주제·발언과 국회 회의·의안 후보 연결.
 
 공식 문서에 명시된 부처와 AI가 추론한 관련 부처를 같은 authority 상태로 저장하지 않습니다. AI 결과는 DRAFT, REVIEWED, APPROVED 검토상태와 evidence span을 가져야 합니다.
+
+## 관심주제 외부 기능과 운영 이력
+
+- `WatchKakaoAccount`: 브라우저 subscriber와 Kakao 사용자 연결 상태, 암호화 access/refresh token, 만료·scope·재동의 상태를 저장합니다.
+- `WatchWebSession`: Kakao 계정과 여러 브라우저를 연결하는 만료 가능한 opaque session의 SHA-256 hash, user-agent hash, 마지막 사용·폐기 시각만 저장합니다. 원문 token은 저장하지 않습니다.
+- `NotificationOutbox`: IN_APP/KAKAO provider별 전송 상태와 lease, attempt, 다음 재시도 시각을 저장합니다. provider 실패는 match와 다른 channel을 변경하지 않습니다.
+- `WatchSummaryVersion`: session별 evidence match ID 집합 hash, 근거 연결 claim, provider/model/prompt, 실제 token·비용과 생성 상태를 버전으로 저장합니다.
+- `WatchReviewDecision`: 공식 대조의 자동판정 상태를 복사해 보존하고 운영자 승인·보정·보류와 메모를 별도 이력으로 추가합니다.
+- `LiveRegressionAudit`: 방송별 revision/final/partial/수집 공백과 공식 통합 확인 결과를 실행 시점별로 저장합니다.
+- `TopicReport`: 사용자 검색 조건, 당시 선별된 공개 근거 snapshot과 hash, provider/model/prompt, 검증된 보고서 JSON, 사용량과 비동기 lease를 저장합니다. 같은 조건·근거·모델·프롬프트의 READY 결과는 재사용합니다.
+- `TopicReportDailyUsage`: 사용자별 UTC 일일 요청 수를, `TopicReportGlobalDailyUsage`는 주제 보고서 전용 UTC 일일 요청 수를 원자적으로 제한합니다. 실제 외부 호출 전에는 공용 `LlmProviderDailyUsage` 500회 장부도 함께 예약합니다.

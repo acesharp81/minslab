@@ -60,7 +60,7 @@ def main():
     try:
         driver.set_window_size(1440, 900)
         driver.get(URL)
-        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.30.0')")
+        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.31.2')")
         wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
         driver.find_element(By.CSS_SELECTOR, '[data-select-project="project-default"]').click()
         wait_for(driver, "!document.querySelector('#workbench').hidden || !document.querySelector('#welcomeTask').hidden")

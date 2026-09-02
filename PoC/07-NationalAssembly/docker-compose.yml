@@ -2,12 +2,41 @@ services:
   api:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
       PROCESSED_DATA_DIR: /app/data/processed
+      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-disabled}
+      LLM_MODEL: ${LLM_MODEL:-}
+      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+      WATCH_ALERTS_ENABLED: ${WATCH_ALERTS_ENABLED:-true}
+      WATCH_TEST_BROADCASTS_ENABLED: ${WATCH_TEST_BROADCASTS_ENABLED:-true}
+      WATCH_DIGEST_ENABLED: ${WATCH_DIGEST_ENABLED:-true}
+      WATCH_KAKAO_ENABLED: ${WATCH_KAKAO_ENABLED:-false}
+      WATCH_LLM_ENABLED: ${WATCH_LLM_ENABLED:-false}
+      WATCH_LLM_PROVIDER: ${WATCH_LLM_PROVIDER:-openrouter}
+      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-dots-studio/dots-3-note-preview:free}
+      WATCH_LLM_MIN_NEW_MATCHES: ${WATCH_LLM_MIN_NEW_MATCHES:-3}
+      WATCH_KAKAO_REDIRECT_URI: ${WATCH_KAKAO_REDIRECT_URI:-}
+      WATCH_PUBLIC_BASE_URL: ${WATCH_PUBLIC_BASE_URL:-}
+      WATCH_KAKAO_REST_API_KEY: ${WATCH_KAKAO_REST_API_KEY:-}
+      WATCH_KAKAO_CLIENT_SECRET: ${WATCH_KAKAO_CLIENT_SECRET:-}
+      WATCH_KAKAO_TOKEN_ENCRYPTION_KEY: ${WATCH_KAKAO_TOKEN_ENCRYPTION_KEY:-}
+      WATCH_ADMIN_TOKEN: ${WATCH_ADMIN_TOKEN:-}
+      WATCH_SESSION_COOKIE_NAME: ${WATCH_SESSION_COOKIE_NAME:-gukjeongbomi_session}
+      WATCH_SESSION_COOKIE_PATH: ${WATCH_SESSION_COOKIE_PATH:-/poc/national-assembly}
+      TOPIC_REPORTS_ENABLED: ${TOPIC_REPORTS_ENABLED:-true}
+      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      TOPIC_REPORT_DAILY_LIMIT: ${TOPIC_REPORT_DAILY_LIMIT:-100}
+      TOPIC_REPORT_USER_DAILY_LIMIT: ${TOPIC_REPORT_USER_DAILY_LIMIT:-10}
+      OFFICIAL_CHANGE_REPORTS_ENABLED: ${OFFICIAL_CHANGE_REPORTS_ENABLED:-true}
+      OFFICIAL_CHANGE_REPORT_MODEL: ${OFFICIAL_CHANGE_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      OFFICIAL_CHANGE_REPORT_DAILY_LIMIT: ${OFFICIAL_CHANGE_REPORT_DAILY_LIMIT:-100}
+      TOPIC_REPORT_MAX_PERIOD_DAYS: ${TOPIC_REPORT_MAX_PERIOD_DAYS:-366}
     ports:
       - "${NATIONAL_ASSEMBLY_PORT:-8070}:8070"
     volumes:
@@ -36,8 +65,6 @@ services:
   live-monitor:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
@@ -54,12 +81,11 @@ services:
   schedule-worker:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
       PROCESSED_DATA_DIR: /app/data/processed
+      NATIONAL_ASSEMBLY_API_KEY: ${NATIONAL_ASSEMBLY_API_KEY:-}
     command: ["python", "-m", "app.ingestion.schedule_worker", "--interval", "600", "--days", "7"]
     volumes:
       - ./data:/app/data
@@ -70,8 +96,6 @@ services:
   caption-worker:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
@@ -87,11 +111,96 @@ services:
   review-worker:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
     command: ["python", "-m", "app.ingestion.review_worker", "--interval", "10"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  watch-worker:
+    container_name: poc07-national-assembly-watch-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      WATCH_ALERTS_ENABLED: ${WATCH_ALERTS_ENABLED:-true}
+      WATCH_TEST_BROADCASTS_ENABLED: ${WATCH_TEST_BROADCASTS_ENABLED:-true}
+      WATCH_DIGEST_ENABLED: ${WATCH_DIGEST_ENABLED:-true}
+      WATCH_KAKAO_ENABLED: ${WATCH_KAKAO_ENABLED:-false}
+      WATCH_LLM_ENABLED: ${WATCH_LLM_ENABLED:-false}
+    command: ["python", "-m", "app.ingestion.watch_worker", "--interval", "1"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-worker:
+    container_name: poc07-national-assembly-notification-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      WATCH_KAKAO_ENABLED: ${WATCH_KAKAO_ENABLED:-false}
+      WATCH_KAKAO_REDIRECT_URI: ${WATCH_KAKAO_REDIRECT_URI:-}
+      WATCH_PUBLIC_BASE_URL: ${WATCH_PUBLIC_BASE_URL:-}
+      WATCH_KAKAO_REST_API_KEY: ${WATCH_KAKAO_REST_API_KEY:-}
+      WATCH_KAKAO_CLIENT_SECRET: ${WATCH_KAKAO_CLIENT_SECRET:-}
+      WATCH_KAKAO_TOKEN_ENCRYPTION_KEY: ${WATCH_KAKAO_TOKEN_ENCRYPTION_KEY:-}
+    command: ["python", "-m", "app.ingestion.notification_worker", "--interval", "2"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  watch-summary-worker:
+    container_name: poc07-national-assembly-watch-summary-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      WATCH_LLM_ENABLED: ${WATCH_LLM_ENABLED:-false}
+      WATCH_LLM_PROVIDER: ${WATCH_LLM_PROVIDER:-openrouter}
+      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-dots-studio/dots-3-note-preview:free}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      WATCH_LLM_MONTHLY_BUDGET_USD: ${WATCH_LLM_MONTHLY_BUDGET_USD:-1.0}
+      WATCH_LLM_DEBOUNCE_SECONDS: ${WATCH_LLM_DEBOUNCE_SECONDS:-30}
+      WATCH_LLM_MIN_NEW_MATCHES: ${WATCH_LLM_MIN_NEW_MATCHES:-3}
+      WATCH_LLM_MAX_UPDATES_PER_SESSION: ${WATCH_LLM_MAX_UPDATES_PER_SESSION:-12}
+      LLM_PROVIDER: ${LLM_PROVIDER:-disabled}
+      LLM_MODEL: ${LLM_MODEL:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+    command: ["python", "-m", "app.ingestion.watch_summary_worker", "--interval", "10"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  topic-report-worker:
+    container_name: poc07-national-assembly-topic-report-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      TOPIC_REPORTS_ENABLED: ${TOPIC_REPORTS_ENABLED:-true}
+      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      TOPIC_REPORT_DAILY_LIMIT: ${TOPIC_REPORT_DAILY_LIMIT:-100}
+      TOPIC_REPORT_USER_DAILY_LIMIT: ${TOPIC_REPORT_USER_DAILY_LIMIT:-10}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+    command: ["python", "-m", "app.ingestion.topic_report_worker", "--interval", "2"]
     depends_on:
       db:
         condition: service_healthy
@@ -124,14 +233,20 @@ services:
     image: poc07-national-assembly-api:local
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
-      # The root .env may be used for Compose interpolation, but it must never
-      # be injected wholesale into a container. Only this allowlisted secret
-      # crosses the service boundary.
+      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
+      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
     command: ["python", "-m", "app.ingestion.summary_worker", "--interval", "2"]
     depends_on:
       db:
@@ -143,11 +258,16 @@ services:
     image: poc07-national-assembly-api:local
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
+      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
     command: ["python", "-m", "app.ingestion.meeting_brief_worker", "--interval", "60"]
     depends_on:
       db:
@@ -159,12 +279,18 @@ services:
     image: poc07-national-assembly-api:local
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
+      NATIONAL_ASSEMBLY_API_KEY: ${NATIONAL_ASSEMBLY_API_KEY:-}
+      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
+      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
     command: ["python", "-m", "app.ingestion.official_minutes_worker", "--interval", "3600"]
     volumes:
       - ./data:/app/data

@@ -50,7 +50,6 @@ def cleanup_test_draft(package_id: str) -> None:
                 (draft_id,),
             )
             db.execute("DELETE FROM mcp_draft_references WHERE draft_id=?", (draft_id,))
-            db.execute("DELETE FROM audit_events WHERE detail_json LIKE ?", ("%" + draft_id + "%",))
             db.execute("DELETE FROM mcp_drafts WHERE id=?", (draft_id,))
 
 
@@ -64,9 +63,9 @@ def main():
     try:
         driver.set_window_size(1440, 1000)
         driver.get(URL)
-        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.30.0')")
-        wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
-        driver.find_element(By.CSS_SELECTOR, '[data-select-project="project-default"]').click()
+        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.31.2')")
+        wait_for(driver, "document.querySelector('[data-select-project]')")
+        driver.find_element(By.CSS_SELECTOR, "[data-select-project]").click()
         wait_for(driver, "!document.querySelector('#workbench').hidden || !document.querySelector('#welcomeTask').hidden")
         if driver.execute_script("return !document.querySelector('#welcomeTask').hidden"):
             driver.find_element(By.ID, "enterDemo").click()
@@ -105,8 +104,62 @@ def main():
         reference.send_keys(str(TEMPLATE))
         wait_for(driver, "document.querySelector('#referenceList').textContent.includes('template-source')", timeout=30)
         wait_for(driver, "document.querySelector('#convertDraftTemplate').disabled === false", timeout=30)
+        wait_for(driver, "document.querySelector('#previewDraftTemplate').disabled === false", timeout=30)
+        driver.execute_script("document.querySelector('#previewDraftTemplate').click()")
+        wait_for(driver, "document.querySelector('#templatePreviewDialog').open === true", timeout=30)
+        wait_for(driver, "document.querySelector('#templatePreviewMarkdown').value.includes('주요 사업 현황')", timeout=30)
+        wait_for(driver, "document.querySelector('#templatePreviewHwpxHost iframe') !== null", timeout=45)
+        wait_for(driver, "document.querySelector('#templatePreviewHwpxState').textContent.includes('적용 결과')", timeout=45)
+        preview_state = driver.execute_script(
+            "return {guide:document.querySelector('.template-preview-guide').textContent,"
+            "analysis:document.querySelector('#templatePreviewAnalysis').textContent,"
+            "result:document.querySelector('#templatePreviewModeLabel').textContent}"
+        )
+        if "원본 보존" not in preview_state["guide"] or not any(term in preview_state["analysis"] for term in ("매핑률", "신뢰도")) or "실제 Markdown 적용 결과" not in preview_state["result"]:
+            raise AssertionError(f"simple template preview not ready: {preview_state}")
+        driver.execute_script("document.querySelector('#showTemplateOriginal').click()")
+        wait_for(driver, "document.querySelector('#templatePreviewModeLabel').textContent.includes('업로드한 원본')", timeout=30)
+        driver.execute_script("document.querySelector('#showTemplateResult').click()")
+        wait_for(driver, "document.querySelector('#templatePreviewModeLabel').textContent.includes('실제 Markdown 적용 결과')", timeout=30)
+        driver.execute_script("document.querySelector('#confirmTemplatePreview').click()")
+        wait_for(driver, "document.querySelector('#templatePreviewDialog').open === false", timeout=45)
+        driver.execute_script("document.querySelector('#correctDraftTemplate').click()")
+        wait_for(driver, "document.querySelector('#templateMappingDialog').open === true", timeout=30)
+        wait_for(driver, "document.querySelector('#templateBlueprintMarkdown').value.includes('{{title}}')")
+        wait_for(driver, "document.querySelector('#templateMappingHwpxHost iframe') !== null", timeout=45)
+        wait_for(driver, "document.querySelector('#templateHwpxState').textContent.includes('편집 가능')", timeout=45)
+        split_mapping = driver.execute_script(
+            "return {md:document.querySelector('#templateBlueprintMarkdown').value,"
+            "hwpx:Boolean(document.querySelector('#templateMappingHwpxHost iframe')),"
+            "rail:document.querySelector('#templateBindingRail').textContent}"
+        )
+        rail = split_mapping["rail"]
+        if (
+            "{{content}}" not in split_mapping["md"]
+            or not split_mapping["hwpx"]
+            or "{{title}} → Contents/" not in rail
+            or "{{content}} → Contents/" not in rail
+            or "반복 section" not in rail
+        ):
+            raise AssertionError(f"split mapping workspace not ready: {split_mapping}")
+        driver.execute_script("document.querySelector('#applyTemplateMapping').click()")
+        try:
+            wait_for(driver, "document.querySelector('#templateMappingDialog').open === false", timeout=60)
+        except Exception:
+            diagnostics = driver.execute_script(
+                "return {status:document.querySelector('#statusText').textContent,"
+                "toast:document.querySelector('#toast').textContent,"
+                "title:document.querySelector('#mappingTitle').value,"
+                "body:document.querySelector('#mappingBody').value,"
+                "main:document.querySelector('#mappingMain').value,"
+                "sub:document.querySelector('#mappingSub').value,"
+                "note:document.querySelector('#mappingNote').value}"
+            )
+            raise AssertionError(f"template mapping did not close: {diagnostics}")
+        wait_for(driver, "document.querySelector('#statusText').textContent.includes('매핑 저장')", timeout=30)
         driver.execute_script("document.querySelector('#convertDraftTemplate').click()")
-        wait_for(driver, "document.querySelector('#templateConversionSummary').textContent.includes('실검증 통과')", timeout=45)
+        wait_for(driver, "document.querySelector('#statusText').textContent.includes('양식용 HWPX 변환·초안 반영 완료')", timeout=45)
+        wait_for(driver, "['실검증 통과','사용자 확인 완료'].some(function(term){return document.querySelector('#templateConversionSummary').textContent.includes(term)})", timeout=45)
         wait_for(driver, "!document.querySelector('#builderTemplateLab').hidden && document.querySelector('#verifyDraftTemplate').disabled === false")
         driver.execute_script("document.querySelector('#verifyDraftTemplate').click()")
         wait_for(driver, "document.querySelector('#statusText').textContent.includes('양식 실렌더링 검증 통과')", timeout=45)
@@ -127,6 +180,8 @@ def main():
                     "templateAttached": True,
                     "guidePackaged": True,
                     "ordinaryHwpxConverted": True,
+                    "autoTemplateExtraction": True,
+                    "splitMdHwpxMappingSaved": True,
                     "renderQualityVerified": True,
                     "sandboxValidated": True,
                 },

@@ -1,11 +1,32 @@
 from __future__ import annotations
+
 import hashlib
-
+import re
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Iterable
-
+from typing import Any
 
 SUMMARY_MAX_CHARS = 180
+TURN_CONTINUATION_GAP_SECONDS = 5 * 60
+
+
+def executive_meeting_content_segments(
+    segments: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Exclude KTV pre-show material once the formal meeting opening is observed."""
+    source = [dict(item) for item in segments]
+    ordered = sorted(
+        source,
+        key=lambda value: (
+            int(value.get("cursor") or 0),
+            str(value.get("received_at") or ""),
+        ),
+    )
+    for index, item in enumerate(ordered):
+        normalized = re.sub(r"[\s,·]+", "", str(item.get("text") or ""))
+        if "국무회의를시작하겠습니다" in normalized:
+            return ordered[index:]
+    return source
 
 
 def default_speaker_name(source_label: str | None) -> str:
@@ -127,10 +148,16 @@ def group_transcript_segments(
             source_label = previous.get("source_speaker_label")
             item["speaker_label"] = previous.get("speaker_label")
             item["speaker_overridden"] = previous.get("speaker_overridden", False)
+        current_at = item.get("received_at")
+        previous_at = previous.get("end_at") if previous else None
+        within_turn_gap = not (
+            isinstance(current_at, datetime) and isinstance(previous_at, datetime)
+        ) or (current_at - previous_at).total_seconds() <= TURN_CONTINUATION_GAP_SECONDS
         same_turn = bool(
             previous
             and previous["broadcast_id"] == item.get("broadcast_id")
             and previous.get("source_speaker_label") == source_label
+            and within_turn_gap
         )
         if not same_turn:
             groups.append({

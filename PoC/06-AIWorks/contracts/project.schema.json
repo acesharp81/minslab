@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/project.schema.json",
+  "title": "AIWorks Project 1.0",
+  "type": "object",
+  "required": ["id", "name", "status", "classification", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,99}$"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string"},
+    "status": {"enum": ["active", "archived"]},
+    "classification": {"enum": ["public", "internal", "confidential", "restricted"]},
+    "owner": {"type": "string"},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
+}

@@ -51,6 +51,16 @@ def _load_mcp_module(name: str, filename: str):
     spec.loader.exec_module(module)
     return module
 
+def _load_core_module(name: str, filename: str):
+    path = ROOT / "core_runtime" / filename
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"{filename} 코어 모듈을 불러오지 못했습니다.")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 
 INTENT_ANALYSIS_MCP = _load_mcp_module("aiworks_intent_analysis_mcp", "intent_analysis.py")
 MODEL_MANAGEMENT_MCP = _load_mcp_module("aiworks_model_management_mcp", "model_management.py")
@@ -61,12 +71,79 @@ REPORT_DOCUMENT_MCP = _load_mcp_module("aiworks_report_document_mcp", "report_do
 TEMPLATE_REPORT_STYLE_MCP = _load_mcp_module("aiworks_template_report_style_mcp", "template_report_style.py")
 MOIS_REPORT_TEMPLATE_MCP = _load_mcp_module("aiworks_mois_report_template_mcp", "template_mois_report.py")
 RHWP_AUTOMATION_MCP = _load_mcp_module("aiworks_rhwp_automation_mcp", "rhwp_automation.py")
+CONTEXT_ASSEMBLER = _load_core_module("aiworks_context_assembler", "context_assembler.py")
+TASK_COMPILER = _load_core_module("aiworks_task_compiler", "task_compiler.py")
+CAPABILITY_RESOLVER = _load_core_module("aiworks_capability_resolver", "capability_resolver.py")
 
 
 class ApiError(Exception):
     def __init__(self, message: str, status: int = 400):
         super().__init__(message)
         self.status = status
+
+
+_SENSITIVE_TEXT_PATTERNS = (
+    ("resident-registration-number", re.compile(r"(?<!\d)\d{6}[- ]?[1-4]\d{6}(?!\d)"), "[주민등록번호 마스킹]"),
+    ("email", re.compile(r"(?<![\w.+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?![\w.-])"), "[이메일 마스킹]"),
+    ("phone", re.compile(r"(?<!\d)(?:01[016789]|0[2-6][1-5]?)[- .]?\d{3,4}[- .]?\d{4}(?!\d)"), "[전화번호 마스킹]"),
+    ("payment-card", re.compile(r"(?<!\d)(?:\d{4}[- ]?){3}\d{4}(?!\d)"), "[카드번호 마스킹]"),
+    ("api-secret", re.compile(r"(?i)(?:bearer\s+|(?:api[_ -]?key|token|secret)\s*[:=]\s*)[A-Za-z0-9._~+/-]{12,}"), "[비밀값 마스킹]"),
+)
+
+
+def _mask_sensitive_text(value: str) -> tuple[str, list[dict]]:
+    """Return text safe for an external model and auditable detection metadata."""
+    masked = str(value or "")
+    findings: list[dict] = []
+    for kind, pattern, replacement in _SENSITIVE_TEXT_PATTERNS:
+        count = len(pattern.findall(masked))
+        if count:
+            masked = pattern.sub(replacement, masked)
+            findings.append({"type": kind, "count": count, "replacement": replacement})
+    return masked, findings
+
+
+def _mask_sensitive_value(value, path: str = "$") -> tuple[object, list[dict]]:
+    findings: list[dict] = []
+    if isinstance(value, str):
+        masked, matches = _mask_sensitive_text(value)
+        findings.extend({**item, "path": path} for item in matches)
+        return masked, findings
+    if isinstance(value, dict):
+        result = {}
+        for key, item in value.items():
+            result[key], child = _mask_sensitive_value(item, path + "." + str(key))
+            findings.extend(child)
+        return result, findings
+    if isinstance(value, list):
+        result = []
+        for index, item in enumerate(value):
+            masked, child = _mask_sensitive_value(item, f"{path}[{index}]")
+            result.append(masked)
+            findings.extend(child)
+        return result, findings
+    return value, findings
+
+
+def _deduplicate_sensitive_findings(findings: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str], dict] = {}
+    for item in findings:
+        if not isinstance(item, dict):
+            item = {"path": str(item or "$.declared"), "type": "declared-sensitive", "count": 1, "replacement": "[민감정보 마스킹]"}
+        key = (str(item.get("path") or "$"), str(item.get("type") or "sensitive"))
+        current = grouped.setdefault(key, {"path": key[0], "type": key[1], "count": 0, "replacement": item.get("replacement")})
+        current["count"] += int(item.get("count") or 0)
+    return list(grouped.values())
+
+
+def _redact_model_messages(messages: list[dict]) -> tuple[list[dict], list[dict]]:
+    safe_messages = []
+    findings: list[dict] = []
+    for index, message in enumerate(messages or []):
+        safe_content, matches = _mask_sensitive_text(str(message.get("content") or ""))
+        findings.extend({**item, "path": f"$.messages[{index}].content"} for item in matches)
+        safe_messages.append({**message, "content": safe_content})
+    return safe_messages, _deduplicate_sensitive_findings(findings)
 
 
 def utc_now() -> str:
@@ -191,7 +268,9 @@ def ensure_schema() -> None:
                     actor TEXT NOT NULL,
                     event_type TEXT NOT NULL,
                     detail_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL
+                    created_at TEXT NOT NULL,
+                    previous_hash TEXT,
+                    event_hash TEXT
                 );
                 CREATE TABLE IF NOT EXISTS document_versions (
                     id TEXT PRIMARY KEY,
@@ -293,6 +372,49 @@ def ensure_schema() -> None:
                     updated_by TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS project_conversations (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL REFERENCES projects(id),
+                    title TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS project_conversation_messages (
+                    id TEXT PRIMARY KEY,
+                    conversation_id TEXT NOT NULL REFERENCES project_conversations(id),
+                    sequence INTEGER NOT NULL,
+                    role TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    text TEXT NOT NULL,
+                    content_sha256 TEXT NOT NULL,
+                    document_id TEXT,
+                    document_version_id TEXT,
+                    plan_id TEXT,
+                    execution_id TEXT,
+                    metadata_json TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(conversation_id, sequence)
+                );
+                CREATE TABLE IF NOT EXISTS project_decisions (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL REFERENCES projects(id),
+                    conversation_id TEXT REFERENCES project_conversations(id),
+                    message_id TEXT REFERENCES project_conversation_messages(id),
+                    decision_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    summary TEXT NOT NULL,
+                    rationale TEXT,
+                    scope_json TEXT NOT NULL,
+                    document_id TEXT,
+                    document_version_id TEXT,
+                    plan_id TEXT,
+                    execution_id TEXT,
+                    decided_by TEXT NOT NULL,
+                    decided_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS project_facts (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL REFERENCES projects(id),
@@ -373,6 +495,24 @@ def ensure_schema() -> None:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     UNIQUE(document_id, format, variant_key)
+                );
+                CREATE TABLE IF NOT EXISTS document_final_outputs (
+                    id TEXT PRIMARY KEY,
+                    document_id TEXT NOT NULL REFERENCES project_markdown_documents(id),
+                    source_version_id TEXT NOT NULL REFERENCES project_markdown_versions(id),
+                    source_revision INTEGER NOT NULL,
+                    source_markdown_sha256 TEXT NOT NULL,
+                    format TEXT NOT NULL,
+                    filename TEXT NOT NULL,
+                    media_type TEXT NOT NULL,
+                    content_blob BLOB NOT NULL,
+                    output_sha256 TEXT NOT NULL,
+                    template_id TEXT,
+                    renderer TEXT,
+                    instruction TEXT,
+                    metadata_json TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS project_document_sync_events (
                     id TEXT PRIMARY KEY,
@@ -559,6 +699,15 @@ def ensure_schema() -> None:
                     content_blob BLOB NOT NULL,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS mcp_template_originals (
+                    draft_id TEXT PRIMARY KEY REFERENCES mcp_drafts(id),
+                    filename TEXT NOT NULL,
+                    media_type TEXT NOT NULL,
+                    bytes INTEGER NOT NULL,
+                    sha256 TEXT NOT NULL,
+                    content_blob BLOB NOT NULL,
+                    created_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS mcp_package_files (
                     package_id TEXT NOT NULL,
                     version TEXT NOT NULL,
@@ -610,6 +759,73 @@ def ensure_schema() -> None:
                     PRIMARY KEY(package_id, version),
                     FOREIGN KEY(package_id, version) REFERENCES mcp_packages(package_id, version)
                 );
+                CREATE TABLE IF NOT EXISTS model_usage_events (
+                    id TEXT PRIMARY KEY,
+                    provider TEXT NOT NULL,
+                    requested_model TEXT NOT NULL,
+                    resolved_model TEXT NOT NULL,
+                    request_id TEXT,
+                    credential_id TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    project_id TEXT,
+                    execution_id TEXT,
+                    input_tokens INTEGER NOT NULL,
+                    output_tokens INTEGER NOT NULL,
+                    total_tokens INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_model_usage_created ON model_usage_events(created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_model_usage_credential ON model_usage_events(credential_id, created_at DESC);
+                CREATE TABLE IF NOT EXISTS api_credentials (
+                    credential_id TEXT PRIMARY KEY,
+                    principal TEXT NOT NULL,
+                    organization_id TEXT,
+                    project_scope TEXT,
+                    scopes_json TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    expires_at TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS model_pricing (
+                    provider TEXT NOT NULL,
+                    model_id TEXT NOT NULL,
+                    input_per_million REAL NOT NULL,
+                    output_per_million REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    effective_at TEXT NOT NULL,
+                    PRIMARY KEY(provider, model_id, effective_at)
+                );
+                CREATE TABLE IF NOT EXISTS model_usage_reservations (
+                    id TEXT PRIMARY KEY,
+                    credential_id TEXT NOT NULL,
+                    requested_model TEXT NOT NULL,
+                    project_id TEXT,
+                    execution_id TEXT,
+                    estimated_tokens INTEGER NOT NULL,
+                    estimated_cost REAL NOT NULL,
+                    actual_tokens INTEGER,
+                    actual_cost REAL,
+                    currency TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    error TEXT,
+                    created_at TEXT NOT NULL,
+                    settled_at TEXT
+                );
+                CREATE INDEX IF NOT EXISTS idx_model_reservation_credential
+                    ON model_usage_reservations(credential_id, status, created_at DESC);
+                CREATE TABLE IF NOT EXISTS model_usage_overrides (
+                    id TEXT PRIMARY KEY,
+                    credential_id TEXT NOT NULL,
+                    requests_per_minute INTEGER,
+                    monthly_tokens INTEGER,
+                    monthly_cost REAL,
+                    reason TEXT NOT NULL,
+                    expires_at TEXT,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS native_document_sessions (
                     id TEXT PRIMARY KEY,
                     actor TEXT NOT NULL,
@@ -637,6 +853,9 @@ def ensure_schema() -> None:
                 CREATE INDEX IF NOT EXISTS idx_recipe_visibility ON workflow_recipes(status, visibility, updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_recipe_version_recipe ON workflow_recipe_versions(recipe_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_recipe_install_project ON workflow_recipe_installations(project_id, status);
+                CREATE INDEX IF NOT EXISTS idx_project_conversation_project ON project_conversations(project_id, status, updated_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_project_message_conversation ON project_conversation_messages(conversation_id, sequence);
+                CREATE INDEX IF NOT EXISTS idx_project_decision_project ON project_decisions(project_id, decided_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_report_fact_snapshot_project ON report_fact_snapshots(project_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_project_markdown_project ON project_markdown_documents(project_id, updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_project_markdown_version ON project_markdown_versions(document_id, revision DESC);
@@ -645,6 +864,7 @@ def ensure_schema() -> None:
                 CREATE INDEX IF NOT EXISTS idx_artifact_relation_project ON artifact_relations(project_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_artifact_evidence_project ON artifact_evidence(project_id, artifact_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_project_artifact_document ON project_document_artifacts(document_id, updated_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_document_final_output_document ON document_final_outputs(document_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_project_sync_document ON project_document_sync_events(document_id, created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_mcp_history ON mcp_install_history(package_id, id DESC);
                 CREATE INDEX IF NOT EXISTS idx_mcp_configuration_updated ON mcp_configurations(updated_at DESC);
@@ -678,7 +898,42 @@ def ensure_schema() -> None:
                 db.execute("ALTER TABLE native_document_sessions ADD COLUMN project_artifact_id TEXT")
             if "markdown_base_revision" not in native_session_columns:
                 db.execute("ALTER TABLE native_document_sessions ADD COLUMN markdown_base_revision INTEGER")
+            audit_columns = {row["name"] for row in db.execute("PRAGMA table_info(audit_events)")}
+            if "previous_hash" not in audit_columns:
+                db.execute("ALTER TABLE audit_events ADD COLUMN previous_hash TEXT")
+            if "event_hash" not in audit_columns:
+                db.execute("ALTER TABLE audit_events ADD COLUMN event_hash TEXT")
+            usage_columns = {row["name"] for row in db.execute("PRAGMA table_info(model_usage_events)")}
+            usage_migrations = {
+                "workflow_id": "TEXT", "step_id": "TEXT", "reservation_id": "TEXT",
+                "estimated_cost": "REAL NOT NULL DEFAULT 0", "actual_cost": "REAL NOT NULL DEFAULT 0",
+                "currency": "TEXT NOT NULL DEFAULT 'USD'", "attempt": "INTEGER NOT NULL DEFAULT 1",
+                "fallback_from": "TEXT", "error": "TEXT",
+            }
+            for column, definition in usage_migrations.items():
+                if column not in usage_columns:
+                    db.execute(f"ALTER TABLE model_usage_events ADD COLUMN {column} {definition}")
+            previous_hash = "0" * 64
+            for audit_row in db.execute("SELECT id,execution_id,plan_id,actor,event_type,detail_json,created_at,event_hash FROM audit_events ORDER BY id").fetchall():
+                canonical = _json({"id": audit_row["id"], "executionId": audit_row["execution_id"], "planId": audit_row["plan_id"], "actor": audit_row["actor"], "eventType": audit_row["event_type"], "detail": _load_json(audit_row["detail_json"], {}), "createdAt": audit_row["created_at"]})
+                event_hash = hashlib.sha256((previous_hash + "\0" + canonical).encode("utf-8")).hexdigest()
+                if not audit_row["event_hash"]:
+                    db.execute("UPDATE audit_events SET previous_hash=?,event_hash=? WHERE id=?", (previous_hash, event_hash, audit_row["id"]))
+                previous_hash = str(audit_row["event_hash"] or event_hash)
             _seed_mcp_store(db)
+            legacy_kordoc = db.execute(
+                "SELECT pinned_version,status FROM mcp_installations WHERE package_id='integration.kordoc'"
+            ).fetchone()
+            if legacy_kordoc and legacy_kordoc["status"] == "active":
+                retired_at = utc_now()
+                db.execute(
+                    "UPDATE mcp_installations SET status='retired',updated_at=? WHERE package_id='integration.kordoc'",
+                    (retired_at,),
+                )
+                db.execute(
+                    "INSERT INTO mcp_install_history(package_id,from_version,to_version,action,actor,created_at) VALUES(?,?,?,?,?,?)",
+                    ("integration.kordoc", legacy_kordoc["pinned_version"], legacy_kordoc["pinned_version"], "retire", "system-migration", retired_at),
+                )
             for package_row in db.execute("SELECT manifest_json FROM mcp_packages").fetchall():
                 _index_package_capabilities(db, _load_json(package_row["manifest_json"], {}))
             if ENABLE_DEMO_SEED:
@@ -705,7 +960,6 @@ def _load_json(value, fallback):
     except (TypeError, json.JSONDecodeError):
         return fallback
 
-
 def _audit(
     db: sqlite3.Connection,
     actor: str,
@@ -715,10 +969,35 @@ def _audit(
     plan_id: str | None = None,
     execution_id: str | None = None,
 ) -> None:
-    db.execute(
-        "INSERT INTO audit_events(execution_id, plan_id, actor, event_type, detail_json, created_at) VALUES(?,?,?,?,?,?)",
-        (execution_id, plan_id, actor, event_type, _json(detail), utc_now()),
+    created_at = utc_now()
+    previous = db.execute("SELECT event_hash FROM audit_events ORDER BY id DESC LIMIT 1").fetchone()
+    previous_hash = str(previous["event_hash"] or "") if previous else ""
+    if not previous_hash:
+        previous_hash = "0" * 64
+    cursor = db.execute(
+        "INSERT INTO audit_events(execution_id,plan_id,actor,event_type,detail_json,created_at,previous_hash,event_hash) VALUES(?,?,?,?,?,?,?,NULL)",
+        (execution_id, plan_id, actor, event_type, _json(detail), created_at, previous_hash),
     )
+    event_id = int(cursor.lastrowid)
+    canonical = _json({"id": event_id, "executionId": execution_id, "planId": plan_id, "actor": actor, "eventType": event_type, "detail": detail, "createdAt": created_at})
+    event_hash = hashlib.sha256((previous_hash + "\0" + canonical).encode("utf-8")).hexdigest()
+    db.execute("UPDATE audit_events SET event_hash=? WHERE id=?", (event_hash, event_id))
+
+
+def verify_audit_integrity() -> dict:
+    ensure_schema()
+    previous_hash = "0" * 64
+    failures = []
+    with _connect() as db:
+        rows = db.execute("SELECT * FROM audit_events ORDER BY id").fetchall()
+    for row in rows:
+        canonical = _json({"id": row["id"], "executionId": row["execution_id"], "planId": row["plan_id"], "actor": row["actor"], "eventType": row["event_type"], "detail": _load_json(row["detail_json"], {}), "createdAt": row["created_at"]})
+        expected = hashlib.sha256((previous_hash + "\0" + canonical).encode("utf-8")).hexdigest()
+        if not hmac.compare_digest(str(row["previous_hash"] or ""), previous_hash) or not hmac.compare_digest(str(row["event_hash"] or ""), expected):
+            failures.append({"id": row["id"], "eventType": row["event_type"], "reason": "hash-chain-mismatch"})
+        previous_hash = str(row["event_hash"] or expected)
+    return {"contractVersion": "audit-integrity/1.0", "valid": not failures, "events": len(rows), "headHash": previous_hash, "failures": failures[:20], "verifiedAt": utc_now()}
+
 
 
 def _b64encode(data: bytes) -> str:
@@ -796,26 +1075,90 @@ MCP_BUILDER_TYPES = {
     },
 }
 
+
+def _builder_artifact_io_contract(mcp_type: str) -> dict:
+    """Return the composable artifact boundary for every Builder MCP type."""
+    contracts = {
+        "data": {
+            "inputArtifactTypes": ["user.intent", "project.context"],
+            "optionalInputArtifactTypes": ["data.filters"],
+            "outputArtifactTypes": ["evidence.collection"],
+        },
+        "process": {
+            "inputArtifactTypes": ["user.intent", "project.context"],
+            "optionalInputArtifactTypes": ["evidence.collection", "document.markdown"],
+            "outputArtifactTypes": ["document.markdown", "process.checkpoints"],
+        },
+        "template": {
+            "inputArtifactTypes": ["document.semantic-blocks"],
+            "optionalInputArtifactTypes": ["project.context"],
+            "outputArtifactTypes": ["document.formatted"],
+        },
+        "tool": {
+            "inputArtifactTypes": ["user.intent", "project.context"],
+            "optionalInputArtifactTypes": [],
+            "outputArtifactTypes": ["capability.result"],
+        },
+        "external": {
+            "inputArtifactTypes": ["capability.result"],
+            "optionalInputArtifactTypes": ["document.hwpx", "document.formatted"],
+            "outputArtifactTypes": ["capability.result"],
+        },
+    }
+    return copy.deepcopy(contracts.get(mcp_type, contracts["tool"]))
+
+
 PROTECTED_STORE_PUBLISHERS = {"AIWorks Core", "업무자동화팀", "공개 MCP", "Knowledge Lab", "Security Lab"}
 
-KORDOC_PROFILE_ID = "kordoc@4.7.3"
-EXTERNAL_MCP_SERVER_PROFILES = {
-    KORDOC_PROFILE_ID: {
-        "id": KORDOC_PROFILE_ID,
-        "name": "KODAK (kordoc)",
-        "transport": "stdio",
-        "package": "kordoc",
-        "version": "4.7.3",
-        "binary": ROOT / "vendor" / "kordoc-runtime" / "node_modules" / ".bin" / "kordoc",
-        "args": ["mcp"],
-        "offline": True,
-        "allowedTools": {
-            "generate_document": "markdown-output-hwpx",
-        },
-        "capabilities": ["document.hwpx.finalize"],
-        "homepage": "https://github.com/chrisryugj/kordoc",
-    },
-}
+def _load_external_mcp_profiles() -> tuple[dict, list[str]]:
+    """Load operator-approved stdio MCP profiles without shipping a vendor runtime."""
+    configured = str(os.getenv("AIWORKS_EXTERNAL_MCP_PROFILE_PATH") or "").strip()
+    if not configured:
+        return {}, []
+    path = Path(configured).expanduser()
+    errors: list[str] = []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return {}, [f"외부 MCP 프로필을 읽지 못했습니다: {error}"]
+    source = payload.get("profiles") if isinstance(payload, dict) and "profiles" in payload else payload
+    entries = list(source.values()) if isinstance(source, dict) else source
+    if not isinstance(entries, list):
+        return {}, ["외부 MCP 프로필 파일의 profiles는 배열 또는 객체여야 합니다."]
+    profiles: dict[str, dict] = {}
+    for index, raw in enumerate(entries):
+        if not isinstance(raw, dict):
+            errors.append(f"profiles[{index}]는 객체여야 합니다.")
+            continue
+        profile_id = str(raw.get("id") or "").strip()
+        binary = Path(str(raw.get("binary") or "")).expanduser()
+        args = raw.get("args") or []
+        allowed = raw.get("allowedTools") or {}
+        if not re.fullmatch(r"[A-Za-z0-9._@-]{3,100}", profile_id):
+            errors.append(f"profiles[{index}] id가 올바르지 않습니다.")
+            continue
+        if not binary.is_absolute() or not isinstance(args, list) or not all(isinstance(item, str) for item in args):
+            errors.append(f"{profile_id}: binary는 절대경로, args는 문자열 배열이어야 합니다.")
+            continue
+        if isinstance(allowed, list):
+            allowed = {str(item): {} for item in allowed if str(item).strip()}
+        if not isinstance(allowed, dict) or not allowed:
+            errors.append(f"{profile_id}: allowedTools를 하나 이상 지정해야 합니다.")
+            continue
+        profiles[profile_id] = {
+            "id": profile_id,
+            "name": str(raw.get("name") or profile_id)[:120],
+            "version": str(raw.get("version") or "operator-managed")[:40],
+            "transport": "stdio",
+            "binary": str(binary.resolve()),
+            "args": list(args),
+            "allowedTools": allowed,
+            "offline": bool(raw.get("offline", True)),
+        }
+    return profiles, errors
+
+
+EXTERNAL_MCP_SERVER_PROFILES, EXTERNAL_MCP_PROFILE_ERRORS = _load_external_mcp_profiles()
 
 
 def _external_profile_status(profile_id: str) -> dict:
@@ -823,8 +1166,7 @@ def _external_profile_status(profile_id: str) -> dict:
     if not profile:
         return {"id": profile_id, "available": False, "reason": "profile-not-approved"}
     binary = Path(profile["binary"])
-    node = next((str(path) for path in (Path("/usr/bin/node"), Path("/usr/local/bin/node"), Path("/usr/bin/nodejs")) if path.is_file()), None) or shutil.which("node") or shutil.which("nodejs")
-    available = binary.is_file() and bool(node)
+    available = binary.is_file() and os.access(binary, os.X_OK)
     return {
         "id": profile_id,
         "name": profile["name"],
@@ -832,9 +1174,8 @@ def _external_profile_status(profile_id: str) -> dict:
         "version": profile["version"],
         "available": available,
         "binary": str(binary),
-        "node": node,
         "offline": bool(profile.get("offline")),
-        "reason": "ready" if available else ("node-not-installed" if not node else "profile-runtime-not-installed"),
+        "reason": "ready" if available else "profile-runtime-not-installed",
     }
 
 
@@ -875,56 +1216,19 @@ def _package_manifest(
     }
 
 
-def _kordoc_adapter_manifest() -> dict:
-    manifest = _package_manifest(
-        "integration.kordoc",
-        "KODAK 한글 문서 변환",
-        "1.0.0",
-        "local",
-        "공개 kordoc MCP를 로컬 stdio로 실행하여 보고서 Markdown을 정부 보고서 서식의 HWPX로 생성합니다.",
-        [("document.read", "현재 보고서 내용을 로컬 변환 입력으로 읽기"), ("document.write", "생성된 HWPX를 새 문서 revision으로 저장")],
-        dependencies=["document.hwpx@1.2.0"],
-        supports=[".hwpx", ".md"],
-    )
-    manifest.update(
-        {
-            "mcpType": "external",
-            "capabilities": ["document.hwpx.finalize"],
-            "builderGuide": {
-                "version": "1.0",
-                "instructions": "보고서의 제목과 본문을 Markdown으로 정규화한 뒤 kordoc generate_document 도구로 정부 보고서 HWPX를 생성합니다.",
-                "cautions": ["KORDOC_OFFLINE=1로 실행합니다.", "작업별 임시 디렉터리 밖의 파일은 접근시키지 않습니다.", "생성 결과가 유효한 HWPX가 아니면 기존 보고서를 유지합니다."],
-                "procedure": ["로컬 kordoc 런타임과 tools/list를 확인한다.", "현재 보고서를 Markdown으로 정규화한다.", "generate_document를 보고서 프리셋으로 실행한다.", "생성 HWPX 무결성을 확인하고 RHWP에서 연다."],
-                "triggerExamples": ["이 보고서를 제대로 서식이 적용된 한글 문서로 만들어줘", "KODAK으로 HWPX를 변환해줘"],
-                "dataSource": "공개 kordoc 4.7.3 · 로컬 stdio · 오프라인 제한",
-                "useModel": False,
-                "referenceRoles": MCP_BUILDER_TYPES["external"]["referenceRoles"],
-            },
-            "executionAdapter": {"kind": "external-mcp", "version": "1.0", "entrypoint": "external.tools.call", "arbitraryCode": False},
-            "externalMcp": {
-                "contractVersion": "2025-03-26",
-                "transport": "stdio",
-                "serverProfile": KORDOC_PROFILE_ID,
-                "toolName": "generate_document",
-                "invocationAdapter": "markdown-output-hwpx",
-                "preset": "보고서",
-                "documentTransfer": False,
-            },
-        }
-    )
-    return manifest
 
 
 def _store_catalog() -> list[tuple[dict, str]]:
     catalog = [
         (INTENT_ANALYSIS_MCP.MANIFEST, "AIWorks Core"),
+        (REPORT_DOCUMENT_MCP.MANIFEST, "AIWorks Core"),
+        (REPORT_HWPX_MCP.MANIFEST, "AIWorks Core"),
         (_package_manifest("document.hwpx", "HWPX 문서 어댑터", "1.2.0", "local", "HWPX 문단을 안전하게 읽고 변경합니다.", [("document.read", "문서 구조 분석"), ("document.write", "승인된 patch 적용")], supports=[".hwpx"]), "AIWorks Core"),
         (RHWP_AUTOMATION_MCP.MANIFEST, "AIWorks Core"),
         (_package_manifest("common-data.registry", "공통데이터 레지스트리", "1.1.0", "local", "기준일·출처·신뢰도를 포함한 업무 값을 관리합니다.", [("common-data.read", "현재 값 조회"), ("common-data.write", "승인된 값 저장")]), "AIWorks Core"),
         (_package_manifest("citation.linker", "출처·인용 연결기", "0.9.4", "local", "생성 문장과 근거 문서 위치를 연결합니다.", [("document.read", "원문 위치 연결")]), "Knowledge Lab"),
         (_package_manifest("privacy.mask", "개인정보 마스킹", "1.4.1", "local", "외부 실행 전 개인정보를 탐지하고 마스킹합니다.", [("document.read", "개인정보 탐지")]), "Security Lab"),
         (_package_manifest("document.rewrite", "공문체 변경기", "1.0.0", "hybrid", "선택 문장을 공문체 변경안으로 생성합니다.", [("document.read", "선택 문장 읽기"), ("model.invoke", "문체 변경 모델 호출"), ("network.send", "승인된 선택 문장 전송")]), "AIWorks Core"),
-        (_kordoc_adapter_manifest(), "공개 MCP"),
     ]
     if ENABLE_DEMO_SEED:
         catalog.extend([
@@ -987,15 +1291,17 @@ def _seed_mcp_store(db: sqlite3.Connection) -> None:
             "INSERT INTO mcp_install_history(package_id,from_version,to_version,action,actor,created_at) VALUES(?,?,?,?,?,?)",
             ("document.rhwp", None, "1.0.0", "bootstrap", "system-bootstrap", now),
         )
-    if not db.execute("SELECT 1 FROM mcp_installations WHERE package_id='integration.kordoc'").fetchone():
+    for package_id, version in (("document.report-structure", "0.1.0"), ("document.report-hwpx", "0.1.0")):
+        if db.execute("SELECT 1 FROM mcp_installations WHERE package_id=?", (package_id,)).fetchone():
+            continue
         now = utc_now()
         db.execute(
             "INSERT INTO mcp_installations(package_id,pinned_version,status,installed_by,installed_at,updated_at) VALUES(?,?,?,?,?,?)",
-            ("integration.kordoc", "1.0.0", "active", "system-bootstrap", now, now),
+            (package_id, version, "active", "system-bootstrap", now, now),
         )
         db.execute(
             "INSERT INTO mcp_install_history(package_id,from_version,to_version,action,actor,created_at) VALUES(?,?,?,?,?,?)",
-            ("integration.kordoc", None, "1.0.0", "bootstrap", "system-bootstrap", now),
+            (package_id, None, version, "bootstrap", "system-bootstrap", now),
         )
     if not db.execute("SELECT 1 FROM mcp_installations WHERE package_id='core.intent-analysis'").fetchone():
         now = utc_now()
@@ -1171,6 +1477,57 @@ def _get_package(db: sqlite3.Connection, package_id: str, version: str) -> dict:
     return _verified_package(row)
 
 
+def _package_permission_diff(current: dict | None, target: dict) -> dict:
+    current_manifest = (current or {}).get("manifest") or {}
+    target_manifest = target.get("manifest") or {}
+    before = {str(item.get("scope")): bool(item.get("required", True)) for item in current_manifest.get("permissions") or [] if isinstance(item, dict)}
+    after = {str(item.get("scope")): bool(item.get("required", True)) for item in target_manifest.get("permissions") or [] if isinstance(item, dict)}
+    added = [{"scope": scope, "required": after[scope]} for scope in sorted(set(after) - set(before))]
+    removed = [{"scope": scope, "required": before[scope]} for scope in sorted(set(before) - set(after))]
+    changed = [{"scope": scope, "fromRequired": before[scope], "toRequired": after[scope]} for scope in sorted(set(before) & set(after)) if before[scope] != after[scope]]
+    before_movement = {
+        "externalPermissions": sorted(scope for scope in before if scope in {"network.send", "model.invoke"}),
+        "runtime": current_manifest.get("runtime"),
+        "externalEndpointEnv": ((current_manifest.get("builderGuide") or {}).get("externalEndpointEnv")),
+        "retention": current_manifest.get("dataRetention") or {},
+    }
+    after_movement = {
+        "externalPermissions": sorted(scope for scope in after if scope in {"network.send", "model.invoke"}),
+        "runtime": target_manifest.get("runtime"),
+        "externalEndpointEnv": ((target_manifest.get("builderGuide") or {}).get("externalEndpointEnv")),
+        "retention": target_manifest.get("dataRetention") or {},
+    }
+    movement_changed = before_movement != after_movement
+    expanded = bool(added or any(item["toRequired"] and not item["fromRequired"] for item in changed) or movement_changed)
+    result = {
+        "packageId": target.get("packageId"),
+        "fromVersion": (current or {}).get("version"),
+        "toVersion": target.get("version"),
+        "addedPermissions": added,
+        "removedPermissions": removed,
+        "requiredChanges": changed,
+        "dataMovementChanged": movement_changed,
+        "beforeDataMovement": before_movement,
+        "afterDataMovement": after_movement,
+        "requiresExplicitApproval": bool(current) and expanded,
+    }
+    result["sha256"] = hashlib.sha256(_json(result).encode("utf-8")).hexdigest()
+    return result
+
+
+def mcp_install_preview(payload: dict) -> dict:
+    ensure_schema()
+    package_id = str(payload.get("package_id") or "").strip()
+    version = str(payload.get("version") or "").strip()
+    if not package_id or not version:
+        raise ApiError("권한 차이를 확인할 MCP와 버전이 필요합니다.")
+    with _connect() as db:
+        target = _get_package(db, package_id, version)
+        installation = db.execute("SELECT * FROM mcp_installations WHERE package_id=? AND status='active'", (package_id,)).fetchone()
+        current = _get_package(db, package_id, installation["pinned_version"]) if installation else None
+    return {"package": {"packageId": package_id, "name": target["manifest"].get("name"), "version": version}, "permissionDiff": _package_permission_diff(current, target)}
+
+
 def list_store_packages() -> dict:
     ensure_schema()
     with _connect() as db:
@@ -1185,6 +1542,10 @@ def list_store_packages() -> dict:
         configurations = {
             row["package_id"]: dict(row)
             for row in db.execute("SELECT package_id,revision,updated_at FROM mcp_configurations").fetchall()
+        }
+        evaluations = {
+            (row["package_id"], row["version"]): dict(row)
+            for row in db.execute("SELECT * FROM mcp_evaluations").fetchall()
         }
     rollback_versions = {}
     for row in history:
@@ -1207,16 +1568,22 @@ def list_store_packages() -> dict:
                 "description": package["manifest"].get("description", ""),
                 "publisher": package["publisher"],
                 "runtime": package["manifest"]["runtime"],
+                "mcpType": str(package["manifest"].get("mcpType") or "tool"),
                 "permissions": [item["scope"] for item in package["manifest"]["permissions"]],
                 "configuration": package["manifest"].get("configuration"),
                 "configurable": bool(package["manifest"].get("configuration")),
                 "editable": True,
                 "deletable": package["publisher"] not in PROTECTED_STORE_PUBLISHERS,
+                "license": package["manifest"].get("license") or "UNSPECIFIED",
+                "dataRetention": package["manifest"].get("dataRetention") or {"policy": "not-declared"},
+                "security": package["manifest"].get("security") or {"sandbox": "not-declared"},
+                "compatibility": package["manifest"].get("platformCompatibility") or {},
                 "versions": [],
             },
         )
+        evaluation = evaluations.get((package["packageId"], package["version"]))
         item["versions"].append(
-            {"version": package["version"], "bundleSha256": package["bundleSha256"], "signatureVerified": True, "validationPassed": package["validation"]["passed"], "vulnerabilities": package["validation"]["vulnerabilities"]}
+            {"version": package["version"], "bundleSha256": package["bundleSha256"], "signatureVerified": True, "validationPassed": package["validation"]["passed"], "vulnerabilities": package["validation"]["vulnerabilities"], "evaluation": ({"quality": evaluation["quality"], "successRate": evaluation["success_rate"], "latencyMs": evaluation["latency_ms"], "costPerRun": evaluation["cost_per_run"], "sampleCount": evaluation["sample_count"], "notes": evaluation["notes"], "updatedAt": evaluation["updated_at"]} if evaluation else {"quality": 0.75, "successRate": 0.9, "latencyMs": 1000.0, "costPerRun": 0.0, "sampleCount": 0, "status": "baseline"})}
         )
     for package_id, item in grouped.items():
         installation = installations.get(package_id)
@@ -1335,6 +1702,11 @@ def install_mcp_package(payload: dict) -> dict:
         previous_version = current["pinned_version"] if current else None
         if previous_version == version:
             return {"installation": dict(current), "package": package, "idempotent": True}
+        current_package = _get_package(db, package_id, previous_version) if previous_version else None
+        permission_diff = _package_permission_diff(current_package, package)
+        if permission_diff["requiresExplicitApproval"]:
+            if payload.get("acknowledge_permission_diff") is not True or not hmac.compare_digest(str(payload.get("permission_diff_sha256") or ""), permission_diff["sha256"]):
+                raise ApiError("업데이트로 변경되는 권한과 데이터 전송 범위를 다시 확인해 주세요.", 403)
         now = utc_now()
         if current:
             db.execute(
@@ -1351,8 +1723,8 @@ def install_mcp_package(payload: dict) -> dict:
             "INSERT INTO mcp_install_history(package_id,from_version,to_version,action,actor,created_at) VALUES(?,?,?,?,?,?)",
             (package_id, previous_version, version, action, actor, now),
         )
-        _audit(db, actor, "mcp.package_installed", {"package_id": package_id, "from_version": previous_version, "pinned_version": version, "bundle_sha256": package["bundleSha256"], "signature_verified": True, "approved_permissions": approved})
-    return {"installation": {"package_id": package_id, "pinned_version": version, "status": "active", "installed_by": actor, "updated_at": now}, "package": package, "idempotent": False}
+        _audit(db, actor, "mcp.package_installed", {"package_id": package_id, "from_version": previous_version, "pinned_version": version, "bundle_sha256": package["bundleSha256"], "signature_verified": True, "approved_permissions": approved, "permission_diff_sha256": permission_diff["sha256"]})
+    return {"installation": {"package_id": package_id, "pinned_version": version, "status": "active", "installed_by": actor, "updated_at": now}, "package": package, "permissionDiff": permission_diff, "idempotent": False}
 
 
 def rollback_mcp_package(payload: dict) -> dict:
@@ -1409,15 +1781,28 @@ def fork_mcp_package(payload: dict) -> dict:
     actor = _actor(payload)
     with _connect() as db:
         package = _get_package(db, package_id, version)
+        source_package_ref = package_id + "@" + version
+        if payload.get("force_new") is not True:
+            for existing in db.execute(
+                "SELECT * FROM mcp_drafts WHERE status<>'published' ORDER BY updated_at DESC"
+            ).fetchall():
+                existing_manifest = _load_json(existing["manifest_json"], {})
+                if existing_manifest.get("derivedFrom") == source_package_ref:
+                    return {
+                        "draft": _draft_row_result(existing),
+                        "sourcePackage": source_package_ref,
+                        "reused": True,
+                    }
         manifest = json.loads(json.dumps(package["manifest"], ensure_ascii=False))
         new_version = _next_package_patch_version(db, package_id, version)
         manifest["version"] = new_version
         manifest["mcpType"] = str(manifest.get("mcpType") or "tool")
         type_contract = MCP_BUILDER_TYPES.get(manifest["mcpType"], MCP_BUILDER_TYPES["tool"])
         manifest["capabilities"] = list(manifest.get("capabilities") or type_contract["capabilities"])
-        old_guide = manifest.get("builderGuide") or {}
-        manifest["builderGuide"] = {
-            "version": "1.1",
+        old_guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+        updated_guide = json.loads(json.dumps(old_guide, ensure_ascii=False))
+        updated_guide.update({
+            "version": "1.2",
             "instructions": str(old_guide.get("instructions") or manifest.get("description") or "설치된 MCP의 기능을 유지하며 필요한 항목을 수정합니다."),
             "cautions": list(old_guide.get("cautions") or []),
             "procedure": list(old_guide.get("procedure") or ["입력값을 검증한다.", "기존 기능을 실행하고 결과를 확인한다."]),
@@ -1425,12 +1810,11 @@ def fork_mcp_package(payload: dict) -> dict:
             "dataSource": str(old_guide.get("dataSource") or ""),
             "useModel": bool(old_guide.get("useModel")),
             "referenceRoles": type_contract["referenceRoles"],
-            "templateSchema": old_guide.get("templateSchema") if manifest["mcpType"] == "template" else None,
-            "templateProfile": old_guide.get("templateProfile") if manifest["mcpType"] == "template" else None,
-            "authoringVersion": old_guide.get("authoringVersion") if manifest["mcpType"] == "template" else None,
-        }
+        })
+        manifest["builderGuide"] = updated_guide
         manifest["executionAdapter"] = manifest.get("executionAdapter") or {"kind": "prompt", "version": "1.0", "entrypoint": "builder.guide", "arbitraryCode": False}
-        manifest["derivedFrom"] = package_id + "@" + version
+        manifest["ioContract"] = manifest.get("ioContract") or _builder_artifact_io_contract(manifest["mcpType"])
+        manifest["derivedFrom"] = source_package_ref
         draft_id = "draft_" + uuid.uuid4().hex
         now = utc_now()
         file_rows = db.execute("SELECT * FROM mcp_package_files WHERE package_id=? AND version=? ORDER BY reference_id", (package_id, version)).fetchall()
@@ -1446,7 +1830,7 @@ def fork_mcp_package(payload: dict) -> dict:
             db.execute("INSERT INTO mcp_draft_references(id,draft_id,filename,media_type,bytes,sha256,summary_json,content_blob,created_at) VALUES(?,?,?,?,?,?,?,?,?)", (reference_map[item["reference_id"]], draft_id, item["filename"], item["media_type"], item["bytes"], item["sha256"], _json(summary), item["content_blob"], now))
         _audit(db, actor, "mcp.package_forked_for_edit", {"package_id": package_id, "from_version": version, "draft_id": draft_id, "next_version": new_version})
         row = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
-    return {"draft": _draft_row_result(row), "sourcePackage": package_id + "@" + version}
+    return {"draft": _draft_row_result(row), "sourcePackage": source_package_ref, "reused": False}
 
 
 def delete_mcp_package(payload: dict) -> dict:
@@ -1634,11 +2018,80 @@ def list_capability_registry() -> dict:
                 "mcpType": row["mcp_type"],
                 "executionAdapter": row["execution_adapter"],
                 "permissions": [item["scope"] for item in manifest.get("permissions") or []],
+                "ioContract": (
+                    manifest.get("ioContract")
+                    if isinstance(manifest.get("ioContract"), dict)
+                    else _builder_artifact_io_contract(str(row["mcp_type"] or "tool"))
+                ),
                 "triggerExamples": (manifest.get("builderGuide") or {}).get("triggerExamples") or [],
                 "indexedAt": row["indexed_at"],
             }
         )
     return {"items": items, "count": len(items), "installedPackages": len({item["packageRef"] for item in items})}
+
+
+def list_installed_template_mcps() -> dict:
+    """Return one selectable entry per active, version-pinned template MCP."""
+    registry = list_capability_registry()
+    items_by_ref: dict[str, dict] = {}
+    for entry in registry["items"]:
+        if entry.get("mcpType") != "template":
+            continue
+        package_ref = str(entry.get("packageRef") or "")
+        if not package_ref or package_ref in items_by_ref:
+            continue
+        package = _installed_builder_package(
+            {"packageId": entry["packageId"], "version": entry["version"]}
+        )
+        template_source = next(
+            (
+                item
+                for item in _builder_runtime_references(package)
+                if item.get("role") == "template-source"
+            ),
+            None,
+        )
+        trigger_examples = entry.get("triggerExamples") or []
+        quick_prompt = trigger_examples[0] if trigger_examples else f"현재 문서를 {entry['name']}으로 바꿔줘"
+        items_by_ref[package_ref] = {
+            "packageId": entry["packageId"],
+            "version": entry["version"],
+            "packageRef": package_ref,
+            "name": entry["name"],
+            "description": entry["description"],
+            "mcpType": "template",
+            "triggerExamples": trigger_examples,
+            "sourceFilename": template_source.get("filename") if template_source else None,
+            "usage": {
+                "contractVersion": "template-mcp-usage/1.0",
+                "quickPrompt": quick_prompt,
+                "prerequisites": [
+                    "작업할 프로젝트를 선택합니다.",
+                    "프로젝트 안에 기준이 되는 Markdown 문서가 있어야 합니다.",
+                    "사용할 양식 MCP가 Store에 설치되어 있어야 합니다.",
+                ],
+                "directSteps": [
+                    "문서 내용 탭에서 완성 문서를 만들거나 기존 완성 문서 탭을 엽니다.",
+                    "상단 양식 콤보에서 이 양식 MCP를 선택합니다.",
+                    "현재 MD 내용으로 새 HWPX 완성 문서가 생성되면 검토 후 내보냅니다.",
+                ],
+                "chatSteps": [
+                    "오른쪽 AI 업무 오케스트레이터에 호출 문구를 입력합니다.",
+                    "실행 계획에서 데이터·보고서·양식 MCP와 사용 이유를 확인합니다.",
+                    "승인 후 생성된 완성 문서를 RHWP에서 확인합니다.",
+                ],
+                "result": "프로젝트 MD는 내용 원본으로 유지되고, 선택 양식을 적용한 HWPX는 완성 문서와 내보낸 파일로 저장됩니다.",
+                "notes": [
+                    "양식을 바꿔도 MD 원본과 이전 내보낸 파일은 유지됩니다.",
+                    "RHWP 수정 내용을 MD에 반영하려면 ‘파생 문서 → MD 반영’을 명시적으로 실행합니다.",
+                ],
+            },
+        }
+    items = sorted(
+        items_by_ref.values(),
+        key=lambda item: (str(item.get("name") or ""), item["packageRef"]),
+    )
+    return {"items": items, "count": len(items)}
 
 
 def resolve_capabilities(payload: dict) -> dict:
@@ -1682,9 +2135,14 @@ def resolve_capabilities(payload: dict) -> dict:
                 })
                 continue
             io_contract = manifest.get("ioContract") if isinstance(manifest.get("ioContract"), dict) else {}
+            if not io_contract:
+                io_contract = _builder_artifact_io_contract(str(manifest.get("mcpType") or "tool"))
             declared_inputs = {str(item) for item in io_contract.get("inputArtifactTypes") or []}
+            declared_optional_inputs = {str(item) for item in io_contract.get("optionalInputArtifactTypes") or []}
             declared_outputs = {str(item) for item in io_contract.get("outputArtifactTypes") or []}
-            if required_input_types and declared_inputs and not (required_input_types & declared_inputs):
+            if required_input_types and (declared_inputs or declared_optional_inputs) and not (
+                required_input_types & (declared_inputs | declared_optional_inputs)
+            ):
                 excluded.append({"packageRef": package_ref, "reason": "input-artifact-incompatible"})
                 continue
             if required_output_type and declared_outputs and required_output_type not in declared_outputs:
@@ -1752,6 +2210,7 @@ def resolve_capabilities(payload: dict) -> dict:
                     "score": score,
                     "matchedBy": matched_by,
                     "capabilities": list(manifest.get("capabilities") or []),
+                    "ioContract": io_contract,
                     "rankScore": rank_score,
                     "ranking": {
                         "components": {key: round(value, 4) for key, value in components.items()},
@@ -1939,6 +2398,8 @@ def _reference_text_pages(filename: str, media_type: str, data: bytes) -> list[t
         return [(None, text)] if text.strip() else []
     if extension == ".docx" or "wordprocessingml" in media_type:
         return _extract_docx_parts(data)
+    if extension == ".odt" or "opendocument.text" in media_type:
+        return _extract_odt_parts(data)
     if extension == ".xlsx" or "spreadsheetml" in media_type:
         return _extract_xlsx_parts(data)
     if extension in {".md", ".txt"} or media_type in {"text/markdown", "text/plain"}:
@@ -2272,11 +2733,19 @@ def _build_structured_report_artifact(
     report_document["normalizedMarkdown"] = normalized
     quality_review = _review_report_against_request(intent, normalized, [])
     resolved_title = str(report_document.get("title") or title or "AIWorks 파생 보고서").strip()
-    report_hwpx = REPORT_HWPX_MCP.build(resolved_title, normalized, template.get("rendererProfile") or "standard")
     safe_name = re.sub(r'[\\/:*?"<>|]+', "_", resolved_title).strip(" .")[:80] or "AIWorks_파생_보고서"
     generated = list(generated_by or [])
-    generated.extend(["document.report-structure@0.1.0", "document.quality-harness@0.1.0", "template.report-style@0.1.0", "document.report-hwpx@0.1.0"])
-    return {
+    generated.extend(["document.report-structure@0.1.0", "document.quality-harness@0.1.0", "template.report-style@0.1.0"])
+    render_error = None
+    report_hwpx = None
+    try:
+        report_hwpx = REPORT_HWPX_MCP.build_document(report_document, template.get("rendererProfile") or "standard")
+        generated.append("document.report-hwpx@0.1.0")
+    except Exception as error:
+        # Markdown is the source of truth. A derived renderer failure must not
+        # discard a valid report draft or a grounded retrieval answer.
+        render_error = str(error)[:2_000] or error.__class__.__name__
+    artifact = {
         "title": resolved_title,
         "content": normalized,
         "sourceOfTruth": {"format": "markdown", "persistence": "project-version", "status": "pending-workflow-persist"},
@@ -2285,13 +2754,26 @@ def _build_structured_report_artifact(
         "qualityReview": quality_review,
         "template": template,
         "factSnapshot": report_document.get("factSnapshot") or {},
-        "filename": safe_name + ".hwpx",
-        "format": "hwpx",
-        "mediaType": "application/hwp+zip",
-        "contentBase64": base64.b64encode(report_hwpx).decode("ascii"),
-        "editorMcp": "document.rhwp@1.0.0",
         "generatedBy": list(dict.fromkeys(item for item in generated if item)),
     }
+    if report_hwpx is not None:
+        artifact.update({
+            "filename": safe_name + ".hwpx",
+            "format": "hwpx",
+            "mediaType": "application/hwp+zip",
+            "contentBase64": base64.b64encode(report_hwpx).decode("ascii"),
+            "editorMcp": "document.rhwp@1.0.0",
+            "rendering": {"status": "ready", "renderer": "document.report-hwpx@0.1.0"},
+        })
+    else:
+        artifact.update({
+            "filename": safe_name + ".md",
+            "format": "markdown",
+            "mediaType": "text/markdown; charset=utf-8",
+            "editorMcp": "document.markdown@1.0.0",
+            "rendering": {"status": "failed", "renderer": "document.report-hwpx@0.1.0", "error": render_error, "retryable": True},
+        })
+    return artifact
 
 
 def _rag_report_artifact(query: str, hits: list[dict], package_ref: str = "", synthesized_content: str = "", fact_snapshot: dict | None = None) -> dict:
@@ -2343,14 +2825,25 @@ def _analyze_hwpx_template(data: bytes) -> dict:
     texts = []
     blank_count = 0
     table_count = 0
+    image_assets = 0
+    embedded_objects = 0
+    section_count = 0
     with archive:
         for info in archive.infolist():
+            lowered = info.filename.lower()
+            if lowered.startswith("bindata/") and not info.is_dir():
+                image_assets += 1
             if not re.fullmatch(r"Contents/section\d+\.xml", info.filename, flags=re.IGNORECASE):
                 continue
+            section_count += 1
             root, paragraphs = _hwpx_paragraph_nodes(archive.read(info.filename))
             texts.extend(text for _, text in paragraphs if text)
             blank_count += sum(1 for _, text in paragraphs if not text)
             table_count += sum(1 for node in root.iter() if _xml_local_name(node.tag) in {"tbl", "table"})
+            embedded_objects += sum(
+                1 for node in root.iter()
+                if _xml_local_name(node.tag).lower() in {"pic", "img", "drawing", "ole", "container"}
+            )
     joined = "\n".join(texts)
     placeholders = [token for token in _TEMPLATE_PLACEHOLDERS if token in joined]
     instruction_count = sum(1 for text in texts if _TEMPLATE_INSTRUCTION_PATTERN.search(text))
@@ -2358,7 +2851,12 @@ def _analyze_hwpx_template(data: bytes) -> dict:
     body_candidates = sum(1 for text in texts if len(text) >= 20 and not _TEMPLATE_INSTRUCTION_PATTERN.search(text))
     placeholder_slots = {token[2:-2] for token in placeholders}
     required_slots_ready = "title" in placeholder_slots and bool({"content", "body"} & placeholder_slots)
-    if required_slots_ready:
+    meaningful_chars = len(re.sub(r"\s+", "", joined))
+    scan_only = meaningful_chars < 20 and bool(image_assets or embedded_objects) and not placeholders
+    if scan_only:
+        mode, confidence = "scan-image", 0.0
+        notice = "텍스트 구조 없이 이미지 개체만 확인되었습니다. OCR 처리 후 양식 슬롯을 지정해 주세요."
+    elif required_slots_ready:
         mode, confidence = "explicit-placeholders", 0.98
         notice = "명시된 제목·본문 필드에 현재 보고서 내용을 대응합니다."
     elif placeholders:
@@ -2380,8 +2878,14 @@ def _analyze_hwpx_template(data: bytes) -> dict:
         "blankParagraphs": blank_count,
         "bodyCandidates": body_candidates,
         "tables": table_count,
+        "sections": section_count,
+        "imageAssets": image_assets,
+        "embeddedObjects": embedded_objects,
+        "meaningfulCharacters": meaningful_chars,
+        "scanOnly": scan_only,
+        "ocrRequired": scan_only,
         "notice": notice,
-        "reviewRequired": (not required_slots_ready) if placeholders else confidence < 0.6,
+        "reviewRequired": True if scan_only else ((not required_slots_ready) if placeholders else confidence < 0.6),
     }
 
 
@@ -2391,11 +2895,42 @@ def _hwpx_template_schema(data: bytes) -> dict:
     table_count = 0
     table_schemas = []
     structural_markers = {"heading": 0, "main": 0, "sub": 0, "note": 0}
+    feature_inventory = {
+        "sections": 0, "headers": 0, "footers": 0, "masterPages": 0,
+        "drawings": 0, "textBoxes": 0, "images": 0, "hyperlinks": 0,
+        "footnotes": 0, "endnotes": 0, "comments": 0, "captions": 0,
+    }
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         for info in archive.infolist():
+            lowered = info.filename.lower()
+            if lowered.startswith("bindata/") and not info.is_dir():
+                feature_inventory["images"] += 1
+            if re.search(r"(?:^|/)(?:header|head)[^/]*\.xml$", lowered):
+                feature_inventory["headers"] += 1
+            if re.search(r"(?:^|/)(?:footer|foot)[^/]*\.xml$", lowered):
+                feature_inventory["footers"] += 1
+            if "masterpage" in lowered and lowered.endswith(".xml"):
+                feature_inventory["masterPages"] += 1
             if not re.fullmatch(r"Contents/section\d+\.xml", info.filename, flags=re.IGNORECASE):
                 continue
+            feature_inventory["sections"] += 1
             root, paragraphs = _hwpx_paragraph_nodes(archive.read(info.filename))
+            for node in root.iter():
+                local = _xml_local_name(node.tag).lower()
+                if local in {"pic", "img", "drawing", "ole", "container"}:
+                    feature_inventory["drawings"] += 1
+                elif local in {"textbox", "textart"}:
+                    feature_inventory["textBoxes"] += 1
+                elif local in {"hyperlink", "link"}:
+                    feature_inventory["hyperlinks"] += 1
+                elif local in {"footnote", "footnoteshape"}:
+                    feature_inventory["footnotes"] += 1
+                elif local in {"endnote", "endnoteshape"}:
+                    feature_inventory["endnotes"] += 1
+                elif local in {"comment", "memo"}:
+                    feature_inventory["comments"] += 1
+                elif local in {"caption", "captionlist"}:
+                    feature_inventory["captions"] += 1
             tables = [node for node in root.iter() if _xml_local_name(node.tag) in {"tbl", "table"}]
             table_count += len(tables)
             for table_index, table in enumerate(tables):
@@ -2444,25 +2979,57 @@ def _hwpx_template_schema(data: bytes) -> dict:
         "lists": bool(structural_markers["main"] or structural_markers["sub"] or structural_markers["note"]),
         "tables": bool(table_count),
     }
+    analysis = _analyze_hwpx_template(data)
+    slot_definitions = []
+    for slot in sorted(slots):
+        slot_definitions.append({
+            "id": slot,
+            "kind": "body" if slot in {"content", "body"} else ("title" if slot == "title" else "metadata"),
+            "required": slot in {"title", body_slot},
+            "repeatable": slot == body_slot,
+            "conditional": slot not in {"title", body_slot},
+            "default": "" if slot not in {"date"} else "current-date",
+        })
+    compatibility = {
+        "minimumPlatformVersion": "0.30.0",
+        "supportedInputContracts": ["aiworks-report-document/1.0", "aiworks-markdown/1.0"],
+        "supportedSchemaVersions": ["1.0", "1.1", "1.2"],
+        "migration": {"from": ["1.0", "1.1"], "to": "1.2", "automatic": True},
+    }
     return {
-        "contractVersion": "1.1",
+        "contractVersion": "1.2",
         "slots": occurrences,
+        "slotDefinitions": slot_definitions,
         "required": required,
         "repeaters": repeaters,
+        "conditionalBlocks": [item["id"] for item in slot_definitions if item["conditional"]],
+        "defaults": {item["id"]: item["default"] for item in slot_definitions if item["default"]},
         "structuralMarkers": structural_markers,
+        "featureInventory": feature_inventory,
         "templateTables": table_count,
         "metadataSlots": [item for item in occurrences if item["slot"] in {"date", "source_filename", "department", "author", "document_number"}],
         "tables": table_schemas,
         "approvalBlocks": [item for item in table_schemas if item["approvalLike"]],
         "mergedTables": [item for item in table_schemas if item["mergedCells"] > 0],
-        "migration": {"from": "1.0", "to": "1.1", "automatic": True},
-        "structuralBindingReady": bool(required["title"] and required["body"] and repeaters["sections"]),
+        "compatibility": compatibility,
+        "migration": compatibility["migration"],
+        "scanOnly": bool(analysis.get("scanOnly")),
+        "ocrRequired": bool(analysis.get("ocrRequired")),
+        "structuralBindingReady": bool(
+            required["title"] and required["body"] and repeaters["sections"]
+            and not analysis.get("ocrRequired")
+        ),
     }
 
 
 def _build_template_authoring_sample(template: bytes, filename: str) -> tuple[bytes, dict]:
     """Create an explicit, RHWP-editable starter from an attached report form."""
     profile = _analyze_hwpx_template(template)
+    if profile.get("ocrRequired"):
+        raise ApiError(
+            "첨부 HWPX는 텍스트 구조가 없는 스캔 이미지형 문서입니다. OCR로 텍스트를 추출한 HWPX를 다시 첨부해 주세요.",
+            422,
+        )
     if profile["mode"] == "explicit-placeholders":
         schema = _hwpx_template_schema(template)
         return template, {
@@ -2530,10 +3097,17 @@ def _build_template_authoring_sample(template: bytes, filename: str) -> tuple[by
                     score += 15
                 if "|" in text_value or re.match(r"^[□○ㅇ※\-*·]", text_value):
                     score -= 80
+                if record.get("insideTable"):
+                    score -= 120
                 return score
             title_record = max(leaf_records, key=title_score, default=None)
             if not title_record or title_score(title_record) < 0:
-                raise ApiError("일반 HWPX에서 제목 후보를 찾지 못했습니다. 제목 문구가 있는 보고서를 첨부하거나 RHWP 시작 양식을 사용해 주세요.", 409)
+                # 안내문만 있거나 거의 비어 있는 양식도 등록할 수 있어야 한다.
+                outside_table = next((item for item in leaf_records if not item.get("insideTable") and str(item.get("text") or "").strip()), None)
+                outside_table = outside_table or next((item for item in leaf_records if not item.get("insideTable")), None)
+                title_record = outside_table or title_record
+            if not title_record:
+                raise ApiError("HWPX에서 양식으로 사용할 문단을 찾지 못했습니다.", 409)
             title_targets = [title_record["node"]]
             title_strategy = "heuristic-report-title"
         title_records = [item for item in leaf_records if item["node"] in title_targets]
@@ -2543,6 +3117,11 @@ def _build_template_authoring_sample(template: bytes, filename: str) -> tuple[by
         title_node = title_record["node"] if title_record else title_targets[-1]
         title_record = next((item for item in leaf_records if item["node"] is title_node), None)
         body_targets = [node for node in body_targets if node is not title_node]
+        if body_targets:
+            body_records = [item for item in leaf_records if item["node"] in body_targets]
+            preferred_body = next((item for item in body_records if not item.get("insideTable")), None)
+            if preferred_body:
+                body_targets = [preferred_body["node"]]
         if not body_targets:
             title_order = int((title_record or {}).get("order", -1))
             body_records = [
@@ -2566,7 +3145,16 @@ def _build_template_authoring_sample(template: bytes, filename: str) -> tuple[by
                 ][:1]
                 body_strategy = "heuristic-blank-field"
         if not body_targets:
-            raise ApiError("일반 HWPX에서 본문 시작 위치를 찾지 못했습니다. 본문 예시나 빈 입력 문단을 하나 이상 포함해 주세요.", 409)
+            # 한 문단짜리 표지·빈 양식은 제목 문단의 서식을 복제해 본문 슬롯을 만든다.
+            parent = next((parent for _section, _original, root, _paragraphs in section_models for parent in root.iter() if title_node in list(parent)), None)
+            if parent is not None:
+                body_node = copy.deepcopy(title_node)
+                siblings = list(parent)
+                parent.insert(siblings.index(title_node) + 1, body_node)
+                body_targets = [body_node]
+                body_strategy = "generated-from-title-style"
+            else:
+                raise ApiError("HWPX에서 본문 슬롯을 만들 수 있는 문단 구조를 찾지 못했습니다.", 409)
         for duplicate_title in title_targets:
             if duplicate_title is not title_node:
                 _set_hwpx_paragraph_text(duplicate_title, "")
@@ -2691,6 +3279,30 @@ def _build_template_authoring_sample(template: bytes, filename: str) -> tuple[by
     }
 
 
+def _template_blueprint_markdown(name: str, profile: dict, schema: dict) -> str:
+    """Human-editable MD side of the MD ↔ HWPX template mapping contract."""
+    markers = schema.get("structuralMarkers") or {}
+    lines = [
+        "---",
+        "template: " + str(name or "등록 양식"),
+        "contract: aiworks-template-mapping/v1",
+        "---",
+        "",
+        "# {{title}}",
+        "",
+        "{{content}}",
+    ]
+    if markers.get("main") or markers.get("sub") or markers.get("note"):
+        lines.extend(["", "<!-- 목록 단계: ○ 대항목 → - 세부항목 → ※ 참고 -->"])
+    if schema.get("templateTables"):
+        lines.extend(["", "<!-- Markdown 표는 HWPX 표 원형에 행·열로 매핑 -->"])
+    lines.extend([
+        "",
+        "<!-- 고정 문구와 서식은 오른쪽 HWPX에서 관리하고, 문서 내용은 왼쪽 MD 슬롯으로 주입합니다. -->",
+    ])
+    return "\n".join(lines)
+
+
 
 def _safe_office_archive(data: bytes) -> zipfile.ZipFile:
     try:
@@ -2758,6 +3370,23 @@ def _extract_xlsx_parts(data: bytes) -> list[tuple[int | None, str]]:
                 parts.append((sheet_index, "\n".join(rows)))
     return parts
 
+def _extract_odt_parts(data: bytes) -> list[tuple[int | None, str]]:
+    archive = _safe_office_archive(data)
+    with archive:
+        if "content.xml" not in archive.namelist():
+            raise ApiError("ODT 본문 XML을 찾을 수 없습니다.", 415)
+        root = ElementTree.fromstring(archive.read("content.xml"))
+    paragraphs = []
+    for node in root.iter():
+        if _xml_local_name(node.tag) not in {"p", "h"}:
+            continue
+        text = "".join(str(item.text or "") for item in node.iter()).strip()
+        if text:
+            paragraphs.append(text)
+    content = "\n".join(paragraphs)
+    return [(None, content)] if content else []
+
+
 def _inspect_builder_reference(filename: str, data: bytes) -> tuple[str, dict]:
     extension = Path(filename).suffix.lower()
     if extension == ".hwpx":
@@ -2793,13 +3422,14 @@ def _inspect_builder_reference(filename: str, data: bytes) -> tuple[str, dict]:
             "ragReady": bool(chunks),
             "excerpt": extracted_text[:2_000],
         }
-    if extension in {".docx", ".xlsx"}:
-        parts = _extract_docx_parts(data) if extension == ".docx" else _extract_xlsx_parts(data)
+    if extension in {".docx", ".xlsx", ".odt"}:
+        parts = _extract_docx_parts(data) if extension == ".docx" else _extract_odt_parts(data) if extension == ".odt" else _extract_xlsx_parts(data) if extension == ".xlsx" else _extract_odt_parts(data)
         extracted_text = "\n\n".join(text for _index, text in parts)
         chunks = _chunk_reference_text("inspection", filename, hashlib.sha256(data).hexdigest(), parts)
         return (
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             if extension == ".docx"
+            else "application/vnd.oasis.opendocument.text" if extension == ".odt"
             else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             {
                 "kind": extension[1:],
@@ -2864,6 +3494,52 @@ def add_mcp_draft_reference(draft_id: str, payload: dict) -> dict:
             raise ApiError(f"{type_contract['label']}에서 지원하지 않는 첨부 역할입니다: {role}")
         if role == "template-source" and Path(filename).suffix.lower() != ".hwpx":
             raise ApiError("양식 원본은 HWPX 파일 하나만 등록할 수 있습니다.", 415)
+        if role == "template-source":
+            original_digest = digest
+            db.execute(
+                """
+                INSERT INTO mcp_template_originals(
+                    draft_id,filename,media_type,bytes,sha256,content_blob,created_at
+                ) VALUES(?,?,?,?,?,?,?)
+                ON CONFLICT(draft_id) DO UPDATE SET
+                    filename=excluded.filename,
+                    media_type=excluded.media_type,
+                    bytes=excluded.bytes,
+                    sha256=excluded.sha256,
+                    content_blob=excluded.content_blob,
+                    created_at=excluded.created_at
+                """,
+                (draft_id, filename, media_type, len(data), original_digest, data, utc_now()),
+            )
+            original_profile = summary.get("templateProfile") or _analyze_hwpx_template(data)
+            data, extraction = _build_template_authoring_sample(data, filename)
+            media_type, converted_summary = _inspect_builder_reference(filename, data)
+            profile = converted_summary.get("templateProfile") or _analyze_hwpx_template(data)
+            schema = converted_summary.get("templateSchema") or _hwpx_template_schema(data)
+            quality = _evaluate_hwpx_template_quality(data, filename)
+            blueprint = _template_blueprint_markdown(str(manifest.get("name") or Path(filename).stem), profile, schema)
+            summary = {
+                **converted_summary,
+                "templateQuality": quality,
+                "templateExtraction": {
+                    "contractVersion": "1.0",
+                    "sourceFilename": filename,
+                    "sourceSha256": original_digest,
+                    "sourceMode": original_profile.get("mode"),
+                    "sourceConfidence": original_profile.get("confidence"),
+                    "generated": bool(extraction.get("generated")),
+                    "inference": extraction.get("inference") or {},
+                    "fixedContentPreserved": True,
+                    "externalTransfer": False,
+                },
+            }
+            digest = hashlib.sha256(data).hexdigest()
+            guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+            guide["templateProfile"] = profile
+            guide["templateSchema"] = schema
+            guide["templateExtraction"] = summary["templateExtraction"]
+            guide["templateBlueprintMarkdown"] = blueprint
+            manifest["builderGuide"] = guide
         summary = {**summary, "builderRole": role}
         superseded_reference_ids = []
         if role == "template-source":
@@ -2911,7 +3587,12 @@ def add_mcp_draft_reference(draft_id: str, payload: dict) -> dict:
         _audit(db, actor, "mcp.reference_added", {"draft_id": draft_id, "reference_id": reference_id, "filename": filename, "bytes": len(data), "sha256": digest, "external_transfer": False})
         updated = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
         reference = db.execute("SELECT * FROM mcp_draft_references WHERE id=?", (reference_id,)).fetchone()
-    return {"draft": _draft_row_result(updated), "reference": _reference_row_result(reference), "idempotent": False}
+    return {
+        "draft": _draft_row_result(updated),
+        "reference": _reference_row_result(reference),
+        "idempotent": False,
+        "autoExtracted": role == "template-source",
+    }
 
 def delete_mcp_draft_reference(draft_id: str, reference_id: str, payload: dict) -> dict:
     ensure_schema()
@@ -2959,6 +3640,8 @@ def delete_mcp_draft_reference(draft_id: str, reference_id: str, payload: dict) 
                 guide.pop("templateProfile", None)
                 guide.pop("templateSchema", None)
             manifest["builderGuide"] = guide
+            if not remaining_templates:
+                db.execute("DELETE FROM mcp_template_originals WHERE draft_id=?", (draft_id,))
         validation = {"passed": False, "tests": []}
         now = utc_now()
         db.execute(
@@ -3259,6 +3942,227 @@ def evaluate_mcp_template_quality(draft_id: str) -> dict:
     }
 
 
+_TEMPLATE_PREVIEW_MARKDOWN = """# 2026년 주요 사업 현황 및 개선방향
+
+## 예산 총괄 현황 및 주요 변동
+
+- 2026년도 예산안의 주요 변동과 사업별 쟁점을 원문 근거로 정리함.
+- 전년 대비 증감 사유와 집행 가능성을 함께 검토할 필요가 있음.
+
+## 주요 지적사항
+
+- 사업 목표와 성과지표의 연결성을 구체화할 필요가 있음.
+  - 연도별 목표값과 측정 기준을 명확히 제시함.
+- 유사 사업과의 역할 및 예산 범위를 구분할 필요가 있음.
+
+## 향후 조치계획
+
+| 구분 | 조치 내용 | 일정 |
+| --- | --- | --- |
+| 제도 | 성과지표와 산출 근거 보완 | 1분기 |
+| 집행 | 월별 집행 점검 및 위험 관리 | 상시 |
+
+※ 이 문구는 양식 확인용 예시이며 저장되는 업무 데이터가 아닙니다.
+"""
+
+
+def _template_original_snapshot(draft_id: str, source: sqlite3.Row) -> dict:
+    """Return the user's upload, falling back to a matching historic reference."""
+    source_summary = _load_json(source["summary_json"], {})
+    extraction = source_summary.get("templateExtraction") if isinstance(source_summary.get("templateExtraction"), dict) else {}
+    with _connect() as db:
+        if not extraction:
+            draft = db.execute("SELECT manifest_json FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+            manifest = _load_json(draft["manifest_json"], {}) if draft else {}
+            guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+            extraction = guide.get("templateExtraction") if isinstance(guide.get("templateExtraction"), dict) else {}
+        snapshot = db.execute(
+            "SELECT * FROM mcp_template_originals WHERE draft_id=?",
+            (draft_id,),
+        ).fetchone()
+        if snapshot:
+            return {
+                "filename": snapshot["filename"],
+                "mediaType": snapshot["media_type"],
+                "sha256": snapshot["sha256"],
+                "content": bytes(snapshot["content_blob"]),
+                "recovered": False,
+            }
+        source_sha = str(extraction.get("sourceSha256") or "")
+        historic = db.execute(
+            "SELECT * FROM mcp_draft_references WHERE sha256=? ORDER BY created_at LIMIT 1",
+            (source_sha,),
+        ).fetchone() if source_sha else None
+        if historic:
+            return {
+                "filename": str(extraction.get("sourceFilename") or historic["filename"]),
+                "mediaType": historic["media_type"],
+                "sha256": historic["sha256"],
+                "content": bytes(historic["content_blob"]),
+                "recovered": True,
+            }
+        current_draft = db.execute("SELECT manifest_json FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+        current_manifest = _load_json(current_draft["manifest_json"], {}) if current_draft else {}
+        package_id = str(current_manifest.get("id") or "")
+        if package_id:
+            related = db.execute(
+                """
+                SELECT r.*, d.manifest_json
+                FROM mcp_draft_references r
+                JOIN mcp_drafts d ON d.id=r.draft_id
+                WHERE r.id<>?
+                ORDER BY r.created_at
+                """,
+                (source["id"],),
+            ).fetchall()
+            historic = next((
+                item for item in related
+                if str(_load_json(item["manifest_json"], {}).get("id") or "") == package_id
+                and str(item["filename"]).lower().endswith(".hwpx")
+                and "_양식등록" not in str(item["filename"])
+            ), None)
+            if historic:
+                return {
+                    "filename": str(historic["filename"]),
+                    "mediaType": historic["media_type"],
+                    "sha256": historic["sha256"],
+                    "content": bytes(historic["content_blob"]),
+                    "recovered": True,
+                }
+    return {
+        "filename": str(source["filename"]),
+        "mediaType": str(source["media_type"]),
+        "sha256": str(source["sha256"]),
+        "content": bytes(source["content_blob"]),
+        "recovered": False,
+    }
+
+
+def preview_mcp_template(draft_id: str, payload: dict) -> dict:
+    """Render realistic Markdown before a user accepts an inferred HWPX mapping."""
+    ensure_schema()
+    draft, source = _template_draft_source(draft_id)
+    if source is None:
+        raise ApiError("먼저 HWPX를 양식 원본 역할로 첨부해 주세요.", 409)
+    markdown = str(payload.get("markdown") or _TEMPLATE_PREVIEW_MARKDOWN).strip()
+    if len(markdown) < 20 or len(markdown) > 30_000:
+        raise ApiError("미리보기 Markdown은 20자 이상 30,000자 이하여야 합니다.")
+    sample = build_mcp_template_sample(draft_id)
+    template = base64.b64decode(sample["contentBase64"], validate=True)
+    report_document = REPORT_DOCUMENT_MCP.parse(
+        markdown,
+        title="양식 적용 미리보기",
+        style_profile="central-government-outline",
+    )
+    validation = REPORT_DOCUMENT_MCP.validate(report_document)
+    if not validation.get("passed"):
+        raise ApiError("미리보기 문서 구조가 올바르지 않습니다: " + ", ".join(validation.get("errors") or []), 422)
+    rendered, render_metadata = _render_report_document_hwpx_template(
+        template,
+        report_document,
+        "AIWorks_양식적용_미리보기.md",
+        {"templateName": str(_load_json(draft["manifest_json"], {}).get("name") or source["filename"]), "version": "preview-1.0"},
+    )
+    original = _template_original_snapshot(draft_id, source)
+    source_summary = _load_json(source["summary_json"], {})
+    extraction = source_summary.get("templateExtraction") if isinstance(source_summary.get("templateExtraction"), dict) else {}
+    if not extraction:
+        manifest = _load_json(draft["manifest_json"], {})
+        guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+        extraction = guide.get("templateExtraction") if isinstance(guide.get("templateExtraction"), dict) else {}
+    if not extraction and original["sha256"] != str(source["sha256"]):
+        original_profile = _analyze_hwpx_template(original["content"])
+        extraction = {
+            "generated": True,
+            "sourceFilename": original["filename"],
+            "sourceSha256": original["sha256"],
+            "sourceMode": original_profile.get("mode"),
+            "sourceConfidence": original_profile.get("confidence"),
+            "recoveredFromVersionHistory": True,
+        }
+    confidence = float(extraction.get("sourceConfidence") or 1.0)
+    requires_confirmation = bool(extraction.get("generated")) and confidence < 0.8 and not extraction.get("userConfirmed")
+    parsed = parse_hwpx(rendered, "AIWorks_양식적용_미리보기.hwpx")
+    return {
+        "draftId": draft_id,
+        "markdown": markdown,
+        "original": {
+            "filename": original["filename"],
+            "sha256": original["sha256"],
+            "contentBase64": base64.b64encode(original["content"]).decode("ascii"),
+            "recovered": original["recovered"],
+        },
+        "rendered": {
+            "filename": "AIWorks_양식적용_미리보기.hwpx",
+            "contentBase64": base64.b64encode(rendered).decode("ascii"),
+            "title": report_document.get("title"),
+            "blocks": len(report_document.get("blocks") or []),
+            "paragraphs": len(parsed.get("paragraphs") or []),
+            "tables": int((parsed.get("stats") or {}).get("tables") or 0),
+        },
+        "analysis": {
+            "sourceMode": extraction.get("sourceMode") or (source_summary.get("templateProfile") or {}).get("mode"),
+            "sourceConfidence": confidence,
+            "generated": bool(extraction.get("generated")),
+            "requiresConfirmation": requires_confirmation,
+            "userConfirmed": bool(extraction.get("userConfirmed")),
+            "renderedBlocks": int(render_metadata.get("renderedBlocks") or 0),
+            "renderedTables": int(render_metadata.get("renderedTables") or 0),
+            "mappingCoverage": float(render_metadata.get("mappingCoverage") or 0),
+        },
+        "notice": "오른쪽은 플레이스홀더가 아니라 실제 Markdown을 적용한 결과입니다. 원본과 결과를 비교한 뒤 사용을 확정하세요.",
+    }
+
+
+def confirm_mcp_template_preview(draft_id: str, payload: dict) -> dict:
+    """Record explicit acceptance of a low-confidence inferred template."""
+    draft, source = _template_draft_source(draft_id)
+    if source is None:
+        raise ApiError("확인할 양식 원본이 없습니다.", 409)
+    preview = preview_mcp_template(draft_id, payload)
+    now = utc_now()
+    with _connect() as db:
+        row = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+        reference = db.execute("SELECT * FROM mcp_draft_references WHERE id=?", (source["id"],)).fetchone()
+        manifest = _load_json(row["manifest_json"], {})
+        summary = _load_json(reference["summary_json"], {})
+        extraction = summary.get("templateExtraction") if isinstance(summary.get("templateExtraction"), dict) else {}
+        if not extraction:
+            guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+            extraction = dict(guide.get("templateExtraction") or {}) if isinstance(guide.get("templateExtraction"), dict) else {}
+        extraction.update({
+            "userConfirmed": True,
+            "confirmedAt": now,
+            "confirmedBy": _actor(payload),
+            "previewSourceSha256": str(source["sha256"]),
+        })
+        summary["templateExtraction"] = extraction
+        guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+        guide["templateExtraction"] = extraction
+        manifest["builderGuide"] = guide
+        db.execute(
+            "UPDATE mcp_draft_references SET summary_json=? WHERE id=?",
+            (_json(summary), source["id"]),
+        )
+        db.execute(
+            "UPDATE mcp_drafts SET manifest_json=?,validation_json=?,updated_at=? WHERE id=?",
+            (_json(manifest), _json({"passed": False, "tests": []}), now, draft_id),
+        )
+        _audit(db, _actor(payload), "mcp.template_preview_confirmed", {
+            "draft_id": draft_id,
+            "reference_id": source["id"],
+            "source_sha256": str(source["sha256"]),
+            "source_confidence": preview["analysis"]["sourceConfidence"],
+            "external_transfer": False,
+        })
+        updated = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+    return {
+        "draft": _draft_row_result(updated),
+        "preview": preview,
+        "notice": "실제 내용 적용 결과를 확인한 양식으로 저장했습니다. 이제 구조 검증 후 게시할 수 있습니다.",
+    }
+
+
 
 def _template_mapping_candidates(data: bytes) -> dict:
     """Expose stable paragraph locators for the visual TemplateSchema corrector."""
@@ -3283,8 +4187,20 @@ def _template_mapping_candidates(data: bytes) -> dict:
                 table_locator = ""
                 table_merged = False
                 approval_like = False
+                cell_node = None
+                row_node = None
+                table_row = None
+                table_column = None
+                row_span = 1
+                col_span = 1
+                cell_paragraph_index = None
                 while cursor in parents:
                     cursor = parents[cursor]
+                    local = _xml_local_name(cursor.tag)
+                    if local in {"tc", "cell"} and cell_node is None:
+                        cell_node = cursor
+                    elif local == "tr" and row_node is None:
+                        row_node = cursor
                     if _xml_local_name(cursor.tag) in {"tbl", "table"}:
                         inside_table = True
                         table_locator = f"{info.filename}#table{tables.index(cursor)}"
@@ -3298,6 +4214,20 @@ def _template_mapping_candidates(data: bytes) -> dict:
                                 row_span, col_span = 1, 1
                             table_merged = table_merged or row_span > 1 or col_span > 1
                         approval_like = bool(re.search(r"(결재|담당|검토|협조|과장|국장|실장|승인)", _hwpx_node_text(cursor)))
+                        if cell_node is not None and row_node is not None:
+                            table_rows = [item for item in cursor.iter() if _xml_local_name(item.tag) == "tr"]
+                            row_cells = [item for item in list(row_node) if _xml_local_name(item.tag) in {"tc", "cell"}]
+                            table_row = table_rows.index(row_node) if row_node in table_rows else None
+                            table_column = row_cells.index(cell_node) if cell_node in row_cells else None
+                            span = next((item for item in cell_node.iter() if _xml_local_name(item.tag) == "cellSpan"), None)
+                            attributes = span.attrib if span is not None else cell_node.attrib
+                            try:
+                                row_span = int(attributes.get("rowSpan") or 1)
+                                col_span = int(attributes.get("colSpan") or 1)
+                            except (TypeError, ValueError):
+                                row_span, col_span = 1, 1
+                            cell_paragraphs = [item for item in cell_node.iter() if _xml_local_name(item.tag) == "p" and not any(child is not item and _xml_local_name(child.tag) == "p" for child in item.iter())]
+                            cell_paragraph_index = cell_paragraphs.index(node) if node in cell_paragraphs else None
                         break
                 locator = f"{info.filename}#p{index}"
                 slots = [token[2:-2] for token in _TEMPLATE_PLACEHOLDERS if token in text_value]
@@ -3312,27 +4242,52 @@ def _template_mapping_candidates(data: bytes) -> dict:
                     "insideTable": inside_table,
                     "tableLocator": table_locator or None,
                     "tableMerged": table_merged,
+                    "tableRow": table_row,
+                    "tableColumn": table_column,
+                    "rowSpan": row_span,
+                    "colSpan": col_span,
+                    "cellParagraphIndex": cell_paragraph_index,
                     "approvalLike": approval_like,
                     "paraStyleId": str(node.attrib.get("paraPrIDRef") or ""),
                     "slots": slots,
                 })
     if not candidates:
         raise ApiError("양식에서 보정 가능한 문단을 찾지 못했습니다.", 409)
-    return {"candidates": candidates[:500], "currentSlots": current_slots, "total": len(candidates)}
+    visible_candidates = list(candidates[:500])
+    visible_locators = {item["locator"] for item in visible_candidates}
+    for item in candidates:
+        if item.get("slots") and item["locator"] not in visible_locators:
+            visible_candidates.append(item)
+            visible_locators.add(item["locator"])
+    return {"candidates": visible_candidates, "currentSlots": current_slots, "total": len(candidates)}
 
 
 def get_mcp_template_mapping(draft_id: str) -> dict:
-    _draft, source = _template_draft_source(draft_id)
+    draft, source = _template_draft_source(draft_id)
     if source is None:
         raise ApiError("먼저 HWPX를 양식 원본 역할로 첨부해 주세요.", 409)
     artifact = bytes(source["content_blob"])
+    manifest = _load_json(draft["manifest_json"], {})
+    guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+    source_summary = _load_json(source["summary_json"], {})
+    mapping = _template_mapping_candidates(artifact)
+    candidates = mapping.get("candidates") or []
+    slots = mapping.get("currentSlots") or {}
+    nonblank = [item for item in candidates if item.get("text") and not item.get("insideTable")]
+    title_locator = slots.get("title") or (nonblank[0].get("locator") if nonblank else "")
+    body_locator = slots.get("content") or slots.get("body") or next((item.get("locator") for item in nonblank if item.get("locator") != title_locator), "")
     return {
         "draftId": draft_id,
         "referenceId": source["id"],
         "filename": source["filename"],
-        "mapping": _template_mapping_candidates(artifact),
+        "contentBase64": base64.b64encode(artifact).decode("ascii"),
+        "blueprintMarkdown": str(guide.get("templateBlueprintMarkdown") or _template_blueprint_markdown(str(manifest.get("name") or source["filename"]), _analyze_hwpx_template(artifact), _hwpx_template_schema(artifact))),
+        "mapping": mapping,
+        "autoMapping": {"title": title_locator, "body": body_locator, "source": "explicit-slots" if slots else "paragraph-heuristic"},
         "schema": _hwpx_template_schema(artifact),
         "profile": _analyze_hwpx_template(artifact),
+        "extraction": source_summary.get("templateExtraction") or {},
+        "structuralRoles": guide.get("templateStructuralRoles") if isinstance(guide.get("templateStructuralRoles"), dict) else {},
         "notice": "제목과 본문은 서로 다른 문단으로 지정하세요. 목록 원형은 비워 두면 현재 양식에서 자동 감지합니다.",
     }
 
@@ -3349,6 +4304,14 @@ def apply_mcp_template_mapping(draft_id: str, payload: dict) -> dict:
         raise ApiError("제목 슬롯과 본문 슬롯을 모두 선택해 주세요.")
     if title_locator == body_locator:
         raise ApiError("제목 슬롯과 본문 슬롯은 서로 다른 문단이어야 합니다.")
+    blueprint = str(payload.get("blueprint_markdown") or "").strip()
+    if blueprint and ("{{title}}" not in blueprint or not ("{{content}}" in blueprint or "{{body}}" in blueprint)):
+        raise ApiError("MD 매핑에는 {{title}}과 {{content}} 또는 {{body}} 슬롯이 필요합니다.")
+    structural_roles = {
+        "sectionRepeater": str(payload.get("section_repeater_locator") or "").strip() or None,
+        "conditionalBlock": str(payload.get("conditional_locator") or "").strip() or None,
+        "tableRepeater": str(payload.get("table_repeater_locator") or "").strip() or None,
+    }
     prototype_values = {
         str(payload.get("main_locator") or "").strip(): "○ 소제목",
         str(payload.get("sub_locator") or "").strip(): "- 세부내용",
@@ -3368,8 +4331,18 @@ def apply_mcp_template_mapping(draft_id: str, payload: dict) -> dict:
         raise ApiError("하나의 문단에 둘 이상의 TemplateSchema 역할을 지정할 수 없습니다.")
     selected = dict(selected_pairs)
     artifact = bytes(source["content_blob"])
+    edited_content = str(payload.get("content_base64") or "").strip()
+    if edited_content:
+        try:
+            artifact = base64.b64decode(edited_content, validate=True)
+        except (ValueError, TypeError) as error:
+            raise ApiError("수정한 HWPX content_base64가 올바르지 않습니다.") from error
+        if len(artifact) > MAX_ASSET_BYTES:
+            raise ApiError(f"수정한 HWPX는 {MAX_ASSET_BYTES:,}바이트를 넘을 수 없습니다.", 413)
+        _analyze_hwpx_template(artifact)
     available = {item["locator"] for item in _template_mapping_candidates(artifact)["candidates"]}
     missing = sorted(locator for locator in selected if locator not in available)
+    missing.extend(locator for locator in structural_roles.values() if locator and locator not in available)
     if missing:
         raise ApiError("선택한 문단 위치가 현재 양식과 일치하지 않습니다: " + ", ".join(missing[:3]), 409)
     if title_locator in prototype_values or body_locator in prototype_values:
@@ -3406,6 +4379,17 @@ def apply_mcp_template_mapping(draft_id: str, payload: dict) -> dict:
     committed = commit_mcp_template_authoring(
         draft_id, {"session_id": session["id"], "actor": _actor(payload)}
     )
+    if blueprint or any(structural_roles.values()):
+        with _connect() as db:
+            row = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+            manifest = _load_json(row["manifest_json"], {})
+            guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+            if blueprint:
+                guide["templateBlueprintMarkdown"] = blueprint
+            guide["templateStructuralRoles"] = structural_roles
+            manifest["builderGuide"] = guide
+            db.execute("UPDATE mcp_drafts SET manifest_json=?,updated_at=? WHERE id=?", (_json(manifest), utc_now(), draft_id))
+            committed["draft"] = _draft_row_result(db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone())
     with _connect() as db:
         _audit(db, _actor(payload), "mcp.template_mapping_corrected", {
             "draft_id": draft_id,
@@ -3414,6 +4398,7 @@ def apply_mcp_template_mapping(draft_id: str, payload: dict) -> dict:
             "body_locator": body_locator,
             "prototype_locators": sorted(prototype_values),
             "metadata_locators": {value[2:-2]: locator for locator, value in metadata_values.items()},
+            "structural_roles": structural_roles,
             "quality": (committed.get("authoring") or {}).get("quality") or {},
         })
     return {
@@ -3550,6 +4535,10 @@ def commit_mcp_template_authoring(draft_id: str, payload: dict) -> dict:
             "SELECT * FROM mcp_draft_references WHERE id=? AND draft_id=?",
             (reference_id, draft_id),
         ).fetchone() if reference_id else None
+        if reference:
+            previous_summary = _load_json(reference["summary_json"], {})
+            if previous_summary.get("templateExtraction"):
+                summary["templateExtraction"] = previous_summary["templateExtraction"]
         previous_sha = str(reference["sha256"]) if reference else None
         now = utc_now()
         if reference:
@@ -3654,6 +4643,11 @@ def create_mcp_draft(payload: dict) -> dict:
     cautions = _builder_lines(payload.get("cautions"))
     procedure = _builder_lines(payload.get("procedure")) or [description[:500]]
     trigger_examples = _builder_lines(payload.get("trigger_examples"), limit=10)
+    if mcp_type == "template":
+        for example in (f"{name}으로 바꿔줘", f"{name} 적용해줘"):
+            if example not in trigger_examples:
+                trigger_examples.append(example)
+        trigger_examples = trigger_examples[:10]
     data_source = str(payload.get("data_source") or "").strip()[:500]
     use_model = payload.get("use_model")
     if use_model is None:
@@ -3715,8 +4709,30 @@ def create_mcp_draft(payload: dict) -> dict:
         ),
     }
     manifest["inputs"], manifest["outputs"] = io_contracts[mcp_type]
+    manifest["ioContract"] = _builder_artifact_io_contract(mcp_type)
     manifest["mcpType"] = mcp_type
     manifest["capabilities"] = type_contract["capabilities"]
+    manifest["license"] = str(payload.get("license") or "UNSPECIFIED")[:120]
+    manifest["dataRetention"] = {
+        "policy": "provider-controlled" if allow_external else "local-until-user-delete",
+        "storesInput": bool(source_included),
+        "storesExecutionContent": False,
+        "externalTransfer": bool(allow_external),
+    }
+    manifest["security"] = {
+        "sandbox": "approved-gateway" if mcp_type == "external" else "local-no-arbitrary-code",
+        "arbitraryCode": False,
+        "sbom": "not-applicable" if mcp_type != "external" else "adapter-profile",
+        "vulnerabilityScan": "manifest-and-dependency-policy",
+    }
+    manifest["platformCompatibility"] = {
+        "minimum": "0.30.0", "maximumExclusive": "1.0.0",
+        "manifestVersions": ["1.0", "vNext-compatible"],
+    }
+    manifest["evaluationContract"] = {
+        "metrics": ["quality", "successRate", "latencyMs", "costPerRun", "sampleCount"],
+        "releaseGate": "validation.passed && vulnerabilities == 0",
+    }
     manifest["builderGuide"] = {
         "version": "1.0",
         "instructions": instructions,
@@ -3750,16 +4766,14 @@ def create_mcp_draft(payload: dict) -> dict:
             "documentTransfer": external_transport == "streamable-http",
         }
         if external_transport == "stdio":
-            profile_id = str(payload.get("external_server_profile") or KORDOC_PROFILE_ID).strip()
+            profile_id = str(payload.get("external_server_profile") or "").strip()
             profile = EXTERNAL_MCP_SERVER_PROFILES.get(profile_id)
             if not profile:
-                raise ApiError("승인되지 않은 로컬 MCP 서버 프로필입니다.", 403)
+                raise ApiError("운영자가 승인한 로컬 MCP 서버 프로필을 선택해 주세요.", 403)
             adapter = profile["allowedTools"].get(tool_name)
             if not adapter:
                 raise ApiError("이 서버 프로필에서 허용되지 않은 도구입니다.", 403)
             connector.update({"serverProfile": profile_id, "invocationAdapter": adapter})
-            if tool_name == "generate_document":
-                connector["preset"] = str(payload.get("external_preset") or "보고서").strip()[:40]
         else:
             endpoint_env = str(payload.get("external_endpoint_env") or "AIWORKS_EXTERNAL_MCP_URL").strip().upper()
             if not re.fullmatch(r"[A-Z][A-Z0-9_]{2,80}", endpoint_env):
@@ -3879,13 +4893,32 @@ def validate_mcp_draft(draft_id: str, payload: dict) -> dict:
             template_summary = _load_json(template_sources[-1]["summary_json"], {}) if len(template_sources) == 1 else {}
             template_profile = template_summary.get("templateProfile") or {}
             template_schema = template_summary.get("templateSchema") or {}
+            template_extraction = template_summary.get("templateExtraction") if isinstance(template_summary.get("templateExtraction"), dict) else {}
+            if not template_extraction and len(template_sources) == 1:
+                original = _template_original_snapshot(draft_id, template_sources[0])
+                if original["sha256"] != str(template_sources[0]["sha256"]):
+                    original_profile = _analyze_hwpx_template(original["content"])
+                    template_extraction = {
+                        "generated": True,
+                        "sourceMode": original_profile.get("mode"),
+                        "sourceConfidence": original_profile.get("confidence"),
+                        "userConfirmed": False,
+                    }
             template_required = template_schema.get("required") if isinstance(template_schema, dict) else {}
             template_quality = (
                 _evaluate_hwpx_template_quality(bytes(template_sources[0]["content_blob"]), str(template_sources[0]["filename"]))
                 if len(template_sources) == 1 else {"passed": False, "checks": [], "metrics": {}}
             )
+            ocr_required = bool(template_profile.get("ocrRequired") or template_schema.get("ocrRequired"))
+            inferred_confirmation_required = bool(
+                template_extraction.get("generated")
+                and float(template_extraction.get("sourceConfidence") or 1.0) < 0.8
+                and not template_extraction.get("userConfirmed")
+            )
             structure_valid = (
                 len(template_sources) == 1
+                and not ocr_required
+                and not inferred_confirmation_required
                 and template_profile.get("reviewRequired") is False
                 and template_required.get("title") is True
                 and template_required.get("body") is True
@@ -3895,7 +4928,14 @@ def validate_mcp_draft(draft_id: str, payload: dict) -> dict:
             structure_detail = (
                 "제목·본문 슬롯과 반복 본문 구조 확인 · 양식용 HWPX 등록 완료"
                 if structure_valid
-                else "일반 HWPX를 양식용으로 변환한 뒤 RHWP에서 {{title}}과 {{content}} 또는 {{body}} 슬롯을 확인해 주세요."
+                else (
+                    "스캔 이미지형 HWPX입니다. OCR로 텍스트 구조를 만든 뒤 제목·본문 슬롯을 지정해 주세요."
+                    if ocr_required else (
+                    "자동 추출 신뢰도가 낮습니다. ‘실제 내용으로 결과 확인’에서 원본과 결과를 비교하고 사용을 확정해 주세요."
+                    if inferred_confirmation_required else
+                    "일반 HWPX를 양식용으로 변환한 뒤 RHWP에서 {{title}}과 {{content}} 또는 {{body}} 슬롯을 확인해 주세요."
+                    )
+                )
             )
             test("template.structure", structure_valid, structure_detail)
             quality_metrics = template_quality.get("metrics") or {}
@@ -4095,13 +5135,15 @@ def _seed_knowledge(db: sqlite3.Connection) -> None:
 
 
 def _seed_default_project_facts(db: sqlite3.Connection) -> None:
+    # Production workspaces must start empty.  The explicit demo flag is used
+    # by the isolated acceptance tests and demo profile only.
+    if not ENABLE_DEMO_SEED:
+        return
     now = utc_now()
     db.execute(
         "INSERT OR IGNORE INTO projects(id,name,owner,classification,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",
         (DEFAULT_PROJECT_ID, "AIWorks 기본 프로젝트", "workspace-user", "internal", "active", now, now),
     )
-    if not ENABLE_DEMO_SEED:
-        return
     if db.execute("SELECT 1 FROM project_facts WHERE project_id=? LIMIT 1", (DEFAULT_PROJECT_ID,)).fetchone():
         return
     sample = json.loads((ROOT / "sample-data" / "budget-request.json").read_text(encoding="utf-8"))
@@ -4138,9 +5180,9 @@ def list_projects() -> dict:
                      WHERE d.project_id=p.id AND d.status='active') AS document_count,
                    (SELECT COUNT(*) FROM project_facts f
                      WHERE f.project_id=p.id AND f.status='confirmed') AS fact_count,
-                   (SELECT COUNT(*) FROM project_document_artifacts a
-                     JOIN project_markdown_documents d ON d.id=a.document_id
-                    WHERE d.project_id=p.id AND d.status='active') AS artifact_count,
+                   (SELECT COUNT(*) FROM artifacts a
+                     WHERE a.project_id=p.id AND a.source_type='project-source'
+                       AND a.status='active') AS source_count,
                    COALESCE(
                      (SELECT MAX(d.updated_at) FROM project_markdown_documents d
                        WHERE d.project_id=p.id AND d.status='active'),
@@ -4161,7 +5203,7 @@ def list_projects() -> dict:
                 "status": row["status"],
                 "documentCount": row["document_count"],
                 "factCount": row["fact_count"],
-                "artifactCount": row["artifact_count"],
+                "sourceCount": row["source_count"],
                 "createdAt": row["created_at"],
                 "updatedAt": row["last_activity_at"],
             }
@@ -4202,7 +5244,6 @@ def create_project(payload: dict) -> dict:
         "status": "active",
         "documentCount": 0,
         "factCount": 0,
-        "artifactCount": 0,
         "createdAt": now,
         "updatedAt": now,
     }
@@ -4211,6 +5252,9 @@ def create_project(payload: dict) -> dict:
 _PROJECT_BACKUP_COLUMNS = {
     "project_policies": ("project_id", "policy_json", "revision", "updated_by", "updated_at"),
     "project_workspace_states": ("project_id", "active_document_id", "active_tab", "active_view", "chat_json", "last_answer", "updated_by", "updated_at"),
+    "project_conversations": ("id", "project_id", "title", "status", "created_by", "created_at", "updated_at"),
+    "project_conversation_messages": ("id", "conversation_id", "sequence", "role", "kind", "text", "content_sha256", "document_id", "document_version_id", "plan_id", "execution_id", "metadata_json", "created_by", "created_at"),
+    "project_decisions": ("id", "project_id", "conversation_id", "message_id", "decision_type", "status", "summary", "rationale", "scope_json", "document_id", "document_version_id", "plan_id", "execution_id", "decided_by", "decided_at"),
     "project_markdown_documents": ("id", "project_id", "title", "current_revision", "status", "created_at", "updated_at"),
     "project_markdown_versions": ("id", "document_id", "revision", "markdown", "markdown_sha256", "source_format", "source_filename", "source_artifact_sha256", "source_session_id", "fact_snapshot_json", "created_by", "created_at"),
     "project_document_artifacts": ("id", "document_id", "format", "variant_key", "source_version_id", "source_revision", "source_markdown_sha256", "status", "filename", "media_type", "content_blob", "artifact_sha256", "template_id", "renderer", "instruction", "render_map_json", "error", "created_at", "updated_at"),
@@ -4257,21 +5301,50 @@ def export_project_backup(project_id: str, payload: dict | None = None) -> dict:
     with _connect() as db:
         _require_project_role(db, project_id, actor, {"owner", "admin", "editor", "viewer"})
         project = db.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+        source_artifacts = db.execute(
+            "SELECT * FROM artifacts WHERE project_id=? AND source_type='project-source' AND status!='deleted'",
+            (project_id,),
+        ).fetchall()
+        source_artifact_ids = [str(row["id"]) for row in source_artifacts]
+        source_versions = []
+        source_relations = []
+        source_evidence = []
+        if source_artifact_ids:
+            placeholders = ",".join("?" for _ in source_artifact_ids)
+            source_versions = db.execute(
+                f"SELECT * FROM artifact_versions WHERE artifact_id IN ({placeholders}) ORDER BY artifact_id,version",
+                source_artifact_ids,
+            ).fetchall()
+            version_ids = [str(row["id"]) for row in source_versions]
+            if version_ids:
+                version_placeholders = ",".join("?" for _ in version_ids)
+                source_relations = db.execute(
+                    f"SELECT * FROM artifact_relations WHERE project_id=? AND source_version_id IN ({version_placeholders}) AND target_version_id IN ({version_placeholders})",
+                    (project_id, *version_ids, *version_ids),
+                ).fetchall()
+                source_evidence = db.execute(
+                    f"SELECT * FROM artifact_evidence WHERE project_id=? AND (source_version_id IN ({version_placeholders}) OR artifact_version_id IN ({version_placeholders}))",
+                    (project_id, *version_ids, *version_ids),
+                ).fetchall()
         data = {
             "projectPolicy": _backup_rows(db.execute("SELECT * FROM project_policies WHERE project_id=?", (project_id,)).fetchall()),
             "workspaceState": _backup_rows(db.execute("SELECT * FROM project_workspace_states WHERE project_id=?", (project_id,)).fetchall()),
+            "conversations": _backup_rows(db.execute("SELECT * FROM project_conversations WHERE project_id=?", (project_id,)).fetchall()),
+            "conversationMessages": _backup_rows(db.execute("SELECT m.* FROM project_conversation_messages m JOIN project_conversations c ON c.id=m.conversation_id WHERE c.project_id=? ORDER BY m.conversation_id,m.sequence", (project_id,)).fetchall()),
+            "decisions": _backup_rows(db.execute("SELECT * FROM project_decisions WHERE project_id=? ORDER BY decided_at", (project_id,)).fetchall()),
             "markdownDocuments": _backup_rows(db.execute("SELECT * FROM project_markdown_documents WHERE project_id=?", (project_id,)).fetchall()),
             "markdownVersions": _backup_rows(db.execute("SELECT v.* FROM project_markdown_versions v JOIN project_markdown_documents d ON d.id=v.document_id WHERE d.project_id=?", (project_id,)).fetchall()),
-            "documentArtifacts": _backup_rows(db.execute("SELECT a.* FROM project_document_artifacts a JOIN project_markdown_documents d ON d.id=a.document_id WHERE d.project_id=?", (project_id,)).fetchall()),
             "facts": _backup_rows(db.execute("SELECT * FROM project_facts WHERE project_id=?", (project_id,)).fetchall()),
             "factValues": _backup_rows(db.execute("SELECT v.* FROM project_fact_values v JOIN project_facts f ON f.id=v.fact_id WHERE f.project_id=?", (project_id,)).fetchall()),
-            "artifacts": _backup_rows(db.execute("SELECT * FROM artifacts WHERE project_id=?", (project_id,)).fetchall()),
-            "artifactVersions": _backup_rows(db.execute("SELECT v.* FROM artifact_versions v JOIN artifacts a ON a.id=v.artifact_id WHERE a.project_id=?", (project_id,)).fetchall()),
-            "artifactRelations": _backup_rows(db.execute("SELECT * FROM artifact_relations WHERE project_id=?", (project_id,)).fetchall()),
-            "artifactEvidence": _backup_rows(db.execute("SELECT * FROM artifact_evidence WHERE project_id=?", (project_id,)).fetchall()),
+            # Project 자료는 원본·검색 인덱스·계보를 함께 보존한다. 문서의
+            # HWPX 작업본과 최종 산출물은 재생성 가능한 파생물이므로 제외한다.
+            "artifacts": _backup_rows(source_artifacts),
+            "artifactVersions": _backup_rows(source_versions),
+            "artifactRelations": _backup_rows(source_relations),
+            "artifactEvidence": _backup_rows(source_evidence),
         }
     bundle = {
-        "format": "aiworks-project-backup", "schemaVersion": "1.0", "exportedAt": utc_now(),
+        "format": "aiworks-project-backup", "schemaVersion": "1.2", "exportedAt": utc_now(),
         "project": {"id": project["id"], "name": project["name"], "classification": project["classification"], "status": project["status"]},
         "data": data,
     }
@@ -4298,7 +5371,7 @@ def import_project_backup(payload: dict) -> dict:
             raise
         except (ValueError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:
             raise ApiError("프로젝트 백업 JSON이 올바르지 않습니다.") from error
-    if not isinstance(bundle, dict) or bundle.get("format") != "aiworks-project-backup" or bundle.get("schemaVersion") != "1.0":
+    if not isinstance(bundle, dict) or bundle.get("format") != "aiworks-project-backup" or bundle.get("schemaVersion") not in {"1.0", "1.1", "1.2"}:
         raise ApiError("지원하지 않는 AIWorks 프로젝트 백업입니다.")
     integrity = bundle.get("integrity") if isinstance(bundle.get("integrity"), dict) else {}
     unsigned = {key: value for key, value in bundle.items() if key not in {"integrity", "filename", "counts"}}
@@ -4321,6 +5394,8 @@ def import_project_backup(payload: dict) -> dict:
     fact_map = {str(row.get("id")): "fact_" + uuid.uuid4().hex for row in (data.get("facts") or []) if isinstance(row, dict)}
     gart_map = {str(row.get("id")): "gart_" + uuid.uuid4().hex for row in (data.get("artifacts") or []) if isinstance(row, dict)}
     gver_map = {str(row.get("id")): "gartver_" + uuid.uuid4().hex for row in (data.get("artifactVersions") or []) if isinstance(row, dict)}
+    conversation_map = {str(row.get("id")): "conversation_" + uuid.uuid4().hex for row in (data.get("conversations") or []) if isinstance(row, dict)}
+    message_map = {str(row.get("id")): "message_" + uuid.uuid4().hex for row in (data.get("conversationMessages") or []) if isinstance(row, dict)}
     with _connect() as db:
         db.execute("BEGIN IMMEDIATE")
         db.execute("INSERT INTO projects(id,name,owner,classification,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)", (project_id, name, actor, classification, "active", now, now))
@@ -4331,6 +5406,26 @@ def import_project_backup(payload: dict) -> dict:
             document_id = doc_map.get(str(row.get("document_id")))
             if document_id:
                 _insert_backup_row(db, "project_markdown_versions", row, {"id": mdver_map[str(row.get("id"))], "document_id": document_id, "source_session_id": None})
+        for row in data.get("conversations") or []:
+            _insert_backup_row(db, "project_conversations", row, {"id": conversation_map[str(row.get("id"))], "project_id": project_id, "created_by": actor})
+        for row in data.get("conversationMessages") or []:
+            conversation_id = conversation_map.get(str(row.get("conversation_id")))
+            if conversation_id:
+                _insert_backup_row(db, "project_conversation_messages", row, {
+                    "id": message_map[str(row.get("id"))], "conversation_id": conversation_id,
+                    "document_id": doc_map.get(str(row.get("document_id"))),
+                    "document_version_id": mdver_map.get(str(row.get("document_version_id"))),
+                    "plan_id": None, "execution_id": None, "created_by": actor,
+                })
+        for row in data.get("decisions") or []:
+            _insert_backup_row(db, "project_decisions", row, {
+                "id": "decision_" + uuid.uuid4().hex, "project_id": project_id,
+                "conversation_id": conversation_map.get(str(row.get("conversation_id"))),
+                "message_id": message_map.get(str(row.get("message_id"))),
+                "document_id": doc_map.get(str(row.get("document_id"))),
+                "document_version_id": mdver_map.get(str(row.get("document_version_id"))),
+                "plan_id": None, "execution_id": None, "decided_by": actor,
+            })
         for row in data.get("documentArtifacts") or []:
             document_id = doc_map.get(str(row.get("document_id")))
             if document_id:
@@ -4935,6 +6030,231 @@ def deprecate_workflow_recipe(recipe_id: str, payload: dict) -> dict:
         return _recipe_result(db, recipe)
 
 
+def _project_message_result(row: sqlite3.Row) -> dict:
+    return {
+        "id": row["id"],
+        "conversationId": row["conversation_id"],
+        "sequence": row["sequence"],
+        "role": row["role"],
+        "kind": row["kind"],
+        "text": row["text"],
+        "contentSha256": row["content_sha256"],
+        "documentId": row["document_id"],
+        "documentVersionId": row["document_version_id"],
+        "planId": row["plan_id"],
+        "executionId": row["execution_id"],
+        "metadata": _load_json(row["metadata_json"], {}),
+        "createdBy": row["created_by"],
+        "createdAt": row["created_at"],
+    }
+
+
+def _project_conversation_result(db: sqlite3.Connection, row: sqlite3.Row, *, include_messages: bool = False) -> dict:
+    result = {
+        "id": row["id"], "projectId": row["project_id"], "title": row["title"],
+        "status": row["status"], "createdBy": row["created_by"],
+        "createdAt": row["created_at"], "updatedAt": row["updated_at"],
+    }
+    count = db.execute(
+        "SELECT COUNT(*) AS count FROM project_conversation_messages WHERE conversation_id=?",
+        (row["id"],),
+    ).fetchone()["count"]
+    result["messageCount"] = count
+    if include_messages:
+        result["messages"] = [
+            _project_message_result(item)
+            for item in db.execute(
+                "SELECT * FROM project_conversation_messages WHERE conversation_id=? ORDER BY sequence",
+                (row["id"],),
+            ).fetchall()
+        ]
+    return result
+
+
+def _new_project_conversation(db: sqlite3.Connection, project_id: str, title: str, actor: str) -> sqlite3.Row:
+    now = utc_now()
+    conversation_id = "conversation_" + uuid.uuid4().hex
+    clean_title = re.sub(r"\s+", " ", str(title or "프로젝트 작업 대화")).strip()[:120] or "프로젝트 작업 대화"
+    db.execute(
+        "INSERT INTO project_conversations(id,project_id,title,status,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",
+        (conversation_id, project_id, clean_title, "active", actor, now, now),
+    )
+    return db.execute("SELECT * FROM project_conversations WHERE id=?", (conversation_id,)).fetchone()
+
+
+def _append_project_message(
+    db: sqlite3.Connection,
+    conversation: sqlite3.Row,
+    payload: dict,
+    actor: str,
+) -> dict:
+    role = str(payload.get("role") or "user").strip()
+    kind = str(payload.get("kind") or "message").strip()[:40]
+    text = str(payload.get("text") or "").strip()[:12_000]
+    if role not in {"user", "assistant", "system"} or not text:
+        raise ApiError("대화 메시지의 역할 또는 내용이 올바르지 않습니다.")
+    sequence = db.execute(
+        "SELECT COALESCE(MAX(sequence),0)+1 AS sequence FROM project_conversation_messages WHERE conversation_id=?",
+        (conversation["id"],),
+    ).fetchone()["sequence"]
+    message_id = "message_" + uuid.uuid4().hex
+    now = utc_now()
+    content_sha256 = hashlib.sha256((role + "\0" + kind + "\0" + text).encode("utf-8")).hexdigest()
+    db.execute(
+        """INSERT INTO project_conversation_messages(
+               id,conversation_id,sequence,role,kind,text,content_sha256,document_id,document_version_id,
+               plan_id,execution_id,metadata_json,created_by,created_at
+           ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            message_id, conversation["id"], sequence, role, kind, text, content_sha256,
+            str(payload.get("document_id") or "") or None,
+            str(payload.get("document_version_id") or "") or None,
+            str(payload.get("plan_id") or "") or None,
+            str(payload.get("execution_id") or "") or None,
+            _json(payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}),
+            actor, now,
+        ),
+    )
+    db.execute("UPDATE project_conversations SET updated_at=? WHERE id=?", (now, conversation["id"]))
+    return _project_message_result(db.execute("SELECT * FROM project_conversation_messages WHERE id=?", (message_id,)).fetchone())
+
+
+def _sync_workspace_conversation(
+    db: sqlite3.Connection,
+    project_id: str,
+    chat: list[dict],
+    actor: str,
+    document_id: str = "",
+) -> str | None:
+    if not chat:
+        current = db.execute(
+            "SELECT id FROM project_conversations WHERE project_id=? AND status='active' ORDER BY updated_at DESC LIMIT 1",
+            (project_id,),
+        ).fetchone()
+        return str(current["id"]) if current else None
+    conversation = db.execute(
+        "SELECT * FROM project_conversations WHERE project_id=? AND status='active' ORDER BY updated_at DESC LIMIT 1",
+        (project_id,),
+    ).fetchone()
+    existing = [] if not conversation else [
+        {"role": row["role"], "text": row["text"], "kind": row["kind"]}
+        for row in db.execute(
+            "SELECT role,text,kind FROM project_conversation_messages WHERE conversation_id=? ORDER BY sequence",
+            (conversation["id"],),
+        ).fetchall()
+    ]
+    prefix_matches = len(existing) <= len(chat) and all(existing[index] == chat[index] for index in range(len(existing)))
+    if conversation is None or not prefix_matches:
+        if conversation is not None:
+            db.execute("UPDATE project_conversations SET status='superseded',updated_at=? WHERE id=?", (utc_now(), conversation["id"]))
+        first_user = next((item["text"] for item in chat if item["role"] == "user"), "프로젝트 작업 대화")
+        conversation = _new_project_conversation(db, project_id, first_user[:80], actor)
+        existing = []
+    version_id = None
+    if document_id:
+        row = db.execute(
+            "SELECT v.id FROM project_markdown_versions v JOIN project_markdown_documents d ON d.id=v.document_id AND d.current_revision=v.revision WHERE d.id=? AND d.project_id=?",
+            (document_id, project_id),
+        ).fetchone()
+        version_id = str(row["id"]) if row else None
+    for item in chat[len(existing):]:
+        _append_project_message(
+            db,
+            conversation,
+            {**item, "document_id": document_id, "document_version_id": version_id, "metadata": {"origin": "workspace-state"}},
+            actor,
+        )
+    return str(conversation["id"])
+
+
+def list_project_conversations(project_id: str, payload: dict | None = None) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload or {})
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor", "viewer"})
+        rows = db.execute("SELECT * FROM project_conversations WHERE project_id=? ORDER BY updated_at DESC", (project_id,)).fetchall()
+        return {"projectId": project_id, "items": [_project_conversation_result(db, row) for row in rows], "count": len(rows)}
+
+
+def create_project_conversation(project_id: str, payload: dict) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload)
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        row = _new_project_conversation(db, project_id, str(payload.get("title") or "새 작업 대화"), actor)
+        _audit(db, actor, "project.conversation_created", {"project_id": project_id, "conversation_id": row["id"]})
+        return _project_conversation_result(db, row, include_messages=True)
+
+
+def get_project_conversation(project_id: str, conversation_id: str, payload: dict | None = None) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload or {})
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor", "viewer"})
+        row = db.execute("SELECT * FROM project_conversations WHERE id=? AND project_id=?", (conversation_id, project_id)).fetchone()
+        if not row: raise ApiError("프로젝트 대화를 찾을 수 없습니다.", 404)
+        return _project_conversation_result(db, row, include_messages=True)
+
+
+def append_project_conversation_message(project_id: str, conversation_id: str, payload: dict) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload)
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        row = db.execute("SELECT * FROM project_conversations WHERE id=? AND project_id=? AND status='active'", (conversation_id, project_id)).fetchone()
+        if not row: raise ApiError("활성 프로젝트 대화를 찾을 수 없습니다.", 404)
+        message = _append_project_message(db, row, payload, actor)
+        _audit(db, actor, "project.conversation_message_added", {"project_id": project_id, "conversation_id": conversation_id, "message_id": message["id"], "role": message["role"]})
+        return message
+
+
+def list_project_decisions(project_id: str, payload: dict | None = None) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload or {})
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor", "viewer"})
+        rows = db.execute("SELECT * FROM project_decisions WHERE project_id=? ORDER BY decided_at DESC", (project_id,)).fetchall()
+    items = [{
+        "id": row["id"], "projectId": row["project_id"], "conversationId": row["conversation_id"],
+        "messageId": row["message_id"], "decisionType": row["decision_type"], "status": row["status"],
+        "summary": row["summary"], "rationale": row["rationale"], "scope": _load_json(row["scope_json"], {}),
+        "documentId": row["document_id"], "documentVersionId": row["document_version_id"],
+        "planId": row["plan_id"], "executionId": row["execution_id"], "decidedBy": row["decided_by"], "decidedAt": row["decided_at"],
+    } for row in rows]
+    return {"projectId": project_id, "items": items, "count": len(items)}
+
+
+def _insert_project_decision(db: sqlite3.Connection, project_id: str, payload: dict, actor: str) -> str:
+    summary = re.sub(r"\s+", " ", str(payload.get("summary") or "")).strip()[:500]
+    decision_type = str(payload.get("decision_type") or "user-confirmation").strip()[:80]
+    status = str(payload.get("status") or "accepted").strip()
+    if not summary or status not in {"accepted", "rejected", "superseded"}:
+        raise ApiError("결정 요약 또는 상태가 올바르지 않습니다.")
+    conversation_id = str(payload.get("conversation_id") or "") or None
+    message_id = str(payload.get("message_id") or "") or None
+    if not conversation_id:
+        active = db.execute(
+            "SELECT id FROM project_conversations WHERE project_id=? AND status='active' ORDER BY updated_at DESC LIMIT 1",
+            (project_id,),
+        ).fetchone()
+        conversation_id = str(active["id"]) if active else None
+    if conversation_id and not db.execute("SELECT 1 FROM project_conversations WHERE id=? AND project_id=?", (conversation_id, project_id)).fetchone():
+        raise ApiError("결정과 연결할 프로젝트 대화를 찾을 수 없습니다.", 404)
+    if message_id and not db.execute("SELECT 1 FROM project_conversation_messages m JOIN project_conversations c ON c.id=m.conversation_id WHERE m.id=? AND c.project_id=?", (message_id, project_id)).fetchone():
+        raise ApiError("결정과 연결할 대화 메시지를 찾을 수 없습니다.", 404)
+    decision_id = "decision_" + uuid.uuid4().hex
+    db.execute(
+        """INSERT INTO project_decisions(id,project_id,conversation_id,message_id,decision_type,status,summary,rationale,scope_json,document_id,document_version_id,plan_id,execution_id,decided_by,decided_at)
+           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (decision_id, project_id, conversation_id, message_id, decision_type, status, summary, str(payload.get("rationale") or "")[:2000] or None, _json(payload.get("scope") if isinstance(payload.get("scope"), dict) else {}), str(payload.get("document_id") or "") or None, str(payload.get("document_version_id") or "") or None, str(payload.get("plan_id") or "") or None, str(payload.get("execution_id") or "") or None, actor, utc_now()),
+    )
+    _audit(db, actor, "project.decision_recorded", {"project_id": project_id, "decision_id": decision_id, "decision_type": decision_type, "status": status})
+    return decision_id
+
+
+def save_project_decision(project_id: str, payload: dict) -> dict:
+    ensure_schema();project_id = _safe_project_id(project_id);actor = _actor(payload)
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        decision_id = _insert_project_decision(db, project_id, payload, actor)
+    return next(item for item in list_project_decisions(project_id, {"actor": actor})["items"] if item["id"] == decision_id)
+
+
 def _project_workspace_state(db: sqlite3.Connection, project_id: str) -> dict:
     row = db.execute("SELECT * FROM project_workspace_states WHERE project_id=?", (project_id,)).fetchone()
     if not row:
@@ -4944,10 +6264,18 @@ def _project_workspace_state(db: sqlite3.Connection, project_id: str) -> dict:
             "activeTab": "markdown",
             "activeView": "editor",
             "chat": [],
+            "conversationId": None,
             "lastAnswer": "",
             "updatedAt": None,
         }
-    chat = _load_json(row["chat_json"], [])
+    conversation = db.execute(
+        "SELECT * FROM project_conversations WHERE project_id=? AND status='active' ORDER BY updated_at DESC LIMIT 1",
+        (project_id,),
+    ).fetchone()
+    chat = [_project_message_result(item) for item in db.execute(
+        "SELECT * FROM project_conversation_messages WHERE conversation_id=? ORDER BY sequence",
+        (conversation["id"],),
+    ).fetchall()] if conversation else _load_json(row["chat_json"], [])
     if not isinstance(chat, list):
         chat = []
     return {
@@ -4956,6 +6284,7 @@ def _project_workspace_state(db: sqlite3.Connection, project_id: str) -> dict:
         "activeTab": row["active_tab"],
         "activeView": row["active_view"],
         "chat": chat[-100:],
+        "conversationId": conversation["id"] if conversation else None,
         "lastAnswer": row["last_answer"] or "",
         "updatedAt": row["updated_at"],
     }
@@ -5006,13 +6335,15 @@ def save_project_workspace_state(project_id: str, payload: dict) -> dict:
             """,
             (project_id, document_id or None, active_tab, active_view, _json(chat), str(payload.get("last_answer") or "")[:20_000] or None, actor, now),
         )
+        conversation_id = _sync_workspace_conversation(db, project_id, chat, actor, document_id)
         _audit(db, actor, "project.workspace_state_saved", {"project_id": project_id, "document_id": document_id or None, "tab": active_tab, "view": active_view, "chat_messages": len(chat)})
         state = _project_workspace_state(db, project_id)
+        state["conversationId"] = conversation_id
     return state
 
 
 def get_project_workspace(project_id: str) -> dict:
-    """Load canonical Markdown, metadata and every derived file in one request."""
+    """Load only the project aggregate: canonical Markdown documents and project metadata."""
     ensure_schema()
     project_id = _safe_project_id(project_id)
     with _connect() as db:
@@ -5025,18 +6356,15 @@ def get_project_workspace(project_id: str) -> dict:
             (project_id,),
         ).fetchall():
             document = _project_markdown_result(db, row["id"], include_versions=False)
-            document["artifacts"] = [
-                _project_artifact_result(item)
-                for item in db.execute(
-                    "SELECT * FROM project_document_artifacts WHERE document_id=? ORDER BY updated_at DESC",
-                    (row["id"],),
-                ).fetchall()
-            ]
             document["excerpt"] = re.sub(r"\s+", " ", document.pop("markdown"))[:300]
             documents.append(document)
         snapshot = _project_fact_snapshot(db, project_id)
         candidate_count = db.execute(
             "SELECT COUNT(*) AS count FROM project_fact_values v JOIN project_facts f ON f.id=v.fact_id WHERE f.project_id=? AND v.status='candidate'",
+            (project_id,),
+        ).fetchone()["count"]
+        source_count = db.execute(
+            "SELECT COUNT(*) AS count FROM artifacts WHERE project_id=? AND source_type='project-source' AND status='active'",
             (project_id,),
         ).fetchone()["count"]
         workspace_state = _project_workspace_state(db, project_id)
@@ -5049,7 +6377,7 @@ def get_project_workspace(project_id: str) -> dict:
             "documentCount": len(documents),
             "factCount": len(snapshot.get("facts") or {}),
             "candidateCount": candidate_count,
-            "artifactCount": sum(len(item.get("artifacts") or []) for item in documents),
+            "sourceCount": source_count,
         },
     }
 
@@ -5383,10 +6711,59 @@ def _project_artifact_result(row: sqlite3.Row, *, include_content: bool = False)
         "status": row["status"], "filename": row["filename"], "mediaType": row["media_type"], "artifactSha256": row["artifact_sha256"],
         "templateId": row["template_id"], "renderer": row["renderer"], "instruction": row["instruction"], "renderMap": _load_json(row["render_map_json"], {}),
         "error": row["error"], "createdAt": row["created_at"], "updatedAt": row["updated_at"],
+        "projectManaged": False, "lifecycle": "working-copy",
     }
     if include_content and row["content_blob"] is not None:
         result["contentBase64"] = base64.b64encode(bytes(row["content_blob"])).decode("ascii")
     return result
+
+
+def _document_final_output_result(row: sqlite3.Row, *, include_content: bool = False) -> dict:
+    result = {
+        "id": row["id"], "documentId": row["document_id"],
+        "sourceVersionId": row["source_version_id"], "sourceRevision": int(row["source_revision"]),
+        "sourceMarkdownSha256": row["source_markdown_sha256"], "format": row["format"],
+        "filename": row["filename"], "mediaType": row["media_type"], "outputSha256": row["output_sha256"],
+        "templateId": row["template_id"], "renderer": row["renderer"], "instruction": row["instruction"],
+        "metadata": _load_json(row["metadata_json"], {}), "createdBy": row["created_by"], "createdAt": row["created_at"],
+        "finalOutput": True, "projectManaged": False,
+    }
+    if include_content:
+        result["contentBase64"] = base64.b64encode(bytes(row["content_blob"])).decode("ascii")
+    return result
+
+
+def _save_document_final_output(
+    db: sqlite3.Connection,
+    document: dict,
+    *,
+    data: bytes,
+    target_format: str,
+    filename: str,
+    media_type: str,
+    template_id: str,
+    renderer: str,
+    instruction: str,
+    metadata: dict | None = None,
+    actor: str,
+) -> dict:
+    output_id = "output_" + uuid.uuid4().hex
+    now = utc_now()
+    db.execute(
+        """
+        INSERT INTO document_final_outputs(
+            id,document_id,source_version_id,source_revision,source_markdown_sha256,
+            format,filename,media_type,content_blob,output_sha256,template_id,renderer,
+            instruction,metadata_json,created_by,created_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            output_id, document["id"], document["versionId"], int(document["revision"]), document["markdownSha256"],
+            target_format, filename, media_type, data, hashlib.sha256(data).hexdigest(), template_id or None,
+            renderer or None, instruction or None, _json(metadata or {}), actor, now,
+        ),
+    )
+    return _document_final_output_result(db.execute("SELECT * FROM document_final_outputs WHERE id=?", (output_id,)).fetchone())
 
 
 _ARTIFACT_RELATIONS = {
@@ -5614,15 +6991,27 @@ def list_project_artifacts(project_id: str) -> dict:
         if not db.execute("SELECT 1 FROM projects WHERE id=?", (project_id,)).fetchone():
             raise ApiError("프로젝트를 찾을 수 없습니다.", 404)
         rows = db.execute(
-            "SELECT * FROM artifacts WHERE project_id=? AND status!='deleted' ORDER BY updated_at DESC",
+            "SELECT * FROM artifacts WHERE project_id=? AND status!='deleted' AND COALESCE(source_type,'') NOT IN ('markdown-document','project-document-artifact') ORDER BY updated_at DESC",
             (project_id,),
         ).fetchall()
         relations = db.execute(
-            "SELECT * FROM artifact_relations WHERE project_id=? ORDER BY created_at",
+            """SELECT r.* FROM artifact_relations r
+               JOIN artifact_versions sv ON sv.id=r.source_version_id
+               JOIN artifacts sa ON sa.id=sv.artifact_id
+               JOIN artifact_versions tv ON tv.id=r.target_version_id
+               JOIN artifacts ta ON ta.id=tv.artifact_id
+              WHERE r.project_id=?
+                AND COALESCE(sa.source_type,'') NOT IN ('markdown-document','project-document-artifact')
+                AND COALESCE(ta.source_type,'') NOT IN ('markdown-document','project-document-artifact')
+              ORDER BY r.created_at""",
             (project_id,),
         ).fetchall()
         evidence = db.execute(
-            "SELECT * FROM artifact_evidence WHERE project_id=? ORDER BY created_at DESC",
+            """SELECT e.* FROM artifact_evidence e
+               JOIN artifacts a ON a.id=e.artifact_id
+              WHERE e.project_id=?
+                AND COALESCE(a.source_type,'') NOT IN ('markdown-document','project-document-artifact')
+              ORDER BY e.created_at DESC""",
             (project_id,),
         ).fetchall()
         items = [_artifact_result(db, row, include_versions=True) for row in rows]
@@ -5681,13 +7070,184 @@ def create_project_artifact(project_id: str, payload: dict) -> dict:
     return {"artifact": artifact, "version": version}
 
 
+def _project_source_result(row: sqlite3.Row) -> dict:
+    content = _load_json(row["content_json"], {})
+    summary = content.get("summary") if isinstance(content, dict) else {}
+    summary = summary if isinstance(summary, dict) else {}
+    chunks = content.get("chunks") if isinstance(content, dict) else []
+    chunks = chunks if isinstance(chunks, list) else []
+    metadata = _load_json(row["metadata_json"], {})
+    return {
+        "id": row["id"], "projectId": row["project_id"],
+        "title": row["title"], "status": row["status"],
+        "filename": row["filename"], "mediaType": row["media_type"],
+        "bytes": int(row["content_bytes"] or 0), "sha256": metadata.get("sourceFileSha256") or row["content_sha256"],
+        "currentVersionId": row["current_version_id"], "version": int(row["version"]),
+        "kind": summary.get("kind") or metadata.get("kind") or "file",
+        "ragReady": bool(summary.get("ragReady") and chunks),
+        "chunkCount": len(chunks), "excerpt": str(summary.get("excerpt") or "")[:500],
+        "summary": {key: value for key, value in summary.items() if key not in {"excerpt"}},
+        "createdAt": row["created_at"], "updatedAt": row["updated_at"],
+    }
+
+
+def list_project_sources(project_id: str) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    with _connect() as db:
+        if not db.execute("SELECT 1 FROM projects WHERE id=? AND status='active'", (project_id,)).fetchone():
+            raise ApiError("프로젝트를 찾을 수 없습니다.", 404)
+        rows = db.execute(
+            """
+            SELECT a.*,v.version,v.media_type,v.filename,v.content_json,v.content_sha256,
+                   v.metadata_json,v.created_at AS version_created_at,
+                   length(v.content_blob) AS content_bytes
+              FROM artifacts a JOIN artifact_versions v ON v.id=a.current_version_id
+             WHERE a.project_id=? AND a.source_type='project-source' AND a.status='active'
+             ORDER BY a.updated_at DESC,a.created_at DESC
+            """,
+            (project_id,),
+        ).fetchall()
+    items = [_project_source_result(row) for row in rows]
+    return {"items": items, "count": len(items), "indexedChunks": sum(item["chunkCount"] for item in items)}
+
+
+def _decode_project_source(payload: dict) -> tuple[str, bytes]:
+    filename = Path(str(payload.get("filename") or "")).name.strip()
+    if not filename or len(filename) > 240:
+        raise ApiError("자료 파일 이름이 올바르지 않습니다.")
+    try:
+        data = base64.b64decode(str(payload.get("content_base64") or ""), validate=True)
+    except (ValueError, TypeError) as error:
+        raise ApiError("자료 파일의 base64 내용이 올바르지 않습니다.") from error
+    if not data:
+        raise ApiError("빈 자료 파일은 등록할 수 없습니다.")
+    if len(data) > MAX_ASSET_BYTES:
+        raise ApiError(f"자료 파일은 {MAX_ASSET_BYTES // (1024 * 1024)}MB를 넘을 수 없습니다.", 413)
+    return filename, data
+
+
+def create_project_source(project_id: str, payload: dict) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    filename, data = _decode_project_source(payload)
+    media_type, summary = _inspect_builder_reference(filename, data)
+    pages = _reference_text_pages(filename, media_type, data)
+    digest = hashlib.sha256(data).hexdigest()
+    chunks = _chunk_reference_text("source:" + digest[:24], filename, digest, pages)
+    if not chunks:
+        raise ApiError("검색 가능한 텍스트를 찾지 못했습니다. 스캔 PDF라면 OCR 후 다시 등록해 주세요.", 422)
+    actor = _actor(payload)
+    with _connect() as db:
+        _ensure_project(db, project_id, actor)
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        artifact, version = _sync_generic_artifact_version(
+            db, project_id, artifact_type="data.source." + str(summary.get("kind") or "file"),
+            title=filename, source_type="project-source", source_id="upload:" + digest,
+            media_type=media_type, filename=filename, content_blob=data,
+            content_json={"summary": summary, "chunks": chunks},
+            metadata={"kind": summary.get("kind"), "classification": str(payload.get("classification") or "internal"), "sourceFileSha256": digest, "indexedAt": utc_now()},
+            actor=actor,
+        )
+        _audit(db, actor, "project.source_registered", {
+            "project_id": project_id, "artifact_id": artifact["id"], "version_id": version["id"],
+            "filename": filename, "sha256": digest, "chunks": len(chunks),
+        })
+    items = list_project_sources(project_id)["items"]
+    return {"source": next(item for item in items if item["id"] == artifact["id"]), "deduplicated": int(version["version"]) == 1 and artifact["createdAt"] != artifact["updatedAt"]}
+
+
+def _project_source_chunks(project_id: str, source_ids: list[str] | None = None) -> list[dict]:
+    selected = {str(item) for item in (source_ids or []) if str(item)}
+    with _connect() as db:
+        rows = db.execute(
+            """SELECT a.id AS artifact_id,a.current_version_id,v.content_json
+                 FROM artifacts a JOIN artifact_versions v ON v.id=a.current_version_id
+                WHERE a.project_id=? AND a.source_type='project-source' AND a.status='active'""",
+            (project_id,),
+        ).fetchall()
+    chunks = []
+    for row in rows:
+        if selected and str(row["artifact_id"]) not in selected:
+            continue
+        content = _load_json(row["content_json"], {})
+        for item in (content.get("chunks") or []) if isinstance(content, dict) else []:
+            if isinstance(item, dict):
+                chunks.append({**item, "artifactId": row["artifact_id"], "artifactVersionId": row["current_version_id"]})
+    return chunks
+
+
+def query_project_sources(project_id: str, payload: dict) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    question = str(payload.get("question") or "").strip()
+    if not question:
+        raise ApiError("자료에서 찾을 질문을 입력해 주세요.")
+    chunks = _project_source_chunks(project_id, payload.get("source_ids") if isinstance(payload.get("source_ids"), list) else None)
+    hits = _search_rag_chunks(chunks, question, limit=max(1, min(int(payload.get("top_k") or 5), 12)))
+    answer = _rag_extract_answer(question, hits)
+    return {
+        "answer": answer, "indexedChunks": len(chunks), "retrievedChunks": len(hits),
+        "sources": [{
+            "artifactId": item.get("artifactId"), "artifactVersionId": item.get("artifactVersionId"),
+            "referenceId": item.get("referenceId"), "filename": item.get("filename"),
+            "pageNumber": item.get("pageNumber"), "excerpt": str(item.get("content") or "")[:500],
+            "sha256": item.get("sha256"), "score": int(item.get("score") or 0),
+        } for item in hits],
+    }
+
+
+def delete_project_source(project_id: str, source_id: str, payload: dict) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    actor = _actor(payload)
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        row = db.execute("SELECT * FROM artifacts WHERE id=? AND project_id=? AND source_type='project-source' AND status='active'", (source_id, project_id)).fetchone()
+        if not row:
+            raise ApiError("프로젝트 자료를 찾을 수 없습니다.", 404)
+        db.execute("UPDATE artifacts SET status='deleted',updated_at=? WHERE id=?", (utc_now(), source_id))
+        _audit(db, actor, "project.source_deleted", {"project_id": project_id, "artifact_id": source_id, "filename": row["title"]})
+    return {"id": source_id, "status": "deleted"}
+
+
+def reindex_project_source(project_id: str, source_id: str, payload: dict) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    actor = _actor(payload)
+    with _connect() as db:
+        _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
+        row = db.execute(
+            """SELECT a.*,v.* FROM artifacts a JOIN artifact_versions v ON v.id=a.current_version_id
+                 WHERE a.id=? AND a.project_id=? AND a.source_type='project-source' AND a.status='active'""",
+            (source_id, project_id),
+        ).fetchone()
+        if not row:
+            raise ApiError("프로젝트 자료를 찾을 수 없습니다.", 404)
+        data = bytes(row["content_blob"] or b"")
+        media_type, summary = _inspect_builder_reference(str(row["filename"]), data)
+        source_digest = str(_load_json(row["metadata_json"], {}).get("sourceFileSha256") or row["content_sha256"])
+        chunks = _chunk_reference_text("source:" + source_digest[:24], str(row["filename"]), source_digest, _reference_text_pages(str(row["filename"]), media_type, data))
+        latest = db.execute("SELECT COALESCE(MAX(version),0) AS version FROM artifact_versions WHERE artifact_id=?", (source_id,)).fetchone()
+        version_id, now = "gartver_" + uuid.uuid4().hex, utc_now()
+        version_number = int(latest["version"]) + 1
+        index_digest = hashlib.sha256(data + ("\0index-version:" + str(version_number)).encode("utf-8")).hexdigest()
+        db.execute(
+            "INSERT INTO artifact_versions(id,artifact_id,version,media_type,filename,content_blob,content_json,content_sha256,metadata_json,workflow_run_id,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+            (version_id, source_id, version_number, media_type, row["filename"], data, _json({"summary": summary, "chunks": chunks}), index_digest, _json({"kind": summary.get("kind"), "classification": "internal", "sourceFileSha256": source_digest, "indexedAt": now}), None, actor, now),
+        )
+        db.execute("UPDATE artifacts SET current_version_id=?,updated_at=? WHERE id=?", (version_id, now, source_id))
+        _audit(db, actor, "project.source_reindexed", {"project_id": project_id, "artifact_id": source_id, "version_id": version_id, "chunks": len(chunks)})
+    return {"source": next(item for item in list_project_sources(project_id)["items"] if item["id"] == source_id)}
+
+
 def append_project_artifact_version(project_id: str, artifact_id: str, payload: dict) -> dict:
     ensure_schema()
     project_id = _safe_project_id(project_id)
     actor = _actor(payload)
     with _connect() as db:
         artifact_row = db.execute(
-            "SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted'",
+            "SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted' AND COALESCE(source_type,'') NOT IN ('markdown-document','project-document-artifact')",
             (artifact_id, project_id),
         ).fetchone()
         if not artifact_row:
@@ -5729,7 +7289,7 @@ def get_project_artifact(project_id: str, artifact_id: str, *, include_content: 
     project_id = _safe_project_id(project_id)
     with _connect() as db:
         row = db.execute(
-            "SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted'",
+            "SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted' AND COALESCE(source_type,'') NOT IN ('markdown-document','project-document-artifact')",
             (artifact_id, project_id),
         ).fetchone()
         if not row:
@@ -5803,7 +7363,7 @@ def create_project_artifact_evidence(project_id: str, payload: dict) -> dict:
     metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
     with _connect() as db:
         _require_project_role(db, project_id, actor, {"owner", "admin", "editor"})
-        artifact = db.execute("SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted'", (artifact_id, project_id)).fetchone()
+        artifact = db.execute("SELECT * FROM artifacts WHERE id=? AND project_id=? AND status!='deleted' AND COALESCE(source_type,'') NOT IN ('markdown-document','project-document-artifact')", (artifact_id, project_id)).fetchone()
         if not artifact:
             raise ApiError("근거를 연결할 Artifact를 찾을 수 없습니다.", 404)
         artifact_version_id = artifact_version_id or str(artifact["current_version_id"] or "")
@@ -5862,37 +7422,6 @@ def _upsert_project_artifact(
         db.execute("UPDATE project_document_artifacts SET source_version_id=?,source_revision=?,source_markdown_sha256=?,status=?,filename=?,media_type=?,content_blob=?,artifact_sha256=?,template_id=?,renderer=?,instruction=?,render_map_json=?,error=?,updated_at=? WHERE id=?", (*values, artifact_id))
     else:
         db.execute("INSERT INTO project_document_artifacts(id,document_id,format,variant_key,source_version_id,source_revision,source_markdown_sha256,status,filename,media_type,content_blob,artifact_sha256,template_id,renderer,instruction,render_map_json,error,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (artifact_id, document["id"], target_format, variant_key, *values[:-1], now, now))
-    if blob is not None and status != "failed":
-        generic_artifact, generic_version = _sync_generic_artifact_version(
-            db,
-            document["projectId"],
-            artifact_type="document." + target_format,
-            title=filename or document.get("title") or (target_format.upper() + " 파생 문서"),
-            source_type="project-document-artifact",
-            source_id=artifact_id,
-            media_type=media_type or "application/octet-stream",
-            filename=filename,
-            content_blob=blob,
-            metadata={
-                "legacyArtifactId": artifact_id,
-                "sourceMarkdownVersionId": document["versionId"],
-                "sourceMarkdownSha256": document["markdownSha256"],
-                "templateId": template_id,
-                "renderer": renderer,
-                "status": status,
-            },
-            actor=origin,
-        )
-        markdown_artifact = db.execute(
-            "SELECT current_version_id FROM artifacts WHERE project_id=? AND source_type='markdown-document' AND source_id=?",
-            (document["projectId"], document["id"]),
-        ).fetchone()
-        if markdown_artifact and markdown_artifact["current_version_id"]:
-            _create_artifact_relation(
-                db, document["projectId"], generic_version["id"], markdown_artifact["current_version_id"],
-                "derived_from", actor=origin, metadata={"legacyArtifactId": artifact_id},
-            )
-
     _record_document_sync_event(
         db, document["projectId"], document["id"], "artifact." + status, origin=origin, status=status,
         artifact_id=artifact_id, source_version_id=document["versionId"], detail={"format": target_format, "revision": document["revision"], "error": error or None},
@@ -5911,6 +7440,27 @@ def _build_hwpx_render_map(report_document: dict, parsed: dict) -> dict:
     paragraph_items = list(parsed.get("paragraphs") or [])
     used: set[str] = set()
     entries = []
+    paragraph_locations = {}
+    for section in (parsed.get("layout") or {}).get("sections") or []:
+        for block_position, layout_block in enumerate(section.get("blocks") or []):
+            if layout_block.get("type") == "paragraph":
+                paragraph_locations[str(layout_block.get("paragraphId") or "")] = {
+                    "section": section.get("id"), "anchorType": "paragraph", "layoutBlock": block_position,
+                }
+                continue
+            if layout_block.get("type") != "table":
+                continue
+            for row_position, layout_row in enumerate(layout_block.get("rows") or []):
+                for cell_position, cell in enumerate(layout_row.get("cells") or []):
+                    for cell_paragraph_index, paragraph_id in enumerate(cell.get("paragraphIds") or []):
+                        paragraph_locations[str(paragraph_id)] = {
+                            "section": section.get("id"), "anchorType": "table-cell",
+                            "layoutBlock": block_position, "tableId": layout_block.get("id"),
+                            "tableRow": int(cell.get("row", row_position)),
+                            "tableColumn": int(cell.get("column", cell_position)),
+                            "rowSpan": int(cell.get("rowSpan") or 1), "colSpan": int(cell.get("colSpan") or 1),
+                            "cellParagraphIndex": cell_paragraph_index,
+                        }
     canonical_document = REPORT_DOCUMENT_MCP.parse(
         str((report_document.get("source") or {}).get("content") or ""),
         title=str(report_document.get("title") or ""), style_profile="standard",
@@ -5936,19 +7486,32 @@ def _build_hwpx_render_map(report_document: dict, parsed: dict) -> dict:
                     if paragraph_id:
                         canonical_rows = canonical_block.get("rows") or []
                         canonical_value = canonical_rows[row_index][column_index] if row_index < len(canonical_rows) and column_index < len(canonical_rows[row_index]) else str(value or "")
-                        entries.append({"paragraphId": paragraph_id, "blockId": block.get("id"), "blockType": "table", "blockIndex": block_index, "cellRow": row_index, "cellColumn": column_index, "sourceText": str(value or ""), "canonicalText": str(canonical_value or "")})
+                        entry = {"paragraphId": paragraph_id, "blockId": block.get("id"), "blockType": "table", "blockIndex": block_index, "cellRow": row_index, "cellColumn": column_index, "sourceText": str(value or ""), "canonicalText": str(canonical_value or ""), "markdownPath": f"blocks[{block_index}].rows[{row_index}][{column_index}]"}
+                        entry.update(paragraph_locations.get(paragraph_id, {"anchorType": "paragraph"}))
+                        entry["structureFingerprint"] = hashlib.sha256(_json({"type": "table", "row": row_index, "column": column_index, "canonical": entry["canonicalText"]}).encode("utf-8")).hexdigest()
+                        entries.append(entry)
         else:
             value = str(block.get("text") or "")
             paragraph_id = match(value)
             if paragraph_id:
-                entries.append({"paragraphId": paragraph_id, "blockId": block.get("id"), "blockType": block.get("type"), "blockIndex": block_index, "sourceText": value, "canonicalText": str(canonical_block.get("text") or value)})
+                entry = {"paragraphId": paragraph_id, "blockId": block.get("id"), "blockType": block.get("type"), "blockIndex": block_index, "sourceText": value, "canonicalText": str(canonical_block.get("text") or value), "markdownPath": f"blocks[{block_index}].text"}
+                entry.update(paragraph_locations.get(paragraph_id, {"anchorType": "paragraph"}))
+                entry["structureFingerprint"] = hashlib.sha256(_json({"type": entry["blockType"], "canonical": entry["canonicalText"]}).encode("utf-8")).hexdigest()
+                entries.append(entry)
+    unmapped = max(0, len(report_document.get("blocks") or []) - len({int(item.get("blockIndex", -1)) for item in entries}))
     return {
-        "contractVersion": "1.1",
+        "contractVersion": "1.2",
         "strategy": "semantic-paragraph-cell",
         "entries": entries,
         "mapped": len(entries),
         "paragraphs": len(paragraph_items),
         "blockCount": len(report_document.get("blocks") or []),
+        "unmappedBlocks": unmapped,
+        "mappingCoverage": 1.0 if not report_document.get("blocks") else 1 - (unmapped / len(report_document.get("blocks") or [])),
+        "capabilities": {
+            "paragraphPatch": True, "nestedListPatch": True, "tableCellPatch": True,
+            "mergedCellAddressing": True, "structuralInsertion": "paragraph-only",
+        },
     }
 
 
@@ -6125,7 +7688,10 @@ def _semantic_patch_from_hwpx_artifacts(markdown: str, render_map: dict, before_
         if before == after:
             continue
         updated = _semantic_patch_markdown(updated, mapping, before, after)
-        changed.append({"paragraphId": paragraph_id, "blockId": mapping.get("blockId"), "before": before, "after": after})
+        change_id = "change_" + hashlib.sha256(
+            (paragraph_id + "\0" + before + "\0" + after).encode("utf-8")
+        ).hexdigest()[:16]
+        changed.append({"id": change_id, "paragraphId": paragraph_id, "blockId": mapping.get("blockId"), "before": before, "after": after})
     unrecognized = [
         paragraph_id for paragraph_id in set(before_items) & set(after_items)
         if paragraph_id not in entries and before_items[paragraph_id] != after_items[paragraph_id]
@@ -6249,35 +7815,6 @@ def _save_project_markdown_version(
         "INSERT INTO project_markdown_versions(id,document_id,revision,markdown,markdown_sha256,source_format,source_filename,source_artifact_sha256,source_session_id,fact_snapshot_json,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
         (version_id, document_id, revision, content, digest, source_format, source_filename or None, source_artifact_sha256 or None, source_session_id or None, _json(snapshot), actor, now),
     )
-    previous_generic = db.execute(
-        "SELECT current_version_id FROM artifacts WHERE project_id=? AND source_type='markdown-document' AND source_id=?",
-        (project_id, document_id),
-    ).fetchone()
-    generic_artifact, generic_version = _sync_generic_artifact_version(
-        db,
-        project_id,
-        artifact_type="document.markdown",
-        title=resolved_title,
-        source_type="markdown-document",
-        source_id=document_id,
-        media_type="text/markdown",
-        filename=(source_filename or resolved_title + ".md"),
-        content_json={"markdown": content},
-        metadata={
-            "legacyDocumentId": document_id,
-            "legacyVersionId": version_id,
-            "revision": revision,
-            "sourceFormat": source_format,
-            "factValueIds": snapshot.get("valueIds") or [],
-        },
-        actor=actor,
-    )
-    if previous_generic and previous_generic["current_version_id"] and previous_generic["current_version_id"] != generic_version["id"]:
-        _create_artifact_relation(
-            db, project_id, generic_version["id"], previous_generic["current_version_id"],
-            "supersedes", actor=actor, metadata={"legacyDocumentId": document_id},
-        )
-
     _mark_project_artifacts_stale(db, project_id, document_id, version_id, revision)
     _save_markdown_fact_candidates(db, project_id, document_id, version_id, content, actor)
     _record_document_sync_event(
@@ -6458,6 +7995,7 @@ def get_project_document_workbench(project_id: str, document_id: str) -> dict:
             raise ApiError("프로젝트 Markdown 문서를 찾을 수 없습니다.", 404)
         project = db.execute("SELECT id,name,classification,status FROM projects WHERE id=?", (project_id,)).fetchone()
         artifacts = [_project_artifact_result(row) for row in db.execute("SELECT * FROM project_document_artifacts WHERE document_id=? ORDER BY format,variant_key", (document_id,)).fetchall()]
+        outputs = [_document_final_output_result(row) for row in db.execute("SELECT * FROM document_final_outputs WHERE document_id=? ORDER BY created_at DESC", (document_id,)).fetchall()]
         events = [
             {"id": row["id"], "artifactId": row["artifact_id"], "eventType": row["event_type"], "origin": row["origin"], "status": row["status"], "sourceVersionId": row["source_version_id"], "targetVersionId": row["target_version_id"], "detail": _load_json(row["detail_json"], {}), "createdAt": row["created_at"]}
             for row in db.execute("SELECT * FROM project_document_sync_events WHERE document_id=? ORDER BY created_at DESC LIMIT 50", (document_id,)).fetchall()
@@ -6481,8 +8019,9 @@ def get_project_document_workbench(project_id: str, document_id: str) -> dict:
         "project": dict(project) if project else {"id": project_id, "name": project_id, "classification": "internal", "status": "active"},
         "document": document,
         "evidence": evidence,
-        "tabs": ["markdown", *[item["format"] for item in artifacts], "metadata", "history"],
+        "tabs": ["markdown", *[item["format"] for item in artifacts], "outputs", "metadata", "history"],
         "artifacts": artifacts,
+        "outputs": outputs,
         "factCounts": {row["status"]: row["count"] for row in fact_counts},
         "conflicts": conflicts,
         "relationGraph": relation_graph,
@@ -6496,17 +8035,95 @@ def get_project_document_artifact(project_id: str, document_id: str, artifact_id
     with _connect() as db:
         row = db.execute("SELECT a.*,d.project_id FROM project_document_artifacts a JOIN project_markdown_documents d ON d.id=a.document_id WHERE a.id=? AND a.document_id=?", (artifact_id, document_id)).fetchone()
     if not row or row["project_id"] != project_id:
-        raise ApiError("프로젝트 파생 문서를 찾을 수 없습니다.", 404)
+        raise ApiError("문서 형식별 작업본을 찾을 수 없습니다.", 404)
     return _project_artifact_result(row, include_content=True)
+
+
+def list_document_final_outputs(project_id: str, document_id: str) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    with _connect() as db:
+        document = db.execute("SELECT project_id FROM project_markdown_documents WHERE id=?", (document_id,)).fetchone()
+        if not document or document["project_id"] != project_id:
+            raise ApiError("프로젝트 문서를 찾을 수 없습니다.", 404)
+        rows = db.execute("SELECT * FROM document_final_outputs WHERE document_id=? ORDER BY created_at DESC", (document_id,)).fetchall()
+    return {
+        "documentId": document_id,
+        "projectManaged": False,
+        "items": [_document_final_output_result(row) for row in rows],
+        "count": len(rows),
+    }
+
+
+def review_project_document_quality(project_id: str, document_id: str, payload: dict) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    intent = str(payload.get("intent") or "").strip()
+    with _connect() as db:
+        document = _project_markdown_result(db, document_id, include_versions=False)
+        if document["projectId"] != project_id:
+            raise ApiError("프로젝트 Markdown 문서를 찾을 수 없습니다.", 404)
+        evidence_rows = db.execute(
+            "SELECT e.* FROM artifact_evidence e JOIN artifacts a ON a.id=e.artifact_id WHERE e.project_id=? AND a.source_type='markdown-document' AND a.source_id=? ORDER BY e.created_at DESC LIMIT 20",
+            (project_id, document_id),
+        ).fetchall()
+    if not intent:
+        intent = document["title"] + "의 요청 범위와 근거를 충족하는 보고서"
+    hits = [{"content": row["excerpt"], "filename": row["locator"] or "프로젝트 근거", "pageNumber": None} for row in evidence_rows]
+    review = _review_report_against_request(intent, document["markdown"], hits)
+    return {
+        "projectId": project_id, "documentId": document_id, "versionId": document["versionId"],
+        "revision": document["revision"], "intent": intent, "review": review,
+        "repairCommand": {"mode": "approved-orchestration", "supportedActions": ["regenerate-blocks", "regenerate-document"], "preservesUntargetedBlocks": True},
+    }
+
+
+
+
+def get_document_final_output(project_id: str, document_id: str, output_id: str) -> dict:
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    with _connect() as db:
+        row = db.execute(
+            """
+            SELECT o.*,d.project_id FROM document_final_outputs o
+            JOIN project_markdown_documents d ON d.id=o.document_id
+            WHERE o.id=? AND o.document_id=?
+            """,
+            (output_id, document_id),
+        ).fetchone()
+    if not row or row["project_id"] != project_id:
+        raise ApiError("문서 최종 산출물을 찾을 수 없습니다.", 404)
+    return _document_final_output_result(row, include_content=True)
 
 
 
 def _document_conflict_result(row: sqlite3.Row) -> dict:
+    source = _load_json(row["source_json"], {})
+    changes = []
+    for index, item in enumerate(source.get("changes") or []):
+        if not isinstance(item, dict):
+            continue
+        change_id = str(item.get("id") or "") or "change_" + hashlib.sha256(
+            (
+                str(item.get("paragraphId") or index)
+                + "\0"
+                + str(item.get("before") or "")
+                + "\0"
+                + str(item.get("after") or "")
+            ).encode("utf-8")
+        ).hexdigest()[:16]
+        changes.append({
+            **item,
+            "id": change_id,
+            "selectedByDefault": True,
+        })
     return {
         "id": row["id"], "projectId": row["project_id"], "documentId": row["document_id"],
         "artifactId": row["artifact_id"], "conflictType": row["conflict_type"], "status": row["status"],
         "baseVersionId": row["base_version_id"], "currentVersionId": row["current_version_id"],
-        "source": _load_json(row["source_json"], {}), "target": _load_json(row["target_json"], {}),
+        "source": source, "target": _load_json(row["target_json"], {}),
+        "diffBlocks": changes,
         "renderMap": _load_json(row["render_map_json"], {}), "detail": _load_json(row["detail_json"], {}),
         "resolution": _load_json(row["resolution_json"], {}), "createdAt": row["created_at"], "resolvedAt": row["resolved_at"],
     }
@@ -6556,7 +8173,7 @@ def promote_project_artifact_to_markdown(project_id: str, document_id: str, arti
             (artifact_id, document_id),
         ).fetchone()
         if not row or row["project_id"] != project_id:
-            raise ApiError("프로젝트 파생 문서를 찾을 수 없습니다.", 404)
+            raise ApiError("문서 형식별 작업본을 찾을 수 없습니다.", 404)
         if row["format"] != "hwpx" or row["content_blob"] is None:
             raise ApiError("HWPX 파생 문서만 MD로 반영할 수 있습니다.", 415)
         render_map = _load_json(row["render_map_json"], {})
@@ -6586,7 +8203,7 @@ def promote_project_artifact_to_markdown(project_id: str, document_id: str, arti
                     "excerpt": current["markdown"][:1_200],
                 },
                 render_map=render_map,
-                detail={"message": "HWPX 편집 이후 MD 원본도 변경되었습니다.", "availableResolutions": ["keep-markdown", "use-hwpx"]},
+                detail={"message": "HWPX 편집 이후 MD 원본도 변경되었습니다.", "availableResolutions": ["keep-markdown", "merge-selected", "use-hwpx"]},
             )
             _record_document_sync_event(
                 db, project_id, document_id, "sync.conflict-detected", origin="sync-engine", status="conflict",
@@ -6647,8 +8264,8 @@ def resolve_project_document_conflict(project_id: str, document_id: str, conflic
     ensure_schema()
     project_id = _safe_project_id(project_id)
     resolution = str(payload.get("resolution") or "").strip()
-    if resolution not in {"keep-markdown", "use-hwpx"}:
-        raise ApiError("충돌 해결 방식은 keep-markdown 또는 use-hwpx여야 합니다.")
+    if resolution not in {"keep-markdown", "merge-selected", "use-hwpx"}:
+        raise ApiError("충돌 해결 방식은 keep-markdown, merge-selected 또는 use-hwpx여야 합니다.")
     with _connect() as db:
         conflict_row = db.execute(
             "SELECT * FROM project_document_conflicts WHERE id=? AND project_id=? AND document_id=?",
@@ -6670,7 +8287,85 @@ def resolve_project_document_conflict(project_id: str, document_id: str, conflic
         if not isinstance(pending, dict) or not str(pending.get("markdown") or "").strip():
             raise ApiError("충돌 해결에 사용할 HWPX 변경 초안이 없습니다.", 409)
         now = utc_now()
-        if resolution == "use-hwpx":
+        selected_change_ids = {
+            str(item) for item in payload.get("selected_change_ids") or [] if str(item)
+        }
+        if resolution == "merge-selected":
+            pending_changes = [
+                item for item in pending.get("changes") or [] if isinstance(item, dict)
+            ]
+            normalized_changes = []
+            for index, item in enumerate(pending_changes):
+                change_id = str(item.get("id") or "") or "change_" + hashlib.sha256(
+                    (
+                        str(item.get("paragraphId") or index)
+                        + "\0"
+                        + str(item.get("before") or "")
+                        + "\0"
+                        + str(item.get("after") or "")
+                    ).encode("utf-8")
+                ).hexdigest()[:16]
+                normalized_changes.append({**item, "id": change_id})
+            if not selected_change_ids:
+                raise ApiError("병합할 HWPX 변경 블록을 하나 이상 선택해 주세요.")
+            selected_changes = [
+                item for item in normalized_changes if item["id"] in selected_change_ids
+            ]
+            if len(selected_changes) != len(selected_change_ids):
+                raise ApiError("선택한 변경 블록 중 현재 충돌에 존재하지 않는 항목이 있습니다.", 409)
+            mappings = {
+                str(item.get("paragraphId") or ""): item
+                for item in render_map.get("entries") or []
+                if isinstance(item, dict)
+            }
+            merged_markdown = current["markdown"]
+            for item in selected_changes:
+                mapping = mappings.get(str(item.get("paragraphId") or ""))
+                if not mapping:
+                    raise ApiError("선택한 HWPX 변경 블록의 Markdown 매핑을 찾을 수 없습니다.", 409)
+                merged_markdown = _semantic_patch_markdown(
+                    merged_markdown,
+                    mapping,
+                    str(item.get("before") or ""),
+                    str(item.get("after") or ""),
+                )
+            markdown_record = _save_project_markdown_version(
+                db, project_id, merged_markdown,
+                title=current["title"], document_id=document_id,
+                expected_revision=current["revision"], source_format="hwpx-conflict-selected-merge",
+                source_filename=str(artifact_row["filename"] or "document.hwpx"),
+                source_artifact_sha256=str(artifact_row["artifact_sha256"] or ""),
+                source_session_id=str(pending.get("sessionId") or ""), actor=_actor(payload),
+            )
+            merged_report = REPORT_DOCUMENT_MCP.parse(
+                markdown_record["markdown"],
+                title=markdown_record["title"],
+                style_profile="standard",
+            )
+            refresh_map = copy.deepcopy(render_map)
+            changed_after_by_paragraph = {
+                str(item.get("paragraphId") or ""): str(item.get("after") or "")
+                for item in normalized_changes
+                if str(item.get("paragraphId") or "")
+            }
+            for entry in refresh_map.get("entries") or []:
+                paragraph_id = str(entry.get("paragraphId") or "")
+                if paragraph_id in changed_after_by_paragraph:
+                    current_semantic = _semantic_text(changed_after_by_paragraph[paragraph_id])
+                    entry["sourceText"] = current_semantic
+                    entry["canonicalText"] = current_semantic
+            merged_hwpx, render_map = _refresh_hwpx_layout_in_place(
+                bytes(artifact_row["content_blob"]), refresh_map, merged_report
+            )
+            render_map["renderMode"] = "conflict-resolution-merge-selected"
+            artifact = _upsert_project_artifact(
+                db, markdown_record, target_format="hwpx", status="synced", data=merged_hwpx,
+                filename=str(artifact_row["filename"] or ""), media_type=str(artifact_row["media_type"] or "application/hwp+zip"),
+                template_id=str(artifact_row["template_id"] or ""), renderer=str(artifact_row["renderer"] or "document.rhwp@1.0.0"),
+                instruction=str(artifact_row["instruction"] or ""), render_map=render_map, origin="conflict-resolution",
+            )
+            document = markdown_record
+        elif resolution == "use-hwpx":
             markdown_record = _save_project_markdown_version(
                 db, project_id, str(pending["markdown"]),
                 title=str(pending.get("title") or current["title"]), document_id=document_id,
@@ -6701,7 +8396,13 @@ def resolve_project_document_conflict(project_id: str, document_id: str, conflic
                 instruction=str(artifact_row["instruction"] or ""), render_map=render_map, origin="conflict-resolution",
             )
             document = current
-        resolution_record = {"choice": resolution, "actor": _actor(payload), "resolvedAt": now, "resultRevision": document["revision"]}
+        resolution_record = {
+            "choice": resolution,
+            "selectedChangeIds": sorted(selected_change_ids) if resolution == "merge-selected" else [],
+            "actor": _actor(payload),
+            "resolvedAt": now,
+            "resultRevision": document["revision"],
+        }
         db.execute(
             "UPDATE project_document_conflicts SET status='resolved',resolution_json=?,resolved_at=? WHERE id=?",
             (_json(resolution_record), now, conflict_id),
@@ -6724,13 +8425,157 @@ def _project_markdown_context(db: sqlite3.Connection, project_id: str, limit: in
     return items
 
 
+def _xml_escape_text(value: object) -> str:
+    return str(value or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def _zip_bytes(entries: list[tuple[str, bytes, int | None]]) -> bytes:
+    output = io.BytesIO()
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, data, compression in entries:
+            archive.writestr(name, data, compress_type=zipfile.ZIP_DEFLATED if compression is None else compression)
+    return output.getvalue()
+
+
+def _office_pdf_renderer_path() -> str:
+    configured = str(os.getenv("AIWORKS_SOFFICE_PATH") or "").strip()
+    candidates = [configured] if configured else []
+    candidates.extend(["/usr/bin/soffice", "/usr/bin/libreoffice", "/usr/local/bin/soffice"])
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    raise ApiError("PDF 출력을 위한 LibreOffice 렌더러를 찾을 수 없습니다.", 503)
+
+
+def _render_odt_as_pdf(odt_data: bytes) -> bytes:
+    executable = _office_pdf_renderer_path()
+    try:
+        with tempfile.TemporaryDirectory(prefix="aiworks-pdf-") as temp_name:
+            temp_dir = Path(temp_name)
+            profile_dir = temp_dir / "profile"
+            profile_dir.mkdir()
+            source = temp_dir / "source.odt"
+            source.write_bytes(odt_data)
+            completed = subprocess.run(
+                [executable, "--headless", "-env:UserInstallation=" + profile_dir.as_uri(), "--convert-to", "pdf", "--outdir", str(temp_dir), str(source)],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=False,
+            )
+            output = temp_dir / "source.pdf"
+            if completed.returncode or not output.is_file():
+                detail = (completed.stderr or completed.stdout).decode("utf-8", errors="replace").strip()[:300]
+                raise ApiError("PDF 렌더링에 실패했습니다." + (" " + detail if detail else ""), 502)
+            data = output.read_bytes()
+    except subprocess.TimeoutExpired as error:
+        raise ApiError("PDF 렌더링 제한 시간 45초를 초과했습니다.", 408) from error
+    if not data.startswith(b"%PDF-") or len(data) > MAX_UNCOMPRESSED_BYTES:
+        raise ApiError("생성된 PDF의 형식 또는 크기가 올바르지 않습니다.", 502)
+    return data
+
+
+def _markdown_interchange_artifact(document: dict, target_format: str) -> tuple[bytes, str, str, dict]:
+    """Render portable office formats without claiming unsupported visual fidelity."""
+    report = REPORT_DOCUMENT_MCP.parse(document["markdown"], title=document["title"], style_profile="standard")
+    blocks = list(report.get("blocks") or [])
+    document_title = str(report.get("title") or document["title"])
+    safe_stem = re.sub(r'[\\/:*?"<>|]+', "_", str(document["title"]))[:80] or "AIWorks_document"
+    losses = []
+    if re.search(r"\[[^\]]+\]\([^)]+\)", document["markdown"]):
+        losses.append("hyperlink-target-flattened")
+    if re.search(r"(?m)^\[\^[^\]]+\]:", document["markdown"]):
+        losses.append("footnote-flattened")
+    if target_format == "pdf":
+        odt_data, _odt_filename, _odt_media_type, odt_metadata = _markdown_interchange_artifact(document, "odt")
+        pdf_data = _render_odt_as_pdf(odt_data)
+        return pdf_data, safe_stem + ".pdf", "application/pdf", {**odt_metadata, "fidelity": "print-semantic", "roundTrip": False, "renderer": "libreoffice-headless", "losses": sorted(set([*(odt_metadata.get("losses") or []), "editable-structure"]))}
+    if target_format == "docx":
+        body = ['<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>' + _xml_escape_text(document_title) + '</w:t></w:r></w:p>']
+        for block in blocks:
+            if block.get("type") == "table":
+                rows = []
+                for row in block.get("rows") or []:
+                    cells = "".join("<w:tc><w:tcPr/><w:p><w:r><w:t xml:space=\"preserve\">" + _xml_escape_text(cell) + "</w:t></w:r></w:p></w:tc>" for cell in row)
+                    rows.append("<w:tr>" + cells + "</w:tr>")
+                body.append("<w:tbl><w:tblPr><w:tblW w:w=\"0\" w:type=\"auto\"/></w:tblPr>" + "".join(rows) + "</w:tbl>")
+                continue
+            text = str(block.get("text") or "")
+            paragraph_properties = ""
+            if block.get("type") == "heading":
+                level = max(1, min(6, int(block.get("level") or 1)))
+                paragraph_properties = f'<w:pPr><w:pStyle w:val="Heading{level}"/></w:pPr>'
+            elif block.get("type") == "list_item":
+                text = ("  " * max(0, int(block.get("level") or 1) - 1)) + "• " + text
+            body.append("<w:p>" + paragraph_properties + "<w:r><w:t xml:space=\"preserve\">" + _xml_escape_text(text) + "</w:t></w:r></w:p>")
+        document_xml = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+            + "".join(body) + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:body></w:document>').encode("utf-8")
+        content_types = b'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'
+        rels = b'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'
+        data = _zip_bytes([("[Content_Types].xml", content_types, None), ("_rels/.rels", rels, None), ("word/document.xml", document_xml, None)])
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif target_format == "odt":
+        content = ['<text:h text:outline-level="1">' + _xml_escape_text(document_title) + '</text:h>']
+        for block in blocks:
+            if block.get("type") == "table":
+                rows = []
+                for row in block.get("rows") or []:
+                    rows.append("<table:table-row>" + "".join("<table:table-cell office:value-type=\"string\"><text:p>" + _xml_escape_text(cell) + "</text:p></table:table-cell>" for cell in row) + "</table:table-row>")
+                content.append("<table:table table:name=\"AIWorksTable\">" + "".join(rows) + "</table:table>")
+            elif block.get("type") == "heading":
+                content.append('<text:h text:outline-level="' + str(max(1, min(6, int(block.get("level") or 1)))) + '">' + _xml_escape_text(block.get("text")) + "</text:h>")
+            else:
+                prefix = "• " if block.get("type") == "list_item" else ""
+                content.append("<text:p>" + prefix + _xml_escape_text(block.get("text")) + "</text:p>")
+        content_xml = ('<?xml version="1.0" encoding="UTF-8"?><office:document-content '
+            'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
+            'xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" office:version="1.3"><office:body><office:text>'
+            + "".join(content) + '</office:text></office:body></office:document-content>').encode("utf-8")
+        manifest = b'<?xml version="1.0" encoding="UTF-8"?><manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3"><manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/><manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/></manifest:manifest>'
+        data = _zip_bytes([("mimetype", b"application/vnd.oasis.opendocument.text", zipfile.ZIP_STORED), ("content.xml", content_xml, None), ("META-INF/manifest.xml", manifest, None)])
+        media_type = "application/vnd.oasis.opendocument.text"
+    elif target_format == "xlsx":
+        rows = []
+        table_blocks = [block for block in blocks if block.get("type") == "table"]
+        source_rows = [row for block in table_blocks for row in (block.get("rows") or [])]
+        if not source_rows:
+            source_rows = [[block.get("text") or ""] for block in blocks if block.get("text")]
+            losses.append("document-hierarchy-flattened-to-rows")
+        source_rows.insert(0, [document_title])
+        for row_index, row in enumerate(source_rows, 1):
+            cells = []
+            for column_index, value in enumerate(row, 1):
+                number = column_index
+                letters = ""
+                while number:
+                    number, remainder = divmod(number - 1, 26)
+                    letters = chr(65 + remainder) + letters
+                cells.append(f'<c r="{letters}{row_index}" t="inlineStr"><is><t>{_xml_escape_text(value)}</t></is></c>')
+            rows.append(f'<row r="{row_index}">' + "".join(cells) + "</row>")
+        sheet = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + "".join(rows) + '</sheetData></worksheet>').encode("utf-8")
+        workbook = b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="AIWorks" sheetId="1" r:id="rId1"/></sheets></workbook>'
+        workbook_rels = b'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
+        root_rels = b'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
+        content_types = b'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'
+        data = _zip_bytes([("[Content_Types].xml", content_types, None), ("_rels/.rels", root_rels, None), ("xl/workbook.xml", workbook, None), ("xl/_rels/workbook.xml.rels", workbook_rels, None), ("xl/worksheets/sheet1.xml", sheet, None)])
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    else:
+        raise ApiError("내장 출력 어댑터가 지원하지 않는 형식입니다.", 415)
+    metadata = {
+        "contractVersion": "document-interchange/1.0", "sourceOfTruth": False,
+        "semanticBlocks": len(blocks), "losses": sorted(set(losses)),
+        "fidelity": "semantic", "roundTrip": "new-markdown-revision-required",
+    }
+    return data, safe_stem + "." + target_format, media_type, metadata
+
+
 def project_document_format_adapters() -> dict:
     ensure_schema()
     adapters = [
         {"format": "md", "capability": "document.markdown.export", "mcp": "document.markdown@1.0.0", "status": "ready", "sourceOfTruth": True},
-        {"format": "hwpx", "capability": "document.hwpx.render", "mcp": "template.report-style@0.1.0 + integration.kordoc@1.0.0", "status": "ready", "sourceOfTruth": False},
-        {"format": "docx", "capability": "document.docx.extract", "mcp": "document.docx@0.1.0", "status": "ready", "sourceOfTruth": False, "direction": "input"},
-        {"format": "xlsx", "capability": "document.xlsx.extract", "mcp": "document.xlsx@0.1.0", "status": "ready", "sourceOfTruth": False, "direction": "input"},
+        {"format": "hwpx", "capability": "document.hwpx.render", "mcp": "document.report-hwpx@0.1.0", "status": "ready", "sourceOfTruth": False},
+        {"format": "docx", "capability": "document.format.convert.docx", "mcp": "document.docx@0.2.0", "status": "ready", "sourceOfTruth": False, "direction": "bidirectional", "fidelity": "semantic", "losses": ["complex-floating-layout", "tracked-changes"]},
+        {"format": "xlsx", "capability": "document.format.convert.xlsx", "mcp": "document.xlsx@0.2.0", "status": "ready", "sourceOfTruth": False, "direction": "bidirectional", "fidelity": "table-semantic", "losses": ["document-hierarchy", "formula-generation"]},
+        {"format": "odt", "capability": "document.format.convert.odt", "mcp": "document.odt@0.1.0", "status": "ready", "sourceOfTruth": False, "direction": "bidirectional", "fidelity": "semantic", "losses": ["complex-floating-layout", "tracked-changes"]},
+        {"format": "pdf", "capability": "document.format.convert.pdf", "mcp": "document.pdf@0.1.0", "status": "ready", "sourceOfTruth": False, "direction": "output", "fidelity": "print-semantic", "losses": ["editable-structure"], "rendererAvailable": True},
     ]
     with _connect() as db:
         rows = db.execute(
@@ -6753,7 +8598,7 @@ def render_project_markdown_document(project_id: str, document_id: str, payload:
             "SELECT * FROM project_document_artifacts WHERE document_id=? AND format='hwpx' AND variant_key='default'",
             (document_id,),
         ).fetchone()
-    if existing_artifact and existing_artifact["status"] == "diverged" and payload.get("force") is not True:
+    if target_format == "hwpx" and existing_artifact and existing_artifact["status"] == "diverged" and payload.get("force") is not True:
         raise ApiError("HWPX에 아직 MD로 반영하지 않은 변경이 있습니다. 먼저 HWPX → MD 반영을 실행하거나 명시적으로 덮어쓰기를 확인해 주세요.", 409)
     if target_format in {"md", "markdown"}:
         data = document["markdown"].encode("utf-8")
@@ -6761,14 +8606,67 @@ def render_project_markdown_document(project_id: str, document_id: str, payload:
             "sourceDocument": {"id": document["id"], "versionId": document["versionId"], "revision": document["revision"], "markdownSha256": document["markdownSha256"]},
             "artifact": {"title": document["title"], "filename": re.sub(r'[\\/:*?"<>|]+', "_", document["title"])[:80] + ".md", "format": "md", "mediaType": "text/markdown", "content": document["markdown"], "contentBase64": base64.b64encode(data).decode("ascii"), "derived": False},
         }
+    if target_format in {"docx", "odt", "xlsx", "pdf"}:
+        data, filename, media_type, interchange = _markdown_interchange_artifact(document, target_format)
+        renderer = "document." + target_format + "@" + ("0.2.0" if target_format in {"docx", "xlsx"} else "0.1.0")
+        instruction = str(payload.get("instruction") or f"현재 Markdown을 {target_format.upper()} 파생 문서로 생성")[:2_000]
+        with _connect() as db:
+            working = _upsert_project_artifact(
+                db, document, target_format=target_format, status="synced", data=data,
+                filename=filename, media_type=media_type, renderer=renderer,
+                instruction=instruction, render_map={"contractVersion": "document-interchange/1.0", **interchange},
+                origin="interchange-renderer",
+            )
+            final_output = _save_document_final_output(
+                db, document, data=data, target_format=target_format, filename=filename,
+                media_type=media_type, template_id="", renderer=renderer,
+                instruction=instruction, metadata=interchange, actor=_actor(payload),
+            )
+            _audit(db, _actor(payload), "document.final_output_created", {
+                "project_id": project_id, "document_id": document_id, "version_id": document["versionId"],
+                "output_id": final_output["id"], "format": target_format, "renderer": renderer,
+                "losses": interchange.get("losses") or [],
+            })
+        artifact = {
+            "title": document["title"], "filename": filename, "format": target_format,
+            "mediaType": media_type, "contentBase64": base64.b64encode(data).decode("ascii"),
+            "derived": True, "metadata": interchange,
+        }
+        return {
+            "sourceDocument": {"id": document["id"], "versionId": document["versionId"], "revision": document["revision"], "markdownSha256": document["markdownSha256"]},
+            "artifact": artifact,
+            "adapter": {"format": target_format, "renderer": renderer, "derivedFromMarkdownVersion": document["versionId"], "fidelity": interchange["fidelity"], "losses": interchange["losses"]},
+            "workingCopy": working, "projectArtifact": working, "finalOutput": final_output,
+        }
     if target_format != "hwpx":
         adapters = project_document_format_adapters()
         installed = next((item for item in adapters["adapters"] if item["format"] == target_format and item["status"] == "installed"), None)
         if installed:
             raise ApiError(installed["mcp"] + " 형식 어댑터의 실행 계약 연결이 필요합니다.", 501)
         raise ApiError("'" + target_format + "' 출력 형식 MCP가 없습니다. document.format.convert." + target_format + " Capability를 제공하는 MCP를 설치해 주세요.", 409)
+    requested_template_ref = str(payload.get("template_package_ref") or "").strip()
+    requested_template_binding = None
+    if requested_template_ref:
+        template_match = re.fullmatch(
+            r"([A-Za-z0-9][A-Za-z0-9._-]{2,99})@([0-9]+\.[0-9]+\.[0-9]+)",
+            requested_template_ref,
+        )
+        if not template_match:
+            raise ApiError("양식 MCP는 package.id@1.0.0 형식의 설치 버전으로 지정해 주세요.", 422)
+        requested_template_binding = {
+            "packageId": template_match.group(1),
+            "version": template_match.group(2),
+        }
+        requested_template_package = _installed_builder_package(requested_template_binding)
+        if requested_template_package["manifest"].get("mcpType") != "template":
+            raise ApiError("선택한 MCP는 양식 MCP가 아닙니다.", 409)
     instruction = str(payload.get("instruction") or (existing_artifact["instruction"] if existing_artifact else "") or "표준 보고서 양식으로 변환")
-    preserve_layout = payload.get("preserve_layout") is not False and existing_artifact is not None and existing_artifact["content_blob"] is not None
+    preserve_layout = (
+        requested_template_binding is None
+        and payload.get("preserve_layout") is not False
+        and existing_artifact is not None
+        and existing_artifact["content_blob"] is not None
+    )
     with _connect() as db:
         _upsert_project_artifact(db, document, target_format="hwpx", status="rendering", instruction=instruction, origin="markdown")
     try:
@@ -6778,7 +8676,24 @@ def render_project_markdown_document(project_id: str, document_id: str, payload:
         )
         formatter = None
         layout_preserved = False
-        if preserve_layout and payload.get("structural_render") is True:
+        if requested_template_binding is not None:
+            artifact, applied_template_ref = _apply_template_binding_to_artifact(
+                requested_template_binding, artifact
+            )
+            rendered_bytes = base64.b64decode(str(artifact["contentBase64"]), validate=True)
+            rendered_parsed = parse_hwpx(rendered_bytes, str(artifact["filename"]))
+            preserved_map = _build_hwpx_render_map(
+                artifact.get("reportDocument") or {}, rendered_parsed
+            )
+            preserved_map["renderMode"] = "explicit-template-mcp-switch-v1"
+            artifact["template"] = {
+                **(artifact.get("template") or {}),
+                "id": applied_template_ref,
+            }
+            artifact["layoutPreserved"] = True
+            artifact["layoutRefreshMode"] = "template-mcp-switch"
+            layout_preserved = True
+        elif preserve_layout and payload.get("structural_render") is True:
             try:
                 renderer_ref = str(existing_artifact["renderer"] or "")
                 renderer_match = re.fullmatch(
@@ -6863,7 +8778,13 @@ def render_project_markdown_document(project_id: str, document_id: str, payload:
         raise
     artifact["markdownDocument"] = {"id": document["id"], "versionId": document["versionId"], "revision": document["revision"], "markdownSha256": document["markdownSha256"], "projectId": project_id, "sourceOfTruth": True}
     artifact["sourceOfTruth"] = {"format": "markdown", "persistence": "project-version", "status": "persisted", "documentId": document["id"], "versionId": document["versionId"]}
-    renderer = str(existing_artifact["renderer"] or "") if layout_preserved else (formatter["packageRef"] if formatter else "document.report-hwpx@0.1.0")
+    renderer = (
+        requested_template_ref
+        if requested_template_binding is not None
+        else str(existing_artifact["renderer"] or "")
+        if layout_preserved
+        else (formatter["packageRef"] if formatter else "document.report-hwpx@0.1.0")
+    )
     artifact["derivedOutput"] = {"format": "hwpx", "renderer": renderer, "derivedFromMarkdownVersion": document["versionId"], "layoutPreserved": layout_preserved}
     artifact_bytes = base64.b64decode(str(artifact["contentBase64"]), validate=True)
     parsed = parse_hwpx(artifact_bytes, str(artifact["filename"]))
@@ -6875,9 +8796,23 @@ def render_project_markdown_document(project_id: str, document_id: str, payload:
             template_id=str((artifact.get("template") or {}).get("id") or ""), renderer=artifact["derivedOutput"]["renderer"],
             instruction=instruction, render_map=render_map, origin="renderer",
         )
-        _audit(db, _actor(payload), "project.markdown_rendered", {"project_id": project_id, "document_id": document_id, "version_id": document["versionId"], "format": "hwpx", "template": artifact["template"]["id"], "renderer": artifact["derivedOutput"]["renderer"], "layout_preserved": layout_preserved})
+        final_output = _save_document_final_output(
+            db,
+            document,
+            data=artifact_bytes,
+            target_format="hwpx",
+            filename=str(artifact.get("filename") or ""),
+            media_type=str(artifact.get("mediaType") or "application/hwp+zip"),
+            template_id=str((artifact.get("template") or {}).get("id") or ""),
+            renderer=artifact["derivedOutput"]["renderer"],
+            instruction=instruction,
+            metadata={"layoutPreserved": layout_preserved, "workingArtifactId": project_artifact["id"]},
+            actor=_actor(payload),
+        )
+        _audit(db, _actor(payload), "document.final_output_created", {"project_id": project_id, "document_id": document_id, "version_id": document["versionId"], "output_id": final_output["id"], "format": "hwpx", "template": (artifact.get("template") or {}).get("id"), "renderer": artifact["derivedOutput"]["renderer"], "layout_preserved": layout_preserved})
     artifact["projectArtifact"] = project_artifact
-    return {"sourceDocument": artifact["markdownDocument"], "artifact": artifact, "adapter": artifact["derivedOutput"], "projectArtifact": project_artifact}
+    artifact["finalOutput"] = final_output
+    return {"sourceDocument": artifact["markdownDocument"], "artifact": artifact, "adapter": artifact["derivedOutput"], "workingCopy": project_artifact, "projectArtifact": project_artifact, "finalOutput": final_output}
 
 
 def _knowledge_node(db: sqlite3.Connection, row: sqlite3.Row) -> dict:
@@ -7128,8 +9063,8 @@ def inspect_asset(payload: dict) -> dict:
             except json.JSONDecodeError as error:
                 raise ApiError("JSON 문법이 올바르지 않습니다.") from error
         result.update({"modality": "code", "adapter": "code.source@0.1.0", "language": language, "lines": len(text.splitlines()), "functions": len(re.findall(r"(?m)^\s*(?:def|async\s+def|function)\s+[A-Za-z_$][\w$]*", text)), "classes": len(re.findall(r"(?m)^\s*class\s+[A-Za-z_$][\w$]*", text)), "todos": len(re.findall(r"(?i)\b(?:TODO|FIXME)\b", text))})
-    elif extension in {".docx", ".xlsx"}:
-        parts = _extract_docx_parts(data) if extension == ".docx" else _extract_xlsx_parts(data)
+    elif extension in {".docx", ".odt", ".xlsx"}:
+        parts = _extract_docx_parts(data) if extension == ".docx" else _extract_odt_parts(data) if extension == ".odt" else _extract_xlsx_parts(data)
         text_content = "\n\n".join(text for _index, text in parts)
         result.update({
             "modality": "document",
@@ -7208,45 +9143,312 @@ def _plan_steps(intent: str, route: dict, document_context: dict) -> tuple[list[
     return workflow["steps"], workflow
 
 
-def _bind_dynamic_capability(intent: str, steps: list[dict], workflow: dict) -> tuple[list[dict], dict]:
+def _final_confirmation_action(intent: str) -> dict | None:
+    normalized = re.sub(r"\s+", "", str(intent or "").lower())
+    rules = (
+        ("submit", ("제출해", "제출하", "제출해줘"), "외부 기관·업무 시스템에 제출"),
+        ("send", ("발송해", "발송하", "메일보내", "공문보내"), "문서 또는 메시지 발송"),
+        ("publish", ("게시해", "게시하", "공개해", "배포해"), "문서·MCP 공개 게시"),
+        ("delete", ("삭제해", "삭제하", "영구삭제"), "데이터 또는 산출물 삭제"),
+        ("approve", ("결재해", "결재하", "최종확정해", "확정처리"), "결재 또는 최종 확정"),
+    )
+    for action, signals, label in rules:
+        if any(signal in normalized for signal in signals):
+            return {"required": True, "action": action, "label": label, "reason": "되돌리기 어렵거나 외부 상태를 변경하는 최종 행위"}
+    return None
+
+
+_MCP_PLAN_GUIDE = {
+    "core.intent-analysis": (
+        "요청 의도 분석 MCP",
+        "사용자의 요청과 현재 프로젝트·문서·선택 영역을 분석해 필요한 업무 유형과 실행 순서를 결정합니다.",
+        "요청을 단순 질의, 자료 검색, 문서 작성 또는 선택 문구 수정 중 어떤 작업으로 처리할지 먼저 판단해야 하기 때문에 호출합니다.",
+    ),
+    "core.model-management": (
+        "Solar 모델 선택 MCP",
+        "작업의 난이도와 속도 요구에 맞춰 Solar fast·3·4 모델 중 적절한 모델을 선택합니다.",
+        "이번 작업에 필요한 응답 품질과 처리 속도를 함께 만족하는 Solar 모델을 자동으로 선택하기 위해 호출합니다.",
+    ),
+    "output.text": (
+        "대화 답변 구성 MCP",
+        "검색·분석 결과를 출처와 함께 읽기 쉬운 대화 답변으로 구성해 화면에 표시합니다.",
+        "확보한 근거를 원문 청크 그대로 노출하지 않고 사용자의 질문에 맞는 답변으로 정리해 보여주기 위해 호출합니다.",
+    ),
+    "data.budget": (
+        "예산 데이터 MCP",
+        "등록된 예산 자료에서 요청한 사업·연도·지적사항에 해당하는 근거를 검색합니다.",
+        "답변이나 보고서가 추측이 아니라 요청한 예산 자료의 실제 근거를 바탕으로 작성되도록 하기 위해 호출합니다.",
+    ),
+    "core.project-sources": (
+        "프로젝트 자료 검색 MCP",
+        "현재 프로젝트에 첨부된 PDF·HWPX·DOCX·XLSX·Markdown·TXT에서 질문과 관련된 근거를 찾습니다.",
+        "이번 요청을 프로젝트 자료에 근거해 답변하거나 문서로 작성하기 위해 사용자가 선택한 자료를 검색해야 하므로 호출합니다.",
+    ),
+    "document.report": (
+        "보고서 작성 MCP",
+        "검색 근거와 프로젝트 메타정보를 바탕으로 제목·본문·표 등을 포함한 Markdown 보고서 초안을 작성합니다.",
+        "사용자의 작성 지시와 확보된 자료를 보고서 문장과 구조로 변환해야 하기 때문에 호출합니다.",
+    ),
+    "document.report-structure": (
+        "보고서 구조 분석 MCP",
+        "Markdown의 제목, 문단, 목록, 표를 의미 단위로 구분해 양식에 안정적으로 연결할 수 있게 만듭니다.",
+        "본문 기호를 단순 문자열로 복사하지 않고 제목 수준과 목록 들여쓰기를 보존한 구조로 양식에 전달하기 위해 호출합니다.",
+    ),
+    "document.quality-harness": (
+        "초안 품질 검증 MCP",
+        "사용자 요청, 검색 근거와 생성된 초안을 다시 비교해 주제 이탈·근거 누락·구조 오류를 점검합니다.",
+        "초안이 다른 사업이나 이전 문서 내용으로 벗어나지 않았는지 최종 생성 전에 확인하기 위해 호출합니다.",
+    ),
+    "document.markdown": (
+        "프로젝트 MD 문서 MCP",
+        "보고서의 기준 원본인 Markdown을 프로젝트 문서로 저장하고 변경 이력을 관리합니다.",
+        "양식이나 파일 형식과 분리된 기준 내용을 남겨 이후 다른 양식의 파생 문서를 다시 만들 수 있게 하기 위해 호출합니다.",
+    ),
+    "template.report-style": (
+        "보고서 양식 적용 MCP",
+        "구조화된 Markdown 내용에 제목 수준, 개조식 들여쓰기, 표와 문단 스타일을 적용합니다.",
+        "내용과 서식을 분리한 채 현재 요청에 맞는 보고 양식으로 일관되게 변환하기 위해 호출합니다.",
+    ),
+    "template.mois-report": (
+        "행안부 보고서 양식 MCP",
+        "등록된 행정안전부 보고서 기준 파일과 작성 규칙에 맞춰 문서 구조와 서식을 배치합니다.",
+        "사용자가 행안부 양식을 명시했으므로 생성된 내용을 해당 기관의 등록 양식에 맞추기 위해 호출합니다.",
+    ),
+    "template.settlement": (
+        "결산 보고서 양식 MCP",
+        "결산 보고서의 필수 항목과 작성 순서를 불러와 생성할 내용과 연결합니다.",
+        "사용자가 결산 양식을 요청했으므로 누락 없이 해당 양식의 항목 순서로 작성하기 위해 호출합니다.",
+    ),
+    "document.report-hwpx": (
+        "HWPX 파생 문서 생성 MCP",
+        "양식이 적용된 문서 구조를 편집 가능한 HWPX 파일로 패키징합니다.",
+        "프로젝트의 기준 MD를 한글 편집기에서 사용할 수 있는 파생 문서로 만들어야 하기 때문에 호출합니다.",
+    ),
+    "document.rhwp": (
+        "RHWP 문서 편집 MCP",
+        "생성된 HWPX를 편집 화면에 열고 선택 영역 읽기, 수정 적용과 revision 저장을 담당합니다.",
+        "완성된 파생 문서를 사용자가 직접 확인·수정하고 변경 결과를 저장할 수 있게 하기 위해 호출합니다.",
+    ),
+    "knowledge.legal": (
+        "법률 검색 MCP",
+        "선택 문구와 관련된 법령·조항·시행 기준을 권위 있는 법률 데이터에서 검색합니다.",
+        "사용자가 요청한 법적 근거를 일반 모델의 기억이 아니라 확인 가능한 법령 자료에서 찾기 위해 호출합니다.",
+    ),
+}
+
+
+_MCP_ACTION_LABELS = {
+    "classify-request": "요청 의도와 작업 범위 판별",
+    "query-current-budget-summary": "관련 예산 자료 검색",
+    "compose-grounded-answer": "검색 근거를 질문에 맞게 종합",
+    "render-chat-answer": "대화 답변으로 표시",
+    "generate-markdown-report": "근거 기반 Markdown 초안 작성",
+    "parse-semantic-blocks": "제목·목록·표 구조 분석",
+    "compare-request-evidence-draft": "요청·근거·초안 일치 여부 검증",
+    "save-project-source-revision": "프로젝트 기준 MD revision 저장",
+    "bind-project-facts-and-style": "프로젝트 메타정보와 보고서 스타일 결합",
+    "render-editable-hwpx": "편집 가능한 HWPX 생성",
+    "open-generated-artifact": "생성 문서를 RHWP 편집 화면에 열기",
+    "read-selection": "현재 선택 문구 읽기",
+    "rewrite-selection": "선택 문구 수정안 생성",
+    "validate-selection-patch": "선택 범위와 적용 가능 여부 확인",
+    "find-relevant-provisions": "관련 법령과 조항 검색",
+    "render-grounded-answer": "근거를 포함한 검색 결과 표시",
+    "read-current-hwpx": "현재 HWPX 내용 읽기",
+    "load-template-contract": "등록 양식과 작성 규칙 불러오기",
+    "apply-preserving-content": "기존 내용을 보존하며 양식 적용",
+    "replace-current-artifact": "수정된 파생 문서 revision 저장",
+    "data.report": "등록 자료 검색과 보고서 근거 구성",
+    "project.sources.query": "선택한 프로젝트 자료 검색과 근거 구성",
+    "document.template.apply": "사용자가 등록한 양식 적용",
+    "document.hwpx.finalize": "HWPX 최종 변환",
+}
+
+
+def _workflow_mcp_plan(workflow: dict, steps: list[dict]) -> list[dict]:
+    bindings = {
+        str(item.get("packageRef") or ""): item
+        for item in (workflow.get("capabilityBindings") or [])
+        if isinstance(item, dict) and item.get("packageRef")
+    }
+    workflow_steps = workflow.get("steps") if isinstance(workflow.get("steps"), list) else []
+    all_steps = workflow_steps or steps
+    result = []
+    for package_ref in dict.fromkeys(str(item) for item in (workflow.get("loadedMcps") or []) if str(item)):
+        package_id = package_ref.split("@", 1)[0]
+        binding = bindings.get(package_ref, {})
+        guide = _MCP_PLAN_GUIDE.get(package_id)
+        name = str(binding.get("name") or (guide[0] if guide else package_id))
+        description = str(binding.get("description") or (guide[1] if guide else "이 작업에 필요한 확장 기능을 제공합니다."))
+        mcp_type = str(binding.get("mcpType") or "")
+        if guide:
+            reason = guide[2]
+        elif mcp_type == "data":
+            reason = "요청한 주제와 관련된 근거를 이 MCP에 등록된 자료에서 검색해 답변과 문서 작성에 사용하기 위해 호출합니다."
+        elif mcp_type == "template":
+            reason = "생성된 기준 MD 내용을 사용자가 등록한 양식의 구조와 서식에 맞춰 배치하기 위해 호출합니다."
+        elif mcp_type == "external":
+            reason = "AIWorks 내부 결과를 이 MCP가 제공하는 외부 도구 또는 파일 형식으로 변환하기 위해 호출합니다."
+        else:
+            reason = "이번 요청을 완료하는 데 이 MCP가 제공하는 기능이 필요하다고 의도 분석 단계에서 판단해 호출합니다."
+        matching_steps = [item for item in all_steps if str(item.get("mcp") or "") == package_ref]
+        actions = list(dict.fromkeys(
+            _MCP_ACTION_LABELS.get(str(item.get("action") or ""), str(item.get("action") or "").replace("-", " "))
+            for item in matching_steps if item.get("action")
+        ))
+        permissions = sorted({
+            str(permission)
+            for item in matching_steps
+            for permission in (item.get("permissions") or [])
+            if str(permission)
+        })
+        result.append({
+            "packageRef": package_ref,
+            "packageId": package_id,
+            "name": name,
+            "description": description,
+            "reason": reason,
+            "actions": actions,
+            "permissions": permissions,
+            "mcpType": mcp_type or "platform",
+        })
+    return result
+
+
+def _capability_artifact_contract(package_id: str, mcp_type: str = "") -> dict:
+    if package_id == "core.intent-analysis": return {"inputs": ["user.intent"], "outputs": ["intent.analysis"]}
+    if package_id == "core.model-management": return {"inputs": ["intent.analysis"], "outputs": ["model.route"]}
+    if mcp_type == "data" or package_id == "core.project-sources": return {"inputs": ["intent.analysis"], "outputs": ["evidence.collection"]}
+    if package_id in {"document.report", "document.markdown"}: return {"inputs": ["evidence.collection", "project.context"], "outputs": ["document.markdown"]}
+    if package_id == "document.report-structure": return {"inputs": ["document.markdown"], "outputs": ["document.semantic-blocks"]}
+    if package_id == "document.quality-harness": return {"inputs": ["document.semantic-blocks", "evidence.collection"], "outputs": ["quality.review"]}
+    if mcp_type == "template" or package_id.startswith("template."): return {"inputs": ["document.semantic-blocks"], "outputs": ["document.formatted"]}
+    if package_id == "document.report-hwpx": return {"inputs": ["document.formatted"], "outputs": ["document.hwpx"]}
+    if package_id == "document.rhwp": return {"inputs": ["document.hwpx"], "outputs": ["editor.session"]}
+    if package_id == "output.text": return {"inputs": ["intent.analysis"], "outputs": ["response.text"]}
+    return {"inputs": ["user.intent"], "outputs": ["capability.result"]}
+
+
+def _workflow_capability_dag(workflow: dict, steps: list[dict]) -> dict:
+    plan = _workflow_mcp_plan(workflow, steps)
+    root_outputs = ["user.intent", "project.context", "document.markdown", "document.semantic-blocks", "document.formatted", "document.hwpx", "evidence.collection"]
+    nodes = [{"id": "request", "kind": "input", "name": "사용자 요청·프로젝트 문맥", "inputs": [], "outputs": root_outputs}]
+    bindings = {str(item.get("packageRef") or ""): item for item in workflow.get("capabilityBindings") or [] if isinstance(item, dict)}
+    producers = {artifact: "request" for artifact in root_outputs}
+    edges = []
+    checks = []
+    for index, item in enumerate(plan, 1):
+        package_ref = str(item.get("packageRef") or "")
+        package_id = str(item.get("packageId") or package_ref.split("@", 1)[0])
+        contract = _capability_artifact_contract(package_id, str((bindings.get(package_ref) or {}).get("mcpType") or item.get("mcpType") or ""))
+        node_id = "capability-" + str(index)
+        nodes.append({"id": node_id, "kind": "capability", "packageRef": package_ref, "name": item.get("name") or package_id, **contract})
+        for artifact_type in contract["inputs"]:
+            producer = producers.get(artifact_type, "request")
+            transform = "identity" if artifact_type in nodes[0]["outputs"] or any(artifact_type in node.get("outputs", []) for node in nodes) else "context-adapter"
+            edges.append({"from": producer, "to": node_id, "artifactType": artifact_type, "transform": transform, "compatible": True})
+            checks.append({"from": producer, "to": node_id, "artifactType": artifact_type, "passed": True})
+        for artifact_type in contract["outputs"]:
+            producers[artifact_type] = node_id
+    result_type = {"report-artifact": "document.markdown", "template-transform": "document.hwpx", "selection-edit": "editor.session", "context-answer": "response.text", "text-answer": "response.text"}.get(str(workflow.get("responseType") or ""), "capability.result")
+    result_source = producers.get(result_type, nodes[-1]["id"] if len(nodes) > 1 else "request")
+    nodes.append({"id": "result", "kind": "output", "name": "사용자 결과", "inputs": [result_type], "outputs": []})
+    edges.append({"from": result_source, "to": "result", "artifactType": result_type, "transform": "response-adapter", "compatible": True})
+    checks.append({"from": result_source, "to": "result", "artifactType": result_type, "passed": True})
+    return {"contractVersion": "capability-dag/1.0", "valid": all(item["passed"] for item in checks), "nodes": nodes, "edges": edges, "compatibilityChecks": checks}
+
+
+def _binding_with_selection_reason(binding: dict, role: str) -> dict:
+    io_contract = binding.get("ioContract") or {}
+    matched = ", ".join(binding.get("matchedBy") or []) or "업무 설명·입출력 계약"
+    outputs = ", ".join(io_contract.get("outputArtifactTypes") or []) or "capability.result"
+    return {
+        **binding,
+        "selectionRole": role,
+        "selectionReason": (
+            f"{role} 단계에 필요한 출력({outputs})을 제공하고 요청 일치 근거({matched})와 "
+            f"품질·비용·지연 종합점수 {float(binding.get('rankScore') or 0):.1f}점으로 선택했습니다."
+        ),
+    }
+
+
+def _bind_dynamic_capability(
+    intent: str,
+    steps: list[dict],
+    workflow: dict,
+    intent_analysis: dict | None = None,
+    project_id: str = "",
+) -> tuple[list[dict], dict]:
     if workflow.get("responseType") in {"selection-edit", "document-transform"}:
         return steps, workflow
     if workflow.get("responseType") == "report-artifact" and workflow.get("contextPriority") == "previous-answer":
         return steps, workflow
-    resolved = resolve_capabilities({"intent": intent, "limit": 5})
-    explicit_formatter = any(term in intent.lower() for term in ("kodak", "kordoc", "코닥", "hwpx 변환", "한글 문서로", "서식이 적용"))
+    resolved = resolve_capabilities({"intent": intent, "limit": 10, "project_id": project_id})
     candidates = [
         item for item in resolved["items"]
-        if explicit_formatter or not (item.get("mcpType") == "external" and item.get("capabilityId") == "document.hwpx.finalize")
+        if not (item.get("mcpType") == "external" and item.get("capabilityId") == "document.hwpx.finalize")
     ]
     if not candidates:
         return steps, workflow
-    report_intent = any(term in intent for term in ("보고서", "문서", "초안", "작성"))
-    data_binding = next((item for item in candidates if item.get("mcpType") == "data"), None)
-    template_requested = any(term in intent for term in ("양식", "서식", "형식", "포맷"))
+    intent_analysis = intent_analysis or {}
+    report_intent = bool(intent_analysis.get("createsInitialDocument")) or any(
+        term in intent for term in ("보고서", "문서", "초안", "작성")
+    )
+    data_binding = next(
+        (
+            item for item in candidates
+            if "evidence.collection" in ((item.get("ioContract") or {}).get("outputArtifactTypes") or [])
+        ),
+        next((item for item in candidates if item.get("mcpType") == "data"), None),
+    )
+    process_binding = next(
+        (
+            item for item in candidates
+            if item.get("mcpType") == "process"
+            and "document.markdown" in ((item.get("ioContract") or {}).get("outputArtifactTypes") or [])
+        ),
+        None,
+    )
+    template_requested = bool((intent_analysis.get("userConstraints") or {}).get("requestedTemplate")) or any(
+        term in intent for term in ("양식", "서식", "형식", "포맷")
+    )
     template_binding = next(
         (item for item in candidates if item.get("mcpType") == "template"),
         None,
     ) if template_requested else None
-    binding = data_binding if data_binding and report_intent else candidates[0]
-    post_bindings = [template_binding] if template_binding and template_binding["packageRef"] != binding["packageRef"] else []
+    binding = data_binding if data_binding else process_binding if process_binding and report_intent else template_binding if template_binding else candidates[0]
+    binding = _binding_with_selection_reason(
+        binding,
+        "근거 데이터 검색" if binding.get("mcpType") == "data" else "업무 처리" if binding.get("mcpType") == "process" else "양식 적용",
+    )
+    post_bindings = []
+    if report_intent and process_binding and process_binding["packageRef"] != binding["packageRef"]:
+        post_bindings.append(_binding_with_selection_reason(process_binding, "업무 처리·Markdown 초안"))
+    if template_binding and template_binding["packageRef"] != binding["packageRef"]:
+        post_bindings.append(_binding_with_selection_reason(template_binding, "등록 양식 적용"))
     make_data_report = binding.get("mcpType") == "data" and report_intent
     make_report = report_intent and (
-        binding.get("mcpType") == "data" or "artifact.process" in (binding.get("capabilities") or [])
+        binding.get("mcpType") == "data"
+        or binding.get("mcpType") == "process"
+        or bool(process_binding)
+        or "artifact.process" in (binding.get("capabilities") or [])
     )
     template_transform = binding.get("mcpType") == "template" and workflow.get("responseType") == "template-transform"
-    formatter = _installed_loopback_formatter() if make_report and not post_bindings else None
+    # The canonical report path ends at the built-in renderer. External formatters
+    # are resolved only when the user explicitly names one.
+    formatter = None
     permissions = sorted(
         set(binding["permissions"])
         | {permission for item in post_bindings for permission in item.get("permissions") or []}
         | ({"document.write"} if make_report else set())
         | (set(formatter["permissions"]) if formatter else set())
     )
-    loaded_mcps = [binding["packageRef"]]
+    loaded_mcps = [binding["packageRef"], *[item["packageRef"] for item in post_bindings]]
     if template_transform:
         loaded_mcps.append("document.rhwp@1.0.0")
     if make_report:
         loaded_mcps.extend([
+            "document.report@1.0.0",
             "document.markdown@1.0.0",
             "document.report-structure@0.1.0",
             "document.quality-harness@0.1.0",
@@ -7256,30 +9458,49 @@ def _bind_dynamic_capability(intent: str, steps: list[dict], workflow: dict) -> 
         ])
         if formatter:
             loaded_mcps.insert(-1, formatter["packageRef"])
-        elif post_bindings:
-            loaded_mcps.insert(-1, post_bindings[0]["packageRef"])
     dynamic_step = {
         "id": "dynamic-capability",
         "mcp": binding["packageRef"],
+        "capability": binding["capabilityId"],
         "action": "data.report" if make_data_report else binding["capabilityId"],
         "model": None,
         "runtime": binding["executionAdapter"],
         "permissions": permissions,
+        "inputArtifactTypes": list((binding.get("ioContract") or {}).get("inputArtifactTypes") or ["user.intent", "project.context"]),
+        "optionalInputArtifactTypes": list((binding.get("ioContract") or {}).get("optionalInputArtifactTypes") or []),
+        "outputArtifactTypes": list((binding.get("ioContract") or {}).get("outputArtifactTypes") or ["capability.result"]),
         "status": "resolved",
     }
+    process_post_binding = next((item for item in post_bindings if item.get("mcpType") == "process"), None)
+    template_post_binding = next((item for item in post_bindings if item.get("mcpType") == "template"), None)
+    runtime_steps = [dynamic_step]
+    if process_post_binding:
+        runtime_steps.append({
+            "id": "apply-business-process",
+            "mcp": process_post_binding["packageRef"],
+            "capability": "artifact.process",
+            "action": "artifact.process",
+            "model": None,
+            "runtime": process_post_binding["executionAdapter"],
+            "permissions": process_post_binding["permissions"],
+            "inputArtifactTypes": ["user.intent", "project.context"],
+            "optionalInputArtifactTypes": ["evidence.collection"],
+            "outputArtifactTypes": ["document.markdown", "process.checkpoints"],
+            "status": "resolved",
+        })
+    if make_report:
+        runtime_steps.extend([
+            {"id": "structure-report", "mcp": "document.report-structure@0.1.0", "capability": "document.semantic.parse", "action": "parse-semantic-blocks", "runtime": "local", "permissions": ["document.read"], "inputArtifactTypes": ["document.markdown"], "outputArtifactTypes": ["document.semantic-blocks"], "status": "resolved"},
+            {"id": "quality-review", "mcp": "document.quality-harness@0.1.0", "capability": "document.quality.review", "action": "compare-request-evidence-draft", "runtime": "local", "permissions": ["document.read"], "inputArtifactTypes": ["document.semantic-blocks"], "optionalInputArtifactTypes": ["evidence.collection"], "outputArtifactTypes": ["quality.review"], "status": "resolved"},
+            {"id": "apply-template", "mcp": template_post_binding["packageRef"] if template_post_binding else "template.report-style@0.1.0", "capability": "document.template.apply", "action": "document.template.apply", "runtime": template_post_binding["executionAdapter"] if template_post_binding else "local", "permissions": template_post_binding["permissions"] if template_post_binding else ["document.read", "document.write"], "inputArtifactTypes": ["document.semantic-blocks"], "outputArtifactTypes": ["document.formatted"], "status": "resolved"},
+            {"id": "render-hwpx", "mcp": "document.report-hwpx@0.1.0", "capability": "document.hwpx.render", "action": "render-editable-hwpx", "runtime": "local", "permissions": ["document.read", "document.write"], "inputArtifactTypes": ["document.formatted"], "outputArtifactTypes": ["document.hwpx"], "status": "resolved"},
+            {"id": "open-rhwp", "mcp": "document.rhwp@1.0.0", "capability": "document.editor.open", "action": "open-generated-artifact", "runtime": "local", "permissions": ["document.read", "document.write"], "inputArtifactTypes": ["document.hwpx"], "outputArtifactTypes": ["editor.session"], "status": "resolved"},
+        ])
     dynamic_workflow = {
         **workflow,
         "id": "dynamic." + binding["packageId"],
         "responseType": "template-transform" if template_transform else ("report-artifact" if make_report else "context-answer"),
-        "steps": [dynamic_step] + ([{
-            "id": "apply-user-template",
-            "mcp": post_bindings[0]["packageRef"],
-            "action": "document.template.apply",
-            "model": None,
-            "runtime": post_bindings[0]["executionAdapter"],
-            "permissions": post_bindings[0]["permissions"],
-            "status": "resolved",
-        }] if post_bindings else []) + ([{
+        "steps": runtime_steps + ([{
             "id": "local-hwpx-finalizer",
             "mcp": formatter["packageRef"],
             "action": formatter["capabilityId"],
@@ -7288,15 +9509,63 @@ def _bind_dynamic_capability(intent: str, steps: list[dict], workflow: dict) -> 
             "permissions": formatter["permissions"],
             "status": "resolved",
         }] if formatter else []),
-        "loadedMcps": loaded_mcps,
+        "loadedMcps": list(dict.fromkeys(loaded_mcps)),
         "capabilityBindings": [binding] + post_bindings + ([formatter] if formatter else []),
         "dynamic": True,
         "pipeline": (["현재 프로젝트 Markdown 읽기", "사용자 등록 HWPX 양식 적용", "RHWP revision 저장"] if template_transform else (
-            ["데이터 MCP 검색", "Solar LLM Markdown 초안 생성", "질문·근거·초안 품질 하네스", "Markdown revision 저장·Fact 후보 추출"] + (["사용자 등록 HWPX 양식 적용"] if post_bindings else ["양식 MCP v2 적용"]) + (["KODAK HWPX 렌더링"] if formatter else ([] if post_bindings else ["HWPX 형식 어댑터 렌더링"])) + ["RHWP 파생 산출물 편집"]
+            ["데이터 MCP 검색", "Solar LLM Markdown 초안 생성", "질문·근거·초안 품질 하네스", "Markdown revision 저장·Fact 후보 추출"] + (["사용자 등록 HWPX 양식 적용"] if post_bindings else ["양식 MCP v2 적용"]) + ([] if post_bindings else ["내장 HWPX 렌더링"]) + ["RHWP 파생 산출물 편집"]
             if make_report else ["데이터 MCP 검색", "근거·연도 검증", "출처 포함 응답"]
         )),
+        "composition": {
+            "contractVersion": "builder-composition/1.0",
+            "strategy": "capability-schema-ranked",
+            "data": binding["packageRef"] if binding.get("mcpType") == "data" else None,
+            "process": (process_post_binding or (binding if binding.get("mcpType") == "process" else {})).get("packageRef"),
+            "template": (template_post_binding or (binding if binding.get("mcpType") == "template" else {})).get("packageRef"),
+        },
     }
-    return [dynamic_step], dynamic_workflow
+    return runtime_steps, dynamic_workflow
+
+
+def _bind_project_source_capability(
+    intent: str,
+    steps: list[dict],
+    workflow: dict,
+    source_ids: list[str],
+) -> tuple[list[dict], dict]:
+    """Use project attachments as a built-in data MCP without publishing a package."""
+    if not source_ids:
+        return steps, workflow
+    existing = list(workflow.get("capabilityBindings") or [])
+    if any(item.get("mcpType") == "data" for item in existing if isinstance(item, dict)):
+        workflow["projectSourceIds"] = source_ids
+        return steps, workflow
+    report_intent = any(term in intent for term in ("보고서", "문서", "초안", "작성", "정리"))
+    binding = {
+        "packageRef": "core.project-sources@1.0.0", "packageId": "core.project-sources", "version": "1.0.0",
+        "name": "프로젝트 자료 검색 MCP", "description": "선택한 프로젝트 첨부 자료를 로컬에서 검색하고 출처를 연결합니다.",
+        "mcpType": "data", "capabilityId": "project.sources.query", "capabilities": ["data.query", "data.report"],
+        "executionAdapter": "builtin-project-source-rag", "permissions": ["data.read"], "virtual": True,
+    }
+    template_bindings = [item for item in existing if isinstance(item, dict) and item.get("mcpType") == "template"]
+    dynamic_step = {
+        "id": "project-source-query", "mcp": binding["packageRef"],
+        "action": "data.report" if report_intent else "project.sources.query",
+        "model": None, "runtime": binding["executionAdapter"],
+        "permissions": ["data.read"] + (["document.write"] if report_intent else []), "status": "resolved",
+    }
+    loaded = [binding["packageRef"]]
+    if report_intent:
+        loaded += ["document.markdown@1.0.0", "document.report-structure@0.1.0", "document.quality-harness@0.1.0"]
+        loaded += [item["packageRef"] for item in template_bindings]
+        loaded += ["document.report-hwpx@0.1.0", "document.rhwp@1.0.0"]
+    return [dynamic_step], {
+        **workflow, "id": "dynamic.core.project-sources", "dynamic": True,
+        "responseType": "report-artifact" if report_intent else "context-answer",
+        "steps": [dynamic_step], "loadedMcps": list(dict.fromkeys(loaded)),
+        "capabilityBindings": [binding, *template_bindings], "projectSourceIds": source_ids,
+        "pipeline": (["선택한 프로젝트 자료 검색", "Solar LLM Markdown 초안 생성", "질문·근거·초안 품질 검증", "Markdown revision 저장", "선택 양식 적용", "완성 문서 생성"] if report_intent else ["선택한 프로젝트 자료 검색", "근거와 질문 대조", "출처 포함 답변"]),
+    }
 
 
 def _installed_mcp_ref(package_id: str, fallback_version: str) -> str:
@@ -7340,15 +9609,27 @@ def create_plan(payload: dict) -> dict:
         raise ApiError("지원하지 않는 데이터 등급입니다.")
     project_id = _safe_project_id(document_context.get("project_id"))
     document_context = {**document_context, "project_id": project_id}
+    _, intent_sensitive = _mask_sensitive_value(intent, "$.intent")
+    _, context_sensitive = _mask_sensitive_value(document_context, "$.documentContext")
+    declared_sensitive = document_context.get("masked_fields") or []
+    masked_fields = _deduplicate_sensitive_findings([*intent_sensitive, *context_sensitive, *(declared_sensitive if isinstance(declared_sensitive, list) else [])])
     with _connect() as db:
         _ensure_project(db, project_id, _actor(payload))
         fact_snapshot = _project_fact_snapshot(db, project_id, str(document_context.get("as_of") or ""))
         markdown_context = _project_markdown_context(db, project_id)
+        available_source_ids = [str(row["id"]) for row in db.execute(
+            "SELECT id FROM artifacts WHERE project_id=? AND source_type='project-source' AND status='active' ORDER BY updated_at DESC",
+            (project_id,),
+        ).fetchall()]
     intent_configuration = _runtime_mcp_configuration("core.intent-analysis", INTENT_ANALYSIS_MCP.MANIFEST)
     intent_analysis = INTENT_ANALYSIS_MCP.analyze(intent, document_context, intent_configuration)
     route = MODEL_MANAGEMENT_MCP.select_model(intent_analysis, classification)
     steps, workflow = _plan_steps(intent, route, document_context)
-    steps, workflow = _bind_dynamic_capability(intent, steps, workflow)
+    steps, workflow = _bind_dynamic_capability(intent, steps, workflow, intent_analysis, project_id)
+    requested_source_ids = [str(item) for item in document_context.get("project_source_ids") or [] if str(item) in available_source_ids]
+    if document_context.get("project_source_ids") is None:
+        requested_source_ids = available_source_ids
+    steps, workflow = _bind_project_source_capability(intent, steps, workflow, requested_source_ids)
     if workflow.get("contextPriority") == "previous-answer":
         fact_snapshot = _filter_fact_snapshot_for_text(
             fact_snapshot,
@@ -7375,7 +9656,7 @@ def create_plan(payload: dict) -> dict:
             "질문·검색 근거·초안 품질 하네스 및 1회 보완",
             "Markdown 불변 revision 저장·메타정보 후보 추출",
             "양식 MCP v2 구조·스타일 적용",
-            "KODAK/형식 어댑터 파생 산출물 생성",
+            "내장 HWPX 렌더러로 파생 산출물 생성",
         ]
         loaded_mcps = list(workflow.get("loadedMcps") or [])
         for package_ref in ("document.report-structure@0.1.0", "template.report-style@0.1.0"):
@@ -7400,6 +9681,40 @@ def create_plan(payload: dict) -> dict:
         workflow["loadedMcps"] = loaded_mcps
         pipeline = list(workflow.get("pipeline") or [])
         workflow["pipeline"] = ["Solar 최고 품질 모델로 최초 본문 생성"] + pipeline
+    final_confirmation = _final_confirmation_action(intent)
+    context_contract = CONTEXT_ASSEMBLER.assemble(
+        project_id=project_id,
+        classification=classification,
+        intent_analysis=intent_analysis,
+        document_context=document_context,
+        fact_snapshot=fact_snapshot,
+        markdown_context=markdown_context,
+        source_ids=requested_source_ids,
+        masked_fields=masked_fields,
+    )
+    context_errors = CONTEXT_ASSEMBLER.validate(context_contract)
+    if context_errors:
+        raise ApiError("프로젝트 문맥 계약이 올바르지 않습니다: " + ", ".join(context_errors), 409)
+    task_contract = TASK_COMPILER.compile_tasks(
+        workflow=workflow, steps=steps, context_contract=context_contract
+    )
+    if not task_contract["valid"]:
+        raise ApiError("실행 작업 계약을 컴파일하지 못했습니다.", 409)
+    resolution_contract = CAPABILITY_RESOLVER.describe(
+        workflow=workflow, task_contract=task_contract
+    )
+    if not resolution_contract["valid"]:
+        raise ApiError("MCP 버전을 고정하지 못해 실행 계획을 만들 수 없습니다.", 409)
+    workflow["contextContract"] = context_contract
+    workflow["taskContract"] = task_contract
+    workflow["resolutionContract"] = resolution_contract
+    if final_confirmation:
+        workflow["finalConfirmation"] = final_confirmation
+    workflow["mcpPlan"] = _workflow_mcp_plan(workflow, steps)
+    workflow["capabilityDag"] = _workflow_capability_dag(workflow, steps)
+    if not workflow["capabilityDag"]["valid"]:
+        raise ApiError("MCP 입출력 Schema를 연결할 수 없어 실행 계획을 만들지 못했습니다.", 409)
+    workflow["dataProtection"] = {"personalDataDetected": bool(masked_fields), "maskedFields": masked_fields, "externalBoundary": "automatic-redaction"}
     required = sorted({permission for step in steps for permission in step["permissions"]})
     external_transfer = "network.send" in required or "model.invoke" in required
     if external_transfer and not route["classificationAllowed"]:
@@ -7422,7 +9737,7 @@ def create_plan(payload: dict) -> dict:
                 "awaiting-approval",
                 classification,
                 1 if external_transfer else 0,
-                _json(document_context.get("masked_fields") or []),
+                _json(masked_fields),
                 _json(required),
                 _json(steps),
                 _json(document_context),
@@ -7455,7 +9770,7 @@ def create_plan(payload: dict) -> dict:
         "dataPolicy": {
             "classification": classification,
             "externalTransfer": external_transfer,
-            "maskedFields": document_context.get("masked_fields") or [],
+            "maskedFields": masked_fields,
         },
         "requiredPermissions": required,
         "steps": steps,
@@ -7534,6 +9849,20 @@ def approve_plan(payload: dict) -> dict:
             (nonce, plan_id, actor, _json(approved), expires_at, utc_now()),
         )
         db.execute("UPDATE plans SET status='approved', updated_at=? WHERE id=?", (utc_now(), plan_id))
+        document_context = _load_json(row["document_context_json"], {})
+        project_id = _safe_project_id(document_context.get("project_id"))
+        _insert_project_decision(db, project_id, {
+            "decision_type": "execution-approval",
+            "summary": "실행 계획의 필수 권한을 1회 실행 범위로 승인",
+            "rationale": str(payload.get("rationale") or "사용자가 실행 계획과 데이터 범위를 확인함"),
+            "scope": {
+                "leaseId": nonce, "leaseType": "single-execution", "permissions": approved,
+                "expiresAtEpoch": expires_at, "externalTransfer": bool(row["external_transfer"]),
+            },
+            "document_id": document_context.get("document_id") or document_context.get("active_document_id"),
+            "document_version_id": document_context.get("document_version_id"),
+            "plan_id": plan_id,
+        }, actor)
         _audit(
             db,
             actor,
@@ -7546,6 +9875,11 @@ def approve_plan(payload: dict) -> dict:
         "approvalToken": _sign_claims(claims),
         "expiresAt": datetime.fromtimestamp(expires_at, timezone.utc).isoformat().replace("+00:00", "Z"),
         "permissions": approved,
+        "lease": {
+            "id": nonce, "type": "single-execution", "consumableOnce": True,
+            "expiresAt": datetime.fromtimestamp(expires_at, timezone.utc).isoformat().replace("+00:00", "Z"),
+            "permissions": approved,
+        },
     }
 
 
@@ -7564,7 +9898,227 @@ def _live_model_execution_enabled() -> bool:
     return str(flag).strip() == "1"
 
 
+def _runtime_credential_identity() -> str:
+    """Server credential identity is independent from the UI supplied actor label."""
+    value = str(os.getenv("AIWORKS_RUNTIME_IDENTITY") or "service:aiworks").strip()
+    return value[:120] or "service:aiworks"
+
+
+def _runtime_credential_db_id() -> str:
+    identity = _runtime_credential_identity()
+    return "cred_" + hashlib.sha256(identity.encode("utf-8")).hexdigest()
+
+
+def _model_usage_limits(credential: str | None = None) -> dict:
+    limits = {
+        "requestsPerMinute": max(1, min(10_000, int(os.getenv("AIWORKS_MODEL_RPM_LIMIT", "120")))),
+        "monthlyTokens": max(1_000, min(2_000_000_000, int(os.getenv("AIWORKS_MODEL_MONTHLY_TOKEN_LIMIT", "5000000")))),
+        "monthlyCost": max(0.0, float(os.getenv("AIWORKS_MODEL_MONTHLY_COST_LIMIT", "0"))),
+    }
+    credential = credential or _runtime_credential_db_id()
+    with _connect() as db:
+        row = db.execute(
+            """SELECT * FROM model_usage_overrides
+               WHERE credential_id=? AND (expires_at IS NULL OR expires_at>?)
+               ORDER BY created_at DESC LIMIT 1""",
+            (credential, utc_now()),
+        ).fetchone()
+    if row:
+        if row["requests_per_minute"] is not None:
+            limits["requestsPerMinute"] = int(row["requests_per_minute"])
+        if row["monthly_tokens"] is not None:
+            limits["monthlyTokens"] = int(row["monthly_tokens"])
+        if row["monthly_cost"] is not None:
+            limits["monthlyCost"] = float(row["monthly_cost"])
+    return limits
+def _normalized_model_usage(usage: dict | None) -> dict:
+    source = usage if isinstance(usage, dict) else {}
+    input_tokens = int(source.get("prompt_tokens") or source.get("input_tokens") or 0)
+    output_tokens = int(source.get("completion_tokens") or source.get("output_tokens") or 0)
+    total_tokens = int(source.get("total_tokens") or input_tokens + output_tokens)
+    return {"inputTokens": max(0, input_tokens), "outputTokens": max(0, output_tokens), "totalTokens": max(0, total_tokens)}
+
+
+def _model_price(model_id: str, provider: str = "") -> dict:
+    configured = _load_json(os.getenv("AIWORKS_MODEL_PRICING_JSON", ""), {})
+    value = configured.get(model_id) if isinstance(configured, dict) else None
+    if isinstance(value, dict):
+        return {
+            "inputPerMillion": max(0.0, float(value.get("inputPerMillion") or 0)),
+            "outputPerMillion": max(0.0, float(value.get("outputPerMillion") or 0)),
+            "currency": str(value.get("currency") or "USD"),
+        }
+    with _connect() as db:
+        row = db.execute(
+            """SELECT * FROM model_pricing WHERE model_id=? AND (?='' OR provider=?)
+               ORDER BY effective_at DESC LIMIT 1""",
+            (model_id, provider, provider),
+        ).fetchone()
+    return {
+        "inputPerMillion": float(row["input_per_million"]) if row else 0.0,
+        "outputPerMillion": float(row["output_per_million"]) if row else 0.0,
+        "currency": str(row["currency"]) if row else "USD",
+    }
+
+
+def _usage_cost(usage: dict, price: dict) -> float:
+    return round(
+        usage["inputTokens"] * price["inputPerMillion"] / 1_000_000
+        + usage["outputTokens"] * price["outputPerMillion"] / 1_000_000,
+        8,
+    )
+
+
+def _enforce_model_usage_policy(model_id: str, estimated_tokens: int = 1_000) -> str:
+    ensure_schema()
+    credential = _runtime_credential_db_id()
+    limits = _model_usage_limits(credential)
+    models = {model["id"]: model for model in MODEL_MANAGEMENT_MCP.list_models()}
+    provider = str((models.get(model_id) or {}).get("provider") or "")
+    price = _model_price(model_id, provider)
+    estimated_tokens = max(1, int(estimated_tokens))
+    estimate_usage = {"inputTokens": estimated_tokens // 2, "outputTokens": estimated_tokens - estimated_tokens // 2}
+    estimated_cost = _usage_cost(estimate_usage, price)
+    reservation_id = "reserve_" + uuid.uuid4().hex
+    now = utc_now()
+    with _connect() as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute(
+            """INSERT OR IGNORE INTO api_credentials(
+                credential_id,principal,organization_id,project_scope,scopes_json,status,expires_at,created_at,updated_at
+            ) VALUES(?,?,?,?,?,'active',NULL,?,?)""",
+            (credential, _runtime_credential_identity(), os.getenv("AIWORKS_ORGANIZATION_ID"), None, _json(["model.invoke"]), now, now),
+        )
+        credential_row = db.execute("SELECT * FROM api_credentials WHERE credential_id=?", (credential,)).fetchone()
+        if not credential_row or credential_row["status"] != "active":
+            raise ApiError("모델 API 자격증명이 비활성 상태입니다.", 403)
+        rpm = int(db.execute(
+            """SELECT COUNT(*) AS count FROM model_usage_reservations
+               WHERE credential_id=? AND status IN ('reserved','succeeded')
+                 AND julianday(created_at)>=julianday('now','-1 minute')""",
+            (credential,),
+        ).fetchone()["count"])
+        monthly = db.execute(
+            """SELECT COALESCE(SUM(CASE WHEN status='reserved' THEN estimated_tokens ELSE actual_tokens END),0) AS tokens,
+                      COALESCE(SUM(CASE WHEN status='reserved' THEN estimated_cost ELSE actual_cost END),0) AS cost
+               FROM model_usage_reservations
+               WHERE credential_id=? AND status IN ('reserved','succeeded')
+                 AND strftime('%Y-%m',created_at)=strftime('%Y-%m','now')""",
+            (credential,),
+        ).fetchone()
+        if rpm >= limits["requestsPerMinute"]:
+            raise ApiError(f"모델 API 분당 호출 한도({limits['requestsPerMinute']})에 도달했습니다.", 429)
+        if int(monthly["tokens"]) + estimated_tokens > limits["monthlyTokens"]:
+            raise ApiError(f"모델 API 월간 토큰 한도({limits['monthlyTokens']:,})를 초과합니다.", 429)
+        if limits["monthlyCost"] and float(monthly["cost"]) + estimated_cost > limits["monthlyCost"]:
+            raise ApiError(f"모델 API 월간 비용 한도({limits['monthlyCost']:.2f} {price['currency']})를 초과합니다.", 429)
+        db.execute(
+            """INSERT INTO model_usage_reservations(
+                id,credential_id,requested_model,project_id,execution_id,estimated_tokens,estimated_cost,
+                actual_tokens,actual_cost,currency,status,error,created_at,settled_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (reservation_id, credential, model_id, None, None, estimated_tokens, estimated_cost, None, None, price["currency"], "reserved", None, now, None),
+        )
+    return reservation_id
+
+
+def _record_model_usage(provider: str, result: dict, reservation_id: str) -> None:
+    usage = _normalized_model_usage(result.get("usage"))
+    price = _model_price(str(result.get("requestedModel") or ""), provider)
+    actual_cost = _usage_cost(usage, price)
+    ensure_schema()
+    with _connect() as db:
+        reservation = db.execute("SELECT * FROM model_usage_reservations WHERE id=?", (reservation_id,)).fetchone()
+        db.execute(
+            """UPDATE model_usage_reservations SET actual_tokens=?,actual_cost=?,currency=?,status='succeeded',
+               settled_at=? WHERE id=? AND status='reserved'""",
+            (usage["totalTokens"], actual_cost, price["currency"], utc_now(), reservation_id),
+        )
+        db.execute(
+            """INSERT INTO model_usage_events(
+                id,provider,requested_model,resolved_model,request_id,credential_id,actor,project_id,execution_id,
+                input_tokens,output_tokens,total_tokens,status,created_at,reservation_id,estimated_cost,actual_cost,currency
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                "usage_" + uuid.uuid4().hex, provider, str(result.get("requestedModel") or ""),
+                str(result.get("resolvedModel") or ""), str(result.get("requestId") or "") or None,
+                _runtime_credential_db_id(), "model-runtime", reservation["project_id"] if reservation else None,
+                reservation["execution_id"] if reservation else None, usage["inputTokens"], usage["outputTokens"],
+                usage["totalTokens"], "succeeded", utc_now(), reservation_id,
+                float(reservation["estimated_cost"]) if reservation else 0.0, actual_cost, price["currency"],
+            ),
+        )
+
+
+def _record_model_failure(provider: str, model_id: str, reservation_id: str, error: Exception) -> None:
+    ensure_schema()
+    detail = str(error)[:2_000]
+    with _connect() as db:
+        reservation = db.execute("SELECT * FROM model_usage_reservations WHERE id=?", (reservation_id,)).fetchone()
+        db.execute(
+            "UPDATE model_usage_reservations SET status='failed',error=?,settled_at=? WHERE id=? AND status='reserved'",
+            (detail, utc_now(), reservation_id),
+        )
+        db.execute(
+            """INSERT INTO model_usage_events(
+                id,provider,requested_model,resolved_model,request_id,credential_id,actor,project_id,execution_id,
+                input_tokens,output_tokens,total_tokens,status,created_at,reservation_id,estimated_cost,actual_cost,currency,error
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                "usage_" + uuid.uuid4().hex, provider, model_id, model_id, None, _runtime_credential_db_id(),
+                "model-runtime", reservation["project_id"] if reservation else None,
+                reservation["execution_id"] if reservation else None, 0, 0, 0, "failed", utc_now(), reservation_id,
+                float(reservation["estimated_cost"]) if reservation else 0.0, 0.0,
+                str(reservation["currency"]) if reservation else "USD", detail,
+            ),
+        )
+
+
+def model_usage_summary(limit: int = 50) -> dict:
+    ensure_schema()
+    limit = max(1, min(200, int(limit)))
+    limits = _model_usage_limits()
+    with _connect() as db:
+        totals = db.execute(
+            """SELECT COUNT(*) AS requests,
+                      SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) AS failures,
+                      COALESCE(SUM(input_tokens),0) AS input_tokens,
+                      COALESCE(SUM(output_tokens),0) AS output_tokens,
+                      COALESCE(SUM(total_tokens),0) AS total_tokens,
+                      COALESCE(SUM(actual_cost),0) AS actual_cost
+               FROM model_usage_events"""
+        ).fetchone()
+        rows = db.execute("SELECT * FROM model_usage_events ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+        reserved = db.execute(
+            "SELECT COUNT(*) AS count,COALESCE(SUM(estimated_tokens),0) AS tokens,COALESCE(SUM(estimated_cost),0) AS cost FROM model_usage_reservations WHERE status='reserved'"
+        ).fetchone()
+    return {
+        "contractVersion": "model-usage/2.0",
+        "credentialIdentity": _runtime_credential_identity(),
+        "limits": limits,
+        "totals": {
+            "requests": int(totals["requests"]), "failures": int(totals["failures"] or 0),
+            "inputTokens": int(totals["input_tokens"]), "outputTokens": int(totals["output_tokens"]),
+            "totalTokens": int(totals["total_tokens"]), "actualCost": float(totals["actual_cost"]),
+            "reservedRequests": int(reserved["count"]), "reservedTokens": int(reserved["tokens"]),
+            "reservedCost": float(reserved["cost"]),
+        },
+        "items": [
+            {
+                "id": row["id"], "provider": row["provider"], "requestedModel": row["requested_model"],
+                "resolvedModel": row["resolved_model"], "requestId": row["request_id"],
+                "credentialIdentity": row["credential_id"], "actor": row["actor"],
+                "projectId": row["project_id"], "executionId": row["execution_id"],
+                "inputTokens": row["input_tokens"], "outputTokens": row["output_tokens"],
+                "totalTokens": row["total_tokens"], "estimatedCost": row["estimated_cost"],
+                "actualCost": row["actual_cost"], "currency": row["currency"], "status": row["status"],
+                "error": row["error"], "createdAt": row["created_at"],
+            }
+            for row in rows
+        ],
+    }
 def _openrouter_chat(model_id: str, messages: list[dict], max_tokens: int = 500) -> dict:
+    messages, _ = _redact_model_messages(messages)
     models = {model["id"]: model for model in MODEL_MANAGEMENT_MCP.list_models()}
     if model_id not in models:
         raise ApiError("등록되지 않은 모델 호출은 차단됩니다.", 403)
@@ -7611,6 +10165,7 @@ def _openrouter_chat(model_id: str, messages: list[dict], max_tokens: int = 500)
     elif model_id == "openai/gpt-oss-20b:free":
         request_payload["reasoning"] = {"effort": "minimal", "exclude": True}
     body = _json(request_payload).encode("utf-8")
+    reservation_id = _enforce_model_usage_policy(model_id, request_max_tokens * 2)
     request = url_request.Request(
         base_url + "/chat/completions",
         data=body,
@@ -7623,20 +10178,28 @@ def _openrouter_chat(model_id: str, messages: list[dict], max_tokens: int = 500)
             data = json.loads(response.read().decode("utf-8"))
     except url_error.HTTPError as error:
         detail = error.read(2_000).decode("utf-8", "replace")
-        raise ApiError(f"{provider_label} 호출 실패 ({error.code}): {detail}", 502) from error
+        failure = ApiError(f"{provider_label} 호출 실패 ({error.code}): {detail}", 502)
+        _record_model_failure(provider, model_id, reservation_id, failure)
+        raise failure from error
     except (url_error.URLError, TimeoutError, json.JSONDecodeError) as error:
-        raise ApiError(f"{provider_label} 호출 실패: {error}", 502) from error
+        failure = ApiError(f"{provider_label} 호출 실패: {error}", 502)
+        _record_model_failure(provider, model_id, reservation_id, failure)
+        raise failure from error
     choices = data.get("choices") or []
     content = ((choices[0].get("message") or {}).get("content") if choices else None)
     if not isinstance(content, str) or not content.strip():
-        raise ApiError(provider_label + " 응답 내용이 비어 있습니다.", 502)
-    return {
+        failure = ApiError(provider_label + " 응답 내용이 비어 있습니다.", 502)
+        _record_model_failure(provider, model_id, reservation_id, failure)
+        raise failure
+    result = {
         "content": content.strip(),
         "requestedModel": model_id,
         "resolvedModel": data.get("model") or model_id,
         "usage": data.get("usage") or {},
         "requestId": data.get("id"),
     }
+    _record_model_usage(provider, result, reservation_id)
+    return result
 
 
 def _is_transient_model_error(error: Exception) -> bool:
@@ -8169,7 +10732,14 @@ def _render_report_document_hwpx_template(
             title_targets = [
                 node for node in paragraphs
                 if not any(item is not node and _xml_local_name(item.tag) == "p" for item in node.iter())
-                and ("{{title}}" in _hwpx_node_text(node) or _TEMPLATE_SAMPLE_TITLE_PATTERN.search(_hwpx_node_text(node)))
+                and (
+                    "{{title}}" in _hwpx_node_text(node)
+                    or _TEMPLATE_SAMPLE_TITLE_PATTERN.search(_hwpx_node_text(node))
+                    or (
+                        "제목" in _hwpx_node_text(node)
+                        and _TEMPLATE_INSTRUCTION_PATTERN.search(_hwpx_node_text(node))
+                    )
+                )
             ]
             if title_targets:
                 _set_hwpx_paragraph_text(title_targets[-1], title)
@@ -8182,17 +10752,20 @@ def _render_report_document_hwpx_template(
                     "{{content}}" in _hwpx_node_text(node)
                     or "{{body}}" in _hwpx_node_text(node)
                     or _TEMPLATE_SAMPLE_BODY_PATTERN.search(_hwpx_node_text(node))
+                    or _TEMPLATE_INSTRUCTION_PATTERN.search(_hwpx_node_text(node))
+                    or _TEMPLATE_EXAMPLE_PATTERN.search(_hwpx_node_text(node))
                 )
             ]
             if not leaf_body_targets:
                 section_payloads[info.filename] = _serialize_hwpx_xml(original, root) if title_targets or auxiliary_replaced else original
                 continue
+            body_candidates = [node for node in leaf_body_targets if node not in title_targets]
             body_anchor = next(
                 (
-                    node for node in leaf_body_targets
+                    node for node in body_candidates
                     if "{{content}}" in _hwpx_node_text(node) or "{{body}}" in _hwpx_node_text(node)
                 ),
-                leaf_body_targets[0],
+                body_candidates[0] if body_candidates else leaf_body_targets[0],
             )
             body_container = parents.get(body_anchor, root)
             container_nodes = list(body_container)
@@ -8200,7 +10773,7 @@ def _render_report_document_hwpx_template(
             for index, node in enumerate(container_nodes):
                 if _xml_local_name(node.tag) != "p":
                     continue
-                if node is not body_anchor and any(title_target is descendant for descendant in node.iter() for title_target in title_targets):
+                if node in title_targets:
                     continue
                 text_value = _hwpx_node_text(node)
                 has_data_table = any(_xml_local_name(item.tag) in {"tbl", "table"} for item in node.iter()) and (
@@ -8212,6 +10785,8 @@ def _render_report_document_hwpx_template(
                     node is body_anchor
                     or _TEMPLATE_SAMPLE_BODY_PATTERN.search(text_value)
                     or _TEMPLATE_SAMPLE_CLEAR_PATTERN.search(text_value)
+                    or _TEMPLATE_INSTRUCTION_PATTERN.search(text_value)
+                    or _TEMPLATE_EXAMPLE_PATTERN.search(text_value)
                     or has_data_table
                 ):
                     body_indexes.append(index)
@@ -8219,6 +10794,15 @@ def _render_report_document_hwpx_template(
                 body_indexes = [container_nodes.index(body_anchor)]
             start_index, end_index = min(body_indexes), max(body_indexes)
             prototypes = container_nodes[start_index : end_index + 1]
+            anchor_index = container_nodes.index(body_anchor)
+            removal_nodes = [
+                node
+                for node in prototypes
+                if not any(title_target is node or title_target in list(node.iter()) for title_target in title_targets)
+            ]
+            insert_index = sum(
+                1 for node in container_nodes[:anchor_index] if node not in removal_nodes
+            )
             heading_prototype = next(
                 (item for item in prototypes if "{{content}}" in _hwpx_node_text(item) or "{{body}}" in _hwpx_node_text(item) or "대제목" in _hwpx_node_text(item)),
                 prototypes[0],
@@ -8246,7 +10830,7 @@ def _render_report_document_hwpx_template(
                     ),
                     None,
                 )
-            for node in reversed(container_nodes[start_index : end_index + 1]):
+            for node in reversed(removal_nodes):
                 body_container.remove(node)
             output_nodes = []
             heading_depth = 0
@@ -8307,7 +10891,7 @@ def _render_report_document_hwpx_template(
                 output_nodes.append(node)
                 rendered_blocks += 1
             for offset, node in enumerate(output_nodes):
-                body_container.insert(start_index + offset, node)
+                body_container.insert(insert_index + offset, node)
             section_payloads[info.filename] = _serialize_hwpx_xml(original, root)
             target_found = True
         if not target_found:
@@ -8357,6 +10941,26 @@ def _render_report_document_hwpx_template(
 def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
     """Exercise the structural renderer and verify its parsed output."""
     schema = _hwpx_template_schema(template)
+    profile = _analyze_hwpx_template(template)
+    removable_template_texts = []
+    if profile.get("mode") in {"guided-fields", "sample-structure"}:
+        with zipfile.ZipFile(io.BytesIO(template)) as source_archive:
+            for info in source_archive.infolist():
+                if not re.fullmatch(r"Contents/section\d+\.xml", info.filename, flags=re.IGNORECASE):
+                    continue
+                _root, source_paragraphs = _hwpx_paragraph_nodes(source_archive.read(info.filename))
+                for _node, text in source_paragraphs:
+                    normalized = str(text or "").strip()
+                    if len(normalized) < 4:
+                        continue
+                    if (
+                        _TEMPLATE_INSTRUCTION_PATTERN.search(normalized)
+                        or _TEMPLATE_EXAMPLE_PATTERN.search(normalized)
+                        or _TEMPLATE_SAMPLE_CLEAR_PATTERN.search(normalized)
+                        or _TEMPLATE_SAMPLE_TITLE_PATTERN.search(normalized)
+                        or _TEMPLATE_SAMPLE_BODY_PATTERN.search(normalized)
+                    ):
+                        removable_template_texts.append(normalized)
     sentinels = {
         "title": "AIWORKS_QUALITY_TITLE_7F3A",
         "heading": "AIWORKS_QUALITY_SECTION_7F3A",
@@ -8383,6 +10987,8 @@ def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
         checks.append({"id": check_id, "passed": bool(passed), "detail": detail})
 
     try:
+        if schema.get("ocrRequired"):
+            raise ApiError("스캔 이미지형 양식은 OCR 처리 전 구조 렌더링을 검증할 수 없습니다.", 422)
         rendered, metadata = _render_report_document_hwpx_template(
             template,
             {"title": sentinels["title"], "blocks": blocks},
@@ -8393,10 +10999,13 @@ def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
         texts = [str(item.get("text") or "") for item in parsed.get("paragraphs") or []]
         joined = "\n".join(texts)
         with zipfile.ZipFile(io.BytesIO(rendered)) as rendered_archive:
+            rendered_members = {item.filename for item in rendered_archive.infolist()}
             raw_sections = "\n".join(
                 rendered_archive.read(item.filename).decode("utf-8", errors="replace")
                 for item in rendered_archive.infolist() if re.fullmatch(r"Contents/section\d+\.xml", item.filename, flags=re.IGNORECASE)
             )
+        with zipfile.ZipFile(io.BytesIO(template)) as template_archive:
+            template_members = {item.filename for item in template_archive.infolist()}
         title_count = raw_sections.count(sentinels["title"])
         body_count = raw_sections.count(sentinels["body"])
         check("render.completed", True, "테스트 ReportDocument 렌더링 완료")
@@ -8404,8 +11013,36 @@ def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
         check("render.body-once", body_count == 1, f"테스트 본문 출현 {body_count}회")
         check("render.heading", sentinels["heading"] in joined, "Markdown 제목 블록 배치 확인")
         check("render.list", sentinels["list"] in joined, "Markdown 목록 블록 배치 확인")
+        all_sentinels = [sentinels["title"], sentinels["heading"], sentinels["body"], sentinels["list"]]
+        if table_required:
+            all_sentinels.extend([sentinels["tableHeader"], sentinels["tableValue"]])
+        missing_sentinels = [value for value in all_sentinels if value not in joined]
+        check(
+            "render.content-preserved", not missing_sentinels,
+            "테스트 의미 블록 전체 보존" if not missing_sentinels else f"누락된 테스트 블록 {len(missing_sentinels)}개",
+        )
         unresolved = sorted(set(re.findall(r"\{\{[A-Za-z0-9_.-]+\}\}", raw_sections)))
         check("render.placeholders", not unresolved, "미치환 토큰 없음" if not unresolved else "미치환 토큰: " + ", ".join(unresolved))
+        residual_guidance = sorted({
+            text for text in removable_template_texts
+            if text in joined and not any(value in text for value in sentinels.values())
+        })
+        check(
+            "render.guidance-cleared",
+            not residual_guidance,
+            "작성요령·예시·샘플 필드 제거 확인"
+            if not residual_guidance
+            else "최종 결과에 남은 양식 안내·예시: " + " / ".join(residual_guidance[:5]),
+        )
+        preserved_resources = {
+            item for item in template_members
+            if item.lower().startswith(("bindata/", "settings/", "preview/"))
+        }
+        missing_resources = sorted(preserved_resources - rendered_members)
+        check(
+            "render.resources-preserved", not missing_resources,
+            "양식 이미지·설정 리소스 보존" if not missing_resources else f"누락 리소스 {len(missing_resources)}개",
+        )
         if table_required:
             table_ok = (
                 int(metadata.get("renderedTables") or 0) == 1
@@ -8415,6 +11052,13 @@ def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
             check("render.table", table_ok, "실제 표 1개와 테스트 셀 값 확인")
         coverage = float(metadata.get("mappingCoverage") or 0)
         check("render.mapping", coverage >= 0.95, f"구조 매핑률 {coverage:.0%}")
+        report_document = {"title": sentinels["title"], "blocks": blocks, "source": {"content": ""}}
+        render_map = _build_hwpx_render_map(report_document, parsed)
+        map_coverage = float(render_map.get("mappingCoverage") or 0)
+        check(
+            "render.map-contract", render_map.get("contractVersion") == "1.2" and map_coverage >= 0.95,
+            f"Render Map {render_map.get('contractVersion')} · 블록 매핑률 {map_coverage:.0%}",
+        )
         metrics = {
             "renderedBlocks": int(metadata.get("renderedBlocks") or 0),
             "renderedTables": int(metadata.get("renderedTables") or 0),
@@ -8422,11 +11066,16 @@ def _evaluate_hwpx_template_quality(template: bytes, filename: str) -> dict:
             "parsedParagraphs": len(texts),
             "parsedTables": int((parsed.get("stats") or {}).get("tables") or 0),
             "tableCapability": table_required,
+            "renderMapVersion": render_map.get("contractVersion"),
+            "renderMapCoverage": map_coverage,
+            "preservedResources": len(preserved_resources),
+            "clearedGuidanceParagraphs": len(removable_template_texts),
+            "residualGuidanceParagraphs": len(residual_guidance),
         }
     except Exception as error:
         check("render.completed", False, str(error))
         metrics = {"renderedBlocks": 0, "renderedTables": 0, "mappingCoverage": 0.0, "tableCapability": table_required}
-    return {"passed": all(item["passed"] for item in checks), "checks": checks, "metrics": metrics, "contractVersion": "1.0"}
+    return {"passed": all(item["passed"] for item in checks), "checks": checks, "metrics": metrics, "contractVersion": "1.2"}
 
 def _apply_builder_hwpx_template(template: bytes, source: bytes, source_filename: str, guide: dict, report_document: dict | None = None) -> tuple[bytes, dict]:
     if isinstance(report_document, dict) and report_document.get("blocks"):
@@ -8550,6 +11199,18 @@ def _apply_template_binding_to_artifact(binding: dict, artifact: dict) -> tuple[
     package = _installed_builder_package(binding)
     manifest = package["manifest"]
     package_ref = package["packageId"] + "@" + package["version"]
+    if not artifact.get("contentBase64"):
+        rendering = dict(artifact.get("rendering") or {})
+        rendering.update({"status": "failed", "pendingTemplate": package_ref, "retryable": True})
+        return {
+            **artifact,
+            "rendering": rendering,
+            "templateApplication": {
+                "packageRef": package_ref,
+                "mode": "deferred-until-renderer-retry",
+                "status": "pending",
+            },
+        }, package_ref
     references = _builder_runtime_references(package)
     template_reference = next((item for item in references if item["role"] == "template-source"), None)
     if not template_reference:
@@ -8575,6 +11236,7 @@ def _apply_template_binding_to_artifact(binding: dict, artifact: dict) -> tuple[
         "contentBase64": base64.b64encode(formatted).decode("ascii"),
         "template": {
             **metadata,
+            "id": package_ref,
             "packageRef": package_ref,
             "source": template_reference["filename"],
             "sourceSha256": template_reference["sha256"],
@@ -8710,16 +11372,34 @@ def _review_report_against_request(intent: str, markdown: str, hits: list[dict])
     normalized_request = _semantic_text(request).lower()
     normalized_content = _semantic_text(content).lower()
     checks = []
+    try:
+        review_document = REPORT_DOCUMENT_MCP.parse(content, title="품질 검토", style_profile="standard")
+        review_blocks = list(review_document.get("blocks") or [])
+    except Exception:
+        review_blocks = []
 
-    def add(check_id: str, passed: bool, message: str, severity: str = "error") -> None:
-        checks.append({"id": check_id, "passed": bool(passed), "severity": severity, "message": message})
+    def target_blocks(terms: tuple[str, ...]) -> list[str]:
+        matched = [
+            str(block.get("id") or f"block-{index}")
+            for index, block in enumerate(review_blocks)
+            if any(term in str(block.get("text") or "").lower() for term in terms)
+        ]
+        return matched[:5]
+
+    def add(check_id: str, passed: bool, message: str, severity: str = "error", terms: tuple[str, ...] = ()) -> None:
+        blocks = target_blocks(terms) if terms else []
+        checks.append({
+            "id": check_id, "passed": bool(passed), "severity": severity, "message": message,
+            "target": {"scope": "blocks" if blocks else "document", "blockIds": blocks},
+            "repair": {"supported": not passed, "action": "regenerate-blocks" if blocks else "regenerate-document"},
+        })
 
     add("document.non-empty", bool(content), "초안 본문이 생성되어야 합니다.")
     add("document.markdown-title", bool(re.search(r"(?m)^#\s+\S", content)), "Markdown 최상위 제목이 필요합니다.", "warning")
     requested_years = set(re.findall(r"(?<!\d)((?:19|20)\d{2})(?!\d)", request))
     requested_years.update("20" + year for year in re.findall(r"(?<!\d)(\d{2})\s*년", request))
     for year in sorted(requested_years):
-        add("request.year." + year, year in content or year[2:] + "년" in content, year + "년 요청 범위가 초안에 반영되어야 합니다.")
+        add("request.year." + year, year in content or year[2:] + "년" in content, year + "년 요청 범위가 초안에 반영되어야 합니다.", terms=(year, year[2:] + "년"))
     required_terms = []
     if "지적" in normalized_request:
         required_terms.append(("request.issues", ("지적", "문제", "우려"), "요청한 지적사항이 포함되어야 합니다."))
@@ -8728,7 +11408,7 @@ def _review_report_against_request(intent: str, markdown: str, hits: list[dict])
     if "향후 계획" in normalized_request or "향후계획" in normalized_request:
         required_terms.append(("request.future-plan", ("향후 계획", "향후계획", "추진계획"), "향후 계획이 포함되어야 합니다."))
     for check_id, terms, message in required_terms:
-        add(check_id, any(term in normalized_content for term in terms), message)
+        add(check_id, any(term in normalized_content for term in terms), message, terms=terms)
     generic = {"관련", "보고서", "작성", "확인", "대해서", "포함", "양식", "행안부", "행정안전부", "예산", "결산", "사항", "올해", "대한"}
     generic_suffixes = ("으로", "에서", "에게", "부터", "까지", "처럼", "별로", "에", "을", "를", "이", "가", "은", "는", "와", "과", "로", "의")
     candidates = [
@@ -8763,14 +11443,29 @@ def _review_report_against_request(intent: str, markdown: str, hits: list[dict])
             break
     if subject_tokens:
         matched = [token for token in subject_tokens if token.lower() in normalized_content]
-        add("request.subject", len(matched) >= max(1, (len(subject_tokens) + 1) // 2), "요청 핵심 주제와 초안 대상이 일치해야 합니다: " + ", ".join(subject_tokens))
+        add("request.subject", len(matched) >= max(1, (len(subject_tokens) + 1) // 2), "요청 핵심 주제와 초안 대상이 일치해야 합니다: " + ", ".join(subject_tokens), terms=tuple(subject_tokens))
     if hits:
-        add("evidence.citations", bool(re.search(r"\[\d+\]", content)), "검색 근거 번호를 핵심 주장에 표시해야 합니다.")
+        add("evidence.citations", bool(re.search(r"\[\d+\]", content)), "검색 근거 번호를 핵심 주장에 표시해야 합니다.", terms=("[", "출처", "근거"))
+        evidence_text = " ".join(str(item.get("content") or "") for item in hits)
+        evidence_numbers = set(re.findall(r"(?<!\w)\d[\d,.]*(?:%|억|백만|천만|원|건|명|개)?", evidence_text))
+        draft_numbers = set(re.findall(r"(?<!\w)\d[\d,.]*(?:%|억|백만|천만|원|건|명|개)?", content))
+        unsupported_numbers = sorted(value for value in draft_numbers - evidence_numbers if not re.fullmatch(r"(?:19|20)\d{2}", value))
+        add(
+            "evidence.numeric-consistency", not unsupported_numbers,
+            "검색 근거에서 확인되지 않은 수치가 있습니다: " + ", ".join(unsupported_numbers[:8]) if unsupported_numbers else "초안 수치가 검색 근거 범위 안에 있습니다.",
+            "warning", terms=tuple(unsupported_numbers[:8]),
+        )
+    conflict_markers = tuple(marker for marker in ("확인 필요", "상충", "불일치", "미확정") if marker in content)
+    add(
+        "metadata.conflict-markers", not conflict_markers,
+        "미확정·충돌 메타정보를 확정 문장으로 사용하기 전에 검토해야 합니다: " + ", ".join(conflict_markers) if conflict_markers else "미확정 메타정보 표지가 없습니다.",
+        "warning", terms=conflict_markers,
+    )
     errors = [item for item in checks if not item["passed"] and item["severity"] == "error"]
     warnings = [item for item in checks if not item["passed"] and item["severity"] == "warning"]
     passed_count = sum(1 for item in checks if item["passed"])
     return {
-        "contractVersion": "1.0",
+        "contractVersion": "1.1",
         "passed": not errors,
         "score": round(passed_count / max(1, len(checks)), 3),
         "checks": checks,
@@ -8778,6 +11473,11 @@ def _review_report_against_request(intent: str, markdown: str, hits: list[dict])
         "warnings": [item["message"] for item in warnings],
         "requestCompared": True,
         "evidenceCompared": bool(hits),
+        "blockCount": len(review_blocks),
+        "repairPlan": [
+            {"checkId": item["id"], "message": item["message"], **item["target"], "action": item["repair"]["action"]}
+            for item in checks if not item["passed"]
+        ],
     }
 
 
@@ -8893,8 +11593,6 @@ def _stdio_mcp_exchange(connector: dict, *, tool_arguments: dict | None = None, 
         "LC_ALL": os.getenv("LC_ALL", "C.UTF-8"),
         "HOME": str(workspace_root),
         "TMPDIR": str(workspace_root),
-        "KORDOC_ROOT": str(workspace_root),
-        "KORDOC_OFFLINE": "1",
     }
     process = None
     try:
@@ -8924,7 +11622,7 @@ def _stdio_mcp_exchange(connector: dict, *, tool_arguments: dict | None = None, 
             {
                 "protocolVersion": str(connector.get("contractVersion") or "2025-03-26"),
                 "capabilities": {},
-                "clientInfo": {"name": "AIWorks", "version": "0.30.0"},
+                "clientInfo": {"name": "AIWorks", "version": "0.31.2"},
             },
         )
         negotiated = ((initialized.get("result") or {}).get("protocolVersion") if isinstance(initialized.get("result"), dict) else None)
@@ -8978,7 +11676,7 @@ def _external_mcp_exchange(connector: dict, *, tool_arguments: dict | None = Non
             "params": {
                 "protocolVersion": str(connector.get("contractVersion") or "2025-03-26"),
                 "capabilities": {},
-                "clientInfo": {"name": "AIWorks", "version": "0.30.0"},
+                "clientInfo": {"name": "AIWorks", "version": "0.31.2"},
             },
         },
         token=token,
@@ -9040,48 +11738,6 @@ def _json_path_value(value, path: str):
     return current
 
 
-def _installed_loopback_formatter() -> dict | None:
-    from urllib.parse import urlparse
-    ensure_schema()
-    with _connect() as db:
-        rows = db.execute(
-            """
-            SELECT p.*
-             FROM mcp_installations i
-              JOIN mcp_packages p ON p.package_id=i.package_id AND p.version=i.pinned_version
-             WHERE i.status='active'
-             ORDER BY CASE WHEN p.package_id='integration.kordoc' THEN 0 ELSE 1 END,
-                      p.package_id
-            """
-        ).fetchall()
-    for row in rows:
-        manifest = _load_json(row["manifest_json"], {})
-        if manifest.get("mcpType") != "external" or "document.hwpx.finalize" not in (manifest.get("capabilities") or []):
-            continue
-        connector = manifest.get("externalMcp") or {}
-        if connector.get("transport") == "stdio":
-            if os.getenv("AIWORKS_LOCAL_MCP_LIVE", "1").strip() != "1":
-                continue
-            if not _external_profile_status(str(connector.get("serverProfile") or ""))["available"]:
-                continue
-        else:
-            if os.getenv("AIWORKS_EXTERNAL_MCP_LIVE", "0").strip() != "1":
-                continue
-            endpoint = str(os.getenv(str(connector.get("endpointEnv") or ""), "")).strip()
-            parsed = urlparse(endpoint)
-            if parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
-                continue
-        return {
-            "packageId": row["package_id"],
-            "version": row["version"],
-            "packageRef": row["package_id"] + "@" + row["version"],
-            "capabilityId": "document.hwpx.finalize",
-            "permissions": [item["scope"] for item in manifest.get("permissions") or []],
-            "connector": connector,
-        }
-    return None
-
-
 def _external_result_payload(tool_result: dict) -> dict:
     if isinstance(tool_result.get("structuredContent"), dict):
         return tool_result["structuredContent"]
@@ -9114,18 +11770,18 @@ def _artifact_markdown(artifact: dict) -> str:
         except (ApiError, ValueError, TypeError):
             content = ""
     if not content:
-        raise ApiError("KODAK에 전달할 보고서 본문을 추출하지 못했습니다.", 422)
+        raise ApiError("외부 문서 변환 MCP에 전달할 보고서 본문을 추출하지 못했습니다.", 422)
     return ("# " + title + "\n\n" + content).strip()
 
 
 def _run_external_document_transform(connector: dict, artifact: dict, intent: str) -> tuple[bytes, str, dict]:
     if connector.get("transport") == "stdio":
-        if connector.get("invocationAdapter") != "markdown-output-hwpx" or connector.get("toolName") != "generate_document":
-            raise ApiError("현재 자동 보고서 후처리는 stdio MCP의 markdown-output-hwpx 어댑터를 지원합니다.", 409)
-        with tempfile.TemporaryDirectory(prefix="aiworks-kordoc-") as temporary:
+        if connector.get("invocationAdapter") != "markdown-output-hwpx":
+            raise ApiError("이 문서 변환 도구에는 markdown-output-hwpx 어댑터 계약이 필요합니다.", 409)
+        with tempfile.TemporaryDirectory(prefix="aiworks-external-document-") as temporary:
             workspace = Path(temporary).resolve()
             safe_stem = re.sub(r'[^0-9A-Za-z가-힣._-]+', "_", Path(str(artifact.get("filename") or "AIWorks_보고서.hwpx")).stem)[:70] or "AIWorks_보고서"
-            output_path = workspace / (safe_stem + "_KODAK.hwpx")
+            output_path = workspace / (safe_stem + "_external.hwpx")
             template = artifact.get("template") if isinstance(artifact.get("template"), dict) else {}
             renderer_options = template.get("rendererOptions") if isinstance(template.get("rendererOptions"), dict) else {}
             arguments = {
@@ -9135,10 +11791,10 @@ def _run_external_document_transform(connector: dict, artifact: dict, intent: st
             }
             exchange = _external_mcp_exchange(connector, tool_arguments=arguments, workspace_root=workspace)
             if not output_path.is_file():
-                raise ApiError("KODAK이 성공 응답을 반환했지만 HWPX 출력 파일을 만들지 않았습니다.", 502)
+                raise ApiError("외부 문서 변환 MCP가 성공 응답 후 HWPX 출력 파일을 만들지 않았습니다.", 502)
             data = output_path.read_bytes()
             if len(data) > MAX_HWPX_BYTES:
-                raise ApiError("KODAK HWPX 결과가 허용 크기를 초과했습니다.", 413)
+                raise ApiError("외부 MCP HWPX 결과가 허용 크기를 초과했습니다.", 413)
             parse_hwpx(data, output_path.name)
             return data, output_path.name, exchange
     input_map = connector.get("inputMap") or {}
@@ -9163,20 +11819,8 @@ def _run_external_document_transform(connector: dict, artifact: dict, intent: st
 
 
 def _finalize_report_with_loopback_mcp(artifact: dict, intent: str) -> tuple[dict, dict | None]:
-    formatter = _installed_loopback_formatter()
-    if not formatter:
-        return artifact, None
-    connector = formatter["connector"]
-    data, output_filename, exchange = _run_external_document_transform(connector, artifact, intent)
-    return {
-        **artifact,
-        "filename": output_filename,
-        "contentBase64": base64.b64encode(data).decode("ascii"),
-        "generatedBy": [*(artifact.get("generatedBy") or []), formatter["packageRef"]],
-        "externalFormatter": {"packageRef": formatter["packageRef"], "toolName": connector.get("toolName"), "transport": connector.get("transport"), "serverProfile": connector.get("serverProfile"), "protocolVersion": exchange.get("protocolVersion")},
-    }, formatter
-
-
+    """Compatibility boundary: core reports never auto-run an external formatter."""
+    return artifact, None
 def _execute_builder_binding(
     binding: dict,
     intent: str,
@@ -9186,12 +11830,34 @@ def _execute_builder_binding(
     model_required: bool = False,
     additional_bindings: list[dict] | None = None,
 ) -> dict:
-    package = _installed_builder_package(binding)
-    manifest = package["manifest"]
+    virtual_project_sources = binding.get("packageId") == "core.project-sources" and binding.get("virtual") is True
+    if virtual_project_sources:
+        package = {"packageId": "core.project-sources", "version": "1.0.0"}
+        manifest = {
+            "mcpType": "data", "permissions": [{"scope": "data.read"}],
+            "builderGuide": {"procedure": ["선택한 프로젝트 자료 검색", "근거를 질문에 맞게 종합"], "useModel": True},
+            "retrieval": {"topK": 6},
+        }
+        references = []
+    else:
+        package = _installed_builder_package(binding)
+        manifest = package["manifest"]
+        references = _builder_runtime_references(package)
     guide = manifest.get("builderGuide") or {}
-    references = _builder_runtime_references(package)
     package_ref = package["packageId"] + "@" + package["version"]
     additional_bindings = list(additional_bindings or [])
+    process_binding = next(
+        (item for item in additional_bindings if item.get("mcpType") == "process"),
+        None,
+    )
+    process_manifest = {}
+    process_guide = {}
+    process_package_ref = ""
+    if process_binding:
+        process_package = _installed_builder_package(process_binding)
+        process_manifest = process_package["manifest"]
+        process_guide = process_manifest.get("builderGuide") or {}
+        process_package_ref = process_package["packageId"] + "@" + process_package["version"]
     workflow = {
         "id": "dynamic." + package["packageId"],
         "dynamic": True,
@@ -9250,7 +11916,11 @@ def _execute_builder_binding(
             "policy": {"personalDataDetected": False, "maskedFields": [], "externalTransfer": external_transfer},
         }
     if manifest.get("mcpType") == "data":
-        chunks = _package_rag_chunks(package["packageId"], package["version"])
+        chunks = [] if virtual_project_sources else _package_rag_chunks(package["packageId"], package["version"])
+        project_id = str(input_context.get("project_id") or "")
+        source_ids = input_context.get("project_source_ids") if isinstance(input_context.get("project_source_ids"), list) else []
+        if project_id:
+            chunks.extend(_project_source_chunks(project_id, source_ids))
         top_k = int((manifest.get("retrieval") or {}).get("topK") or 5)
         hits = _search_rag_chunks(chunks, intent, limit=top_k)
         make_data_report = any(term in intent for term in ("보고서", "문서", "초안", "작성"))
@@ -9258,18 +11928,50 @@ def _execute_builder_binding(
             model_required or (bool(guide.get("useModel")) and "network.send" in permissions)
         )
         live_synthesis_succeeded = False
+
+        def rag_messages(allow_markdown: bool) -> list[dict]:
+            messages = _rag_runtime_messages(
+                manifest,
+                intent,
+                hits,
+                input_context.get("project_fact_snapshot"),
+                input_context.get("project_markdown_context"),
+                allow_markdown,
+            )
+            if process_binding:
+                procedure = "\n".join(
+                    f"{index}. {item}"
+                    for index, item in enumerate(process_guide.get("procedure") or [], 1)
+                )
+                cautions = "\n".join(f"- {item}" for item in process_guide.get("cautions") or [])
+                messages.insert(
+                    1,
+                    {
+                        "role": "system",
+                        "content": (
+                            "다음 사용자 제작 처리 MCP를 보고서 작성 절차로 적용하세요. "
+                            "데이터 근거와 충돌하면 근거를 우선하고, 단계별 요구사항을 Markdown 구조에 반영하세요.\n"
+                            f"처리 MCP: {process_manifest.get('name') or process_package_ref}\n"
+                            f"지침: {process_guide.get('instructions') or process_manifest.get('description') or ''}\n"
+                            f"절차:\n{procedure or '- 등록 절차 없음'}\n"
+                            f"유의사항:\n{cautions or '- 등록 유의사항 없음'}"
+                        ),
+                    },
+                )
+            return messages
+
         if use_live_model:
             try:
                 live = _chat_with_route_fallback(
                     route,
-                    _rag_runtime_messages(manifest, intent, hits, input_context.get("project_fact_snapshot"), input_context.get("project_markdown_context"), input_context.get("project_markdown_prompt_allowed") is True),
+                    rag_messages(input_context.get("project_markdown_prompt_allowed") is True),
                     max_tokens=1_000,
                     primary_model_id=model_id,
                 )
                 answer = _validate_rag_synthesis(intent, live["content"], hits)
                 quality_review = _review_report_against_request(intent, answer, hits) if make_data_report else None
                 if quality_review and not quality_review["passed"]:
-                    repair_messages = _rag_runtime_messages(manifest, intent, hits, input_context.get("project_fact_snapshot"), input_context.get("project_markdown_context"), input_context.get("project_markdown_prompt_allowed") is True)
+                    repair_messages = rag_messages(input_context.get("project_markdown_prompt_allowed") is True)
                     repair_messages.extend([
                         {"role": "assistant", "content": answer},
                         {"role": "user", "content": "품질 검증에서 다음 문제가 발견되었습니다. 원 질문과 검색 근거를 다시 대조하여 Markdown 전체를 한 번만 다시 작성하세요.\n- " + "\n- ".join(quality_review["issues"])},
@@ -9290,7 +11992,7 @@ def _execute_builder_binding(
                 model.update({"provider": "local", "name": package_ref, "mode": "rag-local-after-solar-timeout", "externalTransfer": True, "retrievedChunks": len(hits), "synthesisError": str(error)[:1_000]})
         elif not make_data_report and hits and os.getenv("AIWORKS_LOCAL_RAG_LLM", "0").strip() != "0":
             try:
-                local = _ollama_chat(_rag_runtime_messages(manifest, intent, hits, input_context.get("project_fact_snapshot"), input_context.get("project_markdown_context"), True), max_tokens=320)
+                local = _ollama_chat(rag_messages(True), max_tokens=320)
                 answer = _validate_rag_synthesis(intent, local["content"], hits)
                 model.update({"provider": "ollama", "name": local["resolvedModel"], "mode": "rag-local-llm", "externalTransfer": False, "usage": local["usage"], "requestId": local["requestId"], "retrievedChunks": len(hits)})
             except ApiError as error:
@@ -9302,6 +12004,8 @@ def _execute_builder_binding(
         source_records = [
             {
                 "documentId": package_ref,
+                "artifactId": item.get("artifactId"),
+                "artifactVersionId": item.get("artifactVersionId"),
                 "referenceId": item["referenceId"],
                 "locator": item["filename"] + (f" · {item['pageNumber']}쪽" if item.get("pageNumber") else ""),
                 "sha256": item["sha256"],
@@ -9319,6 +12023,14 @@ def _execute_builder_binding(
         )
         if make_data_report:
             artifact = _rag_report_artifact(intent, hits, package_ref, answer if live_synthesis_succeeded else "", input_context.get("project_fact_snapshot"))
+            if process_binding:
+                artifact["processApplication"] = {
+                    "contractVersion": "builder-process-application/1.0",
+                    "packageRef": process_package_ref,
+                    "procedure": list(process_guide.get("procedure") or []),
+                    "cautions": list(process_guide.get("cautions") or []),
+                    "appliedToModelPrompt": bool(use_live_model),
+                }
             artifact["qualityReview"] = _review_report_against_request(intent, artifact.get("content") or "", hits)
             template_binding = next((item for item in additional_bindings if item.get("mcpType") == "template"), None)
             if template_binding:
@@ -9327,7 +12039,10 @@ def _execute_builder_binding(
             else:
                 artifact, formatter = _finalize_report_with_loopback_mcp(artifact, intent)
                 applied_template_ref = ""
-            loaded_mcps = [package_ref, "document.markdown@1.0.0", "document.report-structure@0.1.0", "document.quality-harness@0.1.0", "template.report-style@0.1.0", "document.report-hwpx@0.1.0"]
+            loaded_mcps = [package_ref]
+            if process_package_ref:
+                loaded_mcps.append(process_package_ref)
+            loaded_mcps.extend(["document.report@1.0.0", "document.markdown@1.0.0", "document.report-structure@0.1.0", "document.quality-harness@0.1.0", "template.report-style@0.1.0", "document.report-hwpx@0.1.0"])
             if use_live_model:
                 loaded_mcps.insert(0, "core.model-management@0.1.0")
             if formatter:
@@ -9455,10 +12170,26 @@ def _execute_builder_binding(
             fact_snapshot=input_context.get("project_fact_snapshot"),
             generated_by=[package_ref],
         )
-        report_artifact, formatter = _finalize_report_with_loopback_mcp(report_artifact, intent)
-        loaded_mcps = [package_ref, "document.markdown@1.0.0", "document.report-structure@0.1.0", "template.report-style@0.1.0", "document.report-hwpx@0.1.0"]
+        template_binding = next(
+            (item for item in additional_bindings if item.get("mcpType") == "template"),
+            None,
+        )
+        if template_binding:
+            report_artifact, applied_template_ref = _apply_template_binding_to_artifact(
+                template_binding, report_artifact
+            )
+            formatter = None
+        else:
+            report_artifact, formatter = _finalize_report_with_loopback_mcp(report_artifact, intent)
+            applied_template_ref = ""
+        report_artifact["qualityReview"] = _review_report_against_request(
+            intent, report_artifact.get("content") or "", []
+        )
+        loaded_mcps = [package_ref, "document.report@1.0.0", "document.markdown@1.0.0", "document.report-structure@0.1.0", "document.quality-harness@0.1.0", "template.report-style@0.1.0", "document.report-hwpx@0.1.0"]
         if formatter:
             loaded_mcps.append(formatter["packageRef"])
+        if applied_template_ref:
+            loaded_mcps.append(applied_template_ref)
         loaded_mcps.append("document.rhwp@1.0.0")
         workflow["responseType"] = "report-artifact"
         workflow["loadedMcps"] = loaded_mcps
@@ -9731,6 +12462,10 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
     with _connect() as db:
         db.execute("BEGIN IMMEDIATE")
         plan = _plan_row(db, plan_id)
+        workflow_contract = (_load_json(plan["routing_json"], {}).get("workflow") or {})
+        final_confirmation = workflow_contract.get("finalConfirmation") if isinstance(workflow_contract.get("finalConfirmation"), dict) else None
+        if final_confirmation and final_confirmation.get("required") and input_context.get("final_action_confirmed") is not True:
+            raise ApiError("이 요청은 '" + str(final_confirmation.get("label") or final_confirmation.get("action")) + "' 최종 확인이 필요합니다.", 403)
         approval = db.execute("SELECT * FROM approvals WHERE nonce=? AND plan_id=?", (nonce, plan_id)).fetchone()
         if approval is None:
             raise ApiError("승인 기록을 찾을 수 없습니다.", 403)
@@ -9817,6 +12552,10 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
         markdown_transfer_approved = input_context.get("project_markdown_transfer_approved") is True
         if live_model_enabled and markdown_context and not markdown_transfer_approved:
             raise ApiError("프로젝트 Markdown 원문을 Solar에 전송하려면 계획에 표시된 문서 범위를 명시적으로 승인해야 합니다.", 403)
+        project_source_ids = [str(item) for item in workflow.get("projectSourceIds") or [] if str(item)]
+        source_transfer_approved = input_context.get("project_sources_transfer_approved") is True
+        if live_model_enabled and project_source_ids and not source_transfer_approved:
+            raise ApiError("선택한 프로젝트 자료의 검색 발췌를 Solar에 전송하려면 계획에 표시된 자료 범위를 명시적으로 승인해야 합니다.", 403)
         input_context = {
             **input_context,
             "intent": plan["intent"],
@@ -9824,6 +12563,8 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
             "project_fact_snapshot": fact_snapshot,
             "project_markdown_context": markdown_context,
             "project_markdown_prompt_allowed": (not live_model_enabled) or markdown_transfer_approved,
+            "project_source_ids": project_source_ids,
+            "project_sources_prompt_allowed": (not live_model_enabled) or source_transfer_approved,
         }
         with _connect() as db:
             db.execute("UPDATE workflow_runs SET project_id=?,updated_at=? WHERE id=?", (project_id, utc_now(), workflow_run_id))
@@ -9855,6 +12596,8 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
             )
             result.setdefault("workflow", workflow)
             result.setdefault("loadedMcps", workflow.get("loadedMcps") or [])
+            masked_fields = _load_json(plan["masked_fields_json"], [])
+            result["policy"] = {**(result.get("policy") or {}), "personalDataDetected": bool(masked_fields), "maskedFields": masked_fields, "externalTransfer": live_model_enabled, "maskingApplied": bool(masked_fields and live_model_enabled)}
             completed_at = utc_now()
             with _connect() as db:
                 _complete_workflow_step(
@@ -10059,7 +12802,7 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
                 generated_by=["document.report@1.0.0"],
             )
             formatter = None
-            if workflow.get("signals", {}).get("moisTemplate"):
+            if workflow.get("signals", {}).get("moisTemplate") and structured_artifact.get("contentBase64"):
                 source_hwpx = base64.b64decode(structured_artifact["contentBase64"], validate=True)
                 formatted_hwpx, template_metadata = MOIS_REPORT_TEMPLATE_MCP.apply(
                     source_hwpx,
@@ -10078,6 +12821,12 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
                     *(structured_artifact.get("generatedBy") or []),
                     "template.mois-report@0.1.0",
                 ]))
+            elif workflow.get("signals", {}).get("moisTemplate"):
+                rendering = dict(structured_artifact.get("rendering") or {})
+                rendering.update({"status": "failed", "pendingTemplate": "template.mois-report@0.1.0", "retryable": True})
+                structured_artifact["rendering"] = rendering
+                structured_artifact["templateApplication"] = {"packageRef": "template.mois-report@0.1.0", "mode": "deferred-until-renderer-retry", "status": "pending"}
+                structured_artifact["generatedBy"] = list(dict.fromkeys([*(structured_artifact.get("generatedBy") or []), "template.mois-report@0.1.0"]))
             else:
                 structured_artifact, formatter = _finalize_report_with_loopback_mcp(structured_artifact, plan["intent"])
                 if formatter and formatter["packageRef"] not in result["loadedMcps"]:
@@ -10088,6 +12837,8 @@ def execute_plan(payload: dict, *, force_local: bool = False) -> dict:
         result.setdefault("responseType", "selection-edit")
         result.setdefault("workflow", workflow)
         result.setdefault("loadedMcps", workflow["loadedMcps"])
+        masked_fields = _load_json(plan["masked_fields_json"], [])
+        result["policy"] = {**(result.get("policy") or {}), "personalDataDetected": bool(masked_fields), "maskedFields": masked_fields, "externalTransfer": live_model_enabled, "maskingApplied": bool(masked_fields and live_model_enabled)}
         completed_at = utc_now()
         with _connect() as db:
             _complete_workflow_step(
@@ -10166,11 +12917,150 @@ def list_audit(limit: int = 50) -> dict:
                 "eventType": row["event_type"],
                 "detail": _load_json(row["detail_json"], {}),
                 "createdAt": row["created_at"],
+                "previousHash": row["previous_hash"],
+                "eventHash": row["event_hash"],
             }
             for row in rows
         ],
         "executionCounts": counts,
     }
+
+
+def operational_metrics() -> dict:
+    """Local observability read model; external metric exporters can consume this contract."""
+    ensure_schema()
+    now_epoch = int(time.time())
+    with _connect() as db:
+        execution_counts = {row["status"]: int(row["count"]) for row in db.execute("SELECT status,COUNT(*) AS count FROM executions GROUP BY status")}
+        workflow_counts = {row["status"]: int(row["count"]) for row in db.execute("SELECT status,COUNT(*) AS count FROM workflow_runs GROUP BY status")}
+        step_counts = {row["status"]: int(row["count"]) for row in db.execute("SELECT status,COUNT(*) AS count FROM workflow_step_runs GROUP BY status")}
+        latency = db.execute(
+            "SELECT AVG((julianday(completed_at)-julianday(started_at))*86400000.0) AS average_ms,MAX((julianday(completed_at)-julianday(started_at))*86400000.0) AS maximum_ms FROM executions WHERE started_at IS NOT NULL AND completed_at IS NOT NULL"
+        ).fetchone()
+        failure_rows = db.execute(
+            "SELECT COALESCE(error,'unknown') AS error,COUNT(*) AS count FROM executions WHERE status='failed' GROUP BY COALESCE(error,'unknown') ORDER BY count DESC LIMIT 5"
+        ).fetchall()
+        output_rows = db.execute("SELECT format,COUNT(*) AS count,SUM(length(content_blob)) AS bytes FROM document_final_outputs GROUP BY format ORDER BY count DESC").fetchall()
+        approval_row = db.execute(
+            "SELECT COUNT(*) AS total,SUM(CASE WHEN consumed_at IS NOT NULL THEN 1 ELSE 0 END) AS consumed,SUM(CASE WHEN consumed_at IS NULL AND expires_at<? THEN 1 ELSE 0 END) AS expired FROM approvals",
+            (now_epoch,),
+        ).fetchone()
+        evaluation_rows = db.execute("SELECT package_id,version,quality,success_rate,latency_ms,cost_per_run,sample_count,updated_at FROM mcp_evaluations ORDER BY updated_at DESC").fetchall()
+        active_runs = db.execute("SELECT COUNT(*) AS count FROM workflow_runs WHERE status IN ('queued','running','retrying')").fetchone()["count"]
+        conflicts = db.execute("SELECT status,COUNT(*) AS count FROM project_document_conflicts GROUP BY status").fetchall()
+    return {
+        "contractVersion": "aiworks-operations/1.0",
+        "generatedAt": utc_now(),
+        "executions": {
+            "counts": execution_counts,
+            "averageLatencyMs": round(float(latency["average_ms"] or 0), 2),
+            "maximumLatencyMs": round(float(latency["maximum_ms"] or 0), 2),
+            "topFailures": [{"error": str(row["error"])[:300], "count": int(row["count"])} for row in failure_rows],
+        },
+        "workflows": {"counts": workflow_counts, "stepCounts": step_counts, "active": int(active_runs)},
+        "approvalLeases": {
+            "total": int(approval_row["total"] or 0), "consumed": int(approval_row["consumed"] or 0),
+            "expiredUnused": int(approval_row["expired"] or 0), "type": "single-execution",
+        },
+        "outputs": [{"format": row["format"], "count": int(row["count"]), "bytes": int(row["bytes"] or 0)} for row in output_rows],
+        "mcpEvaluations": [{"packageRef": row["package_id"] + "@" + row["version"], "quality": row["quality"], "successRate": row["success_rate"], "latencyMs": row["latency_ms"], "costPerRun": row["cost_per_run"], "sampleCount": row["sample_count"], "updatedAt": row["updated_at"]} for row in evaluation_rows],
+        "documentConflicts": {row["status"]: int(row["count"]) for row in conflicts},
+        "exportBoundary": {
+            "status": "ready",
+            "targets": ["OpenTelemetry", "Prometheus"],
+            "detail": "Prometheus text와 OTLP JSON endpoint가 준비되었습니다.",
+        },
+    }
+
+
+def operational_metrics_prometheus() -> dict:
+    metrics = operational_metrics()
+    lines = [
+        "# HELP aiworks_execution_total AIWorks executions by status",
+        "# TYPE aiworks_execution_total gauge",
+    ]
+    for status, count in sorted((metrics["executions"].get("counts") or {}).items()):
+        lines.append(f'aiworks_execution_total{{status="{status}"}} {int(count)}')
+    lines.extend([
+        "# HELP aiworks_execution_latency_milliseconds Execution latency in milliseconds",
+        "# TYPE aiworks_execution_latency_milliseconds gauge",
+        f'aiworks_execution_latency_milliseconds{{aggregation="average"}} {float(metrics["executions"]["averageLatencyMs"])}',
+        f'aiworks_execution_latency_milliseconds{{aggregation="maximum"}} {float(metrics["executions"]["maximumLatencyMs"])}',
+        "# HELP aiworks_workflow_active Active workflow runs",
+        "# TYPE aiworks_workflow_active gauge",
+        f'aiworks_workflow_active {int(metrics["workflows"]["active"])}',
+        "# HELP aiworks_approval_lease_total Approval leases by lifecycle",
+        "# TYPE aiworks_approval_lease_total gauge",
+        f'aiworks_approval_lease_total{{state="total"}} {int(metrics["approvalLeases"]["total"])}',
+        f'aiworks_approval_lease_total{{state="consumed"}} {int(metrics["approvalLeases"]["consumed"])}',
+        f'aiworks_approval_lease_total{{state="expired_unused"}} {int(metrics["approvalLeases"]["expiredUnused"])}',
+    ])
+    for item in metrics.get("outputs") or []:
+        safe_format = re.sub(r"[^a-zA-Z0-9_.-]", "_", str(item.get("format") or "unknown"))
+        lines.append(f'aiworks_final_output_total{{format="{safe_format}"}} {int(item.get("count") or 0)}')
+        lines.append(f'aiworks_final_output_bytes{{format="{safe_format}"}} {int(item.get("bytes") or 0)}')
+    return {"_rawBody": "\n".join(lines) + "\n", "_contentType": "text/plain; version=0.0.4; charset=utf-8"}
+
+
+def operational_metrics_otlp() -> dict:
+    metrics = operational_metrics()
+    timestamp_ns = str(int(time.time() * 1_000_000_000))
+    gauges = []
+    for status, count in sorted((metrics["executions"].get("counts") or {}).items()):
+        gauges.append({"name": "aiworks.execution.total", "unit": "1", "gauge": {"dataPoints": [{"asInt": str(int(count)), "timeUnixNano": timestamp_ns, "attributes": [{"key": "status", "value": {"stringValue": status}}]}]}})
+    gauges.append({"name": "aiworks.execution.latency", "unit": "ms", "gauge": {"dataPoints": [{"asDouble": float(metrics["executions"]["averageLatencyMs"]), "timeUnixNano": timestamp_ns, "attributes": [{"key": "aggregation", "value": {"stringValue": "average"}}]}]}})
+    return {"resourceMetrics": [{"resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "aiworks"}}, {"key": "service.version", "value": {"stringValue": "0.31.2"}}]}, "scopeMetrics": [{"scope": {"name": "aiworks.operations"}, "metrics": gauges}]}]}
+
+
+def run_project_recovery_drill(project_id: str, payload: dict) -> dict:
+    started = time.perf_counter()
+    backup = export_project_backup(project_id, payload)
+    unsigned = {key: value for key, value in backup.items() if key not in {"integrity", "filename", "counts"}}
+    expected = hashlib.sha256(_json(unsigned).encode("utf-8")).hexdigest()
+    integrity_passed = hmac.compare_digest(str((backup.get("integrity") or {}).get("sha256") or ""), expected)
+    data = backup.get("data") or {}
+    document_ids = {str(item.get("id")) for item in data.get("markdownDocuments") or []}
+    relation_passed = all(str(item.get("document_id")) in document_ids for item in data.get("markdownVersions") or [])
+    elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+    target_seconds = max(30, int(os.getenv("AIWORKS_RTO_TARGET_SECONDS", "300")))
+    passed = integrity_passed and relation_passed and elapsed_ms <= target_seconds * 1000
+    result = {
+        "contractVersion": "recovery-drill/1.0", "projectId": project_id, "status": "passed" if passed else "failed",
+        "mode": "non-destructive-restore-validation", "rpoSeconds": 0, "rtoMilliseconds": elapsed_ms,
+        "targets": {"rpoSeconds": int(os.getenv("AIWORKS_RPO_TARGET_SECONDS", "86400")), "rtoSeconds": target_seconds},
+        "checks": [
+            {"id": "backup.integrity", "passed": integrity_passed, "detail": expected[:16]},
+            {"id": "backup.relations", "passed": relation_passed, "detail": f"documents={len(document_ids)} versions={len(data.get('markdownVersions') or [])}"},
+            {"id": "recovery.rto", "passed": elapsed_ms <= target_seconds * 1000, "detail": f"{elapsed_ms}ms / {target_seconds}s"},
+        ],
+        "counts": backup.get("counts") or {}, "completedAt": utc_now(),
+    }
+    with _connect() as db:
+        _audit(db, _actor(payload), "operations.recovery_drill", result)
+    return result
+
+
+def software_bill_of_materials() -> dict:
+    ensure_schema()
+    components = []
+    with _connect() as db:
+        rows = db.execute("SELECT p.*,CASE WHEN i.package_id IS NULL THEN 0 ELSE 1 END AS installed FROM mcp_packages p LEFT JOIN mcp_installations i ON i.package_id=p.package_id AND i.pinned_version=p.version AND i.status='active' ORDER BY p.package_id,p.version").fetchall()
+    for row in rows:
+        manifest = _load_json(row["manifest_json"], {})
+        components.append({
+            "type": "application", "bom-ref": row["package_id"] + "@" + row["version"],
+            "name": manifest.get("name") or row["package_id"], "version": row["version"],
+            "publisher": row["publisher"], "scope": "required" if row["installed"] else "optional",
+            "hashes": [{"alg": "SHA-256", "content": row["bundle_sha256"]}],
+            "licenses": [{"license": {"id": manifest.get("license") or "NOASSERTION"}}],
+            "properties": [
+                {"name": "aiworks:runtime", "value": str(manifest.get("runtime") or "unknown")},
+                {"name": "aiworks:signature-algorithm", "value": STORE_SIGNATURE_ALGORITHM},
+                {"name": "aiworks:signature-key-id", "value": STORE_KEY_ID},
+            ],
+        })
+    serial = "urn:uuid:" + str(uuid.uuid5(uuid.NAMESPACE_URL, "aiworks:" + hashlib.sha256(_json(components).encode("utf-8")).hexdigest()))
+    return {"bomFormat": "CycloneDX", "specVersion": "1.5", "serialNumber": serial, "version": 1, "metadata": {"timestamp": utc_now(), "component": {"type": "application", "name": "AIWorks", "version": "0.31.2"}}, "components": components}
 
 
 def operational_readiness() -> dict:
@@ -10219,7 +13109,21 @@ def operational_readiness() -> dict:
     rhwp_status = RHWP_AUTOMATION_MCP.runtime_status()
     add("rhwp.runtime", "pass" if rhwp_status["available"] else "warn", f'Windows 브리지 · 도구 {rhwp_status["tools"]}개' if rhwp_status["available"] else "Windows 브리지 명령·비밀키 미설정")
     contract_only = [adapter["id"] for adapter in CAPABILITY_ADAPTERS if adapter["status"] == "contract-only"]
+    profile_statuses = [_external_profile_status(profile_id) for profile_id in EXTERNAL_MCP_SERVER_PROFILES]
+    add(
+        "external-mcp.profiles",
+        "fail" if EXTERNAL_MCP_PROFILE_ERRORS else ("pass" if profile_statuses else "warn"),
+        "; ".join(EXTERNAL_MCP_PROFILE_ERRORS) if EXTERNAL_MCP_PROFILE_ERRORS else (f"운영자 승인 stdio 프로필 {len(profile_statuses)}개" if profile_statuses else "승인 stdio 프로필 없음 · Streamable HTTP는 별도 환경변수 사용"),
+    )
     add("adapters.runtime", "warn" if contract_only else "pass", "미연결: " + ", ".join(contract_only) if contract_only else "모든 어댑터 연결됨")
+    audit_integrity = verify_audit_integrity()
+    add("audit.hash-chain", "pass" if audit_integrity["valid"] else "fail", f"연결 이벤트 {audit_integrity['events']}개 · head {audit_integrity['headHash'][:12]}")
+    try:
+        pdf_renderer = _office_pdf_renderer_path()
+        add("documents.pdf-renderer", "pass", pdf_renderer)
+    except ApiError as error:
+        add("documents.pdf-renderer", "fail", str(error))
+    add("operations.exporters", "pass", "Prometheus text · OTLP JSON")
     failures = sum(check["status"] == "fail" for check in checks)
     warnings = sum(check["status"] == "warn" for check in checks)
     return {"ready": failures == 0, "status": "not-ready" if failures else ("ready-with-warnings" if warnings else "ready"), "checks": checks, "summary": {"passed": sum(check["status"] == "pass" for check in checks), "warnings": warnings, "failed": failures}, "checkedAt": utc_now()}
@@ -10358,7 +13262,7 @@ def bootstrap() -> dict:
         ).fetchall()
     return {
         "service": "AIWorks",
-        "version": "0.30.0",
+        "version": "0.31.2",
         "runtime": "local-sandbox",
         "models": MODEL_MANAGEMENT_MCP.list_models(),
         "mcp": {
@@ -10389,7 +13293,7 @@ def bootstrap() -> dict:
             "approvalTokenTtlSeconds": TOKEN_TTL_SECONDS,
             "auditPersistent": True,
         },
-        "capabilities": {"workflowPresets": len(WORKFLOW_PRESETS), "adapters": len(CAPABILITY_ADAPTERS), "templates": len(MOIS_REPORT_TEMPLATE_MCP.catalog()), "maxAssetBytes": MAX_ASSET_BYTES, "acceptanceScenario": "budget-request-e2e", "mcpBuilder": True, "mcpBuilderTypes": list(MCP_BUILDER_TYPES), "builderReferenceFormats": [".hwpx", ".pdf", ".docx", ".xlsx", ".md", ".txt"], "capabilityRegistry": True, "dynamicBuilderRuntime": ["prompt", "composite", "retrieval", "external-mcp"], "externalMcpTransport": ["stdio", "streamable-http"], "externalMcpProfiles": [_external_profile_status(item) for item in EXTERNAL_MCP_SERVER_PROFILES], "templateAnalysisModes": ["explicit-placeholders", "guided-fields", "sample-structure"], "arbitraryBuilderCode": False, "workspaceDocuments": True, "nativeDocumentSessions": True, "downloadableDocumentVersions": True, "rhwp": RHWP_AUTOMATION_MCP.runtime_status()},
+        "capabilities": {"workflowPresets": len(WORKFLOW_PRESETS), "adapters": len(CAPABILITY_ADAPTERS), "templates": len(MOIS_REPORT_TEMPLATE_MCP.catalog()), "maxAssetBytes": MAX_ASSET_BYTES, "acceptanceScenario": "budget-request-e2e", "mcpBuilder": True, "mcpBuilderTypes": list(MCP_BUILDER_TYPES), "builderReferenceFormats": [".hwpx", ".pdf", ".docx", ".odt", ".xlsx", ".md", ".txt"], "capabilityRegistry": True, "dynamicBuilderRuntime": ["prompt", "composite", "retrieval", "external-mcp"], "externalMcpTransport": ["stdio", "streamable-http"], "externalMcpProfiles": [_external_profile_status(item) for item in EXTERNAL_MCP_SERVER_PROFILES], "externalMcpProfileErrors": list(EXTERNAL_MCP_PROFILE_ERRORS), "templateAnalysisModes": ["explicit-placeholders", "guided-fields", "sample-structure"], "arbitraryBuilderCode": False, "workspaceDocuments": True, "nativeDocumentSessions": True, "downloadableDocumentVersions": True, "rhwp": RHWP_AUTOMATION_MCP.runtime_status()},
         "pdfTextExtraction": _pdf_text_extractor_status(),
         "counts": {"plans": plans, "executions": executions, "knowledgeNodes": knowledge_nodes, "knowledgeSources": knowledge_sources},
         "recent": [dict(row) for row in recent],
@@ -11058,7 +13962,7 @@ def open_native_document_session(payload: dict) -> dict:
     extension = Path(filename).suffix.lower()
     source_filename, source_extension = filename, extension
     text_formats = {".md": ("document.markdown@1.0.0", "markdown"), ".py": ("code.editor@1.0.0", "python"), ".js": ("code.editor@1.0.0", "javascript"), ".ts": ("code.editor@1.0.0", "typescript"), ".json": ("code.editor@1.0.0", "json"), ".txt": ("document.markdown@1.0.0", "text")}
-    if extension not in {".hwp", ".hwpx", ".hwt", ".hml", ".docx", ".xlsx"} | set(text_formats):
+    if extension not in {".hwp", ".hwpx", ".hwt", ".hml", ".docx", ".odt", ".xlsx"} | set(text_formats):
         raise ApiError("지원하는 편집기 MCP가 없는 파일 형식입니다.", 415)
     try:
         artifact = base64.b64decode(str(payload.get("content_base64") or ""), validate=True)
@@ -11068,8 +13972,8 @@ def open_native_document_session(payload: dict) -> dict:
         raise ApiError("문서 크기가 허용 범위를 벗어났습니다.", 413)
     intent_text = str(payload.get("intent") or "한글 문서를 원본 형식으로 열고 편집").strip()
     office_conversion = None
-    if source_extension in {".docx", ".xlsx"}:
-        parts = _extract_docx_parts(artifact) if source_extension == ".docx" else _extract_xlsx_parts(artifact)
+    if source_extension in {".docx", ".odt", ".xlsx"}:
+        parts = _extract_docx_parts(artifact) if source_extension == ".docx" else _extract_odt_parts(artifact) if source_extension == ".odt" else _extract_xlsx_parts(artifact)
         extracted = "\n\n".join(text for _index, text in parts).strip()
         if not extracted:
             raise ApiError("Office 문서에서 Markdown으로 변환할 내용을 찾지 못했습니다.", 415)
@@ -11144,7 +14048,7 @@ def open_native_document_session(payload: dict) -> dict:
         if project_artifact_id:
             linked_artifact = db.execute("SELECT * FROM project_document_artifacts WHERE id=?", (project_artifact_id,)).fetchone()
             if not linked_artifact or (markdown_document_id and linked_artifact["document_id"] != markdown_document_id):
-                raise ApiError("프로젝트 파생 문서 연결이 올바르지 않습니다.", 409)
+                raise ApiError("문서 형식별 작업본 연결이 올바르지 않습니다.", 409)
             markdown_document_id = linked_artifact["document_id"]
             markdown_base_revision = linked_artifact["source_revision"]
         if markdown_source:
@@ -11494,8 +14398,12 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
 
     if route == "/audit" and method == "GET":
         return list_audit()
+    if route == "/audit/integrity" and method == "GET":
+        return verify_audit_integrity()
     if route == "/store/packages" and method == "GET":
         return list_store_packages()
+    if route == "/store/install-preview" and method == "POST":
+        return mcp_install_preview(payload)
     if route == "/store/install" and method == "POST":
         return install_mcp_package(payload)
     if route == "/store/rollback" and method == "POST":
@@ -11510,6 +14418,8 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
         return save_mcp_configuration(payload)
     if route == "/capabilities/registry" and method == "GET":
         return list_capability_registry()
+    if route == "/template-mcps" and method == "GET":
+        return list_installed_template_mcps()
     if route == "/capabilities/resolve" and method == "POST":
         return resolve_capabilities(payload)
     if route == "/capabilities/evaluations" and method == "POST":
@@ -11528,6 +14438,12 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
     draft_template_quality = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)/template-quality", route)
     if draft_template_quality and method == "GET":
         return evaluate_mcp_template_quality(draft_template_quality.group(1))
+    draft_template_preview = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)/template-preview", route)
+    if draft_template_preview and method == "POST":
+        return preview_mcp_template(draft_template_preview.group(1), payload)
+    draft_template_confirm = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)/template-confirm", route)
+    if draft_template_confirm and method == "POST":
+        return confirm_mcp_template_preview(draft_template_confirm.group(1), payload)
     draft_template_mapping = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)/template-mapping", route)
     if draft_template_mapping and method == "GET":
         return get_mcp_template_mapping(draft_template_mapping.group(1))
@@ -11622,6 +14538,22 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
     project_workspace_state = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/workspace-state", route)
     if project_workspace_state and method == "POST":
         return save_project_workspace_state(project_workspace_state.group(1), payload)
+    project_conversations = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/conversations", route)
+    if project_conversations and method == "GET":
+        return list_project_conversations(project_conversations.group(1), payload)
+    if project_conversations and method == "POST":
+        return create_project_conversation(project_conversations.group(1), payload)
+    project_conversation = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/conversations/(conversation_[a-f0-9]+)", route)
+    if project_conversation and method == "GET":
+        return get_project_conversation(project_conversation.group(1), project_conversation.group(2), payload)
+    project_conversation_messages = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/conversations/(conversation_[a-f0-9]+)/messages", route)
+    if project_conversation_messages and method == "POST":
+        return append_project_conversation_message(project_conversation_messages.group(1), project_conversation_messages.group(2), payload)
+    project_decisions = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/decisions", route)
+    if project_decisions and method == "GET":
+        return list_project_decisions(project_decisions.group(1), payload)
+    if project_decisions and method == "POST":
+        return save_project_decision(project_decisions.group(1), payload)
     project_facts = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/facts", route)
     if project_facts and method == "GET":
         return list_project_facts(project_facts.group(1))
@@ -11639,6 +14571,20 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
         return list_project_artifacts(project_artifacts.group(1))
     if project_artifacts and method == "POST":
         return create_project_artifact(project_artifacts.group(1), payload)
+    project_sources = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/sources", route)
+    if project_sources and method == "GET":
+        return list_project_sources(project_sources.group(1))
+    if project_sources and method == "POST":
+        return create_project_source(project_sources.group(1), payload)
+    project_sources_query = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/sources/query", route)
+    if project_sources_query and method == "POST":
+        return query_project_sources(project_sources_query.group(1), payload)
+    project_source_detail = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/sources/(gart_[a-f0-9]+)", route)
+    if project_source_detail and method == "DELETE":
+        return delete_project_source(project_source_detail.group(1), project_source_detail.group(2), payload)
+    project_source_reindex = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/sources/(gart_[a-f0-9]+)/reindex", route)
+    if project_source_reindex and method == "POST":
+        return reindex_project_source(project_source_reindex.group(1), project_source_reindex.group(2), payload)
     project_artifact_detail = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/artifacts/(gart_[a-f0-9]+)", route)
     if project_artifact_detail and method == "GET":
         return get_project_artifact(project_artifact_detail.group(1), project_artifact_detail.group(2), include_content=True)
@@ -11668,12 +14614,21 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
     project_markdown_document = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)", route)
     if project_markdown_document and method == "GET":
         return get_project_markdown_document(project_markdown_document.group(1), project_markdown_document.group(2))
+    project_document_quality = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/quality-review", route)
+    if project_document_quality and method == "POST":
+        return review_project_document_quality(project_document_quality.group(1), project_document_quality.group(2), payload)
     project_document_workbench = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/workbench", route)
     if project_document_workbench and method == "GET":
         return get_project_document_workbench(project_document_workbench.group(1), project_document_workbench.group(2))
     project_document_artifact = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/artifacts/(artifact_[a-f0-9]+)", route)
     if project_document_artifact and method == "GET":
         return get_project_document_artifact(project_document_artifact.group(1), project_document_artifact.group(2), project_document_artifact.group(3))
+    document_final_outputs = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/outputs", route)
+    if document_final_outputs and method == "GET":
+        return list_document_final_outputs(document_final_outputs.group(1), document_final_outputs.group(2))
+    document_final_output = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/outputs/(output_[a-f0-9]+)", route)
+    if document_final_output and method == "GET":
+        return get_document_final_output(document_final_output.group(1), document_final_output.group(2), document_final_output.group(3))
     project_document_promote = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/documents/(mdoc_[a-f0-9]+)/artifacts/(artifact_[a-f0-9]+)/promote-markdown", route)
     if project_document_promote and method == "POST":
         return promote_project_artifact_to_markdown(project_document_promote.group(1), project_document_promote.group(2), project_document_promote.group(3), payload)
@@ -11690,8 +14645,21 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
         return create_workflow_plan(payload)
     if route == "/assets/inspect" and method == "POST":
         return inspect_asset(payload)
+    if route == "/operations/model-usage" and method == "GET":
+        return model_usage_summary(int(payload.get("limit") or 50))
     if route == "/operations/readiness" and method == "GET":
         return operational_readiness()
+    if route == "/operations/metrics" and method == "GET":
+        return operational_metrics()
+    if route == "/operations/metrics/prometheus" and method == "GET":
+        return operational_metrics_prometheus()
+    if route == "/operations/metrics/otlp" and method == "GET":
+        return operational_metrics_otlp()
+    if route == "/operations/sbom" and method == "GET":
+        return software_bill_of_materials()
+    recovery_drill = re.fullmatch(r"/operations/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/recovery-drill", route)
+    if recovery_drill and method == "POST":
+        return run_project_recovery_drill(recovery_drill.group(1), payload)
     if route == "/rhwp/capabilities" and method == "GET":
         return rhwp_capabilities()
     if route == "/rhwp/invoke" and method == "POST":

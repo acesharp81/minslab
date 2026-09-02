@@ -49,7 +49,9 @@ class LiveRepository:
 
     def observe_broadcast(self, observation: LiveBroadcastObservation) -> uuid.UUID:
 
-        document_id = self._upsert_document(observation.source, observation.source_system)
+        document_id = self._upsert_document(
+            observation.source, observation.source_system
+        )
         version_id = self._upsert_source_version(document_id, observation.source)
         candidate_id = uuid.uuid4()
         row = self.connection.execute(
@@ -81,14 +83,22 @@ class LiveRepository:
             RETURNING id
             """,
             (
-                candidate_id, observation.institution, observation.source_system,
-                observation.external_id, observation.committee_name,
-                observation.title, observation.caption_source_status,
-                observation.observed_at, observation.observed_at, version_id,
+                candidate_id,
+                observation.institution,
+                observation.source_system,
+                observation.external_id,
+                observation.committee_name,
+                observation.title,
+                observation.caption_source_status,
+                observation.observed_at,
+                observation.observed_at,
+                version_id,
                 observation.caption_websocket_url,
                 (
-                    "READY" if observation.caption_websocket_url
-                    else "AUDIO_READY" if observation.media_stream_url
+                    "READY"
+                    if observation.caption_websocket_url
+                    else "AUDIO_READY"
+                    if observation.media_stream_url
                     else "UNAVAILABLE"
                 ),
                 observation.thumbnail_url,
@@ -132,13 +142,19 @@ class LiveRepository:
         ).fetchone()
         return row is not None
 
-    def finish_poll(self, active_external_ids: Iterable[str], observed_at: datetime) -> int:
+    def finish_poll(
+        self, active_external_ids: Iterable[str], observed_at: datetime
+    ) -> int:
         return self.finish_source_poll(
-            self.source_system, active_external_ids, observed_at,
+            self.source_system,
+            active_external_ids,
+            observed_at,
         )
 
     def finish_source_poll(
-        self, source_system: str, active_external_ids: Iterable[str],
+        self,
+        source_system: str,
+        active_external_ids: Iterable[str],
         observed_at: datetime,
     ) -> int:
         active = list(active_external_ids)
@@ -192,11 +208,18 @@ class LiveRepository:
         ).fetchone()
         if not row:
             return None
-        return dict(zip(
-            ("broadcast_id", "external_id", "caption_websocket_url", "lifecycle_status"),
-            row,
-            strict=True,
-        ))
+        return dict(
+            zip(
+                (
+                    "broadcast_id",
+                    "external_id",
+                    "caption_websocket_url",
+                    "lifecycle_status",
+                ),
+                row,
+                strict=True,
+            )
+        )
 
     def claim_executive_audio_capture(
         self, worker_id: str, lease_seconds: int = 180
@@ -238,11 +261,13 @@ class LiveRepository:
         ).fetchone()
         if not row:
             return None
-        return dict(zip(
-            ("broadcast_id", "external_id", "media_stream_url", "lifecycle_status"),
-            row,
-            strict=True,
-        ))
+        return dict(
+            zip(
+                ("broadcast_id", "external_id", "media_stream_url", "lifecycle_status"),
+                row,
+                strict=True,
+            )
+        )
 
     def heartbeat_capture(
         self, broadcast_id: uuid.UUID, worker_id: str, lease_seconds: int = 45
@@ -261,7 +286,11 @@ class LiveRepository:
         return row is not None
 
     def release_caption_capture(
-        self, broadcast_id: uuid.UUID, worker_id: str, *, retry: bool,
+        self,
+        broadcast_id: uuid.UUID,
+        worker_id: str,
+        *,
+        retry: bool,
         failed: bool = False,
     ) -> bool:
         row = self.connection.execute(
@@ -298,7 +327,9 @@ class LiveRepository:
             "SELECT source_system FROM live_broadcasts WHERE id = %s",
             (broadcast_id,),
         ).fetchone()
-        source_system = source_system_row[0] if source_system_row else self.source_system
+        source_system = (
+            source_system_row[0] if source_system_row else self.source_system
+        )
         document_id = self._upsert_document(revision.source, source_system)
         source_version_id = self._upsert_source_version(
             document_id, revision.source, authority_status="LIVE"
@@ -334,10 +365,16 @@ class LiveRepository:
             RETURNING id
             """,
             (
-                uuid.uuid4(), broadcast_id, revision.source_segment_id,
-                revision.speaker_label, revision.start_offset_ms,
-                revision.end_offset_ms, revision.text, revision.is_final,
-                revision.received_at, revision.received_at,
+                uuid.uuid4(),
+                broadcast_id,
+                revision.source_segment_id,
+                revision.speaker_label,
+                revision.start_offset_ms,
+                revision.end_offset_ms,
+                revision.text,
+                revision.is_final,
+                revision.received_at,
+                revision.received_at,
             ),
         ).fetchone()
         segment_id = segment_row[0]
@@ -366,9 +403,16 @@ class LiveRepository:
             RETURNING id
             """,
             (
-                uuid.uuid4(), segment_id, content_hash, revision.text,
-                revision.speaker_label, revision.is_final, revision.received_at,
-                Jsonb(revision.source_payload), source_version_id, segment_id,
+                uuid.uuid4(),
+                segment_id,
+                content_hash,
+                revision.text,
+                revision.speaker_label,
+                revision.is_final,
+                revision.received_at,
+                Jsonb(revision.source_payload),
+                source_version_id,
+                segment_id,
             ),
         ).fetchone()
         self.connection.execute(
@@ -382,11 +426,14 @@ class LiveRepository:
         return segment_id, inserted is not None
 
     def active_transcript_snapshot(
-        self, committee_name: str | None = None,
+        self,
+        committee_name: str | None = None,
         broadcast_id: uuid.UUID | None = None,
     ) -> dict[str, Any]:
         return self._transcript_snapshot(
-            committee_name, lifecycle_status="LIVE", broadcast_id=broadcast_id,
+            committee_name,
+            lifecycle_status="LIVE",
+            broadcast_id=broadcast_id,
         )
 
     def recent_transcript_snapshot(
@@ -395,13 +442,33 @@ class LiveRepository:
         return self._transcript_snapshot(committee_name, lifecycle_status="ENDED")
 
     def ended_transcript_snapshot(self, broadcast_id: uuid.UUID) -> dict[str, Any]:
-        return self.broadcast_transcript_snapshot(broadcast_id, lifecycle_status="ENDED")
+        return self.broadcast_transcript_snapshot(
+            broadcast_id, lifecycle_status="ENDED"
+        )
 
     def broadcast_transcript_snapshot(
-        self, broadcast_id: uuid.UUID, *, lifecycle_status: str,
+        self,
+        broadcast_id: uuid.UUID,
+        *,
+        lifecycle_status: str,
     ) -> dict[str, Any]:
         return self._transcript_snapshot(
-            None, lifecycle_status=lifecycle_status, broadcast_id=broadcast_id,
+            None,
+            lifecycle_status=lifecycle_status,
+            broadcast_id=broadcast_id,
+        )
+
+    def test_transcript_snapshot(
+        self,
+        broadcast_id: uuid.UUID,
+        *,
+        lifecycle_status: str,
+    ) -> dict[str, Any]:
+        return self._transcript_snapshot(
+            None,
+            lifecycle_status=lifecycle_status,
+            broadcast_id=broadcast_id,
+            include_test=True,
         )
 
     def broadcast_reconciliation_details(
@@ -432,10 +499,18 @@ class LiveRepository:
             (broadcast_id,),
         ).fetchall()
         columns = (
-            "revision_id", "status", "match_method", "match_confidence",
-            "official_utterance_id", "official_sequence_number", "official_speaker_name",
-            "official_speaker_role", "official_text", "source_locator",
-            "publication_stage", "official_authority_status",
+            "revision_id",
+            "status",
+            "match_method",
+            "match_confidence",
+            "official_utterance_id",
+            "official_sequence_number",
+            "official_speaker_name",
+            "official_speaker_role",
+            "official_text",
+            "source_locator",
+            "publication_stage",
+            "official_authority_status",
         )
         result: dict[uuid.UUID, dict[str, Any]] = {}
         for row in rows:
@@ -447,7 +522,10 @@ class LiveRepository:
         return result
 
     def list_ended_broadcasts(
-        self, committee_name: str | None = None, *, limit: int = 5,
+        self,
+        committee_name: str | None = None,
+        *,
+        limit: int = 5,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         parameters: list[Any] = []
@@ -470,6 +548,7 @@ class LiveRepository:
                    broadcast.last_caption_received_at, broadcast.thumbnail_url,
                    broadcast.review_status, broadcast.official_status,
                    broadcast.official_last_checked_at,
+                   resume_activity.possible_resume_at,
                    executive_match.official_briefing_id,
                    executive_match.match_method,
                    caption_stats.segment_count, caption_stats.utterance_count,
@@ -484,6 +563,19 @@ class LiveRepository:
                        COALESCE(official_activity.generated_at, '-infinity'::timestamptz)
                    ) AS result_updated_at
             FROM live_broadcasts broadcast
+            LEFT JOIN LATERAL (
+                SELECT MAX(
+                    (schedule.scheduled_date + schedule.start_time)
+                    AT TIME ZONE 'Asia/Seoul'
+                ) AS possible_resume_at
+                FROM schedule_entries schedule
+                WHERE broadcast.institution = 'LEGISLATURE'
+                  AND schedule.committee_name = broadcast.committee_name
+                  AND schedule.scheduled_date =
+                      (broadcast.ended_at AT TIME ZONE 'Asia/Seoul')::date
+                  AND schedule.start_time >
+                      (broadcast.ended_at AT TIME ZONE 'Asia/Seoul')::time
+            ) resume_activity ON true
             LEFT JOIN LATERAL (
                 SELECT COUNT(*) AS segment_count,
                        COUNT(*) FILTER (
@@ -518,7 +610,7 @@ class LiveRepository:
             LEFT JOIN executive_official_matches executive_match
               ON executive_match.broadcast_id = broadcast.id
             WHERE broadcast.lifecycle_status = 'ENDED'
-              AND broadcast.source_system <> 'poc07.demo'
+              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
               {committee_filter}
             ORDER BY broadcast.detected_at DESC, broadcast.id DESC
             LIMIT %s OFFSET %s
@@ -526,19 +618,38 @@ class LiveRepository:
             parameters,
         ).fetchall()
         columns = (
-            "broadcast_id", "external_id", "institution", "committee_name",
-            "title", "lifecycle_status", "source_system", "caption_source_status",
-            "capture_status", "detected_at", "ended_at", "last_caption_received_at",
-            "thumbnail_url", "review_status", "official_status",
-            "official_last_checked_at", "official_briefing_id",
-            "executive_match_method", "segment_count", "utterance_count",
-            "source_speaker_count", "named_speaker_count",
-            "official_integration_updated_at", "result_updated_at",
+            "broadcast_id",
+            "external_id",
+            "institution",
+            "committee_name",
+            "title",
+            "lifecycle_status",
+            "source_system",
+            "caption_source_status",
+            "capture_status",
+            "detected_at",
+            "ended_at",
+            "last_caption_received_at",
+            "thumbnail_url",
+            "review_status",
+            "official_status",
+            "official_last_checked_at",
+            "possible_resume_at",
+            "official_briefing_id",
+            "executive_match_method",
+            "segment_count",
+            "utterance_count",
+            "source_speaker_count",
+            "named_speaker_count",
+            "official_integration_updated_at",
+            "result_updated_at",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         return items
 
-    def broadcast_official_context(self, broadcast_id: uuid.UUID) -> dict[str, Any] | None:
+    def broadcast_official_context(
+        self, broadcast_id: uuid.UUID
+    ) -> dict[str, Any] | None:
         row = self.connection.execute(
             """
             SELECT broadcast.official_status, broadcast.official_last_checked_at,
@@ -580,11 +691,19 @@ class LiveRepository:
         if not row:
             return None
         columns = (
-            "official_status", "official_last_checked_at", "review_status",
-            "conference_id", "official_url", "official_pdf_url",
-            "reconciliation_status", "body_contract_status", "publication_stage",
-            "official_authority_status", "official_utterance_count",
-            "final_segment_count", "matched_segment_count",
+            "official_status",
+            "official_last_checked_at",
+            "review_status",
+            "conference_id",
+            "official_url",
+            "official_pdf_url",
+            "reconciliation_status",
+            "body_contract_status",
+            "publication_stage",
+            "official_authority_status",
+            "official_utterance_count",
+            "final_segment_count",
+            "matched_segment_count",
         )
         item = dict(zip(columns, row, strict=True))
         item["unmatched_segment_count"] = max(
@@ -593,7 +712,8 @@ class LiveRepository:
         return item
 
     def broadcast_official_material(
-        self, broadcast_id: uuid.UUID,
+        self,
+        broadcast_id: uuid.UUID,
     ) -> dict[str, Any]:
         document_row = self.connection.execute(
             """
@@ -629,9 +749,16 @@ class LiveRepository:
         if not document_row:
             return {"document": None, "utterances": []}
         document_columns = (
-            "document_id", "conference_id", "publication_stage",
-            "authority_status", "status_text", "title",
-            "utterance_count", "retrieved_at", "official_url", "official_pdf_url",
+            "document_id",
+            "conference_id",
+            "publication_stage",
+            "authority_status",
+            "status_text",
+            "title",
+            "utterance_count",
+            "retrieved_at",
+            "official_url",
+            "official_pdf_url",
         )
         document = dict(zip(document_columns, document_row, strict=True))
         rows = self.connection.execute(
@@ -671,15 +798,21 @@ class LiveRepository:
             (document["document_id"],),
         ).fetchall()
         columns = (
-            "utterance_id", "sequence_number", "speaker_name", "speaker_role",
-            "text", "source_locator", "topics", "ministries",
-            "utterance_kind", "evidence_keywords", "agenda_titles",
+            "utterance_id",
+            "sequence_number",
+            "speaker_name",
+            "speaker_role",
+            "text",
+            "source_locator",
+            "topics",
+            "ministries",
+            "utterance_kind",
+            "evidence_keywords",
+            "agenda_titles",
         )
         return {
             "document": document,
-            "utterances": [
-                dict(zip(columns, row, strict=True)) for row in rows
-            ],
+            "utterances": [dict(zip(columns, row, strict=True)) for row in rows],
         }
 
     def list_open_follow_up_tasks(
@@ -716,9 +849,17 @@ class LiveRepository:
             parameters,
         ).fetchall()
         columns = (
-            "broadcast_id", "broadcast_title", "committee_name", "lifecycle_status",
-            "ended_at", "source_system", "evidence_revision_id", "evidence_text",
-            "speaker_label", "received_at", "source_payload",
+            "broadcast_id",
+            "broadcast_title",
+            "committee_name",
+            "lifecycle_status",
+            "ended_at",
+            "source_system",
+            "evidence_revision_id",
+            "evidence_text",
+            "speaker_label",
+            "received_at",
+            "source_payload",
         )
         evidence = [dict(zip(columns, row, strict=True)) for row in rows]
         evidence.sort(key=lambda item: item["received_at"])
@@ -731,9 +872,17 @@ class LiveRepository:
                 continue
             topic_id = str(insight.get("topic_id") or "other-live-topic")
             topic_key = (item["broadcast_id"], topic_id)
-            if insight.get("resolution") is True or insight.get("task_status") == "RESOLVED":
+            if (
+                insight.get("resolution") is True
+                or insight.get("task_status") == "RESOLVED"
+            ):
                 resolved_topics.add(topic_key)
-                for key in [key for key in tasks if key[0] == item["broadcast_id"] and tasks[key]["topic_id"] == topic_id]:
+                for key in [
+                    key
+                    for key in tasks
+                    if key[0] == item["broadcast_id"]
+                    and tasks[key]["topic_id"] == topic_id
+                ]:
                     tasks.pop(key, None)
                 continue
             task_text = insight.get("task")
@@ -741,7 +890,8 @@ class LiveRepository:
                 continue
             resolved_topics.discard(topic_key)
             ministries = [
-                value for value in insight.get("ministries", [])
+                value
+                for value in insight.get("ministries", [])
                 if isinstance(value, str) and value.strip()
             ]
             if ministry and ministry not in ministries:
@@ -767,6 +917,7 @@ class LiveRepository:
         *,
         lifecycle_status: str,
         broadcast_id: uuid.UUID | None = None,
+        include_test: bool = False,
     ) -> dict[str, Any]:
         if lifecycle_status not in {"LIVE", "ENDED"}:
             raise ValueError("unsupported lifecycle status")
@@ -784,6 +935,7 @@ class LiveRepository:
             if lifecycle_status == "LIVE"
             else "ORDER BY ended_at DESC NULLS LAST, detected_at DESC LIMIT 1"
         )
+        test_filter = "" if include_test else "AND source_system <> 'poc07.test'"
         broadcasts = self.connection.execute(
             f"""
             SELECT id, external_id, committee_name, title, lifecycle_status,
@@ -792,6 +944,7 @@ class LiveRepository:
             FROM live_broadcasts
             WHERE lifecycle_status = %s
               AND source_system <> 'poc07.demo'
+              {test_filter}
             {committee_filter}
             {broadcast_filter}
             {order_and_limit}
@@ -799,9 +952,18 @@ class LiveRepository:
             parameters,
         ).fetchall()
         columns = (
-            "broadcast_id", "external_id", "committee_name", "title",
-            "lifecycle_status", "source_system", "capture_status", "detected_at", "last_seen_at",
-            "last_caption_received_at", "thumbnail_url", "ended_at",
+            "broadcast_id",
+            "external_id",
+            "committee_name",
+            "title",
+            "lifecycle_status",
+            "source_system",
+            "capture_status",
+            "detected_at",
+            "last_seen_at",
+            "last_caption_received_at",
+            "thumbnail_url",
+            "ended_at",
         )
         broadcast_items = [dict(zip(columns, row, strict=True)) for row in broadcasts]
         broadcast_ids = [item["broadcast_id"] for item in broadcast_items]
@@ -832,17 +994,34 @@ class LiveRepository:
             (broadcast_ids, cursor),
         ).fetchall()
         segment_columns = (
-            "segment_id", "revision_id", "broadcast_id", "source_segment_id", "cursor", "text",
-            "speaker_label", "is_final", "received_at", "content_hash",
+            "segment_id",
+            "revision_id",
+            "broadcast_id",
+            "source_segment_id",
+            "cursor",
+            "text",
+            "speaker_label",
+            "is_final",
+            "received_at",
+            "content_hash",
             "source_payload",
         )
         segments = [dict(zip(segment_columns, row, strict=True)) for row in rows]
         for item in segments:
             source_payload = item.pop("source_payload", {})
-            speaker_segments = source_payload.get("speaker_segments") if isinstance(source_payload, dict) else None
+            speaker_segments = (
+                source_payload.get("speaker_segments")
+                if isinstance(source_payload, dict)
+                else None
+            )
             item["source_speaker_segments"] = (
-                speaker_segments if isinstance(speaker_segments, list) else [])
-            hint = source_payload.get("insight") if isinstance(source_payload, dict) else None
+                speaker_segments if isinstance(speaker_segments, list) else []
+            )
+            hint = (
+                source_payload.get("insight")
+                if isinstance(source_payload, dict)
+                else None
+            )
             item["insight_hint"] = hint if isinstance(hint, dict) else None
         segments.sort(key=lambda item: (item["received_at"], item["cursor"]))
         return {"broadcasts": broadcast_items, "segments": segments, "cursor": cursor}
@@ -876,31 +1055,53 @@ class LiveRepository:
             JOIN transcript_segments segment ON segment.id = revision.segment_id
             JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
             WHERE revision.event_cursor > %s
-              AND broadcast.lifecycle_status = 'LIVE' {committee_filter} {broadcast_filter}
+              AND broadcast.lifecycle_status = 'LIVE'
+              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
+              {committee_filter} {broadcast_filter}
             ORDER BY revision.event_cursor
             LIMIT %s
             """,
             parameters,
         ).fetchall()
         columns = (
-            "cursor", "segment_id", "broadcast_id", "external_id",
-            "committee_name", "title", "source_segment_id", "text",
-            "speaker_label", "is_final", "received_at", "content_hash",
+            "cursor",
+            "segment_id",
+            "broadcast_id",
+            "external_id",
+            "committee_name",
+            "title",
+            "source_segment_id",
+            "text",
+            "speaker_label",
+            "is_final",
+            "received_at",
+            "content_hash",
             "lifecycle_status",
             "source_payload",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         for item in items:
             source_payload = item.pop("source_payload", {})
-            speaker_segments = source_payload.get("speaker_segments") if isinstance(source_payload, dict) else None
+            speaker_segments = (
+                source_payload.get("speaker_segments")
+                if isinstance(source_payload, dict)
+                else None
+            )
             item["source_speaker_segments"] = (
-                speaker_segments if isinstance(speaker_segments, list) else [])
-            hint = source_payload.get("insight") if isinstance(source_payload, dict) else None
+                speaker_segments if isinstance(speaker_segments, list) else []
+            )
+            hint = (
+                source_payload.get("insight")
+                if isinstance(source_payload, dict)
+                else None
+            )
             item["insight_hint"] = hint if isinstance(hint, dict) else None
         return items
 
     def _upsert_document(
-        self, source: SourceVersionInput, source_system: str | None = None,
+        self,
+        source: SourceVersionInput,
+        source_system: str | None = None,
     ) -> uuid.UUID:
         external_id = hashlib.sha256(source.source_url.encode("utf-8")).hexdigest()
         row = self.connection.execute(
@@ -912,8 +1113,12 @@ class LiveRepository:
             DO UPDATE SET canonical_url = EXCLUDED.canonical_url RETURNING id
             """,
             (
-                uuid.uuid4(), source_system or self.source_system, source.source_type, external_id,
-                source.source_url, source.retrieved_at,
+                uuid.uuid4(),
+                source_system or self.source_system,
+                source.source_type,
+                external_id,
+                source.source_url,
+                source.retrieved_at,
             ),
         ).fetchone()
         return row[0]
@@ -937,9 +1142,16 @@ class LiveRepository:
             DO UPDATE SET parser_version = EXCLUDED.parser_version RETURNING id
             """,
             (
-                uuid.uuid4(), document_id, source.content_hash, source.source_url,
-                str(source.raw_path), source.retrieved_at, source.parser_version,
-                source.content_type, authority_status, Jsonb(source.metadata),
+                uuid.uuid4(),
+                document_id,
+                source.content_hash,
+                source.source_url,
+                str(source.raw_path),
+                source.retrieved_at,
+                source.parser_version,
+                source.content_type,
+                authority_status,
+                Jsonb(source.metadata),
             ),
         ).fetchone()
         return row[0]

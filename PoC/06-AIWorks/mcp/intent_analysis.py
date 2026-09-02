@@ -123,6 +123,37 @@ def analyze(text: str, context: dict | None = None, configuration: dict | None =
         )
     )
     preferred_model = str(configuration.get("initialDocumentModel") or "upstage:solar-pro4") if creates_document else ""
+    has_selection = bool(context.get("has_selection") or context.get("selection_text"))
+    requests_template = any(term in normalized for term in ("양식", "서식", "형식으로", "포맷"))
+    requests_data = any(term in normalized for term in ("조회", "검색", "확인", "찾아", "현황", "근거", "자료", "예산", "법률"))
+    task_type = "selection-edit" if has_selection else "document-create" if creates_document else "document-transform" if requests_template else "information-query"
+    target_artifact = "hwpx" if requests_template else "markdown" if creates_document else "selection" if has_selection else "text"
+    required_capabilities = []
+    if requests_data:
+        required_capabilities.append("data.retrieve")
+    if creates_document:
+        required_capabilities.extend(["document.report.compose", "document.markdown.persist"])
+    if has_selection:
+        required_capabilities.append("document.selection.rewrite")
+    if requests_template:
+        required_capabilities.extend(["document.template.apply", "document.hwpx.render"])
+    candidate_sources = []
+    if context.get("project_id"):
+        candidate_sources.append({"kind": "project-sources", "projectId": str(context["project_id"])})
+    if context.get("attachments"):
+        candidate_sources.append({"kind": "attachments", "count": len(context.get("attachments") or [])})
+    classification = str(context.get("classification") or "internal")
+    sensitivity = {
+        "classification": classification,
+        "externalTransferAllowed": classification not in {"confidential", "restricted"},
+        "reason": "프로젝트 문서 분류 기준",
+    }
+    constraints = {
+        "citationRequired": requests_data,
+        "requestedStyle": "central-government-outline" if any(term in normalized for term in ("중앙부처", "개조식")) else "",
+        "requestedTemplate": requests_template,
+        "preserveSelectionScope": has_selection,
+    }
     return {
         "intentType": rule["intentType"],
         "label": rule["label"],
@@ -134,4 +165,14 @@ def analyze(text: str, context: dict | None = None, configuration: dict | None =
         "createsInitialDocument": creates_document,
         "preferredModelId": "" if preferred_model == "auto" else preferred_model,
         "modelPolicyReason": "최초 문서 생성 품질 우선 설정" if creates_document and preferred_model != "auto" else "의도 기반 자동 선택",
+        "contractVersion": "intent-analysis/1.0",
+        "normalizedInstruction": normalized,
+        "taskType": task_type,
+        "targetArtifact": target_artifact,
+        "requiredCapabilities": list(dict.fromkeys(required_capabilities)),
+        "candidateDataSources": candidate_sources,
+        "sensitivity": sensitivity,
+        "preferredModelClass": "quality" if creates_document else "fast" if rule["complexity"] == "low" else "reasoning",
+        "outputContract": {"format": target_artifact, "sourceOfTruth": "markdown" if target_artifact in {"markdown", "hwpx"} else target_artifact, "citationsRequired": requests_data},
+        "userConstraints": constraints,
     }

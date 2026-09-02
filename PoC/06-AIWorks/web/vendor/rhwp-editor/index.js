@@ -37,14 +37,23 @@ export async function createEditor(container, options = {}) {
   }
 
   let studioUrl = options.studioUrl || DEFAULT_STUDIO_URL;
+  const resolvedStudioUrl = new URL(studioUrl, document.baseURI);
   if (options.renderer !== undefined) {
     if (!['auto', 'canvas2d', 'canvaskit'].includes(options.renderer)) {
       throw new TypeError(`Unsupported renderer: ${options.renderer}`);
     }
-    const resolvedStudioUrl = new URL(studioUrl, document.baseURI);
     resolvedStudioUrl.searchParams.set('renderer', options.renderer);
-    studioUrl = resolvedStudioUrl.href;
   }
+  // AIWorks가 지정 문서를 곧바로 로드하는 임베드 세션에서는 RHWP의
+  // 독립 실행용 자동복구 후보 선택창을 표시하지 않는다. 독립 RHWP URL의
+  // 복구 기능은 그대로 유지한다.
+  if (options.suppressRecovery !== false) {
+    resolvedStudioUrl.searchParams.set('embedded', '1');
+    // RHWP는 url 로딩 모드에서 독립 실행용 복구 후보 창을 생략한다.
+    // 빈 값은 RHWP가 별도 파일을 가져오지 않고 host의 loadFile 호출만 기다리게 한다.
+    resolvedStudioUrl.searchParams.set('url', '');
+  }
+  studioUrl = resolvedStudioUrl.href;
 
   // iframe 생성
   const iframe = document.createElement('iframe');

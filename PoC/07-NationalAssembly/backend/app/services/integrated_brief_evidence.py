@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from .official_reconciliation import inline_diff, minimal_patch_text
+
 
 def attach_official_evidence_from_changes(
     brief: dict[str, Any], changes: list[dict[str, Any]] | None,
@@ -39,6 +41,20 @@ def attach_official_evidence_from_changes(
             target["official_evidence_ids"] = list(dict.fromkeys([
                 *(target.get("official_evidence_ids") or []), *official_ids,
             ]))
+        if str(change.get("operation") or "") != "UPDATE":
+            continue
+        field = str(change.get("field") or "")
+        if field not in {"headline", "summary", "title"}:
+            continue
+        before = str(change.get("before") or "")
+        official_after = str(change.get("after") or change.get("new_text") or "")
+        if not before or not official_after:
+            continue
+        display_after = minimal_patch_text(before, official_after)
+        target[field] = display_after
+        target.setdefault("_official_diffs", {})[field] = inline_diff(
+            before, display_after,
+        )
     return result
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 from pathlib import Path
 
 from selenium import webdriver
@@ -15,6 +16,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 URL = os.getenv("AIWORKS_BROWSER_URL", "http://127.0.0.1:8000/poc/aiworks/")
 GECKODRIVER = os.getenv("AIWORKS_GECKODRIVER", "/snap/bin/geckodriver")
+ROOT = Path(__file__).resolve().parents[1]
+DB_PATH = Path(os.getenv("AIWORKS_DB_PATH", str(ROOT / "data" / "aiworks.sqlite3")))
 
 
 def wait_for(driver, expression: str, timeout: int = 45):
@@ -39,6 +42,26 @@ def set_value(driver, element_id: str, value: str):
     node.send_keys(value)
 
 
+def cleanup_test_package(package_id: str) -> None:
+    if not package_id.startswith("org.browser-process-runtime-") or not DB_PATH.is_file():
+        return
+    with sqlite3.connect(DB_PATH) as db:
+        draft_ids = [
+            row[0]
+            for row in db.execute(
+                "SELECT id FROM mcp_drafts WHERE json_extract(manifest_json, '$.id')=?",
+                (package_id,),
+            )
+        ]
+        db.execute("DELETE FROM mcp_installations WHERE package_id=?", (package_id,))
+        for table in ("mcp_capabilities", "mcp_reference_chunks", "mcp_package_files"):
+            db.execute(f"DELETE FROM {table} WHERE package_id=?", (package_id,))
+        db.execute("DELETE FROM mcp_packages WHERE package_id=?", (package_id,))
+        for draft_id in draft_ids:
+            db.execute("DELETE FROM mcp_draft_references WHERE draft_id=?", (draft_id,))
+            db.execute("DELETE FROM mcp_drafts WHERE id=?", (draft_id,))
+
+
 def main():
     if not Path(GECKODRIVER).exists():
         raise SystemExit(f"geckodriver not found: {GECKODRIVER}")
@@ -49,9 +72,9 @@ def main():
     try:
         driver.set_window_size(1536, 1100)
         driver.get(URL)
-        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.30.0')")
-        wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
-        driver.execute_script("document.querySelector('[data-select-project=\"project-default\"]').click()")
+        wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.31.2')")
+        wait_for(driver, "document.querySelector('[data-select-project]')")
+        driver.execute_script("document.querySelector('[data-select-project]').click()")
         wait_for(driver, "!document.querySelector('#workbench').hidden || !document.querySelector('#welcomeTask').hidden")
         if driver.execute_script("return !document.querySelector('#welcomeTask').hidden"):
             driver.execute_script("document.querySelector('#enterDemo').click()")
@@ -120,6 +143,7 @@ def main():
         )
     finally:
         driver.quit()
+        cleanup_test_package(package_id)
 
 
 if __name__ == "__main__":

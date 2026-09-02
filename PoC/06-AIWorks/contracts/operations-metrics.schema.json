@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/operations-metrics.schema.json",
+  "title": "AIWorks Operational Metrics 1.0",
+  "type": "object",
+  "required": ["contractVersion", "generatedAt", "executions", "workflows", "approvalLeases", "outputs", "mcpEvaluations", "documentConflicts", "exportBoundary"],
+  "properties": {
+    "contractVersion": {"const": "aiworks-operations/1.0"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "executions": {"type": "object"},
+    "workflows": {"type": "object"},
+    "approvalLeases": {"type": "object"},
+    "outputs": {"type": "object"},
+    "mcpEvaluations": {"type": "array", "items": {"type": "object"}},
+    "documentConflicts": {"type": "object"},
+    "exportBoundary": {
+      "type": "object",
+      "required": ["status", "targets"],
+      "properties": {
+        "status": {"const": "adapter-required"},
+        "targets": {"type": "array", "items": {"enum": ["OpenTelemetry", "Prometheus"]}},
+        "detail": {"type": "string"}
+      }
+    }
+  },
+  "additionalProperties": false
+}

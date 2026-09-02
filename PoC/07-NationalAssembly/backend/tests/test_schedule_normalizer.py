@@ -54,6 +54,12 @@ class ScheduleNormalizerTests(unittest.TestCase):
         self.assertIsNone(normalized.end_time)
         self.assertEqual(normalized.reconciliation_status, ReconciliationStatus.UNRESOLVED)
 
+    def test_relative_official_time_text_is_preserved_without_worker_failure(self):
+        normalized = normalize_schedule(record(time_text="개회식 직후"))
+        self.assertIsNone(normalized.start_time)
+        self.assertIsNone(normalized.end_time)
+        self.assertEqual(normalized.time_text, "개회식 직후")
+
     def test_invalid_date_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "invalid SCH_DT"):
             normalize_schedule(record(date_text="20990102"))

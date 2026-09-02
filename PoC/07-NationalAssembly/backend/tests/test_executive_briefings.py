@@ -234,6 +234,52 @@ class ExecutiveBriefingTests(unittest.TestCase):
         self.assertEqual(second["target_ministries"], ["행정안전부"])
         self.assertIn("제안했습니다", second["text"])
 
+    def test_prefers_substantive_later_report_paragraph_over_agenda_listing(self):
+        meeting = {
+            "agendas": [{
+                "agenda_type": "REPORT",
+                "topic": "2026년 추석 민생안정대책",
+                "ministries": ["재정경제부"],
+            }],
+            "presidential_briefing": {"paragraphs": [
+                {
+                    "source_span_id": "president-paragraph-2",
+                    "text": "오늘 회의에서는 2026년 추석 민생안정대책 등 2건의 부처 보고가 있었습니다.",
+                },
+                {
+                    "source_span_id": "president-paragraph-16",
+                    "text": "재정경제부가 마련한 추석 민생 안정 대책에 대해서는 물가 문제를 확실하게 지원해 주면 좋겠다고 강조했습니다.",
+                },
+                {
+                    "source_span_id": "president-paragraph-17",
+                    "text": "전남광주통합특별시 국립의대 부지와 관련해 지원 조치를 해 달라 당부했습니다.",
+                },
+            ]},
+        }
+        self.assertEqual(attach_presidential_guidance(meeting), 1)
+        report = meeting["agendas"][0]
+        self.assertIn("물가 문제", report["discussion_summary"])
+        self.assertNotIn("국립의대", report["discussion_summary"])
+        self.assertIn("물가 문제", report["presidential_guidance"][0]["text"])
+
+    def test_does_not_attach_multi_report_agenda_listing_as_discussion(self):
+        meeting = {
+            "agendas": [
+                {"agenda_type": "REPORT", "topic": "중동전쟁 관련 비상국정운영 및 대응현황", "ministries": ["재정경제부"]},
+                {"agenda_type": "REPORT", "topic": "독자 AI 모델 개발 도전 의의 및 성과", "ministries": ["과학기술정보통신부"]},
+                {"agenda_type": "REPORT", "topic": "세계 최고의 AI 민주정부 실현 전략", "ministries": ["행정안전부"]},
+                {"agenda_type": "REPORT", "topic": "국민의 일상을 바꾸는 고속철도 통합", "ministries": ["국토교통부"]},
+                {"agenda_type": "REPORT", "topic": "업무보고 후속조치 이행상황", "ministries": ["국무조정실"]},
+            ],
+            "presidential_briefing": {"paragraphs": [{
+                "source_span_id": "president-paragraph-2",
+                "text": "오늘 회의에서는 중동전쟁 관련 비상국정운영 및 대응현황, 독자 AI 모델 개발 도전 의의 및 성과, 세계 최고의 AI 민주정부 실현 전략, 국민의 일상을 바꾸는 고속철도 통합, 업무보고 후속조치 이행상황 등 5건의 부처보고가 있었습니다.",
+            }]},
+        }
+        self.assertEqual(attach_presidential_guidance(meeting), 0)
+        self.assertNotIn("discussion_summary", meeting["agendas"][0])
+        self.assertNotIn("discussion_summary", meeting["agendas"][-1])
+
 
 if __name__ == "__main__":
     unittest.main()

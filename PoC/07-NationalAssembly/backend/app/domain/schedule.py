@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+import re
 from dataclasses import asdict, dataclass
 from datetime import date, time
 
@@ -71,8 +72,19 @@ def _parse_time_range(value: str | None) -> tuple[time | None, time | None]:
     if value is None:
         return None, None
     parts = [part.strip() for part in value.split("~", 1)]
+    if not parts[0]:
+        return None, None
+    time_pattern = re.compile(r"^\d{1,2}:\d{2}(?::\d{2})?$")
+    if not time_pattern.fullmatch(parts[0]):
+        # The official feed sometimes publishes relational text such as
+        # “개회식 직후”. Preserve time_text without inventing a clock time.
+        return None, None
     start = _parse_time(parts[0])
-    end = _parse_time(parts[1]) if len(parts) == 2 and parts[1] else None
+    end = (
+        _parse_time(parts[1])
+        if len(parts) == 2 and parts[1] and time_pattern.fullmatch(parts[1])
+        else None
+    )
     return start, end
 
 

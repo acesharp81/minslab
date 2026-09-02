@@ -121,7 +121,7 @@ def main() -> None:
             wait_for(driver, "document.readyState === 'complete'")
             wait_for(
                 driver,
-                "document.querySelector('.local-badge').textContent.includes('v0.30.0')",
+                "document.querySelector('.local-badge').textContent.includes('v0.31.2')",
             )
             if not driver.find_element(By.ID, "welcomeScreen").is_displayed():
                 raise AssertionError("prompt-first welcome screen is not visible")

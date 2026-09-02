@@ -16,7 +16,7 @@
       "const": "aiworks-project-backup"
     },
     "schemaVersion": {
-      "const": "1.0"
+      "const": "1.2"
     },
     "exportedAt": {
       "type": "string",
@@ -55,15 +55,15 @@
     "data": {
       "type": "object",
       "required": [
+        "projectPolicy",
+        "workspaceState",
+        "conversations",
+        "conversationMessages",
+        "decisions",
         "markdownDocuments",
         "markdownVersions",
-        "documentArtifacts",
         "facts",
-        "factValues",
-        "artifacts",
-        "artifactVersions",
-        "artifactRelations",
-        "artifactEvidence"
+        "factValues"
       ],
       "additionalProperties": {
         "type": "array",

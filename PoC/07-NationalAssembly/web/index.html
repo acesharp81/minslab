@@ -4,17 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="국회·대통령실·국무회의·부처의 국정 흐름을 주제·소관별로 보는 PoC" />
-    <title>지금 우리 회의에선</title>
-    <link rel="stylesheet" href="assets/styles.css?v=20260825-26" />
+    <title>국정보미</title>
+    <link rel="stylesheet" href="assets/styles.css?v=20260831-27" />
+    <link rel="stylesheet" href="assets/topic-reports.css?v=20260902-10" />
+    <link rel="stylesheet" href="assets/assembly-extras.css?v=20260902-3" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20260827-35" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20260902-50" />
     <link rel="stylesheet" href="assets/official-integration.css?v=20260825-1" />
+    <link rel="stylesheet" href="assets/watch-alerts.css?v=20260901-4" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./" aria-label="지금 우리 회의에선 홈">
-        <span class="brand-mark">NOW</span>
-        <span><b>지금 우리 회의에선</b><small>국회·정부 정책 통합 흐름</small></span>
+      <a class="brand" href="./" aria-label="국정보미 홈">
+        <span class="brand-mark">봄</span>
+        <span><b>국정보미</b><small>국회·정부 정책 통합 흐름</small></span>
       </a>
       <section class="today-schedule-board" id="todayScheduleBoard" aria-label="오늘 예정 회의">
         <div class="today-schedule-label"><span>오늘 예정</span><b id="todayScheduleCount">확인 중</b></div>
@@ -27,7 +30,10 @@
         </div>
       </section>
       <nav class="topnav" aria-label="국정 정보 영역" role="tablist">
-        <a id="topTabLive" href="#live" role="tab" aria-selected="true" aria-controls="live" data-workspace-tab="live"><i aria-hidden="true"></i><b id="topLiveStatus">방송없음</b></a>
+        <a id="topTabLive" href="#live" role="tab" aria-selected="true" aria-controls="live" data-workspace-tab="live"><i aria-hidden="true"></i><b>알람·실시간</b><small id="topLiveStatus">방송없음</small><em id="watchAlertBadge" hidden aria-label="읽지 않은 알림 0건">새 알림 0</em></a>
+        <a id="topTabReports" href="#reports" role="tab" aria-selected="false" aria-controls="reports" data-workspace-tab="reports"><b>회의 보고서</b></a>
+        <a id="topTabTopicReports" href="#topic-reports" role="tab" aria-selected="false" aria-controls="topic-reports" data-workspace-tab="topic-reports"><b>주제별 보고서</b></a>
+        <a id="topTabExtras" href="#extras" role="tab" aria-selected="false" aria-controls="extras" data-workspace-tab="extras"><b>추가기능</b></a>
       </nav>
       <section class="ai-usage" id="aiUsage" aria-label="AI 요약 사용량">
         <div class="ai-usage-identity"><span id="aiPlatform">요약 플랫폼 확인 중</span><strong id="aiModel">모델 확인 중</strong></div>
@@ -42,10 +48,43 @@
 
     <main>
       <section class="live-section" id="live" role="tabpanel" aria-labelledby="topTabLive" data-workspace-panel="live">
-        <section class="broadcast-hub" aria-label="진행 중 및 최근 결과 회의">
+        <header class="workspace-intro">
+          <div><span>WATCH &amp; LIVE</span><h1>알람 설정과 실시간 회의</h1><p>관심 문구를 설정하고, 방송 자막·관련 알림·누적 초안 보고서를 한 화면에서 확인합니다.</p></div>
+          <div class="workspace-authority"><b>LIVE 초안</b><span>화자 묶음 요약 재사용</span><small>추가 LLM 호출 없음</small></div>
+        </header>
+        <div class="alarm-live-layout">
+          <div class="live-alert-mount" id="liveAlertMount" aria-label="알람 설정과 알림함"></div>
+          <div class="live-operations-shell">
+            <section class="broadcast-hub live-only-hub" aria-label="진행 중 및 최근 24시간 회의">
+              <header class="hub-heading"><div><span>LIVE CONTINUITY</span><strong>진행 중·최근 24시간</strong></div><p>현재 시각부터 24시간 안에 진행된 방송만 표시하며, 완료 후에는 회의 보고서로 이어집니다.</p></header>
+              <div class="broadcast-rows meeting-rail live-meeting-rail" id="liveBroadcastRows" aria-label="진행 중 및 최근 24시간 회의"><p>공식 방송 상태를 확인하는 중입니다.</p></div>
+              <div class="live-expanded live-operations-expanded" id="liveOperationsExpanded" hidden>
+                <header><strong id="liveOperationsExpandedTitle">실시간 회의</strong><button id="liveOperationsExpandedClose" type="button">접기 ×</button></header>
+                <div id="liveOperationsExpandedStage"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="live-classification" aria-label="생방송 분류 결과 영역">
+          <span>실시간 초안</span>
+          <div><b>화자 발언 묶음</b><em>화자 전환 시 닫힌 발언을 한 번만 요약합니다</em></div>
+          <i>→</i>
+          <div><b>주제별 누적</b><em>같은 주제의 질문·답변·과제를 계속 합칩니다</em></div>
+          <i>→</i>
+          <div><b>종료 후 보고서</b><em>전체 회의 후처리로 비공식 보고서를 확정합니다</em></div>
+        </div>
+      </section>
+
+      <section class="live-section reports-section" id="reports" role="tabpanel" aria-labelledby="topTabReports" data-workspace-panel="reports" hidden>
+        <header class="workspace-intro">
+          <div><span>MEETING REPORTS</span><h1>회의 보고서</h1><p>방송 종료 후 비공식 보고서와 공식자료가 반영된 최종 내용을 같은 회의에서 이어서 봅니다.</p></div>
+          <div class="workspace-authority is-report"><b>공식화 변화</b><span>비공식 ↔ 공식 차이 요약</span><small>OpenRouter 1회 · 저장 재사용</small></div>
+        </header>
+        <section class="broadcast-hub" aria-label="최근 회의 보고서">
           <div class="meeting-rail-shell">
             <button class="meeting-rail-arrow is-prev" id="meetingRailPrev" type="button" aria-label="이전 회의 보기">‹</button>
-            <div class="broadcast-rows meeting-rail" id="liveBroadcastRows" tabindex="0" aria-label="진행 중 및 결과 회의"><p>공식 방송 상태와 최근 결과를 확인하는 중입니다.</p></div>
+            <div class="broadcast-rows meeting-rail" id="reportBroadcastRows" tabindex="0" aria-label="최근 회의 보고서"><p>최근 회의 결과를 확인하는 중입니다.</p></div>
             <button class="meeting-rail-arrow is-next" id="meetingRailNext" type="button" aria-label="다음 회의 보기">›</button>
           </div>
           <div class="live-expanded" id="liveExpanded" hidden>
@@ -54,7 +93,7 @@
           </div>
         </section>
 
-        <div class="official-rotation-title" hidden><span>OFFICIAL BRIEF · 5초 자동 전환</span><strong>지금 확인할 공식 정보</strong><small>생방송이 없을 때도 최근 확정 내용을 이어서 보여줍니다</small></div>
+        <div class="official-rotation-title" hidden><span>OFFICIAL BRIEF · 5초 자동 전환</span><strong>지금 확인할 공식 정보</strong><small>최근 확정 내용을 이어서 보여줍니다</small></div>
 
         <div class="live-grid" hidden>
           <article class="live-channel executive-live">
@@ -84,13 +123,70 @@
           </article>
         </div>
 
-        <div class="live-classification" aria-label="생방송 분류 결과 영역">
-          <span>실시간 분류</span>
-          <div><b>질문 ↔ 답변</b><em>같은 주제의 질의와 답변을 함께 묶습니다</em></div>
-          <i>→</i>
-          <div><b>미해결 과제</b><em>회의 안에서 해소되지 않은 약속과 요구만 남깁니다</em></div>
-          <i>→</i>
-          <div><b>담당 부서</b><em>명시되거나 검토된 소관 부서를 연결합니다</em></div>
+      </section>
+
+      <section class="live-section topic-reports-section" id="topic-reports" role="tabpanel" aria-labelledby="topTabTopicReports" data-workspace-panel="topic-reports" hidden>
+        <div id="topicReportsApp"></div>
+      </section>
+
+      <section class="live-section assembly-extras-section" id="extras" role="tabpanel" aria-labelledby="topTabExtras" data-workspace-panel="extras" hidden>
+        <header class="workspace-intro assembly-extras-intro">
+          <div><span>ASSEMBLY AT A GLANCE</span><h1>국회 일정과 기본 현황</h1><p>공식 국회 일정과 의석 구성을 한 화면에서 빠르게 확인합니다.</p></div>
+          <div class="workspace-authority is-report"><b>공식 공개자료</b><span>일정·국회의원 통합 API</span><small>LLM 호출 없음</small></div>
+        </header>
+        <div class="assembly-extras-grid" id="assemblyExtrasApp">
+          <section class="assembly-calendar-panel" aria-labelledby="assemblyCalendarTitle">
+            <header class="assembly-panel-head">
+              <div><span>OFFICIAL SCHEDULE</span><h2 id="assemblyCalendarTitle">국회 일정 달력</h2><p id="assemblyCalendarMeta">저장된 공식 일정을 불러오는 중입니다.</p></div>
+              <div class="assembly-calendar-controls">
+                <button id="assemblyCalendarPrev" type="button" aria-label="이전 달">‹</button>
+                <button id="assemblyCalendarToday" type="button">오늘</button>
+                <strong id="assemblyCalendarMonth"></strong>
+                <button id="assemblyCalendarNext" type="button" aria-label="다음 달">›</button>
+              </div>
+            </header>
+            <div class="assembly-calendar-filter" role="group" aria-label="일정 범위">
+              <button type="button" class="is-active" data-calendar-filter="all">전체 위원회</button>
+              <button type="button" data-calendar-filter="target">집중 위원회</button>
+            </div>
+            <div class="assembly-calendar-weekdays" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div class="assembly-calendar-grid" id="assemblyCalendarGrid" aria-live="polite"></div>
+            <section class="assembly-day-agenda" aria-labelledby="assemblyDayAgendaTitle">
+              <header><div><span>SELECTED DAY</span><h3 id="assemblyDayAgendaTitle">선택한 날짜</h3></div><small id="assemblyDayAgendaCount"></small></header>
+              <div id="assemblyDayAgendaList"><p>달력에서 날짜를 선택하세요.</p></div>
+            </section>
+          </section>
+          <aside class="assembly-reference-panel" aria-labelledby="assemblyReferenceTitle">
+            <header class="assembly-panel-head"><div><span>ASSEMBLY SNAPSHOT</span><h2 id="assemblyReferenceTitle">의석 정보</h2><p id="assemblyReferenceMeta">공식 의원 현황을 확인하는 중입니다.</p></div></header>
+            <div class="assembly-seat-total"><span id="assemblyTerm">제22대</span><strong><b id="assemblySeatCount">-</b>석</strong><small>공식 API 현역 식별 기준</small></div>
+            <div class="assembly-seat-bar" id="assemblySeatBar" aria-label="정당별 의석 비율"></div>
+            <div class="assembly-party-list" id="assemblyPartyList"><p>의석 구성을 불러오는 중입니다.</p></div>
+            <div class="assembly-reference-facts" id="assemblyReferenceFacts"></div>
+            <p class="assembly-reference-note">정당 표기는 국회의원 정보 통합 API가 해당 대수에 제공한 값을 그대로 사용합니다. 정당 변경 공시와 시차가 있을 수 있습니다.</p>
+            <a class="assembly-official-link" id="assemblyReferenceSource" href="https://www.data.go.kr/data/15126133/openapi.do" target="_blank" rel="noopener noreferrer">공식 국회의원 정보 출처 ↗</a>
+          </aside>
+          <section class="assembly-hemicycle-panel" aria-labelledby="assemblyHemicycleTitle">
+            <header class="assembly-panel-head assembly-hemicycle-head">
+              <div><span>SEAT COMPOSITION</span><h2 id="assemblyHemicycleTitle">정당별 의석 구성</h2><p>정당을 선택하면 합산 의석과 주요 의결 기준을 비교합니다.</p></div>
+              <div class="assembly-seat-selection"><span>선택 합계</span><strong id="assemblySelectedSeatCount">전체</strong><button id="assemblySeatSelectionReset" type="button" hidden>선택 해제</button></div>
+            </header>
+            <div class="assembly-hemicycle-stage" id="assemblyHemicycleStage"><p>공식 의석 현황을 불러오는 중입니다.</p></div>
+            <div class="assembly-hemicycle-legend" id="assemblyHemicycleLegend" aria-label="정당 선택"></div>
+            <div class="assembly-quorum-grid" id="assemblyQuorumGrid" aria-live="polite"></div>
+            <p class="assembly-hemicycle-note">정당별 의석수 비례 시각화이며 실제 본회의장 좌석 지정도나 정당의 이념적 위치를 나타내지 않습니다. 안건별 의결 요건은 서로 다르므로 숫자는 비교 기준으로만 확인하세요.</p>
+          </section>
+          <section class="assembly-insights-panel" aria-labelledby="assemblyInsightsTitle">
+            <header class="assembly-panel-head">
+              <div><span>GOVERNMENT FLOW INSIGHTS</span><h2 id="assemblyInsightsTitle">국정 흐름 인사이트</h2><p>각각의 공식 자료를 시간·반복·제도화 관계로 결합해 봅니다.</p></div>
+              <small class="assembly-insight-cost">저장 공식자료 계산 · LLM 0회</small>
+            </header>
+            <div class="assembly-insights-grid">
+              <article class="assembly-insight-card is-timeline"><header><span>정책 흐름 타임라인</span><small>정부 ↔ 국회</small></header><div id="assemblyPolicyTimeline"><p>정책 흐름을 불러오는 중입니다.</p></div></article>
+              <article class="assembly-insight-card is-trend"><header><span>지속·급증·소멸 쟁점</span><small>최근 14일 ↔ 이전 14일</small></header><div id="assemblyIssueTrends"><p>쟁점 추세를 계산하는 중입니다.</p></div></article>
+              <article class="assembly-insight-card is-institution"><header><span>논의 → 제도화 전환</span><small>공식 발언 ↔ 의안·표결</small></header><div id="assemblyInstitutionFlow"><p>직접 연결 근거를 확인하는 중입니다.</p></div></article>
+            </div>
+            <p class="assembly-insight-note">동일 주제·키워드 또는 공식 안건 번호로 직접 확인되는 관계만 표시합니다. 시간상 앞뒤에 있다는 이유만으로 인과관계를 만들지 않습니다.</p>
+          </section>
         </div>
       </section>
 
@@ -148,6 +244,67 @@
       </section>
     </main>
 
+    <div class="watch-panel-shade" id="watchPanelShade" hidden></div>
+    <aside class="watch-alert-panel is-embedded" id="watchAlertPanel" aria-labelledby="watchAlertTitle">
+      <header>
+        <div><span>LIVE WATCH</span><h2 id="watchAlertTitle">알림 설정·기록</h2><p>이 브라우저의 주제로 새 자막을 감지합니다.</p></div>
+        <button id="watchAlertClose" type="button" aria-label="알람 설정 영역 접기">×</button>
+      </header>
+      <div class="watch-panel-body">
+        <section class="watch-setup">
+          <div class="watch-section-title"><div><span>알림 주제</span><strong>이 브라우저의 감지 조건</strong></div><small id="watchMetrics">로컬 저장 · LLM 0회</small></div>
+          <div class="watch-kakao-control" id="watchKakaoControl">
+            <div><strong>카카오 나에게 보내기</strong><span id="watchKakaoStatus">연결 상태 확인 중 · 메시지 전송 선택 동의 필요</span></div>
+            <button id="watchKakaoAction" type="button" disabled>연결 준비</button>
+          </div>
+          <div class="watch-rule-list" id="watchRuleList"><p>설정을 불러오는 중입니다.</p></div>
+          <details class="watch-rule-composer" id="watchRuleComposer">
+            <summary>＋ 새 알림 주제 추가</summary>
+            <form id="watchRuleForm">
+              <label><span>주제 이름</span><input id="watchRuleName" maxlength="80" required placeholder="예: AI 민주정부" /></label>
+              <label><span>감지 문구</span><input id="watchRuleTerms" maxlength="180" required placeholder="쉼표로 구분: AI 민주정부, 인공지능 정부" /></label>
+              <div class="watch-form-row">
+                <label><span>범위</span><select id="watchRuleInstitution"><option value="">국회·정부 전체</option><option value="LEGISLATURE">국회</option><option value="EXECUTIVE">정부·국무회의</option></select></label>
+                <label><span>알림 빈도</span><select id="watchRulePolicy"><option value="FIRST_PER_MEETING">회의당 최초 1회</option><option value="FIRST_PER_SPEAKER">화자별 최초 1회</option><option value="ONCE_PER_10_MINUTES">10분마다 최대 1회</option><option value="INTERVAL_15_MINUTES">15분마다 최대 1회</option><option value="INTERVAL_30_MINUTES">30분마다 최대 1회</option><option value="INTERVAL_60_MINUTES">60분마다 최대 1회</option><option value="EVERY_MATCH">모든 감지</option></select></label>
+              </div>
+              <label class="watch-digest-option"><input id="watchRuleDigest" type="checkbox" /><span>회의 종료 시 누적 결과 알림 받기 <small>추가 LLM 호출 없음</small></span></label>
+              <label class="watch-digest-option"><input id="watchRuleKakao" type="checkbox" disabled /><span>카카오로도 받기 <small id="watchRuleKakaoHelp">나에게 보내기 연결 후 선택 가능</small></span></label>
+              <div class="watch-form-actions"><button class="watch-primary" id="watchRuleSubmit" type="submit">알림 주제 저장</button><button id="watchRuleCancel" type="button" hidden>수정 취소</button></div>
+            </form>
+          </details>
+          <p class="watch-form-message" id="watchRuleMessage"></p>
+          <div class="watch-test-control">
+            <div><strong>실제 경로로 시험하기</strong><span>가상 자막 → 감지 → 알림 → 발언 누적</span></div>
+            <button id="watchTestStart" type="button">테스트 방송 송출</button>
+          </div>
+        </section>
+        <section class="watch-inbox">
+          <div class="watch-section-title"><div><span>감지 기록</span><strong>최근 알림</strong></div><div class="watch-inbox-actions"><small id="watchUnreadLabel">새 알림 0</small><button id="watchClearRead" type="button">읽은 기록 정리</button></div></div>
+          <div class="watch-notification-list" id="watchNotificationList"><p>아직 도착한 알림이 없습니다.</p></div>
+        </section>
+        <section class="watch-evidence" id="watchEvidence" hidden>
+          <div class="watch-section-title"><div><span>관련 발언 흐름</span><strong id="watchEvidenceTitle">근거 발언</strong></div><small id="watchEvidenceCount"></small></div>
+          <div class="watch-integrated-summary" id="watchIntegratedSummary" hidden></div>
+          <div class="watch-current-summary" id="watchCurrentSummary" data-label="현재까지 요약 · LLM 미사용"></div>
+          <div class="watch-speaker-flow" id="watchSpeakerFlow"></div>
+          <strong class="watch-evidence-label">근거 발언 원문</strong>
+          <div id="watchEvidenceList"></div>
+        </section>
+        <section class="watch-operator">
+          <details id="watchOperatorPanel">
+            <summary>운영 검토·실방송 회귀 점검</summary>
+            <div class="watch-operator-auth">
+              <label><span>운영자 비밀번호</span><input id="watchAdminToken" type="password" autocomplete="current-password" /></label>
+              <button id="watchAdminLoad" type="button">검토 목록</button>
+              <button id="watchAdminAudit" type="button">최근 방송 점검</button>
+            </div>
+            <p id="watchAdminMessage">자동 판정은 보존하고 운영자 판단을 별도 이력으로 남깁니다.</p>
+            <div id="watchAdminList"></div>
+          </details>
+        </section>
+      </div>
+    </aside>
+
     <dialog class="transcript-dialog" id="officialTranscriptDialog" aria-labelledby="officialTranscriptTitle">
       <div class="transcript-dialog-head">
         <div><span id="officialTranscriptStage">OFFICIAL SOURCE</span><h2 id="officialTranscriptTitle">공식 회의록</h2><p id="officialTranscriptMeta"></p></div>
@@ -158,9 +315,32 @@
       <div class="transcript-dialog-foot"><a id="officialTranscriptSource" target="_blank" rel="noopener noreferrer">국회 회의록 원문 ↗</a></div>
     </dialog>
 
+    <dialog class="transcript-dialog live-draft-evidence-dialog" id="liveDraftEvidenceDialog" aria-labelledby="liveDraftEvidenceTitle">
+      <div class="transcript-dialog-head">
+        <div><span>LIVE EVIDENCE · PROVISIONAL</span><h2 id="liveDraftEvidenceTitle">실시간 근거 발언</h2><p id="liveDraftEvidenceMeta"></p></div>
+        <button type="button" id="liveDraftEvidenceClose" aria-label="실시간 근거 발언 닫기">×</button>
+      </div>
+      <div class="transcript-dialog-body" id="liveDraftEvidenceBody"></div>
+    </dialog>
+
+    <dialog class="transcript-dialog watch-rule-report-dialog" id="watchRuleReportDialog" aria-labelledby="watchRuleReportTitle">
+      <div class="transcript-dialog-head">
+        <div><span>WATCH REPORT · CURRENT</span><h2 id="watchRuleReportTitle">알림 주제 현재 보고서</h2><p id="watchRuleReportMeta"></p></div>
+        <button type="button" id="watchRuleReportClose" aria-label="알림 주제 보고서 닫기">×</button>
+      </div>
+      <div class="watch-rule-report-body" id="watchRuleReportBody"></div>
+      <div class="watch-rule-report-actions">
+        <button type="button" id="watchRuleReportDownload">Markdown 다운로드</button>
+        <button type="button" id="watchRuleReportPrint">인쇄·PDF</button>
+      </div>
+    </dialog>
+
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
-    <script src="assets/official-integration.js?v=20260825-1" defer></script>
-    <script src="assets/app.js?v=20260827-72" defer></script>
+    <script src="assets/official-integration.js?v=20260902-2" defer></script>
+    <script src="assets/app.js?v=20260902-26" defer></script>
+    <script src="assets/watch-alerts.js?v=20260901-7" defer></script>
+    <script src="assets/topic-reports.js?v=20260902-14" defer></script>
+    <script src="assets/assembly-extras.js?v=20260902-3" defer></script>
     <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

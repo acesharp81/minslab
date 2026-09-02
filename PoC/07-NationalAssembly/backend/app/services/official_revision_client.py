@@ -9,7 +9,7 @@ import requests
 from .official_edit_validation import filter_supported_official_edits
 
 
-PROMPT_VERSION = "official-brief-delta/1.2"
+PROMPT_VERSION = "official-brief-delta/1.3"
 MAX_OFFICIAL_EVIDENCE = 64
 MAX_EVIDENCE_CHARS = 480
 
@@ -122,6 +122,8 @@ def build_revision_prompt(
         "공식 자료에 없다는 이유만으로 기존 항목을 삭제하지 않는다. 삭제는 공식 내용이 기존 판단을 명백히 부정할 때만 허용한다.\n"
         "개조식을 서술식으로 풀거나 문장 종결·어순만 바꾸는 UPDATE는 금지한다. 기존 의미에 설명을 "
         "덧붙이는 대신 새로운 사실·결정·조치는 별도의 주제나 과제로 추가한다.\n"
+        "UPDATE new_text는 기존 필드 문장을 그대로 복사한 뒤 공식 근거로 반드시 달라져야 하는 최소 문구만 바꾼다. "
+        "변경되지 않은 조사·어순·띄어쓰기·문장 종결은 잠정 결과와 한 글자도 다르게 다시 쓰지 않는다.\n"
         "추가는 공식 발언에 분명한 주요 주제나 후속 과제가 있고 기존 항목에 포함되지 않았을 때만 허용한다.\n"
         "새 과제가 기존 주제와 직접 관련되지 않으면 무관한 주제에 붙이지 말고 ADD topic과 ADD task를 함께 반환한다.\n"
         "함께 추가하는 topic과 task는 topic_id에 같은 new-topic-N 임시 키를 넣는다.\n"

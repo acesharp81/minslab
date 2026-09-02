@@ -33,7 +33,7 @@ def main() -> None:
         try:
             driver.set_window_size(1440, 900)
             driver.get(URL)
-            wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.30.0')")
+            wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.31.2')")
             import_button = driver.find_element(By.ID, "importProjectBackup")
             if not import_button.is_displayed():
                 raise AssertionError("project backup import button is not visible")

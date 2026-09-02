@@ -1,0 +1,15 @@
+{
+  "profiles": [
+    {
+      "id": "org.example.converter@1.0.0",
+      "name": "조직 승인 문서 변환 MCP",
+      "version": "1.0.0",
+      "binary": "/opt/aiworks/mcp/document-converter",
+      "args": ["--stdio"],
+      "offline": true,
+      "allowedTools": {
+        "convert_document": "markdown-output-hwpx"
+      }
+    }
+  ]
+}

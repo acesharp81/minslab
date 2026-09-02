@@ -3,7 +3,7 @@
   "$id": "https://aiworks.local/contracts/project-document-workbench.schema.json",
   "title": "AIWorks Project Document Workbench",
   "type": "object",
-  "required": ["project", "document", "tabs", "artifacts", "factCounts", "events"],
+  "required": ["project", "document", "tabs", "artifacts", "outputs", "factCounts", "events"],
   "properties": {
     "project": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}}, "additionalProperties": true},
     "document": {"type": "object"},
@@ -17,10 +17,29 @@
           "id": {"type": ["string", "null"]},
           "documentId": {"type": "string"},
           "format": {"type": "string"},
-          "status": {"enum": ["missing", "rendering", "synced", "stale", "failed"]},
+          "status": {"enum": ["missing", "rendering", "synced", "stale", "diverged", "failed"]},
           "sourceVersionId": {"type": ["string", "null"]},
           "sourceRevision": {"type": ["integer", "null"]},
           "renderMap": {"type": "object"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "documentId", "sourceVersionId", "format", "filename", "outputSha256", "finalOutput", "projectManaged"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^output_[a-f0-9]+$"},
+          "documentId": {"type": "string"},
+          "sourceVersionId": {"type": "string"},
+          "sourceRevision": {"type": "integer", "minimum": 1},
+          "format": {"type": "string"},
+          "filename": {"type": "string"},
+          "outputSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "finalOutput": {"const": true},
+          "projectManaged": {"const": false}
         },
         "additionalProperties": true
       }

@@ -1,18 +1,20 @@
 from __future__ import annotations
 
+import hmac
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .adapters.national_assembly.catalog import public_catalog
 from .config import PROJECT_DIR, get_settings
+from .topic_report_api import router as topic_report_router
 from .db.bill_repository import BillRepository
 from .db.committee_repository import CommitteeRepository
 from .db.connection import connect
@@ -20,20 +22,31 @@ from .db.live_repository import LiveRepository
 from .db.meeting_brief_repository import MeetingBriefRepository
 from .db.official_evidence_query import official_evidence_items
 from .db.official_integration_repository import OfficialIntegrationRepository
+from .db.official_change_report_repository import OfficialChangeReportRepository
 from .db.review_repository import ReviewRepository
 from .db.schedule_repository import ScheduleRepository
 from .db.speaker_repository import SpeakerRepository
 from .db.summary_repository import SummaryRepository
+from .db.watch_delivery_repository import WatchDeliveryRepository
+from .db.watch_operations_repository import WatchOperationsRepository
+from .db.watch_repository import WatchRepository
+from .db.watch_test_repository import WatchTestRepository
 from .domain import AuthorityStatus, LifecycleStatus, ReconciliationStatus
 from .domain.scope import TARGET_COMMITTEES
-from .ingestion.schedule_worker import UPCOMING_SCHEDULE_SCHEMA
+from .ingestion.schedule_worker import (
+    ASSEMBLY_REFERENCE_SCHEMA, UPCOMING_SCHEDULE_SCHEMA,
+)
 from .services.cross_institution_flow import build_cross_institution_flow
 from .services.executive_briefing_query import filter_executive_briefings
 from .services.integrated_brief_evidence import (
     attach_official_evidence_from_changes,
     official_evidence_ids,
 )
+from .services.meeting_brief import (
+    PROMPT_VERSION as MEETING_BRIEF_PROMPT_VERSION,
+)
 from .services.meeting_brief import link_tasks_to_topics
+from .services.meeting_sessions import build_meeting_sessions
 from .services.mistral_budget import mistral_usage_cost_usd
 from .services.official_brief_integration import build_official_brief_integration
 from .services.official_evidence_presentation import (
@@ -44,20 +57,120 @@ from .services.summary_client import summary_identity
 from .services.transcript_presentation import (
     apply_speaker_overrides,
     default_speaker_name,
+    executive_meeting_content_segments,
     group_transcript_segments,
 )
+from .services.watch_kakao import KakaoNotificationProvider, KakaoProviderError
+from .services.watch_summary import (
+    COMPATIBLE_PROMPT_VERSIONS as WATCH_REPORT_COMPATIBLE_PROMPT_VERSIONS,
+)
+from .services.web_security import (
+    clear_watch_cookie, install_security_middleware, set_watch_cookie,
+)
+
 
 ALLOWED_INSTITUTIONS = {"EXECUTIVE", "LEGISLATURE"}
 
 
 app = FastAPI(
-    title="지금 우리 국회에선 API",
+    title="국정보미 API",
     version="0.1.0",
     description="공식 국회 자료의 수집·정규화·검색을 위한 POC-07 API",
 )
+install_security_middleware(app)
 
+
+app.include_router(topic_report_router)
 class SpeakerOverridePayload(BaseModel):
     display_name: str = Field(min_length=1, max_length=80)
+
+
+class WatchRulePayload(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    include_terms: list[str] = Field(min_length=1, max_length=10)
+    exclude_terms: list[str] = Field(default_factory=list, max_length=10)
+    institution: str | None = None
+    committee_name: str | None = Field(default=None, max_length=80)
+    notification_policy: str = "FIRST_PER_MEETING"
+    digest_enabled: bool = False
+    kakao_enabled: bool = False
+
+
+class WatchRuleUpdatePayload(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    include_terms: list[str] | None = Field(default=None, min_length=1, max_length=10)
+    exclude_terms: list[str] | None = Field(default=None, max_length=10)
+    institution: str | None = None
+    committee_name: str | None = Field(default=None, max_length=80)
+    notification_policy: str | None = None
+    digest_enabled: bool | None = None
+    kakao_enabled: bool | None = None
+    enabled: bool | None = None
+
+
+class WatchReviewDecisionPayload(BaseModel):
+    decision: str
+    note: str = Field(default="", max_length=500)
+    reviewed_by: str = Field(default="operator", min_length=1, max_length=80)
+
+
+
+WATCH_NOTIFICATION_POLICIES = {
+    "FIRST_PER_MEETING",
+    "FIRST_PER_SPEAKER",
+    "ONCE_PER_10_MINUTES",
+    "INTERVAL_15_MINUTES",
+    "INTERVAL_30_MINUTES",
+    "INTERVAL_60_MINUTES",
+    "EVERY_MATCH",
+}
+
+
+def _watch_cooldown_minutes(policy: str) -> int:
+    return {
+        "INTERVAL_15_MINUTES": 15,
+        "INTERVAL_30_MINUTES": 30,
+        "INTERVAL_60_MINUTES": 60,
+    }.get(policy, 10)
+
+
+def _clean_watch_terms(values: list[str]) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        term = " ".join(str(value).split()).strip()
+        if not term or len(term) > 60:
+            raise HTTPException(
+                status_code=422, detail="관심 문구는 1~60자로 입력해 주세요."
+            )
+        if term not in result:
+            result.append(term)
+    if not result:
+        raise HTTPException(status_code=422, detail="관심 문구가 필요합니다.")
+    return result
+
+
+def _watch_subscriber(connection: object, token: str | None) -> UUID:
+    if not get_settings().watch_alerts_enabled:
+        raise HTTPException(
+            status_code=503, detail="관심주제 알림 기능이 비활성화되어 있습니다."
+        )
+    subscriber_id = WatchRepository(connection).subscriber_for_token(token)
+    if subscriber_id is None:
+        raise HTTPException(
+            status_code=401, detail="관심주제 세션을 다시 시작해 주세요."
+        )
+    return subscriber_id
+
+
+def _watch_admin(token: str | None) -> None:
+    settings = get_settings()
+    expected = settings.watch_admin_token
+    if not expected:
+        raise HTTPException(
+            status_code=503, detail="운영자 인증이 설정되지 않았습니다."
+        )
+    if not token or not hmac.compare_digest(token, expected):
+        raise HTTPException(status_code=401, detail="운영자 인증이 필요합니다.")
 
 
 def _public_meeting_brief(
@@ -68,8 +181,25 @@ def _public_meeting_brief(
         return None
     normalized_brief = link_tasks_to_topics(dict(item.get("brief") or {}))
     progress = dict(progress_item or {})
-    if progress and progress.get("transcript_hash") != item["transcript_hash"]:
-        progress = {}
+    current_cursor = int(progress.get("current_source_last_event_cursor") or 0)
+    saved_cursor = int(item.get("source_last_event_cursor") or 0)
+    newer_input_pending = bool(
+        progress
+        and (
+            current_cursor > saved_cursor
+            if current_cursor and saved_cursor
+            else progress.get("transcript_hash")
+            and progress.get("transcript_hash") != item["transcript_hash"]
+        )
+    )
+    analysis_outdated = bool(
+        item["provider"] == "mistral"
+        and item.get("prompt_version") != MEETING_BRIEF_PROMPT_VERSION
+    )
+    # A prompt-version upgrade must not hide an already completed report.
+    # Only new transcript input invalidates the visible result. Legacy reports
+    # remain readable while their background upgrade runs.
+    result_pending = newer_input_pending
     if not progress:
         total = int((item.get("brief") or {}).get("utterance_count") or 0)
         progress = {
@@ -80,7 +210,7 @@ def _public_meeting_brief(
             "total_chunks": 0,
             "completed_chunks": 0,
         }
-    ready = item["provider"] == "mistral"
+    ready = item["provider"] == "mistral" and not result_pending
     return {
         "brief_id": item["brief_id"],
         "broadcast_id": item["broadcast_id"],
@@ -94,16 +224,52 @@ def _public_meeting_brief(
         "brief": normalized_brief,
         "brief_status": "READY" if ready else "PROCESSING",
         "brief_progress": progress,
+        "brief_is_stale": result_pending,
+        "brief_upgrade_pending": analysis_outdated,
+        "brief_upgrade_status": progress.get("status") if analysis_outdated else None,
+        "brief_outdated_reason": "NEW_TRANSCRIPT" if newer_input_pending else None,
+        "previous_utterance_count": int(
+            (item.get("brief") or {}).get("utterance_count") or 0
+        )
+        if newer_input_pending
+        else None,
     }
 
 
 def _present_transcript(
-    connection: object, snapshot: dict[str, object], *, official_speakers: bool = True,
+    connection: object,
+    snapshot: dict[str, object],
+    *,
+    official_speakers: bool = True,
 ) -> dict[str, object]:
     broadcast_ids = [item["broadcast_id"] for item in snapshot.get("broadcasts", [])]
     speaker_repository = SpeakerRepository(connection)
     overrides = speaker_repository.override_map(broadcast_ids)
-    segments = apply_speaker_overrides(snapshot.get("segments", []), overrides)
+    raw_segments = list(snapshot.get("segments", []))
+    institution_rows = connection.execute(
+        "SELECT id, institution FROM live_broadcasts WHERE id = ANY(%s)",
+        (broadcast_ids,),
+    ).fetchall() if broadcast_ids else []
+    executive_ids = {
+        broadcast_id for broadcast_id, institution in institution_rows
+        if institution == "EXECUTIVE"
+    }
+    excluded_pre_meeting = 0
+    for broadcast_id in executive_ids:
+        source = [item for item in raw_segments if item.get("broadcast_id") == broadcast_id]
+        meeting_content = executive_meeting_content_segments(source)
+        if len(meeting_content) < len(source):
+            included = {item.get("segment_id") for item in meeting_content}
+            excluded = {
+                item.get("segment_id") for item in source
+                if item.get("segment_id") not in included
+            }
+            raw_segments = [
+                item for item in raw_segments
+                if item.get("segment_id") not in excluded
+            ]
+            excluded_pre_meeting += len(excluded)
+    segments = apply_speaker_overrides(raw_segments, overrides)
     if official_speakers:
         segments = apply_official_speakers(segments)
     snapshot["segments"] = segments
@@ -123,14 +289,19 @@ def _present_transcript(
     settings = get_settings()
     summary_provider, summary_model, prompt_version = summary_identity(settings)
     cached_summaries = SummaryRepository(connection).summary_map(
-        broadcast_ids, provider=summary_provider, model=summary_model,
+        broadcast_ids,
+        provider=summary_provider,
+        model=summary_model,
         prompt_version=prompt_version,
     )
     cached_count = 0
     for utterance in utterances:
-        cached = cached_summaries.get((
-            utterance["broadcast_id"], utterance["content_hash"],
-        ))
+        cached = cached_summaries.get(
+            (
+                utterance["broadcast_id"],
+                utterance["content_hash"],
+            )
+        )
         if not cached:
             continue
         utterance["summary"] = cached["summary"]
@@ -140,16 +311,39 @@ def _present_transcript(
         utterance["summary_generated_at"] = cached["created_at"]
         utterance["live_insight"] = cached.get("live_insight") or None
         cached_count += 1
+    lifecycle_by_broadcast = {
+        item["broadcast_id"]: str(item.get("lifecycle_status") or "")
+        for item in snapshot.get("broadcasts", [])
+    }
+    sessions = build_meeting_sessions(
+        utterances,
+        lifecycle_by_broadcast=lifecycle_by_broadcast,
+    )
     snapshot["utterances"] = utterances
+    snapshot["meeting_sessions"] = sessions
+    snapshot["meeting_session_summary"] = {
+        "count": len(sessions),
+        "active_count": sum(1 for item in sessions if item["status"] == "ACTIVE"),
+        "checkpointed_count": sum(
+            1 for item in sessions if item["status"] == "CHECKPOINTED"
+        ),
+    }
+
     snapshot["presentation_summary"] = {
+        "excluded_pre_meeting_segment_count": excluded_pre_meeting,
         "segment_count": len(segments),
         "utterance_count": len(utterances),
         "ai_summary_count": cached_count,
-        "gemini_summary_count": sum(1 for item in utterances if item.get("summary_provider") == "gemini"),
+        "gemini_summary_count": sum(
+            1 for item in utterances if item.get("summary_provider") == "gemini"
+        ),
         "extractive_fallback_count": len(utterances) - cached_count,
-        "mistral_summary_count": sum(1 for item in utterances if item.get("summary_provider") == "mistral"),
+        "mistral_summary_count": sum(
+            1 for item in utterances if item.get("summary_provider") == "mistral"
+        ),
     }
     return snapshot
+
 
 @app.get("/api/health", tags=["system"])
 def health() -> dict[str, object]:
@@ -169,8 +363,8 @@ def metadata() -> dict[str, object]:
     return {
         "project": {
             "id": "POC-07",
-            "name": "지금 우리 국회에선",
-            "english_name": "NationalAssembly",
+            "name": "국정보미",
+            "english_name": "Gukjeongbomi",
         },
         "statuses": {
             "lifecycle": [item.value for item in LifecycleStatus],
@@ -186,18 +380,30 @@ def _usage_reset_at(period: str, timezone_name: str) -> str:
     now_utc = datetime.now(ZoneInfo("UTC"))
     if period == "DAILY":
         reset_utc = (now_utc + timedelta(days=1)).replace(
-            hour=0, minute=0, second=0, microsecond=0,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
     else:
         if now_utc.month == 12:
             reset_utc = now_utc.replace(
-                year=now_utc.year + 1, month=1, day=1,
-                hour=0, minute=0, second=0, microsecond=0,
+                year=now_utc.year + 1,
+                month=1,
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
             )
         else:
             reset_utc = now_utc.replace(
-                month=now_utc.month + 1, day=1,
-                hour=0, minute=0, second=0, microsecond=0,
+                month=now_utc.month + 1,
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
             )
     return reset_utc.astimezone(ZoneInfo(timezone_name)).isoformat()
 
@@ -216,13 +422,16 @@ def ai_usage() -> dict[str, object]:
     unit = "requests" if provider == "openrouter" else "tokens"
     limit = int(settings.openrouter_daily_limit) if provider == "openrouter" else 0
     credit_usd = (
-        float(settings.mistral_monthly_credit_usd)
-        if provider == "mistral" else 0.0
+        float(settings.mistral_monthly_credit_usd) if provider == "mistral" else 0.0
     )
     usage = {
-        "request_count": 0, "input_tokens": 0,
-        "output_tokens": 0, "total_tokens": 0,
-        "audio_request_count": 0, "audio_seconds": 0.0, "audio_cost_usd": 0.0,
+        "request_count": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "audio_request_count": 0,
+        "audio_seconds": 0.0,
+        "audio_cost_usd": 0.0,
     }
     status = "NOT_CONFIGURED" if not settings.database_url else "AVAILABLE"
     if settings.database_url and provider in {"mistral", "openrouter"}:
@@ -236,15 +445,21 @@ def ai_usage() -> dict[str, object]:
         except Exception:
             status = "UNAVAILABLE"
     used = usage["request_count"] if unit == "requests" else usage["total_tokens"]
-    cost_usd = mistral_usage_cost_usd(
-        usage,
-        input_usd_per_million=settings.mistral_input_usd_per_million,
-        output_usd_per_million=settings.mistral_output_usd_per_million,
-    ) if provider == "mistral" else 0.0
+    cost_usd = (
+        mistral_usage_cost_usd(
+            usage,
+            input_usd_per_million=settings.mistral_input_usd_per_million,
+            output_usd_per_million=settings.mistral_output_usd_per_million,
+        )
+        if provider == "mistral"
+        else 0.0
+    )
     usage_percent = (
         (cost_usd / credit_usd) * 100
         if provider == "mistral" and credit_usd
-        else (used / limit) * 100 if limit else 0
+        else (used / limit) * 100
+        if limit
+        else 0
     )
     return {
         "provider": provider,
@@ -282,33 +497,46 @@ def _schedule_range(days: int) -> dict[str, object]:
         if snapshot.get("schema_version") != UPCOMING_SCHEDULE_SCHEMA:
             raise ValueError("upcoming schedule contract mismatch")
         items = [
-            item for item in snapshot.get("items", [])
-            if today.isoformat() <= str(item.get("scheduled_date", "")) <= end_date.isoformat()
+            item
+            for item in snapshot.get("items", [])
+            if today.isoformat()
+            <= str(item.get("scheduled_date", ""))
+            <= end_date.isoformat()
         ]
         source_status = "OFFICIAL"
         generated_at = snapshot.get("generated_at")
     except (FileNotFoundError, json.JSONDecodeError, ValueError):
         if not settings.database_url:
             return {
-                "items": [], "count": 0, "target_committee_count": 0,
-                "start_date": today, "end_date": end_date, "days": days,
+                "items": [],
+                "count": 0,
+                "target_committee_count": 0,
+                "start_date": today,
+                "end_date": end_date,
+                "days": days,
                 "source_status": "SYNC_PENDING",
             }
         try:
             with connect(settings.database_url) as connection:
                 items = []
                 for offset in range(days):
-                    items.extend(ScheduleRepository(connection).list_schedule_for_date(
-                        today + timedelta(days=offset)
-                    ))
+                    items.extend(
+                        ScheduleRepository(connection).list_schedule_for_date(
+                            today + timedelta(days=offset)
+                        )
+                    )
         except Exception as exc:
-            raise HTTPException(status_code=503, detail="정규화 데이터베이스를 사용할 수 없습니다.") from exc
+            raise HTTPException(
+                status_code=503, detail="정규화 데이터베이스를 사용할 수 없습니다."
+            ) from exc
         source_status = "OFFICIAL_DB_FALLBACK"
         generated_at = None
     return {
         "items": items,
         "count": len(items),
-        "target_committee_count": sum(bool(item.get("is_target_committee")) for item in items),
+        "target_committee_count": sum(
+            bool(item.get("is_target_committee")) for item in items
+        ),
         "start_date": today,
         "end_date": end_date,
         "date": today,
@@ -331,6 +559,52 @@ def today_schedule() -> dict[str, object]:
     return _schedule_range(1)
 
 
+@app.get("/api/schedule/calendar", tags=["schedule"])
+def calendar_schedule(start: date, end: date) -> dict[str, object]:
+    if end < start:
+        raise HTTPException(status_code=422, detail="end must not precede start")
+    if (end - start).days > 41:
+        raise HTTPException(status_code=422, detail="calendar range is limited to 42 days")
+    settings = get_settings()
+    if not settings.database_url:
+        return {
+            "items": [], "count": 0, "start_date": start,
+            "end_date": end, "source_status": "NOT_CONFIGURED",
+        }
+    try:
+        with connect(settings.database_url) as connection:
+            items = ScheduleRepository(connection).list_schedule_range(start, end)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="공식 일정 저장소를 사용할 수 없습니다.",
+        ) from exc
+    return {
+        "items": items,
+        "count": len(items),
+        "start_date": start,
+        "end_date": end,
+        "source_status": "OFFICIAL_DB",
+    }
+
+
+@app.get("/api/assembly/reference", tags=["assembly"])
+def assembly_reference(response: Response) -> dict[str, object]:
+    path = get_settings().processed_data_dir / "assembly_reference.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("schema_version") != ASSEMBLY_REFERENCE_SCHEMA:
+            raise ValueError("assembly reference contract mismatch")
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
+        return {
+            "schema_version": ASSEMBLY_REFERENCE_SCHEMA,
+            "source_status": "SYNC_PENDING",
+            "seat_count": 0,
+            "party_seats": [],
+            "election_type_seats": [],
+            "gender_seats": [],
+        }
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return payload
 
 
 @app.get("/api/committees/meetings", tags=["committees"])
@@ -344,28 +618,41 @@ def target_committee_meetings(limit: int = 50) -> dict[str, object]:
         with connect(settings.database_url) as connection:
             items = CommitteeRepository(connection).list_target_meetings(limit=limit)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="정규화 데이터베이스를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="정규화 데이터베이스를 사용할 수 없습니다."
+        ) from exc
     return {"items": items, "count": len(items), "source_status": "OFFICIAL"}
 
 
 @app.get("/api/executive/briefings", tags=["executive"])
 def executive_briefings(
-    limit: int = 10, ministry: str | None = None, q: str | None = None,
+    limit: int = 10,
+    ministry: str | None = None,
+    q: str | None = None,
 ) -> dict[str, object]:
     if not 1 <= limit <= 20:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 20")
     for value in (ministry, q):
         if value is not None and (not value.strip() or len(value) > 80):
-            raise HTTPException(status_code=422, detail="invalid executive briefing filter")
+            raise HTTPException(
+                status_code=422, detail="invalid executive briefing filter"
+            )
     path = get_settings().processed_data_dir / "executive_briefings.json"
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="official executive briefings have not been collected") from exc
+        raise HTTPException(
+            status_code=404,
+            detail="official executive briefings have not been collected",
+        ) from exc
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=503, detail="official executive briefing snapshot is invalid") from exc
+        raise HTTPException(
+            status_code=503, detail="official executive briefing snapshot is invalid"
+        ) from exc
     if payload.get("schema_version") != "executive-briefings.v1":
-        raise HTTPException(status_code=503, detail="official executive briefing contract mismatch")
+        raise HTTPException(
+            status_code=503, detail="official executive briefing contract mismatch"
+        )
     source_items = payload.get("items", [])[:limit]
     result = filter_executive_briefings(source_items, ministry=ministry, query=q)
     return {
@@ -378,10 +665,17 @@ def executive_briefings(
 
 @app.get("/api/committees/meetings/{conference_id}/transcript", tags=["committees"])
 def committee_official_transcript(
-    conference_id: str, offset: int = 0, limit: int = 100,
-    topic: str | None = None, ministry: str | None = None,
+    conference_id: str,
+    offset: int = 0,
+    limit: int = 100,
+    topic: str | None = None,
+    ministry: str | None = None,
 ) -> dict[str, object]:
-    if not (conference_id.startswith("N") and conference_id[1:].isdigit() and len(conference_id) <= 20):
+    if not (
+        conference_id.startswith("N")
+        and conference_id[1:].isdigit()
+        and len(conference_id) <= 20
+    ):
         raise HTTPException(status_code=422, detail="invalid conference id")
     if offset < 0 or not 1 <= limit <= 200:
         raise HTTPException(status_code=422, detail="invalid transcript page")
@@ -391,33 +685,49 @@ def committee_official_transcript(
     try:
         with connect(get_settings().database_url) as connection:
             transcript = CommitteeRepository(connection).list_official_transcript(
-                conference_id, offset=offset, limit=limit,
+                conference_id,
+                offset=offset,
+                limit=limit,
                 topic=topic.strip() if topic else None,
                 ministry=ministry.strip() if ministry else None,
             )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="공식 회의록을 조회할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="공식 회의록을 조회할 수 없습니다."
+        ) from exc
     if transcript is None:
-        raise HTTPException(status_code=404, detail="수집된 공식 회의록 본문이 없습니다.")
-    return {**transcript, "count": len(transcript["items"]), "source_status": "OFFICIAL_SOURCE"}
+        raise HTTPException(
+            status_code=404, detail="수집된 공식 회의록 본문이 없습니다."
+        )
+    return {
+        **transcript,
+        "count": len(transcript["items"]),
+        "source_status": "OFFICIAL_SOURCE",
+    }
 
 
 @app.get("/api/committees/policy-flow", tags=["committees"])
 def committee_policy_flow(committee: str | None = None) -> dict[str, object]:
     if committee and committee not in TARGET_COMMITTEES:
-        raise HTTPException(status_code=422, detail="committee is outside the target scope")
+        raise HTTPException(
+            status_code=422, detail="committee is outside the target scope"
+        )
     try:
         with connect(get_settings().database_url) as connection:
             result = CommitteeRepository(connection).policy_flow(committee)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="정책 흐름을 조회할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="정책 흐름을 조회할 수 없습니다."
+        ) from exc
     return {**result, "source_status": "OFFICIAL_TEXT_WITH_DRAFT_CLASSIFICATION"}
 
 
 @app.get("/api/policy/cross-institution-flow", tags=["policy"])
 def cross_institution_policy_flow(committee: str | None = None) -> dict[str, object]:
     if committee and committee not in TARGET_COMMITTEES:
-        raise HTTPException(status_code=422, detail="committee is outside the target scope")
+        raise HTTPException(
+            status_code=422, detail="committee is outside the target scope"
+        )
     path = get_settings().processed_data_dir / "executive_briefings.json"
     try:
         executive = json.loads(path.read_text(encoding="utf-8"))
@@ -425,11 +735,18 @@ def cross_institution_policy_flow(committee: str | None = None) -> dict[str, obj
             legislative = CommitteeRepository(connection).policy_flow(committee)
         result = build_cross_institution_flow(executive.get("items", []), legislative)
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="official executive briefings have not been collected") from exc
+        raise HTTPException(
+            status_code=404,
+            detail="official executive briefings have not been collected",
+        ) from exc
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=503, detail="official executive briefing snapshot is invalid") from exc
+        raise HTTPException(
+            status_code=503, detail="official executive briefing snapshot is invalid"
+        ) from exc
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="기관 간 정책 흐름을 조회할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="기관 간 정책 흐름을 조회할 수 없습니다."
+        ) from exc
     return {
         **result,
         "committee_filter": committee,
@@ -447,7 +764,9 @@ def search_bills(
     if not 1 <= limit <= 200:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
     if committee and committee not in TARGET_COMMITTEES:
-        raise HTTPException(status_code=422, detail="committee is outside the target scope")
+        raise HTTPException(
+            status_code=422, detail="committee is outside the target scope"
+        )
     q = q.strip() if q else None
     stage = stage.strip() if stage else None
     if q and len(q) > 100:
@@ -458,10 +777,15 @@ def search_bills(
     try:
         with connect(settings.database_url) as connection:
             items = BillRepository(connection).search_target_bills(
-                query=q, committee_name=committee, process_stage=stage, limit=limit,
+                query=q,
+                committee_name=committee,
+                process_stage=stage,
+                limit=limit,
             )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="의안 데이터베이스를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="의안 데이터베이스를 사용할 수 없습니다."
+        ) from exc
     return {"items": items, "count": len(items), "source_status": "OFFICIAL"}
 
 
@@ -474,7 +798,9 @@ def live_magazine(
     if institution and institution not in ALLOWED_INSTITUTIONS:
         raise HTTPException(status_code=422, detail="unsupported institution")
     if scope and len(scope) > 50:
-        raise HTTPException(status_code=422, detail="scope must be at most 50 characters")
+        raise HTTPException(
+            status_code=422, detail="scope must be at most 50 characters"
+        )
     if not 1 <= limit <= 20:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 20")
     actual: list[dict[str, object]] = []
@@ -482,7 +808,9 @@ def live_magazine(
     try:
         with connect(get_settings().database_url) as connection:
             actual = ReviewRepository(connection).list_magazine(
-                institution=institution, scope=scope, limit=max(limit * 2, 20),
+                institution=institution,
+                scope=scope,
+                limit=max(limit * 2, 20),
             )
     except Exception:  # noqa: BLE001 - keep the public read model available
         review_source_status = "DB_UNAVAILABLE"
@@ -512,11 +840,17 @@ def live_status() -> dict[str, object]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="LIVE source probe has not run") from exc
+        raise HTTPException(
+            status_code=404, detail="LIVE source probe has not run"
+        ) from exc
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=503, detail="LIVE source snapshot is invalid") from exc
+        raise HTTPException(
+            status_code=503, detail="LIVE source snapshot is invalid"
+        ) from exc
     if payload.get("schema_version") != "live-source-status.v1":
-        raise HTTPException(status_code=503, detail="LIVE source snapshot contract mismatch")
+        raise HTTPException(
+            status_code=503, detail="LIVE source snapshot contract mismatch"
+        )
     play_by_meeting = {
         str(contract.get("meeting_external_id")): contract
         for contract in payload.get("assembly", {}).get("play_contracts", [])
@@ -530,24 +864,30 @@ def live_status() -> dict[str, object]:
 
 def _validate_live_committee(committee: str | None) -> str | None:
     if committee and committee not in TARGET_COMMITTEES:
-        raise HTTPException(status_code=422, detail="committee is outside the target scope")
+        raise HTTPException(
+            status_code=422, detail="committee is outside the target scope"
+        )
     return committee
 
 
 @app.get("/api/live/transcript/snapshot", tags=["live"])
 def live_transcript_snapshot(
-    committee: str | None = None, broadcast_id: UUID | None = None,
+    committee: str | None = None,
+    broadcast_id: UUID | None = None,
 ) -> dict[str, object]:
     committee = _validate_live_committee(committee)
     settings = get_settings()
     try:
         with connect(settings.database_url) as connection:
             snapshot = LiveRepository(connection).active_transcript_snapshot(
-                committee, broadcast_id=broadcast_id,
+                committee,
+                broadcast_id=broadcast_id,
             )
             snapshot = _present_transcript(connection, snapshot)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="LIVE 자막 데이터베이스를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="LIVE 자막 데이터베이스를 사용할 수 없습니다."
+        ) from exc
     return {
         **snapshot,
         "authority_status": "LIVE",
@@ -565,7 +905,9 @@ def recent_live_transcript(committee: str | None = None) -> dict[str, object]:
             snapshot = LiveRepository(connection).recent_transcript_snapshot(committee)
             snapshot = _present_transcript(connection, snapshot)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="최근 LIVE 기록을 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="최근 LIVE 기록을 사용할 수 없습니다."
+        ) from exc
     return {
         **snapshot,
         "authority_status": "PROVISIONAL",
@@ -575,7 +917,9 @@ def recent_live_transcript(committee: str | None = None) -> dict[str, object]:
 
 @app.get("/api/live/broadcasts", tags=["live"])
 def ended_live_broadcasts(
-    committee: str | None = None, limit: int = 5, offset: int = 0,
+    committee: str | None = None,
+    limit: int = 5,
+    offset: int = 0,
 ) -> dict[str, object]:
     committee = _validate_live_committee(committee)
     if not 1 <= limit <= 20:
@@ -585,7 +929,9 @@ def ended_live_broadcasts(
     try:
         with connect(get_settings().database_url) as connection:
             items = LiveRepository(connection).list_ended_broadcasts(
-                committee, limit=limit + 1, offset=offset,
+                committee,
+                limit=limit + 1,
+                offset=offset,
             )
             has_more = len(items) > limit
             items = items[:limit]
@@ -602,14 +948,18 @@ def ended_live_broadcasts(
                 )
                 item["brief_status"] = (
                     item["meeting_brief"].get("brief_status")
-                    if item["meeting_brief"] else "PENDING"
+                    if item["meeting_brief"]
+                    else "PENDING"
                 )
                 item["brief_progress"] = (
                     item["meeting_brief"].get("brief_progress")
-                    if item["meeting_brief"] else None
+                    if item["meeting_brief"]
+                    else None
                 )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="종료 방송 이력을 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="종료 방송 이력을 사용할 수 없습니다."
+        ) from exc
     return {
         "items": items,
         "count": len(items),
@@ -629,7 +979,9 @@ def live_collection_overview(days: int = 7) -> dict[str, object]:
         with connect(get_settings().database_url) as connection:
             summary = SpeakerRepository(connection).collection_overview(days=days)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="LIVE 수집 현황을 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="LIVE 수집 현황을 사용할 수 없습니다."
+        ) from exc
     return {**summary, "days": days, "authority_status": "LIVE_SOURCE_STATS"}
 
 
@@ -639,15 +991,21 @@ def broadcast_speakers(broadcast_id: UUID) -> dict[str, object]:
         with connect(get_settings().database_url) as connection:
             items = SpeakerRepository(connection).options(broadcast_id)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="화자 정보를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="화자 정보를 사용할 수 없습니다."
+        ) from exc
     if not items:
-        raise HTTPException(status_code=404, detail="방송 또는 화자 정보를 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404, detail="방송 또는 화자 정보를 찾을 수 없습니다."
+        )
     return {"items": items, "count": len(items)}
 
 
 @app.put("/api/live/broadcasts/{broadcast_id}/speakers/{source_label}", tags=["live"])
 def update_broadcast_speaker(
-    broadcast_id: UUID, source_label: str, payload: SpeakerOverridePayload,
+    broadcast_id: UUID,
+    source_label: str,
+    payload: SpeakerOverridePayload,
 ) -> dict[str, object]:
     source_label = source_label.strip()
     display_name = payload.display_name.strip()
@@ -656,16 +1014,24 @@ def update_broadcast_speaker(
     try:
         with connect(get_settings().database_url) as connection:
             item = SpeakerRepository(connection).set_override(
-                broadcast_id, source_label, display_name,
+                broadcast_id,
+                source_label,
+                display_name,
             )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="화자 이름을 저장할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="화자 이름을 저장할 수 없습니다."
+        ) from exc
     if item is None:
-        raise HTTPException(status_code=404, detail="해당 방송의 화자 코드를 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404, detail="해당 방송의 화자 코드를 찾을 수 없습니다."
+        )
     return {**item, "effective_display_name": display_name, "overridden": True}
 
 
-@app.delete("/api/live/broadcasts/{broadcast_id}/speakers/{source_label}", tags=["live"])
+@app.delete(
+    "/api/live/broadcasts/{broadcast_id}/speakers/{source_label}", tags=["live"]
+)
 def reset_broadcast_speaker(broadcast_id: UUID, source_label: str) -> dict[str, object]:
     source_label = source_label.strip()
     if not source_label or len(source_label) > 80:
@@ -673,10 +1039,13 @@ def reset_broadcast_speaker(broadcast_id: UUID, source_label: str) -> dict[str, 
     try:
         with connect(get_settings().database_url) as connection:
             deleted = SpeakerRepository(connection).delete_override(
-                broadcast_id, source_label,
+                broadcast_id,
+                source_label,
             )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="화자 이름을 초기화할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="화자 이름을 초기화할 수 없습니다."
+        ) from exc
     return {
         "source_speaker_label": source_label,
         "effective_display_name": default_speaker_name(source_label),
@@ -699,9 +1068,13 @@ def ended_live_broadcast_transcript(broadcast_id: UUID) -> dict[str, object]:
                 )
             snapshot = _present_transcript(connection, snapshot)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="종료 방송 기록을 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="종료 방송 기록을 사용할 수 없습니다."
+        ) from exc
     if not snapshot["broadcasts"]:
-        raise HTTPException(status_code=404, detail="종료 방송 기록을 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404, detail="종료 방송 기록을 찾을 수 없습니다."
+        )
     return {
         **snapshot,
         "official_context": official_context,
@@ -718,25 +1091,60 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             item = repository.latest(broadcast_id)
             progress = repository.progress(broadcast_id)
             integration = (
-                OfficialIntegrationRepository(connection).latest_for_brief(item["brief_id"])
-                if item else None)
+                OfficialIntegrationRepository(connection).latest_for_brief(
+                    item["brief_id"]
+                )
+                if item
+                else None
+            )
             official_context = LiveRepository(connection).broadcast_official_context(
                 broadcast_id
             )
+            official_change_report = (
+                OfficialChangeReportRepository(connection).latest(integration["integration_id"])
+                if integration and integration.get("integration_id")
+                else None
+            )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="회의 결과 브리프를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="회의 결과 브리프를 사용할 수 없습니다."
+        ) from exc
     public = _public_meeting_brief(item, progress)
     if not public:
-        raise HTTPException(status_code=404, detail="생성된 회의 결과 브리프가 없습니다.")
+        raise HTTPException(
+            status_code=404, detail="생성된 회의 결과 브리프가 없습니다."
+        )
     if (
-        integration and integration.get("status") == "READY"
+        integration
+        and integration.get("status") == "READY"
         and integration.get("meeting_brief_id") == public.get("brief_id")
     ):
-        public["provisional_brief"] = public["brief"]
-        public["brief"] = attach_official_evidence_from_changes(
-            integration.get("integrated_brief") or public["brief"],
+        provisional_brief = public["brief"]
+        integrated_brief = attach_official_evidence_from_changes(
+            integration.get("integrated_brief") or provisional_brief,
             integration.get("changes") or [],
         )
+        for field in (
+            "meeting_session_version",
+            "meeting_session_count",
+            "meeting_sessions",
+            "live_topic_assignment",
+        ):
+            if field in provisional_brief:
+                integrated_brief[field] = provisional_brief[field]
+        lineage = provisional_brief.get("live_topic_lineage")
+        if lineage:
+            integrated_brief["live_topic_lineage"] = lineage
+            lineage_ids = {
+                str(topic.get("id") or ""): topic.get("live_topic_cluster_ids") or []
+                for topic in provisional_brief.get("topics") or []
+            }
+            for topic in integrated_brief.get("topics") or []:
+                topic_id = str(topic.get("id") or "")
+                if topic_id in lineage_ids:
+                    topic["live_topic_cluster_ids"] = lineage_ids[topic_id]
+        public["provisional_brief"] = provisional_brief
+        public["brief"] = integrated_brief
         public["official_integration"] = {
             "status": integration["status"],
             "integration_version": integration["integration_version"],
@@ -752,8 +1160,120 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             "change_count": 0,
             "changes": [],
         }
+    if official_change_report:
+        public["official_change_report"] = {
+            "status": official_change_report.get("status"),
+            "provider": official_change_report.get("provider"),
+            "model": official_change_report.get("model"),
+            "report": official_change_report.get("report") or {},
+            "generated_at": official_change_report.get("generated_at"),
+            "updated_at": official_change_report.get("updated_at"),
+        }
+    else:
+        public["official_change_report"] = {
+            "status": (
+                "PENDING" if public["official_integration"].get("status") == "READY"
+                else "NOT_APPLICABLE"
+            ),
+            "report": {},
+        }
     public["official_context"] = official_context
     return public
+
+
+def _meeting_brief_markdown(record: dict[str, object]) -> str:
+    brief = dict(record.get("brief") or {})
+    integration = dict(record.get("official_integration") or {})
+    lines = [
+        f"# {brief.get('headline') or '회의 결과'}",
+        "",
+        f"> 자료 상태: {record.get('authority_status') or 'PROVISIONAL'} · "
+        f"생성 시각: {record.get('generated_at') or '-'}",
+        "",
+        str(brief.get("summary") or "저장된 요약이 없습니다."),
+        "",
+        "## 주요 논의 주제",
+        "",
+    ]
+    for topic in brief.get("topics") or []:
+        lines.extend(
+            (
+                f"### {topic.get('title') or '주제'}",
+                "",
+                str(topic.get("summary") or ""),
+                "",
+            )
+        )
+        for point in topic.get("speaker_points") or []:
+            lines.append(
+                f"- {point.get('speaker_label') or '화자 확인 중'}: "
+                f"{point.get('summary') or ''}"
+            )
+        if topic.get("speaker_points"):
+            lines.append("")
+    lineage = brief.get("live_topic_lineage") or {}
+    if lineage.get("cluster_count"):
+        lines.extend(
+            (
+                "## 실시간 주제 계보",
+                "",
+                f"- 전체 {lineage.get('cluster_count') or 0}묶음 · "
+                f"연결 {lineage.get('mapped_cluster_count') or 0} · "
+                f"교차 {lineage.get('ambiguous_cluster_count') or 0} · "
+                f"미연결 {lineage.get('unmapped_cluster_count') or 0}",
+                "",
+            )
+        )
+        unmapped = [
+            cluster
+            for cluster in lineage.get("clusters") or []
+            if cluster.get("mapping_status") == "UNMAPPED"
+        ]
+        if unmapped:
+            lines.append("### 최종 상위 주제에 포함되지 않은 실시간 논의")
+            lines.append("")
+            lines.extend(
+                f"- {cluster.get('title') or '제목 확인 필요'}" for cluster in unmapped
+            )
+            lines.append("")
+    lines.extend(("## 도출 과제", ""))
+    tasks = [
+        task for task in brief.get("tasks") or [] if task.get("status") != "RESOLVED"
+    ]
+    if not tasks:
+        lines.append("- 확인된 미해결 과제가 없습니다.")
+    for task in tasks:
+        ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
+        lines.append(f"- {task.get('title') or '과제'} ({ministries})")
+    lines.extend(("", "## 공식자료 반영", ""))
+    if integration.get("status") == "READY":
+        lines.append(
+            f"- 공식자료 통합 완료 · 의미 있는 변경 {integration.get('change_count') or 0}건"
+        )
+    else:
+        lines.append("- 공식자료 대기 또는 통합 진행 중")
+    lines.extend(
+        (
+            "",
+            "---",
+            "이 문서는 저장된 회의 결과와 근거로 생성했으며 추가 LLM 호출을 사용하지 않았습니다.",
+            "",
+        )
+    )
+    return "\n".join(lines)
+
+
+@app.get("/api/live/broadcasts/{broadcast_id}/brief.md", tags=["live"])
+def ended_live_broadcast_brief_markdown(broadcast_id: UUID) -> Response:
+    record = ended_live_broadcast_brief(broadcast_id)
+    return Response(
+        content=_meeting_brief_markdown(record),
+        media_type="text/markdown; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="meeting-{broadcast_id}.md"',
+            "X-LLM-Calls": "0",
+        },
+    )
 
 
 @app.get("/api/live/broadcasts/{broadcast_id}/brief/official", tags=["live"])
@@ -766,24 +1286,36 @@ def ended_live_broadcast_brief_official(broadcast_id: UUID) -> dict[str, object]
             material = live_repository.broadcast_official_material(broadcast_id)
             live_brief = MeetingBriefRepository(connection).latest(broadcast_id)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="공식 자료 매칭 상태를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="공식 자료 매칭 상태를 사용할 수 없습니다."
+        ) from exc
     if context is None:
-        raise HTTPException(status_code=404, detail="종료 방송 기록을 찾을 수 없습니다.")
+        raise HTTPException(
+            status_code=404, detail="종료 방송 기록을 찾을 수 없습니다."
+        )
     published = context.get("official_status") == "PUBLISHED"
     matched = int(context.get("matched_segment_count") or 0)
     final = int(context.get("final_segment_count") or 0)
     document = material.get("document")
     if live_brief:
         live_brief = {
-            **live_brief, "brief": link_tasks_to_topics(live_brief.get("brief") or {}),
+            **live_brief,
+            "brief": link_tasks_to_topics(live_brief.get("brief") or {}),
         }
-    integration = build_official_brief_integration(
-        live_brief, material.get("utterances") or [],
-    ) if document else None
+    integration = (
+        build_official_brief_integration(
+            live_brief,
+            material.get("utterances") or [],
+        )
+        if document
+        else None
+    )
     indexed = bool(integration and integration["summary"]["official_policy_utterances"])
     status = (
-        "INTEGRATED" if published and indexed
-        else "PUBLISHED" if published
+        "INTEGRATED"
+        if published and indexed
+        else "PUBLISHED"
+        if published
         else "WAITING"
     )
     return {
@@ -812,11 +1344,14 @@ def ended_live_broadcast_brief_official(broadcast_id: UUID) -> dict[str, object]
         ),
     }
 
+
 @app.get("/api/live/broadcasts/{broadcast_id}/brief/evidence", tags=["live"])
 def ended_live_broadcast_brief_evidence(
-    broadcast_id: UUID, entity_type: str, entity_id: str,
+    broadcast_id: UUID,
+    entity_type: str,
+    entity_id: str,
 ) -> dict[str, object]:
-    if entity_type not in {"topic", "task", "speaker"}:
+    if entity_type not in {"topic", "task", "speaker", "live_topic_cluster"}:
         raise HTTPException(status_code=422, detail="unsupported evidence entity type")
     if not entity_id or len(entity_id) > 80:
         raise HTTPException(status_code=422, detail="invalid evidence entity id")
@@ -825,8 +1360,12 @@ def ended_live_broadcast_brief_evidence(
             repository = MeetingBriefRepository(connection)
             brief = repository.latest(broadcast_id)
             if not brief:
-                raise HTTPException(status_code=404, detail="회의 결과 브리프가 없습니다.")
-            integration = OfficialIntegrationRepository(connection).latest_for_brief(brief["brief_id"])
+                raise HTTPException(
+                    status_code=404, detail="회의 결과 브리프가 없습니다."
+                )
+            integration = OfficialIntegrationRepository(connection).latest_for_brief(
+                brief["brief_id"]
+            )
             evidence_brief = (
                 integration.get("integrated_brief")
                 if integration and integration.get("status") == "READY"
@@ -834,44 +1373,55 @@ def ended_live_broadcast_brief_evidence(
             )
             if integration and integration.get("status") == "READY":
                 evidence_brief = attach_official_evidence_from_changes(
-                    evidence_brief, integration.get("changes") or [],
+                    evidence_brief,
+                    integration.get("changes") or [],
                 )
             evidence_ids = repository.evidence_ids(
-                {"brief": evidence_brief}, entity_type, entity_id)
+                {"brief": evidence_brief}, entity_type, entity_id
+            )
             official_ids = official_evidence_ids(evidence_brief, entity_type, entity_id)
             if not evidence_ids and not official_ids:
-                raise HTTPException(status_code=404, detail="연결된 근거 발언이 없습니다.")
+                raise HTTPException(
+                    status_code=404, detail="연결된 근거 발언이 없습니다."
+                )
             live_utterances = []
             live_repository = LiveRepository(connection)
             if evidence_ids:
                 snapshot = live_repository.ended_transcript_snapshot(broadcast_id)
-                reconciliations = (
-                    live_repository.broadcast_reconciliation_details(broadcast_id)
+                reconciliations = live_repository.broadcast_reconciliation_details(
+                    broadcast_id
                 )
                 for segment in snapshot["segments"]:
                     segment["official_reconciliation"] = reconciliations.get(
                         segment["revision_id"]
                     )
                 snapshot = _present_transcript(
-                    connection, snapshot, official_speakers=False,
+                    connection,
+                    snapshot,
+                    official_speakers=False,
                 )
                 evidence_set = set(evidence_ids)
                 live_utterances = [
-                    item for item in snapshot["utterances"]
-                    if evidence_set.intersection({
-                        str(item.get("utterance_id") or ""),
-                        *(str(value) for value in item.get("segment_ids") or []),
-                    })
+                    item
+                    for item in snapshot["utterances"]
+                    if evidence_set.intersection(
+                        {
+                            str(item.get("utterance_id") or ""),
+                            *(str(value) for value in item.get("segment_ids") or []),
+                        }
+                    )
                 ]
             official_utterances = (
                 official_evidence_items(connection, official_ids)
-                if official_ids else []
+                if official_ids
+                else []
             )
             material = live_repository.broadcast_official_material(broadcast_id)
             document = material.get("document") or {}
             current_official_rows = list(material.get("utterances") or [])
             current_official_ids = [
-                value for value in official_ids
+                value
+                for value in official_ids
                 if any(
                     str(row.get("utterance_id")) == str(value)
                     for row in current_official_rows
@@ -887,15 +1437,18 @@ def ended_live_broadcast_brief_evidence(
                 and not current_official_ids
             ):
                 related = build_official_brief_integration(
-                    {"brief": evidence_brief}, current_official_rows,
+                    {"brief": evidence_brief},
+                    current_official_rows,
                 )
                 collection = (
                     related.get("topics", [])
-                    if entity_type == "topic" else related.get("tasks", [])
+                    if entity_type == "topic"
+                    else related.get("tasks", [])
                 )
                 entity = next(
                     (
-                        value for value in collection
+                        value
+                        for value in collection
                         if str(value.get("id")) == entity_id
                     ),
                     None,
@@ -904,24 +1457,30 @@ def ended_live_broadcast_brief_evidence(
                     value = str(record.get("utterance_id") or "")
                     if value and value not in current_official_ids:
                         current_official_ids.append(value)
-            official_presentations = build_official_evidence_presentations(
-                live_utterances,
-                current_official_rows,
-                current_official_ids,
-                publication_stage=str(
-                    document.get("publication_stage") or "UNKNOWN"
-                ),
-                authority_status=str(
-                    document.get("authority_status") or "PROVISIONAL"
-                ),
-            ) if current_official_rows else []
+            official_presentations = (
+                build_official_evidence_presentations(
+                    live_utterances,
+                    current_official_rows,
+                    current_official_ids,
+                    publication_stage=str(
+                        document.get("publication_stage") or "UNKNOWN"
+                    ),
+                    authority_status=str(
+                        document.get("authority_status") or "PROVISIONAL"
+                    ),
+                )
+                if current_official_rows
+                else []
+            )
             utterances = (
                 official_presentations or live_utterances or official_utterances
             )
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="근거 발언을 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="근거 발언을 사용할 수 없습니다."
+        ) from exc
     return {
         "broadcast_id": broadcast_id,
         "entity_type": entity_type,
@@ -930,12 +1489,15 @@ def ended_live_broadcast_brief_evidence(
         "count": len(utterances),
         "authority_status": (
             str(document.get("authority_status"))
-            if official_presentations else "PROVISIONAL"
+            if official_presentations
+            else "PROVISIONAL"
         ),
         "source": (
             "OFFICIAL_TRANSCRIPT_PRESENTATION"
-            if official_presentations else "LIVE_CAPTION_TURN"
-            if live_utterances else "OFFICIAL_TRANSCRIPT_UTTERANCE"
+            if official_presentations
+            else "LIVE_CAPTION_TURN"
+            if live_utterances
+            else "OFFICIAL_TRANSCRIPT_UTTERANCE"
         ),
         "official_reference_count": len(official_presentations),
         "publication_stage": (
@@ -961,13 +1523,17 @@ def live_follow_up_tasks(
     try:
         with connect(get_settings().database_url) as connection:
             items = LiveRepository(connection).list_open_follow_up_tasks(
-                committee, ministry=ministry, limit=limit,
+                committee,
+                ministry=ministry,
+                limit=limit,
             )
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="후속 과제 기록을 사용할 수 없습니다.") from exc
-    ministries = sorted({
-        value for item in items for value in item.get("ministries", [])
-    })
+        raise HTTPException(
+            status_code=503, detail="후속 과제 기록을 사용할 수 없습니다."
+        ) from exc
+    ministries = sorted(
+        {value for item in items for value in item.get("ministries", [])}
+    )
     return {
         "items": items,
         "count": len(items),
@@ -975,6 +1541,7 @@ def live_follow_up_tasks(
         "authority_status": "PROVISIONAL",
         "source": "FINAL_CAPTION_REVISION_WITH_EXPLICIT_OPEN_TASK",
     }
+
 
 @app.get("/api/live/transcript/delta", tags=["live"])
 def live_transcript_delta(
@@ -992,7 +1559,10 @@ def live_transcript_delta(
     try:
         with connect(settings.database_url) as connection:
             items = LiveRepository(connection).transcript_events_after(
-                after, committee_name=committee, broadcast_id=broadcast_id, limit=limit,
+                after,
+                committee_name=committee,
+                broadcast_id=broadcast_id,
+                limit=limit,
             )
             broadcast_ids = sorted({item["broadcast_id"] for item in items})
             source_event_count = len(items)
@@ -1000,7 +1570,9 @@ def live_transcript_delta(
             overrides = SpeakerRepository(connection).override_map(broadcast_ids)
             items = apply_speaker_overrides(items, overrides)
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="LIVE 자막 데이터베이스를 사용할 수 없습니다.") from exc
+        raise HTTPException(
+            status_code=503, detail="LIVE 자막 데이터베이스를 사용할 수 없습니다."
+        ) from exc
     return {
         "items": items,
         "count": len(items),
@@ -1009,6 +1581,7 @@ def live_transcript_delta(
         "has_more": source_event_count == limit,
         "authority_status": "LIVE",
     }
+
 
 @app.get("/api/data-sources", tags=["system"])
 def data_sources() -> dict[str, object]:
@@ -1023,6 +1596,667 @@ def data_sources() -> dict[str, object]:
             "callable": sum(bool(item["callable"]) for item in sources),
         },
     }
+
+
+@app.post("/api/watch/session", tags=["watch"])
+def create_watch_session(
+    request: Request,
+    response: Response,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    if not get_settings().watch_alerts_enabled:
+        raise HTTPException(
+            status_code=503, detail="관심주제 알림 기능이 비활성화되어 있습니다."
+        )
+    try:
+        with connect(get_settings().database_url) as connection:
+            repository = WatchRepository(connection)
+            existing = repository.subscriber_for_token(x_watch_token)
+            if existing is not None:
+                return {
+                    "subscriber_id": existing,
+                    "token": "",
+                    "token_type": "Secure-Cookie",
+                    "session_mode": "COOKIE",
+                }
+            subscriber_id, token = WatchRepository(connection).create_subscriber()
+            web_token = WatchDeliveryRepository(connection).create_web_session(
+                subscriber_id, user_agent=request.headers.get("user-agent", ""),
+            )
+            set_watch_cookie(response, web_token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관심주제 세션을 시작할 수 없습니다."
+        ) from exc
+    return {
+        "subscriber_id": subscriber_id,
+        "token": token,
+        "token_type": "X-Watch-Token",
+        "session_mode": "COOKIE_WITH_LEGACY_FALLBACK",
+    }
+
+
+@app.post("/api/watch/session/upgrade", tags=["watch"])
+def upgrade_watch_session(
+    request: Request,
+    response: Response,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            token = WatchDeliveryRepository(connection).create_web_session(
+                subscriber_id, user_agent=request.headers.get("user-agent", ""),
+            )
+            set_watch_cookie(response, token)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="보안 세션으로 전환할 수 없습니다."
+        ) from exc
+    return {"upgraded": True, "session_mode": "COOKIE"}
+
+
+@app.delete("/api/watch/session/current", tags=["watch"])
+def revoke_current_watch_session(
+    request: Request,
+    response: Response,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    settings = get_settings()
+    token = request.cookies.get(settings.watch_session_cookie_name)
+    try:
+        with connect(settings.database_url) as connection:
+            _watch_subscriber(connection, x_watch_token)
+            revoked = bool(token) and WatchDeliveryRepository(
+                connection
+            ).revoke_web_session(token)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="현재 기기 세션을 종료할 수 없습니다."
+        ) from exc
+    clear_watch_cookie(response)
+    return {"revoked": bool(revoked)}
+
+
+@app.delete("/api/watch/session/all", tags=["watch"])
+def revoke_all_watch_sessions(
+    response: Response,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            revoked = WatchDeliveryRepository(connection).revoke_all_web_sessions(
+                subscriber_id
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="전체 기기 세션을 종료할 수 없습니다."
+        ) from exc
+    clear_watch_cookie(response)
+    return {"revoked": revoked}
+
+
+@app.get("/api/watch/rules", tags=["watch"])
+def watch_rules(x_watch_token: str | None = Header(default=None)) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            items = WatchRepository(connection).list_rules(subscriber_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관심주제 설정을 불러올 수 없습니다."
+        ) from exc
+    return {"items": items, "count": len(items)}
+
+
+@app.post("/api/watch/rules", tags=["watch"])
+def create_watch_rule(
+    payload: WatchRulePayload,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    if payload.institution and payload.institution not in ALLOWED_INSTITUTIONS:
+        raise HTTPException(status_code=422, detail="지원하지 않는 기관 범위입니다.")
+    if payload.notification_policy not in WATCH_NOTIFICATION_POLICIES:
+        raise HTTPException(status_code=422, detail="지원하지 않는 알림 빈도입니다.")
+    includes = _clean_watch_terms(payload.include_terms)
+    excludes = (
+        _clean_watch_terms(payload.exclude_terms) if payload.exclude_terms else []
+    )
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            item = WatchRepository(connection).create_rule(
+                subscriber_id,
+                name=" ".join(payload.name.split()),
+                include_terms=includes,
+                exclude_terms=excludes,
+                institution=payload.institution,
+                committee_name=(payload.committee_name or "").strip() or None,
+                notification_policy=payload.notification_policy,
+                cooldown_minutes=_watch_cooldown_minutes(payload.notification_policy),
+                digest_enabled=payload.digest_enabled,
+                kakao_enabled=payload.kakao_enabled,
+            )
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관심주제를 저장할 수 없습니다."
+        ) from exc
+    return item
+
+
+@app.put("/api/watch/rules/{rule_id}", tags=["watch"])
+def update_watch_rule(
+    rule_id: UUID,
+    payload: WatchRuleUpdatePayload,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    values = payload.model_dump(exclude_unset=True)
+    if values.get("institution") and values["institution"] not in ALLOWED_INSTITUTIONS:
+        raise HTTPException(status_code=422, detail="지원하지 않는 기관 범위입니다.")
+    if (
+        values.get("notification_policy")
+        and values["notification_policy"] not in WATCH_NOTIFICATION_POLICIES
+    ):
+        raise HTTPException(status_code=422, detail="지원하지 않는 알림 빈도입니다.")
+    if "include_terms" in values:
+        values["include_terms"] = _clean_watch_terms(values["include_terms"])
+    if "exclude_terms" in values:
+        values["exclude_terms"] = (
+            _clean_watch_terms(values["exclude_terms"])
+            if values["exclude_terms"]
+            else []
+        )
+    if "name" in values:
+        values["name"] = " ".join(values["name"].split())
+    if "notification_policy" in values:
+        values["cooldown_minutes"] = _watch_cooldown_minutes(
+            values["notification_policy"]
+        )
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            item = WatchRepository(connection).update_rule(
+                subscriber_id, rule_id, **values
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관심주제를 수정할 수 없습니다."
+        ) from exc
+    if item is None:
+        raise HTTPException(status_code=404, detail="관심주제를 찾을 수 없습니다.")
+    return item
+
+
+@app.delete("/api/watch/rules/{rule_id}", tags=["watch"])
+def delete_watch_rule(
+    rule_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            deleted = WatchRepository(connection).delete_rule(subscriber_id, rule_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관심주제를 삭제할 수 없습니다."
+        ) from exc
+    return {"deleted": deleted}
+
+
+@app.get("/api/watch/rules/{rule_id}/report", tags=["watch"])
+def watch_rule_report(
+    rule_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        settings = get_settings()
+        with connect(settings.database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            repository = WatchRepository(connection)
+            item = repository.latest_rule_report(subscriber_id, rule_id)
+            if item is not None and settings.watch_llm_enabled:
+                current_ids = {str(match["match_id"]) for match in item.get("matches") or []}
+                integrated = item.get("integrated_summary") or {}
+                saved_ids = {
+                    str(match_id)
+                    for match_id in integrated.get("evidence_match_ids", [])
+                }
+                if integrated.get("prompt_version") not in WATCH_REPORT_COMPATIBLE_PROMPT_VERSIONS:
+                    saved_ids = set()
+                new_evidence_count = len(current_ids - saved_ids)
+                if new_evidence_count >= settings.watch_llm_min_new_matches:
+                    item["summary_requested"] = repository.request_rule_report_summary(
+                        subscriber_id, item["session_id"],
+                    )
+                    item["summary_status"] = (
+                        "UPDATING" if item.get("integrated_summary") else "GENERATING"
+                    )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="알림 주제 보고서를 불러올 수 없습니다."
+        ) from exc
+    if item is None:
+        raise HTTPException(status_code=404, detail="알림 주제를 찾을 수 없습니다.")
+    return item
+
+
+@app.get("/api/watch/notifications", tags=["watch"])
+def watch_notifications(
+    limit: int = 50,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    if not 1 <= limit <= 100:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 100")
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            return WatchRepository(connection).list_notifications(
+                subscriber_id, limit=limit
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="알림 내역을 불러올 수 없습니다."
+        ) from exc
+
+
+@app.post("/api/watch/notifications/{notification_id}/read", tags=["watch"])
+def read_watch_notification(
+    notification_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            updated = WatchRepository(connection).mark_notification_read(
+                subscriber_id,
+                notification_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="알림 상태를 저장할 수 없습니다."
+        ) from exc
+    return {"updated": updated}
+
+
+@app.delete("/api/watch/notifications/{notification_id}", tags=["watch"])
+def delete_watch_notification(
+    notification_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            deleted = WatchRepository(connection).delete_notification(
+                subscriber_id,
+                notification_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="감지 기록을 삭제할 수 없습니다."
+        ) from exc
+    return {"deleted": deleted}
+
+
+@app.delete("/api/watch/notifications", tags=["watch"])
+def clear_read_watch_notifications(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            deleted_count = WatchRepository(connection).clear_read_notifications(
+                subscriber_id
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="읽은 감지 기록을 정리할 수 없습니다."
+        ) from exc
+    return {"deleted_count": deleted_count}
+
+
+@app.get("/api/watch/metrics", tags=["watch"])
+def watch_metrics(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            metrics = WatchRepository(connection).metrics(subscriber_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="알림 운영 지표를 불러올 수 없습니다."
+        ) from exc
+    return {
+        **metrics,
+        "retention_limit": 50,
+        "authority_status": "OPERATIONAL_METRIC",
+    }
+
+
+@app.get("/api/watch/kakao/status", tags=["watch"])
+def watch_kakao_status(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    settings = get_settings()
+    provider = KakaoNotificationProvider(settings)
+    try:
+        with connect(settings.database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            account = WatchDeliveryRepository(connection).status(subscriber_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="Kakao 연결 상태를 불러올 수 없습니다."
+        ) from exc
+    return {**provider.configuration(), **account, "provider": "KAKAO"}
+
+
+@app.post("/api/watch/kakao/authorize", tags=["watch"])
+def watch_kakao_authorize(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    settings = get_settings()
+    provider = KakaoNotificationProvider(settings)
+    if not provider.configured():
+        raise HTTPException(
+            status_code=503, detail="Kakao 연결 설정이 완료되지 않았습니다."
+        )
+    try:
+        with connect(settings.database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            state = WatchDeliveryRepository(connection).begin_oauth(subscriber_id)
+            url = provider.authorization_url(state)
+    except HTTPException:
+        raise
+    except KakaoProviderError as exc:
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="Kakao 연결을 시작할 수 없습니다."
+        ) from exc
+    return {"authorization_url": url, "expires_in_seconds": 600}
+
+
+@app.get("/api/watch/kakao/callback", tags=["watch"], include_in_schema=False)
+def watch_kakao_callback(
+    request: Request,
+    code: str = "",
+    state: str = "",
+    error: str = "",
+) -> RedirectResponse:
+    settings = get_settings()
+    destination = settings.watch_public_base_url or "/"
+    if error or not code or not state:
+        return RedirectResponse(f"{destination}?watch_kakao=denied", status_code=303)
+    try:
+        with connect(settings.database_url) as connection:
+            repository = WatchDeliveryRepository(connection)
+            subscriber_id = repository.consume_oauth(state)
+            if subscriber_id is None:
+                raise KakaoProviderError(
+                    "만료되거나 사용된 Kakao 연결 요청입니다.", 400
+                )
+            account = KakaoNotificationProvider(settings).exchange_code(code)
+            if "talk_message" not in account["scopes"]:
+                raise KakaoProviderError("Kakao 메시지 전송 동의가 필요합니다.", 400)
+            repository.lock_kakao_identity(account["kakao_user_id"])
+            canonical_id = (
+                repository.subscriber_for_kakao_user(account["kakao_user_id"])
+                or subscriber_id
+            )
+            # When a Kakao identity already has a canonical account, its cloud
+            # rules remain authoritative. Login must not silently import rules
+            # from a transient browser subscriber and accumulate duplicates.
+            repository.save_account(canonical_id, account)
+            web_token = repository.create_web_session(
+                canonical_id, user_agent=request.headers.get("user-agent", ""),
+            )
+    except KakaoProviderError as exc:
+        result = "consent_required" if "동의" in str(exc) else "failed"
+        return RedirectResponse(f"{destination}?watch_kakao={result}", status_code=303)
+    except Exception:
+        return RedirectResponse(f"{destination}?watch_kakao=failed", status_code=303)
+    response = RedirectResponse(f"{destination}?watch_kakao=connected", status_code=303)
+    set_watch_cookie(response, web_token)
+    return response
+
+
+@app.delete("/api/watch/kakao", tags=["watch"])
+def watch_kakao_disconnect(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    settings = get_settings()
+    try:
+        with connect(settings.database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            repository = WatchDeliveryRepository(connection)
+            # Remote unlink revokes every token for the same Kakao user/app,
+            # including tokens owned by another service. Disconnect only this
+            # PoC's account and outbox; app-level revocation is an operator task.
+            repository.disconnect(subscriber_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="Kakao 연결을 해제할 수 없습니다."
+        ) from exc
+    return {"disconnected": True, "remote_unlinked": False, "warning": ""}
+
+
+@app.get("/api/watch/admin/reviews", tags=["watch-admin"])
+def watch_admin_reviews(
+    limit: int = 50,
+    x_watch_admin_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    _watch_admin(x_watch_admin_token)
+    if not 1 <= limit <= 100:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 100")
+    try:
+        with connect(get_settings().database_url) as connection:
+            items = WatchOperationsRepository(connection).review_queue(limit=limit)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="운영 검토 목록을 불러올 수 없습니다."
+        ) from exc
+    return {"items": items, "count": len(items), "automatic_judgment_preserved": True}
+
+
+@app.post("/api/watch/admin/reviews/{verification_id}", tags=["watch-admin"])
+def decide_watch_admin_review(
+    verification_id: UUID,
+    payload: WatchReviewDecisionPayload,
+    x_watch_admin_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    _watch_admin(x_watch_admin_token)
+    if payload.decision not in {"APPROVE", "CORRECT", "DEFER"}:
+        raise HTTPException(status_code=422, detail="지원하지 않는 검토 결정입니다.")
+    try:
+        with connect(get_settings().database_url) as connection:
+            item = WatchOperationsRepository(connection).decide(
+                verification_id,
+                decision=payload.decision,
+                note=" ".join(payload.note.split()),
+                reviewed_by=" ".join(payload.reviewed_by.split()),
+            )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="운영 검토 결정을 저장할 수 없습니다."
+        ) from exc
+    if item is None:
+        raise HTTPException(
+            status_code=404, detail="자동 판정 항목을 찾을 수 없습니다."
+        )
+    return item
+
+
+@app.post("/api/watch/admin/live-regression/run", tags=["watch-admin"])
+def run_watch_live_regression(
+    limit: int = 20,
+    x_watch_admin_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    _watch_admin(x_watch_admin_token)
+    if not 1 <= limit <= 100:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 100")
+    try:
+        with connect(get_settings().database_url) as connection:
+            items = WatchOperationsRepository(connection).audit_recent(limit=limit)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="실방송 회귀 점검을 실행할 수 없습니다."
+        ) from exc
+    return {"items": items, "count": len(items)}
+
+
+@app.get("/api/watch/admin/live-regression", tags=["watch-admin"])
+def watch_live_regression_status(
+    limit: int = 50,
+    x_watch_admin_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    _watch_admin(x_watch_admin_token)
+    try:
+        with connect(get_settings().database_url) as connection:
+            items = WatchOperationsRepository(connection).latest_audits(limit=limit)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="실방송 회귀 이력을 불러올 수 없습니다."
+        ) from exc
+    return {"items": items, "count": len(items)}
+
+
+@app.get("/api/watch/sessions/{session_id}", tags=["watch"])
+def watch_session_detail(
+    session_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            item = WatchRepository(connection).session(subscriber_id, session_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="관련 발언 흐름을 불러올 수 없습니다."
+        ) from exc
+    if item is None:
+        raise HTTPException(
+            status_code=404, detail="관련 발언 흐름을 찾을 수 없습니다."
+        )
+    return item
+
+
+@app.post("/api/watch/test-broadcasts", tags=["watch"])
+def start_watch_test_broadcast(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    if not get_settings().watch_test_broadcasts_enabled:
+        raise HTTPException(
+            status_code=503, detail="테스트 방송 기능이 비활성화되어 있습니다."
+        )
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            rules = [
+                item
+                for item in WatchRepository(connection).list_rules(subscriber_id)
+                if item["enabled"]
+            ]
+            if not rules:
+                raise HTTPException(
+                    status_code=409, detail="먼저 관심주제를 하나 이상 등록해 주세요."
+                )
+            keyword = str(rules[0]["include_terms"][0])
+            item = WatchTestRepository(connection).start(
+                subscriber_id,
+                keyword,
+                datetime.now(ZoneInfo("UTC")),
+            )
+    except HTTPException:
+        raise
+    except PermissionError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="가상 테스트 방송을 시작할 수 없습니다."
+        ) from exc
+    return {**item, "keyword": keyword, "interval_ms": 3000}
+
+
+@app.get("/api/watch/test-broadcasts/latest", tags=["watch"])
+def latest_watch_test_broadcast(
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            item = WatchTestRepository(connection).latest(subscriber_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="테스트 방송 상태를 불러올 수 없습니다."
+        ) from exc
+    return {"item": item}
+
+
+@app.get("/api/watch/test-broadcasts/{test_id}", tags=["watch"])
+def watch_test_broadcast(
+    test_id: UUID,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _watch_subscriber(connection, x_watch_token)
+            item = WatchTestRepository(connection).get(subscriber_id, test_id)
+            if item is None:
+                raise HTTPException(
+                    status_code=404, detail="테스트 방송을 찾을 수 없습니다."
+                )
+            snapshot = LiveRepository(connection).test_transcript_snapshot(
+                item["broadcast_id"],
+                lifecycle_status=item["lifecycle_status"],
+            )
+            snapshot = _present_transcript(
+                connection, snapshot, official_speakers=False
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="테스트 방송 기록을 불러올 수 없습니다."
+        ) from exc
+    return {**item, "transcript": snapshot}
+
 
 WEB_DIR = PROJECT_DIR / "web"
 if WEB_DIR.is_dir():

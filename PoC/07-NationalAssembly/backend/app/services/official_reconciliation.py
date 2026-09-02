@@ -9,11 +9,11 @@ from typing import Any
 
 from .official_brief_integration import semantic_tokens
 
-INTEGRATION_VERSION = "official-reconciliation/1.2"
+INTEGRATION_VERSION = "official-reconciliation/1.3"
 SPEAKER_MATCH_METHOD = "ORDERED_CHAR_NGRAM_9_V1"
 MIN_ALIGNMENT_CONFIDENCE = 0.34
 _COMPACT_PATTERN = re.compile(r"[^0-9a-zA-Z가-힣]+")
-_DIFF_TOKEN_PATTERN = re.compile(r"\s+|[0-9a-zA-Z가-힣]+|[^\w\s]", re.UNICODE)
+_SEMANTIC_CHARACTER_PATTERN = re.compile(r"[0-9a-zA-Z가-힣]")
 
 
 def compact_text(value: object) -> str:
@@ -117,18 +117,100 @@ def speaker_reconciliation_stats(matches: Iterable[dict[str, Any]]) -> dict[str,
     }
 
 
+def _semantic_characters(value: str) -> tuple[list[str], list[int]]:
+    characters: list[str] = []
+    positions: list[int] = []
+    for index, character in enumerate(value):
+        if _SEMANTIC_CHARACTER_PATTERN.fullmatch(character):
+            characters.append(character.casefold())
+            positions.append(index)
+    return characters, positions
+
+
+def _raw_end(value: str, positions: list[int], semantic_end: int) -> int:
+    if semantic_end <= 0:
+        return 0
+    if semantic_end >= len(positions):
+        return len(value)
+    return positions[semantic_end - 1] + 1
+
+
+def _character_opcodes(
+    before: str, after: str,
+) -> tuple[list[tuple[str, int, int, int, int]], list[int], list[int]]:
+    old_characters, old_positions = _semantic_characters(before)
+    new_characters, new_positions = _semantic_characters(after)
+    matcher = SequenceMatcher(
+        None, old_characters, new_characters, autojunk=False,
+    )
+    return matcher.get_opcodes(), old_positions, new_positions
+
+
+def minimal_patch_text(before: object, after: object) -> str:
+    """Keep provisional wording and replace only official changed character runs.
+
+    Alignment ignores spaces and punctuation.  This prevents one spacing error
+    from turning the rest of a Korean sentence into a replacement.  When the
+    two texts share too little wording, the provisional text remains in the
+    main report and the official alternative is presented in the change report.
+    """
+    old = str(before or "")
+    new = str(after or "")
+    if not old or not new or old == new:
+        return new or old
+    compact_old = compact_text(old)
+    compact_new = compact_text(new)
+    similarity = SequenceMatcher(
+        None, compact_old, compact_new, autojunk=False,
+    ).ratio()
+    if min(len(compact_old), len(compact_new)) >= 20 and similarity < 0.46:
+        return old
+    opcodes, old_positions, new_positions = _character_opcodes(old, new)
+    old_cursor = 0
+    new_cursor = 0
+    parts: list[str] = []
+    previous_opcode = ""
+    for opcode, _old_start, old_end, _new_start, new_end in opcodes:
+        old_raw_end = _raw_end(old, old_positions, old_end)
+        new_raw_end = _raw_end(new, new_positions, new_end)
+        if opcode == "equal":
+            old_piece = old[old_cursor:old_raw_end]
+            if previous_opcode and previous_opcode != "equal":
+                new_piece = new[new_cursor:new_raw_end]
+                new_prefix = re.match(
+                    r"^[^0-9A-Za-z가-힣]*", new_piece,
+                ).group(0)
+                old_piece = new_prefix + re.sub(
+                    r"^[^0-9A-Za-z가-힣]*", "", old_piece,
+                )
+            parts.append(old_piece)
+        elif opcode in {"insert", "replace"}:
+            parts.append(new[new_cursor:new_raw_end])
+        old_cursor = old_raw_end
+        new_cursor = new_raw_end
+        previous_opcode = opcode
+    patched = "".join(parts).strip()
+    # A punctuation-only boundary is excluded from alignment.  When both the
+    # preserved provisional sentence and the inserted official phrase carry a
+    # full stop, remove only an exact double stop; keep a real "..." ellipsis.
+    return re.sub(r"(?<!\.)\.\.(?!\.)", ".", patched)
+
+
 def inline_diff(before: object, after: object) -> list[dict[str, str]]:
+    """Build a whitespace-independent character diff with readable raw spans."""
     old = str(before or "")
     new = str(after or "")
     if old == new:
         return [{"kind": "equal", "text": new}]
-    old_tokens = _DIFF_TOKEN_PATTERN.findall(old)
-    new_tokens = _DIFF_TOKEN_PATTERN.findall(new)
+    opcodes, old_positions, new_positions = _character_opcodes(old, new)
     spans: list[dict[str, str]] = []
-    matcher = SequenceMatcher(None, old_tokens, new_tokens, autojunk=False)
-    for opcode, old_start, old_end, new_start, new_end in matcher.get_opcodes():
-        old_text = "".join(old_tokens[old_start:old_end])
-        new_text = "".join(new_tokens[new_start:new_end])
+    old_cursor = 0
+    new_cursor = 0
+    for opcode, _old_start, old_end, _new_start, new_end in opcodes:
+        old_raw_end = _raw_end(old, old_positions, old_end)
+        new_raw_end = _raw_end(new, new_positions, new_end)
+        old_text = old[old_cursor:old_raw_end]
+        new_text = new[new_cursor:new_raw_end]
         if opcode == "equal":
             spans.append({"kind": "equal", "text": new_text})
         elif opcode == "insert":
@@ -140,6 +222,8 @@ def inline_diff(before: object, after: object) -> list[dict[str, str]]:
                 spans.append({"kind": "deleted", "text": old_text})
             if new_text:
                 spans.append({"kind": "changed", "text": new_text, "before": old_text})
+        old_cursor = old_raw_end
+        new_cursor = new_raw_end
     return [span for span in spans if span.get("text")]
 
 
@@ -291,10 +375,22 @@ def apply_official_edits(
         }:
             continue
         before = target.get(field)
-        after: Any = list(edit.get("new_values") or []) if field == "ministries" else str(
+        official_after: Any = list(edit.get("new_values") or []) if field == "ministries" else str(
             edit.get("new_text") or ""
         ).strip()
-        if not after or before == after:
+        if not official_after or before == official_after:
+            continue
+        after = (
+            official_after
+            if field == "ministries"
+            else minimal_patch_text(before, official_after)
+        )
+        if before == after:
+            edit["presentation_status"] = "FULL_REWRITE_SUPPRESSED"
+            edit["before"] = before
+            edit["after"] = official_after
+            edit["spans"] = [{"kind": "equal", "text": str(before or "")}]
+            accepted.append(edit)
             continue
         target[field] = after
         target.setdefault("_official_diffs", {})[field] = (
@@ -302,7 +398,8 @@ def apply_official_edits(
             if field == "ministries" else inline_diff(before, after)
         )
         edit["before"] = before
-        edit["after"] = after
+        edit["after"] = official_after
+        edit["display_after"] = after
         edit["spans"] = target["_official_diffs"][field]
         accepted.append(edit)
     return integrated, accepted

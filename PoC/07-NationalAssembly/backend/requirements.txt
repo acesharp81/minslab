@@ -6,3 +6,4 @@ uvicorn[standard]>=0.35,<1
 websockets>=15,<16
 beautifulsoup4>=4.13,<5
 requests>=2.32,<3
+cryptography>=42,<47

@@ -91,8 +91,10 @@ class OpenRouterSummaryClient:
             "max_tokens": 4096,
             "response_format": {"type": "json_schema", "json_schema": {"name": "assembly_summaries", "strict": True, "schema": summary_response_schema()}},
             "reasoning": {"effort": "none", "exclude": True},
-            "provider": {"data_collection": "deny", "require_parameters": True},
-            "plugins": [{"id": "response-healing"}],
+            "provider": {
+                "data_collection": "deny", "zdr": True,
+                "allow_fallbacks": False, "require_parameters": True,
+            },
         }
         response = None
         for attempt in range(MAX_ATTEMPTS):
@@ -134,6 +136,7 @@ class OpenRouterSummaryClient:
                 "request_id": str(payload.get("id") or ""),
                 "upstream_provider": str(payload.get("provider") or ""),
                 "usage": payload.get("usage") or {},
+                "privacy": {"data_collection": "deny", "zdr": True},
             },
         )
 

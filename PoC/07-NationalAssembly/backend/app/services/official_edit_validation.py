@@ -54,6 +54,17 @@ def _style_only_update(target: dict[str, Any], edit: dict[str, Any]) -> bool:
     )
 
 
+def _rewrites_too_much(target: dict[str, Any], edit: dict[str, Any]) -> bool:
+    field = str(edit.get("field") or "")
+    if field not in {"headline", "summary", "title"}:
+        return False
+    before = re.sub(r"[^0-9A-Za-z가-힣]+", "", str(target.get(field) or "").casefold())
+    after = re.sub(r"[^0-9A-Za-z가-힣]+", "", str(edit.get("new_text") or "").casefold())
+    if min(len(before), len(after)) < 20:
+        return False
+    return SequenceMatcher(None, before, after, autojunk=False).ratio() < 0.46
+
+
 def _duplicates_existing_entity(
     brief: dict[str, Any], entity_type: str, edit: dict[str, Any],
 ) -> bool:
@@ -121,6 +132,8 @@ def filter_supported_official_edits(
         if entity_type == "meeting" and operation != "UPDATE":
             continue
         if operation == "UPDATE" and target and _style_only_update(target, edit):
+            continue
+        if operation == "UPDATE" and target and _rewrites_too_much(target, edit):
             continue
         if operation == "ADD" and _duplicates_existing_entity(live_brief, entity_type, edit):
             continue

@@ -521,8 +521,18 @@ class CommitteeRepository:
                 group = topics.setdefault(topic, {
                     "topic": topic, "statement_count": 0,
                     "committees": {}, "ministries": {}, "bills": {}, "evidence": None,
+                    "meetings": {}, "dates": {},
                 })
                 group["statement_count"] += 1
+                conference_key = str(conference_id)
+                date_key = meeting_date.isoformat() if meeting_date else ""
+                group["meetings"][conference_key] = date_key
+                if date_key:
+                    date_stats = group["dates"].setdefault(
+                        date_key, {"statement_count": 0, "meeting_ids": set()},
+                    )
+                    date_stats["statement_count"] += 1
+                    date_stats["meeting_ids"].add(conference_key)
                 group["committees"][committee] = group["committees"].get(committee, 0) + 1
                 for ministry in ministries:
                     group["ministries"][ministry] = group["ministries"].get(ministry, 0) + 1
@@ -556,6 +566,22 @@ class CommitteeRepository:
                     }
         items = []
         for group in topics.values():
+            group["meeting_count"] = len(group.pop("meetings"))
+            date_stats = group.pop("dates")
+            group["timeline"] = [
+                {
+                    "date": date_key,
+                    "statement_count": stats["statement_count"],
+                    "meeting_count": len(stats["meeting_ids"]),
+                }
+                for date_key, stats in sorted(date_stats.items())
+            ]
+            group["first_observed_date"] = (
+                group["timeline"][0]["date"] if group["timeline"] else None
+            )
+            group["latest_observed_date"] = (
+                group["timeline"][-1]["date"] if group["timeline"] else None
+            )
             group["committees"] = [
                 {"label": label, "count": count}
                 for label, count in sorted(group["committees"].items(), key=lambda item: (-item[1], item[0]))

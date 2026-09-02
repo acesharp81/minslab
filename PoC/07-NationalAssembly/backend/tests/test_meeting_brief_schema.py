@@ -23,11 +23,20 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("CREATE TABLE meeting_brief_progress", progress_migration)
         self.assertIn("processed_utterances", progress_migration)
+        chunk_migration = (
+            PROJECT_DIR / "backend/migrations/0033_meeting_brief_chunk_cache.sql"
+        ).read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE meeting_brief_chunk_cache", chunk_migration)
+        self.assertIn("chunk_hash text NOT NULL", chunk_migration)
 
         repository = (
             PROJECT_DIR / "backend/app/db/meeting_brief_repository.py"
         ).read_text(encoding="utf-8")
         self.assertIn("(provider = 'mistral') DESC", repository)
+        self.assertIn("def get_chunk_analysis", repository)
+        self.assertIn("def save_chunk_analysis", repository)
+        self.assertIn("current_source_last_event_cursor", repository)
+
     def test_api_and_beta_ui_link_results_to_evidence(self):
         api = (PROJECT_DIR / "backend/app/main.py").read_text(encoding="utf-8")
         html = (PROJECT_DIR / "web/index.html").read_text(encoding="utf-8")
@@ -53,6 +62,10 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("bestMeetingHighlightPhrase", script)
         self.assertIn("MAX_MEETING_EVIDENCE_HIGHLIGHTS = 3", script)
         self.assertIn("build_fallback_meeting_brief", worker)
+        self.assertIn("load_chunk=load_chunk", worker)
+        self.assertIn("save_chunk=save_chunk", worker)
+        self.assertIn("LEGISLATIVE_SETTLE_MINUTES = 120", worker)
+        self.assertIn("broadcast.ended_at <= now()", worker)
         self.assertIn("renderMeetingBriefProcessing", script)
         self.assertIn("briefPollTimer", script)
         self.assertIn("결과 정리 중", script)
@@ -63,8 +76,23 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn('item["provider"] == "mistral"', api)
         self.assertIn("progress_map", api)
         self.assertIn("meetingBriefIsReady", script)
+        self.assertIn(
+            'if (record.brief_status) return record.brief_status === "READY"', script
+        )
+        self.assertIn('"brief_is_stale": result_pending', api)
+        self.assertIn("result_pending = newer_input_pending", api)
+        self.assertIn("brief_upgrade_pending", api)
+        self.assertIn("brief_upgrade_status", api)
+        self.assertIn("def eligible_broadcast_ids(limit: int = 1)", worker)
+        self.assertIn("type=int, default=1", worker)
+        self.assertIn('"brief_outdated_reason"', api)
+        self.assertIn('"previous_utterance_count"', api)
         self.assertIn("전체 발언은 확인할 수 있습니다", script)
         self.assertIn("개 발언 중", script)
+        self.assertIn("Math.max(", script)
+        self.assertIn("재개 여부 확인 중", script)
+        self.assertIn("endedAt + 120 * 60 * 1000", script)
+        self.assertIn("전체 회차를 한 번에 정리합니다", script)
         self.assertIn("meeting-topic-task-processing", styles)
         self.assertIn(".meeting-processing-card", styles)
         self.assertRegex(
@@ -87,10 +115,17 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("build_official_evidence_presentations", api)
         self.assertIn("and not current_official_ids", api)
         self.assertIn("appendOfficialInlineDiff", script)
-        self.assertIn("appendHighlightedPhrase(transcript, utterance.text, importantRange)", script)
+        self.assertIn(
+            "appendHighlightedPhrase(transcript, utterance.text, importantRange)",
+            script,
+        )
         self.assertIn("LIVE 대비 수정 문구", script)
         self.assertIn("task.topic_title === topic.title", script)
-        self.assertIn("sourceView.append(topicTaskOverview, actions, workspace)", script)
+        self.assertIn("sourceView.append(topicTaskOverview)", script)
+        self.assertIn(
+            "if (lineageUnmappedPanel) sourceView.append(lineageUnmappedPanel)", script
+        )
+        self.assertIn("sourceView.append(actions, workspace)", script)
         self.assertNotIn("meeting-task-section", script)
         self.assertIn(".meeting-topic-task-row", styles)
         self.assertIn(".meeting-topic-task-detail", styles)

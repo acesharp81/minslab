@@ -65,6 +65,17 @@ def segment_number(path: Path) -> int:
     return int(path.stem.rsplit("-", 1)[1])
 
 
+def segment_directory_signature(directory: Path) -> tuple[tuple[str, int, int], ...]:
+    signature: list[tuple[str, int, int]] = []
+    for path in sorted(directory.glob("chunk-*.mp3")):
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            continue
+        signature.append((path.name, stat.st_size, stat.st_mtime_ns))
+    return tuple(signature)
+
+
 def audio_duration_ms(audio_path: Path, *, fallback_seconds: int) -> int:
     completed = subprocess.run(
         [
@@ -193,10 +204,35 @@ def capture_broadcast(claim: dict[str, Any], *, settings: Any, worker_id: str) -
                 )
             stored_paths: set[Path] = set()
             live_ended = resume_post_processing
+            segmenter_stalled = False
+            stalled_after_seconds = max(chunk_seconds * 2 + 30, 150)
+            last_segment_signature = segment_directory_signature(segment_dir)
+            last_segment_progress_at = time.monotonic()
             if resume_post_processing:
                 retry = False
             while True:
                 running = segmenter is not None and segmenter.poll() is None
+                segmenter_stalled = False
+                if running:
+                    signature = segment_directory_signature(segment_dir)
+                    if signature != last_segment_signature:
+                        last_segment_signature = signature
+                        last_segment_progress_at = time.monotonic()
+                    elif time.monotonic() - last_segment_progress_at >= stalled_after_seconds:
+                        idle_seconds = int(time.monotonic() - last_segment_progress_at)
+                        segmenter.terminate()
+                        try:
+                            segmenter.wait(timeout=10)
+                        except subprocess.TimeoutExpired:
+                            segmenter.kill()
+                            segmenter.wait(timeout=5)
+                        running = False
+                        segmenter_stalled = True
+                        print(json.dumps({
+                            "event": "executive.audio.segmenter_stalled",
+                            "broadcast_id": str(broadcast_id),
+                            "idle_seconds": idle_seconds,
+                        }), flush=True)
                 if not live_ended:
                     with connect(settings.database_url) as connection:
                         alive = LiveRepository(connection).heartbeat_capture(
@@ -233,6 +269,9 @@ def capture_broadcast(claim: dict[str, Any], *, settings: Any, worker_id: str) -
                         )
                     stored_paths.add(local_path)
                     captured += 1
+
+                if segmenter_stalled:
+                    raise RuntimeError("KTV continuous audio segmenter stalled")
 
                 with connect(settings.database_url) as connection:
                     audio = ExecutiveAudioRepository(connection)

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/intent-analysis.schema.json",
+  "title": "AIWorks Intent Analysis",
+  "type": "object",
+  "required": [
+    "contractVersion",
+    "normalizedInstruction",
+    "taskType",
+    "targetArtifact",
+    "requiredCapabilities",
+    "candidateDataSources",
+    "sensitivity",
+    "preferredModelClass",
+    "outputContract",
+    "userConstraints"
+  ],
+  "properties": {
+    "contractVersion": {"const": "intent-analysis/1.0"},
+    "normalizedInstruction": {"type": "string", "minLength": 1},
+    "taskType": {"enum": ["information-query", "document-create", "document-transform", "selection-edit"]},
+    "targetArtifact": {"enum": ["text", "markdown", "hwpx", "selection"]},
+    "requiredCapabilities": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9.-]+$"},
+      "uniqueItems": true
+    },
+    "candidateDataSources": {"type": "array", "items": {"type": "object"}},
+    "sensitivity": {
+      "type": "object",
+      "required": ["classification", "externalTransferAllowed", "reason"],
+      "properties": {
+        "classification": {"type": "string"},
+        "externalTransferAllowed": {"type": "boolean"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "preferredModelClass": {"enum": ["fast", "reasoning", "quality"]},
+    "outputContract": {
+      "type": "object",
+      "required": ["format", "sourceOfTruth", "citationsRequired"],
+      "properties": {
+        "format": {"type": "string"},
+        "sourceOfTruth": {"type": "string"},
+        "citationsRequired": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "userConstraints": {
+      "type": "object",
+      "required": ["citationRequired", "requestedStyle", "requestedTemplate", "preserveSelectionScope"],
+      "properties": {
+        "citationRequired": {"type": "boolean"},
+        "requestedStyle": {"type": "string"},
+        "requestedTemplate": {"type": "boolean"},
+        "preserveSelectionScope": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

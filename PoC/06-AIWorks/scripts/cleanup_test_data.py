@@ -2,6 +2,7 @@
 
 Dry-run is the default. ``--apply`` creates an online SQLite backup first and
 then removes only records matching the explicit fixture identities below.
+Audit events are immutable operational history and are never deleted here.
 """
 
 from __future__ import annotations
@@ -52,14 +53,6 @@ TEST_PLAN_INTENTS = {
     "Budget policy total amount 조회해줘",
     "예산요청서 초안을 완성해줘",
     "현재 기준값으로 예산 산출 근거를 갱신해줘",
-}
-TEST_AUDIT_ACTORS = TEST_PLAN_ACTORS | {
-    "browser-smoke",
-    "http-v010-test",
-    "http-builder-test",
-    "http-multimodal-test",
-    "http-test",
-    "http-knowledge-test",
 }
 TEST_KNOWLEDGE_NODE_IDS = {
     "data:cost.engineer.monthly",
@@ -206,18 +199,43 @@ def cleanup(db: sqlite3.Connection) -> dict:
     ]
     if plan_ids:
         marks = placeholders(plan_ids)
-        execution_ids = [row[0] for row in db.execute(f"SELECT id FROM executions WHERE plan_id IN ({marks})", plan_ids)]
+        execution_ids = [
+            row[0] for row in db.execute(
+                f"SELECT id FROM executions WHERE plan_id IN ({marks})", plan_ids
+            )
+        ]
+        workflow_run_ids = [
+            row[0] for row in db.execute(
+                f"SELECT id FROM workflow_runs WHERE plan_id IN ({marks})", plan_ids
+            )
+        ]
+        if workflow_run_ids:
+            workflow_marks = placeholders(workflow_run_ids)
+            db.execute(
+                f"DELETE FROM workflow_step_runs WHERE workflow_run_id IN ({workflow_marks})",
+                workflow_run_ids,
+            )
+            db.execute(
+                f"DELETE FROM workflow_run_executions WHERE workflow_run_id IN ({workflow_marks})",
+                workflow_run_ids,
+            )
+            db.execute(
+                f"DELETE FROM workflow_runs WHERE id IN ({workflow_marks})",
+                workflow_run_ids,
+            )
         if execution_ids:
             execution_marks = placeholders(execution_ids)
-            db.execute(f"DELETE FROM audit_events WHERE execution_id IN ({execution_marks})", execution_ids)
-        db.execute(f"DELETE FROM audit_events WHERE plan_id IN ({marks})", plan_ids)
+            db.execute(
+                f"DELETE FROM workflow_run_executions WHERE execution_id IN ({execution_marks})",
+                execution_ids,
+            )
+        db.execute(
+            f"DELETE FROM workflow_run_executions WHERE plan_id IN ({marks})",
+            plan_ids,
+        )
         db.execute(f"DELETE FROM approvals WHERE plan_id IN ({marks})", plan_ids)
         db.execute(f"DELETE FROM executions WHERE plan_id IN ({marks})", plan_ids)
         db.execute(f"DELETE FROM plans WHERE id IN ({marks})", plan_ids)
-    db.execute(
-        f"DELETE FROM audit_events WHERE actor IN ({placeholders(TEST_AUDIT_ACTORS)})",
-        sorted(TEST_AUDIT_ACTORS),
-    )
     db.execute("DELETE FROM acceptance_runs")
     db.execute(
         "DELETE FROM document_versions WHERE created_by IN ('http-test','http-acceptance-test') OR filename LIKE 'browser-sample%' OR filename LIKE '워크벤치_브라우저_검증%' OR filename='acceptance-budget_AIWorks.hwpx'"
@@ -235,44 +253,6 @@ def cleanup(db: sqlite3.Connection) -> dict:
         db.execute(f"DELETE FROM knowledge_edges WHERE source_node_id IN ({marks}) OR target_node_id IN ({marks})", knowledge_ids * 2)
         db.execute(f"DELETE FROM knowledge_sources WHERE node_id IN ({marks})", knowledge_ids)
         db.execute(f"DELETE FROM knowledge_nodes WHERE id IN ({marks})", knowledge_ids)
-
-    existing = {
-        "plans": {row[0] for row in db.execute("SELECT id FROM plans")},
-        "executions": {row[0] for row in db.execute("SELECT id FROM executions")},
-        "sessions": {row[0] for row in db.execute("SELECT id FROM native_document_sessions")},
-        "markdownDocuments": {row[0] for row in db.execute("SELECT id FROM project_markdown_documents")},
-        "markdownVersions": {row[0] for row in db.execute("SELECT id FROM project_markdown_versions")},
-        "workspaceDocuments": {row[0] for row in db.execute("SELECT id FROM workspace_documents")},
-        "documentVersions": {row[0] for row in db.execute("SELECT id FROM document_versions")},
-        "drafts": {row[0] for row in db.execute("SELECT id FROM mcp_drafts")},
-        "packages": {row[0] for row in db.execute("SELECT DISTINCT package_id FROM mcp_packages")},
-    }
-    orphan_audit_ids = []
-    for row in db.execute("SELECT id,execution_id,plan_id,detail_json FROM audit_events"):
-        detail = json.loads(row["detail_json"] or "{}")
-        orphan = bool(row["plan_id"] and row["plan_id"] not in existing["plans"])
-        orphan = orphan or bool(row["execution_id"] and row["execution_id"] not in existing["executions"])
-        references = (
-            ("session_id", "sessions", "docsession_"),
-            ("markdown_document_id", "markdownDocuments", "mdoc_"),
-            ("document_id", "markdownDocuments", "mdoc_"),
-            ("document_id", "workspaceDocuments", "workdoc_"),
-            ("version_id", "markdownVersions", "mdver_"),
-            ("version_id", "documentVersions", "docver_"),
-            ("draft_id", "drafts", "draft_"),
-            ("package_id", "packages", "org."),
-        )
-        for key, collection, prefix in references:
-            value = str(detail.get(key) or "")
-            if value.startswith(prefix) and value not in existing[collection]:
-                orphan = True
-                break
-        if orphan:
-            orphan_audit_ids.append(row["id"])
-    if orphan_audit_ids:
-        for offset in range(0, len(orphan_audit_ids), 500):
-            batch = orphan_audit_ids[offset:offset + 500]
-            db.execute(f"DELETE FROM audit_events WHERE id IN ({placeholders(batch)})", batch)
 
     active_document = db.execute(
         "SELECT id FROM project_markdown_documents WHERE project_id=? AND status='active' ORDER BY updated_at DESC LIMIT 1",

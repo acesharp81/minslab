@@ -65,3 +65,83 @@ function meetingIntegrationBar(item, record) {
   }
   return bar;
 }
+
+function officialChangeValue(value) {
+  if (value === null || value === undefined || value === "") return "내용 없음";
+  if (typeof value === "string") return value;
+  return JSON.stringify(value, null, 2);
+}
+
+function renderOfficialChangeReport(record) {
+  const integration = record?.official_integration || {};
+  if (integration.status !== "READY") return null;
+  const state = record?.official_change_report || {};
+  const status = state.status || "PENDING";
+  const section = magazineElement(
+    "section", `official-change-report is-${String(status).toLowerCase()}`, "",
+  );
+  const head = magazineElement("header", "", "");
+  head.append(
+    magazineElement("span", "", "비공식 보고 ↔ 공식 자료"),
+    magazineElement("h4", "", "공식화 변화 간단 보고"),
+  );
+  if (["PENDING", "PROCESSING"].includes(status)) {
+    head.append(magazineElement(
+      "p", "", "검증된 변경을 묶어 한눈에 볼 수 있는 요약을 작성 중입니다. 기존 변경 표시는 계속 확인할 수 있습니다.",
+    ));
+    section.append(head, magazineElement("div", "official-change-loading", "공식화 변화 정리 중"));
+    return section;
+  }
+  if (["FAILED", "LIMIT_REACHED"].includes(status)) {
+    head.append(magazineElement(
+      "p", "", "간단 요약을 만들지 못했습니다. 서버가 검증한 본문 변경 표시는 그대로 제공합니다.",
+    ));
+    section.append(head);
+    return section;
+  }
+  if (status !== "READY") return null;
+  const report = state.report || {};
+  const summary = magazineElement("div", "official-change-summary", "");
+  summary.append(
+    magazineElement("strong", "", report.overall_assessment || "공식 자료 대조 완료"),
+    magazineElement("p", "", report.summary || "공식 자료와 대조한 변경 결과입니다."),
+  );
+  if (report.speaker_note) summary.append(magazineElement("small", "", report.speaker_note));
+  section.append(head, summary);
+  const list = magazineElement("div", "official-change-list", "");
+  for (const item of report.items || []) {
+    const card = magazineElement("article", "official-change-item", "");
+    const cardHead = magazineElement("header", "", "");
+    cardHead.append(
+      magazineElement("span", "", item.importance || "보완"),
+      magazineElement("strong", "", item.title || "공식화 변경"),
+      magazineElement("p", "", item.explanation || ""),
+    );
+    card.append(cardHead);
+    const pairs = magazineElement("div", "official-change-pairs", "");
+    for (const change of item.changes || []) {
+      const pair = magazineElement("div", "official-change-pair", "");
+      const before = magazineElement("div", "is-before", "");
+      const after = magazineElement("div", "is-after", "");
+      before.append(
+        magazineElement("b", "", "비공식"),
+        magazineElement("p", "", officialChangeValue(change.before)),
+      );
+      after.append(
+        magazineElement("b", "", "공식"),
+        magazineElement("p", "", officialChangeValue(change.after)),
+      );
+      pair.append(before, after);
+      if (change.presentation_status === "FULL_REWRITE_SUPPRESSED") {
+        pair.append(magazineElement(
+          "small", "", "문장 전체 교체로 보이는 항목은 본문 워딩을 유지하고 공식 표현을 이 비교란에만 제공합니다.",
+        ));
+      }
+      pairs.append(pair);
+    }
+    card.append(pairs);
+    list.append(card);
+  }
+  if (list.children.length) section.append(list);
+  return section;
+}

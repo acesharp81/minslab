@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/project-conversation.schema.json",
+  "title": "AIWorks Project Conversation",
+  "type": "object",
+  "required": ["id", "projectId", "title", "status", "messageCount", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^conversation_[a-f0-9]+$"},
+    "projectId": {"type": "string"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 120},
+    "status": {"enum": ["active", "superseded", "archived"]},
+    "messageCount": {"type": "integer", "minimum": 0},
+    "createdBy": {"type": "string"},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"},
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "conversationId", "sequence", "role", "kind", "text", "contentSha256", "createdAt"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^message_[a-f0-9]+$"},
+          "conversationId": {"type": "string"},
+          "sequence": {"type": "integer", "minimum": 1},
+          "role": {"enum": ["user", "assistant", "system"]},
+          "kind": {"type": "string"},
+          "text": {"type": "string", "minLength": 1},
+          "contentSha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "documentId": {"type": ["string", "null"]},
+          "documentVersionId": {"type": ["string", "null"]},
+          "planId": {"type": ["string", "null"]},
+          "executionId": {"type": ["string", "null"]},
+          "metadata": {"type": "object"},
+          "createdBy": {"type": "string"},
+          "createdAt": {"type": "string", "format": "date-time"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

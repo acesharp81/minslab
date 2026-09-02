@@ -183,28 +183,51 @@ class ScheduleRepository:
         ).fetchone()
         return existing[0], False
 
-    def list_schedule_for_date(self, scheduled_date: Any) -> list[dict[str, Any]]:
+    def list_schedule_range(
+        self, start_date: Any, end_date: Any,
+    ) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
-            SELECT se.id, se.meeting_id, se.schedule_kind, se.title,
-                   se.scheduled_date, se.start_time, se.end_time, se.time_text,
-                   se.meeting_type, se.committee_name, se.session_text,
-                   se.meeting_order_text, se.host_name, se.place,
-                   se.is_target_committee, se.authority_status, se.reconciliation_status,
-                   sdv.source_url, sdv.retrieved_at, sdv.content_hash,
-                   sdv.parser_version
-            FROM schedule_entries se
-            JOIN source_document_versions sdv ON sdv.id = se.source_document_version_id
-            WHERE se.scheduled_date = %s
-            ORDER BY se.start_time NULLS LAST, se.title
+            SELECT latest.id, latest.meeting_id, latest.schedule_kind,
+                   latest.title, latest.scheduled_date, latest.start_time,
+                   latest.end_time, latest.time_text, latest.meeting_type,
+                   latest.committee_name, latest.session_text,
+                   latest.meeting_order_text, latest.host_name, latest.place,
+                   latest.is_target_committee, latest.authority_status,
+                   latest.reconciliation_status, latest.source_url,
+                   latest.retrieved_at, latest.content_hash,
+                   latest.parser_version
+            FROM (
+                SELECT DISTINCT ON (se.source_record_key)
+                       se.id, se.meeting_id, se.schedule_kind, se.title,
+                       se.scheduled_date, se.start_time, se.end_time,
+                       se.time_text, se.meeting_type, se.committee_name,
+                       se.session_text, se.meeting_order_text, se.host_name,
+                       se.place, se.is_target_committee, se.authority_status,
+                       se.reconciliation_status, sdv.source_url,
+                       sdv.retrieved_at, sdv.content_hash, sdv.parser_version
+                FROM schedule_entries se
+                JOIN source_document_versions sdv
+                  ON sdv.id = se.source_document_version_id
+                WHERE se.scheduled_date BETWEEN %s AND %s
+                ORDER BY se.source_record_key, sdv.retrieved_at DESC,
+                         se.created_at DESC
+            ) latest
+            ORDER BY latest.scheduled_date,
+                     latest.start_time NULLS LAST, latest.title
             """,
-            (scheduled_date,),
+            (start_date, end_date),
         ).fetchall()
         columns = (
-            "id", "meeting_id", "schedule_kind", "title", "scheduled_date",
-            "start_time", "end_time", "time_text", "meeting_type",
-            "committee_name", "session_text", "meeting_order_text", "host_name",
-            "place", "is_target_committee", "authority_status", "reconciliation_status", "source_url",
-            "retrieved_at", "content_hash", "parser_version",
+            "id", "meeting_id", "schedule_kind", "title",
+            "scheduled_date", "start_time", "end_time", "time_text",
+            "meeting_type", "committee_name", "session_text",
+            "meeting_order_text", "host_name", "place",
+            "is_target_committee", "authority_status",
+            "reconciliation_status", "source_url", "retrieved_at",
+            "content_hash", "parser_version",
         )
         return [dict(zip(columns, row, strict=True)) for row in rows]
+
+    def list_schedule_for_date(self, scheduled_date: Any) -> list[dict[str, Any]]:
+        return self.list_schedule_range(scheduled_date, scheduled_date)

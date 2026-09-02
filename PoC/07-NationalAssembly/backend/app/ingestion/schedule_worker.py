@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+from collections import Counter
 import os
 import tempfile
 import time
@@ -12,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from ..adapters.national_assembly.base import SourcePayload
 from ..adapters.national_assembly.client import NationalAssemblyClient
+from ..adapters.national_assembly.members import MemberAdapter, MemberSourceRecord, value_for_term
 from ..adapters.national_assembly.schedule import ScheduleAdapter
 from ..config import PROJECT_DIR, get_settings
 from ..db.connection import connect
@@ -21,7 +24,9 @@ from ..storage.raw_store import RawArtifact, RawStore
 
 
 UPCOMING_SCHEDULE_SCHEMA = "assembly-schedule-upcoming.v1"
+ASSEMBLY_REFERENCE_SCHEMA = "assembly-reference.v1"
 OFFICIAL_SCHEDULE_CATALOG_URL = "https://www.data.go.kr/data/15126132/openapi.do"
+OFFICIAL_MEMBER_CATALOG_URL = "https://www.data.go.kr/data/15126133/openapi.do"
 
 
 def _source_input(
@@ -106,6 +111,110 @@ def build_upcoming_schedule_snapshot(
     }
 
 
+
+def build_assembly_reference_snapshot(
+    members: Iterable[MemberSourceRecord], *, current_term: str,
+    generated_at: datetime, source_versions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    active = [
+        member for member in members
+        if current_term in member.elected_terms and member.duty_name
+    ]
+    party_counts: Counter[str] = Counter()
+    election_counts: Counter[str] = Counter()
+    gender_counts: Counter[str] = Counter()
+    committees: set[str] = set()
+    for member in active:
+        party_counts[value_for_term(
+            member.parties, member.elected_terms, current_term,
+        ) or "미확인"] += 1
+        election_counts[value_for_term(
+            member.election_types, member.elected_terms, current_term,
+        ) or "미확인"] += 1
+        gender_counts[member.gender or "미확인"] += 1
+        if member.committee_name:
+            committees.update(
+                value.strip() for value in member.committee_name.split(",")
+                if value.strip()
+            )
+
+    def ranked(counter: Counter[str]) -> list[dict[str, object]]:
+        return [
+            {"label": label, "count": count}
+            for label, count in sorted(
+                counter.items(), key=lambda item: (-item[1], item[0]),
+            )
+        ]
+
+    return {
+        "schema_version": ASSEMBLY_REFERENCE_SCHEMA,
+        "generated_at": generated_at.astimezone(timezone.utc).isoformat(),
+        "assembly_term": current_term,
+        "seat_count": len(active),
+        "party_seats": ranked(party_counts),
+        "election_type_seats": ranked(election_counts),
+        "gender_seats": ranked(gender_counts),
+        "committee_count": len(committees),
+        "source_status": "OFFICIAL",
+        "source": {
+            "type": "ALLNAMEMBER",
+            "catalog_url": OFFICIAL_MEMBER_CATALOG_URL,
+            "active_rule": f"{current_term} elected term and non-empty DTY_NM",
+            "party_rule": "PLPT_NM value aligned to the current elected term",
+            "versions": source_versions or [],
+        },
+    }
+
+
+def _reference_snapshot_fresh(
+    path: Path, *, now: datetime, max_age: timedelta = timedelta(hours=24),
+) -> bool:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("schema_version") != ASSEMBLY_REFERENCE_SCHEMA:
+            return False
+        generated_at = datetime.fromisoformat(
+            str(payload["generated_at"]).replace("Z", "+00:00")
+        )
+    except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+        return False
+    return now.astimezone(timezone.utc) - generated_at.astimezone(timezone.utc) < max_age
+
+
+def sync_assembly_reference_once(
+    *, api_key: str, raw_data_dir: Path, processed_data_dir: Path,
+    current_term: str = "제22대",
+) -> dict[str, Any]:
+    client = NationalAssemblyClient(api_key)
+    adapter = MemberAdapter()
+    raw_store = RawStore(raw_data_dir)
+    records: list[MemberSourceRecord] = []
+    versions: list[dict[str, Any]] = []
+    total_count = 0
+    generated_at = datetime.now(timezone.utc)
+    page = 1
+    while page == 1 or len(records) < total_count:
+        payload = client.fetch("members", page=page, page_size=1000)
+        artifact = raw_store.save(payload, parser_version=adapter.parser_version)
+        page_records, total_count = adapter.parse(payload)
+        records.extend(page_records)
+        generated_at = max(generated_at, payload.retrieved_at)
+        versions.append({
+            "content_hash": artifact.content_hash,
+            "retrieved_at": payload.retrieved_at.isoformat(),
+            "parser_version": adapter.parser_version,
+            "page": page,
+        })
+        if not page_records or page >= math.ceil(max(1, total_count) / 1000):
+            break
+        page += 1
+    snapshot = build_assembly_reference_snapshot(
+        records, current_term=current_term, generated_at=generated_at,
+        source_versions=versions,
+    )
+    _atomic_json(processed_data_dir / "assembly_reference.json", snapshot)
+    return snapshot
+
 def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -172,6 +281,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Sync official National Assembly schedules")
     parser.add_argument("--interval", type=int, default=600)
     parser.add_argument("--days", type=int, default=7)
+    parser.add_argument("--term", default="제22대")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
     if not 300 <= args.interval <= 86400:
@@ -191,11 +301,31 @@ def main() -> None:
             start_date=local_today,
             days=args.days,
         )
+        reference_path = settings.processed_data_dir / "assembly_reference.json"
+        reference = None
+        if not _reference_snapshot_fresh(
+            reference_path, now=datetime.now(timezone.utc),
+        ):
+            try:
+                reference = sync_assembly_reference_once(
+                    api_key=settings.national_assembly_api_key,
+                    raw_data_dir=settings.raw_data_dir,
+                    processed_data_dir=settings.processed_data_dir,
+                    current_term=args.term.strip() or "제22대",
+                )
+            except Exception as exc:
+                print(json.dumps({
+                    "assembly_reference_error": type(exc).__name__,
+                    "fallback": "last_snapshot",
+                }, ensure_ascii=False), flush=True)
         print(json.dumps({
             "generated_at": snapshot["generated_at"],
             "start_date": snapshot["start_date"],
             "end_date": snapshot["end_date"],
             "target_count": snapshot["count"],
+            "assembly_seat_count": (
+                reference.get("seat_count") if reference else None
+            ),
         }, ensure_ascii=False), flush=True)
         if args.once:
             return

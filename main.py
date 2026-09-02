@@ -93,6 +93,15 @@ NATIONAL_ASSEMBLY_BASE_PATH = "/poc/national-assembly"
 NATIONAL_ASSEMBLY_UPSTREAM = env_first(
     "NATIONAL_ASSEMBLY_UPSTREAM", default="http://127.0.0.1:18070"
 ).rstrip("/")
+NATIONAL_ASSEMBLY_SESSION_COOKIE = env_first(
+    "WATCH_SESSION_COOKIE_NAME", default="gukjeongbomi_session"
+)
+NATIONAL_ASSEMBLY_SECURITY_HEADERS = [
+    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'self'; form-action 'self' https://kauth.kakao.com"),
+    (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
+    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+    (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
+]
 
 WORKER_LOCK_PATH = MASTER_PRESS_SERVICE_PATH.parent / "data" / "master_press_workers.lock"
 WORKER_LOCK_HANDLE = None
@@ -2216,6 +2225,16 @@ async def app(scope, receive, send):
         nonlocal response_status, response_observed
         if message["type"] == "http.response.start":
             response_status = int(message.get("status", 500))
+            if path == NATIONAL_ASSEMBLY_BASE_PATH or path.startswith(
+                f"{NATIONAL_ASSEMBLY_BASE_PATH}/"
+            ):
+                response_headers = list(message.get("headers", []))
+                existing_names = {name.lower() for name, _ in response_headers}
+                response_headers.extend(
+                    item for item in NATIONAL_ASSEMBLY_SECURITY_HEADERS
+                    if item[0] not in existing_names
+                )
+                message["headers"] = response_headers
         await original_send(message)
         if (
             message["type"] == "http.response.body"
@@ -2238,16 +2257,100 @@ async def app(scope, receive, send):
         await send({"type": "http.response.body", "body": b""})
         return
 
-    if path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/") and method in {"GET", "HEAD"}:
+    national_assembly_speaker_edit = bool(
+        method in {"PUT", "DELETE"}
+        and re.fullmatch(
+            rf"{re.escape(NATIONAL_ASSEMBLY_BASE_PATH)}/api/live/broadcasts/"
+            r"[0-9a-fA-F-]{36}/speakers/[^/]+",
+            path,
+        )
+    )
+    national_assembly_watch_api = bool(
+        path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/api/watch/")
+        and method in {"GET", "POST", "PUT", "DELETE"}
+    )
+    national_assembly_topic_report_api = bool(
+        path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/api/topic-reports")
+        and method in {"GET", "POST"}
+    )
+    if path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/") and (
+        method in {"GET", "HEAD"} or national_assembly_speaker_edit
+        or national_assembly_watch_api or national_assembly_topic_report_api
+    ):
         relative_path = path[len(NATIONAL_ASSEMBLY_BASE_PATH):] or "/"
         query_string = scope.get("query_string", b"").decode("ascii", errors="ignore")
         upstream_url = f"{NATIONAL_ASSEMBLY_UPSTREAM}{relative_path}"
         if query_string:
             upstream_url = f"{upstream_url}?{query_string}"
+        upstream_body = None
+        upstream_headers = {"Accept": "*/*"}
+        request_headers = scope_headers(scope)
+        raw_cookie = request_headers.get("cookie", "")
+        browser_cookies = SimpleCookie()
         try:
-            request = url_request.Request(upstream_url, method=method, headers={"Accept": "*/*"})
+            browser_cookies.load(raw_cookie)
+        except Exception:
+            browser_cookies = SimpleCookie()
+        poc07_cookie = browser_cookies.get(NATIONAL_ASSEMBLY_SESSION_COOKIE)
+        if poc07_cookie:
+            upstream_headers["Cookie"] = (
+                f"{NATIONAL_ASSEMBLY_SESSION_COOKIE}={poc07_cookie.value}"
+            )
+        for forwarded_name in ("origin", "referer"):
+            if request_headers.get(forwarded_name):
+                upstream_headers[forwarded_name.title()] = request_headers[forwarded_name]
+        if national_assembly_speaker_edit:
+            if not admin_session(scope):
+                body = json.dumps(
+                    {"detail": "홈페이지 관리자 로그인이 필요합니다."},
+                    ensure_ascii=False,
+                ).encode("utf-8")
+                headers = [
+                    (b"content-type", b"application/json; charset=utf-8"),
+                    (b"content-length", str(len(body)).encode("ascii")),
+                    (b"cache-control", b"no-store"),
+                ]
+                await send({"type": "http.response.start", "status": 401, "headers": headers})
+                await send({"type": "http.response.body", "body": body})
+                return
+            upstream_body = await read_request_body(receive)
+            if len(upstream_body) > 65_536:
+                body = b'{"detail":"request body too large"}'
+                headers = [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode("ascii"))]
+                await send({"type": "http.response.start", "status": 413, "headers": headers})
+                await send({"type": "http.response.body", "body": body})
+                return
+            upstream_headers["Content-Type"] = request_headers.get("content-type", "application/json")
+        elif national_assembly_watch_api or national_assembly_topic_report_api:
+            watch_token = request_headers.get("x-watch-token", "")
+            if watch_token:
+                upstream_headers["X-Watch-Token"] = watch_token[:200]
+            watch_admin_token = request_headers.get("x-watch-admin-token", "")
+            if watch_admin_token:
+                upstream_headers["X-Watch-Admin-Token"] = watch_admin_token[:200]
+            if method in {"POST", "PUT", "DELETE"}:
+                upstream_body = await read_request_body(receive)
+                if len(upstream_body) > 65_536:
+                    body = b'{"detail":"request body too large"}'
+                    headers = [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode("ascii"))]
+                    await send({"type": "http.response.start", "status": 413, "headers": headers})
+                    await send({"type": "http.response.body", "body": body})
+                    return
+                upstream_headers["Content-Type"] = request_headers.get("content-type", "application/json")
+        try:
+            request = url_request.Request(
+                upstream_url, data=upstream_body, method=method, headers=upstream_headers,
+            )
             try:
-                response = await asyncio.to_thread(url_request.urlopen, request, timeout=8)
+                if relative_path == "/api/watch/kakao/callback":
+                    class NoRedirect(url_request.HTTPRedirectHandler):
+                        def redirect_request(self, req, fp, code, msg, headers, newurl):
+                            return None
+
+                    opener = url_request.build_opener(NoRedirect)
+                    response = await asyncio.to_thread(opener.open, request, timeout=8)
+                else:
+                    response = await asyncio.to_thread(url_request.urlopen, request, timeout=8)
             except url_error.HTTPError as error:
                 response = error
             with response:
@@ -2261,6 +2364,15 @@ async def app(scope, receive, send):
                 (b"x-frame-options", b"SAMEORIGIN"),
                 (b"x-content-type-options", b"nosniff"),
             ]
+            location = response.headers.get("location")
+            if location:
+                headers.append((b"location", location.encode("latin-1")))
+            for forwarded_name in ("set-cookie", "content-disposition", "x-llm-calls"):
+                for forwarded_value in response.headers.get_all(forwarded_name, []):
+                    headers.append((
+                        forwarded_name.encode("ascii"),
+                        forwarded_value.encode("latin-1"),
+                    ))
         except (OSError, url_error.URLError, TimeoutError) as error:
             status = 503
             body = json.dumps(
@@ -2269,7 +2381,23 @@ async def app(scope, receive, send):
             ).encode("utf-8")
             headers = [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store")]
             print(f"National Assembly upstream unavailable: {error}", file=sys.stderr)
+        existing_header_names = {name for name, _ in headers}
+        headers.extend(
+            item for item in NATIONAL_ASSEMBLY_SECURITY_HEADERS
+            if item[0] not in existing_header_names
+        )
         await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": body})
+        return
+    if path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/") and method not in {"GET", "HEAD"}:
+        body = b'{"detail":"method not allowed"}'
+        headers = [
+            (b"content-type", b"application/json"),
+            (b"content-length", str(len(body)).encode("ascii")),
+            (b"cache-control", b"no-store"),
+            (b"allow", b"GET, HEAD"),
+        ]
+        await send({"type": "http.response.start", "status": 404, "headers": headers})
         await send({"type": "http.response.body", "body": body})
         return
     if path.startswith(presentation_prefix) and method in {"GET", "HEAD"}:
@@ -2353,7 +2481,8 @@ async def app(scope, receive, send):
             module = load_aiworks_module()
             subpath = path[len(AIWORKS_API_BASE):] or "/"
             result = await asyncio.to_thread(module.dispatch, subpath, method, payload)
-            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
+            raw_content_type = result.get("_contentType") if isinstance(result, dict) else None
+            body = (str(result.get("_rawBody") or "").encode("utf-8") if raw_content_type else json.dumps(result, ensure_ascii=False, default=str).encode("utf-8"))
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as error:
             status = 400
             body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
@@ -2363,7 +2492,7 @@ async def app(scope, receive, send):
                 {"error": str(error) or "AIWorks 요청을 처리하지 못했습니다."},
                 ensure_ascii=False,
             ).encode("utf-8")
-        content_type = "application/json; charset=utf-8"
+        content_type = locals().pop("raw_content_type", None) or "application/json; charset=utf-8"
         extra_headers.append((b"cache-control", b"no-store"))
     elif (path == AIWORKS_BASE_PATH or path.startswith(f"{AIWORKS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
         relative_path = path[len(AIWORKS_BASE_PATH):].lstrip("/")

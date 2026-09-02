@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/template-schema.schema.json",
+  "title": "AIWorks TemplateSchema 1.2",
+  "type": "object",
+  "required": ["contractVersion", "slotDefinitions", "featureInventory", "compatibility", "scanOnly", "ocrRequired"],
+  "properties": {
+    "contractVersion": {"const": "1.2"},
+    "slotDefinitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "required", "repeatable", "conditional"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"},
+          "repeatable": {"type": "boolean"},
+          "conditional": {"type": "boolean"},
+          "default": {}
+        },
+        "additionalProperties": true
+      }
+    },
+    "conditionalBlocks": {"type": "array", "items": {"type": "object"}},
+    "defaults": {"type": "object"},
+    "featureInventory": {
+      "type": "object",
+      "required": ["sections", "headers", "footers", "masterPages", "drawings", "textboxes", "images", "hyperlinks", "footnotes", "endnotes", "comments", "captions"],
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["minimumPlatformVersion", "migration"],
+      "properties": {
+        "minimumPlatformVersion": {"type": "string", "minLength": 1},
+        "migration": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "scanOnly": {"type": "boolean"},
+    "ocrRequired": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}

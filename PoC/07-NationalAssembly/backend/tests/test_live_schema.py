@@ -43,6 +43,30 @@ class LiveSchemaTests(unittest.TestCase):
         field = LiveBroadcastObservation.__dataclass_fields__["source_system"]
         self.assertEqual(field.default, "assembly.webcast.go.kr")
 
+    def test_three_target_broadcasts_can_be_captured_concurrently(self):
+        project = Path(__file__).parents[2]
+        worker = (
+            project / "backend/app/ingestion/caption_worker.py"
+        ).read_text(encoding="utf-8")
+        repository = (
+            project / "backend/app/db/live_repository.py"
+        ).read_text(encoding="utf-8")
+        compose = (project / "docker-compose.yml").read_text(encoding="utf-8")
+        self.assertIn("ThreadPoolExecutor(max_workers=args.workers", worker)
+        self.assertIn("if not 1 <= args.workers <= 3", worker)
+        self.assertIn("FOR UPDATE SKIP LOCKED LIMIT 1", repository)
+        self.assertIn('"--workers", "3"', compose)
+
+    def test_completed_briefs_are_not_reprocessed_until_caption_cursor_changes(self):
+        worker = (
+            Path(__file__).parents[1] / "app" / "ingestion" / "meeting_brief_worker.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("current_brief.source_last_event_cursor = (", worker)
+        self.assertIn("MAX(revision.event_cursor)", worker)
+        self.assertIn("current_brief.brief ? 'live_topic_assignment'", worker)
+        self.assertIn("ORDER BY ended_at DESC NULLS LAST", worker)
+
+
     def test_ended_broadcast_history_has_list_and_detail_contracts(self):
         app_source = (Path(__file__).parents[1] / "app" / "main.py").read_text(
             encoding="utf-8"
@@ -81,6 +105,6 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn("def list_open_follow_up_tasks", repository)
         self.assertIn("def broadcast_reconciliation_details", repository)
         self.assertIn("official_reconciliation", app_source)
-        self.assertIn('"revision_id", "broadcast_id"', repository)
+        self.assertRegex(repository, r'"revision_id",\s+"broadcast_id"')
 if __name__ == "__main__":
     unittest.main()

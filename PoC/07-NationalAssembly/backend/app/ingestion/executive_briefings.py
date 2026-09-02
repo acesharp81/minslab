@@ -12,13 +12,14 @@ from bs4 import BeautifulSoup
 import requests
 
 from ..adapters.national_assembly.base import SourcePayload
+from ..domain.ministry import canonical_ministry_name
 from ..storage.raw_store import RawStore
 
 
 LIST_URL = "https://www.korea.kr/briefing/stateCouncilList.do"
 POLICY_BRIEFING_LIST_URL = "https://www.korea.kr/briefing/policyBriefingList.do"
 PRESIDENT_LIST_URL = "https://www.president.go.kr/ajaxf/frBoard/bbsViewGalleryList.do"
-PARSER_VERSION = "korea-state-council-html/1.2"
+PARSER_VERSION = "korea-state-council-html/1.3"
 USER_AGENT = "POC-07 official-publication-monitor/1.0"
 NEWS_ID = re.compile(r"stateCouncilView\.do\?newsId=(\d+)")
 POLICY_NEWS_ID = re.compile(r"policyBriefingView\.do\?newsId=(\d+)")
@@ -31,25 +32,25 @@ NON_REPORT_COUNT = re.compile(
 )
 MESSAGE_SIGNAL = re.compile(r"(이 대통령|대통령은).*(당부|지시|강조|주문|언급|평가|제안|말했)", re.S)
 GUIDANCE_SIGNAL = re.compile(
-    r"(당부|지시|주문|제안|요청|검토해\s*달라|마련해\s*달라|"
+    r"(당부|지시|주문|제안|요청|강조|검토해\s*달라|마련해\s*달라|"
     r"개발해\s*달라|성과를\s*내\s*달라|대책도\s*검토)"
 )
-MINISTRY_ALIASES = {
-    "재경부": "재정경제부",
-    "과기정통부": "과학기술정보통신부",
-    "과기통신부": "과학기술정보통신부",
-    "행안부": "행정안전부",
-    "국토부": "국토교통부",
-    "국조실": "국무조정실",
-    "산업부": "산업통상부",
-    "복지부": "보건복지부",
-    "행복청": "행정중심복합도시건설청",
-    "중기부": "중소벤처기업부",
-    "공정위": "공정거래위원회",
-    "금융위": "금융위원회",
-    "질병청": "질병관리청",
+_REPORT_MATCH_STOP_WORDS = {
+    "년도", "국가", "관련", "의의", "성과", "실현", "전략", "대책", "계획",
 }
 
+
+def _report_match_tokens(value: str) -> set[str]:
+    tokens = {
+        token.casefold()
+        for token in re.findall(r"[가-힣a-zA-Z]{2,}", _clean(value))
+        if token.casefold() not in _REPORT_MATCH_STOP_WORDS
+    }
+    compact = _compact_policy_title(value)
+    for phrase in ("예산안", "민생안정", "인공지능", "ai", "고속철도"):
+        if phrase in compact:
+            tokens.add(phrase)
+    return tokens
 
 def fetch_html(source_key: str, url: str) -> SourcePayload:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
@@ -144,7 +145,7 @@ def parse_list(content: bytes, limit: int = 10) -> list[dict[str, str]]:
 def _ministry_label(raw: str) -> str:
     value = re.sub(r"\s+\d{2,4}-\d{3,4}-\d{4}.*$", "", _clean(raw))
     label = value.split()[0] if value else "소관 미상"
-    return MINISTRY_ALIASES.get(label, label)
+    return canonical_ministry_name(label)
 
 
 def _report_ministries(raw: str) -> list[str]:
@@ -429,22 +430,36 @@ def attach_presidential_guidance(meeting: dict[str, object]) -> int:
     for report in reports:
         report["presidential_guidance"] = []
         report_title = _compact_policy_title(str(report.get("topic") or ""))
-        start_index = None
+        report_tokens = _report_match_tokens(str(report.get("topic") or ""))
+        candidates: list[tuple[float, int]] = []
         for index, paragraph in enumerate(paragraphs):
-            paragraph_text = _compact_policy_title(str(paragraph.get("text") or ""))
-            matching_reports = [
-                candidate for candidate in reports
+            raw_text = str(paragraph.get("text") or "")
+            paragraph_text = _compact_policy_title(raw_text)
+            paragraph_tokens = _report_match_tokens(raw_text)
+            exact = report_title in paragraph_text
+            overlap = len(report_tokens & paragraph_tokens) / max(1, len(report_tokens))
+            if not exact and overlap < 0.34:
+                continue
+            matching_reports = sum(
+                1 for candidate in reports
                 if _compact_policy_title(str(candidate.get("topic") or ""))
                 in paragraph_text
-            ]
-            if (
-                report_title in paragraph_text
-                and len(matching_reports) == 1
-            ):
-                start_index = index
-                break
-        if start_index is None:
+            )
+            boilerplate = bool(re.search(
+                r"오늘 회의에서는|부처\s*보고가 있었습니다|심의[․·]?의결했습니다",
+                raw_text,
+            ))
+            score = (
+                overlap * 5 + (2 if exact else 0)
+                + (3 if GUIDANCE_SIGNAL.search(raw_text) else 0)
+                - (4 if boilerplate else 0)
+                - max(0, matching_reports - 1) * 2
+            )
+            if score > 0:
+                candidates.append((score, index))
+        if not candidates:
             continue
+        start_index = max(candidates)[1]
         block = [paragraphs[start_index]]
         for paragraph in paragraphs[start_index + 1:start_index + 3]:
             text = str(paragraph.get("text") or "")
@@ -455,6 +470,8 @@ def attach_presidential_guidance(meeting: dict[str, object]) -> int:
             ):
                 break
             if "비공개 회의" in text or text.startswith("끝으로"):
+                break
+            if not (_report_match_tokens(text) & report_tokens):
                 break
             block.append(paragraph)
         discussion = _clean(" ".join(str(row.get("text") or "") for row in block))

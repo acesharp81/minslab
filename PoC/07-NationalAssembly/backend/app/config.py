@@ -40,6 +40,34 @@ class Settings(BaseSettings):
     executive_transcription_model: str = "voxtral-mini-latest"
     executive_audio_chunk_seconds: int = 60
     executive_transcription_usd_per_minute: float = 0.003
+    watch_alerts_enabled: bool = True
+    watch_test_broadcasts_enabled: bool = True
+    watch_digest_enabled: bool = True
+    watch_kakao_enabled: bool = False
+    watch_llm_enabled: bool = False
+    watch_llm_provider: str = "openrouter"
+    watch_llm_model: str = ""
+    watch_kakao_redirect_uri: str = ""
+    watch_public_base_url: str = ""
+    watch_session_cookie_name: str = "gukjeongbomi_session"
+    watch_session_cookie_path: str = "/poc/national-assembly"
+    topic_reports_enabled: bool = True
+    topic_report_model: str = ""
+    topic_report_daily_limit: int = 100
+    topic_report_user_daily_limit: int = 10
+    topic_report_max_period_days: int = 366
+    official_change_reports_enabled: bool = True
+    official_change_report_model: str = ""
+    official_change_report_daily_limit: int = 100
+    # PoC 7 owns these credentials and never falls back to another PoC.
+    watch_kakao_rest_api_key: str = ""
+    watch_kakao_client_secret: str = ""
+    watch_kakao_token_encryption_key: str = ""
+    watch_admin_token: str = ""
+    watch_llm_monthly_budget_usd: float = 1.0
+    watch_llm_debounce_seconds: int = 30
+    watch_llm_min_new_matches: int = 3
+    watch_llm_max_updates_per_session: int = 12
 
 
 @lru_cache

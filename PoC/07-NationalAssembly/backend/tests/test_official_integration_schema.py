@@ -17,7 +17,7 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
             PROJECT_DIR / "scripts" / "deploy_secure_workers.sh"
         ).read_text(encoding="utf-8")
         self.assertNotIn("../../.env", compose)
-        self.assertEqual(compose.count("MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}"), 4)
+        self.assertEqual(compose.count("MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}"), 5)
         self.assertIn("external: true", compose)
         self.assertIn("mktemp -d /tmp/poc07-worker-env.", deploy_script)
         self.assertIn("--env-file", deploy_script)

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/context-assembly.schema.json",
+  "title": "AIWorks Context Assembly",
+  "type": "object",
+  "required": ["contractVersion", "projectId", "classification", "intent", "facts", "markdownDocuments", "projectSourceIds", "dataProtection"],
+  "properties": {
+    "contractVersion": {"const": "context-assembly/1.0"},
+    "projectId": {"type": "string", "minLength": 1},
+    "classification": {"enum": ["public", "internal", "confidential", "personal"]},
+    "activeDocumentId": {"type": ["string", "null"]},
+    "intent": {"type": "object"},
+    "facts": {"type": "object"},
+    "markdownDocuments": {"type": "array"},
+    "projectSourceIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "dataProtection": {"type": "object", "required": ["personalDataDetected", "maskedFields"]}
+  },
+  "additionalProperties": false
+}

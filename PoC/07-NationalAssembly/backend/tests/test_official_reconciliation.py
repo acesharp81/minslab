@@ -7,6 +7,7 @@ from app.services.official_reconciliation import (
     align_live_segments,
     apply_official_edits,
     inline_diff,
+    minimal_patch_text,
     speaker_reconciliation_stats,
 )
 
@@ -47,6 +48,31 @@ class OfficialReconciliationTests(unittest.TestCase):
         kinds = {item["kind"] for item in spans}
         self.assertIn("changed", kinds)
         self.assertIn("deleted", kinds)
+
+    def test_inline_diff_ignores_spacing_shift_without_replacing_sentence(self):
+        before = "부대가져있어요 반환하면서 녹지로 조성한 겁니다."
+        after = "부대가 져있어요 반환하면서 녹지로 조성한 겁니다."
+        spans = inline_diff(before, after)
+        changed = "".join(
+            item["text"] for item in spans if item["kind"] != "equal"
+        )
+        self.assertEqual("", changed.strip())
+
+    def test_minimal_patch_preserves_provisional_spacing_and_unchanged_wording(self):
+        before = "이것 부대가져있어요 반환하면서 녹지로 조성한 겁니다."
+        after = "이것 부대 반환 기지였어요. 반환받으면서 녹지로 조성한 겁니다."
+        patched = minimal_patch_text(before, after)
+        self.assertIn("이것", patched)
+        self.assertIn("부대 반환", patched)
+        self.assertIn("녹지로 조성한 겁니다.", patched)
+        self.assertNotEqual(after, patched)
+
+    def test_minimal_patch_does_not_duplicate_sentence_stop_at_insert_boundary(self):
+        before = "대법원은 예산 집행에 반영하겠다고 밝혔다."
+        after = "대법원은 예산 집행에 반영하겠다고 밝혔다. 또한 불용액 사유를 설명했다."
+        patched = minimal_patch_text(before, after)
+        self.assertEqual(after, patched)
+        self.assertNotIn(".. 또한", patched)
 
     def test_official_edits_are_composed_without_overwriting_base(self):
         base = {

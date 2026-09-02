@@ -3102,6 +3102,15 @@ class SecurityTests(unittest.TestCase):
             self.assertNotIn("scope=talk_message", client.authorization_url(unsubscribe_token))
             self.assertIn("scope=talk_message", client.authorization_url(regular_token))
 
+    def test_kakao_disconnect_never_remote_unlinks_shared_app(self):
+        source = (PROJECT_DIR / "master_press" / "kakao.py").read_text(encoding="utf-8")
+        self.assertNotIn("/v1/user/unlink", source)
+        store = mock.Mock()
+        client = KakaoClient(SimpleNamespace(), store)
+        client._request = mock.Mock(side_effect=AssertionError("remote request"))
+        client.disconnect("recipient-1")
+        store.delete_recipient.assert_called_once_with("recipient-1")
+
 
     def test_kakao_send_uses_feed_template_when_image_exists(self):
         client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())

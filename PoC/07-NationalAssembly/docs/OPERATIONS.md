@@ -1,5 +1,12 @@
 # Operations
 
+## 회의 보고서 후처리
+
+국회 회의는 종료 직후 확정하지 않습니다. 종료 후 2시간을 기본 안정화 구간으로 두고, 같은 위원회의 같은 날짜 후속 일정이 저장되어 있으면 해당 일정 이후까지 재개를 기다립니다. 현재 분석 버전과 자막 cursor가 모두 일치할 때만 READY입니다.
+
+최종 분석은 발언 구간 → 8개 구간 단위 중간 병합 → 회의 전체 통합의 계층형 구조입니다. 각 구간과 중간 병합은 `meeting_brief_chunk_cache`에 내용 해시로 저장하므로 429·5xx·시간초과 뒤에도 완료 구간을 재호출하지 않습니다. 실시간 군집은 직접 근거와 엄격한 결정적 일치만 최종 주제에 붙이며, 어휘 후보와 다중 후보는 최종 화면 연결에서 제외하고 계보 감사 데이터에 남깁니다.
+
+
 ## 개발 배포
 
 ```bash
@@ -35,6 +42,12 @@ PYTHONPATH=backend python3 -m app.ingestion.live_monitor --once
 ```
 
 `caption-worker`는 READY 상태 방송을 DB lease로 선점하고 최대 세 위원회 자막을 동시에 수집합니다. 메시지는 raw 저장 후 segment revision으로 적재하며, 15초 무수신 시 lease를 갱신하고 연결 종료·오류 시 재시도 상태로 반환합니다.
+
+동시 수집은 `--workers 3`과 `FOR UPDATE SKIP LOCKED` claim으로 방송별 소유권을 분리합니다. 2026-08-31 운영 DB 감사에서는 목표 위원회 두 방송이 동시에 저장된 분 단위 구간 526개와 그 구간의 revision 83,347건을 확인했습니다. 관측된 최대 동시는 2개이며 3개 동시는 worker 계약 테스트로 보장하되, 실제 세 위원회 동시 개회일에는 아래 항목을 다시 확인합니다.
+
+- 각 LIVE 방송의 lease owner가 서로 다르고 `capture_status`가 `CAPTURING`인지
+- 방송별 최신 final revision 시각이 함께 증가하는지
+- 한 방송의 `broadcast_id`가 다른 방송 snapshot/delta에 섞이지 않는지
 
 `schedule-worker`는 검증된 국회 `ALLSCHEDULE`의 `SCH_DT` 필터로 향후 7일 일정을 10분마다 조회합니다. 원본 응답과 manifest를 먼저 저장하고 PostgreSQL 정규화 후 `data/processed/upcoming_schedule.json`을 원자 교체합니다. 공개 화면은 기본적으로 오늘·내일만 읽습니다.
 
@@ -78,7 +91,7 @@ Mistral을 기본 provider로 사용하고 OpenRouter는 폴백으로 유지합�
 
 실시간 운영에서는 `summary-worker`가 2초마다 공식 국회 LIVE 방송을 확인합니다. 같은 화자의 연속 자막은 먼저 하나의 완결 발언으로 합치며, source가 non-final 자막을 잠시 빈 화자나 `-1`로 보내는 구간은 직전 확정 화자에 임시 연결해 거짓 전환으로 요약하지 않습니다. 요약 대상 발언의 원문 전체와 직전 최대 4개·직후 최대 2개의 완결 발언을 하나의 대화 문맥으로 선택 provider에 보내되, 결과는 대상 발언별로 저장합니다. LIVE에서는 진행 중인 마지막 발언을 제외하므로 실제 화자가 전환되어 닫힌 발언만 처리하고, 방송이 ENDED로 전환되면 마지막 발언까지 처리합니다. 화면 API는 이 워커가 저장한 캐시만 읽으며 화자 전환 뒤 제한된 snapshot 재조회로 새 DB 캐시를 반영합니다.
 
-OpenRouter만 `llm_provider_daily_usage`에서 UTC 일자별 요청을 원자 예약하며 하루 500회를 넘기지 않습니다. 성공 여부와 관계없이 OpenRouter 외부 요청을 시도하기 전에 1회로 계산합니다.
+OpenRouter만 `llm_provider_daily_usage`에서 UTC 일자별 요청을 원자 예약하며 하루 500회를 넘기지 않습니다. 성공 여부와 관계없이 OpenRouter 외부 요청을 시도하기 전에 1회로 계산합니다. 알람 보고서는 조회 시 새 근거가 3개 이상일 때만 요청 플래그를 저장하고, 성공한 동일 근거 ID 집합·provider·model·prompt version은 DB 캐시를 재사용합니다. 브리핑은 종합 판단과 2~4개 통합 논점으로 저장합니다.
 
 Mistral은 일일 호출 횟수나 고정 토큰 수로 차단하지 않습니다. 성공한 각 응답의 입력·출력 토큰과 국무회의 음성 전사 시간을 고유 request ID 기준으로 한 번만 저장하고, 현재 단가로 계산한 합산 비용이 `MISTRAL_MONTHLY_CREDIT_USD=10`에 도달하면 다음 요청을 중단합니다. 입력·출력·음성 단가가 다르므로 토큰 수 하나를 월 한도로 오인하지 않습니다. Mistral Studio의 Workspace 월간 지출 한도도 USD 10 이하로 별도 설정합니다.
 
@@ -173,3 +186,49 @@ API 실패는 기존 공식 데이터를 삭제하지 않습니다. schema 불�
 5. 화면은 발행 대기, 공식본 확인 중, 공식본 연결 완료를 구분하고 연결률과 미연결 건수를 숨기지 않습니다.
 
 `GET /api/live/broadcasts/{broadcast_id}/brief`는 통합 읽기 모델과 변경 span, 화자 보정 통계를 함께 반환합니다. 동일 브리프·공식 문서·통합 버전 결과는 DB에서 재사용하므로 상세 화면을 다시 열어도 Mistral을 호출하지 않습니다. `/brief/official`은 이전 클라이언트 호환용 경량 endpoint로만 유지합니다.
+
+## 관심주제 후속 처리
+
+`watch-worker`는 final 자막 감지 외에 종료 세션 digest와 공식 정본 확인을 함께 수행합니다. digest는 사용자가 선택한 규칙에만 `digest:{rule_id}:{broadcast_id}` 중복키로 한 번 생성하며 저장된 발언 수·화자 수를 사용하므로 외부 모델을 호출하지 않습니다. 공식 확인은 `READY` 통합과 `FINAL · OFFICIAL` 문서가 모두 존재할 때만 실행하고, 새 통합 또는 새 문장 대조가 생긴 경우에만 갱신합니다.
+
+```bash
+sudo scripts/deploy_secure_workers.sh watch
+curl -fsS -H "X-Watch-Token: $TOKEN" http://127.0.0.1:18070/api/watch/metrics
+```
+
+무료 기본값은 `WATCH_DIGEST_ENABLED=true`, `WATCH_KAKAO_ENABLED=false`, `WATCH_LLM_ENABLED=false`입니다. 사용자별 최근 알림 50건, 활성 규칙 20개, 테스트 방송 하루 3회를 서버에서 강제합니다. 회의 보고서의 인쇄와 `/brief.md` 다운로드도 저장된 결과만 사용하며 응답 헤더 `X-LLM-Calls: 0`으로 확인할 수 있습니다.
+
+### 선택형 Kakao·통합 요약·운영 검토
+
+Kakao는 PoC 7 callback URI를 Kakao Developers에 먼저 등록한 뒤 `WATCH_KAKAO_ENABLED=true`로 켭니다. 사용자는 동의 화면의 **[선택] 카카오 메시지 전송**에 동의해야 합니다. 토큰은 PoC 7 전용 `WATCH_KAKAO_TOKEN_ENCRYPTION_KEY`로 암호화하고 API 응답·로그에는 원문 토큰을 내보내지 않습니다. `notification-worker`는 `PENDING/FAILED` outbox를 lease로 claim하고 429·5xx·timeout만 지수 backoff로 최대 3회 재시도합니다. 401·403은 계정을 `REAUTHORIZE`로 바꾸며 in-app 알림은 이미 독립적으로 완료된 상태를 유지합니다.
+
+`scripts/deploy_api.sh`와 `scripts/deploy_secure_workers.sh`는 부모 저장소나 PoC 4의 `.env`를 읽지 않습니다. 단독 배포에는 PoC 7 `.env`가 필요하며 `.env.example`에 전체 키 목록이 있습니다. 기존 앱 키를 이관할 때만 `scripts/bootstrap_poc07_env.py --source ...`를 한 번 사용하며 이후 source 파일은 필요하지 않습니다.
+
+`watch-summary-worker`는 기본 OFF입니다. 활성화해도 신규 근거 3개, 30초 debounce, 세션 12회, 월 USD 1 soft cap과 전역 Mistral USD 10 한도를 함께 적용합니다. `watch_summary_versions.evidence_set_hash`가 같은 입력은 다시 호출하지 않고 화면은 저장 결과만 읽습니다.
+
+#### 다중 기기 세션
+
+Kakao callback은 Kakao 사용자 ID 단위 PostgreSQL advisory transaction lock을 건 뒤 기존 subscriber를 선택합니다. 새 PC의 익명 규칙은 동일 감지문구·기관·위원회 기준으로 기존 계정에 추가하되 기존 계정이나 다른 기기의 규칙·토큰을 자동 삭제하지 않습니다. callback 성공 시 새 `WatchWebSession`을 만들고 경로 제한 Secure HttpOnly 쿠키를 설정합니다. 구형 브라우저 token은 `/api/watch/session/upgrade`에서 1회 승격합니다.
+
+세션 원문은 DB에 저장하지 않으며, 현재 기기는 `DELETE /api/watch/session/current`, 모든 기기는 `DELETE /api/watch/session/all`로 폐기합니다. Kakao 연결 해제는 세션 로그아웃과 다른 명시적 작업입니다.
+
+#### 주문형 주제별 보고서
+
+`POST /api/topic-reports/search`는 구조화된 회의 주제·소관부처·도출과제를 의미구조와 keyword overlap으로 순위화하며 LLM을 호출하지 않습니다. `POST /api/topic-reports`만 PENDING 작업을 만들고 `topic-report-worker`가 OpenRouter를 1회 호출합니다. 동일 query/evidence/provider/model/prompt READY 행은 재사용합니다.
+
+외부 호출 전에 사용자 10회/UTC 일, 주제 보고서 100회/UTC 일, PoC7 OpenRouter 공용 500회/UTC 일을 순서대로 원자 예약합니다. OpenRouter 키는 `topic-report-worker`에만 주입합니다. 요청은 공개 근거 최대 60,000자로 제한하고 식별 가능한 이메일·전화·주민번호 패턴을 제거하며 data_collection=deny, provider fallback 금지, strict JSON schema를 사용합니다. 현재 무료 endpoint는 ZDR pool에 포함되지 않아 주제별 보고서 경로에서 ZDR은 강제하지 않습니다. 응답의 모든 evidence ID를 저장 snapshot과 대조하고 근거 본문이 2개 미만이면 저장하지 않습니다.
+
+~~~bash
+sudo scripts/deploy_secure_workers.sh topic-report
+PYTHONPATH=backend python3 -m app.ingestion.topic_report_worker --once
+~~~
+
+운영 검토 API는 PoC 7 전용 `WATCH_ADMIN_TOKEN`을 `X-Watch-Admin-Token`으로 검증합니다. 화면 입력값은 `sessionStorage`에만 보존합니다. 검토 decision은 자동판정 원본과 별도 행이며 원본 상태를 갱신하지 않습니다.
+
+~~~bash
+sudo scripts/deploy_secure_workers.sh notification
+sudo scripts/deploy_secure_workers.sh watch-summary
+PYTHONPATH=backend python3 -m app.ingestion.live_regression_audit --limit 20
+~~~
+
+실방송 audit가 `PENDING`이면 실패나 통과로 바꾸지 않습니다. 실제 final 자막 또는 종료 후 공식 통합이 아직 관측되지 않았다는 뜻입니다. `REVIEW_REQUIRED`는 final 부재나 cursor 중복처럼 운영자가 확인해야 할 조건입니다.

@@ -9,8 +9,13 @@ class MeetingBriefRepository:
         self.connection = connection
 
     def get_cached(
-        self, broadcast_id: Any, transcript_hash: str, *, provider: str,
-        model: str, prompt_version: str,
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
     ) -> dict[str, Any] | None:
         row = self.connection.execute(
             """
@@ -60,13 +65,77 @@ class MeetingBriefRepository:
         items = [self._row(row) for row in rows]
         return {item["broadcast_id"]: item for item in items if item}
 
+    def get_chunk_analysis(
+        self,
+        broadcast_id: Any,
+        chunk_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            SELECT analysis FROM meeting_brief_chunk_cache
+            WHERE broadcast_id = %s AND chunk_hash = %s AND provider = %s
+              AND model = %s AND prompt_version = %s
+            """,
+            (broadcast_id, chunk_hash, provider, model, prompt_version),
+        ).fetchone()
+        return dict(row[0]) if row else None
+
+    def save_chunk_analysis(
+        self,
+        broadcast_id: Any,
+        chunk_hash: str,
+        chunk_index: int,
+        analysis: dict[str, Any],
+        usage_metadata: dict[str, Any],
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+    ) -> None:
+        from psycopg.types.json import Jsonb
+
+        self.connection.execute(
+            """
+            INSERT INTO meeting_brief_chunk_cache (
+                broadcast_id, chunk_hash, provider, model, prompt_version,
+                chunk_index, analysis, usage_metadata
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (broadcast_id, chunk_hash, provider, model, prompt_version)
+            DO UPDATE SET chunk_index = EXCLUDED.chunk_index,
+                          analysis = EXCLUDED.analysis,
+                          usage_metadata = EXCLUDED.usage_metadata,
+                          created_at = now()
+            """,
+            (
+                broadcast_id,
+                chunk_hash,
+                provider,
+                model,
+                prompt_version,
+                chunk_index,
+                Jsonb(analysis),
+                Jsonb(usage_metadata),
+            ),
+        )
+
     def progress(self, broadcast_id: Any) -> dict[str, Any] | None:
         row = self.connection.execute(
             """
-            SELECT broadcast_id, transcript_hash, provider, model, prompt_version,
-                   status, phase, total_utterances, processed_utterances,
-                   total_chunks, completed_chunks, started_at, updated_at
-            FROM meeting_brief_progress WHERE broadcast_id = %s
+            SELECT progress.broadcast_id, progress.transcript_hash, progress.provider,
+                   progress.model, progress.prompt_version, progress.status,
+                   progress.phase, progress.total_utterances, progress.processed_utterances,
+                   progress.total_chunks, progress.completed_chunks,
+                   progress.started_at, progress.updated_at,
+                   (SELECT COALESCE(MAX(revision.event_cursor), 0)
+                    FROM transcript_segment_revisions revision
+                    JOIN transcript_segments segment ON segment.id = revision.segment_id
+                    WHERE segment.broadcast_id = progress.broadcast_id)
+                     AS current_source_last_event_cursor
+            FROM meeting_brief_progress progress WHERE progress.broadcast_id = %s
             """,
             (broadcast_id,),
         ).fetchone()
@@ -78,22 +147,37 @@ class MeetingBriefRepository:
             return {}
         rows = self.connection.execute(
             """
-            SELECT broadcast_id, transcript_hash, provider, model, prompt_version,
-                   status, phase, total_utterances, processed_utterances,
-                   total_chunks, completed_chunks, started_at, updated_at
-            FROM meeting_brief_progress WHERE broadcast_id = ANY(%s)
+            SELECT progress.broadcast_id, progress.transcript_hash, progress.provider,
+                   progress.model, progress.prompt_version, progress.status,
+                   progress.phase, progress.total_utterances, progress.processed_utterances,
+                   progress.total_chunks, progress.completed_chunks,
+                   progress.started_at, progress.updated_at,
+                   (SELECT COALESCE(MAX(revision.event_cursor), 0)
+                    FROM transcript_segment_revisions revision
+                    JOIN transcript_segments segment ON segment.id = revision.segment_id
+                    WHERE segment.broadcast_id = progress.broadcast_id)
+                     AS current_source_last_event_cursor
+            FROM meeting_brief_progress progress WHERE progress.broadcast_id = ANY(%s)
             """,
             (ids,),
         ).fetchall()
         items = [self._progress_row(row) for row in rows]
         return {item["broadcast_id"]: item for item in items if item}
 
-
     def save_progress(
-        self, broadcast_id: Any, transcript_hash: str, *, provider: str,
-        model: str, prompt_version: str, status: str, phase: str,
-        total_utterances: int, processed_utterances: int,
-        total_chunks: int, completed_chunks: int,
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+        status: str,
+        phase: str,
+        total_utterances: int,
+        processed_utterances: int,
+        total_chunks: int,
+        completed_chunks: int,
     ) -> dict[str, Any]:
         row = self.connection.execute(
             """
@@ -122,19 +206,35 @@ class MeetingBriefRepository:
                       total_chunks, completed_chunks, started_at, updated_at
             """,
             (
-                broadcast_id, transcript_hash, provider, model, prompt_version,
-                status, phase, total_utterances, processed_utterances,
-                total_chunks, completed_chunks,
+                broadcast_id,
+                transcript_hash,
+                provider,
+                model,
+                prompt_version,
+                status,
+                phase,
+                total_utterances,
+                processed_utterances,
+                total_chunks,
+                completed_chunks,
             ),
         ).fetchone()
         item = self._progress_row(row)
         if item is None:
             raise RuntimeError("meeting brief progress was not saved")
         return item
+
     def save(
-        self, broadcast_id: Any, transcript_hash: str, source_last_event_cursor: int,
-        brief: dict[str, Any], *, provider: str, model: str,
-        prompt_version: str, usage_metadata: dict[str, Any],
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        source_last_event_cursor: int,
+        brief: dict[str, Any],
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+        usage_metadata: dict[str, Any],
     ) -> dict[str, Any]:
         from psycopg.types.json import Jsonb
 
@@ -151,8 +251,15 @@ class MeetingBriefRepository:
                       brief, usage_metadata, generated_at
             """,
             (
-                uuid.uuid4(), broadcast_id, transcript_hash, source_last_event_cursor,
-                provider, model, prompt_version, Jsonb(brief), Jsonb(usage_metadata),
+                uuid.uuid4(),
+                broadcast_id,
+                transcript_hash,
+                source_last_event_cursor,
+                provider,
+                model,
+                prompt_version,
+                Jsonb(brief),
+                Jsonb(usage_metadata),
             ),
         ).fetchone()
         item = self._row(row)
@@ -160,22 +267,54 @@ class MeetingBriefRepository:
             raise RuntimeError("meeting brief was not saved")
         return item
 
-    def is_deferred(
-        self, broadcast_id: Any, transcript_hash: str, *, provider: str,
-        model: str, prompt_version: str,
-    ) -> bool:
-        return bool(self.connection.execute(
+    def update_brief(self, brief_id: Any, brief: dict[str, Any]) -> dict[str, Any]:
+        from psycopg.types.json import Jsonb
+
+        row = self.connection.execute(
             """
+            UPDATE meeting_briefs SET brief = %s
+            WHERE id = %s
+            RETURNING id, broadcast_id, transcript_hash, source_last_event_cursor,
+                      provider, model, prompt_version, authority_status, review_status,
+                      brief, usage_metadata, generated_at
+            """,
+            (Jsonb(brief), brief_id),
+        ).fetchone()
+        item = self._row(row)
+        if item is None:
+            raise RuntimeError("meeting brief was not updated")
+        return item
+
+    def is_deferred(
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+    ) -> bool:
+        return bool(
+            self.connection.execute(
+                """
             SELECT 1 FROM meeting_brief_failures
             WHERE broadcast_id = %s AND transcript_hash = %s AND provider = %s
               AND model = %s AND prompt_version = %s AND retry_after > now()
             """,
-            (broadcast_id, transcript_hash, provider, model, prompt_version),
-        ).fetchone())
+                (broadcast_id, transcript_hash, provider, model, prompt_version),
+            ).fetchone()
+        )
 
     def record_failure(
-        self, broadcast_id: Any, transcript_hash: str, *, provider: str,
-        model: str, prompt_version: str, error: str, retry_hours: int = 6,
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
+        error: str,
+        retry_hours: int = 6,
     ) -> None:
         self.connection.execute(
             """
@@ -190,14 +329,24 @@ class MeetingBriefRepository:
                           retry_after = EXCLUDED.retry_after, updated_at = now()
             """,
             (
-                broadcast_id, transcript_hash, provider, model, prompt_version,
-                error[:300], retry_hours,
+                broadcast_id,
+                transcript_hash,
+                provider,
+                model,
+                prompt_version,
+                error[:300],
+                retry_hours,
             ),
         )
 
     def clear_failure(
-        self, broadcast_id: Any, transcript_hash: str, *, provider: str,
-        model: str, prompt_version: str,
+        self,
+        broadcast_id: Any,
+        transcript_hash: str,
+        *,
+        provider: str,
+        model: str,
+        prompt_version: str,
     ) -> None:
         self.connection.execute(
             """
@@ -209,16 +358,27 @@ class MeetingBriefRepository:
         )
 
     def evidence_ids(
-        self, brief: dict[str, Any], entity_type: str, entity_id: str,
+        self,
+        brief: dict[str, Any],
+        entity_type: str,
+        entity_id: str,
     ) -> list[str]:
         payload = brief.get("brief") or {}
         if entity_type == "topic":
             entities = payload.get("topics", [])
         elif entity_type == "task":
             entities = payload.get("tasks", [])
+        elif entity_type == "live_topic_cluster":
+            for cluster in (payload.get("live_topic_lineage") or {}).get(
+                "clusters", []
+            ):
+                if cluster.get("id") == entity_id:
+                    return [str(value) for value in cluster.get("utterance_ids", [])]
+            return []
         elif entity_type == "speaker":
             entities = [
-                point for topic in payload.get("topics", [])
+                point
+                for topic in payload.get("topics", [])
                 for point in topic.get("speaker_points", [])
             ]
         else:
@@ -233,9 +393,18 @@ class MeetingBriefRepository:
         if not row:
             return None
         columns = (
-            "brief_id", "broadcast_id", "transcript_hash", "source_last_event_cursor",
-            "provider", "model", "prompt_version", "authority_status",
-            "review_status", "brief", "usage_metadata", "generated_at",
+            "brief_id",
+            "broadcast_id",
+            "transcript_hash",
+            "source_last_event_cursor",
+            "provider",
+            "model",
+            "prompt_version",
+            "authority_status",
+            "review_status",
+            "brief",
+            "usage_metadata",
+            "generated_at",
         )
         return dict(zip(columns, row, strict=True))
 
@@ -244,9 +413,20 @@ class MeetingBriefRepository:
         if not row:
             return None
         columns = (
-            "broadcast_id", "transcript_hash", "provider", "model",
-            "prompt_version", "status", "phase", "total_utterances",
-            "processed_utterances", "total_chunks", "completed_chunks",
-            "started_at", "updated_at",
+            "broadcast_id",
+            "transcript_hash",
+            "provider",
+            "model",
+            "prompt_version",
+            "status",
+            "phase",
+            "total_utterances",
+            "processed_utterances",
+            "total_chunks",
+            "completed_chunks",
+            "started_at",
+            "updated_at",
         )
+        if len(row) == len(columns) + 1:
+            columns += ("current_source_last_event_cursor",)
         return dict(zip(columns, row, strict=True))

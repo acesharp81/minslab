@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/render-map.schema.json",
+  "title": "AIWorks HWPX Render Map 1.2",
+  "type": "object",
+  "required": ["contractVersion", "mappings", "coverage", "unmappedBlocks", "capabilities"],
+  "properties": {
+    "contractVersion": {"const": "1.2"},
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["blockId", "location", "markdownPath", "structureFingerprint"],
+        "properties": {
+          "blockId": {"type": "string", "minLength": 1},
+          "location": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "kind": {"enum": ["paragraph", "table-cell"]},
+              "row": {"type": ["integer", "null"]},
+              "column": {"type": ["integer", "null"]},
+              "rowSpan": {"type": ["integer", "null"]},
+              "columnSpan": {"type": ["integer", "null"]},
+              "cellParagraphIndex": {"type": ["integer", "null"]}
+            },
+            "additionalProperties": true
+          },
+          "markdownPath": {"type": "string", "minLength": 1},
+          "structureFingerprint": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+    "unmappedBlocks": {"type": "array"},
+    "capabilities": {"type": "object"}
+  },
+  "additionalProperties": true
+}

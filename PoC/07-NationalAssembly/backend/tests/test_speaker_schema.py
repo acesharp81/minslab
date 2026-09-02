@@ -44,7 +44,7 @@ class SpeakerSchemaTests(unittest.TestCase):
             "현재 발언 · 실시간 누적",
             "scheduleTranscriptSummaryRefresh",
             "raw.open = true",
-            "lines.scrollTop = lines.scrollHeight",
+            "lines.scrollTop = target",
             "renderCompactLiveInsights",
             "toggleCinemaMode",
             "expandedOriginalIds",
@@ -65,7 +65,8 @@ class SpeakerSchemaTests(unittest.TestCase):
         self.assertIn(".transcript-line.is-active-turn", styles)
         self.assertIn(".raw-transcript.is-live .transcript-lines", workspace)
         self.assertIn("height: clamp(280px,34vh,360px)", workspace)
-        self.assertIn("max-height: 112px", workspace)
+        self.assertIn("max-height:none; overflow:visible", workspace)
+        self.assertIn("overflow-y:scroll", workspace)
         self.assertIn("height: clamp(300px,42vh,420px)", workspace)
         self.assertIn("#liveExpandedStage.transcript-stage { overflow: hidden; contain: paint", workspace)
         self.assertIn(".raw-transcript.is-live { position: relative; z-index: 1; overflow: hidden; contain: paint", workspace)

@@ -13,6 +13,7 @@ from app.ingestion.executive_caption_worker import (
     completed_segment_paths,
     persist_transcription,
     segment_number,
+    segment_directory_signature,
 )
 
 
@@ -71,6 +72,18 @@ class ExecutiveCaptionWorkerTests(unittest.TestCase):
             self.assertEqual(paths[:2], completed_segment_paths(directory, segmenter_running=True))
             self.assertEqual(paths, completed_segment_paths(directory, segmenter_running=False))
             self.assertEqual(2, segment_number(paths[2]))
+
+    def test_segment_directory_signature_tracks_file_growth(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            path = directory / "chunk-000000.mp3"
+            empty = segment_directory_signature(directory)
+            path.write_bytes(b"ID3")
+            created = segment_directory_signature(directory)
+            path.write_bytes(b"ID3" + b"0" * 1024)
+            grown = segment_directory_signature(directory)
+            self.assertNotEqual(empty, created)
+            self.assertNotEqual(created, grown)
 
     def test_diarized_chunk_enters_common_caption_revision_path(self):
         broadcast_id = uuid.uuid4()

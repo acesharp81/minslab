@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/capability-resolution.schema.json",
+  "title": "AIWorks Capability Resolution",
+  "type": "object",
+  "required": ["contractVersion", "workflowId", "decisions", "valid"],
+  "properties": {
+    "contractVersion": {"const": "capability-resolution/1.0"},
+    "workflowId": {"type": "string"},
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["taskId", "packageRef", "packageId", "versionPinned", "capabilityId", "executionAdapter", "rankScore", "matchedBy", "ioContract", "reason"],
+        "properties": {
+          "taskId": {"type": "string", "minLength": 1},
+          "packageRef": {"type": "string", "pattern": "^[^@]+@[^@]+$"},
+          "packageId": {"type": "string", "minLength": 1},
+          "versionPinned": {"const": true},
+          "capabilityId": {"type": "string", "minLength": 1},
+          "executionAdapter": {"type": "string", "minLength": 1},
+          "rankScore": {"type": ["number", "null"]},
+          "matchedBy": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "ioContract": {
+            "type": "object",
+            "required": ["inputArtifactTypes", "optionalInputArtifactTypes", "outputArtifactTypes"],
+            "properties": {
+              "inputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "optionalInputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+              "outputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+            },
+            "additionalProperties": false
+          },
+          "reason": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "valid": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

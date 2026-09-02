@@ -101,6 +101,63 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
             main.SYSTEM_METRICS_INTERVAL_SECONDS,
         )
 
+    async def test_national_assembly_speaker_write_requires_admin(self):
+        path = (
+            "/poc/national-assembly/api/live/broadcasts/"
+            "00000000-0000-4000-8000-000000000001/speakers/1"
+        )
+        with mock.patch.object(main, "admin_session", return_value=None):
+            start, body = await call_app(path, method="PUT")
+
+        self.assertEqual(start["status"], 401)
+        self.assertIn("관리자 로그인이 필요합니다".encode("utf-8"), body)
+
+    async def test_national_assembly_topic_report_proxy_forwards_only_poc7_session(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "application/json",
+            "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.side_effect = lambda name, default=None: {
+            "set-cookie": [
+                "gukjeongbomi_session=new-token; HttpOnly; Secure; SameSite=lax; Path=/poc/national-assembly"
+            ],
+            "x-llm-calls": ["0"],
+        }.get(name, default or [])
+        upstream = mock.MagicMock()
+        upstream.status = 200
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b"{\"items\":[],\"count\":0,\"llm_calls\":0}"
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened:
+            start, body = await call_app(
+                "/poc/national-assembly/api/topic-reports/search",
+                method="POST",
+                headers=[
+                    (b"content-type", b"application/json"),
+                    (b"origin", b"https://www.minslab.kr"),
+                    (b"cookie", b"parent_admin=do-not-forward; gukjeongbomi_session=browser-token"),
+                ],
+            )
+
+        request = opened.call_args.args[0]
+        self.assertEqual(request.get_header("Cookie"), "gukjeongbomi_session=browser-token")
+        self.assertEqual(request.get_header("Origin"), "https://www.minslab.kr")
+        headers = dict(start["headers"])
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(headers[b"x-llm-calls"], b"0")
+        self.assertIn(b"HttpOnly", headers[b"set-cookie"])
+        self.assertIn(b"default-src 'self'", headers[b"content-security-policy"])
+        self.assertIn(b"max-age=31536000", headers[b"strict-transport-security"])
+        self.assertIn(b"\"llm_calls\":0", body)
+
+    async def test_national_assembly_other_write_paths_are_not_proxied(self):
+        start, _ = await call_app(
+            "/poc/national-assembly/api/live/overview", method="DELETE",
+        )
+        self.assertEqual(start["status"], 404)
+
     async def test_existing_health_route_remains_available(self):
         start, body = await call_app("/health")
         self.assertEqual(start["status"], 200)

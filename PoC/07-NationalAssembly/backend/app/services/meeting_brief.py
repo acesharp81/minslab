@@ -12,7 +12,11 @@ from typing import Any
 
 import requests
 
-PROMPT_VERSION = "assembly-meeting-brief/1.1"
+PROMPT_VERSION = "assembly-meeting-brief/1.2"
+MAX_FINAL_TOPICS = 16
+MAX_FINAL_TASKS = 20
+MAX_REDUCTION_TOPICS = 12
+REDUCTION_BATCH_SIZE = 8
 CLASSIFICATION_METHOD = "MISTRAL_HIERARCHICAL_EVIDENCE"
 MAX_CHUNK_CHARS = 18_000
 MAX_CHUNK_ITEMS = 32
@@ -86,7 +90,8 @@ def _task_schema(*, include_topic: bool) -> dict[str, Any]:
         "title": {"type": "string", "maxLength": 220},
         "status": {"type": "string", "enum": sorted(ALLOWED_TASK_STATUS)},
         "ministries": {
-            "type": "array", "items": {"type": "string", "maxLength": 80},
+            "type": "array",
+            "items": {"type": "string", "maxLength": 80},
             "maxItems": 8,
         },
         "owner_basis": {"type": "string", "enum": sorted(ALLOWED_OWNER_BASIS)},
@@ -104,21 +109,34 @@ def _task_schema(*, include_topic: bool) -> dict[str, Any]:
     }
 
 
-def _topic_schema(*, include_tasks: bool) -> dict[str, Any]:
+def _topic_schema(
+    *, include_tasks: bool, include_live_topic_ids: bool = False
+) -> dict[str, Any]:
     properties: dict[str, Any] = {
         "title": {"type": "string", "maxLength": 100},
         "summary": {"type": "string", "maxLength": 360},
         "speaker_points": {
-            "type": "array", "items": _speaker_point_schema(), "maxItems": 4,
+            "type": "array",
+            "items": _speaker_point_schema(),
+            "maxItems": 4,
         },
         "evidence_ids": _evidence_schema(),
     }
     required = ["title", "summary", "speaker_points", "evidence_ids"]
     if include_tasks:
         properties["tasks"] = {
-            "type": "array", "items": _task_schema(include_topic=False), "maxItems": 4,
+            "type": "array",
+            "items": _task_schema(include_topic=False),
+            "maxItems": 4,
         }
         required.append("tasks")
+    if include_live_topic_ids:
+        properties["live_topic_cluster_ids"] = {
+            "type": "array",
+            "items": {"type": "string", "maxLength": 40},
+            "maxItems": 300,
+        }
+        required.append("live_topic_cluster_ids")
     return {
         "type": "object",
         "additionalProperties": False,
@@ -133,7 +151,24 @@ def chunk_response_schema() -> dict[str, Any]:
         "additionalProperties": False,
         "properties": {
             "topics": {
-                "type": "array", "items": _topic_schema(include_tasks=True), "maxItems": 6,
+                "type": "array",
+                "items": _topic_schema(include_tasks=True),
+                "maxItems": 6,
+            },
+        },
+        "required": ["topics"],
+    }
+
+
+def reduction_response_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "topics": {
+                "type": "array",
+                "items": _topic_schema(include_tasks=True),
+                "maxItems": MAX_REDUCTION_TOPICS,
             },
         },
         "required": ["topics"],
@@ -148,10 +183,16 @@ def brief_response_schema() -> dict[str, Any]:
             "headline": {"type": "string", "maxLength": 100},
             "summary": {"type": "string", "maxLength": 500},
             "topics": {
-                "type": "array", "items": _topic_schema(include_tasks=False), "maxItems": 8,
+                "type": "array",
+                "items": _topic_schema(
+                    include_tasks=False, include_live_topic_ids=True
+                ),
+                "maxItems": MAX_FINAL_TOPICS,
             },
             "tasks": {
-                "type": "array", "items": _task_schema(include_topic=True), "maxItems": 15,
+                "type": "array",
+                "items": _task_schema(include_topic=True),
+                "maxItems": MAX_FINAL_TASKS,
             },
         },
         "required": ["headline", "summary", "topics", "tasks"],
@@ -163,6 +204,7 @@ def _source_items(utterances: list[dict[str, Any]]) -> list[dict[str, Any]]:
         {
             "id": str(item["utterance_id"]),
             "speaker": str(item.get("speaker_label") or "화자 미확인"),
+            "session_id": str(item.get("meeting_session_id") or "session-1"),
             "summary": str(item.get("summary") or "")[:240],
             "original_excerpt": str(item.get("text") or "")[:700],
         }
@@ -171,7 +213,9 @@ def _source_items(utterances: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def build_chunk_prompt(
-    meeting: dict[str, Any], utterances: list[dict[str, Any]], index: int,
+    meeting: dict[str, Any],
+    utterances: list[dict[str, Any]],
+    index: int,
 ) -> str:
     payload = {
         "meeting": {
@@ -196,8 +240,21 @@ def build_chunk_prompt(
     )
 
 
+def build_reduction_prompt(analyses: list[dict[str, Any]], batch_index: int) -> str:
+    return (
+        "국회 회의 구간 분석 여러 개를 중간 분석 하나로 병합한다. 의미상 같은 주제만 합치고, "
+        "부처·정책 대상·요구 조치가 다르면 별도 주제로 유지한다. 입력에 있는 evidence_ids만 "
+        "보존하고 새로운 근거 id를 만들지 마라. 원문 발췌가 아닌 완결형 한국어로 재서술하며 "
+        "진행 문구와 불필요한 영문을 제거한다. JSON만 출력하라.\n"
+        + json.dumps({"batch": batch_index, "analyses": analyses}, ensure_ascii=False)
+    )
+
+
 def build_synthesis_prompt(
-    meeting: dict[str, Any], analyses: list[dict[str, Any]], valid_ids: set[str],
+    meeting: dict[str, Any],
+    analyses: list[dict[str, Any]],
+    valid_ids: set[str],
+    live_topic_clusters: list[dict[str, Any]] | None = None,
 ) -> str:
     payload = {
         "meeting": {
@@ -206,24 +263,37 @@ def build_synthesis_prompt(
             "started_at": str(meeting.get("detected_at") or ""),
             "ended_at": str(meeting.get("ended_at") or ""),
         },
-        "allowed_evidence_ids": sorted(valid_ids),
+        "live_topic_clusters": [
+            {
+                "id": str(item.get("id") or ""),
+                "title": str(item.get("title") or ""),
+                "aliases": list(item.get("aliases") or [])[:1],
+                "owners": list(item.get("owners") or [])[:3],
+                "tasks": list(item.get("tasks") or [])[:1],
+                "utterance_count": int(item.get("utterance_count") or 0),
+            }
+            for item in (live_topic_clusters or [])
+        ],
         "chunk_analyses": analyses,
     }
     return (
         "여러 구간 분석을 하나의 국회 회의 결과 브리프로 통합한다. 첫 화면에서 이해할 수 있는 "
-        "회의 한 줄 제목과 2~3문장 요약, 중복 없는 핵심 주제 3~8개, 주제별 화자 요지, 실제로 "
-        "남은 과제를 만든다. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
+        "회의 한 줄 제목과 2~3문장 요약, 의미상 중복만 합친 핵심 주제 4~16개, 주제별 화자 요지, 실제로 "
+        "각 live_topic_cluster id를 의미상 가장 가까운 최종 핵심 주제 한 곳의 "
+        "live_topic_cluster_ids에 정확히 한 번 포함하고 별도 실시간 주제로 남기지 마라. "
+        "남은 과제를 만든다. 최종 주제 수를 8개로 맞추지 말고 회의 범위에 따라 결정하라. 부처·정책 대상·요구 조치가 다른 쟁점은 제목이 비슷해도 합치지 마라. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
         "요구·약속·조치만 남기고 단순 질의나 의견은 제외한다. 담당부처와 상태는 구간 분석보다 "
-        "강하게 단정하지 말고, allowed_evidence_ids 이외의 id는 절대 사용하지 마라. 공식 결론이 "
+        "강하게 단정하지 말고, 구간 분석에 포함된 evidence id 이외의 id는 절대 사용하지 마라. 공식 결론이 "
         "아닌 모든 결과는 잠정 분석이다. 모든 summary와 화자별 요지는 원문 발췌가 아니라 의미를 "
         "재서술한 완결형 한국어 문장으로 작성하고, 진행 문구와 불필요한 영문 단어를 제거한다. "
-        "JSON만 출력하라.\n"
-        + json.dumps(payload, ensure_ascii=False)
+        "JSON만 출력하라.\n" + json.dumps(payload, ensure_ascii=False)
     )
 
 
 def _parse_json_content(
-    content: str, *, recover_complete_topics: bool = False,
+    content: str,
+    *,
+    recover_complete_topics: bool = False,
 ) -> dict[str, Any]:
     text = content.strip()
     if text.startswith("```"):
@@ -266,8 +336,10 @@ def _clean_text(value: Any, limit: int) -> str:
     normalized = " ".join(str(value or "").split())
     for source, replacement in _KNOWN_LANGUAGE_REPAIRS.items():
         normalized = re.sub(
-            rf"(?<![A-Za-z]){source}(?![A-Za-z])", replacement,
-            normalized, flags=re.IGNORECASE,
+            rf"(?<![A-Za-z]){source}(?![A-Za-z])",
+            replacement,
+            normalized,
+            flags=re.IGNORECASE,
         )
     return normalized[:limit].strip()
 
@@ -288,7 +360,9 @@ def _clean_speaker_label(value: Any) -> str:
 
 
 def _evidence_speaker_label(
-    evidence_ids: list[str], speaker_map: dict[str, str] | None, fallback: Any,
+    evidence_ids: list[str],
+    speaker_map: dict[str, str] | None,
+    fallback: Any,
 ) -> str:
     if speaker_map:
         for evidence_id in evidence_ids:
@@ -303,20 +377,30 @@ def _compact_quality_text(value: object) -> str:
 
 
 def _assert_summary_quality(
-    data: dict[str, Any], evidence_map: dict[str, str],
+    data: dict[str, Any],
+    evidence_map: dict[str, str],
 ) -> None:
     texts: list[tuple[str, list[str]]] = [
         (_clean_text(data.get("headline"), 100), []),
         (_clean_text(data.get("summary"), 500), []),
     ]
     for topic in data.get("topics", []) if isinstance(data.get("topics"), list) else []:
-        texts.append((_clean_text(topic.get("summary"), 360), topic.get("evidence_ids") or []))
+        texts.append(
+            (_clean_text(topic.get("summary"), 360), topic.get("evidence_ids") or [])
+        )
         for point in topic.get("speaker_points", []):
-            texts.append((_clean_text(point.get("summary"), 240), point.get("evidence_ids") or []))
+            texts.append(
+                (
+                    _clean_text(point.get("summary"), 240),
+                    point.get("evidence_ids") or [],
+                )
+            )
     for text, evidence_ids in texts:
         unexpected = _LOWER_LATIN_WORD.search(text)
         if unexpected:
-            raise ValueError(f"meeting brief contains unexpected Latin word: {unexpected.group(0)}")
+            raise ValueError(
+                f"meeting brief contains unexpected Latin word: {unexpected.group(0)}"
+            )
         compact = _compact_quality_text(text)
         if len(compact) < 30:
             continue
@@ -336,11 +420,15 @@ def _valid_evidence(values: Any, valid_ids: set[str]) -> list[str]:
 
 
 def validate_chunk_analysis(
-    data: dict[str, Any], valid_ids: set[str],
+    data: dict[str, Any],
+    valid_ids: set[str],
     speaker_map: dict[str, str] | None = None,
+    max_topics: int = 8,
 ) -> dict[str, Any]:
     topics: list[dict[str, Any]] = []
-    for raw_topic in data.get("topics", []) if isinstance(data.get("topics"), list) else []:
+    for raw_topic in (
+        data.get("topics", []) if isinstance(data.get("topics"), list) else []
+    ):
         if not isinstance(raw_topic, dict):
             continue
         evidence = _valid_evidence(raw_topic.get("evidence_ids"), valid_ids)
@@ -353,27 +441,39 @@ def validate_chunk_analysis(
             point_evidence = _valid_evidence(raw_point.get("evidence_ids"), valid_ids)
             if not point_evidence:
                 continue
-            speaker_points.append({
-                "speaker_label": _evidence_speaker_label(
-                    point_evidence, speaker_map, raw_point.get("speaker_label"),
-                ),
-                "summary": _clean_text(raw_point.get("summary"), 240),
-                "evidence_ids": point_evidence,
-            })
+            speaker_points.append(
+                {
+                    "speaker_label": _evidence_speaker_label(
+                        point_evidence,
+                        speaker_map,
+                        raw_point.get("speaker_label"),
+                    ),
+                    "summary": _clean_text(raw_point.get("summary"), 240),
+                    "evidence_ids": point_evidence,
+                }
+            )
         tasks = []
         for raw_task in raw_topic.get("tasks", []):
             task = _clean_task(raw_task, valid_ids, include_topic=False)
             if task:
                 tasks.append(task)
-        topics.append({
-            "title": title, "summary": summary, "speaker_points": speaker_points[:6],
-            "tasks": tasks[:6], "evidence_ids": evidence,
-        })
-    return {"topics": topics[:8]}
+        topics.append(
+            {
+                "title": title,
+                "summary": summary,
+                "speaker_points": speaker_points[:6],
+                "tasks": tasks[:6],
+                "evidence_ids": evidence,
+            }
+        )
+    return {"topics": topics[:max_topics]}
 
 
 def _clean_task(
-    raw_task: Any, valid_ids: set[str], *, include_topic: bool,
+    raw_task: Any,
+    valid_ids: set[str],
+    *,
+    include_topic: bool,
 ) -> dict[str, Any] | None:
     if not isinstance(raw_task, dict):
         return None
@@ -384,13 +484,18 @@ def _clean_task(
     task = {
         "title": title,
         "status": str(raw_task.get("status") or "CANDIDATE")
-        if raw_task.get("status") in ALLOWED_TASK_STATUS else "CANDIDATE",
-        "ministries": list(dict.fromkeys(
-            _clean_text(value, 80) for value in raw_task.get("ministries", [])
-            if _clean_text(value, 80)
-        ))[:8],
+        if raw_task.get("status") in ALLOWED_TASK_STATUS
+        else "CANDIDATE",
+        "ministries": list(
+            dict.fromkeys(
+                _clean_text(value, 80)
+                for value in raw_task.get("ministries", [])
+                if _clean_text(value, 80)
+            )
+        )[:8],
         "owner_basis": str(raw_task.get("owner_basis") or "UNCONFIRMED")
-        if raw_task.get("owner_basis") in ALLOWED_OWNER_BASIS else "UNCONFIRMED",
+        if raw_task.get("owner_basis") in ALLOWED_OWNER_BASIS
+        else "UNCONFIRMED",
         "evidence_ids": evidence,
     }
     if include_topic:
@@ -400,13 +505,49 @@ def _clean_task(
 
 _TOPIC_TOKEN_PATTERN = re.compile(r"[가-힣A-Za-z0-9]{2,}")
 _TOPIC_STOP_WORDS = {
-    "관련", "대한", "위한", "논의", "문제", "방안", "마련", "요구",
-    "정책", "제도", "개선", "검토", "추진", "평가", "강화",
+    "관련",
+    "대한",
+    "위한",
+    "논의",
+    "문제",
+    "방안",
+    "마련",
+    "요구",
+    "정책",
+    "제도",
+    "개선",
+    "검토",
+    "추진",
+    "평가",
+    "강화",
 }
 _TOPIC_SUFFIXES = (
-    "으로부터", "에서는", "이라고", "이라는", "하도록", "에서도",
-    "으로", "에서", "에게", "까지", "부터", "보다", "에는", "하고",
-    "하며", "은", "는", "이", "가", "을", "를", "의", "에", "와", "과", "도",
+    "으로부터",
+    "에서는",
+    "이라고",
+    "이라는",
+    "하도록",
+    "에서도",
+    "으로",
+    "에서",
+    "에게",
+    "까지",
+    "부터",
+    "보다",
+    "에는",
+    "하고",
+    "하며",
+    "은",
+    "는",
+    "이",
+    "가",
+    "을",
+    "를",
+    "의",
+    "에",
+    "와",
+    "과",
+    "도",
 )
 
 
@@ -416,11 +557,95 @@ def _topic_tokens(value: object) -> set[str]:
         token = raw
         for suffix in _TOPIC_SUFFIXES:
             if len(token) >= len(suffix) + 2 and token.endswith(suffix):
-                token = token[:-len(suffix)]
+                token = token[: -len(suffix)]
                 break
         if len(token) >= 2 and token not in _TOPIC_STOP_WORDS:
             tokens.add(token)
     return tokens
+
+
+def assign_live_topic_clusters(
+    topics: list[dict[str, Any]],
+    clusters: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    sources = [
+        item
+        for item in (clusters or [])
+        if isinstance(item, dict) and str(item.get("id") or "")
+    ]
+    if not sources or not topics:
+        return {
+            "source_count": len(sources),
+            "model_assigned_count": 0,
+            "fallback_assigned_count": 0,
+            "unassigned_count": len(sources),
+        }
+    valid_ids = {str(item["id"]) for item in sources}
+    assigned: set[str] = set()
+    model_assigned = 0
+    for topic in topics:
+        unique = []
+        for value in topic.get("live_topic_cluster_ids") or []:
+            cluster_id = str(value)
+            if cluster_id in valid_ids and cluster_id not in assigned:
+                unique.append(cluster_id)
+                assigned.add(cluster_id)
+        topic["live_topic_cluster_ids"] = unique
+        model_assigned += len(unique)
+
+    fallback_ids: list[str] = []
+    for cluster in sources:
+        cluster_id = str(cluster["id"])
+        if cluster_id in assigned:
+            continue
+        cluster_text = " ".join(
+            [
+                str(cluster.get("title") or ""),
+                *[str(value) for value in cluster.get("aliases") or []],
+                *[str(value) for value in cluster.get("owners") or []],
+                *[str(value) for value in cluster.get("tasks") or []],
+            ]
+        )
+        cluster_tokens = _topic_tokens(cluster_text)
+        candidates: list[tuple[tuple[float, ...], dict[str, Any]]] = []
+        for index, topic in enumerate(topics):
+            topic_text = " ".join(
+                [
+                    str(topic.get("title") or ""),
+                    str(topic.get("summary") or ""),
+                    *[
+                        str(point.get("summary") or "")
+                        for point in topic.get("speaker_points") or []
+                    ],
+                ]
+            )
+            topic_tokens = _topic_tokens(topic_text)
+            overlap = len(cluster_tokens & topic_tokens)
+            coverage = overlap / (min(len(cluster_tokens), len(topic_tokens)) or 1)
+            ratio = SequenceMatcher(
+                None,
+                str(cluster.get("title") or "").casefold(),
+                str(topic.get("title") or "").casefold(),
+            ).ratio()
+            candidates.append(((float(overlap), coverage, ratio, float(-index)), topic))
+        best_rank, canonical = max(candidates, key=lambda item: item[0])
+        best_overlap, best_coverage, best_ratio, _ = best_rank
+        qualifies = (best_overlap >= 2 and best_coverage >= 0.34) or (
+            best_overlap >= 1 and best_coverage >= 0.5 and best_ratio >= 0.45
+        )
+        if not qualifies:
+            continue
+        canonical.setdefault("live_topic_cluster_ids", []).append(cluster_id)
+        canonical.setdefault("live_topic_fallback_cluster_ids", []).append(cluster_id)
+        assigned.add(cluster_id)
+        fallback_ids.append(cluster_id)
+    return {
+        "source_count": len(sources),
+        "model_assigned_count": model_assigned,
+        "fallback_assigned_count": len(fallback_ids),
+        "unassigned_count": len(valid_ids - assigned),
+        "fallback_cluster_ids": fallback_ids,
+    }
 
 
 def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
@@ -444,11 +669,19 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
             topic_tokens = _topic_tokens(topic_title)
             shared_terms = len(raw_tokens & topic_tokens)
             normalized_topic = " ".join(topic_title.casefold().split())
-            exact_title = float(bool(normalized_raw and normalized_raw == normalized_topic))
-            title_ratio = SequenceMatcher(None, normalized_raw, normalized_topic).ratio()
+            exact_title = float(
+                bool(normalized_raw and normalized_raw == normalized_topic)
+            )
+            title_ratio = SequenceMatcher(
+                None, normalized_raw, normalized_topic
+            ).ratio()
             score = (
-                float(shared_evidence > 0), float(shared_evidence), exact_title,
-                float(shared_terms), title_ratio, float(-index),
+                float(shared_evidence > 0),
+                float(shared_evidence),
+                exact_title,
+                float(shared_terms),
+                title_ratio,
+                float(-index),
             )
             candidates.append((score, topic))
         _, canonical = max(candidates, key=lambda item: item[0])
@@ -458,12 +691,18 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_meeting_brief(
-    data: dict[str, Any], valid_ids: set[str], evidence_map: dict[str, str] | None = None,
+    data: dict[str, Any],
+    valid_ids: set[str],
+    evidence_map: dict[str, str] | None = None,
     speaker_map: dict[str, str] | None = None,
+    live_topic_clusters: list[dict[str, Any]] | None = None,
+    require_complete_live_topics: bool = False,
 ) -> dict[str, Any]:
     _assert_summary_quality(data, evidence_map or {})
     topics: list[dict[str, Any]] = []
-    for index, raw_topic in enumerate(data.get("topics", []) if isinstance(data.get("topics"), list) else []):
+    for index, raw_topic in enumerate(
+        data.get("topics", []) if isinstance(data.get("topics"), list) else []
+    ):
         if not isinstance(raw_topic, dict):
             continue
         evidence = _valid_evidence(raw_topic.get("evidence_ids"), valid_ids)
@@ -477,33 +716,78 @@ def validate_meeting_brief(
             point_summary = _clean_text(raw_point.get("summary"), 240)
             if not point_evidence or not point_summary:
                 continue
-            points.append({
-                "id": f"speaker-{index + 1}-{point_index + 1}",
-                "speaker_label": _evidence_speaker_label(
-                    point_evidence, speaker_map, raw_point.get("speaker_label"),
+            points.append(
+                {
+                    "id": f"speaker-{index + 1}-{point_index + 1}",
+                    "speaker_label": _evidence_speaker_label(
+                        point_evidence,
+                        speaker_map,
+                        raw_point.get("speaker_label"),
+                    ),
+                    "summary": point_summary,
+                    "evidence_ids": point_evidence,
+                }
+            )
+        topics.append(
+            {
+                "id": f"topic-{index + 1}",
+                "title": title,
+                "summary": summary,
+                "speaker_points": points[:6],
+                "evidence_ids": evidence,
+                "live_topic_cluster_ids": list(
+                    raw_topic.get("live_topic_cluster_ids") or []
                 ),
-                "summary": point_summary,
-                "evidence_ids": point_evidence,
-            })
-        topics.append({
-            "id": f"topic-{index + 1}", "title": title, "summary": summary,
-            "speaker_points": points[:6], "evidence_ids": evidence,
-        })
+            }
+        )
     tasks = []
-    for index, raw_task in enumerate(data.get("tasks", []) if isinstance(data.get("tasks"), list) else []):
+    for index, raw_task in enumerate(
+        data.get("tasks", []) if isinstance(data.get("tasks"), list) else []
+    ):
         task = _clean_task(raw_task, valid_ids, include_topic=True)
         if task:
             task["id"] = f"task-{index + 1}"
             tasks.append(task)
     if not topics:
         raise ValueError("meeting brief contains no evidence-backed topics")
-    return link_tasks_to_topics({
-        "headline": _clean_text(data.get("headline"), 100) or "회의 핵심 결과",
-        "summary": _clean_text(data.get("summary"), 500),
-        "topics": topics[:8],
-        "tasks": tasks[:15],
-        "classification_method": CLASSIFICATION_METHOD,
-    })
+    result = link_tasks_to_topics(
+        {
+            "headline": _clean_text(data.get("headline"), 100) or "회의 핵심 결과",
+            "summary": _clean_text(data.get("summary"), 500),
+            "topics": topics[:MAX_FINAL_TOPICS],
+            "tasks": tasks[:MAX_FINAL_TASKS],
+            "classification_method": CLASSIFICATION_METHOD,
+        }
+    )
+    if live_topic_clusters:
+        result["live_topic_assignment"] = assign_live_topic_clusters(
+            result["topics"],
+            live_topic_clusters,
+        )
+        if require_complete_live_topics:
+            assigned = {
+                str(cluster_id)
+                for topic in result["topics"]
+                for cluster_id in topic.get("live_topic_cluster_ids") or []
+            }
+            missing = [
+                str(cluster.get("id"))
+                for cluster in live_topic_clusters
+                if str(cluster.get("id") or "") not in assigned
+            ]
+            if missing:
+                raise ValueError(
+                    "meeting brief omitted live topic clusters: " + ",".join(missing)
+                )
+    return result
+
+
+class MalformedMeetingBriefResponse(ValueError):
+    """A schema response that could not be decoded; retains usage for budget accounting."""
+
+    def __init__(self, usage_metadata: dict[str, Any]) -> None:
+        super().__init__("Mistral returned malformed meeting brief JSON")
+        self.usage_metadata = usage_metadata
 
 
 class MistralMeetingBriefClient:
@@ -511,7 +795,11 @@ class MistralMeetingBriefClient:
     prompt_version = PROMPT_VERSION
 
     def __init__(
-        self, api_key: str, *, model: str, base_url: str,
+        self,
+        api_key: str,
+        *,
+        model: str,
+        base_url: str,
         timeout_seconds: float = 120.0,
     ) -> None:
         if not api_key.strip():
@@ -522,47 +810,81 @@ class MistralMeetingBriefClient:
         self.timeout_seconds = timeout_seconds
 
     def _post(
-        self, prompt: str, schema: dict[str, Any], schema_name: str,
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        schema_name: str,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         response = requests.post(
             f"{self.base_url}/chat/completions",
             headers={
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json", "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
             },
             json={
                 "model": self.model,
                 "messages": [
-                    {"role": "system", "content": "근거 id를 보존하는 한국어 국회 회의 분석기다."},
+                    {
+                        "role": "system",
+                        "content": "근거 id를 보존하는 한국어 국회 회의 분석기다.",
+                    },
                     {"role": "user", "content": prompt},
                 ],
-                "stream": False, "temperature": 0.0, "random_seed": 11,
-                "max_tokens": 8000, "reasoning_effort": "none", "safe_prompt": False,
+                "stream": False,
+                "temperature": 0.0,
+                "random_seed": 11,
+                "max_tokens": 20000 if schema_name == "meeting_brief" else 12000,
+                "reasoning_effort": "none",
+                "safe_prompt": False,
                 "service_tier": "standard_only",
                 "prompt_cache_key": f"poc07-{PROMPT_VERSION}",
                 "response_format": {
                     "type": "json_schema",
-                    "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+                    "json_schema": {
+                        "name": schema_name,
+                        "strict": True,
+                        "schema": schema,
+                    },
                 },
             },
-            timeout=self.timeout_seconds,
+            timeout=(300.0 if schema_name == "meeting_brief" else self.timeout_seconds),
         )
         if response.status_code >= 400:
-            raise requests.HTTPError(f"Mistral {response.status_code}: upstream error", response=response)
+            raise requests.HTTPError(
+                f"Mistral {response.status_code}: upstream error", response=response
+            )
         response.raise_for_status()
         payload = response.json()
-        content = str(((payload.get("choices") or [{}])[0].get("message") or {}).get("content") or "")
-        return _parse_json_content(
-            content, recover_complete_topics=schema_name == "meeting_chunk_analysis",
-        ), {
-            "request_id": str(payload.get("id") or ""), "usage": payload.get("usage") or {},
+        content = str(
+            ((payload.get("choices") or [{}])[0].get("message") or {}).get("content")
+            or ""
+        )
+        metadata = {
+            "request_id": str(payload.get("id") or ""),
+            "usage": payload.get("usage") or {},
         }
+        try:
+            parsed = _parse_json_content(
+                content,
+                recover_complete_topics=schema_name == "meeting_chunk_analysis",
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise MalformedMeetingBriefResponse(metadata) from exc
+        return parsed, metadata
 
     def generate(
-        self, meeting: dict[str, Any], utterances: list[dict[str, Any]],
-        *, before_request: Callable[[], None] | None = None,
+        self,
+        meeting: dict[str, Any],
+        utterances: list[dict[str, Any]],
+        *,
+        before_request: Callable[[], None] | None = None,
+        live_topic_clusters: list[dict[str, Any]] | None = None,
         after_request: Callable[[dict[str, Any]], None] | None = None,
         on_progress: Callable[[dict[str, Any]], None] | None = None,
+        load_chunk: Callable[[int, str], dict[str, Any] | None] | None = None,
+        save_chunk: Callable[[int, str, dict[str, Any], dict[str, Any]], None]
+        | None = None,
     ) -> MeetingBriefResult:
         if not utterances:
             raise ValueError("meeting has no utterances")
@@ -583,14 +905,21 @@ class MistralMeetingBriefClient:
         request_count = 0
         chunks = list(iter_meeting_chunks(utterances))
         processed_utterances = 0
-        progress_callback({
-            "status": "PROCESSING", "phase": "ANALYZING",
-            "total_utterances": len(utterances), "processed_utterances": 0,
-            "total_chunks": len(chunks), "completed_chunks": 0,
-        })
+        progress_callback(
+            {
+                "status": "PROCESSING",
+                "phase": "ANALYZING",
+                "total_utterances": len(utterances),
+                "processed_utterances": 0,
+                "total_chunks": len(chunks),
+                "completed_chunks": 0,
+            }
+        )
 
         def request(
-            prompt: str, schema: dict[str, Any], schema_name: str,
+            prompt: str,
+            schema: dict[str, Any],
+            schema_name: str,
         ) -> tuple[dict[str, Any], dict[str, Any]]:
             nonlocal request_count
             for attempt in range(3):
@@ -598,63 +927,180 @@ class MistralMeetingBriefClient:
                 request_count += 1
                 try:
                     data, metadata = self._post(
-                        prompt, schema, schema_name,
+                        prompt,
+                        schema,
+                        schema_name,
                     )
                     usage_callback(metadata)
                     return data, metadata
                 except requests.HTTPError as exc:
                     status = getattr(exc.response, "status_code", None)
-                    if status != 429 or attempt == 2:
+                    retryable = status == 429 or (
+                        isinstance(status, int) and status >= 500
+                    )
+                    if not retryable or attempt == 2:
                         raise
-                    time.sleep(30 * (attempt + 1))
+                    delay = 30 * (attempt + 1) if status == 429 else 5 * (attempt + 1)
+                    time.sleep(delay)
+                except requests.Timeout:
+                    if attempt == 2:
+                        raise
+                    time.sleep(5 * (attempt + 1))
+                except MalformedMeetingBriefResponse as exc:
+                    # Count tokens from malformed responses before retrying so the
+                    # monthly free-credit guard cannot be bypassed by parse failures.
+                    usage_callback(exc.usage_metadata)
+                    if attempt == 2:
+                        raise
+                    time.sleep(2 * (attempt + 1))
             raise RuntimeError("unreachable Mistral retry state")
 
         for index, chunk in enumerate(chunks, start=1):
-            data, metadata = request(
-                build_chunk_prompt(meeting, chunk, index), chunk_response_schema(),
-                "meeting_chunk_analysis",
-            )
-            analyses.append(validate_chunk_analysis(data, valid_ids))
-            usage.append(metadata)
+            chunk_hash = meeting_transcript_hash(chunk)
+            cached_analysis = load_chunk(index, chunk_hash) if load_chunk else None
+            if cached_analysis is not None:
+                analysis = validate_chunk_analysis(cached_analysis, valid_ids)
+            else:
+                data, metadata = request(
+                    build_chunk_prompt(meeting, chunk, index),
+                    chunk_response_schema(),
+                    "meeting_chunk_analysis",
+                )
+                analysis = validate_chunk_analysis(data, valid_ids)
+                usage.append(metadata)
+                if save_chunk:
+                    save_chunk(index, chunk_hash, analysis, metadata)
+            analyses.append(analysis)
             processed_utterances += len(chunk)
-            progress_callback({
-                "status": "PROCESSING", "phase": "ANALYZING",
+            progress_callback(
+                {
+                    "status": "PROCESSING",
+                    "phase": "ANALYZING",
+                    "total_utterances": len(utterances),
+                    "processed_utterances": processed_utterances,
+                    "total_chunks": len(chunks),
+                    "completed_chunks": index,
+                }
+            )
+        if len(analyses) > REDUCTION_BATCH_SIZE:
+            reduced_analyses: list[dict[str, Any]] = []
+            batches = [
+                analyses[offset : offset + REDUCTION_BATCH_SIZE]
+                for offset in range(0, len(analyses), REDUCTION_BATCH_SIZE)
+            ]
+            for batch_index, batch in enumerate(batches, start=1):
+                batch_hash = hashlib.sha256(
+                    json.dumps(batch, ensure_ascii=False, sort_keys=True).encode(
+                        "utf-8"
+                    )
+                ).hexdigest()
+                cached_reduction = (
+                    load_chunk(1000 + batch_index, batch_hash) if load_chunk else None
+                )
+                if cached_reduction is not None:
+                    reduction = validate_chunk_analysis(
+                        cached_reduction,
+                        valid_ids,
+                        speaker_map,
+                        max_topics=MAX_REDUCTION_TOPICS,
+                    )
+                else:
+                    data, metadata = request(
+                        build_reduction_prompt(batch, batch_index),
+                        reduction_response_schema(),
+                        "meeting_reduction",
+                    )
+                    reduction = validate_chunk_analysis(
+                        data,
+                        valid_ids,
+                        speaker_map,
+                        max_topics=MAX_REDUCTION_TOPICS,
+                    )
+                    usage.append(metadata)
+                    if save_chunk:
+                        save_chunk(
+                            1000 + batch_index,
+                            batch_hash,
+                            reduction,
+                            metadata,
+                        )
+                reduced_analyses.append(reduction)
+                progress_callback(
+                    {
+                        "status": "PROCESSING",
+                        "phase": "REDUCING",
+                        "total_utterances": len(utterances),
+                        "processed_utterances": len(utterances),
+                        "total_chunks": len(batches),
+                        "completed_chunks": batch_index,
+                    }
+                )
+            analyses = reduced_analyses
+
+        progress_callback(
+            {
+                "status": "PROCESSING",
+                "phase": "SYNTHESIZING",
                 "total_utterances": len(utterances),
-                "processed_utterances": processed_utterances,
-                "total_chunks": len(chunks), "completed_chunks": index,
-            })
-        progress_callback({
-            "status": "PROCESSING", "phase": "SYNTHESIZING",
-            "total_utterances": len(utterances),
-            "processed_utterances": len(utterances),
-            "total_chunks": len(chunks), "completed_chunks": len(chunks),
-        })
-        synthesis_prompt = build_synthesis_prompt(meeting, analyses, valid_ids)
+                "processed_utterances": len(utterances),
+                "total_chunks": len(chunks),
+                "completed_chunks": len(chunks),
+            }
+        )
+        synthesis_prompt = build_synthesis_prompt(
+            meeting,
+            analyses,
+            valid_ids,
+            None,
+        )
         brief: dict[str, Any] | None = None
-        for quality_attempt in range(2):
+        for quality_attempt in range(3):
             data, metadata = request(
-                synthesis_prompt, brief_response_schema(), "meeting_brief",
+                synthesis_prompt,
+                brief_response_schema(),
+                "meeting_brief",
             )
             usage.append(metadata)
             try:
-                brief = validate_meeting_brief(data, valid_ids, evidence_map)
-                break
-            except ValueError:
-                if quality_attempt:
-                    raise
-                synthesis_prompt += (
-                    "\n이전 결과가 원문 발췌 또는 비정상 영문 때문에 거부되었다. "
-                    "모든 요지를 자연스러운 완결형 한국어 문장으로 다시 작성하라."
+                brief = validate_meeting_brief(
+                    data,
+                    valid_ids,
+                    evidence_map,
+                    live_topic_clusters=live_topic_clusters,
+                    require_complete_live_topics=False,
                 )
+                break
+            except ValueError as exc:
+                if quality_attempt >= 2:
+                    raise
+                if "omitted live topic clusters" in str(exc):
+                    missing_ids = str(exc).split(":", 1)[-1]
+                    synthesis_prompt += (
+                        "\n이전 결과에서 다음 live topic cluster id가 누락되었다: "
+                        + missing_ids
+                        + ". 기존 id를 중복 배치하지 말고 누락 id를 모두 의미상 맞는 "
+                        "주제에 넣어라. 맞는 주제가 없으면 별도 최종 주제를 추가하라."
+                    )
+                else:
+                    synthesis_prompt += (
+                        "\n이전 결과가 원문 발췌 또는 비정상 영문 때문에 거부되었다. "
+                        "모든 요지를 자연스러운 완결형 한국어 문장으로 다시 작성하라."
+                    )
         if brief is None:
             raise RuntimeError("meeting brief quality validation failed")
         brief["utterance_count"] = len(utterances)
-        progress_callback({
-            "status": "COMPLETED", "phase": "COMPLETED",
-            "total_utterances": len(utterances),
-            "processed_utterances": len(utterances),
-            "total_chunks": len(chunks), "completed_chunks": len(chunks),
-        })
+        progress_callback(
+            {
+                "status": "COMPLETED",
+                "phase": "COMPLETED",
+                "total_utterances": len(utterances),
+                "processed_utterances": len(utterances),
+                "total_chunks": len(chunks),
+                "completed_chunks": len(chunks),
+            }
+        )
         return MeetingBriefResult(
-            brief=brief, usage_metadata={"requests": usage}, api_requests=request_count,
+            brief=brief,
+            usage_metadata={"requests": usage},
+            api_requests=request_count,
         )

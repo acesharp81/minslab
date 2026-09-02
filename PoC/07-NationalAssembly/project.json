@@ -2,7 +2,7 @@
   "id": "national-assembly",
   "order": 7,
   "display_no": "07",
-  "title": "지금 우리 회의에선",
+  "title": "국정보미",
   "date": "Cabinet & National Assembly Intelligence",
   "summary": "최근 국회 회의를 핵심 주제·화자별 요지·도출 과제와 담당부처 후보로 정리하고 모든 판단을 근거 발언에 연결하는 오픈 베타입니다.",
   "description": "어떤 회의가 있었고 무엇이 논의됐으며 어떤 과제가 남았는지 먼저 보여줍니다. 주제·화자 요지·잠정 과제를 클릭하면 관련 발언만 확인하며 공식 사실과 AI 잠정 분석을 분리합니다.",

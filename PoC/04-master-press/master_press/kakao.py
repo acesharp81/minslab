@@ -116,18 +116,13 @@ class KakaoClient:
         kakao_user_id = str(profile.get("id") or "")
         if not kakao_user_id:
             raise KakaoError("카카오 사용자 식별자를 확인하지 못했습니다.")
-        unlink_error = ""
-        try:
-            self._request("https://kapi.kakao.com/v1/user/unlink", {}, access_token)
-        except KakaoError as error:
-            # Identity has already been verified, so local subscriptions must be
-            # stopped even if Kakao's optional unlink call is temporarily unavailable.
-            unlink_error = str(error)[:300]
+        # Keep app-level authorization intact while another PoC can use the
+        # same Kakao user/app during credential separation.
         try:
             result = self.store.unsubscribe_recipient_by_kakao_user_id(kakao_user_id, invite_token)
         except ValueError as error:
             raise KakaoError(str(error), 400) from error
-        result.update({"kakao_unlinked": not unlink_error, "unlink_error": unlink_error})
+        result.update({"kakao_unlinked": False, "unlink_error": ""})
         return result
 
     def complete_authorization(self, code: str, invite_token: str) -> dict:
@@ -274,8 +269,4 @@ class KakaoClient:
         )
 
     def disconnect(self, recipient_id: str) -> None:
-        try:
-            token = self.access_token(recipient_id)
-            self._request("https://kapi.kakao.com/v1/user/unlink", {}, token)
-        finally:
-            self.store.delete_recipient(recipient_id)
+        self.store.delete_recipient(recipient_id)

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/task-compiler.schema.json",
+  "title": "AIWorks Task Compiler",
+  "type": "object",
+  "required": ["contractVersion", "workflowId", "responseType", "tasks", "requiredCapabilities", "valid"],
+  "properties": {
+    "contractVersion": {"const": "task-compiler/1.0"},
+    "workflowId": {"type": "string"},
+    "responseType": {"type": "string"},
+    "projectId": {"type": ["string", "null"]},
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "order", "action", "capabilityId", "packageRef", "runtime", "permissions", "dependsOn", "inputArtifactTypes", "optionalInputArtifactTypes", "outputArtifactTypes", "status"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "order": {"type": "integer", "minimum": 1},
+          "action": {"type": "string", "minLength": 1},
+          "capabilityId": {"type": "string", "minLength": 1},
+          "packageRef": {"type": "string", "pattern": "^[^@]+@[^@]+$"},
+          "runtime": {"type": "string", "minLength": 1},
+          "permissions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "dependsOn": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "inputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "optionalInputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "outputArtifactTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "status": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "requiredCapabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "valid": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

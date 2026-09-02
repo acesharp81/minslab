@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiworks.local/contracts/capability-dag.schema.json",
+  "title": "AIWorks Capability DAG",
+  "type": "object",
+  "required": ["contractVersion", "valid", "nodes", "edges", "compatibilityChecks"],
+  "properties": {
+    "contractVersion": {"const": "capability-dag/1.0"},
+    "valid": {"type": "boolean"},
+    "nodes": {"type": "array", "minItems": 2, "items": {"type": "object", "required": ["id", "kind", "name", "inputs", "outputs"], "properties": {"id": {"type": "string"}, "kind": {"enum": ["input", "capability", "output"]}, "name": {"type": "string"}, "packageRef": {"type": "string"}, "inputs": {"type": "array", "items": {"type": "string"}}, "outputs": {"type": "array", "items": {"type": "string"}}}}},
+    "edges": {"type": "array", "items": {"type": "object", "required": ["from", "to", "artifactType", "transform", "compatible"], "properties": {"from": {"type": "string"}, "to": {"type": "string"}, "artifactType": {"type": "string"}, "transform": {"type": "string"}, "compatible": {"type": "boolean"}}}},
+    "compatibilityChecks": {"type": "array", "items": {"type": "object", "required": ["from", "to", "artifactType", "passed"], "properties": {"from": {"type": "string"}, "to": {"type": "string"}, "artifactType": {"type": "string"}, "passed": {"type": "boolean"}}}}
+  }
+}

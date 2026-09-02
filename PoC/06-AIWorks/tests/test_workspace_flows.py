@@ -44,6 +44,16 @@ class AIWorksWorkspaceFlowTests(unittest.TestCase):
         self.assertEqual(plan["workflow"]["responseType"], "text-answer")
         self.assertIn("data.budget@0.1.0", plan["workflow"]["loadedMcps"])
         self.assertIn("output.text@1.0.0", plan["workflow"]["loadedMcps"])
+        mcp_plan = plan["workflow"]["mcpPlan"]
+        self.assertEqual(
+            [item["packageRef"] for item in mcp_plan],
+            plan["workflow"]["loadedMcps"],
+        )
+        self.assertTrue(all(item["name"] and item["description"] and item["reason"] for item in mcp_plan))
+        budget_explanation = next(item for item in mcp_plan if item["packageId"] == "data.budget")
+        self.assertEqual(budget_explanation["name"], "예산 데이터 MCP")
+        self.assertIn("실제 근거", budget_explanation["reason"])
+        self.assertIn("관련 예산 자료 검색", budget_explanation["actions"])
         self.assertIn("1,284백만원", execution["result"]["answer"])
 
         report_plan, report_execution = self.execute(

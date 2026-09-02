@@ -15,9 +15,9 @@ from xml.etree import ElementTree
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_backend(db_path):
+def load_backend(db_path, *, demo_seed=True):
     os.environ["AIWORKS_DB_PATH"] = str(db_path)
-    os.environ["AIWORKS_ENABLE_DEMO_SEED"] = "1"
+    os.environ["AIWORKS_ENABLE_DEMO_SEED"] = "1" if demo_seed else "0"
     os.environ["AIWORKS_APPROVAL_SECRET"] = "test-only-secret"
     os.environ["AIWORKS_OPENROUTER_LIVE"] = "0"
     os.environ["AIWORKS_LOCAL_RAG_LLM"] = "0"
@@ -185,6 +185,10 @@ class AIWorksBackendTests(unittest.TestCase):
     def tearDown(self):
         self.tempdir.cleanup()
 
+    def test_production_profile_does_not_create_demo_project(self):
+        backend = load_backend(Path(self.tempdir.name) / "production-empty.sqlite3", demo_seed=False)
+        self.assertEqual(backend.list_projects()["items"], [])
+
     def test_plan_approval_execution_is_persistent_and_one_time(self):
         plan = self.backend.create_plan(
             {
@@ -200,6 +204,12 @@ class AIWorksBackendTests(unittest.TestCase):
                 "permissions": plan["requiredPermissions"],
             }
         )
+        self.assertEqual(approval["lease"]["type"], "single-execution")
+        self.assertTrue(approval["lease"]["consumableOnce"])
+        decisions = self.backend.list_project_decisions("project-default", {"actor": "workspace-user"})
+        approval_decision = next(item for item in decisions["items"] if item["planId"] == plan["id"])
+        self.assertEqual(approval_decision["decisionType"], "execution-approval")
+        self.assertEqual(approval_decision["scope"]["leaseId"], approval["lease"]["id"])
         execution = self.backend.execute_plan(
             {
                 "approval_token": approval["approvalToken"],
@@ -214,6 +224,13 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual([item["stepKey"] for item in workflow_run["steps"]], ["context", "execute", "persist"])
         self.assertTrue(all(item["status"] == "completed" for item in workflow_run["steps"]))
         self.assertEqual(workflow_run["steps"][1]["output"]["responseType"], "selection-edit")
+        metrics = self.backend.operational_metrics()
+        self.assertEqual(metrics["contractVersion"], "aiworks-operations/1.0")
+        self.assertGreaterEqual(metrics["executions"]["counts"]["completed"], 1)
+        self.assertGreaterEqual(metrics["approvalLeases"]["consumed"], 1)
+        self.assertGreaterEqual(metrics["workflows"]["stepCounts"]["completed"], 3)
+        self.assertEqual(metrics["exportBoundary"]["status"], "ready")
+        self.assertEqual(metrics["exportBoundary"]["targets"], ["OpenTelemetry", "Prometheus"])
 
         stored = self.backend.get_plan(plan["id"])
         self.assertEqual(stored["status"], "completed")
@@ -329,6 +346,26 @@ class AIWorksBackendTests(unittest.TestCase):
                 {"plan_id": plan["id"], "permissions": ["document.read"]}
             )
         self.assertEqual(raised.exception.status, 403)
+
+    def test_final_action_requires_separate_confirmation_before_lease_consumption(self):
+        plan = self.backend.create_plan({
+            "intent": "선택 문구를 정리해서 게시해줘", "actor": "tester",
+            "document_context": {"classification": "internal", "has_selection": True},
+        })
+        self.assertEqual(plan["workflow"]["finalConfirmation"]["action"], "publish")
+        approval = self.backend.approve_plan({
+            "plan_id": plan["id"], "actor": "tester", "permissions": plan["requiredPermissions"],
+        })
+        request = {
+            "approval_token": approval["approvalToken"], "idempotency_key": "final-confirmation",
+            "input": {"selection": "게시할 문구", "selection_id": "p1"},
+        }
+        with self.assertRaises(self.backend.ApiError) as blocked:
+            self.backend.execute_plan(request)
+        self.assertEqual(blocked.exception.status, 403)
+        request["input"]["final_action_confirmed"] = True
+        completed = self.backend.execute_plan(request)
+        self.assertEqual(completed["status"], "completed")
 
     def test_rhwp_mcp_catalog_permissions_and_signed_bridge(self):
         capabilities = self.backend.rhwp_capabilities()
@@ -531,6 +568,22 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(defaults[0]["speedClass"], "fast")
         self.assertEqual({item["routingRole"] for item in models}, {"fast", "balanced", "deep"})
 
+    def test_intent_contract_describes_work_without_choosing_packages(self):
+        analysis = self.backend.INTENT_ANALYSIS_MCP.analyze(
+            "예산 자료를 확인하고 중앙부처 개조식 보고서를 행안부 양식으로 작성해줘",
+            {"project_id": "project-default", "classification": "confidential"},
+        )
+        self.assertEqual(analysis["contractVersion"], "intent-analysis/1.0")
+        self.assertEqual(analysis["taskType"], "document-create")
+        self.assertEqual(analysis["targetArtifact"], "hwpx")
+        self.assertIn("data.retrieve", analysis["requiredCapabilities"])
+        self.assertIn("document.report.compose", analysis["requiredCapabilities"])
+        self.assertIn("document.template.apply", analysis["requiredCapabilities"])
+        self.assertTrue(all("@" not in item for item in analysis["requiredCapabilities"]))
+        self.assertEqual(analysis["candidateDataSources"][0]["projectId"], "project-default")
+        self.assertFalse(analysis["sensitivity"]["externalTransferAllowed"])
+        self.assertEqual(analysis["preferredModelClass"], "quality")
+        self.assertTrue(analysis["outputContract"]["citationsRequired"])
     def test_intent_analysis_switches_between_distinct_models(self):
         writing = self.backend.analyze_and_route("선택 문장을 2줄 공문체로 다듬어줘")
         reasoning = self.backend.analyze_and_route("최신 기준과 비교해 예산 산출 근거를 검증해줘")
@@ -578,6 +631,30 @@ class AIWorksBackendTests(unittest.TestCase):
                 }
             )
 
+    def test_mcp_manifest_and_store_expose_operational_metadata_and_evaluation(self):
+        draft = self.backend.create_mcp_draft({
+            "name": "운영 메타 MCP", "package_id": "org.operations-metadata",
+            "description": "운영 평가와 데이터 보존 정책을 확인하기 위한 문서 검증 도구이다.",
+            "mcp_type": "tool", "license": "Apache-2.0", "actor": "tester",
+        })
+        manifest = draft["manifest"]
+        self.assertEqual(manifest["license"], "Apache-2.0")
+        self.assertEqual(manifest["dataRetention"]["policy"], "local-until-user-delete")
+        self.assertFalse(manifest["security"]["arbitraryCode"])
+        self.assertEqual(manifest["platformCompatibility"]["minimum"], "0.30.0")
+        evaluation = self.backend.save_mcp_evaluation({
+            "package_id": "core.intent-analysis", "version": "0.1.0",
+            "quality": 0.94, "success_rate": 0.98, "latency_ms": 45,
+            "cost_per_run": 0.0012, "sample_count": 240, "notes": "회귀 세트 통과", "actor": "tester",
+        })
+        self.assertEqual(evaluation["sampleCount"], 240)
+        catalog = self.backend.list_store_packages()
+        package = next(item for item in catalog["items"] if item["packageId"] == "core.intent-analysis")
+        version = next(item for item in package["versions"] if item["version"] == "0.1.0")
+        self.assertEqual(version["evaluation"]["quality"], 0.94)
+        self.assertEqual(version["evaluation"]["successRate"], 0.98)
+        self.assertEqual(version["evaluation"]["sampleCount"], 240)
+
     def test_upstage_solar_pro4_live_request_uses_reasoning_contract(self):
         response = mock.MagicMock()
         response.__enter__.return_value.read.return_value = self.backend._json(
@@ -590,7 +667,7 @@ class AIWorksBackendTests(unittest.TestCase):
         ).encode("utf-8")
         with mock.patch.dict(
             os.environ,
-            {"UPSTAGE_API_KEY": "test-upstage-key", "UPSTAGE_REASONING_MIN_TOKENS": "4096"},
+            {"UPSTAGE_API_KEY": "test-upstage-key", "UPSTAGE_REASONING_MIN_TOKENS": "4096", "AIWORKS_RUNTIME_IDENTITY": "service:test-suite"},
         ), mock.patch.object(self.backend.url_request, "urlopen", return_value=response) as urlopen:
             result = self.backend._openrouter_chat(
                 "upstage:solar-pro4",
@@ -605,6 +682,18 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(request_body["max_tokens"], 4096)
         self.assertEqual(result["resolvedModel"], "solar-pro4")
 
+        with mock.patch.dict(os.environ, {"AIWORKS_RUNTIME_IDENTITY": "service:test-suite"}):
+            usage = self.backend.dispatch("/operations/model-usage", "GET", {})
+            self.assertEqual(usage["credentialIdentity"], "service:test-suite")
+            self.assertEqual(usage["totals"]["requests"], 1)
+            self.assertEqual(usage["totals"]["inputTokens"], 10)
+            self.assertEqual(usage["totals"]["outputTokens"], 12)
+            self.assertEqual(usage["totals"]["totalTokens"], 22)
+            self.assertEqual(usage["items"][0]["actor"], "model-runtime")
+            with mock.patch.dict(os.environ, {"AIWORKS_MODEL_RPM_LIMIT": "1"}):
+                with self.assertRaises(self.backend.ApiError) as blocked:
+                    self.backend._enforce_model_usage_policy("upstage:solar-pro4")
+            self.assertEqual(blocked.exception.status, 429)
     def test_transient_solar_error_falls_back_to_approved_route_model(self):
         route = {
             "model": {"id": "upstage:solar-pro4"},
@@ -729,6 +818,11 @@ class AIWorksBackendTests(unittest.TestCase):
         )
         self.assertEqual(forked["draft"]["manifest"]["version"], "0.1.1")
         self.assertEqual(forked["draft"]["manifest"]["derivedFrom"], "org.editable@0.1.0")
+        reopened = self.backend.fork_mcp_package(
+            {"package_id": "org.editable", "version": "0.1.0", "actor": "tester"}
+        )
+        self.assertTrue(reopened["reused"])
+        self.assertEqual(reopened["draft"]["id"], forked["draft"]["id"])
         deleted = self.backend.delete_mcp_package(
             {
                 "package_id": "org.editable",
@@ -1423,6 +1517,13 @@ class AIWorksBackendTests(unittest.TestCase):
         )
         self.assertTrue(plan["workflow"]["dynamic"])
         self.assertEqual(plan["steps"][0]["mcp"], "org.approval-review@0.1.0")
+        dynamic_explanation = next(
+            item for item in plan["workflow"]["mcpPlan"]
+            if item["packageRef"] == "org.approval-review@0.1.0"
+        )
+        self.assertEqual(dynamic_explanation["name"], manifest["name"])
+        self.assertIn("결재 요청을 규칙에 따라 검토", dynamic_explanation["description"])
+        self.assertIn("의도 분석 단계", dynamic_explanation["reason"])
         isolated = self.backend._execute_builder_binding(
             resolved["items"][0],
             "결재 요청을 검토 보고서로 작성해줘",
@@ -1474,32 +1575,35 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertNotIn("제목 작성요령", text)
         self.assertEqual(metadata["mode"], "guided-fields")
 
-    def test_external_mcp_builder_creates_pinned_local_kordoc_contract(self):
+    def test_external_mcp_builder_creates_generic_streamable_http_contract(self):
         draft = self.backend.create_mcp_draft(
             {
-                "name": "KODAK HWPX 변환 어댑터",
-                "package_id": "org.kodak-adapter",
-                "description": "공개 KODAK MCP의 HWPX 변환 도구를 AIWorks 보고서 파이프라인에 연결한다.",
+                "name": "공개 검색 MCP 연결",
+                "package_id": "org.public-search-adapter",
+                "description": "공개 MCP의 검색 도구를 AIWorks Capability로 연결하고 결과 계약을 검사한다.",
                 "mcp_type": "external",
-                "instructions": "현재 보고서 HWPX를 변환 도구에 전달하고 반환 산출물의 무결성을 검사한다.",
-                "procedure": "tools/list를 확인한다.\n도구를 호출한다.\n반환 HWPX를 검사한다.",
-                "trigger_examples": "KODAK으로 HWPX를 변환해줘",
-                "external_transport": "stdio",
-                "external_server_profile": "kordoc@4.7.3",
-                "external_tool_name": "generate_document",
-                "external_capability": "document.hwpx.finalize",
+                "instructions": "승인된 호출 문구를 외부 MCP 도구에 전달하고 반환 결과의 계약을 검사한다.",
+                "procedure": "서버 주소를 확인한다.\ntools/list를 확인한다.\n도구 결과를 검사한다.",
+                "trigger_examples": "등록된 공개 검색 MCP로 확인해줘",
+                "external_transport": "streamable-http",
+                "external_endpoint_env": "AIWORKS_EXTERNAL_MCP_URL",
+                "external_tool_name": "query",
+                "external_capability": "external.tool.invoke",
             }
         )
         manifest = draft["manifest"]
         self.assertEqual(manifest["mcpType"], "external")
         self.assertEqual(manifest["executionAdapter"]["kind"], "external-mcp")
-        self.assertEqual(manifest["externalMcp"]["serverProfile"], "kordoc@4.7.3")
-        self.assertEqual(manifest["externalMcp"]["toolName"], "generate_document")
-        self.assertFalse(manifest["externalMcp"]["documentTransfer"])
-        self.assertNotIn("network.send", {item["scope"] for item in manifest["permissions"]})
-        with mock.patch.object(self.backend, "_external_profile_status", return_value={"available": False, "reason": "profile-runtime-not-installed"}):
+        self.assertEqual(manifest["externalMcp"]["transport"], "streamable-http")
+        self.assertEqual(manifest["externalMcp"]["endpointEnv"], "AIWORKS_EXTERNAL_MCP_URL")
+        self.assertEqual(manifest["externalMcp"]["toolName"], "query")
+        self.assertTrue(manifest["externalMcp"]["documentTransfer"])
+        self.assertIn("network.send", {item["scope"] for item in manifest["permissions"]})
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("AIWORKS_EXTERNAL_MCP_URL", None)
             probed = self.backend.probe_external_mcp_draft(draft["id"], {})
         self.assertFalse(probed["connected"])
+        self.assertEqual(probed["reason"], "endpoint-not-configured")
         validated = self.backend.validate_mcp_draft(draft["id"], {})
         self.assertTrue(validated["validation"]["passed"])
 
@@ -1537,9 +1641,14 @@ class AIWorksBackendTests(unittest.TestCase):
                 "content_base64": base64.b64encode(sample_form_template_hwpx()).decode(),
             },
         )
-        rejected = self.backend.validate_mcp_draft(draft["id"], {})
-        structure_test = next(item for item in rejected["validation"]["tests"] if item["id"] == "template.structure")
-        self.assertFalse(structure_test["passed"])
+        self.backend.dispatch(
+            f"/builder/drafts/{draft['id']}/template-confirm",
+            "POST",
+            {"actor": "builder"},
+        )
+        extracted = self.backend.validate_mcp_draft(draft["id"], {})
+        structure_test = next(item for item in extracted["validation"]["tests"] if item["id"] == "template.structure")
+        self.assertTrue(structure_test["passed"])
 
         sample = self.backend.build_mcp_template_sample(draft["id"])
         sample_bytes = base64.b64decode(sample["contentBase64"], validate=True)
@@ -1644,7 +1753,13 @@ class AIWorksBackendTests(unittest.TestCase):
                 "content_base64": base64.b64encode(ordinary_completed_report_hwpx()).decode(),
             },
         )
-        self.assertEqual(added["reference"]["summary"]["templateProfile"]["mode"], "sample-structure")
+        self.assertTrue(added["autoExtracted"])
+        self.assertEqual(added["reference"]["summary"]["templateProfile"]["mode"], "explicit-placeholders")
+        extraction = added["reference"]["summary"]["templateExtraction"]
+        self.assertEqual(extraction["sourceMode"], "sample-structure")
+        self.assertEqual(extraction["inference"]["title"], "heuristic-report-title")
+        self.assertEqual(extraction["inference"]["body"], "heuristic-first-content")
+        self.assertIn("일반 보고서 양식 변환 MCP으로 바꿔줘", added["draft"]["manifest"]["builderGuide"]["triggerExamples"])
         converted = self.backend.dispatch(
             f"/builder/drafts/{draft['id']}/template-convert",
             "POST",
@@ -1656,8 +1771,8 @@ class AIWorksBackendTests(unittest.TestCase):
         )
         self.assertIn("{{title}}", converted_text)
         self.assertIn("{{content}}", converted_text)
-        self.assertEqual(converted["conversion"]["inference"]["title"], "heuristic-report-title")
-        self.assertEqual(converted["conversion"]["inference"]["body"], "heuristic-first-content")
+        self.assertEqual(converted["conversion"]["inference"]["title"], "explicit-placeholder")
+        self.assertEqual(converted["conversion"]["inference"]["body"], "explicit-placeholder")
         self.assertTrue(converted["conversion"]["schema"]["structuralBindingReady"])
         template_sources = [item for item in converted["draft"]["references"] if item["role"] == "template-source"]
         self.assertEqual(len(template_sources), 1)
@@ -1668,23 +1783,69 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(quality["quality"]["metrics"]["renderedTables"], 1)
         mapping = self.backend.dispatch(f"/builder/drafts/{draft['id']}/template-mapping", "GET", {})
         self.assertGreater(mapping["mapping"]["total"], 2)
+        self.assertTrue(base64.b64decode(mapping["contentBase64"], validate=True))
+        self.assertIn("# {{title}}", mapping["blueprintMarkdown"])
+        self.assertEqual(mapping["extraction"]["sourceMode"], "sample-structure")
         slots = mapping["mapping"]["currentSlots"]
+        table_candidate = next(item for item in mapping["mapping"]["candidates"] if item["insideTable"])
+        edited_blueprint = mapping["blueprintMarkdown"] + "\n\n<!-- 담당부서 확인 -->"
         corrected = self.backend.dispatch(
             f"/builder/drafts/{draft['id']}/template-mapping",
             "POST",
             {
                 "title_locator": slots["title"],
                 "body_locator": slots["content"],
+                "content_base64": mapping["contentBase64"],
+                "blueprint_markdown": edited_blueprint,
+                "section_repeater_locator": slots["content"],
+                "conditional_locator": slots["content"],
+                "table_repeater_locator": table_candidate["locator"],
                 "actor": "builder",
             },
         )
         self.assertTrue(corrected["authoring"]["quality"]["passed"])
         self.assertEqual(corrected["mapping"]["currentSlots"]["title"], slots["title"])
+        self.assertEqual(corrected["draft"]["manifest"]["builderGuide"]["templateBlueprintMarkdown"], edited_blueprint)
+        roles = corrected["draft"]["manifest"]["builderGuide"]["templateStructuralRoles"]
+        self.assertEqual(roles["sectionRepeater"], slots["content"])
+
+        self.assertEqual(roles["tableRepeater"], table_candidate["locator"])
+        self.backend.dispatch(
+            f"/builder/drafts/{draft['id']}/template-confirm",
+            "POST",
+            {"actor": "builder"},
+        )
 
         validated = self.backend.validate_mcp_draft(draft["id"], {})
         self.assertEqual(validated["status"], "validated")
         validation_tests = {item["id"]: item for item in validated["validation"]["tests"]}
         self.assertTrue(validation_tests["template.render-quality"]["passed"])
+
+        self.backend.publish_mcp_draft(
+            draft["id"],
+            {"confirm_visibility": corrected["draft"]["manifest"]["visibility"], "confirm_source_included": True},
+        )
+        forked = self.backend.fork_mcp_package(
+            {
+                "package_id": "org.ordinary-report-template",
+                "version": "0.1.0",
+                "actor": "template-editor",
+            }
+        )
+        self.assertFalse(forked["reused"])
+        self.assertEqual(forked["draft"]["manifest"]["mcpType"], "template")
+        forked_guide = forked["draft"]["manifest"]["builderGuide"]
+        self.assertEqual(forked_guide["templateBlueprintMarkdown"], edited_blueprint)
+        self.assertEqual(forked_guide["templateStructuralRoles"], roles)
+        self.assertTrue(forked_guide["templateQuality"]["passed"])
+        forked_sources = [item for item in forked["draft"]["references"] if item["role"] == "template-source"]
+        self.assertEqual(len(forked_sources), 1)
+        self.assertEqual(forked_sources[0]["sha256"], converted["reference"]["sha256"])
+        reopened = self.backend.fork_mcp_package(
+            {"package_id": "org.ordinary-report-template", "version": "0.1.0", "actor": "template-editor"}
+        )
+        self.assertTrue(reopened["reused"])
+        self.assertEqual(reopened["draft"]["id"], forked["draft"]["id"])
 
         report_document = {
             "title": "새로운 정책 검토보고서",
@@ -1708,6 +1869,52 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertNotIn("2026년도 디지털 행정 개선방안 보고서", rendered_text)
         self.assertNotIn("사업계획 확정 전 예산 편성", rendered_text)
         self.assertEqual(metadata["renderedTables"], 1)
+
+    def test_inferred_template_requires_real_content_preview_confirmation(self):
+        draft = self.backend.create_mcp_draft(
+            {
+                "name": "실제 결과 확인 양식 MCP",
+                "package_id": "org.preview-confirm-template",
+                "description": "완성 보고서 HWPX에서 양식을 추출하고 실제 Markdown 적용 결과를 확인한 뒤 사용한다.",
+                "mcp_type": "template",
+                "instructions": "업로드 원본을 보존하고 실제 보고서 적용 결과가 의도한 서식인지 확인한다.",
+                "procedure": "원본을 분석한다.\n실제 Markdown을 적용한다.\n결과를 확인한다.",
+                "source_included": True,
+                "use_model": False,
+            }
+        )
+        added = self.backend.add_mcp_draft_reference(
+            draft["id"],
+            {
+                "filename": "업로드한-완성보고서.hwpx",
+                "role": "template-source",
+                "content_base64": base64.b64encode(ordinary_completed_report_hwpx()).decode(),
+            },
+        )
+        preview = self.backend.dispatch(
+            f"/builder/drafts/{draft['id']}/template-preview",
+            "POST",
+            {"markdown": "# 실제 보고서\n\n## 현황\n\n- 실제 내용을 적용함.", "actor": "tester"},
+        )
+        self.assertEqual(preview["original"]["filename"], "업로드한-완성보고서.hwpx")
+        self.assertNotEqual(preview["original"]["sha256"], added["reference"]["sha256"])
+        self.assertTrue(preview["analysis"]["requiresConfirmation"])
+        self.assertEqual(preview["rendered"]["title"], "실제 보고서")
+        self.assertGreater(preview["rendered"]["blocks"], 0)
+        rejected = self.backend.validate_mcp_draft(draft["id"], {})
+        structure = next(item for item in rejected["validation"]["tests"] if item["id"] == "template.structure")
+        self.assertFalse(structure["passed"])
+        self.assertIn("실제 내용", structure["detail"])
+        confirmed = self.backend.dispatch(
+            f"/builder/drafts/{draft['id']}/template-confirm",
+            "POST",
+            {"markdown": preview["markdown"], "actor": "tester"},
+        )
+        extraction = confirmed["draft"]["references"][0]["summary"]["templateExtraction"]
+        self.assertTrue(extraction["userConfirmed"])
+        accepted = self.backend.validate_mcp_draft(draft["id"], {})
+        structure = next(item for item in accepted["validation"]["tests"] if item["id"] == "template.structure")
+        self.assertTrue(structure["passed"])
 
     def test_structural_template_renderer_clones_paragraphs_and_real_table_cells(self):
         report_document = {
@@ -1767,6 +1974,77 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(paragraph_left["- 집행 지연 원인을 점검함."], 2800)
         self.assertEqual(paragraph_left["※ 세부 산출근거를 별도로 확인함."], 4200)
         self.assertFalse(any("인공지능 공통기반 구현 사업 ―" in value for value in texts))
+
+    def test_template_mcp_name_resolves_and_formats_active_project_markdown(self):
+        draft = self.backend.create_mcp_draft(
+            {
+                "name": "정책 검토 양식 MCP",
+                "package_id": "org.policy-review-template",
+                "description": "현재 프로젝트 Markdown 문서를 등록된 정책 검토 HWPX 형식으로 변환한다.",
+                "mcp_type": "template",
+                "instructions": "프로젝트 MD의 제목과 본문을 기준으로 HWPX 파생 산출물을 만든다.",
+                "procedure": "활성 MD를 읽는다.\n제목과 본문 슬롯을 적용한다.\nHWPX를 검증한다.",
+                "source_included": True,
+                "use_model": False,
+            }
+        )
+        self.backend.add_mcp_draft_reference(
+            draft["id"],
+            {
+                "filename": "정책검토.hwpx",
+                "role": "template-source",
+                "content_base64": base64.b64encode(placeholder_template_hwpx()).decode(),
+            },
+        )
+        self.backend.validate_mcp_draft(draft["id"], {})
+        published = self.backend.publish_mcp_draft(
+            draft["id"], {"confirm_visibility": "private", "confirm_source_included": True}
+        )
+        manifest = published["package"]["manifest"]
+        self.backend.install_mcp_package(
+            {
+                "package_id": manifest["id"],
+                "version": manifest["version"],
+                "approved_permissions": [item["scope"] for item in manifest["permissions"]],
+                "acknowledge_signature": True,
+            }
+        )
+        markdown = "# 인공지능 공통기반 검토\n\n## 지적사항\n\n- 사전 검증을 강화해야 함."
+        saved = self.backend.save_project_markdown_document(
+            "project-default", {"title": "인공지능 공통기반 검토", "markdown": markdown, "actor": "tester"}
+        )
+        session = self.backend.open_native_document_session(
+            {
+                "filename": "인공지능-검토.md",
+                "content_base64": base64.b64encode(markdown.encode()).decode(),
+                "project_id": "project-default",
+                "markdown_document_id": saved["id"],
+                "markdown_base_revision": saved["revision"],
+                "actor": "tester",
+            }
+        )
+        intent = "정책 검토 양식 MCP 적용해줘"
+        binding = self.backend.resolve_capabilities({"intent": intent, "limit": 1})["items"][0]
+        self.assertEqual(binding["packageRef"], "org.policy-review-template@0.1.0")
+        result = self.backend._execute_builder_binding(
+            binding,
+            intent,
+            {"document_id": session["id"]},
+            {"model": {"id": "upstage/solar-pro-3"}},
+            False,
+        )
+        self.assertEqual(result["responseType"], "template-transform")
+        self.assertEqual(result["artifact"]["markdownDocument"]["id"], saved["id"])
+        self.assertTrue(result["artifact"]["markdownDocument"]["sourceOfTruth"])
+        rendered = "\n".join(
+            item["text"]
+            for item in self.backend.parse_hwpx(
+                base64.b64decode(result["artifact"]["contentBase64"], validate=True),
+                result["artifact"]["filename"],
+            )["paragraphs"]
+        )
+        self.assertIn("인공지능 공통기반 검토", rendered)
+        self.assertIn("사전 검증을 강화해야 함", rendered)
 
     def test_builder_prompt_runtime_uses_approved_live_model(self):
         draft = self.backend.create_mcp_draft(
@@ -2316,6 +2594,38 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertNotIn("작성해줘 보고서\n", artifact["content"])
         self.assertEqual(artifact["filename"], "2026년도 행정안전부 예산안 분석 및 개선방안 보고서.hwpx")
 
+    def test_builtin_report_renderer_preserves_tables_and_nested_list_levels(self):
+        document = self.backend.REPORT_DOCUMENT_MCP.parse(
+            "# 구조 보존 보고서\n\n## 현황\n\n- 상위 항목\n  - 하위 항목\n\n| 구분 | 내용 |\n| --- | --- |\n| 현황 | 구조 표 |",
+            style_profile="central-government-outline",
+        )
+        data = self.backend.REPORT_HWPX_MCP.build_document(document, "mois-internal")
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            section = archive.read("Contents/section0.xml").decode("utf-8")
+            preview = archive.read("Preview/PrvText.txt").decode("utf-8")
+        root = ElementTree.fromstring(section)
+        local = lambda node: node.tag.rsplit("}", 1)[-1]
+        tables = [node for node in root.iter() if local(node) == "tbl"]
+        self.assertEqual(len(tables), 1)
+        self.assertEqual(tables[0].attrib["rowCnt"], "2")
+        self.assertEqual(tables[0].attrib["colCnt"], "2")
+        self.assertIn('paraPrIDRef="59"', section)
+        self.assertIn('paraPrIDRef="60"', section)
+        self.assertIn("구분 | 내용", preview)
+        self.assertNotIn("- ·", preview)
+
+    def test_builtin_hwpx_renderer_is_installed_without_kordoc_autocoupling(self):
+        store = self.backend.list_store_packages()
+        renderer = next(item for item in store["items"] if item["packageId"] == "document.report-hwpx")
+        manifest = next(manifest for manifest, _ in self.backend._store_catalog() if manifest["id"] == "document.report-hwpx")
+        self.assertEqual(manifest["capabilities"], ["document.hwpx.render"])
+        self.assertEqual(renderer["installedVersion"], "0.1.0")
+        self.assertNotIn("integration.kordoc", {item["packageId"] for item in store["items"]})
+        artifact = self.backend._build_structured_report_artifact(
+            "내장 보고서", "# 내장 보고서\n\n## 결과\n\n- 내장 변환기로 생성함.", "보고서 작성"
+        )
+        self.assertNotIn("integration.kordoc@1.0.0", artifact["generatedBy"])
+        self.assertIn("document.report-hwpx@0.1.0", artifact["generatedBy"])
     def test_central_report_normalizes_numeric_top_level_sections_to_roman(self):
         document = self.backend.REPORT_DOCUMENT_MCP.parse(
             "# 2026년도 행정안전부 예산안 분석 및 개선방안 보고서\n\n## 1. 분석 개요\n\n## 2. 주요 지적사항",
@@ -2336,12 +2646,35 @@ class AIWorksBackendTests(unittest.TestCase):
             fact_snapshot=facts,
         )
         self.assertEqual(artifact["template"]["id"], "central-government-outline.v2")
+
         self.assertEqual(artifact["template"]["rendererOptions"]["preset"], "개조식")
         self.assertEqual(artifact["reportDocument"]["presentation"]["markerOwnership"], "renderer")
         self.assertIn("cost.engineer.monthly", artifact["reportDocument"]["factRefs"])
         self.assertNotIn("- ·", artifact["content"])
         self.assertIn("document.report-structure@0.1.0", artifact["generatedBy"])
         self.assertTrue(base64.b64decode(artifact["contentBase64"]).startswith(b"PK"))
+
+    def test_renderer_failure_preserves_markdown_and_completes_workflow(self):
+        plan = self.backend.create_plan(
+            {
+                "intent": "사업 현황과 개선방안을 보고서로 작성해줘",
+                "document_context": {"classification": "internal", "project_id": "project-default"},
+            }
+        )
+        approval = self.backend.approve_plan({"plan_id": plan["id"], "permissions": plan["requiredPermissions"]})
+        with mock.patch.object(self.backend.REPORT_HWPX_MCP, "build_document", side_effect=RuntimeError("synthetic renderer outage")):
+            execution = self.backend.execute_plan(
+                {"approval_token": approval["approvalToken"], "idempotency_key": "renderer-failure-preserves-md", "input": {}},
+                force_local=True,
+            )
+        artifact = execution["result"]["artifact"]
+        self.assertEqual(execution["status"], "completed")
+        self.assertEqual(artifact["format"], "markdown")
+        self.assertNotIn("contentBase64", artifact)
+        self.assertEqual(artifact["rendering"]["status"], "failed")
+        self.assertTrue(artifact["rendering"]["retryable"])
+        self.assertIn("synthetic renderer outage", artifact["rendering"]["error"])
+        self.assertTrue(artifact["markdownDocument"]["id"].startswith("mdoc_"))
 
     def test_report_plan_snapshots_project_facts_and_declares_five_stage_pipeline(self):
         plan = self.backend.create_plan(
@@ -2371,7 +2704,7 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertTrue(artifact["markdownDocument"]["sourceOfTruth"])
         self.assertEqual(artifact["sourceOfTruth"]["status"], "persisted")
 
-    def test_project_registry_restores_markdown_metadata_and_derived_files(self):
+    def test_project_registry_contains_only_metadata_and_source_documents(self):
         project = self.backend.create_project(
             {"name": "인공지능 예산 검토", "classification": "internal", "actor": "registry-tester"}
         )
@@ -2387,19 +2720,26 @@ class AIWorksBackendTests(unittest.TestCase):
         rendered = self.backend.render_project_markdown_document(
             project["id"], document["id"], {"format": "hwpx", "actor": "registry-tester"}
         )
+        second_render = self.backend.render_project_markdown_document(
+            project["id"], document["id"], {"format": "hwpx", "actor": "registry-tester"}
+        )
 
         registry = self.backend.list_projects()
         listed = next(item for item in registry["items"] if item["id"] == project["id"])
         self.assertEqual(listed["documentCount"], 1)
         self.assertEqual(listed["factCount"], 1)
-        self.assertEqual(listed["artifactCount"], 1)
+        self.assertNotIn("artifactCount", listed)
 
         workspace = self.backend.get_project_workspace(project["id"])
         self.assertEqual(workspace["project"]["name"], "인공지능 예산 검토")
-        self.assertEqual(workspace["summary"], {"documentCount": 1, "factCount": 1, "candidateCount": 1, "artifactCount": 1})
+        self.assertEqual(workspace["summary"], {"documentCount": 1, "factCount": 1, "candidateCount": 1, "sourceCount": 0})
         self.assertEqual(workspace["documents"][0]["id"], document["id"])
-        self.assertEqual(workspace["documents"][0]["artifacts"][0]["id"], rendered["projectArtifact"]["id"])
+        self.assertNotIn("artifacts", workspace["documents"][0])
         self.assertEqual(workspace["metadata"]["facts"]["project.department"]["value"], "디지털정책과")
+        outputs = self.backend.list_document_final_outputs(project["id"], document["id"])
+        self.assertEqual(outputs["count"], 2)
+        self.assertNotEqual(rendered["finalOutput"]["id"], second_render["finalOutput"]["id"])
+        self.assertTrue(all(item["finalOutput"] and not item["projectManaged"] for item in outputs["items"]))
 
     def test_project_workspace_restores_last_document_tab_view_and_chat(self):
         project = self.backend.create_project({"name": "연속 작업 검증", "actor": "tester"})
@@ -2424,6 +2764,39 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(restored["chat"][0]["role"], "user")
         self.assertEqual(restored["lastAnswer"], "마지막 작업을 저장했습니다.")
 
+    def test_project_conversation_and_decision_are_independent_and_portable(self):
+        project = self.backend.create_project({"name": "대화 결정 검증", "actor": "decision-tester"})
+        document = self.backend.save_project_markdown_document(
+            project["id"], {"title": "결정 연결 문서", "markdown": "# 결정 연결 문서\n\n- 초안", "actor": "decision-tester"}
+        )
+        state = self.backend.save_project_workspace_state(project["id"], {
+            "active_document_id": document["id"], "active_tab": "markdown", "active_view": "editor",
+            "chat": [{"role": "user", "text": "이 초안을 기준으로 진행해줘"}, {"role": "assistant", "text": "초안을 기준으로 작업하겠습니다."}],
+            "last_answer": "초안을 기준으로 작업하겠습니다.", "actor": "decision-tester",
+        })
+        conversation = self.backend.get_project_conversation(project["id"], state["conversationId"], {"actor": "decision-tester"})
+        self.assertEqual(conversation["messageCount"], 2)
+        self.assertEqual(conversation["messages"][0]["documentVersionId"], document["versionId"])
+        decision = self.backend.save_project_decision(project["id"], {
+            "conversation_id": conversation["id"], "message_id": conversation["messages"][0]["id"],
+            "decision_type": "draft-baseline", "status": "accepted", "summary": "현재 초안을 후속 문서의 기준으로 사용",
+            "scope": {"documentId": document["id"], "revision": 1}, "document_id": document["id"],
+            "document_version_id": document["versionId"], "actor": "decision-tester",
+        })
+        self.assertEqual(decision["documentVersionId"], document["versionId"])
+        self.assertEqual(self.backend.list_project_decisions(project["id"], {"actor": "decision-tester"})["count"], 1)
+
+        backup = self.backend.export_project_backup(project["id"], {"actor": "decision-tester"})
+        self.assertEqual(backup["schemaVersion"], "1.2")
+        self.assertEqual(len(backup["data"]["conversations"]), 1)
+        self.assertEqual(len(backup["data"]["conversationMessages"]), 2)
+        self.assertEqual(len(backup["data"]["decisions"]), 1)
+        restored = self.backend.import_project_backup({"bundle": backup, "name": "대화 결정 복원", "actor": "decision-tester"})
+        restored_conversations = self.backend.list_project_conversations(restored["project"]["id"], {"actor": "decision-tester"})
+        restored_decisions = self.backend.list_project_decisions(restored["project"]["id"], {"actor": "decision-tester"})
+        self.assertEqual(restored_conversations["items"][0]["messageCount"], 2)
+        self.assertEqual(restored_decisions["items"][0]["summary"], "현재 초안을 후속 문서의 기준으로 사용")
+
     def test_quality_harness_rejects_wrong_subject_and_missing_requested_sections(self):
         review = self.backend._review_report_against_request(
             "인공지능 공통기반 2026년 예산 지적사항과 대안 및 향후 계획을 보고서로 작성해줘",
@@ -2435,6 +2808,12 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertIn("request.subject", failed)
         self.assertIn("request.alternatives", failed)
         self.assertIn("request.future-plan", failed)
+        self.assertEqual(review["contractVersion"], "1.1")
+        self.assertGreater(review["blockCount"], 0)
+        self.assertTrue(any(item["action"] in {"regenerate-blocks", "regenerate-document"} for item in review["repairPlan"]))
+        numeric = next(item for item in review["checks"] if item["id"] == "evidence.numeric-consistency")
+        self.assertEqual(numeric["severity"], "warning")
+        self.assertIn("target", numeric)
 
     def test_project_markdown_is_versioned_source_of_truth(self):
         first = self.backend.save_project_markdown_document(
@@ -2574,9 +2953,113 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertTrue(base64.b64decode(rendered["artifact"]["contentBase64"]).startswith(b"PK"))
         adapters = self.backend.project_document_format_adapters()
         self.assertEqual(adapters["sourceFormat"], "md")
-        with self.assertRaises(self.backend.ApiError) as missing:
-            self.backend.render_project_markdown_document("project-default", document["id"], {"format": "pdf"})
-        self.assertEqual(missing.exception.status, 409)
+        pdf = self.backend.render_project_markdown_document("project-default", document["id"], {"format": "pdf", "actor": "tester"})
+        self.assertTrue(base64.b64decode(pdf["artifact"]["contentBase64"]).startswith(b"%PDF-"))
+        self.assertEqual(pdf["artifact"]["metadata"]["renderer"], "libreoffice-headless")
+
+    def test_project_markdown_renders_portable_office_outputs_with_loss_contract(self):
+        document = self.backend.save_project_markdown_document("project-default", {
+            "title": "상호운용 보고서", "markdown": "# 상호운용 보고서\n\n## 현황\n\n- 1단계 내용\n\n| 항목 | 값 |\n|---|---|\n| 예산 | 100 |",
+            "actor": "tester",
+        })
+        rendered = {}
+        for target in ("docx", "odt", "xlsx", "pdf"):
+            result = self.backend.render_project_markdown_document(
+                "project-default", document["id"], {"format": target, "actor": "tester"},
+            )
+            rendered[target] = base64.b64decode(result["artifact"]["contentBase64"])
+            self.assertTrue(rendered[target].startswith(b"%PDF-") if target == "pdf" else rendered[target].startswith(b"PK"))
+            self.assertEqual(result["adapter"]["format"], target)
+            self.assertEqual(result["artifact"]["metadata"]["contractVersion"], "document-interchange/1.0")
+            self.assertEqual(result["finalOutput"]["sourceVersionId"], document["versionId"])
+        docx_inspection = self.backend.inspect_asset({
+            "filename": "상호운용.docx", "content_base64": base64.b64encode(rendered["docx"]).decode("ascii"),
+        })
+        xlsx_inspection = self.backend.inspect_asset({
+            "filename": "상호운용.xlsx", "content_base64": base64.b64encode(rendered["xlsx"]).decode("ascii"),
+        })
+        self.assertIn("1단계 내용", docx_inspection["textExcerpt"])
+        self.assertIn("예산", xlsx_inspection["textExcerpt"])
+        with zipfile.ZipFile(io.BytesIO(rendered["odt"])) as odt:
+            self.assertEqual(odt.read("mimetype"), b"application/vnd.oasis.opendocument.text")
+            self.assertIn("상호운용", odt.read("content.xml").decode("utf-8"))
+        workbench = self.backend.get_project_document_workbench("project-default", document["id"])
+        self.assertTrue({"docx", "odt", "xlsx", "pdf"}.issubset({item["format"] for item in workbench["artifacts"]}))
+
+    def test_installed_template_mcp_can_be_selected_and_persists_as_current_template(self):
+        package_refs = []
+        for index, name in enumerate(("행안부 실무보고 양식", "정책 검토 양식"), start=1):
+            draft = self.backend.create_mcp_draft(
+                {
+                    "name": name,
+                    "package_id": f"org.test.template-switch-{index}",
+                    "description": name + " HWPX를 현재 Markdown 내용에 적용한다.",
+                    "mcp_type": "template",
+                    "instructions": "제목과 본문 슬롯에 현재 보고서 내용을 구조적으로 적용한다.",
+                    "procedure": "Markdown 구조를 읽는다.\n양식 슬롯을 채운다.\nHWPX를 생성한다.",
+                    "trigger_examples": name + "으로 작성해줘",
+                    "source_included": True,
+                    "use_model": False,
+                }
+            )
+            self.backend.add_mcp_draft_reference(
+                draft["id"],
+                {
+                    "filename": f"template-{index}.hwpx",
+                    "role": "template-source",
+                    "content_base64": base64.b64encode(placeholder_template_hwpx()).decode(),
+                },
+            )
+            self.backend.validate_mcp_draft(draft["id"], {})
+            published = self.backend.publish_mcp_draft(
+                draft["id"],
+                {"confirm_visibility": "private", "confirm_source_included": True},
+            )
+            manifest = published["package"]["manifest"]
+            self.backend.install_mcp_package(
+                {
+                    "package_id": manifest["id"],
+                    "version": manifest["version"],
+                    "approved_permissions": [item["scope"] for item in manifest["permissions"]],
+                    "acknowledge_signature": True,
+                }
+            )
+            package_refs.append(manifest["id"] + "@" + manifest["version"])
+
+        available = self.backend.list_installed_template_mcps()
+        self.assertTrue(set(package_refs).issubset({item["packageRef"] for item in available["items"]}))
+        self.assertTrue(all(item["mcpType"] == "template" for item in available["items"]))
+        selected_usage = next(item["usage"] for item in available["items"] if item["packageRef"] == package_refs[0])
+        self.assertEqual(selected_usage["contractVersion"], "template-mcp-usage/1.0")
+        self.assertIn("행안부 실무보고 양식으로 작성해줘", selected_usage["quickPrompt"])
+        self.assertEqual(len(selected_usage["directSteps"]), 3)
+        self.assertEqual(len(selected_usage["chatSteps"]), 3)
+        self.assertIn("Markdown", " ".join(selected_usage["prerequisites"]))
+
+        document = self.backend.save_project_markdown_document(
+            "project-default",
+            {"markdown": "# 양식 전환 보고서\n\n## 현황\n- 기준 내용을 유지함.", "actor": "tester"},
+        )
+        first = self.backend.render_project_markdown_document(
+            "project-default",
+            document["id"],
+            {"format": "hwpx", "template_package_ref": package_refs[0], "force": True, "actor": "tester"},
+        )
+        self.assertEqual(first["artifact"]["template"]["id"], package_refs[0])
+        self.assertEqual(first["projectArtifact"]["templateId"], package_refs[0])
+        self.assertEqual(first["projectArtifact"]["renderer"], package_refs[0])
+
+        second = self.backend.render_project_markdown_document(
+            "project-default",
+            document["id"],
+            {"format": "hwpx", "template_package_ref": package_refs[1], "force": True, "actor": "tester"},
+        )
+        self.assertEqual(second["projectArtifact"]["templateId"], package_refs[1])
+        self.assertEqual(second["projectArtifact"]["renderer"], package_refs[1])
+        workbench = self.backend.get_project_document_workbench("project-default", document["id"])
+        current = next(item for item in workbench["artifacts"] if item["format"] == "hwpx")
+        self.assertEqual(current["templateId"], package_refs[1])
+        self.assertGreaterEqual(len(workbench["outputs"]), 2)
 
     def test_markdown_refresh_preserves_existing_hwpx_layout_resources(self):
         document = self.backend.save_project_markdown_document(
@@ -2855,7 +3338,7 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(cycle.exception.status, 409)
         self.assertEqual(self.backend.list_project_artifacts("project-default")["count"], 2)
 
-    def test_markdown_versions_are_registered_in_generic_artifact_store(self):
+    def test_markdown_versions_are_not_duplicated_in_generic_artifact_store(self):
         document = self.backend.save_project_markdown_document(
             "project-default", {"actor": "tester", "title": "기준 MD", "markdown": "# 기준 MD\n\n- 내용"}
         )
@@ -2866,11 +3349,11 @@ class AIWorksBackendTests(unittest.TestCase):
             },
         )
         artifacts = self.backend.list_project_artifacts("project-default")
-        markdown_artifact = next(item for item in artifacts["items"] if item["source"]["id"] == document["id"])
-        self.assertEqual(markdown_artifact["currentVersionId"], markdown_artifact["versions"][0]["id"])
+        self.assertFalse(any(item["source"]["id"] == document["id"] for item in artifacts["items"]))
         self.assertEqual(revised["revision"], 2)
-        self.assertEqual(len(markdown_artifact["versions"]), 2)
-        self.assertTrue(any(item["relation"] == "supersedes" for item in artifacts["relations"]))
+        stored = self.backend.get_project_markdown_document("project-default", document["id"])
+        self.assertEqual(len(stored["versions"]), 2)
+        self.assertEqual(stored["versions"][0]["revision"], 2)
 
     def test_docx_and_xlsx_are_extracted_and_docx_opens_as_project_markdown(self):
         docx = sample_docx()
@@ -2893,8 +3376,10 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(session["snapshot"]["markdownSource"]["conversion"]["sourceFormat"], "docx")
         self.assertIn("인공지능 공통기반", session["snapshot"]["content"])
         formats = {item["format"]: item for item in self.backend.project_document_format_adapters()["adapters"]}
-        self.assertEqual(formats["docx"]["direction"], "input")
-        self.assertEqual(formats["xlsx"]["direction"], "input")
+        self.assertEqual(formats["docx"]["direction"], "bidirectional")
+        self.assertEqual(formats["xlsx"]["direction"], "bidirectional")
+        self.assertEqual(formats["odt"]["direction"], "bidirectional")
+        self.assertEqual(formats["pdf"]["status"], "ready")
 
     def test_template_schema_detects_merged_approval_table_and_mapping_metadata(self):
         data = sample_form_template_hwpx()
@@ -2912,12 +3397,41 @@ class AIWorksBackendTests(unittest.TestCase):
         source = buffer.getvalue()
         schema = self.backend._hwpx_template_schema(source)
         mapping = self.backend._template_mapping_candidates(source)
-        self.assertEqual(schema["contractVersion"], "1.1")
+        self.assertEqual(schema["contractVersion"], "1.2")
+        self.assertEqual(schema["compatibility"]["migration"]["to"], "1.2")
+        self.assertGreaterEqual(schema["featureInventory"]["sections"], 1)
         self.assertTrue(schema["mergedTables"])
         self.assertTrue(schema["approvalBlocks"])
         table_items = [item for item in mapping["candidates"] if item["insideTable"]]
         self.assertTrue(any(item["tableMerged"] for item in table_items))
         self.assertTrue(any(item["approvalLike"] for item in table_items))
+        self.assertTrue(all(item["tableRow"] is not None and item["tableColumn"] is not None for item in table_items))
+        self.assertTrue(any(item["colSpan"] == 2 for item in table_items))
+
+    def test_scan_only_hwpx_requires_ocr_before_template_authoring(self):
+        data = sample_form_template_hwpx()
+        source_archive = zipfile.ZipFile(io.BytesIO(data))
+        buffer = io.BytesIO()
+        with source_archive, zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as target:
+            for info in source_archive.infolist():
+                payload = source_archive.read(info.filename)
+                if info.filename == "Contents/section0.xml":
+                    root = ElementTree.fromstring(payload)
+                    for node in root.iter():
+                        if node.tag.rsplit("}", 1)[-1] == "t":
+                            node.text = ""
+                    payload = ElementTree.tostring(root, encoding="utf-8", xml_declaration=True)
+                target.writestr(info, payload)
+            target.writestr("BinData/scan.png", b"not-a-real-image-but-an-embedded-scan-resource")
+        scan = buffer.getvalue()
+        profile = self.backend._analyze_hwpx_template(scan)
+        schema = self.backend._hwpx_template_schema(scan)
+        self.assertTrue(profile["ocrRequired"])
+        self.assertTrue(schema["ocrRequired"])
+        self.assertFalse(schema["structuralBindingReady"])
+        with self.assertRaises(self.backend.ApiError) as caught:
+            self.backend._build_template_authoring_sample(scan, "scan.hwpx")
+        self.assertEqual(caught.exception.status, 422)
 
     def test_workflow_recipe_version_share_fork_install_and_deprecate(self):
         definition = {
@@ -2972,16 +3486,15 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(listed["evidence"][0]["sourceVersionId"], source["version"]["id"])
         self.assertEqual(self.backend.list_project_artifact_evidence(project["id"], {"artifact_id": report["artifact"]["id"], "actor": "evidence-tester"})["count"], 1)
 
-    def test_project_backup_round_trip_preserves_md_fact_hwpx_and_evidence(self):
+    def test_project_backup_round_trip_preserves_only_project_metadata_and_documents(self):
         project = self.backend.create_project({"name": "백업 원본", "classification": "internal", "actor": "backup-tester"})
         document = self.backend.save_project_markdown_document(project["id"], {"title": "예산 보고", "markdown": "# 예산 보고\n\n- 집행 지연 개선이 필요함.", "actor": "backup-tester"})
         self.backend.save_project_fact(project["id"], {"key": "budget.year", "label": "예산연도", "value": 2026, "status": "confirmed", "actor": "backup-tester"})
         self.backend.render_project_markdown_document(project["id"], document["id"], {"format": "hwpx", "actor": "backup-tester"})
-        artifacts = self.backend.list_project_artifacts(project["id"])
-        target = next(item for item in artifacts["items"] if item["currentVersionId"])
-        self.backend.create_project_artifact_evidence(project["id"], {"artifact_id": target["id"], "locator": "MD #1", "excerpt": "집행 지연 개선", "actor": "backup-tester"})
         backup = self.backend.export_project_backup(project["id"], {"actor": "backup-tester"})
         self.assertEqual(backup["format"], "aiworks-project-backup")
+        self.assertEqual(backup["schemaVersion"], "1.2")
+        self.assertEqual(set(backup["data"]), {"projectPolicy", "workspaceState", "conversations", "conversationMessages", "decisions", "markdownDocuments", "markdownVersions", "facts", "factValues", "artifacts", "artifactVersions", "artifactRelations", "artifactEvidence"})
         restored = self.backend.import_project_backup({"bundle": backup, "name": "백업 복원본", "actor": "backup-tester"})
         self.assertNotEqual(restored["project"]["id"], project["id"])
         workspace = self.backend.get_project_workspace(restored["project"]["id"])
@@ -2990,11 +3503,47 @@ class AIWorksBackendTests(unittest.TestCase):
         restored_document = workspace["documents"][0]
         restored_detail = self.backend.get_project_markdown_document(restored["project"]["id"], restored_document["id"])
         self.assertIn("집행 지연 개선", restored_detail["markdown"])
-        restored_artifacts = self.backend.list_project_artifacts(restored["project"]["id"])
-        self.assertTrue(restored_artifacts["evidence"])
-        self.assertTrue(any(version.get("contentBase64") is None for item in restored_artifacts["items"] for version in item["versions"]))
         workbench = self.backend.get_project_document_workbench(restored["project"]["id"], restored_document["id"])
-        self.assertTrue(any(item["format"] == "hwpx" for item in workbench["artifacts"]))
+        self.assertFalse(workbench["outputs"])
+        self.assertEqual(next(item for item in workbench["artifacts"] if item["format"] == "hwpx")["status"], "missing")
+
+    def test_project_sources_are_persistent_searchable_reindexable_and_portable(self):
+        project = self.backend.create_project({"name": "프로젝트 자료 검증", "actor": "source-tester"})
+        text = "2026년 인공지능 공통기반 사업은 집행 지연과 성과지표 구체화가 주요 지적사항이다. 향후 분기별 집행 점검이 필요하다."
+        payload = {"filename": "예산정책.txt", "content_base64": base64.b64encode(text.encode()).decode(), "actor": "source-tester"}
+        created = self.backend.create_project_source(project["id"], payload)
+        source = created["source"]
+        self.assertTrue(source["ragReady"])
+        self.assertGreater(source["chunkCount"], 0)
+        self.assertEqual(self.backend.create_project_source(project["id"], payload)["source"]["id"], source["id"])
+        listed = self.backend.list_project_sources(project["id"])
+        self.assertEqual(listed["count"], 1)
+        queried = self.backend.query_project_sources(project["id"], {"question": "인공지능 공통기반 지적사항", "source_ids": [source["id"]]})
+        self.assertEqual(queried["retrievedChunks"], 1)
+        self.assertIn("집행 지연", queried["sources"][0]["excerpt"])
+        reindexed = self.backend.reindex_project_source(project["id"], source["id"], {"actor": "source-tester"})
+        self.assertEqual(reindexed["source"]["version"], 2)
+        backup = self.backend.export_project_backup(project["id"], {"actor": "source-tester"})
+        self.assertEqual(len(backup["data"]["artifacts"]), 1)
+        self.assertEqual(len(backup["data"]["artifactVersions"]), 2)
+        restored = self.backend.import_project_backup({"bundle": backup, "name": "자료 복원", "actor": "source-tester"})
+        self.assertEqual(self.backend.list_project_sources(restored["project"]["id"])["count"], 1)
+        deleted = self.backend.delete_project_source(project["id"], source["id"], {"actor": "source-tester"})
+        self.assertEqual(deleted["status"], "deleted")
+        self.assertEqual(self.backend.list_project_sources(project["id"])["count"], 0)
+
+    def test_project_source_is_bound_as_explainable_data_mcp(self):
+        project = self.backend.create_project({"name": "자료 MCP 계획", "actor": "planner"})
+        text = "2026년 AI 공통기반의 핵심 지적사항은 집행 지연이며 대안은 단계별 성과 점검이다."
+        source = self.backend.create_project_source(project["id"], {"filename": "근거.txt", "content_base64": base64.b64encode(text.encode()).decode(), "actor": "planner"})["source"]
+        plan = self.backend.create_plan({"intent": "AI 공통기반 지적사항을 자료에서 확인해줘", "actor": "planner", "document_context": {"classification": "internal", "project_id": project["id"], "project_source_ids": [source["id"]]}})
+        self.assertEqual(plan["workflow"]["projectSourceIds"], [source["id"]])
+        self.assertTrue(any(item["packageId"] == "core.project-sources" for item in plan["workflow"]["mcpPlan"]))
+        approval = self.backend.approve_plan({"plan_id": plan["id"], "actor": "planner", "permissions": plan["requiredPermissions"]})
+        execution = self.backend.execute_plan({"approval_token": approval["approvalToken"], "idempotency_key": "project-source-query", "input": {}}, force_local=True)
+        self.assertEqual(execution["status"], "completed")
+        self.assertIn("집행 지연", execution["result"]["answer"])
+        self.assertEqual(execution["result"]["sources"][0]["artifactId"], source["id"])
 
     def test_recipe_search_preview_and_security_block(self):
         definition = {
@@ -3020,6 +3569,185 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertIn("| 2026 | 120 |", updated)
         self.assertIn("| --- | ---: |", updated)
 
+
+    def test_personal_data_is_detected_in_plan_and_redacted_at_model_boundary(self):
+        plan = self.backend.create_plan({
+            "intent": "담당자 test@example.com, 010-1234-5678에게 보고서를 보내기 전 요약해줘",
+            "document_context": {"classification": "internal", "document_excerpt": "주민번호 900101-1234567"},
+        })
+        kinds = {item["type"] for item in plan["dataPolicy"]["maskedFields"]}
+        self.assertTrue({"email", "phone", "resident-registration-number"}.issubset(kinds))
+        self.assertTrue(plan["workflow"]["dataProtection"]["personalDataDetected"])
+        redacted, findings = self.backend._redact_model_messages([{"role": "user", "content": plan["intent"] + " 900101-1234567"}])
+        self.assertNotIn("test@example.com", redacted[0]["content"])
+        self.assertNotIn("010-1234-5678", redacted[0]["content"])
+        self.assertGreaterEqual(len(findings), 3)
+
+    def test_plan_has_valid_capability_dag_schema_connections(self):
+        plan = self.backend.create_plan({"intent": "인공지능 예산 자료를 분석해서 보고서로 작성해줘", "document_context": {"classification": "internal"}})
+        dag = plan["workflow"]["capabilityDag"]
+        self.assertEqual(dag["contractVersion"], "capability-dag/1.0")
+        self.assertTrue(dag["valid"])
+        self.assertEqual(dag["nodes"][0]["kind"], "input")
+        context = plan["workflow"]["contextContract"]
+        tasks = plan["workflow"]["taskContract"]
+        resolution = plan["workflow"]["resolutionContract"]
+        self.assertEqual(context["contractVersion"], "context-assembly/1.0")
+        self.assertEqual(tasks["contractVersion"], "task-compiler/1.0")
+        self.assertEqual(resolution["contractVersion"], "capability-resolution/1.0")
+        self.assertTrue(tasks["valid"])
+        self.assertTrue(resolution["valid"])
+        self.assertEqual(tasks["projectId"], context["projectId"])
+        self.assertTrue(all(item["versionPinned"] for item in resolution["decisions"]))
+        self.assertEqual(dag["nodes"][-1]["kind"], "output")
+        self.assertTrue(all(edge["compatible"] for edge in dag["edges"]))
+
+    def test_package_update_permission_diff_requires_explicit_ack_contract(self):
+        current = {"packageId": "org.sample", "version": "1.0.0", "manifest": {"runtime": "local", "permissions": [{"scope": "data.read", "required": True}]}}
+        target = {"packageId": "org.sample", "version": "1.1.0", "manifest": {"runtime": "hybrid", "permissions": [{"scope": "data.read", "required": True}, {"scope": "network.send", "required": True}], "dataRetention": {"policy": "30-days"}}}
+        diff = self.backend._package_permission_diff(current, target)
+        self.assertTrue(diff["requiresExplicitApproval"])
+        self.assertEqual(diff["addedPermissions"][0]["scope"], "network.send")
+        self.assertTrue(diff["dataMovementChanged"])
+        self.assertRegex(diff["sha256"], r"^[0-9a-f]{64}$")
+
+    def test_odt_input_quality_review_and_recovery_observability(self):
+        document = self.backend.save_project_markdown_document("project-default", {"title": "품질 검증", "markdown": "# 품질 검증\n\n## 현황\n\n- 현재 상태", "actor": "workspace-user"})
+        odt, _name, _mime, _metadata = self.backend._markdown_interchange_artifact(document, "odt")
+        inspection = self.backend.inspect_asset({"filename": "품질검증.odt", "content_base64": base64.b64encode(odt).decode("ascii")})
+        self.assertTrue(inspection["ragReady"])
+        session = self.backend.open_native_document_session({"filename": "품질검증.odt", "content_base64": base64.b64encode(odt).decode("ascii"), "project_id": "project-default", "actor": "workspace-user"})
+        self.assertEqual(session["snapshot"]["markdownSource"]["conversion"]["sourceFormat"], "odt")
+        review = self.backend.review_project_document_quality("project-default", document["id"], {"intent": "지적사항과 대안을 포함한 보고서", "actor": "workspace-user"})
+        self.assertTrue(review["review"]["repairPlan"])
+        drill = self.backend.run_project_recovery_drill("project-default", {"actor": "workspace-user"})
+        self.assertEqual(drill["status"], "passed")
+        prometheus = self.backend.operational_metrics_prometheus()
+        self.assertIn("aiworks_execution_total", prometheus["_rawBody"])
+        self.assertIn("text/plain", prometheus["_contentType"])
+        self.assertTrue(self.backend.operational_metrics_otlp()["resourceMetrics"])
+
+    def test_business_mcp_composition_runs_data_process_and_template_as_one_flow(self):
+        intent = "현장 실증사업 위험과 예산 근거를 검색하고 위험별 대안과 향후계획을 현장 실증 행안부 양식 보고서로 작성해줘"
+
+        def publish_and_install(payload, reference=None):
+            draft = self.backend.create_mcp_draft(payload)
+            self.assertIn("ioContract", draft["manifest"])
+            if reference:
+                self.backend.add_mcp_draft_reference(
+                    draft["id"],
+                    {
+                        "filename": reference[0],
+                        "role": reference[1],
+                        "content_base64": base64.b64encode(reference[2]).decode("ascii"),
+                    },
+                )
+            validated = self.backend.validate_mcp_draft(draft["id"], {})
+            self.assertEqual(validated["status"], "validated", validated)
+            published = self.backend.publish_mcp_draft(
+                draft["id"],
+                {"confirm_visibility": "private", "confirm_source_included": bool(reference)},
+            )
+            manifest = published["package"]["manifest"]
+            self.backend.install_mcp_package(
+                {"package_id": manifest["id"], "version": manifest["version"], "approved_permissions": [item["scope"] for item in manifest["permissions"]], "acknowledge_signature": True}
+            )
+            return manifest["id"] + "@" + manifest["version"]
+
+        data_ref = publish_and_install(
+            {"name": "현장 실증 근거 데이터 MCP", "package_id": "org.field-proof-data", "description": "현장 실증사업의 위험과 예산 근거를 검색하고 인용 가능한 증거로 반환한다.", "mcp_type": "data", "instructions": "사업명, 위험, 예산 조건을 함께 검색하고 출처를 보존한다.", "procedure": "질의를 검색 조건으로 바꾼다.\n관련 근거를 검색한다.\n출처와 함께 반환한다.", "trigger_examples": intent, "data_source": "현장 실증사업 내부 검토자료", "source_included": True, "use_model": True},
+            ("field-proof-evidence.txt", "data-source", "2026년 현장 실증사업은 장비 납품 지연 위험과 중복 예산 우려가 있다. 공동 구매 일정과 중복투자 사전 검토가 필요하다.".encode("utf-8")),
+        )
+        process_ref = publish_and_install(
+            {"name": "현장 실증 대안 보고서 처리 MCP", "package_id": "org.field-proof-process", "description": "검색 근거를 위험별 원인, 대안, 향후계획 구조의 보고서로 작성한다.", "mcp_type": "process", "instructions": "검색 근거만 사용하여 위험별 대안과 향후계획을 개조식 Markdown으로 작성한다.", "procedure": "근거에서 위험을 분류한다.\n위험별 대안을 작성한다.\n향후계획과 근거 인용을 점검한다.", "cautions": "근거에 없는 수치를 만들지 않는다.", "trigger_examples": intent, "use_model": True}
+        )
+        template_ref = publish_and_install(
+            {"name": "현장 실증 행안부 양식 MCP", "package_id": "org.field-proof-template", "description": "완성된 Markdown 보고서를 등록된 행안부 HWPX 양식에 대응한다.", "mcp_type": "template", "instructions": "제목과 의미 블록을 보존하고 등록 양식의 제목 및 본문 필드에 대응한다.", "procedure": "의미 블록을 읽는다.\n양식 필드에 대응한다.\nHWPX 무결성을 검증한다.", "trigger_examples": "현장 실증 행안부 양식", "source_included": True, "use_model": False},
+            ("field-proof-template.hwpx", "template-source", placeholder_template_hwpx()),
+        )
+
+        plan = self.backend.create_plan({"intent": intent, "actor": "tester", "project_id": "project-default", "document_context": {"classification": "internal"}})
+        composition = plan["workflow"]["composition"]
+        self.assertEqual(composition["data"], data_ref)
+        self.assertEqual(composition["process"], process_ref)
+        self.assertEqual(composition["template"], template_ref)
+        self.assertEqual(composition["strategy"], "capability-schema-ranked")
+        self.assertTrue(plan["workflow"]["taskContract"]["valid"])
+        self.assertTrue(plan["workflow"]["resolutionContract"]["valid"])
+        self.assertTrue(plan["workflow"]["capabilityDag"]["valid"])
+        decisions = plan["workflow"]["resolutionContract"]["decisions"]
+        for package_ref in (data_ref, process_ref, template_ref):
+            decision = next(item for item in decisions if item["packageRef"] == package_ref)
+            self.assertGreaterEqual(decision["rankScore"], 0)
+            self.assertTrue(decision["ioContract"]["outputArtifactTypes"])
+            self.assertTrue(decision["reason"])
+
+        bindings = plan["workflow"]["capabilityBindings"]
+        primary = next(item for item in bindings if item["packageRef"] == data_ref)
+        additional = [item for item in bindings if item["packageRef"] != data_ref]
+        live_result = {"content": "# 현장 실증사업 위험 및 예산 대응 보고서\n\n## 주요 위험\n- 장비 납품 지연과 중복 예산 우려가 있음 [1]\n\n## 위험별 대안 및 향후계획\n- 공동 구매 일정을 수립하고 중복투자 사전 검토를 시행함 [1]", "requestedModel": "upstage/solar-pro-4", "resolvedModel": "upstage/solar-pro-4", "usage": {"promptTokens": 100, "completionTokens": 80}, "requestId": "req-proof", "fallbackUsed": False}
+        with mock.patch.object(self.backend, "_chat_with_route_fallback", return_value=live_result) as invoke:
+            executed = self.backend._execute_builder_binding(primary, intent, {"project_id": "project-default", "project_fact_snapshot": {}, "project_markdown_context": [], "project_markdown_prompt_allowed": True}, plan["routing"], True, True, additional)
+        prompt = "\n".join(message["content"] for message in invoke.call_args.args[1])
+        self.assertIn("현장 실증 대안 보고서 처리 MCP", prompt)
+        self.assertIn("위험별 대안을 작성한다", prompt)
+        self.assertEqual(executed["responseType"], "report-artifact")
+        self.assertEqual(executed["artifact"]["processApplication"]["packageRef"], process_ref)
+        self.assertEqual(executed["artifact"]["template"]["packageRef"], template_ref)
+        self.assertTrue(executed["artifact"]["contentBase64"])
+        for package_ref in (data_ref, process_ref, template_ref):
+            self.assertIn(package_ref, executed["loadedMcps"])
+
+    def test_guided_hwpx_template_quality_clears_instruction_and_example_text(self):
+        quality = self.backend._evaluate_hwpx_template_quality(guided_template_hwpx(), "guided-template.hwpx")
+        checks = {item["id"]: item for item in quality["checks"]}
+        self.assertIn("render.guidance-cleared", checks)
+        self.assertTrue(checks["render.guidance-cleared"]["passed"], quality)
+        self.assertGreater(quality["metrics"]["clearedGuidanceParagraphs"], 0)
+        self.assertEqual(quality["metrics"]["residualGuidanceParagraphs"], 0)
+
+    def test_real_sample_template_prefers_report_paragraphs_over_first_table_cells(self):
+        source = (ROOT / "web" / "rhwp" / "samples" / "form-002.hwpx").read_bytes()
+        converted, authoring = self.backend._build_template_authoring_sample(
+            source, "form-002.hwpx"
+        )
+        mapping = self.backend._template_mapping_candidates(converted)
+        title = next(item for item in mapping["candidates"] if "title" in item["slots"])
+        body = next(
+            item
+            for item in mapping["candidates"]
+            if "content" in item["slots"] or "body" in item["slots"]
+        )
+        self.assertFalse(title["insideTable"], title)
+        self.assertFalse(body["insideTable"], body)
+        self.assertNotEqual(title["text"], "품목번호")
+        self.assertTrue(authoring["schema"]["structuralBindingReady"])
+        quality = self.backend._evaluate_hwpx_template_quality(converted, "form-002-template.hwpx")
+        self.assertTrue(quality["passed"], quality)
+
+    def test_conflict_can_merge_only_selected_hwpx_blocks_into_latest_markdown(self):
+        document = self.backend.save_project_markdown_document("project-default", {"markdown": "# 선택 병합 보고서\n\n## 현황\n- HWPX 대상 100입니다.\n- MD 유지 대상입니다.", "actor": "tester"})
+        rendered = self.backend.render_project_markdown_document("project-default", document["id"], {"format": "hwpx", "instruction": "중앙부처 개조식 보고서", "actor": "tester"})
+        artifact = rendered["projectArtifact"]
+        detail = self.backend.get_project_document_artifact("project-default", document["id"], artifact["id"])
+        session = self.backend.open_native_document_session({"filename": detail["filename"], "content_base64": detail["contentBase64"], "project_id": "project-default", "markdown_document_id": document["id"], "markdown_base_revision": 1, "project_artifact_id": artifact["id"], "canonical_markdown": document["markdown"], "actor": "tester"})
+        mappings = [item for item in artifact["renderMap"]["entries"] if item["blockType"] == "list_item"]
+        paragraph = next(item for item in session["snapshot"]["document"]["paragraphs"] if item["id"] == mappings[0]["paragraphId"])
+        saved_hwpx = self.backend.command_native_document_session(session["id"], {"base_revision": session["revision"], "command": "replace_selection", "arguments": {"target": paragraph["id"], "before": paragraph["text"], "after": "□ HWPX 대상 120으로 변경함."}, "actor": "tester"})
+        current_md = self.backend.save_project_markdown_document("project-default", {"document_id": document["id"], "base_revision": 1, "markdown": document["markdown"] + "\n- MD에서 별도 검토함.", "actor": "md-editor"})
+        with self.assertRaises(self.backend.ApiError):
+            self.backend.promote_project_artifact_to_markdown("project-default", document["id"], saved_hwpx["projectSync"]["artifact"]["id"], {"actor": "tester"})
+        workbench = self.backend.get_project_document_workbench("project-default", document["id"])
+        conflict = next(item for item in workbench["conflicts"] if item["status"] == "open")
+        self.assertTrue(conflict["diffBlocks"])
+        selected_id = conflict["diffBlocks"][0]["id"]
+        resolved = self.backend.resolve_project_document_conflict("project-default", document["id"], conflict["id"], {"resolution": "merge-selected", "selected_change_ids": [selected_id], "actor": "reviewer"})
+        self.assertEqual(resolved["conflict"]["status"], "resolved")
+        self.assertEqual(resolved["conflict"]["resolution"]["selectedChangeIds"], [selected_id])
+        self.assertEqual(resolved["document"]["revision"], current_md["revision"] + 1)
+        self.assertIn("HWPX 대상 120으로 변경함.", resolved["document"]["markdown"])
+        self.assertIn("MD에서 별도 검토함.", resolved["document"]["markdown"])
+        self.assertEqual(resolved["artifact"]["status"], "synced")
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>AIWorks · AI 업무 작업공간</title>
-  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260821-v53">
+  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260830-v79">
 </head>
 <body>
   <div class="app-shell">
@@ -26,7 +26,7 @@
       <div class="welcome-content">
         <span class="welcome-orb">✦</span>
         <section class="project-gate" id="projectGate">
-          <div class="project-gate-head"><span>PROJECT WORKSPACE</span><h1 id="welcomeTitle">프로젝트를 선택해 시작하세요</h1><p>모든 대화, Markdown 원본, 메타정보와 파생 파일은 선택한 프로젝트에 함께 저장됩니다.</p></div>
+          <div class="project-gate-head"><span>PROJECT WORKSPACE</span><h1 id="welcomeTitle">프로젝트를 선택해 시작하세요</h1><p>프로젝트에는 대화, 여러 기본 MD 문서와 공통 메타정보가 저장됩니다. 파생 문서는 각 기본 문서에서 필요할 때 생성합니다.</p></div>
           <div class="project-entry-grid">
             <form class="project-create-card" id="projectCreateForm">
               <span class="project-entry-icon">＋</span><div><strong>새 프로젝트 만들기</strong><p>새 업무의 문서와 공통 메타정보를 독립적으로 관리합니다.</p></div>
@@ -35,7 +35,7 @@
               <input id="projectBackupFile" type="file" accept=".json,.aiworks.json,application/json" hidden>
               <button class="project-import-button" id="importProjectBackup" type="button">AIWorks 백업 파일 가져오기</button>
             </form>
-            <section class="project-existing-card"><div class="project-existing-head"><div><strong>기존 프로젝트 사용</strong><p>기존 MD·메타정보·파생 문서를 즉시 복원합니다.</p></div><button id="refreshProjects" type="button" title="프로젝트 새로고침">↻</button></div><div class="project-list" id="projectList"><div class="project-list-loading">프로젝트를 불러오는 중입니다.</div></div></section>
+            <section class="project-existing-card"><div class="project-existing-head"><div><strong>기존 프로젝트 사용</strong><p>기본 MD·메타정보와 마지막 작업 화면을 즉시 복원합니다.</p></div><button id="refreshProjects" type="button" title="프로젝트 새로고침">↻</button></div><div class="project-list" id="projectList"><div class="project-list-loading">프로젝트를 불러오는 중입니다.</div></div></section>
           </div>
         </section>
         <section class="welcome-task" id="welcomeTask" hidden>
@@ -47,10 +47,10 @@
             <div class="welcome-file" id="welcomeFileChip" hidden><span id="welcomeFileName"></span><button type="button" id="welcomeFileRemove" aria-label="첨부 제거">×</button></div>
             <div class="welcome-actions">
               <button type="button" id="welcomeAttach">＋ 파일 첨부</button>
-              <span>HWP · HWPX · PDF · MD · TXT · 코드</span>
+              <span>PDF · HWPX · DOCX · XLSX · MD · TXT · 여러 파일 가능</span>
               <button class="welcome-send" aria-label="작업 시작">↑</button>
             </div>
-            <input id="welcomeFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.pdf,.docx,.xlsx,.md,.txt,.py,.js,.ts,.json" hidden>
+            <input id="welcomeFile" type="file" multiple accept=".hwp,.hwpx,.hwt,.hml,.pdf,.docx,.odt,.xlsx,.md,.txt,.py,.js,.ts,.json" hidden>
           </form>
           <div class="welcome-suggestions">
             <button data-welcome-prompt="우리부 예산 현황을 확인하고 요약해줘">예산 현황 확인</button>
@@ -64,12 +64,12 @@
 
     <div class="workbench" id="workbench" hidden>
       <aside class="activitybar" aria-label="작업 영역">
-        <button class="active" data-view="editor" title="탐색기">▱</button>
-        <button data-view="data" title="공통데이터">◇</button>
-        <button data-view="builder" title="MCP 제작기">⌘</button>
-        <button data-view="store" title="MCP 스토어">▦</button>
-        <button data-view="audit" title="실행 이력">≡</button>
+        <button class="active" data-view="editor" title="문서">▱</button>
+        <button data-view="data" title="자료와 기준정보">◇</button>
+        <button data-view="audit" title="AI 작업 이력">≡</button>
         <span></span>
+        <button data-view="builder" title="고급 · MCP 만들기">⌘</button>
+        <button data-view="store" title="고급 · Store">▦</button>
         <button data-view="settings" title="설정">⚙</button>
       </aside>
 
@@ -81,7 +81,7 @@
       <main class="main-area">
         <div class="editor-tabs" id="editorTabs">
           <div class="project-workbench-tabs" id="projectWorkbenchTabs">
-            <button class="active"><span class="file-icon">한</span><span id="activeFileName">예산요청서_초안.hwpx</span><i>●</i></button>
+            <button class="active"><span class="file-icon">MD</span><span id="activeFileName">프로젝트 문서 준비</span></button>
           </div>
           <div class="editor-tools"><button id="splitButton" title="분할 보기">◫</button><button title="더보기">•••</button></div>
         </div>
@@ -90,39 +90,14 @@
           <div class="hwp-menu-bar" id="hwpMenuBar"><button>파일</button><button>편집</button><button>보기</button><button>입력</button><button>서식</button><button>쪽</button><button>표</button><button>도구</button></div>
           <div class="document-toolbar">
             <div class="tool-group"><button class="selectlike" id="formatParagraph">본문</button><button id="formatBold" title="굵게"><b>B</b></button><button id="formatItalic" title="기울임"><i>I</i></button><button id="formatAlign" title="왼쪽 정렬">≡</button><button id="formatList" title="글머리표">☷</button></div>
-            <div class="document-state"><span id="documentSaveState">직접 편집 가능 · 저장됨</span><button id="undoDirectEdit">편집 되돌리기</button><button id="saveDocument">저장</button><button class="sync-action" id="syncMdToHwpx" hidden>MD → HWPX 반영</button><button class="sync-action" id="syncHwpxToMd" hidden>HWPX → MD 반영</button><button class="sync-action" id="downloadProjectHwpx" hidden>적용 HWPX 다운로드</button><button id="importHwpx">파일 열기</button><input id="hwpxFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.docx,.xlsx,.md,.txt,.py,.js,.ts,.json,application/hwp+zip" hidden><button id="previewToggle">미리보기</button><button class="primary small" id="exportButton">내보내기</button></div>
+            <div class="document-state"><span id="documentSaveState">직접 편집 가능 · 저장됨</span><button id="undoDirectEdit">편집 되돌리기</button><button id="saveDocument">저장</button><label class="template-mcp-control" id="templateMcpControl" hidden><span>양식</span><select id="templateMcpSelect" aria-label="완성 문서 양식 MCP 선택"><option value="">양식 불러오는 중</option></select></label><button class="template-mcp-help" id="templateMcpHelp" hidden title="양식 MCP 사용법">? 사용법</button><button class="sync-action" id="syncMdToHwpx" hidden>MD → 파생 문서 반영</button><button class="sync-action" id="syncHwpxToMd" hidden>파생 문서 → MD 반영</button><button class="sync-action" id="downloadProjectHwpx" hidden>파생 문서 다운로드</button><button id="importHwpx">파일 열기</button><input id="hwpxFile" type="file" accept=".hwp,.hwpx,.hwt,.hml,.docx,.odt,.xlsx,.md,.txt,.py,.js,.ts,.json,application/hwp+zip" hidden><button id="previewToggle">미리보기</button><button class="primary small" id="exportButton">내보내기</button></div>
           </div>
           <div class="document-stage">
-            <article class="paper" id="documentPaper" aria-label="직접 편집 가능한 문서">
-              <div class="doc-meta"><span>내부업무용</span><span>2026. 08. 11.</span></div>
-              <h1>2027년도 신규사업 예산요청서</h1>
-              <p class="doc-subtitle">지능형 민원지원 기반 구축</p>
-              <section>
-                <h2>1. 사업 개요</h2>
-                <table>
-                  <tr><th>사업명</th><td data-field="project.name">지능형 민원지원 기반 구축</td></tr>
-                  <tr><th>사업기간</th><td data-field="project.period">2027. 1. ~ 2027. 12.</td></tr>
-                  <tr><th>사업대상</th><td>중앙부처 민원 담당자 및 대국민 서비스 이용자</td></tr>
-                  <tr><th>총사업비</th><td data-field="budget.total">1,284백만원</td></tr>
-                </table>
-              </section>
-              <section>
-                <h2>2. 추진 배경 및 필요성</h2>
-                <p class="editable-paragraph selected" id="targetParagraph">민원 업무의 복잡도가 높아지고 담당자별 답변 품질 편차가 발생함에 따라, 축적된 행정 지식과 최신 기준을 활용하여 신속하고 일관된 민원 대응을 지원하는 지능형 업무 기반을 구축하고자 한다.</p>
-              </section>
-              <section>
-                <h2>3. 소요 예산</h2>
-                <table class="budget-table">
-                  <thead><tr><th>구분</th><th>산출 근거</th><th>금액(백만원)</th></tr></thead>
-                  <tbody>
-                    <tr><td>SW 개발비</td><td>중급기술자 8.56백만원 × 10명 × 10개월</td><td>856</td></tr>
-                    <tr><td>인프라 구축</td><td>GPU 서버 및 보안장비 1식</td><td>318</td></tr>
-                    <tr><td>교육·운영</td><td>사용자 교육 및 초기 운영</td><td>110</td></tr>
-                    <tr class="total"><td colspan="2">합계</td><td>1,284</td></tr>
-                  </tbody>
-                </table>
-                <aside class="citation">출처 3개 연결됨 · SW사업 대가산정 가이드(2026), 내부 사업계획서, 정보화 예산편성 지침</aside>
-              </section>
+            <article class="paper empty-paper" id="documentPaper" aria-label="직접 편집 가능한 문서">
+              <div class="doc-meta"><span>프로젝트 작업공간</span><span>MD 기준 원본</span></div>
+              <h1>프로젝트 문서 준비</h1>
+              <p class="doc-subtitle">프로젝트를 선택하면 마지막 작업 화면을 복원합니다.</p>
+              <section><h2>업무를 시작하는 방법</h2><p class="editable-paragraph" id="targetParagraph">자료를 추가한 뒤 AI에게 분석이나 문서 작성을 요청하거나, 자료 없이 대화로 바로 시작할 수 있습니다.</p></section>
             </article>
             <aside class="preview-pane" id="previewPane" hidden>
               <div class="preview-head"><strong>산출물 미리보기</strong><button id="closePreview">×</button></div>
@@ -153,13 +128,13 @@
         <div class="chat" id="chat">
           <div class="message assistant">
             <span class="mini-orb">✦</span>
-            <div><p>문서에서 사업명, 기간, 대상, 예산 등 <b>7개 핵심 값</b>을 찾았습니다. 출처와 함께 공통데이터에 연결했습니다.</p><button class="inline-link" data-view-link="data">추출 결과 보기 →</button></div>
+            <div><p>선택한 프로젝트의 마지막 대화와 문서를 불러오는 중입니다.</p><button class="inline-link" data-view-link="data">프로젝트 자료 보기 →</button></div>
           </div>
           <div class="quick-actions">
             <span>빠른 작업</span>
-            <button data-prompt="선택 문장을 2줄 공문체로 정리해줘">2줄 공문체로 정리</button>
-            <button data-prompt="현재 기준값으로 예산 산출 근거를 갱신해줘">현재 값으로 갱신</button>
-            <button data-prompt="예산요청서 초안을 완성해줘">예산요청서 완성</button>
+            <button data-prompt="선택한 자료의 핵심 내용을 정리해줘">자료 요약</button>
+            <button data-prompt="분석 결과를 근거와 함께 보고서로 작성해줘">보고서 작성</button>
+            <button data-prompt="현재 문서의 문장을 더 명확하게 다듬어줘">문장 다듬기</button>
           </div>
         </div>
         <form class="composer" id="chatForm">
@@ -179,39 +154,114 @@
   <dialog id="approvalDialog">
     <form method="dialog" class="approval-card">
       <header><span class="shield">◇</span><div><small>실행 전 권한 검토</small><h2>이 작업을 실행할까요?</h2></div><button value="cancel" aria-label="닫기">×</button></header>
-      <div class="approval-summary"><span>요청</span><strong id="approvalIntent"></strong><p>Core Orchestrator가 아래 실행 계획을 만들었습니다.</p></div>
-      <ol class="plan-steps" id="planSteps"></ol>
+      <div class="approval-summary"><span>요청</span><strong id="approvalIntent"></strong><p>실행 전에 업무 순서와 외부 전송 범위를 확인하세요.</p></div>
+      <section class="approval-user-plan"><strong>처리 순서</strong><ol id="approvalUserSteps"></ol></section>
+      <p class="approval-lease" id="approvalLease">이 승인은 현재 계획의 최소 권한에만 적용되며, 10분 안에 한 번 실행하면 즉시 소멸합니다.</p>
+      <label class="approval-final-action" id="approvalFinalActionRow" hidden><input type="checkbox" id="finalActionConfirm"><span><b id="finalActionLabel">최종 행위 확인</b><small>이 작업은 외부 상태를 바꾸거나 되돌리기 어려울 수 있습니다.</small></span></label>
       <section class="data-policy">
         <div><strong>전송 데이터</strong><span class="safe">개인정보 없음</span></div>
         <p id="transferDescription">선택 문단만 사용하며 원본 파일 전체는 전송하지 않습니다.</p>
         <label><input type="checkbox" id="externalTransfer"> 선택 데이터의 외부 모델 전송 허용 <small id="transferModel">선택 모델과 제공자 정책을 확인하세요.</small></label>
       </section>
+      <details class="approval-technical" id="approvalTechnicalDetails"><summary>기술 정보 보기 · 사용하는 MCP와 권한</summary><ol class="plan-steps" id="planSteps"></ol></details>
       <footer><button value="cancel">취소</button><button value="approve" class="primary" id="approveRun">승인 후 실행</button></footer>
     </form>
   </dialog>
 
   <dialog id="templateMappingDialog">
     <form method="dialog" class="approval-card template-mapping-card">
-      <header><span class="shield">⌘</span><div><small>TEMPLATE SCHEMA</small><h2>양식 슬롯 시각 보정</h2></div><button value="cancel" aria-label="닫기">×</button></header>
-      <p class="template-mapping-help" id="templateMappingHelp">HWPX의 실제 문단을 제목·본문 슬롯과 목록 서식 원형으로 지정합니다.</p>
-      <div class="template-mapping-grid">
-        <label class="field"><span>제목 슬롯 · 필수</span><select id="mappingTitle"></select></label>
-        <label class="field"><span>본문 시작 슬롯 · 필수</span><select id="mappingBody"></select></label>
-        <label class="field"><span>○ 소제목 원형 · 선택</span><select id="mappingMain"></select></label>
-        <label class="field"><span>- 세부내용 원형 · 선택</span><select id="mappingSub"></select></label>
-        <label class="field"><span>※ 참조내용 원형 · 선택</span><select id="mappingNote"></select></label>
-        <label class="field"><span>담당 부서 슬롯 · 선택</span><select id="mappingDepartment"></select></label>
-        <label class="field"><span>작성자 슬롯 · 선택</span><select id="mappingAuthor"></select></label>
-        <label class="field"><span>문서번호 슬롯 · 선택</span><select id="mappingDocumentNumber"></select></label>
-        <label class="field"><span>결재란 문단 · 선택</span><select id="mappingApproval"></select></label>
+      <header><span class="shield">⌘</span><div><small>ADVANCED TEMPLATE MAPPING</small><h2>고급 매핑 보정</h2></div><button value="cancel" aria-label="닫기">×</button></header>
+      <p class="template-mapping-help" id="templateMappingHelp">자동 적용 결과가 잘못된 경우에만 사용합니다. P 번호는 HWPX 내부 문단 위치이며 일반 사용자는 수정할 필요가 없습니다.</p>
+      <div class="template-mapping-workspace">
+        <section class="template-md-pane">
+          <div class="template-pane-head"><b>MD 내용 계약</b><span>문서마다 바뀌는 데이터</span></div>
+          <textarea id="templateBlueprintMarkdown" spellcheck="false" aria-label="Markdown 양식 매핑"></textarea>
+          <details>
+            <summary>고급 문단·서식 매핑 펼치기</summary>
+            <div class="template-mapping-grid">
+              <label class="field"><span>제목 슬롯 · 필수</span><select id="mappingTitle"></select></label>
+              <label class="field"><span>본문 시작 슬롯 · 필수</span><select id="mappingBody"></select></label>
+              <label class="field"><span>○ 소제목 원형 · 선택</span><select id="mappingMain"></select></label>
+              <label class="field"><span>- 세부내용 원형 · 선택</span><select id="mappingSub"></select></label>
+              <label class="field"><span>※ 참조내용 원형 · 선택</span><select id="mappingNote"></select></label>
+              <label class="field"><span>담당 부서 슬롯 · 선택</span><select id="mappingDepartment"></select></label>
+              <label class="field"><span>작성자 슬롯 · 선택</span><select id="mappingAuthor"></select></label>
+              <label class="field"><span>문서번호 슬롯 · 선택</span><select id="mappingDocumentNumber"></select></label>
+              <label class="field"><span>결재란 문단 · 선택</span><select id="mappingApproval"></select></label>
+              <label class="field"><span>반복 section 원형 · 선택</span><select id="mappingSectionRepeater"></select></label>
+              <label class="field"><span>조건부 영역 기준 · 선택</span><select id="mappingConditional"></select></label>
+              <label class="field"><span>반복 표 원형 · 선택</span><select id="mappingTableRepeater"></select></label>
+            </div>
+          </details>
+          <div class="template-mapping-preview" id="templateMappingPreview">문단을 선택하면 MD 슬롯과 HWPX 위치를 확인할 수 있습니다.</div>
+        </section>
+        <section class="template-hwpx-pane">
+          <div class="template-pane-head"><b>HWPX 고정 양식</b><span id="templateHwpxState">RHWP 준비 중</span></div>
+          <div id="templateMappingHwpxHost" class="template-mapping-hwpx-host"></div>
+          <div class="template-binding-rail" id="templateBindingRail"># {{title}} → HWPX 제목 문단<br>{{content}} → HWPX 본문 시작 문단</div>
+        </section>
       </div>
-      <div class="template-mapping-preview" id="templateMappingPreview">문단을 선택하면 현재 텍스트와 위치를 확인할 수 있습니다.</div>
-      <footer><button value="cancel">취소</button><button type="button" class="primary" id="applyTemplateMapping">보정·실검증 후 반영</button></footer>
+      <footer><small>저장 시 오른쪽 편집본과 왼쪽 매핑을 실제 보고서로 렌더링·재파싱해 검증합니다.</small><button value="cancel">취소</button><button type="button" class="primary" id="applyTemplateMapping">양식 MCP에 저장·실검증</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="templatePreviewDialog">
+    <form method="dialog" class="approval-card template-preview-card">
+      <header><span class="shield">✓</span><div><small>TEMPLATE MCP · 실제 결과 확인</small><h2>이 양식이 맞는지 보고서 내용으로 확인하세요</h2></div><button value="cancel" aria-label="닫기">×</button></header>
+      <div class="template-preview-guide">
+        <span><i>1</i><b>원본 보존</b><small>업로드한 HWPX는 그대로 보관</small></span>
+        <span><i>2</i><b>내용만 교체</b><small>아래 MD를 제목·본문·표에 적용</small></span>
+        <span><i>3</i><b>눈으로 확정</b><small>결과가 맞을 때만 양식으로 사용</small></span>
+      </div>
+      <div class="template-preview-workspace">
+        <section class="template-preview-input">
+          <div class="template-pane-head"><b>확인용 Markdown</b><span>최종 문서에는 이 내용이 들어갑니다</span></div>
+          <textarea id="templatePreviewMarkdown" spellcheck="false" aria-label="양식 적용 확인용 Markdown"></textarea>
+          <button type="button" class="primary" id="refreshTemplatePreview">수정한 내용으로 다시 보기</button>
+          <div id="templatePreviewAnalysis" class="template-preview-analysis">양식 분석 결과를 불러오는 중입니다.</div>
+          <p>이 예시는 양식 확인용이며 프로젝트 문서나 MCP 데이터로 저장되지 않습니다.</p>
+        </section>
+        <section class="template-preview-result">
+          <div class="template-pane-head"><b id="templatePreviewModeLabel">실제 내용 적용 결과</b><span id="templatePreviewHwpxState">RHWP 준비 중</span></div>
+          <div class="template-preview-switch"><button type="button" id="showTemplateOriginal">업로드 원본</button><button type="button" class="active" id="showTemplateResult">실제 적용 결과</button></div>
+          <div id="templatePreviewHwpxHost" class="template-mapping-hwpx-host"></div>
+        </section>
+      </div>
+      <footer><small>결과가 다르면 확정하지 말고 고급 매핑에서 제목·본문 위치만 보정하세요.</small><button type="button" id="openAdvancedTemplateMapping">고급 매핑</button><button value="cancel">나중에</button><button type="button" class="primary" id="confirmTemplatePreview">이 결과를 양식으로 사용</button></footer>
     </form>
   </dialog>
 
 
+  <dialog id="templateUsageDialog">
+    <form method="dialog" class="approval-card template-usage-card">
+      <header><span class="shield">?</span><div><small>TEMPLATE MCP QUICK GUIDE</small><h2>양식 MCP 실제 사용법</h2></div><button value="cancel" aria-label="닫기">×</button></header>
+      <div class="template-usage-body" id="templateUsageBody">설치된 양식 MCP 정보를 불러오는 중입니다.</div>
+      <footer>
+        <button type="button" id="templateUsageChat">호출 문구 입력</button>
+        <button type="button" id="templateUsageEdit">Builder에서 수정</button>
+        <button type="button" class="primary" id="templateUsageApply">현재 문서에 적용</button>
+        <button value="cancel">닫기</button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog id="builderManualDialog" class="builder-manual-dialog">
+    <form method="dialog" class="approval-card builder-manual-card">
+      <header><span class="shield">◎</span><div><small>MCP BUILDER · 처음부터 따라하기</small><h2>화면을 보며 5단계로 완성하세요</h2></div><button value="cancel" aria-label="닫기">×</button></header>
+      <div class="builder-manual-layout">
+        <nav id="builderManualNav" aria-label="MCP 제작 단계"></nav>
+        <section id="builderManualStage" class="builder-manual-stage"></section>
+      </div>
+      <footer>
+        <small id="builderManualProgress">1 / 5</small>
+        <button type="button" id="builderManualPrev">이전</button>
+        <button type="button" id="builderManualExample">예시로 시작</button>
+        <button type="button" id="builderManualGo">이 화면에서 해보기</button>
+        <button type="button" class="primary" id="builderManualNext">다음</button>
+        <button value="cancel">닫기</button>
+      </footer>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/poc/aiworks/app.js?v=20260821-v62"></script>
+  <script src="/poc/aiworks/app.js?v=20260831-v80"></script>
 </body>
 </html>

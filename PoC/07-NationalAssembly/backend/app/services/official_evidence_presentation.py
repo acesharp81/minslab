@@ -9,7 +9,7 @@ from typing import Any, Iterable
 from .official_reconciliation import compact_text, inline_diff
 
 
-PRESENTATION_VERSION = "official-evidence-presentation/1.0"
+PRESENTATION_VERSION = "official-evidence-presentation/1.1"
 
 
 def official_material_hash(rows: Iterable[dict[str, Any]]) -> str:
