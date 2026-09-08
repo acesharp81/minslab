@@ -9,6 +9,7 @@ from app.services.official_reconciliation import (
     inline_diff,
     minimal_patch_text,
     speaker_reconciliation_stats,
+    style_only_equivalent,
 )
 
 
@@ -58,14 +59,74 @@ class OfficialReconciliationTests(unittest.TestCase):
         )
         self.assertEqual("", changed.strip())
 
+    def test_reordered_bullet_and_prose_are_style_only(self):
+        before = "대법원과 법원행정처의 비상계엄 관련 회의 및 입장을 점검했다."
+        after = "비상계엄 관련 회의 및 입장: 대법원·법원행정처 점검."
+        self.assertTrue(style_only_equivalent(before, after))
+        self.assertEqual(
+            inline_diff(before, after),
+            [{"kind": "equal", "text": after}],
+        )
+        self.assertEqual(minimal_patch_text(before, after), before)
+
+    def test_style_filter_does_not_hide_fact_action_or_ministry_change(self):
+        self.assertFalse(style_only_equivalent(
+            "법무부는 관련 대책을 검토한다고 밝혔다.",
+            "법무부는 관련 대책을 즉시 추진한다고 밝혔다.",
+        ))
+        self.assertFalse(style_only_equivalent(
+            "법무부는 관련 대책을 추진한다.",
+            "법무부와 경찰청은 관련 대책을 추진한다.",
+        ))
+        self.assertFalse(style_only_equivalent(
+            "관련 사업에 20억 원을 편성한다.",
+            "관련 사업에 30억 원을 편성한다.",
+        ))
+        self.assertFalse(style_only_equivalent(
+            "법무부는 예산을 추진하고 행정안전부는 재난 대책을 검토했다.",
+            "법무부는 재난 대책을 검토하고 행정안전부는 예산을 추진했다.",
+        ))
+        self.assertFalse(style_only_equivalent(
+            "20억 원 사업과 별도 20억 원 사업을 편성한다.",
+            "20억 원 사업을 편성한다.",
+        ))
+
+    def test_independent_sentence_reordering_is_style_only(self):
+        self.assertTrue(style_only_equivalent(
+            "법무부는 예산을 점검했다. 행정안전부는 재난 대책을 검토했다.",
+            "행정안전부는 재난 대책을 검토했다. 법무부는 예산을 점검했다.",
+        ))
+
+    def test_moved_clause_is_not_reported_twice_and_real_append_is_minimal(self):
+        before = (
+            "법무부는 예산을 점검했다. "
+            "행정안전부는 재난 대책을 검토했다."
+        )
+        after = (
+            "행정안전부는 재난 대책을 검토했다. "
+            "법무부는 예산을 점검했고 개선안을 제출했다."
+        )
+        spans = inline_diff(before, after)
+        changed = "".join(
+            item["text"] for item in spans if item["kind"] != "equal"
+        )
+        self.assertEqual(changed, "고 개선안을 제출했")
+        self.assertFalse(any(item["kind"] == "deleted" for item in spans))
+        self.assertEqual(
+            minimal_patch_text(before, after),
+            "법무부는 예산을 점검했고 개선안을 제출했다. "
+            "행정안전부는 재난 대책을 검토했다.",
+        )
+
     def test_minimal_patch_preserves_provisional_spacing_and_unchanged_wording(self):
         before = "이것 부대가져있어요 반환하면서 녹지로 조성한 겁니다."
         after = "이것 부대 반환 기지였어요. 반환받으면서 녹지로 조성한 겁니다."
         patched = minimal_patch_text(before, after)
         self.assertIn("이것", patched)
         self.assertIn("부대 반환", patched)
+        self.assertIn("기지였어요. 반환받으면서", patched)
         self.assertIn("녹지로 조성한 겁니다.", patched)
-        self.assertNotEqual(after, patched)
+        self.assertEqual(after, patched)
 
     def test_minimal_patch_does_not_duplicate_sentence_stop_at_insert_boundary(self):
         before = "대법원은 예산 집행에 반영하겠다고 밝혔다."
@@ -120,7 +181,7 @@ class OfficialReconciliationTests(unittest.TestCase):
                 "official_utterance_ids": ["official-1"],
             },
         ]
-        integrated, changes = apply_official_edits(base, edits)
+        integrated, _changes = apply_official_edits(base, edits)
         self.assertEqual(len(integrated["topics"]), 1)
         self.assertEqual(
             integrated["topics"][0]["title"],

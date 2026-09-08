@@ -25,7 +25,6 @@ const assemblyTranscriptState = {
   expandedMode: null,
   selectedBroadcastId: null,
   liveItems: [],
-  betaAutoOpened: false,
   followLatest: true,
   autoScrolling: false,
 };
@@ -57,6 +56,13 @@ const meetingRailHistoryState = {
   statusPayload: null,
   executivePayload: { items: [] },
 };
+const latestMeetingReportState = { pending: false };
+const initialWorkspaceHash = window.location.hash.replace("#", "");
+const explicitWorkspaceHashes = new Set([
+  "live", "reports", "topic-reports", "extras",
+  "cabinet", "presidential", "crossFlow", "assembly", "committees", "bills",
+]);
+let initialWorkspaceAutoSelectionPending = !explicitWorkspaceHashes.has(initialWorkspaceHash);
 
 for (const button of viewTabs) {
   button.addEventListener("click", () => {
@@ -93,12 +99,26 @@ function activateWorkspaceTab(name, options = {}) {
     workspaceTabs.find((tab) => tab.dataset.workspaceTab === target)?.focus();
   }
   document.dispatchEvent(new CustomEvent("workspace-tab-change", { detail: { tab: target } }));
+  if (target === "reports" && options.openLatest === true) requestLatestMeetingReport();
+}
+
+function selectInitialWorkspaceForLiveStatus(anyLive) {
+  if (!initialWorkspaceAutoSelectionPending) return;
+  initialWorkspaceAutoSelectionPending = false;
+  const target = anyLive ? "live" : "reports";
+  activateWorkspaceTab(target, {
+    updateHash: false,
+    openLatest: target === "reports",
+  });
 }
 
 for (const tab of workspaceTabs) {
   tab.addEventListener("click", (event) => {
     event.preventDefault();
-    activateWorkspaceTab(tab.dataset.workspaceTab);
+    initialWorkspaceAutoSelectionPending = false;
+    activateWorkspaceTab(tab.dataset.workspaceTab, {
+      openLatest: tab.dataset.workspaceTab === "reports",
+    });
   });
   tab.addEventListener("keydown", (event) => {
     const current = workspaceTabs.indexOf(tab);
@@ -109,13 +129,22 @@ for (const tab of workspaceTabs) {
     if (event.key === "End") next = workspaceTabs.length - 1;
     if (next === null) return;
     event.preventDefault();
-    activateWorkspaceTab(workspaceTabs[next].dataset.workspaceTab, { focus: true });
+    initialWorkspaceAutoSelectionPending = false;
+    const target = workspaceTabs[next].dataset.workspaceTab;
+    activateWorkspaceTab(target, { focus: true, openLatest: target === "reports" });
   });
 }
 
 
-window.addEventListener("hashchange", () => activateWorkspaceTab(workspaceTabFromHash(), { updateHash: false }));
-activateWorkspaceTab(workspaceTabFromHash(), { updateHash: false });
+window.addEventListener("hashchange", () => {
+  initialWorkspaceAutoSelectionPending = false;
+  const target = workspaceTabFromHash();
+  activateWorkspaceTab(target, { updateHash: false, openLatest: target === "reports" });
+});
+const initialWorkspaceTab = workspaceTabFromHash();
+activateWorkspaceTab(initialWorkspaceTab, {
+  updateHash: false, openLatest: initialWorkspaceTab === "reports",
+});
 
 
 function magazineElement(tag, className, text) {
@@ -664,7 +693,7 @@ function buildLiveTopics(segmentItems = null) {
     groups.set(hint.topic_id, group);
     const evidence = {
       speaker: item.speaker_label || "발언자 확인 중",
-      summary: item.summary || summarizeUtterance(item.text),
+      summary: hint.summary || item.summary || summarizeUtterance(item.text),
       text: item.text,
       cursor: Number(item.cursor || item.last_cursor || 0),
       receivedAt: item.received_at || item.end_at || item.start_at || null,
@@ -738,13 +767,19 @@ function renderInsightToolbar(container, groups, segmentItems) {
 
 function renderLiveInsights(container = document.querySelector("#assemblyLiveInsights"), segmentItems = null) {
   if (!container) return;
-  const allGroups = buildLiveTopics(segmentItems);
   const compactMode = ["LIVE", "EXECUTIVE_LIVE", "POST_PROCESSING"].includes(
     assemblyTranscriptState.expandedMode,
   );
+  const preparedItems = Array.isArray(segmentItems) ? [...segmentItems] : segmentItems;
+  const latestItem = Array.isArray(preparedItems) ? preparedItems.at(-1) : null;
+  const completedItems = compactMode
+    && latestItem?.lifecycle_status === "LIVE"
+    ? preparedItems.slice(0, -1)
+    : preparedItems;
+  const allGroups = buildLiveTopics(completedItems);
   container.classList.toggle("is-compact", compactMode);
   if (compactMode) {
-    renderCompactLiveInsights(container, allGroups, segmentItems);
+    renderCompactLiveInsights(container, allGroups, completedItems);
     return;
   }
   container.replaceChildren();
@@ -1123,9 +1158,43 @@ function syncLiveInsightHeight(media, insights) {
   assemblyTranscriptState.layoutObserver.observe(media);
 }
 
+function isWatchReplaySource(sourceSystem) {
+  return String(sourceSystem || "").startsWith("poc07.replay.");
+}
+
+function isWatchTestSource(sourceSystem) {
+  return sourceSystem === "poc07.test" || isWatchReplaySource(sourceSystem);
+}
+
 function liveMedia(liveItem) {
   const media = magazineElement("div", "live-media", "");
-  if (liveItem?.source_system === "poc07.test") {
+  if (isWatchTestSource(liveItem?.source_system) && liveItem?.status === "COMPLETED") {
+    media.classList.add("is-test-meeting", "is-test-ended");
+    const endedStage = magazineElement("div", "test-meeting-stage", "");
+    endedStage.append(
+      magazineElement("span", "test-meeting-ended", "TEST END"),
+      magazineElement("strong", "", "생방송 없음"),
+      magazineElement("p", "", "테스트 영상 재생을 종료했습니다."),
+      magazineElement("small", "", "아래 임시보고는 방송 종료 후 1분간만 유지됩니다."),
+    );
+    media.append(endedStage);
+  } else if (isWatchReplaySource(liveItem?.source_system) && liveItem?.video_embed_url) {
+    media.classList.add("is-replay-meeting");
+    const iframe = document.createElement("iframe");
+    iframe.src = liveItem.video_embed_url;
+    iframe.title = "제438회 제1차 행정안전위원회 AI 데이터센터 질의답변 영상";
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.addEventListener("load", () => {
+      window.setTimeout(() => {
+        document.dispatchEvent(new CustomEvent("watch-replay-playback-ready", {
+          detail: { testId: liveItem.test_id },
+        }));
+      }, 700);
+    }, { once: true });
+    media.append(iframe, magazineElement("span", "live-media-label", "REPLAY · 실제 저장 자막"));
+  } else if (liveItem?.source_system === "poc07.test") {
     media.classList.add("is-test-meeting");
     const testStage = magazineElement("div", "test-meeting-stage", "");
     testStage.append(
@@ -1452,36 +1521,50 @@ function expandExecutiveLiveBroadcast(item, row) {
 }
 
 function watchTestBroadcast(payload) {
-  return payload?.transcript?.broadcasts?.[0] || {
+  const captured = payload?.transcript?.broadcasts?.[0] || {};
+  const replay = payload?.replay_mode === "HASI_AI_REPLAY";
+  return {
+    ...captured,
+    test_id: payload?.test_id,
+    status: payload?.status || captured.status || "LIVE",
     broadcast_id: payload?.broadcast_id,
     external_id: `watch-test-${payload?.test_id || "live"}`,
-    institution: "EXECUTIVE",
-    committee_name: "국무회의",
-    title: payload?.title || "관심주제 알림 가상방송",
+    institution: payload?.institution || captured.institution || (replay ? "LEGISLATURE" : "EXECUTIVE"),
+    committee_name: payload?.committee_name || captured.committee_name || (replay ? "행정안전위원회" : "국무회의"),
+    title: payload?.title || captured.title || "관심주제 알림 가상방송",
     lifecycle_status: payload?.lifecycle_status || "LIVE",
-    source_system: "poc07.test",
-    place: "가상 국무회의 테스트",
+    source_system: payload?.source_system || captured.source_system || "poc07.test",
+    place: replay ? "국회 행정안전위원회 · 과거 방송 재현" : "가상 국무회의 테스트",
+    video_embed_url: payload?.video_embed_url || captured.video_embed_url || null,
   };
 }
 
 function renderWatchTestLive(payload, options = {}) {
   if (!payload) return;
-  const broadcast = { ...watchTestBroadcast(payload), source_system: "poc07.test" };
+  const broadcast = watchTestBroadcast(payload);
   const broadcastId = String(broadcast.broadcast_id || payload.broadcast_id || "");
-  const needsShell = assemblyTranscriptState.expandedMode !== "EXECUTIVE_LIVE"
+  const displayMode = broadcast.institution === "LEGISLATURE" ? "LIVE" : "EXECUTIVE_LIVE";
+  const stage = document.querySelector("#liveOperationsExpandedStage");
+  const needsShell = assemblyTranscriptState.expandedMode !== displayMode
     || String(assemblyTranscriptState.selectedBroadcastId || "") !== broadcastId
+    || stage?.dataset.watchTestStatus !== payload.status
     || !document.querySelector("#liveOperationsExpandedStage .transcript-stage, #liveOperationsExpandedStage.transcript-stage");
   if (needsShell) {
     stopAssemblyTranscript();
     assemblyTranscriptState.expanded = true;
-    assemblyTranscriptState.expandedMode = "EXECUTIVE_LIVE";
+    assemblyTranscriptState.expandedMode = displayMode;
     assemblyTranscriptState.selectedBroadcastId = broadcastId;
     assemblyTranscriptState.broadcastId = broadcastId;
     document.querySelector("#liveOperationsExpanded").hidden = false;
     document.querySelector("#liveOperationsExpandedTitle").textContent = broadcast.title;
-    renderTranscriptShell([broadcast], "EXECUTIVE_LIVE");
+    renderTranscriptShell([broadcast], displayMode);
+    stage.dataset.watchTestStatus = payload.status;
     const continuity = document.querySelector("#liveOperationsExpanded .transcript-continuity");
-    if (continuity) continuity.textContent = "격리 테스트 방송 · 공통 LIVE 자막·화자 묶음·초안 경로";
+    if (continuity) continuity.textContent = payload.status === "COMPLETED"
+      ? "테스트 방송 종료 · 생방송 없음 · 임시보고 1분 유지"
+      : isWatchReplaySource(broadcast.source_system)
+        ? "과거 행안위 참고 영상 · 저장 자막 빠른 재현 · 알람 경로 검증"
+        : "격리 테스트 방송 · 공통 LIVE 자막·화자 묶음·초안 경로";
   }
   document.querySelectorAll("#liveBroadcastRows .broadcast-row").forEach((row) => {
     if (String(row.dataset.broadcastId || "") === broadcastId) row.setAttribute("aria-current", "true");
@@ -1544,7 +1627,6 @@ function expandEndedExecutiveBroadcast(item, row) {
   notice.append(link);
   root.append(hero, tabs, notice);
   stage.replaceChildren(root);
-  document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function meetingBriefStatusLabel(task) {
@@ -2433,9 +2515,6 @@ function expandMeetingBrief(item, row, options = {}) {
     });
   };
   loadBrief();
-  if (!options.auto) {
-    document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
 }
 
 function expandEndedBroadcast(item, row) {
@@ -2474,7 +2553,6 @@ function expandEndedBroadcast(item, row) {
       const waiting = document.querySelector(".transcript-waiting");
       if (waiting) waiting.textContent = "종료 방송 기록을 불러오지 못했습니다.";
     });
-  document.querySelector("#liveExpanded").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function expandPostProcessingBroadcast(item, row) {
@@ -2667,7 +2745,7 @@ function startAssemblyTranscript(liveItems) {
 
 function mergeOfficialLiveBroadcasts(statusPayload, activeTranscript) {
   const active = (activeTranscript?.broadcasts || []).filter(
-    (item) => item.lifecycle_status === "LIVE" && item.source_system !== "poc07.test",
+    (item) => item.lifecycle_status === "LIVE" && !isWatchTestSource(item.source_system),
   );
   for (const item of statusPayload?.assembly?.items || []) {
     if (!item.is_live) continue;
@@ -2697,6 +2775,9 @@ function addMeetingRailCard(container, card) {
     { label: card.institution, tone: "institution" },
   ];
   if (card.id) row.dataset.broadcastId = card.id;
+  if (Number.isFinite(Number(card.reportTimestamp))) {
+    row.dataset.reportTimestamp = String(Number(card.reportTimestamp));
+  }
   if (card.id && card.id === assemblyTranscriptState.selectedBroadcastId) row.setAttribute("aria-current", "true");
   if (card.onClick) {
     row.type = "button";
@@ -2726,6 +2807,48 @@ function addMeetingRailCard(container, card) {
   );
   container.append(row);
   return row;
+}
+
+function reportTimestamp(...values) {
+  for (const value of values) {
+    if (!value) continue;
+    const text = String(value).trim();
+    const parts = text.match(
+      /^(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})(?:[T\s](\d{1,2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?)?/,
+    );
+    const hasExplicitZone = /T.*(?:Z|[+-]\d{2}:?\d{2})$/i.test(text);
+    const parsed = hasExplicitZone
+      ? Date.parse(text)
+      : parts
+      ? new Date(
+        Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]),
+        Number(parts[4] || 0), Number(parts[5] || 0), Math.floor(Number(parts[6] || 0)),
+      ).valueOf()
+      : Date.parse(text);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function openLatestMeetingReport() {
+  const panel = document.querySelector('[data-workspace-panel="reports"]');
+  const rail = document.querySelector("#reportBroadcastRows");
+  if (!rail || panel?.hidden !== false) return false;
+  const rows = [...rail.querySelectorAll(".meeting-card.broadcast-row[data-report-timestamp]")];
+  rows.sort((left, right) => (
+    Number(right.dataset.reportTimestamp || 0) - Number(left.dataset.reportTimestamp || 0)
+  ));
+  const newest = rows[0];
+  if (!newest) return false;
+  latestMeetingReportState.pending = false;
+  rail.scrollTo({ left: Math.max(0, newest.offsetLeft - rail.offsetLeft), behavior: "smooth" });
+  newest.click();
+  return true;
+}
+
+function requestLatestMeetingReport() {
+  latestMeetingReportState.pending = true;
+  window.requestAnimationFrame(() => openLatestMeetingReport());
 }
 
 function expandScheduledMeeting(item, row) {
@@ -2776,7 +2899,10 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
   identity.append(
     labels,
     magazineElement("h3", "", meeting.title || "국무회의 결과"),
-    magazineElement("p", "", meeting.agendas?.[0]?.summary || "공식 배포 자료의 주요 안건입니다."),
+    magazineElement(
+      "p", "",
+      meeting.presentation_summary || "공식 배포 자료의 주요 안건입니다.",
+    ),
   );
   hero.append(identity);
   const tabs = magazineElement("div", "meeting-source-tabs", "");
@@ -2798,22 +2924,54 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
   officialTab.type = "button";
   officialTab.setAttribute("aria-selected", "true");
   tabs.append(liveTab, officialTab);
-  const presidential = meeting.presidential_briefing;
+  const appendDirectiveSource = (container, guidance) => {
+    const paragraphs = (guidance.source_paragraphs || []).filter((item) => item?.text);
+    if (!paragraphs.length) return;
+    const details = magazineElement("details", "presidential-directive-source", "");
+    const summary = magazineElement(
+      "summary", "", `공식 발언 ${paragraphs.length}개 보기`,
+    );
+    const body = magazineElement("div", "", "");
+    for (const paragraph of paragraphs) {
+      body.append(magazineElement("p", "", paragraph.text));
+    }
+    details.append(summary, body);
+    container.append(details);
+  };
   const renderAgendaCard = (agenda) => {
     const card = magazineElement("article", "", "");
     if ((agenda.ministries || []).length) {
       card.append(magazineElement("span", "", (agenda.ministries || []).join(" · ")));
     }
-    card.append(
-      magazineElement("h4", "", agenda.topic || "공식 안건"),
-      magazineElement("b", "executive-summary-label", "핵심 내용"),
-      magazineElement("p", "", agenda.summary || "공식 요약 없음"),
-    );
+    card.append(magazineElement("h4", "", agenda.topic || "공식 안건"));
+    if (agenda.agenda_type === "REPORT") {
+      const reportContent = agenda.report_content || {
+        label: "부처 보고 내용",
+        source_label: "공식자료만 반영 · 상세내용 미공개",
+        text: "공식 결과문에는 세부 보고 내용이 공개되지 않아 확인 가능한 보고 제목·소관 부처·대통령 지시만 제공합니다.",
+      };
+      const reportSection = magazineElement("section", "executive-report-content", "");
+      const reportHeader = magazineElement("header", "", "");
+      reportHeader.append(
+        magazineElement("strong", "", reportContent.label || "부처 보고 내용"),
+        magazineElement("span", "", reportContent.source_label || ""),
+      );
+      reportSection.append(
+        reportHeader,
+        magazineElement("p", "", reportContent.text || "보고 내용 없음"),
+      );
+      card.append(reportSection);
+    } else {
+      card.append(
+        magazineElement("b", "executive-summary-label", "심의 내용"),
+        magazineElement("p", "", agenda.summary || "공식 요약 없음"),
+      );
+    }
     for (const guidance of agenda.presidential_guidance || []) {
       const directive = magazineElement("section", "presidential-guidance", "");
       const directiveHeader = magazineElement("header", "", "");
       directiveHeader.append(magazineElement(
-        "strong", "", guidance.label || "대통령 지시사항",
+        "strong", "", guidance.label || "대통령 지시",
       ));
       const targets = magazineElement("div", "presidential-guidance-targets", "");
       for (const ministry of guidance.target_ministries || []) {
@@ -2822,21 +2980,22 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
       directiveHeader.append(targets);
       directive.append(
         directiveHeader,
-        magazineElement("p", "", guidance.text || ""),
+        magazineElement("p", "", guidance.display_text || guidance.text || ""),
       );
+      appendDirectiveSource(directive, guidance);
       card.append(directive);
     }
     for (const briefing of agenda.related_ministry_briefings || []) {
       const related = magazineElement("section", "related-ministry-briefing", "");
       related.append(
-        magazineElement("span", "", "부처 브리핑"),
+        magazineElement("span", "", "부처 추가 발표"),
         magazineElement("strong", "", briefing.title || "부처 공식 브리핑"),
       );
-      if (briefing.summary) {
-        related.append(magazineElement("p", "", briefing.summary));
+      if (briefing.display_summary) {
+        related.append(magazineElement("p", "", briefing.display_summary));
       }
       if (briefing.source_url) {
-        const link = magazineElement("a", "", "부처 브리핑 원문 보기 ↗");
+        const link = magazineElement("a", "", "원문 확인 ↗");
         link.href = briefing.source_url;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
@@ -2848,7 +3007,7 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
   };
   const fallbackGroups = [
     {
-      key: "ministry_reports", label: "부처보고",
+      key: "ministry_reports", label: "부처 보고 내용",
       description: "국무회의에서 관계 부처가 보고한 정책·현안",
       items: (meeting.agendas || []).filter((agenda) => agenda.agenda_type === "REPORT"),
     },
@@ -2857,15 +3016,10 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
       description: "국무회의가 심의·의결한 법률안·대통령령안 등",
       items: (meeting.agendas || []).filter((agenda) => agenda.agenda_type !== "REPORT"),
     },
-    {
-      key: "spokesperson_briefing", label: "대변인 브리핑",
-      description: "같은 회차·날짜로 확인된 대통령실 공식 설명",
-      items: presidential ? [presidential] : [],
-    },
   ];
   const groups = meeting.content_groups?.length ? meeting.content_groups : fallbackGroups;
   const view = magazineElement("section", "executive-agenda-view executive-content-groups", "");
-  let spokespersonView = null;
+  let presidentialView = null;
   for (const group of groups) {
     const groupSection = magazineElement(
       "section", `executive-content-group is-${group.key || "other"}`, "",
@@ -2881,31 +3035,33 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
       magazineElement("span", "", `${group.count ?? group.items?.length ?? 0}건`),
     );
     const groupBody = magazineElement("div", "executive-content-group-body", "");
-    if (group.key === "spokesperson_briefing") {
-      spokespersonView = groupSection;
-      for (const briefing of group.items || []) {
-        const presidentialCard = magazineElement("section", "presidential-briefing-view", "");
-        const head = magazineElement("header", "", "");
-        head.append(magazineElement(
-          "strong", "", briefing.title || "대통령실 공식 브리핑",
-        ));
-        if (briefing.source_url) {
-          const link = magazineElement("a", "", "대통령실 원문 ↗");
-          link.href = briefing.source_url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          head.append(link);
-        }
-        presidentialCard.append(head);
-        for (const message of (briefing.messages || []).slice(0, 3)) {
-          const article = magazineElement("article", "", "");
-          article.append(
-            magazineElement("span", "", message.speaker || "대통령"),
-            magazineElement("p", "", message.text || ""),
-          );
-          presidentialCard.append(article);
-        }
-        groupBody.append(presidentialCard);
+    if (group.key === "presidential_directives") {
+      presidentialView = groupSection;
+      for (const guidance of group.items || []) {
+        const article = magazineElement(
+          "article", "presidential-guidance standalone is-compact", "",
+        );
+        const ministries = (guidance.target_ministries || []).filter(Boolean);
+        const heading = magazineElement("header", "presidential-directive-heading", "");
+        heading.append(
+          magazineElement(
+            "strong", "", guidance.topic || "국정 현안 후속조치",
+          ),
+          magazineElement(
+            "span", "", ministries.length ? ministries.join(" · ") : "관계부처",
+          ),
+        );
+        const line = magazineElement("p", "presidential-directive-line", "");
+        line.append(
+          magazineElement(
+            "b", "presidential-directive-owner",
+            `(${ministries.length ? ministries.join("·") : "관계부처"})`,
+          ),
+          magazineElement("span", "", guidance.display_text || guidance.text || ""),
+        );
+        article.append(heading, line);
+        appendDirectiveSource(article, guidance);
+        groupBody.append(article);
       }
     } else {
       for (const agenda of group.items || []) groupBody.append(renderAgendaCard(agenda));
@@ -2928,8 +3084,10 @@ function expandExecutiveBriefing(meeting, row, options = {}) {
   root.append(hero, tabs);
   root.append(view);
   stage.replaceChildren(root);
-  if (options.focus === "presidential" && spokespersonView) {
-    window.requestAnimationFrame(() => spokespersonView.scrollIntoView({
+  if (options.focus === "presidential") {
+    const target = presidentialView || view.querySelector(".presidential-guidance");
+    if (!target) return;
+    window.requestAnimationFrame(() => target.scrollIntoView({
       behavior: "smooth", block: "start",
     }));
   }
@@ -3228,13 +3386,24 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
   const reportContainer = document.querySelector("#reportBroadcastRows");
   liveContainer.replaceChildren();
   reportContainer.replaceChildren();
-  if (statusPayload.executive?.is_live !== true && watchTestLiveState?.status === "LIVE") {
+  const replayBroadcast = watchTestLiveState?.status === "LIVE"
+    ? watchTestBroadcast(watchTestLiveState) : null;
+  if (replayBroadcast?.institution === "LEGISLATURE") {
+    const exists = (statusPayload.assembly?.items || []).some(
+      (item) => String(item.broadcast_id || "") === String(replayBroadcast.broadcast_id || ""),
+    );
+    if (!exists) {
+      statusPayload.assembly.items = [
+        { ...replayBroadcast, is_live: true, source_status: "REPLAY" },
+        ...(statusPayload.assembly?.items || []),
+      ];
+    }
+  } else if (statusPayload.executive?.is_live !== true && replayBroadcast) {
     statusPayload.executive = {
       ...(statusPayload.executive || {}),
-      ...watchTestBroadcast(watchTestLiveState),
+      ...replayBroadcast,
       is_live: true,
       source_status: "TEST",
-      source_system: "poc07.test",
       place: "가상 국무회의 테스트",
     };
   }
@@ -3256,15 +3425,18 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
   const liveItems = (statusPayload.assembly?.items || []).filter((item) => item.is_live);
   for (const item of liveItems) {
     addMeetingRailCard(liveContainer, {
-      state: "live", status: "진행중 · 기록 중", institution: "국회",
+      state: "live", status: isWatchTestSource(item.source_system) ? "과거 방송 재현 · 기록 중" : "진행중 · 기록 중", institution: "국회",
       tags: [
         { label: "진행중", tone: "active" },
         { label: "기록 중", tone: "recording" },
+        ...(isWatchTestSource(item.source_system) ? [{ label: "재현", tone: "processing" }] : []),
         { label: "국회", tone: "institution" },
       ],
       title: item.title || item.committee_name,
       date: "지금 LIVE", place: item.place || "국회", id: item.broadcast_id || item.meeting_external_id,
-      onClick: (row) => expandLiveBroadcast(item, row),
+      onClick: (row) => isWatchTestSource(item.source_system)
+        ? renderWatchTestLive(watchTestLiveState, { focus: true, row })
+        : expandLiveBroadcast(item, row),
     });
   }
   if (statusPayload.executive?.is_live === true) {
@@ -3320,9 +3492,10 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       })}`;
     const hasProvisionalResult = ended.brief_status === "READY"
       || meetingBriefIsReady(ended.meeting_brief);
+    const hasOfficialPublication = ended.official_status === "PUBLISHED";
     const hasOfficialResult = isExecutive
       ? Boolean(officialExecutive)
-      : ended.official_status === "PUBLISHED";
+      : Boolean(ended.official_integration_updated_at);
     const hasReportResult = hasProvisionalResult || hasOfficialResult;
     const showInLiveContinuity = broadcastWasActiveWithin24Hours(ended);
     const resultTags = [];
@@ -3333,6 +3506,13 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
     }
     if (hasOfficialResult) {
       resultTags.push({ label: "공식정리", tone: "official" });
+    } else if (!isExecutive && hasOfficialPublication) {
+      const comparisonProgress = Math.max(
+        0, Math.min(99, Number(ended.official_comparison_progress || 0)),
+      );
+      resultTags.push({
+        label: `공식대조중(${Math.round(comparisonProgress)}%)`, tone: "processing",
+      });
     }
     const openReport = (row) => officialExecutive ? expandExecutiveBriefing({
       ...officialExecutive,
@@ -3348,13 +3528,13 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       ? expandEndedExecutiveBroadcast(ended, row)
       : expandMeetingBrief(ended, row);
     const openReportWorkspace = () => {
+      latestMeetingReportState.pending = false;
       activateWorkspaceTab("reports");
       window.requestAnimationFrame(() => {
         const reportRow = reportContainer.querySelector(
           `.broadcast-row[data-broadcast-id="${ended.broadcast_id}"]`,
         );
         openReport(reportRow);
-        document.querySelector("#liveExpanded")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
     };
     if (!hasReportResult) {
@@ -3397,6 +3577,7 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       date: endedLabel,
       place: ended.place || (isExecutive ? "KTV 국민방송" : "국회"),
       id: ended.broadcast_id,
+      reportTimestamp: reportTimestamp(ended.started_at, ended.detected_at),
       onClick: openReport,
     });
     if (showInLiveContinuity) {
@@ -3437,6 +3618,9 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       date: meeting.published_date || "",
       place: meeting.place || "장소 미표기",
       id: identity,
+      reportTimestamp: reportTimestamp(
+        meeting.meeting_date, meeting.published_date, meeting.retrieved_at,
+      ),
       onClick: (row) => expandExecutiveBriefing(meeting, row),
     });
   }
@@ -3445,16 +3629,14 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
   } else if (!hasLive && firstProcessingRow && !assemblyTranscriptState.expanded) {
     firstProcessingRow.click();
   }
-  const preferred = (historyPayload.items || []).find((item) => meetingBriefIsReady(item.meeting_brief));
   const reportsVisible = document.querySelector('[data-workspace-panel="reports"]')?.hidden === false;
-  if (!hasLive && reportsVisible && preferred && !assemblyTranscriptState.expanded && !assemblyTranscriptState.betaAutoOpened) {
-    assemblyTranscriptState.betaAutoOpened = true;
-    const row = reportContainer.querySelector('.broadcast-row[data-broadcast-id="' + preferred.broadcast_id + '"]');
-    expandMeetingBrief(preferred, row, { auto: true });
+  if (reportsVisible && latestMeetingReportState.pending) {
+    window.requestAnimationFrame(() => openLatestMeetingReport());
   }
   if (!liveContainer.children.length) {
     liveContainer.append(magazineElement("p", "broadcast-empty", "현재 진행 중이거나 최근 24시간 내 진행된 방송이 없습니다."));
-    if (["LIVE", "EXECUTIVE_LIVE", "POST_PROCESSING"].includes(assemblyTranscriptState.expandedMode)) collapseLiveExpansion();
+    const retainingTestReport = watchTestLiveState?.status === "COMPLETED";
+    if (!retainingTestReport && ["LIVE", "EXECUTIVE_LIVE", "POST_PROCESSING"].includes(assemblyTranscriptState.expandedMode)) collapseLiveExpansion();
   }
   if (!reportContainer.children.length) {
     reportContainer.append(magazineElement("p", "broadcast-empty", "아직 확인된 회의 보고서가 없습니다."));
@@ -3661,8 +3843,8 @@ function loadLiveStatus() {
       const assemblyLiveCount = (payload.assembly.items || []).filter((item) => item.is_live).length;
       const liveCount = assemblyLiveCount + (payload.executive.is_live === true ? 1 : 0);
       const anyLive = liveCount > 0;
-      const liveLabel = assemblyLive
-        ? ` 자동 기록 중 · 국회 LIVE ${payload.assembly.live_count}건 · ${payload.assembly.source_time}`
+      const liveLabel = assemblyLiveCount > 0
+        ? ` 자동 기록 중 · 국회 LIVE ${assemblyLiveCount}건 · ${payload.assembly.source_time}`
         : payload.executive.is_live === true
           ? payload.executive.source_system === "poc07.test"
             ? ` 가상방송 테스트 중 · 공통 LIVE 처리 · ${payload.assembly.source_time}`
@@ -3675,12 +3857,14 @@ function loadLiveStatus() {
         liveNavTab.title = liveLabel.trim();
         liveNavTab.setAttribute("aria-label", anyLive ? `LIVE 방송 중. ${liveLabel}` : `LIVE. ${liveLabel}`);
       }
+      selectInitialWorkspaceForLiveStatus(anyLive);
     })
     .catch(() => {
       liveNavTab?.classList.remove("has-live");
       const liveStatus = document.querySelector("#topLiveStatus");
       if (liveStatus) liveStatus.textContent = "방송없음";
       liveNavTab?.setAttribute("aria-label", "LIVE 방송 상태 확인 필요");
+      selectInitialWorkspaceForLiveStatus(false);
     });
 }
 
@@ -3743,7 +3927,10 @@ document.addEventListener("watch-test-live-update", (event) => {
   }
   const firstUpdate = !watchTestLiveState || watchTestLiveState.test_id !== payload.test_id;
   watchTestLiveState = payload;
-  if (firstUpdate) {
+  if (payload.status === "COMPLETED") {
+    renderWatchTestLive(payload, { focus: false });
+    loadLiveStatus();
+  } else if (firstUpdate) {
     loadLiveStatus().then(() => renderWatchTestLive(payload, { focus: event.detail?.focus === true }));
   } else {
     renderWatchTestLive(payload, { focus: false });

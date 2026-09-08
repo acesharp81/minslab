@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>AIWorks · AI 업무 작업공간</title>
-  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260830-v79">
+  <title>AI Work Hub · AI 업무 작업공간</title>
+  <link rel="stylesheet" href="/poc/aiworks/styles.css?v=20260904-v80">
 </head>
 <body>
   <div class="app-shell">
     <header class="titlebar">
       <a class="product" href="/poc?project=aiworks" aria-label="MinsLab PoC로 돌아가기">
         <span class="product-mark">A</span>
-        <strong>AIWorks</strong>
+        <strong id="productName">AI Work Hub</strong>
         <span class="preview-chip">PREVIEW</span>
       </a>
       <nav class="top-menu" aria-label="주 메뉴">
@@ -33,7 +33,7 @@
               <label><span>프로젝트 이름</span><input id="projectNameInput" maxlength="120" placeholder="예: 2026년 인공지능 예산 분석" required></label>
               <button class="primary" type="submit">프로젝트 생성 후 시작</button>
               <input id="projectBackupFile" type="file" accept=".json,.aiworks.json,application/json" hidden>
-              <button class="project-import-button" id="importProjectBackup" type="button">AIWorks 백업 파일 가져오기</button>
+              <button class="project-import-button" id="importProjectBackup" type="button">AI Work Hub 백업 파일 가져오기</button>
             </form>
             <section class="project-existing-card"><div class="project-existing-head"><div><strong>기존 프로젝트 사용</strong><p>기본 MD·메타정보와 마지막 작업 화면을 즉시 복원합니다.</p></div><button id="refreshProjects" type="button" title="프로젝트 새로고침">↻</button></div><div class="project-list" id="projectList"><div class="project-list-loading">프로젝트를 불러오는 중입니다.</div></div></section>
           </div>
@@ -219,7 +219,7 @@
           <textarea id="templatePreviewMarkdown" spellcheck="false" aria-label="양식 적용 확인용 Markdown"></textarea>
           <button type="button" class="primary" id="refreshTemplatePreview">수정한 내용으로 다시 보기</button>
           <div id="templatePreviewAnalysis" class="template-preview-analysis">양식 분석 결과를 불러오는 중입니다.</div>
-          <p>이 예시는 양식 확인용이며 프로젝트 문서나 MCP 데이터로 저장되지 않습니다.</p>
+          <p>확인용 내용 자체는 저장하지 않습니다. 오른쪽 RHWP에서 바꾼 서식·구조는 아래 저장 버튼으로 양식 초안에 반영됩니다.</p>
         </section>
         <section class="template-preview-result">
           <div class="template-pane-head"><b id="templatePreviewModeLabel">실제 내용 적용 결과</b><span id="templatePreviewHwpxState">RHWP 준비 중</span></div>
@@ -227,7 +227,7 @@
           <div id="templatePreviewHwpxHost" class="template-mapping-hwpx-host"></div>
         </section>
       </div>
-      <footer><small>결과가 다르면 확정하지 말고 고급 매핑에서 제목·본문 위치만 보정하세요.</small><button type="button" id="openAdvancedTemplateMapping">고급 매핑</button><button value="cancel">나중에</button><button type="button" class="primary" id="confirmTemplatePreview">이 결과를 양식으로 사용</button></footer>
+      <footer><small>RHWP 수정본은 확인용 문구를 제거하고 재사용 가능한 제목·본문 슬롯으로 변환해 저장합니다.</small><button type="button" id="openAdvancedTemplateMapping">고급 매핑</button><button value="cancel">나중에</button><button type="button" class="primary" id="confirmTemplatePreview">RHWP 수정본 저장·양식에 반영</button></footer>
     </form>
   </dialog>
 
@@ -262,6 +262,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/poc/aiworks/app.js?v=20260831-v80"></script>
+  <script src="/poc/aiworks/app.js?v=20260904-v87"></script>
 </body>
 </html>

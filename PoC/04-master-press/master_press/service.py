@@ -298,8 +298,8 @@ class MasterPressService:
         return self.store.get_setting("case_llm_model", default)
 
     def selected_case_model1(self) -> str:
-        """RPM-limited NVIDIA primary worker: provider-affine chunks of five."""
-        default = str(getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "openai/gpt-oss-120b")
+        """RPM-limited NVIDIA primary worker with model-specific batch limits."""
+        default = str(getattr(getattr(self, "settings", None), "nvidia_case_model", "nvidia/nemotron-3-super-120b-a12b") or "nvidia/nemotron-3-super-120b-a12b")
         return self.store.get_setting("case_model1", default) if hasattr(self.store, "get_setting") else default
 
     def selected_case_model2(self) -> str:
@@ -317,7 +317,10 @@ class MasterPressService:
         return self.selected_case_single_model()
 
     def case_batch_size_for_provider(self, provider: str) -> int:
-        return {"openai": 10, "nvidia": 5, "openrouter": 1}.get(str(provider or "").lower(), self.selected_case_batch_size())
+        provider = str(provider or "").lower()
+        if provider == "nvidia":
+            return 10 if self.selected_case_model1() == "nvidia/nemotron-3-super-120b-a12b" else 5
+        return {"openai": 10, "openrouter": 1}.get(provider, self.selected_case_batch_size())
 
     def selected_common_fallback_model(self) -> str:
         return self.store.get_setting("common_fallback_llm_model", "@cf/meta/llama-3.1-8b-instruct-fast")
@@ -442,7 +445,7 @@ class MasterPressService:
             return ""
         if model == getattr(getattr(self, "settings", None), "worker_ai_model", "@cf/google/gemma-4-26b-a4b-it") or model.startswith("@cf/"):
             return "cloudflare"
-        if model == getattr(getattr(self, "settings", None), "nvidia_case_model", "openai/gpt-oss-120b") or "gpt-oss-120b" in model:
+        if model == getattr(getattr(self, "settings", None), "nvidia_case_model", "nvidia/nemotron-3-super-120b-a12b") or "gpt-oss-120b" in model or (model.startswith("nvidia/") and not model.endswith(":free")):
             return "nvidia"
         if model == getattr(getattr(self, "settings", None), "openrouter_case_model", "google/gemma-4-26b-a4b-it:free") or model.endswith(":free"):
             return "openrouter"
@@ -1045,7 +1048,7 @@ class MasterPressService:
         burst_stop_threshold = self.selected_burst_stop_threshold()
         common = {**self._status_for_switchable_llm_model(self.selected_common_llm_model(), False), "concurrency": 1, "slot": "model1"}
         common_fallback = {**self._status_for_switchable_llm_model(self.selected_common_fallback_model(), False), "concurrency": 1, "slot": "model2"}
-        case = {**self.nvidia_status(False), "concurrency": 1, "batch_size": 5, "slot": "model1", "worker_slot": "oss"}
+        case = {**self.nvidia_status(False), "concurrency": 1, "batch_size": self.case_batch_size_for_provider("nvidia"), "slot": "model1", "worker_slot": "oss"}
         case_fallback = {**self.openai_status(False), "concurrency": 1, "batch_size": 10, "slot": "model2", "worker_slot": "mini", "enabled": True}
         case_single = {**self.openrouter_status(False), "concurrency": 1, "batch_size": 1, "slot": "single"}
         burst = {**self.openrouter_status(False), "model": self.selected_common_turbo_model(),
@@ -1530,7 +1533,8 @@ class MasterPressService:
     def process_next_case_evaluation(self, forced_provider: str = "", forced_model: str = "",
                                      provider_lane: str = "primary", batch_size: int | None = None,
                                      single_unowned_only: bool = False,
-                                     allow_unowned_single: bool = True) -> dict | None:
+                                     allow_unowned_single: bool = True,
+                                     minimum_age_seconds: int = 0) -> dict | None:
         role = {"nvidia": "case", "openai": "case_fallback", "openrouter": "case_single"}.get(str(forced_provider or "").lower(), "case_single")
         if not self.model_role_enabled(role):
             return None
@@ -1544,6 +1548,7 @@ class MasterPressService:
                 lease_owner=lease_owner, provider_lane=provider_lane,
                 single_unowned_only=single_unowned_only,
                 allow_unowned_single=allow_unowned_single,
+                minimum_age_seconds=minimum_age_seconds,
             )
             if not jobs:
                 return None
@@ -1670,8 +1675,7 @@ class MasterPressService:
                     scheduled = delivery_at(case, result.get("urgent", False))
                     recipient_ids = self.store.case_recipient_ids(case["id"])
                     for recipient_id in recipient_ids:
-                        self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled)
-                        counts["queued"] += 1
+                        counts["queued"] += int(self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled))
                     should_send = should_send or bool(recipient_ids and (result.get("urgent", False) or case.get("send_relevant_immediately", True) or case.get("delivery_mode") == "immediate"))
                 if should_send:
                     sent = self.send_due(max(20, counts["queued"]))
@@ -1769,8 +1773,7 @@ class MasterPressService:
                     scheduled = delivery_at(case, result.get("urgent", False))
                     recipient_ids = self.store.case_recipient_ids(case["id"])
                     for recipient_id in recipient_ids:
-                        self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled)
-                        counts["queued"] += 1
+                        counts["queued"] += int(self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled))
                     immediate = result.get("urgent", False) or case.get("send_relevant_immediately", True) or case.get("delivery_mode") == "immediate"
                     if recipient_ids and immediate:
                         sent = self.send_due(max(20, len(recipient_ids)))
@@ -1819,8 +1822,7 @@ class MasterPressService:
             scheduled = delivery_at(case, result.get("urgent", False))
             recipient_ids = self.store.case_recipient_ids(case["id"])
             for recipient_id in recipient_ids:
-                self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled)
-                counts["queued"] += 1
+                counts["queued"] += int(self.store.queue_delivery(article["id"], case["id"], recipient_id, scheduled))
             immediate = result.get("urgent", False) or case.get("send_relevant_immediately", True) or case.get("delivery_mode") == "immediate"
             if recipient_ids and immediate:
                 delivery_result = self.send_due(max(20, len(recipient_ids)))
@@ -2054,11 +2056,19 @@ class MasterPressService:
             except Exception as error:
                 code = int(getattr(error, "status", 502))
                 message = str(error)
-                if code == 403 and "insufficient" in message.casefold() and "scope" in message.casefold():
-                    notice = "카카오 메시지 발송 권한이 없어 재동의가 필요합니다."
-                    self.store.mark_recipient_reauthorize(delivery["recipient_id"], notice)
+                if self.kakao.is_terminal_auth_error(error):
+                    permission_revoked = code == 403
+                    notice = (
+                        "카카오 메시지 발송 권한이 철회되어 자동 탈퇴했습니다."
+                        if permission_revoked else "카카오 인증이 만료되어 자동 탈퇴했습니다."
+                    )
                     self.store.fail_delivery_permanently(
                         delivery["id"], code, notice, lease_owner=owner,
+                    )
+                    self.store.retire_recipient(
+                        delivery["recipient_id"],
+                        "permission_revoked" if permission_revoked else "auth_expired",
+                        "message_scope_revoked" if permission_revoked else "expired_or_invalid_refresh_token",
                     )
                     errors.append(notice)
                 else:
@@ -2161,6 +2171,13 @@ class MasterPressService:
             except Exception as error:
                 code, message = int(getattr(error, "status", 502)), str(error)
                 self.store.finish_magazine_delivery(delivery["id"], False, code, message)
+                if self.kakao.is_terminal_auth_error(error):
+                    permission_revoked = code == 403
+                    self.store.retire_recipient(
+                        delivery["recipient_id"],
+                        "permission_revoked" if permission_revoked else "auth_expired",
+                        "message_scope_revoked" if permission_revoked else "expired_or_invalid_refresh_token",
+                    )
                 errors.append(message)
                 failed += 1
         return {"sent": sent, "failed": failed, "errors": errors}
@@ -2495,7 +2512,7 @@ class MasterPressService:
                 return {"stage": "reanalysis", "result": reanalysis}
             provider, model, batch_size = "openai", self.selected_case_model2(), 10
         elif slot == "oss":
-            provider, model, batch_size = "nvidia", self.selected_case_model1(), 5
+            provider, model, batch_size = "nvidia", self.selected_case_model1(), self.case_batch_size_for_provider("nvidia")
         elif slot == "single":
             provider, model, batch_size = "openrouter", self.selected_case_single_model(), 1
         else:
@@ -2503,7 +2520,9 @@ class MasterPressService:
         if not self._provider_status(provider, model).get("available"):
             self.store.release_pending_case_provider(provider)
             return None
+        minimum_age_seconds = 0
         if slot == "mini" and self._provider_status("nvidia", self.selected_case_model1()).get("available"):
+            minimum_age_seconds = CASE_MODEL1_PRIORITY_SECONDS
             if not self.store.ready_case_evaluation_jobs_older_than(
                 CASE_MODEL1_PRIORITY_SECONDS, provider="openai",
             ):
@@ -2513,6 +2532,7 @@ class MasterPressService:
             provider, model, f"case_{slot}", batch_size=batch_size,
             single_unowned_only=(slot == "single"),
             allow_unowned_single=(slot == "single" or not single_available),
+            minimum_age_seconds=minimum_age_seconds,
         )
         return {"stage": "case", "slot": slot, "result": result} if result else None
 

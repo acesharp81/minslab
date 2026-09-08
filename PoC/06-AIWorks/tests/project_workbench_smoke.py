@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import importlib.util
 import json
 import os
 import sqlite3
@@ -21,6 +23,7 @@ API = os.getenv("AIWORKS_API_URL", "http://127.0.0.1:8000/api/poc/aiworks")
 GECKODRIVER = os.getenv("AIWORKS_GECKODRIVER", "/snap/bin/geckodriver")
 DB_PATH = Path(os.getenv("AIWORKS_DB_PATH", str(Path(__file__).resolve().parents[1] / "data" / "aiworks.sqlite3")))
 PROJECT_ID = os.getenv("AIWORKS_TEST_PROJECT_ID", "project-default")
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def wait_for(driver, expression: str, timeout: int = 60):
@@ -48,12 +51,77 @@ def load_template_mcps() -> list[dict]:
     return json.load(urllib.request.urlopen(API + "/template-mcps", timeout=30)).get("items") or []
 
 
+def ensure_template_mcp() -> tuple[list[dict], str | None]:
+    existing = load_template_mcps()
+    if existing:
+        return existing, None
+    package_id = f"org.workbench-template-{os.getpid()}"
+    spec = importlib.util.spec_from_file_location("aiworks_workbench_fixture_backend", ROOT / "backend.py")
+    backend = importlib.util.module_from_spec(spec)
+    assert spec.loader
+    spec.loader.exec_module(backend)
+    draft = backend.create_mcp_draft({
+        "name": "워크벤치 검증 양식 MCP",
+        "package_id": package_id,
+        "description": "빈 기준 DB에서 문서 양식 선택과 상태 보존을 검증하는 테스트 전용 MCP입니다.",
+        "mcp_type": "template",
+        "instructions": "프로젝트 Markdown의 제목과 본문을 HWPX 양식 슬롯에 적용합니다.",
+        "procedure": "문서를 읽습니다.\n양식 슬롯을 적용합니다.\n결과를 검증합니다.",
+        "source_included": True,
+        "use_model": False,
+        "actor": "browser-smoke",
+    })
+    starter = backend.builder_template_starter()
+    source = base64.b64decode(starter["contentBase64"], validate=True)
+    backend.add_mcp_draft_reference(draft["id"], {
+        "filename": starter["filename"],
+        "role": "template-source",
+        "content_base64": base64.b64encode(source).decode("ascii"),
+    })
+    backend.validate_mcp_draft(draft["id"], {})
+    published = backend.publish_mcp_draft(
+        draft["id"], {"confirm_visibility": "private", "confirm_source_included": True, "actor": "browser-smoke"}
+    )
+    manifest = published["package"]["manifest"]
+    backend.install_mcp_package({
+        "package_id": manifest["id"],
+        "version": manifest["version"],
+        "approved_permissions": [item["scope"] for item in manifest["permissions"]],
+        "acknowledge_signature": True,
+        "actor": "browser-smoke",
+    })
+    installed = load_template_mcps()
+    if not installed:
+        raise AssertionError("test-owned Template MCP installation was not exposed")
+    return installed, package_id
+
+
+def cleanup_template_mcp(package_id: str | None) -> None:
+    if not package_id or not package_id.startswith("org.workbench-template-") or not DB_PATH.is_file():
+        return
+    with sqlite3.connect(DB_PATH) as db:
+        draft_ids = [
+            row[0] for row in db.execute(
+                "SELECT id FROM mcp_drafts WHERE json_extract(manifest_json, '$.id')=?", (package_id,)
+            )
+        ]
+        db.execute("DELETE FROM mcp_installations WHERE package_id=?", (package_id,))
+        for table in ("mcp_capabilities", "mcp_reference_chunks", "mcp_package_files"):
+            db.execute(f"DELETE FROM {table} WHERE package_id=?", (package_id,))
+        db.execute("DELETE FROM mcp_packages WHERE package_id=?", (package_id,))
+        if draft_ids:
+            placeholders = ",".join("?" for _ in draft_ids)
+            db.execute(f"DELETE FROM mcp_template_originals WHERE draft_id IN ({placeholders})", draft_ids)
+            db.execute(f"DELETE FROM mcp_draft_references WHERE draft_id IN ({placeholders})", draft_ids)
+            db.execute(f"DELETE FROM mcp_drafts WHERE id IN ({placeholders})", draft_ids)
+
+
 def load_document_workbench(document_id: str) -> dict:
     return json.load(urllib.request.urlopen(API + f"/projects/{PROJECT_ID}/documents/{document_id}/workbench", timeout=30))
 
 
-def create_empty_project() -> dict:
-    body = json.dumps({"name": "빈 프로젝트 브라우저 검증", "actor": "workspace-user"}, ensure_ascii=False).encode("utf-8")
+def create_empty_project(name: str = "빈 프로젝트 브라우저 검증") -> dict:
+    body = json.dumps({"name": name, "actor": "workspace-user"}, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(API + "/projects", data=body, headers={"Content-Type": "application/json"}, method="POST")
     return json.load(urllib.request.urlopen(request, timeout=30))
 
@@ -147,12 +215,13 @@ def cleanup_empty_project(project_id: str) -> None:
 
 
 def main() -> None:
+    global PROJECT_ID
     if not Path(GECKODRIVER).exists():
         raise SystemExit(f"geckodriver not found: {GECKODRIVER}")
+    active_fixture = create_empty_project("워크벤치 Phase 2 검증")
+    PROJECT_ID = active_fixture["id"]
     previous_state = load_workspace().get("workspaceState") or {}
-    template_mcps = load_template_mcps()
-    if not template_mcps:
-        raise AssertionError("template selector smoke requires one installed template MCP")
+    template_mcps, created_template_package = ensure_template_mcp()
     document = create_document()
     empty_fixture = create_empty_project()
     save_workspace_state(document["id"])
@@ -358,6 +427,8 @@ def main() -> None:
         driver.quit()
         cleanup_document(document["id"], previous_state)
         cleanup_empty_project(empty_fixture["id"])
+        cleanup_empty_project(active_fixture["id"])
+        cleanup_template_mcp(created_template_package)
 
 
 if __name__ == "__main__":

@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import json
+from collections.abc import Iterable
+from copy import deepcopy
 from difflib import SequenceMatcher
-from typing import Any, Iterable
+from typing import Any
 
-from .official_reconciliation import compact_text, inline_diff
+from .official_reconciliation import (
+    compact_text,
+    inline_diff,
+    style_only_equivalent,
+)
 
-
-PRESENTATION_VERSION = "official-evidence-presentation/1.1"
+PRESENTATION_VERSION = "official-evidence-presentation/1.2"
 
 
 def official_material_hash(rows: Iterable[dict[str, Any]]) -> str:
@@ -66,12 +70,12 @@ def official_utterance_diff(
     similarity = SequenceMatcher(
         None, compact_before, compact_after, autojunk=False,
     ).ratio()
-    if compact_before == compact_after:
+    if style_only_equivalent(before, after):
         return {
             "spans": [{"kind": "equal", "text": after}],
             "change_count": 0,
             "comparison_status": "STYLE_ONLY",
-            "similarity": 1.0,
+            "similarity": round(similarity, 3),
         }
     if similarity < 0.32:
         return {

@@ -557,6 +557,21 @@ class LiveRepository:
                     WHERE speaker_override.broadcast_id = broadcast.id)
                        AS named_speaker_count,
                    official_activity.generated_at AS official_integration_updated_at,
+                   CASE
+                     WHEN official_activity.generated_at IS NOT NULL THEN 100
+                     WHEN broadcast.official_status <> 'PUBLISHED' THEN 0
+                     WHEN official_pipeline.document_id IS NULL THEN 20
+                     WHEN official_pipeline.job_status = 'PROCESSING' THEN 85
+                     WHEN official_pipeline.job_status = 'RETRY_WAIT'
+                          AND official_pipeline.publication_stage = 'TEMPORARY'
+                       THEN LEAST(75, 45 + FLOOR(
+                         GREATEST(0, EXTRACT(EPOCH FROM
+                           (now() - official_pipeline.retrieved_at)
+                         )) / 60
+                       )::integer)
+                     WHEN official_pipeline.job_status IN ('RETRY_WAIT', 'FAILED') THEN 70
+                     ELSE 45
+                   END AS official_comparison_progress,
                    GREATEST(
                        COALESCE(broadcast.ended_at, broadcast.detected_at),
                        COALESCE(brief_activity.generated_at, '-infinity'::timestamptz),
@@ -604,13 +619,39 @@ class LiveRepository:
                 FROM meeting_official_integrations integration
                 WHERE integration.broadcast_id = broadcast.id
                   AND integration.status = 'READY'
+                  AND COALESCE(
+                      integration.usage_metadata->>'reuse_reason', ''
+                  ) <> 'TEMPORARY_UPDATE_DEFERRED'
                 ORDER BY integration.generated_at DESC, integration.id DESC
                 LIMIT 1
             ) official_activity ON true
+            LEFT JOIN LATERAL (
+                SELECT document.id AS document_id,
+                       document.publication_stage, document.retrieved_at,
+                       job.status AS job_status
+                FROM broadcast_official_publications publication
+                LEFT JOIN LATERAL (
+                    SELECT id, publication_stage, retrieved_at
+                    FROM official_transcript_documents
+                    WHERE publication_id = publication.id
+                    ORDER BY (publication_stage = 'FINAL') DESC,
+                             retrieved_at DESC, id DESC LIMIT 1
+                ) document ON true
+                LEFT JOIN LATERAL (
+                    SELECT status
+                    FROM meeting_official_integration_jobs
+                    WHERE broadcast_id = broadcast.id
+                    ORDER BY updated_at DESC, id DESC LIMIT 1
+                ) job ON true
+                WHERE publication.broadcast_id = broadcast.id
+                ORDER BY publication.matched_at DESC, publication.id DESC LIMIT 1
+            ) official_pipeline ON true
             LEFT JOIN executive_official_matches executive_match
               ON executive_match.broadcast_id = broadcast.id
             WHERE broadcast.lifecycle_status = 'ENDED'
-              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+              )
               {committee_filter}
             ORDER BY broadcast.detected_at DESC, broadcast.id DESC
             LIMIT %s OFFSET %s
@@ -642,10 +683,42 @@ class LiveRepository:
             "source_speaker_count",
             "named_speaker_count",
             "official_integration_updated_at",
+            "official_comparison_progress",
             "result_updated_at",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         return items
+
+    def list_ended_broadcasts_for_schedule_range(
+        self, start_date: Any, end_date: Any,
+    ) -> list[dict[str, Any]]:
+        """Return real, ended legislature broadcasts that can evidence a calendar slot."""
+        rows = self.connection.execute(
+            """
+            SELECT broadcast.id, broadcast.meeting_id, broadcast.external_id,
+                   broadcast.committee_name, broadcast.title,
+                   (broadcast.detected_at AT TIME ZONE 'Asia/Seoul')::date,
+                   (broadcast.detected_at AT TIME ZONE 'Asia/Seoul')::time,
+                   broadcast.ended_at, broadcast.source_system
+            FROM live_broadcasts broadcast
+            WHERE broadcast.lifecycle_status = 'ENDED'
+              AND broadcast.institution = 'LEGISLATURE'
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local',
+                'poc07.replay.kakao'
+              )
+              AND (broadcast.detected_at AT TIME ZONE 'Asia/Seoul')::date
+                  BETWEEN %s AND %s
+            ORDER BY broadcast.detected_at, broadcast.id
+            """,
+            (start_date, end_date),
+        ).fetchall()
+        columns = (
+            "broadcast_id", "meeting_id", "external_id", "committee_name",
+            "title", "broadcast_date", "broadcast_time", "ended_at",
+            "source_system",
+        )
+        return [dict(zip(columns, row, strict=True)) for row in rows]
 
     def broadcast_official_context(
         self, broadcast_id: uuid.UUID
@@ -656,8 +729,9 @@ class LiveRepository:
                    broadcast.review_status, publication.conference_id,
                    publication.official_url, publication.pdf_url,
                    publication.reconciliation_status, publication.body_contract_status,
-                   document.publication_stage, document.authority_status,
-                   document.utterance_count,
+                   document.id, document.publication_stage, document.authority_status,
+                   document.utterance_count, job.status, job.attempt_count,
+                   job.next_attempt_at, job.updated_at,
                    (SELECT COUNT(*) FROM transcript_segments segment
                     WHERE segment.broadcast_id = broadcast.id AND segment.is_final)
                        AS final_segment_count,
@@ -678,11 +752,17 @@ class LiveRepository:
                 ORDER BY matched_at DESC, id DESC LIMIT 1
             ) publication ON true
             LEFT JOIN LATERAL (
-                SELECT publication_stage, authority_status, utterance_count
+                SELECT id, publication_stage, authority_status, utterance_count
                 FROM official_transcript_documents
                 WHERE publication_id = publication.id
                 ORDER BY retrieved_at DESC, id DESC LIMIT 1
             ) document ON true
+            LEFT JOIN LATERAL (
+                SELECT status, attempt_count, next_attempt_at, updated_at
+                FROM meeting_official_integration_jobs
+                WHERE broadcast_id = broadcast.id
+                ORDER BY updated_at DESC, id DESC LIMIT 1
+            ) job ON true
             WHERE broadcast.id = %s AND broadcast.institution = 'LEGISLATURE'
               AND broadcast.lifecycle_status = 'ENDED'
             """,
@@ -699,9 +779,14 @@ class LiveRepository:
             "official_pdf_url",
             "reconciliation_status",
             "body_contract_status",
+            "official_document_id",
             "publication_stage",
             "official_authority_status",
             "official_utterance_count",
+            "integration_job_status",
+            "integration_attempt_count",
+            "integration_next_attempt_at",
+            "integration_job_updated_at",
             "final_segment_count",
             "matched_segment_count",
         )
@@ -709,6 +794,20 @@ class LiveRepository:
         item["unmatched_segment_count"] = max(
             0, item["final_segment_count"] - item["matched_segment_count"]
         )
+        if item["official_status"] != "PUBLISHED":
+            item["processing_stage"] = "OFFICIAL_PUBLICATION_PENDING"
+        elif not item["publication_stage"]:
+            item["processing_stage"] = "OFFICIAL_BODY_PENDING"
+        elif item["integration_job_status"] == "PROCESSING":
+            item["processing_stage"] = "COMPARISON_PROCESSING"
+        elif item["integration_job_status"] == "RETRY_WAIT":
+            item["processing_stage"] = "COMPARISON_RETRY_WAIT"
+        elif item["integration_job_status"] == "FAILED":
+            item["processing_stage"] = "COMPARISON_FAILED"
+        elif item["integration_job_status"] == "READY":
+            item["processing_stage"] = "COMPARISON_COMPLETE"
+        else:
+            item["processing_stage"] = "COMPARISON_QUEUED"
         return item
 
     def broadcast_official_material(
@@ -839,7 +938,9 @@ class LiveRepository:
             JOIN transcript_segment_revisions revision ON revision.segment_id = segment.id
             JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
             WHERE broadcast.institution = 'LEGISLATURE'
-              AND broadcast.source_system <> 'poc07.demo'
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+              )
               AND revision.is_final = true
               AND (broadcast.lifecycle_status = 'LIVE'
                    OR broadcast.ended_at >= now() - interval '30 days')
@@ -935,7 +1036,9 @@ class LiveRepository:
             if lifecycle_status == "LIVE"
             else "ORDER BY ended_at DESC NULLS LAST, detected_at DESC LIMIT 1"
         )
-        test_filter = "" if include_test else "AND source_system <> 'poc07.test'"
+        test_filter = "" if include_test else """AND source_system NOT IN (
+          'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+        )"""
         broadcasts = self.connection.execute(
             f"""
             SELECT id, external_id, committee_name, title, lifecycle_status,
@@ -1056,7 +1159,9 @@ class LiveRepository:
             JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
             WHERE revision.event_cursor > %s
               AND broadcast.lifecycle_status = 'LIVE'
-              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+              )
               {committee_filter} {broadcast_filter}
             ORDER BY revision.event_cursor
             LIMIT %s

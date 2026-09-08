@@ -8,32 +8,45 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 class WebDashboardTests(unittest.TestCase):
-    def test_extras_workspace_has_calendar_and_official_seat_snapshot(self):
+    def test_extras_workspace_has_calendar_and_government_flow_insights(self):
         html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
         script = (PROJECT_DIR / "web" / "assembly-extras.js").read_text(encoding="utf-8")
         styles = (PROJECT_DIR / "web" / "assembly-extras.css").read_text(encoding="utf-8")
         app = (PROJECT_DIR / "web" / "app.js").read_text(encoding="utf-8")
-        self.assertIn("추가기능", html)
+        self.assertIn("인사이트", html)
+        self.assertNotIn('data-workspace-tab="extras"><b>추가기능</b>', html)
         self.assertIn('data-workspace-tab="extras"', html)
         self.assertIn('data-workspace-panel="extras"', html)
         self.assertIn("국회 일정 달력", html)
-        self.assertIn("의석 정보", html)
-        self.assertIn("LLM 호출 없음", html)
+        self.assertNotIn('id="assemblyReferenceTitle"', html)
+        self.assertNotIn('id="assemblyHemicycleTitle"', html)
+        self.assertNotIn("정당별 의석 구성", html)
+        self.assertIn("LLM 0회", html)
         self.assertIn('hash === "extras"', app)
         self.assertIn("displayRange", script)
         self.assertIn("data-calendar-filter", html)
         self.assertIn("assembly-extras-grid", styles)
-        self.assertIn("정당별 의석 구성", html)
-        self.assertIn("실제 본회의장 좌석 지정도", html)
-        self.assertIn("renderHemicycle", script)
-        self.assertIn("hemicyclePositions", script)
-        self.assertIn("재적 3/5선", script)
-        self.assertIn("재적 2/3선", script)
-        self.assertIn("assembly-hemicycle-panel", styles)
+        self.assertIn("assembly-schedule-layout", html)
+        self.assertIn("grid-template-columns:minmax(0,2fr) minmax(280px,1fr)", styles)
+        self.assertIn("overflow-y:scroll", styles)
+        self.assertIn("height:min(760px,max(620px,calc(100vh - 180px)))", styles)
+        self.assertEqual(html.count(">국정 흐름 인사이트<"), 1)
+        self.assertLess(html.index('id="assemblyInsightsTitle"'), html.index('id="assemblyCalendarTitle"'))
+        self.assertLess(html.index('id="assemblyCalendarTitle"'), html.index('id="assemblyDayAgendaTitle"'))
         self.assertIn("grid-column:1 / -1", styles)
         self.assertIn("@media (max-width:620px)", styles)
         self.assertIn("의원실 일정", script)
         self.assertIn("위원회 일정", script)
+        self.assertIn(
+            '[["국무회의 일정", executiveItems], ["위원회 일정", committeeItems], ["의원실 일정", memberItems]]',
+            script,
+        )
+        self.assertIn("국무회의·국회 일정 달력", html)
+        self.assertIn("● 방송예정", script)
+        self.assertIn("● 방송 완료", script)
+        self.assertIn("is-completed", styles)
+        self.assertIn("function isExecutiveSchedule", script)
+        self.assertNotIn("    loadReference();", script)
         self.assertIn("function isCommitteeSchedule", script)
         self.assertIn('String(item?.schedule_kind || "") === "위원회"', script)
         self.assertIn("정책 흐름 타임라인", html)
@@ -42,19 +55,81 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("renderPolicyTimeline", script)
         self.assertIn("renderIssueTrends", script)
         self.assertIn("renderInstitutionFlow", script)
-        self.assertIn("position:static", styles)
+        self.assertIn("api/policy/specific-issues", script)
+        self.assertIn("어떤 회의에서 논의됐나", script)
+        self.assertIn("어떤 의안으로 상정됐나", script)
+        self.assertIn("어떤 절차를 거쳐 어디까지 왔나", script)
+        self.assertNotIn('fetch("api/committees/policy-flow"', script)
+        self.assertIn("구체 주제 · 최근 14일 비교", html)
+        self.assertIn("구체 주제 · 과제·의결·의안", html)
+        self.assertIn("item.trend_status", script)
+        self.assertIn('item.transition_stage !== "DISCUSSION"', script)
+        self.assertIn("법안 언급 · 발의 확인 아님", script)
+        self.assertIn("의안번호 미연결 · 발의 확인 아님", script)
+        self.assertIn('id="assemblyInsightDialog"', html)
+        self.assertIn('aria-labelledby="assemblyInsightDialogTitle"', html)
+        self.assertIn("openPolicyComparison", script)
+        self.assertIn("openTopicSummary", script)
+        self.assertIn('makeInsightInteractive(card, () => openPolicyComparison(item))', script)
+        self.assertIn('makeInsightInteractive(row, () => openTopicSummary(item, "trend"))', script)
+        self.assertIn('makeInsightInteractive(row, () => openTopicSummary(item, "institution"))', script)
+        self.assertIn("정부 · 국무회의 공식 자료", script)
+        self.assertIn("국회 · 회의 보고서", script)
+        self.assertIn(".assembly-insight-compare-grid", styles)
+        self.assertIn("grid-template-columns:1fr 1fr", styles)
+        self.assertIn(".assembly-insight-dialog::backdrop", styles)
+        self.assertIn("font-size:15px", styles)
+        self.assertIn("font-size:13px", styles)
+
+    def test_gukjeong_on_brand_uses_local_small_logo(self):
+        html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
+        workspace = (PROJECT_DIR / "web" / "workspace.css").read_text(encoding="utf-8")
+        self.assertIn("<title>국정ON</title>", html)
+        self.assertIn('aria-label="국정ON 홈"', html)
+        self.assertIn('src="assets/images/gukjeong-on-small.png"', html)
+        self.assertIn(".brand-logo", workspace)
+        self.assertTrue((PROJECT_DIR / "web" / "images" / "gukjeong-on-small.png").is_file())
+        self.assertTrue((PROJECT_DIR / "web" / "images" / "gukjeong-on.png").is_file())
+
+    def test_topic_report_uses_consistent_editorial_layout(self):
+        script = (PROJECT_DIR / "web" / "topic-reports.js").read_text(encoding="utf-8")
+        styles = (PROJECT_DIR / "web" / "topic-reports.css").read_text(encoding="utf-8")
+        self.assertIn('node("b", "", "국정ON")', script)
+        self.assertIn("국정ON editorial desk", styles)
+        self.assertIn("border-bottom:5px double #172b46", styles)
+        self.assertIn("SPECIAL POLICY EDITION", styles)
+        self.assertIn('.topic-report-hero p::first-letter', styles)
+        self.assertIn("height: auto", styles)
+        self.assertIn("min-height: 300px", styles)
+        self.assertIn("max-height:252px", styles)
+        self.assertNotIn('content: "POLICY · PARLIAMENT · GOVERNMENT"', styles)
 
     def test_meeting_report_has_cached_official_change_summary(self):
         html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
         app = (PROJECT_DIR / "web" / "app.js").read_text(encoding="utf-8")
+        api = (PROJECT_DIR / "backend/app/main.py").read_text(encoding="utf-8")
+        repository = (
+            PROJECT_DIR / "backend/app/db/live_repository.py"
+        ).read_text(encoding="utf-8")
         integration = (PROJECT_DIR / "web" / "official-integration.js").read_text(encoding="utf-8")
         styles = (PROJECT_DIR / "web" / "workspace.css").read_text(encoding="utf-8")
         self.assertNotIn("결과 권위", html)
-        self.assertIn("공식화 변화", html)
+        self.assertIn("비공식·공식 결과 통합", html)
         self.assertIn("renderOfficialChangeReport", integration)
         self.assertIn("FULL_REWRITE_SUPPRESSED", integration)
+        self.assertIn("official-change-toggle", integration)
+        self.assertIn('toggle.setAttribute("aria-expanded", "false")', integration)
+        self.assertIn('list.hidden = true', integration)
+        self.assertIn("상세 내용 펼치기", integration)
         self.assertIn("official_change_report", app)
+        self.assertIn('!= "TEMPORARY_UPDATE_DEFERRED"', api)
+        self.assertIn("if not integration or integration_deferred", api)
         self.assertIn("official-change-report", styles)
+        self.assertIn('.official-change-toggle[aria-expanded="true"]', styles)
+        self.assertIn("Boolean(ended.official_integration_updated_at)", app)
+        self.assertIn("official_comparison_progress", app)
+        self.assertIn("`공식대조중(${Math.round(comparisonProgress)}%)`", app)
+        self.assertIn("official_comparison_progress", repository)
 
     def test_alarm_live_and_reports_are_separate_top_level_workspaces(self):
         html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
@@ -70,6 +145,22 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn('id="liveOperationsExpandedStage"', html)
         self.assertIn('id="reportBroadcastRows"', html)
         self.assertIn("실시간 초안 보고서", script)
+        self.assertIn("requestLatestMeetingReport", script)
+        self.assertIn("openLatestMeetingReport", script)
+        self.assertIn('openLatest: tab.dataset.workspaceTab === "reports"', script)
+        self.assertIn("dataset.reportTimestamp", script)
+        meeting_brief = script.split("function expandMeetingBrief(", 1)[1].split(
+            "function expandEndedBroadcast(", 1,
+        )[0]
+        self.assertNotIn("scrollIntoView", meeting_brief)
+        ended_executive = script.split(
+            "function expandEndedExecutiveBroadcast(", 1,
+        )[1].split("function meetingBriefStatusLabel(", 1)[0]
+        self.assertNotIn("scrollIntoView", ended_executive)
+        report_handoff = script.split("const openReportWorkspace = () =>", 1)[1].split(
+            "if (!hasReportResult)", 1,
+        )[0]
+        self.assertNotIn("scrollIntoView", report_handoff)
         self.assertIn('"meeting-brief-view live-draft-report"', script)
         self.assertIn('"meeting-brief-hero"', script)
         self.assertIn('"meeting-topic-task-overview live-draft-overview"', script)
@@ -134,6 +225,9 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn('addMeetingRailCard(reportContainer', script)
         self.assertIn('document.querySelector(liveMode ? "#liveOperationsExpandedStage"', script)
         self.assertIn("renderWatchTestLive", script)
+        self.assertIn('liveItem?.status === "COMPLETED"', script)
+        self.assertIn('"생방송 없음"', script)
+        self.assertIn('watchTestLiveState?.status === "COMPLETED"', script)
         self.assertIn('document.addEventListener("watch-test-live-update"', script)
         self.assertIn('panel?.classList.contains("is-embedded")', watch_script)
         self.assertIn("mount.append(panel)", watch_script)
@@ -211,6 +305,9 @@ class WebDashboardTests(unittest.TestCase):
         for panel in ("live", "cabinet", "assembly"):
             self.assertIn(f'data-workspace-panel="{panel}"', html)
         self.assertIn("activateWorkspaceTab", script)
+        self.assertIn("selectInitialWorkspaceForLiveStatus(anyLive)", script)
+        self.assertIn('const target = anyLive ? "live" : "reports"', script)
+        self.assertIn("initialWorkspaceAutoSelectionPending = false", script)
         self.assertIn('event.key === "ArrowRight"', script)
         self.assertIn('role="tablist"', html)
         self.assertIn('role="tabpanel"', html)
@@ -332,12 +429,42 @@ class WebDashboardTests(unittest.TestCase):
         self.assertNotIn("공식 심의 안건 소관", schedule_script)
         self.assertNotIn("연결된 부처 공식 브리핑", schedule_script)
         self.assertIn("presidential-guidance", schedule_script)
-        self.assertIn("대통령 지시사항", schedule_script)
-        self.assertIn("핵심 내용", schedule_script)
-        self.assertIn('magazineElement("span", "", "부처 브리핑")', schedule_script)
-        self.assertIn("부처 브리핑 원문 보기", schedule_script)
-        self.assertIn('key: "ministry_reports", label: "부처보고"', schedule_script)
-        self.assertIn('key: "spokesperson_briefing", label: "대변인 브리핑"', schedule_script)
+        self.assertIn(
+            ".executive-agenda-view article.presidential-guidance.standalone > p",
+            workspace,
+        )
+        self.assertIn("presidential-directive-line", schedule_script)
+        self.assertIn("guidance.display_text || guidance.text", schedule_script)
+        self.assertIn("공식자료만 반영 · 상세내용 미공개", schedule_script)
+        self.assertIn("공식 발언 ${paragraphs.length}개 보기", schedule_script)
+        self.assertIn("guidance.topic || \"국정 현안 후속조치\"", schedule_script)
+        self.assertIn(".presidential-directive-owner", workspace)
+        assembly_extras = (PROJECT_DIR / "web" / "assembly-extras.css").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("align-items:stretch", assembly_extras)
+        self.assertIn("grid-template-rows:auto minmax(0,1fr)", assembly_extras)
+        topic_report_styles = (PROJECT_DIR / "web" / "topic-reports.css").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("height: auto", topic_report_styles)
+        self.assertIn("min-height: 300px", topic_report_styles)
+        self.assertIn("height:44px", topic_report_styles)
+        self.assertIn("대통령 지시", schedule_script)
+        self.assertIn("부처 보고 내용", schedule_script)
+        self.assertIn('magazineElement("span", "", "부처 추가 발표")', schedule_script)
+        self.assertIn("briefing.display_summary", schedule_script)
+        self.assertNotIn('magazineElement("p", "", briefing.summary)', schedule_script)
+        self.assertIn('magazineElement("a", "", "원문 확인 ↗")', schedule_script)
+        self.assertIn(
+            ".executive-agenda-view article .presidential-directive-line > span",
+            workspace,
+        )
+        self.assertIn("const parts = text.match", schedule_script)
+        self.assertIn(
+            'key: "ministry_reports", label: "부처 보고 내용"', schedule_script,
+        )
+        self.assertNotIn('key: "spokesperson_briefing", label: "대변인 브리핑"', schedule_script)
         self.assertIn('key: "deliberated_agendas", label: "심의안건"', schedule_script)
         self.assertIn("executiveOfficialMatchKey", schedule_script)
         self.assertIn('"MEETING_NUMBER_AND_DATE"', schedule_script)

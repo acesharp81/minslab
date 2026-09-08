@@ -18,6 +18,7 @@ from ..services.official_change_report import (
     PROMPT_VERSION as OFFICIAL_CHANGE_REPORT_PROMPT_VERSION,
     OpenRouterOfficialChangeReportClient,
     OfficialChangeReportResponseError,
+    deterministic_changed_report,
     deterministic_unchanged_report,
 )
 from ..services.topic_report import OpenRouterTopicReportClient, TopicReportResponseError
@@ -96,6 +97,27 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
                 "status": "READY", "generated": 1,
                 "report_id": str(item["report_id"]), "api_requests": 1,
             }
+        except OfficialChangeReportResponseError as exc:
+            safe_error = safe_topic_report_error(exc)
+            repository.complete(
+                item["report_id"],
+                report=deterministic_changed_report(
+                    snapshot, reason=f"OPENROUTER_{safe_error}",
+                ),
+                usage_metadata={
+                    "api_requests": 1,
+                    "fallback_reason": safe_error,
+                    "privacy": {"public_evidence_only": True},
+                },
+            )
+            LOGGER.warning(
+                "official change report used grounded fallback: %s", safe_error,
+            )
+            return {
+                "status": "READY", "generated": 1,
+                "report_id": str(item["report_id"]), "api_requests": 1,
+                "fallback": True,
+            }
         except Exception as exc:
             safe_error = safe_topic_report_error(exc)
             repository.fail(item["report_id"], safe_error)
@@ -168,7 +190,7 @@ def run_once(database_url: str) -> dict[str, object]:
 def main() -> None:
     from ..db.migrate import apply_migrations
 
-    parser = argparse.ArgumentParser(description="국정보미 주문형 주제별 보고서 worker")
+    parser = argparse.ArgumentParser(description="국정ON 주문형 주제별 보고서 worker")
     parser.add_argument("--interval", type=float, default=2.0)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()

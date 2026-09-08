@@ -203,7 +203,9 @@ class TopicReportRepository:
             ) integration ON true
             WHERE COALESCE(broadcast.ended_at, broadcast.detected_at)::date
                   BETWEEN %s AND %s
-              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+              )
               AND (%s::text IS NULL OR broadcast.institution = %s)
             ORDER BY COALESCE(broadcast.ended_at, broadcast.detected_at) DESC
             """,

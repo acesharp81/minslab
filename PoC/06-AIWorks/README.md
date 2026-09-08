@@ -1,6 +1,10 @@
-# 06 · AIWorks
+# 06 · AI Work Hub
 
-여러 MCP와 AI 모델을 업무 목적에 맞게 조합하는 승인 기반 AI 업무 플랫폼의 초기 PoC입니다.
+여러 MCP와 AI 모델을 업무 목적에 맞게 조합하는 승인 기반 AI 업무 실행 허브의 초기 PoC입니다.
+
+`AI Work Hub`는 현재 표시용 가칭입니다. 제품명이 다시 바뀌더라도 기존 프로젝트와 연동을 깨뜨리지
+않도록 `aiworks` 프로젝트 ID, `/poc/aiworks`, `/api/poc/aiworks`, `AIWORKS_*` 환경변수,
+`.aiworks.json` 백업 포맷, 계약 ID와 과거 감사·Artifact provenance는 호환 식별자로 유지합니다.
 
 현재 실행 기준 버전은 `0.31.2`, README 기준일은 `2026-09-01`입니다. 이 README는 현재 코드의
 제품 구조·사용법·운영·검증 기준을 설명하며, 다른 문서가 없어도 현재 시스템의 책임과 데이터
@@ -116,8 +120,9 @@ MD와 HWPX를 동시에 수정해 충돌하면 변경 이력에서 HWPX 변경 �
 - 프로젝트는 대화와 문서의 작업 경계입니다. 메타정보·근거·설치 MCP·정책은 프로젝트에
   종속되고 프로젝트 안에는 여러 Markdown 문서가 존재할 수 있습니다.
 - 기존 프로젝트를 열면 마지막으로 선택한 문서, 탭, 대화와 좌우 패널 비율을 복원합니다.
-- 첫 화면의 `삭제`는 영구 삭제가 아니라 복구 가능한 `보관`입니다. 보관 프로젝트 목록에서
-  복원할 수 있으며, 현재 제품에는 UI/API 영구 삭제 기능이 없습니다.
+- 첫 화면의 `삭제`는 복구 가능한 `보관`입니다. 보관 프로젝트 목록에서 `복원`하거나, 소유자가
+  프로젝트 이름을 다시 입력하고 비가역성을 확인한 뒤 `완전 삭제`할 수 있습니다. 완전 삭제 후에는
+  UI·API·DB 어디에서도 복원할 수 없고, 감사 로그에는 내용 대신 삭제 건수와 참조 해시만 남습니다.
 - 프로젝트 백업은 설정의 프로젝트 거버넌스에서 `.aiworks.json`으로 내려받습니다. 가져오기는
   기존 프로젝트를 덮어쓰지 않고 항상 새 프로젝트 ID를 만듭니다.
 - `자료`에서는 PDF·HWPX·DOCX·ODT·XLSX·MD·TXT를 여러 개 추가할 수 있습니다. 원본과 검색 청크는
@@ -326,7 +331,8 @@ HWPX는 ZIP 경로, XML 외부 엔터티, 압축 해제 크기와 SHA-256을 검
 - Workflow/Step Run 체크포인트·재승인 재시도, exact-duplicate MD 보관, Fact 시간변화/오기 결정,
   산출물 재현 관계 그래프
 - 단계별 최신 상태와 남은 항목: [docs/PROJECT_PLATFORM_ROADMAP.md](docs/PROJECT_PLATFORM_ROADMAP.md)
-- 프로젝트 멤버십/RBAC·정책·Permission Grant·보관/복원, 범용 Artifact/Version 계보와 순환 방지
+- 프로젝트 멤버십/RBAC·정책·Permission Grant·보관/복원과 소유자 이름 재확인 기반 완전 삭제,
+  범용 Artifact/Version 계보와 순환 방지
 - 프로젝트 선택 화면의 AIWorks JSON 가져오기와 설정→프로젝트 거버넌스의 백업 다운로드. MD revision·메타정보와 프로젝트 자료 Artifact/검색 인덱스·관계·Evidence를 SHA-256 무결성 검증 후 새 프로젝트로 복원. 재생성 가능한 HWPX 작업본·내보낸 파일은 제외
 - Artifact Evidence 원본 Version·위치·발췌·해시·신뢰도 API와 문서 변경 이력 표시
 - Recipe 이름/ID/태그 검색, 설치 전 권한·비용·지연·라이선스·출처·보안 미리보기와 취약 버전 차단
@@ -651,19 +657,19 @@ curl -sS http://127.0.0.1:8000/api/poc/aiworks/operations/model-usage
 
 ### 전체 SQLite 백업·복원
 
-현재 온라인 전체 DB 백업 API는 없습니다. WAL 모드 DB 파일 하나만 실행 중에 복사하면 최신
-트랜잭션이 빠질 수 있으므로 다음 절차를 사용합니다.
+WAL 모드 DB 파일 하나만 실행 중에 복사하면 최신 트랜잭션이 빠질 수 있으므로
+`scripts/sqlite_live_restore_drill.py`의 SQLite Online Backup API 기반 절차를 사용합니다.
 
-1. 새 쓰기 요청을 막고 Uvicorn 프로세스를 정상 종료합니다.
-2. `AIWORKS_DB_PATH`가 가리키는 정확한 파일을 확인합니다.
-3. DB 파일을 접근 제한된 백업 위치로 복사하고 파일 크기·SHA-256·시각을 기록합니다.
-4. 서버를 다시 시작하고 readiness와 대표 프로젝트 열기를 확인합니다.
-5. 복원 시험은 운영 DB를 덮어쓰지 말고 별도 경로에 복사한 뒤 `AIWORKS_DB_PATH`를 그 파일로
-   지정한 격리 프로세스에서 수행합니다.
+1. 온라인 백업만 만들 때는 `python3 PoC/06-AIWorks/scripts/sqlite_live_restore_drill.py --db <절대경로> --backup-dir <접근제한경로>`를 실행합니다.
+2. 실복원 훈련은 새 쓰기 요청을 막고 Uvicorn을 정상 종료한 뒤 `--apply-live-swap --confirm-path <동일한 절대경로>`를 추가합니다.
+3. 도구는 포트가 열려 있으면 덮어쓰기를 거부하고, 원본·백업의 `quick_check`, schema digest,
+   논리 행/BLOB digest를 대조한 뒤에만 원자 교체합니다.
+4. 교체 전 원본 DB와 WAL/SHM은 `aiworks-displaced-original-*` 및 시각 표시 사본으로 보존되며,
+   실패하면 원본으로 자동 롤백합니다.
+5. 서버를 다시 시작하고 readiness, 대표 프로젝트, manifest의 `restored` digest와 RPO/RTO를 확인합니다.
 
-온라인 백업이 필요하면 SQLite Online Backup API를 사용하는 외부 도구를 도입해야 합니다.
-`-wal`/`-shm`을 무시한 파일 복사나 검증 전 운영 DB 덮어쓰기는 금지합니다. 자동 RPO/RTO,
-원격 복제와 객체 저장소 백업은 아직 구현되지 않았습니다.
+2026-09-04 운영 DB 실복원 훈련은 54개 테이블·3,137행, RPO 0초, 2.90초로 완료했고 schema 및
+논리 digest가 복원 전후 일치했습니다. 원격 복제와 객체 저장소 백업은 아직 별도 운영 범위입니다.
 
 ### 배포 전후 점검
 
@@ -688,7 +694,7 @@ curl -sS http://127.0.0.1:8000/api/poc/aiworks/operations/model-usage
 | 매핑 저장 불가 | `{{title}}`, `{{content}}`/`{{body}}`, 서로 다른 슬롯 | 필수 슬롯과 실제 HWPX 위치를 지정하고 quality 결과 확인 |
 | `동일 MCP가 이미 게시됨` | package ID·version, Store 기존/사용자 제작 패키지 | 기존 패키지를 `수정`해 다음 patch 초안을 만들거나 새 ID/version 사용 |
 | Store에서 삭제가 보이지 않음 | 기본 내장/사용자 제작 여부와 권한 | 사용자 제작 버전만 삭제 가능. 내장 MCP는 버전 고정/비활성으로 관리 |
-| 프로젝트 삭제 후 사라짐 | 보관 프로젝트 목록 | 영구 삭제가 아니라 보관이므로 `복원` 실행 |
+| 프로젝트 삭제 후 사라짐 | 보관 프로젝트 목록 | 다시 사용할 경우 `복원`, 모든 데이터를 지울 경우 프로젝트 이름을 입력하고 `완전 삭제` 실행 |
 | 탭 이동 후 문서가 바뀌거나 누적됨 | revision/SHA, 브라우저 캐시, 네트워크의 생성 API | 탭 전환은 GET만 발생해야 함. 새 생성 요청을 중단하고 마지막 정상 revision 재선택 |
 | `stale` | MD가 파생 문서보다 최신 | 현재 MD에서 새 파생 산출물 생성 |
 | `diverged` | RHWP 변경이 MD에 미반영 | 전후 비교 후 HWPX→MD 반영 또는 HWPX 변경 폐기 |
@@ -702,7 +708,8 @@ curl -sS http://127.0.0.1:8000/api/poc/aiworks/operations/model-usage
   객체 저장소, 자동 failover를 제공하지 않습니다.
 - AIWorks API 자체에는 인증된 사용자/SSO 경계가 없습니다. 요청의 actor 기반 RBAC을 신뢰할 수
   없는 외부 사용자 권한 통제로 사용하면 안 됩니다.
-- 프로젝트 `삭제`는 보관/복원만 지원하며 법적 보존기간에 따른 영구 파기 워크플로는 없습니다.
+- 보관 프로젝트의 즉시 완전 삭제는 지원하지만, 법적 보존기간·파기 승인·보존 예외를 자동 집행하는
+  운영용 레코드 보존 워크플로는 아직 없습니다.
 - 전체 DB 온라인 백업, 자동 백업 스케줄, RPO/RTO 보장은 없습니다.
 - HMAC 패키지 서명은 PoC 공급망 검증용입니다. 게시자 신원과 키 회전을 보장하는 운영 서명이
   아닙니다.
@@ -738,6 +745,10 @@ Solar 실호출은 `AIWORKS_SOLAR_LIVE=1`과 Upstage 키가 설정되고 실행 
 - 포트폴리오 셸: /poc?project=aiworks
 - 계약: contracts/*.schema.json
 - 프로젝트 중심 플랫폼 전환 로드맵: [docs/PROJECT_PLATFORM_ROADMAP.md](docs/PROJECT_PLATFORM_ROADMAP.md)
+- Phase 3 KORDOC/KODAK 퇴역 수행 결과: [docs/PHASE3_ACCEPTANCE_2026-09-04.md](docs/PHASE3_ACCEPTANCE_2026-09-04.md)
+- 현재 구조·호환 경계: [docs/CURRENT_ARCHITECTURE_AND_BOUNDARIES.md](docs/CURRENT_ARCHITECTURE_AND_BOUNDARIES.md)
+- 대표 업무 Golden Workflow: [docs/GOLDEN_WORKFLOW_SPEC.md](docs/GOLDEN_WORKFLOW_SPEC.md)
+- Golden Workflow 실행기: [golden_workflows/README.md](golden_workflows/README.md)
 - 2026-08-19 구현·수용성 검증과 테스트법: [docs/ACCEPTANCE_REPORT_2026-08-19.md](docs/ACCEPTANCE_REPORT_2026-08-19.md)
 - 양식 MCP 정석화 진행상태: [docs/TEMPLATE_MCP_STANDARD_PLAN.md](docs/TEMPLATE_MCP_STANDARD_PLAN.md)
 - 1~17단계 PoC 구축 이력: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)
@@ -822,6 +833,7 @@ JSON Schema는 `contracts/`가 원본이며 API·UI는 같은 계약의 ID와 re
 3. `AIWORKS_RHWP_ALLOWED_ROOTS`에는 자동화가 접근할 문서 폴더만 지정합니다.
 4. `AIWORKS_RHWP_BRIDGE_COMMAND=py PoC/06-AIWorks/rhwp_windows_agent.py`로 설정합니다.
 5. 설정 화면에서 `설치 v1.0.0 · Windows 연결됨`을 확인합니다.
+6. 출시 전 Windows에서 `py PoC/06-AIWorks/scripts/windows_rhwp_acceptance.py --ordinary <일반.hwpx> --budget <예산.hwpx> --ordinary-term <기대문구> --budget-term <기대문구> --output-dir <증적폴더>`를 실행하고 `windows-rhwp-acceptance.json`의 `status=passed`와 증적 SHA-256을 보존합니다.
 
 브리지는 요청마다 HMAC, 30초 만료와 nonce 재사용 방지를 검사합니다. 매크로·쉘·네트워크·OLE
 액션은 차단하며 문서 변경 도구는 `document.write` 권한과 명시적 확인이 모두 필요합니다.
@@ -924,19 +936,26 @@ MCP 제작기 상단의 `◎ 처음부터 따라하기`를 누르면 언제든 5
 
 ## 검증
 
-2026-09-01 현재 백엔드 단위·통합·계약 테스트 135개가 통과합니다. 여기에는 vendor 런타임 없이
+2026-09-04 현재 백엔드 단위·통합·계약 테스트 154개가 통과합니다. 별도의 Golden Workflow 실행기는
+예산·사업 검토 시나리오의 계획, 승인, 로컬 실행, 근거 검색, Markdown, HWPX, 명시적 왕복 동기화와
+감사 해시 체인을 58개 검사로 검증합니다. 기존 회귀 테스트에는 vendor 런타임 없이
 내장 ReportDocument→HWPX renderer가 표와 중첩 목록을 보존하는 검사, renderer 실패 시 Markdown
 안전 저장, Intent/Context/Task/Resolver 계약 경계, credential 해시별 호출 전 token·비용 예약과
 성공·실패 정산, Builder 시각 매뉴얼 정적 계약이 포함됩니다. 추가된 수직 통합 검사는 사용자 제작
 Data·Process·Template MCP의 한 요청 조합 실행, 작성요령·예시 제거, 실제 `form-002.hwpx`의 표 첫
 셀 제목 오인 방지와 500번째 이후 슬롯 보존, 선택 HWPX 변경 블록만 최신 MD에 병합하는 흐름을 포함합니다.
 양식 MCP 사용법, Solar Pro 4 설정, 5단계 초보자 매뉴얼, 양식 수정 진입과 5개 Builder 유형을
-실제 DOM에서 확인했습니다. `project_workbench_smoke.py`도 기존 프로젝트를 대상으로 통과하여
+실제 DOM에서 확인했습니다. `project_workbench_smoke.py`도 격리 프로젝트를 대상으로 통과하여
 마지막 문서·대화·분할 비율 복원, 정적 탭 격리, 양식 기본값, 명시적 MD→HWPX/HWPX→MD와 최종
 산출물 저장을 확인한 뒤 테스트 데이터를 정리했습니다. `builder_flow_smoke.py`는 일반 HWPX의
-양식 자동 추출·분할 매핑·실렌더링·샌드박스 검증을, `data_mcp_flow_smoke.py`는 PDF 색인·RAG
+양식 자동 추출, 실제 내용 확인 화면의 RHWP 수정본 전송·초안 반영, 분할 매핑·실렌더링·샌드박스
+검증을, `data_mcp_flow_smoke.py`는 PDF 색인·RAG
 미리보기·Resolver·게시·설치·근거 답변·RHWP 보고서 열기를 통과했습니다. 전체 Firefox 스모크
-13종도 통과했습니다. 테스트가 만든 업무 fixture는 종료 시 정리하지만 감사 이벤트는 해시 체인
+14종을 새 데모-seed 격리 DB에서 통과했습니다. `범정부AI 공통기반` 질의는 관련·무관 근거를 함께
+등록한 독립 fixture에서 관련 근거만 선택하고, 이어지는 일반형 `보고서를 HWP로 만들어줘` 요청이
+새 검색으로 재바인딩되지 않고 직전 답변을 HWPX로 승격하는 것까지 확인했습니다. HWP/HWPX/RHWP
+요청은 보고서 내용이 아닌 산출 형식으로만 처리하며 사용법 문구는
+최종 Markdown과 HWPX에서 제외됩니다. 테스트가 만든 업무 fixture는 종료 시 정리하지만 감사 이벤트는 해시 체인
 보존을 위해 삭제하지 않습니다. Windows RHWP 실환경 검증은 별도 release gate로 남아 있으므로
 이 결과만으로 운영 완료를 뜻하지는 않습니다.
 

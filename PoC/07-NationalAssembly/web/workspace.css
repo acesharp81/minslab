@@ -40,6 +40,16 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
   backdrop-filter: blur(18px);
 }
 .brand { gap: 12px; color: var(--ws-ink); }
+.brand-logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 5px 15px rgba(17, 52, 91, .11);
+}
+.brand-copy { display: block; }
 .brand-mark {
   display: grid;
   width: 44px;
@@ -248,6 +258,18 @@ main { width: min(1440px, calc(100% - 48px)); margin: 0 auto; padding: 18px 0 80
   background: #dc2626;
   box-shadow: 0 0 0 5px rgba(220, 38, 38, .18);
 }
+.test-meeting-ended {
+  z-index: 1;
+  padding: 6px 10px;
+  border: 1px solid rgba(191, 219, 254, .55);
+  border-radius: 999px;
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  background: rgba(15, 23, 42, .42);
+}
+.live-media.is-test-ended .test-meeting-stage::after { animation: none; }
 @keyframes testMeetingSweep {
   from { transform: translateX(-75%); }
   to { transform: translateX(75%); }
@@ -914,6 +936,11 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .related-ministry-briefing small { color: #527266; font-size: 10px; }
 .executive-agenda-view article .related-ministry-briefing p { color: #405e53; font-size: 11px; line-height: 1.6; }
 .related-ministry-briefing a { width: fit-content; color: #126a4b; font-size: 11px; font-weight: 850; text-decoration: none; }
+.executive-report-content { display: grid; gap: 6px; margin-top: 11px; padding: 13px 14px; border: 1px solid #c9daf2; border-radius: 11px; background: #f5f9ff; }
+.executive-report-content > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px; }
+.executive-report-content > header strong { color: #174f91; font-size: 12px; }
+.executive-agenda-view article .executive-report-content > header span { padding: 3px 7px; border-radius: 999px; color: #285f9f; background: #e2edfb; font-size: 9px; }
+.executive-agenda-view article .executive-report-content p { color: #344f70; font-size: 12px; line-height: 1.68; }
 .executive-summary-label { display: block; margin: 10px 0 4px; color: #667085; font-size: 10px; }
 .presidential-guidance { display: grid; gap: 7px; margin-top: 13px; padding: 13px 14px; border-left: 3px solid #d48b1f; border-radius: 0 10px 10px 0; background: #fff9ed; }
 .presidential-guidance > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
@@ -929,8 +956,21 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .executive-content-group > header > span { min-width: 42px; padding: 5px 8px; border-radius: 999px; color: #1f5fae; background: #eaf2fd; font-size: 11px; font-weight: 850; text-align: center; }
 .executive-content-group.is-ministry_reports > header { background: #f2fbf7; }
 .executive-content-group.is-ministry_reports > header > span { color: #126a4b; background: #dcf3e8; }
-.executive-content-group.is-spokesperson_briefing > header { background: #f7f5ff; }
-.executive-content-group.is-spokesperson_briefing > header > span { color: #6941c6; background: #ebe7ff; }
+.executive-content-group.is-presidential_directives > header { background: #fff9ed; }
+.executive-content-group.is-presidential_directives > header > span { color: #8a4b08; background: #fce8c3; }
+.presidential-guidance.standalone { margin: 14px 0; border-top: 0; }
+.executive-agenda-view article.presidential-guidance.standalone > p { margin:0; color:#5f4930; font-size:12px; line-height:1.65; }
+.executive-agenda-view article.presidential-guidance.standalone.is-compact { display:block; margin:10px 0; padding:11px 13px; }
+.presidential-directive-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:0 0 7px; }
+.presidential-directive-heading strong { min-width:0; color:#4f350f; font-size:13px; line-height:1.45; }
+.presidential-directive-heading span { flex:0 0 auto; padding:2px 7px; border-radius:999px; color:#8a4b08; background:#fce8c3; font-size:9px; font-weight:850; }
+.executive-agenda-view article.presidential-guidance.standalone.is-compact > .presidential-directive-line { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:8px; margin:0; }
+.presidential-directive-owner { color:#9a5708; font-size:10px; font-weight:900; line-height:1.9; white-space:nowrap; }
+.executive-agenda-view article .presidential-directive-line > span { min-width:0; color:#5f4930; font-size:12px; line-height:1.65; }
+.presidential-directive-source { margin-top:8px; border-top:1px solid #f0dfc3; padding-top:7px; }
+.presidential-directive-source > summary { width:fit-content; cursor:pointer; color:#8a4b08; font-size:10px; font-weight:850; list-style-position:inside; }
+.presidential-directive-source > div { display:grid; gap:6px; margin-top:7px; padding:8px 10px; border-radius:8px; background:#fffdf8; }
+.executive-agenda-view article .presidential-directive-source > div > p { margin:0; color:#665744; font-size:11px; line-height:1.6; }
 .executive-content-group-body { padding: 0 16px; }
 .executive-content-group-body > article { padding: 16px 0; }
 .executive-content-group-body > article:first-child { border-top: 0; }
@@ -1245,7 +1285,15 @@ body.meeting-report-print-mode .meeting-topic-task-overview-list { max-height:no
 .official-change-summary p { margin:0; color:#233b58; font-size:13px; line-height:1.65; }
 .official-change-summary small { color:#667085; font-size:10px; }
 .official-change-loading { margin-top:14px; padding:13px; border-radius:10px; color:#315f99; background:#edf5ff; font-size:12px; font-weight:800; }
+.official-change-disclosure { margin-top:14px; }
+.official-change-toggle { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:42px; padding:10px 14px; border:1px solid #bfd2ed; border-radius:10px; color:#174d89; background:#fff; font:inherit; font-size:12px; font-weight:850; cursor:pointer; }
+.official-change-toggle:hover { border-color:#7ca7dd; background:#f5f9ff; }
+.official-change-toggle:focus-visible { outline:3px solid rgba(37,99,185,.22); outline-offset:2px; }
+.official-change-toggle small { padding:2px 7px; border-radius:999px; color:#526b89; background:#edf4fd; font-size:9px; }
+.official-change-toggle i { margin-left:2px; font-size:15px; font-style:normal; transition:transform .2s ease; }
+.official-change-toggle[aria-expanded="true"] i { transform:rotate(180deg); }
 .official-change-list { display:grid; gap:12px; margin-top:14px; }
+.official-change-list[hidden] { display:none; }
 .official-change-item { overflow:hidden; border:1px solid #dce4ef; border-radius:12px; background:#fff; }
 .official-change-item > header { padding:13px 15px; }
 .official-change-item > header span { display:inline-flex; padding:3px 7px; border-radius:999px; color:#175c44; background:#e9f7f0; font-size:9px; font-weight:900; }
@@ -1261,6 +1309,7 @@ body.meeting-report-print-mode .meeting-topic-task-overview-list { max-height:no
 .official-change-pair > small { grid-column:1/-1; padding:8px 13px; color:#87610a; background:#fff9e8; font-size:9px; }
 @media (max-width:700px) {
   .official-change-report { padding:15px; }
+  .official-change-toggle { min-height:40px; }
   .official-change-pair { grid-template-columns:1fr; }
   .official-change-pair > small { grid-column:auto; }
 }
@@ -1389,10 +1438,12 @@ body.meeting-report-print-mode .meeting-topic-task-overview-list { max-height:no
 .topbar .today-schedule-controls button { width: 20px; height: 23px; border: 0; color: #52749d; background: transparent; font-size: 10px; }
 .topbar .today-schedule-controls button:hover { color: #164f96; background: transparent; }
 .topbar > .topnav { flex: 0 0 auto; margin-left: 12px; }
-.topnav a { gap: 5px; padding: 8px 9px; }
+.topnav a { display:grid; position:relative; grid-template-columns:auto; align-content:center; align-items:start; gap:1px; min-height:42px; padding:6px 10px; }
 .topnav a > span { white-space: nowrap; }
 .topnav a > b { color: #667085; font-size: 10px; white-space: nowrap; }
 .topnav a.has-live > b { color: #c12b35; }
+.topnav a > i { position:absolute; top:11px; left:8px; }
+.topnav a.has-live > b { padding-left:12px; }
 .topbar > .ai-usage { flex: 0 0 390px; width: 390px; margin-left: 12px; }
 .broadcast-hub { grid-template-areas: "sessions" "expanded"; gap: 10px; }
 
@@ -1411,6 +1462,7 @@ body.meeting-report-print-mode .meeting-topic-task-overview-list { max-height:no
   .topbar > .ai-usage { order: 4; flex: 1 1 340px; width: auto; margin: 7px 0 0 8px; }
 }
 @media (max-width: 620px) {
+  .brand-logo { width: 40px; height: 40px; flex-basis: 40px; border-radius: 10px; }
   .topbar > .today-schedule-board, .topbar > .ai-usage { flex-basis: 100%; width: 100%; margin-left: 0; }
   .topbar > .ai-usage { min-height: 46px; }
   .topbar .today-schedule-board { grid-template-columns: 54px minmax(0,1fr) 23px; }
@@ -1422,9 +1474,9 @@ body.meeting-report-print-mode .meeting-topic-task-overview-list { max-height:no
 .workspace-intro span { color:#1759d5; font-size:10px; font-weight:900; letter-spacing:.1em; }
 .workspace-intro h1 { margin:4px 0 3px; color:#102a4c; font-size:24px; line-height:1.25; }
 .workspace-intro p { margin:0; color:#667a94; font-size:12px; line-height:1.5; }
-.workspace-authority { display:grid; flex:0 0 auto; gap:2px; min-width:174px; padding:11px 14px; border:1px solid #cfe0f7; border-radius:12px; background:#f2f7ff; }
+.workspace-authority { display:grid; flex:0 0 auto; gap:4px; min-width:210px; max-width:290px; padding:11px 14px; border:1px solid #cfe0f7; border-radius:12px; background:#f2f7ff; }
 .workspace-authority b { color:#164f9d; font-size:12px; }
-.workspace-authority span { color:#395f8e; font-size:10px; letter-spacing:0; }
+.workspace-authority span { color:#395f8e; font-size:10px; line-height:1.45; letter-spacing:0; }
 .workspace-authority small { color:#6b82a0; font-size:9px; }
 .workspace-authority.is-report { border-color:#d9e2ee; background:#f7f9fc; }
 .alarm-live-layout { display:grid; grid-template-columns:minmax(280px,320px) minmax(0,1fr); align-items:start; gap:14px; }

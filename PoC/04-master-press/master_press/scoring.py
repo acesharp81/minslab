@@ -1642,7 +1642,7 @@ class NvidiaNIMClient(OpenRouterClient):
             raise OpenRouterError("nvidia_api_key_missing", status=401)
         options = payload.get("options") or {}
         schema = payload.get("response_schema")
-        model = str(payload.get("model") or getattr(self.settings, "nvidia_case_model", "openai/gpt-oss-120b"))
+        model = str(payload.get("model") or getattr(self.settings, "nvidia_case_model", "nvidia/nemotron-3-super-120b-a12b"))
         body = {
             "model": model,
             "messages": payload.get("messages", []),
@@ -1650,6 +1650,9 @@ class NvidiaNIMClient(OpenRouterClient):
             "temperature": float(options.get("temperature", 0.0)),
             "max_tokens": self._completion_token_limit(options),
         }
+        if model == "nvidia/nemotron-3-super-120b-a12b":
+            # Reserve the bounded output budget for the complete case JSON.
+            body["chat_template_kwargs"] = {"enable_thinking": False}
         if schema:
             body["response_format"] = {"type": "json_schema", "json_schema": schema}
         started = time.monotonic()

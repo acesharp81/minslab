@@ -375,3 +375,159 @@
   body.topic-report-print-mode .topic-report-task-card,
   body.topic-report-print-mode .topic-report-timeline article { break-inside:avoid-page; }
 }
+
+/* 국정ON editorial desk: one visual language from query desk to final edition. */
+@media screen {
+  .topic-reports-section {
+    padding: 18px clamp(10px, 2.5vw, 30px) 80px;
+    background:
+      linear-gradient(rgba(255,255,255,.62), rgba(255,255,255,.62)),
+      repeating-linear-gradient(0deg, #e9e4d9 0, #e9e4d9 1px, #f4f0e8 1px, #f4f0e8 5px);
+  }
+  .topic-report-intro {
+    position: relative;
+    margin: 0 0 18px;
+    padding: 22px clamp(18px, 3vw, 42px) 18px;
+    border-top: 5px solid #14253a;
+    border-bottom: 4px double #14253a;
+    background: #fffdf8;
+  }
+  .topic-report-intro::after { content: none; }
+  .topic-report-intro h1 {
+    font-family: Georgia, "Noto Serif KR", "Nanum Myeongjo", serif;
+    font-size: clamp(28px, 3vw, 42px);
+    letter-spacing: -.045em;
+  }
+  .topic-report-intro p { max-width: 820px; color: #5f5a51; font-family: Georgia, "Noto Serif KR", serif; }
+  .topic-report-grid { margin: 0; }
+  .topic-report-builder {
+    border: 1px solid #b9b2a5;
+    border-radius: 2px;
+    background: #fffdf8;
+    box-shadow: 0 18px 46px rgba(37, 34, 29, .10);
+  }
+  .topic-report-builder-top {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: stretch;
+    height: auto;
+    min-height: 300px;
+  }
+  .topic-report-search-pane { display:grid; grid-template-rows:auto auto minmax(20px,auto); align-content:start; min-width:0; padding:25px 30px 18px; }
+  .topic-report-builder-head { align-items:center; min-height:58px; margin-bottom:0; padding-bottom:14px; border-bottom:1px solid #2a3441; }
+  .topic-report-builder header span { color: #8b6b3e; font-family: Arial, sans-serif; letter-spacing: .14em; }
+  .topic-report-builder h2 {
+    color: #141e2a;
+    font-family: Georgia, "Noto Serif KR", "Nanum Myeongjo", serif;
+    font-size: clamp(22px, 2.2vw, 31px);
+    letter-spacing: -.035em;
+  }
+  #topicReportForm { align-items:end; margin-top:16px; }
+  #topicReportForm label { align-content:end; min-width:0; }
+  #topicReportForm label span { display:flex; align-items:center; min-height:16px; color:#333b45; font-family:Georgia,"Noto Serif KR",serif; font-size:11px; line-height:1.35; }
+  #topicReportForm input,
+  #topicReportForm select {
+    box-sizing:border-box;
+    width:100%;
+    height:44px;
+    border: 1px solid #bcb5aa;
+    border-radius: 2px;
+    color: #17212c;
+    background: #fffefa;
+  }
+  #topicReportForm input:focus,
+  #topicReportForm select:focus { border-color: #173c65; outline: 2px solid rgba(23,60,101,.13); }
+  .topic-report-actions button,
+  .topic-report-result-actions a,
+  .topic-report-result-actions button,
+  .topic-report-export-actions button {
+    border-radius: 2px;
+    border-color: #4b5b6e;
+    color: #1d3857;
+    background: #fffdf8;
+    letter-spacing: .015em;
+  }
+  .topic-report-actions .is-primary,
+  .topic-report-export-actions .is-primary { border-color: #173a62; background: #173a62; color: #fff; }
+  .topic-report-history {
+    display: flex;
+    min-height:300px;
+    max-height:360px;
+    box-sizing: border-box;
+    flex-direction: column;
+    padding: 25px 17px 16px;
+    border-left: 1px solid #b9b2a5;
+    background: #f3eee4;
+  }
+  .topic-report-history header { border-bottom: 3px double #263648; }
+  .topic-report-history h2 { margin: 5px 0 0; font-family: Georgia, "Noto Serif KR", serif; font-size: 19px; }
+  .topic-report-history-list {
+    min-height: 0;
+    max-height:252px;
+    flex: 1 1 auto;
+    align-content: start;
+    margin-top: 9px;
+    overflow-y: auto;
+  }
+  .topic-report-history-item {
+    padding: 10px 7px;
+    border: 0;
+    border-bottom: 1px solid #cfc7ba;
+    border-radius: 0;
+    background: transparent;
+  }
+  .topic-report-history-item:hover,
+  .topic-report-history-item.is-active { color: #102f52; background: #fffaf0; box-shadow: inset 3px 0 #173f6d; }
+  .topic-report-history-item strong { font-family: Georgia, "Noto Serif KR", serif; font-size: 12px; }
+  .topic-report-builder > .topic-report-preview { padding: 0 30px; }
+  .topic-report-builder > .topic-report-privacy {
+    margin: 16px 30px 22px;
+    border-top: 1px solid #c9c1b4;
+    border-radius: 0;
+    color: #686158;
+    background: transparent;
+  }
+  .topic-report-preview-summary { padding-bottom: 9px; border-bottom: 3px double #263648; font-family: Georgia, "Noto Serif KR", serif; }
+  .topic-report-preview-list { gap: 0 22px; }
+  .topic-report-preview-item { padding: 16px 4px; border: 0; border-bottom: 1px solid #d4cdc1; border-radius: 0; background: transparent; }
+  .topic-report-preview-item strong { font-family: Georgia, "Noto Serif KR", serif; font-size: 16px; line-height: 1.45; }
+}
+
+.topic-report-paper {
+  border-color: #aaa294;
+  border-top: 7px solid #15283f;
+  background:
+    linear-gradient(rgba(255,253,248,.975), rgba(255,253,248,.975)),
+    repeating-linear-gradient(90deg, #d9d2c7 0, #d9d2c7 1px, transparent 1px, transparent 4px);
+  box-shadow: 0 30px 70px rgba(25, 31, 40, .16);
+}
+.topic-report-masthead { align-items:center; padding-top:20px; padding-bottom:20px; border-top:1px solid #26384d; border-bottom:5px double #172b46; }
+.topic-report-publication { display:grid; gap:2px; }
+.topic-report-publication b { font-size:clamp(31px,3.2vw,48px); font-weight:700; line-height:.95; letter-spacing:-.065em; }
+.topic-report-publication span { padding-left:2px; color:#8a6a3f; letter-spacing:.22em; }
+.topic-report-edition { padding-left:22px; border-left:1px solid #b8afa1; }
+.topic-report-edition strong { color:#1b314b; font-family:Georgia,"Noto Serif KR",serif; font-size:14px; }
+.topic-report-hero { position:relative; padding-top:clamp(46px,6vw,82px); border-bottom:1px solid #bcb4a7; }
+.topic-report-hero::before { content:"SPECIAL POLICY EDITION"; position:absolute; top:18px; left:clamp(20px,6vw,82px); color:#8a6a3f; font:800 9px/1 Arial,sans-serif; letter-spacing:.2em; }
+.topic-report-hero h2 { text-wrap:balance; }
+.topic-report-hero p { padding-left:20px; border-left:3px solid #9c7a4b; }
+.topic-report-hero p::first-letter { float:left; margin:8px 7px 0 0; color:#173c65; font-size:3.25em; font-weight:700; line-height:.72; }
+.topic-report-reading-guide { border-top:3px double #26384d; border-bottom:1px solid #b9b1a4; border-left:0; }
+.topic-report-implications { background:#eee9df; }
+.topic-report-implication { background:rgba(255,253,248,.72); }
+.topic-report-issue.is-lead { background:#eeeae1; border-left-color:#173f6d; }
+.topic-report-section-heading h3 { font-size:clamp(24px,2.4vw,34px); }
+.topic-report-paper-foot { border-top:5px double #d9e0e8; }
+
+@media (max-width: 980px) {
+  .topic-report-intro::after { display:none; }
+  .topic-report-builder-top { grid-template-columns:1fr; height:auto; min-height:0; }
+  .topic-report-history { max-height:250px; border-top:1px solid #b9b2a5; border-left:0; }
+  .topic-report-history-list { max-height:170px; flex:0 1 auto; }
+}
+@media (max-width: 680px) {
+  .topic-report-masthead { align-items:flex-start; }
+  .topic-report-publication b { font-size:28px; }
+  .topic-report-edition { padding-left:12px; }
+  .topic-report-hero p { padding-left:13px; }
+  .topic-report-hero p::first-letter { float:none; margin:0; font-size:inherit; }
+}

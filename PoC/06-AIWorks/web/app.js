@@ -4,10 +4,11 @@
   var $=function(id){return document.getElementById(id)};
   var escapeHtml=function(value){return String(value==null?"":value).replace(/[&<>"']/g,function(char){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]})};
   var API="/api/poc/aiworks";
+  var PRODUCT_NAME="AI Work Hub";
   async function api(path,options){
     var response=await fetch(API+path,Object.assign({headers:{"Content-Type":"application/json"}},options||{}));
     var data=await response.json().catch(function(){return{}});
-    if(!response.ok)throw new Error(data.error||"AIWorks 서버 요청에 실패했습니다.");
+    if(!response.ok)throw new Error(data.error||PRODUCT_NAME+" 서버 요청에 실패했습니다.");
     return data;
   }
   var state={
@@ -71,6 +72,8 @@
     selectedProjectSourceIds:[],
     templateSelection:null,
     lastAnswer:"",
+    lastAnswerKind:"",
+    lastAnswerIntent:"",
     sourceContext:null,
     sourceEditorDirty:false,
     rhwpEditor:null,
@@ -109,17 +112,26 @@
   }
   function captureProjectChat(){
     return Array.from($("chat").querySelectorAll(".message")).slice(-100).map(function(node){
-      return{role:node.classList.contains("user")?"user":"assistant",text:node.textContent.trim(),kind:node.classList.contains("workflow-message")?"workflow":"message"};
+      return{role:node.classList.contains("user")?"user":"assistant",text:node.textContent.trim(),kind:node.dataset.messageKind||(node.classList.contains("workflow-message")?"workflow":"message")};
     }).filter(function(item){return item.text});
   }
   function renderProjectChat(items){
     $("chat").innerHTML="";
     (items||[]).forEach(function(item){
       var node=document.createElement("div");node.className="message "+(item.role==="user"?"user":"assistant")+(item.kind==="workflow"?" workflow-message":"");
+      if(item.kind)node.dataset.messageKind=item.kind;
       node.innerHTML=item.role==="user"?"<div>"+escapeHtml(item.text)+"</div>":"<span class='mini-orb'>✦</span><div><p>"+escapeHtml(item.text)+"</p></div>";
       $("chat").appendChild(node);
     });
     $("chat").scrollTop=$("chat").scrollHeight;
+  }
+  function restoreLastAnswerContext(items){
+    state.lastAnswerKind="";state.lastAnswerIntent="";
+    var list=items||[],contextIndex=-1;
+    for(var index=list.length-1;index>=0;index--){if(list[index].kind==="answer-context"||list[index].kind==="report-context"){contextIndex=index;break}}
+    if(contextIndex<0)return;
+    state.lastAnswerKind=list[contextIndex].kind==="answer-context"?"answer":"report";
+    for(var userIndex=contextIndex-1;userIndex>=0;userIndex--){if(list[userIndex].role==="user"){state.lastAnswerIntent=String(list[userIndex].text||"");break}}
   }
   function scheduleWorkspaceStateSave(immediate){
     if(!state.activeProjectId||state.restoringWorkspace)return;
@@ -145,9 +157,9 @@
       var updated=project.updatedAt?new Date(project.updatedAt).toLocaleDateString("ko-KR"):"-";
       return"<div class='project-list-item active'><button class='project-list-open' type='button' data-select-project='"+escapeHtml(project.id)+"'><strong>"+escapeHtml(project.name)+"</strong><span>문서 "+Number(project.documentCount||0)+" · 프로젝트 메타 "+Number(project.factCount||0)+"</span><i>최근 작업 "+escapeHtml(updated)+" · "+escapeHtml(project.classification||"internal")+"</i></button><div class='project-list-actions'><small>열기</small><button type='button' data-delete-project='"+escapeHtml(project.id)+"' aria-label='"+escapeHtml(project.name)+" 프로젝트 삭제'>삭제</button></div></div>";
     }).join("");
-    var archivedHtml=state.archivedProjects.length?"<div class='project-archive-divider'><span>삭제된 프로젝트 · 복원 가능</span><small>"+state.archivedProjects.length+"</small></div>"+state.archivedProjects.map(function(project){
+    var archivedHtml=state.archivedProjects.length?"<div class='project-archive-divider'><span>삭제된 프로젝트 · 복원 또는 완전 삭제</span><small>"+state.archivedProjects.length+"</small></div>"+state.archivedProjects.map(function(project){
       var updated=project.updatedAt?new Date(project.updatedAt).toLocaleDateString("ko-KR"):"-";
-      return"<div class='project-list-item archived'><strong>"+escapeHtml(project.name)+"</strong><span>문서와 메타정보가 안전하게 보존되어 있습니다.</span><button type='button' data-restore-project='"+escapeHtml(project.id)+"'>복원</button><i>삭제일 "+escapeHtml(updated)+" · "+escapeHtml(project.classification||"internal")+"</i></div>";
+      return"<div class='project-list-item archived'><strong>"+escapeHtml(project.name)+"</strong><span>보관 상태입니다. 복원하거나 복구할 수 없게 완전히 삭제할 수 있습니다.</span><div class='project-archive-actions'><button type='button' data-restore-project='"+escapeHtml(project.id)+"'>복원</button><button class='permanent-delete' type='button' data-purge-project='"+escapeHtml(project.id)+"'>완전 삭제</button></div><i>삭제일 "+escapeHtml(updated)+" · "+escapeHtml(project.classification||"internal")+"</i></div>";
     }).join(""):"";
     host.innerHTML=activeHtml+archivedHtml;
     host.querySelectorAll("[data-select-project]").forEach(function(button){button.onclick=function(){selectProject(button.dataset.selectProject)}});
@@ -158,7 +170,7 @@
       try{
         await api("/projects/"+encodeURIComponent(projectId)+"/status",{method:"POST",body:JSON.stringify({action:"archive",actor:"workspace-user"})});
         if(state.activeProjectId===projectId){
-          clearWorkbenchTabCache();clearWorkbenchCanvas();state.activeProjectId=null;state.activeProject=null;state.activeConversationId=null;state.projectWorkspace=null;state.projectWorkbench=null;state.projectDocuments=[];state.lastAnswer="";renderProjectChat([]);updateProjectContext();
+          clearWorkbenchTabCache();clearWorkbenchCanvas();state.activeProjectId=null;state.activeProject=null;state.activeConversationId=null;state.projectWorkspace=null;state.projectWorkbench=null;state.projectDocuments=[];state.lastAnswer="";state.lastAnswerKind="";state.lastAnswerIntent="";renderProjectChat([]);updateProjectContext();
         }
         await loadProjects();toast(projectName+" 프로젝트를 삭제 목록으로 이동했습니다. 필요하면 복원할 수 있습니다.");
       }catch(error){button.disabled=false;toast(error.message)}
@@ -170,13 +182,24 @@
         await loadProjects();toast("프로젝트를 복원했습니다.");
       }catch(error){button.disabled=false;toast(error.message)}
     }});
+    host.querySelectorAll("[data-purge-project]").forEach(function(button){button.onclick=async function(){
+      var projectId=button.dataset.purgeProject,project=state.archivedProjects.find(function(item){return item.id===projectId}),projectName=project&&project.name||"";
+      var confirmation=window.prompt("'"+projectName+"' 프로젝트를 완전히 삭제합니다.\n\n문서, 산출물, 자료, 대화와 메타정보를 모두 삭제하며 복구할 수 없습니다. 계속하려면 프로젝트 이름을 정확히 입력하세요.","");
+      if(confirmation===null)return;
+      if(confirmation!==projectName){toast("프로젝트 이름이 일치하지 않아 완전 삭제하지 않았습니다.");return}
+      button.disabled=true;
+      try{
+        await api("/projects/"+encodeURIComponent(projectId),{method:"DELETE",body:JSON.stringify({actor:"workspace-user",confirmation:confirmation,acknowledge_irreversible:true})});
+        await loadProjects();toast(projectName+" 프로젝트를 완전히 삭제했습니다. 이 작업은 복구할 수 없습니다.");
+      }catch(error){button.disabled=false;toast(error.message)}
+    }});
   }
   async function downloadProjectBackup(){
     if(!state.activeProjectId)return toast("프로젝트를 먼저 선택하세요.");
     setStatus("프로젝트 백업 구성 중");
     try{
       var bundle=await api("/projects/"+encodeURIComponent(state.activeProjectId)+"/backup"),blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
-      link.href=url;link.download=bundle.filename||"AIWorks-project.aiworks.json";document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
+      link.href=url;link.download=bundle.filename||"AI-Work-Hub-project.aiworks.json";document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
       toast("프로젝트 메타정보와 기본 MD 문서 백업을 다운로드했습니다.");setStatus("프로젝트 백업 완료");
     }catch(error){toast(error.message);setStatus("프로젝트 백업 실패")}
   }
@@ -207,9 +230,9 @@
     updateOrchestration("프로젝트 문서와 메타정보 복원","active","Solar 자동 선택");setStatus("프로젝트 작업공간 불러오는 중");
     try{
       state.restoreViewOverride="";
-      clearWorkbenchTabCache();clearWorkbenchCanvas();state.restoringWorkspace=true;state.activeProjectId=projectId;state.activeConversationId=null;state.projectWorkbench=null;state.activeWorkbenchTab="";state.nativeSession=null;state.sourceContext=null;state.lastAnswer="";state.projectSources=[];state.selectedProjectSourceIds=[];
+      clearWorkbenchTabCache();clearWorkbenchCanvas();state.restoringWorkspace=true;state.activeProjectId=projectId;state.activeConversationId=null;state.projectWorkbench=null;state.activeWorkbenchTab="";state.nativeSession=null;state.sourceContext=null;state.lastAnswer="";state.lastAnswerKind="";state.lastAnswerIntent="";state.projectSources=[];state.selectedProjectSourceIds=[];
       var workspace=await refreshActiveProjectWorkspace();
-      var saved=workspace.workspaceState||{};state.activeConversationId=saved.conversationId||null;state.lastAnswer=String(saved.lastAnswer||"");renderProjectChat(saved.chat||[]);
+      var saved=workspace.workspaceState||{};state.activeConversationId=saved.conversationId||null;state.lastAnswer=String(saved.lastAnswer||"");renderProjectChat(saved.chat||[]);restoreLastAnswerContext(saved.chat||[]);
       $("projectGate").hidden=true;
       var summary=workspace.summary||{};updateOrchestration("프로젝트 작업공간 복원 완료","done","Solar 자동 선택");
       setStatus(workspace.project.name+" · 문서 "+Number(summary.documentCount||0)+" · 프로젝트 메타 "+Number(summary.factCount||0));
@@ -357,6 +380,8 @@
       selection_id:selection?(selection.editId||selection.target||"document.selection"):"",
       selection_text:selection&&selection.before||"",
       previous_answer:state.lastAnswer||"",
+      previous_answer_kind:state.lastAnswerKind||"",
+      previous_answer_intent:state.lastAnswerIntent||"",
       document_excerpt:documentExcerpt(),
       project_source_ids:state.selectedProjectSourceIds.slice()
     };
@@ -392,13 +417,17 @@
   async function openGeneratedArtifact(artifact,loadedMcps){
     if(!artifact||artifact.format!=="hwpx"||!artifact.contentBase64)throw new Error("보고서 MCP가 RHWP용 HWPX 산출물을 반환하지 않았습니다.");
     state.templateSelection=null;
-    var filename=artifact.filename||((artifact.title||"AIWorks 파생 보고서")+".hwpx");
+    var filename=artifact.filename||((artifact.title||PRODUCT_NAME+" 파생 보고서")+".hwpx");
     var sourceMarkdown=artifact.markdownDocument||{};
     var projectArtifact=artifact.projectArtifact||{};
     var session=await api("/documents/sessions",{method:"POST",body:JSON.stringify({filename:filename,content_base64:artifact.contentBase64,intent:(artifact.title||"파생 보고서")+"를 RHWP에서 열고 후속 MCP 편집",project_id:state.activeProjectId,markdown_document_id:sourceMarkdown.id||"",markdown_base_revision:sourceMarkdown.revision,project_artifact_id:projectArtifact.id||"",canonical_markdown:String(artifact.content||""),confirmed:true,actor:"workspace-user"})});
     state.sourceContext={filename:filename,excerpt:String(artifact.content||"").slice(0,8000),sessionId:session.id,derived:true};
     await renderNativeSession(session);
-    if(sourceMarkdown.id){state.projectWorkbench=await api("/projects/"+encodeURIComponent(state.activeProjectId)+"/documents/"+sourceMarkdown.id+"/workbench");state.activeWorkbenchTab="artifact:hwpx";renderProjectWorkbenchTabs()}
+    if(sourceMarkdown.id){
+      state.projectWorkbench=await api("/projects/"+encodeURIComponent(state.activeProjectId)+"/documents/"+sourceMarkdown.id+"/workbench");state.activeWorkbenchTab="artifact:hwpx";renderProjectWorkbenchTabs();
+      var currentArtifact=(state.projectWorkbench.artifacts||[]).find(function(item){return item.format==="hwpx"});
+      await renderTemplateMcpSelector(currentArtifact);
+    }
     $("contextFile").textContent="⌁ "+filename;if(!state.restoringWorkspace)setView("editor");updateLivePreview();
     return session;
   }
@@ -1224,17 +1253,23 @@
 
   async function showTemplatePreviewDocument(kind){
     if(!templatePreviewState||!templatePreviewState.editor)return;
+    if(templatePreviewState.currentKind==="result"&&kind!=="result"){
+      templatePreviewState.editedResultBase64=bytesBase64(await templatePreviewState.editor.exportHwpx());
+    }
     var original=kind==="original",record=original?templatePreviewState.result.original:templatePreviewState.result.rendered;
     $("showTemplateOriginal").classList.toggle("active",original);$("showTemplateResult").classList.toggle("active",!original);
     $("templatePreviewModeLabel").textContent=original?"업로드한 원본 HWPX":"실제 Markdown 적용 결과";
     $("templatePreviewHwpxState").textContent="RHWP 로딩 중";
-    await templatePreviewState.editor.loadFile(base64Bytes(record.contentBase64),record.filename,{skipUnsavedGuard:true,suppressDialogs:true});
-    $("templatePreviewHwpxState").textContent=original?"원본 · 읽기 비교":"적용 결과 · 읽기 비교";
+    var contentBase64=!original&&templatePreviewState.editedResultBase64||record.contentBase64;
+    await templatePreviewState.editor.loadFile(base64Bytes(contentBase64),record.filename,{skipUnsavedGuard:true,suppressDialogs:true});
+    templatePreviewState.currentKind=kind;
+    $("templatePreviewHwpxState").textContent=original?"업로드 원본 · 비교용":"적용 결과 · RHWP 편집 가능 · 아래 버튼으로 저장";
   }
 
   async function fetchTemplatePreview(markdown){
     var result=await api("/builder/drafts/"+state.builderDraft.id+"/template-preview",{method:"POST",body:JSON.stringify({markdown:markdown||"",actor:"workspace-user"})});
-    if(!templatePreviewState)templatePreviewState={draftId:state.builderDraft.id,result:result,editor:null};else templatePreviewState.result=result;
+    if(!templatePreviewState)templatePreviewState={draftId:state.builderDraft.id,result:result,editor:null,currentKind:null,editedResultBase64:""};
+    else{templatePreviewState.result=result;templatePreviewState.currentKind=null;templatePreviewState.editedResultBase64=""}
     $("templatePreviewMarkdown").value=result.markdown||"";
     describeTemplatePreview(result);
     return result;
@@ -1269,10 +1304,14 @@
   async function confirmTemplatePreview(){
     if(!templatePreviewState)return;
     try{
-      $("confirmTemplatePreview").disabled=true;setStatus("확인한 양식 결과 저장 중");
-      var result=await api("/builder/drafts/"+templatePreviewState.draftId+"/template-confirm",{method:"POST",body:JSON.stringify({markdown:$("templatePreviewMarkdown").value,actor:"workspace-user"})});
-      state.builderDraft=result.draft;showBuilderDraft(result.draft);await loadBuilderDrafts();$("templatePreviewDialog").close();
-      setStatus("양식 적용 결과 확인 완료");toast("실제 보고서 적용 결과를 확인한 양식으로 저장했습니다. 이제 구조 검증 후 게시하세요.");
+      $("confirmTemplatePreview").disabled=true;setStatus("RHWP 수정본 확인·양식 초안 반영 중");
+      var editedContent=templatePreviewState.editedResultBase64||"";
+      if(templatePreviewState.editor&&templatePreviewState.currentKind==="result")editedContent=bytesBase64(await templatePreviewState.editor.exportHwpx());
+      var preview=templatePreviewState.result;
+      var result=await api("/builder/drafts/"+templatePreviewState.draftId+"/template-confirm",{method:"POST",body:JSON.stringify({markdown:$("templatePreviewMarkdown").value,edited_content_base64:editedContent,preview_source_sha256:preview.sourceSha256,preview_render_sha256:preview.rendered.sha256,actor:"workspace-user"})});
+      state.builderDraft=result.draft;showBuilderDraft(result.draft);await loadBuilderDrafts();destroyTemplatePreviewEditor();$("templatePreviewDialog").close();
+      setStatus(result.previewEdit&&result.previewEdit.applied?"RHWP 수정본 양식 초안 반영 완료 · 재검증 필요":"양식 적용 결과 확인 완료");
+      toast(result.previewEdit&&result.previewEdit.applied?"RHWP에서 수정한 결과를 재사용 가능한 양식 원본으로 반영했습니다. 구조 검증 후 게시하세요.":"실제 보고서 적용 결과를 확인한 양식으로 저장했습니다. 이제 구조 검증 후 게시하세요.");
     }catch(error){setStatus("양식 확인 저장 실패");toast(error.message)}
     finally{$("confirmTemplatePreview").disabled=false}
   }
@@ -1425,6 +1464,23 @@
     }catch(error){setStatus("첨부 파일 삭제 실패");toast(error.message)}
   }
 
+  function builderFormPayload(){
+    var visibility=document.querySelector("input[name='visibility']:checked");
+    return{name:$("mcpName").value,package_id:$("mcpPackageId").value,version:$("mcpVersion").value,description:$("mcpDescription").value,mcp_type:$("mcpType").value,instructions:$("mcpInstructions").value,cautions:$("mcpCautions").value,procedure:$("mcpProcedure").value,trigger_examples:$("mcpTriggers").value,data_source:$("mcpDataSource").value,use_model:$("useModel").checked,visibility:visibility&&visibility.value||"private",source_included:$("sourceIncluded").checked,allow_external:$("allowExternal").checked,actor:"workspace-user"};
+  }
+
+  async function saveCurrentBuilderDraft(){
+    if(!state.builderDraft)return toast("먼저 새 초안을 생성하거나 수정할 MCP를 여세요.");
+    if(state.builderDraft.status==="published")return toast("게시 버전은 Store에서 수정 초안을 만든 뒤 저장하세요.");
+    try{
+      $("saveMcpDraft").disabled=true;setStatus("MCP 수정 초안 저장 중");
+      var draft=await api("/builder/drafts/"+state.builderDraft.id,{method:"PUT",body:JSON.stringify(builderFormPayload())});
+      showBuilderDraft(draft);await loadBuilderDrafts();setStatus("MCP 수정 초안 저장 완료");
+      toast(draft.manifest.name+" v"+draft.manifest.version+" 초안을 저장했습니다. 다음으로 실제 결과 확인 또는 전체 테스트를 실행하세요.");
+    }catch(error){setStatus("MCP 수정 초안 저장 실패");toast(error.message)}
+    finally{if($("saveMcpDraft")&&state.builderDraft&&state.builderDraft.status!=="published")$("saveMcpDraft").disabled=false}
+  }
+
   function showBuilderDraft(draft){
     state.builderDraft=draft;
     $("manifestPreview").innerHTML=highlightJson(JSON.stringify(draft.manifest,null,2));
@@ -1434,6 +1490,7 @@
     $("publishMcp").disabled=draft.status!=="validated";
     $("publishMcp").textContent=draft.status==="validated"?"게시하고 대화 검색 활성화":draft.status==="published"?"게시 완료 · 설치 상태 확인":"검증 후 게시·설치";
     if($("managePublishedMcp"))$("managePublishedMcp").hidden=draft.status!=="published";
+    if($("saveMcpDraft")){$("saveMcpDraft").disabled=draft.status==="published";$("saveMcpDraft").textContent=draft.status==="published"?"게시본은 Store에서 수정":"초안 저장"}
     $("runSandbox").disabled=draft.status==="published";
     $("generateManifest").disabled=true;$("generateManifest").textContent="초안 생성 완료";
     $("mcpName").value=draft.manifest.name||"";
@@ -1477,10 +1534,15 @@
   }
   async function loadBuilderDrafts(){
     try{
-      var result=await api("/builder/drafts");var items=result.items||[];
+      var result=await api("/builder/drafts"),allItems=result.items||[],byPackage={};
+      allItems.filter(function(item){return item.status!=="published"}).forEach(function(item){
+        var packageId=item.manifest&&item.manifest.id||item.id;
+        if(!byPackage[packageId]||String(item.updatedAt||"")>String(byPackage[packageId].updatedAt||""))byPackage[packageId]=item;
+      });
+      var items=Object.keys(byPackage).map(function(key){return byPackage[key]}).sort(function(a,b){return String(b.updatedAt||"").localeCompare(String(a.updatedAt||""))});
       if($("studioDraftCount"))$("studioDraftCount").textContent=items.length;
-      $("builderDraftList").innerHTML=items.length?items.slice(0,8).map(function(item){var refs=item.references||[],chunks=refs.reduce(function(total,ref){return total+Number((ref.summary||{}).chunks||0)},0),labels={draft:"작성 중",validated:"검증 통과",rejected:"검증 실패",published:"게시 완료"},asset=refs.length?refs.length+"개 문서"+(chunks?" · RAG "+chunks+"청크":""):"첨부 없음";return"<button data-draft-id='"+escapeHtml(item.id)+"'><b>"+escapeHtml(item.manifest.name)+"</b><span>"+escapeHtml(labels[item.status]||item.status)+" · "+asset+"</span><small>"+escapeHtml(item.manifest.id)+"@"+escapeHtml(item.manifest.version)+" · "+escapeHtml(item.id.slice(-8))+"</small></button>"}).join(""):"<span class='empty-reference'>저장된 초안이 없습니다.</span>";
-      document.querySelectorAll("[data-draft-id]").forEach(function(button){button.onclick=function(){var draft=items.find(function(item){return item.id===button.dataset.draftId});if(draft){showBuilderDraft(draft);var chunks=(draft.references||[]).reduce(function(total,ref){return total+Number((ref.summary||{}).chunks||0)},0);toast(draft.manifest.name+" 초안을 열었습니다"+(chunks?" · RAG "+chunks+"청크":" · 첨부 없음"))}}});
+      $("builderDraftList").innerHTML=items.length?items.slice(0,8).map(function(item){var refs=item.references||[],chunks=refs.reduce(function(total,ref){return total+Number((ref.summary||{}).chunks||0)},0),labels={draft:"작성 중",validated:"검증 통과",rejected:"검증 실패"},asset=refs.length?refs.length+"개 문서"+(chunks?" · RAG "+chunks+"청크":""):"첨부 없음";return"<button data-draft-id='"+escapeHtml(item.id)+"'><b>"+escapeHtml(item.manifest.name)+"</b><span>"+escapeHtml(labels[item.status]||item.status)+" · "+asset+"</span><small>"+escapeHtml(item.manifest.id)+"@"+escapeHtml(item.manifest.version)+" · 최신 작업 1건</small></button>"}).join(""):"<span class='empty-reference'>진행 중인 제작 작업이 없습니다. 배포된 MCP는 Store에서 확인하세요.</span>";
+      document.querySelectorAll("[data-draft-id]").forEach(function(button){button.onclick=function(){var draft=items.find(function(item){return item.id===button.dataset.draftId});if(draft){showBuilderDraft(draft);var chunks=(draft.references||[]).reduce(function(total,ref){return total+Number((ref.summary||{}).chunks||0)},0);toast(draft.manifest.name+"의 최신 수정 작업을 열었습니다"+(chunks?" · RAG "+chunks+"청크":" · 첨부 없음"))}}});
     }catch(error){$("builderDraftList").textContent=error.message}
   }
   var builderTypeUi={
@@ -1651,11 +1713,12 @@
     if(!dialog.open)dialog.showModal();
   }
     $("builderView").innerHTML="<div class='module-page'><div class='module-hero'><div><span class='eyebrow'>MCP Studio</span><h1>플랫폼 전용 MCP 제작기</h1><p>자연어 업무 설명을 서버에 저장된 계약으로 변환하고, 검증된 버전만 서명해 스토어에 등록합니다.</p></div><div class='module-actions'><button id='managePublishedMcp' hidden>스토어에서 수정·삭제</button><button class='primary' id='publishMcp' disabled>검증 후 스토어 등록</button></div></div><section class='surface draft-history'><div class='surface-head'><h2>저장된 제작 작업</h2><small>초안·검증·게시 상태</small></div><div id='builderDraftList' class='draft-list'>불러오는 중...</div></section><div class='builder-grid'><section class='surface'><div class='surface-head'><h2>1. 목적과 사용 조건</h2><small>자연어 → 구조화 계약</small></div><label class='field'><span>MCP 이름</span><input id='mcpName' value='예산 검증 MCP'></label><div class='builder-id-grid'><label class='field'><span>패키지 ID · 비우면 자동 생성</span><input id='mcpPackageId' placeholder='org.budget-checker'></label><label class='field'><span>버전</span><input id='mcpVersion' value='0.1.0'></label></div><label class='field'><span>어떤 업무를 처리하나요?</span><textarea id='mcpDescription' rows='6'>예산요청서에서 필수 항목 누락과 산출 근거 오류를 찾고, 최신 SW대가 기준과 비교해 수정안을 제안한다. 원문은 외부로 보내지 않는다.</textarea></label><div class='field'><span>기준 문서 · 로컬 추출 및 SHA-256 검사</span><div id='referenceList' class='reference-list'><div class='empty-reference'>초안을 만든 뒤 실제 기준 문서를 첨부하세요.</div></div></div><div id='builderRagLab' class='builder-rag-lab' hidden><div><b>등록 자료 RAG 미리보기</b><span id='draftRagIndex'>데이터 원본 PDF를 첨부하면 검색할 수 있습니다.</span></div><div class='builder-rag-query'><input id='draftRagQuery' placeholder='예: 이 자료에서 예산 총액과 주요 정책을 찾아줘'><button id='runDraftRag' disabled>근거 검색</button></div><div id='draftRagResult' class='resolver-result'><div class='registry-empty'>게시 전에도 실제 검색 청크와 원문 위치를 확인할 수 있습니다.</div></div></div><input id='referenceFile' type='file' accept='.hwpx,.pdf,.docx,.odt,.xlsx,.md,.txt' multiple hidden><div class='toggle-row'><label><input type='radio' name='visibility' value='private'> 개인 전용</label><label><input type='radio' name='visibility' value='organization' checked> 조직 공개</label><label><input type='radio' name='visibility' value='public'> 공개</label></div><div class='toggle-row'><label><input type='checkbox' id='sourceIncluded'> 게시 패키지에 원본 포함</label><label><input type='checkbox' id='allowExternal'> 외부 모델·MCP 전송 허용</label></div><div class='form-actions'><button id='attachReference'>＋ PDF·자료 추가</button><button class='primary' id='generateManifest'>새 초안·Manifest 생성</button></div></section><section class='surface'><div class='surface-head'><h2>2. Manifest 미리보기</h2><small id='manifestStatus'>아직 생성되지 않음</small></div><pre class='code-preview' id='manifestPreview'>서버 초안을 생성하면 계약이 표시됩니다.</pre></section></div><section class='surface'><div class='surface-head'><h2>3. 샌드박스 계약 테스트</h2><button class='inline-link' id='runSandbox' disabled>전체 테스트 실행</button></div><div class='test-list' id='testList'><div><i>○</i> Manifest 생성 후 서버 샌드박스 검증을 실행하세요.</div></div></section></div>";
+    var draftHistory=$("builderDraftList").closest(".draft-history"),draftHistoryHead=draftHistory&&draftHistory.querySelector(".surface-head");if(draftHistoryHead){draftHistoryHead.querySelector("h2").textContent="진행 중인 제작 작업";draftHistoryHead.querySelector("small").textContent="패키지별 최신 작업만 표시 · 배포본은 Store에서 관리"}
     var page=$("builderView").querySelector(".module-page"),hero=page.querySelector(".module-hero");page.classList.add("mcp-studio-page");
     hero.querySelector(".eyebrow").textContent="MCP STUDIO · BUILD → INSTALL → RUN";
     hero.querySelector("h1").textContent="필요한 MCP를 만들고 바로 불러보세요";
     hero.querySelector("p").textContent="업무 유형을 고르고 예시를 수정하면 계약·권한·실행 가이드가 자동 생성됩니다. 게시·설치 후 호출 문구가 어떤 MCP를 선택하는지 이 화면에서 확인할 수 있습니다.";
-    hero.querySelector(".module-actions").insertAdjacentHTML("afterbegin","<button class='builder-manual-open' id='openBuilderManual'>◎ 처음부터 따라하기</button><button id='downloadTemplateStarter'>HWPX 시작 양식</button><button id='newBuilderDraft'>＋ 새 MCP</button>");
+    hero.querySelector(".module-actions").insertAdjacentHTML("afterbegin","<button class='builder-manual-open' id='openBuilderManual'>◎ 처음부터 따라하기</button><button id='downloadTemplateStarter'>HWPX 시작 양식</button><button id='newBuilderDraft'>＋ 새 MCP</button><button id='saveMcpDraft' disabled>초안 저장</button>");
     hero.insertAdjacentHTML("afterend","<section class='studio-overview'><div class='studio-status-bar'><div><span>현재 제작 상태</span><b id='studioDraftStatus'>새 MCP를 시작하세요</b></div><div class='studio-live-metrics'><span><b id='studioDraftCount'>-</b> 저장 작업</span><span><b id='registryPackageCount'>-</b> 설치 MCP</span><span><b id='registryCapabilityCount'>-</b> Capability</span></div></div><div class='studio-steps' id='studioSteps'><div class='studio-step current'><i>1</i><b>초안</b><span>목적·호출 문구</span></div><div class='studio-step'><i>2</i><b>자료</b><span>양식·PDF·지침</span></div><div class='studio-step'><i>3</i><b>검증</b><span>계약·권한 검사</span></div><div class='studio-step'><i>4</i><b>게시</b><span>서명 패키지</span></div><div class='studio-step'><i>5</i><b>설치</b><span>대화 자동 검색</span></div></div><div class='studio-type-head'><div><b>무엇을 만들까요?</b><span>유형을 선택하면 작성 항목과 안전 검사가 자동으로 바뀝니다.</span></div><small>빠른 예시를 불러온 뒤 문구만 바꿔도 됩니다.</small></div><div class='studio-type-grid'><button data-builder-type='template'><i>▤</i><b>양식 MCP</b><span>내 HWPX 양식으로 변환</span><small>완성본·빈칸·예시·작성요령 분석</small></button><button data-builder-type='process'><i>↳</i><b>처리 MCP</b><span>반복 절차를 자동 실행</span><small>단계 + 체크포인트 + 결과</small></button><button data-builder-type='data'><i>◫</i><b>데이터 MCP</b><span>PDF 자료를 RAG로 조회</span><small>여러 파일 + 페이지 근거 + 인용</small></button><button data-builder-type='tool'><i>✦</i><b>일반 도구 MCP</b><span>요약·변환·분석 기능</span><small>Prompt + 입력·출력 계약</small></button><button data-builder-type='external'><i>⇄</i><b>외부 MCP 연결</b><span>공개·사내 MCP 연결</span><small>stdio 프로필 또는 HTTP 매핑</small></button></div></section>");
     page.insertAdjacentHTML("beforeend","<section class='surface studio-runtime'><div class='surface-head'><div><h2>4. 설치된 MCP를 실제 요청으로 찾아보기</h2><small>Capability Registry · 활성 설치 버전만 검색</small></div><button class='inline-link' id='refreshRegistry'>Registry 새로고침</button></div><div class='registry-layout'><div><div class='registry-title'><b>대화에서 사용할 수 있는 MCP</b><span>게시만 한 MCP는 표시되지 않습니다. 설치 승인까지 완료해야 합니다.</span></div><div id='capabilityRegistryList' class='capability-registry-list'><div class='registry-empty'>Registry를 불러오는 중입니다.</div></div></div><div class='resolver-lab'><span class='eyebrow'>CALL TEST</span><h3>호출 문구를 입력해 보세요</h3><p>실행 전에 어떤 MCP와 버전이 선택되는지 확인합니다.</p><textarea id='resolverIntent' rows='3' placeholder='예: 회의 핵심과 후속 조치를 요약해줘'></textarea><div class='resolver-actions'><button id='resolveIntent'>MCP 찾기</button><button class='primary' id='runResolvedIntent' disabled>채팅에서 실행</button></div><div id='resolverResult' class='resolver-result'><div class='registry-empty'>호출 문구를 입력하면 선택 예정 MCP와 매칭 근거가 표시됩니다.</div></div></div></div></section>");
     $("mcpName").closest(".field").insertAdjacentHTML("beforebegin","<label class='field'><span>MCP 유형</span><select id='mcpType'><option value='template'>양식 MCP</option><option value='process'>처리 MCP</option><option value='data'>데이터 MCP</option><option value='tool'>일반 도구 MCP</option><option value='external'>외부 MCP 연결</option></select></label><div id='builderTypeGuide' class='builder-type-guide'></div>");
@@ -1672,6 +1735,7 @@
     document.querySelectorAll("[data-builder-type]").forEach(function(card){card.onclick=function(){applyBuilderPreset(card.dataset.builderType)}});
     $("downloadTemplateStarter").onclick=async function(){try{setStatus("HWPX 시작 양식 생성 중");var starter=await api("/builder/template-starter");downloadBase64(starter.filename,starter.contentBase64);setStatus("HWPX 시작 양식 다운로드 완료");toast("한글에서 서식을 편집한 뒤 플레이스홀더를 유지해 양식 원본으로 첨부하세요.")}catch(error){toast(error.message)}};
     $("openBuilderManual").onclick=function(){openBuilderManual(0)};
+    $("saveMcpDraft").onclick=saveCurrentBuilderDraft;
     $("convertDraftTemplate").onclick=convertDraftTemplateSource;
     $("previewDraftTemplate").onclick=openTemplatePreview;
     $("editableTemplateMcp").onchange=function(){$("openEditableTemplateMcp").disabled=!this.value};
@@ -1737,13 +1801,13 @@
     var term=String(filter||"").toLowerCase();
     var list=state.mcps.filter(function(item){return !term||item.name.toLowerCase().indexOf(term)>=0||item.id.toLowerCase().indexOf(term)>=0||item.publisher.toLowerCase().indexOf(term)>=0||item.desc.toLowerCase().indexOf(term)>=0});
     var cards=list.map(function(item){
-      var installed=Boolean(item.installedVersion);var update=installed&&item.installedVersion!==item.version;
-      var action=update?"<button data-install='"+escapeHtml(item.id)+"'>v"+escapeHtml(item.version)+" 업데이트</button>":(!installed?"<button data-install='"+escapeHtml(item.id)+"'>권한 확인 후 설치</button>":(item.rollbackVersion?"<button data-rollback='"+escapeHtml(item.id)+"'>v"+escapeHtml(item.rollbackVersion)+" 롤백</button>":"<button class='installed' disabled>v"+escapeHtml(item.installedVersion)+" 고정</button>"));
+      var installed=Boolean(item.installedVersion),displayVersion=item.installedVersion||item.latestVersion||item.version,update=installed&&item.installedVersion!==item.latestVersion;
+      var action=update?"<button data-install='"+escapeHtml(item.id)+"'>새 배포 v"+escapeHtml(item.latestVersion)+" 적용</button>":(!installed?"<button data-install='"+escapeHtml(item.id)+"'>권한 확인 후 설치</button>":(item.rollbackVersion?"<button data-rollback='"+escapeHtml(item.id)+"'>이전 v"+escapeHtml(item.rollbackVersion)+"으로 롤백</button>":"<button class='installed' disabled>v"+escapeHtml(item.installedVersion)+" 적용 중</button>"));
       var configure=item.configurable&&installed?"<button class='store-configure' data-configure='"+escapeHtml(item.id)+"'>환경설정</button>":"";
       var usage=item.mcpType==="template"?"<button class='store-template-usage' data-template-usage='"+escapeHtml(item.id)+"'>사용법</button>":"";
       var manage=usage+configure+"<button class='store-edit' data-edit='"+escapeHtml(item.id)+"'>수정</button>"+(item.deletable?"<button class='store-delete' data-delete='"+escapeHtml(item.id)+"'>삭제</button>":"");
-      var evaluation=(item.versions[0]&&item.versions[0].evaluation)||{};
-      return "<article class='store-card'><div class='store-card-head'><span class='mcp-logo'>⌘</span><div><h3>"+escapeHtml(item.name)+"</h3><div class='store-meta'><span>"+escapeHtml(item.id)+"@"+escapeHtml(item.version)+"</span><span>"+escapeHtml(item.publisher)+"</span><span>✓ 서명 · 취약점 0</span></div></div></div><p>"+escapeHtml(item.desc)+"</p><div>"+item.permissions.map(function(p){return "<span class='permission-chip'>"+escapeHtml(p)+"</span> "}).join("")+"</div><div class='store-operations'><span>품질 <b>"+Math.round(Number(evaluation.quality||0)*100)+"%</b></span><span>성공률 <b>"+Math.round(Number(evaluation.successRate||0)*100)+"%</b></span><span>지연 <b>"+Math.round(Number(evaluation.latencyMs||0))+"ms</b></span><span>비용 <b>"+Number(evaluation.costPerRun||0).toFixed(4)+"</b></span></div><small class='store-policy'>라이선스 "+escapeHtml(item.license||"UNSPECIFIED")+" · 보존 "+escapeHtml(item.dataRetention&&item.dataRetention.policy||"미선언")+" · 샌드박스 "+escapeHtml(item.security&&item.security.sandbox||"미선언")+"</small><footer><span class='type-chip'>"+escapeHtml(item.runtime)+(installed?" · 설치 v"+escapeHtml(item.installedVersion):"")+"</span><div class='store-card-actions'>"+manage+action+"</div></footer></article>";
+      var activeRecord=(item.versions||[]).find(function(version){return version.version===displayVersion})||item.versions[0]||{},evaluation=activeRecord.evaluation||{};
+      return "<article class='store-card'><div class='store-card-head'><span class='mcp-logo'>⌘</span><div><h3>"+escapeHtml(item.name)+"</h3><div class='store-meta'><span>"+escapeHtml(item.id)+"@"+escapeHtml(displayVersion)+" · "+(installed?"현재 적용":"최신 게시")+"</span><span>"+escapeHtml(item.publisher)+"</span><span>✓ 서명 · 취약점 0</span></div></div></div><p>"+escapeHtml(item.desc)+"</p><div>"+item.permissions.map(function(p){return "<span class='permission-chip'>"+escapeHtml(p)+"</span> "}).join("")+"</div><div class='store-operations'><span>품질 <b>"+Math.round(Number(evaluation.quality||0)*100)+"%</b></span><span>성공률 <b>"+Math.round(Number(evaluation.successRate||0)*100)+"%</b></span><span>지연 <b>"+Math.round(Number(evaluation.latencyMs||0))+"ms</b></span><span>비용 <b>"+Number(evaluation.costPerRun||0).toFixed(4)+"</b></span></div><small class='store-policy'>이전 게시본은 목록에 노출하지 않고 롤백 대상으로만 보존 · 라이선스 "+escapeHtml(item.license||"UNSPECIFIED")+" · 보존 "+escapeHtml(item.dataRetention&&item.dataRetention.policy||"미선언")+"</small><footer><span class='type-chip'>"+escapeHtml(item.runtime)+(installed?" · 현재 적용 v"+escapeHtml(item.installedVersion):"")+"</span><div class='store-card-actions'>"+manage+action+"</div></footer></article>";
     }).join("");
     var quarantine=state.quarantined.length?"<div class='quarantine-warning'><b>검증 실패 패키지 "+state.quarantined.length+"개 격리</b><span>"+state.quarantined.map(function(item){return escapeHtml(item.packageId+"@"+item.version)}).join(", ")+"</span></div>":"";
     $("storeView").innerHTML="<div class='module-page'><div class='module-hero'><div><span class='eyebrow'>Signed MCP Marketplace</span><h1>조직 MCP 스토어</h1><p>조직 서명과 패키지 해시를 검증하고 승인된 권한으로 정확한 버전을 고정 설치합니다.</p></div><div class='module-actions'><button data-view-jump='builder'>내 MCP 만들기</button></div></div>"+quarantine+"<div class='store-toolbar'><input class='store-search' id='storeSearch' placeholder='MCP 이름, ID, 업무 또는 게시자 검색' value='"+escapeHtml(filter||"")+"'><button class='filter-button' id='refreshStore'>서명 다시 검증</button></div><div class='store-grid'>"+(cards||"<div class='registry-empty'>검색 조건에 맞는 MCP가 없습니다.</div>")+"</div></div>";
@@ -1794,7 +1858,7 @@
     try{
       var data=await api("/store/packages");
       state.quarantined=data.quarantined||[];
-      state.mcps=(data.items||[]).map(function(item){return{id:item.packageId,name:item.name,version:item.versions[0].version,versions:item.versions,mcpType:item.mcpType||"tool",installedVersion:item.installedVersion,rollbackVersion:item.rollbackVersion,runtime:item.runtime,desc:item.description,permissions:item.permissions,rating:"서명됨",publisher:item.publisher,license:item.license||"UNSPECIFIED",dataRetention:item.dataRetention||{},security:item.security||{},compatibility:item.compatibility||{},editable:item.editable!==false,deletable:Boolean(item.deletable),configurable:Boolean(item.configurable),configuration:item.configuration||null,configurationRevision:Number(item.configurationRevision||0),configurationUpdatedAt:item.configurationUpdatedAt||null}});
+      state.mcps=(data.items||[]).map(function(item){var latestVersion=item.versions[0].version,activeVersion=item.installedVersion||latestVersion;return{id:item.packageId,name:item.name,version:activeVersion,latestVersion:latestVersion,versions:item.versions,mcpType:item.mcpType||"tool",installedVersion:item.installedVersion,rollbackVersion:item.rollbackVersion,runtime:item.runtime,desc:item.description,permissions:item.permissions,rating:"서명됨",publisher:item.publisher,license:item.license||"UNSPECIFIED",dataRetention:item.dataRetention||{},security:item.security||{},compatibility:item.compatibility||{},editable:item.editable!==false,deletable:Boolean(item.deletable),configurable:Boolean(item.configurable),configuration:item.configuration||null,configurationRevision:Number(item.configurationRevision||0),configurationUpdatedAt:item.configurationUpdatedAt||null}});
       state.installed=state.mcps.filter(function(item){return item.installedVersion}).map(function(item){return item.id});
       if(state.activeView==="store")renderStore();
       if(notify)toast(state.quarantined.length?"검증 실패 패키지를 격리했습니다.":"조직 서명과 패키지 해시를 다시 검증했습니다.");
@@ -1909,7 +1973,7 @@
   }
 
   async function prepareStoreApproval(item,action){
-    state.pendingStoreAction=action;item.targetVersion=action==="rollback"?item.rollbackVersion:item.version;
+    state.pendingStoreAction=action;item.targetVersion=action==="rollback"?item.rollbackVersion:(item.latestVersion||item.version);
     if(action==="install"){var preview=await api("/store/install-preview",{method:"POST",body:JSON.stringify({package_id:item.id,version:item.targetVersion})});item.permissionDiff=preview.permissionDiff||null}
     state.pendingIntent=action==="rollback"?item.name+"을 검증된 v"+item.targetVersion+"으로 롤백":item.name+" v"+item.targetVersion+"을 서명 검증 후 고정 설치";
     showApproval(state.pendingIntent,true,item);
@@ -1989,9 +2053,10 @@
         addWorkflowPipeline(result.workflow||plan.workflow,plan);
         if(responseType==="text-answer"||responseType==="context-answer"){
           state.lastAnswer=String(result.answer||"");
-          var answerNode=await streamAssistant(state.lastAnswer);
+          state.lastAnswerKind="answer";state.lastAnswerIntent=String(plan.intent||intent||"");
+          var answerNode=await streamAssistant(state.lastAnswer,{kind:"answer-context"});
           addResultSources(answerNode,result.sources||[]);
-          if(responseType==="text-answer")addRhwpEditAction(answerNode);
+          addRhwpEditAction(answerNode);
           updateOrchestration("분석 답변 생성 완료","done",resultModelLabel);
           setStatus((resultModel.mode==="live"?"Solar 응답 완료":"로컬 체험 응답 완료")+" · "+resultModelLabel);
           addAudit("Server",responseType+" · "+resultModelLabel+" · "+execution.id,"완료");state.pendingPlan=null;return;
@@ -1999,16 +2064,17 @@
         if(responseType==="report-artifact"){
           if(!result.artifact)throw new Error("서버 실행 결과에 보고서 산출물이 없습니다.");
           state.lastAnswer=String(result.artifact.content||"");
+          state.lastAnswerKind="report";state.lastAnswerIntent=String(plan.intent||intent||"");
           if(result.artifact.contentBase64){
             await openGeneratedArtifact(result.artifact,result.loadedMcps);await refreshActiveProjectWorkspace();
-            addAssistant(resultModelLabel+"이 보고서 초안을 생성했습니다. 문구를 선택해 후속 MCP 작업을 계속할 수 있습니다.");
+            addAssistant(resultModelLabel+"이 보고서 초안을 생성했습니다. 문구를 선택해 후속 MCP 작업을 계속할 수 있습니다.",{kind:"report-context"});
             updateOrchestration("MD 저장·양식 적용·파생 문서 생성 완료","done",resultModelLabel);
             setStatus("보고서 MCP 산출물 편집 중 · "+resultModelLabel);addAudit("Server","보고서 산출물 생성 · "+execution.id,"완료");
           }else{
             await refreshActiveProjectWorkspace();var markdownDocument=result.artifact.markdownDocument||{};
             if(markdownDocument.id)await openProjectWorkbench(markdownDocument.id,"markdown");
             var renderReason=result.artifact.rendering&&result.artifact.rendering.error||"HWPX renderer를 사용할 수 없습니다.";
-            addAssistant("보고서 Markdown은 안전하게 저장했습니다. 완성 문서 생성만 실패했으며 ‘완성 문서 다시 만들기’로 재시도할 수 있습니다. ("+renderReason+")");
+            addAssistant("보고서 Markdown은 안전하게 저장했습니다. 완성 문서 생성만 실패했으며 ‘완성 문서 다시 만들기’로 재시도할 수 있습니다. ("+renderReason+")",{kind:"report-context"});
             updateOrchestration("MD 저장 완료 · 파생 문서 재생성 필요","done",resultModelLabel);setStatus("Markdown 저장됨 · HWPX 재생성 필요");addAudit("Server","보고서 MD 보존 · renderer 실패 · "+execution.id,"주의");
           }
           state.pendingPlan=null;return;
@@ -2029,7 +2095,8 @@
           var transformed=await runNativeSessionCommand("replace_artifact",{contentBase64:result.artifact.contentBase64,filename:result.artifact.filename,canonical_markdown:String(result.artifact.content||"")});
           if(!transformed)throw new Error("변환된 전체 보고서를 현재 문서에 적용하지 못했습니다.");
           state.lastAnswer=String(result.artifact.content||"");
-          addAssistant("보고서 전체 내용을 요청한 형식으로 다듬어 현재 RHWP 문서의 새 revision으로 적용했습니다.");
+          state.lastAnswerKind="report";state.lastAnswerIntent=String(plan.intent||intent||"");
+          addAssistant("보고서 전체 내용을 요청한 형식으로 다듬어 현재 RHWP 문서의 새 revision으로 적용했습니다.",{kind:"report-context"});
           await refreshActiveProjectWorkspace();updateOrchestration("문서 전체 변환과 MD 동기화 완료","done",resultModelLabel);
           setStatus("보고서 전체 변환 완료 · revision "+state.nativeSession.revision);addAudit("Report MCP","전체 문서 변환 · "+execution.id,"완료");state.pendingPlan=null;return;
         }
@@ -2058,10 +2125,12 @@
   }
   function addAssistant(text,options){
     var node=document.createElement("div");node.className="message assistant";node.innerHTML="<span class='mini-orb'>✦</span><div><p>"+escapeHtml(text)+"</p></div>";$("chat").appendChild(node);$("chat").scrollTop=$("chat").scrollHeight;
+    if(options&&options.kind)node.dataset.messageKind=options.kind;
     if(!(options&&options.skipPersist))scheduleWorkspaceStateSave(false);
   }
-  function streamAssistant(text){
+  function streamAssistant(text,options){
     var node=document.createElement("div");node.className="message assistant streaming";node.innerHTML="<span class='mini-orb'>✦</span><div><p></p></div>";$("chat").appendChild(node);var output=node.querySelector("p"),chars=Array.from(String(text||"")),index=0;
+    if(options&&options.kind)node.dataset.messageKind=options.kind;
     return new Promise(function(resolve){var timer=setInterval(function(){index=Math.min(chars.length,index+Math.max(1,Math.ceil(chars.length/45)));output.textContent=chars.slice(0,index).join("");$("chat").scrollTop=$("chat").scrollHeight;if(index>=chars.length){clearInterval(timer);node.classList.remove("streaming");scheduleWorkspaceStateSave(false);resolve(node)}},18)});
   }
   function addRhwpEditAction(messageNode){
@@ -2125,6 +2194,7 @@
   async function bootstrapServer(){
     try{
       var data=await api("/bootstrap");state.serverOnline=true;state.models=data.models||[];state.openrouter=data.openrouter||state.openrouter;state.externalMcpProfiles=(data.capabilities&&data.capabilities.externalMcpProfiles)||[];populateExternalMcpProfiles();
+      PRODUCT_NAME=data.displayName||PRODUCT_NAME;if($("productName"))$("productName").textContent=PRODUCT_NAME;document.title=PRODUCT_NAME+" · AI 업무 작업공간";
       await loadProjects();
       await syncStore(false);
       await syncWorkflowPresets();
@@ -2283,7 +2353,7 @@
   $("templateUsageEdit").onclick=async function(){var ref=$("templateUsageDialog").dataset.packageRef,packageId=String(ref).split("@")[0],item=(state.mcps||[]).find(function(candidate){return candidate.id===packageId});if(!item)return toast("수정할 스토어 패키지를 찾을 수 없습니다.");$("templateUsageDialog").close();try{await forkStoreItemForEdit(item,false)}catch(error){toast(error.message)}};
   $("undoDirectEdit").onclick=function(){if(state.nativeSession){if(state.nativeSession.runtime==="windows-native-bridge")runNativeSessionCommand("undo",{});else toast("HWPX 대체 세션은 저장 버전 목록에서 이전 산출물을 다시 여세요.")}else undoDirectEdit()};
   $("exportButton").onclick=async function(){var saved=await saveDocumentChanges();if(!saved)return;if(state.nativeSession){try{var artifact=await api("/documents/sessions/"+state.nativeSession.id+"/artifact");downloadBase64(artifact.filename,artifact.contentBase64);toast(artifact.filename+" MCP 산출물 다운로드를 시작했습니다.");addAudit("Document MCP","원본 산출물 내보내기 · "+artifact.adapter,"완료")}catch(error){toast(error.message)}}else if(state.currentDocument){downloadBase64(state.currentDocument.filename,state.currentDocument.contentBase64);toast(state.currentDocument.filename+" 다운로드를 시작했습니다.");addAudit("사용자","HWPX 내보내기 · "+state.currentDocument.filename,"완료")}else{downloadEditableHtml();toast("직접 편집한 문서를 HTML로 내보냈습니다.");addAudit("사용자","편집 문서 HTML 내보내기","완료")}};
-  $("clearChat").onclick=function(){$("chat").innerHTML="";state.lastAnswer="";var summary=state.projectWorkspace&&state.projectWorkspace.summary||{};addAssistant((state.activeProject&&state.activeProject.name||"현재")+" 프로젝트 문맥은 유지합니다. MD "+Number(summary.documentCount||0)+"개와 메타정보 "+Number(summary.factCount||0)+"개를 계속 사용할 수 있습니다.");scheduleWorkspaceStateSave(true);updateOrchestration("다음 업무 요청 대기","idle");toast("실행 이력과 프로젝트 문맥은 유지하고 대화만 초기화했습니다.")};
+  $("clearChat").onclick=function(){$("chat").innerHTML="";state.lastAnswer="";state.lastAnswerKind="";state.lastAnswerIntent="";var summary=state.projectWorkspace&&state.projectWorkspace.summary||{};addAssistant((state.activeProject&&state.activeProject.name||"현재")+" 프로젝트 문맥은 유지합니다. MD "+Number(summary.documentCount||0)+"개와 메타정보 "+Number(summary.factCount||0)+"개를 계속 사용할 수 있습니다.");scheduleWorkspaceStateSave(true);updateOrchestration("다음 업무 요청 대기","idle");toast("실행 이력과 프로젝트 문맥은 유지하고 대화만 초기화했습니다.")};
   document.addEventListener("keydown",function(event){var key=event.key.toLowerCase();if((event.ctrlKey||event.metaKey)&&key==="k"){event.preventDefault();$("chatInput").focus()}if((event.ctrlKey||event.metaKey)&&key==="s"){event.preventDefault();saveDocumentChanges()}if((event.ctrlKey||event.metaKey)&&key==="z"&&!event.target.closest("input,textarea,[contenteditable='true']")){event.preventDefault();undoChange()}});
 
   initializeDirectEditing();

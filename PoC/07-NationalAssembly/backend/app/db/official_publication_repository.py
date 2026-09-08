@@ -5,7 +5,11 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
-from ..adapters.official_minutes_body import OfficialMinutesBody, normalized_match_text
+from ..adapters.official_minutes_body import (
+    OfficialMinutesBody,
+    explicit_spoken_agenda_ref,
+    normalized_match_text,
+)
 from ..services.official_transcript_insights import (
     CLASSIFICATION_METHOD as INSIGHT_METHOD,
     GENERATOR_VERSION as INSIGHT_VERSION,
@@ -48,7 +52,8 @@ class OfficialPublicationRepository:
                     AND (document.publication_stage = 'FINAL'
                          OR document.retrieved_at >= now() - interval '1 hour')
               )
-            ORDER BY publication.matched_at, publication.id
+            ORDER BY (publication.body_contract_status = 'LINK_ONLY') DESC,
+                     publication.matched_at, publication.id
             LIMIT %s
             """,
             (limit,),
@@ -71,6 +76,12 @@ class OfficialPublicationRepository:
                     '행정안전위원회', '예산결산특별위원회', '법제사법위원회'
                   )
               AND minute.minutes_url IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM broadcast_official_publications publication
+                  WHERE publication.meeting_id = meeting.id
+                    AND publication.conference_id = external.external_id
+              )
               AND NOT EXISTS (
                   SELECT 1 FROM official_transcript_documents document
                   WHERE document.meeting_id = meeting.id
@@ -101,6 +112,41 @@ class OfficialPublicationRepository:
             (INSIGHT_VERSION, limit),
         ).fetchall()
         return [row[0] for row in rows]
+
+    def attach_preserved_documents(self) -> int:
+        """Link bodies collected by meeting identity before a LIVE publication match."""
+        rows = self.connection.execute(
+            """
+            UPDATE official_transcript_documents document
+            SET publication_id = (
+                SELECT publication.id AS publication_id
+                FROM broadcast_official_publications publication
+                WHERE publication.meeting_id = document.meeting_id
+                  AND publication.conference_id = document.conference_id
+                ORDER BY publication.matched_at DESC, publication.id DESC
+                LIMIT 1
+            )
+            WHERE document.publication_id IS NULL
+              AND EXISTS (
+                  SELECT 1
+                  FROM broadcast_official_publications publication
+                  WHERE publication.meeting_id = document.meeting_id
+                    AND publication.conference_id = document.conference_id
+              )
+            RETURNING document.id, document.publication_id
+            """
+        ).fetchall()
+        if rows:
+            publication_ids = list({row[1] for row in rows})
+            self.connection.execute(
+                """
+                UPDATE broadcast_official_publications
+                SET body_contract_status = 'TEXT_EXTRACTED'
+                WHERE id = ANY(%s)
+                """,
+                (publication_ids,),
+            )
+        return len(rows)
 
     def annotate_document(self, document_id: uuid.UUID, generated_at: datetime) -> int:
         from psycopg.types.json import Jsonb
@@ -142,6 +188,7 @@ class OfficialPublicationRepository:
         return inserted
 
     def reconcile_agenda_links(self) -> int:
+        inserted = 0
         rows = self.connection.execute(
             """
             INSERT INTO official_utterance_agenda_links (
@@ -162,7 +209,70 @@ class OfficialPublicationRepository:
             RETURNING id
             """
         ).fetchall()
-        return len(rows)
+        inserted += len(rows)
+
+        # A spoken item number at the start of a span is stronger evidence than
+        # the surrounding HTML speaker class, which can remain on the previous
+        # item. Repair existing documents as well as newly parsed ones.
+        utterances = self.connection.execute(
+            """
+            SELECT utterance.id, utterance.text, utterance.agenda_item_ref,
+                   document.meeting_id
+            FROM official_transcript_utterances utterance
+            JOIN official_transcript_documents document
+              ON document.id = utterance.document_id
+            """
+        ).fetchall()
+        agenda_rows = self.connection.execute(
+            """
+            SELECT id, meeting_id,
+                   substring(agenda_name from '^\\s*([1-9][0-9]*)\\.')::integer
+            FROM agenda_items
+            WHERE agenda_name ~ '^\\s*[1-9][0-9]*\\.'
+            """
+        ).fetchall()
+        agendas = {
+            (meeting_id, int(item_number)): agenda_id
+            for agenda_id, meeting_id, item_number in agenda_rows
+            if item_number is not None
+        }
+        for utterance_id, text, stored_ref, meeting_id in utterances:
+            explicit_ref = explicit_spoken_agenda_ref(text)
+            if not explicit_ref:
+                continue
+            target = agendas.get((meeting_id, int(explicit_ref[4:])))
+            if target is None:
+                continue
+            if stored_ref == explicit_ref:
+                continue
+            if stored_ref and stored_ref != explicit_ref:
+                self.connection.execute(
+                    """
+                    UPDATE official_utterance_agenda_links
+                    SET reconciliation_status = 'CONFLICT'
+                    WHERE utterance_id = %s AND agenda_item_id <> %s
+                      AND reconciliation_status = 'MATCHED'
+                      AND match_method = 'EXACT_ITEM_REF_AGENDA_PREFIX'
+                    """,
+                    (utterance_id, target),
+                )
+            row = self.connection.execute(
+                """
+                INSERT INTO official_utterance_agenda_links (
+                    id, utterance_id, agenda_item_id, reconciliation_status,
+                    match_method, match_confidence
+                ) VALUES (
+                    gen_random_uuid(), %s, %s, 'MATCHED',
+                    'EXPLICIT_SPOKEN_ITEM_AGENDA_PREFIX', 1.0
+                )
+                ON CONFLICT (utterance_id, agenda_item_id, match_method)
+                DO UPDATE SET reconciliation_status = 'MATCHED', match_confidence = 1.0
+                RETURNING id
+                """,
+                (utterance_id, target),
+            ).fetchone()
+            inserted += int(row is not None)
+        return inserted
 
     def ingest_body(
         self,
@@ -189,9 +299,21 @@ class OfficialPublicationRepository:
                 title, utterance_count, parser_version, retrieved_at
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'EXTRACTED', %s, %s, %s, %s, %s)
             ON CONFLICT (meeting_id, source_document_version_id)
-            DO UPDATE SET extraction_status = 'EXTRACTED', status_text = EXCLUDED.status_text,
+            DO UPDATE SET publication_id = COALESCE(
+                              official_transcript_documents.publication_id,
+                              EXCLUDED.publication_id
+                          ),
+                          extraction_status = 'EXTRACTED',
+                          publication_stage = EXCLUDED.publication_stage,
+                          authority_status = EXCLUDED.authority_status,
+                          status_text = EXCLUDED.status_text,
+                          title = EXCLUDED.title,
                           utterance_count = EXCLUDED.utterance_count,
-                          parser_version = EXCLUDED.parser_version
+                          parser_version = EXCLUDED.parser_version,
+                          retrieved_at = GREATEST(
+                              official_transcript_documents.retrieved_at,
+                              EXCLUDED.retrieved_at
+                          )
             RETURNING id
             """,
             (
@@ -384,6 +506,7 @@ class OfficialPublicationRepository:
                         version_id, official_url, pdf_url, checked_at,
                     ),
                 )
+                self.attach_preserved_documents()
                 status = "PUBLISHED"
                 matched += 1
             elif not candidates:

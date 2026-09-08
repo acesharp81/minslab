@@ -380,21 +380,25 @@ class PressReleaseManager:
                 "UPDATE press_releases SET embedding_status='pending' WHERE embedding_status='processing' AND updated_at<?",
                 (stale_before,),
             )
-            migration_time = now_iso()
-            connection.execute(
-                """UPDATE press_release_match_jobs SET status='pending',queued_at=?,started_at=NULL,finished_at=NULL,error=NULL
-                   WHERE EXISTS (
-                     SELECT 1 FROM article_press_release_matches m
-                     WHERE m.article_id=press_release_match_jobs.article_id
-                       AND m.press_release_id=press_release_match_jobs.press_release_id
-                       AND m.matcher_version<>?)""",
-                (migration_time, MATCHER_VERSION),
-            )
-            connection.execute(
-                """INSERT INTO app_settings(key,value,updated_at) VALUES('press_release_matcher_migration_version',?,?)
-                   ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
-                (MATCHER_VERSION, migration_time),
-            )
+            migration_row = connection.execute(
+                "SELECT value FROM app_settings WHERE key='press_release_matcher_migration_version'"
+            ).fetchone()
+            if str(migration_row["value"] if migration_row else "") != MATCHER_VERSION:
+                migration_time = now_iso()
+                connection.execute(
+                    """UPDATE press_release_match_jobs SET status='pending',queued_at=?,started_at=NULL,finished_at=NULL,error=NULL
+                       WHERE EXISTS (
+                         SELECT 1 FROM article_press_release_matches m
+                         WHERE m.article_id=press_release_match_jobs.article_id
+                           AND m.press_release_id=press_release_match_jobs.press_release_id
+                           AND m.matcher_version<>?)""",
+                    (migration_time, MATCHER_VERSION),
+                )
+                connection.execute(
+                    """INSERT INTO app_settings(key,value,updated_at) VALUES('press_release_matcher_migration_version',?,?)
+                       ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at""",
+                    (MATCHER_VERSION, migration_time),
+                )
 
     def match_threshold(self) -> float:
         try:

@@ -37,6 +37,27 @@ def test_official_diff_ignores_style_only_and_marks_meaningful_change() -> None:
     assert any(span["kind"] in {"added", "changed"} for span in changed["spans"])
 
 
+def test_official_diff_ignores_clause_order_and_marks_only_real_moved_append() -> None:
+    reordered = official_utterance_diff(
+        "대법원과 법원행정처의 비상계엄 관련 회의 및 입장을 점검했다.",
+        "비상계엄 관련 회의 및 입장: 대법원·법원행정처 점검.",
+    )
+    assert reordered["comparison_status"] == "STYLE_ONLY"
+    assert reordered["change_count"] == 0
+
+    changed = official_utterance_diff(
+        "법무부는 예산을 점검했다. 행정안전부는 재난 대책을 검토했다.",
+        "행정안전부는 재난 대책을 검토했다. "
+        "법무부는 예산을 점검했고 개선안을 제출했다.",
+    )
+    marked = "".join(
+        span["text"] for span in changed["spans"] if span["kind"] != "equal"
+    )
+    assert changed["change_count"] == 1
+    assert "개선안을 제출" in marked
+    assert "행정안전부는 재난 대책" not in marked
+
+
 def test_official_presentation_uses_final_speaker_text_and_live_baseline() -> None:
     official_id = "official-1"
     live = [{

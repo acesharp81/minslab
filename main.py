@@ -96,6 +96,28 @@ NATIONAL_ASSEMBLY_UPSTREAM = env_first(
 NATIONAL_ASSEMBLY_SESSION_COOKIE = env_first(
     "WATCH_SESSION_COOKIE_NAME", default="gukjeongbomi_session"
 )
+
+
+def _poc07_setting(name: str) -> str:
+    """Read one PoC 7 setting without importing or exposing its other secrets."""
+    configured = env_first(name, default="") or ""
+    if configured:
+        return configured
+    env_path = Path(__file__).parent / "PoC" / "07-NationalAssembly" / ".env"
+    try:
+        for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == name:
+                return value.strip().strip(chr(34)).strip(chr(39))
+    except OSError:
+        pass
+    return ""
+
+
+NATIONAL_ASSEMBLY_ADMIN_TOKEN = _poc07_setting("WATCH_ADMIN_TOKEN")
 NATIONAL_ASSEMBLY_SECURITY_HEADERS = [
     (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'self'; form-action 'self' https://kauth.kakao.com"),
     (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
@@ -1147,7 +1169,7 @@ HTML_PAGE = r"""
       }else if(p.id==='north-korea-night-lights'){
         renderNorthKoreaNightLightsLab(p);
       }else if(p.id==='aiworks'){
-        projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>06 · AIWorks</strong><span>문서·MCP·공통데이터를 하나의 승인 기반 작업공간에서 실행합니다.</span></div><a class="field-inspection-open" href="/poc/aiworks/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">로컬 샌드박스 초기 버전 · 외부 MCP 및 모델 전송 전 명시적 승인 · 실행별 감사 로그</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="/poc/aiworks/" title="AIWorks" loading="eager"></iframe></div></section>`;projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
+        projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>06 · AI Work Hub</strong><span>문서·MCP·공통데이터를 하나의 승인 기반 작업공간에서 실행합니다.</span></div><a class="field-inspection-open" href="/poc/aiworks/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">로컬 샌드박스 초기 버전 · 외부 MCP 및 모델 전송 전 명시적 승인 · 실행별 감사 로그</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="/poc/aiworks/" title="AI Work Hub" loading="eager"></iframe></div></section>`;projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
       }else if(p.id==='mois-kms'){
         renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
@@ -2325,7 +2347,17 @@ async def app(scope, receive, send):
             watch_token = request_headers.get("x-watch-token", "")
             if watch_token:
                 upstream_headers["X-Watch-Token"] = watch_token[:200]
+            is_poc07_admin_path = (
+                relative_path.startswith("/api/watch/admin/")
+                or relative_path.startswith("/api/watch/test-broadcasts")
+            )
             watch_admin_token = request_headers.get("x-watch-admin-token", "")
+            if (
+                is_poc07_admin_path
+                and admin_session(scope)
+                and NATIONAL_ASSEMBLY_ADMIN_TOKEN
+            ):
+                watch_admin_token = NATIONAL_ASSEMBLY_ADMIN_TOKEN
             if watch_admin_token:
                 upstream_headers["X-Watch-Admin-Token"] = watch_admin_token[:200]
             if method in {"POST", "PUT", "DELETE"}:
@@ -2468,13 +2500,13 @@ async def app(scope, receive, send):
     status = 200
     extra_headers = []
 
-    if (path == AIWORKS_API_BASE or path.startswith(f"{AIWORKS_API_BASE}/")) and method in {"GET", "POST", "DELETE"}:
+    if (path == AIWORKS_API_BASE or path.startswith(f"{AIWORKS_API_BASE}/")) and method in {"GET", "POST", "PUT", "PATCH", "DELETE"}:
         try:
             payload = {}
-            if method in {"POST", "DELETE"}:
+            if method in {"POST", "PUT", "PATCH", "DELETE"}:
                 raw_body = await read_request_body(receive)
                 if len(raw_body) > 15_000_000:
-                    raise ValueError("AIWorks 요청 본문은 15MB를 넘을 수 없습니다.")
+                    raise ValueError("AI Work Hub 요청 본문은 15MB를 넘을 수 없습니다.")
                 payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
                 if not isinstance(payload, dict):
                     raise ValueError("JSON 객체 형식이 필요합니다.")
@@ -2489,7 +2521,7 @@ async def app(scope, receive, send):
         except Exception as error:
             status = int(getattr(error, "status", 500))
             body = json.dumps(
-                {"error": str(error) or "AIWorks 요청을 처리하지 못했습니다."},
+                {"error": str(error) or "AI Work Hub 요청을 처리하지 못했습니다."},
                 ensure_ascii=False,
             ).encode("utf-8")
         content_type = locals().pop("raw_content_type", None) or "application/json; charset=utf-8"
@@ -2517,7 +2549,7 @@ async def app(scope, receive, send):
             extra_headers.append((b"cache-control", b"no-cache"))
         except (ValueError, OSError, FileNotFoundError):
             status = 404
-            body = b"AIWorks application is not available."
+            body = b"AI Work Hub application is not available."
             content_type = "text/plain; charset=utf-8"
     elif path == "/api/analytics/visit" and method == "POST":
         try:
@@ -2606,12 +2638,7 @@ async def app(scope, receive, send):
             try:
                 changed = None
                 if method in {"POST", "PUT"}:
-                    content_length = int(scope_headers(scope).get("content-length") or 0)
-                    if content_length > 20 * 1024 * 1024:
-                        raise ValueError("업로드 요청이 너무 큽니다.")
                     raw_body = await read_request_body(receive)
-                    if len(raw_body) > 20 * 1024 * 1024:
-                        raise ValueError("업로드 요청이 너무 큽니다.")
                     payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
                     if not isinstance(payload, dict):
                         raise ValueError("JSON 객체 형식이 필요합니다.")

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_backend import load_backend
+from test_backend import load_backend, placeholder_template_hwpx
 
 
 class AIWorksWorkspaceFlowTests(unittest.TestCase):
@@ -76,6 +76,64 @@ class AIWorksWorkspaceFlowTests(unittest.TestCase):
         self.assertIn("분석 및 시사점 보고서", [item["text"] for item in parsed["paragraphs"]])
         self.assertIn("## 4. 정책적 시사점", report_execution["result"]["artifact"]["content"])
 
+    def test_latest_b_answer_wins_over_open_a_report_for_generic_report_followup(self):
+        plan, execution = self.execute(
+            "보고서를 HWP로 만들어줘",
+            {
+                "classification": "internal",
+                "document_id": "docsession_older-a-report",
+                "filename": "A 정책 보고서.hwpx",
+                "document_excerpt": "A 정책은 노후 시스템 교체를 주요 내용으로 함.",
+                "previous_answer": "B 정책은 현장 처리시간을 30% 단축하는 방안임. [1]",
+                "previous_answer_kind": "answer",
+                "previous_answer_intent": "B 정책의 개선 효과를 알려줘",
+            },
+            "flow-latest-b-answer-report",
+        )
+
+        self.assertEqual(plan["workflow"]["responseType"], "report-artifact")
+        self.assertEqual(plan["workflow"]["contextPriority"], "previous-answer")
+        self.assertTrue(plan["workflow"]["signals"]["latestAnswerFollowup"])
+        content = execution["result"]["artifact"]["content"]
+        self.assertTrue(execution["result"]["artifact"]["filename"].endswith(".hwpx"))
+        self.assertIn("B 정책은 현장 처리시간을 30% 단축", content)
+        self.assertNotIn("A 정책은 노후 시스템 교체", content)
+
+    def test_latest_answer_followup_is_not_rebound_to_project_sources(self):
+        project = self.backend.create_project(
+            {"name": "직전 답변 우선 검증", "actor": "flow-tester"}
+        )
+        source = self.backend.create_project_source(
+            project["id"],
+            {
+                "filename": "범정부-AI-근거.txt",
+                "content_base64": base64.b64encode(
+                    "범정부 인공지능 공통기반은 중복투자 우려가 있다.".encode("utf-8")
+                ).decode("ascii"),
+                "actor": "flow-tester",
+            },
+        )
+        previous = "B 정책은 현장 처리시간을 30% 단축하는 방안임. [1]"
+
+        plan, execution = self.execute(
+            "보고서를 HWP로 만들어줘",
+            {
+                "classification": "internal",
+                "project_id": project["id"],
+                "project_source_ids": [source["source"]["id"]],
+                "previous_answer": previous,
+                "previous_answer_kind": "answer",
+                "previous_answer_intent": "B 정책의 개선 효과를 알려줘",
+            },
+            "flow-latest-answer-with-project-sources",
+        )
+
+        self.assertEqual(plan["workflow"]["contextPriority"], "previous-answer")
+        self.assertFalse(plan["workflow"].get("dynamic", False))
+        content = execution["result"]["artifact"]["content"]
+        self.assertIn("B 정책은 현장 처리시간을 30% 단축", content)
+        self.assertNotIn("범정부 인공지능 공통기반", content)
+
     def test_previous_answer_creates_new_mois_outline_report_without_current_rhwp(self):
         previous = (
             "## 요청 및 검토 범위\n인공지능 공통기반 관련 예산 결산 지적사항\n\n"
@@ -118,6 +176,73 @@ class AIWorksWorkspaceFlowTests(unittest.TestCase):
         texts = [item["text"] for item in parsed["paragraphs"]]
         self.assertIn("행정안전부 업무보고 | 내부검토", texts)
         self.assertTrue(any("실집행률은 92.3%" in item for item in texts))
+
+    def test_this_pronoun_uses_search_answer_before_template_only_mcp(self):
+        template_draft = self.backend.create_mcp_draft({
+            "name": "행안부 보고 양식 MCP",
+            "package_id": "org.pronoun-mois-template",
+            "description": "등록한 HWPX 양식으로 현재 문서의 제목과 본문을 변환한다.",
+            "mcp_type": "template",
+            "instructions": "제목과 본문을 행안부 보고 형식으로 배치한다.",
+            "procedure": "양식을 읽는다.\n제목과 본문을 적용한다.",
+            "trigger_examples": "행안부 보고서 양식으로 작성해줘",
+            "source_included": True,
+            "use_model": False,
+        })
+        self.backend.add_mcp_draft_reference(template_draft["id"], {
+            "filename": "행안부-검증-양식.hwpx",
+            "role": "template-source",
+            "content_base64": base64.b64encode(placeholder_template_hwpx()).decode(),
+        })
+        self.backend.validate_mcp_draft(template_draft["id"], {})
+        published = self.backend.publish_mcp_draft(
+            template_draft["id"],
+            {"confirm_visibility": "private", "confirm_source_included": True},
+        )
+        manifest = published["package"]["manifest"]
+        self.backend.install_mcp_package({
+            "package_id": manifest["id"], "version": manifest["version"],
+            "approved_permissions": [item["scope"] for item in manifest["permissions"]],
+            "acknowledge_signature": True,
+        })
+
+        intent = "이를 행안부 보고서 양식으로 작성해줘. 특히 시사점과 향후 어떻게 개선해야할지를 개조식으로 구조화하여 작성해줘"
+        previous = (
+            "## 검색 결과\n"
+            "- 현행 사업은 분기별 점검이 부족하여 집행 지연 위험이 확인됨. [1]\n"
+            "- 성과지표와 사업 목적의 연결성을 보완할 필요가 있음. [2]"
+        )
+        plan, execution = self.execute(
+            intent,
+            {
+                "classification": "internal", "document_id": "workspace-document",
+                "filename": "검색 결과", "previous_answer": previous,
+            },
+            "flow-pronoun-search-answer-report",
+        )
+
+        self.assertEqual(plan["workflow"]["responseType"], "report-artifact")
+        self.assertEqual(plan["workflow"]["contextPriority"], "previous-answer")
+        self.assertTrue(plan["workflow"]["signals"]["previousAnswerPrimary"])
+        self.assertFalse(plan["workflow"].get("dynamic", False))
+        result = execution["result"]
+        self.assertEqual(result["responseType"], "report-artifact")
+        self.assertTrue(result["artifact"]["contentBase64"])
+        self.assertIn("정책적 시사점", result["artifact"]["content"])
+        self.assertIn("향후 조치 계획", result["artifact"]["content"])
+        self.assertIn("- 확인된 현황", result["artifact"]["content"])
+        self.assertIn("- 중기:", result["artifact"]["content"])
+        self.assertTrue((result["artifact"].get("markdownDocument") or {}).get("id", "").startswith("mdoc_"))
+
+        no_source_plan, no_source_execution = self.execute(
+            "행안부 보고서 양식으로 시사점과 향후 개선방안을 개조식으로 작성해줘",
+            {"classification": "internal", "document_id": "workspace-document", "filename": "새 보고서"},
+            "flow-template-only-without-session",
+        )
+        self.assertEqual(no_source_plan["workflow"]["responseType"], "report-artifact")
+        self.assertFalse(no_source_plan["workflow"].get("dynamic", False))
+        self.assertEqual(no_source_execution["result"]["responseType"], "report-artifact")
+        self.assertTrue(no_source_execution["result"]["artifact"]["contentBase64"])
 
     def test_followup_edit_wording_creates_rhwp_artifact(self):
         for index, intent in enumerate((

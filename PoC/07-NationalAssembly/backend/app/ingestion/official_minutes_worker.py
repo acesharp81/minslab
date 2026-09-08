@@ -6,6 +6,25 @@ import time
 from datetime import datetime, timezone
 
 
+def poll_executive_once(settings: object) -> dict[str, object]:
+    from ..db.connection import connect
+    from ..services.executive_official_match import reconcile_executive_official_matches
+    from .executive_briefings import collect
+
+    executive = collect(settings)
+    with connect(settings.database_url) as connection:
+        matched_live = reconcile_executive_official_matches(
+            connection, list(executive.get("items") or []),
+        )
+    return {
+        "event": "executive.official.completed",
+        "briefings": executive["count"],
+        "source_status": executive["source_status"],
+        "parser_version": (executive.get("source") or {}).get("parser_version"),
+        "matched_live_broadcasts": matched_live,
+    }
+
+
 def poll_once(settings: object) -> list[dict[str, object]]:
     from ..adapters.official_minutes_body import OfficialMinutesBodyAdapter
     from ..db.connection import connect
@@ -19,78 +38,117 @@ def poll_once(settings: object) -> list[dict[str, object]]:
         dates = OfficialPublicationRepository(connection).pending_dates(limit=7)
     results: list[dict[str, object]] = []
     for meeting_date in dates:
-        sync = sync_committee_bundle(
-            conference_date=meeting_date.isoformat(),
-            assembly_number="22",
-            page_size=100,
-            api_key=settings.national_assembly_api_key,
-            database_url=settings.database_url,
-            raw_data_dir=settings.raw_data_dir,
-        )
-        checked_at = datetime.now(timezone.utc)
-        with connect(settings.database_url) as connection:
-            reconciliation = OfficialPublicationRepository(connection).reconcile_date(
-                meeting_date, checked_at
+        try:
+            sync = sync_committee_bundle(
+                conference_date=meeting_date.isoformat(),
+                assembly_number="22",
+                page_size=100,
+                api_key=settings.national_assembly_api_key,
+                database_url=settings.database_url,
+                raw_data_dir=settings.raw_data_dir,
             )
-        results.append({
-            "date": meeting_date.isoformat(),
-            "official_rows": sync["minute_rows_seen"],
-            **reconciliation,
-        })
+            checked_at = datetime.now(timezone.utc)
+            with connect(settings.database_url) as connection:
+                reconciliation = OfficialPublicationRepository(connection).reconcile_date(
+                    meeting_date, checked_at
+                )
+            results.append({
+                "date": meeting_date.isoformat(),
+                "official_rows": sync["minute_rows_seen"],
+                **reconciliation,
+            })
+        except Exception as exc:  # isolate one meeting date
+            results.append({
+                "event": "official.date.error", "date": meeting_date.isoformat(),
+                "error": type(exc).__name__,
+            })
     adapter = OfficialMinutesBodyAdapter()
     with connect(settings.database_url) as connection:
         publications = OfficialPublicationRepository(connection).pending_body_publications(limit=5)
     for publication in publications:
-        payload = fetch_official_minutes_body(str(publication["official_url"]))
-        artifact = RawStore(settings.raw_data_dir).save(payload, parser_version=adapter.parser_version)
-        body = adapter.parse(payload)
-        source = SourceVersionInput(
-            source_type=payload.source_key, source_url=payload.source_url,
-            content_hash=artifact.content_hash, raw_path=artifact.content_path,
-            retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
-            content_type=payload.content_type,
-            metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
-        )
-        with connect(settings.database_url) as connection:
-            ingested = OfficialPublicationRepository(connection).ingest_body(
-                publication_id=publication["publication_id"],
-                meeting_id=publication["meeting_id"],
-                expected_conference_id=str(publication["conference_id"]),
-                source=source, body=body,
+        try:
+            payload = fetch_official_minutes_body(str(publication["official_url"]))
+            artifact = RawStore(settings.raw_data_dir).save(
+                payload, parser_version=adapter.parser_version,
             )
-        results.append({"conference_id": body.conference_id, "body": ingested})
+            body = adapter.parse(payload)
+            source = SourceVersionInput(
+                source_type=payload.source_key, source_url=payload.source_url,
+                content_hash=artifact.content_hash, raw_path=artifact.content_path,
+                retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
+                content_type=payload.content_type,
+                metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
+            )
+            with connect(settings.database_url) as connection:
+                ingested = OfficialPublicationRepository(connection).ingest_body(
+                    publication_id=publication["publication_id"],
+                    meeting_id=publication["meeting_id"],
+                    expected_conference_id=str(publication["conference_id"]),
+                    source=source, body=body,
+                )
+            results.append({"conference_id": body.conference_id, "body": ingested})
+        except Exception as exc:  # isolate one publication
+            results.append({
+                "event": "official.body.error",
+                "conference_id": str(publication["conference_id"]),
+                "error": type(exc).__name__,
+            })
     with connect(settings.database_url) as connection:
         meetings = OfficialPublicationRepository(connection).pending_meeting_bodies(limit=10)
     for meeting in meetings:
-        payload = fetch_official_minutes_body(str(meeting["official_url"]))
-        artifact = RawStore(settings.raw_data_dir).save(payload, parser_version=adapter.parser_version)
-        body = adapter.parse(payload)
-        source = SourceVersionInput(
-            source_type=payload.source_key, source_url=payload.source_url,
-            content_hash=artifact.content_hash, raw_path=artifact.content_path,
-            retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
-            content_type=payload.content_type,
-            metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
-        )
-        with connect(settings.database_url) as connection:
-            ingested = OfficialPublicationRepository(connection).ingest_body(
-                publication_id=None, meeting_id=meeting["meeting_id"],
-                expected_conference_id=str(meeting["conference_id"]),
-                source=source, body=body,
+        try:
+            payload = fetch_official_minutes_body(str(meeting["official_url"]))
+            artifact = RawStore(settings.raw_data_dir).save(
+                payload, parser_version=adapter.parser_version,
             )
-        results.append({"conference_id": body.conference_id, "meeting_body": ingested})
+            body = adapter.parse(payload)
+            source = SourceVersionInput(
+                source_type=payload.source_key, source_url=payload.source_url,
+                content_hash=artifact.content_hash, raw_path=artifact.content_path,
+                retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
+                content_type=payload.content_type,
+                metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
+            )
+            with connect(settings.database_url) as connection:
+                ingested = OfficialPublicationRepository(connection).ingest_body(
+                    publication_id=None, meeting_id=meeting["meeting_id"],
+                    expected_conference_id=str(meeting["conference_id"]),
+                    source=source, body=body,
+                )
+            results.append({"conference_id": body.conference_id, "meeting_body": ingested})
+        except Exception as exc:  # isolate one meeting body
+            results.append({
+                "event": "official.meeting-body.error",
+                "conference_id": str(meeting["conference_id"]),
+                "error": type(exc).__name__,
+            })
+    with connect(settings.database_url) as connection:
+        attached = OfficialPublicationRepository(
+            connection,
+        ).attach_preserved_documents()
+    if attached:
+        results.append({
+            "event": "official.preserved-bodies.attached",
+            "documents": attached,
+        })
     with connect(settings.database_url) as connection:
         repository = OfficialPublicationRepository(connection)
         document_ids = repository.pending_annotation_documents(limit=20)
-        annotated = sum(
-            repository.annotate_document(document_id, datetime.now(timezone.utc))
-            for document_id in document_ids
-        )
+        annotated = 0
+        annotation_errors = 0
+        for document_id in document_ids:
+            try:
+                annotated += repository.annotate_document(
+                    document_id, datetime.now(timezone.utc),
+                )
+            except Exception:  # isolate one malformed document
+                annotation_errors += 1
     if document_ids:
         results.append({
             "event": "official.insights.completed",
             "documents": len(document_ids),
             "utterances_annotated": annotated,
+            "document_errors": annotation_errors,
         })
     with connect(settings.database_url) as connection:
         agenda_links = OfficialPublicationRepository(connection).reconcile_agenda_links()
@@ -113,19 +171,7 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "error": type(exc).__name__,
         })
     try:
-        from .executive_briefings import collect
-        executive = collect(settings)
-        from ..services.executive_official_match import reconcile_executive_official_matches
-        with connect(settings.database_url) as connection:
-            matched_live = reconcile_executive_official_matches(
-                connection, list(executive.get("items") or []),
-            )
-        results.append({
-            "event": "executive.official.completed",
-            "briefings": executive["count"],
-            "source_status": executive["source_status"],
-            "matched_live_broadcasts": matched_live,
-        })
+        results.append(poll_executive_once(settings))
     except Exception as exc:
         results.append({
             "event": "executive.official.error",
@@ -154,15 +200,33 @@ def main() -> None:
     if not 300 <= args.interval <= 86400:
         parser.error("interval must be between 300 and 86400 seconds")
     settings = get_settings()
-    if not settings.national_assembly_api_key:
-        parser.error("NATIONAL_ASSEMBLY_API_KEY is required")
     apply_migrations(settings.database_url)
     while True:
         try:
-            for result in poll_once(settings):
-                print(json.dumps(result, ensure_ascii=False), flush=True)
+            if settings.national_assembly_api_key:
+                for result in poll_once(settings):
+                    print(json.dumps(result, ensure_ascii=False), flush=True)
+            else:
+                # The executive official-source collector has no dependency on
+                # the National Assembly Open API. Keep it available in an
+                # executive-only deployment or while the Assembly credential is
+                # temporarily unavailable.
+                print(
+                    json.dumps(poll_executive_once(settings), ensure_ascii=False),
+                    flush=True,
+                )
         except Exception as exc:
             print(json.dumps({"event": "official.poll.error", "error": type(exc).__name__}), flush=True)
+            try:
+                print(
+                    json.dumps(poll_executive_once(settings), ensure_ascii=False),
+                    flush=True,
+                )
+            except Exception as executive_exc:
+                print(json.dumps({
+                    "event": "executive.official.error",
+                    "error": type(executive_exc).__name__,
+                }), flush=True)
         if args.once:
             return
         time.sleep(args.interval)

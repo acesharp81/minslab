@@ -167,7 +167,9 @@ class WatchOperationsRepository:
         rows = self.connection.execute(
             """
             SELECT id FROM live_broadcasts
-            WHERE (%s OR source_system NOT IN ('poc07.demo', 'poc07.test'))
+            WHERE (%s OR source_system NOT IN (
+              'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+            ))
             ORDER BY COALESCE(ended_at, last_seen_at, detected_at, created_at) DESC LIMIT %s
             """,
             (include_test, limit),

@@ -44,6 +44,19 @@ def main():
         report["deleteButtons"] = len(driver.find_elements(By.CSS_SELECTOR, "[data-delete]"))
         if report["editButtons"] != report["storeCards"]:
             raise AssertionError("모든 Store 카드에 수정 버튼이 있어야 합니다.")
+        store_refs = [
+            node.text.split("@", 1)[0]
+            for node in driver.find_elements(By.CSS_SELECTOR, ".store-card .store-meta span:first-child")
+        ]
+        report["storeUniquePackages"] = len(store_refs) == len(set(store_refs))
+        if not report["storeUniquePackages"]:
+            raise AssertionError("Store는 이전 버전을 별도 MCP 카드로 중복 표시하면 안 됩니다.")
+        report["retiredRendererHidden"] = "integration.kordoc" not in store_refs
+        if not report["retiredRendererHidden"]:
+            raise AssertionError("퇴역 renderer는 Store에서 신규 선택 대상으로 표시되면 안 됩니다.")
+        installed_cards = driver.find_elements(By.CSS_SELECTOR, ".store-card .type-chip")
+        if any("설치" in node.text and "현재 적용" not in node.text for node in installed_cards):
+            raise AssertionError("설치된 MCP는 현재 적용 버전을 명확히 표시해야 합니다.")
         usage_buttons = driver.find_elements(By.CSS_SELECTOR, "[data-template-usage]")
         report["templateUsageButtons"] = len(usage_buttons)
         report["templateUsageGuide"] = {"flow": None, "chatPrompt": None, "applyAction": None}
@@ -70,6 +83,14 @@ def main():
         driver.find_element(By.CSS_SELECTOR, "#mcpConfigurationDialog button[value='cancel']").click()
         driver.find_element(By.CSS_SELECTOR, "[data-view='builder']").click()
         wait_for(driver, "document.querySelectorAll('[data-builder-type]').length===5")
+        wait_for(driver, "document.querySelector('#builderDraftList').textContent.length>0")
+        draft_buttons = driver.find_elements(By.CSS_SELECTOR, "#builderDraftList [data-draft-id]")
+        draft_refs = [button.find_element(By.CSS_SELECTOR, "small").text.split("@", 1)[0] for button in draft_buttons]
+        report["builderLatestWorkOnly"] = len(draft_refs) == len(set(draft_refs)) and all(
+            "게시 완료" not in button.text for button in draft_buttons
+        )
+        if not report["builderLatestWorkOnly"]:
+            raise AssertionError("Builder는 게시 이력을 나열하지 않고 패키지별 최신 작업 하나만 표시해야 합니다.")
         driver.find_element(By.ID, "openBuilderManual").click()
         wait_for(driver, "document.querySelector('#builderManualDialog').open")
         report["builderManual"] = {
@@ -130,6 +151,12 @@ def main():
             raise AssertionError("범용 외부 MCP 기본 도구명이 설정되지 않았습니다.")
         if report["externalPreset"]["capability"] != "external.tool.invoke":
             raise AssertionError("범용 외부 MCP Capability가 설정되지 않았습니다.")
+        report["vendorDefaultsAbsent"] = all(
+            marker not in driver.find_element(By.TAG_NAME, "body").text.upper()
+            for marker in ("KODAK", "KORDOC")
+        )
+        if not report["vendorDefaultsAbsent"]:
+            raise AssertionError("퇴역 renderer 제품명이 신규 Store·Builder UI에 남아 있습니다.")
         driver.find_element(By.CSS_SELECTOR, "[data-view='settings']").click()
         wait_for(driver, "document.querySelector('#modelUsagePanel .store-grid')")
         report["modelUsagePanel"] = {

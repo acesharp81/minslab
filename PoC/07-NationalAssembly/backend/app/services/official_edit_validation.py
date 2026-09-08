@@ -6,52 +6,17 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from .official_brief_integration import semantic_tokens
+from .official_reconciliation import (
+    MIN_INLINE_PATCH_SIMILARITY,
+    style_only_equivalent,
+)
 
 
 def _style_only_update(target: dict[str, Any], edit: dict[str, Any]) -> bool:
     field = str(edit.get("field") or "")
     if field not in {"headline", "summary", "title"}:
         return False
-    before = " ".join(str(target.get(field) or "").split())
-    after = " ".join(str(edit.get("new_text") or "").split())
-    if not before or not after or before == after:
-        return before == after
-    if set(re.findall(r"\d+(?:[.,]\d+)?", before)) != set(
-        re.findall(r"\d+(?:[.,]\d+)?", after)
-    ):
-        return False
-    polarity = ("아니", "않", "없", "부인", "취소", "철회", "반대")
-    if {item for item in polarity if item in before} != {
-        item for item in polarity if item in after
-    }:
-        return False
-    before_compact = re.sub(r"\s+", "", before)
-    after_compact = re.sub(r"\s+", "", after)
-    before_tokens = semantic_tokens(before)
-    after_tokens = semantic_tokens(after)
-    token_overlap = before_tokens & after_tokens
-    coverage = len(token_overlap) / max(1, len(before_tokens))
-    token_union = before_tokens | after_tokens
-    semantic_delta_ratio = (
-        len(before_tokens ^ after_tokens)
-        / max(1, len(token_union))
-    )
-    length_ratio = min(len(before_compact), len(after_compact)) / max(
-        1, len(before_compact), len(after_compact),
-    )
-    structurally_similar = (
-        before_compact in after_compact
-        or after_compact in before_compact
-        or (
-            SequenceMatcher(None, before_compact, after_compact).ratio() >= 0.68
-            and coverage >= 0.75
-        )
-    )
-    return (
-        length_ratio >= 0.78
-        and semantic_delta_ratio <= 0.22
-        and structurally_similar
-    )
+    return style_only_equivalent(target.get(field), edit.get("new_text"))
 
 
 def _rewrites_too_much(target: dict[str, Any], edit: dict[str, Any]) -> bool:
@@ -62,7 +27,10 @@ def _rewrites_too_much(target: dict[str, Any], edit: dict[str, Any]) -> bool:
     after = re.sub(r"[^0-9A-Za-z가-힣]+", "", str(edit.get("new_text") or "").casefold())
     if min(len(before), len(after)) < 20:
         return False
-    return SequenceMatcher(None, before, after, autojunk=False).ratio() < 0.46
+    return (
+        SequenceMatcher(None, before, after, autojunk=False).ratio()
+        < MIN_INLINE_PATCH_SIMILARITY
+    )
 
 
 def _duplicates_existing_entity(
@@ -134,7 +102,9 @@ def filter_supported_official_edits(
         if operation == "UPDATE" and target and _style_only_update(target, edit):
             continue
         if operation == "UPDATE" and target and _rewrites_too_much(target, edit):
-            continue
+            # Keep the verified official alternative for the comparison card,
+            # but minimal_patch_text will preserve the provisional main copy.
+            edit["presentation_status"] = "FULL_REWRITE_SUPPRESSED"
         if operation == "ADD" and _duplicates_existing_entity(live_brief, entity_type, edit):
             continue
         evidence_ids = [

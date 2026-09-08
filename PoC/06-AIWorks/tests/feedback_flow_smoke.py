@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import urllib.request
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -17,7 +18,28 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 URL = os.getenv("AIWORKS_BROWSER_URL", "http://127.0.0.1:8000/poc/aiworks/")
+API = os.getenv("AIWORKS_API_URL", "http://127.0.0.1:8000/api/poc/aiworks")
 GECKODRIVER = os.getenv("AIWORKS_GECKODRIVER", "/snap/bin/geckodriver")
+ACTOR = "feedback-flow-smoke"
+
+
+def api(path: str, method: str = "GET", payload: dict | None = None) -> dict:
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None
+    request = urllib.request.Request(
+        API + path, data=data, headers={"Content-Type": "application/json"}, method=method
+    )
+    return json.load(urllib.request.urlopen(request, timeout=30))
+
+
+def cleanup(project: dict) -> None:
+    try:
+        api(f"/projects/{project['id']}/status", "POST", {"action": "archive", "actor": ACTOR})
+        api(
+            f"/projects/{project['id']}", "DELETE",
+            {"actor": ACTOR, "confirmation": project["name"], "acknowledge_irreversible": True},
+        )
+    except Exception as error:
+        print(f"warning: feedback fixture cleanup failed: {error}")
 
 
 def wait_for(driver, expression: str, timeout: int = 60):
@@ -54,6 +76,7 @@ def current_filename(driver) -> str:
 def main():
     if not Path(GECKODRIVER).exists():
         raise SystemExit(f"geckodriver not found: {GECKODRIVER}")
+    project = api("/projects", "POST", {"name": f"피드백 흐름 검증 {os.getpid()}", "actor": ACTOR})
     options = Options()
     options.add_argument("-headless")
     driver = webdriver.Firefox(options=options, service=Service(GECKODRIVER))
@@ -61,8 +84,8 @@ def main():
         driver.set_window_size(1440, 900)
         driver.get(URL)
         wait_for(driver, "document.querySelector('.local-badge').textContent.includes('v0.31.2')")
-        wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
-        driver.find_element(By.CSS_SELECTOR, '[data-select-project="project-default"]').click()
+        wait_for(driver, f'document.querySelector("[data-select-project=\\"{project["id"]}\\"]")')
+        driver.find_element(By.CSS_SELECTOR, f'[data-select-project="{project["id"]}"]').click()
         wait_for(driver, "!document.querySelector('#workbench').hidden || !document.querySelector('#welcomeTask').hidden")
         live_enabled = driver.execute_async_script(
             "const done=arguments[0];fetch('/api/poc/aiworks/bootstrap')"
@@ -147,6 +170,7 @@ def main():
         print(json.dumps({"status": "passed", "budgetMcp": True, "derivedReport": report_filename, "formattedReport": formatted_filename, "templateMcp": "template.mois-report@0.1.0", "editor": "RHWP", "selectionRetained": True}, ensure_ascii=False, indent=2))
     finally:
         driver.quit()
+        cleanup(project)
 
 
 if __name__ == "__main__":

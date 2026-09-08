@@ -34,8 +34,12 @@ class IngestionResult:
 class ScheduleRepository:
     source_system = "open.assembly.go.kr"
 
-    def __init__(self, connection: Any):
+    def __init__(
+        self, connection: Any, *, source_system: str | None = None,
+    ):
         self.connection = connection
+        if source_system:
+            self.source_system = source_system
 
     def ingest(
         self,
@@ -196,7 +200,7 @@ class ScheduleRepository:
                    latest.is_target_committee, latest.authority_status,
                    latest.reconciliation_status, latest.source_url,
                    latest.retrieved_at, latest.content_hash,
-                   latest.parser_version
+                   latest.parser_version, latest.official_data
             FROM (
                 SELECT DISTINCT ON (se.source_record_key)
                        se.id, se.meeting_id, se.schedule_kind, se.title,
@@ -205,7 +209,8 @@ class ScheduleRepository:
                        se.session_text, se.meeting_order_text, se.host_name,
                        se.place, se.is_target_committee, se.authority_status,
                        se.reconciliation_status, sdv.source_url,
-                       sdv.retrieved_at, sdv.content_hash, sdv.parser_version
+                       sdv.retrieved_at, sdv.content_hash, sdv.parser_version,
+                       se.official_data
                 FROM schedule_entries se
                 JOIN source_document_versions sdv
                   ON sdv.id = se.source_document_version_id
@@ -225,9 +230,21 @@ class ScheduleRepository:
             "meeting_order_text", "host_name", "place",
             "is_target_committee", "authority_status",
             "reconciliation_status", "source_url", "retrieved_at",
-            "content_hash", "parser_version",
+            "content_hash", "parser_version", "official_data",
         )
-        return [dict(zip(columns, row, strict=True)) for row in rows]
+        items = [dict(zip(columns, row, strict=True)) for row in rows]
+        for item in items:
+            official_data = item.pop("official_data") or {}
+            item["institution"] = str(
+                official_data.get("institution") or "LEGISLATURE"
+            )
+            item["broadcast_scheduled"] = bool(
+                official_data.get("broadcast_scheduled")
+            )
+            item["broadcast_source_url"] = (
+                official_data.get("broadcast_source_url")
+            )
+        return items
 
     def list_schedule_for_date(self, scheduled_date: Any) -> list[dict[str, Any]]:
         return self.list_schedule_range(scheduled_date, scheduled_date)

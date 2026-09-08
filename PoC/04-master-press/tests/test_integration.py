@@ -241,6 +241,19 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertEqual(build.call_count, 1)
         self.assertEqual(second, expected)
 
+    def test_admin_bootstrap_reuses_fresh_server_cache(self):
+        module = main.load_master_press_module()
+        module._invalidate_admin_bootstrap_cache()
+        service = module.get_service()
+        with mock.patch.object(service.store, "list_cases", wraps=service.store.list_cases) as list_cases:
+            first = module.admin_bootstrap()
+            first_build_calls = list_cases.call_count
+            first["cases"].append({"id": "client-mutation"})
+            second = module.admin_bootstrap()
+        self.assertGreater(first_build_calls, 0)
+        self.assertEqual(list_cases.call_count, first_build_calls)
+        self.assertFalse(any(item.get("id") == "client-mutation" for item in second["cases"]))
+
     def test_analysis_threshold_save_is_returned_by_fresh_admin_bootstrap(self):
         token = main.ADMIN_AUTH.issue_session()
         cookie = f"{SESSION_COOKIE}={token}"

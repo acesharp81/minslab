@@ -23,6 +23,9 @@ class ScheduleSourceRecord:
     meeting_order_text: str | None
     host_name: str | None
     place: str | None
+    institution: str = "LEGISLATURE"
+    broadcast_scheduled: bool = False
+    broadcast_source_url: str | None = None
 
 
 class ScheduleAdapter:

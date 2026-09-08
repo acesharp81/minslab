@@ -74,7 +74,8 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - 통합 정책 흐름은 별도 canonical table이 아니라 각 Meeting의 최신 공식 본문과 annotation v2에서 계산하는 읽기 모델입니다. POLICY 발언만 포함하고 주제별 위원회·관련 부처 count와 가장 긴 원문 발언을 대표 evidence로 반환합니다. 주제별 `meeting_count`와 날짜별 고유 회의·공식 정책 발언 수의 `timeline`도 반환하며 최근 14일 증감 표시는 이 읽기 모델에서 계산한 화면 파생값입니다.
 - `OfficialUtteranceAgendaLink`는 공식 발언의 `itemN`과 같은 Meeting의 `N.` 의안만 연결합니다. 관계마다 reconciliation 상태, match method와 confidence를 보존하고 번호가 없거나 대응 의안이 없으면 row를 만들지 않습니다.
 - `MeetingOfficialIntegration`은 특정 `MeetingBrief`와 특정 `OfficialTranscriptDocument` 버전의 파생 대조 결과입니다. LIVE 잠정 원본과 공식 원본은 수정하지 않고, 통합 브리프·본문 변경 span·공식 근거 ID·화자 매칭 통계·LLM 사용량만 캐시합니다. 캐시 키는 `(meeting_brief_id, official_document_id, integration_version)`입니다.
-- `MeetingOfficialChangeReport`는 하나의 READY `MeetingOfficialIntegration`에서 서버가 검증한 변경 snapshot과 hash, OpenRouter 설명 결과, 사용량·상태·lease를 저장합니다. LLM은 제공된 change ID만 묶을 수 있고 변경 0건은 결정론 결과를 저장합니다.
+- `MeetingOfficialIntegrationJob`은 최신 브리프·공식 문서·통합 버전 조합의 PENDING/PROCESSING/RETRY_WAIT/READY 상태, lease, 시도 횟수와 다음 재시도 시각을 저장합니다. READY 통합본이 있는 조합은 큐에 다시 넣지 않으며 여러 워커는 `SKIP LOCKED`로 서로 다른 작업만 선점합니다.
+- `MeetingOfficialChangeReport`는 하나의 READY `MeetingOfficialIntegration`에서 서버가 검증한 변경 snapshot과 hash, OpenRouter 설명 결과, 사용량·상태·lease·제한 재시도를 저장합니다. LLM은 제공된 change ID만 묶을 수 있고 변경 0건은 결정론 결과를 저장합니다.
 - `OfficialChangeReportDailyUsage`는 공식화 변화 보고 전용 UTC 일일 요청 수를 원자적으로 제한하며 실제 호출은 공용 `LlmProviderDailyUsage` 한도도 함께 예약합니다.
 - 공식 화자 매칭은 `TranscriptOfficialReconciliation`의 파생 관계를 현재 문서 기준으로 교체합니다. 화면은 이 관계를 발언 묶음 키로 사용해 공식 화자가 바뀌면 분리하고, 인접 자막이 같은 공식 화자로 확인되면 병합하지만 별도 화자 변경 이력 UI는 만들지 않습니다.
 

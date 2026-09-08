@@ -152,6 +152,31 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(b"max-age=31536000", headers[b"strict-transport-security"])
         self.assertIn(b"\"llm_calls\":0", body)
 
+    async def test_national_assembly_admin_session_injects_internal_poc7_token(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "application/json", "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.return_value = []
+        upstream = mock.MagicMock()
+        upstream.status = 200
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b'{"authenticated":true}'
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with (
+            mock.patch.object(main, "admin_session", return_value={"exp": 1}),
+            mock.patch.object(main, "NATIONAL_ASSEMBLY_ADMIN_TOKEN", "internal-poc07-token"),
+            mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened,
+        ):
+            start, _ = await call_app(
+                "/poc/national-assembly/api/watch/admin/session",
+            )
+
+        request = opened.call_args.args[0]
+        self.assertEqual(request.get_header("X-watch-admin-token"), "internal-poc07-token")
+        self.assertEqual(start["status"], 200)
+
     async def test_national_assembly_other_write_paths_are_not_proxied(self):
         start, _ = await call_app(
             "/poc/national-assembly/api/live/overview", method="DELETE",

@@ -9,15 +9,110 @@ from typing import Any
 
 from .official_brief_integration import semantic_tokens
 
-INTEGRATION_VERSION = "official-reconciliation/1.3"
+INTEGRATION_VERSION = "official-reconciliation/1.5"
 SPEAKER_MATCH_METHOD = "ORDERED_CHAR_NGRAM_9_V1"
 MIN_ALIGNMENT_CONFIDENCE = 0.34
+MIN_INLINE_PATCH_SIMILARITY = 0.58
 _COMPACT_PATTERN = re.compile(r"[^0-9a-zA-Z가-힣]+")
 _SEMANTIC_CHARACTER_PATTERN = re.compile(r"[0-9a-zA-Z가-힣]")
+_NUMBER_PATTERN = re.compile(r"\d+(?:[.,]\d+)?")
+_POLARITY_MARKERS = ("아니", "않", "없", "부인", "취소", "철회", "반대")
+_ACTION_MARKERS = (
+    "검토", "추진", "확정", "의결", "지시", "요청", "제출",
+    "시행", "집행", "편성", "보류", "중단", "폐지", "신설", "확대",
+    "축소", "증액", "감액", "찬성", "반대", "보고", "발표",
+)
+_STYLE_TOKEN_SUFFIXES = (
+    "하겠습니다", "했습니다", "하였습니다", "하겠다고", "하였다고",
+    "한다고", "했다고", "합니다", "하였다", "했다", "한다", "하며",
+    "하고", "하여", "하기", "됩니다", "되었습니다", "됐습니다",
+    "되었다", "됐다고", "된다", "으로써", "로써", "입니다", "이었다",
+    "였다",
+)
 
 
 def compact_text(value: object) -> str:
     return _COMPACT_PATTERN.sub("", str(value or "").casefold())
+
+
+def _comparison_tokens(value: object) -> set[str]:
+    result: set[str] = set()
+    for source in semantic_tokens(value):
+        token = source
+        for suffix in _STYLE_TOKEN_SUFFIXES:
+            if len(token) >= len(suffix) + 2 and token.endswith(suffix):
+                token = token[:-len(suffix)]
+                break
+        if token and token not in _ACTION_MARKERS:
+            result.add(token)
+    return result
+
+
+def _marker_counts(value: object, candidates: Iterable[str]) -> Counter[str]:
+    text = compact_text(value)
+    return Counter({marker: text.count(marker) for marker in candidates if marker in text})
+
+
+def _semantic_units(value: object) -> Counter[tuple[object, ...]]:
+    """Bind institutions/content to their nearby action before ignoring order."""
+    text = " ".join(str(value or "").split())
+    action_pattern = "|".join(map(re.escape, _ACTION_MARKERS))
+    connector = re.compile(
+        rf"(?P<action>{action_pattern})(?:하고|했으며|하며|하여)\s*",
+    )
+    units: list[str] = []
+    for sentence in re.split(r"(?<=[.!?。;])\s+", text):
+        cursor = 0
+        for match in connector.finditer(sentence):
+            units.append(sentence[cursor:match.end("action")])
+            cursor = match.end()
+        units.append(sentence[cursor:])
+    signatures: Counter[tuple[object, ...]] = Counter()
+    for unit in units:
+        tokens = tuple(sorted(_comparison_tokens(unit)))
+        actions = tuple(sorted(_marker_counts(unit, _ACTION_MARKERS).items()))
+        polarities = tuple(sorted(_marker_counts(unit, _POLARITY_MARKERS).items()))
+        numbers = tuple(sorted(Counter(_NUMBER_PATTERN.findall(unit)).items()))
+        if tokens or actions or polarities or numbers:
+            signatures[(tokens, actions, polarities, numbers)] += 1
+    return signatures
+
+
+def style_only_equivalent(before: object, after: object) -> bool:
+    """Return true only when formatting/order changed without a factual signal.
+
+    Whitespace and punctuation are ignored first.  For bullet/prose or clause
+    reordering, order-independent normalized content tokens are compared while
+    numbers, polarity, and decision/action markers must remain identical.  The
+    conservative exact-token rule prevents a new ministry, amount, decision,
+    or action from being hidden as a style edit.
+    """
+    old = " ".join(str(before or "").split())
+    new = " ".join(str(after or "").split())
+    if not old or not new:
+        return old == new
+    compact_old = compact_text(old)
+    compact_new = compact_text(new)
+    if compact_old == compact_new:
+        return True
+    if Counter(_NUMBER_PATTERN.findall(old)) != Counter(_NUMBER_PATTERN.findall(new)):
+        return False
+    if _marker_counts(old, _POLARITY_MARKERS) != _marker_counts(
+        new, _POLARITY_MARKERS,
+    ):
+        return False
+    if _marker_counts(old, _ACTION_MARKERS) != _marker_counts(new, _ACTION_MARKERS):
+        return False
+    old_tokens = _comparison_tokens(old)
+    new_tokens = _comparison_tokens(new)
+    if len(old_tokens) < 2 or old_tokens != new_tokens:
+        return False
+    if _semantic_units(old) != _semantic_units(new):
+        return False
+    length_ratio = min(len(compact_old), len(compact_new)) / max(
+        len(compact_old), len(compact_new), 1,
+    )
+    return length_ratio >= 0.55
 
 
 def _ngrams(value: str, size: int = 9) -> set[str]:
@@ -146,6 +241,41 @@ def _character_opcodes(
     return matcher.get_opcodes(), old_positions, new_positions
 
 
+def _preserve_official_sentence_boundaries(
+    provisional_piece: str, official_piece: str,
+) -> str:
+    """Keep provisional spacing but restore official sentence punctuation."""
+    old_characters, old_positions = _semantic_characters(provisional_piece)
+    new_characters, new_positions = _semantic_characters(official_piece)
+    if old_characters != new_characters or not old_positions:
+        return provisional_piece
+    strong = re.compile(r"[.!?。;:]")
+
+    def merged_gap(old_gap: str, new_gap: str) -> str:
+        if strong.search(old_gap) or not strong.search(new_gap):
+            return old_gap
+        marks = "".join(strong.findall(new_gap))
+        whitespace = " " if any(char.isspace() for char in old_gap + new_gap) else ""
+        return marks + whitespace
+
+    # A leading separator belongs to the preceding opcode/chunk. Restoring it
+    # here can prepend a moved sentence with an orphan full stop.
+    parts = [provisional_piece[:old_positions[0]]]
+    for index, old_position in enumerate(old_positions):
+        parts.append(provisional_piece[old_position])
+        old_end = old_positions[index + 1] if index + 1 < len(old_positions) else len(
+            provisional_piece,
+        )
+        new_end = new_positions[index + 1] if index + 1 < len(new_positions) else len(
+            official_piece,
+        )
+        parts.append(merged_gap(
+            provisional_piece[old_position + 1:old_end],
+            official_piece[new_positions[index] + 1:new_end],
+        ))
+    return "".join(parts)
+
+
 def minimal_patch_text(before: object, after: object) -> str:
     """Keep provisional wording and replace only official changed character runs.
 
@@ -158,12 +288,20 @@ def minimal_patch_text(before: object, after: object) -> str:
     new = str(after or "")
     if not old or not new or old == new:
         return new or old
+    if style_only_equivalent(old, new):
+        return old
     compact_old = compact_text(old)
     compact_new = compact_text(new)
     similarity = SequenceMatcher(
         None, compact_old, compact_new, autojunk=False,
     ).ratio()
-    if min(len(compact_old), len(compact_new)) >= 20 and similarity < 0.46:
+    moved_patch = _minimal_patch_with_moves(old, new)
+    if moved_patch is not None:
+        return moved_patch
+    if (
+        min(len(compact_old), len(compact_new)) >= 20
+        and similarity < MIN_INLINE_PATCH_SIMILARITY
+    ):
         return old
     opcodes, old_positions, new_positions = _character_opcodes(old, new)
     old_cursor = 0
@@ -175,8 +313,11 @@ def minimal_patch_text(before: object, after: object) -> str:
         new_raw_end = _raw_end(new, new_positions, new_end)
         if opcode == "equal":
             old_piece = old[old_cursor:old_raw_end]
+            new_piece = new[new_cursor:new_raw_end]
+            old_piece = _preserve_official_sentence_boundaries(
+                old_piece, new_piece,
+            )
             if previous_opcode and previous_opcode != "equal":
-                new_piece = new[new_cursor:new_raw_end]
                 new_prefix = re.match(
                     r"^[^0-9A-Za-z가-힣]*", new_piece,
                 ).group(0)
@@ -196,21 +337,32 @@ def minimal_patch_text(before: object, after: object) -> str:
     return re.sub(r"(?<!\.)\.\.(?!\.)", ".", patched)
 
 
-def inline_diff(before: object, after: object) -> list[dict[str, str]]:
-    """Build a whitespace-independent character diff with readable raw spans."""
-    old = str(before or "")
-    new = str(after or "")
-    if old == new:
-        return [{"kind": "equal", "text": new}]
-    opcodes, old_positions, new_positions = _character_opcodes(old, new)
-    spans: list[dict[str, str]] = []
+def _raw_diff_chunks(before: str, after: str) -> list[dict[str, str]]:
+    opcodes, old_positions, new_positions = _character_opcodes(before, after)
+    chunks: list[dict[str, str]] = []
     old_cursor = 0
     new_cursor = 0
     for opcode, _old_start, old_end, _new_start, new_end in opcodes:
-        old_raw_end = _raw_end(old, old_positions, old_end)
-        new_raw_end = _raw_end(new, new_positions, new_end)
-        old_text = old[old_cursor:old_raw_end]
-        new_text = new[new_cursor:new_raw_end]
+        old_raw_end = _raw_end(before, old_positions, old_end)
+        new_raw_end = _raw_end(after, new_positions, new_end)
+        chunks.append({
+            "opcode": opcode,
+            "old_text": before[old_cursor:old_raw_end],
+            "new_text": after[new_cursor:new_raw_end],
+        })
+        old_cursor = old_raw_end
+        new_cursor = new_raw_end
+    return chunks
+
+
+def _basic_inline_diff(before: str, after: str) -> list[dict[str, str]]:
+    if style_only_equivalent(before, after):
+        return [{"kind": "equal", "text": after}]
+    spans: list[dict[str, str]] = []
+    for chunk in _raw_diff_chunks(before, after):
+        opcode = chunk["opcode"]
+        old_text = chunk["old_text"]
+        new_text = chunk["new_text"]
         if opcode == "equal":
             spans.append({"kind": "equal", "text": new_text})
         elif opcode == "insert":
@@ -222,9 +374,119 @@ def inline_diff(before: object, after: object) -> list[dict[str, str]]:
                 spans.append({"kind": "deleted", "text": old_text})
             if new_text:
                 spans.append({"kind": "changed", "text": new_text, "before": old_text})
-        old_cursor = old_raw_end
-        new_cursor = new_raw_end
-    return [span for span in spans if span.get("text")]
+    return spans
+
+
+def _move_similarity(before: str, after: str) -> float:
+    old = compact_text(before)
+    new = compact_text(after)
+    if min(len(old), len(new)) < 6:
+        return 0.0
+    matcher = SequenceMatcher(None, old, new, autojunk=False)
+    ratio = matcher.ratio()
+    longest = matcher.find_longest_match().size / max(1, min(len(old), len(new)))
+    if ratio < 0.52 or longest < 0.5:
+        return 0.0
+    return (ratio + longest) / 2
+
+
+def _pair_moved_chunks(
+    chunks: list[dict[str, str]],
+) -> tuple[dict[int, int], dict[int, int]]:
+    candidates: list[tuple[float, int, int]] = []
+    for old_index, deleted in enumerate(chunks):
+        if deleted["opcode"] != "delete":
+            continue
+        for new_index, inserted in enumerate(chunks):
+            if inserted["opcode"] != "insert":
+                continue
+            score = _move_similarity(deleted["old_text"], inserted["new_text"])
+            if score:
+                candidates.append((score, old_index, new_index))
+    paired_delete: dict[int, int] = {}
+    paired_insert: dict[int, int] = {}
+    for _score, old_index, new_index in sorted(candidates, reverse=True):
+        if old_index in paired_delete or new_index in paired_insert:
+            continue
+        paired_delete[old_index] = new_index
+        paired_insert[new_index] = old_index
+    return paired_delete, paired_insert
+
+
+def _minimal_patch_with_moves(before: str, after: str) -> str | None:
+    """Patch a moved clause at its provisional location, not its new position."""
+    chunks = _raw_diff_chunks(before, after)
+    paired_delete, paired_insert = _pair_moved_chunks(chunks)
+    if not paired_delete:
+        return None
+    parts: list[str] = []
+    for index, chunk in enumerate(chunks):
+        opcode = chunk["opcode"]
+        if index in paired_delete:
+            moved = chunks[paired_delete[index]]
+            parts.append(minimal_patch_text(chunk["old_text"], moved["new_text"]))
+        elif index in paired_insert:
+            continue
+        elif opcode == "equal":
+            parts.append(chunk["old_text"])
+        elif opcode == "replace":
+            parts.append(minimal_patch_text(chunk["old_text"], chunk["new_text"]))
+        elif opcode == "delete":
+            # A low-confidence unpaired deletion must not erase provisional copy.
+            parts.append(chunk["old_text"])
+        elif opcode == "insert":
+            parts.append(chunk["new_text"])
+    patched = "".join(parts).strip()
+    return re.sub(r"(?<!\.)\.\.(?!\.)", ".", patched) if patched else before
+
+
+def _merge_inline_spans(spans: Iterable[dict[str, str]]) -> list[dict[str, str]]:
+    merged: list[dict[str, str]] = []
+    for source in spans:
+        span = dict(source)
+        if not span.get("text"):
+            continue
+        if (
+            merged
+            and merged[-1].get("kind") == span.get("kind")
+            and (
+                span.get("kind") != "changed"
+                or merged[-1].get("before") == span.get("before")
+            )
+        ):
+            merged[-1]["text"] += span["text"]
+            continue
+        merged.append(span)
+    return merged
+
+
+def inline_diff(before: object, after: object) -> list[dict[str, str]]:
+    """Build a spacing-independent, move-aware character diff.
+
+    SequenceMatcher normally reports a moved clause as one deletion and one
+    insertion.  Similar delete/insert chunks are paired and compared locally,
+    so unchanged moved wording is rendered once and only the real edit inside
+    the moved clause is highlighted.
+    """
+    old = str(before or "")
+    new = str(after or "")
+    if old == new:
+        return [{"kind": "equal", "text": new}]
+    if style_only_equivalent(old, new):
+        return [{"kind": "equal", "text": new}]
+    chunks = _raw_diff_chunks(old, new)
+    paired_delete, paired_insert = _pair_moved_chunks(chunks)
+
+    spans: list[dict[str, str]] = []
+    for index, chunk in enumerate(chunks):
+        if index in paired_delete:
+            continue
+        if index in paired_insert:
+            deleted = chunks[paired_insert[index]]
+            spans.extend(_basic_inline_diff(deleted["old_text"], chunk["new_text"]))
+            continue
+        spans.extend(_basic_inline_diff(chunk["old_text"], chunk["new_text"]))
+    return _merge_inline_spans(spans)
 
 
 def _entity_map(brief: dict[str, Any], entity_type: str) -> dict[str, dict[str, Any]]:
@@ -379,6 +641,8 @@ def apply_official_edits(
             edit.get("new_text") or ""
         ).strip()
         if not official_after or before == official_after:
+            continue
+        if field != "ministries" and style_only_equivalent(before, official_after):
             continue
         after = (
             official_after

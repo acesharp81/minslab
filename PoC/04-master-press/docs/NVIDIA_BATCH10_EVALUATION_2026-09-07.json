@@ -1,0 +1,2136 @@
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "provider": "nvidia",
+  "dataset": "18 invented articles x 10 invented cases; no operational data",
+  "batches": [
+    {
+      "article": {
+        "id": "synthetic-0",
+        "title": "디지털 민원 서비스 개편",
+        "snippet": "행정안전부는 디지털 행정 서비스 개선 계획을 발표했다. 온라인 민원 신청 절차를 줄이고 모바일 신분증을 활용해 주민의 방문 부담을 낮추기로 했다.",
+        "body": "행정안전부는 디지털 행정 서비스 개선 계획을 발표했다. 온라인 민원 신청 절차를 줄이고 모바일 신분증을 활용해 주민의 방문 부담을 낮추기로 했다."
+      },
+      "positive": [
+        "digital"
+      ],
+      "results": {
+        "digital": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 디지털, 행정",
+            "행정안전부가 디지털 민원 서비스 개편을 발표하며 핵심 주체로 명시됨",
+            "디지털 행정 서비스 개선 정책이 기사 전체의 핵심 내용임"
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 관련 내용이 전혀 언급되지 않음",
+            "기사 주제는 디지털 민원 서비스 개편으로 재정 정책과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 관련된 내용이 없음",
+            "기사는 행정 서비스 개선에 초점을 맞춤",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 5.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부의 정책에 대한 비판이나 책임 추궁 내용이 전혀 없음",
+            "사실전달 tone의 정책 발표 보도로서 단순 운영 사실만 제시됨",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성과 관련된 내용이 전혀 언급되지 않음",
+            "기사는 민원 서비스 개선에 초점을 맞춤",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없음",
+            "기사는 모바일 신분증 활용을 언급하지만 보호 정책 자체는 다룸 않음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "주민등록 주소 변경이나 전입신고 제도 개선과 관련된 구체적 내용이 없음",
+            "민원 신청 절차 감축은 포괄적이지만 주민등록 제도에 초점을 맞춘 내용은 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 언급되지 않음",
+            "기사는 디지털 서비스 개선에 초점을 맞춤",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 전혀 없음",
+            "기사 주제는 일상 행정 서비스 개선으로 선거와 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "화재 예방이나 소방 안전 대책과 관련된 내용이 전혀 언급되지 않음",
+            "기사는 디지털 민원 서비스 개편에 초점을 맞춤",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 디지털 민원 서비스 개편을 발표하며 핵심 주체로 명시됨\", \"디지털 행정 서비스 개선 정책이 기사 전체의 핵심 내용임\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 관련 내용이 전혀 언급되지 않음\", \"기사 주제는 디지털 민원 서비스 개편으로 재정 정책과 무관함\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 관련된 내용이 없음\", \"기사는 행정 서비스 개선에 초점을 맞춤\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 5.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부의 정책에 대한 비판이나 책임 추궁 내용이 전혀 없음\", \"사실전달 tone의 정책 발표 보도로서 단순 운영 사실만 제시됨\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성과 관련된 내용이 전혀 언급되지 않음\", \"기사는 민원 서비스 개선에 초점을 맞춤\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없음\", \"기사는 모바일 신분증 활용을 언급하지만 보호 정책 자체는 다룸 않음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경이나 전입신고 제도 개선과 관련된 구체적 내용이 없음\", \"민원 신청 절차 감축은 포괄적이지만 주민등록 제도에 초점을 맞춘 내용은 아님\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 언급되지 않음\", \"기사는 디지털 서비스 개선에 초점을 맞춤\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 전혀 없음\", \"기사 주제는 일상 행정 서비스 개선으로 선거와 무관함\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방이나 소방 안전 대책과 관련된 내용이 전혀 언급되지 않음\", \"기사는 디지털 민원 서비스 개편에 초점을 맞춤\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 10.951
+    },
+    {
+      "article": {
+        "id": "synthetic-1",
+        "title": "지방교부세 배분 기준 개편",
+        "snippet": "행정안전부는 지방재정 확충을 위해 지방교부세 배분 기준을 개편했다. 재정 여건이 열악한 지방자치단체에 지원을 늘리는 것이 핵심이다.",
+        "body": "행정안전부는 지방재정 확충을 위해 지방교부세 배분 기준을 개편했다. 재정 여건이 열악한 지방자치단체에 지원을 늘리는 것이 핵심이다."
+      },
+      "positive": [
+        "finance"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방재정, 지방교부세",
+            "행정안전부가 지방교부세 배분 기준을 개편하여 지방재정 확충을 도모했다는 내용이 명시적으로 제시됨."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "기사에서 재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "기사는 행정안전부의 정책을 사실적으로 전달할 뿐, 직접적인 비판이나 책임 추궁 내용이 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 공무원 교육 및 인재 양성과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 주민등록 주소 변경 또는 전입신고 제도 개선과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "기사에서 화재 예방 또는 소방 안전 대책과 관련된 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 지방교부세 배분 기준을 개편하여 지방재정 확충을 도모했다는 내용이 명시적으로 제시됨.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사는 행정안전부의 정책을 사실적으로 전달할 뿐, 직접적인 비판이나 책임 추궁 내용이 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"비판 부재\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 공무원 교육 및 인재 양성과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 주민등록 주소 변경 또는 전입신고 제도 개선과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 화재 예방 또는 소방 안전 대책과 관련된 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 9.841
+    },
+    {
+      "article": {
+        "id": "synthetic-2",
+        "title": "호우 대응 점검회의",
+        "snippet": "행정안전부는 집중호우에 대비한 재난안전 점검회의를 개최했다. 행정안전부는 침수 위험 지역을 점검하고 주민 대피 계획을 확인했다.",
+        "body": "행정안전부는 집중호우에 대비한 재난안전 점검회의를 개최했다. 행정안전부는 침수 위험 지역을 점검하고 주민 대피 계획을 확인했다."
+      },
+      "positive": [
+        "disaster"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 재난, 안전",
+            "행정안전부가 집중호우 대비 재난안전 점검회의를 개최하고 침수 위험 지역 점검 및 주민 대피 계획을 확인했다는 내용이 재난안전 대책과 직접 일치함."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "기사는 행정안전부의 호우 대응 점검회의를 사실적으로 전달했을 뿐, 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "재난·대응 운영 사실 보도로, 기관 직접 비판 근거가 없어 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성 정책과 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "주민등록 주소 변경 및 전입신고 제도 개선과 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방소멸 및 지역 인구 감소 대응 정책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방선거 행정 지원과 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "화재 예방과 소방 안전 대책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 집중호우 대비 재난안전 점검회의를 개최하고 침수 위험 지역 점검 및 주민 대피 계획을 확인했다는 내용이 재난안전 대책과 직접 일치함.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사는 행정안전부의 호우 대응 점검회의를 사실적으로 전달했을 뿐, 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성 정책과 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 및 전입신고 제도 개선과 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 및 지역 인구 감소 대응 정책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원과 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방과 소방 안전 대책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 11.552
+    },
+    {
+      "article": {
+        "id": "synthetic-3",
+        "title": "교육과정 확대",
+        "snippet": "행정안전부는 지방공무원의 역량 강화를 위한 공무원 교육 계획을 발표했다. 신규 공무원 교육과 관리자의 인재 양성 과정을 확대한다.",
+        "body": "행정안전부는 지방공무원의 역량 강화를 위한 공무원 교육 계획을 발표했다. 신규 공무원 교육과 관리자의 인재 양성 과정을 확대한다."
+      },
+      "positive": [
+        "personnel"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 언급이 전혀 없으며, 공무원 교육 확대만 다룸.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 없으며, 교육 계획에만 집중되어 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부의 정책에 대한 비판이나 책임 추궁 내용이 전혀 없으며, 단순한 정책 발표 사실만 전달됨.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 공무원, 교육",
+            "행정안전부가 공무원 교육과 관리자 인재 양성 과정을 확대한다는 내용이 직접적으로 명시되어 있어 핵심 주제와 일치함."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "주민등록 주소 변경이나 전입신고 제도 개선과 관련된 내용이 전혀 없으며, 교육 계획에만 집중되어 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 전혀 없으며, 교육 계획에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "화재 예방이나 소방 안전 대책과 관련된 내용이 전혀 없으며, 공무원 교육 확대만 다룸.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 언급이 전혀 없으며, 공무원 교육 확대만 다룸.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 없으며, 교육 계획에만 집중되어 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부의 정책에 대한 비판이나 책임 추궁 내용이 전혀 없으며, 단순한 정책 발표 사실만 전달됨.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\"],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 공무원 교육과 관리자 인재 양성 과정을 확대한다는 내용이 직접적으로 명시되어 있어 핵심 주제와 일치함.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경이나 전입신고 제도 개선과 관련된 내용이 전혀 없으며, 교육 계획에만 집중되어 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 전혀 없으며, 공무원 교육에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 전혀 없으며, 교육 계획에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E1\", \"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방이나 소방 안전 대책과 관련된 내용이 전혀 없으며, 공무원 교육 확대만 다룸.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 12.233
+    },
+    {
+      "article": {
+        "id": "synthetic-4",
+        "title": "디지털 민원 장애에 책임 추궁",
+        "snippet": "국회는 행정안전부의 디지털 행정 서비스 관리 부실을 비판했다. 온라인 민원 시스템 장애가 반복되는데도 행정안전부가 개선을 미뤄 주민 피해가 커졌다는 지적이다.",
+        "body": "국회는 행정안전부의 디지털 행정 서비스 관리 부실을 비판했다. 온라인 민원 시스템 장애가 반복되는데도 행정안전부가 개선을 미뤄 주민 피해가 커졌다는 지적이다."
+      },
+      "positive": [
+        "digital",
+        "criticism"
+      ],
+      "results": {
+        "digital": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 디지털, 행정",
+            "행정안전부가 디지털 행정 서비스 관리 부실을 비판받으며 핵심 주체로 명시됨",
+            "온라인 민원 시스템 장애 반복과 개선 미루기로 주민 피해가 커졌다는 지적 포함"
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 핵심 주제가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 무관한 디지털 민원 시스템 장애 내용",
+            "행정안전부가 언급되었으나 재난안전과 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "send",
+          "llm_score": 90.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 행정안전부, 비판",
+            "행정안전부의 디지털 행정 서비스 관리 부실에 대한 직접적인 비판과 책임 추궁 내용",
+            "운영 사실이 아닌 정책 관리 부실에 대한 지적으로 직접 비판에 해당"
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성 정책과 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 공무원 교육과 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "개인정보 보호 정책과 무관한 디지털 민원 시스템 장애 내용",
+            "행정안전부가 언급되었으나 개인정보 보호와 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "주민등록 주소 변경 및 전입신고 제도 개선과 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 주민등록 제도와 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방소멸 및 지역 인구 감소 대응 정책과 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 지방소멸 대응과 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방선거 행정 지원과 공정한 선거 관리와 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 지방선거 지원과 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "화재 예방과 소방 안전 대책과 무관한 디지털 민원 장애 내용",
+            "행정안전부가 언급되었으나 화재 예방과 직접적 연관성 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"행정안전부가 디지털 행정 서비스 관리 부실을 비판받으며 핵심 주체로 명시됨\", \"온라인 민원 시스템 장애 반복과 개선 미루기로 주민 피해가 커졌다는 지적 포함\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 핵심 주제가 아님\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 무관한 디지털 민원 시스템 장애 내용\", \"행정안전부가 언급되었으나 재난안전과 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": true,\n      \"score\": 90.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"행정안전부의 디지털 행정 서비스 관리 부실에 대한 직접적인 비판과 책임 추궁 내용\", \"운영 사실이 아닌 정책 관리 부실에 대한 지적으로 직접 비판에 해당\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성 정책과 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 공무원 교육과 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책과 무관한 디지털 민원 시스템 장애 내용\", \"행정안전부가 언급되었으나 개인정보 보호와 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 및 전입신고 제도 개선과 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 주민등록 제도와 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 및 지역 인구 감소 대응 정책과 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 지방소멸 대응과 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원과 공정한 선거 관리와 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 지방선거 지원과 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방과 소방 안전 대책과 무관한 디지털 민원 장애 내용\", \"행정안전부가 언급되었으나 화재 예방과 직접적 연관성 없음\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 22.636
+    },
+    {
+      "article": {
+        "id": "synthetic-5",
+        "title": "교부세 배분 기준 비판",
+        "snippet": "지방자치단체들은 행정안전부의 지방교부세 배분 기준이 불공정하다고 비판했다. 행정안전부가 지역의 지방재정 현실을 외면했다며 시정을 요구했다.",
+        "body": "지방자치단체들은 행정안전부의 지방교부세 배분 기준이 불공정하다고 비판했다. 행정안전부가 지역의 지방재정 현실을 외면했다며 시정을 요구했다."
+      },
+      "positive": [
+        "finance",
+        "criticism"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방재정, 지방교부세",
+            "기사에서 행정안전부의 지방교부세 배분 기준이 불공정하다고 비판하며 시정을 요구하는 내용이 명시적으로 등장함. 지방재정 및 지방교부세 정책과 직접 관련되어 있음."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "기사에서 재난안전 대책이나 재난 대응 활동에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "send",
+          "llm_score": 80.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 행정안전부, 비판",
+            "기사에서 행정안전부의 지방교부세 배분 기준에 대한 직접적인 비판과 시정 요구가 명시적으로 나타나며, 단순한 운영 사실이 아닌 정책에 대한 책임 추궁 보도임."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 공무원 교육 및 인재 양성 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 개인정보 보호 정책이나 유출 예방 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 주민등록 주소 변경 및 전입신고 제도 개선에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 20.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 지방소멸 및 지역 인구 감소 대응 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음. '지방'이라는 단어가 간접적으로 등장하지만 주제와 무관함.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 지방선거 행정 지원이나 공정한 선거 관리에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 화재 예방이나 소방 안전 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 디지털 행정 서비스 도입 또는 개선 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"기사에서 행정안전부의 지방교부세 배분 기준이 불공정하다고 비판하며 시정을 요구하는 내용이 명시적으로 등장함. 지방재정 및 지방교부세 정책과 직접 관련되어 있음.\"]\n    ,\n      \"exclusion_reason\": \"해당 없음\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 재난안전 대책이나 재난 대응 활동에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 재난안전 대책이나 재난 대응 활동에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": true,\n      \"score\": 80.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"기사에서 행정안전부의 지방교부세 배분 기준에 대한 직접적인 비판과 시정 요구가 명시적으로 나타나며, 단순한 운영 사실이 아닌 정책에 대한 책임 추궁 보도임.\"]\n    ,\n      \"exclusion_reason\": \"해당 없음\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 공무원 교육 및 인재 양성 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 공무원 교육 및 인재 양성 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 개인정보 보호 정책이나 유출 예방 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 개인정보 보호 정책이나 유출 예방 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 주민등록 주소 변경 및 전입신고 제도 개선에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 주민등록 주소 변경 및 전입신고 제도 개선에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 20.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방소멸 및 지역 인구 감소 대응 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음. '지방'이라는 단어가 간접적으로 등장하지만 주제와 무관함.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 지방소멸 및 지역 인구 감소 대응 정책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음. '지방'이라는 단어가 간접적으로 등장하지만 주제와 무관함.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방선거 행정 지원이나 공정한 선거 관리에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 지방선거 행정 지원이나 공정한 선거 관리에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 화재 예방이나 소방 안전 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"기사에서 화재 예방이나 소방 안전 대책에 대한 언급이 전혀 없으며, 지방교부세 배분 기준 비판에만 초점이 맞춰져 있음.\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"핵심 용어 부재\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 10.236
+    },
+    {
+      "article": {
+        "id": "synthetic-6",
+        "title": "재난 대응 지연 논란",
+        "snippet": "국회는 행정안전부가 재난 대응 지휘를 지연해 피해를 키웠다고 비판했다. 행정안전부의 재난안전 보고 체계가 제대로 작동하지 않은 책임을 물었다.",
+        "body": "국회는 행정안전부가 재난 대응 지휘를 지연해 피해를 키웠다고 비판했다. 행정안전부의 재난안전 보고 체계가 제대로 작동하지 않은 책임을 물었다."
+      },
+      "positive": [
+        "disaster",
+        "criticism"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 지방재정 또는 지방교부세 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 재난, 안전",
+            "기사는 행정안전부의 재난 대응 지휘 지연과 재난안전 보고 체계 미작동을 비판하며, 재난안전 대책과 직접 관련됩니다."
+          ]
+        },
+        "criticism": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 행정안전부, 비판",
+            "기사는 행정안전부의 재난 대응 지연에 대한 직접적인 비판과 책임 추궁을 담고 있으며, 단순 운영 사실이 아닙니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 공무원 교육 및 인재 양성 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 개인정보 보호 정책 또는 유출 예방 대책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 주민등록 주소 변경 또는 전입신고 제도 개선에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 지방소멸 또는 지역 인구 감소 대응 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 지방선거 행정 지원 또는 공정한 선거 관리에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사에서 화재 예방 또는 소방 안전 대책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방재정 또는 지방교부세 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"기사는 행정안전부의 재난 대응 지휘 지연과 재난안전 보고 체계 미작동을 비판하며, 재난안전 대책과 직접 관련됩니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [\"E2\", \"E3\"],\n      \"reasons\": [\"기사는 행정안전부의 재난 대응 지연에 대한 직접적인 비판과 책임 추궁을 담고 있으며, 단순 운영 사실이 아닙니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 공무원 교육 및 인재 양성 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 개인정보 보호 정책 또는 유출 예방 대책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 주민등록 주소 변경 또는 전입신고 제도 개선에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방소멸 또는 지역 인구 감소 대응 정책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 지방선거 행정 지원 또는 공정한 선거 관리에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 화재 예방 또는 소방 안전 대책에 대한 언급이 전혀 없으며, 재난 대응 지연 논란만 다뤘습니다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 14.221
+    },
+    {
+      "article": {
+        "id": "synthetic-7",
+        "title": "행안부 모바일 민원 확대",
+        "snippet": "행안부는 디지털 행정 서비스를 확대한다. 행안부는 주민이 모바일로 민원을 신청할 수 있도록 디지털 민원 플랫폼을 개선했다고 밝혔다.",
+        "body": "행안부는 디지털 행정 서비스를 확대한다. 행안부는 주민이 모바일로 민원을 신청할 수 있도록 디지털 민원 플랫폼을 개선했다고 밝혔다."
+      },
+      "positive": [
+        "digital"
+      ],
+      "results": {
+        "digital": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 디지털, 행정",
+            "행안부가 디지털 행정 서비스 확대와 모바일 민원 플랫폼 개선을 직접 발표한 내용으로, 디지털 행정 서비스 도입·개선 정책을 명확히 다룸",
+            "기사 전체가 행안부의 디지털 행정 정책을 사실적으로 전달하며, 주체와 내용이 모두 일치"
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세와 관련된 내용이 전혀 언급되지 않음",
+            "행안부의 디지털 민원 서비스 확대는 지방재정 정책과 무관한 주제",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "재난, 안전과 관련된 키워드나 내용이 기사에 전혀 포함되지 않음",
+            "디지털 민원 서비스 확대는 재난안전 대책과 무관한 행정 서비스 개선 사항",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 5.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "행안부의 정책에 대한 비판, 문제 제기, 책임 추궁 등 부정적 평가나 반론이 전혀 없음",
+            "기사는 행안부의 정책을 사실적으로 전달하는 보도이며, 비판적 요소가 전혀 포함되지 않음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "공무원 교육, 인재 양성과 관련된 내용이 기사에 전혀 언급되지 않음",
+            "디지털 민원 플랫폼 개선은 공무원 교육 정책과 무관한 주민 대상 서비스 개선 사항",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "개인정보 보호, 유출 예방과 관련된 내용이 기사에 전혀 포함되지 않음",
+            "모바일 민원 서비스 확대는 개인정보 보호 정책과 무관한 행정 편의성 개선 사항",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "주민등록, 전입신고와 관련된 내용이 기사에 전혀 언급되지 않음",
+            "모바일 민원 확대라는 주제는 주민등록 제도 개선과 무관한 일반 민원 서비스 개선",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방소멸, 인구 감소 대응과 관련된 내용이 기사에 전혀 포함되지 않음",
+            "디지털 민원 서비스는 지방소멸 문제 해결과 무관한 행정 서비스 개선 사항",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방선거, 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음",
+            "행안부의 모바일 민원 확대는 지방선거 지원과 무관한 일상 행정 서비스 개선",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "화재, 소방 안전과 관련된 내용이 기사에 전혀 포함되지 않음",
+            "디지털 민원 서비스 확대는 화재 예방 정책과 무관한 행정 디지털화 사업",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"행안부가 디지털 행정 서비스 확대와 모바일 민원 플랫폼 개선을 직접 발표한 내용으로, 디지털 행정 서비스 도입·개선 정책을 명확히 다룸\",\n        \"기사 전체가 행안부의 디지털 행정 정책을 사실적으로 전달하며, 주체와 내용이 모두 일치\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"지방재정 또는 지방교부세와 관련된 내용이 전혀 언급되지 않음\",\n        \"행안부의 디지털 민원 서비스 확대는 지방재정 정책과 무관한 주제\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"재난, 안전과 관련된 키워드나 내용이 기사에 전혀 포함되지 않음\",\n        \"디지털 민원 서비스 확대는 재난안전 대책과 무관한 행정 서비스 개선 사항\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 5.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"행안부의 정책에 대한 비판, 문제 제기, 책임 추궁 등 부정적 평가나 반론이 전혀 없음\",\n        \"기사는 행안부의 정책을 사실적으로 전달하는 보도이며, 비판적 요소가 전혀 포함되지 않음\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"공무원 교육, 인재 양성과 관련된 내용이 기사에 전혀 언급되지 않음\",\n        \"디지털 민원 플랫폼 개선은 공무원 교육 정책과 무관한 주민 대상 서비스 개선 사항\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"개인정보 보호, 유출 예방과 관련된 내용이 기사에 전혀 포함되지 않음\",\n        \"모바일 민원 서비스 확대는 개인정보 보호 정책과 무관한 행정 편의성 개선 사항\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"주민등록, 전입신고와 관련된 내용이 기사에 전혀 언급되지 않음\",\n        \"모바일 민원 확대라는 주제는 주민등록 제도 개선과 무관한 일반 민원 서비스 개선\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"지방소멸, 인구 감소 대응과 관련된 내용이 기사에 전혀 포함되지 않음\",\n        \"디지털 민원 서비스는 지방소멸 문제 해결과 무관한 행정 서비스 개선 사항\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"지방선거, 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음\",\n        \"행안부의 모바일 민원 확대는 지방선거 지원과 무관한 일상 행정 서비스 개선\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\n        \"화재, 소방 안전과 관련된 내용이 기사에 전혀 포함되지 않음\",\n        \"디지털 민원 서비스 확대는 화재 예방 정책과 무관한 행정 디지털화 사업\"\n      ]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 10.42
+    },
+    {
+      "article": {
+        "id": "synthetic-8",
+        "title": "민간 게임 회사 신규 서비스",
+        "snippet": "가상게임사는 디지털 게임 서비스를 출시했다. 민간 게임 이용자를 위한 새 상품으로 정부의 행정 서비스와는 관계가 없다.",
+        "body": "가상게임사는 디지털 게임 서비스를 출시했다. 민간 게임 이용자를 위한 새 상품으로 정부의 행정 서비스와는 관계가 없다."
+      },
+      "positive": [],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 디지털, 행정",
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 행정안전부나 디지털 행정과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 지방재정과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 재난안전과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 행정안전부 비판과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 공무원 교육과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 개인정보 보호와 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 주민등록 제도와 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 지방소멸 대응과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 지방선거 지원과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사가 민간 게임 회사의 서비스에 관한 내용이며 화재 예방과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\"case_id\": \"digital\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 행정안전부나 디지털 행정과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"finance\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 지방재정과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"disaster\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 재난안전과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"criticism\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 행정안전부 비판과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"personnel\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 공무원 교육과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"privacy\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 개인정보 보호와 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"registry\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 주민등록 제도와 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"population\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 지방소멸 대응과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"election\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 지방선거 지원과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []},\n    {\"case_id\": \"fire\", \"is_relevant\": false, \"score\": 10.0, \"required_topic_met\": false, \"target_is_primary\": false, \"tone_met\": false, \"topic_evidence_ids\": [], \"target_evidence_ids\": [], \"stance_evidence_ids\": [], \"reasons\": [\"기사가 민간 게임 회사의 서비스에 관한 내용이며 화재 예방과 무관함\"] , \"exclusion_reason\": \"\" , \"low_score_categories\": []}\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 11.936
+    },
+    {
+      "article": {
+        "id": "synthetic-9",
+        "title": "교육부 학교 수업 지원",
+        "snippet": "교육부는 학교 교사의 수업 역량을 높이는 연수 계획을 발표했다. 대상은 초등학교 교사이며 교육부가 직접 운영한다.",
+        "body": "교육부는 학교 교사의 수업 역량을 높이는 연수 계획을 발표했다. 대상은 초등학교 교사이며 교육부가 직접 운영한다."
+      },
+      "positive": [],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "디지털 행정 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "지방재정 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "재난안전 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "비판 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 교육",
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "공무원 교육 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "개인정보 보호 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "주민등록 제도 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "지방소멸 대응 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "지방선거 지원 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "기사 주체는 교육부이며 행정안전부가 언급되지 않음",
+            "화재 예방 관련 내용이 전혀 없음",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"디지털 행정 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"지방재정 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"재난안전 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"비판 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"공무원 교육 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"개인정보 보호 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"주민등록 제도 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"지방소멸 대응 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"지방선거 지원 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사 주체는 교육부이며 행정안전부가 언급되지 않음\", \"화재 예방 관련 내용이 전혀 없음\"]\n    ,\n      \"exclusion_reason\": \"기관 불일치 및 주제 무관\"\n    ,\n      \"low_score_categories\": [\"기관 불일치\", \"주제 무관\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 15.554
+    },
+    {
+      "article": {
+        "id": "synthetic-10",
+        "title": "시청 예산 부실 비판, 행안부는 배경 설명",
+        "snippet": "가상시의회는 가상시청의 축제 예산 낭비를 비판했다. 비판 대상은 가상시청이다. 행정안전부는 전국 지방재정 통계를 제공하는 기관으로 배경에만 언급됐다.",
+        "body": "가상시의회는 가상시청의 축제 예산 낭비를 비판했다. 비판 대상은 가상시청이다. 행정안전부는 전국 지방재정 통계를 제공하는 기관으로 배경에만 언급됐다."
+      },
+      "positive": [],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "행정안전부는 배경에만 언급되었고, 디지털 행정 서비스 도입·개선 정책은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 25.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 지방재정",
+            "행정안전부는 배경에만 언급되었고, 지방재정 통계 제공은 운영 사실일 뿐 정책 논의나 개선은 없음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "행정안전부는 배경에만 언급되었고, 재난안전 대책이나 대응 활동은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부, 비판",
+            "행정안전부는 비판 대상이 아니며, 배경에만 언급됨. 직접적인 비판이나 책임 추궁은 없음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 공무원 교육 및 인재 양성 정책은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 개인정보 보호 정책이나 유출 예방 대책은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 주민등록 주소 변경 및 전입신고 제도 개선은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 지방소멸 및 인구 감소 대응 정책은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 지방선거 행정 지원이나 선거 관리는 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "행정안전부는 배경에만 언급되었고, 화재 예방이나 소방 안전 대책은 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 디지털 행정 서비스 도입·개선 정책은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 디지털 행정 관련 정책은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 25.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 지방재정 통계 제공은 운영 사실일 뿐 정책 논의나 개선은 없음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 지방재정 정책 논의는 전혀 없음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 재난안전 대책이나 대응 활동은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 재난안전 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 비판 대상이 아니며, 배경에만 언급됨. 직접적인 비판이나 책임 추궁은 없음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 비판 대상이 아니며, 배경에만 언급됨.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 공무원 교육 및 인재 양성 정책은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 공무원 교육 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 개인정보 보호 정책이나 유출 예방 대책은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 개인정보 보호 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 주민등록 주소 변경 및 전입신고 제도 개선은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 주민등록 제도 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 지방소멸 및 인구 감소 대응 정책은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 지방소멸 대응 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 지방선거 행정 지원이나 선거 관리는 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 지방선거 지원 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 배경에만 언급되었고, 화재 예방이나 소방 안전 대책은 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"기관은 배경에만 언급되었고, 화재 예방 관련 내용은 전혀 다룸되지 않음.\" \n    ,\n      \"low_score_categories\": [\"기관 비중심\", \"주제 불일치\"] \n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 9.456
+    },
+    {
+      "article": {
+        "id": "synthetic-11",
+        "title": "가상시 공무원 교육",
+        "snippet": "가상시청은 자체 공무원 교육 과정을 열었다. 가상시청 인사과가 교육 계획과 예산을 전담한다. 행정안전부 관계자는 참석자 명단에만 포함됐다.",
+        "body": "가상시청은 자체 공무원 교육 과정을 열었다. 가상시청 인사과가 교육 계획과 예산을 전담한다. 행정안전부 관계자는 참석자 명단에만 포함됐다."
+      },
+      "positive": [],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "행정안전부는 참석자 명단에만 포함되어 핵심 주체가 아님",
+            "디지털 행정 서비스 도입 또는 개선 정책과 무관함",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부의 정책이나 행정에 대한 직접적인 비판이 없음",
+            "단순 운영 사실만 언급됨",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 75.0,
+          "evidence_status": "target_unverified",
+          "reasons": [
+            "일치 키워드: 공무원, 교육",
+            "가상시청이 자체 공무원 교육 과정을 열었다고 명시함",
+            "행정안전부는 참석자 명단에만 포함되어 핵심 주체는 아님",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "개인정보 보호 정책과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "주민등록 주소 변경 및 전입신고 제도 개선과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방소멸 및 지역 인구 감소 대응 정책과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "지방선거 행정 지원과 공정한 선거 관리와 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_target_unverified",
+          "reasons": [
+            "화재 예방과 소방 안전 대책과 무관함",
+            "행정안전부가 핵심 주체가 아님",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "기사에서 대상 기관·인물이 핵심 주체로 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부는 참석자 명단에만 포함되어 핵심 주체가 아님\", \"디지털 행정 서비스 도입 또는 개선 정책과 무관함\"]\n    ,\n      \"exclusion_reason\": \"행정안전부가 핵심 주체가 아닌 단순 참석자 명단 포함으로 디지털 행정 서비스 도입 또는 개선 정책과 무관함\"\n    ,\n      \"low_score_categories\": [\"기관 핵심 관련성 부족\", \"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"지방재정 또는 지방교부세 정책과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"재난안전 대책이나 재난 대응 활동과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부의 정책이나 행정에 대한 직접적인 비판이 없음\", \"단순 운영 사실만 언급됨\"]\n    ,\n      \"exclusion_reason\": \"행정안전부의 정책이나 행정에 대한 직접적인 비판이 없으며 단순 운영 사실만 언급됨\"\n    ,\n      \"low_score_categories\": [\"비판 부재\", \"단순 운영 사실\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": true,\n      \"score\": 75.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": false,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\", \"E3\"],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"가상시청이 자체 공무원 교육 과정을 열었다고 명시함\", \"행정안전부는 참석자 명단에만 포함되어 핵심 주체는 아님\"]\n    ,\n      \"exclusion_reason\": \"행정안전부가 핵심 주체가 아니지만 공무원 교육 정책과 직접 일치함\"\n    ,\n      \"low_score_categories\": [\"기관 핵심 주체 아님\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"개인정보 보호 정책과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 및 전입신고 제도 개선과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"주민등록 주소 변경 및 전입신고 제도 개선과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 및 지역 인구 감소 대응 정책과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"지방소멸 및 지역 인구 감소 대응 정책과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원과 공정한 선거 관리와 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"지방선거 행정 지원과 공정한 선거 관리와 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": false,\n      \"tone_met\": false,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방과 소방 안전 대책과 무관함\", \"행정안전부가 핵심 주체가 아님\"]\n    ,\n      \"exclusion_reason\": \"화재 예방과 소방 안전 대책과 무관하며 행정안전부가 핵심 주체가 아님\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"기관 핵심 관련성 부족\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 10.27
+    },
+    {
+      "article": {
+        "id": "synthetic-12",
+        "title": "개인정보 보호 강화",
+        "snippet": "행정안전부는 공공기관 개인정보 보호 계획을 발표했다. 개인정보 유출 예방을 위해 문서 접근 권한과 보관 절차를 점검한다.",
+        "body": "행정안전부는 공공기관 개인정보 보호 계획을 발표했다. 개인정보 유출 예방을 위해 문서 접근 권한과 보관 절차를 점검한다."
+      },
+      "positive": [
+        "privacy"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "행정안전부가 언급되었으나 디지털 행정 서비스 도입 또는 개선과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 지방재정 또는 지방교부세 정책과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "행정안전부가 언급되었으나 재난안전 대책이나 재난 대응 활동과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부가 언급되었으나 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "재난·대응 운영 사실 보도로, 기관 직접 비판 근거가 없어 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 공무원 교육 및 인재 양성 정책과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 개인정보, 보호",
+            "행정안전부가 공공기관 개인정보 보호 계획을 발표했으며, 개인정보 유출 예방을 위해 문서 접근 권한과 보관 절차를 점검한다는 구체적 내용이 포함되어 있습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 주민등록 주소 변경 및 전입신고 제도 개선과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 지방소멸 및 지역 인구 감소 대응 정책과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 지방선거 행정 지원과 공정한 선거 관리와 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 언급되었으나 화재 예방과 소방 안전 대책과 관련된 구체적 내용이 없습니다.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 디지털 행정 서비스 도입 또는 개선과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 지방재정 또는 지방교부세 정책과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 재난안전 대책이나 재난 대응 활동과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"비판 부재\"] \n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 공무원 교육 및 인재 양성 정책과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 공공기관 개인정보 보호 계획을 발표했으며, 개인정보 유출 예방을 위해 문서 접근 권한과 보관 절차를 점검한다는 구체적 내용이 포함되어 있습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [] \n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 주민등록 주소 변경 및 전입신고 제도 개선과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 지방소멸 및 지역 인구 감소 대응 정책과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 지방선거 행정 지원과 공정한 선거 관리와 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 언급되었으나 화재 예방과 소방 안전 대책과 관련된 구체적 내용이 없습니다.\"]\n    ,\n      \"exclusion_reason\": \"\" \n    ,\n      \"low_score_categories\": [\"주제 불일치\"] \n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 9.213
+    },
+    {
+      "article": {
+        "id": "synthetic-13",
+        "title": "전입신고 제도 개선",
+        "snippet": "행정안전부는 주민등록 주소 변경과 전입신고 제도 개선안을 발표했다. 서류 제출 절차를 간소화하고 주민센터의 전입신고 접수 방식을 통일한다.",
+        "body": "행정안전부는 주민등록 주소 변경과 전입신고 제도 개선안을 발표했다. 서류 제출 절차를 간소화하고 주민센터의 전입신고 접수 방식을 통일한다."
+      },
+      "positive": [
+        "registry"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 디지털 행정 서비스 도입 또는 개선과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방재정 또는 지방교부세 정책과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 재난안전 대책이나 재난 대응 활동과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 비판 또는 책임 추궁과 관련된 내용은 전혀 포함되지 않음. 단순 정책 발표 보도로서 비판적 요소가 없음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 공무원 교육 및 인재 양성 정책과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 개인정보 보호 정책이나 유출 예방 대책과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 주민등록, 전입신고",
+            "행정안전부가 주민등록 주소 변경과 전입신고 제도 개선안을 발표했으며, 서류 제출 절차 간소화 및 주민센터 접수 방식 통일을 구체적으로 제시함. 주민등록과 전입신고 제도 개선이 핵심 주제임."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 20.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용은 전혀 포함되지 않음. 전입신고는 인구 이동과 관련될 수 있으나, 기사에서는 지방소멸 대응 의도나 정책이 명시되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 15.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 화재 예방 또는 소방 안전 대책과 관련된 내용은 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 디지털 행정 서비스 도입 또는 개선과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방재정 또는 지방교부세 정책과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 재난안전 대책이나 재난 대응 활동과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 비판 또는 책임 추궁과 관련된 내용은 전혀 포함되지 않음. 단순 정책 발표 보도로서 비판적 요소가 없음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"비판 부재\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 공무원 교육 및 인재 양성 정책과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 개인정보 보호 정책이나 유출 예방 대책과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주민등록 주소 변경과 전입신고 제도 개선안을 발표했으며, 서류 제출 절차 간소화 및 주민센터 접수 방식 통일을 구체적으로 제시함. 주민등록과 전입신고 제도 개선이 핵심 주제임.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 20.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용은 전혀 포함되지 않음. 전입신고는 인구 이동과 관련될 수 있으나, 기사에서는 지방소멸 대응 의도나 정책이 명시되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 15.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 주체이고 전입신고 제도 개선을 발표했으나, 화재 예방 또는 소방 안전 대책과 관련된 내용은 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 14.222
+    },
+    {
+      "article": {
+        "id": "synthetic-14",
+        "title": "인구 감소 지역 지원",
+        "snippet": "행정안전부는 지방소멸 및 인구 감소 대응 계획을 발표했다. 지역의 정주 여건을 개선하고 청년의 지역 정착을 지원한다.",
+        "body": "행정안전부는 지방소멸 및 인구 감소 대응 계획을 발표했다. 지역의 정주 여건을 개선하고 청년의 지역 정착을 지원한다."
+      },
+      "positive": [
+        "population"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 관련된 구체적 내용이 기사에 없음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부의 정책이나 행정에 대한 비판 또는 책임 추궁 내용이 전혀 없으며, 단순 정책 발표 사실만 전달됨.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성 정책과 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "주민등록 주소 변경 및 전입신고 제도 개선과 관련된 구체적 내용이 기사에 없음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방소멸, 인구",
+            "행정안전부가 지방소멸 및 인구 감소 대응 계획을 발표했으며, 지역의 정주 여건 개선과 청년의 지역 정착 지원을 통해 핵심 주제로 직접 다룸."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "화재 예방과 소방 안전 대책과 관련된 구체적 정책이나 활동이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 관련된 구체적 내용이 기사에 없음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부의 정책이나 행정에 대한 비판 또는 책임 추궁 내용이 전혀 없으며, 단순 정책 발표 사실만 전달됨.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\", \"비판 부재\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성 정책과 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 및 전입신고 제도 개선과 관련된 구체적 내용이 기사에 없음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 지방소멸 및 인구 감소 대응 계획을 발표했으며, 지역의 정주 여건 개선과 청년의 지역 정착 지원을 통해 핵심 주제로 직접 다룸.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원이나 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방과 소방 안전 대책과 관련된 구체적 정책이나 활동이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 7.869
+    },
+    {
+      "article": {
+        "id": "synthetic-15",
+        "title": "공정한 지방선거 지원",
+        "snippet": "행정안전부는 공정한 지방선거를 위한 행정 지원 계획을 발표했다. 지방선거의 선거인명부 작성과 투표소 접근 편의 지원이 핵심이다.",
+        "body": "행정안전부는 공정한 지방선거를 위한 행정 지원 계획을 발표했다. 지방선거의 선거인명부 작성과 투표소 접근 편의 지원이 핵심이다."
+      },
+      "positive": [
+        "election"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 언급이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 안전",
+            "재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "행정안전부의 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 전혀 없으며, 지원 계획을 사실적으로 전달하는 내용임.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "주민등록 주소 변경 및 전입신고 제도 개선과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방소멸 및 지역 인구 감소 대응 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방선거, 선거",
+            "행정안전부가 지방선거의 공정성을 위한 행정 지원 계획을 발표했으며, 선거인명부 작성과 투표소 접근 편의 지원이 핵심 내용으로 직접 일치함."
+          ]
+        },
+        "fire": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "화재 예방과 소방 안전 대책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 언급이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"재난안전 대책이나 재난 대응 활동과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부의 정책이나 행정에 대한 직접적인 비판이나 책임 추궁 내용이 전혀 없으며, 지원 계획을 사실적으로 전달하는 내용임.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책이나 유출 예방 대책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 및 전입신고 제도 개선과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 및 지역 인구 감소 대응 정책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n    ,\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"reasons\": [\"행정안전부가 지방선거의 공정성을 위한 행정 지원 계획을 발표했으며, 선거인명부 작성과 투표소 접근 편의 지원이 핵심 내용으로 직접 일치함.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n    ,\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"화재 예방과 소방 안전 대책과 관련된 내용이 전혀 없으며, 지방선거 지원에만 초점이 맞춰져 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 12.817
+    },
+    {
+      "article": {
+        "id": "synthetic-16",
+        "title": "화재 예방 대책",
+        "snippet": "행정안전부는 재난안전 정책의 일환으로 화재 예방과 소방 안전 대책을 발표했다. 화재 위험 시설을 점검하고 소방 대응 체계를 강화한다.",
+        "body": "행정안전부는 재난안전 정책의 일환으로 화재 예방과 소방 안전 대책을 발표했다. 화재 위험 시설을 점검하고 소방 대응 체계를 강화한다."
+      },
+      "positive": [
+        "disaster",
+        "fire"
+      ],
+      "results": {
+        "digital": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "일치 키워드: 행정",
+            "기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "finance": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방재정 또는 지방교부세 정책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "disaster": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 재난, 안전",
+            "행정안전부가 화재 예방과 소방 안전 대책을 발표했으며, 이는 재난안전 대책의 일환으로 직접 관련 있음."
+          ]
+        },
+        "criticism": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_and_stance_unverified",
+          "reasons": [
+            "일치 키워드: 행정안전부",
+            "기사는 행정안전부의 정책 발표를 사실적으로 전달할 뿐, 비판이나 책임 추궁 내용이 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다.",
+            "재난·대응 운영 사실 보도로, 기관 직접 비판 근거가 없어 발송에서 제외했습니다.",
+            "케이스가 요구한 어조가 기사에서 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "personnel": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "공무원 교육 및 인재 양성과 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "privacy": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "개인정보 보호 정책 또는 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "registry": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "주민등록 주소 변경 또는 전입신고 제도 개선과 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "population": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 기사에 전혀 포함되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "election": {
+          "decision": "low",
+          "llm_score": 10.0,
+          "evidence_status": "topic_unverified",
+          "reasons": [
+            "지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.",
+            "사용자 케이스의 필수 주제와 이를 뒷받침하는 기사 근거가 확인되지 않아 발송에서 제외했습니다."
+          ]
+        },
+        "fire": {
+          "decision": "send",
+          "llm_score": 95.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 화재, 소방",
+            "행정안전부가 화재 예방과 소방 안전 대책을 직접 발표했으며, 이는 사용자 요청과 거의 완전 일치함."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사에서 디지털 행정 서비스 도입 또는 개선에 대한 내용이 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방재정 또는 지방교부세 정책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 화재 예방과 소방 안전 대책을 발표했으며, 이는 재난안전 대책의 일환으로 직접 관련 있음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"기사는 행정안전부의 정책 발표를 사실적으로 전달할 뿐, 비판이나 책임 추궁 내용이 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"공무원 교육 및 인재 양성과 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"개인정보 보호 정책 또는 유출 예방 대책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"주민등록 주소 변경 또는 전입신고 제도 개선과 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방소멸 또는 지역 인구 감소 대응 정책과 관련된 내용이 기사에 전혀 포함되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": false,\n      \"score\": 10.0,\n      \"required_topic_met\": false,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"지방선거 행정 지원 또는 공정한 선거 관리와 관련된 내용이 기사에 전혀 언급되지 않음.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": [\"주제 불일치\"]\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": true,\n      \"score\": 95.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E1\", \"E2\", \"E3\"],\n      \"target_evidence_ids\": [\"E2\", \"E3\"],\n      \"stance_evidence_ids\": [],\n      \"reasons\": [\"행정안전부가 화재 예방과 소방 안전 대책을 직접 발표했으며, 이는 사용자 요청과 거의 완전 일치함.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 13.583
+    },
+    {
+      "article": {
+        "id": "synthetic-17",
+        "title": "통합 정책 점검과 비판",
+        "snippet": "행정안전부는 디지털 행정 서비스 개선, 지방재정 확충과 지방교부세 배분, 재난안전 대책, 공무원 교육 계획을 함께 발표했다. 행정안전부는 개인정보 보호 및 유출 예방, 주민등록 주소 변경과 전입신고 절차 개선도 추진한다. 행정안전부는 지방소멸과 인구 감소 대응, 공정한 지방선거 행정 지원, 화재 예방과 소방 안전 대책도 주요 과제로 제시했다. 국회는 행정안전부가 이들 정책의 집행을 미뤄 주민 피해를 키웠다고 직접 비판하고 행정안전부에 시정을 요구했다.",
+        "body": "행정안전부는 디지털 행정 서비스 개선, 지방재정 확충과 지방교부세 배분, 재난안전 대책, 공무원 교육 계획을 함께 발표했다. 행정안전부는 개인정보 보호 및 유출 예방, 주민등록 주소 변경과 전입신고 절차 개선도 추진한다. 행정안전부는 지방소멸과 인구 감소 대응, 공정한 지방선거 행정 지원, 화재 예방과 소방 안전 대책도 주요 과제로 제시했다. 국회는 행정안전부가 이들 정책의 집행을 미뤄 주민 피해를 키웠다고 직접 비판하고 행정안전부에 시정을 요구했다."
+      },
+      "positive": [
+        "digital",
+        "finance",
+        "disaster",
+        "criticism",
+        "personnel",
+        "privacy",
+        "registry",
+        "population",
+        "election",
+        "fire"
+      ],
+      "results": {
+        "digital": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 디지털, 행정",
+            "행정안전부가 디지털 행정 서비스 개선을 발표했으며, 이는 디지털 행정 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "finance": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방재정, 지방교부세",
+            "행정안전부가 지방재정 확충과 지방교부세 배분을 발표했으며, 이는 지방재정 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "disaster": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 재난, 안전",
+            "행정안전부가 재난안전 대책을 발표했으며, 이는 재난안정 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "criticism": {
+          "decision": "send",
+          "llm_score": 90.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 행정안전부, 비판",
+            "국회가 행정안전부의 정책 집행 지연으로 주민 피해를 키웠다고 직접 비판하고 시정을 요구했으며, 이는 기관에 대한 직접적인 비판 보도이다."
+          ]
+        },
+        "personnel": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 공무원, 교육",
+            "행정안전부가 공무원 교육 계획을 발표했으며, 이는 공무원 교육 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "privacy": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 개인정보, 보호",
+            "행정안전부가 개인정보 보호 및 유출 예방을 추진한다고 발표했으며, 이는 개인정보 보호 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "registry": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 주민등록, 전입신고",
+            "행정안전부가 주민등록 주소 변경과 전입신고 절차 개선을 추진한다고 발표했으며, 이는 주민등록 제도 개선의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "population": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방소멸, 인구",
+            "행정안전부가 지방소멸과 인구 감소 대응을 주요 과제로 제시했으며, 이는 지방소멸 대응 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "election": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 지방선거, 선거",
+            "행정안전부가 공정한 지방선거 행정 지원을 주요 과제로 제시했으며, 이는 지방선거 지원 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        },
+        "fire": {
+          "decision": "send",
+          "llm_score": 85.0,
+          "evidence_status": "verified",
+          "reasons": [
+            "일치 키워드: 화재, 소방",
+            "행정안전부가 화재 예방과 소방 안전 대책을 주요 과제로 제시했으며, 이는 화재 예방 정책의 핵심 주체로서 직접적인 관련이 있다."
+          ]
+        }
+      },
+      "error": "",
+      "raw_response": "{\n  \"results\": [\n    {\n      \"case_id\": \"digital\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [\"E2\"],\n      \"reasons\": [\"행정안전부가 디지털 행정 서비스 개선을 발표했으며, 이는 디지털 행정 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"finance\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [\"E2\"],\n      \"reasons\": [\"행정안전부가 지방재정 확충과 지방교부세 배분을 발표했으며, 이는 지방재정 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"disaster\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [\"E2\"],\n      \"reasons\": [\"행정안전부가 재난안전 대책을 발표했으며, 이는 재난안정 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"criticism\",\n      \"is_relevant\": true,\n      \"score\": 90.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E5\"],\n      \"target_evidence_ids\": [\"E5\"],\n      \"stance_evidence_ids\": [\"E5\"],\n      \"reasons\": [\"국회가 행정안전부의 정책 집행 지연으로 주민 피해를 키웠다고 직접 비판하고 시정을 요구했으며, 이는 기관에 대한 직접적인 비판 보도이다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"personnel\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E2\"],\n      \"target_evidence_ids\": [\"E2\"],\n      \"stance_evidence_ids\": [\"E2\"],\n      \"reasons\": [\"행정안전부가 공무원 교육 계획을 발표했으며, 이는 공무원 교육 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"privacy\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E3\"],\n      \"target_evidence_ids\": [\"E3\"],\n      \"stance_evidence_ids\": [\"E3\"],\n      \"reasons\": [\"행정안전부가 개인정보 보호 및 유출 예방을 추진한다고 발표했으며, 이는 개인정보 보호 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"registry\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E3\"],\n      \"target_evidence_ids\": [\"E3\"],\n      \"stance_evidence_ids\": [\"E3\"],\n      \"reasons\": [\"행정안전부가 주민등록 주소 변경과 전입신고 절차 개선을 추진한다고 발표했으며, 이는 주민등록 제도 개선의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"population\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E4\"],\n      \"target_evidence_ids\": [\"E4\"],\n      \"stance_evidence_ids\": [\"E4\"],\n      \"reasons\": [\"행정안전부가 지방소멸과 인구 감소 대응을 주요 과제로 제시했으며, 이는 지방소멸 대응 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"election\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E4\"],\n      \"target_evidence_ids\": [\"E4\"],\n      \"stance_evidence_ids\": [\"E4\"],\n      \"reasons\": [\"행정안전부가 공정한 지방선거 행정 지원을 주요 과제로 제시했으며, 이는 지방선거 지원 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    },\n    {\n      \"case_id\": \"fire\",\n      \"is_relevant\": true,\n      \"score\": 85.0,\n      \"required_topic_met\": true,\n      \"target_is_primary\": true,\n      \"tone_met\": true,\n      \"topic_evidence_ids\": [\"E4\"],\n      \"target_evidence_ids\": [\"E4\"],\n      \"stance_evidence_ids\": [\"E4\"],\n      \"reasons\": [\"행정안전부가 화재 예방과 소방 안전 대책을 주요 과제로 제시했으며, 이는 화재 예방 정책의 핵심 주체로서 직접적인 관련이 있다.\"]\n    ,\n      \"exclusion_reason\": \"\"\n    ,\n      \"low_score_categories\": []\n    }\n  ]\n}",
+      "exact_case_ids": true,
+      "seconds": 12.997
+    }
+  ],
+  "summary": {
+    "batches": 18,
+    "cases": 180,
+    "complete_batches": 18,
+    "decision_matrix": {
+      "send->send": 27,
+      "low->low": 153
+    },
+    "accuracy": 1.0,
+    "unverified_sends": 0,
+    "average_seconds": 12.222611111111112
+  }
+}

@@ -8,7 +8,7 @@ from typing import Any
 import requests
 
 
-PROMPT_VERSION = "official-change-report/1.0"
+PROMPT_VERSION = "official-change-report/1.1"
 MAX_INPUT_CHARS = 28_000
 
 
@@ -47,6 +47,74 @@ def deterministic_unchanged_report(snapshot: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def deterministic_changed_report(
+    snapshot: dict[str, Any], *, reason: str = "MODEL_RESPONSE_FALLBACK",
+) -> dict[str, Any]:
+    """Present only server-verified changes if model output is unusable."""
+    source_changes = [
+        dict(source) for source in snapshot.get("changes") or []
+        if isinstance(source, dict) and source.get("id")
+    ]
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for source in source_changes:
+        title = _redact(source.get("title")) or "공식 자료 반영"
+        groups.setdefault(title, []).append(source)
+
+    items = []
+    for title, changes in list(groups.items())[:6]:
+        representative = changes[0]
+        before = _redact(representative.get("before"))
+        after = _redact(representative.get("after"))
+        operation = str(representative.get("operation") or "").upper()
+        field = str(representative.get("field") or "")
+        if operation == "ADD" or (not before and after):
+            explanation = f"공식 자료에서 ‘{after[:260]}’ 내용이 추가로 확인됐습니다."
+            importance = "핵심"
+        elif operation == "DELETE" or (before and not after):
+            explanation = f"비공식 정리의 ‘{before[:260]}’ 내용은 공식 자료에서 확인되지 않았습니다."
+            importance = "보완"
+        else:
+            explanation = (
+                f"비공식 정리의 ‘{before[:180]}’ 표현이 공식 자료 기준 "
+                f"‘{after[:220]}’로 보완됐습니다."
+            )
+            importance = (
+                "핵심" if field in {"title", "task", "ministry", "assignee"}
+                or any(token in after for token in ("확정", "의결", "추진", "지시"))
+                else "보완"
+            )
+        items.append({
+            "title": title[:120],
+            "explanation": explanation[:500],
+            "importance": importance,
+            "change_ids": [str(change["id"]) for change in changes[:10]],
+            "changes": changes[:10],
+        })
+
+    total = len(source_changes)
+    assessment = "복합 변경" if len(groups) > 1 else "일부 사실 보완"
+    if source_changes and all(
+        str(change.get("operation") or "").upper() == "ADD"
+        for change in source_changes
+    ):
+        assessment = "공식 항목 추가"
+    stats = snapshot.get("speaker_stats") or {}
+    confirmed = int(stats.get("confirmed_speakers") or 0)
+    return {
+        "overall_assessment": assessment,
+        "summary": (
+            f"공식 자료 대조에서 의미 있는 변경 {total}건을 확인했습니다. "
+            "아래 항목은 서버가 검증한 변경 근거만 묶어 정리한 결과입니다."
+        ),
+        "items": items,
+        "speaker_note": (
+            f"공식 회의록 기준 화자 {confirmed}명이 확인됐습니다."
+            if confirmed else "화자 정보는 공식 회의록 근거 범위에서만 반영했습니다."
+        ),
+        "generation_note": reason,
+    }
+
+
 def _schema() -> dict[str, Any]:
     return {
         "type": "object", "additionalProperties": False,
@@ -78,8 +146,24 @@ def _schema() -> dict[str, Any]:
     }
 
 
+def _content_text(content: object) -> str:
+    if isinstance(content, dict):
+        return json.dumps(content, ensure_ascii=False)
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict):
+                value = block.get("text") or block.get("content")
+                if value is not None:
+                    parts.append(str(value))
+            elif block is not None:
+                parts.append(str(block))
+        return "\n".join(parts)
+    return str(content or "")
+
+
 def _parse(content: object) -> dict[str, Any]:
-    text = str(content or "").strip()
+    text = _content_text(content).strip()
     if text.startswith("```"):
         lines = text.splitlines()[1:]
         if lines and lines[-1].strip() == "```":
@@ -87,8 +171,21 @@ def _parse(content: object) -> dict[str, Any]:
         text = "\n".join(lines).strip()
     try:
         result = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise OfficialChangeReportResponseError("INVALID_JSON_RESPONSE") from exc
+    except json.JSONDecodeError as original:
+        decoder = json.JSONDecoder()
+        result = None
+        for index, character in enumerate(text):
+            if character != "{":
+                continue
+            try:
+                candidate, _ = decoder.raw_decode(text[index:])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(candidate, dict):
+                result = candidate
+                break
+        if result is None:
+            raise OfficialChangeReportResponseError("INVALID_JSON_RESPONSE") from original
     if not isinstance(result, dict):
         raise OfficialChangeReportResponseError("INVALID_JSON_RESPONSE")
     return result
@@ -217,6 +314,7 @@ class OpenRouterOfficialChangeReportClient:
         return OfficialChangeReportResult(
             report=report,
             usage_metadata={
+                "api_requests": 1,
                 "request_id": str(payload.get("id") or ""),
                 "usage": payload.get("usage") or {},
                 "privacy": {

@@ -3,6 +3,7 @@
   const RULES_KEY = "poc07.watch.rules.v1";
   const ADMIN_SESSION_KEY = "poc07.watch.admin.session.v1";
   const NOTIFICATION_LIMIT = 12;
+  const TEST_PRESENTATION_RETENTION_MS = 60 * 1000;
   const state = {
     token: window.localStorage.getItem(TOKEN_KEY) || "",
     cookieReady: false,
@@ -11,11 +12,14 @@
     unread: 0,
     testId: "",
     testTimer: null,
+    replayActivationId: "",
     testFinishTimer: null,
     notificationTimer: null,
     editingRuleId: "",
     currentRuleReport: null,
     reportTimer: null,
+    adminAuthenticated: false,
+    siteAdminAuthenticated: false,
     kakao: { configured: false, connected: false, status: "NOT_CONNECTED" },
   };
 
@@ -127,33 +131,8 @@
     }).format(new Date(value));
   }
 
-  function localRules() {
-    const saved = window.localStorage.getItem(RULES_KEY);
-    if (saved === null) return null;
-    try {
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (_) {
-      window.localStorage.removeItem(RULES_KEY);
-      return null;
-    }
-  }
-
   function saveLocalRules(rules) {
     window.localStorage.setItem(RULES_KEY, JSON.stringify(rules));
-  }
-
-  function serverRulePayload(rule) {
-    return {
-      name: rule.name,
-      include_terms: rule.include_terms,
-      exclude_terms: rule.exclude_terms || [],
-      institution: rule.institution || null,
-      committee_name: rule.committee_name || null,
-      notification_policy: rule.notification_policy || "FIRST_PER_MEETING",
-      digest_enabled: Boolean(rule.digest_enabled),
-      kakao_enabled: Boolean(rule.kakao_enabled),
-    };
   }
 
   function ruleIdentity(rule) {
@@ -164,42 +143,20 @@
     ]);
   }
 
-  async function synchronizeLocalRules(serverRules) {
-    const saved = localRules();
-    if (saved === null) {
-      const seen = new Set();
-      const unique = [];
-      for (const rule of serverRules) {
-        const identity = ruleIdentity(rule);
-        if (seen.has(identity)) {
-          continue;
-        }
-        seen.add(identity);
-        unique.push(rule);
-      }
-      saveLocalRules(unique);
-      return unique;
+  function synchronizeLocalRules(serverRules) {
+    // Rules are cloud-backed so the same Kakao account sees the same list on
+    // every device. localStorage is only a cache; uploading stale cached rows
+    // here would recreate a rule immediately after the user deleted it.
+    const unique = [];
+    const seenIds = new Set();
+    for (const rule of serverRules) {
+      const id = String(rule.rule_id || "");
+      if (!id || seenIds.has(id)) continue;
+      seenIds.add(id);
+      unique.push(rule);
     }
-    const serverById = new Map(serverRules.map((rule) => [String(rule.rule_id), rule]));
-    const serverByIdentity = new Map(serverRules.map((rule) => [ruleIdentity(rule), rule]));
-    const synchronized = [];
-    for (const localRule of saved) {
-      const serverRule = serverById.get(String(localRule.rule_id || ""))
-        || serverByIdentity.get(ruleIdentity(localRule));
-      if (serverRule) {
-        synchronized.push(serverRule);
-        serverById.delete(String(serverRule.rule_id));
-        serverByIdentity.delete(ruleIdentity(serverRule));
-        continue;
-      }
-      const created = await watchFetch("api/watch/rules", {
-        method: "POST", body: JSON.stringify(serverRulePayload(localRule)),
-      });
-      synchronized.push(created);
-    }
-    for (const orphan of serverById.values()) synchronized.push(orphan);
-    saveLocalRules(synchronized);
-    return synchronized;
+    saveLocalRules(unique);
+    return unique;
   }
 
   function renderRules() {
@@ -249,7 +206,7 @@
     const container = element("#watchRuleList");
     try {
       const payload = await watchFetch("api/watch/rules");
-      state.rules = await synchronizeLocalRules(payload.items || []);
+      state.rules = synchronizeLocalRules(payload.items || []);
       renderRules();
     } catch (error) {
       container.replaceChildren(textNode("p", "", error.message));
@@ -258,11 +215,19 @@
 
   async function deleteRule(ruleId) {
     if (!window.confirm("이 관심주제를 삭제할까요? 과거 알림 기록도 함께 정리됩니다.")) return;
-    await watchFetch(`api/watch/rules/${encodeURIComponent(ruleId)}`, { method: "DELETE" });
-    state.rules = state.rules.filter((rule) => String(rule.rule_id) !== String(ruleId));
-    saveLocalRules(state.rules);
-    renderRules();
-    await loadNotifications();
+    const message = element("#watchRuleMessage");
+    message.textContent = "알림 주제를 삭제하는 중입니다.";
+    try {
+      const result = await watchFetch(
+        `api/watch/rules/${encodeURIComponent(ruleId)}`, { method: "DELETE" },
+      );
+      if (!result.deleted) throw new Error("삭제 결과를 확인하지 못했습니다. 목록을 다시 불러옵니다.");
+      await Promise.all([loadRules(), loadNotifications()]);
+      message.textContent = "알림 주제를 삭제했습니다.";
+    } catch (error) {
+      await loadRules();
+      message.textContent = error.message;
+    }
   }
 
   function ruleReportMarkdown(payload) {
@@ -597,6 +562,7 @@
     const action = element("#watchKakaoAction");
     const status = element("#watchKakaoStatus");
     const checkbox = element("#watchRuleKakao");
+    const testCheckbox = element("#watchTestKakao");
     const help = element("#watchRuleKakaoHelp");
     if (payload.connected) {
       const deliveredAt = payload.last_delivery_status === "SENT" && payload.last_delivered_at
@@ -607,11 +573,16 @@
       action.disabled = false;
       action.dataset.action = "disconnect";
       checkbox.disabled = false;
+      if (testCheckbox) testCheckbox.disabled = false;
       help.textContent = "이 주제의 다음 감지부터 카카오 전송";
       return;
     }
     checkbox.checked = false;
     checkbox.disabled = true;
+    if (testCheckbox) {
+      testCheckbox.checked = false;
+      testCheckbox.disabled = true;
+    }
     if (!payload.configured) {
       status.textContent = "운영 설정 대기 · in-app은 정상 동작";
       action.textContent = "설정 대기";
@@ -657,19 +628,75 @@
   }
 
   async function adminFetch(path, options = {}) {
-    const token = element("#watchAdminToken").value || window.sessionStorage.getItem(ADMIN_SESSION_KEY) || "";
-    if (!token) throw new Error("운영자 비밀번호를 입력해 주세요.");
-    window.sessionStorage.setItem(ADMIN_SESSION_KEY, token);
+    const token = element("#watchAdminToken")?.value.trim() || window.sessionStorage.getItem(ADMIN_SESSION_KEY) || "";
+    if (token) window.sessionStorage.setItem(ADMIN_SESSION_KEY, token);
     const headers = new Headers(options.headers || {});
-    headers.set("X-Watch-Admin-Token", token);
+    if (token) headers.set("X-Watch-Admin-Token", token);
     if (options.body) headers.set("Content-Type", "application/json");
-    const response = await fetch(path, { ...options, headers, cache: "no-store" });
+    const response = await fetch(path, { ...options, headers, cache: "no-store", credentials: "same-origin" });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      if (response.status === 401) window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      if (response.status === 401) setAdminSession(false, Boolean(token));
       throw new Error(payload.detail || "운영 요청을 처리할 수 없습니다.");
     }
-    return response.json();
+    const payload = await response.json();
+    setAdminSession(true);
+    return payload;
+  }
+
+  function setAdminSession(authenticated, clearToken = false) {
+    state.adminAuthenticated = Boolean(authenticated);
+    const control = element("#watchTestControl");
+    const logout = element("#watchAdminLogout");
+    if (control) control.hidden = !state.adminAuthenticated;
+    if (logout) logout.hidden = !state.adminAuthenticated || state.siteAdminAuthenticated;
+    if (clearToken) {
+      window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      const input = element("#watchAdminToken");
+      if (input) input.value = "";
+    }
+    if (!state.adminAuthenticated) {
+      window.clearTimeout(state.testTimer);
+      state.testTimer = null;
+      window.clearTimeout(state.testFinishTimer);
+      state.testFinishTimer = null;
+      state.testId = "";
+      document.dispatchEvent(new CustomEvent("watch-test-live-update", { detail: { payload: null } }));
+    }
+  }
+
+  async function adminWatchFetch(path, options = {}) {
+    await ensureToken();
+    const headers = new Headers(options.headers || {});
+    if (state.token) headers.set("X-Watch-Token", state.token);
+    return adminFetch(path, { ...options, headers });
+  }
+
+  async function restoreAdminSession() {
+    try {
+      const siteSession = await fetch("/api/admin/session", {
+        cache: "no-store", credentials: "same-origin",
+      });
+      state.siteAdminAuthenticated = siteSession.ok;
+    } catch (_) {
+      state.siteAdminAuthenticated = false;
+    }
+    if (!state.siteAdminAuthenticated && !window.sessionStorage.getItem(ADMIN_SESSION_KEY)) {
+      setAdminSession(false);
+      return;
+    }
+    try {
+      await adminFetch("api/watch/admin/session");
+      await restoreLatestTest();
+    } catch (_) {
+      setAdminSession(false, true);
+    }
+  }
+
+  function logoutAdminSession() {
+    state.siteAdminAuthenticated = false;
+    setAdminSession(false, true);
+    element("#watchAdminMessage").textContent = "운영자 세션을 종료했습니다. 테스트 방송 도구를 숨겼습니다.";
   }
 
   function renderAdminReviews(payload) {
@@ -709,7 +736,7 @@
     try {
       const payload = await adminFetch("api/watch/admin/reviews?limit=50");
       renderAdminReviews(payload);
-      message.textContent = `검토 대기 ${payload.count}건 · 자동 판정 원본 보존`;
+      message.textContent = `운영자 인증 완료 · 검토 대기 ${payload.count}건 · 테스트 방송 도구 활성화`;
     } catch (error) {
       message.textContent = error.message;
     }
@@ -881,32 +908,67 @@
     state.testId = payload.test_id;
     const button = element("#watchTestStart");
     const message = element("#watchRuleMessage");
+    const replay = payload.replay_mode === "HASI_AI_REPLAY";
     if (payload.status === "COMPLETED") {
-      button.textContent = "테스트 방송 다시 송출";
+      button.textContent = replay ? "행안위 AI 다시 테스트" : "테스트 방송 다시 송출";
       button.disabled = !state.rules.some((rule) => rule.enabled);
-      message.textContent = state.notifications.some((item) => item.is_test)
-        ? "테스트 완료 · 실제 LIVE 화면과 알림 근거 누적을 확인했습니다."
-        : "테스트 완료 · 알림함에서 감지 결과를 확인하세요.";
+      message.textContent = replay
+        ? `행안위 질의답변 재현 완료 · 영상은 종료하고 임시보고만 1분간 유지합니다${payload.kakao_delivery_enabled ? " · 카카오 발송 결과는 연결 상태에 표시됩니다." : "."}`
+        : state.notifications.some((item) => item.is_test)
+          ? "테스트 완료 · 생방송은 종료됐으며 임시보고와 알림 근거를 1분간 확인할 수 있습니다."
+          : "테스트 완료 · 생방송은 종료됐으며 임시보고를 1분간 확인할 수 있습니다.";
       window.clearTimeout(state.testTimer);
       state.testTimer = null;
-      window.clearTimeout(state.testFinishTimer);
-      state.testFinishTimer = window.setTimeout(() => {
-        document.dispatchEvent(new CustomEvent("watch-test-live-update", { detail: { payload: null } }));
-      }, 5000);
-    } else {
-      button.textContent = `테스트 방송 중 ${payload.current_step} / ${payload.total_steps}`;
+      if (!scheduleTestPresentationClear(payload)) return;
+    } else if (payload.status === "QUEUED" && replay) {
+      button.textContent = "영상·자막 동기화 중";
       button.disabled = true;
-      message.textContent = "실제 LIVE 화면에 가상 국무회의를 송출하고 있습니다.";
+      message.textContent = "과거 행안위 영상이 준비되면 같은 시점부터 자막 재현을 시작합니다.";
+    } else {
+      button.textContent = `${replay ? "행안위 재현" : "테스트 방송"} 중 ${payload.current_step} / ${payload.total_steps}`;
+      button.disabled = true;
+      message.textContent = replay
+        ? `행안위 참고 영상을 보며 저장 자막 7개 묶음을 약 50초로 빠르게 재현합니다${payload.kakao_delivery_enabled ? " · 카카오 실제 발송 포함" : ""}.`
+        : "실제 LIVE 화면에 가상 국무회의를 송출하고 있습니다.";
     }
     document.dispatchEvent(new CustomEvent("watch-test-live-update", {
       detail: { payload, focus: options.focus === true },
     }));
   }
 
+  function testPresentationRemaining(payload) {
+    const endedAt = Date.parse(payload?.ended_at || "");
+    if (!Number.isFinite(endedAt)) return TEST_PRESENTATION_RETENTION_MS;
+    return Math.max(0, endedAt + TEST_PRESENTATION_RETENTION_MS - Date.now());
+  }
+
+  function clearTestPresentation(testId) {
+    if (String(state.testId || "") !== String(testId || "")) return;
+    state.testId = "";
+    state.replayActivationId = "";
+    state.testFinishTimer = null;
+    document.dispatchEvent(new CustomEvent("watch-test-live-update", { detail: { payload: null } }));
+    element("#watchRuleMessage").textContent = "테스트 방송 종료 후 1분이 지나 임시보고를 정리했습니다.";
+  }
+
+  function scheduleTestPresentationClear(payload) {
+    window.clearTimeout(state.testFinishTimer);
+    const remaining = testPresentationRemaining(payload);
+    if (remaining <= 0) {
+      clearTestPresentation(payload?.test_id);
+      return false;
+    }
+    const testId = payload?.test_id;
+    state.testFinishTimer = window.setTimeout(
+      () => clearTestPresentation(testId), remaining,
+    );
+    return true;
+  }
+
   async function pollTest() {
     if (!state.testId) return;
     try {
-      const payload = await watchFetch(`api/watch/test-broadcasts/${encodeURIComponent(state.testId)}`);
+      const payload = await adminWatchFetch(`api/watch/test-broadcasts/${encodeURIComponent(state.testId)}`);
       renderTest(payload);
       await loadNotifications();
       if (payload.status !== "COMPLETED" && payload.status !== "FAILED") {
@@ -918,27 +980,54 @@
     }
   }
 
+  async function activateReplay(testId) {
+    if (!testId || state.testId !== testId || state.replayActivationId === testId) return;
+    state.replayActivationId = testId;
+    try {
+      await adminWatchFetch(`api/watch/test-broadcasts/${encodeURIComponent(testId)}/playback-ready`, {
+        method: "POST",
+      });
+      element("#watchRuleMessage").textContent = "영상 재생 위치와 자막 시작시점을 맞췄습니다.";
+      window.clearTimeout(state.testTimer);
+      state.testTimer = window.setTimeout(pollTest, 250);
+    } catch (error) {
+      state.replayActivationId = "";
+      element("#watchRuleMessage").textContent = error.message;
+    }
+  }
+
   async function startTest() {
     const button = element("#watchTestStart");
     button.disabled = true;
     button.textContent = "송출 준비 중";
     try {
-      const payload = await watchFetch("api/watch/test-broadcasts", { method: "POST" });
+      const kakaoDelivery = Boolean(element("#watchTestKakao")?.checked);
+      const payload = await adminWatchFetch("api/watch/test-broadcasts", {
+        method: "POST",
+        body: JSON.stringify({
+          replay_mode: "HASI_AI_REPLAY",
+          kakao_delivery_enabled: kakaoDelivery,
+        }),
+      });
       state.testId = payload.test_id;
+      state.replayActivationId = "";
       renderTest({ ...payload, transcript: { broadcasts: [], segments: [], utterances: [] } }, { focus: true });
       window.clearTimeout(state.testTimer);
       state.testTimer = window.setTimeout(pollTest, 500);
     } catch (error) {
       element("#watchRuleMessage").textContent = error.message;
       button.disabled = !state.rules.some((rule) => rule.enabled);
-      button.textContent = "테스트 방송 송출";
+      button.textContent = "행안위 AI 테스트";
     }
   }
 
   async function restoreLatestTest() {
     try {
-      const payload = await watchFetch("api/watch/test-broadcasts/latest");
-      if (payload.item?.status === "LIVE") {
+      const payload = await adminWatchFetch("api/watch/test-broadcasts/latest");
+      const resumable = ["QUEUED", "LIVE"].includes(payload.item?.status);
+      const retained = payload.item?.status === "COMPLETED"
+        && testPresentationRemaining(payload.item) > 0;
+      if (resumable || retained) {
         state.testId = payload.item.test_id;
         pollTest();
       }
@@ -954,17 +1043,24 @@
   element("#watchRuleCancel")?.addEventListener("click", cancelRuleEdit);
   element("#watchClearRead")?.addEventListener("click", clearReadNotifications);
   element("#watchTestStart")?.addEventListener("click", startTest);
+  document.addEventListener("watch-replay-playback-ready", (event) => {
+    activateReplay(String(event.detail?.testId || ""));
+  });
   element("#watchKakaoAction")?.addEventListener("click", kakaoAction);
   element("#watchRuleReportClose")?.addEventListener("click", () => element("#watchRuleReportDialog")?.close());
   element("#watchRuleReportDownload")?.addEventListener("click", downloadRuleReport);
   element("#watchRuleReportPrint")?.addEventListener("click", printRuleReport);
   element("#watchAdminLoad")?.addEventListener("click", loadAdminReviews);
   element("#watchAdminAudit")?.addEventListener("click", runAdminAudit);
+  element("#watchAdminLogout")?.addEventListener("click", logoutAdminSession);
   if (!embedded) window.addEventListener("keydown", (event) => { if (event.key === "Escape" && !panel.hidden) closePanel(); });
 
   ensureToken()
     .then(async () => {
-      await Promise.all([loadKakaoStatus(), loadRules(), loadNotifications(), loadMetrics(), restoreLatestTest()]);
+      await Promise.all([
+        loadKakaoStatus(), loadRules(), loadNotifications(), loadMetrics(),
+        restoreAdminSession(),
+      ]);
       const params = new URLSearchParams(window.location.search);
       const kakaoResult = params.get("watch_kakao");
       if (kakaoResult) {

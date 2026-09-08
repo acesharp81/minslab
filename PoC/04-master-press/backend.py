@@ -42,11 +42,16 @@ def _require_admin(admin_authenticated: bool) -> None:
 
 
 _ADMIN_BOOTSTRAP_CACHE: dict | None = None
+_ADMIN_BOOTSTRAP_CACHE_AT = 0.0
+_ADMIN_BOOTSTRAP_CACHE_SECONDS = 30.0
+_ADMIN_BOOTSTRAP_BUILD_LOCK = threading.Lock()
 
 
 def _invalidate_admin_bootstrap_cache() -> None:
-    global _ADMIN_BOOTSTRAP_CACHE
-    _ADMIN_BOOTSTRAP_CACHE = None
+    global _ADMIN_BOOTSTRAP_CACHE, _ADMIN_BOOTSTRAP_CACHE_AT
+    with _ADMIN_BOOTSTRAP_BUILD_LOCK:
+        _ADMIN_BOOTSTRAP_CACHE = None
+        _ADMIN_BOOTSTRAP_CACHE_AT = 0.0
 
 
 def _is_db_locked_error(error: Exception) -> bool:
@@ -80,6 +85,14 @@ def _cached_admin_bootstrap(reason: str = "") -> dict | None:
         "generated_at": now_iso(),
     }
     return cached
+
+
+def _fresh_admin_bootstrap() -> dict | None:
+    if not _ADMIN_BOOTSTRAP_CACHE:
+        return None
+    if time.monotonic() - _ADMIN_BOOTSTRAP_CACHE_AT > _ADMIN_BOOTSTRAP_CACHE_SECONDS:
+        return None
+    return _clone_payload(_ADMIN_BOOTSTRAP_CACHE)
 
 
 def _build_public_dashboard(
@@ -201,14 +214,16 @@ def signup_bootstrap(admin: bool = False) -> dict:
     service = get_service()
     with service.store.connect() as connection:
         rows = connection.execute(
-            """SELECT case_id,COUNT(DISTINCT recipient_id) total FROM (
+            """SELECT subscriptions.case_id,COUNT(DISTINCT subscriptions.recipient_id) total FROM (
                    SELECT case_id,recipient_id FROM case_recipients
                    UNION ALL
                    SELECT src.case_id,sr.recipient_id
                    FROM signup_request_cases src
                    JOIN signup_requests sr ON sr.id=src.request_id
                    WHERE src.status='approved' AND sr.recipient_id IS NOT NULL
-               ) GROUP BY case_id"""
+               ) subscriptions
+               JOIN recipients r ON r.id=subscriptions.recipient_id AND r.status='active'
+               GROUP BY subscriptions.case_id"""
         ).fetchall()
     subscriber_counts = {str(row["case_id"]): int(row["total"] or 0) for row in rows}
     organizations = []
@@ -238,22 +253,41 @@ def fast_recipient_statuses(service) -> list[dict]:
     recipients = service.store.list_recipients()
     for recipient in recipients:
         ok = recipient.get("status") == "active" and not recipient.get("last_error")
+        error = str(recipient.get("last_error") or "")
+        reauthorization_required = recipient.get("status") == "reauthorize"
         recipient["connection_status"] = "connected" if ok else "failed"
-        recipient["connection_label"] = "저장된 상태 정상" if ok else (recipient.get("last_error") or "재확인 필요")
-        recipient["connection_error"] = recipient.get("last_error") or ""
+        if ok:
+            recipient["connection_label"] = "카카오 연결 정상"
+        elif reauthorization_required and "expired_or_invalid_refresh_token" in error:
+            recipient["connection_label"] = "카카오 인증이 만료되어 재인증이 필요합니다."
+        elif reauthorization_required:
+            recipient["connection_label"] = "카카오 재인증이 필요합니다."
+        else:
+            recipient["connection_label"] = error or "카카오 연결 상태를 확인해야 합니다."
+        recipient["connection_error"] = error
+        recipient["reauthorization_required"] = reauthorization_required
     return recipients
 
 
 def admin_bootstrap() -> dict:
-    global _ADMIN_BOOTSTRAP_CACHE
+    global _ADMIN_BOOTSTRAP_CACHE, _ADMIN_BOOTSTRAP_CACHE_AT
     service = get_service()
-    service.store.ensure_case_draft_schema()
+    if not getattr(service, "_case_draft_schema_ready", False):
+        service.store.ensure_case_draft_schema()
+        service._case_draft_schema_ready = True
+    cached = _fresh_admin_bootstrap()
+    if cached:
+        return cached
     if _ADMIN_BOOTSTRAP_CACHE and _db_quick_lock_probe(str(service.settings.database_path)):
         cached = _cached_admin_bootstrap("database_locked_probe")
         if cached:
             return cached
 
+    _ADMIN_BOOTSTRAP_BUILD_LOCK.acquire()
     try:
+        cached = _fresh_admin_bootstrap()
+        if cached:
+            return cached
         cases = service.store.list_cases()
         organizations = service.store.list_organizations()
         for organization in organizations:
@@ -335,6 +369,7 @@ def admin_bootstrap() -> dict:
             "signup_requests": service.store.list_signup_requests(include_private=True),
         }
         _ADMIN_BOOTSTRAP_CACHE = _clone_payload(payload)
+        _ADMIN_BOOTSTRAP_CACHE_AT = time.monotonic()
         return payload
     except sqlite3.OperationalError as error:
         if _is_db_locked_error(error):
@@ -342,6 +377,8 @@ def admin_bootstrap() -> dict:
             if cached:
                 return cached
         raise
+    finally:
+        _ADMIN_BOOTSTRAP_BUILD_LOCK.release()
 
 
 def dispatch(
@@ -693,19 +730,28 @@ def dispatch(
                     if not recipient_id:
                         raise ValueError("카카오 수신 등록 정보가 없어 해제 안내를 보낼 수 없습니다.")
                     base = request_base.rstrip("/")
-                    service.kakao.send_to_me(
-                        recipient_id,
-                        "[AI 언론동향 비서] 케이스 수신이 해제되었습니다\n\n"
-                        f"해제 케이스: {context.get('case_name') or '케이스'}\n"
-                        "이후 해당 케이스의 알림은 발송되지 않습니다.",
-                        f"{base}/poc/master-press/signup",
-                    )
-                    return {"request": service.store.revoke_signup_case(
+                    notice_sent, notice_error = False, ""
+                    try:
+                        service.kakao.send_to_me(
+                            recipient_id,
+                            "[AI 언론동향 비서] 케이스 수신이 해제되었습니다\n\n"
+                            f"해제 케이스: {context.get('case_name') or '케이스'}\n"
+                            "이후 해당 케이스의 알림은 발송되지 않습니다.",
+                            f"{base}/poc/master-press/signup",
+                        )
+                        notice_sent = True
+                    except Exception as error:
+                        notice_error = str(error)[:500]
+                    request = service.store.revoke_signup_case(
                         request_id, case_id, str(payload.get("admin_note") or "수신 해제")
-                    )}
-                return {"request": service.store.decide_signup_case(
+                    )
+                    _invalidate_admin_bootstrap_cache()
+                    return {"request": request, "notice_sent": notice_sent, "notice_error": notice_error}
+                request = service.store.decide_signup_case(
                     request_id, case_id, str(payload.get("decision") or ""), str(payload.get("admin_note") or "")
-                )}
+                )
+                _invalidate_admin_bootstrap_cache()
+                return {"request": request}
             except ValueError as error:
                 raise MasterPressError(str(error)) from error
 
@@ -725,6 +771,7 @@ def dispatch(
         if models and model not in models:
             raise MasterPressError("현재 공통분석/예비1에서 지원하는 모델만 선택할 수 있습니다.")
         service.store.set_setting("common_llm_model", model)
+        _invalidate_admin_bootstrap_cache()
         return {"common_llm_model": model, "common_llm_models": models, "common_provider": service._status_for_switchable_llm_model(model, probe=True), "cloudflare": service.cloudflare_status(probe=False), "groq": service.groq_status(probe=False), "openrouter": service.openrouter_status(probe=False)}
 
     if path == "/admin/settings/embedding-model" and method == "PUT":
@@ -741,6 +788,7 @@ def dispatch(
             rebuilt = service.store.reset_embedding_indexes()
         service.store.set_setting("embedding_model", model)
         service.scoring.ollama.embedding_model = model
+        _invalidate_admin_bootstrap_cache()
         return {
             "embedding_model": model, "embedding_models": models,
             "rebuilt": rebuilt, "ollama_embedding": service.ollama_embedding_status(probe=True),
@@ -755,6 +803,7 @@ def dispatch(
         if models and model not in models:
             raise MasterPressError("현재 OpenRouter에서 JSON 판정을 지원하는 무료 모델만 선택할 수 있습니다.")
         service.store.set_setting("case_llm_model", model)
+        _invalidate_admin_bootstrap_cache()
         return {"case_llm_model": model, "case_llm_models": models, "openrouter": service.openrouter_status(probe=True)}
 
     if path == "/admin/settings/activate-primary-model" and method == "PUT":
@@ -787,6 +836,7 @@ def dispatch(
         else:
             raise MasterPressError("전환할 기본 모델 영역을 찾지 못했습니다.")
         waiting_until = str(status.get("disabled_until") or status.get("reset_at") or "") if status.get("exhausted") else ""
+        _invalidate_admin_bootstrap_cache()
         return {"target": target, "model": model, "activated": not bool(waiting_until), "waiting_until": waiting_until, "provider": status, "released_jobs": released if target == "common" else {"pending_released": 0, "failed_requeued": 0}}
 
     if path == "/admin/settings/model-role-enabled" and method == "PUT":
@@ -838,6 +888,7 @@ def dispatch(
         if not model:
             raise MasterPressError("전환할 예비 모델을 찾지 못했습니다.")
         service.store.set_setting("common_llm_model", model)
+        _invalidate_admin_bootstrap_cache()
         return {"common_llm_model": model, "reserve": reserve, "common_provider": service._status_for_switchable_llm_model(model, probe=True)}
 
     if path == "/admin/settings/reserve-llm-models" and method == "PUT":
@@ -850,6 +901,7 @@ def dispatch(
             raise MasterPressError("예비2 모델을 입력하세요.")
         service.store.set_setting("reserve1_llm_model", reserve1)
         service.store.set_setting("reserve2_llm_model", reserve2)
+        _invalidate_admin_bootstrap_cache()
         return {
             "reserve1_llm_model": reserve1, "reserve1_llm_models": service.available_reserve1_models(), "reserve1_provider": service._status_for_switchable_llm_model(reserve1, probe=True), "groq": service.groq_status(probe=False), "cloudflare": service.cloudflare_status(probe=False),
             "reserve2_llm_model": reserve2, "reserve2_llm_models": service.available_reserve2_models(), "reserve2_provider": service._status_for_switchable_llm_model(reserve2, probe=True), "gemini": service.gemini_status(probe=False),
@@ -876,6 +928,7 @@ def dispatch(
         service.store.set_setting("case_fallback_llm_model", case_fallback)
         service.store.set_setting("burst_llm_model", burst)
         service.store.set_setting("burst_threshold", str(burst_threshold))
+        _invalidate_admin_bootstrap_cache()
         return {
             "common_fallback_llm_model": common_fallback,
             "case_fallback_llm_model": case_fallback,
@@ -892,6 +945,7 @@ def dispatch(
             item = service.store.save_announcement(payload)
         except ValueError as error:
             raise MasterPressError(str(error)) from error
+        _invalidate_admin_bootstrap_cache()
         return {"item": item, "items": service.store.list_announcements(include_inactive=True)}
 
     if path.startswith("/admin/announcements/") and method == "DELETE":
@@ -900,6 +954,7 @@ def dispatch(
         hard_delete = str(query.get("hard") or "").lower() in {"1", "true", "yes"}
         if not service.store.delete_announcement(item_id, hard=hard_delete):
             raise MasterPressError("공지사항을 찾지 못했습니다.", 404)
+        _invalidate_admin_bootstrap_cache()
         return {"deleted": True, "hard_deleted": hard_delete, "items": service.store.list_announcements(include_inactive=True)}
 
     if path == "/admin/supabase-history" and method == "GET":
@@ -962,6 +1017,7 @@ def dispatch(
             raise MasterPressError("Turbo 대기 기준 또는 벡터 후보 기준이 올바르지 않습니다.")
         service.store.set_setting("burst_threshold", str(burst_threshold))
         service.store.set_setting("semantic_candidate_threshold", str(semantic_threshold))
+        _invalidate_admin_bootstrap_cache()
         return {"burst_threshold": burst_threshold, "semantic_candidate_threshold": semantic_threshold}
 
     if path == "/admin/settings/analysis-thresholds" and method == "PUT":
@@ -1011,6 +1067,7 @@ def dispatch(
         except (TypeError, ValueError):
             raise MasterPressError("관련 보도자료 유사도 기준이 올바르지 않습니다.")
         service.store.set_setting("press_release_match_threshold", str(threshold))
+        _invalidate_admin_bootstrap_cache()
         return {"press_release_match_threshold": threshold}
 
 
@@ -1021,6 +1078,7 @@ def dispatch(
         except (TypeError, ValueError):
             raise MasterPressError("유사 기사 묶음 기준이 올바르지 않습니다.")
         service.store.set_setting("similar_article_threshold", str(threshold))
+        _invalidate_admin_bootstrap_cache()
         return {"similar_article_threshold": threshold}
 
     if path.startswith("/analysis/"):
@@ -1207,20 +1265,44 @@ def dispatch(
         action = suffix[1] if len(suffix) > 1 else ""
         if not action and method == "DELETE":
             base = request_base.rstrip("/")
-            status, response = service.kakao.send_to_me(
-                recipient_id,
-                "[AI 언론동향 비서] 구독 해지 안내\n\n관리자 권한으로 구독이 해지되었습니다. 이후 해당 카카오 계정으로 알림이 발송되지 않습니다.",
-                f"{base}/poc/master-press/",
-            )
-            service.kakao.disconnect(recipient_id)
-            return {"deleted": True, "notice_sent": True, "notice_status": status, "notice_response": response}
+            recipient = service.store.get_recipient(recipient_id)
+            if not recipient or recipient.get("status") == "deleted":
+                raise MasterPressError("카카오 수신자를 찾지 못했습니다.", 404)
+            notice_sent, notice_status, notice_response, notice_error = False, None, {}, ""
+            if recipient.get("status") == "active":
+                try:
+                    notice_status, notice_response = service.kakao.send_to_me(
+                        recipient_id,
+                        "[AI 언론동향 비서] 구독 해지 안내\n\n관리자 권한으로 구독이 해지되었습니다. 이후 해당 카카오 계정으로 알림이 발송되지 않습니다.",
+                        f"{base}/poc/master-press/",
+                    )
+                    notice_sent = True
+                except Exception as error:
+                    notice_error = str(error)[:500]
+            else:
+                notice_error = str(recipient.get("last_error") or "카카오 연결이 활성 상태가 아닙니다.")[:500]
+            retirement = service.store.retire_recipient(recipient_id, "admin", "관리자 수신 해제")
+            _invalidate_admin_bootstrap_cache()
+            return {
+                **retirement,
+                "notice_sent": notice_sent,
+                "notice_status": notice_status,
+                "notice_response": notice_response,
+                "notice_error": notice_error,
+            }
         if action == "test" and method == "POST":
             base = request_base.rstrip("/")
-            status, response = service.kakao.send_to_me(
-                recipient_id,
-                "[AI 언론동향 비서] 수신자 연결 테스트\n\n카카오톡 나와의 채팅 연결이 정상입니다.",
-                f"{base}/poc/master-press/",
-            )
+            try:
+                status, response = service.kakao.send_to_me(
+                    recipient_id,
+                    "[AI 언론동향 비서] 수신자 연결 테스트\n\n카카오톡 나와의 채팅 연결이 정상입니다.",
+                    f"{base}/poc/master-press/",
+                )
+            except Exception as error:
+                if service.kakao.is_terminal_auth_error(error):
+                    service.store.retire_recipient(recipient_id, "auth_expired", "expired_or_invalid_refresh_token")
+                    _invalidate_admin_bootstrap_cache()
+                raise
             return {"sent": True, "status": status, "response": response}
         if action == "magazine-test" and method == "POST":
             try:

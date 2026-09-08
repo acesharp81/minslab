@@ -11,6 +11,13 @@ from psycopg.types.json import Jsonb
 
 from .live_repository import CaptionRevision, LiveBroadcastObservation, LiveRepository
 from .schedule_repository import SourceVersionInput
+from ..services.watch_replay_script import (
+    REPLAY_MODE,
+    REPLAY_SOURCE_LABEL,
+    REPLAY_TITLE,
+    REPLAY_VIDEO_URL,
+    build_hasi_ai_replay_script,
+)
 from ..services.watch_test_script import build_watch_test_script
 
 
@@ -18,7 +25,15 @@ class WatchTestRepository:
     def __init__(self, connection: Any):
         self.connection = connection
 
-    def start(self, subscriber_id: uuid.UUID, keyword: str, now: datetime) -> dict[str, Any]:
+    def start(
+        self,
+        subscriber_id: uuid.UUID,
+        keyword: str,
+        now: datetime,
+        *,
+        replay_mode: str = "SYNTHETIC",
+        kakao_delivery_enabled: bool = False,
+    ) -> dict[str, Any]:
         active = self.connection.execute(
             """
             SELECT test.id FROM watch_test_broadcasts test
@@ -29,46 +44,67 @@ class WatchTestRepository:
         ).fetchone()
         if active:
             return self.get(subscriber_id, active[0])
-        daily_count = self.connection.execute(
-            """
-            SELECT COUNT(*) FROM watch_test_broadcasts
-            WHERE subscriber_id = %s
-              AND created_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Seoul')
-                  AT TIME ZONE 'Asia/Seoul'
-            """,
-            (subscriber_id,),
-        ).fetchone()[0]
-        if daily_count >= 3:
-            raise PermissionError("테스트 방송은 브라우저당 하루 3회까지 송출할 수 있습니다.")
         test_id = uuid.uuid4()
         external_id = f"watch-test-{test_id}"
-        script = build_watch_test_script(keyword)
-        source = self._source(external_id, {"test_id": str(test_id)}, now)
+        is_replay = replay_mode == REPLAY_MODE
+        script = build_hasi_ai_replay_script() if is_replay else build_watch_test_script(keyword)
+        source_system = (
+            "poc07.replay.kakao" if is_replay and kakao_delivery_enabled
+            else "poc07.replay.local" if is_replay
+            else "poc07.test"
+        )
+        source = self._source(
+            external_id,
+            {
+                "test_id": str(test_id),
+                "replay_mode": replay_mode,
+                "source_label": REPLAY_SOURCE_LABEL if is_replay else "synthetic",
+                "kakao_delivery_enabled": bool(kakao_delivery_enabled),
+            },
+            now,
+        )
         broadcast_id = LiveRepository(self.connection).observe_broadcast(
             LiveBroadcastObservation(
-                institution="EXECUTIVE",
+                institution="LEGISLATURE" if is_replay else "EXECUTIVE",
                 external_id=external_id,
-                committee_name="관심주제 알림 테스트",
-                title=f"관심주제 알림 가상방송 · {keyword}",
+                committee_name="행정안전위원회" if is_replay else "관심주제 알림 테스트",
+                title=REPLAY_TITLE if is_replay else f"관심주제 알림 가상방송 · {keyword}",
                 caption_source_status="TEST_CAPTION",
                 caption_websocket_url=None,
                 thumbnail_url=None,
                 observed_at=now,
                 source=source,
-                source_system="poc07.test",
+                source_system=source_system,
             )
         )
         self.connection.execute(
             """
             INSERT INTO watch_test_broadcasts (
                 id, subscriber_id, broadcast_id, status, current_step,
-                total_steps, next_emit_at, script, started_at
-            ) VALUES (%s, %s, %s, 'LIVE', 0, %s, %s, %s, %s)
+                total_steps, next_emit_at, script, started_at, replay_mode,
+                video_embed_url, kakao_delivery_enabled
+            ) VALUES (%s, %s, %s, %s, 0, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
-                test_id, subscriber_id, broadcast_id, len(script), now,
-                Jsonb(script), now,
+                test_id, subscriber_id, broadcast_id,
+                "QUEUED" if is_replay else "LIVE", len(script),
+                now + timedelta(seconds=15) if is_replay else now,
+                Jsonb(script), None if is_replay else now, replay_mode,
+                REPLAY_VIDEO_URL if is_replay else None,
+                bool(kakao_delivery_enabled),
             ),
+        )
+        return self.get(subscriber_id, test_id)
+
+    def activate(self, subscriber_id: uuid.UUID, test_id: uuid.UUID, now: datetime) -> dict[str, Any] | None:
+        self.connection.execute(
+            """
+            UPDATE watch_test_broadcasts
+            SET status = 'LIVE', next_emit_at = %s,
+                started_at = COALESCE(started_at, %s), updated_at = now()
+            WHERE id = %s AND subscriber_id = %s AND status = 'QUEUED'
+            """,
+            (now, now, test_id, subscriber_id),
         )
         return self.get(subscriber_id, test_id)
 
@@ -78,7 +114,10 @@ class WatchTestRepository:
             SELECT test.id, test.broadcast_id, test.status, test.current_step,
                    test.total_steps, test.started_at, test.ended_at, test.created_at,
                    broadcast.title, broadcast.lifecycle_status,
-                   broadcast.last_caption_received_at
+                   broadcast.last_caption_received_at, test.replay_mode,
+                   test.video_embed_url, test.kakao_delivery_enabled,
+                   broadcast.source_system, broadcast.institution,
+                   broadcast.committee_name
             FROM watch_test_broadcasts test
             JOIN live_broadcasts broadcast ON broadcast.id = test.broadcast_id
             WHERE test.id = %s AND test.subscriber_id = %s
@@ -91,7 +130,9 @@ class WatchTestRepository:
             (
                 "test_id", "broadcast_id", "status", "current_step", "total_steps",
                 "started_at", "ended_at", "created_at", "title", "lifecycle_status",
-                "last_caption_received_at",
+                "last_caption_received_at", "replay_mode", "video_embed_url",
+                "kakao_delivery_enabled", "source_system", "institution",
+                "committee_name",
             ),
             row,
             strict=True,
@@ -121,7 +162,9 @@ class WatchTestRepository:
             return False
         test_id, broadcast_id, current_step, total_steps, script = row
         step = script[current_step]
-        segment_id = f"test-{current_step + 1:03d}"
+        segment_id = str(step.get("source_segment_id") or f"test-{current_step + 1:03d}")
+        elapsed_seconds = int(step.get("elapsed_seconds") or current_step * interval_seconds)
+        next_delay_seconds = max(1, min(90, int(step.get("delay_seconds") or interval_seconds)))
         source = self._source(
             f"{test_id}/{segment_id}",
             {"test_id": str(test_id), "step": current_step + 1},
@@ -141,8 +184,8 @@ class WatchTestRepository:
                     "insight": step.get("insight"),
                 },
                 source=source,
-                start_offset_ms=current_step * interval_seconds * 1000,
-                end_offset_ms=(current_step + 1) * interval_seconds * 1000,
+                start_offset_ms=elapsed_seconds * 1000,
+                end_offset_ms=(elapsed_seconds + next_delay_seconds) * 1000,
             ),
         )
         next_step = current_step + 1
@@ -166,9 +209,10 @@ class WatchTestRepository:
             self.connection.execute(
                 """
                 UPDATE watch_test_broadcasts SET status = 'LIVE', current_step = %s,
-                       next_emit_at = %s, updated_at = now() WHERE id = %s
+                       next_emit_at = %s, started_at = COALESCE(started_at, %s),
+                       updated_at = now() WHERE id = %s
                 """,
-                (next_step, now + timedelta(seconds=interval_seconds), test_id),
+                (next_step, now + timedelta(seconds=next_delay_seconds), now, test_id),
             )
         return True
 

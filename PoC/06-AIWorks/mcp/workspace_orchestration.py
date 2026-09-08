@@ -63,6 +63,7 @@ def build_workflow(intent: str, context: dict, route: dict) -> dict:
     )
     has_selection = bool(context.get("has_selection") or context.get("selection_text"))
     has_previous_answer = bool(str(context.get("previous_answer") or "").strip())
+    previous_answer_kind = str(context.get("previous_answer_kind") or "").strip().lower()
     has_current_document = bool(
         str(context.get("document_id") or "").startswith("docsession_")
         and (str(context.get("document_excerpt") or "").strip() or str(context.get("filename") or "").strip())
@@ -80,6 +81,9 @@ def build_workflow(intent: str, context: dict, route: dict) -> dict:
             "수정 가능한 문서",
             "문서로 열",
             "편집기로",
+            "hwp",
+            "hwpx",
+            "한글 파일",
             "rhwp",
         ),
     ) or (
@@ -101,11 +105,32 @@ def build_workflow(intent: str, context: dict, route: dict) -> dict:
         normalized, ("확인", "조회", "검색", "찾아", "조사", "분석")
     )
     asks_outline = _contains(normalized, ("개조식", "항목식", "불릿", "bullet"))
-    references_previous = has_previous_answer and _contains(
-        normalized,
-        ("이 내용", "이 내용을", "이를 바탕", "이걸 바탕", "위 내용", "앞의 내용", "분석 내용", "분석 결과"),
+    references_previous = has_previous_answer and (
+        bool(re.search(r"(?<![가-힣A-Za-z0-9])이를(?![가-힣A-Za-z0-9])", normalized))
+        or _contains(
+            normalized,
+            (
+                "이것을", "해당 내용", "해당 결과", "이 내용", "이 내용을", "이를 바탕",
+                "이걸 바탕", "위 내용", "위 결과", "앞의 내용", "분석 내용", "분석 결과",
+                "검색 결과", "조회 결과", "방금 답변", "앞의 답변",
+            ),
+        )
     )
-    previous_answer_is_primary = references_previous and asks_report
+    references_current_document = has_current_document and _contains(
+        normalized,
+        (
+            "현재 보고서", "현재 문서", "열린 보고서", "열린 문서", "이 보고서", "이 문서",
+            "보고서 전체", "문서 전체", "현재 파일", "열린 파일",
+        ),
+    )
+    latest_answer_followup = (
+        has_previous_answer
+        and previous_answer_kind in {"answer", "grounded-answer"}
+        and asks_report
+        and not asks_fresh_research
+        and not references_current_document
+    )
+    previous_answer_is_primary = (references_previous or latest_answer_followup) and asks_report
     asks_document_transform = has_current_document and not previous_answer_is_primary and (
         asks_outline
         or (
@@ -222,6 +247,7 @@ def build_workflow(intent: str, context: dict, route: dict) -> dict:
             "documentTransform": asks_document_transform,
             "outline": asks_outline,
             "previousAnswerPrimary": previous_answer_is_primary,
+            "latestAnswerFollowup": latest_answer_followup,
             "freshResearch": asks_fresh_research,
         },
         "contextPriority": "previous-answer" if previous_answer_is_primary else ("data-source" if asks_fresh_research else ("current-document" if has_current_document else "project")),
@@ -330,7 +356,7 @@ def local_result(intent: str, context: dict, workflow: dict) -> dict:
     if response_type == "document-transform":
         filename = str(context.get("filename") or "AIWorks_보고서.hwpx")
         title = Path(filename).stem
-        for suffix in ("_KODAK", "_AIWorks"):
+        for suffix in ("_AIWorks",):
             if title.endswith(suffix):
                 title = title[: -len(suffix)]
         source = str(context.get("document_excerpt") or context.get("previous_answer") or "").strip()
@@ -381,11 +407,12 @@ def local_result(intent: str, context: dict, workflow: dict) -> dict:
                 "- 현재 연결된 근거를 기준으로 핵심 수치와 추진 상황을 구분해 정리했습니다.\n",
                 "- 기준일, 담당부서 및 확정 여부가 연결되지 않은 항목은 확인 필요 사항으로 관리해야 합니다.\n\n",
                 "## 5. 정책적 시사점\n" if issue_alternatives else "## 4. 정책적 시사점\n",
-                "핵심 지표의 변화가 정책 목표와 국민 체감 성과로 이어지는지 정기적으로 점검하고, 근거 데이터 변경 시 관련 파생 보고서를 함께 갱신할 필요가 있습니다.\n\n",
+                "- 확인된 현황이 정책 목표와 국민 체감 성과로 이어지는지 핵심 지표 중심으로 정기 점검할 필요가 있습니다.\n",
+                "- 근거 데이터가 변경되면 판단 근거와 관련 파생 보고서를 함께 갱신하여 내용 불일치를 방지해야 합니다.\n\n",
                 "## 6. 종합 향후 조치 계획\n" if issue_alternatives else "## 5. 향후 조치 계획\n",
-                "- 담당부서 검토를 거쳐 기준일과 확정 수치를 보완합니다.\n",
-                "- 프로젝트 공통 메타정보와 보고서 간 불일치 여부를 확인합니다.\n",
-                "- 확인 결과를 반영한 최종 보고본을 새 revision으로 확정합니다.",
+                "- 단기: 담당부서 검토를 거쳐 기준일, 확정 수치와 시사점별 개선 과제를 보완합니다.\n",
+                "- 중기: 개선 과제별 담당부서, 완료기한과 점검 지표를 지정하고 이행상황을 관리합니다.\n",
+                "- 최종: 프로젝트 공통 메타정보와 보고서 간 불일치를 확인한 후 최종 보고본을 새 revision으로 확정합니다.",
             ])
         return {"artifact": {"title": workflow["title"], "filename": workflow["title"] + ".hwpx", "content": body, "editorMcp": "document.rhwp@1.0.0"}}
 
@@ -451,6 +478,8 @@ def live_messages(intent: str, context: dict, workflow: dict) -> list[dict]:
             "목록은 Markdown '- '만 사용하며 목록 본문에 ·, •, ○ 같은 글머리표 문자를 넣지 마세요. "
             "[FACT 키] 값은 프로젝트 확정값이므로 같은 의미의 수치를 임의로 바꾸지 마세요. "
             "사용자가 지적사항별 대안을 요구하면 각 지적사항마다 '지적사항-원인-개선대안-향후계획'이 대응되도록 작성하세요. "
+            "사용자가 시사점과 향후 개선을 강조하면 두 항목을 각각 독립된 절로 만들고, 시사점-개선과제-담당·기한·점검지표가 대응되도록 개조식으로 작성하세요. "
+            "HWP·HWPX·RHWP로 만들어 달라는 말은 출력 형식 지시일 뿐입니다. HWP 사용법, 편집 방법, 다운로드 절차나 링크 안내를 보고서 본문에 쓰지 마세요. "
             "직전 분석이 1차 원본으로 지정된 경우 요청 주제와 무관한 과거 사례나 다른 사업 내용은 제외하세요."
         )
         user = f"요청: {intent[:1000]}\n프로젝트 확정 메타정보:\n{fact_context or '없음'}\n프로젝트 Markdown 원본:\n{markdown_context or '없음'}\n이전 분석: {previous}\n첨부 자료 발췌: {excerpt}\nMCP 문맥: {mcp_context}"

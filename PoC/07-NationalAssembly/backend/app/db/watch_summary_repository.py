@@ -32,7 +32,9 @@ class WatchSummaryRepository:
             WHERE session.report_summary_requested_at IS NOT NULL
               AND session.updated_at <= now() - (%s * interval '1 second')
               AND session.last_matched_at >= now() - interval '24 hours'
-              AND broadcast.source_system NOT IN ('poc07.demo', 'poc07.test')
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+              )
               AND NOT EXISTS (
                 SELECT 1 FROM watch_summary_versions pending
                 WHERE pending.session_id = session.id AND pending.status = 'PENDING'

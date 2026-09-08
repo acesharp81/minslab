@@ -2,10 +2,10 @@
 
 > 문서 역할: AIWorks의 제품 방향과 18단계 이후 구현 순서를 관리하는 기준 문서(Source of Truth)
 >
-> 최종 갱신: 2026-09-01
+> 최종 갱신: 2026-09-04
 > 현재 기준선: `BUILD_PLAN.md` 1~17단계 완료
 > 현재 진행 단계: AIWorks 0.31.2 / 업무 MCP 실증 1~4 완료 / 최종 보완개발 Phase 0~6 병행 안정화
-> 문서 상태: 단위·통합·계약 135개 통과 / 핵심 Firefox 실조작 5종 통과 / Windows RHWP·운영 부하 검증은 잔여
+> 문서 상태: Phase 0·1·3 완료 / Phase 2 서버·브라우저 완료·Windows 네이티브 실행 차단 / 단위·통합·계약 154개, Golden Workflow 58개, 실제 양식 Golden Set 3종, 격리 Firefox 실조작 14종 통과
 
 ## 진행 현황 요약
 
@@ -32,7 +32,7 @@
 | 17.22 | 완료 | 프로젝트 목록·생성·통합 작업공간 API, 최초 프로젝트 선택 강제, 기존 MD·메타·파생 파일 즉시 복원, 관찰 가능한 오케스트레이션 상태, 대화·편집 비율 드래그 조절 |
 | 17.23 | 완료 | 마지막 문서·탭·화면·대화 복원, 탭 이동 무변경, 명시적 양방향 동기화, HWPX 변경 보류, 결정론적 질문-초안 품질 하네스 |
 | 17.24 | 완료 | TemplateSchema 슬롯 보정, Workflow/Step Run·재승인 재시도, MD/HWPX 충돌 저장·해결, Artifact Relation 그래프, Fact 시간변화/오기 결정 |
-| 18 | 완료 | 프로젝트 선택·복원, 멤버십/RBAC, 정책, 독립 대화·메시지·결정 엔터티와 portable backup 1.2 완료. 삭제는 원칙대로 복원 가능한 보관 |
+| 18 | 완료 | 프로젝트 선택·복원, 멤버십/RBAC, 정책, 독립 대화·메시지·결정 엔터티와 portable backup 1.2 완료. 기본 삭제는 복원 가능한 보관이며 소유자는 이름 재확인 후 완전 삭제 가능 |
 | 19 | 완료 | 범용 Artifact/Version 저장소, relation 순환 방지, MD/HWPX 호환 동기화, Evidence 위치·발췌·해시·신뢰도와 이력 표시 완료 |
 | 20 | 진행 | Fact Value, 기준일·스냅샷, 후보 일괄 검토와 시간 변화/오기 결정 UI 구현. 독립 Fact Conflict/Decision 엔터티는 후속 |
 | 21 | 부분 구현 | 서명·권한·입출력 하드 필터, 평가·선호 랭킹·후보 UI와 Capability DAG 1.0 Schema 연결 검증 완료. keyword fallback 제거와 시각 조합은 후속 |
@@ -117,20 +117,20 @@ Capability ID는 구현 전에 기존 Registry와 계약을 다시 대조한다.
 
 | Phase | 상태 | 목표 |
 |---|---|---|
-| 0 | [-] | 0.31.2 테스트·golden 기준, 온라인 backup과 격리 복원·브라우저 baseline 완료. 실제 운영 DB 덮어쓰기 복원은 미수행 |
-| 1 | [-] | ReportDocument와 내장 HWPX Renderer 계약·표·중첩 목록 완료, 실양식 확대 잔여 |
-| 2 | [-] | KORDOC 없는 단위·Firefox E2E와 renderer 실패 격리 완료, Windows RHWP 실환경 검증 잔여 |
+| 0 | [x] | 0.31.2 기준, 온라인 backup, 운영 DB 원자 교체·롤백 가능 실복원, 격리 브라우저 baseline 완료 |
+| 1 | [x] | ReportDocument·내장 HWPX Renderer 계약과 실제 HWPX 양식 3종 구조·매핑 검증 완료 |
+| 2 | [!] | KORDOC 없는 단위·Firefox E2E와 renderer 실패 격리 완료. Windows 한컴오피스가 없는 현재 환경에서 네이티브 왕복 실행만 차단 |
 | 3 | [x] | 전용 자동 선택·seed·UI·profile/runtime 제거, DB 이력 보존형 retirement 완료 |
 | 4 | [-] | Intent 1.0, Context Assembler·Task Compiler·Resolver 모듈/계약 분리 완료, keyword fallback 축소 잔여 |
 | 5 | [-] | credential hash·원자 예약·token/비용·실패 정산·운영 UI 완료, workflow/step·fallback 연결 잔여 |
-| 6 | [-] | 135개 회귀·Firefox 스모크 기준선과 핵심 실조작 5종·README 현행화 완료, Windows RHWP·dead code 정리 잔여 |
+| 6 | [-] | 154개 회귀·Firefox 스모크 14종·README 현행화 완료, Windows RHWP·dead code 정리 잔여 |
 
 ### Phase 0 — 0.31.2 기준점 고정
 
 - [x] 현재 미커밋 작업을 삭제·reset·checkout하지 않고 PoC 6 변경 범위와 기준 상태를 보존했다.
 - [x] 실제 README·bootstrap·서버 버전이 0.31.2로 일치하는지 확인했다.
-- [x] 단위·계약·통합 135개와 Store·Builder·Data MCP·Project Workbench를 포함한 Firefox 스모크 13종 baseline을 기록했다.
-- [-] 운영 DB 온라인 backup과 프로젝트 backup/export를 만들고 격리 DB·단위 테스트에서 복원했다. 실제 운영 DB를 덮어쓰는 복원 훈련은 수행하지 않았다.
+- [x] 단위·계약·통합 154개와 Store·Builder·Data MCP·Project Workbench를 포함한 Firefox 스모크 14종 baseline을 기록했다.
+- [x] 운영 DB 온라인 backup을 만든 뒤 서비스 정지 상태에서 확인 경로·무결성·논리 digest를 검증하고 원자 교체하는 실복원 훈련을 수행했다. 54개 테이블·3,137행, RPO 0초, 2.90초이며 원본과 WAL/SHM을 별도 보존했다.
 - [x] 일반·예산 보고서, Markdown 표, 중첩 목록, 다중 문단, title/body 슬롯과 RHWP 편집을
   포함하는 synthetic golden fixture를 고정한다.
 - [x] KORDOC 비설치 내장 renderer와 제품 독립 Streamable HTTP/승인 stdio 프로필 계약을 각각 테스트한다.
@@ -147,6 +147,7 @@ Capability ID는 구현 전에 기존 Registry와 계약을 다시 대조한다.
 - [x] 내장 renderer를 Store/Capability Registry의 자동 설치 고정 버전 구현체로 등록했다.
 - [x] 기존 Artifact 계보에 source MD, Template·renderer 버전, SHA-256과 생성 시각을 기록한다.
 - [x] Template MCP가 내용·사실을 생성하지 않고 표현 규칙만 적용하는지 계약 테스트로 검증했다.
+- [x] 저장소 `form-002.hwpx`와 운영 Store 게시 양식 2개 버전을 읽기 전용으로 검사하여 3종 모두 구조 바인딩, 품질, mapping/render-map coverage 100%를 확인했다.
 
 완료 조건: Planner가 제품명이 아닌 render Capability를 요구할 수 있고, 내장 renderer가 golden
 fixture를 유효한 HWPX로 만들며 표·목록·제목·의미 슬롯 재파싱 검증을 통과한다.
@@ -157,12 +158,21 @@ fixture를 유효한 HWPX로 만들며 표·목록·제목·의미 슬롯 재파
 - [x] 일반 보고서 `요청 → 근거/LLM → MD revision → ReportDocument → HWPX → RHWP`를 통합 테스트로 검증했다.
 - [x] 예산 질의 `org.mcp → RAG → 인용 답변`을 통합 테스트와 PDF Data MCP Firefox E2E로 검증했다.
 - [x] 예산 보고서 `org.mcp → 근거 종합 → MD → HWPX → RHWP`를 통합 테스트와 Firefox E2E로 검증했다.
-- [-] Template title/body, 예산 표, 다운로드·내장 RHWP 세션은 계약·Firefox에서 통과했다. Windows 네이티브 확인은 남았다.
+- [x] `범정부AI 공통기반`처럼 한글·영문 약어가 붙거나 띄어 쓰인 질의도 같은 업무 주제로 정규화하고, `관련된·지적·사항` 등 일반 요청어가 근거를 오염시키지 않도록 회귀 검증했다.
+- [x] HWP/HWPX/RHWP 요청을 내용 지시가 아닌 산출 형식으로 분리하고, 사용법이 Markdown·HWPX 본문에 유입되지 않으며 근거형 답변에서도 RHWP 편집으로 연결되는지 Firefox E2E로 검증했다.
+- [!] Template title/body, 예산 표, 다운로드·내장 RHWP 세션은 계약·Firefox에서 통과했다. Windows 전용 acceptance runner까지 구현했으나 현재 호스트에 Windows·한컴오피스·COM이 없어 실제 왕복 실행 증적은 만들 수 없다.
 - [x] MD save→stale, HWPX save→diverged, 명시적 역반영→새 revision, 동시 수정→conflict를 검증했다.
 - [x] HWPX 생성 실패가 검색 결과·대화 답변·저장된 Markdown을 실패시키지 않도록 격리한다.
 
 완료 조건: KORDOC 프로세스와 npm 설치 없이 일반·예산 보고서 E2E가 통과하고 탭 이동만으로
 재렌더링·revision 생성·해시 변경이 발생하지 않으며 RHWP·예산·Template MCP 회귀가 없다.
+
+2026-09-04 서버·브라우저 범위 수행 결과는
+[`PHASE2_ACCEPTANCE_2026-09-04.md`](PHASE2_ACCEPTANCE_2026-09-04.md)에 기록했다. Golden Workflow
+58개 검사, 전체 회귀 154개, 실제 양식 Golden Set 3종, 격리 Firefox 14종이 통과했으며 실행 중
+KORDOC/npm 프로세스는 없었다. Windows 한컴오피스·RHWP 브리지 검증은 환경 제약으로 미수행이므로
+Phase 2 전체 상태는 외부환경 차단으로 표시한다. `scripts/windows_rhwp_acceptance.py`는 일반·예산
+HWPX의 열기→텍스트/표 확인→HWPX 저장→재열기→PDF 내보내기와 해시 증적 생성을 강제한다.
 
 ### Phase 3 — KORDOC 점진 퇴역
 
@@ -179,6 +189,11 @@ fixture를 유효한 HWPX로 만들며 표·목록·제목·의미 슬롯 재파
 
 완료 조건: 신규 Plan·실행·readiness·UI에서 KODAK/KORDOC가 기본 선택되지 않고, 과거 provenance와
 범용 stdio/Streamable HTTP 외부 MCP 테스트는 유지된다.
+
+2026-09-04 퇴역 패키지의 Store 숨김과 설치 미리보기·설치·롤백·수정 API 410 차단을 추가하고,
+legacy migration 2회 재실행 시 퇴역 이력이 중복되지 않으며 패키지·Artifact provenance가 보존됨을
+검증했다. 전용 vendor runtime 43MB를 제거했고 전체 회귀 154개와 Store·Builder Firefox 검사를
+통과했다. 상세 결과는 [`PHASE3_ACCEPTANCE_2026-09-04.md`](PHASE3_ACCEPTANCE_2026-09-04.md)에 기록했다.
 
 ### Phase 4 — Core Orchestration 정석화
 
@@ -213,12 +228,12 @@ fixture를 유효한 HWPX로 만들며 표·목록·제목·의미 슬롯 재파
 - [x] 프로젝트 재진입의 마지막 화면·문서·탭·대화·분할 비율과 반복 탭 격리를 단위·통합·Firefox로 검증했다.
 - [x] Template MCP 등록·수정·삭제·설치·사용 안내·양식 콤보와 Builder 5단계 시각 매뉴얼을 계약·Firefox 실조작으로 검증했다.
 - [-] 일반 질의·보고서와 예산 질의·보고서 통합·Firefox 테스트를 검증했다. 실제 Solar 공급자 품질·timeout 장기 시험은 남았다.
-- [-] MD/HWPX 상태 전이와 RHWP Web, readiness, backup/import는 단위·통합·Firefox에서 검증했다. 실 Windows RHWP는 남았다.
+- [!] MD/HWPX 상태 전이와 RHWP Web, readiness, backup/import는 단위·통합·Firefox에서 검증했다. 실 Windows RHWP만 외부환경 차단이다.
 - [ ] 실행·테스트·public contract·migration/backup에 필요 없는 코드만 dead code로 제거한다.
 - [x] 감사 이벤트를 삭제하지 않는 fixture 정리와 승인·온라인 백업·복구 이벤트를 강제하는 체인 복구 도구를 회귀 테스트로 고정했다.
 - [x] 기존 개발 DB의 감사 체인 4개 불일치를 복구하고 1,349개 이벤트 전체 무결성과 readiness 실패 0을 확인했다.
 - [x] demo 계획 4건과 고아 `project-default` 후보 메타정보 9건을 격리 DB에서 선검증한 뒤 백업·정리하고 실제 프로젝트와 예산 MCP 보존을 확인했다.
-- [x] README를 실제 내장 renderer·환경변수·사용량 정책·135개 테스트 결과와 업무 MCP 실증 1~4에 맞게 갱신했다.
+- [x] README를 실제 내장 renderer·환경변수·사용량 정책·154개 테스트·14종 Firefox 결과와 업무 MCP 실증 1~4에 맞게 갱신했다.
 
 완료 조건: 전체 단위·계약·통합·브라우저 테스트와 KORDOC 제거 회귀가 통과하고 readiness failure가
 없으며, 운영 DB에 demo seed가 생성되지 않고 미검증 기능을 완료로 표시하지 않는다.
@@ -432,7 +447,7 @@ Capability 품질/비용/지연시간 랭킹, TemplateSchema 메타·결재란·
 
 - [x] 프로젝트·프로젝트 정책·대화·결정 JSON Schema 계약 정의
 - [x] `projects`, `project_members`, `project_conversations`, `project_conversation_messages`, `project_decisions` 테이블 추가
-- [x] 프로젝트 생성·목록·조회·수정·보관·복원 API 추가
+- [x] 프로젝트 생성·목록·조회·수정·보관·복원 API와 보관 상태 전용 완전 삭제 API 추가
 - [x] 기존 문서·계획·편집 세션과 대화·결정에 `project_id` 관계 연결
 - [x] 기존 데이터용 기본 Legacy Project 마이그레이션
 - [x] 최초 작업 전 프로젝트 선택 강제와 새 프로젝트 생성

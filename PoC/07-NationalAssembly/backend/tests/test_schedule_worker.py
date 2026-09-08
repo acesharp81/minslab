@@ -5,6 +5,9 @@ from datetime import date, datetime, timezone
 
 from app.adapters.national_assembly.members import MemberSourceRecord
 from app.adapters.national_assembly.schedule import ScheduleSourceRecord
+from app.adapters.national_assembly.base import SourcePayload
+from app.adapters.ktv_schedule import KtvScheduleAdapter
+from app.main import mark_confirmed_broadcast_schedules
 from app.domain.schedule import normalize_schedule
 from app.ingestion.schedule_worker import (
     ASSEMBLY_REFERENCE_SCHEMA, UPCOMING_SCHEDULE_SCHEMA,
@@ -23,6 +26,97 @@ def schedule_entry(*, committee: str, scheduled_date: str, start_time: str, titl
 
 
 class ScheduleWorkerTests(unittest.TestCase):
+    def test_ktv_live_council_schedule_is_normalized_for_calendar(self):
+        html = b"""
+        <table><tr>
+          <th class="date">09:50</th>
+          <td class="tit"><div class="channel-cont">
+            <strong>LIVE policy K</strong>
+            <span class="icons"><img alt="live"/></span>
+            <span class="text">The 39th State Council</span>
+          </div></td>
+        </tr><tr>
+          <th class="date">19:00</th>
+          <td class="tit"><div class="channel-cont">
+            <strong>Replay</strong>
+            <span class="text">The 38th State Council</span>
+          </div></td>
+        </tr></table>
+        """.replace(b"live", "생방송".encode()).replace(
+            b"The 39th State Council", "제39회 국무회의".encode()
+        ).replace(b"The 38th State Council", "제38회 국무회의".encode())
+        payload = SourcePayload(
+            source_key="ktv_broadcast_schedule", content=html,
+            content_type="text/html",
+            retrieved_at=datetime(2099, 1, 1, tzinfo=timezone.utc),
+            source_url="https://www.ktv.go.kr/broadChart/tv?date=20990102",
+            http_status=200,
+        )
+        records = KtvScheduleAdapter().parse(
+            payload, scheduled_date=date(2099, 1, 2),
+        )
+        self.assertEqual(1, len(records))
+        entry = normalize_schedule(records[0])
+        self.assertEqual("EXECUTIVE", entry.institution)
+        self.assertTrue(entry.broadcast_scheduled)
+        self.assertEqual("국무회의", entry.schedule_kind)
+
+    def test_calendar_marks_only_confirmed_webcast_committee_as_scheduled(self):
+        items = [{
+            "schedule_kind": "위원회", "institution": "LEGISLATURE",
+            "committee_name": "행정안전위원회",
+            "scheduled_date": "2099-01-02", "start_time": "10:00",
+            "broadcast_scheduled": False,
+        }, {
+            "schedule_kind": "위원회", "institution": "LEGISLATURE",
+            "committee_name": "교육위원회",
+            "scheduled_date": "2099-01-02", "start_time": "10:00",
+            "broadcast_scheduled": False,
+        }, {
+            "schedule_kind": "국무회의", "institution": "EXECUTIVE",
+            "committee_name": "국무회의",
+            "scheduled_date": "2099-01-01", "start_time": "09:50",
+            "broadcast_scheduled": True,
+        }]
+        live_status = {"assembly": {"items": [{
+            "committee_name": "행정안전위원회",
+            "status_text": "10:00 생중계 예정", "is_live": False,
+            "meeting_external_id": "meeting-1",
+        }]}}
+        marked = mark_confirmed_broadcast_schedules(
+            items, live_status, today=date(2099, 1, 2),
+        )
+        self.assertTrue(marked[0]["broadcast_scheduled"])
+        self.assertEqual("SCHEDULED", marked[0]["broadcast_status"])
+        self.assertFalse(marked[1]["broadcast_scheduled"])
+        self.assertEqual("COMPLETED", marked[2]["broadcast_status"])
+
+    def test_calendar_marks_real_ended_committee_broadcast_as_completed(self):
+        items = [{
+            "meeting_id": None, "schedule_kind": "위원회",
+            "institution": "LEGISLATURE", "committee_name": "행정안전위원회",
+            "scheduled_date": "2099-01-01", "start_time": "10:00",
+            "broadcast_scheduled": False,
+        }, {
+            "meeting_id": None, "schedule_kind": "위원회",
+            "institution": "LEGISLATURE", "committee_name": "교육위원회",
+            "scheduled_date": "2099-01-01", "start_time": "10:00",
+            "broadcast_scheduled": False,
+        }]
+        completed = [{
+            "broadcast_id": "broadcast-1", "meeting_id": None,
+            "external_id": "assembly-1", "committee_name": "행정안전위원회",
+            "broadcast_date": date(2099, 1, 1), "broadcast_time": "10:03:00",
+        }]
+        marked = mark_confirmed_broadcast_schedules(
+            items, {}, today=date(2099, 1, 2),
+            completed_broadcasts=completed,
+        )
+        self.assertTrue(marked[0]["broadcast_scheduled"])
+        self.assertEqual("COMPLETED", marked[0]["broadcast_status"])
+        self.assertEqual("assembly-1", marked[0]["meeting_external_id"])
+        self.assertNotIn("broadcast_status", marked[1])
+
     def test_snapshot_keeps_only_target_committees_in_requested_range(self):
         entries = [
             schedule_entry(committee="행정안전위원회", scheduled_date="2099-01-02", start_time="10:00", title="행안위 전체회의"),

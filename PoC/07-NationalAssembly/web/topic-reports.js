@@ -22,7 +22,7 @@
   mount.innerHTML = `
     <header class="workspace-intro topic-report-intro">
       <div><span>ON-DEMAND POLICY REPORT</span><h1>주제별 보고서</h1><p>소관 부처 또는 주제와 기간을 지정하면 저장된 회의와 공식자료를 찾아 요청 시점에만 보고서를 작성합니다.</p></div>
-      <div class="workspace-authority is-report"><b>주문형 작성</b><span>의미·키워드 검색 → OpenRouter 1회</span><small>같은 근거는 저장 결과 재사용</small></div>
+      <div class="workspace-authority is-report"><b>검색 후 요청할 때만 작성</b><span>OpenRouter 1회 · 생성 결과 저장·재사용</span></div>
     </header>
     <div class="topic-report-grid">
       <section class="topic-report-builder" aria-labelledby="topicReportBuilderTitle">
@@ -48,7 +48,7 @@
         </div>
         <article class="topic-report-result" id="topicReportResult" aria-live="polite" hidden></article>
         <div class="topic-report-preview" id="topicReportPreviewResult"></div>
-        <p class="topic-report-privacy">국정보미에서 보고서를 작성할 때만 선택된 공개 회의 근거가 OpenRouter로 전송됩니다. 외부도구용 파일은 LLM 호출 없이 브라우저에서 만들며, 사용자가 복사·다운로드한 뒤 선택한 외부 서비스에 직접 전달합니다. 카카오·사용자 식별정보는 포함하지 않습니다.</p>
+        <p class="topic-report-privacy">국정ON에서 보고서를 작성할 때만 선택된 공개 회의 근거가 OpenRouter로 전송됩니다. 외부도구용 파일은 LLM 호출 없이 브라우저에서 만들며, 사용자가 복사·다운로드한 뒤 선택한 외부 서비스에 직접 전달합니다. 카카오·사용자 식별정보는 포함하지 않습니다.</p>
       </section>
     </div>
     <dialog class="topic-report-export-dialog" id="topicReportExportDialog" aria-labelledby="topicReportExportTitle">
@@ -205,9 +205,9 @@
   function externalPrompt(values, payload) {
     const scope = values.institution === "LEGISLATURE" ? "국회" : values.institution === "EXECUTIVE" ? "정부·국무회의" : "국회·정부 전체";
     const lines = [
-      "# 국정보미 외부 LLM 보고서 작성 패키지",
+      "# 국정ON 외부 LLM 보고서 작성 패키지",
       "",
-      "> 이 파일은 국정보미의 저장 자료 검색 결과와 보고서 작성 명령을 묶은 것입니다. 국정보미는 이 파일을 만드는 과정에서 LLM을 호출하지 않았습니다.",
+      "> 이 파일은 국정ON의 저장 자료 검색 결과와 보고서 작성 명령을 묶은 것입니다. 국정ON은 이 파일을 만드는 과정에서 LLM을 호출하지 않았습니다.",
       "",
       "## 보고서 작성 명령",
       "",
@@ -278,7 +278,7 @@
   function exportFilename(values) {
     const subject = values.topic || values.ministry || "정책흐름";
     const safe = subject.replace(/[^0-9A-Za-z가-힣_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50) || "정책흐름";
-    return "국정보미-" + safe + "-" + values.period_start + "-" + values.period_end + ".md";
+    return "국정ON-" + safe + "-" + values.period_start + "-" + values.period_end + ".md";
   }
 
   function openExternalTools() {
@@ -555,7 +555,7 @@
     const paper = node("div", "topic-report-paper");
     const masthead = node("header", "topic-report-masthead");
     const brand = node("div", "topic-report-publication");
-    brand.append(node("b", "", "국정보미"), node("span", "", "POLICY BRIEF"));
+    brand.append(node("b", "", "국정ON"), node("span", "", "POLICY REVIEW"));
     const edition = node("div", "topic-report-edition");
     edition.append(node("strong", "", item.ministry || item.topic || "정책 흐름"), node("span", "", `${item.period_start} — ${item.period_end}`));
     masthead.append(brand, edition);

@@ -98,9 +98,13 @@
 .watch-rule-composer[open] > summary { border-bottom:1px solid #e2eaf4; background:#f3f7fd; }
 .watch-rule-composer #watchRuleForm { padding:11px; }
 .watch-test-control { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding:13px; border-radius:12px; background:#edf4ff; }
+.watch-test-control[hidden] { display:none !important; }
 .watch-test-control div { display:grid; gap:2px; }
 .watch-test-control strong { color:#173962; font-size:13px; }
 .watch-test-control span { color:#6380a2; font-size:10px; }
+.watch-test-control .watch-test-kakao { display:flex; align-items:center; gap:6px; width:fit-content; margin-top:7px; color:#173962; font-size:10px; font-weight:800; cursor:pointer; }
+.watch-test-control .watch-test-kakao input { width:14px; height:14px; margin:0; accent-color:var(--watch-blue); }
+.watch-test-control .watch-test-kakao input:disabled + span { opacity:.55; }
 .watch-test-control button { min-height:38px; padding:0 12px; white-space:nowrap; }
 .watch-test-control button:disabled { opacity:.45; cursor:not-allowed; }
 .watch-inbox-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
@@ -134,7 +138,7 @@
 .watch-integrated-summary p:before { content:""; position:absolute; top:.65em; left:0; width:4px; height:4px; border-radius:50%; background:#3975ce; }
 .watch-integrated-summary small { color:#7890ad; font-size:9px; }
 .watch-operator details > summary { color:#54708f; font-size:11px; font-weight:800; cursor:pointer; }
-.watch-operator-auth { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px; margin-top:11px; }
+.watch-operator-auth { display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; gap:6px; margin-top:11px; }
 .watch-operator-auth label { display:grid; gap:3px; color:#6b7f98; font-size:9px; }
 .watch-operator-auth input { min-width:0; height:34px; padding:0 9px; border:1px solid #cfdaea; border-radius:8px; }
 .watch-operator-auth button,.watch-admin-actions button { border:1px solid #bfd0e5; border-radius:8px; background:#f4f8fd; color:#31577f; font-size:9px; font-weight:800; cursor:pointer; }

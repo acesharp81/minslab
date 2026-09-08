@@ -6,6 +6,12 @@
 
 최종 분석은 발언 구간 → 8개 구간 단위 중간 병합 → 회의 전체 통합의 계층형 구조입니다. 각 구간과 중간 병합은 `meeting_brief_chunk_cache`에 내용 해시로 저장하므로 429·5xx·시간초과 뒤에도 완료 구간을 재호출하지 않습니다. 실시간 군집은 직접 근거와 엄격한 결정적 일치만 최종 주제에 붙이며, 어휘 후보와 다중 후보는 최종 화면 연결에서 제외하고 계보 감사 데이터에 남깁니다.
 
+국무회의는 LIVE 캡처 유무와 무관하게 공식자료만으로도 완료할 수 있습니다. `official-minutes-worker`는 국회 공식 API 단계에서 오류가 나더라도 국무회의 공식자료 수집을 별도로 실행하며, `NATIONAL_ASSEMBLY_API_KEY`가 없는 국무회의 전용 실행 환경에서도 해당 수집은 계속됩니다. 로그의 `executive.official.completed`와 `parser_version`을 확인하고, 운영 snapshot의 parser version이 배포 버전보다 낮아지면 구형 워커가 같은 volume을 덮어쓰는지 점검합니다.
+
+상세 공식자료가 공개되지 않은 부처보고의 `OFFICIAL_LIMITED`는 실패나 재시도 대기가 아닙니다. 화면에는 `공식자료만 반영 · 상세내용 미공개`로 표시하고 제목·소관 부처·연결된 대통령 지시만 제공합니다. 이후 새로운 공식 부처자료가 게시되어 content hash가 바뀌면 다음 수집에서 자동으로 상세 요약 상태로 승격합니다. 이 경로는 결정적 추출만 사용하며 LLM 호출은 0회입니다.
+
+대통령 지시는 공식 브리핑의 source span 순서를 기준으로 주제 블록을 만듭니다. 명시된 안건명·정책명·사건명 또는 새 대통령 발언이 주제 경계가 되며, `이어·다만·이에`로 계속되는 실행 지시는 같은 블록에 둡니다. 블록 안에 기존 부처보고와 일치하는 공식 span이나 보수적 제목 일치가 있으면 그 보고 카드로 이동하고, 나머지만 `그 밖의 대통령 지시`에 남깁니다. 표시 요약과 별도로 `source_paragraphs` 및 `source_span_ids`를 보존하므로 묶음 결과에서 공식 원문을 다시 확인할 수 있습니다.
+
 
 ## 개발 배포
 
@@ -49,7 +55,7 @@ PYTHONPATH=backend python3 -m app.ingestion.live_monitor --once
 - 방송별 최신 final revision 시각이 함께 증가하는지
 - 한 방송의 `broadcast_id`가 다른 방송 snapshot/delta에 섞이지 않는지
 
-`schedule-worker`는 검증된 국회 `ALLSCHEDULE`의 `SCH_DT` 필터로 향후 7일 일정을 10분마다 조회합니다. 원본 응답과 manifest를 먼저 저장하고 PostgreSQL 정규화 후 `data/processed/upcoming_schedule.json`을 원자 교체합니다. 공개 화면은 기본적으로 오늘·내일만 읽습니다.
+`schedule-worker`는 검증된 국회 `ALLSCHEDULE`의 `SCH_DT` 필터로 향후 7일 위원회 일정을 10분마다 조회합니다. KTV 공식 날짜별 편성표에서는 `국무회의`이면서 `생방송` 표지가 확인된 일정만 수집합니다. 최초 구축 때 최근 35일과 향후 7일을 한 번 백필하고, 이후에는 향후 7일을 6시간 캐시해 하루 최대 28회(7일 × 4회)만 요청합니다. 원본 응답과 manifest를 먼저 저장하고 PostgreSQL 정규화 후 공개 달력에서 국무회의·위원회를 함께 제공합니다. 국회 의사중계 당일 목록에서 `예정`으로 확인된 위원회와 KTV 생방송 편성 국무회의에만 `방송예정`을 표시하며 정례일을 추정 생성하지 않습니다. 과거 KTV 생방송 편성 또는 실제 종료 저장 기록과 같은 날짜·위원회가 일치하는 위원회 일정은 `방송 완료`로 표시합니다. 테스트·시연 방송은 완료 판정에서 제외합니다.
 
 ```bash
 PYTHONPATH=backend python3 -m app.ingestion.schedule_worker --once --days 7
@@ -138,7 +144,7 @@ Mistral 전사는 기본 분당 USD 0.003으로 계산하여 `audio_usage_events
 
 실전 점검에서는 `executive.audio.started` 이후 약 한 청크 주기마다 `executive.audio.progress`가 증가하는지 확인합니다. 로그에는 방송 ID, 저장 청크 수, 전사 구간 수, 실패 수만 남기며 발언 본문과 API 키는 출력하지 않습니다.
 
-공식 정책브리핑이 발행되면 `official-minutes-worker`가 회차와 서울 날짜가 일치하는 방송만 `executive_official_matches`에 연결합니다. 같은 회차 후보가 여러 개인데 날짜가 맞지 않으면 임의 연결하지 않습니다. 화면은 LIVE 임시 결과를 별도 회의로 중복 노출하지 않고 공식 `부처보고 · 심의안건 · 대변인 브리핑` 결과로 전환합니다.
+공식 정책브리핑이 발행되면 `official-minutes-worker`가 회차와 서울 날짜가 일치하는 방송만 `executive_official_matches`에 연결합니다. 같은 회차 후보가 여러 개인데 날짜가 맞지 않으면 임의 연결하지 않습니다. 화면은 LIVE 임시 결과를 별도 회의로 중복 노출하지 않고 하나의 공식 결과로 전환하되, 각 보고 카드를 `부처 보고 내용 · 대통령 지시 · 부처 추가 발표`로 분리하고 심의안건을 별도 영역에 둡니다. 부처 보고 내용은 공식 보고 제목과 담당 부처를 기준으로 LIVE 보고서의 주제를 보수적으로 연결하며, 동점이거나 근거가 약하면 공식 보고 확인 문구만 제공합니다. 이 결합은 저장 자료와 규칙만 사용해 LLM을 추가 호출하지 않습니다.
 
 ```bash
 sudo scripts/deploy_secure_workers.sh executive
@@ -147,7 +153,9 @@ docker logs --tail 50 poc07-national-assembly-executive-caption-worker
 
 `meeting-brief-worker`는 최근 30일 공식 종료 방송을 60초마다 확인합니다. 발언 묶음의 저장 요약과 최대 700자 원문 발췌를 32개 이하 구간으로 분석한 뒤 회의 headline·요약·주제·화자 요지·과제를 한 번 더 통합합니다. 결과의 evidence ID는 현재 방송의 Utterance ID 집합으로 검증하며 근거가 없는 항목은 저장하지 않습니다.
 
-브리프 1.1은 화자 요지와 주제 요약이 원문 문장을 그대로 복사하거나 통용 약어가 아닌 소문자 영문을 포함하면 저장을 거부하고 한 번만 교정 재요약합니다. 공식 통합 1.2는 숫자·부정·정책 의미가 바뀌지 않은 개조식/서술식 전환을 변경 이력에서 제외합니다. 공식 발언이 연결된 근거 조회는 공식 전체 발언만 반환하며 LIVE 조각과 혼합하지 않습니다.
+브리프 1.1은 화자 요지와 주제 요약이 원문 문장을 그대로 복사하거나 통용 약어가 아닌 소문자 영문을 포함하면 저장을 거부하고 한 번만 교정 재요약합니다. 공식 통합 1.5는 공백·문장부호와 이동한 동일 문장을 변경 이력에서 제외하되 숫자·부정·결정/행위의 횟수와 기관-행위 결합이 달라지면 실제 변경으로 유지합니다. 유사도 0.58 미만의 전체 재작성은 잠정 본문에 적용하지 않고 공식 대안으로만 제공합니다. 공식 발언이 연결된 근거 조회는 공식 전체 발언만 반환하며 LIVE 조각과 혼합하지 않습니다.
+
+기존 통합본을 비교 규칙 최신 버전으로만 재계산할 때는 `python -m app.ingestion.official_integration_worker --limit 50 --deterministic-only`를 사용합니다. 같은 공식 의미 해시와 저장된 검증 변경 목록이 없는 회의는 `SKIPPED_LLM_REQUIRED`로 건너뛰며, 이 모드에서는 외부 LLM을 호출하지 않습니다.
 
 방송이 `ENDED`로 바뀌면 worker는 외부 LLM 호출 전에 deterministic 방송 리뷰와 현재 발언 묶음으로 `자동 정리 · 잠정` 결과를 먼저 저장합니다. 따라서 Mistral 월간 토큰 한도나 재시도 유예 중에도 공개 화면은 방송 포맷으로 되돌아가지 않고 결과 포맷을 유지합니다. 이후 Mistral 결과가 저장되면 더 최신 브리프가 같은 화면에 표시됩니다.
 
@@ -163,9 +171,15 @@ PYTHONPATH=backend python3 -m app.ingestion.meeting_brief_worker \
 
 `official-minutes-worker`는 최근 30일 종료 방송 중 공식본 미게시 건을 1시간마다 확인합니다. API 원본을 먼저 보존한 뒤 위원회+서울 날짜 후보가 하나일 때만 연결합니다. 후보가 없으면 `NOT_PUBLISHED`, 둘 이상이면 `AMBIGUOUS`로 남깁니다.
 
+`official-integration-worker`는 수집 워커와 독립적으로 15초마다 미처리 상태 큐를 확인합니다. 완료된 동일 브리프·공식문서·통합 버전은 다시 처리하지 않고, 만료된 lease와 재시도 시각이 된 실패 작업만 다시 선점합니다. 공식 본문이 publication보다 먼저 수집돼도 정확한 `meeting_id + conference_id`가 확인되면 자동 연결합니다.
+
 ```bash
 PYTHONPATH=backend python3 -m app.ingestion.official_minutes_worker --once
+PYTHONPATH=backend python3 -m app.ingestion.official_integration_worker --once --limit 5
+docker logs --tail 50 poc07-national-assembly-official-integration-worker
 ```
+
+운영 화면은 `OFFICIAL_PUBLICATION_PENDING`, `OFFICIAL_BODY_PENDING`, `COMPARISON_QUEUED`, `COMPARISON_PROCESSING`, `COMPARISON_RETRY_WAIT`, `COMPARISON_COMPLETE`를 사용자 문구로 변환합니다. `COMPARISON_RETRY_WAIT`이면 저장된 다음 재시도 시각을 확인하고, 같은 회의만 반복 실패할 때 공식 원본·본문 parser와 LLM 응답 오류를 각각 분리해 점검합니다.
 
 ## 장애 원칙
 종료 방송 상세 API는 최신 공식 publication과 문서 버전, final 자막 exact 일치 수를 함께 반환합니다. `NOT_PUBLISHED`와 `AMBIGUOUS`는 정상적인 대기·검토 상태이며 LIVE 저장본을 삭제하거나 공식본으로 승격하지 않습니다.

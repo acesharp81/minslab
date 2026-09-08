@@ -11,7 +11,6 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
 PRESENTATIONS_DIR = BASE_DIR / "presentations"
-MAX_PRESENTATION_BYTES = 10 * 1024 * 1024
 
 
 def _safe_slug(value: str) -> str:
@@ -93,8 +92,6 @@ def save_presentation(title: str, html: str, filename: str = "") -> dict:
     if not isinstance(html, str) or not html.strip():
         raise ValueError("업로드할 HTML 파일이 비어 있습니다.")
     encoded = html.encode("utf-8")
-    if len(encoded) > MAX_PRESENTATION_BYTES:
-        raise ValueError("HTML 파일은 10MB를 넘을 수 없습니다.")
     lowered = html[:100_000].lower()
     if "<html" not in lowered and "<!doctype html" not in lowered:
         raise ValueError("완전한 HTML 문서 파일을 선택하세요.")
@@ -144,8 +141,6 @@ def update_presentation(slug: str, title: str, html: str | None = None, filename
         if not isinstance(html, str) or not html.strip():
             raise ValueError("교체할 HTML 파일이 비어 있습니다.")
         replacement = html.encode("utf-8")
-        if len(replacement) > MAX_PRESENTATION_BYTES:
-            raise ValueError("HTML 파일은 10MB를 넘을 수 없습니다.")
         lowered = html[:100_000].lower()
         if "<html" not in lowered and "<!doctype html" not in lowered:
             raise ValueError("완전한 HTML 문서 파일을 선택하세요.")

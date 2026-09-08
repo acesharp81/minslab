@@ -6,11 +6,12 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from app.db.watch_repository import (
-    build_watch_fallback_summary, normalize_watch_briefing_presentation,
+    _allows_kakao_delivery, build_watch_fallback_summary, normalize_watch_briefing_presentation,
     watch_key_sentence,
 )
 from app.services.watch_matcher import match_watch_rule, normalize_watch_text
 from app.services.watch_test_script import build_watch_test_script
+from app.services.watch_replay_script import build_hasi_ai_replay_script
 from app.services.watch_kakao import KakaoNotificationProvider
 from app.services.watch_summary import MistralWatchSummaryClient, OpenRouterWatchSummaryClient
 
@@ -81,6 +82,26 @@ class WatchMatcherTests(unittest.TestCase):
         self.assertGreaterEqual(len({item["insight"]["topic_id"] for item in script}), 4)
         self.assertTrue(any(item["insight"].get("task") for item in script))
 
+    def test_hasi_replay_keeps_real_ai_caption_window_with_accelerated_timing(self) -> None:
+        script = build_hasi_ai_replay_script()
+        transcript = " ".join(item["text"] for item in script)
+        self.assertEqual(7, len(script))
+        self.assertIn("AI 대여센터", transcript)
+        self.assertIn("인공지능 데이터센터산업", transcript)
+        self.assertIn("행안부에서도 적극적으로 의견 개진", transcript)
+        self.assertGreaterEqual(script[-1]["elapsed_seconds"], 40)
+        self.assertLess(script[-1]["elapsed_seconds"], 60)
+        self.assertEqual({"질의 위원", "행정안전부 장관"}, {item["speaker"] for item in script})
+        self.assertEqual({"QUESTION", "ANSWER"}, {item["insight"]["role"] for item in script})
+        self.assertTrue(all(item["insight"].get("summary") for item in script))
+        self.assertTrue(all(item.get("insight", {}).get("topic_id") for item in script))
+
+    def test_only_explicit_replay_mode_can_send_test_kakao(self) -> None:
+        self.assertFalse(_allows_kakao_delivery("poc07.test"))
+        self.assertFalse(_allows_kakao_delivery("poc07.replay.local"))
+        self.assertTrue(_allows_kakao_delivery("poc07.replay.kakao"))
+        self.assertTrue(_allows_kakao_delivery("assembly.webcast.go.kr"))
+
 
 class WatchSchemaTests(unittest.TestCase):
     def test_schema_has_idempotency_and_outbox_contracts(self) -> None:
@@ -89,6 +110,10 @@ class WatchSchemaTests(unittest.TestCase):
         self.assertIn("UNIQUE (rule_id, revision_id)", sql)
         self.assertIn("CREATE TABLE notification_outbox", sql)
         self.assertIn("CREATE TABLE watch_test_broadcasts", sql)
+        replay_migration = migration.parent / "0040_watch_committee_replay.sql"
+        replay_sql = replay_migration.read_text(encoding="utf-8")
+        self.assertIn("kakao_delivery_enabled boolean NOT NULL DEFAULT false", replay_sql)
+        self.assertIn("HASI_AI_REPLAY", replay_sql)
 
     def test_completion_schema_has_rule_versions_digest_and_official_status(self) -> None:
         migration = (
@@ -202,6 +227,19 @@ class WatchSchemaTests(unittest.TestCase):
         self.assertIn("rules remain authoritative", callback)
         self.assertNotIn("source_rules", callback)
         self.assertNotIn("target_repository.create_rule", callback)
+
+        web = (project / "web" / "watch-alerts.js").read_text(encoding="utf-8")
+        synchronization = web.split(
+            "function synchronizeLocalRules(", 1,
+        )[1].split("function renderRules(", 1)[0]
+        self.assertIn("localStorage is only a cache", synchronization)
+        self.assertIn("saveLocalRules(unique)", synchronization)
+        self.assertNotIn('method: "POST"', synchronization)
+        deletion = web.split("async function deleteRule(", 1)[1].split(
+            "function ruleReportMarkdown(", 1,
+        )[0]
+        self.assertIn("if (!result.deleted)", deletion)
+        self.assertIn("loadRules()", deletion)
 
     def test_kakao_disconnect_is_local_and_bootstrap_does_not_reuse_other_app(self) -> None:
         project = Path(__file__).resolve().parents[2]
@@ -321,23 +359,60 @@ class WatchSchemaTests(unittest.TestCase):
         summary_repository = (
             project / "backend" / "app" / "db" / "watch_summary_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("('poc07.demo', 'poc07.test')", summary_repository)
+        self.assertIn("'poc07.replay.local'", summary_repository)
+        self.assertIn("'poc07.replay.kakao'", summary_repository)
         watch_repository = (
             project / "backend" / "app" / "db" / "watch_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn('source_system") != "poc07.test"', watch_repository)
-        self.assertIn('source_system != "poc07.test"', watch_repository)
+        self.assertIn('source == "poc07.replay.kakao"', watch_repository)
+        self.assertIn('"poc07.replay.local"', watch_repository)
 
     def test_test_source_is_filtered_from_public_queries(self) -> None:
         repository = Path(__file__).resolve().parents[1] / "app" / "db" / "live_repository.py"
         source = repository.read_text(encoding="utf-8")
-        self.assertIn("('poc07.demo', 'poc07.test')", source)
+        self.assertIn("'poc07.replay.local'", source)
+        self.assertIn("'poc07.replay.kakao'", source)
         self.assertIn("include_test=True", source)
         review_repository = Path(__file__).resolve().parents[1] / "app" / "db" / "review_repository.py"
         self.assertIn(
-            "source_system NOT IN ('poc07.demo', 'poc07.test')",
+            "'poc07.replay.kakao'",
             review_repository.read_text(encoding="utf-8"),
         )
+
+    def test_replay_waits_for_video_and_live_report_uses_closed_turns(self) -> None:
+        project = Path(__file__).resolve().parents[2]
+        api = (project / "backend" / "app" / "main.py").read_text(encoding="utf-8")
+        repository = (
+            project / "backend" / "app" / "db" / "watch_test_repository.py"
+        ).read_text(encoding="utf-8")
+        dashboard = (project / "web" / "app.js").read_text(encoding="utf-8")
+        watch = (project / "web" / "watch-alerts.js").read_text(encoding="utf-8")
+        self.assertIn('/playback-ready", tags=["watch"]', api)
+        self.assertIn('"QUEUED" if is_replay else "LIVE"', repository)
+        self.assertIn('watch-replay-playback-ready', dashboard)
+        self.assertIn('activateReplay(String(event.detail?.testId', watch)
+        self.assertIn('latestItem?.lifecycle_status === "LIVE"', dashboard)
+        self.assertIn('summary: hint.summary || item.summary', dashboard)
+
+    def test_test_broadcast_is_admin_only_without_daily_limit(self) -> None:
+        project = Path(__file__).resolve().parents[2]
+        api = (project / "backend" / "app" / "main.py").read_text(encoding="utf-8")
+        repository = (
+            project / "backend" / "app" / "db" / "watch_test_repository.py"
+        ).read_text(encoding="utf-8")
+        html = (project / "web" / "index.html").read_text(encoding="utf-8")
+        watch = (project / "web" / "watch-alerts.js").read_text(encoding="utf-8")
+        self.assertIn('@app.get("/api/watch/admin/session"', api)
+        self.assertGreaterEqual(api.count("_watch_admin(x_watch_admin_token)"), 9)
+        self.assertNotIn("daily_count", repository)
+        self.assertNotIn("하루 3회", repository)
+        self.assertIn('id="watchTestControl" hidden', html)
+        self.assertIn("restoreAdminSession", watch)
+        self.assertIn("adminWatchFetch", watch)
+        self.assertIn('fetch("/api/admin/session"', watch)
+        self.assertIn("TEST_PRESENTATION_RETENTION_MS = 60 * 1000", watch)
+        self.assertIn("testPresentationRemaining", watch)
+        self.assertIn("scheduleTestPresentationClear", watch)
 
     def test_watch_path_does_not_import_llm_clients(self) -> None:
         app_dir = Path(__file__).resolve().parents[1] / "app"

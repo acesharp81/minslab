@@ -13,8 +13,42 @@ class AIWorksContractTests(unittest.TestCase):
     def test_project_metadata(self):
         project = self.load("project.json")
         self.assertEqual(project["id"], "aiworks")
+        self.assertEqual(project["title"], "AI Work Hub")
         self.assertEqual(project["order"], 6)
         self.assertTrue((ROOT / project["entry_file"]).is_file())
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="productName">AI Work Hub</strong>', html)
+
+    def test_latest_answer_context_survives_chat_save_and_restore(self):
+        script = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('previous_answer_kind:state.lastAnswerKind||""', script)
+        self.assertIn('previous_answer_intent:state.lastAnswerIntent||""', script)
+        self.assertIn('streamAssistant(state.lastAnswer,{kind:"answer-context"})', script)
+        self.assertIn('restoreLastAnswerContext(saved.chat||[])', script)
+        self.assertIn('node.dataset.messageKind', script)
+        self.assertIn('addResultSources(answerNode,result.sources||[]);\n          addRhwpEditAction(answerNode);', script)
+
+    def test_phase3_runtime_has_no_retired_renderer_defaults(self):
+        runtime_files = (
+            ROOT / "mcp" / "workspace_orchestration.py",
+            ROOT / "web" / "app.js",
+            ROOT / "web" / "index.html",
+            ROOT / "project.json",
+            ROOT.parents[1] / ".env.example",
+        )
+        runtime_text = "\n".join(path.read_text(encoding="utf-8") for path in runtime_files)
+        for retired_marker in ("KODAK", "KORDOC_ROOT", "KORDOC_OFFLINE", "kordoc@4.7.3"):
+            self.assertNotIn(retired_marker, runtime_text)
+        self.assertFalse((ROOT / "vendor" / "kordoc-runtime").exists())
+
+    def test_windows_rhwp_release_gate_requires_native_round_trip_evidence(self):
+        source = (ROOT / "scripts" / "windows_rhwp_acceptance.py").read_text(encoding="utf-8")
+        self.assertIn('"contractVersion": "windows-rhwp-acceptance/1.0"', source)
+        self.assertIn("os.name != \"nt\"", source)
+        self.assertIn("before_text == after_text", source)
+        self.assertIn("before_tables == after_tables", source)
+        self.assertIn("previewPdfSha256", source)
+        self.assertIn("evidenceSha256", source)
 
     def test_contracts_have_required_boundaries(self):
         manifest = self.load("contracts/mcp-manifest.schema.json")
@@ -167,6 +201,36 @@ class AIWorksContractTests(unittest.TestCase):
         self.assertNotIn("documentArtifacts", backup["properties"]["data"]["required"])
         self.assertEqual(backup["properties"]["integrity"]["properties"]["algorithm"]["const"], "SHA-256")
 
+    def test_archived_project_exposes_separate_irreversible_delete_action(self):
+        script = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("data-purge-project", script)
+        self.assertIn("acknowledge_irreversible:true", script)
+        self.assertIn('method:"DELETE"', script)
+        self.assertIn("프로젝트 이름을 정확히 입력", script)
+
+    def test_generated_hwpx_initializes_template_selector(self):
+        script = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        generated_artifact = script.split("async function openGeneratedArtifact", 1)[1].split(
+            "function applyTemplateSelection", 1
+        )[0]
+        self.assertIn("await renderTemplateMcpSelector(currentArtifact)", generated_artifact)
+        self.assertLess(
+            generated_artifact.index("renderProjectWorkbenchTabs()"),
+            generated_artifact.index("await renderTemplateMcpSelector(currentArtifact)"),
+        )
+
+    def test_template_preview_exports_rhwp_edits_to_confirmation_api(self):
+        html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        confirmation = script.split("async function confirmTemplatePreview", 1)[1].split(
+            "var templateMappingState", 1
+        )[0]
+        self.assertIn("templatePreviewState.editor.exportHwpx()", confirmation)
+        self.assertIn("edited_content_base64:editedContent", confirmation)
+        self.assertIn("preview_source_sha256:preview.sourceSha256", confirmation)
+        self.assertIn("preview_render_sha256:preview.rendered.sha256", confirmation)
+        self.assertIn("RHWP 수정본 저장·양식에 반영", html)
+
     def test_builder_beginner_manual_is_visual_and_inside_application_body(self):
         html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
         script = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
@@ -196,6 +260,16 @@ class AIWorksContractTests(unittest.TestCase):
         check = report["properties"]["checks"]["items"]
         self.assertIn("passed", check["required"])
         self.assertFalse(check["additionalProperties"])
+
+    def test_golden_workflow_contract_and_fixture_are_versioned(self):
+        contract = self.load("contracts/golden-workflow.schema.json")
+        fixture = self.load("golden_workflows/budget_business_review/workflow.json")
+        self.assertEqual(contract["properties"]["contractVersion"]["const"], "golden-workflow/1.0")
+        self.assertEqual(fixture["contractVersion"], "golden-workflow/1.0")
+        self.assertEqual(fixture["expectations"]["plan"]["externalTransfer"], False)
+        self.assertTrue(fixture["sourceFiles"])
+        for source in fixture["sourceFiles"]:
+            self.assertTrue((ROOT / "golden_workflows" / "budget_business_review" / source["path"]).is_file())
 
     def test_template_render_map_and_operations_contracts(self):
         template = self.load("contracts/template-schema.schema.json")

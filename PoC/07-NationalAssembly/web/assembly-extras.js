@@ -52,13 +52,20 @@
 
   function visibleItems() {
     const committeeItems = state.items.filter(isCommitteeSchedule);
-    return state.filter === "target"
+    const executiveItems = state.items.filter(isExecutiveSchedule);
+    const visibleCommittees = state.filter === "target"
       ? committeeItems.filter((item) => Boolean(item.is_target_committee))
       : committeeItems;
+    return uniqueSchedules([...executiveItems, ...visibleCommittees]);
   }
 
   function isCommitteeSchedule(item) {
     return String(item?.schedule_kind || "") === "위원회";
+  }
+
+  function isExecutiveSchedule(item) {
+    return String(item?.institution || "") === "EXECUTIVE"
+      || String(item?.schedule_kind || "") === "국무회의";
   }
 
   function isMemberOfficeSchedule(item) {
@@ -90,12 +97,33 @@
   }
 
   function eventLabel(item) {
+    if (isExecutiveSchedule(item)) return "국무회의";
     return String(item.committee_name || item.host_name || item.schedule_kind || "국회 일정");
+  }
+
+  function isUpcomingBroadcast(item) {
+    if (!item?.broadcast_scheduled || item.broadcast_status === "LIVE") return false;
+    const start = scheduleStartDate(item);
+    if (start) return start > new Date();
+    return String(item.scheduled_date || "") >= localIso(new Date());
+  }
+
+  function isCompletedBroadcast(item) {
+    return item?.broadcast_status === "COMPLETED";
   }
 
   function timeLabel(item) {
     const value = String(item.start_time || item.time_text || "").slice(0, 5);
     return /^\d{2}:\d{2}$/.test(value) ? value : "시간 미정";
+  }
+
+  function scheduleStartDate(item) {
+    const dateText = String(item?.scheduled_date || "");
+    const match = String(item?.start_time || item?.time_text || "").match(/\d{1,2}:\d{2}/);
+    if (!dateText || !match) return null;
+    const timeText = match[0].padStart(5, "0");
+    const parsed = new Date(dateText + "T" + timeText + ":00");
+    return Number.isNaN(parsed.valueOf()) ? null : parsed;
   }
 
   function formatSelectedDate(value) {
@@ -110,17 +138,18 @@
     );
     const memberItems = uniqueSchedules(selectedItems.filter(isMemberOfficeSchedule));
     const committeeItems = uniqueSchedules(selectedItems.filter(isCommitteeSchedule));
-    const items = [...memberItems, ...committeeItems];
+    const executiveItems = uniqueSchedules(selectedItems.filter(isExecutiveSchedule));
+    const items = [...executiveItems, ...committeeItems, ...memberItems];
     agendaTitle.textContent = formatSelectedDate(state.selected);
     agendaCount.textContent = items.length
-      ? `의원실 ${memberItems.length} · 위원회 ${committeeItems.length}`
+      ? `국무회의 ${executiveItems.length} · 위원회 ${committeeItems.length} · 의원실 ${memberItems.length}`
       : "일정 없음";
     agendaList.replaceChildren();
     if (!items.length) {
-      agendaList.append(element("p", "assembly-agenda-empty", "저장된 의원실·위원회 일정이 없습니다."));
+      agendaList.append(element("p", "assembly-agenda-empty", "저장된 국무회의·위원회·의원실 일정이 없습니다."));
       return;
     }
-    for (const [kind, sectionItems] of [["의원실 일정", memberItems], ["위원회 일정", committeeItems]]) {
+    for (const [kind, sectionItems] of [["국무회의 일정", executiveItems], ["위원회 일정", committeeItems], ["의원실 일정", memberItems]]) {
       if (!sectionItems.length) continue;
       const section = element("section", "assembly-agenda-section");
       const sectionHead = element("header", "");
@@ -131,7 +160,10 @@
         const time = element("time", "", timeLabel(item));
         const copy = element("div", "");
         const tags = element("div", "assembly-agenda-tags");
-        tags.append(element("span", item.is_target_committee ? "is-target" : "", eventLabel(item)));
+        tags.append(element("span", isExecutiveSchedule(item) ? "is-executive" : item.is_target_committee ? "is-target" : "", eventLabel(item)));
+        if (isUpcomingBroadcast(item)) tags.append(element("span", "is-broadcast", "● 방송예정"));
+        if (item.broadcast_status === "LIVE") tags.append(element("span", "is-live", "● 생방송"));
+        if (isCompletedBroadcast(item)) tags.append(element("span", "is-completed", "● 방송 완료"));
         if (item.meeting_type) tags.append(element("span", "", String(item.meeting_type)));
         copy.append(
           tags,
@@ -175,7 +207,18 @@
       button.append(head);
       const eventList = element("span", "assembly-calendar-events");
       for (const item of events.slice(0, 2)) {
-        const event = element("i", item.is_target_committee ? "is-target" : "", timeLabel(item) + " " + eventLabel(item));
+        const classes = [
+          isExecutiveSchedule(item) ? "is-executive" : item.is_target_committee ? "is-target" : "",
+          isUpcomingBroadcast(item) ? "is-broadcast" : "",
+          item.broadcast_status === "LIVE" ? "is-live" : "",
+          isCompletedBroadcast(item) ? "is-completed" : "",
+        ].filter(Boolean).join(" ");
+        const prefix = item.broadcast_status === "LIVE"
+          ? "● 생방송 · "
+          : isUpcomingBroadcast(item)
+            ? "● 방송예정 · "
+            : isCompletedBroadcast(item) ? "● 방송 완료 · " : "";
+        const event = element("i", classes, prefix + timeLabel(item) + " " + eventLabel(item));
         eventList.append(event);
       }
       if (events.length > 2) eventList.append(element("b", "", "+" + (events.length - 2) + "개 더보기"));
@@ -208,8 +251,9 @@
       state.loadedKey = key;
       const committeeItems = uniqueSchedules(state.items.filter(isCommitteeSchedule));
       const memberItems = uniqueSchedules(state.items.filter(isMemberOfficeSchedule));
-      meta.textContent = `위원회 ${committeeItems.length.toLocaleString()}건 · 의원실 ${memberItems.length.toLocaleString()}건 · 저장 DB 기준`;
-      const relevantItems = [...memberItems, ...committeeItems];
+      const executiveItems = uniqueSchedules(state.items.filter(isExecutiveSchedule));
+      meta.textContent = `국무회의 ${executiveItems.length.toLocaleString()}건 · 위원회 ${committeeItems.length.toLocaleString()}건 · 의원실 ${memberItems.length.toLocaleString()}건 · 공식 일정 기준`;
+      const relevantItems = [...executiveItems, ...committeeItems, ...memberItems];
       const hasSelected = relevantItems.some((item) => String(item.scheduled_date) === state.selected);
       const currentMonth = new Date().getFullYear() === state.month.getFullYear() && new Date().getMonth() === state.month.getMonth();
       if (!hasSelected && !currentMonth) {
@@ -254,6 +298,218 @@
     return link;
   }
 
+  function makeInsightInteractive(node, open) {
+    node.classList.add("is-clickable");
+    node.tabIndex = 0;
+    node.setAttribute("role", "button");
+    node.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      open();
+    });
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.target.closest("a, button")) return;
+      event.preventDefault();
+      open();
+    });
+  }
+
+  function openInsightDialog(eyebrow, title, meta, content) {
+    const dialog = document.querySelector("#assemblyInsightDialog");
+    const body = document.querySelector("#assemblyInsightDialogBody");
+    if (!dialog || !body) return;
+    document.querySelector("#assemblyInsightDialogEyebrow").textContent = eyebrow;
+    document.querySelector("#assemblyInsightDialogTitle").textContent = title;
+    document.querySelector("#assemblyInsightDialogMeta").textContent = meta || "";
+    body.replaceChildren(content);
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  function insightMetaTags(values) {
+    const tags = element("div", "assembly-insight-dialog-tags");
+    for (const value of values.filter(Boolean)) {
+      tags.append(element("span", "", String(value)));
+    }
+    return tags;
+  }
+
+  function comparisonPanel(kind, title, summary, metaValues, sourceUrl) {
+    const panel = element("section", "assembly-insight-compare-panel is-" + kind);
+    panel.append(
+      element("span", "", kind === "executive" ? "정부 · 국무회의 공식 자료" : "국회 · 회의 보고서"),
+      element("h3", "", title),
+      insightMetaTags(metaValues),
+      element("p", "", summary || "저장된 요약이 없습니다."),
+    );
+    const link = insightSourceLink(sourceUrl);
+    if (link) panel.append(link);
+    return panel;
+  }
+
+  function openPolicyComparison(item) {
+    const executive = item.executive_evidence || {};
+    const legislative = item.legislative_evidence || {};
+    const content = element("div", "assembly-insight-comparison");
+    const basis = element("section", "assembly-insight-match-basis");
+    basis.append(
+      element("strong", "", "같은 흐름으로 본 근거"),
+      insightMetaTags([
+        ...(item.shared_evidence_keywords || []).slice(0, 5),
+        ...(item.shared_ministries || []).slice(0, 2),
+      ]),
+      element("p", "", "구체 주제명과 핵심 고유어가 직접 일치한 잠정 연결이며 인과관계를 뜻하지 않습니다."),
+    );
+    const columns = element("div", "assembly-insight-compare-grid");
+    columns.append(
+      comparisonPanel(
+        "executive",
+        executive.agenda_topic || executive.meeting_title || "정부 공식 안건",
+        executive.summary,
+        [
+          insightDate(executive.published_date),
+          ...(executive.ministries || []).slice(0, 3),
+        ],
+        executive.source_url,
+      ),
+      comparisonPanel(
+        "legislative",
+        item.topic || legislative.committee_name || "국회 논의 주제",
+        legislative.text,
+        [insightDate(legislative.conference_date), legislative.committee_name],
+        legislative.source_url,
+      ),
+    );
+    content.append(basis, columns);
+    openInsightDialog(
+      "POLICY FLOW COMPARISON",
+      item.topic || "정부·국회 정책 흐름 비교",
+      item.temporal_label || "정부와 국회의 저장 요약 비교",
+      content,
+    );
+  }
+
+  function openTopicSummary(item, mode) {
+    const latest = item.latest_meeting || {};
+    const content = element("div", "assembly-insight-summary");
+    const summary = element("section", "");
+    const status = mode === "trend" ? item.trend_status : item.transition_label;
+    summary.append(
+      insightMetaTags([
+        status,
+        ...(item.ministries || []).slice(0, 3),
+        latest.committee_name,
+        insightDate(latest.date),
+      ]),
+      element("h3", "", item.topic || "정책 주제"),
+      element("p", "", item.summary || "저장된 요약이 없습니다."),
+    );
+    if (mode === "trend") {
+      summary.append(element(
+        "small",
+        "",
+        "최근 14일 " + Number(item.current_meeting_count || 0)
+          + "회 · 이전 14일 " + Number(item.previous_meeting_count || 0) + "회",
+      ));
+    } else if (item.transition_stage !== "BILL_LINKED") {
+      summary.append(element(
+        "small",
+        "is-caution",
+        "공식 의안과 직접 연결되지 않은 보고서상 단계입니다. 의안 발의로 해석하지 않습니다.",
+      ));
+    }
+    content.append(summary);
+    if (mode === "institution") {
+      const flow = element("section", "assembly-institution-detail");
+      const discussionBlock = element("div", "assembly-institution-block is-discussion");
+      discussionBlock.append(
+        element("span", "assembly-institution-kicker", "1 · 논의 관측"),
+        element("h4", "", "어떤 회의에서 논의됐나"),
+      );
+      const discussions = element("div", "assembly-institution-events");
+      for (const discussion of item.discussion_events || []) {
+        const event = element("article", "");
+        event.append(
+          element("time", "", insightDate(discussion.date)),
+          element("strong", "", discussion.meeting_title || discussion.committee_name || "회의"),
+          element("b", "", discussion.topic || item.topic || "논의 주제"),
+          element("p", "", discussion.summary || "저장된 회의 보고서에서 논의가 확인됐습니다."),
+          element("small", "", `${discussion.committee_name || "소관 확인 중"} · 근거 ${Number(discussion.evidence_count || 0).toLocaleString()}건`),
+        );
+        discussions.append(event);
+      }
+      if (!discussions.children.length) {
+        discussions.append(element("p", "assembly-institution-empty", "회의 이력을 확인하는 중입니다."));
+      }
+      discussionBlock.append(discussions);
+      flow.append(discussionBlock);
+
+      const bills = item.bills || [];
+      const billBlock = element("div", "assembly-institution-block is-bill");
+      billBlock.append(
+        element("span", "assembly-institution-kicker", "2 · 의안 연결"),
+        element("h4", "", "어떤 의안으로 상정됐나"),
+      );
+      if (!bills.length) {
+        billBlock.append(element(
+          "p", "assembly-institution-empty",
+          Number(item.rejected_bill_link_count || 0) > 0
+            ? "주제와 일치하지 않는 안건 연결을 제외했습니다. 공식 의안번호를 확인하는 중입니다."
+            : "직접 연결된 공식 의안이 없습니다. 발의 또는 상정을 의미하지 않습니다.",
+        ));
+      }
+      for (const bill of bills) {
+        const billCard = element("article", "assembly-institution-bill");
+        billCard.append(
+          insightMetaTags([bill.bill_number ? `의안 ${bill.bill_number}` : "공식 의안", "주제명 교차검증"]),
+          element("h5", "", bill.bill_name || bill.agenda_name || "연결 의안"),
+          element("p", "", bill.agenda_name || "회의 안건에서 직접 연결됐습니다."),
+        );
+        const sourceLink = insightSourceLink(bill.official_url);
+        if (sourceLink) billCard.append(sourceLink);
+        billBlock.append(billCard);
+      }
+      flow.append(billBlock);
+
+      const processBlock = element("div", "assembly-institution-block is-process");
+      processBlock.append(
+        element("span", "assembly-institution-kicker", "3 · 처리 절차와 현재 상태"),
+        element("h4", "", "어떤 절차를 거쳐 어디까지 왔나"),
+      );
+      if (!bills.length) {
+        processBlock.append(element("p", "assembly-institution-empty", "공식 의안이 확인되면 발의·위원회·본회의 처리 이력이 이곳에 이어집니다."));
+      }
+      for (const bill of bills) {
+        const process = element("div", "assembly-bill-process");
+        for (const step of bill.process_steps || []) {
+          const stepNode = element("div", step.status === "CURRENT" ? "is-current" : "is-done");
+          stepNode.append(
+            element("span", "", step.status === "CURRENT" ? "현재" : "완료"),
+            element("strong", "", step.label || "처리 단계"),
+            element("time", "", insightDate(step.date)),
+            element("p", "", step.detail || "공식 처리 정보 확인 중"),
+          );
+          process.append(stepNode);
+        }
+        const current = element("aside", "assembly-bill-current");
+        current.append(
+          element("span", "", "현재 상태"),
+          element("strong", "", bill.current_status || "처리 단계 수집 중"),
+          element("small", "", bill.status_as_of ? `기준 ${insightDate(bill.status_as_of)}` : "공식 의안 데이터 최신 수집 기준"),
+        );
+        processBlock.append(process, current);
+      }
+      flow.append(processBlock);
+      content.append(flow);
+    }
+    openInsightDialog(
+      mode === "trend" ? "ISSUE TREND SUMMARY" : "INSTITUTIONALIZATION SUMMARY",
+      item.topic || "정책 주제 요약",
+      mode === "trend" ? "지속·급증·최근 미관측 판단 요약" : "논의→제도화 단계 요약",
+      content,
+    );
+  }
+
   function renderPolicyTimeline(payload) {
     const target = mount.querySelector("#assemblyPolicyTimeline");
     target.replaceChildren();
@@ -262,6 +518,11 @@
       target.append(element("p", "assembly-insight-empty", "정부와 국회에서 공통 근거가 확인된 정책 흐름이 없습니다."));
       return;
     }
+    target.append(element(
+      "p",
+      "assembly-insight-guide",
+      "구체 주제명과 핵심 고유어가 함께 맞는 정부·국회 근거만 연결합니다.",
+    ));
     for (const item of items) {
       const card = element("section", "assembly-policy-timeline-row");
       const head = element("header", "");
@@ -299,58 +560,38 @@
         steps.append(billStep);
       }
       card.append(head, steps);
+      makeInsightInteractive(card, () => openPolicyComparison(item));
       target.append(card);
     }
-  }
-
-  function trendWindow(items) {
-    const dates = items.flatMap((item) => (item.timeline || []).map((point) => String(point.date || ""))).filter(Boolean);
-    if (!dates.length) return null;
-    const latest = new Date([...dates].sort().at(-1) + "T00:00:00");
-    const currentStart = new Date(latest);
-    currentStart.setDate(currentStart.getDate() - 13);
-    const previousStart = new Date(currentStart);
-    previousStart.setDate(previousStart.getDate() - 14);
-    const previousEnd = new Date(currentStart);
-    previousEnd.setDate(previousEnd.getDate() - 1);
-    return { latest, currentStart, previousStart, previousEnd };
   }
 
   function renderIssueTrends(payload) {
     const target = mount.querySelector("#assemblyIssueTrends");
     target.replaceChildren();
-    const source = payload.items || [];
-    const window = trendWindow(source);
-    if (!window) {
-      target.append(element("p", "assembly-insight-empty", "기간별 공식 정책 발언이 아직 충분하지 않습니다."));
+    const rows = (payload.items || []).slice(0, 8);
+    if (!rows.length) {
+      target.append(element("p", "assembly-insight-empty", "비교할 구체 논의 주제가 아직 없습니다."));
       return;
     }
-    const rows = source.map((item) => {
-      let current = 0;
-      let previous = 0;
-      for (const point of item.timeline || []) {
-        const date = new Date(String(point.date) + "T00:00:00");
-        const count = Number(point.meeting_count || 0);
-        if (date >= window.currentStart && date <= window.latest) current += count;
-        else if (date >= window.previousStart && date <= window.previousEnd) previous += count;
-      }
-      let status = "신규 관측";
-      if (current === 0 && previous > 0) status = "최근 미관측";
-      else if (current > previous && current >= Math.max(2, Math.ceil(previous * 1.5))) status = "급증";
-      else if (current > 0 && previous > 0) status = "지속";
-      return { ...item, current, previous, status };
-    }).sort((a, b) => {
-      const order = { "급증": 4, "지속": 3, "신규 관측": 2, "최근 미관측": 1 };
-      return order[b.status] - order[a.status] || b.current - a.current || b.statement_count - a.statement_count;
-    }).slice(0, 6);
+    target.append(element(
+      "p",
+      "assembly-insight-guide",
+      "신규: 이전 14일 0회 · 급증: 이전 1회 이상이며 최근 3회 이상·2배 이상",
+    ));
     for (const item of rows) {
-      const row = element("section", "assembly-trend-row is-" + item.status.replace(/\s/g, "-"));
+      const status = item.trend_status || "관측 부족";
+      const latest = item.latest_meeting || {};
+      const ministry = (item.ministries || []).slice(0, 2).join(" · ");
+      const context = [ministry, latest.committee_name, insightDate(latest.date)].filter(Boolean).join(" · ");
+      const row = element("section", "assembly-trend-row is-" + status.replace(/\s/g, "-"));
       row.append(
-        element("span", "", item.status),
+        element("span", "", status),
         element("strong", "", item.topic),
-        element("b", "", `최근 ${item.current}회 · 이전 ${item.previous}회`),
-        element("small", "", `누적 ${Number(item.meeting_count || 0).toLocaleString()}개 회의 · 정책 발언 ${Number(item.statement_count || 0).toLocaleString()}건`),
+        element("b", "", `최근 ${Number(item.current_meeting_count || 0)}회 · 이전 ${Number(item.previous_meeting_count || 0)}회`),
+        element("p", "", item.summary || "회의 보고서에서 구체 주제가 확인됐습니다."),
+        element("small", "", `${context || "소관 확인 중"} · 누적 ${Number(item.meeting_count || 0).toLocaleString()}개 회의 · 근거 발언 ${Number(item.mention_count || 0).toLocaleString()}건`),
       );
+      makeInsightInteractive(row, () => openTopicSummary(item, "trend"));
       target.append(row);
     }
   }
@@ -358,25 +599,40 @@
   function renderInstitutionFlow(payload) {
     const target = mount.querySelector("#assemblyInstitutionFlow");
     target.replaceChildren();
-    const items = [...(payload.items || [])].sort(
-      (a, b) => (b.bills?.length || 0) - (a.bills?.length || 0) || b.statement_count - a.statement_count,
-    ).slice(0, 6);
+    const stageOrder = { BILL_LINKED: 4, DECISION_MENTIONED: 3, FORMALIZATION_MENTIONED: 2, FOLLOW_UP_TASK: 1 };
+    const items = [...(payload.items || [])]
+      .filter((item) => item.transition_stage !== "DISCUSSION")
+      .sort((a, b) => (stageOrder[b.transition_stage] || 0) - (stageOrder[a.transition_stage] || 0)
+        || Number(b.current_meeting_count || 0) - Number(a.current_meeting_count || 0))
+      .slice(0, 8);
     if (!items.length) {
-      target.append(element("p", "assembly-insight-empty", "제도화 흐름을 계산할 공식 정책 발언이 없습니다."));
+      target.append(element("p", "assembly-insight-empty", "후속 과제·의결·공식 의안으로 전환된 구체 주제가 아직 없습니다."));
       return;
     }
+    target.append(element(
+      "p",
+      "assembly-insight-guide",
+      "‘보고서상’ 단계는 발의 확인이 아닙니다. 의안번호가 직접 연결된 경우만 공식 의안입니다.",
+    ));
     for (const item of items) {
       const row = element("section", "assembly-institution-row");
       const copy = element("div", "");
       copy.append(
         element("strong", "", item.topic),
-        element("small", "", `공식 논의 ${Number(item.statement_count || 0).toLocaleString()}건 · ${Number(item.meeting_count || 0).toLocaleString()}개 회의`),
+        element("p", "", item.summary || "회의 보고서에서 전환 근거가 확인됐습니다."),
+        element("small", "", `${(item.ministries || []).join(" · ") || item.latest_meeting?.committee_name || "소관 확인 중"} · ${Number(item.meeting_count || 0).toLocaleString()}개 회의`),
       );
       const stage = element("div", "assembly-institution-stage");
-      stage.append(element("span", "is-done", "논의 확인"));
+      stage.append(element("span", "is-done", item.transition_label || "논의 확인"));
       const bills = item.bills || [];
-      if (!bills.length) {
-        stage.append(element("span", "is-waiting", "직접 연결 의안 없음"));
+      if (!bills.length && item.transition_stage === "DECISION_MENTIONED") {
+        stage.append(element("span", "is-waiting", "의안번호 미연결 · 발의 확인 아님"));
+      } else if (!bills.length && item.transition_stage === "FORMALIZATION_MENTIONED") {
+        stage.append(element("span", "is-waiting", "법안 언급 · 발의 확인 아님"));
+      } else if (!bills.length && item.transition_stage === "FOLLOW_UP_TASK") {
+        const task = (item.tasks || [])[0];
+        if (task) stage.append(element("span", "is-task", task));
+        stage.append(element("span", "is-waiting", "후속 이행 확인 필요"));
       } else {
         const bill = bills[0];
         stage.append(
@@ -387,21 +643,22 @@
         if (link) stage.append(link);
       }
       row.append(copy, stage);
+      makeInsightInteractive(row, () => openTopicSummary(item, "institution"));
       target.append(row);
     }
   }
 
   async function loadGovernmentInsights() {
     try {
-      const [crossResponse, flowResponse] = await Promise.all([
+      const [crossResponse, issueResponse] = await Promise.all([
         fetch("api/policy/cross-institution-flow", { cache: "no-store", headers: { Accept: "application/json" } }),
-        fetch("api/committees/policy-flow", { cache: "no-store", headers: { Accept: "application/json" } }),
+        fetch("api/policy/specific-issues", { cache: "no-store", headers: { Accept: "application/json" } }),
       ]);
-      if (!crossResponse.ok || !flowResponse.ok) throw new Error("insights");
-      const [cross, flow] = await Promise.all([crossResponse.json(), flowResponse.json()]);
+      if (!crossResponse.ok || !issueResponse.ok) throw new Error("insights");
+      const [cross, issues] = await Promise.all([crossResponse.json(), issueResponse.json()]);
       renderPolicyTimeline(cross);
-      renderIssueTrends(flow);
-      renderInstitutionFlow(flow);
+      renderIssueTrends(issues);
+      renderInstitutionFlow(issues);
     } catch (_) {
       for (const selector of ["#assemblyPolicyTimeline", "#assemblyIssueTrends", "#assemblyInstitutionFlow"]) {
         const target = mount.querySelector(selector);
@@ -600,7 +857,7 @@
     }
   }
 
-  mount.querySelector("#assemblySeatSelectionReset").addEventListener("click", () => {
+  mount.querySelector("#assemblySeatSelectionReset")?.addEventListener("click", () => {
     hemicycleState.selected.clear();
     renderHemicycle(hemicycleState.payload || {});
   });
@@ -627,12 +884,18 @@
     });
   }
 
+  document.querySelector("#assemblyInsightDialogClose")?.addEventListener("click", () => {
+    document.querySelector("#assemblyInsightDialog")?.close();
+  });
+  document.querySelector("#assemblyInsightDialog")?.addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+
   let initialized = false;
   function initialize() {
     if (initialized) return;
     initialized = true;
     loadCalendar();
-    loadReference();
     loadGovernmentInsights();
   }
   document.addEventListener("workspace-tab-change", (event) => {

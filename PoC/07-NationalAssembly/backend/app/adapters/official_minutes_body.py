@@ -32,7 +32,7 @@ class OfficialMinutesBody:
 
 class OfficialMinutesBodyAdapter:
     source_key = "committee_minutes_body"
-    parser_version = "official-minutes-html.v1"
+    parser_version = "official-minutes-html.v2"
 
     def parse(self, payload: SourcePayload) -> OfficialMinutesBody:
         if "html" not in payload.content_type.lower() and not payload.content.lstrip().startswith(b"<"):
@@ -65,11 +65,12 @@ class OfficialMinutesBodyAdapter:
                 text = self._clean(span.get_text(" ", strip=True))
                 if not source_span_id or not text:
                     continue
+                explicit_agenda_ref = explicit_spoken_agenda_ref(text)
                 utterances.append(OfficialUtterance(
                     sequence_number=len(utterances) + 1,
                     source_speaker_id=source_speaker_id,
                     source_span_id=source_span_id,
-                    agenda_item_ref=agenda_ref,
+                    agenda_item_ref=explicit_agenda_ref or agenda_ref,
                     speaker_name=speaker_name,
                     speaker_role=speaker_role,
                     text=text,
@@ -95,3 +96,15 @@ class OfficialMinutesBodyAdapter:
 
 def normalized_match_text(value: str) -> str:
     return "".join(character.lower() for character in value if character.isalnum())
+
+
+_EXPLICIT_AGENDA_PATTERN = re.compile(
+    r"^\s*(?:제\s*)?(?P<number>[1-9][0-9]{0,2})\s*"
+    r"(?:항|번\s*(?:안건|의안))(?=\s|[,.:·]|관련|에\s*대해|은|는|을|를)"
+)
+
+
+def explicit_spoken_agenda_ref(value: object) -> str | None:
+    """Return a narrowly-scoped agenda reference explicitly spoken at span start."""
+    match = _EXPLICIT_AGENDA_PATTERN.search(str(value or ""))
+    return f"item{match.group('number')}" if match else None

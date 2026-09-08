@@ -10,6 +10,7 @@ import json
 import os
 import tempfile
 import time
+import urllib.request
 import zipfile
 from xml.etree import ElementTree as ET
 from pathlib import Path
@@ -25,7 +26,48 @@ from selenium.common.exceptions import TimeoutException
 
 
 URL = os.getenv("AIWORKS_BROWSER_URL", "http://127.0.0.1:8000/poc/aiworks/")
+API = os.getenv("AIWORKS_API_URL", "http://127.0.0.1:8000/api/poc/aiworks")
 GECKODRIVER = os.getenv("AIWORKS_GECKODRIVER", "/snap/bin/geckodriver")
+TEST_ACTOR = "browser-smoke"
+
+
+def api_request(path: str, method: str = "GET", payload: dict | None = None) -> dict:
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8") if payload is not None else None
+    request = urllib.request.Request(
+        API + path,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method=method,
+    )
+    return json.load(urllib.request.urlopen(request, timeout=30))
+
+
+def create_test_project() -> dict:
+    return api_request(
+        "/projects",
+        "POST",
+        {"name": f"일반 보고서 브라우저 검증 {os.getpid()}", "actor": TEST_ACTOR},
+    )
+
+
+def cleanup_test_project(project: dict) -> None:
+    try:
+        api_request(
+            f"/projects/{project['id']}/status",
+            "POST",
+            {"action": "archive", "actor": TEST_ACTOR},
+        )
+        api_request(
+            f"/projects/{project['id']}",
+            "DELETE",
+            {
+                "actor": TEST_ACTOR,
+                "confirmation": project["name"],
+                "acknowledge_irreversible": True,
+            },
+        )
+    except Exception as error:
+        print(f"warning: test project cleanup failed: {error}")
 
 
 def wait_for(driver, expression: str, timeout: int = 10):
@@ -72,6 +114,7 @@ def main() -> None:
         raise SystemExit(f"geckodriver not found: {GECKODRIVER}")
     options = Options()
     options.add_argument("-headless")
+    project = create_test_project()
     with tempfile.TemporaryDirectory(prefix=".aiworks-browser-", dir=Path.cwd()) as temp_name:
         temp_dir = Path(temp_name)
         hwpx_path = temp_dir / "browser-sample.hwpx"
@@ -126,8 +169,8 @@ def main() -> None:
             if not driver.find_element(By.ID, "welcomeScreen").is_displayed():
                 raise AssertionError("prompt-first welcome screen is not visible")
             report["promptFirst"] = driver.find_element(By.ID, "welcomeTitle").text
-            wait_for(driver, "document.querySelector('[data-select-project=\"project-default\"]')")
-            driver.find_element(By.CSS_SELECTOR, '[data-select-project="project-default"]').click()
+            wait_for(driver, f"document.querySelector('[data-select-project=\"{project['id']}\"]')")
+            driver.find_element(By.CSS_SELECTOR, f'[data-select-project="{project["id"]}"]').click()
             wait_for(driver, "!document.querySelector('#welcomeTask').hidden || !document.querySelector('#workbench').hidden")
             if driver.execute_script("return document.querySelector('#welcomeTask').hidden"):
                 wait_for(driver, "!document.querySelector('#workbench').hidden")
@@ -526,6 +569,7 @@ def main() -> None:
             print(json.dumps(report, ensure_ascii=False, indent=2))
         finally:
             driver.quit()
+            cleanup_test_project(project)
 
 
 if __name__ == "__main__":

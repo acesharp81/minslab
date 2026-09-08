@@ -12,9 +12,11 @@ from .storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store
 
 
 class KakaoError(RuntimeError):
-    def __init__(self, message: str, status: int = 502):
+    def __init__(self, message: str, status: int = 502, code: str = "", detail: dict | None = None):
         super().__init__(message)
         self.status = status
+        self.code = str(code or "")
+        self.detail = detail or {}
 
 
 class TokenCipher:
@@ -61,7 +63,14 @@ class KakaoClient:
                 detail = json.loads(error.read().decode("utf-8"))
             except Exception:
                 detail = {"message": str(error)}
-            raise KakaoError(str(detail.get("msg") or detail.get("error_description") or detail.get("message") or error), error.code) from error
+            raise KakaoError(
+                str(detail.get("msg") or detail.get("error_description") or detail.get("message") or error),
+                error.code,
+                str(detail.get("code") or detail.get("error") or ""),
+                detail,
+            ) from error
+        except (urllib.error.URLError, TimeoutError) as error:
+            raise KakaoError(f"카카오 API 연결 실패: {error}", 503, "network_error") from error
 
     def _granted_scopes(self, access_token: str, token_scope: str = "") -> list[str]:
         scopes = {value.strip() for value in str(token_scope or "").replace(",", " " ).split() if value.strip()}
@@ -186,6 +195,29 @@ class KakaoClient:
         self.store.update_recipient_tokens(recipient["id"], updates)
         return access_token
 
+    @staticmethod
+    def is_terminal_auth_error(error: BaseException) -> bool:
+        if not isinstance(error, KakaoError):
+            return False
+        searchable = " ".join((str(error), str(error.code), json.dumps(error.detail, ensure_ascii=False))).casefold()
+        if "expired_or_invalid_refresh_token" in searchable or "koe322" in searchable:
+            return True
+        return int(error.status or 0) == 403 and "insufficient" in searchable and "scope" in searchable
+
+    def refresh_access_token(self, recipient_id: str) -> str:
+        recipient = self.store.get_recipient(recipient_id, include_tokens=True)
+        if not recipient or recipient.get("status") == "deleted":
+            raise KakaoError("카카오 수신자를 찾지 못했습니다.", 404)
+        try:
+            return self._refresh(recipient)
+        except KakaoError as error:
+            if self.is_terminal_auth_error(error):
+                self.store.mark_recipient_reauthorize(recipient_id, "expired_or_invalid_refresh_token")
+            raise
+        except Exception as error:
+            self.store.mark_recipient_reauthorize(recipient_id, "token_unavailable_reauthorization_required")
+            raise KakaoError("카카오 토큰을 사용할 수 없어 재동의가 필요합니다.", 401, "local_token_error") from error
+
     def access_token(self, recipient_id: str) -> str:
         recipient = self.store.get_recipient(recipient_id, include_tokens=True)
         if not recipient:
@@ -196,12 +228,12 @@ class KakaoClient:
             expires_at = datetime.now(KST)
         try:
             if expires_at <= datetime.now(KST) + timedelta(minutes=5):
-                return self._refresh(recipient)
+                return self.refresh_access_token(recipient_id)
             return self.cipher.decrypt(recipient["access_token_ciphertext"])
+        except KakaoError:
+            raise
         except Exception as error:
-            self.store.update_recipient_tokens(recipient_id, {"status": "reauthorize", "last_error": str(error)})
-            if isinstance(error, KakaoError):
-                raise
+            self.store.mark_recipient_reauthorize(recipient_id, "token_unavailable_reauthorization_required")
             raise KakaoError("카카오 토큰을 사용할 수 없어 재동의가 필요합니다.", 401) from error
 
     def connection_status(self, recipient_id: str) -> dict:
@@ -251,22 +283,31 @@ class KakaoClient:
 
     def send_to_me(self, recipient_id: str, text: str, original_url: str, image_url: str = "", title: str = "", description: str = "", button_title: str = "원문 보기") -> tuple[int, dict]:
         token = self.access_token(recipient_id)
-        if self._valid_image_url(image_url):
-            message = self._feed_message(text, original_url, image_url, title, description)
-            try:
-                return self._request(
-                    "https://kapi.kakao.com/v2/api/talk/memo/default/send",
-                    {"template_object": json.dumps(self._feed_message(text, original_url, image_url, title, description, button_title), ensure_ascii=False, separators=(",", ":"))},
-                    token,
-                )
-            except KakaoError:
-                pass
-        message = self._text_message(text, original_url, button_title)
-        return self._request(
-            "https://kapi.kakao.com/v2/api/talk/memo/default/send",
-            {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},
-            token,
-        )
+
+        def send(current_token: str) -> tuple[int, dict]:
+            if self._valid_image_url(image_url):
+                try:
+                    return self._request(
+                        "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+                        {"template_object": json.dumps(self._feed_message(text, original_url, image_url, title, description, button_title), ensure_ascii=False, separators=(",", ":"))},
+                        current_token,
+                    )
+                except KakaoError as error:
+                    if int(error.status or 0) == 401:
+                        raise
+            message = self._text_message(text, original_url, button_title)
+            return self._request(
+                "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+                {"template_object": json.dumps(message, ensure_ascii=False, separators=(",", ":"))},
+                current_token,
+            )
+
+        try:
+            return send(token)
+        except KakaoError as error:
+            if int(error.status or 0) != 401:
+                raise
+            return send(self.refresh_access_token(recipient_id))
 
     def disconnect(self, recipient_id: str) -> None:
         self.store.delete_recipient(recipient_id)

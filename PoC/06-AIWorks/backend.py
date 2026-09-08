@@ -33,6 +33,9 @@ from urllib import request as url_request
 ROOT = Path(__file__).resolve().parent
 DEFAULT_DB_PATH = ROOT / "data" / "aiworks.sqlite3"
 DB_PATH = Path(os.getenv("AIWORKS_DB_PATH", str(DEFAULT_DB_PATH))).expanduser()
+PRODUCT_DISPLAY_NAME = os.getenv("AIWORKS_PRODUCT_NAME", "AI Work Hub").strip() or "AI Work Hub"
+PRODUCT_TECHNICAL_NAME = "AIWorks"
+RETIRED_MCP_PACKAGE_IDS = frozenset({"integration.kordoc"})
 ENABLE_DEMO_SEED = os.getenv("AIWORKS_ENABLE_DEMO_SEED", "0").strip().lower() in {"1", "true", "yes", "on"}
 TOKEN_TTL_SECONDS = max(60, min(3600, int(os.getenv("AIWORKS_APPROVAL_TTL_SECONDS", "600"))))
 MAX_HWPX_BYTES = max(1_000_000, min(30_000_000, int(os.getenv("AIWORKS_MAX_HWPX_BYTES", "10000000"))))
@@ -80,6 +83,14 @@ class ApiError(Exception):
     def __init__(self, message: str, status: int = 400):
         super().__init__(message)
         self.status = status
+
+
+def _reject_retired_mcp_package(package_id: str) -> None:
+    if package_id in RETIRED_MCP_PACKAGE_IDS:
+        raise ApiError(
+            "퇴역한 MCP는 새로 선택·설치·롤백·수정할 수 없습니다. 과거 패키지와 실행 이력은 감사 목적으로만 보존됩니다.",
+            410,
+        )
 
 
 _SENSITIVE_TEXT_PATTERNS = (
@@ -984,6 +995,26 @@ def _audit(
     db.execute("UPDATE audit_events SET event_hash=? WHERE id=?", (event_hash, event_id))
 
 
+def _rehash_audit_chain(db: sqlite3.Connection) -> None:
+    """Rebuild the chain after an authorized erasure removes historical events."""
+    previous_hash = "0" * 64
+    rows = db.execute(
+        "SELECT id,execution_id,plan_id,actor,event_type,detail_json,created_at FROM audit_events ORDER BY id"
+    ).fetchall()
+    for row in rows:
+        canonical = _json({
+            "id": row["id"], "executionId": row["execution_id"], "planId": row["plan_id"],
+            "actor": row["actor"], "eventType": row["event_type"],
+            "detail": _load_json(row["detail_json"], {}), "createdAt": row["created_at"],
+        })
+        event_hash = hashlib.sha256((previous_hash + "\0" + canonical).encode("utf-8")).hexdigest()
+        db.execute(
+            "UPDATE audit_events SET previous_hash=?,event_hash=? WHERE id=?",
+            (previous_hash, event_hash, row["id"]),
+        )
+        previous_hash = event_hash
+
+
 def verify_audit_integrity() -> dict:
     ensure_schema()
     previous_hash = "0" * 64
@@ -1521,6 +1552,7 @@ def mcp_install_preview(payload: dict) -> dict:
     version = str(payload.get("version") or "").strip()
     if not package_id or not version:
         raise ApiError("권한 차이를 확인할 MCP와 버전이 필요합니다.")
+    _reject_retired_mcp_package(package_id)
     with _connect() as db:
         target = _get_package(db, package_id, version)
         installation = db.execute("SELECT * FROM mcp_installations WHERE package_id=? AND status='active'", (package_id,)).fetchone()
@@ -1555,6 +1587,8 @@ def list_store_packages() -> dict:
     grouped = {}
     quarantined = []
     for row in rows:
+        if row["package_id"] in RETIRED_MCP_PACKAGE_IDS:
+            continue
         try:
             package = _verified_package(row)
         except ApiError as error:
@@ -1690,6 +1724,7 @@ def install_mcp_package(payload: dict) -> dict:
     version = str(payload.get("version") or "").strip()
     if not package_id or not version:
         raise ApiError("설치할 MCP와 정확한 버전이 필요합니다.")
+    _reject_retired_mcp_package(package_id)
     if payload.get("acknowledge_signature") is not True:
         raise ApiError("게시자 서명 확인이 필요합니다.", 403)
     actor = _actor(payload)
@@ -1732,6 +1767,7 @@ def rollback_mcp_package(payload: dict) -> dict:
     package_id = str(payload.get("package_id") or "").strip()
     if not package_id:
         raise ApiError("롤백할 MCP가 필요합니다.")
+    _reject_retired_mcp_package(package_id)
     if payload.get("acknowledge_signature") is not True:
         raise ApiError("롤백 대상 패키지의 서명 확인이 필요합니다.", 403)
     actor = _actor(payload)
@@ -1778,6 +1814,7 @@ def fork_mcp_package(payload: dict) -> dict:
     version = str(payload.get("version") or "").strip()
     if not package_id or not version:
         raise ApiError("수정할 MCP와 정확한 버전이 필요합니다.")
+    _reject_retired_mcp_package(package_id)
     actor = _actor(payload)
     with _connect() as db:
         package = _get_package(db, package_id, version)
@@ -2453,6 +2490,8 @@ def _rag_query_tokens(value: str) -> set[str]:
     ignored = {
         "대해", "대한", "관련", "정리", "정리해줘", "확인", "확인해줘", "찾아줘",
         "알려줘", "보여줘", "해줘", "해주세요", "연도별", "연도별로", "주요",
+        "관련된", "지적", "사항", "사항을", "보고서", "문서", "작성", "작성해줘",
+        "만들어줘", "hwp", "hwpx", "rhwp", "한글", "파일",
     }
     aliases = {"행안부": "행정안전부", "과기부": "과학기술정보통신부"}
     suffixes = ("으로부터", "에서부터", "으로", "에서", "에게", "부터", "까지", "처럼", "별로", "에", "을", "를", "이", "가", "은", "는", "와", "과", "로", "의")
@@ -2467,7 +2506,12 @@ def _rag_query_tokens(value: str) -> set[str]:
             if raw_token.endswith(suffix) and len(raw_token) - len(suffix) >= 2:
                 candidates.add(raw_token[:-len(suffix)])
                 break
-        for token in candidates:
+        expanded_candidates = set(candidates)
+        for candidate in candidates:
+            parts = re.findall(r"[가-힣]+|[a-z]+|\d+", candidate)
+            if len(parts) > 1:
+                expanded_candidates.update(parts)
+        for token in expanded_candidates:
             if (len(token) >= 2 or token.isdigit()) and token not in ignored:
                 tokens.add(token)
                 short_year = re.fullmatch(r"(\d{2})년", token)
@@ -2483,6 +2527,8 @@ def _rag_query_phrases(value: str) -> set[str]:
     ignored = {
         "대해", "대한", "관련", "정리", "정리해줘", "확인", "확인해줘", "찾아줘",
         "알려줘", "보여줘", "해줘", "해주세요", "연도별", "연도별로", "주요",
+        "관련된", "지적", "사항", "사항을", "보고서", "문서", "작성", "작성해줘",
+        "만들어줘", "hwp", "hwpx", "rhwp", "한글", "파일",
     }
     aliases = {"행안부": "행정안전부", "과기부": "과학기술정보통신부"}
     suffixes = ("으로", "에서", "에게", "부터", "까지", "처럼", "별로", "에", "을", "를", "이", "가", "은", "는", "와", "과", "로", "의")
@@ -2523,7 +2569,20 @@ def _search_rag_chunks(chunks: list[dict], query: str, *, limit: int = 5) -> lis
     matched_specific_phrases = {
         phrase
         for phrase in specific_phrases
-        if any(phrase in str(item.get("searchText") or _normalized_intent(item.get("content") or "")) for item in chunks)
+        if any(
+            re.sub(r"\s+", "", re.sub(r"(?<![a-z])ai(?![a-z])", "인공지능", phrase, flags=re.IGNORECASE))
+            in re.sub(
+                r"\s+",
+                "",
+                re.sub(
+                    r"(?<![a-z])ai(?![a-z])",
+                    "인공지능",
+                    str(item.get("searchText") or _normalized_intent(item.get("content") or "")),
+                    flags=re.IGNORECASE,
+                ),
+            )
+            for item in chunks
+        )
     }
     ranked = []
     for item in chunks:
@@ -2537,7 +2596,18 @@ def _search_rag_chunks(chunks: list[dict], query: str, *, limit: int = 5) -> lis
             continue
         density = sum(min(3, search_text.count(token)) for token in query_tokens)
         score = (120 if phrase_hit else 0) + phrase_hits * 90 + token_hits * 28 + title_hits * 12 + density * 3
-        ranked.append({**item, "score": score, "matchedTopicPhrase": any(phrase in search_text for phrase in matched_specific_phrases)})
+        compact_search_text = re.sub(
+            r"\s+", "", re.sub(r"(?<![a-z])ai(?![a-z])", "인공지능", search_text, flags=re.IGNORECASE)
+        )
+        ranked.append({
+            **item,
+            "score": score,
+            "matchedTopicPhrase": any(
+                re.sub(r"\s+", "", re.sub(r"(?<![a-z])ai(?![a-z])", "인공지능", phrase, flags=re.IGNORECASE))
+                in compact_search_text
+                for phrase in matched_specific_phrases
+            ),
+        })
     if matched_specific_phrases:
         ranked = [item for item in ranked if item["matchedTopicPhrase"]]
     ranked.sort(key=lambda item: (-item["score"], item.get("filename", ""), item.get("chunkIndex", 0)))
@@ -2653,10 +2723,20 @@ def _rag_evidence_report(query: str, hits: list[dict], *, include_title: bool = 
         for year in years:
             year_items = []
             for rank, hit in enumerate(hits[:5], start=1):
-                matching_units = [
+                explicit_year_units = [
                     unit for unit in _rag_sentence_units(hit.get("content") or "") if year in unit
                 ]
-                for unit in matching_units[:2]:
+                matching_units = list(explicit_year_units)
+                # A source often states its reporting year once in a heading and
+                # omits it from the following issue, budget and action sentences.
+                # When the retrieved evidence has one unambiguous year, retain
+                # query-relevant sibling sentences instead of silently dropping
+                # those facts from the year section.
+                if len(years) == 1 and explicit_year_units:
+                    for unit in _rag_relevant_units(query, hit, limit=6):
+                        if unit not in matching_units:
+                            matching_units.append(unit)
+                for unit in matching_units[:6]:
                     anchors = (
                         "지적", "문제", "우려", "미흡", "지연", "중복", "불용", "개선",
                         year,
@@ -2674,7 +2754,7 @@ def _rag_evidence_report(query: str, hits: list[dict], *, include_title: bool = 
                         })
             lines.append("### " + year + "년")
             if year_items:
-                for item in year_items[:3]:
+                for item in year_items[:8]:
                     lines.append(f"- {item['text']} [{item['rank']}]")
             else:
                 lines.append("- 등록 자료에서 해당 연도의 직접 근거를 찾지 못했습니다.")
@@ -2708,6 +2788,36 @@ def _rag_evidence_report(query: str, hits: list[dict], *, include_title: bool = 
     return "\n".join(lines).strip()
 
 
+def _strip_output_format_guidance(markdown: str, intent: str) -> str:
+    """Keep HWP delivery instructions out of the report's semantic content."""
+    request = str(intent or "")
+    mentions_hwp = bool(re.search(r"(?i)(?:hwpx?|rhwp|한글\s*파일)", request))
+    asks_for_guidance = bool(
+        re.search(r"(사용법|사용\s*방법|이용법|매뉴얼|가이드|열(?:기|어)|편집\s*방법)", request)
+    )
+    if not mentions_hwp or asks_for_guidance:
+        return str(markdown or "")
+    lines = str(markdown or "").splitlines()
+    kept = []
+    skipped_heading_level = 0
+    format_term = re.compile(r"(?i)(?:hwpx?|rhwp|한글\s*파일)")
+    guidance_term = re.compile(r"(사용|이용|편집|열기|저장|다운로드|변환|클릭|링크|생성\s*방법|작성\s*방법)")
+    for line in lines:
+        heading = re.match(r"^(#{1,6})\s+(.+)$", line.strip())
+        if skipped_heading_level:
+            if heading and len(heading.group(1)) <= skipped_heading_level:
+                skipped_heading_level = 0
+            else:
+                continue
+        if heading and format_term.search(heading.group(2)) and guidance_term.search(heading.group(2)):
+            skipped_heading_level = len(heading.group(1))
+            continue
+        if format_term.search(line) and guidance_term.search(line):
+            continue
+        kept.append(line)
+    return "\n".join(kept).strip()
+
+
 def _build_structured_report_artifact(
     title: str,
     content: str,
@@ -2718,6 +2828,7 @@ def _build_structured_report_artifact(
 ) -> dict:
     snapshot = fact_snapshot if isinstance(fact_snapshot, dict) else {}
     template = TEMPLATE_REPORT_STYLE_MCP.select(intent)
+    content = _strip_output_format_guidance(content, intent)
     report_document = REPORT_DOCUMENT_MCP.parse(
         content,
         title=title,
@@ -4085,6 +4196,7 @@ def preview_mcp_template(draft_id: str, payload: dict) -> dict:
     parsed = parse_hwpx(rendered, "AIWorks_양식적용_미리보기.hwpx")
     return {
         "draftId": draft_id,
+        "sourceSha256": str(source["sha256"]),
         "markdown": markdown,
         "original": {
             "filename": original["filename"],
@@ -4095,6 +4207,7 @@ def preview_mcp_template(draft_id: str, payload: dict) -> dict:
         "rendered": {
             "filename": "AIWorks_양식적용_미리보기.hwpx",
             "contentBase64": base64.b64encode(rendered).decode("ascii"),
+            "sha256": hashlib.sha256(rendered).hexdigest(),
             "title": report_document.get("title"),
             "blocks": len(report_document.get("blocks") or []),
             "paragraphs": len(parsed.get("paragraphs") or []),
@@ -4115,11 +4228,69 @@ def preview_mcp_template(draft_id: str, payload: dict) -> dict:
 
 
 def confirm_mcp_template_preview(draft_id: str, payload: dict) -> dict:
-    """Record explicit acceptance of a low-confidence inferred template."""
+    """Persist RHWP preview edits, then record explicit acceptance of the template."""
     draft, source = _template_draft_source(draft_id)
     if source is None:
         raise ApiError("확인할 양식 원본이 없습니다.", 409)
     preview = preview_mcp_template(draft_id, payload)
+    expected_source_sha = str(payload.get("preview_source_sha256") or "").strip()
+    if expected_source_sha and expected_source_sha != str(source["sha256"]):
+        raise ApiError("양식 원본이 미리보기 이후 변경되었습니다. 실제 내용으로 결과 확인을 다시 실행해 주세요.", 409)
+    expected_render_sha = str(payload.get("preview_render_sha256") or "").strip()
+    if expected_render_sha and expected_render_sha != str(preview["rendered"]["sha256"]):
+        raise ApiError("확인 중인 미리보기와 현재 렌더링 결과가 다릅니다. 결과를 다시 불러와 주세요.", 409)
+
+    preview_edit = {"provided": False, "applied": False}
+    edited_content = str(payload.get("edited_content_base64") or "").strip()
+    if edited_content:
+        preview_edit["provided"] = True
+        try:
+            edited_artifact = base64.b64decode(edited_content, validate=True)
+        except (ValueError, TypeError) as error:
+            raise ApiError("RHWP 미리보기 수정본 content_base64가 올바르지 않습니다.") from error
+        if not edited_artifact:
+            raise ApiError("RHWP 미리보기 수정본이 비어 있습니다.")
+        if len(edited_artifact) > MAX_ASSET_BYTES:
+            raise ApiError(f"RHWP 미리보기 수정본은 {MAX_ASSET_BYTES:,}바이트를 넘을 수 없습니다.", 413)
+        _inspect_builder_reference("RHWP_미리보기_수정본.hwpx", edited_artifact)
+        edited_sha = hashlib.sha256(edited_artifact).hexdigest()
+        preview_edit["sha256"] = edited_sha
+        if edited_sha != str(preview["rendered"]["sha256"]):
+            reusable_template, authoring = _build_template_authoring_sample(
+                edited_artifact, "RHWP_미리보기_수정본.hwpx"
+            )
+            session = open_native_document_session({
+                "filename": str(source["filename"]),
+                "content_base64": base64.b64encode(reusable_template).decode("ascii"),
+                "intent": "실제 내용 확인 화면에서 수정한 RHWP 결과를 재사용 가능한 양식으로 반영",
+                "session_purpose": "template-authoring",
+                "builder_draft_id": draft_id,
+                "builder_reference_id": source["id"],
+                "confirmed": True,
+                "actor": _actor(payload),
+            })
+            committed = commit_mcp_template_authoring(
+                draft_id, {"session_id": session["id"], "actor": _actor(payload)}
+            )
+            preview_edit.update({
+                "applied": True,
+                "sessionId": session["id"],
+                "referenceId": committed["reference"]["id"],
+                "sourceSha256": committed["reference"]["sha256"],
+                "schema": authoring["schema"],
+                "quality": committed["authoring"]["quality"],
+            })
+            draft, source = _template_draft_source(draft_id)
+            preview = preview_mcp_template(draft_id, payload)
+            with _connect() as audit_db:
+                _audit(audit_db, _actor(payload), "mcp.template_preview_edit_committed", {
+                    "draft_id": draft_id,
+                    "reference_id": source["id"],
+                    "session_id": session["id"],
+                    "edited_sha256": edited_sha,
+                    "template_sha256": str(source["sha256"]),
+                    "external_transfer": False,
+                })
     now = utc_now()
     with _connect() as db:
         row = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
@@ -4159,6 +4330,7 @@ def confirm_mcp_template_preview(draft_id: str, payload: dict) -> dict:
     return {
         "draft": _draft_row_result(updated),
         "preview": preview,
+        "previewEdit": preview_edit,
         "notice": "실제 내용 적용 결과를 확인한 양식으로 저장했습니다. 이제 구조 검증 후 게시할 수 있습니다.",
     }
 
@@ -4832,6 +5004,111 @@ def get_mcp_draft(draft_id: str) -> dict:
     if not row:
         raise ApiError("MCP draft를 찾을 수 없습니다.", 404)
     return _draft_row_result(row)
+
+
+def update_mcp_draft(draft_id: str, payload: dict) -> dict:
+    """Persist editable Builder fields without creating another package or version."""
+    ensure_schema()
+    actor = _actor(payload)
+    with _connect() as db:
+        row = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+        if not row:
+            raise ApiError("MCP draft를 찾을 수 없습니다.", 404)
+        if row["status"] == "published":
+            raise ApiError("게시된 버전은 직접 수정할 수 없습니다. Store에서 새 수정 초안을 만드세요.", 409)
+        manifest = _load_json(row["manifest_json"], {})
+        name = str(payload.get("name") if "name" in payload else manifest.get("name") or "").strip()
+        description = str(payload.get("description") if "description" in payload else manifest.get("description") or "").strip()
+        version = str(payload.get("version") if "version" in payload else manifest.get("version") or "").strip()
+        package_id = str(payload.get("package_id") or manifest.get("id") or "").strip()
+        mcp_type = str(payload.get("mcp_type") or manifest.get("mcpType") or "tool").strip().lower()
+        if package_id != manifest.get("id"):
+            raise ApiError("수정 초안의 패키지 ID는 변경할 수 없습니다. 새 MCP로 생성해 주세요.", 409)
+        if mcp_type != manifest.get("mcpType"):
+            raise ApiError("수정 초안의 MCP 유형은 변경할 수 없습니다. 새 MCP로 생성해 주세요.", 409)
+        if len(name) < 2 or len(name) > 120:
+            raise ApiError("MCP 이름은 2자 이상 120자 이하여야 합니다.")
+        if len(description) < 10 or len(description) > 4_000:
+            raise ApiError("MCP 업무 설명은 10자 이상 4,000자 이하여야 합니다.")
+        if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            raise ApiError("MCP 버전은 정확한 SemVer여야 합니다.")
+        collision = db.execute(
+            "SELECT 1 FROM mcp_packages WHERE package_id=? AND version=?",
+            (package_id, version),
+        ).fetchone()
+        if collision:
+            raise ApiError(f"{package_id}@{version}은 이미 게시되어 있습니다. 수정 초안은 더 높은 버전을 사용하세요.", 409)
+        visibility = str(payload.get("visibility") if "visibility" in payload else manifest.get("visibility") or "private")
+        if visibility not in {"private", "organization", "public"}:
+            raise ApiError("지원하지 않는 공개 범위입니다.")
+        source_included = payload.get("source_included", manifest.get("sourceIncluded", False))
+        allow_external = payload.get("allow_external", manifest.get("runtime") != "local")
+        use_model = payload.get("use_model", (manifest.get("builderGuide") or {}).get("useModel", False))
+        if not isinstance(source_included, bool) or not isinstance(allow_external, bool) or not isinstance(use_model, bool):
+            raise ApiError("원본 포함·외부 전송·모델 사용 값은 boolean이어야 합니다.")
+        guide = manifest.get("builderGuide") if isinstance(manifest.get("builderGuide"), dict) else {}
+        instructions = str(payload.get("instructions") if "instructions" in payload else guide.get("instructions") or description).strip()
+        if len(instructions) < 10 or len(instructions) > 8_000:
+            raise ApiError("실행 지침은 10자 이상 8,000자 이하여야 합니다.")
+        cautions = _builder_lines(payload.get("cautions")) if "cautions" in payload else list(guide.get("cautions") or [])
+        procedure = _builder_lines(payload.get("procedure")) if "procedure" in payload else list(guide.get("procedure") or [])
+        if not procedure:
+            raise ApiError("처리 순서를 한 단계 이상 입력해 주세요.")
+        trigger_examples = _builder_lines(payload.get("trigger_examples"), limit=10) if "trigger_examples" in payload else list(guide.get("triggerExamples") or [])
+        if mcp_type == "template":
+            for example in (f"{name}으로 바꿔줘", f"{name} 적용해줘"):
+                if example not in trigger_examples:
+                    trigger_examples.append(example)
+            trigger_examples = trigger_examples[:10]
+        guide.update({
+            "instructions": instructions,
+            "cautions": cautions,
+            "procedure": procedure,
+            "triggerExamples": trigger_examples,
+            "dataSource": str(payload.get("data_source") if "data_source" in payload else guide.get("dataSource") or "").strip()[:500],
+            "useModel": use_model,
+        })
+        permissions = [dict(item) for item in manifest.get("permissions") or [] if isinstance(item, dict)]
+
+        def set_permission(scope: str, enabled: bool, reason: str) -> None:
+            nonlocal permissions
+            permissions = [item for item in permissions if item.get("scope") != scope]
+            if enabled:
+                permissions.append({"scope": scope, "reason": reason, "required": True})
+
+        set_permission("model.invoke", use_model, "구조화된 업무 결과 생성")
+        set_permission("network.send", allow_external, "사용자가 승인한 최소 데이터의 외부 전송")
+        manifest.update({
+            "name": name,
+            "description": description,
+            "version": version,
+            "visibility": visibility,
+            "sourceIncluded": source_included,
+            "runtime": "hybrid" if allow_external else "local",
+            "permissions": permissions,
+            "builderGuide": guide,
+        })
+        retention = manifest.get("dataRetention") if isinstance(manifest.get("dataRetention"), dict) else {}
+        retention.update({
+            "policy": "provider-controlled" if allow_external else "local-until-user-delete",
+            "storesInput": bool(source_included),
+            "externalTransfer": bool(allow_external),
+        })
+        manifest["dataRetention"] = retention
+        now = utc_now()
+        validation = {"passed": False, "tests": []}
+        db.execute(
+            "UPDATE mcp_drafts SET status='draft',manifest_json=?,validation_json=?,updated_at=? WHERE id=?",
+            (_json(manifest), _json(validation), now, draft_id),
+        )
+        _audit(db, actor, "mcp.draft_updated", {
+            "draft_id": draft_id,
+            "package_id": package_id,
+            "version": version,
+            "mcp_type": mcp_type,
+        })
+        updated = db.execute("SELECT * FROM mcp_drafts WHERE id=?", (draft_id,)).fetchone()
+    return _draft_row_result(updated)
 
 
 def validate_mcp_draft(draft_id: str, payload: dict) -> dict:
@@ -5735,6 +6012,218 @@ def change_project_status(project_id: str, payload: dict) -> dict:
         "id": project["id"], "name": project["name"], "owner": project["owner"],
         "classification": project["classification"], "status": project["status"],
         "updatedAt": project["updated_at"],
+    }
+
+
+def purge_project(project_id: str, payload: dict) -> dict:
+    """Permanently erase an archived project and every project-owned record."""
+    ensure_schema()
+    project_id = _safe_project_id(project_id)
+    actor = _actor(payload)
+
+    def ids(db: sqlite3.Connection, sql: str, parameters: tuple = ()) -> set[str]:
+        return {str(row[0]) for row in db.execute(sql, parameters).fetchall() if row[0]}
+
+    def delete_ids(db: sqlite3.Connection, table: str, column: str, values: set[str]) -> int:
+        if not values:
+            return 0
+        placeholders = ",".join("?" for _ in values)
+        return max(0, db.execute(
+            f"DELETE FROM {table} WHERE {column} IN ({placeholders})", tuple(sorted(values))
+        ).rowcount)
+
+    def detail_matches(value: object) -> bool:
+        if isinstance(value, dict):
+            if any(str(value.get(key) or "") == project_id for key in ("project_id", "projectId")):
+                return True
+            return any(detail_matches(item) for item in value.values())
+        if isinstance(value, list):
+            return any(detail_matches(item) for item in value)
+        return False
+
+    with _connect() as db:
+        project = db.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+        if not project:
+            raise ApiError("프로젝트를 찾을 수 없습니다.", 404)
+        _require_project_role(db, project_id, actor, {"owner"})
+        if project["status"] != "archived":
+            raise ApiError("완전 삭제하려면 프로젝트를 먼저 삭제 목록으로 이동해 주세요.", 409)
+        if payload.get("acknowledge_irreversible") is not True:
+            raise ApiError("완전 삭제는 복구할 수 없음을 확인해야 합니다.", 409)
+        if str(payload.get("confirmation") or "") != str(project["name"]):
+            raise ApiError("확인을 위해 프로젝트 이름을 정확히 입력해 주세요.", 409)
+
+        conversation_ids = ids(db, "SELECT id FROM project_conversations WHERE project_id=?", (project_id,))
+        document_ids = ids(db, "SELECT id FROM project_markdown_documents WHERE project_id=?", (project_id,))
+        fact_ids = ids(db, "SELECT id FROM project_facts WHERE project_id=?", (project_id,))
+        artifact_ids = ids(db, "SELECT id FROM artifacts WHERE project_id=?", (project_id,))
+        document_artifact_ids = ids(
+            db,
+            "SELECT a.id FROM project_document_artifacts a JOIN project_markdown_documents d ON d.id=a.document_id WHERE d.project_id=?",
+            (project_id,),
+        )
+        native_session_ids = ids(
+            db,
+            "SELECT id FROM native_document_sessions WHERE project_id=?",
+            (project_id,),
+        )
+
+        plan_ids = {
+            str(row["id"])
+            for row in db.execute("SELECT id,document_context_json FROM plans").fetchall()
+            if str((_load_json(row["document_context_json"], {}) or {}).get("project_id") or "") == project_id
+        }
+        execution_ids: set[str] = set()
+        for row in db.execute(
+            "SELECT plan_id,execution_id FROM project_decisions WHERE project_id=?",
+            (project_id,),
+        ).fetchall():
+            if row["plan_id"]:
+                plan_ids.add(str(row["plan_id"]))
+            if row["execution_id"]:
+                execution_ids.add(str(row["execution_id"]))
+        for row in db.execute(
+            "SELECT m.plan_id,m.execution_id FROM project_conversation_messages m "
+            "JOIN project_conversations c ON c.id=m.conversation_id WHERE c.project_id=?",
+            (project_id,),
+        ).fetchall():
+            if row["plan_id"]:
+                plan_ids.add(str(row["plan_id"]))
+            if row["execution_id"]:
+                execution_ids.add(str(row["execution_id"]))
+        for row in db.execute(
+            "SELECT plan_id,execution_id FROM report_fact_snapshots WHERE project_id=?",
+            (project_id,),
+        ).fetchall():
+            if row["plan_id"]:
+                plan_ids.add(str(row["plan_id"]))
+            if row["execution_id"]:
+                execution_ids.add(str(row["execution_id"]))
+
+        workflow_run_ids = ids(db, "SELECT id FROM workflow_runs WHERE project_id=?", (project_id,))
+        if artifact_ids:
+            workflow_run_ids.update(ids(
+                db,
+                "SELECT workflow_run_id FROM artifact_versions WHERE artifact_id IN ("
+                + ",".join("?" for _ in artifact_ids) + ") AND workflow_run_id IS NOT NULL",
+                tuple(sorted(artifact_ids)),
+            ))
+        execution_rows = db.execute("SELECT id,plan_id FROM executions").fetchall()
+        workflow_rows = db.execute("SELECT id,project_id,plan_id,execution_id FROM workflow_runs").fetchall()
+        changed = True
+        while changed:
+            before = (len(plan_ids), len(execution_ids), len(workflow_run_ids))
+            for row in execution_rows:
+                if str(row["id"]) in execution_ids or str(row["plan_id"]) in plan_ids:
+                    execution_ids.add(str(row["id"]))
+                    plan_ids.add(str(row["plan_id"]))
+            for row in workflow_rows:
+                if (
+                    str(row["project_id"] or "") == project_id
+                    or str(row["id"]) in workflow_run_ids
+                    or str(row["plan_id"]) in plan_ids
+                    or str(row["execution_id"]) in execution_ids
+                ):
+                    workflow_run_ids.add(str(row["id"]))
+                    plan_ids.add(str(row["plan_id"]))
+                    execution_ids.add(str(row["execution_id"]))
+            changed = before != (len(plan_ids), len(execution_ids), len(workflow_run_ids))
+
+        audit_event_ids = set()
+        for row in db.execute("SELECT id,plan_id,execution_id,detail_json FROM audit_events").fetchall():
+            if (
+                str(row["plan_id"] or "") in plan_ids
+                or str(row["execution_id"] or "") in execution_ids
+                or detail_matches(_load_json(row["detail_json"], {}))
+            ):
+                audit_event_ids.add(str(row["id"]))
+
+        deleted: dict[str, int] = {}
+
+        def direct(table: str, where: str, parameters: tuple) -> None:
+            deleted[table] = deleted.get(table, 0) + max(
+                0, db.execute(f"DELETE FROM {table} WHERE {where}", parameters).rowcount
+            )
+
+        deleted["audit_events"] = delete_ids(db, "audit_events", "id", audit_event_ids)
+        direct("project_decisions", "project_id=?", (project_id,))
+        deleted["project_conversation_messages"] = delete_ids(
+            db, "project_conversation_messages", "conversation_id", conversation_ids
+        )
+        direct("project_conversations", "project_id=?", (project_id,))
+        direct("project_document_conflicts", "project_id=?", (project_id,))
+        direct("project_document_sync_events", "project_id=?", (project_id,))
+        deleted["document_final_outputs"] = delete_ids(db, "document_final_outputs", "document_id", document_ids)
+        if native_session_ids:
+            deleted["native_document_sessions"] = delete_ids(
+                db, "native_document_sessions", "id", native_session_ids
+            )
+        else:
+            deleted["native_document_sessions"] = 0
+        if document_ids:
+            placeholders = ",".join("?" for _ in document_ids)
+            cursor = db.execute(
+                f"DELETE FROM native_document_sessions WHERE markdown_document_id IN ({placeholders})",
+                tuple(sorted(document_ids)),
+            )
+            deleted["native_document_sessions"] += max(0, cursor.rowcount)
+        if document_artifact_ids:
+            placeholders = ",".join("?" for _ in document_artifact_ids)
+            cursor = db.execute(
+                f"DELETE FROM native_document_sessions WHERE project_artifact_id IN ({placeholders})",
+                tuple(sorted(document_artifact_ids)),
+            )
+            deleted["native_document_sessions"] += max(0, cursor.rowcount)
+        deleted["project_document_artifacts"] = delete_ids(
+            db, "project_document_artifacts", "document_id", document_ids
+        )
+        deleted["project_markdown_versions"] = delete_ids(
+            db, "project_markdown_versions", "document_id", document_ids
+        )
+        direct("project_markdown_documents", "project_id=?", (project_id,))
+        deleted["project_fact_values"] = delete_ids(db, "project_fact_values", "fact_id", fact_ids)
+        direct("project_facts", "project_id=?", (project_id,))
+        direct("artifact_evidence", "project_id=?", (project_id,))
+        direct("artifact_relations", "project_id=?", (project_id,))
+        deleted["artifact_versions"] = delete_ids(db, "artifact_versions", "artifact_id", artifact_ids)
+        direct("artifacts", "project_id=?", (project_id,))
+        direct("report_fact_snapshots", "project_id=?", (project_id,))
+        deleted["workflow_step_runs"] = delete_ids(
+            db, "workflow_step_runs", "workflow_run_id", workflow_run_ids
+        )
+        deleted["workflow_run_executions"] = delete_ids(
+            db, "workflow_run_executions", "workflow_run_id", workflow_run_ids
+        )
+        deleted["workflow_runs"] = delete_ids(db, "workflow_runs", "id", workflow_run_ids)
+        direct("model_usage_events", "project_id=?", (project_id,))
+        direct("model_usage_reservations", "project_id=?", (project_id,))
+        deleted["document_versions"] = delete_ids(db, "document_versions", "execution_id", execution_ids)
+        deleted["approvals"] = delete_ids(db, "approvals", "plan_id", plan_ids)
+        deleted["executions"] = delete_ids(db, "executions", "id", execution_ids)
+        deleted["plans"] = delete_ids(db, "plans", "id", plan_ids)
+        direct("workflow_recipe_installations", "project_id=?", (project_id,))
+        direct("permission_grants", "project_id=?", (project_id,))
+        direct("project_policies", "project_id=?", (project_id,))
+        direct("project_workspace_states", "project_id=?", (project_id,))
+        direct("project_members", "project_id=?", (project_id,))
+        direct("projects", "id=?", (project_id,))
+
+        _rehash_audit_chain(db)
+        project_reference_hash = hashlib.sha256(
+            (project_id + "\0" + str(project["created_at"])).encode("utf-8")
+        ).hexdigest()
+        _audit(db, actor, "project.purged", {
+            "project_reference_sha256": project_reference_hash,
+            "recoverable": False,
+            "deleted_records": sum(deleted.values()),
+        })
+
+    return {
+        "deleted": True,
+        "recoverable": False,
+        "projectReferenceSha256": project_reference_hash,
+        "deletedRecords": sum(deleted.values()),
+        "deletedCounts": deleted,
     }
 
 
@@ -9416,6 +9905,16 @@ def _bind_dynamic_capability(
         (item for item in candidates if item.get("mcpType") == "template"),
         None,
     ) if template_requested else None
+    if (
+        workflow.get("responseType") == "report-artifact"
+        and template_binding
+        and not data_binding
+        and not process_binding
+    ):
+        # A template consumes document.semantic-blocks; it cannot be the first
+        # executable capability for a new report. Keep the built-in compose →
+        # structure → template → HWPX pipeline instead of requiring an editor session.
+        return steps, workflow
     binding = data_binding if data_binding else process_binding if process_binding and report_intent else template_binding if template_binding else candidates[0]
     binding = _binding_with_selection_reason(
         binding,
@@ -9535,6 +10034,11 @@ def _bind_project_source_capability(
 ) -> tuple[list[dict], dict]:
     """Use project attachments as a built-in data MCP without publishing a package."""
     if not source_ids:
+        return steps, workflow
+    if workflow.get("responseType") == "report-artifact" and workflow.get("contextPriority") == "previous-answer":
+        # A generic follow-up such as "보고서를 HWP로 만들어줘" must convert
+        # the answer the user just received. Re-running retrieval with only the
+        # short follow-up sentence can silently replace its subject.
         return steps, workflow
     existing = list(workflow.get("capabilityBindings") or [])
     if any(item.get("mcpType") == "data" for item in existing if isinstance(item, dict)):
@@ -11338,6 +11842,7 @@ def _rag_runtime_messages(manifest: dict, intent: str, hits: list[dict], fact_sn
                     "근거에 없는 값은 추측하지 말고 확인할 수 없다고 답하세요.",
                     "먼저 결론을 제시하고 필요한 경우 짧은 표나 글머리표를 사용하세요.",
                     "보고서 요청이면 Markdown 제목과 절, 표, '- ' 목록만 사용하세요. 목록 본문에 ·, •, ○ 같은 글머리표 문자를 다시 넣지 마세요.",
+                    "HWP·HWPX·RHWP로 만들어 달라는 말은 산출 파일 형식 지시입니다. HWP 사용법, 편집·저장·다운로드 절차나 UI 링크 안내를 답변 또는 보고서 본문에 추가하지 마세요.",
                     "실행 지침: " + str(guide.get("instructions") or ""),
                     "유의사항: " + " / ".join(guide.get("cautions") or []),
                 ]
@@ -13261,7 +13766,10 @@ def bootstrap() -> dict:
             "SELECT event_type, actor, created_at FROM audit_events ORDER BY id DESC LIMIT 5"
         ).fetchall()
     return {
-        "service": "AIWorks",
+        "service": PRODUCT_TECHNICAL_NAME,
+        "displayName": PRODUCT_DISPLAY_NAME,
+        "technicalName": PRODUCT_TECHNICAL_NAME,
+        "technicalSlug": "aiworks",
         "version": "0.31.2",
         "runtime": "local-sandbox",
         "models": MODEL_MANAGEMENT_MCP.list_models(),
@@ -14461,6 +14969,8 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
     draft_detail = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)", route)
     if draft_detail and method == "GET":
         return get_mcp_draft(draft_detail.group(1))
+    if draft_detail and method in {"PUT", "PATCH"}:
+        return update_mcp_draft(draft_detail.group(1), payload)
     draft_reference = re.fullmatch(r"/builder/drafts/(draft_[a-f0-9]+)/references", route)
     if draft_reference and method == "POST":
         return add_mcp_draft_reference(draft_reference.group(1), payload)
@@ -14531,6 +15041,9 @@ def dispatch(subpath: str, method: str, payload: dict) -> dict:
     project_status = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/status", route)
     if project_status and method == "POST":
         return change_project_status(project_status.group(1), payload)
+    project_delete = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})", route)
+    if project_delete and method == "DELETE":
+        return purge_project(project_delete.group(1), payload)
 
     project_workspace = re.fullmatch(r"/projects/([A-Za-z0-9][A-Za-z0-9._-]{2,99})/workspace", route)
     if project_workspace and method == "GET":

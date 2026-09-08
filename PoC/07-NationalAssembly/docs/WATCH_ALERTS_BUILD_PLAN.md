@@ -4,7 +4,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 프로젝트 | PoC 7 · 국정보미 |
+| 프로젝트 | PoC 7 · 국정ON |
 | 문서 상태 | RELEASE A/B SOFTWARE COMPLETED · EXTERNAL KAKAO ACTIVATION PENDING |
 | 확정일 | 2026-08-28 |
 | 우선순위 | Release A 관심주제 알림 → Release B 기존 기능 완성도 |

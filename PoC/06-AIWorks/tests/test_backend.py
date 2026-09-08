@@ -1425,6 +1425,32 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["chunkIndex"], 1)
 
+    def test_rag_ranking_treats_issue_words_as_filters_and_ai_spacing_as_equivalent(self):
+        chunks = [
+            {
+                "filename": "예산분석.txt", "chunkIndex": 0,
+                "content": "A-WEB 사업은 관련된 지적 사항으로 증액 규모 재검토가 필요하다.",
+                "searchText": "a-web 사업은 관련된 지적 사항으로 증액 규모 재검토가 필요하다.",
+            },
+            {
+                "filename": "결산분석.txt", "chunkIndex": 1,
+                "content": "범정부 AI공통기반은 개별 사업 선행 착수로 중복투자 우려가 있다.",
+                "searchText": "범정부 ai공통기반은 개별 사업 선행 착수로 중복투자 우려가 있다.",
+            },
+            {
+                "filename": "결산분석.txt", "chunkIndex": 2,
+                "content": "범정부 인공지능 공통기반 구축은 사전 계획보다 늦어 실효성 확보가 필요하다.",
+                "searchText": "범정부 인공지능 공통기반 구축은 사전 계획보다 늦어 실효성 확보가 필요하다.",
+            },
+        ]
+
+        hits = self.backend._search_rag_chunks(
+            chunks, "범정부AI 공통기반에 관련된 지적 사항을 찾아줘", limit=5
+        )
+
+        self.assertEqual({item["chunkIndex"] for item in hits}, {1, 2})
+        self.assertTrue(all("A-WEB" not in item["content"] for item in hits))
+
     def test_rag_prompt_lists_detected_business_years_for_structured_synthesis(self):
         messages = self.backend._rag_runtime_messages(
             {"builderGuide": {}},
@@ -1436,6 +1462,7 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertIn("별도 행", messages[0]["content"])
         self.assertIn("단순 예산 현황", messages[0]["content"])
         self.assertIn("다른 연도에 복사하지", messages[0]["content"])
+        self.assertIn("산출 파일 형식 지시", messages[0]["content"])
 
     def test_rag_synthesis_rejects_answers_without_citations_or_required_years(self):
         hits = [{"content": "2025년 편성 문제와 2026년 중복투자 우려"}]
@@ -1617,7 +1644,108 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertIn("{{date}}", text)
         self.assertEqual(starter["mediaType"], "application/hwp+zip")
 
+    def test_rhwp_preview_edit_is_committed_as_reusable_template(self):
+        draft = self.backend.create_mcp_draft({
+            "name": "미리보기 RHWP 수정 양식",
+            "package_id": "org.preview-edit-template",
+            "description": "실제 내용 확인 화면의 RHWP 수정 결과를 재사용 가능한 양식으로 저장한다.",
+            "mcp_type": "template",
+            "instructions": "확인용 내용을 제거하고 제목과 본문 슬롯을 유지한다.",
+            "procedure": "실제 내용을 렌더링한다.\nRHWP에서 수정한다.\n수정본을 양식 초안에 반영한다.",
+            "source_included": True,
+            "use_model": False,
+        })
+        source_template, _authoring = self.backend._build_template_authoring_sample(
+            (ROOT / "web" / "rhwp" / "samples" / "form-002.hwpx").read_bytes(),
+            "form-002.hwpx",
+        )
+        added = self.backend.add_mcp_draft_reference(draft["id"], {
+            "filename": "미리보기-수정-양식.hwpx",
+            "role": "template-source",
+            "content_base64": base64.b64encode(source_template).decode(),
+        })
+        preview = self.backend.preview_mcp_template(draft["id"], {})
+        rendered = base64.b64decode(preview["rendered"]["contentBase64"], validate=True)
+        output = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(rendered)) as source, zipfile.ZipFile(output, "w") as target:
+            for info in source.infolist():
+                target.writestr(info, source.read(info.filename))
+            target.writestr("PreviewEditMarker.txt", b"rhwp-preview-edit")
 
+        confirmed = self.backend.confirm_mcp_template_preview(draft["id"], {
+            "markdown": preview["markdown"],
+            "edited_content_base64": base64.b64encode(output.getvalue()).decode(),
+            "preview_source_sha256": preview["sourceSha256"],
+            "preview_render_sha256": preview["rendered"]["sha256"],
+            "actor": "builder",
+        })
+        self.assertTrue(confirmed["previewEdit"]["provided"])
+        self.assertTrue(confirmed["previewEdit"]["applied"])
+        self.assertNotEqual(confirmed["previewEdit"]["sourceSha256"], added["reference"]["sha256"])
+        _draft, source = self.backend._template_draft_source(draft["id"])
+        committed = bytes(source["content_blob"])
+        with zipfile.ZipFile(io.BytesIO(committed)) as archive:
+            self.assertIn("PreviewEditMarker.txt", archive.namelist())
+        committed_text = "\n".join(
+            item["text"] for item in self.backend.parse_hwpx(committed, "committed.hwpx")["paragraphs"]
+        )
+        self.assertIn("{{title}}", committed_text)
+        self.assertTrue("{{content}}" in committed_text or "{{body}}" in committed_text)
+        self.assertFalse(confirmed["draft"]["validation"]["passed"])
+
+    def test_builder_draft_can_be_saved_without_creating_duplicate_version(self):
+        draft = self.backend.create_mcp_draft(
+            {
+                "name": "초안 저장 양식 MCP",
+                "package_id": "org.saved-template",
+                "version": "0.1.2",
+                "description": "사용자가 수정 중인 양식 MCP 설정을 같은 초안에 저장한다.",
+                "mcp_type": "template",
+                "instructions": "현재 양식 원본과 구조 매핑을 유지하며 입력 설정을 저장한다.",
+                "procedure": "입력을 확인한다.\n초안을 저장한다.",
+                "source_included": True,
+                "use_model": False,
+            }
+        )
+        added = self.backend.add_mcp_draft_reference(
+            draft["id"],
+            {
+                "filename": "저장-양식.hwpx",
+                "role": "template-source",
+                "content_base64": base64.b64encode(placeholder_template_hwpx()).decode(),
+            },
+        )
+        updated = self.backend.dispatch(
+            f"/builder/drafts/{draft['id']}",
+            "PUT",
+            {
+                "name": "초안 저장된 양식 MCP",
+                "package_id": "org.saved-template",
+                "version": "0.1.2",
+                "description": "수정된 설명과 호출 문구를 기존 초안에 저장하고 다시 검증한다.",
+                "mcp_type": "template",
+                "instructions": "저장된 설정으로 현재 Markdown을 등록 HWPX 양식에 적용한다.",
+                "cautions": "원문 수치를 바꾸지 않는다.",
+                "procedure": "입력을 확인한다.\n양식을 적용한다.\n결과를 검증한다.",
+                "trigger_examples": "저장된 양식으로 바꿔줘",
+                "visibility": "organization",
+                "source_included": True,
+                "allow_external": False,
+                "use_model": False,
+                "actor": "builder",
+            },
+        )
+        self.assertEqual(updated["id"], draft["id"])
+        self.assertEqual(updated["status"], "draft")
+        self.assertEqual(updated["manifest"]["version"], "0.1.2")
+        self.assertEqual(updated["manifest"]["name"], "초안 저장된 양식 MCP")
+        self.assertEqual(updated["references"][0]["id"], added["reference"]["id"])
+        self.assertFalse(updated["validation"]["passed"])
+        drafts = [
+            item for item in self.backend.list_mcp_drafts()["items"]
+            if item["manifest"]["id"] == "org.saved-template"
+        ]
+        self.assertEqual(len(drafts), 1)
 
     def test_template_authoring_sample_opens_rhwp_without_creating_project_markdown(self):
         draft = self.backend.create_mcp_draft(
@@ -2594,6 +2722,29 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertNotIn("작성해줘 보고서\n", artifact["content"])
         self.assertEqual(artifact["filename"], "2026년도 행정안전부 예산안 분석 및 개선방안 보고서.hwpx")
 
+    def test_hwp_output_request_does_not_append_usage_guide_to_report_or_hwpx(self):
+        artifact = self.backend._build_structured_report_artifact(
+            "범정부 인공지능 공통기반 지적사항 보고서",
+            (
+                "# 범정부 인공지능 공통기반 지적사항 보고서\n\n"
+                "## 주요 지적사항\n- 개별 AI 사업의 선행 착수로 공통기반 활용이 제한될 우려가 있음. [1]\n\n"
+                "## HWP 사용 방법\n- 아래 RHWP 편집 링크를 클릭한 뒤 저장하세요.\n"
+                "- HWP 파일을 다운로드하여 한글에서 여세요."
+            ),
+            "이 결과를 보고서 HWP로 만들어줘",
+        )
+
+        self.assertTrue(artifact["filename"].endswith(".hwpx"))
+        self.assertIn("범정부 인공지능 공통기반", artifact["content"])
+        self.assertNotIn("HWP 사용 방법", artifact["content"])
+        self.assertNotIn("RHWP 편집 링크", artifact["content"])
+        parsed = self.backend.parse_hwpx(
+            base64.b64decode(artifact["contentBase64"]), artifact["filename"]
+        )
+        rendered = "\n".join(item["text"] for item in parsed["paragraphs"])
+        self.assertNotIn("HWP 사용 방법", rendered)
+        self.assertNotIn("RHWP 편집 링크", rendered)
+
     def test_builtin_report_renderer_preserves_tables_and_nested_list_levels(self):
         document = self.backend.REPORT_DOCUMENT_MCP.parse(
             "# 구조 보존 보고서\n\n## 현황\n\n- 상위 항목\n  - 하위 항목\n\n| 구분 | 내용 |\n| --- | --- |\n| 현황 | 구조 표 |",
@@ -2626,6 +2777,81 @@ class AIWorksBackendTests(unittest.TestCase):
         )
         self.assertNotIn("integration.kordoc@1.0.0", artifact["generatedBy"])
         self.assertIn("document.report-hwpx@0.1.0", artifact["generatedBy"])
+
+    def test_legacy_kordoc_is_retired_once_hidden_and_not_reactivatable(self):
+        self.backend.ensure_schema()
+        document = self.backend.save_project_markdown_document(
+            "project-default",
+            {"title": "과거 산출물", "markdown": "# 과거 산출물\n\n- 보존 대상", "actor": "migration-test"},
+        )
+        source_manifest, publisher = self.backend._store_catalog()[0]
+        manifest = {**source_manifest, "id": "integration.kordoc", "version": "1.0.0", "name": "Legacy renderer"}
+        digest = self.backend._bundle_sha256(manifest)
+        signature = self.backend._package_signature(manifest["id"], manifest["version"], digest)
+        with self.backend._connect() as db:
+            db.execute(
+                "INSERT INTO mcp_packages(package_id,version,manifest_json,bundle_sha256,signature,publisher,published_at) VALUES(?,?,?,?,?,?,?)",
+                (manifest["id"], manifest["version"], self.backend._json(manifest), digest, signature, publisher, self.backend.utc_now()),
+            )
+            now = self.backend.utc_now()
+            db.execute(
+                "INSERT INTO mcp_installations(package_id,pinned_version,status,installed_by,installed_at,updated_at) VALUES(?,?,?,?,?,?)",
+                (manifest["id"], manifest["version"], "active", "legacy-bootstrap", now, now),
+            )
+            db.execute(
+                "INSERT INTO mcp_install_history(package_id,from_version,to_version,action,actor,created_at) VALUES(?,?,?,?,?,?)",
+                (manifest["id"], None, manifest["version"], "bootstrap", "legacy-bootstrap", now),
+            )
+            self.backend._upsert_project_artifact(
+                db,
+                document,
+                target_format="hwpx",
+                status="synced",
+                data=b"legacy-provenance",
+                filename="legacy.hwpx",
+                media_type="application/hwp+zip",
+                renderer="integration.kordoc@1.0.0",
+            )
+
+        for _ in range(2):
+            self.backend._SCHEMA_READY = False
+            self.backend.ensure_schema()
+
+        with self.backend._connect() as db:
+            installation = db.execute(
+                "SELECT status FROM mcp_installations WHERE package_id='integration.kordoc'"
+            ).fetchone()
+            actions = [
+                row["action"]
+                for row in db.execute(
+                    "SELECT action FROM mcp_install_history WHERE package_id='integration.kordoc' ORDER BY id"
+                ).fetchall()
+            ]
+            preserved_package = db.execute(
+                "SELECT 1 FROM mcp_packages WHERE package_id='integration.kordoc' AND version='1.0.0'"
+            ).fetchone()
+            preserved_renderer = db.execute(
+                "SELECT renderer FROM project_document_artifacts WHERE document_id=? AND format='hwpx'",
+                (document["id"],),
+            ).fetchone()["renderer"]
+
+        self.assertEqual(installation["status"], "retired")
+        self.assertEqual(actions, ["bootstrap", "retire"])
+        self.assertIsNotNone(preserved_package)
+        self.assertEqual(preserved_renderer, "integration.kordoc@1.0.0")
+        self.assertNotIn("integration.kordoc", {item["packageId"] for item in self.backend.list_store_packages()["items"]})
+
+        blocked_calls = (
+            lambda: self.backend.mcp_install_preview({"package_id": "integration.kordoc", "version": "1.0.0"}),
+            lambda: self.backend.install_mcp_package({"package_id": "integration.kordoc", "version": "1.0.0"}),
+            lambda: self.backend.rollback_mcp_package({"package_id": "integration.kordoc"}),
+            lambda: self.backend.fork_mcp_package({"package_id": "integration.kordoc", "version": "1.0.0"}),
+        )
+        for call in blocked_calls:
+            with self.assertRaises(self.backend.ApiError) as raised:
+                call()
+            self.assertEqual(raised.exception.status, 410)
+
     def test_central_report_normalizes_numeric_top_level_sections_to_roman(self):
         document = self.backend.REPORT_DOCUMENT_MCP.parse(
             "# 2026년도 행정안전부 예산안 분석 및 개선방안 보고서\n\n## 1. 분석 개요\n\n## 2. 주요 지적사항",
@@ -3310,6 +3536,81 @@ class AIWorksBackendTests(unittest.TestCase):
         self.assertIn(project["id"], [item["id"] for item in self.backend.list_archived_projects({"actor": "owner-a"})["items"]])
         restored = self.backend.change_project_status(project["id"], {"actor": "owner-a", "action": "restore"})
         self.assertEqual(restored["status"], "active")
+
+    def test_archived_project_can_be_permanently_deleted_with_all_owned_data(self):
+        project = self.backend.create_project({"name": "완전 삭제 검증", "actor": "purge-owner"})
+        project_id = project["id"]
+        document = self.backend.save_project_markdown_document(project_id, {
+            "title": "삭제 대상 보고서", "markdown": "# 삭제 대상 보고서\n\n- 사업명: 삭제 검증",
+            "actor": "purge-owner",
+        })
+        self.backend.create_project_source(project_id, {
+            "filename": "삭제자료.txt",
+            "content_base64": base64.b64encode("완전 삭제할 프로젝트 자료".encode()).decode(),
+            "actor": "purge-owner",
+        })
+        self.backend.save_project_workspace_state(project_id, {
+            "active_document_id": document["id"], "active_tab": "markdown", "active_view": "editor",
+            "chat": [{"role": "user", "text": "이 대화도 함께 삭제"}], "actor": "purge-owner",
+        })
+        self.backend.save_project_fact(project_id, {
+            "key": "project.delete-test", "label": "삭제 검증", "value": "삭제",
+            "status": "confirmed", "actor": "purge-owner",
+        })
+        self.backend.open_native_document_session({
+            "filename": "삭제세션.md", "content_base64": base64.b64encode(b"# delete session").decode(),
+            "project_id": project_id, "actor": "purge-owner",
+        })
+        plan = self.backend.create_plan({
+            "intent": "선택 문장을 간결하게 정리해줘", "actor": "purge-owner",
+            "document_context": {"project_id": project_id, "classification": "internal", "has_selection": True},
+        })
+        approval = self.backend.approve_plan({
+            "plan_id": plan["id"], "actor": "purge-owner", "permissions": plan["requiredPermissions"],
+        })
+        execution = self.backend.execute_plan({
+            "approval_token": approval["approvalToken"], "idempotency_key": "purge-project-test",
+            "input": {"selection": "삭제 전 문장", "selection_id": "delete-paragraph", "force_local": True},
+        })
+        self.assertEqual(execution["status"], "completed")
+
+        with self.assertRaises(self.backend.ApiError) as active_error:
+            self.backend.purge_project(project_id, {
+                "actor": "purge-owner", "confirmation": project["name"], "acknowledge_irreversible": True,
+            })
+        self.assertEqual(active_error.exception.status, 409)
+        self.backend.change_project_status(project_id, {"actor": "purge-owner", "action": "archive"})
+        with self.assertRaises(self.backend.ApiError) as confirmation_error:
+            self.backend.purge_project(project_id, {
+                "actor": "purge-owner", "confirmation": "다른 이름", "acknowledge_irreversible": True,
+            })
+        self.assertEqual(confirmation_error.exception.status, 409)
+
+        result = self.backend.dispatch("/projects/" + project_id, "DELETE", {
+            "actor": "purge-owner", "confirmation": project["name"], "acknowledge_irreversible": True,
+        })
+        self.assertTrue(result["deleted"])
+        self.assertFalse(result["recoverable"])
+        self.assertGreater(result["deletedRecords"], 10)
+        self.assertNotIn(project_id, [item["id"] for item in self.backend.list_archived_projects({"actor": "purge-owner"})["items"]])
+        with self.backend._connect() as db:
+            project_tables = [
+                "artifact_evidence", "artifact_relations", "artifacts", "model_usage_events",
+                "model_usage_reservations", "native_document_sessions", "permission_grants",
+                "project_conversations", "project_decisions", "project_document_conflicts",
+                "project_document_sync_events", "project_facts", "project_markdown_documents",
+                "project_members", "project_policies", "project_workspace_states", "report_fact_snapshots",
+                "workflow_recipe_installations", "workflow_runs",
+            ]
+            for table in project_tables:
+                self.assertEqual(
+                    db.execute(f"SELECT COUNT(*) FROM {table} WHERE project_id=?", (project_id,)).fetchone()[0],
+                    0,
+                    table,
+                )
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM plans WHERE id=?", (plan["id"],)).fetchone()[0], 0)
+            self.assertEqual(db.execute("PRAGMA foreign_key_check").fetchall(), [])
+        self.assertTrue(self.backend.verify_audit_integrity()["valid"])
 
     def test_generic_artifact_versions_lineage_and_cycle_guard(self):
         first = self.backend.create_project_artifact("project-default", {

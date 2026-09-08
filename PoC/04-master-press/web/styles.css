@@ -180,6 +180,7 @@
 
 /* 관리자 회원 리스트 2열 배치 */
 .member-management-panel .compact-members{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.member-management-panel .compact-member-row{min-width:0}.member-management-panel .compact-member-row[open]{grid-column:auto}.member-management-panel .admin-member-summary{min-width:0}.member-management-panel .admin-member-summary b{min-width:0}.member-management-panel .admin-member-summary small{max-width:52%;overflow:hidden;text-overflow:ellipsis}
+.admin-member-summary-meta{display:flex;align-items:flex-end;gap:5px;min-width:0;margin-left:auto;flex-direction:column}.admin-member-summary-meta small{max-width:none!important}.member-connection-badge{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900;line-height:1.2;white-space:nowrap}.member-connection-badge.failed{color:#a52318;background:#ffebe8}.member-connection-badge.waiting{color:#855700;background:#fff3ce}.member-connection-alert{display:grid;gap:3px;padding:9px 11px;border:1px solid;border-radius:10px}.member-connection-alert b{font-size:12px}.member-connection-alert span{font-size:11px;font-weight:800}.member-connection-alert small{font-size:10px;line-height:1.5}.member-connection-alert.failed{color:#8d2118;border-color:#f0b8b1;background:#fff2f0}.member-connection-alert.waiting{color:#735000;border-color:#ead18a;background:#fff8df}
 @media(max-width:900px){.member-management-panel .compact-members{grid-template-columns:1fr}.member-management-panel .admin-member-summary small{max-width:none}}
 
 

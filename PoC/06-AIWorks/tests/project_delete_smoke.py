@@ -1,4 +1,4 @@
-"""Firefox acceptance smoke for deleting and restoring a project from the gate."""
+"""Firefox acceptance smoke for archiving, restoring, and permanently deleting a project."""
 
 from __future__ import annotations
 
@@ -72,6 +72,17 @@ def main() -> None:
         wait_for(driver, f'document.querySelector("[data-delete-project=\\"{project_id}\\"]")')
         wait_for(driver, f'!document.querySelector("[data-restore-project=\\"{project_id}\\"]")')
         report["restoredToActiveList"] = True
+
+        driver.find_element(By.CSS_SELECTOR, f'[data-delete-project="{project_id}"]').click()
+        WebDriverWait(driver, 10).until(lambda current: current.switch_to.alert).accept()
+        wait_for(driver, f'document.querySelector("[data-purge-project=\\"{project_id}\\"]")')
+        driver.find_element(By.CSS_SELECTOR, f'[data-purge-project="{project_id}"]').click()
+        prompt = WebDriverWait(driver, 10).until(lambda current: current.switch_to.alert)
+        report["permanentDeleteWarnsIrreversible"] = "복구할 수 없습니다" in prompt.text
+        prompt.send_keys(project["name"])
+        prompt.accept()
+        wait_for(driver, f'!document.querySelector("[data-purge-project=\\"{project_id}\\"]")')
+        report["permanentlyDeleted"] = True
         report["status"] = "passed"
         print(json.dumps(report, ensure_ascii=False, indent=2))
     finally:

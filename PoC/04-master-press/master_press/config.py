@@ -152,7 +152,7 @@ class Settings:
             openrouter_daily_soft_limit=env_int("MASTER_PRESS_OPENROUTER_DAILY_SOFT_LIMIT", 1000, 1, 1000),
             nvidia_api_key=env("MASTER_PRESS_NVIDIA_API_KEY", "NVIDIA_API_KEY"),
             nvidia_base_url=env("MASTER_PRESS_NVIDIA_BASE_URL", "NVIDIA_BASE_URL", default="https://integrate.api.nvidia.com/v1").rstrip("/"),
-            nvidia_case_model=env("MASTER_PRESS_NVIDIA_CASE_MODEL", "NVIDIA_MODEL", default="openai/gpt-oss-120b"),
+            nvidia_case_model=env("MASTER_PRESS_NVIDIA_CASE_MODEL", "NVIDIA_MODEL", default="nvidia/nemotron-3-super-120b-a12b"),
             openrouter_case_reserve_calls=env_int("MASTER_PRESS_OPENROUTER_CASE_RESERVE_CALLS", 100, 1, 500),
             openai_api_key=env("OPENAI_API_KEY", "OpenAI_API_KEY", "openai_api_key"),
             openai_base_url=env("MASTER_PRESS_OPENAI_BASE_URL", default="https://api.openai.com/v1").rstrip("/"),

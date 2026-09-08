@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import sqlite3
 import urllib.request
 from pathlib import Path
 
@@ -18,26 +17,47 @@ from selenium.webdriver.support.ui import WebDriverWait
 URL = os.getenv("AIWORKS_BROWSER_URL", "http://127.0.0.1:8000/poc/aiworks/")
 API = os.getenv("AIWORKS_API_URL", "http://127.0.0.1:8000/api/poc/aiworks")
 GECKODRIVER = os.getenv("AIWORKS_GECKODRIVER", "/snap/bin/geckodriver")
-DB_PATH = Path(os.getenv("AIWORKS_DB_PATH", str(Path(__file__).resolve().parents[1] / "data" / "aiworks.sqlite3")))
 DRAFT_ID = "aiworks-embedded-recovery-smoke"
+ACTOR = "rhwp-recovery-smoke"
 
 
 def get_json(path: str) -> dict:
     return json.load(urllib.request.urlopen(API + path, timeout=30))
 
 
-def find_derived_document() -> tuple[str, str]:
-    requested = os.getenv("AIWORKS_TEST_PROJECT_ID", "").strip()
-    projects = get_json("/projects").get("items") or []
-    if requested:
-        projects = [item for item in projects if item["id"] == requested]
-    for project in projects:
-        workspace = get_json(f"/projects/{project['id']}/workspace")
-        for document in workspace.get("documents") or []:
-            workbench = get_json(f"/projects/{project['id']}/documents/{document['id']}/workbench")
-            if any(item.get("format") == "hwpx" for item in workbench.get("artifacts") or []):
-                return project["id"], document["id"]
-    raise SystemExit("파생 HWPX가 있는 활성 프로젝트가 없습니다.")
+def post_json(path: str, payload: dict, method: str = "POST") -> dict:
+    request = urllib.request.Request(
+        API + path,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method=method,
+    )
+    return json.load(urllib.request.urlopen(request, timeout=30))
+
+
+def create_fixture() -> tuple[dict, dict]:
+    project = post_json("/projects", {"name": f"RHWP 복구 검증 {os.getpid()}", "actor": ACTOR})
+    document = post_json(
+        f"/projects/{project['id']}/documents",
+        {"title": "RHWP 복구 검증", "markdown": "# RHWP 복구 검증\n\n- 내장 편집 복구 대화상자를 검사함.", "actor": ACTOR},
+    )
+    post_json(
+        f"/projects/{project['id']}/documents/{document['id']}/render",
+        {"format": "hwpx", "instruction": "중앙부처 개조식 보고서", "actor": ACTOR},
+    )
+    return project, document
+
+
+def cleanup_fixture(project: dict) -> None:
+    try:
+        post_json(f"/projects/{project['id']}/status", {"action": "archive", "actor": ACTOR})
+        post_json(
+            f"/projects/{project['id']}",
+            {"actor": ACTOR, "confirmation": project["name"], "acknowledge_irreversible": True},
+            method="DELETE",
+        )
+    except Exception as error:
+        print(f"warning: RHWP recovery fixture cleanup failed: {error}")
 
 
 def wait_for(driver, expression: str, timeout: int = 60):
@@ -46,40 +66,9 @@ def wait_for(driver, expression: str, timeout: int = 60):
     )
 
 
-def workspace_state(project_id: str):
-    with sqlite3.connect(DB_PATH) as db:
-        db.row_factory = sqlite3.Row
-        row = db.execute("SELECT * FROM project_workspace_states WHERE project_id=?", (project_id,)).fetchone()
-        return dict(row) if row else None
-
-
-def restore_workspace_state(project_id: str, previous: dict | None) -> None:
-    with sqlite3.connect(DB_PATH) as db:
-        if previous is None:
-            db.execute("DELETE FROM project_workspace_states WHERE project_id=?", (project_id,))
-            return
-        db.execute(
-            """
-            INSERT INTO project_workspace_states(
-                project_id,active_document_id,active_tab,active_view,chat_json,
-                last_answer,updated_by,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?)
-            ON CONFLICT(project_id) DO UPDATE SET
-                active_document_id=excluded.active_document_id,
-                active_tab=excluded.active_tab,active_view=excluded.active_view,
-                chat_json=excluded.chat_json,last_answer=excluded.last_answer,
-                updated_by=excluded.updated_by,updated_at=excluded.updated_at
-            """,
-            tuple(previous[key] for key in (
-                "project_id", "active_document_id", "active_tab", "active_view",
-                "chat_json", "last_answer", "updated_by", "updated_at",
-            )),
-        )
-
-
 def main() -> None:
-    project_id, document_id = find_derived_document()
-    previous = workspace_state(project_id)
+    project, document = create_fixture()
+    project_id, document_id = project["id"], document["id"]
     options = Options()
     options.add_argument("-headless")
     driver = webdriver.Firefox(options=options, service=Service(GECKODRIVER))
@@ -108,6 +97,9 @@ def main() -> None:
         )
         wait_for(driver, f"document.querySelector('[data-select-project=\"{project_id}\"]')")
         driver.find_element(By.CSS_SELECTOR, f'[data-select-project="{project_id}"]').click()
+        wait_for(driver, "!document.querySelector('#workbench').hidden")
+        wait_for(driver, 'document.querySelector("[data-workbench-tab=\\"artifact:hwpx\\"]")')
+        driver.find_element(By.CSS_SELECTOR, '[data-workbench-tab="artifact:hwpx"]').click()
         wait_for(driver, "document.querySelector('#rhwpEditorHost iframe')")
         wait_for(driver, "document.querySelector('#rhwpEditorHost').dataset.ready === 'true'")
         driver.find_element(By.CSS_SELECTOR, '[data-workbench-tab="markdown"]').click()
@@ -148,7 +140,7 @@ def main() -> None:
             )
         finally:
             driver.quit()
-            restore_workspace_state(project_id, previous)
+            cleanup_fixture(project)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from app.adapters.national_assembly.base import AdapterError, SourcePayload
-from app.adapters.official_minutes_body import OfficialMinutesBodyAdapter, normalized_match_text
+from app.adapters.official_minutes_body import (
+    OfficialMinutesBodyAdapter,
+    explicit_spoken_agenda_ref,
+    normalized_match_text,
+)
 from app.ingestion.official_minutes_body import body_view_url
 
 
@@ -38,6 +42,11 @@ class OfficialMinutesBodyTests(unittest.TestCase):
 
     def test_normalized_match_is_exact_character_based(self):
         self.assertEqual(normalized_match_text("선거 관리·부실"), "선거관리부실")
+
+    def test_explicit_spoken_item_number_is_narrowly_detected(self):
+        self.assertEqual(explicit_spoken_agenda_ref("15항 관련해서 말씀드리겠습니다."), "item15")
+        self.assertEqual(explicit_spoken_agenda_ref("제3번 안건에 대해 질의하겠습니다."), "item3")
+        self.assertIsNone(explicit_spoken_agenda_ref("예산 15항목을 검토했습니다."))
 
 
 if __name__ == "__main__":

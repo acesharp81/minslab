@@ -16,6 +16,20 @@ from ..services.transcript_presentation import (
 )
 
 NOTIFICATION_RETENTION_LIMIT = 50
+TEST_SOURCE_SYSTEMS = {
+    "poc07.test",
+    "poc07.replay.local",
+    "poc07.replay.kakao",
+}
+
+
+def _is_test_source(source_system: object) -> bool:
+    return str(source_system or "") in TEST_SOURCE_SYSTEMS
+
+
+def _allows_kakao_delivery(source_system: object) -> bool:
+    source = str(source_system or "")
+    return source not in TEST_SOURCE_SYSTEMS or source == "poc07.replay.kakao"
 
 
 def normalize_watch_briefing_presentation(
@@ -733,7 +747,7 @@ class WatchRepository:
                         notification_id, rule["subscriber_id"], event_id, session_id,
                         f"{rule['name']} 언급 감지",
                         f"{revision['title']} · {match.excerpt}",
-                        revision.get("source_system") == "poc07.test",
+                        _is_test_source(revision.get("source_system")),
                         dedupe_key,
                     ),
                 ).fetchone()
@@ -742,7 +756,7 @@ class WatchRepository:
                         rule["subscriber_id"], notification_id,
                         kakao_enabled=(
                             bool(rule.get("kakao_enabled"))
-                            and revision.get("source_system") != "poc07.test"
+                            and _allows_kakao_delivery(revision.get("source_system"))
                         ),
                     )
                     self.prune_notification_history(rule["subscriber_id"])
@@ -802,14 +816,16 @@ class WatchRepository:
                     notification_id, subscriber_id, session_id,
                     f"{rule_name} 회의 종료 요약",
                     f"{title} · 관련 발언 {match_count}묶음 · 화자 {speaker_count}명",
-                    source_system == "poc07.test",
+                    _is_test_source(source_system),
                     f"digest:{rule_id}:{broadcast_id}",
                 ),
             ).fetchone()
             if notification:
                 self._enqueue_outbox(
                     subscriber_id, notification_id,
-                    kakao_enabled=(bool(wants_kakao) and source_system != "poc07.test"),
+                    kakao_enabled=(
+                        bool(wants_kakao) and _allows_kakao_delivery(source_system)
+                    ),
                 )
                 self.prune_notification_history(subscriber_id)
                 digests += 1

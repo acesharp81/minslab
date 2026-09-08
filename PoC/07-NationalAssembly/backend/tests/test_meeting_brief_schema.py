@@ -95,9 +95,9 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("전체 회차를 한 번에 정리합니다", script)
         self.assertIn("meeting-topic-task-processing", styles)
         self.assertIn(".meeting-processing-card", styles)
-        self.assertRegex(
-            script,
-            r"};\s+loadBrief\(\);\s+if \(!options\.auto\)",
+        self.assertRegex(script, r"};\s+loadBrief\(\);\s+}")
+        self.assertNotIn(
+            'document.querySelector("#liveExpanded").scrollIntoView', script
         )
         self.assertNotIn("brief ? expandMeetingBrief(ended, row)", script)
         self.assertIn("selectMeetingEvidenceHighlights", script)

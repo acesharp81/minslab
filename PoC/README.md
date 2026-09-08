@@ -11,7 +11,7 @@
 | 03 | [03-mois-kms](03-mois-kms/README.md) | 조직·업무·결재·AI 보고서 | React/Vite SPA + Python API + Supabase Auth |
 | 04 | [04-master-press](04-master-press/README.md) | 뉴스 수집·복합 관련도·카카오 알림·CaseON 매거진 | Python 모듈 + 정적 UI + SQLite/Supabase |
 | 05 | [05-north-korea-night-lights](05-north-korea-night-lights/README.md) | 북한 VIIRS 월별 야간조명 3D 격자 지도 | Earth Engine Python API + pydeck 단일 HTML |
-| 06 | [06-AIWorks](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
+| 06 | [AI Work Hub](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
 | 07 | [07-NationalAssembly](07-NationalAssembly/README.md) | 국무회의·국회 회의·의안·표결의 공식 원문 기반 정책 흐름 | 독립 FastAPI + PostgreSQL + 루트 reverse proxy |
 
 ## 등록 방식
@@ -90,7 +90,7 @@ PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다
 | Field Inspection | `VITE_FIELD_INSPECTION_SUPABASE_URL`, `VITE_FIELD_INSPECTION_SUPABASE_PUBLISHABLE_KEY` |
 | MoIS KMS | `MOIS_KMS_HF_MODELS`, `MOIS_KMS_OPENROUTER_MODELS`, `MOIS_KMS_DEFAULT_MODEL` |
 | 북한 야간조명 | `GEE_PROJECT` |
-| AIWorks | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_SOLAR_LIVE`, `AIWORKS_LOCAL_MCP_LIVE`, `AIWORKS_RHWP_*` |
+| AI Work Hub (`aiworks` 호환 식별자) | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_SOLAR_LIVE`, `AIWORKS_LOCAL_MCP_LIVE`, `AIWORKS_RHWP_*` |
 | 국회 PoC 프록시 | `NATIONAL_ASSEMBLY_UPSTREAM` |
 
 Vite의 `VITE_*` 값과 Supabase publishable key는 브라우저 공개값입니다. service-role과 LLM API key는 어떤 경우에도 브라우저 번들에 넣지 않습니다.

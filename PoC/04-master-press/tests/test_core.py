@@ -209,6 +209,93 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(dict(delivery), {"status": "sent", "attempts": 1})
         self.assertEqual(dict(attempt), {"status": "completed", "response_code": 200})
 
+    def test_inactive_recipient_is_excluded_before_delivery_queue_insert(self):
+        article, case, recipient_id = self._queue_delivery_fixture()
+        with self.store.connect() as connection:
+            connection.execute("DELETE FROM deliveries WHERE recipient_id=?", (recipient_id,))
+            connection.execute(
+                "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                (case["id"], recipient_id),
+            )
+            connection.execute("UPDATE recipients SET status='reauthorize' WHERE id=?", (recipient_id,))
+        self.assertEqual(self.store.case_recipient_ids(case["id"]), [])
+        self.assertEqual(self.store.case_recipient_ids(case["id"], active_only=False), [recipient_id])
+        self.assertFalse(self.store.queue_delivery(article["id"], case["id"], recipient_id, now_iso()))
+        with self.store.connect() as connection:
+            self.assertEqual(connection.execute(
+                "SELECT COUNT(*) FROM deliveries WHERE recipient_id=?", (recipient_id,),
+            ).fetchone()[0], 0)
+
+    def test_retire_recipient_cancels_waiting_and_removes_all_subscriptions(self):
+        article, case, recipient_id = self._queue_delivery_fixture()
+        case = self.store.get_case(case["id"])
+        organization = self.store.save_organization({"name": "탈퇴 테스트 기관", "is_active": True})
+        with self.store.connect() as connection:
+            connection.execute(
+                "UPDATE cases SET organization_id=? WHERE id=?", (organization["id"], case["id"]),
+            )
+        case["organization_id"] = organization["id"]
+        self.store.add_case_recipient(case["id"], recipient_id)
+        self.store.ensure_magazine_schema()
+        now = now_iso()
+        with self.store.connect() as connection:
+            connection.execute(
+                """INSERT INTO recipient_magazine_subscriptions(
+                   organization_id,recipient_id,edition_slots,case_ids,updated_at
+                   ) VALUES(?,?,?,?,?)""",
+                (case["organization_id"], recipient_id, '["morning"]', json.dumps([case["id"]]), now),
+            )
+            connection.execute(
+                """INSERT INTO magazine_editions(
+                   id,organization_id,organization_name,edition_date,edition_slot,window_start_at,window_end_at,
+                   generated_at,updated_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                ("edition-retire", case["organization_id"], "테스트", "2026-09-08", "morning", now, now, now, now),
+            )
+            connection.execute(
+                """INSERT INTO magazine_deliveries(
+                   id,edition_id,recipient_id,scheduled_at,created_at,updated_at
+                   ) VALUES(?,?,?,?,?,?)""",
+                ("magazine-retire", "edition-retire", recipient_id, now, now, now),
+            )
+        result = self.store.retire_recipient(
+            recipient_id, "auth_expired", "expired_or_invalid_refresh_token",
+        )
+        self.assertTrue(result["deleted"])
+        self.assertEqual(result["cancelled_article_deliveries"], 1)
+        self.assertEqual(result["cancelled_magazine_deliveries"], 1)
+        self.assertEqual(self.store.get_recipient(recipient_id)["status"], "deleted")
+        self.assertEqual(self.store.case_recipient_ids(case["id"], active_only=False), [])
+        with self.store.connect() as connection:
+            self.assertEqual(connection.execute(
+                "SELECT status FROM deliveries WHERE recipient_id=?", (recipient_id,),
+            ).fetchone()[0], "cancelled")
+            self.assertEqual(connection.execute(
+                "SELECT status FROM magazine_deliveries WHERE recipient_id=?", (recipient_id,),
+            ).fetchone()[0], "cancelled")
+            self.assertEqual(connection.execute(
+                "SELECT COUNT(*) FROM recipient_magazine_subscriptions WHERE recipient_id=?", (recipient_id,),
+            ).fetchone()[0], 0)
+        repeated = self.store.retire_recipient(recipient_id, "auth_expired", "expired_or_invalid_refresh_token")
+        self.assertTrue(repeated["deleted"])
+        self.assertTrue(repeated["already_deleted"])
+
+    def test_terminal_kakao_refresh_error_auto_retires_recipient(self):
+        _article, case, recipient_id = self._queue_delivery_fixture()
+        self.store.add_case_recipient(case["id"], recipient_id)
+        service = object.__new__(MasterPressService)
+        service.store = self.store
+        service.settings = SimpleNamespace(kakao_redirect_uri="")
+        service.kakao = KakaoClient(SimpleNamespace(), self.store)
+        service.kakao.send_to_me = mock.Mock(side_effect=KakaoError(
+            "expired_or_invalid_refresh_token", 400, "invalid_grant",
+            {"error": "invalid_grant", "error_description": "expired_or_invalid_refresh_token"},
+        ))
+        result = service._send_due(20)
+        self.assertEqual(result["failed"], 1)
+        self.assertEqual(self.store.get_recipient(recipient_id)["status"], "deleted")
+        self.assertEqual(self.store.case_recipient_ids(case["id"], active_only=False), [])
+
     def test_delivery_dashboard_separates_recovered_attempts_from_final_failures(self):
         self._queue_delivery_fixture()
         first = self.store.due_deliveries(1, lease_owner="worker-a")[0]
@@ -1249,6 +1336,69 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(len(second), 2)
         self.assertEqual({item["provider"] for item in second}, {"nvidia"})
 
+    def test_nvidia_ten_case_batch_keeps_affinity_and_remainder_without_duplicate_claim(self):
+        cases = [self.store.save_case({**case_payload(), "name": f"ten-batch-{i}"}) for i in range(11)]
+        article, _ = self.store.upsert_article({
+            "canonical_url": "https://example.com/nvidia-eleven",
+            "original_url": "https://example.com/nvidia-eleven",
+            "title": "합성 11케이스 기사", "publisher": "example.com", "source_type": "test",
+        })
+        analysis, _ = self.store.ensure_article_analysis(article)
+        for case in cases:
+            evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+            self.store.queue_case_evaluation(evaluation["id"])
+        service = object.__new__(MasterPressService)
+        service.selected_case_model1 = lambda: "nvidia/nemotron-3-super-120b-a12b"
+        size = service.case_batch_size_for_provider("nvidia")
+        first = self.store.next_case_evaluation_batch(size, "nvidia", "first-worker", "case_oss")
+        self.assertEqual(len(first), 10)
+        self.assertEqual(len({j["id"] for j in first}), 10)
+        self.assertTrue(all(j["batch_size"] == 10 for j in first))
+        self.assertEqual(self.store.next_case_evaluation_batch(10, "openai", "other-worker", "case_mini"), [])
+        self.assertEqual(self.store.next_case_evaluation_batch(10, "nvidia", "second-worker", "case_oss"), [])
+        for job in first:
+            self.store.finish_case_evaluation_job(job["id"], True, 1, lease_owner="first-worker")
+        self.assertEqual(self.store.next_case_evaluation_batch(10, "openai", "other-worker", "case_mini"), [])
+        last = self.store.next_case_evaluation_batch(size, "nvidia", "second-worker", "case_oss")
+        self.assertEqual(len(last), 1)
+        self.assertNotIn(last[0]["id"], {j["id"] for j in first})
+
+    def test_openai_priority_age_is_checked_on_selected_article_not_unrelated_old_job(self):
+        now = datetime.now(KST).replace(microsecond=0)
+        with mock.patch("master_press.storage.datetime", wraps=datetime) as clock:
+            clock.now.return_value = now
+            article_ids = {}
+            for name, count, age in (("old", 2, 20), ("fresh", 3, 0)):
+                article, _ = self.store.upsert_article({
+                    "canonical_url": f"https://example.com/priority-{name}",
+                    "original_url": f"https://example.com/priority-{name}",
+                    "title": f"synthetic {name}", "publisher": "example.com", "source_type": "test",
+                })
+                article_ids[name] = article["id"]
+                analysis, _ = self.store.ensure_article_analysis(article)
+                for i in range(count):
+                    case = self.store.save_case({**case_payload(), "name": f"priority-{name}-{i}"})
+                    evaluation, _ = self.store.create_case_evaluation(analysis["id"], article["id"], case, True)
+                    self.store.queue_case_evaluation(evaluation["id"])
+                with self.store.connect() as connection:
+                    connection.execute(
+                        "UPDATE case_evaluation_jobs SET queued_at=? WHERE case_evaluation_id IN "
+                        "(SELECT id FROM case_evaluations WHERE article_analysis_id=?)",
+                        ((now - timedelta(seconds=age)).isoformat(timespec="seconds"), analysis["id"]),
+                    )
+            self.assertTrue(self.store.ready_case_evaluation_jobs_older_than(5, provider="openai"))
+            jobs = self.store.next_case_evaluation_batch(10, "openai", "mini", "case_mini", minimum_age_seconds=5)
+            self.assertEqual(len(jobs), 2)
+            self.assertEqual({job["article_id"] for job in jobs}, {article_ids["old"]})
+            for job in jobs:
+                self.store.finish_case_evaluation_job(job["id"], True, 1, lease_owner="mini")
+            clock.now.return_value = now + timedelta(seconds=4)
+            self.assertEqual(self.store.next_case_evaluation_batch(10, "openai", "mini", "case_mini", minimum_age_seconds=5), [])
+            clock.now.return_value = now + timedelta(seconds=5)
+            jobs = self.store.next_case_evaluation_batch(10, "openai", "mini", "case_mini", minimum_age_seconds=5)
+            self.assertEqual(len(jobs), 3)
+            self.assertEqual({job["article_id"] for job in jobs}, {article_ids["fresh"]})
+
     def test_single_worker_claims_only_unowned_single_article(self):
         case = self.store.save_case({**case_payload(), "name": "single-only"})
         article, _ = self.store.upsert_article({
@@ -1371,9 +1521,21 @@ class StorageTests(unittest.TestCase):
         result = service.case_worker_tick(slot="mini")
         self.assertEqual(result["slot"], "mini")
         self.assertEqual(calls[-1][0][:3], ("openai", "gpt-5.4-mini", "case_mini"))
+        self.assertEqual(calls[-1][1]["minimum_age_seconds"], 5)
         result = service.case_worker_tick(slot="oss")
         self.assertEqual(result["slot"], "oss")
         self.assertEqual(calls[-1][0][:3], ("nvidia", "openai/gpt-oss-120b", "case_oss"))
+        self.assertEqual(calls[-1][1]["batch_size"], 5)
+        service.selected_case_model1 = lambda: "nvidia/nemotron-3-super-120b-a12b"
+        service.case_worker_tick(slot="oss")
+        self.assertEqual(calls[-1][1]["batch_size"], 10)
+        self.assertEqual(calls[-1][1]["minimum_age_seconds"], 0)
+        service._provider_status = lambda provider, _model: {"available": provider != "nvidia"}
+        ready["value"] = False
+        service.case_worker_tick(slot="mini")
+        self.assertEqual(calls[-1][0][0], "openai")
+        self.assertEqual(calls[-1][1]["minimum_age_seconds"], 0)
+
 
     def test_nvidia_usage_window_resets_at_utc_midnight(self):
         service = object.__new__(MasterPressService)
@@ -1703,6 +1865,8 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(service.available_case_fallback_models(), ["gemini-3.1-flash-lite"])
         self.assertEqual(service.available_burst_models(), ["google/gemma-4-26b-a4b-it:free"])
         self.assertEqual(service._provider_for_switchable_llm_model("openai/gpt-oss-120b"), "nvidia")
+        self.assertEqual(service._provider_for_switchable_llm_model("nvidia/nemotron-3-super-120b-a12b"), "nvidia")
+        self.assertEqual(service._provider_for_switchable_llm_model("nvidia/nemotron-3-super-120b-a12b:free"), "openrouter")
         self.assertEqual(service._provider_for_switchable_llm_model("gpt-5.4-mini"), "openai")
 
     def test_only_daily_quota_errors_disable_until_provider_reset(self):
@@ -2270,6 +2434,31 @@ class StorageTests(unittest.TestCase):
 
 
 class ScoringTests(unittest.TestCase):
+    def test_nemotron_json_request_disables_thinking_only_for_selected_model(self):
+        settings = SimpleNamespace(nvidia_api_key="test", request_timeout_seconds=10)
+        client = NvidiaNIMClient(settings)
+        response = mock.MagicMock()
+        response.read.return_value = json.dumps({
+            "choices": [{"message": {"content": '{"results": []}'}, "finish_reason": "stop"}],
+            "usage": {},
+        }).encode()
+        response.__enter__.return_value = response
+        schema = {"name": "case_batch", "strict": True, "schema": {"type": "object"}}
+        for model in ("nvidia/nemotron-3-super-120b-a12b", "openai/gpt-oss-120b"):
+            with self.subTest(model=model), mock.patch("urllib.request.urlopen", return_value=response) as opened:
+                result = client.request("/api/chat", {
+                    "model": model, "messages": [{"role": "user", "content": "synthetic"}],
+                    "response_schema": schema, "options": {"num_predict": 1140},
+                })
+                body = json.loads(opened.call_args.args[0].data)
+                self.assertEqual(body["response_format"]["json_schema"], schema)
+                self.assertEqual(body["max_tokens"], 3200)
+                self.assertEqual(result["message"]["content"], '{"results": []}')
+                if model.startswith("nvidia/"):
+                    self.assertEqual(body["chat_template_kwargs"], {"enable_thinking": False})
+                else:
+                    self.assertNotIn("chat_template_kwargs", body)
+
     def test_nvidia_batch_reserves_enough_completion_tokens_for_valid_json(self):
         self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 1140}), 3200)
         self.assertEqual(NvidiaNIMClient._completion_token_limit({"num_predict": 2040}), 4080)
@@ -2904,7 +3093,7 @@ class OrganizationPipelineTests(unittest.TestCase):
                 connection.execute("UPDATE case_evaluations SET decision='send' WHERE article_id=? AND case_id=?", (dashboard["articles"][0]["id"], case["id"]))
                 connection.execute(
                     "INSERT INTO recipients(id,label,status,created_at,updated_at) VALUES(?,?,?,?,?)",
-                    ("recipient-1", "테스트 수신자", "connected", "2026-07-17T10:00:00+09:00", "2026-07-17T10:00:00+09:00"),
+                    ("recipient-1", "테스트 수신자", "active", "2026-07-17T10:00:00+09:00", "2026-07-17T10:00:00+09:00"),
                 )
             store.queue_delivery(dashboard["articles"][0]["id"], case["id"], "recipient-1", "2026-07-17T10:00:00+09:00")
             with store.connect() as connection:
@@ -3110,6 +3299,38 @@ class SecurityTests(unittest.TestCase):
         client._request = mock.Mock(side_effect=AssertionError("remote request"))
         client.disconnect("recipient-1")
         store.delete_recipient.assert_called_once_with("recipient-1")
+
+    def test_only_definitive_kakao_auth_errors_are_terminal(self):
+        self.assertTrue(KakaoClient.is_terminal_auth_error(KakaoError(
+            "expired_or_invalid_refresh_token", 400, "invalid_grant",
+        )))
+        self.assertTrue(KakaoClient.is_terminal_auth_error(KakaoError(
+            "insufficient scopes", 403, "-402",
+        )))
+        self.assertFalse(KakaoClient.is_terminal_auth_error(KakaoError(
+            "Kakao platform temporary failure", 400, "-1",
+        )))
+        self.assertFalse(KakaoClient.is_terminal_auth_error(KakaoError(
+            "카카오 API 연결 실패", 503, "network_error",
+        )))
+
+    def test_kakao_send_refreshes_once_after_access_token_401(self):
+        client = KakaoClient(SimpleNamespace(request_timeout_seconds=1), SimpleNamespace())
+        client.access_token = lambda recipient_id: "stale-token"
+        client.refresh_access_token = mock.Mock(return_value="fresh-token")
+        used_tokens = []
+
+        def fake_request(url, payload=None, access_token="", method="POST"):
+            used_tokens.append(access_token)
+            if access_token == "stale-token":
+                raise KakaoError("invalid access token", 401, "-401")
+            return 200, {"result_code": 0}
+
+        client._request = fake_request
+        status, _response = client.send_to_me("recipient-1", "test", "https://example.com")
+        self.assertEqual(status, 200)
+        self.assertEqual(used_tokens, ["stale-token", "fresh-token"])
+        client.refresh_access_token.assert_called_once_with("recipient-1")
 
 
     def test_kakao_send_uses_feed_template_when_image_exists(self):

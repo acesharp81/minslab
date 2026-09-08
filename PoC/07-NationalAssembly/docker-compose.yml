@@ -299,6 +299,27 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  official-integration-worker:
+    container_name: poc07-national-assembly-official-integration-worker
+    image: poc07-national-assembly-api:local
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
+      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
+      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
+      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
+      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
+      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+    command: ["python", "-m", "app.ingestion.official_integration_worker", "--interval", "15", "--limit", "5"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   national_assembly_pgdata:
 

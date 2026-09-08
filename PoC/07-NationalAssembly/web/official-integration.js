@@ -47,13 +47,31 @@ function meetingIntegrationBar(item, record) {
       ),
     );
   } else {
+    const stage = String(context.processing_stage || "");
+    const stageLabels = {
+      OFFICIAL_PUBLICATION_PENDING: "공식 자료 게시 대기",
+      OFFICIAL_BODY_PENDING: "공식 본문 수집·연결 대기",
+      COMPARISON_QUEUED: "비공식·공식 대조 대기",
+      COMPARISON_PROCESSING: "비공식·공식 대조 중",
+      COMPARISON_RETRY_WAIT: "대조 오류 · 자동 재시도 대기",
+      COMPARISON_FAILED: "대조 오류 · 확인 필요",
+    };
     bar.append(
       magazineElement("strong", "", "LIVE 잠정 결과"),
       magazineElement(
-        "span", "", context.official_status === "PUBLISHED"
-          ? "공식 자료 대조 중" : "공식 자료 게시 대기",
+        "span", "", stageLabels[stage]
+          || (context.official_status === "PUBLISHED"
+            ? "비공식·공식 대조 대기" : "공식 자료 게시 대기"),
       ),
     );
+    if (stage === "COMPARISON_RETRY_WAIT" && context.integration_next_attempt_at) {
+      const retryAt = new Date(context.integration_next_attempt_at);
+      if (!Number.isNaN(retryAt.getTime())) {
+        bar.append(magazineElement(
+          "small", "", `${retryAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 재시도`,
+        ));
+      }
+    }
   }
   const url = context.official_url || context.official_pdf_url;
   if (url) {
@@ -142,6 +160,26 @@ function renderOfficialChangeReport(record) {
     card.append(pairs);
     list.append(card);
   }
-  if (list.children.length) section.append(list);
+  if (list.children.length) {
+    const disclosure = magazineElement("div", "official-change-disclosure", "");
+    const toggle = magazineElement("button", "official-change-toggle", "");
+    const toggleLabel = magazineElement("span", "", "상세 내용 펼치기");
+    toggle.type = "button";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.append(
+      toggleLabel,
+      magazineElement("small", "", `${list.children.length}건`),
+      magazineElement("i", "", "⌄"),
+    );
+    list.hidden = true;
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      toggleLabel.textContent = expanded ? "상세 내용 펼치기" : "상세 내용 접기";
+      list.hidden = expanded;
+    });
+    disclosure.append(toggle, list);
+    section.append(disclosure);
+  }
   return section;
 }

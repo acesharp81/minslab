@@ -32,6 +32,9 @@ class CanonicalScheduleEntry:
     authority_status: AuthorityStatus
     is_target_committee: bool
     reconciliation_status: ReconciliationStatus
+    institution: str
+    broadcast_scheduled: bool
+    broadcast_source_url: str | None
 
     def official_data(self) -> dict[str, str | None]:
         data = asdict(self)
@@ -136,4 +139,7 @@ def normalize_schedule(record: ScheduleSourceRecord) -> CanonicalScheduleEntry:
             if meeting_uid is not None
             else ReconciliationStatus.UNRESOLVED
         ),
+        institution=record.institution,
+        broadcast_scheduled=record.broadcast_scheduled,
+        broadcast_source_url=record.broadcast_source_url,
     )

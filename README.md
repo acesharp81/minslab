@@ -18,7 +18,7 @@ MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채�
 | PoC 03 | 통합 업무관리시스템 | `/poc?project=mois-kms` | [PoC/03-mois-kms](PoC/03-mois-kms/README.md) |
 | PoC 04 | AI 언론동향 비서 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
 | PoC 05 | 북한 야간조명 3D 지도 | `/poc?project=north-korea-night-lights` | [PoC/05-north-korea-night-lights](PoC/05-north-korea-night-lights/README.md) |
-| PoC 06 | AIWorks | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
+| PoC 06 | AI Work Hub | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
 | PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
@@ -30,7 +30,7 @@ Browser
   ├─ Home / Portfolio / PoC HTML
   ├─ React SPA: Field Inspection, MoIS KMS
   ├─ deck.gl player: North Korea Night Lights
-  ├─ static workspace: AIWorks
+  ├─ static workspace: AI Work Hub
   ├─ proxied independent app: National Assembly
   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
           │ HTTPS
@@ -105,7 +105,7 @@ systemd minslab-monitor.timer
 - `03. 통합 업무관리시스템` PoC for Supabase Auth, organization-scoped workflows, approval, administration, and Local/Hugging Face/OpenRouter reports.
 - `04. 마스터언론` PoC for NAVER News/RSS collection, hybrid relevance scoring, encrypted Kakao OAuth tokens, and per-recipient delivery.
 - `05. 북한 야간조명 3D 지도` PoC for monthly VIIRS collection, compact time-series data, and deck.gl visualization.
-- `06. AIWorks` PoC for approval-based document automation, MCP creation/distribution, and auditable execution.
+- `06. AI Work Hub` PoC for approval-based document automation, MCP creation/distribution, and auditable execution.
 - `07. 지금 우리 국회에선` PoC for provenance-first Cabinet/National Assembly meetings, bills, votes, and policy-flow exploration.
 
 ## Local AI Chat
@@ -196,14 +196,14 @@ The fifth PoC collects monthly VIIRS night-light observations inside the North K
 - Collection: Google Earth Engine `NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG`
 - Reproducible collection, observation-quality rules, and map controls: [PoC/05-north-korea-night-lights/README.md](PoC/05-north-korea-night-lights/README.md)
 
-## PoC 06: AIWorks
+## PoC 06: AI Work Hub
 
 The sixth PoC combines document editing, MCP creation and installation, explicit permission approval, versioned artifacts, and audit logs in one local-first workspace.
 
 - Archive entry: `/poc?project=aiworks`
 - Direct workspace: `/poc/aiworks/`
 - Server boundary: `/api/poc/aiworks/*`
-- Current baseline: AIWorks 0.30.0 with immutable Markdown source revisions, derived HWPX, project backup/restore, Artifact/Evidence lineage, Recipe Library, RBAC, permission grants, and resumable workflow attempts
+- Current baseline: AI Work Hub 0.31.2 with immutable Markdown source revisions, derived HWPX, project backup/restore, Artifact/Evidence lineage, Recipe Library, RBAC, permission grants, and resumable workflow attempts
 - Model/runtime boundary: approval-gated Solar routing plus fixed local stdio or explicitly approved Streamable HTTP MCP execution
 - Implementation and operations: [PoC/06-AIWorks/README.md](PoC/06-AIWorks/README.md)
 - Product roadmap: [PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md](PoC/06-AIWorks/docs/PROJECT_PLATFORM_ROADMAP.md)

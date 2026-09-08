@@ -1,0 +1,64 @@
+{
+  "contractVersion": "golden-workflow/1.0",
+  "id": "budget-business-review-v1",
+  "title": "예산·사업 검토 보고서 Golden Workflow",
+  "description": "익명화된 사업 검토자료를 근거로 계획·승인·Markdown·HWPX·명시적 역반영·감사를 검증한다.",
+  "project": {
+    "name": "2026년 AI 공통기반 사업 검토",
+    "classification": "internal"
+  },
+  "intent": "2026년 AI 공통기반 사업의 예산, 지적사항, 개선방안과 향후 계획을 근거 보고서로 작성해줘",
+  "retrievalQuestion": "2026년 AI 공통기반 사업의 예산 지적사항 개선방안 향후 계획",
+  "sourceFiles": [
+    {
+      "path": "sources/사업검토자료.txt",
+      "filename": "2026년_AI공통기반_사업검토자료.txt",
+      "classification": "internal"
+    }
+  ],
+  "expectations": {
+    "plan": {
+      "responseType": "report-artifact",
+      "externalTransfer": false,
+      "requiredPackageRefs": [
+        "core.project-sources@1.0.0",
+        "document.quality-harness@0.1.0",
+        "document.report-hwpx@0.1.0"
+      ]
+    },
+    "retrieval": {
+      "minimumSources": 1,
+      "requiredTerms": ["1,284백만원", "집행률 68%", "분기별 집행 점검", "성과지표 구체화", "2026년 4분기"]
+    },
+    "markdown": {
+      "requiredSections": ["요청 및 검토 범위", "연도별 확인 결과", "근거 기반 검토 포인트", "출처"],
+      "requiredTerms": ["1,284백만원", "집행률 68%", "분기별 집행 점검", "성과지표 구체화", "집행점검표"],
+      "forbiddenTerms": ["9,999백만원", "근거 없음에도 확정"],
+      "minimumCitations": 5
+    },
+    "hwpx": {
+      "requiredTerms": ["1,284백만원", "집행률 68%", "분기별 집행 점검", "성과지표 구체화", "집행점검표"],
+      "minimumParagraphs": 12,
+      "minimumMappingCoverage": 1.0
+    },
+    "roundTrip": {
+      "targetTerm": "집행점검표",
+      "replacement": "집행점검표와 월별 위험 점검표",
+      "expectedRevision": 2
+    },
+    "auditEventTypes": [
+      "project.created",
+      "project.source_registered",
+      "plan.created",
+      "plan.approved",
+      "execution.queued",
+      "execution.started",
+      "execution.completed",
+      "project.markdown_saved",
+      "project.markdown_rendered",
+      "document.session_opened",
+      "document.session_command",
+      "project.hwpx_promoted_to_markdown"
+    ]
+  }
+}

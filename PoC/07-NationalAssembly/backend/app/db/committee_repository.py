@@ -487,7 +487,10 @@ class CommitteeRepository:
             LEFT JOIN official_utterance_agenda_links agenda_link
               ON agenda_link.utterance_id = utterance.id
              AND agenda_link.reconciliation_status = 'MATCHED'
-             AND agenda_link.match_method = 'EXACT_ITEM_REF_AGENDA_PREFIX'
+             AND agenda_link.match_method IN (
+                   'EXACT_ITEM_REF_AGENDA_PREFIX',
+                   'EXPLICIT_SPOKEN_ITEM_AGENDA_PREFIX'
+                 )
             LEFT JOIN agenda_items agenda ON agenda.id = agenda_link.agenda_item_id
             LEFT JOIN bills bill ON bill.id = agenda.bill_id
             LEFT JOIN LATERAL (

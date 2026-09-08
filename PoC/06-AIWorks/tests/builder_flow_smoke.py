@@ -99,6 +99,15 @@ def main():
         driver.find_element(By.ID, "generateManifest").click()
         wait_for(driver, "document.querySelector('#manifestStatus').textContent.includes('서버 초안 저장됨')")
         wait_for(driver, "document.querySelector('#manifestPreview').textContent.includes('document.template.apply')")
+        wait_for(driver, "document.querySelector('#saveMcpDraft').disabled === false")
+        set_value(driver, "mcpDescription", "업로드한 HWPX 양식을 기준으로 현재 보고서 내용을 행정 보고 형식에 맞춰 변환하고 결과를 검증한다.")
+        driver.find_element(By.ID, "saveMcpDraft").click()
+        wait_for(driver, "!document.querySelector('#statusText').textContent.includes('수정 초안 저장 중')", timeout=30)
+        save_status = driver.find_element(By.ID, "statusText").text
+        if "수정 초안 저장 완료" not in save_status:
+            toast_text = driver.find_element(By.ID, "toast").text
+            raise AssertionError(f"draft save did not complete: status={save_status!r}, toast={toast_text!r}")
+        wait_for(driver, "document.querySelector('#manifestPreview').textContent.includes('결과를 검증한다')")
 
         reference = driver.find_element(By.ID, "referenceFile")
         reference.send_keys(str(TEMPLATE))
@@ -121,8 +130,46 @@ def main():
         wait_for(driver, "document.querySelector('#templatePreviewModeLabel').textContent.includes('업로드한 원본')", timeout=30)
         driver.execute_script("document.querySelector('#showTemplateResult').click()")
         wait_for(driver, "document.querySelector('#templatePreviewModeLabel').textContent.includes('실제 Markdown 적용 결과')", timeout=30)
+        driver.execute_script(
+            """
+            window.__templateConfirmFetch=window.fetch;
+            window.__templateConfirmProbe={request:null,response:null};
+            window.fetch=function(input,options){
+              const url=String(input);
+              if(url.includes('/template-confirm')){
+                const body=JSON.parse(options.body||'{}');
+                window.__templateConfirmProbe.request={
+                  editedBytes:String(body.edited_content_base64||'').length,
+                  sourceSha:Boolean(body.preview_source_sha256),
+                  renderSha:Boolean(body.preview_render_sha256)
+                };
+              }
+              return window.__templateConfirmFetch(input,options).then(function(response){
+                if(url.includes('/template-confirm')){
+                  response.clone().json().then(function(data){
+                    window.__templateConfirmProbe.response={
+                      provided:Boolean(data.previewEdit&&data.previewEdit.provided),
+                      applied:Boolean(data.previewEdit&&data.previewEdit.applied)
+                    };
+                  });
+                }
+                return response;
+              });
+            };
+            """
+        )
         driver.execute_script("document.querySelector('#confirmTemplatePreview').click()")
         wait_for(driver, "document.querySelector('#templatePreviewDialog').open === false", timeout=45)
+        wait_for(driver, "window.__templateConfirmProbe.response !== null", timeout=30)
+        preview_commit = driver.execute_script("return window.__templateConfirmProbe")
+        driver.execute_script("window.fetch=window.__templateConfirmFetch")
+        if (
+            preview_commit["request"]["editedBytes"] < 100
+            or not preview_commit["request"]["sourceSha"]
+            or not preview_commit["request"]["renderSha"]
+            or not preview_commit["response"]["provided"]
+        ):
+            raise AssertionError(f"RHWP preview edit was not sent to template confirmation: {preview_commit}")
         driver.execute_script("document.querySelector('#correctDraftTemplate').click()")
         wait_for(driver, "document.querySelector('#templateMappingDialog').open === true", timeout=30)
         wait_for(driver, "document.querySelector('#templateBlueprintMarkdown').value.includes('{{title}}')")
@@ -181,6 +228,7 @@ def main():
                     "guidePackaged": True,
                     "ordinaryHwpxConverted": True,
                     "autoTemplateExtraction": True,
+                    "rhwpPreviewExported": True,
                     "splitMdHwpxMappingSaved": True,
                     "renderQualityVerified": True,
                     "sandboxValidated": True,

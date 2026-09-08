@@ -17,7 +17,9 @@ class ReviewRepository:
             WITH candidate AS (
                 SELECT id FROM live_broadcasts
                 WHERE lifecycle_status = 'ENDED'
-                  AND source_system NOT IN ('poc07.demo', 'poc07.test')
+                  AND source_system NOT IN (
+                    'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
+                  )
                   AND review_status IN ('READY', 'RETRY_WAIT')
                   AND review_attempts < 5
                   AND ended_at < now() - interval '60 seconds'

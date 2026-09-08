@@ -57,6 +57,47 @@ class OfficialEditValidationTests(unittest.TestCase):
         }]}, self.brief, rows)
         self.assertEqual(edits, [])
 
+    def test_reordered_bullet_summary_is_rejected_as_style_only(self):
+        self.brief["topics"][0]["summary"] = (
+            "대법원과 법원행정처의 비상계엄 관련 회의 및 입장을 점검했다."
+        )
+        rows = [{
+            "utterance_id": "official-2",
+            "text": "비상계엄 관련 회의 및 입장: 대법원·법원행정처 점검.",
+            "ministries": [],
+        }]
+        edits = filter_supported_official_edits({"edits": [{
+            "entity_type": "topic", "entity_id": "topic-1",
+            "operation": "UPDATE", "field": "summary",
+            "new_text": rows[0]["text"],
+            "official_utterance_ids": ["official-2"],
+        }]}, self.brief, rows)
+        self.assertEqual(edits, [])
+
+    def test_large_rewrite_is_kept_for_comparison_but_marked_suppressed(self):
+        self.brief["topics"][0]["summary"] = (
+            "법무부는 청소년 보호시설 운영 현황과 교육 지원 계획을 "
+            "종합적으로 점검했다."
+        )
+        official = (
+            "청소년 교육 지원 및 보호시설 운영 현황: 법무부 점검, "
+            "정원 확대 계획을 공식 발표했다."
+        )
+        rows = [{
+            "utterance_id": "official-2", "text": official,
+            "ministries": ["법무부"],
+        }]
+        edits = filter_supported_official_edits({"edits": [{
+            "entity_type": "topic", "entity_id": "topic-1",
+            "operation": "UPDATE", "field": "summary",
+            "new_text": official,
+            "official_utterance_ids": ["official-2"],
+        }]}, self.brief, rows)
+        self.assertEqual(len(edits), 1)
+        self.assertEqual(
+            edits[0]["presentation_status"], "FULL_REWRITE_SUPPRESSED",
+        )
+
     def test_meaningful_sentence_append_is_accepted(self):
         before = "청소년 보호시설과 교육 지원을 점검했다."
         self.brief["topics"][0]["summary"] = before

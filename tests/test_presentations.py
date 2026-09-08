@@ -84,6 +84,17 @@ class PresentationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("왼쪽 트리 타이틀".encode("utf-8"), body)
         self.assertIn(b'id="presentationCancel"', body)
         self.assertIn("수정 저장".encode("utf-8"), body)
+        self.assertNotIn("최대 10MB".encode("utf-8"), body)
+        self.assertNotIn(b"file.size>10*1024*1024", body)
+
+    async def test_upload_accepts_html_larger_than_previous_limit(self):
+        html = "<!doctype html><html><body>" + ("x" * (10 * 1024 * 1024)) + "</body></html>"
+        payload = {"title": "대용량 자료", "filename": "large.html", "html": html}
+        with mock.patch.object(main, "admin_session", return_value={"exp": 1}):
+            start, body = await call_app("/api/admin/presentations", "POST", payload)
+        self.assertEqual(start["status"], 201)
+        created = json.loads(body)["created"]
+        self.assertGreater(created["size_bytes"], 10 * 1024 * 1024)
 
     async def test_update_preserves_url_and_optionally_replaces_html(self):
         created = presentation_loader.save_presentation(

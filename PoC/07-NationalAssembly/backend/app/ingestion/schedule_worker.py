@@ -16,6 +16,11 @@ from ..adapters.national_assembly.base import SourcePayload
 from ..adapters.national_assembly.client import NationalAssemblyClient
 from ..adapters.national_assembly.members import MemberAdapter, MemberSourceRecord, value_for_term
 from ..adapters.national_assembly.schedule import ScheduleAdapter
+from ..adapters.ktv_schedule import (
+    KTV_BROADCAST_SCHEDULE_URL,
+    KtvScheduleAdapter,
+)
+from ..adapters.live_sources import fetch_public_source
 from ..config import PROJECT_DIR, get_settings
 from ..db.connection import connect
 from ..db.schedule_repository import ScheduleRepository, SourceVersionInput
@@ -25,6 +30,7 @@ from ..storage.raw_store import RawArtifact, RawStore
 
 UPCOMING_SCHEDULE_SCHEMA = "assembly-schedule-upcoming.v1"
 ASSEMBLY_REFERENCE_SCHEMA = "assembly-reference.v1"
+KTV_SCHEDULE_SCHEMA = "ktv-council-schedule.v1"
 OFFICIAL_SCHEDULE_CATALOG_URL = "https://www.data.go.kr/data/15126132/openapi.do"
 OFFICIAL_MEMBER_CATALOG_URL = "https://www.data.go.kr/data/15126133/openapi.do"
 
@@ -70,6 +76,9 @@ def _public_item(entry: CanonicalScheduleEntry) -> dict[str, Any]:
         "authority_status": entry.authority_status.value,
         "reconciliation_status": entry.reconciliation_status.value,
         "source_url": OFFICIAL_SCHEDULE_CATALOG_URL,
+        "institution": entry.institution,
+        "broadcast_scheduled": entry.broadcast_scheduled,
+        "broadcast_source_url": entry.broadcast_source_url,
     }
 
 
@@ -181,6 +190,21 @@ def _reference_snapshot_fresh(
     return now.astimezone(timezone.utc) - generated_at.astimezone(timezone.utc) < max_age
 
 
+def _ktv_snapshot_fresh(
+    path: Path, *, now: datetime, max_age: timedelta = timedelta(hours=6),
+) -> bool:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("schema_version") != KTV_SCHEDULE_SCHEMA:
+            return False
+        generated_at = datetime.fromisoformat(
+            str(payload["generated_at"]).replace("Z", "+00:00")
+        )
+    except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError):
+        return False
+    return now.astimezone(timezone.utc) - generated_at.astimezone(timezone.utc) < max_age
+
+
 def sync_assembly_reference_once(
     *, api_key: str, raw_data_dir: Path, processed_data_dir: Path,
     current_term: str = "제22대",
@@ -274,6 +298,70 @@ def sync_upcoming_schedule_once(
     return snapshot
 
 
+def sync_ktv_schedule_once(
+    *,
+    database_url: str,
+    raw_data_dir: Path,
+    processed_data_dir: Path,
+    start_date: date,
+    days: int = 7,
+) -> dict[str, Any]:
+    adapter = KtvScheduleAdapter()
+    raw_store = RawStore(raw_data_dir)
+    entries: list[CanonicalScheduleEntry] = []
+    for offset in range(days):
+        target_date = start_date + timedelta(days=offset)
+        url = (
+            f"{KTV_BROADCAST_SCHEDULE_URL}"
+            f"?date={target_date.strftime('%Y%m%d')}"
+        )
+        payload = fetch_public_source(adapter.source_key, url)
+        artifact = raw_store.save(payload, parser_version=adapter.parser_version)
+        normalized = [
+            normalize_schedule(record)
+            for record in adapter.parse(payload, scheduled_date=target_date)
+        ]
+        entries.extend(normalized)
+        with connect(database_url) as connection:
+            ScheduleRepository(
+                connection, source_system="ktv.go.kr",
+            ).ingest(
+                SourceVersionInput(
+                    source_type=payload.source_key,
+                    source_url=payload.source_url,
+                    content_hash=artifact.content_hash,
+                    raw_path=artifact.content_path,
+                    retrieved_at=payload.retrieved_at,
+                    parser_version=adapter.parser_version,
+                    content_type=payload.content_type,
+                    metadata={
+                        "http_status": payload.http_status,
+                        "query_filter": "date",
+                        "scheduled_date": target_date.isoformat(),
+                    },
+                ),
+                normalized,
+            )
+    snapshot = {
+        "schema_version": KTV_SCHEDULE_SCHEMA,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_status": "OFFICIAL",
+        "source": "KTV_BROADCAST_SCHEDULE",
+        "start_date": start_date.isoformat(),
+        "end_date": (start_date + timedelta(days=days - 1)).isoformat(),
+        "count": len(entries),
+        "items": [
+            {
+                **_public_item(entry),
+                "source_url": entry.broadcast_source_url,
+            }
+            for entry in entries
+        ],
+    }
+    _atomic_json(processed_data_dir / "ktv_council_schedule.json", snapshot)
+    return snapshot
+
+
 def main() -> None:
     from ..db.migrate import apply_migrations
 
@@ -301,6 +389,30 @@ def main() -> None:
             start_date=local_today,
             days=args.days,
         )
+        ktv_schedule = None
+        ktv_snapshot_path = (
+            settings.processed_data_dir / "ktv_council_schedule.json"
+        )
+        ktv_initial_sync = not ktv_snapshot_path.exists()
+        if not _ktv_snapshot_fresh(
+            ktv_snapshot_path, now=datetime.now(timezone.utc),
+        ):
+            try:
+                ktv_schedule = sync_ktv_schedule_once(
+                    database_url=settings.database_url,
+                    raw_data_dir=settings.raw_data_dir,
+                    processed_data_dir=settings.processed_data_dir,
+                    start_date=(
+                        local_today - timedelta(days=35)
+                        if ktv_initial_sync else local_today
+                    ),
+                    days=(35 + args.days if ktv_initial_sync else args.days),
+                )
+            except Exception as exc:
+                print(json.dumps({
+                    "ktv_schedule_error": type(exc).__name__,
+                    "fallback": "stored_schedule",
+                }, ensure_ascii=False), flush=True)
         reference_path = settings.processed_data_dir / "assembly_reference.json"
         reference = None
         if not _reference_snapshot_fresh(
@@ -323,6 +435,9 @@ def main() -> None:
             "start_date": snapshot["start_date"],
             "end_date": snapshot["end_date"],
             "target_count": snapshot["count"],
+            "ktv_council_count": (
+                ktv_schedule.get("count") if ktv_schedule else None
+            ),
             "assembly_seat_count": (
                 reference.get("seat_count") if reference else None
             ),

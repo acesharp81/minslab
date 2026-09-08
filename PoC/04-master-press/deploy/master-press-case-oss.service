@@ -1,5 +1,5 @@
 [Unit]
-Description=Master Press NVIDIA gpt-oss-120b case worker
+Description=Master Press NVIDIA Nemotron 3 Super case worker
 After=network-online.target myservice.service master-press-case.service
 Wants=network-online.target
 PartOf=myservice.service

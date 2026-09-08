@@ -1,9 +1,13 @@
 .assembly-extras-section { max-width:1440px; margin:0 auto; padding:18px 24px 48px; }
-.assembly-extras-intro { margin-bottom:18px; }
-.assembly-extras-grid { display:grid; grid-template-columns:minmax(0,1fr) 350px; align-items:start; gap:18px; }
+.assembly-extras-grid { display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:18px; }
+.assembly-schedule-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(280px,1fr); align-items:stretch; gap:18px; height:min(760px,max(620px,calc(100vh - 180px))); }
 .assembly-calendar-panel,
-.assembly-reference-panel { border:1px solid #dce5f0; border-radius:18px; background:#fff; box-shadow:0 12px 32px rgba(25,54,91,.06); }
-.assembly-calendar-panel { min-width:0; padding:20px; }
+.assembly-reference-panel,
+.assembly-day-agenda-panel { border:1px solid #dce5f0; border-radius:18px; background:#fff; box-shadow:0 12px 32px rgba(25,54,91,.06); }
+.assembly-calendar-panel { display:flex; min-width:0; min-height:0; flex-direction:column; padding:20px; overflow:hidden; }
+.assembly-day-agenda.assembly-day-agenda-panel { display:flex; min-width:0; min-height:0; flex-direction:column; margin:0; padding:20px; overflow:hidden; border-top:1px solid #dce5f0; }
+.assembly-day-agenda-panel > header { align-items:flex-start; padding-bottom:14px; border-bottom:2px solid #173f70; }
+.assembly-day-agenda-panel #assemblyDayAgendaList { flex:1 1 auto; max-height:none; min-height:0; margin-top:8px; padding-right:6px; overflow-x:hidden; overflow-y:scroll; overscroll-behavior:contain; }
 .assembly-reference-panel { position:static; padding:20px; }
 .assembly-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
 .assembly-panel-head span { color:#1b5ab7; font-size:9px; font-weight:900; letter-spacing:.12em; }
@@ -22,8 +26,8 @@
 .assembly-calendar-weekdays { border:1px solid #dce4ef; border-bottom:0; border-radius:12px 12px 0 0; overflow:hidden; background:#f5f8fc; }
 .assembly-calendar-weekdays span { padding:8px 4px; color:#60738d; font-size:9px; font-weight:900; text-align:center; }
 .assembly-calendar-weekdays span:first-child { color:#c44b55; }
-.assembly-calendar-grid { border-top:1px solid #dde5ef; border-left:1px solid #dde5ef; }
-.assembly-calendar-day { display:flex; min-width:0; min-height:104px; flex-direction:column; gap:7px; padding:8px; border:0; border-right:1px solid #dde5ef; border-bottom:1px solid #dde5ef; color:#263c58; background:#fff; text-align:left; cursor:pointer; }
+.assembly-calendar-grid { flex:1 1 auto; min-height:0; grid-auto-rows:minmax(62px,1fr); border-top:1px solid #dde5ef; border-left:1px solid #dde5ef; }
+.assembly-calendar-day { display:flex; min-width:0; min-height:0; flex-direction:column; gap:7px; padding:8px; overflow:hidden; border:0; border-right:1px solid #dde5ef; border-bottom:1px solid #dde5ef; color:#263c58; background:#fff; text-align:left; cursor:pointer; }
 .assembly-calendar-day:nth-child(7n+1) { color:#b94450; }
 .assembly-calendar-day:hover,
 .assembly-calendar-day:focus-visible { position:relative; z-index:1; outline:2px solid #76a9e5; outline-offset:-2px; background:#f6faff; }
@@ -35,6 +39,10 @@
 .assembly-calendar-events { display:grid; gap:4px; min-width:0; }
 .assembly-calendar-events i { display:block; overflow:hidden; padding:4px 5px; border-radius:5px; color:#49627e; background:#eef2f7; font-size:8px; font-style:normal; font-weight:800; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
 .assembly-calendar-events i.is-target { color:#174e92; background:#dfeeff; }
+.assembly-calendar-events i.is-executive { color:#50348d; background:#eee9ff; }
+.assembly-calendar-events i.is-broadcast { color:#9f241f; background:#fff0ee; }
+.assembly-calendar-events i.is-live { color:#fff; background:#d92d20; }
+.assembly-calendar-events i.is-completed { color:#fff; background:#2366b1; }
 .assembly-calendar-events b { color:#376390; font-size:8px; }
 .assembly-day-agenda { margin-top:18px; padding-top:16px; border-top:1px solid #dfe6ef; }
 .assembly-day-agenda > header { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:7px; }
@@ -52,6 +60,10 @@
 .assembly-agenda-tags { display:flex; flex-wrap:wrap; gap:4px; }
 .assembly-agenda-tags span { padding:2px 6px; border-radius:999px; color:#5f7189; background:#eef2f6; font-size:7px; font-weight:900; }
 .assembly-agenda-tags span.is-target { color:#1a579e; background:#dfeeff; }
+.assembly-agenda-tags span.is-executive { color:#52358d; background:#eee9ff; }
+.assembly-agenda-tags span.is-broadcast { color:#a12b25; background:#fff0ee; }
+.assembly-agenda-tags span.is-live { color:#fff; background:#d92d20; }
+.assembly-agenda-tags span.is-completed { color:#fff; background:#2366b1; }
 .assembly-agenda-card h4 { margin:5px 0 3px; color:#1e344d; font-size:12px; line-height:1.45; }
 .assembly-agenda-card p,
 .assembly-agenda-empty { margin:0; color:#77869a; font-size:9px; }
@@ -115,63 +127,151 @@
 .assembly-hemicycle-note { max-width:980px; margin:11px auto 0; color:#798a9e; font-size:8px; line-height:1.55; text-align:center; }
 
 .assembly-insights-panel { grid-column:1 / -1; min-width:0; padding:22px 24px; border:1px solid #dce5f0; border-radius:18px; background:#fff; box-shadow:0 12px 32px rgba(25,54,91,.06); }
-.assembly-insight-cost { padding:7px 9px; border-radius:999px; color:#27674f; background:#eaf7f1; font-size:8px; font-weight:900; }
-.assembly-insights-grid { display:grid; grid-template-columns:1.15fr .85fr .9fr; align-items:start; gap:10px; margin-top:16px; }
-.assembly-insight-card { min-width:0; overflow:hidden; border:1px solid #dfe7f1; border-radius:14px; background:#f9fbfd; }
+.assembly-insight-cost { padding:8px 11px; border-radius:999px; color:#27674f; background:#eaf7f1; font-size:11px; font-weight:900; }
+.assembly-insights-grid { display:grid; grid-template-columns:1.15fr .85fr .9fr; align-items:stretch; gap:10px; margin-top:16px; }
+.assembly-insight-card { display:grid; grid-template-rows:auto minmax(0,1fr); min-width:0; height:100%; overflow:hidden; border:1px solid #dfe7f1; border-radius:14px; background:#f9fbfd; }
 .assembly-insight-card > header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:11px 12px; border-bottom:1px solid #e0e8f2; background:#f2f7fd; }
-.assembly-insight-card > header span { color:#173f6f; font-size:11px; font-weight:900; }
-.assembly-insight-card > header small { color:#78899d; font-size:7px; font-weight:800; }
-.assembly-insight-card > div { display:grid; gap:0; max-height:430px; overflow:auto; scrollbar-width:thin; scrollbar-color:#376a9f #edf2f7; }
-.assembly-insight-empty { margin:0; padding:24px 12px; color:#718399; font-size:9px; line-height:1.55; text-align:center; }
+.assembly-insight-card > header span { color:#173f6f; font-size:15px; font-weight:900; }
+.assembly-insight-card > header small { color:#78899d; font-size:11px; font-weight:800; }
+.assembly-insight-card > div { display:grid; min-height:0; gap:0; max-height:430px; overflow:auto; scrollbar-width:thin; scrollbar-color:#376a9f #edf2f7; }
+.assembly-insight-empty { margin:0; padding:24px 12px; color:#718399; font-size:12px; line-height:1.6; text-align:center; }
+.assembly-insight-guide { position:sticky; top:0; z-index:2; margin:0; padding:8px 12px; border-bottom:1px solid #dbe5f0; color:#486783; background:#edf5fc; font-size:10px; font-weight:800; line-height:1.45; }
 .assembly-policy-timeline-row { padding:12px; border-bottom:1px solid #e3eaf2; background:#fff; }
 .assembly-policy-timeline-row > header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
-.assembly-policy-timeline-row > header strong { color:#163f70; font-size:11px; }
-.assembly-policy-timeline-row > header small { color:#647b95; font-size:7px; }
+.assembly-policy-timeline-row > header strong { color:#163f70; font-size:14px; }
+.assembly-policy-timeline-row > header small { color:#647b95; font-size:10px; }
 .assembly-policy-steps { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .assembly-policy-steps > div { display:grid; min-width:0; gap:3px; padding:9px; border-left:3px solid #2b69b2; border-radius:7px; background:#f3f7fc; }
 .assembly-policy-steps > div.is-executive { border-color:#327f65; background:#f0f8f4; }
 .assembly-policy-steps > div.is-bill { grid-column:1 / -1; border-color:#b6802e; background:#fff9ee; }
-.assembly-policy-steps span { color:#5d7693; font-size:7px; font-weight:900; }
-.assembly-policy-steps b { overflow:hidden; color:#213d5d; font-size:9px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
-.assembly-policy-steps p { display:-webkit-box; overflow:hidden; margin:0; color:#5f7084; font-size:8px; line-height:1.45; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.assembly-policy-steps span { color:#5d7693; font-size:10px; font-weight:900; }
+.assembly-policy-steps b { overflow:hidden; color:#213d5d; font-size:12px; line-height:1.4; text-overflow:ellipsis; white-space:nowrap; }
+.assembly-policy-steps p { display:-webkit-box; overflow:hidden; margin:0; color:#5f7084; font-size:11px; line-height:1.55; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
 .assembly-policy-steps a,
-.assembly-institution-stage a { color:#245f9e; font-size:7px; font-weight:900; text-decoration:none; }
-.assembly-trend-row { display:grid; grid-template-columns:auto 1fr auto; gap:4px 8px; padding:11px 12px; border-bottom:1px solid #e3eaf2; background:#fff; }
-.assembly-trend-row > span { align-self:center; padding:3px 6px; border-radius:999px; color:#355f8d; background:#e8f1fc; font-size:7px; font-weight:900; }
+.assembly-institution-stage a { color:#245f9e; font-size:10px; font-weight:900; text-decoration:none; }
+.assembly-trend-row { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:5px 8px; padding:12px; border-bottom:1px solid #e3eaf2; background:#fff; }
+.assembly-trend-row > span { align-self:center; padding:4px 7px; border-radius:999px; color:#355f8d; background:#e8f1fc; font-size:10px; font-weight:900; }
 .assembly-trend-row.is-급증 > span { color:#a9483f; background:#feecea; }
 .assembly-trend-row.is-지속 > span { color:#287052; background:#eaf7f0; }
 .assembly-trend-row.is-최근-미관측 > span { color:#6f7783; background:#eef0f3; }
-.assembly-trend-row strong { align-self:center; color:#203b5a; font-size:10px; }
-.assembly-trend-row b { align-self:center; color:#355b86; font-size:8px; }
-.assembly-trend-row small { grid-column:2 / -1; color:#7a899b; font-size:7px; }
-.assembly-institution-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; padding:11px 12px; border-bottom:1px solid #e3eaf2; background:#fff; }
+.assembly-trend-row strong { align-self:center; color:#203b5a; font-size:13px; }
+.assembly-trend-row b { align-self:center; color:#355b86; font-size:11px; }
+.assembly-trend-row p { display:-webkit-box; grid-column:2 / -1; overflow:hidden; margin:0; color:#51677f; font-size:11px; line-height:1.5; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.assembly-trend-row small { grid-column:2 / -1; color:#7a899b; font-size:10px; line-height:1.45; }
+.assembly-institution-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(130px,auto); align-items:start; gap:10px; padding:12px; border-bottom:1px solid #e3eaf2; background:#fff; }
 .assembly-institution-row > div:first-child { display:grid; gap:3px; min-width:0; }
-.assembly-institution-row strong { color:#203d5d; font-size:10px; }
-.assembly-institution-row small { color:#78899d; font-size:7px; }
+.assembly-institution-row strong { color:#203d5d; font-size:13px; }
+.assembly-institution-row p { display:-webkit-box; overflow:hidden; margin:0; color:#51677f; font-size:11px; line-height:1.5; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.assembly-institution-row small { color:#78899d; font-size:10px; }
 .assembly-institution-stage { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; max-width:160px; }
-.assembly-institution-stage span { padding:3px 5px; border-radius:999px; font-size:7px; font-weight:900; }
+.assembly-institution-stage span { padding:4px 7px; border-radius:999px; font-size:10px; font-weight:900; }
 .assembly-institution-stage span.is-done { color:#23694d; background:#e9f6ef; }
 .assembly-institution-stage span.is-waiting { color:#886329; background:#fff4df; }
-.assembly-insight-note { margin:11px 0 0; color:#77899e; font-size:8px; line-height:1.5; text-align:center; }
+.assembly-institution-stage span.is-task { overflow:hidden; max-width:160px; color:#275d91; background:#e9f2fc; text-overflow:ellipsis; white-space:nowrap; }
+.assembly-insight-note { margin:13px 0 0; color:#77899e; font-size:11px; line-height:1.6; text-align:center; }
+.assembly-policy-timeline-row.is-clickable,
+.assembly-trend-row.is-clickable,
+.assembly-institution-row.is-clickable { cursor:pointer; transition:border-color .18s,box-shadow .18s,transform .18s; }
+.assembly-policy-timeline-row.is-clickable:hover,
+.assembly-trend-row.is-clickable:hover,
+.assembly-institution-row.is-clickable:hover { position:relative; z-index:1; box-shadow:inset 3px 0 #2b67a8,0 7px 18px rgba(29,67,108,.08); }
+.assembly-policy-timeline-row.is-clickable:focus-visible,
+.assembly-trend-row.is-clickable:focus-visible,
+.assembly-institution-row.is-clickable:focus-visible { position:relative; z-index:2; outline:3px solid rgba(45,104,170,.28); outline-offset:-3px; }
+.assembly-insight-dialog { width:min(940px,calc(100vw - 28px)); max-height:88vh; padding:0; overflow:hidden; border:0; border-radius:18px; color:#142b47; background:#fff; box-shadow:0 34px 100px rgba(5,24,49,.38); }
+.assembly-insight-dialog::backdrop { background:rgba(5,19,38,.64); backdrop-filter:blur(2px); }
+.assembly-insight-dialog > header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:20px 24px 16px; border-bottom:1px solid #dce5ef; background:linear-gradient(135deg,#f5f9fe,#fff); }
+.assembly-insight-dialog > header span { color:#2b64a5; font-size:9px; font-weight:900; letter-spacing:.12em; }
+.assembly-insight-dialog > header h2 { margin:5px 0 4px; color:#12375f; font-size:22px; line-height:1.35; }
+.assembly-insight-dialog > header p { margin:0; color:#718299; font-size:11px; }
+.assembly-insight-dialog > header button { flex:none; padding:0; border:0; color:#526b85; background:transparent; cursor:pointer; font-size:30px; line-height:1; }
+.assembly-insight-dialog-body { max-height:calc(88vh - 126px); overflow:auto; padding:20px 24px 24px; }
+.assembly-insight-dialog > footer { padding:10px 24px; border-top:1px solid #e1e8f0; color:#74869a; background:#f7f9fc; font-size:10px; text-align:right; }
+.assembly-insight-match-basis { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:6px 12px; margin-bottom:12px; padding:11px 13px; border:1px solid #d6e4f2; border-radius:10px; background:#f3f8fd; }
+.assembly-insight-match-basis strong { color:#234f7d; font-size:11px; }
+.assembly-insight-match-basis p { grid-column:1 / -1; margin:0; color:#627891; font-size:10px; line-height:1.55; }
+.assembly-insight-dialog-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.assembly-insight-dialog-tags span { padding:4px 7px; border-radius:999px; color:#315f8c; background:#e8f1fb; font-size:9px; font-weight:850; }
+.assembly-insight-compare-grid { display:grid; grid-template-columns:1fr 1fr; align-items:stretch; gap:12px; }
+.assembly-insight-compare-panel { display:flex; flex-direction:column; min-width:0; padding:18px; border:1px solid #dce6f0; border-top:4px solid #3973b4; border-radius:12px; background:#fbfdff; }
+.assembly-insight-compare-panel.is-executive { border-top-color:#2e8468; background:#f8fcfa; }
+.assembly-insight-compare-panel > span { color:#376995; font-size:10px; font-weight:900; }
+.assembly-insight-compare-panel.is-executive > span { color:#28735c; }
+.assembly-insight-compare-panel h3 { margin:7px 0 9px; color:#173b61; font-size:16px; line-height:1.45; }
+.assembly-insight-compare-panel p { margin:14px 0 0; color:#405873; font-size:13px; line-height:1.75; white-space:pre-wrap; }
+.assembly-insight-compare-panel a { align-self:flex-start; margin-top:auto; padding-top:14px; color:#285f9d; font-size:11px; font-weight:900; text-decoration:none; }
+.assembly-insight-summary { max-width:760px; margin:0 auto; }
+.assembly-insight-summary > section { padding:20px; border:1px solid #dbe5ef; border-radius:13px; background:#fbfdff; }
+.assembly-insight-summary h3 { margin:13px 0 8px; color:#173b61; font-size:19px; line-height:1.45; }
+.assembly-insight-summary p { margin:0; color:#405873; font-size:14px; line-height:1.8; white-space:pre-wrap; }
+.assembly-insight-summary small { display:block; margin-top:16px; color:#657b93; font-size:11px; font-weight:800; }
+.assembly-insight-summary small.is-caution { padding:9px 11px; border-radius:8px; color:#845f25; background:#fff5e4; }
+.assembly-institution-detail { display:grid; gap:12px; margin-top:14px; }
+.assembly-institution-block { position:relative; padding:18px 18px 18px 24px; border:1px solid #dbe5ef; border-radius:13px; background:#fff; }
+.assembly-institution-block::before { position:absolute; top:20px; bottom:20px; left:10px; width:3px; border-radius:3px; background:#2c6caf; content:""; }
+.assembly-institution-block.is-bill::before { background:#b5802f; }
+.assembly-institution-block.is-process::before { background:#34775f; }
+.assembly-institution-kicker { color:#356d9f; font-size:9px; font-weight:900; letter-spacing:.08em; }
+.assembly-institution-block h4 { margin:4px 0 12px; color:#173b61; font-size:16px; }
+.assembly-institution-events { display:grid; gap:7px; }
+.assembly-institution-events article { display:grid; grid-template-columns:92px minmax(0,1fr); gap:3px 10px; padding:11px 12px; border-radius:9px; background:#f4f8fc; }
+.assembly-institution-events time { grid-row:1 / 5; color:#376793; font-size:10px; font-weight:900; }
+.assembly-institution-events strong { color:#203e5e; font-size:12px; }
+.assembly-institution-events b { color:#315c86; font-size:11px; }
+.assembly-institution-events p { margin:0; color:#526b84; font-size:11px; line-height:1.55; }
+.assembly-institution-events small { color:#78899c; font-size:9px; }
+.assembly-institution-empty { margin:0; padding:14px; border-radius:9px; color:#6a7e94; background:#f5f7fa; font-size:11px; line-height:1.6; }
+.assembly-institution-bill { display:grid; gap:7px; padding:13px; border-radius:9px; background:#fff8eb; }
+.assembly-institution-bill h5 { margin:0; color:#563f1d; font-size:14px; }
+.assembly-institution-bill p { margin:0; color:#725e3d; font-size:11px; line-height:1.55; }
+.assembly-institution-bill a { justify-self:start; color:#285f9d; font-size:10px; font-weight:900; text-decoration:none; }
+.assembly-bill-process { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+.assembly-bill-process > div { display:grid; align-content:start; gap:4px; min-height:94px; padding:11px; border:1px solid #dce7e2; border-radius:9px; background:#f5faf7; }
+.assembly-bill-process > div.is-current { border-color:#4b8b72; box-shadow:inset 0 0 0 1px #4b8b72; }
+.assembly-bill-process span { justify-self:start; padding:3px 6px; border-radius:999px; color:#27684f; background:#e3f3eb; font-size:8px; font-weight:900; }
+.assembly-bill-process strong { color:#244c3c; font-size:12px; }
+.assembly-bill-process time { color:#70897e; font-size:9px; }
+.assembly-bill-process p { margin:0; color:#587166; font-size:10px; line-height:1.45; }
+.assembly-bill-current { display:flex; align-items:center; gap:8px; margin-top:9px; padding:10px 12px; border-radius:9px; color:#fff; background:#173f6b; }
+.assembly-bill-current span { font-size:9px; font-weight:900; opacity:.75; }
+.assembly-bill-current strong { font-size:12px; }
+.assembly-bill-current small { margin-left:auto; color:#dce9f5; font-size:9px; }
 
 @media (max-width:1180px) {
   .topnav { max-width:390px; overflow-x:auto; scrollbar-width:none; }
   .topnav::-webkit-scrollbar { display:none; }
-  .assembly-extras-grid { grid-template-columns:minmax(0,1fr) 310px; }
+  .assembly-extras-grid { grid-template-columns:minmax(0,1fr); }
   .assembly-insights-grid { grid-template-columns:1fr 1fr; }
   .assembly-insight-card.is-institution { grid-column:1 / -1; }
 }
 @media (max-width:900px) {
   .assembly-extras-section { padding:14px 14px 40px; }
   .assembly-extras-grid { grid-template-columns:1fr; }
+  .assembly-schedule-layout { grid-template-columns:1fr; height:auto; }
+  .assembly-calendar-panel { min-height:620px; }
+  .assembly-day-agenda.assembly-day-agenda-panel { height:min(620px,calc(100svh - 100px)); min-height:420px; }
+  .assembly-day-agenda-panel #assemblyDayAgendaList { max-height:none; }
   .assembly-reference-panel { position:static; }
   .assembly-insights-grid { grid-template-columns:1fr; }
   .assembly-insight-card.is-institution { grid-column:auto; }
 }
 @media (max-width:620px) {
   .assembly-extras-section { padding-inline:10px; }
+  .assembly-insight-dialog { width:calc(100vw - 16px); max-height:92vh; border-radius:13px; }
+  .assembly-insight-dialog > header { padding:16px; }
+  .assembly-insight-dialog > header h2 { font-size:18px; }
+  .assembly-insight-dialog-body { max-height:calc(92vh - 120px); padding:14px; }
+  .assembly-insight-compare-grid { grid-template-columns:1fr; }
+  .assembly-insight-compare-panel { padding:15px; }
+  .assembly-insight-compare-panel h3 { font-size:14px; }
+  .assembly-insight-compare-panel p { font-size:12px; }
+  .assembly-institution-events article { grid-template-columns:1fr; }
+  .assembly-institution-events time { grid-row:auto; }
+  .assembly-bill-current { align-items:flex-start; flex-direction:column; }
+  .assembly-bill-current small { margin-left:0; }
   .assembly-calendar-panel,
-  .assembly-reference-panel { padding:14px; border-radius:14px; }
+  .assembly-reference-panel,
+  .assembly-day-agenda.assembly-day-agenda-panel { padding:14px; border-radius:14px; }
   .assembly-panel-head { display:grid; }
   .assembly-calendar-controls { grid-template-columns:32px 40px 1fr 32px; }
   .assembly-calendar-day { min-height:66px; padding:5px; }

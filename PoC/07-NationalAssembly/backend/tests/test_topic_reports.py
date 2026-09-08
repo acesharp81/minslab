@@ -267,7 +267,7 @@ class TopicReportTests(unittest.TestCase):
         quota_migration = (PROJECT_DIR / "backend/migrations/0038_topic_report_quota_once_per_report.sql").read_text(encoding="utf-8")
         worker = (PROJECT_DIR / "backend/app/ingestion/topic_report_worker.py").read_text(encoding="utf-8")
         repository = (PROJECT_DIR / "backend/app/db/topic_report_repository.py").read_text(encoding="utf-8")
-        self.assertIn("국정보미", html)
+        self.assertIn("국정ON", html)
         self.assertIn('data-workspace-tab="topic-reports"', html)
         self.assertIn("자료 검색", script)
         self.assertNotIn("관련 자료 확인", script)

@@ -842,6 +842,12 @@ CREATE TABLE IF NOT EXISTS magazine_issue_members (
 CREATE INDEX IF NOT EXISTS idx_magazine_members_issue
   ON magazine_issue_members(edition_id,issue_key,rank);
 CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_articles_dashboard_published
+  ON articles(COALESCE(published_at,first_seen_at) DESC,id);
+CREATE INDEX IF NOT EXISTS idx_case_evaluations_dashboard_summary
+  ON case_evaluations(id,status,completed_at,updated_at,decision,final_score,article_analysis_id,case_id);
+CREATE INDEX IF NOT EXISTS idx_case_evaluations_model_completed
+  ON case_evaluations(status,model,COALESCE(completed_at,updated_at));
 CREATE TABLE IF NOT EXISTS supabase_outbox (
   id TEXT PRIMARY KEY,
   table_name TEXT NOT NULL,
@@ -856,6 +862,7 @@ CREATE TABLE IF NOT EXISTS supabase_outbox (
   UNIQUE(table_name, conflict_key, id)
 );
 CREATE INDEX IF NOT EXISTS idx_supabase_outbox_due ON supabase_outbox(status,next_attempt_at,created_at);
+CREATE INDEX IF NOT EXISTS idx_supabase_outbox_updated_status ON supabase_outbox(updated_at,status);
 
 CREATE TABLE IF NOT EXISTS supabase_identity_aliases (
   entity_type TEXT NOT NULL,
@@ -956,6 +963,10 @@ class Store:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._pipeline_summary_cache: dict[tuple, tuple[float, tuple[int, int, int, int], dict]] = {}
+        # Admin rendering asks for the same settings many times through model
+        # helpers. Cache the stored value briefly; missing keys still honor each
+        # caller's own default.
+        self._setting_cache: dict[str, tuple[float, str | None]] = {}
         self._magazine_schema_ready = False
         if not initialize:
             return
@@ -1496,6 +1507,22 @@ class Store:
                 f"CREATE INDEX IF NOT EXISTS {index_name} "
                 "ON deliveries(article_id, case_id, status, sent_at DESC)"
             )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_articles_dashboard_published "
+                "ON articles(COALESCE(published_at,first_seen_at) DESC,id)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_case_evaluations_dashboard_summary "
+                "ON case_evaluations(id,status,completed_at,updated_at,decision,final_score,article_analysis_id,case_id)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_case_evaluations_model_completed "
+                "ON case_evaluations(status,model,COALESCE(completed_at,updated_at))"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_supabase_outbox_updated_status "
+                "ON supabase_outbox(updated_at,status)"
+            )
             columns = tuple(
                 str(row["name"])
                 for row in connection.execute(f"PRAGMA index_info({index_name})").fetchall()
@@ -1531,7 +1558,17 @@ class Store:
             raise RuntimeError(
                 f"critical neural query does not use {index_name}: {' | '.join(plan)}"
             )
-        return {"index": index_name, "columns": list(columns), "query_plan": plan}
+        return {
+            "index": index_name,
+            "columns": list(columns),
+            "query_plan": plan,
+            "dashboard_indexes": [
+                "idx_articles_dashboard_published",
+                "idx_case_evaluations_dashboard_summary",
+                "idx_case_evaluations_model_completed",
+                "idx_supabase_outbox_updated_status",
+            ],
+        }
 
     def _database_change_marker(self) -> tuple[int, int, int, int]:
         marker: list[int] = []
@@ -1831,21 +1868,56 @@ class Store:
         with self.connect() as connection:
             connection.execute("DELETE FROM case_recipients WHERE case_id=?", (case_id,))
             connection.executemany(
-                "INSERT INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                """INSERT INTO case_recipients(case_id,recipient_id)
+                   SELECT ?,id FROM recipients WHERE id=? AND status='active'""",
                 [(case_id, value) for value in dict.fromkeys(recipient_ids)],
             )
 
-    def case_recipient_ids(self, case_id: str) -> list[str]:
+    def case_recipient_ids(self, case_id: str, active_only: bool = True) -> list[str]:
         with self.connect() as connection:
-            return [row[0] for row in connection.execute("SELECT recipient_id FROM case_recipients WHERE case_id=?", (case_id,))]
+            if active_only:
+                rows = connection.execute(
+                    """SELECT cr.recipient_id FROM case_recipients cr
+                       JOIN recipients r ON r.id=cr.recipient_id AND r.status='active'
+                       WHERE cr.case_id=?""",
+                    (case_id,),
+                )
+            else:
+                rows = connection.execute("SELECT recipient_id FROM case_recipients WHERE case_id=?", (case_id,))
+            return [row[0] for row in rows]
 
     def list_recipients(self) -> list[dict]:
         with self.connect() as connection:
             self._cleanup_expired_signup_requests(connection)
             rows = connection.execute(
-                "SELECT id,label,kakao_user_id,access_token_expires_at,refresh_token_expires_at,status,last_error,created_at,updated_at FROM recipients WHERE status<>'deleted' ORDER BY created_at DESC"
+                """SELECT r.id,r.label,r.kakao_user_id,r.access_token_expires_at,r.refresh_token_expires_at,
+                          r.status,r.last_error,r.created_at,r.updated_at,
+                          (SELECT COUNT(*) FROM deliveries d
+                            WHERE d.recipient_id=r.id AND d.status IN ('pending','retry','sending')) AS article_delivery_pending_count
+                     FROM recipients r
+                    WHERE r.status<>'deleted'
+                    ORDER BY r.created_at DESC"""
             ).fetchall()
-        return [dict(row) for row in rows]
+            magazine_pending = {}
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='magazine_deliveries'"
+            ).fetchone():
+                magazine_pending = {
+                    row["recipient_id"]: int(row["pending_count"])
+                    for row in connection.execute(
+                        """SELECT recipient_id,COUNT(*) AS pending_count
+                             FROM magazine_deliveries
+                            WHERE status IN ('pending','retry','sending')
+                            GROUP BY recipient_id"""
+                    )
+                }
+        recipients = [dict(row) for row in rows]
+        for recipient in recipients:
+            recipient["magazine_delivery_pending_count"] = magazine_pending.get(recipient["id"], 0)
+            recipient["delivery_pending_count"] = int(recipient.get("article_delivery_pending_count") or 0) + int(
+                recipient.get("magazine_delivery_pending_count") or 0
+            )
+        return recipients
 
     def mark_recipient_reauthorize(self, recipient_id: str, message: str) -> None:
         with self.connect() as connection:
@@ -1854,10 +1926,18 @@ class Store:
                 (str(message)[:500], now_iso(), str(recipient_id)),
             )
             connection.execute(
-                """UPDATE deliveries SET status='failed',attempts=3,response_code=403,last_error=?,updated_at=?
+                """UPDATE deliveries SET status='cancelled',last_error=?,lease_owner='',lease_expires_at=NULL,updated_at=?
                    WHERE recipient_id=? AND status IN ('pending','retry')""",
                 (str(message)[:500], now_iso(), str(recipient_id)),
             )
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='magazine_deliveries'"
+            ).fetchone():
+                connection.execute(
+                    """UPDATE magazine_deliveries SET status='cancelled',last_error=?,updated_at=?
+                       WHERE recipient_id=? AND status IN ('pending','retry')""",
+                    (str(message)[:500], now_iso(), str(recipient_id)),
+                )
 
     @staticmethod
     def mask_applicant_name(value: str) -> str:
@@ -1962,7 +2042,7 @@ class Store:
         with self.connect() as connection:
             if recipient_id:
                 recipient = connection.execute(
-                    "SELECT id,status FROM recipients WHERE id=? AND status<>'deleted'",
+                    "SELECT id,status FROM recipients WHERE id=? AND status='active'",
                     (recipient_id,),
                 ).fetchone()
                 if not recipient:
@@ -2029,7 +2109,8 @@ class Store:
     def add_case_recipient(self, case_id: str, recipient_id: str) -> None:
         with self.connect() as connection:
             connection.execute(
-                "INSERT OR IGNORE INTO case_recipients(case_id,recipient_id) VALUES(?,?)",
+                """INSERT OR IGNORE INTO case_recipients(case_id,recipient_id)
+                   SELECT ?,id FROM recipients WHERE id=? AND status='active'""",
                 (case_id, recipient_id),
             )
 
@@ -2296,13 +2377,21 @@ class Store:
         return {"requests_approved": len(request_ids), "cases_approved": cases_approved, "skipped_without_kakao": skipped}
 
     def get_setting(self, key: str, default: str = "") -> str:
+        key = str(key)
+        cached = self._setting_cache.get(key)
+        if cached and time.monotonic() < cached[0]:
+            return cached[1] if cached[1] is not None else default
         with self.connect() as connection:
             row = connection.execute("SELECT value FROM app_settings WHERE key=?", (key,)).fetchone()
-        return str(row["value"]) if row else default
+        value = str(row["value"]) if row else None
+        self._setting_cache[key] = (time.monotonic() + 5.0, value)
+        return value if value is not None else default
 
     def set_setting(self, key: str, value: str) -> None:
+        key = str(key)
         with self.connect() as connection:
             connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at", (key, str(value), now_iso()))
+        self._setting_cache.pop(key, None)
 
     def set_settings(self, values: dict[str, Any]) -> None:
         if not values:
@@ -2314,6 +2403,8 @@ class Store:
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
                 [(str(key), str(value), updated_at) for key, value in values.items()],
             )
+        for key in values:
+            self._setting_cache.pop(str(key), None)
 
     def claim_provider_quota_probe(self, provider: str, lease_seconds: int = 120) -> bool:
         """Allow one cross-process provider check after a quota lock expires."""
@@ -2717,7 +2808,8 @@ class Store:
                     JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
                     JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
                     JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
-                    JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                    JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary
+                      ON ce.id=acpf.evaluation_id
                     GROUP BY aa.article_id
                     HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
                 )
@@ -2737,7 +2829,8 @@ class Store:
                     JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
                     JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
                     JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
-                    JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                    JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary
+                      ON ce.id=acpf.evaluation_id
                     GROUP BY aa.article_id
                     HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
                 ) SELECT COUNT(*) value FROM completed_articles""").fetchone()["value"] or 0)
@@ -3244,7 +3337,8 @@ class Store:
                    access_token_ciphertext=excluded.access_token_ciphertext,
                    refresh_token_ciphertext=excluded.refresh_token_ciphertext,
                    access_token_expires_at=excluded.access_token_expires_at,
-                   refresh_token_expires_at=excluded.refresh_token_expires_at,scopes=excluded.scopes,status='active',updated_at=excluded.updated_at""",
+                   refresh_token_expires_at=excluded.refresh_token_expires_at,scopes=excluded.scopes,
+                   status='active',last_error=NULL,updated_at=excluded.updated_at""",
                 (
                     recipient_id, invite["label"], str(token_data["kakao_user_id"]),
                     token_data["access_token_ciphertext"], token_data["refresh_token_ciphertext"],
@@ -3381,19 +3475,78 @@ class Store:
             assignments = ",".join(f"{key}=?" for key in clean)
             connection.execute(f"UPDATE recipients SET {assignments},updated_at=? WHERE id=?", (*clean.values(), now_iso(), recipient_id))
 
-    def delete_recipient(self, recipient_id: str) -> bool:
+    def retire_recipient(self, recipient_id: str, source: str = "admin", reason: str = "") -> dict:
+        """Locally retire a recipient and cancel every delivery that has not started."""
+        recipient_id = str(recipient_id or "")
+        source_labels = {
+            "admin": "관리자 강제 탈퇴",
+            "auth_expired": "카카오 인증 만료 자동 탈퇴",
+            "permission_revoked": "카카오 메시지 권한 철회 자동 탈퇴",
+        }
+        note = source_labels.get(str(source or ""), str(reason or source or "수신 해제"))
+        stored_reason = str(reason or note)[:500]
+        now = now_iso()
         with self.connect() as connection:
-            connection.execute("DELETE FROM signup_requests WHERE recipient_id=?", (recipient_id,))
+            connection.execute("BEGIN IMMEDIATE")
+            recipient = connection.execute("SELECT status FROM recipients WHERE id=?", (recipient_id,)).fetchone()
+            if not recipient:
+                return {
+                    "deleted": False, "already_deleted": False, "recipient_id": recipient_id,
+                    "cancelled_article_deliveries": 0, "cancelled_magazine_deliveries": 0,
+                    "article_in_flight": 0, "magazine_in_flight": 0,
+                }
+            if str(recipient["status"] or "") == "deleted":
+                return {
+                    "deleted": True, "already_deleted": True, "recipient_id": recipient_id,
+                    "cancelled_article_deliveries": 0, "cancelled_magazine_deliveries": 0,
+                    "article_in_flight": 0, "magazine_in_flight": 0,
+                }
+            article_in_flight = int(connection.execute(
+                "SELECT COUNT(*) FROM deliveries WHERE recipient_id=? AND status='sending'", (recipient_id,),
+            ).fetchone()[0] or 0)
+            cancelled_articles = connection.execute(
+                """UPDATE deliveries SET status='cancelled',last_error=?,lease_owner='',lease_expires_at=NULL,updated_at=?
+                   WHERE recipient_id=? AND status IN ('pending','retry')""",
+                (stored_reason, now, recipient_id),
+            ).rowcount or 0
+            cancelled_magazines = magazine_in_flight = 0
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='magazine_deliveries'"
+            ).fetchone():
+                magazine_in_flight = int(connection.execute(
+                    "SELECT COUNT(*) FROM magazine_deliveries WHERE recipient_id=? AND status='sending'", (recipient_id,),
+                ).fetchone()[0] or 0)
+                cancelled_magazines = connection.execute(
+                    """UPDATE magazine_deliveries SET status='cancelled',last_error=?,updated_at=?
+                       WHERE recipient_id=? AND status IN ('pending','retry')""",
+                    (stored_reason, now, recipient_id),
+                ).rowcount or 0
             connection.execute("DELETE FROM case_recipients WHERE recipient_id=?", (recipient_id,))
-            connection.execute("DELETE FROM deliveries WHERE recipient_id=? AND status IN ('pending','retry')", (recipient_id,))
-            now = now_iso()
-            return connection.execute(
+            if connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='recipient_magazine_subscriptions'"
+            ).fetchone():
+                connection.execute("DELETE FROM recipient_magazine_subscriptions WHERE recipient_id=?", (recipient_id,))
+            # Admin and automatic retirement keep only the anonymized recipient
+            # row and delivery audit. User-verified unsubscribe has its own
+            # six-hour request history path above.
+            connection.execute("DELETE FROM signup_requests WHERE recipient_id=?", (recipient_id,))
+            deleted = connection.execute(
                 """UPDATE recipients
                    SET label='삭제된 구독자',kakao_user_id=?,access_token_ciphertext='',refresh_token_ciphertext='',
-                       access_token_expires_at='',refresh_token_expires_at='',status='deleted',last_error='관리자 수신 해제',updated_at=?
-                   WHERE id=?""",
-                (f"deleted:{recipient_id}", now, recipient_id),
+                       access_token_expires_at='',refresh_token_expires_at='',status='deleted',last_error=?,updated_at=?
+                   WHERE id=? AND status<>'deleted'""",
+                (f"deleted:{recipient_id}", stored_reason, now, recipient_id),
             ).rowcount > 0
+        return {
+            "deleted": deleted, "already_deleted": False, "recipient_id": recipient_id,
+            "cancelled_article_deliveries": int(cancelled_articles),
+            "cancelled_magazine_deliveries": int(cancelled_magazines),
+            "article_in_flight": article_in_flight, "magazine_in_flight": magazine_in_flight,
+            "source": str(source or ""), "reason": stored_reason,
+        }
+
+    def delete_recipient(self, recipient_id: str) -> bool:
+        return bool(self.retire_recipient(recipient_id, "admin", "관리자 수신 해제").get("deleted"))
 
     def upsert_article(self, article: dict) -> tuple[dict, bool]:
         now = now_iso()
@@ -3767,7 +3920,8 @@ class Store:
     def next_case_evaluation_batch(self, limit: int = 10, provider: str = "openrouter",
                                    lease_owner: str = "", provider_lane: str = "primary",
                                    lease_seconds: int = 300, single_unowned_only: bool = False,
-                                   allow_unowned_single: bool = True) -> list[dict]:
+                                   allow_unowned_single: bool = True,
+                                   minimum_age_seconds: int = 0) -> list[dict]:
         """Atomically lease one provider-affine article bundle chunk."""
         limit, now = max(1, min(10, int(limit))), now_iso()
         batch_id = str(uuid.uuid4())
@@ -3786,6 +3940,10 @@ class Store:
             "HAVING (COUNT(*)>=2 OR MAX(CASE WHEN j.provider=? THEN 1 ELSE 0 END)=1 OR ?=1) "
         )
         routing_clause = " AND aa.case_routed_at IS NOT NULL " if single_unowned_only else ""
+        # Enforce the NVIDIA head start on the chosen article, inside the
+        # same transaction as claim. An unrelated old job must not unlock it.
+        age_clause = " AND MIN(j.queued_at)<=? " if minimum_age_seconds > 0 else ""
+        age_params = ((datetime.now(KST) - timedelta(seconds=minimum_age_seconds)).isoformat(timespec="seconds"),) if age_clause else ()
         with self.connect() as connection:
             # BEGIN IMMEDIATE serializes the read-and-claim sequence across
             # independent primary and burst worker processes.
@@ -3803,10 +3961,10 @@ class Store:
                 "JOIN case_evaluations active_ce ON active_ce.id=active.case_evaluation_id "
                 "WHERE active_ce.article_analysis_id=ce.article_analysis_id AND active.status='processing') "
                 "GROUP BY ce.article_analysis_id "
-                + having_clause +
+                + having_clause + age_clause +
                 "ORDER BY pending_count DESC,first_queued,ce.article_analysis_id LIMIT 1",
-                (*ready_params, provider) if single_unowned_only else
-                (*ready_params, provider, provider, int(bool(allow_unowned_single))),
+                ((*ready_params, provider) if single_unowned_only else
+                 (*ready_params, provider, provider, int(bool(allow_unowned_single)))) + age_params,
             ).fetchone()
             if not first:
                 return []
@@ -4366,14 +4524,15 @@ class Store:
         with self.connect() as connection:
             connection.execute("UPDATE reanalysis_jobs SET status=?,finished_at=?,duration_ms=?,error=?,result=? WHERE id=?", ("completed" if not error else "failed", now_iso(), max(0, int(duration_ms)), error[:1000] or None, json.dumps(result or {}, ensure_ascii=False), job_id))
 
-    def queue_delivery(self, article_id: str, case_id: str, recipient_id: str, scheduled_at: str) -> None:
+    def queue_delivery(self, article_id: str, case_id: str, recipient_id: str, scheduled_at: str) -> bool:
         now = now_iso()
         with self.connect() as connection:
-            connection.execute(
+            inserted = connection.execute(
                 """INSERT OR IGNORE INTO deliveries(id,article_id,case_id,recipient_id,scheduled_at,created_at,updated_at)
-                   VALUES(?,?,?,?,?,?,?)""",
-                (str(uuid.uuid4()), article_id, case_id, recipient_id, scheduled_at, now, now),
-            )
+                   SELECT ?,?,?,?,?,?,? FROM recipients WHERE id=? AND status='active'""",
+                (str(uuid.uuid4()), article_id, case_id, recipient_id, scheduled_at, now, now, recipient_id),
+            ).rowcount
+        return bool(inserted)
 
     def due_deliveries(self, limit: int = 20, lease_owner: str = "", lease_seconds: int = 900) -> list[dict]:
         limit = max(1, min(100, int(limit)))
@@ -5951,12 +6110,26 @@ class Store:
         days = max(1, min(3650, int(days)))
         delivery_filter = delivery_filter if delivery_filter in {"all", "sent", "unsent"} else "all"
         where, params = [], []
+        # Find the newest article ids without touching the large per-case JSON
+        # payloads. The full rows are loaded only for this bounded id set below.
+        candidate_where, candidate_params = [], []
         if organization_id:
             where.append("aa.organization_id=?"); params.append(organization_id)
+            candidate_where.append("aa.organization_id=?"); candidate_params.append(organization_id)
         if case_id:
             where.append("ce.case_id=?"); params.append(case_id)
+            candidate_where.append(
+                "EXISTS (SELECT 1 FROM article_case_processing_flags candidate_case "
+                "JOIN cases candidate_active_case ON candidate_active_case.id=candidate_case.case_id "
+                "WHERE candidate_case.article_id=a.id AND candidate_case.case_id=? "
+                "AND candidate_active_case.is_active=1)"
+            )
+            candidate_params.append(case_id)
         where.append("COALESCE(a.published_at,a.first_seen_at)>=?")
-        params.append((datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds"))
+        candidate_where.append("COALESCE(a.published_at,a.first_seen_at)>=?")
+        cutoff = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
+        params.append(cutoff)
+        candidate_params.append(cutoff)
         if delivery_filter != "all":
             delivery_where = "EXISTS (SELECT 1 FROM deliveries df WHERE df.article_id=a.id AND df.status='sent')"
             delivery_params: list[Any] = []
@@ -5968,13 +6141,18 @@ class Store:
                 delivery_params.append(organization_id)
             where.append(delivery_where if delivery_filter == "sent" else "NOT " + delivery_where)
             params.extend(delivery_params)
+            candidate_where.append(delivery_where if delivery_filter == "sent" else "NOT " + delivery_where)
+            candidate_params.extend(delivery_params)
         for tag in tags or []:
             where.append("(aa.classification_tags LIKE ? OR aa.article_type=? OR aa.tone=?)")
             params.extend([f'%"{tag}"%', tag, tag])
+            candidate_where.append("(aa.classification_tags LIKE ? OR aa.article_type=? OR aa.tone=?)")
+            candidate_params.extend([f'%"{tag}"%', tag, tag])
         article_where, article_params = list(where), list(params)
+        candidate_article_where, candidate_article_params = list(candidate_where), list(candidate_params)
         search = str(search or "").strip()[:100]
         if search:
-            article_where.append(
+            search_clause = (
                 "(instr(lower(COALESCE(a.title,'')),lower(?))>0 "
                 "OR instr(lower(COALESCE(a.publisher,'')),lower(?))>0 "
                 "OR instr(lower(COALESCE(aa.publisher_name,'')),lower(?))>0 "
@@ -5983,7 +6161,10 @@ class Store:
                 "OR instr(lower(COALESCE(a.body,'')),lower(?))>0 "
                 "OR instr(lower(COALESCE(aa.summary,'')),lower(?))>0)"
             )
+            article_where.append(search_clause)
             article_params.extend([search] * 7)
+            candidate_article_where.append(search_clause)
+            candidate_article_params.extend([search] * 7)
         # The persisted map serves completed articles. Keep the broad dashboard
         # query lean; only the small missing fallback scope is hydrated below.
         source_body_expr = "''"
@@ -6009,7 +6190,6 @@ class Store:
         if article_where: sql += " WHERE " + " AND ".join(article_where)
         article_sql_base = sql
         article_order_sql = " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,COALESCE(aa.analyzed_at,aa.updated_at) DESC,COALESCE(c.sort_order,999999),COALESCE(c.created_at,''),COALESCE(ce.updated_at,aa.updated_at) DESC LIMIT ?"
-        sql = article_sql_base + article_order_sql
         delivery_scope, delivery_params = "", []
         completion_scope, completion_params = "", []
         if case_id:
@@ -6019,10 +6199,32 @@ class Store:
             delivery_scope, delivery_params = " AND c.organization_id=?", [organization_id]
             completion_scope, completion_params = " AND c.organization_id=?", [organization_id]
         with self.connect() as connection:
-            # One article can have several case-evaluation rows. Fetch enough rows
-            # to build this page plus one article for the has_more marker.
-            row_limit = min(10000, max(120, (offset + limit + 31) * 12))
-            rows = list(connection.execute(sql, (*article_params, row_limit)).fetchall())
+            candidate_limit = min(10000, max(60, offset + limit + 31))
+            candidate_sql = (
+                "SELECT aa.id FROM articles a "
+                "JOIN article_processing_flags apf ON apf.article_id=a.id "
+                "JOIN article_analyses aa ON aa.id=apf.analysis_id"
+            )
+            if candidate_article_where:
+                candidate_sql += " WHERE " + " AND ".join(candidate_article_where)
+            candidate_sql += (
+                " ORDER BY COALESCE(a.published_at,a.first_seen_at) DESC,"
+                "COALESCE(aa.analyzed_at,aa.updated_at) DESC,aa.id LIMIT ?"
+            )
+            candidate_rows = connection.execute(
+                candidate_sql, (*candidate_article_params, candidate_limit)
+            ).fetchall()
+            candidate_analysis_ids = [str(row["id"]) for row in candidate_rows]
+            rows = []
+            if candidate_analysis_ids:
+                marks = ",".join("?" for _ in candidate_analysis_ids)
+                scoped_sql = article_sql_base + (" AND " if article_where else " WHERE ") + f"aa.id IN ({marks})"
+                # The selected articles may each have one result per active case.
+                row_limit = min(10000, max(120, len(candidate_analysis_ids) * 14))
+                rows = list(connection.execute(
+                    scoped_sql + article_order_sql,
+                    (*article_params, *candidate_analysis_ids, row_limit),
+                ).fetchall())
             snapshot_groups: dict[str, dict] = {}
             if include_groups and rows:
                 seed_article_ids = list(dict.fromkeys(str(row["id"]) for row in rows if row["id"]))
