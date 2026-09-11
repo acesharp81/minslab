@@ -7,6 +7,8 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+
 from psycopg.types.json import Jsonb
 
 from ..services.official_brief_integration import semantic_tokens
@@ -203,13 +205,23 @@ class TopicReportRepository:
             ) integration ON true
             WHERE COALESCE(broadcast.ended_at, broadcast.detected_at)::date
                   BETWEEN %s AND %s
+              AND (
+                    broadcast.institution <> 'LEGISLATURE'
+                    OR broadcast.committee_name = ANY(%s)
+                  )
               AND broadcast.source_system NOT IN (
                 'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
               )
               AND (%s::text IS NULL OR broadcast.institution = %s)
             ORDER BY COALESCE(broadcast.ended_at, broadcast.detected_at) DESC
             """,
-            (period_start, period_end, institution, institution),
+            (
+                period_start,
+                period_end,
+                [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
+                institution,
+                institution,
+            ),
         ).fetchall()
         query_tokens = semantic_tokens(topic)
         ministry_tokens = semantic_tokens(ministry)

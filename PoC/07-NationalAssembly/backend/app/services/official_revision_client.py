@@ -7,6 +7,7 @@ from typing import Any, Iterable
 import requests
 
 from .official_edit_validation import filter_supported_official_edits
+from .openrouter_gateway_client import openrouter_headers
 
 
 PROMPT_VERSION = "official-brief-delta/1.3"
@@ -227,6 +228,62 @@ class MistralOfficialRevisionClient:
             edits=edits,
             usage_metadata={
                 "request_id": str(payload.get("id") or ""),
+                "usage": payload.get("usage") or {},
+            },
+        )
+
+
+class OpenRouterOfficialRevisionClient(MistralOfficialRevisionClient):
+    def compare(
+        self, live_brief: dict[str, Any], official_rows: Iterable[dict[str, Any]],
+    ) -> OfficialRevisionResult:
+        rows = list(official_rows)
+        prompt, valid_ids = build_revision_prompt(live_brief, rows)
+        body = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": "공식 근거에만 기반해 잠정 국회 회의 결과의 변경점만 반환한다."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False, "temperature": 0.0, "max_tokens": 8000,
+            "reasoning": {"effort": "none", "exclude": True},
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "official_brief_delta", "strict": True,
+                    "schema": revision_response_schema(),
+                },
+            },
+            "provider": {
+                "data_collection": "allow",
+                "allow_fallbacks": True, "require_parameters": True,
+            },
+        }
+        response = requests.post(
+            f"{self.base_url}/chat/completions",
+            headers=openrouter_headers(
+                self.api_key, body, workload="official_revision", priority=40,
+            ),
+            json=body, timeout=self.timeout_seconds,
+        )
+        if response.status_code >= 400:
+            raise requests.HTTPError(
+                f"OpenRouter {response.status_code}: upstream error", response=response,
+            )
+        payload = response.json()
+        content = str(
+            (((payload.get("choices") or [{}])[0].get("message") or {}).get("content") or "")
+        )
+        data = json.loads(content)
+        edits = filter_supported_official_edits(
+            data, live_brief,
+            [row for row in rows if str(row.get("utterance_id")) in valid_ids],
+        )
+        return OfficialRevisionResult(
+            edits=edits,
+            usage_metadata={
+                "request_id": str(payload.get("id") or ""),
+                "upstream_provider": str(payload.get("provider") or ""),
                 "usage": payload.get("usage") or {},
             },
         )

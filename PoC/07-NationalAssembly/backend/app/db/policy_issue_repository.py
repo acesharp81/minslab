@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
 from ..services.specific_policy_issues import build_specific_policy_issues
 
 
@@ -35,8 +36,13 @@ class PolicyIssueRepository:
                 LIMIT 1
             ) integration ON true
             WHERE broadcast.lifecycle_status = 'ENDED'
+              AND (
+                    broadcast.institution <> 'LEGISLATURE'
+                    OR broadcast.committee_name = ANY(%s)
+                  )
             ORDER BY COALESCE(broadcast.ended_at, broadcast.last_seen_at) DESC
-            """
+            """,
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
         ).fetchall()
         records = [
             {

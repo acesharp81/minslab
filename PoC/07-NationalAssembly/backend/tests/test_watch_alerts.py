@@ -293,7 +293,7 @@ class WatchSchemaTests(unittest.TestCase):
                     "excerpt": "법률안의 검사 근거를 논의했습니다.",
                 }])
 
-    def test_openrouter_watch_report_returns_topic_titles_and_denies_collection(self) -> None:
+    def test_openrouter_watch_report_uses_approved_public_data_policy(self) -> None:
         response = Mock()
         response.raise_for_status.return_value = None
         response.json.return_value = {
@@ -312,9 +312,9 @@ class WatchSchemaTests(unittest.TestCase):
         self.assertEqual("예산 집행", result.claims[0]["title"])
         self.assertEqual("각 기관의 예산 집행 상황과 후속 점검 요구가 확인됐다.", result.summary)
         request_body = post.call_args.kwargs["json"]
-        self.assertEqual("deny", request_body["provider"]["data_collection"])
-        self.assertTrue(request_body["provider"]["zdr"])
-        self.assertFalse(request_body["provider"]["allow_fallbacks"])
+        self.assertEqual("allow", request_body["provider"]["data_collection"])
+        self.assertNotIn("zdr", request_body["provider"])
+        self.assertTrue(request_body["provider"]["allow_fallbacks"])
         self.assertTrue(request_body["provider"]["require_parameters"])
         self.assertNotIn("plugins", request_body)
 

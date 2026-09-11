@@ -93,8 +93,8 @@ class OfficialChangeReportTests(unittest.TestCase):
         self.assertEqual("행정안전부가 대책을 추진한다", item["changes"][0]["after"])
         self.assertEqual(1, result.usage_metadata["api_requests"])
         request = post.call_args.kwargs["json"]
-        self.assertEqual("deny", request["provider"]["data_collection"])
-        self.assertFalse(request["provider"]["allow_fallbacks"])
+        self.assertEqual("allow", request["provider"]["data_collection"])
+        self.assertTrue(request["provider"]["allow_fallbacks"])
 
     def test_snapshot_hash_is_stable_and_assigns_local_change_ids(self):
         integration_id = uuid.uuid4()

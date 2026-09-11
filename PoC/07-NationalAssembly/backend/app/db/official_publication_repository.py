@@ -5,6 +5,7 @@ import uuid
 from datetime import date, datetime
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
 from ..adapters.official_minutes_body import (
     OfficialMinutesBody,
     explicit_spoken_agenda_ref,
@@ -28,6 +29,7 @@ class OfficialPublicationRepository:
             SELECT DISTINCT (ended_at AT TIME ZONE 'Asia/Seoul')::date AS meeting_date
             FROM live_broadcasts
             WHERE institution = 'LEGISLATURE' AND lifecycle_status = 'ENDED'
+              AND committee_name = ANY(%s)
               AND ended_at >= now() - interval '30 days'
               AND official_status IN ('PENDING', 'NOT_PUBLISHED')
               AND (official_last_checked_at IS NULL
@@ -35,7 +37,7 @@ class OfficialPublicationRepository:
             ORDER BY meeting_date
             LIMIT %s
             """,
-            (limit,),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], limit),
         ).fetchall()
         return [row[0] for row in rows]
 
@@ -462,10 +464,11 @@ class OfficialPublicationRepository:
             SELECT id, committee_name
             FROM live_broadcasts
             WHERE institution = 'LEGISLATURE' AND lifecycle_status = 'ENDED'
+              AND committee_name = ANY(%s)
               AND (ended_at AT TIME ZONE 'Asia/Seoul')::date = %s
             ORDER BY id
             """,
-            (meeting_date,),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_date),
         ).fetchall()
         matched = unresolved = ambiguous = 0
         for broadcast_id, committee_name in broadcasts:

@@ -254,6 +254,10 @@ def attach_live_topic_lineage(
     fallback_ids = {
         str(value) for value in assignment.get("fallback_cluster_ids") or []
     }
+    semantic_ids = {
+        str(value)
+        for value in assignment.get("semantic_assigned_cluster_ids") or []
+    }
     session_by_utterance = {
         str(item.get("utterance_id")): str(item.get("meeting_session_id") or "")
         for item in utterances
@@ -275,11 +279,13 @@ def attach_live_topic_lineage(
         assigned_ids = synthesis_ids.get(str(cluster.get("id") or ""), [])
         if assigned_ids:
             final_topic_ids = assigned_ids
-            status = (
-                "DETERMINISTIC_FALLBACK"
-                if str(cluster.get("id") or "") in fallback_ids
-                else "SYNTHESIS_ASSIGNED"
-            )
+            cluster_id = str(cluster.get("id") or "")
+            if cluster_id in fallback_ids:
+                status = "DETERMINISTIC_FALLBACK"
+            elif cluster_id in semantic_ids:
+                status = "SEMANTIC_ASSIGNED"
+            else:
+                status = "SYNTHESIS_ASSIGNED"
             score = 1.0
         elif len(direct_ids) == 1:
             status = "DIRECT_EVIDENCE"
@@ -328,6 +334,7 @@ def attach_live_topic_lineage(
             "DIRECT_EVIDENCE",
             "SYNTHESIS_ASSIGNED",
             "DETERMINISTIC_FALLBACK",
+            "SEMANTIC_ASSIGNED",
         }:
             mapped += 1
         elif status in {"AMBIGUOUS", "MULTIPLE_FINAL_TOPICS", "LEXICAL_CANDIDATE"}:
@@ -352,7 +359,7 @@ def attach_live_topic_lineage(
     result["live_topic_lineage"] = {
         "version": LINEAGE_VERSION,
         "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
-        "additional_llm_calls": 0,
+        "additional_llm_calls": int(assignment.get("additional_llm_calls") or 0),
         "source_insight_count": source_count,
         "source_topic_title_count": source_title_count,
         "cluster_count": len(clusters),

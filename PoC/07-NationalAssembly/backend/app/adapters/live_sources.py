@@ -22,6 +22,8 @@ TARGET_NAMES = {
     "법사위": "법제사법위원회",
     "행안위": "행정안전위원회",
 }
+NATIONAL_BODY_NAMES = {"본회의"}
+NATIONAL_SESSION_KEYWORDS = ("정기국회", "정기회", "국정감사", "국감")
 
 
 def fetch_public_source(source_key: str, url: str, timeout_seconds: float = 15.0) -> SourcePayload:
@@ -57,24 +59,35 @@ def parse_assembly_live_list(content: bytes) -> dict[str, object]:
     items: list[dict[str, object]] = []
     for row in rows:
         short_name = str(row.get("xname", "")).strip()
-        if short_name not in TARGET_NAMES:
+        title = str(row.get("xsubj", "")).strip()
+        status_text = str(row.get("xdesc", "")).strip()
+        scope_text = f"{short_name} {title} {status_text}".replace(" ", "")
+        national_session = next(
+            (keyword for keyword in NATIONAL_SESSION_KEYWORDS if keyword in scope_text),
+            "",
+        )
+        if short_name not in TARGET_NAMES and short_name not in NATIONAL_BODY_NAMES:
             continue
         status = str(row.get("xstat", "")).strip()
         items.append({
             "institution": "LEGISLATURE",
-            "committee_name": TARGET_NAMES[short_name],
+            "committee_name": TARGET_NAMES.get(short_name, short_name or "국회"),
             "short_name": short_name,
+            "monitoring_scope": "CORE_COMMITTEE" if short_name in TARGET_NAMES else (
+                "REGULAR_SESSION" if national_session else "NATIONAL_BODY"
+            ),
             "channel_code": str(row.get("xcode", "")).strip(),
             "meeting_external_id": str(row.get("xcgcd", "")).strip() or None,
-            "title": str(row.get("xsubj", "")).strip() or None,
-            "status_text": str(row.get("xdesc", "")).strip() or "상태 미상",
+            "title": title or None,
+            "status_text": status_text or "상태 미상",
             "is_live": status == "1",
             "has_caption_service": str(row.get("xsami", "")).strip() == "1",
             "quick_vod_available": str(row.get("xqvod", "")).strip() == "1",
             "quick_vod_url": str(row.get("qlink", "")).strip() or None,
             "thumbnail_url": str(row.get("xthmb", "")).strip() or None,
         })
-    if len(items) != len(TARGET_NAMES):
+    present_targets = {str(item["short_name"]) for item in items if item["short_name"] in TARGET_NAMES}
+    if present_targets != set(TARGET_NAMES):
         raise AdapterError("target committee rows are incomplete")
     return {
         "items": items,

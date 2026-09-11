@@ -12,15 +12,25 @@ from typing import Any
 
 import requests
 
-PROMPT_VERSION = "assembly-meeting-brief/1.2"
-MAX_FINAL_TOPICS = 16
+from .live_topic_mapping import (
+    build_semantic_mapping_prompt,
+    normalize_semantic_mapping,
+    semantic_mapping_response_schema,
+)
+from .openrouter_gateway_client import openrouter_headers
+
+PROMPT_VERSION = "assembly-meeting-brief/1.7"
+ANALYSIS_CACHE_VERSION = "assembly-meeting-brief/1.2"
 MAX_FINAL_TASKS = 20
 MAX_REDUCTION_TOPICS = 12
 REDUCTION_BATCH_SIZE = 8
-CLASSIFICATION_METHOD = "MISTRAL_HIERARCHICAL_EVIDENCE"
+CLASSIFICATION_METHOD = "HIERARCHICAL_EVIDENCE"
 MAX_CHUNK_CHARS = 18_000
 MAX_CHUNK_ITEMS = 32
 MAX_EVIDENCE_PER_ITEM = 6
+OPENROUTER_STRUCTURED_RETRY_MODEL = "liquid/lfm-2.5-2.6b:free"
+OPENROUTER_FINAL_RETRY_MODEL = "dots-studio/dots-3-note-preview:free"
+OPENROUTER_GATEWAY_TIMEOUT_SECONDS = 390.0
 ALLOWED_TASK_STATUS = {"OPEN", "RESOLVED", "CANDIDATE"}
 ALLOWED_OWNER_BASIS = {"EXPLICIT", "INFERRED", "UNCONFIRMED"}
 
@@ -187,7 +197,6 @@ def brief_response_schema() -> dict[str, Any]:
                 "items": _topic_schema(
                     include_tasks=False, include_live_topic_ids=True
                 ),
-                "maxItems": MAX_FINAL_TOPICS,
             },
             "tasks": {
                 "type": "array",
@@ -256,6 +265,7 @@ def build_synthesis_prompt(
     valid_ids: set[str],
     live_topic_clusters: list[dict[str, Any]] | None = None,
 ) -> str:
+    minimum_topics = minimum_final_topic_count(analyses)
     payload = {
         "meeting": {
             "title": meeting.get("title"),
@@ -278,10 +288,11 @@ def build_synthesis_prompt(
     }
     return (
         "여러 구간 분석을 하나의 국회 회의 결과 브리프로 통합한다. 첫 화면에서 이해할 수 있는 "
-        "회의 한 줄 제목과 2~3문장 요약, 의미상 중복만 합친 핵심 주제 4~16개, 주제별 화자 요지, 실제로 "
+        "회의 한 줄 제목과 2~3문장 요약, 의미상 중복만 합친 핵심 주제, 주제별 화자 요지, 실제로 "
         "각 live_topic_cluster id를 의미상 가장 가까운 최종 핵심 주제 한 곳의 "
         "live_topic_cluster_ids에 정확히 한 번 포함하고 별도 실시간 주제로 남기지 마라. "
-        "남은 과제를 만든다. 최종 주제 수를 8개로 맞추지 말고 회의 범위에 따라 결정하라. 부처·정책 대상·요구 조치가 다른 쟁점은 제목이 비슷해도 합치지 마라. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
+        f"남은 과제를 만든다. 핵심 주제 수에 상한을 두지 말고 최소 {minimum_topics}개를 보존하되, "
+        "회의에 실제로 존재하는 독립 쟁점 수에 따라 결정하라. 부처·정책 대상·요구 조치가 다른 쟁점은 제목이 비슷해도 합치지 마라. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
         "요구·약속·조치만 남기고 단순 질의나 의견은 제외한다. 담당부처와 상태는 구간 분석보다 "
         "강하게 단정하지 말고, 구간 분석에 포함된 evidence id 이외의 id는 절대 사용하지 마라. 공식 결론이 "
         "아닌 모든 결과는 잠정 분석이다. 모든 summary와 화자별 요지는 원문 발췌가 아니라 의미를 "
@@ -326,9 +337,67 @@ def _parse_json_content(
 
 
 _KNOWN_LANGUAGE_REPAIRS = {
+    "K-MARU": "케이마루",
+    "governance": "거버넌스",
+    "administrative": "행정상",
+    "Politics": "정치",
+    "PPT": "발표 자료",
+    "herself라고": "본인이라고",
+    "herself": "본인",
+    "Campaign": "캠페인",
+    "FOC": "완전운용능력",
+    "ODA": "공적개발원조",
+    "정부entered": "정부의",
+    "promised": "약속된",
+    "UNCONFIRMED": "",
+    "INFERRED": "",
+    "EXPLICIT": "",
+    "ODCF와": "대외협력기금과",
+    "EDCF를": "대외경제협력기금을",
+    "EDCF로": "대외경제협력기금으로",
+    "EBS": "교육방송",
+    "EDCF": "대외경제협력기금",
+    "ODCF": "대외협력기금",
+    "API": "데이터 연계 규격",
+    "次会议": "회의",
+    "国会과": "국회와",
+    "国会": "국회",
+    "성과称颂": "성과 평가",
+    "북半岛": "한반도",
+    "모兵제": "모병제",
+    "남南北": "남북",
+    "총망点": "종합",
+    "북방政策": "북방정책",
+    "总括": "총괄",
+    "의견을表达": "의견을 표현",
+    "表达": "표현",
+    "论": "론",
+    "법무/ecology장관": "법무부장관",
     "sospicion": "의혹",
     "suspicion": "의혹",
     "committee": "위원회",
+    "occurred": "발생했다",
+    "exercise": "행사",
+    "current": "현재",
+    "ecology": "부",
+    "visits": "방문",
+    "unavoidably": "당시",
+    "deepening": "간",
+    "ionage": "",
+    "business": "사업",
+    "builders": "",
+    "yourselves": "말씀",
+    "SW 자체": "자체",
+    "主张": "주장",
+    "处": "처",
+    "后退": "후퇴",
+    "退": "퇴",
+    "议员": "의원",
+    "现实化": "현실화",
+    "那样": "그렇게",
+    "의사의的意见": "의원 의견",
+    "하겠습니다고": "하겠다고",
+    "化": "화",
 }
 
 
@@ -341,10 +410,50 @@ def _clean_text(value: Any, limit: int) -> str:
             normalized,
             flags=re.IGNORECASE,
         )
+    normalized = " ".join(normalized.replace("_", " ").split())
     return normalized[:limit].strip()
 
 
-_LOWER_LATIN_WORD = re.compile(r"(?<![A-Za-z])[a-z]{3,}(?![A-Za-z])")
+_LOWER_LATIN_WORD = re.compile(r"(?<![A-Za-z])[A-Za-z]{3,}(?![A-Za-z])")
+_CJK_CHARACTER = re.compile(r"[\u3400-\u9fff]")
+
+
+def _sanitize_final_display_language(data: dict[str, Any]) -> dict[str, Any]:
+    """Remove residual foreign tokens from display text without touching IDs."""
+    result = deepcopy(data)
+
+    def sanitize(value: Any, limit: int) -> str:
+        text = _clean_text(value, limit)
+        text = _LOWER_LATIN_WORD.sub("", text)
+        text = _CJK_CHARACTER.sub("", text)
+        return " ".join(text.split()).strip(" ,·-/")
+
+    result["headline"] = sanitize(result.get("headline"), 100) or "회의 핵심 결과"
+    result["summary"] = sanitize(result.get("summary"), 500) or (
+        "회의에서 확인된 주요 논의와 후속 과제를 근거 발언별로 정리했다."
+    )
+    for topic in result.get("topics") or []:
+        if not isinstance(topic, dict):
+            continue
+        topic["title"] = sanitize(topic.get("title"), 100) or "주요 논의"
+        topic["summary"] = sanitize(topic.get("summary"), 360) or (
+            "관련 논의와 후속 조치를 근거 발언을 바탕으로 정리했다."
+        )
+        for point in topic.get("speaker_points") or []:
+            if isinstance(point, dict):
+                point["summary"] = sanitize(point.get("summary"), 240)
+    for task in result.get("tasks") or []:
+        if not isinstance(task, dict):
+            continue
+        task["title"] = sanitize(task.get("title"), 220) or "후속 검토"
+        if task.get("topic_title") is not None:
+            task["topic_title"] = sanitize(task.get("topic_title"), 100)
+        task["ministries"] = [
+            cleaned
+            for value in task.get("ministries") or []
+            if (cleaned := sanitize(value, 80))
+        ]
+    return result
 
 
 def _clean_speaker_label(value: Any) -> str:
@@ -385,21 +494,23 @@ def _assert_summary_quality(
         (_clean_text(data.get("summary"), 500), []),
     ]
     for topic in data.get("topics", []) if isinstance(data.get("topics"), list) else []:
+        texts.append((_clean_text(topic.get("title"), 100), []))
         texts.append(
             (_clean_text(topic.get("summary"), 360), topic.get("evidence_ids") or [])
         )
-        for point in topic.get("speaker_points", []):
-            texts.append(
-                (
-                    _clean_text(point.get("summary"), 240),
-                    point.get("evidence_ids") or [],
-                )
-            )
+    for task in data.get("tasks", []) if isinstance(data.get("tasks"), list) else []:
+        texts.append((_clean_text(task.get("title"), 220), []))
+        texts.append((_clean_text(task.get("topic_title"), 100), []))
     for text, evidence_ids in texts:
         unexpected = _LOWER_LATIN_WORD.search(text)
         if unexpected:
             raise ValueError(
                 f"meeting brief contains unexpected Latin word: {unexpected.group(0)}"
+            )
+        unexpected_cjk = _CJK_CHARACTER.search(text)
+        if unexpected_cjk:
+            raise ValueError(
+                f"meeting brief contains unexpected CJK character: {unexpected_cjk.group(0)}"
             )
         compact = _compact_quality_text(text)
         if len(compact) < 30:
@@ -408,6 +519,23 @@ def _assert_summary_quality(
             source = evidence_map.get(str(evidence_id), "")
             if source and compact in _compact_quality_text(source):
                 raise ValueError("meeting brief contains an extractive summary")
+
+
+def _speaker_summary_is_acceptable(
+    text: str,
+    evidence_ids: list[str],
+    evidence_map: dict[str, str],
+) -> bool:
+    if _LOWER_LATIN_WORD.search(text) or _CJK_CHARACTER.search(text):
+        return False
+    compact = _compact_quality_text(text)
+    if len(compact) < 30:
+        return True
+    return not any(
+        source and compact in _compact_quality_text(source)
+        for evidence_id in evidence_ids
+        if (source := evidence_map.get(str(evidence_id), ""))
+    )
 
 
 def _valid_evidence(values: Any, valid_ids: set[str]) -> list[str]:
@@ -481,21 +609,32 @@ def _clean_task(
     title = _clean_text(raw_task.get("title"), 220)
     if not title or not evidence:
         return None
+    ministries: list[str] = []
+    for value in raw_task.get("ministries", []):
+        ministry = _clean_text(value, 80)
+        if (
+            not ministry
+            or ministry in ALLOWED_OWNER_BASIS
+            or ministry in ALLOWED_TASK_STATUS
+            or re.search(r"[A-Za-z]", ministry)
+            or ministry in ministries
+        ):
+            continue
+        ministries.append(ministry)
+    owner_basis = (
+        str(raw_task.get("owner_basis") or "UNCONFIRMED")
+        if raw_task.get("owner_basis") in ALLOWED_OWNER_BASIS
+        else "UNCONFIRMED"
+    )
+    if not ministries:
+        owner_basis = "UNCONFIRMED"
     task = {
         "title": title,
         "status": str(raw_task.get("status") or "CANDIDATE")
         if raw_task.get("status") in ALLOWED_TASK_STATUS
         else "CANDIDATE",
-        "ministries": list(
-            dict.fromkeys(
-                _clean_text(value, 80)
-                for value in raw_task.get("ministries", [])
-                if _clean_text(value, 80)
-            )
-        )[:8],
-        "owner_basis": str(raw_task.get("owner_basis") or "UNCONFIRMED")
-        if raw_task.get("owner_basis") in ALLOWED_OWNER_BASIS
-        else "UNCONFIRMED",
+        "ministries": ministries[:8],
+        "owner_basis": owner_basis,
         "evidence_ids": evidence,
     }
     if include_topic:
@@ -648,6 +787,72 @@ def assign_live_topic_clusters(
     }
 
 
+def promote_unassigned_live_topics(
+    brief: dict[str, Any],
+    clusters: list[dict[str, Any]] | None,
+    valid_ids: set[str],
+) -> dict[str, Any]:
+    """Preserve independent live issues locally when synthesis did not cover them."""
+    result = deepcopy(brief)
+    topics = [item for item in result.get("topics") or [] if isinstance(item, dict)]
+    sources = [
+        item
+        for item in (clusters or [])
+        if isinstance(item, dict) and str(item.get("id") or "")
+    ]
+    if not topics or not sources:
+        return result
+
+    prior_assignment = result.get("live_topic_assignment") or {}
+    assignment = assign_live_topic_clusters(topics, sources)
+    assigned = {
+        str(cluster_id)
+        for topic in topics
+        for cluster_id in topic.get("live_topic_cluster_ids") or []
+    }
+    promoted_ids: list[str] = []
+    for cluster in sources:
+        cluster_id = str(cluster.get("id") or "")
+        if cluster_id in assigned:
+            continue
+        evidence = _valid_evidence(cluster.get("utterance_ids"), valid_ids)
+        title = _clean_text(cluster.get("title"), 100)
+        if not title or not evidence:
+            continue
+        topics.append(
+            {
+                "id": f"topic-{len(topics) + 1}",
+                "title": title,
+                "summary": f"회의에서는 '{title}' 관련 쟁점과 대응 필요성을 논의했다.",
+                "speaker_points": [],
+                "evidence_ids": evidence,
+                "live_topic_cluster_ids": [cluster_id],
+                "live_topic_fallback_cluster_ids": [cluster_id],
+            }
+        )
+        assigned.add(cluster_id)
+        promoted_ids.append(cluster_id)
+
+    fallback_ids = list(
+        dict.fromkeys([
+            *assignment.get("fallback_cluster_ids", []),
+            *promoted_ids,
+        ])
+    )
+    result["topics"] = topics
+    result["live_topic_assignment"] = {
+        **prior_assignment,
+        **assignment,
+        "fallback_assigned_count": len(fallback_ids),
+        "unassigned_count": len(sources) - len(assigned),
+        "fallback_cluster_ids": fallback_ids,
+        "promoted_cluster_ids": promoted_ids,
+        "promoted_topic_count": len(promoted_ids),
+        "method": "SYNTHESIS_WITH_LOCAL_PROMOTION",
+    }
+    return result
+
+
 def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
     """Assign every task to exactly one canonical topic using evidence first."""
     result = deepcopy(brief)
@@ -690,6 +895,28 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def minimum_final_topic_count(analyses: list[dict[str, Any]]) -> int:
+    source_topic_count = sum(
+        len(analysis.get("topics") or [])
+        for analysis in analyses
+        if isinstance(analysis, dict)
+    )
+    if source_topic_count <= 4:
+        return max(1, source_topic_count)
+    return max(4, (source_topic_count + 1) // 2)
+
+
+def minimum_final_task_count(analyses: list[dict[str, Any]]) -> int:
+    source_task_count = sum(
+        len(topic.get("tasks") or [])
+        for analysis in analyses
+        if isinstance(analysis, dict)
+        for topic in analysis.get("topics") or []
+        if isinstance(topic, dict)
+    )
+    return min(4, source_task_count)
+
+
 def validate_meeting_brief(
     data: dict[str, Any],
     valid_ids: set[str],
@@ -714,7 +941,15 @@ def validate_meeting_brief(
         for point_index, raw_point in enumerate(raw_topic.get("speaker_points", [])):
             point_evidence = _valid_evidence(raw_point.get("evidence_ids"), valid_ids)
             point_summary = _clean_text(raw_point.get("summary"), 240)
-            if not point_evidence or not point_summary:
+            if (
+                not point_evidence
+                or not point_summary
+                or not _speaker_summary_is_acceptable(
+                    point_summary,
+                    point_evidence,
+                    evidence_map or {},
+                )
+            ):
                 continue
             points.append(
                 {
@@ -754,7 +989,7 @@ def validate_meeting_brief(
         {
             "headline": _clean_text(data.get("headline"), 100) or "회의 핵심 결과",
             "summary": _clean_text(data.get("summary"), 500),
-            "topics": topics[:MAX_FINAL_TOPICS],
+            "topics": topics,
             "tasks": tasks[:MAX_FINAL_TASKS],
             "classification_method": CLASSIFICATION_METHOD,
         }
@@ -786,11 +1021,11 @@ class MalformedMeetingBriefResponse(ValueError):
     """A schema response that could not be decoded; retains usage for budget accounting."""
 
     def __init__(self, usage_metadata: dict[str, Any]) -> None:
-        super().__init__("Mistral returned malformed meeting brief JSON")
+        super().__init__("LLM returned malformed meeting brief JSON")
         self.usage_metadata = usage_metadata
 
 
-class MistralMeetingBriefClient:
+class _MistralMeetingBriefRequestClient:
     provider = "mistral"
     prompt_version = PROMPT_VERSION
 
@@ -803,7 +1038,7 @@ class MistralMeetingBriefClient:
         timeout_seconds: float = 120.0,
     ) -> None:
         if not api_key.strip():
-            raise ValueError("MISTRAL_API_KEY is required")
+            raise ValueError("meeting brief API key is required")
         self.api_key = api_key.strip()
         self.model = model.strip()
         self.base_url = base_url.rstrip("/")
@@ -814,6 +1049,7 @@ class MistralMeetingBriefClient:
         prompt: str,
         schema: dict[str, Any],
         schema_name: str,
+        model_override: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         response = requests.post(
             f"{self.base_url}/chat/completions",
@@ -823,7 +1059,7 @@ class MistralMeetingBriefClient:
                 "Accept": "application/json",
             },
             json={
-                "model": self.model,
+                "model": model_override or self.model,
                 "messages": [
                     {
                         "role": "system",
@@ -872,6 +1108,99 @@ class MistralMeetingBriefClient:
         except (json.JSONDecodeError, ValueError) as exc:
             raise MalformedMeetingBriefResponse(metadata) from exc
         return parsed, metadata
+
+
+class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
+    provider = "openrouter"
+
+    def _post(
+        self, prompt: str, schema: dict[str, Any], schema_name: str,
+        model_override: str | None = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        request_model = model_override or self.model
+        body = {
+            "model": request_model,
+            "messages": [
+                {"role": "system", "content": "근거 id를 보존하는 한국어 국회 회의 분석기다."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+            "temperature": 0.0,
+            "max_tokens": (
+                12000
+                if schema_name == "live_topic_mapping"
+                else 8000
+                if request_model == OPENROUTER_STRUCTURED_RETRY_MODEL
+                else (20000 if schema_name == "meeting_brief" else 12000)
+            ),
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+            },
+            "provider": {
+                "data_collection": "allow",
+                "allow_fallbacks": True, "require_parameters": True,
+            },
+        }
+        if (
+            schema_name == "live_topic_mapping"
+            or request_model == OPENROUTER_FINAL_RETRY_MODEL
+        ):
+            body["reasoning"] = {"enabled": False, "exclude": True}
+        elif request_model == self.model:
+            body["reasoning"] = {"effort": "low", "exclude": True}
+        response = requests.post(
+            f"{self.base_url}/chat/completions",
+            headers=openrouter_headers(
+                self.api_key,
+                body,
+                workload=(
+                    "meeting_brief_lineage"
+                    if schema_name == "live_topic_mapping"
+                    else "meeting_brief"
+                ),
+                priority=40,
+            ),
+            json=body,
+            timeout=max(self.timeout_seconds, OPENROUTER_GATEWAY_TIMEOUT_SECONDS),
+        )
+        if response.status_code >= 400:
+            raise requests.HTTPError(
+                f"OpenRouter {response.status_code}: upstream error", response=response,
+            )
+        payload = response.json()
+        content = str(
+            ((payload.get("choices") or [{}])[0].get("message") or {}).get("content") or ""
+        )
+        metadata = {
+            "request_id": str(payload.get("id") or ""),
+            "model": request_model,
+            "upstream_provider": str(payload.get("provider") or ""),
+            "finish_reason": str(
+                (payload.get("choices") or [{}])[0].get("finish_reason") or ""
+            ),
+            "usage": payload.get("usage") or {},
+        }
+        try:
+            parsed = _parse_json_content(
+                content, recover_complete_topics=schema_name == "meeting_chunk_analysis",
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise MalformedMeetingBriefResponse(metadata) from exc
+        return parsed, metadata
+
+    def map_live_topics(
+        self, brief: dict[str, Any], clusters: list[dict[str, Any]],
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        data, metadata = self._post(
+            build_semantic_mapping_prompt(brief, clusters),
+            semantic_mapping_response_schema(),
+            "live_topic_mapping",
+            model_override=OPENROUTER_FINAL_RETRY_MODEL,
+        )
+        return normalize_semantic_mapping(
+            data, list(brief.get("topics") or []), clusters,
+        ), metadata
 
     def generate(
         self,
@@ -922,29 +1251,49 @@ class MistralMeetingBriefClient:
             schema_name: str,
         ) -> tuple[dict[str, Any], dict[str, Any]]:
             nonlocal request_count
+            request_prompt = prompt
+            model_override: str | None = (
+                OPENROUTER_FINAL_RETRY_MODEL
+                if schema_name == "meeting_brief"
+                else None
+            )
+            retry_model = OPENROUTER_FINAL_RETRY_MODEL
             for attempt in range(3):
                 callback()
                 request_count += 1
                 try:
                     data, metadata = self._post(
-                        prompt,
+                        request_prompt,
                         schema,
                         schema_name,
+                        model_override=model_override,
                     )
                     usage_callback(metadata)
                     return data, metadata
                 except requests.HTTPError as exc:
                     status = getattr(exc.response, "status_code", None)
-                    retryable = status == 429 or (
+                    retryable = status in {400, 409, 429} or (
                         isinstance(status, int) and status >= 500
                     )
                     if not retryable or attempt == 2:
                         raise
-                    delay = 30 * (attempt + 1) if status == 429 else 5 * (attempt + 1)
+                    if (
+                        self.provider == "openrouter"
+                        and isinstance(status, int)
+                        and (status == 400 or status >= 500)
+                    ):
+                        model_override = retry_model
+                    delay = (
+                        30 * (attempt + 1)
+                        if status == 429
+                        else 5 * (attempt + 1)
+                    )
                     time.sleep(delay)
                 except requests.Timeout:
                     if attempt == 2:
                         raise
+                    if self.provider == "openrouter":
+                        model_override = retry_model
                     time.sleep(5 * (attempt + 1))
                 except MalformedMeetingBriefResponse as exc:
                     # Count tokens from malformed responses before retrying so the
@@ -952,8 +1301,15 @@ class MistralMeetingBriefClient:
                     usage_callback(exc.usage_metadata)
                     if attempt == 2:
                         raise
+                    request_prompt = prompt + (
+                        "\n재시도 지침: 이전 응답이 길이 제한 전에 JSON 객체를 닫지 못했다. "
+                        "항목 수와 문장을 줄이고 공백 반복 없이 완결된 JSON 객체만 출력하라. "
+                        f"재시도 번호 {attempt + 1}."
+                    )
+                    if self.provider == "openrouter":
+                        model_override = retry_model
                     time.sleep(2 * (attempt + 1))
-            raise RuntimeError("unreachable Mistral retry state")
+            raise RuntimeError("unreachable meeting brief retry state")
 
         for index, chunk in enumerate(chunks, start=1):
             chunk_hash = meeting_transcript_hash(chunk)
@@ -1053,6 +1409,8 @@ class MistralMeetingBriefClient:
             valid_ids,
             None,
         )
+        required_topic_count = minimum_final_topic_count(analyses)
+        required_task_count = minimum_final_task_count(analyses)
         brief: dict[str, Any] | None = None
         for quality_attempt in range(3):
             data, metadata = request(
@@ -1061,6 +1419,7 @@ class MistralMeetingBriefClient:
                 "meeting_brief",
             )
             usage.append(metadata)
+            data = _sanitize_final_display_language(data)
             try:
                 brief = validate_meeting_brief(
                     data,
@@ -1069,6 +1428,16 @@ class MistralMeetingBriefClient:
                     live_topic_clusters=live_topic_clusters,
                     require_complete_live_topics=False,
                 )
+                if len(brief.get("topics") or []) < required_topic_count:
+                    raise ValueError(
+                        "meeting brief collapsed source topics: "
+                        f"{len(brief.get('topics') or [])} < {required_topic_count}"
+                    )
+                if len(brief.get("tasks") or []) < required_task_count:
+                    raise ValueError(
+                        "meeting brief collapsed source tasks: "
+                        f"{len(brief.get('tasks') or [])} < {required_task_count}"
+                    )
                 break
             except ValueError as exc:
                 if quality_attempt >= 2:
@@ -1081,6 +1450,21 @@ class MistralMeetingBriefClient:
                         + ". 기존 id를 중복 배치하지 말고 누락 id를 모두 의미상 맞는 "
                         "주제에 넣어라. 맞는 주제가 없으면 별도 최종 주제를 추가하라."
                     )
+                elif "collapsed source topics" in str(exc):
+                    synthesis_prompt += (
+                        "\n이전 결과가 서로 다른 논의를 한 주제로 과도하게 축소했다. "
+                        f"중간 분석의 정책 대상과 쟁점을 보존해 최소 {required_topic_count}개 "
+                        "핵심 주제로 다시 구성하라. 부처, 정책 대상, 요구 조치가 다르면 "
+                        "별도 주제로 유지하고 각 주제에 직접 근거 id를 포함하라."
+                    )
+                elif "collapsed source tasks" in str(exc):
+                    synthesis_prompt += (
+                        "\n이전 결과가 중간 분석에 남은 실행 과제를 모두 누락했다. "
+                        f"명시적인 요구·약속·조치·검토 필요를 근거 id와 연결해 최소 "
+                        f"{required_task_count}개 과제로 복원하라. 단순 의견은 과제로 "
+                        "만들지 말고 담당 부처를 확인할 수 없으면 빈 배열과 "
+                        "UNCONFIRMED를 사용하라."
+                    )
                 else:
                     synthesis_prompt += (
                         "\n이전 결과가 원문 발췌 또는 비정상 영문 때문에 거부되었다. "
@@ -1088,6 +1472,11 @@ class MistralMeetingBriefClient:
                     )
         if brief is None:
             raise RuntimeError("meeting brief quality validation failed")
+        brief = promote_unassigned_live_topics(
+            brief,
+            live_topic_clusters,
+            valid_ids,
+        )
         brief["utterance_count"] = len(utterances)
         progress_callback(
             {
@@ -1104,3 +1493,10 @@ class MistralMeetingBriefClient:
             usage_metadata={"requests": usage},
             api_requests=request_count,
         )
+
+
+class MistralMeetingBriefClient(OpenRouterMeetingBriefClient):
+    """Backward-compatible Mistral formatter over the shared pipeline."""
+
+    provider = "mistral"
+    _post = _MistralMeetingBriefRequestClient._post

@@ -7,9 +7,10 @@ services:
       RAW_DATA_DIR: /app/data/raw
       PROCESSED_DATA_DIR: /app/data/processed
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-disabled}
-      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      OPENROUTER_GATEWAY_STATUS_URL: http://openrouter-gateway:8071/internal/status
       MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
       MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
       MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
@@ -19,7 +20,7 @@ services:
       WATCH_KAKAO_ENABLED: ${WATCH_KAKAO_ENABLED:-false}
       WATCH_LLM_ENABLED: ${WATCH_LLM_ENABLED:-false}
       WATCH_LLM_PROVIDER: ${WATCH_LLM_PROVIDER:-openrouter}
-      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-dots-studio/dots-3-note-preview:free}
+      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       WATCH_LLM_MIN_NEW_MATCHES: ${WATCH_LLM_MIN_NEW_MATCHES:-3}
       WATCH_KAKAO_REDIRECT_URI: ${WATCH_KAKAO_REDIRECT_URI:-}
       WATCH_PUBLIC_BASE_URL: ${WATCH_PUBLIC_BASE_URL:-}
@@ -30,11 +31,11 @@ services:
       WATCH_SESSION_COOKIE_NAME: ${WATCH_SESSION_COOKIE_NAME:-gukjeongbomi_session}
       WATCH_SESSION_COOKIE_PATH: ${WATCH_SESSION_COOKIE_PATH:-/poc/national-assembly}
       TOPIC_REPORTS_ENABLED: ${TOPIC_REPORTS_ENABLED:-true}
-      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       TOPIC_REPORT_DAILY_LIMIT: ${TOPIC_REPORT_DAILY_LIMIT:-100}
       TOPIC_REPORT_USER_DAILY_LIMIT: ${TOPIC_REPORT_USER_DAILY_LIMIT:-10}
       OFFICIAL_CHANGE_REPORTS_ENABLED: ${OFFICIAL_CHANGE_REPORTS_ENABLED:-true}
-      OFFICIAL_CHANGE_REPORT_MODEL: ${OFFICIAL_CHANGE_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      OFFICIAL_CHANGE_REPORT_MODEL: ${OFFICIAL_CHANGE_REPORT_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OFFICIAL_CHANGE_REPORT_DAILY_LIMIT: ${OFFICIAL_CHANGE_REPORT_DAILY_LIMIT:-100}
       TOPIC_REPORT_MAX_PERIOD_DAYS: ${TOPIC_REPORT_MAX_PERIOD_DAYS:-366}
     ports:
@@ -44,6 +45,8 @@ services:
       - ./web:/app/web:ro
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 
@@ -60,6 +63,31 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  openrouter-gateway:
+    container_name: poc07-openrouter-gateway
+    build:
+      context: ./backend
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_UPSTREAM_BASE_URL: https://openrouter.ai/api/v1
+      OPENROUTER_GATEWAY_DB: /app/data/openrouter_gateway.sqlite3
+      OPENROUTER_OFFICIAL_DAILY_LIMIT: 1000
+      OPENROUTER_OPERATIONAL_DAILY_LIMIT: 950
+      OPENROUTER_RPM_LIMIT: 18
+      OPENROUTER_MAX_INFLIGHT: 4
+      OPENROUTER_FREE_MODELS: nvidia/nemotron-3-super-120b-a12b:free,liquid/lfm-2.5-2.6b:free,dots-studio/dots-3-note-preview:free
+    command: ["uvicorn", "app.openrouter_gateway:app", "--app-dir", "/app/backend", "--host", "0.0.0.0", "--port", "8071"]
+    ports:
+      - "127.0.0.1:18071:8071"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8071/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
     restart: unless-stopped
 
   live-monitor:
@@ -100,7 +128,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
       PROCESSED_DATA_DIR: /app/data/processed
-    command: ["python", "-m", "app.ingestion.caption_worker", "--workers", "3"]
+    command: ["python", "-m", "app.ingestion.caption_worker", "--workers", "4"]
     volumes:
       - ./data:/app/data
     depends_on:
@@ -165,24 +193,21 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       WATCH_LLM_ENABLED: ${WATCH_LLM_ENABLED:-false}
       WATCH_LLM_PROVIDER: ${WATCH_LLM_PROVIDER:-openrouter}
-      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-dots-studio/dots-3-note-preview:free}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
+      OPENROUTER_API_KEY: gateway-local
+      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_DAILY_LIMIT: 950
       WATCH_LLM_MONTHLY_BUDGET_USD: ${WATCH_LLM_MONTHLY_BUDGET_USD:-1.0}
       WATCH_LLM_DEBOUNCE_SECONDS: ${WATCH_LLM_DEBOUNCE_SECONDS:-30}
       WATCH_LLM_MIN_NEW_MATCHES: ${WATCH_LLM_MIN_NEW_MATCHES:-3}
       WATCH_LLM_MAX_UPDATES_PER_SESSION: ${WATCH_LLM_MAX_UPDATES_PER_SESSION:-12}
       LLM_PROVIDER: ${LLM_PROVIDER:-disabled}
       LLM_MODEL: ${LLM_MODEL:-}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
-      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
-      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
-      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
     command: ["python", "-m", "app.ingestion.watch_summary_worker", "--interval", "10"]
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 
@@ -194,15 +219,17 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       TOPIC_REPORTS_ENABLED: ${TOPIC_REPORTS_ENABLED:-true}
-      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-dots-studio/dots-3-note-preview:free}
+      TOPIC_REPORT_MODEL: ${TOPIC_REPORT_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       TOPIC_REPORT_DAILY_LIMIT: ${TOPIC_REPORT_DAILY_LIMIT:-100}
       TOPIC_REPORT_USER_DAILY_LIMIT: ${TOPIC_REPORT_USER_DAILY_LIMIT:-10}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      OPENROUTER_API_KEY: gateway-local
+      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.topic_report_worker", "--interval", "2"]
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 
@@ -236,20 +263,16 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
-      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
-      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
-      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
-      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
+      OPENROUTER_API_KEY: gateway-local
+      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.summary_worker", "--interval", "2"]
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 
@@ -261,16 +284,17 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
-      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
-      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
-      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
-      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
+      MEETING_BRIEF_MODEL: ${MEETING_BRIEF_MODEL:-dots-studio/dots-3-note-preview:free}
+      OPENROUTER_API_KEY: gateway-local
+      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.meeting_brief_worker", "--interval", "60"]
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 
@@ -283,14 +307,6 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       RAW_DATA_DIR: /app/data/raw
       NATIONAL_ASSEMBLY_API_KEY: ${NATIONAL_ASSEMBLY_API_KEY:-}
-      AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
-      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
-      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
-      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
-      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
     command: ["python", "-m", "app.ingestion.official_minutes_worker", "--interval", "3600"]
     volumes:
       - ./data:/app/data
@@ -307,16 +323,16 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
-      LLM_PROVIDER: ${LLM_PROVIDER:-mistral}
-      LLM_MODEL: ${LLM_MODEL:-mistral-small-2603}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_BASE_URL: ${MISTRAL_BASE_URL:-https://api.mistral.ai/v1}
-      MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
-      MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
-      MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
+      OPENROUTER_API_KEY: gateway-local
+      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.official_integration_worker", "--interval", "15", "--limit", "5"]
     depends_on:
       db:
+        condition: service_healthy
+      openrouter-gateway:
         condition: service_healthy
     restart: unless-stopped
 

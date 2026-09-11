@@ -13,13 +13,14 @@ from .summary_contract import (
     summary_response_schema,
     validated_summary_items,
 )
+from .openrouter_gateway_client import openrouter_headers
 
 
 PROVIDER = "openrouter"
 PROMPT_VERSION = COMMON_PROMPT_VERSION
-DEFAULT_MODEL = "dots-studio/dots-3-note-preview:free"
-MAX_BATCH_ITEMS = 2
-MAX_BATCH_CHARS = 4_000
+DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+MAX_BATCH_ITEMS = 8
+MAX_BATCH_CHARS = 12_000
 CONTEXT_BEFORE_ITEMS = 4
 CONTEXT_AFTER_ITEMS = 2
 MAX_CONTEXT_CHARS = 12_000
@@ -92,21 +93,17 @@ class OpenRouterSummaryClient:
             "response_format": {"type": "json_schema", "json_schema": {"name": "assembly_summaries", "strict": True, "schema": summary_response_schema()}},
             "reasoning": {"effort": "none", "exclude": True},
             "provider": {
-                "data_collection": "deny", "zdr": True,
-                "allow_fallbacks": False, "require_parameters": True,
+                "data_collection": "allow",
+                "allow_fallbacks": True, "require_parameters": True,
             },
         }
         response = None
         for attempt in range(MAX_ATTEMPTS):
             response = requests.post(
                 f"{self.base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "HTTP-Referer": "https://www.minslab.kr",
-                    "X-Title": "POC-07 National Assembly",
-                },
+                headers=openrouter_headers(
+                    self.api_key, body, workload="utterance_summary", priority=10,
+                ),
                 json=body,
                 timeout=self.timeout_seconds,
             )
@@ -136,7 +133,8 @@ class OpenRouterSummaryClient:
                 "request_id": str(payload.get("id") or ""),
                 "upstream_provider": str(payload.get("provider") or ""),
                 "usage": payload.get("usage") or {},
-                "privacy": {"data_collection": "deny", "zdr": True},
+                "privacy": {"data_collection": "allow", "zdr": False,
+                            "public_evidence_only": True},
             },
         )
 

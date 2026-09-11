@@ -38,7 +38,7 @@
 - 변경 API는 다른 Origin 요청을 거부한다.
 - 모든 응답에 CSP, HSTS, Referrer-Policy, Permissions-Policy와 nosniff를 적용한다.
 - LLM payload에는 공개 회의 근거만 넣고 Kakao ID, 브라우저 세션, API token은 넣지 않는다. 이메일·전화번호·주민번호 패턴은 전송 전에 제거한다.
-- OpenRouter 요청은 data collection 거부와 provider fallback 금지를 강제한다. 공개 회의 근거만 전송하고 PII 패턴을 제거한다. 현재 무료 endpoint가 ZDR pool에 없으므로 주제별 보고서 경로에서는 ZDR을 강제하지 않는다.
+- OpenRouter 요청은 공용 gateway에서 공개 회의 근거만 허용하고 PII 패턴을 제거한다. 2026-09-09 명시 승인에 따라 공개 데이터에만 data collection 허용과 승인된 무료 모델 fallback을 적용하며 ZDR은 강제하지 않는다.
 
 ## 구현 단계와 상태
 
@@ -57,4 +57,4 @@
 - 실제 Kakao 계정으로 PC 두 대를 연결해 동일 규칙·알림·보고서가 보이는지 확인한다.
 - 실제 수집 자료로 1건을 작성해 근거 링크, 담당 부처, 기간 흐름과 Markdown을 확인한다.
 - OpenRouter dashboard와 DB 일일 장부의 요청 수가 1건 증가하고 새로고침 때 증가하지 않는지 확인한다.
-- 무료 모델 변경 공지 시 모델 교체 후 strict schema·data collection 거부·ZDR 가용성을 다시 확인한다. ZDR 지원 무료 endpoint가 생기면 우선 적용한다.
+- 무료 모델 변경 공지 시 모델 교체 후 strict schema·공개 데이터 경계·ZDR 가용성을 다시 확인한다. ZDR 지원 무료 endpoint가 생기면 우선 적용한다.

@@ -13,6 +13,7 @@ htmlcov/
 *.log
 data/raw/*
 data/processed/*
+data/openrouter_gateway.sqlite3*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 frontend/node_modules/

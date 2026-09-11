@@ -71,13 +71,13 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
             repository.fail(item["report_id"], "OPENROUTER_CONFIG_REQUIRED")
             return {"status": "CONFIG_REQUIRED", "generated": 0}
         if repository.reserve_daily(
-            max(1, min(settings.official_change_report_daily_limit, 500))
+            max(1, min(settings.official_change_report_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "OFFICIAL_CHANGE_DAILY_LIMIT", limited=True)
             return {"status": "DAILY_LIMIT_REACHED", "generated": 0}
         usage = SummaryRepository(connection)
         if usage.reserve_daily_request(
-            "openrouter", max(1, min(settings.openrouter_daily_limit, 500))
+            "openrouter", max(1, min(settings.openrouter_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "OPENROUTER_DAILY_LIMIT", limited=True)
             return {"status": "GLOBAL_LIMIT_REACHED", "generated": 0}
@@ -152,13 +152,13 @@ def run_once(database_url: str) -> dict[str, object]:
             return {"status": "USER_LIMIT_REACHED", "generated": 0}
 
         if repository.reserve_global_daily(
-            max(1, min(settings.topic_report_daily_limit, 500))
+            max(1, min(settings.topic_report_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "TOPIC_REPORT_DAILY_LIMIT", limited=True)
             return {"status": "DAILY_LIMIT_REACHED", "generated": 0}
         usage = SummaryRepository(connection)
         if usage.reserve_daily_request(
-            "openrouter", max(1, min(settings.openrouter_daily_limit, 500))
+            "openrouter", max(1, min(settings.openrouter_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "OPENROUTER_DAILY_LIMIT", limited=True)
             return {"status": "GLOBAL_LIMIT_REACHED", "generated": 0}

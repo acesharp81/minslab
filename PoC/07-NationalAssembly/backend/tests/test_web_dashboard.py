@@ -91,6 +91,24 @@ class WebDashboardTests(unittest.TestCase):
         self.assertTrue((PROJECT_DIR / "web" / "images" / "gukjeong-on-small.png").is_file())
         self.assertTrue((PROJECT_DIR / "web" / "images" / "gukjeong-on.png").is_file())
 
+    def test_meeting_report_selection_survives_reload_but_first_visit_uses_latest(self):
+        script = (PROJECT_DIR / "web" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('const MEETING_REPORT_QUERY_KEY = "report"', script)
+        self.assertIn("url.searchParams.set(MEETING_REPORT_QUERY_KEY, value)", script)
+        self.assertIn('navigation?.type !== "reload"', script)
+        self.assertIn("window.sessionStorage.getItem(MEETING_REPORT_SELECTION_KEY)", script)
+        self.assertIn("rememberMeetingReportSelection(card.id)", script)
+        self.assertIn("row.dataset.broadcastId === preferredId", script)
+        self.assertIn(
+            "while (preferredId && !target && meetingRailHistoryState.hasMore)",
+            script,
+        )
+        self.assertIn("target ||= rows[0]", script)
+        self.assertIn("sortMeetingReportCards(reportContainer)", script)
+        self.assertIn("const preserveReportScroll = !latestMeetingReportState.pending", script)
+        self.assertIn("const selectionId = meeting.live_capture?.broadcast_id", script)
+        self.assertIn("assemblyTranscriptState.selectedBroadcastId = selectionId", script)
+
     def test_topic_report_uses_consistent_editorial_layout(self):
         script = (PROJECT_DIR / "web" / "topic-reports.js").read_text(encoding="utf-8")
         styles = (PROJECT_DIR / "web" / "topic-reports.css").read_text(encoding="utf-8")
@@ -165,6 +183,10 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn('"meeting-brief-hero"', script)
         self.assertIn('"meeting-topic-task-overview live-draft-overview"', script)
         self.assertIn('"meeting-result-topic live-draft-result-topic"', script)
+        self.assertIn("function liveDraftTopicMetadata(group, entries)", script)
+        self.assertIn('"live-draft-topic-metadata"', script)
+        self.assertNotIn('entries.slice(-3).map((entry) => entry.summary).join(" ")', script)
+        self.assertIn(".live-draft-topic-metadata", workspace_styles)
         self.assertIn("실시간 초안 · 잠정", script)
         self.assertIn("도출 과제", script)
         self.assertIn("focusLiveDraftEvidence", script)
@@ -214,6 +236,8 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("grid-template-rows:auto minmax(0,1fr) auto", workspace_styles)
         self.assertIn("scrollTranscriptToLatest", script)
         self.assertIn("liveReportFilterState", script)
+        self.assertIn("if (assemblyTranscriptState.broadcastId)", script)
+        self.assertIn("} else if (assemblyTranscriptState.committee)", script)
         self.assertIn('document.activeElement !== filterInput', script)
         self.assertIn('filterBar.parentElement !== report', script)
         self.assertIn('report.parentElement !== container', script)
@@ -391,6 +415,14 @@ class WebDashboardTests(unittest.TestCase):
         self.assertNotIn("관심 분야", html)
         self.assertNotIn("회의 흐름", html)
         self.assertIn('id="aiUsage"', html)
+        self.assertIn('id="aiOpenRouterAmount"', html)
+        self.assertIn('id="aiOpenRouterReset"', html)
+        self.assertIn('id="aiMistralAmount"', html)
+        self.assertIn('id="aiMistralReset"', html)
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", (
+            PROJECT_DIR / "web" / "workspace.css"
+        ).read_text(encoding="utf-8"))
+        self.assertIn("setAiUsageMeter", schedule_script)
         self.assertIn('id="todayScheduleBoard"', html)
         self.assertIn('id="todaySchedulePrev"', html)
         self.assertIn('id="todayScheduleNext"', html)

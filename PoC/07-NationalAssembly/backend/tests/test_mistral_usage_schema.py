@@ -42,6 +42,8 @@ class MistralUsageSchemaTests(unittest.TestCase):
         self.assertIn("repository.monthly_token_usage(provider, model)", api)
         self.assertIn('"mistral": "Mistral Studio"', api)
         self.assertIn('"resets_at": _usage_reset_at', api)
+        self.assertIn('"MONTHLY", settings.national_assembly_timezone', api)
+        self.assertIn('"usage_percent": round(', api)
 
 
 if __name__ == "__main__":

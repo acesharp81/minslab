@@ -46,7 +46,7 @@ def run_once(database_url: str) -> dict[str, int | float | str]:
                 global_usage,
                 input_usd_per_million=settings.mistral_input_usd_per_million,
                 output_usd_per_million=settings.mistral_output_usd_per_million,
-            ) + float(global_usage.get("audio_cost_usd") or 0)
+            )
         session_id = repository.candidate_session(
             min_new_matches=settings.watch_llm_min_new_matches,
             debounce_seconds=settings.watch_llm_debounce_seconds,
@@ -70,7 +70,7 @@ def run_once(database_url: str) -> dict[str, int | float | str]:
             repository.limit(version_id, "MISTRAL_GLOBAL_MONTHLY_CAP")
             return {"status": "GLOBAL_LIMIT_REACHED", "generated": 0, "cost_usd": watch_cost}
         if provider == "openrouter":
-            daily_limit = max(1, min(int(settings.openrouter_daily_limit), 500))
+            daily_limit = max(1, min(int(settings.openrouter_daily_limit), 950))
             reserved = summary_repository.reserve_daily_request("openrouter", daily_limit)
             if reserved is None:
                 repository.limit_daily(version_id, "OPENROUTER_DAILY_LIMIT")

@@ -13,7 +13,7 @@ class OpenRouterUsageSchemaTests(unittest.TestCase):
         self.assertIn("CREATE TABLE llm_provider_daily_usage", migration)
         self.assertIn("ON CONFLICT (provider, usage_date) DO UPDATE", repository)
         self.assertIn("request_count < %s", repository)
-        self.assertIn("HARD_DAILY_REQUEST_LIMIT = 500", cache)
+        self.assertIn("HARD_DAILY_REQUEST_LIMIT = 950", cache)
 
 
 if __name__ == "__main__":

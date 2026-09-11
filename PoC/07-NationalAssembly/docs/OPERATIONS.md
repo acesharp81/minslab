@@ -1,10 +1,37 @@
 # Operations
 
+## OpenRouter 공용 게이트웨이
+
+POC7 이미지 빌드 후 API와 워커보다 게이트웨이를 먼저 배포합니다.
+
+```bash
+sudo scripts/deploy_openrouter_gateway.sh
+sudo scripts/deploy_api.sh
+sudo scripts/deploy_live_capture_workers.sh
+sudo scripts/deploy_secure_workers.sh all
+```
+
+`http://127.0.0.1:18071/internal/status`의 `reserved`가 POC4+POC7 합산 시도이며 운영 상한은 950, 공식 상한은 1,000입니다. `breakdown`은 장애 분석용이고 프로젝트별 별도 quota로 사용하지 않습니다. gateway 컨테이너만 실제 OpenRouter key를 받으며 텍스트 워커는 `gateway-local` 토큰과 내부 URL만 받습니다.
+
+자막 운영 상태는 live API의 `active_transcript_source`, `official_caption_state`, `stt_fallback_status`로 확인합니다. 국회 공식 자막 무수신 45초 후 `AI_STT`, 재수신 90초 후 `OFFICIAL_CAPTION`이 정상 전환입니다.
+
+공식 자막 연결 장애를 늦게 발견해 STT 전환 이전 구간이 비어 있으면 국회가 실제 제공한 Quick VOD `EVENT` 재생목록과 시작 시각을 확인한 뒤 아래 복구 도구를 사용합니다. 도구는 STT 전환 경계 이전의 완성 구간만 최대 8개씩 병렬 수집해 원래 순서로 하나의 오디오를 만들고, Mistral STT는 누락구간 전체에 1회만 호출합니다. 같은 방송에 이미 Quick VOD 복구 자막이 있으면 재호출하지 않습니다.
+
+```bash
+sudo scripts/backfill_quick_vod.sh BROADCAST_ID PLAYLIST_URL PLAYLIST_START_AT --dry-run
+sudo scripts/backfill_quick_vod.sh BROADCAST_ID PLAYLIST_URL PLAYLIST_START_AT
+```
+
+
 ## 회의 보고서 후처리
 
 국회 회의는 종료 직후 확정하지 않습니다. 종료 후 2시간을 기본 안정화 구간으로 두고, 같은 위원회의 같은 날짜 후속 일정이 저장되어 있으면 해당 일정 이후까지 재개를 기다립니다. 현재 분석 버전과 자막 cursor가 모두 일치할 때만 READY입니다.
 
 최종 분석은 발언 구간 → 8개 구간 단위 중간 병합 → 회의 전체 통합의 계층형 구조입니다. 각 구간과 중간 병합은 `meeting_brief_chunk_cache`에 내용 해시로 저장하므로 429·5xx·시간초과 뒤에도 완료 구간을 재호출하지 않습니다. 실시간 군집은 직접 근거와 엄격한 결정적 일치만 최종 주제에 붙이며, 어휘 후보와 다중 후보는 최종 화면 연결에서 제외하고 계보 감사 데이터에 남깁니다.
+
+OpenRouter가 HTTP 200과 함께 닫히지 않은 `json_schema` 본문을 반환하면 gateway 원장에는 `invalid_structured_output` 실패로 남고 같은 idempotency key를 성공 재생하지 않습니다. 회의 보고서 워커는 형식 실패에 문장을 축약하고 JSON을 닫으라는 지침을 추가하며, 형식 실패·5xx·timeout 요청만 짧은 청크·병합은 Liquid, 긴 최종 통합은 Dots 3 Note로 재시도합니다. 정상 청크와 최종 통합의 기본 모델은 Nemotron을 유지합니다. 진행률이 같은 청크에서 멈춘 경우 gateway의 `FAILED` 증가와 worker 로그의 `MalformedMeetingBriefResponse`를 함께 확인합니다.
+
+Dots 3 Note 무료 endpoint는 OpenRouter 공지상 2026-09-30 종료 예정이므로 최종 통합 재시도에만 제한합니다. 종료일 전 현재 무료 모델 목록에서 `json_schema`와 한국어 장문 통합을 실제 fixture로 통과한 대체 모델을 선정하고 `OPENROUTER_FINAL_RETRY_MODEL` 및 gateway 허용 목록을 함께 갱신합니다.
 
 국무회의는 LIVE 캡처 유무와 무관하게 공식자료만으로도 완료할 수 있습니다. `official-minutes-worker`는 국회 공식 API 단계에서 오류가 나더라도 국무회의 공식자료 수집을 별도로 실행하며, `NATIONAL_ASSEMBLY_API_KEY`가 없는 국무회의 전용 실행 환경에서도 해당 수집은 계속됩니다. 로그의 `executive.official.completed`와 `parser_version`을 확인하고, 운영 snapshot의 parser version이 배포 버전보다 낮아지면 구형 워커가 같은 volume을 덮어쓰는지 점검합니다.
 
@@ -47,9 +74,9 @@ PYTHONPATH=backend python3 -m app.ingestion.bill_sync --assembly-term 제22대
 PYTHONPATH=backend python3 -m app.ingestion.live_monitor --once
 ```
 
-`caption-worker`는 READY 상태 방송을 DB lease로 선점하고 최대 세 위원회 자막을 동시에 수집합니다. 메시지는 raw 저장 후 segment revision으로 적재하며, 15초 무수신 시 lease를 갱신하고 연결 종료·오류 시 재시도 상태로 반환합니다.
+`caption-worker`는 READY 상태 방송을 DB lease로 선점하고 최대 네 방송의 자막을 동시에 수집합니다. 메시지는 raw 저장 후 segment revision으로 적재하며, 15초 무수신 시 lease를 갱신합니다. 연결 종료·오류는 재시도 상태로 반환하되 연결 전 handshake 실패도 방송 감지 후 45초 장애 판정에 포함하여 `AI_STT` fallback을 시작합니다.
 
-동시 수집은 `--workers 3`과 `FOR UPDATE SKIP LOCKED` claim으로 방송별 소유권을 분리합니다. 2026-08-31 운영 DB 감사에서는 목표 위원회 두 방송이 동시에 저장된 분 단위 구간 526개와 그 구간의 revision 83,347건을 확인했습니다. 관측된 최대 동시는 2개이며 3개 동시는 worker 계약 테스트로 보장하되, 실제 세 위원회 동시 개회일에는 아래 항목을 다시 확인합니다.
+동시 수집은 `--workers 4`와 `FOR UPDATE SKIP LOCKED` claim으로 방송별 소유권을 분리합니다. 2026-08-31 운영 DB 감사에서는 목표 위원회 두 방송이 동시에 저장된 분 단위 구간 526개와 그 구간의 revision 83,347건을 확인했습니다. 관측된 최대 동시는 2개이며 4개 동시는 worker 계약 테스트로 보장하되, 실제 대상 3개 위원회와 본회의 동시 개회일에는 아래 항목을 다시 확인합니다.
 
 - 각 LIVE 방송의 lease owner가 서로 다르고 `capture_status`가 `CAPTURING`인지
 - 방송별 최신 final revision 시각이 함께 증가하는지
@@ -63,7 +90,7 @@ PYTHONPATH=backend python3 -m app.ingestion.schedule_worker --once --days 7
 
 
 ```bash
-PYTHONPATH=backend python3 -m app.ingestion.caption_worker --workers 3
+PYTHONPATH=backend python3 -m app.ingestion.caption_worker --workers 4
 ```
 
 ## 데이터
@@ -136,7 +163,7 @@ sudo scripts/deploy_secure_workers.sh all
 
 ### 국무회의 LIVE 음성 처리
 
-`executive-caption-worker`는 KTV 공식 편성에서 국무회의가 `ONAIR`로 확인된 동안 공식 HLS 음성을 끊김 없이 계속 받아 60초 단위 MP3 원본으로 보존합니다. 녹음 producer와 전사 consumer를 분리했으므로 Mistral 응답을 기다리는 동안에도 다음 음성이 누락되지 않습니다. 완성된 청크는 `voxtral-mini-latest`의 diarization 전사로 처리하고 확정 구간을 국회 자막과 동일한 `transcript_segments`·revision 경로에 넣습니다. 따라서 화자 전환 요약, 실시간 주제, 자동 최신 발언 포커스, 종료 후 회의 브리프는 별도 국무회의 전용 비즈니스 로직이 아니라 기존 공통 기능을 사용합니다.
+`executive-caption-worker`는 KTV 공식 편성에서 국무회의가 `ONAIR`로 확인된 동안, 또는 국회 공식 자막이 45초 이상 중단된 동안 공식 HLS 음성을 끊김 없이 계속 받아 60초 단위 MP3 원본으로 보존합니다. 녹음 producer와 전사 consumer를 분리했으므로 Mistral 응답을 기다리는 동안에도 다음 음성이 누락되지 않습니다. 완성된 청크는 `voxtral-mini-latest`의 diarization 전사로 처리하고 확정 구간을 국회 자막과 동일한 `transcript_segments`·revision 경로에 넣습니다. 따라서 화자 전환 요약, 실시간 주제, 자동 최신 발언 포커스, 종료 후 회의 브리프는 별도 국무회의 전용 비즈니스 로직이 아니라 기존 공통 기능을 사용합니다.
 
 Mistral 전사는 기본 분당 USD 0.003으로 계산하여 `audio_usage_events`에 기록하고 텍스트 요약 비용과 월 USD 10 한도를 공유합니다. KTV가 자막 트랙을 제공하지 않아도 영상 음성으로 기록합니다. 방송 종료가 감지되면 상태를 `POST_PROCESSING`으로 바꾸고 마지막 부분 파일과 미처리 청크를 모두 전사한 뒤 `COMPLETED`로 전환합니다. 전체 발언 정리가 끝나기 전에는 결과 브리프 워커가 먼저 실행되지 않습니다.
 
@@ -147,7 +174,7 @@ Mistral 전사는 기본 분당 USD 0.003으로 계산하여 `audio_usage_events
 공식 정책브리핑이 발행되면 `official-minutes-worker`가 회차와 서울 날짜가 일치하는 방송만 `executive_official_matches`에 연결합니다. 같은 회차 후보가 여러 개인데 날짜가 맞지 않으면 임의 연결하지 않습니다. 화면은 LIVE 임시 결과를 별도 회의로 중복 노출하지 않고 하나의 공식 결과로 전환하되, 각 보고 카드를 `부처 보고 내용 · 대통령 지시 · 부처 추가 발표`로 분리하고 심의안건을 별도 영역에 둡니다. 부처 보고 내용은 공식 보고 제목과 담당 부처를 기준으로 LIVE 보고서의 주제를 보수적으로 연결하며, 동점이거나 근거가 약하면 공식 보고 확인 문구만 제공합니다. 이 결합은 저장 자료와 규칙만 사용해 LLM을 추가 호출하지 않습니다.
 
 ```bash
-sudo scripts/deploy_secure_workers.sh executive
+sudo scripts/deploy_live_capture_workers.sh
 docker logs --tail 50 poc07-national-assembly-executive-caption-worker
 ```
 
@@ -230,7 +257,7 @@ Kakao callback은 Kakao 사용자 ID 단위 PostgreSQL advisory transaction lock
 
 `POST /api/topic-reports/search`는 구조화된 회의 주제·소관부처·도출과제를 의미구조와 keyword overlap으로 순위화하며 LLM을 호출하지 않습니다. `POST /api/topic-reports`만 PENDING 작업을 만들고 `topic-report-worker`가 OpenRouter를 1회 호출합니다. 동일 query/evidence/provider/model/prompt READY 행은 재사용합니다.
 
-외부 호출 전에 사용자 10회/UTC 일, 주제 보고서 100회/UTC 일, PoC7 OpenRouter 공용 500회/UTC 일을 순서대로 원자 예약합니다. OpenRouter 키는 `topic-report-worker`에만 주입합니다. 요청은 공개 근거 최대 60,000자로 제한하고 식별 가능한 이메일·전화·주민번호 패턴을 제거하며 data_collection=deny, provider fallback 금지, strict JSON schema를 사용합니다. 현재 무료 endpoint는 ZDR pool에 포함되지 않아 주제별 보고서 경로에서 ZDR은 강제하지 않습니다. 응답의 모든 evidence ID를 저장 snapshot과 대조하고 근거 본문이 2개 미만이면 저장하지 않습니다.
+외부 호출 전에 사용자 10회/UTC 일, 주제 보고서 100회/UTC 일을 검사하고 POC4·POC7 공용 gateway가 전체 950회/UTC 일 운영선을 원자 예약합니다. 실제 OpenRouter 키는 gateway에만 있고 `topic-report-worker`에는 `gateway-local` 값만 전달합니다. 요청은 공개 근거 최대 60,000자로 제한하고 식별 가능한 이메일·전화·주민번호 패턴을 제거합니다. gateway는 공개 데이터 class만 허용한 뒤 승인된 `data_collection=allow`, 무료 모델 fallback과 strict JSON schema를 적용합니다. 응답의 모든 evidence ID를 저장 snapshot과 대조하고 근거 본문이 2개 미만이면 저장하지 않습니다.
 
 ~~~bash
 sudo scripts/deploy_secure_workers.sh topic-report

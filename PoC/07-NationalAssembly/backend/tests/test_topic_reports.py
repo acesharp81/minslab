@@ -132,7 +132,7 @@ class TopicReportTests(unittest.TestCase):
         _validate_report_language(report, allowed)
         self.assertEqual("행정안전부가 정책을 검토했다.", report["executive_summary"])
 
-    def test_openrouter_generation_is_grounded_and_collection_denied(self) -> None:
+    def test_openrouter_generation_is_grounded_and_public_collection_approved(self) -> None:
         response = Mock()
         response.raise_for_status.return_value = None
         response.json.return_value = {
@@ -162,9 +162,9 @@ class TopicReportTests(unittest.TestCase):
                 evidence=self.evidence(),
             )
         body = post.call_args.kwargs["json"]
-        self.assertEqual("deny", body["provider"]["data_collection"])
+        self.assertEqual("allow", body["provider"]["data_collection"])
         self.assertNotIn("zdr", body["provider"])
-        self.assertFalse(body["provider"]["allow_fallbacks"])
+        self.assertTrue(body["provider"]["allow_fallbacks"])
         self.assertNotIn("plugins", body)
         self.assertFalse(body["reasoning"]["enabled"])
         self.assertTrue(body["reasoning"]["exclude"])
@@ -252,7 +252,7 @@ class TopicReportTests(unittest.TestCase):
     def test_browser_security_headers_are_fail_closed(self) -> None:
         response = apply_security_headers(Response())
         service = (PROJECT_DIR / "backend/app/services/topic_report.py").read_text()
-        self.assertIn("\"data_collection\": \"deny\"", service)
+        self.assertIn("\"data_collection\": \"allow\"", service)
         self.assertIn("\"public_evidence_only\": True", service)
         self.assertIn("frame-ancestors 'self'", response.headers["Content-Security-Policy"])
         self.assertEqual("nosniff", response.headers["X-Content-Type-Options"])

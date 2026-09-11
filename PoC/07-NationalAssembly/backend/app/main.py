@@ -3,6 +3,7 @@ from __future__ import annotations
 import hmac
 import json
 import re
+import requests
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
@@ -34,7 +35,7 @@ from .db.watch_operations_repository import WatchOperationsRepository
 from .db.watch_repository import WatchRepository
 from .db.watch_test_repository import WatchTestRepository
 from .domain import AuthorityStatus, LifecycleStatus, ReconciliationStatus
-from .domain.scope import TARGET_COMMITTEES
+from .domain.scope import TARGET_COMMITTEES, is_live_transcript_scope
 from .ingestion.schedule_worker import (
     ASSEMBLY_REFERENCE_SCHEMA,
     UPCOMING_SCHEDULE_SCHEMA,
@@ -49,6 +50,7 @@ from .services.meeting_brief import (
     PROMPT_VERSION as MEETING_BRIEF_PROMPT_VERSION,
 )
 from .services.meeting_brief import link_tasks_to_topics
+from .services.meeting_topic_groups import attach_meeting_topic_groups
 from .services.meeting_sessions import build_meeting_sessions
 from .services.mistral_budget import mistral_usage_cost_usd
 from .services.official_brief_integration import build_official_brief_integration
@@ -194,7 +196,9 @@ def _public_meeting_brief(
 ) -> dict[str, object] | None:
     if not item:
         return None
-    normalized_brief = link_tasks_to_topics(dict(item.get("brief") or {}))
+    normalized_brief = attach_meeting_topic_groups(
+        link_tasks_to_topics(dict(item.get("brief") or {}))
+    )
     progress = dict(progress_item or {})
     current_cursor = int(progress.get("current_source_last_event_cursor") or 0)
     saved_cursor = int(item.get("source_last_event_cursor") or 0)
@@ -207,8 +211,9 @@ def _public_meeting_brief(
             and progress.get("transcript_hash") != item["transcript_hash"]
         )
     )
+    is_ai_result = item["provider"] in {"mistral", "openrouter"}
     analysis_outdated = bool(
-        item["provider"] == "mistral"
+        is_ai_result
         and item.get("prompt_version") != MEETING_BRIEF_PROMPT_VERSION
     )
     # A prompt-version upgrade must not hide an already completed report.
@@ -218,14 +223,14 @@ def _public_meeting_brief(
     if not progress:
         total = int((item.get("brief") or {}).get("utterance_count") or 0)
         progress = {
-            "status": "COMPLETED" if item["provider"] == "mistral" else "PROCESSING",
-            "phase": "COMPLETED" if item["provider"] == "mistral" else "QUEUED",
+            "status": "COMPLETED" if is_ai_result else "PROCESSING",
+            "phase": "COMPLETED" if is_ai_result else "QUEUED",
             "total_utterances": total,
-            "processed_utterances": total if item["provider"] == "mistral" else 0,
+            "processed_utterances": total if is_ai_result else 0,
             "total_chunks": 0,
             "completed_chunks": 0,
         }
-    ready = item["provider"] == "mistral" and not result_pending
+    ready = is_ai_result and not result_pending
     return {
         "brief_id": item["brief_id"],
         "broadcast_id": item["broadcast_id"],
@@ -426,6 +431,78 @@ def _usage_reset_at(period: str, timezone_name: str) -> str:
 @app.get("/api/ai/usage", tags=["system"])
 def ai_usage() -> dict[str, object]:
     settings = get_settings()
+    mistral_usage = {
+        "request_count": 0, "input_tokens": 0, "output_tokens": 0,
+        "total_tokens": 0, "audio_request_count": 0,
+        "audio_seconds": 0.0, "audio_cost_usd": 0.0,
+    }
+    local_openrouter = 0
+    status = "AVAILABLE"
+    if settings.database_url:
+        try:
+            with connect(settings.database_url) as connection:
+                repository = SummaryRepository(connection)
+                mistral_usage.update(repository.monthly_provider_usage("mistral"))
+                local_openrouter = repository.daily_usage("openrouter")
+        except Exception:
+            status = "UNAVAILABLE"
+    gateway: dict[str, object] = {}
+    if settings.openrouter_gateway_status_url:
+        try:
+            response = requests.get(settings.openrouter_gateway_status_url, timeout=2.0)
+            response.raise_for_status()
+            gateway = response.json()
+        except Exception:
+            status = "UNAVAILABLE"
+    openrouter_used = int(gateway.get("reserved", local_openrouter))
+    openrouter_limit = int(gateway.get("operational_limit") or settings.openrouter_daily_limit)
+    mistral_cost = mistral_usage_cost_usd(
+        mistral_usage,
+        input_usd_per_million=settings.mistral_input_usd_per_million,
+        output_usd_per_million=settings.mistral_output_usd_per_million,
+    )
+    return {
+        "provider": "combined",
+        "provider_label": "OpenRouter 공용 + Mistral STT",
+        "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",
+        "used": openrouter_used, "limit": openrouter_limit,
+        "unit": "requests", "period": "DAILY",
+        "request_count": openrouter_used,
+        "usage_percent": round((openrouter_used / openrouter_limit) * 100, 2) if openrouter_limit else 0,
+        "resets_at": _usage_reset_at("DAILY", settings.national_assembly_timezone),
+        "status": status,
+        "providers": [
+            {
+                "provider": "openrouter", "period": "DAILY",
+                "used": openrouter_used, "limit": openrouter_limit,
+                "usage_percent": round(
+                    (openrouter_used / openrouter_limit) * 100, 2
+                ) if openrouter_limit else 0,
+                "resets_at": _usage_reset_at(
+                    "DAILY", settings.national_assembly_timezone
+                ),
+                "official_limit": int(gateway.get("official_limit") or 1000),
+                "completed": int(gateway.get("completed") or 0),
+                "failed": int(gateway.get("failed") or 0),
+                "remaining": max(0, openrouter_limit - openrouter_used),
+                "combined_projects": True,
+                "breakdown": gateway.get("breakdown") or [],
+            },
+            {
+                "provider": "mistral", "period": "MONTHLY",
+                **mistral_usage, "cost_usd": round(mistral_cost, 6),
+                "credit_usd": float(settings.mistral_monthly_credit_usd),
+                "usage_percent": round(
+                    (mistral_cost / float(settings.mistral_monthly_credit_usd)) * 100,
+                    2,
+                ) if settings.mistral_monthly_credit_usd else 0,
+                "resets_at": _usage_reset_at(
+                    "MONTHLY", settings.national_assembly_timezone
+                ),
+                "transcription_model": settings.executive_transcription_model,
+            },
+        ],
+    }
     provider, model, _ = summary_identity(settings)
     provider_labels = {
         "mistral": "Mistral Studio",
@@ -1051,7 +1128,7 @@ def live_status() -> dict[str, object]:
 
 
 def _validate_live_committee(committee: str | None) -> str | None:
-    if committee and committee not in TARGET_COMMITTEES:
+    if committee and not is_live_transcript_scope(committee):
         raise HTTPException(
             status_code=422, detail="committee is outside the target scope"
         )
@@ -1345,7 +1422,9 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 if topic_id in lineage_ids:
                     topic["live_topic_cluster_ids"] = lineage_ids[topic_id]
         public["provisional_brief"] = provisional_brief
-        public["brief"] = integrated_brief
+        public["brief"] = attach_meeting_topic_groups(
+            link_tasks_to_topics(integrated_brief)
+        )
         public["official_integration"] = {
             "status": integration["status"],
             "integration_version": integration["integration_version"],
@@ -1387,7 +1466,9 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
 
 
 def _meeting_brief_markdown(record: dict[str, object]) -> str:
-    brief = dict(record.get("brief") or {})
+    brief = attach_meeting_topic_groups(
+        link_tasks_to_topics(dict(record.get("brief") or {}))
+    )
     integration = dict(record.get("official_integration") or {})
     lines = [
         f"# {brief.get('headline') or '회의 결과'}",
@@ -1400,22 +1481,46 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
         "## 주요 논의 주제",
         "",
     ]
-    for topic in brief.get("topics") or []:
+    detailed_topics = brief.get("topics") or []
+    topic_by_id = {
+        str(topic.get("id")): topic for topic in detailed_topics if topic.get("id")
+    }
+    topic_groups = brief.get("topic_groups") or [
+        {
+            "title": topic.get("title") or "주제",
+            "summary": topic.get("summary") or "",
+            "topic_ids": [str(topic.get("id"))],
+        }
+        for topic in detailed_topics
+    ]
+    for group in topic_groups:
         lines.extend(
             (
-                f"### {topic.get('title') or '주제'}",
+                f"### {group.get('title') or '대상 주제'}",
                 "",
-                str(topic.get("summary") or ""),
+                str(group.get("summary") or ""),
                 "",
             )
         )
-        for point in topic.get("speaker_points") or []:
-            lines.append(
-                f"- {point.get('speaker_label') or '화자 확인 중'}: "
-                f"{point.get('summary') or ''}"
+        for topic_id in group.get("topic_ids") or []:
+            topic = topic_by_id.get(str(topic_id))
+            if not topic:
+                continue
+            lines.extend(
+                (
+                    f"#### {topic.get('title') or '세부 쟁점'}",
+                    "",
+                    str(topic.get("summary") or ""),
+                    "",
+                )
             )
-        if topic.get("speaker_points"):
-            lines.append("")
+            for point in topic.get("speaker_points") or []:
+                lines.append(
+                    f"- {point.get('speaker_label') or '화자 확인 중'}: "
+                    f"{point.get('summary') or ''}"
+                )
+            if topic.get("speaker_points"):
+                lines.append("")
     lineage = brief.get("live_topic_lineage") or {}
     if lineage.get("cluster_count"):
         lines.extend(
@@ -1556,7 +1661,9 @@ def ended_live_broadcast_brief_evidence(
     entity_type: str,
     entity_id: str,
 ) -> dict[str, object]:
-    if entity_type not in {"topic", "task", "speaker", "live_topic_cluster"}:
+    if entity_type not in {
+        "topic", "topic_group", "task", "speaker", "live_topic_cluster",
+    }:
         raise HTTPException(status_code=422, detail="unsupported evidence entity type")
     if not entity_id or len(entity_id) > 80:
         raise HTTPException(status_code=422, detail="invalid evidence entity id")
@@ -1581,10 +1688,38 @@ def ended_live_broadcast_brief_evidence(
                     evidence_brief,
                     integration.get("changes") or [],
                 )
-            evidence_ids = repository.evidence_ids(
-                {"brief": evidence_brief}, entity_type, entity_id
+            evidence_brief = attach_meeting_topic_groups(
+                link_tasks_to_topics(evidence_brief)
             )
-            official_ids = official_evidence_ids(evidence_brief, entity_type, entity_id)
+            group_topic_ids: list[str] = []
+            if entity_type == "topic_group":
+                group = next(
+                    (
+                        value for value in evidence_brief.get("topic_groups") or []
+                        if str(value.get("id")) == entity_id
+                    ),
+                    None,
+                )
+                if not group:
+                    raise HTTPException(
+                        status_code=404, detail="대상 주제를 찾을 수 없습니다."
+                    )
+                group_topic_ids = [str(value) for value in group.get("topic_ids") or []]
+                evidence_ids = [str(value) for value in group.get("evidence_ids") or []]
+                official_ids = []
+                for topic_id in group_topic_ids:
+                    for value in official_evidence_ids(
+                        evidence_brief, "topic", topic_id
+                    ):
+                        if value not in official_ids:
+                            official_ids.append(value)
+            else:
+                evidence_ids = repository.evidence_ids(
+                    {"brief": evidence_brief}, entity_type, entity_id
+                )
+                official_ids = official_evidence_ids(
+                    evidence_brief, entity_type, entity_id
+                )
             if not evidence_ids and not official_ids:
                 raise HTTPException(
                     status_code=404, detail="연결된 근거 발언이 없습니다."
@@ -1637,7 +1772,7 @@ def ended_live_broadcast_brief_evidence(
             # generic legal terms can pull unrelated nearby speeches into a
             # newly-added official topic.
             if (
-                entity_type in {"topic", "task"}
+                entity_type in {"topic", "topic_group", "task"}
                 and current_official_rows
                 and not current_official_ids
             ):
@@ -1647,21 +1782,23 @@ def ended_live_broadcast_brief_evidence(
                 )
                 collection = (
                     related.get("topics", [])
-                    if entity_type == "topic"
+                    if entity_type in {"topic", "topic_group"}
                     else related.get("tasks", [])
                 )
-                entity = next(
-                    (
-                        value
-                        for value in collection
-                        if str(value.get("id")) == entity_id
-                    ),
-                    None,
+                target_ids = (
+                    set(group_topic_ids)
+                    if entity_type == "topic_group"
+                    else {entity_id}
                 )
-                for record in (entity or {}).get("official_evidence", []):
-                    value = str(record.get("utterance_id") or "")
-                    if value and value not in current_official_ids:
-                        current_official_ids.append(value)
+                entities = [
+                    value for value in collection
+                    if str(value.get("id")) in target_ids
+                ]
+                for entity in entities:
+                    for record in entity.get("official_evidence", []):
+                        value = str(record.get("utterance_id") or "")
+                        if value and value not in current_official_ids:
+                            current_official_ids.append(value)
             official_presentations = (
                 build_official_evidence_presentations(
                     live_utterances,

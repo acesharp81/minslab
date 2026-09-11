@@ -70,6 +70,24 @@ class ScheduleNormalizerTests(unittest.TestCase):
         self.assertTrue(target.is_target_committee)
         self.assertFalse(outside.is_target_committee)
 
+    def test_only_plenary_uses_the_national_session_scope(self):
+        regular = normalize_schedule(record(
+            committee_name="교육위원회", session_text="제429회국회(정기회)",
+        ))
+        audit = normalize_schedule(record(
+            committee_name="과학기술정보방송통신위원회", content="2026년도 국정감사",
+        ))
+        plenary = normalize_schedule(record(
+            committee_name="본회의", session_text="제429회국회(정기회)",
+        ))
+        target_audit = normalize_schedule(record(
+            committee_name="법제사법위원회", content="2026년도 국정감사",
+        ))
+        self.assertFalse(regular.is_target_committee)
+        self.assertFalse(audit.is_target_committee)
+        self.assertTrue(plenary.is_target_committee)
+        self.assertTrue(target_audit.is_target_committee)
+
 
 if __name__ == "__main__":
     unittest.main()

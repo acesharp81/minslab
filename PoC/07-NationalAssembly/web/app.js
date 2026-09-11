@@ -56,7 +56,49 @@ const meetingRailHistoryState = {
   statusPayload: null,
   executivePayload: { items: [] },
 };
-const latestMeetingReportState = { pending: false };
+const MEETING_REPORT_SELECTION_KEY = "poc07.selectedMeetingReport.v1";
+const MEETING_REPORT_QUERY_KEY = "report";
+
+function restoredMeetingReportId() {
+  try {
+    const explicitId = new URL(window.location.href).searchParams.get(
+      MEETING_REPORT_QUERY_KEY,
+    );
+    if (explicitId) return explicitId;
+    const navigation = window.performance?.getEntriesByType?.("navigation")?.[0];
+    if (navigation?.type !== "reload") return null;
+    return window.sessionStorage.getItem(MEETING_REPORT_SELECTION_KEY) || null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function rememberMeetingReportSelection(id) {
+  const value = String(id || "");
+  latestMeetingReportState.preferredId = value || null;
+  try {
+    if (value) window.sessionStorage.setItem(MEETING_REPORT_SELECTION_KEY, value);
+    else window.sessionStorage.removeItem(MEETING_REPORT_SELECTION_KEY);
+  } catch (_error) {
+    // 브라우저 저장소가 차단돼도 현재 탭의 메모리 선택은 유지한다.
+  }
+  try {
+    const url = new URL(window.location.href);
+    if (value) url.searchParams.set(MEETING_REPORT_QUERY_KEY, value);
+    else url.searchParams.delete(MEETING_REPORT_QUERY_KEY);
+    window.history.replaceState(
+      window.history.state, "", `${url.pathname}${url.search}${url.hash}`,
+    );
+  } catch (_error) {
+    // URL 갱신이 제한된 환경에서는 sessionStorage 복원을 사용한다.
+  }
+}
+
+const latestMeetingReportState = {
+  pending: false,
+  opening: false,
+  preferredId: restoredMeetingReportId(),
+};
 const initialWorkspaceHash = window.location.hash.replace("#", "");
 const explicitWorkspaceHashes = new Set([
   "live", "reports", "topic-reports", "extras",
@@ -278,8 +320,11 @@ function stopAssemblyTranscript() {
 
 function transcriptParams(extra = {}) {
   const params = new URLSearchParams(extra);
-  if (assemblyTranscriptState.committee) params.set("committee", assemblyTranscriptState.committee);
-  if (assemblyTranscriptState.broadcastId) params.set("broadcast_id", assemblyTranscriptState.broadcastId);
+  if (assemblyTranscriptState.broadcastId) {
+    params.set("broadcast_id", assemblyTranscriptState.broadcastId);
+  } else if (assemblyTranscriptState.committee) {
+    params.set("committee", assemblyTranscriptState.committee);
+  }
   return params;
 }
 
@@ -882,6 +927,30 @@ function liveReportSearchText(group) {
   ].filter(Boolean).join(" ").toLocaleLowerCase("ko-KR");
 }
 
+function liveDraftTopicMetadata(group, entries) {
+  const officialSpeakers = [...new Set(entries
+    .filter((entry) => entry.officialReconciliation?.status === "MATCHED")
+    .map((entry) => String(entry.officialReconciliation?.official_speaker_name || "").trim())
+    .filter(Boolean))];
+  const identifiedSpeakers = new Set(entries
+    .map((entry) => String(entry.speaker || "").trim())
+    .filter((speaker) => speaker && speaker !== "발언자 확인 중"));
+  const captionCount = entries.reduce(
+    (sum, entry) => sum + Math.max(1, Number(entry.segmentCount || 1)), 0,
+  );
+  const metadata = [];
+  if (officialSpeakers.length) {
+    const names = officialSpeakers.slice(0, 3).join(" · ");
+    metadata.push(`공식 확인 ${names}${officialSpeakers.length > 3 ? ` 외 ${officialSpeakers.length - 3}명` : ""}`);
+  } else if (identifiedSpeakers.size) {
+    metadata.push(`발언자 ${identifiedSpeakers.size}명`);
+  }
+  if (group.questions.length) metadata.push(`질의 ${group.questions.length}건`);
+  if (group.answers.length) metadata.push(`답변·발언 ${group.answers.length}건`);
+  if (captionCount > entries.length) metadata.push(`확정 자막 ${captionCount}개`);
+  return metadata;
+}
+
 function renderCompactLiveInsights(container, allGroups, segmentItems = null) {
   const previousOverviewScroll = container.querySelector(".live-draft-overview-list")?.scrollTop || 0;
   const normalizedQuery = liveReportFilterState.query.trim().toLocaleLowerCase("ko-KR");
@@ -1041,11 +1110,13 @@ function renderCompactLiveInsights(container, allGroups, segmentItems = null) {
     const ministryLabels = magazineElement("div", "live-draft-ministry-labels", "");
     for (const ministry of ministries.slice(0, 4)) ministryLabels.append(magazineElement("b", "", ministry));
     if (!ministries.length) ministryLabels.append(magazineElement("em", "", "소관 확인 중"));
-    cardTitle.append(
-      ministryLabels,
-      magazineElement("h4", "", group.topic),
-      magazineElement("p", "", entries.slice(-3).map((entry) => entry.summary).join(" ")),
-    );
+    cardTitle.append(ministryLabels, magazineElement("h4", "", group.topic));
+    const verifiedMetadata = liveDraftTopicMetadata(group, entries);
+    if (verifiedMetadata.length) {
+      const metadata = magazineElement("div", "live-draft-topic-metadata", "");
+      for (const label of verifiedMetadata) metadata.append(magazineElement("span", "", label));
+      cardTitle.append(metadata);
+    }
     const evidenceButton = magazineElement("button", "meeting-evidence-button", `근거 발언 ${entries.length}개`);
     evidenceButton.type = "button";
     evidenceButton.addEventListener("click", () => openLiveDraftEvidenceDialog(
@@ -1479,6 +1550,7 @@ function collapseLiveExpansion() {
   const wasLive = ["LIVE", "EXECUTIVE_LIVE", "POST_PROCESSING"].includes(
     assemblyTranscriptState.expandedMode,
   );
+  if (!wasLive) rememberMeetingReportSelection(null);
   assemblyTranscriptState.expanded = false;
   assemblyTranscriptState.expandedMode = null;
   assemblyTranscriptState.selectedBroadcastId = null;
@@ -1584,6 +1656,7 @@ function renderWatchTestLive(payload, options = {}) {
 
 function expandEndedExecutiveBroadcast(item, row) {
   stopAssemblyTranscript();
+  rememberMeetingReportSelection(item.broadcast_id || item.external_id);
   assemblyTranscriptState.expanded = true;
   assemblyTranscriptState.expandedMode = "EXECUTIVE_ENDED";
   assemblyTranscriptState.selectedBroadcastId = item.broadcast_id || item.external_id;
@@ -1763,10 +1836,17 @@ function meetingEvidenceButton(item, entityType, entityId, label, title) {
   button.setAttribute("aria-pressed", "false");
   button.addEventListener("click", () => {
     openMeetingBriefEvidence(item, entityType, entityId, title);
-    const focusTopicId = button.dataset.focusTopicId;
-    if (focusTopicId) {
+    const focusElementId = button.dataset.focusElementId
+      || (button.dataset.focusTopicId
+        ? "meeting-topic-detail-" + button.dataset.focusTopicId
+        : "");
+    if (focusElementId) {
       window.requestAnimationFrame(() => {
-        const target = document.querySelector("#meeting-topic-detail-" + focusTopicId);
+        const target = document.getElementById(focusElementId);
+        const targetGroup = target?.matches("details.meeting-topic-group")
+          ? target
+          : target?.closest("details.meeting-topic-group");
+        if (targetGroup) targetGroup.open = true;
         target?.scrollIntoView({ behavior: "smooth", block: "start" });
         target?.focus({ preventScroll: true });
         target?.classList.add("is-focused");
@@ -1955,6 +2035,21 @@ function renderMeetingBrief(item, record) {
   const liveTopicClusterById = new Map(
     liveTopicClusters.map((cluster) => [cluster.id, cluster]),
   );
+  const detailedTopics = Array.isArray(brief.topics) ? brief.topics : [];
+  const topicById = new Map(detailedTopics.map((topic) => [String(topic.id), topic]));
+  const storedTopicGroups = Array.isArray(brief.topic_groups) ? brief.topic_groups : [];
+  const topicGroups = storedTopicGroups.length
+    ? storedTopicGroups.map((group) => ({
+      ...group,
+      topic_ids: (group.topic_ids || []).map(String).filter((topicId) => topicById.has(topicId)),
+    })).filter((group) => group.topic_ids.length)
+    : detailedTopics.map((topic) => ({
+      id: "topic-group-" + topic.id,
+      title: topic.title,
+      summary: topic.summary,
+      topic_ids: [String(topic.id)],
+      topic_count: 1,
+    }));
   stage.replaceChildren();
   const root = magazineElement("section", "meeting-brief-view", "");
   const hero = magazineElement("header", "meeting-brief-hero", "");
@@ -1980,7 +2075,7 @@ function renderMeetingBrief(item, record) {
   if (evidenceCount > 0) {
     identity.append(magazineElement(
       "p", "meeting-brief-scope-note",
-      `전체 발언 묶음 ${evidenceCount.toLocaleString("ko-KR")}개를 분석하고 중복 논의를 통합한 상위 주제입니다.`,
+      `전체 발언 묶음 ${evidenceCount.toLocaleString("ko-KR")}개를 분석해 세부 쟁점 ${detailedTopics.length.toLocaleString("ko-KR")}개를 대상별로 묶었습니다.`,
     ));
   }
   const lineageTotal = Number(liveTopicLineage.cluster_count || 0);
@@ -1997,7 +2092,7 @@ function renderMeetingBrief(item, record) {
   }
   const metrics = magazineElement("dl", "meeting-brief-metrics", "");
   for (const [label, value] of [
-    ["상위 핵심 주제", brief.topics?.length || 0],
+    ["대상 주제", topicGroups.length],
     ["도출 과제", brief.tasks?.filter((task) => task.status !== "RESOLVED").length || 0],
     ["근거 발언", brief.utterance_count || item.utterance_count || 0],
   ]) {
@@ -2042,20 +2137,34 @@ function renderMeetingBrief(item, record) {
   const topicTaskOverview = magazineElement("section", "meeting-topic-task-overview", "");
   const overviewHead = magazineElement("header", "", "");
   overviewHead.append(
-    magazineElement("strong", "", "요약된 논의 주제"),
+    magazineElement("strong", "", "대상 주제"),
     magazineElement("strong", "", "도출 과제"),
   );
   const topicTaskOverviewList = magazineElement("div", "meeting-topic-task-overview-list", "");
   topicTaskOverview.append(overviewHead, topicTaskOverviewList);
   const linkedTaskIds = new Set();
-  for (const topic of brief.topics || []) {
+  for (const group of topicGroups) {
     const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
-    const topicButton = meetingEvidenceButton(item, "topic", topic.id, "", topic.title);
+    const topicButton = meetingEvidenceButton(
+      item, "topic_group", group.id, "", group.title,
+    );
     topicButton.classList.add("meeting-topic-summary-button");
-    topicButton.dataset.focusTopicId = topic.id;
-    topicButton.append(officialTextElement("strong", "", topic.title, topic, "title"));
+    topicButton.dataset.focusElementId = "meeting-topic-group-" + group.id;
+    topicButton.append(
+      magazineElement("strong", "", group.title),
+      magazineElement(
+        "small", "",
+        `세부 쟁점 ${group.topic_ids.length.toLocaleString("ko-KR")}개`,
+      ),
+    );
     const taskCell = magazineElement("div", "meeting-topic-task-cell", "");
-    const linkedTasks = openTasks.filter((task) => task.topic_id ? task.topic_id === topic.id : task.topic_title === topic.title);
+    const groupTopicIds = new Set(group.topic_ids);
+    const groupTopicTitles = new Set(
+      group.topic_ids.map((topicId) => topicById.get(topicId)?.title).filter(Boolean),
+    );
+    const linkedTasks = openTasks.filter((task) => (
+      task.topic_id ? groupTopicIds.has(String(task.topic_id)) : groupTopicTitles.has(task.topic_title)
+    ));
     for (const task of linkedTasks) {
       linkedTaskIds.add(task.id);
       const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
@@ -2064,7 +2173,7 @@ function renderMeetingBrief(item, record) {
         officialTextElement("strong", "", task.title, task, "title"),
         meetingTaskOwnerTags(task),
       );
-      taskButton.dataset.focusTopicId = topic.id;
+      taskButton.dataset.focusTopicId = task.topic_id || group.topic_ids[0] || "";
       taskCell.append(taskButton);
     }
     if (!linkedTasks.length) {
@@ -2091,7 +2200,7 @@ function renderMeetingBrief(item, record) {
     overviewRow.append(taskCell);
     topicTaskOverviewList.append(overviewRow);
   }
-  if (!(brief.topics || []).length) {
+  if (!topicGroups.length) {
     topicTaskOverviewList.append(magazineElement("p", "meeting-result-empty", "요약된 논의 주제를 준비하는 중입니다."));
   }
 
@@ -2151,7 +2260,25 @@ function renderMeetingBrief(item, record) {
   if (!brief.topics?.length) {
     topics.append(magazineElement("p", "meeting-result-empty", "근거가 확인된 주요 주제가 없습니다."));
   }
-  for (const topic of brief.topics || []) {
+  for (const group of topicGroups) {
+    const groupSection = magazineElement("details", "meeting-topic-group", "");
+    groupSection.id = "meeting-topic-group-" + group.id;
+    groupSection.tabIndex = -1;
+    groupSection.open = group === topicGroups[0];
+    const groupHead = magazineElement("summary", "meeting-topic-group-head", "");
+    groupHead.append(
+      magazineElement("span", "", "대상 주제"),
+      magazineElement("h4", "", group.title),
+      magazineElement("p", "", group.summary || ""),
+      magazineElement(
+        "small", "",
+        `세부 쟁점 ${group.topic_ids.length.toLocaleString("ko-KR")}개`,
+      ),
+    );
+    groupSection.append(groupHead);
+    for (const topicId of group.topic_ids) {
+      const topic = topicById.get(topicId);
+      if (!topic) continue;
     const card = magazineElement("article", "meeting-result-topic", "");
     card.id = "meeting-topic-detail-" + topic.id;
     card.tabIndex = -1;
@@ -2226,7 +2353,9 @@ function renderMeetingBrief(item, record) {
     card.append(head);
     if (topicLineageDetails) card.append(topicLineageDetails);
     card.append(speakerList);
-    topics.append(card);
+      groupSection.append(card);
+    }
+    topics.append(groupSection);
   }
 
   const evidence = magazineElement("aside", "meeting-evidence-panel", "");
@@ -2242,8 +2371,10 @@ function renderMeetingBrief(item, record) {
   stage.append(root);
   limitMeetingOverviewRows(topicTaskOverviewList, 5);
 
-  const firstTopic = brief.topics?.[0];
-  if (firstTopic) openMeetingBriefEvidence(item, "topic", firstTopic.id, firstTopic.title);
+  const firstGroup = topicGroups[0];
+  if (firstGroup) {
+    openMeetingBriefEvidence(item, "topic_group", firstGroup.id, firstGroup.title);
+  }
 }
 
 async function openMeetingBriefEvidence(item, entityType, entityId, title) {
@@ -2467,6 +2598,7 @@ function meetingBriefIsReady(record) {
 }
 function expandMeetingBrief(item, row, options = {}) {
   stopAssemblyTranscript();
+  rememberMeetingReportSelection(item.broadcast_id);
   assemblyTranscriptState.expanded = true;
   assemblyTranscriptState.expandedMode = "BRIEF";
   assemblyTranscriptState.selectedBroadcastId = item.broadcast_id;
@@ -2519,6 +2651,7 @@ function expandMeetingBrief(item, row, options = {}) {
 
 function expandEndedBroadcast(item, row) {
   stopAssemblyTranscript();
+  rememberMeetingReportSelection(item.broadcast_id);
   assemblyTranscriptState.expanded = true;
   assemblyTranscriptState.expandedMode = "REVIEW";
   assemblyTranscriptState.selectedBroadcastId = item.broadcast_id;
@@ -2781,7 +2914,12 @@ function addMeetingRailCard(container, card) {
   if (card.id && card.id === assemblyTranscriptState.selectedBroadcastId) row.setAttribute("aria-current", "true");
   if (card.onClick) {
     row.type = "button";
-    row.addEventListener("click", () => card.onClick(row));
+    row.addEventListener("click", () => {
+      if (card.rememberReportSelection && card.id) {
+        rememberMeetingReportSelection(card.id);
+      }
+      card.onClick(row);
+    });
   }
   row.setAttribute("aria-label", [...tags.map((tag) => tag.label), card.title, card.date, card.place, card.onClick ? "상세보기" : ""].filter(Boolean).join(" · "));
   const top = magazineElement("span", "meeting-card-tags", "");
@@ -2830,20 +2968,48 @@ function reportTimestamp(...values) {
   return 0;
 }
 
-function openLatestMeetingReport() {
+function sortMeetingReportCards(container) {
+  const rows = [...container.querySelectorAll(
+    ":scope > .meeting-card.broadcast-row[data-report-timestamp]",
+  )];
+  rows.sort((left, right) => (
+    Number(right.dataset.reportTimestamp || 0)
+      - Number(left.dataset.reportTimestamp || 0)
+  ));
+  container.append(...rows);
+}
+
+async function openLatestMeetingReport() {
+  if (latestMeetingReportState.opening) return false;
   const panel = document.querySelector('[data-workspace-panel="reports"]');
   const rail = document.querySelector("#reportBroadcastRows");
   if (!rail || panel?.hidden !== false) return false;
-  const rows = [...rail.querySelectorAll(".meeting-card.broadcast-row[data-report-timestamp]")];
-  rows.sort((left, right) => (
-    Number(right.dataset.reportTimestamp || 0) - Number(left.dataset.reportTimestamp || 0)
-  ));
-  const newest = rows[0];
-  if (!newest) return false;
-  latestMeetingReportState.pending = false;
-  rail.scrollTo({ left: Math.max(0, newest.offsetLeft - rail.offsetLeft), behavior: "smooth" });
-  newest.click();
-  return true;
+  latestMeetingReportState.opening = true;
+  try {
+    const preferredId = latestMeetingReportState.preferredId;
+    let rows = [...rail.querySelectorAll(".meeting-card.broadcast-row[data-report-timestamp]")];
+    let target = preferredId
+      ? rows.find((row) => row.dataset.broadcastId === preferredId)
+      : null;
+    while (preferredId && !target && meetingRailHistoryState.hasMore) {
+      const loaded = await loadMoreMeetingHistory();
+      rows = [...rail.querySelectorAll(".meeting-card.broadcast-row[data-report-timestamp]")];
+      target = rows.find((row) => row.dataset.broadcastId === preferredId);
+      if (!loaded) break;
+    }
+    if (preferredId && !target) rememberMeetingReportSelection(null);
+    rows.sort((left, right) => (
+      Number(right.dataset.reportTimestamp || 0) - Number(left.dataset.reportTimestamp || 0)
+    ));
+    target ||= rows[0];
+    if (!target) return false;
+    latestMeetingReportState.pending = false;
+    rail.scrollTo({ left: Math.max(0, target.offsetLeft - rail.offsetLeft), behavior: "smooth" });
+    target.click();
+    return true;
+  } finally {
+    latestMeetingReportState.opening = false;
+  }
 }
 
 function requestLatestMeetingReport() {
@@ -2880,9 +3046,12 @@ function expandScheduledMeeting(item, row) {
 
 function expandExecutiveBriefing(meeting, row, options = {}) {
   stopAssemblyTranscript();
+  const selectionId = meeting.live_capture?.broadcast_id
+    || "executive-" + (meeting.id || meeting.source_url || meeting.published_date);
+  rememberMeetingReportSelection(selectionId);
   assemblyTranscriptState.expanded = true;
   assemblyTranscriptState.expandedMode = "EXECUTIVE_OFFICIAL";
-  assemblyTranscriptState.selectedBroadcastId = "executive-" + (meeting.id || meeting.source_url || meeting.published_date);
+  assemblyTranscriptState.selectedBroadcastId = selectionId;
   document.querySelector("#liveExpanded").hidden = false;
   document.querySelector("#liveExpandedTitle").textContent = meeting.title || "국무회의 결과";
   document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
@@ -3563,6 +3732,23 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
           expandPostProcessingBroadcast(ended, processingRow);
         }
       }
+      if (ended.meeting_brief?.brief) {
+        addMeetingRailCard(reportContainer, {
+          state: "processing", status: "완료 · 정리중", institution: ended.institution_label,
+          tags: [
+            { label: "완료", tone: "complete" },
+            { label: "정리중", tone: "processing" },
+            { label: ended.institution_label, tone: "institution" },
+          ],
+          title: ended.title || ended.committee_name,
+          date: endedLabel,
+          place: ended.place || (isExecutive ? "KTV 국민방송" : "국회"),
+          id: ended.broadcast_id,
+          reportTimestamp: reportTimestamp(ended.started_at, ended.detected_at),
+          rememberReportSelection: true,
+          onClick: (row) => expandMeetingBrief(ended, row),
+        });
+      }
       continue;
     }
     addMeetingRailCard(reportContainer, {
@@ -3578,6 +3764,7 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       place: ended.place || (isExecutive ? "KTV 국민방송" : "국회"),
       id: ended.broadcast_id,
       reportTimestamp: reportTimestamp(ended.started_at, ended.detected_at),
+      rememberReportSelection: true,
       onClick: openReport,
     });
     if (showInLiveContinuity) {
@@ -3621,9 +3808,11 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       reportTimestamp: reportTimestamp(
         meeting.meeting_date, meeting.published_date, meeting.retrieved_at,
       ),
+      rememberReportSelection: true,
       onClick: (row) => expandExecutiveBriefing(meeting, row),
     });
   }
+  sortMeetingReportCards(reportContainer);
   if (hasLive && !["LIVE", "EXECUTIVE_LIVE"].includes(assemblyTranscriptState.expandedMode)) {
     liveContainer.querySelector(".broadcast-row")?.click();
   } else if (!hasLive && firstProcessingRow && !assemblyTranscriptState.expanded) {
@@ -3747,26 +3936,44 @@ function formatUsageValue(value, unit) {
   return amount.toLocaleString("ko-KR");
 }
 
+function formatUsageReset(value) {
+  const reset = new Date(value);
+  if (Number.isNaN(reset.valueOf())) return "갱신일 확인 필요";
+  const date = `${reset.getMonth() + 1}.${reset.getDate()}`;
+  const time = reset.toLocaleTimeString("ko-KR", {
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  return `${date} ${time} 갱신`;
+}
+
+function setAiUsageMeter(selector, percent) {
+  const meter = document.querySelector(selector);
+  const value = Math.min(100, Math.max(0, Number(percent || 0)));
+  meter.querySelector("i").style.width = `${value}%`;
+  meter.setAttribute("aria-valuenow", String(Math.round(value)));
+}
+
 function renderAiUsage(payload) {
-  document.querySelector("#aiPlatform").textContent = payload.provider_label || payload.provider || "AI 요약";
-  document.querySelector("#aiModel").textContent = payload.model || "모델 미설정";
-  const period = payload.period === "DAILY" ? "오늘" : "이번 달";
-  document.querySelector("#aiUsageAmount").textContent = `${period} · ${Number(payload.request_count || 0).toLocaleString("ko-KR")}회 호출`;
-  const used = formatUsageValue(payload.used, payload.unit);
-  const limitNode = document.querySelector("#aiUsageLimit");
-  if (payload.provider === "mistral") {
-    limitNode.textContent = `${used} 토큰 · $${Number(payload.cost_usd || 0).toFixed(2)} / $${Number(payload.credit_usd || 0).toFixed(2)}`;
-    limitNode.title = `입력 ${Number(payload.input_tokens || 0).toLocaleString("ko-KR")} · 출력 ${Number(payload.output_tokens || 0).toLocaleString("ko-KR")} 토큰`;
-  } else {
-    const limit = formatUsageValue(payload.limit, payload.unit);
-    limitNode.textContent = `${used} / ${limit}`;
-    limitNode.title = `${Number(payload.used || 0).toLocaleString("ko-KR")} / ${Number(payload.limit || 0).toLocaleString("ko-KR")}`;
-  }
-  const reset = new Date(payload.resets_at);
-  document.querySelector("#aiUsageReset").textContent = Number.isNaN(reset.valueOf())
-    ? "갱신 시간 확인 필요"
-    : `${reset.toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} 갱신`;
-  document.querySelector("#aiUsageMeter").style.width = `${Math.min(100, Math.max(0, Number(payload.usage_percent || 0)))}%`;
+  const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
+  const openrouter = providers.openrouter || (payload.provider === "openrouter" ? payload : {});
+  const mistral = providers.mistral || (payload.provider === "mistral" ? payload : {});
+  const openrouterUsed = Number(openrouter.used || 0);
+  const openrouterLimit = Number(openrouter.limit || 950);
+  const openrouterRemaining = Number.isFinite(Number(openrouter.remaining))
+    ? Number(openrouter.remaining) : Math.max(0, openrouterLimit - openrouterUsed);
+  document.querySelector("#aiOpenRouterAmount").textContent = `${openrouterUsed.toLocaleString("ko-KR")} / ${openrouterLimit.toLocaleString("ko-KR")}회`;
+  document.querySelector("#aiOpenRouterDetail").textContent = `남음 ${openrouterRemaining.toLocaleString("ko-KR")}회`;
+  document.querySelector("#aiOpenRouterReset").textContent = formatUsageReset(openrouter.resets_at || payload.resets_at);
+  setAiUsageMeter("#aiOpenRouterMeter", openrouter.usage_percent ?? payload.usage_percent);
+
+  const mistralCost = Number(mistral.cost_usd || 0);
+  const mistralCredit = Number(mistral.credit_usd || 0);
+  document.querySelector("#aiMistralAmount").textContent = `$${mistralCost.toFixed(2)} / $${mistralCredit.toFixed(2)}`;
+  document.querySelector("#aiMistralDetail").textContent = `STT ${Number(mistral.audio_request_count || 0).toLocaleString("ko-KR")}회 · ${(Number(mistral.audio_seconds || 0) / 60).toFixed(1)}분`;
+  document.querySelector("#aiMistralReset").textContent = formatUsageReset(mistral.resets_at);
+  setAiUsageMeter("#aiMistralMeter", mistral.usage_percent ?? (
+    mistralCredit ? (mistralCost / mistralCredit) * 100 : 0
+  ));
   document.querySelector("#aiUsage").classList.toggle("is-unavailable", payload.status === "UNAVAILABLE");
 }
 
@@ -3778,7 +3985,8 @@ function loadAiUsage() {
     })
     .then(renderAiUsage)
     .catch(() => {
-      document.querySelector("#aiUsageAmount").textContent = "사용량 확인 필요";
+      document.querySelector("#aiOpenRouterDetail").textContent = "사용량 확인 필요";
+      document.querySelector("#aiMistralDetail").textContent = "사용량 확인 필요";
       document.querySelector("#aiUsage").classList.add("is-unavailable");
     });
 }
@@ -3834,11 +4042,12 @@ function loadLiveStatus() {
       meetingRailHistoryState.executivePayload = executive;
       const meetingRail = document.querySelector("#reportBroadcastRows");
       const preservedScrollLeft = meetingRail?.scrollLeft || 0;
+      const preserveReportScroll = !latestMeetingReportState.pending;
       renderBroadcastRows(
         payload, { ...history, items: meetingRailHistoryState.items }, executive,
       );
       window.requestAnimationFrame(() => {
-        if (meetingRail) meetingRail.scrollLeft = preservedScrollLeft;
+        if (meetingRail && preserveReportScroll) meetingRail.scrollLeft = preservedScrollLeft;
       });
       const assemblyLiveCount = (payload.assembly.items || []).filter((item) => item.is_live).length;
       const liveCount = assemblyLiveCount + (payload.executive.is_live === true ? 1 : 0);

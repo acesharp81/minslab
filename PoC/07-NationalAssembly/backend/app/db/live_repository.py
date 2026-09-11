@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
 from .schedule_repository import SourceVersionInput
 
 
@@ -60,8 +61,9 @@ class LiveRepository:
                 id, institution, source_system, external_id, committee_name, title,
                 lifecycle_status, caption_source_status, detected_at, last_seen_at,
                 latest_source_document_version_id, caption_websocket_url, capture_status
-                , thumbnail_url, media_stream_url
-            ) VALUES (%s, %s, %s, %s, %s, %s, 'LIVE', %s, %s, %s, %s, %s, %s, %s, %s)
+                , thumbnail_url, media_stream_url, active_transcript_source,
+                official_caption_state, stt_fallback_status
+            ) VALUES (%s, %s, %s, %s, %s, %s, 'LIVE', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_system, external_id) DO UPDATE SET
                 committee_name = EXCLUDED.committee_name,
                 title = EXCLUDED.title,
@@ -77,6 +79,18 @@ class LiveRepository:
                 END,
                 thumbnail_url = COALESCE(EXCLUDED.thumbnail_url, live_broadcasts.thumbnail_url),
                 media_stream_url = COALESCE(EXCLUDED.media_stream_url, live_broadcasts.media_stream_url),
+                active_transcript_source = CASE
+                    WHEN live_broadcasts.active_transcript_source = 'NONE'
+                    THEN EXCLUDED.active_transcript_source
+                    ELSE live_broadcasts.active_transcript_source END,
+                official_caption_state = CASE
+                    WHEN live_broadcasts.active_transcript_source = 'NONE'
+                    THEN EXCLUDED.official_caption_state
+                    ELSE live_broadcasts.official_caption_state END,
+                stt_fallback_status = CASE
+                    WHEN live_broadcasts.active_transcript_source = 'NONE'
+                    THEN EXCLUDED.stt_fallback_status
+                    ELSE live_broadcasts.stt_fallback_status END,
                 review_status = 'PENDING', review_lease_owner = NULL,
                 review_lease_expires_at = NULL,
                 updated_at = now()
@@ -103,6 +117,21 @@ class LiveRepository:
                 ),
                 observation.thumbnail_url,
                 observation.media_stream_url,
+                (
+                    "OFFICIAL_CAPTION"
+                    if observation.caption_websocket_url
+                    else "AI_STT"
+                    if observation.media_stream_url
+                    else "NONE"
+                ),
+                "ACTIVE" if observation.caption_websocket_url else "UNAVAILABLE",
+                (
+                    "IDLE"
+                    if observation.caption_websocket_url
+                    else "AUDIO_READY"
+                    if observation.media_stream_url
+                    else "IDLE"
+                ),
             ),
         ).fetchone()
         broadcast_id = row[0]
@@ -269,6 +298,162 @@ class LiveRepository:
             )
         )
 
+    def claim_audio_fallback_capture(
+        self, worker_id: str, lease_seconds: int = 180,
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            WITH candidate AS (
+                SELECT id FROM live_broadcasts
+                WHERE media_stream_url IS NOT NULL
+                  AND (
+                    (institution = 'EXECUTIVE' AND (
+                        (lifecycle_status = 'LIVE' AND capture_status IN ('AUDIO_READY','RETRY_WAIT','CAPTURING'))
+                        OR (lifecycle_status = 'ENDED' AND capture_status = 'POST_PROCESSING')
+                    ))
+                    OR
+                    (institution = 'LEGISLATURE' AND lifecycle_status = 'LIVE'
+                     AND active_transcript_source = 'AI_STT'
+                     AND stt_fallback_status IN ('AUDIO_READY','RETRY_WAIT','CAPTURING'))
+                  )
+                  AND (stt_capture_lease_expires_at IS NULL OR stt_capture_lease_expires_at < now())
+                ORDER BY (institution = 'LEGISLATURE') DESC, detected_at
+                FOR UPDATE SKIP LOCKED LIMIT 1
+            )
+            UPDATE live_broadcasts broadcast
+            SET stt_fallback_status = 'CAPTURING',
+                stt_capture_lease_owner = %s,
+                stt_capture_lease_expires_at = now() + (%s * interval '1 second'),
+                capture_status = CASE
+                    WHEN broadcast.institution = 'EXECUTIVE' AND broadcast.lifecycle_status = 'ENDED' THEN 'POST_PROCESSING'
+                    WHEN broadcast.institution = 'EXECUTIVE' THEN 'CAPTURING'
+                    ELSE broadcast.capture_status END,
+                updated_at = now()
+            FROM candidate WHERE broadcast.id = candidate.id
+            RETURNING broadcast.id, broadcast.external_id,
+                      broadcast.media_stream_url, broadcast.lifecycle_status,
+                      broadcast.institution
+            """,
+            (worker_id, lease_seconds),
+        ).fetchone()
+        if not row:
+            return None
+        return dict(zip(
+            ("broadcast_id", "external_id", "media_stream_url", "lifecycle_status", "institution"),
+            row, strict=True,
+        ))
+
+    def heartbeat_audio_fallback(
+        self, broadcast_id: uuid.UUID, worker_id: str, lease_seconds: int = 180,
+    ) -> bool:
+        row = self.connection.execute(
+            """
+            UPDATE live_broadcasts
+            SET stt_capture_lease_expires_at = now() + (%s * interval '1 second'),
+                updated_at = now()
+            WHERE id = %s AND lifecycle_status = 'LIVE'
+              AND stt_fallback_status = 'CAPTURING'
+              AND stt_capture_lease_owner = %s
+              AND (institution = 'EXECUTIVE' OR active_transcript_source = 'AI_STT')
+            RETURNING id
+            """,
+            (lease_seconds, broadcast_id, worker_id),
+        ).fetchone()
+        return row is not None
+
+    def release_audio_fallback(
+        self, broadcast_id: uuid.UUID, worker_id: str, *, retry: bool, failed: bool = False,
+    ) -> bool:
+        row = self.connection.execute(
+            """
+            UPDATE live_broadcasts
+            SET stt_fallback_status = CASE
+                    WHEN active_transcript_source = 'OFFICIAL_CAPTION' THEN 'IDLE'
+                    WHEN %s THEN 'FAILED'
+                    WHEN %s THEN 'RETRY_WAIT'
+                    ELSE 'COMPLETED' END,
+                stt_capture_lease_owner = NULL,
+                stt_capture_lease_expires_at = NULL,
+                capture_status = CASE WHEN institution = 'EXECUTIVE' THEN
+                    CASE
+                      WHEN lifecycle_status = 'ENDED' AND %s THEN 'FAILED'
+                      WHEN lifecycle_status = 'ENDED' AND %s THEN 'POST_PROCESSING'
+                      WHEN lifecycle_status = 'ENDED' THEN 'COMPLETED'
+                      WHEN %s THEN 'RETRY_WAIT' ELSE 'FAILED' END
+                    ELSE capture_status END,
+                updated_at = now()
+            WHERE id = %s AND stt_capture_lease_owner = %s
+            RETURNING id
+            """,
+            (failed, retry, failed, retry, retry, broadcast_id, worker_id),
+        ).fetchone()
+        return row is not None
+
+    def mark_official_caption_timeout(
+        self, broadcast_id: uuid.UUID, silence_seconds: int = 45,
+    ) -> bool:
+        row = self.connection.execute(
+            """
+            UPDATE live_broadcasts
+            SET official_caption_state = 'DEGRADED',
+                official_caption_failure_started_at = COALESCE(official_caption_failure_started_at, now()),
+                official_caption_recovery_started_at = NULL,
+                active_transcript_source = 'AI_STT',
+                stt_fallback_status = CASE WHEN stt_fallback_status IN ('IDLE','COMPLETED')
+                                           THEN 'AUDIO_READY' ELSE stt_fallback_status END,
+                stt_fallback_started_at = COALESCE(stt_fallback_started_at, now()),
+                updated_at = now()
+            WHERE id = %s AND institution = 'LEGISLATURE'
+              AND lifecycle_status = 'LIVE' AND media_stream_url IS NOT NULL
+              AND official_caption_state IN ('ACTIVE','RECOVERING')
+              AND COALESCE(last_caption_received_at, detected_at)
+                    < now() - (%s * interval '1 second')
+            RETURNING id
+            """,
+            (broadcast_id, max(30, int(silence_seconds))),
+        ).fetchone()
+        if row:
+            self.connection.execute(
+                "INSERT INTO transcript_source_sessions(id,broadcast_id,source_type,transition,reason) "
+                "VALUES(%s,%s,'AI_STT','START','OFFICIAL_CAPTION_TIMEOUT')",
+                (uuid.uuid4(), broadcast_id),
+            )
+        return row is not None
+
+    def mark_official_caption_received(
+        self, broadcast_id: uuid.UUID, stable_seconds: int = 90,
+    ) -> str:
+        row = self.connection.execute(
+            """
+            UPDATE live_broadcasts
+            SET official_caption_state = CASE
+                    WHEN active_transcript_source = 'AI_STT'
+                     AND official_caption_recovery_started_at IS NOT NULL
+                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
+                    THEN 'ACTIVE'
+                    WHEN active_transcript_source = 'AI_STT' THEN 'RECOVERING'
+                    ELSE 'ACTIVE' END,
+                official_caption_recovery_started_at = CASE
+                    WHEN active_transcript_source = 'AI_STT'
+                    THEN COALESCE(official_caption_recovery_started_at, now())
+                    ELSE NULL END,
+                active_transcript_source = CASE
+                    WHEN active_transcript_source = 'AI_STT'
+                     AND official_caption_recovery_started_at IS NOT NULL
+                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
+                    THEN 'OFFICIAL_CAPTION' ELSE active_transcript_source END,
+                stt_fallback_status = CASE
+                    WHEN active_transcript_source = 'AI_STT'
+                     AND official_caption_recovery_started_at IS NOT NULL
+                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
+                    THEN 'STOP_REQUESTED' ELSE stt_fallback_status END,
+                updated_at = now()
+            WHERE id = %s RETURNING official_caption_state
+            """,
+            (stable_seconds, stable_seconds, stable_seconds, broadcast_id),
+        ).fetchone()
+        return str(row[0]) if row else "UNAVAILABLE"
+
     def heartbeat_capture(
         self, broadcast_id: uuid.UUID, worker_id: str, lease_seconds: int = 45
     ) -> bool:
@@ -423,6 +608,8 @@ class LiveRepository:
             """,
             (revision.received_at, broadcast_id),
         )
+        if revision.source.source_type == "assembly_caption_message":
+            self.mark_official_caption_received(broadcast_id)
         return segment_id, inserted is not None
 
     def active_transcript_snapshot(
@@ -528,7 +715,7 @@ class LiveRepository:
         limit: int = 5,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
-        parameters: list[Any] = []
+        parameters: list[Any] = [[*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES]]
         committee_filter = ""
         if committee_name:
             committee_filter = (
@@ -544,6 +731,9 @@ class LiveRepository:
                    broadcast.committee_name,
                    broadcast.title, broadcast.lifecycle_status, broadcast.source_system,
                    broadcast.caption_source_status, broadcast.capture_status,
+                   broadcast.active_transcript_source,
+                   broadcast.official_caption_state,
+                   broadcast.stt_fallback_status,
                    broadcast.detected_at, broadcast.ended_at,
                    broadcast.last_caption_received_at, broadcast.thumbnail_url,
                    broadcast.review_status, broadcast.official_status,
@@ -649,6 +839,10 @@ class LiveRepository:
             LEFT JOIN executive_official_matches executive_match
               ON executive_match.broadcast_id = broadcast.id
             WHERE broadcast.lifecycle_status = 'ENDED'
+              AND (
+                    broadcast.institution <> 'LEGISLATURE'
+                    OR broadcast.committee_name = ANY(%s)
+                  )
               AND broadcast.source_system NOT IN (
                 'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
               )
@@ -668,6 +862,9 @@ class LiveRepository:
             "source_system",
             "caption_source_status",
             "capture_status",
+            "active_transcript_source",
+            "official_caption_state",
+            "stt_fallback_status",
             "detected_at",
             "ended_at",
             "last_caption_received_at",
@@ -703,6 +900,7 @@ class LiveRepository:
             FROM live_broadcasts broadcast
             WHERE broadcast.lifecycle_status = 'ENDED'
               AND broadcast.institution = 'LEGISLATURE'
+              AND broadcast.committee_name = ANY(%s)
               AND broadcast.source_system NOT IN (
                 'poc07.demo', 'poc07.test', 'poc07.replay.local',
                 'poc07.replay.kakao'
@@ -711,7 +909,7 @@ class LiveRepository:
                   BETWEEN %s AND %s
             ORDER BY broadcast.detected_at, broadcast.id
             """,
-            (start_date, end_date),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], start_date, end_date),
         ).fetchall()
         columns = (
             "broadcast_id", "meeting_id", "external_id", "committee_name",
@@ -1042,7 +1240,9 @@ class LiveRepository:
         broadcasts = self.connection.execute(
             f"""
             SELECT id, external_id, committee_name, title, lifecycle_status,
-                   source_system, capture_status, detected_at, last_seen_at,
+                   source_system, capture_status, active_transcript_source,
+                   official_caption_state, stt_fallback_status,
+                   detected_at, last_seen_at,
                    last_caption_received_at, thumbnail_url, ended_at
             FROM live_broadcasts
             WHERE lifecycle_status = %s
@@ -1062,6 +1262,9 @@ class LiveRepository:
             "lifecycle_status",
             "source_system",
             "capture_status",
+            "active_transcript_source",
+            "official_caption_state",
+            "stt_fallback_status",
             "detected_at",
             "last_seen_at",
             "last_caption_received_at",

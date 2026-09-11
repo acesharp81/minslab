@@ -7,6 +7,8 @@ from typing import Any
 
 import requests
 
+from .openrouter_gateway_client import openrouter_headers
+
 
 PROMPT_VERSION = "watch-briefing-report/3.3"
 COMPATIBLE_PROMPT_VERSIONS = frozenset({
@@ -135,17 +137,16 @@ class MistralWatchSummaryClient:
                 },
             }
         if self.provider == "openrouter":
-            headers.update({
-                "HTTP-Referer": "https://www.minslab.kr",
-                "X-Title": "POC-07 Watch Topic Report",
-            })
             request_body.update({
                 "reasoning": {"effort": "none", "exclude": True},
                 "provider": {
-                    "data_collection": "deny", "zdr": True,
-                    "allow_fallbacks": False, "require_parameters": True,
+                    "data_collection": "allow",
+                    "allow_fallbacks": True, "require_parameters": True,
                 },
             })
+            headers = openrouter_headers(
+                self.api_key, request_body, workload="watch_summary", priority=40,
+            )
         response = requests.post(
             f"{self.base_url}/chat/completions", headers=headers,
             json=request_body, timeout=self.timeout_seconds,
@@ -157,7 +158,8 @@ class MistralWatchSummaryClient:
             "upstream_provider": str(payload.get("provider") or ""),
             "usage": payload.get("usage") or {},
             "privacy": (
-                {"data_collection": "deny", "zdr": True}
+                {"data_collection": "allow", "zdr": False,
+                 "public_evidence_only": True}
                 if self.provider == "openrouter" else {}
             ),
         }

@@ -7,14 +7,23 @@ from unittest import mock
 
 from app.ingestion.meeting_brief_worker import brief_retry_hours, safe_brief_error_code
 from app.services.meeting_brief import (
-    MAX_FINAL_TOPICS,
+    ANALYSIS_CACHE_VERSION,
+    OPENROUTER_FINAL_RETRY_MODEL,
+    OPENROUTER_GATEWAY_TIMEOUT_SECONDS,
+    OPENROUTER_STRUCTURED_RETRY_MODEL,
     PROMPT_VERSION,
     MistralMeetingBriefClient,
     MalformedMeetingBriefResponse,
+    OpenRouterMeetingBriefClient,
     _assert_summary_quality,
     _clean_text,
+    _sanitize_final_display_language,
+    brief_response_schema,
     iter_meeting_chunks,
     meeting_transcript_hash,
+    minimum_final_topic_count,
+    minimum_final_task_count,
+    promote_unassigned_live_topics,
     validate_meeting_brief,
 )
 
@@ -45,6 +54,55 @@ class MeetingBriefTests(unittest.TestCase):
     def test_quality_gate_repairs_known_residue_and_rejects_unknown_latin(self):
         self.assertEqual("청와대 협의 의혹", _clean_text("청와대 협의 sospicion", 100))
         self.assertEqual("법사 위원회", _clean_text("법사 committee", 100))
+        self.assertEqual(
+            "회의는 교육방송 교육 데이터와 데이터 연계 규격, 거버넌스를 논의했다.",
+            _clean_text(
+                "次会议는 EBS 교육 데이터와 API, governance를 논의했다.", 100,
+            ),
+        )
+        self.assertEqual(
+            "대외협력기금과 대외경제협력기금으로 케이마루를 지원하고 의견을 표현했다.",
+            _clean_text(
+                "ODCF와 EDCF로 K-MARU를 지원하고 의견을表达했다.", 100,
+            ),
+        )
+        self.assertEqual(
+            "국회는 정치 이슈와 발표 자료를 검토했고 대통령 본인이라고 지적했다.",
+            _clean_text(
+                "国会는 Politics 이슈와 PPT를 검토했고 대통령 herself라고 지적했다.",
+                100,
+            ),
+        )
+        self.assertEqual(
+            "한반도 모병제와 완전운용능력, 공적개발원조 캠페인을 종합 논의했다.",
+            _clean_text(
+                "북半岛 모兵제와 FOC, ODA Campaign을 총망点 논의했다.", 100,
+            ),
+        )
+        self.assertEqual(
+            "대립 발생했다, 인사권 행사, 현재 상정",
+            _clean_text("대립 occurred, 인사권 exercise, current 상정", 100),
+        )
+        self.assertEqual(
+            "법무부장관 당시 대검찰청 기획조정장이 법원행정처 방문, 여야 간 합의 주장",
+            _clean_text(
+                "법무/ecology장관 unavoidably 대검찰청 기획조정ionage장이 "
+                "법원행정处 visits, 여야_deepening 합의 主张",
+                100,
+            ),
+        )
+        self.assertEqual(
+            "의원은 사업 현실화가 후퇴했다고 주장",
+            _clean_text("议员은 BUSINESS 现实化가 后退했다고 主张", 100),
+        )
+        self.assertEqual(
+            "검찰개혁 후퇴와 경찰 자체 개혁안, 의원의 지적",
+            _clean_text("검찰개혁 후退와 경찰 SW 자체 개혁안, 의원builders의 지적", 100),
+        )
+        self.assertEqual(
+            "정부는 의원 의견을 반영하겠다고 답변했다.",
+            _clean_text("정부는 의사의的意见을 반영하겠습니다고 답변했다.", 100),
+        )
         with self.assertRaisesRegex(ValueError, "unknownword"):
             _assert_summary_quality(
                 {
@@ -54,23 +112,84 @@ class MeetingBriefTests(unittest.TestCase):
                 },
                 {},
             )
+        with self.assertRaisesRegex(ValueError, "CJK"):
+            _assert_summary_quality(
+                {"headline": "회의 결과", "summary": "알 수 없는 字가 남았다.", "topics": []},
+                {},
+            )
+        with self.assertRaisesRegex(ValueError, "unknownword"):
+            _assert_summary_quality(
+                {
+                    "headline": "회의 결과",
+                    "summary": "회의 결과를 정리했다.",
+                    "topics": [],
+                    "tasks": [{"title": "후속 unknownword 검토", "topic_title": "후속 조치"}],
+                },
+                {},
+            )
 
-    def test_quality_gate_rejects_verbatim_speaker_excerpt(self):
+    def test_validation_drops_verbatim_speaker_excerpt_without_losing_topic(self):
+        source = "예산 편성 기준을 구체적으로 공개하고 집행 계획을 다시 보고해 주시기 바랍니다."
+        result = validate_meeting_brief(
+            {
+                "headline": "회의 결과",
+                "summary": "예산 집행을 점검했다.",
+                "topics": [
+                    {
+                        "title": "예산 집행",
+                        "summary": "예산 편성과 집행 계획을 논의했다.",
+                        "evidence_ids": ["u-1"],
+                        "speaker_points": [
+                        {
+                            "speaker_label": "화자 1",
+                            "summary": source,
+                            "evidence_ids": ["u-1"],
+                        }
+                        ],
+                    }
+                ],
+                "tasks": [],
+            },
+            {"u-1"},
+            {"u-1": source},
+        )
+        self.assertEqual(1, len(result["topics"]))
+        self.assertEqual([], result["topics"][0]["speaker_points"])
+
+    def test_final_language_sanitizer_preserves_evidence_and_status_fields(self):
+        result = _sanitize_final_display_language({
+            "headline": "외교 成果 summary",
+            "summary": "국회 논의에 張과 unknownword가 남았다.",
+            "topics": [{
+                "title": "모兵제 followup",
+                "summary": "후속 政策을 promised 점검했다.",
+                "evidence_ids": ["abc-def-123"],
+                "speaker_points": [],
+            }],
+            "tasks": [{
+                "title": "Campaign 후속 조치",
+                "topic_title": "모兵제 followup",
+                "status": "UNCONFIRMED",
+                "owner_basis": "INFERRED",
+                "ministries": ["외교部", "ministryword"],
+                "evidence_ids": ["abc-def-123"],
+            }],
+        })
+        self.assertEqual("외교", result["headline"])
+        self.assertEqual("국회 논의에 과 가 남았다.", result["summary"])
+        self.assertEqual(["abc-def-123"], result["topics"][0]["evidence_ids"])
+        self.assertEqual("UNCONFIRMED", result["tasks"][0]["status"])
+        self.assertEqual("INFERRED", result["tasks"][0]["owner_basis"])
+        self.assertEqual(["외교"], result["tasks"][0]["ministries"])
+
+    def test_quality_gate_still_rejects_verbatim_topic_summary(self):
         source = "예산 편성 기준을 구체적으로 공개하고 집행 계획을 다시 보고해 주시기 바랍니다."
         with self.assertRaisesRegex(ValueError, "extractive"):
             _assert_summary_quality(
                 {
                     "headline": "회의 결과",
                     "summary": "예산 집행을 점검했다.",
-                    "topics": [
-                        {
-                            "summary": "예산 편성과 집행 계획을 논의했다.",
-                            "evidence_ids": ["u-1"],
-                            "speaker_points": [
-                                {"summary": source, "evidence_ids": ["u-1"]}
-                            ],
-                        }
-                    ],
+                    "topics": [{"summary": source, "evidence_ids": ["u-1"]}],
                 },
                 {"u-1": source},
             )
@@ -98,7 +217,7 @@ class MeetingBriefTests(unittest.TestCase):
                     "title": "처리 일정 보고",
                     "topic_title": "수사 지연",
                     "status": "OPEN",
-                    "ministries": ["법무부"],
+                    "ministries": ["EXPLICIT", "법무부", "builders"],
                     "owner_basis": "EXPLICIT",
                     "evidence_ids": ["u-1", "invented"],
                 }
@@ -107,6 +226,7 @@ class MeetingBriefTests(unittest.TestCase):
         result = validate_meeting_brief(data, {"u-1", "u-2"})
         self.assertEqual(["u-1"], result["topics"][0]["evidence_ids"])
         self.assertEqual(["u-1"], result["tasks"][0]["evidence_ids"])
+        self.assertEqual(["법무부"], result["tasks"][0]["ministries"])
         self.assertEqual("topic-1", result["topics"][0]["id"])
         self.assertEqual("task-1", result["tasks"][0]["id"])
         self.assertEqual("topic-1", result["tasks"][0]["topic_id"])
@@ -282,9 +402,178 @@ class MeetingBriefTests(unittest.TestCase):
                 require_complete_live_topics=True,
             )
 
-    def test_final_topic_limit_is_not_fixed_to_eight(self):
-        self.assertEqual("assembly-meeting-brief/1.2", PROMPT_VERSION)
-        self.assertGreater(MAX_FINAL_TOPICS, 8)
+    def test_unassigned_live_topic_is_promoted_locally_with_evidence(self):
+        brief = validate_meeting_brief(
+            {
+                "headline": "회의 결과",
+                "summary": "예산 집행 현황을 점검하였다.",
+                "topics": [{
+                    "title": "예산 집행",
+                    "summary": "재정 집행 현황을 점검하였다.",
+                    "speaker_points": [],
+                    "evidence_ids": ["u-1"],
+                    "live_topic_cluster_ids": [],
+                }],
+                "tasks": [],
+            },
+            {"u-1", "u-2"},
+        )
+        result = promote_unassigned_live_topics(
+            brief,
+            [{
+                "id": "live-topic-1",
+                "title": "문화재 복원",
+                "utterance_ids": ["u-2"],
+            }],
+            {"u-1", "u-2"},
+        )
+        self.assertEqual(2, len(result["topics"]))
+        self.assertEqual("문화재 복원", result["topics"][1]["title"])
+        self.assertEqual(["u-2"], result["topics"][1]["evidence_ids"])
+        self.assertEqual(
+            ["live-topic-1"], result["topics"][1]["live_topic_cluster_ids"],
+        )
+        self.assertEqual(0, result["live_topic_assignment"]["unassigned_count"])
+        self.assertEqual(1, result["live_topic_assignment"]["promoted_topic_count"])
+
+    def test_final_topics_have_no_fixed_maximum_and_use_adaptive_floor(self):
+        self.assertEqual("assembly-meeting-brief/1.7", PROMPT_VERSION)
+        self.assertEqual("assembly-meeting-brief/1.2", ANALYSIS_CACHE_VERSION)
+        self.assertNotIn("maxItems", brief_response_schema()["properties"]["topics"])
+        self.assertEqual(
+            7,
+            minimum_final_topic_count([
+                {"topics": [{"title": str(index)} for index in range(12)]},
+                {"topics": [{"title": "next"}]},
+            ]),
+        )
+        self.assertEqual(
+            2,
+            minimum_final_topic_count([
+                {"topics": [{"title": "one"}, {"title": "two"}]},
+            ]),
+        )
+        self.assertEqual(
+            4,
+            minimum_final_task_count([
+                {"topics": [{"tasks": [{"title": str(index)} for index in range(7)]}]},
+            ]),
+        )
+        self.assertEqual(0, minimum_final_task_count([{"topics": [{"tasks": []}]}]))
+
+    def test_liquid_structured_retry_uses_supported_parameters(self):
+        response = mock.Mock(status_code=200)
+        response.json.return_value = {
+            "id": "retry",
+            "choices": [{
+                "finish_reason": "stop",
+                "message": {"content": '{"topics": []}'},
+            }],
+        }
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        with mock.patch(
+            "app.services.meeting_brief.requests.post", return_value=response,
+        ) as post:
+            client._post(
+                "retry",
+                {"type": "object"},
+                "meeting_chunk_analysis",
+                model_override=OPENROUTER_STRUCTURED_RETRY_MODEL,
+            )
+        body = post.call_args.kwargs["json"]
+        self.assertEqual(OPENROUTER_STRUCTURED_RETRY_MODEL, body["model"])
+        self.assertEqual(8000, body["max_tokens"])
+        self.assertNotIn("reasoning", body)
+        self.assertEqual(OPENROUTER_GATEWAY_TIMEOUT_SECONDS, post.call_args.kwargs["timeout"])
+
+    def test_primary_nemotron_uses_required_low_reasoning(self):
+        response = mock.Mock(status_code=200)
+        response.json.return_value = {
+            "id": "primary",
+            "choices": [{
+                "finish_reason": "stop",
+                "message": {"content": '{"topics": []}'},
+            }],
+        }
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        with mock.patch(
+            "app.services.meeting_brief.requests.post", return_value=response,
+        ) as post:
+            client._post("primary", {"type": "object"}, "meeting_chunk_analysis")
+        self.assertEqual(
+            {"effort": "low", "exclude": True},
+            post.call_args.kwargs["json"]["reasoning"],
+        )
+
+    def test_live_topic_mapping_uses_dots_without_reasoning(self):
+        response = mock.Mock(status_code=200)
+        response.json.return_value = {
+            "id": "mapping",
+            "choices": [{
+                "finish_reason": "stop",
+                "message": {
+                    "content": '{"assignments":[],"unresolved_cluster_ids":["c-1"]}'
+                },
+            }],
+        }
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        with mock.patch(
+            "app.services.meeting_brief.requests.post", return_value=response,
+        ) as post:
+            client.map_live_topics(
+                {"topics": [{"id": "topic-1", "title": "예산 심사"}]},
+                [{"id": "c-1", "title": "외교 현안"}],
+            )
+        body = post.call_args.kwargs["json"]
+        self.assertEqual(OPENROUTER_FINAL_RETRY_MODEL, body["model"])
+        self.assertEqual(12000, body["max_tokens"])
+        self.assertEqual(
+            {"enabled": False, "exclude": True}, body["reasoning"],
+        )
+
+    def test_final_retry_uses_long_context_note_model(self):
+        response = mock.Mock(status_code=200)
+        response.json.return_value = {
+            "id": "retry",
+            "choices": [{
+                "finish_reason": "stop",
+                "message": {
+                    "content": '{"headline":"h","summary":"s","topics":[],"tasks":[]}'
+                },
+            }],
+        }
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        with mock.patch(
+            "app.services.meeting_brief.requests.post", return_value=response,
+        ) as post:
+            client._post(
+                "retry",
+                {"type": "object"},
+                "meeting_brief",
+                model_override=OPENROUTER_FINAL_RETRY_MODEL,
+            )
+        body = post.call_args.kwargs["json"]
+        self.assertEqual(OPENROUTER_FINAL_RETRY_MODEL, body["model"])
+        self.assertEqual(20000, body["max_tokens"])
+        self.assertEqual(
+            {"enabled": False, "exclude": True}, body["reasoning"],
+        )
 
     def test_client_generates_one_cached_brief_contract(self):
         chunk = {
@@ -323,10 +612,10 @@ class MeetingBriefTests(unittest.TestCase):
             ],
             "tasks": [],
         }
-        client = MistralMeetingBriefClient(
+        client = OpenRouterMeetingBriefClient(
             "secret",
-            model="mistral-small-2603",
-            base_url="https://api.mistral.ai/v1",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
         )
         with mock.patch.object(
             client,
@@ -346,6 +635,19 @@ class MeetingBriefTests(unittest.TestCase):
                 on_progress=on_progress,
             )
         self.assertEqual(3, post.call_count)
+        self.assertNotEqual(
+            post.call_args_list[0].args[0],
+            post.call_args_list[1].args[0],
+        )
+        self.assertIn("완결된 JSON 객체만 출력", post.call_args_list[1].args[0])
+        self.assertEqual(
+            OPENROUTER_FINAL_RETRY_MODEL,
+            post.call_args_list[1].kwargs["model_override"],
+        )
+        self.assertEqual(
+            OPENROUTER_FINAL_RETRY_MODEL,
+            post.call_args_list[2].kwargs["model_override"],
+        )
         self.assertEqual(3, after_request.call_count)
         self.assertEqual(4, on_progress.call_count)
         self.assertEqual("COMPLETED", on_progress.call_args.args[0]["status"])
@@ -358,7 +660,53 @@ class MeetingBriefTests(unittest.TestCase):
         error = requests.HTTPError(response=response)
         self.assertEqual("HTTPError:HTTP_429", safe_brief_error_code(error))
         self.assertEqual(1, brief_retry_hours(error))
+        conflict = requests.HTTPError(response=mock.Mock(status_code=409))
+        self.assertEqual(1, brief_retry_hours(conflict))
         self.assertEqual(6, brief_retry_hours(ValueError("invalid")))
+
+    def test_openrouter_provider_400_retries_chunk_with_dots(self):
+        response = mock.Mock(status_code=400)
+        provider_error = requests.HTTPError(response=response)
+        chunk = {
+            "topics": [{
+                "title": "예산 심사",
+                "summary": "예산 집행의 적정성을 점검했다.",
+                "speaker_points": [],
+                "tasks": [],
+                "evidence_ids": ["u-1"],
+            }],
+        }
+        final = {
+            "headline": "예산 심사 결과",
+            "summary": "예산 집행 현황과 후속 과제를 논의했다.",
+            "topics": [{
+                "title": "예산 심사",
+                "summary": "예산 집행의 적정성을 점검했다.",
+                "speaker_points": [],
+                "evidence_ids": ["u-1"],
+                "live_topic_cluster_ids": [],
+            }],
+            "tasks": [],
+        }
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        with mock.patch.object(
+            client,
+            "_post",
+            side_effect=[provider_error, (chunk, {"usage": {}}), (final, {"usage": {}})],
+        ) as post, mock.patch("app.services.meeting_brief.time.sleep"):
+            result = client.generate(
+                {"title": "회의", "committee_name": "예산결산특별위원회"},
+                self.utterances,
+            )
+        self.assertEqual(3, result.api_requests)
+        self.assertEqual(
+            OPENROUTER_FINAL_RETRY_MODEL,
+            post.call_args_list[1].kwargs["model_override"],
+        )
 
 
 if __name__ == "__main__":

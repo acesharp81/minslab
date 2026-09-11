@@ -32,7 +32,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         repository = (
             PROJECT_DIR / "backend/app/db/meeting_brief_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("(provider = 'mistral') DESC", repository)
+        self.assertIn("provider IN ('mistral', 'openrouter')", repository)
         self.assertIn("def get_chunk_analysis", repository)
         self.assertIn("def save_chunk_analysis", repository)
         self.assertIn("current_source_last_event_cursor", repository)
@@ -73,7 +73,9 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("official_speakers=False", api)
         self.assertIn("filter: blur(5px)", styles)
         self.assertIn("자동 정리 · 잠정", script)
-        self.assertIn('item["provider"] == "mistral"', api)
+        self.assertIn(
+            'item["provider"] in {"mistral", "openrouter"}', api
+        )
         self.assertIn("progress_map", api)
         self.assertIn("meetingBriefIsReady", script)
         self.assertIn(
@@ -84,6 +86,12 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("brief_upgrade_pending", api)
         self.assertIn("brief_upgrade_status", api)
         self.assertIn("def eligible_broadcast_ids(limit: int = 1)", worker)
+        self.assertNotIn("current_brief.provider = %s", worker)
+        self.assertIn(
+            "current_brief.provider IN ('mistral', 'openrouter')", worker
+        )
+        self.assertIn("deferred_failure.retry_after > now()", worker)
+        self.assertIn("current_brief.source_last_event_cursor", worker)
         self.assertIn("type=int, default=1", worker)
         self.assertIn('"brief_outdated_reason"', api)
         self.assertIn('"previous_utterance_count"', api)
@@ -93,6 +101,8 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("재개 여부 확인 중", script)
         self.assertIn("endedAt + 120 * 60 * 1000", script)
         self.assertIn("전체 회차를 한 번에 정리합니다", script)
+        self.assertIn("if (ended.meeting_brief?.brief)", script)
+        self.assertIn('onClick: (row) => expandMeetingBrief(ended, row)', script)
         self.assertIn("meeting-topic-task-processing", styles)
         self.assertIn(".meeting-processing-card", styles)
         self.assertRegex(script, r"};\s+loadBrief\(\);\s+}")

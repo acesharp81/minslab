@@ -21,7 +21,7 @@ from ..services.mistral_budget import mistral_usage_cost_usd
 from ..storage.raw_store import RawStore
 
 
-PARSER_VERSION = "ktv-audio-transcription/1.0"
+PARSER_VERSION = "ai-audio-transcription/1.1"
 
 
 def capture_hls_audio(stream_url: str, target: Path, duration_seconds: int) -> None:
@@ -98,7 +98,7 @@ def store_audio_chunk(
 ) -> dict[str, Any]:
     content = audio_path.read_bytes()
     payload = SourcePayload(
-        source_key="ktv_audio_chunk", content=content, content_type="audio/mpeg",
+        source_key="ai_audio_chunk", content=content, content_type="audio/mpeg",
         retrieved_at=captured_at, source_url=stream_url, http_status=200,
     )
     artifact = RawStore(raw_dir).save(payload, parser_version=PARSER_VERSION)
@@ -125,7 +125,7 @@ def persist_transcription(
     received_at = datetime.now(timezone.utc)
     inserted = 0
     source = SourceVersionInput(
-        source_type="ktv_audio_transcription", source_url=stream_url,
+        source_type="ai_audio_transcription", source_url=stream_url,
         content_hash=hashlib.sha256(
             json.dumps(result.response_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
         ).hexdigest(),
@@ -235,7 +235,7 @@ def capture_broadcast(claim: dict[str, Any], *, settings: Any, worker_id: str) -
                         }), flush=True)
                 if not live_ended:
                     with connect(settings.database_url) as connection:
-                        alive = LiveRepository(connection).heartbeat_capture(
+                        alive = LiveRepository(connection).heartbeat_audio_fallback(
                             broadcast_id, worker_id, chunk_seconds + 120,
                         )
                     if not alive:
@@ -407,7 +407,7 @@ def capture_broadcast(claim: dict[str, Any], *, settings: Any, worker_id: str) -
                     terminal_failure = not retry
                 else:
                     retry = False
-            LiveRepository(connection).release_caption_capture(
+            LiveRepository(connection).release_audio_fallback(
                 broadcast_id, worker_id, retry=retry, failed=terminal_failure,
             )
     return {
@@ -423,7 +423,7 @@ def main() -> None:
     from ..db.live_repository import LiveRepository
     from ..db.migrate import apply_migrations
 
-    parser = argparse.ArgumentParser(description="Capture and transcribe KTV State Council LIVE audio")
+    parser = argparse.ArgumentParser(description="Capture and transcribe audio only while official captions are unavailable")
     parser.add_argument("--interval", type=float, default=5.0)
     parser.add_argument("--lease-seconds", type=int, default=180)
     parser.add_argument("--once", action="store_true")
@@ -435,7 +435,7 @@ def main() -> None:
     worker_id = f"{socket.gethostname()}:{os.getpid()}:executive-audio"
     while True:
         with connect(settings.database_url) as connection:
-            claim = LiveRepository(connection).claim_executive_audio_capture(
+            claim = LiveRepository(connection).claim_audio_fallback_capture(
                 worker_id, args.lease_seconds,
             )
         if claim:

@@ -26,10 +26,12 @@ class Settings(BaseSettings):
     ai_enrichment_enabled: bool = False
     llm_provider: str = "disabled"
     llm_model: str = ""
+    meeting_brief_model: str = "dots-studio/dots-3-note-preview:free"
     gemini_api_key: str = ""
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    openrouter_daily_limit: int = 500
+    openrouter_daily_limit: int = 950
+    openrouter_gateway_status_url: str = ""
     mistral_api_key: str = ""
     mistral_base_url: str = "https://api.mistral.ai/v1"
     # Mistral Small 4 standard API pricing as of 2026-08-25.

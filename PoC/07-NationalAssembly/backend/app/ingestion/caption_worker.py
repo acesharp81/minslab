@@ -19,6 +19,7 @@ from ..storage.raw_store import RawStore
 
 
 CAPTION_PARSER_VERSION = "assembly-live-caption/1.0"
+MAX_CAPTION_WORKERS = 4
 
 
 class CaptionRevisionSink(Protocol):
@@ -126,7 +127,11 @@ def capture_broadcast(
                     message = websocket.recv(timeout=15)
                 except TimeoutError:
                     with connect(database_url) as connection:
-                        if not LiveRepository(connection).heartbeat_capture(
+                        repository = LiveRepository(connection)
+                        repository.mark_official_caption_timeout(
+                            broadcast_id, silence_seconds=45,
+                        )
+                        if not repository.heartbeat_capture(
                             broadcast_id, worker_id, lease_seconds
                         ):
                             retry = False
@@ -157,6 +162,17 @@ def capture_broadcast(
                         break
                 except (AdapterError, UnicodeDecodeError):
                     malformed += 1
+    except Exception:
+        # A connection-level failure never reaches recv(), so it must also
+        # advance the same 45-second official-caption failover clock.
+        try:
+            with connect(database_url) as connection:
+                LiveRepository(connection).mark_official_caption_timeout(
+                    broadcast_id, silence_seconds=45,
+                )
+        except Exception:
+            pass
+        raise
     finally:
         with connect(database_url) as connection:
             LiveRepository(connection).release_caption_capture(
@@ -178,12 +194,12 @@ def main() -> None:
     from ..db.migrate import apply_migrations
 
     parser = argparse.ArgumentParser(description="Capture official Assembly LIVE captions")
-    parser.add_argument("--workers", type=int, default=3)
+    parser.add_argument("--workers", type=int, default=MAX_CAPTION_WORKERS)
     parser.add_argument("--poll-interval", type=float, default=2.0)
     parser.add_argument("--lease-seconds", type=int, default=45)
     args = parser.parse_args()
-    if not 1 <= args.workers <= 3:
-        parser.error("workers must be between 1 and 3")
+    if not 1 <= args.workers <= MAX_CAPTION_WORKERS:
+        parser.error(f"workers must be between 1 and {MAX_CAPTION_WORKERS}")
     if not 1 <= args.poll_interval <= 30:
         parser.error("poll-interval must be between 1 and 30 seconds")
     if not 30 <= args.lease_seconds <= 300:
@@ -201,7 +217,11 @@ def main() -> None:
                 try:
                     print(json.dumps(future.result(), ensure_ascii=False), flush=True)
                 except Exception as exc:
-                    print(json.dumps({"event": "capture.error", "error": type(exc).__name__}), flush=True)
+                    print(json.dumps({
+                        "event": "capture.error",
+                        "error": type(exc).__name__,
+                        "detail": str(exc)[:240],
+                    }), flush=True)
             while len(futures) < args.workers:
                 with connect(settings.database_url) as connection:
                     claim = LiveRepository(connection).claim_caption_capture(

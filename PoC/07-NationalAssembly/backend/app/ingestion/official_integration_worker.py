@@ -37,7 +37,10 @@ from ..services.official_reconciliation import (
     apply_official_edits,
     speaker_reconciliation_stats,
 )
-from ..services.official_revision_client import MistralOfficialRevisionClient
+from ..services.official_revision_client import (
+    MistralOfficialRevisionClient,
+    OpenRouterOfficialRevisionClient,
+)
 from ..services.transcript_presentation import apply_speaker_overrides
 
 TEMPORARY_STABILITY_WINDOW = timedelta(minutes=30)
@@ -297,19 +300,26 @@ def generate_one(
         "publication_stage": document.get("publication_stage"),
     }
     edits: list[dict[str, Any]] = []
-    if settings.ai_enrichment_enabled and settings.llm_provider == "mistral":
-        with connect(settings.database_url) as connection:
-            usage = SummaryRepository(connection).monthly_token_usage(
-                "mistral", settings.llm_model,
+    if settings.ai_enrichment_enabled and settings.llm_provider in {"mistral", "openrouter"}:
+        if settings.llm_provider == "mistral":
+            with connect(settings.database_url) as connection:
+                usage = SummaryRepository(connection).monthly_token_usage(
+                    "mistral", settings.llm_model,
+                )
+                if mistral_budget_reached(
+                    usage, **mistral_budget_values(settings),
+                ):
+                    raise RuntimeError("Mistral monthly credit limit reached")
+            client = MistralOfficialRevisionClient(
+                settings.mistral_api_key, model=settings.llm_model,
+                base_url=settings.mistral_base_url,
             )
-            if mistral_budget_reached(
-                usage, **mistral_budget_values(settings),
-            ):
-                raise RuntimeError("Mistral monthly credit limit reached")
-        result = MistralOfficialRevisionClient(
-            settings.mistral_api_key, model=settings.llm_model,
-            base_url=settings.mistral_base_url,
-        ).compare(live_brief, official_rows)
+        else:
+            client = OpenRouterOfficialRevisionClient(
+                settings.openrouter_api_key, model=settings.llm_model,
+                base_url=settings.openrouter_base_url,
+            )
+        result = client.compare(live_brief, official_rows)
         edits = result.edits
         usage_metadata = {
             "api_requests": 1,
@@ -317,10 +327,11 @@ def generate_one(
             "publication_stage": document.get("publication_stage"),
             **result.usage_metadata,
         }
-        with connect(settings.database_url) as connection:
-            SummaryRepository(connection).record_monthly_token_usage(
-                "mistral", settings.llm_model, result.usage_metadata,
-            )
+        if settings.llm_provider == "mistral":
+            with connect(settings.database_url) as connection:
+                SummaryRepository(connection).record_monthly_token_usage(
+                    "mistral", settings.llm_model, result.usage_metadata,
+                )
 
     integrated_brief, changes = apply_official_edits(live_brief, edits)
     integrated_brief = apply_official_speakers_to_brief(

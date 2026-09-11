@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from datetime import date, time
 
 from ..adapters.national_assembly.schedule import ScheduleSourceRecord
-from .scope import is_target_committee
+from .scope import is_monitored_assembly_meeting
 from .states import AuthorityStatus, LifecycleStatus, ReconciliationStatus
 
 MEETING_NAMESPACE = uuid.UUID("dcfbe97c-2c47-5eb2-b2b4-28b4bc490f02")
@@ -129,7 +129,10 @@ def normalize_schedule(record: ScheduleSourceRecord) -> CanonicalScheduleEntry:
         session_text=record.session_text,
         meeting_order_text=record.meeting_order_text,
         host_name=record.host_name,
-        is_target_committee=is_target_committee(record.committee_name),
+        is_target_committee=is_monitored_assembly_meeting(
+            record.committee_name, record.content, record.session_text,
+            record.meeting_type, record.meeting_order_text,
+        ),
         place=record.place,
         meeting_uid=meeting_uid,
         lifecycle_status=LifecycleStatus.SCHEDULED,

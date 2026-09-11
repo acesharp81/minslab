@@ -145,6 +145,39 @@ class SummaryRepository:
         })
         return result
 
+    def monthly_provider_usage(self, provider: str) -> dict[str, Any]:
+        row = self.connection.execute(
+            """
+            SELECT COALESCE(SUM(request_count), 0),
+                   COALESCE(SUM(input_tokens), 0),
+                   COALESCE(SUM(output_tokens), 0),
+                   COALESCE(SUM(total_tokens), 0)
+            FROM llm_provider_monthly_token_usage
+            WHERE provider = %s
+              AND usage_month = date_trunc('month', timezone('UTC', now()))::date
+            """,
+            (provider,),
+        ).fetchone()
+        result = dict(zip(
+            ("request_count", "input_tokens", "output_tokens", "total_tokens"),
+            (int(value) for value in (row or (0, 0, 0, 0))), strict=True,
+        ))
+        audio = self.connection.execute(
+            """
+            SELECT COUNT(*), COALESCE(SUM(audio_seconds), 0), COALESCE(SUM(cost_usd), 0)
+            FROM audio_usage_events
+            WHERE provider = %s
+              AND usage_month = date_trunc('month', now())::date
+            """,
+            (provider,),
+        ).fetchone()
+        result.update({
+            "audio_request_count": int(audio[0]),
+            "audio_seconds": float(audio[1]),
+            "audio_cost_usd": float(audio[2]),
+        })
+        return result
+
     def record_monthly_token_usage(
         self, provider: str, model: str,
         usage_metadata: dict[str, Any] | None,

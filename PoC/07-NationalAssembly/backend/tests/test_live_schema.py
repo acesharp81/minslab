@@ -43,7 +43,7 @@ class LiveSchemaTests(unittest.TestCase):
         field = LiveBroadcastObservation.__dataclass_fields__["source_system"]
         self.assertEqual(field.default, "assembly.webcast.go.kr")
 
-    def test_three_target_broadcasts_can_be_captured_concurrently(self):
+    def test_three_target_committees_and_plenary_can_be_captured_concurrently(self):
         project = Path(__file__).parents[2]
         worker = (
             project / "backend/app/ingestion/caption_worker.py"
@@ -52,10 +52,26 @@ class LiveSchemaTests(unittest.TestCase):
             project / "backend/app/db/live_repository.py"
         ).read_text(encoding="utf-8")
         compose = (project / "docker-compose.yml").read_text(encoding="utf-8")
+        deploy_script = (project / "scripts/deploy_live_capture_workers.sh").read_text(encoding="utf-8")
         self.assertIn("ThreadPoolExecutor(max_workers=args.workers", worker)
-        self.assertIn("if not 1 <= args.workers <= 3", worker)
+        self.assertIn("MAX_CAPTION_WORKERS = 4", worker)
+        self.assertIn("if not 1 <= args.workers <= MAX_CAPTION_WORKERS", worker)
         self.assertIn("FOR UPDATE SKIP LOCKED LIMIT 1", repository)
-        self.assertIn('"--workers", "3"', compose)
+        self.assertIn('"--workers", "4"', compose)
+        self.assertIn('app.ingestion.caption_worker --workers 4', deploy_script)
+        self.assertIn("poc07-national-assembly-executive-caption-worker", deploy_script)
+        self.assertIn('app.ingestion.executive_caption_worker --interval 5', deploy_script)
+
+    def test_live_broadcast_initializes_and_fails_over_transcript_source(self):
+        project = Path(__file__).parents[2]
+        repository = (project / "backend/app/db/live_repository.py").read_text(encoding="utf-8")
+        worker = (project / "backend/app/ingestion/caption_worker.py").read_text(encoding="utf-8")
+        self.assertIn("active_transcript_source,", repository)
+        self.assertIn('"OFFICIAL_CAPTION"\n                    if observation.caption_websocket_url', repository)
+        self.assertIn("WHEN live_broadcasts.active_transcript_source = 'NONE'", repository)
+        self.assertIn("A connection-level failure never reaches recv()", worker)
+        self.assertGreaterEqual(worker.count("mark_official_caption_timeout("), 2)
+        self.assertIn('"detail": str(exc)[:240]', worker)
 
     def test_completed_briefs_are_not_reprocessed_until_caption_cursor_changes(self):
         worker = (
@@ -77,6 +93,7 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn('@app.get("/api/live/broadcasts"', app_source)
         self.assertIn('@app.get("/api/live/broadcasts/{broadcast_id}/transcript"', app_source)
         self.assertIn("def list_ended_broadcasts", repository)
+        self.assertIn("broadcast.committee_name = ANY(%s)", repository)
         self.assertIn("official_integration_updated_at", repository)
         self.assertIn("ORDER BY broadcast.detected_at DESC", repository)
         self.assertIn("LIMIT %s OFFSET %s", repository)

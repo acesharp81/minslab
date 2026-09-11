@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import json
 from pathlib import Path
 
 from app.adapters.live_sources import (
@@ -22,6 +23,23 @@ class LiveSourcesAdapterTests(unittest.TestCase):
         live = next(item for item in result["items"] if item["is_live"])
         self.assertEqual(live["committee_name"], "법제사법위원회")
         self.assertTrue(live["has_caption_service"])
+
+    def test_adds_target_audits_and_plenary_but_excludes_other_committees(self):
+        payload = json.loads(
+            (FIXTURES / "synthetic_assembly_live_list.json").read_text()
+        )
+        payload["xlist"].extend([
+            {"xname": "교육위", "xsubj": "2026년도 국정감사", "xdesc": "중계 예정", "xstat": "0"},
+            {"xname": "행안위", "xsubj": "2026년도 국정감사", "xdesc": "중계 예정", "xstat": "0"},
+            {"xname": "본회의", "xsubj": "제1차 본회의", "xdesc": "임시회", "xstat": "1"},
+            {"xname": "과방위", "xsubj": "임시회 업무보고", "xdesc": "예정", "xstat": "0"},
+        ])
+        result = parse_assembly_live_list(json.dumps(payload).encode())
+        scopes = {item["short_name"]: item["monitoring_scope"] for item in result["items"]}
+        self.assertEqual("CORE_COMMITTEE", scopes["행안위"])
+        self.assertEqual("NATIONAL_BODY", scopes["본회의"])
+        self.assertNotIn("교육위", scopes)
+        self.assertNotIn("과방위", scopes)
 
     def test_ktv_contract_does_not_invent_caption_track(self):
         result = parse_ktv_player_contract((FIXTURES / "synthetic_ktv_player.html").read_bytes())

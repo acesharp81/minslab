@@ -59,10 +59,11 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - 각 revision은 원본 WebSocket 메시지의 `SourceDocumentVersion`을 직접 참조합니다. 메시지는 구조화 전에 raw artifact로 먼저 저장합니다.
 - 각 revision에는 전역 단조 증가 `event_cursor`가 부여됩니다. snapshot은 먼저 cursor를 고정한 뒤 그 cursor 이하의 최신 segment revision만 조회합니다.
 - caption worker는 만료 가능한 DB lease를 획득하므로 재시작 후 수집을 이어가되 같은 방송을 동시에 중복 수집하지 않습니다.
+- `LiveBroadcast.active_transcript_source`, `official_caption_state`, `stt_fallback_status`는 공식 자막과 AI STT의 활성 소스·복구 상태·별도 STT lease를 관리합니다. `TranscriptSourceSession`은 공식 자막 timeout과 STT 시작·종료 전환 사유를 감사 이력으로 보존합니다.
 - 자막 원문은 `LIVE` 권위 상태로 저장합니다. 종료 후 보정본과 공식 회의록은 원문을 덮어쓰지 않고 별도 버전·대조 관계로 추가합니다.
 - `BroadcastReview`는 종료된 방송의 final revision만 입력으로 사용하는 `PROVISIONAL` 산출물입니다. 주제별 대표 발언은 원문을 그대로 사용하며 모든 포함 segment를 `BroadcastReviewEvidence`로 연결합니다.
-- `MeetingBrief`는 공식 원문과 분리된 오픈 베타용 `PROVISIONAL · DRAFT` 읽기 모델입니다. Mistral이 발언 묶음을 구간별로 분석한 뒤 회의 전체의 headline·summary·topic·speaker point·task를 통합하며, 모든 항목의 `evidence_ids`는 해당 방송의 실제 Utterance 시작 segment ID로 검증합니다. 각 task는 공통 evidence를 우선해 하나의 canonical `topic_id`와 정식 `topic_title`에 연결하며 생성된 제목 문자열을 관계 키로 사용하지 않습니다. `(broadcast_id, transcript_hash, provider, model, prompt_version)`을 캐시 키로 사용하고 API는 저장 결과만 읽습니다.
-- `LlmProviderDailyUsage`는 OpenRouter의 일 500회 요청 상한만 관리합니다. `LlmProviderTokenUsageEvent`는 Mistral 성공 응답을 provider·request ID로 한 번만 저장하며, `LlmProviderMonthlyTokenUsage`는 입력·출력·전체 토큰을 provider·model·UTC 월 단위로 누적합니다. 실시간 발언 요약과 회의 브리프가 같은 장부를 사용합니다.
+- `MeetingBrief`는 공식 원문과 분리된 오픈 베타용 `PROVISIONAL · DRAFT` 읽기 모델입니다. provider-neutral client가 발언 묶음을 구간별로 분석한 뒤 회의 전체의 headline·summary·topic·speaker point·task를 통합하며, 모든 항목의 `evidence_ids`는 해당 방송의 실제 Utterance 시작 segment ID로 검증합니다. 각 task는 공통 evidence를 우선해 하나의 canonical `topic_id`와 정식 `topic_title`에 연결하며 생성된 제목 문자열을 관계 키로 사용하지 않습니다. `(broadcast_id, transcript_hash, provider, model, prompt_version)`을 캐시 키로 사용하고 API는 저장 결과만 읽습니다.
+- `LlmProviderDailyUsage`는 이전 POC7 로컬 OpenRouter 장부이며, 운영 권위값은 POC4·POC7이 공유하는 gateway의 UTC 일일 장부입니다. gateway는 공식 1,000회 중 운영선 950회까지만 원자적으로 예약합니다. `LlmProviderTokenUsageEvent`는 Mistral 성공 응답을 provider·request ID로 한 번만 저장하며, `LlmProviderMonthlyTokenUsage`는 입력·출력·전체 토큰과 STT 비용을 provider·model·UTC 월 단위로 누적합니다.
 - 현재 review generator는 `DETERMINISTIC_KEYWORD_RULE`이며 생성형 요약을 만들지 않습니다. 규칙 버전과 마지막 입력 cursor를 함께 저장해 재생성 결과를 덮어쓰지 않습니다.
 - `BroadcastOfficialPublication`은 공식 `CONF_ID`, 회의록/PDF 링크와 source version을 보존합니다. 위원회+서울 날짜에 후보가 정확히 하나일 때만 연결하고 본문 미수집 상태는 `LINK_ONLY`, 대조 상태는 `UNRESOLVED`로 둡니다.
 - `OfficialTranscriptDocument`는 회의록시스템 HTML 원본 hash별 버전입니다. 화면에 명시된 임시회의록은 `TEMPORARY + PROVISIONAL`, 정본은 `FINAL + OFFICIAL`로 분리하고 이전 버전을 덮어쓰지 않습니다.

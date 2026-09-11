@@ -38,7 +38,7 @@ class MeetingBriefRepository:
                    provider, model, prompt_version, authority_status, review_status,
                    brief, usage_metadata, generated_at
             FROM meeting_briefs WHERE broadcast_id = %s
-            ORDER BY (provider = 'mistral') DESC,
+            ORDER BY (provider IN ('mistral', 'openrouter')) DESC,
                      generated_at DESC, id DESC LIMIT 1
             """,
             (broadcast_id,),
@@ -57,7 +57,8 @@ class MeetingBriefRepository:
                    brief, usage_metadata, generated_at
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
-            ORDER BY broadcast_id, (provider = 'mistral') DESC,
+            ORDER BY broadcast_id,
+                     (provider IN ('mistral', 'openrouter')) DESC,
                      generated_at DESC, id DESC
             """,
             (ids,),

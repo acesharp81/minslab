@@ -5,6 +5,7 @@ import json
 import time
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
 from ..services.summary_client import (
     SummaryClient,
     build_summary_client,
@@ -36,7 +37,7 @@ def process_available(
     database_url: str,
     client: SummaryClient,
     *,
-    daily_limit: int = 500,
+    daily_limit: int = 950,
     monthly_credit_usd: float = 10.0,
     input_usd_per_million: float = 0.15,
     output_usd_per_million: float = 0.60,
@@ -58,13 +59,18 @@ def process_available(
                     OR (lifecycle_status = 'ENDED'
                         AND ended_at >= now() - interval '1 hour')
               )
+              AND (
+                    institution <> 'LEGISLATURE'
+                    OR committee_name = ANY(%s)
+                  )
             ORDER BY detected_at
-            """
+            """,
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
         ).fetchall()
     totals = {"broadcasts": 0, "eligible": 0, "cached": 0,
               "requested": 0, "saved": 0, "api_requests": 0,
               "daily_limit": (
-                  min(int(daily_limit), 500)
+                  min(int(daily_limit), 950)
                   if client.provider == "openrouter" else 0
               ),
               "daily_usage": 0,
@@ -134,7 +140,7 @@ def main() -> None:
                 print(json.dumps({"event": "summary.cached", **result}), flush=True)
         except DailyRequestLimitReached:
             print(json.dumps({
-                "event": "summary.daily_limit", "limit": min(daily_limit, 500),
+                "event": "summary.daily_limit", "limit": min(daily_limit, 950),
             }), flush=True)
             if args.once:
                 return

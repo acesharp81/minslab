@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
 
 class OfficialIntegrationJobRepository:
     """Durable, retryable queue for LIVE-to-official reconciliation."""
@@ -38,6 +39,10 @@ class OfficialIntegrationJobRepository:
                     LIMIT 1
                 ) document ON true
                 WHERE broadcast.lifecycle_status = 'ENDED'
+                  AND (
+                        broadcast.institution <> 'LEGISLATURE'
+                        OR broadcast.committee_name = ANY(%s)
+                      )
                   AND NOT EXISTS (
                       SELECT 1
                       FROM meeting_official_integrations integration
@@ -67,7 +72,12 @@ class OfficialIntegrationJobRepository:
             WHERE meeting_official_integration_jobs.status = 'READY'
             RETURNING id
             """,
-            (integration_version, limit, integration_version),
+            (
+                [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
+                integration_version,
+                limit,
+                integration_version,
+            ),
         ).fetchall()
         return len(rows)
 
