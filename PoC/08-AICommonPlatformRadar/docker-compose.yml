@@ -1,0 +1,19 @@
+services:
+  radar:
+    build: .
+    init: true
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    restart: unless-stopped
+    env_file:
+      - path: ${RADAR_ENV_FILE:-.env}
+        required: false
+    ports:
+      - "${HOST_PORT:-18080}:8000"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

@@ -1,0 +1,24 @@
+{
+  "id": "ai-common-platform-radar",
+  "order": 8,
+  "display_no": "08",
+  "title": "공통기반 사업 레이더",
+  "date": "G2B AI Common Platform Fit Radar",
+  "summary": "나라장터 공개 제안요청서를 근거와 함께 선별해 범정부 AI 공통기반 활용 가능 사업과 확인 질문을 매일 정리합니다.",
+  "description": "사전규격과 본공고를 수집하고 첨부문서를 안전하게 추출한 뒤 규칙 및 AI 후보판정으로 A~E 등급, 근거문장, 확인 질문과 담당자 조치를 제공합니다.",
+  "tags": ["PoC", "G2B", "Public Data", "AI Governance", "Evidence"],
+  "features": [
+    ["공개조달 수집", "사전규격·용역 본공고와 허용된 첨부만 중복 없이 수집합니다."],
+    ["근거 기반 후보판정", "원문 인용과 불확실성을 보존하며 공통기반 미사용을 단정하지 않습니다."],
+    ["조치 레이더", "우선순위, 확인 질문, 담당자 메모와 진행상태를 한 화면에서 관리합니다."],
+    ["독립 실행", "이 폴더의 Docker Compose, 설정, 샘플과 테스트만으로 재현됩니다."]
+  ],
+  "entry_file": "app/main.py",
+  "usage": [
+    "폴더에서 cp .env.example .env 후 docker compose up --build -d를 실행합니다.",
+    "http://localhost:18080 에서 샘플 레이더를 확인합니다.",
+    "실데이터는 공공데이터포털 활용신청 후 G2B_MODE=live와 서비스키를 설정합니다."
+  ],
+  "note": "AI 결과는 담당자 검토를 위한 후보 선별이며, 공개 조달자료만 처리합니다."
+}
+

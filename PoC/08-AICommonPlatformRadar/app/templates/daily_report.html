@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}일일 리포트 · 공통기반 사업 레이더{% endblock %}
+{% block content %}
+<section class="page-head report-head"><div><span class="eyebrow">DAILY BRIEF</span><h1>{{ artifact.report_date }} 일일 리포트</h1><p>공개자료 기반 후보 선별 결과입니다.</p></div><div class="actions"><a class="button" href="/api/reports/daily/download/{{ artifact.report_date }}/md">Markdown</a><a class="button primary" href="/api/reports/daily/download/{{ artifact.report_date }}/html">HTML</a></div></section>
+<section class="metric-grid compact"><article class="metric"><span>신규 수집</span><strong>{{ artifact.summary.new_notices }}</strong></article><article class="metric"><span>파싱 성공률</span><strong>{{ artifact.summary.parse_rate }}%</strong></article><article class="metric accent"><span>우선 조치</span><strong>{{ artifact.summary.priority_actions }}</strong></article><article class="metric danger"><span>오류·미지원</span><strong>{{ artifact.summary.failures }}</strong></article></section>
+<article class="panel report"><pre>{{ markdown }}</pre></article>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}대시보드 · 공통기반 사업 레이더{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><span class="eyebrow">DAILY PROCUREMENT SIGNAL</span><h1>오늘 확인할 AI 사업을<br>근거와 함께 좁혀드립니다.</h1><p>공개 제안요청서에서 공통기반 활용 가능 기능과 담당자 확인 질문을 선별합니다.</p></div>
+  <div class="hero-status"><span class="pulse"></span><strong>모니터링 준비</strong><small>AI 판정은 후보 선별이며 최종 판단이 아닙니다.</small></div>
+</section>
+<section class="metric-grid">
+  <article class="metric"><span>오늘 신규</span><strong>{{ metrics.today }}</strong><small>수집 공고</small></article>
+  <article class="metric"><span>심층검토</span><strong>{{ metrics.deep }}</strong><small>누적 후보</small></article>
+  <article class="metric accent"><span>우선 조치</span><strong>{{ metrics.priority }}</strong><small>담당자 확인</small></article>
+  <article class="metric danger"><span>파싱 이슈</span><strong>{{ metrics.failed }}</strong><small>재처리 대상</small></article>
+</section>
+<section class="dashboard-grid">
+  <article class="panel wide"><div class="panel-head"><div><span class="eyebrow">PRIORITY QUEUE</span><h2>우선 조치 대상</h2></div><a href="/notices?grade=B">전체 보기 →</a></div>
+    <div class="notice-stack">
+    {% for notice in priorities %}
+      <a class="notice-row" href="/notices/{{ notice.id }}"><span class="grade grade-{{ notice.decision.final_grade }}">{{ notice.decision.final_grade }}</span><span class="notice-main"><strong>{{ notice.title }}</strong><small>{{ notice.agency_name }} · {{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</small></span><span class="score">{{ notice.decision.priority_score }}<small>점</small></span></a>
+    {% else %}<div class="empty">우선 조치 대상이 없습니다.</div>{% endfor %}
+    </div>
+  </article>
+  <article class="panel"><div class="panel-head"><div><span class="eyebrow">GRADE MIX</span><h2>등급 분포</h2></div></div>
+    <div class="grade-chart">
+    {% for grade in ['A','B','C','D','E'] %}<div><span>{{ grade }}</span><i style="--value:{{ grades.get(grade, 0) }}"></i><strong>{{ grades.get(grade, 0) }}</strong></div>{% endfor %}
+    </div>
+    <p class="legend-note">A 활용 명시 · B 우선 확인 · C 부분 적용 · D 판단 곤란 · E 부적합 근거</p>
+  </article>
+</section>
+{% endblock %}
+

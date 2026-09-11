@@ -1,0 +1,7 @@
+function_keywords:
+  LLM API: [LLM, 거대언어모델, 생성형 AI, 언어모델]
+  RAG/공통 참조데이터: [RAG, 검색증강, 지식베이스, 벡터DB, 질의응답]
+  GPU inference: [GPU, 추론 서버, 모델 서빙]
+  Agent builder: [AI 에이전트, 에이전트 빌더, 업무 에이전트]
+usage_keywords: [범정부 AI 공통기반, AI 공통기반, 공통 AI 기반]
+

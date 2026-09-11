@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}공통기반 사업 레이더{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+  <script defer src="{{ url_for('static', path='/app.js') }}"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark">AI</span><span>공통기반 사업 레이더<small>나라장터 공개자료 모니터링</small></span></a>
+    <nav><a href="/">대시보드</a><a href="/notices">공고 목록</a><a href="/reports/daily">일일 리포트</a><button class="button primary" data-run-collect>지금 수집</button></nav>
+  </header>
+  <main class="shell">{% block content %}{% endblock %}</main>
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+</body>
+</html>
+

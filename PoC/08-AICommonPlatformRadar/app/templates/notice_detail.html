@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ notice.title }} · 공통기반 사업 레이더{% endblock %}
+{% block content %}
+<a class="back" href="/notices">← 공고 목록</a>
+<section class="detail-head"><div><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><h1>{{ notice.title }}</h1><p>{{ notice.agency_name }} · 공고번호 {{ notice.notice_no }}</p></div>{% if notice.decision %}<div class="decision-badge"><span class="grade grade-{{ notice.decision.final_grade }}">{{ notice.decision.final_grade }}</span><strong>{{ notice.decision.priority_score }}점</strong><small>우선순위</small></div>{% endif %}</section>
+<section class="detail-grid">
+  <div class="detail-main">
+    <article class="panel"><div class="panel-head"><div><span class="eyebrow">ASSESSMENT</span><h2>후보 판정</h2></div><button class="button" data-analyze="{{ notice.id }}">다시 분석</button></div>
+    {% if notice.decision %}<p class="lead">{{ notice.decision.summary }}</p><div class="fact-grid"><div><span>AI 관련도</span><strong>{{ notice.decision.ai_relevance }}</strong></div><div><span>공통기반 적합도</span><strong>{{ notice.decision.common_platform_fit }}</strong></div><div><span>활용 문구</span><strong>{{ notice.decision.usage_mentioned }}</strong></div><div><span>권고 조치</span><strong>{{ notice.decision.recommended_action }}</strong></div></div>{% else %}<div class="empty">아직 분석되지 않았습니다.</div>{% endif %}</article>
+    {% if decision_data %}<article class="panel"><span class="eyebrow">SOURCE EVIDENCE</span><h2>원문 근거</h2>{% for evidence in decision_data.evidence %}<blockquote>“{{ evidence.quote }}”<small>{{ evidence.section }} · {{ evidence.interpretation }}</small></blockquote>{% else %}<div class="empty">직접 인용 근거가 없어 수동 검토가 필요합니다.</div>{% endfor %}</article>
+    <article class="panel"><span class="eyebrow">QUESTIONS</span><h2>담당자 확인 질문</h2><ol class="questions">{% for question in decision_data.check_questions %}<li>{{ question }}</li>{% else %}<li>추가 확인 질문이 없습니다.</li>{% endfor %}</ol></article>{% endif %}
+    <article class="panel"><span class="eyebrow">DOCUMENTS</span><h2>첨부 및 추출 본문</h2>{% for attachment in notice.attachments %}<details><summary><strong>{{ attachment.original_filename }}</strong><span class="status">{{ attachment.parse_status }}</span></summary>{% if attachment.parse_error %}<p class="error">{{ attachment.parse_error }}</p>{% endif %}<pre>{{ attachment.text_excerpt or '추출 본문 없음' }}</pre></details>{% else %}<div class="empty">첨부가 없습니다.</div>{% endfor %}</article>
+  </div>
+  <aside><article class="panel sticky"><span class="eyebrow">ACTION TRACKING</span><h2>조치 관리</h2>{% if notice.action %}<form data-action-form="{{ notice.action.id }}"><label>상태<select name="status"><option value="new">신규</option><option value="reviewing">검토중</option><option value="contacted">연락완료</option><option value="reflected">반영확인</option><option value="not_reflected">미반영확인</option><option value="closed">종료</option></select></label><label>담당자<input name="owner" value="{{ notice.action.owner or '' }}" placeholder="담당자"></label><label>메모<textarea name="memo" rows="6">{{ notice.action.memo or '' }}</textarea></label><button class="button primary">저장</button></form>{% else %}<p>분석 후 조치 항목이 생성됩니다.</p>{% endif %}</article></aside>
+</section>
+{% endblock %}
+
