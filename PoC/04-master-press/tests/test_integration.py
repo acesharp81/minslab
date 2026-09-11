@@ -241,6 +241,24 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertEqual(build.call_count, 1)
         self.assertEqual(second, expected)
 
+    def test_public_dashboard_serves_expired_snapshot_while_refreshing(self):
+        module = main.load_master_press_module()
+        module._PUBLIC_DASHBOARD_CACHE.clear()
+        module._PUBLIC_DASHBOARD_LOCKS.clear()
+        expected = {"project": {"id": "master-press"}, "dashboard": {"articles": []}}
+        with mock.patch.object(module, "_build_public_dashboard", return_value=expected):
+            module.public_dashboard(limit=15)
+        key = next(iter(module._PUBLIC_DASHBOARD_CACHE))
+        module._PUBLIC_DASHBOARD_CACHE[key] = (0.0, expected)
+        with mock.patch.object(module.threading, "Thread") as refresh_thread, \
+             mock.patch.object(module, "_build_public_dashboard") as build:
+            result = module.public_dashboard(limit=15)
+        self.assertEqual(result, expected)
+        refresh_thread.assert_called_once()
+        build.assert_not_called()
+        module._PUBLIC_DASHBOARD_CACHE.clear()
+        module._PUBLIC_DASHBOARD_LOCKS.clear()
+
     def test_admin_bootstrap_reuses_fresh_server_cache(self):
         module = main.load_master_press_module()
         module._invalidate_admin_bootstrap_cache()
@@ -253,6 +271,30 @@ class MainIntegrationTests(unittest.TestCase):
         self.assertGreater(first_build_calls, 0)
         self.assertEqual(list_cases.call_count, first_build_calls)
         self.assertFalse(any(item.get("id") == "client-mutation" for item in second["cases"]))
+
+    def test_admin_bootstrap_serves_expired_snapshot_while_refreshing(self):
+        module = main.load_master_press_module()
+        expected = {"cases": [{"id": "cached-case"}], "settings": {}}
+        module._ADMIN_BOOTSTRAP_CACHE = expected
+        module._ADMIN_BOOTSTRAP_CACHE_AT = 0.0
+        with mock.patch.object(module.threading, "Thread") as refresh_thread:
+            result = module.admin_bootstrap()
+        self.assertEqual(result, expected)
+        refresh_thread.assert_called_once()
+        module._invalidate_admin_bootstrap_cache()
+
+    def test_admin_keyword_suggestions_reuses_server_cache(self):
+        module = main.load_master_press_module()
+        service = module.get_service()
+        module._ADMIN_KEYWORD_CACHE.clear()
+        expected = {"days": 30, "sent_articles": 0, "keywords": []}
+        with mock.patch.object(
+            service.store, "case_sent_keyword_suggestions", return_value=expected
+        ) as suggestions:
+            first = module.admin_case_keyword_suggestions(service, ["case-1"], 30, 5)
+            second = module.admin_case_keyword_suggestions(service, ["case-1"], 30, 5)
+        self.assertEqual(first, second)
+        self.assertEqual(suggestions.call_count, 1)
 
     def test_analysis_threshold_save_is_returned_by_fresh_admin_bootstrap(self):
         token = main.ADMIN_AUTH.issue_session()

@@ -27,6 +27,7 @@ COLLECTION_LOCK = threading.Lock()
 COMMON_LLM_LOCK = threading.Lock()
 LOCAL_EMBEDDING_LOCK = threading.Lock()
 CASE_MODEL1_PRIORITY_SECONDS = 5
+OPENROUTER_RESIDUAL_PRIORITY_SECONDS = 30
 SHADOW_CASE_SEMAPHORE = threading.BoundedSemaphore(1)
 REMOTE_CASE_SEMAPHORE = threading.BoundedSemaphore(2)
 DELIVERY_LOCK = threading.Lock()
@@ -574,10 +575,16 @@ class MasterPressService:
         model = self.selected_common_turbo_model()
         if not self._active_provider_chain([("openrouter", model)]):
             return False
-        limit = int(getattr(self.settings, "openrouter_daily_soft_limit", 1000) or 1000)
-        reserve = min(limit - 1, int(getattr(self.settings, "openrouter_case_reserve_calls", 100) or 100))
-        usage = self.store.openrouter_usage_today(limit)
-        return int(usage.get("attempts") or 0) < max(0, limit - reserve)
+        if not hasattr(self.store, "provider_usage_since"):
+            limit = int(getattr(self.settings, "openrouter_daily_soft_limit", 1000) or 1000)
+            reserve = min(limit - 1, int(getattr(self.settings, "openrouter_case_reserve_calls", 100) or 100))
+            usage = self.store.openrouter_usage_today(limit)
+            return int(usage.get("attempts") or 0) < max(0, limit - reserve)
+        status = self.openrouter_status(False)
+        # Common-analysis booster work is the first lane paused by the shared
+        # gateway. Preserve the same rule locally so it does not occupy queue
+        # slots once the combined POC4+POC7 usage reaches 700.
+        return bool(status.get("available")) and int(status.get("attempts") or 0) < 700
 
     def _provider_status(self, provider: str, model: str = "") -> dict:
         """Read local provider availability without issuing a remote probe."""
@@ -658,7 +665,24 @@ class MasterPressService:
             "openrouter", since,
             request_limit=request_limit,
         )
-        status = self.scoring.case_llm.key_status() if probe else {"connected": bool(self.settings.openrouter_api_key)}
+        scoring = getattr(self, "scoring", None)
+        case_llm = getattr(scoring, "case_llm", None)
+        gateway = case_llm.gateway_status() if hasattr(case_llm, "gateway_status") else {}
+        if gateway:
+            usage = {
+                "attempts": int(gateway.get("reserved") or 0),
+                "successful_requests": int(gateway.get("completed") or 0),
+                "failed_requests": int(gateway.get("failed") or 0),
+                "request_limit": int(gateway.get("operational_limit") or request_limit or 950),
+                "remaining": int(gateway.get("remaining") or 0),
+                "breakdown": gateway.get("breakdown") or [],
+                "combined_projects": True,
+            }
+            request_limit = int(usage["request_limit"])
+        status = self.scoring.case_llm.key_status() if probe else {
+            "connected": bool(self.settings.openrouter_api_key),
+            "gateway": bool(gateway),
+        }
         result = {**status, **usage, "model": self.selected_case_single_model(), "provider": "openrouter", "period": "UTC day", "reset_basis": "UTC 00:00", "reset_at": reset_at, "reset_label": "한국시간 09:00"}
         result = self._attach_provider_guard(result)
         result["request_budget_exhausted"] = bool(request_limit and int(result.get("attempts") or 0) >= request_limit)
@@ -881,11 +905,11 @@ class MasterPressService:
 
     def _remote_provider_chain(self, include_openrouter: bool = False) -> list[tuple[str, str]]:
         chain = []
-        if include_openrouter and self.model_role_enabled("case_single"):
-            chain.append(("openrouter", self.selected_case_llm_model()))
         if self.case_fallback_enabled() and self.model_role_enabled("case_fallback"):
             fallback = self.selected_case_fallback_model()
             chain.append((self._provider_for_switchable_llm_model(fallback), fallback))
+        if include_openrouter and self.model_role_enabled("case_single"):
+            chain.append(("openrouter", self.selected_case_single_model()))
         return self._active_provider_chain(chain)
 
     def _common_provider_chain(self) -> list[tuple[str, str]]:
@@ -1011,6 +1035,9 @@ class MasterPressService:
 
     def _evaluate_cases_with_provider_chain(self, cases: list[dict], article: dict, analysis: dict) -> tuple[str, str, dict[str, dict]]:
         last_error: Exception | None = None
+        # Compatibility-only callers still use this chain. Keep OpenRouter last;
+        # normal workers use the explicit NVIDIA/OpenAI lanes and the dedicated
+        # OpenRouter single lane receives only residual work after 30 seconds.
         chain = self._remote_provider_chain(include_openrouter=True)
         for provider, model in chain:
             if not self._provider_attempt_allowed(provider):
@@ -1350,7 +1377,8 @@ class MasterPressService:
             LOCAL_EMBEDDING_LOCK.release()
 
     def process_next_article_analysis(self, forced_provider: str = "", forced_model: str = "",
-                                      provider_lane: str = "primary") -> dict | None:
+                                      provider_lane: str = "primary",
+                                      minimum_age_seconds: int = 0) -> dict | None:
         role = "burst" if provider_lane == "turbo" else ("common_fallback" if forced_model and forced_model == self.selected_common_fallback_model() else "common")
         if not self.model_role_enabled(role):
             return None
@@ -1358,7 +1386,10 @@ class MasterPressService:
             return None
         try:
             lease_owner = self._lease_owner()
-            job = self.store.claim_next_article_analysis_job(lease_owner, provider_lane)
+            job = self.store.claim_next_article_analysis_job(
+                lease_owner, provider_lane,
+                minimum_age_seconds=minimum_age_seconds,
+            )
             if not job:
                 return None
             analysis = self.store.get_article_analysis(job["article_analysis_id"])
@@ -1607,15 +1638,11 @@ class MasterPressService:
                         results = self.scoring.evaluate_cases_with_common_provider(
                             forced_provider, cases, article, analysis, forced_model,
                         )
-                    except json.JSONDecodeError as batch_error:
-                        if forced_provider == "openrouter":
-                            raise
-                        case_model, results = self._recover_case_batch_json_with_single(
-                            cases, article, analysis, forced_provider, batch_error,
-                        )
-                        if not results:
-                            raise
-                        provider = "openrouter"
+                    except json.JSONDecodeError:
+                        # Leave malformed base-model batches pending. The
+                        # dedicated OpenRouter lane may claim only residual
+                        # single cases after its head-start window.
+                        raise
                     else:
                         self._remember_provider_success(forced_provider)
                 else:
@@ -1625,6 +1652,15 @@ class MasterPressService:
                     result = results.get(str(case["id"]))
                     result_model = case_model
                     if not result:
+                        if provider != "openrouter":
+                            self.store.finish_case_evaluation_job(
+                                job["id"], False,
+                                round((time.monotonic() - started) * 1000),
+                                "batch_result_missing", retryable=True,
+                                lease_owner=lease_owner,
+                            )
+                            counts["missing"] += 1
+                            continue
                         single_model = self.selected_case_single_model()
                         if not self._provider_attempt_allowed("openrouter"):
                             self.store.finish_case_evaluation_job(
@@ -2478,7 +2514,10 @@ class MasterPressService:
             provider, lane = self._provider_for_switchable_llm_model(model), "common_model1"
         if not self._provider_status(provider, model).get("available"):
             return None
-        article = self.process_next_article_analysis(provider, model, lane)
+        article = self.process_next_article_analysis(
+            provider, model, lane,
+            minimum_age_seconds=OPENROUTER_RESIDUAL_PRIORITY_SECONDS if burst else 0,
+        )
         return {"stage": "article", "slot": slot if not burst else "turbo", "result": article} if article else None
 
     def embedding_worker_tick(self) -> dict | None:
@@ -2527,11 +2566,16 @@ class MasterPressService:
                 CASE_MODEL1_PRIORITY_SECONDS, provider="openai",
             ):
                 return None
-        single_available = bool(self._provider_status("openrouter", self.selected_case_single_model()).get("available"))
+        if slot == "single":
+            minimum_age_seconds = max(
+                minimum_age_seconds, OPENROUTER_RESIDUAL_PRIORITY_SECONDS,
+            )
         result = self.process_next_case_evaluation(
             provider, model, f"case_{slot}", batch_size=batch_size,
             single_unowned_only=(slot == "single"),
-            allow_unowned_single=(slot == "single" or not single_available),
+            # Base-model workers always receive first access. OpenRouter is a
+            # residual single-case lane, never a synchronous fallback.
+            allow_unowned_single=True,
             minimum_age_seconds=minimum_age_seconds,
         )
         return {"stage": "case", "slot": slot, "result": result} if result else None

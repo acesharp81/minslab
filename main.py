@@ -2044,6 +2044,19 @@ async def collect_master_press():
         await asyncio.sleep(12 if progressed else 30)
 
 
+async def warm_master_press_read_caches():
+    """Warm PoC 4 read paths after startup without delaying service readiness."""
+    await asyncio.sleep(0.5)
+    try:
+        module = await asyncio.to_thread(load_master_press_module)
+        result = await asyncio.to_thread(module.warm_read_caches)
+        print(f"Master Press read caches warmed: {result}", file=sys.stderr)
+    except asyncio.CancelledError:
+        raise
+    except Exception as error:
+        print(f"Master Press read-cache warmup failed: {error}", file=sys.stderr)
+
+
 async def supervise_master_press():
     """Restart the orchestration coroutine if a non-standard exception ends it."""
     while True:
@@ -2209,6 +2222,7 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
+                master_press_tasks.append(asyncio.create_task(warm_master_press_read_caches()))
                 if MASTER_PRESS_BACKGROUND_ENABLED:
                     print("Master Press workers run in the isolated system service.", file=sys.stderr)
                 else:

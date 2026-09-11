@@ -26,7 +26,7 @@ from master_press.provider_quota import confirmed_free_quota_exhaustion, quota_l
 from master_press.scoring import CloudflareWorkersAIClient, GroqClient, NvidiaNIMClient, OllamaClient, OpenAIShadowClient, OpenRouterClient, OpenRouterError, RelevanceEngine, UpstageSolarClient, fallback_negative_tone, keyword_relevance
 from master_press.shadow import ShadowCaseStore
 from master_press.service import MasterPressService, case_candidate_gate, delivery_at, next_collection_at, same_model, verified_case_proposal_moderation
-from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity
+from master_press.storage import KST, RECIPIENT_UNSUBSCRIBE_INVITE_LABEL, Store, centered_semantic_similarity, inferred_content_nouns, inferred_topic_concepts, kst_day_start_iso, now_iso, topic_noun_similarity, utc_day_reset_kst_iso, utc_day_start_kst_iso
 from master_press.supabase_mirror import SupabaseMirror
 from scripts.master_press_supabase_outbox_worker import SupabaseOutboxFlusher
 from master_press.supabase_seed import SupabaseSeed
@@ -677,6 +677,17 @@ class StorageTests(unittest.TestCase):
         self.store.set_setting("pipeline_error_reset_at", reset_after_log)
         self.assertEqual(self.store.pipeline_stats()["article_jobs"]["failed_total"], 0)
 
+    def test_pipeline_summary_cache_survives_external_wal_changes_until_ttl(self):
+        key = ("pipeline_stats_v2", "", "", "2026-09-09T00:00:00+09:00")
+        expected = {"article_jobs": {"pending": 3}}
+        self.store._pipeline_summary_cache_set(key, (1, 2, 3, 4), expected)
+
+        first = self.store._pipeline_summary_cache_get(key, (5, 6, 7, 8))
+        first["article_jobs"]["pending"] = 99
+        second = self.store._pipeline_summary_cache_get(key, (9, 10, 11, 12))
+
+        self.assertEqual(second, expected)
+
     def test_pipeline_error_total_excludes_confirmed_free_quota_exhaustion(self):
         now = now_iso()
         with self.store.connect() as connection:
@@ -1002,13 +1013,42 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(dashboard["articles"][0]["case_results"][0]["evaluation_id"], "evaluation-new")
         self.assertNotEqual(first["id"], "evaluation-new")
 
-    def test_kst_daily_counter_starts_at_midnight(self):
-        from master_press.storage import utc_day_start_kst_iso
+    def test_utc_daily_counter_starts_and_resets_at_kst_nine(self):
         start = utc_day_start_kst_iso()
+        reset_at = utc_day_reset_kst_iso()
         self.assertTrue(start.endswith("T09:00:00+09:00"))
+        self.assertTrue(reset_at.endswith("T09:00:00+09:00"))
+        self.assertEqual(datetime.fromisoformat(reset_at) - datetime.fromisoformat(start), timedelta(days=1))
         usage = self.store.openrouter_usage_today()
         self.assertEqual(usage["period"], "UTC day")
         self.assertEqual(usage["day_start"], start)
+        self.assertEqual(usage["reset_at"], reset_at)
+
+    def test_admin_model_usage_excludes_calls_before_utc_midnight(self):
+        start = datetime.fromisoformat(utc_day_start_kst_iso())
+        before = (start - timedelta(seconds=1)).isoformat(timespec="seconds")
+        after = (start + timedelta(seconds=1)).isoformat(timespec="seconds")
+        with self.store.connect() as connection:
+            connection.executemany(
+                """INSERT INTO llm_api_calls(
+                     id,provider,stage,model,status,input_tokens,output_tokens,duration_ms,created_at
+                   ) VALUES(?,?,?,?,?,?,?,?,?)""",
+                [
+                    ("before-utc-reset", "openai", "case_proposal_draft", "old-model", "completed", 700, 300, 10, before),
+                    ("after-utc-reset", "openai", "case_proposal_draft", "new-model", "completed", 70, 30, 10, after),
+                ],
+            )
+        summary = self.store.processing_summary(7)
+        self.assertEqual(summary["model_usage_period"], "UTC day")
+        self.assertEqual(summary["model_usage_day_start"], start.isoformat(timespec="seconds"))
+        self.assertEqual([(row["model"], row["tokens"]) for row in summary["model_tokens"]], [("new-model", 100)])
+        draft = self.store.case_draft_usage()
+        self.assertEqual(draft["period"], "UTC day")
+        self.assertEqual(draft["completed"], 1)
+        self.assertEqual(draft["tokens"], 100)
+        provider = self.store.provider_usage_today("openai", "case_proposal_draft", 10)
+        self.assertEqual(provider["attempts"], 1)
+        self.assertEqual(provider["period"], "UTC day")
 
     def test_openrouter_local_daily_count_does_not_preempt_provider_request(self):
         settings = SimpleNamespace(

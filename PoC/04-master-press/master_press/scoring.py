@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import re
 import threading
@@ -1083,6 +1084,27 @@ class OpenRouterClient(OllamaClient):
         if self.store:
             self.store.record_llm_api_call(provider="openrouter", stage=stage, **values)
 
+    def _gateway_root(self) -> str:
+        base = str(getattr(self.settings, "openrouter_base_url", "") or "").rstrip("/")
+        parsed = urllib.parse.urlparse(base)
+        gateway_hosts = {"127.0.0.1", "localhost", "openrouter-gateway"}
+        if parsed.hostname not in gateway_hosts or not base.endswith("/api/v1"):
+            return ""
+        return base[:-7]
+
+    def gateway_status(self) -> dict:
+        root = self._gateway_root()
+        if not root:
+            return {}
+        request = urllib.request.Request(
+            f"{root}/internal/status", headers={"Accept": "application/json"}, method="GET",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception:
+            return {}
+
     def _common_response_schema(self) -> dict:
         properties = {
             "article_type": {"type": "string"},
@@ -1367,11 +1389,17 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
     def key_status(self) -> dict:
         if not self.settings.openrouter_api_key:
             return {"connected": False, "error": "API 키 미설정"}
-        request = urllib.request.Request(f"{self.settings.openrouter_base_url}/key",
-            headers={"Authorization": f"Bearer {self.settings.openrouter_api_key}", "Accept": "application/json"}, method="GET")
+        gateway_root = self._gateway_root()
+        request_url = f"{gateway_root}/health" if gateway_root else f"{self.settings.openrouter_base_url}/key"
+        request = urllib.request.Request(request_url,
+            headers={"Authorization": "Bearer gateway-local" if gateway_root else f"Bearer {self.settings.openrouter_api_key}", "Accept": "application/json"}, method="GET")
         try:
             with urllib.request.urlopen(request, timeout=max(15, self.settings.request_timeout_seconds)) as response:
-                data = json.loads(response.read().decode("utf-8")).get("data", {})
+                payload = json.loads(response.read().decode("utf-8"))
+                if gateway_root:
+                    return {"connected": payload.get("status") == "ok",
+                            "gateway": True, "configured": bool(payload.get("configured"))}
+                data = payload.get("data", {})
             return {"connected": True, "is_free_tier": bool(data.get("is_free_tier")),
                     "usage_daily_credits": float(data.get("usage_daily") or 0), "limit_remaining_credits": data.get("limit_remaining")}
         except Exception as error:
@@ -1394,7 +1422,8 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
                     "openrouter_provider_temporarily_paused", status=503,
                     retryable=True, retry_after=paused_until, deferred=True,
                 )
-        if self.store and hasattr(self.store, "openrouter_usage_today"):
+        gateway_root = self._gateway_root()
+        if not gateway_root and self.store and hasattr(self.store, "openrouter_usage_today"):
             request_limit = int(getattr(self.settings, "openrouter_daily_soft_limit", 1000) or 1000)
             usage = self.store.openrouter_usage_today(request_limit)
             if request_limit and int(usage.get("attempts") or 0) >= request_limit:
@@ -1432,13 +1461,20 @@ JSON results 배열로 모든 case_id를 정확히 한 번씩 반환하세요.""
                 # Gemma free supports JSON mode but not strict outputs.
                 "response_format": {"type": "json_object"},
                 "reasoning": {"effort": "minimal", "exclude": True},
-                "provider": {"data_collection": "deny", "require_parameters": True}}
+                "provider": {"data_collection": "allow", "require_parameters": True}}
+        encoded_body = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        idempotency_key = "poc4:" + hashlib.sha256(encoded_body).hexdigest()
+        priority = "50" if stage in {"common", "common_fallback"} else "30"
         started = time.monotonic()
         request = urllib.request.Request(
             f"{self.settings.openrouter_base_url}/chat/completions",
-            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
-            headers={"Authorization": f"Bearer {self.settings.openrouter_api_key}", "Content-Type": "application/json",
-                     "Accept": "application/json", "HTTP-Referer": "https://www.minslab.kr", "X-Title": "AI Press Trend Assistant"},
+            data=encoded_body,
+            headers={"Authorization": "Bearer gateway-local" if gateway_root else f"Bearer {self.settings.openrouter_api_key}",
+                     "Content-Type": "application/json", "Accept": "application/json",
+                     "HTTP-Referer": "https://www.minslab.kr", "X-Title": "AI Press Trend Assistant",
+                     "X-Minslab-Project": "poc4", "X-Minslab-Workload": stage,
+                     "X-Minslab-Data-Class": "public_web_news",
+                     "X-Minslab-Priority": priority, "X-Idempotency-Key": idempotency_key},
             method="POST",
         )
         try:

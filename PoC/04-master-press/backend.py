@@ -45,6 +45,10 @@ _ADMIN_BOOTSTRAP_CACHE: dict | None = None
 _ADMIN_BOOTSTRAP_CACHE_AT = 0.0
 _ADMIN_BOOTSTRAP_CACHE_SECONDS = 30.0
 _ADMIN_BOOTSTRAP_BUILD_LOCK = threading.Lock()
+_ADMIN_BOOTSTRAP_REFRESH_LOCK = threading.Lock()
+_ADMIN_KEYWORD_CACHE: dict[tuple, tuple[float, dict]] = {}
+_ADMIN_KEYWORD_CACHE_LOCK = threading.Lock()
+_ADMIN_KEYWORD_CACHE_SECONDS = 60.0
 
 
 def _invalidate_admin_bootstrap_cache() -> None:
@@ -52,6 +56,8 @@ def _invalidate_admin_bootstrap_cache() -> None:
     with _ADMIN_BOOTSTRAP_BUILD_LOCK:
         _ADMIN_BOOTSTRAP_CACHE = None
         _ADMIN_BOOTSTRAP_CACHE_AT = 0.0
+    with _ADMIN_KEYWORD_CACHE_LOCK:
+        _ADMIN_KEYWORD_CACHE.clear()
 
 
 def _is_db_locked_error(error: Exception) -> bool:
@@ -174,6 +180,29 @@ _PUBLIC_DASHBOARD_CACHE_GUARD = threading.Lock()
 _PUBLIC_DASHBOARD_CACHE_SECONDS = 15.0
 
 
+def _store_public_dashboard_cache(key: tuple, payload: dict) -> None:
+    with _PUBLIC_DASHBOARD_CACHE_GUARD:
+        _PUBLIC_DASHBOARD_CACHE[key] = (time.monotonic(), payload)
+        if len(_PUBLIC_DASHBOARD_CACHE) > 64:
+            oldest = min(_PUBLIC_DASHBOARD_CACHE, key=lambda item: _PUBLIC_DASHBOARD_CACHE[item][0])
+            _PUBLIC_DASHBOARD_CACHE.pop(oldest, None)
+            _PUBLIC_DASHBOARD_LOCKS.pop(oldest, None)
+
+
+def _refresh_public_dashboard(key: tuple, args: tuple) -> None:
+    with _PUBLIC_DASHBOARD_CACHE_GUARD:
+        key_lock = _PUBLIC_DASHBOARD_LOCKS.setdefault(key, threading.Lock())
+    if not key_lock.acquire(blocking=False):
+        return
+    try:
+        result = _build_public_dashboard(*args)
+        _store_public_dashboard_cache(key, result)
+    except Exception as error:
+        print(f"Master Press dashboard background refresh failed: {error}", file=sys.stderr)
+    finally:
+        key_lock.release()
+
+
 def public_dashboard(
     case_id: str = "", organization_id: str = "", tags: list[str] | None = None,
     search: str = "", include_groups: bool = True, limit: int = 100, offset: int = 0,
@@ -185,28 +214,35 @@ def public_dashboard(
         str(search), bool(include_groups), int(limit), int(offset), bool(include_press_stats),
         str(delivery_filter), int(days),
     )
+    args = (
+        case_id, organization_id, tags, search, include_groups, limit, offset,
+        include_press_stats, delivery_filter, days,
+    )
     now = time.monotonic()
     with _PUBLIC_DASHBOARD_CACHE_GUARD:
         cached = _PUBLIC_DASHBOARD_CACHE.get(key)
         if cached and now - cached[0] <= _PUBLIC_DASHBOARD_CACHE_SECONDS:
             return _clone_payload(cached[1])
         key_lock = _PUBLIC_DASHBOARD_LOCKS.setdefault(key, threading.Lock())
+    if cached:
+        # Never put an expired full-dashboard refresh back on the user's
+        # critical path. Serve the last snapshot and refresh it once in the
+        # background; filters without a snapshot still build synchronously.
+        threading.Thread(
+            target=_refresh_public_dashboard,
+            args=(key, args),
+            name="master-press-dashboard-refresh",
+            daemon=True,
+        ).start()
+        return _clone_payload(cached[1])
     with key_lock:
         now = time.monotonic()
         with _PUBLIC_DASHBOARD_CACHE_GUARD:
             cached = _PUBLIC_DASHBOARD_CACHE.get(key)
             if cached and now - cached[0] <= _PUBLIC_DASHBOARD_CACHE_SECONDS:
                 return _clone_payload(cached[1])
-        result = _build_public_dashboard(
-            case_id, organization_id, tags, search, include_groups, limit, offset,
-            include_press_stats, delivery_filter, days,
-        )
-        with _PUBLIC_DASHBOARD_CACHE_GUARD:
-            _PUBLIC_DASHBOARD_CACHE[key] = (time.monotonic(), result)
-            if len(_PUBLIC_DASHBOARD_CACHE) > 64:
-                oldest = min(_PUBLIC_DASHBOARD_CACHE, key=lambda item: _PUBLIC_DASHBOARD_CACHE[item][0])
-                _PUBLIC_DASHBOARD_CACHE.pop(oldest, None)
-                _PUBLIC_DASHBOARD_LOCKS.pop(oldest, None)
+        result = _build_public_dashboard(*args)
+        _store_public_dashboard_cache(key, result)
         return _clone_payload(result)
 
 
@@ -269,15 +305,67 @@ def fast_recipient_statuses(service) -> list[dict]:
     return recipients
 
 
-def admin_bootstrap() -> dict:
+def admin_case_keyword_suggestions(service, case_ids: list[str], days: int = 30, limit: int = 5) -> dict:
+    key = (tuple(case_ids), int(days), int(limit))
+    now = time.monotonic()
+    with _ADMIN_KEYWORD_CACHE_LOCK:
+        cached = _ADMIN_KEYWORD_CACHE.get(key)
+        if cached and now - cached[0] <= _ADMIN_KEYWORD_CACHE_SECONDS:
+            return _clone_payload(cached[1])
+    payload = {
+        "items": [
+            {
+                "case_id": case_id,
+                "sent_keyword_suggestions": service.store.case_sent_keyword_suggestions(
+                    case_id, days=days, limit=limit,
+                ),
+            }
+            for case_id in case_ids
+        ]
+    }
+    with _ADMIN_KEYWORD_CACHE_LOCK:
+        _ADMIN_KEYWORD_CACHE[key] = (time.monotonic(), payload)
+    return _clone_payload(payload)
+
+
+def _refresh_admin_bootstrap() -> None:
+    if not _ADMIN_BOOTSTRAP_REFRESH_LOCK.acquire(blocking=False):
+        return
+    try:
+        admin_bootstrap(_force_refresh=True)
+    except Exception as error:
+        print(f"Master Press admin background refresh failed: {error}", file=sys.stderr)
+    finally:
+        _ADMIN_BOOTSTRAP_REFRESH_LOCK.release()
+
+
+def admin_bootstrap(_force_refresh: bool = False) -> dict:
     global _ADMIN_BOOTSTRAP_CACHE, _ADMIN_BOOTSTRAP_CACHE_AT
     service = get_service()
+    cached_reset_at = str(
+        (((_ADMIN_BOOTSTRAP_CACHE or {}).get("settings") or {}).get("processing_summary") or {}).get("model_usage_reset_at") or ""
+    )
+    if cached_reset_at and cached_reset_at <= now_iso():
+        # Never carry the previous UTC usage window across 00:00 UTC, even if
+        # the normal short-lived admin cache was built only seconds earlier.
+        _ADMIN_BOOTSTRAP_CACHE = None
+        _ADMIN_BOOTSTRAP_CACHE_AT = 0.0
     if not getattr(service, "_case_draft_schema_ready", False):
         service.store.ensure_case_draft_schema()
         service._case_draft_schema_ready = True
     cached = _fresh_admin_bootstrap()
-    if cached:
+    if cached and not _force_refresh:
         return cached
+    if _ADMIN_BOOTSTRAP_CACHE and not _force_refresh:
+        # Settings/case mutations invalidate this cache explicitly. For expiry
+        # caused only by time, show the last complete admin state immediately
+        # and rebuild operational counters off the request path.
+        threading.Thread(
+            target=_refresh_admin_bootstrap,
+            name="master-press-admin-refresh",
+            daemon=True,
+        ).start()
+        return _clone_payload(_ADMIN_BOOTSTRAP_CACHE)
     if _ADMIN_BOOTSTRAP_CACHE and _db_quick_lock_probe(str(service.settings.database_path)):
         cached = _cached_admin_bootstrap("database_locked_probe")
         if cached:
@@ -379,6 +467,20 @@ def admin_bootstrap() -> dict:
         raise
     finally:
         _ADMIN_BOOTSTRAP_BUILD_LOCK.release()
+
+
+def warm_read_caches() -> dict:
+    """Populate restart-sensitive read caches before the first user arrives."""
+    dashboard = public_dashboard(limit=15, days=7)
+    admin = admin_bootstrap()
+    service = get_service()
+    case_ids = [str(item.get("id") or "") for item in admin.get("cases", []) if item.get("id")]
+    keywords = admin_case_keyword_suggestions(service, case_ids, days=30, limit=5)
+    return {
+        "dashboard_articles": len((dashboard.get("dashboard") or {}).get("articles") or []),
+        "admin_cases": len(admin.get("cases") or []),
+        "keyword_cases": len(keywords.get("items") or []),
+    }
 
 
 def dispatch(
@@ -680,14 +782,7 @@ def dispatch(
             case_ids = [item["id"] for item in service.store.list_cases()]
         days = int(query.get("days") or 30)
         limit = int(query.get("limit") or 5)
-        items = [
-            {
-                "case_id": case_id,
-                "sent_keyword_suggestions": service.store.case_sent_keyword_suggestions(case_id, days=days, limit=limit),
-            }
-            for case_id in case_ids
-        ]
-        return {"items": items}
+        return admin_case_keyword_suggestions(service, case_ids, days=days, limit=limit)
 
     if path == "/admin/signup-requests/approve-pending" and method == "POST":
         _require_admin(admin_authenticated)

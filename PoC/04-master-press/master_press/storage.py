@@ -64,6 +64,11 @@ def utc_day_start_kst_iso(reference: datetime | None = None) -> str:
     return current.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(KST).isoformat(timespec="seconds")
 
 
+def utc_day_reset_kst_iso(reference: datetime | None = None) -> str:
+    current = reference.astimezone(timezone.utc) if reference else datetime.now(timezone.utc)
+    return (current.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).astimezone(KST).isoformat(timespec="seconds")
+
+
 def json_value(value, default):
     if value is None:
         return default
@@ -848,6 +853,8 @@ CREATE INDEX IF NOT EXISTS idx_case_evaluations_dashboard_summary
   ON case_evaluations(id,status,completed_at,updated_at,decision,final_score,article_analysis_id,case_id);
 CREATE INDEX IF NOT EXISTS idx_case_evaluations_model_completed
   ON case_evaluations(status,model,COALESCE(completed_at,updated_at));
+CREATE INDEX IF NOT EXISTS idx_case_evaluations_case_decision_article
+  ON case_evaluations(case_id,status,decision,article_id,article_analysis_id);
 CREATE TABLE IF NOT EXISTS supabase_outbox (
   id TEXT PRIMARY KEY,
   table_name TEXT NOT NULL,
@@ -1480,12 +1487,24 @@ class Store:
             try:
                 yield connection
                 connection.commit()
-                # Local writes invalidate immediately; external worker writes are
-                # detected through the database/WAL file marker on the next read.
+                # Local writes invalidate immediately. External worker changes
+                # become visible when the short summary-cache TTL expires.
                 if connection.total_changes:
                     self._pipeline_summary_cache.clear()
             finally:
                 connection.close()
+
+    @contextmanager
+    def read_connect(self):
+        """Open an independent WAL reader without taking the process write lock."""
+        connection = sqlite3.connect(self.path, timeout=60)
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA query_only=ON")
+        connection.execute("PRAGMA busy_timeout=60000")
+        try:
+            yield connection
+        finally:
+            connection.close()
 
     def ensure_case_draft_schema(self) -> None:
         """Install the small case-draft migration for existing production DBs."""
@@ -1518,6 +1537,14 @@ class Store:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_case_evaluations_model_completed "
                 "ON case_evaluations(status,model,COALESCE(completed_at,updated_at))"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_case_evaluations_case_decision_article "
+                "ON case_evaluations(case_id,status,decision,article_id,article_analysis_id)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_deliveries_case_status_sent_at "
+                "ON deliveries(case_id,status,sent_at DESC,article_id)"
             )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_supabase_outbox_updated_status "
@@ -1566,6 +1593,8 @@ class Store:
                 "idx_articles_dashboard_published",
                 "idx_case_evaluations_dashboard_summary",
                 "idx_case_evaluations_model_completed",
+                "idx_case_evaluations_case_decision_article",
+                "idx_deliveries_case_status_sent_at",
                 "idx_supabase_outbox_updated_status",
             ],
         }
@@ -1622,8 +1651,13 @@ class Store:
         cached = self._pipeline_summary_cache.get(key)
         if not cached:
             return None
-        expires_at, cached_marker, payload = cached
-        if time.monotonic() >= expires_at or cached_marker != change_marker:
+        expires_at, _cached_marker, payload = cached
+        # Pipeline workers update the WAL continuously. Invalidating this
+        # summary on every external write made the nominal 20-second cache a
+        # permanent miss and forced dashboard requests back through the large
+        # evaluation history. Local writes still clear the cache in connect();
+        # external worker changes become visible at the short TTL boundary.
+        if time.monotonic() >= expires_at:
             self._pipeline_summary_cache.pop(key, None)
             return None
         return json.loads(json.dumps(payload, ensure_ascii=False))
@@ -2801,6 +2835,8 @@ class Store:
         days = max(7, min(90, int(days)))
         today = datetime.now(KST).date()
         first_day = today - timedelta(days=days - 1)
+        model_usage_start = utc_day_start_kst_iso()
+        model_usage_reset_at = utc_day_reset_kst_iso()
         with self.connect() as connection:
             rows = connection.execute("""WITH completed_articles AS (
                     SELECT aa.article_id,MAX(COALESCE(ce.completed_at,ce.updated_at)) completed_at
@@ -2841,25 +2877,27 @@ class Store:
                           COALESCE(SUM(input_tokens),0)+COALESCE(SUM(output_tokens),0) tokens
                    FROM llm_api_calls WHERE created_at>=? AND status='completed'
                    GROUP BY model,provider ORDER BY tokens DESC,calls DESC""",
-                (kst_day_start_iso(),),
+                (model_usage_start,),
             ).fetchall()
             common_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
                 """SELECT model,COUNT(*) processed FROM article_analyses
-                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (kst_day_start_iso(),)
+                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (model_usage_start,)
             ).fetchall()}
             case_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
                 """SELECT model,COUNT(*) processed FROM case_evaluations
-                   WHERE status='completed' AND COALESCE(completed_at,updated_at)>=? GROUP BY model""", (kst_day_start_iso(),)
+                   WHERE status='completed' AND COALESCE(completed_at,updated_at)>=? GROUP BY model""", (model_usage_start,)
             ).fetchall()}
             embedding_processed = {str(row["model"] or "unknown"): int(row["processed"] or 0) for row in connection.execute(
                 """SELECT model,COUNT(*) processed FROM article_embeddings
-                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (kst_day_start_iso(),)
+                   WHERE status='completed' AND updated_at>=? GROUP BY model""", (model_usage_start,)
             ).fetchall()}
         daily = [{"day": (first_day + timedelta(days=offset)).isoformat(), "article_count": int(saved.get((first_day + timedelta(days=offset)).isoformat(), 0))} for offset in range(days)]
         recent_week = daily[-7:]
         week_total = sum(item["article_count"] for item in recent_week)
         return {"total": lifetime_total, "retained_total": total, "week": week_total, "week_average": round(week_total / 7, 1),
                 "yesterday": int(saved.get((today - timedelta(days=1)).isoformat(), 0)), "today": int(saved.get(today.isoformat(), 0)), "daily": daily,
+                "model_usage_period": "UTC day", "model_usage_day_start": model_usage_start,
+                "model_usage_reset_at": model_usage_reset_at, "model_usage_reset_label": "UTC 00:00 · 한국시간 09:00",
                 "model_tokens": [{"model": str(row["model"] or "unknown"), "provider": str(row["provider"] or ""),
                                   "tokens": int(row["tokens"] or 0), "calls": int(row["calls"] or 0),
                                   "case_draft_processed": int(row["case_draft_processed"] or 0),
@@ -2940,7 +2978,8 @@ class Store:
 
     def case_draft_usage(self, organization_id: str = "") -> dict:
         clauses = ["stage='case_proposal_draft'", "created_at>=?"]
-        values: list[Any] = [kst_day_start_iso()]
+        day_start = utc_day_start_kst_iso()
+        values: list[Any] = [day_start]
         if organization_id:
             clauses.append("organization_id=?")
             values.append(str(organization_id))
@@ -2956,7 +2995,9 @@ class Store:
         input_tokens, output_tokens = int(row["input_tokens"] or 0), int(row["output_tokens"] or 0)
         return {"attempts": int(row["attempts"] or 0), "completed": int(row["completed"] or 0),
                 "failed": int(row["failed"] or 0), "input_tokens": input_tokens,
-                "output_tokens": output_tokens, "tokens": input_tokens + output_tokens, "period": "KST day"}
+                "output_tokens": output_tokens, "tokens": input_tokens + output_tokens, "period": "UTC day",
+                "day_start": day_start, "reset_at": utc_day_reset_kst_iso(),
+                "reset_label": "UTC 00:00 · 한국시간 09:00"}
 
     def provider_usage_total(self, provider: str, stage: str) -> dict:
         with self.connect() as connection:
@@ -2978,7 +3019,7 @@ class Store:
         }
 
     def provider_usage_today(self, provider: str, stage: str, request_limit: int, token_limit: int = 0) -> dict:
-        day_start = kst_day_start_iso()
+        day_start = utc_day_start_kst_iso()
         with self.connect() as connection:
             row = connection.execute(
                 """SELECT COUNT(*) attempts,
@@ -2997,7 +3038,8 @@ class Store:
             "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
             "soft_limit": int(request_limit), "remaining": max(0, int(request_limit) - attempts),
             "token_soft_limit": int(token_limit), "token_remaining": max(0, int(token_limit) - tokens) if token_limit else 0,
-            "period": "KST day", "day_start": day_start,
+            "period": "UTC day", "day_start": day_start, "reset_at": utc_day_reset_kst_iso(),
+            "reset_label": "UTC 00:00 · 한국시간 09:00",
         }
 
     def provider_usage_last_minute(self, provider: str, stage: str) -> dict:
@@ -3068,7 +3110,8 @@ class Store:
             "tokens": tokens, "average_seconds": round(float(row["average_ms"] or 0) / 1000.0, 2),
             "soft_limit": int(soft_limit), "remaining": max(0, int(soft_limit) - attempts),
             "token_soft_limit": 0, "token_remaining": 0,
-            "period": "UTC day", "day_start": day_start, "scope": "provider_total",
+            "period": "UTC day", "day_start": day_start, "reset_at": utc_day_reset_kst_iso(),
+            "reset_label": "UTC 00:00 · 한국시간 09:00", "scope": "provider_total",
         }
 
     def groq_usage_today(self, request_limit: int = 900, token_limit: int = 650000) -> dict:
@@ -3675,7 +3718,8 @@ class Store:
         return dict(row) if row else None
 
     def claim_next_article_analysis_job(self, lease_owner: str, provider_lane: str = "primary",
-                                        lease_seconds: int = 300) -> dict | None:
+                                        lease_seconds: int = 300,
+                                        minimum_age_seconds: int = 0) -> dict | None:
         """Claim one common-analysis job in a database transaction shared by all processes."""
         owner = str(lease_owner or "").strip()
         if not owner:
@@ -3684,13 +3728,20 @@ class Store:
         lane = str(provider_lane or "primary")[:30]
         ready_clause = "" if lane == "burst" else " AND (retry_after IS NULL OR retry_after<=?)"
         ready_params = [] if lane == "burst" else [now]
+        age_clause = ""
+        age_params: list[str] = []
+        if int(minimum_age_seconds or 0) > 0:
+            age_clause = " AND queued_at<=?"
+            age_params.append(
+                (datetime.now(KST) - timedelta(seconds=int(minimum_age_seconds))).isoformat(timespec="seconds")
+            )
         expires_at = (datetime.now(KST) + timedelta(seconds=max(60, int(lease_seconds)))).isoformat(timespec="seconds")
         with self.connect() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT id FROM article_analysis_jobs WHERE status='pending'" + ready_clause +
+                "SELECT id FROM article_analysis_jobs WHERE status='pending'" + ready_clause + age_clause +
                 " ORDER BY queued_at,rowid LIMIT 1",
-                ready_params,
+                (*ready_params, *age_params),
             ).fetchone()
             if not row:
                 return None
@@ -3699,8 +3750,8 @@ class Store:
                 """UPDATE article_analysis_jobs
                    SET status='processing',started_at=?,finished_at=NULL,duration_ms=NULL,error=NULL,
                        retry_after=NULL,attempts=attempts+1,lease_owner=?,lease_expires_at=?,provider_lane=?
-                   WHERE id=? AND status='pending'""" + ready_clause,
-                (now, owner, expires_at, lane, job_id, *ready_params),
+                   WHERE id=? AND status='pending'""" + ready_clause + age_clause,
+                (now, owner, expires_at, lane, job_id, *ready_params, *age_params),
             ).rowcount
             if not changed:
                 return None
@@ -5008,7 +5059,7 @@ class Store:
         if not clean:
             return {}
         rows = []
-        with self.connect() as connection:
+        with self.read_connect() as connection:
             for index in range(0, len(clean), 500):
                 chunk = clean[index:index + 500]
                 rows.extend(connection.execute(
@@ -5023,7 +5074,7 @@ class Store:
         if not clean:
             return {}
         rows = []
-        with self.connect() as connection:
+        with self.read_connect() as connection:
             for index in range(0, len(clean), 500):
                 chunk = clean[index:index + 500]
                 rows.extend(connection.execute(
@@ -5550,7 +5601,7 @@ class Store:
             case_scope, case_params = " AND ce.case_id=?", [case_id]
         elif organization_id:
             case_scope, case_params = " AND aa.organization_id=?", [organization_id]
-        with self.connect() as connection:
+        with self.read_connect() as connection:
             common = connection.execute(
                 "SELECT aa.status,COUNT(*) value FROM article_analyses aa JOIN article_processing_flags apf ON apf.analysis_id=aa.id "
                 "WHERE (aa.status IN ('pending','processing') OR COALESCE(aa.analyzed_at,aa.updated_at)>=?)" +
@@ -5558,7 +5609,7 @@ class Store:
                 [day_start, *common_params],
             ).fetchall()
             cases = connection.execute(
-                "SELECT ce.status,COUNT(*) value FROM case_evaluations ce "
+                "SELECT ce.status,COUNT(*) value FROM case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary "
                 "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "WHERE " + latest_case +
                 " AND (ce.status IN ('pending','processing') OR COALESCE(ce.completed_at,ce.updated_at)>=?)" +
@@ -5574,7 +5625,7 @@ class Store:
             ).fetchall()
             case_jobs = connection.execute(
                 "SELECT j.status,COUNT(*) value FROM case_evaluation_jobs j "
-                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary ON ce.id=j.case_evaluation_id "
                 "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "WHERE " + latest_case +
                 " AND (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.queued_at)>=?)" +
@@ -5593,7 +5644,7 @@ class Store:
                 "SELECT "
                 "COALESCE(SUM(CASE WHEN j.status IN ('pending','failed') AND COALESCE(j.error,'') NOT IN ('','worker_restarted') THEN 1 ELSE 0 END),0) current_errors "
                 "FROM case_evaluation_jobs j "
-                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id "
+                "JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary ON ce.id=j.case_evaluation_id "
                 "JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "WHERE " + latest_case +
                 " AND (j.status IN ('pending','processing') OR COALESCE(j.finished_at,j.started_at,j.queued_at)>=?)" + case_scope,
@@ -5615,7 +5666,7 @@ class Store:
             ).fetchone()
             case_final_error_row = connection.execute(
                 "SELECT COUNT(*) total_errors FROM case_evaluation_jobs j "
-                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "WHERE " + latest_case + " AND j.status='failed' "
                 "AND COALESCE(j.finished_at,j.started_at,j.queued_at)>=?" + case_scope,
                 [error_start, *case_params],
@@ -5628,7 +5679,7 @@ class Store:
             ).fetchone()
             case_recovered_row = connection.execute(
                 "SELECT COUNT(*) recovered FROM case_evaluation_jobs j "
-                "JOIN case_evaluations ce ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
+                "JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary ON ce.id=j.case_evaluation_id JOIN article_analyses aa ON aa.id=ce.article_analysis_id "
                 "WHERE " + latest_case + " AND j.status='completed' AND j.attempts>1 "
                 "AND COALESCE(j.finished_at,j.queued_at)>=?" + case_scope,
                 [error_start, *case_params],
@@ -5656,7 +5707,8 @@ class Store:
                      JOIN article_embeddings e ON e.article_analysis_id=aa.id
                      LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id
                      LEFT JOIN cases flow_case ON flow_case.id=acpf.case_id AND flow_case.is_active=1
-                     LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id AND flow_case.id IS NOT NULL
+                     LEFT JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary
+                       ON ce.id=acpf.evaluation_id AND flow_case.id IS NOT NULL
                      WHERE aj.status='completed' AND e.status='completed'
                        AND aj.queued_at>=?
                        AND (?='' OR ce.case_id=?) AND (?='' OR aa.organization_id=?)
@@ -6198,7 +6250,7 @@ class Store:
         elif organization_id:
             delivery_scope, delivery_params = " AND c.organization_id=?", [organization_id]
             completion_scope, completion_params = " AND c.organization_id=?", [organization_id]
-        with self.connect() as connection:
+        with self.read_connect() as connection:
             candidate_limit = min(10000, max(60, offset + limit + 31))
             candidate_sql = (
                 "SELECT aa.id FROM articles a "
@@ -6257,7 +6309,8 @@ class Store:
                   FROM article_processing_flags apf
                   JOIN article_analyses aa ON aa.id=apf.analysis_id JOIN articles a ON a.id=aa.article_id
                   LEFT JOIN article_case_processing_flags acpf ON acpf.article_id=a.id AND EXISTS (SELECT 1 FROM cases active_case WHERE active_case.id=acpf.case_id AND active_case.is_active=1)
-                  LEFT JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                  LEFT JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary
+                    ON ce.id=acpf.evaluation_id
                   LEFT JOIN cases c ON c.id=ce.case_id LEFT JOIN organizations o ON o.id=aa.organization_id"""
             if where:
                 daily_sql += " WHERE " + " AND ".join(where)
@@ -6282,7 +6335,8 @@ class Store:
                        JOIN article_analyses aa ON aa.id=apf.analysis_id AND aa.status='completed'
                        JOIN article_case_processing_flags acpf ON acpf.article_id=aa.article_id AND acpf.analysis_id=aa.id
                        JOIN cases c ON c.id=acpf.case_id AND c.is_active=1
-                       JOIN case_evaluations ce ON ce.id=acpf.evaluation_id
+                       JOIN case_evaluations ce INDEXED BY idx_case_evaluations_dashboard_summary
+                         ON ce.id=acpf.evaluation_id
                        WHERE 1=1""" + completion_scope + """
                        GROUP BY aa.article_id
                        HAVING COUNT(*)>0 AND SUM(CASE WHEN ce.status IN ('completed','excluded') THEN 0 ELSE 1 END)=0
@@ -6426,7 +6480,7 @@ class Store:
             try: threshold = float(self.get_setting("press_release_match_threshold", "65") or 65)
             except (TypeError, ValueError): threshold = 65.0
             version = self.get_setting("press_release_matcher_migration_version", "press-rag-v4-lite") or "press-rag-v4-lite"
-            with self.connect() as connection:
+            with self.read_connect() as connection:
                 match_rows = connection.execute(f"""SELECT article_id,COALESCE(SUM(CASE WHEN is_related=1 AND similarity_score>=? AND matcher_version=? THEN 1 ELSE 0 END),0) related_count,COALESCE(SUM(CASE WHEN matcher_version=? THEN 1 ELSE 0 END),0) checked_count FROM article_press_release_matches WHERE article_id IN ({marks}) GROUP BY article_id""", (threshold, version, version, *article_ids)).fetchall()
                 job_rows = connection.execute(f"SELECT article_id,COUNT(*) total_count FROM press_release_match_jobs WHERE article_id IN ({marks}) GROUP BY article_id", article_ids).fetchall()
             press_stats = {str(row["article_id"]): (int(row["related_count"] or 0), int(row["checked_count"] or 0)) for row in match_rows}
@@ -6631,14 +6685,7 @@ class Store:
             *DASHBOARD_TOPIC_TYPES, *DASHBOARD_TONES, *configured_terms,
         }
         since = (datetime.now(KST) - timedelta(days=days)).isoformat(timespec="seconds")
-        with self.connect() as connection:
-            # Existing installations predate this index. Creating it is
-            # idempotent and much cheaper than repeatedly scanning article
-            # bodies while an administrator is viewing settings.
-            connection.execute(
-                "CREATE INDEX IF NOT EXISTS idx_deliveries_case_status_sent_at "
-                "ON deliveries(case_id, status, sent_at DESC, article_id)"
-            )
+        with self.read_connect() as connection:
             # A keyword preview does not need every historical sent article.
             # First select a bounded, newest-first delivery set, then fetch
             # the comparatively large article body only for that sample.
@@ -6654,7 +6701,8 @@ class Store:
                    SELECT a.id,a.title,a.snippet,a.body,aa.summary,aa.entities,recent_sent.sent_at
                    FROM recent_sent
                    JOIN articles a ON a.id=recent_sent.article_id
-                   JOIN case_evaluations ce ON ce.article_id=recent_sent.article_id AND ce.case_id=?
+                   JOIN case_evaluations ce INDEXED BY idx_case_evaluations_case_decision_article
+                     ON ce.article_id=recent_sent.article_id AND ce.case_id=?
                      AND ce.status='completed' AND ce.decision='send'
                    JOIN article_analyses aa ON aa.id=ce.article_analysis_id AND aa.status='completed'
                    ORDER BY recent_sent.sent_at DESC""",
@@ -6758,7 +6806,7 @@ class Store:
                 **extra,
             })
 
-        with self.connect() as connection:
+        with self.read_connect() as connection:
             disabled_rows = connection.execute(
                 "SELECT key,value,updated_at FROM app_settings WHERE key LIKE 'llm_provider_disabled_until:%' ORDER BY updated_at DESC"
             ).fetchall()
