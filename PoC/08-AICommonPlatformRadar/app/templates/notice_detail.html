@@ -1,17 +1,65 @@
 {% extends "base.html" %}
 {% block title %}{{ notice.title }} · 공통기반 사업 레이더{% endblock %}
 {% block content %}
-<a class="back" href="/notices">← 공고 목록</a>
-<section class="detail-head"><div><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><h1>{{ notice.title }}</h1><p>{{ notice.agency_name }} · 공고번호 {{ notice.notice_no }}</p></div>{% if notice.decision %}<div class="decision-badge"><span class="grade grade-{{ notice.decision.final_grade }}">{{ notice.decision.final_grade }}</span><strong>{{ notice.decision.priority_score }}점</strong><small>우선순위</small></div>{% endif %}</section>
-<section class="detail-grid">
-  <div class="detail-main">
-    <article class="panel"><div class="panel-head"><div><span class="eyebrow">ASSESSMENT</span><h2>후보 판정</h2></div><button class="button" data-analyze="{{ notice.id }}">다시 분석</button></div>
-    {% if notice.decision %}<p class="lead">{{ notice.decision.summary }}</p><div class="fact-grid"><div><span>AI 관련도</span><strong>{{ notice.decision.ai_relevance }}</strong></div><div><span>공통기반 적합도</span><strong>{{ notice.decision.common_platform_fit }}</strong></div><div><span>활용 문구</span><strong>{{ notice.decision.usage_mentioned }}</strong></div><div><span>권고 조치</span><strong>{{ notice.decision.recommended_action }}</strong></div></div>{% else %}<div class="empty">아직 분석되지 않았습니다.</div>{% endif %}</article>
-    {% if decision_data %}<article class="panel"><span class="eyebrow">SOURCE EVIDENCE</span><h2>원문 근거</h2>{% for evidence in decision_data.evidence %}<blockquote>“{{ evidence.quote }}”<small>{{ evidence.section }} · {{ evidence.interpretation }}</small></blockquote>{% else %}<div class="empty">직접 인용 근거가 없어 수동 검토가 필요합니다.</div>{% endfor %}</article>
-    <article class="panel"><span class="eyebrow">QUESTIONS</span><h2>담당자 확인 질문</h2><ol class="questions">{% for question in decision_data.check_questions %}<li>{{ question }}</li>{% else %}<li>추가 확인 질문이 없습니다.</li>{% endfor %}</ol></article>{% endif %}
-    <article class="panel"><span class="eyebrow">DOCUMENTS</span><h2>첨부 및 추출 본문</h2>{% for attachment in notice.attachments %}<details><summary><strong>{{ attachment.original_filename }}</strong><span class="status">{{ attachment.parse_status }}</span></summary>{% if attachment.parse_error %}<p class="error">{{ attachment.parse_error }}</p>{% endif %}<pre>{{ attachment.text_excerpt or '추출 본문 없음' }}</pre></details>{% else %}<div class="empty">첨부가 없습니다.</div>{% endfor %}</article>
+<a class="back" href="{{ url_for('notices_page').path }}">← 공고 목록</a>
+<section class="detail-head compact-detail-head">
+  <div>
+    <div class="badge-row"><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><span class="analysis-badge analysis-{{ analysis.key }}">{{ analysis.label }}</span>{% if analysis.classification_code %}<span class="category-tag category-{{ analysis.classification_code }}"><b>{{ analysis.classification_code }}</b>{{ analysis.classification_label }}</span>{% endif %}</div>
+    <h1>{{ notice.title }}</h1>
+    <p>{{ notice.agency_name }} · 공고번호 {{ notice.notice_no }}</p>
+    <p class="notice-period"><strong>{{ '의견등록 기간' if notice.stage == 'prenotice' else '공고기간' }}</strong> {{ format_datetime(notice.posted_at) }} ~ {{ format_datetime(notice.deadline_at) }} <span class="deadline">{{ deadline_label(notice.deadline_at) }}</span></p>
   </div>
-  <aside><article class="panel sticky"><span class="eyebrow">ACTION TRACKING</span><h2>조치 관리</h2>{% if notice.action %}<form data-action-form="{{ notice.action.id }}"><label>상태<select name="status"><option value="new">신규</option><option value="reviewing">검토중</option><option value="contacted">연락완료</option><option value="reflected">반영확인</option><option value="not_reflected">미반영확인</option><option value="closed">종료</option></select></label><label>담당자<input name="owner" value="{{ notice.action.owner or '' }}" placeholder="담당자"></label><label>메모<textarea name="memo" rows="6">{{ notice.action.memo or '' }}</textarea></label><button class="button primary">저장</button></form>{% else %}<p>분석 후 조치 항목이 생성됩니다.</p>{% endif %}</article></aside>
+  <div class="detail-actions"><button class="button" data-analyze="{{ notice.id }}">{{ '다시 심층검토' if analysis.key == 'deep_completed' else '심층검토 실행' }}</button>{% if workflow.opinion_url %}<a class="button primary" href="{{ workflow.opinion_url }}" target="_blank" rel="noopener">{{ '나라장터 의견등록 ↗' if notice.stage == 'prenotice' else '원문 공고 ↗' }}</a>{% endif %}</div>
+</section>
+
+<article class="panel trace-panel">
+  <div class="panel-head compact-head"><div><span class="eyebrow">ANALYSIS TRACE</span><h2>이 판정이 만들어진 과정</h2></div><div class="analysis-meta">{% if analysis.model_name %}<span>최종 모델 {{ analysis.model_name }}</span>{% endif %}{% if analysis.created_at %}<span>{{ format_datetime(analysis.created_at) }}</span>{% endif %}</div></div>
+  <ol class="analysis-trace">
+    {% for step in analysis_trace %}
+    <li class="trace-{{ step.status }}"><span class="step-number">{{ step.number }}</span><div><strong>{{ step.label }}</strong><p>{{ step.detail }}</p>{% if step.model %}<small>모델 · {{ step.model }}</small>{% endif %}</div></li>
+    {% endfor %}
+  </ol>
+  {% if analysis.error %}<p class="error trace-warning">유효한 판정은 유지했습니다. 최근 재시도 오류: {{ analysis.error }}</p>{% endif %}
+</article>
+
+<section class="detail-grid compact-detail-grid">
+  <div class="detail-main">
+    <article class="panel finding-panel">
+      <div class="panel-head compact-head"><div><span class="eyebrow">FINDING & ACTION</span><h2>{% if workflow.action_required %}문제 발견 · 조치 필요{% elif analysis.classification_code %}판정 결과{% else %}아직 판정 대기{% endif %}</h2></div>{% if analysis.classification_code %}<span class="category-tag category-{{ analysis.classification_code }}"><b>{{ analysis.classification_code }}</b>{{ analysis.classification_label }}</span>{% endif %}</div>
+      {% if notice.decision and analysis.key != 'criteria_outdated' %}<p class="lead compact-lead">{{ notice.decision.summary }}</p>{% elif analysis.result %}<p class="lead compact-lead">{{ analysis.result.reason or analysis.result.summary }}</p>{% else %}<p class="empty">심층분석 완료 후 발견 항목과 조치 문안을 표시합니다.</p>{% endif %}
+      {% if workflow.findings %}
+      <div class="finding-list">{% for finding in workflow.findings %}<section><span>{{ finding.gate }}</span><div><strong>{{ finding.problem }}</strong><p>{{ finding.action }}</p></div></section>{% endfor %}</div>
+      {% endif %}
+      {% if workflow.action_required and workflow.guidance_message %}
+      <div class="opinion-box"><div><strong>{{ '나라장터 사전규격 의견 문안' if notice.stage == 'prenotice' else '본공고 반영 확인 문안' }}</strong><small>{% if notice.stage == 'prenotice' %}문안을 복사한 뒤 나라장터 로그인 화면에서 의견 내용에 붙여넣으세요.{% else %}본공고 문서의 반영 여부를 확인하는 데 사용하세요.{% endif %}</small></div><textarea readonly rows="6" id="detail-opinion">{{ workflow.guidance_message }}</textarea><div class="opinion-actions"><button class="button" type="button" data-copy-target="#detail-opinion">의견 문안 복사</button>{% if workflow.opinion_url %}<a class="button primary" href="{{ workflow.opinion_url }}" target="_blank" rel="noopener">{{ '나라장터 의견등록 열기 ↗' if notice.stage == 'prenotice' else '원문 공고 열기 ↗' }}</a>{% endif %}</div></div>
+      {% endif %}
+    </article>
+
+    {% if analysis.key == 'criteria_outdated' %}
+    <article class="panel criteria-warning"><h2>3대 기본조건 재검증 필요</h2><p>이전 결과는 새 판정에 사용하지 않습니다. 망·국가사무·모델 적합성을 새 기준으로 다시 검증해야 합니다.</p></article>
+    {% elif analysis.result.criteria_version == 'common-platform-v3-six-categories' %}
+    <article class="panel">
+      <div class="panel-head compact-head"><div><span class="eyebrow">THREE REQUIRED CONDITIONS</span><h2>기본조건과 사용 여부</h2></div><span class="eligibility-state eligibility-{{ analysis.result.eligibility }}">{{ gate_labels.eligibility.get(analysis.result.eligibility, '확인 필요') }}</span></div>
+      <div class="eligibility-grid compact-gates">
+        <section><span>1 · 망·데이터</span><strong>{{ gate_labels.network.get(analysis.result.network_scope, '망 구성 미확인') }}</strong><p>{{ analysis.result.network_reason }}</p>{% for item in analysis.result.network_evidence %}<small>“{{ item.quote }}”</small>{% endfor %}</section>
+        <section><span>2 · 국가사무</span><strong>{{ gate_labels.task.get(analysis.result.task_scope, '국가사무 여부 미확인') }}</strong><p>{{ analysis.result.task_scope_reason }}</p>{% for item in analysis.result.task_scope_evidence %}<small>“{{ item.quote }}”</small>{% endfor %}</section>
+        <section><span>3 · 모델·기능</span><strong>{{ gate_labels.model.get(analysis.result.model_fit, '모델 요구 미확인') }}</strong><p>{{ analysis.result.model_fit_reason }}</p>{% for item in analysis.result.model_fit_evidence %}<small>“{{ item.quote }}”</small>{% endfor %}</section>
+        <section><span>공통기반 사용</span><strong>{{ gate_labels.usage.get(analysis.result.platform_usage, '사용 여부 미확인') }}</strong><p>{{ analysis.result.platform_usage_reason }}</p>{% for item in analysis.result.platform_usage_evidence %}<small>“{{ item.quote }}”</small>{% endfor %}</section>
+        <section><span>망·모델 전환</span><strong>{{ gate_labels.remediation.get(analysis.result.remediation_feasibility, '변경 가능성 미확인') }}</strong><p>{{ analysis.result.remediation_reason }}</p>{% for item in analysis.result.remediation_evidence %}<small>“{{ item.quote }}”</small>{% endfor %}</section>
+      </div>
+    </article>
+    {% endif %}
+
+    {% if decision_data and analysis.key != 'criteria_outdated' %}
+    <details class="panel detail-disclosure" open><summary><div><span class="eyebrow">SOURCE EVIDENCE</span><h2>원문 근거와 확인 질문</h2></div><span>펼치기</span></summary>
+      {% for evidence in decision_data.evidence %}<blockquote>“{{ evidence.quote }}”<small>{{ evidence.section }} · {{ evidence.interpretation }}</small></blockquote>{% else %}<div class="empty">직접 인용 근거가 없어 수동 검토가 필요합니다.</div>{% endfor %}
+      <h3>담당자 확인 질문</h3><ol class="questions">{% for question in decision_data.check_questions %}<li>{{ question }}</li>{% else %}<li>추가 확인 질문이 없습니다.</li>{% endfor %}</ol>
+      {% if decision_data.possible_functions %}<h3>적용 가능한 공통기반 기능</h3><div class="tag-list">{% for item in decision_data.possible_functions %}<span class="function-tag">{{ item }}</span>{% endfor %}</div>{% endif %}
+    </details>
+    {% endif %}
+    <details class="panel detail-disclosure"><summary><div><span class="eyebrow">DOCUMENTS</span><h2>분석한 사업 문서</h2></div><span>{{ business_attachments|length }}건</span></summary>{% for attachment in business_attachments %}<details><summary><strong>{{ attachment.original_filename }}</strong><span class="status">{{ attachment.parse_status }}</span></summary>{% if attachment.parse_error %}<p class="error">{{ attachment.parse_error }}</p>{% endif %}<pre>{{ attachment.text_excerpt or '추출 본문 없음' }}</pre></details>{% else %}<div class="empty">분석 대상 사업 문서가 없습니다.</div>{% endfor %}</details>
+  </div>
+
+  <aside><article class="panel sticky action-tracking"><span class="eyebrow">ACTION TRACKING</span><h2>조치 기록</h2><p>의견 제출과 본공고 반영 결과를 남기면 일일 보고서에 집계됩니다.</p>{% if notice.action %}<form data-action-form="{{ notice.action.id }}"><label>상태<select name="status">{% for value, label in [('new','신규'),('reviewing','검토중'),('contacted','의견·연락 완료'),('reflected','반영확인'),('not_reflected','미반영확인'),('closed','종료')] %}<option value="{{ value }}" {% if notice.action.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><label>담당자<input name="owner" value="{{ notice.action.owner or '' }}" placeholder="내부 담당자"></label><label>메모<textarea name="memo" rows="6" placeholder="제출한 의견, 기관 답변, 후속 조치">{{ notice.action.memo or '' }}</textarea></label><button class="button primary">조치 기록 저장</button></form>{% else %}<p class="empty">조치 유형이 확정되면 관리 항목이 생성됩니다.</p>{% endif %}</article></aside>
 </section>
 {% endblock %}
-

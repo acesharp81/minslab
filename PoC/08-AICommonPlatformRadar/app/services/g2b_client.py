@@ -72,7 +72,10 @@ def _items(payload: dict[str, Any]) -> list[dict[str, Any]]:
     if code not in {"00", "0"}:
         raise RuntimeError(f"G2B API 오류 {code}: {header.get('resultMsg', 'unknown')}")
     body = response.get("body", {})
-    item = body.get("items", {}).get("item", []) if isinstance(body.get("items"), dict) else []
+    items = body.get("items", [])
+    if isinstance(items, list):
+        return [item for item in items if isinstance(item, dict)]
+    item = items.get("item", []) if isinstance(items, dict) else []
     if isinstance(item, dict):
         return [item]
     return item or []
@@ -193,9 +196,12 @@ class G2BClient:
         bid_no = str(item.get("bidNtceNo") or "").strip()
         order = str(item.get("bidNtceOrd") or "00").strip()
         attachment_urls = []
-        for key in ("ntceSpecDocUrl1", "ntceSpecDocUrl2", "eorderAtchFileUrl"):
-            if url := str(item.get(key) or "").strip():
-                attachment_urls.append(G2BAttachment(PathLike.name(url), url))
+        for index in range(1, 11):
+            if url := str(item.get(f"ntceSpecDocUrl{index}") or "").strip():
+                name = str(item.get(f"ntceSpecFileNm{index}") or PathLike.name(url)).strip()
+                attachment_urls.append(G2BAttachment(name, url))
+        if url := str(item.get("eorderAtchFileUrl") or "").strip():
+            attachment_urls.append(G2BAttachment(PathLike.name(url), url))
         return G2BNotice(
             "bid_notice", f"{bid_no}-{order}", bid_no, str(item.get("dminsttNm") or item.get("ntceInsttNm") or ""),
             str(item.get("dminsttCd") or item.get("ntceInsttCd") or "") or None,

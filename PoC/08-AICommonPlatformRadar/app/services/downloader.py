@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import mimetypes
 from dataclasses import dataclass
+from email.message import Message
+from email.utils import collapse_rfc2231_value
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
@@ -35,10 +37,14 @@ def validate_download_url(url: str, settings: Settings | None = None) -> None:
 
 def _filename_from_response(url: str, response: httpx.Response) -> str:
     disposition = response.headers.get("content-disposition", "")
-    marker = "filename="
-    if marker in disposition.lower():
-        raw = disposition[disposition.lower().index(marker) + len(marker):].strip().strip('"')
-        return safe_original_name(unquote(raw))
+    if disposition:
+        message = Message()
+        message["content-disposition"] = disposition
+        raw = message.get_param("filename", header="content-disposition")
+        if isinstance(raw, tuple):
+            raw = collapse_rfc2231_value(raw)
+        if raw:
+            return safe_original_name(unquote(str(raw)))
     return safe_original_name(unquote(Path(urlparse(url).path).name))
 
 
@@ -73,8 +79,14 @@ def download_attachment(url: str, settings: Settings | None = None) -> DownloadR
         if not content:
             raise ValueError("0바이트 파일")
         if not ext:
+            suffix = Path(name).suffix.lower().lstrip(".")
+            if suffix:
+                return DownloadResult(
+                    "unsupported",
+                    original_filename=name,
+                    error=f"지원하지 않는 첨부 형식: {suffix[:20]}",
+                )
             raise ValueError("허용 확장자를 확인할 수 없음")
         return DownloadResult("downloaded", content, name, ext, sha256_bytes(content))
     except Exception as exc:
         return DownloadResult("download_failed", error=f"{type(exc).__name__}: {str(exc)[:500]}")
-

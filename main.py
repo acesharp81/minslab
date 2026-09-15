@@ -93,6 +93,13 @@ NATIONAL_ASSEMBLY_BASE_PATH = "/poc/national-assembly"
 NATIONAL_ASSEMBLY_UPSTREAM = env_first(
     "NATIONAL_ASSEMBLY_UPSTREAM", default="http://127.0.0.1:18070"
 ).rstrip("/")
+AI_COMMON_RADAR_BASE_PATH = "/poc/ai-common-platform-radar"
+AI_COMMON_RADAR_UPSTREAM = env_first(
+    "AI_COMMON_RADAR_UPSTREAM", default="http://127.0.0.1:18080"
+).rstrip("/")
+AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
+    5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
+)
 NATIONAL_ASSEMBLY_SESSION_COOKIE = env_first(
     "WATCH_SESSION_COOKIE_NAME", default="gukjeongbomi_session"
 )
@@ -120,6 +127,12 @@ def _poc07_setting(name: str) -> str:
 NATIONAL_ASSEMBLY_ADMIN_TOKEN = _poc07_setting("WATCH_ADMIN_TOKEN")
 NATIONAL_ASSEMBLY_SECURITY_HEADERS = [
     (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'self'; form-action 'self' https://kauth.kakao.com"),
+    (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
+    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+    (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
+]
+AI_COMMON_RADAR_SECURITY_HEADERS = [
+    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'"),
     (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
     (b"referrer-policy", b"strict-origin-when-cross-origin"),
     (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
@@ -2261,13 +2274,16 @@ async def app(scope, receive, send):
         nonlocal response_status, response_observed
         if message["type"] == "http.response.start":
             response_status = int(message.get("status", 500))
-            if path == NATIONAL_ASSEMBLY_BASE_PATH or path.startswith(
-                f"{NATIONAL_ASSEMBLY_BASE_PATH}/"
-            ):
+            security_headers = None
+            if path == NATIONAL_ASSEMBLY_BASE_PATH or path.startswith(f"{NATIONAL_ASSEMBLY_BASE_PATH}/"):
+                security_headers = NATIONAL_ASSEMBLY_SECURITY_HEADERS
+            elif path == AI_COMMON_RADAR_BASE_PATH or path.startswith(f"{AI_COMMON_RADAR_BASE_PATH}/"):
+                security_headers = AI_COMMON_RADAR_SECURITY_HEADERS
+            if security_headers:
                 response_headers = list(message.get("headers", []))
                 existing_names = {name.lower() for name, _ in response_headers}
                 response_headers.extend(
-                    item for item in NATIONAL_ASSEMBLY_SECURITY_HEADERS
+                    item for item in security_headers
                     if item[0] not in existing_names
                 )
                 message["headers"] = response_headers
@@ -2287,6 +2303,112 @@ async def app(scope, receive, send):
     send = monitored_send
 
     presentation_prefix = f"{PRESENTATION_BASE_PATH}/"
+    if path == AI_COMMON_RADAR_BASE_PATH and method in {"GET", "HEAD"}:
+        location = f"{AI_COMMON_RADAR_BASE_PATH}/"
+        await send({"type": "http.response.start", "status": 307, "headers": [(b"location", location.encode("ascii")), (b"cache-control", b"no-store")]})
+        await send({"type": "http.response.body", "body": b""})
+        return
+
+    if path.startswith(f"{AI_COMMON_RADAR_BASE_PATH}/"):
+        allowed_methods = {"GET", "HEAD", "POST", "PATCH"}
+        if method not in allowed_methods:
+            body = b'{"detail":"method not allowed"}'
+            headers = [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+                (b"allow", b"GET, HEAD, POST, PATCH"),
+            ]
+            await send({"type": "http.response.start", "status": 405, "headers": headers})
+            await send({"type": "http.response.body", "body": body})
+            return
+        if method in {"POST", "PATCH"} and not admin_session(scope):
+            body = json.dumps(
+                {"detail": "홈페이지 관리자 로그인이 필요합니다."},
+                ensure_ascii=False,
+            ).encode("utf-8")
+            headers = [
+                (b"content-type", b"application/json; charset=utf-8"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+            ]
+            await send({"type": "http.response.start", "status": 401, "headers": headers})
+            await send({"type": "http.response.body", "body": body})
+            return
+
+        relative_path = path[len(AI_COMMON_RADAR_BASE_PATH):] or "/"
+        query_string = scope.get("query_string", b"").decode("ascii", errors="ignore")
+        upstream_url = f"{AI_COMMON_RADAR_UPSTREAM}{relative_path}"
+        if query_string:
+            upstream_url = f"{upstream_url}?{query_string}"
+        request_headers = scope_headers(scope)
+        upstream_headers = {
+            "Accept": request_headers.get("accept", "*/*"),
+            "X-Forwarded-Prefix": AI_COMMON_RADAR_BASE_PATH,
+            "X-Forwarded-Proto": request_headers.get("x-forwarded-proto", "https"),
+        }
+        if request_headers.get("host"):
+            upstream_headers["Host"] = request_headers["host"]
+        for forwarded_name in ("authorization", "origin", "referer"):
+            if request_headers.get(forwarded_name):
+                upstream_headers[forwarded_name.title()] = request_headers[forwarded_name]
+        upstream_body = None
+        if method in {"POST", "PATCH"}:
+            upstream_body = await read_request_body(receive)
+            if len(upstream_body) > 1_048_576:
+                body = b'{"detail":"request body too large"}'
+                headers = [(b"content-type", b"application/json"), (b"content-length", str(len(body)).encode("ascii"))]
+                await send({"type": "http.response.start", "status": 413, "headers": headers})
+                await send({"type": "http.response.body", "body": body})
+                return
+            upstream_headers["Content-Type"] = request_headers.get("content-type", "application/json")
+        try:
+            upstream_method = "GET" if method == "HEAD" else method
+            request = url_request.Request(
+                upstream_url,
+                data=upstream_body,
+                method=upstream_method,
+                headers=upstream_headers,
+            )
+            try:
+                response = await asyncio.to_thread(
+                    url_request.urlopen,
+                    request,
+                    timeout=AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS,
+                )
+            except url_error.HTTPError as error:
+                response = error
+            with response:
+                status = int(response.status)
+                body = b"" if method == "HEAD" else await asyncio.to_thread(response.read)
+                content_type = response.headers.get("content-type", "application/octet-stream")
+                location = response.headers.get("location")
+                content_dispositions = response.headers.get_all("content-disposition", [])
+            headers = [
+                (b"content-type", content_type.encode("latin-1")),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+                (b"x-frame-options", b"SAMEORIGIN"),
+                (b"x-content-type-options", b"nosniff"),
+            ]
+            if location:
+                if location.startswith("/") and not location.startswith(f"{AI_COMMON_RADAR_BASE_PATH}/"):
+                    location = f"{AI_COMMON_RADAR_BASE_PATH}{location}"
+                headers.append((b"location", location.encode("latin-1")))
+            for value in content_dispositions:
+                headers.append((b"content-disposition", value.encode("latin-1")))
+        except (OSError, url_error.URLError, TimeoutError) as error:
+            status = 503
+            body = json.dumps(
+                {"detail": "PoC 8 공통기반 사업 레이더에 연결할 수 없습니다."},
+                ensure_ascii=False,
+            ).encode("utf-8")
+            headers = [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store")]
+            print(f"AI Common Radar upstream unavailable: {error}", file=sys.stderr)
+        await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": body})
+        return
+
     if path == NATIONAL_ASSEMBLY_BASE_PATH and method in {"GET", "HEAD"}:
         location = f"{NATIONAL_ASSEMBLY_BASE_PATH}/"
         await send({"type": "http.response.start", "status": 307, "headers": [(b"location", location.encode("ascii")), (b"cache-control", b"no-store")]})

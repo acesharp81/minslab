@@ -35,6 +35,13 @@ def _int(name: str, default: int) -> int:
         return default
 
 
+def _float(name: str, default: float) -> float:
+    try:
+        return float(os.getenv(name, str(default)))
+    except ValueError:
+        return default
+
+
 def _first_env(*names: str, default: str = "") -> str:
     for name in names:
         value = os.getenv(name)
@@ -51,6 +58,8 @@ def _provider_api_key(provider: str, explicit_name: str) -> str:
         "gemini": ("GEMINI_API_KEY", "GOOGLE_AI_STUDIO_API_KEY", "Google_AI_STUDIO_API_KEY"),
         "openai": ("OPENAI_API_KEY", "OpenAI_API_KEY"),
         "nvidia": ("NVIDIA_API_KEY", "NGC_API_KEY"),
+        "kimi": ("KIMI_API_KEY",),
+        "cohere": ("COHERE_API_KEY",),
         "openai_compatible": ("LLM_API_KEY",),
     }
     return _first_env(*aliases.get(provider, ()), default="")
@@ -113,6 +122,7 @@ class Settings:
     stage2_model: str
     stage2_timeout_seconds: int
     stage2_max_input_chars: int
+    stage2_min_interval_seconds: float
     stage3_primary_provider: str
     stage3_primary_base_url: str
     stage3_primary_api_key: str
@@ -130,6 +140,9 @@ class Settings:
     daily_report_hour: int
     max_files_per_notice: int
     max_file_size_mb: int
+    hwp_cli_path: str
+    hwp_parse_timeout_seconds: int
+    hwp_parse_max_output_mb: int
     high_budget_review_won: int
     download_allowed_hosts: tuple[str, ...]
     admin_username: str
@@ -166,7 +179,7 @@ class Settings:
             problems.append("G2B_MODE=live에는 G2B_SERVICE_KEY가 필요합니다.")
         if bool(self.supabase_url) != bool(self.supabase_service_role_key):
             problems.append("Supabase REST 사용에는 URL과 SERVICE_ROLE_KEY가 모두 필요합니다.")
-        supported = {"mock", "gemini", "openai", "nvidia", "openai_compatible"}
+        supported = {"mock", "gemini", "openai", "nvidia", "kimi", "cohere", "openai_compatible"}
         endpoints = (
             ("STAGE2", self.stage2_provider, self.stage2_api_key),
             ("STAGE3_PRIMARY", self.stage3_primary_provider, self.stage3_primary_api_key),
@@ -181,6 +194,12 @@ class Settings:
             problems.append("STAGE3_DAILY_LIMIT는 1 이상이어야 합니다.")
         if self.stage3_max_concurrency < 1:
             problems.append("STAGE3_MAX_CONCURRENCY는 1 이상이어야 합니다.")
+        if self.stage2_min_interval_seconds < 0:
+            problems.append("STAGE2_MIN_INTERVAL_SECONDS는 0 이상이어야 합니다.")
+        if self.hwp_parse_timeout_seconds < 1:
+            problems.append("HWP_PARSE_TIMEOUT_SECONDS는 1 이상이어야 합니다.")
+        if self.hwp_parse_max_output_mb < 1:
+            problems.append("HWP_PARSE_MAX_OUTPUT_MB는 1 이상이어야 합니다.")
         if self.app_env == "production" and not self.auth_enabled:
             problems.append("production에는 ADMIN_TOKEN 또는 Basic Auth 계정이 필요합니다.")
         return problems
@@ -223,20 +242,21 @@ def get_settings() -> Settings:
         stage2_provider=stage2_provider,
         stage2_base_url=os.getenv(
             "STAGE2_BASE_URL",
-            "https://generativelanguage.googleapis.com/v1beta/openai" if stage2_provider == "gemini" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
+            "https://generativelanguage.googleapis.com/v1beta/openai" if stage2_provider == "gemini" else "https://api.moonshot.ai/v1" if stage2_provider == "kimi" else "https://api.cohere.ai/compatibility/v1" if stage2_provider == "cohere" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
         ).rstrip("/"),
         stage2_api_key=_provider_api_key(stage2_provider, "STAGE2_API_KEY"),
-        stage2_model=os.getenv("STAGE2_MODEL", "gemini-2.5-flash-lite" if stage2_provider == "gemini" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
+        stage2_model=os.getenv("STAGE2_MODEL", "gemini-2.5-flash-lite" if stage2_provider == "gemini" else "kimi-k2.6" if stage2_provider == "kimi" else "command-a-plus-05-2026" if stage2_provider == "cohere" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
         stage2_timeout_seconds=_int("STAGE2_TIMEOUT_SECONDS", _int("LLM_TIMEOUT_SECONDS", 90)),
         stage2_max_input_chars=_int("STAGE2_MAX_INPUT_CHARS", 8_000),
+        stage2_min_interval_seconds=_float("STAGE2_MIN_INTERVAL_SECONDS", 7.0 if stage2_provider == "gemini" else 0.0),
         stage3_primary_provider=stage3_provider,
         stage3_primary_base_url=os.getenv(
             "STAGE3_PRIMARY_BASE_URL",
-            "https://api.openai.com/v1" if stage3_provider == "openai" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
+            "https://api.moonshot.ai/v1" if stage3_provider == "kimi" else "https://api.cohere.ai/compatibility/v1" if stage3_provider == "cohere" else "https://integrate.api.nvidia.com/v1" if stage3_provider == "nvidia" else "https://api.openai.com/v1" if stage3_provider == "openai" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
         ).rstrip("/"),
         stage3_primary_api_key=_provider_api_key(stage3_provider, "STAGE3_PRIMARY_API_KEY"),
-        stage3_primary_model=os.getenv("STAGE3_PRIMARY_MODEL", "gpt-5.4-mini" if stage3_provider == "openai" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
-        stage3_primary_reasoning_effort=os.getenv("STAGE3_PRIMARY_REASONING_EFFORT", "medium").lower(),
+        stage3_primary_model=os.getenv("STAGE3_PRIMARY_MODEL", "kimi-k2.6" if stage3_provider == "kimi" else "command-a-plus-05-2026" if stage3_provider == "cohere" else "gpt-5.4-mini" if stage3_provider == "openai" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
+        stage3_primary_reasoning_effort=os.getenv("STAGE3_PRIMARY_REASONING_EFFORT", "low").lower(),
         stage3_fallback_provider=fallback_provider,
         stage3_fallback_base_url=os.getenv(
             "STAGE3_FALLBACK_BASE_URL",
@@ -248,10 +268,13 @@ def get_settings() -> Settings:
         stage3_max_input_chars=_int("STAGE3_MAX_INPUT_CHARS", 100_000),
         stage3_daily_limit=_int("STAGE3_DAILY_LIMIT", 10),
         stage3_max_concurrency=_int("STAGE3_MAX_CONCURRENCY", 1),
-        collect_lookback_days=_int("COLLECT_LOOKBACK_DAYS", 3),
-        daily_report_hour=_int("DAILY_REPORT_HOUR", 8),
+        collect_lookback_days=_int("COLLECT_LOOKBACK_DAYS", 1),
+        daily_report_hour=_int("DAILY_REPORT_HOUR", 7),
         max_files_per_notice=_int("MAX_FILES_PER_NOTICE", 20),
         max_file_size_mb=_int("MAX_FILE_SIZE_MB", 80),
+        hwp_cli_path=os.getenv("HWP_CLI_PATH", "/usr/local/bin/hwp"),
+        hwp_parse_timeout_seconds=_int("HWP_PARSE_TIMEOUT_SECONDS", 30),
+        hwp_parse_max_output_mb=_int("HWP_PARSE_MAX_OUTPUT_MB", 10),
         high_budget_review_won=_int("HIGH_BUDGET_REVIEW_WON", 100_000_000),
         download_allowed_hosts=tuple(x.strip().lower() for x in os.getenv("DOWNLOAD_ALLOWED_HOSTS", "apis.data.go.kr,nopenapi.g2b.go.kr,g2b.go.kr,www.g2b.go.kr").split(",") if x.strip()),
         admin_username=os.getenv("ADMIN_USERNAME", ""),

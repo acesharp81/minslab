@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry PoC08 collection at 04:40 KST when needed
+
+[Timer]
+OnCalendar=*-*-* 04:40:00 Asia/Seoul
+Persistent=true
+Unit=poc08-retry.service
+
+[Install]
+WantedBy=timers.target

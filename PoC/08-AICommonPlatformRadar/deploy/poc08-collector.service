@@ -1,0 +1,9 @@
+[Unit]
+Description=PoC08 AI common platform radar primary collection
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec poc08-ai-common-platform-radar python scripts/run_operational_batch.py --phase primary
+TimeoutStartSec=7000

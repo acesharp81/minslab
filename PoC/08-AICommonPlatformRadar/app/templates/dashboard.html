@@ -1,30 +1,72 @@
 {% extends "base.html" %}
 {% block title %}대시보드 · 공통기반 사업 레이더{% endblock %}
 {% block content %}
-<section class="hero">
-  <div><span class="eyebrow">DAILY PROCUREMENT SIGNAL</span><h1>오늘 확인할 AI 사업을<br>근거와 함께 좁혀드립니다.</h1><p>공개 제안요청서에서 공통기반 활용 가능 기능과 담당자 확인 질문을 선별합니다.</p></div>
-  <div class="hero-status"><span class="pulse"></span><strong>모니터링 준비</strong><small>AI 판정은 후보 선별이며 최종 판단이 아닙니다.</small></div>
+<section class="dashboard-head">
+  <div><span class="eyebrow">TODAY'S DECISION FLOW</span><h1>오늘의 공통기반 검토</h1><p>수집부터 유형 판정과 조치까지, 한 흐름으로 확인합니다.</p></div>
+  <div class="batch-chip state-{{ reconciliation.state if reconciliation.state == 'ready' else batch.state }}"><span class="status-dot"></span><div><strong>{{ reconciliation.label if reconciliation.state == 'ready' else batch.label }}</strong><small>{% if reconciliation.state == 'ready' %}현재 분류 {{ reconciliation.classified }}/{{ reconciliation.total }}건 · 미해결 {{ reconciliation.unresolved }}건{% elif batch.started_at %}최근 배치 {{ batch.started_at }}{% else %}실행 기록 없음{% endif %} · 03:10 수집 / 04:40 재시도 / 07:00 보고서</small></div></div>
 </section>
-<section class="metric-grid">
-  <article class="metric"><span>오늘 신규</span><strong>{{ metrics.today }}</strong><small>수집 공고</small></article>
-  <article class="metric"><span>심층검토</span><strong>{{ metrics.deep }}</strong><small>누적 후보</small></article>
-  <article class="metric accent"><span>우선 조치</span><strong>{{ metrics.priority }}</strong><small>담당자 확인</small></article>
-  <article class="metric danger"><span>파싱 이슈</span><strong>{{ metrics.failed }}</strong><small>재처리 대상</small></article>
+
+<nav class="workflow-strip" aria-label="오늘 처리 단계">
+  {% for step in workflow_steps %}
+  <a class="workflow-step" href="{{ url_for('notices_page').path }}{{ step.href }}">
+    <span class="step-number">{{ step.number }}</span>
+    <span><small>{{ step.label }}</small><strong>{{ step.value }}건</strong><em>{{ step.detail }}</em></span>
+  </a>
+  {% endfor %}
+</nav>
+
+<section class="panel action-first">
+  <div class="panel-head compact-head">
+    <div><span class="eyebrow">ACTION REQUIRED</span><h2>지금 조치할 사업</h2><p>지금 처리해야 할 항목 중 2·3·4유형입니다. 사전규격은 의견 문안을 복사해 나라장터에서 바로 등록할 수 있습니다.</p></div>
+    <div class="action-count"><strong>{{ priorities|length }}</strong><span>표시 중</span><small>오늘 조치 {{ actioned_today }}건</small></div>
+  </div>
+  <div class="action-list">
+    {% for row in priorities %}{% set notice = row.notice %}{% set wf = row.workflow %}
+    <article class="action-row">
+      <div class="action-ident">
+        <div class="badge-row"><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><span class="category-tag category-{{ wf.classification_code }}"><b>{{ wf.classification_code }}</b>{{ wf.classification_label }}</span><span class="action-status">{{ wf.action_status }}</span></div>
+        <a class="action-title" href="{{ url_for('notice_detail', notice_id=notice.id).path }}">{{ notice.title }}</a>
+        <small>{{ notice.agency_name }} · {{ format_datetime(notice.posted_at) if format_datetime is defined else '' }} ~ {{ format_datetime(notice.deadline_at) if format_datetime is defined else '' }} · {{ row.deadline }}</small>
+      </div>
+      <div class="action-finding">
+        <div class="issue-tags">{% for label in wf.issue_labels %}<span>{{ label }}</span>{% endfor %}</div>
+        {% if wf.findings %}<strong>{{ wf.findings[0].problem }}</strong><small>필요 조치 · {{ wf.findings[0].action }}</small>{% else %}<strong>상세 분석에서 확인이 필요합니다.</strong>{% endif %}
+      </div>
+      <div class="action-buttons">
+        <a class="button" href="{{ url_for('notice_detail', notice_id=notice.id).path }}">분석 과정 보기</a>
+        {% if notice.stage == 'prenotice' and wf.opinion_url and wf.guidance_message %}
+        <textarea hidden id="opinion-{{ notice.id }}">{{ wf.guidance_message }}</textarea>
+        <button class="button" type="button" data-copy-target="#opinion-{{ notice.id }}">의견 문안 복사</button>
+        <a class="button primary" href="{{ wf.opinion_url }}" target="_blank" rel="noopener">나라장터 의견등록 ↗</a>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="empty action-empty"><strong>현재 미종결 2·3·4유형 조치 대상이 없습니다.</strong><span>심층 분석이 완료되어 조치 유형이 발견되면 이곳에 가장 먼저 표시됩니다.</span></div>
+    {% endfor %}
+  </div>
 </section>
-<section class="dashboard-grid">
-  <article class="panel wide"><div class="panel-head"><div><span class="eyebrow">PRIORITY QUEUE</span><h2>우선 조치 대상</h2></div><a href="/notices?grade=B">전체 보기 →</a></div>
-    <div class="notice-stack">
-    {% for notice in priorities %}
-      <a class="notice-row" href="/notices/{{ notice.id }}"><span class="grade grade-{{ notice.decision.final_grade }}">{{ notice.decision.final_grade }}</span><span class="notice-main"><strong>{{ notice.title }}</strong><small>{{ notice.agency_name }} · {{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</small></span><span class="score">{{ notice.decision.priority_score }}<small>점</small></span></a>
-    {% else %}<div class="empty">우선 조치 대상이 없습니다.</div>{% endfor %}
+
+<section class="compact-grid">
+  <article class="panel">
+    <div class="panel-head compact-head"><div><span class="eyebrow">NEXT ANALYSIS</span><h2>분석을 이어갈 항목</h2></div><button class="button" data-run-reparse>문서 오류 재처리</button></div>
+    <div class="queue-pills">
+      {% for task in workflow_tasks %}<a class="queue-pill task-{{ task.tone }}" href="{{ url_for('notices_page').path }}{{ task.href }}"><strong>{{ task.count }}</strong><span>{{ task.label }}</span></a>{% endfor %}
+    </div>
+    <div class="next-work compact-next">
+      {% for item in next_items %}
+      <a href="{{ url_for('notice_detail', notice_id=item.notice.id).path }}"><span class="analysis-badge">{{ item.label }}</span><span><strong>{{ item.notice.title }}</strong><small>{{ item.notice.agency_name }} · {{ item.deadline }}</small></span><b>보기 →</b></a>
+      {% else %}<div class="empty">다음 분석 항목이 없습니다.</div>{% endfor %}
     </div>
   </article>
-  <article class="panel"><div class="panel-head"><div><span class="eyebrow">GRADE MIX</span><h2>등급 분포</h2></div></div>
-    <div class="grade-chart">
-    {% for grade in ['A','B','C','D','E'] %}<div><span>{{ grade }}</span><i style="--value:{{ grades.get(grade, 0) }}"></i><strong>{{ grades.get(grade, 0) }}</strong></div>{% endfor %}
+  <article class="panel">
+    <div class="panel-head compact-head"><div><span class="eyebrow">SIX CATEGORIES</span><h2>누적 유형 분류</h2></div></div>
+    <div class="classification-list compact-classifications">
+      {% for code, label in [('1','적합·사용'),('2','적합·미반영'),('3','전환검토·미반영'),('4','사용명시·조건점검'),('5','조건불충족·미사용'),('6','비AI 사업')] %}
+      <a href="{{ url_for('notices_page').path }}?classification_code={{ code }}"><span class="category-tag category-{{ code }}"><b>{{ code }}</b>{{ label }}</span><strong>{{ classifications.get(code, 0) }}건</strong></a>
+      {% endfor %}
     </div>
-    <p class="legend-note">A 활용 명시 · B 우선 확인 · C 부분 적용 · D 판단 곤란 · E 부적합 근거</p>
+    <p class="legend-note">조치 관리 대상은 2·3·4유형이며, 상세 화면에서 판정 단계와 원문 근거를 확인합니다.</p>
   </article>
 </section>
 {% endblock %}
-

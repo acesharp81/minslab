@@ -1,0 +1,10 @@
+[Unit]
+Description=Generate PoC08 daily report at 07:00 KST
+
+[Timer]
+OnCalendar=*-*-* 07:00:00 Asia/Seoul
+Persistent=true
+Unit=poc08-report.service
+
+[Install]
+WantedBy=timers.target

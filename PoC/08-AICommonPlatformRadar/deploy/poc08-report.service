@@ -1,0 +1,9 @@
+[Unit]
+Description=PoC08 finalized daily report
+Wants=docker.service
+After=docker.service poc08-collector.service poc08-retry.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec poc08-ai-common-platform-radar python scripts/run_daily_report.py --finalize --require-successful-batch
+TimeoutStartSec=600

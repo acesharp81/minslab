@@ -236,6 +236,19 @@ class SupabaseRestStore:
             logger.exception("Supabase 동기화 실패; 로컬 캐시에 보존합니다.")
             return False
 
+    def push_all(self, db: Session) -> bool:
+        """현재 로컬 캐시 전체를 테이블 순서대로 일괄 upsert한다."""
+        if not self.enabled:
+            return False
+        try:
+            for model, table in sync_order():
+                rows = [serialize_model(item) for item in db.scalars(select(model)).all()]
+                self.upsert(table, rows)
+            return True
+        except SupabaseStoreError:
+            logger.exception("Supabase 일괄 동기화 실패; 로컬 캐시에 보존합니다.")
+            return False
+
     def reconcile(self, db: Session) -> bool:
         """원격 우선 병합 후 로컬에만 남은 레코드를 다시 전송한다."""
         if not self.enabled:
@@ -255,10 +268,7 @@ class SupabaseRestStore:
                         for name, value in values.items():
                             setattr(instance, name, value)
             db.commit()
-            for model, table in sync_order():
-                rows = [serialize_model(item) for item in db.scalars(select(model)).all()]
-                self.upsert(table, rows)
-            return True
+            return self.push_all(db)
         except Exception:
             db.rollback()
             logger.exception("Supabase 시작 동기화 실패; 로컬 캐시로 계속합니다.")

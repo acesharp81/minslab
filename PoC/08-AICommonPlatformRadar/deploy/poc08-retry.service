@@ -1,0 +1,9 @@
+[Unit]
+Description=PoC08 conditional collection retry
+Wants=network-online.target docker.service
+After=network-online.target docker.service poc08-collector.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec poc08-ai-common-platform-radar python scripts/run_operational_batch.py --phase retry
+TimeoutStartSec=7000

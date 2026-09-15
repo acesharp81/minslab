@@ -1,5 +1,6 @@
 services:
   radar:
+    container_name: poc08-ai-common-platform-radar
     build: .
     init: true
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
@@ -8,7 +9,7 @@ services:
       - path: ${RADAR_ENV_FILE:-.env}
         required: false
     ports:
-      - "${HOST_PORT:-18080}:8000"
+      - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-18080}:8000"
     volumes:
       - ./data:/app/data
     healthcheck:

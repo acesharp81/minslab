@@ -50,7 +50,23 @@ PoC08은 Pooler나 PostgreSQL에 직접 연결하지 않는다. 따라서 DB 비
 
 마이그레이션은 기존 테이블을 건드리지 않고 `poc08_` 접두사의 테이블 7개만 만든다. RLS가 활성화되며 anon/authenticated 정책은 만들지 않는다. 공식 Data API 안내: <https://supabase.com/docs/guides/api>
 
-## 이미 보유한 LLM 키
+## 현재 운영 LLM 키
+
+### Cohere
+
+[Cohere Dashboard API Keys](https://dashboard.cohere.com/api-keys)에서 평가 키를 발급한다. 현재 구성은 2차에 Command A+, 3차에 Command A를 사용하며 공식 V2 Chat API로 호출한다.
+
+```env
+COHERE_API_KEY=...
+STAGE2_PROVIDER=cohere
+STAGE2_MODEL=command-a-plus-05-2026
+STAGE3_PRIMARY_PROVIDER=cohere
+STAGE3_PRIMARY_MODEL=command-a-03-2025
+```
+
+무료 평가 키의 Chat 한도는 모델당 분당 20회, 월 1,000회다. 공식 안내: <https://docs.cohere.com/docs/rate-limits>
+
+## 보유 키 기반 대체 경로
 
 ### Gemini
 
@@ -91,12 +107,15 @@ STAGE3_FALLBACK_PROVIDER=nvidia
 
 ## 실호출 전환 블록
 
-세 키와 G2B 키를 입력한 뒤 mock 값만 다음처럼 바꾼다.
+Cohere·OpenAI·G2B 키를 입력한 뒤 mock 값만 다음처럼 바꾼다.
 
 ```env
-STAGE2_PROVIDER=gemini
-STAGE3_PRIMARY_PROVIDER=openai
-STAGE3_FALLBACK_PROVIDER=nvidia
+STAGE2_PROVIDER=cohere
+STAGE2_MODEL=command-a-plus-05-2026
+STAGE3_PRIMARY_PROVIDER=cohere
+STAGE3_PRIMARY_MODEL=command-a-03-2025
+STAGE3_FALLBACK_PROVIDER=openai
+STAGE3_FALLBACK_MODEL=gpt-5.4-mini
 ```
 
 먼저 `python scripts/preflight.py`로 키 존재 여부와 DB 연결 준비상태를 확인하고, `python scripts/probe_llm.py --target all`로 모델 접근을 한 번씩 점검한다. 두 명령은 키 값을 출력하지 않는다.

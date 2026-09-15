@@ -1,7 +1,43 @@
 {% extends "base.html" %}
 {% block title %}일일 리포트 · 공통기반 사업 레이더{% endblock %}
 {% block content %}
-<section class="page-head report-head"><div><span class="eyebrow">DAILY BRIEF</span><h1>{{ artifact.report_date }} 일일 리포트</h1><p>공개자료 기반 후보 선별 결과입니다.</p></div><div class="actions"><a class="button" href="/api/reports/daily/download/{{ artifact.report_date }}/md">Markdown</a><a class="button primary" href="/api/reports/daily/download/{{ artifact.report_date }}/html">HTML</a></div></section>
-<section class="metric-grid compact"><article class="metric"><span>신규 수집</span><strong>{{ artifact.summary.new_notices }}</strong></article><article class="metric"><span>파싱 성공률</span><strong>{{ artifact.summary.parse_rate }}%</strong></article><article class="metric accent"><span>우선 조치</span><strong>{{ artifact.summary.priority_actions }}</strong></article><article class="metric danger"><span>오류·미지원</span><strong>{{ artifact.summary.failures }}</strong></article></section>
-<article class="panel report"><pre>{{ markdown }}</pre></article>
+{% set report = artifact.data %}
+<section class="page-head report-head compact-report-head"><div><span class="eyebrow">DAILY DECISION REPORT</span><h1>{{ artifact.report_date }} 수행 결과</h1><p>{{ report.disclaimer }}</p></div><div class="actions"><form class="report-date-form" method="get"><input type="date" name="report_date" value="{{ artifact.report_date }}"><button class="button">조회</button></form><button class="button" type="button" data-report-generate="{{ artifact.report_date }}">재생성</button><button class="button" type="button" onclick="window.print()">인쇄·PDF</button><a class="button" href="{{ url_for('download_report', report_date=artifact.report_date, format_name='md').path }}">MD</a><a class="button primary" href="{{ url_for('download_report', report_date=artifact.report_date, format_name='html').path }}">HTML</a></div></section>
+<section class="report-state state-{{ artifact.status }}"><div><span class="status-dot"></span><strong>{{ report.reconciliation.label }}</strong><em>{{ '최종본' if artifact.finalized else '미리보기' }}</em></div><small>현재 분류 {{ report.reconciliation.classified }}/{{ report.reconciliation.total }}건 · 미해결 {{ report.reconciliation.unresolved }}건 · 수집 배치 #{{ report.batch.id or '-' }} {{ report.batch.label }}</small></section>
+
+<nav class="workflow-strip report-flow" aria-label="일일 처리 결과">
+  {% for number, label, value, detail in [
+    (1,'신규 수집',report.workflow.collected,'당일 추가'),
+    (2,'유형 분류',report.workflow.classified,'비AI ' ~ report.workflow.non_ai ~ '건'),
+    (3,'2차 LLM',report.workflow.llm_reviewed,'심층 필요 ' ~ report.workflow.llm_needed ~ '건'),
+    (4,'3차 심층',report.workflow.deep_completed,'기본조건 검증'),
+    (5,'조치 결과',report.workflow.action_needed,'오늘 조치 ' ~ report.workflow.acted ~ '건')
+  ] %}
+  <div class="workflow-step"><span class="step-number">{{ number }}</span><span><small>{{ label }}</small><strong>{{ value }}건</strong><em>{{ detail }}</em></span></div>
+  {% endfor %}
+</nav>
+
+<section class="report-outcome-bar"><div><span>조치 시작</span><strong>{{ report.action_outcomes.started_today }}건</strong></div><div><span>의견·연락 완료</span><strong>{{ report.action_outcomes.contacted_today }}건</strong></div><div><span>반영 확인</span><strong>{{ report.action_outcomes.reflected_today }}건</strong></div><div><span>미종결 조치</span><strong>{{ report.action_outcomes.unresolved }}건</strong></div></section>
+
+<section class="report-main-grid">
+  <article class="panel action-first">
+    <div class="panel-head compact-head"><div><span class="eyebrow">ACTION RESULT</span><h2>조치 필요 사업과 의견 문안</h2><p>최신 기준의 2·3·4유형 미종결 항목입니다.</p></div></div>
+    <div class="action-list">
+      {% for item in report.priority_items %}
+      <article class="report-action-item">
+        <header><span class="category-tag category-{{ item.classification_code }}"><b>{{ item.classification_code }}</b>{{ item.classification_label }}</span><div><a href="{{ url_for('notice_detail', notice_id=item.id).path }}"><strong>{{ item.title }}</strong></a><small>{{ item.agency_name }} · {{ item.stage_label }} · {{ item.posted_at or '미상' }} ~ {{ item.deadline_at or '미상' }}</small></div><span class="action-status">{{ item.action_status }}</span></header>
+        <div class="finding-list">{% for finding in item.findings %}<section><span>{{ finding.gate }}</span><div><strong>{{ finding.problem }}</strong><p>{{ finding.action }}</p></div></section>{% endfor %}</div>
+        {% if item.guidance_message %}<div class="report-guidance"><strong>제출·확인 문안</strong><p>{{ item.guidance_message }}</p><textarea hidden id="report-opinion-{{ item.id }}">{{ item.guidance_message }}</textarea><div><button class="button" type="button" data-copy-target="#report-opinion-{{ item.id }}">문안 복사</button>{% if item.opinion_url %}<a class="button primary" href="{{ item.opinion_url }}" target="_blank" rel="noopener">{{ '나라장터 의견등록 ↗' if item.stage == 'prenotice' else '원문 공고 ↗' }}</a>{% endif %}<a class="button" href="{{ url_for('notice_detail', notice_id=item.id).path }}">분석 과정</a></div></div>{% endif %}
+      </article>
+      {% else %}<div class="empty"><strong>오늘 남아 있는 2·3·4유형 조치 대상이 없습니다.</strong></div>{% endfor %}
+    </div>
+  </article>
+
+  <aside>
+    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">CURRENT CLASSIFICATION</span><h2>현재 전체 6개 유형</h2></div></div><div class="classification-list compact-classifications">{% for code, label in [('1','적합·사용'),('2','적합·미반영'),('3','전환검토·미반영'),('4','사용명시·조건점검'),('5','조건불충족·미사용'),('6','비AI 사업')] %}<div><span class="category-tag category-{{ code }}"><b>{{ code }}</b>{{ label }}</span><strong>{{ artifact.summary.classification_distribution.get(code, 0) }}건</strong></div>{% endfor %}</div></article>
+    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">FOLLOW-UP QUEUE</span><h2>후속 처리 대기</h2></div><strong>{{ report.processing.total }}건</strong></div><dl class="compact-stats"><div><dt>기준 갱신</dt><dd>{{ report.processing.criteria_outdated }}</dd></div><div><dt>분석 재시도</dt><dd>{{ report.processing.analysis_failed }}</dd></div><div><dt>AI 미분석</dt><dd>{{ report.processing.ai_unanalyzed }}</dd></div><div><dt>심층 대기</dt><dd>{{ report.processing.deep_pending }}</dd></div><div><dt>문서 재처리</dt><dd>{{ report.processing.parse_issues }}</dd></div></dl></article>
+    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">MONTH TO DATE</span><h2>{{ report.date[:7] }} 누적</h2></div></div><dl class="compact-stats"><div><dt>수집</dt><dd>{{ report.monthly.collected }}</dd></div><div><dt>2차</dt><dd>{{ report.monthly.simple_verified }}</dd></div><div><dt>3차</dt><dd>{{ report.monthly.deep_verified }}</dd></div><div><dt>안내</dt><dd>{{ report.monthly.contacted }}</dd></div><div><dt>반영</dt><dd>{{ report.monthly.reflected }}</dd></div></dl></article>
+    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">ERRORS</span><h2>오류·재처리</h2></div></div>{% for item in report.failures %}<div class="failure-row"><a href="{{ url_for('notice_detail', notice_id=item.notice_id).path }}"><strong>{{ item.filename }}</strong></a><small>{{ item.reason }}</small></div>{% endfor %}{% for item in report.pipeline_failures %}<div class="failure-row"><strong>배치 #{{ item.id }} · {{ item.kind }}</strong><small>{{ item.error }}</small></div>{% endfor %}{% if not report.failures and not report.pipeline_failures %}<div class="empty">오류가 없습니다.</div>{% endif %}</article>
+  </aside>
+</section>
 {% endblock %}

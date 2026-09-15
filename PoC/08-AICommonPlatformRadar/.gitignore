@@ -4,11 +4,14 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 data/*.db*
+data/*.lock
 data/raw/*
 data/parsed/*
 data/reports/*
 data/logs/*
+backups/*
 !data/raw/.gitkeep
 !data/parsed/.gitkeep
 !data/reports/.gitkeep
 !data/logs/.gitkeep
+!backups/.gitkeep

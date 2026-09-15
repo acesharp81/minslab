@@ -32,6 +32,7 @@ def endpoints():
                 settings.stage2_api_key,
                 settings.stage2_model,
                 settings.stage2_timeout_seconds,
+                min_interval_seconds=settings.stage2_min_interval_seconds,
             ),
             "simple_review.md",
             SimpleAnalysis,

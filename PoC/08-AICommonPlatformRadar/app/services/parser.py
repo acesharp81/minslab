@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import io
+import os
 import re
+import subprocess
+import tempfile
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -10,7 +13,12 @@ from xml.etree import ElementTree
 from docx import Document
 from pypdf import PdfReader
 
+from ..config import get_settings
 from .filename import SAFE_EXTENSIONS
+
+
+OLE_MAGIC = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+ZIP_MAGIC = b"PK\x03\x04"
 
 
 @dataclass(frozen=True)
@@ -61,6 +69,72 @@ def _parse_hwpx(content: bytes) -> str:
     return "\n".join(chunk for chunk in chunks if chunk.strip())
 
 
+def _parse_xlsx(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024) -> str:
+    """Extract visible cell values from OOXML without executing formulas/macros."""
+    with zipfile.ZipFile(io.BytesIO(content)) as archive:
+        infos = archive.infolist()
+        if any(not is_safe_zip_member(info.filename) for info in infos):
+            raise ValueError("안전하지 않은 XLSX 내부 경로")
+        if sum(info.file_size for info in infos) > max_uncompressed_bytes:
+            raise ValueError("XLSX 압축 해제 크기 제한 초과")
+        names = {info.filename for info in infos}
+        shared: list[str] = []
+        if "xl/sharedStrings.xml" in names:
+            root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"))
+            for item in root.iter():
+                if item.tag.endswith("}si"):
+                    shared.append("".join(
+                        child.text or "" for child in item.iter() if child.tag.endswith("}t")
+                    ))
+        lines: list[str] = []
+        sheets = sorted(name for name in names if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", name))
+        for sheet_name in sheets:
+            root = ElementTree.fromstring(archive.read(sheet_name))
+            for row in (element for element in root.iter() if element.tag.endswith("}row")):
+                values: list[str] = []
+                for cell in (element for element in row if element.tag.endswith("}c")):
+                    cell_type = cell.attrib.get("t", "")
+                    value_node = next((node for node in cell.iter() if node.tag.endswith("}v")), None)
+                    if cell_type == "inlineStr":
+                        value = "".join(
+                            node.text or "" for node in cell.iter() if node.tag.endswith("}t")
+                        )
+                    elif value_node is None or value_node.text is None:
+                        value = ""
+                    elif cell_type == "s":
+                        index = int(value_node.text)
+                        value = shared[index] if 0 <= index < len(shared) else ""
+                    else:
+                        value = value_node.text
+                    if value.strip():
+                        values.append(value.strip())
+                if values:
+                    lines.append(" | ".join(values))
+        return "\n".join(lines)
+
+
+def _parse_hwp_cli(content: bytes) -> str:
+    settings = get_settings()
+    max_output = settings.hwp_parse_max_output_mb * 1024 * 1024
+    with tempfile.NamedTemporaryFile(suffix=".hwp") as source:
+        source.write(content)
+        source.flush()
+        completed = subprocess.run(
+            [settings.hwp_cli_path, "cat", "--format", "markdown", source.name],
+            capture_output=True,
+            check=False,
+            timeout=settings.hwp_parse_timeout_seconds,
+            env={**os.environ, "RUST_BACKTRACE": "0"},
+            start_new_session=True,
+        )
+    if completed.returncode:
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(f"hwp-cli 종료 코드 {completed.returncode}: {detail[:400]}")
+    if len(completed.stdout) > max_output:
+        raise ValueError(f"HWP 추출 본문이 {settings.hwp_parse_max_output_mb}MB 제한을 초과함")
+    return completed.stdout.decode("utf-8", errors="replace")
+
+
 def _parse_zip(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024) -> str:
     chunks: list[str] = []
     total = 0
@@ -72,7 +146,7 @@ def _parse_zip(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024) 
             if total > max_uncompressed_bytes:
                 raise ValueError("ZIP 압축 해제 크기 제한 초과")
             ext = Path(info.filename).suffix.lower().lstrip(".")
-            if ext not in SAFE_EXTENSIONS or ext in {"zip", "hwp"} or info.is_dir():
+            if ext not in SAFE_EXTENSIONS or ext == "zip" or info.is_dir():
                 continue
             child = parse_bytes(archive.read(info), ext)
             if child.status == "parsed" and child.text.strip():
@@ -84,8 +158,6 @@ def parse_bytes(content: bytes, extension: str) -> ParseResult:
     ext = extension.lower().lstrip(".")
     if not content:
         return ParseResult("failed", error="0바이트 파일")
-    if ext == "hwp":
-        return ParseResult("unsupported", error="바이너리 HWP는 안전한 외부 변환기 구성 전까지 미지원")
     try:
         if ext == "txt":
             text = _decode_text(content)
@@ -93,8 +165,16 @@ def parse_bytes(content: bytes, extension: str) -> ParseResult:
             text = _parse_pdf(content)
         elif ext == "docx":
             text = _parse_docx(content)
-        elif ext == "hwpx":
-            text = _parse_hwpx(content)
+        elif ext == "xlsx":
+            text = _parse_xlsx(content)
+        elif ext in {"hwp", "hwpx"}:
+            # 나라장터에는 확장자만 HWPX이고 실제 본문은 OLE HWP인 파일도 있다.
+            if content.startswith(OLE_MAGIC):
+                text = _parse_hwp_cli(content)
+            elif content.startswith(ZIP_MAGIC) or zipfile.is_zipfile(io.BytesIO(content)):
+                text = _parse_hwpx(content)
+            else:
+                raise ValueError(f"{ext.upper()} 파일 시그니처가 올바르지 않음")
         elif ext == "zip":
             text = _parse_zip(content)
         else:
