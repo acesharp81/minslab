@@ -44,6 +44,38 @@ async def call_app(path: str, method: str = "GET", headers: list[tuple[bytes, by
 
 
 class SiteApiTests(unittest.IsolatedAsyncioTestCase):
+    async def test_poc_shortcuts_redirect_with_or_without_trailing_slash(self):
+        shortcuts = {
+            "/press": "/poc/master-press/",
+            "/kjon": "/poc/national-assembly/",
+            "/airador": "/poc/ai-common-platform-radar/",
+        }
+        for shortcut, target in shortcuts.items():
+            for path in (shortcut, f"{shortcut}/"):
+                with self.subTest(path=path):
+                    start, body = await call_app(path)
+                    headers = dict(start["headers"])
+                    self.assertEqual(start["status"], 307)
+                    self.assertEqual(headers[b"location"], target.encode("ascii"))
+                    self.assertEqual(headers[b"cache-control"], b"no-store")
+                    self.assertEqual(headers[b"content-length"], b"0")
+                    self.assertEqual(body, b"")
+
+    async def test_poc_shortcut_head_redirect_has_no_body(self):
+        start, body = await call_app("/press", method="HEAD")
+
+        self.assertEqual(start["status"], 307)
+        self.assertEqual(dict(start["headers"])[b"location"], b"/poc/master-press/")
+        self.assertEqual(body, b"")
+
+    async def test_poc_shortcuts_reject_write_methods(self):
+        start, body = await call_app("/kjon", method="POST")
+        headers = dict(start["headers"])
+
+        self.assertEqual(start["status"], 405)
+        self.assertEqual(headers[b"allow"], b"GET, HEAD")
+        self.assertIn(b"method not allowed", body)
+
     async def test_admin_page_is_html_and_not_cacheable(self):
         start, body = await call_app("/admin")
         headers = dict(start["headers"])

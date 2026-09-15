@@ -97,6 +97,11 @@ AI_COMMON_RADAR_BASE_PATH = "/poc/ai-common-platform-radar"
 AI_COMMON_RADAR_UPSTREAM = env_first(
     "AI_COMMON_RADAR_UPSTREAM", default="http://127.0.0.1:18080"
 ).rstrip("/")
+POC_SHORTCUT_REDIRECTS = {
+    "/press": f"{MASTER_PRESS_BASE_PATH}/",
+    "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
+    "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
+}
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
     5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
 )
@@ -2301,6 +2306,29 @@ async def app(scope, receive, send):
             )
 
     send = monitored_send
+
+    shortcut_path = path.rstrip("/") or "/"
+    shortcut_target = POC_SHORTCUT_REDIRECTS.get(shortcut_path)
+    if shortcut_target:
+        if method not in {"GET", "HEAD"}:
+            body = b'{"detail":"method not allowed"}'
+            headers = [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+                (b"allow", b"GET, HEAD"),
+            ]
+            await send({"type": "http.response.start", "status": 405, "headers": headers})
+            await send({"type": "http.response.body", "body": body})
+            return
+        headers = [
+            (b"location", shortcut_target.encode("ascii")),
+            (b"content-length", b"0"),
+            (b"cache-control", b"no-store"),
+        ]
+        await send({"type": "http.response.start", "status": 307, "headers": headers})
+        await send({"type": "http.response.body", "body": b""})
+        return
 
     presentation_prefix = f"{PRESENTATION_BASE_PATH}/"
     if path == AI_COMMON_RADAR_BASE_PATH and method in {"GET", "HEAD"}:
