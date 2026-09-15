@@ -13,6 +13,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.middleware.gzip import GZipMiddleware
 
 from .adapters.national_assembly.catalog import public_catalog
 from .config import PROJECT_DIR, get_settings
@@ -89,6 +90,7 @@ app = FastAPI(
     version="0.1.0",
     description="공식 국회 자료의 수집·정규화·검색을 위한 POC-07 API",
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 install_security_middleware(app)
 
 
@@ -193,11 +195,16 @@ def _watch_admin(token: str | None) -> None:
 def _public_meeting_brief(
     item: dict[str, object] | None,
     progress_item: dict[str, object] | None = None,
+    *,
+    include_content: bool = True,
 ) -> dict[str, object] | None:
     if not item:
         return None
-    normalized_brief = attach_meeting_topic_groups(
-        link_tasks_to_topics(dict(item.get("brief") or {}))
+    raw_brief = dict(item.get("brief") or {})
+    normalized_brief = (
+        attach_meeting_topic_groups(link_tasks_to_topics(raw_brief))
+        if include_content
+        else {"utterance_count": int(raw_brief.get("utterance_count") or 0)}
     )
     progress = dict(progress_item or {})
     current_cursor = int(progress.get("current_source_last_event_cursor") or 0)
@@ -242,6 +249,7 @@ def _public_meeting_brief(
         "review_status": item["review_status"],
         "generated_at": item["generated_at"],
         "brief": normalized_brief,
+        "brief_content_loaded": include_content,
         "brief_status": "READY" if ready else "PROCESSING",
         "brief_progress": progress,
         "brief_is_stale": result_pending,
@@ -1200,7 +1208,7 @@ def ended_live_broadcasts(
             )
             has_more = len(items) > limit
             items = items[:limit]
-            briefs = MeetingBriefRepository(connection).latest_map(
+            briefs = MeetingBriefRepository(connection).latest_summary_map(
                 item["broadcast_id"] for item in items
             )
             progresses = MeetingBriefRepository(connection).progress_map(
@@ -1210,6 +1218,7 @@ def ended_live_broadcasts(
                 item["meeting_brief"] = _public_meeting_brief(
                     briefs.get(item["broadcast_id"]),
                     progresses.get(item["broadcast_id"]),
+                    include_content=False,
                 )
                 item["brief_status"] = (
                     item["meeting_brief"].get("brief_status")

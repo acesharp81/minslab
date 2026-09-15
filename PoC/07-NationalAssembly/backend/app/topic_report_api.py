@@ -14,7 +14,7 @@ from .db.topic_report_repository import TopicReportRepository
 from .db.watch_delivery_repository import WatchDeliveryRepository
 from .db.watch_repository import WatchRepository
 from .domain.ministry import canonical_ministry_name
-from .services.openrouter_summary import DEFAULT_MODEL
+from .services.topic_report import DEFAULT_TOPIC_REPORT_MODEL
 
 
 router = APIRouter(prefix="/api/topic-reports", tags=["topic-reports"])
@@ -103,7 +103,7 @@ def create_topic_report(
     if not settings.topic_reports_enabled:
         raise HTTPException(status_code=503, detail="주제별 보고서 기능이 비활성화되어 있습니다.")
     ministry, topic, institution = _clean(payload)
-    model = settings.topic_report_model.strip() or settings.watch_llm_model.strip() or DEFAULT_MODEL
+    model = settings.topic_report_model.strip() or DEFAULT_TOPIC_REPORT_MODEL
     try:
         with connect(settings.database_url) as connection:
             subscriber_id = _subscriber(connection, x_watch_token)

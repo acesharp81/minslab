@@ -81,4 +81,14 @@ def install_security_middleware(app: Any) -> None:
                     status_code=403,
                     content={"detail": "허용되지 않은 요청 출처입니다."},
                 ))
-        return apply_security_headers(await call_next(request))
+        response = apply_security_headers(await call_next(request))
+        path = request.url.path
+        if path == "/" or (
+            path.startswith("/assets/")
+            and path.lower().endswith((".js", ".css"))
+        ):
+            # This operational dashboard changes independently of deploy-time
+            # asset names. Never let a stale client hide newly available data.
+            response.headers["Cache-Control"] = "no-store, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        return response

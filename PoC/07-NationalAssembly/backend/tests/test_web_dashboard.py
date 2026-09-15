@@ -8,6 +8,33 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 class WebDashboardTests(unittest.TestCase):
+    def test_operational_shell_forces_current_report_assets(self):
+        html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
+        security = (
+            PROJECT_DIR / "backend/app/services/web_security.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("assets/app.js?v=20260914-5", html)
+        self.assertIn("assets/workspace.css?v=20260914-3", html)
+        self.assertIn('response.headers["Cache-Control"] = "no-store, max-age=0"', security)
+        self.assertIn('path.startswith("/assets/")', security)
+
+    def test_meeting_report_list_is_lightweight_and_detail_has_loading_state(self):
+        script = (PROJECT_DIR / "web" / "app.js").read_text(encoding="utf-8")
+        api = (PROJECT_DIR / "backend/app/main.py").read_text(encoding="utf-8")
+        repository = (
+            PROJECT_DIR / "backend/app/db/meeting_brief_repository.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("const MEETING_HISTORY_INITIAL_LIMIT = 5;", script)
+        self.assertIn("const MEETING_HISTORY_PAGE_SIZE = 5;", script)
+        self.assertIn("회의 보고서를 불러오는 중입니다", script)
+        self.assertIn("const meetingBriefRequests = new Map();", script)
+        self.assertIn("if (liveStatusLoadPromise) return liveStatusLoadPromise;", script)
+        self.assertIn("if (!meetingRailHistoryState.initialized) return false;", script)
+        self.assertIn("latest_summary_map", api)
+        self.assertIn("include_content=False", api)
+        self.assertIn("jsonb_build_object", repository)
+
     def test_extras_workspace_has_calendar_and_government_flow_insights(self):
         html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
         script = (PROJECT_DIR / "web" / "assembly-extras.js").read_text(encoding="utf-8")
@@ -216,9 +243,19 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("expandPostProcessingBroadcast(ended, processingRow)", script)
         self.assertIn(".live-report-handoff", workspace_styles)
         self.assertIn('"meeting-topic-task-overview-list"', script)
-        self.assertIn("limitMeetingOverviewRows(topicTaskOverviewList, 5)", script)
+        self.assertIn("const MEETING_OVERVIEW_VISIBLE_ROWS = 5;", script)
+        self.assertIn(
+            "limitMeetingOverviewRows(topicTaskOverviewList, MEETING_OVERVIEW_VISIBLE_ROWS)",
+            script,
+        )
+        self.assertIn('list.dataset.visibleRows = String(visibleCount)', script)
+        self.assertNotIn("rows.slice(0, visibleCount).reduce", script)
+        self.assertIn("linkedTasks.slice(0, 1)", script)
+        self.assertIn("for (const task of unlinkedTasks)", script)
         self.assertIn("meetingTaskOwnerTags(task)", script)
         self.assertIn(".meeting-topic-task-overview-list.is-scrollable", workspace_styles)
+        self.assertIn("max-height:360px; overflow-y:scroll", workspace_styles)
+        self.assertIn("height:72px; min-height:72px", workspace_styles)
         self.assertIn(".meeting-task-owner-tags", workspace_styles)
         self.assertIn('activateWorkspaceTab("reports")', script)
         self.assertIn(".raw-transcript.is-side", workspace_styles)
@@ -387,8 +424,8 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("/transcript`, { cache", schedule_script)
         self.assertIn("LAST LIVE REVIEW", schedule_script)
         self.assertIn("renderBroadcastRows", schedule_script)
-        self.assertIn("const MEETING_HISTORY_INITIAL_LIMIT = 20", schedule_script)
-        self.assertIn("const MEETING_HISTORY_PAGE_SIZE = 10", schedule_script)
+        self.assertIn("const MEETING_HISTORY_INITIAL_LIMIT = 5", schedule_script)
+        self.assertIn("const MEETING_HISTORY_PAGE_SIZE = 5", schedule_script)
         self.assertIn("loadMoreMeetingHistory", schedule_script)
         self.assertIn("meetingRailNearLoadedEnd", schedule_script)
         self.assertIn("preservedScrollLeft", schedule_script)

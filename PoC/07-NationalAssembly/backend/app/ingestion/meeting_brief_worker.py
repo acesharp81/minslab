@@ -50,9 +50,11 @@ from ..services.meeting_brief import (
     ANALYSIS_CACHE_VERSION,
     OPENROUTER_FINAL_RETRY_MODEL,
     PROMPT_VERSION,
+    MalformedMeetingBriefResponse,
     MistralMeetingBriefClient,
     OpenRouterMeetingBriefClient,
     assign_live_topic_clusters,
+    improve_promoted_topic_summaries,
     meeting_transcript_hash,
 )
 from ..services.meeting_topic_groups import attach_meeting_topic_groups
@@ -116,6 +118,10 @@ def safe_brief_error_code(exc: Exception) -> str:
     status = None
     if isinstance(exc, requests.HTTPError):
         status = getattr(exc.response, "status_code", None)
+    if isinstance(exc, MalformedMeetingBriefResponse):
+        finish_reason = str(exc.usage_metadata.get("finish_reason") or "").lower()
+        if finish_reason in {"content_filter", "length"}:
+            return f"MalformedMeetingBriefResponse:{finish_reason.upper()}"
     return f"{type(exc).__name__}:HTTP_{status}" if status else type(exc).__name__
 
 
@@ -232,9 +238,16 @@ def generate_one(
             lifecycle_by_broadcast=lifecycle,
         )
         live_topic_clusters, _, _ = build_live_topic_clusters(utterances)
+        evidence_summaries = {
+            str(item["utterance_id"]): str(item.get("summary") or "")
+            for item in utterances
+            if item.get("summary")
+        }
 
         def enrich_brief(brief: dict[str, Any]) -> dict[str, Any]:
-            source = deepcopy(brief)
+            source = improve_promoted_topic_summaries(
+                deepcopy(brief), evidence_summaries,
+            )
             existing_lineage = source.get("live_topic_lineage") or {}
             existing_clusters = [
                 item

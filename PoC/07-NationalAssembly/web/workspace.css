@@ -694,6 +694,10 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 
 /* Open beta: meeting outcomes first, transcript as evidence on demand. */
 .meeting-brief-loading, .meeting-result-empty { margin: 0; padding: 28px; color: var(--ws-muted); background: white; font-size: 14px; }
+.meeting-brief-loading { display: flex; align-items: center; gap: 14px; min-height: 112px; }
+.meeting-brief-loading .meeting-processing-spinner { flex: 0 0 auto; }
+.meeting-brief-loading strong { display: block; color: var(--ws-ink); font-size: 15px; }
+.meeting-brief-loading p { margin: 5px 0 0; color: var(--ws-muted); line-height: 1.55; }
 .meeting-brief-view { color: var(--ws-ink); background: #f7f9fc; }
 .meeting-brief-hero { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 28px; align-items: center; padding: 28px 30px 24px; border-bottom: 1px solid var(--ws-line); background: white; }
 .meeting-brief-labels { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
@@ -1044,11 +1048,12 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 }
 .meeting-topic-task-overview > header strong + strong { border-left: 1px solid var(--ws-line); }
 .meeting-topic-task-overview-list { min-height:0; }
-.meeting-topic-task-overview-list.is-scrollable { overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; scrollbar-color:#174f91 #e7eef7; scrollbar-width:thin; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-overview-list.is-scrollable { max-height:360px; overflow-y:scroll; overscroll-behavior:contain; scrollbar-gutter:stable; scrollbar-color:#174f91 #e7eef7; scrollbar-width:thin; }
 .meeting-topic-task-overview-list.is-scrollable::-webkit-scrollbar { width:6px; }
 .meeting-topic-task-overview-list.is-scrollable::-webkit-scrollbar-track { background:#e7eef7; }
 .meeting-topic-task-overview-list.is-scrollable::-webkit-scrollbar-thumb { border-radius:4px; background:#174f91; }
 .meeting-topic-task-row { border-top: 1px solid var(--ws-line); }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-row { height:72px; min-height:72px; overflow:hidden; }
 .meeting-topic-summary-button {
   display: grid;
   width: 100%;
@@ -1103,6 +1108,7 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.meeting-topic-task-button strong .meeting-topic-task-more { margin-left:8px; color:#7c5b16; font-size:10px; font-weight:850; }
 .meeting-topic-task-button:has(.meeting-task-owner-tags) { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; }
 .meeting-task-owner-tags { display:flex; flex:0 0 auto; flex-wrap:wrap; justify-content:flex-end; gap:4px; }
 .meeting-task-owner-tags b,
@@ -1225,6 +1231,8 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
   .meeting-topic-task-overview { margin: 14px 14px 0; }
   .meeting-topic-task-overview > header { display: none; }
   .meeting-topic-task-row { grid-template-columns: 1fr; }
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-row { height:112px; min-height:112px; }
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-overview-list.is-scrollable { max-height:560px; }
   .meeting-topic-task-cell { border-top: 1px dashed var(--ws-line); border-left: 0; }
   .meeting-topic-task-button:has(.meeting-task-owner-tags) { grid-template-columns:1fr; align-items:start; }
   .meeting-topic-task-button .meeting-task-owner-tags { justify-content:flex-start; }

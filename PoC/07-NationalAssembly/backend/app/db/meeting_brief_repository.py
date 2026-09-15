@@ -66,6 +66,33 @@ class MeetingBriefRepository:
         items = [self._row(row) for row in rows]
         return {item["broadcast_id"]: item for item in items if item}
 
+    def latest_summary_map(
+        self, broadcast_ids: Iterable[Any],
+    ) -> dict[Any, dict[str, Any]]:
+        """Return list-card metadata without loading full report JSON documents."""
+        ids = list(broadcast_ids)
+        if not ids:
+            return {}
+        rows = self.connection.execute(
+            """
+            SELECT DISTINCT ON (broadcast_id)
+                   id, broadcast_id, transcript_hash, source_last_event_cursor,
+                   provider, model, prompt_version, authority_status, review_status,
+                   jsonb_build_object(
+                       'utterance_count', brief->'utterance_count'
+                   ) AS brief,
+                   '{}'::jsonb AS usage_metadata, generated_at
+            FROM meeting_briefs
+            WHERE broadcast_id = ANY(%s)
+            ORDER BY broadcast_id,
+                     (provider IN ('mistral', 'openrouter')) DESC,
+                     generated_at DESC, id DESC
+            """,
+            (ids,),
+        ).fetchall()
+        items = [self._row(row) for row in rows]
+        return {item["broadcast_id"]: item for item in items if item}
+
     def get_chunk_analysis(
         self,
         broadcast_id: Any,

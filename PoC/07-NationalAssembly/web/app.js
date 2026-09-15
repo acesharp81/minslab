@@ -44,8 +44,11 @@ const todayScheduleState = {
 };
 const TODAY_SCHEDULE_HOLD_MS = 5000;
 const TODAY_SCHEDULE_TRANSITION_MS = 2000;
-const MEETING_HISTORY_INITIAL_LIMIT = 20;
-const MEETING_HISTORY_PAGE_SIZE = 10;
+const MEETING_HISTORY_INITIAL_LIMIT = 5;
+const MEETING_HISTORY_PAGE_SIZE = 5;
+const MEETING_OVERVIEW_VISIBLE_ROWS = 5;
+const meetingBriefRequests = new Map();
+let liveStatusLoadPromise = null;
 const meetingRailHistoryState = {
   items: [],
   nextOffset: 0,
@@ -2078,6 +2081,15 @@ function renderMeetingBrief(item, record) {
       `전체 발언 묶음 ${evidenceCount.toLocaleString("ko-KR")}개를 분석해 세부 쟁점 ${detailedTopics.length.toLocaleString("ko-KR")}개를 대상별로 묶었습니다.`,
     ));
   }
+  const topicGrouping = brief.topic_grouping || {};
+  if (topicGrouping.quality_status === "REVIEW_REQUIRED") {
+    const unclassified = Number(topicGrouping.unclassified_topic_count || 0);
+    const singletons = Number(topicGrouping.singleton_unclassified_group_count || 0);
+    identity.append(magazineElement(
+      "p", "meeting-lineage-summary is-partial",
+      `자동 분류 검토 필요 · 정책 대상 사전 미등록 ${unclassified.toLocaleString("ko-KR")}개 · 단독 보류 ${singletons.toLocaleString("ko-KR")}개`,
+    ));
+  }
   const lineageTotal = Number(liveTopicLineage.cluster_count || 0);
   if (lineageTotal > 0) {
     const lineageMapped = Number(liveTopicLineage.mapped_cluster_count || 0);
@@ -2165,12 +2177,19 @@ function renderMeetingBrief(item, record) {
     const linkedTasks = openTasks.filter((task) => (
       task.topic_id ? groupTopicIds.has(String(task.topic_id)) : groupTopicTitles.has(task.topic_title)
     ));
-    for (const task of linkedTasks) {
-      linkedTaskIds.add(task.id);
+    for (const task of linkedTasks) linkedTaskIds.add(task.id);
+    for (const task of linkedTasks.slice(0, 1)) {
       const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
       taskButton.classList.add("meeting-topic-task-button");
+      const taskTitle = officialTextElement("strong", "", task.title, task, "title");
+      if (linkedTasks.length > 1) {
+        taskTitle.append(magazineElement(
+          "small", "meeting-topic-task-more",
+          `외 ${(linkedTasks.length - 1).toLocaleString("ko-KR")}개 과제`,
+        ));
+      }
       taskButton.append(
-        officialTextElement("strong", "", task.title, task, "title"),
+        taskTitle,
         meetingTaskOwnerTags(task),
       );
       taskButton.dataset.focusTopicId = task.topic_id || group.topic_ids[0] || "";
@@ -2183,20 +2202,18 @@ function renderMeetingBrief(item, record) {
     topicTaskOverviewList.append(overviewRow);
   }
   const unlinkedTasks = openTasks.filter((task) => !linkedTaskIds.has(task.id));
-  if (unlinkedTasks.length) {
+  for (const task of unlinkedTasks) {
     const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
     overviewRow.append(magazineElement("div", "meeting-topic-unlinked", "주제 연결 확인 필요"));
     const taskCell = magazineElement("div", "meeting-topic-task-cell", "");
-    for (const task of unlinkedTasks) {
-      const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
-      taskButton.classList.add("meeting-topic-task-button");
-      taskButton.append(
-        officialTextElement("strong", "", task.title, task, "title"),
-        meetingTaskOwnerTags(task),
-      );
-      taskButton.dataset.focusTopicId = (brief.topics || [])[0]?.id || "";
-      taskCell.append(taskButton);
-    }
+    const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
+    taskButton.classList.add("meeting-topic-task-button");
+    taskButton.append(
+      officialTextElement("strong", "", task.title, task, "title"),
+      meetingTaskOwnerTags(task),
+    );
+    taskButton.dataset.focusTopicId = (brief.topics || [])[0]?.id || "";
+    taskCell.append(taskButton);
     overviewRow.append(taskCell);
     topicTaskOverviewList.append(overviewRow);
   }
@@ -2369,7 +2386,7 @@ function renderMeetingBrief(item, record) {
   if (officialChangeReport) root.append(officialChangeReport);
   root.append(sourceView);
   stage.append(root);
-  limitMeetingOverviewRows(topicTaskOverviewList, 5);
+  limitMeetingOverviewRows(topicTaskOverviewList, MEETING_OVERVIEW_VISIBLE_ROWS);
 
   const firstGroup = topicGroups[0];
   if (firstGroup) {
@@ -2596,8 +2613,46 @@ function meetingBriefIsReady(record) {
   if (record.brief_status) return record.brief_status === "READY";
   return record.provider === "mistral";
 }
+
+function renderMeetingBriefLoading(item) {
+  const stage = document.querySelector("#liveExpandedStage");
+  if (!stage) return;
+  const root = magazineElement("section", "meeting-brief-view", "");
+  root.setAttribute("aria-busy", "true");
+  const loading = magazineElement("div", "meeting-brief-loading", "");
+  const spinner = magazineElement("i", "meeting-processing-spinner", "");
+  spinner.setAttribute("aria-hidden", "true");
+  const copy = magazineElement("div", "", "");
+  copy.append(
+    magazineElement("strong", "", "회의 보고서를 불러오는 중입니다"),
+    magazineElement(
+      "p", "",
+      `${item.title || item.committee_name || "선택한 회의"}의 주제와 근거 발언을 준비하고 있습니다.`,
+    ),
+  );
+  loading.append(spinner, copy);
+  root.append(loading);
+  stage.replaceChildren(root);
+}
+
+function requestMeetingBrief(broadcastId) {
+  const key = String(broadcastId || "");
+  if (meetingBriefRequests.has(key)) return meetingBriefRequests.get(key);
+  const request = fetch(
+    `api/live/broadcasts/${encodeURIComponent(key)}/brief`,
+    { cache: "no-store" },
+  ).then(async (response) => {
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    return payload;
+  }).finally(() => meetingBriefRequests.delete(key));
+  meetingBriefRequests.set(key, request);
+  return request;
+}
+
 function expandMeetingBrief(item, row, options = {}) {
   stopAssemblyTranscript();
+  const requestGeneration = assemblyTranscriptState.generation;
   rememberMeetingReportSelection(item.broadcast_id);
   assemblyTranscriptState.expanded = true;
   assemblyTranscriptState.expandedMode = "BRIEF";
@@ -2606,18 +2661,15 @@ function expandMeetingBrief(item, row, options = {}) {
   document.querySelector("#liveExpandedTitle").textContent = item.title || item.committee_name || "회의 결과";
   document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
   row?.setAttribute?.("aria-current", "true");
-  if (!meetingBriefIsReady(item.meeting_brief)) renderMeetingBriefProcessing(item);
+  if (meetingBriefIsReady(item.meeting_brief)) renderMeetingBriefLoading(item);
+  else renderMeetingBriefProcessing(item);
   const loadBrief = () => {
-    const ready = fetch(
-      `api/live/broadcasts/${encodeURIComponent(item.broadcast_id)}/brief`,
-      { cache: "no-store" },
-    ).then(async (response) => {
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
-      return payload;
-    });
+    const ready = requestMeetingBrief(item.broadcast_id);
     ready.then((record) => {
-      if (assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+      if (
+        assemblyTranscriptState.generation !== requestGeneration
+        || assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id
+      ) return;
       if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
       assemblyTranscriptState.briefPollTimer = null;
       item.meeting_brief = record;
@@ -2640,7 +2692,10 @@ function expandMeetingBrief(item, row, options = {}) {
         );
       }
     }).catch(() => {
-      if (assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+      if (
+        assemblyTranscriptState.generation !== requestGeneration
+        || assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id
+      ) return;
       renderMeetingBriefProcessing(item, item.brief_progress, item.meeting_brief);
       if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
       assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
@@ -2984,6 +3039,7 @@ async function openLatestMeetingReport() {
   const panel = document.querySelector('[data-workspace-panel="reports"]');
   const rail = document.querySelector("#reportBroadcastRows");
   if (!rail || panel?.hidden !== false) return false;
+  if (!meetingRailHistoryState.initialized) return false;
   latestMeetingReportState.opening = true;
   try {
     const preferredId = latestMeetingReportState.preferredId;
@@ -3470,25 +3526,11 @@ function meetingTaskOwnerTags(task) {
 }
 
 function limitMeetingOverviewRows(list, visibleCount = 5) {
-  const update = () => {
-    const rows = [...list.children].filter((child) => child.classList.contains("meeting-topic-task-row"));
-    if (rows.length <= visibleCount) {
-      list.classList.remove("is-scrollable");
-      list.style.removeProperty("max-height");
-      return;
-    }
-    const visibleHeight = rows.slice(0, visibleCount).reduce(
-      (total, row) => total + row.getBoundingClientRect().height, 0,
-    );
-    const nextHeight = `${Math.max(1, Math.ceil(visibleHeight))}px`;
-    list.classList.add("is-scrollable");
-    if (list.style.maxHeight !== nextHeight) list.style.maxHeight = nextHeight;
-  };
-  window.requestAnimationFrame(update);
-  if ("ResizeObserver" in window) {
-    const observer = new ResizeObserver(() => window.requestAnimationFrame(update));
-    observer.observe(list.parentElement || list);
-  }
+  const rows = [...list.children].filter(
+    (child) => child.classList.contains("meeting-topic-task-row"),
+  );
+  list.dataset.visibleRows = String(visibleCount);
+  list.classList.toggle("is-scrollable", rows.length > visibleCount);
 }
 
 function meetingBriefResultCounts(item) {
@@ -3992,13 +4034,14 @@ function loadAiUsage() {
 }
 
 function loadLiveStatus() {
+  if (liveStatusLoadPromise) return liveStatusLoadPromise;
   const getJson = (url, fallback) => fetch(url, { cache: "no-store" })
     .then((response) => response.ok ? response.json() : fallback)
     .catch(() => fallback);
   const historyParams = new URLSearchParams({
     limit: String(MEETING_HISTORY_INITIAL_LIMIT), offset: "0",
   });
-  return Promise.all([
+  const request = Promise.all([
     getJson("api/live/status", null),
     getJson("api/schedule/today", { items: [] }),
     getJson("api/live/broadcasts?" + historyParams, { items: [] }),
@@ -4074,7 +4117,12 @@ function loadLiveStatus() {
       if (liveStatus) liveStatus.textContent = "방송없음";
       liveNavTab?.setAttribute("aria-label", "LIVE 방송 상태 확인 필요");
       selectInitialWorkspaceForLiveStatus(false);
+    })
+    .finally(() => {
+      if (liveStatusLoadPromise === request) liveStatusLoadPromise = null;
     });
+  liveStatusLoadPromise = request;
+  return request;
 }
 
 function loadOfficialRotations(scope = "") {

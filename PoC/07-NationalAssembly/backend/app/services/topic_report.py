@@ -11,6 +11,7 @@ from .openrouter_gateway_client import openrouter_headers
 
 
 PROMPT_VERSION = "topic-report/1.5"
+DEFAULT_TOPIC_REPORT_MODEL = "dots-studio/dots-3-note-preview:free"
 MAX_EVIDENCE_CHARS = 60_000
 
 _LANGUAGE_REPAIRS = {
@@ -18,9 +19,18 @@ _LANGUAGE_REPAIRS = {
     "制度": "제도", "活動": "활동", "活动": "활동", "特別": "특별",
     "特别": "특별", "各": "각", "sospicion": "의혹",
     "suspicion": "의혹", "committee": "위원회",
+    "OFFICIAL_INTEGRATED": "공식 통합 자료",
+    "OFFICIAL_SOURCE": "공식 자료",
+    "PROVISIONAL": "잠정 자료",
 }
 _CJK_PATTERN = re.compile(r"[\u3400-\u4DBF\u4E00-\u9FFF]")
 _LATIN_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9._-]*")
+_AUTHORITY_LABEL_REPAIRS = (
+    (re.compile(r"\bOFFICIAL[\s_/-]+SOURCE[\s_/-]+INTEGRATED\b", re.IGNORECASE), "공식 통합 자료"),
+    (re.compile(r"\bOFFICIAL[\s_/-]+INTEGRATED\b", re.IGNORECASE), "공식 통합 자료"),
+    (re.compile(r"\bOFFICIAL[\s_/-]+SOURCE\b", re.IGNORECASE), "공식 자료"),
+    (re.compile(r"\bPROVISIONAL\b", re.IGNORECASE), "잠정 자료"),
+)
 
 
 @dataclass(frozen=True)
@@ -42,9 +52,26 @@ def _redact(value: object) -> str:
 
 def _clean_generated(value: object) -> str:
     text = _redact(value)
+    for pattern, replacement in _AUTHORITY_LABEL_REPAIRS:
+        text = pattern.sub(replacement, text)
     for source, replacement in _LANGUAGE_REPAIRS.items():
         text = re.sub(re.escape(source), replacement, text, flags=re.IGNORECASE)
     return text
+
+
+def _allowed_language_source(
+    ministry: str, topic: str, evidence: list[dict[str, Any]],
+) -> str:
+    values: list[object] = [ministry, topic]
+    for item in evidence:
+        values.extend((
+            item.get("meeting"), item.get("topic"), item.get("summary"),
+        ))
+        values.extend(item.get("ministries") or [])
+        for task in item.get("tasks") or []:
+            values.append(task.get("title"))
+            values.extend(task.get("ministries") or [])
+    return " ".join(_redact(value) for value in values if value)
 
 
 def _sanitize_generated_language(value: object, allowed_latin: set[str]) -> str:
@@ -405,9 +432,9 @@ class OpenRouterTopicReportClient:
             "sections": sections, "tasks": tasks, "timeline": timeline,
             "limitations": _clean_generated(parsed.get("limitations"))[:600],
         }
-        allowed_language_text = json.dumps({
-            "ministry": ministry, "topic": topic, "evidence": bounded,
-        }, ensure_ascii=False)
+        allowed_language_text = _allowed_language_source(
+            ministry, topic, bounded,
+        )
         _sanitize_report_language(report, allowed_language_text)
         if not report["executive_summary"]:
             raise ValueError("근거 보고서의 핵심 요약이 없습니다.")

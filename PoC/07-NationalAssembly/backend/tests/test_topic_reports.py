@@ -13,7 +13,7 @@ from fastapi.responses import Response
 from app.domain.ministry import canonical_ministry_name
 from app.db.topic_report_repository import TopicReportRepository, _has_topic_relevance, _official_executive_evidence, _topic_mention_count
 from app.ingestion.topic_report_worker import safe_topic_report_error
-from app.services.topic_report import OpenRouterTopicReportClient, TopicReportResponseError, _parse_json_content, _sanitize_report_language, _validate_report_language
+from app.services.topic_report import DEFAULT_TOPIC_REPORT_MODEL, OpenRouterTopicReportClient, TopicReportResponseError, _allowed_language_source, _parse_json_content, _sanitize_report_language, _validate_report_language
 from app.services.web_security import apply_security_headers
 from app.topic_report_api import TopicReportQueryPayload, _clean
 
@@ -22,6 +22,24 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 class TopicReportTests(unittest.TestCase):
+    def test_topic_report_uses_a_dedicated_structured_output_model(self) -> None:
+        api = (PROJECT_DIR / "backend/app/topic_report_api.py").read_text()
+        worker = (PROJECT_DIR / "backend/app/ingestion/topic_report_worker.py").read_text()
+        env_example = (PROJECT_DIR / ".env.example").read_text()
+
+        self.assertEqual(
+            "dots-studio/dots-3-note-preview:free", DEFAULT_TOPIC_REPORT_MODEL,
+        )
+        self.assertIn("or DEFAULT_TOPIC_REPORT_MODEL", api)
+        self.assertIn("or DEFAULT_TOPIC_REPORT_MODEL", worker)
+        self.assertIn(
+            f"TOPIC_REPORT_MODEL={DEFAULT_TOPIC_REPORT_MODEL}", env_example,
+        )
+        self.assertNotIn(
+            "settings.topic_report_model.strip() or settings.watch_llm_model.strip()",
+            api,
+        )
+
     def evidence(self) -> list[dict[str, object]]:
         return [
             {
@@ -131,6 +149,24 @@ class TopicReportTests(unittest.TestCase):
         _sanitize_report_language(report, allowed)
         _validate_report_language(report, allowed)
         self.assertEqual("행정안전부가 정책을 검토했다.", report["executive_summary"])
+
+    def test_generated_report_translates_authority_metadata_instead_of_allowing_it(self) -> None:
+        evidence = self.evidence()
+        evidence[0]["authority_status"] = "OFFICIAL_SOURCE"
+        allowed = _allowed_language_source("행정안전부", "인공지능", evidence)
+        report = {
+            "title": "인공지능 정책 보고서",
+            "executive_summary": "행정안전부가 정책을 검토했다.",
+            "policy_implications": [], "sections": [], "tasks": [], "timeline": [],
+            "limitations": "OFFICIAL SOURCE/INTEGRATED 범위에서 작성했다.",
+        }
+
+        self.assertNotIn("OFFICIAL_SOURCE", allowed)
+        from app.services.topic_report import _clean_generated
+        report["limitations"] = _clean_generated(report["limitations"])
+        _sanitize_report_language(report, allowed)
+        _validate_report_language(report, allowed)
+        self.assertEqual("공식 통합 자료 범위에서 작성했다.", report["limitations"])
 
     def test_openrouter_generation_is_grounded_and_public_collection_approved(self) -> None:
         response = Mock()

@@ -30,6 +30,7 @@ MAX_CHUNK_ITEMS = 32
 MAX_EVIDENCE_PER_ITEM = 6
 OPENROUTER_STRUCTURED_RETRY_MODEL = "liquid/lfm-2.5-2.6b:free"
 OPENROUTER_FINAL_RETRY_MODEL = "dots-studio/dots-3-note-preview:free"
+OPENROUTER_FINAL_MAX_TOKENS = 32_000
 OPENROUTER_GATEWAY_TIMEOUT_SECONDS = 390.0
 ALLOWED_TASK_STATUS = {"OPEN", "RESOLVED", "CANDIDATE"}
 ALLOWED_OWNER_BASIS = {"EXPLICIT", "INFERRED", "UNCONFIRMED"}
@@ -791,6 +792,7 @@ def promote_unassigned_live_topics(
     brief: dict[str, Any],
     clusters: list[dict[str, Any]] | None,
     valid_ids: set[str],
+    evidence_summaries: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Preserve independent live issues locally when synthesis did not cover them."""
     result = deepcopy(brief)
@@ -819,11 +821,23 @@ def promote_unassigned_live_topics(
         title = _clean_text(cluster.get("title"), 100)
         if not title or not evidence:
             continue
+        evidence_summary = " ".join(
+            dict.fromkeys(
+                _clean_text((evidence_summaries or {}).get(evidence_id), 240)
+                for evidence_id in evidence
+                if _clean_text((evidence_summaries or {}).get(evidence_id), 240)
+            )
+        )[:360].strip()
         topics.append(
             {
                 "id": f"topic-{len(topics) + 1}",
                 "title": title,
-                "summary": f"회의에서는 '{title}' 관련 쟁점과 대응 필요성을 논의했다.",
+                "summary": evidence_summary or (
+                    f"회의에서는 '{title}' 관련 쟁점과 대응 필요성을 논의했다."
+                ),
+                "summary_source": (
+                    "CACHED_UTTERANCE_SUMMARY" if evidence_summary else "TITLE_FALLBACK"
+                ),
                 "speaker_points": [],
                 "evidence_ids": evidence,
                 "live_topic_cluster_ids": [cluster_id],
@@ -850,6 +864,30 @@ def promote_unassigned_live_topics(
         "promoted_topic_count": len(promoted_ids),
         "method": "SYNTHESIS_WITH_LOCAL_PROMOTION",
     }
+    return result
+
+
+def improve_promoted_topic_summaries(
+    brief: dict[str, Any], evidence_summaries: dict[str, str],
+) -> dict[str, Any]:
+    """Replace title-only promotion copy with already cached utterance summaries."""
+    result = deepcopy(brief)
+    for topic in result.get("topics") or []:
+        if not isinstance(topic, dict):
+            continue
+        title = _clean_text(topic.get("title"), 100)
+        generic_summary = f"회의에서는 '{title}' 관련 쟁점과 대응 필요성을 논의했다."
+        if _clean_text(topic.get("summary"), 360) != generic_summary:
+            continue
+        summaries = [
+            _clean_text(evidence_summaries.get(str(evidence_id)), 240)
+            for evidence_id in topic.get("evidence_ids") or []
+        ]
+        meaningful = [summary for summary in dict.fromkeys(summaries) if summary]
+        if not meaningful:
+            continue
+        topic["summary"] = " ".join(meaningful)[:360].strip()
+        topic["summary_source"] = "CACHED_UTTERANCE_SUMMARY"
     return result
 
 
@@ -1131,7 +1169,11 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 if schema_name == "live_topic_mapping"
                 else 8000
                 if request_model == OPENROUTER_STRUCTURED_RETRY_MODEL
-                else (20000 if schema_name == "meeting_brief" else 12000)
+                else (
+                    OPENROUTER_FINAL_MAX_TOKENS
+                    if schema_name == "meeting_brief"
+                    else 12000
+                )
             ),
             "response_format": {
                 "type": "json_schema",
@@ -1257,7 +1299,11 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 if schema_name == "meeting_brief"
                 else None
             )
-            retry_model = OPENROUTER_FINAL_RETRY_MODEL
+            retry_model = (
+                OPENROUTER_FINAL_RETRY_MODEL
+                if schema_name == "meeting_brief"
+                else OPENROUTER_STRUCTURED_RETRY_MODEL
+            )
             for attempt in range(3):
                 callback()
                 request_count += 1
@@ -1301,10 +1347,18 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     usage_callback(exc.usage_metadata)
                     if attempt == 2:
                         raise
+                    finish_reason = str(
+                        exc.usage_metadata.get("finish_reason") or ""
+                    ).lower()
+                    retry_reason = (
+                        "이전 공급자가 응답을 안전 필터로 중단했다. 원문을 길게 인용하지 "
+                        "말고 공공정책 논의의 사실관계와 조치만 중립적으로 요약하라."
+                        if finish_reason == "content_filter"
+                        else "이전 응답이 JSON 객체를 닫지 못했다. 항목 수와 문장을 줄여라."
+                    )
                     request_prompt = prompt + (
-                        "\n재시도 지침: 이전 응답이 길이 제한 전에 JSON 객체를 닫지 못했다. "
-                        "항목 수와 문장을 줄이고 공백 반복 없이 완결된 JSON 객체만 출력하라. "
-                        f"재시도 번호 {attempt + 1}."
+                        f"\n재시도 지침: {retry_reason} 공백 반복 없이 완결된 JSON 객체만 "
+                        f"출력하라. 재시도 번호 {attempt + 1}."
                     )
                     if self.provider == "openrouter":
                         model_override = retry_model
@@ -1476,6 +1530,11 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
             brief,
             live_topic_clusters,
             valid_ids,
+            {
+                str(item["utterance_id"]): str(item.get("summary") or "")
+                for item in utterances
+                if item.get("summary")
+            },
         )
         brief["utterance_count"] = len(utterances)
         progress_callback(

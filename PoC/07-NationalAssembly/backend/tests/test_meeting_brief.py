@@ -9,6 +9,7 @@ from app.ingestion.meeting_brief_worker import brief_retry_hours, safe_brief_err
 from app.services.meeting_brief import (
     ANALYSIS_CACHE_VERSION,
     OPENROUTER_FINAL_RETRY_MODEL,
+    OPENROUTER_FINAL_MAX_TOKENS,
     OPENROUTER_GATEWAY_TIMEOUT_SECONDS,
     OPENROUTER_STRUCTURED_RETRY_MODEL,
     PROMPT_VERSION,
@@ -20,6 +21,7 @@ from app.services.meeting_brief import (
     _sanitize_final_display_language,
     brief_response_schema,
     iter_meeting_chunks,
+    improve_promoted_topic_summaries,
     meeting_transcript_hash,
     minimum_final_topic_count,
     minimum_final_task_count,
@@ -426,6 +428,7 @@ class MeetingBriefTests(unittest.TestCase):
                 "utterance_ids": ["u-2"],
             }],
             {"u-1", "u-2"},
+            {"u-2": "문화재 복원 범위와 보존 방식을 함께 검토해야 한다고 제안함."},
         )
         self.assertEqual(2, len(result["topics"]))
         self.assertEqual("문화재 복원", result["topics"][1]["title"])
@@ -435,6 +438,43 @@ class MeetingBriefTests(unittest.TestCase):
         )
         self.assertEqual(0, result["live_topic_assignment"]["unassigned_count"])
         self.assertEqual(1, result["live_topic_assignment"]["promoted_topic_count"])
+        self.assertEqual(
+            "문화재 복원 범위와 보존 방식을 함께 검토해야 한다고 제안함.",
+            result["topics"][1]["summary"],
+        )
+        self.assertEqual(
+            "CACHED_UTTERANCE_SUMMARY", result["topics"][1]["summary_source"]
+        )
+
+    def test_cached_title_fallback_is_upgraded_from_utterance_summary(self):
+        brief = {
+            "topics": [{
+                "id": "topic-1",
+                "title": "주택 세제 개편 방향 제시",
+                "summary": (
+                    "회의에서는 '주택 세제 개편 방향 제시' 관련 쟁점과 "
+                    "대응 필요성을 논의했다."
+                ),
+                "evidence_ids": ["u-1"],
+            }],
+        }
+
+        result = improve_promoted_topic_summaries(
+            brief,
+            {
+                "u-1": (
+                    "보유 중심이 아닌 거주 중심의 주택 정책을 제안하고, "
+                    "1가구 1주택자의 세 부담 완화를 주장함."
+                )
+            },
+        )
+
+        self.assertIn("거주 중심", result["topics"][0]["summary"])
+        self.assertNotIn("관련 쟁점과 대응 필요성", result["topics"][0]["summary"])
+        self.assertEqual(
+            "CACHED_UTTERANCE_SUMMARY", result["topics"][0]["summary_source"]
+        )
+        self.assertIn("관련 쟁점과 대응 필요성", brief["topics"][0]["summary"])
 
     def test_final_topics_have_no_fixed_maximum_and_use_adaptive_floor(self):
         self.assertEqual("assembly-meeting-brief/1.7", PROMPT_VERSION)
@@ -570,7 +610,8 @@ class MeetingBriefTests(unittest.TestCase):
             )
         body = post.call_args.kwargs["json"]
         self.assertEqual(OPENROUTER_FINAL_RETRY_MODEL, body["model"])
-        self.assertEqual(20000, body["max_tokens"])
+        self.assertEqual(32_000, OPENROUTER_FINAL_MAX_TOKENS)
+        self.assertEqual(OPENROUTER_FINAL_MAX_TOKENS, body["max_tokens"])
         self.assertEqual(
             {"enabled": False, "exclude": True}, body["reasoning"],
         )
@@ -641,7 +682,7 @@ class MeetingBriefTests(unittest.TestCase):
         )
         self.assertIn("완결된 JSON 객체만 출력", post.call_args_list[1].args[0])
         self.assertEqual(
-            OPENROUTER_FINAL_RETRY_MODEL,
+            OPENROUTER_STRUCTURED_RETRY_MODEL,
             post.call_args_list[1].kwargs["model_override"],
         )
         self.assertEqual(
@@ -663,8 +704,13 @@ class MeetingBriefTests(unittest.TestCase):
         conflict = requests.HTTPError(response=mock.Mock(status_code=409))
         self.assertEqual(1, brief_retry_hours(conflict))
         self.assertEqual(6, brief_retry_hours(ValueError("invalid")))
+        filtered = MalformedMeetingBriefResponse({"finish_reason": "content_filter"})
+        self.assertEqual(
+            "MalformedMeetingBriefResponse:CONTENT_FILTER",
+            safe_brief_error_code(filtered),
+        )
 
-    def test_openrouter_provider_400_retries_chunk_with_dots(self):
+    def test_openrouter_provider_400_retries_chunk_with_structured_model(self):
         response = mock.Mock(status_code=400)
         provider_error = requests.HTTPError(response=response)
         chunk = {
@@ -704,7 +750,7 @@ class MeetingBriefTests(unittest.TestCase):
             )
         self.assertEqual(3, result.api_requests)
         self.assertEqual(
-            OPENROUTER_FINAL_RETRY_MODEL,
+            OPENROUTER_STRUCTURED_RETRY_MODEL,
             post.call_args_list[1].kwargs["model_override"],
         )
 

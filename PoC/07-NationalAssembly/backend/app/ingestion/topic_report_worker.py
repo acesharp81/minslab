@@ -21,7 +21,11 @@ from ..services.official_change_report import (
     deterministic_changed_report,
     deterministic_unchanged_report,
 )
-from ..services.topic_report import OpenRouterTopicReportClient, TopicReportResponseError
+from ..services.topic_report import (
+    DEFAULT_TOPIC_REPORT_MODEL,
+    OpenRouterTopicReportClient,
+    TopicReportResponseError,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -133,8 +137,7 @@ def run_once(database_url: str) -> dict[str, object]:
         return {"status": "DISABLED", "generated": 0}
     model = (
         settings.topic_report_model.strip()
-        or settings.watch_llm_model.strip()
-        or DEFAULT_MODEL
+        or DEFAULT_TOPIC_REPORT_MODEL
     )
     if not settings.openrouter_api_key:
         return {"status": "CONFIG_REQUIRED", "generated": 0}
