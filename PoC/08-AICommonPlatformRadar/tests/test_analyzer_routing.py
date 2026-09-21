@@ -192,9 +192,10 @@ def test_deep_falls_back_to_nvidia(monkeypatch):
     assert "temporary upstream failure" in usage["primary_error"]
 
 
-def test_stage2_rate_limit_uses_conservative_rule_fallback(monkeypatch):
+def test_stage2_rate_limit_remains_retryable_instead_of_escalating(monkeypatch):
     settings = replace(
         get_settings(), stage2_provider="gemini", stage2_api_key="gemini-test",
+        stage2_fallback_provider="mock", stage2_fallback_api_key="",
     )
     analyzer = RoutedAnalyzer(settings)
     rule = FilterResult(False, "AI 후보", 12, ["생성형 AI"], [], False)
@@ -203,12 +204,36 @@ def test_stage2_rate_limit_uses_conservative_rule_fallback(monkeypatch):
         raise LLMRateLimitExceeded("Gemini daily quota")
 
     monkeypatch.setattr(OpenAIChatClient, "call", rate_limited)
-    result, usage = analyzer.simple("추출 본문:\n생성형 AI 구축", rule)
+    with pytest.raises(LLMRateLimitExceeded, match="Gemini daily quota"):
+        analyzer.simple("추출 본문:\n생성형 AI 구축", rule)
 
-    assert result.ai_relevance == "medium"
-    assert result.needs_deep_review is True
-    assert usage["model_name"] == "rule-fallback-after-stage2-error"
+
+def test_stage2_falls_back_to_mistral(monkeypatch):
+    settings = replace(
+        get_settings(),
+        stage2_provider="upstage",
+        stage2_api_key="upstage-test",
+        stage2_model="solar-pro4",
+        stage2_fallback_provider="mistral",
+        stage2_fallback_api_key="mistral-test",
+        stage2_fallback_model="mistral-small-latest",
+    )
+    analyzer = RoutedAnalyzer(settings)
+    calls: list[str] = []
+
+    def fake_call(self, _system, _context, _schema):
+        calls.append(self.endpoint.provider)
+        if self.endpoint.provider == "upstage":
+            raise LLMRateLimitExceeded("Upstage quota")
+        return _simple(), _usage(self.endpoint.model, self.endpoint.provider)
+
+    monkeypatch.setattr(OpenAIChatClient, "call", fake_call)
+    result, usage = analyzer.simple("추출 본문:\n생성형 AI 구축", _rule())
+    assert result.ai_relevance == "high"
+    assert calls == ["upstage", "mistral"]
+    assert usage["provider"] == "mistral"
     assert usage["fallback_used"] is True
+    assert "Upstage quota" in usage["primary_error"]
 
 
 def test_daily_quota_opens_shared_rate_limit_circuit():
@@ -255,12 +280,12 @@ def test_legacy_deep_reanalysis_reuses_previous_simple_result(monkeypatch, legac
 
     monkeypatch.setattr("app.services.analyzer.get_analyzer", lambda _settings: Analyzer())
     with Session(engine, expire_on_commit=False) as db:
-        notice = Notice(stage="bid", notice_no="LEGACY-1", agency_name="기관", title="생성형 AI 구축")
+        notice = Notice(stage="bid", notice_no="LEGACY-1", agency_name="기관", title="생성형 AI 서비스 구축")
         db.add(notice)
         db.flush()
         notice.attachments.append(Attachment(
             source_url="sample://legacy", original_filename="제안요청서.txt",
-            text_excerpt="생성형 AI 구축", parse_status="parsed",
+            text_excerpt="생성형 AI 서비스 구축", parse_status="parsed",
         ))
         db.add(AnalysisRun(
             notice_id=notice.id, run_type="simple_ai", model_name="gemini:old",

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}설정 · 조달체크{% endblock %}
+{% block content %}
+<section class="page-head settings-head">
+  <div><span class="eyebrow">ADMIN SETTINGS</span><h1>설정</h1><p>의견 자동입력 정보, 의견등록 알림과 판정오류 이력을 관리합니다.</p></div>
+  <form method="post" action="{{ url_for('settings_logout').path }}"><button class="button" type="submit">로그아웃</button></form>
+</section>
+
+<section class="settings-sections">
+  <article class="panel settings-section">
+    <div class="panel-head compact-head"><div><span class="eyebrow">OPINION AUTOMATION</span><h2>담당자·자동입력 설정</h2><p>확장프로그램이 나라장터 의견등록 화면에 입력할 정보입니다.</p></div></div>
+    <form data-opinion-sender-form>
+      <div class="settings-form-row"><label>소속기관<input name="organization" value="{{ profile.organization }}" maxlength="120" required></label><label>담당업무<input name="responsibility" value="{{ profile.responsibility }}" maxlength="160" required></label></div>
+      <div class="settings-form-row"><label>이름<input name="name" value="{{ profile.name }}" maxlength="80"></label><label>직책<input name="position" value="{{ profile.position }}" maxlength="80"></label></div>
+      <div class="settings-form-row"><label>전화번호<input name="phone" value="{{ profile.phone }}" maxlength="40"></label><label>이메일<input type="email" name="email" value="{{ profile.email }}" maxlength="160"></label></div>
+      <div class="settings-form-row"><label>의견 구분<input name="opinion_type" value="{{ profile.opinion_type }}" maxlength="80" placeholder="예: 기타"></label><label>기타의견<input name="other_opinion" value="{{ profile.other_opinion }}" maxlength="160" placeholder="예: 사업 계획"></label></div>
+      <label>사전규격 의견관리 등록 비밀번호<input name="opinion_password" value="{{ profile.opinion_password }}" maxlength="100" autocomplete="off" placeholder="설정하지 않으면 빈칸으로 입력"></label>
+      <details class="template-editor" open>
+        <summary>문구 템플릿 편집</summary>
+        <p>아래 치환값을 사용할 수 있습니다. 설정되지 않은 분석값은 <code>확인안됨</code>으로 표시됩니다.</p>
+        <div class="template-tokens"><code>{greeting}</code><code>{overview}</code><code>{user}</code><code>{network}</code><code>{model}</code></div>
+        <label>계획·ISP·연구용역 문구<textarea name="planning_template" rows="19" maxlength="12000">{{ profile.planning_template }}</textarea></label>
+        <label>실제 구축사업 문구<textarea name="construction_template" rows="19" maxlength="12000">{{ profile.construction_template }}</textarea></label>
+      </details>
+      <button class="button primary" type="submit">자동입력·문구 설정 저장</button>
+    </form>
+    <div class="sender-preview"><strong>첫 문장 미리보기</strong><p data-sender-preview></p></div>
+  </article>
+
+  <article class="panel settings-section">
+    <div class="panel-head compact-head"><div><span class="eyebrow">OPINION EMAIL</span><h2>의견등록 이메일</h2><p>나라장터 의견 등록이 확인되어 조치중으로 전환될 때 대상 사업과 등록 의견을 주소록에 발송합니다. 조치완료 시에는 발송하지 않습니다.</p></div></div>
+    <form data-notification-settings-form>
+      <label class="checkbox-label"><input type="checkbox" name="enabled" {% if notifications.enabled %}checked{% endif %}> 이메일 발송 사용</label>
+      <label>수신 주소록<textarea name="recipients" rows="3" placeholder="한 줄에 이메일 하나">{{ notifications.recipients|join('\n') }}</textarea></label>
+      <div class="settings-form-row"><label>SMTP 서버<input name="smtp_host" value="{{ notifications.smtp_host or 'smtp.gmail.com' }}"></label><label>포트<input type="number" name="smtp_port" value="{{ notifications.smtp_port or 587 }}"></label></div>
+      <div class="settings-form-row"><label>Gmail 계정<input type="email" name="smtp_username" value="{{ notifications.smtp_username }}" placeholder="example@gmail.com"></label><label>발신 주소<input type="email" name="from_email" value="{{ notifications.from_email }}" placeholder="비우면 Gmail 계정 사용"></label></div>
+      <label>Gmail 앱 비밀번호<input type="password" name="smtp_password" placeholder="{{ '설정됨 · 변경할 때만 입력' if notifications.smtp_password_configured else 'Google 계정에서 발급한 앱 비밀번호' }}" autocomplete="new-password"></label>
+      <label class="checkbox-label"><input type="checkbox" name="use_tls" {% if notifications.use_tls %}checked{% endif %}> STARTTLS 사용</label>
+      <button class="button primary" type="submit">이메일 설정 저장</button>
+    </form>
+  </article>
+
+  <article class="panel settings-section settings-errors">
+    <div class="panel-head compact-head"><div><span class="eyebrow">CLASSIFICATION FEEDBACK</span><h2>판정오류 이력</h2><p>향후 자동 분석 프롬프트 개선에 활용할 사용자 신고 기록입니다.</p></div><strong>{{ error_reports|length|number }}건</strong></div>
+    <div class="error-report-list">
+      {% for item in error_reports %}
+      <article><div><a href="{{ url_for('notice_detail', notice_id=item.detail.notice_id).path }}">{{ item.detail.title or '공고 보기' }}</a><small>{{ item.detail.agency_name }} · 원 판정 {{ item.detail.original_code }}유형 → 부적합 · {{ item.row.created_at }}</small></div><p>{{ item.detail.reason }}</p></article>
+      {% else %}<p class="empty">누적된 판정오류 신고가 없습니다.</p>{% endfor %}
+    </div>
+  </article>
+</section>
+{% endblock %}

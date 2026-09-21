@@ -106,14 +106,28 @@ deploy_worker() {
     exit 1
   fi
   sleep 2
+  local startup_error=""
   if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null || true)" != "true" ]]; then
+    startup_error="container is not running"
+  elif [[ ",${allowlist}," == *",OPENROUTER_BASE_URL,"* ]] && ! docker exec "${name}" python -c '
+import os
+import socket
+from urllib.parse import urlparse
+
+url = urlparse(os.environ["OPENROUTER_BASE_URL"])
+with socket.create_connection((url.hostname, url.port or 80), timeout=5):
+    pass
+'; then
+    startup_error="OpenRouter gateway is not reachable"
+  fi
+  if [[ -n "${startup_error}" ]]; then
     docker logs --tail 30 "${name}" >&2 || true
     docker rm -f "${name}" >/dev/null 2>&1 || true
     if [[ -n "${rollback}" ]]; then
       docker rename "${rollback}" "${name}"
       docker start "${name}" >/dev/null
     fi
-    echo "${short_name}: startup failed; previous container restored" >&2
+    echo "${short_name}: startup failed (${startup_error}); previous container restored" >&2
     exit 1
   fi
   if [[ -n "${rollback}" ]]; then

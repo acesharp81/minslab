@@ -148,3 +148,17 @@ def test_rest_error_never_contains_key_or_url(monkeypatch):
     assert "server-only-test-key" not in message
     assert "example.supabase.co" not in message
     assert "PGRST205" in message
+
+
+def test_large_analysis_rows_are_upserted_in_small_batches(monkeypatch):
+    store = SupabaseRestStore(enabled_settings())
+    sizes = []
+
+    def fake_request(_method, _path, **kwargs):
+        sizes.append(len(kwargs["payload"]))
+        return None
+
+    monkeypatch.setattr(store, "request", fake_request)
+    store.upsert("poc08_analysis_runs", [{"id": value} for value in range(121)])
+
+    assert sizes == [50, 50, 21]

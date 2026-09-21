@@ -125,7 +125,9 @@ def safe_brief_error_code(exc: Exception) -> str:
     return f"{type(exc).__name__}:HTTP_{status}" if status else type(exc).__name__
 
 
-def brief_retry_hours(exc: Exception) -> int:
+def brief_retry_hours(exc: Exception) -> float:
+    if isinstance(exc, (requests.ConnectionError, requests.Timeout)):
+        return 5 / 60
     status = (
         getattr(exc.response, "status_code", None)
         if isinstance(exc, requests.HTTPError)

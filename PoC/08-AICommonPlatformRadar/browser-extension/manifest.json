@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "조달체크 나라장터 의견 도우미",
+  "version": "0.1.7",
+  "description": "조달체크의 사전규격을 검색해 의견을 자동 입력하고 등록 의견·답변 현황 화면을 엽니다.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "https://www.g2b.go.kr/*",
+    "https://sso.g2b.go.kr/*",
+    "https://www.minslab.kr/*",
+    "https://minslab.kr/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "background": {"service_worker": "background.js"},
+  "action": {"default_title": "조달체크 의견 도우미", "default_popup": "popup.html"},
+  "content_scripts": [
+    {
+      "matches": ["https://www.minslab.kr/*", "https://minslab.kr/*", "http://127.0.0.1/*", "http://localhost/*"],
+      "js": ["poc_bridge.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://www.g2b.go.kr/*"],
+      "js": ["g2b_assistant.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.g2b.go.kr/*"],
+      "js": ["g2b_page_events.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}

@@ -1,26 +1,27 @@
 {% extends "base.html" %}
-{% block title %}공고 목록 · 공통기반 사업 레이더{% endblock %}
+{% block title %}공고 목록 · 조달체크 | 범정부 AI 공통기반 edition{% endblock %}
 {% block content %}
 <section class="page-head"><div><span class="eyebrow">NOTICE INVENTORY</span><h1>공고 목록</h1><p>사업·기관·분석상태·공고기간 등 원하는 조건으로 후보를 좁혀보세요.</p></div></section>
 <form class="filters advanced" method="get">
   <label class="filter-wide"><span>통합 검색</span><input name="keyword" placeholder="사업명·기관·공고번호" value="{{ request.query_params.get('keyword','') }}"></label>
   <label><span>기관</span><input name="agency" placeholder="기관명" value="{{ request.query_params.get('agency','') }}"></label>
-  <label><span>공고 단계</span><select name="stage"><option value="">전체</option><option value="prenotice">사전규격</option><option value="bid_notice">본공고</option></select></label>
-  <label><span>분석 상태</span><select name="analysis_status"><option value="">전체</option><option value="deep_completed">3차 심층 완료</option><option value="criteria_outdated">기준 갱신 필요</option><option value="deep_pending">3차 심층 대기</option><option value="simple_completed">2차 검토 완료</option><option value="screened_out">규칙 제외</option><option value="unanalyzed">미분석</option><option value="failed">분석 실패</option></select></label>
-  <label><span>AI 관련도</span><select name="ai_relevance"><option value="">전체</option><option value="high">높음</option><option value="medium">중간</option><option value="low">낮음</option></select></label>
-  <label><span>6개 분류</span><select name="classification_code"><option value="">전체</option><option value="1">1 · 적합·사용</option><option value="2">2 · 적합·미반영</option><option value="3">3 · 전환검토·미반영</option><option value="4">4 · 사용명시·조건점검</option><option value="5">5 · 조건불충족·미사용</option><option value="6">6 · 비AI 사업</option></select></label>
-  <label><span>조치 상태</span><select name="action_status"><option value="">전체</option><option value="new">신규</option><option value="reviewing">검토중</option><option value="contacted">연락완료</option><option value="reflected">반영확인</option><option value="not_reflected">미반영확인</option><option value="closed">종료</option></select></label>
-  <label><span>권고 조치</span><select name="recommended_action"><option value="">전체</option><option value="contact">담당자 확인</option><option value="watch">지속 관찰</option><option value="manual_review">수동 검토</option><option value="no_action">조치 없음</option></select></label>
-  <label><span>문서 처리</span><select name="parse_status"><option value="">전체</option><option value="issue">오류·미지원</option><option value="failed">파싱 실패</option><option value="unsupported">미지원</option><option value="parsed">파싱 완료</option></select></label>
-  <label><span>마감 상태</span><select name="deadline_status"><option value="">전체</option><option value="open">진행중</option><option value="closed">마감</option><option value="unknown">마감 미상</option></select></label>
+  <label><span>처리 범위</span><select name="action_required"><option value="">전체</option><option value="true" {% if request.query_params.get('action_required') == 'true' %}selected{% endif %}>조치·확인 대상만</option></select></label>
+  <label><span>공고 단계</span><select name="stage"><option value="">전체</option><option value="prenotice" {% if request.query_params.get('stage') == 'prenotice' %}selected{% endif %}>사전규격</option><option value="bid_notice" {% if request.query_params.get('stage') == 'bid_notice' %}selected{% endif %}>본공고</option></select></label>
+  <label><span>분석 상태</span><select name="analysis_status"><option value="">전체</option>{% for value,label in [('deep_completed','3차 심층 완료'),('criteria_outdated','기준 갱신 필요'),('deep_pending','3차 심층 대기'),('simple_completed','2차 검토 완료'),('screened_out','규칙 제외'),('unanalyzed','미분석'),('failed','분석 실패')] %}<option value="{{ value }}" {% if request.query_params.get('analysis_status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>AI 관련도</span><select name="ai_relevance"><option value="">전체</option>{% for value,label in [('high','높음'),('medium','중간'),('low','낮음')] %}<option value="{{ value }}" {% if request.query_params.get('ai_relevance') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>6개 분류</span><select name="classification_code"><option value="">전체</option>{% for value,label in [('1','1 · 적합·사용'),('2','2 · 적합·미반영'),('3','3 · 전환·확인검토'),('4','4 · 사용명시·조건확인'),('5','5 · 비대상·미사용'),('6','6 · 비AI 사업')] %}<option value="{{ value }}" {% if request.query_params.get('classification_code') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>조치 상태</span><select name="action_status"><option value="">전체</option>{% for value,label in [('new','권고 대기'),('reviewing','검토중'),('completed_non_ai','비AI 사업'),('in_progress','조치중'),('completed_uses','조치완료 · 이용'),('completed_not_used','조치완료 · 미이용'),('completed_ineligible','조치완료 · 부적합')] %}<option value="{{ value }}" {% if request.query_params.get('action_status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>권고 조치</span><select name="recommended_action"><option value="">전체</option>{% for value,label in [('contact','담당자 확인'),('watch','지속 관찰'),('manual_review','수동 검토'),('no_action','조치 없음')] %}<option value="{{ value }}" {% if request.query_params.get('recommended_action') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>문서 처리</span><select name="parse_status"><option value="">전체</option>{% for value,label in [('issue','오류·미지원'),('failed','파싱 실패'),('unsupported','미지원'),('parsed','파싱 완료')] %}<option value="{{ value }}" {% if request.query_params.get('parse_status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label><span>마감 상태</span><select name="deadline_status"><option value="">전체</option>{% for value,label in [('open','진행중'),('closed','마감'),('unknown','마감 미상')] %}<option value="{{ value }}" {% if request.query_params.get('deadline_status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
   <label><span>공고일 시작</span><input type="date" name="date_from" value="{{ request.query_params.get('date_from','') }}"></label>
   <label><span>공고일 종료</span><input type="date" name="date_to" value="{{ request.query_params.get('date_to','') }}"></label>
-  <label><span>정렬</span><select name="sort"><option value="">우선순위순</option><option value="newest">최신 공고순</option><option value="deadline">마감 임박순</option><option value="budget">예산 높은순</option></select></label>
+  <label><span>정렬</span><select name="sort"><option value="">우선순위순</option>{% for value,label in [('newest','최신 공고순'),('deadline','마감 임박순'),('budget','예산 높은순')] %}<option value="{{ value }}" {% if request.query_params.get('sort') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
   <div class="filter-actions"><button class="button primary">조건 검색</button><a class="button" href="{{ url_for('notices_page').path }}">초기화</a></div>
 </form>
-<p class="result-count">검색 결과 <strong>{{ notice_rows|length }}</strong>건 · 최대 500건 표시</p>
+<p class="result-count">검색 결과 <strong>{{ pagination.total|number }}</strong>건 · {{ pagination.page|number }} / {{ pagination.total_pages|number }}페이지 · 한 번에 10건</p>
 <div class="table-wrap"><table><thead><tr><th>분류</th><th>분석상태</th><th>단계</th><th>기관 / 사업명</th><th>공고기간</th><th>예산</th><th>우선순위</th><th>조치</th></tr></thead><tbody>
-{% for row in notice_rows %}{% set notice = row.notice %}{% set analysis = row.analysis %}<tr>
+{% for row in notice_rows %}{% set notice = row.notice %}{% set analysis = row.analysis %}{% set workflow = row.workflow %}<tr>
   <td>{% if analysis.classification_code %}<span class="category-tag category-{{ analysis.classification_code }}"><b>{{ analysis.classification_code }}</b>{{ analysis.classification_label }}</span>{% else %}<span class="category-tag">미분류</span>{% endif %}</td>
   <td><span class="analysis-badge analysis-{{ analysis.key }}">{{ analysis.label }}</span>{% if analysis.model_name %}<small class="model-name">{{ analysis.model_name }}</small>{% endif %}</td>
   <td><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span></td>
@@ -28,7 +29,14 @@
   <td class="period"><span>{{ format_datetime(notice.posted_at) }}</span><span>~ {{ format_datetime(notice.deadline_at) }}</span><strong class="deadline {{ 'closed' if deadline_label(notice.deadline_at) == '마감' else '' }}">{{ deadline_label(notice.deadline_at) }}</strong></td>
   <td class="money">{% if notice.budget_amount %}{{ '{:,}'.format(notice.budget_amount) }}원{% else %}미상{% endif %}</td>
   <td><strong>{{ analysis.result.priority_score if analysis.classification_code else '–' }}</strong></td>
-  <td><span class="status">{{ notice.action.status if notice.action else '–' }}</span></td>
+  <td><span class="status">{{ workflow.action_status if notice.action else '–' }}</span></td>
 </tr>
 {% else %}<tr><td colspan="8" class="empty">조건에 맞는 공고가 없습니다.</td></tr>{% endfor %}</tbody></table></div>
+{% if pagination.total_pages > 1 %}
+<nav class="pagination" aria-label="공고 목록 페이지">
+  {% if pagination.previous_url %}<a href="{{ pagination.previous_url }}">← 이전</a>{% else %}<span>← 이전</span>{% endif %}
+  <div>{% for number in pagination.pages %}<a class="{% if number == pagination.page %}current{% endif %}" href="{{ pagination.page_url(number) }}">{{ number }}</a>{% endfor %}</div>
+  {% if pagination.next_url %}<a href="{{ pagination.next_url }}">다음 →</a>{% else %}<span>다음 →</span>{% endif %}
+</nav>
+{% endif %}
 {% endblock %}

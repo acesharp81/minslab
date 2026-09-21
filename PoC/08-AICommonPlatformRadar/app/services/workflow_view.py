@@ -1,15 +1,30 @@
 from __future__ import annotations
 
 import json
-from urllib.parse import quote_plus
+import re
 
 from ..models import AnalysisRun, Notice
 from .analyzer import CLASSIFICATION_LABELS, is_current_deep_result
 from .attachment_policy import select_preferred_documents
 from .filter_rules import evaluate_notice
+from .opinion_guidance import build_opinion_guidance, opinion_template_type
+from .platform_usage import has_optional_platform_usage
 
 
 ACTION_REQUIRED_CODES = {"2", "3", "4"}
+ACTION_STATUS_LABELS = {
+    "new": "권고 대기", "reviewing": "검토중", "in_progress": "조치중",
+    "completed_non_ai": "비AI 사업",
+    "completed_uses": "조치완료 · 이용", "completed_not_used": "조치완료 · 미이용",
+    "completed_ineligible": "조치완료 · 부적합", "contacted": "조치중",
+    "reflected": "조치완료 · 이용", "not_reflected": "조치중", "closed": "조치완료",
+}
+ACTION_STATUS_NORMALIZED = {
+    "contacted": "in_progress",
+    "reflected": "completed_uses",
+    "not_reflected": "in_progress",
+    "closed": "completed_not_used",
+}
 
 
 def json_object(value: str | None) -> dict:
@@ -18,6 +33,80 @@ def json_object(value: str | None) -> dict:
         return parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+def guidance_sections(message: str) -> list[dict]:
+    """Present old structured messages and new human prose as compact visual sections."""
+    if re.search(r"(?m)^(분석 내용|검토 요청)\s*$", message or ""):
+        parts = re.split(r"(?m)^\s*(분석 내용|검토 요청)\s*$", message or "")
+        introduction = [part.strip() for part in re.split(r"\n\s*\n", parts[0]) if part.strip()]
+        sections = [{"title": "인사·의견 요지", "entries": introduction}]
+        for index in range(1, len(parts), 2):
+            title = parts[index].strip()
+            body = parts[index + 1] if index + 1 < len(parts) else ""
+            entries = [
+                line[2:].strip() if line.startswith("- ") else line.strip()
+                for line in body.splitlines() if line.strip()
+            ]
+            sections.append({"title": title, "entries": entries})
+        return sections
+    if "[" not in (message or ""):
+        paragraphs = [part.strip() for part in re.split(r"\n\s*\n", message or "") if part.strip()]
+        titles = ("의견 요지", "현재 확인된 내용", "보완·확인 시 활용 가능", "검토 요청", "관련 법적 근거")
+        return [
+            {"title": titles[index] if index < len(titles) else "추가 안내", "entries": [paragraph]}
+            for index, paragraph in enumerate(paragraphs)
+        ]
+    sections: list[dict] = []
+    current: dict | None = None
+    for raw_line in (message or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            current = {"title": line[1:-1], "entries": []}
+            sections.append(current)
+            continue
+        if current is None:
+            current = {"title": "인사·의견 요지", "entries": []}
+            sections.append(current)
+        current["entries"].append(line[2:] if line.startswith("- ") else line)
+    return sections
+
+
+def notice_contact(notice: Notice) -> dict:
+    if notice.stage != "bid_notice":
+        return {}
+    payload = json_object(notice.raw_payload_json)
+    name = next((str(payload.get(key) or "").strip() for key in (
+        "ntceInsttOfclNm", "dminsttOfclNm", "ofclNm", "chrgprsnNm",
+    ) if str(payload.get(key) or "").strip()), "")
+    phone = next((str(payload.get(key) or "").strip() for key in (
+        "ntceInsttOfclTelNo", "dminsttOfclTelNo", "ofclTelNo", "chrgprsnTelNo",
+    ) if str(payload.get(key) or "").strip()), "")
+    tel_value = re.sub(r"[^0-9+]", "", phone)
+    return {
+        "name": name,
+        "phone": phone,
+        "tel_url": f"tel:{tel_value}" if tel_value else None,
+        "available": bool(name or phone),
+    }
+
+
+def opinion_tracking(notice: Notice) -> dict:
+    payload = json_object(notice.raw_payload_json)
+    tracking = payload.get("_poc08_opinion_tracking")
+    if isinstance(tracking, dict) and tracking.get("status"):
+        if (
+            tracking.get("status") == "not_submitted"
+            and notice.action
+            and notice.action.status in {"in_progress", "completed_uses", "completed_not_used", "completed_ineligible", "completed_non_ai", "contacted", "reflected", "not_reflected"}
+        ):
+            return {**tracking, "status": "not_checked", "status_label": "답변 확인 전"}
+        return tracking
+    if notice.action and notice.action.status in {"in_progress", "completed_uses", "completed_not_used", "completed_ineligible", "completed_non_ai", "contacted", "reflected", "not_reflected"}:
+        return {"status": "not_checked", "status_label": "답변 확인 전"}
+    return {"status": "not_submitted", "status_label": "의견 등록 전"}
 
 
 def current_classification_run(notice: Notice) -> AnalysisRun | None:
@@ -56,55 +145,89 @@ def latest_run(notice: Notice, run_type: str) -> AnalysisRun | None:
     ), None)
 
 
-def g2b_opinion_url(notice: Notice) -> str | None:
-    """Build the official G2B pre-notice detail/opinion route from the public API id."""
+def g2b_registration_no(notice: Notice) -> str | None:
     if notice.stage != "prenotice":
-        return notice.url
+        return None
     payload = json_object(notice.raw_payload_json)
     registration_no = payload.get("bfSpecRgstNo") or notice.notice_no
-    if not registration_no:
+    return str(registration_no).strip() or None
+
+
+def g2b_opinion_url(notice: Notice) -> str | None:
+    """Return a reliable G2B entry point for a pre-notice opinion.
+
+    Every /link/*/single screen tested by this service requires internal G2B
+    navigation state, including the list screen itself. External callers must
+    enter through the G2B home page, navigate to the pre-notice list, and paste
+    the separately exposed public registration number.
+    """
+    if notice.stage != "prenotice":
         return notice.url
-    return (
-        "https://www.g2b.go.kr/link/PNPE027_01/single/"
-        f"?bfSpecRgstNo={quote_plus(str(registration_no))}"
-    )
+    if not g2b_registration_no(notice):
+        return notice.url
+    return "https://www.g2b.go.kr/"
 
 
 def finding_details(result: dict) -> list[dict]:
     """Translate gate results into operator-facing findings and required checks."""
+    if result.get("service_scope") == "non_target":
+        return []
     findings: list[dict] = []
     network = result.get("network_scope", "unclear")
     task = result.get("task_scope", "unclear")
     model = result.get("model_fit", "unclear")
     usage = result.get("platform_usage", "unclear")
     remediation = result.get("remediation_feasibility", "unclear")
+    optional_usage = has_optional_platform_usage(result)
 
     if network not in {"internal_or_connected", "hybrid"}:
         findings.append({
             "gate": "망·데이터",
-            "problem": "내부·업무망 또는 연계망에서 처리되는 서비스인지 확인되지 않았습니다."
-            if network == "unclear" else "인터넷망에서 완결되는 서비스로 분석되었습니다.",
-            "action": "처리 데이터의 위치와 내부망 연계 범위를 명시하도록 요청합니다.",
+            "problem": (
+                "내부·업무망 또는 연계망에서 처리되는지 공개 문서로 확인할 수 없습니다."
+                if network == "unclear"
+                else "폐쇄망은 확인됐지만 행정망·업무망 연계 여부가 확인되지 않았습니다."
+                if network == "other_closed_network"
+                else "인터넷망에서 완결되는 서비스로 명시되었습니다."
+            ),
+            "action": (
+                "폐쇄망과 행정망·업무망의 연결 가능 여부 및 데이터 처리 경계를 담당자에게 확인합니다."
+                if network == "other_closed_network"
+                else "처리 데이터의 위치와 행정망·업무망 연계 범위를 명시하도록 요청합니다."
+            ),
         })
     if task not in {"government", "delegated_government"}:
         findings.append({
             "gate": "국가사무",
-            "problem": "국가사무 또는 위탁 국가사무라는 근거가 확인되지 않았습니다."
-            if task == "unclear" else "기관 자체 내부업무 또는 비국가사무로 분석되었습니다.",
-            "action": "법령·위임·위탁 근거와 실제 수행 사무의 범위를 확인합니다.",
+            "problem": "공개 문서만으로 국가사무 여부를 확정할 수 없습니다. 불충족 판정이 아닙니다."
+            if task == "unclear" else "기관 자체 내부업무 또는 비국가사무로 판정되었습니다.",
+            "action": "발주·주무기관과 국가사무·위임·위탁 근거 및 실제 수행 사무의 범위를 담당자에게 확인합니다."
+            if task == "unclear" else "비국가사무 판정 근거를 기록하고 공통기반 직접 활용 안내 대상에서는 제외합니다.",
         })
     if model != "platform_llm_or_rag":
         findings.append({
             "gate": "모델·기능",
             "problem": "공통기반의 LLM·RAG로 처리 가능한지 확인되지 않았습니다."
             if model == "unclear" else "독자모델 또는 풀파인튜닝 요구로 별도 협의가 필요합니다.",
-            "action": "공통기반 제공 모델·RAG로 대체 가능한 범위를 명시하도록 요청합니다.",
+            "action": "독자모델·풀파인튜닝을 공개 파운데이션 모델·RAG로 대체 가능한 범위까지 담당자에게 확인합니다.",
         })
     if usage != "uses" and result.get("classification_code") in {"2", "3"}:
         findings.append({
             "gate": "공통기반 활용",
-            "problem": "기본조건 충족 가능성이 있으나 공통기반 활용이 반영되지 않았습니다.",
-            "action": "사전규격에 공통기반 활용 범위와 연계 방식을 반영하도록 의견을 냅니다.",
+            "problem": (
+                "공통기반이 여러 인프라 대안 중 하나로만 제시되어, 다른 방안보다 "
+                "우선 검토했는지 확인하도록 하는 장치가 부족합니다."
+                if optional_usage else
+                "기본조건 충족 가능성이 있으나 공통기반을 우선 검토하고 그 결과를 "
+                "사업 문서에 반영하도록 하는 장치가 부족합니다."
+            ),
+            "action": (
+                "다른 대안을 선택하기 전에 공통기반 적용 가능성을 우선 검토하고, 채택 여부와 "
+                "미채택 사유를 사전규격에 명시하도록 의견을 냅니다."
+                if optional_usage else
+                "공통기반 적용 가능성을 우선 검토하고, 검토 결과와 활용 범위·연계 방식을 "
+                "사전규격에 반영하도록 의견을 냅니다."
+            ),
         })
     if result.get("classification_code") == "4" and usage == "uses":
         findings.append({
@@ -132,16 +255,32 @@ def workflow_summary(notice: Notice) -> dict:
     result = json_object(classification_run.result_json if classification_run else None)
     code = str(result.get("classification_code") or "")
     findings = finding_details(result) if result else []
+    guidance = (
+        build_opinion_guidance(notice, result)
+        if result and code in ACTION_REQUIRED_CODES
+        else result.get("guidance_message", "")
+    )
+    template_type = opinion_template_type(notice) if result and code in ACTION_REQUIRED_CODES else None
+    raw_action_status = notice.action.status if notice.action else "new"
     return {
         "classification_code": code or None,
         "classification_label": CLASSIFICATION_LABELS.get(code, "미분류"),
         "result": result,
         "findings": findings,
         "issue_labels": list(dict.fromkeys(item["gate"] for item in findings)),
-        "guidance_message": result.get("guidance_message", ""),
+        "guidance_message": guidance,
+        "guidance_sections": guidance_sections(guidance),
+        "opinion_template_type": template_type,
+        "opinion_template_label": (
+            "계획·ISP·연구용역" if template_type == "planning" else "구축사업" if template_type else None
+        ),
         "action_required": code in ACTION_REQUIRED_CODES,
-        "action_status": notice.action.status if notice.action else "new",
+        "action_status": ACTION_STATUS_LABELS.get(raw_action_status, "권고 대기"),
+        "action_state": ACTION_STATUS_NORMALIZED.get(raw_action_status, raw_action_status),
         "opinion_url": g2b_opinion_url(notice),
+        "g2b_registration_no": g2b_registration_no(notice),
+        "opinion_tracking": opinion_tracking(notice),
+        "contact": notice_contact(notice),
     }
 
 
@@ -173,7 +312,11 @@ def analysis_trace(notice: Notice) -> list[dict]:
     if deep:
         deep_detail, deep_status = "3대 기본조건과 공통기반 사용 여부를 근거 문장으로 검증했습니다.", "complete"
     elif classification and classification.model_name == "rule-gate":
-        deep_detail, deep_status = "비AI 규칙 제외로 심층 LLM 호출 없이 6유형으로 확정했습니다.", "complete"
+        if deep_result.get("service_scope") == "non_target":
+            deep_detail = "검사 범위 비대상으로 심층 LLM 호출 없이 5유형으로 확정했습니다."
+        else:
+            deep_detail = "비AI 규칙 제외로 심층 LLM 호출 없이 6유형으로 확정했습니다."
+        deep_status = "complete"
     elif latest_deep and latest_deep.status == "failed":
         deep_detail, deep_status = latest_deep.error_message or "심층 분석에 실패했습니다.", "error"
     else:

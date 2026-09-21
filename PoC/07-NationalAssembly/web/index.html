@@ -6,10 +6,10 @@
     <meta name="description" content="국회·대통령실·국무회의·부처의 국정 흐름을 주제·소관별로 보는 PoC" />
     <title>국정ON</title>
     <link rel="stylesheet" href="assets/styles.css?v=20260903-11" />
-    <link rel="stylesheet" href="assets/topic-reports.css?v=20260903-3" />
-    <link rel="stylesheet" href="assets/assembly-extras.css?v=20260903-4" />
+    <link rel="stylesheet" href="assets/topic-reports.css?v=20260917-4" />
+    <link rel="stylesheet" href="assets/assembly-extras.css?v=20260917-4" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20260914-3" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20260917-4" />
     <link rel="stylesheet" href="assets/official-integration.css?v=20260825-1" />
     <link rel="stylesheet" href="assets/watch-alerts.css?v=20260903-5" />
   </head>
@@ -139,7 +139,7 @@
           <section class="assembly-insights-panel" aria-labelledby="assemblyInsightsTitle">
             <header class="assembly-panel-head">
               <div><span>GOVERNMENT FLOW INSIGHTS</span><h2 id="assemblyInsightsTitle">국정 흐름 인사이트</h2><p>각각의 공식 자료를 시간·반복·제도화 관계로 결합해 봅니다.</p></div>
-              <small class="assembly-insight-cost">저장 공식자료 계산 · LLM 0회</small>
+              <button class="assembly-ontology-open" id="assemblyOntologyOpen" type="button"><span aria-hidden="true">✦</span> 3D 온톨로지</button>
             </header>
             <div class="assembly-insights-grid">
               <article class="assembly-insight-card is-timeline"><header><span>정책 흐름 타임라인</span><small>정부 ↔ 국회</small></header><div id="assemblyPolicyTimeline"><p>정책 흐름을 불러오는 중입니다.</p></div></article>
@@ -333,12 +333,30 @@
       <footer>저장된 회의 보고서와 공식 자료의 요약을 사용합니다 · 열람 LLM 0회</footer>
     </dialog>
 
+    <dialog class="assembly-ontology-dialog" id="assemblyOntologyDialog" aria-labelledby="assemblyOntologyTitle">
+      <div class="assembly-ontology-shell">
+        <header>
+          <div><span>POLICY KNOWLEDGE CONSTELLATION</span><h2 id="assemblyOntologyTitle">국정 온톨로지 3D 스타맵</h2><p id="assemblyOntologyMeta">현재 분류 체계와 저장 보고서 적용 현황</p></div>
+          <button id="assemblyOntologyClose" type="button" aria-label="온톨로지 스타맵 닫기">×</button>
+        </header>
+        <div class="assembly-ontology-metrics" id="assemblyOntologyMetrics" aria-live="polite"></div>
+        <div class="assembly-ontology-body">
+          <section class="assembly-ontology-stage" aria-label="국정 온톨로지 관계도">
+            <canvas id="assemblyOntologyCanvas"></canvas>
+            <div class="assembly-ontology-legend" id="assemblyOntologyLegend"></div>
+            <button class="assembly-ontology-reset" id="assemblyOntologyReset" type="button" title="전체 보기" aria-label="스타맵 전체 보기">↺</button>
+          </section>
+          <aside class="assembly-ontology-detail" id="assemblyOntologyDetail"></aside>
+        </div>
+      </div>
+    </dialog>
+
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
     <script src="assets/official-integration.js?v=20260902-3" defer></script>
-    <script src="assets/app.js?v=20260915-1" defer></script>
+    <script src="assets/app.js?v=20260917-2" defer></script>
     <script src="assets/watch-alerts.js?v=20260904-3" defer></script>
-    <script src="assets/topic-reports.js?v=20260903-2" defer></script>
-    <script src="assets/assembly-extras.js?v=20260903-1" defer></script>
+    <script src="assets/topic-reports.js?v=20260917-2" defer></script>
+    <script src="assets/assembly-extras.js?v=20260917-5" defer></script>
     <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

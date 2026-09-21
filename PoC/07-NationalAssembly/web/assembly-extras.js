@@ -19,7 +19,35 @@
   };
   const partyColors = ["#174f9b", "#e3545d", "#e6a83a", "#32a27b", "#7256c7", "#3594b5", "#8a6c4a", "#7a8798", "#b85c9b"];
   const hemicycleState = { payload: null, selected: new Set() };
+  const ontologyState = {
+    payload: null,
+    nodes: [],
+    selected: null,
+    activeDomain: "",
+    hover: null,
+    zoom: 1,
+    panX: 0,
+    panY: 0,
+    dragging: false,
+    moved: false,
+    pointerX: 0,
+    pointerY: 0,
+    animation: 0,
+    wired: false,
+    scene3d: null,
+    force2d: false,
+  };
   const svgNamespace = "http://www.w3.org/2000/svg";
+  let ontology3dLoader = null;
+
+  async function loadOntology3DEngine() {
+    if (window.AssemblyOntology3D) return window.AssemblyOntology3D;
+    if (!ontology3dLoader) {
+      ontology3dLoader = import("./ontology-starmap.js?v=20260917-4")
+        .then(() => window.AssemblyOntology3D);
+    }
+    return ontology3dLoader;
+  }
 
   function element(tag, className = "", text = "") {
     const node = document.createElement(tag);
@@ -648,23 +676,410 @@
     }
   }
 
-  async function loadGovernmentInsights() {
-    try {
-      const [crossResponse, issueResponse] = await Promise.all([
-        fetch("api/policy/cross-institution-flow", { cache: "no-store", headers: { Accept: "application/json" } }),
-        fetch("api/policy/specific-issues", { cache: "no-store", headers: { Accept: "application/json" } }),
-      ]);
-      if (!crossResponse.ok || !issueResponse.ok) throw new Error("insights");
-      const [cross, issues] = await Promise.all([crossResponse.json(), issueResponse.json()]);
-      renderPolicyTimeline(cross);
-      renderIssueTrends(issues);
-      renderInstitutionFlow(issues);
-    } catch (_) {
-      for (const selector of ["#assemblyPolicyTimeline", "#assemblyIssueTrends", "#assemblyInstitutionFlow"]) {
-        const target = mount.querySelector(selector);
-        target.replaceChildren(element("p", "assembly-insight-empty", "공식 인사이트 자료를 불러오지 못했습니다."));
+  function ontologyMetric(label, value, className = "") {
+    const item = element("div", className);
+    item.append(element("span", "", label), element("strong", "", value));
+    return item;
+  }
+
+  function renderOntologyMetrics(payload) {
+    const target = document.querySelector("#assemblyOntologyMetrics");
+    const metrics = payload.metrics || {};
+    const coverage = Math.round(Number(metrics.ontology_coverage || 0) * 1000) / 10;
+    target.replaceChildren(
+      ontologyMetric("정책 영역", Number((payload.domains || []).length).toLocaleString()),
+      ontologyMetric("세부 분류", Number((payload.groups || []).length).toLocaleString()),
+      ontologyMetric("검증 보고서", Number(metrics.report_count || 0).toLocaleString()),
+      ontologyMetric("분류된 주제", `${Number(metrics.ontology_topic_count || 0).toLocaleString()}건`),
+      ontologyMetric("온톨로지 적용률", `${coverage.toFixed(1)}%`, coverage >= 95 ? "is-good" : "is-review"),
+      ontologyMetric("무결성 오류", `${Number(metrics.integrity_failure_count || 0).toLocaleString()}건`, Number(metrics.integrity_failure_count || 0) ? "is-review" : "is-good"),
+    );
+  }
+
+  function renderOntologyDetail(node) {
+    const target = document.querySelector("#assemblyOntologyDetail");
+    const payload = ontologyState.payload || {};
+    const metrics = payload.metrics || {};
+    const domains = payload.domains || [];
+    target.replaceChildren();
+    if (!node || node.type === "root") {
+      const coverage = Math.round(Number(metrics.ontology_coverage || 0) * 1000) / 10;
+      target.style.setProperty("--detail-color", "#5eead4");
+      target.append(
+        element("span", "", String(payload.version || "ONTOLOGY").replace("assembly-meeting-topic-grouping/", "ONTOLOGY ").toUpperCase()),
+        element("h3", "", payload.root?.title || "국정 온톨로지"),
+        element("p", "", "회의 보고서의 세부 주제를 정책 대상으로 묶는 현재 운영 분류 체계입니다."),
+      );
+      const stats = element("dl");
+      stats.append(
+        element("dt", "", "정책 영역"), element("dd", "", `${domains.length}개`),
+        element("dt", "", "세부 분류"), element("dd", "", `${(payload.groups || []).length}개`),
+        element("dt", "", "전체 세부 주제"), element("dd", "", Number(metrics.topic_count || 0).toLocaleString() + "건"),
+        element("dt", "", "온톨로지 적용률"), element("dd", "", coverage + "%"),
+        element("dt", "", "동적·미분류"), element("dd", "", Number(metrics.unclassified_topic_count || 0).toLocaleString() + "건"),
+      );
+      const status = element("div", Number(metrics.integrity_failure_count || 0) ? "assembly-ontology-status is-review" : "assembly-ontology-status");
+      status.textContent = Number(metrics.integrity_failure_count || 0)
+        ? `무결성 재검토 ${Number(metrics.integrity_failure_count).toLocaleString()}개 보고서`
+        : "모든 세부 주제가 중복·누락 없이 한 번씩 묶였습니다.";
+      target.append(stats, status);
+      return;
+    }
+    const domain = domains.find((item) => item.key === (node.domain_key || node.key));
+    const color = domain?.color || "#5eead4";
+    target.style.setProperty("--detail-color", color);
+    if (node.type === "domain") {
+      const children = (payload.groups || []).filter((item) => item.domain_key === node.key);
+      target.append(
+        element("span", "", "POLICY DOMAIN"),
+        element("h3", "", node.title),
+        element("p", "", "정책 대상 분류가 연결되는 상위 영역입니다."),
+      );
+      const stats = element("dl");
+      stats.append(
+        element("dt", "", "세부 분류"), element("dd", "", `${children.length}개`),
+        element("dt", "", "적용 주제"), element("dd", "", Number(node.topic_count || 0).toLocaleString() + "건"),
+      );
+      target.append(stats, element("h4", "", "연결된 분류"));
+      const tags = element("div", "assembly-ontology-keywords");
+      children.forEach((item) => {
+        const button = element("button", "", item.title);
+        button.type = "button";
+        button.title = `${item.title} 세부 분류 선택`;
+        button.addEventListener("click", () => {
+          if (ontologyState.scene3d?.select(item.key)) return;
+          ontologyState.selected = { ...item, type: "group" };
+          ontologyState.activeDomain = item.domain_key;
+          renderOntologyDetail(ontologyState.selected);
+        });
+        tags.append(button);
+      });
+      target.append(tags);
+      return;
+    }
+    target.append(
+      element("span", "", "POLICY TARGET"),
+      element("h3", "", node.title),
+      element("p", "", domain?.title || "정책 영역"),
+    );
+    const stats = element("dl");
+    stats.append(
+      element("dt", "", "적용 세부 주제"), element("dd", "", Number(node.topic_count || 0).toLocaleString() + "건"),
+      element("dt", "", "등장 회의 보고서"), element("dd", "", Number(node.report_count || 0).toLocaleString() + "개"),
+      element("dt", "", "매칭 키워드"), element("dd", "", Number(node.keyword_count || 0).toLocaleString() + "개"),
+    );
+    target.append(stats, element("h4", "", "판별 키워드"));
+    const keywords = element("div", "assembly-ontology-keywords");
+    (node.keywords || []).forEach((keyword) => keywords.append(element("span", "", keyword)));
+    target.append(keywords);
+  }
+
+  function ontologyLayout(width, height) {
+    const payload = ontologyState.payload || {};
+    const centerX = width / 2;
+    const centerY = height / 2 - Math.min(22, height * .03);
+    const size = Math.min(width, height);
+    const domainRadius = Math.max(72, size * .2);
+    const groupRadius = Math.max(138, size * .39);
+    const nodes = [{ type: "root", key: "national-policy", title: payload.root?.title || "국정 온톨로지", x: centerX, y: centerY, radius: 18 }];
+    const groups = payload.groups || [];
+    (payload.domains || []).forEach((domain, domainIndex, domains) => {
+      const angle = -Math.PI / 2 + domainIndex * Math.PI * 2 / domains.length;
+      nodes.push({ ...domain, type: "domain", domain_key: domain.key, x: centerX + Math.cos(angle) * domainRadius, y: centerY + Math.sin(angle) * domainRadius, radius: 11 });
+      const children = groups.filter((group) => group.domain_key === domain.key);
+      const arc = Math.PI * 2 / domains.length * .78;
+      children.forEach((group, index) => {
+        const fraction = children.length === 1 ? .5 : index / (children.length - 1);
+        const childAngle = angle - arc / 2 + arc * fraction;
+        const stagger = index % 2 ? size * .022 : 0;
+        nodes.push({
+          ...group,
+          type: "group",
+          color: domain.color,
+          x: centerX + Math.cos(childAngle) * (groupRadius + stagger),
+          y: centerY + Math.sin(childAngle) * (groupRadius + stagger),
+          radius: Math.min(9, 4.2 + Math.log2(Number(group.topic_count || 0) + 1) * .72),
+        });
+      });
+    });
+    return nodes;
+  }
+
+  function ontologyScreenPoint(node, width, height) {
+    return {
+      x: (node.x - width / 2) * ontologyState.zoom + width / 2 + ontologyState.panX,
+      y: (node.y - height / 2) * ontologyState.zoom + height / 2 + ontologyState.panY,
+    };
+  }
+
+  function drawOntology() {
+    const canvas = document.querySelector("#assemblyOntologyCanvas");
+    const dialog = document.querySelector("#assemblyOntologyDialog");
+    if (!canvas || !dialog?.open || !ontologyState.payload) return;
+    if (!window.AssemblyOntology3D && !ontologyState.force2d) {
+      ontologyState.animation = requestAnimationFrame(drawOntology);
+      return;
+    }
+    if (window.AssemblyOntology3D && !ontologyState.scene3d && !ontologyState.force2d) {
+      try {
+        ontologyState.scene3d = window.AssemblyOntology3D.create(
+          canvas,
+          ontologyState.payload,
+          {
+            onSelect(node) {
+              ontologyState.selected = node;
+              ontologyState.activeDomain = node.type === "root" ? "" : (node.domain_key || node.key);
+              renderOntologyDetail(node);
+              document.querySelectorAll("#assemblyOntologyLegend button").forEach((button, index) => {
+                button.classList.toggle("is-active", (ontologyState.payload.domains || [])[index]?.key === ontologyState.activeDomain);
+              });
+            },
+          },
+        );
+        document.querySelector("#assemblyOntologyMeta").textContent = `실시간 3D 지식 성단 · Three.js r${window.AssemblyOntology3D.version}`;
+      } catch (error) {
+        ontologyState.force2d = true;
+        canvas.dataset.renderer = "canvas2d";
+        canvas.dataset.rendererError = String(error?.message || error || "WEBGL_UNAVAILABLE");
+        document.querySelector("#assemblyOntologyMeta").textContent = "이 장치에서는 호환형 스타맵으로 표시합니다.";
       }
     }
+    if (ontologyState.scene3d) {
+      ontologyState.scene3d.start();
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const width = Math.max(1, rect.width);
+    const height = Math.max(1, rect.height);
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+    }
+    const context = canvas.getContext("2d");
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, width, height);
+    context.fillStyle = "#050812";
+    context.fillRect(0, 0, width, height);
+    const now = performance.now() / 1000;
+    for (let index = 0; index < 90; index += 1) {
+      const x = ((index * 83.37) % 100) / 100 * width;
+      const y = ((index * 47.11 + 13) % 100) / 100 * height;
+      const alpha = .12 + ((Math.sin(now * .7 + index) + 1) * .08);
+      context.fillStyle = `rgba(181,205,239,${alpha})`;
+      context.fillRect(x, y, index % 7 === 0 ? 1.6 : 1, index % 7 === 0 ? 1.6 : 1);
+    }
+    const nodes = ontologyLayout(width, height);
+    const screen = new Map(nodes.map((node) => [node.key, ontologyScreenPoint(node, width, height)]));
+    const domainMap = new Map((ontologyState.payload.domains || []).map((item) => [item.key, item]));
+    context.lineWidth = 1;
+    for (const node of nodes.filter((item) => item.type === "domain")) {
+      const root = screen.get("national-policy");
+      const point = screen.get(node.key);
+      context.beginPath();
+      context.moveTo(root.x, root.y);
+      context.lineTo(point.x, point.y);
+      context.strokeStyle = node.color + "66";
+      context.stroke();
+    }
+    for (const node of nodes.filter((item) => item.type === "group")) {
+      const parent = screen.get(node.domain_key);
+      const point = screen.get(node.key);
+      const active = !ontologyState.activeDomain || ontologyState.activeDomain === node.domain_key;
+      context.beginPath();
+      context.moveTo(parent.x, parent.y);
+      context.lineTo(point.x, point.y);
+      context.strokeStyle = node.color + (active ? "50" : "12");
+      context.stroke();
+    }
+    for (const node of nodes) {
+      const point = screen.get(node.key);
+      const domain = domainMap.get(node.domain_key || node.key);
+      const color = node.type === "root" ? "#ffffff" : (domain?.color || node.color || "#5eead4");
+      const active = !ontologyState.activeDomain || node.type === "root" || ontologyState.activeDomain === (node.domain_key || node.key);
+      const focused = ontologyState.selected?.key === node.key || ontologyState.hover?.key === node.key;
+      const pulse = 1 + Math.sin(now * 2.1 + point.x * .01) * .08;
+      const radius = node.radius * ontologyState.zoom * (focused ? 1.35 : pulse);
+      context.save();
+      context.globalAlpha = active ? 1 : .14;
+      context.shadowColor = color;
+      context.shadowBlur = focused ? 28 : (node.type === "group" ? 11 : 22);
+      context.beginPath();
+      context.arc(point.x, point.y, Math.max(2.5, radius), 0, Math.PI * 2);
+      context.fillStyle = color;
+      context.fill();
+      context.restore();
+      if (node.type !== "group" || focused || ontologyState.zoom > 1.35) {
+        context.save();
+        context.globalAlpha = active ? (node.type === "group" ? .82 : 1) : .18;
+        context.fillStyle = node.type === "root" ? "#ffffff" : "#dce8f8";
+        context.font = `${node.type === "root" ? 700 : 600} ${node.type === "root" ? 13 : node.type === "domain" ? 11 : 9}px sans-serif`;
+        context.textAlign = "center";
+        context.fillText(node.title, point.x, point.y + radius + (node.type === "root" ? 19 : 14));
+        context.restore();
+      }
+      node.screenX = point.x;
+      node.screenY = point.y;
+      node.hitRadius = Math.max(12, radius + 5);
+    }
+    ontologyState.nodes = nodes;
+    ontologyState.animation = requestAnimationFrame(drawOntology);
+  }
+
+  function ontologyNodeAt(x, y) {
+    return [...ontologyState.nodes].reverse().find((node) => Math.hypot(node.screenX - x, node.screenY - y) <= node.hitRadius) || null;
+  }
+
+  function renderOntologyLegend(payload) {
+    const target = document.querySelector("#assemblyOntologyLegend");
+    target.replaceChildren();
+    (payload.domains || []).forEach((domain) => {
+      const button = element("button", "", domain.title);
+      button.type = "button";
+      button.style.setProperty("--domain-color", domain.color);
+      button.prepend(element("i"));
+      button.addEventListener("click", () => {
+        ontologyState.activeDomain = ontologyState.activeDomain === domain.key ? "" : domain.key;
+        ontologyState.selected = ontologyState.activeDomain ? { ...domain, type: "domain" } : null;
+        ontologyState.scene3d?.filter(ontologyState.activeDomain);
+        [...target.children].forEach((item) => item.classList.toggle("is-active", item === button && Boolean(ontologyState.activeDomain)));
+        renderOntologyDetail(ontologyState.selected);
+      });
+      target.append(button);
+    });
+  }
+
+  function resetOntologyView() {
+    ontologyState.zoom = 1;
+    ontologyState.panX = 0;
+    ontologyState.panY = 0;
+    ontologyState.activeDomain = "";
+    ontologyState.selected = null;
+    ontologyState.scene3d?.reset();
+    document.querySelectorAll("#assemblyOntologyLegend button").forEach((button) => button.classList.remove("is-active"));
+    renderOntologyDetail(null);
+  }
+
+  function wireOntologyCanvas() {
+    if (ontologyState.wired) return;
+    ontologyState.wired = true;
+    const canvas = document.querySelector("#assemblyOntologyCanvas");
+    canvas.addEventListener("pointerdown", (event) => {
+      if (ontologyState.scene3d) return;
+      ontologyState.dragging = true;
+      ontologyState.moved = false;
+      ontologyState.pointerX = event.clientX;
+      ontologyState.pointerY = event.clientY;
+      canvas.classList.add("is-dragging");
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (ontologyState.scene3d) return;
+      const rect = canvas.getBoundingClientRect();
+      if (ontologyState.dragging) {
+        const dx = event.clientX - ontologyState.pointerX;
+        const dy = event.clientY - ontologyState.pointerY;
+        ontologyState.panX += dx;
+        ontologyState.panY += dy;
+        ontologyState.pointerX = event.clientX;
+        ontologyState.pointerY = event.clientY;
+        if (Math.abs(dx) + Math.abs(dy) > 2) ontologyState.moved = true;
+        return;
+      }
+      ontologyState.hover = ontologyNodeAt(event.clientX - rect.left, event.clientY - rect.top);
+    });
+    canvas.addEventListener("pointerup", (event) => {
+      if (ontologyState.scene3d) return;
+      const rect = canvas.getBoundingClientRect();
+      if (!ontologyState.moved) {
+        const node = ontologyNodeAt(event.clientX - rect.left, event.clientY - rect.top);
+        if (node) {
+          ontologyState.selected = node;
+          ontologyState.activeDomain = node.type === "domain" ? node.key : (node.type === "group" ? node.domain_key : "");
+          renderOntologyDetail(node);
+          document.querySelectorAll("#assemblyOntologyLegend button").forEach((button, index) => {
+            button.classList.toggle("is-active", (ontologyState.payload.domains || [])[index]?.key === ontologyState.activeDomain);
+          });
+        }
+      }
+      ontologyState.dragging = false;
+      canvas.classList.remove("is-dragging");
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    });
+    canvas.addEventListener("pointercancel", () => {
+      if (ontologyState.scene3d) return;
+      ontologyState.dragging = false;
+      canvas.classList.remove("is-dragging");
+    });
+    canvas.addEventListener("wheel", (event) => {
+      if (ontologyState.scene3d) return;
+      event.preventDefault();
+      ontologyState.zoom = Math.min(2.2, Math.max(.72, ontologyState.zoom * (event.deltaY > 0 ? .9 : 1.1)));
+    }, { passive: false });
+    new ResizeObserver(() => {
+      if (document.querySelector("#assemblyOntologyDialog")?.open) {
+        if (ontologyState.scene3d) ontologyState.scene3d.resize();
+        else {
+          cancelAnimationFrame(ontologyState.animation);
+          ontologyState.animation = requestAnimationFrame(drawOntology);
+        }
+      }
+    }).observe(canvas);
+  }
+
+  async function openOntologyMap() {
+    const dialog = document.querySelector("#assemblyOntologyDialog");
+    if (!dialog.open) dialog.showModal();
+    wireOntologyCanvas();
+    const engineLoad = loadOntology3DEngine().catch((error) => {
+      ontologyState.force2d = true;
+      document.querySelector("#assemblyOntologyCanvas").dataset.rendererError = String(error?.message || error || "MODULE_LOAD_FAILED");
+    });
+    if (!ontologyState.payload) {
+      document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "불러오는 중"));
+      document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "현재 온톨로지 구성을 불러오는 중입니다."));
+      try {
+        const response = await fetch("api/policy/ontology", { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("ontology");
+        ontologyState.payload = await response.json();
+        renderOntologyMetrics(ontologyState.payload);
+        renderOntologyLegend(ontologyState.payload);
+        renderOntologyDetail(null);
+      } catch (_) {
+        document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "연결 실패", "is-review"));
+        document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "온톨로지 구성을 불러오지 못했습니다."));
+        return;
+      }
+    }
+    await engineLoad;
+    cancelAnimationFrame(ontologyState.animation);
+    ontologyState.animation = requestAnimationFrame(drawOntology);
+  }
+
+  async function loadGovernmentInsights() {
+    const loadIssues = async () => {
+      try {
+        const response = await fetch("api/policy/specific-issues?limit=80", { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("issues");
+        const payload = await response.json();
+        renderIssueTrends(payload);
+        renderInstitutionFlow(payload);
+      } catch (_) {
+        for (const selector of ["#assemblyIssueTrends", "#assemblyInstitutionFlow"]) {
+          mount.querySelector(selector).replaceChildren(element("p", "assembly-insight-empty", "저장된 회의 쟁점을 불러오지 못했습니다."));
+        }
+      }
+    };
+    const loadTimeline = async () => {
+      try {
+        const response = await fetch("api/policy/cross-institution-flow", { cache: "no-store", headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("timeline");
+        renderPolicyTimeline(await response.json());
+      } catch (_) {
+        mount.querySelector("#assemblyPolicyTimeline").replaceChildren(element("p", "assembly-insight-empty", "정부·국회 정책 연결 자료를 불러오지 못했습니다."));
+      }
+    };
+    await Promise.allSettled([loadIssues(), loadTimeline()]);
   }
 
   function distributeRows(total) {
@@ -889,6 +1304,19 @@
   });
   document.querySelector("#assemblyInsightDialog")?.addEventListener("click", (event) => {
     if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  document.querySelector("#assemblyOntologyOpen")?.addEventListener("click", openOntologyMap);
+  document.querySelector("#assemblyOntologyReset")?.addEventListener("click", resetOntologyView);
+  document.querySelector("#assemblyOntologyClose")?.addEventListener("click", () => {
+    document.querySelector("#assemblyOntologyDialog")?.close();
+  });
+  document.querySelector("#assemblyOntologyDialog")?.addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) event.currentTarget.close();
+  });
+  document.querySelector("#assemblyOntologyDialog")?.addEventListener("close", () => {
+    cancelAnimationFrame(ontologyState.animation);
+    ontologyState.animation = 0;
+    ontologyState.scene3d?.stop();
   });
 
   let initialized = false;

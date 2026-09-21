@@ -5,6 +5,8 @@ __pycache__/
 *.py[cod]
 data/*.db*
 data/*.lock
+data/opinion_sender_profile.json
+data/runtime_settings.json
 data/raw/*
 data/parsed/*
 data/reports/*

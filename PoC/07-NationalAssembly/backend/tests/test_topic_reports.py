@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from datetime import date
 
@@ -11,9 +12,9 @@ from fastapi import HTTPException
 from fastapi.responses import Response
 
 from app.domain.ministry import canonical_ministry_name
-from app.db.topic_report_repository import TopicReportRepository, _has_topic_relevance, _official_executive_evidence, _topic_mention_count
+from app.db.topic_report_repository import TopicReportRepository, _has_topic_relevance, _official_executive_evidence, _topic_mention_count, _topic_relevant_content
 from app.ingestion.topic_report_worker import safe_topic_report_error
-from app.services.topic_report import DEFAULT_TOPIC_REPORT_MODEL, OpenRouterTopicReportClient, TopicReportResponseError, _allowed_language_source, _parse_json_content, _sanitize_report_language, _validate_report_language
+from app.services.topic_report import DEFAULT_TOPIC_REPORT_MODEL, OpenRouterTopicReportClient, TopicReportResponseError, _allowed_language_source, _clean_generated, _parse_json_content, _sanitize_report_language, _source_matches_requested_topic, _validate_report_language
 from app.services.web_security import apply_security_headers
 from app.topic_report_api import TopicReportQueryPayload, _clean
 
@@ -63,7 +64,7 @@ class TopicReportTests(unittest.TestCase):
                 "meeting_at": "2026-09-01T10:00:00+09:00",
                 "meeting_title": "제37회 국무회의",
                 "authority_status": "PROVISIONAL",
-                "topic_title": "공공 AI 서비스 확대",
+                "topic_title": "공공 AI 민주정부 서비스 확대",
                 "summary": "국민 체감형 서비스를 확대하기로 했다.",
                 "ministries": ["행정안전부"],
                 "tasks": [],
@@ -95,6 +96,23 @@ class TopicReportTests(unittest.TestCase):
         self.assertTrue(
             _has_topic_relevance({"인공지능"}, {"행정안전부", "인공지능"}, False)
         )
+
+    def test_topic_relevance_rejects_incidental_ai_mentions(self) -> None:
+        self.assertTrue(_topic_relevant_content(
+            "AI, 인공지능", "AI 인프라 구축", "전력망 투자를 확대한다.",
+        ))
+        self.assertTrue(_topic_relevant_content(
+            "AI, 인공지능", "호남 반도체 인력 수요",
+            "AI 데이터센터 인재 수요를 점검한다. 지역 대학이 참여한다.",
+        ))
+        self.assertFalse(_topic_relevant_content(
+            "AI, 인공지능", "주택 신속공급 방안",
+            "주택 공급을 확대한다. 토지 이용은 AI 혁명에 맞춰 조정한다.",
+        ))
+        self.assertFalse(_topic_relevant_content(
+            "AI, 인공지능", "경찰 수사 전문성 강화",
+            "수사 심의 참여를 확대한다. 수사지원 AI 고도화도 검토한다.",
+        ))
 
     def test_official_state_council_reports_are_searchable_without_live_brief(self) -> None:
         items = [{
@@ -130,6 +148,21 @@ class TopicReportTests(unittest.TestCase):
         self.assertEqual(evidence[0]["authority_status"], "OFFICIAL_SOURCE")
         self.assertIn("AI민주정부 실현전략", evidence[0]["summary"])
 
+    def test_official_evidence_does_not_match_an_incidental_ai_reference(self) -> None:
+        items = [{
+            "news_id": "housing-1", "title": "국무회의 브리핑",
+            "published_date": "2026.08.25", "agendas": [{
+                "source_span_id": "housing", "topic": "주택 신속공급 방안",
+                "summary": "주택 공급 속도를 높인다. AI 혁명에 따른 토지 수요도 검토한다.",
+                "ministries": ["국토교통부"],
+                "presidential_guidance": [{"text": "건설업체 요구를 청취하라.", "target_ministries": ["국토교통부"]}],
+            }],
+        }]
+        self.assertEqual([], _official_executive_evidence(
+            items, broadcast_ids={}, ministry="", topic="AI, 인공지능",
+            period_start=date(2026, 8, 1), period_end=date(2026, 9, 1),
+        ))
+
     def test_topic_mention_count_uses_unique_persisted_evidence(self) -> None:
         topic = {
             "evidence_ids": ["u-1", "u-2"],
@@ -149,6 +182,24 @@ class TopicReportTests(unittest.TestCase):
         _sanitize_report_language(report, allowed)
         _validate_report_language(report, allowed)
         self.assertEqual("행정안전부가 정책을 검토했다.", report["executive_summary"])
+
+    def test_generated_report_repairs_known_korean_predicate_errors(self) -> None:
+        self.assertEqual(
+            "데이터센터와 전력망 구축을 신속히 추진하고 있다.",
+            _clean_generated("데이터센터와 전력망 구축을 급속히이다."),
+        )
+        self.assertEqual(
+            "AI 기반 논술형과 채점 신뢰성, 풀스택 인프라 산업, 온사이트 발전, K-뉴딜",
+            _clean_generated("AI 기반 논설령과 채점 신성, 풀스택 인 산업, 온 발전, K-뉴틸"),
+        )
+        self.assertTrue(_source_matches_requested_topic("AI, 인공지능", {
+            "topic": "호남 반도체 인력 수요",
+            "summary": "AI 데이터센터 인력을 양성한다. 대학이 참여한다.",
+        }))
+        self.assertFalse(_source_matches_requested_topic("AI, 인공지능", {
+            "topic": "주택 신속공급 방안",
+            "summary": "공급 속도를 높인다. AI 혁명에 대응한다.",
+        }))
 
     def test_generated_report_translates_authority_metadata_instead_of_allowing_it(self) -> None:
         evidence = self.evidence()
@@ -198,6 +249,7 @@ class TopicReportTests(unittest.TestCase):
                 evidence=self.evidence(),
             )
         body = post.call_args.kwargs["json"]
+        self.assertEqual("AI 민주정부", json.loads(body["messages"][1]["content"].split("\n", 1)[1])["request"]["requested_topic"])
         self.assertEqual("allow", body["provider"]["data_collection"])
         self.assertNotIn("zdr", body["provider"])
         self.assertTrue(body["provider"]["allow_fallbacks"])
@@ -344,6 +396,10 @@ class TopicReportTests(unittest.TestCase):
             script.index('id="topicReportPreviewResult"'),
         )
         self.assertIn("topic-report-progress-stages", script)
+        self.assertIn("topicReportLoadingVisual", script)
+        self.assertIn("회의 근거 구조화 중", script)
+        self.assertIn("진행 시간", script)
+        self.assertNotIn("topic-report-spinner", script)
         self.assertIn("topic-report-builder-head", script)
         self.assertIn('id="topicReportHistory"', script)
         self.assertIn("최근 주제별 보고서", script)

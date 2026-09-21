@@ -10,15 +10,25 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..schemas import ReportRequest
 from ..services.report_builder import build_daily_report, get_daily_report
+from ..services.statistics_builder import build_statistics
 
 
 router = APIRouter()
 
 
 @router.get("/reports/daily", response_class=HTMLResponse)
-def report_page(request: Request, report_date: date | None = None, db: Session = Depends(get_db)):
-    artifact = get_daily_report(db, report_date)
-    return request.app.state.templates.TemplateResponse(request, "daily_report.html", {"artifact": artifact})
+def report_page(
+    request: Request, report_date: date | None = None, period: str = "30d",
+    db: Session = Depends(get_db),
+):
+    return request.app.state.templates.TemplateResponse(
+        request, "daily_report.html", {"stats": build_statistics(db, period=period)},
+    )
+
+
+@router.get("/api/statistics")
+def statistics_api(period: str = "30d", db: Session = Depends(get_db)):
+    return build_statistics(db, period=period)
 
 
 @router.get("/api/reports/daily")

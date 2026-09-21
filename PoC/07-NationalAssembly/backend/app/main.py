@@ -51,7 +51,10 @@ from .services.meeting_brief import (
     PROMPT_VERSION as MEETING_BRIEF_PROMPT_VERSION,
 )
 from .services.meeting_brief import link_tasks_to_topics
-from .services.meeting_topic_groups import attach_meeting_topic_groups
+from .services.meeting_topic_groups import (
+    attach_meeting_topic_groups,
+    build_meeting_topic_ontology,
+)
 from .services.meeting_sessions import build_meeting_sessions
 from .services.mistral_budget import mistral_usage_cost_usd
 from .services.official_brief_integration import build_official_brief_integration
@@ -1016,14 +1019,45 @@ def cross_institution_policy_flow(committee: str | None = None) -> dict[str, obj
 
 
 @app.get("/api/policy/specific-issues", tags=["policy"])
-def specific_policy_issues() -> dict[str, object]:
+def specific_policy_issues(limit: int | None = None) -> dict[str, object]:
     """Return concrete report topics, their recurrence, and transition evidence."""
+    if limit is not None and not 1 <= limit <= 500:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 500")
     try:
         with connect(get_settings().database_url) as connection:
-            return PolicyIssueRepository(connection).specific_issue_flow()
+            result = PolicyIssueRepository(connection).specific_issue_flow()
     except Exception as exc:
         raise HTTPException(
             status_code=503, detail="구체 정책 쟁점을 조회할 수 없습니다."
+        ) from exc
+    if limit is None:
+        return result
+    items = list(result.get("items") or [])[:limit]
+    return {
+        **result,
+        "items": items,
+        "count": len(items),
+        "total_count": int(result.get("count") or len(items)),
+    }
+
+
+@app.get("/api/policy/ontology", tags=["policy"])
+def policy_ontology() -> dict[str, object]:
+    """Return the topic ontology plus usage and integrity metrics."""
+    try:
+        with connect(get_settings().database_url) as connection:
+            briefs = [
+                item.get("brief") or {}
+                for item in MeetingBriefRepository(connection).latest_all()
+            ]
+        return {
+            **build_meeting_topic_ontology(briefs),
+            "source_status": "STORED_MEETING_REPORTS",
+            "additional_llm_calls": 0,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="온톨로지 구성을 조회할 수 없습니다."
         ) from exc
 
 

@@ -703,6 +703,8 @@ class MeetingBriefTests(unittest.TestCase):
         self.assertEqual(1, brief_retry_hours(error))
         conflict = requests.HTTPError(response=mock.Mock(status_code=409))
         self.assertEqual(1, brief_retry_hours(conflict))
+        self.assertAlmostEqual(5 / 60, brief_retry_hours(requests.ConnectionError()))
+        self.assertAlmostEqual(5 / 60, brief_retry_hours(requests.Timeout()))
         self.assertEqual(6, brief_retry_hours(ValueError("invalid")))
         filtered = MalformedMeetingBriefResponse({"finish_reason": "content_filter"})
         self.assertEqual(
@@ -753,6 +755,87 @@ class MeetingBriefTests(unittest.TestCase):
             OPENROUTER_STRUCTURED_RETRY_MODEL,
             post.call_args_list[1].kwargs["model_override"],
         )
+
+    def test_length_limited_reduction_splits_only_failed_batch(self):
+        chunk = {
+            "topics": [{
+                "title": "예산 심사",
+                "summary": "예산 집행의 적정성을 점검했다.",
+                "speaker_points": [],
+                "tasks": [],
+                "evidence_ids": ["u-1"],
+            }],
+        }
+        final = {
+            "headline": "예산 심사 결과",
+            "summary": "예산 집행 현황과 후속 과제를 논의했다.",
+            "topics": [{
+                "title": "예산 심사",
+                "summary": "예산 집행의 적정성을 점검했다.",
+                "speaker_points": [],
+                "evidence_ids": ["u-1"],
+                "live_topic_cluster_ids": [],
+            }, {
+                "title": "집행 현황",
+                "summary": "예산 집행 현황을 확인했다.",
+                "speaker_points": [],
+                "evidence_ids": ["u-1"],
+                "live_topic_cluster_ids": [],
+            }, {
+                "title": "후속 과제",
+                "summary": "예산 심사의 후속 과제를 논의했다.",
+                "speaker_points": [],
+                "evidence_ids": ["u-1"],
+                "live_topic_cluster_ids": [],
+            }],
+            "tasks": [],
+        }
+        cached_batches: list[int] = []
+        saved_batches: list[int] = []
+
+        def load_chunk(index, _chunk_hash):
+            if index <= 9:
+                return chunk
+            if index == 1002:
+                cached_batches.append(index)
+                return chunk
+            return None
+
+        def save_chunk(index, _chunk_hash, _analysis, _metadata):
+            saved_batches.append(index)
+
+        client = OpenRouterMeetingBriefClient(
+            "secret",
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            base_url="http://openrouter-gateway:8071/api/v1",
+        )
+        length_error = MalformedMeetingBriefResponse({"finish_reason": "length"})
+        with mock.patch(
+            "app.services.meeting_brief.iter_meeting_chunks",
+            return_value=[[self.utterances[0]]] * 9,
+        ), mock.patch.object(
+            client,
+            "_post",
+            side_effect=[
+                length_error,
+                length_error,
+                length_error,
+                (chunk, {"usage": {}}),
+                (chunk, {"usage": {}}),
+                (final, {"usage": {}}),
+            ],
+        ) as post, mock.patch("app.services.meeting_brief.time.sleep"):
+            result = client.generate(
+                {"title": "회의", "committee_name": "예산결산특별위원회"},
+                self.utterances,
+                load_chunk=load_chunk,
+                save_chunk=save_chunk,
+            )
+
+        self.assertEqual("예산 심사 결과", result.brief["headline"])
+        self.assertEqual([1002], cached_batches)
+        self.assertEqual([10011, 10012], saved_batches)
+        self.assertEqual(6, post.call_count)
 
 
 if __name__ == "__main__":

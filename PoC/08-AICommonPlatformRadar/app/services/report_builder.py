@@ -20,16 +20,17 @@ from .collector import is_explicit_ai_title
 
 
 KST = timezone(timedelta(hours=9))
-ACTIVE_ACTIONS = {"new", "reviewing", "contacted", "not_reflected"}
+ACTIVE_ACTIONS = {"new", "reviewing", "in_progress", "contacted", "not_reflected"}
 ELIGIBILITY_LABELS = {
     "eligible": "직접 이용 가능",
     "consultation_required": "별도 협의 필요",
-    "ineligible": "기본조건 부적합",
+    "ineligible": "명시적 기본조건 부적합",
     "uncertain": "확인 필요",
 }
 NETWORK_LABELS = {
     "internal_or_connected": "내부·업무망 또는 연계",
     "hybrid": "내·외부망 혼합",
+    "other_closed_network": "별도 폐쇄망·행정망 연계 확인",
     "external_complete": "외부망 완결",
     "unclear": "망 구성 미확인",
 }
@@ -206,6 +207,7 @@ def _notice_item(notice: Notice) -> dict:
         "classification_code": classification_code,
         "classification_label": CLASSIFICATION_LABELS.get(classification_code, "미분류"),
         "guidance_message": workflow["guidance_message"],
+        "guidance_sections": workflow["guidance_sections"],
         "action_status": notice.action.status if notice.action else "new",
         "findings": workflow["findings"], "issue_labels": workflow["issue_labels"],
         "opinion_url": workflow["opinion_url"], "action_required": workflow["action_required"],
@@ -438,7 +440,7 @@ def build_daily_report(db: Session, report_date: date | None = None, *, finalize
                   and is_current_deep_result(run.result_json)
                   and _in_range(run.created_at, month_start, month_end)}
     contacted = sum(bool(notice.action and _in_range(notice.action.contacted_at, month_start, month_end)) for notice in notices)
-    reflected = sum(bool(notice.action and notice.action.status == "reflected"
+    reflected = sum(bool(notice.action and notice.action.status in {"completed_uses", "reflected"}
                          and _in_range(notice.action.updated_at, month_start, month_end)) for notice in notices)
     monthly = {"collected": len(month_notices), "simple_verified": len(month_simple),
                "deep_verified": len(month_deep), "contacted": contacted, "reflected": reflected}
@@ -469,7 +471,10 @@ def build_daily_report(db: Session, report_date: date | None = None, *, finalize
         if code in classification_distribution:
             classification_distribution[code] += 1
 
-    actioned_statuses = {"contacted", "reflected", "not_reflected", "closed"}
+    actioned_statuses = {
+        "in_progress", "completed_uses", "completed_not_used", "completed_ineligible", "completed_non_ai",
+        "contacted", "reflected", "not_reflected", "closed",
+    }
     started_today = [
         notice for notice in notices if notice.action and notice.action.status != "new"
         and _in_range(notice.action.updated_at, start, end)
@@ -485,7 +490,7 @@ def build_daily_report(db: Session, report_date: date | None = None, *, finalize
             for notice in notices
         ),
         "reflected_today": sum(
-            bool(notice.action and notice.action.status == "reflected"
+            bool(notice.action and notice.action.status in {"completed_uses", "reflected"}
                  and _in_range(notice.action.updated_at, start, end))
             for notice in notices
         ),

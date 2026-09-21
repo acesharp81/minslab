@@ -1,6 +1,8 @@
 import asyncio
 import fcntl
 import gzip
+import hashlib
+import hmac
 import importlib.util
 import json
 import os
@@ -104,6 +106,17 @@ POC_SHORTCUT_REDIRECTS = {
 }
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
     5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
+)
+_ai_common_radar_proxy_secret = env_first(
+    "POC08_PROXY_TOKEN", "SUPABASE2_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY", default="",
+) or ""
+AI_COMMON_RADAR_PROXY_TOKEN = (
+    hmac.new(
+        _ai_common_radar_proxy_secret.encode("utf-8"),
+        b"poc08-parent-proxy-v1",
+        hashlib.sha256,
+    ).hexdigest()
+    if _ai_common_radar_proxy_secret else ""
 )
 NATIONAL_ASSEMBLY_SESSION_COOKIE = env_first(
     "WATCH_SESSION_COOKIE_NAME", default="gukjeongbomi_session"
@@ -2338,19 +2351,31 @@ async def app(scope, receive, send):
         return
 
     if path.startswith(f"{AI_COMMON_RADAR_BASE_PATH}/"):
-        allowed_methods = {"GET", "HEAD", "POST", "PATCH"}
+        allowed_methods = {"GET", "HEAD", "POST", "PUT", "PATCH"}
         if method not in allowed_methods:
             body = b'{"detail":"method not allowed"}'
             headers = [
                 (b"content-type", b"application/json"),
                 (b"content-length", str(len(body)).encode("ascii")),
                 (b"cache-control", b"no-store"),
-                (b"allow", b"GET, HEAD, POST, PATCH"),
+                (b"allow", b"GET, HEAD, POST, PUT, PATCH"),
             ]
             await send({"type": "http.response.start", "status": 405, "headers": headers})
             await send({"type": "http.response.body", "body": body})
             return
-        if method in {"POST", "PATCH"} and not admin_session(scope):
+        request_headers = scope_headers(scope)
+        radar_cookie_match = re.search(
+            r"(?:^|;\s*)poc08_admin_session=([^;]+)",
+            request_headers.get("cookie", ""),
+        )
+        radar_login_path = f"{AI_COMMON_RADAR_BASE_PATH}/settings/login"
+        parent_admin = admin_session(scope)
+        if (
+            method in {"POST", "PUT", "PATCH"}
+            and path != radar_login_path
+            and not parent_admin
+            and not radar_cookie_match
+        ):
             body = json.dumps(
                 {"detail": "홈페이지 관리자 로그인이 필요합니다."},
                 ensure_ascii=False,
@@ -2369,19 +2394,24 @@ async def app(scope, receive, send):
         upstream_url = f"{AI_COMMON_RADAR_UPSTREAM}{relative_path}"
         if query_string:
             upstream_url = f"{upstream_url}?{query_string}"
-        request_headers = scope_headers(scope)
         upstream_headers = {
             "Accept": request_headers.get("accept", "*/*"),
             "X-Forwarded-Prefix": AI_COMMON_RADAR_BASE_PATH,
             "X-Forwarded-Proto": request_headers.get("x-forwarded-proto", "https"),
         }
+        if parent_admin and AI_COMMON_RADAR_PROXY_TOKEN:
+            # The incoming value is never forwarded. This derived token is added
+            # only after the parent admin_session check above succeeds.
+            upstream_headers["X-PoC08-Proxy-Token"] = AI_COMMON_RADAR_PROXY_TOKEN
+        if radar_cookie_match:
+            upstream_headers["Cookie"] = f"poc08_admin_session={radar_cookie_match.group(1)}"
         if request_headers.get("host"):
             upstream_headers["Host"] = request_headers["host"]
         for forwarded_name in ("authorization", "origin", "referer"):
             if request_headers.get(forwarded_name):
                 upstream_headers[forwarded_name.title()] = request_headers[forwarded_name]
         upstream_body = None
-        if method in {"POST", "PATCH"}:
+        if method in {"POST", "PUT", "PATCH"}:
             upstream_body = await read_request_body(receive)
             if len(upstream_body) > 1_048_576:
                 body = b'{"detail":"request body too large"}'

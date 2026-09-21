@@ -7,6 +7,7 @@ from app.services.meeting_topic_groups import (
     GROUPING_VERSION,
     attach_meeting_topic_groups,
     build_meeting_topic_groups,
+    build_meeting_topic_ontology,
 )
 
 
@@ -21,6 +22,24 @@ def topic(topic_id: str, title: str, *, evidence_id: str | None = None) -> dict:
 
 
 class MeetingTopicGroupTests(unittest.TestCase):
+    def test_visual_ontology_covers_every_target_once_and_reports_usage(self):
+        result = build_meeting_topic_ontology([{
+            "topics": [
+                topic("topic-1", "한미 핵 공유 및 전술핵 재배치 제안 비판"),
+                topic("topic-2", "주택 세제 개편과 실거주 판정"),
+            ],
+            "tasks": [],
+        }])
+
+        keys = [key for domain in result["domains"] for key in domain["group_keys"]]
+        self.assertEqual(len(result["domains"]), 5)
+        self.assertEqual(len(result["groups"]), 58)
+        self.assertEqual(len(keys), len(set(keys)))
+        self.assertEqual(set(keys), {group["key"] for group in result["groups"]})
+        self.assertEqual(result["metrics"]["topic_count"], 2)
+        self.assertEqual(result["metrics"]["ontology_topic_count"], 2)
+        self.assertEqual(result["metrics"]["integrity_failure_count"], 0)
+
     def test_groups_detail_topics_by_policy_target_without_collapsing_them(self):
         brief = {
             "topics": [
@@ -121,6 +140,8 @@ class MeetingTopicGroupTests(unittest.TestCase):
                 topic("four", "기소유예 처분의 부당성 검토"),
                 topic("five", "방송법 개정안 처리"),
                 topic("six", "공유재산법 개정안 처리"),
+                topic("seven", "2026년 반려동물 등록칩 교체"),
+                topic("eight", "2026년 해양레저 면허 갱신"),
             ],
             "tasks": [],
         }
@@ -238,6 +259,12 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(attached["topic_grouping"]["detailed_topic_count"], 1)
         self.assertEqual(attached["topic_grouping"]["ontology_topic_count"], 1)
         self.assertEqual(attached["topic_grouping"]["ontology_coverage"], 1.0)
+        self.assertEqual(attached["topic_grouping"]["integrity_status"], "PASS")
+        self.assertEqual(attached["topic_grouping"]["assigned_topic_count"], 1)
+        self.assertEqual(attached["topic_grouping"]["missing_topic_count"], 0)
+        self.assertEqual(attached["topic_grouping"]["duplicate_topic_count"], 0)
+        self.assertEqual(attached["topic_grouping"]["missing_live_topic_count"], 0)
+        self.assertEqual(attached["topic_grouping"]["unlinked_task_count"], 0)
         self.assertEqual(attached["topic_grouping"]["quality_status"], "PASS")
 
     def test_flags_low_ontology_coverage_for_review(self):
@@ -258,6 +285,62 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(grouping["ontology_topic_count"], 0)
         self.assertEqual(grouping["unclassified_topic_count"], 5)
         self.assertIn("ONTOLOGY_COVERAGE_LOW", grouping["review_reasons"])
+
+    def test_hearing_common_words_do_not_swallow_policy_targets(self):
+        brief = {
+            "topics": [
+                topic("appointment", "법무부장관 후보자의 직무 적합성 검증"),
+                topic("pharma", "식약처 임상시험 자료와 후보자 해명 검증"),
+                topic("disability", "후보자 가족의 발달장애인 서비스기관 선정"),
+                topic("funds", "후보자 후원금과 정치자금 규정 검토"),
+                topic("evidence", "후보자 관련 녹취록과 불기소장 검토"),
+                topic("procedure", "인사청문회 자료 제출 및 증인 출석 요구"),
+            ],
+            "tasks": [],
+        }
+
+        groups = build_meeting_topic_groups(brief)
+        by_topic = {
+            topic_id: group["key"]
+            for group in groups
+            for topic_id in group["topic_ids"]
+        }
+
+        self.assertEqual("public-appointments", by_topic["appointment"])
+        self.assertEqual("medical-pharma-regulation", by_topic["pharma"])
+        self.assertEqual("disability-care-services", by_topic["disability"])
+        self.assertEqual("public-integrity-funds", by_topic["funds"])
+        self.assertEqual("criminal-case-procedure", by_topic["evidence"])
+        self.assertEqual("assembly-procedure", by_topic["procedure"])
+
+    def test_historical_targets_are_classified_without_forcing_noise(self):
+        brief = {
+            "topics": [
+                topic("dam", "지천댐 건설과 주민 의견 수렴"),
+                topic("investment", "대미투자 일정 차질"),
+                topic("hospital", "서울대 의대병원 이전 일정"),
+                topic("agency", "공공기관 통합 시 시너지 효과"),
+                topic("absence", "국무위원들의 국회 불출석"),
+                topic("juvenile", "소년보호처분 제도 개선"),
+                topic("noise", "진나라 청구 연대"),
+            ],
+            "tasks": [],
+        }
+
+        groups = build_meeting_topic_groups(brief)
+        by_topic = {
+            topic_id: group
+            for group in groups
+            for topic_id in group["topic_ids"]
+        }
+
+        self.assertEqual("water-resources-climate", by_topic["dam"]["key"])
+        self.assertEqual("trade-climate-industry", by_topic["investment"]["key"])
+        self.assertEqual("healthcare-medical-system", by_topic["hospital"]["key"])
+        self.assertEqual("government-operations", by_topic["agency"]["key"])
+        self.assertEqual("assembly-procedure", by_topic["absence"]["key"])
+        self.assertEqual("children-digital-safety", by_topic["juvenile"]["key"])
+        self.assertEqual("TITLE_FALLBACK", by_topic["noise"]["assignment_method"])
 
     def test_groups_plenary_details_under_shared_policy_targets(self):
         brief = {
@@ -284,7 +367,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(2, by_key["youth-employment"]["topic_count"])
         self.assertEqual(2, by_key["water-resources-climate"]["topic_count"])
         self.assertEqual(2, by_key["education"]["topic_count"])
-        self.assertEqual("assembly-meeting-topic-grouping/1.3", GROUPING_VERSION)
+        self.assertEqual("assembly-meeting-topic-grouping/1.5", GROUPING_VERSION)
 
 
 if __name__ == "__main__":

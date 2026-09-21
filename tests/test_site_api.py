@@ -76,6 +76,136 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(headers[b"allow"], b"GET, HEAD")
         self.assertIn(b"method not allowed", body)
 
+    async def test_ai_common_radar_put_is_supported_and_requires_admin(self):
+        with mock.patch.object(main, "admin_session", return_value=None):
+            start, body = await call_app(
+                "/poc/ai-common-platform-radar/api/settings/opinion-sender",
+                method="PUT",
+                headers=[(b"content-type", b"application/json")],
+            )
+
+        self.assertEqual(start["status"], 401)
+        self.assertIn("홈페이지 관리자 로그인이 필요합니다".encode("utf-8"), body)
+
+    async def test_ai_common_radar_put_forwards_internal_signed_token(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "application/json",
+            "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.return_value = []
+        upstream = mock.MagicMock()
+        upstream.status = 200
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b'{"saved":true}'
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with (
+            mock.patch.object(main, "admin_session", return_value={"exp": 1}),
+            mock.patch.object(main, "AI_COMMON_RADAR_PROXY_TOKEN", "derived-internal-token"),
+            mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened,
+        ):
+            start, body = await call_app(
+                "/poc/ai-common-platform-radar/api/settings/opinion-sender",
+                method="PUT",
+                headers=[(b"content-type", b"application/json")],
+            )
+
+        request = opened.call_args.args[0]
+        forwarded_headers = {name.lower(): value for name, value in request.header_items()}
+        self.assertEqual(request.get_method(), "PUT")
+        self.assertEqual(forwarded_headers["x-poc08-proxy-token"], "derived-internal-token")
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(body, b'{"saved":true}')
+
+    async def test_ai_common_radar_admin_get_forwards_internal_signed_token(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "text/html; charset=utf-8",
+            "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.return_value = []
+        upstream = mock.MagicMock()
+        upstream.status = 200
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b"settings"
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with (
+            mock.patch.object(main, "admin_session", return_value={"exp": 1}),
+            mock.patch.object(main, "AI_COMMON_RADAR_PROXY_TOKEN", "derived-internal-token"),
+            mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened,
+        ):
+            start, body = await call_app("/poc/ai-common-platform-radar/settings")
+
+        request = opened.call_args.args[0]
+        forwarded_headers = {name.lower(): value for name, value in request.header_items()}
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(body, b"settings")
+        self.assertEqual(forwarded_headers["x-poc08-proxy-token"], "derived-internal-token")
+
+    async def test_ai_common_radar_settings_login_is_forwarded_without_parent_session(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "text/html; charset=utf-8",
+            "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.return_value = []
+        upstream = mock.MagicMock()
+        upstream.status = 401
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b"login handled by poc08"
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with (
+            mock.patch.object(main, "admin_session", return_value=None),
+            mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened,
+        ):
+            start, body = await call_app(
+                "/poc/ai-common-platform-radar/settings/login",
+                method="POST",
+                headers=[(b"content-type", b"application/x-www-form-urlencoded")],
+            )
+
+        request = opened.call_args.args[0]
+        forwarded_headers = {name.lower(): value for name, value in request.header_items()}
+        self.assertEqual(start["status"], 401)
+        self.assertEqual(body, b"login handled by poc08")
+        self.assertNotIn("x-poc08-proxy-token", forwarded_headers)
+
+    async def test_ai_common_radar_signed_backend_session_cookie_is_forwarded(self):
+        upstream_headers = mock.MagicMock()
+        upstream_headers.get.side_effect = lambda name, default=None: {
+            "content-type": "application/json",
+            "location": None,
+        }.get(name, default)
+        upstream_headers.get_all.return_value = []
+        upstream = mock.MagicMock()
+        upstream.status = 200
+        upstream.headers = upstream_headers
+        upstream.read.return_value = b'{"saved":true}'
+        upstream.__enter__.return_value = upstream
+        upstream.__exit__.return_value = False
+        with (
+            mock.patch.object(main, "admin_session", return_value=None),
+            mock.patch.object(main.url_request, "urlopen", return_value=upstream) as opened,
+        ):
+            start, body = await call_app(
+                "/poc/ai-common-platform-radar/api/settings/opinion-sender",
+                method="PUT",
+                headers=[
+                    (b"content-type", b"application/json"),
+                    (b"cookie", b"unrelated=value; poc08_admin_session=signed.backend.token"),
+                ],
+            )
+
+        request = opened.call_args.args[0]
+        forwarded_headers = {name.lower(): value for name, value in request.header_items()}
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(body, b'{"saved":true}')
+        self.assertEqual(forwarded_headers["cookie"], "poc08_admin_session=signed.backend.token")
+        self.assertNotIn("x-poc08-proxy-token", forwarded_headers)
+
     async def test_admin_page_is_html_and_not_cacheable(self):
         start, body = await call_app("/admin")
         headers = dict(start["headers"])

@@ -173,6 +173,18 @@ class G2BClient:
             results.append(G2BAttachment(name=name, url=url))
         return results[:self.settings.max_files_per_notice]
 
+    async def prenotice_opinions(self, registration_no: str) -> list[dict[str, Any]]:
+        """Return public opinion threads and institution replies for one pre-notice."""
+        if self.settings.g2b_mode == "mock":
+            return []
+        if not self.settings.g2b_service_key:
+            raise RuntimeError("의견 답변 확인에는 G2B_SERVICE_KEY가 필요합니다.")
+        return await self._paged(
+            self.settings.g2b_base_url_prenotice,
+            self.settings.g2b_operation_prenotice_opinion,
+            {"inqryDiv": "2", "bfSpecRgstNo": registration_no},
+        )
+
     def _mock_notices(self) -> list[G2BNotice]:
         now = datetime.now(KST)
         return [G2BNotice(
@@ -186,8 +198,8 @@ class G2BClient:
         attachments = [G2BAttachment(PathLike.name(url), url) for index in range(1, 6) if (url := str(item.get(f"specDocFileUrl{index}") or "").strip())]
         notice_no = str(item.get("bfSpecRgstNo") or item.get("refNo") or "").strip()
         return G2BNotice(
-            "prenotice", notice_no, None, str(item.get("orderInsttNm") or item.get("rlDminsttNm") or ""),
-            str(item.get("orderInsttCd") or "") or None, str(item.get("prdctClsfcNoNm") or item.get("prdctNm") or "제목 없음"),
+            "prenotice", notice_no, None, str(item.get("rlDminsttNm") or item.get("orderInsttNm") or ""),
+            str(item.get("rlDminsttCd") or item.get("orderInsttCd") or "") or None, str(item.get("prdctClsfcNoNm") or item.get("prdctNm") or "제목 없음"),
             _integer(item.get("asignBdgtAmt")), _datetime(item.get("rgstDt") or item.get("rcptDt")),
             _datetime(item.get("opninRgstClseDt")), None, attachments, item,
         )

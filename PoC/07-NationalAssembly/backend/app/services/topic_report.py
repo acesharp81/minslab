@@ -10,7 +10,7 @@ import requests
 from .openrouter_gateway_client import openrouter_headers
 
 
-PROMPT_VERSION = "topic-report/1.5"
+PROMPT_VERSION = "topic-report/1.6"
 DEFAULT_TOPIC_REPORT_MODEL = "dots-studio/dots-3-note-preview:free"
 MAX_EVIDENCE_CHARS = 60_000
 
@@ -22,6 +22,21 @@ _LANGUAGE_REPAIRS = {
     "OFFICIAL_INTEGRATED": "공식 통합 자료",
     "OFFICIAL_SOURCE": "공식 자료",
     "PROVISIONAL": "잠정 자료",
+    "급속히이다": "신속히 추진하고 있다",
+    "진행이다": "진행되고 있다",
+    "추진이다": "추진되고 있다",
+    "검토이다": "검토하고 있다",
+    "모색이다": "모색하고 있다",
+    "논의이다": "논의되고 있다",
+    "고민이다": "고민하고 있다",
+    "미족하다": "미흡하다",
+    "미족": "미흡",
+    "채점 신성": "채점 신뢰성",
+    "논설령": "논술형",
+    "K-뉴틸": "K-뉴딜",
+    "풀스택 인 산업": "풀스택 인프라 산업",
+    "온 발전": "온사이트 발전",
+    "과학기술정보부": "과학기술정보통신부",
 }
 _CJK_PATTERN = re.compile(r"[\u3400-\u4DBF\u4E00-\u9FFF]")
 _LATIN_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9._-]*")
@@ -30,6 +45,9 @@ _AUTHORITY_LABEL_REPAIRS = (
     (re.compile(r"\bOFFICIAL[\s_/-]+INTEGRATED\b", re.IGNORECASE), "공식 통합 자료"),
     (re.compile(r"\bOFFICIAL[\s_/-]+SOURCE\b", re.IGNORECASE), "공식 자료"),
     (re.compile(r"\bPROVISIONAL\b", re.IGNORECASE), "잠정 자료"),
+)
+_BROKEN_KOREAN_PATTERN = re.compile(
+    r"(?:급속히|신속히|적극적으로)이다|(?:진행|추진|검토|모색|논의|고민)이다"
 )
 
 
@@ -57,6 +75,33 @@ def _clean_generated(value: object) -> str:
     for source, replacement in _LANGUAGE_REPAIRS.items():
         text = re.sub(re.escape(source), replacement, text, flags=re.IGNORECASE)
     return text
+
+
+def _topic_aliases(topic: str) -> list[set[str]]:
+    return [
+        set(_LATIN_PATTERN.findall(value.casefold()))
+        | set(re.findall(r"[가-힣0-9]{2,}", value))
+        for value in re.split(r"[,，/|]+", topic)
+        if value.strip()
+    ]
+
+
+def _source_matches_requested_topic(topic: str, source: dict[str, Any]) -> bool:
+    if not topic.strip():
+        return True
+    aliases = [tokens for tokens in _topic_aliases(topic) if tokens]
+    title = str(source.get("topic") or "").casefold()
+    summary = str(source.get("summary") or "").casefold()
+    first_sentence = re.split(r"(?<=[.!?])\s+", summary, maxsplit=1)[0]
+    title_tokens = set(_LATIN_PATTERN.findall(title)) | set(re.findall(r"[가-힣0-9]{2,}", title))
+    first_tokens = set(_LATIN_PATTERN.findall(first_sentence)) | set(re.findall(r"[가-힣0-9]{2,}", first_sentence))
+    content_tokens = set(_LATIN_PATTERN.findall(summary)) | set(re.findall(r"[가-힣0-9]{2,}", summary))
+    for tokens in aliases:
+        if tokens <= title_tokens or tokens <= first_tokens:
+            return True
+        if len(tokens) > 1 and tokens <= content_tokens:
+            return True
+    return False
 
 
 def _allowed_language_source(
@@ -132,6 +177,8 @@ def _validate_report_language(report: dict[str, Any], allowed_text: str) -> None
     }
     if unsupported:
         raise TopicReportResponseError("UNSUPPORTED_LANGUAGE_RESIDUE")
+    if _BROKEN_KOREAN_PATTERN.search(output):
+        raise TopicReportResponseError("KOREAN_GRAMMAR_REVIEW_REQUIRED")
 
 
 class TopicReportResponseError(ValueError):
@@ -301,16 +348,22 @@ class OpenRouterTopicReportClient:
             "OFFICIAL_SOURCE와 OFFICIAL_INTEGRATED 근거를 PROVISIONAL보다 우선하되 잠정 근거를 숨기지 마라. "
             "수치·부정·요구·기관명을 바꾸지 말고 자료에 없는 사실이나 결론을 만들지 마라. "
             "각 문단·시사점·과제·연표에는 직접 뒷받침하는 evidence id만 넣어라. "
+            "request.requested_topic이 있으면 그 주제와 직접 관련 없는 문장, 사례, 연표, 과제를 절대 포함하지 마라. "
+            "근거에 요청 주제 단어가 우연히 한 번 등장하더라도 해당 근거의 중심 대상이 다르면 사용하지 마라. "
             "전체 요약 직후에 여러 논점을 관통하는 정책적 시사점 2~5개를 먼저 제시하라. "
             "정책적 시사점은 요약을 반복하지 말고 정책의 의미, 상충관계, 실행 위험과 점검 방향을 설명하라. "
             "그 다음 세부 본문을 3~5개 장, 각 2~4문장으로 쓰고 중복 설명을 피하라. "
             "각 세부 장에는 직접 관련된 소관 부처만 ministries에 넣어라. "
             "과제는 자료에 실제로 나타난 경우에만 작성하고 담당 부처를 보존하라. "
             "기간의 배경, 변화, 현재 결정, 남은 과제가 자연스럽게 이어지는 순서로 구성하라. "
+            "모든 문장은 한국어 주어와 서술어가 호응하는 완결문으로 퇴고하라. 부사 뒤에 '이다'를 붙이거나 "
+            "'진행이다', '검토이다', '모색이다'처럼 명사형을 잘못 종결어로 쓰지 마라. "
             "중국어 한자나 영문 단어를 섞지 말고, 근거에 실제로 있는 공식 영문 약어만 허용하라. "
             "과제는 최대 10개, 연표는 최대 8개로 제한하라. JSON 외 텍스트를 출력하지 마라.\n"
             + json.dumps({
                 "request": {
+                    "requested_ministry": ministry,
+                    "requested_topic": topic,
                     "ministries_from_public_evidence": public_ministries,
                     "topics_from_public_evidence": public_topics,
                     "period_start": period_start, "period_end": period_end,
@@ -353,7 +406,12 @@ class OpenRouterTopicReportClient:
             raise TopicReportResponseError("OUTPUT_TRUNCATED")
         message = choice.get("message") or {}
         parsed = _parse_json_content(message.get("content"))
-        allowed = {item["id"] for item in bounded}
+        allowed = {
+            item["id"] for item in bounded
+            if _source_matches_requested_topic(topic, item)
+        }
+        if not allowed:
+            raise TopicReportResponseError("EVIDENCE_RELEVANCE_REVIEW_REQUIRED")
         source_by_id = {item["id"]: item for item in bounded}
 
         def verified_ids(values: object) -> list[str]:
@@ -407,10 +465,16 @@ class OpenRouterTopicReportClient:
         tasks = []
         for item in parsed.get("tasks") or []:
             ids = verified_ids(item.get("evidence_ids"))
-            if ids and item.get("title"):
+            source_tasks = [
+                task
+                for evidence_id in ids
+                for task in (source_by_id.get(evidence_id) or {}).get("tasks") or []
+                if task.get("title")
+            ]
+            if ids and source_tasks and item.get("title"):
                 tasks.append({
                     "title": _clean_generated(item["title"])[:180],
-                    "ministries": [_clean_generated(value)[:80] for value in item.get("ministries") or []],
+                    "ministries": grounded_ministries(ids),
                     "status": item.get("status") or "검토 필요",
                     "evidence_ids": ids,
                 })
@@ -444,6 +508,7 @@ class OpenRouterTopicReportClient:
             usage_metadata={
                 "request_id": str(payload.get("id") or ""),
                 "upstream_provider": str(payload.get("provider") or ""),
+                "resolved_model": str(payload.get("model") or ""),
                 "usage": payload.get("usage") or {},
                 "privacy": {
                     "data_collection": "allow",

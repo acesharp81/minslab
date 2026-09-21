@@ -20,22 +20,457 @@ from ..config import Settings, get_settings
 from ..models import ActionItem, AnalysisRun, Notice, NoticeDecision
 from ..schemas import CompactDeepAnalysis, DeepAnalysis, Evidence, SimpleAnalysis
 from .attachment_policy import select_preferred_documents
-from .filter_rules import FilterResult, evaluate_notice
+from .filter_rules import FilterResult, evaluate_notice, evaluate_service_scope
+from .platform_usage import (
+    COMMON_PLATFORM_MENTION as _COMMON_PLATFORM_MENTION,
+    COMMON_PLATFORM_NON_USE as _COMMON_PLATFORM_NON_USE,
+    COMMON_PLATFORM_USAGE as _COMMON_PLATFORM_USAGE,
+    OPTIONAL_USAGE_REASON,
+    is_optional_platform_usage_text,
+)
 
 
 T = TypeVar("T", bound=BaseModel)
 Usage = dict[str, int | str | bool]
 KST = timezone(timedelta(hours=9))
 logger = logging.getLogger(__name__)
-CURRENT_CRITERIA_VERSION = "common-platform-v3-six-categories"
+CURRENT_CRITERIA_VERSION = "common-platform-v7-service-construction-scope"
 CLASSIFICATION_LABELS = {
     "1": "적합·사용",
     "2": "적합·미반영",
-    "3": "전환검토·미반영",
-    "4": "사용명시·조건점검",
-    "5": "조건불충족·미사용",
+    "3": "전환·확인검토",
+    "4": "사용명시·조건확인",
+    "5": "비대상·미사용",
     "6": "비AI 사업",
 }
+LEGAL_BASIS_TEXT = (
+    "「인공지능·데이터 기반 행정 활성화에 관한 법률」(약칭: 인공지능데이터행정법) "
+    "제27조제2항: 공공기관의 장은 인공지능을 도입하는 경우 공통기반을 우선적으로 "
+    "이용하도록 노력하여야 한다."
+)
+PLATFORM_ELIGIBILITY_CONDITIONS = (
+    "서비스·데이터가 행정망·업무망·내부망에서 처리되거나 해당 망과 연계될 수 있어야 합니다.",
+    "중앙부처·지방정부의 사무이거나 공공기관이 중앙부처·지방정부로부터 위탁받은 국가사무여야 합니다.",
+    "공통기반 제공 LLM·공개 파운데이션 모델·RAG로 기능을 구현할 수 있어야 하며, 독자모델·풀파인튜닝은 별도 협의가 필요합니다.",
+)
+_GATE_CONCLUSION_PREFIXES = (
+    "AI 사업으로 볼 직접 근거가 없어 비AI 사업으로 분류합니다.",
+    "세 기본조건을 충족하고 범정부 인공지능 공통기반 활용 문구가 확인됩니다.",
+    "공통기반 사용은 명시되어 있으나 기본조건의 불일치 또는 미확인 항목을 담당자에게 확인해야 합니다.",
+    "세 기본조건은 충족하지만 공통기반 활용이 명시되지 않았거나 미사용으로 확인됩니다.",
+    "비국가사무·공공기관 자체 내부업무 또는 외부망 완결 근거가 명시되어 공통기반 직접 활용 대상에서 제외합니다.",
+    "v6 국가사무 기준상 비국가사무·공공기관 자체 내부업무이거나 외부망 완결 근거가 확인되어 공통기반 직접 활용 대상에서 제외합니다.",
+    "공개 문서의 미확인 항목은 불충족으로 단정하지 않고 담당자 확인 대상으로 분류합니다.",
+    "폐쇄망 연계 또는 독자모델·풀파인튜닝의 제공모델 대체 가능성을 담당자와 검토해야 합니다.",
+    "AI 사업이지만 기본조건을 충족하지 못하거나 전환 가능성이 확인되지 않고 공통기반 사용도 확인되지 않습니다.",
+    "정보화 서비스 구축 또는 이를 위한 BPR·ISP·연구용역이 아니므로 검사 비대상으로 분류합니다.",
+)
+
+
+def _human_guidance(model: DeepAnalysis, code: str) -> str:
+    """Write a copy-ready pre-notice opinion in an ordinary public-service tone."""
+    network = {
+        "internal_or_connected": "서비스와 데이터가 행정망·업무망·내부망에서 처리되거나 해당 망과 연계되는 구조",
+        "hybrid": "내부망과 외부망을 함께 사용하는 구조",
+        "other_closed_network": "별도 폐쇄망에서 운영하는 구조",
+        "external_complete": "인터넷망에서 서비스와 데이터 처리가 완결되는 구조",
+        "unclear": "서비스 운영망과 데이터 처리 위치가 공개 문서에 명확히 제시되지 않은 상태",
+    }.get(model.network_scope, "운영망 구성을 추가로 확인해야 하는 상태")
+    task = {
+        "government": "중앙부처 또는 지방정부의 행정사무",
+        "delegated_government": "중앙부처 또는 지방정부로부터 위탁받은 국가사무",
+        "public_institution_internal": "공공기관 자체 내부업무",
+        "non_government": "국가사무에 해당하지 않는 업무",
+        "unclear": "국가사무 또는 위탁사무인지 공개 문서만으로 확인하기 어려운 업무",
+    }.get(model.task_scope, "업무 성격을 추가로 확인해야 하는 업무")
+    model_state = {
+        "platform_llm_or_rag": "공통기반에서 제공하는 LLM 또는 RAG로 구현할 수 있는 기능",
+        "custom_model_or_full_finetuning": "독자모델 또는 풀파인튜닝을 전제로 한 기능",
+        "unclear": "공통기반 제공 LLM·RAG로 구현할 수 있는지 명확하지 않은 기능",
+    }.get(model.model_fit, "적용 모델을 추가로 확인해야 하는 기능")
+
+    opening = (
+        "안녕하세요. 공개된 사전규격을 검토한 결과, 이 사업은 인공지능을 도입하는 사업으로 보여 "
+        "이용 조건에 맞는 경우 범정부 인공지능 공통기반 활용을 적극 검토할 필요가 있어 의견드립니다."
+    )
+    current = f"현재 문서상으로는 {network}이며, {task}이고, {model_state}으로 확인됩니다."
+
+    changes: list[str] = []
+    if code == "2":
+        changes.append(
+            "세 가지 기본조건은 충족하는 것으로 보이지만 공통기반 활용 계획은 확인되지 않습니다. "
+            "본공고 제안요청서에 공통기반의 LLM·RAG를 적용할 기능, 연계 방식과 대상 데이터를 명시하면 "
+            "공통기반을 활용하여 구축할 수 있습니다."
+        )
+    else:
+        if model.network_scope == "unclear":
+            changes.append(
+                "서비스와 데이터가 행정망·업무망·내부망에서 처리되거나 해당 망과 연계되는 것으로 확인되면 "
+                "공통기반을 활용할 수 있습니다."
+            )
+        elif model.network_scope == "other_closed_network":
+            changes.append(
+                "현재의 별도 폐쇄망을 행정망·업무망과 연계할 수 있도록 구성하고 데이터 처리 범위를 명확히 하면 "
+                "공통기반 활용이 가능합니다."
+            )
+        if model.task_scope == "unclear":
+            changes.append(
+                "또한 이 업무가 중앙부처·지방정부의 사무이거나 해당 기관으로부터 위탁받은 국가사무임이 확인되면 "
+                "이용대상 업무 조건을 충족합니다."
+            )
+        if model.model_fit == "unclear":
+            changes.append(
+                "필요한 AI 기능을 공통기반에서 제공하는 LLM 또는 공개 파운데이션 모델과 RAG로 구현할 수 있는 것으로 "
+                "확인되면 공통기반에서 구축할 수 있습니다."
+            )
+        elif model.model_fit == "custom_model_or_full_finetuning":
+            changes.append(
+                "독자모델·풀파인튜닝 요구를 공통기반에서 제공하는 공개 파운데이션 모델과 RAG 방식으로 변경할 수 있다면 "
+                "별도 모델 구축 없이 공통기반을 활용할 수 있습니다. 변경이 어렵다면 사전 협의가 필요합니다."
+            )
+        if code == "4":
+            changes.append(
+                "공통기반을 사용한다고 명시한 내용과 실제 망·업무·모델 조건이 일치하도록 위 사항을 본공고 전에 "
+                "보완해 주시기 바랍니다."
+            )
+
+    request = (
+        "위 내용을 검토하시어 공통기반 활용 가능 여부와 본공고 반영 계획을 회신해 주시기 바랍니다. "
+        "공개 문서에서 확인되지 않은 사항은 현재 계획과 근거를 함께 알려주시면 감사하겠습니다."
+    )
+    legal = f"관련 법적 근거는 {LEGAL_BASIS_TEXT}"
+    return "\n\n".join((opening, current, " ".join(changes), request, legal))
+
+
+def _without_prior_gate_conclusions(summary: str) -> str:
+    value = summary.strip()
+    changed = True
+    while changed:
+        changed = False
+        for prefix in _GATE_CONCLUSION_PREFIXES:
+            if value.startswith(prefix):
+                value = value[len(prefix):].lstrip()
+                changed = True
+                break
+    return value
+
+
+_CENTRAL_GOVERNMENT_AGENCIES = (
+    "감사원", "고용노동부", "공정거래위원회", "과학기술정보통신부", "관세청",
+    "교육부", "국가보훈부", "국가인권위원회", "국무조정실", "국무총리비서실",
+    "국방부", "국세청", "국토교통부", "금융위원회", "기상청", "기획재정부",
+    "농림축산식품부", "농촌진흥청", "대검찰청", "대통령비서실", "문화체육관광부",
+    "방송통신위원회", "방위사업청", "법무부", "법제처", "병무청", "보건복지부",
+    "산림청", "산업통상자원부", "새만금개발청", "소방청", "식품의약품안전처",
+    "여성가족부", "외교부", "인사혁신처", "조달청", "중소벤처기업부", "질병관리청",
+    "통계청", "통일부", "특허청", "해양경찰청", "해양수산부", "행정안전부",
+    "행정중심복합도시건설청", "환경부", "경찰청", "기후에너지환경부",
+    "산업통상부", "성평등가족부", "재정경제부", "국가데이터처", "기획예산처",
+    "지식재산처", "검찰청", "국가유산청", "우주항공청", "재외동포청",
+    "개인정보보호위원회", "국민권익위원회", "방송미디어통신위원회",
+    "원자력안전위원회", "국가정보원", "대통령경호처",
+)
+_LOCAL_GOVERNMENT_ROOTS = (
+    "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
+    "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도",
+    "충청북도", "충청남도", "전북특별자치도", "전라북도", "전라남도",
+    "경상북도", "경상남도", "제주특별자치도",
+)
+_STATUTORY_DELEGATE_AGENCIES = (
+    "한국지능정보사회진흥원", "NIA", "한국지역정보개발원", "KLID",
+)
+_PROCUREMENT_AGENCY_PATTERN = re.compile(r"(?:^|\s)(?:조달청|[가-힣]+지방조달청)(?:\s|$)")
+_DIRECT_AGENCY_LABELS = (
+    "발주기관", "발주부서", "수요기관", "수요부서", "주관기관", "주관부서", "담당기관", "담당부서",
+)
+
+
+def _metadata_value(source_text: str, label: str) -> str:
+    match = re.search(rf"(?m)^{re.escape(label)}:\s*(.+?)\s*$", source_text)
+    return match.group(1).strip() if match else ""
+
+
+def _is_procurement_intermediary(value: str) -> bool:
+    return bool(_PROCUREMENT_AGENCY_PATTERN.search(value.strip()))
+
+
+def _document_text(source_text: str) -> str:
+    return source_text.split("추출 본문:", 1)[-1] if "추출 본문:" in source_text else source_text
+
+
+def _labeled_document_lines(source_text: str, labels: tuple[str, ...]) -> list[tuple[str, str, str]]:
+    """Extract colon and markdown-table agency labels from the business document only."""
+    label_pattern = "|".join(re.escape(label) for label in labels)
+    results: list[tuple[str, str, str]] = []
+    for raw_line in _document_text(source_text).splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        colon = re.search(
+            rf"(?:^|[|])\s*(?:\*\*)?({label_pattern})(?:\*\*)?\s*[:：]\s*(.+?)(?:\s*[|]|$)",
+            line, re.IGNORECASE,
+        )
+        table = re.match(
+            rf"^\|\s*(?:\*\*)?({label_pattern})(?:\*\*)?\s*\|\s*(.+?)\s*\|?$",
+            line, re.IGNORECASE,
+        )
+        match = colon or table
+        if not match:
+            continue
+        value = re.sub(r"(?:\*\*|<br\s*/?>).*$", "", match.group(2), flags=re.IGNORECASE).strip(" |*")
+        if value:
+            results.append((match.group(1), value, line[:1200]))
+    return results
+
+
+def _looks_like_full_agency(value: str) -> bool:
+    if _is_government_buyer(value) or _contains_government_entity(value):
+        return True
+    compact = re.sub(r"\s+", "", value)
+    return bool(re.search(
+        r"(?:공사|공단|재단|진흥원|연구원|개발원|평가원|관리원|정보원|대학교|대학원|병원|협회|위원회)$",
+        compact,
+    ))
+
+
+def _effective_buyer(source_text: str) -> tuple[str, Evidence | None, bool]:
+    """Resolve the service owner; a procurement office is only an intermediary."""
+    listed = _metadata_value(source_text, "기관")
+    demand = _metadata_value(source_text, "수요기관")
+    announcing = _metadata_value(source_text, "공고기관")
+    procurement = _is_procurement_intermediary(announcing) or (
+        not announcing and _is_procurement_intermediary(listed)
+    )
+    if not procurement:
+        return listed, None, False
+
+    document_entities = _labeled_document_lines(source_text, _DIRECT_AGENCY_LABELS)
+    for label, value, line in document_entities:
+        if _looks_like_full_agency(value) or (demand and _same_organization(demand, value)):
+            return value, Evidence(
+                quote=line, section="사업문서", interpretation=f"조달 대행기관과 구분되는 실제 {label}",
+            ), True
+
+    if demand and (not _is_procurement_intermediary(demand) or demand.strip() == "조달청"):
+        return demand, Evidence(
+            quote=demand, section="나라장터 수요기관", interpretation="조달 대행기관과 구분되는 실수요기관",
+        ), True
+    return "", None, True
+
+
+def _is_government_buyer(agency: str) -> bool:
+    compact = re.sub(r"\s+", "", agency)
+    if any(
+        compact == re.sub(r"\s+", "", name)
+        or compact.startswith(re.sub(r"\s+", "", name))
+        for name in _CENTRAL_GOVERNMENT_AGENCIES
+    ):
+        return True
+    if any(agency == root or agency.startswith(f"{root} ") for root in _LOCAL_GOVERNMENT_ROOTS):
+        return True
+    if compact.endswith(("시청", "군청", "구청", "도청", "교육청")):
+        return True
+    # 나라장터 발주기관에는 청사 접미사 없이 지방자치단체명만 들어오는 경우가 있다.
+    # 공사·공단·재단 등 공공기관과 혼동하지 않도록 행정구역 접미사만 허용한다.
+    return bool(re.fullmatch(r"[가-힣]{2,}(?:특별시|광역시|특별자치시|특별자치도|도|시|군|구)", compact))
+
+
+def _contains_government_entity(text: str) -> bool:
+    compact = re.sub(r"\s+", "", text)
+    if any(re.sub(r"\s+", "", name) in compact for name in _CENTRAL_GOVERNMENT_AGENCIES):
+        return True
+    if any(re.sub(r"\s+", "", root) in compact for root in _LOCAL_GOVERNMENT_ROOTS):
+        return True
+    return bool(re.search(
+        r"[가-힣]{2,}(?:(?:시청|군청|구청|도청|교육청)|(?:시|군|구)(?=\s+[가-힣A-Za-z0-9]+(?:과|국|실|본부|센터)))(?:\b|$)",
+        text,
+    ))
+
+
+def _relationship_lines(source_text: str) -> list[str]:
+    label = (
+        r"(?:주무|소관|주관|관련|협조|협력|위탁|수탁|출연)\s*"
+        r"(?:부처|부서|기관|관청|지방자치단체|지자체)?"
+    )
+    colon_lines = [
+        line.strip() for line in _document_text(source_text).splitlines()
+        if line.strip() and re.search(rf"(?:^|\s|[|]){label}\s*[:：]", line, re.IGNORECASE)
+    ]
+    table_labels = (
+        "주무부처", "주무기관", "소관부처", "소관기관", "주관부처", "주관기관", "주관부서",
+        "관련부처", "관련기관", "협조부처", "협조기관", "협력기관", "위탁기관", "수탁기관", "출연기관",
+        "발주기관", "발주부서", "수요기관", "수요부서",
+    )
+    table_lines = [line for _label, _value, line in _labeled_document_lines(source_text, table_labels)]
+    return list(dict.fromkeys([*colon_lines, *table_lines]))
+
+
+def _relationship_value(line: str) -> str:
+    if re.search(r"[:：]", line):
+        return re.split(r"[:：]", line, maxsplit=1)[-1].strip(" |*")
+    cells = [cell.strip(" *") for cell in line.strip().strip("|").split("|")]
+    return cells[1] if len(cells) > 1 else ""
+
+
+def _same_organization(left: str, right: str) -> bool:
+    normalize = lambda value: re.sub(r"[^0-9A-Za-z가-힣]", "", value).casefold()
+    first, second = normalize(left), normalize(right)
+    return bool(first and second and (first == second or first in second or second in first))
+
+
+def _first_matching_line(
+    source_text: str, patterns: tuple[str, ...], interpretation: str,
+) -> Evidence | None:
+    for line in (part.strip() for part in source_text.splitlines()):
+        if line and any(re.search(pattern, line, re.IGNORECASE) for pattern in patterns):
+            return Evidence(
+                quote=line[:1200], section="공고문·사업문서", interpretation=interpretation,
+            )
+    return None
+
+
+def enforce_public_task_policy(model: DeepAnalysis, source_text: str) -> DeepAnalysis:
+    """Infer government work conservatively while preserving an explicit internal-work exclusion."""
+    agency, resolved_evidence, procurement = _effective_buyer(source_text)
+    if agency and _is_government_buyer(agency):
+        return model.model_copy(update={
+            "task_scope": "government",
+            "task_scope_reason": (
+                "조달 대행기관이 아닌 사업문서의 발주·주관기관 또는 나라장터 실수요기관이 "
+                "중앙부처·지방정부로 확인되어 국가·지방 행정사무로 분류했습니다."
+                if procurement else
+                "발주기관이 중앙부처 또는 지방정부이므로 국가·지방 행정사무로 분류했습니다."
+            ),
+            "task_scope_evidence": [resolved_evidence or Evidence(
+                quote=agency, section="발주기관", interpretation="중앙부처·지방정부 직접 발주",
+            )],
+        })
+
+    relationships = _relationship_lines(source_text)
+    government_relationship = next((
+        line for line in relationships
+        if _contains_government_entity(line) or _is_government_buyer(_relationship_value(line))
+    ), None)
+    is_statutory_delegate = bool(
+        agency and any(name.casefold() in agency.casefold() for name in _STATUTORY_DELEGATE_AGENCIES)
+    )
+    # NIA·KLID 등 법정 수탁기관은 자기 기관이 주관기관으로 함께 적혀 있더라도
+    # 이 사업의 중앙부처·지방정부 주무·위탁 관계가 확인되면 국가사무가 우선한다.
+    if is_statutory_delegate and government_relationship:
+        return model.model_copy(update={
+            "task_scope": "delegated_government",
+            "task_scope_reason": "법정 수탁기관 사업에서 중앙부처 또는 지방정부의 주무·위탁 관계를 확인했습니다.",
+            "task_scope_evidence": [Evidence(
+                quote=government_relationship[:1200], section="공고문·사업문서",
+                interpretation="법정 수탁기관의 중앙부처·지방정부 주무·위탁 관계 근거",
+            )],
+        })
+
+    internal_work = _first_matching_line(source_text, (
+        r"사내.{0,30}(?:데이터|시스템|업무|행정|사무|직원|서비스|레거시)",
+        r"기관\s*내부|내부\s*(?:업무|직원|임직원|행정|사무|시스템|레거시)",
+        r"임직원|직원용|자체\s*(?:업무|인사|회계|구매|연구|교육|기관\s*운영)",
+        r"사무\s*[·ㆍ]?\s*행정\s*편의",
+    ), "비정부 발주기관의 자체 내부업무 근거")
+    # 모델이 task_scope 코드만 government로 잘못 반환하더라도, 공개 문서가
+    # 사내·임직원용 자체 업무임을 직접 밝히고 정부 주무/위탁 관계가 없으면
+    # 국가사무로 승격하지 않는다.
+    if agency and internal_work and not government_relationship and not is_statutory_delegate:
+        return model.model_copy(update={
+            "task_scope": "public_institution_internal",
+            "task_scope_reason": (
+                "중앙부처·지방정부가 아닌 기관이 발주했고 문서에서 사내·기관 내부업무 목적을 "
+                "확인하여 공공기관 자체 업무로 분류했습니다."
+            ),
+            "task_scope_evidence": [internal_work],
+        })
+
+    # 그 밖의 공공기관이 명시적으로 자체 내부업무라고 밝힌 경우는
+    # 기관에 일반적인 소관 부처가 있더라도 국가사무로 확대 추정하지 않는다.
+    if model.task_scope in {"public_institution_internal", "non_government"} and model.task_scope_evidence:
+        return model
+
+    organizer = next((
+        line for line in relationships
+        if re.search(r"주관\s*(?:부처|부서|기관)?\s*[:：]", line, re.IGNORECASE)
+        and _same_organization(agency, _relationship_value(line))
+    ), None)
+    if agency and organizer:
+        return model.model_copy(update={
+            "task_scope": "public_institution_internal",
+            "task_scope_reason": "비정부 공공기관이 발주하고 주관기관도 해당 공공기관으로 명시되어 자체 내부업무로 분류했습니다.",
+            "task_scope_evidence": [Evidence(
+                quote=organizer[:1200], section="공고문·사업문서",
+                interpretation="발주기관과 주관기관이 동일한 공공기관",
+            )],
+        })
+
+    supervising = (
+        Evidence(
+            quote=government_relationship[:1200], section="공고문·사업문서",
+            interpretation="중앙부처·지방정부의 주무·수탁·출연·관련·협조 관계 근거",
+        )
+        if government_relationship else _first_matching_line(source_text, (
+            r"(?:중앙부처|중앙정부|지방정부|지방자치단체|지자체).{0,40}(?:위탁|수탁|대행|소관|주관|감독|출연|협조)",
+            r"(?:위탁|수탁|대행|출연|협조).{0,40}(?:중앙부처|중앙정부|지방정부|지방자치단체|지자체)",
+        ), "중앙부처·지방정부의 소관 또는 위탁 업무 근거")
+    )
+    if supervising:
+        return model.model_copy(update={
+            "task_scope": "delegated_government",
+            "task_scope_reason": "사업 내용에서 중앙부처 또는 지방정부의 주무·수탁·출연·관련·협조 관계를 확인했습니다.",
+            "task_scope_evidence": [supervising],
+        })
+
+    if (
+        not procurement
+        and model.task_scope in {"government", "delegated_government"}
+        and model.task_scope_evidence
+    ):
+        return model
+    if is_statutory_delegate:
+        return model.model_copy(update={
+            "task_scope": "unclear",
+            "task_scope_reason": "법정 국가사무 수탁 가능 기관이지만 이 사업의 중앙부처·지방정부 주무·위탁 관계가 확인되지 않습니다.",
+            "task_scope_evidence": [],
+        })
+    if agency:
+        evidence = relationships[0] if relationships else agency
+        return model.model_copy(update={
+            "task_scope": "non_government",
+            "task_scope_reason": "비정부 발주기관이며 주무·관련·협조기관에서 중앙부처 또는 지방정부 관계가 확인되지 않아 비국가사무로 분류했습니다.",
+            "task_scope_evidence": [Evidence(
+                quote=evidence[:1200], section="공고문·사업문서" if relationships else "발주기관",
+                interpretation="중앙·지방정부의 주무·위탁 관계가 확인되지 않음",
+            )],
+        })
+    return model.model_copy(update={
+        "task_scope": "unclear",
+        "task_scope_reason": (
+            "조달 대행기관만 확인되고 사업문서의 실제 발주·주관부서 또는 실수요기관을 확인할 수 없어 "
+            "국가사무 여부를 담당자에게 확인해야 합니다."
+            if procurement else
+            "발주기관과 공개 사업문서만으로 국가사무·위탁사무 여부를 확정할 수 없어 담당자 확인이 필요합니다."
+        ),
+        "task_scope_evidence": [],
+    })
+
+
+def enforce_closed_network_policy(model: DeepAnalysis, source_text: str) -> DeepAnalysis:
+    """A generic closed network is not evidence of an administrative-network connection."""
+    closed = _first_matching_line(
+        source_text, (r"폐쇄망", r"폐쇄\s*네트워크"), "별도 폐쇄망 운영 근거",
+    )
+    if not closed:
+        return model
+    connected = re.search(r"행정망|업무망|내부망", source_text, re.IGNORECASE)
+    if connected:
+        return model
+    return model.model_copy(update={
+        "network_scope": "other_closed_network",
+        "network_reason": "폐쇄망은 확인되지만 행정망·업무망과의 연계 여부가 확인되지 않습니다.",
+        "network_evidence": [closed],
+    })
 
 
 def _json_object(value: str) -> dict[str, Any]:
@@ -64,6 +499,62 @@ def _drop_blank_evidence(value: dict[str, Any]) -> dict[str, Any]:
                 item for item in items
                 if isinstance(item, dict) and str(item.get("quote") or "").strip()
             ]
+    return cleaned
+
+
+def _downgrade_invalid_deep_gate_values(value: dict[str, Any]) -> dict[str, Any]:
+    """Turn malformed provider gate enums into an auditable unknown value.
+
+    A provider occasionally copies ai_relevance (for example high) into
+    task_scope. Retrying the same prompt rarely repairs that deterministic
+    mistake. Unknown is the only safe coercion: the server can still promote a
+    gate later when literal source evidence or agency metadata supports it.
+    """
+    cleaned = dict(value)
+    gates = (
+        (
+            "network_scope",
+            {"internal_or_connected", "hybrid", "other_closed_network", "external_complete", "unclear"},
+            "network_evidence",
+            "network_reason",
+        ),
+        (
+            "task_scope",
+            {"government", "delegated_government", "public_institution_internal", "non_government", "unclear"},
+            "task_scope_evidence",
+            "task_scope_reason",
+        ),
+        (
+            "model_fit",
+            {"platform_llm_or_rag", "custom_model_or_full_finetuning", "unclear"},
+            "model_fit_evidence",
+            "model_fit_reason",
+        ),
+        (
+            "platform_usage",
+            {"uses", "not_used", "not_mentioned", "unclear"},
+            "platform_usage_evidence",
+            "platform_usage_reason",
+        ),
+    )
+    for field, allowed, evidence_field, reason_field in gates:
+        raw = cleaned.get(field)
+        if raw not in allowed:
+            cleaned[field] = "unclear"
+            cleaned[evidence_field] = []
+            reason = str(cleaned.get(reason_field) or "")
+            cleaned[reason_field] = (
+                f"{reason} 공급자 응답의 조건값이 유효하지 않아 확인 필요로 조정했습니다."
+            ).strip()[:1500]
+    remediation = cleaned.get("remediation_feasibility")
+    if remediation not in {"feasible", "not_feasible", "unclear", "not_needed"}:
+        cleaned["remediation_feasibility"] = "unclear"
+        cleaned["remediation_targets"] = []
+        cleaned["remediation_evidence"] = []
+        reason = str(cleaned.get("remediation_reason") or "")
+        cleaned["remediation_reason"] = (
+            f"{reason} 공급자 응답의 변경 가능성 값이 유효하지 않아 확인 필요로 조정했습니다."
+        ).strip()[:1500]
     return cleaned
 
 
@@ -120,6 +611,31 @@ def _literal_evidence(quotes: list[str], source_text: str, interpretation: str) 
             quote=literal[:1200], section="추출 본문", interpretation=interpretation,
         ))
     return result
+
+
+def _ground_simple_evidence(model: SimpleAnalysis, source_text: str) -> SimpleAnalysis:
+    """Keep literal stage-2 quotes and recover a source line for AI candidates."""
+    grounded: list[Evidence] = []
+    for item in model.evidence:
+        matches = _literal_evidence([item.quote], source_text, item.interpretation)
+        if matches:
+            matches[0].section = item.section
+            grounded.extend(matches)
+    if not grounded and model.ai_relevance in {"high", "medium"}:
+        marker = re.compile(
+            r"(?<![A-Za-z])AI(?![A-Za-z])|\bLLM\b|\bRAG\b|인공지능|생성형\s*AI|"
+            r"머신러닝|딥러닝|자연어\s*처리|컴퓨터\s*비전",
+            re.I,
+        )
+        for line in (part.strip() for part in source_text.splitlines()):
+            if line and marker.search(line):
+                grounded.append(Evidence(
+                    quote=line[:1200],
+                    section="사업명·추출 본문",
+                    interpretation="AI 사업 후보를 뒷받침하는 입력 원문의 직접 문구",
+                ))
+                break
+    return model.model_copy(update={"evidence": grounded[:10]})
 
 
 def _evidence_mentions(evidence: list[Evidence], patterns: tuple[str, ...]) -> bool:
@@ -314,6 +830,33 @@ def preserve_deep_ai_scope(model: DeepAnalysis, simple: SimpleAnalysis) -> DeepA
     return model
 
 
+def merge_simple_and_gate_evidence(model: DeepAnalysis, simple: SimpleAnalysis) -> DeepAnalysis:
+    """Keep the stage-2 AI basis together with every confirmed gate quote.
+
+    Stage 2 answers why this is an AI project, while stage 3 answers whether
+    the mandatory common-platform conditions are met. Both must remain visible
+    in the final audited result.
+    """
+    combined = [
+        *simple.evidence,
+        *model.evidence,
+        *model.network_evidence,
+        *model.task_scope_evidence,
+        *model.model_fit_evidence,
+        *model.platform_usage_evidence,
+        *model.remediation_evidence,
+    ]
+    unique: list[Evidence] = []
+    seen: set[tuple[str, str]] = set()
+    for item in combined:
+        key = (re.sub(r"\s+", " ", item.quote).strip(), item.interpretation.strip())
+        if not key[0] or key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return model.model_copy(update={"evidence": unique[:20]})
+
+
 def _first_evidence(text: str, keywords: list[str]) -> Evidence | None:
     document_text = text.split("추출 본문:\n", 1)[-1]
     for line in (part.strip() for part in re.split(r"[\n。]", document_text)):
@@ -333,19 +876,6 @@ def _possible_functions(text: str) -> list[str]:
     return [name for name, keywords in mapping.items() if any(key in folded for key in keywords)]
 
 
-_COMMON_PLATFORM_TERM = r"(?:범정부\s*)?(?:인공지능|AI)\s*공통기반"
-_COMMON_PLATFORM_MENTION = re.compile(_COMMON_PLATFORM_TERM, re.IGNORECASE)
-_COMMON_PLATFORM_USAGE = re.compile(
-    _COMMON_PLATFORM_TERM
-    + r".{0,40}(?:활용(?:한다|하여|할\s*예정|\s*계획)|사용(?:한다|하여|할\s*예정|\s*계획)|연계(?:한다|하여|할\s*예정)|적용(?:한다|하여|할\s*예정)|이용(?:한다|하여|할\s*예정))",
-    re.IGNORECASE,
-)
-_COMMON_PLATFORM_NON_USE = re.compile(
-    rf"(?:{_COMMON_PLATFORM_TERM}.{{0,40}}(?:사용|활용|연계|적용)하지\s*않|{_COMMON_PLATFORM_TERM}.{{0,30}}미사용|미사용.{{0,30}}{_COMMON_PLATFORM_TERM})",
-    re.IGNORECASE,
-)
-
-
 def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> DeepAnalysis:
     """Derive the final grade from the three mandatory eligibility gates.
 
@@ -353,8 +883,42 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
     prevents generic AI/RAG requirements from being promoted to A/B without
     eligible network and public-task evidence.
     """
+    scope_status, scope_reason = evaluate_service_scope(
+        _metadata_value(source_text, "사업명"), source_text,
+    )
+    if scope_status == "non_target":
+        conclusion = "정보화 서비스 구축 또는 이를 위한 BPR·ISP·연구용역이 아니므로 검사 비대상으로 분류합니다."
+        return model.model_copy(update={
+            "service_scope": "non_target",
+            "service_scope_reason": scope_reason,
+            "classification_code": "5",
+            "final_grade": "E",
+            "common_platform_fit": "low",
+            "eligibility": "ineligible",
+            "summary": f"{conclusion} {scope_reason}",
+            "check_questions": [],
+            "recommended_action": "no_action",
+            "priority_score": 0,
+            "remediation_feasibility": "not_needed",
+            "remediation_targets": [],
+            "remediation_reason": "검사 범위 밖의 용역이므로 공통기반 전환 검토를 수행하지 않습니다.",
+            "caveats": list(dict.fromkeys([*model.caveats, scope_reason])),
+            "guidance_message": "",
+        })
+
+    model = model.model_copy(update={
+        "service_scope": scope_status,
+        "service_scope_reason": scope_reason,
+    })
+    model = enforce_public_task_policy(model, source_text)
+    model = enforce_closed_network_policy(model, source_text)
     explicit_non_use = bool(_COMMON_PLATFORM_NON_USE.search(source_text))
     explicit_usage = not explicit_non_use and bool(_COMMON_PLATFORM_USAGE.search(source_text))
+    optional_usage = (
+        not explicit_non_use
+        and not explicit_usage
+        and is_optional_platform_usage_text(source_text)
+    )
     if model.network_scope == "external_complete" or model.task_scope in {
         "public_institution_internal", "non_government",
     }:
@@ -376,29 +940,33 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
         platform_usage = "uses"
     elif explicit_non_use:
         platform_usage = "not_used"
-    elif _COMMON_PLATFORM_MENTION.search(source_text):
+    elif optional_usage or _COMMON_PLATFORM_MENTION.search(source_text):
         platform_usage = "unclear"
     else:
         platform_usage = "not_mentioned"
     platform_usage_evidence = list(model.platform_usage_evidence)
-    if platform_usage in {"uses", "not_used"} and not platform_usage_evidence:
-        usage_evidence = _first_evidence(source_text, ["범정부 인공지능 공통기반", "범정부 AI 공통기반", "AI 공통기반"])
+    if (platform_usage in {"uses", "not_used"} or optional_usage) and not platform_usage_evidence:
+        usage_evidence = _first_evidence(source_text, [
+            "범정부 인공지능 공통기반", "범정부 AI 공통기반", "AI 공통기반",
+            "범정부 인공지능 플랫폼", "범정부 AI 플랫폼",
+        ])
         if usage_evidence:
             platform_usage_evidence = [usage_evidence]
     platform_usage_reason = {
         "uses": "원문에서 범정부 인공지능 공통기반의 사용·연계 계획을 확인했습니다.",
         "not_used": "원문에서 범정부 인공지능 공통기반을 사용하지 않는다는 문구를 확인했습니다.",
-        "unclear": "공통기반이 언급됐지만 실제 사용 또는 미사용 여부는 명확하지 않습니다.",
+        "unclear": OPTIONAL_USAGE_REASON if optional_usage else "공통기반이 언급됐지만 실제 사용 또는 미사용 여부는 명확하지 않습니다.",
         "not_mentioned": "공통기반 사용 또는 미사용 문구가 확인되지 않습니다.",
     }[platform_usage]
     ai_relevance = "medium" if explicit_usage and model.ai_relevance == "low" else model.ai_relevance
-    remediation_blockers = []
-    if model.network_scope not in {"internal_or_connected", "hybrid"}:
-        remediation_blockers.append("network")
-    if model.model_fit != "platform_llm_or_rag":
-        remediation_blockers.append("model")
-    remediation_covers_all = bool(remediation_blockers) and set(remediation_blockers).issubset(
-        set(model.remediation_targets)
+    explicit_exclusion = (
+        model.network_scope == "external_complete"
+        or model.task_scope in {"public_institution_internal", "non_government"}
+    )
+    has_unknown_gate = (
+        model.network_scope == "unclear"
+        or model.task_scope == "unclear"
+        or model.model_fit == "unclear"
     )
     if ai_relevance == "low":
         code, grade, fit, action = "6", "E", "low", "no_action"
@@ -411,44 +979,61 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
     elif platform_usage == "uses":
         code, grade, fit, action = "4", "D", "uncertain", "contact"
         score = max(85, model.priority_score)
-        conclusion = "공통기반 사용은 명시되어 있으나 기본조건 중 불충족 또는 미확인 항목이 있습니다."
+        conclusion = "공통기반 사용은 명시되어 있으나 기본조건의 불일치 또는 미확인 항목을 담당자에게 확인해야 합니다."
     elif eligibility == "eligible":
         code, grade, fit, action = "2", "B", "high", "contact"
         score = max(70, min(94, model.priority_score))
-        conclusion = "세 기본조건은 충족하지만 공통기반 활용이 명시되지 않았거나 미사용으로 확인됩니다."
-    elif (
-        model.task_scope in {"government", "delegated_government"}
-        and model.remediation_feasibility == "feasible"
-        and remediation_covers_all
-    ):
-        code, grade, fit, action = "3", "C", "partial", "contact"
-        score = max(65, min(89, model.priority_score))
-        conclusion = "국가사무 조건을 충족하며 망 또는 모델 변경으로 공통기반 전환을 검토할 수 있습니다."
-    else:
+        conclusion = (
+            "세 기본조건을 충족하지만 공통기반이 선택적 대안으로만 제시되어 "
+            "다른 방안보다 우선 검토하고 실제 채택 여부를 확인하도록 하는 장치가 부족합니다."
+            if optional_usage else
+            "세 기본조건은 충족하지만 공통기반 활용이 명시되지 않았거나 미사용으로 확인됩니다."
+        )
+    elif explicit_exclusion:
         code, grade, fit, action = "5", "E", "low", "no_action"
         score = min(39, model.priority_score)
-        conclusion = "AI 사업이지만 기본조건을 충족하지 못하거나 전환 가능성이 확인되지 않고 공통기반 사용도 확인되지 않습니다."
+        conclusion = "v6 국가사무 기준상 비국가사무·공공기관 자체 내부업무이거나 외부망 완결 근거가 확인되어 공통기반 직접 활용 대상에서 제외합니다."
+    else:
+        code = "3"
+        grade = "D" if has_unknown_gate else "C"
+        fit = "uncertain" if has_unknown_gate else "partial"
+        action = "contact"
+        score = max(65, min(89, model.priority_score))
+        conclusion = (
+            "공개 문서의 미확인 항목은 불충족으로 단정하지 않고 담당자 확인 대상으로 분류합니다."
+            if has_unknown_gate else
+            "폐쇄망 연계 또는 독자모델·풀파인튜닝의 제공모델 대체 가능성을 담당자와 검토해야 합니다."
+        )
 
-    questions = list(model.check_questions)
+    # 질문은 최종 게이트 상태에서 다시 구성한다. 모델이 만든 일반 질문을
+    # 유지하면 이미 발주기관 근거로 확정한 국가사무까지 재확인하게 된다.
+    questions: list[str] = []
     if code == "2":
-        questions.append("범정부 인공지능 공통기반의 LLM API 또는 RAG를 적용·연계할 계획인지 확인 필요")
+        questions.append(
+            "다른 인프라 대안을 선택하기 전에 범정부 인공지능 공통기반 적용 가능성을 "
+            "우선 검토했는지와 실제 채택 여부를 확인 필요"
+            if optional_usage else
+            "범정부 인공지능 공통기반의 LLM API 또는 RAG를 적용·연계할 계획인지 확인 필요"
+        )
     if model.network_scope == "unclear":
         questions.append("서비스와 데이터가 행정망·업무망·내부망에서 처리되거나 해당 망과 연계되는지 확인 필요")
+    if model.network_scope == "other_closed_network":
+        questions.append("명시된 폐쇄망이 행정망·업무망과 연결 가능한지, 연결 시 데이터 처리 범위와 보안 경계를 확인 필요")
     if model.task_scope == "unclear":
-        questions.append("해당 업무가 중앙·지방정부의 행정사무 또는 공공기관이 위탁받은 국가사무인지 확인 필요")
+        questions.append("해당 업무의 주무부처·지방정부와 국가사무 또는 위탁사무 근거를 담당자에게 확인 필요")
     if model.model_fit == "unclear":
-        questions.append("공통기반 제공 LLM·RAG로 처리 가능한지, 독자 모델 또는 풀파인튜닝이 필요한지 확인 필요")
+        questions.append("공통기반 제공 LLM·RAG로 처리 가능한 기능 범위와 별도 모델 필요 여부를 확인 필요")
     if model.model_fit == "custom_model_or_full_finetuning":
-        questions.append("독자 모델·풀파인튜닝 필요 범위와 공통기반 별도 협의 절차를 확인 필요")
+        questions.append("독자모델·풀파인튜닝 요구를 공통기반의 공개 파운데이션 모델·RAG로 대체할 수 있는지 확인 필요")
     if code == "3":
-        questions.append("운영망 연계 또는 공통기반 제공모델 전환을 본공고 전에 반영할 수 있는지 확인 필요")
+        questions.append("확인 결과에 따라 운영망 연계 또는 제공모델 전환을 본공고 전에 반영할 수 있는지 확인 필요")
     if code == "4":
         questions.append("공통기반 사용 계획과 실제 망·국가사무·모델 기본조건이 일치하는지 본공고 전에 확인 필요")
     questions = list(dict.fromkeys(questions))
 
     caveats = list(dict.fromkeys([
         *model.caveats,
-        "기관 유형만으로 국가사무 또는 위탁 국가사무 여부를 추정하지 않았습니다.",
+        "중앙부처·지방정부 직접 발주는 국가사무로, 비정부 공공기관은 주관기관 동일 여부와 정부 주무·수탁·출연·관련·협조 관계로 구분했습니다.",
         "온프레미스라는 표현만으로 행정망·업무망 연계 여부를 확정하지 않았습니다.",
     ]))
     evidence = list(model.evidence)
@@ -459,30 +1044,18 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
             *model.model_fit_evidence,
         ]
     usage = "yes" if platform_usage == "uses" else ("no" if platform_usage == "not_used" else "unclear")
-    issue_labels = []
-    if model.network_scope not in {"internal_or_connected", "hybrid"}:
-        issue_labels.append("운영망·데이터 연계")
-    if model.task_scope not in {"government", "delegated_government"}:
-        issue_labels.append("국가사무 범위")
-    if model.model_fit != "platform_llm_or_rag":
-        issue_labels.append("제공모델·RAG 적용")
-    issue_text = "·".join(issue_labels) or "세 기본조건"
     guidance = ""
-    if code == "2":
-        guidance = (
-            "본 사업은 공통기반 기본조건을 충족할 가능성이 확인되나 활용 계획이 문서에 반영되지 않았습니다. "
-            "본공고 제안요청서에 범정부 인공지능 공통기반의 LLM·RAG 활용 범위, 연계 방식과 대상 데이터·업무를 명시해 주시기 바랍니다."
-        )
-    elif code == "3":
-        guidance = (
-            f"본 사업은 국가사무에 해당하나 현재 {issue_text} 조건의 조정이 필요합니다. "
-            "본공고 전에 운영망 연계 또는 제공모델 전환 가능성을 검토하고, 가능한 경우 공통기반 활용 범위와 별도 협의사항을 제안요청서에 반영해 주시기 바랍니다."
-        )
-    elif code == "4":
-        guidance = (
-            f"공통기반 활용이 명시되어 있으나 {issue_text} 조건이 이용요건과 맞지 않거나 확인되지 않습니다. "
-            "본공고 전에 이용대상 업무, 망·데이터 처리 구조와 제공모델 적용 범위를 재확인하고 충족 근거 또는 별도 협의사항을 명시해 주시기 바랍니다."
-        )
+    if code in {"2", "3", "4"}:
+        guidance = _human_guidance(model, code)
+    if model.task_scope == "public_institution_internal":
+        detail_summary = " ".join(filter(None, (
+            model.task_scope_reason,
+            model.network_reason,
+            model.model_fit_reason,
+            platform_usage_reason,
+        )))
+    else:
+        detail_summary = _without_prior_gate_conclusions(model.summary)
     return DeepAnalysis.model_validate({**model.model_dump(), **{
         "classification_code": code,
         "final_grade": grade,
@@ -493,7 +1066,7 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
         "platform_usage_reason": platform_usage_reason,
         "platform_usage_evidence": platform_usage_evidence,
         "eligibility": eligibility,
-        "summary": f"{conclusion} {model.summary}",
+        "summary": " ".join(filter(None, (conclusion, detail_summary))),
         "evidence": evidence,
         "check_questions": questions,
         "recommended_action": action,
@@ -540,7 +1113,7 @@ class MockAnalyzer:
     deep_model_name = "mock-deterministic-v1"
     cache_fingerprint = "mock-deterministic-v1"
     simple_cache_fingerprint = "mock-simple-deterministic-v2"
-    deep_cache_fingerprint = "mock-deep-eligibility-v2"
+    deep_cache_fingerprint = "mock-deep-verification-v3"
 
     def simple(self, context: str, rule: FilterResult) -> tuple[SimpleAnalysis, Usage]:
         relevance = "high" if rule.score >= 55 else "medium" if rule.score >= 20 else "low"
@@ -782,10 +1355,14 @@ class OpenAIChatClient:
                         )
                     raw_model = _json_object(content)
                     if schema is DeepAnalysis:
-                        raw_model = _drop_blank_evidence(raw_model)
+                        raw_model = _downgrade_invalid_deep_gate_values(
+                            _drop_blank_evidence(raw_model)
+                        )
                     model = schema.model_validate(raw_model)
                     if isinstance(model, DeepAnalysis):
                         model = _ground_deep_evidence(model, context)
+                    elif isinstance(model, SimpleAnalysis):
+                        model = _ground_simple_evidence(model, context)
                     validate_grounded(model, context)
                     tokens = raw.get("usage", {})
                     if endpoint.provider == "cohere":
@@ -844,6 +1421,14 @@ class RoutedAnalyzer:
             settings.stage2_timeout_seconds,
             min_interval_seconds=settings.stage2_min_interval_seconds,
         )
+        self.simple_fallback_endpoint = ChatEndpoint(
+            settings.stage2_fallback_provider,
+            settings.stage2_fallback_base_url,
+            settings.stage2_fallback_api_key,
+            settings.stage2_fallback_model,
+            settings.stage2_timeout_seconds,
+            min_interval_seconds=settings.stage2_fallback_min_interval_seconds,
+        )
         self.primary_endpoint = ChatEndpoint(
             settings.stage3_primary_provider,
             settings.stage3_primary_base_url,
@@ -862,7 +1447,11 @@ class RoutedAnalyzer:
         self.simple_model_name = f"{self.simple_endpoint.provider}:{self.simple_endpoint.model}"
         self.deep_model_name = f"{self.primary_endpoint.provider}:{self.primary_endpoint.model}"
         self.simple_cache_fingerprint = hashlib.sha256(
-            f"{self.simple_model_name}|{self.simple_prompt}".encode("utf-8")
+            "|".join((
+                self.simple_model_name,
+                f"{self.simple_fallback_endpoint.provider}:{self.simple_fallback_endpoint.model}",
+                self.simple_prompt,
+            )).encode("utf-8")
         ).hexdigest()
         self.deep_cache_fingerprint = hashlib.sha256(
             "|".join((
@@ -886,20 +1475,20 @@ class RoutedAnalyzer:
         if self.simple_endpoint.provider == "mock":
             return self.mock.simple(scoped, rule)
         try:
-            return OpenAIChatClient(self.simple_endpoint).call(self.simple_prompt, scoped, SimpleAnalysis)
-        except (LLMRateLimitExceeded, RuntimeError) as exc:
-            # 무료 2차 모델의 일시 한도가 전체 새벽 배치를 중단시키지 않게 한다.
-            # 이미 규칙 후보인 건은 낮은 점수여도 심층 대기 대상으로 보수적으로 유지한다.
-            logger.warning("2차 LLM 실패로 보수적 규칙 판정을 사용합니다: %s", exc)
-            result, _usage_ignored = self.mock.simple(scoped, rule)
-            if rule.score > 0 and not rule.skip:
-                result = result.model_copy(update={
-                    "ai_relevance": "high" if rule.score >= 55 else "medium",
-                    "needs_deep_review": True,
-                    "reason": f"2차 LLM 한도·장애로 보수적 규칙 판정 적용: {rule.reason}",
-                    "confidence": min(result.confidence, 0.6),
-                })
-            return result, _usage("rule-fallback-after-stage2-error", "local", fallback=True)
+            return OpenAIChatClient(self.simple_endpoint).call(
+                self.simple_prompt, scoped, SimpleAnalysis,
+            )
+        except RuntimeError as primary_error:
+            fallback = self.simple_fallback_endpoint
+            if fallback.provider == "mock" or not fallback.api_key:
+                raise primary_error
+            logger.warning("2차 주 공급자 실패로 fallback을 사용합니다: %s", primary_error)
+            result, usage = OpenAIChatClient(fallback).call(
+                self.simple_prompt, scoped, SimpleAnalysis,
+            )
+            usage["fallback_used"] = True
+            usage["primary_error"] = str(primary_error)[:500]
+            return result, usage
 
     def deep(self, context: str, simple: SimpleAnalysis, rule: FilterResult) -> tuple[DeepAnalysis, Usage]:
         scoped = _truncate_context(context, self.settings.stage3_max_input_chars)
@@ -941,7 +1530,18 @@ def notice_context(notice: Notice) -> str:
     attachments = select_preferred_documents(notice.attachments, name=lambda row: row.original_filename)
     text = "\n\n".join(attachment.text_excerpt or "" for attachment in attachments)
     filenames = ", ".join(attachment.original_filename for attachment in attachments)
-    return f"사업명: {notice.title}\n기관: {notice.agency_name}\n예산: {notice.budget_amount or '미상'}\n첨부: {filenames}\n\n추출 본문:\n{text}"
+    try:
+        raw = json.loads(notice.raw_payload_json or "{}")
+    except (json.JSONDecodeError, TypeError):
+        raw = {}
+    raw = raw if isinstance(raw, dict) else {}
+    demand_agency = str(raw.get("rlDminsttNm") or raw.get("dminsttNm") or notice.agency_name or "").strip()
+    announcing_agency = str(raw.get("orderInsttNm") or raw.get("ntceInsttNm") or notice.agency_name or "").strip()
+    return (
+        f"사업명: {notice.title}\n기관: {demand_agency}\n수요기관: {demand_agency}\n"
+        f"공고기관: {announcing_agency}\n예산: {notice.budget_amount or '미상'}\n첨부: {filenames}"
+        f"\n\n추출 본문:\n{text}"
+    )
 
 
 def _input_hash(context: str, run_type: str, fingerprint: str) -> str:
@@ -1017,8 +1617,51 @@ def update_decision_projection(db: Session, notice: Notice, result: DeepAnalysis
         db.add(ActionItem(notice_id=notice.id))
 
 
+def _rule_screen_result(rule: FilterResult) -> DeepAnalysis:
+    scope_excluded = rule.scope_status == "non_target"
+    return DeepAnalysis(
+        service_scope="non_target" if scope_excluded else rule.scope_status,
+        service_scope_reason=rule.scope_reason,
+        classification_code="5" if scope_excluded else "6",
+        final_grade="E",
+        ai_relevance="medium" if scope_excluded and rule.matched_include_keywords else "low",
+        common_platform_fit="low",
+        usage_mentioned="unclear",
+        network_scope="unclear",
+        network_reason="검사 범위 비대상으로 망 조건을 심층검증하지 않았습니다." if scope_excluded else "비AI 규칙 분류로 망 조건 심층검증 대상이 아닙니다.",
+        network_evidence=[],
+        task_scope="unclear",
+        task_scope_reason="검사 범위 비대상으로 국가사무 조건을 심층검증하지 않았습니다." if scope_excluded else "비AI 규칙 분류로 국가사무 조건 심층검증 대상이 아닙니다.",
+        task_scope_evidence=[],
+        model_fit="unclear",
+        model_fit_reason="구축 대상 AI 모델 검증을 수행하지 않았습니다." if scope_excluded else "AI 모델 요구가 확인되지 않았습니다.",
+        model_fit_evidence=[],
+        platform_usage="not_mentioned",
+        platform_usage_reason="공통기반 사용 여부는 검사하지 않았습니다." if scope_excluded else "공통기반 사용 문구가 확인되지 않았습니다.",
+        platform_usage_evidence=[],
+        remediation_feasibility="not_needed" if scope_excluded else "unclear",
+        remediation_targets=[],
+        remediation_reason="검사 범위 밖의 용역이므로 공통기반 전환 검토 대상이 아닙니다." if scope_excluded else "비AI 사업으로 망·모델 전환 검토 대상이 아닙니다.",
+        remediation_evidence=[],
+        eligibility="ineligible" if scope_excluded else "uncertain",
+        possible_common_platform_functions=[],
+        summary=rule.scope_reason if scope_excluded else "제목과 사업 문서에서 직접적인 AI 구축·개선 근거를 찾지 못해 비AI 사업으로 분류했습니다.",
+        evidence=[],
+        check_questions=[],
+        recommended_action="no_action",
+        priority_score=0,
+        confidence=0.95 if scope_excluded else 0.8,
+        caveats=[
+            "사업 범위가 정보화 서비스 구축 또는 이를 위한 BPR·ISP·연구용역으로 변경되면 재검토합니다."
+            if scope_excluded else
+            "규칙 기반 분류이며 AI 기능이 문서에 누락된 경우 수동 재검토할 수 있습니다."
+        ],
+        guidance_message="",
+    )
+
+
 def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> bool:
-    """Persist an inexpensive category-6 result for clear rule-level non-AI notices."""
+    """Persist an inexpensive category-5 scope exclusion or category-6 non-AI result."""
     context = notice_context(notice)
     gate_hash = _input_hash(context, "deep_ai", CURRENT_CRITERIA_VERSION)
     existing = next((
@@ -1029,39 +1672,7 @@ def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> boo
     ), None)
     if existing:
         return False
-    result = DeepAnalysis(
-        classification_code="6",
-        final_grade="E",
-        ai_relevance="low",
-        common_platform_fit="low",
-        usage_mentioned="unclear",
-        network_scope="unclear",
-        network_reason="비AI 규칙 분류로 망 조건 심층검증 대상이 아닙니다.",
-        network_evidence=[],
-        task_scope="unclear",
-        task_scope_reason="비AI 규칙 분류로 국가사무 조건 심층검증 대상이 아닙니다.",
-        task_scope_evidence=[],
-        model_fit="unclear",
-        model_fit_reason="AI 모델 요구가 확인되지 않았습니다.",
-        model_fit_evidence=[],
-        platform_usage="not_mentioned",
-        platform_usage_reason="공통기반 사용 문구가 확인되지 않았습니다.",
-        platform_usage_evidence=[],
-        remediation_feasibility="unclear",
-        remediation_targets=[],
-        remediation_reason="비AI 사업으로 망·모델 전환 검토 대상이 아닙니다.",
-        remediation_evidence=[],
-        eligibility="uncertain",
-        possible_common_platform_functions=[],
-        summary="제목과 사업 문서에서 직접적인 AI 구축·개선 근거를 찾지 못해 비AI 사업으로 분류했습니다.",
-        evidence=[],
-        check_questions=[],
-        recommended_action="no_action",
-        priority_score=0,
-        confidence=0.8,
-        caveats=["규칙 기반 분류이며 AI 기능이 문서에 누락된 경우 수동 재검토할 수 있습니다."],
-        guidance_message="",
-    )
+    result = _rule_screen_result(rule)
     db.add(AnalysisRun(
         notice_id=notice.id,
         run_type="deep_ai",
@@ -1088,6 +1699,10 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
         attachment_names=[item.original_filename for item in notice.attachments],
         text_excerpt=context,
     )
+    if deep and rule.scope_status == "non_target":
+        result = _rule_screen_result(rule)
+        record_non_ai_screen(db, notice, rule)
+        return result
     analyzer = get_analyzer(settings)
     simple_hash = _input_hash(context, "simple_ai", analyzer.simple_cache_fingerprint)
     deep_hash = _input_hash(context, "deep_ai", analyzer.deep_cache_fingerprint)
@@ -1190,7 +1805,10 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
             )
             deep_usage = _usage("rule-gate", "local")
             deep_status = "skipped"
-        elif not force and _stage3_used_today(db) >= settings.stage3_daily_limit:
+        elif (
+            not force and settings.stage3_daily_limit > 0
+            and _stage3_used_today(db) >= settings.stage3_daily_limit
+        ):
             result = _quota_result(simple, rule)
             deep_usage = _usage("daily-quota-guard", "local")
             deep_status = "skipped"
@@ -1199,6 +1817,8 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
             result = preserve_deep_ai_scope(result, simple)
             result = enforce_common_platform_gates(result, context)
             deep_status = "success"
+
+        result = merge_simple_and_gate_evidence(result, simple)
 
         db.add(AnalysisRun(
             notice_id=notice.id,

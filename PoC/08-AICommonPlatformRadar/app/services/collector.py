@@ -25,6 +25,7 @@ from .filename import build_stored_filename, extension_from_name, safe_original_
 from .filter_rules import evaluate_notice
 from .g2b_client import G2BClient, G2BNotice
 from .parser import parse_bytes
+from .opinion_tracker import refresh_tracked_opinions
 from .supabase_store import get_supabase_store
 
 
@@ -140,7 +141,15 @@ def _upsert_notice(db: Session, item: G2BNotice) -> tuple[Notice, bool]:
     notice.deadline_at = item.deadline_at
     notice.url = item.url
     notice.business_type = "service"
-    notice.raw_payload_json = json.dumps(item.raw, ensure_ascii=False, default=str)
+    raw = dict(item.raw)
+    if notice.raw_payload_json:
+        try:
+            previous = json.loads(notice.raw_payload_json)
+            if isinstance(previous, dict) and "_poc08_opinion_tracking" in previous:
+                raw["_poc08_opinion_tracking"] = previous["_poc08_opinion_tracking"]
+        except (json.JSONDecodeError, TypeError):
+            pass
+    notice.raw_payload_json = json.dumps(raw, ensure_ascii=False, default=str)
     notice.collect_status = "collected"
     db.flush()
     return notice, created
@@ -280,7 +289,8 @@ async def _run_collection(
         "received": 0, "created": 0, "updated": 0, "attachments": 0,
         "parsed": 0, "attachment_unsupported": 0, "attachment_failed": 0, "attachment_skipped": 0,
         "rule_candidates": 0, "analyzed": 0, "analysis_failed": 0, "analysis_deferred": 0,
-        "screened_non_ai": 0,
+        "screened_non_ai": 0, "opinions_checked": 0, "opinions_replied": 0,
+        "opinion_check_failed": 0,
     }
     try:
         client = G2BClient(settings)
@@ -367,6 +377,10 @@ async def _run_collection(
                     backlog.append(notice)
                 elif can_rule_screen_non_ai(notice, rule) and record_non_ai_screen(db, notice, rule):
                     stats["screened_non_ai"] += 1
+                else:
+                    # Rule score 0 is not evidence of non-AI. If the document
+                    # cannot be excluded safely, stage 2 must decide it.
+                    backlog.append(notice)
             backlog.sort(key=_notice_priority, reverse=True)
             for index, notice in enumerate(backlog):
                 try:
@@ -380,6 +394,10 @@ async def _run_collection(
                 except Exception:
                     logger.exception("공고 %s 분석 실패", notice.id)
                     stats["analysis_failed"] += 1
+        opinion_stats = await refresh_tracked_opinions(db)
+        stats["opinions_checked"] = opinion_stats["checked"]
+        stats["opinions_replied"] = opinion_stats["replied"]
+        stats["opinion_check_failed"] = opinion_stats["failed"]
         run.status = "success"
         run.stats_json = json.dumps(stats, ensure_ascii=False)
         run.finished_at = datetime.now(timezone.utc)

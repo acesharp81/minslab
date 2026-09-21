@@ -1,43 +1,60 @@
 {% extends "base.html" %}
-{% block title %}일일 리포트 · 공통기반 사업 레이더{% endblock %}
+{% block title %}성과 통계 · 조달체크 | 범정부 AI 공통기반 edition{% endblock %}
 {% block content %}
-{% set report = artifact.data %}
-<section class="page-head report-head compact-report-head"><div><span class="eyebrow">DAILY DECISION REPORT</span><h1>{{ artifact.report_date }} 수행 결과</h1><p>{{ report.disclaimer }}</p></div><div class="actions"><form class="report-date-form" method="get"><input type="date" name="report_date" value="{{ artifact.report_date }}"><button class="button">조회</button></form><button class="button" type="button" data-report-generate="{{ artifact.report_date }}">재생성</button><button class="button" type="button" onclick="window.print()">인쇄·PDF</button><a class="button" href="{{ url_for('download_report', report_date=artifact.report_date, format_name='md').path }}">MD</a><a class="button primary" href="{{ url_for('download_report', report_date=artifact.report_date, format_name='html').path }}">HTML</a></div></section>
-<section class="report-state state-{{ artifact.status }}"><div><span class="status-dot"></span><strong>{{ report.reconciliation.label }}</strong><em>{{ '최종본' if artifact.finalized else '미리보기' }}</em></div><small>현재 분류 {{ report.reconciliation.classified }}/{{ report.reconciliation.total }}건 · 미해결 {{ report.reconciliation.unresolved }}건 · 수집 배치 #{{ report.batch.id or '-' }} {{ report.batch.label }}</small></section>
+<section class="stats-head performance-head">
+  <div><span class="eyebrow">STATUS & OUTCOME PERFORMANCE</span><h1>사업 상태와 전환 실적</h1><p>수집된 사업의 최종 상태와 담당자 확인·권고로 개선된 두 가지 실적을 같은 기준으로 보여줍니다.</p></div>
+  <div class="stats-updated"><span>{{ stats.period.label }}</span><strong>{{ stats.period.display }}</strong><small>{{ stats.generated_at[:16]|replace('T', ' ') }} 기준</small></div>
+</section>
 
-<nav class="workflow-strip report-flow" aria-label="일일 처리 결과">
-  {% for number, label, value, detail in [
-    (1,'신규 수집',report.workflow.collected,'당일 추가'),
-    (2,'유형 분류',report.workflow.classified,'비AI ' ~ report.workflow.non_ai ~ '건'),
-    (3,'2차 LLM',report.workflow.llm_reviewed,'심층 필요 ' ~ report.workflow.llm_needed ~ '건'),
-    (4,'3차 심층',report.workflow.deep_completed,'기본조건 검증'),
-    (5,'조치 결과',report.workflow.action_needed,'오늘 조치 ' ~ report.workflow.acted ~ '건')
-  ] %}
-  <div class="workflow-step"><span class="step-number">{{ number }}</span><span><small>{{ label }}</small><strong>{{ value }}건</strong><em>{{ detail }}</em></span></div>
-  {% endfor %}
+<nav class="period-tabs" aria-label="통계 기간 선택">
+  {% for option in stats.period.options %}<a class="{{ 'current' if option.key == stats.period.key else '' }}" href="{{ url_for('report_page').path }}?period={{ option.key }}">{{ option.label }}</a>{% endfor %}
 </nav>
 
-<section class="report-outcome-bar"><div><span>조치 시작</span><strong>{{ report.action_outcomes.started_today }}건</strong></div><div><span>의견·연락 완료</span><strong>{{ report.action_outcomes.contacted_today }}건</strong></div><div><span>반영 확인</span><strong>{{ report.action_outcomes.reflected_today }}건</strong></div><div><span>미종결 조치</span><strong>{{ report.action_outcomes.unresolved }}건</strong></div></section>
+<article class="panel status-overview-panel">
+  <div class="panel-head compact-head"><div><span class="eyebrow">FINAL STATUS STRUCTURE</span><h2>전체 현황 · 포함관계</h2><p>조치완료 결과를 반영한 현재 최종 상태이며, 모든 하위 건수의 합이 수집 건수와 일치합니다.</p></div><div class="coverage-chip"><b>{{ stats.status.coverage_rate|number }}%</b><span>최종 분류율</span></div></div>
+  <div class="status-hierarchy">
+    <section class="status-root"><span>수집 사업</span><strong>{{ stats.status.collected|number }}</strong><small>API 키워드로 수집</small></section>
+    <i>›</i>
+    <section class="status-non-ai"><span>비AI 사업</span><strong>{{ stats.status.non_ai|number }}</strong><small>AI 분석 대상 제외</small></section>
+    <section class="status-ai">
+      <header><div><span>AI 사업</span><small>적합성 검증 대상</small></div><strong>{{ stats.status.ai|number }}</strong></header>
+      <div class="status-ai-branches">
+        <section class="status-eligible"><header><span>공통기반 적합</span><strong>{{ stats.status.eligible|number }}</strong></header><div><a href="{{ url_for('notices_page').path }}?classification_code=1"><span>이용</span><b>{{ stats.status.eligible_uses|number }}</b></a><a href="{{ url_for('notices_page').path }}?classification_code=2"><span>미이용</span><b>{{ stats.status.eligible_not_used|number }}</b></a></div></section>
+        <a class="status-review" href="{{ url_for('notices_page').path }}?classification_code=3"><span>검토 필요</span><strong>{{ stats.status.review|number }}</strong><small>부족 정보 확인 중</small></a>
+        <a class="status-ineligible" href="{{ url_for('notices_page').path }}?classification_code=5">
+          <div class="reason-state-total"><span>부적합</span><strong>{{ stats.status.ineligible|number }}</strong><small>공통기반 비대상</small></div>
+          <div class="ineligible-reason-chart" title="부적합 사유별 구성비">
+            <i class="reason-pie {{ 'empty' if not stats.status.ineligible_reasons.total else '' }}" style="--task-end:{{ stats.status.ineligible_reasons.task_end }}%;--network-end:{{ stats.status.ineligible_reasons.network_end }}%"><b>{{ stats.status.ineligible|number }}</b></i>
+            <ul>{% for item in stats.status.ineligible_reasons["items"] %}<li><i style="background:{{ item.color }}"></i><span>{{ item.label }}</span><b>{{ item.percent|number }}%</b></li>{% endfor %}</ul>
+          </div>
+        </a>
+      </div>
+    </section>
+    {% if stats.status.pending %}<section class="status-pending"><span>최종판정 대기</span><strong>{{ stats.status.pending|number }}</strong><small>심층 {{ stats.status.pending_deep|number }} · 미분석 {{ stats.status.pending_unanalyzed|number }} · 실패 {{ stats.status.pending_failed|number }}</small></section>{% endif %}
+  </div>
+</article>
 
-<section class="report-main-grid">
-  <article class="panel action-first">
-    <div class="panel-head compact-head"><div><span class="eyebrow">ACTION RESULT</span><h2>조치 필요 사업과 의견 문안</h2><p>최신 기준의 2·3·4유형 미종결 항목입니다.</p></div></div>
-    <div class="action-list">
-      {% for item in report.priority_items %}
-      <article class="report-action-item">
-        <header><span class="category-tag category-{{ item.classification_code }}"><b>{{ item.classification_code }}</b>{{ item.classification_label }}</span><div><a href="{{ url_for('notice_detail', notice_id=item.id).path }}"><strong>{{ item.title }}</strong></a><small>{{ item.agency_name }} · {{ item.stage_label }} · {{ item.posted_at or '미상' }} ~ {{ item.deadline_at or '미상' }}</small></div><span class="action-status">{{ item.action_status }}</span></header>
-        <div class="finding-list">{% for finding in item.findings %}<section><span>{{ finding.gate }}</span><div><strong>{{ finding.problem }}</strong><p>{{ finding.action }}</p></div></section>{% endfor %}</div>
-        {% if item.guidance_message %}<div class="report-guidance"><strong>제출·확인 문안</strong><p>{{ item.guidance_message }}</p><textarea hidden id="report-opinion-{{ item.id }}">{{ item.guidance_message }}</textarea><div><button class="button" type="button" data-copy-target="#report-opinion-{{ item.id }}">문안 복사</button>{% if item.opinion_url %}<a class="button primary" href="{{ item.opinion_url }}" target="_blank" rel="noopener">{{ '나라장터 의견등록 ↗' if item.stage == 'prenotice' else '원문 공고 ↗' }}</a>{% endif %}<a class="button" href="{{ url_for('notice_detail', notice_id=item.id).path }}">분석 과정</a></div></div>{% endif %}
-      </article>
-      {% else %}<div class="empty"><strong>오늘 남아 있는 2·3·4유형 조치 대상이 없습니다.</strong></div>{% endfor %}
-    </div>
+<section class="performance-title"><div><span class="eyebrow">OUR PERFORMANCE</span><h2>업무담당자 전환 실적</h2><p>단순 검출 수가 아니라 담당자 확인과 권고를 거쳐 상태가 실제로 개선된 사업만 집계합니다.</p></div><strong>{{ (stats.achievements.review_to_eligible + stats.achievements.unused_to_used)|number }}건</strong></section>
+
+<section class="achievement-grid">
+  <article class="panel achievement-card review-achievement">
+    <header><span class="achievement-index">01</span><div><small>정보 보완 성과</small><h3>검토 필요 → 적합</h3></div><strong>{{ stats.achievements.review_to_eligible|number }}건</strong></header>
+    <div class="before-after"><div><span>이전</span><b>검토 필요</b><small>망·업무·모델 정보 부족</small></div><i>→</i><div class="after"><span>개선 후</span><b>공통기반 적합</b><small>담당자 확인으로 조건 충족 확정</small></div></div>
+    {% if stats.period.key != 'all' %}<div class="period-compare"><div><span>{{ stats.period.previous_label }}</span><i><b style="width:{{ stats.achievements.review_previous_width }}%"></b></i><strong>{{ stats.achievements.previous_review_to_eligible|number }}</strong></div><div class="current"><span>{{ stats.period.label }}</span><i><b style="width:{{ stats.achievements.review_current_width }}%"></b></i><strong>{{ stats.achievements.review_to_eligible|number }}</strong></div></div>{% endif %}
+    <footer><span>부적합 확인 {{ stats.achievements.review_to_ineligible|number }}건</span>{% if stats.period.key == 'all' %}<b class="delta neutral">누적 실적</b>{% else %}<b class="delta {{ 'positive' if stats.achievements.review_delta > 0 else 'neutral' }}">이전 대비 {{ '+' if stats.achievements.review_delta > 0 else '' }}{{ stats.achievements.review_delta|number }}건</b>{% endif %}</footer>
   </article>
 
-  <aside>
-    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">CURRENT CLASSIFICATION</span><h2>현재 전체 6개 유형</h2></div></div><div class="classification-list compact-classifications">{% for code, label in [('1','적합·사용'),('2','적합·미반영'),('3','전환검토·미반영'),('4','사용명시·조건점검'),('5','조건불충족·미사용'),('6','비AI 사업')] %}<div><span class="category-tag category-{{ code }}"><b>{{ code }}</b>{{ label }}</span><strong>{{ artifact.summary.classification_distribution.get(code, 0) }}건</strong></div>{% endfor %}</div></article>
-    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">FOLLOW-UP QUEUE</span><h2>후속 처리 대기</h2></div><strong>{{ report.processing.total }}건</strong></div><dl class="compact-stats"><div><dt>기준 갱신</dt><dd>{{ report.processing.criteria_outdated }}</dd></div><div><dt>분석 재시도</dt><dd>{{ report.processing.analysis_failed }}</dd></div><div><dt>AI 미분석</dt><dd>{{ report.processing.ai_unanalyzed }}</dd></div><div><dt>심층 대기</dt><dd>{{ report.processing.deep_pending }}</dd></div><div><dt>문서 재처리</dt><dd>{{ report.processing.parse_issues }}</dd></div></dl></article>
-    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">MONTH TO DATE</span><h2>{{ report.date[:7] }} 누적</h2></div></div><dl class="compact-stats"><div><dt>수집</dt><dd>{{ report.monthly.collected }}</dd></div><div><dt>2차</dt><dd>{{ report.monthly.simple_verified }}</dd></div><div><dt>3차</dt><dd>{{ report.monthly.deep_verified }}</dd></div><div><dt>안내</dt><dd>{{ report.monthly.contacted }}</dd></div><div><dt>반영</dt><dd>{{ report.monthly.reflected }}</dd></div></dl></article>
-    <article class="panel"><div class="panel-head compact-head"><div><span class="eyebrow">ERRORS</span><h2>오류·재처리</h2></div></div>{% for item in report.failures %}<div class="failure-row"><a href="{{ url_for('notice_detail', notice_id=item.notice_id).path }}"><strong>{{ item.filename }}</strong></a><small>{{ item.reason }}</small></div>{% endfor %}{% for item in report.pipeline_failures %}<div class="failure-row"><strong>배치 #{{ item.id }} · {{ item.kind }}</strong><small>{{ item.error }}</small></div>{% endfor %}{% if not report.failures and not report.pipeline_failures %}<div class="empty">오류가 없습니다.</div>{% endif %}</article>
-  </aside>
+  <article class="panel achievement-card usage-achievement">
+    <header><span class="achievement-index">02</span><div><small>활용 권고 성과</small><h3>미이용 → 이용</h3></div><strong>{{ stats.achievements.unused_to_used|number }}건</strong></header>
+    <div class="before-after"><div><span>이전</span><b>적합·미이용</b><small>공통기반 활용 내용 없음</small></div><i>→</i><div class="after"><span>개선 후</span><b>공통기반 이용</b><small>권고 후 이용 확인</small></div></div>
+    {% if stats.period.key != 'all' %}<div class="period-compare"><div><span>{{ stats.period.previous_label }}</span><i><b style="width:{{ stats.achievements.usage_previous_width }}%"></b></i><strong>{{ stats.achievements.previous_unused_to_used|number }}</strong></div><div class="current"><span>{{ stats.period.label }}</span><i><b style="width:{{ stats.achievements.usage_current_width }}%"></b></i><strong>{{ stats.achievements.unused_to_used|number }}</strong></div></div>{% endif %}
+    <footer><span>완료 상태와 판정 이력 동시 확인</span>{% if stats.period.key == 'all' %}<b class="delta neutral">누적 실적</b>{% else %}<b class="delta {{ 'positive' if stats.achievements.usage_delta > 0 else 'neutral' }}">이전 대비 {{ '+' if stats.achievements.usage_delta > 0 else '' }}{{ stats.achievements.usage_delta|number }}건</b>{% endif %}</footer>
+  </article>
 </section>
+
+<article class="panel achievement-trend-panel">
+  <div class="panel-head compact-head"><div><span class="eyebrow">PERFORMANCE TREND</span><h2>기간 내 전환 실적 추이</h2><p>초록은 검토필요→적합, 주황은 미이용→이용 실적입니다.</p></div><div class="trend-legend"><span class="review-color">검토→적합</span><span class="usage-color">미이용→이용</span></div></div>
+  {% if stats.trend %}<div class="achievement-chart" style="grid-template-columns:repeat({{ stats.trend|length }},minmax(24px,1fr))">{% for row in stats.trend %}<div class="trend-column" title="{{ row.label }} · 검토→적합 {{ (row.review_to_eligible or 0) }}건 · 미이용→이용 {{ (row.unused_to_used or 0) }}건"><div class="trend-bars"><i class="review-bar" style="height:{{ row.review_height }}%"></i><i class="usage-bar" style="height:{{ row.usage_height }}%"></i></div><small>{{ row.label }}</small></div>{% endfor %}</div>{% else %}<div class="empty">선택한 기간에 집계할 데이터가 없습니다.</div>{% endif %}
+  <p class="methodology-note">실적은 조치완료 이력과 이전 판정 이력을 함께 확인합니다. 검토필요(3·4유형)에서 적합 완료로 바뀐 사업과, 적합·미이용(2유형)에서 이용 완료로 바뀐 사업만 각각 집계합니다.</p>
+</article>
 {% endblock %}

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import hmac
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -60,6 +62,8 @@ def _provider_api_key(provider: str, explicit_name: str) -> str:
         "nvidia": ("NVIDIA_API_KEY", "NGC_API_KEY"),
         "kimi": ("KIMI_API_KEY",),
         "cohere": ("COHERE_API_KEY",),
+        "mistral": ("MISTRAL_API_KEY",),
+        "upstage": ("UPSTAGE_API_KEY", "UPSTAGE_SECRET_KEY"),
         "openai_compatible": ("LLM_API_KEY",),
     }
     return _first_env(*aliases.get(provider, ()), default="")
@@ -110,6 +114,7 @@ class Settings:
     g2b_service_key: str
     g2b_base_url_prenotice: str
     g2b_operation_prenotice: str
+    g2b_operation_prenotice_opinion: str
     g2b_base_url_bid: str
     g2b_operation_bid: str
     g2b_operation_bid_attach: str
@@ -123,6 +128,11 @@ class Settings:
     stage2_timeout_seconds: int
     stage2_max_input_chars: int
     stage2_min_interval_seconds: float
+    stage2_fallback_provider: str
+    stage2_fallback_base_url: str
+    stage2_fallback_api_key: str
+    stage2_fallback_model: str
+    stage2_fallback_min_interval_seconds: float
     stage3_primary_provider: str
     stage3_primary_base_url: str
     stage3_primary_api_key: str
@@ -148,6 +158,7 @@ class Settings:
     admin_username: str
     admin_password: str
     admin_token: str
+    proxy_token: str
     auto_seed_sample: bool
 
     @property
@@ -179,9 +190,13 @@ class Settings:
             problems.append("G2B_MODE=live에는 G2B_SERVICE_KEY가 필요합니다.")
         if bool(self.supabase_url) != bool(self.supabase_service_role_key):
             problems.append("Supabase REST 사용에는 URL과 SERVICE_ROLE_KEY가 모두 필요합니다.")
-        supported = {"mock", "gemini", "openai", "nvidia", "kimi", "cohere", "openai_compatible"}
+        supported = {
+            "mock", "gemini", "openai", "nvidia", "kimi", "cohere",
+            "mistral", "upstage", "openai_compatible",
+        }
         endpoints = (
             ("STAGE2", self.stage2_provider, self.stage2_api_key),
+            ("STAGE2_FALLBACK", self.stage2_fallback_provider, self.stage2_fallback_api_key),
             ("STAGE3_PRIMARY", self.stage3_primary_provider, self.stage3_primary_api_key),
             ("STAGE3_FALLBACK", self.stage3_fallback_provider, self.stage3_fallback_api_key),
         )
@@ -190,12 +205,14 @@ class Settings:
                 problems.append(f"{label}_PROVIDER={provider}는 지원하지 않습니다.")
             elif provider != "mock" and not api_key:
                 problems.append(f"{label}_PROVIDER={provider}에는 API 키가 필요합니다.")
-        if self.stage3_daily_limit < 1:
-            problems.append("STAGE3_DAILY_LIMIT는 1 이상이어야 합니다.")
+        if self.stage3_daily_limit < 0:
+            problems.append("STAGE3_DAILY_LIMIT는 0 이상이어야 합니다. 0은 무제한입니다.")
         if self.stage3_max_concurrency < 1:
             problems.append("STAGE3_MAX_CONCURRENCY는 1 이상이어야 합니다.")
         if self.stage2_min_interval_seconds < 0:
             problems.append("STAGE2_MIN_INTERVAL_SECONDS는 0 이상이어야 합니다.")
+        if self.stage2_fallback_min_interval_seconds < 0:
+            problems.append("STAGE2_FALLBACK_MIN_INTERVAL_SECONDS는 0 이상이어야 합니다.")
         if self.hwp_parse_timeout_seconds < 1:
             problems.append("HWP_PARSE_TIMEOUT_SECONDS는 1 이상이어야 합니다.")
         if self.hwp_parse_max_output_mb < 1:
@@ -211,10 +228,16 @@ def get_settings() -> Settings:
     data = _data_dir()
     legacy_provider = os.getenv("LLM_PROVIDER", "mock").lower()
     stage2_provider = os.getenv("STAGE2_PROVIDER", legacy_provider).lower()
+    stage2_fallback_provider = os.getenv("STAGE2_FALLBACK_PROVIDER", "mock").lower()
     stage3_provider = os.getenv("STAGE3_PRIMARY_PROVIDER", legacy_provider).lower()
     fallback_provider = os.getenv("STAGE3_FALLBACK_PROVIDER", "mock").lower()
     supabase_url = _first_env("SUPABASE2_URL", "SUPABASE_URL").rstrip("/")
     supabase_key = _first_env("SUPABASE2_SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY")
+    proxy_secret = _first_env("POC08_PROXY_TOKEN", default=supabase_key)
+    proxy_token = (
+        hmac.new(proxy_secret.encode("utf-8"), b"poc08-parent-proxy-v1", hashlib.sha256).hexdigest()
+        if proxy_secret else ""
+    )
     return Settings(
         project_root=PROJECT_ROOT,
         data_dir=data,
@@ -233,6 +256,9 @@ def get_settings() -> Settings:
         g2b_service_key=os.getenv("G2B_SERVICE_KEY", ""),
         g2b_base_url_prenotice=os.getenv("G2B_BASE_URL_PRENOTICE", "https://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService").rstrip("/"),
         g2b_operation_prenotice=os.getenv("G2B_OPERATION_PRENOTICE", "getPublicPrcureThngInfoServc"),
+        g2b_operation_prenotice_opinion=os.getenv(
+            "G2B_OPERATION_PRENOTICE_OPINION", "getPublicPrcureThngOpinionInfoServc",
+        ),
         g2b_base_url_bid=os.getenv("G2B_BASE_URL_BID", "https://apis.data.go.kr/1230000/ad/BidPublicInfoService").rstrip("/"),
         g2b_operation_bid=os.getenv("G2B_OPERATION_BID", "getBidPblancListInfoServc"),
         g2b_operation_bid_attach=os.getenv("G2B_OPERATION_BID_ATTACH", "getBidPblancListInfoEorderAtchFileInfo"),
@@ -242,13 +268,24 @@ def get_settings() -> Settings:
         stage2_provider=stage2_provider,
         stage2_base_url=os.getenv(
             "STAGE2_BASE_URL",
-            "https://generativelanguage.googleapis.com/v1beta/openai" if stage2_provider == "gemini" else "https://api.moonshot.ai/v1" if stage2_provider == "kimi" else "https://api.cohere.ai/compatibility/v1" if stage2_provider == "cohere" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
+            "https://generativelanguage.googleapis.com/v1beta/openai" if stage2_provider == "gemini" else "https://api.moonshot.ai/v1" if stage2_provider == "kimi" else "https://api.cohere.ai/compatibility/v1" if stage2_provider == "cohere" else "https://api.mistral.ai/v1" if stage2_provider == "mistral" else "https://api.upstage.ai/v1" if stage2_provider == "upstage" else os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"),
         ).rstrip("/"),
         stage2_api_key=_provider_api_key(stage2_provider, "STAGE2_API_KEY"),
-        stage2_model=os.getenv("STAGE2_MODEL", "gemini-2.5-flash-lite" if stage2_provider == "gemini" else "kimi-k2.6" if stage2_provider == "kimi" else "command-a-plus-05-2026" if stage2_provider == "cohere" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
+        stage2_model=os.getenv("STAGE2_MODEL", "gemini-2.5-flash-lite" if stage2_provider == "gemini" else "kimi-k2.6" if stage2_provider == "kimi" else "command-a-plus-05-2026" if stage2_provider == "cohere" else "mistral-small-latest" if stage2_provider == "mistral" else "solar-pro4" if stage2_provider == "upstage" else os.getenv("LLM_MODEL", "mock-deterministic-v1")),
         stage2_timeout_seconds=_int("STAGE2_TIMEOUT_SECONDS", _int("LLM_TIMEOUT_SECONDS", 90)),
         stage2_max_input_chars=_int("STAGE2_MAX_INPUT_CHARS", 8_000),
         stage2_min_interval_seconds=_float("STAGE2_MIN_INTERVAL_SECONDS", 7.0 if stage2_provider == "gemini" else 0.0),
+        stage2_fallback_provider=stage2_fallback_provider,
+        stage2_fallback_base_url=os.getenv(
+            "STAGE2_FALLBACK_BASE_URL",
+            "https://generativelanguage.googleapis.com/v1beta/openai" if stage2_fallback_provider == "gemini" else "https://api.moonshot.ai/v1" if stage2_fallback_provider == "kimi" else "https://api.cohere.ai/compatibility/v1" if stage2_fallback_provider == "cohere" else "https://api.mistral.ai/v1" if stage2_fallback_provider == "mistral" else "https://api.upstage.ai/v1" if stage2_fallback_provider == "upstage" else "https://api.openai.com/v1",
+        ).rstrip("/"),
+        stage2_fallback_api_key=_provider_api_key(stage2_fallback_provider, "STAGE2_FALLBACK_API_KEY"),
+        stage2_fallback_model=os.getenv("STAGE2_FALLBACK_MODEL", "gemini-2.5-flash-lite" if stage2_fallback_provider == "gemini" else "kimi-k2.6" if stage2_fallback_provider == "kimi" else "command-a-plus-05-2026" if stage2_fallback_provider == "cohere" else "mistral-small-latest" if stage2_fallback_provider == "mistral" else "solar-pro4" if stage2_fallback_provider == "upstage" else "mock-deterministic-v1"),
+        stage2_fallback_min_interval_seconds=_float(
+            "STAGE2_FALLBACK_MIN_INTERVAL_SECONDS",
+            7.0 if stage2_fallback_provider == "gemini" else 0.0,
+        ),
         stage3_primary_provider=stage3_provider,
         stage3_primary_base_url=os.getenv(
             "STAGE3_PRIMARY_BASE_URL",
@@ -266,7 +303,7 @@ def get_settings() -> Settings:
         stage3_fallback_model=os.getenv("STAGE3_FALLBACK_MODEL", "nvidia/nemotron-3-super-120b-a12b" if fallback_provider == "nvidia" else "mock-deterministic-v1"),
         stage3_timeout_seconds=_int("STAGE3_TIMEOUT_SECONDS", _int("LLM_TIMEOUT_SECONDS", 180)),
         stage3_max_input_chars=_int("STAGE3_MAX_INPUT_CHARS", 100_000),
-        stage3_daily_limit=_int("STAGE3_DAILY_LIMIT", 10),
+        stage3_daily_limit=_int("STAGE3_DAILY_LIMIT", 0),
         stage3_max_concurrency=_int("STAGE3_MAX_CONCURRENCY", 1),
         collect_lookback_days=_int("COLLECT_LOOKBACK_DAYS", 1),
         daily_report_hour=_int("DAILY_REPORT_HOUR", 7),
@@ -280,5 +317,6 @@ def get_settings() -> Settings:
         admin_username=os.getenv("ADMIN_USERNAME", ""),
         admin_password=os.getenv("ADMIN_PASSWORD", ""),
         admin_token=os.getenv("ADMIN_TOKEN", ""),
+        proxy_token=proxy_token,
         auto_seed_sample=_bool("AUTO_SEED_SAMPLE", not bool(supabase_url and supabase_key)),
     )

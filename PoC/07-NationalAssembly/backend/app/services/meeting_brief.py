@@ -1398,43 +1398,69 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 analyses[offset : offset + REDUCTION_BATCH_SIZE]
                 for offset in range(0, len(analyses), REDUCTION_BATCH_SIZE)
             ]
-            for batch_index, batch in enumerate(batches, start=1):
+
+            def reduce_batch(
+                batch: list[dict[str, Any]],
+                batch_index: int,
+                cache_index: int,
+            ) -> list[dict[str, Any]]:
                 batch_hash = hashlib.sha256(
                     json.dumps(batch, ensure_ascii=False, sort_keys=True).encode(
                         "utf-8"
                     )
                 ).hexdigest()
                 cached_reduction = (
-                    load_chunk(1000 + batch_index, batch_hash) if load_chunk else None
+                    load_chunk(cache_index, batch_hash) if load_chunk else None
                 )
                 if cached_reduction is not None:
-                    reduction = validate_chunk_analysis(
-                        cached_reduction,
-                        valid_ids,
-                        speaker_map,
-                        max_topics=MAX_REDUCTION_TOPICS,
-                    )
-                else:
+                    return [
+                        validate_chunk_analysis(
+                            cached_reduction,
+                            valid_ids,
+                            speaker_map,
+                            max_topics=MAX_REDUCTION_TOPICS,
+                        )
+                    ]
+                try:
                     data, metadata = request(
                         build_reduction_prompt(batch, batch_index),
                         reduction_response_schema(),
                         "meeting_reduction",
                     )
-                    reduction = validate_chunk_analysis(
-                        data,
-                        valid_ids,
-                        speaker_map,
-                        max_topics=MAX_REDUCTION_TOPICS,
-                    )
-                    usage.append(metadata)
-                    if save_chunk:
-                        save_chunk(
-                            1000 + batch_index,
-                            batch_hash,
-                            reduction,
-                            metadata,
-                        )
-                reduced_analyses.append(reduction)
+                except MalformedMeetingBriefResponse as exc:
+                    finish_reason = str(
+                        exc.usage_metadata.get("finish_reason") or ""
+                    ).lower()
+                    if finish_reason != "length" or len(batch) <= 1:
+                        raise
+                    midpoint = len(batch) // 2
+                    return [
+                        *reduce_batch(
+                            batch[:midpoint],
+                            batch_index * 10 + 1,
+                            cache_index * 10 + 1,
+                        ),
+                        *reduce_batch(
+                            batch[midpoint:],
+                            batch_index * 10 + 2,
+                            cache_index * 10 + 2,
+                        ),
+                    ]
+                reduction = validate_chunk_analysis(
+                    data,
+                    valid_ids,
+                    speaker_map,
+                    max_topics=MAX_REDUCTION_TOPICS,
+                )
+                usage.append(metadata)
+                if save_chunk:
+                    save_chunk(cache_index, batch_hash, reduction, metadata)
+                return [reduction]
+
+            for batch_index, batch in enumerate(batches, start=1):
+                reduced_analyses.extend(
+                    reduce_batch(batch, batch_index, 1000 + batch_index)
+                )
                 progress_callback(
                     {
                         "status": "PROCESSING",

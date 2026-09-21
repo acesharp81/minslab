@@ -1,13 +1,15 @@
 import json
 from datetime import datetime, timedelta, timezone
 
+from app.db import Base, get_db
+from app.main import app
+from app.models import AnalysisRun, Attachment, Notice
+from app.routers.notices import _query, analysis_source_evidence, analysis_view
+from app.services.collector import _needs_backlog_analysis
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
-from app.db import Base
-from app.models import AnalysisRun, Attachment, Notice
-from app.routers.notices import _query, analysis_view
-from app.services.collector import _needs_backlog_analysis
+from sqlalchemy.pool import StaticPool
 
 
 def _params(**overrides):
@@ -19,6 +21,41 @@ def _params(**overrides):
     }
     values.update(overrides)
     return values
+
+
+def test_source_evidence_combines_ai_basis_gate_quotes_and_missing_gate_questions():
+    notice = Notice(
+        stage="prenotice", notice_no="EVIDENCE-1", agency_name="행정안전부",
+        title="생성형 AI 민원상담 구축",
+    )
+    notice.analysis_runs.append(AnalysisRun(
+        run_type="simple_ai", model_name="test", input_hash="s" * 64, status="success",
+        result_json=json.dumps({
+            "ai_relevance": "high", "needs_deep_review": True, "reason": "AI 사업",
+            "evidence": [{
+                "quote": "생성형 AI 민원상담 구축", "section": "사업명",
+                "interpretation": "AI 서비스를 구축하는 사업",
+            }], "confidence": 0.9,
+        }),
+    ))
+    result = {
+        "classification_code": "3", "ai_relevance": "high",
+        "network_scope": "unclear", "task_scope": "government", "model_fit": "unclear",
+        "platform_usage": "not_mentioned",
+        "task_scope_evidence": [{
+            "quote": "행정안전부 소관 국가사무", "section": "과업지시서",
+            "interpretation": "국가사무 근거",
+        }],
+        "check_questions": [],
+    }
+
+    view = analysis_source_evidence(notice, result)
+
+    assert view["ai_evidence"][0]["quote"] == "생성형 AI 민원상담 구축"
+    assert view["gate_evidence"][0]["gate"] == "국가사무"
+    assert any("행정망" in question for question in view["questions"])
+    assert any("LLM·RAG" in question for question in view["questions"])
+    assert any("공통기반" in question for question in view["questions"])
 
 
 def test_parse_issue_filter_combines_with_deadline_filter():
@@ -64,7 +101,7 @@ def test_legacy_deep_result_is_marked_for_criteria_refresh():
     notice.analysis_runs.append(AnalysisRun(
         run_type="deep_ai", model_name="new-model", input_hash="n" * 64,
         status="success",
-        result_json='{"criteria_version":"common-platform-v3-six-categories","classification_code":"5","final_grade":"E"}',
+        result_json='{"criteria_version":"common-platform-v7-service-construction-scope","classification_code":"5","final_grade":"E"}',
     ))
     assert analysis_view(notice)["key"] == "deep_completed"
     assert _needs_backlog_analysis(notice) is False
@@ -88,7 +125,7 @@ def test_legacy_rule_gate_result_is_requeued_but_current_rule_gate_is_screened_o
         run_type="deep_ai", model_name="rule-gate", input_hash="c" * 64,
         status="skipped",
         result_json=(
-            '{"criteria_version":"common-platform-v3-six-categories",'
+            '{"criteria_version":"common-platform-v7-service-construction-scope",'
             '"classification_code":"6","final_grade":"F"}'
         ),
     ))
@@ -106,7 +143,7 @@ def test_classification_code_filter():
             notice.analysis_runs.append(AnalysisRun(
                 run_type="deep_ai", model_name="model", input_hash=code * 64, status="success",
                 result_json=json.dumps({
-                    "criteria_version": "common-platform-v3-six-categories",
+                    "criteria_version": "common-platform-v7-service-construction-scope",
                     "classification_code": code,
                 }),
             ))
@@ -114,6 +151,51 @@ def test_classification_code_filter():
         db.commit()
         rows = db.scalars(_query(**_params(classification_code="2"))).all()
         assert [row.notice_no for row in rows] == ["C-2"]
+
+        action_rows = db.scalars(_query(**_params(action_required=True))).all()
+        assert [row.notice_no for row in action_rows] == ["C-2"]
+
+
+def test_notice_page_applies_filters_before_ten_item_pagination():
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        now = datetime.now(timezone.utc)
+        db.add_all([
+            Notice(
+                stage="bid_notice", notice_no=f"PAGE-{index:02d}",
+                agency_name="대상기관" if index < 12 else "제외기관",
+                title=f"페이지 사업 {index:02d}",
+                posted_at=now + timedelta(minutes=index),
+            )
+            for index in range(14)
+        ])
+        db.commit()
+
+    def override_db():
+        with Session(engine) as db:
+            yield db
+
+    app.dependency_overrides[get_db] = override_db
+    try:
+        with TestClient(app) as client:
+            first = client.get("/notices?agency=대상기관&sort=newest")
+            second = client.get("/notices?agency=대상기관&sort=newest&page=2")
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    assert first.status_code == 200
+    assert "검색 결과 <strong>12</strong>건" in first.text
+    assert first.text.count("공고번호 PAGE-") == 10
+    assert "페이지 사업 11" in first.text
+    assert "페이지 사업 01" not in first.text
+    assert second.text.count("공고번호 PAGE-") == 2
+    assert "페이지 사업 01" in second.text
+    assert "agency=%EB%8C%80%EC%83%81%EA%B8%B0%EA%B4%80" in second.text
 
 
 def test_analysis_status_filters_distinguish_legacy_and_current_rule_gates():
@@ -129,7 +211,7 @@ def test_analysis_status_filters_distinguish_legacy_and_current_rule_gates():
         current.analysis_runs.append(AnalysisRun(
             run_type="deep_ai", model_name="rule-gate", input_hash="c" * 64, status="skipped",
             result_json=json.dumps({
-                "criteria_version": "common-platform-v3-six-categories",
+                "criteria_version": "common-platform-v7-service-construction-scope",
                 "classification_code": "6",
             }),
         ))

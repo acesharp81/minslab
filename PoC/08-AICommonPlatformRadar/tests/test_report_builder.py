@@ -57,7 +57,7 @@ def _seed(db: Session, *, failed: int = 0):
                     status="success", result_json='{"needs_deep_review":true}', created_at=now),
         AnalysisRun(run_type="deep_ai", model_name="test-large", input_hash="d" * 64,
                     status="success",
-                    result_json='{"criteria_version":"common-platform-v3-six-categories","classification_code":"2","final_grade":"B","guidance_message":"본공고에 공통기반 활용 범위를 반영해 주시기 바랍니다."}',
+                    result_json='{"criteria_version":"common-platform-v7-service-construction-scope","classification_code":"2","final_grade":"B","guidance_message":"본공고에 공통기반 활용 범위를 반영해 주시기 바랍니다."}',
                     created_at=now),
     ])
     db.add_all([run, notice])
@@ -74,7 +74,7 @@ def test_rich_report_writes_html_json_and_markdown(db, report_settings):
     assert artifact.finalized is True
     assert "우선 조치 대상" in html and "AI 상담 사업" in html
     assert "적합·미반영" in html
-    assert "본공고에 공통기반 활용 범위를 반영" in html
+    assert "시스템 구성, 적용 기능 및 제안요청서 반영 방향 검토" in html
     assert "<pre>" not in html
     assert payload["batch"]["state"] == "ready"
     assert payload["summary"]["simple_review"] == 1

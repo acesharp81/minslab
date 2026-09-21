@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from threading import Lock
+from time import monotonic
 from typing import Any
 
 from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
@@ -7,10 +9,28 @@ from ..services.specific_policy_issues import build_specific_policy_issues
 
 
 class PolicyIssueRepository:
+    _cache_lock = Lock()
+    _cache_expires_at = 0.0
+    _cache_value: dict[str, Any] | None = None
+
     def __init__(self, connection: Any):
         self.connection = connection
 
     def specific_issue_flow(self) -> dict[str, Any]:
+        repository = type(self)
+        now = monotonic()
+        if repository._cache_value is not None and now < repository._cache_expires_at:
+            return repository._cache_value
+        with repository._cache_lock:
+            now = monotonic()
+            if repository._cache_value is not None and now < repository._cache_expires_at:
+                return repository._cache_value
+            result = self._build_specific_issue_flow()
+            repository._cache_value = result
+            repository._cache_expires_at = monotonic() + 45.0
+            return result
+
+    def _build_specific_issue_flow(self) -> dict[str, Any]:
         rows = self.connection.execute(
             """
             WITH latest_briefs AS (

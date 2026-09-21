@@ -14,7 +14,7 @@ from psycopg.types.json import Jsonb
 from ..services.official_brief_integration import semantic_tokens
 
 
-PROMPT_VERSION = "topic-report/1.5"
+PROMPT_VERSION = "topic-report/1.6"
 
 
 def _normalized(value: object) -> str:
@@ -26,6 +26,43 @@ def _has_topic_relevance(
 ) -> bool:
     """Ministry is a filter; only the requested topic can establish relevance."""
     return bool(exact_topic or (query_tokens & haystack_tokens))
+
+
+def _topic_relevant_content(
+    topic: str, title: str, summary: str = "", task_text: str = "",
+) -> bool:
+    """Reject incidental mentions while preserving comma-separated aliases."""
+    if not _normalized(topic):
+        return True
+    alternatives = [
+        semantic_tokens(value)
+        for value in re.split(r"[,，/|]+", topic)
+        if semantic_tokens(value)
+    ]
+    if not alternatives:
+        return False
+    title_tokens = semantic_tokens(title)
+    first_sentence = re.split(r"(?<=[.!?])\s+", summary.strip(), maxsplit=1)[0]
+    first_tokens = semantic_tokens(first_sentence)
+    content = " ".join((summary, task_text))
+    content_tokens = semantic_tokens(content)
+    normalized_content = _normalized(content)
+    alias_query = len(alternatives) > 1
+    for tokens in alternatives:
+        if tokens <= title_tokens or tokens <= first_tokens:
+            return True
+        if len(tokens) > 1 and tokens <= content_tokens:
+            return True
+        if len(tokens) == 1:
+            token = next(iter(tokens))
+            occurrences = len(re.findall(
+                rf"(?<![0-9A-Za-z가-힣]){re.escape(token)}(?![0-9A-Za-z가-힣])",
+                normalized_content,
+                flags=re.IGNORECASE,
+            ))
+            if occurrences >= (2 if alias_query else 1):
+                return True
+    return False
 
 
 def _evidence_hash(items: list[dict[str, Any]]) -> str:
@@ -92,9 +129,14 @@ def _official_executive_evidence(
             if not isinstance(agenda, dict):
                 continue
             title = " ".join(str(agenda.get("topic") or "").split())
-            summary_parts = [
-                agenda.get("discussion_summary") or agenda.get("summary") or "",
-            ]
+            core_summary = " ".join(str(
+                agenda.get("discussion_summary") or agenda.get("summary") or ""
+            ).split())
+            if normalized_topic and not _topic_relevant_content(
+                topic, title, core_summary,
+            ):
+                continue
+            summary_parts = [core_summary]
             guidance = [
                 row for row in agenda.get("presidential_guidance") or []
                 if isinstance(row, dict)
@@ -275,8 +317,8 @@ class TopicReportRepository:
                 exact_ministry = bool(
                     normalized_ministry and normalized_ministry in haystack_normalized
                 )
-                if normalized_topic and not _has_topic_relevance(
-                    query_tokens, haystack_tokens, exact_topic
+                if normalized_topic and not _topic_relevant_content(
+                    topic, title, summary, task_text,
                 ):
                     continue
                 score = round(
@@ -337,7 +379,7 @@ class TopicReportRepository:
             "count": len(evidence),
             "meeting_count": meeting_count,
             "evidence_set_hash": _evidence_hash(evidence),
-            "search_method": "STRUCTURED_OFFICIAL_EXECUTIVE_SEMANTIC_TOKEN_RANKING_V4",
+            "search_method": "STRUCTURED_TITLE_FIRST_TOPIC_RELEVANCE_V5",
             "llm_calls": 0,
         }
 

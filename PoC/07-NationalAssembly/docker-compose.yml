@@ -10,7 +10,7 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OPENROUTER_DAILY_LIMIT: ${OPENROUTER_DAILY_LIMIT:-500}
-      OPENROUTER_GATEWAY_STATUS_URL: http://openrouter-gateway:8071/internal/status
+      OPENROUTER_GATEWAY_STATUS_URL: http://poc07-openrouter-gateway:8071/internal/status
       MISTRAL_MONTHLY_CREDIT_USD: ${MISTRAL_MONTHLY_CREDIT_USD:-10.0}
       MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
       MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
@@ -195,7 +195,7 @@ services:
       WATCH_LLM_PROVIDER: ${WATCH_LLM_PROVIDER:-openrouter}
       WATCH_LLM_MODEL: ${WATCH_LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OPENROUTER_API_KEY: gateway-local
-      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
       WATCH_LLM_MONTHLY_BUDGET_USD: ${WATCH_LLM_MONTHLY_BUDGET_USD:-1.0}
       WATCH_LLM_DEBOUNCE_SECONDS: ${WATCH_LLM_DEBOUNCE_SECONDS:-30}
@@ -223,7 +223,7 @@ services:
       TOPIC_REPORT_DAILY_LIMIT: ${TOPIC_REPORT_DAILY_LIMIT:-100}
       TOPIC_REPORT_USER_DAILY_LIMIT: ${TOPIC_REPORT_USER_DAILY_LIMIT:-10}
       OPENROUTER_API_KEY: gateway-local
-      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.topic_report_worker", "--interval", "2"]
     depends_on:
@@ -266,7 +266,7 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OPENROUTER_API_KEY: gateway-local
-      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.summary_worker", "--interval", "2"]
     depends_on:
@@ -288,7 +288,7 @@ services:
       LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       MEETING_BRIEF_MODEL: ${MEETING_BRIEF_MODEL:-dots-studio/dots-3-note-preview:free}
       OPENROUTER_API_KEY: gateway-local
-      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.meeting_brief_worker", "--interval", "60"]
     depends_on:
@@ -326,7 +326,7 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
       LLM_MODEL: ${LLM_MODEL:-nvidia/nemotron-3-super-120b-a12b:free}
       OPENROUTER_API_KEY: gateway-local
-      OPENROUTER_BASE_URL: http://openrouter-gateway:8071/api/v1
+      OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.official_integration_worker", "--interval", "15", "--limit", "5"]
     depends_on:

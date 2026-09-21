@@ -2505,6 +2505,22 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
   }
 }
 
+function meetingReportLoadingVisual(label) {
+  const visual = magazineElement("div", "meeting-report-loader", "");
+  visual.setAttribute("role", "img");
+  visual.setAttribute("aria-label", label);
+  const sheet = magazineElement("div", "meeting-report-loader-sheet", "");
+  sheet.append(
+    magazineElement("b", "", ""),
+    magazineElement("i", "", ""),
+    magazineElement("i", "", ""),
+    magazineElement("i", "", ""),
+    magazineElement("i", "", ""),
+  );
+  visual.append(sheet, magazineElement("span", "meeting-report-loader-scan", ""));
+  return visual;
+}
+
 function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}, record = item.meeting_brief) {
   const stage = document.querySelector("#liveExpandedStage");
   if (!stage) return;
@@ -2573,15 +2589,13 @@ function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}
   const overlay = magazineElement("div", "meeting-processing-overlay", "");
   overlay.setAttribute("role", "status");
   overlay.setAttribute("aria-live", "polite");
-  const spinner = magazineElement("i", "meeting-processing-spinner", "");
-  spinner.setAttribute("aria-hidden", "true");
   const progressTrack = magazineElement("div", "meeting-processing-progress", "");
   const progressFill = magazineElement("i", "", "");
   progressFill.style.width = `${percent}%`;
   progressTrack.append(progressFill);
   const loadingCard = magazineElement("div", "meeting-processing-card", "");
   loadingCard.append(
-    spinner,
+    meetingReportLoadingVisual("회의 발언과 주제 관계를 분석하고 있습니다"),
     magazineElement("span", "", "방송 종료 · LIVE 저장본 분석"),
     magazineElement("strong", "", "결과 정리 중"),
     magazineElement("p", "meeting-processing-count", total ? `전체 ${total.toLocaleString("ko-KR")}개 발언 중 ${completed.toLocaleString("ko-KR")}개 정리 완료` : "저장된 발언 수를 확인하고 있습니다."),
@@ -2620,17 +2634,17 @@ function renderMeetingBriefLoading(item) {
   const root = magazineElement("section", "meeting-brief-view", "");
   root.setAttribute("aria-busy", "true");
   const loading = magazineElement("div", "meeting-brief-loading", "");
-  const spinner = magazineElement("i", "meeting-processing-spinner", "");
-  spinner.setAttribute("aria-hidden", "true");
   const copy = magazineElement("div", "", "");
   copy.append(
+    magazineElement("small", "meeting-brief-loading-kicker", "REPORT DATA PIPELINE · ACTIVE"),
     magazineElement("strong", "", "회의 보고서를 불러오는 중입니다"),
     magazineElement(
       "p", "",
       `${item.title || item.committee_name || "선택한 회의"}의 주제와 근거 발언을 준비하고 있습니다.`,
     ),
+    magazineElement("span", "meeting-brief-loading-status", "저장본 확인 · 근거 연결 · 화면 구성"),
   );
-  loading.append(spinner, copy);
+  loading.append(meetingReportLoadingVisual("저장된 회의 보고서를 구성하고 있습니다"), copy);
   root.append(loading);
   stage.replaceChildren(root);
 }

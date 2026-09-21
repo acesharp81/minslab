@@ -66,6 +66,21 @@ class MeetingBriefRepository:
         items = [self._row(row) for row in rows]
         return {item["broadcast_id"]: item for item in items if item}
 
+    def latest_all(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT DISTINCT ON (broadcast_id)
+                   id, broadcast_id, transcript_hash, source_last_event_cursor,
+                   provider, model, prompt_version, authority_status, review_status,
+                   brief, usage_metadata, generated_at
+            FROM meeting_briefs
+            ORDER BY broadcast_id,
+                     (provider IN ('mistral', 'openrouter')) DESC,
+                     generated_at DESC, id DESC
+            """
+        ).fetchall()
+        return [item for row in rows if (item := self._row(row))]
+
     def latest_summary_map(
         self, broadcast_ids: Iterable[Any],
     ) -> dict[Any, dict[str, Any]]:

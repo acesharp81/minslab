@@ -9,7 +9,7 @@ from typing import Any
 from .official_brief_integration import semantic_tokens
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.3"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.5"
 GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_CONSERVATIVE_DYNAMIC_TARGETS_AND_AUDIT"
 
 
@@ -22,6 +22,8 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "개헌", "헌법개정", "헌정질서", "권력분립", "삼권분립",
             "518민주화", "부마항쟁", "민주화운동",
+            "정당해산", "해산제소", "민주적기본질서", "내란청산",
+            "국민의힘해산", "헌법소원", "표현의자유",
         ),
     ),
     (
@@ -30,7 +32,23 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "경찰개혁", "경찰청", "경찰수사", "수사인력", "수사관행",
             "중대범죄수사청", "중수청",
-            "특별사법경찰", "특사경",
+            "특별사법경찰", "특사경", "제주청장", "경찰청장사망사건",
+        ),
+    ),
+    (
+        "criminal-case-procedure",
+        "수사·기소·형사절차",
+        (
+            "공소장", "기소유예", "불기소", "불기소장", "기소계획서",
+            "수사기록", "수사보고서", "수사처리계획보고서", "수사과정",
+            "조작수사", "정치수사", "쪼개기기소", "피의사실공표",
+            "녹취록", "녹음자료", "위법수집증거", "증거조작", "자료유출",
+            "구속영장", "통신영장", "영장기각", "장기미제", "미제사건",
+            "독립몰수", "범죄수익환수", "피해자회복", "형사재판",
+            "수사권", "기소", "불기소처분", "수사처리계획",
+            "공소취소", "공소취소특검법", "정치적수사", "허위자료",
+            "허위서류", "협동수사", "공소기각", "경제법형사처벌",
+            "경제법의형사처벌",
         ),
     ),
     (
@@ -45,6 +63,9 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "공수처", "고위공직자범죄수사처", "공소장", "기소유예",
             "형사소송법", "통신영장", "재판배당", "피해자권리",
             "군형사소송법", "보안수사권", "보완수사권",
+            "파면검사", "피선거권박탈", "전관예우",
+            "특별검사", "특검법", "재정신청", "군사법정보시스템",
+            "군사법원법",
         ),
     ),
     (
@@ -59,13 +80,29 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         ),
     ),
     (
+        "public-integrity-funds",
+        "청탁·후원금·공직윤리",
+        (
+            "정치자금", "후원금", "알선뇌물", "알선약속", "부정청탁",
+            "청탁금지법", "직무관련성", "회계부정", "공모절차",
+            "정보공유", "이해충돌", "민원전달", "고충민원", "청탁의혹",
+            "유착설", "행위와이익", "이익간관계", "후원회",
+            "청탁문자", "청탁부당성", "청탁의부당성",
+        ),
+    ),
+    (
         "public-appointments",
         "공직 인사·검증",
         (
             "인사검증", "인사청문", "공직후보", "장관후보", "후보자검증",
             "내각인사", "공정한인사", "공직인사", "인사권",
-            "후보자", "국무위원임명", "대통령임명", "내각인사",
+            "국무위원임명", "대통령임명", "내각인사", "법무후보자",
+            "후보자자격", "후보자지명", "직무적합성", "장관임명",
+            "임명반대", "임명부적절성", "지명철회", "정치적중립성",
+            "후보자의눈물", "후보자비판", "후보자임명", "후보자재청",
+            "후보자자격", "개각발표", "이사장해임",
             "김현지실장", "실장해임",
+            "수사기관수장", "직무대행체제", "기관장임명지연",
         ),
     ),
     (
@@ -80,6 +117,25 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "안건회부", "대체토론", "증인채택", "의사일정별", "법안처리절차",
             "출석확인", "토론자지정", "위원장발언",
             "정기국회개막", "초당적협치",
+            "국정감사계획", "국정감사계획서", "국정감사운영",
+            "의사일정마무리", "회의산회", "인사청문회종료", "산회선포",
+            "자료제출요구", "자료제출", "증인출두", "증인출석",
+            "질문기회", "질의순서", "발언기회", "회의진행", "간사협의",
+            "출석정보", "청문회진행", "발언예의", "대상자출석",
+            "예의적조율", "의원의공부", "인사청문회대상자의출석",
+            "법안의결절차", "안건재검토", "토론순서", "간사간회의",
+            "회의개회", "의사일정안내", "후속법안절차",
+            "의사일정작성", "법안상정", "법률안의결", "국무위원불출석",
+            "국회불출석", "국회도서관강당", "위원장반말", "위원장의반말",
+        ),
+    ),
+    (
+        "medical-pharma-regulation",
+        "의약품·임상시험 규제",
+        (
+            "식약처", "식품의약품안전처", "임상시험", "인간임상시험",
+            "임상승인", "치료제", "백신", "동물실험", "실험자료",
+            "의약품허가", "제네셀", "의약품개발", "식약사",
         ),
     ),
     (
@@ -90,8 +146,10 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "침묵의나선", "탈진실", "허위정보", "가짜뉴스", "당파성",
             "정치적의식", "국정소통", "여론왜곡", "추천알고리즘",
             "알고리즘", "공정성민감도", "유권자이념", "국민의생각과느낌",
+            "국민여론", "컨센서스",
             "공직선거법", "위탁선거",
             "선거무효", "당선무효", "선거소청", "중앙선관위",
+            "선관위자료제출",
         ),
     ),
     (
@@ -150,7 +208,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "용수공급", "물공급", "물관리", "가뭄", "생활용수",
             "공업용수", "농업용수", "냉각수", "재이용수", "댐수",
-            "동복댐", "물사용우선순위",
+            "동복댐", "물사용우선순위", "지천댐", "댐건설",
         ),
     ),
     (
@@ -168,7 +226,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "중소기업R&D", "중소기업연구개발", "기업투자전략",
             "기업지원", "연구개발삭감", "R&D삭감",
-            "기업과국가의투자전략",
+            "기업과국가의투자전략", "이차전지산업", "이차전지지원",
         ),
     ),
     (
@@ -191,7 +249,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "주가조작", "불공정거래", "금융투자", "투자자보호", "ETF",
             "KH필룩스", "배상윤", "금융시장", "자본시장", "통화정책",
-            "금융정책", "금융규제", "공적자금", "IMF사태", "홈플러스",
+            "금융정책", "금융규제", "금융위원회", "공적자금", "IMF사태", "홈플러스",
             "전단채", "전단체사기",
             "청년도약계좌", "ISA", "자금세탁방지", "국민성장펀드",
             "위험자산투자", "코스피", "카지노사업자",
@@ -224,7 +282,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "소득양극화", "고용안정", "물가안정", "소상공인", "자영업자",
             "생활물가", "주거부담", "저성장", "국민소득", "경제성장",
             "잠재성장률", "공정한분배", "K양극화",
-            "성수품", "가격안정", "민생대개혁",
+            "성수품", "가격안정", "민생대개혁", "경제살리기",
         ),
     ),
     (
@@ -238,7 +296,18 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "국가채무", "재정정책", "재정정책혼선", "세제개편안",
             "농특세", "농특회계", "목적세",
             "정부기금", "통합기금", "초과세수", "조세지출", "재정지출",
-            "공공기금", "기금통합", "의무지출",
+            "공공기금", "기금통합", "의무지출", "세수전달",
+            "국방비미지출", "미지출사태",
+        ),
+    ),
+    (
+        "disability-care-services",
+        "장애인 돌봄·발달 서비스",
+        (
+            "발달장애", "장애인가족", "아동발달센터", "한국아동발달센터",
+            "사회적협동조합", "발달재활", "장애아동", "바우처",
+            "주간활동서비스", "서비스기관선정", "청각장애인",
+            "장애인교육", "돌봄공간", "발달장애가족",
         ),
     ),
     (
@@ -251,6 +320,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "어르신식사", "부식비", "급식지원",
             "기초연금", "기준중위소득", "중앙생활보장위원회", "발달재활",
             "장애아동", "노후소득보장", "상대적빈곤", "육아휴직",
+            "공무원재해보상", "재해보상법", "복지체제",
         ),
     ),
     (
@@ -263,6 +333,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "소득보전", "일하는사람기본법", "채용연계", "훈련프로그램",
             "노동시장이중구조", "고용평등", "임금공시", "동일가치노동",
             "체불임금", "채불임금", "공무원노조", "전교조", "법외노조",
+            "노조결정",
         ),
     ),
     (
@@ -275,7 +346,9 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "칼858", "KAL858", "항공기사고", "유족감시단",
             "세월호", "이태원참사", "실종사건", "물류창고화재",
             "배터리화재", "리튬배터리", "소방구급차", "재난기본법",
-            "대홍수", "인명수색",
+            "대홍수", "인명수색", "방염", "소방시설",
+            "재난취약계층", "자살률", "날씨예보", "원산지표시",
+            "급식업체",
         ),
     ),
     (
@@ -285,7 +358,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "공공병원", "의료인프라", "의료취약", "상급종합병원",
             "지역의료", "지방의료", "국립의전원", "국립중앙의료원",
             "의료중심도시", "의료공공기관", "미프진", "의약품접근",
-            "여성건강", "태아생명", "약물도입",
+            "여성건강", "태아생명", "약물도입", "의대병원", "치대병원",
         ),
     ),
     (
@@ -300,7 +373,15 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "아동·청소년 보호",
         (
             "청소년SNS", "SNS과의존", "아동보호", "청소년보호",
-            "학교폭력", "디지털과의존",
+            "학교폭력", "디지털과의존", "소년보호처분",
+        ),
+    ),
+    (
+        "immigration-birth-registration",
+        "이민·출생등록·체류권",
+        (
+            "외국인아동", "출생등록", "미등록부모", "그림자아동",
+            "국적법", "출입국", "체류권", "이주아동",
         ),
     ),
     (
@@ -338,7 +419,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "보훈·독립유공자 예우",
         (
             "국가보훈", "보훈병원", "보훈수당", "보훈의료", "보훈예우",
-            "독립유공자", "625전쟁희생자", "안중근", "유해관리",
+            "독립유공자", "625전쟁희생자", "안중근", "유해관리", "무덤발굴",
             "명예수당", "공적재평가", "참전유공", "참전수당",
             "유공자배우자", "미망인배우자",
         ),
@@ -348,6 +429,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "교육 정책·교육기관",
         (
             "교육부", "교육감", "수능", "채점신뢰성", "서울대학교",
+            "올리브학교",
             "국립대", "교육정책", "학술림", "학교교육", "수시모집",
             "수시원서", "학생구제", "교권", "교사보호", "아동학대신고",
             "정서적학대", "교육재정", "지방인재장학", "적정학생수",
@@ -380,6 +462,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "통상국가", "통상정책", "철강", "생산세액공제", "탄소중립",
             "핵심소재", "정책금융", "산업은행", "LCC통합", "경제안보",
+            "대미투자",
         ),
     ),
     (
@@ -498,7 +581,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "다자외교", "국제협력", "외교전략", "외교정책", "국제정세",
             "재외국민", "개발협력", "ODA", "외교정상화", "지정학적위기",
-            "인도적지원",
+            "인도적지원", "재외공관", "G20",
         ),
     ),
     (
@@ -523,6 +606,8 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "총리책임", "민심전달", "국가기본임무", "정부국가관",
             "총리의민심", "총리지지율", "개혁초심", "정책일관성",
             "출연기관재지정", "출연기관지정",
+            "법무부장관소통", "법무부장관의소통", "시행령개정안",
+            "기관분리통합", "공공기관통합",
         ),
     ),
     (
@@ -530,7 +615,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "국가안보 전략",
         (
             "안보정책", "안보개념", "동북아시아안보", "국가안보",
-            "국방전략", "정부준비태세",
+            "국방전략", "정부준비태세", "국방부공청회",
         ),
     ),
     (
@@ -540,6 +625,65 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "철거민특공", "한동훈", "용혜인", "용희인", "이재명정권",
             "민주당폄훼", "폭로성발언", "정책동의여부", "사찰의혹",
             "부당포렌식", "이재명대표이름", "언더조직", "정부내영향력",
+        ),
+    ),
+)
+
+
+# This visual hierarchy is separate from matching rules. Moving a star-map
+# branch must never change how report topics are classified.
+ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
+    (
+        "institutions", "헌정·사법·행정", "#5eead4",
+        (
+            "constitutional-order", "police-investigation",
+            "criminal-case-procedure", "prosecution-judiciary",
+            "public-discipline", "public-integrity-funds",
+            "public-appointments", "assembly-procedure",
+            "medical-pharma-regulation", "elections-public-opinion",
+            "presidential-accountability", "government-operations",
+            "political-accountability",
+        ),
+    ),
+    (
+        "economy", "경제·산업·재정", "#fbbf24",
+        (
+            "balanced-development", "industry-semiconductors",
+            "automotive-ev", "shipbuilding-maritime", "energy-electricity",
+            "water-resources-climate", "environment-waste",
+            "enterprise-innovation", "housing-real-estate",
+            "finance-investment", "fair-trade-platform", "taxation",
+            "livelihood-economy", "budget-public-finance",
+        ),
+    ),
+    (
+        "society", "사회·생활·문화", "#fb7185",
+        (
+            "disability-care-services", "welfare-care-family",
+            "youth-employment", "public-safety-health",
+            "healthcare-medical-system", "tobacco-product-safety",
+            "children-digital-safety", "immigration-birth-registration",
+            "agriculture-rural", "forest-disaster", "veterans-history",
+            "education", "culture-tourism", "media-public-communication",
+        ),
+    ),
+    (
+        "infrastructure", "국토·통상·디지털", "#60a5fa",
+        (
+            "transport-infrastructure", "trade-climate-industry",
+            "public-assets", "privacy-communications",
+            "ai-digital-infrastructure",
+        ),
+    ),
+    (
+        "security", "외교·안보·국방", "#c084fc",
+        (
+            "north-korea-nuclear", "inter-korean-peace",
+            "frontline-operations", "military-personnel-reform",
+            "alliance-defense", "defense-industry-capability",
+            "middle-east-dispatch", "japan-relations", "china-taiwan",
+            "public-diplomacy-culture", "international-cooperation",
+            "national-security-strategy",
         ),
     ),
 )
@@ -563,12 +707,17 @@ _DYNAMIC_GENERIC_TOKENS = {
     "공정성", "투명성", "부당성", "사실관계", "판단", "기준", "방향",
     "일정", "발표", "자료", "제출", "약속", "비판", "주장", "해명",
     "결정", "이유", "사유", "역할", "대비", "oecd", "통합", "분리",
-    "기관", "공공기관",
+    "기관", "공공기관", "마무리", "산회", "당부", "인사",
+    "후보자", "장관후보자", "법무부장관", "청문회",
 }
 _DYNAMIC_GROUP_THRESHOLD = 0.76
 
 
 _REPORT_LANGUAGE_REPAIRS: tuple[tuple[str, str], ...] = (
+    ("어린이 보호고", "어린이 보호구역"),
+    ("책임과자 회복", "책임과 피해자 회복"),
+    ("출석 불고", "출석 불응"),
+    ("양순희 @(양순희) @(양순희) 씨", "양순희 씨"),
     ("마스카", "마스가(MASGA)"),
     ("미중 정부 간 협력", "한미 정부 간 협력"),
     ("하물창", "화물창"),
@@ -659,7 +808,10 @@ def _fallback_target(topic: dict[str, Any]) -> tuple[str, str]:
 
 
 def _specific_tokens(*values: object) -> set[str]:
-    return semantic_tokens(*values) - _DYNAMIC_GENERIC_TOKENS
+    return {
+        token for token in semantic_tokens(*values) - _DYNAMIC_GENERIC_TOKENS
+        if not re.fullmatch(r"(?:19|20)\d{2}년?", token)
+    }
 
 
 def _fallback_record(index: int, topic: dict[str, Any]) -> dict[str, Any]:
@@ -832,7 +984,11 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
     source = _repair_brief_language(brief)
     groups = build_meeting_topic_groups(source)
     source["topic_groups"] = groups
-    detailed_topic_count = len(source.get("topics") or [])
+    topics = [
+        topic for topic in source.get("topics") or []
+        if isinstance(topic, dict) and topic.get("id")
+    ]
+    detailed_topic_count = len(topics)
     ontology_topic_count = sum(
         group["topic_count"] for group in groups
         if group.get("assignment_method") == "ONTOLOGY"
@@ -853,6 +1009,64 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
         review_reasons.append("ONTOLOGY_COVERAGE_LOW")
     if singleton_unclassified_group_count > max(2, ceil(detailed_topic_count * 0.15)):
         review_reasons.append("UNCLASSIFIED_SINGLETONS_HIGH")
+    source_topic_ids = [str(topic["id"]) for topic in topics]
+    source_topic_id_set = set(source_topic_ids)
+    assigned_topic_ids = [
+        str(topic_id)
+        for group in groups
+        for topic_id in group.get("topic_ids") or []
+    ]
+    duplicate_topic_ids = sorted({
+        topic_id for topic_id in assigned_topic_ids
+        if assigned_topic_ids.count(topic_id) > 1
+    })
+    missing_topic_ids = sorted(source_topic_id_set - set(assigned_topic_ids))
+    unknown_topic_ids = sorted(set(assigned_topic_ids) - source_topic_id_set)
+    source_live_topic_ids = {
+        str(cluster_id)
+        for topic in topics
+        for cluster_id in topic.get("live_topic_cluster_ids") or []
+    }
+    grouped_live_topic_ids = {
+        str(cluster_id)
+        for group in groups
+        for cluster_id in group.get("live_topic_cluster_ids") or []
+    }
+    missing_live_topic_ids = sorted(
+        source_live_topic_ids - grouped_live_topic_ids
+    )
+    unlinked_task_ids = sorted(
+        str(task.get("id") or "")
+        for task in source.get("tasks") or []
+        if isinstance(task, dict)
+        and (
+            not task.get("topic_id")
+            or str(task.get("topic_id")) not in source_topic_id_set
+        )
+    )
+    if missing_topic_ids:
+        review_reasons.append("GROUPING_TOPIC_LOSS")
+    if duplicate_topic_ids:
+        review_reasons.append("GROUPING_TOPIC_DUPLICATE")
+    if unknown_topic_ids:
+        review_reasons.append("GROUPING_UNKNOWN_TOPIC")
+    if missing_live_topic_ids:
+        review_reasons.append("GROUPING_LIVE_TOPIC_LOSS")
+    if unlinked_task_ids:
+        review_reasons.append("GROUPING_UNLINKED_TASKS")
+    integrity_status = (
+        "PASS"
+        if not any(
+            (
+                missing_topic_ids,
+                duplicate_topic_ids,
+                unknown_topic_ids,
+                missing_live_topic_ids,
+                unlinked_task_ids,
+            )
+        )
+        else "REVIEW_REQUIRED"
+    )
     source["topic_grouping"] = {
         "version": GROUPING_VERSION,
         "method": GROUPING_METHOD,
@@ -865,7 +1079,91 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
         "dynamic_topic_count": dynamic_topic_count,
         "unclassified_topic_count": unclassified_topic_count,
         "singleton_unclassified_group_count": singleton_unclassified_group_count,
+        "integrity_status": integrity_status,
+        "assigned_topic_count": len(assigned_topic_ids),
+        "missing_topic_count": len(missing_topic_ids),
+        "duplicate_topic_count": len(duplicate_topic_ids),
+        "missing_live_topic_count": len(missing_live_topic_ids),
+        "unlinked_task_count": len(unlinked_task_ids),
         "quality_status": "REVIEW_REQUIRED" if review_reasons else "PASS",
         "review_reasons": review_reasons,
     }
     return source
+
+
+def build_meeting_topic_ontology(
+    briefs: list[dict[str, Any]] | tuple[dict[str, Any], ...] = (),
+) -> dict[str, Any]:
+    """Expose the matching ontology and its current report usage for inspection."""
+    ontology = {
+        key: {"key": key, "title": title, "keywords": list(keywords)}
+        for key, title, keywords in TARGET_ONTOLOGY
+    }
+    domain_keys = [key for _, _, _, keys in ONTOLOGY_DOMAINS for key in keys]
+    if len(domain_keys) != len(set(domain_keys)) or set(domain_keys) != set(ontology):
+        raise RuntimeError("ontology domain map must cover every target exactly once")
+
+    usage = {
+        key: {"topic_count": 0, "report_count": 0}
+        for key in ontology
+    }
+    totals = {
+        "report_count": 0,
+        "topic_count": 0,
+        "ontology_topic_count": 0,
+        "dynamic_topic_count": 0,
+        "unclassified_topic_count": 0,
+        "integrity_failure_count": 0,
+        "quality_review_count": 0,
+    }
+    for brief in briefs:
+        if not isinstance(brief, dict):
+            continue
+        grouped = attach_meeting_topic_groups(brief)
+        audit = grouped.get("topic_grouping") or {}
+        totals["report_count"] += 1
+        totals["topic_count"] += int(audit.get("detailed_topic_count") or 0)
+        totals["ontology_topic_count"] += int(audit.get("ontology_topic_count") or 0)
+        totals["dynamic_topic_count"] += int(audit.get("dynamic_topic_count") or 0)
+        totals["unclassified_topic_count"] += int(audit.get("unclassified_topic_count") or 0)
+        if audit.get("integrity_status") != "PASS":
+            totals["integrity_failure_count"] += 1
+        if audit.get("quality_status") != "PASS":
+            totals["quality_review_count"] += 1
+        for group in grouped.get("topic_groups") or []:
+            key = str(group.get("key") or "")
+            if key not in usage:
+                continue
+            usage[key]["topic_count"] += int(group.get("topic_count") or 0)
+            usage[key]["report_count"] += 1
+
+    topic_total = totals["topic_count"]
+    totals["ontology_coverage"] = round(
+        totals["ontology_topic_count"] / topic_total, 4
+    ) if topic_total else 1.0
+    groups = []
+    domains = []
+    for domain_key, title, color, keys in ONTOLOGY_DOMAINS:
+        domain_topic_count = sum(usage[key]["topic_count"] for key in keys)
+        domains.append({
+            "key": domain_key,
+            "title": title,
+            "color": color,
+            "group_keys": list(keys),
+            "topic_count": domain_topic_count,
+        })
+        for key in keys:
+            groups.append({
+                **ontology[key],
+                "domain_key": domain_key,
+                "keyword_count": len(ontology[key]["keywords"]),
+                **usage[key],
+            })
+    return {
+        "version": GROUPING_VERSION,
+        "method": GROUPING_METHOD,
+        "root": {"key": "national-policy", "title": "국정 온톨로지"},
+        "domains": domains,
+        "groups": groups,
+        "metrics": totals,
+    }

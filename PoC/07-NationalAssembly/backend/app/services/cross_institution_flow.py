@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from functools import lru_cache
 from typing import Any
 
 from .official_brief_integration import semantic_tokens
@@ -157,13 +158,22 @@ def _normalized_ministries(values: Any) -> set[str]:
     }
 
 
+@lru_cache(maxsize=16384)
+def _cached_semantic_tokens(title: str, summary: str = "") -> frozenset[str]:
+    return frozenset(semantic_tokens(title, summary))
+
+
 def _specific_match(
     agenda: dict[str, Any], issue: dict[str, Any],
 ) -> tuple[float, list[str], list[str]] | None:
-    agenda_title = semantic_tokens(agenda.get("topic"))
-    agenda_all = semantic_tokens(agenda.get("topic"), agenda.get("summary"))
-    issue_title = semantic_tokens(issue.get("topic"))
-    issue_all = semantic_tokens(issue.get("topic"), issue.get("summary"))
+    agenda_topic = str(agenda.get("topic") or "")
+    agenda_summary = str(agenda.get("summary") or "")
+    issue_topic = str(issue.get("topic") or "")
+    issue_summary = str(issue.get("summary") or "")
+    agenda_title = _cached_semantic_tokens(agenda_topic)
+    agenda_all = _cached_semantic_tokens(agenda_topic, agenda_summary)
+    issue_title = _cached_semantic_tokens(issue_topic)
+    issue_all = _cached_semantic_tokens(issue_topic, issue_summary)
     title_shared = agenda_title & issue_title
     all_shared = agenda_all & issue_all
     specific_shared = all_shared - _GENERIC_CROSS_WORDS

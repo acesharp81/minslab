@@ -194,8 +194,11 @@ class SupabaseRestStore:
     def upsert(self, table: str, rows: list[dict[str, Any]]) -> None:
         if not rows:
             return
-        for offset in range(0, len(rows), 250):
-            chunk = rows[offset:offset + 250]
+        # 분석 결과 JSON은 행 크기가 커서 250건 일괄 upsert 시 Supabase의
+        # statement timeout을 넘을 수 있다. 큰 행만 더 작은 묶음으로 전송한다.
+        batch_size = 50 if table == "poc08_analysis_runs" else 250
+        for offset in range(0, len(rows), batch_size):
+            chunk = rows[offset:offset + batch_size]
             query = urlencode({"on_conflict": "id"})
             self.request(
                 "POST",

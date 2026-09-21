@@ -490,6 +490,24 @@
     parent.append(group);
   }
 
+  function topicReportLoadingVisual() {
+    const visual = node("div", "topic-report-loader");
+    visual.setAttribute("role", "img");
+    visual.setAttribute("aria-label", "근거 자료를 읽고 보고서를 구성하고 있습니다");
+    const sheet = node("div", "topic-report-loader-sheet");
+    sheet.append(node("b", ""), node("i", ""), node("i", ""), node("i", ""), node("i", ""));
+    visual.append(sheet, node("span", "topic-report-loader-scan"));
+    return visual;
+  }
+
+  function pendingElapsed(item) {
+    const startedAt = Date.parse(item.created_at || "");
+    if (!Number.isFinite(startedAt)) return "처리 시간 확인 중";
+    const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `진행 시간 ${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
   function renderReport(item) {
     if (state.timer) window.clearTimeout(state.timer);
     resultContainer.hidden = false;
@@ -499,14 +517,25 @@
       pending.setAttribute("aria-busy", "true");
       const evidenceCount = (item.evidence || []).length;
       const isProcessing = item.status === "PROCESSING";
-      pending.append(
-        node("span", "topic-report-spinner", ""),
+      const activities = isProcessing
+        ? ["회의 근거 구조화 중", "유사 논점 관계 검토 중", "정책 흐름과 후속 과제 연결 중"]
+        : ["작성 요청을 작업 대기열에 등록했습니다"];
+      const startedAt = Date.parse(item.created_at || "");
+      const elapsedSeconds = Number.isFinite(startedAt) ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
+      const activity = activities[Math.floor(elapsedSeconds / 4) % activities.length];
+      const copy = node("div", "topic-report-pending-copy");
+      copy.append(
         node("small", "topic-report-pending-kicker", isProcessing ? "근거 분석 중" : "작성 요청 접수"),
         node("strong", "", "보고서 작성 중"),
         node("p", "", isProcessing
           ? `선택된 근거 ${evidenceCount}건을 읽고 정책 흐름과 후속 과제를 구성하고 있습니다.`
           : `검색 조건과 근거 ${evidenceCount}건을 저장했습니다. 작성 작업 순서를 기다리고 있습니다.`),
       );
+      const head = node("div", "topic-report-pending-head");
+      head.append(topicReportLoadingVisual(), copy);
+      const live = node("div", "topic-report-live-status");
+      live.append(node("span", "", activity), node("time", "", pendingElapsed(item)));
+      pending.append(head, live);
       const stages = node("ol", "topic-report-progress-stages");
       for (const [label, description, className] of [
         ["요청 접수", "조건·기간 저장 완료", "is-done"],
@@ -674,7 +703,7 @@
     if (assignment.unassigned.length) {
       const remaining = node("section", "topic-report-remaining");
       const heading = node("header", "topic-report-section-heading");
-      heading.append(node("span", "", String(editorialSection).padStart(2, "0") + " · ACTIONS"), node("h3", "", "여러 논점에 걸친 후속 과제"), node("p", "", "한 논점에만 귀속하기 어려운 공통 과제입니다."));
+      heading.append(node("span", "", String(editorialSection).padStart(2, "0") + " · ACTIONS"), node("h3", "", "주제 관련 공통 후속 과제"), node("p", "", "요청 주제와 직접 연결되지만 한 논점에만 귀속하기 어려운 과제입니다."));
       const grid = node("div", "topic-report-remaining-grid");
       for (const task of assignment.unassigned) grid.append(taskCard(task, sources));
       remaining.append(heading, grid);

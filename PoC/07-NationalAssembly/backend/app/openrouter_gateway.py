@@ -434,7 +434,8 @@ def chat_completions(
         try:
             request_id, used = _reserve(
                 project=x_minslab_project[:40], workload=x_minslab_workload[:60],
-                priority=priority, model=model, idempotency_key=x_idempotency_key[:200],
+                priority=priority, model=ordered_models[0],
+                idempotency_key=x_idempotency_key[:200],
             )
         except PermissionError as exc:
             with _connect() as connection:

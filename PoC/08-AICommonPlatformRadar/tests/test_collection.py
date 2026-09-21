@@ -59,6 +59,21 @@ def test_rule_non_ai_is_persisted_as_category_6(db):
     assert _needs_backlog_analysis(notice) is False
 
 
+def test_rule_non_construction_ai_service_is_persisted_as_category_5(db):
+    notice, _ = _upsert_notice(db, replace(
+        sample("AI-AUDIT"), title="생성형 AI 플랫폼 구축사업 감리용역", attachments=[],
+    ))
+    db.commit()
+    rule = collector.evaluate_notice(title=notice.title)
+    assert rule.scope_status == "non_target"
+    assert record_non_ai_screen(db, notice, rule) is True
+    db.refresh(notice)
+    result = __import__("json").loads(notice.analysis_runs[-1].result_json)
+    assert result["classification_code"] == "5"
+    assert result["service_scope"] == "non_target"
+    assert _needs_backlog_analysis(notice) is False
+
+
 def test_notice_upsert_does_not_duplicate(db):
     first, created = _upsert_notice(db, sample())
     db.commit()
@@ -195,3 +210,18 @@ def test_bid_maps_all_ten_specification_files():
     notice = collector.G2BClient(settings)._map_bid(item)
     assert len(notice.attachments) == 10
     assert notice.attachments[-1].name == "문서-10.pdf"
+
+
+def test_prenotice_prefers_real_demand_institution_over_procurement_office():
+    settings = replace(get_settings(), g2b_mode="live")
+    notice = collector.G2BClient(settings)._map_prenotice({
+        "bfSpecRgstNo": "PRE-1",
+        "prdctNm": "AI 사업",
+        "orderInsttNm": "조달청 서울지방조달청",
+        "orderInsttCd": "PROCUREMENT",
+        "rlDminsttNm": "경기도 안양시",
+        "rlDminsttCd": "ANYANG",
+    })
+
+    assert notice.agency_name == "경기도 안양시"
+    assert notice.agency_code == "ANYANG"

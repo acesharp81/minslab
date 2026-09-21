@@ -43,6 +43,11 @@ def health() -> dict:
                 "model": settings.stage2_model,
                 "credential_ready": settings.stage2_provider == "mock" or bool(settings.stage2_api_key),
             },
+            "stage2_fallback": {
+                "provider": settings.stage2_fallback_provider,
+                "model": settings.stage2_fallback_model,
+                "credential_ready": settings.stage2_fallback_provider == "mock" or bool(settings.stage2_fallback_api_key),
+            },
             "stage3_primary": {
                 "provider": settings.stage3_primary_provider,
                 "model": settings.stage3_primary_model,

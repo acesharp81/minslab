@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}확장프로그램 설치 · 조달체크{% endblock %}
+{% block content %}
+<section class="page-head extension-head"><div><span class="eyebrow">CHROME EXTENSION · v0.1.7</span><h1>나라장터 의견 도우미 설치</h1><p>모든 공지·안내창을 먼저 닫고 검색기간을 확인한 뒤, 발주목록에서 사전규격 검색과 의견 입력 또는 등록 의견 현황 확인을 자동으로 진행합니다. 자동입력 값과 의견등록 비밀번호는 조달체크 설정에서 관리하며 최종 저장은 사용자가 확인합니다.</p></div><a class="button primary extension-download" href="{{ url_for('extension_download').path }}">설치 파일 다운로드</a></section>
+<section class="install-steps">
+  <article class="panel"><b>1</b><h2>ZIP 압축 풀기</h2><p>다운로드한 <code>jodalcheck-g2b-helper.zip</code>의 압축을 원하는 폴더에 풉니다.</p></article>
+  <article class="panel"><b>2</b><h2>Chrome에 한 번 등록</h2><p>주소창에 <code>chrome://extensions</code>를 입력하고 개발자 모드를 켠 뒤, <strong>압축해제된 확장 프로그램을 로드합니다</strong>에서 압축을 푼 폴더를 선택합니다.</p></article>
+  <article class="panel"><b>3</b><h2>자동입력 값 설정</h2><p>조달체크의 설정 메뉴에 관리자로 로그인하여 담당자 정보, 의견등록 비밀번호와 문구 템플릿을 저장합니다. 설정하지 않은 값은 빈칸으로 남습니다.</p></article>
+</section>
+<section class="panel extension-flow"><div><span class="eyebrow">HOW IT WORKS</span><h2>사용 흐름</h2></div><ol><li>설정 메뉴에 관리자로 로그인하고 담당자 정보를 저장합니다.</li><li>대시보드에서 <strong>나라장터 의견 등록</strong>을 누릅니다.</li><li>확장프로그램이 공지창을 닫고 발주 → 발주목록 → 사전규격공개 → 상세 → 의견등록까지 이동합니다.</li><li>자동 입력된 내용을 확인하고 나라장터의 <strong>저장</strong>을 누릅니다.</li><li>성공이 감지되면 PoC 8 조치 상태가 자동으로 <strong>조치중</strong>이 됩니다.</li><li>이후 <strong>나라장터 등록 의견 확인</strong>을 누르면 같은 사전규격 상세 화면에서 의견과 답변 현황을 확인할 수 있습니다.</li></ol><p class="notice">Chrome 보안 정책상 웹페이지가 확장프로그램을 자동 설치할 수는 없습니다. 최초 1회만 위 3단계를 수행하면 이후에는 PoC 8 버튼 하나로 실행됩니다. 새 버전을 받은 경우 압축을 다시 풀고 <code>chrome://extensions</code>에서 확장프로그램의 새로고침 버튼을 누르세요.</p></section>
+{% endblock %}

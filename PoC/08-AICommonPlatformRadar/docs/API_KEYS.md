@@ -52,19 +52,25 @@ PoC08은 Pooler나 PostgreSQL에 직접 연결하지 않는다. 따라서 DB 비
 
 ## 현재 운영 LLM 키
 
-### Cohere
+### Upstage
 
-[Cohere Dashboard API Keys](https://dashboard.cohere.com/api-keys)에서 평가 키를 발급한다. 현재 구성은 2차에 Command A+, 3차에 Command A를 사용하며 공식 V2 Chat API로 호출한다.
+[Upstage Console](https://console.upstage.ai/)에서 API 키를 발급한다. PoC 4의 상시 자동 워커와 겹치지 않는 Solar Pro4를 PoC 8의 2차 주 공급자로 사용한다.
 
 ```env
-COHERE_API_KEY=...
-STAGE2_PROVIDER=cohere
-STAGE2_MODEL=command-a-plus-05-2026
-STAGE3_PRIMARY_PROVIDER=cohere
-STAGE3_PRIMARY_MODEL=command-a-03-2025
+UPSTAGE_API_KEY=...
+STAGE2_PROVIDER=upstage
+STAGE2_MODEL=solar-pro4
 ```
 
-무료 평가 키의 Chat 한도는 모델당 분당 20회, 월 1,000회다. 공식 안내: <https://docs.cohere.com/docs/rate-limits>
+### Mistral 비상 fallback
+
+Mistral은 PoC 7에서도 사용하므로 정상 상황에는 호출하지 않는다. Upstage의 호출 한도·응답 오류가 발생했을 때만 2차 분석을 이어받는다.
+
+```env
+MISTRAL_API_KEY=...
+STAGE2_FALLBACK_PROVIDER=mistral
+STAGE2_FALLBACK_MODEL=mistral-small-latest
+```
 
 ## 보유 키 기반 대체 경로
 
@@ -105,17 +111,23 @@ STAGE3_FALLBACK_PROVIDER=nvidia
 
 공식 키 안내: <https://docs.nvidia.com/ngc/latest/ngc-user-guide.html#generating-ngc-api-keys>
 
+### Cohere 사용 중단 사유
+
+Command A는 공식 V2 API와 로컬 스키마 검증 조합으로 동작하지만, 현재 평가 키의 월 1,000회 한도를 소진했다. 일일 수백 건을 처리하는 2차 운영 모델로는 한도가 부족하므로 자동 경로에서 제외한다. 공식 안내: <https://docs.cohere.com/docs/rate-limits>
+
 ## 실호출 전환 블록
 
-Cohere·OpenAI·G2B 키를 입력한 뒤 mock 값만 다음처럼 바꾼다.
+Upstage·Mistral·OpenAI·NVIDIA·G2B 키를 입력한 뒤 다음처럼 설정한다.
 
 ```env
-STAGE2_PROVIDER=cohere
-STAGE2_MODEL=command-a-plus-05-2026
-STAGE3_PRIMARY_PROVIDER=cohere
-STAGE3_PRIMARY_MODEL=command-a-03-2025
-STAGE3_FALLBACK_PROVIDER=openai
-STAGE3_FALLBACK_MODEL=gpt-5.4-mini
+STAGE2_PROVIDER=upstage
+STAGE2_MODEL=solar-pro4
+STAGE2_FALLBACK_PROVIDER=mistral
+STAGE2_FALLBACK_MODEL=mistral-small-latest
+STAGE3_PRIMARY_PROVIDER=openai
+STAGE3_PRIMARY_MODEL=gpt-5.4-mini
+STAGE3_FALLBACK_PROVIDER=nvidia
+STAGE3_FALLBACK_MODEL=nvidia/nemotron-3-super-120b-a12b
 ```
 
 먼저 `python scripts/preflight.py`로 키 존재 여부와 DB 연결 준비상태를 확인하고, `python scripts/probe_llm.py --target all`로 모델 접근을 한 번씩 점검한다. 두 명령은 키 값을 출력하지 않는다.

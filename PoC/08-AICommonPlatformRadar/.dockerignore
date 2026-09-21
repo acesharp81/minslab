@@ -3,9 +3,7 @@
 .venv
 __pycache__
 .pytest_cache
-data/*.db*
-data/raw
-data/parsed
-data/reports
-data/logs
+# Runtime databases, credentials, operator profiles, reports, locks and raw
+# procurement documents are supplied only through the deployment volume.
+data/*
 backups
