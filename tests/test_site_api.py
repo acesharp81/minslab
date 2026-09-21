@@ -76,6 +76,28 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(headers[b"allow"], b"GET, HEAD")
         self.assertIn(b"method not allowed", body)
 
+    async def test_master_press_pause_page_displays_closed_popup(self):
+        with mock.patch.object(main, "MASTER_PRESS_PAUSED", True):
+            start, body = await call_app("/poc/master-press/")
+
+        headers = dict(start["headers"])
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(headers[b"cache-control"], b"no-store")
+        self.assertEqual(headers[b"retry-after"], b"86400")
+        self.assertIn("당분간 영업 종료 중입니다".encode("utf-8"), body)
+        self.assertIn(b'role="dialog"', body)
+
+    async def test_master_press_pause_blocks_api_before_module_load(self):
+        with (
+            mock.patch.object(main, "MASTER_PRESS_PAUSED", True),
+            mock.patch.object(main, "load_master_press_module") as load_module,
+        ):
+            start, body = await call_app("/api/poc/master-press/admin/tick", method="POST")
+
+        self.assertEqual(start["status"], 503)
+        self.assertIn(b"master_press_paused", body)
+        load_module.assert_not_called()
+
     async def test_ai_common_radar_put_is_supported_and_requires_admin(self):
         with mock.patch.object(main, "admin_session", return_value=None):
             start, body = await call_app(

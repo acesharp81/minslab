@@ -73,8 +73,60 @@ MASTER_PRESS_API_BASE = "/api/poc/master-press"
 MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
 MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "master_press" / "manual.pdf"
 MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
+MASTER_PRESS_PAUSE_FILE = MASTER_PRESS_SERVICE_PATH.parent / "data" / "PAUSED"
 MASTER_PRESS_MODULE = None
 MASTER_PRESS_MTIME = None
+MASTER_PRESS_PAUSED = env_first("MASTER_PRESS_PAUSED", default="0").strip().lower() in {
+    "1", "true", "yes", "on",
+}
+MASTER_PRESS_PAUSED_PAGE = """<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>AI 언론동향 비서 · 일시정지</title>
+  <style>
+    :root { color-scheme: light; font-family: Pretendard, "Noto Sans KR", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; overflow: hidden; background: #e9e7df; color: #171916; }
+    .closed-background { min-height: 100vh; padding: 32px; opacity: .42; filter: blur(2px); }
+    .closed-brand { font-weight: 900; letter-spacing: -.04em; font-size: clamp(28px, 5vw, 56px); }
+    .closed-line { width: min(720px, 90vw); height: 16px; margin-top: 28px; border-radius: 99px; background: #c9c6bb; }
+    .closed-line.short { width: min(440px, 65vw); }
+    .closed-overlay { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(17, 20, 17, .68); }
+    .closed-dialog { width: min(520px, 100%); padding: 34px; border: 1px solid rgba(255,255,255,.7); border-radius: 24px; background: #fffdf6; box-shadow: 0 26px 80px rgba(0,0,0,.34); text-align: center; }
+    .closed-badge { display: inline-flex; padding: 7px 12px; border-radius: 99px; background: #171916; color: #dfff56; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .08em; }
+    h1 { margin: 22px 0 12px; font-size: clamp(29px, 6vw, 42px); letter-spacing: -.055em; }
+    p { margin: 0; color: #656a62; font-size: 15px; line-height: 1.75; word-break: keep-all; }
+    .closed-note { margin-top: 20px; padding: 14px; border-radius: 14px; background: #f0eee6; color: #4f554c; font-size: 13px; }
+    a { display: inline-flex; margin-top: 24px; padding: 12px 18px; border-radius: 12px; background: #7054ef; color: white; font-weight: 800; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #dfff56; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main class="closed-background" aria-hidden="true">
+    <div class="closed-brand">AI 언론동향 비서</div>
+    <div class="closed-line"></div><div class="closed-line short"></div>
+  </main>
+  <div class="closed-overlay">
+    <section class="closed-dialog" role="dialog" aria-modal="true" aria-labelledby="closed-title" aria-describedby="closed-description">
+      <span class="closed-badge">TEMPORARILY CLOSED</span>
+      <h1 id="closed-title">당분간 영업 종료 중입니다</h1>
+      <p id="closed-description">PoC 7과 PoC 8에 집중하기 위해 AI 언론동향 비서의 수집·분석·알림 서비스를 잠시 쉬어갑니다.</p>
+      <p class="closed-note">기존 데이터는 안전하게 보존하고 있습니다.</p>
+      <a href="/poc">다른 프로젝트 보기</a>
+    </section>
+  </div>
+</body>
+</html>""".encode("utf-8")
+
+
+def master_press_is_paused() -> bool:
+    """Keep the operational pause effective even if service env loading drifts."""
+    return MASTER_PRESS_PAUSED or MASTER_PRESS_PAUSE_FILE.is_file()
+
+
 NORTH_KOREA_LIGHTS_BASE_PATH = "/poc/north-korea-night-lights/map"
 NORTH_KOREA_LIGHTS_OUTPUT = (
     Path(__file__).parent
@@ -1875,7 +1927,7 @@ def check_services():
     stats.setdefault("local_llm_chat_calls", int(stats.get("local_llm_calls") or 0))
     stats.setdefault("master_press_embedding_calls", 0)
     stats.setdefault("master_press_embedding_calls_today", 0)
-    if HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING:
+    if HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING and not master_press_is_paused():
         try:
             master_press = load_master_press_module()
             embedding = master_press.get_service().ollama_embedding_status(False)
@@ -2253,8 +2305,9 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
-                master_press_tasks.append(asyncio.create_task(warm_master_press_read_caches()))
-                if MASTER_PRESS_BACKGROUND_ENABLED:
+                if not master_press_is_paused():
+                    master_press_tasks.append(asyncio.create_task(warm_master_press_read_caches()))
+                if MASTER_PRESS_BACKGROUND_ENABLED and not master_press_is_paused():
                     print("Master Press workers run in the isolated system service.", file=sys.stderr)
                 else:
                     print("Master Press background workers disabled (set MASTER_PRESS_BACKGROUND_ENABLED=1 to enable).", file=sys.stderr)
@@ -2341,6 +2394,38 @@ async def app(scope, receive, send):
         ]
         await send({"type": "http.response.start", "status": 307, "headers": headers})
         await send({"type": "http.response.body", "body": b""})
+        return
+
+    master_press_request = (
+        path == MASTER_PRESS_BASE_PATH
+        or path.startswith(f"{MASTER_PRESS_BASE_PATH}/")
+        or path == MASTER_PRESS_API_BASE
+        or path.startswith(f"{MASTER_PRESS_API_BASE}/")
+    )
+    if master_press_is_paused() and master_press_request:
+        if path == MASTER_PRESS_API_BASE or path.startswith(f"{MASTER_PRESS_API_BASE}/"):
+            body = json.dumps(
+                {
+                    "error": "AI 언론동향 비서는 당분간 영업 종료 중입니다.",
+                    "code": "master_press_paused",
+                },
+                ensure_ascii=False,
+            ).encode("utf-8")
+            status = 503
+            content_type = b"application/json; charset=utf-8"
+        else:
+            body = MASTER_PRESS_PAUSED_PAGE
+            status = 200
+            content_type = b"text/html; charset=utf-8"
+        headers = [
+            (b"content-type", content_type),
+            (b"content-length", str(len(body)).encode("ascii")),
+            (b"cache-control", b"no-store"),
+            (b"retry-after", b"86400"),
+            (b"x-robots-tag", b"noindex, nofollow"),
+        ]
+        await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
         return
 
     presentation_prefix = f"{PRESENTATION_BASE_PATH}/"
