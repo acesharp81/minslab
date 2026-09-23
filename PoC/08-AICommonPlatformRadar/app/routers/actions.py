@@ -60,15 +60,16 @@ def _append_manual_classification(
         payload[MANUAL_CLASSIFICATION_BACKUP_KEY] = current
     base = payload.get(MANUAL_CLASSIFICATION_BACKUP_KEY)
     base = dict(base) if isinstance(base, dict) else dict(current)
-    code = "6" if reason == "non_ai" else "5"
+    code = {"uses": "1", "non_ai": "6"}.get(reason, "5")
+    provenance = "action_confirmed_uses" if reason == "uses" else reason
     if (
         str(current.get("classification_code") or "") == code
-        and current.get("manual_final_classification_reason") == reason
+        and current.get("manual_final_classification_reason") == provenance
     ):
         notice.raw_payload_json = json.dumps(payload, ensure_ascii=False, default=str)
         return code
 
-    label = "비AI 사업" if reason == "non_ai" else "공통기반 이용 부적합"
+    label = {"uses": "조치에 의한 공통기반 이용", "non_ai": "비AI 사업"}.get(reason, "공통기반 이용 부적합")
     summary = f"사업담당자 피드백을 반영하여 {label}으로 최종 분류했습니다."
     if feedback.strip():
         summary = f"{summary} {feedback.strip()}"
@@ -76,20 +77,24 @@ def _append_manual_classification(
     corrected.update({
         "criteria_version": CURRENT_CRITERIA_VERSION,
         "classification_code": code,
-        "final_grade": "E",
+        "final_grade": "A" if reason == "uses" else "E",
         "ai_relevance": "low" if reason == "non_ai" else str(base.get("ai_relevance") or "high"),
-        "common_platform_fit": "low",
-        "eligibility": "uncertain" if reason == "non_ai" else "ineligible",
+        "common_platform_fit": "high" if reason == "uses" else "low",
+        "eligibility": "eligible" if reason == "uses" else ("uncertain" if reason == "non_ai" else "ineligible"),
         "recommended_action": "no_action",
         "priority_score": 0,
         "guidance_message": "",
         "manual_override": True,
         "manual_override_reason": feedback.strip() or label,
-        "manual_final_classification_reason": reason,
+        "manual_final_classification_reason": provenance,
         "summary": summary,
     })
     if reason == "non_ai":
         corrected["service_scope"] = "non_target"
+    elif reason == "uses":
+        corrected["platform_usage"] = "uses"
+        corrected["usage_mentioned"] = "yes"
+        corrected["service_scope"] = "target"
     digest = hashlib.sha256(
         f"manual-final:{notice.id}:{datetime.now(timezone.utc).isoformat()}:{reason}:{feedback}".encode("utf-8")
     ).hexdigest()
@@ -130,6 +135,9 @@ def update_action(action_id: int, patch: ActionPatch, db: Session = Depends(get_
     changes = patch.model_dump(exclude_unset=True)
     ineligible_reason = changes.pop("ineligible_reason", None)
     previous_reason = manual_ineligible_reason(action.notice)
+    previous_result = _json_object(
+        current_classification_run(action.notice).result_json if current_classification_run(action.notice) else None
+    )
     resulting_status = changes.get("status", action.status)
     resolved_reason = ""
     if resulting_status == "completed_ineligible":
@@ -145,12 +153,17 @@ def update_action(action_id: int, patch: ActionPatch, db: Session = Depends(get_
     for key, value in changes.items():
         setattr(action, key, value)
     final_code = ""
-    if resulting_status in {"completed_ineligible", "completed_non_ai"}:
+    if resulting_status in {"completed_uses", "reflected"}:
+        resolved_reason = "uses"
+    if resulting_status in {"completed_uses", "reflected", "completed_ineligible", "completed_non_ai"}:
         feedback = str(changes.get("agency_response") or action.agency_response or changes.get("memo") or action.memo or "")
         final_code = _append_manual_classification(
             action.notice, reason=resolved_reason, feedback=feedback,
         )
-    elif "status" in changes and previous_reason:
+    elif (
+        "status" in changes
+        and (previous_reason or previous_result.get("manual_final_classification_reason"))
+    ):
         _restore_classification_before_manual_feedback(action.notice)
     if changes.get("status") in {"contacted", "in_progress"} and not action.contacted_at:
         action.contacted_at = datetime.now(timezone.utc)

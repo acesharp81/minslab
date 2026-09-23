@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from datetime import datetime, timedelta, timezone
@@ -47,8 +48,10 @@ def _guidance(notice: Notice) -> str:
     return str(json_object(run.result_json if run else None).get("guidance_message") or "")
 
 
-def _match_root(notice: Notice, roots: list[dict[str, Any]]) -> dict[str, Any] | None:
-    expected = _compact(_guidance(notice))
+def _match_root(
+    notice: Notice, roots: list[dict[str, Any]], *, submitted_content: str = "",
+) -> dict[str, Any] | None:
+    expected = _compact(submitted_content or _guidance(notice))
     contacted_at = notice.action.contacted_at if notice.action else None
     if contacted_at and contacted_at.tzinfo is None:
         contacted_at = contacted_at.replace(tzinfo=timezone.utc)
@@ -72,24 +75,56 @@ def _match_root(notice: Notice, roots: list[dict[str, Any]]) -> dict[str, Any] |
     return best if score >= 0.52 else None
 
 
-def _tracking_result(notice: Notice, rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _tracking_result(
+    notice: Notice, rows: list[dict[str, Any]], *, submission: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    previous = cached_opinion_tracking(notice)
+    submission = submission or {}
     roots = [row for row in rows if str(row.get("rplyNo") or "0") == "0"]
-    match = _match_root(notice, roots)
+    submitted_content = str(
+        previous.get("submitted_content") or submission.get("submitted_content") or ""
+    )
+    match = _match_root(notice, roots, submitted_content=submitted_content)
     now = datetime.now(timezone.utc).isoformat()
     result: dict[str, Any] = {
         "checked_at": now,
         "opinion_count": len(roots),
         "reply_count": sum(str(row.get("rplyNo") or "0") != "0" for row in rows),
     }
+    if submission.get("recorded") or previous.get("submitted_at"):
+        result["submitted_at"] = str(previous.get("submitted_at") or submission.get("submitted_at") or "")
+    if submitted_content:
+        result["submitted_content"] = submitted_content
     if not notice.action or notice.action.status not in TRACKED_ACTION_STATES:
         result.update(status="not_submitted", status_label="의견 등록 전")
         return result
+    if not roots:
+        if submission.get("recorded") or previous.get("submitted_at"):
+            result.update(
+                status="submitted_unverified",
+                status_label="등록 기록 있음 · 나라장터 미확인",
+                detail="서비스에 의견 등록 기록은 있으나 나라장터 공개 의견 조회에서는 아직 확인되지 않았습니다.",
+            )
+        else:
+            result.update(
+                status="not_submitted",
+                status_label="등록 의견 없음",
+                detail="서비스의 등록 완료 기록과 나라장터 공개 의견이 모두 확인되지 않았습니다.",
+            )
+        return result
     if not match:
-        result.update(
-            status="unmatched",
-            status_label="등록 의견 식별 필요",
-            detail="나라장터 의견은 조회되지만 이 서비스에서 관리 중인 의견을 자동 식별하지 못했습니다.",
-        )
+        if submission.get("recorded") or previous.get("submitted_at"):
+            result.update(
+                status="unmatched",
+                status_label="등록 의견 식별 필요",
+                detail="서비스의 등록 기록은 있으나 나라장터 공개 의견 중 일치하는 내용을 찾지 못했습니다.",
+            )
+        else:
+            result.update(
+                status="not_submitted",
+                status_label="다른 공개 의견만 확인",
+                detail="나라장터에 공개 의견은 있지만 이 서비스에서 등록한 의견 기록이나 일치하는 내용은 없습니다.",
+            )
         return result
 
     opinion_no = str(match.get("opninNo") or "")
@@ -116,6 +151,17 @@ def _tracking_result(notice: Notice, rows: list[dict[str, Any]]) -> dict[str, An
     return result
 
 
+def _submission_record(log: AuditLog | None) -> dict[str, Any]:
+    if log is None:
+        return {}
+    detail = json_object(log.detail_json)
+    return {
+        "recorded": True,
+        "submitted_at": log.created_at.isoformat() if log.created_at else "",
+        "submitted_content": str(detail.get("opinion_content") or ""),
+    }
+
+
 async def refresh_notice_opinions(
     db: Session, notice: Notice, *, client: G2BClient | None = None,
 ) -> dict[str, Any]:
@@ -124,41 +170,110 @@ async def refresh_notice_opinions(
     payload = json_object(notice.raw_payload_json)
     registration_no = str(payload.get("bfSpecRgstNo") or notice.notice_no or "").strip()
     rows = await (client or G2BClient()).prenotice_opinions(registration_no)
-    tracking = _tracking_result(notice, rows)
+    log = db.scalar(select(AuditLog).where(
+        AuditLog.event_type == "opinion_submitted",
+        AuditLog.entity_type == "action_item",
+        AuditLog.entity_id == str(notice.action.id if notice.action else ""),
+    ).order_by(AuditLog.id.desc()).limit(1))
+    tracking = _tracking_result(notice, rows, submission=_submission_record(log))
+    _store_tracking(db, notice, tracking)
+    db.commit()
+    return tracking
+
+
+def _store_tracking(db: Session, notice: Notice, tracking: dict[str, Any]) -> None:
+    payload = json_object(notice.raw_payload_json)
+    previous = cached_opinion_tracking(notice)
+    for key in ("submitted_at", "submitted_content"):
+        if key not in tracking and previous.get(key):
+            tracking[key] = previous[key]
     payload[TRACKING_KEY] = tracking
     notice.raw_payload_json = json.dumps(payload, ensure_ascii=False, default=str)
     db.add(AuditLog(
         event_type="prenotice_opinion_checked", entity_type="notice", entity_id=str(notice.id),
         detail_json=json.dumps(tracking, ensure_ascii=False),
     ))
-    db.commit()
-    return tracking
 
 
 async def refresh_tracked_opinions(db: Session) -> dict[str, int]:
+    return await refresh_tracked_opinions_cached(db)
+
+
+def _checked_within(notice: Notice, interval: timedelta | None) -> bool:
+    if not interval:
+        return False
+    raw = str(cached_opinion_tracking(notice).get("checked_at") or "")
+    try:
+        checked_at = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if checked_at.tzinfo is None:
+        checked_at = checked_at.replace(tzinfo=timezone.utc)
+    return checked_at >= datetime.now(timezone.utc) - interval
+
+
+async def refresh_tracked_opinions_cached(
+    db: Session, *, min_interval: timedelta | None = None,
+    client: G2BClient | None = None,
+) -> dict[str, int]:
+    """Refresh tracked pre-notice replies, optionally reusing a recent check."""
     notices = db.scalars(
         select(Notice)
         .join(ActionItem)
         .where(Notice.stage == "prenotice", ActionItem.status.in_(TRACKED_ACTION_STATES))
         .options(selectinload(Notice.action), selectinload(Notice.analysis_runs))
     ).all()
-    client = G2BClient()
-    stats = {"checked": 0, "replied": 0, "failed": 0}
+    client = client or G2BClient()
+    stats = {"checked": 0, "replied": 0, "failed": 0, "skipped": 0, "changed": 0}
+    action_ids = [str(notice.action.id) for notice in notices if notice.action]
+    submitted_logs = db.scalars(select(AuditLog).where(
+        AuditLog.event_type == "opinion_submitted",
+        AuditLog.entity_type == "action_item",
+        AuditLog.entity_id.in_(action_ids),
+    ).order_by(AuditLog.id)).all() if action_ids else []
+    submissions = {log.entity_id: _submission_record(log) for log in submitted_logs}
+    pending: list[tuple[Notice, dict[str, Any], str]] = []
     for notice in notices:
-        try:
-            tracking = await refresh_notice_opinions(db, notice, client=client)
+        if _checked_within(notice, min_interval):
+            stats["skipped"] += 1
+            continue
+        payload = json_object(notice.raw_payload_json)
+        registration_no = str(payload.get("bfSpecRgstNo") or notice.notice_no or "").strip()
+        pending.append((notice, cached_opinion_tracking(notice), registration_no))
+
+    # Network waits dominate this job. Bound concurrency to avoid flooding G2B,
+    # and keep all SQLAlchemy access outside concurrent coroutines.
+    semaphore = asyncio.Semaphore(3)
+
+    async def fetch(registration_no: str):
+        async with semaphore:
+            return await client.prenotice_opinions(registration_no)
+
+    results = await asyncio.gather(
+        *(fetch(registration_no) for _, _, registration_no in pending),
+        return_exceptions=True,
+    )
+    for (notice, previous, _), result in zip(pending, results):
+        if not isinstance(result, BaseException):
+            tracking = _tracking_result(
+                notice, result, submission=submissions.get(str(notice.action.id)),
+            )
+            _store_tracking(db, notice, tracking)
             stats["checked"] += 1
             stats["replied"] += int(tracking.get("status") == "replied")
-        except Exception as exc:
-            db.rollback()
+            stats["changed"] += int(
+                tracking.get("status") != previous.get("status")
+                or tracking.get("matched_reply_count") != previous.get("matched_reply_count")
+            )
+        else:
             stats["failed"] += 1
-            payload = json_object(notice.raw_payload_json)
-            payload[TRACKING_KEY] = {
+            tracking = {
                 "checked_at": datetime.now(timezone.utc).isoformat(),
                 "status": "error",
                 "status_label": "답변 확인 실패",
-                "detail": f"{type(exc).__name__}: {str(exc)[:300]}",
+                "detail": f"{type(result).__name__}: {str(result)[:300]}",
             }
-            notice.raw_payload_json = json.dumps(payload, ensure_ascii=False, default=str)
-            db.commit()
+            _store_tracking(db, notice, tracking)
+    if pending:
+        db.commit()
     return stats

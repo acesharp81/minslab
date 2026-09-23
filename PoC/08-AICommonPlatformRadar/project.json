@@ -2,7 +2,7 @@
   "id": "ai-common-platform-radar",
   "order": 8,
   "display_no": "08",
-  "title": "조달체크",
+  "title": "조달췤!",
   "date": "범정부 AI 공통기반 edition",
   "summary": "나라장터 AI 사업, 자동으로 찾고 공통기반 활용까지 체크.",
   "description": "사전규격과 본공고를 수집하고 사업문서를 안전하게 추출한 뒤 3대 기본조건과 공통기반 사용 여부를 6개 태그로 분류하고 근거·확인 질문·보완 안내문을 제공합니다.",

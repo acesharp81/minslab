@@ -1,25 +1,31 @@
 {% extends "base.html" %}
-{% block title %}대시보드 · 조달체크 | 범정부 AI 공통기반 edition{% endblock %}
+{% block title %}대시보드 · 조달췤! | 범정부 AI 공통기반 edition{% endblock %}
 {% block content %}
 <section class="dashboard-head">
-  <div><span class="eyebrow">PROCUREMENT AI CHECK</span><h1>조달체크</h1><p>나라장터 AI 사업, 자동으로 찾고 공통기반 활용까지 체크.</p></div>
-  <div class="collection-window"><span>일일 처리 주기</span><strong>{{ collection_window.label }}</strong><small>03:10 수집 · 04:40 조건부 재시도 · 05:00 집계 마감</small></div>
+  <div><span class="eyebrow">PROCUREMENT AI CHECK</span><h1>조달췤!</h1><p>나라장터 공고에서 AI 서비스 사업을 찾고 공통기반 활용까지 체크.</p></div>
+  <div class="collection-window"><span>일일 처리 주기</span><strong>{{ collection_window.label }}</strong><small>03:10 수집 · 04:35 조건부 재시도 · 06:00 집계 마감</small></div>
 </section>
 
 <section class="daily-status-map" aria-label="일일 수집 사업 최종 상태">
   <article class="daily-root"><small>새벽 배치 수집</small><strong>{{ summary_flow.collected|number }}건</strong><span>최종 상태 기준</span></article>
   <i class="status-arrow">›</i>
   <div class="daily-primary-split">
-    <article class="daily-non-ai"><span>비AI 사업</span><strong>{{ summary_flow.non_ai|number }}건</strong></article>
+    <article class="daily-non-ai"><span>비AI 서비스 사업</span><strong>{{ summary_flow.non_ai_service|number }}건</strong><small>적용범위 외 {{ summary_flow.out_of_scope|number }} · AI 근거 없음 {{ summary_flow.non_ai|number }}</small></article>
     <article class="daily-ai-group">
-      <header><span>AI 사업</span><strong>{{ summary_flow.ai|number }}건</strong></header>
+      <header><span>AI 서비스 사업</span><strong>{{ summary_flow.ai|number }}건</strong></header>
       <div class="daily-ai-states">
         <section class="daily-eligible"><div class="daily-state-head"><span>공통기반 적합</span><strong>{{ summary_flow.eligible|number }}건</strong></div><div><a href="{{ url_for('notices_page').path }}?classification_code=1"><span>이용</span><b>{{ summary_flow.eligible_uses|number }}</b></a><a href="{{ url_for('notices_page').path }}?classification_code=2"><span>미이용</span><b>{{ summary_flow.eligible_not_used|number }}</b></a></div></section>
-        <a class="daily-review" href="{{ url_for('notices_page').path }}?classification_code=3"><span>검토 필요</span><strong>{{ summary_flow.review|number }}건</strong></a>
+        <a class="daily-review" href="{{ url_for('notices_page').path }}?classification_code=3">
+          <div class="reason-state-total"><span>검토 필요</span><strong>{{ summary_flow.review|number }}건</strong></div>
+          <div class="ineligible-reason-chart review-reason-chart compact" title="공고 {{ summary_flow.review|number }}건의 확인 사유 {{ summary_flow.review_reasons.total|number }}건 · 중복 집계">
+            <i class="reason-pie {{ 'empty' if not summary_flow.review_reasons.total else '' }}" style="--reason-gradient:{{ summary_flow.review_reasons.gradient }}"><b>{{ summary_flow.review_reasons.total|number }}</b></i>
+            <ul>{% for item in summary_flow.review_reasons["items"] %}<li><i style="background:{{ item.color }}"></i><span>{{ item.label }}</span><b>{{ item.count|number }}건 · {{ item.percent|number }}%</b></li>{% endfor %}</ul>
+          </div>
+        </a>
         <a class="daily-ineligible" href="{{ url_for('notices_page').path }}?classification_code=5">
           <div class="reason-state-total"><span>부적합</span><strong>{{ summary_flow.ineligible|number }}건</strong></div>
           <div class="ineligible-reason-chart compact" title="부적합 사유별 구성비">
-            <i class="reason-pie {{ 'empty' if not summary_flow.ineligible_reasons.total else '' }}" style="--task-end:{{ summary_flow.ineligible_reasons.task_end }}%;--network-end:{{ summary_flow.ineligible_reasons.network_end }}%"><b>{{ summary_flow.ineligible|number }}</b></i>
+            <i class="reason-pie {{ 'empty' if not summary_flow.ineligible_reasons.total else '' }}" style="--reason-gradient:{{ summary_flow.ineligible_reasons.gradient }}"><b>{{ summary_flow.ineligible|number }}</b></i>
             <ul>{% for item in summary_flow.ineligible_reasons["items"] %}<li><i style="background:{{ item.color }}"></i><span>{{ item.label }}</span><b>{{ item.percent|number }}%</b></li>{% endfor %}</ul>
           </div>
         </a>
@@ -35,7 +41,8 @@
     <div class="action-count"><strong>{{ action_total|number }}</strong><span>전체 대상</span><small>오늘 조치 {{ actioned_today|number }}건</small></div>
   </div>
   <div class="action-list">
-    {% for row in priorities %}{% set notice = row.notice %}{% set wf = row.workflow %}
+  <div class="action-stage-head"><div><span>사전규격 공개</span><strong>{{ prenotice_action_total|number }}건</strong></div><p>나라장터 의견 등록으로 바로 조치할 수 있습니다.</p><a href="{{ url_for('notices_page').path }}?stage=prenotice&action_required=true">전체 보기</a></div>
+    {% for row in prenotice_priorities %}{% set notice = row.notice %}{% set wf = row.workflow %}
     <article class="action-row">
       <div class="action-ident">
         <div class="badge-row"><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><span class="category-tag category-{{ wf.classification_code }}"><b>{{ wf.classification_code }}</b>{{ wf.classification_label }}</span><span class="action-status">{{ wf.action_status }}</span>{% if notice.stage == 'prenotice' %}<span class="opinion-mini state-{{ wf.opinion_tracking.status }}">{{ wf.opinion_tracking.status_label }}</span>{% endif %}</div>
@@ -57,17 +64,52 @@
       </div>
     </article>
     {% else %}
-    <div class="empty action-empty"><strong>현재 새로 조치·확인할 대상이 없습니다.</strong><span>심층 분석에서 조치 대상이 발견되면 이곳에 표시되고, 의견 등록 후에는 조치중인 사업으로 이동합니다.</span></div>
+    <div class="empty action-empty"><strong>현재 바로 의견을 등록할 사전규격이 없습니다.</strong><span>사전규격 조치 대상이 발견되면 이곳에 표시됩니다.</span></div>
     {% endfor %}
   </div>
-  {% if pagination.total_pages > 1 %}
-  <nav class="pagination" aria-label="대시보드 조치 대상 페이지">
-    {% if pagination.previous_url %}<a href="{{ pagination.previous_url }}">← 이전</a>{% else %}<span>← 이전</span>{% endif %}
-    <div>{% for number in pagination.pages %}<a class="{% if number == pagination.page %}current{% endif %}" href="{{ pagination.page_url(number) }}">{{ number }}</a>{% endfor %}</div>
-    {% if pagination.next_url %}<a href="{{ pagination.next_url }}">다음 →</a>{% else %}<span>다음 →</span>{% endif %}
-  </nav>
-  {% endif %}
-  <div class="action-list-footer"><span>{{ pagination.page|number }} / {{ pagination.total_pages|number }}페이지 · 전체 {{ action_total|number }}건</span><a class="button" href="{{ url_for('notices_page').path }}?action_required=true">상세 조건으로 보기</a></div>
+
+  <div class="action-stage-head bid-stage-head"><div><span>본공고</span><strong>{{ bid_action_total|number }}건</strong></div><p>직접 의견 등록 대신 공고 담당자의 소속·이름·연락처를 확인해 개별 연락합니다.</p><a href="{{ url_for('notices_page').path }}?stage=bid_notice&action_required=true">전체 보기</a></div>
+  <div class="action-list bid-action-list">
+    {% for row in bid_priorities %}{% set notice = row.notice %}{% set wf = row.workflow %}
+    <article class="action-row bid-contact-row">
+      <div class="action-ident">
+        <div class="badge-row"><span class="stage">본공고</span><span class="category-tag category-{{ wf.classification_code }}"><b>{{ wf.classification_code }}</b>{{ wf.classification_label }}</span><span class="action-status">{{ wf.action_status }}</span></div>
+        <a class="action-title" href="{{ url_for('notice_detail', notice_id=notice.id).path }}">{{ notice.title }}</a>
+        <small>{{ notice.agency_name }} · {{ notice.notice_no }} · {{ row.deadline }}</small>
+      </div>
+      <div class="action-finding">
+        <div class="issue-tags">{% for label in wf.issue_labels %}<span>{{ label }}</span>{% endfor %}</div>
+        {% if wf.findings %}<strong>{{ wf.findings[0].problem }}</strong><small>필요 조치 · {{ wf.findings[0].action }}</small>{% else %}<strong>상세 분석에서 확인이 필요합니다.</strong>{% endif %}
+      </div>
+      <div class="action-buttons">
+        <a class="button" href="{{ url_for('notice_detail', notice_id=notice.id).path }}">분석 내용 보기</a>
+        <button class="button primary" type="button" data-open-bid-contact="bid-contact-{{ notice.id }}">의견 전달 정보</button>
+        <button class="button danger-soft" type="button" data-report-classification-error="{{ notice.id }}" data-notice-title="{{ notice.title }}">판정오류 신고</button>
+      </div>
+      <dialog class="classification-error-dialog bid-contact-dialog" id="bid-contact-{{ notice.id }}">
+        <form method="dialog">
+          <span class="eyebrow">BID NOTICE CONTACT</span><h2>본공고 의견 전달 정보</h2>
+          <p><strong>{{ notice.title }}</strong></p>
+          <dl class="bid-contact-list">
+            <div><dt>소속</dt><dd>{{ wf.contact.organization or notice.agency_name or '소속 미제공' }}</dd></div>
+            <div><dt>이름</dt><dd>{{ wf.contact.name or '담당자 이름 미제공' }}</dd></div>
+            <div><dt>연락처</dt><dd>{{ wf.contact.phone or '공개된 연락처 없음' }}</dd></div>
+          </dl>
+          <div class="bid-call-script">
+            <header><b>통화용 검토 요청</b><small>아래 문안을 보면서 사업 내용에 맞게 설명하고 확인해 주세요.</small></header>
+            {% for section in wf.guidance_sections %}
+            <section class="bid-call-section"><h3>{{ section.title }}</h3>{% if section.title == '인사·의견 요지' %}{% for entry in section.entries %}<p>{{ entry }}</p>{% endfor %}{% else %}<ul>{% for entry in section.entries %}<li>{{ entry }}</li>{% endfor %}</ul>{% endif %}</section>
+            {% else %}<p class="empty">통화용 검토 요청 문안을 만들 수 없습니다. 상세 분석에서 확인 질문을 검토해 주세요.</p>{% endfor %}
+          </div>
+          <p class="bid-contact-help">본공고는 나라장터 사전규격 의견 등록 기간이 종료된 단계이므로, 위 내용을 바탕으로 담당자에게 공통기반 우선 활용 검토를 요청하세요.</p>
+          <div class="dialog-actions"><a class="button" href="{{ url_for('notice_detail', notice_id=notice.id).path }}">상세 분석 보기</a><button class="button primary" type="submit">닫기</button></div>
+        </form>
+      </dialog>
+    </article>
+    {% else %}<div class="empty action-empty"><strong>현재 개별 연락이 필요한 본공고가 없습니다.</strong><span>본공고 조치 대상이 발견되면 담당자 정보와 함께 표시됩니다.</span></div>{% endfor %}
+  </div>
+
+  <div class="action-list-footer"><span>사전규격 {{ prenotice_action_total|number }}건 · 본공고 {{ bid_action_total|number }}건 · 전체 {{ action_total|number }}건</span><a class="button" href="{{ url_for('notices_page').path }}?action_required=true">상세 조건으로 보기</a></div>
 </section>
 
 <section class="panel actions-in-progress" id="actions-in-progress">
@@ -110,7 +152,7 @@
   <div class="panel-head compact-head"><div><span class="eyebrow">CONFIRMED USE</span><h2>공통기반 이용 확인 공고</h2><p>분석 또는 조치 결과 공통기반 이용이 확인된 사전규격·본공고입니다.</p></div><a class="button" href="{{ url_for('notices_page').path }}?classification_code=1">전체 보기</a></div>
   <div class="confirmed-use-list">
     {% for notice in confirmed_use_notices %}
-    <a href="{{ url_for('notice_detail', notice_id=notice.id).path }}"><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><span><strong>{{ notice.title }}</strong><small>{{ notice.agency_name }} · {{ notice.notice_no }}</small></span><b>확인 ›</b></a>
+    <a href="{{ url_for('notice_detail', notice_id=notice.id).path }}"><span class="stage">{{ '사전규격' if notice.stage == 'prenotice' else '본공고' }}</span><span><strong>{{ notice.title }}</strong><small>{{ notice.agency_name }} · {{ notice.notice_no }} · {{ '조치 결과 이용 확인' if notice.action and notice.action.status in ['completed_uses', 'reflected'] else '분석 결과 이용 확인' }}</small></span><b>확인 ›</b></a>
     {% else %}<p class="empty">공통기반 이용이 확인된 사업이 없습니다.</p>{% endfor %}
   </div>
 </section>

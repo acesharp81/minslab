@@ -1,8 +1,18 @@
+import asyncio
 import json
+from dataclasses import replace
+from datetime import timedelta
 
-from app.models import ActionItem, AnalysisRun, Notice
+import pytest
+
+from app.config import get_settings
+from app.db import Base
+from app.models import ActionItem, AnalysisRun, AuditLog, Notice
 from app.services.analyzer import CURRENT_CRITERIA_VERSION
-from app.services.opinion_tracker import _tracking_result
+from app.services.g2b_client import G2BClient
+from app.services.opinion_tracker import _tracking_result, refresh_tracked_opinions_cached
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 def _notice() -> Notice:
@@ -63,3 +73,105 @@ def test_reply_to_registered_opinion_is_exposed():
     assert result["status"] == "replied"
     assert result["matched_reply_count"] == 1
     assert result["latest_reply_content"] == "본공고에 반영하겠습니다."
+
+
+def test_empty_opinion_list_is_not_a_matching_failure():
+    notice = _notice()
+    assert _tracking_result(notice, [])["status"] == "not_submitted"
+    confirmed = _tracking_result(notice, [], submission={
+        "recorded": True, "submitted_at": "2026-09-15T10:00:00+00:00",
+        "submitted_content": "등록 당시 문안",
+    })
+    assert confirmed["status"] == "submitted_unverified"
+    assert confirmed["status_label"] == "등록 기록 있음 · 나라장터 미확인"
+    assert confirmed["opinion_count"] == 0
+    assert confirmed["submitted_content"] == "등록 당시 문안"
+
+
+def test_mock_mode_cannot_be_mistaken_for_an_empty_public_opinion_list():
+    client = G2BClient(settings=replace(get_settings(), g2b_mode="mock"))
+    with pytest.raises(RuntimeError, match="G2B_MODE=live"):
+        asyncio.run(client.prenotice_opinions("R26BD001"))
+
+
+def test_unrelated_public_opinion_is_not_our_unmatched_submission():
+    notice = _notice()
+    rows = [{"opninNo": "9", "rplyNo": "0", "opninCntnts": "납품 장소를 확인해 주세요."}]
+    unrelated = _tracking_result(notice, rows)
+    recorded = _tracking_result(notice, rows, submission={"recorded": True})
+
+    assert unrelated["status"] == "not_submitted"
+    assert unrelated["status_label"] == "다른 공개 의견만 확인"
+    assert recorded["status"] == "unmatched"
+
+
+def test_refresh_uses_submission_audit_and_keeps_local_content():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    class Client:
+        async def prenotice_opinions(self, _registration_no):
+            return []
+
+    with Session(engine) as db:
+        notice = _notice()
+        db.add(notice)
+        db.flush()
+        db.add(AuditLog(
+            event_type="opinion_submitted", entity_type="action_item",
+            entity_id=str(notice.action.id),
+            detail_json=json.dumps({"opinion_content": "등록 당시 문안"}),
+        ))
+        db.commit()
+        asyncio.run(refresh_tracked_opinions_cached(db, client=Client()))
+        first = json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"]
+        asyncio.run(refresh_tracked_opinions_cached(db, client=Client()))
+        second = json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"]
+
+    assert first["status"] == "submitted_unverified"
+    assert second["submitted_content"] == "등록 당시 문안"
+    assert second["submitted_at"]
+
+
+def test_dashboard_refresh_detects_reply_and_reuses_recent_check():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    root = {
+        "opninNo": "3", "rplyNo": "0", "opninTitl": "공통기반 활용 검토",
+        "opninCntnts": "인공지능데이터행정법 제27조제2항에 따라 공통기반 활용을 검토하고 회신해 주시기 바랍니다.",
+        "inptDt": "20260915100000",
+    }
+    reply = {
+        "opninNo": "3", "rplyNo": "1", "opninCntnts": "본공고에 반영하겠습니다.",
+        "inptDt": "20260916130000",
+    }
+
+    class Client:
+        def __init__(self):
+            self.calls = 0
+
+        async def prenotice_opinions(self, _registration_no):
+            self.calls += 1
+            return [root, reply]
+
+    client = Client()
+    with Session(engine) as db:
+        notice = _notice()
+        notice.action.status = "in_progress"
+        db.add(notice)
+        db.commit()
+
+        first = asyncio.run(refresh_tracked_opinions_cached(
+            db, min_interval=timedelta(minutes=5), client=client,
+        ))
+        second = asyncio.run(refresh_tracked_opinions_cached(
+            db, min_interval=timedelta(minutes=5), client=client,
+        ))
+
+        tracking = json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"]
+
+    assert first["changed"] == 1
+    assert first["replied"] == 1
+    assert second["skipped"] == 1
+    assert client.calls == 1
+    assert tracking["status"] == "replied"

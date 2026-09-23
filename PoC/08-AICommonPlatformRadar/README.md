@@ -1,4 +1,4 @@
-# PoC 08 · 조달체크 | 범정부 AI 공통기반 edition
+# PoC 08 · 조달췤! | 범정부 AI 공통기반 edition
 
 > 나라장터 AI 사업, 자동으로 찾고 공통기반 활용까지 체크.
 
@@ -19,7 +19,7 @@
 - Chrome 확장프로그램을 통한 나라장터 사전규격 검색·상세 이동·의견 자동입력과 조치중 자동 전환
 - 조치완료(이용·미이용·부적합) 시 등록 주소록으로 사업·의견·회신 내용을 보내는 SMTP 알림
 - 누적 분석·AI 검출·공통기반 판정·조치·기관 반응·사전규격→본공고 전환을 한눈에 보는 성과 통계 화면
-- 03:10 수집, 04:40 조건부 재시도, 07:00 최종 보고서의 systemd 타이머와 프로세스 간 중복 실행 잠금
+- 03:10 수집, 04:35 조건부 재시도, 06:20 최종 보고서와 12:00 보강 수집의 systemd 타이머 및 프로세스 간 중복 실행 잠금
 - 기존 Supabase 2 Data API 운영 저장소, PoC08 전용 SQLite 장애 캐시와 시작 시 재동기화
 
 ## 3분 실행
@@ -65,6 +65,8 @@ G2B_SERVICE_KEY=발급받은_원본_키
 AUTO_SEED_SAMPLE=false
 ```
 
+운영 배포 후 `/health`의 `g2b_mode`가 반드시 `live`인지 확인합니다. `mock` 모드에서는 의견 조회가 실제 나라장터 결과로 오인되지 않도록 오류로 처리됩니다. 등록 의견·답변은 서비스 시작 약 30초 후 첫 확인을 수행하고 이후 약 15분 간격으로 자동 재확인합니다.
+
 현재 공공데이터포털 Swagger에서 확인한 기본값은 다음과 같습니다.
 
 - 사전규격: `https://apis.data.go.kr/1230000/ao/HrcspSsstndrdInfoService/getPublicPrcureThngInfoServc`
@@ -82,12 +84,16 @@ python scripts/apply_attachment_policy.py
 
 ### 일일 무인 운영
 
-운영 기본 시간대는 `Asia/Seoul`입니다. 03:10에 수집·파싱·2/3차 분석을 실행하고, 실패 항목이 있거나 1차 배치가 완료되지 않았을 때만 04:40에 다시 실행합니다. 07:00 보고서는 그날의 성공한 수집 배치가 있어야 최종본으로 생성되며, 배치가 없거나 실패 중이면 조용히 빈 보고서를 발행하지 않고 service를 실패 처리합니다.
+운영 기본 시간대는 `Asia/Seoul`입니다. 오전 배치는 03:10에 수집·파싱·2/3차 분석을 시작하고, 실패 항목이 있거나 1차 배치가 완료되지 않았을 때만 04:35에 다시 실행합니다. 각 실행은 낮은 CPU·디스크 우선순위를 사용하며 1차는 04:25, 재시도는 05:50까지 강제 종료됩니다. 06:20 보고서는 그날의 성공한 수집 배치가 있어야 최종본으로 생성되며, 배치가 없거나 실패 중이면 조용히 빈 보고서를 발행하지 않고 service를 실패 처리합니다.
+
+보강 배치는 12:00에 시작하고 필요한 경우에만 12:40에 재시도합니다. 각각 12:35와 12:55까지 강제 종료되며, 13:00 이후에는 누락 타이머나 수동 실행도 수집을 시작하지 않습니다. 모든 타이머는 `Persistent=false`여서 서버가 예약 시각에 정지해 있었더라도 사용자 이용 시간에 밀린 수집을 실행하지 않습니다. PoC7의 회의 종료 직후 처리 워커는 이 일정과 무관하게 계속 실행되며 PoC8 배치보다 높은 기본 CPU·디스크 우선순위를 유지합니다.
 
 ```bash
 # 판단만 확인하며 외부 API는 호출하지 않음
 python scripts/run_operational_batch.py --phase primary --dry-run
 python scripts/run_operational_batch.py --phase retry --dry-run
+python scripts/run_operational_batch.py --phase midday --dry-run
+python scripts/run_operational_batch.py --phase midday-retry --dry-run
 
 # 완료 배치가 있는 날짜의 최종 보고서 생성
 python scripts/run_daily_report.py --finalize --require-successful-batch

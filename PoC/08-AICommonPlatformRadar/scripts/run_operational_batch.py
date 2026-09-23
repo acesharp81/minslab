@@ -14,6 +14,7 @@ from app.services.collector import run_collection
 
 
 KST = timezone(timedelta(hours=9))
+MIDDAY_DEADLINE_HOUR = 13
 
 
 def _stats(run: PipelineRun | None) -> dict:
@@ -24,9 +25,11 @@ def _stats(run: PipelineRun | None) -> dict:
         return {}
 
 
-def _latest_collect_today(db) -> PipelineRun | None:
+def _latest_collect_today(db, *, midday: bool = False) -> PipelineRun | None:
     now = datetime.now(KST)
-    start = now.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(timezone.utc)
+    start = now.replace(
+        hour=12 if midday else 0, minute=0, second=0, microsecond=0,
+    ).astimezone(timezone.utc)
     return db.scalar(
         select(PipelineRun)
         .where(PipelineRun.run_kind == "collect", PipelineRun.started_at >= start)
@@ -43,11 +46,11 @@ def _retry_needed(run: PipelineRun | None) -> bool:
     ))
 
 
-def _record_retry_skip(db, previous: PipelineRun) -> dict:
+def _record_retry_skip(db, previous: PipelineRun, phase: str) -> dict:
     stats = {"skipped": True, "reason": "primary_batch_clean", "collect_run_id": previous.id}
     now = datetime.now(timezone.utc)
     run = PipelineRun(
-        run_kind="retry",
+        run_kind="midday_retry" if phase == "midday-retry" else "retry",
         mode=previous.mode,
         status="skipped",
         started_at=now,
@@ -60,25 +63,61 @@ def _record_retry_skip(db, previous: PipelineRun) -> dict:
     return stats
 
 
+def _record_window_skip(db, phase: str) -> dict:
+    stats = {
+        "skipped": True,
+        "reason": "outside_midday_window",
+        "phase": phase,
+        "deadline": f"{MIDDAY_DEADLINE_HOUR:02d}:00 Asia/Seoul",
+    }
+    now = datetime.now(timezone.utc)
+    run = PipelineRun(
+        run_kind="midday_retry" if phase == "midday-retry" else "midday",
+        mode="scheduled",
+        status="skipped",
+        started_at=now,
+        finished_at=now,
+        stats_json=json.dumps(stats, ensure_ascii=False),
+    )
+    db.add(run)
+    db.add(AuditLog(
+        event_type="collection_window_skipped",
+        detail_json=json.dumps(stats, ensure_ascii=False),
+    ))
+    db.commit()
+    return stats
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="PoC08 새벽 운영 배치")
-    parser.add_argument("--phase", choices=("primary", "retry"), default="primary")
+    parser = argparse.ArgumentParser(description="PoC08 운영 수집·분석 배치")
+    parser.add_argument(
+        "--phase", choices=("primary", "retry", "midday", "midday-retry"),
+        default="primary",
+    )
     parser.add_argument("--lookback-days", type=int, default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     init_db()
     with SessionLocal() as db:
-        previous = _latest_collect_today(db)
+        outside_midday_window = (
+            args.phase.startswith("midday")
+            and datetime.now(KST).hour >= MIDDAY_DEADLINE_HOUR
+        )
+        previous = _latest_collect_today(db, midday=args.phase.startswith("midday"))
         if args.dry_run:
             print(json.dumps({
-                "ready": True,
+                "ready": not outside_midday_window,
                 "phase": args.phase,
+                "outside_midday_window": outside_midday_window,
                 "latest_collect_status": previous.status if previous else "missing",
                 "retry_needed": _retry_needed(previous),
             }, ensure_ascii=False, indent=2))
             return
-        if args.phase == "retry" and previous and not _retry_needed(previous):
-            print(json.dumps(_record_retry_skip(db, previous), ensure_ascii=False, indent=2))
+        if outside_midday_window:
+            print(json.dumps(_record_window_skip(db, args.phase), ensure_ascii=False, indent=2))
+            return
+        if args.phase.endswith("retry") and previous and not _retry_needed(previous):
+            print(json.dumps(_record_retry_skip(db, previous, args.phase), ensure_ascii=False, indent=2))
             return
         result = asyncio.run(run_collection(db, args.lookback_days, analyze=True))
         print(json.dumps({"phase": args.phase, **result}, ensure_ascii=False, indent=2))

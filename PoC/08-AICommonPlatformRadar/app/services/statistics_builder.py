@@ -8,10 +8,14 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from ..models import AuditLog, Notice
+from ..models import AnalysisRun, Attachment, AuditLog, Notice
 from .analyzer import is_current_deep_result
 from .attachment_policy import select_preferred_documents
-from .ineligible_reasons import INELIGIBLE_REASON_META, ineligible_reason_key, manual_ineligible_reason
+from .ineligible_reasons import (
+    INELIGIBLE_DETAIL_META, INELIGIBLE_IMPROVEMENT_META, INELIGIBLE_REASON_META,
+    INELIGIBLE_UNKNOWN_KEYS, ineligible_detail_key,
+    ineligible_reason_key, manual_ineligible_reason,
+)
 from .workflow_view import ACTION_REQUIRED_CODES, current_classification_run, json_object
 
 
@@ -22,6 +26,11 @@ ACTION_COMPLETED_STATES = {
 ACTION_PERFORMED_STATES = ACTION_IN_PROGRESS_STATES | ACTION_COMPLETED_STATES
 KST = timezone(timedelta(hours=9))
 PERIOD_LABELS = {"30d": "최근 30일", "month": "이번 달", "year": "이번 해", "all": "전체 기간"}
+REVIEW_REASON_META = (
+    ("network_data", "망·데이터 확인", "#5e8bb5"),
+    ("national_task", "국가사무 확인", "#b06c62"),
+    ("model", "모델·구현 확인", "#777bb5"),
+)
 def _percent(numerator: int, denominator: int) -> float:
     return round(numerator / denominator * 100, 1) if denominator else 0.0
 
@@ -78,6 +87,34 @@ def _history_codes(notice: Notice) -> set[str]:
     return codes
 
 
+def _history_results(notice: Notice) -> list[dict[str, Any]]:
+    return [
+        payload
+        for run in notice.analysis_runs
+        if run.run_type == "deep_ai" and run.status in {"success", "skipped"}
+        and is_current_deep_result(run.result_json)
+        if (payload := json_object(run.result_json))
+    ]
+
+
+def _achievement_flags(notice: Notice) -> tuple[bool, bool]:
+    """Return review→eligible and unapplied→used eligibility from history."""
+    history = _history_results(notice)
+    review_to_eligible = any(
+        str(result.get("classification_code") or "") in {"3", "4"}
+        for result in history
+    )
+    unused_to_used = any(
+        str(result.get("classification_code") or "") == "2"
+        or (
+            str(result.get("classification_code") or "") == "3"
+            and str(result.get("platform_usage") or "") != "uses"
+        )
+        for result in history
+    )
+    return review_to_eligible, unused_to_used
+
+
 def final_status_key(notice: Notice, result: dict[str, Any] | None = None) -> str:
     """Collapse detailed classifications and confirmed actions into final operator states."""
     result = result if result is not None else _current_result(notice)
@@ -91,11 +128,33 @@ def final_status_key(notice: Notice, result: dict[str, Any] | None = None) -> st
     if action_status in {"completed_not_used", "closed"}:
         return "eligible_not_used"
     if action_status == "completed_ineligible":
+        if manual_ineligible_reason(notice) in {"service_scope", "service_scope_outside_target"}:
+            return "out_of_scope"
         return "ineligible"
+    if str(result.get("service_scope") or "") == "non_target":
+        return "out_of_scope"
     return {
         "1": "eligible_uses", "2": "eligible_not_used", "3": "review",
         "4": "review", "5": "ineligible", "6": "non_ai",
     }.get(str(result.get("classification_code") or ""), "pending")
+
+
+def _percentage_slices(raw_items: list[dict[str, Any]], total: int) -> list[dict[str, Any]]:
+    """Build exact 100% slices while keeping zero-count categories at 0%."""
+    percentages = [_percent(item["count"], total) for item in raw_items]
+    if total and raw_items:
+        largest = max(range(len(raw_items)), key=lambda index: raw_items[index]["count"])
+        percentages[largest] = round(percentages[largest] + (100.0 - sum(percentages)), 1)
+    displayed = []
+    used_percent = 0.0
+    for item, percent in zip(raw_items, percentages):
+        end_percent = round(used_percent + percent, 1)
+        displayed.append({
+            **item, "percent": percent,
+            "start_percent": used_percent, "end_percent": end_percent,
+        })
+        used_percent = end_percent
+    return displayed
 
 
 def _ineligible_reason_breakdown(
@@ -111,26 +170,103 @@ def _ineligible_reason_breakdown(
         {"key": key, "label": label, "color": color, "count": counts[key]}
         for key, label, color in INELIGIBLE_REASON_META
     ]
-    displayed = []
-    used_percent = 0.0
-    for index, item in enumerate(raw_items):
-        percent = (
-            round(100.0 - used_percent, 1)
-            if total and index == len(raw_items) - 1
-            else _percent(item["count"], total)
-        )
-        used_percent = round(used_percent + percent, 1)
-        displayed.append({
-            **item,
-            "percent": percent,
-            "start_percent": round(used_percent - percent, 1),
-            "end_percent": used_percent,
-        })
+    displayed = _percentage_slices(raw_items, total)
     return {
         "total": total,
         "items": displayed,
-        "task_end": displayed[0]["end_percent"] if displayed else 0,
-        "network_end": displayed[1]["end_percent"] if len(displayed) > 1 else 0,
+        "gradient": "conic-gradient(" + ",".join(
+            f'{item["color"]} {item["start_percent"]}% {item["end_percent"]}%'
+            for item in displayed
+        ) + ")" if total else "#e4e9e6",
+    }
+
+
+def _review_reason_keys(result: dict[str, Any]) -> tuple[str, ...]:
+    unresolved: list[str] = []
+    if str(result.get("network_scope") or "unclear") not in {"internal_or_connected", "hybrid"}:
+        unresolved.append("network_data")
+    if str(result.get("task_scope") or "unclear") not in {"government", "delegated_government"}:
+        unresolved.append("national_task")
+    if str(result.get("model_fit") or "unclear") != "platform_llm_or_rag":
+        unresolved.append("model")
+    return tuple(unresolved)
+
+
+def _review_reason_breakdown(
+    notices: list[Notice], states: dict[int, str],
+) -> dict[str, Any]:
+    """Count each unresolved gate once per review notice; reasons may overlap."""
+    review_notices = [notice for notice in notices if states[id(notice)] == "review"]
+    counts: Counter[str] = Counter()
+    for notice in review_notices:
+        counts.update(_review_reason_keys(_current_result(notice)))
+    total = sum(counts.values())
+    raw_items = [
+        {"key": key, "label": label, "color": color, "count": counts[key]}
+        for key, label, color in REVIEW_REASON_META
+    ]
+    displayed = _percentage_slices(raw_items, total)
+    return {
+        "total": total,
+        "notice_total": len(review_notices),
+        "items": displayed,
+        "gradient": "conic-gradient(" + ",".join(
+            f'{item["color"]} {item["start_percent"]}% {item["end_percent"]}%'
+            for item in displayed
+        ) + ")" if total else "#e4e9e6",
+    }
+
+
+def _ineligible_detail_breakdown(
+    notices: list[Notice], states: dict[int, str],
+) -> dict[str, Any]:
+    grouped: dict[str, list[Notice]] = defaultdict(list)
+    for notice in notices:
+        if states[id(notice)] != "ineligible":
+            continue
+        grouped[ineligible_detail_key(notice, _current_result(notice))].append(notice)
+    total = sum(len(rows) for rows in grouped.values())
+    actionable_total = sum(
+        len(grouped[key]) for key in INELIGIBLE_IMPROVEMENT_META
+    )
+    needs_analysis_total = sum(len(grouped[key]) for key in INELIGIBLE_UNKNOWN_KEYS)
+    out_of_scope_total = total - actionable_total - needs_analysis_total
+    items = []
+    for meta in INELIGIBLE_DETAIL_META:
+        rows = grouped[meta["key"]]
+        improvement = INELIGIBLE_IMPROVEMENT_META.get(meta["key"])
+        items.append({
+            **meta,
+            "count": len(rows),
+            "percent": _percent(len(rows), actionable_total) if improvement else 0.0,
+            "actionable": bool(improvement),
+            "improvement_potential": improvement["potential"] if improvement else None,
+            "improvement_analysis": improvement["analysis"] if improvement else None,
+            "examples": [
+                {"id": row.id, "title": row.title, "agency_name": row.agency_name}
+                for row in rows[:3]
+            ],
+        })
+    items.sort(key=lambda item: (not item["actionable"], -item["count"], item["label"]))
+    rank = 0
+    for item in items:
+        if item["actionable"] and item["count"]:
+            rank += 1
+            item["priority_rank"] = rank
+        else:
+            item["priority_rank"] = None
+    return {
+        "total": total,
+        "actionable_total": actionable_total,
+        "needs_analysis_total": needs_analysis_total,
+        "out_of_scope_total": out_of_scope_total,
+        "actionable_rate": _percent(actionable_total, total),
+        "active_count": rank,
+        "items": items,
+        "priority_items": [item for item in items if item["actionable"] and item["count"]],
+        "needs_analysis_items": [
+            item for item in items if item["key"] in INELIGIBLE_UNKNOWN_KEYS and item["count"]
+        ],
     }
 
 
@@ -143,7 +279,9 @@ def build_final_status_snapshot(notices: list[Notice]) -> dict[str, Any]:
             continue
         ordered = sorted(notice.analysis_runs, key=lambda row: row.id or 0, reverse=True)
         latest_deep = next((row for row in ordered if row.run_type == "deep_ai"), None)
-        latest_run = ordered[0] if ordered else None
+        latest_run = next((
+            row for row in ordered if row.run_type in {"simple_ai", "deep_ai"}
+        ), None)
         if latest_deep and latest_deep.status == "skipped" and latest_deep.model_name == "daily-quota-guard":
             pending_reasons["deep"] += 1
         elif latest_run and latest_run.status == "failed":
@@ -152,22 +290,30 @@ def build_final_status_snapshot(notices: list[Notice]) -> dict[str, Any]:
             pending_reasons["unanalyzed"] += 1
     eligible = values["eligible_uses"] + values["eligible_not_used"]
     ai = eligible + values["review"] + values["ineligible"]
+    non_ai_service = values["non_ai"] + values["out_of_scope"]
     collected = len(notices)
     ineligible_reasons = _ineligible_reason_breakdown(notices, states)
+    review_reasons = _review_reason_breakdown(notices, states)
+    ineligible_details = _ineligible_detail_breakdown(notices, states)
     return {
-        "collected": collected, "non_ai": values["non_ai"], "ai": ai,
+        "collected": collected, "non_ai": values["non_ai"],
+        "out_of_scope": values["out_of_scope"], "non_ai_service": non_ai_service,
+        "ai": ai,
         "eligible": eligible, "eligible_uses": values["eligible_uses"],
         "eligible_not_used": values["eligible_not_used"], "review": values["review"],
         "ineligible": values["ineligible"], "pending": values["pending"],
+        "review_reasons": review_reasons,
         "ineligible_reasons": ineligible_reasons,
+        "ineligible_details": ineligible_details,
         "pending_deep": pending_reasons["deep"],
         "pending_failed": pending_reasons["failed"],
         "pending_unanalyzed": pending_reasons["unanalyzed"],
-        "closed": values["non_ai"] + ai,
-        "coverage_rate": _percent(values["non_ai"] + ai, collected),
+        "closed": non_ai_service + ai,
+        "coverage_rate": _percent(non_ai_service + ai, collected),
         "segments": [
             {"key": key, "label": label, "count": values[key], "percent": _percent(values[key], collected)}
-            for key, label in (("non_ai", "비AI 사업"), ("eligible_uses", "적합·이용"),
+            for key, label in (("non_ai", "AI 직접 근거 없음"), ("out_of_scope", "적용범위 외"),
+                ("eligible_uses", "적합·이용"),
                 ("eligible_not_used", "적합·미이용"), ("review", "검토 필요"),
                 ("ineligible", "부적합"), ("pending", "최종판정 대기"))
         ],
@@ -206,8 +352,10 @@ def _achievement_counts(events: list[dict[str, Any]], start: datetime | None, en
     for event in events:
         if not _in_window(event["at"], start, end):
             continue
-        codes, status, notice_id = _history_codes(event["notice"]), event["status"], event["notice"].id
-        if codes & {"3", "4"} and status in {"completed_uses", "completed_not_used", "reflected", "closed"}:
+        notice = event["notice"]
+        codes, status, notice_id = _history_codes(notice), event["status"], notice.id
+        review_flag, unused_flag = _achievement_flags(notice)
+        if review_flag and status in {"completed_uses", "completed_not_used", "reflected", "closed"}:
             review_to_eligible.add(notice_id)
         if (
             codes & {"3", "4"}
@@ -215,9 +363,47 @@ def _achievement_counts(events: list[dict[str, Any]], start: datetime | None, en
             and final_status_key(event["notice"]) == "ineligible"
         ):
             review_to_ineligible.add(notice_id)
-        if "2" in codes and status in {"completed_uses", "reflected"}:
+        if unused_flag and status in {"completed_uses", "reflected"}:
             unused_to_used.add(notice_id)
     return {"review_to_eligible": len(review_to_eligible), "review_to_ineligible": len(review_to_ineligible), "unused_to_used": len(unused_to_used)}
+
+
+def _action_use_cases(
+    events: list[dict[str, Any]], start: datetime | None, end: datetime | None,
+) -> list[dict[str, Any]]:
+    latest: dict[int, dict[str, Any]] = {}
+    for event in events:
+        notice = event["notice"]
+        if event["status"] not in {"completed_uses", "reflected"}:
+            continue
+        if not _in_window(event["at"], start, end):
+            continue
+        codes = _history_codes(notice)
+        if not codes.intersection(ACTION_REQUIRED_CODES):
+            continue
+        review_flag, unused_flag = _achievement_flags(notice)
+        achievements = []
+        if review_flag:
+            achievements.append("검토 후 적합")
+        if unused_flag:
+            achievements.append("미적용 → 적용")
+        previous = "검토 필요·미적용" if review_flag and unused_flag else "적합·미이용" if unused_flag else "검토 필요"
+        row = {
+            "notice_id": notice.id,
+            "title": notice.title,
+            "agency_name": notice.agency_name,
+            "notice_no": notice.notice_no,
+            "previous_status": previous,
+            "result_status": "공통기반 이용",
+            "source_label": "조치 결과 이용 확인",
+            "achievement_labels": achievements,
+            "resolved_at": event["at"].astimezone(KST).isoformat(timespec="minutes") if event["at"] else None,
+            "agency_response": str(notice.action.agency_response or "") if notice.action else "",
+        }
+        existing = latest.get(notice.id)
+        if not existing or str(row["resolved_at"] or "") > str(existing["resolved_at"] or ""):
+            latest[notice.id] = row
+    return sorted(latest.values(), key=lambda row: row["resolved_at"] or "", reverse=True)
 
 
 def _trend_rows(notices: list[Notice], events: list[dict[str, Any]], period: dict[str, Any]) -> list[dict[str, Any]]:
@@ -238,12 +424,14 @@ def _trend_rows(notices: list[Notice], events: list[dict[str, Any]], period: dic
     for event in events:
         if not _in_window(event["at"], period["start"], period["end"]):
             continue
-        bucket, codes, status = key(event["at"]), _history_codes(event["notice"]), event["status"]
+        notice = event["notice"]
+        bucket, codes, status = key(event["at"]), _history_codes(notice), event["status"]
+        review_flag, unused_flag = _achievement_flags(notice)
         if not bucket:
             continue
-        if codes & {"3", "4"} and status in {"completed_uses", "completed_not_used", "reflected", "closed"}:
+        if review_flag and status in {"completed_uses", "completed_not_used", "reflected", "closed"}:
             rows[bucket]["review_to_eligible"] += 1
-        if "2" in codes and status in {"completed_uses", "reflected"}:
+        if unused_flag and status in {"completed_uses", "reflected"}:
             rows[bucket]["unused_to_used"] += 1
     result = [{"label": label, **counts} for label, counts in sorted(rows.items())][-31:]
     maximum = max((row.get("review_to_eligible", 0) + row.get("unused_to_used", 0) for row in result), default=1) or 1
@@ -317,8 +505,14 @@ def build_statistics(
 ) -> dict[str, Any]:
     period_data = _period_window(period, now)
     all_notices = db.scalars(select(Notice).options(
-        selectinload(Notice.attachments), selectinload(Notice.analysis_runs),
-        selectinload(Notice.decision), selectinload(Notice.action),
+        selectinload(Notice.attachments).load_only(
+            Attachment.id, Attachment.original_filename, Attachment.parse_status,
+        ),
+        selectinload(Notice.analysis_runs).load_only(
+            AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+            AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+        ),
+        selectinload(Notice.action),
     )).all()
     notices = [
         notice for notice in all_notices
@@ -327,6 +521,9 @@ def build_statistics(
     results = {notice.id: _current_result(notice) for notice in notices}
     status_snapshot = build_final_status_snapshot(notices)
     resolution_events = _resolution_events(db, all_notices)
+    action_use_cases = _action_use_cases(
+        resolution_events, period_data["start"], period_data["end"],
+    )
     current_achievements = _achievement_counts(
         resolution_events, period_data["start"], period_data["end"],
     )
@@ -354,11 +551,14 @@ def build_statistics(
     }
     classified = [notice for notice in notices if results[notice.id].get("classification_code")]
     codes = Counter(str(results[notice.id].get("classification_code")) for notice in classified)
+    states = {notice.id: final_status_key(notice, results[notice.id]) for notice in notices}
     ai_notices = [
         notice for notice in classified
-        if results[notice.id].get("ai_relevance") in {"high", "medium"}
+        if states[notice.id] in {"eligible_uses", "eligible_not_used", "review", "ineligible"}
     ]
-    non_ai_count = len(classified) - len(ai_notices)
+    out_of_scope_count = sum(states[notice.id] == "out_of_scope" for notice in classified)
+    non_ai_direct_count = sum(states[notice.id] == "non_ai" for notice in classified)
+    non_ai_service_count = out_of_scope_count + non_ai_direct_count
     ai_ids = {notice.id for notice in ai_notices}
 
     current_action_targets = [
@@ -409,10 +609,9 @@ def build_statistics(
     converted = _conversion_rows(notices, results, historical_action_ids)
     converted_eligible = sum(row["eligible_and_uses"] for row in converted)
 
-    relevant = [notice for notice in classified if str(results[notice.id].get("classification_code")) != "6"]
+    relevant = ai_notices
     network_values = Counter(results[notice.id].get("network_scope", "unclear") for notice in relevant)
     task_values = Counter(results[notice.id].get("task_scope", "unclear") for notice in relevant)
-    service_values = Counter(results[notice.id].get("service_scope", "unclear") for notice in relevant)
     model_values = Counter(results[notice.id].get("model_fit", "unclear") for notice in relevant)
     reason_groups = [
         {
@@ -438,18 +637,11 @@ def build_statistics(
             ],
         },
         {
-            "key": "service", "label": "서비스 유형", "count": (
-                service_values["non_target"]
-                + sum(model_values[key] for key in ("custom_model_or_full_finetuning", "unclear"))
-                - sum(
-                    1 for notice in relevant
-                    if results[notice.id].get("service_scope") == "non_target"
-                    and results[notice.id].get("model_fit") in {"custom_model_or_full_finetuning", "unclear"}
-                )
+            "key": "service", "label": "모델·구현 조건", "count": sum(
+                model_values[key] for key in ("custom_model_or_full_finetuning", "unclear")
             ),
-            "description": "구축 범위 밖 용역 또는 제공 LLM·RAG 적용 곤란·미확인",
+            "description": "제공 LLM·RAG 적용 곤란 또는 모델 요구 미확인",
             "details": [
-                ("구축 범위 비대상", service_values["non_target"]),
                 ("독자모델·풀파인튜닝", model_values["custom_model_or_full_finetuning"]),
                 ("모델 적용 미확인", model_values["unclear"]),
             ],
@@ -508,7 +700,9 @@ def build_statistics(
             "analyzed": len(classified),
             "coverage_rate": _percent(len(classified), len(notices)),
             "ai": len(ai_notices),
-            "non_ai": non_ai_count,
+            "non_ai": non_ai_service_count,
+            "non_ai_direct": non_ai_direct_count,
+            "out_of_scope": out_of_scope_count,
             "ai_rate": _percent(len(ai_notices), len(classified)),
         },
         "platform": {
@@ -519,9 +713,10 @@ def build_statistics(
             ) for notice in classified if str(results[notice.id].get("classification_code")) == "2"),
             "transition_review": codes["3"],
             "uses_condition_issue": codes["4"],
-            "out_of_scope": codes["5"],
-            "non_ai": codes["6"],
+            "out_of_scope": status_snapshot["out_of_scope"],
+            "non_ai": status_snapshot["non_ai_service"],
         },
+        "action_use_cases": action_use_cases[:20],
         "quality": {
             "document_total": len(documents),
             "document_parsed": parsed_documents,

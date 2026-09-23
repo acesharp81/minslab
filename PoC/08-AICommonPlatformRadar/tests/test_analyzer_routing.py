@@ -192,6 +192,70 @@ def test_deep_falls_back_to_nvidia(monkeypatch):
     assert "temporary upstream failure" in usage["primary_error"]
 
 
+def test_balanced_deep_routing_uses_both_models_with_reciprocal_fallback():
+    settings = replace(
+        get_settings(),
+        stage3_primary_provider="openai",
+        stage3_primary_api_key="openai-test",
+        stage3_primary_model="gpt-5.4-mini",
+        stage3_fallback_provider="nvidia",
+        stage3_fallback_api_key="nvidia-test",
+        stage3_fallback_model="nvidia/nemotron-3-super-120b-a12b",
+        stage3_routing_mode="balanced",
+    )
+    analyzer = RoutedAnalyzer(settings)
+    routes = [analyzer._deep_endpoints(f"공고 본문 {index}") for index in range(20)]
+
+    assert {primary.provider for primary, _fallback in routes} == {"openai", "nvidia"}
+    assert all(primary.provider != fallback.provider for primary, fallback in routes)
+
+
+def test_nemotron_request_disables_thinking_for_complete_json(monkeypatch):
+    captured = {}
+
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "model": "nvidia/nemotron-3-super-120b-a12b",
+                "choices": [{"message": {"content": _deep().model_dump_json()}}],
+                "usage": {"prompt_tokens": 100, "completion_tokens": 200},
+            }
+
+    class Client:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def post(self, url, *, headers, json):
+            captured.update({"url": url, "headers": headers, "payload": json})
+            return Response()
+
+    monkeypatch.setattr("app.services.analyzer.httpx.Client", Client)
+    endpoint = ChatEndpoint(
+        "nvidia",
+        "https://integrate.api.nvidia.com/v1",
+        "nvidia-test",
+        "nvidia/nemotron-3-super-120b-a12b",
+        30,
+    )
+    result, usage = OpenAIChatClient(endpoint).call(
+        "JSON으로 판정", "추출 본문:\n생성형 AI 구축", DeepAnalysis,
+    )
+
+    assert result.ai_relevance == "high"
+    assert usage["provider"] == "nvidia"
+    assert captured["payload"]["chat_template_kwargs"] == {"enable_thinking": False}
+    assert captured["payload"]["max_tokens"] == 8_000
+
+
 def test_stage2_rate_limit_remains_retryable_instead_of_escalating(monkeypatch):
     settings = replace(
         get_settings(), stage2_provider="gemini", stage2_api_key="gemini-test",

@@ -3,7 +3,8 @@ Description=Run PoC08 primary collection at 03:10 KST
 
 [Timer]
 OnCalendar=*-*-* 03:10:00 Asia/Seoul
-Persistent=true
+AccuracySec=1s
+Persistent=false
 Unit=poc08-collector.service
 
 [Install]

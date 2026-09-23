@@ -1,9 +1,10 @@
 [Unit]
-Description=Generate PoC08 daily report at 07:00 KST
+Description=Generate PoC08 daily report at 06:20 KST
 
 [Timer]
-OnCalendar=*-*-* 07:00:00 Asia/Seoul
-Persistent=true
+OnCalendar=*-*-* 06:20:00 Asia/Seoul
+AccuracySec=1s
+Persistent=false
 Unit=poc08-report.service
 
 [Install]

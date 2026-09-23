@@ -156,6 +156,78 @@ def test_classification_code_filter():
         assert [row.notice_no for row in action_rows] == ["C-2"]
 
 
+def test_scope_out_legacy_result_is_presented_and_filtered_as_non_ai_service():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        notice = Notice(stage="bid_notice", notice_no="LEGACY-SCOPE", title="AI 감리 용역")
+        notice.analysis_runs.append(AnalysisRun(
+            run_type="deep_ai", model_name="model", input_hash="z" * 64, status="success",
+            result_json=json.dumps({
+                "criteria_version": "common-platform-v7-service-construction-scope",
+                "classification_code": "5", "service_scope": "non_target",
+            }),
+        ))
+        db.add(notice)
+        db.commit()
+
+        assert analysis_view(notice)["classification_code"] == "6"
+        code_five = db.scalars(_query(**_params(classification_code="5"))).all()
+        code_six = db.scalars(_query(**_params(classification_code="6"))).all()
+
+    assert code_five == []
+    assert [row.notice_no for row in code_six] == ["LEGACY-SCOPE"]
+
+
+def test_classification_filter_uses_latest_result_and_rejects_later_simple_run():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        latest_wins = Notice(
+            stage="prenotice", notice_no="LATEST", agency_name="기관", title="최신 분류",
+        )
+        latest_wins.analysis_runs.extend([
+            AnalysisRun(
+                run_type="deep_ai", model_name="model", input_hash="a" * 64,
+                status="success", result_json=json.dumps({
+                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "classification_code": "2",
+                }),
+            ),
+            AnalysisRun(
+                run_type="deep_ai", model_name="model", input_hash="b" * 64,
+                status="success", result_json=json.dumps({
+                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "classification_code": "5",
+                }),
+            ),
+        ])
+        invalidated = Notice(
+            stage="prenotice", notice_no="INVALIDATED", agency_name="기관", title="재분석 대기",
+        )
+        invalidated.analysis_runs.extend([
+            AnalysisRun(
+                run_type="deep_ai", model_name="model", input_hash="c" * 64,
+                status="success", result_json=json.dumps({
+                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "classification_code": "2",
+                }),
+            ),
+            AnalysisRun(
+                run_type="simple_ai", model_name="model", input_hash="d" * 64,
+                status="success", result_json='{"needs_deep_review":true}',
+            ),
+        ])
+        db.add_all([latest_wins, invalidated])
+        db.commit()
+
+        code_two = db.scalars(_query(**_params(classification_code="2"))).all()
+        code_five = db.scalars(_query(**_params(classification_code="5"))).all()
+
+    assert code_two == []
+    assert [row.notice_no for row in code_five] == ["LATEST"]
+
+
 def test_notice_page_applies_filters_before_ten_item_pagination():
     engine = create_engine(
         "sqlite+pysqlite:///:memory:",

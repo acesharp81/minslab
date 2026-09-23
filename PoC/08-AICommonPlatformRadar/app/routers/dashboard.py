@@ -10,10 +10,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..db import get_db
-from ..models import ActionItem, Notice, NoticeDecision
+from ..models import ActionItem, AnalysisRun, Notice, NoticeDecision
 from ..services.statistics_builder import build_final_status_snapshot
 from ..services.workflow_view import workflow_summary
-from .notices import current_classification_condition, deadline_label, format_datetime
+from .notices import current_classification_notice_ids, deadline_label, format_datetime
 
 router = APIRouter()
 KST = timezone(timedelta(hours=9))
@@ -27,11 +27,11 @@ COMPLETED_STATES = {
 
 
 def collection_window(now: datetime) -> dict[str, datetime | str]:
-    """Return the latest closed daily cycle containing the 03:10/04:40 jobs."""
+    """Return the latest closed daily cycle containing the morning jobs."""
     local_now = now.astimezone(KST)
-    # 05:00 closes the cycle after the 03:10 primary collection and 04:40
-    # conditional retry, preventing one operating batch from being split.
-    end_local = local_now.replace(hour=5, minute=0, second=0, microsecond=0)
+    # 06:00 closes the cycle after the 03:10 primary collection and 04:35
+    # conditional retry (which is hard-stopped by 05:50).
+    end_local = local_now.replace(hour=6, minute=0, second=0, microsecond=0)
     if local_now < end_local:
         end_local -= timedelta(days=1)
     start_local = end_local - timedelta(days=1)
@@ -65,16 +65,24 @@ def dashboard(
     window = collection_window(now)
     window_notices = db.scalars(
         select(Notice)
-        .options(selectinload(Notice.analysis_runs), selectinload(Notice.action))
+        .options(
+            selectinload(Notice.analysis_runs).load_only(
+                AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+                AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+            ),
+            selectinload(Notice.action),
+        )
         .where(Notice.created_at >= window["start"], Notice.created_at < window["end"])
     ).all()
     summary_flow = build_final_status_snapshot(window_notices)
+    classification_ids = current_classification_notice_ids(db)
 
     pending_action = or_(
         ~Notice.action.has(),
         Notice.action.has(ActionItem.status.in_(PENDING_ACTION_STATES)),
     )
-    action_condition = current_classification_condition(ACTION_CODES)
+    action_ids = set().union(*(classification_ids.get(code, ()) for code in ACTION_CODES))
+    action_condition = Notice.id.in_(action_ids)
     action_total = _count(db, action_condition, pending_action)
     page_size = 10
     total_pages = max(1, math.ceil(action_total / page_size))
@@ -82,10 +90,11 @@ def dashboard(
     action_notices = db.scalars(
         select(Notice)
         .options(
-            selectinload(Notice.analysis_runs),
-            selectinload(Notice.decision),
+            selectinload(Notice.analysis_runs).load_only(
+                AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+                AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+            ),
             selectinload(Notice.action),
-            selectinload(Notice.attachments),
         )
         .outerjoin(NoticeDecision)
         .where(action_condition, pending_action)
@@ -106,6 +115,43 @@ def dashboard(
         for notice in action_notices
     ]
 
+
+    def stage_priorities(stage: str) -> list[dict]:
+        rows = db.scalars(
+            select(Notice)
+            .options(
+                selectinload(Notice.analysis_runs).load_only(
+                    AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+                    AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+                ),
+                selectinload(Notice.action),
+            )
+            .outerjoin(NoticeDecision)
+            .where(action_condition, pending_action, Notice.stage == stage)
+            .order_by(
+                Notice.deadline_at.asc().nullslast(),
+                NoticeDecision.priority_score.desc().nullslast(),
+            )
+            .limit(page_size)
+        ).all()
+        return [
+            {
+                "notice": notice,
+                "workflow": workflow_summary(notice),
+                "deadline": deadline_label(notice.deadline_at),
+            }
+            for notice in rows
+        ]
+
+    prenotice_action_total = _count(
+        db, action_condition, pending_action, Notice.stage == "prenotice",
+    )
+    bid_action_total = _count(
+        db, action_condition, pending_action, Notice.stage == "bid_notice",
+    )
+    prenotice_priorities = stage_priorities("prenotice")
+    bid_priorities = stage_priorities("bid_notice")
+
     progress_condition = (
         Notice.stage == "prenotice",
         Notice.action.has(ActionItem.status.in_(OPINION_IN_PROGRESS_STATES)),
@@ -116,10 +162,11 @@ def dashboard(
     progress_notices = db.scalars(
         select(Notice)
         .options(
-            selectinload(Notice.analysis_runs),
-            selectinload(Notice.decision),
+            selectinload(Notice.analysis_runs).load_only(
+                AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+                AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+            ),
             selectinload(Notice.action),
-            selectinload(Notice.attachments),
         )
         .join(ActionItem)
         .where(*progress_condition)
@@ -147,9 +194,15 @@ def dashboard(
 
     confirmed_use_notices = db.scalars(
         select(Notice)
-        .options(selectinload(Notice.action), selectinload(Notice.analysis_runs))
+        .options(
+            selectinload(Notice.action),
+            selectinload(Notice.analysis_runs).load_only(
+                AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+                AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
+            ),
+        )
         .where(or_(
-            current_classification_condition({"1"}),
+            Notice.id.in_(classification_ids.get("1", ())),
             Notice.action.has(ActionItem.status == "completed_uses"),
         ))
         .order_by(Notice.updated_at.desc())
@@ -175,6 +228,10 @@ def dashboard(
 
     return request.app.state.templates.TemplateResponse(request, "dashboard.html", {
         "priorities": priorities,
+        "prenotice_priorities": prenotice_priorities,
+        "bid_priorities": bid_priorities,
+        "prenotice_action_total": prenotice_action_total,
+        "bid_action_total": bid_action_total,
         "in_progress": in_progress,
         "action_total": action_total,
         "progress_total": progress_total,

@@ -14,7 +14,7 @@ from .platform_usage import has_optional_platform_usage
 ACTION_REQUIRED_CODES = {"2", "3", "4"}
 ACTION_STATUS_LABELS = {
     "new": "권고 대기", "reviewing": "검토중", "in_progress": "조치중",
-    "completed_non_ai": "비AI 사업",
+    "completed_non_ai": "비AI 서비스 사업",
     "completed_uses": "조치완료 · 이용", "completed_not_used": "조치완료 · 미이용",
     "completed_ineligible": "조치완료 · 부적합", "contacted": "조치중",
     "reflected": "조치완료 · 이용", "not_reflected": "조치중", "closed": "조치완료",
@@ -33,6 +33,14 @@ def json_object(value: str | None) -> dict:
         return parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, TypeError):
         return {}
+
+
+def classification_presentation(result: dict) -> tuple[str, str]:
+    """Present non-construction AI-themed notices outside the AI-service category."""
+    if str(result.get("service_scope") or "") == "non_target":
+        return "6", "비AI 서비스·적용범위 외"
+    code = str(result.get("classification_code") or "")
+    return code, CLASSIFICATION_LABELS.get(code, "미분류")
 
 
 def guidance_sections(message: str) -> list[dict]:
@@ -78,18 +86,20 @@ def notice_contact(notice: Notice) -> dict:
     if notice.stage != "bid_notice":
         return {}
     payload = json_object(notice.raw_payload_json)
+    organization = next((str(payload.get(key) or "").strip() for key in (
+        "ntceInsttNm", "dminsttNm", "dmndInsttNm",
+    ) if str(payload.get(key) or "").strip()), notice.agency_name or "")
     name = next((str(payload.get(key) or "").strip() for key in (
         "ntceInsttOfclNm", "dminsttOfclNm", "ofclNm", "chrgprsnNm",
     ) if str(payload.get(key) or "").strip()), "")
     phone = next((str(payload.get(key) or "").strip() for key in (
         "ntceInsttOfclTelNo", "dminsttOfclTelNo", "ofclTelNo", "chrgprsnTelNo",
     ) if str(payload.get(key) or "").strip()), "")
-    tel_value = re.sub(r"[^0-9+]", "", phone)
     return {
+        "organization": organization,
         "name": name,
         "phone": phone,
-        "tel_url": f"tel:{tel_value}" if tel_value else None,
-        "available": bool(name or phone),
+        "available": bool(organization or name or phone),
     }
 
 
@@ -99,6 +109,7 @@ def opinion_tracking(notice: Notice) -> dict:
     if isinstance(tracking, dict) and tracking.get("status"):
         if (
             tracking.get("status") == "not_submitted"
+            and not tracking.get("checked_at")
             and notice.action
             and notice.action.status in {"in_progress", "completed_uses", "completed_not_used", "completed_ineligible", "completed_non_ai", "contacted", "reflected", "not_reflected"}
         ):
@@ -253,7 +264,7 @@ def finding_details(result: dict) -> list[dict]:
 def workflow_summary(notice: Notice) -> dict:
     classification_run = current_classification_run(notice)
     result = json_object(classification_run.result_json if classification_run else None)
-    code = str(result.get("classification_code") or "")
+    code, classification_label = classification_presentation(result)
     findings = finding_details(result) if result else []
     guidance = (
         build_opinion_guidance(notice, result)
@@ -264,7 +275,7 @@ def workflow_summary(notice: Notice) -> dict:
     raw_action_status = notice.action.status if notice.action else "new"
     return {
         "classification_code": code or None,
-        "classification_label": CLASSIFICATION_LABELS.get(code, "미분류"),
+        "classification_label": classification_label,
         "result": result,
         "findings": findings,
         "issue_labels": list(dict.fromkeys(item["gate"] for item in findings)),

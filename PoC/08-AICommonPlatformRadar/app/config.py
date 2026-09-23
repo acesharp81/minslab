@@ -4,6 +4,7 @@ import os
 import hashlib
 import hmac
 from dataclasses import dataclass
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
@@ -133,6 +134,13 @@ class Settings:
     stage2_fallback_api_key: str
     stage2_fallback_model: str
     stage2_fallback_min_interval_seconds: float
+    jev_shadow_enabled: bool
+    jev_base_url: str
+    jev_api_key: str
+    jev_model: str
+    jev_shadow_end_date: str
+    jev_timeout_seconds: int
+    jev_max_input_chars: int
     stage3_primary_provider: str
     stage3_primary_base_url: str
     stage3_primary_api_key: str
@@ -142,6 +150,7 @@ class Settings:
     stage3_fallback_base_url: str
     stage3_fallback_api_key: str
     stage3_fallback_model: str
+    stage3_routing_mode: str
     stage3_timeout_seconds: int
     stage3_max_input_chars: int
     stage3_daily_limit: int
@@ -209,6 +218,13 @@ class Settings:
             problems.append("STAGE3_DAILY_LIMIT는 0 이상이어야 합니다. 0은 무제한입니다.")
         if self.stage3_max_concurrency < 1:
             problems.append("STAGE3_MAX_CONCURRENCY는 1 이상이어야 합니다.")
+        if self.stage3_routing_mode not in {"primary_fallback", "balanced"}:
+            problems.append("STAGE3_ROUTING_MODE는 primary_fallback 또는 balanced여야 합니다.")
+        if self.jev_shadow_end_date:
+            try:
+                date.fromisoformat(self.jev_shadow_end_date)
+            except ValueError:
+                problems.append("JEV_SHADOW_END_DATE는 YYYY-MM-DD 형식이어야 합니다.")
         if self.stage2_min_interval_seconds < 0:
             problems.append("STAGE2_MIN_INTERVAL_SECONDS는 0 이상이어야 합니다.")
         if self.stage2_fallback_min_interval_seconds < 0:
@@ -286,6 +302,13 @@ def get_settings() -> Settings:
             "STAGE2_FALLBACK_MIN_INTERVAL_SECONDS",
             7.0 if stage2_fallback_provider == "gemini" else 0.0,
         ),
+        jev_shadow_enabled=_bool("JEV_SHADOW_ENABLED", True),
+        jev_base_url=os.getenv("JEV_BASE_URL", "https://www.jevai.org").rstrip("/"),
+        jev_api_key=_first_env("JEV_API_KEY"),
+        jev_model=os.getenv("JEV_MODEL", "typesafe-ai/jev"),
+        jev_shadow_end_date=os.getenv("JEV_SHADOW_END_DATE", "2026-09-25"),
+        jev_timeout_seconds=_int("JEV_TIMEOUT_SECONDS", 20),
+        jev_max_input_chars=_int("JEV_MAX_INPUT_CHARS", 8_000),
         stage3_primary_provider=stage3_provider,
         stage3_primary_base_url=os.getenv(
             "STAGE3_PRIMARY_BASE_URL",
@@ -301,12 +324,13 @@ def get_settings() -> Settings:
         ).rstrip("/"),
         stage3_fallback_api_key=_provider_api_key(fallback_provider, "STAGE3_FALLBACK_API_KEY"),
         stage3_fallback_model=os.getenv("STAGE3_FALLBACK_MODEL", "nvidia/nemotron-3-super-120b-a12b" if fallback_provider == "nvidia" else "mock-deterministic-v1"),
+        stage3_routing_mode=os.getenv("STAGE3_ROUTING_MODE", "primary_fallback").lower(),
         stage3_timeout_seconds=_int("STAGE3_TIMEOUT_SECONDS", _int("LLM_TIMEOUT_SECONDS", 180)),
         stage3_max_input_chars=_int("STAGE3_MAX_INPUT_CHARS", 100_000),
         stage3_daily_limit=_int("STAGE3_DAILY_LIMIT", 0),
         stage3_max_concurrency=_int("STAGE3_MAX_CONCURRENCY", 1),
         collect_lookback_days=_int("COLLECT_LOOKBACK_DAYS", 1),
-        daily_report_hour=_int("DAILY_REPORT_HOUR", 7),
+        daily_report_hour=_int("DAILY_REPORT_HOUR", 6),
         max_files_per_notice=_int("MAX_FILES_PER_NOTICE", 20),
         max_file_size_mb=_int("MAX_FILE_SIZE_MB", 80),
         hwp_cli_path=os.getenv("HWP_CLI_PATH", "/usr/local/bin/hwp"),

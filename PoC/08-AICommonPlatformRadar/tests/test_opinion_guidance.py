@@ -32,12 +32,15 @@ def test_anyang_plan_uses_planning_template_and_structured_facts():
     assert message.startswith(
         "안녕하세요. 행정안전부 '범정부 인공지능공통기반'을 담당하는 홍길동 사무관 (044-123-4567)입니다."
     )
-    assert "인공지능 도입·구축 방향을 수립하는 계획·ISP·연구용역" in message
+    assert "AI 서비스 도입·구축 방향을 수립하는 계획·ISP·연구용역" in message
     assert "- AI 서비스 개요: 안양시의 중장기 인공지능(AI)·데이터 발전 방향 마련" in message
     assert "- 사용자: 지방정부(국가사무)" in message
     assert "- 사용환경: 확인안됨" in message
     assert "- 사용모델: 확인안됨" in message
     assert "적정성이 확인되면 향후 사업이 '범정부 인공지능 공통기반'을 활용할 수 있도록 계획에 반영" in message
+    assert "[분석 내용]\n- AI 서비스" in message
+    assert "판단\n- 적정성이" in message
+    assert "\n\n-" not in message
     assert "053-230-1938" in message and "gov-ai@nia.or.kr" in message
     assert [section["title"] for section in guidance_sections(message)] == [
         "인사·의견 요지", "분석 내용", "검토 요청",
@@ -57,11 +60,34 @@ def test_actual_build_uses_construction_template():
     message = build_opinion_guidance(notice, result, _profile())
 
     assert opinion_template_type(notice) == "construction"
-    assert "인공지능 서비스를 도입·구축하는 사업" in message
+    assert "AI 서비스를 도입·구축하는 사업" in message
     assert "- 사용자: 중앙정부·소속기관(국가사무)" in message
     assert "- 사용환경: 내부(행정·업무)망 또는 연계망" in message
     assert "- 사용모델: 공통기반 제공 모델·RAG 적용 가능" in message
     assert "시스템 구성, 적용 기능 및 제안요청서 반영 방향 검토" in message
+
+
+def test_review_request_adds_condition_specific_sentences_for_operator_call():
+    notice = Notice(
+        stage="bid_notice", notice_no="BID-CALL-1", agency_name="행정안전부",
+        title="생성형 AI 업무지원 서비스 구축 사업",
+    )
+    result = {
+        "task_scope": "government", "network_scope": "unclear",
+        "model_fit": "custom_model_or_full_finetuning", "platform_usage": "not_mentioned",
+    }
+
+    message = build_opinion_guidance(notice, result, _profile())
+
+    assert "공개된 본공고 「생성형 AI 업무지원 서비스 구축 사업」" in message
+    assert "AI 서비스를 도입·구축하는 사업으로 판단됩니다" in message
+    assert "공개된 사전규격" not in message
+    assert "서류상 독자모델 또는 풀파인튜닝이 요구" in message
+    assert "EXAONE, Solar Open, Gemma 계열" in message
+    assert "서류상 어떤 네트워크 환경에서 사용되는지 확인되지 않습니다" in message
+    assert "API 방식으로 호출할 수 있는지" in message
+    assert "다른 인프라 대안보다 우선 검토" in message
+    assert message.count("[검토 요청]") == 1
 
 
 def test_optional_platform_usage_adds_priority_review_to_existing_template():

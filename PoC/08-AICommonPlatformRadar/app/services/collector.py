@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..config import get_settings
+from ..db import push_deferred_supabase_changes
 from ..models import Attachment, AuditLog, Notice, PipelineRun
 from .analyzer import LLMRateLimitExceeded, analyze_notice, is_current_deep_result, record_non_ai_screen
 from .attachment_policy import (
@@ -26,7 +27,6 @@ from .filter_rules import evaluate_notice
 from .g2b_client import G2BClient, G2BNotice
 from .parser import parse_bytes
 from .opinion_tracker import refresh_tracked_opinions
-from .supabase_store import get_supabase_store
 
 
 logger = logging.getLogger(__name__)
@@ -281,7 +281,7 @@ async def _run_collection(
         raise RuntimeError(" ".join(problems))
     bulk_supabase_sync = settings.supabase_enabled
     if bulk_supabase_sync:
-        db.info["suppress_supabase_sync"] = True
+        db.info["defer_supabase_sync"] = True
     run = PipelineRun(run_kind="collect", mode=settings.g2b_mode, status="running")
     db.add(run)
     db.commit()
@@ -416,8 +416,8 @@ async def _run_collection(
         raise
     finally:
         if bulk_supabase_sync:
-            db.info.pop("suppress_supabase_sync", None)
-            get_supabase_store().push_all(db)
+            db.info.pop("defer_supabase_sync", None)
+            push_deferred_supabase_changes(db)
 
 
 def reparse_failed(db: Session) -> dict[str, int]:
@@ -432,7 +432,7 @@ def reparse_failed(db: Session) -> dict[str, int]:
     )).all()
     bulk_supabase_sync = settings.supabase_enabled
     if bulk_supabase_sync:
-        db.info["suppress_supabase_sync"] = True
+        db.info["defer_supabase_sync"] = True
     try:
         for attachment in rows:
             stats["retried"] += 1
@@ -463,6 +463,6 @@ def reparse_failed(db: Session) -> dict[str, int]:
         db.commit()
     finally:
         if bulk_supabase_sync:
-            db.info.pop("suppress_supabase_sync", None)
-            get_supabase_store().push_all(db)
+            db.info.pop("defer_supabase_sync", None)
+            push_deferred_supabase_changes(db)
     return stats

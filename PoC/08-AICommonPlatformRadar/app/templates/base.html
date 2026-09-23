@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>{% block title %}조달체크 | 범정부 AI 공통기반 edition{% endblock %}</title>
+  <title>{% block title %}조달췤! | 범정부 AI 공통기반 edition{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', path='app.css').path }}">
   <script defer src="{{ url_for('static', path='app.js').path }}"></script>
 </head>
 <body data-base-path="{{ request.scope.get('app_root_path', request.scope.get('root_path', '')) }}">
   <header class="topbar">
-    <a class="brand" href="{{ url_for('dashboard').path }}"><span class="brand-mark">AI</span><span>조달체크 <b class="brand-edition">| 범정부 AI 공통기반 edition</b><small>나라장터 AI 사업, 자동으로 찾고 공통기반 활용까지 체크.</small></span></a>
+    <a class="brand" href="{{ url_for('dashboard').path }}"><span class="brand-mark">AI</span><span>조달췤! <b class="brand-edition">| 범정부 AI 공통기반 edition</b><small>나라장터 AI 서비스 사업, 자동으로 찾고 공통기반 활용까지 체크.</small></span></a>
     <nav>
       <a class="nav-item nav-install" href="{{ url_for('extension_install_page').path }}"><span class="nav-icon nav-macro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10v14H7zM4 8h3m10 0h3M4 12h3m10 0h3M4 16h3m10 0h3"/><path d="m10 9 5 3-5 3z"/></svg></span><span>확장프로그램 설치</span></a>
       <a class="nav-item" href="{{ url_for('dashboard').path }}"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4zm10 7h6V11h-6zM4 20h6v-3H4zm10-13h6V4h-6z"/></svg></span><span>대시보드</span></a>

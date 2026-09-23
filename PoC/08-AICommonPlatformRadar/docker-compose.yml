@@ -8,6 +8,28 @@ services:
     env_file:
       - path: ${RADAR_ENV_FILE:-.env}
         required: false
+    environment:
+      # 운영 배포에서 의견 조회가 모의 응답으로 성공 처리되지 않도록 실데이터 모드를 명시한다.
+      G2B_MODE: ${G2B_MODE:-live}
+      STAGE2_PROVIDER: ${STAGE2_PROVIDER:-upstage}
+      STAGE2_BASE_URL: ${STAGE2_BASE_URL:-https://api.upstage.ai/v1}
+      STAGE2_MODEL: ${STAGE2_MODEL:-solar-pro4}
+      STAGE2_FALLBACK_PROVIDER: ${STAGE2_FALLBACK_PROVIDER:-mistral}
+      STAGE2_FALLBACK_BASE_URL: ${STAGE2_FALLBACK_BASE_URL:-https://api.mistral.ai/v1}
+      STAGE2_FALLBACK_MODEL: ${STAGE2_FALLBACK_MODEL:-mistral-small-latest}
+      # PoC 4가 일시 중단된 동안 검증된 심층 모델 자원을 PoC 8에 우선 배치한다.
+      STAGE3_PRIMARY_PROVIDER: ${STAGE3_PRIMARY_PROVIDER:-openai}
+      STAGE3_PRIMARY_BASE_URL: ${STAGE3_PRIMARY_BASE_URL:-https://api.openai.com/v1}
+      STAGE3_PRIMARY_MODEL: ${STAGE3_PRIMARY_MODEL:-gpt-5.4-mini}
+      STAGE3_PRIMARY_REASONING_EFFORT: ${STAGE3_PRIMARY_REASONING_EFFORT:-low}
+      STAGE3_FALLBACK_PROVIDER: ${STAGE3_FALLBACK_PROVIDER:-nvidia}
+      STAGE3_FALLBACK_BASE_URL: ${STAGE3_FALLBACK_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      STAGE3_FALLBACK_MODEL: ${STAGE3_FALLBACK_MODEL:-nvidia/nemotron-3-super-120b-a12b}
+      STAGE3_ROUTING_MODE: ${STAGE3_ROUTING_MODE:-balanced}
+      JEV_SHADOW_ENABLED: ${JEV_SHADOW_ENABLED:-true}
+      JEV_BASE_URL: ${JEV_BASE_URL:-https://www.jevai.org}
+      JEV_MODEL: ${JEV_MODEL:-typesafe-ai/jev}
+      JEV_SHADOW_END_DATE: ${JEV_SHADOW_END_DATE:-2026-09-25}
     ports:
       - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-18080}:8000"
     volumes:

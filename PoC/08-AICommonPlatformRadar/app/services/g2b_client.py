@@ -176,7 +176,7 @@ class G2BClient:
     async def prenotice_opinions(self, registration_no: str) -> list[dict[str, Any]]:
         """Return public opinion threads and institution replies for one pre-notice."""
         if self.settings.g2b_mode == "mock":
-            return []
+            raise RuntimeError("모의 모드에서는 실제 나라장터 의견을 조회할 수 없습니다. G2B_MODE=live로 설정해 주세요.")
         if not self.settings.g2b_service_key:
             raise RuntimeError("의견 답변 확인에는 G2B_SERVICE_KEY가 필요합니다.")
         return await self._paged(

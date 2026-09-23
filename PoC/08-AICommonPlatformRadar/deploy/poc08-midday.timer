@@ -1,0 +1,11 @@
+[Unit]
+Description=Run PoC08 midday collection at 12:00 KST
+
+[Timer]
+OnCalendar=*-*-* 12:00:00 Asia/Seoul
+AccuracySec=1s
+Persistent=false
+Unit=poc08-midday.service
+
+[Install]
+WantedBy=timers.target

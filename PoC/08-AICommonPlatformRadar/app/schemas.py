@@ -174,7 +174,14 @@ class ActionPatch(BaseModel):
     saving_estimate: int | None = Field(default=None, ge=0)
     security_effect_note: str | None = Field(default=None, max_length=10000)
     memo: str | None = Field(default=None, max_length=10000)
-    ineligible_reason: Literal["national_task", "network_data", "specialized_model"] | None = None
+    ineligible_reason: Literal[
+        "national_task", "network_data", "specialized_model", "service_scope",
+        "non_government_task", "public_internal_task", "task_basis_unknown",
+        "internet_only_service", "isolated_network_no_link", "data_transfer_restricted",
+        "closed_network_integration", "network_requirements_unknown",
+        "model_training_required", "domain_specialized_model", "unsupported_service_capability",
+        "custom_model_required", "model_requirements_unknown", "service_scope_outside_target",
+    ] | None = None
 
 
 class ReportRequest(BaseModel):

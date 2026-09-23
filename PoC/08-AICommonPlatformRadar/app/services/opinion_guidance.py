@@ -149,6 +149,27 @@ def _render_template(template: str, values: dict[str, str]) -> str:
     return rendered.strip()
 
 
+def _adapt_default_opening(message: str, notice: Notice, template_type: str) -> str:
+    """Name the actual notice and use the correct procurement stage in the opening."""
+    stage_label = "본공고" if notice.stage == "bid_notice" else "사전규격"
+    if template_type == "planning":
+        old = (
+            "공개된 사전규격을 검토한 결과, 인공지능 도입·구축 방향을 수립하는 "
+            "계획·ISP·연구용역으로 확인되었습니다."
+        )
+        new = (
+            f"공개된 {stage_label} 「{notice.title}」을 검토한 결과, AI 서비스 도입·구축 "
+            "방향을 수립하는 계획·ISP·연구용역으로 판단됩니다."
+        )
+    else:
+        old = "공개된 사전규격을 검토한 결과, 인공지능 서비스를 도입·구축하는 사업으로 확인되었습니다."
+        new = (
+            f"공개된 {stage_label} 「{notice.title}」을 검토한 결과, AI 서비스를 "
+            "도입·구축하는 사업으로 판단됩니다."
+        )
+    return message.replace(old, new, 1)
+
+
 def _add_optional_usage_review(message: str, result: dict[str, Any]) -> str:
     if not has_optional_platform_usage(result):
         return message
@@ -172,6 +193,76 @@ def _add_optional_usage_review(message: str, result: dict[str, Any]) -> str:
     return message.rstrip() + f"\n\n[검토 요청]\n{analysis_line}\n{request_line}"
 
 
+def _condition_review_requests(result: dict[str, Any]) -> list[str]:
+    """Turn analyzed gaps into sentences an operator can read during a call."""
+    requests: list[str] = []
+    model = str(result.get("model_fit") or "unclear")
+    network = str(result.get("network_scope") or "unclear")
+    task = str(result.get("task_scope") or "unclear")
+    usage = str(result.get("platform_usage") or "not_mentioned")
+
+    if model == "custom_model_or_full_finetuning":
+        requests.append(
+            "서류상 독자모델 또는 풀파인튜닝이 요구되어 있습니다. 최신 국산·공개 "
+            "파운데이션 모델(예: EXAONE, Solar Open, Gemma 계열 등), 공통기반 제공 모델과 "
+            "RAG 조합으로 대체할 수 있는 범위를 검토해 주시기 바랍니다."
+        )
+    elif model == "unclear":
+        requests.append(
+            "서류상 사용할 모델과 구현 방식이 명확하지 않습니다. 공통기반에서 제공하는 "
+            "LLM·RAG 기능으로 구현할 수 있는지와 별도 모델 학습이 필요한 범위를 확인해 "
+            "주시기 바랍니다."
+        )
+
+    if network == "unclear":
+        requests.append(
+            "서류상 어떤 네트워크 환경에서 사용되는지 확인되지 않습니다. 행정망·업무망에서 "
+            "사용하는 서비스라면 공통기반의 모델과 RAG를 API 방식으로 호출할 수 있는지 "
+            "검토해 주시기 바랍니다."
+        )
+    elif network == "other_closed_network":
+        requests.append(
+            "별도 폐쇄망 사용이 확인됩니다. 해당 망과 행정망·업무망 간 안전한 연계 또는 "
+            "API 호출 방식으로 공통기반을 활용할 수 있는지 검토해 주시기 바랍니다."
+        )
+    elif network == "external_complete":
+        requests.append(
+            "인터넷망에서 완결되는 구성으로 확인됩니다. 실제 업무가 행정망·업무망에서도 "
+            "수행되는지 확인하고, 해당 구간에서 공통기반을 활용할 수 있는지 검토해 주시기 바랍니다."
+        )
+
+    if task == "unclear":
+        requests.append(
+            "이 사업이 중앙부처·지방정부의 국가사무 또는 위임·위탁 사무에 해당하는지와 "
+            "실제 업무 수행기관을 확인해 주시기 바랍니다."
+        )
+
+    if usage != "uses":
+        requests.append(
+            "관련 법령에 따라 범정부 인공지능 공통기반 적용 가능성을 다른 인프라 대안보다 "
+            "우선 검토하고, 적용 가능한 경우 사업 범위와 시스템 구성에 반영해 주시기 바랍니다."
+        )
+    return list(dict.fromkeys(requests))
+
+
+def _add_condition_review_requests(message: str, result: dict[str, Any]) -> str:
+    lines = [f"- {item}" for item in _condition_review_requests(result)]
+    if not lines:
+        return message
+    block = "\n".join(lines)
+    marker = "[검토 요청]"
+    if marker in message:
+        before, after = message.split(marker, 1)
+        return before.rstrip() + f"\n\n{marker}\n{block}\n" + after.lstrip()
+    return message.rstrip() + f"\n\n{marker}\n{block}"
+
+
+def _normalize_list_spacing(message: str) -> str:
+    """Keep opinion bullets contiguous even when a saved legacy template has blank lines."""
+    message = re.sub(r"(?m)^-(?=\S)", "- ", message)
+    return re.sub(r"\n[ \t]*\n(?=-)", "\n", message).strip()
+
+
 def build_opinion_guidance(
     notice: Notice,
     result: dict[str, Any],
@@ -193,4 +284,6 @@ def build_opinion_guidance(
         "guide_reference": GUIDE_REFERENCE,
         "help_contact": HELP_CONTACT,
     })
-    return _add_optional_usage_review(message, result)
+    message = _adapt_default_opening(message, notice, template_type)
+    message = _add_optional_usage_review(message, result)
+    return _normalize_list_spacing(_add_condition_review_requests(message, result))

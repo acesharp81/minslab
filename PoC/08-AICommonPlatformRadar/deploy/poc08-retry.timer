@@ -1,9 +1,10 @@
 [Unit]
-Description=Retry PoC08 collection at 04:40 KST when needed
+Description=Retry PoC08 collection at 04:35 KST when needed
 
 [Timer]
-OnCalendar=*-*-* 04:40:00 Asia/Seoul
-Persistent=true
+OnCalendar=*-*-* 04:35:00 Asia/Seoul
+AccuracySec=1s
+Persistent=false
 Unit=poc08-retry.service
 
 [Install]

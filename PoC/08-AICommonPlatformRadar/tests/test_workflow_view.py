@@ -60,7 +60,8 @@ def test_bid_notice_contact_comes_from_public_raw_payload():
     )
 
     assert notice_contact(notice) == {
-        "name": "홍길동", "phone": "02-123-4567", "tel_url": "tel:021234567", "available": True,
+        "organization": "기관", "name": "홍길동", "phone": "02-123-4567",
+        "available": True,
     }
 
 

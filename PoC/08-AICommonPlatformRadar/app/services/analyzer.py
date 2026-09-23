@@ -21,6 +21,7 @@ from ..models import ActionItem, AnalysisRun, Notice, NoticeDecision
 from ..schemas import CompactDeepAnalysis, DeepAnalysis, Evidence, SimpleAnalysis
 from .attachment_policy import select_preferred_documents
 from .filter_rules import FilterResult, evaluate_notice, evaluate_service_scope
+from .jev_shadow import record_jev_shadow
 from .platform_usage import (
     COMMON_PLATFORM_MENTION as _COMMON_PLATFORM_MENTION,
     COMMON_PLATFORM_NON_USE as _COMMON_PLATFORM_NON_USE,
@@ -40,8 +41,8 @@ CLASSIFICATION_LABELS = {
     "2": "적합·미반영",
     "3": "전환·확인검토",
     "4": "사용명시·조건확인",
-    "5": "비대상·미사용",
-    "6": "비AI 사업",
+    "5": "AI 서비스 부적합",
+    "6": "비AI 서비스 사업",
 }
 LEGAL_BASIS_TEXT = (
     "「인공지능·데이터 기반 행정 활성화에 관한 법률」(약칭: 인공지능데이터행정법) "
@@ -891,7 +892,7 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
         return model.model_copy(update={
             "service_scope": "non_target",
             "service_scope_reason": scope_reason,
-            "classification_code": "5",
+            "classification_code": "6",
             "final_grade": "E",
             "common_platform_fit": "low",
             "eligibility": "ineligible",
@@ -1305,6 +1306,10 @@ class OpenAIChatClient:
         }
         if endpoint.provider == "nvidia":
             payload.update({"temperature": 1.0, "top_p": 0.95, "max_tokens": output_tokens})
+            if endpoint.model == "nvidia/nemotron-3-super-120b-a12b":
+                # PoC 4에서 검증한 설정: 사고 토큰 대신 완결된 판정 JSON에
+                # 출력 예산을 집중해 응답 누락과 스키마 실패를 줄인다.
+                payload["chat_template_kwargs"] = {"enable_thinking": False}
         elif endpoint.provider == "openai":
             payload.update({
                 "response_format": {"type": "json_object"},
@@ -1492,24 +1497,38 @@ class RoutedAnalyzer:
 
     def deep(self, context: str, simple: SimpleAnalysis, rule: FilterResult) -> tuple[DeepAnalysis, Usage]:
         scoped = _truncate_context(context, self.settings.stage3_max_input_chars)
+        primary, fallback = self._deep_endpoints(scoped)
         acquired = self.deep_semaphore.acquire(timeout=self.settings.stage3_timeout_seconds)
         if not acquired:
             raise RuntimeError("3차 분석 동시성 대기시간을 초과했습니다.")
         try:
-            if self.primary_endpoint.provider == "mock":
+            if primary.provider == "mock":
                 return self.mock.deep(scoped, simple, rule)
             try:
-                return self._call_deep_endpoint(self.primary_endpoint, scoped, rule)
+                return self._call_deep_endpoint(primary, scoped, rule)
             except RuntimeError as primary_error:
-                if self.fallback_endpoint.provider == "mock":
+                if fallback.provider == "mock" or not fallback.api_key:
                     raise primary_error
                 logger.warning("3차 주 공급자 실패로 fallback을 사용합니다: %s", primary_error)
-                result, usage = self._call_deep_endpoint(self.fallback_endpoint, scoped, rule)
+                result, usage = self._call_deep_endpoint(fallback, scoped, rule)
                 usage["fallback_used"] = True
                 usage["primary_error"] = str(primary_error)[:500]
                 return result, usage
         finally:
             self.deep_semaphore.release()
+
+    def _deep_endpoints(self, scoped: str) -> tuple[ChatEndpoint, ChatEndpoint]:
+        """Choose a stable 50:50 route while retaining reciprocal failover."""
+        if (
+            self.settings.stage3_routing_mode == "balanced"
+            and self.primary_endpoint.provider != "mock"
+            and self.fallback_endpoint.provider != "mock"
+            and self.primary_endpoint.api_key
+            and self.fallback_endpoint.api_key
+            and int(hashlib.sha256(scoped.encode("utf-8")).hexdigest()[:8], 16) % 2
+        ):
+            return self.fallback_endpoint, self.primary_endpoint
+        return self.primary_endpoint, self.fallback_endpoint
 
     def _call_deep_endpoint(
         self, endpoint: ChatEndpoint, scoped: str, rule: FilterResult,
@@ -1622,7 +1641,7 @@ def _rule_screen_result(rule: FilterResult) -> DeepAnalysis:
     return DeepAnalysis(
         service_scope="non_target" if scope_excluded else rule.scope_status,
         service_scope_reason=rule.scope_reason,
-        classification_code="5" if scope_excluded else "6",
+        classification_code="6",
         final_grade="E",
         ai_relevance="medium" if scope_excluded and rule.matched_include_keywords else "low",
         common_platform_fit="low",
@@ -1661,9 +1680,20 @@ def _rule_screen_result(rule: FilterResult) -> DeepAnalysis:
 
 
 def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> bool:
-    """Persist an inexpensive category-5 scope exclusion or category-6 non-AI result."""
+    """Persist an inexpensive category-6 non-AI-service result."""
     context = notice_context(notice)
     gate_hash = _input_hash(context, "deep_ai", CURRENT_CRITERIA_VERSION)
+    result = _rule_screen_result(rule)
+    shadow_added = record_jev_shadow(
+        db,
+        notice,
+        context,
+        reference_business_type=(
+            "ai_related_out_of_scope" if rule.scope_status == "non_target" else "non_ai_service"
+        ),
+        reference_needs_deep_review=False,
+        reference_ai_relevance=result.ai_relevance,
+    )
     existing = next((
         run for run in sorted(notice.analysis_runs, key=lambda row: row.id or 0, reverse=True)
         if run.run_type == "deep_ai" and run.status == "skipped"
@@ -1671,8 +1701,9 @@ def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> boo
         and is_current_deep_result(run.result_json)
     ), None)
     if existing:
+        if shadow_added:
+            db.commit()
         return False
-    result = _rule_screen_result(rule)
     db.add(AnalysisRun(
         notice_id=notice.id,
         run_type="deep_ai",
@@ -1716,7 +1747,34 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
             AnalysisRun.status == "success",
         ).order_by(AnalysisRun.id.desc()))
         if cached:
-            return (DeepAnalysis if deep else SimpleAnalysis).model_validate_json(cached.result_json)
+            cached_result = (DeepAnalysis if deep else SimpleAnalysis).model_validate_json(cached.result_json)
+            if isinstance(cached_result, DeepAnalysis):
+                reference_business_type = (
+                    "ai_related_out_of_scope" if cached_result.service_scope == "non_target"
+                    else "non_ai_service" if cached_result.classification_code == "6" or cached_result.ai_relevance == "low"
+                    else "ai_service" if cached_result.service_scope == "target"
+                    else "uncertain"
+                )
+                reference_needs_deep_review = (
+                    cached_result.service_scope != "non_target"
+                    and cached_result.classification_code != "6"
+                )
+            else:
+                reference_business_type = (
+                    "ai_service" if cached_result.ai_relevance in {"high", "medium"} else "non_ai_service"
+                )
+                reference_needs_deep_review = cached_result.needs_deep_review
+            if record_jev_shadow(
+                db,
+                notice,
+                context,
+                reference_business_type=reference_business_type,
+                reference_needs_deep_review=reference_needs_deep_review,
+                reference_ai_relevance=cached_result.ai_relevance,
+                settings=settings,
+            ):
+                db.commit()
+            return cached_result
 
     active_run_type = "simple_ai"
     try:
@@ -1763,6 +1821,17 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
                 cost_prompt_tokens=int(simple_usage["prompt_tokens"]),
                 cost_completion_tokens=int(simple_usage["completion_tokens"]),
             ))
+        record_jev_shadow(
+            db,
+            notice,
+            context,
+            reference_business_type=(
+                "ai_service" if simple.ai_relevance in {"high", "medium"} else "non_ai_service"
+            ),
+            reference_needs_deep_review=simple.needs_deep_review,
+            reference_ai_relevance=simple.ai_relevance,
+            settings=settings,
+        )
         if not deep:
             db.commit()
             return simple

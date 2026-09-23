@@ -21,10 +21,10 @@ def test_statistics_number_format_uses_thousands_separator():
     assert format_number(99.8) == "99.8"
 
 
-def test_collection_window_uses_latest_closed_05_kst_operating_cycle():
+def test_collection_window_uses_latest_closed_06_kst_operating_cycle():
     window = collection_window(datetime(2026, 9, 16, 2, 0, tzinfo=timezone.utc))
 
-    assert window["label"] == "26.9.15. 05:00 ~ 26.9.16. 05:00"
+    assert window["label"] == "26.9.15. 06:00 ~ 26.9.16. 06:00"
 
 
 def test_dashboard_keeps_forwarded_homepage_prefix():
@@ -44,12 +44,16 @@ def test_dashboard_keeps_forwarded_homepage_prefix():
     assert f'href="{prefix}/static/app.css"' in response.text
     assert f'src="{prefix}/static/app.js"' in response.text
     assert "지금 조치·확인할 사업" in response.text
-    assert "조달체크" in response.text
-    assert "나라장터 AI 사업, 자동으로 찾고 공통기반 활용까지 체크." in response.text
+    assert "사전규격 공개" in response.text
+    assert "나라장터 의견 등록으로 바로 조치" in response.text
+    assert "본공고" in response.text
+    assert "개별 연락합니다" in response.text
+    assert "조달췤!" in response.text
+    assert "나라장터 공고에서 AI 서비스 사업을 찾고 공통기반 활용까지 체크." in response.text
     assert "일일 처리 주기" in response.text
     assert "공통기반 적합" in response.text
     assert 'class="daily-status-map"' in response.text
-    assert "AI 사업" in response.text and "비AI 사업" in response.text
+    assert "AI 서비스 사업" in response.text and "비AI 서비스 사업" in response.text
     assert "부적합" in response.text
     assert 'class="ineligible-reason-chart compact"' in response.text
     assert "이용" in response.text and "미이용" in response.text
@@ -82,9 +86,9 @@ def test_dashboard_separates_registered_prenotices_into_paginated_in_progress_se
     )
     Base.metadata.create_all(engine)
 
-    def add_notice(db: Session, index: int, status: str):
+    def add_notice(db: Session, index: int, status: str, *, stage: str = "prenotice", payload: dict | None = None):
         notice = Notice(
-            stage="prenotice", notice_no=f"R26DASH{index:04d}",
+            stage=stage, notice_no=f"R26DASH{index:04d}", raw_payload_json=json.dumps(payload or {}),
             agency_name="테스트기관", title=f"대시보드 분리 사업 {index:02d}",
         )
         notice.analysis_runs.append(AnalysisRun(
@@ -99,6 +103,13 @@ def test_dashboard_separates_registered_prenotices_into_paginated_in_progress_se
 
     with Session(engine) as db:
         add_notice(db, 0, "new")
+        add_notice(
+            db, 99, "new", stage="bid_notice",
+            payload={
+                "ntceInsttNm": "공고담당기관", "ntceInsttOfclNm": "홍길동",
+                "ntceInsttOfclTelNo": "02-1234-5678",
+            },
+        )
         for index in range(1, 13):
             add_notice(db, index, "in_progress")
         db.commit()
@@ -119,6 +130,19 @@ def test_dashboard_separates_registered_prenotices_into_paginated_in_progress_se
     progress = first.text.split('id="actions-in-progress"', 1)[1].split('confirmed-use-panel', 1)[0]
     progress_second = second.text.split('id="actions-in-progress"', 1)[1].split('confirmed-use-panel', 1)[0]
     assert "대시보드 분리 사업 00" in required
+    assert "대시보드 분리 사업 99" in required
+    assert 'data-open-bid-contact="bid-contact-' in required
+    assert "본공고 의견 전달 정보" in required
+    assert "통화용 검토 요청" in required
+    assert "관련 법" in required
+    assert "API 방식으로 호출할 수 있는지" in required
+    assert "확인된 문제점" not in required
+    assert "<dt>소속</dt><dd>공고담당기관</dd>" in required
+    assert "<dt>이름</dt><dd>홍길동</dd>" in required
+    assert "<dt>연락처</dt><dd>02-1234-5678</dd>" in required
+    assert 'href="tel:' not in required
+    assert "전화하기" not in required
+    assert 'class="action-finding"' in required
     assert "대시보드 분리 사업 01" not in required
     assert "대시보드 분리 사업 00" not in progress
     assert progress.count('class="action-row progress-action-row"') == 10
@@ -133,9 +157,17 @@ def test_statistics_shows_ineligible_pie_and_removes_stacked_status_bar():
 
     assert response.status_code == 200
     assert 'class="ineligible-reason-chart"' in response.text
-    assert "국가사무" in response.text
-    assert "망·데이터" in response.text
-    assert "특화모델(학습 필요)" in response.text
+    assert 'class="ineligible-reason-chart review-reason-chart"' in response.text
+    assert "복수 조건 확인" not in response.text
+    assert "공통기반 활용 확인" not in response.text
+    assert "국가사무 확인" in response.text
+    assert "망·데이터 확인" in response.text
+    assert "모델·구현 확인" in response.text
+    assert "비AI 서비스 사업" in response.text
+    assert "적용범위 외" in response.text
+    assert "개선 검토 대상" in response.text
+    assert "추가 분석 필요" in response.text
+    assert response.text.index("기간 내 전환 실적 추이") < response.text.index("부적합 세부 원인 · 확대 우선순위")
     assert "status-stacked-bar" not in response.text
     assert "status-legend" not in response.text
 
@@ -166,7 +198,7 @@ def test_extension_install_page_and_archive_are_available():
 
     assert page.status_code == 200
     assert "나라장터 의견 도우미 설치" in page.text
-    assert "v0.1.7" in page.text
+    assert "v0.1.8" in page.text
     assert "나라장터 등록 의견 확인" in page.text
     assert "최종 저장" in page.text
     assert archive.status_code == 200
@@ -176,6 +208,10 @@ def test_extension_install_page_and_archive_are_available():
         manifest = json.loads(package.read("browser-extension/manifest.json"))
         bridge = package.read("browser-extension/poc_bridge.js").decode("utf-8")
         assistant = package.read("browser-extension/g2b_assistant.js").decode("utf-8")
-    assert manifest["version"] == "0.1.7"
+    assert manifest["version"] == "0.1.8"
     assert "data-extension-opinion-view" in bridge
     assert "view_opened" in assistant
+    assert "의견 등록 확인" in assistant
+    assert "confirmAndSubmit" in assistant
+    assert "step:'submitting'" in assistant
+    assert "finishAutomation" in assistant

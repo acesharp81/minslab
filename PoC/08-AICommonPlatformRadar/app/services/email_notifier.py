@@ -31,7 +31,7 @@ def send_opinion_submitted_notification(notice: Notice, action: ActionItem, opin
             submitted_at = submitted_at.replace(tzinfo=ZoneInfo("UTC"))
         submitted_at = submitted_at.astimezone(ZoneInfo("Asia/Seoul"))
     submitted_label = submitted_at.strftime("%Y-%m-%d %H:%M KST") if submitted_at else "기록 없음"
-    message["Subject"] = f"[조달체크] 사전규격 의견 등록 · {notice.title}"
+    message["Subject"] = f"[조달췤!] 사전규격 의견 등록 · {notice.title}"
     message["From"] = sender
     message["To"] = ", ".join(recipients)
     message.set_content(

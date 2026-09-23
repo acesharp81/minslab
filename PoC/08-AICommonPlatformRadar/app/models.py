@@ -17,6 +17,8 @@ class Notice(Base):
     __table_args__ = (
         UniqueConstraint("source", "stage", "notice_no", name="uq_notice_source_stage_no"),
         Index("ix_notice_posted_grade", "posted_at", "stage"),
+        Index("ix_notices_created_at", "created_at"),
+        Index("ix_notices_updated_at", "updated_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -48,6 +50,7 @@ class Attachment(Base):
     __table_args__ = (
         UniqueConstraint("notice_id", "source_url", name="uq_attachment_notice_url"),
         Index("ix_attachment_sha256", "sha256"),
+        Index("ix_attachments_updated_at", "updated_at"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -73,7 +76,17 @@ class Attachment(Base):
 
 class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
-    __table_args__ = (Index("ix_analysis_notice_type", "notice_id", "run_type"),)
+    __table_args__ = (
+        Index("ix_analysis_notice_type", "notice_id", "run_type"),
+        Index(
+            "ix_analysis_notice_type_status_id",
+            "notice_id", "run_type", "status", "id",
+        ),
+        Index(
+            "ix_analysis_type_status_notice_id",
+            "run_type", "status", "notice_id", "id",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     notice_id: Mapped[int] = mapped_column(ForeignKey("notices.id", ondelete="CASCADE"), index=True)
@@ -115,6 +128,7 @@ class NoticeDecision(Base):
 
 class ActionItem(Base):
     __tablename__ = "action_items"
+    __table_args__ = (Index("ix_action_items_updated_at", "updated_at"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     notice_id: Mapped[int] = mapped_column(ForeignKey("notices.id", ondelete="CASCADE"), unique=True, index=True)
@@ -146,6 +160,7 @@ class PipelineRun(Base):
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
+    __table_args__ = (Index("ix_audit_logs_event_id", "event_type", "id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     event_type: Mapped[str] = mapped_column(String(80), index=True)
@@ -154,4 +169,3 @@ class AuditLog(Base):
     actor: Mapped[str] = mapped_column(String(200), default="system")
     detail_json: Mapped[str] = mapped_column(Text, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-

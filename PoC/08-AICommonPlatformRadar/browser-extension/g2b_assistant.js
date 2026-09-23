@@ -6,6 +6,8 @@ let lastSearchAt = 0;
 let lastNavigationAt = 0;
 let bridgeSequence = 0;
 const bridgeRequests = new Map();
+let automationTimer;
+let messageObserver;
 
 const textOf = (node) => (node?.textContent || node?.value || '').replace(/\s+/g, ' ').trim();
 const visible = (node) => Boolean(node && node.getClientRects().length);
@@ -23,10 +25,10 @@ function status(message, error = false) {
   if (!box) {
     box = document.createElement('aside');
     box.id = 'poc08-g2b-helper';
-    box.innerHTML = '<strong>조달체크 의견 도우미</strong><p></p><div><button data-poc08-complete>저장 완료 반영</button><button data-poc08-stop>중지</button></div>';
+    box.innerHTML = '<strong>조달췤! 의견 도우미</strong><p></p><div><button data-poc08-complete>의견 등록 확인</button><button data-poc08-stop>중지</button></div>';
     Object.assign(box.style, {position:'fixed',right:'20px',bottom:'20px',zIndex:'2147483647',width:'320px',padding:'16px',borderRadius:'12px',background:'#102d2b',color:'#fff',boxShadow:'0 12px 35px #0005',font:'14px sans-serif'});
     box.querySelectorAll('button').forEach((button) => Object.assign(button.style, {marginRight:'6px',padding:'7px 10px',border:'0',borderRadius:'7px',cursor:'pointer'}));
-    box.querySelector('[data-poc08-complete]').addEventListener('click', markSubmitted);
+    box.querySelector('[data-poc08-complete]').addEventListener('click', confirmAndSubmit);
     box.querySelector('[data-poc08-stop]').addEventListener('click', () => { stopped = true; status('자동화를 중지했습니다.', true); });
     document.documentElement.appendChild(box);
   }
@@ -198,20 +200,69 @@ async function fillOpinionForm() {
   await chrome.runtime.sendMessage({type:'UPDATE_JOB', patch:{step:'form_filled'}});
 }
 
+function saveButton() {
+  const formScreen = [...document.querySelectorAll('body,[role="dialog"],.w2window,.w2popup_window')]
+    .filter((node) => visible(node) && /사전규격\s*의견(?:관리)?\s*등록/u.test(textOf(node)))
+    .at(-1) || document.body;
+  return [...formScreen.querySelectorAll('button,input[type="button"],input[type="submit"],a,[role="button"]')]
+    .find((button) => interactable(button) && (textOf(button) === '저장' || button.value === '저장'));
+}
+
+async function recordSubmitting() {
+  if (!job || job.submitted || job.step === 'submitting') return false;
+  saveClicked = true;
+  stopped = true;
+  job.step = 'submitting';
+  await chrome.runtime.sendMessage({
+    type:'UPDATE_JOB', patch:{step:'submitting', status:'나라장터 저장 결과 확인 중'},
+  });
+  status('나라장터 저장 결과를 확인하는 중입니다. 성공 후 자동으로 종료됩니다.');
+  const complete = document.querySelector('#poc08-g2b-helper [data-poc08-complete]');
+  if (complete) complete.disabled = true;
+  return true;
+}
+
+async function confirmAndSubmit() {
+  if (!job || job.submitted || job.step === 'submitting') return;
+  const button = saveButton();
+  if (!button) {
+    status('나라장터의 저장 버튼을 찾지 못했습니다. 의견 등록 화면인지 확인해 주세요.', true);
+    return;
+  }
+  await recordSubmitting();
+  activate(button);
+}
+
 document.addEventListener('click', (event) => {
   const button = event.target.closest('button,a,input[type="button"],[role="button"]');
   const buttonText = textOf(button) || button?.value || '';
   if (!button || buttonText !== '저장' || !/사전규격\s*의견(?:관리)?\s*등록/u.test(textOf(document.body))) return;
-  saveClicked = true;
-  status('나라장터 응답을 확인하는 중입니다. 저장 성공 후 자동으로 조치중에 반영합니다.');
+  recordSubmitting().catch((error) => status(`저장 상태 기록 오류: ${error.message}`, true));
 }, true);
+
+function finishAutomation(message) {
+  stopped = true;
+  if (automationTimer) window.clearInterval(automationTimer);
+  messageObserver?.disconnect();
+  const box = document.getElementById('poc08-g2b-helper');
+  if (!box) return;
+  box.querySelector('p').textContent = message;
+  window.setTimeout(() => box.remove(), 900);
+}
 
 async function markSubmitted() {
   if (!job || job.submitted) return;
   job.submitted = true;
+  job.step = 'submitted';
+  stopped = true;
   status('의견 등록 완료를 PoC 8에 반영하고 있습니다.');
-  await chrome.runtime.sendMessage({type:'OPINION_SUBMITTED'});
-  status('의견 등록 완료 · PoC 8 조치중 반영 요청 완료');
+  const response = await chrome.runtime.sendMessage({type:'OPINION_SUBMITTED'});
+  if (!response?.ok) {
+    job.submitted = false;
+    status('의견은 저장됐지만 PoC 8 반영에 실패했습니다. 다시 확인해 주세요.', true);
+    return;
+  }
+  finishAutomation('의견 등록 완료 · 매크로를 종료합니다.');
 }
 
 function inspectMessages() {
@@ -326,10 +377,17 @@ window.addEventListener('message', (event) => {
   const values = await chrome.storage.local.get(JOB_KEY);
   job = values[JOB_KEY];
   if (!job || ['submitted', 'view_opened'].includes(job.step) || Date.now() - job.createdAt > 24 * 60 * 60 * 1000) return;
-  status(job.mode === 'view'
-    ? `사전규격 ${job.registrationNo}의 등록 의견 현황을 찾습니다.`
-    : `사전규격 ${job.registrationNo} 자동입력을 준비합니다.`);
-  new MutationObserver(inspectMessages).observe(document.documentElement, {childList:true, subtree:true, characterData:true});
-  window.setInterval(() => advance().catch((error) => status(`자동화 오류: ${error.message}`, true)), 1200);
+  if (job.step === 'submitting') {
+    saveClicked = true;
+    stopped = true;
+    status('나라장터 저장 결과를 확인하는 중입니다. 성공 후 자동으로 종료됩니다.');
+  } else {
+    status(job.mode === 'view'
+      ? `사전규격 ${job.registrationNo}의 등록 의견 현황을 찾습니다.`
+      : `사전규격 ${job.registrationNo} 자동입력을 준비합니다.`);
+  }
+  messageObserver = new MutationObserver(inspectMessages);
+  messageObserver.observe(document.documentElement, {childList:true, subtree:true, characterData:true});
+  automationTimer = window.setInterval(() => advance().catch((error) => status(`자동화 오류: ${error.message}`, true)), 1200);
   advance();
 })();

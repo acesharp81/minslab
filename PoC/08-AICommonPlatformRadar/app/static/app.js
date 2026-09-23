@@ -301,6 +301,12 @@ for (const button of document.querySelectorAll('[data-report-classification-erro
   });
 }
 document.querySelector('[data-close-error-dialog]')?.addEventListener('click', () => errorDialog.close());
+for (const button of document.querySelectorAll('[data-open-bid-contact]')) {
+  button.addEventListener('click', () => {
+    const dialog = document.getElementById(button.dataset.openBidContact);
+    if (dialog?.showModal) dialog.showModal();
+  });
+}
 document.querySelector('[data-classification-error-form]')?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -321,7 +327,7 @@ for (const button of document.querySelectorAll('[data-extension-opinion], [data-
   button.addEventListener('click', () => {
     window.setTimeout(() => {
       if (document.documentElement.dataset.poc08ExtensionReady !== 'true') {
-        toast('조달체크 확장프로그램이 필요합니다. 상단의 확장프로그램 설치를 먼저 진행하세요.', true);
+        toast('조달췤! 확장프로그램이 필요합니다. 상단의 확장프로그램 설치를 먼저 진행하세요.', true);
       }
     }, 250);
   });

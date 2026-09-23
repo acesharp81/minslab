@@ -5,5 +5,5 @@ After=network-online.target docker.service poc08-collector.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/docker exec poc08-ai-common-platform-radar python scripts/run_operational_batch.py --phase retry
-TimeoutStartSec=7000
+ExecStart=/usr/bin/docker exec poc08-ai-common-platform-radar /usr/bin/nice -n 10 /usr/bin/ionice -c 2 -n 7 /usr/bin/timeout --signal=TERM --kill-after=30s 75m python scripts/run_operational_batch.py --phase retry
+TimeoutStartSec=4600

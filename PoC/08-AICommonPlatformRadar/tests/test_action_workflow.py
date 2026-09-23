@@ -59,6 +59,11 @@ def test_completion_transition_does_not_send_notification(db: Session, monkeypat
     result = actions.update_action(notice.action.id, ActionPatch(status="completed_uses"), db)
 
     assert result["status"] == "completed_uses"
+    classified = json.loads(current_classification_run(notice).result_json)
+    assert result["classification_code"] == "1"
+    assert classified["classification_code"] == "1"
+    assert classified["platform_usage"] == "uses"
+    assert classified["manual_final_classification_reason"] == "action_confirmed_uses"
     assert result["notification"] is None
     assert sent == []
     assert db.query(AuditLog).filter(AuditLog.event_type.like("%email%")).count() == 0

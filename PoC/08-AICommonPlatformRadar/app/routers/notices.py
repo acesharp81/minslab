@@ -4,6 +4,7 @@ import json
 import math
 import re
 from datetime import date, datetime, time, timedelta, timezone
+from threading import Lock
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -20,10 +21,11 @@ from ..services.analyzer import (
 )
 from ..services.attachment_policy import select_preferred_documents
 from ..services.collector import parse_preferred_attachments
-from ..services.opinion_tracker import refresh_notice_opinions
+from ..services.opinion_tracker import refresh_notice_opinions, refresh_tracked_opinions_cached
 from ..services.platform_usage import with_usage_presentation
-from ..services.ineligible_reasons import INELIGIBLE_REASON_META, manual_ineligible_reason
+from ..services.ineligible_reasons import INELIGIBLE_DETAIL_META, manual_ineligible_reason
 from ..services.workflow_view import (
+    classification_presentation,
     current_classification_run,
     current_deep_success,
     workflow_summary,
@@ -218,10 +220,12 @@ def current_classification_condition(codes: set[str]):
         .correlate(Notice)
         .scalar_subquery()
     )
-    code_match = or_(*(
+    stored_code_match = or_(*(
         _json_string_value(AnalysisRun.result_json, "classification_code", code)
         for code in sorted(codes)
     ))
+    scope_out = _json_string_value(AnalysisRun.result_json, "service_scope", "non_target")
+    code_match = or_(stored_code_match, scope_out) if "6" in codes else and_(stored_code_match, ~scope_out)
     has_latest_code = Notice.analysis_runs.any(and_(
         AnalysisRun.id == latest_id,
         code_match,
@@ -232,6 +236,64 @@ def current_classification_condition(codes: set[str]):
         AnalysisRun.id > latest_id,
     ))
     return and_(has_latest_code, ~has_later_simple)
+
+
+_classification_cache_lock = Lock()
+_classification_cache_key: tuple[int, int] | None = None
+_classification_cache_by_code: dict[str, frozenset[int]] = {}
+
+
+def current_classification_notice_ids(db: Session) -> dict[str, frozenset[int]]:
+    """Return append-only classification projections cached by latest run id.
+
+    The dashboard asks for several classification groups in one render. Building
+    this projection once avoids repeating the correlated JSON history lookup for
+    every count and list query while preserving the existing filter semantics.
+    """
+    global _classification_cache_key, _classification_cache_by_code
+    latest_run_id = int(db.scalar(select(func.max(AnalysisRun.id))) or 0)
+    cache_key = (id(db.get_bind()), latest_run_id)
+    with _classification_cache_lock:
+        if cache_key == _classification_cache_key:
+            return dict(_classification_cache_by_code)
+
+        current_result = _json_string_value(
+            AnalysisRun.result_json, "criteria_version", CURRENT_CRITERIA_VERSION,
+        )
+        terminal_deep = and_(
+            AnalysisRun.run_type == "deep_ai",
+            or_(
+                AnalysisRun.status == "success",
+                and_(AnalysisRun.status == "skipped", AnalysisRun.model_name == "rule-gate"),
+            ),
+            current_result,
+        )
+        simple_success = and_(
+            AnalysisRun.run_type == "simple_ai", AnalysisRun.status == "success",
+        )
+        rows = db.execute(select(
+            AnalysisRun.id, AnalysisRun.notice_id, AnalysisRun.run_type,
+            AnalysisRun.result_json,
+        ).where(or_(terminal_deep, simple_success)).order_by(AnalysisRun.id)).all()
+
+        latest_by_notice: dict[int, str | None] = {}
+        for _run_id, notice_id, run_type, result_json in rows:
+            if run_type == "simple_ai":
+                latest_by_notice[notice_id] = None
+                continue
+            result = _result(result_json)
+            code = "6" if result.get("service_scope") == "non_target" else str(result.get("classification_code") or "")
+            latest_by_notice[notice_id] = code or None
+
+        by_code: dict[str, set[int]] = {}
+        for notice_id, code in latest_by_notice.items():
+            if code:
+                by_code.setdefault(code, set()).add(notice_id)
+        _classification_cache_by_code = {
+            code: frozenset(notice_ids) for code, notice_ids in by_code.items()
+        }
+        _classification_cache_key = cache_key
+        return dict(_classification_cache_by_code)
 
 
 def format_datetime(value: datetime | None) -> str:
@@ -278,7 +340,7 @@ def analysis_view(notice: Notice) -> dict:
         run = latest_simple
     result = with_usage_presentation(_result(run.result_json)) if run else {}
     classification_ready = bool(classification_run)
-    classification_code = result.get("classification_code") if classification_ready else None
+    classification_code, classification_label = classification_presentation(result) if classification_ready else (None, "미분류")
     retry_error = None
     if classification_run and latest_deep and (latest_deep.id or 0) > (classification_run.id or 0) and latest_deep.status == "failed":
         retry_error = latest_deep.error_message
@@ -290,7 +352,7 @@ def analysis_view(notice: Notice) -> dict:
         "confidence": run.confidence if run else None,
         "result": result,
         "classification_code": classification_code,
-        "classification_label": CLASSIFICATION_LABELS.get(classification_code, "미분류"),
+        "classification_label": classification_label,
         "error": retry_error or (run.error_message if run and run.status == "failed" else None),
     }
 
@@ -336,7 +398,7 @@ def _query(
     analysis_status: str | None = None, ai_relevance: str | None = None,
     deadline_status: str | None = None, recommended_action: str | None = None,
     parse_status: str | None = None, sort: str | None = None, classification_code: str | None = None,
-    action_required: bool | None = None,
+    action_required: bool | None = None, load_attachments: bool = True,
 ):
     def json_string_value(key: str, value: str):
         return _json_string_value(AnalysisRun.result_json, key, value)
@@ -350,10 +412,18 @@ def _query(
         and_(AnalysisRun.run_type == "deep_ai", AnalysisRun.status == "success", current_result),
         current_rule_gate,
     )
-    statement = select(Notice).options(
-        selectinload(Notice.attachments), selectinload(Notice.decision),
-        selectinload(Notice.action), selectinload(Notice.analysis_runs),
-    ).outerjoin(NoticeDecision)
+    eager_options = [
+        selectinload(Notice.decision),
+        selectinload(Notice.action),
+        selectinload(Notice.analysis_runs).load_only(
+            AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
+            AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.confidence,
+            AnalysisRun.error_message, AnalysisRun.created_at,
+        ),
+    ]
+    if load_attachments:
+        eager_options.append(selectinload(Notice.attachments))
+    statement = select(Notice).options(*eager_options).outerjoin(NoticeDecision)
     if stage:
         statement = statement.where(Notice.stage == stage)
     if agency:
@@ -453,6 +523,7 @@ def notices_page(
         ai_relevance=ai_relevance, deadline_status=deadline_status,
         recommended_action=recommended_action, parse_status=parse_status, sort=sort,
         classification_code=classification_code, action_required=action_required,
+        load_attachments=False,
     )
     page_size = 10
     total = int(db.scalar(
@@ -507,7 +578,7 @@ def notice_detail(request: Request, notice_id: int, db: Session = Depends(get_db
         "analysis": analysis, "format_datetime": format_datetime,
         "deadline_label": deadline_label, "gate_labels": GATE_LABELS,
         "workflow": workflow,
-        "ineligible_reason_options": INELIGIBLE_REASON_META,
+        "ineligible_reason_options": INELIGIBLE_DETAIL_META,
         "manual_ineligible_reason": manual_ineligible_reason(notice),
     })
 
@@ -590,3 +661,11 @@ async def refresh_opinions(notice_id: int, db: Session = Depends(get_db)):
     except Exception as exc:
         db.rollback()
         raise HTTPException(502, f"나라장터 의견 답변 확인에 실패했습니다: {type(exc).__name__}") from None
+
+
+@router.post("/api/opinions/refresh-tracked")
+async def refresh_tracked_opinion_statuses(db: Session = Depends(get_db)):
+    """Refresh dashboard reply badges without delaying the initial page render."""
+    return await refresh_tracked_opinions_cached(
+        db, min_interval=timedelta(minutes=5),
+    )

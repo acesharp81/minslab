@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import create_engine, select
 
 from app.config import get_settings
-from app.db import Base, RadarSession
+from app.db import Base, RadarSession, push_deferred_supabase_changes
 from app.models import Notice
 from app.services import supabase_store
 from app.services.supabase_store import SupabaseRestStore, deserialize_row, serialize_model
@@ -62,6 +62,32 @@ def test_commit_pushes_only_to_poc08_table(monkeypatch):
     assert calls[0][0][0].notice_no == "COMMIT-1"
     assert calls[0][1] == []
     assert supabase_store.model_tables()[Notice] == "poc08_notices"
+
+
+def test_deferred_commits_are_pushed_as_one_delta(monkeypatch):
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    calls: list[tuple[list[object], list[object]]] = []
+
+    class FakeStore:
+        def push_changes(self, upserts, deletes):
+            calls.append((list(upserts), list(deletes)))
+            return True
+
+    monkeypatch.setattr(supabase_store, "get_supabase_store", lambda: FakeStore())
+    with RadarSession(bind=engine, expire_on_commit=False) as db:
+        db.info["defer_supabase_sync"] = True
+        first = Notice(stage="bid", notice_no="DEFER-1", title="첫 변경")
+        db.add(first)
+        db.commit()
+        db.add(Notice(stage="bid", notice_no="DEFER-2", title="두 번째 변경"))
+        db.commit()
+        assert calls == []
+        db.info.pop("defer_supabase_sync")
+        assert push_deferred_supabase_changes(db)
+
+    assert len(calls) == 1
+    assert {item.notice_no for item in calls[0][0]} == {"DEFER-1", "DEFER-2"}
 
 
 def test_reconcile_pulls_remote_then_pushes_local(monkeypatch):

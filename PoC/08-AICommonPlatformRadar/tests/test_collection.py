@@ -59,7 +59,7 @@ def test_rule_non_ai_is_persisted_as_category_6(db):
     assert _needs_backlog_analysis(notice) is False
 
 
-def test_rule_non_construction_ai_service_is_persisted_as_category_5(db):
+def test_rule_non_construction_ai_service_is_persisted_as_category_6(db):
     notice, _ = _upsert_notice(db, replace(
         sample("AI-AUDIT"), title="생성형 AI 플랫폼 구축사업 감리용역", attachments=[],
     ))
@@ -69,7 +69,8 @@ def test_rule_non_construction_ai_service_is_persisted_as_category_5(db):
     assert record_non_ai_screen(db, notice, rule) is True
     db.refresh(notice)
     result = __import__("json").loads(notice.analysis_runs[-1].result_json)
-    assert result["classification_code"] == "5"
+    assert result["classification_code"] == "6"
+    assert result["ai_relevance"] == "medium"
     assert result["service_scope"] == "non_target"
     assert _needs_backlog_analysis(notice) is False
 

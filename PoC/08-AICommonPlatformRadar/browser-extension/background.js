@@ -31,16 +31,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get(JOB_KEY).then(async (values) => {
       const job = values[JOB_KEY];
       if (!job) return sendResponse({ok: false});
-      await chrome.storage.local.set({[JOB_KEY]: {...job, status: '의견 등록 완료', step: 'submitted'}});
+      const completedJob = {...job, status: '의견 등록 완료', step: 'submitted', updatedAt: Date.now()};
+      await chrome.storage.local.set({[JOB_KEY]: completedJob});
       if (job.sourceTabId) {
         try {
           await chrome.tabs.sendMessage(job.sourceTabId, {
             type: 'OPINION_SUBMITTED_TO_POC08', actionId: job.actionId, noticeId: job.noticeId,
           });
         } catch (_error) {
-          // PoC 탭이 닫힌 경우 상태는 확장프로그램에 남겨 수동 반영할 수 있다.
+          // PoC 탭이 닫혀 있어도 제출 완료 작업은 아래에서 정리한다.
         }
       }
+      await chrome.storage.local.remove(JOB_KEY);
       sendResponse({ok: true});
     });
     return true;

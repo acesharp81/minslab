@@ -3,9 +3,10 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import secrets
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -22,9 +23,27 @@ from .services.collector import run_collection
 from .services.batch_lock import BatchAlreadyRunning
 from .services.supabase_store import get_supabase_store
 from .services.runtime_settings import verify_admin_session
+from .services.opinion_tracker import refresh_tracked_opinions_cached
 
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
+
+
+async def _refresh_opinion_tracking_loop() -> None:
+    """Refresh reply badges centrally instead of on every dashboard visit."""
+    await asyncio.sleep(30)
+    while True:
+        try:
+            with SessionLocal() as db:
+                await refresh_tracked_opinions_cached(
+                    db, min_interval=timedelta(minutes=10),
+                )
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Scheduled pre-notice opinion refresh failed")
+        await asyncio.sleep(15 * 60)
 
 
 def format_number(value) -> str:
@@ -66,6 +85,7 @@ async def lifespan(app: FastAPI):
     settings.ensure_directories()
     configure_logging()
     init_db()
+    local_notice_count = 0
     with SessionLocal() as db:
         interrupted = db.scalars(select(PipelineRun).where(PipelineRun.status == "running")).all()
         if interrupted:
@@ -79,14 +99,30 @@ async def lifespan(app: FastAPI):
                     detail_json=json.dumps({"reason": "service_restart"}, ensure_ascii=False),
                 ))
             db.commit()
+        # Prime the append-only dashboard classification projection once at
+        # startup so the first operator request does not parse run history.
+        notices.current_classification_notice_ids(db)
+        local_notice_count = int(db.scalar(select(func.count(Notice.id))) or 0)
+    statistics_prewarm_task = None
+    if settings.g2b_mode == "live":
+        # Make the default statistics page hot before accepting user traffic.
+        # Less common ranges are prepared in the background.
+        reports.prewarm_statistics(("30d",))
+        statistics_prewarm_task = asyncio.create_task(asyncio.to_thread(
+            reports.prewarm_statistics, ("month", "year", "all"),
+        ))
+        app.state.statistics_prewarm_task = statistics_prewarm_task
     reconcile_task = None
-    if settings.supabase_enabled:
+    opinion_refresh_task = asyncio.create_task(_refresh_opinion_tracking_loop())
+    app.state.opinion_refresh_task = opinion_refresh_task
+    if settings.supabase_enabled and local_notice_count == 0:
         def reconcile_cache() -> None:
             with SessionLocal() as db:
                 get_supabase_store().reconcile(db)
 
-        # 로컬 캐시로 즉시 HTTP 서비스를 시작하고 원격 정합성 검사는
-        # 백그라운드에서 수행한다. 데이터 증가가 재시작 가용성을 막지 않는다.
+        # Restore only an empty local cache. Normal commits and collection
+        # batches already push their deltas, so a full merge on every restart
+        # only competes with PoC7 for memory and disk bandwidth.
         reconcile_task = asyncio.create_task(asyncio.to_thread(reconcile_cache))
         app.state.supabase_reconcile_task = reconcile_task
     if settings.auto_seed_sample and settings.g2b_mode == "mock":
@@ -94,14 +130,19 @@ async def lifespan(app: FastAPI):
             if (db.scalar(select(func.count(Notice.id))) or 0) == 0:
                 await run_collection(db, settings.collect_lookback_days, analyze=True)
     yield
+    if not opinion_refresh_task.done():
+        opinion_refresh_task.cancel()
+    await asyncio.gather(opinion_refresh_task, return_exceptions=True)
     if reconcile_task and not reconcile_task.done():
         reconcile_task.cancel()
+    if statistics_prewarm_task and not statistics_prewarm_task.done():
+        statistics_prewarm_task.cancel()
 
 
 app = FastAPI(
-    title="조달체크 | 범정부 AI 공통기반 edition",
+    title="조달췤! | 범정부 AI 공통기반 edition",
     version="0.1.0",
-    description="나라장터 AI 사업을 자동으로 찾고 범정부 AI 공통기반 활용 여부까지 점검하는 서비스",
+    description="나라장터 공고를 AI 서비스 사업과 비AI 서비스 사업으로 분류하고 범정부 AI 공통기반 활용 여부까지 점검하는 서비스",
     lifespan=lifespan,
 )
 app.state.templates = Jinja2Templates(directory=str(settings.project_root / "app" / "templates"))

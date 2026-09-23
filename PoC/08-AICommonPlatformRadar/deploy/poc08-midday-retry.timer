@@ -1,0 +1,11 @@
+[Unit]
+Description=Retry PoC08 midday collection at 12:40 KST when needed
+
+[Timer]
+OnCalendar=*-*-* 12:40:00 Asia/Seoul
+AccuracySec=1s
+Persistent=false
+Unit=poc08-midday-retry.service
+
+[Install]
+WantedBy=timers.target
