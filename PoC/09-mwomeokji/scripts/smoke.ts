@@ -8,6 +8,7 @@ const base =
 let guestCookie = "";
 let merchantCookie = "";
 let orderId = "";
+let groupOrderId = "";
 let helpId = "";
 let draftId = "";
 
@@ -52,6 +53,8 @@ try {
   const bootstrap = await request("bootstrap/?slug=orange-table&table=A1");
   assert.equal(bootstrap.table.code, "A1");
   assert.ok(bootstrap.menu.length >= 18);
+  const visit = await request("visit/", "POST", { mode: "takeout" });
+  assert.equal(visit.visitMode, "takeout");
   const profile = {
     allergies: ["peanut"],
     dietaryRules: [],
@@ -59,9 +62,14 @@ try {
     maxSpiceLevel: 0,
   };
   await request("profile/", "POST", profile);
+  const group = await request("conversation/", "POST", {
+    message: "우리 3명인데 한 명은 채식하고 한 명은 매운 걸 못 먹어",
+  });
+  assert.equal(group.dialogue.peopleCount, 3);
+  assert.ok(group.dialogue.members.some((member: { dietaryRules: { type: string }[] }) => member.dietaryRules.some((rule) => rule.type === "vegetarian")));
+  assert.ok(group.dialogue.members.some((member: { maxSpiceLevel?: number }) => member.maxSpiceLevel === 0));
   const conversation = await request("conversation/", "POST", {
-    message: "안 맵고 따뜻한 거 만원 정도로 추천해줘",
-    members: [],
+    message: "안 맵고 따뜻한 거 4만원 안에서 추천해줘",
   });
   assert.ok(conversation.recommendations.length > 0);
   assert.ok(
@@ -70,6 +78,24 @@ try {
         entry.item.name !== "고소 땅콩 치킨",
     ),
   );
+  const spokenCart = await request("conversation/", "POST", { message: "추천한 거 전부 담아줘" });
+  assert.equal(spokenCart.cart?.items.length, conversation.recommendations.length, spokenCart.reply);
+  const confirm = await request("conversation/", "POST", { message: "주문할게" });
+  assert.equal(confirm.nextAction, "confirm_checkout");
+  await request(`cart/${confirm.cart.items[0].id}/`, "PATCH", { quantity: 2 });
+  const changed = await request("conversation/", "POST", { message: "응" });
+  assert.equal(changed.nextAction, "confirm_checkout");
+  assert.match(changed.reply, /장바구니가 바뀌었어요/);
+  const affirmative = await request("conversation/", "POST", { message: "응" });
+  assert.equal(affirmative.nextAction, "checkout");
+  const groupOrder = await request("checkout/", "POST", { idempotencyKey: `smoke-group-${randomUUID()}`, paymentMethod: "mock_card", note: "대화형 그룹 주문 자동 테스트" });
+  groupOrderId = groupOrder.id;
+  assert.equal(groupOrder.lines.length, conversation.recommendations.length);
+  assert.equal(groupOrder.fulfillmentType, "takeout");
+  guestCookie = "";
+  await request("bootstrap/?slug=orange-table&table=A1");
+  await request("visit/", "POST", { mode: "takeout" });
+  await request("profile/", "POST", profile);
   const peanut = bootstrap.menu.find(
     (item: { name: string }) => item.name === "고소 땅콩 치킨",
   );
@@ -102,15 +128,13 @@ try {
   });
   orderId = order.id;
   assert.equal(order.total, 21800);
+  assert.equal(order.fulfillmentType, "takeout");
   const duplicate = await request("checkout/", "POST", {
     idempotencyKey: key,
     paymentMethod: "mock_card",
   });
   assert.equal(duplicate.id, order.id);
-  const email = process.env.POC09_MERCHANT_EMAIL;
-  const password = process.env.POC09_MERCHANT_PASSWORD;
-  assert.ok(email && password, "Set PoC9 merchant credentials in root .env");
-  await request("merchant/login/", "POST", { email, password }, true);
+  await request("merchant/login/", "POST", { email: "demo@mmj.local", password: "demo1234" }, true);
   const dashboard = await request(
     "merchant/dashboard/",
     "GET",
@@ -118,7 +142,7 @@ try {
     true,
   );
   assert.ok(
-    dashboard.orders.some((entry: { id: string }) => entry.id === order.id),
+    dashboard.orders.some((entry: { id: string; fulfillmentType: string }) => entry.id === order.id && entry.fulfillmentType === "takeout"),
   );
   const accepted = await request(
     `merchant/orders/${order.id}/`,
@@ -196,10 +220,11 @@ try {
     ),
   );
   console.log(
-    "PoC9 smoke passed: bootstrap, preferences, recommendation, options, cart, idempotent order, merchant, help, import review.",
+    "PoC9 smoke passed: visit mode, spoken group, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
   );
 } finally {
   if (orderId) await db.order.deleteMany({ where: { id: orderId } });
+  if (groupOrderId) await db.order.deleteMany({ where: { id: groupOrderId } });
   if (helpId) await db.helpRequest.deleteMany({ where: { id: helpId } });
   if (draftId) await db.menuItem.deleteMany({ where: { id: draftId } });
   await db.$disconnect();

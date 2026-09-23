@@ -25,6 +25,7 @@ type Order = {
   note: string;
   createdAt: string;
   table: { label: string } | null;
+  fulfillmentType: string;
   lines: {
     id: string;
     menuName: string;
@@ -39,6 +40,7 @@ type Help = {
   note: string;
   createdAt: string;
   table: { label: string } | null;
+  session: { fulfillmentType: string | null };
 };
 type Dashboard = {
   store: { name: string; categories: { id: string; name: string }[] };
@@ -156,8 +158,8 @@ const fromMenu = (item: MenuItemData): EditData => ({
 export function MerchantApp() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("demo@mmj.local");
+  const [password, setPassword] = useState("demo1234");
   const [tab, setTab] = useState<"orders" | "menu" | "import">("orders");
   const [edit, setEdit] = useState<EditData | null>(null);
   const [optionDraft, setOptionDraft] = useState<OptionDraft>(newGroup);
@@ -401,8 +403,7 @@ export function MerchantApp() {
               </button>
             </form>
             <small>
-              데모 계정은 루트 .env의 POC09_MERCHANT_EMAIL / PASSWORD에 설정돼
-              있어요.
+              테스트 계정이 입력돼 있어요. 로그인 버튼을 누르면 바로 시작합니다.
             </small>
           </div>
         </main>
@@ -501,7 +502,7 @@ export function MerchantApp() {
                           <span className="order-status">
                             {statusLabel[order.status] || order.status}
                           </span>
-                          <span>{order.table?.label || "테이블 미선택"}</span>
+                          <span>{order.fulfillmentType === "takeout" ? "가져가기" : "먹고 가기"}{order.table?.label ? ` · ${order.table.label}` : ""}</span>
                           <time>
                             {new Date(order.createdAt).toLocaleTimeString(
                               "ko-KR",
@@ -561,7 +562,7 @@ export function MerchantApp() {
                     .filter((help) => help.status === "open")
                     .map((help) => (
                       <article className="help-card" key={help.id}>
-                        <strong>{help.table?.label || "테이블 미선택"}</strong>
+                        <strong>{help.session?.fulfillmentType === "takeout" ? "가져가기" : "먹고 가기"}{help.table?.label ? ` · ${help.table.label}` : ""}</strong>
                         <time>
                           {new Date(help.createdAt).toLocaleTimeString("ko-KR")}
                         </time>

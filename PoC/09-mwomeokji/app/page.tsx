@@ -22,7 +22,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero-copy">
           <span className="eyebrow">
-            <Sparkles size={16} /> 오늘의 한 끼를 더 즐겁게
+            <Sparkles size={16} /> Tap · Talk · Together
           </span>
           <h1>
             오늘 뭐 먹지?
@@ -30,15 +30,15 @@ export default function Home() {
             <em>말만 해도</em> 골라드려요.
           </h1>
           <p>
-            먹고 싶은 기분을 편하게 적어주세요. 취향에 맞는 메뉴를 함께 고르고,
-            바로 주문할 수 있어요.
+            매장에 온 순간, 먹고 가기 또는 가져가기를 고르세요. 일행 수와 취향을
+            대화로 알려주면 함께 고르고 바로 주문할 수 있어요.
           </p>
           <div className="hero-actions">
             <Link
               href="/s/orange-table"
               className="button button-primary button-large"
             >
-              손님으로 주문하기 <ArrowRight size={20} />
+              대화로 주문 시작하기 <ArrowRight size={20} />
             </Link>
             <Link href="/merchant" className="button button-quiet button-large">
               사장님 관리 화면
@@ -65,8 +65,8 @@ export default function Home() {
         </div>
         <div>
           <UtensilsCrossed />
-          <strong>메뉴를 골라요</strong>
-          <span>재료와 옵션까지 확인</span>
+          <strong>함께 맞춰요</strong>
+          <span>일행의 취향과 제약까지 반영</span>
         </div>
         <div>
           <Store />

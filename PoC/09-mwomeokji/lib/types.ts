@@ -79,7 +79,7 @@ export type GroupMember = {
   maxSpiceLevel?: number;
 };
 export type OrderIntent = {
-  action: "recommend" | "add" | "remove" | "ask" | "help";
+  action: "recommend" | "add" | "remove" | "ask" | "help" | "checkout";
   peopleCount?: number;
   totalBudget?: number;
   maxSpiceLevel?: number;

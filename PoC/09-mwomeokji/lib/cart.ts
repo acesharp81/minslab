@@ -1,7 +1,8 @@
 import { db, menuInclude } from "./db";
 import type { PrismaClient } from "../generated/prisma/client";
 import { checkSafety, priceFor } from "./safety";
-import type { GroupMember, PreferenceProfile } from "./types";
+import type { PreferenceProfile } from "./types";
+import { readDialogue } from "./dialogue";
 
 export async function cartSummary(
   sessionId: string,
@@ -11,25 +12,7 @@ export async function cartSummary(
   const session = await client.guestSession.findUnique({
     where: { id: sessionId },
   });
-  const context = session?.context;
-  const rawMembers =
-    context &&
-    typeof context === "object" &&
-    !Array.isArray(context) &&
-    "members" in context
-      ? context.members
-      : [];
-  const members = Array.isArray(rawMembers)
-    ? rawMembers.filter(
-        (value): value is GroupMember =>
-          !!value &&
-          typeof value === "object" &&
-          !Array.isArray(value) &&
-          typeof value.label === "string" &&
-          Array.isArray(value.allergies) &&
-          Array.isArray(value.dietaryRules),
-      )
-    : [];
+  const members = readDialogue(session?.context).members;
   const cart = await client.cartItem.findMany({
     where: { sessionId },
     include: { menuItem: { include: menuInclude } },

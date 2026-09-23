@@ -30,7 +30,7 @@ export async function understand(
             {
               role: "system",
               content:
-                "Extract only user ordering intent as JSON. Fields: action (recommend/add/remove/ask/help), peopleCount, totalBudget KRW, maxSpiceLevel 0-4, wantsWarm, wantsCool, wantsMild, vegetarian, avoidPork, avoidBeef, category, menuName, quantity. Never invent menu, price, ingredients or safety. No personal data.",
+                "Extract only user ordering intent as JSON. Fields: action (recommend/add/remove/ask/help/checkout), peopleCount, totalBudget KRW, maxSpiceLevel 0-4, wantsWarm, wantsCool, wantsMild, vegetarian, avoidPork, avoidBeef, category, menuName, quantity. Never invent menu, price, ingredients or safety. No personal data.",
             },
             { role: "user", content: message.slice(0, 500) },
           ],
@@ -40,7 +40,7 @@ export async function understand(
     if (!response.ok) return fallback;
     const result = await response.json();
     const parsed = JSON.parse(result.choices?.[0]?.message?.content || "{}");
-    if (!["recommend", "add", "remove", "ask", "help"].includes(parsed.action))
+    if (!["recommend", "add", "remove", "ask", "help", "checkout"].includes(parsed.action))
       return fallback;
     return {
       intent: { ...fallback.intent, ...parsed },

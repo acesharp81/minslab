@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
 import { parseIntent } from "../lib/intent";
+import { evolveDialogue, readDialogue } from "../lib/dialogue";
 import { recommend, recommendGroup } from "../lib/recommend";
 import { applyBoundedRanking } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
@@ -168,6 +169,31 @@ describe("conversation and recommendations", () => {
     expect(result.complete).toBe(true);
     expect(result.total).toBeLessThanOrEqual(13000);
     expect(result.items[0].item.name).toBe("safe");
+  });
+});
+
+describe("multi-turn Tap Talk Together dialogue", () => {
+  it("infers three people and different member constraints without a member form", () => {
+    const text = "우리 3명인데 한 명은 채식하고 한 명은 매운 걸 못 먹어";
+    const next = evolveDialogue(readDialogue({}), text, parseIntent(text));
+    expect(next.state.peopleCount).toBe(3);
+    expect(next.state.members).toHaveLength(3);
+    expect(next.state.members[0].dietaryRules).toContainEqual({ type: "vegetarian", mode: "strict" });
+    expect(next.state.members[1].maxSpiceLevel).toBe(0);
+    expect(next.state.preferences.vegetarian).toBe(false);
+  });
+  it("remembers group conditions and adds a later total budget", () => {
+    const first = "한 명은 땅콩 알레르기 있어";
+    const a = evolveDialogue(readDialogue({}), first, parseIntent(first));
+    expect(a.needsPeopleCount).toBe(true);
+    const second = "우리 2명이야, 2만원 안에서 추천해줘";
+    const b = evolveDialogue(a.state, second, parseIntent(second));
+    expect(b.state.peopleCount).toBe(2);
+    expect(b.state.members[0].allergies).toContain("peanut");
+    expect(b.state.preferences.totalBudget).toBe(20000);
+  });
+  it("recognizes conversational checkout intent", () => {
+    expect(parseIntent("주문할게").action).toBe("checkout");
   });
 });
 

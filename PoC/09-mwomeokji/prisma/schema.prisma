@@ -120,6 +120,7 @@ model GuestSession {
   store      Store      @relation(fields: [storeId], references: [id])
   tableId    String?
   table      StoreTable? @relation(fields: [tableId], references: [id])
+  fulfillmentType String?
   context    Json       @default("{}")
   expiresAt  DateTime
   cartItems  CartItem[]
@@ -150,6 +151,7 @@ model Order {
   sessionId      String
   session        GuestSession @relation(fields: [sessionId], references: [id])
   idempotencyKey String       @unique
+  fulfillmentType String     @default("dine_in")
   status         String       @default("placed")
   paymentMethod  String
   paymentStatus  String       @default("succeeded")
