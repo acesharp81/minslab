@@ -49,6 +49,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
             "/press": "/poc/master-press/",
             "/kjon": "/poc/national-assembly/",
             "/airador": "/poc/ai-common-platform-radar/",
+            "/mmj": "/poc/mwomeokji/",
         }
         for shortcut, target in shortcuts.items():
             for path in (shortcut, f"{shortcut}/"):
@@ -67,6 +68,26 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(start["status"], 307)
         self.assertEqual(dict(start["headers"])[b"location"], b"/poc/master-press/")
         self.assertEqual(body, b"")
+
+    async def test_mmj_destination_serves_poc9_preparation_page(self):
+        start, body = await call_app("/poc/mwomeokji/")
+        headers = dict(start["headers"])
+
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(headers[b"cache-control"], b"no-store")
+        self.assertIn("팀 프로젝트 준비 단계".encode("utf-8"), body)
+
+    async def test_mmj_unbuilt_order_path_is_not_the_homepage(self):
+        start, body = await call_app("/poc/mwomeokji/s/demo-store")
+
+        self.assertEqual(start["status"], 404)
+        self.assertIn("아직 준비 중".encode("utf-8"), body)
+
+    async def test_mmj_preparation_page_rejects_write_methods(self):
+        start, _ = await call_app("/poc/mwomeokji/", method="POST")
+
+        self.assertEqual(start["status"], 405)
+        self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD")
 
     async def test_poc_shortcuts_reject_write_methods(self):
         start, body = await call_app("/kjon", method="POST")

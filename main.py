@@ -151,10 +151,13 @@ AI_COMMON_RADAR_BASE_PATH = "/poc/ai-common-platform-radar"
 AI_COMMON_RADAR_UPSTREAM = env_first(
     "AI_COMMON_RADAR_UPSTREAM", default="http://127.0.0.1:18080"
 ).rstrip("/")
+MMJ_BASE_PATH = "/poc/mwomeokji"
+MMJ_ENTRY_HTML = Path(__file__).parent / "PoC" / "09-mwomeokji" / "web" / "index.html"
 POC_SHORTCUT_REDIRECTS = {
     "/press": f"{MASTER_PRESS_BASE_PATH}/",
     "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
+    "/mmj": f"{MMJ_BASE_PATH}/",
 }
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
     5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
@@ -2394,6 +2397,56 @@ async def app(scope, receive, send):
         ]
         await send({"type": "http.response.start", "status": 307, "headers": headers})
         await send({"type": "http.response.body", "body": b""})
+        return
+
+    if path == MMJ_BASE_PATH or path.startswith(f"{MMJ_BASE_PATH}/"):
+        if method not in {"GET", "HEAD"}:
+            body = b'{"detail":"method not allowed"}'
+            await send({
+                "type": "http.response.start",
+                "status": 405,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(body)).encode("ascii")),
+                    (b"cache-control", b"no-store"),
+                    (b"allow", b"GET, HEAD"),
+                ],
+            })
+            await send({"type": "http.response.body", "body": body})
+            return
+        if path == MMJ_BASE_PATH:
+            await send({
+                "type": "http.response.start",
+                "status": 307,
+                "headers": [
+                    (b"location", f"{MMJ_BASE_PATH}/".encode("ascii")),
+                    (b"content-length", b"0"),
+                    (b"cache-control", b"no-store"),
+                ],
+            })
+            await send({"type": "http.response.body", "body": b""})
+            return
+        if path == f"{MMJ_BASE_PATH}/":
+            await stream_html_file(
+                send,
+                MMJ_ENTRY_HTML,
+                method,
+                cache_control=b"no-store",
+                extra_headers=[(b"x-robots-tag", b"noindex, nofollow")],
+                missing_message="PoC 9 준비 화면을 찾을 수 없습니다.",
+            )
+            return
+        body = "PoC 9 주문 기능은 아직 준비 중입니다.".encode("utf-8")
+        await send({
+            "type": "http.response.start",
+            "status": 404,
+            "headers": [
+                (b"content-type", b"text/plain; charset=utf-8"),
+                (b"content-length", str(len(body)).encode("ascii")),
+                (b"cache-control", b"no-store"),
+            ],
+        })
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
         return
 
     master_press_request = (
