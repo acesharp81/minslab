@@ -42,7 +42,7 @@
             <div class="topic-report-message" id="topicReportMessage" aria-live="polite"></div>
           </div>
           <aside class="topic-report-history" aria-labelledby="topicReportHistoryTitle">
-            <header><span>저장된 결과</span><h2 id="topicReportHistoryTitle">최근 주제별 보고서</h2></header>
+            <header><span>공개 저장 · 30일 · 최대 50건</span><h2 id="topicReportHistoryTitle">최근 주제별 보고서</h2></header>
             <div class="topic-report-history-list" id="topicReportHistory"><p>과거 보고서를 불러오는 중입니다.</p></div>
           </aside>
         </div>
@@ -190,7 +190,7 @@
 
   async function loadHistory() {
     try {
-      const response = await api("api/topic-reports?limit=20");
+      const response = await api("api/topic-reports?limit=50");
       const payload = await response.json();
       renderHistory(payload.items || []);
     } catch (_) {
@@ -797,7 +797,6 @@
 
 
 
-  document.addEventListener("watch-session-ready", loadHistory);
   loadHistory();
   mount.querySelector("#topicReportPreview").addEventListener("click", preview);
   externalButton.addEventListener("click", openExternalTools);

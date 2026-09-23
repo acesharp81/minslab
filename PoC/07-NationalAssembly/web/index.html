@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="assets/topic-reports.css?v=20260917-4" />
     <link rel="stylesheet" href="assets/assembly-extras.css?v=20260917-4" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20260917-4" />
-    <link rel="stylesheet" href="assets/official-integration.css?v=20260825-1" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20260923-1" />
+    <link rel="stylesheet" href="assets/official-integration.css?v=20260921-1" />
     <link rel="stylesheet" href="assets/watch-alerts.css?v=20260903-5" />
   </head>
   <body>
@@ -38,7 +38,7 @@
       <section class="ai-usage" id="aiUsage" aria-label="AI 사용량">
         <article class="ai-usage-provider ai-usage-openrouter">
           <div class="ai-usage-heading"><strong>OpenRouter</strong><span>오늘 합산</span></div>
-          <b class="ai-usage-value" id="aiOpenRouterAmount">- / 950회</b>
+          <b class="ai-usage-value" id="aiOpenRouterAmount">- / 1,000회</b>
           <div class="ai-usage-meter" id="aiOpenRouterMeter" role="progressbar" aria-label="OpenRouter 일일 사용률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
           <div class="ai-usage-meta"><span id="aiOpenRouterDetail">사용량 확인 중</span><time id="aiOpenRouterReset">갱신일 확인 중</time></div>
         </article>
@@ -48,8 +48,25 @@
           <div class="ai-usage-meter" id="aiMistralMeter" role="progressbar" aria-label="Mistral 월간 사용률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
           <div class="ai-usage-meta"><span id="aiMistralDetail">사용량 확인 중</span><time id="aiMistralReset">갱신일 확인 중</time></div>
         </article>
+        <button class="ai-usage-provider ai-usage-models" id="aiModelUsageOpen" type="button" aria-haspopup="dialog" aria-controls="aiModelUsageDialog">
+          <span class="ai-usage-heading"><strong>사용 모델</strong><span>상세 보기</span></span>
+          <b class="ai-usage-value" id="aiModelUsageAmount">확인 중</b>
+          <span class="ai-usage-model-route" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ai-usage-meta"><span id="aiModelUsageDetail">플랫폼·모델 집계 중</span><em>열기 ↗</em></span>
+        </button>
       </section>
     </header>
+
+    <dialog class="ai-model-usage-dialog" id="aiModelUsageDialog" aria-labelledby="aiModelUsageTitle">
+      <div class="ai-model-usage-shell">
+        <header>
+          <div><span>AI ROUTING &amp; QUOTA</span><h2 id="aiModelUsageTitle">플랫폼·모델별 사용량</h2><p id="aiModelUsageSummary">현재 운영 장부를 확인하는 중입니다.</p></div>
+          <button id="aiModelUsageClose" type="button" aria-label="모델 사용량 닫기">×</button>
+        </header>
+        <div class="ai-model-usage-list" id="aiModelUsageList"><p>모델별 사용량을 불러오는 중입니다.</p></div>
+        <footer>한도는 모델별이 아니라 공급자 계정 전체에 적용됩니다. OpenRouter 내부 모델 전환은 별도 플랫폼 장애 대비책으로 계산하지 않으며, 모든 수치는 저장된 운영 장부 기준입니다.</footer>
+      </div>
+    </dialog>
 
     <main>
       <section class="live-section" id="live" role="tabpanel" aria-labelledby="topTabLive" data-workspace-panel="live">
@@ -352,11 +369,11 @@
     </dialog>
 
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
-    <script src="assets/official-integration.js?v=20260902-3" defer></script>
-    <script src="assets/app.js?v=20260917-2" defer></script>
+    <script src="assets/official-integration.js?v=20260921-1" defer></script>
+    <script src="assets/app.js?v=20260923-2" defer></script>
     <script src="assets/watch-alerts.js?v=20260904-3" defer></script>
-    <script src="assets/topic-reports.js?v=20260917-2" defer></script>
-    <script src="assets/assembly-extras.js?v=20260917-5" defer></script>
+    <script src="assets/topic-reports.js?v=20260923-1" defer></script>
+    <script src="assets/assembly-extras.js?v=20260923-1" defer></script>
     <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

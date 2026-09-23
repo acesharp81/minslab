@@ -16,13 +16,24 @@ from app.db.topic_report_repository import TopicReportRepository, _has_topic_rel
 from app.ingestion.topic_report_worker import safe_topic_report_error
 from app.services.topic_report import DEFAULT_TOPIC_REPORT_MODEL, OpenRouterTopicReportClient, TopicReportResponseError, _allowed_language_source, _clean_generated, _parse_json_content, _sanitize_report_language, _source_matches_requested_topic, _validate_report_language
 from app.services.web_security import apply_security_headers
-from app.topic_report_api import TopicReportQueryPayload, _clean
+from app.topic_report_api import TopicReportQueryPayload, _clean, _client_item
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 class TopicReportTests(unittest.TestCase):
+    def test_public_report_response_removes_owner_and_upstream_metadata(self) -> None:
+        item = _client_item({
+            "report_id": "report-1",
+            "subscriber_id": "account-1",
+            "usage_metadata": {"request_id": "upstream-1"},
+            "status": "READY",
+        })
+        self.assertEqual(
+            {"report_id": "report-1", "status": "READY"}, item,
+        )
+
     def test_topic_report_uses_a_dedicated_structured_output_model(self) -> None:
         api = (PROJECT_DIR / "backend/app/topic_report_api.py").read_text()
         worker = (PROJECT_DIR / "backend/app/ingestion/topic_report_worker.py").read_text()
@@ -353,6 +364,7 @@ class TopicReportTests(unittest.TestCase):
         migration = (PROJECT_DIR / "backend/migrations/0036_accounts_and_topic_reports.sql").read_text(encoding="utf-8")
         optional_scope_migration = (PROJECT_DIR / "backend/migrations/0037_topic_report_optional_dimensions.sql").read_text(encoding="utf-8")
         quota_migration = (PROJECT_DIR / "backend/migrations/0038_topic_report_quota_once_per_report.sql").read_text(encoding="utf-8")
+        public_retention_migration = (PROJECT_DIR / "backend/migrations/0047_public_topic_report_retention.sql").read_text(encoding="utf-8")
         worker = (PROJECT_DIR / "backend/app/ingestion/topic_report_worker.py").read_text(encoding="utf-8")
         repository = (PROJECT_DIR / "backend/app/db/topic_report_repository.py").read_text(encoding="utf-8")
         self.assertIn("국정ON", html)
@@ -403,8 +415,9 @@ class TopicReportTests(unittest.TestCase):
         self.assertIn("topic-report-builder-head", script)
         self.assertIn('id="topicReportHistory"', script)
         self.assertIn("최근 주제별 보고서", script)
-        self.assertIn('api("api/topic-reports?limit=20")', script)
-        self.assertIn('document.addEventListener("watch-session-ready", loadHistory)', script)
+        self.assertIn('api("api/topic-reports?limit=50")', script)
+        self.assertIn("공개 저장 · 30일 · 최대 50건", script)
+        self.assertNotIn('document.addEventListener("watch-session-ready", loadHistory)', script)
         self.assertIn("topic-report-builder-top", script)
         self.assertIn("grid-template-columns:minmax(0,1fr) 300px", styles)
         self.assertIn(".topic-report-grid { width:100%", styles)
@@ -417,6 +430,11 @@ class TopicReportTests(unittest.TestCase):
         self.assertIn("topic_reports_scope_check", optional_scope_migration)
         self.assertIn("char_length(topic) = 0", optional_scope_migration)
         self.assertIn("quota_reserved_at", quota_migration)
+        self.assertIn("LIMIT 50", public_retention_migration)
+        self.assertIn("interval '30 days'", public_retention_migration)
+        self.assertIn("def list_public(", repository)
+        self.assertIn("def get_visible(", repository)
+        self.assertIn("self.prune_retention()", repository)
         self.assertIn("item[\"report_id\"]", worker)
         self.assertIn("reserve_daily_request", worker)
         self.assertIn("%s::text IS NULL", repository)

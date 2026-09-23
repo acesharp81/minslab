@@ -58,6 +58,7 @@ deploy_worker() {
   local with_data_volume="$5"
   local requires_mistral="${6:-yes}"
   local extra_argument="${7:-}"
+  local requires_openrouter="yes"
   local name="poc07-national-assembly-${short_name}-worker"
   local env_file="${RUNTIME_DIR}/${short_name}.env"
   local rollback="${name}-secret-scope-rollback-$(date -u +%Y%m%d%H%M%S)"
@@ -70,6 +71,9 @@ deploy_worker() {
   if [[ "${requires_mistral}" == "yes" ]] && ! /usr/bin/grep -Eq '^MISTRAL_API_KEY=.+$' "${env_file}"; then
     echo "${short_name}: MISTRAL_API_KEY is not configured" >&2
     exit 1
+  fi
+  if [[ "${short_name}" == "meeting-brief" ]] && /usr/bin/grep -Eq '^MEETING_BRIEF_PROVIDER=mistral$' "${env_file}"; then
+    requires_openrouter="no"
   fi
 
   if docker container inspect "${name}" >/dev/null 2>&1; then
@@ -109,7 +113,7 @@ deploy_worker() {
   local startup_error=""
   if [[ "$(docker inspect -f '{{.State.Running}}' "${name}" 2>/dev/null || true)" != "true" ]]; then
     startup_error="container is not running"
-  elif [[ ",${allowlist}," == *",OPENROUTER_BASE_URL,"* ]] && ! docker exec "${name}" python -c '
+  elif [[ "${requires_openrouter}" == "yes" && ",${allowlist}," == *",OPENROUTER_BASE_URL,"* ]] && ! docker exec "${name}" python -c '
 import os
 import socket
 from urllib.parse import urlparse
@@ -138,6 +142,7 @@ with socket.create_connection((url.hostname, url.port or 80), timeout=5):
 
 OPENROUTER_TEXT="DATABASE_URL,AI_ENRICHMENT_ENABLED,LLM_PROVIDER,LLM_MODEL,MEETING_BRIEF_MODEL,OPENROUTER_API_KEY,OPENROUTER_BASE_URL,OPENROUTER_DAILY_LIMIT"
 MISTRAL_AUDIO="DATABASE_URL,AI_ENRICHMENT_ENABLED,MISTRAL_API_KEY,MISTRAL_BASE_URL,MISTRAL_MONTHLY_CREDIT_USD,MISTRAL_INPUT_USD_PER_MILLION,MISTRAL_OUTPUT_USD_PER_MILLION"
+MEETING_BRIEF_TEXT="${OPENROUTER_TEXT},MEETING_BRIEF_PROVIDER,MEETING_BRIEF_MISTRAL_MODEL,MISTRAL_API_KEY,MISTRAL_BASE_URL,MISTRAL_MONTHLY_CREDIT_USD,MISTRAL_INPUT_USD_PER_MILLION,MISTRAL_OUTPUT_USD_PER_MILLION"
 EXECUTIVE_AUDIO="${MISTRAL_AUDIO},RAW_DATA_DIR,EXECUTIVE_TRANSCRIPTION_MODEL,EXECUTIVE_AUDIO_CHUNK_SECONDS,EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE"
 WATCH_SUMMARY="DATABASE_URL,AI_ENRICHMENT_ENABLED,WATCH_LLM_ENABLED,WATCH_LLM_PROVIDER,WATCH_LLM_MODEL,OPENROUTER_API_KEY,OPENROUTER_BASE_URL,OPENROUTER_DAILY_LIMIT,WATCH_LLM_MONTHLY_BUDGET_USD,WATCH_LLM_DEBOUNCE_SECONDS,WATCH_LLM_MIN_NEW_MATCHES,WATCH_LLM_MAX_UPDATES_PER_SESSION"
 WATCH_KAKAO="DATABASE_URL,WATCH_KAKAO_ENABLED,WATCH_KAKAO_REDIRECT_URI,WATCH_PUBLIC_BASE_URL,WATCH_KAKAO_REST_API_KEY,WATCH_KAKAO_CLIENT_SECRET,WATCH_KAKAO_TOKEN_ENCRYPTION_KEY"
@@ -147,7 +152,7 @@ SCHEDULE="DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,NATIONAL_ASSEMBLY_TIMEZONE,RAW_
 case "${TARGET}" in
   all)
     deploy_worker "summary" "app.ingestion.summary_worker" "2" "${OPENROUTER_TEXT}" "no" "no"
-    deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${OPENROUTER_TEXT}" "no" "no"
+    deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${MEETING_BRIEF_TEXT}" "no" "yes"
     deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "3600" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR" "yes" "no"
     deploy_worker "official-integration" "app.ingestion.official_integration_worker" "15" "${OPENROUTER_TEXT}" "no" "no"
     deploy_worker "executive-caption" "app.ingestion.executive_caption_worker" "5" "${EXECUTIVE_AUDIO}" "yes"
@@ -162,7 +167,7 @@ case "${TARGET}" in
     deploy_worker "summary" "app.ingestion.summary_worker" "2" "${OPENROUTER_TEXT}" "no" "no"
     ;;
   meeting)
-    deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${OPENROUTER_TEXT}" "no" "no"
+    deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${MEETING_BRIEF_TEXT}" "no" "yes"
     ;;
   official)
     deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "3600" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR" "yes" "no"

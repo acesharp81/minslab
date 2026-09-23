@@ -35,6 +35,28 @@ class OfficialReconciliationTests(unittest.TestCase):
         self.assertEqual(matches[0]["official_speaker_name"], "행정안전부장관")
         self.assertGreaterEqual(matches[0]["confidence"], 0.9)
 
+    def test_alignment_rejects_ambiguous_generic_fragment(self):
+        matches = align_live_segments(
+            [{
+                "revision_id": uuid.uuid4(),
+                "segment_id": "live-ambiguous",
+                "speaker_label": "0",
+                "text": "정부는 관련 대책을 신속히 검토하고 있습니다",
+            }],
+            [{
+                "utterance_id": uuid.uuid4(),
+                "sequence_number": 1,
+                "speaker_name": "장관 A",
+                "text": "정부는 관련 대책을 신속히 검토하고 있습니다. 추가 방안을 보고하겠습니다.",
+            }, {
+                "utterance_id": uuid.uuid4(),
+                "sequence_number": 2,
+                "speaker_name": "장관 B",
+                "text": "정부는 관련 대책을 신속히 검토하고 있습니다. 세부 계획은 추후 제출하겠습니다.",
+            }],
+        )
+        self.assertEqual(matches, [])
+
     def test_speaker_stats_detect_split_and_merge_without_history_ui(self):
         stats = speaker_reconciliation_stats([
             {"source_speaker_label": "0", "official_speaker_name": "김 의원"},

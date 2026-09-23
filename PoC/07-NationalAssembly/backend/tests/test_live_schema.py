@@ -32,6 +32,43 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn("event_cursor bigint GENERATED ALWAYS AS IDENTITY", sql)
         self.assertIn("transcript_revisions_event_cursor_idx", sql)
 
+    def test_report_reads_use_denormalized_broadcast_cursor(self):
+        project = Path(__file__).parents[2]
+        migration = (
+            project / "backend/migrations/0045_report_read_cursor.sql"
+        ).read_text(encoding="utf-8")
+        live_repository = (
+            project / "backend/app/db/live_repository.py"
+        ).read_text(encoding="utf-8")
+        brief_repository = (
+            project / "backend/app/db/meeting_brief_repository.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ADD COLUMN source_last_event_cursor", migration)
+        self.assertIn("live_broadcasts_ended_detected_idx", migration)
+        self.assertIn("source_last_event_cursor = GREATEST", live_repository)
+        self.assertIn("WITH recent_broadcasts AS MATERIALIZED", live_repository)
+        self.assertIn("broadcast.source_last_event_cursor", brief_repository)
+        self.assertNotIn("SELECT COALESCE(MAX(revision.event_cursor)", brief_repository)
+
+    def test_official_context_reads_denormalized_counts(self):
+        project = Path(__file__).parents[2]
+        migration = (
+            project / "backend/migrations/0046_official_context_read_model.sql"
+        ).read_text(encoding="utf-8")
+        repository = (
+            project / "backend/app/db/live_repository.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ADD COLUMN final_segment_count", migration)
+        self.assertIn("ADD COLUMN matched_segment_count", migration)
+        self.assertIn("maintain_broadcast_final_segment_count", migration)
+        context_query = repository.split("def broadcast_official_context", 1)[1].split(
+            "def refresh_official_context_stats", 1
+        )[0]
+        self.assertIn("broadcast.final_segment_count", context_query)
+        self.assertIn("broadcast.matched_segment_count", context_query)
+        self.assertNotIn("SELECT COUNT(", context_query)
+        self.assertIn("def refresh_official_context_stats", repository)
+
     def test_ended_broadcast_reviews_keep_revision_evidence(self):
         sql = (MIGRATION.parent / "0008_broadcast_reviews.sql").read_text(encoding="utf-8")
         for table in ("broadcast_reviews", "broadcast_review_topics", "broadcast_review_evidence"):
@@ -72,13 +109,19 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn("A connection-level failure never reaches recv()", worker)
         self.assertGreaterEqual(worker.count("mark_official_caption_timeout("), 2)
         self.assertIn('"detail": str(exc)[:240]', worker)
+        self.assertIn('item["live_revision_id"] = str(revision_id)', repository)
+        self.assertIn('"live_text"', repository)
 
     def test_completed_briefs_are_not_reprocessed_until_caption_cursor_changes(self):
         worker = (
             Path(__file__).parents[1] / "app" / "ingestion" / "meeting_brief_worker.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("current_brief.source_last_event_cursor = (", worker)
-        self.assertIn("MAX(revision.event_cursor)", worker)
+        self.assertIn(
+            "current_brief.source_last_event_cursor =\n                        broadcast.source_last_event_cursor",
+            worker,
+        )
+        self.assertNotIn("MAX(revision.event_cursor)", worker)
+        self.assertIn("current_brief.prompt_version = %s", worker)
         self.assertIn("current_brief.brief ? 'live_topic_assignment'", worker)
         self.assertIn("ORDER BY ended_at DESC NULLS LAST", worker)
 

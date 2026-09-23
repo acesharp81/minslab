@@ -33,7 +33,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
 
         keys = [key for domain in result["domains"] for key in domain["group_keys"]]
         self.assertEqual(len(result["domains"]), 5)
-        self.assertEqual(len(result["groups"]), 58)
+        self.assertEqual(len(result["groups"]), 60)
         self.assertEqual(len(keys), len(set(keys)))
         self.assertEqual(set(keys), {group["key"] for group in result["groups"]})
         self.assertEqual(result["metrics"]["topic_count"], 2)
@@ -367,7 +367,109 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(2, by_key["youth-employment"]["topic_count"])
         self.assertEqual(2, by_key["water-resources-climate"]["topic_count"])
         self.assertEqual(2, by_key["education"]["topic_count"])
-        self.assertEqual("assembly-meeting-topic-grouping/1.5", GROUPING_VERSION)
+        self.assertEqual("assembly-meeting-topic-grouping/1.6", GROUPING_VERSION)
+
+    def test_classifies_operational_policy_gaps_without_procedure_swallowing_subject(self):
+        brief = {
+            "topics": [
+                topic("witness", "증인 협의 일정 연기 문제 논의"),
+                topic("military", "군 생활 개선 요청"),
+                topic("sales", "방문 판매 등에 관한 법률 일부 개정"),
+                topic("fraud", "전자금융거래법 및 전기통신금융사기방지법 개정"),
+                topic("victim", "미성년 성폭력 피해자 증거능력 조문 개정"),
+                topic("hearing", "아동 청소년 성보호법 개정안 상정 절차 진행"),
+                topic("golf", "이재명 대통령 일행의 태릉CC 사용 정황 분석"),
+                topic("ethics", "후보자 배우자 주식 보유 현황 및 재원 출처"),
+                topic("rights", "수사에서의 인권보장과 효율성 균형"),
+                topic("eligibility", "후보자의 적격성과 사과 필요성"),
+                topic("vote", "행정안전위원회 제안 법안 12건 의결"),
+            ],
+            "tasks": [],
+        }
+
+        groups = build_meeting_topic_groups(brief)
+        by_topic = {
+            topic_id: group["key"]
+            for group in groups
+            for topic_id in group["topic_ids"]
+        }
+
+        self.assertEqual("assembly-procedure", by_topic["witness"])
+        self.assertEqual("military-personnel-reform", by_topic["military"])
+        self.assertEqual("consumer-financial-protection", by_topic["sales"])
+        self.assertEqual("consumer-financial-protection", by_topic["fraud"])
+        self.assertEqual("sexual-violence-victim-protection", by_topic["victim"])
+        self.assertEqual("sexual-violence-victim-protection", by_topic["hearing"])
+        self.assertEqual("presidential-accountability", by_topic["golf"])
+        self.assertEqual("public-integrity-funds", by_topic["ethics"])
+        self.assertEqual("criminal-case-procedure", by_topic["rights"])
+        self.assertEqual("public-appointments", by_topic["eligibility"])
+        self.assertEqual("assembly-procedure", by_topic["vote"])
+
+    def test_separates_report_artifacts_from_policy_coverage_and_flags_review(self):
+        brief = {
+            "topics": [
+                topic("policy", "주택 공급 확대"),
+                topic("artifact-1", "사실 관계 확인의 필요성"),
+                topic("artifact-2", "불명확한 반복 발언으로 인한 의사소통 장애"),
+            ],
+            "tasks": [],
+        }
+
+        attached = attach_meeting_topic_groups(brief)
+        grouping = attached["topic_grouping"]
+        artifact = next(
+            group for group in attached["topic_groups"]
+            if group["assignment_method"] == "REPORT_ARTIFACT"
+        )
+
+        self.assertEqual(3, grouping["detailed_topic_count"])
+        self.assertEqual(1, grouping["policy_topic_count"])
+        self.assertEqual(2, grouping["report_artifact_topic_count"])
+        self.assertEqual(0, grouping["unclassified_topic_count"])
+        self.assertEqual(1.0, grouping["ontology_coverage"])
+        self.assertEqual(["artifact-1", "artifact-2"], artifact["topic_ids"])
+        self.assertIn("REPORT_ARTIFACT_TOPICS_PRESENT", grouping["review_reasons"])
+
+    def test_law_format_words_do_not_merge_unrelated_unknown_targets(self):
+        brief = {
+            "topics": [
+                topic("one", "도시양봉 허가 일부개정법률안"),
+                topic("two", "반려동물 등록칩 일부개정법률안"),
+                topic("three", "해양레저 면허 일부개정법률안"),
+            ],
+            "tasks": [],
+        }
+
+        groups = build_meeting_topic_groups(brief)
+
+        self.assertEqual(3, len(groups))
+        self.assertFalse(any(
+            group["assignment_method"] == "DYNAMIC_SEMANTIC"
+            for group in groups
+        ))
+
+    def test_exposes_observed_keyword_usage_for_ontology_audit(self):
+        result = build_meeting_topic_ontology([{
+            "topics": [
+                topic("one", "증인 협의 일정 연기"),
+                topic("two", "기관증인 출석 일정 확정"),
+            ],
+            "tasks": [],
+        }])
+        procedure = next(
+            group for group in result["groups"]
+            if group["key"] == "assembly-procedure"
+        )
+
+        self.assertEqual(2, procedure["topic_count"])
+        self.assertEqual(
+            {"증인협의": 1, "증인출석": 1},
+            {
+                item["keyword"]: item["topic_count"]
+                for item in procedure["matched_keywords"]
+            },
+        )
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ sudo scripts/backfill_quick_vod.sh BROADCAST_ID PLAYLIST_URL PLAYLIST_START_AT
 
 ## 회의 보고서 후처리
 
-국회 회의는 종료 직후 확정하지 않습니다. 종료 후 2시간을 기본 안정화 구간으로 두고, 같은 위원회의 같은 날짜 후속 일정이 저장되어 있으면 해당 일정 이후까지 재개를 기다립니다. 현재 분석 버전과 자막 cursor가 모두 일치할 때만 READY입니다.
+국회 회의가 `ENDED`로 전환되면 60초 주기의 다음 worker cycle에서 비공식 회의 브리프 생성을 바로 시작합니다. 같은 방송이 속개되거나 늦은 final 자막이 추가되면 변경된 자막 cursor가 기존 캐시를 무효화해 새 발언까지 다시 통합합니다. 현재 분석 버전과 자막 cursor가 모두 일치할 때만 READY이며, 공식 회의록은 별도 5분 수집 경로에서 발표 즉시 대조합니다.
 
 최종 분석은 발언 구간 → 8개 구간 단위 중간 병합 → 회의 전체 통합의 계층형 구조입니다. 각 구간과 중간 병합은 `meeting_brief_chunk_cache`에 내용 해시로 저장하므로 429·5xx·시간초과 뒤에도 완료 구간을 재호출하지 않습니다. 실시간 군집은 직접 근거와 엄격한 결정적 일치만 최종 주제에 붙이며, 어휘 후보와 다중 후보는 최종 화면 연결에서 제외하고 계보 감사 데이터에 남깁니다.
 
@@ -120,11 +120,11 @@ PYTHONPATH=backend python3 -m app.ingestion.review_worker --once
 
 ## LLM 발언 요약 캐시
 
-Mistral을 기본 provider로 사용하고 OpenRouter는 폴백으로 유지합니다. 원문은 선택 provider로 전송되므로 사전에 전송 범위와 API key를 승인해야 합니다. API 요청 경로에서는 외부 LLM을 호출하지 않으며, 성공 결과는 `transcript_utterance_summaries`에 저장합니다. 같은 방송·원문 hash·prompt version으로 저장된 요약은 provider나 model이 달라도 다시 호출하지 않습니다. 실패하거나 캐시가 없는 발언은 기존 180자 발췌로 표시합니다.
+현재 발언 요약과 회의 보고서의 기본 provider는 OpenRouter다. 회의 보고서에 한해 Mistral Small 직접 호출을 별도 플랫폼 콜드 스탠바이로 준비한다. OpenRouter 안의 Nemotron·Dots·Liquid 교체는 모델 종료나 구조화 형식 오류 보정용이며 플랫폼 장애 예비로 계산하지 않는다. 원문은 선택 provider로 전송되므로 사전에 전송 범위와 API key를 승인해야 한다. API 요청 경로에서는 외부 LLM을 호출하지 않으며, 성공 결과는 `transcript_utterance_summaries`와 `meeting_briefs`에 저장한다. 같은 방송·원문 hash·prompt version으로 저장된 결과는 반복 호출하지 않는다. 실패하거나 캐시가 없는 발언은 기존 180자 발췌로 표시한다.
 
 실시간 운영에서는 `summary-worker`가 2초마다 공식 국회 LIVE 방송을 확인합니다. 같은 화자의 연속 자막은 먼저 하나의 완결 발언으로 합치며, source가 non-final 자막을 잠시 빈 화자나 `-1`로 보내는 구간은 직전 확정 화자에 임시 연결해 거짓 전환으로 요약하지 않습니다. 요약 대상 발언의 원문 전체와 직전 최대 4개·직후 최대 2개의 완결 발언을 하나의 대화 문맥으로 선택 provider에 보내되, 결과는 대상 발언별로 저장합니다. LIVE에서는 진행 중인 마지막 발언을 제외하므로 실제 화자가 전환되어 닫힌 발언만 처리하고, 방송이 ENDED로 전환되면 마지막 발언까지 처리합니다. 화면 API는 이 워커가 저장한 캐시만 읽으며 화자 전환 뒤 제한된 snapshot 재조회로 새 DB 캐시를 반영합니다.
 
-OpenRouter만 `llm_provider_daily_usage`에서 UTC 일자별 요청을 원자 예약하며 하루 500회를 넘기지 않습니다. 성공 여부와 관계없이 OpenRouter 외부 요청을 시도하기 전에 1회로 계산합니다. 알람 보고서는 조회 시 새 근거가 3개 이상일 때만 요청 플래그를 저장하고, 성공한 동일 근거 ID 집합·provider·model·prompt version은 DB 캐시를 재사용합니다. 브리핑은 종합 판단과 2~4개 통합 논점으로 저장합니다.
+OpenRouter는 게이트웨이에서 UTC 일자별 요청을 원자 예약하며 공식 1,000회 중 950회를 운영 상한으로 사용합니다. 성공 여부와 관계없이 OpenRouter 외부 요청을 시도하기 전에 1회로 계산합니다. 알람 보고서는 조회 시 새 근거가 3개 이상일 때만 요청 플래그를 저장하고, 성공한 동일 근거 ID 집합·provider·model·prompt version은 DB 캐시를 재사용합니다. 브리핑은 종합 판단과 2~4개 통합 논점으로 저장합니다.
 
 Mistral은 일일 호출 횟수나 고정 토큰 수로 차단하지 않습니다. 성공한 각 응답의 입력·출력 토큰과 국무회의 음성 전사 시간을 고유 request ID 기준으로 한 번만 저장하고, 현재 단가로 계산한 합산 비용이 `MISTRAL_MONTHLY_CREDIT_USD=10`에 도달하면 다음 요청을 중단합니다. 입력·출력·음성 단가가 다르므로 토큰 수 하나를 월 한도로 오인하지 않습니다. Mistral Studio의 Workspace 월간 지출 한도도 USD 10 이하로 별도 설정합니다.
 
@@ -139,6 +139,18 @@ MISTRAL_API_KEY=...
 PYTHONPATH=backend python3 -m app.ingestion.summary_backfill \
   --broadcast-id cfa253d9-5ada-46e2-9f95-bdf55fb54046
 ```
+
+### 회의 보고서 공급자 전환
+
+OpenRouter 장애 또는 공용 한도 소진이 확인되면 PoC 7 `.env`에서 회의 보고서 전용 provider만 전환한다. 전역 `LLM_PROVIDER`는 바꾸지 않으므로 실시간 발언 요약과 다른 워커에 전파되지 않는다.
+
+```bash
+MEETING_BRIEF_PROVIDER=mistral
+MEETING_BRIEF_MISTRAL_MODEL=mistral-small-2603
+sudo scripts/deploy_secure_workers.sh meeting
+```
+
+Mistral 월 비용에는 Voxtral STT가 함께 포함되므로 `/api/ai/usage`의 잔액을 먼저 확인한다. 자동 전환은 사용하지 않는다. 복구 후에는 `MEETING_BRIEF_PROVIDER=openrouter`로 되돌리고 같은 명령으로 워커만 재생성한다.
 
 로그에는 방송 ID, 대상·캐시·저장 건수와 API 호출 횟수만 남기며 API key와 자막 원문은 출력하지 않습니다.
 
@@ -196,7 +208,9 @@ PYTHONPATH=backend python3 -m app.ingestion.meeting_brief_worker \
 
 운영 화면 API는 저장된 브리프만 읽습니다. `/api/live/broadcasts/{id}/brief/evidence`는 선택한 주제·과제·화자 요지에 연결된 발언만 반환하고 외부 LLM을 호출하지 않습니다.
 
-`official-minutes-worker`는 최근 30일 종료 방송 중 공식본 미게시 건을 1시간마다 확인합니다. API 원본을 먼저 보존한 뒤 위원회+서울 날짜 후보가 하나일 때만 연결합니다. 후보가 없으면 `NOT_PUBLISHED`, 둘 이상이면 `AMBIGUOUS`로 남깁니다.
+`official-minutes-worker`는 최근 30일 종료 방송 중 공식본 미게시 건을 5분마다 확인합니다. API 원본을 먼저 보존한 뒤 위원회+서울 날짜 후보가 하나일 때만 연결합니다. 동일한 의미의 본문은 발언과 주석을 다시 적재하지 않습니다. 후보가 없으면 `NOT_PUBLISHED`, 둘 이상이면 `AMBIGUOUS`로 남깁니다.
+
+같은 회차에서 회의 안건의 `BILL_ID`는 확인됐지만 `bill_versions` 상세가 없는 의안은 최신 회의 순으로 한 주기당 20건씩 자동 동기화합니다. 공식 API에 상세가 아직 없으면 6시간 뒤, 일시 오류면 15분 뒤 재시도하며 다른 의안 처리는 계속합니다. 일상 운영에서는 별도 `bill_sync` 실행이 필요하지 않고, 전체 연결 의안을 강제로 새로 수집할 때만 수동 명령을 사용합니다.
 
 `official-integration-worker`는 수집 워커와 독립적으로 15초마다 미처리 상태 큐를 확인합니다. 완료된 동일 브리프·공식문서·통합 버전은 다시 처리하지 않고, 만료된 lease와 재시도 시각이 된 실패 작업만 다시 선점합니다. 공식 본문이 publication보다 먼저 수집돼도 정확한 `meeting_id + conference_id`가 확인되면 자동 연결합니다.
 

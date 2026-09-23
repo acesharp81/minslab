@@ -48,6 +48,8 @@ from .services.integrated_brief_evidence import (
     official_evidence_ids,
 )
 from .services.meeting_brief import (
+    OPENROUTER_FINAL_RETRY_MODEL,
+    OPENROUTER_STRUCTURED_RETRY_MODEL,
     PROMPT_VERSION as MEETING_BRIEF_PROMPT_VERSION,
 )
 from .services.meeting_brief import link_tasks_to_topics
@@ -62,6 +64,7 @@ from .services.official_evidence_presentation import (
     build_official_evidence_presentations,
 )
 from .services.official_speaker_presentation import apply_official_speakers
+from .services.openrouter_summary import DEFAULT_MODEL as OPENROUTER_DEFAULT_MODEL
 from .services.summary_client import summary_identity
 from .services.transcript_presentation import (
     apply_speaker_overrides,
@@ -439,6 +442,186 @@ def _usage_reset_at(period: str, timezone_name: str) -> str:
     return reset_utc.astimezone(ZoneInfo(timezone_name)).isoformat()
 
 
+def _configured_model_workloads(settings: object) -> dict[tuple[str, str], set[str]]:
+    catalog: dict[tuple[str, str], set[str]] = {}
+
+    def add(provider: str, model: str, workload: str) -> None:
+        normalized_provider = str(provider or "").strip().lower()
+        normalized_model = str(model or "").strip()
+        if normalized_provider and normalized_model:
+            catalog.setdefault(
+                (normalized_provider, normalized_model), set()
+            ).add(workload)
+
+    provider, summary_model, _ = summary_identity(settings)
+    if settings.ai_enrichment_enabled:
+        add(provider, summary_model, "발언 요약")
+        add(provider, summary_model, "공식 보고서 ↔ LIVE 초안 변화 분석")
+        meeting_provider = str(
+            settings.meeting_brief_provider or provider
+        ).strip().lower()
+        meeting_model = (
+            settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL
+            if meeting_provider == "openrouter"
+            else settings.meeting_brief_mistral_model or "mistral-small-2603"
+        )
+        add(meeting_provider, meeting_model, "회의 보고서 생성")
+        if meeting_provider != "mistral":
+            add(
+                "mistral",
+                settings.meeting_brief_mistral_model or "mistral-small-2603",
+                "회의 보고서 콜드 스탠바이",
+            )
+        if meeting_provider == "openrouter":
+            add(meeting_provider, OPENROUTER_STRUCTURED_RETRY_MODEL, "구조화 재시도")
+            add(meeting_provider, OPENROUTER_FINAL_RETRY_MODEL, "최종 합성 재시도")
+            add(
+                meeting_provider,
+                OPENROUTER_FINAL_RETRY_MODEL,
+                "LIVE 주제 ↔ 최종 보고서 연관관계 분석",
+            )
+    if settings.watch_llm_enabled:
+        add(
+            settings.watch_llm_provider,
+            settings.watch_llm_model or summary_model,
+            "관심주제 브리핑",
+        )
+    if settings.topic_reports_enabled:
+        add(
+            "openrouter",
+            settings.topic_report_model or OPENROUTER_FINAL_RETRY_MODEL,
+            "주제별 보고서 생성",
+        )
+    if settings.official_change_reports_enabled:
+        add(
+            "openrouter",
+            settings.official_change_report_model
+            or settings.llm_model
+            or OPENROUTER_DEFAULT_MODEL,
+            "공식화 변화 보고서 생성",
+        )
+    add(
+        "mistral",
+        settings.executive_transcription_model,
+        "국무회의 STT",
+    )
+    return catalog
+
+
+MODEL_WORKLOAD_LABELS = {
+    "utterance_summary": "발언 요약",
+    "official_revision": "공식 보고서 ↔ LIVE 초안 변화 분석",
+    "meeting_brief": "회의 보고서 생성",
+    "meeting_brief_lineage": "LIVE 주제 ↔ 최종 보고서 연관관계 분석",
+    "topic_report": "주제별 보고서 생성",
+    "official_change_report": "공식화 변화 보고서 생성",
+    "watch_summary": "관심주제 브리핑",
+}
+
+
+def _model_vendor_label(provider: str, model: str) -> str:
+    prefixes = {
+        "nvidia/": "NVIDIA",
+        "liquid/": "Liquid AI",
+        "dots-studio/": "Dots",
+        "openai/": "OpenAI",
+        "google/": "Google",
+    }
+    lowered = model.lower()
+    for prefix, label in prefixes.items():
+        if lowered.startswith(prefix):
+            return label
+    if provider == "mistral" or lowered.startswith(("mistral-", "voxtral-")):
+        return "Mistral AI"
+    return provider.title() if provider else "기타"
+
+
+def _model_usage_payload(
+    settings: object,
+    monthly_usage: list[dict[str, object]],
+    gateway: dict[str, object],
+) -> list[dict[str, object]]:
+    configured = _configured_model_workloads(settings)
+    monthly = {
+        (str(item.get("provider") or ""), str(item.get("model") or "")): item
+        for item in monthly_usage
+        if item.get("provider") and item.get("model")
+    }
+    daily: dict[tuple[str, str], dict[str, object]] = {}
+    for item in gateway.get("breakdown") or []:
+        model = str(item.get("model") or "").strip()
+        if not model:
+            continue
+        key = ("openrouter", model)
+        target = daily.setdefault(
+            key, {"request_count": 0, "workloads": set(), "statuses": {}}
+        )
+        count = int(item.get("count") or 0)
+        target["request_count"] = int(target["request_count"]) + count
+        workload = str(item.get("workload") or "").strip()
+        if workload:
+            target["workloads"].add(MODEL_WORKLOAD_LABELS.get(workload, workload))
+        status_name = str(item.get("status") or "UNKNOWN")
+        target["statuses"][status_name] = (
+            int(target["statuses"].get(status_name, 0)) + count
+        )
+    keys = set(configured) | set(monthly) | set(daily)
+    result: list[dict[str, object]] = []
+    for provider, model in keys:
+        month = monthly.get((provider, model), {})
+        today = daily.get((provider, model), {})
+        usage = {
+            "input_tokens": int(month.get("input_tokens") or 0),
+            "output_tokens": int(month.get("output_tokens") or 0),
+            "audio_cost_usd": float(month.get("audio_cost_usd") or 0),
+        }
+        cost_usd = (
+            mistral_usage_cost_usd(
+                usage,
+                input_usd_per_million=settings.mistral_input_usd_per_million,
+                output_usd_per_million=settings.mistral_output_usd_per_million,
+            )
+            if provider == "mistral" else 0.0
+        )
+        if provider == "openrouter":
+            access_label = "OpenRouter 경유"
+        elif provider == "mistral":
+            access_label = "Mistral 직접"
+        else:
+            access_label = f"{provider} 직접"
+        result.append({
+            "provider": provider,
+            "model": model,
+            "vendor_label": _model_vendor_label(provider, model),
+            "access_label": access_label,
+            "configured": (provider, model) in configured,
+            "workloads": sorted(
+                configured.get((provider, model), set())
+                | set(today.get("workloads") or set())
+            ),
+            "today_request_count": int(today.get("request_count") or 0),
+            "monthly_request_count": int(month.get("request_count") or 0),
+            "input_tokens": int(month.get("input_tokens") or 0),
+            "output_tokens": int(month.get("output_tokens") or 0),
+            "total_tokens": int(month.get("total_tokens") or 0),
+            "audio_request_count": int(month.get("audio_request_count") or 0),
+            "audio_seconds": float(month.get("audio_seconds") or 0),
+            "cost_usd": round(cost_usd, 6),
+            "statuses": today.get("statuses") or {},
+        })
+    return sorted(
+        result,
+        key=lambda item: (
+            {"openrouter": 0, "mistral": 1}.get(str(item["provider"]), 2),
+            not bool(item["configured"]),
+            -int(item["today_request_count"]),
+            -int(item["monthly_request_count"])
+            - int(item["audio_request_count"]),
+            str(item["model"]),
+        ),
+    )
+
+
 @app.get("/api/ai/usage", tags=["system"])
 def ai_usage() -> dict[str, object]:
     settings = get_settings()
@@ -448,6 +631,7 @@ def ai_usage() -> dict[str, object]:
         "audio_seconds": 0.0, "audio_cost_usd": 0.0,
     }
     local_openrouter = 0
+    monthly_model_usage: list[dict[str, object]] = []
     status = "AVAILABLE"
     if settings.database_url:
         try:
@@ -455,6 +639,7 @@ def ai_usage() -> dict[str, object]:
                 repository = SummaryRepository(connection)
                 mistral_usage.update(repository.monthly_provider_usage("mistral"))
                 local_openrouter = repository.daily_usage("openrouter")
+                monthly_model_usage = repository.monthly_model_usage()
         except Exception:
             status = "UNAVAILABLE"
     gateway: dict[str, object] = {}
@@ -472,32 +657,52 @@ def ai_usage() -> dict[str, object]:
         input_usd_per_million=settings.mistral_input_usd_per_million,
         output_usd_per_million=settings.mistral_output_usd_per_million,
     )
+    models = _model_usage_payload(settings, monthly_model_usage, gateway)
+    openrouter_official_limit = int(gateway.get("official_limit") or 1000)
     return {
         "provider": "combined",
         "provider_label": "OpenRouter 공용 + Mistral STT",
         "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",
-        "used": openrouter_used, "limit": openrouter_limit,
+        "used": openrouter_used, "limit": openrouter_official_limit,
+        "operational_limit": openrouter_limit,
         "unit": "requests", "period": "DAILY",
         "request_count": openrouter_used,
-        "usage_percent": round((openrouter_used / openrouter_limit) * 100, 2) if openrouter_limit else 0,
+        "usage_percent": round(
+            (openrouter_used / openrouter_official_limit) * 100, 2
+        ) if openrouter_official_limit else 0,
         "resets_at": _usage_reset_at("DAILY", settings.national_assembly_timezone),
         "status": status,
+        "model_count": len(models),
+        "platform_count": len({
+            str(item["provider"]) for item in models
+        }),
+        "models": models,
         "providers": [
             {
                 "provider": "openrouter", "period": "DAILY",
-                "used": openrouter_used, "limit": openrouter_limit,
+                "used": openrouter_used, "limit": openrouter_official_limit,
+                "operational_limit": openrouter_limit,
                 "usage_percent": round(
-                    (openrouter_used / openrouter_limit) * 100, 2
-                ) if openrouter_limit else 0,
+                    (openrouter_used / openrouter_official_limit) * 100, 2
+                ) if openrouter_official_limit else 0,
                 "resets_at": _usage_reset_at(
                     "DAILY", settings.national_assembly_timezone
                 ),
-                "official_limit": int(gateway.get("official_limit") or 1000),
+                "official_limit": openrouter_official_limit,
                 "completed": int(gateway.get("completed") or 0),
                 "failed": int(gateway.get("failed") or 0),
-                "remaining": max(0, openrouter_limit - openrouter_used),
+                "remaining": max(
+                    0, openrouter_official_limit - openrouter_used
+                ),
+                "operational_remaining": max(
+                    0, openrouter_limit - openrouter_used
+                ),
                 "combined_projects": True,
                 "breakdown": gateway.get("breakdown") or [],
+                "models": [
+                    item for item in models
+                    if item["provider"] == "openrouter"
+                ],
             },
             {
                 "provider": "mistral", "period": "MONTHLY",
@@ -511,82 +716,12 @@ def ai_usage() -> dict[str, object]:
                     "MONTHLY", settings.national_assembly_timezone
                 ),
                 "transcription_model": settings.executive_transcription_model,
+                "models": [
+                    item for item in models
+                    if item["provider"] == "mistral"
+                ],
             },
         ],
-    }
-    provider, model, _ = summary_identity(settings)
-    provider_labels = {
-        "mistral": "Mistral Studio",
-        "openrouter": "OpenRouter",
-        "gemini": "Google AI Studio",
-        "disabled": "AI 요약 미사용",
-    }
-    period = "DAILY" if provider == "openrouter" else "MONTHLY"
-    unit = "requests" if provider == "openrouter" else "tokens"
-    limit = int(settings.openrouter_daily_limit) if provider == "openrouter" else 0
-    credit_usd = (
-        float(settings.mistral_monthly_credit_usd) if provider == "mistral" else 0.0
-    )
-    usage = {
-        "request_count": 0,
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "audio_request_count": 0,
-        "audio_seconds": 0.0,
-        "audio_cost_usd": 0.0,
-    }
-    status = "NOT_CONFIGURED" if not settings.database_url else "AVAILABLE"
-    if settings.database_url and provider in {"mistral", "openrouter"}:
-        try:
-            with connect(settings.database_url) as connection:
-                repository = SummaryRepository(connection)
-                if provider == "openrouter":
-                    usage["request_count"] = repository.daily_usage(provider)
-                else:
-                    usage.update(repository.monthly_token_usage(provider, model))
-        except Exception:
-            status = "UNAVAILABLE"
-    used = usage["request_count"] if unit == "requests" else usage["total_tokens"]
-    cost_usd = (
-        mistral_usage_cost_usd(
-            usage,
-            input_usd_per_million=settings.mistral_input_usd_per_million,
-            output_usd_per_million=settings.mistral_output_usd_per_million,
-        )
-        if provider == "mistral"
-        else 0.0
-    )
-    usage_percent = (
-        (cost_usd / credit_usd) * 100
-        if provider == "mistral" and credit_usd
-        else (used / limit) * 100
-        if limit
-        else 0
-    )
-    return {
-        "provider": provider,
-        "provider_label": provider_labels.get(provider, provider or "AI 요약 미사용"),
-        "model": model or "-",
-        "used": used,
-        "limit": limit,
-        "unit": unit,
-        "period": period,
-        "request_count": usage["request_count"],
-        "input_tokens": usage["input_tokens"],
-        "output_tokens": usage["output_tokens"],
-        "audio_request_count": usage.get("audio_request_count", 0),
-        "audio_seconds": usage.get("audio_seconds", 0.0),
-        "audio_cost_usd": round(float(usage.get("audio_cost_usd", 0.0)), 6),
-        "transcription_model": settings.executive_transcription_model,
-        "cost_usd": round(cost_usd, 6),
-        "credit_usd": credit_usd,
-        "remaining_usd": round(max(0.0, credit_usd - cost_usd), 6),
-        "input_usd_per_million": settings.mistral_input_usd_per_million,
-        "output_usd_per_million": settings.mistral_output_usd_per_million,
-        "usage_percent": round(usage_percent, 2),
-        "resets_at": _usage_reset_at(period, settings.national_assembly_timezone),
-        "status": status,
     }
 
 
@@ -1227,6 +1362,7 @@ def ended_live_broadcasts(
     committee: str | None = None,
     limit: int = 5,
     offset: int = 0,
+    include_latest_content: bool = False,
 ) -> dict[str, object]:
     committee = _validate_live_committee(committee)
     if not 1 <= limit <= 20:
@@ -1245,6 +1381,12 @@ def ended_live_broadcasts(
             briefs = MeetingBriefRepository(connection).latest_summary_map(
                 item["broadcast_id"] for item in items
             )
+            if include_latest_content and items:
+                latest_item = MeetingBriefRepository(connection).latest(
+                    items[0]["broadcast_id"]
+                )
+                if latest_item:
+                    briefs[items[0]["broadcast_id"]] = latest_item
             progresses = MeetingBriefRepository(connection).progress_map(
                 item["broadcast_id"] for item in items
             )
@@ -1252,7 +1394,7 @@ def ended_live_broadcasts(
                 item["meeting_brief"] = _public_meeting_brief(
                     briefs.get(item["broadcast_id"]),
                     progresses.get(item["broadcast_id"]),
-                    include_content=False,
+                    include_content=bool(include_latest_content and item is items[0]),
                 )
                 item["brief_status"] = (
                     item["meeting_brief"].get("brief_status")
@@ -1465,9 +1607,13 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 if topic_id in lineage_ids:
                     topic["live_topic_cluster_ids"] = lineage_ids[topic_id]
         public["provisional_brief"] = provisional_brief
-        public["brief"] = attach_meeting_topic_groups(
+        public["official_brief"] = attach_meeting_topic_groups(
             link_tasks_to_topics(integrated_brief)
         )
+        # The LIVE/STT result remains the default read model. Official minutes
+        # are a separate comparison projection and never silently replace it.
+        public["brief"] = provisional_brief
+        public["default_brief_view"] = "PROVISIONAL"
         public["official_integration"] = {
             "status": integration["status"],
             "integration_version": integration["integration_version"],

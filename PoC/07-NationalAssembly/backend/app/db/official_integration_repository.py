@@ -177,6 +177,21 @@ class OfficialIntegrationRepository:
                 ),
             ).fetchone()
             inserted += int(row is not None)
+        broadcast_rows = self.connection.execute(
+            """
+            SELECT DISTINCT segment.broadcast_id
+            FROM transcript_segment_revisions revision
+            JOIN transcript_segments segment ON segment.id = revision.segment_id
+            WHERE revision.id = ANY(%s)
+            """,
+            (revision_ids,),
+        ).fetchall()
+        if broadcast_rows:
+            from .live_repository import LiveRepository
+
+            LiveRepository(self.connection).refresh_official_context_stats(
+                row[0] for row in broadcast_rows
+            )
         return inserted
 
     @staticmethod

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from dataclasses import dataclass
 
@@ -92,6 +93,29 @@ class OfficialMinutesBodyAdapter:
             return None
         text = re.sub(r"\s+", " ", str(value).replace("\xa0", " ")).strip()
         return text or None
+
+
+def semantic_content_hash(body: OfficialMinutesBody) -> str:
+    """Hash parsed meeting meaning, ignoring volatile HTML wrapper changes."""
+    digest = hashlib.sha256()
+    digest.update(b"official-minutes-semantic.v1\0")
+    for value in (
+        body.conference_id, body.publication_stage, body.status_text, body.title,
+    ):
+        digest.update(json.dumps(value, ensure_ascii=False).encode("utf-8"))
+        digest.update(b"\0")
+    for utterance in body.utterances:
+        digest.update(json.dumps((
+            utterance.sequence_number,
+            utterance.source_speaker_id,
+            utterance.source_span_id,
+            utterance.agenda_item_ref,
+            utterance.speaker_name,
+            utterance.speaker_role,
+            utterance.text_hash,
+        ), ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
 
 
 def normalized_match_text(value: str) -> str:

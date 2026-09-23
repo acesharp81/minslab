@@ -9,6 +9,12 @@ function appendOfficialInlineDiff(container, value, diffSpans, changeKind = "") 
       container.append(document.createTextNode(part.text || ""));
       continue;
     }
+    if (part.kind === "deleted") {
+      // This is an official-first view. Rendering deleted LIVE wording inline
+      // duplicates the sentence and makes the official projection look like
+      // it overwrote the draft. The before/after card preserves that wording.
+      continue;
+    }
     const mark = magazineElement(
       "mark", `official-inline-change is-${part.kind}`, part.text || "",
     );
@@ -23,6 +29,24 @@ function appendOfficialInlineDiff(container, value, diffSpans, changeKind = "") 
     container.append(mark);
   }
   return container;
+}
+
+function meetingBriefViewSwitch(activeView, onChange) {
+  const control = magazineElement("div", "meeting-brief-view-switch", "");
+  control.setAttribute("role", "group");
+  control.setAttribute("aria-label", "회의 보고서 자료 기준");
+  for (const [view, label] of [
+    ["provisional", "LIVE/STT 초안"],
+    ["official", "공식 대조본"],
+  ]) {
+    const button = magazineElement("button", "", label);
+    button.type = "button";
+    button.dataset.briefView = view;
+    button.setAttribute("aria-pressed", String(activeView === view));
+    button.addEventListener("click", () => onChange(view));
+    control.append(button);
+  }
+  return control;
 }
 
 function officialTextElement(tag, className, value, entity, field) {

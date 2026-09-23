@@ -47,6 +47,21 @@ def _subscriber(connection: object, token: str | None) -> UUID:
     return subscriber_id
 
 
+def _optional_subscriber(connection: object, token: str | None) -> UUID | None:
+    if not token:
+        return None
+    return WatchRepository(connection).subscriber_for_token(token)
+
+
+def _client_item(item: dict[str, object]) -> dict[str, object]:
+    """Do not expose account or upstream request metadata on public reports."""
+    return {
+        key: value
+        for key, value in item.items()
+        if key not in {"subscriber_id", "usage_metadata"}
+    }
+
+
 def _clean(payload: TopicReportQueryPayload) -> tuple[str, str, str | None]:
     settings = get_settings()
     ministry = canonical_ministry_name(payload.ministry)
@@ -136,25 +151,21 @@ def create_topic_report(
         LOGGER.warning("topic report creation failed: %s", type(exc).__name__)
         raise HTTPException(status_code=503, detail="주제별 보고서 작성을 시작할 수 없습니다.") from exc
     response.headers["X-LLM-Calls"] = "0" if item["status"] == "READY" else "PENDING"
-    return {**item, "search_summary": {
+    return {**_client_item(item), "search_summary": {
         "evidence_count": search["count"], "meeting_count": search["meeting_count"],
     }}
 
 
 @router.get("")
 def list_topic_reports(
-    limit: int = 20,
-    x_watch_token: str | None = Header(default=None),
+    limit: int = 50,
 ) -> dict[str, object]:
     try:
         with connect(get_settings().database_url) as connection:
-            subscriber_id = _subscriber(connection, x_watch_token)
-            items = TopicReportRepository(connection).list(subscriber_id, limit=limit)
-    except HTTPException:
-        raise
+            items = TopicReportRepository(connection).list_public(limit=limit)
     except Exception as exc:
         raise HTTPException(status_code=503, detail="주제별 보고서 목록을 불러올 수 없습니다.") from exc
-    return {"items": items, "count": len(items)}
+    return {"items": [_client_item(item) for item in items], "count": len(items)}
 
 
 @router.get("/{report_id}")
@@ -164,15 +175,15 @@ def topic_report_detail(
 ) -> dict[str, object]:
     try:
         with connect(get_settings().database_url) as connection:
-            subscriber_id = _subscriber(connection, x_watch_token)
-            item = TopicReportRepository(connection).get(subscriber_id, report_id)
-    except HTTPException:
-        raise
+            subscriber_id = _optional_subscriber(connection, x_watch_token)
+            item = TopicReportRepository(connection).get_visible(
+                report_id, subscriber_id,
+            )
     except Exception as exc:
         raise HTTPException(status_code=503, detail="주제별 보고서를 불러올 수 없습니다.") from exc
     if item is None:
         raise HTTPException(status_code=404, detail="주제별 보고서를 찾을 수 없습니다.")
-    return item
+    return _client_item(item)
 
 
 @router.get("/{report_id}/report.md")
@@ -182,9 +193,9 @@ def topic_report_markdown(
 ) -> Response:
     try:
         with connect(get_settings().database_url) as connection:
-            subscriber_id = _subscriber(connection, x_watch_token)
+            subscriber_id = _optional_subscriber(connection, x_watch_token)
             repository = TopicReportRepository(connection)
-            item = repository.get(subscriber_id, report_id)
+            item = repository.get_visible(report_id, subscriber_id)
             if item is None:
                 raise HTTPException(status_code=404, detail="주제별 보고서를 찾을 수 없습니다.")
             if item["status"] != "READY":

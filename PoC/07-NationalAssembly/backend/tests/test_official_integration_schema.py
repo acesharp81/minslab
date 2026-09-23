@@ -20,7 +20,8 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
             PROJECT_DIR / "scripts" / "deploy_secure_workers.sh"
         ).read_text(encoding="utf-8")
         self.assertNotIn("../../.env", compose)
-        self.assertEqual(compose.count("MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}"), 1)
+        self.assertEqual(compose.count("MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}"), 2)
+        self.assertIn("MEETING_BRIEF_PROVIDER: ${MEETING_BRIEF_PROVIDER:-openrouter}", compose)
         self.assertIn("external: true", compose)
         self.assertIn("mktemp -d /tmp/poc07-worker-env.", deploy_script)
         self.assertIn("--env-file", deploy_script)
@@ -178,6 +179,27 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         self.assertIn('"official.date.error"', worker)
         self.assertIn('"official.body.error"', worker)
         self.assertIn('"official.meeting-body.error"', worker)
+
+    def test_official_worker_fills_missing_bill_details_in_bounded_batches(self):
+        worker = (
+            PROJECT_DIR / "backend/app/ingestion/official_minutes_worker.py"
+        ).read_text(encoding="utf-8")
+        sync = (
+            PROJECT_DIR / "backend/app/ingestion/bill_sync.py"
+        ).read_text(encoding="utf-8")
+        repository = (
+            PROJECT_DIR / "backend/app/db/bill_repository.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("sync_pending_target_bill_details(", worker)
+        self.assertIn('"bills.details.completed"', worker)
+        self.assertIn("limit=20", worker)
+        self.assertIn("def pending_target_bill_external_ids(", repository)
+        self.assertIn("WHERE NOT EXISTS (", repository)
+        self.assertIn("ORDER BY max(meeting.scheduled_date) DESC", repository)
+        self.assertIn("MISSING_DETAIL_RETRY_SECONDS", sync)
+        self.assertIn("FAILED_DETAIL_RETRY_SECONDS", sync)
+        self.assertIn('"missing_details": []', sync)
+        self.assertIn('"errors": []', sync)
 
     def test_ui_exposes_real_comparison_stages(self):
         repository = (

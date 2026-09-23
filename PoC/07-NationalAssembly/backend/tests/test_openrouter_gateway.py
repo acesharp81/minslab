@@ -16,11 +16,13 @@ class OpenRouterGatewayTests(unittest.TestCase):
         self.old_path = gateway.DB_PATH
         self.old_key = gateway.API_KEY
         gateway.DB_PATH = Path(self.temporary.name) / "gateway.sqlite3"
+        gateway._schema_ready_path = None
         gateway.API_KEY = "test-key"
         self.client = TestClient(gateway.app)
 
     def tearDown(self) -> None:
         gateway.DB_PATH = self.old_path
+        gateway._schema_ready_path = None
         gateway.API_KEY = self.old_key
         self.temporary.cleanup()
 

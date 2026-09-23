@@ -21,6 +21,40 @@
   font-weight: 800;
   text-decoration: none;
 }
+.meeting-brief-view-switch {
+  display: inline-flex;
+  overflow: hidden;
+  margin-left: auto;
+  border: 1px solid #b9cce6;
+  border-radius: 999px;
+  background: #fff;
+}
+.meeting-brief-view-switch button {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  color: #526a88;
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.meeting-brief-view-switch button[aria-pressed="true"] {
+  color: #fff;
+  background: #175fae;
+}
+.meeting-brief-source-note { max-width: 360px; line-height: 1.45; }
+.meeting-evidence-live-only {
+  margin-top: 8px;
+  padding: 7px 9px;
+  border: 1px solid #ead9ad;
+  border-radius: 7px;
+  color: #765612;
+  background: #fffaf0;
+  font-size: 10px;
+}
+.meeting-evidence-live-only summary { cursor: pointer; font-weight: 850; }
+.meeting-evidence-live-only p { margin: 6px 0 0; line-height: 1.5; }
 .official-inline-change {
   position: relative;
   padding: 0 2px;
@@ -63,4 +97,6 @@
     padding: 9px 16px;
   }
   .meeting-integration-bar a { margin-left: 0; }
+  .meeting-brief-view-switch { margin-left: 0; }
+  .meeting-brief-source-note { flex-basis: 100%; max-width: none; }
 }

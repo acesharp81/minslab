@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from app.adapters.official_minutes_body import (
     OfficialMinutesBodyAdapter,
     explicit_spoken_agenda_ref,
     normalized_match_text,
+    semantic_content_hash,
 )
 from app.ingestion.official_minutes_body import body_view_url
 
@@ -47,6 +49,19 @@ class OfficialMinutesBodyTests(unittest.TestCase):
         self.assertEqual(explicit_spoken_agenda_ref("15항 관련해서 말씀드리겠습니다."), "item15")
         self.assertEqual(explicit_spoken_agenda_ref("제3번 안건에 대해 질의하겠습니다."), "item3")
         self.assertIsNone(explicit_spoken_agenda_ref("예산 15항목을 검토했습니다."))
+
+    def test_semantic_hash_ignores_source_wrapper_but_tracks_meaning(self):
+        payload = SourcePayload(
+            "committee_minutes_body", FIXTURE.read_bytes(), "text/html; charset=UTF-8",
+            datetime.now(timezone.utc),
+            "https://record.assembly.go.kr/assembly/viewer/minutes/xml.do?id=1&type=view", 200,
+        )
+        body = OfficialMinutesBodyAdapter().parse(payload)
+        self.assertEqual(semantic_content_hash(body), semantic_content_hash(replace(body)))
+        self.assertNotEqual(
+            semantic_content_hash(body),
+            semantic_content_hash(replace(body, publication_stage="FINAL")),
+        )
 
 
 if __name__ == "__main__":

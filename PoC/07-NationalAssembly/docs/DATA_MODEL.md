@@ -1,5 +1,12 @@
 # Data Model
 
+## 공식 회의록 비교 projection
+
+- `MeetingBrief.brief`는 LIVE/STT 기반 잠정 초안이며 공식 자료 게시 뒤에도 원본을 유지한다.
+- API `brief`는 잠정 초안, `official_brief`는 검증된 공식 보완 projection이다. `default_brief_view=PROVISIONAL`로 어느 쪽이 기본인지 명시한다.
+- `TranscriptOfficialReconciliation`의 V2 매칭은 양방향 문자 겹침과 발언 순서를 사용하며 모호한 후보는 저장하지 않는다.
+- 공식 발언 evidence는 reconciliation의 `live_revision_id`와 `live_text`로 해당 공식 발언에 매칭된 원본 자막 조각만 비교한다. `diff_spans`는 공식 문장을 재구성하고, `change_count`는 의미 있는 교체·추가·LIVE 전용 문구만 센다. 공식본에 없는 실질적인 LIVE 문구는 `live_only_fragments`에 보존한다.
+
 실제 schema는 `backend/migrations/`에서 순서대로 적용합니다. 공식 일정은 종류가 섞여 있으므로 모든 원본 레코드를 `ScheduleEntry`로 보존하고, 회의 식별 조건을 만족한 항목만 `Meeting`에 연결합니다.
 
 제품의 우선 대상은 행정안전위원회, 예산결산특별위원회, 법제사법위원회입니다. `is_target_committee`는 제품 scope이며 자료 권위나 회의 매칭 상태와 별개입니다.
@@ -58,11 +65,14 @@ LiveBroadcast 1 ─ N LiveBroadcastSourceVersion N ─ 1 SourceDocumentVersion
 - `TranscriptSegment`는 현재 읽기 모델이며 `TranscriptSegmentRevision`은 partial/final 변경 이력을 content hash로 중복 없이 보존합니다.
 - 각 revision은 원본 WebSocket 메시지의 `SourceDocumentVersion`을 직접 참조합니다. 메시지는 구조화 전에 raw artifact로 먼저 저장합니다.
 - 각 revision에는 전역 단조 증가 `event_cursor`가 부여됩니다. snapshot은 먼저 cursor를 고정한 뒤 그 cursor 이하의 최신 segment revision만 조회합니다.
+- `LiveBroadcast.source_last_event_cursor`는 해당 방송에 저장된 revision의 최대 cursor를 같은 트랜잭션에서 함께 갱신하는 읽기 최적화 값입니다. 원본 revision은 그대로 보존하며, 회의 보고서 목록·상세 상태 확인은 전체 revision 집계 대신 이 값을 사용합니다.
+- `LiveBroadcast.final_segment_count`와 `matched_segment_count`는 공식 대조 현황 조회용 집계값입니다. 최종 자막 수는 자막 확정 시 증감하고, 공식 매칭 수는 대조 배치 완료 시 해당 방송만 다시 집계합니다. 사용자 상세 조회에서는 원본 자막·대조 테이블에 `COUNT`를 수행하지 않습니다.
 - caption worker는 만료 가능한 DB lease를 획득하므로 재시작 후 수집을 이어가되 같은 방송을 동시에 중복 수집하지 않습니다.
 - `LiveBroadcast.active_transcript_source`, `official_caption_state`, `stt_fallback_status`는 공식 자막과 AI STT의 활성 소스·복구 상태·별도 STT lease를 관리합니다. `TranscriptSourceSession`은 공식 자막 timeout과 STT 시작·종료 전환 사유를 감사 이력으로 보존합니다.
 - 자막 원문은 `LIVE` 권위 상태로 저장합니다. 종료 후 보정본과 공식 회의록은 원문을 덮어쓰지 않고 별도 버전·대조 관계로 추가합니다.
 - `BroadcastReview`는 종료된 방송의 final revision만 입력으로 사용하는 `PROVISIONAL` 산출물입니다. 주제별 대표 발언은 원문을 그대로 사용하며 모든 포함 segment를 `BroadcastReviewEvidence`로 연결합니다.
-- `MeetingBrief`는 공식 원문과 분리된 오픈 베타용 `PROVISIONAL · DRAFT` 읽기 모델입니다. provider-neutral client가 발언 묶음을 구간별로 분석한 뒤 회의 전체의 headline·summary·topic·speaker point·task를 통합하며, 모든 항목의 `evidence_ids`는 해당 방송의 실제 Utterance 시작 segment ID로 검증합니다. 각 task는 공통 evidence를 우선해 하나의 canonical `topic_id`와 정식 `topic_title`에 연결하며 생성된 제목 문자열을 관계 키로 사용하지 않습니다. `(broadcast_id, transcript_hash, provider, model, prompt_version)`을 캐시 키로 사용하고 API는 저장 결과만 읽습니다.
+- `MeetingBrief`는 공식 원문과 분리된 오픈 베타용 `PROVISIONAL · DRAFT` 읽기 모델입니다. provider-neutral client가 발언 묶음을 구간별로 분석한 뒤 회의 전체의 headline·summary·topic·speaker point·task를 통합하며, 모든 항목의 `evidence_ids`는 해당 방송의 실제 Utterance 시작 segment ID로 검증합니다. 각 task는 공통 evidence를 우선해 하나의 canonical `topic_id`와 정식 `topic_title`에 연결하며 생성된 제목 문자열을 관계 키로 사용하지 않습니다. 최종 표시용 세부 쟁점은 최대 24개로 제한하되 나머지 LIVE cluster와 근거는 삭제하지 않고 `live_topic_lineage`의 미연결 검토 대상으로 보존합니다. `(broadcast_id, transcript_hash, provider, model, prompt_version)`을 캐시 키로 사용하고 API는 저장 결과만 읽습니다.
+- `MeetingBrief.topic_groups`와 `topic_grouping`은 저장 원본을 바꾸지 않는 버전형 읽기 모델입니다. `ONTOLOGY` 그룹은 세부 주제별 `classification_evidence(topic_id, keyword, field, score)`를 포함하고, 등록 정책 밖의 보수적 묶음은 `DYNAMIC_SEMANTIC` 또는 `TITLE_FALLBACK`으로 남습니다. 정책 대상이 아닌 대화·초안 구조는 `REPORT_ARTIFACT`로 근거를 보존하며 `report_artifact_topic_count`에 별도 집계합니다. `policy_topic_count`를 온톨로지 적용률 분모로 사용하고 `unclassified_topic_count`는 정책 주제 중 분류 보류만 셉니다.
 - `LlmProviderDailyUsage`는 이전 POC7 로컬 OpenRouter 장부이며, 운영 권위값은 POC4·POC7이 공유하는 gateway의 UTC 일일 장부입니다. gateway는 공식 1,000회 중 운영선 950회까지만 원자적으로 예약합니다. `LlmProviderTokenUsageEvent`는 Mistral 성공 응답을 provider·request ID로 한 번만 저장하며, `LlmProviderMonthlyTokenUsage`는 입력·출력·전체 토큰과 STT 비용을 provider·model·UTC 월 단위로 누적합니다.
 - 현재 review generator는 `DETERMINISTIC_KEYWORD_RULE`이며 생성형 요약을 만들지 않습니다. 규칙 버전과 마지막 입력 cursor를 함께 저장해 재생성 결과를 덮어쓰지 않습니다.
 - `BroadcastOfficialPublication`은 공식 `CONF_ID`, 회의록/PDF 링크와 source version을 보존합니다. 위원회+서울 날짜에 후보가 정확히 하나일 때만 연결하고 본문 미수집 상태는 `LINK_ONLY`, 대조 상태는 `UNRESOLVED`로 둡니다.
@@ -115,5 +125,5 @@ AIAnnotation은 canonical official table에 요약 필드로 삽입하지 않습
 - `WatchSummaryVersion`: session별 evidence match ID 집합 hash, 근거 연결 claim, provider/model/prompt, 실제 token·비용과 생성 상태를 버전으로 저장합니다.
 - `WatchReviewDecision`: 공식 대조의 자동판정 상태를 복사해 보존하고 운영자 승인·보정·보류와 메모를 별도 이력으로 추가합니다.
 - `LiveRegressionAudit`: 방송별 revision/final/partial/수집 공백과 공식 통합 확인 결과를 실행 시점별로 저장합니다.
-- `TopicReport`: 사용자 검색 조건, 당시 선별된 공개 근거 snapshot과 hash, provider/model/prompt, 검증된 보고서 JSON, 사용량과 비동기 lease를 저장합니다. 같은 조건·근거·모델·프롬프트의 READY 결과는 재사용합니다.
+- `TopicReport`: 사용자 검색 조건, 당시 선별된 공개 근거 snapshot과 hash, provider/model/prompt, 검증된 보고서 JSON, 사용량과 비동기 lease를 저장합니다. 같은 조건·근거·모델·프롬프트의 READY 결과는 재사용합니다. READY 결과는 계정과 무관한 공개 읽기 모델이며 `generated_at` 기준 최근 30일의 최신 50건만 유지합니다. 공개 응답에서는 subscriber와 upstream 사용 metadata를 제거하고, 미완료·실패 상태는 요청자에게만 반환합니다.
 - `TopicReportDailyUsage`: 사용자별 UTC 일일 요청 수를, `TopicReportGlobalDailyUsage`는 주제 보고서 전용 UTC 일일 요청 수를 원자적으로 제한합니다. 실제 외부 호출 전에는 공용 `LlmProviderDailyUsage` 500회 장부도 함께 예약합니다.

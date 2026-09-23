@@ -9,14 +9,16 @@ from typing import Any
 
 from .official_brief_integration import semantic_tokens
 
-INTEGRATION_VERSION = "official-reconciliation/1.5"
-SPEAKER_MATCH_METHOD = "ORDERED_CHAR_NGRAM_9_V1"
+INTEGRATION_VERSION = "official-reconciliation/1.6"
+SPEAKER_MATCH_METHOD = "ORDERED_BIDIRECTIONAL_CHAR_NGRAM_9_V2"
 MIN_ALIGNMENT_CONFIDENCE = 0.34
 MIN_INLINE_PATCH_SIMILARITY = 0.58
 _COMPACT_PATTERN = re.compile(r"[^0-9a-zA-Z가-힣]+")
 _SEMANTIC_CHARACTER_PATTERN = re.compile(r"[0-9a-zA-Z가-힣]")
 _NUMBER_PATTERN = re.compile(r"\d+(?:[.,]\d+)?")
-_POLARITY_MARKERS = ("아니", "않", "없", "부인", "취소", "철회", "반대")
+_POLARITY_MARKERS = (
+    "아니", "않", "없", "안", "못", "부인", "취소", "철회", "반대",
+)
 _ACTION_MARKERS = (
     "검토", "추진", "확정", "의결", "지시", "요청", "제출",
     "시행", "집행", "편성", "보류", "중단", "폐지", "신설", "확대",
@@ -165,16 +167,55 @@ def align_live_segments(
         expected = live_index / max(1, len(live) - 1) * max(1, len(official) - 1)
         ranked: list[tuple[float, float, int]] = []
         for candidate, overlap in votes.items():
-            raw = overlap / max(1, len(grams))
-            order_distance = abs(candidate - expected) / max(1, len(official))
-            backwards = max(0, previous_sequence - int(
+            official_sequence = int(
                 official[candidate].get("sequence_number") or candidate + 1
-            ))
-            adjusted = raw - min(0.16, order_distance * 0.24) - min(0.18, backwards * 0.01)
-            ranked.append((adjusted, raw, candidate))
-        adjusted, raw, candidate = max(ranked)
-        confidence = min(0.999, max(0.0, raw * 0.9 + max(0.0, adjusted) * 0.1))
-        if raw < minimum_confidence or votes[candidate] < 2:
+            )
+            # A caption may be a fragment of one official utterance, but a
+            # generic fragment must not win merely because all of its shingles
+            # occur in a much longer official speech. Balance both directions.
+            live_coverage = overlap / max(1, len(grams))
+            official_coverage = overlap / max(1, len(official_grams[candidate]))
+            dice = (2 * overlap) / max(
+                1, len(grams) + len(official_grams[candidate]),
+            )
+            containment = min(live_coverage, official_coverage)
+            semantic_score = dice * 0.72 + containment * 0.28
+            order_distance = abs(candidate - expected) / max(1, len(official))
+            backwards = max(0, previous_sequence - official_sequence)
+            if backwards > 1:
+                continue
+            adjusted = (
+                semantic_score
+                - min(0.16, order_distance * 0.24)
+                - min(0.18, backwards * 0.04)
+            )
+            ranked.append((adjusted, semantic_score, candidate))
+        if not ranked:
+            continue
+        ranked.sort(reverse=True)
+        adjusted, semantic_score, candidate = ranked[0]
+        confidence = min(
+            0.999,
+            max(0.0, semantic_score * 0.9 + max(0.0, adjusted) * 0.1),
+        )
+        runner_up = ranked[1][0] if len(ranked) > 1 else -1.0
+        runner_up_semantic = ranked[1][1] if len(ranked) > 1 else -1.0
+        ambiguous_containment = bool(
+            len(ranked) > 1
+            and votes[candidate] / max(1, len(grams)) >= 0.80
+            and votes[ranked[1][2]] / max(1, len(grams)) >= 0.80
+            and confidence < 0.85
+        )
+        if (
+            semantic_score < minimum_confidence
+            or votes[candidate] < 2
+            or ambiguous_containment
+            or (adjusted - runner_up < 0.035 and confidence < 0.72)
+            or (
+                semantic_score - runner_up_semantic < 0.025
+                and confidence < 0.80
+            )
+        ):
             continue
         official_item = official[candidate]
         sequence = int(official_item.get("sequence_number") or candidate + 1)

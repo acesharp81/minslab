@@ -16,7 +16,10 @@
     items: [],
     loadedKey: "",
     loading: false,
+    retryAttempt: 0,
+    retryTimer: null,
   };
+  const CALENDAR_RETRY_DELAYS_MS = [800, 2000, 5000];
   const partyColors = ["#174f9b", "#e3545d", "#e6a83a", "#32a27b", "#7256c7", "#3594b5", "#8a6c4a", "#7a8798", "#b85c9b"];
   const hemicycleState = { payload: null, selected: new Set() };
   const ontologyState = {
@@ -265,9 +268,13 @@
     const key = localIso(range.start) + ":" + localIso(range.end);
     if (!force && state.loadedKey === key) {
       renderCalendar();
-      return;
+      return true;
     }
-    if (state.loading) return;
+    if (state.loading) return false;
+    if (state.retryTimer) {
+      window.clearTimeout(state.retryTimer);
+      state.retryTimer = null;
+    }
     state.loading = true;
     meta.textContent = "공식 일정 저장소를 확인하는 중입니다.";
     try {
@@ -277,6 +284,7 @@
       const payload = await response.json();
       state.items = payload.items || [];
       state.loadedKey = key;
+      state.retryAttempt = 0;
       const committeeItems = uniqueSchedules(state.items.filter(isCommitteeSchedule));
       const memberItems = uniqueSchedules(state.items.filter(isMemberOfficeSchedule));
       const executiveItems = uniqueSchedules(state.items.filter(isExecutiveSchedule));
@@ -288,11 +296,23 @@
         state.selected = relevantItems[0]?.scheduled_date || localIso(new Date(state.month.getFullYear(), state.month.getMonth(), 1));
       }
       renderCalendar();
-    } catch (_) {
+      return true;
+    } catch (error) {
+      console.warn("[assembly-insights] calendar load failed", error);
       state.items = [];
-      state.loadedKey = key;
-      meta.textContent = "공식 일정을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.";
+      const delay = CALENDAR_RETRY_DELAYS_MS[state.retryAttempt];
+      meta.textContent = delay !== undefined
+        ? "공식 일정 연결을 다시 확인하는 중입니다."
+        : "공식 일정을 불러오지 못했습니다. 인사이트 메뉴를 다시 열면 자동으로 재시도합니다.";
       renderCalendar();
+      if (delay !== undefined) {
+        state.retryAttempt += 1;
+        state.retryTimer = window.setTimeout(() => {
+          state.retryTimer = null;
+          if (insightsPanelIsVisible()) loadCalendar();
+        }, delay);
+      }
+      return false;
     } finally {
       state.loading = false;
     }
@@ -690,8 +710,11 @@
       ontologyMetric("정책 영역", Number((payload.domains || []).length).toLocaleString()),
       ontologyMetric("세부 분류", Number((payload.groups || []).length).toLocaleString()),
       ontologyMetric("검증 보고서", Number(metrics.report_count || 0).toLocaleString()),
+      ontologyMetric("정책 주제", `${Number(metrics.policy_topic_count || 0).toLocaleString()}건`),
       ontologyMetric("분류된 주제", `${Number(metrics.ontology_topic_count || 0).toLocaleString()}건`),
       ontologyMetric("온톨로지 적용률", `${coverage.toFixed(1)}%`, coverage >= 95 ? "is-good" : "is-review"),
+      ontologyMetric("분류 보류", `${Number(metrics.unclassified_topic_count || 0).toLocaleString()}건`, Number(metrics.unclassified_topic_count || 0) ? "is-review" : "is-good"),
+      ontologyMetric("초안 산출물", `${Number(metrics.report_artifact_topic_count || 0).toLocaleString()}건`, Number(metrics.report_artifact_topic_count || 0) ? "is-review" : "is-good"),
       ontologyMetric("무결성 오류", `${Number(metrics.integrity_failure_count || 0).toLocaleString()}건`, Number(metrics.integrity_failure_count || 0) ? "is-review" : "is-good"),
     );
   }
@@ -715,8 +738,10 @@
         element("dt", "", "정책 영역"), element("dd", "", `${domains.length}개`),
         element("dt", "", "세부 분류"), element("dd", "", `${(payload.groups || []).length}개`),
         element("dt", "", "전체 세부 주제"), element("dd", "", Number(metrics.topic_count || 0).toLocaleString() + "건"),
+        element("dt", "", "정책 주제"), element("dd", "", Number(metrics.policy_topic_count || 0).toLocaleString() + "건"),
         element("dt", "", "온톨로지 적용률"), element("dd", "", coverage + "%"),
-        element("dt", "", "동적·미분류"), element("dd", "", Number(metrics.unclassified_topic_count || 0).toLocaleString() + "건"),
+        element("dt", "", "분류 보류"), element("dd", "", Number(metrics.unclassified_topic_count || 0).toLocaleString() + "건"),
+        element("dt", "", "초안·대화 산출물"), element("dd", "", Number(metrics.report_artifact_topic_count || 0).toLocaleString() + "건"),
       );
       const status = element("div", Number(metrics.integrity_failure_count || 0) ? "assembly-ontology-status is-review" : "assembly-ontology-status");
       status.textContent = Number(metrics.integrity_failure_count || 0)
@@ -768,7 +793,16 @@
       element("dt", "", "등장 회의 보고서"), element("dd", "", Number(node.report_count || 0).toLocaleString() + "개"),
       element("dt", "", "매칭 키워드"), element("dd", "", Number(node.keyword_count || 0).toLocaleString() + "개"),
     );
-    target.append(stats, element("h4", "", "판별 키워드"));
+    target.append(stats);
+    if ((node.matched_keywords || []).length) {
+      target.append(element("h4", "", "실제 적용 근거"));
+      const matched = element("div", "assembly-ontology-keywords");
+      node.matched_keywords.forEach((item) => matched.append(
+        element("span", "", `${item.keyword} · ${Number(item.topic_count || 0).toLocaleString()}건`),
+      ));
+      target.append(matched);
+    }
+    target.append(element("h4", "", "등록 판별 키워드"));
     const keywords = element("div", "assembly-ontology-keywords");
     (node.keywords || []).forEach((keyword) => keywords.append(element("span", "", keyword)));
     target.append(keywords);
@@ -1056,7 +1090,32 @@
     ontologyState.animation = requestAnimationFrame(drawOntology);
   }
 
+  const INSIGHT_RETRY_DELAYS_MS = [800, 2000, 5000];
+  const insightLoadState = {
+    issuesLoaded: false,
+    timelineLoaded: false,
+    promise: null,
+    retryTimer: null,
+    retryAttempt: 0,
+  };
+
+  function insightsPanelIsVisible() {
+    return document.querySelector('[data-workspace-panel="extras"]')?.hidden === false;
+  }
+
+  function insightFailureMessage(label) {
+    return insightLoadState.retryAttempt < INSIGHT_RETRY_DELAYS_MS.length
+      ? `${label} 연결을 다시 확인하는 중입니다.`
+      : `${label} 자료를 불러오지 못했습니다. 인사이트 메뉴를 다시 열면 자동으로 재시도합니다.`;
+  }
+
   async function loadGovernmentInsights() {
+    if (insightLoadState.issuesLoaded && insightLoadState.timelineLoaded) return true;
+    if (insightLoadState.promise) return insightLoadState.promise;
+    if (insightLoadState.retryTimer) {
+      window.clearTimeout(insightLoadState.retryTimer);
+      insightLoadState.retryTimer = null;
+    }
     const loadIssues = async () => {
       try {
         const response = await fetch("api/policy/specific-issues?limit=80", { cache: "no-store", headers: { Accept: "application/json" } });
@@ -1064,10 +1123,13 @@
         const payload = await response.json();
         renderIssueTrends(payload);
         renderInstitutionFlow(payload);
-      } catch (_) {
+        return true;
+      } catch (error) {
+        console.warn("[assembly-insights] issue flow load failed", error);
         for (const selector of ["#assemblyIssueTrends", "#assemblyInstitutionFlow"]) {
-          mount.querySelector(selector).replaceChildren(element("p", "assembly-insight-empty", "저장된 회의 쟁점을 불러오지 못했습니다."));
+          mount.querySelector(selector).replaceChildren(element("p", "assembly-insight-empty", insightFailureMessage("저장된 회의 쟁점")));
         }
+        return false;
       }
     };
     const loadTimeline = async () => {
@@ -1075,11 +1137,39 @@
         const response = await fetch("api/policy/cross-institution-flow", { cache: "no-store", headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("timeline");
         renderPolicyTimeline(await response.json());
-      } catch (_) {
-        mount.querySelector("#assemblyPolicyTimeline").replaceChildren(element("p", "assembly-insight-empty", "정부·국회 정책 연결 자료를 불러오지 못했습니다."));
+        return true;
+      } catch (error) {
+        console.warn("[assembly-insights] policy timeline load failed", error);
+        mount.querySelector("#assemblyPolicyTimeline").replaceChildren(element("p", "assembly-insight-empty", insightFailureMessage("정부·국회 정책 연결")));
+        return false;
       }
     };
-    await Promise.allSettled([loadIssues(), loadTimeline()]);
+    const request = Promise.allSettled([
+      insightLoadState.issuesLoaded ? Promise.resolve(true) : loadIssues(),
+      insightLoadState.timelineLoaded ? Promise.resolve(true) : loadTimeline(),
+    ]).then((results) => {
+      insightLoadState.issuesLoaded = insightLoadState.issuesLoaded
+        || (results[0].status === "fulfilled" && results[0].value === true);
+      insightLoadState.timelineLoaded = insightLoadState.timelineLoaded
+        || (results[1].status === "fulfilled" && results[1].value === true);
+      if (insightLoadState.issuesLoaded && insightLoadState.timelineLoaded) {
+        insightLoadState.retryAttempt = 0;
+        return true;
+      }
+      const delay = INSIGHT_RETRY_DELAYS_MS[insightLoadState.retryAttempt];
+      if (delay !== undefined) {
+        insightLoadState.retryAttempt += 1;
+        insightLoadState.retryTimer = window.setTimeout(() => {
+          insightLoadState.retryTimer = null;
+          if (insightsPanelIsVisible()) loadGovernmentInsights();
+        }, delay);
+      }
+      return false;
+    }).finally(() => {
+      if (insightLoadState.promise === request) insightLoadState.promise = null;
+    });
+    insightLoadState.promise = request;
+    return request;
   }
 
   function distributeRows(total) {
@@ -1321,13 +1411,23 @@
 
   let initialized = false;
   function initialize() {
-    if (initialized) return;
-    initialized = true;
+    if (!initialized) {
+      initialized = true;
+    }
+    if (!state.loading
+      && !state.retryTimer
+      && state.retryAttempt >= CALENDAR_RETRY_DELAYS_MS.length) state.retryAttempt = 0;
     loadCalendar();
+    if (!insightLoadState.promise
+      && !insightLoadState.retryTimer
+      && insightLoadState.retryAttempt >= INSIGHT_RETRY_DELAYS_MS.length
+      && !(insightLoadState.issuesLoaded && insightLoadState.timelineLoaded)) {
+      insightLoadState.retryAttempt = 0;
+    }
     loadGovernmentInsights();
   }
   document.addEventListener("workspace-tab-change", (event) => {
     if (event.detail?.tab === "extras") initialize();
   });
-  if (window.location.hash === "#extras" || document.querySelector("#extras")?.hidden === false) initialize();
+  if (window.location.hash === "#extras" || insightsPanelIsVisible()) initialize();
 })();

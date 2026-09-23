@@ -48,6 +48,8 @@ const MEETING_HISTORY_INITIAL_LIMIT = 5;
 const MEETING_HISTORY_PAGE_SIZE = 5;
 const MEETING_OVERVIEW_VISIBLE_ROWS = 5;
 const meetingBriefRequests = new Map();
+const meetingBriefCache = new Map();
+const MEETING_BRIEF_CACHE_LIMIT = 12;
 let liveStatusLoadPromise = null;
 const meetingRailHistoryState = {
   items: [],
@@ -144,7 +146,11 @@ function activateWorkspaceTab(name, options = {}) {
     workspaceTabs.find((tab) => tab.dataset.workspaceTab === target)?.focus();
   }
   document.dispatchEvent(new CustomEvent("workspace-tab-change", { detail: { tab: target } }));
-  if (target === "reports" && options.openLatest === true) requestLatestMeetingReport();
+  if (target === "reports" && options.openLatest === true) {
+    const selectedId = String(assemblyTranscriptState.selectedBroadcastId || "");
+    if (selectedId) meetingBriefCache.delete(selectedId);
+    requestLatestMeetingReport();
+  }
 }
 
 function selectInitialWorkspaceForLiveStatus(anyLive) {
@@ -2031,7 +2037,11 @@ async function renderOfficialMeetingPanel(item) {
 
 function renderMeetingBrief(item, record) {
   const stage = document.querySelector("#liveExpandedStage");
-  const brief = record?.brief || {};
+  const provisionalBrief = record?.provisional_brief || record?.brief || {};
+  const officialBrief = record?.official_brief || null;
+  const briefView = officialBrief && record?._brief_view === "official"
+    ? "official" : "provisional";
+  const brief = briefView === "official" ? officialBrief : provisionalBrief;
   const liveTopicLineage = brief.live_topic_lineage || {};
   const liveTopicClusters = Array.isArray(liveTopicLineage.clusters)
     ? liveTopicLineage.clusters : [];
@@ -2058,9 +2068,11 @@ function renderMeetingBrief(item, record) {
   const hero = magazineElement("header", "meeting-brief-hero", "");
   const identity = magazineElement("div", "", "");
   const labels = magazineElement("div", "meeting-brief-labels", "");
-  const resultLabel = record?.provider === "deterministic"
-    ? "자동 정리 · 잠정"
-    : record?.provider === "pending" ? "결과 생성 대기" : "AI 요약 · 잠정";
+  const resultLabel = briefView === "official"
+    ? "공식 대조본 · 초안 별도 보존"
+    : record?.provider === "deterministic"
+      ? "자동 정리 · 잠정"
+      : record?.provider === "pending" ? "결과 생성 대기" : "AI 요약 · 잠정";
   labels.append(
     magazineElement("span", "institution-label", item.institution_label || "국회"),
     magazineElement("span", "provisional-label", resultLabel),
@@ -2131,6 +2143,19 @@ function renderMeetingBrief(item, record) {
   }, { once: true });
 
   const integrationBar = meetingIntegrationBar(item, record);
+  if (officialBrief) {
+    integrationBar.append(
+      meetingBriefViewSwitch(briefView, (nextView) => {
+        renderMeetingBrief(item, { ...record, _brief_view: nextView });
+      }),
+      magazineElement(
+        "small", "meeting-brief-source-note",
+        briefView === "official"
+          ? "공식 근거로 확인된 최소 변경만 표시합니다. LIVE/STT 초안은 그대로 보존됩니다."
+          : "기본 화면은 방송 당시 LIVE/STT 초안입니다. 공식 기록은 별도 대조본에서 확인합니다.",
+      ),
+    );
+  }
   const officialChangeReport = renderOfficialChangeReport(record);
   if (record?.brief_upgrade_pending) {
     const status = record.brief_upgrade_status;
@@ -2139,6 +2164,14 @@ function renderMeetingBrief(item, record) {
       : "현재 보고서는 열람 가능하며, 새 분석 기준으로 순차 갱신됩니다.";
     integrationBar.append(magazineElement(
       "small", "meeting-brief-upgrade-note", upgradeCopy,
+    ));
+  }
+  if (record?.brief_is_stale) {
+    const previousTotal = Number(record.previous_utterance_count || 0);
+    const currentTotal = Number(record.brief_progress?.total_utterances || evidenceCount);
+    integrationBar.append(magazineElement(
+      "small", "meeting-brief-upgrade-note",
+      `새 발언 ${Math.max(0, currentTotal - previousTotal).toLocaleString("ko-KR")}개를 반영하는 중입니다. 완료 전까지 기존 보고서를 표시합니다.`,
     ));
   }
 
@@ -2495,6 +2528,20 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
           "색상 문구에 마우스를 올리거나 키보드로 선택하면 기존 LIVE 자막 문구를 확인할 수 있습니다.",
         ));
       }
+      const liveOnly = Array.isArray(utterance.live_only_fragments)
+        ? utterance.live_only_fragments.filter(Boolean) : [];
+      if (official && liveOnly.length) {
+        const disclosure = magazineElement(
+          "details", "meeting-evidence-live-only", "",
+        );
+        disclosure.append(magazineElement(
+          "summary", "", `LIVE에만 기록된 문구 ${liveOnly.length.toLocaleString("ko-KR")}곳`,
+        ));
+        for (const fragment of liveOnly) {
+          disclosure.append(magazineElement("p", "", fragment));
+        }
+        row.append(disclosure);
+      }
       panel.append(row);
     }
   } catch (error) {
@@ -2628,6 +2675,33 @@ function meetingBriefIsReady(record) {
   return record.provider === "mistral";
 }
 
+function meetingBriefVersion(item) {
+  const record = item?.meeting_brief || {};
+  return [
+    record.brief_id || "",
+    record.generated_at || "",
+    record.brief_status || item?.brief_status || "",
+    item?.official_integration_updated_at || "",
+  ].join("|");
+}
+
+function cachedMeetingBrief(item) {
+  const key = String(item?.broadcast_id || "");
+  const cached = meetingBriefCache.get(key);
+  if (!cached || cached.version !== meetingBriefVersion(item)) return null;
+  return cached.payload;
+}
+
+function rememberMeetingBrief(item, payload) {
+  const key = String(item?.broadcast_id || "");
+  if (!key || !payload) return;
+  meetingBriefCache.delete(key);
+  meetingBriefCache.set(key, { version: meetingBriefVersion(item), payload });
+  while (meetingBriefCache.size > MEETING_BRIEF_CACHE_LIMIT) {
+    meetingBriefCache.delete(meetingBriefCache.keys().next().value);
+  }
+}
+
 function renderMeetingBriefLoading(item) {
   const stage = document.querySelector("#liveExpandedStage");
   if (!stage) return;
@@ -2649,8 +2723,10 @@ function renderMeetingBriefLoading(item) {
   stage.replaceChildren(root);
 }
 
-function requestMeetingBrief(broadcastId) {
-  const key = String(broadcastId || "");
+function requestMeetingBrief(item, options = {}) {
+  const key = String(item?.broadcast_id || "");
+  const cached = cachedMeetingBrief(item);
+  if (cached && options.force !== true) return Promise.resolve(cached);
   if (meetingBriefRequests.has(key)) return meetingBriefRequests.get(key);
   const request = fetch(
     `api/live/broadcasts/${encodeURIComponent(key)}/brief`,
@@ -2658,10 +2734,25 @@ function requestMeetingBrief(broadcastId) {
   ).then(async (response) => {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+    rememberMeetingBrief(item, payload);
     return payload;
   }).finally(() => meetingBriefRequests.delete(key));
   meetingBriefRequests.set(key, request);
   return request;
+}
+
+function prefetchMeetingBriefs(items) {
+  const preferredId = String(latestMeetingReportState.preferredId || "");
+  const candidates = (items || [])
+    .filter((item) => meetingBriefIsReady(item.meeting_brief))
+    .sort((left, right) => (
+      Number(String(right.broadcast_id) === preferredId)
+      - Number(String(left.broadcast_id) === preferredId)
+    ));
+  for (const item of candidates.slice(0, 2)) {
+    if (item.meeting_brief?.brief_content_loaded || cachedMeetingBrief(item)) continue;
+    requestMeetingBrief(item).catch(() => {});
+  }
 }
 
 function expandMeetingBrief(item, row, options = {}) {
@@ -2675,10 +2766,13 @@ function expandMeetingBrief(item, row, options = {}) {
   document.querySelector("#liveExpandedTitle").textContent = item.title || item.committee_name || "회의 결과";
   document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
   row?.setAttribute?.("aria-current", "true");
-  if (meetingBriefIsReady(item.meeting_brief)) renderMeetingBriefLoading(item);
+  const cached = cachedMeetingBrief(item);
+  const visibleRecord = cached || item.meeting_brief;
+  if (visibleRecord?.brief_content_loaded) renderMeetingBrief(item, visibleRecord);
+  else if (meetingBriefIsReady(visibleRecord)) renderMeetingBriefLoading(item);
   else renderMeetingBriefProcessing(item);
-  const loadBrief = () => {
-    const ready = requestMeetingBrief(item.broadcast_id);
+  const loadBrief = (force = false) => {
+    const ready = requestMeetingBrief(item, { force });
     ready.then((record) => {
       if (
         assemblyTranscriptState.generation !== requestGeneration
@@ -2690,15 +2784,16 @@ function expandMeetingBrief(item, row, options = {}) {
       item.brief_progress = record.brief_progress || item.brief_progress || {};
       if (!meetingBriefIsReady(record)) {
         item.brief_status = "PROCESSING";
-        renderMeetingBriefProcessing(item, item.brief_progress, record);
-        assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
+        if (record?.brief_content_loaded) renderMeetingBrief(item, record);
+        else renderMeetingBriefProcessing(item, item.brief_progress, record);
+        assemblyTranscriptState.briefPollTimer = window.setTimeout(() => loadBrief(true), 5000);
         return;
       }
 
       item.brief_status = "READY";
       renderMeetingBrief(item, record);
       if (["PENDING", "PROCESSING"].includes(record?.official_change_report?.status)) {
-        assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
+        assemblyTranscriptState.briefPollTimer = window.setTimeout(() => loadBrief(true), 5000);
       }
       if (options.evidence) {
         openMeetingBriefEvidence(
@@ -2710,9 +2805,13 @@ function expandMeetingBrief(item, row, options = {}) {
         assemblyTranscriptState.generation !== requestGeneration
         || assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id
       ) return;
-      renderMeetingBriefProcessing(item, item.brief_progress, item.meeting_brief);
+      if (item.meeting_brief?.brief_content_loaded) {
+        renderMeetingBrief(item, item.meeting_brief);
+      } else {
+        renderMeetingBriefProcessing(item, item.brief_progress, item.meeting_brief);
+      }
       if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
-      assemblyTranscriptState.briefPollTimer = window.setTimeout(loadBrief, 5000);
+      assemblyTranscriptState.briefPollTimer = window.setTimeout(() => loadBrief(true), 5000);
     });
   };
   loadBrief();
@@ -3046,6 +3145,48 @@ function sortMeetingReportCards(container) {
       - Number(left.dataset.reportTimestamp || 0)
   ));
   container.append(...rows);
+}
+
+function visibleExecutiveTimelineMeetings(historyPayload, executivePayload) {
+  const candidates = (executivePayload?.items || []).slice(0, 4);
+  if (!historyPayload?.has_more) return candidates;
+  const loadedTimestamps = (historyPayload?.items || [])
+    .map((item) => reportTimestamp(item.started_at, item.detected_at))
+    .filter((value) => value > 0);
+  if (!loadedTimestamps.length) return [];
+  const oldestLoadedTimestamp = Math.min(...loadedTimestamps);
+  return candidates.filter((meeting) => {
+    const timestamp = reportTimestamp(
+      meeting.meeting_date, meeting.published_date, meeting.retrieved_at,
+    );
+    return timestamp >= oldestLoadedTimestamp;
+  });
+}
+
+function captureMeetingRailAnchor(rail) {
+  if (!rail) return null;
+  const rows = [...rail.querySelectorAll(
+    ":scope > .meeting-card.broadcast-row[data-broadcast-id]",
+  )];
+  const left = rail.scrollLeft;
+  const row = rows.find((candidate) => (
+    candidate.offsetLeft + candidate.offsetWidth > left + 1
+  )) || rows[0];
+  if (!row) return null;
+  return {
+    id: row.dataset.broadcastId,
+    offset: row.offsetLeft - left,
+  };
+}
+
+function restoreMeetingRailAnchor(rail, anchor) {
+  if (!rail || !anchor?.id) return false;
+  const row = [...rail.querySelectorAll(
+    ":scope > .meeting-card.broadcast-row[data-broadcast-id]",
+  )].find((candidate) => candidate.dataset.broadcastId === anchor.id);
+  if (!row) return false;
+  rail.scrollLeft = Math.max(0, row.offsetLeft - Number(anchor.offset || 0));
+  return true;
 }
 
 async function openLatestMeetingReport() {
@@ -3846,7 +3987,9 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       showLiveReportHandoff(ended, openReportWorkspace);
     }
   }
-  for (const meeting of (executivePayload.items || []).slice(0, 4)) {
+  for (const meeting of visibleExecutiveTimelineMeetings(
+    historyPayload, executivePayload,
+  )) {
     const matchKey = executiveOfficialMatchKey(meeting);
     if (matchKey && matchedExecutiveKeys.has(matchKey)) continue;
     const identity = "executive-" + (meeting.id || meeting.source_url || meeting.published_date);
@@ -4009,16 +4152,101 @@ function setAiUsageMeter(selector, percent) {
   meter.setAttribute("aria-valuenow", String(Math.round(value)));
 }
 
+function compactUsageNumber(value) {
+  const amount = Number(value || 0);
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(2)}M`;
+  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K`;
+  return amount.toLocaleString("ko-KR");
+}
+
+function modelUsageLine(item) {
+  const monthlyRequests = Number(item.monthly_request_count || 0);
+  const audioRequests = Number(item.audio_request_count || 0);
+  if (audioRequests) {
+    return `이번 달 STT ${audioRequests.toLocaleString("ko-KR")}회 · ${(Number(item.audio_seconds || 0) / 60).toFixed(1)}분 · $${Number(item.cost_usd || 0).toFixed(2)}`;
+  }
+  if (item.provider === "openrouter") {
+    return `오늘 ${Number(item.today_request_count || 0).toLocaleString("ko-KR")}회 · 월 ${monthlyRequests.toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.total_tokens)} token`;
+  }
+  return `이번 달 ${monthlyRequests.toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.total_tokens)} token · $${Number(item.cost_usd || 0).toFixed(2)}`;
+}
+
+function renderAiModelUsage(payload) {
+  const models = payload.models || [];
+  const openrouterModels = models.filter((item) => item.provider === "openrouter");
+  const directModels = models.filter((item) => item.provider !== "openrouter");
+  document.querySelector("#aiModelUsageAmount").textContent = `${models.length.toLocaleString("ko-KR")}개 모델`;
+  document.querySelector("#aiModelUsageDetail").textContent = `직접 ${directModels.length} · 경유 ${openrouterModels.length} · 보고서·연관분석 포함`;
+  document.querySelector("#aiModelUsageSummary").textContent = `${Number(payload.platform_count || 0).toLocaleString("ko-KR")}개 공급 경로 · ${models.length.toLocaleString("ko-KR")}개 모델을 60초마다 갱신합니다.`;
+  const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
+  const list = document.querySelector("#aiModelUsageList");
+  list.replaceChildren();
+  if (!models.length) {
+    list.append(magazineElement("p", "ai-model-usage-empty", "사용 중이거나 설정된 외부 AI 모델이 없습니다."));
+    return;
+  }
+  for (const providerName of ["openrouter", "mistral", ...new Set(models.map((item) => item.provider))]) {
+    const providerModels = models.filter((item) => item.provider === providerName);
+    if (!providerModels.length || list.querySelector(`[data-provider="${providerName}"]`)) continue;
+    const provider = providers[providerName] || {};
+    const group = magazineElement("section", "ai-model-provider-group", "");
+    group.dataset.provider = providerName;
+    const groupHead = magazineElement("header", "", "");
+    const groupTitle = magazineElement("div", "", "");
+    const providerLabel = providerName === "openrouter" ? "OpenRouter" : providerName === "mistral" ? "Mistral" : providerName;
+    groupTitle.append(
+      magazineElement("strong", "", providerLabel),
+      magazineElement("span", "", providerName === "openrouter" ? "모든 경유 모델 공용" : "직접 호출 모델 공용"),
+    );
+    const quota = providerName === "openrouter"
+      ? `오늘 ${Number(provider.used || 0).toLocaleString("ko-KR")} / ${Number(provider.official_limit || provider.limit || 1000).toLocaleString("ko-KR")}회 · 운영 안전선 ${Number(provider.operational_limit || 950).toLocaleString("ko-KR")}회`
+      : providerName === "mistral"
+        ? `이번 달 $${Number(provider.cost_usd || 0).toFixed(2)} / $${Number(provider.credit_usd || 0).toFixed(2)}`
+        : "공급자 한도 미설정";
+    groupHead.append(groupTitle, magazineElement("b", "", quota));
+    const cards = magazineElement("div", "ai-model-provider-models", "");
+    for (const item of providerModels) {
+      const card = magazineElement("article", "ai-model-usage-card", "");
+      const heading = magazineElement("header", "", "");
+      const title = magazineElement("div", "", "");
+      title.append(
+        magazineElement("strong", "", item.vendor_label || item.provider),
+        magazineElement("span", "", item.access_label || item.provider),
+      );
+      const state = magazineElement(
+        "b",
+        item.configured ? "is-configured" : "is-recorded",
+        item.configured ? "운영 설정" : "이번 달 사용",
+      );
+      heading.append(title, state);
+      const model = magazineElement("code", "", item.model || "모델 미확인");
+      const usage = magazineElement("p", "ai-model-usage-primary", modelUsageLine(item));
+      const workloads = magazineElement("div", "ai-model-workloads", "");
+      for (const workload of item.workloads || []) {
+        workloads.append(magazineElement("span", "", workload));
+      }
+      if (!workloads.childElementCount) {
+        workloads.append(magazineElement("span", "", "저장 장부에서 확인"));
+      }
+      card.append(heading, model, usage, workloads);
+      cards.append(card);
+    }
+    group.append(groupHead, cards);
+    list.append(group);
+  }
+}
+
 function renderAiUsage(payload) {
   const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
   const openrouter = providers.openrouter || (payload.provider === "openrouter" ? payload : {});
   const mistral = providers.mistral || (payload.provider === "mistral" ? payload : {});
   const openrouterUsed = Number(openrouter.used || 0);
-  const openrouterLimit = Number(openrouter.limit || 950);
+  const openrouterLimit = Number(openrouter.official_limit || openrouter.limit || 1000);
+  const openrouterOperationalLimit = Number(openrouter.operational_limit || 950);
   const openrouterRemaining = Number.isFinite(Number(openrouter.remaining))
     ? Number(openrouter.remaining) : Math.max(0, openrouterLimit - openrouterUsed);
   document.querySelector("#aiOpenRouterAmount").textContent = `${openrouterUsed.toLocaleString("ko-KR")} / ${openrouterLimit.toLocaleString("ko-KR")}회`;
-  document.querySelector("#aiOpenRouterDetail").textContent = `남음 ${openrouterRemaining.toLocaleString("ko-KR")}회`;
+  document.querySelector("#aiOpenRouterDetail").textContent = `운영 ${openrouterOperationalLimit.toLocaleString("ko-KR")} · 남음 ${openrouterRemaining.toLocaleString("ko-KR")}`;
   document.querySelector("#aiOpenRouterReset").textContent = formatUsageReset(openrouter.resets_at || payload.resets_at);
   setAiUsageMeter("#aiOpenRouterMeter", openrouter.usage_percent ?? payload.usage_percent);
 
@@ -4030,6 +4258,7 @@ function renderAiUsage(payload) {
   setAiUsageMeter("#aiMistralMeter", mistral.usage_percent ?? (
     mistralCredit ? (mistralCost / mistralCredit) * 100 : 0
   ));
+  renderAiModelUsage(payload);
   document.querySelector("#aiUsage").classList.toggle("is-unavailable", payload.status === "UNAVAILABLE");
 }
 
@@ -4043,9 +4272,20 @@ function loadAiUsage() {
     .catch(() => {
       document.querySelector("#aiOpenRouterDetail").textContent = "사용량 확인 필요";
       document.querySelector("#aiMistralDetail").textContent = "사용량 확인 필요";
+      document.querySelector("#aiModelUsageDetail").textContent = "모델 사용량 확인 필요";
       document.querySelector("#aiUsage").classList.add("is-unavailable");
     });
 }
+
+document.querySelector("#aiModelUsageOpen")?.addEventListener("click", () => {
+  document.querySelector("#aiModelUsageDialog")?.showModal();
+});
+document.querySelector("#aiModelUsageClose")?.addEventListener("click", () => {
+  document.querySelector("#aiModelUsageDialog")?.close();
+});
+document.querySelector("#aiModelUsageDialog")?.addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
+});
 
 function loadLiveStatus() {
   if (liveStatusLoadPromise) return liveStatusLoadPromise;
@@ -4054,6 +4294,7 @@ function loadLiveStatus() {
     .catch(() => fallback);
   const historyParams = new URLSearchParams({
     limit: String(MEETING_HISTORY_INITIAL_LIMIT), offset: "0",
+    include_latest_content: String(!meetingRailHistoryState.initialized),
   });
   const request = Promise.all([
     getJson("api/live/status", null),
@@ -4097,14 +4338,21 @@ function loadLiveStatus() {
       }
       meetingRailHistoryState.statusPayload = payload;
       meetingRailHistoryState.executivePayload = executive;
+      prefetchMeetingBriefs(meetingRailHistoryState.items);
       const meetingRail = document.querySelector("#reportBroadcastRows");
-      const preservedScrollLeft = meetingRail?.scrollLeft || 0;
+      const preservedAnchor = captureMeetingRailAnchor(meetingRail);
       const preserveReportScroll = !latestMeetingReportState.pending;
       renderBroadcastRows(
-        payload, { ...history, items: meetingRailHistoryState.items }, executive,
+        payload, {
+          ...history,
+          items: meetingRailHistoryState.items,
+          has_more: meetingRailHistoryState.hasMore,
+        }, executive,
       );
       window.requestAnimationFrame(() => {
-        if (meetingRail && preserveReportScroll) meetingRail.scrollLeft = preservedScrollLeft;
+        if (meetingRail && preserveReportScroll) {
+          restoreMeetingRailAnchor(meetingRail, preservedAnchor);
+        }
       });
       const assemblyLiveCount = (payload.assembly.items || []).filter((item) => item.is_live).length;
       const liveCount = assemblyLiveCount + (payload.executive.is_live === true ? 1 : 0);
@@ -4185,6 +4433,30 @@ document.querySelector("#liveDraftEvidenceClose")?.addEventListener("click", () 
 });
 loadLiveStatus();
 loadAiUsage();
+let lastForegroundMeetingRefreshAt = 0;
+function refreshMeetingReportAfterForeground() {
+  if (document.visibilityState === "hidden") return;
+  const now = Date.now();
+  if (now - lastForegroundMeetingRefreshAt < 1000) return;
+  lastForegroundMeetingRefreshAt = now;
+  const selectedId = String(assemblyTranscriptState.selectedBroadcastId || "");
+  if (selectedId) meetingBriefCache.delete(selectedId);
+  loadLiveStatus().then(() => {
+    if (assemblyTranscriptState.expandedMode !== "BRIEF" || !selectedId) return;
+    const item = meetingRailHistoryState.items.find(
+      (candidate) => String(candidate.broadcast_id) === selectedId,
+    );
+    if (!item) return;
+    const row = [...document.querySelectorAll(
+      ".broadcast-row[data-broadcast-id]",
+    )].find((candidate) => candidate.dataset.broadcastId === selectedId);
+    expandMeetingBrief(item, row || null);
+  });
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshMeetingReportAfterForeground();
+});
+window.addEventListener("pageshow", refreshMeetingReportAfterForeground);
 document.addEventListener("watch-test-live-update", (event) => {
   const payload = event.detail?.payload || null;
   const previousId = watchTestLiveState?.broadcast_id || null;
@@ -4257,14 +4529,18 @@ async function loadMoreMeetingHistory() {
     );
     meetingRailHistoryState.hasMore = Boolean(page.has_more);
     meetingRailHistoryState.endReached = !meetingRailHistoryState.hasMore;
-    const scrollLeft = rail?.scrollLeft || 0;
+    const preservedAnchor = captureMeetingRailAnchor(rail);
     renderBroadcastRows(
       meetingRailHistoryState.statusPayload,
-      { ...page, items: meetingRailHistoryState.items },
+      {
+        ...page,
+        items: meetingRailHistoryState.items,
+        has_more: meetingRailHistoryState.hasMore,
+      },
       meetingRailHistoryState.executivePayload,
     );
     const refreshed = document.querySelector("#reportBroadcastRows");
-    if (refreshed) refreshed.scrollLeft = scrollLeft;
+    restoreMeetingRailAnchor(refreshed, preservedAnchor);
     return meetingRailHistoryState.items.length > before;
   } catch (_error) {
     return false;

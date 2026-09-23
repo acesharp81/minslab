@@ -13,8 +13,8 @@ class WebDashboardTests(unittest.TestCase):
         security = (
             PROJECT_DIR / "backend/app/services/web_security.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("assets/app.js?v=20260917-2", html)
-        self.assertIn("assets/workspace.css?v=20260917-4", html)
+        self.assertIn("assets/app.js?v=20260923-2", html)
+        self.assertIn("assets/workspace.css?v=20260923-1", html)
         self.assertIn('response.headers["Cache-Control"] = "no-store, max-age=0"', security)
         self.assertIn('path.startswith("/assets/")', security)
 
@@ -31,10 +31,15 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("meetingReportLoadingVisual", script)
         self.assertIn("REPORT DATA PIPELINE · ACTIVE", script)
         self.assertIn("const meetingBriefRequests = new Map();", script)
+        self.assertIn("const meetingBriefCache = new Map();", script)
+        self.assertIn("include_latest_content", script)
+        self.assertIn("prefetchMeetingBriefs", script)
+        self.assertIn("visibleRecord?.brief_content_loaded", script)
         self.assertIn("if (liveStatusLoadPromise) return liveStatusLoadPromise;", script)
         self.assertIn("if (!meetingRailHistoryState.initialized) return false;", script)
         self.assertIn("latest_summary_map", api)
-        self.assertIn("include_content=False", api)
+        self.assertIn("include_content=bool(include_latest_content", api)
+        self.assertIn("include_latest_content: bool = False", api)
         self.assertIn("jsonb_build_object", repository)
 
     def test_extras_workspace_has_calendar_and_government_flow_insights(self):
@@ -63,6 +68,15 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("grid-template-columns:repeat(6,minmax(0,1fr))", styles)
         self.assertIn("specific-issues?limit=80", script)
         self.assertIn("Promise.allSettled", script)
+        self.assertIn("assets/assembly-extras.js?v=20260923-1", html)
+        self.assertIn("const INSIGHT_RETRY_DELAYS_MS = [800, 2000, 5000]", script)
+        self.assertIn("const CALENDAR_RETRY_DELAYS_MS = [800, 2000, 5000]", script)
+        self.assertIn("if (insightLoadState.promise) return insightLoadState.promise", script)
+        self.assertIn("insightLoadState.issuesLoaded ? Promise.resolve(true) : loadIssues()", script)
+        self.assertIn("if (insightsPanelIsVisible()) loadGovernmentInsights()", script)
+        self.assertNotIn("state.loadedKey = key;\n      meta.textContent = \"공식 일정을 불러오지 못했습니다.", script)
+        self.assertIn("if (insightsPanelIsVisible()) loadCalendar()", script)
+        self.assertIn('window.location.hash === "#extras" || insightsPanelIsVisible()', script)
         self.assertIn(".assembly-ontology-dialog", styles)
         self.assertIn("drawOntology", script)
         three = (PROJECT_DIR / "web" / "ontology-starmap.js").read_text(encoding="utf-8")
@@ -161,6 +175,12 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("target ||= rows[0]", script)
         self.assertIn("sortMeetingReportCards(reportContainer)", script)
         self.assertIn("const preserveReportScroll = !latestMeetingReportState.pending", script)
+        self.assertIn("function visibleExecutiveTimelineMeetings", script)
+        self.assertIn("if (!historyPayload?.has_more) return candidates", script)
+        self.assertIn("timestamp >= oldestLoadedTimestamp", script)
+        self.assertIn("function captureMeetingRailAnchor", script)
+        self.assertIn("restoreMeetingRailAnchor(meetingRail, preservedAnchor)", script)
+        self.assertIn("has_more: meetingRailHistoryState.hasMore", script)
         self.assertIn("const selectionId = meeting.live_capture?.broadcast_id", script)
         self.assertIn("assemblyTranscriptState.selectedBroadcastId = selectionId", script)
 
@@ -456,7 +476,8 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("const MEETING_HISTORY_PAGE_SIZE = 5", schedule_script)
         self.assertIn("loadMoreMeetingHistory", schedule_script)
         self.assertIn("meetingRailNearLoadedEnd", schedule_script)
-        self.assertIn("preservedScrollLeft", schedule_script)
+        self.assertIn("captureMeetingRailAnchor", schedule_script)
+        self.assertIn("restoreMeetingRailAnchor", schedule_script)
         self.assertIn("offset: String(meetingRailHistoryState.nextOffset)", schedule_script)
         self.assertIn("for (const ended of historyPayload.items || [])", schedule_script)
         self.assertIn("`시작 ${startedAt.toLocaleString", schedule_script)
@@ -484,10 +505,17 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn('id="aiOpenRouterReset"', html)
         self.assertIn('id="aiMistralAmount"', html)
         self.assertIn('id="aiMistralReset"', html)
-        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", (
+        self.assertIn('id="aiModelUsageOpen"', html)
+        self.assertIn('id="aiModelUsageDialog"', html)
+        self.assertIn('id="aiModelUsageList"', html)
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(122px, .72fr)", (
             PROJECT_DIR / "web" / "workspace.css"
         ).read_text(encoding="utf-8"))
         self.assertIn("setAiUsageMeter", schedule_script)
+        self.assertIn("renderAiModelUsage", schedule_script)
+        self.assertIn("모든 경유 모델 공용", schedule_script)
+        self.assertIn("운영 안전선", schedule_script)
+        self.assertNotIn("function modelLimitLine", schedule_script)
         self.assertIn('id="todayScheduleBoard"', html)
         self.assertIn('id="todaySchedulePrev"', html)
         self.assertIn('id="todayScheduleNext"', html)
@@ -684,6 +712,23 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("official_utterances = (", api)
         self.assertIn("official_presentations or live_utterances", api)
         self.assertIn('"OFFICIAL_TRANSCRIPT_PRESENTATION"', api)
+
+    def test_live_draft_and_official_comparison_are_separate_views(self):
+        script = (PROJECT_DIR / "web" / "app.js").read_text(encoding="utf-8")
+        integration = (
+            PROJECT_DIR / "web" / "official-integration.js"
+        ).read_text(encoding="utf-8")
+        styles = (
+            PROJECT_DIR / "web" / "official-integration.css"
+        ).read_text(encoding="utf-8")
+        html = (PROJECT_DIR / "web" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("record?.provisional_brief || record?.brief", script)
+        self.assertIn("record?.official_brief || null", script)
+        self.assertIn("LIVE에만 기록된 문구", script)
+        self.assertIn("function meetingBriefViewSwitch", integration)
+        self.assertIn('part.kind === "deleted"', integration)
+        self.assertIn("meeting-brief-view-switch", styles)
+        self.assertIn("official-integration.js?v=20260921-1", html)
 
 if __name__ == "__main__":
     unittest.main()

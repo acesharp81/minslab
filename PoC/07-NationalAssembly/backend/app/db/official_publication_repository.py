@@ -33,7 +33,7 @@ class OfficialPublicationRepository:
               AND ended_at >= now() - interval '30 days'
               AND official_status IN ('PENDING', 'NOT_PUBLISHED')
               AND (official_last_checked_at IS NULL
-                   OR official_last_checked_at < now() - interval '1 hour')
+                   OR official_last_checked_at < now() - interval '5 minutes')
             ORDER BY meeting_date
             LIMIT %s
             """,
@@ -292,6 +292,55 @@ class OfficialPublicationRepository:
         authority_status = "PROVISIONAL" if body.publication_stage == "TEMPORARY" else "OFFICIAL"
         document_id = self._upsert_source_document(source)
         version_id = self._upsert_source_version(document_id, source, authority_status)
+        existing = self.connection.execute(
+            """
+            SELECT document.id, document.publication_id,
+                   (SELECT count(*) FROM official_transcript_utterances utterance
+                    WHERE utterance.document_id = document.id) AS stored_utterances
+            FROM official_transcript_documents document
+            WHERE document.meeting_id = %s
+              AND document.source_document_version_id = %s
+            """,
+            (meeting_id, version_id),
+        ).fetchone()
+        if existing and int(existing[2] or 0) == len(body.utterances):
+            transcript_document_id, existing_publication_id, _ = existing
+            self.connection.execute(
+                """
+                UPDATE official_transcript_documents
+                SET publication_id = COALESCE(publication_id, %s),
+                    extraction_status = 'EXTRACTED', publication_stage = %s,
+                    authority_status = %s, status_text = %s, title = %s,
+                    utterance_count = %s, parser_version = %s,
+                    retrieved_at = GREATEST(retrieved_at, %s)
+                WHERE id = %s
+                """,
+                (
+                    publication_id, body.publication_stage, authority_status,
+                    body.status_text, body.title, len(body.utterances),
+                    source.parser_version, source.retrieved_at,
+                    transcript_document_id,
+                ),
+            )
+            reconciliation = {"live_final_revisions": 0, "matched": 0, "unresolved": 0}
+            if publication_id is not None:
+                self.connection.execute(
+                    """
+                    UPDATE broadcast_official_publications
+                    SET body_contract_status = 'TEXT_EXTRACTED'
+                    WHERE id = %s
+                    """,
+                    (publication_id,),
+                )
+                if existing_publication_id != publication_id:
+                    reconciliation = self._reconcile_exact(publication_id, transcript_document_id)
+            return {
+                "publication_stage": body.publication_stage,
+                "utterances": len(body.utterances),
+                "utterances_inserted": 0,
+                "semantic_cache_hit": True,
+                **reconciliation,
+            }
         transcript_document_id = uuid.uuid4()
         row = self.connection.execute(
             """
@@ -417,6 +466,16 @@ class OfficialPublicationRepository:
             "UPDATE broadcast_official_publications SET reconciliation_status = %s WHERE id = %s",
             (overall, publication_id),
         )
+        broadcast_row = self.connection.execute(
+            "SELECT broadcast_id FROM broadcast_official_publications WHERE id = %s",
+            (publication_id,),
+        ).fetchone()
+        if broadcast_row:
+            from .live_repository import LiveRepository
+
+            LiveRepository(self.connection).refresh_official_context_stats(
+                [broadcast_row[0]]
+            )
         return {"live_final_revisions": len(revisions), "matched": matched, "unresolved": unresolved}
 
     def _upsert_source_document(self, source: SourceVersionInput) -> uuid.UUID:

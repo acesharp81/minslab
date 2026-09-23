@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
+import gc
 import json
 import time
 from datetime import datetime, timezone
@@ -26,7 +28,7 @@ def poll_executive_once(settings: object) -> dict[str, object]:
 
 
 def poll_once(settings: object) -> list[dict[str, object]]:
-    from ..adapters.official_minutes_body import OfficialMinutesBodyAdapter
+    from ..adapters.official_minutes_body import OfficialMinutesBodyAdapter, semantic_content_hash
     from ..db.connection import connect
     from ..db.official_publication_repository import OfficialPublicationRepository
     from ..db.schedule_repository import SourceVersionInput
@@ -74,7 +76,7 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             body = adapter.parse(payload)
             source = SourceVersionInput(
                 source_type=payload.source_key, source_url=payload.source_url,
-                content_hash=artifact.content_hash, raw_path=artifact.content_path,
+                content_hash=semantic_content_hash(body), raw_path=artifact.content_path,
                 retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
                 content_type=payload.content_type,
                 metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
@@ -104,7 +106,7 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             body = adapter.parse(payload)
             source = SourceVersionInput(
                 source_type=payload.source_key, source_url=payload.source_url,
-                content_hash=artifact.content_hash, raw_path=artifact.content_path,
+                content_hash=semantic_content_hash(body), raw_path=artifact.content_path,
                 retrieved_at=payload.retrieved_at, parser_version=adapter.parser_version,
                 content_type=payload.content_type,
                 metadata={"conference_id": body.conference_id, "publication_stage": body.publication_stage},
@@ -159,6 +161,24 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "match_method": "EXACT_ITEM_REF_AGENDA_PREFIX",
         })
     try:
+        from .bill_sync import sync_pending_target_bill_details
+        bill_details = sync_pending_target_bill_details(
+            assembly_term="제22대",
+            api_key=settings.national_assembly_api_key,
+            database_url=settings.database_url,
+            raw_data_dir=settings.raw_data_dir,
+            limit=20,
+        )
+        results.append({
+            "event": "bills.details.completed",
+            **bill_details,
+        })
+    except Exception as exc:
+        results.append({
+            "event": "bills.details.error",
+            "error": type(exc).__name__,
+        })
+    try:
         from .official_integration_worker import process_available
         integrations = process_available(limit=5)
         results.append({
@@ -187,6 +207,18 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "error": type(exc).__name__,
         })
     return results
+
+
+def release_cycle_memory() -> None:
+    """Return large parser/DB batches to the host before the next poll."""
+    gc.collect()
+    try:
+        malloc_trim = ctypes.CDLL(None).malloc_trim
+        malloc_trim.argtypes = [ctypes.c_size_t]
+        malloc_trim.restype = ctypes.c_int
+        malloc_trim(0)
+    except (AttributeError, OSError):
+        pass
 
 
 def main() -> None:
@@ -227,9 +259,13 @@ def main() -> None:
                     "event": "executive.official.error",
                     "error": type(executive_exc).__name__,
                 }), flush=True)
+        finally:
+            release_cycle_memory()
         if args.once:
             return
-        time.sleep(args.interval)
+        # Official publication linkage is latency-sensitive after a meeting
+        # ends. The semantic cache keeps this five-minute poll lightweight.
+        time.sleep(min(args.interval, 300))
 
 
 if __name__ == "__main__":

@@ -178,6 +178,67 @@ class SummaryRepository:
         })
         return result
 
+    def monthly_model_usage(self) -> list[dict[str, Any]]:
+        usage: dict[tuple[str, str], dict[str, Any]] = {}
+        token_rows = self.connection.execute(
+            """
+            SELECT provider, model, request_count,
+                   input_tokens, output_tokens, total_tokens
+            FROM llm_provider_monthly_token_usage
+            WHERE usage_month = date_trunc(
+                'month', timezone('UTC', now())
+            )::date
+            """
+        ).fetchall()
+        for row in token_rows:
+            key = (str(row[0]), str(row[1]))
+            usage[key] = {
+                "provider": key[0],
+                "model": key[1],
+                "request_count": int(row[2]),
+                "input_tokens": int(row[3]),
+                "output_tokens": int(row[4]),
+                "total_tokens": int(row[5]),
+                "audio_request_count": 0,
+                "audio_seconds": 0.0,
+                "audio_cost_usd": 0.0,
+            }
+        audio_rows = self.connection.execute(
+            """
+            SELECT provider, model, COUNT(*),
+                   COALESCE(SUM(audio_seconds), 0),
+                   COALESCE(SUM(cost_usd), 0)
+            FROM audio_usage_events
+            WHERE usage_month = date_trunc('month', now())::date
+            GROUP BY provider, model
+            """
+        ).fetchall()
+        for row in audio_rows:
+            key = (str(row[0]), str(row[1]))
+            item = usage.setdefault(key, {
+                "provider": key[0],
+                "model": key[1],
+                "request_count": 0,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "total_tokens": 0,
+                "audio_request_count": 0,
+                "audio_seconds": 0.0,
+                "audio_cost_usd": 0.0,
+            })
+            item["audio_request_count"] = int(row[2])
+            item["audio_seconds"] = float(row[3])
+            item["audio_cost_usd"] = float(row[4])
+        return sorted(
+            usage.values(),
+            key=lambda item: (
+                str(item["provider"]),
+                -int(item["request_count"])
+                - int(item["audio_request_count"]),
+                str(item["model"]),
+            ),
+        )
+
     def record_monthly_token_usage(
         self, provider: str, model: str,
         usage_metadata: dict[str, Any] | None,

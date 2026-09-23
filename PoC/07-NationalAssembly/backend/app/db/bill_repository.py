@@ -47,6 +47,29 @@ class BillRepository:
         ).fetchall()
         return [row[0] for row in rows]
 
+    def pending_target_bill_external_ids(self, limit: int = 20) -> list[str]:
+        """Return agenda-linked bills that still lack an official detail version."""
+        rows = self.connection.execute(
+            """
+            SELECT b.bill_id
+            FROM bills b
+            JOIN agenda_items agenda ON agenda.bill_id = b.id
+            JOIN meeting_versions meeting
+              ON meeting.meeting_id = agenda.meeting_id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM bill_versions version
+                WHERE version.bill_id = b.id
+            )
+            GROUP BY b.id, b.bill_id
+            ORDER BY max(meeting.scheduled_date) DESC,
+                     max(agenda.created_at) DESC,
+                     b.bill_id
+            LIMIT %s
+            """,
+            (max(1, min(limit, 100)),),
+        ).fetchall()
+        return [str(row[0]) for row in rows]
+
     def pending_official_documents(self, limit: int = 10) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """

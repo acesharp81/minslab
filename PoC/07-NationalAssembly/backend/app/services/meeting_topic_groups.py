@@ -9,8 +9,8 @@ from typing import Any
 from .official_brief_integration import semantic_tokens
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.5"
-GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_CONSERVATIVE_DYNAMIC_TARGETS_AND_AUDIT"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.6"
+GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT"
 
 
 # A parent represents the policy target. Stance, request, criticism, and proposed
@@ -48,7 +48,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "수사권", "기소", "불기소처분", "수사처리계획",
             "공소취소", "공소취소특검법", "정치적수사", "허위자료",
             "허위서류", "협동수사", "공소기각", "경제법형사처벌",
-            "경제법의형사처벌",
+            "경제법의형사처벌", "수사에서의인권보장", "수사인권보장",
         ),
     ),
     (
@@ -88,6 +88,8 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "정보공유", "이해충돌", "민원전달", "고충민원", "청탁의혹",
             "유착설", "행위와이익", "이익간관계", "후원회",
             "청탁문자", "청탁부당성", "청탁의부당성",
+            "배우자주식보유", "사외이사임명", "금융실명동의서",
+            "차용증서", "재원출처",
         ),
     ),
     (
@@ -103,6 +105,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "후보자자격", "개각발표", "이사장해임",
             "김현지실장", "실장해임",
             "수사기관수장", "직무대행체제", "기관장임명지연",
+            "후보자의적격성",
         ),
     ),
     (
@@ -127,6 +130,10 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "회의개회", "의사일정안내", "후속법안절차",
             "의사일정작성", "법안상정", "법률안의결", "국무위원불출석",
             "국회불출석", "국회도서관강당", "위원장반말", "위원장의반말",
+            "증인협의", "기관증인", "일반증인", "숙려기간", "제안설명",
+            "심사보고", "투표실시", "가결선포", "무기명투표", "투표방법",
+            "국정감사대상기관", "외빈방청", "방청석",
+            "법안의결", "행정안전위원회제안",
         ),
     ),
     (
@@ -266,6 +273,15 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         ),
     ),
     (
+        "consumer-financial-protection",
+        "소비자·금융사기 보호",
+        (
+            "방문판매", "방문판매법", "전자금융거래법", "전기통신금융사기",
+            "통신금융사기", "금융사기방지", "보이스피싱", "피해금환급",
+            "통신사기피해자", "사기피해환급",
+        ),
+    ),
+    (
         "taxation",
         "조세·세제 정책",
         (
@@ -374,6 +390,15 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "청소년SNS", "SNS과의존", "아동보호", "청소년보호",
             "학교폭력", "디지털과의존", "소년보호처분",
+        ),
+    ),
+    (
+        "sexual-violence-victim-protection",
+        "성폭력·범죄피해자 보호",
+        (
+            "성폭력범죄", "성폭력처벌법", "성폭력피해자", "미성년성폭력",
+            "아동청소년성보호법", "아동청소년의성보호", "성범죄피해",
+            "영상녹화증거능력", "검사면담증거능력",
         ),
     ),
     (
@@ -529,6 +554,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "군복무", "복무기간", "군지휘관", "지휘관인사", "자주국방",
             "군통수권", "군구조", "병력구조", "병역제도", "지휘관",
             "전역전환", "합동성", "병역특례",
+            "군생활",
         ),
     ),
     (
@@ -591,7 +617,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "대통령책임", "대통령권한", "대통령사법", "대통령의혹",
             "대통령자격", "대통령국정운영", "대통령법위반", "대통령탄핵",
             "대통령의사법", "대통령의법", "대통령장남", "군골프장",
-            "대통령의국정", "청와대정책실",
+            "대통령의국정", "청와대정책실", "태릉CC", "태릉골프장",
         ),
     ),
     (
@@ -652,7 +678,8 @@ ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "automotive-ev", "shipbuilding-maritime", "energy-electricity",
             "water-resources-climate", "environment-waste",
             "enterprise-innovation", "housing-real-estate",
-            "finance-investment", "fair-trade-platform", "taxation",
+            "finance-investment", "fair-trade-platform",
+            "consumer-financial-protection", "taxation",
             "livelihood-economy", "budget-public-finance",
         ),
     ),
@@ -662,7 +689,8 @@ ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "disability-care-services", "welfare-care-family",
             "youth-employment", "public-safety-health",
             "healthcare-medical-system", "tobacco-product-safety",
-            "children-digital-safety", "immigration-birth-registration",
+            "children-digital-safety", "sexual-violence-victim-protection",
+            "immigration-birth-registration",
             "agriculture-rural", "forest-disaster", "veterans-history",
             "education", "culture-tourism", "media-public-communication",
         ),
@@ -712,6 +740,22 @@ _DYNAMIC_GENERIC_TOKENS = {
 }
 _DYNAMIC_GROUP_THRESHOLD = 0.76
 
+# These describe the transcript/reporting interaction rather than a policy
+# target. They remain visible and evidence-linked, but do not distort policy
+# ontology coverage.
+_REPORT_ARTIFACT_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^사실관계(?:확인)?(?:의)?(?:필요성)?$"),
+    re.compile(r"^발언자교정.*질문시작$"),
+    re.compile(r"^가정적질문.*답변거부.*$"),
+    re.compile(r"^화자간발언신뢰성.*갈등.*$"),
+    re.compile(r"^불명확한반복발언.*의사소통.*$"),
+)
+
+_DYNAMIC_GENERIC_SUFFIXES = (
+    "일부개정법률안", "전부개정법률안", "개정법률안", "제정법률안",
+    "일부개정안", "전부개정안", "법률안", "개정안", "제정안",
+)
+
 
 _REPORT_LANGUAGE_REPAIRS: tuple[tuple[str, str], ...] = (
     ("어린이 보호고", "어린이 보호구역"),
@@ -732,6 +776,9 @@ _REPORT_LANGUAGE_REPAIRS: tuple[tuple[str, str], ...] = (
     ("지급된 로가", "지급된 로열티가"),
     ("원의 로가", "원의 로열티가"),
     ("inter-agency", "기관 간"),
+    ("정기금융사기", "전기통신금융사기"),
+    ("및금 환급", "피해금 환급"),
+    ("국가수사본부장 혼의", "국가수사본부장 협의"),
 )
 
 
@@ -769,32 +816,51 @@ def _compact(value: object) -> str:
     return _NON_WORD.sub("", str(value or "")).upper()
 
 
-def _ontology_target(topic: dict[str, Any]) -> tuple[str, str] | None:
+def _ontology_match(topic: dict[str, Any]) -> dict[str, Any] | None:
     title_haystack = _compact(topic.get("title") or "")
     summary_haystack = _compact(topic.get("summary") or "")
-    best: tuple[int, int, str, str] | None = None
+    best: tuple[int, int, str, str, str, str] | None = None
     for order, (key, title, keywords) in enumerate(TARGET_ONTOLOGY):
-        normalized = [_compact(keyword) for keyword in keywords]
+        normalized = [(_compact(keyword), keyword) for keyword in keywords]
         title_matches = [
-            keyword for keyword in normalized
+            (keyword, raw) for keyword, raw in normalized
             if keyword and keyword in title_haystack
         ]
         summary_matches = [
-            keyword for keyword in normalized
+            (keyword, raw) for keyword, raw in normalized
             if keyword and keyword in summary_haystack
         ]
         matches = title_matches or summary_matches
         if not matches:
             continue
+        matched_keyword, matched_raw = max(
+            matches, key=lambda item: (len(item[0]), item[0])
+        )
         score = (
             (1000 if title_matches else 0)
-            + max(len(keyword) for keyword in matches) * 10
+            + len(matched_keyword) * 10
             + len(matches)
         )
-        candidate = (score, -order, key, title)
+        candidate = (
+            score, -order, key, title, str(matched_raw),
+            "title" if title_matches else "summary",
+        )
         if best is None or candidate > best:
             best = candidate
-    return (best[2], best[3]) if best else None
+    if best is None:
+        return None
+    return {
+        "key": best[2],
+        "title": best[3],
+        "matched_keyword": best[4],
+        "matched_field": best[5],
+        "score": best[0],
+    }
+
+
+def _is_report_artifact(topic: dict[str, Any]) -> bool:
+    title = _compact(topic.get("title") or "")
+    return any(pattern.search(title) for pattern in _REPORT_ARTIFACT_PATTERNS)
 
 
 def _fallback_target(topic: dict[str, Any]) -> tuple[str, str]:
@@ -811,6 +877,7 @@ def _specific_tokens(*values: object) -> set[str]:
     return {
         token for token in semantic_tokens(*values) - _DYNAMIC_GENERIC_TOKENS
         if not re.fullmatch(r"(?:19|20)\d{2}년?", token)
+        and not any(token.endswith(suffix) for suffix in _DYNAMIC_GENERIC_SUFFIXES)
     }
 
 
@@ -916,22 +983,43 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, Any]] = {}
     fallback_records: list[dict[str, Any]] = []
     for index, topic in enumerate(topics):
-        target = _ontology_target(topic)
-        if target is None:
+        if _is_report_artifact(topic):
+            group = grouped.setdefault(
+                "report-artifacts",
+                {
+                    "key": "report-artifacts",
+                    "title": "보고서 초안·대화 구조",
+                    "topics": [],
+                    "classification_evidence": [],
+                    "assignment_method": "REPORT_ARTIFACT",
+                    "first_index": index,
+                },
+            )
+            group["topics"].append(topic)
+            continue
+        match = _ontology_match(topic)
+        if match is None:
             fallback_records.append(_fallback_record(index, topic))
             continue
-        key, title = target
+        key, title = match["key"], match["title"]
         group = grouped.setdefault(
             key,
             {
                 "key": key,
                 "title": title,
                 "topics": [],
+                "classification_evidence": [],
                 "assignment_method": "ONTOLOGY",
                 "first_index": index,
             },
         )
         group["topics"].append(topic)
+        group["classification_evidence"].append({
+            "topic_id": str(topic["id"]),
+            "keyword": match["matched_keyword"],
+            "field": match["matched_field"],
+            "score": match["score"],
+        })
 
     for records in _dynamic_clusters(fallback_records):
         key, title, method = _dynamic_target(records)
@@ -939,6 +1027,7 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
             "key": key,
             "title": title,
             "topics": [record["topic"] for record in records],
+            "classification_evidence": [],
             "assignment_method": method,
             "first_index": min(record["index"] for record in records),
         }
@@ -967,6 +1056,7 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
                 "key": group["key"],
                 "title": group["title"],
                 "assignment_method": group["assignment_method"],
+                "classification_evidence": group.pop("classification_evidence", []),
                 "summary": summary,
                 "topic_ids": topic_ids,
                 "topic_count": len(topic_ids),
@@ -997,18 +1087,25 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
         group["topic_count"] for group in groups
         if group.get("assignment_method") == "DYNAMIC_SEMANTIC"
     )
-    unclassified_topic_count = detailed_topic_count - ontology_topic_count
+    report_artifact_topic_count = sum(
+        group["topic_count"] for group in groups
+        if group.get("assignment_method") == "REPORT_ARTIFACT"
+    )
+    policy_topic_count = detailed_topic_count - report_artifact_topic_count
+    unclassified_topic_count = policy_topic_count - ontology_topic_count
     singleton_unclassified_group_count = sum(
         1 for group in groups
-        if group.get("assignment_method") != "ONTOLOGY"
+        if group.get("assignment_method") in {"DYNAMIC_SEMANTIC", "TITLE_FALLBACK"}
         and group.get("topic_count") == 1
     )
-    review_threshold = max(3, ceil(detailed_topic_count * 0.2))
+    review_threshold = max(3, ceil(policy_topic_count * 0.2))
     review_reasons: list[str] = []
     if unclassified_topic_count > review_threshold:
         review_reasons.append("ONTOLOGY_COVERAGE_LOW")
-    if singleton_unclassified_group_count > max(2, ceil(detailed_topic_count * 0.15)):
+    if singleton_unclassified_group_count > max(2, ceil(policy_topic_count * 0.15)):
         review_reasons.append("UNCLASSIFIED_SINGLETONS_HIGH")
+    if report_artifact_topic_count:
+        review_reasons.append("REPORT_ARTIFACT_TOPICS_PRESENT")
     source_topic_ids = [str(topic["id"]) for topic in topics]
     source_topic_id_set = set(source_topic_ids)
     assigned_topic_ids = [
@@ -1072,12 +1169,14 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
         "method": GROUPING_METHOD,
         "group_count": len(groups),
         "detailed_topic_count": detailed_topic_count,
+        "policy_topic_count": policy_topic_count,
         "ontology_topic_count": ontology_topic_count,
         "ontology_coverage": round(
-            ontology_topic_count / detailed_topic_count, 4
-        ) if detailed_topic_count else 1.0,
+            ontology_topic_count / policy_topic_count, 4
+        ) if policy_topic_count else 1.0,
         "dynamic_topic_count": dynamic_topic_count,
         "unclassified_topic_count": unclassified_topic_count,
+        "report_artifact_topic_count": report_artifact_topic_count,
         "singleton_unclassified_group_count": singleton_unclassified_group_count,
         "integrity_status": integrity_status,
         "assigned_topic_count": len(assigned_topic_ids),
@@ -1104,15 +1203,17 @@ def build_meeting_topic_ontology(
         raise RuntimeError("ontology domain map must cover every target exactly once")
 
     usage = {
-        key: {"topic_count": 0, "report_count": 0}
+        key: {"topic_count": 0, "report_count": 0, "keyword_usage": {}}
         for key in ontology
     }
     totals = {
         "report_count": 0,
         "topic_count": 0,
+        "policy_topic_count": 0,
         "ontology_topic_count": 0,
         "dynamic_topic_count": 0,
         "unclassified_topic_count": 0,
+        "report_artifact_topic_count": 0,
         "integrity_failure_count": 0,
         "quality_review_count": 0,
     }
@@ -1123,9 +1224,13 @@ def build_meeting_topic_ontology(
         audit = grouped.get("topic_grouping") or {}
         totals["report_count"] += 1
         totals["topic_count"] += int(audit.get("detailed_topic_count") or 0)
+        totals["policy_topic_count"] += int(audit.get("policy_topic_count") or 0)
         totals["ontology_topic_count"] += int(audit.get("ontology_topic_count") or 0)
         totals["dynamic_topic_count"] += int(audit.get("dynamic_topic_count") or 0)
         totals["unclassified_topic_count"] += int(audit.get("unclassified_topic_count") or 0)
+        totals["report_artifact_topic_count"] += int(
+            audit.get("report_artifact_topic_count") or 0
+        )
         if audit.get("integrity_status") != "PASS":
             totals["integrity_failure_count"] += 1
         if audit.get("quality_status") != "PASS":
@@ -1136,8 +1241,13 @@ def build_meeting_topic_ontology(
                 continue
             usage[key]["topic_count"] += int(group.get("topic_count") or 0)
             usage[key]["report_count"] += 1
+            for evidence in group.get("classification_evidence") or []:
+                keyword = str(evidence.get("keyword") or "")
+                if keyword:
+                    keyword_usage = usage[key]["keyword_usage"]
+                    keyword_usage[keyword] = int(keyword_usage.get(keyword) or 0) + 1
 
-    topic_total = totals["topic_count"]
+    topic_total = totals["policy_topic_count"]
     totals["ontology_coverage"] = round(
         totals["ontology_topic_count"] / topic_total, 4
     ) if topic_total else 1.0
@@ -1153,10 +1263,17 @@ def build_meeting_topic_ontology(
             "topic_count": domain_topic_count,
         })
         for key in keys:
+            keyword_usage = usage[key].pop("keyword_usage")
             groups.append({
                 **ontology[key],
                 "domain_key": domain_key,
                 "keyword_count": len(ontology[key]["keywords"]),
+                "matched_keywords": [
+                    {"keyword": keyword, "topic_count": count}
+                    for keyword, count in sorted(
+                        keyword_usage.items(), key=lambda item: (-item[1], item[0])
+                    )
+                ],
                 **usage[key],
             })
     return {

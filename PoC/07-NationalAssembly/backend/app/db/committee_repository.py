@@ -285,27 +285,33 @@ class CommitteeRepository:
     def list_target_meetings(self, *, limit: int = 50) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
-            SELECT mei.external_id, mv.title, mv.committee_name, mv.scheduled_date,
-                   mv.session_text, mv.meeting_order_text, mv.authority_status,
-                   count(DISTINCT cme.id) AS minute_sections,
-                   count(DISTINCT ai.id) AS agenda_items,
+            WITH selected AS (
+                SELECT DISTINCT mei.meeting_id, mei.external_id, mv.title,
+                       mv.committee_name, mv.scheduled_date, mv.session_text,
+                       mv.meeting_order_text, mv.authority_status
+                FROM meeting_external_ids mei
+                JOIN meeting_versions mv ON mv.meeting_id = mei.meeting_id
+                WHERE mei.source_system = %s AND mei.id_type = 'CONF_ID'
+                ORDER BY mv.scheduled_date DESC, mv.committee_name
+                LIMIT %s
+            )
+            SELECT selected.external_id, selected.title, selected.committee_name,
+                   selected.scheduled_date, selected.session_text,
+                   selected.meeting_order_text, selected.authority_status,
+                   (SELECT count(*) FROM committee_minute_entries cme
+                    WHERE cme.meeting_id = selected.meeting_id) AS minute_sections,
+                   (SELECT count(*) FROM agenda_items ai
+                    WHERE ai.meeting_id = selected.meeting_id) AS agenda_items,
                    (SELECT document.publication_stage
                     FROM official_transcript_documents document
-                    WHERE document.meeting_id = mei.meeting_id
+                    WHERE document.meeting_id = selected.meeting_id
                     ORDER BY document.retrieved_at DESC, document.id DESC LIMIT 1),
                    (SELECT document.utterance_count
                     FROM official_transcript_documents document
-                    WHERE document.meeting_id = mei.meeting_id
+                    WHERE document.meeting_id = selected.meeting_id
                     ORDER BY document.retrieved_at DESC, document.id DESC LIMIT 1)
-            FROM meeting_external_ids mei
-            JOIN meeting_versions mv ON mv.meeting_id = mei.meeting_id
-            LEFT JOIN committee_minute_entries cme ON cme.meeting_id = mei.meeting_id
-            LEFT JOIN agenda_items ai ON ai.meeting_id = mei.meeting_id
-            WHERE mei.source_system = %s AND mei.id_type = 'CONF_ID'
-            GROUP BY mei.meeting_id, mei.external_id, mv.title, mv.committee_name, mv.scheduled_date,
-                     mv.session_text, mv.meeting_order_text, mv.authority_status
-            ORDER BY mv.scheduled_date DESC, mv.committee_name
-            LIMIT %s
+            FROM selected
+            ORDER BY selected.scheduled_date DESC, selected.committee_name
             """,
             (self.source_system, limit),
         ).fetchall()
@@ -320,36 +326,42 @@ class CommitteeRepository:
             return items
         summaries = self.connection.execute(
             """
-            WITH labels AS (
-                SELECT external.external_id AS conference_id, 'TOPIC' AS kind,
-                       label, count(*) AS label_count
+            WITH selected_documents AS MATERIALIZED (
+                SELECT external.external_id AS conference_id,
+                       document.id AS document_id
                 FROM meeting_external_ids external
-                JOIN official_transcript_documents document
-                  ON document.meeting_id = external.meeting_id
+                JOIN LATERAL (
+                    SELECT id FROM official_transcript_documents
+                    WHERE meeting_id = external.meeting_id
+                    ORDER BY retrieved_at DESC, id DESC LIMIT 1
+                ) document ON TRUE
+                WHERE external.source_system = %s
+                  AND external.id_type = 'CONF_ID'
+                  AND external.external_id = ANY(%s)
+            ), selected_utterances AS MATERIALIZED (
+                SELECT selected.conference_id, utterance.id AS utterance_id
+                FROM selected_documents selected
                 JOIN official_transcript_utterances utterance
-                  ON utterance.document_id = document.id
-                JOIN official_utterance_annotations annotation
-                  ON annotation.utterance_id = utterance.id
-                CROSS JOIN LATERAL unnest(annotation.topics) label
-                WHERE external.external_id = ANY(%s)
-                  AND annotation.generator_version = %s
-                  AND annotation.utterance_kind = 'POLICY'
-                  AND label <> '절차·의결'
-                GROUP BY external.external_id, label
-                UNION ALL
-                SELECT external.external_id, 'MINISTRY', label, count(*)
-                FROM meeting_external_ids external
-                JOIN official_transcript_documents document
-                  ON document.meeting_id = external.meeting_id
-                JOIN official_transcript_utterances utterance
-                  ON utterance.document_id = document.id
-                JOIN official_utterance_annotations annotation
-                  ON annotation.utterance_id = utterance.id
-                CROSS JOIN LATERAL unnest(annotation.ministries) label
-                WHERE external.external_id = ANY(%s)
-                  AND annotation.generator_version = %s
-                  AND annotation.utterance_kind = 'POLICY'
-                GROUP BY external.external_id, label
+                  ON utterance.document_id = selected.document_id
+            ), labels AS (
+                SELECT selected.conference_id, label.kind, label.label,
+                       count(*) AS label_count
+                FROM selected_utterances selected
+                JOIN LATERAL (
+                    SELECT topics, ministries
+                    FROM official_utterance_annotations
+                    WHERE utterance_id = selected.utterance_id
+                      AND generator_version = %s
+                      AND utterance_kind = 'POLICY'
+                    LIMIT 1
+                ) annotation ON TRUE
+                CROSS JOIN LATERAL (
+                    SELECT 'TOPIC' AS kind, unnest(annotation.topics) AS label
+                    UNION ALL
+                    SELECT 'MINISTRY', unnest(annotation.ministries)
+                ) label
+                WHERE label.kind <> 'TOPIC' OR label.label <> '절차·의결'
+                GROUP BY selected.conference_id, label.kind, label.label
             ), ranked AS (
                 SELECT *, row_number() OVER (
                     PARTITION BY conference_id, kind ORDER BY label_count DESC, label
@@ -359,7 +371,7 @@ class CommitteeRepository:
             SELECT conference_id, kind, label, label_count FROM ranked WHERE rank = 1
             """,
             (
-                [item["conference_id"] for item in items], INSIGHT_VERSION,
+                self.source_system,
                 [item["conference_id"] for item in items], INSIGHT_VERSION,
             ),
         ).fetchall()
@@ -452,13 +464,36 @@ class CommitteeRepository:
     def policy_flow(self, committee_name: str | None = None) -> dict[str, Any]:
         rows = self.connection.execute(
             """
-            WITH latest_documents AS (
-                SELECT DISTINCT ON (meeting_id) id, meeting_id, source_document_version_id
-                FROM official_transcript_documents
-                ORDER BY meeting_id, retrieved_at DESC, id DESC
+            WITH selected_meetings AS MATERIALIZED (
+                SELECT external.external_id, external.meeting_id,
+                       version.committee_name, version.scheduled_date
+                FROM meeting_external_ids external
+                JOIN LATERAL (
+                    SELECT committee_name, scheduled_date
+                    FROM meeting_versions
+                    WHERE meeting_id = external.meeting_id
+                    ORDER BY created_at DESC, id DESC LIMIT 1
+                ) version ON TRUE
+                WHERE external.source_system = %s
+                  AND external.id_type = 'CONF_ID'
+                  AND version.committee_name IN (
+                      '행정안전위원회', '예산결산특별위원회', '법제사법위원회'
+                  )
+                  AND (%s::text IS NULL OR version.committee_name = %s)
+            ), latest_documents AS MATERIALIZED (
+                SELECT selected.external_id, selected.committee_name,
+                       selected.scheduled_date, document.id,
+                       document.source_document_version_id
+                FROM selected_meetings selected
+                JOIN LATERAL (
+                    SELECT id, source_document_version_id
+                    FROM official_transcript_documents
+                    WHERE meeting_id = selected.meeting_id
+                    ORDER BY retrieved_at DESC, id DESC LIMIT 1
+                ) document ON TRUE
             )
-            SELECT external.external_id, version.committee_name,
-                   version.scheduled_date, utterance.sequence_number,
+            SELECT document.external_id, document.committee_name,
+                   document.scheduled_date, utterance.sequence_number,
                    utterance.source_span_id, utterance.speaker_name,
                    utterance.speaker_role, utterance.text,
                    annotation.topics, annotation.ministries, annotation.topic_links,
@@ -468,20 +503,16 @@ class CommitteeRepository:
                    bill_version.plenary_result,
                    COALESCE(bill_version.official_url, bill.official_url)
             FROM latest_documents document
-            JOIN meeting_external_ids external ON external.meeting_id = document.meeting_id
-              AND external.source_system = %s AND external.id_type = 'CONF_ID'
-            JOIN LATERAL (
-                SELECT committee_name, scheduled_date
-                FROM meeting_versions
-                WHERE meeting_id = document.meeting_id
-                ORDER BY created_at DESC, id DESC LIMIT 1
-            ) version ON true
             JOIN official_transcript_utterances utterance
               ON utterance.document_id = document.id
-            JOIN official_utterance_annotations annotation
-              ON annotation.utterance_id = utterance.id
-             AND annotation.generator_version = %s
-             AND annotation.utterance_kind = 'POLICY'
+            JOIN LATERAL (
+                SELECT topics, ministries, topic_links
+                FROM official_utterance_annotations
+                WHERE utterance_id = utterance.id
+                  AND generator_version = %s
+                  AND utterance_kind = 'POLICY'
+                LIMIT 1
+            ) annotation ON TRUE
             JOIN source_document_versions source
               ON source.id = document.source_document_version_id
             LEFT JOIN official_utterance_agenda_links agenda_link
@@ -500,11 +531,10 @@ class CommitteeRepository:
                 WHERE bill_id = bill.id
                 ORDER BY created_at DESC, id DESC LIMIT 1
             ) bill_version ON true
-            WHERE (%s::text IS NULL OR version.committee_name = %s)
-            ORDER BY version.scheduled_date DESC, external.external_id,
+            ORDER BY document.scheduled_date DESC, document.external_id,
                      utterance.sequence_number
             """,
-            (self.source_system, INSIGHT_VERSION, committee_name, committee_name),
+            (self.source_system, committee_name, committee_name, INSIGHT_VERSION),
         ).fetchall()
         topics: dict[str, dict[str, Any]] = {}
         ministry_totals: dict[str, int] = {}

@@ -107,10 +107,18 @@ def prepare_brief_utterances(
 
 
 def meeting_brief_identity(settings: Any) -> tuple[str, str, str]:
-    provider, model, prompt_version = summary_identity(settings)
+    provider, model, _ = summary_identity(settings)
+    provider = str(
+        getattr(settings, "meeting_brief_provider", "") or provider
+    ).strip().lower()
     if provider == "openrouter":
         model = str(settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL)
-    return provider, model, prompt_version
+    elif provider == "mistral":
+        model = str(
+            getattr(settings, "meeting_brief_mistral_model", "")
+            or "mistral-small-2603"
+        )
+    return provider, model, PROMPT_VERSION
 
 
 def safe_brief_error_code(exc: Exception) -> str:
@@ -181,7 +189,8 @@ def generate_one(
     force: bool = False,
 ) -> dict[str, Any]:
     settings = get_settings()
-    if not settings.ai_enrichment_enabled or settings.llm_provider not in {"mistral", "openrouter"}:
+    brief_provider, _, _ = meeting_brief_identity(settings)
+    if not settings.ai_enrichment_enabled or brief_provider not in {"mistral", "openrouter"}:
         raise RuntimeError("AI meeting brief enrichment is not enabled")
     live_summary_provider, live_summary_model, summary_prompt_version = summary_identity(
         settings,
@@ -552,9 +561,6 @@ def generate_one(
     }
 
 
-LEGISLATIVE_SETTLE_MINUTES = 120
-
-
 def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
     settings = get_settings()
     with connect(settings.database_url) as connection:
@@ -661,7 +667,7 @@ def map_existing_available(limit: int = 20) -> list[dict[str, Any]]:
 
 def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
     settings = get_settings()
-    provider, model, _ = meeting_brief_identity(settings)
+    provider, model, prompt_version = meeting_brief_identity(settings)
     with connect(settings.database_url) as connection:
         rows = connection.execute(
             """
@@ -676,23 +682,10 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
                     OR broadcast.committee_name = ANY(%s)
                   )
               AND ended_at >= now() - interval '30 days'
-              AND (
-                  broadcast.institution <> 'LEGISLATURE'
-                  OR broadcast.ended_at <= now() - (%s * interval '1 minute')
-              )
-              AND NOT EXISTS (
-                  SELECT 1 FROM schedule_entries future_schedule
-                  WHERE broadcast.institution = 'LEGISLATURE'
-                    AND future_schedule.committee_name = broadcast.committee_name
-                    AND future_schedule.scheduled_date =
-                        (broadcast.ended_at AT TIME ZONE 'Asia/Seoul')::date
-                    AND future_schedule.start_time >
-                        (broadcast.ended_at AT TIME ZONE 'Asia/Seoul')::time
-                    AND (
-                          future_schedule.scheduled_date + future_schedule.start_time
-                        ) AT TIME ZONE 'Asia/Seoul'
-                          + (%s * interval '1 minute') > now()
-              )
+              -- Start the provisional brief on the first worker cycle after
+              -- ENDED. If a meeting resumes, the changed transcript cursor
+              -- invalidates this cache and produces an updated brief.
+              AND broadcast.ended_at <= now()
               AND EXISTS (
                   SELECT 1 FROM transcript_segments segment
                   WHERE segment.broadcast_id = broadcast.id AND segment.is_final = true
@@ -718,27 +711,25 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
               AND NOT EXISTS (
                   SELECT 1 FROM meeting_briefs current_brief
                   WHERE current_brief.broadcast_id = broadcast.id
-                    AND current_brief.provider IN ('mistral', 'openrouter')
+                    AND current_brief.provider = %s
+                    AND current_brief.model = %s
+                    AND current_brief.prompt_version = %s
                     AND current_brief.brief->>'meeting_session_version' = %s
                     AND current_brief.brief ? 'live_topic_assignment'
-                    AND current_brief.source_last_event_cursor = (
-                        SELECT COALESCE(MAX(revision.event_cursor), 0)
-                        FROM transcript_segment_revisions revision
-                        JOIN transcript_segments segment
-                          ON segment.id = revision.segment_id
-                        WHERE segment.broadcast_id = broadcast.id
-                    )
+                    AND current_brief.source_last_event_cursor =
+                        broadcast.source_last_event_cursor
               )
             ORDER BY ended_at DESC NULLS LAST
             LIMIT %s
             """,
             (
                 [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
-                LEGISLATIVE_SETTLE_MINUTES,
-                LEGISLATIVE_SETTLE_MINUTES,
                 provider,
                 model,
-                PROMPT_VERSION,
+                prompt_version,
+                provider,
+                model,
+                prompt_version,
                 SESSION_VERSION,
                 limit,
             ),
@@ -748,9 +739,18 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
 
 def process_available(limit: int = 1) -> list[dict[str, Any]]:
     results = []
-    for broadcast_id in eligible_broadcast_ids(limit):
+    completed = 0
+    # A cache-key regression must not let one no-op candidate monopolize every
+    # worker cycle. Scan ahead while still limiting expensive generations.
+    candidate_limit = min(20, max(5, limit * 5))
+    for broadcast_id in eligible_broadcast_ids(candidate_limit):
         try:
-            results.append(generate_one(broadcast_id))
+            result = generate_one(broadcast_id)
+            results.append(result)
+            if result.get("status") != "CACHED":
+                completed += 1
+            if completed >= limit:
+                break
         except MonthlyTokenLimitReached:
             results.append(
                 {
@@ -767,6 +767,9 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
                     "error": safe_brief_error_code(exc),
                 }
             )
+            completed += 1
+            if completed >= limit:
+                break
     return results
 
 

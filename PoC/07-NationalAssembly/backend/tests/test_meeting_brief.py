@@ -1,23 +1,30 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 
 import requests
 from unittest import mock
 
-from app.ingestion.meeting_brief_worker import brief_retry_hours, safe_brief_error_code
+from app.ingestion.meeting_brief_worker import (
+    brief_retry_hours,
+    meeting_brief_identity,
+    safe_brief_error_code,
+)
 from app.services.meeting_brief import (
     ANALYSIS_CACHE_VERSION,
     OPENROUTER_FINAL_RETRY_MODEL,
     OPENROUTER_FINAL_MAX_TOKENS,
     OPENROUTER_GATEWAY_TIMEOUT_SECONDS,
     OPENROUTER_STRUCTURED_RETRY_MODEL,
+    MAX_FINAL_TOPICS,
     PROMPT_VERSION,
     MistralMeetingBriefClient,
     MalformedMeetingBriefResponse,
     OpenRouterMeetingBriefClient,
     _assert_summary_quality,
     _clean_text,
+    clean_task_title,
     _sanitize_final_display_language,
     brief_response_schema,
     iter_meeting_chunks,
@@ -43,6 +50,32 @@ class MeetingBriefTests(unittest.TestCase):
             for index in range(1, 5)
         ]
 
+    def test_meeting_brief_identity_uses_brief_prompt_version(self):
+        settings = SimpleNamespace(
+            llm_provider="openrouter",
+            llm_model="summary-model",
+            meeting_brief_model="brief-model",
+        )
+
+        self.assertEqual(
+            ("openrouter", "brief-model", PROMPT_VERSION),
+            meeting_brief_identity(settings),
+        )
+
+    def test_meeting_brief_identity_can_select_independent_mistral_reserve(self):
+        settings = SimpleNamespace(
+            llm_provider="openrouter",
+            llm_model="summary-model",
+            meeting_brief_provider="mistral",
+            meeting_brief_model="brief-model",
+            meeting_brief_mistral_model="mistral-small-2603",
+        )
+
+        self.assertEqual(
+            ("mistral", "mistral-small-2603", PROMPT_VERSION),
+            meeting_brief_identity(settings),
+        )
+
     def test_transcript_hash_is_stable_and_chunks_preserve_order(self):
         first = meeting_transcript_hash(self.utterances)
         second = meeting_transcript_hash(list(self.utterances))
@@ -56,6 +89,10 @@ class MeetingBriefTests(unittest.TestCase):
     def test_quality_gate_repairs_known_residue_and_rejects_unknown_latin(self):
         self.assertEqual("청와대 협의 의혹", _clean_text("청와대 협의 sospicion", 100))
         self.assertEqual("법사 위원회", _clean_text("법사 committee", 100))
+        self.assertEqual(
+            "서영교 위원장과 증인 협의 일정",
+            _clean_text("서영교장과 증인 혼의 일정", 100),
+        )
         self.assertEqual(
             "회의는 교육방송 교육 데이터와 데이터 연계 규격, 거버넌스를 논의했다.",
             _clean_text(
@@ -183,6 +220,11 @@ class MeetingBriefTests(unittest.TestCase):
         self.assertEqual("UNCONFIRMED", result["tasks"][0]["status"])
         self.assertEqual("INFERRED", result["tasks"][0]["owner_basis"])
         self.assertEqual(["외교"], result["tasks"][0]["ministries"])
+
+    def test_task_title_strips_only_generated_internal_id_suffix(self):
+        self.assertEqual("청문보고서 송부 요청", clean_task_title("청문보고서 송부 요청 ( id: 4)"))
+        self.assertEqual("청문보고서 송부 요청", clean_task_title("청문보고서 송부 요청 (ID:4)"))
+        self.assertEqual("ID 검증 서비스 구축", clean_task_title("ID 검증 서비스 구축"))
 
     def test_quality_gate_still_rejects_verbatim_topic_summary(self):
         source = "예산 편성 기준을 구체적으로 공개하고 집행 계획을 다시 보고해 주시기 바랍니다."
@@ -476,10 +518,13 @@ class MeetingBriefTests(unittest.TestCase):
         )
         self.assertIn("관련 쟁점과 대응 필요성", brief["topics"][0]["summary"])
 
-    def test_final_topics_have_no_fixed_maximum_and_use_adaptive_floor(self):
-        self.assertEqual("assembly-meeting-brief/1.7", PROMPT_VERSION)
+    def test_final_topics_have_operational_maximum_and_use_adaptive_floor(self):
+        self.assertEqual("assembly-meeting-brief/1.9", PROMPT_VERSION)
         self.assertEqual("assembly-meeting-brief/1.2", ANALYSIS_CACHE_VERSION)
-        self.assertNotIn("maxItems", brief_response_schema()["properties"]["topics"])
+        self.assertEqual(
+            MAX_FINAL_TOPICS,
+            brief_response_schema()["properties"]["topics"]["maxItems"],
+        )
         self.assertEqual(
             7,
             minimum_final_topic_count([
@@ -500,6 +545,40 @@ class MeetingBriefTests(unittest.TestCase):
             ]),
         )
         self.assertEqual(0, minimum_final_task_count([{"topics": [{"tasks": []}]}]))
+
+    def test_local_topic_promotion_respects_final_topic_limit(self):
+        topics = [
+            {
+                "id": f"topic-{index}",
+                "title": f"정책 대상 {index}",
+                "summary": f"정책 대상 {index}의 현황과 후속 조치를 점검하였다.",
+                "speaker_points": [],
+                "evidence_ids": [f"u-{index}"],
+                "live_topic_cluster_ids": [],
+            }
+            for index in range(1, MAX_FINAL_TOPICS)
+        ]
+        clusters = [
+            {
+                "id": f"live-{index}",
+                "title": f"별도 현안 {index}",
+                "utterance_ids": [f"extra-{index}"],
+                "utterance_count": index,
+            }
+            for index in range(1, 4)
+        ]
+        valid_ids = {
+            *[f"u-{index}" for index in range(1, MAX_FINAL_TOPICS)],
+            *[f"extra-{index}" for index in range(1, 4)],
+        }
+        result = promote_unassigned_live_topics(
+            {"topics": topics, "live_topic_assignment": {}},
+            clusters,
+            valid_ids,
+        )
+        self.assertEqual(MAX_FINAL_TOPICS, len(result["topics"]))
+        self.assertEqual(["live-3"], result["live_topic_assignment"]["promoted_cluster_ids"])
+        self.assertEqual(2, result["live_topic_assignment"]["unassigned_count"])
 
     def test_liquid_structured_retry_uses_supported_parameters(self):
         response = mock.Mock(status_code=200)

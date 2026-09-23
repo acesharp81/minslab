@@ -19,9 +19,10 @@ from .live_topic_mapping import (
 )
 from .openrouter_gateway_client import openrouter_headers
 
-PROMPT_VERSION = "assembly-meeting-brief/1.7"
+PROMPT_VERSION = "assembly-meeting-brief/1.9"
 ANALYSIS_CACHE_VERSION = "assembly-meeting-brief/1.2"
 MAX_FINAL_TASKS = 20
+MAX_FINAL_TOPICS = 24
 MAX_REDUCTION_TOPICS = 12
 REDUCTION_BATCH_SIZE = 8
 CLASSIFICATION_METHOD = "HIERARCHICAL_EVIDENCE"
@@ -198,6 +199,7 @@ def brief_response_schema() -> dict[str, Any]:
                 "items": _topic_schema(
                     include_tasks=False, include_live_topic_ids=True
                 ),
+                "maxItems": MAX_FINAL_TOPICS,
             },
             "tasks": {
                 "type": "array",
@@ -292,7 +294,7 @@ def build_synthesis_prompt(
         "회의 한 줄 제목과 2~3문장 요약, 의미상 중복만 합친 핵심 주제, 주제별 화자 요지, 실제로 "
         "각 live_topic_cluster id를 의미상 가장 가까운 최종 핵심 주제 한 곳의 "
         "live_topic_cluster_ids에 정확히 한 번 포함하고 별도 실시간 주제로 남기지 마라. "
-        f"남은 과제를 만든다. 핵심 주제 수에 상한을 두지 말고 최소 {minimum_topics}개를 보존하되, "
+        f"남은 과제를 만든다. 핵심 주제는 최소 {minimum_topics}개, 최대 {MAX_FINAL_TOPICS}개로 정리하되, "
         "회의에 실제로 존재하는 독립 쟁점 수에 따라 결정하라. 부처·정책 대상·요구 조치가 다른 쟁점은 제목이 비슷해도 합치지 마라. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
         "요구·약속·조치만 남기고 단순 질의나 의견은 제외한다. 담당부처와 상태는 구간 분석보다 "
         "강하게 단정하지 말고, 구간 분석에 포함된 evidence id 이외의 id는 절대 사용하지 마라. 공식 결론이 "
@@ -398,6 +400,8 @@ _KNOWN_LANGUAGE_REPAIRS = {
     "那样": "그렇게",
     "의사의的意见": "의원 의견",
     "하겠습니다고": "하겠다고",
+    "서영교장": "서영교 위원장",
+    "증인 혼의": "증인 협의",
     "化": "화",
 }
 
@@ -413,6 +417,14 @@ def _clean_text(value: Any, limit: int) -> str:
         )
     normalized = " ".join(normalized.replace("_", " ").split())
     return normalized[:limit].strip()
+
+
+_TASK_INTERNAL_ID_SUFFIX = re.compile(r"\s*\(\s*id\s*:\s*\d+\s*\)\s*$", re.IGNORECASE)
+
+
+def clean_task_title(value: Any) -> str:
+    """Keep model bookkeeping IDs out of a user-facing task title."""
+    return _TASK_INTERNAL_ID_SUFFIX.sub("", _clean_text(value, 220)).strip()
 
 
 _LOWER_LATIN_WORD = re.compile(r"(?<![A-Za-z])[A-Za-z]{3,}(?![A-Za-z])")
@@ -446,7 +458,7 @@ def _sanitize_final_display_language(data: dict[str, Any]) -> dict[str, Any]:
     for task in result.get("tasks") or []:
         if not isinstance(task, dict):
             continue
-        task["title"] = sanitize(task.get("title"), 220) or "후속 검토"
+        task["title"] = clean_task_title(sanitize(task.get("title"), 220)) or "후속 검토"
         if task.get("topic_title") is not None:
             task["topic_title"] = sanitize(task.get("topic_title"), 100)
         task["ministries"] = [
@@ -607,7 +619,7 @@ def _clean_task(
     if not isinstance(raw_task, dict):
         return None
     evidence = _valid_evidence(raw_task.get("evidence_ids"), valid_ids)
-    title = _clean_text(raw_task.get("title"), 220)
+    title = clean_task_title(raw_task.get("title"))
     if not title or not evidence:
         return None
     ministries: list[str] = []
@@ -813,10 +825,16 @@ def promote_unassigned_live_topics(
         for cluster_id in topic.get("live_topic_cluster_ids") or []
     }
     promoted_ids: list[str] = []
-    for cluster in sources:
+    for cluster in sorted(
+        sources,
+        key=lambda item: int(item.get("utterance_count") or 0),
+        reverse=True,
+    ):
         cluster_id = str(cluster.get("id") or "")
         if cluster_id in assigned:
             continue
+        if len(topics) >= MAX_FINAL_TOPICS:
+            break
         evidence = _valid_evidence(cluster.get("utterance_ids"), valid_ids)
         title = _clean_text(cluster.get("title"), 100)
         if not title or not evidence:
@@ -900,6 +918,7 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
     for task in result.get("tasks", []):
         if not isinstance(task, dict):
             continue
+        task["title"] = clean_task_title(task.get("title")) or "후속 검토"
         task_evidence = {str(value) for value in task.get("evidence_ids", [])}
         raw_title = _clean_text(task.get("topic_title"), 100)
         raw_tokens = _topic_tokens(raw_title)
@@ -940,8 +959,8 @@ def minimum_final_topic_count(analyses: list[dict[str, Any]]) -> int:
         if isinstance(analysis, dict)
     )
     if source_topic_count <= 4:
-        return max(1, source_topic_count)
-    return max(4, (source_topic_count + 1) // 2)
+        return min(MAX_FINAL_TOPICS, max(1, source_topic_count))
+    return min(MAX_FINAL_TOPICS, max(4, (source_topic_count + 1) // 2))
 
 
 def minimum_final_task_count(analyses: list[dict[str, Any]]) -> int:
@@ -964,6 +983,11 @@ def validate_meeting_brief(
     require_complete_live_topics: bool = False,
 ) -> dict[str, Any]:
     _assert_summary_quality(data, evidence_map or {})
+    raw_topics = data.get("topics", []) if isinstance(data.get("topics"), list) else []
+    if len(raw_topics) > MAX_FINAL_TOPICS:
+        raise ValueError(
+            f"meeting brief contains too many topics: {len(raw_topics)} > {MAX_FINAL_TOPICS}"
+        )
     topics: list[dict[str, Any]] = []
     for index, raw_topic in enumerate(
         data.get("topics", []) if isinstance(data.get("topics"), list) else []

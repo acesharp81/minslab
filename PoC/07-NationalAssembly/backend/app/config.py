@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     ai_enrichment_enabled: bool = False
     llm_provider: str = "disabled"
     llm_model: str = ""
+    meeting_brief_provider: str = ""
     meeting_brief_model: str = "dots-studio/dots-3-note-preview:free"
+    meeting_brief_mistral_model: str = "mistral-small-2603"
     gemini_api_key: str = ""
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"

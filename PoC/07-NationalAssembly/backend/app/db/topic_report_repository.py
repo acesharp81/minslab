@@ -15,6 +15,8 @@ from ..services.official_brief_integration import semantic_tokens
 
 
 PROMPT_VERSION = "topic-report/1.6"
+PUBLIC_REPORT_RETENTION_DAYS = 30
+PUBLIC_REPORT_MAX_ITEMS = 50
 
 
 def _normalized(value: object) -> str:
@@ -521,6 +523,7 @@ class TopicReportRepository:
             """,
             (Jsonb(report), Jsonb(usage_metadata), report_id),
         )
+        self.prune_retention()
 
     def fail(self, report_id: uuid.UUID, error: str, *, limited: bool = False) -> None:
         self.connection.execute(
@@ -546,19 +549,84 @@ class TopicReportRepository:
         ).fetchone()
         return self._row(row) if row else None
 
-    def list(self, subscriber_id: uuid.UUID, limit: int = 20) -> list[dict[str, Any]]:
+    def get_visible(
+        self, report_id: uuid.UUID, subscriber_id: uuid.UUID | None = None,
+    ) -> dict[str, Any] | None:
+        """Return retained READY reports publicly and unfinished reports to their owner."""
+        row = self.connection.execute(
+            """
+            SELECT id, subscriber_id, ministry, topic, period_start, period_end,
+                   institution, status, provider, model, prompt_version, report,
+                   evidence, usage_metadata, last_error, generated_at,
+                   created_at, updated_at
+            FROM topic_reports
+            WHERE id = %s
+              AND (
+                    (
+                        status = 'READY'
+                        AND generated_at >= now() - (%s * interval '1 day')
+                    )
+                    OR (
+                        subscriber_id = %s
+                        AND status <> 'READY'
+                    )
+                  )
+            """,
+            (report_id, PUBLIC_REPORT_RETENTION_DAYS, subscriber_id),
+        ).fetchone()
+        return self._row(row) if row else None
+
+    def list_public(self, limit: int = PUBLIC_REPORT_MAX_ITEMS) -> list[dict[str, Any]]:
+        self.prune_retention()
         rows = self.connection.execute(
             """
             SELECT id, subscriber_id, ministry, topic, period_start, period_end,
                    institution, status, provider, model, prompt_version, report,
                    evidence, usage_metadata, last_error, generated_at,
                    created_at, updated_at
-            FROM topic_reports WHERE subscriber_id = %s
-            ORDER BY created_at DESC LIMIT %s
+            FROM topic_reports
+            WHERE status = 'READY'
+              AND generated_at >= now() - (%s * interval '1 day')
+            ORDER BY generated_at DESC, id DESC LIMIT %s
             """,
-            (subscriber_id, max(1, min(limit, 50))),
+            (
+                PUBLIC_REPORT_RETENTION_DAYS,
+                max(1, min(limit, PUBLIC_REPORT_MAX_ITEMS)),
+            ),
         ).fetchall()
         return [self._row(row) for row in rows]
+
+    def prune_retention(self) -> int:
+        """Keep at most 50 completed reports from the latest 30 days."""
+        cursor = self.connection.execute(
+            """
+            WITH retained AS (
+                SELECT id
+                FROM topic_reports
+                WHERE status = 'READY'
+                  AND generated_at >= now() - (%s * interval '1 day')
+                ORDER BY generated_at DESC, id DESC
+                LIMIT %s
+            )
+            DELETE FROM topic_reports report
+            WHERE (
+                    report.status = 'READY'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM retained WHERE retained.id = report.id
+                    )
+                  )
+               OR (
+                    report.status <> 'READY'
+                    AND report.updated_at < now() - (%s * interval '1 day')
+                  )
+            """,
+            (
+                PUBLIC_REPORT_RETENTION_DAYS,
+                PUBLIC_REPORT_MAX_ITEMS,
+                PUBLIC_REPORT_RETENTION_DAYS,
+            ),
+        )
+        return max(0, int(cursor.rowcount or 0))
 
     @staticmethod
     def markdown(item: dict[str, Any]) -> str:

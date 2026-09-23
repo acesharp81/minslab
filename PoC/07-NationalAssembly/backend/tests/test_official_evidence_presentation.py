@@ -37,6 +37,45 @@ def test_official_diff_ignores_style_only_and_marks_meaningful_change() -> None:
     assert any(span["kind"] in {"added", "changed"} for span in changed["spans"])
 
 
+def test_official_diff_counts_replacement_once_and_keeps_official_copy() -> None:
+    changed = official_utterance_diff(
+        "관련 사업에 20억 원을 편성한다.",
+        "관련 사업에 30억 원을 편성한다.",
+    )
+    assert changed["change_count"] == 1
+    assert "".join(span["text"] for span in changed["spans"]) == (
+        "관련 사업에 30억 원을 편성한다."
+    )
+    assert not any(span["kind"] == "deleted" for span in changed["spans"])
+
+
+def test_official_diff_ignores_procedural_boundary_but_preserves_real_live_only_text() -> None:
+    procedural = official_utterance_diff(
+        "이 사건은 중요합니다 예 이상입니다 수고하셨습니다",
+        "이 사건은 중요합니다.",
+    )
+    assert procedural["comparison_status"] == "NON_SUBSTANTIVE"
+    assert procedural["change_count"] == 0
+
+    grammatical = official_utterance_diff(
+        "것입니다 둘째 예산을 검토합니다",
+        "둘째, 예산을 검토합니다.",
+    )
+    assert grammatical["comparison_status"] == "NON_SUBSTANTIVE"
+    assert grammatical["change_count"] == 0
+    assert grammatical["live_only_fragments"] == []
+
+    substantive = official_utterance_diff(
+        "법무부는 예산을 편성하고 별도 피해조사를 실시한다.",
+        "법무부는 예산을 편성한다.",
+    )
+    assert substantive["change_count"] == 1
+    assert substantive["live_only_fragments"] == ["하고 별도 피해조사를 실시"]
+    assert "".join(span["text"] for span in substantive["spans"]) == (
+        "법무부는 예산을 편성한다."
+    )
+
+
 def test_official_diff_ignores_clause_order_and_marks_only_real_moved_append() -> None:
     reordered = official_utterance_diff(
         "대법원과 법원행정처의 비상계엄 관련 회의 및 입장을 점검했다.",
@@ -88,6 +127,36 @@ def test_official_presentation_uses_final_speaker_text_and_live_baseline() -> No
     assert result[0]["live_text"] == live[0]["text"]
     assert result[0]["segment_count"] == 4
     assert result[0]["publication_stage"] == "FINAL"
+
+
+def test_official_presentation_compares_the_matched_segment_not_whole_speaker_turn() -> None:
+    official_id = "official-local"
+    live = [{
+        "utterance_id": "grouped-live-turn",
+        "speaker_label": "화자 0",
+        "text": "앞선 다른 발언입니다. 실제 대응 문장입니다. 뒤의 다른 발언입니다.",
+        "segment_count": 3,
+        "official_reconciliations": [{
+            "status": "MATCHED",
+            "official_utterance_id": official_id,
+            "live_revision_id": "revision-2",
+            "live_text": "실제 대응 문장입니다",
+        }],
+    }]
+    official = [{
+        "utterance_id": official_id,
+        "sequence_number": 2,
+        "speaker_name": "김 위원",
+        "text": "실제 대응 문장입니다.",
+    }]
+    result = build_official_evidence_presentations(
+        live, official, [official_id],
+        publication_stage="FINAL", authority_status="OFFICIAL",
+    )
+    assert result[0]["live_text"] == "실제 대응 문장입니다"
+    assert result[0]["live_utterance_count"] == 1
+    assert result[0]["comparison_status"] == "STYLE_ONLY"
+    assert result[0]["change_count"] == 0
 
 
 def test_cached_official_references_are_remapped_without_mutating_source() -> None:

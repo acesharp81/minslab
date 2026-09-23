@@ -585,7 +585,7 @@ class LiveRepository:
                    %s, %s, %s, %s, %s
             FROM transcript_segment_revisions WHERE segment_id = %s
             ON CONFLICT (segment_id, content_hash) DO NOTHING
-            RETURNING id
+            RETURNING id, event_cursor
             """,
             (
                 uuid.uuid4(),
@@ -600,13 +600,18 @@ class LiveRepository:
                 segment_id,
             ),
         ).fetchone()
+        inserted_cursor = int(inserted[1]) if inserted else 0
         self.connection.execute(
             """
             UPDATE live_broadcasts
-            SET last_caption_received_at = %s, updated_at = now()
+            SET last_caption_received_at = %s,
+                source_last_event_cursor = GREATEST(
+                    source_last_event_cursor, %s
+                ),
+                updated_at = now()
             WHERE id = %s
             """,
-            (revision.received_at, broadcast_id),
+            (revision.received_at, inserted_cursor, broadcast_id),
         )
         if revision.source.source_type == "assembly_caption_message":
             self.mark_official_caption_received(broadcast_id)
@@ -667,6 +672,7 @@ class LiveRepository:
                    reconciliation.transcript_revision_id,
                    reconciliation.reconciliation_status,
                    reconciliation.match_method, reconciliation.match_confidence,
+                   revision.text,
                    utterance.id, utterance.sequence_number, utterance.speaker_name,
                    utterance.speaker_role, utterance.text,
                    utterance.source_locator, document.publication_stage,
@@ -690,6 +696,7 @@ class LiveRepository:
             "status",
             "match_method",
             "match_confidence",
+            "live_text",
             "official_utterance_id",
             "official_sequence_number",
             "official_speaker_name",
@@ -703,6 +710,7 @@ class LiveRepository:
         for row in rows:
             item = dict(zip(columns, row, strict=True))
             revision_id = item.pop("revision_id")
+            item["live_revision_id"] = str(revision_id)
             locator = item.get("source_locator")
             item["source_locator"] = locator if isinstance(locator, dict) else None
             result[revision_id] = item
@@ -727,6 +735,22 @@ class LiveRepository:
         parameters.append(offset)
         rows = self.connection.execute(
             f"""
+            WITH recent_broadcasts AS MATERIALIZED (
+                SELECT broadcast.*
+                FROM live_broadcasts broadcast
+                WHERE broadcast.lifecycle_status = 'ENDED'
+                  AND (
+                        broadcast.institution <> 'LEGISLATURE'
+                        OR broadcast.committee_name = ANY(%s)
+                      )
+                  AND broadcast.source_system NOT IN (
+                    'poc07.demo', 'poc07.test', 'poc07.replay.local',
+                    'poc07.replay.kakao'
+                  )
+                  {committee_filter}
+                ORDER BY broadcast.detected_at DESC, broadcast.id DESC
+                LIMIT %s OFFSET %s
+            )
             SELECT broadcast.id, broadcast.external_id, broadcast.institution,
                    broadcast.committee_name,
                    broadcast.title, broadcast.lifecycle_status, broadcast.source_system,
@@ -767,7 +791,7 @@ class LiveRepository:
                        COALESCE(brief_activity.generated_at, '-infinity'::timestamptz),
                        COALESCE(official_activity.generated_at, '-infinity'::timestamptz)
                    ) AS result_updated_at
-            FROM live_broadcasts broadcast
+            FROM recent_broadcasts broadcast
             LEFT JOIN LATERAL (
                 SELECT MAX(
                     (schedule.scheduled_date + schedule.start_time)
@@ -838,17 +862,7 @@ class LiveRepository:
             ) official_pipeline ON true
             LEFT JOIN executive_official_matches executive_match
               ON executive_match.broadcast_id = broadcast.id
-            WHERE broadcast.lifecycle_status = 'ENDED'
-              AND (
-                    broadcast.institution <> 'LEGISLATURE'
-                    OR broadcast.committee_name = ANY(%s)
-                  )
-              AND broadcast.source_system NOT IN (
-                'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
-              )
-              {committee_filter}
             ORDER BY broadcast.detected_at DESC, broadcast.id DESC
-            LIMIT %s OFFSET %s
             """,
             parameters,
         ).fetchall()
@@ -930,17 +944,9 @@ class LiveRepository:
                    document.id, document.publication_stage, document.authority_status,
                    document.utterance_count, job.status, job.attempt_count,
                    job.next_attempt_at, job.updated_at,
-                   (SELECT COUNT(*) FROM transcript_segments segment
-                    WHERE segment.broadcast_id = broadcast.id AND segment.is_final)
-                       AS final_segment_count,
-                   (SELECT COUNT(DISTINCT reconciliation.transcript_revision_id)
-                    FROM transcript_official_reconciliations reconciliation
-                    JOIN transcript_segment_revisions revision
-                      ON revision.id = reconciliation.transcript_revision_id
-                    JOIN transcript_segments segment ON segment.id = revision.segment_id
-                    WHERE segment.broadcast_id = broadcast.id
-                      AND reconciliation.reconciliation_status = 'MATCHED')
-                       AS matched_segment_count
+                   broadcast.final_segment_count,
+                   broadcast.matched_segment_count,
+                   broadcast.official_context_stats_updated_at
             FROM live_broadcasts broadcast
             LEFT JOIN LATERAL (
                 SELECT id, conference_id, official_url, pdf_url,
@@ -987,6 +993,7 @@ class LiveRepository:
             "integration_job_updated_at",
             "final_segment_count",
             "matched_segment_count",
+            "official_context_stats_updated_at",
         )
         item = dict(zip(columns, row, strict=True))
         item["unmatched_segment_count"] = max(
@@ -1007,6 +1014,51 @@ class LiveRepository:
         else:
             item["processing_stage"] = "COMPARISON_QUEUED"
         return item
+
+    def refresh_official_context_stats(
+        self, broadcast_ids: Iterable[uuid.UUID]
+    ) -> int:
+        """Refresh the read model after a background reconciliation batch."""
+        ids = list(dict.fromkeys(broadcast_ids))
+        if not ids:
+            return 0
+        row = self.connection.execute(
+            """
+            WITH target AS MATERIALIZED (
+                SELECT id FROM live_broadcasts WHERE id = ANY(%s)
+            ), final_counts AS MATERIALIZED (
+                SELECT segment.broadcast_id, COUNT(*)::integer AS count
+                FROM transcript_segments segment
+                JOIN target ON target.id = segment.broadcast_id
+                WHERE segment.is_final
+                GROUP BY segment.broadcast_id
+            ), matched_counts AS MATERIALIZED (
+                SELECT segment.broadcast_id,
+                       COUNT(DISTINCT reconciliation.transcript_revision_id)::integer
+                         AS count
+                FROM transcript_official_reconciliations reconciliation
+                JOIN transcript_segment_revisions revision
+                  ON revision.id = reconciliation.transcript_revision_id
+                JOIN transcript_segments segment ON segment.id = revision.segment_id
+                JOIN target ON target.id = segment.broadcast_id
+                WHERE reconciliation.reconciliation_status = 'MATCHED'
+                GROUP BY segment.broadcast_id
+            ), updated AS (
+                UPDATE live_broadcasts broadcast
+                SET final_segment_count = COALESCE(finals.count, 0),
+                    matched_segment_count = COALESCE(matches.count, 0),
+                    official_context_stats_updated_at = now()
+                FROM target
+                LEFT JOIN final_counts finals ON finals.broadcast_id = target.id
+                LEFT JOIN matched_counts matches ON matches.broadcast_id = target.id
+                WHERE broadcast.id = target.id
+                RETURNING broadcast.id
+            )
+            SELECT COUNT(*) FROM updated
+            """,
+            (ids,),
+        ).fetchone()
+        return int(row[0] or 0) if row else 0
 
     def broadcast_official_material(
         self,

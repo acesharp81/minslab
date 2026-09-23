@@ -173,12 +173,11 @@ class MeetingBriefRepository:
                    progress.phase, progress.total_utterances, progress.processed_utterances,
                    progress.total_chunks, progress.completed_chunks,
                    progress.started_at, progress.updated_at,
-                   (SELECT COALESCE(MAX(revision.event_cursor), 0)
-                    FROM transcript_segment_revisions revision
-                    JOIN transcript_segments segment ON segment.id = revision.segment_id
-                    WHERE segment.broadcast_id = progress.broadcast_id)
+                   broadcast.source_last_event_cursor
                      AS current_source_last_event_cursor
-            FROM meeting_brief_progress progress WHERE progress.broadcast_id = %s
+            FROM meeting_brief_progress progress
+            JOIN live_broadcasts broadcast ON broadcast.id = progress.broadcast_id
+            WHERE progress.broadcast_id = %s
             """,
             (broadcast_id,),
         ).fetchone()
@@ -195,12 +194,11 @@ class MeetingBriefRepository:
                    progress.phase, progress.total_utterances, progress.processed_utterances,
                    progress.total_chunks, progress.completed_chunks,
                    progress.started_at, progress.updated_at,
-                   (SELECT COALESCE(MAX(revision.event_cursor), 0)
-                    FROM transcript_segment_revisions revision
-                    JOIN transcript_segments segment ON segment.id = revision.segment_id
-                    WHERE segment.broadcast_id = progress.broadcast_id)
+                   broadcast.source_last_event_cursor
                      AS current_source_last_event_cursor
-            FROM meeting_brief_progress progress WHERE progress.broadcast_id = ANY(%s)
+            FROM meeting_brief_progress progress
+            JOIN live_broadcasts broadcast ON broadcast.id = progress.broadcast_id
+            WHERE progress.broadcast_id = ANY(%s)
             """,
             (ids,),
         ).fetchall()

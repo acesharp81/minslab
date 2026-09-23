@@ -99,15 +99,18 @@ class AdmissionController:
 
 controller = AdmissionController(rpm=RPM_LIMIT, max_inflight=MAX_INFLIGHT)
 app = FastAPI(title="Minslab OpenRouter Gateway", docs_url=None, redoc_url=None)
+_schema_lock = threading.Lock()
+_schema_ready_path: Path | None = None
 
 
-def _connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(DB_PATH, timeout=15.0)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA journal_mode=WAL")
-    connection.execute("PRAGMA busy_timeout=15000")
-    connection.execute(
+def _initialize_schema(connection: sqlite3.Connection) -> None:
+    global _schema_ready_path
+    resolved = DB_PATH.resolve()
+    with _schema_lock:
+        if _schema_ready_path == resolved:
+            return
+        connection.execute("PRAGMA journal_mode=WAL")
+        connection.execute(
         """
         CREATE TABLE IF NOT EXISTS gateway_requests (
             id TEXT PRIMARY KEY,
@@ -127,11 +130,22 @@ def _connect() -> sqlite3.Connection:
             finished_at TEXT
         )
         """
-    )
-    connection.execute(
-        "CREATE INDEX IF NOT EXISTS gateway_requests_day_idx "
-        "ON gateway_requests(usage_date, status, started_at)"
-    )
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS gateway_requests_day_idx "
+            "ON gateway_requests(usage_date, status, started_at)"
+        )
+        connection.commit()
+        _schema_ready_path = resolved
+
+
+def _connect() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(DB_PATH, timeout=15.0)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA busy_timeout=15000")
+    connection.execute("PRAGMA synchronous=NORMAL")
+    _initialize_schema(connection)
     return connection
 
 
