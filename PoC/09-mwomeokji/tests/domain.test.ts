@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
 import { parseIntent } from "../lib/intent";
-import { evolveDialogue, readDialogue } from "../lib/dialogue";
+import { applyMemberUpdates, evolveDialogue, readDialogue, type DialogueState } from "../lib/dialogue";
+import { understand } from "../lib/ai";
 import { recommend, recommendGroup } from "../lib/recommend";
 import { applyBoundedRanking } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
@@ -192,6 +193,15 @@ describe("multi-turn Tap Talk Together dialogue", () => {
     expect(b.state.members[0].allergies).toContain("peanut");
     expect(b.state.preferences.totalBudget).toBe(20000);
   });
+  it("updates party size across turns when another diner joins or leaves", () => {
+    const initial = evolveDialogue(readDialogue({}), "우리 세 명이야", parseIntent("우리 세 명이야")).state;
+    const joined = evolveDialogue(initial, "한 명 더 왔어", parseIntent("한 명 더 왔어")).state;
+    expect(joined.peopleCount).toBe(4);
+    expect(joined.members).toHaveLength(4);
+    const left = evolveDialogue(joined, "두 명 빠졌어", parseIntent("두 명 빠졌어")).state;
+    expect(left.peopleCount).toBe(2);
+    expect(left.members).toHaveLength(2);
+  });
   it("recognizes conversational checkout intent", () => {
     expect(parseIntent("주문할게").action).toBe("checkout");
   });
@@ -222,5 +232,68 @@ describe("bounded experimental ranking", () => {
         orderedIds: ["b", "a"],
       }).map((entry) => entry.item.id),
     ).toEqual(["b", "a"]);
+  });
+});
+
+afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+describe("LLM current-turn interpretation", () => {
+  it("sends only the current utterance and validates the model response", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    let outbound: Record<string, unknown> = {};
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+      outbound = JSON.parse(String(options.body));
+      return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({
+        action: "add", peopleCount: null, totalBudget: null, maxSpiceLevel: null,
+        vegetarian: null, wantsWarm: null, wantsCool: null, avoidPork: null, avoidBeef: null,
+        category: null, menuName: null, quantity: 2, reference: "second", alternative: false,
+        globalAllergies: [], memberUpdates: [], optionNames: ["많이"], clarification: null,
+        corrections: { clearVegetarian: false, clearSpiceLimit: false, clearBudget: false },
+      }) } }] }) };
+    }));
+    const message = "두 번째 많이 해서 담아줘";
+    const result = await understand(message);
+    expect(result.provider).toBe("openrouter");
+    expect(result.reference).toBe("second");
+    expect(result.intent.quantity).toBeUndefined(); // ordinal is not item quantity
+    expect((outbound.messages as { role: string; content: string }[]).map((entry) => entry.content).at(-1)).toBe(message);
+    expect((outbound.provider as { zdr: boolean; data_collection: string }).zdr).toBe(true);
+    expect((outbound.provider as { zdr: boolean; data_collection: string }).data_collection).toBe("deny");
+    expect(JSON.stringify(outbound)).not.toContain("previousUtterances");
+    expect(JSON.stringify(outbound)).not.toContain("cart");
+  });
+  it("falls back to local rules on invalid LLM output", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: "{}" } }] }) })));
+    const result = await understand("두 개 담아줘");
+    expect(result.provider).toBe("rules");
+    expect(result.intent.action).toBe("add");
+  });
+  it("resolves an unambiguous follow-up person locally and asks when several match", () => {
+    const single: DialogueState = { ...readDialogue({}), peopleCount: 2, members: [
+      { id: "named-1", label: "민수", allergies: [], dietaryRules: [] },
+      { id: "generic-2", label: "일행 2", allergies: [], dietaryRules: [] },
+    ] };
+    const update = { label: "그 친구", count: 1, allergies: ["milk"], dietaryRules: [], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false };
+    const resolved = applyMemberUpdates(single, [update], "그 친구는 우유 알레르기 있어");
+    expect(resolved.state.members[0].allergies).toContain("milk");
+    expect(resolved.needsClarification).toBe(false);
+    const many: DialogueState = { ...single, members: [...single.members, { id: "named-3", label: "영희", allergies: [], dietaryRules: [] }] };
+    expect(applyMemberUpdates(many, [update], "그 친구는 우유 알레르기 있어").needsClarification).toBe(true);
+  });
+  it("merges named members from successive turns without imposing their diets on everyone", () => {
+    const first = "민수는 채식이야. 우리 세 명이야";
+    let state: DialogueState = evolveDialogue(readDialogue({}), first, { ...parseIntent(first), peopleCount: 3 }).state;
+    state = applyMemberUpdates(state, [{ label: "민수", count: 1, allergies: [], dietaryRules: ["vegetarian"], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false }], first).state;
+    const second = "영희는 매운 걸 못 먹어";
+    state = evolveDialogue(state, second, parseIntent(second)).state;
+    state = applyMemberUpdates(state, [{ label: "영희", count: 1, allergies: [], dietaryRules: [], maxSpiceLevel: 0, removeDietaryRules: [], clearSpiceLimit: false }], second).state;
+    expect(state.members).toHaveLength(3);
+    expect(state.members.find((member) => member.label === "민수")?.dietaryRules[0].type).toBe("vegetarian");
+    expect(state.members.find((member) => member.label === "영희")?.maxSpiceLevel).toBe(0);
+    expect(state.preferences.vegetarian).toBe(false);
+    expect(state.preferences.maxSpiceLevel).toBeUndefined();
   });
 });
