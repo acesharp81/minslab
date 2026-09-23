@@ -21,6 +21,8 @@ const allowed = [
   "POC09_JEV_MODEL",
   "POC09_AI_PROVIDER",
   "POC09_CONVERSATION_PROVIDER",
+  "POC09_METER_TOKEN",
+  "POC09_METER_URL",
   "POC09_DECISION_PROVIDER",
 ];
 const env = { ...process.env };

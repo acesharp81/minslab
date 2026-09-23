@@ -11,7 +11,7 @@ sudo scripts/deploy_live_capture_workers.sh
 sudo scripts/deploy_secure_workers.sh all
 ```
 
-`http://127.0.0.1:18071/internal/status`의 `reserved`가 POC4+POC7 합산 시도이며 운영 상한은 950, 공식 상한은 1,000입니다. `breakdown`은 장애 분석용이고 프로젝트별 별도 quota로 사용하지 않습니다. gateway 컨테이너만 실제 OpenRouter key를 받으며 텍스트 워커는 `gateway-local` 토큰과 내부 URL만 받습니다.
+`http://127.0.0.1:18071/internal/status`의 `reserved`가 POC4+POC7 **무료 모델** 합산 시도이며 운영 상한은 950, 공식 상한은 1,000입니다. `breakdown`은 무료 모델 장애 분석용이고 프로젝트별 별도 quota로 사용하지 않습니다. `external_breakdown`과 `external_monthly_breakdown`은 같은 OpenRouter 키를 직접 쓰는 PoC9 주문 대화의 모델·상태·토큰 메타데이터입니다. 여기에는 주문 문장과 응답이 저장되지 않으며, 이 유료 호출을 무료 950회에 합치지 않습니다. PoC9의 `npm run ai:usage`는 OpenRouter `/api/v1/key`의 실제 공유 키 잔액까지 함께 보여 줍니다. 계량 기록 API는 `OPENROUTER_METER_TOKEN`으로 인증합니다. gateway 컨테이너만 실제 OpenRouter key를 받으며 텍스트 워커는 `gateway-local` 토큰과 내부 URL만 받습니다.
 
 자막 운영 상태는 live API의 `active_transcript_source`, `official_caption_state`, `stt_fallback_status`로 확인합니다. 국회 공식 자막 무수신 45초 후 `AI_STT`, 재수신 90초 후 `OFFICIAL_CAPTION`이 정상 전환입니다.
 

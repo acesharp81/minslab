@@ -3,6 +3,7 @@ import { checkSafety, priceFor } from "../lib/safety";
 import { parseIntent } from "../lib/intent";
 import { applyMemberUpdates, evolveDialogue, readDialogue, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
+import { recordAiUsage } from "../lib/usage-meter";
 import { recommend, recommendGroup } from "../lib/recommend";
 import { applyBoundedRanking } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
@@ -236,6 +237,23 @@ describe("bounded experimental ranking", () => {
 });
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+describe("shared AI meter", () => {
+  it("reports only call metadata without customer text or session data", async () => {
+    vi.stubEnv("POC09_METER_TOKEN", "unit-meter-token");
+    let outbound: Record<string, unknown> = {};
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+      outbound = JSON.parse(String(options.body));
+      return { ok: true };
+    }));
+    await recordAiUsage({ model: "openai/gpt-4.1-mini", status: "COMPLETED", httpStatus: 200, inputTokens: 120, outputTokens: 60 });
+    expect(outbound.project).toBe("poc09");
+    expect(outbound.input_tokens).toBe(120);
+    expect(Object.keys(outbound).sort()).toEqual([
+      "cost_usd", "event_id", "http_status", "input_tokens", "model", "output_tokens", "project", "provider", "status", "workload",
+    ]);
+  });
+});
 
 describe("LLM current-turn interpretation", () => {
   it("sends only the current utterance and validates the model response", async () => {

@@ -74,6 +74,7 @@ services:
       context: ./backend
     environment:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_METER_TOKEN: ${OPENROUTER_METER_TOKEN:-}
       OPENROUTER_UPSTREAM_BASE_URL: https://openrouter.ai/api/v1
       OPENROUTER_GATEWAY_DB: /app/data/openrouter_gateway.sqlite3
       OPENROUTER_OFFICIAL_DAILY_LIMIT: 1000

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { parseIntent } from "./intent";
 import type { MemberUpdate } from "./dialogue";
+import { recordAiUsage } from "./usage-meter";
 import { ALLERGENS, DIET_RULES, type OrderIntent } from "./types";
 
 export type Interpretation = {
@@ -106,6 +107,7 @@ function fallback(message: string): Interpretation {
 export async function understand(message: string): Promise<Interpretation> {
   const basic = fallback(message);
   if (process.env.POC09_CONVERSATION_PROVIDER !== "openrouter" || !process.env.OPENROUTER_API_KEY) return basic;
+  const model = process.env.POC09_LLM_MODEL || "openai/gpt-4.1-mini";
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -117,7 +119,7 @@ export async function understand(message: string): Promise<Interpretation> {
         "X-Title": "Mwomeokji PoC9",
       },
       body: JSON.stringify({
-        model: process.env.POC09_LLM_MODEL || "openai/gpt-4.1-mini",
+        model,
         temperature: 0,
         max_tokens: 900,
         provider: { require_parameters: true, data_collection: "deny", zdr: true },
@@ -128,12 +130,20 @@ export async function understand(message: string): Promise<Interpretation> {
         ],
       }),
     });
-    if (!response.ok) return basic;
-    const raw = await response.json();
+    const raw = await response.json().catch(() => ({})) || {};
     const content = raw.choices?.[0]?.message?.content;
-    if (typeof content !== "string") return basic;
-    const parsed = llmSchema.safeParse(JSON.parse(content));
-    if (!parsed.success) return basic;
+    let parsed: ReturnType<typeof llmSchema.safeParse> | null = null;
+    try { if (typeof content === "string") parsed = llmSchema.safeParse(JSON.parse(content)); } catch { /* local fallback */ }
+    const usage = raw.usage || {};
+    await recordAiUsage({
+      model: typeof raw.model === "string" ? raw.model : model,
+      status: response.ok && parsed?.success ? "COMPLETED" : "FAILED",
+      httpStatus: response.status,
+      inputTokens: Number.isFinite(usage.prompt_tokens) ? usage.prompt_tokens : 0,
+      outputTokens: Number.isFinite(usage.completion_tokens) ? usage.completion_tokens : 0,
+      costUsd: Number.isFinite(usage.cost) ? usage.cost : undefined,
+    });
+    if (!response.ok || !parsed?.success) return basic;
     const turn = parsed.data;
     const intent: OrderIntent = { ...basic.intent, action: turn.action };
     if (turn.peopleCount !== null) intent.peopleCount = turn.peopleCount;
@@ -161,6 +171,7 @@ export async function understand(message: string): Promise<Interpretation> {
       corrections: turn.corrections,
     };
   } catch {
+    await recordAiUsage({ model, status: "FAILED", httpStatus: 0 });
     return basic;
   }
 }

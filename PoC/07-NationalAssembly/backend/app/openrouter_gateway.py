@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hmac
 import json
 import os
 import sqlite3
@@ -20,6 +21,7 @@ UPSTREAM_BASE_URL = os.getenv(
     "OPENROUTER_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1"
 ).rstrip("/")
 API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+METER_TOKEN = os.getenv("OPENROUTER_METER_TOKEN", "").strip()
 DB_PATH = Path(os.getenv("OPENROUTER_GATEWAY_DB", "/app/data/openrouter_gateway.sqlite3"))
 OFFICIAL_LIMIT = max(1, min(int(os.getenv("OPENROUTER_OFFICIAL_DAILY_LIMIT", "1000")), 1000))
 OPERATIONAL_LIMIT = max(
@@ -134,6 +136,28 @@ def _initialize_schema(connection: sqlite3.Connection) -> None:
         connection.execute(
             "CREATE INDEX IF NOT EXISTS gateway_requests_day_idx "
             "ON gateway_requests(usage_date, status, started_at)"
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS external_usage_events (
+                event_id TEXT PRIMARY KEY,
+                usage_date TEXT NOT NULL,
+                project TEXT NOT NULL,
+                workload TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                model TEXT NOT NULL,
+                status TEXT NOT NULL,
+                http_status INTEGER NOT NULL,
+                input_tokens INTEGER NOT NULL,
+                output_tokens INTEGER NOT NULL,
+                cost_usd REAL,
+                recorded_at TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS external_usage_events_day_idx "
+            "ON external_usage_events(usage_date, provider, project, model)"
         )
         connection.commit()
         _schema_ready_path = resolved
@@ -343,10 +367,69 @@ def health() -> dict[str, Any]:
             **usage, **controller.snapshot()}
 
 
+def _external_breakdown(connection: sqlite3.Connection, period: str) -> list[dict[str, Any]]:
+    where = "usage_date=?" if period == "day" else "substr(usage_date,1,7)=?"
+    value = _utc_day() if period == "day" else _utc_day()[:7]
+    rows = connection.execute(
+        f"""SELECT provider,project,workload,model,status,
+                   COUNT(*) AS count,SUM(input_tokens) AS input_tokens,
+                   SUM(output_tokens) AS output_tokens,SUM(cost_usd) AS cost_usd
+            FROM external_usage_events WHERE {where}
+            GROUP BY provider,project,workload,model,status
+            ORDER BY provider,project,workload,model,status""", (value,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+@app.post("/internal/usage-events")
+def record_external_usage(
+    request: Request, x_minslab_meter_token: str = Header(default=""),
+) -> Response:
+    if not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN):
+        return _gateway_error(403, "meter_token_required")
+    try:
+        payload = json.loads(request.scope.get("_body", b"") or b"{}")
+        if not isinstance(payload, dict):
+            raise ValueError("object_required")
+        event_id = str(payload["event_id"])
+        project = str(payload["project"])
+        workload = str(payload["workload"])
+        provider = str(payload["provider"])
+        model = str(payload["model"])
+        status = str(payload["status"])
+        http_status = int(payload.get("http_status") or 0)
+        input_tokens = int(payload.get("input_tokens") or 0)
+        output_tokens = int(payload.get("output_tokens") or 0)
+        raw_cost = payload.get("cost_usd")
+        cost_usd = float(raw_cost) if raw_cost is not None else None
+        if not (8 <= len(event_id) <= 100 and 1 <= len(project) <= 40
+                and 1 <= len(workload) <= 60 and 1 <= len(model) <= 180
+                and provider in {"openrouter", "groq", "gemini", "upstage", "openai", "nvidia", "mistral"}
+                and status in {"COMPLETED", "FAILED"}
+                and 0 <= http_status <= 599
+                and 0 <= input_tokens <= 10000000 and 0 <= output_tokens <= 10000000
+                and (cost_usd is None or 0 <= cost_usd <= 100)):
+            raise ValueError("invalid_usage_event")
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return _gateway_error(400, "invalid_usage_event")
+    with _connect() as connection:
+        cursor = connection.execute(
+            """INSERT OR IGNORE INTO external_usage_events
+            (event_id,usage_date,project,workload,provider,model,status,http_status,
+             input_tokens,output_tokens,cost_usd,recorded_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (event_id, _utc_day(), project, workload, provider, model, status,
+             http_status, input_tokens, output_tokens, cost_usd, _now()),
+        )
+    return JSONResponse({"recorded": bool(cursor.rowcount)}, status_code=201 if cursor.rowcount else 200)
+
+
 @app.get("/internal/status")
 def internal_status() -> dict[str, Any]:
     with _connect() as connection:
         usage = _usage(connection)
+        external_today = _external_breakdown(connection, "day")
+        external_month = _external_breakdown(connection, "month")
         rows = connection.execute(
             """
             SELECT project,workload,model,status,COUNT(*) AS count
@@ -361,6 +444,8 @@ def internal_status() -> dict[str, Any]:
         "remaining": max(0, OPERATIONAL_LIMIT - usage["reserved"]),
         **usage, **controller.snapshot(),
         "breakdown": [dict(row) for row in rows],
+        "external_breakdown": external_today,
+        "external_monthly_breakdown": external_month,
     }
 
 

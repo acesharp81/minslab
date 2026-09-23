@@ -19,6 +19,7 @@ umask 077
 
 awk -F= '$1 == "OPENROUTER_API_KEY" { print; found=1 } END { if (!found) exit 1 }' \
   "${PROJECT_ENV}" > "${ENV_FILE}"
+awk -F= '$1 == "OPENROUTER_METER_TOKEN" { print }' "${PROJECT_ENV}" >> "${ENV_FILE}"
 {
   echo 'OPENROUTER_GATEWAY_DB=/app/data/openrouter_gateway.sqlite3'
   echo 'OPENROUTER_OFFICIAL_DAILY_LIMIT=1000'

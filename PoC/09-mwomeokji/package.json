@@ -14,6 +14,7 @@
     "db:seed": "node scripts/with-root-env.mjs tsx prisma/seed.ts",
     "db:cleanup": "node scripts/with-root-env.mjs tsx prisma/cleanup.ts",
     "smoke": "node scripts/with-root-env.mjs tsx scripts/smoke.ts",
+    "ai:usage": "node scripts/ai-usage.mjs",
     "db:dev-migrate": "node scripts/with-root-env.mjs prisma migrate dev"
   },
   "dependencies": {

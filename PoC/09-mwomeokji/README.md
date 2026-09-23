@@ -91,14 +91,15 @@ PATH="$PWD/.runtime/bin:$PATH" npm run start
 | `POC09_DATABASE_URL` | 전용 PostgreSQL 접속. 미설정 시 위 로컬 DB URL |
 | `POC09_MERCHANT_EMAIL`, `POC09_MERCHANT_PASSWORD` | 별도 비공개 점주 로그인, 루트 `.env`에서 설정 |
 | `POC09_SESSION_SECRET` | 방문자·점주 세션 토큰의 HMAC 키 |
-| `POC09_CONVERSATION_PROVIDER` | 기본 `mock`; 승인 후 `openrouter`로 바꾸면 손님의 현재 입력 문장만 LLM이 해석 |
+| `POC09_CONVERSATION_PROVIDER` | 운영 `openrouter`; 손님의 현재 입력 문장만 LLM이 해석. `mock`으로 즉시 규칙 해석 복귀 |
 | `POC09_AI_PROVIDER` | 메뉴판 이미지 인식용 별도 스위치. 현재 공개 서비스는 `mock` |
+| `POC09_METER_TOKEN`, `POC09_METER_URL` | 공용 AI 장부 인증 토큰과 내부 URL. 요청 내용은 기록하지 않음 |
 | `POC09_LLM_MODEL`, `POC09_VISION_MODEL` | OpenRouter 모델 ID, 서버 전용. 대화 기본값 `openai/gpt-4.1-mini` |
 | `POC09_DECISION_PROVIDER` | 기본 `rules`; `jev-openrouter`면 검증된 후보의 순위만 선택적으로 조정 |
 | `POC09_JEV_MODEL` | 선택 실험 모델 ID. 실패·낮은 신뢰도·형식 오류면 룰 순위를 유지 |
 | `POC09_UPSTREAM` | Python 프록시의 PoC9 서비스 주소, 기본 `http://127.0.0.1:18090` |
 
-`OPENROUTER_API_KEY` 값이 있어도 현재의 `POC09_CONVERSATION_PROVIDER=mock`, `POC09_AI_PROVIDER=mock`, `POC09_DECISION_PROVIDER=rules`에서는 공개 손님 입력이나 메뉴판 이미지를 외부 AI로 보내지 않습니다. 라이브 활성화는 외부 전송에 대한 승인 후 진행합니다. Rule 단독과 Jev 비교는 같은 입력을 두 설정에서 실행하고 추천 순서·지연을 기록합니다. Jev는 가격·안전판정·메뉴 존재 여부를 바꿀 수 없습니다.
+사용자가 현재 발화 한 개의 외부 전송을 승인하여 `POC09_CONVERSATION_PROVIDER=openrouter`로 운영합니다. 메뉴판 이미지용 `POC09_AI_PROVIDER=mock`, 실험 판단용 `POC09_DECISION_PROVIDER=rules`는 그대로입니다. LLM 장애·형식 오류·공유 키 소진 시 주문 대화는 로컬 규칙 해석으로 이어집니다. Rule 단독과 Jev 비교는 같은 입력을 두 설정에서 실행하고 추천 순서·지연을 기록합니다. Jev는 가격·안전판정·메뉴 존재 여부를 바꿀 수 없습니다.
 
 ### 대화형 LLM 연결과 개인정보 범위
 
@@ -106,7 +107,7 @@ PATH="$PWD/.runtime/bin:$PATH" npm run start
 
 서버는 이전 턴의 **구조화된** 인원·개인별 조건·마지막 추천 ID를 세션에 저장합니다. LLM이 현재 문장에서 새 조건과 “두 번째”, “그거”, “다른 거” 같은 지시어를 추출하면 서버가 기억한 상태와 결합합니다. 이름이 붙은 일행의 조건은 해당 손님에게만 적용하고, “한 명 더 왔어” 같은 인원 변경과 명확한 정정도 이어서 처리합니다. 여러 명 중 “그 친구”가 누구인지 모호하면 다시 묻습니다. 메뉴·옵션·가격·알레르기 허용 여부는 언제나 DB와 서버 검증 코드가 결정합니다.
 
-**배포 상태:** 코드와 단위 테스트는 준비됐으나 공개 서비스의 `POC09_CONVERSATION_PROVIDER`는 `mock`입니다. 자동 승인 검토가 손님 입력의 지속적 외부 전송 활성화를 거절하여, 이에 대한 사용자의 명시적 승인 전에는 라이브 모드로 전환하지 않습니다.
+**배포 상태:** 사용자 승인 후 공개 서비스에서 대화 LLM이 활성화됐습니다. 매 호출의 모델·상태·토큰 수만 PoC7의 공용 계량 장부에 기록합니다. 프롬프트, 모델 응답, 세션 ID는 장부로 전송하지 않습니다. 운영자는 이 폴더에서 `PATH="$PWD/.runtime/bin:$PATH" npm run ai:usage`로 같은 OpenRouter 키의 계정 잔액, PoC4·7의 무료 모델 요청, PoC9의 직접 대화 호출을 함께 확인합니다. 공용 장부가 잠시 닿지 않아도 주문은 계속되므로 계정 잔액이 최종 비용 기준입니다.
 
 ## 검증과 안전 정책
 

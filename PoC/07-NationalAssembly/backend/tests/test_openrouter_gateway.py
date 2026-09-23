@@ -15,15 +15,18 @@ class OpenRouterGatewayTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.old_path = gateway.DB_PATH
         self.old_key = gateway.API_KEY
+        self.old_meter_token = gateway.METER_TOKEN
         gateway.DB_PATH = Path(self.temporary.name) / "gateway.sqlite3"
         gateway._schema_ready_path = None
         gateway.API_KEY = "test-key"
+        gateway.METER_TOKEN = "meter-test-token"
         self.client = TestClient(gateway.app)
 
     def tearDown(self) -> None:
         gateway.DB_PATH = self.old_path
         gateway._schema_ready_path = None
         gateway.API_KEY = self.old_key
+        gateway.METER_TOKEN = self.old_meter_token
         self.temporary.cleanup()
 
     @staticmethod
@@ -43,6 +46,27 @@ class OpenRouterGatewayTests(unittest.TestCase):
             "X-Minslab-Data-Class": "public_official",
             "X-Idempotency-Key": key,
         }
+
+    def test_external_usage_is_metadata_only_and_separate_from_free_quota(self) -> None:
+        event = {
+            "event_id": "test-event-0001", "project": "poc09",
+            "workload": "order_interpretation", "provider": "openrouter",
+            "model": "openai/gpt-4.1-mini", "status": "COMPLETED",
+            "http_status": 200, "input_tokens": 123,
+            "output_tokens": 45, "cost_usd": 0.0002,
+        }
+        self.assertEqual(403, self.client.post("/internal/usage-events", json=event).status_code)
+        headers = {"X-Minslab-Meter-Token": "meter-test-token"}
+        self.assertEqual(201, self.client.post("/internal/usage-events", json=event, headers=headers).status_code)
+        self.assertEqual(200, self.client.post("/internal/usage-events", json=event, headers=headers).status_code)
+        status = self.client.get("/internal/status").json()
+        self.assertEqual(0, status["reserved"])
+        self.assertEqual(1, status["external_breakdown"][0]["count"])
+        self.assertEqual(123, status["external_breakdown"][0]["input_tokens"])
+        with gateway._connect() as connection:
+            columns = [row[1] for row in connection.execute("PRAGMA table_info(external_usage_events)")]
+        self.assertNotIn("prompt", columns)
+        self.assertNotIn("response_body", columns)
 
     @patch("app.openrouter_gateway.requests.post")
     def test_success_is_replayed_without_second_upstream_attempt(self, post: Mock) -> None:
