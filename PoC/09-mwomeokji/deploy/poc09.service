@@ -1,0 +1,20 @@
+[Unit]
+Description=PoC9 Mwomeokji ordering service
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/09-mwomeokji
+Environment=NODE_ENV=production
+Environment=PATH=/home/ubuntu/apps/myservice/PoC/09-mwomeokji/.runtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/home/ubuntu/apps/myservice/PoC/09-mwomeokji/.runtime/bin/node scripts/with-root-env.mjs next start -H 127.0.0.1 -p 18090
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

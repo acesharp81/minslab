@@ -5,6 +5,8 @@ import unittest
 from unittest import mock
 
 import main
+import poc09_proxy
+import httpx
 
 
 async def call_app(path: str, method: str = "GET", headers: list[tuple[bytes, bytes]] | None = None):
@@ -69,25 +71,56 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(dict(start["headers"])[b"location"], b"/poc/master-press/")
         self.assertEqual(body, b"")
 
-    async def test_mmj_destination_serves_poc9_preparation_page(self):
-        start, body = await call_app("/poc/mwomeokji/")
-        headers = dict(start["headers"])
+    async def test_mmj_destination_forwards_to_isolated_service(self):
+        async def fake_proxy(scope, receive, send, upstream):
+            self.assertEqual(scope["path"], "/poc/mwomeokji/")
+            self.assertEqual(upstream, "http://127.0.0.1:18090")
+            await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"text/html")]})
+            await send({"type": "http.response.body", "body": b"ordering app"})
 
+        with mock.patch.object(main, "proxy_poc09", side_effect=fake_proxy):
+            start, body = await call_app("/poc/mwomeokji/")
         self.assertEqual(start["status"], 200)
-        self.assertEqual(headers[b"cache-control"], b"no-store")
-        self.assertIn("팀 프로젝트 준비 단계".encode("utf-8"), body)
+        self.assertEqual(body, b"ordering app")
 
-    async def test_mmj_unbuilt_order_path_is_not_the_homepage(self):
-        start, body = await call_app("/poc/mwomeokji/s/demo-store")
+    async def test_mmj_customer_and_merchant_paths_forward(self):
+        seen = []
+        async def fake_proxy(scope, receive, send, upstream):
+            seen.append((scope["method"], scope["path"]))
+            await send({"type": "http.response.start", "status": 204, "headers": []})
+            await send({"type": "http.response.body", "body": b""})
 
-        self.assertEqual(start["status"], 404)
-        self.assertIn("아직 준비 중".encode("utf-8"), body)
+        with mock.patch.object(main, "proxy_poc09", side_effect=fake_proxy):
+            await call_app("/poc/mwomeokji/s/orange-table/")
+            await call_app("/poc/mwomeokji/api/checkout/", method="POST")
+            await call_app("/poc/mwomeokji/merchant/")
+        self.assertEqual(seen, [
+            ("GET", "/poc/mwomeokji/s/orange-table/"),
+            ("POST", "/poc/mwomeokji/api/checkout/"),
+            ("GET", "/poc/mwomeokji/merchant/"),
+        ])
 
-    async def test_mmj_preparation_page_rejects_write_methods(self):
-        start, _ = await call_app("/poc/mwomeokji/", method="POST")
-
+    async def test_mmj_rejects_unsupported_methods(self):
+        start, _ = await call_app("/poc/mwomeokji/", method="PUT")
         self.assertEqual(start["status"], 405)
-        self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD")
+        self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD, POST, PATCH, DELETE")
+
+    async def test_mmj_proxy_only_forwards_its_own_cookies(self):
+        observed = {}
+        def upstream(request):
+            observed["cookie"] = request.headers.get("cookie")
+            return httpx.Response(200, headers={"set-cookie": "poc09_guest=new; Path=/poc/mwomeokji; HttpOnly"}, text="ok")
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(upstream)
+        with mock.patch.object(poc09_proxy.httpx, "AsyncClient", side_effect=lambda **kw: original_client(transport=transport, **kw)):
+            start, body = await call_app("/poc/mwomeokji/api/health/", headers=[
+                (b"cookie", b"site_admin=secret; poc09_guest=visitor-token; other_poc=hidden"),
+                (b"host", b"www.minslab.kr"),
+            ])
+        self.assertEqual(start["status"], 200)
+        self.assertEqual(body, b"ok")
+        self.assertEqual(observed["cookie"], "poc09_guest=visitor-token")
+        self.assertIn(b"poc09_guest=new", dict(start["headers"])[b"set-cookie"])
 
     async def test_poc_shortcuts_reject_write_methods(self):
         start, body = await call_app("/kjon", method="POST")

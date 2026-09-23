@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: poc09-mwomeokji-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: poc09
+      POSTGRES_PASSWORD: poc09_local_only
+      POSTGRES_DB: poc09
+    ports:
+      - "127.0.0.1:18091:5432"
+    volumes:
+      - poc09_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U poc09 -d poc09"]
+      interval: 5s
+      retries: 10
+volumes:
+  poc09_pgdata:

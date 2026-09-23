@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Store {
+  id         String      @id @default(cuid())
+  slug       String      @unique
+  name       String
+  description String     @default("")
+  address    String      @default("")
+  isActive   Boolean     @default(true)
+  categories MenuCategory[]
+  items      MenuItem[]
+  tables     StoreTable[]
+  sessions   GuestSession[]
+  orders     Order[]
+  helpRequests HelpRequest[]
+  createdAt  DateTime    @default(now())
+}
+
+model StoreTable {
+  id        String    @id @default(cuid())
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id])
+  code      String
+  label     String
+  sessions  GuestSession[]
+  orders    Order[]
+  helpRequests HelpRequest[]
+  @@unique([storeId, code])
+}
+
+model MenuCategory {
+  id       String     @id @default(cuid())
+  storeId  String
+  store    Store      @relation(fields: [storeId], references: [id])
+  name     String
+  sortOrder Int        @default(0)
+  items    MenuItem[]
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  storeId     String
+  store       Store        @relation(fields: [storeId], references: [id])
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id])
+  name        String
+  description String       @default("")
+  price       Int
+  emoji       String       @default("🍽️")
+  imageUrl    String?
+  spiceLevel  Int          @default(0)
+  isAvailable Boolean      @default(true)
+  isPublished Boolean      @default(true)
+  isShareable Boolean      @default(false)
+  popularity  Int          @default(0)
+  tags        String[]     @default([])
+  ingredients String[]     @default([])
+  dietaryTags String[]     @default([])
+  options     MenuOptionGroup[]
+  allergens   MenuItemAllergen[]
+  cartItems   CartItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model MenuOptionGroup {
+  id         String       @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem     @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  name       String
+  minSelect  Int          @default(0)
+  maxSelect  Int          @default(1)
+  options    MenuOption[]
+}
+
+model MenuOption {
+  id                String              @id @default(cuid())
+  groupId           String
+  group             MenuOptionGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name              String
+  priceDelta        Int                 @default(0)
+  isAvailable       Boolean             @default(true)
+  ingredients       String[]            @default([])
+  dietaryTags       String[]            @default([])
+  allergens         MenuOptionAllergen[]
+}
+
+model MenuItemAllergen {
+  id                 String   @id @default(cuid())
+  menuItemId         String
+  menuItem           MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  allergenKey        String
+  relation           String   @default("unknown")
+  verificationStatus String   @default("unknown")
+  verifiedAt         DateTime?
+  @@unique([menuItemId, allergenKey])
+}
+
+model MenuOptionAllergen {
+  id                 String     @id @default(cuid())
+  optionId           String
+  option             MenuOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  allergenKey        String
+  relation           String     @default("unknown")
+  verificationStatus String     @default("unknown")
+  @@unique([optionId, allergenKey])
+}
+
+model GuestSession {
+  id         String     @id @default(cuid())
+  tokenHash  String     @unique
+  storeId    String
+  store      Store      @relation(fields: [storeId], references: [id])
+  tableId    String?
+  table      StoreTable? @relation(fields: [tableId], references: [id])
+  context    Json       @default("{}")
+  expiresAt  DateTime
+  cartItems  CartItem[]
+  orders     Order[]
+  helpRequests HelpRequest[]
+  createdAt  DateTime  @default(now())
+}
+
+model CartItem {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           GuestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  menuItemId        String
+  menuItem          MenuItem     @relation(fields: [menuItemId], references: [id])
+  quantity          Int
+  selectedOptionIds String[]     @default([])
+  assignedTo        String?
+  createdAt         DateTime     @default(now())
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  storeId        String
+  store          Store        @relation(fields: [storeId], references: [id])
+  tableId        String?
+  table          StoreTable?  @relation(fields: [tableId], references: [id])
+  sessionId      String
+  session        GuestSession @relation(fields: [sessionId], references: [id])
+  idempotencyKey String       @unique
+  status         String       @default("placed")
+  paymentMethod  String
+  paymentStatus  String       @default("succeeded")
+  total          Int
+  note           String       @default("")
+  lines          OrderLine[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model OrderLine {
+  id          String @id @default(cuid())
+  orderId     String
+  order       Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId  String
+  menuName    String
+  unitPrice   Int
+  quantity    Int
+  lineTotal   Int
+  optionNames String[] @default([])
+  assignedTo  String?
+}
+
+model MerchantSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model HelpRequest {
+  id        String       @id @default(cuid())
+  storeId   String
+  store     Store        @relation(fields: [storeId], references: [id])
+  tableId   String?
+  table     StoreTable?  @relation(fields: [tableId], references: [id])
+  sessionId String
+  session   GuestSession @relation(fields: [sessionId], references: [id])
+  status    String       @default("open")
+  note      String       @default("")
+  createdAt DateTime     @default(now())
+}

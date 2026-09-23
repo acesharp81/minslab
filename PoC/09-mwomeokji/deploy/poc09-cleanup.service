@@ -1,0 +1,12 @@
+[Unit]
+Description=Remove expired PoC9 preference data
+After=poc09.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/09-mwomeokji
+Environment=PATH=/home/ubuntu/apps/myservice/PoC/09-mwomeokji/.runtime/bin:/usr/local/bin:/usr/bin
+ExecStart=/home/ubuntu/apps/myservice/PoC/09-mwomeokji/.runtime/bin/node scripts/with-root-env.mjs tsx prisma/cleanup.ts
+NoNewPrivileges=true
+PrivateTmp=true

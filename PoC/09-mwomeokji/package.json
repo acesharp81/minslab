@@ -1,0 +1,46 @@
+{
+  "name": "mwomeokji-poc09",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "node scripts/with-root-env.mjs next dev -H 127.0.0.1 -p 18090",
+    "build": "node scripts/with-root-env.mjs next build",
+    "start": "node scripts/with-root-env.mjs next start -H 127.0.0.1 -p 18090",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "db:generate": "node scripts/with-root-env.mjs prisma generate",
+    "db:migrate": "node scripts/with-root-env.mjs prisma migrate deploy",
+    "db:seed": "node scripts/with-root-env.mjs tsx prisma/seed.ts",
+    "db:cleanup": "node scripts/with-root-env.mjs tsx prisma/cleanup.ts",
+    "smoke": "node scripts/with-root-env.mjs tsx scripts/smoke.ts",
+    "db:dev-migrate": "node scripts/with-root-env.mjs prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.0",
+    "dotenv": "16.4.7",
+    "lucide-react": "0.468.0",
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "3.24.2",
+    "@prisma/adapter-pg": "7.10.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.3.6",
+    "prisma": "7.10.0",
+    "tsx": "4.19.3",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0",
+    "@types/pg": "^8.15.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
