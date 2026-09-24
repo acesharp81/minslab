@@ -138,6 +138,14 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
   return { state: { ...previous, peopleCount, members, preferences }, globalAllergies, needsPeopleCount, onlyHeadcount };
 }
 
+export function canStageRecommendations(state: DialogueState): boolean {
+  if (state.lastRecommendations.length === 1) return true;
+  return !!state.peopleCount && state.peopleCount > 1
+    && state.lastRecommendations.length === state.peopleCount
+    && state.lastRecommendations.every((entry) => !!entry.forMember)
+    && new Set(state.lastRecommendations.map((entry) => entry.forMember)).size === state.peopleCount;
+}
+
 export function contextSummary(state: DialogueState, mode: VisitMode | null) {
   const result: string[] = [];
   if (mode) result.push(mode === 'dine_in' ? '먹고 가기' : '가져가기');

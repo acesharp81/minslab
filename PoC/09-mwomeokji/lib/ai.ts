@@ -101,7 +101,9 @@ const responseFormat = {
 function scopedTastes(message: string): MemberUpdate[] {
   const clauses = [...message.matchAll(/(나|저|아이|아기|딸|아들|여아|남아|와이프|아내|남편)(?:꺼|것|메뉴)?(?:는|은|에게는|한테는)\s*/g)];
   return clauses.map((match, index) => {
-    const segment = message.slice(match.index! + match[0].length, clauses[index + 1]?.index ?? message.length);
+    const following = message.slice(match.index! + match[0].length, clauses[index + 1]?.index ?? message.length);
+    const nextSpeaker = following.search(/[,，.;]\s*[가-힣A-Za-z]{1,20}(?:는|은)\s*/);
+    const segment = nextSpeaker >= 0 ? following.slice(0, nextSpeaker) : following;
     const tastes: NonNullable<MemberUpdate["tastes"]> = [];
     if (/매운|맵게|얼큰/.test(segment) && !/안\s*맵|맵지|매운.*(?:안|못)/.test(segment)) tastes.push("spicy");
     if (/안\s*맵|맵지|순한|매운.*(?:안|못)/.test(segment)) tastes.push("mild");

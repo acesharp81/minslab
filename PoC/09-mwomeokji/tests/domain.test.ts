@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
 import { hasExplicitNoAllergies, parseIntent } from "../lib/intent";
-import { applyFocusedTaste, applyMemberUpdates, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
+import { answerIngredientQuestion, ingredientQuestion } from "../lib/ingredient-answer";
+import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
 import { recommend, recommendGroup } from "../lib/recommend";
@@ -43,6 +44,60 @@ const item = (
     verificationStatus: "merchant_verified",
   })),
   options: [],
+});
+
+describe("spoken order confirmation", () => {
+  it("stages one menu per diner, but never every alternative for one diner", () => {
+    const base = readDialogue({});
+    expect(canStageRecommendations({ ...base, peopleCount: 2, lastRecommendations: [{ id: "a", forMember: "나" }, { id: "b", forMember: "동료" }] })).toBe(true);
+    expect(canStageRecommendations({ ...base, peopleCount: 1, lastRecommendations: [{ id: "a" }, { id: "b" }] })).toBe(false);
+    expect(canStageRecommendations({ ...base, peopleCount: 2, lastRecommendations: [{ id: "a", forMember: "나" }, { id: "b", forMember: "나" }] })).toBe(false);
+  });
+});
+
+describe("spoken preference scope", () => {
+  it("does not attach a coworker's tastes to the preceding self clause", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const result = await understand("우리 둘이 먹을게. 나는 매운 덮밥, 동료는 순한 국물로 추천해줘");
+    expect(result.memberUpdates.find((entry) => entry.label === "나")?.tastes).toEqual(["spicy", "rice"]);
+    vi.unstubAllEnvs();
+  });
+});
+
+describe("conversational ingredient checks", () => {
+  const ownDish = { ...item("매콤 제육 덮밥", 11900), ingredients: ["pork", "rice", "soy"] };
+  const otherDish = { ...item("얼큰 닭고기 덮밥", 11900), ingredients: ["chicken", "rice"] };
+  const state: DialogueState = {
+    ...readDialogue({}), peopleCount: 2,
+    members: [
+      { id: "self", label: "나", allergies: [], dietaryRules: [] },
+      { id: "other", label: "동료", allergies: [], dietaryRules: [] },
+    ],
+    lastRecommendations: [
+      { id: ownDish.id, forMember: "나" },
+      { id: otherDish.id, forMember: "동료" },
+    ],
+  };
+  it("answers a self-reference from the last recommendations without asserting unverified absence", () => {
+    const question = ingredientQuestion("내꺼에 오이가 들어갔는지 확인해봐");
+    expect(question).not.toBeNull();
+    const reply = answerIngredientQuestion("내꺼에 오이가 들어갔는지 확인해봐", question!, state, [ownDish, otherDish], []);
+    expect(reply).toContain("매콤 제육 덮밥");
+    expect(reply).toContain("오이 표기를 찾지 못했어요");
+    expect(reply).toContain("사장님께 확인");
+    expect(reply).not.toContain("얼큰 닭고기 덮밥");
+  });
+  it("uses selected cart options before the earlier recommendation", () => {
+    const withOption = { ...ownDish, options: [{ id: "g", name: "토핑", minSelect: 0, maxSelect: 1, options: [{ id: "o", name: "오이 추가", priceDelta: 0, isAvailable: true, ingredients: ["cucumber"], dietaryTags: [], allergens: [] }] }] };
+    const reply = answerIngredientQuestion("내꺼에 오이 들어 있어?", ingredientQuestion("내꺼에 오이 들어 있어?")!, state, [withOption, otherDish], [{ menuItemId: withOption.id, assignedTo: "나", selectedOptionIds: ["o"] }]);
+    expect(reply).toContain("오이 표기를 확인했어요");
+    expect(reply).toContain("선택한 옵션");
+  });
+  it("asks which dish when the owner cannot be resolved", () => {
+    const unknown = { ...state, members: [{ id: "other", label: "동료", allergies: [], dietaryRules: [] }] };
+    const reply = answerIngredientQuestion("내꺼에 오이 들어가?", ingredientQuestion("내꺼에 오이 들어가?")!, unknown, [ownDish, otherDish], []);
+    expect(reply).toContain("어느 분의 메뉴");
+  });
 });
 
 describe("allergen and option safety", () => {

@@ -11,10 +11,11 @@ import {
 import { cartSummary } from "../../../lib/cart";
 import { understand } from "../../../lib/ai";
 import { hasExplicitNoAllergies } from "../../../lib/intent";
+import { answerIngredientQuestion, ingredientQuestion } from "../../../lib/ingredient-answer";
 import { rankRecommendations } from "../../../lib/decision";
 import { recommend, recommendGroup } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
-import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
+import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
 import {
   ALLERGENS,
   emptyProfile,
@@ -513,6 +514,18 @@ export async function POST(req: NextRequest, context: Context) {
       const clientIp = (req.headers.get("x-forwarded-for") || "local").split(",")[0].trim();
       if (rateLimited(`session:${session.id}`, 30) || rateLimited(`ip:${clientIp}`, 200)) return fail("잠시 뒤 다시 말씀해 주세요.", 429);
       let previous = readDialogue(session.context);
+      const ingredient = ingredientQuestion(message);
+      if (ingredient) {
+        const [menu, cart] = await Promise.all([
+          db.menuItem.findMany({ where: { storeId: session.storeId, isPublished: true }, include: menuInclude }),
+          db.cartItem.findMany({ where: { sessionId: session.id }, orderBy: { createdAt: "desc" } }),
+        ]);
+        return json({
+          dialogue: previous,
+          summary: contextSummary(previous, session.fulfillmentType as VisitMode),
+          reply: answerIngredientQuestion(message, ingredient, previous, menu, cart),
+        });
+      }
       const affirmative = /^(응|네|예|좋아|맞아|확인|주문해|결제해|진행해|그래)(요|줘|주세요|할게요?)?[.! ]*$/.test(message.trim());
       if (previous.pendingCheckout && affirmative) {
         const currentCart = await cartSummary(session.id, profile(session.context));
@@ -548,14 +561,25 @@ export async function POST(req: NextRequest, context: Context) {
       if (hasExplicitNoAllergies(message)) currentProfile.allergies = [];
       const save = async () => db.guestSession.update({ where: { id: session.id }, data: { context: { ...currentProfile, dialogue } } });
       const summary = () => contextSummary(dialogue, session.fulfillmentType as VisitMode);
+      let orderFromRecommendations = false;
       if (intent.action === "checkout") {
         const cart = await cartSummary(session.id, currentProfile);
-        dialogue.pendingCheckout = cart.canOrder;
-        dialogue.pendingCheckoutSignature = cart.canOrder ? JSON.stringify(cart.items.map((item) => [item.id, item.quantity, item.lineTotal, item.selectedOptionIds, item.assignedTo])) : undefined;
-        await save();
-        return json({ intent, provider, dialogue, summary: summary(), cart,
-          reply: cart.canOrder ? `장바구니 ${cart.items.length}개, 총 ${cart.total.toLocaleString()}원이에요. 모의 결제로 주문할까요? “응”이라고 답해 주세요.` : "주문할 메뉴가 없거나 확인할 조건이 있어요. 원하는 메뉴를 말씀해 주세요.",
-          nextAction: cart.canOrder ? "confirm_checkout" : undefined });
+        const bareOrder = /^주문해(?:줘|주세요)?[.! ]*$/.test(message.trim());
+        if (!cart.items.length && bareOrder && canStageRecommendations(dialogue)) {
+          // A complete group proposal, or one unambiguous dish, can be staged for explicit confirmation.
+          intent.action = "add";
+          orderFromRecommendations = true;
+        } else if (!cart.items.length && bareOrder && dialogue.lastRecommendations.length > 1) {
+          await save();
+          return json({ intent, provider, dialogue, summary: summary(), reply: "추천 메뉴가 여러 개예요. 원하는 메뉴 번호를 말씀해 주세요. 모두 담으려면 “추천한 거 전부 담아줘”라고 하시면 돼요." });
+        } else {
+          dialogue.pendingCheckout = cart.canOrder;
+          dialogue.pendingCheckoutSignature = cart.canOrder ? JSON.stringify(cart.items.map((item) => [item.id, item.quantity, item.lineTotal, item.selectedOptionIds, item.assignedTo])) : undefined;
+          await save();
+          return json({ intent, provider, dialogue, summary: summary(), cart,
+            reply: cart.canOrder ? `장바구니 ${cart.items.length}개, 총 ${cart.total.toLocaleString()}원이에요. 모의 결제로 주문할까요? “응”이라고 답해 주세요.` : "아직 담긴 메뉴가 없어요. 먼저 먹고 싶은 메뉴를 말씀해 주세요.",
+            nextAction: cart.canOrder ? "confirm_checkout" : undefined });
+        }
       }
       const items = await db.menuItem.findMany({ where: { storeId: session.storeId, isPublished: true }, include: menuInclude });
       if (intent.action === "help") {
@@ -563,7 +587,7 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: "사장님께 알렸어요. 잠시만 기다려 주세요.", help });
       }
-      if ((updatedMembers.needsClarification || understanding.clarification) && !focusedRequest) {
+      if ((updatedMembers.needsClarification || understanding.clarification) && !focusedRequest && !orderFromRecommendations) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: updatedMembers.needsClarification ? "어느 분을 말씀하셨나요? 이름이나 특징을 알려 주세요." : understanding.clarification });
       }
@@ -574,7 +598,7 @@ export async function POST(req: NextRequest, context: Context) {
         return json({ intent, provider, dialogue, summary: summary(), reply: found.length ? found.map((item) => `${item.name} ${item.price.toLocaleString()}원 · ${item.description}`).join("\n") : "해당 메뉴를 찾지 못했어요. 음식 이름이나 취향을 다르게 말씀해 주세요.", recommendations: found.map((item) => ({ item, reason: "매장 메뉴 정보", score: 0 })) });
       }
       if (intent.action === "add" || intent.action === "remove") {
-        const allSuggested = /추천한.*(?:전부|모두|다)|(?:전부|모두|다)\s*(?:담|넣|추가|빼|제거)/.test(message);
+        const allSuggested = orderFromRecommendations || /추천한.*(?:전부|모두|다)|(?:전부|모두|다)\s*(?:담|넣|추가|빼|제거)/.test(message);
         const ordinal = understanding.reference === "first" ? 0 : understanding.reference === "second" ? 1 : understanding.reference === "third" ? 2 : /첫\s*번째|1\s*번/.test(message) ? 0 : /두\s*번째|2\s*번/.test(message) ? 1 : /세\s*번째|3\s*번/.test(message) ? 2 : undefined;
         const refs = allSuggested ? dialogue.lastRecommendations : ordinal !== undefined ? dialogue.lastRecommendations.slice(ordinal, ordinal + 1) : understanding.reference === "last" && /마지막|끝/.test(message) ? dialogue.lastRecommendations.slice(-1) : /이걸|그걸|이거|그거|추천한/.test(message) ? dialogue.lastRecommendations.slice(0, 1) : [];
         const targets = refs.map((ref) => ({ item: items.find((entry) => entry.id === ref.id), forMember: ref.forMember })).filter((entry) => !!entry.item);
@@ -622,8 +646,16 @@ export async function POST(req: NextRequest, context: Context) {
           if (!checked.items.find((entry) => entry.id === created.id)?.safety.allowed) { await db.cartItem.delete({ where: { id: created.id } }); skipped.push(`${item.name}: 일행 조건 확인 필요`); continue; }
           added.push(item.name);
         }
+        const checked = await cartSummary(session.id, currentProfile);
+        if (orderFromRecommendations && added.length === targets.length && checked.canOrder) {
+          dialogue.pendingCheckout = true;
+          dialogue.pendingCheckoutSignature = JSON.stringify(checked.items.map((item) => [item.id, item.quantity, item.lineTotal, item.selectedOptionIds, item.assignedTo]));
+          await save();
+          return json({ intent, provider, dialogue, summary: summary(), cart: checked, nextAction: "confirm_checkout",
+            reply: `추천 메뉴 ${added.length}개를 담았어요. 총 ${checked.total.toLocaleString()}원이에요. 이대로 모의 결제로 주문할까요? “응”이라고 답해 주세요.` });
+        }
         await save();
-        return json({ intent, provider, dialogue, summary: summary(), reply: [added.length ? `${added.join(", ")} 담았어요. 더 필요한 게 있나요?` : "아직 담지 못했어요.", skipped.length ? `확인 필요: ${skipped.join(" / ")}` : ""].filter(Boolean).join("\n"), cart: await cartSummary(session.id, currentProfile) });
+        return json({ intent, provider, dialogue, summary: summary(), reply: [added.length ? `${added.join(", ")} 담았어요. 더 필요한 게 있나요?` : "아직 담지 못했어요.", skipped.length ? `확인 필요: ${skipped.join(" / ")}` : ""].filter(Boolean).join("\n"), cart: checked });
       }
       if (evolved.needsPeopleCount || (updatedMembers.applied && !dialogue.peopleCount) || evolved.onlyHeadcount) {
         await save();
