@@ -150,6 +150,22 @@ function mentionedMember(text: string, label: string) {
   return text.includes(label.toLowerCase());
 }
 
+/** A complete new meal brief replaces stale menu tastes and budget from a resumed chat. */
+export function resetForFullMealBrief(previous: DialogueState, utterance: string, updates: MemberUpdate[] = []): DialogueState {
+  const text = utterance.toLowerCase();
+  const roles = [/(?:^|\s)(?:나|저|제가|나는|저는)(?:랑|와|과|는|도|\s|$)/.test(text), /와이프|아내|남편|배우자|신랑/.test(text), /아이|아기|딸|아들|여아|남아/.test(text)].filter(Boolean).length;
+  const namedPeople = new Set(updates.map((entry) => entry.label.replace(/(?:의)?(?:꺼|것|메뉴)$/, '')).filter((label) => mentionedMember(text, label))).size;
+  const statedParty = /(\d+|두|세|네|둘|셋|넷)\s*(?:명|인|사람)/.test(text);
+  const fullBrief = (roles >= 2 || (statedParty && namedPeople >= 2)) && /밥\s*먹|식사|한\s*끼|(?:메뉴|음식).*(?:추천|골라)|주문해|골라줘/.test(text);
+  if (!fullBrief || (!previous.peopleCount && !previous.members.length && !previous.lastRecommendations.length)) return previous;
+  const members = previous.members.filter((member) => !member.id.startsWith('generic-') && mentionedMember(text, member.label)).map((member) => ({
+    ...member,
+    tastes: [],
+    maxSpiceLevel: undefined,
+  }));
+  return { ...emptyDialogue(), members };
+}
+
 /** Apply only bounded, attributable member facts from the model. Rules still validate every menu and option. */
 export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[], utterance: string): { state: DialogueState; applied: boolean; needsClarification: boolean } {
   const text = utterance.toLowerCase();

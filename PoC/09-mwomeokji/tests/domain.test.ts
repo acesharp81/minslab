@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
 import { parseIntent } from "../lib/intent";
-import { applyFocusedTaste, applyMemberUpdates, evolveDialogue, readDialogue, type DialogueState } from "../lib/dialogue";
+import { applyFocusedTaste, applyMemberUpdates, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
 import { recommend, recommendGroup } from "../lib/recommend";
@@ -223,6 +223,50 @@ describe("multi-turn Tap Talk Together dialogue", () => {
     expect(group.items.map((entry) => [entry.forMember, entry.item.name])).toEqual(expect.arrayContaining([
       ["나", "매콤 제육 덮밥"], ["아이", "달콤 키즈 치킨 덮밥"], ["와이프", "따끈 닭고기 수프"],
     ]));
+  });
+  it("replaces stale meal preferences on a returning guest's complete family brief", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const stale: DialogueState = {
+      ...readDialogue({}), peopleCount: 3,
+      preferences: { action: "recommend", peopleCount: 3, vegetarian: true, totalBudget: 10000 },
+      members: [
+        { id: "old-child", label: "아이", allergies: ["peanut"], dietaryRules: [], tastes: ["spicy"], maxSpiceLevel: 2 },
+        { id: "generic-2", label: "일행 2", allergies: [], dietaryRules: [{ type: "vegetarian", mode: "strict" }] },
+        { id: "generic-3", label: "일행 3", allergies: [], dietaryRules: [], maxSpiceLevel: 0 },
+      ],
+      lastRecommendations: [{ id: "old-menu" }],
+    };
+    const message = "2살 딸이랑 와이프랑 나랑 밥 먹을게. 나는 매운걸로, 아이는 달달하고 맵지 않은 키즈 메뉴로, 와이프는 국물 있는 걸로 주문해줘";
+    const interpretation = await understand(message);
+    const reset = resetForFullMealBrief(stale, message);
+    expect(reset.preferences.vegetarian).toBeUndefined();
+    expect(reset.preferences.totalBudget).toBeUndefined();
+    expect(reset.members).toHaveLength(1);
+    expect(reset.members[0].allergies).toEqual(["peanut"]);
+    expect(reset.members[0].tastes).toEqual([]);
+    expect(reset.members[0].maxSpiceLevel).toBeUndefined();
+    const state = applyMemberUpdates(evolveDialogue(reset, message, interpretation.intent).state, interpretation.memberUpdates, message).state;
+    expect(state.members.map((member) => member.label)).toEqual(["아이", "나", "와이프"]);
+    const spicy = item("매콤 제육 덮밥", 11900, [], 2);
+    const kids = { ...item("달콤 키즈 치킨 덮밥", 8900), tags: ["warm", "식사", "kids", "sweet"] };
+    const soup = item("따끈 닭고기 수프", 7900);
+    const group = recommendGroup([spicy, kids, soup], emptyProfile, state.preferences, state.members);
+    expect(group.complete).toBe(true);
+    expect(group.items.find((entry) => entry.forMember === "아이")?.item.name).toBe("달콤 키즈 치킨 덮밥");
+  });
+  it("accepts a complete newly named party after a stale session", () => {
+    const stale: DialogueState = { ...readDialogue({}), peopleCount: 3, preferences: { action: "recommend", vegetarian: true, peopleCount: 3 }, members: [
+      { id: "generic-1", label: "일행 1", allergies: [], dietaryRules: [{ type: "vegetarian", mode: "strict" }] },
+      { id: "generic-2", label: "일행 2", allergies: [], dietaryRules: [] },
+      { id: "generic-3", label: "일행 3", allergies: [], dietaryRules: [] },
+    ] };
+    const updates = ["민수", "지수", "유나"].map((label) => ({ label, count: 1, allergies: [], dietaryRules: [], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false, tastes: [] }));
+    const brief = "가상 테스트 일행은 민수, 지수, 유나 3명이야. 민수는 매운 식사, 지수는 달콤한 식사, 유나는 국물 메뉴를 골라줘";
+    const reset = resetForFullMealBrief(stale, brief, updates);
+    expect(reset.peopleCount).toBeUndefined();
+    expect(reset.members).toEqual([]);
+    expect(reset.preferences.vegetarian).toBeUndefined();
+    expect(resetForFullMealBrief(stale, "유나꺼는 더 얼큰한 국물로 골라줘", updates)).toBe(stale);
   });
   it("refines the wife's soup across two short spoken turns without asking for party size", async () => {
     vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
