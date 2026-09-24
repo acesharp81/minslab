@@ -24,7 +24,7 @@
 | 보안·프라이버시 | 내부 테스트 수준 구현 | 서버 전용 키 allowlist, HttpOnly 세션, 점주 로그인 시도 제한, Origin 검사, 취향 브라우저 저장·초기화, 24시간 만료 세션 정리 타이머. 운영용 실매장 보안 심사는 후속 단계 |
 | 문서·운영 | 완료 | 이 문서와 `README.md`, `.env.example`, 전용 systemd·cleanup timer, `npm run smoke` |
 
-**실행한 검증:** `typecheck`, `lint`, `vitest` 21개, Next 운영 `build`, 루트 Python 테스트 24개, 실제 홈페이지 경유 `npm run smoke`(방문 방식 → 대화에서 3인·채식·맵기 파악 → 그룹 추천 → 대화로 전부 담기 → 변경된 장바구니 재확인 → 모의 주문 → 중복 요청 → 데모 점주 접수 → 직원 호출 → 메뉴판 초안 검토·공개), 공개 `/mmj` 200, Firefox 390px/768px/1280px에서 손님 대화·장바구니와 사장님 기본값 로그인 확인. 자동 스모크가 만든 주문·초안은 정리한다. 현재 운영 배포는 PoC9 서비스와 루트 Python 서비스가 모두 활성 상태다.
+**실행한 검증:** `typecheck`, `lint`, `vitest` 23개, Next 운영 `build`, 루트 Python 테스트 24개, 실제 홈페이지 경유 `npm run smoke`(방문 방식 → 대화에서 3인·채식·맵기 파악 → 그룹 추천 → 대화로 전부 담기 → 변경된 장바구니 재확인 → 모의 주문 → 중복 요청 → 데모 점주 접수 → 직원 호출 → 메뉴판 초안 검토·공개), 공개 `/mmj` 200, Firefox 390px/768px/1280px에서 손님 대화·장바구니와 사장님 기본값 로그인 확인. 자동 스모크가 만든 주문·초안은 정리한다. 현재 운영 배포는 PoC9 서비스와 루트 Python 서비스가 모두 활성 상태다.
 
 ## 3. MinsLab 홈페이지에 맞춘 구조와 버전 판단
 
@@ -93,6 +93,8 @@ OpenRouter 호출은 현재 문장 하나에 한정하고 `json_schema` 엄격 �
 근거: [OpenRouter 무료 한도](https://openrouter.ai/blog/tutorials/how-to-get-the-lowest-cost-llm-inference-on-openrouter/), [OpenRouter 키 사용량](https://openrouter.ai/docs/api/api-reference/api-keys/get-current-key), [Groq 한도](https://console.groq.com/docs/rate-limits), [Gemini 한도](https://ai.google.dev/gemini-api/docs/rate-limits), [Gemini 무료 데이터 조건](https://ai.google.dev/gemini-api/terms), [PoC4 쿼터 판정](../../04-master-press/master_press/provider_quota.py).
 
 **2026-09-24 실제 사용자 대화 오류 수정:** “2살 아이·와이프·나”를 세 명으로 인식하고, “나는 매운 것 / 아이는 맵지 않고 달달한 키즈 / 와이프는 국물”을 사람별 취향으로 저장한다. 취향을 설명하며 끝에 “주문해줘”라고 말한 요청은 메뉴 선택으로 해석한다. 이어 “추천한 거 전부 주문해줘”로 담고, 장바구니 확인 뒤 명시적 주문 확정으로 진행한다. 가상 키즈 메뉴 1개를 seed에 추가했다. 실제 매장에 키즈 메뉴가 없거나 조건에 맞지 않으면 임의의 일반 메뉴로 대체하지 않고 질문한다. 2살에게 적합한 재료·식감은 보호자와 점주가 확인해야 한다. 이 경로는 규칙 fallback 회귀 테스트와 공개 HTTPS의 실제 OpenRouter 대화로 검증했다.
+
+**후속 대화 품질 수정:** 첫 가족 추천 뒤 “와이프꺼는 더 얼큰한걸로 보여줘”를 와이프의 국물 취향 변경으로 적용하고, 이어지는 “알러지는 없고 얼큰한걸로”도 직전 와이프 메뉴의 추가 설명으로 처리한다. 저장된 3명이라는 숫자만으로 새 발화를 인원 확인으로 오판하지 않는다. 변경된 추천에서도 다른 두 사람의 조건과 전체 장바구니 흐름을 유지한다. 가상 성인 세 명의 공개 HTTPS 3턴 대화에서도 특정 손님만 순한 수프에서 얼큰한 수프로 바뀌고 다른 두 추천은 유지됨을 확인했다.
 
 ## 6. 단계별 완료와 앞으로의 검증
 

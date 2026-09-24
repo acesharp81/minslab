@@ -10,6 +10,7 @@ export type DialogueState = {
   pendingCheckout: boolean;
   pendingCheckoutSignature?: string;
   lastMemberLabel?: string;
+  focusedMemberLabel?: string;
 };
 export type MemberUpdate = {
   label: string;
@@ -34,7 +35,7 @@ export function readDialogue(context: unknown): DialogueState {
   const members = Array.isArray(record.members) ? record.members.filter((member): member is GroupMember => !!member && typeof member === 'object' && !Array.isArray(member) && typeof member.id === 'string' && typeof member.label === 'string' && Array.isArray(member.allergies) && Array.isArray(member.dietaryRules)) : [];
   const lastRecommendations = Array.isArray(record.lastRecommendations) ? record.lastRecommendations.filter((item): item is SuggestedItem => !!item && typeof item === 'object' && !Array.isArray(item) && typeof item.id === 'string') : [];
   const preferences = record.preferences && typeof record.preferences === 'object' && !Array.isArray(record.preferences) ? record.preferences as OrderIntent : { action: 'recommend' as const };
-  return { peopleCount: typeof record.peopleCount === 'number' ? Math.min(12, Math.max(1, record.peopleCount)) : undefined, members: members.slice(0, 12), preferences, lastRecommendations: lastRecommendations.slice(0, 12), pendingCheckout: record.pendingCheckout === true, pendingCheckoutSignature: typeof record.pendingCheckoutSignature === "string" ? record.pendingCheckoutSignature : undefined, lastMemberLabel: typeof record.lastMemberLabel === "string" ? record.lastMemberLabel.slice(0, 40) : undefined };
+  return { peopleCount: typeof record.peopleCount === 'number' ? Math.min(12, Math.max(1, record.peopleCount)) : undefined, members: members.slice(0, 12), preferences, lastRecommendations: lastRecommendations.slice(0, 12), pendingCheckout: record.pendingCheckout === true, pendingCheckoutSignature: typeof record.pendingCheckoutSignature === "string" ? record.pendingCheckoutSignature : undefined, lastMemberLabel: typeof record.lastMemberLabel === "string" ? record.lastMemberLabel.slice(0, 40) : undefined, focusedMemberLabel: typeof record.focusedMemberLabel === "string" ? record.focusedMemberLabel.slice(0, 40) : undefined };
 }
 
 function conditions(text: string) {
@@ -83,7 +84,7 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
   if (explicitTotal) inferredCount = countOf(explicitTotal[1]);
   else if (changedCount !== undefined) inferredCount = changedCount;
   else if (leadingCount) inferredCount = countOf(leadingCount[1]);
-  else if (!specified.length) inferredCount = parsed.peopleCount || 0;
+  else if (!specified.length && !previous.peopleCount) inferredCount = parsed.peopleCount || 0;
   // Family roles can establish a party without a spoken headcount. Age ("2살") is not a count.
   const familyRoles = [/(?:^|\s)(?:나|저|제가|나는|저는)(?:랑|와|과|는|도|\s|$)/.test(text), /와이프|아내|남편|배우자|신랑/.test(text), /아이|아기|딸|아들|여아|남아|키즈/.test(text)].filter(Boolean).length;
   if (!explicitTotal && changedCount === undefined && !leadingCount && familyRoles >= 2) inferredCount = Math.max(inferredCount, familyRoles);
@@ -122,7 +123,9 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
   }
   const globalAllergies = specified.length ? [] : conditions(text).allergies;
   const needsPeopleCount = specified.length > 0 && !peopleCount;
-  const onlyHeadcount = !!peopleCount && !specified.length && !/추천|메뉴|먹|밥|국물|따뜻|시원|매운|채식|비건|원|달|파스타|샐러드|치킨|음료/.test(text);
+  // Saved party size is context, not evidence that this turn only states a headcount.
+  const statedHeadcount = !!(explicitTotal || leadingCount || familyCount || casualCount || changedCount !== undefined);
+  const onlyHeadcount = statedHeadcount && !specified.length && !/추천|메뉴|먹|밥|국물|따뜻|시원|매운|맵|얼큰|채식|비건|원|달|파스타|샐러드|치킨|음료/.test(text);
   return { state: { ...previous, peopleCount, members, preferences }, globalAllergies, needsPeopleCount, onlyHeadcount };
 }
 
@@ -137,6 +140,16 @@ export function contextSummary(state: DialogueState, mode: VisitMode | null) {
   return result.slice(0, 8);
 }
 
+function mentionedMember(text: string, label: string) {
+  if (label === '나' || label === '저') {
+    const pattern = label === '나'
+      ? /(?:^|[\s,，.;])나(?=는|은|랑|와|과|도|에게|한테|꺼|것|메뉴|\s|$)/
+      : /(?:^|[\s,，.;])저(?=는|은|랑|와|과|도|에게|한테|꺼|것|메뉴|\s|$)/;
+    return pattern.test(text);
+  }
+  return text.includes(label.toLowerCase());
+}
+
 /** Apply only bounded, attributable member facts from the model. Rules still validate every menu and option. */
 export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[], utterance: string): { state: DialogueState; applied: boolean; needsClarification: boolean } {
   const text = utterance.toLowerCase();
@@ -147,8 +160,9 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
   let applied = false;
   let needsClarification = false;
   let lastMemberLabel = state.lastMemberLabel;
+  const appliedLabels = new Set<string>();
   for (const update of updates.slice(0, 12)) {
-    let baseLabel = update.label.replace(/님$/, '').trim();
+    let baseLabel = update.label.replace(/(?:의)?(?:꺼|것|메뉴)$/, '').replace(/님$/, '').trim();
     if (/^(그\s*친구|그\s*사람|그\s*분|그분|그녀|그)$/i.test(baseLabel)) {
       const specific = named.filter((member) => !member.id.startsWith('generic-'));
       if (specific.length === 1) baseLabel = specific[0].label.replace(/님$/, '');
@@ -156,7 +170,7 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
     }
     if (!baseLabel || /^(한\s*명|두\s*명|세\s*명|일행|손님|사람|누군가|한\s*사람|unknown)$/.test(baseLabel)) continue;
     const previousIndex = named.findIndex((member) => member.label.replace(/님$/, '') === baseLabel);
-    if (!text.includes(baseLabel.toLowerCase()) && !/그\s*친구|그\s*사람|그\s*분|그분/.test(text)) continue;
+    if (!mentionedMember(text, baseLabel) && !/그\s*친구|그\s*사람|그\s*분|그분/.test(text)) continue;
     const allergies = /알레르기|못\s*먹|빼|제외/.test(text) ? update.allergies.filter((key) => allowedAllergies.has(key)) : [];
     const diets = update.dietaryRules.filter((key) => allowedDiets.has(key));
     const count = Math.min(12, Math.max(1, update.count));
@@ -178,6 +192,7 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
       if (targetIndex >= 0) named[targetIndex] = updated;
       else named.push(updated);
       applied = true;
+      appliedLabels.add(label);
       lastMemberLabel = label;
     }
   }
@@ -190,7 +205,29 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
   if (updates.some((entry) => entry.maxSpiceLevel !== null || entry.tastes?.includes('mild'))) { preferences.maxSpiceLevel = undefined; preferences.wantsMild = false; }
   if (updates.some((entry) => entry.tastes?.includes('soup'))) preferences.wantsWarm = false;
   if (updates.some((entry) => entry.tastes?.length)) preferences.category = undefined;
-  return { state: { ...state, members, preferences, lastMemberLabel }, applied: true, needsClarification };
+  const focusedMemberLabel = appliedLabels.size === 1 ? [...appliedLabels][0] : appliedLabels.size > 1 ? undefined : state.focusedMemberLabel;
+  return { state: { ...state, members, preferences, lastMemberLabel, focusedMemberLabel }, applied: true, needsClarification };
+}
+
+/** Resolve a short preference follow-up only after the preceding turn focused on one diner. */
+export function applyFocusedTaste(state: DialogueState, utterance: string): { state: DialogueState; applied: boolean } {
+  const label = state.focusedMemberLabel;
+  if (!label || !state.members.some((member) => member.label === label)) return { state, applied: false };
+  const text = utterance.toLowerCase();
+  if (/와이프|아내|남편|배우자|아이|아기|딸|아들|여아|남아|(?:^|\s)(?:나|저)(?:는|은|랑|도|\s)/.test(text) || /우리|모두|전부|다\s*같이/.test(text)) return { state, applied: false };
+  const tastes: NonNullable<GroupMember["tastes"]> = [];
+  if (/얼큰|매운|맵게/.test(text) && !/안\s*맵|맵지|매운.*(?:안|못)/.test(text)) tastes.push('spicy');
+  if (/안\s*맵|맵지|순한/.test(text)) tastes.push('mild');
+  if (/달달|달콤|단맛/.test(text)) tastes.push('sweet');
+  if (/국물|수프|탕|찌개/.test(text)) tastes.push('soup');
+  if (/키즈|어린이/.test(text)) tastes.push('kids');
+  if (!tastes.length) return { state, applied: false };
+  const members = state.members.map((member) => member.label === label ? {
+    ...member,
+    tastes: [...new Set([...(member.tastes || []), ...tastes])],
+    maxSpiceLevel: tastes.includes('mild') ? Math.min(member.maxSpiceLevel ?? 4, 0) : member.maxSpiceLevel,
+  } : member);
+  return { state: { ...state, members }, applied: true };
 }
 
 export function applyExplicitCorrections(state: DialogueState, corrections: { clearVegetarian: boolean; clearSpiceLimit: boolean; clearBudget: boolean }, utterance: string): DialogueState {

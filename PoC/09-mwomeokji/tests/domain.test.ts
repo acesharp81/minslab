@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
 import { parseIntent } from "../lib/intent";
-import { applyMemberUpdates, evolveDialogue, readDialogue, type DialogueState } from "../lib/dialogue";
+import { applyFocusedTaste, applyMemberUpdates, evolveDialogue, readDialogue, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
 import { recommend, recommendGroup } from "../lib/recommend";
@@ -224,6 +224,35 @@ describe("multi-turn Tap Talk Together dialogue", () => {
       ["나", "매콤 제육 덮밥"], ["아이", "달콤 키즈 치킨 덮밥"], ["와이프", "따끈 닭고기 수프"],
     ]));
   });
+  it("refines the wife's soup across two short spoken turns without asking for party size", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const first = "2살 딸이랑 와이프랑 나랑 밥 먹을게. 나는 매운걸로, 아이는 키즈 메뉴 중 달달하고 맵지 않은 걸로, 와이프는 국물 있는 걸로 주문해줘";
+    const initial = await understand(first);
+    let state = applyMemberUpdates(evolveDialogue(readDialogue({}), first, initial.intent).state, initial.memberUpdates, first).state;
+    const second = "와이프꺼는 더 얼큰한걸로 보여줘";
+    const refinement = await understand(second);
+    expect(refinement.intent.action).toBe("recommend");
+    const evolved = evolveDialogue(state, second, refinement.intent);
+    expect(evolved.onlyHeadcount).toBe(false);
+    state = applyMemberUpdates(evolved.state, refinement.memberUpdates, second).state;
+    expect(state.peopleCount).toBe(3);
+    expect(state.focusedMemberLabel).toBe("와이프");
+    expect(state.members.find((member) => member.label === "와이프")?.tastes).toEqual(expect.arrayContaining(["soup", "spicy"]));
+
+    const third = "알러지는 없고 얼큰한걸로";
+    const followup = await understand(third);
+    const next = evolveDialogue(state, third, followup.intent);
+    expect(next.onlyHeadcount).toBe(false);
+    const focused = applyFocusedTaste(applyMemberUpdates(next.state, followup.memberUpdates, third).state, third);
+    expect(focused.applied).toBe(true);
+    const spicy = { ...item("매콤 제육 덮밥", 11900, [], 2), popularity: 74 };
+    const kids = { ...item("달콤 키즈 치킨 덮밥", 8900), tags: ["warm", "식사", "kids", "sweet"], popularity: 72 };
+    const mildSoup = { ...item("따끈 닭고기 수프", 7900), popularity: 59 };
+    const spicySoup = { ...item("얼큰 해물 수프", 10900, [], 3), popularity: 53 };
+    const group = recommendGroup([spicy, kids, mildSoup, spicySoup], emptyProfile, focused.state.preferences, focused.state.members);
+    expect(group.complete).toBe(true);
+    expect(group.items.find((entry) => entry.forMember === "와이프")?.item.name).toBe("얼큰 해물 수프");
+  });
   it("does not silently replace a requested kids menu with an adult menu", () => {
     const result = recommendGroup([item("일반 덮밥", 10000)], emptyProfile, { action: "recommend", peopleCount: 2 }, [
       { id: "child", label: "아이", allergies: [], dietaryRules: [], maxSpiceLevel: 0, tastes: ["kids", "mild"] },
@@ -330,6 +359,17 @@ describe("LLM current-turn interpretation", () => {
     const result = await understand("두 개 담아줘");
     expect(result.provider).toBe("rules");
     expect(result.intent.action).toBe("add");
+  });
+  it("does not mistake the last syllable of a name for the speaker", () => {
+    const state: DialogueState = { ...readDialogue({}), peopleCount: 2, members: [
+      { id: "a", label: "유나", allergies: [], dietaryRules: [], tastes: ["soup"] },
+      { id: "b", label: "나", allergies: [], dietaryRules: [], tastes: ["spicy"] },
+    ] };
+    const update = (label: string) => ({ label, count: 1, allergies: [], dietaryRules: [], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false, tastes: ["spicy" as const] });
+    const result = applyMemberUpdates(state, [update("나"), update("유나꺼")], "유나꺼는 더 얼큰한 국물로 보여줘");
+    expect(result.state.focusedMemberLabel).toBe("유나");
+    expect(result.state.members).toHaveLength(2);
+    expect(result.state.members[0].tastes).toEqual(["soup", "spicy"]);
   });
   it("resolves an unambiguous follow-up person locally and asks when several match", () => {
     const single: DialogueState = { ...readDialogue({}), peopleCount: 2, members: [
