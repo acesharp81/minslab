@@ -28,12 +28,13 @@ function matchesTaste(item: MenuItemData, taste: NonNullable<GroupMember["tastes
   if (taste === "mild") return item.spiceLevel === 0;
   if (taste === "sweet") return item.tags.includes("sweet") || /달콤|달달|단맛/.test(`${item.name} ${item.description}`);
   if (taste === "soup") return item.tags.includes("soup") || /국물|수프|탕|찌개/.test(`${item.name} ${item.description}`);
+  if (taste === "rice") return item.tags.includes("rice") || /덮밥|볶음밥/.test(item.name);
   return item.tags.includes("kids") || /키즈|어린이/.test(item.name);
 }
 
 function memberChoice(choice: Recommendation, member: GroupMember): Recommendation {
   const matched = (member.tastes || []).filter((taste) => matchesTaste(choice.item, taste));
-  const labels: Record<NonNullable<GroupMember["tastes"]>[number], string> = { spicy: "매운맛", mild: "맵지 않은 맛", sweet: "달콤한 맛", soup: "국물", kids: "키즈 메뉴" };
+  const labels: Record<NonNullable<GroupMember["tastes"]>[number], string> = { spicy: "매운맛", mild: "맵지 않은 맛", sweet: "달콤한 맛", soup: "국물", rice: "덮밥", kids: "키즈 메뉴" };
   return {
     ...choice,
     score: choice.score + matched.length * 90,

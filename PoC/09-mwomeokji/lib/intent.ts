@@ -12,6 +12,10 @@ const koNumbers: Record<string, number> = {
   넷: 4,
 };
 
+export function hasExplicitNoAllergies(input: string): boolean {
+  return /^(?:(?:저|나)(?:는|은)?\s+)?(?:알레르기|알러지)(?:는|가|도)?\s*(?:전혀\s*)?없(?:어|어요|고|습니다|음)/.test(input.trim().toLowerCase());
+}
+
 export function parseIntent(input: string): OrderIntent {
   const text = input.trim().toLowerCase();
   const intent: OrderIntent = { action: "recommend" };

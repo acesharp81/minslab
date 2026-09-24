@@ -102,9 +102,13 @@ export function CustomerApp({ slug }: { slug: string }) {
     const message = value.trim(); if (!message || busy || !visitMode) return;
     setDraft(""); setView("talk"); setMessages((current) => [...current, { role: "user", text: message }]); setBusy(true); setError("");
     try {
-      const result = await api<{ reply: string; recommendations?: Recommendation[]; cart?: Cart; dialogue?: DialogueState; summary?: string[]; nextAction?: string; provider?: string }>("conversation", "POST", { message });
+      const result = await api<{ reply: string; recommendations?: Recommendation[]; cart?: Cart; dialogue?: DialogueState; summary?: string[]; profile?: PreferenceProfile; nextAction?: string; provider?: string }>("conversation", "POST", { message });
       setMessages((current) => [...current, { role: "assistant", text: result.reply, recommendations: result.recommendations, confirmCheckout: result.nextAction === "confirm_checkout", provider: result.provider }]);
       if (result.cart) setCart(result.cart); if (result.summary) setSummary(result.summary);
+      if (result.profile) {
+        setProfile(result.profile);
+        if (localStorage.getItem("poc09_profile")) localStorage.setItem("poc09_profile", JSON.stringify(result.profile));
+      }
       if (result.nextAction === "checkout") {
         const order = await api<Order>("checkout", "POST", { idempotencyKey: crypto.randomUUID(), paymentMethod: "mock_card", note });
         setCart({ items: [], total: 0, canOrder: false }); setNote("");

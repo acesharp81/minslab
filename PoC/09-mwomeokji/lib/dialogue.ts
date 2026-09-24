@@ -27,6 +27,15 @@ const numberWords: Record<string, number> = { 한: 1, 두: 2, 세: 3, 네: 4, �
 const countOf = (value: string) => Number(value) || numberWords[value] || 1;
 const emptyDialogue = (): DialogueState => ({ members: [], preferences: { action: 'recommend' }, lastRecommendations: [], pendingCheckout: false });
 
+function mergeTastes(previous: GroupMember['tastes'], incoming: NonNullable<GroupMember['tastes']>): NonNullable<GroupMember['tastes']> {
+  const replacing = new Set<NonNullable<GroupMember['tastes']>[number]>();
+  if (incoming.includes('rice')) replacing.add('soup');
+  if (incoming.includes('soup')) replacing.add('rice');
+  if (incoming.includes('spicy')) replacing.add('mild');
+  if (incoming.includes('mild')) replacing.add('spicy');
+  return [...new Set([...(previous || []).filter((taste) => !replacing.has(taste)), ...incoming])];
+}
+
 export function readDialogue(context: unknown): DialogueState {
   if (!context || typeof context !== 'object' || Array.isArray(context) || !('dialogue' in context)) return emptyDialogue();
   const value = context.dialogue;
@@ -196,14 +205,15 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
       if (targetIndex < 0) targetIndex = named.findIndex((member) => member.id.startsWith('generic-'));
       const old = targetIndex >= 0 ? named[targetIndex] : { id: `llm-${named.length + 1}`, label, allergies: [], dietaryRules: [] };
       const removed = isCorrection ? new Set(update.removeDietaryRules.filter((key) => allowedDiets.has(key))) : new Set<string>();
+      const incomingTastes = (update.tastes || []).filter((taste) => ["spicy", "mild", "sweet", "soup", "rice", "kids"].includes(taste));
       const updated: GroupMember = {
         ...old,
         id: old.id.startsWith('generic-') ? `named-${targetIndex + 1}` : old.id,
         label,
         allergies: [...new Set([...old.allergies, ...allergies])],
         dietaryRules: [...old.dietaryRules.filter((rule) => !removed.has(rule.type)), ...diets.filter((type) => !old.dietaryRules.some((rule) => rule.type === type && !removed.has(type))).map((type) => ({ type, mode: 'strict' as const }))],
-        maxSpiceLevel: isCorrection && update.clearSpiceLimit ? undefined : update.maxSpiceLevel === null ? old.maxSpiceLevel : Math.min(old.maxSpiceLevel ?? 4, update.maxSpiceLevel),
-        tastes: [...new Set([...(old.tastes || []), ...(update.tastes || []).filter((taste) => ["spicy", "mild", "sweet", "soup", "kids"].includes(taste))])],
+        maxSpiceLevel: incomingTastes.includes('spicy') && !incomingTastes.includes('mild') ? undefined : isCorrection && update.clearSpiceLimit ? undefined : update.maxSpiceLevel === null ? old.maxSpiceLevel : Math.min(old.maxSpiceLevel ?? 4, update.maxSpiceLevel),
+        tastes: mergeTastes(old.tastes, incomingTastes),
       };
       if (targetIndex >= 0) named[targetIndex] = updated;
       else named.push(updated);
@@ -236,12 +246,13 @@ export function applyFocusedTaste(state: DialogueState, utterance: string): { st
   if (/안\s*맵|맵지|순한/.test(text)) tastes.push('mild');
   if (/달달|달콤|단맛/.test(text)) tastes.push('sweet');
   if (/국물|수프|탕|찌개/.test(text)) tastes.push('soup');
+  if (/덮밥|볶음밥|밥류/.test(text)) tastes.push('rice');
   if (/키즈|어린이/.test(text)) tastes.push('kids');
   if (!tastes.length) return { state, applied: false };
   const members = state.members.map((member) => member.label === label ? {
     ...member,
-    tastes: [...new Set([...(member.tastes || []), ...tastes])],
-    maxSpiceLevel: tastes.includes('mild') ? Math.min(member.maxSpiceLevel ?? 4, 0) : member.maxSpiceLevel,
+    tastes: mergeTastes(member.tastes, tastes),
+    maxSpiceLevel: tastes.includes('spicy') && !tastes.includes('mild') ? undefined : tastes.includes('mild') ? Math.min(member.maxSpiceLevel ?? 4, 0) : member.maxSpiceLevel,
   } : member);
   return { state: { ...state, members }, applied: true };
 }

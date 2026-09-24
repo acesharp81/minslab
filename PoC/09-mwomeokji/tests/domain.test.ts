@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
-import { parseIntent } from "../lib/intent";
+import { hasExplicitNoAllergies, parseIntent } from "../lib/intent";
 import { applyFocusedTaste, applyMemberUpdates, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
@@ -296,6 +296,50 @@ describe("multi-turn Tap Talk Together dialogue", () => {
     const group = recommendGroup([spicy, kids, mildSoup, spicySoup], emptyProfile, focused.state.preferences, focused.state.members);
     expect(group.complete).toBe(true);
     expect(group.items.find((entry) => entry.forMember === "와이프")?.item.name).toBe("얼큰 해물 수프");
+  });
+  it("finds a verified non-seafood spicy soup despite a shellfish allergy", () => {
+    const spicySeafood = item("얼큰 해물 수프", 10900, ["shellfish", "fish"], 3);
+    const spicyChicken = item("얼큰 닭고기 수프", 9900, [], 2);
+    const result = recommendGroup([spicySeafood, spicyChicken], { ...emptyProfile, allergies: ["shellfish"] }, { action: "recommend", peopleCount: 2 }, [
+      { id: "a", label: "유나", allergies: [], dietaryRules: [], tastes: ["soup", "spicy"] },
+      { id: "b", label: "민수", allergies: [], dietaryRules: [], tastes: ["spicy"] },
+    ]);
+    expect(result.complete).toBe(true);
+    expect(result.items[0].item.name).toBe("얼큰 닭고기 수프");
+    expect(result.items.every((entry) => entry.item.name !== "얼큰 해물 수프")).toBe(true);
+  });
+  it("replaces a named diner's mild limit when they explicitly ask for spicy food", () => {
+    const state: DialogueState = { ...readDialogue({}), peopleCount: 2, members: [
+      { id: "a", label: "민수", allergies: [], dietaryRules: [], tastes: ["spicy"] },
+      { id: "b", label: "유나", allergies: [], dietaryRules: [], maxSpiceLevel: 0, tastes: ["mild", "soup"] },
+    ] };
+    const update = { label: "유나", count: 1, allergies: [], dietaryRules: [], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false, tastes: ["spicy" as const, "soup" as const] };
+    const changed = applyMemberUpdates(state, [update], "유나는 더 얼큰한 국물로 추천해줘").state;
+    const wife = changed.members.find((member) => member.label === "유나");
+    expect(wife?.tastes).toEqual(["soup", "spicy"]);
+    expect(wife?.maxSpiceLevel).toBeUndefined();
+    const soup = item("얼큰 닭고기 수프", 9900, [], 2);
+    const result = recommendGroup([soup], { ...emptyProfile, allergies: ["shellfish"] }, changed.preferences, changed.members);
+    expect(result.complete).toBe(true);
+    expect(result.items.find((entry) => entry.forMember === "유나")?.item.name).toBe("얼큰 닭고기 수프");
+  });
+  it("replaces the focused diner's soup type when they ask for a rice bowl instead", () => {
+    const state: DialogueState = { ...readDialogue({}), peopleCount: 2, focusedMemberLabel: "와이프", members: [
+      { id: "a", label: "나", allergies: [], dietaryRules: [], tastes: ["spicy"] },
+      { id: "b", label: "와이프", allergies: [], dietaryRules: [], tastes: ["soup", "spicy"] },
+    ] };
+    const changed = applyFocusedTaste(state, "아니면 덮밥류로 추천해줘");
+    expect(changed.applied).toBe(true);
+    expect(changed.state.members[1].tastes).toEqual(["spicy", "rice"]);
+    const soup = item("얼큰 닭고기 수프", 9900, [], 2);
+    const bowl = item("얼큰 닭고기 덮밥", 11900, [], 2);
+    const result = recommendGroup([soup, bowl], emptyProfile, changed.state.preferences, changed.state.members);
+    expect(result.items.find((entry) => entry.forMember === "와이프")?.item.name).toBe("얼큰 닭고기 덮밥");
+  });
+  it("clears only an explicitly denied own allergy profile", () => {
+    expect(hasExplicitNoAllergies("알러지는 없고 얼큰한걸로")).toBe(true);
+    expect(hasExplicitNoAllergies("저는 알레르기 없어요")).toBe(true);
+    expect(hasExplicitNoAllergies("와이프는 알러지 없어")).toBe(false);
   });
   it("does not silently replace a requested kids menu with an adult menu", () => {
     const result = recommendGroup([item("일반 덮밥", 10000)], emptyProfile, { action: "recommend", peopleCount: 2 }, [

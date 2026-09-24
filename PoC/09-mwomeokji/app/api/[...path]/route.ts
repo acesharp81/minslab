@@ -10,6 +10,7 @@ import {
 } from "../../../lib/auth";
 import { cartSummary } from "../../../lib/cart";
 import { understand } from "../../../lib/ai";
+import { hasExplicitNoAllergies } from "../../../lib/intent";
 import { rankRecommendations } from "../../../lib/decision";
 import { recommend, recommendGroup } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
@@ -537,12 +538,14 @@ export async function POST(req: NextRequest, context: Context) {
       const focusedFollowup = applyFocusedTaste(updatedMembers.state, message);
       if (focusedFollowup.applied && intent.action === "ask" && !/가격|얼마|재료|뭐가/.test(message)) intent.action = "recommend";
       let dialogue: DialogueState = applyExplicitCorrections(focusedFollowup.state, understanding.corrections, message);
-      const focusedRequest = !!dialogue.focusedMemberLabel && /얼큰|매운|맵|국물|수프|달달|달콤|순한|키즈|어린이/.test(message) && (focusedFollowup.applied || message.includes(dialogue.focusedMemberLabel));
+      const focusedRequest = !!dialogue.focusedMemberLabel && /얼큰|매운|맵|국물|수프|덮밥|볶음밥|밥류|달달|달콤|순한|키즈|어린이/.test(message) && (focusedFollowup.applied || message.includes(dialogue.focusedMemberLabel));
       dialogue = { ...dialogue, pendingCheckout: false, pendingCheckoutSignature: undefined };
       const currentProfile = profile(freshSession.context);
       if (unmatchedAllergies.length) currentProfile.allergies = [...new Set([...currentProfile.allergies, ...unmatchedAllergies])];
       const freshAllergies = updatedMembers.applied ? understanding.globalAllergies : [...evolved.globalAllergies, ...understanding.globalAllergies];
-      if (freshAllergies.length && /알레르기|못\s*먹|빼|제외/.test(message)) currentProfile.allergies = [...new Set([...currentProfile.allergies, ...freshAllergies])];
+      if (freshAllergies.length && /알레르기|알러지|못\s*먹|빼|제외/.test(message)) currentProfile.allergies = [...new Set([...currentProfile.allergies, ...freshAllergies])];
+      // The guest explicitly corrected their own or table-wide allergy profile; named diners keep their own restrictions.
+      if (hasExplicitNoAllergies(message)) currentProfile.allergies = [];
       const save = async () => db.guestSession.update({ where: { id: session.id }, data: { context: { ...currentProfile, dialogue } } });
       const summary = () => contextSummary(dialogue, session.fulfillmentType as VisitMode);
       if (intent.action === "checkout") {
@@ -642,16 +645,17 @@ export async function POST(req: NextRequest, context: Context) {
       const savedLimits = [
         currentProfile.maxSpiceLevel !== undefined ? `맵기 ${currentProfile.maxSpiceLevel} 이하` : null,
         currentProfile.budget ? `예산 ${currentProfile.budget.toLocaleString()}원` : null,
-        currentProfile.allergies.length ? "알레르기 조건" : null,
+        currentProfile.allergies.length ? `${currentProfile.allergies.map((key) => ALLERGENS.find(([code]) => code === key)?.[1] || key).join("·")} 알레르기 조건` : null,
         currentProfile.dietaryRules.some((rule) => rule.mode === "strict") ? "식사 제한" : null,
       ].filter(Boolean);
-      const noMatchReply = `지금 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? `현재 적용 중인 조건(${savedLimits.join(", ")})도 있어요. ‘내 취향 설정’에서 확인하거나 조건을 다시 말씀해 주세요.` : "조건을 바꾸거나 사장님께 문의해 주세요."}`;
+      const limitHelp = savedLimits.length ? `현재 적용 중인 조건(${savedLimits.join(", ")})도 있어요. ‘내 취향 설정’에서 확인하거나 조건을 다시 말씀해 주세요.` : "조건을 바꾸거나 사장님께 문의해 주세요.";
+      const noMatchReply = `지금 조건에 맞는 확인된 메뉴가 없어요. ${limitHelp}`;
       const reply = recommendations.length
         ? focusedPick ? `${dialogue.focusedMemberLabel} 메뉴를 새로 골랐어요: ${focusedPick.item.name}. 다른 분 메뉴도 함께 확인해 주세요. 예상 합계 ${group?.total.toLocaleString()}원이에요.`
           : group ? `${dialogue.peopleCount}분의 취향을 각각 반영해 골랐어요. 예상 합계 ${group.total.toLocaleString()}원이에요. ${/2\s*살|두\s*살|만\s*2\s*세/.test(message) && dialogue.members.some((member) => member.tastes?.includes("kids")) ? "2살 아이에게 맞는 재료와 식감인지 보호자가 확인해 주세요. " : ""}“추천한 거 전부 담아줘”라고 하셔도 돼요.`
             : "이 음식은 어떠세요? 마음에 들면 “첫 번째 담아줘”라고 말씀해 주세요."
-        : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. 다른 맛으로 골라볼까요?` : noMatchReply;
-      return json({ intent, provider, decisionProvider: ranked.provider, dialogue, summary: summary(), recommendations, group, reply });
+        : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? limitHelp : "다른 맛이나 음식 종류로 골라볼까요?"}` : noMatchReply;
+      return json({ intent, provider, decisionProvider: ranked.provider, dialogue, summary: summary(), recommendations, group, profile: currentProfile, reply });
     }
     if (path[0] === "cart") {
       const input = cartSchema.parse(await body(req));
