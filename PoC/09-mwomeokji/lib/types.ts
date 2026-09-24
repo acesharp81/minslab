@@ -77,6 +77,7 @@ export type GroupMember = {
   allergies: string[];
   dietaryRules: DietaryRule[];
   maxSpiceLevel?: number;
+  tastes?: Array<"spicy" | "mild" | "sweet" | "soup" | "kids">;
 };
 export type OrderIntent = {
   action: "recommend" | "add" | "remove" | "ask" | "help" | "checkout";

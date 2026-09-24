@@ -23,6 +23,24 @@ function withIntent(
   };
 }
 
+function matchesTaste(item: MenuItemData, taste: NonNullable<GroupMember["tastes"]>[number]) {
+  if (taste === "spicy") return item.spiceLevel >= 2;
+  if (taste === "mild") return item.spiceLevel === 0;
+  if (taste === "sweet") return item.tags.includes("sweet") || /달콤|달달|단맛/.test(`${item.name} ${item.description}`);
+  if (taste === "soup") return item.tags.includes("soup") || /국물|수프|탕|찌개/.test(`${item.name} ${item.description}`);
+  return item.tags.includes("kids") || /키즈|어린이/.test(item.name);
+}
+
+function memberChoice(choice: Recommendation, member: GroupMember): Recommendation {
+  const matched = (member.tastes || []).filter((taste) => matchesTaste(choice.item, taste));
+  const labels: Record<NonNullable<GroupMember["tastes"]>[number], string> = { spicy: "매운맛", mild: "맵지 않은 맛", sweet: "달콤한 맛", soup: "국물", kids: "키즈 메뉴" };
+  return {
+    ...choice,
+    score: choice.score + matched.length * 90,
+    reason: matched.length ? `${matched.map((taste) => labels[taste]).join(" · ")} 조건에 맞춰 골랐어요.` : choice.reason,
+  };
+}
+
 function score(
   item: MenuItemData,
   intent: OrderIntent,
@@ -115,12 +133,13 @@ export function recommendGroup(
       dietaryRules: [...profile.dietaryRules, ...member.dietaryRules],
       maxSpiceLevel: member.maxSpiceLevel ?? profile.maxSpiceLevel,
     };
+    const memberItems = (member.tastes?.length ? items.filter((item) => member.tastes!.every((taste) => matchesTaste(item, taste))) : items);
     const choices = recommend(
-      items,
+      memberItems,
       memberProfile,
       { ...intent, peopleCount: 1, totalBudget: undefined },
-      10,
-    );
+      memberItems.length,
+    ).map((choice) => memberChoice(choice, member)).sort((a, b) => b.score - a.score || a.item.price - b.item.price).slice(0, 10);
     const next: State[] = [];
     for (const state of states)
       for (const choice of choices) {

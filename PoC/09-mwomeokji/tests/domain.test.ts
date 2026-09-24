@@ -203,8 +203,38 @@ describe("multi-turn Tap Talk Together dialogue", () => {
     expect(left.peopleCount).toBe(2);
     expect(left.members).toHaveLength(2);
   });
+  it("treats a family meal selection request as recommendations for each diner", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const message = "2살 딸이랑 와이프랑 나랑 밥 먹을게. 나는 매운걸로, 아이는 키즈 메뉴 중 달달하고 맵지 않은 걸로, 와이프는 국물 있는 걸로 주문해줘";
+    const interpretation = await understand(message);
+    expect(interpretation.intent.action).toBe("recommend");
+    const evolved = evolveDialogue(readDialogue({}), message, interpretation.intent);
+    const state = applyMemberUpdates(evolved.state, interpretation.memberUpdates, message).state;
+    expect(state.peopleCount).toBe(3);
+    expect(state.members.find((member) => member.label === "아이")?.tastes).toEqual(expect.arrayContaining(["kids", "sweet", "mild"]));
+    expect(state.members.find((member) => member.label === "아이")?.maxSpiceLevel).toBe(0);
+    expect(state.preferences.maxSpiceLevel).toBeUndefined();
+
+    const spicy = { ...item("매콤 제육 덮밥", 11900, [], 2), popularity: 74 };
+    const kids = { ...item("달콤 키즈 치킨 덮밥", 8900), tags: ["warm", "식사", "kids", "sweet"], popularity: 72 };
+    const soup = { ...item("따끈 닭고기 수프", 7900), popularity: 59 };
+    const group = recommendGroup([spicy, kids, soup], emptyProfile, state.preferences, state.members);
+    expect(group.complete).toBe(true);
+    expect(group.items.map((entry) => [entry.forMember, entry.item.name])).toEqual(expect.arrayContaining([
+      ["나", "매콤 제육 덮밥"], ["아이", "달콤 키즈 치킨 덮밥"], ["와이프", "따끈 닭고기 수프"],
+    ]));
+  });
+  it("does not silently replace a requested kids menu with an adult menu", () => {
+    const result = recommendGroup([item("일반 덮밥", 10000)], emptyProfile, { action: "recommend", peopleCount: 2 }, [
+      { id: "child", label: "아이", allergies: [], dietaryRules: [], maxSpiceLevel: 0, tastes: ["kids", "mild"] },
+      { id: "adult", label: "나", allergies: [], dietaryRules: [] },
+    ]);
+    expect(result.complete).toBe(false);
+  });
   it("recognizes conversational checkout intent", () => {
     expect(parseIntent("주문할게").action).toBe("checkout");
+    expect(parseIntent("주문해줘").action).toBe("checkout");
+    expect(parseIntent("추천한 거 전부 주문해줘").action).toBe("add");
   });
 });
 
@@ -279,7 +309,19 @@ describe("LLM current-turn interpretation", () => {
     expect((outbound.provider as { zdr: boolean; data_collection: string }).zdr).toBe(true);
     expect((outbound.provider as { zdr: boolean; data_collection: string }).data_collection).toBe("deny");
     expect(JSON.stringify(outbound)).not.toContain("previousUtterances");
-    expect(JSON.stringify(outbound)).not.toContain("cart");
+    expect((outbound.messages as { role: string; content: string }[]).filter((entry) => entry.role === "user")).toEqual([{ role: "user", content: message }]);
+  });
+  it("keeps a spoken request to add all prior recommendations out of checkout", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({
+      action: "checkout", peopleCount: null, totalBudget: null, maxSpiceLevel: null,
+      vegetarian: null, wantsWarm: null, wantsCool: null, avoidPork: null, avoidBeef: null,
+      category: null, menuName: null, quantity: null, reference: "all", alternative: false,
+      globalAllergies: [], memberUpdates: [], optionNames: [], clarification: null,
+      corrections: { clearVegetarian: false, clearSpiceLimit: false, clearBudget: false },
+    }) } }] }) })));
+    expect((await understand("추천한 거 전부 주문해줘")).intent.action).toBe("add");
   });
   it("falls back to local rules on invalid LLM output", async () => {
     vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");

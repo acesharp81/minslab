@@ -19,6 +19,7 @@ export type MemberUpdate = {
   maxSpiceLevel: number | null;
   removeDietaryRules: string[];
   clearSpiceLimit: boolean;
+  tastes?: GroupMember["tastes"];
 };
 
 const numberWords: Record<string, number> = { 한: 1, 두: 2, 세: 3, 네: 4, 하나: 1, 둘: 2, 셋: 3, 넷: 4 };
@@ -83,6 +84,9 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
   else if (changedCount !== undefined) inferredCount = changedCount;
   else if (leadingCount) inferredCount = countOf(leadingCount[1]);
   else if (!specified.length) inferredCount = parsed.peopleCount || 0;
+  // Family roles can establish a party without a spoken headcount. Age ("2살") is not a count.
+  const familyRoles = [/(?:^|\s)(?:나|저|제가|나는|저는)(?:랑|와|과|는|도|\s|$)/.test(text), /와이프|아내|남편|배우자|신랑/.test(text), /아이|아기|딸|아들|여아|남아|키즈/.test(text)].filter(Boolean).length;
+  if (!explicitTotal && changedCount === undefined && !leadingCount && familyRoles >= 2) inferredCount = Math.max(inferredCount, familyRoles);
   const rawPeopleCount = inferredCount || familyCount || (casualCount ? countOf(casualCount[1]) : 0) || previous.peopleCount || 0;
   const peopleCount = rawPeopleCount ? Math.min(12, Math.max(1, rawPeopleCount)) : undefined;
   let members = previous.members;
@@ -169,6 +173,7 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
         allergies: [...new Set([...old.allergies, ...allergies])],
         dietaryRules: [...old.dietaryRules.filter((rule) => !removed.has(rule.type)), ...diets.filter((type) => !old.dietaryRules.some((rule) => rule.type === type && !removed.has(type))).map((type) => ({ type, mode: 'strict' as const }))],
         maxSpiceLevel: isCorrection && update.clearSpiceLimit ? undefined : update.maxSpiceLevel === null ? old.maxSpiceLevel : Math.min(old.maxSpiceLevel ?? 4, update.maxSpiceLevel),
+        tastes: [...new Set([...(old.tastes || []), ...(update.tastes || []).filter((taste) => ["spicy", "mild", "sweet", "soup", "kids"].includes(taste))])],
       };
       if (targetIndex >= 0) named[targetIndex] = updated;
       else named.push(updated);
@@ -182,7 +187,9 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
   const preferences = { ...state.preferences };
   // A named person's restriction must not turn into a restriction for the whole table.
   if (updates.some((entry) => entry.dietaryRules.includes('vegetarian') || entry.dietaryRules.includes('vegan') || entry.removeDietaryRules.includes('vegetarian') || entry.removeDietaryRules.includes('vegan'))) preferences.vegetarian = false;
-  if (updates.some((entry) => entry.maxSpiceLevel !== null)) preferences.maxSpiceLevel = undefined;
+  if (updates.some((entry) => entry.maxSpiceLevel !== null || entry.tastes?.includes('mild'))) { preferences.maxSpiceLevel = undefined; preferences.wantsMild = false; }
+  if (updates.some((entry) => entry.tastes?.includes('soup'))) preferences.wantsWarm = false;
+  if (updates.some((entry) => entry.tastes?.length)) preferences.category = undefined;
   return { state: { ...state, members, preferences, lastMemberLabel }, applied: true, needsClarification };
 }
 

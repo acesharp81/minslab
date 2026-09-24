@@ -16,7 +16,8 @@ export function parseIntent(input: string): OrderIntent {
   const text = input.trim().toLowerCase();
   const intent: OrderIntent = { action: "recommend" };
   if (/직원|사장님.*불러|help|staff/.test(text)) intent.action = "help";
-  else if (/주문할게|주문해|결제할게|계산할게|주문\s*완료|checkout/.test(text)) intent.action = "checkout";
+  else if (/(?:추천한|이걸|그걸|이거|그거|첫\s*번째|두\s*번째|세\s*번째|[123]\s*번).*주문해(?:줘|주세요)?/.test(text)) intent.action = "add";
+  else if (/결제할게|결제해|계산할게|계산해|주문\s*완료|이대로\s*주문|checkout|주문할게/.test(text) || /^\s*주문해(?:줘|주세요)?[.! ]*$/.test(text)) intent.action = "checkout";
   else if (/빼줘|빼고|삭제|제거|remove/.test(text)) intent.action = "remove";
   else if (/담아|추가|넣어|add /.test(text)) intent.action = "add";
   else if (/있어\?|얼마|가격|재료|뭐가/.test(text)) intent.action = "ask";
