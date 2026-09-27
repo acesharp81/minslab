@@ -122,6 +122,7 @@ def test_compact_deep_downgrades_generic_ai_quotes():
 
 def test_compact_deep_preserves_direct_gate_evidence_and_classifies():
     source = (
+        "기관: 행정안전부\n"
         "추출 본문:\n국가사무를 업무망에서 처리한다. "
         "생성형 AI 챗봇과 RAG 문서검색을 구축한다."
     )

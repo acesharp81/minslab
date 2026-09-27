@@ -321,6 +321,32 @@ def test_review_without_platform_use_then_completed_use_counts_both_achievements
     ]
 
 
+def test_previous_criteria_review_history_still_counts_both_anyang_achievements(db: Session):
+    now = datetime.now(timezone.utc)
+    notice = Notice(
+        stage="prenotice", notice_no="ANYANG-VERSIONED", agency_name="경기도 안양시",
+        title="안양시 인공지능 기본 및 종합계획 수립 용역",
+        created_at=now - timedelta(days=2),
+    )
+    before = _analysis("3", usage="not_mentioned")
+    payload = json.loads(before.result_json)
+    payload["criteria_version"] = "common-platform-v7-service-construction-scope"
+    before.result_json = json.dumps(payload, ensure_ascii=False)
+    notice.analysis_runs.extend([before, _analysis("1", usage="uses")])
+    notice.action = ActionItem(status="completed_uses", updated_at=now)
+    db.add(notice)
+    db.commit()
+
+    stats = build_statistics(db, period="all", now=now + timedelta(seconds=1))
+
+    assert stats["status"]["eligible_uses"] == 1
+    assert stats["achievements"]["review_to_eligible"] == 1
+    assert stats["achievements"]["unused_to_used"] == 1
+    assert stats["action_use_cases"][0]["achievement_labels"] == [
+        "검토 후 적합", "미적용 → 적용",
+    ]
+
+
 def test_review_resolution_and_period_filter_are_reflected_in_final_status(db: Session):
     now = datetime.now(timezone.utc)
     resolved = Notice(

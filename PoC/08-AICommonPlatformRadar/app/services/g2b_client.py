@@ -116,7 +116,7 @@ class G2BClient:
                 except httpx.HTTPStatusError as exc:
                     # httpx 예외 문자열에는 serviceKey가 든 전체 URL이 포함되므로 보존하지 않는다.
                     last_error = RuntimeError(f"HTTP {exc.response.status_code}")
-                    if exc.response.status_code not in {429, 500, 502, 503, 504}:
+                    if exc.response.status_code not in {500, 502, 503, 504}:
                         break
                     if attempt < 2:
                         await asyncio.sleep(0.5 * (2 ** attempt))

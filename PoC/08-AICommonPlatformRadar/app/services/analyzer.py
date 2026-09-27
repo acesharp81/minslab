@@ -35,7 +35,7 @@ T = TypeVar("T", bound=BaseModel)
 Usage = dict[str, int | str | bool]
 KST = timezone(timedelta(hours=9))
 logger = logging.getLogger(__name__)
-CURRENT_CRITERIA_VERSION = "common-platform-v7-service-construction-scope"
+CURRENT_CRITERIA_VERSION = "common-platform-v8-national-task-evidence"
 CLASSIFICATION_LABELS = {
     "1": "적합·사용",
     "2": "적합·미반영",
@@ -51,7 +51,7 @@ LEGAL_BASIS_TEXT = (
 )
 PLATFORM_ELIGIBILITY_CONDITIONS = (
     "서비스·데이터가 행정망·업무망·내부망에서 처리되거나 해당 망과 연계될 수 있어야 합니다.",
-    "중앙부처·지방정부의 사무이거나 공공기관이 중앙부처·지방정부로부터 위탁받은 국가사무여야 합니다.",
+    "중앙부처의 국가사무, 지방정부가 수행하는 국가사무 또는 공공기관이 위임받은 국가사무여야 합니다. 공공기관 자체 내부업무는 제외합니다.",
     "공통기반 제공 LLM·공개 파운데이션 모델·RAG로 기능을 구현할 수 있어야 하며, 독자모델·풀파인튜닝은 별도 협의가 필요합니다.",
 )
 _GATE_CONCLUSION_PREFIXES = (
@@ -78,7 +78,7 @@ def _human_guidance(model: DeepAnalysis, code: str) -> str:
         "unclear": "서비스 운영망과 데이터 처리 위치가 공개 문서에 명확히 제시되지 않은 상태",
     }.get(model.network_scope, "운영망 구성을 추가로 확인해야 하는 상태")
     task = {
-        "government": "중앙부처 또는 지방정부의 행정사무",
+        "government": "중앙부처의 국가사무 또는 지방정부가 수행하는 국가사무",
         "delegated_government": "중앙부처 또는 지방정부로부터 위탁받은 국가사무",
         "public_institution_internal": "공공기관 자체 내부업무",
         "non_government": "국가사무에 해당하지 않는 업무",
@@ -116,7 +116,7 @@ def _human_guidance(model: DeepAnalysis, code: str) -> str:
             )
         if model.task_scope == "unclear":
             changes.append(
-                "또한 이 업무가 중앙부처·지방정부의 사무이거나 해당 기관으로부터 위탁받은 국가사무임이 확인되면 "
+                "또한 지방정부 과업의 국가사무 근거 또는 공공기관에 대한 해당 국가사무 위임·위탁 근거가 확인되면 "
                 "이용대상 업무 조건을 충족합니다."
             )
         if model.model_fit == "unclear":
@@ -259,14 +259,23 @@ def _effective_buyer(source_text: str) -> tuple[str, Evidence | None, bool]:
     return "", None, True
 
 
-def _is_government_buyer(agency: str) -> bool:
+_SEPARATE_BUYER = re.compile(r"(?:공사|공단|재단|진흥원|정보원|개발원|연구원|관리원|평가원|기술원|서비스원|산학협력단|대학교|병원)(?:\([^)]*\))?$")
+
+
+
+def _is_central_government_buyer(agency: str) -> bool:
     compact = re.sub(r"\s+", "", agency)
-    if any(
+    return any(
         compact == re.sub(r"\s+", "", name)
         or compact.startswith(re.sub(r"\s+", "", name))
         for name in _CENTRAL_GOVERNMENT_AGENCIES
-    ):
-        return True
+    )
+
+
+def _is_local_government_buyer(agency: str) -> bool:
+    compact = re.sub(r"\s+", "", agency)
+    if _SEPARATE_BUYER.search(compact):
+        return False
     if any(agency == root or agency.startswith(f"{root} ") for root in _LOCAL_GOVERNMENT_ROOTS):
         return True
     if compact.endswith(("시청", "군청", "구청", "도청", "교육청")):
@@ -274,6 +283,52 @@ def _is_government_buyer(agency: str) -> bool:
     # 나라장터 발주기관에는 청사 접미사 없이 지방자치단체명만 들어오는 경우가 있다.
     # 공사·공단·재단 등 공공기관과 혼동하지 않도록 행정구역 접미사만 허용한다.
     return bool(re.fullmatch(r"[가-힣]{2,}(?:특별시|광역시|특별자치시|특별자치도|도|시|군|구)", compact))
+
+
+def _is_government_buyer(agency: str) -> bool:
+    return _is_central_government_buyer(agency) or _is_local_government_buyer(agency)
+
+
+def _is_public_institution_buyer(agency: str) -> bool:
+    compact = re.sub(r"\s+", "", agency)
+    return bool(
+        any(name.casefold() in compact.casefold() for name in _STATUTORY_DELEGATE_AGENCIES)
+        or compact.startswith("재단법인")
+        or re.search(r"(?:공사|공단|재단|진흥원|정보원|개발원|연구원|연구소|관리원|평가원|기술원|서비스원)$", compact)
+    )
+
+
+_NATIONAL_TASK = re.compile(r"국가\s*(?:위임\s*|수임\s*)?사무|국가로부터\s*위임받은\s*사무")
+_UNCERTAIN_NATIONAL_TASK = re.compile(r"국가\s*(?:위임\s*|수임\s*)?사무.{0,24}(?:여부|확인\s*필요|검토\s*필요|해당하는지|미확인)")
+_NEGATED_NATIONAL_TASK = re.compile(r"비\s*국가\s*사무|국가\s*사무.{0,15}(?:아님|아닌|제외|해당하지)")
+_LOCAL_OWN_TASK = re.compile(r"자치\s*사무|지방정부\s*고유\s*사무|지방자치단체\s*고유\s*사무")
+_DELEGATION = re.compile(r"위탁|위임|수탁|수임|대행")
+_DELEGATING_LABEL = re.compile(r"(?:^|[|])\s*(?:\*\*)?(?:원\s*)?(?:위탁|위임)\s*(?:부처|기관|자|주체)?(?:\*\*)?\s*[:：|]")
+
+
+def _national_task_line(source_text: str) -> str:
+    for raw in _document_text(source_text).splitlines():
+        line = raw.strip()
+        if _NATIONAL_TASK.search(line) and not _NEGATED_NATIONAL_TASK.search(line) and not _UNCERTAIN_NATIONAL_TASK.search(line):
+            return line[:1200]
+    return ""
+
+
+def _delegation_line(source_text: str, national_task_line: str) -> str:
+    """Require project-specific entrustment, not funding, supervision or an approval route."""
+    for raw in _document_text(source_text).splitlines():
+        line = raw.strip()
+        if not line or not _contains_government_entity(line):
+            continue
+        if _DELEGATING_LABEL.search(line):
+            principal = _relationship_value(line)
+            if _is_central_government_buyer(principal) or (
+                _is_local_government_buyer(principal) and national_task_line
+            ):
+                return line[:1200]
+        if national_task_line and _DELEGATION.search(line) and _NATIONAL_TASK.search(line):
+            return line[:1200]
+    return ""
 
 
 def _contains_government_entity(text: str) -> bool:
@@ -331,129 +386,100 @@ def _first_matching_line(
 
 
 def enforce_public_task_policy(model: DeepAnalysis, source_text: str) -> DeepAnalysis:
-    """Infer government work conservatively while preserving an explicit internal-work exclusion."""
+    """Require the actual national duty or project-specific entrustment."""
     agency, resolved_evidence, procurement = _effective_buyer(source_text)
-    if agency and _is_government_buyer(agency):
+    national_line = _national_task_line(source_text)
+
+    if agency and _is_central_government_buyer(agency):
         return model.model_copy(update={
             "task_scope": "government",
-            "task_scope_reason": (
-                "조달 대행기관이 아닌 사업문서의 발주·주관기관 또는 나라장터 실수요기관이 "
-                "중앙부처·지방정부로 확인되어 국가·지방 행정사무로 분류했습니다."
-                if procurement else
-                "발주기관이 중앙부처 또는 지방정부이므로 국가·지방 행정사무로 분류했습니다."
-            ),
+            "task_scope_reason": "조달 대행기관이 아닌 중앙부처 또는 소속기관이 이 사업의 실수요기관입니다.",
             "task_scope_evidence": [resolved_evidence or Evidence(
-                quote=agency, section="발주기관", interpretation="중앙부처·지방정부 직접 발주",
+                quote=agency, section="발주기관", interpretation="중앙부처 직접 수행 국가사무",
             )],
         })
 
-    relationships = _relationship_lines(source_text)
-    government_relationship = next((
-        line for line in relationships
-        if _contains_government_entity(line) or _is_government_buyer(_relationship_value(line))
-    ), None)
-    is_statutory_delegate = bool(
-        agency and any(name.casefold() in agency.casefold() for name in _STATUTORY_DELEGATE_AGENCIES)
-    )
-    # NIA·KLID 등 법정 수탁기관은 자기 기관이 주관기관으로 함께 적혀 있더라도
-    # 이 사업의 중앙부처·지방정부 주무·위탁 관계가 확인되면 국가사무가 우선한다.
-    if is_statutory_delegate and government_relationship:
+    if agency and _is_local_government_buyer(agency):
+        local_task = next((
+            line.strip() for line in _document_text(source_text).splitlines()
+            if _LOCAL_OWN_TASK.search(line)
+        ), "")
+        if local_task:
+            return model.model_copy(update={
+                "task_scope": "non_government",
+                "task_scope_reason": "지방정부 사업이지만 문서에서 지방자치단체 고유의 자치사무로 명시했습니다.",
+                "task_scope_evidence": [Evidence(
+                    quote=local_task[:1200], section="사업문서", interpretation="국가사무가 아닌 자치사무",
+                )],
+            })
+        if national_line:
+            return model.model_copy(update={
+                "task_scope": "government",
+                "task_scope_reason": "지방정부가 수행하는 이 과업의 국가사무 근거를 사업문서에서 확인했습니다.",
+                "task_scope_evidence": [Evidence(
+                    quote=national_line, section="사업문서", interpretation="해당 과업의 국가사무 근거",
+                )],
+            })
+        return model.model_copy(update={
+            "task_scope": "unclear",
+            "task_scope_reason": "지방정부 직접 발주만으로 국가사무인지 확정할 수 없습니다. 해당 과업의 근거 확인이 필요합니다.",
+            "task_scope_evidence": [],
+        })
+
+    if not agency:
+        return model.model_copy(update={
+            "task_scope": "unclear",
+            "task_scope_reason": (
+                "조달 대행기관만 확인되고 실제 발주·주관부서 또는 수요기관이 명확하지 않습니다."
+                if procurement else "실제 발주·주관기관을 확인할 수 없습니다."
+            ),
+            "task_scope_evidence": [],
+        })
+
+    is_public = _is_public_institution_buyer(agency)
+    delegation = _delegation_line(source_text, national_line)
+    if is_public and delegation:
         return model.model_copy(update={
             "task_scope": "delegated_government",
-            "task_scope_reason": "법정 수탁기관 사업에서 중앙부처 또는 지방정부의 주무·위탁 관계를 확인했습니다.",
+            "task_scope_reason": "사업문서에서 해당 공공기관의 국가사무 위임·위탁 관계를 확인했습니다.",
             "task_scope_evidence": [Evidence(
-                quote=government_relationship[:1200], section="공고문·사업문서",
-                interpretation="법정 수탁기관의 중앙부처·지방정부 주무·위탁 관계 근거",
+                quote=delegation, section="사업문서", interpretation="해당 과업의 정부 위임·위탁 근거",
             )],
         })
 
-    internal_work = _first_matching_line(source_text, (
-        r"사내.{0,30}(?:데이터|시스템|업무|행정|사무|직원|서비스|레거시)",
-        r"기관\s*내부|내부\s*(?:업무|직원|임직원|행정|사무|시스템|레거시)",
-        r"임직원|직원용|자체\s*(?:업무|인사|회계|구매|연구|교육|기관\s*운영)",
-        r"사무\s*[·ㆍ]?\s*행정\s*편의",
-    ), "비정부 발주기관의 자체 내부업무 근거")
-    # 모델이 task_scope 코드만 government로 잘못 반환하더라도, 공개 문서가
-    # 사내·임직원용 자체 업무임을 직접 밝히고 정부 주무/위탁 관계가 없으면
-    # 국가사무로 승격하지 않는다.
-    if agency and internal_work and not government_relationship and not is_statutory_delegate:
+    internal_work = _first_matching_line(_document_text(source_text), (
+        r"사내.{0,30}(?:데이터|시스템|업무|직원|레거시)",
+        r"공공기관\s*내부.{0,30}(?:행정사무|업무)",
+        r"임직원|직원용|직원\s*전용",
+        r"자체\s*(?:인사|회계|구매|행정업무|기관\s*운영)",
+    ), "공공기관 자체 내부업무 근거")
+    if is_public and internal_work:
         return model.model_copy(update={
             "task_scope": "public_institution_internal",
-            "task_scope_reason": (
-                "중앙부처·지방정부가 아닌 기관이 발주했고 문서에서 사내·기관 내부업무 목적을 "
-                "확인하여 공공기관 자체 업무로 분류했습니다."
-            ),
+            "task_scope_reason": "공공기관 자체 내부업무이며 이 과업의 국가사무 위임 근거가 없습니다.",
             "task_scope_evidence": [internal_work],
         })
 
-    # 그 밖의 공공기관이 명시적으로 자체 내부업무라고 밝힌 경우는
-    # 기관에 일반적인 소관 부처가 있더라도 국가사무로 확대 추정하지 않는다.
-    if model.task_scope in {"public_institution_internal", "non_government"} and model.task_scope_evidence:
-        return model
-
-    organizer = next((
-        line for line in relationships
-        if re.search(r"주관\s*(?:부처|부서|기관)?\s*[:：]", line, re.IGNORECASE)
-        and _same_organization(agency, _relationship_value(line))
-    ), None)
-    if agency and organizer:
-        return model.model_copy(update={
-            "task_scope": "public_institution_internal",
-            "task_scope_reason": "비정부 공공기관이 발주하고 주관기관도 해당 공공기관으로 명시되어 자체 내부업무로 분류했습니다.",
-            "task_scope_evidence": [Evidence(
-                quote=organizer[:1200], section="공고문·사업문서",
-                interpretation="발주기관과 주관기관이 동일한 공공기관",
-            )],
-        })
-
-    supervising = (
-        Evidence(
-            quote=government_relationship[:1200], section="공고문·사업문서",
-            interpretation="중앙부처·지방정부의 주무·수탁·출연·관련·협조 관계 근거",
-        )
-        if government_relationship else _first_matching_line(source_text, (
-            r"(?:중앙부처|중앙정부|지방정부|지방자치단체|지자체).{0,40}(?:위탁|수탁|대행|소관|주관|감독|출연|협조)",
-            r"(?:위탁|수탁|대행|출연|협조).{0,40}(?:중앙부처|중앙정부|지방정부|지방자치단체|지자체)",
-        ), "중앙부처·지방정부의 소관 또는 위탁 업무 근거")
-    )
-    if supervising:
-        return model.model_copy(update={
-            "task_scope": "delegated_government",
-            "task_scope_reason": "사업 내용에서 중앙부처 또는 지방정부의 주무·수탁·출연·관련·협조 관계를 확인했습니다.",
-            "task_scope_evidence": [supervising],
-        })
-
-    if (
-        not procurement
-        and model.task_scope in {"government", "delegated_government"}
-        and model.task_scope_evidence
-    ):
-        return model
-    if is_statutory_delegate:
+    if is_public:
+        if model.task_scope in {"public_institution_internal", "non_government"}:
+            return model.model_copy(update={
+                "task_scope_reason": (
+                    "해당 과업의 국가사무 위임·위탁 근거가 확인되지 않아 기존의 "
+                    "공공기관 내부업무·비국가사무 판정을 유지합니다."
+                ),
+            })
         return model.model_copy(update={
             "task_scope": "unclear",
-            "task_scope_reason": "법정 국가사무 수탁 가능 기관이지만 이 사업의 중앙부처·지방정부 주무·위탁 관계가 확인되지 않습니다.",
+            "task_scope_reason": "공공기관의 해당 과업이 국가사무를 위임·위탁받았는지 문서만으로 확인되지 않습니다.",
             "task_scope_evidence": [],
         })
-    if agency:
-        evidence = relationships[0] if relationships else agency
-        return model.model_copy(update={
-            "task_scope": "non_government",
-            "task_scope_reason": "비정부 발주기관이며 주무·관련·협조기관에서 중앙부처 또는 지방정부 관계가 확인되지 않아 비국가사무로 분류했습니다.",
-            "task_scope_evidence": [Evidence(
-                quote=evidence[:1200], section="공고문·사업문서" if relationships else "발주기관",
-                interpretation="중앙·지방정부의 주무·위탁 관계가 확인되지 않음",
-            )],
-        })
+
     return model.model_copy(update={
-        "task_scope": "unclear",
-        "task_scope_reason": (
-            "조달 대행기관만 확인되고 사업문서의 실제 발주·주관부서 또는 실수요기관을 확인할 수 없어 "
-            "국가사무 여부를 담당자에게 확인해야 합니다."
-            if procurement else
-            "발주기관과 공개 사업문서만으로 국가사무·위탁사무 여부를 확정할 수 없어 담당자 확인이 필요합니다."
-        ),
-        "task_scope_evidence": [],
+        "task_scope": "non_government",
+        "task_scope_reason": "실제 발주기관이 중앙부처·지방정부가 아니며 이 과업의 국가사무 위임·위탁 근거가 확인되지 않습니다.",
+        "task_scope_evidence": [Evidence(
+            quote=agency, section="발주기관", interpretation="국가사무 수행 또는 위임 근거 없음",
+        )],
     })
 
 
@@ -877,15 +903,21 @@ def _possible_functions(text: str) -> list[str]:
     return [name for name, keywords in mapping.items() if any(key in folded for key in keywords)]
 
 
-def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> DeepAnalysis:
+def enforce_common_platform_gates(
+    model: DeepAnalysis, source_text: str, *, service_scope_override: tuple[str, str] | None = None,
+) -> DeepAnalysis:
     """Derive the final grade from the three mandatory eligibility gates.
 
     The model extracts structured facts and evidence; this deterministic layer
     prevents generic AI/RAG requirements from being promoted to A/B without
     eligible network and public-task evidence.
     """
-    scope_status, scope_reason = evaluate_service_scope(
-        _metadata_value(source_text, "사업명"), source_text,
+    model = model.model_copy(update={"criteria_version": CURRENT_CRITERIA_VERSION})
+    model = enforce_public_task_policy(model, source_text)
+    scope_status, scope_reason = (
+        service_scope_override if service_scope_override is not None else evaluate_service_scope(
+            _metadata_value(source_text, "사업명"), source_text,
+        )
     )
     if scope_status == "non_target":
         conclusion = "정보화 서비스 구축 또는 이를 위한 BPR·ISP·연구용역이 아니므로 검사 비대상으로 분류합니다."
@@ -911,7 +943,6 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
         "service_scope": scope_status,
         "service_scope_reason": scope_reason,
     })
-    model = enforce_public_task_policy(model, source_text)
     model = enforce_closed_network_policy(model, source_text)
     explicit_non_use = bool(_COMMON_PLATFORM_NON_USE.search(source_text))
     explicit_usage = not explicit_non_use and bool(_COMMON_PLATFORM_USAGE.search(source_text))
@@ -993,7 +1024,7 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
     elif explicit_exclusion:
         code, grade, fit, action = "5", "E", "low", "no_action"
         score = min(39, model.priority_score)
-        conclusion = "v6 국가사무 기준상 비국가사무·공공기관 자체 내부업무이거나 외부망 완결 근거가 확인되어 공통기반 직접 활용 대상에서 제외합니다."
+        conclusion = "국가사무 기준상 비국가사무·공공기관 자체 내부업무이거나 외부망 완결 근거가 확인되어 공통기반 직접 활용 대상에서 제외합니다."
     else:
         code = "3"
         grade = "D" if has_unknown_gate else "C"
@@ -1034,7 +1065,7 @@ def enforce_common_platform_gates(model: DeepAnalysis, source_text: str) -> Deep
 
     caveats = list(dict.fromkeys([
         *model.caveats,
-        "중앙부처·지방정부 직접 발주는 국가사무로, 비정부 공공기관은 주관기관 동일 여부와 정부 주무·수탁·출연·관련·협조 관계로 구분했습니다.",
+        "중앙부처 직접 수행, 지방정부의 국가사무 근거, 공공기관의 해당 국가사무 위임·위탁 근거를 각각 확인해야 합니다. 출연·협조·인허가는 위임 근거가 아닙니다.",
         "온프레미스라는 표현만으로 행정망·업무망 연계 여부를 확정하지 않았습니다.",
     ]))
     evidence = list(model.evidence)

@@ -6,7 +6,7 @@ AI가 사업의 핵심 주제이면 교육·연구·행사·감리·학습데이
 
 1. network_scope: 행정망·업무망·내부망 구동 또는 연계는 internal_or_connected, 내외부망 병행은 hybrid, 별도 폐쇄망만 명시되고 행정망·업무망 연계가 없으면 other_closed_network, 인터넷망과 외부 데이터로 완결되면 external_complete, 근거가 없으면 unclear.
 2. model_fit: 일반 챗봇·질의응답·요약·분류·생성·에이전트·문서검색/RAG가 직접 명시되면 platform_llm_or_rag, 독자모델·전용 예측/비전/음성모델·풀파인튜닝이 직접 명시되면 custom_model_or_full_finetuning, 그 외에는 unclear. 단순히 "AI 기반", "AI 자료", "AI 평가"라고만 적힌 문구로 모델 유형을 추정하지 않는다.
-3. task_scope: 공고기관이 조달청·지방조달청이면 그 기관은 조달 대행기관이므로 국가사무 근거로 쓰지 않는다. 사업문서의 발주기관·발주부서·주관기관·주관부서·수요기관을 먼저 확인하고, 없을 때만 입력의 수요기관을 보조 근거로 쓴다. 실제 업무기관이 중앙부처·지방정부 또는 소속기관이면 government다. 비정부 공공기관의 주관부처·주관기관이 실제 업무기관 자신이면 public_institution_internal이다. NIA·KLID 등 법정 수탁 가능 공공기관을 포함해 주무·수탁·출연·관련·협조기관에 중앙부처·지방정부가 확인되면 delegated_government다. 그 밖의 비정부 기관이고 그러한 정부 관계가 없으면 non_government다. 실제 발주·주관·수요기관 또는 관계가 모순되어 확정할 수 없으면 unclear다.
+3. task_scope: 조달청·지방조달청은 조달 대행기관일 수 있으므로 실제 발주·주관·수요기관을 먼저 확인한다. 중앙부처·소속기관 직접 과업은 government다. 지방정부 직접 발주는 사업문서에 이 과업의 국가사무 근거가 있을 때만 government이고, 근거가 없으면 unclear다. 공공기관은 이 과업의 국가사무 위임·위탁 및 위탁 주체가 문서로 확인될 때만 delegated_government다. 주무부처·출연·협조·인허가 관계는 위임이 아니다. 공공기관 직원·인사·회계·구매 등 자체 내부업무는 public_institution_internal, 민간 자체 과업이나 명시적 자치사무는 non_government다. 불확실하면 unclear다.
 
 platform_usage는 범정부 인공지능 공통기반 사용·연계가 직접 명시되면 uses, 사용하지 않는다고 명시되면 not_used, 언급이 없으면 not_mentioned, 모순되면 unclear다.
 

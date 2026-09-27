@@ -73,7 +73,7 @@ class CompactDeepAnalysis(BaseModel):
 
 
 class DeepAnalysis(BaseModel):
-    criteria_version: Literal["common-platform-v7-service-construction-scope"] = "common-platform-v7-service-construction-scope"
+    criteria_version: Literal["common-platform-v7-service-construction-scope", "common-platform-v8-national-task-evidence"] = "common-platform-v8-national-task-evidence"
     service_scope: Literal["target", "non_target", "unclear"] = "unclear"
     service_scope_reason: str = Field(default="", max_length=1500)
     classification_code: Literal["1", "2", "3", "4", "5", "6"]

@@ -1,6 +1,7 @@
 from dataclasses import replace
 from datetime import datetime, timezone
 
+import httpx
 import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
@@ -187,6 +188,31 @@ async def test_g2b_encoded_key_is_decoded_once(monkeypatch):
     monkeypatch.setattr("app.services.g2b_client.httpx.AsyncClient", Client)
     await collector.G2BClient(settings)._request("https://example.com", "operation", {})
     assert captured["serviceKey"] == "abc/def+ghi="
+
+
+@pytest.mark.asyncio
+async def test_g2b_rate_limit_is_not_retried_immediately(monkeypatch):
+    settings = replace(get_settings(), g2b_service_key="test-key")
+    calls = []
+
+    class Client:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def get(self, url, params):
+            calls.append(url)
+            return httpx.Response(429, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr("app.services.g2b_client.httpx.AsyncClient", Client)
+    with pytest.raises(RuntimeError, match="HTTP 429"):
+        await collector.G2BClient(settings)._request("https://example.com", "operation", {})
+    assert len(calls) == 1
 
 
 def test_g2b_current_items_array_shape_is_supported():

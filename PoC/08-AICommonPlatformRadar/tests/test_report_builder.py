@@ -57,7 +57,7 @@ def _seed(db: Session, *, failed: int = 0):
                     status="success", result_json='{"needs_deep_review":true}', created_at=now),
         AnalysisRun(run_type="deep_ai", model_name="test-large", input_hash="d" * 64,
                     status="success",
-                    result_json='{"criteria_version":"common-platform-v7-service-construction-scope","classification_code":"2","final_grade":"B","guidance_message":"본공고에 공통기반 활용 범위를 반영해 주시기 바랍니다."}',
+                    result_json='{"criteria_version":"common-platform-v8-national-task-evidence","classification_code":"2","final_grade":"B","guidance_message":"본공고에 공통기반 활용 범위를 반영해 주시기 바랍니다."}',
                     created_at=now),
     ])
     db.add_all([run, notice])

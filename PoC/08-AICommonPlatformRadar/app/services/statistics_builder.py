@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from ..models import AnalysisRun, Attachment, AuditLog, Notice
-from .analyzer import is_current_deep_result
+from .analyzer import CURRENT_CRITERIA_VERSION, is_current_deep_result
 from .attachment_policy import select_preferred_documents
 from .ineligible_reasons import (
     INELIGIBLE_DETAIL_META, INELIGIBLE_IMPROVEMENT_META, INELIGIBLE_REASON_META,
@@ -31,6 +31,14 @@ REVIEW_REASON_META = (
     ("national_task", "국가사무 확인", "#b06c62"),
     ("model", "모델·구현 확인", "#777bb5"),
 )
+
+# 성과 전환은 과거 조치 전 상태와 현재 확정 상태를 비교한다. 현재 판정은 v8만
+# 인정하되, 성과 이력에서는 v7 당시의 검토 필요·미적용 근거를 보존한다.
+ACHIEVEMENT_HISTORY_VERSIONS = {
+    "common-platform-v7-service-construction-scope", CURRENT_CRITERIA_VERSION,
+}
+
+
 def _percent(numerator: int, denominator: int) -> float:
     return round(numerator / denominator * 100, 1) if denominator else 0.0
 
@@ -82,7 +90,7 @@ def _history_codes(notice: Notice) -> set[str]:
             continue
         payload = json_object(run.result_json)
         code = str(payload.get("classification_code") or "")
-        if code and is_current_deep_result(run.result_json):
+        if code and payload.get("criteria_version") in ACHIEVEMENT_HISTORY_VERSIONS:
             codes.add(code)
     return codes
 
@@ -92,8 +100,8 @@ def _history_results(notice: Notice) -> list[dict[str, Any]]:
         payload
         for run in notice.analysis_runs
         if run.run_type == "deep_ai" and run.status in {"success", "skipped"}
-        and is_current_deep_result(run.result_json)
-        if (payload := json_object(run.result_json))
+        and (payload := json_object(run.result_json)).get("criteria_version") in ACHIEVEMENT_HISTORY_VERSIONS
+        if payload
     ]
 
 

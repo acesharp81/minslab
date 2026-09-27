@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import re
 from datetime import datetime, timedelta, timezone
@@ -162,6 +161,51 @@ def _submission_record(log: AuditLog | None) -> dict[str, Any]:
     }
 
 
+def _is_rate_limited(error: BaseException) -> bool:
+    return "HTTP 429" in str(error)
+
+
+def _failure_tracking(
+    previous: dict[str, Any], submission: dict[str, Any], error: BaseException,
+    *, attempted_at: str | None = None,
+) -> dict[str, Any]:
+    """Keep confirmed reply state while recording a temporary lookup failure."""
+    limited = _is_rate_limited(error)
+    tracking = dict(previous)
+    if not (previous.get("status") in {
+        "replied", "submitted_waiting", "submitted_unverified", "unmatched",
+    }):
+        tracking.pop("checked_at", None)
+        tracking.update(
+            status="rate_limited" if limited else "error",
+            status_label=(
+                "나라장터 조회 제한 · 재시도 대기" if limited
+                else "나라장터 조회 오류 · 재시도 대기"
+            ),
+        )
+    tracking["last_attempt_at"] = attempted_at or datetime.now(timezone.utc).isoformat()
+    tracking["last_check_error"] = "rate_limited" if limited else type(error).__name__
+    tracking["detail"] = (
+        "나라장터 API가 일시적으로 요청을 제한했습니다. 답변이 없다는 뜻이 아니며 자동으로 재시도합니다."
+        if limited else "나라장터 답변 조회 중 일시적인 오류가 발생했습니다. 자동으로 재시도합니다."
+    )
+    if submission.get("recorded") or previous.get("submitted_at"):
+        tracking["submitted_at"] = str(previous.get("submitted_at") or submission.get("submitted_at") or "")
+    if submission.get("submitted_content") and not tracking.get("submitted_content"):
+        tracking["submitted_content"] = submission["submitted_content"]
+    has_submission = bool(
+        submission.get("recorded")
+        or tracking.get("submitted_at")
+        or tracking.get("matched_opinion_no")
+        or previous.get("status") in {"replied", "submitted_waiting"}
+    )
+    if not has_submission:
+        tracking["status"] = "not_submitted"
+        tracking["status_label"] = "의견 등록 기록 없음"
+        tracking["detail"] = "이 서비스에 의견 등록 완료 기록이 없어 답변 여부를 확정할 수 없습니다."
+    return tracking
+
+
 async def refresh_notice_opinions(
     db: Session, notice: Notice, *, client: G2BClient | None = None,
 ) -> dict[str, Any]:
@@ -169,13 +213,20 @@ async def refresh_notice_opinions(
         raise ValueError("사전규격 공고만 의견 답변을 확인할 수 있습니다.")
     payload = json_object(notice.raw_payload_json)
     registration_no = str(payload.get("bfSpecRgstNo") or notice.notice_no or "").strip()
-    rows = await (client or G2BClient()).prenotice_opinions(registration_no)
     log = db.scalar(select(AuditLog).where(
         AuditLog.event_type == "opinion_submitted",
         AuditLog.entity_type == "action_item",
         AuditLog.entity_id == str(notice.action.id if notice.action else ""),
     ).order_by(AuditLog.id.desc()).limit(1))
-    tracking = _tracking_result(notice, rows, submission=_submission_record(log))
+    submission = _submission_record(log)
+    try:
+        rows = await (client or G2BClient()).prenotice_opinions(registration_no)
+    except RuntimeError as exc:
+        if not _is_rate_limited(exc):
+            raise
+        tracking = _failure_tracking(cached_opinion_tracking(notice), submission, exc)
+    else:
+        tracking = _tracking_result(notice, rows, submission=submission)
     _store_tracking(db, notice, tracking)
     db.commit()
     return tracking
@@ -200,9 +251,17 @@ async def refresh_tracked_opinions(db: Session) -> dict[str, int]:
 
 
 def _checked_within(notice: Notice, interval: timedelta | None) -> bool:
-    if not interval:
-        return False
-    raw = str(cached_opinion_tracking(notice).get("checked_at") or "")
+    tracking = cached_opinion_tracking(notice)
+    if tracking.get("last_check_error") == "rate_limited" or tracking.get("status") == "rate_limited":
+        interval = max(interval or timedelta(0), timedelta(hours=2))
+        raw = str(tracking.get("last_attempt_at") or tracking.get("checked_at") or "")
+    elif tracking.get("status") == "error":
+        interval = max(interval or timedelta(0), timedelta(minutes=15))
+        raw = str(tracking.get("last_attempt_at") or tracking.get("checked_at") or "")
+    else:
+        if not interval:
+            return False
+        raw = str(tracking.get("checked_at") or "")
     try:
         checked_at = datetime.fromisoformat(raw.replace("Z", "+00:00"))
     except ValueError:
@@ -232,48 +291,61 @@ async def refresh_tracked_opinions_cached(
         AuditLog.entity_id.in_(action_ids),
     ).order_by(AuditLog.id)).all() if action_ids else []
     submissions = {log.entity_id: _submission_record(log) for log in submitted_logs}
-    pending: list[tuple[Notice, dict[str, Any], str]] = []
+    pending: list[tuple[Notice, dict[str, Any], str, dict[str, Any]]] = []
+    dirty = False
     for notice in notices:
+        previous = cached_opinion_tracking(notice)
+        submission = submissions.get(str(notice.action.id), {})
+        # 조치중이라는 상태만으로 나라장터 의견 등록을 추정하지 않는다.
+        if not (submission.get("recorded") or previous.get("submitted_at") or previous.get("matched_opinion_no")):
+            if previous.get("status") != "not_submitted" or previous.get("status_label") != "의견 등록 기록 없음":
+                _store_tracking(db, notice, {
+                    "status": "not_submitted", "status_label": "의견 등록 기록 없음",
+                    "detail": "이 서비스에 의견 등록 완료 기록이 없어 자동 답변 조회 대상이 아닙니다.",
+                })
+                dirty = True
+                stats["changed"] += 1
+            stats["skipped"] += 1
+            continue
+        if previous.get("status") == "error" and "HTTP 429" in str(previous.get("detail") or ""):
+            tracking = _failure_tracking(
+                previous, submission, RuntimeError("G2B 호출 실패: HTTP 429"),
+                attempted_at=str(previous.get("checked_at") or "") or None,
+            )
+            _store_tracking(db, notice, tracking)
+            previous = tracking
+            dirty = True
+            stats["changed"] += 1
         if _checked_within(notice, min_interval):
             stats["skipped"] += 1
             continue
         payload = json_object(notice.raw_payload_json)
         registration_no = str(payload.get("bfSpecRgstNo") or notice.notice_no or "").strip()
-        pending.append((notice, cached_opinion_tracking(notice), registration_no))
+        pending.append((notice, previous, registration_no, submission))
 
-    # Network waits dominate this job. Bound concurrency to avoid flooding G2B,
-    # and keep all SQLAlchemy access outside concurrent coroutines.
-    semaphore = asyncio.Semaphore(3)
-
-    async def fetch(registration_no: str):
-        async with semaphore:
-            return await client.prenotice_opinions(registration_no)
-
-    results = await asyncio.gather(
-        *(fetch(registration_no) for _, _, registration_no in pending),
-        return_exceptions=True,
-    )
-    for (notice, previous, _), result in zip(pending, results):
-        if not isinstance(result, BaseException):
-            tracking = _tracking_result(
-                notice, result, submission=submissions.get(str(notice.action.id)),
-            )
-            _store_tracking(db, notice, tracking)
-            stats["checked"] += 1
-            stats["replied"] += int(tracking.get("status") == "replied")
-            stats["changed"] += int(
-                tracking.get("status") != previous.get("status")
-                or tracking.get("matched_reply_count") != previous.get("matched_reply_count")
-            )
+    # 429가 나오면 같은 배치의 나머지 요청은 보내지 않고 다음 주기로 미룬다.
+    throttled = False
+    for notice, previous, registration_no, submission in pending:
+        if throttled:
+            tracking = _failure_tracking(previous, submission, RuntimeError("G2B 호출 실패: HTTP 429"))
+            stats["skipped"] += 1
         else:
-            stats["failed"] += 1
-            tracking = {
-                "checked_at": datetime.now(timezone.utc).isoformat(),
-                "status": "error",
-                "status_label": "답변 확인 실패",
-                "detail": f"{type(result).__name__}: {str(result)[:300]}",
-            }
-            _store_tracking(db, notice, tracking)
-    if pending:
+            try:
+                rows = await client.prenotice_opinions(registration_no)
+            except Exception as exc:
+                tracking = _failure_tracking(previous, submission, exc)
+                stats["failed"] += 1
+                throttled = _is_rate_limited(exc)
+            else:
+                tracking = _tracking_result(notice, rows, submission=submission)
+                stats["checked"] += 1
+                stats["replied"] += int(tracking.get("status") == "replied")
+        _store_tracking(db, notice, tracking)
+        dirty = True
+        stats["changed"] += int(
+            tracking.get("status") != previous.get("status")
+            or tracking.get("matched_reply_count") != previous.get("matched_reply_count")
+        )
+    if dirty:
         db.commit()
     return stats

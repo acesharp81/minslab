@@ -101,7 +101,7 @@ def test_legacy_deep_result_is_marked_for_criteria_refresh():
     notice.analysis_runs.append(AnalysisRun(
         run_type="deep_ai", model_name="new-model", input_hash="n" * 64,
         status="success",
-        result_json='{"criteria_version":"common-platform-v7-service-construction-scope","classification_code":"5","final_grade":"E"}',
+        result_json='{"criteria_version":"common-platform-v8-national-task-evidence","classification_code":"5","final_grade":"E"}',
     ))
     assert analysis_view(notice)["key"] == "deep_completed"
     assert _needs_backlog_analysis(notice) is False
@@ -125,7 +125,7 @@ def test_legacy_rule_gate_result_is_requeued_but_current_rule_gate_is_screened_o
         run_type="deep_ai", model_name="rule-gate", input_hash="c" * 64,
         status="skipped",
         result_json=(
-            '{"criteria_version":"common-platform-v7-service-construction-scope",'
+            '{"criteria_version":"common-platform-v8-national-task-evidence",'
             '"classification_code":"6","final_grade":"F"}'
         ),
     ))
@@ -143,7 +143,7 @@ def test_classification_code_filter():
             notice.analysis_runs.append(AnalysisRun(
                 run_type="deep_ai", model_name="model", input_hash=code * 64, status="success",
                 result_json=json.dumps({
-                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "criteria_version": "common-platform-v8-national-task-evidence",
                     "classification_code": code,
                 }),
             ))
@@ -164,7 +164,7 @@ def test_scope_out_legacy_result_is_presented_and_filtered_as_non_ai_service():
         notice.analysis_runs.append(AnalysisRun(
             run_type="deep_ai", model_name="model", input_hash="z" * 64, status="success",
             result_json=json.dumps({
-                "criteria_version": "common-platform-v7-service-construction-scope",
+                "criteria_version": "common-platform-v8-national-task-evidence",
                 "classification_code": "5", "service_scope": "non_target",
             }),
         ))
@@ -190,14 +190,14 @@ def test_classification_filter_uses_latest_result_and_rejects_later_simple_run()
             AnalysisRun(
                 run_type="deep_ai", model_name="model", input_hash="a" * 64,
                 status="success", result_json=json.dumps({
-                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "criteria_version": "common-platform-v8-national-task-evidence",
                     "classification_code": "2",
                 }),
             ),
             AnalysisRun(
                 run_type="deep_ai", model_name="model", input_hash="b" * 64,
                 status="success", result_json=json.dumps({
-                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "criteria_version": "common-platform-v8-national-task-evidence",
                     "classification_code": "5",
                 }),
             ),
@@ -209,7 +209,7 @@ def test_classification_filter_uses_latest_result_and_rejects_later_simple_run()
             AnalysisRun(
                 run_type="deep_ai", model_name="model", input_hash="c" * 64,
                 status="success", result_json=json.dumps({
-                    "criteria_version": "common-platform-v7-service-construction-scope",
+                    "criteria_version": "common-platform-v8-national-task-evidence",
                     "classification_code": "2",
                 }),
             ),
@@ -283,7 +283,7 @@ def test_analysis_status_filters_distinguish_legacy_and_current_rule_gates():
         current.analysis_runs.append(AnalysisRun(
             run_type="deep_ai", model_name="rule-gate", input_hash="c" * 64, status="skipped",
             result_json=json.dumps({
-                "criteria_version": "common-platform-v7-service-construction-scope",
+                "criteria_version": "common-platform-v8-national-task-evidence",
                 "classification_code": "6",
             }),
         ))

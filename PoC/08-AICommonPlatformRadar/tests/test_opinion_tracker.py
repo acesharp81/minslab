@@ -1,7 +1,7 @@
 import asyncio
 import json
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -10,7 +10,7 @@ from app.db import Base
 from app.models import ActionItem, AnalysisRun, AuditLog, Notice
 from app.services.analyzer import CURRENT_CRITERIA_VERSION
 from app.services.g2b_client import G2BClient
-from app.services.opinion_tracker import _tracking_result, refresh_tracked_opinions_cached
+from app.services.opinion_tracker import _failure_tracking, _tracking_result, refresh_notice_opinions, refresh_tracked_opinions_cached
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -159,6 +159,12 @@ def test_dashboard_refresh_detects_reply_and_reuses_recent_check():
         notice = _notice()
         notice.action.status = "in_progress"
         db.add(notice)
+        db.flush()
+        db.add(AuditLog(
+            event_type="opinion_submitted", entity_type="action_item",
+            entity_id=str(notice.action.id),
+            detail_json=json.dumps({"opinion_content": root["opninCntnts"]}),
+        ))
         db.commit()
 
         first = asyncio.run(refresh_tracked_opinions_cached(
@@ -175,3 +181,156 @@ def test_dashboard_refresh_detects_reply_and_reuses_recent_check():
     assert second["skipped"] == 1
     assert client.calls == 1
     assert tracking["status"] == "replied"
+
+
+def test_unregistered_action_does_not_call_g2b_or_show_reply_failure():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    class Client:
+        calls = 0
+
+        async def prenotice_opinions(self, _registration_no):
+            self.calls += 1
+            raise AssertionError("등록 의견이 없는 공고는 조회하면 안 됩니다")
+
+    client = Client()
+    with Session(engine) as db:
+        notice = Notice(
+            stage="prenotice", notice_no="R26BD100", agency_name="기관", title="AI 사업",
+            raw_payload_json=json.dumps({"_poc08_opinion_tracking": {
+                "status": "error", "status_label": "답변 확인 실패",
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "detail": "RuntimeError: G2B 호출 실패: HTTP 429",
+            }}),
+        )
+        notice.action = ActionItem(status="completed_ineligible")
+        db.add(notice)
+        db.commit()
+
+        stats = asyncio.run(refresh_tracked_opinions_cached(db, client=client))
+        tracking = json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"]
+
+    assert client.calls == 0
+    assert stats["skipped"] == 1
+    assert tracking["status"] == "not_submitted"
+    assert tracking["status_label"] == "의견 등록 기록 없음"
+
+
+def test_rate_limit_stops_batch_and_cools_down_registered_opinions():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    class Client:
+        calls = 0
+
+        async def prenotice_opinions(self, _registration_no):
+            self.calls += 1
+            raise RuntimeError("G2B 호출 실패: HTTP 429")
+
+    client = Client()
+    with Session(engine) as db:
+        notices = []
+        for suffix in ("1", "2"):
+            notice = Notice(
+                stage="prenotice", notice_no=f"R26BD20{suffix}",
+                agency_name="기관", title="AI 사업",
+            )
+            notice.action = ActionItem(status="in_progress")
+            db.add(notice)
+            db.flush()
+            db.add(AuditLog(
+                event_type="opinion_submitted", entity_type="action_item",
+                entity_id=str(notice.action.id),
+                detail_json=json.dumps({"opinion_content": "공통기반 활용 검토 바랍니다."}),
+            ))
+            notices.append(notice)
+        db.commit()
+
+        first = asyncio.run(refresh_tracked_opinions_cached(db, client=client))
+        second = asyncio.run(refresh_tracked_opinions_cached(db, client=client))
+        tracking = [json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"] for notice in notices]
+
+    assert client.calls == 1
+    assert first["failed"] == 1
+    assert first["skipped"] == 1
+    assert second["skipped"] == 2
+    assert all(item["status"] == "rate_limited" for item in tracking)
+    assert all(item["submitted_at"] and "답변이 없다는 뜻이 아니" in item["detail"] for item in tracking)
+
+
+def test_old_429_error_is_relabelled_without_immediate_retry():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    class Client:
+        calls = 0
+
+        async def prenotice_opinions(self, _registration_no):
+            self.calls += 1
+            raise AssertionError("429 직후에는 재시도하면 안 됩니다")
+
+    client = Client()
+    with Session(engine) as db:
+        notice = Notice(
+            stage="prenotice", notice_no="R26BD300", agency_name="기관", title="AI 사업",
+            raw_payload_json=json.dumps({"_poc08_opinion_tracking": {
+                "status": "error", "status_label": "답변 확인 실패",
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "detail": "RuntimeError: G2B 호출 실패: HTTP 429",
+            }}),
+        )
+        notice.action = ActionItem(status="in_progress")
+        db.add(notice)
+        db.flush()
+        db.add(AuditLog(
+            event_type="opinion_submitted", entity_type="action_item",
+            entity_id=str(notice.action.id), detail_json="{}",
+        ))
+        db.commit()
+
+        stats = asyncio.run(refresh_tracked_opinions_cached(db, client=client))
+        tracking = json.loads(notice.raw_payload_json)["_poc08_opinion_tracking"]
+
+    assert client.calls == 0
+    assert stats["skipped"] == 1
+    assert tracking["status"] == "rate_limited"
+    assert tracking["submitted_at"]
+
+
+def test_verified_reply_is_preserved_during_rate_limit():
+    previous = {
+        "status": "replied", "status_label": "답변 등록 1건",
+        "checked_at": "2026-09-24T01:00:00+00:00",
+        "matched_reply_count": 1, "latest_reply_content": "반영하겠습니다.",
+    }
+    tracking = _failure_tracking(previous, {}, RuntimeError("G2B 호출 실패: HTTP 429"))
+
+    assert tracking["status"] == "replied"
+    assert tracking["latest_reply_content"] == "반영하겠습니다."
+    assert tracking["last_check_error"] == "rate_limited"
+
+
+def test_manual_refresh_returns_rate_limit_state_instead_of_502():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    class Client:
+        async def prenotice_opinions(self, _registration_no):
+            raise RuntimeError("G2B 호출 실패: HTTP 429")
+
+    with Session(engine) as db:
+        notice = Notice(stage="prenotice", notice_no="R26BD400", agency_name="기관", title="AI 사업")
+        notice.action = ActionItem(status="in_progress")
+        db.add(notice)
+        db.flush()
+        db.add(AuditLog(
+            event_type="opinion_submitted", entity_type="action_item",
+            entity_id=str(notice.action.id), detail_json="{}",
+        ))
+        db.commit()
+
+        tracking = asyncio.run(refresh_notice_opinions(db, notice, client=Client()))
+
+    assert tracking["status"] == "rate_limited"
+    assert tracking["submitted_at"]

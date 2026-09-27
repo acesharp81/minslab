@@ -185,34 +185,41 @@ def test_generic_rag_cannot_be_b_when_public_task_is_unclear():
     assert rerun.summary.count("공개 문서의 미확인 항목은") == 1
 
 
-@pytest.mark.parametrize("agency", [
-    "행정안전부",
-    "문화체육관광부 국립민속박물관",
-    "서울특별시",
-    "경기도 수원시",
-    "수원시",
-    "강남구",
-    "부산광역시교육청",
-])
-def test_central_or_local_government_buyer_is_government_work(agency):
+@pytest.mark.parametrize("agency", ["행정안전부", "문화체육관광부 국립민속박물관"])
+def test_central_government_buyer_is_government_work(agency):
     source = f"기관: {agency}\n\n추출 본문:\n업무망에서 질의응답 서비스를 구축한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="unclear", model_fit="platform_llm_or_rag",
     )
-
     guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
-
     assert guarded.task_scope == "government"
     assert guarded.classification_code == "2"
     assert guarded.task_scope_evidence[0].section == "발주기관"
-    assert not any("국가사무" in question for question in guarded.check_questions)
+
+
+@pytest.mark.parametrize("agency", [
+    "서울특별시", "경기도 수원시", "수원시", "강남구", "부산광역시교육청",
+])
+def test_local_government_buyer_requires_national_task_evidence(agency):
+    source = f"기관: {agency}\n\n추출 본문:\n업무망에서 질의응답 서비스를 구축한다"
+    model = _gated_payload(
+        source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
+    )
+    guarded = enforce_common_platform_gates(model, source)
+    assert guarded.task_scope == "unclear"
+    assert guarded.classification_code == "3"
+
+    documented = source + "\n이 사업은 국가사무를 수행한다."
+    confirmed = enforce_common_platform_gates(model, documented)
+    assert confirmed.task_scope == "government"
+    assert confirmed.classification_code == "2"
 
 
 def test_procurement_office_uses_document_governing_agency():
     source = (
         "기관: 조달청 서울지방조달청\n"
         "수요기관: 경기도 안양시\n공고기관: 조달청 서울지방조달청\n\n추출 본문:\n"
-        "| 주관기관 | 경기도 안양시 AI정책과 |\n"
+        "| 주관기관 | 경기도 안양시 AI정책과 |\n이 사업은 국가사무를 수행한다.\n"
         "업무망에서 질의응답 서비스를 구축한다"
     )
     model = _gated_payload(
@@ -224,7 +231,7 @@ def test_procurement_office_uses_document_governing_agency():
     assert guarded.task_scope == "government"
     assert guarded.classification_code == "2"
     assert guarded.task_scope_evidence[0].section == "사업문서"
-    assert "조달 대행기관" in guarded.task_scope_reason
+    assert "국가사무 근거" in guarded.task_scope_reason
 
 
 def test_procurement_office_without_real_buyer_is_not_government_evidence():
@@ -247,39 +254,80 @@ def test_procurement_office_without_real_buyer_is_not_government_evidence():
     assert "실제 발주·주관부서" in guarded.task_scope_reason
 
 
-def test_public_institution_with_supervising_ministry_is_delegated_government_work():
+def test_supervising_ministry_alone_does_not_prove_delegation():
     source = (
         "기관: 한국공공서비스원\n\n추출 본문:\n"
         "주무부처: 보건복지부\n업무망에서 질의응답 서비스를 구축한다"
     )
     model = _gated_payload(
+        source, network="internal_or_connected", task="delegated_government", model_fit="platform_llm_or_rag",
+    )
+    guarded = enforce_common_platform_gates(model, source)
+    assert guarded.task_scope == "unclear"
+    assert guarded.classification_code == "3"
+
+
+def test_project_specific_central_delegation_is_eligible():
+    source = (
+        "기관: 한국공공서비스원\n\n추출 본문:\n"
+        "위탁기관: 보건복지부\n업무망에서 질의응답 서비스를 구축한다"
+    )
+    model = _gated_payload(
         source, network="internal_or_connected", task="unclear", model_fit="platform_llm_or_rag",
     )
-
     guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
-
     assert guarded.task_scope == "delegated_government"
     assert guarded.classification_code == "2"
 
 
-def test_other_public_institution_without_government_relationship_is_non_government():
+def test_public_institution_without_project_delegation_remains_unclear():
     source = "기관: 한국공공서비스원\n\n추출 본문:\n업무망에서 질의응답 서비스를 구축한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="unclear", model_fit="platform_llm_or_rag",
     )
-
     guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
+    assert guarded.task_scope == "unclear"
+    assert guarded.eligibility == "uncertain"
+    assert guarded.classification_code == "3"
 
+
+def test_public_institution_existing_exclusion_is_not_promoted_without_delegation():
+    source = "기관: 한국산업단지공단\n추출 본문:\n업무망에서 행정사무 질의응답 서비스를 구축한다"
+    model = _gated_payload(
+        source, network="internal_or_connected", task="non_government",
+        model_fit="platform_llm_or_rag",
+    )
+    guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
     assert guarded.task_scope == "non_government"
-    assert guarded.eligibility == "ineligible"
     assert guarded.classification_code == "5"
-    assert guarded.recommended_action == "no_action"
+
+
+def test_public_research_institute_branch_needs_project_delegation():
+    source = (
+        "기관: 한국해양과학기술원 부설 선박해양플랜트연구소\n추출 본문:\n"
+        "업무망에서 행정사무 질의응답 서비스를 구축한다"
+    )
+    model = _gated_payload(
+        source, network="internal_or_connected", task="delegated_government",
+        model_fit="platform_llm_or_rag",
+    )
+    guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
+    assert guarded.task_scope == "unclear"
+    assert guarded.classification_code == "3"
+
+
+def test_private_school_office_is_not_government_buyer():
+    source = "기관: 애니라이트스쿨 평택대표사무소\n추출 본문:\n업무망에서 행정사무 질의응답 서비스를 구축한다"
+    model = _gated_payload(source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag")
+    guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
+    assert guarded.task_scope == "non_government"
+    assert guarded.classification_code == "5"
 
 
 def test_public_institution_self_sponsored_work_is_internal_work():
     source = (
         "기관: 한국공공서비스원\n\n추출 본문:\n"
-        "주관기관: 한국공공서비스원\n업무망에서 질의응답 서비스를 구축한다"
+        "주관기관: 한국공공서비스원\n기관 내부 직원용 업무망 질의응답 서비스를 구축한다"
     )
     model = _gated_payload(
         source, network="internal_or_connected", task="unclear", model_fit="platform_llm_or_rag",
@@ -289,7 +337,7 @@ def test_public_institution_self_sponsored_work_is_internal_work():
 
     assert guarded.task_scope == "public_institution_internal"
     assert guarded.classification_code == "5"
-    assert "발주기관과 주관기관이 동일" in guarded.task_scope_evidence[0].interpretation
+    assert "내부업무" in guarded.task_scope_evidence[0].interpretation
 
 
 def test_public_institution_internal_evidence_overrides_wrong_government_enum():
@@ -322,26 +370,24 @@ def test_public_institution_internal_evidence_overrides_wrong_government_enum():
 
 
 @pytest.mark.parametrize("agency", ["한국지능정보사회진흥원(NIA)", "한국지역정보개발원(KLID)"])
-def test_statutory_delegate_with_central_ministry_is_delegated_government(agency):
+def test_statutory_delegate_with_only_supervising_ministry_remains_unclear(agency):
     source = (
         f"기관: {agency}\n\n추출 본문:\n"
         "주무부처: 행정안전부\n업무망에서 질의응답 서비스를 구축한다"
     )
     model = _gated_payload(
-        source, network="internal_or_connected", task="unclear", model_fit="platform_llm_or_rag",
+        source, network="internal_or_connected", task="delegated_government", model_fit="platform_llm_or_rag",
     )
-
-    guarded = enforce_common_platform_gates(validate_grounded(model, source), source)
-
-    assert guarded.task_scope == "delegated_government"
-    assert guarded.classification_code == "2"
+    guarded = enforce_common_platform_gates(model, source)
+    assert guarded.task_scope == "unclear"
+    assert guarded.classification_code == "3"
 
 
 @pytest.mark.parametrize("agency", ["한국지능정보사회진흥원(NIA)", "한국지역정보개발원(KLID)"])
 def test_statutory_delegate_government_relation_overrides_self_sponsor(agency):
     source = (
         f"기관: {agency}\n\n추출 본문:\n"
-        f"주관기관: {agency}\n주무부처: 행정안전부\n"
+        f"주관기관: {agency}\n위탁기관: 행정안전부\n"
         "업무망에서 질의응답 서비스를 구축한다"
     )
     model = _gated_payload(
@@ -358,7 +404,7 @@ def test_statutory_delegate_government_relation_overrides_self_sponsor(agency):
 
     assert guarded.task_scope == "delegated_government"
     assert guarded.classification_code == "2"
-    assert "법정 수탁기관" in guarded.task_scope_reason
+    assert "위임·위탁" in guarded.task_scope_reason
 
 
 def test_statutory_delegate_without_ministry_relationship_remains_unclear():
@@ -408,7 +454,7 @@ def test_full_finetuning_is_contact_for_public_model_substitution():
 
 
 def test_all_gates_without_usage_maps_to_b():
-    source = "업무망에서 행정사무 질의응답 서비스를 제공한다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망에서 행정사무 질의응답 서비스를 제공한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
     )
@@ -427,7 +473,7 @@ def test_all_gates_without_usage_maps_to_b():
 
 
 def test_rule_regrade_to_actionable_grade_promotes_gate_evidence():
-    source = "업무망에서 행정사무 질의응답 서비스를 제공한다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망에서 행정사무 질의응답 서비스를 제공한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
     ).model_copy(update={"final_grade": "E", "evidence": []})
@@ -437,7 +483,7 @@ def test_rule_regrade_to_actionable_grade_promotes_gate_evidence():
 
 
 def test_all_gates_with_explicit_usage_maps_to_a():
-    source = "업무망에서 행정사무 질의응답을 위해 범정부 인공지능 공통기반을 활용한다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망에서 행정사무 질의응답을 위해 범정부 인공지능 공통기반을 활용한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
     )
@@ -448,7 +494,7 @@ def test_all_gates_with_explicit_usage_maps_to_a():
 
 
 def test_usage_review_phrase_is_not_treated_as_actual_use():
-    source = "업무망 행정사무 질의응답에서 범정부 인공지능 공통기반 활용 여부를 검토한다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망 행정사무 질의응답에서 범정부 인공지능 공통기반 활용 여부를 검토한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
     )
@@ -459,6 +505,7 @@ def test_usage_review_phrase_is_not_treated_as_actual_use():
 
 def test_optional_government_ai_platform_stays_category_two_with_priority_review():
     source = (
+        "기관: 행정안전부\n추출 본문:\n"
         "업무망에서 행정사무 질의응답을 제공한다. "
         "기존 유휴장비 활용, 범정부 AI 플랫폼 활용, 경량화 모델 활용 등 "
         "실현 가능한 인프라 구성 방안을 제시한다."
@@ -483,7 +530,7 @@ def test_optional_government_ai_platform_stays_category_two_with_priority_review
 
 
 def test_explicit_non_use_is_distinct_from_missing_phrase():
-    source = "업무망 행정사무 질의응답에서 범정부 인공지능 공통기반을 사용하지 않는다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망 행정사무 질의응답에서 범정부 인공지능 공통기반을 사용하지 않는다"
     model = _gated_payload(
         source, network="internal_or_connected", task="government", model_fit="platform_llm_or_rag",
     )
@@ -494,7 +541,7 @@ def test_explicit_non_use_is_distinct_from_missing_phrase():
 
 
 def test_public_institution_internal_work_maps_to_e():
-    source = "업무망에서 공공기관 내부 행정사무 질의응답 서비스를 제공한다"
+    source = "기관: 한국공공서비스원\n추출 본문:\n업무망에서 공공기관 내부 행정사무 질의응답 서비스를 제공한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="public_institution_internal",
         model_fit="platform_llm_or_rag",
@@ -506,7 +553,7 @@ def test_public_institution_internal_work_maps_to_e():
 
 
 def test_custom_model_with_proven_switchability_maps_to_category_3():
-    source = "업무망의 행정사무 질의응답에 독자 모델을 적용하되 제공 모델로 교체할 수 있다"
+    source = "기관: 행정안전부\n추출 본문:\n업무망의 행정사무 질의응답에 독자 모델을 적용하되 제공 모델로 교체할 수 있다"
     base = _gated_payload(
         source, network="internal_or_connected", task="government",
         model_fit="custom_model_or_full_finetuning",
@@ -524,7 +571,7 @@ def test_custom_model_with_proven_switchability_maps_to_category_3():
 
 
 def test_explicit_usage_with_failed_public_task_maps_to_category_4():
-    source = "업무망에서 공공기관 내부 행정사무 질의응답에 범정부 인공지능 공통기반을 활용한다"
+    source = "기관: 한국공공서비스원\n추출 본문:\n업무망에서 공공기관 내부 행정사무 질의응답에 범정부 인공지능 공통기반을 활용한다"
     model = _gated_payload(
         source, network="internal_or_connected", task="public_institution_internal",
         model_fit="platform_llm_or_rag",
