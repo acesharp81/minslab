@@ -132,6 +132,11 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
     if (!parsed.decaf) preferences.decaf = false;
     if (!parsed.quantity) preferences.quantity = undefined;
   }
+  // A broader drink request explicitly drops a previous coffee-only requirement.
+  if (parsed.category === '음료' && /음료|마실/.test(text) && !parsed.coffee) {
+    preferences.coffee = false;
+    preferences.decaf = false;
+  }
   if (parsed.decaf && !parsed.caffeineFree) preferences.caffeineFree = false;
   if (parsed.coffee && /일반\s*커피|카페인\s*있어도|카페인\s*상관/.test(text)) { preferences.caffeineFree = false; preferences.decaf = false; }
   if (/말고|아니|대신/.test(text)) {
@@ -182,7 +187,7 @@ export function resetForFullMealBrief(previous: DialogueState, utterance: string
   const namedPeople = new Set(updates.map((entry) => entry.label.replace(/(?:의)?(?:꺼|것|메뉴)$/, '')).filter((label) => mentionedMember(text, label))).size;
   const statedParty = /(\d+|두|세|네|둘|셋|넷)\s*(?:명|인|사람)/.test(text);
   const fullBrief = (roles >= 2 || (statedParty && namedPeople >= 2)) && /밥\s*먹|식사|한\s*끼|(?:메뉴|음식).*(?:추천|골라)|주문해|골라줘/.test(text);
-  const standaloneDrink = /(?:커피|디카페인|아메리카노|카페라떼)/.test(text) && /(?:\d+|한|두|세|네)\s*잔/.test(text) && /추천|골라/.test(text) && !/명|사람|일행|와이프|아내|남편|아이|딸|아들/.test(text);
+  const standaloneDrink = /(?:음료|커피|디카페인|아메리카노|카페라떼)/.test(text) && /(?:\d+|한|두|세|네)\s*잔/.test(text) && /추천|골라/.test(text) && !/명|사람|일행|와이프|아내|남편|아이|딸|아들/.test(text);
   if (standaloneDrink && (previous.peopleCount || previous.members.length)) return emptyDialogue();
   if (!fullBrief || (!previous.peopleCount && !previous.members.length && !previous.lastRecommendations.length)) return previous;
   const members = previous.members.filter((member) => !member.id.startsWith('generic-') && mentionedMember(text, member.label)).map((member) => ({

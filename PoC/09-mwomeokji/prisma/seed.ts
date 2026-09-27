@@ -243,7 +243,7 @@ const recipes = [
     4500,
     "🍊",
     0,
-    ["cool", "음료"],
+    ["cool", "음료", "caffeine_free"],
     ["orange"],
     ["vegetarian", "vegan", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     [],
@@ -282,7 +282,7 @@ const recipes = [
     1500,
     "💧",
     0,
-    ["cool", "음료"],
+    ["cool", "음료", "caffeine_free"],
     ["water"],
     ["vegetarian", "vegan", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     [],
@@ -341,6 +341,11 @@ async function main() {
       where: { storeId: store.id, name },
     });
     if (existing) {
+      // The two fixed virtual recipes have no caffeine-containing ingredients.
+      // Keep other merchant-managed menu fields intact when seeding again.
+      if (["오렌지 에이드", "생수"].includes(name) && !existing.tags.includes("caffeine_free")) {
+        await db.menuItem.update({ where: { id: existing.id }, data: { tags: [...new Set([...existing.tags, "caffeine_free"])] } });
+      }
       for (const [allergenKey] of ALLERGENS)
         await db.menuItemAllergen.upsert({
           where: {

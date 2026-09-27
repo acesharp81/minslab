@@ -67,6 +67,19 @@ describe("caffeine-free coffee order contract", () => {
     expect(valid.map((entry) => entry.item.name)).toEqual([verified.name]);
     expect(validateRecommendationResult(valid, emptyProfile, state.preferences)).toEqual({ valid: true, total: 9000 });
   });
+  it("broadens coffee to verified caffeine-free drinks on the next turn", () => {
+    const coffee = evolveDialogue(readDialogue({}), request, parseIntent(request)).state;
+    const broaderRequest = "카페인 없는 음료 2잔으로 추천해줘 만원이하로";
+    const broader = evolveDialogue(coffee, broaderRequest, parseIntent(broaderRequest)).state;
+    expect(broader.preferences.coffee).toBe(false);
+    expect(broader.preferences.caffeineFree).toBe(true);
+    expect(broader.preferences.quantity).toBe(2);
+    expect(broader.preferences.totalBudget).toBe(10000);
+    const caffeineFreeSoda = { ...soda, tags: ["음료", "caffeine_free"] };
+    const proposals = recommend([caffeineFreeSoda, fries, regular, decaf], emptyProfile, broader.preferences, 1);
+    expect(proposals.map((entry) => entry.item.name)).toEqual(["오렌지 에이드"]);
+    expect(validateRecommendationResult(proposals, emptyProfile, broader.preferences)).toEqual({ valid: true, total: 9000 });
+  });
   it("starts a standalone drink brief after a group meal and relaxes only an explicit decaf correction", () => {
     const previous = { ...readDialogue({}), peopleCount: 3,
       members: Array.from({ length: 3 }, (_, index) => ({ id: String(index), label: `일행 ${index + 1}`, allergies: [], dietaryRules: [] })),
