@@ -92,6 +92,9 @@ try {
   groupOrderId = groupOrder.id;
   assert.equal(groupOrder.lines.length, conversation.recommendations.length);
   assert.equal(groupOrder.fulfillmentType, "takeout");
+  const afterOrder = await request("bootstrap/?slug=orange-table&table=A1");
+  assert.equal(afterOrder.dialogue.preferences.totalBudget, undefined, "checkout must clear the previous order budget");
+  assert.deepEqual(afterOrder.dialogue.lastRecommendations, []);
   guestCookie = "";
   await request("bootstrap/?slug=orange-table&table=A1");
   await request("visit/", "POST", { mode: "takeout" });
@@ -125,6 +128,19 @@ try {
   assert.equal(sweetCart.cart?.items[0].quantity, 2);
   assert.equal(sweetCart.cart?.total, 9000);
   await request(`cart/${sweetCart.cart.items[0].id}/`, "DELETE");
+  const drinkGuestCookie = guestCookie;
+  guestCookie = "";
+  await request("bootstrap/?slug=orange-table&table=A1");
+  await request("visit/", "POST", { mode: "dine_in" });
+  const staleBudget = await request("conversation/", "POST", { message: "4명인데 카페인 없는 음료를 1만원 안에서 추천해줘" });
+  assert.equal(staleBudget.dialogue.preferences.totalBudget, 10000);
+  const freshMeal = await request("conversation/", "POST", { message: "남자 4명인데 양이 많아서 든든히 먹을 수 있는 메뉴로 추천해줘" });
+  assert.equal(freshMeal.dialogue.peopleCount, 4);
+  assert.equal(freshMeal.dialogue.preferences.totalBudget, undefined, "a new full meal brief must clear the old budget");
+  assert.equal(freshMeal.summary.some((entry: string) => entry.includes("예산")), false);
+  assert.equal(freshMeal.recommendations?.length, 4, freshMeal.reply);
+  assert.ok(freshMeal.group.total > 10000, "the stale budget must not constrain the new meal");
+  guestCookie = drinkGuestCookie;
   await request("profile/", "POST", profile);
   const peanut = bootstrap.menu.find(
     (item: { name: string }) => item.name === "고소 땅콩 치킨",
@@ -250,7 +266,7 @@ try {
     ),
   );
   console.log(
-    "PoC9 smoke passed: visit mode, spoken group, caffeine-free coffee guard, broadened two-drink order, sour-to-sweet refinement, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
+    "PoC9 smoke passed: visit mode, spoken group, caffeine-free coffee guard, broadened two-drink order, sour-to-sweet refinement, fresh four-person brief clears stale budget, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
   );
 } finally {
   if (orderId) await db.order.deleteMany({ where: { id: orderId } });

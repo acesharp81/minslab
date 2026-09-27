@@ -18,7 +18,7 @@ import { recordAiUsage } from "../../../lib/usage-meter";
 import { catalogTags, validCaffeineTags } from "../../../lib/menu-metadata";
 import { matchesRequestedMenu, recommend, recommendGroupOptions, validateRecommendationResult } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
-import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
+import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, emptyDialogue, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
 import {
   ALLERGENS,
   emptyProfile,
@@ -816,7 +816,7 @@ export async function POST(req: NextRequest, context: Context) {
           include: { lines: true },
         });
         await tx.cartItem.deleteMany({ where: { sessionId: session.id } });
-        await tx.guestSession.update({ where: { id: session.id }, data: { context: { ...profile(freshSession.context), dialogue: { ...readDialogue(freshSession.context), pendingCheckout: false, pendingCheckoutSignature: undefined } } } });
+        await tx.guestSession.update({ where: { id: session.id }, data: { context: { ...profile(freshSession.context), dialogue: emptyDialogue() } } });
         return created;
       });
       return json(order, 201);

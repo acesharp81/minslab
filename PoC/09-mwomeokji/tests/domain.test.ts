@@ -471,6 +471,38 @@ describe("multi-turn Tap Talk Together dialogue", () => {
     expect(group.complete).toBe(true);
     expect(group.items.find((entry) => entry.forMember === "아이")?.item.name).toBe("달콤 키즈 치킨 덮밥");
   });
+  it("clears a stale budget when a returning guest gives a complete four-person meal brief", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const stale: DialogueState = {
+      ...readDialogue({}), peopleCount: 4,
+      preferences: { action: "recommend", peopleCount: 4, totalBudget: 10000, category: "음료", quantity: 2 },
+      members: Array.from({ length: 4 }, (_, index) => ({
+        id: `generic-${index + 1}`, label: `일행 ${index + 1}`, allergies: [], dietaryRules: [],
+      })),
+      lastRecommendations: [{ id: "old-drink" }],
+    };
+    const message = "남자 4명인데 양이 많아서 든든히 먹을 수 있는 메뉴로 추천해줘";
+    const interpreted = await understand(message);
+    const reset = resetForFullMealBrief(stale, message, interpreted.memberUpdates);
+    expect(reset.preferences.totalBudget).toBeUndefined();
+    expect(reset.preferences.category).toBeUndefined();
+    expect(reset.preferences.quantity).toBeUndefined();
+    expect(reset.lastRecommendations).toEqual([]);
+    const next = evolveDialogue(reset, message, interpreted.intent).state;
+    expect(next.peopleCount).toBe(4);
+    expect(next.preferences.totalBudget).toBeUndefined();
+    const hearty = { ...item("든든한 덮밥", 11900), tags: ["식사", "warm", "rice"] };
+    expect(recommendGroup([hearty], emptyProfile, next.preferences, next.members).complete).toBe(true);
+  });
+  it("keeps a budget on a short refinement but accepts a new explicit budget", () => {
+    const stale: DialogueState = { ...readDialogue({}), peopleCount: 4,
+      preferences: { action: "recommend", peopleCount: 4, totalBudget: 10000 } };
+    expect(resetForFullMealBrief(stale, "그럼 따뜻한 메뉴로 다시 추천해줘")).toBe(stale);
+    const message = "우리 4명인데 따뜻한 메뉴로 5만원 안에서 추천해줘";
+    const reset = resetForFullMealBrief(stale, message);
+    const next = evolveDialogue(reset, message, parseIntent(message)).state;
+    expect(next.preferences.totalBudget).toBe(50000);
+  });
   it("accepts a complete newly named party after a stale session", () => {
     const stale: DialogueState = { ...readDialogue({}), peopleCount: 3, preferences: { action: "recommend", vegetarian: true, peopleCount: 3 }, members: [
       { id: "generic-1", label: "일행 1", allergies: [], dietaryRules: [{ type: "vegetarian", mode: "strict" }] },
