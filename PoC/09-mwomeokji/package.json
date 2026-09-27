@@ -17,6 +17,7 @@
     "ai:usage": "node scripts/ai-usage.mjs",
     "ai:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-dialogue.ts",
     "decision:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-decision.ts",
+    "menu:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-menu-selector.ts",
     "db:dev-migrate": "node scripts/with-root-env.mjs prisma migrate dev"
   },
   "dependencies": {

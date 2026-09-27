@@ -116,7 +116,7 @@ export function recommend(
     .slice(0, limit);
 }
 
-export function recommendGroup(
+export function recommendGroupOptions(
   items: MenuItemData[],
   profile: PreferenceProfile,
   intent: OrderIntent,
@@ -170,13 +170,18 @@ export function recommendGroup(
           used: new Set([...state.used, choice.item.id]),
         });
       }
-    if (!next.length) return { items: [], total: 0, complete: false };
+    if (!next.length) return [];
     states = next
       .sort((a, b) => b.score - a.score || a.total - b.total)
       .slice(0, 32);
   }
-  const best = states[0];
-  return { items: best.items, total: best.total, complete: true };
+  return states.slice(0, 6).map((state) => ({ items: state.items, total: state.total, complete: true as const }));
+}
+
+export function recommendGroup(
+  items: MenuItemData[], profile: PreferenceProfile, intent: OrderIntent, members: GroupMember[],
+) {
+  return recommendGroupOptions(items, profile, intent, members)[0] ?? { items: [], total: 0, complete: false as const };
 }
 
 /** Final catalog-backed gate after rules or optional AI reordering. */

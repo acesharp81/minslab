@@ -1,7 +1,7 @@
 /** Report only call metadata to the shared local meter. No prompt, response or session ID. */
 export async function recordAiUsage(input: {
   model: string;
-  workload?: "order_interpretation" | "order_ranking" | "menu_import";
+  workload?: "order_interpretation" | "order_ranking" | "order_selection" | "menu_import";
   status: "COMPLETED" | "FAILED";
   httpStatus: number;
   inputTokens?: number;

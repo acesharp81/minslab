@@ -13,9 +13,10 @@ import { understand } from "../../../lib/ai";
 import { hasExplicitNoAllergies } from "../../../lib/intent";
 import { answerIngredientQuestion, ingredientQuestion } from "../../../lib/ingredient-answer";
 import { rankRecommendations } from "../../../lib/decision";
+import { selectMenuProposal } from "../../../lib/menu-selector";
 import { recordAiUsage } from "../../../lib/usage-meter";
 import { catalogTags, validCaffeineTags } from "../../../lib/menu-metadata";
-import { matchesRequestedMenu, recommend, recommendGroup, validateRecommendationResult } from "../../../lib/recommend";
+import { matchesRequestedMenu, recommend, recommendGroupOptions, validateRecommendationResult } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
 import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
 import {
@@ -682,19 +683,25 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: evolved.needsPeopleCount || (updatedMembers.applied && !dialogue.peopleCount) ? "조건을 기억했어요. 모두 몇 분이세요?" : "좋아요. 어떤 음식이 당기세요? 맵기, 예산, 알레르기도 함께 말씀해 주세요." });
       }
-      const excluding = /다른\s*거|다른\s*메뉴|또\s*다른|말고|바꿔/.test(message) || (understanding.alternative && /더/.test(message));
+      const excluding = /다른\s*거|다른\s*메뉴|또\s*다른|바꿔/.test(message) || (understanding.alternative && /더/.test(message));
       const candidates = excluding ? items.filter((item) => !previous.lastRecommendations.some((ref) => ref.id === item.id && (!focusedRequest || ref.forMember === dialogue.focusedMemberLabel))) : items;
-      const group = (dialogue.peopleCount || 1) > 1 ? recommendGroup(candidates, currentProfile, dialogue.preferences, dialogue.members) : null;
+      const groupOptions = (dialogue.peopleCount || 1) > 1 ? recommendGroupOptions(candidates, currentProfile, dialogue.preferences, dialogue.members) : [];
+      const group = (dialogue.peopleCount || 1) > 1 ? groupOptions[0] ?? { items: [], total: 0, complete: false } : null;
       if (group && !group.complete && dialogue.members.some((member) => member.tastes?.includes("kids")) && !candidates.some((item) => item.isAvailable && (item.tags.includes("kids") || /키즈|어린이/.test(item.name)))) {
         dialogue.lastRecommendations = [];
         await save();
         return json({ intent, provider, dialogue, summary: summary(), recommendations: [], reply: "이 매장에는 지금 주문 가능한 키즈 메뉴가 없어요. 아이에게 순한 일반 메뉴로 다시 골라볼까요?" });
       }
       const requestedCount = (dialogue.peopleCount || 1) > 1 ? 1 : Math.max(1, dialogue.preferences.quantity || 1);
-      const ranked = group ? { recommendations: group.items, provider: "rules" } : await rankRecommendations(recommend(candidates, currentProfile, dialogue.preferences, requestedCount > 1 ? 1 : 5), dialogue.preferences);
-      const checked = validateRecommendationResult(ranked.recommendations, currentProfile, dialogue.preferences, dialogue.members);
+      const ranked = group ? { recommendations: group.items, provider: "rules" } : await rankRecommendations(recommend(candidates, currentProfile, dialogue.preferences, 60), dialogue.preferences);
+      const proposals = group
+        ? groupOptions.map((option, index) => ({ id: `option_${index + 1}`, recommendations: option.items, total: option.total }))
+        : ranked.recommendations.map((entry, index) => ({ id: `option_${index + 1}`, recommendations: [entry], total: entry.item.price * requestedCount }));
+      const selection = await selectMenuProposal(message, proposals);
+      const chosenGroup = group && selection.proposal ? { items: selection.proposal.recommendations, total: selection.proposal.total, complete: true } : null;
+      const checked = validateRecommendationResult(selection.proposal?.recommendations ?? [], currentProfile, dialogue.preferences, dialogue.members);
       const unit = dialogue.preferences.category === "음료" ? "잔" : "개";
-      const recommendations = checked.valid ? ranked.recommendations.map((entry) => ({ ...entry, quantity: group ? 1 : requestedCount, unit })) : [];
+      const recommendations = checked.valid ? selection.proposal!.recommendations.map((entry) => ({ ...entry, quantity: group ? 1 : requestedCount, unit })) : [];
       dialogue.lastRecommendations = recommendations.map((entry) => ({ id: entry.item.id, forMember: entry.forMember }));
       await save();
       const focusedPick = focusedRequest ? recommendations.find((entry) => entry.forMember === dialogue.focusedMemberLabel) : undefined;
@@ -707,8 +714,8 @@ export async function POST(req: NextRequest, context: Context) {
       const limitHelp = savedLimits.length ? `현재 적용 중인 조건(${savedLimits.join(", ")})도 있어요. ‘내 취향 설정’에서 확인하거나 조건을 다시 말씀해 주세요.` : "조건을 바꾸거나 사장님께 문의해 주세요.";
       const noMatchReply = `지금 조건에 맞는 확인된 메뉴가 없어요. ${limitHelp}`;
       const reply = recommendations.length
-        ? focusedPick ? `${dialogue.focusedMemberLabel} 메뉴를 새로 골랐어요: ${focusedPick.item.name}. 다른 분 메뉴도 함께 확인해 주세요. 예상 합계 ${group?.total.toLocaleString()}원이에요.`
-          : group ? `${dialogue.peopleCount}분의 취향을 각각 반영해 골랐어요. 예상 합계 ${group.total.toLocaleString()}원이에요. ${/2\s*살|두\s*살|만\s*2\s*세/.test(message) && dialogue.members.some((member) => member.tastes?.includes("kids")) ? "2살 아이에게 맞는 재료와 식감인지 보호자가 확인해 주세요. " : ""}“추천한 거 전부 담아줘”라고 하셔도 돼요.`
+        ? focusedPick ? `${dialogue.focusedMemberLabel} 메뉴를 새로 골랐어요: ${focusedPick.item.name}. 다른 분 메뉴도 함께 확인해 주세요. 예상 합계 ${chosenGroup?.total.toLocaleString()}원이에요.`
+          : chosenGroup ? `${dialogue.peopleCount}분의 취향을 각각 반영해 골랐어요. 예상 합계 ${chosenGroup.total.toLocaleString()}원이에요. ${/2\s*살|두\s*살|만\s*2\s*세/.test(message) && dialogue.members.some((member) => member.tastes?.includes("kids")) ? "2살 아이에게 맞는 재료와 식감인지 보호자가 확인해 주세요. " : ""}“추천한 거 전부 담아줘”라고 하셔도 돼요.`
             : requestedCount > 1 ? `${recommendations[0].item.name} ${requestedCount}${unit}이면 예상 합계 ${checked.total.toLocaleString()}원이에요. “첫 번째 담아줘”라고 하시면 ${requestedCount}${unit}${unit === "잔" ? "을" : "를"} 담을게요.`
               : "이 음식은 어떠세요? 마음에 들면 “첫 번째 담아줘”라고 말씀해 주세요."
         : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? limitHelp : "다른 맛이나 음식 종류로 골라볼까요?"}` : dialogue.preferences.coffee && dialogue.preferences.caffeineFree
@@ -716,7 +723,7 @@ export async function POST(req: NextRequest, context: Context) {
           : dialogue.preferences.coffee && dialogue.preferences.decaf
             ? "이 매장에는 디카페인 커피로 확인된 메뉴가 없어요. 다른 음료로 바꿔 추천하지 않았어요."
             : noMatchReply;
-      return json({ intent, provider, decisionProvider: ranked.provider, dialogue, summary: summary(), recommendations, group: checked.valid ? group : null, profile: currentProfile, reply });
+      return json({ intent, provider, decisionProvider: ranked.provider, menuSelectionProvider: selection.provider, dialogue, summary: summary(), recommendations, group: checked.valid ? chosenGroup : null, profile: currentProfile, reply });
     }
     if (path[0] === "cart") {
       const input = cartSchema.parse(await body(req));

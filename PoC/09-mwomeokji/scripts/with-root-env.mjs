@@ -24,6 +24,8 @@ const allowed = [
   "POC09_METER_TOKEN",
   "POC09_METER_URL",
   "POC09_DECISION_PROVIDER",
+  "POC09_MENU_SELECTOR_PROVIDER",
+  "POC09_MENU_SELECTOR_MODEL",
 ];
 const env = { ...process.env };
 for (const key of allowed) if (!env[key] && parsed[key]) env[key] = parsed[key];

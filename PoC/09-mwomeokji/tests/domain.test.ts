@@ -8,6 +8,7 @@ import { recordAiUsage } from "../lib/usage-meter";
 import { validCaffeineTags } from "../lib/menu-metadata";
 import { recommend, recommendGroup, validateRecommendationResult } from "../lib/recommend";
 import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
+import { selectMenuProposal } from "../lib/menu-selector";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
 
 const item = (
@@ -45,6 +46,56 @@ const item = (
     verificationStatus: "merchant_verified",
   })),
   options: [],
+});
+
+describe("LLM menu choice over real proposals", () => {
+  const orange = { item: { ...item("오렌지 에이드", 4500), tags: ["음료", "sour"] }, score: 80, reason: "" };
+  const apple = { item: { ...item("달콤 사과 주스", 4500), tags: ["음료", "sweet"] }, score: 70, reason: "" };
+  const proposals = [
+    { id: "option_1", recommendations: [orange], total: 4500 },
+    { id: "option_2", recommendations: [apple], total: 4500 },
+  ];
+  it("selects a known menu ID using only current utterance and public menu facts", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    let outbound: Record<string, unknown> = {};
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+      outbound = JSON.parse(String(options.body));
+      return { ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"choiceId":"option_2","confidence":0.9}' } }] }) };
+    }));
+    const result = await selectMenuProposal("사과 맛으로 골라줘", proposals);
+    expect(result.provider).toBe("openrouter");
+    expect(result.proposal?.recommendations[0].item.name).toBe("달콤 사과 주스");
+    const body = JSON.stringify(outbound);
+    expect(body).toContain("사과 맛으로 골라줘");
+    expect(body).not.toContain("allergies");
+    expect(body).not.toContain("forMember");
+    expect(body).not.toContain("session");
+  });
+  it("can abstain from an explicit menu request that no proposal matches", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"choiceId":"no_match","confidence":0.95}' } }] }) })));
+    const result = await selectMenuProposal("블루베리 스무디를 마시고 싶어요", proposals);
+    expect(result.provider).toBe("openrouter");
+    expect(result.proposal).toBeNull();
+  });
+  it("falls back to a verified proposal for an uncertain abstention", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"choiceId":"no_match","confidence":0.6}' } }] }) })));
+    const result = await selectMenuProposal("음료를 추천해줘", proposals);
+    expect(result.provider).toBe("rules");
+    expect(result.proposal).toBe(proposals[0]);
+  });
+  it("uses the rules proposal for a malformed model choice", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"choiceId":"invented","confidence":0.9}' } }] }) })));
+    const result = await selectMenuProposal("사과 맛으로 골라줘", proposals);
+    expect(result.provider).toBe("rules");
+    expect(result.proposal).toBe(proposals[0]);
+  });
 });
 
 describe("merchant beverage labels", () => {
