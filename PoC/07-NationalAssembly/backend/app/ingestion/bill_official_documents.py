@@ -30,18 +30,18 @@ def fetch_official_pdf(url: str, referer: str | None) -> SourcePayload:
 
 def collect_pending(settings: object, limit: int = 10) -> dict[str, object]:
     with connect(settings.database_url) as connection:
-        targets = BillRepository(connection).pending_official_documents(limit=limit)
+        targets = BillRepository(connection).pending_official_documents(
+            limit=limit, parser_version=PARSER_VERSION,
+        )
     result: dict[str, object] = {
         "targets": len(targets), "documents": 0, "semantic_duplicates": 0,
         "sections": 0, "errors": [],
     }
     raw_store = RawStore(settings.raw_data_dir)
     for target in targets:
-        urls = [url.strip() for url in (target["pdf_urls"] or "").split(",") if url.strip()]
-        if not urls:
-            continue
+        pdf_url = str(target["pdf_url"])
         try:
-            payload = fetch_official_pdf(urls[0], target["official_url"])
+            payload = fetch_official_pdf(pdf_url, target["official_url"])
             artifact = raw_store.save(payload, parser_version=PARSER_VERSION)
             pages = extract_pdf_pages(artifact.content_path)
             sections = extract_official_sections(pages)
@@ -53,9 +53,16 @@ def collect_pending(settings: object, limit: int = 10) -> dict[str, object]:
                 metadata={"bill_id": target["bill_id"], "document_index": 1},
             )
             with connect(settings.database_url) as connection:
-                saved = BillRepository(connection).ingest_official_document(
+                repository = BillRepository(connection)
+                saved = repository.ingest_official_document(
                     bill_uuid=target["bill_uuid"], source=source, document_index=1,
                     title=target["bill_name"], pages=pages, sections=sections,
+                )
+                repository.record_official_document_fetch(
+                    bill_uuid=target["bill_uuid"],
+                    bill_version_id=target["bill_version_id"],
+                    pdf_url=pdf_url, parser_version=PARSER_VERSION,
+                    succeeded=True,
                 )
             if saved["semantic_duplicate"]:
                 result["semantic_duplicates"] += 1
@@ -63,5 +70,12 @@ def collect_pending(settings: object, limit: int = 10) -> dict[str, object]:
                 result["documents"] += 1
             result["sections"] += saved["sections_inserted"]
         except Exception as exc:
+            with connect(settings.database_url) as connection:
+                BillRepository(connection).record_official_document_fetch(
+                    bill_uuid=target["bill_uuid"],
+                    bill_version_id=target["bill_version_id"],
+                    pdf_url=pdf_url, parser_version=PARSER_VERSION,
+                    succeeded=False, error=type(exc).__name__,
+                )
             result["errors"].append({"bill_id": target["bill_id"], "error": type(exc).__name__})
     return result

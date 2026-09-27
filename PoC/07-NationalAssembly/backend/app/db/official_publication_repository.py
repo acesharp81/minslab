@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import uuid
 from datetime import date, datetime
 from typing import Any
@@ -23,44 +24,88 @@ class OfficialPublicationRepository:
     def __init__(self, connection: Any):
         self.connection = connection
 
-    def pending_dates(self, *, limit: int = 7) -> list[date]:
+    def pending_date_sources(self, *, limit: int = 7) -> list[dict[str, Any]]:
+        """Poll only unpublished meetings, with less frequent older checks."""
         rows = self.connection.execute(
             """
-            SELECT DISTINCT (ended_at AT TIME ZONE 'Asia/Seoul')::date AS meeting_date
+            SELECT (detected_at AT TIME ZONE 'Asia/Seoul')::date AS meeting_date,
+                   bool_or(committee_name = '본회의') AS plenary_due,
+                   bool_or(committee_name <> '본회의') AS committee_due,
+                   array_agg(id) AS broadcast_ids
             FROM live_broadcasts
             WHERE institution = 'LEGISLATURE' AND lifecycle_status = 'ENDED'
               AND committee_name = ANY(%s)
-              AND ended_at >= now() - interval '30 days'
+              AND ended_at >= now() - interval '180 days'
+              AND source_system NOT IN (
+                  'poc07.demo', 'poc07.test', 'poc07.replay.local',
+                  'poc07.replay.kakao'
+              )
               AND official_status IN ('PENDING', 'NOT_PUBLISHED')
-              AND (official_last_checked_at IS NULL
-                   OR official_last_checked_at < now() - interval '5 minutes')
-            ORDER BY meeting_date
+              AND (
+                  official_last_checked_at IS NULL
+                  OR official_last_checked_at < now() - CASE
+                      WHEN now() - ended_at < interval '2 days'
+                          THEN interval '1 hour'
+                      WHEN now() - ended_at < interval '7 days'
+                          THEN interval '6 hours'
+                      WHEN now() - ended_at < interval '30 days'
+                          THEN interval '24 hours'
+                      ELSE interval '7 days'
+                  END
+              )
+            GROUP BY meeting_date
+            ORDER BY min(official_last_checked_at) NULLS FIRST, meeting_date
             LIMIT %s
             """,
             ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], limit),
         ).fetchall()
-        return [row[0] for row in rows]
+        return [
+            {"date": row[0], "plenary_due": bool(row[1]),
+             "committee_due": bool(row[2]), "broadcast_ids": row[3]}
+            for row in rows
+        ]
+
+    def pending_dates(self, *, limit: int = 7) -> list[date]:
+        return [item["date"] for item in self.pending_date_sources(limit=limit)]
 
     def pending_body_publications(self, *, limit: int = 5) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
-            SELECT publication.id, publication.broadcast_id, publication.meeting_id,
-                   publication.conference_id, publication.official_url
-            FROM broadcast_official_publications publication
-            WHERE publication.official_url IS NOT NULL
-              AND NOT EXISTS (
-                  SELECT 1 FROM official_transcript_documents document
-                  WHERE document.publication_id = publication.id
-                    AND (document.publication_stage = 'FINAL'
-                         OR document.retrieved_at >= now() - interval '1 hour')
-              )
-            ORDER BY (publication.body_contract_status = 'LINK_ONLY') DESC,
-                     publication.matched_at, publication.id
+            WITH candidate AS (
+                SELECT DISTINCT ON (publication.meeting_id, publication.conference_id)
+                       publication.id, publication.broadcast_id,
+                       publication.meeting_id, publication.conference_id,
+                       publication.official_url, publication.body_contract_status,
+                       publication.matched_at
+                FROM broadcast_official_publications publication
+                LEFT JOIN LATERAL (
+                    SELECT id FROM official_transcript_documents document
+                    WHERE document.publication_id = publication.id LIMIT 1
+                ) linked ON true
+                WHERE publication.official_url IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM official_transcript_documents document
+                      WHERE document.meeting_id = publication.meeting_id
+                        AND document.conference_id = publication.conference_id
+                        AND (document.publication_stage = 'FINAL'
+                             OR document.retrieved_at >= now() - interval '1 hour')
+                  )
+                ORDER BY publication.meeting_id, publication.conference_id,
+                         (linked.id IS NOT NULL) DESC,
+                         (publication.body_contract_status = 'LINK_ONLY') DESC,
+                         publication.matched_at DESC, publication.id DESC
+            )
+            SELECT candidate.id, candidate.broadcast_id, candidate.meeting_id,
+                   candidate.conference_id, candidate.official_url, broadcast.committee_name
+            FROM candidate
+            JOIN live_broadcasts broadcast ON broadcast.id = candidate.broadcast_id
+            ORDER BY (candidate.body_contract_status = 'LINK_ONLY') DESC,
+                     candidate.matched_at DESC, candidate.id DESC
             LIMIT %s
             """,
             (limit,),
         ).fetchall()
-        columns = ("publication_id", "broadcast_id", "meeting_id", "conference_id", "official_url")
+        columns = ("publication_id", "broadcast_id", "meeting_id", "conference_id", "official_url", "committee_name")
         return [dict(zip(columns, row, strict=True)) for row in rows]
 
     def pending_meeting_bodies(self, *, limit: int = 10) -> list[dict[str, Any]]:
@@ -102,18 +147,58 @@ class OfficialPublicationRepository:
     def pending_annotation_documents(self, *, limit: int = 20) -> list[uuid.UUID]:
         rows = self.connection.execute(
             """
-            SELECT DISTINCT document.id
+            SELECT document.id
             FROM official_transcript_documents document
-            JOIN official_transcript_utterances utterance ON utterance.document_id = document.id
-            LEFT JOIN official_utterance_annotations annotation
-              ON annotation.utterance_id = utterance.id
-             AND annotation.generator_version = %s
-            WHERE annotation.id IS NULL
-            ORDER BY document.id LIMIT %s
+            LEFT JOIN official_annotation_processing_state state
+              ON state.document_id = document.id
+             AND state.generator_version = %s
+            WHERE state.document_id IS NULL
+               OR (state.status = 'RETRY_WAIT'
+                   AND state.next_attempt_at <= now())
+               OR (state.status = 'SUCCEEDED'
+                   AND state.utterance_count < document.utterance_count)
+            ORDER BY (state.document_id IS NULL) DESC,
+                     COALESCE(state.next_attempt_at, document.created_at),
+                     document.id
+            LIMIT %s
             """,
             (INSIGHT_VERSION, limit),
         ).fetchall()
         return [row[0] for row in rows]
+
+    def record_annotation_document(
+        self, document_id: uuid.UUID, *, succeeded: bool,
+        error: str | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO official_annotation_processing_state (
+                document_id, generator_version, utterance_count,
+                status, attempt_count, next_attempt_at, last_error, completed_at
+            )
+            SELECT id, %s, utterance_count, %s, 1,
+                   CASE WHEN %s THEN NULL ELSE now() + interval '5 minutes' END,
+                   %s, CASE WHEN %s THEN now() ELSE NULL END
+            FROM official_transcript_documents WHERE id = %s
+            ON CONFLICT (document_id, generator_version)
+            DO UPDATE SET utterance_count = EXCLUDED.utterance_count,
+                          status = EXCLUDED.status,
+                          attempt_count = official_annotation_processing_state.attempt_count + 1,
+                          next_attempt_at = CASE WHEN EXCLUDED.status = 'SUCCEEDED'
+                              THEN NULL ELSE now() + make_interval(secs => LEAST(
+                                  86400, 300 * (2 ^ LEAST(
+                                      official_annotation_processing_state.attempt_count, 8
+                                  ))::integer
+                              )) END,
+                          last_error = EXCLUDED.last_error,
+                          completed_at = EXCLUDED.completed_at,
+                          updated_at = now()
+            """,
+            (
+                INSIGHT_VERSION, "SUCCEEDED" if succeeded else "RETRY_WAIT",
+                succeeded, error, succeeded, document_id,
+            ),
+        )
 
     def attach_preserved_documents(self) -> int:
         """Link bodies collected by meeting identity before a LIVE publication match."""
@@ -189,65 +274,101 @@ class OfficialPublicationRepository:
             inserted += int(row is not None)
         return inserted
 
-    def reconcile_agenda_links(self) -> int:
-        inserted = 0
+    def pending_agenda_documents(self, *, limit: int = 5) -> list[uuid.UUID]:
         rows = self.connection.execute(
             """
-            INSERT INTO official_utterance_agenda_links (
-                id, utterance_id, agenda_item_id, reconciliation_status,
-                match_method, match_confidence
-            )
-            SELECT gen_random_uuid(), utterance.id, agenda.id, 'MATCHED',
-                   'EXACT_ITEM_REF_AGENDA_PREFIX', 1.0
-            FROM official_transcript_utterances utterance
-            JOIN official_transcript_documents document
-              ON document.id = utterance.document_id
-            JOIN agenda_items agenda ON agenda.meeting_id = document.meeting_id
-            WHERE utterance.agenda_item_ref ~ '^item[1-9][0-9]*$'
-              AND agenda.agenda_name ~ '^\\s*[1-9][0-9]*\\.'
-              AND substring(utterance.agenda_item_ref from 5)::integer =
-                  substring(agenda.agenda_name from '^\\s*([1-9][0-9]*)\\.')::integer
-            ON CONFLICT (utterance_id, agenda_item_id, match_method) DO NOTHING
-            RETURNING id
-            """
+            SELECT document.id
+            FROM official_transcript_documents document
+            JOIN LATERAL (
+                SELECT count(*)::integer AS item_count
+                FROM agenda_items agenda WHERE agenda.meeting_id = document.meeting_id
+            ) agenda ON true
+            LEFT JOIN official_agenda_reconciliation_state state
+              ON state.document_id = document.id
+            WHERE state.document_id IS NULL
+               OR state.agenda_count <> agenda.item_count
+               OR state.last_sequence < document.utterance_count
+            ORDER BY COALESCE(state.updated_at, document.created_at), document.id
+            LIMIT %s
+            """,
+            (limit,),
         ).fetchall()
-        inserted += len(rows)
+        return [row[0] for row in rows]
 
-        # A spoken item number at the start of a span is stronger evidence than
-        # the surrounding HTML speaker class, which can remain on the previous
-        # item. Repair existing documents as well as newly parsed ones.
-        utterances = self.connection.execute(
+    def reconcile_agenda_document(
+        self, document_id: uuid.UUID, *, batch_size: int = 1000,
+    ) -> dict[str, int | bool]:
+        """Reconcile one bounded utterance batch for a document and agenda set."""
+        document = self.connection.execute(
             """
-            SELECT utterance.id, utterance.text, utterance.agenda_item_ref,
-                   document.meeting_id
-            FROM official_transcript_utterances utterance
-            JOIN official_transcript_documents document
-              ON document.id = utterance.document_id
-            """
-        ).fetchall()
+            SELECT meeting_id, utterance_count
+            FROM official_transcript_documents WHERE id = %s
+            """,
+            (document_id,),
+        ).fetchone()
+        if document is None:
+            return {"links_inserted": 0, "complete": True}
+        meeting_id, utterance_count = document
         agenda_rows = self.connection.execute(
             """
-            SELECT id, meeting_id,
-                   substring(agenda_name from '^\\s*([1-9][0-9]*)\\.')::integer
-            FROM agenda_items
-            WHERE agenda_name ~ '^\\s*[1-9][0-9]*\\.'
-            """
+            SELECT id, agenda_name
+            FROM agenda_items WHERE meeting_id = %s
+            ORDER BY created_at, id
+            """,
+            (meeting_id,),
         ).fetchall()
-        agendas = {
-            (meeting_id, int(item_number)): agenda_id
-            for agenda_id, meeting_id, item_number in agenda_rows
-            if item_number is not None
-        }
-        for utterance_id, text, stored_ref, meeting_id in utterances:
+        agenda_count = len(agenda_rows)
+        previous = self.connection.execute(
+            """
+            SELECT agenda_count, last_sequence
+            FROM official_agenda_reconciliation_state WHERE document_id = %s
+            """,
+            (document_id,),
+        ).fetchone()
+        last_sequence = previous[1] if previous and previous[0] == agenda_count else 0
+        by_number: dict[int, list[uuid.UUID]] = {}
+        for agenda_id, name in agenda_rows:
+            match = re.match(r"^\s*([1-9][0-9]*)\.", name)
+            if match:
+                by_number.setdefault(int(match.group(1)), []).append(agenda_id)
+        if by_number:
+            utterances = self.connection.execute(
+                """
+                SELECT id, sequence_number, text, agenda_item_ref
+                FROM official_transcript_utterances
+                WHERE document_id = %s AND sequence_number > %s
+                ORDER BY sequence_number LIMIT %s
+                """,
+                (document_id, last_sequence, batch_size),
+            ).fetchall()
+        else:
+            utterances = []
+            last_sequence = utterance_count
+        inserted = 0
+        for utterance_id, sequence_number, text, stored_ref in utterances:
+            if stored_ref and re.fullmatch(r"item[1-9][0-9]*", stored_ref):
+                for agenda_id in by_number.get(int(stored_ref[4:]), []):
+                    row = self.connection.execute(
+                        """
+                        INSERT INTO official_utterance_agenda_links (
+                            id, utterance_id, agenda_item_id,
+                            reconciliation_status, match_method, match_confidence
+                        ) VALUES (%s, %s, %s, 'MATCHED',
+                                  'EXACT_ITEM_REF_AGENDA_PREFIX', 1.0)
+                        ON CONFLICT (utterance_id, agenda_item_id, match_method)
+                        DO NOTHING RETURNING id
+                        """,
+                        (uuid.uuid4(), utterance_id, agenda_id),
+                    ).fetchone()
+                    inserted += int(row is not None)
             explicit_ref = explicit_spoken_agenda_ref(text)
-            if not explicit_ref:
+            if not explicit_ref or explicit_ref == stored_ref:
                 continue
-            target = agendas.get((meeting_id, int(explicit_ref[4:])))
-            if target is None:
+            targets = by_number.get(int(explicit_ref[4:]), [])
+            if not targets:
                 continue
-            if stored_ref == explicit_ref:
-                continue
-            if stored_ref and stored_ref != explicit_ref:
+            target = targets[-1]
+            if stored_ref:
                 self.connection.execute(
                     """
                     UPDATE official_utterance_agenda_links
@@ -261,20 +382,35 @@ class OfficialPublicationRepository:
             row = self.connection.execute(
                 """
                 INSERT INTO official_utterance_agenda_links (
-                    id, utterance_id, agenda_item_id, reconciliation_status,
-                    match_method, match_confidence
-                ) VALUES (
-                    gen_random_uuid(), %s, %s, 'MATCHED',
-                    'EXPLICIT_SPOKEN_ITEM_AGENDA_PREFIX', 1.0
-                )
+                    id, utterance_id, agenda_item_id,
+                    reconciliation_status, match_method, match_confidence
+                ) VALUES (%s, %s, %s, 'MATCHED',
+                          'EXPLICIT_SPOKEN_ITEM_AGENDA_PREFIX', 1.0)
                 ON CONFLICT (utterance_id, agenda_item_id, match_method)
                 DO UPDATE SET reconciliation_status = 'MATCHED', match_confidence = 1.0
+                WHERE official_utterance_agenda_links.reconciliation_status <> 'MATCHED'
                 RETURNING id
                 """,
-                (utterance_id, target),
+                (uuid.uuid4(), utterance_id, target),
             ).fetchone()
             inserted += int(row is not None)
-        return inserted
+        if utterances:
+            last_sequence = utterances[-1][1]
+        complete = last_sequence >= utterance_count
+        self.connection.execute(
+            """
+            INSERT INTO official_agenda_reconciliation_state (
+                document_id, agenda_count, last_sequence, completed_at
+            ) VALUES (%s, %s, %s, CASE WHEN %s THEN now() ELSE NULL END)
+            ON CONFLICT (document_id) DO UPDATE SET
+                agenda_count = EXCLUDED.agenda_count,
+                last_sequence = EXCLUDED.last_sequence,
+                completed_at = EXCLUDED.completed_at,
+                updated_at = now()
+            """,
+            (document_id, agenda_count, last_sequence, complete),
+        )
+        return {"links_inserted": inserted, "complete": complete}
 
     def ingest_body(
         self,
@@ -517,20 +653,26 @@ class OfficialPublicationRepository:
         ).fetchone()
         return row[0]
 
-    def reconcile_date(self, meeting_date: date, checked_at: datetime) -> dict[str, int]:
+    def reconcile_date(
+        self, meeting_date: date, checked_at: datetime,
+        *, broadcast_ids: list[uuid.UUID] | None = None,
+    ) -> dict[str, int]:
         broadcasts = self.connection.execute(
             """
-            SELECT id, committee_name
+            SELECT id, committee_name, title
             FROM live_broadcasts
             WHERE institution = 'LEGISLATURE' AND lifecycle_status = 'ENDED'
               AND committee_name = ANY(%s)
-              AND (ended_at AT TIME ZONE 'Asia/Seoul')::date = %s
+              AND (detected_at AT TIME ZONE 'Asia/Seoul')::date = %s
+              AND official_status IN ('PENDING', 'NOT_PUBLISHED')
+              AND (%s::uuid[] IS NULL OR id = ANY(%s::uuid[]))
             ORDER BY id
             """,
-            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_date),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_date,
+             broadcast_ids, broadcast_ids),
         ).fetchall()
         matched = unresolved = ambiguous = 0
-        for broadcast_id, committee_name in broadcasts:
+        for broadcast_id, committee_name, broadcast_title in broadcasts:
             candidates = self.connection.execute(
                 """
                 SELECT DISTINCT ON (mei.external_id)
@@ -544,13 +686,15 @@ class OfficialPublicationRepository:
                 JOIN source_document_versions sdv
                   ON sdv.id = cme.source_document_version_id
                 WHERE mv.committee_name = %s AND mv.scheduled_date = %s
+                  AND substring(mv.meeting_order_text from '제0*([0-9]+)차')::integer
+                      = substring(%s from '제0*([0-9]+)차')::integer
                 ORDER BY mei.external_id, sdv.retrieved_at DESC, cme.id
                 """,
-                (committee_name, meeting_date),
+                (committee_name, meeting_date, broadcast_title),
             ).fetchall()
             if len(candidates) == 1:
                 meeting_id, conference_id, version_id, official_url, pdf_url = candidates[0]
-                self.connection.execute(
+                publication_row = self.connection.execute(
                     """
                     INSERT INTO broadcast_official_publications (
                         id, broadcast_id, meeting_id, conference_id,
@@ -562,13 +706,25 @@ class OfficialPublicationRepository:
                     DO UPDATE SET official_url = EXCLUDED.official_url,
                                   pdf_url = EXCLUDED.pdf_url,
                                   matched_at = EXCLUDED.matched_at
+                    RETURNING id
                     """,
                     (
                         uuid.uuid4(), broadcast_id, meeting_id, conference_id,
                         version_id, official_url, pdf_url, checked_at,
                     ),
-                )
+                ).fetchone()
                 self.attach_preserved_documents()
+                existing_document = self.connection.execute(
+                    """
+                    SELECT id FROM official_transcript_documents
+                    WHERE meeting_id = %s AND conference_id = %s
+                    ORDER BY (publication_stage = 'FINAL') DESC,
+                             retrieved_at DESC, id DESC LIMIT 1
+                    """,
+                    (meeting_id, conference_id),
+                ).fetchone()
+                if existing_document:
+                    self._reconcile_exact(publication_row[0], existing_document[0])
                 status = "PUBLISHED"
                 matched += 1
             elif not candidates:

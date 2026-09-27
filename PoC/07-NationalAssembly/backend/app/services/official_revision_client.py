@@ -246,7 +246,6 @@ class OpenRouterOfficialRevisionClient(MistralOfficialRevisionClient):
                 {"role": "user", "content": prompt},
             ],
             "stream": False, "temperature": 0.0, "max_tokens": 8000,
-            "reasoning": {"effort": "none", "exclude": True},
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {

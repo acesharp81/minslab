@@ -8,7 +8,9 @@ from typing import Any
 
 from ..adapters.national_assembly.base import SourcePayload
 from ..adapters.national_assembly.client import NationalAssemblyClient
-from ..adapters.national_assembly.committee_minutes import CommitteeMinutesAdapter
+from ..adapters.national_assembly.committee_minutes import (
+    CommitteeMinutesAdapter, PlenaryMinutesAdapter,
+)
 from ..adapters.national_assembly.contracts import get_contract
 from ..adapters.national_assembly.json_envelope import parse_json_envelope
 from ..adapters.national_assembly.meeting_agendas import MeetingAgendasAdapter
@@ -82,6 +84,61 @@ def sync_committee_bundle(
             )
         summary["minute_entries_inserted"] += result.minute_entries_inserted
 
+    for conference_id in sorted(conference_ids):
+        agenda_pages = _fetch_pages(
+            client, "meeting_agendas", {"CONF_ID": conference_id}, page_size,
+        )
+        summary["agenda_pages"] += len(agenda_pages)
+        for payload in agenda_pages:
+            artifact = raw_store.save(payload, parser_version=agendas_adapter.parser_version)
+            records = agendas_adapter.parse(payload)
+            summary["agenda_rows_seen"] += len(records)
+            with connect(database_url) as connection:
+                result = CommitteeRepository(connection).ingest_agendas(
+                    _source_input(payload, artifact, agendas_adapter.parser_version), records,
+                )
+            summary["agenda_items_inserted"] += result.agenda_items_inserted
+            summary["bills_inserted"] += result.bills_inserted
+            summary["unresolved_agenda_rows"] += result.unresolved_records
+    summary["conference_ids"] = sorted(conference_ids)
+    return summary
+
+
+def sync_plenary_minutes(
+    *, conference_date: str, assembly_number: str, page_size: int,
+    api_key: str, database_url: str, raw_data_dir: Path,
+) -> dict[str, Any]:
+    """Store official plenary minutes and linked agendas, raw before normalize."""
+    client = NationalAssemblyClient(api_key)
+    raw_store = RawStore(raw_data_dir)
+    adapter = PlenaryMinutesAdapter()
+    agendas_adapter = MeetingAgendasAdapter()
+    pages = _fetch_pages(
+        client, "plenary_minutes",
+        {"DAE_NUM": assembly_number, "CONF_DATE": conference_date}, page_size,
+    )
+    summary: dict[str, Any] = {
+        "conference_date": conference_date,
+        "source": "plenary_minutes",
+        "pages": len(pages), "minute_rows_seen": 0,
+        "meetings_seen": 0, "minute_entries_inserted": 0,
+        "agenda_pages": 0, "agenda_rows_seen": 0,
+        "agenda_items_inserted": 0, "bills_inserted": 0,
+        "unresolved_agenda_rows": 0, "conference_ids": [],
+    }
+    conference_ids: set[str] = set()
+    for payload in pages:
+        artifact = raw_store.save(payload, parser_version=adapter.parser_version)
+        records = adapter.parse(payload)
+        meetings = group_target_committee_minutes(records, source_key="plenary_minutes")
+        conference_ids.update(meeting.conference_id for meeting in meetings)
+        with connect(database_url) as connection:
+            ingested = CommitteeRepository(connection).ingest_minutes(
+                _source_input(payload, artifact, adapter.parser_version), meetings,
+            )
+        summary["minute_rows_seen"] += len(records)
+        summary["meetings_seen"] += ingested.meetings_seen
+        summary["minute_entries_inserted"] += ingested.minute_entries_inserted
     for conference_id in sorted(conference_ids):
         agenda_pages = _fetch_pages(
             client, "meeting_agendas", {"CONF_ID": conference_id}, page_size,

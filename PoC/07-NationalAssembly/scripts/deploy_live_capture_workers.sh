@@ -6,6 +6,11 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 
+if [[ $# -gt 1 || ( $# -eq 1 && $1 != "--monitor-only" ) ]]; then
+  echo "Usage: $0 [--monitor-only]" >&2
+  exit 2
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ENV="${PROJECT_DIR}/.env"
@@ -57,6 +62,9 @@ deploy() {
 
 deploy poc07-national-assembly-live-monitor \
   python -m app.ingestion.live_monitor --interval 30
+if [[ ${1:-} == "--monitor-only" ]]; then
+  exit 0
+fi
 deploy poc07-national-assembly-caption-worker \
   python -m app.ingestion.caption_worker --workers 4
 deploy poc07-national-assembly-executive-caption-worker \

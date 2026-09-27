@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -220,17 +221,27 @@ def main() -> None:
     status_path = settings.processed_data_dir / "live_status.json"
     apply_migrations(settings.database_url)
     while True:
-        with connect(settings.database_url) as connection:
-            snapshot = probe_assembly_live_once(
-                settings.raw_data_dir,
-                status_path,
-                lifecycle_sink=LiveRepository(connection),
-            )
-        print(json.dumps({
-            "checked_at": snapshot["checked_at"],
-            "live_count": snapshot["assembly"]["live_count"],
-            "caption_ready": len(snapshot["assembly"]["play_contracts"]),
-        }, ensure_ascii=False), flush=True)
+        try:
+            with connect(settings.database_url) as connection:
+                snapshot = probe_assembly_live_once(
+                    settings.raw_data_dir,
+                    status_path,
+                    lifecycle_sink=LiveRepository(connection),
+                )
+            print(json.dumps({
+                "checked_at": snapshot["checked_at"],
+                "live_count": snapshot["assembly"]["live_count"],
+                "caption_ready": len(snapshot["assembly"]["play_contracts"]),
+            }, ensure_ascii=False), flush=True)
+        except AdapterError as exc:
+            if args.once:
+                raise
+            # A failed source poll must not end an active broadcast or stop the
+            # monitor. The next interval retries the full official snapshot.
+            print(json.dumps({
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+                "error": str(exc),
+            }, ensure_ascii=False), flush=True)
         if args.once:
             return
         time.sleep(args.interval)

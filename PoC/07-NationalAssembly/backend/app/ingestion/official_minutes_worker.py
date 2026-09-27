@@ -27,36 +27,53 @@ def poll_executive_once(settings: object) -> dict[str, object]:
     }
 
 
-def poll_once(settings: object) -> list[dict[str, object]]:
+def poll_once(
+    settings: object, *, include_executive: bool = True,
+) -> list[dict[str, object]]:
     from ..adapters.official_minutes_body import OfficialMinutesBodyAdapter, semantic_content_hash
     from ..db.connection import connect
     from ..db.official_publication_repository import OfficialPublicationRepository
     from ..db.schedule_repository import SourceVersionInput
     from ..storage.raw_store import RawStore
-    from .committee_sync import sync_committee_bundle
+    from .committee_sync import sync_committee_bundle, sync_plenary_minutes
     from .official_minutes_body import fetch_official_minutes_body
 
     with connect(settings.database_url) as connection:
-        dates = OfficialPublicationRepository(connection).pending_dates(limit=7)
+        dates = OfficialPublicationRepository(connection).pending_date_sources(limit=7)
     results: list[dict[str, object]] = []
-    for meeting_date in dates:
+    for pending in dates:
+        meeting_date = pending["date"]
         try:
-            sync = sync_committee_bundle(
-                conference_date=meeting_date.isoformat(),
-                assembly_number="22",
-                page_size=100,
-                api_key=settings.national_assembly_api_key,
-                database_url=settings.database_url,
-                raw_data_dir=settings.raw_data_dir,
-            )
+            official_rows = 0
+            if pending["committee_due"]:
+                sync = sync_committee_bundle(
+                    conference_date=meeting_date.isoformat(),
+                    assembly_number="22", page_size=100,
+                    api_key=settings.national_assembly_api_key,
+                    database_url=settings.database_url,
+                    raw_data_dir=settings.raw_data_dir,
+                )
+                official_rows += int(sync["minute_rows_seen"])
+            if pending["plenary_due"]:
+                plenary = sync_plenary_minutes(
+                    conference_date=meeting_date.isoformat(),
+                    assembly_number="22", page_size=100,
+                    api_key=settings.national_assembly_api_key,
+                    database_url=settings.database_url,
+                    raw_data_dir=settings.raw_data_dir,
+                )
+                official_rows += int(plenary["minute_rows_seen"])
             checked_at = datetime.now(timezone.utc)
             with connect(settings.database_url) as connection:
                 reconciliation = OfficialPublicationRepository(connection).reconcile_date(
-                    meeting_date, checked_at
+                    meeting_date, checked_at,
+                    broadcast_ids=pending["broadcast_ids"],
                 )
             results.append({
                 "date": meeting_date.isoformat(),
-                "official_rows": sync["minute_rows_seen"],
+                "committee_due": pending["committee_due"],
+                "plenary_due": pending["plenary_due"],
+                "official_rows": official_rows,
                 **reconciliation,
             })
         except Exception as exc:  # isolate one meeting date
@@ -69,7 +86,11 @@ def poll_once(settings: object) -> list[dict[str, object]]:
         publications = OfficialPublicationRepository(connection).pending_body_publications(limit=5)
     for publication in publications:
         try:
-            payload = fetch_official_minutes_body(str(publication["official_url"]))
+            payload = fetch_official_minutes_body(
+                str(publication["official_url"]),
+                source_key=("plenary_minutes_body" if publication["committee_name"] == "본회의"
+                            else "committee_minutes_body"),
+            )
             artifact = RawStore(settings.raw_data_dir).save(
                 payload, parser_version=adapter.parser_version,
             )
@@ -125,26 +146,27 @@ def poll_once(settings: object) -> list[dict[str, object]]:
                 "error": type(exc).__name__,
             })
     with connect(settings.database_url) as connection:
-        attached = OfficialPublicationRepository(
+        document_ids = OfficialPublicationRepository(
             connection,
-        ).attach_preserved_documents()
-    if attached:
-        results.append({
-            "event": "official.preserved-bodies.attached",
-            "documents": attached,
-        })
-    with connect(settings.database_url) as connection:
-        repository = OfficialPublicationRepository(connection)
-        document_ids = repository.pending_annotation_documents(limit=20)
-        annotated = 0
-        annotation_errors = 0
-        for document_id in document_ids:
-            try:
+        ).pending_annotation_documents(limit=20)
+    annotated = 0
+    annotation_errors = 0
+    for document_id in document_ids:
+        try:
+            with connect(settings.database_url) as connection:
+                repository = OfficialPublicationRepository(connection)
                 annotated += repository.annotate_document(
                     document_id, datetime.now(timezone.utc),
                 )
-            except Exception:  # isolate one malformed document
-                annotation_errors += 1
+                repository.record_annotation_document(
+                    document_id, succeeded=True,
+                )
+        except Exception as exc:  # isolate one malformed document
+            annotation_errors += 1
+            with connect(settings.database_url) as connection:
+                OfficialPublicationRepository(connection).record_annotation_document(
+                    document_id, succeeded=False, error=type(exc).__name__,
+                )
     if document_ids:
         results.append({
             "event": "official.insights.completed",
@@ -153,13 +175,26 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "document_errors": annotation_errors,
         })
     with connect(settings.database_url) as connection:
-        agenda_links = OfficialPublicationRepository(connection).reconcile_agenda_links()
-    if agenda_links:
-        results.append({
-            "event": "official.agenda-links.completed",
-            "links_inserted": agenda_links,
-            "match_method": "EXACT_ITEM_REF_AGENDA_PREFIX",
-        })
+        agenda_documents = OfficialPublicationRepository(
+            connection,
+        ).pending_agenda_documents(limit=5)
+    for document_id in agenda_documents:
+        try:
+            with connect(settings.database_url) as connection:
+                agenda_result = OfficialPublicationRepository(
+                    connection,
+                ).reconcile_agenda_document(document_id, batch_size=1000)
+            results.append({
+                "event": "official.agenda-links.completed",
+                "document_id": str(document_id),
+                **agenda_result,
+            })
+        except Exception as exc:
+            results.append({
+                "event": "official.agenda-links.error",
+                "document_id": str(document_id),
+                "error": type(exc).__name__,
+            })
     try:
         from .bill_sync import sync_pending_target_bill_details
         bill_details = sync_pending_target_bill_details(
@@ -178,25 +213,14 @@ def poll_once(settings: object) -> list[dict[str, object]]:
             "event": "bills.details.error",
             "error": type(exc).__name__,
         })
-    try:
-        from .official_integration_worker import process_available
-        integrations = process_available(limit=5)
-        results.append({
-            "event": "official.live-integrations.completed",
-            "items": integrations,
-        })
-    except Exception as exc:
-        results.append({
-            "event": "official.live-integrations.error",
-            "error": type(exc).__name__,
-        })
-    try:
-        results.append(poll_executive_once(settings))
-    except Exception as exc:
-        results.append({
-            "event": "executive.official.error",
-            "error": type(exc).__name__,
-        })
+    if include_executive:
+        try:
+            results.append(poll_executive_once(settings))
+        except Exception as exc:
+            results.append({
+                "event": "executive.official.error",
+                "error": type(exc).__name__,
+            })
     try:
         from .bill_official_documents import collect_pending
         bill_documents = collect_pending(settings, limit=10)
@@ -226,34 +250,50 @@ def main() -> None:
     from ..db.migrate import apply_migrations
 
     parser = argparse.ArgumentParser(description="Poll official committee-minute publication links")
-    parser.add_argument("--interval", type=int, default=3600)
+    parser.add_argument("--interval", type=int, default=300)
+    parser.add_argument("--executive-interval", type=int, default=3600)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
     if not 300 <= args.interval <= 86400:
         parser.error("interval must be between 300 and 86400 seconds")
+    if not 300 <= args.executive_interval <= 86400:
+        parser.error("executive interval must be between 300 and 86400 seconds")
     settings = get_settings()
     apply_migrations(settings.database_url)
+    last_executive_poll: float | None = None
     while True:
+        executive_due = (
+            last_executive_poll is None
+            or time.monotonic() - last_executive_poll >= args.executive_interval
+        )
         try:
             if settings.national_assembly_api_key:
-                for result in poll_once(settings):
+                for result in poll_once(
+                    settings, include_executive=executive_due,
+                ):
                     print(json.dumps(result, ensure_ascii=False), flush=True)
+                if executive_due:
+                    last_executive_poll = time.monotonic()
             else:
                 # The executive official-source collector has no dependency on
                 # the National Assembly Open API. Keep it available in an
                 # executive-only deployment or while the Assembly credential is
                 # temporarily unavailable.
-                print(
-                    json.dumps(poll_executive_once(settings), ensure_ascii=False),
-                    flush=True,
-                )
+                if executive_due:
+                    print(
+                        json.dumps(poll_executive_once(settings), ensure_ascii=False),
+                        flush=True,
+                    )
+                    last_executive_poll = time.monotonic()
         except Exception as exc:
             print(json.dumps({"event": "official.poll.error", "error": type(exc).__name__}), flush=True)
             try:
-                print(
-                    json.dumps(poll_executive_once(settings), ensure_ascii=False),
-                    flush=True,
-                )
+                if executive_due:
+                    print(
+                        json.dumps(poll_executive_once(settings), ensure_ascii=False),
+                        flush=True,
+                    )
+                    last_executive_poll = time.monotonic()
             except Exception as executive_exc:
                 print(json.dumps({
                     "event": "executive.official.error",
@@ -263,9 +303,7 @@ def main() -> None:
             release_cycle_memory()
         if args.once:
             return
-        # Official publication linkage is latency-sensitive after a meeting
-        # ends. The semantic cache keeps this five-minute poll lightweight.
-        time.sleep(min(args.interval, 300))
+        time.sleep(args.interval)
 
 
 if __name__ == "__main__":

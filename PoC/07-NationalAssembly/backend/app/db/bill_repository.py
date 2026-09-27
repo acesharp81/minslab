@@ -70,23 +70,73 @@ class BillRepository:
         ).fetchall()
         return [str(row[0]) for row in rows]
 
-    def pending_official_documents(self, limit: int = 10) -> list[dict[str, Any]]:
+    def pending_official_documents(
+        self, limit: int = 10, *, parser_version: str,
+    ) -> list[dict[str, Any]]:
         rows = self.connection.execute(
             """
             WITH latest AS (
-                SELECT DISTINCT ON (bill_id) bill_id, bill_name, official_url, official_data
+                SELECT DISTINCT ON (bill_id) id, bill_id, bill_name,
+                       official_url, official_data
                 FROM bill_versions ORDER BY bill_id, created_at DESC
             )
-            SELECT b.id, b.bill_id, latest.bill_name, latest.official_url,
-                   latest.official_data->>'PDF_URL1'
+            SELECT b.id, b.bill_id, latest.id, latest.bill_name,
+                   latest.official_url,
+                   btrim(split_part(latest.official_data->>'PDF_URL1', ',', 1))
             FROM bills b JOIN latest ON latest.bill_id = b.id
-            WHERE NULLIF(latest.official_data->>'PDF_URL1', '') IS NOT NULL
-            ORDER BY b.bill_id LIMIT %s
+            LEFT JOIN bill_official_document_fetches progress
+              ON progress.bill_id = b.id AND progress.bill_version_id = latest.id
+             AND progress.pdf_url = btrim(split_part(
+                 latest.official_data->>'PDF_URL1', ',', 1))
+             AND progress.parser_version = %s
+            WHERE NULLIF(btrim(split_part(
+                latest.official_data->>'PDF_URL1', ',', 1)), '') IS NOT NULL
+              AND (progress.bill_id IS NULL OR
+                   (progress.status = 'RETRY_WAIT' AND progress.next_attempt_at <= now()))
+            ORDER BY (progress.bill_id IS NULL) DESC, b.bill_id LIMIT %s
             """,
-            (limit,),
+            (parser_version, limit),
         ).fetchall()
-        columns = ("bill_uuid", "bill_id", "bill_name", "official_url", "pdf_urls")
+        columns = (
+            "bill_uuid", "bill_id", "bill_version_id", "bill_name",
+            "official_url", "pdf_url",
+        )
         return [dict(zip(columns, row, strict=True)) for row in rows]
+
+    def record_official_document_fetch(
+        self, *, bill_uuid: uuid.UUID, bill_version_id: uuid.UUID,
+        pdf_url: str, parser_version: str, succeeded: bool,
+        error: str | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO bill_official_document_fetches (
+                bill_id, bill_version_id, pdf_url, parser_version, status,
+                attempt_count, next_attempt_at, last_error, completed_at
+            ) VALUES (
+                %s, %s, %s, %s, %s, 1,
+                CASE WHEN %s THEN NULL ELSE now() + interval '5 minutes' END,
+                %s, CASE WHEN %s THEN now() ELSE NULL END
+            )
+            ON CONFLICT (bill_id, bill_version_id, pdf_url, parser_version)
+            DO UPDATE SET status = EXCLUDED.status,
+                          attempt_count = bill_official_document_fetches.attempt_count + 1,
+                          next_attempt_at = CASE WHEN EXCLUDED.status = 'SUCCEEDED'
+                              THEN NULL ELSE now() + make_interval(secs => LEAST(
+                                  86400, 300 * (2 ^ LEAST(
+                                      bill_official_document_fetches.attempt_count, 8
+                                  ))::integer
+                              )) END,
+                          last_error = EXCLUDED.last_error,
+                          completed_at = EXCLUDED.completed_at,
+                          updated_at = now()
+            """,
+            (
+                bill_uuid, bill_version_id, pdf_url, parser_version,
+                "SUCCEEDED" if succeeded else "RETRY_WAIT",
+                succeeded, error, succeeded,
+            ),
+        )
 
     def ingest_official_document(
         self, *, bill_uuid: uuid.UUID, source: SourceVersionInput,

@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import unittest
 import json
+from http.client import RemoteDisconnected
 from pathlib import Path
+from unittest.mock import patch
+
+from app.adapters.national_assembly.base import AdapterError
 
 from app.adapters.live_sources import (
+    fetch_public_source,
     parse_assembly_caption_message,
     parse_assembly_live_list,
     parse_assembly_live_play,
@@ -16,6 +21,13 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 class LiveSourcesAdapterTests(unittest.TestCase):
+    def test_remote_disconnect_is_retryable_adapter_error(self):
+        with patch(
+            "app.adapters.live_sources.url_request.urlopen",
+            side_effect=RemoteDisconnected("closed"),
+        ), self.assertRaises(AdapterError):
+            fetch_public_source("assembly_live_list", "https://example.invalid/live")
+
     def test_parses_only_three_target_committees(self):
         result = parse_assembly_live_list((FIXTURES / "synthetic_assembly_live_list.json").read_bytes())
         self.assertEqual(result["count"], 3)

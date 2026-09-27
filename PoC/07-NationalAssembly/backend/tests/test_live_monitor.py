@@ -3,18 +3,43 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from app.adapters.national_assembly.base import SourcePayload
-from app.ingestion.live_monitor import probe_assembly_live_once
+from app.adapters.national_assembly.base import AdapterError
+from app.ingestion.live_monitor import main, probe_assembly_live_once
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
 class LiveMonitorTests(unittest.TestCase):
+    def test_monitor_retries_after_source_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            settings = SimpleNamespace(
+                database_url="test://db", raw_data_dir=Path(directory) / "raw",
+                processed_data_dir=Path(directory) / "processed",
+            )
+            snapshot = {"checked_at": "2026-09-26T00:00:00+00:00",
+                        "assembly": {"live_count": 0, "play_contracts": []}}
+            with patch("app.config.get_settings", return_value=settings), \
+                 patch("app.db.migrate.apply_migrations"), \
+                 patch("app.db.connection.connect", side_effect=lambda _: nullcontext(object())), \
+                 patch("app.db.live_repository.LiveRepository", return_value=object()), \
+                 patch("app.ingestion.live_monitor.probe_assembly_live_once",
+                       side_effect=[AdapterError("source disconnected"), snapshot]) as probe, \
+                 patch("app.ingestion.live_monitor.time.sleep",
+                       side_effect=[None, StopIteration]), \
+                 patch("sys.argv", ["live_monitor", "--interval", "30"]), \
+                 patch("builtins.print"):
+                with self.assertRaises(StopIteration):
+                    main()
+            self.assertEqual(probe.call_count, 2)
+
     def test_live_target_fetches_play_contract_and_saves_status(self):
         listing = (FIXTURES / "synthetic_assembly_live_list.json").read_bytes()
         play = (FIXTURES / "synthetic_assembly_live_play.json").read_bytes()

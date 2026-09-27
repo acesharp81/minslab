@@ -78,3 +78,45 @@ class CommitteeMinutesAdapter:
                 department_code=self._text(row, "DEPT_CD"),
             ))
         return records
+
+
+class PlenaryMinutesAdapter:
+    """Normalize the verified plenary contract to the shared meeting model."""
+
+    source_key = "plenary_minutes"
+    parser_version = "plenary-minutes/1.0.0"
+
+    def parse(self, payload: SourcePayload) -> list[CommitteeMinuteSourceRecord]:
+        if payload.source_key != self.source_key:
+            raise AdapterError(f"unexpected source key: {payload.source_key}")
+        envelope = parse_json_envelope(
+            payload.content, expected_resource=get_contract(self.source_key).resource,
+        )
+        records: list[CommitteeMinuteSourceRecord] = []
+        for row in envelope.rows:
+            text = CommitteeMinutesAdapter._text
+            conference_id = text(row, "CONF_ID")
+            conference_date = text(row, "CONF_DATE")
+            class_name = text(row, "CLASS_NAME")
+            if not conference_id or not conference_date or class_name != "국회본회의":
+                raise AdapterError("plenary minute row lacks confirmed identity")
+            identity = {
+                key: text(row, key) for key in get_contract(self.source_key).columns
+            }
+            source_record_key = hashlib.sha256(
+                json.dumps(identity, ensure_ascii=False, sort_keys=True).encode("utf-8")
+            ).hexdigest()
+            records.append(CommitteeMinuteSourceRecord(
+                source_record_key=source_record_key,
+                conference_id=conference_id,
+                conference_number=text(row, "CONFER_NUM"),
+                title=text(row, "TITLE"), class_name=class_name,
+                assembly_number=text(row, "DAE_NUM"),
+                committee_name="본회의", conference_date=conference_date,
+                subject_name=text(row, "SUB_NAME"),
+                vod_url=text(row, "VOD_LINK_URL"),
+                minutes_url=text(row, "CONF_LINK_URL"),
+                pdf_url=text(row, "PDF_LINK_URL"),
+                pdf_file_id=None, department_code=None,
+            ))
+        return records

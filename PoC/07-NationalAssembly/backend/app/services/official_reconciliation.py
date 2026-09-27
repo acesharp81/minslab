@@ -8,9 +8,10 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from .official_brief_integration import semantic_tokens
+from .transcript_presentation import utterance_content_hash
 
 INTEGRATION_VERSION = "official-reconciliation/1.6"
-SPEAKER_MATCH_METHOD = "ORDERED_BIDIRECTIONAL_CHAR_NGRAM_9_V2"
+SPEAKER_MATCH_METHOD = "ORDERED_BIDIRECTIONAL_CHAR_NGRAM_9_V3"
 MIN_ALIGNMENT_CONFIDENCE = 0.34
 MIN_INLINE_PATCH_SIMILARITY = 0.58
 _COMPACT_PATTERN = re.compile(r"[^0-9a-zA-Z가-힣]+")
@@ -127,6 +128,7 @@ def align_live_segments(
     segments: Iterable[dict[str, Any]],
     official_utterances: Iterable[dict[str, Any]],
     *, minimum_confidence: float = MIN_ALIGNMENT_CONFIDENCE,
+    retain_conflicted_revisions: bool = False,
 ) -> list[dict[str, Any]]:
     """Align caption revisions to official utterances without inventing speakers.
 
@@ -138,10 +140,11 @@ def align_live_segments(
     live = [dict(item) for item in segments]
     if not official or not live:
         return []
+    official_texts = [compact_text(item.get("text")) for item in official]
     official_grams: list[set[str]] = []
     frequency: Counter[str] = Counter()
-    for item in official:
-        grams = _ngrams(compact_text(item.get("text")))
+    for official_text in official_texts:
+        grams = _ngrams(official_text)
         official_grams.append(grams)
         frequency.update(grams)
     index: dict[str, list[int]] = defaultdict(list)
@@ -158,6 +161,37 @@ def align_live_segments(
         grams = _ngrams(normalized)
         if not revision_id or len(normalized) < 12 or len(grams) < 2:
             continue
+        # A substantial caption fragment can be much shorter than the edited
+        # official speech. Accept it only when the full normalized fragment
+        # occurs in exactly one official utterance; repeated phrases remain
+        # unresolved instead of inheriting a possibly wrong speaker.
+        if len(normalized) >= 24:
+            exact = []
+            for candidate, official_text in enumerate(official_texts):
+                if normalized in official_text:
+                    exact.append(candidate)
+                    if len(exact) > 1:
+                        break
+            if len(exact) == 1:
+                official_item = official[exact[0]]
+                if str(official_item.get("speaker_name") or "").strip():
+                    matches.append({
+                        "revision_id": revision_id,
+                        "segment_id": segment.get("segment_id"),
+                        "source_speaker_label": segment.get("source_speaker_label")
+                            or segment.get("speaker_label"),
+                        "official_utterance_id": official_item.get("utterance_id"),
+                        "official_sequence_number": int(
+                            official_item.get("sequence_number") or exact[0] + 1
+                        ),
+                        "official_speaker_name": official_item.get("speaker_name"),
+                        "official_speaker_role": official_item.get("speaker_role"),
+                        "confidence": 0.999,
+                        "source_part_index": segment.get("source_part_index"),
+                        "source_part_count": segment.get("source_part_count"),
+                        "source_text_hash": utterance_content_hash(segment.get("text") or ""),
+                    })
+                    continue
         votes: Counter[int] = Counter()
         for gram in grams:
             for candidate in index.get(gram, ()):
@@ -230,8 +264,33 @@ def align_live_segments(
             "official_speaker_name": official_item.get("speaker_name"),
             "official_speaker_role": official_item.get("speaker_role"),
             "confidence": round(confidence, 3),
+            "source_part_index": segment.get("source_part_index"),
+            "source_part_count": segment.get("source_part_count"),
+            "source_text_hash": utterance_content_hash(segment.get("text") or ""),
         })
-    return matches
+    if retain_conflicted_revisions:
+        return matches
+    return unambiguous_revision_matches(matches)
+
+
+def unambiguous_revision_matches(
+    matches: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Keep revision-wide names only when all matched pieces have one name."""
+    rows = list(matches)
+    names_by_revision: dict[str, set[str]] = defaultdict(set)
+    for match in rows:
+        names_by_revision[str(match["revision_id"])].add(
+            str(match.get("official_speaker_name") or "").strip()
+        )
+    conflicted = {
+        revision_id for revision_id, names in names_by_revision.items()
+        if len(names) > 1
+    }
+    return [
+        match for match in rows
+        if str(match["revision_id"]) not in conflicted
+    ]
 
 
 def speaker_reconciliation_stats(matches: Iterable[dict[str, Any]]) -> dict[str, Any]:

@@ -61,7 +61,7 @@ def reconcile_executive_official_matches(
             selected, method = candidates[number][0], "UNIQUE_MEETING_NUMBER"
         else:
             continue
-        connection.execute(
+        changed = connection.execute(
             """
             INSERT INTO executive_official_matches (
                 broadcast_id, official_briefing_id, meeting_number, meeting_date,
@@ -74,11 +74,25 @@ def reconcile_executive_official_matches(
                 match_method = EXCLUDED.match_method,
                 official_content_hash = EXCLUDED.official_content_hash,
                 updated_at = now()
+            WHERE (
+                executive_official_matches.official_briefing_id,
+                executive_official_matches.meeting_number,
+                executive_official_matches.meeting_date,
+                executive_official_matches.match_method,
+                executive_official_matches.official_content_hash
+            ) IS DISTINCT FROM (
+                EXCLUDED.official_briefing_id,
+                EXCLUDED.meeting_number,
+                EXCLUDED.meeting_date,
+                EXCLUDED.match_method,
+                EXCLUDED.official_content_hash
+            )
+            RETURNING broadcast_id
             """,
             (
                 broadcast_id, selected["briefing_id"], number, selected["date"],
                 method, selected["content_hash"],
             ),
-        )
-        matched += 1
+        ).fetchone()
+        matched += int(changed is not None)
     return matched

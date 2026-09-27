@@ -27,6 +27,8 @@ qwen*_report*.json
 PoC/04-master-press/data/
 # Generated PoC data artifacts
 PoC/**/*.csv
+!PoC/07-NationalAssembly/docs/SPEAKER_REVIEW_QUEUE_2026-09-27.csv
+!PoC/07-NationalAssembly/docs/ONTOLOGY_REVIEW_QUEUE_2026-09-27.csv
 PoC/**/*.pkl
 PoC/06-AIWorks/vendor/kordoc-runtime/node_modules/
 

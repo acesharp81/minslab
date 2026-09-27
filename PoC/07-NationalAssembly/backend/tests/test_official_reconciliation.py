@@ -35,6 +35,49 @@ class OfficialReconciliationTests(unittest.TestCase):
         self.assertEqual(matches[0]["official_speaker_name"], "행정안전부장관")
         self.assertGreaterEqual(matches[0]["confidence"], 0.9)
 
+    def test_unique_exact_fragment_gets_official_speaker(self):
+        fragment = "정부는 재난 피해 복구를 위한 예산을 신속히 편성하겠습니다"
+        matches = align_live_segments(
+            [{"revision_id": uuid.uuid4(), "segment_id": "caption-1",
+              "speaker_label": "0", "text": fragment}],
+            [{"utterance_id": uuid.uuid4(), "sequence_number": 1,
+              "speaker_name": "행정안전부장관",
+              "text": "회의를 시작합니다. " + fragment + ". " + "추가 설명입니다. " * 30},
+             {"utterance_id": uuid.uuid4(), "sequence_number": 2,
+              "speaker_name": "위원장", "text": "다른 안건을 논의합니다."}],
+        )
+        self.assertEqual(1, len(matches))
+        self.assertEqual("행정안전부장관", matches[0]["official_speaker_name"])
+        self.assertEqual(0.999, matches[0]["confidence"])
+
+    def test_repeated_exact_fragment_does_not_assign_speaker(self):
+        fragment = "정부는 재난 피해 복구를 위한 예산을 신속히 편성하겠습니다"
+        matches = align_live_segments(
+            [{"revision_id": uuid.uuid4(), "segment_id": "caption-1",
+              "speaker_label": "0", "text": fragment}],
+            [{"utterance_id": uuid.uuid4(), "sequence_number": 1,
+              "speaker_name": "장관 A",
+              "text": "첫 발언. " + fragment + ". " + "설명 A. " * 30},
+             {"utterance_id": uuid.uuid4(), "sequence_number": 2,
+              "speaker_name": "장관 B",
+              "text": "둘째 발언. " + fragment + ". " + "설명 B. " * 30}],
+        )
+        self.assertEqual([], matches)
+
+    def test_split_caption_revision_with_two_official_speakers_is_unresolved(self):
+        revision_id = uuid.uuid4()
+        first = "재난 대응 예산을 신속히 편성하여 피해 지역에 지원하겠습니다"
+        second = "지원 예산의 구체적인 집행 내역을 다시 보고해 주시기 바랍니다"
+        matches = align_live_segments(
+            [{"revision_id": revision_id, "segment_id": "caption-a", "text": first},
+             {"revision_id": revision_id, "segment_id": "caption-b", "text": second}],
+            [{"utterance_id": uuid.uuid4(), "sequence_number": 1,
+              "speaker_name": "장관", "text": "설명. " + first + "."},
+             {"utterance_id": uuid.uuid4(), "sequence_number": 2,
+              "speaker_name": "위원장", "text": "질의. " + second + "."}],
+        )
+        self.assertEqual([], matches)
+
     def test_alignment_rejects_ambiguous_generic_fragment(self):
         matches = align_live_segments(
             [{

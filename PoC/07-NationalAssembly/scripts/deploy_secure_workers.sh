@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ ${EUID} -ne 0 ]]; then
-  echo "Run with sudo: sudo scripts/deploy_secure_workers.sh [all|summary|meeting|official|executive|schedule|review|watch|notification|watch-summary|topic-report]" >&2
+  echo "Run with sudo: sudo scripts/deploy_secure_workers.sh [all|summary|meeting|official|official-minutes|official-integration|executive|schedule|review|watch|notification|watch-summary|topic-report]" >&2
   exit 1
 fi
 
@@ -95,6 +95,9 @@ deploy_worker() {
   if [[ "${with_data_volume}" == "yes" ]]; then
     args+=( -v "${PROJECT_DIR}/data:/app/data" )
   fi
+  if [[ "${short_name}" == "official-minutes" ]]; then
+    args+=( --memory 2g --memory-swap 2560m )
+  fi
   args+=( "${IMAGE}" python -m "${module}" --interval "${interval}" )
   if [[ -n "${extra_argument}" ]]; then
     args+=( "${extra_argument}" )
@@ -153,7 +156,7 @@ case "${TARGET}" in
   all)
     deploy_worker "summary" "app.ingestion.summary_worker" "2" "${OPENROUTER_TEXT}" "no" "no"
     deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${MEETING_BRIEF_TEXT}" "no" "yes"
-    deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "3600" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR" "yes" "no"
+    deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "300" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR,PROCESSED_DATA_DIR" "yes" "no"
     deploy_worker "official-integration" "app.ingestion.official_integration_worker" "15" "${OPENROUTER_TEXT}" "no" "no"
     deploy_worker "executive-caption" "app.ingestion.executive_caption_worker" "5" "${EXECUTIVE_AUDIO}" "yes"
     deploy_worker "watch" "app.ingestion.watch_worker" "1" "DATABASE_URL,WATCH_ALERTS_ENABLED,WATCH_TEST_BROADCASTS_ENABLED,WATCH_DIGEST_ENABLED,WATCH_KAKAO_ENABLED,WATCH_LLM_ENABLED" "no" "no"
@@ -170,7 +173,13 @@ case "${TARGET}" in
     deploy_worker "meeting-brief" "app.ingestion.meeting_brief_worker" "60" "${MEETING_BRIEF_TEXT}" "no" "yes"
     ;;
   official)
-    deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "3600" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR" "yes" "no"
+    deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "300" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR,PROCESSED_DATA_DIR" "yes" "no"
+    deploy_worker "official-integration" "app.ingestion.official_integration_worker" "15" "${OPENROUTER_TEXT}" "no" "no"
+    ;;
+  official-minutes)
+    deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "300" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR,PROCESSED_DATA_DIR" "yes" "no"
+    ;;
+  official-integration)
     deploy_worker "official-integration" "app.ingestion.official_integration_worker" "15" "${OPENROUTER_TEXT}" "no" "no"
     ;;
   executive)

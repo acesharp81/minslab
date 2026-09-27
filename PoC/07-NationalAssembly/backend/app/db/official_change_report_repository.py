@@ -100,6 +100,10 @@ class OfficialChangeReportRepository:
                        integration.speaker_stats
                 FROM meeting_official_integrations integration
                 WHERE integration.status = 'READY'
+                  AND COALESCE(integration.usage_metadata->>'comparison_mode', '')
+                      <> 'SOURCE_ONLY_TIMEOUT'
+                  AND COALESCE(integration.usage_metadata->>'reuse_reason', '')
+                      <> 'TEMPORARY_UPDATE_DEFERRED'
                 ORDER BY integration.broadcast_id,
                          integration.generated_at DESC, integration.id DESC
             )

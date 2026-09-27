@@ -31,13 +31,13 @@ function appendOfficialInlineDiff(container, value, diffSpans, changeKind = "") 
   return container;
 }
 
-function meetingBriefViewSwitch(activeView, onChange) {
+function meetingBriefViewSwitch(activeView, onChange, sourceOnly = false) {
   const control = magazineElement("div", "meeting-brief-view-switch", "");
   control.setAttribute("role", "group");
   control.setAttribute("aria-label", "회의 보고서 자료 기준");
   for (const [view, label] of [
+    ["official", sourceOnly ? "공식 발언·화자" : "공식 대조본"],
     ["provisional", "LIVE/STT 초안"],
-    ["official", "공식 대조본"],
   ]) {
     const button = magazineElement("button", "", label);
     button.type = "button";
@@ -61,13 +61,31 @@ function meetingIntegrationBar(item, record) {
   const context = record?.official_context || {};
   const bar = magazineElement("section", "meeting-integration-bar", "");
   if (integration.status === "READY") {
+    const sourceOnly = integration.comparison_mode === "SOURCE_ONLY_TIMEOUT";
     const changes = Number(integration.change_count || 0);
+    const points = (record?.official_brief?.topics || [])
+      .flatMap((topic) => topic.speaker_points || []);
+    const verifiedPoints = points.filter(
+      (point) => point.speaker_official === true
+        && point.official_evidence_ids?.length
+        && !String(point.speaker_label || "").startsWith("화자"),
+    ).length;
+    const unresolvedPoints = (record?.official_brief?.topics || [])
+      .flatMap((topic) => topic.draft_only_speaker_points || []).length;
     const speakers = Number(integration.speaker_stats?.confirmed_speakers || 0);
     bar.append(
-      magazineElement("strong", "", "공식 자료 대조 완료"),
-      magazineElement("span", "", changes ? `본문 변경 ${changes}곳` : "본문 변경 없음"),
       magazineElement(
-        "span", "", speakers ? `공식 화자 ${speakers}명 반영` : "화자 근거 대조 완료",
+        "strong", "",
+        sourceOnly ? "공식 발언·화자 반영 · 요약 대조 지연"
+          : unresolvedPoints ? "공식 대조 완료 · 화자 검토 필요" : "공식 자료 대조 완료",
+      ),
+      magazineElement("span", "", sourceOnly ? "요약은 LIVE 초안 기반"
+        : changes ? `본문 변경 ${changes}곳` : "본문 변경 없음"),
+      magazineElement(
+        "span", "",
+        points.length
+          ? `화자 요지 ${verifiedPoints}/${points.length}개 확인 · ${unresolvedPoints}개 검토 필요`
+          : speakers ? `공식 화자 ${speakers}명 반영` : "화자 근거 대조 완료",
       ),
     );
   } else {

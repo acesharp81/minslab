@@ -56,6 +56,23 @@ class OfficialIntegrationRepository:
         ).fetchone()
         return self._row(row)
 
+    def latest_for_brief_document(
+        self, meeting_brief_id: Any, official_document_id: Any,
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            SELECT id, broadcast_id, meeting_brief_id, official_document_id,
+                   integration_version, status, integrated_brief, changes,
+                   speaker_stats, usage_metadata, generated_at
+            FROM meeting_official_integrations
+            WHERE meeting_brief_id = %s AND official_document_id = %s
+            ORDER BY generated_at DESC, id DESC
+            LIMIT 1
+            """,
+            (meeting_brief_id, official_document_id),
+        ).fetchone()
+        return self._row(row)
+
     def latest_for_brief_stage(
         self, meeting_brief_id: Any, publication_stage: str,
         integration_version: str,
@@ -143,18 +160,101 @@ class OfficialIntegrationRepository:
             raise RuntimeError("official integration was not saved")
         return item
 
-    def replace_segment_matches(
-        self, matches: list[dict[str, Any]], *, match_method: str,
+    def reviewed_speaker_decisions(
+        self, meeting_brief_id: Any, document_id: Any,
+    ) -> list[dict[str, Any]]:
+        """Load only active reviews whose official utterance belongs to this doc."""
+        rows = self.connection.execute(
+            """
+            SELECT review.point_id, review.source_text_hash,
+                   review.official_utterance_id, review.replacement_summary,
+                   review.reviewed_by, review.reason, review.matcher_version
+            FROM official_speaker_review_decisions review
+            JOIN official_transcript_utterances utterance
+              ON utterance.id = review.official_utterance_id
+             AND utterance.document_id = review.official_document_id
+            WHERE review.meeting_brief_id = %s
+              AND review.official_document_id = %s
+              AND review.status = 'ACTIVE'
+            """,
+            (meeting_brief_id, document_id),
+        ).fetchall()
+        columns = (
+            "point_id", "source_text_hash", "official_utterance_id",
+            "replacement_summary", "reviewed_by", "reason", "matcher_version",
+        )
+        return [dict(zip(columns, row, strict=True)) for row in rows]
+
+    def replace_part_matches(
+        self, document_id: Any, segments: list[dict[str, Any]],
+        matches: list[dict[str, Any]], *, match_method: str,
     ) -> int:
-        if not matches:
+        """Replace only this document's source-piece matches; retain history."""
+        revision_ids = list(dict.fromkeys(
+            segment["revision_id"] for segment in segments
+            if int(segment.get("source_part_count") or 0) > 1
+            and segment.get("revision_id")
+        ))
+        if not revision_ids:
             return 0
-        revision_ids = list({match["revision_id"] for match in matches})
         self.connection.execute(
             """
-            DELETE FROM transcript_official_reconciliations
-            WHERE match_method = %s AND transcript_revision_id = ANY(%s)
+            DELETE FROM transcript_official_part_matches
+            WHERE official_document_id = %s
+              AND transcript_revision_id = ANY(%s)
             """,
-            (match_method, revision_ids),
+            (document_id, revision_ids),
+        )
+        inserted = 0
+        for match in matches:
+            if int(match.get("source_part_count") or 0) <= 1:
+                continue
+            row = self.connection.execute(
+                """
+                INSERT INTO transcript_official_part_matches (
+                    official_document_id, transcript_revision_id,
+                    source_part_index, source_text_hash,
+                    official_utterance_id, match_method, match_confidence
+                )
+                SELECT %s, %s, %s, %s, utterance.id, %s, %s
+                FROM official_transcript_utterances utterance
+                WHERE utterance.id = %s AND utterance.document_id = %s
+                ON CONFLICT (official_document_id, transcript_revision_id,
+                             source_part_index)
+                DO UPDATE SET source_text_hash = EXCLUDED.source_text_hash,
+                              official_utterance_id = EXCLUDED.official_utterance_id,
+                              match_method = EXCLUDED.match_method,
+                              match_confidence = EXCLUDED.match_confidence,
+                              created_at = now()
+                RETURNING source_part_index
+                """,
+                (
+                    document_id, match["revision_id"],
+                    match["source_part_index"], match["source_text_hash"],
+                    match_method, match["confidence"],
+                    match["official_utterance_id"], document_id,
+                ),
+            ).fetchone()
+            inserted += int(row is not None)
+        return inserted
+
+    def replace_segment_matches(
+        self, matches: list[dict[str, Any]], *, match_method: str,
+        document_id: Any, revision_ids: list[Any],
+    ) -> int:
+        current_ids = list(dict.fromkeys(revision_ids))
+        if not current_ids:
+            return 0
+        self.connection.execute(
+            """
+            DELETE FROM transcript_official_reconciliations reconciliation
+            USING official_transcript_utterances utterance
+            WHERE reconciliation.official_utterance_id = utterance.id
+              AND utterance.document_id = %s
+              AND reconciliation.match_method = %s
+              AND reconciliation.transcript_revision_id = ANY(%s)
+            """,
+            (document_id, match_method, current_ids),
         )
         inserted = 0
         for match in matches:
@@ -163,7 +263,10 @@ class OfficialIntegrationRepository:
                 INSERT INTO transcript_official_reconciliations (
                     id, transcript_revision_id, official_utterance_id,
                     reconciliation_status, match_method, match_confidence
-                ) VALUES (%s, %s, %s, 'MATCHED', %s, %s)
+                )
+                SELECT %s, %s, utterance.id, 'MATCHED', %s, %s
+                FROM official_transcript_utterances utterance
+                WHERE utterance.id = %s AND utterance.document_id = %s
                 ON CONFLICT (transcript_revision_id, official_utterance_id, match_method)
                 DO UPDATE SET reconciliation_status = 'MATCHED',
                               match_confidence = EXCLUDED.match_confidence,
@@ -172,8 +275,8 @@ class OfficialIntegrationRepository:
                 """,
                 (
                     uuid.uuid4(), match["revision_id"],
-                    match["official_utterance_id"], match_method,
-                    match["confidence"],
+                    match_method, match["confidence"],
+                    match["official_utterance_id"], document_id,
                 ),
             ).fetchone()
             inserted += int(row is not None)
@@ -184,7 +287,7 @@ class OfficialIntegrationRepository:
             JOIN transcript_segments segment ON segment.id = revision.segment_id
             WHERE revision.id = ANY(%s)
             """,
-            (revision_ids,),
+            (current_ids,),
         ).fetchall()
         if broadcast_rows:
             from .live_repository import LiveRepository

@@ -46,10 +46,17 @@ def _strict_date(value: str) -> date:
 
 def group_target_committee_minutes(
     records: list[CommitteeMinuteSourceRecord],
+    *, source_key: str = "committee_minutes",
 ) -> list[CanonicalCommitteeMeeting]:
+    if source_key not in {"committee_minutes", "plenary_minutes"}:
+        raise ValueError("unsupported minutes source")
     grouped: dict[str, list[CommitteeMinuteSourceRecord]] = {}
     for record in records:
-        if is_target_committee(record.committee_name):
+        in_scope = (
+            record.committee_name == "본회의" if source_key == "plenary_minutes"
+            else is_target_committee(record.committee_name)
+        )
+        if in_scope:
             grouped.setdefault(record.conference_id, []).append(record)
 
     meetings: list[CanonicalCommitteeMeeting] = []
@@ -64,13 +71,13 @@ def group_target_committee_minutes(
         match = TITLE_IDENTITY.search(first.title or "")
         session_text = f"제{match.group('session')}회" if match else None
         meeting_order_text = f"제{match.group('order')}차" if match else None
-        source_key = hashlib.sha256(
-            f"committee_minutes|{conference_id}".encode("utf-8")
+        meeting_source_key = hashlib.sha256(
+            f"{source_key}|{conference_id}".encode("utf-8")
         ).hexdigest()
         meetings.append(CanonicalCommitteeMeeting(
             conference_id=conference_id,
             meeting_uid=uuid.uuid5(OFFICIAL_MEETING_NAMESPACE, conference_id),
-            meeting_source_key=source_key,
+            meeting_source_key=meeting_source_key,
             conference_number=first.conference_number,
             title=first.title,
             class_name=first.class_name,

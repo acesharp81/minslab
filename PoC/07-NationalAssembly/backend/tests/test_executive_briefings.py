@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.adapters.national_assembly.base import SourcePayload
 from app.ingestion.executive_briefings import (
@@ -19,10 +19,33 @@ from app.ingestion.executive_briefings import (
     parse_president_detail,
     parse_president_list,
     report_matches_policy_briefing,
+    reusable_detail,
 )
 
 
 class ExecutiveBriefingTests(unittest.TestCase):
+    def test_detail_cache_expires_and_does_not_mutate_snapshot(self):
+        now = datetime(2026, 9, 24, tzinfo=timezone.utc)
+        previous = {
+            "source_url": "https://example.org/detail",
+            "retrieved_at": (now - timedelta(hours=2)).isoformat(),
+            "agendas": [{"related_ministry_briefings": []}],
+        }
+        reused = reusable_detail(
+            previous, previous["source_url"], now=now,
+            max_age=timedelta(hours=6),
+        )
+        self.assertIsNotNone(reused)
+        reused["agendas"][0]["related_ministry_briefings"].append({"id": 1})
+        self.assertEqual([], previous["agendas"][0]["related_ministry_briefings"])
+        self.assertIsNone(reusable_detail(
+            previous, previous["source_url"], now=now,
+            max_age=timedelta(hours=1),
+        ))
+        self.assertIsNone(reusable_detail(
+            previous, "https://example.org/changed", now=now,
+            max_age=timedelta(hours=6),
+        ))
     def test_parses_only_official_state_council_links(self):
         html = b"""
         <ul><li><a onclick="goView('/briefing/stateCouncilView.do?newsId=123','')">

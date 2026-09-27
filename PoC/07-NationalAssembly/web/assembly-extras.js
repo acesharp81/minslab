@@ -192,6 +192,9 @@
         const copy = element("div", "");
         const tags = element("div", "assembly-agenda-tags");
         tags.append(element("span", isExecutiveSchedule(item) ? "is-executive" : item.is_target_committee ? "is-target" : "", eventLabel(item)));
+        if (isCommitteeSchedule(item) && !item.is_target_committee) {
+          tags.append(element("span", "", "PoC7 생방송 수집 대상 외"));
+        }
         if (isUpcomingBroadcast(item)) tags.append(element("span", "is-broadcast", "● 방송예정"));
         if (item.broadcast_status === "LIVE") tags.append(element("span", "is-live", "● 생방송"));
         if (isCompletedBroadcast(item)) tags.append(element("span", "is-completed", "● 방송 완료"));
@@ -709,7 +712,8 @@
     target.replaceChildren(
       ontologyMetric("정책 영역", Number((payload.domains || []).length).toLocaleString()),
       ontologyMetric("세부 분류", Number((payload.groups || []).length).toLocaleString()),
-      ontologyMetric("검증 보고서", Number(metrics.report_count || 0).toLocaleString()),
+      ontologyMetric("저장 보고서", Number(metrics.report_count || 0).toLocaleString()),
+      ontologyMetric("공식 대조본", Number(metrics.official_report_count || 0).toLocaleString()),
       ontologyMetric("정책 주제", `${Number(metrics.policy_topic_count || 0).toLocaleString()}건`),
       ontologyMetric("분류된 주제", `${Number(metrics.ontology_topic_count || 0).toLocaleString()}건`),
       ontologyMetric("온톨로지 적용률", `${coverage.toFixed(1)}%`, coverage >= 95 ? "is-good" : "is-review"),

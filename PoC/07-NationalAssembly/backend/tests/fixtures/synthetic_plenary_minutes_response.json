@@ -1,0 +1,9 @@
+{
+  "nzbyfwhwaoanttzje": [
+    {"head": [{"list_total_count": 2}, {"RESULT": {"CODE": "INFO-000", "MESSAGE": "정상"}}]},
+    {"row": [
+      {"CONFER_NUM": 57001, "TITLE": "제22대 제439회 제5차 국회본회의 (2026년 09월 09일)", "CLASS_NAME": "국회본회의", "DAE_NUM": 22, "CONF_DATE": "2026-09-09", "SUB_NAME": "1. 정치에 관한 질문", "VOD_LINK_URL": "https://example.invalid/vod", "CONF_LINK_URL": "https://record.assembly.go.kr/assembly/viewer/minutes.do?id=12345", "PDF_LINK_URL": "https://example.invalid/minutes.pdf", "CONF_ID": "N999001"},
+      {"CONFER_NUM": 57001, "TITLE": "제22대 제439회 제5차 국회본회의 (2026년 09월 09일)", "CLASS_NAME": "국회본회의", "DAE_NUM": 22, "CONF_DATE": "2026-09-09", "SUB_NAME": "2. 다음 안건", "VOD_LINK_URL": "https://example.invalid/vod", "CONF_LINK_URL": "https://record.assembly.go.kr/assembly/viewer/minutes.do?id=12345", "PDF_LINK_URL": "https://example.invalid/minutes.pdf", "CONF_ID": "N999001"}
+    ]}
+  ]
+}

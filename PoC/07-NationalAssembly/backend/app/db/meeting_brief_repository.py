@@ -3,6 +3,8 @@ from __future__ import annotations
 import uuid
 from typing import Any, Iterable
 
+from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+
 
 class MeetingBriefRepository:
     def __init__(self, connection: Any):
@@ -28,6 +30,21 @@ class MeetingBriefRepository:
             ORDER BY generated_at DESC LIMIT 1
             """,
             (broadcast_id, transcript_hash, provider, model, prompt_version),
+        ).fetchone()
+        return self._row(row)
+
+    def get_by_id(
+        self, broadcast_id: Any, brief_id: Any,
+    ) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            SELECT id, broadcast_id, transcript_hash, source_last_event_cursor,
+                   provider, model, prompt_version, authority_status, review_status,
+                   brief, usage_metadata, generated_at
+            FROM meeting_briefs
+            WHERE broadcast_id = %s AND id = %s
+            """,
+            (broadcast_id, brief_id),
         ).fetchone()
         return self._row(row)
 
@@ -67,17 +84,30 @@ class MeetingBriefRepository:
         return {item["broadcast_id"]: item for item in items if item}
 
     def latest_all(self) -> list[dict[str, Any]]:
+        """Return public-scope reports for derived aggregate views."""
         rows = self.connection.execute(
             """
-            SELECT DISTINCT ON (broadcast_id)
-                   id, broadcast_id, transcript_hash, source_last_event_cursor,
-                   provider, model, prompt_version, authority_status, review_status,
-                   brief, usage_metadata, generated_at
-            FROM meeting_briefs
-            ORDER BY broadcast_id,
-                     (provider IN ('mistral', 'openrouter')) DESC,
-                     generated_at DESC, id DESC
-            """
+            SELECT DISTINCT ON (brief.broadcast_id)
+                   brief.id, brief.broadcast_id, brief.transcript_hash,
+                   brief.source_last_event_cursor, brief.provider, brief.model,
+                   brief.prompt_version, brief.authority_status,
+                   brief.review_status, brief.brief, brief.usage_metadata,
+                   brief.generated_at
+            FROM meeting_briefs brief
+            JOIN live_broadcasts broadcast ON broadcast.id = brief.broadcast_id
+            WHERE (
+                broadcast.institution <> 'LEGISLATURE'
+                OR broadcast.committee_name = ANY(%s)
+            )
+              AND broadcast.source_system NOT IN (
+                'poc07.demo', 'poc07.test', 'poc07.replay.local',
+                'poc07.replay.kakao'
+              )
+            ORDER BY brief.broadcast_id,
+                     (brief.provider IN ('mistral', 'openrouter')) DESC,
+                     brief.generated_at DESC, brief.id DESC
+            """,
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
         ).fetchall()
         return [item for row in rows if (item := self._row(row))]
 
@@ -420,7 +450,10 @@ class MeetingBriefRepository:
             entities = [
                 point
                 for topic in payload.get("topics", [])
-                for point in topic.get("speaker_points", [])
+                for point in [
+                    *(topic.get("speaker_points", []) or []),
+                    *(topic.get("draft_only_speaker_points", []) or []),
+                ]
             ]
         else:
             return []

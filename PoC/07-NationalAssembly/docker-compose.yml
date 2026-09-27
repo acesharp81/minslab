@@ -319,8 +319,8 @@ services:
     command: ["python", "-m", "app.ingestion.official_minutes_worker", "--interval", "300"]
     # A malformed or unexpectedly large official transcript must not evict
     # PoC7 PostgreSQL or PoC8 SQLite pages from the shared host.
-    mem_limit: 768m
-    memswap_limit: 1g
+    mem_limit: 2g
+    memswap_limit: 2560m
     volumes:
       - ./data:/app/data
     depends_on:

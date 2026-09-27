@@ -13,7 +13,7 @@ class WebDashboardTests(unittest.TestCase):
         security = (
             PROJECT_DIR / "backend/app/services/web_security.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("assets/app.js?v=20260923-2", html)
+        self.assertIn("assets/app.js?v=20260927-2", html)
         self.assertIn("assets/workspace.css?v=20260923-1", html)
         self.assertIn('response.headers["Cache-Control"] = "no-store, max-age=0"', security)
         self.assertIn('path.startswith("/assets/")', security)
@@ -68,7 +68,7 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("grid-template-columns:repeat(6,minmax(0,1fr))", styles)
         self.assertIn("specific-issues?limit=80", script)
         self.assertIn("Promise.allSettled", script)
-        self.assertIn("assets/assembly-extras.js?v=20260923-1", html)
+        self.assertIn("assets/assembly-extras.js?v=20260927-1", html)
         self.assertIn("const INSIGHT_RETRY_DELAYS_MS = [800, 2000, 5000]", script)
         self.assertIn("const CALENDAR_RETRY_DELAYS_MS = [800, 2000, 5000]", script)
         self.assertIn("if (insightLoadState.promise) return insightLoadState.promise", script)
@@ -728,7 +728,7 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("function meetingBriefViewSwitch", integration)
         self.assertIn('part.kind === "deleted"', integration)
         self.assertIn("meeting-brief-view-switch", styles)
-        self.assertIn("official-integration.js?v=20260921-1", html)
+        self.assertIn("official-integration.js?v=20260927-2", html)
 
 if __name__ == "__main__":
     unittest.main()

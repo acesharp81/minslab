@@ -664,12 +664,17 @@ class LiveRepository:
         )
 
     def broadcast_reconciliation_details(
-        self, broadcast_id: uuid.UUID
+        self, broadcast_id: uuid.UUID, *,
+        official_document_id: uuid.UUID | None,
+        revision_ids: Iterable[uuid.UUID],
     ) -> dict[uuid.UUID, dict[str, Any]]:
+        """Present matches only for current caption revisions and official minutes."""
+        current_ids = list(dict.fromkeys(revision_ids))
+        if official_document_id is None or not current_ids:
+            return {}
         rows = self.connection.execute(
             """
-            SELECT DISTINCT ON (reconciliation.transcript_revision_id)
-                   reconciliation.transcript_revision_id,
+            SELECT reconciliation.transcript_revision_id,
                    reconciliation.reconciliation_status,
                    reconciliation.match_method, reconciliation.match_confidence,
                    revision.text,
@@ -681,15 +686,19 @@ class LiveRepository:
             JOIN transcript_segment_revisions revision
               ON revision.id = reconciliation.transcript_revision_id
             JOIN transcript_segments segment ON segment.id = revision.segment_id
-            LEFT JOIN official_transcript_utterances utterance
+            JOIN official_transcript_utterances utterance
               ON utterance.id = reconciliation.official_utterance_id
-            LEFT JOIN official_transcript_documents document
+            JOIN official_transcript_documents document
               ON document.id = utterance.document_id
             WHERE segment.broadcast_id = %s
+              AND revision.id = ANY(%s)
+              AND utterance.document_id = %s
+              AND reconciliation.reconciliation_status = 'MATCHED'
             ORDER BY reconciliation.transcript_revision_id,
+                     reconciliation.match_confidence DESC NULLS LAST,
                      reconciliation.created_at DESC, reconciliation.id DESC
             """,
-            (broadcast_id,),
+            (broadcast_id, current_ids, official_document_id),
         ).fetchall()
         columns = (
             "revision_id",
@@ -706,14 +715,84 @@ class LiveRepository:
             "publication_stage",
             "official_authority_status",
         )
-        result: dict[uuid.UUID, dict[str, Any]] = {}
+        grouped: dict[uuid.UUID, list[dict[str, Any]]] = {}
         for row in rows:
             item = dict(zip(columns, row, strict=True))
             revision_id = item.pop("revision_id")
             item["live_revision_id"] = str(revision_id)
             locator = item.get("source_locator")
             item["source_locator"] = locator if isinstance(locator, dict) else None
-            result[revision_id] = item
+            grouped.setdefault(revision_id, []).append(item)
+        result: dict[uuid.UUID, dict[str, Any]] = {}
+        for revision_id, candidates in grouped.items():
+            names = {
+                str(item.get("official_speaker_name") or "").strip()
+                for item in candidates
+            }
+            if len(names) != 1 or not next(iter(names)):
+                result[revision_id] = {
+                    "status": "CONFLICT",
+                    "live_revision_id": str(revision_id),
+                    "official_speaker_name": None,
+                    "official_utterance_id": None,
+                }
+            else:
+                result[revision_id] = candidates[0]
+        return result
+
+    def broadcast_part_reconciliation_details(
+        self, broadcast_id: uuid.UUID, *,
+        official_document_id: uuid.UUID | None,
+        revision_ids: Iterable[uuid.UUID],
+    ) -> dict[uuid.UUID, dict[int, dict[str, Any]]]:
+        """Return current-document matches for individual source speaker pieces."""
+        current_ids = list(dict.fromkeys(revision_ids))
+        if official_document_id is None or not current_ids:
+            return {}
+        rows = self.connection.execute(
+            """
+            SELECT part_match.transcript_revision_id, part_match.source_part_index,
+                   part_match.source_text_hash, part_match.match_method,
+                   part_match.match_confidence, utterance.id,
+                   utterance.sequence_number, utterance.speaker_name,
+                   utterance.speaker_role, utterance.text,
+                   utterance.source_locator, document.publication_stage,
+                   document.authority_status
+            FROM transcript_official_part_matches part_match
+            JOIN transcript_segment_revisions revision
+              ON revision.id = part_match.transcript_revision_id
+            JOIN transcript_segments segment ON segment.id = revision.segment_id
+            JOIN official_transcript_utterances utterance
+              ON utterance.id = part_match.official_utterance_id
+             AND utterance.document_id = part_match.official_document_id
+            JOIN official_transcript_documents document
+              ON document.id = part_match.official_document_id
+            WHERE segment.broadcast_id = %s
+              AND part_match.transcript_revision_id = ANY(%s)
+              AND part_match.official_document_id = %s
+              AND utterance.speaker_name IS NOT NULL
+            """,
+            (broadcast_id, current_ids, official_document_id),
+        ).fetchall()
+        result: dict[uuid.UUID, dict[int, dict[str, Any]]] = {}
+        for row in rows:
+            (
+                revision_id, index, source_hash, method, confidence,
+                utterance_id, sequence, name, role, official_text,
+                locator, stage, authority,
+            ) = row
+            result.setdefault(revision_id, {})[int(index)] = {
+                "status": "MATCHED", "source_text_hash": source_hash,
+                "match_method": method, "match_confidence": confidence,
+                "live_revision_id": str(revision_id),
+                "official_utterance_id": utterance_id,
+                "official_sequence_number": sequence,
+                "official_speaker_name": name, "official_speaker_role": role,
+                "official_text": official_text,
+                "source_locator": locator if isinstance(locator, dict) else None,
+                "publication_stage": stage,
+                "official_authority_status": authority,
+            }
         return result
 
     def list_ended_broadcasts(
@@ -844,21 +923,26 @@ class LiveRepository:
                        document.publication_stage, document.retrieved_at,
                        job.status AS job_status
                 FROM broadcast_official_publications publication
-                LEFT JOIN LATERAL (
-                    SELECT id, publication_stage, retrieved_at
-                    FROM official_transcript_documents
-                    WHERE publication_id = publication.id
-                    ORDER BY (publication_stage = 'FINAL') DESC,
-                             retrieved_at DESC, id DESC LIMIT 1
-                ) document ON true
+                JOIN official_transcript_documents document
+                  ON document.meeting_id = publication.meeting_id
+                 AND document.conference_id = publication.conference_id
                 LEFT JOIN LATERAL (
                     SELECT status
                     FROM meeting_official_integration_jobs
                     WHERE broadcast_id = broadcast.id
+                      AND official_document_id = document.id
                     ORDER BY updated_at DESC, id DESC LIMIT 1
                 ) job ON true
                 WHERE publication.broadcast_id = broadcast.id
-                ORDER BY publication.matched_at DESC, publication.id DESC LIMIT 1
+                ORDER BY (document.publication_stage = 'FINAL') DESC,
+                         EXISTS (
+                             SELECT 1 FROM official_transcript_utterances utterance
+                             JOIN official_utterance_annotations annotation
+                               ON annotation.utterance_id = utterance.id
+                             WHERE utterance.document_id = document.id
+                         ) DESC,
+                         document.retrieved_at DESC, document.id DESC
+                LIMIT 1
             ) official_pipeline ON true
             LEFT JOIN executive_official_matches executive_match
               ON executive_match.broadcast_id = broadcast.id
@@ -949,7 +1033,7 @@ class LiveRepository:
                    broadcast.official_context_stats_updated_at
             FROM live_broadcasts broadcast
             LEFT JOIN LATERAL (
-                SELECT id, conference_id, official_url, pdf_url,
+                SELECT id, meeting_id, conference_id, official_url, pdf_url,
                        reconciliation_status, body_contract_status
                 FROM broadcast_official_publications
                 WHERE broadcast_id = broadcast.id
@@ -958,13 +1042,16 @@ class LiveRepository:
             LEFT JOIN LATERAL (
                 SELECT id, publication_stage, authority_status, utterance_count
                 FROM official_transcript_documents
-                WHERE publication_id = publication.id
-                ORDER BY retrieved_at DESC, id DESC LIMIT 1
+                WHERE meeting_id = publication.meeting_id
+                  AND conference_id = publication.conference_id
+                ORDER BY (publication_stage = 'FINAL') DESC,
+                         retrieved_at DESC, id DESC LIMIT 1
             ) document ON true
             LEFT JOIN LATERAL (
                 SELECT status, attempt_count, next_attempt_at, updated_at
                 FROM meeting_official_integration_jobs
                 WHERE broadcast_id = broadcast.id
+                  AND official_document_id = document.id
                 ORDER BY updated_at DESC, id DESC LIMIT 1
             ) job ON true
             WHERE broadcast.id = %s AND broadcast.institution = 'LEGISLATURE'
@@ -1018,7 +1105,7 @@ class LiveRepository:
     def refresh_official_context_stats(
         self, broadcast_ids: Iterable[uuid.UUID]
     ) -> int:
-        """Refresh the read model after a background reconciliation batch."""
+        """Count current final captions matched to the current official document."""
         ids = list(dict.fromkeys(broadcast_ids))
         if not ids:
             return 0
@@ -1026,6 +1113,24 @@ class LiveRepository:
             """
             WITH target AS MATERIALIZED (
                 SELECT id FROM live_broadcasts WHERE id = ANY(%s)
+            ), current_documents AS MATERIALIZED (
+                SELECT target.id AS broadcast_id,
+                       document.id AS official_document_id
+                FROM target
+                LEFT JOIN LATERAL (
+                    SELECT meeting_id, conference_id
+                    FROM broadcast_official_publications
+                    WHERE broadcast_id = target.id
+                    ORDER BY matched_at DESC, id DESC LIMIT 1
+                ) publication ON true
+                LEFT JOIN LATERAL (
+                    SELECT id
+                    FROM official_transcript_documents
+                    WHERE meeting_id = publication.meeting_id
+                      AND conference_id = publication.conference_id
+                    ORDER BY (publication_stage = 'FINAL') DESC,
+                             retrieved_at DESC, id DESC LIMIT 1
+                ) document ON true
             ), final_counts AS MATERIALIZED (
                 SELECT segment.broadcast_id, COUNT(*)::integer AS count
                 FROM transcript_segments segment
@@ -1033,15 +1138,30 @@ class LiveRepository:
                 WHERE segment.is_final
                 GROUP BY segment.broadcast_id
             ), matched_counts AS MATERIALIZED (
-                SELECT segment.broadcast_id,
-                       COUNT(DISTINCT reconciliation.transcript_revision_id)::integer
-                         AS count
-                FROM transcript_official_reconciliations reconciliation
-                JOIN transcript_segment_revisions revision
-                  ON revision.id = reconciliation.transcript_revision_id
-                JOIN transcript_segments segment ON segment.id = revision.segment_id
-                JOIN target ON target.id = segment.broadcast_id
-                WHERE reconciliation.reconciliation_status = 'MATCHED'
+                SELECT segment.broadcast_id, COUNT(*)::integer AS count
+                FROM transcript_segments segment
+                JOIN current_documents current_document
+                  ON current_document.broadcast_id = segment.broadcast_id
+                JOIN LATERAL (
+                    SELECT id
+                    FROM transcript_segment_revisions
+                    WHERE segment_id = segment.id
+                    ORDER BY revision_number DESC
+                    LIMIT 1
+                ) revision ON true
+                JOIN LATERAL (
+                    SELECT 1
+                    FROM transcript_official_reconciliations reconciliation
+                    JOIN official_transcript_utterances utterance
+                      ON utterance.id = reconciliation.official_utterance_id
+                    WHERE reconciliation.transcript_revision_id = revision.id
+                      AND reconciliation.reconciliation_status = 'MATCHED'
+                      AND utterance.document_id =
+                          current_document.official_document_id
+                    LIMIT 1
+                ) matched ON true
+                WHERE segment.is_final
+                  AND current_document.official_document_id IS NOT NULL
                 GROUP BY segment.broadcast_id
             ), updated AS (
                 UPDATE live_broadcasts broadcast
@@ -1061,39 +1181,34 @@ class LiveRepository:
         return int(row[0] or 0) if row else 0
 
     def broadcast_official_material(
-        self,
-        broadcast_id: uuid.UUID,
+        self, broadcast_id: uuid.UUID, *, document_id: uuid.UUID | None = None,
     ) -> dict[str, Any]:
         document_row = self.connection.execute(
             """
             SELECT document.id, document.conference_id, document.publication_stage,
                    document.authority_status, document.status_text, document.title,
                    document.utterance_count, document.retrieved_at,
+                   source_version.retrieved_at AS semantic_first_seen_at,
                    publication.official_url, publication.pdf_url
             FROM broadcast_official_publications publication
-            JOIN LATERAL (
-                SELECT id, conference_id, publication_stage, authority_status,
-                       status_text, title, utterance_count, retrieved_at
-                FROM official_transcript_documents
-                WHERE publication_id = publication.id
-                ORDER BY
-                    (publication_stage = 'FINAL') DESC,
-                    EXISTS (
-                        SELECT 1
-                        FROM official_transcript_utterances candidate_utterance
-                        JOIN official_utterance_annotations candidate_annotation
-                          ON candidate_annotation.utterance_id = candidate_utterance.id
-                        WHERE candidate_utterance.document_id =
-                              official_transcript_documents.id
-                    ) DESC,
-                    retrieved_at DESC, id DESC
-                LIMIT 1
-            ) document ON true
+            JOIN official_transcript_documents document
+              ON document.meeting_id = publication.meeting_id
+             AND document.conference_id = publication.conference_id
+            JOIN source_document_versions source_version
+              ON source_version.id = document.source_document_version_id
             WHERE publication.broadcast_id = %s
-            ORDER BY publication.matched_at DESC, publication.id DESC
+              AND (%s::uuid IS NULL OR document.id = %s::uuid)
+            ORDER BY (document.publication_stage = 'FINAL') DESC,
+                     EXISTS (
+                         SELECT 1 FROM official_transcript_utterances utterance
+                         JOIN official_utterance_annotations annotation
+                           ON annotation.utterance_id = utterance.id
+                         WHERE utterance.document_id = document.id
+                     ) DESC,
+                     document.retrieved_at DESC, document.id DESC
             LIMIT 1
             """,
-            (broadcast_id,),
+            (broadcast_id, document_id, document_id),
         ).fetchone()
         if not document_row:
             return {"document": None, "utterances": []}
@@ -1106,6 +1221,7 @@ class LiveRepository:
             "title",
             "utterance_count",
             "retrieved_at",
+            "semantic_first_seen_at",
             "official_url",
             "official_pdf_url",
         )
@@ -1162,6 +1278,46 @@ class LiveRepository:
         return {
             "document": document,
             "utterances": [dict(zip(columns, row, strict=True)) for row in rows],
+        }
+
+    def official_utterance_page(
+        self, document_id: uuid.UUID, *, offset: int, limit: int,
+        query: str = "",
+    ) -> dict[str, Any]:
+        """Read the complete current official speaker record in bounded pages."""
+        search = f"%{query.strip()}%" if query.strip() else None
+        total = self.connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM official_transcript_utterances
+            WHERE document_id = %s
+              AND (%s::text IS NULL OR speaker_name ILIKE %s
+                   OR text ILIKE %s)
+            """,
+            (document_id, search, search, search),
+        ).fetchone()[0]
+        rows = self.connection.execute(
+            """
+            SELECT id, sequence_number, speaker_name, speaker_role,
+                   text, source_locator
+            FROM official_transcript_utterances
+            WHERE document_id = %s
+              AND (%s::text IS NULL OR speaker_name ILIKE %s
+                   OR text ILIKE %s)
+            ORDER BY sequence_number
+            LIMIT %s OFFSET %s
+            """,
+            (document_id, search, search, search, limit, offset),
+        ).fetchall()
+        columns = (
+            "utterance_id", "sequence_number", "speaker_name", "speaker_role",
+            "text", "source_locator",
+        )
+        return {
+            "items": [dict(zip(columns, row, strict=True)) for row in rows],
+            "total": int(total), "offset": offset,
+            "next_offset": offset + len(rows),
+            "has_more": offset + len(rows) < total,
         }
 
     def list_open_follow_up_tasks(

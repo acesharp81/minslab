@@ -23,7 +23,7 @@ class OfficialIntegrationJobRepository:
                     SELECT id
                     FROM meeting_briefs
                     WHERE broadcast_id = broadcast.id
-                    ORDER BY (provider = 'mistral') DESC,
+                    ORDER BY (provider IN ('mistral', 'openrouter')) DESC,
                              generated_at DESC, id DESC
                     LIMIT 1
                 ) brief ON true
@@ -31,10 +31,17 @@ class OfficialIntegrationJobRepository:
                     SELECT document.id
                     FROM broadcast_official_publications publication
                     JOIN official_transcript_documents document
-                      ON document.publication_id = publication.id
+                      ON document.meeting_id = publication.meeting_id
+                     AND document.conference_id = publication.conference_id
                      AND document.extraction_status = 'EXTRACTED'
                     WHERE publication.broadcast_id = broadcast.id
                     ORDER BY (document.publication_stage = 'FINAL') DESC,
+                             EXISTS (
+                                 SELECT 1 FROM official_transcript_utterances utterance
+                                 JOIN official_utterance_annotations annotation
+                                   ON annotation.utterance_id = utterance.id
+                                 WHERE utterance.document_id = document.id
+                             ) DESC,
                              document.retrieved_at DESC, document.id DESC
                     LIMIT 1
                 ) document ON true
@@ -106,7 +113,7 @@ class OfficialIntegrationJobRepository:
             )
             RETURNING job.id, job.broadcast_id, job.meeting_brief_id,
                       job.official_document_id, job.integration_version,
-                      job.attempt_count
+                      job.attempt_count, job.last_error
             """,
             (worker_id,),
         ).fetchone()
@@ -115,6 +122,7 @@ class OfficialIntegrationJobRepository:
         columns = (
             "job_id", "broadcast_id", "meeting_brief_id",
             "official_document_id", "integration_version", "attempt_count",
+            "last_error",
         )
         return dict(zip(columns, row, strict=True))
 

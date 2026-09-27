@@ -40,6 +40,57 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["ontology_topic_count"], 2)
         self.assertEqual(result["metrics"]["integrity_failure_count"], 0)
 
+    def test_new_policy_terms_classify_distinct_targets_and_procedure_artifacts(self):
+        brief = {"topics": [
+            topic("energy", "지역별 재생에너지 발전 현황"),
+            topic("bridge", "지천 다리 공사 주민 참여"),
+            topic("housing", "청년 주거난 및 주택 대책"),
+            topic("turn", "질의자 교체"),
+            topic("unclear", "감천 건설 취소 방침 반대"),
+        ], "tasks": []}
+        grouped = attach_meeting_topic_groups(brief)
+        assignments = {
+            topic_id: (group["key"], group["assignment_method"])
+            for group in grouped["topic_groups"]
+            for topic_id in group["topic_ids"]
+        }
+        self.assertEqual(assignments["energy"], ("energy-electricity", "ONTOLOGY"))
+        self.assertEqual(assignments["bridge"], ("transport-infrastructure", "ONTOLOGY"))
+        self.assertEqual(assignments["housing"], ("housing-real-estate", "ONTOLOGY"))
+        self.assertEqual(assignments["turn"][1], "REPORT_ARTIFACT")
+        self.assertEqual(assignments["unclear"], ("water-resources-climate", "ONTOLOGY"))
+        self.assertEqual(grouped["topic_grouping"]["integrity_status"], "PASS")
+
+    def test_source_checked_language_repairs_classify_only_supported_targets(self):
+        brief = {"topics": [
+            topic("fund", "정책편드 통합 및 관리 체계 개선 논의"),
+            topic("dam", "감천 - 건설 정책과 기후 변화 대응 능력 논의"),
+            topic("tariff", "광세 협상 및 자금 지급 자료 확인"),
+            topic("mine", "서해5도 무인도 유실지 문제"),
+            topic("drought", "가 대응 및 소방력 강화"),
+            topic("wages", "채불 노동자 대출 조건 최종 확인"),
+            topic("preface", "재재청 요구 가능 여부 논의 시작"),
+            topic("justice", "윤석열 정부 검찰 결정 및 사법부 오염 논란"),
+            topic("prison", "교육과 잠자리 문제의 분리 및 개선 요구"),
+        ], "tasks": []}
+        grouped = attach_meeting_topic_groups(brief)
+        assignments = {
+            topic_id: (group["key"], group["assignment_method"])
+            for group in grouped["topic_groups"]
+            for topic_id in group["topic_ids"]
+        }
+        self.assertEqual(assignments["fund"], ("budget-public-finance", "ONTOLOGY"))
+        self.assertEqual(assignments["dam"], ("water-resources-climate", "ONTOLOGY"))
+        self.assertEqual(assignments["tariff"], ("trade-climate-industry", "ONTOLOGY"))
+        self.assertEqual(assignments["mine"], ("public-safety-health", "ONTOLOGY"))
+        self.assertEqual(assignments["drought"], ("water-resources-climate", "ONTOLOGY"))
+        self.assertEqual(assignments["wages"], ("youth-employment", "ONTOLOGY"))
+        self.assertEqual(assignments["preface"][1], "REPORT_ARTIFACT")
+        self.assertEqual(assignments["justice"], ("prosecution-judiciary", "ONTOLOGY"))
+        self.assertEqual(assignments["prison"], ("public-safety-health", "ONTOLOGY"))
+        self.assertEqual(brief["topics"][0]["title"], "정책편드 통합 및 관리 체계 개선 논의")
+        self.assertEqual(grouped["topics"][0]["title"], "정책펀드 통합 및 관리 체계 개선 논의")
+
     def test_groups_detail_topics_by_policy_target_without_collapsing_them(self):
         brief = {
             "topics": [
@@ -367,7 +418,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(2, by_key["youth-employment"]["topic_count"])
         self.assertEqual(2, by_key["water-resources-climate"]["topic_count"])
         self.assertEqual(2, by_key["education"]["topic_count"])
-        self.assertEqual("assembly-meeting-topic-grouping/1.6", GROUPING_VERSION)
+        self.assertEqual("assembly-meeting-topic-grouping/1.7", GROUPING_VERSION)
 
     def test_classifies_operational_policy_gaps_without_procedure_swallowing_subject(self):
         brief = {
@@ -429,7 +480,16 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(0, grouping["unclassified_topic_count"])
         self.assertEqual(1.0, grouping["ontology_coverage"])
         self.assertEqual(["artifact-1", "artifact-2"], artifact["topic_ids"])
-        self.assertIn("REPORT_ARTIFACT_TOPICS_PRESENT", grouping["review_reasons"])
+        self.assertIn("REPORT_ARTIFACT_SOURCE_UNVERIFIED", grouping["review_reasons"])
+
+    def test_officially_sourced_report_artifact_is_counted_without_review_warning(self):
+        artifact = topic("intro", "질의자 교체")
+        artifact["official_evidence_ids"] = ["official-utterance-1"]
+        grouped = attach_meeting_topic_groups({"topics": [artifact], "tasks": []})
+        audit = grouped["topic_grouping"]
+        self.assertEqual(audit["report_artifact_topic_count"], 1)
+        self.assertEqual(audit["policy_topic_count"], 0)
+        self.assertEqual(audit["quality_status"], "PASS")
 
     def test_law_format_words_do_not_merge_unrelated_unknown_targets(self):
         brief = {

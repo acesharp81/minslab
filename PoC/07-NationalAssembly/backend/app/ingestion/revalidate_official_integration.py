@@ -18,6 +18,7 @@ from ..services.official_brief_speakers import (
     remove_unsupported_official_claims,
 )
 from ..services.official_edit_validation import filter_supported_official_edits
+from ..services.official_speaker_context import resolve_brief_speaker_context
 from ..services.official_reconciliation import (
     SPEAKER_MATCH_METHOD,
     align_live_segments,
@@ -32,9 +33,16 @@ def revalidate_one(broadcast_id: UUID) -> dict[str, Any]:
     with connect(settings.database_url) as connection:
         repository = OfficialIntegrationRepository(connection)
         brief_record = MeetingBriefRepository(connection).latest(broadcast_id)
+        live_repository = LiveRepository(connection)
+        context = live_repository.broadcast_official_context(broadcast_id)
+        document_id = (context or {}).get("official_document_id")
         integration = (
-            repository.latest_for_brief(brief_record["brief_id"]) if brief_record else None)
-        material = LiveRepository(connection).broadcast_official_material(broadcast_id)
+            repository.latest_for_brief_document(brief_record["brief_id"], document_id)
+            if brief_record and document_id else None
+        )
+        material = live_repository.broadcast_official_material(
+            broadcast_id, document_id=document_id,
+        ) if document_id else {"document": None, "utterances": []}
         if not integration or not brief_record or not material.get("document"):
             raise ValueError("saved integration, brief, and official document are required")
         live_brief = link_tasks_to_topics(brief_record.get("brief") or {})
@@ -55,10 +63,18 @@ def revalidate_one(broadcast_id: UUID) -> dict[str, Any]:
         matches = align_live_segments(segments, material.get("utterances") or [])
         repository.replace_segment_matches(
             matches, match_method=SPEAKER_MATCH_METHOD,
+            document_id=material["document"]["document_id"],
+            revision_ids=[item["revision_id"] for item in segments],
         )
         speaker_stats = speaker_reconciliation_stats(matches)
         integrated_brief = apply_official_speakers_to_brief(
             integrated_brief, segments, matches,
+        )
+        integrated_brief, _ = resolve_brief_speaker_context(
+            integrated_brief, segments, material.get("utterances") or [],
+            reviewed_decisions=repository.reviewed_speaker_decisions(
+                brief_record["brief_id"], material["document"]["document_id"],
+            ),
         )
         integrated_brief, claim_repairs = remove_unsupported_official_claims(
             integrated_brief, material.get("utterances") or [],

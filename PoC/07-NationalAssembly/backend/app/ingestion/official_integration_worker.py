@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import time
+
+import requests
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
@@ -26,6 +28,7 @@ from ..services.official_brief_speakers import (
     remove_unsupported_official_claims,
 )
 from ..services.official_edit_validation import filter_supported_official_edits
+from ..services.official_speaker_context import resolve_brief_speaker_context
 from ..services.official_evidence_presentation import (
     official_material_hash,
     remap_official_references,
@@ -36,6 +39,7 @@ from ..services.official_reconciliation import (
     align_live_segments,
     apply_official_edits,
     speaker_reconciliation_stats,
+    unambiguous_revision_matches,
 )
 from ..services.official_revision_client import (
     MistralOfficialRevisionClient,
@@ -70,13 +74,13 @@ def temporary_document_stable(
 ) -> bool:
     if document.get("publication_stage") != "TEMPORARY":
         return True
-    retrieved_at = document.get("retrieved_at")
-    if not isinstance(retrieved_at, datetime):
+    first_seen_at = document.get("semantic_first_seen_at") or document.get("retrieved_at")
+    if not isinstance(first_seen_at, datetime):
         return False
     current = now or datetime.now(timezone.utc)
-    if retrieved_at.tzinfo is None:
-        retrieved_at = retrieved_at.replace(tzinfo=timezone.utc)
-    return current - retrieved_at >= TEMPORARY_STABILITY_WINDOW
+    if first_seen_at.tzinfo is None:
+        first_seen_at = first_seen_at.replace(tzinfo=timezone.utc)
+    return current - first_seen_at >= TEMPORARY_STABILITY_WINDOW
 
 
 def cached_ready_status(
@@ -95,12 +99,22 @@ def cached_ready_status(
 
 def generate_one(
     broadcast_id: UUID, *, force: bool = False, deterministic_only: bool = False,
+    official_document_id: UUID | None = None,
+    meeting_brief_id: UUID | None = None,
+    source_only_due_to_prior_failure: bool = False,
 ) -> dict[str, Any]:
     settings = get_settings()
     with connect(settings.database_url) as connection:
         live_repository = LiveRepository(connection)
-        brief_record = MeetingBriefRepository(connection).latest(broadcast_id)
-        material = live_repository.broadcast_official_material(broadcast_id)
+        brief_repository = MeetingBriefRepository(connection)
+        brief_record = (
+            brief_repository.get_by_id(broadcast_id, meeting_brief_id)
+            if meeting_brief_id is not None
+            else brief_repository.latest(broadcast_id)
+        )
+        material = live_repository.broadcast_official_material(
+            broadcast_id, document_id=official_document_id,
+        )
         document = material.get("document")
         if not brief_record or not document:
             raise ValueError("LIVE brief and official document are required")
@@ -133,9 +147,23 @@ def generate_one(
             overrides,
         )
         official_rows = list(material.get("utterances") or [])
+        reviewed_decisions = repository.reviewed_speaker_decisions(
+            brief_record["brief_id"], document["document_id"],
+        )
         semantic_hash = official_material_hash(official_rows)
-        matches = align_live_segments(segments, official_rows)
-        repository.replace_segment_matches(matches, match_method=SPEAKER_MATCH_METHOD)
+        part_matches = align_live_segments(
+            segments, official_rows, retain_conflicted_revisions=True,
+        )
+        repository.replace_part_matches(
+            document["document_id"], segments, part_matches,
+            match_method=SPEAKER_MATCH_METHOD,
+        )
+        matches = unambiguous_revision_matches(part_matches)
+        repository.replace_segment_matches(
+            matches, match_method=SPEAKER_MATCH_METHOD,
+            document_id=document["document_id"],
+            revision_ids=[item["revision_id"] for item in segments],
+        )
         speaker_stats = speaker_reconciliation_stats(matches)
         live_brief = link_tasks_to_topics(brief_record.get("brief") or {})
         reusable = repository.latest_for_brief(
@@ -182,6 +210,10 @@ def generate_one(
             )
             integrated_brief = apply_official_speakers_to_brief(
                 integrated_brief, segments, matches,
+            )
+            integrated_brief, _ = resolve_brief_speaker_context(
+                integrated_brief, segments, official_rows,
+                reviewed_decisions=reviewed_decisions,
             )
             integrated_brief, claim_repairs = remove_unsupported_official_claims(
                 integrated_brief, official_rows,
@@ -230,15 +262,20 @@ def generate_one(
                     if same_semantic_content else "TEMPORARY_UPDATE_DEFERRED"
                 ),
             }
+            remapped_brief = remap_official_references(
+                reusable.get("integrated_brief") or {}, identifier_map,
+            )
+            remapped_brief, _ = resolve_brief_speaker_context(
+                remapped_brief, segments, official_rows,
+                reviewed_decisions=reviewed_decisions,
+            )
             saved = repository.save(
                 broadcast_id=broadcast_id,
                 meeting_brief_id=brief_record["brief_id"],
                 official_document_id=document["document_id"],
                 integration_version=INTEGRATION_VERSION,
                 status="READY",
-                integrated_brief=remap_official_references(
-                    reusable.get("integrated_brief") or {}, identifier_map,
-                ),
+                integrated_brief=remapped_brief,
                 changes=remap_official_references(
                     reusable.get("changes") or [], identifier_map,
                 ),
@@ -259,6 +296,10 @@ def generate_one(
         ):
             integrated_brief = apply_official_speakers_to_brief(
                 live_brief, segments, matches,
+            )
+            integrated_brief, _ = resolve_brief_speaker_context(
+                integrated_brief, segments, official_rows,
+                reviewed_decisions=reviewed_decisions,
             )
             usage_metadata = {
                 "api_requests": 0,
@@ -300,7 +341,12 @@ def generate_one(
         "publication_stage": document.get("publication_stage"),
     }
     edits: list[dict[str, Any]] = []
-    if settings.ai_enrichment_enabled and settings.llm_provider in {"mistral", "openrouter"}:
+    if source_only_due_to_prior_failure:
+        usage_metadata.update({
+            "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+            "comparison_error": "PREVIOUS_GATEWAY_FAILURE",
+        })
+    elif settings.ai_enrichment_enabled and settings.llm_provider in {"mistral", "openrouter"}:
         if settings.llm_provider == "mistral":
             with connect(settings.database_url) as connection:
                 usage = SummaryRepository(connection).monthly_token_usage(
@@ -319,15 +365,30 @@ def generate_one(
                 settings.openrouter_api_key, model=settings.llm_model,
                 base_url=settings.openrouter_base_url,
             )
-        result = client.compare(live_brief, official_rows)
-        edits = result.edits
-        usage_metadata = {
-            "api_requests": 1,
-            "official_semantic_hash": semantic_hash,
-            "publication_stage": document.get("publication_stage"),
-            **result.usage_metadata,
-        }
-        if settings.llm_provider == "mistral":
+        result = None
+        try:
+            result = client.compare(live_brief, official_rows)
+        except (requests.Timeout, requests.exceptions.JSONDecodeError, json.JSONDecodeError) as exc:
+            # The official source and exact speaker links are already stored.
+            # Keep them available after a slow model request while clearly
+            # retaining LIVE summaries as unreviewed provisional content.
+            edits = []
+            usage_metadata = {
+                "api_requests": 1,
+                "official_semantic_hash": semantic_hash,
+                "publication_stage": document.get("publication_stage"),
+                "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+                "comparison_error": type(exc).__name__,
+            }
+        else:
+            edits = result.edits
+            usage_metadata = {
+                "api_requests": 1,
+                "official_semantic_hash": semantic_hash,
+                "publication_stage": document.get("publication_stage"),
+                **result.usage_metadata,
+            }
+        if settings.llm_provider == "mistral" and result is not None:
             with connect(settings.database_url) as connection:
                 SummaryRepository(connection).record_monthly_token_usage(
                     "mistral", settings.llm_model, result.usage_metadata,
@@ -336,6 +397,10 @@ def generate_one(
     integrated_brief, changes = apply_official_edits(live_brief, edits)
     integrated_brief = apply_official_speakers_to_brief(
         integrated_brief, segments, matches,
+    )
+    integrated_brief, _ = resolve_brief_speaker_context(
+        integrated_brief, segments, official_rows,
+        reviewed_decisions=reviewed_decisions,
     )
     integrated_brief, claim_repairs = remove_unsupported_official_claims(
         integrated_brief, official_rows,
@@ -397,6 +462,11 @@ def process_available(
         try:
             result = generate_one(
                 broadcast_id, deterministic_only=deterministic_only,
+                official_document_id=job["official_document_id"],
+                meeting_brief_id=job["meeting_brief_id"],
+                source_only_due_to_prior_failure=str(job.get("last_error") or "").startswith(
+                    ("ReadTimeout:", "Timeout:", "JSONDecodeError:")
+                ),
             )
             if result.get("status") in {
                 "DEFERRED", "SKIPPED_LLM_REQUIRED",

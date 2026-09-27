@@ -35,7 +35,7 @@ def fetch_public_source(source_key: str, url: str, timeout_seconds: float = 15.0
             content_type = response.headers.get_content_type()
     except url_error.HTTPError as error:
         raise AdapterError(f"HTTP {error.code} from {source_key}") from error
-    except (url_error.URLError, TimeoutError) as error:
+    except (url_error.URLError, TimeoutError, ConnectionError) as error:
         raise AdapterError(f"request failed for {source_key}: {type(error).__name__}") from error
     return SourcePayload(
         source_key=source_key,

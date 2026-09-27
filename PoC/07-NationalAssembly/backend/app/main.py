@@ -57,13 +57,19 @@ from .services.meeting_topic_groups import (
     attach_meeting_topic_groups,
     build_meeting_topic_ontology,
 )
+from .services.ontology_sources import select_current_ontology_brief
 from .services.meeting_sessions import build_meeting_sessions
 from .services.mistral_budget import mistral_usage_cost_usd
 from .services.official_brief_integration import build_official_brief_integration
 from .services.official_evidence_presentation import (
     build_official_evidence_presentations,
 )
-from .services.official_speaker_presentation import apply_official_speakers
+from .services.official_source_speakers import source_first_speaker_points
+from .services.official_speaker_presentation import (
+    apply_official_speakers,
+    overlay_confirmed_brief_speakers,
+    present_brief_speaker_references,
+)
 from .services.openrouter_summary import DEFAULT_MODEL as OPENROUTER_DEFAULT_MODEL
 from .services.summary_client import summary_identity
 from .services.transcript_presentation import (
@@ -1181,13 +1187,34 @@ def policy_ontology() -> dict[str, object]:
     """Return the topic ontology plus usage and integrity metrics."""
     try:
         with connect(get_settings().database_url) as connection:
-            briefs = [
-                item.get("brief") or {}
-                for item in MeetingBriefRepository(connection).latest_all()
-            ]
+            items = MeetingBriefRepository(connection).latest_all()
+            live_repository = LiveRepository(connection)
+            integration_repository = OfficialIntegrationRepository(connection)
+            briefs = []
+            official_report_count = 0
+            for item in items:
+                context = live_repository.broadcast_official_context(
+                    item["broadcast_id"]
+                )
+                document_id = (context or {}).get("official_document_id")
+                integration = (
+                    integration_repository.latest_for_brief_document(
+                        item["brief_id"], document_id,
+                    ) if document_id else None
+                )
+                brief, source = select_current_ontology_brief(
+                    item, integration, document_id,
+                )
+                briefs.append(brief)
+                official_report_count += source == "OFFICIAL_INTEGRATED"
+        result = build_meeting_topic_ontology(briefs)
+        result["metrics"]["official_report_count"] = official_report_count
+        result["metrics"]["provisional_report_count"] = (
+            len(briefs) - official_report_count
+        )
         return {
-            **build_meeting_topic_ontology(briefs),
-            "source_status": "STORED_MEETING_REPORTS",
+            **result,
+            "source_status": "CURRENT_OFFICIAL_WHEN_AVAILABLE",
             "additional_llm_calls": 0,
         }
     except Exception as exc:
@@ -1511,10 +1538,24 @@ def ended_live_broadcast_transcript(broadcast_id: UUID) -> dict[str, object]:
             repository = LiveRepository(connection)
             snapshot = repository.ended_transcript_snapshot(broadcast_id)
             official_context = repository.broadcast_official_context(broadcast_id)
-            reconciliations = repository.broadcast_reconciliation_details(broadcast_id)
+            revision_ids = [
+                segment["revision_id"] for segment in snapshot["segments"]
+            ]
+            document_id = (official_context or {}).get("official_document_id")
+            reconciliations = repository.broadcast_reconciliation_details(
+                broadcast_id, official_document_id=document_id,
+                revision_ids=revision_ids,
+            )
+            part_reconciliations = repository.broadcast_part_reconciliation_details(
+                broadcast_id, official_document_id=document_id,
+                revision_ids=revision_ids,
+            )
             for segment in snapshot["segments"]:
                 segment["official_reconciliation"] = reconciliations.get(
                     segment["revision_id"]
+                )
+                segment["source_part_reconciliations"] = part_reconciliations.get(
+                    segment["revision_id"], {}
                 )
             snapshot = _present_transcript(connection, snapshot)
     except Exception as exc:
@@ -1540,15 +1581,23 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             repository = MeetingBriefRepository(connection)
             item = repository.latest(broadcast_id)
             progress = repository.progress(broadcast_id)
-            integration = (
-                OfficialIntegrationRepository(connection).latest_for_brief(
-                    item["brief_id"]
-                )
-                if item
-                else None
-            )
             official_context = LiveRepository(connection).broadcast_official_context(
                 broadcast_id
+            )
+            institution_row = connection.execute(
+                "SELECT institution FROM live_broadcasts WHERE id = %s", (broadcast_id,)
+            ).fetchone()
+            is_legislature = bool(institution_row and institution_row[0] == "LEGISLATURE")
+            current_document_id = (official_context or {}).get("official_document_id")
+            integration_repository = OfficialIntegrationRepository(connection)
+            integration = (
+                integration_repository.latest_for_brief_document(
+                    item["brief_id"], current_document_id,
+                )
+                if item and current_document_id
+                else integration_repository.latest_for_brief(item["brief_id"])
+                if item and official_context is None
+                else None
             )
             integration_deferred = bool(
                 integration
@@ -1559,8 +1608,25 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 OfficialChangeReportRepository(connection).latest(integration["integration_id"])
                 if integration and integration.get("integration_id")
                 and not integration_deferred
+                and (integration.get("usage_metadata") or {}).get("comparison_mode")
+                    != "SOURCE_ONLY_TIMEOUT"
                 else None
             )
+            speaker_sources = []
+            if (
+                integration and integration.get("status") == "READY"
+                and not integration_deferred and current_document_id
+            ):
+                source_ids = list(dict.fromkeys(
+                    str(value)
+                    for topic in (integration.get("integrated_brief") or {}).get("topics") or []
+                    for point in topic.get("speaker_points") or []
+                    for value in point.get("official_evidence_ids") or []
+                    if value
+                ))
+                speaker_sources = official_evidence_items(
+                    connection, source_ids, document_id=current_document_id,
+                )
     except Exception as exc:
         raise HTTPException(
             status_code=503, detail="회의 결과 브리프를 사용할 수 없습니다."
@@ -1607,13 +1673,19 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 if topic_id in lineage_ids:
                     topic["live_topic_cluster_ids"] = lineage_ids[topic_id]
         public["provisional_brief"] = provisional_brief
-        public["official_brief"] = attach_meeting_topic_groups(
-            link_tasks_to_topics(integrated_brief)
+        prepared_official = present_brief_speaker_references(
+            attach_meeting_topic_groups(link_tasks_to_topics(integrated_brief)),
+            provisional_brief,
+            neutralize_topic_summaries=True,
         )
-        # The LIVE/STT result remains the default read model. Official minutes
-        # are a separate comparison projection and never silently replace it.
-        public["brief"] = provisional_brief
-        public["default_brief_view"] = "PROVISIONAL"
+        public["official_brief"], source_stats = source_first_speaker_points(
+            prepared_official, speaker_sources,
+        )
+        public["official_speaker_stats"] = source_stats
+        # Once comparison is ready, the current report uses its official read
+        # model. The saved LIVE/STT result remains available for comparison.
+        public["brief"] = public["official_brief"]
+        public["default_brief_view"] = "OFFICIAL"
         public["official_integration"] = {
             "status": integration["status"],
             "integration_version": integration["integration_version"],
@@ -1621,9 +1693,18 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             "change_count": len(integration.get("changes") or []),
             "changes": integration.get("changes") or [],
             "speaker_stats": integration.get("speaker_stats") or {},
+            "comparison_mode": (integration.get("usage_metadata") or {}).get(
+                "comparison_mode", "MODEL_REVIEWED"
+            ),
             "generated_at": integration["generated_at"],
         }
     else:
+        if is_legislature:
+            public["brief"] = present_brief_speaker_references(
+                overlay_confirmed_brief_speakers(
+                    public["brief"], {"topics": []},
+                ),
+            )
         public["official_integration"] = {
             "status": (
                 "WAITING"
@@ -1646,7 +1727,8 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
         public["official_change_report"] = {
             "status": (
                 "PENDING" if public["official_integration"].get("status") == "READY"
-                else "NOT_APPLICABLE"
+                and public["official_integration"].get("comparison_mode")
+                    != "SOURCE_ONLY_TIMEOUT" else "NOT_APPLICABLE"
             ),
             "report": {},
         }
@@ -1670,6 +1752,11 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
         "## 주요 논의 주제",
         "",
     ]
+    if integration.get("comparison_mode") == "SOURCE_ONLY_TIMEOUT":
+        lines[4:4] = [
+            "> 공식 회의록 발언·화자 반영 · 주제 요약은 LIVE 초안 기반(내용 대조 지연)",
+            "",
+        ]
     detailed_topics = brief.get("topics") or []
     topic_by_id = {
         str(topic.get("id")): topic for topic in detailed_topics if topic.get("id")
@@ -1782,7 +1869,10 @@ def ended_live_broadcast_brief_official(broadcast_id: UUID) -> dict[str, object]
         with connect(get_settings().database_url) as connection:
             live_repository = LiveRepository(connection)
             context = live_repository.broadcast_official_context(broadcast_id)
-            material = live_repository.broadcast_official_material(broadcast_id)
+            material = live_repository.broadcast_official_material(
+                broadcast_id,
+                document_id=(context or {}).get("official_document_id"),
+            )
             live_brief = MeetingBriefRepository(connection).latest(broadcast_id)
     except Exception as exc:
         raise HTTPException(
@@ -1844,6 +1934,39 @@ def ended_live_broadcast_brief_official(broadcast_id: UUID) -> dict[str, object]
     }
 
 
+@app.get("/api/live/broadcasts/{broadcast_id}/official-utterances", tags=["live"])
+def ended_official_utterances(
+    broadcast_id: UUID, offset: int = 0, limit: int = 40, q: str = "",
+) -> dict[str, object]:
+    if offset < 0 or not 1 <= limit <= 100 or len(q) > 80:
+        raise HTTPException(status_code=422, detail="invalid official utterance page")
+    try:
+        with connect(get_settings().database_url) as connection:
+            repository = LiveRepository(connection)
+            context = repository.broadcast_official_context(broadcast_id)
+            document_id = (context or {}).get("official_document_id")
+            if not document_id:
+                raise HTTPException(
+                    status_code=404, detail="현재 공식 회의록이 없습니다."
+                )
+            result = repository.official_utterance_page(
+                document_id, offset=offset, limit=limit, query=q,
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="공식 발언을 사용할 수 없습니다."
+        ) from exc
+    return {
+        **result, "broadcast_id": broadcast_id,
+        "official_document_id": document_id,
+        "authority_status": context.get("official_authority_status"),
+        "publication_stage": context.get("publication_stage"),
+        "source": "OFFICIAL_TRANSCRIPT_UTTERANCE",
+    }
+
+
 @app.get("/api/live/broadcasts/{broadcast_id}/brief/evidence", tags=["live"])
 def ended_live_broadcast_brief_evidence(
     broadcast_id: UUID,
@@ -1864,8 +1987,14 @@ def ended_live_broadcast_brief_evidence(
                 raise HTTPException(
                     status_code=404, detail="회의 결과 브리프가 없습니다."
                 )
-            integration = OfficialIntegrationRepository(connection).latest_for_brief(
-                brief["brief_id"]
+            live_repository = LiveRepository(connection)
+            official_context = live_repository.broadcast_official_context(broadcast_id)
+            current_document_id = (official_context or {}).get("official_document_id")
+            integration = (
+                OfficialIntegrationRepository(connection).latest_for_brief_document(
+                    brief["brief_id"], current_document_id,
+                )
+                if current_document_id else None
             )
             evidence_brief = (
                 integration.get("integrated_brief")
@@ -1880,6 +2009,21 @@ def ended_live_broadcast_brief_evidence(
             evidence_brief = attach_meeting_topic_groups(
                 link_tasks_to_topics(evidence_brief)
             )
+            if integration and integration.get("status") == "READY":
+                point_source_ids = list(dict.fromkeys(
+                    str(value)
+                    for topic in evidence_brief.get("topics") or []
+                    for point in topic.get("speaker_points") or []
+                    for value in point.get("official_evidence_ids") or []
+                    if value
+                ))
+                evidence_brief, _ = source_first_speaker_points(
+                    evidence_brief,
+                    official_evidence_items(
+                        connection, point_source_ids,
+                        document_id=current_document_id,
+                    ),
+                )
             group_topic_ids: list[str] = []
             if entity_type == "topic_group":
                 group = next(
@@ -1914,15 +2058,27 @@ def ended_live_broadcast_brief_evidence(
                     status_code=404, detail="연결된 근거 발언이 없습니다."
                 )
             live_utterances = []
-            live_repository = LiveRepository(connection)
             if evidence_ids:
                 snapshot = live_repository.ended_transcript_snapshot(broadcast_id)
+                revision_ids = [
+                    segment["revision_id"] for segment in snapshot["segments"]
+                ]
                 reconciliations = live_repository.broadcast_reconciliation_details(
-                    broadcast_id
+                    broadcast_id, official_document_id=current_document_id,
+                    revision_ids=revision_ids,
+                )
+                part_reconciliations = (
+                    live_repository.broadcast_part_reconciliation_details(
+                        broadcast_id, official_document_id=current_document_id,
+                        revision_ids=revision_ids,
+                    )
                 )
                 for segment in snapshot["segments"]:
                     segment["official_reconciliation"] = reconciliations.get(
                         segment["revision_id"]
+                    )
+                    segment["source_part_reconciliations"] = part_reconciliations.get(
+                        segment["revision_id"], {}
                     )
                 snapshot = _present_transcript(
                     connection,
@@ -1941,11 +2097,15 @@ def ended_live_broadcast_brief_evidence(
                     )
                 ]
             official_utterances = (
-                official_evidence_items(connection, official_ids)
+                official_evidence_items(
+                    connection, official_ids, document_id=current_document_id,
+                )
                 if official_ids
                 else []
             )
-            material = live_repository.broadcast_official_material(broadcast_id)
+            material = live_repository.broadcast_official_material(
+                broadcast_id, document_id=current_document_id,
+            )
             document = material.get("document") or {}
             current_official_rows = list(material.get("utterances") or [])
             current_official_ids = [

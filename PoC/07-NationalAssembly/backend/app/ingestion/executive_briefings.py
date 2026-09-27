@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import re
 import tempfile
@@ -816,8 +817,44 @@ def attach_presidential_guidance(meeting: dict[str, object]) -> int:
     return linked
 
 
+
+def reusable_detail(
+    item: dict[str, object] | None, source_url: str, *,
+    now: datetime, max_age: timedelta,
+) -> dict[str, object] | None:
+    if not item or item.get("source_url") != source_url:
+        return None
+    try:
+        retrieved_at = datetime.fromisoformat(str(item["retrieved_at"]))
+    except (KeyError, ValueError, TypeError):
+        return None
+    if retrieved_at.tzinfo is None or not timedelta(0) <= now - retrieved_at < max_age:
+        return None
+    return copy.deepcopy(item)
+
+
 def collect(settings: object, limit: int = 10) -> dict[str, object]:
     store = RawStore(settings.raw_data_dir)
+    target = Path(settings.processed_data_dir) / "executive_briefings.json"
+    try:
+        previous = json.loads(target.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        previous = {}
+    if (previous.get("schema_version") != "executive-briefings.v1"
+            or (previous.get("source") or {}).get("parser_version") != PARSER_VERSION):
+        previous = {}
+    previous_items = {
+        str(item.get("news_id")): item
+        for item in previous.get("items", []) if isinstance(item, dict)
+    }
+    previous_details = {
+        (str(detail.get("source_kind")), str(detail.get("briefing_id"))): detail
+        for item in previous_items.values()
+        for agenda in item.get("agendas", [])
+        for detail in agenda.get("related_ministry_briefings", [])
+        if isinstance(detail, dict)
+    }
+    now = datetime.now(timezone.utc)
     listing = fetch_html("executive_state_council_list", LIST_URL)
     list_artifact = store.save(listing, parser_version=PARSER_VERSION)
     president_listing = fetch_president_list()
@@ -827,23 +864,47 @@ def collect(settings: object, limit: int = 10) -> dict[str, object]:
         (row["meeting_number"], row["published_date"]): row for row in president_rows
     }
     items = []
-    for listed in parse_list(listing.content, limit=limit):
-        detail = fetch_html("executive_state_council_detail", listed["source_url"])
-        artifact = store.save(detail, parser_version=PARSER_VERSION)
-        meeting = parse_detail(listed, detail, artifact.content_hash)
-        president = president_by_meeting.get((meeting["meeting_number"], meeting["published_date"]))
-        if president:
-            president_detail = fetch_html("president_state_council_detail", str(president["source_url"]))
-            president_artifact = store.save(president_detail, parser_version=PARSER_VERSION)
-            meeting["presidential_briefing"] = parse_president_detail(
-                president, president_detail, president_artifact.content_hash,
-            )
-        else:
-            meeting["presidential_briefing"] = None
-        meeting["presidential_report_count"] = attach_presidential_ministry_reports(
-            meeting
+    for index, listed in enumerate(parse_list(listing.content, limit=limit)):
+        previous_item = previous_items.get(listed["news_id"])
+        same_listing = bool(previous_item) and all(
+            previous_item.get(key) == listed.get(key)
+            for key in ("title", "published_date", "source_url")
         )
-        meeting["presidential_guidance_count"] = attach_presidential_guidance(meeting)
+        president = president_by_meeting.get((
+            _meeting_number(listed["title"]), listed["published_date"],
+        ))
+        previous_president = (
+            previous_item.get("presidential_briefing") if previous_item else None
+        )
+        same_president = (
+            (president or {}).get("briefing_id")
+            == (previous_president or {}).get("briefing_id")
+            and (president or {}).get("source_url")
+            == (previous_president or {}).get("source_url")
+        )
+        meeting = (
+            reusable_detail(
+                previous_item, listed["source_url"], now=now,
+                max_age=timedelta(hours=1 if index < 2 else 6),
+            ) if same_listing and same_president else None
+        )
+        if meeting is None:
+            detail = fetch_html("executive_state_council_detail", listed["source_url"])
+            artifact = store.save(detail, parser_version=PARSER_VERSION)
+            meeting = parse_detail(listed, detail, artifact.content_hash)
+            president = president_by_meeting.get((meeting["meeting_number"], meeting["published_date"]))
+            if president:
+                president_detail = fetch_html("president_state_council_detail", str(president["source_url"]))
+                president_artifact = store.save(president_detail, parser_version=PARSER_VERSION)
+                meeting["presidential_briefing"] = parse_president_detail(
+                    president, president_detail, president_artifact.content_hash,
+                )
+            else:
+                meeting["presidential_briefing"] = None
+            meeting["presidential_report_count"] = attach_presidential_ministry_reports(
+                meeting
+            )
+            meeting["presidential_guidance_count"] = attach_presidential_guidance(meeting)
         items.append(meeting)
     ministry_list_hashes: dict[str, str] = {}
     press_release_list_hashes: dict[str, str] = {}
@@ -915,9 +976,17 @@ def collect(settings: object, limit: int = 10) -> dict[str, object]:
         ):
             continue
         def fetch_policy_detail(row: dict[str, str]) -> dict[str, object]:
-            cache_key = f"{row.get('source_kind') or 'POLICY_BRIEFING'}:{row['briefing_id']}"
+            source_kind = str(row.get("source_kind") or "POLICY_BRIEFING")
+            cache_key = f"{source_kind}:{row['briefing_id']}"
             if cache_key in detail_cache:
                 return detail_cache[cache_key]
+            reused = reusable_detail(
+                previous_details.get((source_kind, row["briefing_id"])),
+                str(row["source_url"]), now=now, max_age=timedelta(hours=6),
+            )
+            if reused is not None:
+                detail_cache[cache_key] = reused
+                return reused
             if row.get("source_kind") == "PRESS_RELEASE":
                 detail = fetch_html(
                     "executive_ministry_press_release_detail", str(row["source_url"]),
@@ -983,7 +1052,6 @@ def collect(settings: object, limit: int = 10) -> dict[str, object]:
         ),
         "ministry_briefing_count": ministry_briefing_count,
     }
-    target = Path(settings.processed_data_dir) / "executive_briefings.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, delete=False) as output:
         json.dump(snapshot, output, ensure_ascii=False, indent=2)

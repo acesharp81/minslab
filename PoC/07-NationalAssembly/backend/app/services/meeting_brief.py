@@ -491,7 +491,9 @@ def _evidence_speaker_label(
             source_label = speaker_map.get(evidence_id)
             if source_label:
                 return _clean_speaker_label(source_label)
-    return _clean_speaker_label(fallback)
+    fallback_label = _clean_speaker_label(fallback)
+    # The model cannot invent a name when no source utterance supplied one.
+    return fallback_label if fallback_label.startswith("화자") else "화자 미확인"
 
 
 def _compact_quality_text(value: object) -> str:

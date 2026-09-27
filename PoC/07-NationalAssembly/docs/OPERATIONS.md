@@ -40,6 +40,17 @@ Dots 3 Note 무료 endpoint는 OpenRouter 공지상 2026-09-30 종료 예정이�
 대통령 지시는 공식 브리핑의 source span 순서를 기준으로 주제 블록을 만듭니다. 명시된 안건명·정책명·사건명 또는 새 대통령 발언이 주제 경계가 되며, `이어·다만·이에`로 계속되는 실행 지시는 같은 블록에 둡니다. 블록 안에 기존 부처보고와 일치하는 공식 span이나 보수적 제목 일치가 있으면 그 보고 카드로 이동하고, 나머지만 `그 밖의 대통령 지시`에 남깁니다. 표시 요약과 별도로 `source_paragraphs` 및 `source_span_ids`를 보존하므로 묶음 결과에서 공식 원문을 다시 확인할 수 있습니다.
 
 
+## 공식 회의록 화자 확인
+
+공식 대조본의 화자 항목은 현재 공식 문서의 발언 원문을 표시합니다. 자동 연결되지 않은 초안 요지는 `초안 전용 · 공식 발언 연결 미확인`으로 남습니다. 공식 발언 전체는 보고서의 `공식 회의록 전체 발언`에서 이름 또는 본문으로 검색합니다. API 조회는 `/api/live/broadcasts/{broadcast_id}/official-utterances?offset=0&limit=40&q=`를 사용합니다.
+
+미연결 화자와 온톨로지 보류 항목은 `scripts/export_speaker_review_queue.py`, `scripts/export_ontology_review_queue.py`로 읽기 전용 CSV를 다시 만들 수 있습니다. 실행 중 컨테이너에 각각 `sudo docker exec -i poc07-national-assembly-official-minutes-worker python - < scripts/export_speaker_review_queue.py > /tmp/speaker-review.csv`, `sudo docker exec -i poc07-national-assembly-api python - < scripts/export_ontology_review_queue.py > /tmp/ontology-review.csv`를 사용합니다. 공식 문서 ID, 현재 보고서 ID, 근거 발언 ID를 확인한 뒤 검토하며 이름이나 정책 주제는 빈 칸을 추정으로 채우지 않습니다.
+
+기존 복수 화자 자막의 조각별 매칭은 새 이미지와 마이그레이션 적용 후 `python -m app.ingestion.backfill_official_part_matches --all-ready`로 미리 계산하고, 결과 확인 뒤 `--apply`를 붙여 한 번 저장합니다. 외부 API·LLM 호출은 없습니다. 새 공식 문서 통합은 전용 워커가 같은 조각별 관계를 한 번 저장합니다.
+검토자가 확인한 예외는 `official_speaker_review_decisions`에 브리프·공식 문서·요지 ID, LIVE 원문 SHA-256, 공식 발언 ID, 검토자와 사유를 함께 저장해야 합니다. 현재 문서와 원문 해시가 달라지면 이전 검토 보정은 자동으로 적용되지 않습니다.
+
+직접 일치 대조율은 현재 문서의 최신 final 자막 revision만 셉니다. 기존 대조 이력은 감사 목적으로 남습니다. 문서가 바뀐 뒤 수치가 오래되어 보이면 `LiveRepository.refresh_official_context_stats`를 해당 방송 ID로 한 번 실행합니다. 조회 API나 짧은 간격 점검에서 전체 재계산하지 않습니다.
+
 ## 개발 배포
 
 ```bash
@@ -100,6 +111,7 @@ PYTHONPATH=backend python3 -m app.ingestion.caption_worker --workers 4
 - canonical 일정은 전체 원문을 보존하며 `is_target_committee`로 행안위·예결위·법사위 scope를 구분합니다.
 - 운영 전 backup, retention, restore drill을 별도로 승인합니다.
 - 회의록 API의 비대상 위원회 행은 raw에 남기되 canonical 회의록·의안 적재 대상에서는 제외합니다.
+- 종료된 본회의와 대상 위원회는 각각 검증된 공식 API를 조회합니다. 공식 원문 발행 전에는 종료 후 2일 이내 시간당, 7일 이내 6시간당, 30일 이내 하루당, 그 뒤 180일까지 주간 확인합니다. 한 날짜의 일부 방송만 재확인 대상이면 해당 방송만 상태를 갱신합니다. 발행 후 임시회의록 본문은 1시간 간격으로 변경 여부를 확인하고 정본이 나오면 본문 재확인을 종료합니다.
 - 방송 metadata와 자막 revision은 PostgreSQL에 저장하고, 원본 source 응답은 raw artifact로 별도 보존합니다. 브라우저 local state를 수집 원장으로 사용하지 않습니다.
 
 ## 관측
@@ -210,6 +222,10 @@ PYTHONPATH=backend python3 -m app.ingestion.meeting_brief_worker \
 
 `official-minutes-worker`는 최근 30일 종료 방송 중 공식본 미게시 건을 5분마다 확인합니다. API 원본을 먼저 보존한 뒤 위원회+서울 날짜 후보가 하나일 때만 연결합니다. 동일한 의미의 본문은 발언과 주석을 다시 적재하지 않습니다. 후보가 없으면 `NOT_PUBLISHED`, 둘 이상이면 `AMBIGUOUS`로 남깁니다.
 
+정본(`FINAL`)은 본문과 안건 연결이 끝나면 같은 회의·`CONF_ID`의 다른 발행 기록에서도 다시 확인하지 않습니다. 임시본과 미게시 건만 5분 주기로 확인하며 날짜 대기열은 마지막 확인이 오래된 날짜부터 처리합니다. 주석은 문서·규칙 버전별 완료 상태로 처리하고 실패 시 지연 재시도합니다. 안건 연결은 문서별 최대 1,000발언씩 진행하고 늦게 추가된 의안이 있으면 해당 회의 문서만 다시 처리합니다. 법안 공식 PDF는 법안 버전·URL·파서 버전의 성공 기록으로 재수집을 막고, 실패는 간격을 늘려 재시도합니다. 행정부 공식 상세 수집은 별도 1시간 주기로 실행하고 변경 없는 상세는 최근 2건 1시간, 나머지 6시간 동안 재사용합니다. 공식 통합은 `official-integration-worker`만 처리합니다.
+
+운영 배포는 `scripts/deploy_secure_workers.sh official`로 두 워커를 교체합니다. 수집 코드만 바뀐 경우 `official-minutes` 대상으로 수집 워커만 교체할 수 있습니다. 실제 생성 스크립트가 회의록 워커에 2GiB 메모리 상한을 적용하므로 Compose 설정과 Docker `HostConfig.Memory`를 함께 확인합니다. 배포 뒤 `official.agenda-links.completed`의 신규 연결 수, `bills.official-documents.completed`의 중복·신규 수, 통합 작업의 `attempt_count`, 워커 RSS, API 지연과 503을 확인합니다.
+
 같은 회차에서 회의 안건의 `BILL_ID`는 확인됐지만 `bill_versions` 상세가 없는 의안은 최신 회의 순으로 한 주기당 20건씩 자동 동기화합니다. 공식 API에 상세가 아직 없으면 6시간 뒤, 일시 오류면 15분 뒤 재시도하며 다른 의안 처리는 계속합니다. 일상 운영에서는 별도 `bill_sync` 실행이 필요하지 않고, 전체 연결 의안을 강제로 새로 수집할 때만 수동 명령을 사용합니다.
 
 `official-integration-worker`는 수집 워커와 독립적으로 15초마다 미처리 상태 큐를 확인합니다. 완료된 동일 브리프·공식문서·통합 버전은 다시 처리하지 않고, 만료된 lease와 재시도 시각이 된 실패 작업만 다시 선점합니다. 공식 본문이 publication보다 먼저 수집돼도 정확한 `meeting_id + conference_id`가 확인되면 자동 연결합니다.
@@ -220,9 +236,23 @@ PYTHONPATH=backend python3 -m app.ingestion.official_integration_worker --once -
 docker logs --tail 50 poc07-national-assembly-official-integration-worker
 ```
 
+정본 또는 임시회의록이 연결된 과거 회의의 화자명을 외부 모델 호출 없이 다시 투영할 때는 아래처럼 먼저 미리 계산합니다. `unknown_points_after`가 줄고 동일 revision에 상충 화자가 없는지 확인한 뒤에만 `--apply`를 실행합니다. 새 `official-reconciliation/1.6-speaker-exact/1` 파생 결과를 만들며 이미 확인된 이름, LIVE 초안과 기존 대조 이력은 보존합니다. 전체 기존 READY 보고서는 `--all-ready`로 미리 계산한 뒤 적용할 수 있습니다. 기본 API 응답·화면·마크다운에서는 이미 대조된 임시회의록의 이름을 잠정으로 표시하고, 정본의 이름과 구분합니다. 원본 초안은 `provisional_brief`로 조회할 수 있습니다.
+
+```bash
+sudo docker exec poc07-national-assembly-official-integration-worker \
+  python -m app.ingestion.official_speaker_reproject <broadcast_uuid>
+sudo docker exec poc07-national-assembly-official-integration-worker \
+  python -m app.ingestion.official_speaker_reproject <broadcast_uuid> --apply
+sudo docker exec poc07-national-assembly-official-integration-worker \
+  python -m app.ingestion.official_speaker_reproject --all-ready
+sudo docker exec poc07-national-assembly-official-integration-worker \
+  python -m app.ingestion.official_speaker_reproject --all-ready --apply
+```
+
 운영 화면은 `OFFICIAL_PUBLICATION_PENDING`, `OFFICIAL_BODY_PENDING`, `COMPARISON_QUEUED`, `COMPARISON_PROCESSING`, `COMPARISON_RETRY_WAIT`, `COMPARISON_COMPLETE`를 사용자 문구로 변환합니다. `COMPARISON_RETRY_WAIT`이면 저장된 다음 재시도 시각을 확인하고, 같은 회의만 반복 실패할 때 공식 원본·본문 parser와 LLM 응답 오류를 각각 분리해 점검합니다.
 
 ## 장애 원칙
+생방송 모니터는 공식 LIVE 목록을 30초마다 조회합니다. 원천 연결이 끊긴 주기는 `failed_at`과 오류를 로그에 남기고 다음 주기에 재조회합니다. 실패한 주기는 방송 종료 판정에 사용하지 않습니다. 로그의 `checked_at`과 `data/processed/live_status.json`의 최근 시각을 함께 확인하십시오.
 종료 방송 상세 API는 최신 공식 publication과 문서 버전, final 자막 exact 일치 수를 함께 반환합니다. `NOT_PUBLISHED`와 `AMBIGUOUS`는 정상적인 대기·검토 상태이며 LIVE 저장본을 삭제하거나 공식본으로 승격하지 않습니다.
 
 
@@ -230,7 +260,7 @@ API 실패는 기존 공식 데이터를 삭제하지 않습니다. schema 불�
 
 ## LIVE 저장본과 공식 자료 매칭
 
-저장 계층에서는 LIVE 잠정 브리프와 공식 회의록을 계속 분리합니다. 사용자 화면은 별도 탭을 두지 않고, 잠정 결과 위에 공식 자료로 확인된 변경 부분만 인라인으로 합성합니다. 수정·추가·삭제 문구에는 이전 내용과 공식 근거를 확인할 수 있는 tooltip을 제공하며 나머지 잠정 본문은 그대로 유지합니다.
+저장 계층에서는 LIVE 잠정 브리프와 공식 회의록을 계속 분리합니다. 공식 대조가 완료된 회의는 공식 대조본을 기본으로 보여 주며, LIVE/STT 초안은 비교 화면에서 열 수 있습니다. 공식 발언 근거에 연결된 화자명만 표시하고 임시회의록의 이름은 잠정으로 표시합니다. 본문 속 원본 화자 번호도 공식 근거가 일관되게 확인된 경우에만 이름으로 표시합니다. 수정·추가·삭제 내용과 근거는 공식 대조본에서 확인합니다.
 
 매칭은 다음 단계로 진행합니다.
 
@@ -239,6 +269,12 @@ API 실패는 기존 공식 데이터를 삭제하지 않습니다. schema 불�
 3. 공식 발언 본문을 추출한 뒤 LIVE final revision과 공식 utterance를 순서·문자 구절로 대조하고 화자 표기를 보정합니다.
 4. 근거가 확인된 주제·과제 변경만 적용합니다. 공식 문서에 없다는 이유만으로 잠정 내용을 자동 삭제하지 않습니다.
 5. 화면은 발행 대기, 공식본 확인 중, 공식본 연결 완료를 구분하고 연결률과 미연결 건수를 숨기지 않습니다.
+
+화자 이름은 자막 묶음에 연결된 공식 발언 중 보고서 요지와 원문 내용이 함께 맞을 때만 확정합니다. 한 자막 묶음에 진행자와 본발언자가 섞였거나 근거가 짧고 모호하면 `화자 미확인`으로 둡니다. 짧은 자막도 요지에 그대로 포함되고 회의 전체의 공식 발언 중 한 화자에게만 정확히 일치할 때는 이름을 복구합니다. 모델이 임의로 만든 이름도 공식 근거가 없으면 기본 화면에서 숨깁니다. 공식 회의록 미게시 국회 보고서도 같은 표시 정책을 적용하며, 이전 LIVE 초안의 표기는 `provisional_speaker_label`과 원본 버전에 남습니다. 현재 공식 문서가 새 버전으로 바뀌면 공식 통합 작업자가 새 문서에 다시 대조합니다.
+
+외부 요약 변경 대조가 시간초과나 비정상 JSON으로 실패하면 `SOURCE_ONLY_TIMEOUT` 파생본에 현재 공식 문서의 발언·화자만 연결합니다. 이 상태의 주제 요약은 LIVE 초안 기반이며 API·화면·Markdown에 대조 지연을 표시합니다. 온톨로지 공식 통합 입력과 변화 간단 보고서 생성에서는 제외하고 같은 실패 요청을 자동 반복하지 않습니다. 외부 전송 범위의 명시적인 승인과 게이트웨이 정상 응답 확인 뒤에만 해당 방송을 `--broadcast-id <UUID> --force`로 다시 내용 대조합니다.
+
+과거 READY 대조본은 `python -m app.ingestion.official_speaker_reproject --all-ready`로 쓰기 없이 확인하고, 실제 반영은 `--apply`를 추가합니다. 새 `integration_version`의 투영본을 저장하므로 같은 버전 재실행은 외부 모델 호출과 중복 저장을 하지 않습니다. 운영 점검 시 `/brief`의 `official_integration.integration_version`, 화자 요지의 `speaker_official`과 `official_evidence_ids`, 남은 미확인 수를 함께 확인하십시오.
 
 `GET /api/live/broadcasts/{broadcast_id}/brief`는 통합 읽기 모델과 변경 span, 화자 보정 통계를 함께 반환합니다. 동일 브리프·공식 문서·통합 버전 결과는 DB에서 재사용하므로 상세 화면을 다시 열어도 Mistral을 호출하지 않습니다. `/brief/official`은 이전 클라이언트 호환용 경량 endpoint로만 유지합니다.
 

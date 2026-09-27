@@ -68,7 +68,10 @@ def official_evidence_ids(
     elif entity_type == "speaker":
         entities = [
             point for topic in brief.get("topics", [])
-            for point in topic.get("speaker_points", [])
+            for point in [
+                *(topic.get("speaker_points", []) or []),
+                *(topic.get("draft_only_speaker_points", []) or []),
+            ]
         ]
     else:
         return []

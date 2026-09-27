@@ -49,6 +49,7 @@ def expand_source_speaker_segments(
     for source in segments:
         item = dict(source)
         raw_parts = item.pop("source_speaker_segments", None)
+        part_reconciliations = item.pop("source_part_reconciliations", {})
         parts = [
             {
                 "speaker": str(part.get("speaker") or "").strip(),
@@ -69,9 +70,23 @@ def expand_source_speaker_segments(
             derived["source_segment_id"] = f"{parent_source_id}:{index}"
             derived["speaker_label"] = part["speaker"] or None
             derived["text"] = part["text"]
+            derived["source_part_index"] = index
+            derived["source_part_count"] = len(parts)
+            # A revision-level match cannot identify which source piece spoke.
+            # A part-level match is valid only for the same source text and doc.
+            if len(parts) > 1:
+                candidate = (
+                    part_reconciliations.get(index)
+                    if isinstance(part_reconciliations, dict) else None
+                )
+                derived["official_reconciliation"] = (
+                    candidate if isinstance(candidate, dict)
+                    and candidate.get("source_text_hash")
+                        == utterance_content_hash(part["text"])
+                    else None
+                )
             if index:
                 derived["insight_hint"] = None
-                derived["official_reconciliation"] = None
             result.append(derived)
     return result
 

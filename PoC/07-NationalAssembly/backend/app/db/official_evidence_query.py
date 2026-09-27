@@ -4,7 +4,7 @@ from typing import Any, Iterable
 
 
 def official_evidence_items(
-    connection: Any, utterance_ids: Iterable[str],
+    connection: Any, utterance_ids: Iterable[str], *, document_id: Any | None = None,
 ) -> list[dict[str, Any]]:
     ids = [str(value) for value in utterance_ids if value]
     if not ids:
@@ -19,9 +19,10 @@ def official_evidence_items(
         JOIN official_transcript_documents document
           ON document.id = utterance.document_id
         WHERE utterance.id = ANY(%s::uuid[])
+          AND (%s::uuid IS NULL OR utterance.document_id = %s::uuid)
         ORDER BY utterance.sequence_number
         """,
-        (ids,),
+        (ids, document_id, document_id),
     ).fetchall()
     columns = (
         "utterance_id", "official_sequence_number", "speaker_label",

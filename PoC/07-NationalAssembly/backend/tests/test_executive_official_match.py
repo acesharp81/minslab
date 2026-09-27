@@ -14,16 +14,22 @@ class Result:
     def fetchall(self):
         return self.rows
 
+    def fetchone(self):
+        return self.rows[0] if self.rows else None
+
 
 class Connection:
-    def __init__(self, rows):
+    def __init__(self, rows, *, insert_changed=True):
         self.rows = rows
+        self.insert_changed = insert_changed
         self.calls = []
 
     def execute(self, query, params=None):
         self.calls.append((query, params))
         if "SELECT id, title, detected_at" in query:
             return Result(self.rows)
+        if "INSERT INTO executive_official_matches" in query:
+            return Result([(params[0],)] if self.insert_changed else [])
         return Result()
 
 
@@ -43,6 +49,22 @@ class ExecutiveOfficialMatchTests(unittest.TestCase):
         upsert = next(params for query, params in connection.calls if "INSERT INTO executive_official_matches" in query)
         self.assertEqual("1489521", upsert[1])
         self.assertEqual("MEETING_NUMBER_AND_DATE", upsert[4])
+
+    def test_unchanged_match_does_not_count_as_update(self):
+        connection = Connection([(
+            uuid.uuid4(), "제37회 국무회의",
+            datetime(2026, 8, 25, 1, 0, tzinfo=timezone.utc),
+        )], insert_changed=False)
+        result = reconcile_executive_official_matches(connection, [{
+            "news_id": "1489521", "meeting_number": 37,
+            "published_date": "2026.08.25", "content_hash": "f" * 64,
+        }])
+        self.assertEqual(0, result)
+        self.assertTrue(any(
+            "IS DISTINCT FROM" in query
+            for query, _ in connection.calls
+            if "INSERT INTO executive_official_matches" in query
+        ))
 
     def test_ambiguous_number_without_matching_date_is_not_forced(self):
         connection = Connection([(

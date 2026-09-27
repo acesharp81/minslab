@@ -22,7 +22,12 @@ def body_view_url(official_url: str) -> str:
     return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query, doseq=True), ""))
 
 
-def fetch_official_minutes_body(official_url: str, timeout_seconds: float = 20.0) -> SourcePayload:
+def fetch_official_minutes_body(
+    official_url: str, timeout_seconds: float = 20.0,
+    *, source_key: str = "committee_minutes_body",
+) -> SourcePayload:
+    if source_key not in {"committee_minutes_body", "plenary_minutes_body"}:
+        raise AdapterError("unsupported official minutes body source")
     view_url = body_view_url(official_url)
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
     headers = {"User-Agent": "PoC07-NationalAssembly/1.0 (+official-source-collector)"}
@@ -38,6 +43,6 @@ def fetch_official_minutes_body(official_url: str, timeout_seconds: float = 20.0
     if status != 200:
         raise AdapterError(f"official minutes body returned HTTP {status}")
     return SourcePayload(
-        source_key="committee_minutes_body", content=content, content_type=content_type,
+        source_key=source_key, content=content, content_type=content_type,
         retrieved_at=retrieved_at, source_url=final_url, http_status=status,
     )

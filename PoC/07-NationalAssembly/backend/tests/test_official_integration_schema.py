@@ -56,6 +56,27 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         self.assertIn("TEMPORARY_STABILITY_WINDOW", worker)
         self.assertIn('"api_requests": 0', worker)
 
+    def test_part_match_schema_preserves_document_and_source_piece(self):
+        sql = (
+            PROJECT_DIR / "backend" / "migrations"
+            / "0050_official_caption_part_matches.sql"
+        ).read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE transcript_official_part_matches", sql)
+        self.assertIn("source_part_index integer NOT NULL", sql)
+        self.assertIn("source_text_hash char(64) NOT NULL", sql)
+        self.assertIn("PRIMARY KEY (official_document_id, transcript_revision_id, source_part_index)", sql)
+
+    def test_review_decision_schema_is_source_version_scoped(self):
+        sql = (
+            PROJECT_DIR / "backend" / "migrations"
+            / "0051_official_speaker_review_decisions.sql"
+        ).read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE official_speaker_review_decisions", sql)
+        self.assertIn("official_document_id uuid NOT NULL", sql)
+        self.assertIn("source_text_hash char(64) NOT NULL", sql)
+        self.assertIn("UNIQUE (meeting_brief_id, official_document_id, point_id, source_text_hash)", sql)
+        self.assertIn("legacy_review_import", sql)
+
     def test_temporary_minutes_wait_for_stable_window(self):
         now = datetime(2026, 8, 26, 12, 0, tzinfo=timezone.utc)
         assert not temporary_document_stable({
@@ -65,6 +86,16 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         assert temporary_document_stable({
             "publication_stage": "TEMPORARY",
             "retrieved_at": now - timedelta(minutes=30),
+        }, now=now)
+        assert temporary_document_stable({
+            "publication_stage": "TEMPORARY",
+            "semantic_first_seen_at": now - timedelta(hours=2),
+            "retrieved_at": now - timedelta(minutes=2),
+        }, now=now)
+        assert not temporary_document_stable({
+            "publication_stage": "TEMPORARY",
+            "semantic_first_seen_at": now - timedelta(minutes=5),
+            "retrieved_at": now - timedelta(hours=2),
         }, now=now)
         assert temporary_document_stable({
             "publication_stage": "FINAL",
@@ -136,6 +167,9 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         )
         self.assertIn("candidate.status = 'RETRY_WAIT'", repository)
         self.assertIn("OfficialIntegrationJobRepository(connection).claim", worker)
+        self.assertIn("provider IN ('mistral', 'openrouter')", repository)
+        self.assertIn('meeting_brief_id=job["meeting_brief_id"]', worker)
+        self.assertIn('official_document_id=job["official_document_id"]', worker)
         self.assertIn("--interval", worker)
         self.assertIn("official-integration-worker:", compose)
 
@@ -157,16 +191,21 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         )
         self.assertIn("WHERE document.publication_id IS NULL", migration)
         self.assertIn("publication.conference_id = document.conference_id", migration)
-        self.assertIn("official.preserved-bodies.attached", worker)
+        self.assertIn("attach_preserved_documents()", repository)
+        self.assertNotIn(".attach_preserved_documents()", worker)
 
     def test_body_collection_prioritizes_unlinked_publications(self):
         repository = (
             PROJECT_DIR / "backend/app/db/official_publication_repository.py"
         ).read_text(encoding="utf-8")
         self.assertIn(
-            "ORDER BY (publication.body_contract_status = 'LINK_ONLY') DESC",
+            "SELECT DISTINCT ON (publication.meeting_id, publication.conference_id)",
             repository,
         )
+        self.assertIn(
+            "document.meeting_id = publication.meeting_id", repository,
+        )
+        self.assertIn("document.publication_stage = 'FINAL'", repository)
         self.assertIn(
             "publication.conference_id = external.external_id",
             repository,
