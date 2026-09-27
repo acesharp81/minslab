@@ -193,6 +193,7 @@ export async function understand(message: string): Promise<Interpretation> {
     if (intent.action === "checkout" && basic.intent.action !== "checkout") intent.action = "recommend";
     if (basic.intent.action === "recommend" && basic.memberUpdates.some((entry) => entry.tastes?.length)) intent.action = "recommend";
     if (basic.intent.coffee && /추천|골라/.test(message)) intent.action = "recommend";
+    if (basic.intent.action === "recommend" && /추천|골라/.test(message) && !/담아|추가|넣어/.test(message)) intent.action = "recommend";
     if (intent.action === "help" && !/직원|사장님|도움|불러/.test(message)) intent.action = "recommend";
     if (intent.action === "add" && basic.intent.action !== "add" && !/담|넣|추가|이걸|그걸|이거|그거|할게/.test(message)) intent.action = "recommend";
     if (intent.action === "remove" && !/빼|제거|삭제|취소/.test(message)) intent.action = "recommend";

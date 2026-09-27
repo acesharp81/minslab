@@ -96,6 +96,8 @@ export type OrderIntent = {
   coffee?: boolean;
   caffeineFree?: boolean;
   decaf?: boolean;
+  wantsSweet?: boolean;
+  avoidSour?: boolean;
 };
 export type Recommendation = {
   item: MenuItemData;

@@ -106,11 +106,23 @@ try {
   assert.equal(broadenedDrink.recommendations[0].item.name, "오렌지 에이드");
   assert.equal(broadenedDrink.recommendations[0].quantity, 2);
   assert.match(broadenedDrink.reply, /9,000원/);
+  assert.match(broadenedDrink.reply, /2잔을 담을게요/);
   const twoDrinks = await request("conversation/", "POST", { message: "첫 번째 담아줘" });
   assert.equal(twoDrinks.cart?.items.length, 1);
   assert.equal(twoDrinks.cart?.items[0].quantity, 2);
   assert.equal(twoDrinks.cart?.total, 9000);
   await request(`cart/${twoDrinks.cart.items[0].id}/`, "DELETE");
+  const sweetDrink = await request("conversation/", "POST", { message: "새콤한 건 빼고 달콤한 음료로 골라줘" });
+  assert.equal(sweetDrink.dialogue.preferences.caffeineFree, true);
+  assert.equal(sweetDrink.dialogue.preferences.quantity, 2);
+  assert.equal(sweetDrink.recommendations?.length, 1);
+  assert.equal(sweetDrink.recommendations[0].item.name, "달콤 사과 주스");
+  assert.match(sweetDrink.recommendations[0].reason, /달콤한 맛/);
+  assert.match(sweetDrink.reply, /9,000원/);
+  const sweetCart = await request("conversation/", "POST", { message: "첫 번째 담아줘" });
+  assert.equal(sweetCart.cart?.items[0].quantity, 2);
+  assert.equal(sweetCart.cart?.total, 9000);
+  await request(`cart/${sweetCart.cart.items[0].id}/`, "DELETE");
   await request("profile/", "POST", profile);
   const peanut = bootstrap.menu.find(
     (item: { name: string }) => item.name === "고소 땅콩 치킨",
@@ -236,7 +248,7 @@ try {
     ),
   );
   console.log(
-    "PoC9 smoke passed: visit mode, spoken group, caffeine-free coffee guard, broadened two-drink order, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
+    "PoC9 smoke passed: visit mode, spoken group, caffeine-free coffee guard, broadened two-drink order, sour-to-sweet refinement, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
   );
 } finally {
   if (orderId) await db.order.deleteMany({ where: { id: orderId } });

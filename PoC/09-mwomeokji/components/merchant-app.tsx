@@ -816,23 +816,52 @@ export function MerchantApp() {
                 />
               </label>
             </div>
-            {dashboard?.store.categories.find((entry) => entry.id === edit.categoryId)?.name === "음료" && <label className="wide">
-              커피·카페인 정보 (사장님이 실제 원료를 확인해 선택)
-              <select
-                value={edit.tags.includes("caffeine_free") ? "caffeine_free" : edit.tags.includes("decaf") ? "decaf" : edit.tags.includes("coffee") || /커피|아메리카노|카페라떼|에스프레소/.test(edit.name) ? "coffee" : "other"}
-                onChange={(event) => setEdit({ ...edit, tags: [
-                  ...edit.tags.filter((tag) => !["coffee", "decaf", "caffeine_free"].includes(tag)),
-                  ...(event.target.value === "other" ? [] : ["coffee"]),
-                  ...(event.target.value === "decaf" ? ["decaf"] : []),
-                  ...(event.target.value === "caffeine_free" ? ["caffeine_free"] : []),
-                ] })}
-              >
-                <option value="other">커피 아님 / 카페인 정보 미확인</option>
-                <option value="coffee">일반 커피 (카페인 있음)</option>
-                <option value="decaf">디카페인 확인 (카페인 없음 보장 아님)</option>
-                <option value="caffeine_free">카페인 없음 점주 확인</option>
-              </select>
-            </label>}
+            {dashboard?.store.categories.find((entry) => entry.id === edit.categoryId)?.name === "음료" && <>
+              <label>
+                음료 종류
+                <select
+                  value={edit.tags.includes("coffee") || /커피|아메리카노|카페라떼|에스프레소/.test(edit.name) ? "coffee" : "other"}
+                  onChange={(event) => setEdit({ ...edit, tags: [
+                    ...edit.tags.filter((tag) => !["coffee", "decaf", "caffeine_free"].includes(tag)),
+                    ...(event.target.value === "coffee" ? ["coffee"] : []),
+                  ] })}
+                >
+                  <option value="other">일반 음료</option>
+                  <option value="coffee">커피 음료</option>
+                </select>
+              </label>
+              <label>
+                카페인 정보 (원료 확인 후 선택)
+                <select
+                  value={edit.tags.includes("caffeine_free") ? "caffeine_free" : edit.tags.includes("decaf") ? "decaf" : "unverified"}
+                  onChange={(event) => setEdit({ ...edit, tags: [
+                    ...edit.tags.filter((tag) => !["decaf", "caffeine_free"].includes(tag)),
+                    ...(event.target.value === "decaf" && !edit.tags.includes("coffee") ? ["coffee"] : []),
+                    ...(event.target.value === "unverified" ? [] : [event.target.value]),
+                  ] })}
+                >
+                  <option value="unverified">카페인 없음 미확인</option>
+                  <option value="decaf">디카페인 확인 (카페인 없음 보장 아님)</option>
+                  <option value="caffeine_free">카페인 없음 점주 확인</option>
+                </select>
+              </label>
+              <label className="wide">
+                맛 특징 (실제 메뉴 설명에 맞게 선택)
+                <select
+                  value={edit.tags.includes("sweet") && edit.tags.includes("sour") ? "both" : edit.tags.includes("sweet") ? "sweet" : edit.tags.includes("sour") ? "sour" : "neutral"}
+                  onChange={(event) => setEdit({ ...edit, tags: [
+                    ...edit.tags.filter((tag) => !["sweet", "sour"].includes(tag)),
+                    ...(["sweet", "both"].includes(event.target.value) ? ["sweet"] : []),
+                    ...(["sour", "both"].includes(event.target.value) ? ["sour"] : []),
+                  ] })}
+                >
+                  <option value="neutral">달콤함·신맛 표시 없음</option>
+                  <option value="sweet">달콤함</option>
+                  <option value="sour">새콤함</option>
+                  <option value="both">달콤하고 새콤함</option>
+                </select>
+              </label>
+            </>}
             <h3>알레르기 성분 확인</h3>
             <p className="fine-print">
               실제 재료와 제조 과정 확인 후 선택하세요. 미확인은 알레르기

@@ -5,6 +5,7 @@ import { answerIngredientQuestion, ingredientQuestion } from "../lib/ingredient-
 import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
+import { validCaffeineTags } from "../lib/menu-metadata";
 import { recommend, recommendGroup, validateRecommendationResult } from "../lib/recommend";
 import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
@@ -46,6 +47,15 @@ const item = (
   options: [],
 });
 
+describe("merchant beverage labels", () => {
+  it("allows a confirmed caffeine-free non-coffee drink, but requires decaf to be coffee", () => {
+    expect(validCaffeineTags(["음료", "caffeine_free"], "음료")).toBe(true);
+    expect(validCaffeineTags(["음료", "decaf"], "음료")).toBe(false);
+    expect(validCaffeineTags(["음료", "coffee", "decaf"], "음료")).toBe(true);
+    expect(validCaffeineTags(["음료", "coffee", "decaf", "caffeine_free"], "음료")).toBe(false);
+  });
+});
+
 describe("caffeine-free coffee order contract", () => {
   const request = "카페인 없는 커피 음료 2잔으로 추천해줘 만원이하로";
   const soda = { ...item("오렌지 에이드", 4500), tags: ["음료"], ingredients: ["orange"] };
@@ -79,6 +89,26 @@ describe("caffeine-free coffee order contract", () => {
     const proposals = recommend([caffeineFreeSoda, fries, regular, decaf], emptyProfile, broader.preferences, 1);
     expect(proposals.map((entry) => entry.item.name)).toEqual(["오렌지 에이드"]);
     expect(validateRecommendationResult(proposals, emptyProfile, broader.preferences)).toEqual({ valid: true, total: 9000 });
+  });
+  it("keeps caffeine, quantity and budget while replacing sour soda with a sweet drink", () => {
+    const first = evolveDialogue(readDialogue({}), "카페인 없는 음료 2잔으로 추천해줘 만원이하로", parseIntent("카페인 없는 음료 2잔으로 추천해줘 만원이하로")).state;
+    const followup = "신거 말고 달달한거로";
+    expect(parseIntent("새콤한 건 빼고 달콤한 음료로 골라줘").action).toBe("recommend");
+    const next = evolveDialogue(first, followup, parseIntent(followup)).state;
+    expect(next.preferences.caffeineFree).toBe(true);
+    expect(next.preferences.quantity).toBe(2);
+    expect(next.preferences.totalBudget).toBe(10000);
+    expect(next.preferences.wantsSweet).toBe(true);
+    expect(next.preferences.avoidSour).toBe(true);
+    const orange = { ...soda, tags: ["음료", "caffeine_free", "sour"], description: "상큼한 음료" };
+    const water = { ...item("생수", 1500), tags: ["음료", "caffeine_free"] };
+    const apple = { ...item("달콤 사과 주스", 4500), tags: ["음료", "caffeine_free", "sweet"], description: "달콤한 음료" };
+    const proposals = recommend([orange, water, apple], emptyProfile, next.preferences, 1);
+    expect(proposals.map((entry) => entry.item.name)).toEqual(["달콤 사과 주스"]);
+    expect(validateRecommendationResult(proposals, emptyProfile, next.preferences)).toEqual({ valid: true, total: 9000 });
+    expect(validateRecommendationResult([{ item: water, score: 99, reason: "" }], emptyProfile, next.preferences).valid).toBe(false);
+    expect(proposals[0].reason).toContain("달콤한 맛");
+    expect(proposals[0].reason).not.toContain("원라서");
   });
   it("starts a standalone drink brief after a group meal and relaxes only an explicit decaf correction", () => {
     const previous = { ...readDialogue({}), peopleCount: 3,

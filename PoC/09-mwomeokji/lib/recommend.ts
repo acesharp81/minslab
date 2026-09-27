@@ -50,6 +50,10 @@ export function matchesRequestedMenu(item: MenuItemData, intent: OrderIntent): b
   // Only a merchant's explicit catalog tag can substantiate a caffeine claim.
   if (intent.caffeineFree && !item.tags.includes("caffeine_free")) return false;
   if (intent.decaf && !item.tags.includes("decaf")) return false;
+  const sweet = item.tags.includes("sweet") || /달콤|달달|단맛/.test(`${item.name} ${item.description}`);
+  const sour = item.tags.includes("sour") || /신맛|새콤|시큼|상큼/.test(`${item.name} ${item.description}`);
+  if (intent.wantsSweet && !sweet) return false;
+  if (intent.avoidSour && sour) return false;
   return true;
 }
 
@@ -75,15 +79,13 @@ function score(
 
 function reason(item: MenuItemData, intent: OrderIntent): string {
   const reasons: string[] = [];
-  if (intent.wantsWarm && item.tags.includes("warm"))
-    reasons.push("따뜻한 메뉴");
-  if (intent.wantsCool && item.tags.includes("cool"))
-    reasons.push("시원한 메뉴");
-  if (intent.wantsMild && item.spiceLevel <= 1) reasons.push("맵기 1 이하");
-  if (intent.totalBudget)
-    reasons.push(`${item.price.toLocaleString("ko-KR")}원`);
-  if (!reasons.length) reasons.push("많이 찾는 메뉴");
-  return `${reasons.join(" · ")}라서 골랐어요.`;
+  if (intent.wantsWarm && item.tags.includes("warm")) reasons.push("따뜻한 메뉴");
+  if (intent.wantsCool && item.tags.includes("cool")) reasons.push("시원한 메뉴");
+  if (intent.wantsMild && item.spiceLevel <= 1) reasons.push("순한 맛");
+  if (intent.wantsSweet) reasons.push("달콤한 맛");
+  if (intent.avoidSour) reasons.push("신맛 제외");
+  if (intent.totalBudget) reasons.push("예산");
+  return reasons.length ? `${reasons.join(" · ")} 조건을 반영해 골랐어요.` : "많이 찾는 메뉴라서 골랐어요.";
 }
 
 export function recommend(

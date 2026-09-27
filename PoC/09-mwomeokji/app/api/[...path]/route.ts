@@ -14,6 +14,7 @@ import { hasExplicitNoAllergies } from "../../../lib/intent";
 import { answerIngredientQuestion, ingredientQuestion } from "../../../lib/ingredient-answer";
 import { rankRecommendations } from "../../../lib/decision";
 import { recordAiUsage } from "../../../lib/usage-meter";
+import { catalogTags, validCaffeineTags } from "../../../lib/menu-metadata";
 import { matchesRequestedMenu, recommend, recommendGroup, validateRecommendationResult } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
 import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
@@ -48,14 +49,6 @@ const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status });
 const fail = (message: string, status = 400) =>
   json({ error: message }, status);
-const menuCategoryTags = new Set(["식사", "음료", "사이드", "디저트"]);
-function catalogTags(tags: string[], categoryName: string) {
-  return [...new Set([...tags.filter((tag) => !menuCategoryTags.has(tag)), categoryName])];
-}
-function validCaffeineTags(tags: string[], categoryName: string) {
-  return !tags.some((tag) => tag === "decaf" || tag === "caffeine_free") ||
-    (categoryName === "음료" && tags.includes("coffee") && !(tags.includes("decaf") && tags.includes("caffeine_free")));
-}
 const profileSchema = z.object({
   allergies: z
     .array(z.enum(ALLERGENS.map(([key]) => key) as [string, ...string[]]))
@@ -611,7 +604,11 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: "사장님께 알렸어요. 잠시만 기다려 주세요.", help });
       }
-      if ((updatedMembers.needsClarification || understanding.clarification) && !focusedRequest && !orderFromRecommendations) {
+      // A model echo is not a useful clarification when the spoken taste change is explicit.
+      const clearTasteRefinement = intent.action === "recommend" &&
+        (intent.wantsSweet || intent.avoidSour) &&
+        (dialogue.preferences.category || dialogue.lastRecommendations.length > 0);
+      if ((updatedMembers.needsClarification || (understanding.clarification && !clearTasteRefinement)) && !focusedRequest && !orderFromRecommendations) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: updatedMembers.needsClarification ? "어느 분을 말씀하셨나요? 이름이나 특징을 알려 주세요." : understanding.clarification });
       }
@@ -712,7 +709,7 @@ export async function POST(req: NextRequest, context: Context) {
       const reply = recommendations.length
         ? focusedPick ? `${dialogue.focusedMemberLabel} 메뉴를 새로 골랐어요: ${focusedPick.item.name}. 다른 분 메뉴도 함께 확인해 주세요. 예상 합계 ${group?.total.toLocaleString()}원이에요.`
           : group ? `${dialogue.peopleCount}분의 취향을 각각 반영해 골랐어요. 예상 합계 ${group.total.toLocaleString()}원이에요. ${/2\s*살|두\s*살|만\s*2\s*세/.test(message) && dialogue.members.some((member) => member.tastes?.includes("kids")) ? "2살 아이에게 맞는 재료와 식감인지 보호자가 확인해 주세요. " : ""}“추천한 거 전부 담아줘”라고 하셔도 돼요.`
-            : requestedCount > 1 ? `${recommendations[0].item.name} ${requestedCount}${unit}이면 예상 합계 ${checked.total.toLocaleString()}원이에요. “첫 번째 담아줘”라고 하시면 ${requestedCount}${unit}를 담을게요.`
+            : requestedCount > 1 ? `${recommendations[0].item.name} ${requestedCount}${unit}이면 예상 합계 ${checked.total.toLocaleString()}원이에요. “첫 번째 담아줘”라고 하시면 ${requestedCount}${unit}${unit === "잔" ? "을" : "를"} 담을게요.`
               : "이 음식은 어떠세요? 마음에 들면 “첫 번째 담아줘”라고 말씀해 주세요."
         : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? limitHelp : "다른 맛이나 음식 종류로 골라볼까요?"}` : dialogue.preferences.coffee && dialogue.preferences.caffeineFree
           ? "이 매장에는 카페인 없는 커피로 확인된 메뉴가 없어요. 다른 음료나 음식으로 바꿔 추천하지 않았어요. 디카페인도 괜찮다면 말씀해 주세요."

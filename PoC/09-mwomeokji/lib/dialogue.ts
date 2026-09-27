@@ -117,7 +117,7 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
     while (members.length < peopleCount) members.push({ id: `generic-${members.length + 1}`, label: `일행 ${members.length + 1}`, allergies: [], dietaryRules: [] });
   }
   const preferences: OrderIntent = { ...previous.preferences, action: 'recommend' };
-  for (const key of ['totalBudget','maxSpiceLevel','peopleCount','category','wantsWarm','wantsCool','wantsMild','vegetarian','avoidPork','avoidBeef','quantity','coffee','caffeineFree','decaf'] as const) {
+  for (const key of ['totalBudget','maxSpiceLevel','peopleCount','category','wantsWarm','wantsCool','wantsMild','vegetarian','avoidPork','avoidBeef','quantity','coffee','caffeineFree','decaf','wantsSweet','avoidSour'] as const) {
     const value = parsed[key];
     if (value !== undefined && value !== false) Object.assign(preferences, { [key]: value });
   }
@@ -131,6 +131,8 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
     if (!parsed.caffeineFree) preferences.caffeineFree = false;
     if (!parsed.decaf) preferences.decaf = false;
     if (!parsed.quantity) preferences.quantity = undefined;
+    if (!parsed.wantsSweet) preferences.wantsSweet = false;
+    if (!parsed.avoidSour) preferences.avoidSour = false;
   }
   // A broader drink request explicitly drops a previous coffee-only requirement.
   if (parsed.category === '음료' && /음료|마실/.test(text) && !parsed.coffee) {
@@ -253,6 +255,7 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
   if (updates.some((entry) => entry.dietaryRules.includes('vegetarian') || entry.dietaryRules.includes('vegan') || entry.removeDietaryRules.includes('vegetarian') || entry.removeDietaryRules.includes('vegan'))) preferences.vegetarian = false;
   if (updates.some((entry) => entry.maxSpiceLevel !== null || entry.tastes?.includes('mild'))) { preferences.maxSpiceLevel = undefined; preferences.wantsMild = false; }
   if (updates.some((entry) => entry.tastes?.includes('soup'))) preferences.wantsWarm = false;
+  if (updates.some((entry) => entry.tastes?.includes('sweet')) && !/모두|전부|다\s*같이/.test(text)) preferences.wantsSweet = false;
   if (updates.some((entry) => entry.tastes?.length)) preferences.category = undefined;
   const focusedMemberLabel = appliedLabels.size === 1 ? [...appliedLabels][0] : appliedLabels.size > 1 ? undefined : state.focusedMemberLabel;
   return { state: { ...state, members, preferences, lastMemberLabel, focusedMemberLabel }, applied: true, needsClarification };
