@@ -52,7 +52,10 @@ export function parseIntent(input: string): OrderIntent {
   intent.vegetarian = /채식|비건|vegetarian|vegan/.test(text);
   intent.avoidPork = /돼지고기.*(빼|제외|안)|no pork|without pork/.test(text);
   intent.avoidBeef = /소고기.*(빼|제외|안)|no beef|without beef/.test(text);
-  if (/음료|drink|커피/.test(text)) intent.category = "음료";
+  intent.caffeineFree = /카페인\s*(?:없는|없|0|제로)|무카페인|caffeine[- ]?free|zero caffeine/.test(text);
+  intent.decaf = /디카페인|decaf/.test(text);
+  intent.coffee = /커피|아메리카노|카페라떼|에스프레소|coffee|espresso/.test(text) || intent.decaf;
+  if (/음료|drink|커피|디카페인|아메리카노|카페라떼|에스프레소/.test(text)) intent.category = "음료";
   else if (/밥|식사|rice/.test(text)) intent.category = "식사";
   else if (/사이드|간식|side/.test(text)) intent.category = "사이드";
   if (

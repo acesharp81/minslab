@@ -74,10 +74,10 @@ export function CustomerApp({ slug }: { slug: string }) {
     try { const result = await api<{cart: Cart}>("profile", "POST", next); setCart(result.cart); setSuccess("취향을 저장했어요."); } catch (cause) { setError((cause as Error).message); }
   }
   async function refreshOrders() { try { setOrders(await api<Order[]>("orders")); } catch (cause) { setError((cause as Error).message); } }
-  function openItem(item: MenuItemData, assignedTo?: string) {
+  function openItem(item: MenuItemData, assignedTo?: string, suggestedQuantity = 1) {
     setSelected(item); setSelectedAssignment(assignedTo);
     setOptionIds(item.options.flatMap((group) => group.options.filter((option) => option.isAvailable).slice(0, group.minSelect).map((option) => option.id)));
-    setQuantity(1);
+    setQuantity(suggestedQuantity);
   }
   async function add(item: MenuItemData, assignedTo?: string) {
     setBusy(true); setError("");
@@ -134,7 +134,7 @@ export function CustomerApp({ slug }: { slug: string }) {
           {visitMode && <div className="context-strip" aria-label="대화에서 파악한 조건">{summary.map((entry, index) => <span key={`${entry}-${index}`}>{entry}</span>)}<button onClick={() => setVisitMode(null)}>식사 방식 바꾸기</button></div>}
           <div className="talk-stream" aria-live="polite">
             {messages.map((line, index) => <div key={index} className={`talk-row ${line.role}`}><div className="talk-bubble">{line.text.split("\n").map((part, key) => <span key={key}>{part}<br/></span>)}</div>{line.provider && <small className="talk-provider">{line.provider === "openrouter" ? "AI가 문장을 이해했어요" : "기본 해석으로 처리했어요"}</small>}
-              {line.recommendations?.length ? <div className="talk-recommendations">{line.recommendations.map((rec, recIndex) => <div className="talk-rec" key={`${rec.item.id}-${rec.forMember}-${recIndex}`}><span className="talk-rec-number">{recIndex + 1}</span><span className="talk-rec-emoji">{rec.item.emoji}</span><div><strong>{rec.item.name}</strong><small>{rec.forMember ? `${rec.forMember} · ` : ""}{rec.reason}</small><b>{money(rec.item.price)}</b></div><button onClick={() => openItem(rec.item, rec.forMember)} aria-label={`${rec.item.name} 자세히 보기`}>자세히</button></div>)}{index === messages.length - 1 && <button className="talk-inline-action" onClick={() => send(line.recommendations?.length && line.recommendations.length > 1 ? "추천한 거 전부 담아줘" : "첫 번째 담아줘")}>추천 메뉴 담기 <ArrowRight size={16}/></button>}</div> : null}
+              {line.recommendations?.length ? <div className="talk-recommendations">{line.recommendations.map((rec, recIndex) => <div className="talk-rec" key={`${rec.item.id}-${rec.forMember}-${recIndex}`}><span className="talk-rec-number">{recIndex + 1}</span><span className="talk-rec-emoji">{rec.item.emoji}</span><div><strong>{rec.item.name}</strong><small>{rec.forMember ? `${rec.forMember} · ` : ""}{rec.reason}</small><b>{rec.quantity && rec.quantity > 1 ? `${rec.quantity}${rec.unit || "개"} · 예상 ${money(rec.item.price * rec.quantity)}` : money(rec.item.price)}</b></div><button onClick={() => openItem(rec.item, rec.forMember, rec.quantity)} aria-label={`${rec.item.name} 자세히 보기`}>자세히</button></div>)}{index === messages.length - 1 && <button className="talk-inline-action" onClick={() => send(line.recommendations?.length && line.recommendations.length > 1 ? "추천한 거 전부 담아줘" : "첫 번째 담아줘")}>추천 메뉴 담기 <ArrowRight size={16}/></button>}</div> : null}
               {line.confirmCheckout && <div className="talk-confirm"><button className="button button-primary" onClick={() => send("응")}>네, 모의 결제로 주문해요</button><button className="button button-outline" onClick={() => { setView("cart"); setMessages((current) => [...current, {role:"assistant", text:"장바구니를 다시 확인해 주세요."}]); }}>장바구니 확인</button></div>}
             </div>)}
             {busy && <div className="talk-row assistant"><div className="talk-bubble">잠시만요, 확인하고 있어요…</div></div>}<div ref={endRef}/>

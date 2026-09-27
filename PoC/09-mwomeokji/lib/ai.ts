@@ -175,7 +175,9 @@ export async function understand(message: string): Promise<Interpretation> {
     if (!response.ok || !parsed?.success) return { ...basic, usage: measuredUsage };
     const turn = parsed.data;
     const intent: OrderIntent = { ...basic.intent, action: turn.action };
-    if (turn.peopleCount !== null) intent.peopleCount = turn.peopleCount;
+    // A drink count is a quantity, not a party size. The model cannot turn 2잔 into 2명.
+    const explicitParty = /명|사람|일행|(?:우리|저희)\s*(?:둘|셋|넷)(?:이|이서)|와이프|아내|남편|아이|아기|딸|아들/.test(message);
+    if (turn.peopleCount !== null && (!basic.intent.quantity || explicitParty)) intent.peopleCount = turn.peopleCount;
     if (turn.totalBudget !== null) intent.totalBudget = turn.totalBudget;
     if (turn.maxSpiceLevel !== null) intent.maxSpiceLevel = Math.min(turn.maxSpiceLevel, basic.intent.maxSpiceLevel ?? 4);
     if (turn.vegetarian !== null) intent.vegetarian = turn.vegetarian;
@@ -183,13 +185,14 @@ export async function understand(message: string): Promise<Interpretation> {
     if (turn.wantsCool !== null) intent.wantsCool = turn.wantsCool;
     if (turn.avoidPork !== null) intent.avoidPork = turn.avoidPork;
     if (turn.avoidBeef !== null) intent.avoidBeef = turn.avoidBeef;
-    if (turn.category !== null) intent.category = turn.category;
+    if (turn.category !== null && !basic.intent.category) intent.category = turn.category;
     if (turn.menuName !== null) intent.menuName = turn.menuName;
     if (turn.quantity !== null && /(\d+|한|두|세|네|하나|둘|셋|넷)\s*(개|잔|그릇|인분)/.test(message)) intent.quantity = turn.quantity;
     // Direct command words override any model guess that would mutate an order.
     if (basic.intent.action === "checkout" || basic.intent.action === "remove" || basic.intent.action === "add" || basic.intent.action === "help") intent.action = basic.intent.action;
     if (intent.action === "checkout" && basic.intent.action !== "checkout") intent.action = "recommend";
     if (basic.intent.action === "recommend" && basic.memberUpdates.some((entry) => entry.tastes?.length)) intent.action = "recommend";
+    if (basic.intent.coffee && /추천|골라/.test(message)) intent.action = "recommend";
     if (intent.action === "help" && !/직원|사장님|도움|불러/.test(message)) intent.action = "recommend";
     if (intent.action === "add" && basic.intent.action !== "add" && !/담|넣|추가|이걸|그걸|이거|그거|할게/.test(message)) intent.action = "recommend";
     if (intent.action === "remove" && !/빼|제거|삭제|취소/.test(message)) intent.action = "recommend";

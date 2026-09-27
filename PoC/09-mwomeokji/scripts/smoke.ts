@@ -95,6 +95,10 @@ try {
   guestCookie = "";
   await request("bootstrap/?slug=orange-table&table=A1");
   await request("visit/", "POST", { mode: "takeout" });
+  const caffeineRequest = await request("conversation/", "POST", { message: "무카페인 커피 음료 두 잔을 1만 원 안에서 추천해줘" });
+  assert.equal(caffeineRequest.dialogue.peopleCount, undefined, "cups must not become diners");
+  assert.equal(caffeineRequest.recommendations?.length, 0, "unverified coffee cannot be replaced by other food");
+  assert.match(caffeineRequest.reply, /카페인 없는 커피/);
   await request("profile/", "POST", profile);
   const peanut = bootstrap.menu.find(
     (item: { name: string }) => item.name === "고소 땅콩 치킨",
@@ -220,7 +224,7 @@ try {
     ),
   );
   console.log(
-    "PoC9 smoke passed: visit mode, spoken group, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
+    "PoC9 smoke passed: visit mode, spoken group, caffeine-free coffee guard, follow-up add, safety, options, takeout order, demo merchant, help, import review.",
   );
 } finally {
   if (orderId) await db.order.deleteMany({ where: { id: orderId } });

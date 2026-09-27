@@ -14,7 +14,7 @@ import { hasExplicitNoAllergies } from "../../../lib/intent";
 import { answerIngredientQuestion, ingredientQuestion } from "../../../lib/ingredient-answer";
 import { rankRecommendations } from "../../../lib/decision";
 import { recordAiUsage } from "../../../lib/usage-meter";
-import { recommend, recommendGroup } from "../../../lib/recommend";
+import { matchesRequestedMenu, recommend, recommendGroup, validateRecommendationResult } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
 import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
 import {
@@ -48,6 +48,14 @@ const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status });
 const fail = (message: string, status = 400) =>
   json({ error: message }, status);
+const menuCategoryTags = new Set(["식사", "음료", "사이드", "디저트"]);
+function catalogTags(tags: string[], categoryName: string) {
+  return [...new Set([...tags.filter((tag) => !menuCategoryTags.has(tag)), categoryName])];
+}
+function validCaffeineTags(tags: string[], categoryName: string) {
+  return !tags.some((tag) => tag === "decaf" || tag === "caffeine_free") ||
+    (categoryName === "음료" && tags.includes("coffee") && !(tags.includes("decaf") && tags.includes("caffeine_free")));
+}
 const profileSchema = z.object({
   allergies: z
     .array(z.enum(ALLERGENS.map(([key]) => key) as [string, ...string[]]))
@@ -308,6 +316,8 @@ export async function POST(req: NextRequest, context: Context) {
           where: { id: input.categoryId, storeId: store.id },
         });
         if (!category) return fail("올바른 카테고리를 골라 주세요.");
+        const tags = catalogTags(input.tags, category.name);
+        if (!validCaffeineTags(tags, category.name)) return fail("커피의 카페인 표시와 음료 카테고리를 확인해 주세요.");
         if (
           input.isPublished &&
           (input.ingredients.length === 0 ||
@@ -320,6 +330,7 @@ export async function POST(req: NextRequest, context: Context) {
         const item = await db.menuItem.create({
           data: {
             ...input,
+            tags,
             storeId: store.id,
             allergens: {
               create: input.allergens.map((entry) => ({
@@ -605,7 +616,7 @@ export async function POST(req: NextRequest, context: Context) {
         return json({ intent, provider, dialogue, summary: summary(), reply: updatedMembers.needsClarification ? "어느 분을 말씀하셨나요? 이름이나 특징을 알려 주세요." : understanding.clarification });
       }
       if (intent.action === "ask") {
-        const found = items.filter((item) => !intent.menuName || menuMatches(item.name, intent.menuName)).slice(0, 3);
+        const found = items.filter((item) => matchesRequestedMenu(item, intent) && (!intent.menuName || menuMatches(item.name, intent.menuName))).slice(0, 3);
         dialogue.lastRecommendations = found.map((item) => ({ id: item.id }));
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: found.length ? found.map((item) => `${item.name} ${item.price.toLocaleString()}원 · ${item.description}`).join("\n") : "해당 메뉴를 찾지 못했어요. 음식 이름이나 취향을 다르게 말씀해 주세요.", recommendations: found.map((item) => ({ item, reason: "매장 메뉴 정보", score: 0 })) });
@@ -654,7 +665,7 @@ export async function POST(req: NextRequest, context: Context) {
           if (!optionIds) { skipped.push(`${item.name}: 조건에 맞는 옵션 없음`); continue; }
           const safety = checkSafety(item, effectiveProfile, optionIds);
           if (!safety.allowed) { skipped.push(`${item.name}: ${safety.reasons.join(", ")}`); continue; }
-          const created = await db.cartItem.create({ data: { sessionId: session.id, menuItemId: item.id, quantity: Math.min(intent.quantity || 1, 30), selectedOptionIds: optionIds, assignedTo: target.forMember } });
+          const created = await db.cartItem.create({ data: { sessionId: session.id, menuItemId: item.id, quantity: Math.min(intent.quantity || (!target.forMember && dialogue.lastRecommendations.length === 1 ? dialogue.preferences.quantity : undefined) || 1, 30), selectedOptionIds: optionIds, assignedTo: target.forMember } });
           const checked = await cartSummary(session.id, currentProfile);
           if (!checked.items.find((entry) => entry.id === created.id)?.safety.allowed) { await db.cartItem.delete({ where: { id: created.id } }); skipped.push(`${item.name}: 일행 조건 확인 필요`); continue; }
           added.push(item.name);
@@ -682,8 +693,11 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), recommendations: [], reply: "이 매장에는 지금 주문 가능한 키즈 메뉴가 없어요. 아이에게 순한 일반 메뉴로 다시 골라볼까요?" });
       }
-      const ranked = group ? { recommendations: group.items, provider: "rules" } : await rankRecommendations(recommend(candidates, currentProfile, dialogue.preferences), dialogue.preferences);
-      const recommendations = ranked.recommendations;
+      const requestedCount = (dialogue.peopleCount || 1) > 1 ? 1 : Math.max(1, dialogue.preferences.quantity || 1);
+      const ranked = group ? { recommendations: group.items, provider: "rules" } : await rankRecommendations(recommend(candidates, currentProfile, dialogue.preferences, requestedCount > 1 ? 1 : 5), dialogue.preferences);
+      const checked = validateRecommendationResult(ranked.recommendations, currentProfile, dialogue.preferences, dialogue.members);
+      const unit = dialogue.preferences.category === "음료" ? "잔" : "개";
+      const recommendations = checked.valid ? ranked.recommendations.map((entry) => ({ ...entry, quantity: group ? 1 : requestedCount, unit })) : [];
       dialogue.lastRecommendations = recommendations.map((entry) => ({ id: entry.item.id, forMember: entry.forMember }));
       await save();
       const focusedPick = focusedRequest ? recommendations.find((entry) => entry.forMember === dialogue.focusedMemberLabel) : undefined;
@@ -698,9 +712,14 @@ export async function POST(req: NextRequest, context: Context) {
       const reply = recommendations.length
         ? focusedPick ? `${dialogue.focusedMemberLabel} 메뉴를 새로 골랐어요: ${focusedPick.item.name}. 다른 분 메뉴도 함께 확인해 주세요. 예상 합계 ${group?.total.toLocaleString()}원이에요.`
           : group ? `${dialogue.peopleCount}분의 취향을 각각 반영해 골랐어요. 예상 합계 ${group.total.toLocaleString()}원이에요. ${/2\s*살|두\s*살|만\s*2\s*세/.test(message) && dialogue.members.some((member) => member.tastes?.includes("kids")) ? "2살 아이에게 맞는 재료와 식감인지 보호자가 확인해 주세요. " : ""}“추천한 거 전부 담아줘”라고 하셔도 돼요.`
-            : "이 음식은 어떠세요? 마음에 들면 “첫 번째 담아줘”라고 말씀해 주세요."
-        : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? limitHelp : "다른 맛이나 음식 종류로 골라볼까요?"}` : noMatchReply;
-      return json({ intent, provider, decisionProvider: ranked.provider, dialogue, summary: summary(), recommendations, group, profile: currentProfile, reply });
+            : requestedCount > 1 ? `${recommendations[0].item.name} ${requestedCount}${unit}이면 예상 합계 ${checked.total.toLocaleString()}원이에요. “첫 번째 담아줘”라고 하시면 ${requestedCount}${unit}를 담을게요.`
+              : "이 음식은 어떠세요? 마음에 들면 “첫 번째 담아줘”라고 말씀해 주세요."
+        : focusedRequest ? `${dialogue.focusedMemberLabel}의 새 조건에 맞는 확인된 메뉴가 없어요. ${savedLimits.length ? limitHelp : "다른 맛이나 음식 종류로 골라볼까요?"}` : dialogue.preferences.coffee && dialogue.preferences.caffeineFree
+          ? "이 매장에는 카페인 없는 커피로 확인된 메뉴가 없어요. 다른 음료나 음식으로 바꿔 추천하지 않았어요. 디카페인도 괜찮다면 말씀해 주세요."
+          : dialogue.preferences.coffee && dialogue.preferences.decaf
+            ? "이 매장에는 디카페인 커피로 확인된 메뉴가 없어요. 다른 음료로 바꿔 추천하지 않았어요."
+            : noMatchReply;
+      return json({ intent, provider, decisionProvider: ranked.provider, dialogue, summary: summary(), recommendations, group: checked.valid ? group : null, profile: currentProfile, reply });
     }
     if (path[0] === "cart") {
       const input = cartSchema.parse(await body(req));
@@ -858,13 +877,12 @@ export async function PATCH(req: NextRequest, context: Context) {
         const item = await db.menuItem.findUnique({ where: { id: path[2] } });
         if (!item) return fail("메뉴가 없어요.", 404);
         const input = menuSchema.partial().parse(await body(req));
-        if (
-          input.categoryId &&
-          !(await db.menuCategory.findFirst({
-            where: { id: input.categoryId, storeId: item.storeId },
-          }))
-        )
-          return fail("카테고리가 올바르지 않아요.");
+        const category = await db.menuCategory.findFirst({
+          where: { id: input.categoryId || item.categoryId, storeId: item.storeId },
+        });
+        if (!category) return fail("카테고리가 올바르지 않아요.");
+        const tags = catalogTags(input.tags ?? item.tags, category.name);
+        if (!validCaffeineTags(tags, category.name)) return fail("커피의 카페인 표시와 음료 카테고리를 확인해 주세요.");
         const nextAllergens =
           input.allergens ??
           (await db.menuItemAllergen.findMany({
@@ -884,6 +902,7 @@ export async function PATCH(req: NextRequest, context: Context) {
           where: { id: item.id },
           data: {
             ...values,
+            tags,
             ...(allergens
               ? {
                   allergens: {

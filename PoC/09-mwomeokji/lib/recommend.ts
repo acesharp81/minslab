@@ -42,6 +42,17 @@ function memberChoice(choice: Recommendation, member: GroupMember): Recommendati
   };
 }
 
+export function matchesRequestedMenu(item: MenuItemData, intent: OrderIntent): boolean {
+  const strictCategories = new Set(["음료", "식사", "사이드", "디저트"]);
+  if (intent.category && strictCategories.has(intent.category) && !item.tags.includes(intent.category)) return false;
+  const isCoffee = item.tags.includes("coffee") || item.ingredients.includes("coffee") || /커피|아메리카노|카페라떼|에스프레소/.test(item.name);
+  if (intent.coffee && !isCoffee) return false;
+  // Only a merchant's explicit catalog tag can substantiate a caffeine claim.
+  if (intent.caffeineFree && !item.tags.includes("caffeine_free")) return false;
+  if (intent.decaf && !item.tags.includes("decaf")) return false;
+  return true;
+}
+
 function score(
   item: MenuItemData,
   intent: OrderIntent,
@@ -84,13 +95,14 @@ export function recommend(
   const current = withIntent(profile, intent);
   const budget = intent.totalBudget ?? profile.budget;
   const individualBudget =
-    budget && (intent.peopleCount ?? 1) > 1
-      ? Math.floor(budget / (intent.peopleCount ?? 1))
+    budget && ((intent.peopleCount ?? 1) > 1 || (intent.quantity ?? 1) > 1)
+      ? Math.floor(budget / Math.max(intent.peopleCount ?? 1, intent.quantity ?? 1))
       : budget;
   return items
     .filter(
       (item) =>
         checkSafety(item, current).allowed &&
+        matchesRequestedMenu(item, intent) &&
         (!individualBudget || item.price <= individualBudget),
     )
     .map((item) => ({
@@ -163,4 +175,33 @@ export function recommendGroup(
   }
   const best = states[0];
   return { items: best.items, total: best.total, complete: true };
+}
+
+/** Final catalog-backed gate after rules or optional AI reordering. */
+export function validateRecommendationResult(
+  candidates: Recommendation[], profile: PreferenceProfile, intent: OrderIntent, members: GroupMember[] = [],
+): { valid: boolean; total: number } {
+  if (!candidates.length) return { valid: false, total: 0 };
+  const group = (intent.peopleCount ?? 1) > 1;
+  if (group && (candidates.length !== intent.peopleCount || candidates.some((entry) => !entry.forMember))) return { valid: false, total: 0 };
+  if (!group && (intent.quantity ?? 1) > 1 && candidates.length !== 1) return { valid: false, total: 0 };
+  if (candidates.some(({ item, forMember }) => {
+    const member = members.find((entry) => entry.label === forMember);
+    const effective = withIntent({
+      ...profile,
+      allergies: [...new Set([...profile.allergies, ...(member?.allergies || [])])],
+      dietaryRules: [...profile.dietaryRules, ...(member?.dietaryRules || [])],
+      maxSpiceLevel: member?.maxSpiceLevel ?? profile.maxSpiceLevel,
+    }, intent);
+    return !item.isPublished || !item.isAvailable || !matchesRequestedMenu(item, intent) ||
+      !checkSafety(item, effective).allowed || !!(member?.tastes?.length && !member.tastes.every((taste) => matchesTaste(item, taste)));
+  })) return { valid: false, total: 0 };
+  const count = group ? 1 : Math.max(1, intent.quantity ?? 1);
+  const total = group
+    ? candidates.reduce((sum, entry) => sum + entry.item.price, 0)
+    : candidates[0].item.price * count;
+  const budget = intent.totalBudget ?? profile.budget;
+  if (budget && (group || candidates.length === 1) && total > budget) return { valid: false, total };
+  if (budget && !group && candidates.some((entry) => entry.item.price * count > budget)) return { valid: false, total };
+  return { valid: true, total };
 }

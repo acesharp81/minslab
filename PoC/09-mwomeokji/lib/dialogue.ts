@@ -117,7 +117,7 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
     while (members.length < peopleCount) members.push({ id: `generic-${members.length + 1}`, label: `일행 ${members.length + 1}`, allergies: [], dietaryRules: [] });
   }
   const preferences: OrderIntent = { ...previous.preferences, action: 'recommend' };
-  for (const key of ['totalBudget','maxSpiceLevel','peopleCount','category','wantsWarm','wantsCool','wantsMild','vegetarian','avoidPork','avoidBeef'] as const) {
+  for (const key of ['totalBudget','maxSpiceLevel','peopleCount','category','wantsWarm','wantsCool','wantsMild','vegetarian','avoidPork','avoidBeef','quantity','coffee','caffeineFree','decaf'] as const) {
     const value = parsed[key];
     if (value !== undefined && value !== false) Object.assign(preferences, { [key]: value });
   }
@@ -126,6 +126,14 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
     if (specified.some((member) => member.maxSpiceLevel !== undefined)) preferences.maxSpiceLevel = undefined;
   }
   if (peopleCount) preferences.peopleCount = peopleCount;
+  if (parsed.category && parsed.category !== previous.preferences.category) {
+    if (!parsed.coffee) preferences.coffee = false;
+    if (!parsed.caffeineFree) preferences.caffeineFree = false;
+    if (!parsed.decaf) preferences.decaf = false;
+    if (!parsed.quantity) preferences.quantity = undefined;
+  }
+  if (parsed.decaf && !parsed.caffeineFree) preferences.caffeineFree = false;
+  if (parsed.coffee && /일반\s*커피|카페인\s*있어도|카페인\s*상관/.test(text)) { preferences.caffeineFree = false; preferences.decaf = false; }
   if (/말고|아니|대신/.test(text)) {
     if (parsed.wantsCool && /따뜻|뜨끈|국물/.test(text)) preferences.wantsWarm = false;
     if (parsed.wantsWarm && /시원|차가운/.test(text)) preferences.wantsCool = false;
@@ -174,6 +182,8 @@ export function resetForFullMealBrief(previous: DialogueState, utterance: string
   const namedPeople = new Set(updates.map((entry) => entry.label.replace(/(?:의)?(?:꺼|것|메뉴)$/, '')).filter((label) => mentionedMember(text, label))).size;
   const statedParty = /(\d+|두|세|네|둘|셋|넷)\s*(?:명|인|사람)/.test(text);
   const fullBrief = (roles >= 2 || (statedParty && namedPeople >= 2)) && /밥\s*먹|식사|한\s*끼|(?:메뉴|음식).*(?:추천|골라)|주문해|골라줘/.test(text);
+  const standaloneDrink = /(?:커피|디카페인|아메리카노|카페라떼)/.test(text) && /(?:\d+|한|두|세|네)\s*잔/.test(text) && /추천|골라/.test(text) && !/명|사람|일행|와이프|아내|남편|아이|딸|아들/.test(text);
+  if (standaloneDrink && (previous.peopleCount || previous.members.length)) return emptyDialogue();
   if (!fullBrief || (!previous.peopleCount && !previous.members.length && !previous.lastRecommendations.length)) return previous;
   const members = previous.members.filter((member) => !member.id.startsWith('generic-') && mentionedMember(text, member.label)).map((member) => ({
     ...member,

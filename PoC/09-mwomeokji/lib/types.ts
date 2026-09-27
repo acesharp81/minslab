@@ -93,9 +93,14 @@ export type OrderIntent = {
   category?: string;
   menuName?: string;
   quantity?: number;
+  coffee?: boolean;
+  caffeineFree?: boolean;
+  decaf?: boolean;
 };
 export type Recommendation = {
   item: MenuItemData;
+  quantity?: number;
+  unit?: "잔" | "개";
   score: number;
   reason: string;
   forMember?: string;

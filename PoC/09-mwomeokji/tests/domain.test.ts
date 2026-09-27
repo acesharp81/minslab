@@ -5,7 +5,7 @@ import { answerIngredientQuestion, ingredientQuestion } from "../lib/ingredient-
 import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
-import { recommend, recommendGroup } from "../lib/recommend";
+import { recommend, recommendGroup, validateRecommendationResult } from "../lib/recommend";
 import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
 
@@ -44,6 +44,64 @@ const item = (
     verificationStatus: "merchant_verified",
   })),
   options: [],
+});
+
+describe("caffeine-free coffee order contract", () => {
+  const request = "카페인 없는 커피 음료 2잔으로 추천해줘 만원이하로";
+  const soda = { ...item("오렌지 에이드", 4500), tags: ["음료"], ingredients: ["orange"] };
+  const fries = { ...item("바삭 감자튀김", 4500), tags: ["사이드"], ingredients: ["potato"] };
+  const regular = { ...item("아이스 아메리카노", 3900), tags: ["음료"], ingredients: ["coffee"] };
+  const decaf = { ...item("디카페인 아메리카노", 4500), tags: ["음료", "coffee", "decaf"], ingredients: ["coffee"] };
+  const verified = { ...item("카페인 없는 대체 커피", 4500), tags: ["음료", "coffee", "caffeine_free"], ingredients: ["chicory"] };
+  it("treats two cups as units, not two diners, and never substitutes soda or fries", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const understood = await understand(request);
+    const state = evolveDialogue(readDialogue({}), request, understood.intent).state;
+    expect(state.peopleCount).toBeUndefined();
+    expect(state.preferences.quantity).toBe(2);
+    expect(state.preferences.totalBudget).toBe(10000);
+    expect(state.preferences.coffee).toBe(true);
+    expect(state.preferences.caffeineFree).toBe(true);
+    expect(recommend([soda, fries, regular, decaf], emptyProfile, state.preferences)).toEqual([]);
+    const valid = recommend([soda, fries, regular, decaf, verified], emptyProfile, state.preferences);
+    expect(valid.map((entry) => entry.item.name)).toEqual([verified.name]);
+    expect(validateRecommendationResult(valid, emptyProfile, state.preferences)).toEqual({ valid: true, total: 9000 });
+  });
+  it("starts a standalone drink brief after a group meal and relaxes only an explicit decaf correction", () => {
+    const previous = { ...readDialogue({}), peopleCount: 3,
+      members: Array.from({ length: 3 }, (_, index) => ({ id: String(index), label: `일행 ${index + 1}`, allergies: [], dietaryRules: [] })),
+      preferences: { action: "recommend" as const, peopleCount: 3, category: "식사" } };
+    const reset = resetForFullMealBrief(previous, request);
+    const drink = evolveDialogue(reset, request, parseIntent(request)).state;
+    expect(drink.peopleCount).toBeUndefined();
+    expect(drink.preferences.quantity).toBe(2);
+    const decafRequest = "그럼 디카페인 커피로 추천해줘";
+    const corrected = evolveDialogue(drink, decafRequest, parseIntent(decafRequest)).state;
+    expect(corrected.preferences.caffeineFree).toBe(false);
+    expect(corrected.preferences.decaf).toBe(true);
+    expect(corrected.preferences.quantity).toBe(2);
+  });
+  it("rejects a model-ranked result that violates the menu kind, caffeine claim or total budget", () => {
+    const intent = parseIntent(request);
+    expect(validateRecommendationResult([{ item: soda, score: 99, reason: "" }], emptyProfile, intent).valid).toBe(false);
+    expect(validateRecommendationResult([{ item: decaf, score: 99, reason: "" }], emptyProfile, intent).valid).toBe(false);
+    expect(validateRecommendationResult([{ item: { ...verified, price: 5100 }, score: 99, reason: "" }], emptyProfile, intent).valid).toBe(false);
+  });
+  it("ignores a model's invented headcount when the utterance only says two cups", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: JSON.stringify({
+      action: "recommend", peopleCount: 2, totalBudget: 10000, maxSpiceLevel: null,
+      vegetarian: null, wantsWarm: null, wantsCool: null, avoidPork: null, avoidBeef: null,
+      category: "음료", menuName: null, quantity: 2, reference: "none", alternative: false,
+      globalAllergies: [], memberUpdates: [], optionNames: [], clarification: null,
+      corrections: { clearVegetarian: false, clearSpiceLimit: false, clearBudget: false },
+    }) } }] }) })));
+    const result = await understand(request);
+    expect(result.provider).toBe("openrouter");
+    expect(result.intent.peopleCount).toBeUndefined();
+    expect(result.intent.quantity).toBe(2);
+  });
 });
 
 describe("spoken order confirmation", () => {

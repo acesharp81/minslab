@@ -739,7 +739,9 @@ export function MerchantApp() {
                 <select
                   value={edit.categoryId}
                   onChange={(event) =>
-                    setEdit({ ...edit, categoryId: event.target.value })
+                    setEdit({ ...edit, categoryId: event.target.value,
+                      tags: dashboard?.store.categories.find((entry) => entry.id === event.target.value)?.name === "음료"
+                        ? edit.tags : edit.tags.filter((tag) => !["coffee", "decaf", "caffeine_free"].includes(tag)) })
                   }
                 >
                   {dashboard?.store.categories.map((category) => (
@@ -814,6 +816,23 @@ export function MerchantApp() {
                 />
               </label>
             </div>
+            {dashboard?.store.categories.find((entry) => entry.id === edit.categoryId)?.name === "음료" && <label className="wide">
+              커피·카페인 정보 (사장님이 실제 원료를 확인해 선택)
+              <select
+                value={edit.tags.includes("caffeine_free") ? "caffeine_free" : edit.tags.includes("decaf") ? "decaf" : edit.tags.includes("coffee") || /커피|아메리카노|카페라떼|에스프레소/.test(edit.name) ? "coffee" : "other"}
+                onChange={(event) => setEdit({ ...edit, tags: [
+                  ...edit.tags.filter((tag) => !["coffee", "decaf", "caffeine_free"].includes(tag)),
+                  ...(event.target.value === "other" ? [] : ["coffee"]),
+                  ...(event.target.value === "decaf" ? ["decaf"] : []),
+                  ...(event.target.value === "caffeine_free" ? ["caffeine_free"] : []),
+                ] })}
+              >
+                <option value="other">커피 아님 / 카페인 정보 미확인</option>
+                <option value="coffee">일반 커피 (카페인 있음)</option>
+                <option value="decaf">디카페인 확인 (카페인 없음 보장 아님)</option>
+                <option value="caffeine_free">카페인 없음 점주 확인</option>
+              </select>
+            </label>}
             <h3>알레르기 성분 확인</h3>
             <p className="fine-print">
               실제 재료와 제조 과정 확인 후 선택하세요. 미확인은 알레르기
