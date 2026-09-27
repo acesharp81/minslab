@@ -1,6 +1,7 @@
 /** Report only call metadata to the shared local meter. No prompt, response or session ID. */
 export async function recordAiUsage(input: {
   model: string;
+  workload?: "order_interpretation" | "order_ranking" | "menu_import";
   status: "COMPLETED" | "FAILED";
   httpStatus: number;
   inputTokens?: number;
@@ -17,7 +18,7 @@ export async function recordAiUsage(input: {
       body: JSON.stringify({
         event_id: crypto.randomUUID(),
         project: "poc09",
-        workload: "order_interpretation",
+        workload: input.workload || "order_interpretation",
         provider: "openrouter",
         model: input.model.slice(0, 180),
         status: input.status,

@@ -14,6 +14,7 @@ export type Interpretation = {
   optionNames: string[];
   clarification: string | null;
   corrections: { clearVegetarian: boolean; clearSpiceLimit: boolean; clearBudget: boolean };
+  usage?: { inputTokens: number; outputTokens: number; costUsd?: number };
 };
 
 const allergyKeys = ALLERGENS.map(([key]) => key);
@@ -99,7 +100,9 @@ const responseFormat = {
 };
 
 function scopedTastes(message: string): MemberUpdate[] {
-  const clauses = [...message.matchAll(/(나|저|아이|아기|딸|아들|여아|남아|와이프|아내|남편)(?:꺼|것|메뉴)?(?:는|은|에게는|한테는)\s*/g)];
+  const nonPeople = new Set(["메뉴", "음식", "재료", "알레르기", "알러지", "예산", "가격", "오늘", "식사", "주문", "추천", "덮밥", "국물", "수프", "소스", "맛"]);
+  const clauses = [...message.matchAll(/(?:^|[\s,，.;:])([가-힣]{1,8})(?:꺼|것|메뉴)?(?:는|은|에게는|한테는)\s*/g)]
+    .filter((match) => (match[1].length >= 2 || ["나", "저", "딸"].includes(match[1])) && !nonPeople.has(match[1]));
   return clauses.map((match, index) => {
     const following = message.slice(match.index! + match[0].length, clauses[index + 1]?.index ?? message.length);
     const nextSpeaker = following.search(/[,，.;]\s*[가-힣A-Za-z]{1,20}(?:는|은)\s*/);
@@ -158,15 +161,18 @@ export async function understand(message: string): Promise<Interpretation> {
     let parsed: ReturnType<typeof llmSchema.safeParse> | null = null;
     try { if (typeof content === "string") parsed = llmSchema.safeParse(JSON.parse(content)); } catch { /* local fallback */ }
     const usage = raw.usage || {};
+    const measuredUsage = {
+      inputTokens: Number.isFinite(usage.prompt_tokens) ? usage.prompt_tokens : 0,
+      outputTokens: Number.isFinite(usage.completion_tokens) ? usage.completion_tokens : 0,
+      costUsd: Number.isFinite(usage.cost) ? usage.cost : undefined,
+    };
     await recordAiUsage({
       model: typeof raw.model === "string" ? raw.model : model,
       status: response.ok && parsed?.success ? "COMPLETED" : "FAILED",
       httpStatus: response.status,
-      inputTokens: Number.isFinite(usage.prompt_tokens) ? usage.prompt_tokens : 0,
-      outputTokens: Number.isFinite(usage.completion_tokens) ? usage.completion_tokens : 0,
-      costUsd: Number.isFinite(usage.cost) ? usage.cost : undefined,
+      ...measuredUsage,
     });
-    if (!response.ok || !parsed?.success) return basic;
+    if (!response.ok || !parsed?.success) return { ...basic, usage: measuredUsage };
     const turn = parsed.data;
     const intent: OrderIntent = { ...basic.intent, action: turn.action };
     if (turn.peopleCount !== null) intent.peopleCount = turn.peopleCount;
@@ -193,6 +199,7 @@ export async function understand(message: string): Promise<Interpretation> {
       optionNames: turn.optionNames,
       clarification: turn.clarification,
       corrections: turn.corrections,
+      usage: measuredUsage,
     };
   } catch {
     await recordAiUsage({ model, status: "FAILED", httpStatus: 0 });

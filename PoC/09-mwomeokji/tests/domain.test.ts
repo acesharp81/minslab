@@ -6,7 +6,7 @@ import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveD
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
 import { recommend, recommendGroup } from "../lib/recommend";
-import { applyBoundedRanking } from "../lib/decision";
+import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
 import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
 
 const item = (
@@ -56,6 +56,16 @@ describe("spoken order confirmation", () => {
 });
 
 describe("spoken preference scope", () => {
+  it("keeps named adult preferences separate when the model is unavailable", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
+    const message = "가상 성인 3명: 민수는 매운 덮밥, 지수는 달콤한 메뉴, 유나는 순한 국물로 추천해줘";
+    const understood = await understand(message);
+    const changed = applyMemberUpdates(evolveDialogue(readDialogue({}), message, understood.intent).state, understood.memberUpdates, message).state;
+    expect(changed.peopleCount).toBe(3);
+    expect(changed.members.find((entry) => entry.label === "민수")?.tastes).toEqual(["spicy", "rice"]);
+    expect(changed.members.find((entry) => entry.label === "지수")?.tastes).toEqual(["sweet"]);
+    expect(changed.members.find((entry) => entry.label === "유나")?.tastes).toEqual(["mild", "soup"]);
+  });
   it("does not attach a coworker's tastes to the preceding self clause", async () => {
     vi.stubEnv("POC09_CONVERSATION_PROVIDER", "rules");
     const result = await understand("우리 둘이 먹을게. 나는 매운 덮밥, 동료는 순한 국물로 추천해줘");
@@ -439,6 +449,55 @@ describe("bounded experimental ranking", () => {
 });
 
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+describe("bounded ranking meter", () => {
+  it("records only Jev call metadata and rejects a fabricated menu ID", async () => {
+    vi.stubEnv("POC09_DECISION_PROVIDER", "jev-openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubEnv("POC09_METER_TOKEN", "unit-meter-token");
+    const reports: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, options: RequestInit) => {
+      if (url.includes("usage-events")) {
+        reports.push(JSON.parse(String(options.body)));
+        return { ok: true };
+      }
+      return { ok: true, status: 200, json: async () => ({
+        model: "typesafe/jev-1.13", usage: { input_tokens: 80, output_tokens: 20, cost: 0.001 },
+        answers: { best: { type: "choice", choice: "invented", confidence: 0.9, probabilities: { invented: 0.9, b: 0.1 } } },
+      }) };
+    }));
+    const candidates = [{ item: item("a", 5000), score: 2, reason: "a" }, { item: item("b", 6000), score: 1, reason: "b" }];
+    const result = await rankRecommendations(candidates, { action: "recommend" });
+    expect(result.provider).toBe("rules");
+    expect(result.recommendations).toBe(candidates);
+    expect(result.usage?.inputTokens).toBe(80);
+    expect(reports[0].workload).toBe("order_ranking");
+    expect(reports[0].cost_usd).toBe(0.001);
+    expect(Object.keys(reports[0]).sort()).toEqual(["cost_usd", "event_id", "http_status", "input_tokens", "model", "output_tokens", "project", "provider", "status", "workload"]);
+  });
+
+  it("uses the Decisions API and accepts only a complete known-candidate choice", async () => {
+    vi.stubEnv("POC09_DECISION_PROVIDER", "jev-openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    let outbound: Record<string, unknown> = {};
+    vi.stubGlobal("fetch", vi.fn(async (url: string, options: RequestInit) => {
+      expect(url).toBe("https://openrouter.ai/api/alpha/decisions");
+      outbound = JSON.parse(String(options.body));
+      return { ok: true, status: 200, json: async () => ({
+        model: "typesafe/jev-1.13", usage: { input_tokens: 10, output_tokens: 2 },
+        answers: { best: { type: "choice", choice: "b", confidence: 0.95,
+          probabilities: { a: 0.15, b: 0.85 } } },
+      }) };
+    }));
+    const candidates = [{ item: item("a", 5000), score: 2, reason: "a" }, { item: item("b", 6000), score: 1, reason: "b" }];
+    const result = await rankRecommendations(candidates, { action: "recommend", wantsWarm: true });
+    expect(result.provider).toBe("jev-openrouter");
+    expect(result.recommendations.map((entry) => entry.item.id)).toEqual(["b", "a"]);
+    expect(outbound).toHaveProperty("questions.best.type", "choice");
+    expect(outbound).toHaveProperty("state.context.wantsWarm", true);
+    expect(JSON.stringify(outbound)).not.toContain("utterance");
+  });
+});
 
 describe("shared AI meter", () => {
   it("reports only call metadata without customer text or session data", async () => {

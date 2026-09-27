@@ -2,7 +2,7 @@
 
 **누구나, 자기 말로 주문할 수 있게.** 손님은 **먹고 가기/가져가기**를 고른 뒤 일행과 취향을 평소 말처럼 입력하고, 여러 차례 대화하며 메뉴를 함께 골라 모의 결제로 주문합니다. 전체 메뉴판은 참고용입니다. 사장님은 별도 화면에서 메뉴·알레르기·옵션을 관리하고 주문과 직원 호출을 접수합니다. 이 문서만으로 현재 서비스를 사용하고 재현할 수 있도록 실제 동작 기준으로 작성했습니다. 팀의 목표·진척·담당 인수인계는 [단일 공유 계획](docs/PLAN.md)에 있습니다.
 
-> **현재 상태 (2026-09-24): 내부 테스트 가능.** 메뉴·주문·점주 관리가 공개 HTTPS 주소에서 동작합니다. 데모 매장과 모든 음식·알레르기 표시는 가상 테스트 데이터입니다. 실제 음식을 주문하거나 안전 판단에 사용하지 마세요. 실제 돈은 결제되지 않습니다.
+> **현재 상태 (2026-09-27): 구현 완료, 팀 기기 UAT 대기.** 메뉴·주문·점주 관리가 공개 HTTPS 주소에서 동작합니다. 데모 매장과 모든 음식·알레르기 표시는 가상 테스트 데이터입니다. 실제 음식을 주문하거나 안전 판단에 사용하지 마세요. 실제 돈은 결제되지 않습니다.
 
 ## 바로 사용하기
 
@@ -99,7 +99,7 @@ PATH="$PWD/.runtime/bin:$PATH" npm run start
 | `POC09_JEV_MODEL` | 선택 실험 모델 ID. 실패·낮은 신뢰도·형식 오류면 룰 순위를 유지 |
 | `POC09_UPSTREAM` | Python 프록시의 PoC9 서비스 주소, 기본 `http://127.0.0.1:18090` |
 
-사용자가 현재 발화 한 개의 외부 전송을 승인하여 `POC09_CONVERSATION_PROVIDER=openrouter`로 운영합니다. 메뉴판 이미지용 `POC09_AI_PROVIDER=mock`, 실험 판단용 `POC09_DECISION_PROVIDER=rules`는 그대로입니다. LLM 장애·형식 오류·공유 키 소진 시 주문 대화는 로컬 규칙 해석으로 이어집니다. Rule 단독과 Jev 비교는 같은 입력을 두 설정에서 실행하고 추천 순서·지연을 기록합니다. Jev는 가격·안전판정·메뉴 존재 여부를 바꿀 수 없습니다.
+사용자가 현재 발화 한 개의 외부 전송을 승인하여 `POC09_CONVERSATION_PROVIDER=openrouter`로 운영합니다. 메뉴판 이미지용 `POC09_AI_PROVIDER=mock`, 실험 판단용 `POC09_DECISION_PROVIDER=rules`는 그대로입니다. LLM 장애·형식 오류·공유 키 소진 시 주문 대화는 로컬 규칙 해석으로 이어집니다. `npm run ai:evaluate -- --both`로 가상 대화의 Rules/OpenRouter 결과·지연·비용을 비교하고, `npm run decision:evaluate -- --live`로 가상 후보의 Jev 판단을 별도 비교합니다. Jev는 [OpenRouter Decisions API](https://openrouter.ai/blog/tutorials/how-to-use-jev/)를 사용하며 가격·안전판정·메뉴 존재 여부를 바꿀 수 없습니다. `--both`와 `--live`는 실제 API 키 사용량이 발생합니다.
 
 ### 대화형 LLM 연결과 개인정보 범위
 
@@ -107,7 +107,7 @@ PATH="$PWD/.runtime/bin:$PATH" npm run start
 
 서버는 이전 턴의 **구조화된** 인원·개인별 조건·마지막 추천 ID를 세션에 저장합니다. LLM이 현재 문장에서 새 조건과 “두 번째”, “그거”, “다른 거” 같은 지시어를 추출하면 서버가 기억한 상태와 결합합니다. 이름이 붙은 일행의 조건은 해당 손님에게만 적용하고, “한 명 더 왔어” 같은 인원 변경과 명확한 정정도 이어서 처리합니다. 여러 명 중 “그 친구”가 누구인지 모호하면 다시 묻습니다. 메뉴·옵션·가격·알레르기 허용 여부는 언제나 DB와 서버 검증 코드가 결정합니다.
 
-**배포 상태:** 사용자 승인 후 공개 서비스에서 대화 LLM이 활성화됐습니다. 매 호출의 모델·상태·토큰 수만 PoC7의 공용 계량 장부에 기록합니다. 프롬프트, 모델 응답, 세션 ID는 장부로 전송하지 않습니다. 운영자는 이 폴더에서 `PATH="$PWD/.runtime/bin:$PATH" npm run ai:usage`로 같은 OpenRouter 키의 계정 잔액, PoC4·7의 무료 모델 요청, PoC9의 직접 대화 호출을 함께 확인합니다. 공용 장부가 잠시 닿지 않아도 주문은 계속되므로 계정 잔액이 최종 비용 기준입니다.
+**배포 상태:** 사용자 승인 후 공개 서비스에서 대화 LLM이 활성화됐습니다. 대화·Jev·선택적 메뉴 이미지 호출의 모델·작업명·상태·토큰·비용만 PoC7의 공용 계량 장부에 기록합니다. 프롬프트, 모델 응답, 세션 ID는 장부로 전송하지 않습니다. 운영자는 이 폴더에서 `PATH="$PWD/.runtime/bin:$PATH" npm run ai:usage`로 같은 OpenRouter 키의 계정 잔액, PoC4·7의 무료 모델 요청, PoC9의 직접 대화 호출을 함께 확인합니다. 공용 장부가 잠시 닿지 않아도 주문은 계속되므로 계정 잔액이 최종 비용 기준입니다.
 
 ## 검증과 안전 정책
 
@@ -115,12 +115,14 @@ PATH="$PWD/.runtime/bin:$PATH" npm run start
 PATH="$PWD/.runtime/bin:$PATH" npm run typecheck
 PATH="$PWD/.runtime/bin:$PATH" npm run lint
 PATH="$PWD/.runtime/bin:$PATH" npm run test
+PATH="$PWD/.runtime/bin:$PATH" npm run ai:evaluate
+PATH="$PWD/.runtime/bin:$PATH" npm run decision:evaluate
 PATH="$PWD/.runtime/bin:$PATH" npm run build
 PATH="$PWD/.runtime/bin:$PATH" npm run smoke
 cd ../.. && .venv/bin/python -m unittest tests.test_site_api -q
 ```
 
-`smoke`는 실제 HTTP 경로에서 방문자·점주 전체 흐름, 중복 주문, 메뉴판 초안 승인까지 확인하고 테스트 주문·초안을 정리합니다. 공개 HTTPS의 Firefox 390px 모바일·768px 태블릿·1280px PC에서 식사 방식 선택·그룹 발화·추천 담기·장바구니와 사장님 자동 입력 로그인을 확인했습니다. 운영 중에는 `/api/health/` → PoC9 systemd → DB → 루트 프록시 순서로 장애를 살핍니다.
+`smoke`는 실제 HTTP 경로에서 방문자·점주 전체 흐름, 중복 주문, 메뉴판 초안 승인까지 확인하고 테스트 주문·초안을 정리합니다. 자동 Firefox에서 500px·768px·1280px의 가로 넘침 없음, 식사 방식 버튼과 사장님 자동 입력 로그인을 확인했습니다. Firefox 헤드리스 창은 이 환경에서 500px 아래로 줄지 않아 360–430px 실기기 UAT가 남았습니다. 합성 대화 6턴의 14개 조건은 Rules와 OpenRouter가 각각 모두 통과했고, Jev의 가상 후보 응답과 공용 사용량 기록도 확인했습니다. 운영 중에는 `/api/health/` → PoC9 systemd → DB → 루트 프록시 순서로 장애를 살핍니다.
 
 알레르기는 메뉴와 선택 옵션 **둘 다** `merchant_verified + excludes`일 때만 해당 알레르기 조건으로 추천·주문을 허용합니다. `contains`, `unknown`, AI 추정은 통과하지 않습니다. 엄격한 식사 조건과 맵기 상한도 자동으로 완화하지 않습니다. 주문 가격은 클라이언트 값을 받지 않고 DB 메뉴·옵션에서 계산하며, 확정 트랜잭션에서 재계산합니다. 중복 요청은 idempotency key로 같은 주문을 반환합니다. 로그인 없는 점주 API는 401, 출처가 다른 변경 요청은 403, 로그인 반복은 일시 제한합니다.
 

@@ -13,6 +13,7 @@ import { understand } from "../../../lib/ai";
 import { hasExplicitNoAllergies } from "../../../lib/intent";
 import { answerIngredientQuestion, ingredientQuestion } from "../../../lib/ingredient-answer";
 import { rankRecommendations } from "../../../lib/decision";
+import { recordAiUsage } from "../../../lib/usage-meter";
 import { recommend, recommendGroup } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
 import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
@@ -392,40 +393,52 @@ export async function POST(req: NextRequest, context: Context) {
             ? file.type
             : null;
           if (!mime) return fail("JPG, PNG 또는 WEBP 이미지를 올려 주세요.");
-          const response = await fetch(
-            "https://openrouter.ai/api/v1/chat/completions",
-            {
-              method: "POST",
-              signal: AbortSignal.timeout(15000),
-              headers: {
-                Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: process.env.POC09_VISION_MODEL || "openai/gpt-4o-mini",
-                messages: [
-                  {
-                    role: "user",
-                    content: [
-                      {
-                        type: "text",
-                        text: "Read this restaurant menu image. Return one menu per line as name | price KRW | description. Never infer allergens or ingredients.",
-                      },
-                      {
-                        type: "image_url",
-                        image_url: {
-                          url: `data:${mime};base64,${bytes.toString("base64")}`,
+          const model = process.env.POC09_VISION_MODEL || "openai/gpt-4o-mini";
+          try {
+            const response = await fetch(
+              "https://openrouter.ai/api/v1/chat/completions",
+              {
+                method: "POST",
+                signal: AbortSignal.timeout(15000),
+                headers: {
+                  Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model,
+                  messages: [
+                    {
+                      role: "user",
+                      content: [
+                        {
+                          type: "text",
+                          text: "Read this restaurant menu image. Return one menu per line as name | price KRW | description. Never infer allergens or ingredients.",
                         },
-                      },
-                    ],
-                  },
-                ],
-              }),
-            },
-          );
-          if (response.ok) {
-            const result = await response.json();
-            extracted = result.choices?.[0]?.message?.content || "";
+                        {
+                          type: "image_url",
+                          image_url: {
+                            url: `data:${mime};base64,${bytes.toString("base64")}`,
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                }),
+              },
+            );
+            const result = await response.json().catch(() => ({}));
+            const visionText = result.choices?.[0]?.message?.content;
+            if (response.ok && typeof visionText === "string") extracted = visionText;
+            await recordAiUsage({
+              workload: "menu_import", model: typeof result.model === "string" ? result.model : model,
+              status: response.ok && typeof visionText === "string" && visionText.trim() ? "COMPLETED" : "FAILED",
+              httpStatus: response.status,
+              inputTokens: Number.isFinite(result.usage?.prompt_tokens) ? result.usage.prompt_tokens : 0,
+              outputTokens: Number.isFinite(result.usage?.completion_tokens) ? result.usage.completion_tokens : 0,
+              costUsd: Number.isFinite(result.usage?.cost) ? result.usage.cost : undefined,
+            });
+          } catch {
+            await recordAiUsage({ workload: "menu_import", model, status: "FAILED", httpStatus: 0 });
           }
         }
         if (!extracted.trim())
