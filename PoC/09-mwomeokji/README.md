@@ -120,12 +120,13 @@ PATH="$PWD/.runtime/bin:$PATH" npm run test
 PATH="$PWD/.runtime/bin:$PATH" npm run ai:evaluate
 PATH="$PWD/.runtime/bin:$PATH" npm run decision:evaluate
 PATH="$PWD/.runtime/bin:$PATH" npm run menu:evaluate
+PATH="$PWD/.runtime/bin:$PATH" npm run multi:evaluate
 PATH="$PWD/.runtime/bin:$PATH" npm run build
 PATH="$PWD/.runtime/bin:$PATH" npm run smoke
 cd ../.. && .venv/bin/python -m unittest tests.test_site_api -q
 ```
 
-`smoke`는 실제 HTTP 경로에서 방문자·점주 전체 흐름, 중복 주문, 메뉴판 초안 승인까지 확인하고 테스트 주문·초안을 정리합니다. 자동 Firefox에서 500px·768px·1280px의 가로 넘침 없음, 식사 방식 버튼과 사장님 자동 입력 로그인을 확인했습니다. Firefox 헤드리스 창은 이 환경에서 500px 아래로 줄지 않아 360–430px 실기기 UAT가 남았습니다. 합성 대화 6턴의 14개 조건은 Rules와 OpenRouter가 각각 모두 통과했고, Jev의 가상 후보 응답과 공용 사용량 기록도 확인했습니다. 합성 메뉴 요청 3개를 실 LLM으로 확인해 사과 맛 선택, 폭넓은 무카페인 음료 선택, 없는 블루베리 스무디 거절이 각각 통과했습니다. 도메인 테스트는 50개 통과했습니다. 운영 중에는 `/api/health/` → PoC9 systemd → DB → 루트 프록시 순서로 장애를 살핍니다.
+`smoke`는 실제 HTTP 경로에서 방문자·점주 전체 흐름, 중복 주문, 메뉴판 초안 승인까지 확인하고 테스트 주문·초안을 정리합니다. 자동 Firefox에서 500px·768px·1280px의 가로 넘침 없음, 식사 방식 버튼과 사장님 자동 입력 로그인을 확인했습니다. Firefox 헤드리스 창은 이 환경에서 500px 아래로 줄지 않아 360–430px 실기기 UAT가 남았습니다. 합성 대화 6턴의 14개 조건은 Rules와 OpenRouter가 각각 모두 통과했고, Jev의 가상 후보 응답과 공용 사용량 기록도 확인했습니다. 합성 메뉴 요청 3개를 실 LLM으로 확인해 사과 맛 선택, 폭넓은 무카페인 음료 선택, 없는 블루베리 스무디 거절이 각각 통과했습니다. 도메인 테스트는 54개 통과했습니다. `multi:evaluate`는 합성 손님 10명의 독립 세션에서 28턴을 순서대로 실행하고 첫 불일치에서 중단합니다. OpenRouter 실호출 비용이 발생하며, 평가 세션과 장바구니는 실행 종료 시 삭제합니다. 마지막 실행에서 10/10 사례와 28/28턴이 통과했습니다. 운영 중에는 `/api/health/` → PoC9 systemd → DB → 루트 프록시 순서로 장애를 살핍니다.
 
 알레르기는 메뉴와 선택 옵션 **둘 다** `merchant_verified + excludes`일 때만 해당 알레르기 조건으로 추천·주문을 허용합니다. `contains`, `unknown`, AI 추정은 통과하지 않습니다. 엄격한 식사 조건과 맵기 상한도 자동으로 완화하지 않습니다. 최종 추천 카드는 메뉴 종류·커피/카페인 표시·수량·합계 예산을 서버에서 다시 검사하며, 맞는 메뉴가 없으면 다른 종류로 대체하지 않습니다. 주문 가격은 클라이언트 값을 받지 않고 DB 메뉴·옵션에서 계산하며, 확정 트랜잭션에서 재계산합니다. 중복 요청은 idempotency key로 같은 주문을 반환합니다. 로그인 없는 점주 API는 401, 출처가 다른 변경 요청은 403, 로그인 반복은 일시 제한합니다.
 

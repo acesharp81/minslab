@@ -178,6 +178,22 @@ export function recommendGroupOptions(
   return states.slice(0, 6).map((state) => ({ items: state.items, total: state.total, complete: true as const }));
 }
 
+/** Include complete groups from distinct menu courses so popularity cannot hide meal-only choices. */
+export function recommendDiverseGroupOptions(
+  items: MenuItemData[], profile: PreferenceProfile, intent: OrderIntent, members: GroupMember[],
+) {
+  const categories = ["식사", "음료", "사이드", "디저트"];
+  const pools = [items, ...categories.map((category) => items.filter((item) => item.tags.includes(category)))];
+  const options = pools.flatMap((pool, index) => recommendGroupOptions(pool, profile, intent, members).slice(0, index === 0 ? 6 : 2));
+  const seen = new Set<string>();
+  return options.filter((option) => {
+    const key = option.items.map((entry) => entry.item.id).join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 14);
+}
+
 export function recommendGroup(
   items: MenuItemData[], profile: PreferenceProfile, intent: OrderIntent, members: GroupMember[],
 ) {

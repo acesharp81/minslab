@@ -31,7 +31,7 @@ const ingredients: IngredientQuery[] = [
 
 export function ingredientQuestion(message: string): IngredientQuery | null {
   const text = message.trim().toLowerCase();
-  if (!/들어|들었|포함|재료|성분|있는지|있나요|있어\??/.test(text)) return null;
+  if (!/들어|들었|포함|있는지|있나요|있니|있어\?|(?:재료|성분).*(?:알려|뭐|무엇|확인)|(?:알려|확인).*(?:재료|성분)/.test(text)) return null;
   const known = ingredients.find((entry) => entry.names.some((name) => text.includes(name)));
   if (known) return known;
   const spoken = text.match(/(?:^|\s)([가-힣]{2,12}?)(?:이|가)?\s*(?:들어|들었|포함)/)?.[1];

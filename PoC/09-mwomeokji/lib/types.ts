@@ -107,9 +107,10 @@ export type Recommendation = {
   reason: string;
   forMember?: string;
 };
-export const emptyProfile: PreferenceProfile = {
+export const newEmptyProfile = (): PreferenceProfile => ({
   allergies: [],
   dietaryRules: [],
   spicePreference: 2,
   locale: "ko",
-};
+});
+export const emptyProfile: PreferenceProfile = newEmptyProfile();

@@ -6,10 +6,10 @@ import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveD
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
 import { validCaffeineTags } from "../lib/menu-metadata";
-import { recommend, recommendGroup, validateRecommendationResult } from "../lib/recommend";
+import { recommend, recommendDiverseGroupOptions, recommendGroup, validateRecommendationResult } from "../lib/recommend";
 import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
 import { selectMenuProposal } from "../lib/menu-selector";
-import { ALLERGENS, emptyProfile, type MenuItemData } from "../lib/types";
+import { ALLERGENS, emptyProfile, newEmptyProfile, type MenuItemData } from "../lib/types";
 
 const item = (
   name: string,
@@ -95,6 +95,19 @@ describe("LLM menu choice over real proposals", () => {
     const result = await selectMenuProposal("사과 맛으로 골라줘", proposals);
     expect(result.provider).toBe("rules");
     expect(result.proposal).toBe(proposals[0]);
+  });
+});
+
+describe("diverse group proposal coverage", () => {
+  it("offers a complete meal option even when drinks and sides have higher popularity", () => {
+    const drink = { ...item("주스", 4500), tags: ["음료"], popularity: 95 };
+    const side = { ...item("감자튀김", 4500), tags: ["사이드"], popularity: 90 };
+    const meal = { ...item("든든한 덮밥", 11900), tags: ["식사"], popularity: 30 };
+    const members = Array.from({ length: 4 }, (_, index) => ({
+      id: String(index), label: "일행 " + (index + 1), allergies: [], dietaryRules: [],
+    }));
+    const options = recommendDiverseGroupOptions([drink, side, meal], emptyProfile, { action: "recommend", peopleCount: 4 }, members);
+    expect(options.some((option) => option.items.length === 4 && option.items.every((entry) => entry.item.tags.includes("식사")))).toBe(true);
   });
 });
 
@@ -391,7 +404,30 @@ describe("conversation and recommendations", () => {
   });
 });
 
+describe("guest profile isolation", () => {
+  it("never shares a mutable allergy list between new guests", () => {
+    const firstGuest = newEmptyProfile();
+    firstGuest.allergies.push("peanut");
+    const secondGuest = newEmptyProfile();
+    expect(secondGuest.allergies).toEqual([]);
+    expect(firstGuest).not.toBe(secondGuest);
+  });
+});
+
+describe("ingredient question boundary", () => {
+  it("keeps an allergy declaration with a recommendation request in the recommendation flow", () => {
+    expect(ingredientQuestion("땅콩 알레르기가 있어. 따뜻한 식사 추천해줘")).toBeNull();
+    expect(ingredientQuestion("내가 추천받은 메뉴에 땅콩이 들어갔는지 확인해줘")?.label).toBe("땅콩");
+  });
+});
+
 describe("multi-turn Tap Talk Together dialogue", () => {
+  it("asks for a food preference after a party only states restrictions", () => {
+    const message = "가상 손님 2명인데 한 명은 채식하고 한 명은 매운 걸 못 먹어";
+    const result = evolveDialogue(readDialogue({}), message, parseIntent(message));
+    expect(result.state.peopleCount).toBe(2);
+    expect(result.onlyHeadcount).toBe(true);
+  });
   it("infers three people and different member constraints without a member form", () => {
     const text = "우리 3명인데 한 명은 채식하고 한 명은 매운 걸 못 먹어";
     const next = evolveDialogue(readDialogue({}), text, parseIntent(text));

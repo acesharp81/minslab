@@ -29,7 +29,7 @@ const llmSchema = z.object({
   wantsCool: z.boolean().nullable(),
   avoidPork: z.boolean().nullable(),
   avoidBeef: z.boolean().nullable(),
-  category: z.string().max(30).nullable(),
+  category: z.enum(["식사", "음료", "사이드", "디저트"]).nullable(),
   menuName: z.string().max(80).nullable(),
   quantity: z.number().int().min(1).max(30).nullable(),
   reference: z.enum(["none", "first", "second", "third", "all", "last"]),
@@ -79,7 +79,7 @@ const schemaProperties = {
   wantsCool: booleanOrNull,
   avoidPork: booleanOrNull,
   avoidBeef: booleanOrNull,
-  category: stringOrNull,
+  category: { type: ["string", "null"], enum: ["식사", "음료", "사이드", "디저트", null] },
   menuName: stringOrNull,
   quantity: numberOrNull,
   reference: { type: "string", enum: ["none", "first", "second", "third", "all", "last"] },
@@ -106,7 +106,7 @@ function scopedTastes(message: string): MemberUpdate[] {
   return clauses.map((match, index) => {
     const following = message.slice(match.index! + match[0].length, clauses[index + 1]?.index ?? message.length);
     const nextSpeaker = following.search(/[,，.;]\s*[가-힣A-Za-z]{1,20}(?:는|은)\s*/);
-    const segment = nextSpeaker >= 0 ? following.slice(0, nextSpeaker) : following;
+    const segment = (nextSpeaker >= 0 ? following.slice(0, nextSpeaker) : following).split(/[.!?。]/, 1)[0];
     const tastes: NonNullable<MemberUpdate["tastes"]> = [];
     if (/매운|맵게|얼큰/.test(segment) && !/안\s*맵|맵지|매운.*(?:안|못)/.test(segment)) tastes.push("spicy");
     if (/안\s*맵|맵지|순한|매운.*(?:안|못)/.test(segment)) tastes.push("mild");
@@ -151,7 +151,7 @@ export async function understand(message: string): Promise<Interpretation> {
         provider: { require_parameters: true, data_collection: "deny", zdr: true },
         response_format: responseFormat,
         messages: [
-          { role: "system", content: `You interpret one Korean restaurant-ordering turn for a future voice-first service. Return only the JSON schema. Interpret only the current utterance. A separate server holds session memory and resolves any references to prior recommendations. Null means not mentioned this turn. Never invent a menu, person, price, ingredient, allergy, or safety claim. Copy any menu or option phrase only from the current utterance. You have no catalog; the server matches real names and asks if uncertain. For speech-keyboard typos, preserve the likely spoken phrase without inventing a menu. For a group member mentioned by name or 'one person', put that member's dietary/allergy/spice facts in memberUpdates, not global fields. When family roles establish a party, infer their distinct count: self + spouse + one child is three; an age such as 2살 is not a headcount. For an explicit overall party count, peopleCount is the stated total. For each named person, put desired tastes in memberUpdates.tastes: spicy, mild, sweet, soup, rice, kids. When the user switches a diner's dish type (for example soup to a rice bowl), extract the new type; the server replaces the old type. Use the exact diner role as label, such as 나, 아이, 와이프. A possessive referring to one diner still identifies that diner. 얼큰한 국물 means soup and spicy. A request to make one diner's soup spicier is a recommendation refinement, not a request for party size or checkout. A child’s mild preference must not limit everyone. If a user describes who wants what and says 주문해줘, classify as recommend: first select catalog items, then obtain an explicit confirmation before ordering. checkout is only for finalizing an already chosen cart. If user says more people joined without stating a total, return null and let the server ask. For per-person budget with unknown party size, return null and let the server ask. reference denotes a numbered or pronoun-based prior recommendation, which the server resolves. When the user corrects an earlier fact, use corrections or removeDietaryRules only for explicit negations. Never remove an allergy on your own. clarification is for genuine ambiguity, not routine recommendations. Do not assume a menu exists; the server checks catalog names. You only interpret; the server checks facts and takes actions.` },
+          { role: "system", content: `You interpret one Korean restaurant-ordering turn for a future voice-first service. Return only the JSON schema. Interpret only the current utterance. A separate server holds session memory and resolves any references to prior recommendations. Null means not mentioned this turn. Never invent a menu, person, price, ingredient, allergy, or safety claim. Copy any menu or option phrase only from the current utterance. You have no catalog; the server matches real names and asks if uncertain. Category is one of 식사, 음료, 사이드, 디저트 or null. Set 식사 for a clearly requested filling meal or main dish even when the word 식사 is absent; set null for a generic menu request with no clear course. This category controls which actual catalog items can be proposed. For speech-keyboard typos, preserve the likely spoken phrase without inventing a menu. For a group member mentioned by name or 'one person', put that member's dietary/allergy/spice facts in memberUpdates, not global fields. When family roles establish a party, infer their distinct count: self + spouse + one child is three; an age such as 2살 is not a headcount. For an explicit overall party count, peopleCount is the stated total. For each named person, put desired tastes in memberUpdates.tastes: spicy, mild, sweet, soup, rice, kids. When the user switches a diner's dish type (for example soup to a rice bowl), extract the new type; the server replaces the old type. Use the exact diner role as label, such as 나, 아이, 와이프. A possessive referring to one diner still identifies that diner. 얼큰한 국물 means soup and spicy. A request to make one diner's soup spicier is a recommendation refinement, not a request for party size or checkout. A child’s mild preference must not limit everyone. If a user describes who wants what and says 주문해줘, classify as recommend: first select catalog items, then obtain an explicit confirmation before ordering. checkout is only for finalizing an already chosen cart. If user says more people joined without stating a total, return null and let the server ask. For per-person budget with unknown party size, return null and let the server ask. reference denotes a numbered or pronoun-based prior recommendation, which the server resolves. When the user corrects an earlier fact, use corrections or removeDietaryRules only for explicit negations. Never remove an allergy on your own. clarification is for genuine ambiguity, not routine recommendations. Do not assume a menu exists; the server checks catalog names. You only interpret; the server checks facts and takes actions.` },
           { role: "user", content: message.slice(0, 500) },
         ],
       }),
@@ -199,7 +199,7 @@ export async function understand(message: string): Promise<Interpretation> {
     if (intent.action === "remove" && !/빼|제거|삭제|취소/.test(message)) intent.action = "recommend";
     return {
       intent, provider: "openrouter", reference: turn.reference, alternative: turn.alternative,
-      memberUpdates: [...turn.memberUpdates, ...basic.memberUpdates], globalAllergies: turn.globalAllergies,
+      memberUpdates: turn.memberUpdates, globalAllergies: turn.globalAllergies,
       optionNames: turn.optionNames,
       clarification: turn.clarification,
       corrections: turn.corrections,

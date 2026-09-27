@@ -16,12 +16,12 @@ import { rankRecommendations } from "../../../lib/decision";
 import { selectMenuProposal } from "../../../lib/menu-selector";
 import { recordAiUsage } from "../../../lib/usage-meter";
 import { catalogTags, validCaffeineTags } from "../../../lib/menu-metadata";
-import { matchesRequestedMenu, recommend, recommendGroupOptions, validateRecommendationResult } from "../../../lib/recommend";
+import { matchesRequestedMenu, recommend, recommendDiverseGroupOptions, validateRecommendationResult } from "../../../lib/recommend";
 import { checkSafety } from "../../../lib/safety";
 import { applyExplicitCorrections, applyFocusedTaste, applyMemberUpdates, canStageRecommendations, contextSummary, emptyDialogue, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState, type VisitMode } from "../../../lib/dialogue";
 import {
   ALLERGENS,
-  emptyProfile,
+  newEmptyProfile,
   type PreferenceProfile,
 } from "../../../lib/types";
 
@@ -150,7 +150,7 @@ async function body(req: NextRequest) {
 }
 function profile(context: unknown): PreferenceProfile {
   const parsed = profileSchema.safeParse(context);
-  return parsed.success ? parsed.data : emptyProfile;
+  return parsed.success ? parsed.data : newEmptyProfile();
 }
 function normalizedMenuName(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
@@ -605,13 +605,12 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: "사장님께 알렸어요. 잠시만 기다려 주세요.", help });
       }
-      // A model echo is not a useful clarification when the spoken taste change is explicit.
-      const clearTasteRefinement = intent.action === "recommend" &&
-        (intent.wantsSweet || intent.avoidSour) &&
-        (dialogue.preferences.category || dialogue.lastRecommendations.length > 0);
-      if ((updatedMembers.needsClarification || (understanding.clarification && !clearTasteRefinement)) && !focusedRequest && !orderFromRecommendations) {
+      // A model paraphrase cannot interrupt an explicit recommendation request.
+      const askedForRecommendation = intent.action === "recommend" && /추천|골라|주문해/.test(message);
+      const modelClarification = askedForRecommendation ? null : understanding.clarification;
+      if ((updatedMembers.needsClarification || modelClarification) && !focusedRequest && !orderFromRecommendations) {
         await save();
-        return json({ intent, provider, dialogue, summary: summary(), reply: updatedMembers.needsClarification ? "어느 분을 말씀하셨나요? 이름이나 특징을 알려 주세요." : understanding.clarification });
+        return json({ intent, provider, dialogue, summary: summary(), reply: updatedMembers.needsClarification ? "어느 분을 말씀하셨나요? 이름이나 특징을 알려 주세요." : modelClarification });
       }
       if (intent.action === "ask") {
         const found = items.filter((item) => matchesRequestedMenu(item, intent) && (!intent.menuName || menuMatches(item.name, intent.menuName))).slice(0, 3);
@@ -683,9 +682,9 @@ export async function POST(req: NextRequest, context: Context) {
         await save();
         return json({ intent, provider, dialogue, summary: summary(), reply: evolved.needsPeopleCount || (updatedMembers.applied && !dialogue.peopleCount) ? "조건을 기억했어요. 모두 몇 분이세요?" : "좋아요. 어떤 음식이 당기세요? 맵기, 예산, 알레르기도 함께 말씀해 주세요." });
       }
-      const excluding = /다른\s*거|다른\s*메뉴|또\s*다른|바꿔/.test(message) || (understanding.alternative && /더/.test(message));
+      const excluding = /다른|바꿔/.test(message) || (understanding.alternative && /더/.test(message));
       const candidates = excluding ? items.filter((item) => !previous.lastRecommendations.some((ref) => ref.id === item.id && (!focusedRequest || ref.forMember === dialogue.focusedMemberLabel))) : items;
-      const groupOptions = (dialogue.peopleCount || 1) > 1 ? recommendGroupOptions(candidates, currentProfile, dialogue.preferences, dialogue.members) : [];
+      const groupOptions = (dialogue.peopleCount || 1) > 1 ? recommendDiverseGroupOptions(candidates, currentProfile, dialogue.preferences, dialogue.members) : [];
       const group = (dialogue.peopleCount || 1) > 1 ? groupOptions[0] ?? { items: [], total: 0, complete: false } : null;
       if (group && !group.complete && dialogue.members.some((member) => member.tastes?.includes("kids")) && !candidates.some((item) => item.isAvailable && (item.tags.includes("kids") || /키즈|어린이/.test(item.name)))) {
         dialogue.lastRecommendations = [];

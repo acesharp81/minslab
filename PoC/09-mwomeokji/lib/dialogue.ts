@@ -149,7 +149,7 @@ export function evolveDialogue(previous: DialogueState, message: string, parsed:
   const needsPeopleCount = specified.length > 0 && !peopleCount;
   // Saved party size is context, not evidence that this turn only states a headcount.
   const statedHeadcount = !!(explicitTotal || leadingCount || familyCount || casualCount || changedCount !== undefined);
-  const onlyHeadcount = statedHeadcount && !specified.length && !/추천|메뉴|먹|밥|국물|따뜻|시원|매운|맵|얼큰|채식|비건|원|달|파스타|샐러드|치킨|음료/.test(text);
+  const onlyHeadcount = statedHeadcount && !/추천|골라|주문해|메뉴|음식|밥\s*먹|식사|먹을|먹고\s*싶|뭐\s*먹/.test(text);
   return { state: { ...previous, peopleCount, members, preferences }, globalAllergies, needsPeopleCount, onlyHeadcount };
 }
 
