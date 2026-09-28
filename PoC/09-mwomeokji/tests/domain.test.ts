@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSafety, priceFor } from "../lib/safety";
-import { hasExplicitNoAllergies, parseIntent } from "../lib/intent";
+import { addsCurrentRecommendation, asksForPreviousOrder, hasExplicitNoAllergies, parseIntent } from "../lib/intent";
 import { answerIngredientQuestion, ingredientQuestion } from "../lib/ingredient-answer";
 import { applyFocusedTaste, applyMemberUpdates, canStageRecommendations, evolveDialogue, readDialogue, resetForFullMealBrief, type DialogueState } from "../lib/dialogue";
 import { understand } from "../lib/ai";
 import { recordAiUsage } from "../lib/usage-meter";
-import { validCaffeineTags } from "../lib/menu-metadata";
-import { recommend, recommendDiverseGroupOptions, recommendGroup, validateRecommendationResult } from "../lib/recommend";
+import { spokenMenuLabels, validCaffeineTags } from "../lib/menu-metadata";
+import { matchesRequestedMenu, recommend, recommendDiverseGroupOptions, recommendGroup, requestsDistinctMenus, shortlistForTurn, validateRecommendationResult } from "../lib/recommend";
 import { applyBoundedRanking, rankRecommendations } from "../lib/decision";
 import { selectMenuProposal } from "../lib/menu-selector";
 import { ALLERGENS, emptyProfile, newEmptyProfile, type MenuItemData } from "../lib/types";
@@ -80,6 +80,18 @@ describe("LLM menu choice over real proposals", () => {
     expect(result.provider).toBe("openrouter");
     expect(result.proposal).toBeNull();
   });
+  it("rejects an unsupported model abstention when the requested dish is literally listed", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
+    vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: '{"choiceId":"no_match","confidence":0.95}' } }] }) })));
+    const pasta = { item: { ...item("바질 토마토 파스타", 12900), tags: ["식사"] }, score: 50, reason: "" };
+    const bowl = { item: { ...item("햇살 치킨 덮밥", 10900), tags: ["식사"] }, score: 80, reason: "" };
+    const result = await selectMenuProposal("바질 향이 진한 파스타가 먹고 싶어", [
+      { id: "option_1", recommendations: [bowl], total: 10900 },
+      { id: "option_2", recommendations: [pasta], total: 12900 },
+    ]);
+    expect(result.proposal?.recommendations[0].item.name).toBe("바질 토마토 파스타");
+  });
   it("falls back to a verified proposal for an uncertain abstention", async () => {
     vi.stubEnv("POC09_CONVERSATION_PROVIDER", "openrouter");
     vi.stubEnv("OPENROUTER_API_KEY", "unit-test-key");
@@ -108,6 +120,38 @@ describe("diverse group proposal coverage", () => {
     }));
     const options = recommendDiverseGroupOptions([drink, side, meal], emptyProfile, { action: "recommend", peopleCount: 4 }, members);
     expect(options.some((option) => option.items.length === 4 && option.items.every((entry) => entry.item.tags.includes("식사")))).toBe(true);
+  });
+});
+
+describe("catalog recommendation labels", () => {
+  const menus = [{ tags: ["식사", "브런치", "빵"] }, { tags: ["식사", "warm", "밥"] }];
+  it("recognizes a merchant label and its explicit removal without treating category tags as styles", () => {
+    expect(spokenMenuLabels(menus, "가상 친구 3명과 브런치 메뉴 추천해줘")).toEqual({ wanted: ["브런치"], excluded: [] });
+    expect(spokenMenuLabels(menus, "브런치 말고 덮밥으로")).toEqual({ wanted: [], excluded: ["브런치"] });
+    expect(spokenMenuLabels(menus, "빵으로 한 끼")).toEqual({ wanted: ["빵"], excluded: [] });
+    expect(spokenMenuLabels(menus, "밥을 먹고 싶어")).toEqual({ wanted: ["밥"], excluded: [] });
+    expect(spokenMenuLabels(menus, "민수는 매운 덮밥, 지수는 국물")).toEqual({ wanted: [], excluded: [] });
+  });
+});
+
+describe("previous completed order reference", () => {
+  it("recognizes explicit order history while leaving prior suggestions alone", () => {
+    expect(asksForPreviousOrder("이전에 주문했던 메뉴 다시 추천해줘")).toBe(true);
+    expect(asksForPreviousOrder("지난번에 시켰던 메뉴 알려줘")).toBe(true);
+    expect(asksForPreviousOrder("아까 추천한 메뉴를 담아줘")).toBe(false);
+    expect(asksForPreviousOrder("예산을 3만원으로 넓혀서 다시 추천해줘")).toBe(false);
+  });
+});
+
+describe("large catalog candidate retrieval", () => {
+  it("keeps a specifically named low-popularity dish within a bounded shortlist", () => {
+    const popular = Array.from({ length: 40 }, (_, index) => ({
+      item: { ...item(`인기 메뉴 ${index}`, 9900), popularity: 90 - index }, score: 90 - index, reason: "" ,
+    }));
+    const rare = { item: { ...item("조개 맑은탕", 11900), popularity: 3 }, score: 3, reason: "" };
+    const shortlist = shortlistForTurn([...popular, rare], "조개 맑은탕을 추천해줘", 24);
+    expect(shortlist).toHaveLength(24);
+    expect(shortlist[0].item.name).toBe("조개 맑은탕");
   });
 });
 
@@ -817,5 +861,78 @@ describe("LLM current-turn interpretation", () => {
     expect(state.members.find((member) => member.label === "영희")?.maxSpiceLevel).toBe(0);
     expect(state.preferences.vegetarian).toBe(false);
     expect(state.preferences.maxSpiceLevel).toBeUndefined();
+  });
+});
+
+describe("soup-only follow-up", () => {
+  it("keeps a request for another soup within soup dishes", () => {
+    const intent = parseIntent("조개류 알레르기가 있어서 다른 국물로 추천해줘");
+    expect(intent.category).toBe("국물");
+    expect(parseIntent("설탕 적은 디저트를 추천해줘").category).not.toBe("국물");
+    const decaf = evolveDialogue(readDialogue({}), "디카페인 아이스 커피 한 잔을 추천해줘", parseIntent("디카페인 아이스 커피 한 잔을 추천해줘")).state;
+    const noCaffeine = "카페인이 완전히 없는 커피로 바꿔줘";
+    const corrected = evolveDialogue(decaf, noCaffeine, parseIntent(noCaffeine)).state;
+    expect(corrected.preferences.caffeineFree).toBe(true);
+    expect(corrected.preferences.decaf).toBe(false);
+    expect(matchesRequestedMenu({ ...item("햇살 치킨 덮밥", 10900), tags: ["식사", "warm"] }, intent)).toBe(false);
+    expect(matchesRequestedMenu({ ...item("토마토 채소 수프", 6900), tags: ["식사", "soup", "warm"] }, intent)).toBe(true);
+  });
+});
+
+
+describe("unnamed group spice distribution", () => {
+  it("keeps two mild diners and three spicy diners separate without 명", () => {
+    const message = "다섯명인데 둘은 맵찔이고, 셋은 매운거 잘 먹어. 이 집 대표 메뉴로 점심먹기 좋은 걸로 추천해줘";
+    const state = evolveDialogue(readDialogue({}), message, parseIntent(message)).state;
+    expect(state.peopleCount).toBe(5);
+    expect(state.preferences.maxSpiceLevel).toBeUndefined();
+    expect(state.members.filter((member) => member.tastes?.includes("mild"))).toHaveLength(2);
+    expect(state.members.filter((member) => member.tastes?.includes("spicy"))).toHaveLength(3);
+    const meals = [
+      { ...item("순한 점심 한상", 9000), tags: ["식사"], spiceLevel: 0 },
+      { ...item("매운 점심 한상", 10000), tags: ["식사"], spiceLevel: 2 },
+    ];
+    const group = recommendGroup(meals, newEmptyProfile(), state.preferences, state.members);
+    expect(group.complete).toBe(true);
+    expect(group.items.filter((entry) => entry.item.spiceLevel === 0)).toHaveLength(2);
+    expect(group.items.filter((entry) => entry.item.spiceLevel >= 2)).toHaveLength(3);
+  });
+});
+
+describe("speech-first group ordering", () => {
+  it("interprets a short add command as the complete latest group proposal", () => {
+    expect(addsCurrentRecommendation("좋아 담아줘")).toBe(true);
+    expect(addsCurrentRecommendation("담아줘")).toBe(true);
+    expect(addsCurrentRecommendation("추천한 거 전부 담아줘")).toBe(true);
+    expect(addsCurrentRecommendation("피자 담아줘")).toBe(false);
+    const state = { ...readDialogue({}), peopleCount: 4, lastRecommendations: [1, 2, 3, 4].map((index) => ({ id: `drink-${index}`, forMember: `일행 ${index}` })) };
+    expect(canStageRecommendations(state)).toBe(true);
+    expect(parseIntent("주문할께").action).toBe("checkout");
+    expect(parseIntent("주문할게요").action).toBe("checkout");
+    expect(recommend([{ ...item("버섯 두부 덮밥", 9900), tags: ["식사"] }], newEmptyProfile(), { action: "recommend", vegetarian: true })[0].reason).toContain("채식");
+  });
+
+  it("keeps a whole-table vegetarian rule when a model invents a diner from a headcount", () => {
+    const utterance = "가상 일행 4명 모두 채식으로 식사 메뉴 추천해줘";
+    const state = evolveDialogue(readDialogue({}), utterance, parseIntent(utterance)).state;
+    const update = { label: "가상 일행 4", count: 1, allergies: [], dietaryRules: ["vegetarian"], maxSpiceLevel: null, removeDietaryRules: [], clearSpiceLimit: false, tastes: [] };
+    const result = applyMemberUpdates(state, [update], utterance).state;
+    expect(result.peopleCount).toBe(4);
+    expect(result.preferences.vegetarian).toBe(true);
+    expect(result.members.map((member) => member.label)).toEqual(["일행 1", "일행 2", "일행 3", "일행 4"]);
+  });
+
+  it("gives four diners four different drinks when the catalog permits it", () => {
+    const drinks = ["오렌지 에이드", "딸기 주스", "보리차", "민트티", "생수"].map((name, index) => ({
+      ...item(name, 2500 + index * 500), tags: ["음료", "caffeine_free"], popularity: 80 - index,
+    }));
+    const members = [1, 2, 3, 4].map((index) => ({ id: String(index), label: `일행 ${index}`, allergies: [], dietaryRules: [] }));
+    const intent = { action: "recommend" as const, category: "음료", peopleCount: 4, vegetarian: true };
+    const options = recommendDiverseGroupOptions(drinks, newEmptyProfile(), intent, members, "겹치지 않게 추천해줘");
+    expect(requestsDistinctMenus("겹치지 않게 추천해줘")).toBe(true);
+    expect(options.length).toBeGreaterThan(0);
+    expect(options.every((option) => new Set(option.items.map((entry) => entry.item.id)).size === 4)).toBe(true);
+    expect(validateRecommendationResult(options[0].items, newEmptyProfile(), intent, members, true).valid).toBe(true);
+    expect(recommendDiverseGroupOptions(drinks.slice(0, 2), newEmptyProfile(), intent, members, "겹치지 않게 추천해줘")).toEqual([]);
   });
 });

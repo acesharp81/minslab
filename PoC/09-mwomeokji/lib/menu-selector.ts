@@ -5,6 +5,18 @@ import { recordAiUsage } from "./usage-meter";
 export type MenuProposal = { id: string; recommendations: Recommendation[]; total: number };
 export type MenuSelection = { proposal: MenuProposal | null; provider: "openrouter" | "rules"; usage?: { inputTokens: number; outputTokens: number; costUsd?: number } };
 
+/** A literal match on two menu-name words is enough to reject a model's unsupported "none" answer. */
+function literalMenuEvidence(currentTurn: string, proposals: MenuProposal[]): MenuProposal | null {
+  if (/말고|빼고|제외|아닌|아니고/.test(currentTurn)) return null;
+  const utterance = currentTurn.toLocaleLowerCase();
+  const scored = proposals.map((proposal) => ({
+    proposal,
+    hits: proposal.recommendations.reduce((sum, { item }) => sum +
+      new Set(item.name.toLocaleLowerCase().split(/\s+/).filter((word) => word.length >= 2 && utterance.includes(word))).size, 0),
+  })).sort((a, b) => b.hits - a.hits);
+  return scored[0]?.hits >= 2 ? scored[0].proposal : null;
+}
+
 /** The model sees only the current turn and public catalog facts; saved guest context stays local. */
 export async function selectMenuProposal(currentTurn: string, proposals: MenuProposal[]): Promise<MenuSelection> {
   const fallback: MenuSelection = { proposal: proposals[0] ?? null, provider: "rules" };
@@ -26,7 +38,7 @@ export async function selectMenuProposal(currentTurn: string, proposals: MenuPro
             confidence: { type: "number", minimum: 0, maximum: 1 } },
             required: ["choiceId", "confidence"], additionalProperties: false } } },
         messages: [
-          { role: "system", content: "Choose the best menu option for the customer's current utterance. The server has already verified all listed options against the customer's explicit and saved hard constraints, including caffeine, allergy, quantity, and budget. Trust that verification. Prioritize the customer's expressed food and flavor preferences. For a group asking for a filling meal, choose a complete option where each diner receives a main dish; drinks or sides cannot replace a person's meal. Select no_match only when the current utterance explicitly asks for a particular food, ingredient, or flavor that none of the listed options has; never select no_match merely because the request is broad or a verified safety claim is not repeated in the description. If the current utterance gives no preference that distinguishes eligible options, prefer the more popular option. The option ID is opaque. Return only the required JSON. Never invent a menu or change price, quantity, or safety facts." },
+          { role: "system", content: "Choose the best menu option for the customer's current utterance. The server has already verified all listed options against the customer's explicit and saved hard constraints, including caffeine, allergy, quantity, and budget. Trust that verification. Prioritize the customer's expressed food and flavor preferences. For a group asking for a filling meal, choose a complete option where each diner receives a main dish; drinks or sides cannot replace a person's meal. Before selecting no_match, inspect every menu name and description for a literal or clear semantic match. Select no_match only when the current utterance explicitly asks for a particular food, ingredient, flavor, or explicitly named menu style that none of the listed options has; never select no_match merely because the request is broad or a verified safety claim is not repeated in the description. If the current utterance gives no preference that distinguishes eligible options, prefer the more popular option. The option ID is opaque. Return only the required JSON. Never invent a menu or change price, quantity, or safety facts." },
           { role: "user", content: JSON.stringify({ currentTurn: currentTurn.slice(0, 500), options: proposals.map((proposal) => ({
             id: proposal.id, total: proposal.total, serverVerified: true,
             dishes: proposal.recommendations.map(({ item }, slot) => ({ slot: slot + 1, id: item.id,
@@ -50,7 +62,9 @@ export async function selectMenuProposal(currentTurn: string, proposals: MenuPro
     await recordAiUsage({ workload: "order_selection", model: typeof data.model === "string" ? data.model : model,
       status: valid ? "COMPLETED" : "FAILED", httpStatus: response.status, ...usage });
     if (!valid || !parsed?.success) return fallback;
-    return { proposal: parsed.data.choiceId === "no_match" ? null : proposals.find((proposal) => proposal.id === parsed.data.choiceId) ?? null,
+    return { proposal: parsed.data.choiceId === "no_match"
+      ? literalMenuEvidence(currentTurn, proposals)
+      : proposals.find((proposal) => proposal.id === parsed.data.choiceId) ?? null,
       provider: "openrouter", usage };
   } catch {
     await recordAiUsage({ workload: "order_selection", model, status: "FAILED", httpStatus: 0 });

@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { api, money } from "../lib/client";
+import { builtInMenuTags } from "../lib/menu-metadata";
 import { ALLERGENS, type MenuItemData } from "../lib/types";
 
 type Order = {
@@ -162,6 +163,11 @@ export function MerchantApp() {
   const [password, setPassword] = useState("demo1234");
   const [tab, setTab] = useState<"orders" | "menu" | "import">("orders");
   const [edit, setEdit] = useState<EditData | null>(null);
+  const [keywordDraft, setKeywordDraft] = useState("");
+  function openEditor(data: EditData) {
+    setKeywordDraft(data.tags.filter((tag) => !builtInMenuTags.has(tag)).join(", "));
+    setEdit(data);
+  }
   const [optionDraft, setOptionDraft] = useState<OptionDraft>(newGroup);
   const [importText, setImportText] = useState("");
   const [importCategory, setImportCategory] = useState("");
@@ -228,13 +234,17 @@ export function MerchantApp() {
   }
   async function saveMenu() {
     if (!edit) return;
+    const menu = { ...edit, tags: [
+      ...edit.tags.filter((tag) => builtInMenuTags.has(tag)),
+      ...keywordDraft.split(",").map((value) => value.trim()).filter(Boolean),
+    ] };
     setBusy(true);
     setError("");
     try {
       await api(
         `merchant/menu${edit.id ? `/${edit.id}` : ""}`,
         edit.id ? "PATCH" : "POST",
-        edit,
+        menu,
       );
       setEdit(null);
       setSuccess("메뉴를 저장했어요.");
@@ -591,7 +601,7 @@ export function MerchantApp() {
                 <button
                   className="button button-primary"
                   onClick={() =>
-                    setEdit(blank(dashboard?.store.categories[0]?.id))
+                    openEditor(blank(dashboard?.store.categories[0]?.id))
                   }
                 >
                   <Plus size={18} /> 새 메뉴
@@ -609,7 +619,7 @@ export function MerchantApp() {
                     <div className="merchant-menu-actions">
                       <button
                         className="button button-outline"
-                        onClick={() => setEdit(fromMenu(item))}
+                        onClick={() => openEditor(fromMenu(item))}
                       >
                         수정
                       </button>
@@ -758,6 +768,14 @@ export function MerchantApp() {
                   onChange={(event) =>
                     setEdit({ ...edit, emoji: event.target.value })
                   }
+                />
+              </label>
+              <label className="wide">
+                추천 키워드 (쉼표로 구분)
+                <input
+                  value={keywordDraft}
+                  onChange={(event) => setKeywordDraft(event.target.value)}
+                  placeholder="예: 브런치"
                 />
               </label>
               <label className="wide">

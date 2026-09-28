@@ -1,6 +1,7 @@
 /** Report only call metadata to the shared local meter. No prompt, response or session ID. */
 export async function recordAiUsage(input: {
   model: string;
+  provider?: "openrouter" | "groq" | "nvidia" | "gemini" | "mistral" | "upstage";
   workload?: "order_interpretation" | "order_ranking" | "order_selection" | "menu_import";
   status: "COMPLETED" | "FAILED";
   httpStatus: number;
@@ -19,7 +20,7 @@ export async function recordAiUsage(input: {
         event_id: crypto.randomUUID(),
         project: "poc09",
         workload: input.workload || "order_interpretation",
-        provider: "openrouter",
+        provider: input.provider || "openrouter",
         model: input.model.slice(0, 180),
         status: input.status,
         http_status: input.httpStatus,
@@ -29,6 +30,6 @@ export async function recordAiUsage(input: {
       }),
     });
   } catch {
-    // Meter outages cannot block a visitor's order; the OpenRouter key cap remains authoritative.
+    // Meter outages cannot block a visitor's order; provider account limits remain authoritative.
   }
 }

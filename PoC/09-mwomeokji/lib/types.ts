@@ -78,12 +78,16 @@ export type GroupMember = {
   dietaryRules: DietaryRule[];
   maxSpiceLevel?: number;
   tastes?: Array<"spicy" | "mild" | "sweet" | "soup" | "rice" | "kids">;
+  menuLabels?: string[];
+  excludedTags?: string[];
 };
 export type OrderIntent = {
   action: "recommend" | "add" | "remove" | "ask" | "help" | "checkout";
   peopleCount?: number;
   totalBudget?: number;
   maxSpiceLevel?: number;
+  minSpiceLevel?: number;
+  kidsOnly?: boolean;
   wantsWarm?: boolean;
   wantsCool?: boolean;
   wantsMild?: boolean;

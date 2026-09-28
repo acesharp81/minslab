@@ -19,6 +19,7 @@
     "decision:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-decision.ts",
     "menu:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-menu-selector.ts",
     "multi:evaluate": "node scripts/with-root-env.mjs tsx scripts/evaluate-multiturn.ts",
+    "multi:stress": "node scripts/with-root-env.mjs tsx scripts/evaluate-200-topics.ts",
     "db:dev-migrate": "node scripts/with-root-env.mjs prisma migrate dev"
   },
   "dependencies": {

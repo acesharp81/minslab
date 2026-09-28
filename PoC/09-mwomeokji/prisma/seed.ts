@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { ALLERGENS } from "../lib/types";
+import { scenarioRecipes } from "./scenario-recipes";
 
 const recipes = [
   [
@@ -9,7 +10,7 @@ const recipes = [
     10900,
     "🍗",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "밥", "대표메뉴", "든든", "직장동료"],
     ["chicken", "rice", "soy"],
     ["no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["soy"],
@@ -22,7 +23,7 @@ const recipes = [
     8900,
     "🐣",
     0,
-    ["warm", "식사", "kids", "sweet"],
+    ["warm", "식사", "kids", "sweet", "밥"],
     ["chicken", "rice", "soy"],
     ["no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["soy"],
@@ -35,7 +36,7 @@ const recipes = [
     12900,
     "🥩",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "밥", "든든", "직장동료"],
     ["beef", "rice", "soy"],
     ["no_pork", "no_seafood", "no_dairy"],
     ["soy"],
@@ -48,7 +49,7 @@ const recipes = [
     11900,
     "🌶️",
     2,
-    ["warm", "식사"],
+    ["warm", "식사", "밥", "든든", "직장동료"],
     ["pork", "rice", "soy"],
     ["no_beef", "no_seafood", "no_dairy"],
     ["soy"],
@@ -61,7 +62,7 @@ const recipes = [
     11900,
     "🍗",
     2,
-    ["warm", "식사", "rice", "spicy"],
+    ["warm", "식사", "rice", "spicy", "밥"],
     ["chicken", "rice", "chili"],
     ["no_pork", "no_beef", "no_seafood", "no_dairy"],
     [],
@@ -74,7 +75,7 @@ const recipes = [
     9900,
     "🍄",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "밥"],
     ["mushroom", "tofu", "rice"],
     ["vegetarian", "vegan", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["soy"],
@@ -87,7 +88,7 @@ const recipes = [
     9500,
     "🍅",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "밥"],
     ["tomato", "egg", "rice"],
     ["vegetarian", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["egg"],
@@ -100,7 +101,7 @@ const recipes = [
     14900,
     "🍝",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "데이트"],
     ["shrimp", "milk", "wheat"],
     ["no_pork", "no_beef"],
     ["shellfish", "milk", "wheat"],
@@ -113,7 +114,7 @@ const recipes = [
     12900,
     "🍝",
     0,
-    ["warm", "식사"],
+    ["warm", "식사", "데이트"],
     ["tomato", "basil", "wheat"],
     ["vegetarian", "vegan", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["wheat"],
@@ -143,6 +144,45 @@ const recipes = [
     ["tofu", "lettuce", "tomato"],
     ["vegetarian", "vegan", "no_pork", "no_beef", "no_seafood", "no_dairy"],
     ["soy"],
+    64,
+  ],
+  [
+    "식사",
+    "아보카도 에그 토스트",
+    "구운 토스트에 아보카도와 달걀을 곁들인 브런치",
+    10500,
+    "🥑",
+    0,
+    ["warm", "식사", "브런치", "빵"],
+    ["wheat", "avocado", "egg"],
+    ["vegetarian", "no_pork", "no_beef", "no_seafood", "no_dairy"],
+    ["wheat", "egg"],
+    67,
+  ],
+  [
+    "식사",
+    "버섯 치즈 오믈렛",
+    "버섯과 치즈를 곁들인 따뜻한 브런치",
+    11900,
+    "🍳",
+    0,
+    ["warm", "식사", "브런치"],
+    ["egg", "mushroom", "milk"],
+    ["vegetarian", "no_pork", "no_beef", "no_seafood"],
+    ["egg", "milk"],
+    65,
+  ],
+  [
+    "식사",
+    "과일 요거트 그래놀라 볼",
+    "요거트와 과일, 그래놀라를 담은 시원한 브런치",
+    9900,
+    "🥣",
+    0,
+    ["cool", "식사", "브런치", "sweet"],
+    ["milk", "wheat", "banana", "apple"],
+    ["vegetarian", "no_pork", "no_beef", "no_seafood"],
+    ["milk", "wheat"],
     64,
   ],
   [
@@ -237,6 +277,32 @@ const recipes = [
     61,
   ],
   [
+    "디저트",
+    "오렌지 치즈케이크",
+    "오렌지 향을 더한 부드러운 치즈케이크",
+    5900,
+    "🍰",
+    0,
+    ["디저트", "sweet"],
+    ["milk", "wheat", "egg", "orange"],
+    ["vegetarian", "no_pork", "no_beef", "no_seafood"],
+    ["milk", "wheat", "egg"],
+    62,
+  ],
+  [
+    "디저트",
+    "초코 브라우니",
+    "진한 초콜릿 맛의 달콤한 브라우니",
+    5500,
+    "🍫",
+    0,
+    ["디저트", "sweet"],
+    ["wheat", "egg", "milk", "cocoa"],
+    ["vegetarian", "no_pork", "no_beef", "no_seafood"],
+    ["wheat", "egg", "milk"],
+    66,
+  ],
+  [
     "음료",
     "오렌지 에이드",
     "상큼한 탄산 오렌지 음료",
@@ -315,7 +381,7 @@ async function main() {
     },
   });
   const categories = new Map<string, string>();
-  for (const [index, name] of ["식사", "국물", "사이드", "음료"].entries()) {
+  for (const [index, name] of ["식사", "국물", "사이드", "음료", "디저트"].entries()) {
     const existing = await db.menuCategory.findFirst({
       where: { storeId: store.id, name },
     });
@@ -349,14 +415,14 @@ async function main() {
     dietaryTags,
     contains,
     popularity,
-  ] of recipes) {
+  ] of [...recipes, ...scenarioRecipes]) {
     const existing = await db.menuItem.findFirst({
       where: { storeId: store.id, name },
     });
     if (existing) {
       // The two fixed virtual recipes have no caffeine-containing ingredients.
       // Keep other merchant-managed menu fields intact when seeding again.
-      if (["오렌지 에이드", "생수"].includes(name) && tags.some((tag) => !existing.tags.includes(tag))) {
+      if (["오렌지 에이드", "생수", "햇살 치킨 덮밥", "달콤 키즈 치킨 덮밥", "든든 소불고기 덮밥", "매콤 제육 덮밥", "얼큰 닭고기 덮밥", "버섯 두부 덮밥", "토마토 달걀 볶음밥", "아보카도 에그 토스트", "새우 크림 파스타", "바질 토마토 파스타"].includes(name) && tags.some((tag) => !existing.tags.includes(tag))) {
         await db.menuItem.update({ where: { id: existing.id }, data: { tags: [...new Set([...existing.tags, ...tags])] } });
       }
       for (const [allergenKey] of ALLERGENS)
@@ -467,7 +533,7 @@ async function main() {
         });
   }
   console.log(
-    `Seeded demo store ${store.slug}, ${recipes.length} menu items, 5 tables.`,
+    `Seeded demo store ${store.slug}, ${recipes.length + scenarioRecipes.length} menu items, 5 tables.`,
   );
 }
 main().finally(() => db.$disconnect());
