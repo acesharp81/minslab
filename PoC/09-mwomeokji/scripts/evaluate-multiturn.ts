@@ -718,6 +718,40 @@ const cases: Case[] = [
       } },
     ],
   },
+
+  {
+    id: "34_legacy_drink_recommendations_recover_to_meals",
+    requiresGroq: true,
+    visit: "dine_in",
+    prepare: async (_request, boot) => {
+      const names = ["아이스 아메리카노", "달콤 사과 주스", "따뜻한 카페라떼", "딸기 우유"];
+      const drinks = names.map((name) => boot.menu?.find((item) => item.name === name));
+      assert.ok(drinks.every(Boolean));
+      const session = await db.guestSession.findUniqueOrThrow({ where: { tokenHash: hashes.at(-1)! } });
+      const dialogue: DialogueState = {
+        peopleCount: 4,
+        members: ["여자 1", "여자 2", "남자 1", "남자 2"].map((label, index) => ({
+          id: `named-${index + 1}`, label, allergies: [], dietaryRules: [],
+          ...(index < 2 ? { tastes: ["mild"] as const, maxSpiceLevel: 0 } : {}),
+        })),
+        preferences: { action: "recommend", peopleCount: 4, category: "음료" },
+        menuLabels: [], lastRecommendations: drinks.map((item, index) => ({ id: item!.id,
+          forMember: ["여자 1", "여자 2", "남자 1", "남자 2"][index] })),
+        pendingCheckout: false,
+      };
+      await db.guestSession.update({ where: { id: session.id }, data: { context: { ...boot.profile, dialogue } } });
+    },
+    turns: [
+      { message: "음료나 사이드 말고 식사류로 선택해줘", verify: (reply) => {
+        assert.equal(reply.provider, "groq");
+        assert.equal(reply.dialogue?.peopleCount, 4);
+        assert.equal(reply.dialogue?.preferences.category, "식사");
+        assert.equal(recs(reply).length, 4);
+        assert.ok(recs(reply).every((entry) => entry.item.tags.includes("식사") && !entry.item.tags.includes("kids")));
+        assert.equal(recs(reply).filter((entry) => entry.forMember?.startsWith("여자") && entry.item.spiceLevel === 0).length, 2);
+      } },
+    ],
+  },
 ];
 
 const base = process.env.POC09_SMOKE_BASE || "http://127.0.0.1:8000/poc/mwomeokji/api";
