@@ -612,7 +612,7 @@ export async function POST(req: NextRequest, context: Context) {
         .filter((member) => !previous.members.some((retained) => retained.id === member.id))
         .flatMap((member) => member.allergies);
       const evolved = evolveDialogue(previous, message, intent);
-      const updatedMembers = applyMemberUpdates(evolved.state, understanding.memberUpdates, message);
+      const updatedMembers = applyMemberUpdates(evolved.state, understanding.memberUpdates, message, provider === "groq");
       const wantsAlternative = /다른|바꿔|말고|별로|대신/.test(message);
       const referencedMenus = wantsAlternative && previous.lastRecommendations.length
         ? await db.menuItem.findMany({ where: { id: { in: previous.lastRecommendations.map((entry) => entry.id) } }, select: { id: true, name: true } })

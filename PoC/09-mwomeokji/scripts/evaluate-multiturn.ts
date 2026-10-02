@@ -693,6 +693,31 @@ const cases: Case[] = [
     ],
   },
 
+
+  {
+    id: "33_group_meal_course_survives_member_tastes_and_correction",
+    requiresGroq: true,
+    visit: "dine_in",
+    turns: [
+      { message: "조별 활동으로 4명이서 식사 할건데 여자 두분에 남자 두명이야 여자 두분은 매운거 잘 못 드시거든. 메뉴 추천해줘", verify: (reply) => {
+        assert.equal(reply.provider, "groq");
+        assert.equal(reply.dialogue?.peopleCount, 4);
+        assert.equal(reply.dialogue?.preferences.category, "식사");
+        assert.equal(recs(reply).length, 4);
+        assert.ok(recs(reply).every((entry) => entry.item.tags.includes("식사")), "all four diners requested a meal, not drinks or sides");
+        assert.ok(recs(reply).every((entry) => !entry.item.tags.includes("kids")), "adult diners did not request kids meals");
+        assert.equal(recs(reply).filter((entry) => entry.forMember?.startsWith("여자") && entry.item.spiceLevel === 0).length, 2);
+      } },
+      { message: "음료나 사이드 말고 식사류로 선택해줘", verify: (reply) => {
+        assert.equal(reply.provider, "groq");
+        assert.equal(reply.dialogue?.preferences.category, "식사");
+        assert.equal(recs(reply).length, 4);
+        assert.ok(recs(reply).every((entry) => entry.item.tags.includes("식사")), "the corrected meal request excludes drinks and sides");
+        assert.ok(recs(reply).every((entry) => !entry.item.tags.includes("kids")), "adult diners did not request kids meals");
+        assert.equal(recs(reply).filter((entry) => entry.forMember?.startsWith("여자") && entry.item.spiceLevel === 0).length, 2);
+      } },
+    ],
+  },
 ];
 
 const base = process.env.POC09_SMOKE_BASE || "http://127.0.0.1:8000/poc/mwomeokji/api";

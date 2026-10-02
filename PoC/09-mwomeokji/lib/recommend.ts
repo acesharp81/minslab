@@ -173,7 +173,7 @@ export function recommendGroupOptions(
       dietaryRules: [...profile.dietaryRules, ...member.dietaryRules],
       maxSpiceLevel: member.maxSpiceLevel ?? profile.maxSpiceLevel,
     };
-    const memberItems = items.filter((item) => (!member.tastes?.length || member.tastes.every((taste) => matchesTaste(item, taste))) && (member.menuLabels || []).every((label) => item.tags.includes(label)) && !(member.excludedTags || []).some((tag) => item.tags.includes(tag)));
+    const memberItems = items.filter((item) => (!item.tags.includes("kids") || member.tastes?.includes("kids") || intent.kidsOnly) && (!member.tastes?.length || member.tastes.every((taste) => matchesTaste(item, taste))) && (member.menuLabels || []).every((label) => item.tags.includes(label)) && !(member.excludedTags || []).some((tag) => item.tags.includes(tag)));
     const choices = recommend(
       memberItems,
       memberProfile,
@@ -255,6 +255,7 @@ export function validateRecommendationResult(
       maxSpiceLevel: member?.maxSpiceLevel ?? profile.maxSpiceLevel,
     }, intent);
     return !item.isPublished || !item.isAvailable || !matchesRequestedMenu(item, intent) ||
+      !!(group && item.tags.includes("kids") && !member?.tastes?.includes("kids") && !intent.kidsOnly) ||
       !checkSafety(item, effective).allowed || !!(member?.tastes?.length && !member.tastes.every((taste) => matchesTaste(item, taste))) ||
       !!(member?.menuLabels?.length && !member.menuLabels.every((label) => item.tags.includes(label))) ||
       !!(member?.excludedTags?.length && member.excludedTags.some((tag) => item.tags.includes(tag)));

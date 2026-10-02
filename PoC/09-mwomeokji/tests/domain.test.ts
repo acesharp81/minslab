@@ -30,7 +30,7 @@ const item = (
   isPublished: true,
   isShareable: false,
   popularity: 50,
-  tags: ["warm"],
+  tags: ["warm", "식사"],
   ingredients: [],
   dietaryTags: [
     "vegetarian",
@@ -935,4 +935,17 @@ describe("speech-first group ordering", () => {
     expect(validateRecommendationResult(options[0].items, newEmptyProfile(), intent, members, true).valid).toBe(true);
     expect(recommendDiverseGroupOptions(drinks.slice(0, 2), newEmptyProfile(), intent, members, "겹치지 않게 추천해줘")).toEqual([]);
   });
+  it("does not assign a kids meal to an adult group unless requested", () => {
+    const kids = { ...item("달콤 키즈 치킨 덮밥", 8900), tags: ["식사", "kids", "sweet"], popularity: 99 };
+    const adult = { ...item("햇살 치킨 덮밥", 10900), tags: ["식사"], popularity: 50 };
+    const members = ["여자 1", "남자 1"].map((label) => ({ id: label, label, allergies: [], dietaryRules: [] }));
+    const intent = { action: "recommend" as const, category: "식사", peopleCount: 2 };
+    const group = recommendGroup([kids, adult], newEmptyProfile(), intent, members);
+    expect(group.complete).toBe(true);
+    expect(group.items.every((entry) => entry.item.id === adult.id)).toBe(true);
+    const forcedKids = [{ item: kids, score: 99, reason: "", forMember: "여자 1" },
+      { item: adult, score: 50, reason: "", forMember: "남자 1" }];
+    expect(validateRecommendationResult(forcedKids, newEmptyProfile(), intent, members).valid).toBe(false);
+  });
+
 });

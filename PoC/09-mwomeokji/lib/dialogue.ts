@@ -234,7 +234,7 @@ export function resetForFullMealBrief(previous: DialogueState, utterance: string
 }
 
 /** Apply only bounded, attributable member facts from the model. Rules still validate every menu and option. */
-export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[], utterance: string): { state: DialogueState; applied: boolean; needsClarification: boolean } {
+export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[], utterance: string, preserveCourse = false): { state: DialogueState; applied: boolean; needsClarification: boolean } {
   const text = utterance.toLowerCase();
   const named: GroupMember[] = [...state.members];
   const allowedAllergies = new Set<string>(ALLERGENS.map(([key]) => key));
@@ -295,7 +295,9 @@ export function applyMemberUpdates(state: DialogueState, updates: MemberUpdate[]
   if (updates.some((entry) => entry.tastes?.includes('kids'))) preferences.kidsOnly = false;
   if (updates.some((entry) => entry.tastes?.includes('soup'))) preferences.wantsWarm = false;
   if (updates.some((entry) => entry.tastes?.includes('sweet')) && !/모두|전부|다\s*같이/.test(text)) preferences.wantsSweet = false;
-  if (updates.some((entry) => entry.tastes?.length)) preferences.category = undefined;
+  // Groq supplies the whole-table course separately from each diner's tastes.
+  // The legacy rule parser cannot reliably distinguish a diner's soup request from a table-wide course.
+  if (!preserveCourse && updates.some((entry) => entry.tastes?.length)) preferences.category = undefined;
   const focusedMemberLabel = appliedLabels.size === 1 ? [...appliedLabels][0] : appliedLabels.size > 1 ? undefined : state.focusedMemberLabel;
   return { state: { ...state, members, preferences, lastMemberLabel, focusedMemberLabel }, applied: true, needsClarification };
 }

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { understand } from "../lib/ai";
 import { anonymizeKnownNames, conversationSnapshot, resolveSeatTarget } from "../lib/conversation-context";
-import { emptyDialogue } from "../lib/dialogue";
+import { applyMemberUpdates, emptyDialogue } from "../lib/dialogue";
 
 const state = {
   ...emptyDialogue(), peopleCount: 2,
@@ -81,6 +81,51 @@ describe("Groq conversation boundary", () => {
     expect(result.provider).toBe("groq");
     expect(result.memberUpdates[0]?.label).toBe("민수");
     expect(JSON.stringify(JSON.parse(sent).messages)).not.toContain("민수");
+  });
+
+  it("keeps the whole-party meal course when diners have individual mild tastes", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "groq");
+    vi.stubEnv("POC09_LLM_MODEL", "openai/gpt-oss-20b");
+    vi.stubEnv("GROQ_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: JSON.stringify({
+      action: "recommend", targetSeat: null, peopleCount: null, totalBudget: null,
+      category: "식사", globalTastes: [], globalLabels: [], memberUpdates: [],
+      offerResolution: "none", reference: "none", alternative: false, clarification: null,
+    }) } }], usage: { prompt_tokens: 80, completion_tokens: 30 } }) })));
+    const utterance = "음료나 사이드 말고 식사류로 선택해줘";
+    const interpreted = await understand(utterance, {
+      snapshot: conversationSnapshot(state, names), outboundMessage: utterance,
+    });
+    expect(interpreted.provider).toBe("groq");
+    expect(interpreted.intent.category).toBe("식사");
+
+    const mealState = { ...emptyDialogue(), peopleCount: 4, preferences: { action: "recommend" as const, category: "식사", peopleCount: 4 },
+      members: Array.from({ length: 4 }, (_, index) => ({ id: `generic-${index + 1}`, label: `일행 ${index + 1}`, allergies: [], dietaryRules: [] })) };
+    const updated = applyMemberUpdates(mealState, [{ label: "여자", count: 2, allergies: [], dietaryRules: [], maxSpiceLevel: 0,
+      removeDietaryRules: [], clearSpiceLimit: false, tastes: ["mild"] }], "여자 두분은 매운거 잘 못 드시거든", true);
+    expect(updated.state.preferences.category).toBe("식사");
+    expect(updated.state.members.filter((member) => member.label.startsWith("여자") && member.maxSpiceLevel === 0)).toHaveLength(2);
+  });
+
+  it("does not expand adult-only menu labels to children when the model duplicates the label globally", async () => {
+    vi.stubEnv("POC09_CONVERSATION_PROVIDER", "groq");
+    vi.stubEnv("POC09_LLM_MODEL", "openai/gpt-oss-20b");
+    vi.stubEnv("GROQ_API_KEY", "unit-test-key");
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: JSON.stringify({
+      action: "recommend", targetSeat: null, peopleCount: 4, totalBudget: null,
+      category: "식사", globalTastes: [], globalLabels: ["든든"],
+      memberUpdates: [
+        { label: "아이", count: 2, tastes: ["kids"], labels: [] },
+        { label: "나", count: 1, tastes: [], labels: ["든든"] },
+        { label: "와이프", count: 1, tastes: ["mild"], labels: ["든든"] },
+      ], offerResolution: "none", reference: "none", alternative: false, clarification: null,
+    }) } }], usage: { prompt_tokens: 80, completion_tokens: 30 } }) })));
+    const message = "아이 둘은 키즈, 나와 와이프는 든든한 식사로 추천해줘";
+    const result = await understand(message, { snapshot: conversationSnapshot(emptyDialogue(), new Map()), outboundMessage: message,
+      spokenLabels: ["든든"] });
+    expect(result.globalMenuLabels).toEqual([]);
+    expect(result.memberUpdates.filter((entry) => entry.menuLabels?.includes("든든"))).toHaveLength(2);
+    expect(result.memberUpdates.find((entry) => entry.label === "아이")?.menuLabels).toEqual([]);
   });
 
   it("uses a pinned free model with an approved compact payload", async () => {

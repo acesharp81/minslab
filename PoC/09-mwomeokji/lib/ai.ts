@@ -187,7 +187,7 @@ export async function understand(message: string, context?: {
     // Explicit cart commands need no model call and never let a model place an order.
     if (context?.skipModel || ["add", "remove", "checkout", "help"].includes(basic.intent.action)) return basic;
     const result = await requestFreeStructured(compactResponseSchema,
-      "Interpret the current Korean restaurant utterance as a STATE CHANGE using the compact previous state. Return the required JSON fields. Null means no change. A pendingOffer in state is the assistant's immediately preceding question: set offerResolution=accept for agreement such as 그래 그러게 해줘 or 그렇게 해달라고, decline for refusal, none otherwise. Do not repeat the rejected constraint when accepting a replacement. For a new party, represent EACH distinct diner group in memberUpdates with label, count, tastes, and labels. Example: 4식구, 아이 둘은 키즈, 나와 와이프는 든든, 와이프는 안 맵게 => peopleCount=4; 아이 count=2 tastes=[kids]; 나 count=1 labels=[든든]; 와이프 count=1 tastes=[mild] labels=[든든]. labels must come only from mentionedCatalogLabels in the user input. Use globalLabels only for a whole-table request, never for a taste/label assigned to some diners. A change to one diner preserves other diners. targetSeat must be an existing seat ID and grounded in the utterance or focus. Map tastes to spicy, mild, sweet, soup, rice, kids. 해장 indicates soup preference, never a health claim. Do not invent menus, diners, prices, ingredients, allergies or safety facts. The server validates all proposed state changes and menu facts.",
+      "Interpret the current Korean restaurant utterance as a STATE CHANGE using the compact previous state. Return the required JSON fields. Null means no change. A pendingOffer in state is the assistant's immediately preceding question: set offerResolution=accept for agreement such as 그래 그러게 해줘 or 그렇게 해달라고, decline for refusal, none otherwise. Do not repeat the rejected constraint when accepting a replacement. For a new party, represent EACH distinct diner group in memberUpdates with label, count, tastes, and labels. Example: 4식구, 아이 둘은 키즈, 나와 와이프는 든든, 와이프는 안 맵게 => peopleCount=4; 아이 count=2 tastes=[kids]; 나 count=1 labels=[든든]; 와이프 count=1 tastes=[mild] labels=[든든]. labels must come only from mentionedCatalogLabels in the user input. Use globalLabels only for a whole-table request, never for a taste/label assigned to some diners. A label present on only some memberUpdates must not also appear in globalLabels. A change to one diner preserves other diners. targetSeat must be an existing seat ID and grounded in the utterance or focus. For a whole-table meal request, keep category=식사 even when some diners have individual taste limits. For “X 말고 Y”, choose the requested Y category, not the rejected X. Map tastes to spicy, mild, sweet, soup, rice, kids. 해장 indicates soup preference, never a health claim. Do not invent menus, diners, prices, ingredients, allergies or safety facts. The server validates all proposed state changes and menu facts.",
       { currentTurn: (context?.outboundMessage || message).slice(0, 500), mentionedCatalogLabels: context?.spokenLabels || [], state: context?.snapshot || null },
       (value) => { const parsed = compactTurnSchema.safeParse(value); return parsed.success ? parsed.data : null; },
       "order_interpretation", 900);
@@ -197,7 +197,7 @@ export async function understand(message: string, context?: {
     const explicitParty = /명|사람|일행|(?:우리|저희)\s*(?:둘|셋|넷)(?:이|이서)|와이프|아내|남편|아이|아기|딸|아들/.test(message);
     if (turn.peopleCount !== null && (!basic.intent.quantity || explicitParty)) intent.peopleCount = turn.peopleCount;
     if (turn.totalBudget !== null && /예산|이하|안에서|원/.test(message)) intent.totalBudget = turn.totalBudget;
-    if (turn.category !== null && !basic.intent.category) intent.category = turn.category;
+    if (turn.category !== null) intent.category = turn.category;
     const memberUpdates = turn.memberUpdates.map((entry): MemberUpdate => {
       const anonymousSeat = entry.label.match(/^(?:일행\s*|seat_)(\d{1,2})$/);
       const localLabel = anonymousSeat ? context?.seatLabels?.[Number(anonymousSeat[1]) - 1] : undefined;
@@ -215,7 +215,9 @@ export async function understand(message: string, context?: {
         if (existing.tastes.includes("mild")) existing.maxSpiceLevel = 0;
       } else memberUpdates.push(extracted);
     }
+    const memberScopedLabels = new Set(memberUpdates.flatMap((entry) => entry.menuLabels || []));
     const individual = memberUpdates.length > 0 || !!turn.targetSeat;
+    if (turn.category === null && individual) intent.category = undefined;
     if (!individual) {
       if (turn.globalTastes.includes("spicy") && /매운|매콤|얼큰|맵게/.test(message)) intent.minSpiceLevel = 2;
       if (turn.globalTastes.includes("mild") && /순한|맵지|안\s*매운|맵찔/.test(message)) intent.maxSpiceLevel = 0;
@@ -225,7 +227,7 @@ export async function understand(message: string, context?: {
     }
     if (basic.memberUpdates.some((entry) => entry.tastes?.length)) intent.action = "recommend";
     return {
-      intent, provider: "groq", targetSeat: turn.targetSeat, offerResolution: turn.offerResolution, globalMenuLabels: turn.globalLabels.filter((label) => context?.spokenLabels?.includes(label)), reference: turn.reference,
+      intent, provider: "groq", targetSeat: turn.targetSeat, offerResolution: turn.offerResolution, globalMenuLabels: turn.globalLabels.filter((label) => context?.spokenLabels?.includes(label) && !memberScopedLabels.has(label)), reference: turn.reference,
       alternative: turn.alternative, memberUpdates,
       globalAllergies: [], optionNames: [], clarification: turn.clarification,
       corrections: basic.corrections,
