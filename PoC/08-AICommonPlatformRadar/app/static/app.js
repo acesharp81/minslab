@@ -26,6 +26,8 @@ const request = async (url, options = {}) => {
   return payload;
 };
 
+document.querySelector('[data-print-statistics]')?.addEventListener('click', () => window.print());
+
 document.querySelector('[data-run-collect]')?.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   button.disabled = true;

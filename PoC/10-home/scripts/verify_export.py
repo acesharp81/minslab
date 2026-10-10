@@ -1,0 +1,72 @@
+"""Verify HOME JSON snapshot file hashes, row counts, and core link integrity.
+
+Works with Python's standard library; no HOME service or API keys are needed.
+"""
+import gzip
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def json_rows(path):
+    if path.suffix != '.gz':
+        value = json.loads(path.read_text())
+        if not isinstance(value, list):
+            raise ValueError(f'JSON 배열이 아닙니다: {path}')
+        yield from value
+        return
+    with gzip.open(path, 'rt', encoding='utf-8') as stream:
+        if stream.readline().strip() != '[':
+            raise ValueError(f'JSON 배열 시작이 아닙니다: {path}')
+        end = False
+        for line in stream:
+            value = line.strip().rstrip(',')
+            if value == ']':
+                end = True
+                break
+            yield json.loads(value)
+        if not end:
+            raise ValueError(f'JSON 배열 끝이 아닙니다: {path}')
+
+
+def verify(root):
+    root = Path(root).resolve()
+    manifest = json.loads((root/'manifest.json').read_text())
+    for name, info in manifest['files'].items():
+        path = root / info['path']
+        if not path.is_file() or path.stat().st_size != info['bytes'] or sha256_file(path) != info['sha256']:
+            raise ValueError(f'파일 크기 또는 SHA-256 불일치: {info["path"]}')
+        if 'records' in info:
+            found = sum(1 for _ in json_rows(path))
+            if found != info['records']:
+                raise ValueError(f'레코드 건수 불일치: {name}, {found} != {info["records"]}')
+        print(f'OK {info["path"]}', flush=True)
+    programs = {r['id']: r for r in json_rows(root/'program_policy_links.json.gz')}
+    projects = {r['id']: r for r in json_rows(root/'current_projects.json')}
+    links = list(json_rows(root/'project_program_links.json.gz'))
+    if len({r['project_id'] for r in links}) != len(links):
+        raise ValueError('사업→프로그램 링크에 중복 사업이 있습니다')
+    for link in links:
+        if link['project_id'] not in projects:
+            raise ValueError(f'현재 사업이 없는 링크: {link["project_id"]}')
+        pid = link['program_id']
+        if pid not in (None, 'UNASSIGNED') and pid not in programs:
+            raise ValueError(f'프로그램이 없는 링크: {pid}')
+        if projects[link['project_id']]['link']['program_id'] != pid:
+            raise ValueError(f'편의 뷰와 링크 불일치: {link["project_id"]}')
+    print(f'VERIFIED {len(manifest["files"])} files, {len(projects)} current projects, {len(programs)} programmes', flush=True)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        raise SystemExit('사용법: python verify_export.py <스냅샷 폴더>')
+    verify(sys.argv[1])

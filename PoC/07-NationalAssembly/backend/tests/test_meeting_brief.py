@@ -21,6 +21,7 @@ from app.services.meeting_brief import (
     PROMPT_VERSION,
     MistralMeetingBriefClient,
     MalformedMeetingBriefResponse,
+    NvidiaMeetingBriefClient,
     OpenRouterMeetingBriefClient,
     _assert_summary_quality,
     _clean_text,
@@ -519,7 +520,7 @@ class MeetingBriefTests(unittest.TestCase):
         self.assertIn("관련 쟁점과 대응 필요성", brief["topics"][0]["summary"])
 
     def test_final_topics_have_operational_maximum_and_use_adaptive_floor(self):
-        self.assertEqual("assembly-meeting-brief/1.9", PROMPT_VERSION)
+        self.assertEqual("assembly-meeting-brief/2.0", PROMPT_VERSION)
         self.assertEqual("assembly-meeting-brief/1.2", ANALYSIS_CACHE_VERSION)
         self.assertEqual(
             MAX_FINAL_TOPICS,
@@ -751,6 +752,15 @@ class MeetingBriefTests(unittest.TestCase):
             result = client.generate(
                 {"title": "회의", "committee_name": "법제사법위원회"},
                 self.utterances,
+                live_topic_clusters=[{
+                    "id": "live-topic-1",
+                    "title": "결산 심사",
+                    "aliases": [],
+                    "owners": [],
+                    "tasks": [],
+                    "utterance_ids": ["u-1"],
+                    "utterance_count": 1,
+                }],
                 after_request=after_request,
                 on_progress=on_progress,
             )
@@ -768,12 +778,41 @@ class MeetingBriefTests(unittest.TestCase):
             OPENROUTER_FINAL_RETRY_MODEL,
             post.call_args_list[2].kwargs["model_override"],
         )
+        self.assertIn('"live-topic-1"', post.call_args_list[2].args[0])
+        self.assertIn("임의로 연결하지 마라", post.call_args_list[2].args[0])
         self.assertEqual(3, after_request.call_count)
         self.assertEqual(4, on_progress.call_count)
         self.assertEqual("COMPLETED", on_progress.call_args.args[0]["status"])
         self.assertEqual(3, result.api_requests)
         self.assertEqual(PROMPT_VERSION, client.prompt_version)
         self.assertEqual("결산 집행과 개선 조치를 점검", result.brief["headline"])
+
+    def test_nim_final_timeout_falls_through_after_one_request(self):
+        chunk = {
+            "topics": [{
+                "title": "결산 심사",
+                "summary": "집행 실적을 점검했다.",
+                "speaker_points": [],
+                "tasks": [],
+                "evidence_ids": ["u-1"],
+            }],
+        }
+        client = NvidiaMeetingBriefClient(
+            "test-key", model="nvidia/nemotron-3-ultra-550b-a55b",
+            base_url="https://integrate.api.nvidia.com/v1",
+            min_interval_seconds=0,
+        )
+        with mock.patch.object(
+            client, "_post",
+            side_effect=[(chunk, {"usage": {}}), requests.Timeout("slow final")],
+        ) as post, mock.patch("app.services.meeting_brief.time.sleep"):
+            with self.assertRaises(requests.Timeout):
+                client.generate(
+                    {"title": "회의", "committee_name": "법제사법위원회"},
+                    self.utterances,
+                )
+        self.assertEqual(2, post.call_count)
+        self.assertEqual("meeting_brief", post.call_args_list[-1].args[2])
 
     def test_worker_records_safe_http_status_and_short_retry(self):
         response = mock.Mock(status_code=429)

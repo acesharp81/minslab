@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from app.db import Base
-from app.models import ActionItem, AnalysisRun, Attachment, Notice
+from app.models import ActionItem, AnalysisRun, Attachment, AuditLog, Notice
 from app.services.analyzer import CURRENT_CRITERIA_VERSION
 from app.services.ineligible_reasons import ineligible_detail_key, ineligible_reason_key
 from app.services.statistics_builder import build_statistics
@@ -371,3 +371,68 @@ def test_review_resolution_and_period_filter_are_reflected_in_final_status(db: S
     assert stats["status"]["eligible_not_used"] == 1
     assert stats["status"]["review"] == 0
     assert stats["achievements"]["review_to_eligible"] == 1
+
+
+def test_opinion_outcomes_count_submitted_prenotices_and_response_backed_results(db: Session):
+    now = datetime(2026, 9, 28, 12, tzinfo=timezone.utc)
+    recent = (now - timedelta(days=2)).isoformat()
+
+    def add_notice(number: int, status: str, *, reply: bool = False,
+                   reason: str = "", submitted_at: str = recent, stage: str = "prenotice",
+                   agency_response: str = ""):
+        payload = {"_poc08_opinion_tracking": {
+            "submitted_at": submitted_at,
+            "status": "replied" if reply else "submitted_waiting",
+        }}
+        if reason:
+            payload["_poc08_manual_ineligible_reason"] = reason
+        notice = Notice(
+            stage=stage, notice_no=f"OP-{number}", title=f"의견 {number}",
+            agency_name="기관", raw_payload_json=json.dumps(payload),
+        )
+        notice.action = ActionItem(status=status, agency_response=agency_response)
+        db.add(notice)
+        return notice
+
+    accepted = add_notice(1, "completed_uses", reply=True)
+    add_notice(2, "completed_not_used", agency_response="이용은 가능하지만 이번 사업에서는 미사용")
+    add_notice(3, "completed_ineligible", reply=True, reason="isolated_network_no_link")
+    add_notice(4, "completed_ineligible", reply=True, reason="public_internal_task")
+    add_notice(5, "completed_ineligible", reply=True, reason="data_transfer_restricted")
+    add_notice(6, "completed_non_ai", reply=True)
+    add_notice(7, "in_progress", reply=True)
+    add_notice(8, "in_progress")
+    add_notice(9, "completed_uses")
+    add_notice(10, "completed_uses", reply=True, submitted_at=(now - timedelta(days=40)).isoformat())
+    add_notice(11, "completed_uses", reply=True, stage="bid_notice")
+    db.flush()
+    # The first audit event fixes the submission date; duplicate events stay one request.
+    accepted.raw_payload_json = json.dumps({"_poc08_opinion_tracking": {
+        "submitted_at": (now - timedelta(days=40)).isoformat(), "status": "replied",
+    }})
+    db.add_all([
+        AuditLog(event_type="opinion_submitted", entity_type="action_item",
+                 entity_id=str(accepted.action.id), created_at=now - timedelta(days=2)),
+        AuditLog(event_type="opinion_submitted", entity_type="action_item",
+                 entity_id=str(accepted.action.id), created_at=now - timedelta(days=1)),
+    ])
+    db.commit()
+
+    summary = build_statistics(db, period="30d", now=now)["opinion_outcomes"]
+
+    assert {key: summary[key] for key in (
+        "requested", "replied", "accepted", "not_used", "ineligible",
+        "non_ai", "unclassified", "waiting",
+    )} == {
+        "requested": 9, "replied": 7, "accepted": 1, "not_used": 1,
+        "ineligible": 3, "non_ai": 1, "unclassified": 1, "waiting": 2,
+    }
+    reasons = {item["key"]: item["count"] for item in summary["ineligible_reasons"]}
+    assert reasons["network"] == 1
+    assert reasons["task"] == 1
+    assert reasons["confidential_data"] == 1
+    assert sum(reasons.values()) == summary["ineligible"]
+    assert summary["requested"] == (
+        summary["accepted"] + summary["not_used"] + summary["ineligible"]
+        + summary["non_ai"] + summary["unclassified"] + summary["waiting"]
+    )

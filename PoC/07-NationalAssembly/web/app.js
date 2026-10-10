@@ -2059,8 +2059,17 @@ function renderMeetingBrief(item, record) {
     ? "official" : "provisional";
   const brief = briefView === "official" ? officialBrief : provisionalBrief;
   const liveTopicLineage = brief.live_topic_lineage || {};
+  const semanticMappingCompleted = ["COMPLETED", "COMPLETED_REVALIDATED"].includes(
+    brief.live_topic_assignment?.semantic_mapping_status,
+  );
   const liveTopicClusters = Array.isArray(liveTopicLineage.clusters)
     ? liveTopicLineage.clusters : [];
+  const unmappedLiveTopics = liveTopicClusters.filter(
+    (cluster) => cluster.mapping_status === "UNMAPPED",
+  );
+  const singleUtteranceUnmappedCount = unmappedLiveTopics.filter(
+    (cluster) => Number(cluster.utterance_count || 0) === 1,
+  ).length;
   const liveTopicClusterById = new Map(
     liveTopicClusters.map((cluster) => [cluster.id, cluster]),
   );
@@ -2132,7 +2141,7 @@ function renderMeetingBrief(item, record) {
     const lineageNote = magazineElement(
       "p",
       `meeting-lineage-summary${lineageUnmapped || lineageAmbiguous ? " is-partial" : " is-complete"}`,
-      `실시간 주제 계보 ${lineageTotal.toLocaleString("ko-KR")}묶음 · 최종 주제 연결 ${lineageMapped.toLocaleString("ko-KR")} · 교차 ${lineageAmbiguous.toLocaleString("ko-KR")} · 미연결 ${lineageUnmapped.toLocaleString("ko-KR")}`,
+      `실시간 주제 계보 ${lineageTotal.toLocaleString("ko-KR")}묶음 · 최종 주제 연결 ${lineageMapped.toLocaleString("ko-KR")} · 교차 ${lineageAmbiguous.toLocaleString("ko-KR")} · 최종 주제 밖 ${lineageUnmapped.toLocaleString("ko-KR")}${lineageUnmapped ? ` (단일 발언 ${singleUtteranceUnmappedCount.toLocaleString("ko-KR")})` : ""}${semanticMappingCompleted ? " · 자동 연결 검토 완료" : ""}`,
     );
     identity.append(lineageNote);
   }
@@ -2284,9 +2293,6 @@ function renderMeetingBrief(item, record) {
     topicTaskOverviewList.append(magazineElement("p", "meeting-result-empty", "요약된 논의 주제를 준비하는 중입니다."));
   }
 
-  const unmappedLiveTopics = liveTopicClusters.filter(
-    (cluster) => cluster.mapping_status === "UNMAPPED",
-  );
   let lineageUnmappedPanel = null;
   if (unmappedLiveTopics.length) {
     lineageUnmappedPanel = magazineElement("details", "meeting-lineage-unmapped", "");
@@ -2296,7 +2302,9 @@ function renderMeetingBrief(item, record) {
     );
     const lineageHelp = magazineElement(
       "p", "",
-      "유사어·근거 발언으로 최종 주제에 안전하게 연결하지 못한 항목입니다. 누락을 숨기지 않고 검토 대상으로 보존합니다.",
+      semanticMappingCompleted
+        ? `자동 연결 검토를 마쳤습니다. 최종 ${detailedTopics.length.toLocaleString("ko-KR")}개 주제에 연결되지 않은 ${unmappedLiveTopics.length.toLocaleString("ko-KR")}묶음 중 ${singleUtteranceUnmappedCount.toLocaleString("ko-KR")}묶음은 단일 발언입니다. 각 논의의 근거 발언을 아래에 보존합니다.`
+        : "유사어·근거 발언으로 최종 주제에 안전하게 연결하지 못한 항목입니다. 누락을 숨기지 않고 검토 대상으로 보존합니다.",
     );
     const lineageList = magazineElement("ul", "", "");
     for (const cluster of unmappedLiveTopics) {
@@ -3181,6 +3189,16 @@ function renderDetectedAssemblyLive(items) {
   assemblyTranscriptState.liveItems = liveItems;
   if (!liveItems.length) return false;
   return true;
+}
+
+function officialPendingBroadcasts(items) {
+  return items
+    .filter((item) => !item.is_live && item.meeting_external_id
+      && String(item.status_text || "").includes("예정"))
+    .sort((left, right) => {
+      const time = (item) => String(item.status_text).match(/\d{1,2}:\d{2}/)?.[0] || "99:99";
+      return time(left).localeCompare(time(right), "ko-KR", { numeric: true });
+    });
 }
 
 function addMeetingRailCard(container, card) {
@@ -4283,15 +4301,18 @@ function modelUsageLine(item) {
   if (item.provider === "openrouter") {
     return `오늘 ${Number(item.today_request_count || 0).toLocaleString("ko-KR")}회 · 월 ${monthlyRequests.toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.total_tokens)} token`;
   }
+  if (item.provider === "openai") {
+    return `오늘 ${Number(item.today_request_count || 0).toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.today_total_tokens)} token`;
+  }
+  if (item.provider === "nvidia") {
+    return `이번 달 ${monthlyRequests.toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.total_tokens)} token · 계정 한도 별도 확인`;
+  }
   return `이번 달 ${monthlyRequests.toLocaleString("ko-KR")}회 · ${compactUsageNumber(item.total_tokens)} token · $${Number(item.cost_usd || 0).toFixed(2)}`;
 }
 
 function renderAiModelUsage(payload) {
   const models = payload.models || [];
-  const openrouterModels = models.filter((item) => item.provider === "openrouter");
-  const directModels = models.filter((item) => item.provider !== "openrouter");
-  document.querySelector("#aiModelUsageAmount").textContent = `${models.length.toLocaleString("ko-KR")}개 모델`;
-  document.querySelector("#aiModelUsageDetail").textContent = `직접 ${directModels.length} · 경유 ${openrouterModels.length} · 보고서·연관분석 포함`;
+  document.querySelector("#aiModelUsageOpen").title = `${models.length.toLocaleString("ko-KR")}개 모델별 사용량 보기`;
   document.querySelector("#aiModelUsageSummary").textContent = `${Number(payload.platform_count || 0).toLocaleString("ko-KR")}개 공급 경로 · ${models.length.toLocaleString("ko-KR")}개 모델을 60초마다 갱신합니다.`;
   const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
   const list = document.querySelector("#aiModelUsageList");
@@ -4300,7 +4321,7 @@ function renderAiModelUsage(payload) {
     list.append(magazineElement("p", "ai-model-usage-empty", "사용 중이거나 설정된 외부 AI 모델이 없습니다."));
     return;
   }
-  for (const providerName of ["openrouter", "mistral", ...new Set(models.map((item) => item.provider))]) {
+  for (const providerName of ["nvidia", "openrouter", "openai", "mistral", ...new Set(models.map((item) => item.provider))]) {
     const providerModels = models.filter((item) => item.provider === providerName);
     if (!providerModels.length || list.querySelector(`[data-provider="${providerName}"]`)) continue;
     const provider = providers[providerName] || {};
@@ -4308,16 +4329,20 @@ function renderAiModelUsage(payload) {
     group.dataset.provider = providerName;
     const groupHead = magazineElement("header", "", "");
     const groupTitle = magazineElement("div", "", "");
-    const providerLabel = providerName === "openrouter" ? "OpenRouter" : providerName === "mistral" ? "Mistral" : providerName;
+    const providerLabel = providerName === "nvidia" ? "NVIDIA NIM" : providerName === "openrouter" ? "OpenRouter" : providerName === "mistral" ? "Mistral" : providerName === "openai" ? "OpenAI" : providerName;
     groupTitle.append(
       magazineElement("strong", "", providerLabel),
       magazineElement("span", "", providerName === "openrouter" ? "모든 경유 모델 공용" : "직접 호출 모델 공용"),
     );
     const quota = providerName === "openrouter"
       ? `오늘 ${Number(provider.used || 0).toLocaleString("ko-KR")} / ${Number(provider.official_limit || provider.limit || 1000).toLocaleString("ko-KR")}회 · 운영 안전선 ${Number(provider.operational_limit || 950).toLocaleString("ko-KR")}회`
-      : providerName === "mistral"
+      : providerName === "nvidia"
+        ? "무료 시험 엔드포인트 · 한도는 NVIDIA 계정에서 확인"
+        : providerName === "mistral"
         ? `이번 달 $${Number(provider.cost_usd || 0).toFixed(2)} / $${Number(provider.credit_usd || 0).toFixed(2)}`
-        : "공급자 한도 미설정";
+        : providerName === "openai"
+          ? `오늘 ${Number(provider.used || 0).toLocaleString("ko-KR")} / ${Number(provider.limit || 650000).toLocaleString("ko-KR")} token · 남음 ${Number(provider.remaining || 0).toLocaleString("ko-KR")} · ${formatUsageReset(provider.resets_at)}`
+          : "공급자 한도 미설정";
     groupHead.append(groupTitle, magazineElement("b", "", quota));
     const cards = magazineElement("div", "ai-model-provider-models", "");
     for (const item of providerModels) {
@@ -4354,6 +4379,7 @@ function renderAiModelUsage(payload) {
 function renderAiUsage(payload) {
   const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
   const openrouter = providers.openrouter || (payload.provider === "openrouter" ? payload : {});
+  const openai = providers.openai || {};
   const mistral = providers.mistral || (payload.provider === "mistral" ? payload : {});
   const openrouterUsed = Number(openrouter.used || 0);
   const openrouterLimit = Number(openrouter.official_limit || openrouter.limit || 1000);
@@ -4364,6 +4390,26 @@ function renderAiUsage(payload) {
   document.querySelector("#aiOpenRouterDetail").textContent = `운영 ${openrouterOperationalLimit.toLocaleString("ko-KR")} · 남음 ${openrouterRemaining.toLocaleString("ko-KR")}`;
   document.querySelector("#aiOpenRouterReset").textContent = formatUsageReset(openrouter.resets_at || payload.resets_at);
   setAiUsageMeter("#aiOpenRouterMeter", openrouter.usage_percent ?? payload.usage_percent);
+
+  if (providers.openai) {
+    const openaiUsed = Number(openai.used || 0);
+    const openaiLimit = Number(openai.limit || 650000);
+    const openaiRemaining = Number.isFinite(Number(openai.remaining))
+      ? Number(openai.remaining) : Math.max(0, openaiLimit - openaiUsed);
+    const openaiAmount = document.querySelector("#aiOpenAiAmount");
+    openaiAmount.textContent = `${openaiUsed.toLocaleString("ko-KR")} / ${openaiLimit.toLocaleString("ko-KR")}`;
+    openaiAmount.title = `오늘 ${openaiUsed.toLocaleString("ko-KR")} / ${openaiLimit.toLocaleString("ko-KR")}토큰`;
+    document.querySelector("#aiOpenAiDetail").textContent = `남음 ${openaiRemaining.toLocaleString("ko-KR")}토큰`;
+    document.querySelector("#aiOpenAiReset").textContent = formatUsageReset(openai.resets_at);
+    setAiUsageMeter("#aiOpenAiMeter", openai.usage_percent ?? (
+      openaiLimit ? (openaiUsed / openaiLimit) * 100 : 0
+    ));
+  } else {
+    document.querySelector("#aiOpenAiAmount").textContent = "사용량 확인 필요";
+    document.querySelector("#aiOpenAiDetail").textContent = "공급자 정보 없음";
+    document.querySelector("#aiOpenAiReset").textContent = "갱신일 확인 필요";
+    setAiUsageMeter("#aiOpenAiMeter", 0);
+  }
 
   const mistralCost = Number(mistral.cost_usd || 0);
   const mistralCredit = Number(mistral.credit_usd || 0);
@@ -4386,8 +4432,8 @@ function loadAiUsage() {
     .then(renderAiUsage)
     .catch(() => {
       document.querySelector("#aiOpenRouterDetail").textContent = "사용량 확인 필요";
+      document.querySelector("#aiOpenAiDetail").textContent = "사용량 확인 필요";
       document.querySelector("#aiMistralDetail").textContent = "사용량 확인 필요";
-      document.querySelector("#aiModelUsageDetail").textContent = "모델 사용량 확인 필요";
       document.querySelector("#aiUsage").classList.add("is-unavailable");
     });
 }
@@ -4418,7 +4464,10 @@ function loadLiveStatus() {
     getJson("api/executive/briefings?limit=5", { items: [] }),
     getJson("api/live/transcript/snapshot", { broadcasts: [] }),
   ]).then(([payload, schedule, history, executive, activeTranscript]) => {
-      if (!payload) throw new Error("live status unavailable");
+      const checkedAt = Date.parse(payload?.checked_at || "");
+      if (!Number.isFinite(checkedAt) || Date.now() - checkedAt > 120_000) {
+        throw new Error("live status unavailable or stale");
+      }
       const testExecutive = (activeTranscript.broadcasts || []).find(
         (item) => item.lifecycle_status === "LIVE" && item.source_system === "poc07.test",
       );
@@ -4472,16 +4521,22 @@ function loadLiveStatus() {
       const assemblyLiveCount = (payload.assembly.items || []).filter((item) => item.is_live).length;
       const liveCount = assemblyLiveCount + (payload.executive.is_live === true ? 1 : 0);
       const anyLive = liveCount > 0;
+      const pendingBroadcasts = officialPendingBroadcasts(payload.assembly.items || []);
+      const pendingLabel = pendingBroadcasts.map((item) =>
+        `${item.short_name || item.committee_name} ${item.status_text}`,
+      ).join(" · ");
       const liveLabel = assemblyLiveCount > 0
         ? ` 자동 기록 중 · 국회 LIVE ${assemblyLiveCount}건 · ${payload.assembly.source_time}`
         : payload.executive.is_live === true
           ? payload.executive.source_system === "poc07.test"
             ? ` 가상방송 테스트 중 · 공통 LIVE 처리 · ${payload.assembly.source_time}`
             : ` 자동 기록 중 · 국무회의 LIVE · ${payload.assembly.source_time}`
-          : ` 현재 대상 생방송 없음 · ${payload.assembly.source_time}`;
+          : ` 현재 대상 생방송 없음${pendingLabel ? ` · 공식 중계 상태: ${pendingLabel}` : ""} · ${payload.assembly.source_time}`;
       liveNavTab?.classList.toggle("has-live", anyLive);
       const liveStatus = document.querySelector("#topLiveStatus");
-      if (liveStatus) liveStatus.textContent = anyLive ? `생방송 ${liveCount}건` : "방송없음";
+      if (liveStatus) liveStatus.textContent = anyLive
+        ? `생방송 ${liveCount}건`
+        : pendingBroadcasts[0]?.status_text || "방송없음";
       if (liveNavTab) {
         liveNavTab.title = liveLabel.trim();
         liveNavTab.setAttribute("aria-label", anyLive ? `LIVE 방송 중. ${liveLabel}` : `LIVE. ${liveLabel}`);
@@ -4491,9 +4546,11 @@ function loadLiveStatus() {
     .catch(() => {
       liveNavTab?.classList.remove("has-live");
       const liveStatus = document.querySelector("#topLiveStatus");
-      if (liveStatus) liveStatus.textContent = "방송없음";
-      liveNavTab?.setAttribute("aria-label", "LIVE 방송 상태 확인 필요");
-      selectInitialWorkspaceForLiveStatus(false);
+      if (liveStatus) liveStatus.textContent = "상태 확인 필요";
+      if (liveNavTab) {
+        liveNavTab.title = "공식 방송 상태 확인 필요";
+        liveNavTab.setAttribute("aria-label", "LIVE 방송 상태 확인 필요");
+      }
     })
     .finally(() => {
       if (liveStatusLoadPromise === request) liveStatusLoadPromise = null;

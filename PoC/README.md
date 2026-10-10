@@ -13,6 +13,8 @@
 | 05 | [05-north-korea-night-lights](05-north-korea-night-lights/README.md) | 북한 VIIRS 월별 야간조명 3D 격자 지도 | Earth Engine Python API + pydeck 단일 HTML |
 | 06 | [AI Work Hub](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
 | 07 | [07-NationalAssembly](07-NationalAssembly/README.md) | 국무회의·국회 회의·의안·표결의 공식 원문 기반 정책 흐름 | 독립 FastAPI + PostgreSQL + 루트 reverse proxy |
+| 10 | [HOME](10-home/README.md) | 정부 정책과 서울·경기 사업 후보 수집·검토·현황 조회 | 독립 FastAPI + PostgreSQL/PostGIS + 루트 reverse proxy |
+| 11 | [상담사례 아카이브](11-consultation-cases/README.md) | 통합콜센터 Q&A 수집·버전·RAG Markdown | 루트 ASGI + 파일 저장 |
 
 ## 등록 방식
 
@@ -68,6 +70,15 @@ PoC는 폴더 하나만으로 기능·설정·운영·테스트를 이해하고 
 
 /poc/national-assembly/*
   └─ PoC 07 독립 FastAPI 서비스(기본 localhost:18070) reverse proxy
+
+/home
+  └─ /poc/home/으로 이동
+
+/poc/home/*
+  └─ PoC 10 HOME 독립 FastAPI 서비스(기본 localhost:18100) reverse proxy
+
+/poc/consultation-cases/*
+  └─ PoC 11 수집 현황·JSON/Markdown 다운로드
 
 /api/poc/*
   └─ 서버 비밀값, 외부 API, 관리자 권한, LLM 호출 경계

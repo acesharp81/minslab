@@ -12,7 +12,7 @@ from app.db.watch_repository import (
 from app.services.watch_matcher import match_watch_rule, normalize_watch_text
 from app.services.watch_test_script import build_watch_test_script
 from app.services.watch_replay_script import build_hasi_ai_replay_script
-from app.services.watch_kakao import KakaoNotificationProvider
+from app.services.watch_kakao import KakaoNotificationProvider, public_watch_context
 from app.services.watch_summary import MistralWatchSummaryClient, OpenRouterWatchSummaryClient
 
 
@@ -101,6 +101,92 @@ class WatchMatcherTests(unittest.TestCase):
         self.assertFalse(_allows_kakao_delivery("poc07.replay.local"))
         self.assertTrue(_allows_kakao_delivery("poc07.replay.kakao"))
         self.assertTrue(_allows_kakao_delivery("assembly.webcast.go.kr"))
+
+
+class WatchPublicDomainTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.settings = SimpleNamespace(
+            watch_public_base_url="https://www.minslab.kr/poc/national-assembly/",
+            watch_kakao_redirect_uri=(
+                "https://www.minslab.kr/poc/national-assembly/"
+                "api/watch/kakao/callback"
+            ),
+            watch_secondary_public_base_url="https://kjon.aigov.go.kr/",
+            watch_kakao_enabled=True,
+            watch_kakao_rest_api_key="test-client-id",
+            watch_kakao_client_secret="",
+            watch_kakao_token_encryption_key="test-key",
+        )
+
+    def test_new_host_uses_root_callback_and_old_host_keeps_existing_callback(self) -> None:
+        secondary = public_watch_context(self.settings, "kjon.aigov.go.kr")
+        primary = public_watch_context(self.settings, "www.minslab.kr")
+        self.assertEqual(secondary, (
+            "https://kjon.aigov.go.kr/",
+            "https://kjon.aigov.go.kr/api/watch/kakao/callback",
+        ))
+        self.assertEqual(primary, (
+            self.settings.watch_public_base_url,
+            self.settings.watch_kakao_redirect_uri,
+        ))
+        self.assertEqual(public_watch_context(self.settings, "evil.example"), primary)
+
+    def test_authorize_and_token_exchange_use_same_selected_callback(self) -> None:
+        from urllib.parse import parse_qs, urlsplit
+
+        provider = KakaoNotificationProvider(self.settings)
+        selected = public_watch_context(self.settings, "kjon.aigov.go.kr")[1]
+        url = provider.authorization_url("opaque-state", redirect_uri=selected)
+        self.assertEqual(parse_qs(urlsplit(url).query)["redirect_uri"], [selected])
+        with patch.object(provider, "_request", side_effect=RuntimeError("stop")) as request:
+            with self.assertRaisesRegex(RuntimeError, "stop"):
+                provider.exchange_code("test-code", redirect_uri=selected)
+        self.assertEqual(request.call_args.args[1]["redirect_uri"], selected)
+
+
+
+class WatchDomainOriginTests(unittest.TestCase):
+    def test_mutations_require_origin_matching_selected_public_host(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from app.services import web_security
+
+        settings = SimpleNamespace(
+            watch_session_cookie_name="gukjeongbomi_session",
+            watch_public_base_url="https://www.minslab.kr/poc/national-assembly/",
+            watch_kakao_redirect_uri=(
+                "https://www.minslab.kr/poc/national-assembly/"
+                "api/watch/kakao/callback"
+            ),
+            watch_secondary_public_base_url="https://kjon.aigov.go.kr/",
+        )
+        app = FastAPI()
+        web_security.install_security_middleware(app)
+
+        @app.post("/api/watch/probe")
+        def probe() -> dict[str, bool]:
+            return {"ok": True}
+
+        with patch.object(web_security, "get_settings", return_value=settings):
+            with TestClient(app) as client:
+                old = client.post("/api/watch/probe", headers={
+                    "origin": "https://www.minslab.kr",
+                })
+                new = client.post("/api/watch/probe", headers={
+                    "origin": "https://kjon.aigov.go.kr",
+                    "x-forwarded-host": "kjon.aigov.go.kr",
+                })
+                mismatch = client.post("/api/watch/probe", headers={
+                    "origin": "https://www.minslab.kr",
+                    "x-forwarded-host": "kjon.aigov.go.kr",
+                })
+                unknown = client.post("/api/watch/probe", headers={
+                    "origin": "https://evil.example",
+                    "x-forwarded-host": "kjon.aigov.go.kr",
+                })
+        self.assertEqual([old.status_code, new.status_code], [200, 200])
+        self.assertEqual([mismatch.status_code, unknown.status_code], [403, 403])
+
 
 
 class WatchSchemaTests(unittest.TestCase):
@@ -364,7 +450,7 @@ class WatchSchemaTests(unittest.TestCase):
         watch_repository = (
             project / "backend" / "app" / "db" / "watch_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn('source == "poc07.replay.kakao"', watch_repository)
+        self.assertIn('source != "poc07.replay.kakao"', watch_repository)
         self.assertIn('"poc07.replay.local"', watch_repository)
 
     def test_test_source_is_filtered_from_public_queries(self) -> None:

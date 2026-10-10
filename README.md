@@ -4,7 +4,7 @@
 
 ## 저장소 한눈에 보기
 
-MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채팅, 포트폴리오 실습 4개, 실행형 PoC 7개, 관리자 통계를 함께 제공하는 실험 저장소입니다. 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅하고, 독립 런타임이 필요한 PoC 07만 같은 출처 경로로 reverse proxy합니다.
+MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채팅, 포트폴리오 실습 4개, 등록된 PoC와 관리자 통계를 함께 제공하는 실험 저장소입니다. 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅하고 독립 서비스는 같은 출처로 프록시합니다. PoC 10 HOME은 전용 FastAPI·PostgreSQL/PostGIS에서 정부 주택공급 정책과 서울·경기 사업 후보를 수집·조회하며 `/poc/home/*`로 연결합니다.
 
 | 구분 | 프로젝트 | 실행 화면 | 상세 문서 |
 | --- | --- | --- | --- |
@@ -20,6 +20,8 @@ MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채�
 | PoC 05 | 북한 야간조명 3D 지도 | `/poc?project=north-korea-night-lights` | [PoC/05-north-korea-night-lights](PoC/05-north-korea-night-lights/README.md) |
 | PoC 06 | AI Work Hub | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
 | PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
+| PoC 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
+| PoC 11 | 상담사례 아카이브 | `/poc/consultation-cases` · `/counsel` | [PoC/11-consultation-cases](PoC/11-consultation-cases/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -32,6 +34,7 @@ Browser
   ├─ deck.gl player: North Korea Night Lights
   ├─ static workspace: AI Work Hub
   ├─ proxied independent app: National Assembly
+  ├─ proxied independent app: HOME (localhost:18100)
   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
           │ HTTPS
           ▼

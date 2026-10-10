@@ -7,10 +7,13 @@ import time
 from collections.abc import Callable, Iterable
 from copy import deepcopy
 from dataclasses import dataclass
+from datetime import date
 from difflib import SequenceMatcher
 from typing import Any
 
 import requests
+
+from ..db.openai_daily_budget import DailyTokenLimitReached
 
 from .live_topic_mapping import (
     build_semantic_mapping_prompt,
@@ -19,7 +22,7 @@ from .live_topic_mapping import (
 )
 from .openrouter_gateway_client import openrouter_headers
 
-PROMPT_VERSION = "assembly-meeting-brief/1.9"
+PROMPT_VERSION = "assembly-meeting-brief/2.0"
 ANALYSIS_CACHE_VERSION = "assembly-meeting-brief/1.2"
 MAX_FINAL_TASKS = 20
 MAX_FINAL_TOPICS = 24
@@ -292,9 +295,12 @@ def build_synthesis_prompt(
     return (
         "여러 구간 분석을 하나의 국회 회의 결과 브리프로 통합한다. 첫 화면에서 이해할 수 있는 "
         "회의 한 줄 제목과 2~3문장 요약, 의미상 중복만 합친 핵심 주제, 주제별 화자 요지, 실제로 "
-        "각 live_topic_cluster id를 의미상 가장 가까운 최종 핵심 주제 한 곳의 "
-        "live_topic_cluster_ids에 정확히 한 번 포함하고 별도 실시간 주제로 남기지 마라. "
+        "실시간 주제 묶음의 근거가 충분한 독립 쟁점을 최종 핵심 주제에 반영한다. "
+        "각 live_topic_cluster id는 정책 대상·쟁점·요구 조치가 같은 최종 주제 한 곳의 "
+        "live_topic_cluster_ids에만 포함하라. 맞는 최종 주제가 없는 별도 쟁점이나 "
+        "회의 진행 발언은 임의로 연결하지 마라. "
         f"남은 과제를 만든다. 핵심 주제는 최소 {minimum_topics}개, 최대 {MAX_FINAL_TOPICS}개로 정리하되, "
+        "상한을 채우기 위해 같은 쟁점을 두 주제로 중복 작성하지 마라. "
         "회의에 실제로 존재하는 독립 쟁점 수에 따라 결정하라. 부처·정책 대상·요구 조치가 다른 쟁점은 제목이 비슷해도 합치지 마라. 같은 주제를 합치되 서로 다른 쟁점은 유지한다. 과제는 근거가 분명한 "
         "요구·약속·조치만 남기고 단순 질의나 의견은 제외한다. 담당부처와 상태는 구간 분석보다 "
         "강하게 단정하지 말고, 구간 분석에 포함된 evidence id 이외의 id는 절대 사용하지 마라. 공식 결론이 "
@@ -1227,7 +1233,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     if schema_name == "live_topic_mapping"
                     else "meeting_brief"
                 ),
-                priority=40,
+                priority=30,
             ),
             json=body,
             timeout=max(self.timeout_seconds, OPENROUTER_GATEWAY_TIMEOUT_SECONDS),
@@ -1264,7 +1270,10 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
             build_semantic_mapping_prompt(brief, clusters),
             semantic_mapping_response_schema(),
             "live_topic_mapping",
-            model_override=OPENROUTER_FINAL_RETRY_MODEL,
+            model_override=(
+                OPENROUTER_FINAL_RETRY_MODEL
+                if self.provider == "openrouter" else None
+            ),
         )
         return normalize_semantic_mapping(
             data, list(brief.get("topics") or []), clusters,
@@ -1322,7 +1331,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
             request_prompt = prompt
             model_override: str | None = (
                 OPENROUTER_FINAL_RETRY_MODEL
-                if schema_name == "meeting_brief"
+                if self.provider == "openrouter" and schema_name == "meeting_brief"
                 else None
             )
             retry_model = (
@@ -1330,7 +1339,10 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 if schema_name == "meeting_brief"
                 else OPENROUTER_STRUCTURED_RETRY_MODEL
             )
-            for attempt in range(3):
+            max_attempts = (
+                1 if self.provider == "nvidia" and schema_name == "meeting_brief" else 3
+            )
+            for attempt in range(max_attempts):
                 callback()
                 request_count += 1
                 try:
@@ -1344,10 +1356,20 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     return data, metadata
                 except requests.HTTPError as exc:
                     status = getattr(exc.response, "status_code", None)
-                    retryable = status in {400, 409, 429} or (
+                    if status == 429 and self.provider == "nvidia":
+                        # A paced fallback can continue immediately on OpenRouter.
+                        raise
+                    if status == 429 and self.provider == "openrouter":
+                        try:
+                            gateway_error = (exc.response.json().get("error") or {})
+                            if gateway_error.get("message") == "global_daily_operational_limit":
+                                raise
+                        except (ValueError, AttributeError):
+                            pass
+                    retryable = status in ({400, 409, 429} if self.provider == "openrouter" else {409, 429}) or (
                         isinstance(status, int) and status >= 500
                     )
-                    if not retryable or attempt == 2:
+                    if not retryable or attempt == max_attempts - 1:
                         raise
                     if (
                         self.provider == "openrouter"
@@ -1362,7 +1384,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     )
                     time.sleep(delay)
                 except requests.Timeout:
-                    if attempt == 2:
+                    if attempt == max_attempts - 1:
                         raise
                     if self.provider == "openrouter":
                         model_override = retry_model
@@ -1371,7 +1393,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     # Count tokens from malformed responses before retrying so the
                     # monthly free-credit guard cannot be bypassed by parse failures.
                     usage_callback(exc.usage_metadata)
-                    if attempt == 2:
+                    if attempt == max_attempts - 1:
                         raise
                     finish_reason = str(
                         exc.usage_metadata.get("finish_reason") or ""
@@ -1513,7 +1535,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
             meeting,
             analyses,
             valid_ids,
-            None,
+            live_topic_clusters,
         )
         required_topic_count = minimum_final_topic_count(analyses)
         required_task_count = minimum_final_task_count(analyses)
@@ -1611,3 +1633,196 @@ class MistralMeetingBriefClient(OpenRouterMeetingBriefClient):
 
     provider = "mistral"
     _post = _MistralMeetingBriefRequestClient._post
+
+
+class NvidiaMeetingBriefClient(OpenRouterMeetingBriefClient):
+    """Direct NVIDIA NIM client using the validated report pipeline."""
+
+    provider = "nvidia"
+
+    def __init__(
+        self, api_key: str, *, model: str, base_url: str,
+        min_interval_seconds: float = 6.0, timeout_seconds: float = 120.0,
+    ) -> None:
+        super().__init__(
+            api_key, model=model, base_url=base_url,
+            timeout_seconds=timeout_seconds,
+        )
+        self.min_interval_seconds = max(0.0, min_interval_seconds)
+        self._next_request_at = 0.0
+
+    def _post(
+        self, prompt: str, schema: dict[str, Any], schema_name: str,
+        model_override: str | None = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        delay = self._next_request_at - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        self._next_request_at = time.monotonic() + self.min_interval_seconds
+        request_model = model_override or self.model
+        body = {
+            "model": request_model,
+            "messages": [
+                {"role": "system", "content": "근거 id를 보존하는 한국어 국회 회의 분석기다."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "max_tokens": 20_000 if schema_name == "meeting_brief" else 12_000,
+            "reasoning_effort": "none",
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+            },
+        }
+        response = requests.post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json=body,
+            timeout=300.0 if schema_name == "meeting_brief" else self.timeout_seconds,
+        )
+        if response.status_code >= 400:
+            raise requests.HTTPError(
+                f"NVIDIA NIM {response.status_code}: upstream error",
+                response=response,
+            )
+        payload = response.json()
+        choice = (payload.get("choices") or [{}])[0]
+        content = str((choice.get("message") or {}).get("content") or "")
+        metadata = {
+            "request_id": str(payload.get("id") or ""),
+            "model": request_model,
+            "finish_reason": str(choice.get("finish_reason") or ""),
+            "usage": payload.get("usage") or {},
+        }
+        try:
+            parsed = _parse_json_content(
+                content,
+                recover_complete_topics=schema_name == "meeting_chunk_analysis",
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise MalformedMeetingBriefResponse(metadata) from exc
+        return parsed, metadata
+
+
+class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
+    """Direct OpenAI client with a conservative pre-request token reservation."""
+
+    provider = "openai"
+
+    def __init__(
+        self, api_key: str, *, model: str, base_url: str,
+        reserve_tokens: Callable[[int], date],
+        settle_tokens: Callable[[date, int, dict[str, Any] | None], None],
+        timeout_seconds: float = 120.0,
+    ) -> None:
+        super().__init__(
+            api_key, model=model, base_url=base_url,
+            timeout_seconds=timeout_seconds,
+        )
+        self.reserve_tokens = reserve_tokens
+        self.settle_tokens = settle_tokens
+
+    def _post(
+        self, prompt: str, schema: dict[str, Any], schema_name: str,
+        model_override: str | None = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        max_output_tokens = 20_000 if schema_name == "meeting_brief" else 8_000
+        body = {
+            "model": model_override or self.model,
+            "messages": [
+                {"role": "system", "content": "근거 id를 보존하는 한국어 국회 회의 분석기다."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+            "reasoning_effort": "none",
+            "max_completion_tokens": max_output_tokens,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+            },
+        }
+        # UTF-8 bytes conservatively bound input tokens. Include the schema,
+        # message framing, and the full permitted completion length.
+        body_bytes = len(json.dumps(body, ensure_ascii=False).encode("utf-8"))
+        estimate = body_bytes + max_output_tokens + 2_048
+        usage_metadata: dict[str, Any] | None = None
+        try:
+            usage_date = self.reserve_tokens(estimate)
+        except DailyTokenLimitReached:
+            # UTF-8 bytes can overstate Korean prompt tokens substantially.
+            # Count the identical prompt and schema through OpenAI's official
+            # input-token endpoint, then keep a large Chat/Responses margin.
+            try:
+                count_response = requests.post(
+                    f"{self.base_url}/responses/input_tokens",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": body["model"],
+                        "input": body["messages"],
+                        "text": {"format": {
+                            "type": "json_schema",
+                            "name": schema_name,
+                            "strict": True,
+                            "schema": schema,
+                        }},
+                    },
+                    timeout=30.0,
+                )
+                count_response.raise_for_status()
+                input_tokens = int(count_response.json()["input_tokens"])
+                if input_tokens < 1:
+                    raise ValueError("OpenAI input count is empty")
+            except (requests.RequestException, ValueError, KeyError) as exc:
+                raise DailyTokenLimitReached(
+                    "OpenAI daily limit reached; input count unavailable"
+                ) from exc
+            estimate = max(input_tokens + 8_192, (body_bytes + 1) // 2)
+            estimate += max_output_tokens
+            usage_date = self.reserve_tokens(estimate)
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json=body,
+                timeout=(300.0 if schema_name == "meeting_brief" else self.timeout_seconds),
+            )
+            if response.status_code >= 400:
+                raise requests.HTTPError(
+                    f"OpenAI {response.status_code}: upstream error", response=response,
+                )
+            payload = response.json()
+            usage_metadata = {
+                "request_id": str(payload.get("id") or ""),
+                "model": str(payload.get("model") or self.model),
+                "finish_reason": str(
+                    (payload.get("choices") or [{}])[0].get("finish_reason") or ""
+                ),
+                "usage": payload.get("usage") or {},
+            }
+            content = str(
+                ((payload.get("choices") or [{}])[0].get("message") or {})
+                .get("content") or ""
+            )
+            try:
+                parsed = _parse_json_content(
+                    content,
+                    recover_complete_topics=schema_name == "meeting_chunk_analysis",
+                )
+            except (json.JSONDecodeError, ValueError) as exc:
+                raise MalformedMeetingBriefResponse(usage_metadata) from exc
+            return parsed, usage_metadata
+        finally:
+            self.settle_tokens(usage_date, estimate, usage_metadata)

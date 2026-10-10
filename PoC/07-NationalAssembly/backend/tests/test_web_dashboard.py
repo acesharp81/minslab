@@ -13,8 +13,8 @@ class WebDashboardTests(unittest.TestCase):
         security = (
             PROJECT_DIR / "backend/app/services/web_security.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("assets/app.js?v=20260927-2", html)
-        self.assertIn("assets/workspace.css?v=20260923-1", html)
+        self.assertIn("assets/app.js?v=20261007-4", html)
+        self.assertIn("assets/workspace.css?v=20261007-1", html)
         self.assertIn('response.headers["Cache-Control"] = "no-store, max-age=0"', security)
         self.assertIn('path.startswith("/assets/")', security)
 
@@ -508,7 +508,7 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn('id="aiModelUsageOpen"', html)
         self.assertIn('id="aiModelUsageDialog"', html)
         self.assertIn('id="aiModelUsageList"', html)
-        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(122px, .72fr)", (
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", (
             PROJECT_DIR / "web" / "workspace.css"
         ).read_text(encoding="utf-8"))
         self.assertIn("setAiUsageMeter", schedule_script)

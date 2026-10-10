@@ -29,12 +29,21 @@ class Settings(BaseSettings):
     meeting_brief_provider: str = ""
     meeting_brief_model: str = "dots-studio/dots-3-note-preview:free"
     meeting_brief_mistral_model: str = "mistral-small-2603"
+    meeting_brief_openai_model: str = "gpt-5.4-mini"
+    meeting_brief_nvidia_enabled: bool = False
+    meeting_brief_nvidia_model: str = "nvidia/nemotron-3-ultra-550b-a55b"
+    meeting_brief_nvidia_min_interval_seconds: float = 6.0
     gemini_api_key: str = ""
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_daily_limit: int = 950
     openrouter_gateway_status_url: str = ""
     mistral_api_key: str = ""
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_daily_token_limit: int = 650_000
+    nvidia_api_key: str = ""
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     mistral_base_url: str = "https://api.mistral.ai/v1"
     # Mistral Small 4 standard API pricing as of 2026-08-25.
     # The free monthly API credit is enforced by calculated USD cost.
@@ -53,6 +62,7 @@ class Settings(BaseSettings):
     watch_llm_model: str = ""
     watch_kakao_redirect_uri: str = ""
     watch_public_base_url: str = ""
+    watch_secondary_public_base_url: str = ""
     watch_session_cookie_name: str = "gukjeongbomi_session"
     watch_session_cookie_path: str = "/poc/national-assembly"
     topic_reports_enabled: bool = True

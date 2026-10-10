@@ -7,6 +7,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 
 from ..config import get_settings
+from .watch_kakao import public_watch_context
 
 
 def set_watch_cookie(response: Response, token: str) -> None:
@@ -71,7 +72,10 @@ def install_security_middleware(app: Any) -> None:
             or request.url.path.startswith("/api/topic-reports")
         ):
             origin = request.headers.get("origin")
-            public = urlsplit(settings.watch_public_base_url)
+            public_base, _ = public_watch_context(
+                settings, request.headers.get("x-forwarded-host", ""),
+            )
+            public = urlsplit(public_base)
             expected = (
                 f"{public.scheme}://{public.netloc}"
                 if public.scheme and public.netloc else ""

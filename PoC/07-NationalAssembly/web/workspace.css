@@ -1427,7 +1427,7 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 /* Live quota status and airport-board schedule header. */
 .ai-usage {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(122px, .72fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: min(620px, 48vw);
   min-height: 74px;
   margin-left: 14px;
@@ -1439,27 +1439,25 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 }
 .ai-usage-provider { display: grid; min-width: 0; padding: 9px 12px 8px; gap: 4px; }
 .ai-usage-openrouter { background: linear-gradient(135deg, rgba(230,241,255,.78), rgba(248,251,255,.92)); }
+.ai-usage-openai { background: linear-gradient(135deg, rgba(231,248,244,.78), rgba(249,253,251,.94)); }
 .ai-usage-mistral { background: linear-gradient(135deg, rgba(243,239,255,.72), rgba(251,249,255,.94)); }
-.ai-usage-models { appearance: none; border: 0; color: inherit; background: linear-gradient(135deg, rgba(232,249,243,.8), rgba(249,253,251,.96)); text-align: left; cursor: pointer; }
 .ai-usage-provider + .ai-usage-provider { border-left: 1px solid #d6e3f5; }
 .ai-usage-heading, .ai-usage-meta { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 6px; }
 .ai-usage-heading strong { overflow: hidden; color: #24578f; font-size: 10px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
 .ai-usage-heading span { flex: 0 0 auto; padding: 1px 4px; border-radius: 4px; color: #637993; background: rgba(255,255,255,.72); font-size: 8.5px; font-weight: 800; }
+.ai-usage-detail-button { flex: 0 0 auto; padding: 1px 4px; border: 0; border-radius: 4px; color: #167052; background: rgba(255,255,255,.72); cursor: pointer; font-size: 8.5px; font-weight: 800; white-space: nowrap; }
+.ai-usage-detail-button:hover, .ai-usage-detail-button:focus-visible { background: #d5f1e6; outline: 1px solid #4aa987; }
+.ai-usage-openai .ai-usage-heading strong { color: #167052; }
 .ai-usage-mistral .ai-usage-heading strong { color: #6249b8; }
-.ai-usage-models .ai-usage-heading strong { color: #167052; }
 .ai-usage-value { display: block; overflow: hidden; color: #123d70; font-size: 15px; font-weight: 900; line-height: 1.15; letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
+.ai-usage-openai .ai-usage-value { color: #145f49; font-size: clamp(11px, 1.13vw, 14px); }
 .ai-usage-mistral .ai-usage-value { color: #4f369e; }
-.ai-usage-models .ai-usage-value { color: #145f49; font-size: 13px; }
 .ai-usage-meter { height: 6px; overflow: hidden; border-radius: 99px; background: #d8e5f6; }
 .ai-usage-meter i { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #276bc4, #49a1ea); transition: width .3s ease; }
+.ai-usage-openai .ai-usage-meter i { background: linear-gradient(90deg, #168b6e, #51b892); }
 .ai-usage-mistral .ai-usage-meter i { background: linear-gradient(90deg, #7157d9, #a678e7); }
 .ai-usage-meta span, .ai-usage-meta time { overflow: hidden; color: #586f8c; font-size: 9px; font-style: normal; font-weight: 800; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 .ai-usage-meta time { flex: 0 0 auto; text-align: right; }
-.ai-usage-meta em { flex: 0 0 auto; color: #18745a; font-size: 9px; font-style: normal; font-weight: 900; }
-.ai-usage-model-route { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; height: 6px; }
-.ai-usage-model-route i { border-radius: 99px; background: #51b892; }
-.ai-usage-model-route i:nth-child(2) { background: #5c92d8; }
-.ai-usage-model-route i:nth-child(3) { background: #8a71d3; }
 .ai-usage.is-unavailable { opacity: .72; }
 
 .ai-model-usage-dialog { width: min(920px, calc(100vw - 28px)); max-height: min(760px, calc(100vh - 28px)); padding: 0; overflow: hidden; border: 1px solid #cddbed; border-radius: 18px; color: #193b65; background: #f7faff; box-shadow: 0 24px 80px rgba(13,43,78,.28); }
@@ -1556,12 +1554,13 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 }
 @media (max-width: 440px) {
   .ai-usage-provider { padding-inline: 8px; }
-  .ai-usage-value { font-size: 13px; }
+  .ai-usage-value, .ai-usage-openai .ai-usage-value { font-size: 11px; }
   .ai-usage-meta span, .ai-usage-meta time { font-size: 8px; }
 }
 @media (max-width: 620px) {
-  .ai-usage { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .ai-usage-models { grid-column: 1 / -1; border-top: 1px solid #d6e3f5; border-left: 0 !important; }
+  .ai-usage { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .ai-usage-meta { align-items: flex-start; flex-direction: column; gap: 1px; }
+  .ai-usage-meta time { flex: 0 1 auto; }
   .ai-model-provider-group > header { align-items: flex-start; flex-direction: column; gap: 4px; }
   .ai-model-provider-models { grid-template-columns: 1fr; }
 }

@@ -6,6 +6,7 @@ from unittest import mock
 
 import main
 import poc09_proxy
+import poc10_proxy
 import httpx
 
 
@@ -52,6 +53,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
             "/kjon": "/poc/national-assembly/",
             "/airador": "/poc/ai-common-platform-radar/",
             "/mmj": "/poc/mwomeokji/",
+            "/home": "/poc/home/",
         }
         for shortcut, target in shortcuts.items():
             for path in (shortcut, f"{shortcut}/"):
@@ -70,6 +72,115 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(start["status"], 307)
         self.assertEqual(dict(start["headers"])[b"location"], b"/poc/master-press/")
         self.assertEqual(body, b"")
+
+    async def test_home_page_and_api_proxy_to_independent_service(self):
+        expected = main.HOME_PAGE.read_bytes()
+        observed = []
+        def upstream(request):
+            observed.append(str(request.url))
+            return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8", "cache-control": "no-cache", "content-length": str(len(expected))}, content=expected)
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(upstream)
+        for path in ("/poc/home", "/poc/home/", "/poc/home/api/overview"):
+            for method in ("GET", "HEAD"):
+                with self.subTest(path=path, method=method), mock.patch.object(poc10_proxy.httpx, "AsyncClient", side_effect=lambda **kw: original_client(transport=transport, **kw)):
+                    start, body = await call_app(path, method=method)
+                    headers = dict(start["headers"])
+                    self.assertEqual(start["status"], 200)
+                    self.assertEqual(headers[b"content-type"], b"text/html; charset=utf-8")
+                    self.assertEqual(headers[b"content-length"], str(len(expected)).encode("ascii"))
+                    self.assertEqual(headers[b"cache-control"], b"no-cache")
+                    self.assertEqual(body, b"" if method == "HEAD" else expected)
+                    self.assertIn(b"/poc/home/assets/app.js", expected)
+        self.assertTrue(all(url.startswith(main.HOME_UPSTREAM + "/poc/home") for url in observed))
+
+    async def test_home_admin_refresh_rejects_anonymous_and_forged_headers(self):
+        start, _ = await call_app("/poc/home/api/admin/refresh", method="POST", headers=[
+            (b"x-home-admin", b"forged"), (b"origin", b"https://www.minslab.kr"), (b"host", b"www.minslab.kr")])
+        self.assertEqual(start["status"], 401)
+
+    async def test_home_target_write_requires_admin_same_origin_and_internal_signature(self):
+        path='/poc/home/api/admin/targets/PRO_TEST'
+        start,_=await call_app(path,method='POST')
+        self.assertEqual(start['status'],401)
+        observed=[]
+        def upstream(request):
+            observed.append(request)
+            return httpx.Response(200,json={'revision_no':1})
+        original_client=httpx.AsyncClient
+        with mock.patch.object(main,'admin_session',return_value={'subject':'admin'}), \
+             mock.patch.object(poc10_proxy,'internal_secret',return_value='home-goal-test-secret'), \
+             mock.patch.object(poc10_proxy.httpx,'AsyncClient',side_effect=lambda **kw:original_client(transport=httpx.MockTransport(upstream),**kw)):
+            start,_=await call_app(path,method='POST',headers=[(b'host',b'www.minslab.kr'),(b'origin',b'https://untrusted.example')])
+            self.assertEqual(start['status'],403)
+            self.assertFalse(observed)
+            start,_=await call_app(path,method='POST',headers=[(b'host',b'www.minslab.kr'),(b'origin',b'https://www.minslab.kr'),(b'x-home-admin',b'forged')])
+            self.assertEqual(start['status'],200)
+            self.assertNotEqual(observed[0].headers.get('x-home-admin'),'forged')
+            self.assertIn('x-home-admin',observed[0].headers)
+
+    async def test_home_two_stage_mapping_writes_use_existing_admin_boundary(self):
+        paths = ['/poc/home/api/admin/programs/PRG_TEST/policy',
+                 '/poc/home/api/admin/projects/PRO_TEST/program']
+        observed = []
+        def upstream(request):
+            observed.append(request)
+            return httpx.Response(200, json={'revision_no': 2})
+        original_client = httpx.AsyncClient
+        for path in paths:
+            start, _ = await call_app(path, method='POST')
+            self.assertEqual(start['status'], 401)
+            with mock.patch.object(main, 'admin_session', return_value={'subject': 'admin'}), \
+                 mock.patch.object(poc10_proxy, 'internal_secret', return_value='home-hierarchy-test-secret'), \
+                 mock.patch.object(poc10_proxy.httpx, 'AsyncClient', side_effect=lambda **kw: original_client(transport=httpx.MockTransport(upstream), **kw)):
+                start, _ = await call_app(path, method='POST', headers=[(b'host', b'www.minslab.kr'),
+                    (b'origin', b'https://untrusted.example')])
+                self.assertEqual(start['status'], 403)
+                start, _ = await call_app(path, method='POST', headers=[(b'host', b'www.minslab.kr'),
+                    (b'origin', b'https://www.minslab.kr'), (b'x-home-admin', b'forged')])
+                self.assertEqual(start['status'], 200)
+                self.assertNotEqual(observed[-1].headers.get('x-home-admin'), 'forged')
+
+    async def test_home_proxy_does_not_forward_cookies_or_incoming_signature(self):
+        observed = {}
+        def upstream(request):
+            observed.update(dict(request.headers))
+            return httpx.Response(200, json={"ok": True})
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(upstream)
+        with mock.patch.object(poc10_proxy.httpx, "AsyncClient", side_effect=lambda **kw: original_client(transport=transport, **kw)):
+            start, _ = await call_app("/poc/home/api/sources", headers=[(b"cookie", b"other_poc=hidden"), (b"x-home-admin", b"forged")])
+        self.assertEqual(start["status"], 200)
+        self.assertNotIn("cookie", observed)
+        self.assertNotIn("x-home-admin", observed)
+
+    async def test_home_admin_writes_require_same_origin_and_server_signature(self):
+        observed = []
+        def upstream(request):
+            observed.append(request)
+            return httpx.Response(202, json={"status":"ACCEPTED"})
+        original_client = httpx.AsyncClient
+        transport = httpx.MockTransport(upstream)
+        with mock.patch.object(main,"admin_session",return_value={"subject":"admin"}), \
+             mock.patch.object(poc10_proxy,"internal_secret",return_value="home-proxy-test-secret"), \
+             mock.patch.object(poc10_proxy.httpx,"AsyncClient",side_effect=lambda **kw:original_client(transport=transport,**kw)):
+            start,_ = await call_app('/poc/home/api/admin/refresh',method='POST',headers=[
+                (b'host',b'www.minslab.kr'),(b'origin',b'https://untrusted.example')])
+            self.assertEqual(start['status'],403)
+            self.assertFalse(observed)
+            start,_ = await call_app('/poc/home/api/admin/refresh',method='POST',headers=[
+                (b'host',b'www.minslab.kr'),(b'origin',b'https://www.minslab.kr'),(b'x-home-admin',b'forged')])
+            self.assertEqual(start['status'],202)
+            self.assertIn('x-home-admin',observed[0].headers)
+            self.assertNotEqual(observed[0].headers['x-home-admin'],'forged')
+
+    async def test_home_paths_reject_write_methods(self):
+        for path in ("/home", "/home/", "/poc/home", "/poc/home/"):
+            with self.subTest(path=path):
+                start, body = await call_app(path, method="POST")
+                self.assertEqual(start["status"], 405)
+                self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD")
+                self.assertIn(b"method not allowed", body)
 
     async def test_mmj_destination_forwards_to_isolated_service(self):
         async def fake_proxy(scope, receive, send, upstream):

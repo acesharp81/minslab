@@ -1,0 +1,26 @@
+{
+  "id": "consultation-cases",
+  "order": 11,
+  "display_no": "11",
+  "title": "상담사례 아카이브",
+  "date": "국민권익위원회 통합콜센터 · JSON / RAG Markdown",
+  "summary": "공개 상담사례를 매일 수집하고 버전별 JSON과 청킹용 Markdown을 발행합니다.",
+  "description": "국민권익위원회 통합콜센터 상담사례 조회서비스를 오전 3시(한국 시간)에 조회합니다. 날짜·페이지 파라미터와 원본 응답 필드를 보존하고, 추가 사례가 있으면 버전을 올려 JSON과 RAG용 Markdown을 함께 발행합니다.",
+  "app_path": "/poc/consultation-cases/",
+  "app_caption": "총 수집량, 오늘 신규 건수, 현재 버전과 파일 다운로드를 확인합니다.",
+  "app_policy": "공공데이터포털 인증키 서버 보관 · 하루 최대 1,000건 조회 · 변경 시 발행",
+  "tags": ["PoC", "공공데이터", "민원상담", "RAG", "JSON", "Markdown"],
+  "features": [
+    ["매일 수집", "오전 3시에 날짜 범위를 조회하고 중단 지점부터 이어갑니다."],
+    ["버전 관리", "원본 필드와 요청 파라미터를 저장하고 신규 사례가 있을 때 스냅샷을 발행합니다."],
+    ["RAG Markdown", "사례별 질문과 출처를 독립적인 Markdown 청크에 반복합니다."],
+    ["현황·다운로드", "누적·오늘 수집 건수와 현재 버전의 JSON·Markdown을 제공합니다."]
+  ],
+  "entry_file": "service.py",
+  "usage": [
+    "공공데이터포털에서 API 활용신청과 인증키 발급을 완료합니다.",
+    "서버에 POC11_SERVICE_KEY를 설정하고 서비스를 재시작합니다.",
+    "/poc/consultation-cases/에서 수집 상태와 현재 버전 파일을 확인합니다."
+  ],
+  "note": "API 제공기관의 대표 사례이며 정부합동민원센터 게시판과 동일한 데이터라는 보장은 없습니다."
+}

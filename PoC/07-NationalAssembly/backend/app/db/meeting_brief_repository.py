@@ -55,7 +55,7 @@ class MeetingBriefRepository:
                    provider, model, prompt_version, authority_status, review_status,
                    brief, usage_metadata, generated_at
             FROM meeting_briefs WHERE broadcast_id = %s
-            ORDER BY (provider IN ('mistral', 'openrouter')) DESC,
+            ORDER BY (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
                      generated_at DESC, id DESC LIMIT 1
             """,
             (broadcast_id,),
@@ -75,7 +75,7 @@ class MeetingBriefRepository:
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id,
-                     (provider IN ('mistral', 'openrouter')) DESC,
+                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
                      generated_at DESC, id DESC
             """,
             (ids,),
@@ -104,7 +104,7 @@ class MeetingBriefRepository:
                 'poc07.replay.kakao'
               )
             ORDER BY brief.broadcast_id,
-                     (brief.provider IN ('mistral', 'openrouter')) DESC,
+                     (brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
                      brief.generated_at DESC, brief.id DESC
             """,
             ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
@@ -130,7 +130,7 @@ class MeetingBriefRepository:
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id,
-                     (provider IN ('mistral', 'openrouter')) DESC,
+                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
                      generated_at DESC, id DESC
             """,
             (ids,),

@@ -23,6 +23,7 @@ from .db.connection import connect
 from .db.executive_briefing_repository import ExecutiveBriefingRepository
 from .db.live_repository import LiveRepository
 from .db.meeting_brief_repository import MeetingBriefRepository
+from .db.openai_daily_budget import OpenAIDailyBudget
 from .db.official_change_report_repository import OfficialChangeReportRepository
 from .db.official_evidence_query import official_evidence_items
 from .db.official_integration_repository import OfficialIntegrationRepository
@@ -78,7 +79,9 @@ from .services.transcript_presentation import (
     executive_meeting_content_segments,
     group_transcript_segments,
 )
-from .services.watch_kakao import KakaoNotificationProvider, KakaoProviderError
+from .services.watch_kakao import (
+    KakaoNotificationProvider, KakaoProviderError, public_watch_context,
+)
 from .services.watch_replay_script import (
     REPLAY_ESTIMATED_DURATION_SECONDS,
     REPLAY_MODE,
@@ -230,14 +233,16 @@ def _public_meeting_brief(
             and progress.get("transcript_hash") != item["transcript_hash"]
         )
     )
-    is_ai_result = item["provider"] in {"mistral", "openrouter"}
+    is_ai_result = item["provider"] in {"mistral", "nvidia", "openrouter", "openai"}
     analysis_outdated = bool(
         is_ai_result
         and item.get("prompt_version") != MEETING_BRIEF_PROMPT_VERSION
+        and progress.get("prompt_version") == MEETING_BRIEF_PROMPT_VERSION
+        and progress.get("status") in {"PROCESSING", "DEFERRED"}
     )
-    # A prompt-version upgrade must not hide an already completed report.
-    # Only new transcript input invalidates the visible result. Legacy reports
-    # remain readable while their background upgrade runs.
+    # Show an upgrade only while a newer prompt is actually processing.
+    # Completed legacy reports remain current until an explicit backfill is accepted.
+    # Only new transcript input invalidates the visible result.
     result_pending = newer_input_pending
     if not progress:
         total = int((item.get("brief") or {}).get("utterance_count") or 0)
@@ -466,12 +471,34 @@ def _configured_model_workloads(settings: object) -> dict[tuple[str, str], set[s
         meeting_provider = str(
             settings.meeting_brief_provider or provider
         ).strip().lower()
-        meeting_model = (
-            settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL
-            if meeting_provider == "openrouter"
-            else settings.meeting_brief_mistral_model or "mistral-small-2603"
-        )
-        add(meeting_provider, meeting_model, "회의 보고서 생성")
+        if meeting_provider == "auto":
+            if settings.meeting_brief_nvidia_enabled:
+                add(
+                    "nvidia",
+                    settings.meeting_brief_nvidia_model,
+                    "회의 보고서 우선 생성",
+                )
+            add(
+                "openrouter",
+                settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL,
+                "회의 보고서 생성",
+            )
+            add(
+                "openai",
+                settings.meeting_brief_openai_model or "gpt-5.4-mini",
+                "회의 보고서 예비",
+            )
+        else:
+            meeting_model = (
+                settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL
+                if meeting_provider == "openrouter"
+                else settings.meeting_brief_openai_model or "gpt-5.4-mini"
+                if meeting_provider == "openai"
+                else settings.meeting_brief_nvidia_model
+                if meeting_provider == "nvidia"
+                else settings.meeting_brief_mistral_model or "mistral-small-2603"
+            )
+            add(meeting_provider, meeting_model, "회의 보고서 생성")
         if meeting_provider != "mistral":
             add(
                 "mistral",
@@ -539,6 +566,8 @@ def _model_vendor_label(provider: str, model: str) -> str:
             return label
     if provider == "mistral" or lowered.startswith(("mistral-", "voxtral-")):
         return "Mistral AI"
+    if provider == "openai":
+        return "OpenAI"
     return provider.title() if provider else "기타"
 
 
@@ -546,6 +575,7 @@ def _model_usage_payload(
     settings: object,
     monthly_usage: list[dict[str, object]],
     gateway: dict[str, object],
+    openai_usage: dict[str, int] | None = None,
 ) -> list[dict[str, object]]:
     configured = _configured_model_workloads(settings)
     monthly = {
@@ -571,6 +601,13 @@ def _model_usage_payload(
         target["statuses"][status_name] = (
             int(target["statuses"].get(status_name, 0)) + count
         )
+    if openai_usage:
+        daily[("openai", settings.meeting_brief_openai_model)] = {
+            "request_count": openai_usage["request_count"],
+            "total_tokens": openai_usage["total_tokens"],
+            "workloads": {"회의 보고서 생성"},
+            "statuses": {},
+        }
     keys = set(configured) | set(monthly) | set(daily)
     result: list[dict[str, object]] = []
     for provider, model in keys:
@@ -593,6 +630,10 @@ def _model_usage_payload(
             access_label = "OpenRouter 경유"
         elif provider == "mistral":
             access_label = "Mistral 직접"
+        elif provider == "openai":
+            access_label = "OpenAI 직접"
+        elif provider == "nvidia":
+            access_label = "NVIDIA NIM 직접"
         else:
             access_label = f"{provider} 직접"
         result.append({
@@ -606,6 +647,7 @@ def _model_usage_payload(
                 | set(today.get("workloads") or set())
             ),
             "today_request_count": int(today.get("request_count") or 0),
+            "today_total_tokens": int(today.get("total_tokens") or 0),
             "monthly_request_count": int(month.get("request_count") or 0),
             "input_tokens": int(month.get("input_tokens") or 0),
             "output_tokens": int(month.get("output_tokens") or 0),
@@ -618,7 +660,7 @@ def _model_usage_payload(
     return sorted(
         result,
         key=lambda item: (
-            {"openrouter": 0, "mistral": 1}.get(str(item["provider"]), 2),
+            {"nvidia": 0, "openrouter": 1, "openai": 2, "mistral": 3}.get(str(item["provider"]), 4),
             not bool(item["configured"]),
             -int(item["today_request_count"]),
             -int(item["monthly_request_count"])
@@ -637,6 +679,10 @@ def ai_usage() -> dict[str, object]:
         "audio_seconds": 0.0, "audio_cost_usd": 0.0,
     }
     local_openrouter = 0
+    openai_usage = {
+        "request_count": 0, "input_tokens": 0, "output_tokens": 0,
+        "total_tokens": 0, "unknown_tokens": 0, "reserved_tokens": 0,
+    }
     monthly_model_usage: list[dict[str, object]] = []
     status = "AVAILABLE"
     if settings.database_url:
@@ -645,6 +691,7 @@ def ai_usage() -> dict[str, object]:
                 repository = SummaryRepository(connection)
                 mistral_usage.update(repository.monthly_provider_usage("mistral"))
                 local_openrouter = repository.daily_usage("openrouter")
+                openai_usage = OpenAIDailyBudget(connection).today()
                 monthly_model_usage = repository.monthly_model_usage()
         except Exception:
             status = "UNAVAILABLE"
@@ -663,11 +710,13 @@ def ai_usage() -> dict[str, object]:
         input_usd_per_million=settings.mistral_input_usd_per_million,
         output_usd_per_million=settings.mistral_output_usd_per_million,
     )
-    models = _model_usage_payload(settings, monthly_model_usage, gateway)
+    models = _model_usage_payload(
+        settings, monthly_model_usage, gateway, openai_usage,
+    )
     openrouter_official_limit = int(gateway.get("official_limit") or 1000)
     return {
         "provider": "combined",
-        "provider_label": "OpenRouter 공용 + Mistral STT",
+        "provider_label": "NVIDIA NIM + OpenRouter 보고서, OpenAI 예비, Mistral STT",
         "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",
         "used": openrouter_used, "limit": openrouter_official_limit,
         "operational_limit": openrouter_limit,
@@ -684,6 +733,13 @@ def ai_usage() -> dict[str, object]:
         }),
         "models": models,
         "providers": [
+            {
+                "provider": "nvidia", "period": "MONTHLY",
+                "limit": None,
+                "models": [
+                    item for item in models if item["provider"] == "nvidia"
+                ],
+            },
             {
                 "provider": "openrouter", "period": "DAILY",
                 "used": openrouter_used, "limit": openrouter_official_limit,
@@ -709,6 +765,25 @@ def ai_usage() -> dict[str, object]:
                     item for item in models
                     if item["provider"] == "openrouter"
                 ],
+            },
+            {
+                "provider": "openai", "period": "DAILY", "unit": "tokens",
+                "model": settings.meeting_brief_openai_model,
+                "used": openai_usage["total_tokens"] + openai_usage["unknown_tokens"],
+                "limit": settings.openai_daily_token_limit,
+                "remaining": max(0, settings.openai_daily_token_limit
+                                 - openai_usage["total_tokens"]
+                                 - openai_usage["unknown_tokens"]
+                                 - openai_usage["reserved_tokens"]),
+                "usage_percent": round(
+                    (openai_usage["total_tokens"] + openai_usage["unknown_tokens"])
+                    / settings.openai_daily_token_limit * 100, 2
+                ) if settings.openai_daily_token_limit else 0,
+                "resets_at": _usage_reset_at(
+                    "DAILY", settings.national_assembly_timezone
+                ),
+                **openai_usage,
+                "models": [item for item in models if item["provider"] == "openai"],
             },
             {
                 "provider": "mistral", "period": "MONTHLY",
@@ -2676,6 +2751,7 @@ def watch_kakao_status(
 
 @app.post("/api/watch/kakao/authorize", tags=["watch"])
 def watch_kakao_authorize(
+    request: Request,
     x_watch_token: str | None = Header(default=None),
 ) -> dict[str, object]:
     settings = get_settings()
@@ -2688,7 +2764,10 @@ def watch_kakao_authorize(
         with connect(settings.database_url) as connection:
             subscriber_id = _watch_subscriber(connection, x_watch_token)
             state = WatchDeliveryRepository(connection).begin_oauth(subscriber_id)
-            url = provider.authorization_url(state)
+            _, redirect_uri = public_watch_context(
+                settings, request.headers.get("x-forwarded-host", ""),
+            )
+            url = provider.authorization_url(state, redirect_uri=redirect_uri)
     except HTTPException:
         raise
     except KakaoProviderError as exc:
@@ -2708,7 +2787,10 @@ def watch_kakao_callback(
     error: str = "",
 ) -> RedirectResponse:
     settings = get_settings()
-    destination = settings.watch_public_base_url or "/"
+    destination, redirect_uri = public_watch_context(
+        settings, request.headers.get("x-forwarded-host", ""),
+    )
+    destination = destination or "/"
     if error or not code or not state:
         return RedirectResponse(f"{destination}?watch_kakao=denied", status_code=303)
     try:
@@ -2719,7 +2801,9 @@ def watch_kakao_callback(
                 raise KakaoProviderError(
                     "만료되거나 사용된 Kakao 연결 요청입니다.", 400
                 )
-            account = KakaoNotificationProvider(settings).exchange_code(code)
+            account = KakaoNotificationProvider(settings).exchange_code(
+                code, redirect_uri=redirect_uri,
+            )
             if "talk_message" not in account["scopes"]:
                 raise KakaoProviderError("Kakao 메시지 전송 동의가 필요합니다.", 400)
             repository.lock_kakao_identity(account["kakao_user_id"])

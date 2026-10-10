@@ -8,6 +8,22 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 
+def public_watch_context(settings: Any, forwarded_host: str = "") -> tuple[str, str]:
+    """Select only a configured public origin; never redirect to an arbitrary Host."""
+    secondary = urllib.parse.urlsplit(settings.watch_secondary_public_base_url or "")
+    if (
+        secondary.scheme == "https"
+        and secondary.netloc
+        and secondary.path in {"", "/"}
+        and not secondary.query
+        and not secondary.fragment
+        and forwarded_host.lower() == secondary.netloc.lower()
+    ):
+        base = f"https://{secondary.netloc}/"
+        return base, f"{base}api/watch/kakao/callback"
+    return settings.watch_public_base_url, settings.watch_kakao_redirect_uri
+
+
 class KakaoProviderError(RuntimeError):
     def __init__(self, message: str, status: int = 502):
         super().__init__(message)
@@ -135,12 +151,14 @@ class KakaoNotificationProvider:
             )
         return sorted(scopes)
 
-    def authorization_url(self, state: str) -> str:
+    def authorization_url(
+        self, state: str, *, redirect_uri: str | None = None,
+    ) -> str:
         if not self.configured():
             raise KakaoProviderError("Kakao 연결 설정이 완료되지 않았습니다.", 503)
         params = urllib.parse.urlencode({
             "client_id": self.settings.watch_kakao_rest_api_key,
-            "redirect_uri": self.settings.watch_kakao_redirect_uri,
+            "redirect_uri": redirect_uri or self.settings.watch_kakao_redirect_uri,
             "response_type": "code",
             "state": state,
             "scope": "talk_message",
@@ -148,11 +166,13 @@ class KakaoNotificationProvider:
         })
         return f"https://kauth.kakao.com/oauth/authorize?{params}"
 
-    def exchange_code(self, code: str) -> dict[str, Any]:
+    def exchange_code(
+        self, code: str, *, redirect_uri: str | None = None,
+    ) -> dict[str, Any]:
         payload = {
             "grant_type": "authorization_code",
             "client_id": self.settings.watch_kakao_rest_api_key,
-            "redirect_uri": self.settings.watch_kakao_redirect_uri,
+            "redirect_uri": redirect_uri or self.settings.watch_kakao_redirect_uri,
             "code": code,
         }
         if self.settings.watch_kakao_client_secret:

@@ -1,0 +1,48 @@
+.annual-supply-view{max-width:1500px;margin:0 auto;padding:8px 0 36px;color:#163a4b}
+.annual-supply-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:12px}
+.annual-supply-head h2{font-size:26px;margin:0 0 7px;color:#173949}
+.annual-supply-head p{margin:0;color:#667c89;line-height:1.55}
+.annual-supply-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.annual-supply-controls select,.annual-supply-controls a{border:1px solid #d3e1e8;border-radius:9px;background:white;color:#21475d;padding:10px 12px;font:inherit;text-decoration:none;white-space:nowrap}
+.annual-supply-controls a{font-weight:700}
+.annual-status{min-height:24px;color:#6e8390;font-size:13px;margin:0 0 12px}
+.annual-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.annual-summary-card{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;background:white;border:1px solid #dce8ed;border-radius:14px;box-shadow:0 4px 16px #103b4b09}
+.annual-summary-card .annual-region-dot{width:12px;height:12px;border-radius:50%;margin-top:5px;flex:none}
+.annual-summary-card div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.annual-summary-card small{font-size:12px;color:#687f8d}
+.annual-summary-card strong{font-size:22px;color:#133c57}
+.annual-summary-card span:not(.annual-region-dot){font-size:13px;color:#426074}
+.annual-chart-card,.annual-table-wrap,.annual-basis{background:white;border:1px solid #dce8ed;border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.annual-chart-title{display:flex;justify-content:space-between;align-items:start;gap:16px}
+.annual-chart-title h3{font-size:18px;margin:0 0 4px}
+.annual-chart-title p{font-size:13px;color:#738895;margin:0}
+.annual-chart-legend{display:flex;gap:12px;color:#607987;font-size:13px;white-space:nowrap}
+.annual-chart-legend span{display:flex;align-items:center;gap:5px}
+.annual-chart-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
+.annual-bars{height:290px;display:flex;align-items:stretch;gap:9px;padding:14px 0 0;margin-top:15px;border-bottom:1px solid #d8e3e9;overflow-x:auto;background:repeating-linear-gradient(to top,transparent 0,transparent 63px,#eaf0f3 64px,#eaf0f3 65px)}
+.annual-year{flex:1 0 64px;display:flex;flex-direction:column;min-width:64px;text-align:center;justify-content:flex-end}
+.annual-year-bars{height:244px;display:flex;align-items:end;justify-content:center;gap:4px}
+.annual-bar{height:var(--bar-height);width:min(28px,40%);min-height:2px;position:relative;background:var(--bar-color);border-radius:4px 4px 0 0;transition:height .2s}
+.annual-bar.partial{opacity:.42;background:repeating-linear-gradient(135deg,var(--bar-color) 0,var(--bar-color) 5px,#fff 5px,#fff 7px)}
+.annual-bar span{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#23475a;white-space:nowrap;background:#fffdfc;padding:2px 3px;border-radius:3px}
+.annual-bar:hover span,.annual-bar:focus-within span{display:block}
+.annual-no-bar{width:25px;height:2px;background:#cdd9df}
+.annual-year>strong{height:30px;line-height:30px;font-size:12px;color:#607989}
+.annual-table-wrap{overflow-x:auto}
+.annual-table-wrap table{width:100%;border-collapse:collapse;min-width:830px}
+.annual-table-wrap th,.annual-table-wrap td{text-align:left;padding:10px 12px;border-bottom:1px solid #e8eef1;vertical-align:top;font-size:13px}
+.annual-table-wrap thead th{background:#f3f7f8;color:#34566a;font-weight:700}
+.annual-table-wrap tbody th{white-space:nowrap;color:#24485f}
+.annual-table-wrap tbody th small{display:block;color:#78909b;font-weight:400}
+.annual-table-wrap td strong{display:block;color:#1c465b;white-space:nowrap}
+.annual-table-wrap td small{display:block;color:#81929b;font-size:11px;margin-top:2px}
+.annual-table-wrap td .annual-change.up{color:#156e78}
+.annual-table-wrap td .annual-change.down{color:#b05a45}
+.annual-basis{font-size:13px;color:#627b88;line-height:1.6}
+.annual-basis p{margin:0 0 8px}
+.annual-basis div{display:flex;flex-wrap:wrap;gap:15px}
+.annual-basis a{color:#245db8;font-weight:700}
+@media(max-width:800px){.annual-supply-head{display:block}.annual-supply-controls{margin-top:12px}.annual-summary{grid-template-columns:1fr}.annual-chart-title{display:block}.annual-chart-legend{margin-top:8px}.annual-chart-card,.annual-table-wrap,.annual-basis{padding:14px}}
+
+.annual-region-dot.seoul,.annual-chart-legend .annual-color-seoul{background:#245db8}.annual-region-dot.gyeonggi,.annual-chart-legend .annual-color-gyeonggi{background:#ee834d}.annual-year-bars svg{display:block;flex:none;width:58px;height:244px}

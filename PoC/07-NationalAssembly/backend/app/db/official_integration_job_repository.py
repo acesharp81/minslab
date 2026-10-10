@@ -23,7 +23,7 @@ class OfficialIntegrationJobRepository:
                     SELECT id
                     FROM meeting_briefs
                     WHERE broadcast_id = broadcast.id
-                    ORDER BY (provider IN ('mistral', 'openrouter')) DESC,
+                    ORDER BY (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
                              generated_at DESC, id DESC
                     LIMIT 1
                 ) brief ON true

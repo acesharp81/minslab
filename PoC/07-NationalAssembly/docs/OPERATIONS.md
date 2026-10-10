@@ -1,5 +1,17 @@
 # Operations
 
+## KJON 공인 도메인과 인증서
+
+- 운영 주소: `https://kjon.aigov.go.kr/`. 기존 `https://www.minslab.kr/poc/national-assembly/` 주소는 유지한다. `/poc/kjon`은 PoC7의 기존 경로가 아니므로 도메인 매핑에 사용하지 않는다.
+- Nginx 원본: `deploy/nginx/kjon.aigov.go.kr.conf`. 로드 경로: `/etc/nginx/sites-enabled/kjon.aigov.go.kr` → `/etc/nginx/sites-available/kjon.aigov.go.kr`. 별도 443 가상호스트가 PoC7의 `127.0.0.1:18070`으로 전달한다. `/api/live/` 쓰기는 기존 통합 앱의 관리자 세션 보호를 우회하지 않도록 차단한다.
+- 인증서: `/etc/letsencrypt/live/kjon.aigov.go.kr/{fullchain,privkey}.pem`. `certbot.timer`가 자동 갱신하며 renewal 설정의 hook이 `nginx -t` 후 reload한다. 80번 포트의 `/.well-known/acme-challenge/`는 `/var/www/letsencrypt`에서 제공한다. 기존 `minslab.kr` 인증서와 갱신 설정은 분리된다.
+- 새 도메인의 알림 세션 쿠키만 Nginx가 `Path=/`로 변환한다. 백엔드의 `WATCH_SECONDARY_PUBLIC_BASE_URL=https://kjon.aigov.go.kr/`은 이 호스트의 Origin과 Kakao callback 선택에 사용한다. 기존 주소의 쿠키·Origin·Kakao callback은 바꾸지 않는다.
+- Kakao Developers 앱의 REST API 키 Redirect URI 목록에 `https://kjon.aigov.go.kr/api/watch/kakao/callback`이 추가됐음을 운영자가 확인했다(2026-10-10). 기존 URI도 유지한다. 새 호스트의 authorize 응답은 이 URI를 생성하며, Kakao 인증 요청은 오류 없이 `accounts.kakao.com`으로 이동한다. 운영자가 새 주소에서 실제 로그인 후 기존 저장 키워드가 표시됨을 확인했고, 기존 사이트 주소도 정상 접속됨을 확인했다. 서버에서도 callback 요청의 303 응답을 확인했다. 실제 카카오 메시지 발송은 별도 검수한다.
+
+배포 확인: `sudo nginx -t`, `curl -f https://kjon.aigov.go.kr/`, `curl -f https://kjon.aigov.go.kr/api/health`, `sudo certbot certificates`, `sudo systemctl status certbot.timer`. 루트 `HEAD`는 PoC7 API가 405로 답할 수 있으므로 화면 검수에는 `GET`을 쓴다. 기존 `www.minslab.kr` 루트와 `/poc/national-assembly/`도 함께 확인한다.
+
+긴급 롤백은 새 가상호스트만 비활성화한다. `sudo unlink /etc/nginx/sites-enabled/kjon.aigov.go.kr && sudo nginx -t && sudo systemctl reload nginx`를 실행한다. 이때 새 주소는 기존 기본 가상호스트로 돌아가므로 인증서 경고가 다시 나타나지만 기존 `minslab.kr` 서비스는 유지된다. 인증서 자체는 삭제하지 않는다.
+
 ## OpenRouter 공용 게이트웨이
 
 POC7 이미지 빌드 후 API와 워커보다 게이트웨이를 먼저 배포합니다.
@@ -23,15 +35,31 @@ sudo scripts/backfill_quick_vod.sh BROADCAST_ID PLAYLIST_URL PLAYLIST_START_AT
 ```
 
 
+## 국정감사 집중기간 사전 점검 (2026-10-02)
+
+국감 생방송 자동 수집 범위는 행정안전위원회·법제사법위원회·예산결산특별위원회와 본회의다(ADR-052). 국감이라는 제목만으로 다른 위원회를 새 수집 대상으로 삼지 않는다. 전체 위원회의 공식 일정은 달력에 남지만, 범위 밖 항목에는 `PoC7 생방송 수집 대상 외`가 표시된다. 전 위원회 국감을 보려면 별도 범위 결정과 수집량·자막 가용성 검증이 먼저 필요하다.
+
+첫 국감 전과 집중기간 매일 다음 값을 읽기 전용으로 확인한다.
+
+1. `/api/health`가 정상이고 `live-monitor`, `schedule-worker`, `caption-worker`, `summary-worker`, `meeting-brief-worker`, `official-minutes-worker`, `official-integration-worker`, `watch-worker`, `poc07-openrouter-gateway`, DB가 실행 중인지 확인한다. `docker ps`의 실행 상태만으로 실제 수집 성공을 단정하지 않는다.
+2. `/api/live/status`의 `checked_at`이 현재 시각에서 2분 이내인지 확인한다. `assembly.items`에 본회의·예결위·법사위·행안위가 모두 있는지 확인한다. 대상 방송이 LIVE이면 해당 `play_contracts`의 방송 ID, 자막 서비스, 스트림 URL을 함께 확인한다.
+3. `/api/schedule/calendar?start=YYYY-MM-DD&end=YYYY-MM-DD`와 국회 공식 국감계획서를 대조해 세 대상 위원회의 날짜·제목·상태를 확인한다. `/api/schedule/upcoming?days=7`의 빈 목록은 정상 수집의 증거가 아니다. 공식 계획서에 대상 회의가 있는데 달력에 없으면 일정 원본과 `schedule-worker`의 마지막 성공 시각을 조사한다. 범위 밖 위원회의 일정은 표시만 하고 방송 수집 완료로 취급하지 않는다.
+4. 첫 실제 대상 방송에서 LIVE 감지 → 공식 자막 저장 또는 45초 무수신 후 STT 전환 → 종료 브리프 → 공식 회의록 대조까지 방송 ID 하나로 추적한다. `/api/live/broadcasts/{broadcast_id}/brief`의 근거 ID·주제 묶음 무결성을 확인하고, 알림은 활성 규칙의 근거 발언으로 확인한다. 활성 규칙 수와 `notification_outbox`의 PENDING/FAILED 건수를 함께 확인한다. `watch_worker_state`의 `watch-alerts` 커서와 `transcript_segment_revisions` 최대 커서가 수렴하는지, 워커 로그에 반복 오류가 없는지 확인한다. 컨테이너 실행 상태와 최근 감지 건수만으로 새 발언 처리를 확인했다고 판단하지 않는다. 규칙이 있다는 사실만으로 국감 주제 규칙이 등록되었다고 단정하지 않는다.
+5. `/api/ai/usage`와 공용 gateway `/internal/status`의 요청 수·실패·잔여 한도를 확인한다. OpenRouter의 Dots3-Note Preview 무료 모델은 2026-09-30 종료 예고가 있었지만 2026-10-02 공식 모델 목록에는 남아 있다. 현재 회의 브리프 기본값, 최종 재시도와 주제 보고서가 이 모델에 의존하므로 첫 국감 전에 실제 구조화 응답과 한국어 장문 fixture를 통과한 대체 모델을 선정해야 한다. 미검증 모델로 자동 전환하지 않는다.
+
+2026-10-02 오전 KST 읽기 점검: API 정상, LIVE snapshot은 2026-10-02 00:56 UTC로 최신이며 국회 대상 4개 행 모두 비방송 상태다. 핵심 워커는 실행 중이고 컨테이너 재시작은 일정 워커 9회를 제외하면 0회다. 관심주제 알림·digest·Kakao는 활성화되어 있으며 활성 규칙 31개, 발송 대기·실패 0건, 최근 7일 감지 552건이다. 일정 워커는 약 10분마다 성공 snapshot을 기록하지만 2026-10-02~08 대상 일정은 0건, 10월 1일~11월 11일 저장 달력에도 국감 제목·대상 위원회 일정은 없었다. 따라서 국감 일정과 실방송 종단 흐름은 아직 검증 완료로 판단하지 않는다. 이 시점의 OpenRouter 공식 모델 API에는 Dots·Nemotron·Liquid 무료 모델이 모두 등재되어 있고 구조화 출력 지원이 표시되었다.
+
+2026-10-02 배포 후 재점검: 위 실행 상태와 최근 감지 건수만으로는 감시 정상 동작을 알 수 없었다. `watch-worker` 커서가 2026-09-28 이후 멈춰 자막 revision 2,300건을 놓쳤고, 종료 digest 정리 중 FK 오류가 반복됐다. 수정 워커 재배포 뒤 커서 차이 0건·반복 오류 0건, 앱 내 신규 알림 67건·신규 Kakao 전송 0건·outbox 대기/실패 0건을 확인했다. 활성 규칙 31개 중 국감·국정감사 문구 또는 특정 위원회 필터를 둔 규칙은 0개다. 실제 국감 방송이 아직 없어 해당 회의의 자막·보고서·알림 전 구간은 첫 대상 방송에서 다시 검증해야 한다.
+
 ## 회의 보고서 후처리
 
 국회 회의가 `ENDED`로 전환되면 60초 주기의 다음 worker cycle에서 비공식 회의 브리프 생성을 바로 시작합니다. 같은 방송이 속개되거나 늦은 final 자막이 추가되면 변경된 자막 cursor가 기존 캐시를 무효화해 새 발언까지 다시 통합합니다. 현재 분석 버전과 자막 cursor가 모두 일치할 때만 READY이며, 공식 회의록은 별도 5분 수집 경로에서 발표 즉시 대조합니다.
 
 최종 분석은 발언 구간 → 8개 구간 단위 중간 병합 → 회의 전체 통합의 계층형 구조입니다. 각 구간과 중간 병합은 `meeting_brief_chunk_cache`에 내용 해시로 저장하므로 429·5xx·시간초과 뒤에도 완료 구간을 재호출하지 않습니다. 실시간 군집은 직접 근거와 엄격한 결정적 일치만 최종 주제에 붙이며, 어휘 후보와 다중 후보는 최종 화면 연결에서 제외하고 계보 감사 데이터에 남깁니다.
 
-OpenRouter가 HTTP 200과 함께 닫히지 않은 `json_schema` 본문을 반환하면 gateway 원장에는 `invalid_structured_output` 실패로 남고 같은 idempotency key를 성공 재생하지 않습니다. 회의 보고서 워커는 형식 실패에 문장을 축약하고 JSON을 닫으라는 지침을 추가하며, 형식 실패·5xx·timeout 요청만 짧은 청크·병합은 Liquid, 긴 최종 통합은 Dots 3 Note로 재시도합니다. 정상 청크와 최종 통합의 기본 모델은 Nemotron을 유지합니다. 진행률이 같은 청크에서 멈춘 경우 gateway의 `FAILED` 증가와 worker 로그의 `MalformedMeetingBriefResponse`를 함께 확인합니다.
+OpenRouter가 HTTP 200과 함께 닫히지 않은 `json_schema` 본문을 반환하면 gateway 원장에는 `invalid_structured_output` 실패로 남고 같은 idempotency key를 성공 재생하지 않습니다. 회의 보고서 워커는 형식 실패에 문장을 축약하고 JSON을 닫으라는 지침을 추가하며, 짧은 청크·병합은 형식 실패·5xx·timeout 때 Liquid로 재시도합니다. 현재 기본 청크 모델은 설정값 `MEETING_BRIEF_MODEL`(기본 Dots 3 Note)이며, 최종 통합과 LIVE 주제 연결은 코드의 `OPENROUTER_FINAL_RETRY_MODEL`(Dots 3 Note)을 명시적으로 사용합니다. 진행률이 같은 청크에서 멈춘 경우 gateway의 `FAILED` 증가와 worker 로그의 `MalformedMeetingBriefResponse`를 함께 확인합니다.
 
-Dots 3 Note 무료 endpoint는 OpenRouter 공지상 2026-09-30 종료 예정이므로 최종 통합 재시도에만 제한합니다. 종료일 전 현재 무료 모델 목록에서 `json_schema`와 한국어 장문 통합을 실제 fixture로 통과한 대체 모델을 선정하고 `OPENROUTER_FINAL_RETRY_MODEL` 및 gateway 허용 목록을 함께 갱신합니다.
+Dots 3 Note 무료 endpoint는 OpenRouter에서 2026-09-30 종료를 예고했으나 2026-10-02 모델 목록에는 남아 있습니다. 대체 전에는 `json_schema`와 한국어 장문 통합을 실제 fixture로 검증하고, 회의 브리프 기본 설정·최종 통합 및 LIVE 주제 연결의 코드 상수·주제 보고서 기본 설정·gateway 허용 목록을 함께 갱신합니다. 설정값 `MEETING_BRIEF_MODEL`만 바꾸면 최종 통합은 계속 Dots를 호출합니다.
 
 국무회의는 LIVE 캡처 유무와 무관하게 공식자료만으로도 완료할 수 있습니다. `official-minutes-worker`는 국회 공식 API 단계에서 오류가 나더라도 국무회의 공식자료 수집을 별도로 실행하며, `NATIONAL_ASSEMBLY_API_KEY`가 없는 국무회의 전용 실행 환경에서도 해당 수집은 계속됩니다. 로그의 `executive.official.completed`와 `parser_version`을 확인하고, 운영 snapshot의 parser version이 배포 버전보다 낮아지면 구형 워커가 같은 volume을 덮어쓰는지 점검합니다.
 
@@ -132,7 +160,7 @@ PYTHONPATH=backend python3 -m app.ingestion.review_worker --once
 
 ## LLM 발언 요약 캐시
 
-현재 발언 요약과 회의 보고서의 기본 provider는 OpenRouter다. 회의 보고서에 한해 Mistral Small 직접 호출을 별도 플랫폼 콜드 스탠바이로 준비한다. OpenRouter 안의 Nemotron·Dots·Liquid 교체는 모델 종료나 구조화 형식 오류 보정용이며 플랫폼 장애 예비로 계산하지 않는다. 원문은 선택 provider로 전송되므로 사전에 전송 범위와 API key를 승인해야 한다. API 요청 경로에서는 외부 LLM을 호출하지 않으며, 성공 결과는 `transcript_utterance_summaries`와 `meeting_briefs`에 저장한다. 같은 방송·원문 hash·prompt version으로 저장된 결과는 반복 호출하지 않는다. 실패하거나 캐시가 없는 발언은 기존 180자 발췌로 표시한다.
+현재 발언 요약의 기본 provider는 OpenRouter다. 회의 보고서는 NVIDIA NIM 직접 호출을 우선하고 실패하면 OpenRouter 경쟁 풀을 사용한다. OpenRouter 공용 950회 운영선 소진 시에만 OpenAI GPT-5.4 mini로 자동 전환하며, Mistral Small 직접 호출은 수동 콜드 스탠바이로 둔다. OpenRouter 안의 Nemotron·Dots·Liquid 교체는 모델 종료나 구조화 형식 오류 보정용이며 플랫폼 장애 예비로 계산하지 않는다. 원문은 선택 provider로 전송되므로 사전에 전송 범위와 API key를 승인해야 한다. API 요청 경로에서는 외부 LLM을 호출하지 않으며, 성공 결과는 `transcript_utterance_summaries`와 `meeting_briefs`에 저장한다. 같은 방송·원문 hash·prompt version으로 저장된 결과는 반복 호출하지 않는다. 실패하거나 캐시가 없는 발언은 기존 180자 발췌로 표시한다.
 
 실시간 운영에서는 `summary-worker`가 2초마다 공식 국회 LIVE 방송을 확인합니다. 같은 화자의 연속 자막은 먼저 하나의 완결 발언으로 합치며, source가 non-final 자막을 잠시 빈 화자나 `-1`로 보내는 구간은 직전 확정 화자에 임시 연결해 거짓 전환으로 요약하지 않습니다. 요약 대상 발언의 원문 전체와 직전 최대 4개·직후 최대 2개의 완결 발언을 하나의 대화 문맥으로 선택 provider에 보내되, 결과는 대상 발언별로 저장합니다. LIVE에서는 진행 중인 마지막 발언을 제외하므로 실제 화자가 전환되어 닫힌 발언만 처리하고, 방송이 ENDED로 전환되면 마지막 발언까지 처리합니다. 화면 API는 이 워커가 저장한 캐시만 읽으며 화자 전환 뒤 제한된 snapshot 재조회로 새 DB 캐시를 반영합니다.
 
@@ -154,7 +182,7 @@ PYTHONPATH=backend python3 -m app.ingestion.summary_backfill \
 
 ### 회의 보고서 공급자 전환
 
-OpenRouter 장애 또는 공용 한도 소진이 확인되면 PoC 7 `.env`에서 회의 보고서 전용 provider만 전환한다. 전역 `LLM_PROVIDER`는 바꾸지 않으므로 실시간 발언 요약과 다른 워커에 전파되지 않는다.
+회의 보고서는 PoC 7 `.env`의 `MEETING_BRIEF_PROVIDER=auto`에서 NVIDIA NIM→OpenRouter→OpenAI 순서를 사용한다. 수동 고정이 필요하면 회의 보고서 전용 provider만 전환한다. 전역 `LLM_PROVIDER`는 바꾸지 않으므로 실시간 발언 요약과 다른 워커에 전파되지 않는다.
 
 ```bash
 MEETING_BRIEF_PROVIDER=mistral
@@ -162,7 +190,23 @@ MEETING_BRIEF_MISTRAL_MODEL=mistral-small-2603
 sudo scripts/deploy_secure_workers.sh meeting
 ```
 
-Mistral 월 비용에는 Voxtral STT가 함께 포함되므로 `/api/ai/usage`의 잔액을 먼저 확인한다. 자동 전환은 사용하지 않는다. 복구 후에는 `MEETING_BRIEF_PROVIDER=openrouter`로 되돌리고 같은 명령으로 워커만 재생성한다.
+Mistral 월 비용에는 Voxtral STT가 함께 포함되므로 `/api/ai/usage`의 잔액을 먼저 확인한다. Mistral로의 자동 전환은 사용하지 않는다. 복구 후에는 `MEETING_BRIEF_PROVIDER=auto`로 되돌리고 같은 명령으로 워커만 재생성한다.
+
+NVIDIA API Catalog의 무료 시험 엔드포인트는 계정별 한도가 다르므로 PoC7 전용 키를 등록하고 자동 경로를 활성화한다. 워커 안의 NIM 요청은 최소 6초 간격으로 보내며 429가 나오면 2분간 OpenRouter로 넘긴다. PoC4도 같은 계정 키를 쓰므로 NVIDIA 계정 화면에서 전체 사용량을 확인한다. OpenRouter 공용 게이트웨이의 UTC 일 운영 상한 950회에 도달하면 회의 보고서만 OpenAI GPT-5.4 mini로 전환한다. NVIDIA·OpenAI 키는 전용 워커에만 주입한다.
+
+```bash
+MEETING_BRIEF_PROVIDER=auto
+MEETING_BRIEF_NVIDIA_ENABLED=true
+MEETING_BRIEF_NVIDIA_MODEL=nvidia/nemotron-3-ultra-550b-a55b
+MEETING_BRIEF_NVIDIA_MIN_INTERVAL_SECONDS=6
+NVIDIA_API_KEY=...
+MEETING_BRIEF_OPENAI_MODEL=gpt-5.4-mini
+OPENAI_DAILY_TOKEN_LIMIT=650000
+OPENROUTER_GATEWAY_STATUS_URL=http://poc07-openrouter-gateway:8071/internal/status
+sudo scripts/deploy_secure_workers.sh meeting
+```
+
+`auto`는 NIM이 활성화되면 NIM을 먼저 선택한다. NIM 실패·대기 중에는 OpenRouter를 사용하고, OpenRouter 예약량이 운영 상한 이상이거나 게이트웨이가 한도 소진을 명시한 경우에만 OpenAI를 선택한다. 게이트웨이 상태를 확인할 수 없으면 우선 OpenRouter를 시도한다. `auto`와 OpenAI 복구 모드에서는 같은 원문 해시의 완료된 AI 보고서를 재생성하지 않으며, 중단된 OpenRouter 보고서의 검증된 청크 분석은 재사용한다. OpenAI 요청 전 UTF-8 입력 바이트와 최대 출력 토큰을 보수적으로 예약한다. 이 예약만으로 일일 상한에 걸릴 때는 OpenAI 공식 입력 토큰 계산 API의 결과에 8,192토큰 여유를 더하고, 입력 바이트 절반보다 작지 않은 값으로 재예약한다. 응답의 실제 입력·출력 토큰으로 확정한다. 사용량 미확인 요청은 예약량을 불확실 사용량으로 유지한다. 실제 사용량·불확실 사용량·진행 중 예약량이 UTC 날짜별 650,000토큰을 넘길 요청은 보내지 않고 `DEFERRED/TOKEN_LIMIT`로 남긴다. UTC 00:00, 한국시간 09:00에 새 날짜 장부가 시작된다. `/api/ai/usage`는 PoC7이 직접 호출한 OpenAI 토큰만 집계하므로 같은 계정의 다른 프로젝트 사용량과 무료 혜택 적용 상태는 OpenAI 계정 화면에서 별도로 확인한다.
 
 로그에는 방송 ID, 대상·캐시·저장 건수와 API 호출 횟수만 남기며 API key와 자막 원문은 출력하지 않습니다.
 
@@ -280,7 +324,7 @@ API 실패는 기존 공식 데이터를 삭제하지 않습니다. schema 불�
 
 ## 관심주제 후속 처리
 
-`watch-worker`는 final 자막 감지 외에 종료 세션 digest와 공식 정본 확인을 함께 수행합니다. digest는 사용자가 선택한 규칙에만 `digest:{rule_id}:{broadcast_id}` 중복키로 한 번 생성하며 저장된 발언 수·화자 수를 사용하므로 외부 모델을 호출하지 않습니다. 공식 확인은 `READY` 통합과 `FINAL · OFFICIAL` 문서가 모두 존재할 때만 실행하고, 새 통합 또는 새 문장 대조가 생긴 경우에만 갱신합니다.
+`watch-worker`는 final 자막 감지 외에 종료 세션 digest와 공식 정본 확인을 함께 수행합니다. digest는 사용자가 선택한 규칙에만 `digest:{rule_id}:{broadcast_id}` 중복키로 한 번 생성하며 저장된 발언 수·화자 수를 사용하므로 외부 모델을 호출하지 않습니다. 공식 확인은 `READY` 통합과 `FINAL · OFFICIAL` 문서가 모두 존재할 때만 실행하고, 새 통합 또는 새 문장 대조가 생긴 경우에만 갱신합니다. 종료 digest는 선택된 세션 모두에 삽입한 뒤 알림 보존 한도를 정리합니다. 재처리로 6시간 넘게 지난 감지나 종료 digest는 앱 내 알림만 만들고 Kakao 메시지는 보내지 않습니다.
 
 ```bash
 sudo scripts/deploy_secure_workers.sh watch

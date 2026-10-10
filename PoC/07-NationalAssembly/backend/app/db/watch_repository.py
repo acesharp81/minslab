@@ -4,7 +4,7 @@ import hashlib
 import re
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from psycopg.types.json import Jsonb
@@ -27,9 +27,17 @@ def _is_test_source(source_system: object) -> bool:
     return str(source_system or "") in TEST_SOURCE_SYSTEMS
 
 
-def _allows_kakao_delivery(source_system: object) -> bool:
+def _allows_kakao_delivery(
+    source_system: object, occurred_at: datetime | None = None, *,
+    now: datetime | None = None,
+) -> bool:
     source = str(source_system or "")
-    return source not in TEST_SOURCE_SYSTEMS or source == "poc07.replay.kakao"
+    if source in TEST_SOURCE_SYSTEMS and source != "poc07.replay.kakao":
+        return False
+    if occurred_at is None:
+        return True
+    current = now or datetime.now(timezone.utc)
+    return occurred_at >= current - timedelta(hours=6)
 
 
 def normalize_watch_briefing_presentation(
@@ -756,7 +764,9 @@ class WatchRepository:
                         rule["subscriber_id"], notification_id,
                         kakao_enabled=(
                             bool(rule.get("kakao_enabled"))
-                            and _allows_kakao_delivery(revision.get("source_system"))
+                            and _allows_kakao_delivery(
+                                revision.get("source_system"), revision.get("received_at")
+                            )
                         ),
                     )
                     self.prune_notification_history(rule["subscriber_id"])
@@ -769,7 +779,7 @@ class WatchRepository:
             SELECT session.id, session.subscriber_id, session.rule_id,
                    session.broadcast_id, session.title, session.match_count,
                    rule.name, rule.digest_enabled, rule.kakao_enabled,
-                   broadcast.source_system,
+                   broadcast.source_system, broadcast.ended_at,
                    COUNT(DISTINCT COALESCE(match.speaker_label, ''))
             FROM watch_sessions session
             JOIN watch_rules rule ON rule.id = session.rule_id
@@ -791,11 +801,12 @@ class WatchRepository:
             """
         ).fetchall()
         digests = 0
+        subscribers_to_prune: set[uuid.UUID] = set()
         for row in rows:
             (
                 session_id, subscriber_id, rule_id, broadcast_id, title,
                 match_count, rule_name, wants_digest, wants_kakao,
-                source_system, speaker_count,
+                source_system, ended_at, speaker_count,
             ) = row
             self.connection.execute(
                 "UPDATE watch_sessions SET status = 'ENDED', updated_at = now() WHERE id = %s",
@@ -824,11 +835,16 @@ class WatchRepository:
                 self._enqueue_outbox(
                     subscriber_id, notification_id,
                     kakao_enabled=(
-                        bool(wants_kakao) and _allows_kakao_delivery(source_system)
+                        bool(wants_kakao)
+                        and _allows_kakao_delivery(source_system, ended_at)
                     ),
                 )
-                self.prune_notification_history(subscriber_id)
+                subscribers_to_prune.add(subscriber_id)
                 digests += 1
+        # A fetched row may refer to another session owned by this subscriber.
+        # Pruning inside the loop can delete it before its digest is inserted.
+        for subscriber_id in subscribers_to_prune:
+            self.prune_notification_history(subscriber_id)
         return {"sessions_ended": len(rows), "digests_created": digests}
 
     def _enqueue_outbox(

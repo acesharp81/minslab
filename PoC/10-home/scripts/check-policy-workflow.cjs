@@ -1,0 +1,66 @@
+/* PUBLIC: dashboard + readonly matching + guides. FIXTURE: actual approval, transfer, bulk, release. */
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto');
+const root=process.env.HOME_CHECK_URL||'https://www.minslab.kr/poc/home/';
+const fixture=process.env.HOME_CHECK_FIXTURE==='true';
+const artifact='/tmp/home-policy-workflow-check';fs.mkdirSync(artifact,{recursive:true});
+(async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.HOME_CHECK_CHROME||undefined,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1600,height:1100}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ if(fixture)await page.route('**/poc/home/api/**',route=>{const request=route.request(),stamp=String(Math.floor(Date.now()/1000)),pathname=new URL(request.url()).pathname;
+  const signature=crypto.createHmac('sha256','fixture-only-admin').update(stamp+':'+request.method()+':'+pathname).digest('hex');
+  return route.continue({headers:{...request.headers(),'x-home-admin':stamp+':'+signature}});
+ });
+ await page.goto(root+'#policy-progress');await page.locator('#content').waitFor({state:'visible'});
+ assert.equal(await page.locator('.sidebar nav button').nth(1).getAttribute('data-view'),'policy-progress');
+ assert.equal(await page.locator('.policy-snapshot').count(),5);assert.equal(await page.locator('#policy-overview').count(),1);assert.equal(await page.locator('#policy-annual-supply').count(),1);assert.equal(await page.locator('#policy-block-timeline').count(),1);
+ assert.match(await page.locator('#policy-overview').textContent(),/목적/);assert.match(await page.locator('#policy-block-timeline').textContent(),/계획/);assert.match(await page.locator('#policy-block-timeline').textContent(),/실제 공정률/);
+ const monitor=await (await page.request.get(new URL('api/policy-monitor',root).href)).json();
+ assert.equal(monitor.items.length,5);assert(monitor.review_count>0);
+ await page.locator('#pane-policy-progress').screenshot({path:artifact+'/dashboard.png'});
+ await page.locator('[data-monitor-detail="MON_THIRD_NEW_TOWN"]').first().click();
+ await page.locator('[data-policy-workbench="MON_THIRD_NEW_TOWN"]').click();
+ assert.equal(await page.locator('#mapping-queue-programme').inputValue(),'3기 신도시');
+ assert((await page.locator('#mapping-queue-list tbody tr').count())>0);
+ await page.locator('[data-mapping-edit]').first().click();await page.locator('#mapping-audit-list').waitFor();
+ assert.match(await page.locator('#mapping-editor').textContent(),/자동 매칭 제안/);
+ if(fixture){
+  const first=await page.locator('[data-mapping-edit]').first().getAttribute('data-mapping-edit');
+  await page.locator('#workbench-form [name="basis"]').fill('담당자가 공식 근거를 검토한 테스트 승인');
+  await page.locator('#mapping-approve').click();await page.locator('#workbench-save-status').filter({hasText:'저장했습니다'}).waitFor();
+  let data=await (await page.request.get(new URL('api/mappings',root).href)).json();
+  assert.equal(data.items.find(r=>r.id===first).mapping.status,'CONFIRMED');
+  assert.equal(data.counts.CONFIRMED,1);assert.equal(data.counts.REVIEW,1);
+  await page.locator('#workbench-form [name="policy_id"]').selectOption('POL_2026_0129');
+  await page.locator('#workbench-form [type="submit"]').click();
+  await page.locator('#workbench-save-status').filter({hasText:'저장했습니다'}).waitFor();
+  let progress=await (await page.request.get(new URL('api/policy-monitor',root).href)).json();
+  assert(progress.items.find(r=>r.id==='POL_2026_0129').project_count===1);
+  assert(progress.items.find(r=>r.id==='POL_2025_0907').project_count===1);
+  await page.locator('#mapping-select-page').check();
+  await page.locator('#mapping-bulk [name="basis"]').fill('두 사업의 테스트 일괄 검토 근거');
+  await page.locator('#mapping-bulk [name="evidence_url"]').fill('https://www.korea.kr/');
+  await page.locator('#mapping-bulk-save').click();await page.locator('#mapping-bulk-status').filter({hasText:'2건 저장 · 통계 반영 완료'}).waitFor();
+  data=await (await page.request.get(new URL('api/mappings',root).href)).json();assert.equal(data.counts.CONFIRMED,2);
+  await page.locator('#workbench-form [name="status"]').selectOption('RELEASED');
+  await page.locator('#workbench-form [type="submit"]').click();await page.locator('#workbench-save-status').filter({hasText:'저장했습니다'}).waitFor();
+  data=await (await page.request.get(new URL('api/mappings',root).href)).json();
+  assert.equal(data.items.find(r=>r.id===first).statistics_included,false);
+  progress=await (await page.request.get(new URL('api/policy-monitor',root).href)).json();assert.equal(progress.project_count,1);
+  assert.match(await page.locator('#mapping-editor').textContent(),/통계 제외/);
+ }else{
+  assert.equal(await page.locator('#workbench-form [name="policy_id"]').isDisabled(),true);
+  assert.equal(await page.locator('#mapping-approve').count(),0);
+ }
+ await page.locator('#pane-tree').screenshot({path:artifact+'/matching.png'});
+ await page.locator('.nav-item[data-view="keys"]').click();
+ assert.equal(await page.locator('.connection-plan').count(),9);
+ const register=page.locator('.connection-plan').first();await register.locator('summary').click();assert.match(await register.textContent(),/15134735|별도 서비스|활용신청/);
+ await page.locator('#pane-keys').screenshot({path:artifact+'/api-guide.png'});
+ await page.locator('.nav-item[data-view="validation"]').click();assert.match(await page.locator('#validation-connections').textContent(),/API 연결 점검/);
+ await page.setViewportSize({width:390,height:844});await page.locator('.nav-item[data-view="policy-progress"]').click();
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+ await page.locator('#pane-policy-progress').screenshot({path:artifact+'/mobile-dashboard.png'});
+ await page.locator('.nav-item[data-view="tree"]').click();
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+ assert.deepEqual(errors,[]);await browser.close();console.log(JSON.stringify({status:'PASS',mode:fixture?'ISOLATED_APPROVAL_WORKFLOW':'PUBLIC_READONLY',policies:5,connectionGuides:9,mobileOverflow:false,consoleErrors:0,artifact}));
+})().catch(e=>{console.error(e);process.exit(1);});

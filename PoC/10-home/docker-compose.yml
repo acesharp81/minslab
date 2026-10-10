@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    container_name: poc10-home-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: home
+      POSTGRES_DB: home
+      POSTGRES_PASSWORD: ${POC10_DB_PASSWORD:?Set POC10_DB_PASSWORD in .env}
+    volumes:
+      - home_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U home -d home"]
+      interval: 5s
+      retries: 10
+  api:
+    build: .
+    image: poc10-home:local
+    container_name: poc10-home-api
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+    ports:
+      - "127.0.0.1:18100:8000"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+volumes:
+  home_pgdata:

@@ -167,6 +167,11 @@ def test_statistics_shows_ineligible_pie_and_removes_stacked_status_bar():
     assert "적용범위 외" in response.text
     assert "개선 검토 대상" in response.text
     assert "추가 분석 필요" in response.text
+    assert response.text.index("조치로 공통기반 이용이 확인된 사례") < response.text.index("검토요청·기관 답변 결과") < response.text.index("기간 내 전환 실적 추이")
+    assert "총 검토요청" in response.text
+    assert 'data-print-statistics' in response.text
+    assert 'class="print-reason-pie"' in response.text
+    assert "기밀·자료 제약" in response.text
     assert response.text.index("기간 내 전환 실적 추이") < response.text.index("부적합 세부 원인 · 확대 우선순위")
     assert "status-stacked-bar" not in response.text
     assert "status-legend" not in response.text

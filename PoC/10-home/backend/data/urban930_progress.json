@@ -1,0 +1,385 @@
+{
+  "evidence_url": "https://www.korea.kr/common/download.do?fileId=198562238&tblKey=GMN",
+  "source_page": 9,
+  "source_date": "2026-09-30",
+  "pdf_sha256": "08a51cee57e5b862920e64112cd0d6b8d2ef388060c6eeb1c56865e127132c43",
+  "extraction": "공식 PDF 참고2 이미지의 명단·범례를 직접 대조. 흰색 항목은 단계 미확인. 개별 물량 미제공.",
+  "records": [
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "역세권",
+      "sequence": 1,
+      "name": "연신내역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "역세권",
+      "sequence": 5,
+      "name": "불광2 329-32",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "역세권",
+      "sequence": 7,
+      "name": "녹번역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "저층주거지",
+      "sequence": 1,
+      "name": "증산4구역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "저층주거지",
+      "sequence": 5,
+      "name": "녹번동근린공원",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "저층주거지",
+      "sequence": 6,
+      "name": "불광1 근린공원",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "은평구",
+      "program_type": "저층주거지",
+      "sequence": 7,
+      "name": "수색14구역",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "서대문구",
+      "program_type": "저층주거지",
+      "sequence": 12,
+      "name": "고은산 서측",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "영등포구",
+      "program_type": "역세권",
+      "sequence": 6,
+      "name": "영등포역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "영등포구",
+      "program_type": "저층주거지",
+      "sequence": 2,
+      "name": "신길2구역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "영등포구",
+      "program_type": "저층주거지",
+      "sequence": 3,
+      "name": "신길4",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "영등포구",
+      "program_type": "저층주거지",
+      "sequence": 4,
+      "name": "신길15구역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "강서구",
+      "program_type": "저층주거지",
+      "sequence": 21,
+      "name": "강서 국회대로 인근",
+      "status": "PROPOSED_DISTRICT"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "양천구",
+      "program_type": "역세권",
+      "sequence": 22,
+      "name": "목동역",
+      "status": "PROPOSED_DISTRICT"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "양천구",
+      "program_type": "저층주거지",
+      "sequence": 20,
+      "name": "목4동 강서고",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "구로구",
+      "program_type": "역세권",
+      "sequence": 20,
+      "name": "대림역",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "용산구",
+      "program_type": "역세권",
+      "sequence": 21,
+      "name": "효창공원앞역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "성북구",
+      "program_type": "저층주거지",
+      "sequence": 14,
+      "name": "장위12",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중구",
+      "program_type": "저층주거지",
+      "sequence": 15,
+      "name": "신당(약수역)",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "강북구",
+      "program_type": "역세권",
+      "sequence": 8,
+      "name": "미아16구역",
+      "status": "PROPOSED_DISTRICT"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "강북구",
+      "program_type": "저층주거지",
+      "sequence": 8,
+      "name": "수유12구역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "강북구",
+      "program_type": "저층주거지",
+      "sequence": 9,
+      "name": "송중동 주민센터",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "도봉구",
+      "program_type": "역세권",
+      "sequence": 2,
+      "name": "방학역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "도봉구",
+      "program_type": "역세권",
+      "sequence": 3,
+      "name": "쌍문역 동측",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "도봉구",
+      "program_type": "역세권",
+      "sequence": 4,
+      "name": "쌍문역 서측",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "도봉구",
+      "program_type": "준공업",
+      "sequence": 1,
+      "name": "창2동 주민센터",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "노원구",
+      "program_type": "역세권",
+      "sequence": 19,
+      "name": "수락산역",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "강동구",
+      "program_type": "역세권",
+      "sequence": 18,
+      "name": "고덕역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중랑구",
+      "program_type": "역세권",
+      "sequence": 9,
+      "name": "사가정역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중랑구",
+      "program_type": "역세권",
+      "sequence": 10,
+      "name": "용마산역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중랑구",
+      "program_type": "역세권",
+      "sequence": 16,
+      "name": "상봉역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중랑구",
+      "program_type": "저층주거지",
+      "sequence": 10,
+      "name": "면목(용마터널)",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "중랑구",
+      "program_type": "저층주거지",
+      "sequence": 11,
+      "name": "면목(상봉터미널)",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "서울특별시",
+      "municipality": "광진구",
+      "program_type": "역세권",
+      "sequence": 17,
+      "name": "중곡역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "경기도",
+      "municipality": "부천시",
+      "program_type": "역세권",
+      "sequence": 14,
+      "name": "중동역 동측",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "경기도",
+      "municipality": "부천시",
+      "program_type": "역세권",
+      "sequence": 15,
+      "name": "중동역 서측",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "경기도",
+      "municipality": "부천시",
+      "program_type": "저층주거지",
+      "sequence": 13,
+      "name": "원미사거리 북측",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "경기도",
+      "municipality": "부천시",
+      "program_type": "저층주거지",
+      "sequence": 18,
+      "name": "원미공원",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "경기도",
+      "municipality": "시흥시",
+      "program_type": "역세권",
+      "sequence": 24,
+      "name": "시흥대야역",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "경기도",
+      "municipality": "성남시",
+      "program_type": "저층주거지",
+      "sequence": 17,
+      "name": "성남금광2",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "인천광역시",
+      "municipality": "부평구",
+      "program_type": "역세권",
+      "sequence": 11,
+      "name": "동암역 남측",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "인천광역시",
+      "municipality": "부평구",
+      "program_type": "역세권",
+      "sequence": 13,
+      "name": "굴포천역",
+      "status": "DESIGNATED"
+    },
+    {
+      "region": "인천광역시",
+      "municipality": "미추홀구",
+      "program_type": "역세권",
+      "sequence": 12,
+      "name": "제물포역",
+      "status": "BUSINESS_APPROVED"
+    },
+    {
+      "region": "광주광역시",
+      "municipality": "동구",
+      "program_type": "역세권",
+      "sequence": 23,
+      "name": "소태역",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "부산광역시",
+      "municipality": "금정구",
+      "program_type": "저층주거지",
+      "sequence": 19,
+      "name": "장전역서측",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "부산광역시",
+      "municipality": "금정구",
+      "program_type": "저층주거지",
+      "sequence": 22,
+      "name": "구서1동행정복지센터",
+      "status": "UNKNOWN"
+    },
+    {
+      "region": "부산광역시",
+      "municipality": "부산진구",
+      "program_type": "저층주거지",
+      "sequence": 16,
+      "name": "부산부암",
+      "status": "DESIGNATED"
+    }
+  ]
+}

@@ -37,3 +37,4 @@ PoC/06-AIWorks/vendor/kordoc-runtime/node_modules/
 .vscode/
 .idea/
 *.orig
+PoC/11-consultation-cases/data/

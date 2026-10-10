@@ -12,7 +12,8 @@ from ..models import AnalysisRun, Attachment, AuditLog, Notice
 from .analyzer import CURRENT_CRITERIA_VERSION, is_current_deep_result
 from .attachment_policy import select_preferred_documents
 from .ineligible_reasons import (
-    INELIGIBLE_DETAIL_META, INELIGIBLE_IMPROVEMENT_META, INELIGIBLE_REASON_META,
+    INELIGIBLE_DETAIL_BY_KEY, INELIGIBLE_DETAIL_META, INELIGIBLE_IMPROVEMENT_META,
+    INELIGIBLE_REASON_META,
     INELIGIBLE_UNKNOWN_KEYS, ineligible_detail_key,
     ineligible_reason_key, manual_ineligible_reason,
 )
@@ -414,6 +415,102 @@ def _action_use_cases(
     return sorted(latest.values(), key=lambda row: row["resolved_at"] or "", reverse=True)
 
 
+OPINION_INELIGIBLE_GROUPS = (
+    ("network", "망·연계"),
+    ("task", "업무 특성·범위"),
+    ("confidential_data", "기밀·자료 제약"),
+    ("model", "모델·기능"),
+    ("scope", "적용범위 외"),
+    ("unknown", "사유 미기록"),
+)
+
+
+def _opinion_ineligible_group(reason: str) -> str:
+    if reason == "data_transfer_restricted":
+        return "confidential_data"
+    group = INELIGIBLE_DETAIL_BY_KEY.get(reason, {}).get("group", reason)
+    return {
+        "network_data": "network",
+        "national_task": "task",
+        "specialized_model": "model",
+        "service_scope": "scope",
+    }.get(group, "unknown")
+
+def _opinion_submission_dates(db: Session, notices: list[Notice]) -> dict[int, datetime]:
+    """Find the first submission per pre-notice, including legacy tracking markers."""
+    by_action = {notice.action.id: notice for notice in notices
+                 if notice.stage == "prenotice" and notice.action and notice.action.id}
+    submitted: dict[int, datetime] = {}
+    for log in db.scalars(select(AuditLog).where(AuditLog.event_type == "opinion_submitted")).all():
+        try:
+            notice = by_action.get(int(log.entity_id or 0))
+        except ValueError:
+            continue
+        if notice and log.created_at:
+            at = _aware(log.created_at)
+            if notice.id not in submitted or at < submitted[notice.id]:
+                submitted[notice.id] = at
+
+    for notice in by_action.values():
+        if notice.id in submitted:
+            continue
+        tracking = json_object(notice.raw_payload_json).get("_poc08_opinion_tracking")
+        if not isinstance(tracking, dict) or not tracking.get("submitted_at"):
+            continue
+        try:
+            submitted[notice.id] = _aware(datetime.fromisoformat(str(tracking["submitted_at"])))
+        except ValueError:
+            continue
+    return submitted
+
+
+def _opinion_outcome_key(notice: Notice, submitted_at: datetime | None) -> str:
+    if submitted_at is None or not notice.action or notice.stage != "prenotice":
+        return "not_submitted"
+    action = notice.action
+    tracking = json_object(notice.raw_payload_json).get("_poc08_opinion_tracking")
+    replied = (isinstance(tracking, dict) and tracking.get("status") == "replied") or bool(
+        str(action.agency_response or "").strip()
+    )
+    if not replied:
+        return "waiting"
+    return {
+        "completed_uses": "accepted", "reflected": "accepted",
+        "completed_not_used": "not_used", "closed": "not_used",
+        "completed_ineligible": "ineligible", "completed_non_ai": "non_ai",
+    }.get(action.status, "unclassified")
+
+
+def _opinion_outcome_summary(
+    db: Session, notices: list[Notice], start: datetime | None, end: datetime | None,
+) -> dict[str, Any]:
+    """Group submitted opinions by the current, response-backed agency outcome."""
+    submitted = _opinion_submission_dates(db, notices)
+    counts: Counter[str] = Counter()
+    reason_counts: Counter[str] = Counter()
+    for notice in notices:
+        if not _in_window(submitted.get(notice.id), start, end):
+            continue
+        counts["requested"] += 1
+        outcome = _opinion_outcome_key(notice, submitted.get(notice.id))
+        counts[outcome] += 1
+        if outcome != "waiting":
+            counts["replied"] += 1
+        if outcome == "ineligible":
+            reason_counts[_opinion_ineligible_group(manual_ineligible_reason(notice))] += 1
+
+    return {
+        **{key: counts[key] for key in (
+            "requested", "replied", "accepted", "not_used", "ineligible", "non_ai",
+            "unclassified", "waiting",
+        )},
+        "ineligible_reasons": [
+            {"key": key, "label": label, "count": reason_counts[key]}
+            for key, label in OPINION_INELIGIBLE_GROUPS
+        ],
+    }
+
+
 def _trend_rows(notices: list[Notice], events: list[dict[str, Any]], period: dict[str, Any]) -> list[dict[str, Any]]:
     monthly = period["key"] in {"year", "all"}
     rows: dict[str, Counter] = defaultdict(Counter)
@@ -725,6 +822,9 @@ def build_statistics(
             "non_ai": status_snapshot["non_ai_service"],
         },
         "action_use_cases": action_use_cases[:20],
+        "opinion_outcomes": _opinion_outcome_summary(
+            db, all_notices, period_data["start"], period_data["end"],
+        ),
         "quality": {
             "document_total": len(documents),
             "document_parsed": parsed_documents,

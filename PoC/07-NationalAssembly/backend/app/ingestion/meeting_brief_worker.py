@@ -12,6 +12,7 @@ import requests
 from ..config import get_settings
 from ..db.connection import connect
 from ..db.live_repository import LiveRepository
+from ..db.openai_daily_budget import DailyTokenLimitReached, OpenAIDailyBudget
 from ..db.meeting_brief_repository import MeetingBriefRepository
 from ..db.migrate import apply_migrations
 from ..db.speaker_repository import SpeakerRepository
@@ -52,6 +53,8 @@ from ..services.meeting_brief import (
     PROMPT_VERSION,
     MalformedMeetingBriefResponse,
     MistralMeetingBriefClient,
+    NvidiaMeetingBriefClient,
+    OpenAIMeetingBriefClient,
     OpenRouterMeetingBriefClient,
     assign_live_topic_clusters,
     improve_promoted_topic_summaries,
@@ -106,18 +109,59 @@ def prepare_brief_utterances(
     return utterances
 
 
-def meeting_brief_identity(settings: Any) -> tuple[str, str, str]:
+_nvidia_retry_after = 0.0
+
+
+def openrouter_brief_has_capacity(settings: Any) -> bool | None:
+    """Check the shared gateway budget; unknown means try the gateway."""
+    if not settings.openrouter_gateway_status_url:
+        return None
+    try:
+        response = requests.get(settings.openrouter_gateway_status_url, timeout=2.0)
+        response.raise_for_status()
+        gateway = response.json()
+        if not isinstance(gateway, dict):
+            return None
+        reserved = int(gateway.get("reserved") or 0)
+        limit = int(gateway.get("operational_limit") or settings.openrouter_daily_limit)
+        return reserved < limit
+    except (requests.RequestException, ValueError, TypeError):
+        return None
+
+
+def automatic_brief_provider(settings: Any) -> str:
+    """Prefer direct NIM, then shared OpenRouter, then budgeted OpenAI."""
+    if (
+        settings.meeting_brief_nvidia_enabled
+        and settings.nvidia_api_key
+        and time.monotonic() >= _nvidia_retry_after
+    ):
+        return "nvidia"
+    if openrouter_brief_has_capacity(settings) is not False:
+        return "openrouter"
+    return "openai" if settings.openai_api_key else "openrouter"
+
+
+def meeting_brief_identity(
+    settings: Any, *, provider_override: str | None = None,
+) -> tuple[str, str, str]:
     provider, model, _ = summary_identity(settings)
     provider = str(
-        getattr(settings, "meeting_brief_provider", "") or provider
+        provider_override or getattr(settings, "meeting_brief_provider", "") or provider
     ).strip().lower()
-    if provider == "openrouter":
+    if provider == "auto":
+        provider = automatic_brief_provider(settings)
+    if provider == "nvidia":
+        model = str(settings.meeting_brief_nvidia_model or "nvidia/nemotron-3-ultra-550b-a55b")
+    elif provider == "openrouter":
         model = str(settings.meeting_brief_model or OPENROUTER_FINAL_RETRY_MODEL)
     elif provider == "mistral":
         model = str(
             getattr(settings, "meeting_brief_mistral_model", "")
             or "mistral-small-2603"
         )
+    elif provider == "openai":
+        model = str(settings.meeting_brief_openai_model or "gpt-5.4-mini")
     return provider, model, PROMPT_VERSION
 
 
@@ -156,6 +200,15 @@ def map_unlinked_brief_once(
     input_hash = semantic_mapping_input_hash(list(brief.get("topics") or []), clusters)
     try:
         mapping, metadata = client.map_live_topics(brief, clusters)
+        if getattr(client, "provider", "") == "nvidia":
+            with connect(get_settings().database_url) as usage_connection:
+                SummaryRepository(usage_connection).record_monthly_token_usage(
+                    "nvidia", client.model, metadata,
+                )
+    except DailyTokenLimitReached:
+        return attach_meeting_topic_groups(brief), {
+            "status": "DEFERRED", "api_requests": 0,
+        }
     except Exception as exc:
         failed = mark_semantic_mapping_failed(
             brief,
@@ -187,15 +240,17 @@ def generate_one(
     broadcast_id: UUID,
     *,
     force: bool = False,
+    provider_override: str | None = None,
 ) -> dict[str, Any]:
     settings = get_settings()
-    brief_provider, _, _ = meeting_brief_identity(settings)
-    if not settings.ai_enrichment_enabled or brief_provider not in {"mistral", "openrouter"}:
+    summary_provider, summary_model, _ = meeting_brief_identity(
+        settings, provider_override=provider_override,
+    )
+    if not settings.ai_enrichment_enabled or summary_provider not in {"mistral", "nvidia", "openrouter", "openai"}:
         raise RuntimeError("AI meeting brief enrichment is not enabled")
     live_summary_provider, live_summary_model, summary_prompt_version = summary_identity(
         settings,
     )
-    summary_provider, summary_model, _ = meeting_brief_identity(settings)
     with connect(settings.database_url) as connection:
         row = connection.execute(
             """
@@ -417,19 +472,45 @@ def generate_one(
                 "api_requests": 0,
             }
 
-    client = (
-        MistralMeetingBriefClient(
+    def reserve_openai_tokens(estimated_tokens: int):
+        with connect(settings.database_url) as quota_connection:
+            return OpenAIDailyBudget(quota_connection).reserve(
+                estimated_tokens, settings.openai_daily_token_limit,
+            )
+
+    def settle_openai_tokens(usage_date, reserved_tokens, metadata):
+        with connect(settings.database_url) as quota_connection:
+            OpenAIDailyBudget(quota_connection).settle(
+                usage_date, reserved_tokens, metadata,
+            )
+
+    if summary_provider == "nvidia":
+        client = NvidiaMeetingBriefClient(
+            settings.nvidia_api_key, model=summary_model,
+            base_url=settings.nvidia_base_url,
+            min_interval_seconds=settings.meeting_brief_nvidia_min_interval_seconds,
+        )
+    elif summary_provider == "mistral":
+        client = MistralMeetingBriefClient(
             settings.mistral_api_key, model=summary_model,
             base_url=settings.mistral_base_url,
         )
-        if summary_provider == "mistral"
-        else OpenRouterMeetingBriefClient(
+    elif summary_provider == "openai":
+        client = OpenAIMeetingBriefClient(
+            settings.openai_api_key, model=summary_model,
+            base_url=settings.openai_base_url,
+            reserve_tokens=reserve_openai_tokens,
+            settle_tokens=settle_openai_tokens,
+        )
+    else:
+        client = OpenRouterMeetingBriefClient(
             settings.openrouter_api_key, model=summary_model,
             base_url=settings.openrouter_base_url,
         )
-    )
 
     def check_monthly_budget() -> None:
+        if summary_provider != "mistral":
+            return
         with connect(settings.database_url) as quota_connection:
             usage = SummaryRepository(quota_connection).monthly_token_usage(
                 summary_provider,
@@ -443,7 +524,7 @@ def generate_one(
 
     def record_token_usage(metadata: dict[str, Any]) -> None:
         with connect(settings.database_url) as quota_connection:
-            if summary_provider == "mistral":
+            if summary_provider in {"mistral", "nvidia"}:
                 SummaryRepository(quota_connection).record_monthly_token_usage(
                     summary_provider, summary_model, metadata,
                 )
@@ -472,13 +553,34 @@ def generate_one(
 
     def load_chunk(index: int, chunk_hash: str) -> dict[str, Any] | None:
         with connect(settings.database_url) as cache_connection:
-            return MeetingBriefRepository(cache_connection).get_chunk_analysis(
+            repository = MeetingBriefRepository(cache_connection)
+            cached = repository.get_chunk_analysis(
                 broadcast_id,
                 chunk_hash,
                 provider=summary_provider,
                 model=summary_model,
                 prompt_version=ANALYSIS_CACHE_VERSION,
             )
+            if cached is None and summary_provider in {"nvidia", "openrouter", "openai"}:
+                # Preserve validated work if a report changes provider.
+                alternatives = [
+                    ("nvidia", settings.meeting_brief_nvidia_model),
+                    ("openrouter", settings.meeting_brief_model),
+                    ("openai", settings.meeting_brief_openai_model),
+                ]
+                for alternate_provider, alternate_model in alternatives:
+                    if alternate_provider == summary_provider:
+                        continue
+                    cached = repository.get_chunk_analysis(
+                        broadcast_id,
+                        chunk_hash,
+                        provider=alternate_provider,
+                        model=alternate_model,
+                        prompt_version=ANALYSIS_CACHE_VERSION,
+                    )
+                    if cached is not None:
+                        break
+            return cached
 
     def save_chunk(
         index: int,
@@ -509,7 +611,7 @@ def generate_one(
             load_chunk=load_chunk,
             save_chunk=save_chunk,
         )
-    except MonthlyTokenLimitReached:
+    except (MonthlyTokenLimitReached, DailyTokenLimitReached):
         record_progress({**last_progress, "status": "DEFERRED", "phase": "TOKEN_LIMIT"})
         raise
     except Exception as exc:
@@ -528,7 +630,7 @@ def generate_one(
         raise
     enriched = enrich_brief(result.brief)
     mapping_result = {"status": "NOT_APPLICABLE", "api_requests": 0}
-    if summary_provider == "openrouter":
+    if summary_provider in {"nvidia", "openrouter", "openai"}:
         enriched, mapping_result = map_unlinked_brief_once(enriched, client)
     with connect(settings.database_url) as connection:
         repository = MeetingBriefRepository(connection)
@@ -570,7 +672,7 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
                 SELECT DISTINCT ON (brief.broadcast_id)
                        brief.broadcast_id, brief.brief, brief.generated_at, brief.id
                 FROM meeting_briefs brief
-                WHERE brief.provider IN ('mistral', 'openrouter')
+                WHERE brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
                 ORDER BY brief.broadcast_id, brief.generated_at DESC, brief.id DESC
             )
             SELECT latest.broadcast_id
@@ -610,16 +712,46 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
 
 def map_existing_brief_one(
     broadcast_id: UUID, *, force: bool = False,
+    provider_override: str | None = None,
 ) -> dict[str, Any]:
     settings = get_settings()
     provider, model, _ = meeting_brief_identity(settings)
-    if not settings.ai_enrichment_enabled or provider != "openrouter":
-        raise RuntimeError("OpenRouter meeting brief enrichment is not enabled")
-    client = OpenRouterMeetingBriefClient(
-        settings.openrouter_api_key,
-        model=model,
-        base_url=settings.openrouter_base_url,
-    )
+    if provider_override == "openai":
+        provider, model = "openai", settings.meeting_brief_openai_model
+    if not settings.ai_enrichment_enabled or provider not in {"nvidia", "openrouter", "openai"}:
+        raise RuntimeError("Meeting brief semantic mapping is not enabled")
+    if provider == "nvidia":
+        client = NvidiaMeetingBriefClient(
+            settings.nvidia_api_key, model=model,
+            base_url=settings.nvidia_base_url,
+            min_interval_seconds=settings.meeting_brief_nvidia_min_interval_seconds,
+        )
+    elif provider == "openai":
+        def reserve_tokens(estimated_tokens: int):
+            with connect(settings.database_url) as quota_connection:
+                return OpenAIDailyBudget(quota_connection).reserve(
+                    estimated_tokens, settings.openai_daily_token_limit,
+                )
+
+        def settle_tokens(usage_date, reserved_tokens, metadata):
+            with connect(settings.database_url) as quota_connection:
+                OpenAIDailyBudget(quota_connection).settle(
+                    usage_date, reserved_tokens, metadata,
+                )
+
+        client = OpenAIMeetingBriefClient(
+            settings.openai_api_key,
+            model=model,
+            base_url=settings.openai_base_url,
+            reserve_tokens=reserve_tokens,
+            settle_tokens=settle_tokens,
+        )
+    else:
+        client = OpenRouterMeetingBriefClient(
+            settings.openrouter_api_key,
+            model=model,
+            base_url=settings.openrouter_base_url,
+        )
     with connect(settings.database_url) as connection:
         repository = MeetingBriefRepository(connection)
         saved = repository.latest(broadcast_id)
@@ -663,6 +795,54 @@ def map_existing_brief_one(
 
 def map_existing_available(limit: int = 20) -> list[dict[str, Any]]:
     return [map_existing_brief_one(broadcast_id) for broadcast_id in mapping_candidate_ids(limit)]
+
+
+def recent_openai_mapping_candidate() -> UUID | None:
+    """Return one recent direct-OpenAI report still missing semantic mapping."""
+    with connect(get_settings().database_url) as connection:
+        row = connection.execute(
+            """
+            WITH latest AS (
+                SELECT DISTINCT ON (broadcast_id)
+                       broadcast_id, provider, brief
+                FROM meeting_briefs
+                WHERE provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
+                ORDER BY broadcast_id, generated_at DESC, id DESC
+            )
+            SELECT latest.broadcast_id
+            FROM latest
+            JOIN live_broadcasts broadcast ON broadcast.id = latest.broadcast_id
+            WHERE latest.provider = 'openai'
+              AND broadcast.lifecycle_status = 'ENDED'
+              AND broadcast.ended_at >= now() - interval '7 days'
+              AND COALESCE(
+                    (latest.brief->'live_topic_lineage'->>'unmapped_cluster_count')::int,
+                    0
+                  ) + COALESCE(
+                    (latest.brief->'live_topic_lineage'->>'ambiguous_cluster_count')::int,
+                    0
+                  ) > 0
+              AND COALESCE(
+                    latest.brief->'live_topic_assignment'->>'semantic_mapping_version',
+                    ''
+                  ) <> %s
+            ORDER BY broadcast.ended_at DESC
+            LIMIT 1
+            """,
+            (MAPPING_VERSION,),
+        ).fetchone()
+    return row[0] if row else None
+
+
+def openai_mapping_budget_available(settings: Any) -> bool:
+    # Let pending report generation use the daily allowance first.
+    with connect(settings.database_url) as connection:
+        usage = OpenAIDailyBudget(connection).today()
+    reserved = (
+        usage["total_tokens"] + usage["unknown_tokens"]
+        + usage["reserved_tokens"]
+    )
+    return settings.openai_daily_token_limit - reserved >= 150_000
 
 
 def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
@@ -719,6 +899,22 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
                     AND current_brief.source_last_event_cursor =
                         broadcast.source_last_event_cursor
               )
+              -- Automatic provider rotation handles unfinished reports only.
+              -- Prompt changes use explicit, reviewed backfills so an old
+              -- completed report does not consume the live-cycle budget.
+              AND (
+                  %s NOT IN ('openai', 'auto')
+                  OR NOT EXISTS (
+                      SELECT 1 FROM meeting_briefs finished_brief
+                      WHERE finished_brief.broadcast_id = broadcast.id
+                        AND finished_brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
+                        AND finished_brief.prompt_version LIKE 'assembly-meeting-brief/%%'
+                        AND finished_brief.brief->>'meeting_session_version' = %s
+                        AND finished_brief.brief ? 'live_topic_assignment'
+                        AND finished_brief.source_last_event_cursor =
+                            broadcast.source_last_event_cursor
+                  )
+              )
             ORDER BY ended_at DESC NULLS LAST
             LIMIT %s
             """,
@@ -731,45 +927,117 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
                 model,
                 prompt_version,
                 SESSION_VERSION,
+                str(settings.meeting_brief_provider or provider).lower(),
+                SESSION_VERSION,
                 limit,
             ),
         ).fetchall()
     return [row[0] for row in rows]
 
 
+def openrouter_quota_exhausted(
+    settings: Any, exc: Exception | None = None,
+) -> bool:
+    if openrouter_brief_has_capacity(settings) is False:
+        return True
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        response = exc.response
+        if response.status_code == 429:
+            try:
+                error = response.json().get("error") or {}
+                return str(error.get("message") or "") == "global_daily_operational_limit"
+            except (ValueError, AttributeError):
+                return False
+    return False
+
+
+def next_brief_provider(
+    settings: Any, failed_provider: str, exc: Exception,
+) -> str | None:
+    if failed_provider == "nvidia":
+        if isinstance(exc, requests.HTTPError) and exc.response is not None:
+            if exc.response.status_code == 429:
+                global _nvidia_retry_after
+                _nvidia_retry_after = time.monotonic() + 120.0
+        if openrouter_brief_has_capacity(settings) is not False:
+            return "openrouter"
+        return "openai" if settings.openai_api_key else None
+    if failed_provider == "openrouter" and settings.openai_api_key:
+        return "openai" if openrouter_quota_exhausted(settings, exc) else None
+    return None
+
+
 def process_available(limit: int = 1) -> list[dict[str, Any]]:
     results = []
     completed = 0
-    # A cache-key regression must not let one no-op candidate monopolize every
-    # worker cycle. Scan ahead while still limiting expensive generations.
     candidate_limit = min(20, max(5, limit * 5))
     for broadcast_id in eligible_broadcast_ids(candidate_limit):
-        try:
-            result = generate_one(broadcast_id)
-            results.append(result)
-            if result.get("status") != "CACHED":
-                completed += 1
-            if completed >= limit:
+        settings = get_settings()
+        automatic = str(settings.meeting_brief_provider or "").lower() == "auto"
+        provider = meeting_brief_identity(settings)[0] if automatic else ""
+        failed_providers: list[str] = []
+        while True:
+            try:
+                result = generate_one(
+                    broadcast_id,
+                    provider_override=provider if automatic else None,
+                )
+                if failed_providers:
+                    result["fallback_from"] = failed_providers
+                results.append(result)
+                if result.get("status") != "CACHED":
+                    completed += 1
                 break
-        except MonthlyTokenLimitReached:
-            results.append(
-                {
+            except (MonthlyTokenLimitReached, DailyTokenLimitReached) as exc:
+                results.append({
                     "broadcast_id": str(broadcast_id),
-                    "status": "MONTHLY_TOKEN_LIMIT",
-                }
-            )
-            break
-        except Exception as exc:
-            results.append(
-                {
+                    "status": (
+                        "DAILY_TOKEN_LIMIT"
+                        if isinstance(exc, DailyTokenLimitReached)
+                        else "MONTHLY_TOKEN_LIMIT"
+                    ),
+                    "provider": provider,
+                })
+                completed = limit
+                break
+            except Exception as exc:
+                next_provider = (
+                    next_brief_provider(settings, provider, exc)
+                    if automatic else None
+                )
+                if next_provider and next_provider not in failed_providers:
+                    failed_providers.append(provider)
+                    provider = next_provider
+                    continue
+                results.append({
                     "broadcast_id": str(broadcast_id),
                     "status": "FAILED",
+                    "provider": provider or None,
+                    "fallback_from": failed_providers,
                     "error": safe_brief_error_code(exc),
-                }
-            )
-            completed += 1
-            if completed >= limit:
+                })
+                completed += 1
                 break
+        if completed >= limit:
+            break
+    if completed == 0 and all(
+        item.get("status") == "CACHED" for item in results
+    ):
+        try:
+            candidate = recent_openai_mapping_candidate()
+            if candidate and openai_mapping_budget_available(get_settings()):
+                results.append({
+                    "workload": "LIVE_TOPIC_MAPPING",
+                    **map_existing_brief_one(
+                        candidate, provider_override="openai",
+                    ),
+                })
+        except Exception as exc:
+            results.append({
+                "workload": "LIVE_TOPIC_MAPPING",
+                "status": "FAILED",
+                "error": safe_brief_error_code(exc),
+            })
     return results
 
 

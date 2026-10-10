@@ -32,10 +32,41 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         repository = (
             PROJECT_DIR / "backend/app/db/meeting_brief_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("provider IN ('mistral', 'openrouter')", repository)
+        self.assertIn("provider IN ('mistral', 'nvidia', 'openrouter', 'openai')", repository)
         self.assertIn("def get_chunk_analysis", repository)
         self.assertIn("def save_chunk_analysis", repository)
         self.assertIn("current_source_last_event_cursor", repository)
+
+    def test_legacy_brief_upgrade_flag_requires_active_current_prompt_job(self):
+        from app.main import _public_meeting_brief
+        from app.services.meeting_brief import PROMPT_VERSION
+
+        item = {
+            "brief_id": "brief-1",
+            "broadcast_id": "broadcast-1",
+            "transcript_hash": "snapshot-1",
+            "source_last_event_cursor": 7,
+            "provider": "openai",
+            "model": "gpt-5.4-mini",
+            "prompt_version": "assembly-meeting-brief/1.9-coverage-review/1",
+            "authority_status": "PROVISIONAL",
+            "review_status": "UNREVIEWED",
+            "generated_at": "2026-10-07T00:00:00Z",
+            "brief": {"utterance_count": 10},
+        }
+        progress = {
+            "prompt_version": PROMPT_VERSION,
+            "status": "COMPLETED",
+            "transcript_hash": "snapshot-1",
+            "current_source_last_event_cursor": 7,
+        }
+        public = _public_meeting_brief(item, progress, include_content=False)
+        self.assertEqual("READY", public["brief_status"])
+        self.assertFalse(public["brief_upgrade_pending"])
+
+        progress["status"] = "PROCESSING"
+        public = _public_meeting_brief(item, progress, include_content=False)
+        self.assertTrue(public["brief_upgrade_pending"])
 
     def test_api_and_beta_ui_link_results_to_evidence(self):
         api = (PROJECT_DIR / "backend/app/main.py").read_text(encoding="utf-8")
@@ -75,7 +106,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("filter: blur(5px)", styles)
         self.assertIn("자동 정리 · 잠정", script)
         self.assertIn(
-            'item["provider"] in {"mistral", "openrouter"}', api
+            'item["provider"] in {"mistral", "nvidia", "openrouter", "openai"}', api
         )
         self.assertIn("progress_map", api)
         self.assertIn("meetingBriefIsReady", script)

@@ -1,0 +1,339 @@
+/* Map-first supply workspace. Other HOME views keep their existing layout. */
+body.home-map-view .page-heading{display:none}
+body.home-map-view main{padding-top:14px}
+body.home-map-view .filterbar{margin-bottom:12px}
+body.home-map-view .housing-map-workspace{margin-bottom:16px}
+body.home-map-view .housing-map-header{padding:11px 17px}
+body.home-map-view .housing-map-header h2{font-size:17px}
+body.home-map-view .housing-map-toolbar{padding:8px 14px}
+body.home-map-view .map-supply-workspace{padding:8px 14px 5px}
+body.home-map-view .map-supply-controls{margin-bottom:4px}
+body.home-map-view .map-bar-toolbar{padding:7px 14px}
+body.home-map-view .map-bar-explanation{margin:0;padding:5px 14px;font-size:10px}
+body.home-map-view .housing-map-body{
+  --home-panel-width:380px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--home-panel-width);
+  grid-template-rows:minmax(0,1fr);
+  height:max(620px,calc(100vh - 310px));
+  min-height:0;
+  background:#eef2f4;
+}
+body.home-map-view #housing-map{grid-column:1;grid-row:1;width:100%;height:100%;min-width:0;min-height:0}
+body.home-map-view .map-side-panel{
+  grid-column:2;grid-row:1;
+  position:relative;inset:auto;
+  width:auto;height:auto;min-width:0;max-height:none;
+  z-index:401;display:flex;flex-direction:column;gap:0;
+  padding:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  pointer-events:auto;background:#fff;border-left:1px solid #d5dfed;
+}
+body.home-map-view .map-panel-top{
+  position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;
+  gap:8px;padding:14px 17px;background:#fff;border-bottom:1px solid #e4eaf3;
+}
+body.home-map-view .map-panel-top strong{color:#173c72;font-size:16px}
+body.home-map-view .map-panel-top p{margin:3px 0 0;font-size:10px;color:#56759b}
+body.home-map-view .map-panel-content{display:flex;flex-direction:column;gap:10px;padding:12px}
+body.home-map-view .map-panel-content>.map-info-card,
+body.home-map-view .map-panel-content>.map-pending-card{flex-shrink:0;margin:0}
+body.home-map-view .map-side-panel .policy-monitor{order:0}
+body.home-map-view #map-policy-summary{order:1}
+body.home-map-view #map-block-list{order:2}
+body.home-map-view #map-panel-methodology{order:7;flex-shrink:0}
+body.home-map-view #map-project-detail{order:4}
+body.home-map-view #map-history-summary{order:5}
+body.home-map-view .map-pending-card{order:6}
+body.home-map-view #map-panel-toggle{display:block;border:1px solid #b7c9e2;border-radius:6px;background:#f5f9ff;padding:7px 9px;color:#265589;font-size:11px;white-space:nowrap}
+body.home-map-view .map-caption{left:14px;right:calc(var(--home-panel-width) + 14px);top:14px;max-width:calc(100% - var(--home-panel-width) - 28px);background:#ffffffde}
+body.home-map-view .map-tile-error{left:14px}
+body.home-map-view .map-region-cards{display:none}
+body.home-map-view .map-color-legend{left:14px;right:calc(var(--home-panel-width) + 14px);max-width:calc(100% - var(--home-panel-width) - 28px);bottom:12px}
+body.home-map-view .housing-map-timeline{padding:10px 16px}
+body.home-map-view .map-year-controls{margin-top:7px}
+body.home-map-view .map-stage-summary{display:none}
+body.home-map-view .map-year-slider-label{margin:5px 0 6px 43px}
+body.home-map-view .map-grounding-note{margin:6px 0 0}
+.map-block-list h3{margin:0 0 5px;color:#244a7f;font-size:14px}
+.map-block-list>p{margin:0 0 9px;font-size:10px;line-height:1.5;color:#6a7d95}
+.map-block-list .map-block-choice{display:flex;align-items:center;gap:10px;width:100%;padding:10px 7px;border:0;border-top:1px solid #e8eef6;background:transparent;text-align:left;color:#263f66;cursor:pointer}
+.map-block-list .map-block-choice:hover,.map-block-list .map-block-choice.active{background:#eaf2ff}
+.map-block-list .map-block-choice:focus-visible{outline:2px solid #155cf2;outline-offset:-2px}
+.map-block-list .map-block-choice>span:last-child{min-width:0;flex:1}
+.map-block-list .map-block-choice strong{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.map-block-list .map-block-choice small{display:block;font-size:10px;line-height:1.5;color:#657992;margin-top:3px;overflow-wrap:anywhere}
+.map-block-list .map-block-choice .map-block-quantity{font-size:11px;font-weight:700;color:#175cc4;white-space:nowrap}
+.map-block-list .map-block-mini{display:block;width:18px;height:36px;flex-shrink:0;overflow:visible}
+.map-block-list .map-block-location{font-size:10px;color:#8a6440;background:#fff6e5;padding:8px;border-radius:5px}
+.map-block-list .map-block-empty{font-size:11px;color:#657992;line-height:1.5}
+.map-district-choice{background:#fff;border:1px solid #9bb5d3;border-radius:8px;padding:6px 9px;color:#173d70;box-shadow:0 2px 8px #203b6b25;min-width:88px;text-align:center;cursor:pointer}
+.map-district-choice b{display:block;font-size:12px;line-height:1.3}
+.map-district-choice small{display:block;font-size:9px;color:#647c98;margin-top:2px}
+.map-district-choice.selected{border:2px solid #1367ea;background:#eaf3ff}
+.map-region-summary-marker{background:transparent;border:0}
+.map-region-summary-button{min-width:126px;padding:8px;border:1px solid #a8bfdf;border-radius:10px;background:#ffffffed;box-shadow:0 3px 12px #132b5840;color:#173d75;text-align:center;cursor:pointer}
+.map-region-summary-button b,.map-region-summary-button small{display:block}
+.map-region-summary-button b{font-size:16px}
+.map-region-summary-button small{font-size:10px;line-height:1.4;margin-top:3px}
+@media(min-width:801px){
+  body.home-map-view .housing-map-body.panel-collapsed{--home-panel-width:48px}
+  body.home-map-view .panel-collapsed .map-panel-content{display:none}
+  body.home-map-view .panel-collapsed .map-panel-top{padding:10px 3px;justify-content:center}
+  body.home-map-view .panel-collapsed .map-panel-top>div{display:none}
+  body.home-map-view .panel-collapsed #map-panel-toggle{writing-mode:vertical-rl;min-height:76px;width:36px;padding:7px 5px}
+}
+@media(max-width:1150px) and (min-width:801px){body.home-map-view .housing-map-body{--home-panel-width:320px}}
+@media(max-width:800px){
+  body.home-map-view main{padding:10px 12px}
+  body.home-map-view .housing-map-body{display:block;position:relative;height:max(540px,calc(100svh - 170px));min-height:0}
+  body.home-map-view #housing-map{height:100%;width:100%}
+  body.home-map-view .map-side-panel{position:absolute;top:auto;right:0;bottom:0;left:0;width:100%;height:69px;max-height:none;border:1px solid #d5dfed;border-radius:14px 14px 0 0;box-shadow:0 -4px 18px #182c5040;overflow:hidden;transition:height .18s ease}
+  body.home-map-view .map-side-panel.panel-open{height:min(72svh,550px);overflow-y:auto}
+  body.home-map-view .map-panel-top{padding:10px 14px;min-height:68px}
+  body.home-map-view #map-panel-toggle{display:block;border:1px solid #b7c9e2;border-radius:6px;background:#f5f9ff;padding:8px 10px;color:#265589;font-size:11px;white-space:nowrap}
+  body.home-map-view .map-caption{left:10px;right:auto;top:10px;max-width:calc(100% - 20px);padding:7px 9px}
+  body.home-map-view .map-tile-error{left:10px}
+  body.home-map-view .map-color-legend{left:10px;right:auto;bottom:76px;max-width:calc(100% - 20px);font-size:9px}
+  body.home-map-view .map-year-controls{margin-top:7px}
+  body.home-map-view .map-grounding-note{display:none}
+}
+
+/* WebGL buildings are loaded only at evidence-backed block level. */
+body.home-map-view .housing-map-body{position:relative}
+body.home-map-view #housing-map-3d{grid-column:1;grid-row:1;display:none;width:100%;height:100%;min-width:0;min-height:0;z-index:1}
+body.home-map-view .map-3d-active #housing-map{visibility:hidden}
+body.home-map-view .map-3d-active #housing-map-3d{display:block}
+body.home-map-view .map-3d-active .map-caption{display:none}
+.map-3d-status{position:absolute;z-index:405;top:12px;left:14px;right:calc(var(--home-panel-width) + 14px);width:max-content;max-width:calc(100% - var(--home-panel-width) - 28px);padding:8px 11px;border:1px solid #bed2df;border-radius:6px;background:#ffffffed;color:#234a64;font-size:11px;line-height:1.4;box-shadow:0 2px 8px #17365618}
+.map-3d-status[data-kind=missing]{background:#fff6e7;color:#795324;border-color:#ebd5aa}
+.map-3d-block-marker{display:block;width:82px;height:142px;padding:0;border:0;border-radius:6px;background:transparent;cursor:pointer}
+.map-3d-block-marker.selected{background:#e8f2ff9c;outline:2px solid #0867f0}
+.map-3d-block-marker svg{width:82px;height:100%;overflow:visible}
+.map-3d-popup{max-width:245px}.map-3d-popup strong{font-size:13px}.map-3d-popup p{margin:5px 0;font-size:11px}.map-3d-popup small{font-size:10px;color:#68788d}
+@media(max-width:800px){
+  body.home-map-view #housing-map-3d{position:absolute;inset:0;height:100%;z-index:1}
+  body.home-map-view .map-3d-status{right:10px;top:60px;max-width:calc(100% - 20px);font-size:10px}
+}
+
+.map-3d-evidence h3{font-size:13px;color:#245080;margin:0 0 7px}.map-3d-evidence p{font-size:10px;line-height:1.5;color:#536a83;margin:5px 0}.map-3d-evidence strong{color:#174f9e}.map-3d-evidence a{font-size:10px;color:#1264c9;text-decoration:underline}.map-3d-evidence code{font-size:9px;color:#657992;overflow-wrap:anywhere}
+
+/* Keep map controls in view after opening 3D from the toolbar. */
+body.home-map-view .housing-map-body{scroll-margin-top:12px}
+body.home-map-view .map-3d-exit{position:absolute;z-index:406;top:12px;right:calc(var(--home-panel-width) + 14px);border:1px solid #8ca9cb;border-radius:7px;background:#fff;color:#18518c;padding:8px 11px;font-size:11px;font-weight:650;box-shadow:0 2px 9px #14335b3d}
+body.home-map-view .map-3d-exit:hover{background:#edf5ff}
+@media(max-width:800px){body.home-map-view .map-3d-exit{top:12px;right:10px}}
+
+/* Reference-style 3D workspace: full viewport map, compact controls, persistent detail pane. */
+body.home-3d-view{overflow:hidden}
+body.home-3d-view .housing-map-workspace{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;margin:0;border:0;border-radius:0;box-shadow:none;background:#fff}
+body.home-3d-view .housing-map-header{flex:none;min-height:48px;padding:8px 16px}
+body.home-3d-view .housing-map-toolbar{flex:none;min-height:48px;padding:6px 12px;gap:7px}
+body.home-3d-view .map-supply-workspace,body.home-3d-view .map-bar-toolbar,body.home-3d-view .map-bar-explanation{display:none}
+body.home-3d-view .housing-map-body{flex:1 1 auto;height:auto;min-height:0;scroll-margin:0}
+body.home-3d-view .housing-map-timeline{flex:none;padding:7px 14px 5px;max-height:88px;overflow:hidden}
+body.home-3d-view .map-timeline-head,body.home-3d-view .map-grounding-note{display:none}
+body.home-3d-view .map-year-controls{margin:0}
+body.home-3d-view .map-year-slider-label{margin:4px 0 3px 43px}
+.map-3d-block-picker{display:none!important}
+body.home-3d-view .map-3d-block-picker{display:flex!important;align-items:center;gap:5px}
+body.home-3d-view .map-3d-block-picker select{max-width:190px}
+body.home-3d-view .housing-map-toolbar .map-tool-button{margin-left:0}
+body.home-3d-view #map-3d-toggle{background:#eaf2ff;border-color:#8caef0;color:#1752a4;font-weight:700}
+@media(max-width:800px){
+  body.home-3d-view .housing-map-toolbar{max-height:98px;overflow-x:auto;white-space:nowrap;flex-wrap:nowrap}
+  body.home-3d-view .housing-map-header{min-height:45px}
+  body.home-3d-view .housing-map-timeline{max-height:77px}
+  body.home-3d-view .map-3d-block-picker select{max-width:135px}
+}
+
+body.home-map-view .map-3d-camera{position:absolute;z-index:406;top:54px;left:14px;display:flex;gap:4px;padding:4px;border:1px solid #c5d4e5;border-radius:7px;background:#ffffffeb;box-shadow:0 2px 8px #18365620}
+body.home-map-view .map-3d-camera button{border:1px solid transparent;border-radius:5px;background:transparent;color:#33516d;padding:7px 9px;font-size:10px;white-space:nowrap}
+body.home-map-view .map-3d-camera button.selected,body.home-map-view .map-3d-camera button:hover{background:#e7f0ff;border-color:#aec8ed;color:#1456a8}
+body.home-map-view .map-3d-legend{position:absolute;z-index:405;bottom:11px;left:14px;display:flex;gap:10px;flex-wrap:wrap;padding:6px 9px;border:1px solid #d6e1ee;border-radius:6px;background:#ffffffed;color:#526881;font-size:9px}
+body.home-map-view .map-3d-legend span{display:flex;align-items:center;gap:4px}
+body.home-map-view .map-3d-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
+body.home-map-view .map-3d-legend i.existing{background:#8c9eaa}
+body.home-map-view .map-3d-legend i.block{border:2px solid #1665ee;background:#eaf2ff}
+@media(max-width:800px){
+  body.home-map-view .map-3d-camera{top:125px;left:10px;right:10px;overflow-x:auto;max-width:calc(100% - 20px)}
+  body.home-map-view .map-3d-legend{bottom:80px;left:10px;max-width:calc(100% - 20px);font-size:8px}
+}
+
+/* Continuous map-first workspace: no centered max-width canvas or 2D/3D swap. */
+@media(min-width:801px){
+  body.home-map-view{overflow:hidden}
+  body.home-map-view main{max-width:none;margin:0;padding:0}
+  body.home-map-view .housing-map-workspace{position:fixed;inset:0 0 0 236px;z-index:3;display:flex;flex-direction:column;margin:0;border:0;border-radius:0;box-shadow:none;background:#fff}
+  body.home-map-view.sidebar-collapsed .housing-map-workspace{left:68px}
+  body.home-map-view .housing-map-header{flex:none;min-height:48px;padding:8px 16px}
+  body.home-map-view .housing-map-toolbar{flex:none;min-height:48px;padding:6px 12px;gap:7px}
+  body.home-map-view .map-supply-workspace{flex:none;padding:5px 12px 2px}
+  body.home-map-view .housing-map-body{flex:1 1 auto;height:auto;min-height:0;grid-template-columns:var(--home-panel-width) minmax(0,1fr)}
+  body.home-map-view .housing-map-timeline{flex:none;max-height:88px;overflow:hidden;padding:7px 14px 5px}
+  body.home-map-view .map-timeline-head,body.home-map-view .map-grounding-note{display:none}
+  body.home-map-view .map-year-controls{margin:0}
+  body.home-map-view .map-year-slider-label{margin:4px 0 3px 43px}
+  body.home-map-view .map-side-panel{grid-column:1;grid-row:1;border-left:0;border-right:1px solid #d5dfed}
+  body.home-map-view #housing-map-3d{grid-column:2;grid-row:1;display:block}
+  body.home-map-view .map-3d-status{left:calc(var(--home-panel-width) + 14px);right:14px;max-width:calc(100% - var(--home-panel-width) - 28px)}
+  body.home-map-view .map-3d-camera{left:calc(var(--home-panel-width) + 14px)}
+  body.home-map-view .map-3d-legend{left:calc(var(--home-panel-width) + 14px)}
+  body.home-map-view .map-caption{left:calc(var(--home-panel-width) + 14px);right:14px;max-width:calc(100% - var(--home-panel-width) - 28px)}
+}
+@media(max-width:1150px) and (min-width:801px){body.home-map-view .housing-map-workspace{left:205px}body.home-map-view.sidebar-collapsed .housing-map-workspace{left:68px}}
+body.home-map-view .filterbar,body.home-map-view .map-bar-toolbar,body.home-map-view .map-bar-explanation,body.home-map-view .map-layer-menu,body.home-map-view #map-3d-toggle,body.home-map-view #map-3d-exit,body.home-map-view #housing-map{display:none!important}
+body.home-map-view .map-3d-block-picker{display:flex!important;align-items:center;gap:5px}
+body.home-map-view .map-3d-block-picker select{max-width:235px}
+body.home-map-view .map-supply-details{display:none}
+body.home-map-view .housing-map-toolbar .map-tool-button{margin-left:0}
+body.home-map-view .map-3d-legend i.model{background:#83a8bf}
+body.home-map-view .map-3d-legend i.selected{background:#c77967}
+.map-scene-region{display:flex;flex-direction:column;gap:3px;min-width:116px;padding:9px 12px;border:1px solid #9eb9df;border-radius:10px;background:#ffffffed;color:#163b74;box-shadow:0 3px 14px #1d3c6b40;text-align:left}
+.map-scene-region b{font-size:15px}.map-scene-region small{font-size:10px}
+.map-scene-municipality{position:relative;display:flex;align-items:center;flex-direction:column;gap:2px;min-width:90px;border:0;background:transparent;color:#24436b;text-shadow:0 1px 3px #fff;white-space:nowrap}
+.map-scene-municipality svg{filter:drop-shadow(0 2px 4px #183b5b50)}
+.map-scene-municipality>b{position:absolute;top:calc(var(--pie-diameter)/2 - 7px);font-size:12px;color:#123e80}
+.map-scene-municipality strong{font-size:10px}.map-scene-municipality small{font-size:9px}
+.map-scene-unlocated{max-width:118px;padding:5px 7px;border:1px dashed #9aa7b5;border-radius:5px;background:#ffffffd9;color:#596c80;font-size:9px;text-align:center}
+.map-scene-block.selected{background:#fff0eaa8;outline-color:#e3442f}
+@media(max-width:800px){
+  body.home-map-view main{max-width:none;margin:0;padding:0}
+  body.home-map-view .housing-map-workspace{display:flex;flex-direction:column;min-height:calc(100svh - 132px);height:calc(100svh - 132px);margin:0;border-radius:0}
+  body.home-map-view .housing-map-header{flex:none}
+  body.home-map-view .housing-map-toolbar{flex:none;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}
+  body.home-map-view .map-supply-workspace{flex:none;overflow-x:auto}
+  body.home-map-view .map-supply-controls{flex-wrap:nowrap;white-space:nowrap}
+  body.home-map-view .housing-map-body{flex:1 1 auto;height:auto;min-height:320px}
+  body.home-map-view #housing-map-3d{display:block;position:absolute;inset:0;width:100%;height:100%}
+  body.home-map-view .housing-map-timeline{flex:none;max-height:80px;overflow:hidden;padding:7px 10px}
+  body.home-map-view .map-timeline-head,body.home-map-view .map-grounding-note{display:none}
+  body.home-map-view .map-year-controls{margin:0}
+  body.home-map-view .map-year-slider-label{margin:4px 0 3px 43px}
+  body.home-map-view .map-3d-block-picker select{max-width:150px}
+  body.home-map-view .map-3d-camera{top:98px}
+  body.home-map-view .map-3d-legend{bottom:78px}
+}
+
+body.home-map-view #pane-overview>:not(.housing-map-workspace){display:none}
+@media(max-width:800px){body.home-map-view .map-3d-camera{top:128px}}
+
+/* Nearby public infrastructure from VWorld place search. */
+body.home-map-view .map-infrastructure-panel{position:absolute;z-index:407;top:12px;right:14px;width:255px;max-width:calc(100% - var(--home-panel-width) - 28px);border:1px solid #b9cada;border-radius:8px;background:#fffffff2;box-shadow:0 4px 16px #17395c31;color:#264366;font-size:11px}
+body.home-map-view .map-infrastructure-panel[hidden]{display:none!important}
+body.home-map-view .map-infrastructure-panel summary{padding:9px 11px;cursor:pointer;font-weight:800;list-style-position:inside}
+body.home-map-view .map-infrastructure-panel summary small{display:block;margin:3px 0 0 16px;color:#6f8197;font-size:9px;font-weight:500}
+body.home-map-view .map-infrastructure-content{padding:0 7px 7px}
+body.home-map-view .map-infrastructure-content>p{margin:6px 5px 1px;color:#74869b;font-size:9px;line-height:1.35}
+body.home-map-view .map-infra-summary{display:flex;align-items:center;gap:7px;width:100%;margin:3px 0;padding:7px;border:1px solid #e0e7ef;border-radius:6px;background:#fff;color:#25415f;text-align:left;cursor:pointer}
+body.home-map-view .map-infra-summary:hover{background:#f4f9ff;border-color:#9dbce0}
+body.home-map-view .map-infra-summary:disabled{cursor:default;opacity:.65}
+body.home-map-view .map-infra-summary-icon{font-size:20px;line-height:1}
+body.home-map-view .map-infra-summary>span:nth-child(2){min-width:0;flex:1}
+body.home-map-view .map-infra-summary b,.map-infra-summary em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.home-map-view .map-infra-summary b{font-size:10px}.map-infra-summary b small{font-weight:500;color:#74869b}.map-infra-summary em{margin-top:2px;font-size:10px;font-style:normal;color:#526d8b}
+body.home-map-view .map-infra-summary>strong{flex:none;font-size:10px;color:#225e9f}
+body.home-map-view .map-infra-marker{display:flex;align-items:center;gap:4px;padding:4px 7px;border:1px solid #9bb2cc;border-radius:20px;background:#fffffff2;color:#25425f;box-shadow:0 2px 7px #1c35444d;white-space:nowrap;cursor:pointer}
+body.home-map-view .map-infra-marker span{font-size:16px;line-height:1.1}
+body.home-map-view .map-infra-marker b{max-width:106px;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+body.home-map-view .map-infra-marker.gtx{border:2px solid #7350ba;background:#f5ecfffa;color:#4e278e;font-weight:800;box-shadow:0 2px 9px #48268c55}
+body.home-map-view .map-infra-marker.subway{border-color:#5684c8;background:#e7f0ffef}
+body.home-map-view .map-infra-summary.gtx{border-color:#bb9bdf;background:#f9f4ff}
+body.home-map-view .map-infra-summary.gtx>strong{color:#693da5}
+body.home-map-view .map-infra-planned{border-left:3px solid #9270c2;padding:5px 6px!important;background:#f9f5ff;color:#573d79!important}
+body.home-map-view .map-infra-marker.school{border-color:#c29a48;background:#fff7e5ef}
+body.home-map-view .map-infra-marker.hospital{border-color:#cf7777;background:#fff0efef}
+@media(min-width:801px){body.home-map-view .map-3d-status{right:282px;max-width:calc(100% - var(--home-panel-width) - 296px)}}
+@media(max-width:800px){body.home-map-view .map-infrastructure-panel{top:58px;right:10px;width:230px;max-width:calc(100% - 20px)}}
+
+body.home-map-view #map-policy-summary,
+body.home-map-view #map-project-detail,
+body.home-map-view #map-history-summary,
+body.home-map-view .map-pending-card{display:none}
+body.home-map-view .map-panel-content{gap:8px;padding:10px}
+body.home-map-view .map-panel-content>.policy-monitor{padding:12px;border:1px solid #dce6f3;border-radius:11px;box-shadow:none}
+body.home-map-view .policy-monitor h3{margin:0 0 8px;color:#173c72;font-size:14px}
+.trend-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:9px 0 11px;border-top:1px solid #e1e9f4}
+.trend-heading small{display:block;color:#6983a4;font-size:10px}
+.trend-heading h4{margin:3px 0 0;color:#173b73;font-size:17px;line-height:1.3}
+.trend-heading>span{flex:none;padding:3px 6px;border-radius:6px;background:#eef4fc;color:#41658f;font-size:10px}
+.trend-kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.trend-kpis>div{min-width:0;padding:8px;border:1px solid #dde7f3;border-radius:8px;background:#f8fbff}
+.trend-kpis small{display:block;color:#607999;font-size:9px;line-height:1.3}
+.trend-kpis strong{display:block;margin-top:3px;color:#1459b0;font-size:15px;white-space:nowrap}
+.trend-kpis>div:nth-child(3) strong,.trend-kpis>div:nth-child(4) strong,.trend-kpis>div:nth-child(6) strong{color:#087d83}
+.trend-kpis>div:last-child:nth-child(odd){grid-column:1/-1}
+.trend-chart-title{font-size:11px!important;margin:13px 0 3px!important;color:#315579!important}
+.trend-chart-scroll{width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;border:1px solid #e4ebf5;border-radius:7px;background:#fff}
+.trend-chart{display:block;font-family:inherit}
+.trend-chart text{fill:#637b9a;font-size:9px}
+.trend-chart .trend-current-band{fill:#edf4ff}
+.trend-chart .trend-current-line{fill:none;stroke:#91b4ed;stroke-width:1;stroke-dasharray:2 3}
+.trend-chart .trend-current-year{fill:#1659b8;font-size:10px;font-weight:800}
+.trend-chart .trend-target{stroke:#aeb9c8;stroke-width:1.5;stroke-dasharray:4 3}
+.trend-chart .trend-target-label{fill:#7f8fa4;font-size:8px}
+.trend-chart .trend-plan-bar{fill:#bfd5f6}.trend-chart .trend-plan-bar.estimated{fill:#dbe6f8;stroke:#7a9ccd;stroke-dasharray:2 2}
+.trend-chart .trend-observed-bar{fill:#49a7a4}
+.trend-chart .trend-plan-line{fill:none;stroke:#1765dd;stroke-width:2.5}
+.trend-chart .trend-plan-line.estimated{stroke-dasharray:5 3}
+.trend-chart .trend-observed-line{fill:none;stroke:#07949a;stroke-width:2.5;stroke-dasharray:3 2}
+.trend-chart .trend-plan-dot{fill:#1765dd}.trend-chart .trend-observed-dot{fill:#07949a}
+.trend-legend{display:flex;gap:5px 11px;flex-wrap:wrap;margin:7px 0 9px;color:#59718e;font-size:9px}
+.trend-legend span{display:flex;align-items:center;gap:4px}.trend-legend i{display:inline-block;width:13px;height:0;border-top:3px solid #1765dd}
+.trend-legend .line.observed{border-color:#07949a;border-top-style:dashed}.trend-legend .line.estimated{border-color:#7a9ccd;border-top-style:dashed}
+.trend-legend .bar{width:8px;height:9px;border:0;background:#bfd5f6}.trend-legend .bar.observed{background:#49a7a4}
+.trend-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:9px 0}
+.trend-five span{display:block;min-width:0;padding:5px 2px;border-radius:5px;background:#f1f6fb;text-align:center}
+.trend-five b{display:block;color:#4f6f98;font-size:9px}.trend-five small{display:block;margin-top:2px;color:#225c9b;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-note{margin:8px 0 0;color:#71849c;font-size:9px;line-height:1.5}
+.map-panel-methodology{border-top:1px solid #dce6f3;background:#f7f9fc;color:#647b96;font-size:10px}
+.map-panel-methodology>summary{cursor:pointer;padding:10px 13px;font-weight:600;list-style-position:inside}
+.map-methodology-content{padding:0 13px 13px;line-height:1.6}
+.map-methodology-content p{margin:7px 0;color:#647b96;font-size:10px;line-height:1.6}
+.map-methodology-content .map-3d-evidence{border-top:1px solid #e0e8f1;margin-top:9px;padding-top:9px}
+.map-methodology-content .map-3d-evidence h3{font-size:11px;margin:0 0 5px;color:#526b87}
+.trend-stages{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:0;margin:8px 0 12px;list-style:none}
+.trend-stages li{min-width:0;padding:5px 2px;border-top:3px solid #c4d0df;text-align:center;background:#f6f8fa}
+.trend-stages li.observed{border-color:#0b8993;background:#ebf8f8}.trend-stages li.planned{border-color:#4779d7;background:#f1f5fd}
+.trend-stages b,.trend-stages small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-stages b{font-size:9px;color:#38577b}.trend-stages small{margin-top:3px;font-size:8px;color:#6a819d}
+.trend-construction>span{display:flex;justify-content:space-between;font-size:10px;color:#416487}.trend-construction strong{color:#098087}
+.trend-construction>div{height:8px;margin:5px 0;border-radius:10px;background:#e0eaf3;overflow:hidden}.trend-construction i{display:block;height:100%;background:#1597a0;border-radius:10px}
+.trend-construction small{font-size:9px;color:#788ca4}
+@media(max-width:1150px) and (min-width:801px){body.home-map-view .housing-map-body{--home-panel-width:340px}}
+
+@media(max-width:800px){body.home-map-view .map-infrastructure-panel{max-height:min(42svh,330px);overflow-y:auto}}
+
+.trend-policy-reference{padding-bottom:11px;margin-bottom:7px;border-bottom:1px solid #e1e9f4}
+.trend-policy-reference>h4{margin:2px 0 4px;color:#2054a0;font-size:12px}
+.trend-policy-reference>p{margin:2px 0 6px;color:#7288a4;font-size:9px}
+.trend-policy-reference>h5{margin:9px 0 5px;color:#426284;font-size:10px}
+.trend-policy-reference .supply-bar-chart{margin:3px 0}
+
+.trend-policy-reference>.supply-bar-chart .bar-column,.trend-policy-reference>.supply-bar-chart .bar-column svg{width:68px}
+.trend-policy-reference .monitor-region-chart .bar-column,.trend-policy-reference .monitor-region-chart .bar-column svg{width:42px}
+.trend-policy-reference .monitor-region-chart .bar-values .bar-future{display:none}
+.trend-policy-reference .monitor-region-chart{padding:5px 4px}
+.trend-policy-reference .monitor-region-chart .bar-values>.bar-ratio{font-size:14px}
+.trend-block-meter{margin-top:8px;padding:8px;border-radius:8px;background:#eff7ff;border:1px solid #d7e6f5}
+.trend-block-meter>span{display:flex;justify-content:space-between;gap:6px;color:#476687;font-size:10px}
+.trend-block-meter strong{color:#1166b0}
+.trend-block-meter>div{height:8px;margin:5px 0;border-radius:8px;background:#dce9f6;overflow:hidden}
+.trend-block-meter i{display:block;height:100%;background:#0b8b9c;border-radius:8px}
+.trend-block-meter small{font-size:9px;color:#7085a1}
+
+.trend-policy-reference>.supply-bar-chart .bar-values .bar-future{display:none}
+.trend-region-mini{min-width:0;padding:6px;border:1px solid #dfe8f4;border-radius:7px;background:#f8fbff}
+.trend-region-mini h5{margin:0 0 4px!important;font-size:10px!important;color:#315987}
+.trend-region-mini>div{height:7px;margin-bottom:4px;border-radius:8px;background:#e5edf6;overflow:hidden}
+.trend-region-mini i{display:block;height:100%;background:#1765de;border-radius:8px}
+.trend-region-mini small{display:block;color:#5c7491;font-size:8px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.home-map-view .trend-region #monitor-policy-chart{display:flex;flex-direction:column}
+body.home-map-view .trend-region .trend-heading{order:0}
+body.home-map-view .trend-region .trend-chart-title{order:1}
+body.home-map-view .trend-region .trend-chart-scroll{order:2}
+body.home-map-view .trend-region .trend-legend{order:3}
+body.home-map-view .trend-region .trend-kpis{order:4}
+body.home-map-view .trend-region .trend-five{order:5}
+
+body.home-map-view .trend-policy-reference{padding-bottom:2px;margin-bottom:0}
+body.home-map-view .trend-region .trend-heading{padding:6px 0}

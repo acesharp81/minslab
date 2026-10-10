@@ -33,3 +33,9 @@
 2. 기존 `assembly-meeting-brief/1.2` 청크 캐시를 재사용해 최종 합성만 다시 실행한다. 공용 OpenRouter gateway의 950회 안전선은 유지하되 PoC 4 중단으로 생긴 잔여량을 PoC 7 재합성에 사용할 수 있다.
 3. GPT-5.4 mini는 동일 입력의 최종 합성 A/B 평가에서 사실 오류, 오탈자, 중복 주제, 근거 ID 보존을 통과하고 별도 예산·secret이 준비된 뒤 선택적으로 도입한다.
 4. Nemotron 3 Super direct NIM은 한국어 품질 때문에 shadow 후보로만 평가한다. 저장 결과를 현재 보고서에 자동 승격하지 않는다.
+
+## 2026-10-07 후속 확인
+
+9월의 Nemotron 3 Super 그림자 평가 판단은 당시 관측 기록이다. 10월 7일에는 한국어가 지원 언어에 명시된 직접 NVIDIA NIM `nvidia/nemotron-3-ultra-550b-a55b`를 PoC7 보고서 우선 후보로 선택했다. PoC7의 전체 JSON 스키마로 합성 한국어 발언 4개를 분석했으며 청크 분석·최종 합성 2회가 성공하고 최종 주제 2개·과제 2개가 근거 검증을 통과했다. 실제 긴 회의의 정확도와 계정의 장기 무료 사용량은 이 검사로 입증되지 않는다. 현재 우선순위와 운영 조건은 [ADR-065](DECISIONS.md)를 따른다.
+
+NVIDIA 모델: <https://build.nvidia.com/nvidia/nemotron-3-ultra-550b-a55b>

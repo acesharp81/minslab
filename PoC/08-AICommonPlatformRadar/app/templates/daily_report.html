@@ -3,7 +3,7 @@
 {% block content %}
 <section class="stats-head performance-head">
   <div><span class="eyebrow">STATUS & OUTCOME PERFORMANCE</span><h1>사업 상태와 전환 실적</h1><p>수집된 사업의 최종 상태와 담당자 확인·권고로 개선된 두 가지 실적을 같은 기준으로 보여줍니다.</p></div>
-  <div class="stats-updated"><span>{{ stats.period.label }}</span><strong>{{ stats.period.display }}</strong><small>{{ stats.generated_at[:16]|replace('T', ' ') }} 기준</small></div>
+  <div class="stats-head-actions"><div class="stats-updated"><span>{{ stats.period.label }}</span><strong>{{ stats.period.display }}</strong><small>{{ stats.generated_at[:16]|replace('T', ' ') }} 기준</small></div><div class="stats-head-buttons"><button class="button stats-print-button" type="button" data-print-statistics>인쇄하기</button><a class="button stats-download-button" href="{{ url_for('download_statistics_csv').path }}?period={{ stats.period.key }}" title="관리자 로그인 후 다운로드">통계자료 받기</a></div></div>
 </section>
 
 <nav class="period-tabs" aria-label="통계 기간 선택">
@@ -23,14 +23,14 @@
         <a class="status-review" href="{{ url_for('notices_page').path }}?classification_code=3">
           <div class="reason-state-total"><span>검토 필요</span><strong>{{ stats.status.review|number }}</strong></div>
           <div class="ineligible-reason-chart review-reason-chart" title="공고 {{ stats.status.review|number }}건의 확인 사유 {{ stats.status.review_reasons.total|number }}건 · 중복 집계">
-            <i class="reason-pie {{ 'empty' if not stats.status.review_reasons.total else '' }}" style="--reason-gradient:{{ stats.status.review_reasons.gradient }}"><b>{{ stats.status.review_reasons.total|number }}</b></i>
+            <i class="reason-pie {{ 'empty' if not stats.status.review_reasons.total else '' }}" style="--reason-gradient:{{ stats.status.review_reasons.gradient }}"><svg class="print-reason-pie" viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-90 50 50)"><circle cx="50" cy="50" r="40" fill="none" stroke="#e4e9e6" stroke-width="20"/>{% for slice in stats.status.review_reasons["items"] if slice.percent %}<circle cx="50" cy="50" r="40" fill="none" stroke="{{ slice.color }}" stroke-width="20" pathLength="100" stroke-dasharray="{{ slice.percent }} 100" stroke-dashoffset="-{{ slice.start_percent }}"/>{% endfor %}</g></svg><b>{{ stats.status.review_reasons.total|number }}</b></i>
             <ul>{% for item in stats.status.review_reasons["items"] %}<li><i style="background:{{ item.color }}"></i><span>{{ item.label }}</span><b>{{ item.count|number }}건 · {{ item.percent|number }}%</b></li>{% endfor %}</ul>
           </div>
         </a>
         <a class="status-ineligible" href="{{ url_for('notices_page').path }}?classification_code=5">
           <div class="reason-state-total"><span>부적합</span><strong>{{ stats.status.ineligible|number }}</strong><small>공통기반 비대상</small></div>
           <div class="ineligible-reason-chart" title="부적합 사유별 구성비">
-            <i class="reason-pie {{ 'empty' if not stats.status.ineligible_reasons.total else '' }}" style="--reason-gradient:{{ stats.status.ineligible_reasons.gradient }}"><b>{{ stats.status.ineligible|number }}</b></i>
+            <i class="reason-pie {{ 'empty' if not stats.status.ineligible_reasons.total else '' }}" style="--reason-gradient:{{ stats.status.ineligible_reasons.gradient }}"><svg class="print-reason-pie" viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-90 50 50)"><circle cx="50" cy="50" r="40" fill="none" stroke="#e4e9e6" stroke-width="20"/>{% for slice in stats.status.ineligible_reasons["items"] if slice.percent %}<circle cx="50" cy="50" r="40" fill="none" stroke="{{ slice.color }}" stroke-width="20" pathLength="100" stroke-dasharray="{{ slice.percent }} 100" stroke-dashoffset="-{{ slice.start_percent }}"/>{% endfor %}</g></svg><b>{{ stats.status.ineligible|number }}</b></i>
             <ul>{% for item in stats.status.ineligible_reasons["items"] %}<li><i style="background:{{ item.color }}"></i><span>{{ item.label }}</span><b>{{ item.percent|number }}%</b></li>{% endfor %}</ul>
           </div>
         </a>
@@ -72,9 +72,30 @@
 </article>
 
 
+<article class="panel opinion-outcome-panel">
+  <div class="panel-head compact-head"><div><span class="eyebrow">AGENCY RESPONSE OUTCOMES</span><h2>검토요청·기관 답변 결과</h2><p>선택한 기간에 의견을 등록한 사전규격을 대상으로, 확인된 기관 답변과 현재 최종 조치 결과를 집계합니다.</p></div><div class="coverage-chip"><b>{{ stats.opinion_outcomes.replied|number }}</b><span>기관 답변 확인</span></div></div>
+  <div class="opinion-outcome-scroll">
+    <table class="opinion-outcome-table">
+      <thead><tr><th scope="col">구분</th><th scope="col">건수</th><th scope="col">내용</th></tr></thead>
+      <tbody>
+        <tr class="opinion-total-row"><th scope="row">총 검토요청</th><td>{{ stats.opinion_outcomes.requested|number }}건</td><td>나라장터 의견 등록 확인</td></tr>
+        <tr class="opinion-accepted-row"><th scope="row">수용</th><td>{{ stats.opinion_outcomes.accepted|number }}건</td><td>공통기반 이용 확인</td></tr>
+        <tr><th scope="row">미사용</th><td>{{ stats.opinion_outcomes.not_used|number }}건</td><td>이용 가능하나 미사용</td></tr>
+        <tr><th scope="row">부적합</th><td>{{ stats.opinion_outcomes.ineligible|number }}건</td><td><div class="opinion-reason-list">{% for item in stats.opinion_outcomes.ineligible_reasons %}<span>{{ item.label }} <b>{{ item.count|number }}건</b></span>{% endfor %}</div></td></tr>
+        <tr><th scope="row">비AI 사업</th><td>{{ stats.opinion_outcomes.non_ai|number }}건</td><td>회신 후 비AI 사업으로 확인</td></tr>
+        <tr><th scope="row">답변 확인·결과 미기록</th><td>{{ stats.opinion_outcomes.unclassified|number }}건</td><td>기관 답변은 확인했으나 최종 조치 미기록</td></tr>
+        <tr><th scope="row">답변 미확인</th><td>{{ stats.opinion_outcomes.waiting|number }}건</td><td>공개 답글·기관 회신을 아직 확인하지 못함</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="methodology-note">검토요청은 의견 등록일 기준으로 기간을 적용하고 공고당 1건만 셉니다. 기관 답변은 나라장터 공개 답글 또는 조치 기록의 기관 회신으로 확인하며, 부적합 세부 건수는 등록된 최종 사유를 기준으로 합니다.</p>
+</article>
+
+
 <article class="panel achievement-trend-panel">
   <div class="panel-head compact-head"><div><span class="eyebrow">PERFORMANCE TREND</span><h2>기간 내 전환 실적 추이</h2><p>초록은 검토필요→적합, 주황은 미이용→이용 실적입니다.</p></div><div class="trend-legend"><span class="review-color">검토→적합</span><span class="usage-color">미이용→이용</span></div></div>
-  {% if stats.trend %}<div class="achievement-chart" style="grid-template-columns:repeat({{ stats.trend|length }},minmax(24px,1fr))">{% for row in stats.trend %}<div class="trend-column" title="{{ row.label }} · 검토→적합 {{ (row.review_to_eligible or 0) }}건 · 미이용→이용 {{ (row.unused_to_used or 0) }}건"><div class="trend-bars"><i class="review-bar" style="height:{{ row.review_height }}%"></i><i class="usage-bar" style="height:{{ row.usage_height }}%"></i></div><small>{{ row.label }}</small></div>{% endfor %}</div>{% else %}<div class="empty">선택한 기간에 집계할 데이터가 없습니다.</div>{% endif %}
+  {% if stats.trend %}<div class="achievement-chart" style="--trend-columns:{{ stats.trend|length }};grid-template-columns:repeat({{ stats.trend|length }},minmax(24px,1fr))">{% for row in stats.trend %}<div class="trend-column" title="{{ row.label }} · 검토→적합 {{ (row.review_to_eligible or 0) }}건 · 미이용→이용 {{ (row.unused_to_used or 0) }}건"><div class="trend-bars"><i class="review-bar" style="height:{{ row.review_height }}%"></i><i class="usage-bar" style="height:{{ row.usage_height }}%"></i></div><small>{{ row.label }}</small></div>{% endfor %}</div>{% else %}<div class="empty">선택한 기간에 집계할 데이터가 없습니다.</div>{% endif %}
+  {% if stats.trend %}<table class="trend-print-table"><thead><tr><th scope="col">기간</th><th scope="col">검토→적합</th><th scope="col">미이용→이용</th></tr></thead><tbody>{% for row in stats.trend %}<tr><th scope="row">{{ row.label }}</th><td>{{ (row.review_to_eligible or 0)|number }}건</td><td>{{ (row.unused_to_used or 0)|number }}건</td></tr>{% endfor %}</tbody></table>{% endif %}
   <p class="methodology-note">실적은 조치완료 이력과 이전 판정 이력을 함께 확인합니다. 검토필요에서 적합 완료로 바뀌면 ‘검토 후 적합’, 공통기반을 이용하지 않거나 적용 문구가 없던 사업이 이용으로 바뀌면 ‘미적용→적용’으로 집계하며 한 사업이 두 지표에 모두 포함될 수 있습니다.</p>
 </article>
 

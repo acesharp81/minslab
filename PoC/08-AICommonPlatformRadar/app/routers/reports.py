@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import ctypes
-from datetime import date
+from datetime import date, datetime
 import gc
 import logging
 from pathlib import Path
 from threading import Lock, Thread
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,9 @@ from ..db import SessionLocal, get_db
 from ..models import ActionItem, AnalysisRun, Attachment, AuditLog, Notice
 from ..schemas import ReportRequest
 from ..services.report_builder import build_daily_report, get_daily_report
-from ..services.statistics_builder import build_statistics
+from ..services.statistics_builder import KST, build_statistics
+from ..services.statistics_export import build_statistics_csv
+from .settings import settings_authorized
 
 
 router = APIRouter()
@@ -122,6 +124,24 @@ def report_page(
 @router.get("/api/statistics")
 def statistics_api(period: str = "30d", db: Session = Depends(get_db)):
     return _cached_statistics(db, period)
+
+
+@router.get("/reports/daily/statistics.csv")
+def download_statistics_csv(
+    request: Request, period: str = "30d", db: Session = Depends(get_db),
+):
+    if not settings_authorized(request):
+        raise HTTPException(401, "관리자 로그인 후 통계자료를 받을 수 있습니다.")
+    selected = period if period in {"30d", "month", "year", "all"} else "30d"
+    filename = f"poc08-statistics-{selected}-{datetime.now(KST):%Y%m%d}.csv"
+    return Response(
+        content=build_statistics_csv(db, period=selected),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 @router.get("/api/reports/daily")

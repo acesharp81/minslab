@@ -2,6 +2,8 @@
 
 국회와 국무회의의 **예정 일정 → 생방송 기록 → AI 잠정 정리 → 공식 자료 반영**을 한 화면에서 이어 보는 회의 정보 서비스입니다. 사용자는 회의에서 무엇을 논의했고 어떤 과제가 남았는지를 먼저 확인하고, 필요할 때만 근거 발언과 공식 원문을 펼쳐 볼 수 있습니다.
 
+서비스 주소: <https://kjon.aigov.go.kr/>. 기존 <https://www.minslab.kr/poc/national-assembly/> 주소도 유지합니다.
+
 이 문서는 다음 독자를 위한 통합 안내서입니다.
 
 - **서비스 사용자**: 일정, 생방송, 요약, 도출 과제, 근거 발언과 공식 수정 내용을 확인하는 방법
@@ -109,7 +111,7 @@ KTV 화면에 사람이 읽는 자막이 포함될 수는 있지만 현재 공�
 | 국회 공식화 | 회의록·안건·의안 연결과 공식 완성형 발언 반영 | 회의록/의안 공식 API와 뷰어 | `NOT_PUBLISHED`·`AMBIGUOUS`로 대기 |
 | 국무회의 생방송 | KTV 편성/HLS 감지, 오디오 청크 보존 후 Voxtral 전사 | KTV 공개 HLS, Mistral API, ffmpeg/ffprobe | 청크별 재시도, 실패 청크가 있으면 완료로 오인하지 않음 |
 | 국무회의 공식화 | 회차·서울 날짜 기준 부처보고·심의안건·대변인 브리핑 통합 | 정부·정책브리핑 공식 공개 자료 | 라이브 잠정본 유지, 후보가 모호하면 자동 연결하지 않음 |
-| AI 요약 | 화자 전환 묶음과 종료 후 회의 브리프 | Mistral 기본, 설정 시 대체 공급자 | 원문/규칙 기반 fallback 유지 |
+| AI 요약 | 화자 전환 묶음과 종료 후 회의 브리프 | 회의 브리프는 NVIDIA NIM 우선·OpenRouter 경쟁 풀·한도 소진 시 OpenAI, Mistral 수동 예비 | 원문/규칙 기반 fallback 유지 |
 | 주문형 보고서 | 로컬 자료 검색, 요청 시 OpenRouter 1회 작성 | OpenRouter | 검색·외부도구용 MD 내보내기는 계속 사용 가능 |
 | 알림 | 결정론적 문구 감지, in-app, 선택형 Kakao | Kakao는 선택 사항 | Kakao 실패와 관계없이 in-app·근거 저장 유지 |
 
@@ -120,7 +122,7 @@ KTV 화면에 사람이 읽는 자막이 포함될 수는 있지만 현재 공�
 ### 1. 상단 정보
 
 - **예정 회의 전광판**: 오늘 예정된 회의 제목, 시각과 장소
-- **알람·실시간**: 알람 설정·알림함과 진행 중 방송을 한 화면에서 확인. `생방송 중 / 방송없음`은 현재 공식 방송 유무
+- **알람·실시간**: 알람 설정·알림함과 진행 중 방송을 한 화면에서 확인. 공식 중계가 `계속예정`이면 재개 시각을 표시하고, 생방송이 없으면 `방송없음`, 수집 결과가 2분 이상 오래됐거나 조회에 실패하면 `상태 확인 필요`로 표시
 - **회의 보고서**: 방송 종료 후 비공식 보고서와 공식자료 통합 결과
 - **주제별 보고서**: 저장 자료를 조건 검색해 주문형 정책 보고서 작성
 - **인사이트**: 구체 정책 주제의 반복·과제·의결·의안 전환 흐름과 월간 국회 일정
@@ -149,6 +151,7 @@ KTV 화면에 사람이 읽는 자막이 포함될 수는 있지만 현재 공�
 - **알람·실시간** 메뉴에는 진행 중인 방송과 현재 시각 기준 최근 24시간 안에 진행됐거나 종료된 방송만 표시됩니다. 건수 제한은 두지 않으며, 종료 회의는 정리 중에는 저장된 LIVE 초안으로, 정리 완료 후에는 해당 회의 보고서로 이어집니다.
 - 비공식 보고서는 근거 추적용 **세부 쟁점**을 최대 24개까지 중요도순으로 구성한 뒤 이를 정책 **대상 주제**별로 묶어 표시합니다. 상한 밖의 실시간 cluster와 근거는 삭제하거나 관련 없는 주제에 강제 연결하지 않고 미연결 검토 목록에 보존합니다. 요구·비판·찬반은 같은 대상 아래 별도 세부 쟁점으로 남으며 화면에 대상 수, 세부 쟁점 수와 전체 분석 발언 묶음 수를 함께 표시합니다.
 - 종료 후에는 실시간 주제명을 유사 표현 단위로 다시 묶고, 각 묶음을 최종 상위 주제에 `근거 직접 연결 / 유사 주제 연결 / 교차 주제 / 미연결` 상태로 저장합니다. 근거·문자열 규칙 뒤에도 남은 항목은 보고서별 OpenRouter 호출 1회로 의미 연결하고, 모델 신뢰도와 고유 정책어 교차가 모두 확인된 연결만 반영합니다. 새 보고서에서 끝까지 연결되지 않은 독립 cluster는 외부 호출 없이 저장된 제목과 근거 ID를 가진 최종 주제로 승격하며, 매핑 버전과 입력 hash로 같은 최신 보고서의 중복 호출을 막습니다.
+- 실시간 주제 계보의 미연결은 온톨로지 분류 보류와 다른 지표입니다. 최종 보고서 주제는 최대 24개이므로 근거와 의미가 일치하지 않는 실시간 묶음을 억지로 연결하지 않습니다. OpenAI 보고서의 의미 연결은 새 보고서를 우선 처리하고 일일 토큰 여유가 생긴 유휴 주기에 최근 보고서부터 재검토합니다.
 - 회의 보고서 상단에는 실시간 주제의 전체·연결·교차·미연결 수를 표시합니다. 각 상위 주제의 **실시간 주제 통합 내역**과 **최종 상위 주제에 포함되지 않은 실시간 논의**를 펼치면 해당 발언 원문까지 확인할 수 있습니다.
 - 과거 보고서 등에서 미연결 또는 교차 주제가 남아 있으면 포괄 상태를 `PARTIAL`로 기록하며, 새 보고서는 로컬 주제 승격까지 끝난 뒤 `COMPLETE`로 저장합니다.
 - 영상은 16:9 비율로 표시됩니다.
@@ -402,6 +405,7 @@ OFFICIAL_CHANGE_REPORT_DAILY_LIMIT=100
 
 - Mistral 한도는 호출 횟수가 아니라 실제 입력·출력 토큰과 오디오 분을 USD로 환산해 월 10 USD 내에서 관리합니다.
 - OPENROUTER_DAILY_LIMIT=950은 공식 1,000회 한도에서 안전 여유 50회를 제외한 운영 상한이며 Mistral 호출에는 적용하지 않습니다.
+- 회의 보고서 전용 `MEETING_BRIEF_PROVIDER=auto`는 활성화된 NVIDIA NIM을 먼저 사용하고 실패 시 OpenRouter로 이어갑니다. OpenRouter 공용 950회 운영선이 소진되면 OpenAI GPT-5.4 mini로 전환합니다. PoC7의 OpenAI 직접 호출은 입력·출력 토큰 합계 650,000/UTC 일로 제한합니다.
 - 공급자 가격이 바뀌면 .env.example의 입력·출력 백만 토큰당 비용과 오디오 분당 비용을 운영자가 갱신해야 합니다.
 - AI를 끄려면 AI_ENRICHMENT_ENABLED=0으로 설정합니다. 원본 수집과 공식 자료 기능은 계속 동작하지만 AI 요약은 생성되지 않습니다.
 
@@ -417,6 +421,8 @@ OFFICIAL_CHANGE_REPORT_DAILY_LIMIT=100
 | 국회 공식 API | `NATIONAL_ASSEMBLY_API_KEY` | 일정·회의록·의안 수집 시 | API 컨테이너가 아니라 해당 수집 worker에만 주입 |
 | 공통 AI | `AI_ENRICHMENT_ENABLED`, `LLM_PROVIDER`, `LLM_MODEL` | 발언·회의 요약 사용 시 | `AI_ENRICHMENT_ENABLED=0`이면 원본 수집은 유지하고 생성 요약을 중지 |
 | Mistral | `MISTRAL_API_KEY`, `MISTRAL_BASE_URL`, `MISTRAL_MONTHLY_CREDIT_USD`, `MISTRAL_*_USD_PER_MILLION` | Mistral 요약·전사 시 | 성공 응답의 실제 토큰과 오디오 분을 월 USD 장부에 합산 |
+| NVIDIA NIM 보고서 우선 | `MEETING_BRIEF_NVIDIA_ENABLED`, `MEETING_BRIEF_NVIDIA_MODEL`, `MEETING_BRIEF_NVIDIA_MIN_INTERVAL_SECONDS`, `NVIDIA_API_KEY`, `NVIDIA_BASE_URL` | 직접 NIM 보고서 활성화 시 | 전용 worker에만 키 주입, 요청 간격 6초 기본값, 응답 토큰 월 장부 기록 |
+| OpenAI 보고서 예비 | `MEETING_BRIEF_PROVIDER`, `MEETING_BRIEF_OPENAI_MODEL`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_DAILY_TOKEN_LIMIT` | 회의 보고서 직접 호출·자동 전환 시 | 전용 worker에만 키 주입, 실제 입력·출력 토큰을 UTC 일별 합산하고 호출 전 예약 |
 | 국무회의 전사 | `EXECUTIVE_TRANSCRIPTION_MODEL`, `EXECUTIVE_AUDIO_CHUNK_SECONDS`, `EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE` | KTV 오디오 전사 시 | 기본 60초 청크. 변경 전 누락·중복·비용 회귀시험 필요 |
 | OpenRouter | `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_DAILY_LIMIT` | 선택형 보고서 사용 시 | 공식 1,000회/UTC 일, 운영 상한 950회. 외부 요청 시도 전 원자 예약 |
 | 알림 | `WATCH_ALERTS_ENABLED`, `WATCH_TEST_BROADCASTS_ENABLED`, `WATCH_DIGEST_ENABLED` | 알람·실시간 기능 | 감지와 digest는 결정론적이며 기본 LLM 0회 |
@@ -627,7 +633,7 @@ official_integration_worker는 지정된 대기 건을 한 번 처리하고 종�
 1. `docker compose ps`와 `/api/health`를 확인합니다.
 2. `/api/schedule/upcoming`과 공식 사이트를 대조해 오늘·내일 대상 회의가 들어왔는지 확인합니다.
 3. `live-monitor`, `caption-worker`, 국무회의가 예정되면 `executive-caption-worker`가 실행 중인지 확인합니다.
-4. `/api/ai/usage`에서 월 Mistral 비용과 일 OpenRouter 호출량을 확인합니다.
+4. `/api/ai/usage`에서 월 Mistral 비용, 일 OpenRouter 호출량과 OpenAI 입력·출력 토큰을 확인합니다.
 5. 실제 방송이 없는 날에는 사용자 소유의 **테스트 방송 송출**로 알림·실시간 화면만 검증합니다. 테스트 데이터는 공개 회의 목록과 분리됩니다.
 
 ### 방송 중
@@ -714,7 +720,7 @@ curl -fsS http://127.0.0.1:18070/api/health
 curl -fsS http://127.0.0.1:8070/api/ai/usage
 ~~~
 
-상단 UI와 이 API에서 공급자별 현재 사용량, 최대 한도와 갱신 시각을 확인합니다. 상세 화면은 해당 공급자 아래에 모델별 호출·토큰·STT 사용 내역을 표시하지만 모델마다 같은 한도를 반복 부여하지 않습니다. OpenRouter는 공식 1,000회/UTC 일과 운영 안전선 950회를 함께 표시하며, Mistral 월 $10에는 텍스트 요약과 국무회의 오디오 전사 비용이 함께 반영됩니다. 오디오 전사 기본 추정치는 EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE=0.003입니다.
+상단 3개 카드와 이 API에서 OpenRouter·OpenAI·Mistral의 사용량을 확인합니다. NVIDIA NIM은 모델 상세 화면에 월 호출·토큰을 표시하고, 계정별 한도는 NVIDIA 계정 화면에서 확인합니다. 상세 화면은 OpenAI 직접 호출의 UTC 일 650,000토큰과 모델별 입력·출력 토큰도 표시합니다. 모델마다 같은 한도를 반복 부여하지 않습니다. OpenRouter는 공식 1,000회/UTC 일과 운영 안전선 950회를 함께 표시하며, Mistral 월 $10에는 텍스트 요약과 국무회의 오디오 전사 비용이 함께 반영됩니다. 오디오 전사 기본 추정치는 EXECUTIVE_TRANSCRIPTION_USD_PER_MINUTE=0.003입니다.
 
 관심주제 감지·알림·종료 digest·지표·Markdown 대응자료는 LLM을 사용하지 않으며 알림 화면에 비용 `$0.00`으로 표시됩니다. `WATCH_LLM_ENABLED=false`, `WATCH_KAKAO_ENABLED=false`가 무료 기본값입니다.
 
@@ -793,6 +799,7 @@ sudo scripts/deploy_secure_workers.sh all
 
 - Mistral 키는 요약·국무회의 전사 워커에만, 국회 API 키는 공식 데이터 수집 워커에만 제공합니다.
 - OpenRouter 키는 watch-summary와 topic-report 워커에만 제공합니다. API·브라우저·정적 자산에는 주입하지 않습니다.
+- OpenAI 키는 회의 보고서 워커에만 제공합니다. API·브라우저·다른 워커에는 주입하지 않습니다.
 - 사용자 세션은 원문을 저장하지 않고 SHA-256 hash만 DB에 저장하며 HttpOnly·Secure·SameSite=Lax·PoC7 경로 제한 쿠키로 전달합니다. 현재 기기와 전체 기기 세션 폐기 API를 제공합니다.
 - 변경 API는 공개 base URL과 다른 Origin을 거부하고, 응답에는 CSP·HSTS·Referrer-Policy·Permissions-Policy·nosniff를 적용합니다.
 - 카카오 access/refresh token은 PoC7 전용 Fernet 키로 암호화하며 API 응답과 로그에 노출하지 않습니다.

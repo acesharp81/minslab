@@ -1,0 +1,1021 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "seongbuk_public_housing.schema.json",
+ "title": "성북구 공공주택 공급 상황판 공유 데이터",
+ "description": "표 7개. 관계: plans 1─N planNotices · plans N─M projects (planProjectLinks) · projects 1─N projectRecords · projects 1─N buildingLinks · projects 1─N qaFindings. 자세한 설명은 README.md",
+ "type": "object",
+ "required": [
+  "meta",
+  "sources",
+  "plans",
+  "planNotices",
+  "projects",
+  "planProjectLinks",
+  "projectRecords",
+  "buildingLinks",
+  "qaFindings"
+ ],
+ "properties": {
+  "$schema": {
+   "type": "string"
+  },
+  "meta": {
+   "type": "object"
+  },
+  "sources": {
+   "type": "array",
+   "description": "원천 데이터 목록 — 어디서 무엇을 어떻게 받았나",
+   "items": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "group": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "name": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "provider": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "api": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "query": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "url": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "file": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "fetched": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "basis": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "count": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "note": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "endpoint": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "cycle": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     },
+     "lag": {
+      "type": [
+       "string",
+       "integer",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "provider",
+     "api"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "plans": {
+   "type": "array",
+   "description": "계획 (정비구역 고시 + 정보몽땅 사업장) — 성북구",
+   "items": {
+    "type": "object",
+    "properties": {
+     "pcode": {
+      "type": "string",
+      "pattern": "^P-\\d{4}$",
+      "description": "계획 코드 (PK)"
+     },
+     "state": {
+      "enum": [
+       "지정",
+       "해제",
+       "종료"
+      ]
+     },
+     "name": {
+      "type": "string"
+     },
+     "zoneType": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "dong": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "jibun": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "pnu": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{19}$"
+     },
+     "areaM2": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "firstNotice": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "lastNotice": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "lastNoticeType": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "noticeCount": {
+      "type": "integer"
+     },
+     "prevCode": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "reviewNote": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "origin": {
+      "enum": [
+       "정비구역 고시",
+       "정보몽땅"
+      ]
+     },
+     "seedRecord": {
+      "type": "string"
+     },
+     "pnus": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "cleanup": {
+      "type": [
+       "object",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "pcode",
+     "state",
+     "name",
+     "origin"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "planNotices": {
+   "type": "array",
+   "description": "정비구역 고시 이력 (서울시 upisRebuild 레코드)",
+   "items": {
+    "type": "object",
+    "properties": {
+     "pcode": {
+      "type": "string",
+      "description": "FK → plans.pcode"
+     },
+     "date": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "kind": {
+      "type": "string"
+     },
+     "dong": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "jibun": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "pnu": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "zoneKey": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "zoneName": {
+      "type": "string"
+     },
+     "location": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "areaM2": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "recordId": {
+      "type": "string"
+     },
+     "noticeId": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "pcode",
+     "kind",
+     "recordId"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "projects": {
+   "type": "array",
+   "description": "사업 (인허가·정비사업·SH·수작업에서 만든 공급 사업 단위)",
+   "items": {
+    "type": "object",
+    "properties": {
+     "code": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^SB-\\d{4}$",
+      "description": "사업 코드 (PK)"
+     },
+     "sourceKey": {
+      "type": "string",
+      "description": "대표 원천 레코드 키 HS-·AP-·REB-·CU-·SH-·MANUAL-"
+     },
+     "name": {
+      "type": "string"
+     },
+     "kind": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "law": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "source": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "bjd": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "dongFull": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "jibun": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "addr": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "hhld": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "hhSrc": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "pub": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "cvlRent": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "cvlLotou": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "approve": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "approveLast": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "stSched": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "st": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "stSrc": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "stDelay": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "endSched": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "end": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "endLabel": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "crtn": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "stage": {
+      "enum": [
+       2,
+       3,
+       4,
+       6
+      ]
+     },
+     "stage2": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "pubClass": {
+      "enum": [
+       "확정",
+       "확인 필요",
+       "민간"
+      ]
+     },
+     "small": {
+      "type": [
+       "boolean",
+       "null"
+      ]
+     },
+     "nonApt": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "manual": {
+      "type": [
+       "boolean",
+       "null"
+      ]
+     },
+     "lat": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "lng": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "geo": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "mergeType": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "sinceStart": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "endSchedSrc": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "endSchedPermit": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "preStart": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "lapse": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "screen": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "properties": {
+       "status": {
+        "enum": [
+         "red",
+         "amber",
+         "green",
+         "plan",
+         "done",
+         "void"
+        ]
+       },
+       "voidText": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "pcode": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "planLink": {
+        "type": [
+         "string",
+         "null"
+        ]
+       }
+      }
+     },
+     "flags": {
+      "type": "array"
+     },
+     "checks": {
+      "type": "array"
+     },
+     "pubBasis": {
+      "type": "array"
+     },
+     "reb": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "sh": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "myhome": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "cleanup": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "endBr": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "brCand": {
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "superseded": {
+      "type": "array"
+     },
+     "merged": {
+      "type": "array"
+     },
+     "notice": {
+      "type": "array"
+     },
+     "shRedev": {
+      "type": [
+       "object",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "code",
+     "sourceKey",
+     "name",
+     "stage",
+     "pubClass"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "planProjectLinks": {
+   "type": "array",
+   "description": "계획 ↔ 사업 연결",
+   "items": {
+    "type": "object",
+    "properties": {
+     "pcode": {
+      "type": "string",
+      "description": "FK → plans.pcode"
+     },
+     "code": {
+      "type": "string",
+      "description": "FK → projects.code"
+     },
+     "step": {
+      "type": "string"
+     },
+     "basis": {
+      "type": "string"
+     },
+     "confidence": {
+      "enum": [
+       "자동",
+       "검토필요",
+       "참고"
+      ]
+     },
+     "planName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "projectName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "pcode",
+     "code",
+     "confidence"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "projectRecords": {
+   "type": "array",
+   "description": "사업 ↔ 인허가 원천 레코드 (같은 필지의 다른 허가·변경 허가 포함)",
+   "items": {
+    "type": "object",
+    "properties": {
+     "code": {
+      "type": "string",
+      "description": "FK → projects.code"
+     },
+     "sourceKey": {
+      "type": "string"
+     },
+     "source": {
+      "type": "string"
+     },
+     "recordName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "permitType": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "mainUse": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "hhld": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "approve": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "role": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "method": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "overlap": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "sharedLots": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "confidence": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "basis": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "code",
+     "sourceKey",
+     "source"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "buildingLinks": {
+   "type": "array",
+   "description": "사업 ↔ 건축물대장 동 (준공 확인)",
+   "items": {
+    "type": "object",
+    "properties": {
+     "code": {
+      "type": "string",
+      "description": "FK → projects.code"
+     },
+     "sourceKey": {
+      "type": "string"
+     },
+     "projectName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "projectHhld": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "projectApprove": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "mgmBldrgstPk": {
+      "type": "string"
+     },
+     "bldName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "dongName": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "platPlc": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "brPermit": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "permitType": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "useApr": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "pattern": "^\\d{8}$",
+      "description": "YYYYMMDD"
+     },
+     "brHhld": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "lots": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "basis": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "grade": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "confidence": {
+      "type": "string",
+      "description": "자동확정 · 검토필요 · (수작업 확정은 br_crosswalk_manual.csv)"
+     },
+     "memo": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "code",
+     "mgmBldrgstPk",
+     "confidence"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "qaFindings": {
+   "type": "array",
+   "description": "자동 검사 의심 목록 (사람이 확인할 것)",
+   "items": {
+    "type": "object",
+    "properties": {
+     "rule": {
+      "type": "string"
+     },
+     "code": {
+      "type": "string",
+      "description": "FK → projects.code"
+     },
+     "name": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "dong": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "jibun": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "text": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "rule",
+     "code"
+    ],
+    "additionalProperties": false
+   }
+  }
+ }
+}
