@@ -1,0 +1,16 @@
+﻿region_slug,project_id,event_type,event_date,is_planned,value,source_id,source_ref,note
+incheon-gyeyang,techno-A6,notice,2026-09-14,,663,lh-notice,LH_인천계양A6_입주자모집공고문_정정20260914.pdf,입주자모집공고문(정정)
+incheon-gyeyang,techno-A6,construction_start,2026-08-14,,,lh-cwstt,105130-03,공사현황의 공사시작일
+incheon-gyeyang,techno-A6,progress,2026-08-28,,0.15,lh-cwstt,105130-03,
+incheon-gyeyang,techno-A6,progress,2026-09-21,,0.85,lh-cwstt,105130-03,
+incheon-gyeyang,techno-A6,move_in,2029-06,Y,,lh-notice,LH_인천계양A6_입주자모집공고문_정정20260914.pdf,입주예정월
+incheon-gyeyang,techno-A9,notice,2026-05-14,,317,lh-notice,LH_인천계양A9_입주자모집공고문_20260514.pdf,입주자모집공고문
+incheon-gyeyang,techno-A9,construction_start,2025-11-24,,,lh-cwstt,105130-06,공사현황의 공사시작일
+incheon-gyeyang,techno-A9,progress,2026-03-31,,0.61,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-04-29,,2.51,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-05-27,,4.16,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-06-26,,4.621,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-07-28,,8.358,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-08-28,,10.29,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,progress,2026-09-21,,11.29,lh-cwstt,105130-06,
+incheon-gyeyang,techno-A9,move_in,2029-02,Y,,lh-notice,LH_인천계양A9_입주자모집공고문_20260514.pdf,입주예정월

@@ -78,6 +78,19 @@ class MonitorMetricTests(unittest.TestCase):
         self.assertEqual(data["annual_goal_units"],50)
         self.assertEqual(data["annual_achievement_pct"],80)
 
+    def test_main_notice_counts_as_supply_actual_even_without_planned_capacity(self):
+        row=project(planned_units=None,rows=[])
+        data=build_monitor([row],[policy()],[],[notice()],date(2026,10,3))["items"][0]
+        self.assertEqual(data["actual_supply_units"],40)
+        self.assertEqual(data["actual_supply_annual_units"],40)
+        self.assertIsNone(data["cumulative_observed_units"])
+        self.assertEqual(data["actual_supply_status"],"REVIEW")
+
+    def test_preannouncement_notice_is_context_not_policy_period_supply(self):
+        data=build_monitor([project()],[policy()],[],[notice(source_date="2024-08-01")],date(2026,10,3))["items"][0]
+        self.assertEqual(data["actual_supply_units"],40)
+        self.assertIsNone(data["actual_supply_period_units"])
+
     def test_old_notice_not_this_year_and_actuals_remain_unknown(self):
         data=build_monitor([project()],[policy()],[],[notice(source_date="2025-08-01")],date(2026,10,3))["items"][0]
         self.assertEqual(data["cumulative_observed_units"],40)
@@ -90,9 +103,10 @@ class MonitorMetricTests(unittest.TestCase):
     def test_partial_completion_schedule_never_predicts_whole_completion(self):
         rows=[project(),project("P2",name="고양창릉 A2",rows=[])]
         data=build_monitor(rows,[policy()],[],[],date(2026,10,3))["items"][0]
-        self.assertEqual(data["latest_known_completion_month"],"2028-03")
+        self.assertIsNone(data["latest_known_completion_month"])
+        self.assertEqual(data["earliest_move_in_start_month"],"2028-03")
         self.assertIsNone(data["expected_completion_month"])
-        self.assertEqual(data["completion_schedule_projects"],1)
+        self.assertEqual(data["completion_schedule_projects"],0)
         self.assertEqual(data["completion_capacity_projects"],2)
 
     def test_programme_does_not_recount_cross_source_block(self):
@@ -106,12 +120,14 @@ class MonitorMetricTests(unittest.TestCase):
         data=build_monitor([row],[policy()],[],[],date(2026,10,3))["items"][0]
         self.assertIsNone(data["expected_completion_month"])
         self.assertEqual(data["completion_schedule_projects"],0)
-        self.assertEqual(data["latest_known_completion_month"],"2028-03")
+        self.assertIsNone(data["latest_known_completion_month"])
+        self.assertEqual(data["earliest_move_in_start_month"],"2028-03")
 
     def test_older_notice_keeps_newer_annual_move_in_plan(self):
         row=project()
         data=build_monitor([row],[policy()],[],[notice(source_date="2025-08-01",move_in_plan_month="202905")],date(2026,10,3))["items"][0]
-        self.assertEqual(data["latest_known_completion_month"],"2028-03")
+        self.assertIsNone(data["latest_known_completion_month"])
+        self.assertEqual(data["earliest_move_in_start_month"],"2028-03")
 
     def test_additional_key_presence_does_not_claim_connected_or_leak_value(self):
         with patch.dict(os.environ,{"POC10_BUILDING_REGISTER_SERVICE_KEY":"do-not-expose"}):

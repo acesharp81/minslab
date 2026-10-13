@@ -1,0 +1,17 @@
+{
+ "type": "Infra",
+ "bjd": "1150010500",
+ "asOf": "2026-10-05",
+ "sources": [],
+ "schools": [],
+ "stops": [],
+ "meta": {
+  "centers": 18,
+  "schoolsNational": 220,
+  "schools": 0,
+  "stopCalls": 0,
+  "stops": 0,
+  "noBus": true,
+  "stopsError": "버스 정류장(OpenStreetMap)을 불러오지 못함"
+ }
+}

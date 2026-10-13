@@ -13,6 +13,7 @@ from scripts.export_json import export
 from scripts.export_schema import build as build_schema
 from scripts.export_collection_methods import build as build_methods
 from scripts.write_data_sharing_guide import write_guide
+from scripts.verify_export import verify
 
 
 class JsonExportTests(unittest.TestCase):
@@ -64,4 +65,21 @@ class JsonExportTests(unittest.TestCase):
             self.assertIn('program_id', (destination/'schema/relationships.json').read_text())
             self.assertIn('정책', (destination/'DATA_SHARING_GUIDE.md').read_text())
             self.assertFalse((destination.with_name('export.partial')).exists())
+            engine.dispose()
+
+    def test_empty_project_snapshot_preserves_coverage_schema(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)
+            url = 'sqlite:///' + str(path / 'source-only.sqlite')
+            engine = create_engine(url)
+            Base.metadata.create_all(engine)
+            destination = path / 'source-only-export'
+            with patch.dict(os.environ, {'POC10_DATABASE_URL': url}):
+                result = export(destination)
+            self.assertEqual(result['kind_counts']['project'], {'revisions': 0, 'current': 0})
+            build_schema(destination)
+            build_methods(destination)
+            write_guide(destination)
+            verify(destination)
+            self.assertTrue((destination / 'schema/source-coverage.schema.json').exists())
             engine.dispose()

@@ -22,6 +22,7 @@ MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채�
 | PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
 | PoC 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
 | PoC 11 | 상담사례 아카이브 | `/poc/consultation-cases` · `/counsel` | [PoC/11-consultation-cases](PoC/11-consultation-cases/README.md) |
+| PoC 12 | 주택파동 · 9·7 정책 실데이터 상황판 | `/poc/housing-board` · `/home2` | [PoC/12-housing-board](PoC/12-housing-board/README.md) |
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -35,6 +36,7 @@ Browser
   ├─ static workspace: AI Work Hub
   ├─ proxied independent app: National Assembly
   ├─ proxied independent app: HOME (localhost:18100)
+  ├─ proxied independent app: Housing Board (localhost:18120)
   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
           │ HTTPS
           ▼
@@ -78,7 +80,7 @@ systemd minslab-monitor.timer
 ├── deploy/systemd/            # 1분 주기 모니터 서비스·타이머 유닛
 ├── supabase_schema.sql        # 채팅/청킹 공통 참고 스키마
 ├── projects/                  # 포트폴리오 01~04
-├── PoC/                       # 실행형 PoC 01~07
+├── PoC/                       # 실행형 PoC 01~12
 ├── static/                    # 루트 페이지 공개 정적 파일
 ├── data/                      # 루트 공통 SQLite·채팅 fallback
 ├── analysis/                  # 로컬 분석 산출물, Git 제외

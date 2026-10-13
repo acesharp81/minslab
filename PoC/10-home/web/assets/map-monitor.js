@@ -21,20 +21,8 @@ const MapMonitor=(()=>{
     const a=point(start),b=point(end);
     return `<path d="M${cx} ${cy}L${a[0]} ${a[1]}A${r} ${r} 0 ${end-start>.5?1:0} 1 ${b[0]} ${b[1]}Z"/>`;
   }
-  function circle(row,r){
-    const projection=row.projection,cap=row.target_units,size=2*r+14,c=size/2;
-    const value=v=>Math.min(1,Math.max(0,(v||0)/(cap||1)));
-    let previous=projection.baseline_units;
-    let sectors=previous!=null?`<g fill="${colors[0]}">${arc(c,c,r,0,value(previous))}</g>`:'';
-    projection.future.slice(0,3).forEach((future,index)=>{if(previous==null||future.cumulative_units==null)return;sectors+=`<g fill="${colors[index+1]}">${arc(c,c,r,value(previous),value(future.cumulative_units))}</g>`;previous=future.cumulative_units;});
-    const goal=row.progress.cumulative_goal_units;
-    const angle=value(goal)*2*Math.PI,gx=c+(r+3)*Math.sin(angle),gy=c-(r+3)*Math.cos(angle);
-    return `<svg class="municipality-pie" viewBox="0 0 ${size} ${size}" role="img" aria-label="${esc(row.name)}, 계획 ${units(cap)}, 확인 비율 ${percent(projection.baseline_pct)}" data-target="${cap??''}" data-radius="${r}"><circle cx="${c}" cy="${c}" r="${r}" fill="#d8e2ef" fill-opacity=".75" stroke="#7896bb" ${projection.baseline_units==null?'stroke-dasharray="3 3"':''}/>${sectors}${goal!=null&&cap?`<path d="M${c+(r-5)*Math.sin(angle)} ${c-(r-5)*Math.cos(angle)}L${gx} ${gy}" stroke="#d28a0d" stroke-width="3"/>`:''}${projection.baseline_pct!=null?`<text x="${c}" y="${c+4}" text-anchor="middle" class="map-native-text pie-percent">${Math.round(projection.baseline_pct)}%</text>`:''}</svg>`;
-  }
-  function tooltip(row,data){
-    const fact=(label,n,suffix='호')=>n==null?'':`<dt>${label}</dt><dd>${num(n)}${suffix}</dd>`;
-    return `<b>${esc(row.name)}</b><dl>${fact('전체 계획 · 검토',row.target_units)}${fact('현재 누적 목표',row.progress.cumulative_goal_units)}${fact('현재 확인 공고',row.current_notice_units)}${fact('확인 공고 비율(하한)',row.projection.baseline_pct,'%')}${row.projection.future.slice(0,3).map(f=>fact('+'+f.offset+'년 예상 누적',f.cumulative_units)).join('')}</dl><small>${esc(data.measure_label)} 기준 · 원천 연결 검토</small>`;
-  }
+  function circle(row,r){return MapStageRing.svg(row,Math.max(48,2*r+14));}
+  function tooltip(row,data){return `<b>${esc(row.name)}</b>${MapStageRing.details(row)}`;}
   function draw(map,pins,data,ids,choose,markerIndex,selectedId){
     const level=levelAt(map.getZoom());
     $('map-bar-level').textContent=({region:'시도 2D 현황',municipality:'시군구 2D 현황',district:'지구·블록 위치 검토',block:'블록 상세 · 용지 입체 참고'}[level])+' · 확대 '+map.getZoom();
@@ -42,12 +30,13 @@ const MapMonitor=(()=>{
     document.querySelectorAll('[data-bar-level]').forEach(button=>{button.classList.toggle('selected',button.dataset.barLevel===level);button.setAttribute('aria-pressed',String(button.dataset.barLevel===level));});
     if(level==='region'){
       for(const region of data.groups.region.map(SupplyBars.scoped).filter(row=>row&&row.project_count)){
-        const cities=data.municipalities.filter(area=>area.region===region.id&&area.project_ids.some(id=>ids.has(id)));
+        let cities=data.municipalities.filter(area=>area.region===region.id&&area.project_ids.some(id=>ids.has(id)));
+        if(!cities.length)cities=data.municipalities.filter(area=>area.region===region.id&&Number.isFinite(area.latitude)&&Number.isFinite(area.longitude));
         if(!cities.length)continue;
         const latitude=cities.reduce((sum,row)=>sum+row.latitude,0)/cities.length;
         const longitude=cities.reduce((sum,row)=>sum+row.longitude,0)/cities.length;
         const value=region.projection?.baseline_pct;
-        const icon=L.divIcon({className:'map-region-summary-marker',iconSize:[138,76],iconAnchor:region.id==='서울특별시'?[138,76]:[0,0],html:`<button class="map-region-summary-button" type="button" aria-label="${esc(region.name)} 시군구 보기"><b>${esc(region.name==='경기도'?'경기':'서울')}</b><small>계획 ${units(region.target_units)}</small><small>공고 확인 ${value==null?'미확보':percent(value)+' · 하한'}</small></button>`});
+        const icon=L.divIcon({className:'map-region-summary-marker',iconSize:[138,76],iconAnchor:region.id==='서울특별시'?[138,76]:[0,0],html:`<button class="map-region-summary-button" type="button" aria-label="${esc(region.name)} 시군구 보기"><b>${esc(({'서울특별시':'서울','인천광역시':'인천','경기도':'경기'}[region.name]||region.name))}</b><small>계획 ${units(region.target_units)}</small><small>${esc(MapStageRing.metric(region).label)} ${esc(MapStageRing.metric(region).text)}</small></button>`});
         const marker=L.marker([latitude,longitude],{icon,keyboard:true}).addTo(pins);
         marker.bindTooltip(tooltip(region,data),{direction:'top',className:'municipality-tooltip'});
         marker.on('click',()=>map.fitBounds(L.latLngBounds(cities.map(row=>[row.latitude,row.longitude])),{padding:[32,32],maxZoom:11}));
@@ -73,7 +62,7 @@ const MapMonitor=(()=>{
       return;
     }
     const bounds=map.getBounds().pad(.12);
-    const visibleDistricts=data.districts.filter(district=>district.project_ids.some(id=>ids.has(id))&&(bounds.contains([district.latitude,district.longitude])||data.blocks.some(block=>block.district_name===district.name&&['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT'].includes(block.coordinate_basis)&&Number.isFinite(block.latitude)&&Number.isFinite(block.longitude)&&bounds.contains([block.latitude,block.longitude]))));
+    const visibleDistricts=data.districts.filter(district=>district.project_ids.some(id=>ids.has(id))&&(bounds.contains([district.latitude,district.longitude])||data.blocks.some(block=>block.district_name===district.name&&['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(block.coordinate_basis)&&Number.isFinite(block.latitude)&&Number.isFinite(block.longitude)&&bounds.contains([block.latitude,block.longitude]))));
     if(level==='district'){
       for(const district of visibleDistricts){
         const blocks=data.blocks.filter(block=>block.district_name===district.name&&block.project_ids.some(id=>ids.has(id)));
@@ -91,7 +80,7 @@ const MapMonitor=(()=>{
     for(const district of visibleDistricts){
       const blocks=data.blocks.filter(block=>block.district_name===district.name&&block.project_ids.some(id=>ids.has(id)));
       const first=blocks[0]?.project_ids.find(id=>ids.has(id));
-      const unresolved=blocks.filter(row=>!['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT'].includes(row.coordinate_basis));
+      const unresolved=blocks.filter(row=>!['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(row.coordinate_basis));
       if(unresolved.length){
         unlocated+=unresolved.length;
         const selected=blocks.some(row=>row.project_ids.includes(selectedId));
@@ -99,7 +88,7 @@ const MapMonitor=(()=>{
         marker.on('click',()=>choose(first,district.name));
       }
       for(const row of blocks.map(SupplyBars.scoped).filter(Boolean)){
-        if(!['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT'].includes(row.coordinate_basis)||!Number.isFinite(row.latitude)||!Number.isFinite(row.longitude))continue;
+        if(!['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(row.coordinate_basis)||!Number.isFinite(row.latitude)||!Number.isFinite(row.longitude))continue;
         located++;
         const point=[row.latitude,row.longitude],s=BlockMonitor.status(row.progress);
         const marker=L.marker(point,{icon:L.divIcon({className:'native-block-marker independent-block-marker status-'+s.code,iconSize:[BlockMonitor.width,BlockMonitor.height],iconAnchor:[BlockMonitor.width/2,BlockMonitor.height],html:`<button class="native-block-row" type="button" aria-label="${esc(row.name)} 상세 현황">${BlockMonitor.graph(row)}</button>`}),keyboard:true}).addTo(pins);

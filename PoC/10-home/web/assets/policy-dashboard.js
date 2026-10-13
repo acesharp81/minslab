@@ -1,13 +1,13 @@
 'use strict';
 const PolicyDashboard=(()=>{
-  let payload,selected,measure='COMPLETION';
+  let payload,selected='POL_2025_0907',measure='COMPLETION';
   const collapsed=new Set();
   const units=n=>n==null?'':num(n)+'호';
-  const labels={SUPPLY:'모집·공급 예정',COMPLETION:'준공 예정',MOVE_IN:'입주 예정',CONSTRUCTION:'착공 예정'};
+  const labels={SUPPLY:'모집·공급 예정',COMPLETION:'준공 예정',CONSTRUCTION:'착공 예정'};
   const stages={PLANNING:'계획',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급',COMPLETION:'준공',MOVE_IN:'입주'};
   const blocks=row=>(row.timeline?.regions||[]).flatMap(r=>r.cities.flatMap(c=>c.blocks));
   function render(data){
-    payload=data;if(!data.items.some(r=>r.id===selected))selected=data.items[0]?.id;
+    data={...data,items:data.items.filter(r=>r.id==='POL_2025_0907')};payload=data;if(!data.items.some(r=>r.id===selected))selected=data.items[0]?.id;
     $('policy-monitor-date').textContent=data.reference_date+' 자료 기준';
     $('policy-monitor-cards').innerHTML=`<label class="policy-picker-label">정책 선택 <select id="policy-detail-select" aria-label="진행현황 정책 선택">${data.items.map(r=>`<option value="${esc(r.id)}" ${r.id===selected?'selected':''}>${esc(r.name)}</option>`).join('')}</select></label><div class="policy-explorer-tabs" role="tablist" aria-label="관리 정책">${data.items.map(r=>`<button class="policy-snapshot ${r.id===selected?'selected':''}" id="policy-tab-${esc(r.id)}" role="tab" aria-selected="${r.id===selected}" aria-controls="policy-monitor-detail" data-monitor-detail="${esc(r.id)}"><small>${r.kind==='PROGRAMME'?'프로그램':r.kind==='UNMAPPED'?'미연계':'공급대책'}</small><b>${esc(r.name)}</b></button>`).join('')}</div>`;
     detail();
@@ -19,7 +19,7 @@ const PolicyDashboard=(()=>{
   function annual(row){
     const series=row.timeline?.annual||[],max=Math.max(1,...series.map(y=>y[measure].units||0));
     const official=series.filter(y=>y.official_start_units!=null);
-    return `<section id="policy-annual-supply" class="panel"><div class="panel-head"><div><p class="section-kicker">ANNUAL SUPPLY</p><h2>연도별 공급계획</h2><p class="policy-section-caption">해당 연도의 예정 물량 · 현재 정책에 연결된 서울·경기 사업</p></div><label class="policy-measure-label">일정 기준 <select id="policy-timeline-measure" aria-label="연도별 공급계획 기준">${Object.entries(labels).map(([k,v])=>`<option value="${k}" ${measure===k?'selected':''}>${v}</option>`).join('')}</select></label></div><div class="policy-annual-scroll"><div class="policy-annual-columns">${series.map(y=>{const v=y[measure];return `<div class="policy-year-column ${y.year===payload.year?'current-year':''}" data-supply-year="${y.year}"><div class="annual-unit-label">${v.units!=null?`<b>${units(v.units)}</b>`:''}</div><div class="annual-bar-track">${v.units!=null?`<svg class="annual-supply-bar" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="${y.year}년 ${labels[measure]} ${units(v.units)}"><rect x="24" y="${100-v.units/max*100}" width="52" height="${v.units/max*100}" rx="3" fill="#2e7fe7"/></svg>`:''}</div><strong>${y.year}</strong>${v.manual_units!=null?`<small>관리자 ${units(v.manual_units)}</small>`:''}</div>`;}).join('')}</div></div><p class="policy-chart-basis">${labels[measure]}만 집계하며 준공·입주·모집 물량을 합산하지 않습니다. 빈 연도는 미확보입니다.${official.length?`<br>공식 수도권 착공 목표: ${official[0].year}~${official.at(-1).year}년 연 ${units(official[0].official_start_units)} · 위 사업별 예정량과 지표·범위가 다릅니다.`:''}</p></section>`;
+    return `<section id="policy-annual-supply" class="panel"><div class="panel-head"><div><p class="section-kicker">ANNUAL SUPPLY</p><h2>연도별 공급계획</h2><p class="policy-section-caption">해당 연도의 예정 물량 · 현재 정책에 연결된 서울·경기 사업</p></div><label class="policy-measure-label">일정 기준 <select id="policy-timeline-measure" aria-label="연도별 공급계획 기준">${Object.entries(labels).map(([k,v])=>`<option value="${k}" ${measure===k?'selected':''}>${v}</option>`).join('')}</select></label></div><div class="policy-annual-scroll"><div class="policy-annual-columns">${series.map(y=>{const v=y[measure];return `<div class="policy-year-column ${y.year===payload.year?'current-year':''}" data-supply-year="${y.year}"><div class="annual-unit-label">${v.units!=null?`<b>${units(v.units)}</b>`:''}</div><div class="annual-bar-track">${v.units!=null?`<svg class="annual-supply-bar" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="${y.year}년 ${labels[measure]} ${units(v.units)}"><rect x="24" y="${100-v.units/max*100}" width="52" height="${v.units/max*100}" rx="3" fill="#2e7fe7"/></svg>`:''}</div><strong>${y.year}</strong>${v.manual_units!=null?`<small>관리자 ${units(v.manual_units)}</small>`:''}</div>`;}).join('')}</div></div><p class="policy-chart-basis">${labels[measure]}만 집계하며 준공·모집 물량을 합산하지 않습니다. 입주는 시작 예정월만 관리합니다. 빈 연도는 미확보입니다.${official.length?`<br>공식 수도권 착공 목표: ${official[0].year}~${official.at(-1).year}년 연 ${units(official[0].official_start_units)} · 위 사업별 예정량과 지표·범위가 다릅니다.`:''}</p></section>`;
   }
   function range(block,year){
     const a=Date.UTC(year,0,1),b=Date.UTC(year+1,0,1),day=86400000;
@@ -30,7 +30,7 @@ const PolicyDashboard=(()=>{
   }
   function cell(block,year){
     const events=block.events.filter(e=>e.year===year),actual=block.actuals.filter(a=>a.year===year);
-    return `<td data-timeline-year="${year}" class="${year===payload.year?'current-year':''}"><div class="block-year-plan"><div class="block-plan-labels">${events.map(e=>`<span class="planned-event ${e.stage===measure?'focus-measure':''} ${e.origin==='MANUAL'?'manual-goal':''}" title="${esc(e.basis||'')}" data-plan-stage="${esc(e.stage)}">${stages[e.stage]}${e.month?' '+Number(e.month.slice(5,7))+'월':''}${e.units!=null?' · '+units(e.units):''}${e.origin==='MANUAL'?' 목표':''}</span>`).join('')}</div><div class="block-plan-axis"><svg class="planned-spans" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">${range(block,year)}${events.filter(e=>e.month).map(e=>`<circle class="plan-milestone" cx="${(Number(e.month.slice(5,7))-.5)/12*100}" cy="2.5" r="1.5" fill="#bd8e36" stroke="#fff" stroke-width=".5"><title>${esc(e.label)} · ${esc(e.month)}</title></circle>`).join('')}</svg></div></div><div class="block-year-actual">${actual.map(a=>`<button class="actual-report" data-project="${esc(a.project_id)}" data-report-date="${esc(a.date)}" data-progress-pct="${a.pct}" aria-label="${esc(a.name)} ${a.date} 실제 공정률 ${num(a.pct)}%" title="${esc(a.name)} · ${a.date} 보고"><b>${num(a.pct)}%</b><svg class="actual-progress-track" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true"><rect width="100" height="4" rx="2" fill="#e5eef8"/><rect class="actual-progress-fill" width="${a.pct}" height="4" rx="2" fill="#297ce1"/></svg><small>${a.date.slice(5).replace('-','.')}</small></button>`).join('')}</div></td>`;
+    return `<td data-timeline-year="${year}" class="${year===payload.year?'current-year':''}"><div class="block-year-plan"><div class="block-plan-labels">${events.map(e=>`<span class="planned-event ${e.stage===measure?'focus-measure':''} ${e.origin==='MANUAL'?'manual-goal':''}" title="${esc(e.basis||'')}" data-plan-stage="${esc(e.stage)}">${stages[e.stage]}${e.month?' '+Number(e.month.slice(5,7))+'월':''}${e.stage==='MOVE_IN'?' · 시작일만 관리':e.units!=null?' · '+units(e.units):''}${e.origin==='MANUAL'?' 목표':''}</span>`).join('')}</div><div class="block-plan-axis"><svg class="planned-spans" viewBox="0 0 100 5" preserveAspectRatio="none" aria-hidden="true">${range(block,year)}${events.filter(e=>e.month).map(e=>`<circle class="plan-milestone" cx="${(Number(e.month.slice(5,7))-.5)/12*100}" cy="2.5" r="1.5" fill="#bd8e36" stroke="#fff" stroke-width=".5"><title>${esc(e.label)} · ${esc(e.month)}</title></circle>`).join('')}</svg></div></div><div class="block-year-actual">${actual.map(a=>`<button class="actual-report" data-project="${esc(a.project_id)}" data-report-date="${esc(a.date)}" data-progress-pct="${a.pct}" aria-label="${esc(a.name)} ${a.date} 실제 공정률 ${num(a.pct)}%" title="${esc(a.name)} · ${a.date} 보고"><b>${num(a.pct)}%</b><svg class="actual-progress-track" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true"><rect width="100" height="4" rx="2" fill="#e5eef8"/><rect class="actual-progress-fill" width="${a.pct}" height="4" rx="2" fill="#297ce1"/></svg><small>${a.date.slice(5).replace('-','.')}</small></button>`).join('')}</div></td>`;
   }
   function subtotal(children,year){
     const known=children.flatMap(b=>b.events.filter(e=>e.year===year&&e.stage===measure&&e.units!=null)).map(e=>e.units);
@@ -58,7 +58,9 @@ const PolicyDashboard=(()=>{
   function detail(){
     const row=payload.items.find(r=>r.id===selected);if(!row){$('policy-monitor-detail').innerHTML='';return;}
     $('policy-monitor-detail').setAttribute('aria-labelledby','policy-tab-'+row.id);
-    $('policy-monitor-detail').innerHTML=overview(row)+annual(row)+tree(row)+evidence(row);
+    $('policy-monitor-detail').innerHTML='<div id="policy-report-detail"></div><details class="pr-extra-data"><summary>지역·블록 상세 시계열과 원본 자료 펼쳐보기</summary>'+tree(row)+evidence(row)+'</details>';
+    PolicyReport.policyChanged(row);
+    document.dispatchEvent(new CustomEvent('home:policy-selected',{detail:{id:row.id}}));
   }
   function start(){
     document.addEventListener('change',event=>{
@@ -83,7 +85,8 @@ const PolicyDashboard=(()=>{
       }
     });
   }
-  return {render,start};
+  function select(id){if(!payload||!payload.items.some(row=>row.id===id))return;selected=id;collapsed.clear();render(payload);}
+  return {render,start,select};
 })();
 
 const ConnectionGuide=(()=>{

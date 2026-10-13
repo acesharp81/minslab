@@ -6,6 +6,7 @@ from datetime import date
 
 from .api_samples import base, day, key_for, response_json, today
 from .collectors import clean, integer
+from .schedule_period import schedule_period
 
 METADATA_URL = "https://infuser.odcloud.kr/oas/docs"
 PAGE_SIZE = 100
@@ -31,19 +32,21 @@ def versions(data, dataset_id):
 
 def scheduled_month(row):
     if "공급시기 예정 년도" in row:
-        year, month = integer(row.get("공급시기 예정 년도")), integer(row.get("공급시기 예정월"))
-        if year is None and month is None:
-            return None
-        if year is None or month is None or not 1900 <= year <= 2100 or not 1 <= month <= 12:
-            raise ValueError("SH 공급 예정 연월 형식 변경")
-        return f"{year:04d}-{month:02d}"
+        year=integer(row.get("공급시기 예정 년도"));raw=clean(row.get("공급시기 예정월"))
+        if year is None and not raw:return None
+        if year is None or not raw:raise ValueError("SH 공급 예정 연월 형식 변경")
+        parsed=schedule_period(str(year)+'년'+(raw+'월' if raw.isdigit() else raw))
+        if not parsed:raise ValueError("SH 공급 예정 연월 형식 변경")
+        return parsed['month']
     value = clean(row.get("공급시기(예정)") or row.get("분양예정시기"))
     if not value:
         return None
-    match = re.fullmatch(r"(20\d{2})[-./](\d{1,2})", value)
-    if not match or not 1 <= int(match[2]) <= 12:
-        raise ValueError("SH 공급 예정 연월 형식 변경")
-    return f"{match[1]}-{int(match[2]):02d}"
+    parsed=schedule_period(value)
+    if not parsed:
+        if re.search(r'미정|미확정|추후',value):return None
+        raise ValueError("SH 공급 예정 일정 형식 변경")
+    return parsed['month']
+
 
 
 def parse_rows(rows, source, version, latest):
@@ -77,7 +80,7 @@ def parse_rows(rows, source, version, latest):
         if version != latest:
             payload["warnings"].append("SH_HISTORY_SNAPSHOT")
         if plan:
-            payload.update(schedule_month=scheduled_month(row), housing_type=housing_type,
+            payload.update(schedule_month=scheduled_month(row), schedule_original=clean(row.get("공급시기(예정)") or row.get("분양예정시기")), housing_type=housing_type,
                            pre_subscription_units=integer(row.get("사전청약 공급세대수")),
                            main_subscription_units=integer(row.get("본청약 공급세대수")))
             if payload["schedule_month"]:

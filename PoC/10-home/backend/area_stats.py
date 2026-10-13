@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 from sqlalchemy import select
 
 from .db import Revision
+from .api_samples import today
 
 SGIS = "https://sgisapi.mods.go.kr/OpenAPI3/"
 KOSIS = "https://kosis.kr/openapi/Param/statisticsParameterData.do"
@@ -162,6 +163,8 @@ def kosis_geography(row):
     name = str(row.get("C1_NM", ""))
     if code.startswith("11") and re.fullmatch(r"서울 [가-힣]+구", name):
         return "서울특별시", name.split(" ", 1)[1]
+    if code.startswith("23") and re.fullmatch(r"인천 [가-힣]+[구군]", name):
+        return "인천광역시", name.split(" ", 1)[1]
     if code.startswith("31") and name in GYEONGGI:
         return "경기도", name
     return None
@@ -211,7 +214,7 @@ def collect_kosis_household_forecast(source, fetcher):
     rows = kosis_rows(fetcher, key, "DT_1BZ0505", "A", "T01", str(current), str(current + 10), objL2="000")
     data = {}
     for row in rows:
-        region = {"11": "서울특별시", "31": "경기도"}.get(str(row.get("C1")))
+        region = {"11": "서울특별시", "31": "경기도", "23": "인천광역시"}.get(str(row.get("C1")))
         if not region or row.get("C2") != "000":
             continue
         year = int(row["PRD_DE"])
@@ -239,7 +242,7 @@ def complete_sum(values, required):
 
 
 def area_context(service, region, municipality, year):
-    if region not in EXPECTED:
+    if region not in (*EXPECTED, "인천광역시"):
         raise ValueError("서울·경기 지역만 조회할 수 있습니다")
     if municipality is not None:
         if region == "경기도" and municipality not in GYEONGGI:
@@ -267,6 +270,9 @@ def area_context(service, region, municipality, year):
             stock, households = row.get("housing_units"), row.get("households")
             gap = stock - households if stock is not None and households is not None else None
             housing.append({"year": row["year"], "housing_units": stock, "households": households,
+                            "census_housing_units": row.get("census_housing_units"),
+                            "census_housing_source_table": row.get("census_housing_source_table"),
+                            "census_housing_published_at": row.get("census_housing_published_at"),
                             "gap_units": gap, "stock_to_household_pct": round(100 * stock / households, 1) if gap is not None and households else None,
                             "official_ratio": row.get("official_ratio"), "source_date": row.get("source_date"),
                             "housing_source_table": row.get("housing_source_table"),
@@ -276,7 +282,7 @@ def area_context(service, region, municipality, year):
         elif group == "kosis_household_forecast" and not municipality and year <= row["year"] <= year + 10:
             forecast.append({"year": row["year"], "households": row["forecast_households"],
                              "published_at": row["source_date"]})
-    expected = None if municipality else EXPECTED[region]
+    expected = None if municipality else EXPECTED.get(region, 10 if year < 2026 else 11)
     census_series = []
     for observed_year, group in sorted(census.items()):
         required = expected or len(group)
@@ -295,7 +301,7 @@ def area_context(service, region, municipality, year):
                               "expected_units": required})
     employment_series = []
     for period, group in sorted(employment.items()):
-        required = EXPECTED_CITIES[region] if not municipality else 1
+        required = EXPECTED_CITIES.get(region, 10) if not municipality else 1
         # Employment rates are not additive; omit regional rate without a published regional denominator.
         employed = complete_sum([r.get("resident_employed") for r in group], required)
         labor = complete_sum([r.get("labor_force") for r in group], required)
@@ -308,7 +314,12 @@ def area_context(service, region, municipality, year):
     seen_years = {row["year"] for row in population_history}
     population_history.extend({"year": row["year"], "population": row["population"], "source": "KOSIS"}
                               for row in housing if row.get("population") is not None and row["year"] not in seen_years)
+    from .unsold import context as unsold_context
+    from .age_distribution import context as age_context
+    reference=date(year,12,31) if year and year<today().year else today()
     return {"region": region, "municipality": municipality, "analysis_year": year,
+            "unsold":unsold_context(service,region,municipality,reference),
+            "age_distribution":age_context(service,region,municipality,year),
             "census": census_series, "population_history": sorted(population_history, key=lambda row: row["year"]),
             "employment": employment_series,
             "housing_balance": sorted(housing, key=lambda row: row["year"]),
@@ -318,6 +329,7 @@ def area_context(service, region, municipality, year):
             "notes": {"workplace_workers": "사업체 소재지 기준", "resident_employed": "거주지 기준",
                       "employment_precision": "천명 통계를 명으로 환산, 100명 정밀도",
                       "forecast": "장래가구추계는 관측치와 별도",
+                      "geography": "통계 원천의 당시 시군구 판본 유지. 인천 2026년 행정구역 개편 전 통계를 새 경계에 임의 배분하지 않음",
                       "housing_balance": "주택 재고−일반가구의 단순 차이. 실제 공가·가용 물량·정책 공급 실적이 아님"}}
 
 
@@ -326,6 +338,10 @@ def kosis_housing_place(row):
     code, name = str(row.get("C1", "")), str(row.get("C1_NM", ""))
     if code == "11" and name == "서울특별시":
         return "서울특별시", None
+    if code == "23" and name == "인천광역시":
+        return "인천광역시", None
+    if len(code) == 5 and code.startswith("23") and re.fullmatch(r"[가-힣]+[구군]", name):
+        return "인천광역시", name
     if code == "31" and name == "경기도":
         return "경기도", None
     if len(code) == 5 and code.startswith("11") and re.fullmatch(r"[가-힣]+구", name):
@@ -342,6 +358,7 @@ def collect_kosis_housing(source, fetcher):
     cells = defaultdict(dict)
     definitions = (
         ("DT_1JC1515", "T1010", "2018", "households"),
+        ("DT_1IN1502", "T310", "2018", "census_housing_units"),
         ("DT_1MH2090", "T10", "2024", "housing_units"),
     )
     for table, item, first, field in definitions:
@@ -359,7 +376,7 @@ def collect_kosis_housing(source, fetcher):
             cell[field + "_table"] = table
     # SGIS census stops at 2024; the 2025 census table extends the observed
     # population series without estimating a later year.
-    for row in kosis_rows(fetcher, key, "DT_1IN1502", "A", "T100", "2025", str(current)):
+    for row in kosis_rows(fetcher, key, "DT_1IN1502", "A", "T100", "2018", str(current)):
         place = kosis_housing_place(row)
         if place:
             value = count(row.get("DT"))
@@ -372,7 +389,7 @@ def collect_kosis_housing(source, fetcher):
                         ("13103871096T5", "housing_units"),
                         ("13103871096T6", "official_ratio")):
         for row in kosis_rows(fetcher, key, "DT_MLTM_2100", "A", item, "2018", str(current), orgId="116"):
-            region = {"서울": "서울특별시", "경기": "경기도"}.get(row.get("C1_NM"))
+            region = {"서울": "서울특별시", "경기": "경기도", "인천": "인천광역시"}.get(row.get("C1_NM"))
             if not region:
                 continue
             year = int(row["PRD_DE"])
@@ -399,20 +416,34 @@ def collect_kosis_housing(source, fetcher):
         payload = {"name": municipality or region, "region": region, "municipality": municipality,
                    "metric_group": "kosis_housing", "year": year, "base_date": f"{year}-12-31",
                    "date_precision": "YEAR", "housing_units": housing, "households": households,
+                   "census_housing_units": values.get("census_housing_units"),
+                   "census_housing_source_table": values.get("census_housing_units_table"),
+                   "census_housing_published_at": values.get("census_housing_units_published_at"),
                    "population": values.get("population"), "official_ratio": history.get("official_ratio"),
                    "housing_basis": "다가구 구분거처 반영 주택수",
-                   "source_date": published, "housing_source_table": values.get("housing_units_table") or "DT_MLTM_2100",
-                   "household_source_table": values.get("households_table") or "DT_MLTM_2100",
+                   "census_housing_basis": "인구주택총조사 주택_계 · 주택보급률의 보정 재고와 다른 기준",
+                   "source_date": published,
+                   "housing_source_table": values.get("housing_units_table") or ("DT_MLTM_2100" if history.get("housing_units") is not None else None),
+                   "household_source_table": values.get("households_table") or ("DT_MLTM_2100" if history.get("households") is not None else None),
                    "evidence_url": KOSIS_DOC,
                    "definition": "주택 재고와 일반가구의 같은 연도·행정구역 비교. 공실·점유·실입주량은 아님"}
         records.append(("area_stat", f"{region}|{municipality or 'ALL'}|{year}", payload))
+    census_years = sorted({year for (_, _, year), value in cells.items()
+                           if value.get("census_housing_units") is not None})
+    if not census_years or census_years != list(range(2018, max(census_years) + 1)):
+        raise ValueError("KOSIS 2018년 이후 주택총조사 연도 누락")
+    for year in census_years:
+        included = [p for _, _, p in records if p["year"] == year and p["census_housing_units"] is not None and p["municipality"]]
+        if sum(p["region"] == "서울특별시" for p in included) != 25 or sum(p["region"] == "경기도" for p in included) != 31:
+            raise ValueError(f"KOSIS {year}년 시군구 주택총조사 범위 누락")
     latest = max(year for (_, _, year), value in cells.items() if value.get("housing_units") is not None)
     for year in (latest - 1, latest):
         included = [p for _, _, p in records if p["year"] == year and p["housing_units"] is not None and p["municipality"]]
         if sum(p["region"] == "서울특별시" for p in included) != 25 or sum(p["region"] == "경기도" for p in included) != 31:
             raise ValueError("KOSIS 최신 시군구 주택 재고 범위 누락")
-    return records, {"latest_housing_year": latest, "first_household_year": min(p["year"] for _, _, p in records),
-                     "covered_municipalities": 56, "complete_query": True,
+    return records, {"latest_housing_year": latest, "census_housing_years": census_years,
+                     "first_household_year": min(p["year"] for _, _, p in records),
+                     "covered_municipalities": len({(r[2]["region"],r[2]["municipality"]) for r in records if r[2]["municipality"]}), "complete_query": True,
                      "tables": ["DT_1JC1515", "DT_1MH2090", "DT_1IN1502", "DT_MLTM_2100"]}
 
 
@@ -458,7 +489,7 @@ def collect_kosis_household_size(source, fetcher):
                 break  # Prior-year census not yet published; preserve completed history.
             raise ValueError("KOSIS 가구원수 과거 연도 미확보")
         places = parse_household_size_rows(rows, year)
-        if len(places) != 58 or sum(place[0] == "서울특별시" for place in places) != 26 or sum(place[0] == "경기도" for place in places) != 32:
+        if sum(place[0] == "서울특별시" for place in places) != 26 or sum(place[0] == "경기도" for place in places) != 32:
             raise ValueError("KOSIS 서울·경기 가구원수 지역 범위 누락")
         years.append(year)
         for (region, municipality), values in sorted(places.items(), key=lambda x:(x[0][0], x[0][1] or "")):
@@ -470,7 +501,7 @@ def collect_kosis_household_size(source, fetcher):
             records.append(("area_stat", f"{region}|{municipality or 'ALL'}|{year}", payload))
     if not records:
         raise ValueError("KOSIS 가구원수 과거 시계열 미확보")
-    return records, {"years": years, "covered_places_per_year": 58, "table_id": "DT_1JC1516",
+    return records, {"years": years, "covered_places_per_year": len(places), "table_id": "DT_1JC1516",
                      "complete_query": True}
 
 
@@ -479,7 +510,7 @@ def area_places(service):
         rows = session.scalars(select(Revision.payload).where(
             Revision.kind == "area_stat", Revision.source_id == "kosis_housing",
             Revision.superseded_at.is_(None))).all()
-    regions = {region: set() for region in EXPECTED}
+    regions = {region: set() for region in (*EXPECTED, "인천광역시")}
     years = set()
     for row in rows:
         if row.get("region") not in regions:

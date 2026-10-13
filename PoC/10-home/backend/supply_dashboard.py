@@ -10,7 +10,16 @@ from .supply_projection import projections
 from .supply_geography import municipal_membership, block_milestones
 from .matching_rules import policy_members
 
-MEASURES = {"SUPPLY": "모집·공급", "MOVE_IN": "입주", "COMPLETION": "준공"}
+MEASURES = {"SUPPLY": "모집·공급", "MOVE_IN": "입주 시작일", "COMPLETION": "준공"}
+SOURCE_ALIASES = {"lh_incheon_sale": "lh_sale", "lh_incheon_rent": "lh_rent",
+                  "lh_incheon_construction": "lh_construction"}
+
+
+def marker_view(dashboard):
+    """Same quantities, provenance and points; omit unused polygon coordinates."""
+    return {**dashboard, **{key: [{k: v for k, v in row.items() if k != 'geometry'}
+                                for row in dashboard[key]]
+                           for key in ('municipalities', 'districts')}}
 
 
 def block_key(row):
@@ -51,6 +60,11 @@ def inventory(rows):
             excluded.extend(row["id"] for row in group)
             continue
         winner = plans[0] if plans else group[0]
+        if winner.get('planned_units') is None:
+            capacities = {r['planned_units'] for r in group if r.get('planned_units') is not None and r['planned_units'] > 0}
+            if len(capacities) == 1:
+                winner = dict(winner, planned_units=capacities.pop(), quantity_basis='SAME_BLOCK_SOURCE',
+                              quantity_source_ids=[r['id'] for r in group if r.get('planned_units') is not None])
         selected.append(winner)
         excluded.extend(row["id"] for row in group if row["id"] != winner["id"])
     return selected, excluded
@@ -112,7 +126,7 @@ def quantities(rows, plans, reference, horizon, measure, target_ids=None,event_i
         plans.get(row.get("master_id") or row["id"], {}).get("targets", []))])
     if manual_ids is not None:
         manual_rows=[row for row in rows if row["id"] in manual_ids]
-    manual = [goal for row in manual_rows for goal in plans.get(row.get("master_id") or row["id"], {}).get("targets", [])
+    manual = [] if measure=="MOVE_IN" else [goal for row in manual_rows for goal in plans.get(row.get("master_id") or row["id"], {}).get("targets", [])
               if goal["stage"] == measure and goal["year"] > reference.year]
     for offset in range(1, horizon+1):
         end_year = reference.year+offset
@@ -121,13 +135,15 @@ def quantities(rows, plans, reference, horizon, measure, target_ids=None,event_i
         source_known = [event["units"] for event in source if event["units"] is not None]
         manual_known = [goal["units"] for goal in goals if goal.get("units") is not None]
         future.append({"offset": offset, "end_year": end_year,
-                       "source_units": sum(source_known) if source_known else None,
-                       "manual_units": sum(manual_known) if manual_known else None,
-                       "source_events": len(source), "manual_events": len(goals),
-                       "units_missing_events": len(source)-len(source_known),
+                       "start_date":min((event["month"] for event in source),default=None) if measure=="MOVE_IN" else None,
+                       "source_units": None if measure=="MOVE_IN" else sum(source_known) if source_known else None,
+                       "manual_units": None if measure=="MOVE_IN" else sum(manual_known) if manual_known else None,
+                       "source_events": len(source), "manual_events": 0 if measure=="MOVE_IN" else len(goals),
+                       "units_missing_events": 0 if measure=="MOVE_IN" else len(source)-len(source_known),
                        "excluded_source_rows": len(event_excluded)})
     linked=[notice_links[row["id"]] for row in rows if notice_links and row["id"] in notice_links]
     return {"project_count": len(rows), "target_units": sum(known) if known else None,
+            "move_in_start":min((event["month"] for event in events),default=None) if measure=="MOVE_IN" else None,
             "target_counted_projects": len(known), "target_excluded_projects": len(excluded),
             "target_missing_projects": len(selected)-len(known), "current_units": None,
             "current_status": "ACTUAL_NOT_COLLECTED", "current_notice_units":sum(row["units"] for row in linked) if linked else None,
@@ -152,20 +168,21 @@ def market_notices(notices, reference, horizon, region=None):
     for offset in range(1, horizon+1):
         matched = [row for row in latest.values() if re.fullmatch(r"20\d{2}(0[1-9]|1[0-2])", row.get("move_in_plan_month") or "")
                    and reference.strftime("%Y%m") < row["move_in_plan_month"] <= f"{reference.year+offset}12"]
-        known = [row["units"] for row in matched if row.get("units") is not None]
-        future.append({"offset": offset, "units": sum(known) if known else None, "notice_count": len(matched)})
+        future.append({"offset": offset, "start_date":min((row["move_in_plan_month"][:4]+"-"+row["move_in_plan_month"][4:] for row in matched),default=None), "notice_count": len(matched)})
     return {"notice_count": len(latest), "announced_units": sum(units) if units else None,
             "missing_units_count": len(latest)-len(units), "future_move_in": future,
-            "basis": "서울·경기 청약 모집공고 · 민간 포함 · 정부정책 미연결 · 실입주량 아님"}
+            "basis": "서울·인천·경기 청약 모집공고 · 민간 포함 · 정부정책 미연결 · 실입주량 아님"}
 
 
 def build_dashboard(projects, reports, districts, policies, goals, notices, events, knowledge_date,
-                    start_year, analysis_year=None, horizon=10, measure="MOVE_IN", permits=None, municipalities=None, annual_permit_count=None, block_locations=None, **filters):
+                    start_year, analysis_year=None, horizon=10, measure="SUPPLY", permits=None, municipalities=None, annual_permit_count=None, block_locations=None, stored_supply_links=None, stage_events=None, **filters):
     analysis_year = analysis_year or knowledge_date.year
     reference = min(date(analysis_year, 12, 31), knowledge_date)
     if analysis_year > knowledge_date.year:
         raise ValueError("자료 연도는 조회 기준연도 이하여야 합니다")
-    projects = [row for row in projects if row.get("mapping", {}).get("status") != "RELEASED"]
+    projects = [dict(row, source_id=SOURCE_ALIASES.get(row["source_id"], row["source_id"]),
+                     origin_source_id=row.get("origin_source_id", row["source_id"]))
+                for row in projects if row.get("mapping", {}).get("status") != "RELEASED"]
     masters = {row["id"]: row for row in projects}
     rows = [dict(row, master_id=row["id"]) for row in projects
             if row["source_id"] not in {"lh_construction","lh_progress"} and row["base_date"] <= reference.isoformat()]
@@ -184,7 +201,7 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
                              historical_report=True, current_mapping=master.get("mapping") if master else None))
     for field in ("region", "source_id", "stage"):
         if filters.get(field):
-            rows = [row for row in rows if row.get(field) == filters[field]]
+            rows = [row for row in rows if (row.get("origin_source_id", row.get(field)) if field == "source_id" else row.get(field)) == filters[field]]
     if filters.get("q"):
         needle = filters["q"].casefold()
         rows = [row for row in rows if needle in " ".join(str(row.get(key, "")) for key in ("name", "district", "program", "municipality")).casefold()]
@@ -193,11 +210,17 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
         rows = policy_members(selected_policy, rows)
     if filters.get("mapping_status"):
         rows = [row for row in rows if row.get("mapping", {}).get("status") == filters["mapping_status"]]
+    resolved_inventory = {r['id']: r for r in inventory(rows)[0]}
+    rows = [resolved_inventory.get(r['id'], r) for r in rows]
     # Historical scenarios use only goals already established at the reference
     # date, preventing a goal entered today from appearing in a 2025 snapshot.
     plans = {row["project_id"]: row for row in goals if row["base_date"] <= reference.isoformat()}
     initial_targets,_=inventory(rows)
     initial_links=linked_notices(initial_targets,notices,reference)
+    eligible={r['id']:r for r in initial_targets}
+    for pid,notice in (stored_supply_links or {}).items():
+        if pid in eligible and notice['source_date']<=reference.isoformat() and notice['units']<=(eligible[pid].get('planned_units') or 0):
+            initial_links[pid]=notice
     for row in rows:
         notice=initial_links.get(row["id"])
         if notice and re.fullmatch(r"20\d{2}(0[1-9]|1[0-2])",notice.get("move_in_plan_month") or ""):
@@ -226,11 +249,15 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
     canonical=({row["id"] for row in target_rows},{row["id"] for row in schedule_rows},{row["id"] for row in manual_rows})
     selected_ids={row["id"] for row in rows}
     notice_links={pid:notice for pid,notice in initial_links.items() if pid in selected_ids}
+    from .map_stage_state import cohort_parts, aggregate as aggregate_stages
+    stage_parts = cohort_parts(target_rows, rows, notice_links, stage_events or {}, reference, block_key)
     for item in items:
         notice=notice_links.get(item["id"])
         item["notice_evidence"]={key:notice.get(key) for key in ("id","name","units","source_date","evidence_url")} if notice else None
     def calculate(members):
-        return quantities(members,plans,reference,horizon,measure,*canonical,notice_links=notice_links)
+        amount = quantities(members,plans,reference,horizon,measure,*canonical,notice_links=notice_links)
+        amount['stage_distribution'] = aggregate_stages([r for r in members if r['id'] in canonical[0]], stage_parts)
+        return amount
     active_policies = [policy for policy in policies if policy["announced_at"] <= reference.isoformat()
                        and (not filters.get("policy_id") or policy["policy_id"] == filters["policy_id"])]
     groups = {"policy": [], "program": [], "region": []}
@@ -249,7 +276,7 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
         groups["program"].append(group(program, program, [row for row in rows if (row.get("program") or "미분류") == program]))
     show_market = not any(filters.get(key) for key in ("policy_id", "source_id", "stage", "mapping_status", "q"))
     market_rows = notices if show_market else []
-    for region in ("서울특별시", "경기도"):
+    for region in ("서울특별시", "인천광역시", "경기도"):
         if filters.get("region") and filters["region"] != region:
             continue
         members = [row for row in rows if row["region"] == region]
@@ -298,8 +325,28 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
                 for item in grouping if ids.intersection(item["project_ids"])} for kind,grouping in groups.items()})
         block["milestones"]=block_milestones(members,notice_links,reference)
         blocks.append(block)
+    # Named Seoul projects and area-only locations were excluded by block syntax.
+    # Stored anchors are explicitly approximate; no network work occurs on reads.
+    represented={pid for b in blocks if b.get('latitude') is not None for pid in b['project_ids']}
+    for row in rows:
+        if row['id'] in represented or row.get('latitude') is None or row.get('longitude') is None:continue
+        name=row['name'];members=[row];ids={row['id']}
+        scopes={kind:{g['id']:calculate(members) for g in grouping if ids.intersection(g['project_ids'])} for kind,grouping in groups.items()}
+        anchor=dict(id='location:'+row['id'],name=name,project_ids=[row['id']],regions=[row['region']],
+            latitude=row['latitude'],longitude=row['longitude'],coordinate_basis=row.get('coordinate_basis'),
+            location_label=row.get('location_label'),link_status='REVIEW',geometry=None,
+            quantities=calculate(members),group_quantities=scopes,base_date=row['base_date'])
+        mapped.append(anchor);located.add(row['id'])
+        b=group(anchor['id'],name,members,region=row['region'],block='대표 위치',district_name=name,
+            latitude=row['latitude'],longitude=row['longitude'],coordinate_basis=row.get('coordinate_basis'),
+            location_label=row.get('location_label'),location_evidence_url=row.get('location_evidence_url'),group_quantities=scopes)
+        b['milestones']=block_milestones(members,notice_links,reference);blocks.append(b)
     municipality_groups=[]
     resolved=municipal_membership(rows,municipalities or [],mapped,block_key)
+    boundary_names={area['id']:area['name'] for area in municipalities or []}
+    for row in rows:
+        if row['region']=='인천광역시':
+            row['municipality']=boundary_names.get(resolved.get(row['id']),'지역 상세 확인 필요')
     for boundary in municipalities or []:
         members=[row for row in rows if resolved.get(row["id"])==boundary["id"]]
         member_ids={row["id"] for row in members}

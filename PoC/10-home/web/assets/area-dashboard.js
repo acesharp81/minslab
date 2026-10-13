@@ -59,17 +59,17 @@ const AreaDashboard=(()=>{
     $('area-household-size-chart').innerHTML=`<h3>1·2·3·4·5인 이상 가구 변화</h3><p>${esc(data.municipality||data.region)} · ${first.year}~${last.year}년 일반가구 수. 막대의 전체 높이는 가구 총수입니다.</p><div class="area-size-scroll"><div class="area-size-bars" role="group" aria-label="가구원수별 일반가구 연도별 누적 막대그래프">${bars}</div></div><div class="area-size-legend">${keys.map(key=>`<span><i class="size-color-${key.replace('+','plus')}"></i>${label(key)} 가구</span>`).join('')}</div><div class="area-size-deltas">${keys.map(key=>{const change=last.sizes[key]-first.sizes[key];return `<div><b>${label(key)}</b><strong>${count(last.sizes[key])}가구</strong><small>${first.year}년 대비 ${change>=0?'+':''}${num(change)}가구 · ${pct(100*last.sizes[key]/last.total)}</small></div>`}).join('')}</div><small>KOSIS 일반가구 가구원수별 표 <code>DT_1JC1516</code>. 5인 이상은 5·6·7인 이상 합계입니다.</small>`;
   }
   function renderSupplyFlow(data,supply){
-    const rows=supply.rows.filter(row=>row.region===data.region),max=Math.max(1,...rows.flatMap(row=>['준공','분양승인'].map(m=>row.metrics[m].units||0)));
+    const rows=supply.rows.filter(row=>row.region===data.region),max=Math.max(1,...rows.flatMap(row=>['준공','분양승인','멸실'].map(m=>row.metrics[m].units||0)));
     const bars=rows.map(row=>{
-      const rects=['준공','분양승인'].map((metric,index)=>{
+      const rects=['준공','분양승인','멸실'].map((metric,index)=>{
         const cell=row.metrics[metric];
         if(cell.units==null)return '';
         const height=Math.max(2,220*cell.units/max);
-        return `<rect x="${5+index*25}" y="${220-height}" width="19" height="${height}" rx="2" fill="${index?'#e79a5a':'#327ac1'}" opacity="${cell.complete?1:.42}"><title>${row.year}년 ${metric} ${count(cell.units)}호${cell.complete?'':' · 부분 집계'}</title></rect>`;
+        return `<rect x="${4+index*23}" y="${220-height}" width="18" height="${height}" rx="2" fill="${['#327ac1','#e79a5a','#8a789f'][index]}" opacity="${cell.complete?1:.42}"><title>${row.year}년 ${metric} ${count(cell.units)}호${cell.complete?'':' · 부분 집계'}</title></rect>`;
       }).join('');
-      return `<div class="area-flow-year"><svg width="54" height="220" viewBox="0 0 54 220" role="img" aria-label="${row.year}년 준공·분양승인">${rects}</svg><strong>${row.year}</strong></div>`;
+      return `<div class="area-flow-year"><svg width="70" height="220" viewBox="0 0 70 220" role="img" aria-label="${row.year}년 준공·분양승인·멸실">${rects}</svg><strong>${row.year}</strong></div>`;
     }).join('');
-    $('area-supply-flow').innerHTML=`<h3>${esc(data.region)} 공급 실적 흐름</h3><p>준공과 공동주택 분양승인 · 시도 전체(민간 포함). ${data.municipality?esc(data.municipality)+' 단독 실적은 미확보입니다.':''}</p><div class="area-flow-scroll"><div class="area-flow-bars" role="group" aria-label="2018년부터 준공·분양승인 실적 비교">${bars}</div></div><div class="area-size-legend"><span><i class="size-color-completion"></i>준공</span><span><i class="size-color-sale"></i>분양승인</span></div><button type="button" class="area-flow-link" data-view="annual-supply">인허가·착공까지 연도별 상세 비교 ↗</button><small>준공은 기존 주택 멸실을 차감한 순증이 아니며, 분양승인은 실제 입주량이 아닙니다. 12개월 미만 연도는 옅게 표시합니다.</small>`;
+    $('area-supply-flow').innerHTML=`<h3>${esc(data.region)} 공급·멸실 흐름</h3><p>준공·공동주택 분양승인·기존 주택 멸실 · 시도 전체(민간 포함). ${data.municipality?esc(data.municipality)+' 단독 실적은 미확보입니다.':''}</p><div class="area-flow-scroll"><div class="area-flow-bars" role="group" aria-label="2018년부터 준공·분양승인·멸실 흐름 비교">${bars}</div></div><div class="area-size-legend"><span><i class="size-color-completion"></i>준공</span><span><i class="size-color-sale"></i>분양승인</span><span><i class="size-color-demolition"></i>멸실</span></div><button type="button" class="area-flow-link" data-view="annual-supply">인허가·착공·멸실 연도별 상세 비교 ↗</button><small>준공은 멸실 차감 전 총량이고 분양승인은 실제 입주량이 아닙니다. 멸실 자료는 ${supply.demolition_latest_year||'미확보'}년까지 공개됐으며 이후 빈칸은 현재 확인한 원천의 미공표입니다. 12개월 미만 연도는 옅게 표시합니다.</small>`;
   }
   function renderOutlook(outlook,municipality){
     const node=$('area-outlook-chart');
@@ -85,7 +85,7 @@ const AreaDashboard=(()=>{
     return `<div class="area-balance-card ${gapClass(gap)}"><div class="area-balance-top"><div><small>${esc(label)} · ${row.year}년</small><strong>${gap<0?'통계상 부족':gap>0?'통계상 여유':'수량 동일'}</strong></div><b>${pct(row.stock_to_household_pct)}</b></div><p>${textGap(gap)}</p><div class="area-compare-bars"><div><span>주택 재고</span><i><b class="housing" style="width:${100*row.housing_units/maximum}%"></b></i><strong>${count(row.housing_units)}호</strong></div><div><span>일반가구</span><i><b class="households" style="width:${100*row.households/maximum}%"></b></i><strong>${count(row.households)}가구</strong></div></div><small class="area-basis">다가구 구분거처 반영 주택 재고 · 공가/가용 주택 수나 정책 공급실적이 아닙니다.</small></div>`;
   }
   function regionCards(regions){
-    $('area-region-compare').innerHTML=['서울특별시','경기도'].map(region=>{
+    $('area-region-compare').innerHTML=['서울특별시','경기도','인천광역시'].map(region=>{
       const row=regions[region]?.housing_balance.at(-1),gap=row?.gap_units;
       return `<button type="button" class="area-region-quick ${gapClass(gap)}" data-area-region="${region}"><small>${region} · ${row?.year||'연도 미확보'}년</small><strong>${textGap(gap)}</strong><span>주택 ${count(row?.housing_units)}호 / 가구 ${count(row?.households)}가구</span></button>`;
     }).join('');
@@ -104,10 +104,11 @@ const AreaDashboard=(()=>{
       ['거주지 취업자',latestEmployment?.resident_employed,'명',latestEmployment?.period?`${latestEmployment.period.slice(0,4)}년 ${Number(latestEmployment.period.slice(-2))}반기 KOSIS`:'기준 미확보'],
       ['사업체 종사자',latestCensus?.workplace_workers,'명',latestCensus?.year?`${latestCensus.year}년 SGIS`:'기준 미확보']
     ].map(([name,value,unit,period])=>`<article><small>${name}</small><strong>${count(value)}${known(value)?unit:''}</strong><span>${period}</span></article>`).join('');
+    let market=$('area-unsold');if(!market){market=document.createElement('article');market.id='area-unsold';market.className='panel';$('area-balance').after(market);}market.innerHTML=UnsoldIndicators.html(data.unsold);
     renderHouseholdSizes(data);
     renderSupplyFlow(data,supply);
     $('area-outlook-chart').innerHTML='<h3>주택 재고 + 예정 공급 vs 장래가구</h3><p class="area-empty">확인된 사업 일정과 공식 가구 추계를 조회하고 있습니다…</p>';
-    $('area-housing-chart').innerHTML=`<h3>주택 재고와 일반가구</h3><p>같은 연도·행정구역의 수량을 비교합니다.</p>${plot(housing,[{key:'housing_units',name:'다가구 반영 주택 재고',color:'#1665bc'},{key:'households',name:'일반가구',color:'#ea8140'}],'연도별 주택 재고·일반가구',{unit:'호/가구',zero:false})}<small>값 차이를 보기 위해 세로축은 0에서 시작하지 않습니다. 시군구 주택 재고는 2024년부터 확보. 그 이전 빈 구간은 연결하거나 추정하지 않습니다.</small>`;
+    $('area-housing-chart').innerHTML=`<h3>주택 재고와 일반가구</h3><p>같은 연도·행정구역의 수량을 비교합니다.</p>${plot(housing,[{key:'census_housing_units',name:'주택총조사 주택_계',color:'#2b977a'},{key:'housing_units',name:'다가구 반영 주택 재고',color:'#1665bc'},{key:'households',name:'일반가구',color:'#ea8140'}],'연도별 주택총조사·보정 재고·일반가구',{unit:'호/가구',zero:false})}<small>주택총조사 주택_계는 2018년부터 확보했습니다. 다가구 구분거처 반영 재고와 집계 기준이 달라 별도 선으로 표시하며, 수급 차이·미래 전망에는 보정 재고가 있는 연도만 사용합니다. 세로축은 0에서 시작하지 않습니다.</small>`;
     const years=[...new Set([...population.map(r=>r.year),...housing.map(r=>r.year)])].sort((a,b)=>a-b);
     const popBase=population.find(r=>known(r.population))?.population,hBase=housing.find(r=>known(r.households))?.households;
     const demographic=years.map(year=>({year,population_index:popBase?100*population.find(r=>r.year===year)?.population/popBase:null,household_index:hBase?100*housing.find(r=>r.year===year)?.households/hBase:null}));
@@ -124,12 +125,12 @@ const AreaDashboard=(()=>{
     const key=[region,municipality,year].join('|');if(key===loadedKey)return;
     $('area-dashboard-status').textContent='공식 시계열을 조회하고 있습니다…';
     try{
-      const [data,seoul,gyeonggi,supply]=await Promise.all([get(region,municipality,year),
+      const [data,seoul,gyeonggi,incheon,supply]=await Promise.all([get(region,municipality,year),
         regionCache.get('서울특별시|'+year)||get('서울특별시',null,year),
-        regionCache.get('경기도|'+year)||get('경기도',null,year),getSupply(region,year)]);
+        regionCache.get('경기도|'+year)||get('경기도',null,year),regionCache.get('인천광역시|'+year)||get('인천광역시',null,year),getSupply(region,year)]);
       if(id!==generation)return;
-      regionCache.set('서울특별시|'+year,seoul);regionCache.set('경기도|'+year,gyeonggi);
-      loadedKey=key;render(data,{'서울특별시':seoul,'경기도':gyeonggi},supply);
+      regionCache.set('서울특별시|'+year,seoul);regionCache.set('경기도|'+year,gyeonggi);regionCache.set('인천광역시|'+year,incheon);
+      loadedKey=key;render(data,{'서울특별시':seoul,'경기도':gyeonggi,'인천광역시':incheon},supply);
       if(year===new Date().getFullYear())getOutlook(region).then(outlook=>{if(id===generation)renderOutlook(outlook,municipality)}).catch(error=>{if(id===generation)$('area-outlook-chart').innerHTML='<h3>주택 재고·장래가구 비교</h3><p class="area-empty">'+esc(error.message)+'</p>'});
       else $('area-outlook-chart').innerHTML='<h3>주택 재고·장래가구 비교</h3><p class="area-empty">과거 연도 선택 중입니다. 현재 연도를 선택하면 최신 장래가구·준공 예정 비교가 표시됩니다.</p>';
       $('area-dashboard-status').textContent=`${data.municipality||data.region} · ${year}년까지 확보된 원천 자료`;

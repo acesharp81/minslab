@@ -15,7 +15,8 @@ from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlu
 
 from sqlalchemy import select, text
 
-from backend.db import Audit, Batch, Mapping, ProgramMapping, Revision, engine_for
+from backend.db import (Audit, Batch, Coverage, IdentityAlias, Mapping, Plan, PlanEvent, PlanProjectLink,
+                        ProgramMapping, ProjectEvidence, ProjectIdentity, Revision, engine_for)
 from backend.sources import SOURCES
 
 SENSITIVE_KEYS = {'servicekey', 'apikey', 'api_key', 'authkey', 'access_token',
@@ -122,7 +123,7 @@ def export(output):
         if engine.dialect.name == 'postgresql':
             conn.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY'))
         snapshot_at = conn.scalar(text('SELECT CURRENT_TIMESTAMP'))
-        kinds = conn.scalars(select(Revision.kind).distinct().order_by(Revision.kind)).all()
+        kinds = sorted(set(conn.scalars(select(Revision.kind).distinct()).all()) | {'project'})
         for kind in kinds:
             kind_counts[kind] = {'revisions': 0, 'current': 0}
             rows = conn.execution_options(stream_results=True).execute(
@@ -133,6 +134,13 @@ def export(output):
             print(f'{kind}: {result["records"]} revisions', flush=True)
         for name, table, callback in (
                 ('collection_batches', Batch.__table__, count_batch),
+                ('source_coverage', Coverage.__table__, None),
+                ('project_identities', ProjectIdentity.__table__, None),
+                ('identity_aliases', IdentityAlias.__table__, None),
+                ('project_evidence', ProjectEvidence.__table__, None),
+                ('plans', Plan.__table__, None),
+                ('plan_events', PlanEvent.__table__, None),
+                ('plan_project_links', PlanProjectLink.__table__, None),
                 ('project_program_links', Mapping.__table__, None),
                 ('program_policy_links', ProgramMapping.__table__, None),
                 ('review_audit', Audit.__table__, None)):

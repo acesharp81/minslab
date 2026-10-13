@@ -8,3 +8,5 @@
 @media(max-width:850px){.area-size-deltas{grid-template-columns:repeat(2,minmax(0,1fr))}.area-outlook-cards{grid-template-columns:1fr}}
 
 .area-size-stack{display:block;flex:0 0 42px;width:42px;height:220px;overflow:visible}.area-flow-year svg{display:block;flex:none}.area-size-legend .size-color-1{background:#2766c0}.area-size-legend .size-color-2{background:#34a09a}.area-size-legend .size-color-3{background:#eaa54d}.area-size-legend .size-color-4{background:#d77362}.area-size-legend .size-color-5plus{background:#9d79bc}.area-size-legend .size-color-completion{background:#327ac1}.area-size-legend .size-color-sale{background:#e79a5a}
+
+.area-flow-year{min-width:72px}.area-size-legend .size-color-demolition{background:#8a789f}

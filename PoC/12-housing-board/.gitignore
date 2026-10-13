@@ -1,0 +1,52 @@
+# 인증키가 든 설정 파일 — 공개 저장소에 올리지 않음 (config.example.js를 복사해 사용)
+config.js
+
+# OS / 도구 부산물
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc
+
+# 대용량 원천 자료 (재다운로드 가능)
+data/raw/lh/pamphlets/
+data/raw/vworld/*.zip
+
+# 기반시설 점검 원본(공공데이터포털에서 다시 내려받을 수 있음). 받는 방법은 README.md
+data/raw/infra/*
+!data/raw/infra/README.md
+
+# 영상 렌더링 결과·캐시 (재생성 가능)
+*.mp4
+videos/*/renders/
+videos/*/snapshots/
+videos/*/.thumbnails/
+
+# 개인 사진
+docs/view/KakaoTalk_Photo_*
+
+# 빌드 산출물
+public/
+!data/raw/lh/public/
+.vercel
+.env*
+
+# 로컬 캐시(API 응답·키 사용량, 짧은 보관). lib/cache.js · lib/keys.js
+.cache/
+
+# 팀원 제출물·검증 결과·개발 환경·전달 패키지
+input/
+validation_out/
+.venv/
+dist/
+
+# Next.js
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# 시각 비교 스크린샷(재생성 가능)
+.visual/
+.hyperframes/
+
+# PoC 12 local Node runtime
+.runtime/

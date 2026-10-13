@@ -1,0 +1,73 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주택공급 상황판 · 데이터 설계 정리본</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#F5F7FB;--pn:#fff;--ink:#0F1A33;--sub:#56627F;--line:#DCE2EF;--acc:#C8421F;--soft:#EEF2FB}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1230;--pn:#121C45;--ink:#E8EDFF;--sub:#A3AFD6;--line:#25336A;--acc:#FF8A65;--soft:#17235A}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:940px;margin:0 auto;padding:44px 24px 80px}
+h1{margin:0 0 6px;font-size:26px;line-height:1.3;letter-spacing:-.02em}
+.sub{color:var(--sub);font-size:13.5px;margin:0 0 30px}
+h2{margin:40px 0 12px;font-size:19px}
+h3{margin:26px 0 4px;font-size:14.5px;color:var(--sub);font-weight:700}
+.card{background:var(--pn);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:16px 20px}
+.card p{margin:0;font-size:17px;font-weight:700;line-height:1.6}
+ul{margin:12px 0 0;padding-left:20px}li{margin:6px 0}
+.tw{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--line);border-radius:10px;background:var(--pn)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.55}
+th,td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{color:var(--sub);font-size:13px;margin:6px 0 0}
+.log{margin-top:44px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:13.5px}
+.log ul{margin:6px 0 0}
+</style></head><body><main>
+<h1>주택공급 상황판 · 데이터 설계 정리본</h1>
+<p class="sub">기존 구조를 전제로 하지 않고, 분석 결과로 하나씩 설계합니다. 요청하신 항목만 결론으로 추가합니다.</p>
+
+<h2>1. 시작점을 어디에 둘 것인가</h2>
+<div class="card"><p>건축HUB 인허가(주택인허가 + 건축인허가)에서 사업을 만들고, 공공 여부를 가르는 신호(마이홈 공공임대 단지, SH 주택관리 등)를 함께 붙여 시작한다.</p></div>
+<ul>
+<li>사업의 98%가 인허가 레코드에서 시작합니다. (성북구 2,955건 중 2,903건)</li>
+<li>인허가만으로는 부족합니다. 화면 대상인 공공 사업은 10%(304건)라서 공공 신호가 필요합니다.</li>
+<li>지연·주의·정상 판정은 예정일·실적일 날짜로 계산할 수 있습니다. (298건 모두 일치)</li>
+<li>나머지 데이터셋은 기관·모집·입주·목표를 채우는 보강용입니다.</li>
+</ul>
+
+<h3>표 1. 데이터셋별 비교 (성북구 기준, 서울·경기 수집 표본은 따로 표시)</h3>
+<div class="tw"><table><thead><tr><th>데이터셋</th><th>규모</th><th>일자</th><th>호수</th><th>사업 키</th><th>역할</th></tr></thead><tbody><tr><td><b>건축HUB 건축인허가</b></td><td>레코드 21,607 → 사업 2,751 (공공 199)</td><td>허가 99.9% · 착공 91% · 준공 92% · 준공예정 0%</td><td>100% (중앙 8호)</td><td>관리번호</td><td><b>뼈대</b> — 소규모·가로주택 포함</td></tr><tr><td><b>건축HUB 주택인허가</b></td><td>레코드 4,542 → 사업 152 (공공 60). 100호 이상 사업의 86%(119/138)</td><td>허가 99% · 착공 75% · 준공 78% · 준공예정 54%</td><td>사업 중앙 393호. 기본개요만으로는 4,542건 중 179건(4%)에만 세대수</td><td>관리번호</td><td><b>뼈대</b> — 분양 단지·사업계획승인</td></tr><tr><td>마이홈 공공임대 단지정보</td><td>성북 사업 225건과 연결</td><td>미확인</td><td>있음</td><td>필지(PNU)</td><td><b>짝</b> — 공공 여부 판정</td></tr><tr><td>SH 주택관리현황</td><td>52단지 → 사업 9</td><td>입주개시일 (연 1회, 2025-12-31 기준)</td><td>있음</td><td>단지·필지</td><td><b>짝</b> — 공공·기관, 입주 대용값</td></tr><tr><td>정비구역 고시·정보몽땅·추진현황 (서울)</td><td>계획 150 (고시 113 + 정보몽땅 37), 추진현황 24구역</td><td>고시·단계 일자, 추진현황은 착공일</td><td>정보몽땅 없음, 추진현황은 건립·임대 세대</td><td>구역 코드 (지번·이름·경계로 사업과 연결)</td><td>보강 — 계획 단계</td></tr><tr><td>청약홈 모집공고 (서울·경기 표본)</td><td>1,110건 (성북 8, 현재 분양중 20)</td><td>공고·청약·계약일, 입주예정월</td><td>있음</td><td>주소 문장만 (지번·PNU 없음)</td><td>보강 — 모집·입주</td></tr><tr><td>LH·GH 공고·입주계획 (서울·경기 표본)</td><td>LH 공고 3,050 · GH 442 · 입주계획 217 (성북 0)</td><td>공고일·입주예정월</td><td>LH 공고 전부 비어 있음, GH 절반 이상 결측</td><td>공고번호, 이름·블록</td><td>보강 — 모집·입주</td></tr><tr><td>정책 후보 사업 (서울·경기 표본)</td><td>266건 (성북 3)</td><td>희박</td><td>계획호수 있음 (44건 없음)</td><td>허가·공고와 이어 주는 키 없음, 정책 연결 전부 검토 대기</td><td>보강 — 목표</td></tr><tr><td>시도 월별 통계</td><td>640행 (시도 단위)</td><td>월별</td><td>건수</td><td>행정코드</td><td>검산용</td></tr></tbody></table></div>
+<p class="note">인허가 두 종류가 서로 다릅니다. 준공예정일은 주택인허가에만 있고(82건), 분양 단지는 주택인허가에 있습니다. 그래서 둘 다 시작점에 넣어야 합니다. 마이홈 일자와 호수는 이번 분석에서 직접 확인하지 못했습니다.</p>
+
+<h2>2. 몇 년도 자료부터 준비할 것인가</h2>
+<div class="card"><p>허가일 기준 2011년부터(약 15년) 준비한다. 주택인허가(사업계획승인)를 먼저 받는다.</p></div>
+<ul>
+<li>2011년부터 받으면 최근 분양 공고의 약 98%가 잡힙니다. (2016년부터면 95%)</li>
+<li>서울 재개발은 승인 후 분양까지 최장 약 13년이 걸려 2011년이 필요합니다. (성북 사례 12.9년)</li>
+<li>분양 단지는 건축인허가가 아니라 주택인허가에 있습니다.</li>
+<li>2011년 이전 허가 중 준공 기록이 없는 대형 사업은 따로 포함합니다.</li>
+</ul>
+
+<h3>표 2. 분양 공고와 허가를 맞춘 데이터셋별 시차와 커버율</h3>
+<div class="tw"><table><thead><tr><th>비교한 데이터셋 (공고 × 허가)</th><th class=n>건수</th><th class=n>시차 중앙</th><th class=n>시차 90%</th><th class=n>시차 최대</th><th class=n>10년(2016~) 커버</th><th class=n>15년(2011~) 커버</th></tr></thead><tbody><tr><td>청약홈 공고 × 건축HUB 주택인허가 · <b>전체</b> (경기 표본, 2025-01 이후 공고)</td><td class=n>121</td><td class=n>2.5년</td><td class=n>7.3년</td><td class=n>27.3년</td><td class=n><b>95%</b></td><td class=n><b>98%</b></td></tr><tr><td>〃 공공(공사·지구 블록)</td><td class=n>29</td><td class=n>1.8년</td><td class=n>5.1년</td><td class=n>6.1년</td><td class=n>100%</td><td class=n>100%</td></tr><tr><td>〃 민간 일반</td><td class=n>77</td><td class=n>2.5년</td><td class=n>9.2년</td><td class=n>27.3년</td><td class=n>94%</td><td class=n>97%</td></tr><tr><td>〃 정비사업(조합)</td><td class=n>15</td><td class=n>3.5년</td><td class=n>7.8년</td><td class=n>12.5년</td><td class=n>93%</td><td class=n>100%</td></tr><tr><td>성북구 사업 자료 × 청약홈 공고 (서울 재개발·재건축)</td><td class=n>6</td><td class=n>9.3년</td><td class=n>-</td><td class=n><b>12.9년</b></td><td class=n>4/6</td><td class=n>6/6</td></tr></tbody></table></div>
+<p class="note">시차는 허가일에서 분양 공고일까지이며, 같은 지번·블록의 가장 늦은 허가(변경 포함) 기준입니다. 분양 공고 251건 중 148건(후보가 하나뿐인 121건을 사용), 현재 분양중 20건 중 13건만 허가와 매칭돼 실제 필요 연수는 더 길 수 있습니다. 민간 일반의 최대 27.3년은 같은 땅의 옛 허가가 섞인 값일 수 있습니다. 표본에는 서울 공고가 없어 서울은 성북 사례 6건으로 보완했습니다.</p>
+
+<h2>3. 시작점 데이터를 전국 단위로 수집할 수 있는가</h2>
+<div class="card"><p>인허가는 전국 수집이 가능하다. 개발계정(키 1개)으로는 건축인허가가 병목이라 약 7일, 주택인허가는 약 3일이 걸린다. 전국 수집의 진짜 병목은 공공 신호 쪽이다.</p></div>
+<ul>
+<li>건축HUB는 법정동 단위로만 조회됩니다. 조회 단위가 전국 18,865개(동 3,656 + 리 15,209)라서, 오퍼레이션마다 최소 18,865호출이 듭니다. 주택인허가는 법정동의 약 80%가 0건이어도 1호출씩 듭니다.</li>
+<li>전국 건축인허가는 약 585만 건(호출 약 6.9만), 주택인허가 기본개요는 약 31만 건(호출 약 2.1만)으로 추정됩니다.</li>
+<li>허가일로 서버에서 거를 수 없어 "2011년 이후만" 받는 것은 안 되고 전량을 받아야 합니다. 필요한 항목만 저장해도 건축인허가가 약 2.5GB입니다.</li>
+<li>호출은 경기(약 1.7만), 경북(1.0만), 전남광주·서울·경남(각 약 0.8만) 순으로 많습니다. 광주·전남은 2026-07 통합으로 코드가 12로 바뀌었고, 새 코드로 조회됩니다.</li>
+</ul>
+
+<h3>표 3. 데이터셋별 전국 수집 규모와 한도</h3>
+<div class="tw"><table><thead><tr><th>데이터셋 (오퍼레이션)</th><th>전국 규모 (추정)</th><th>필요 호출</th><th>일일 한도</th><th>소요 (키 1개)</th><th>전국 수집</th></tr></thead><tbody><tr><td>건축HUB 건축인허가 기본개요</td><td>약 585만 건</td><td>약 6.9만</td><td>1만/일</td><td><b>약 7일</b></td><td>가능. 주택인허가가 있는 법정동만 받으면 약 3.4만 호출·약 4일</td></tr><tr><td>건축HUB 주택인허가 기본개요</td><td>약 31만 건</td><td>약 2.1만</td><td>1만/일</td><td>약 2~3일</td><td>가능</td></tr><tr><td>건축HUB 주택인허가 행위개요·동별개요·대지위치</td><td>약 30만·20만·86만 건 (성북 비율로 환산)</td><td>약 2.1만·2.1만·2.7만</td><td>각 1만/일</td><td>각 약 2~3일 (동시 가능)</td><td>가능 (직접 조회 안 함)</td></tr><tr><td>마이홈 모집공고</td><td>미측정</td><td>미측정</td><td>1,000건/일</td><td>미확인</td><td>부분 — 한도가 낮음</td></tr><tr><td>마이홈 공공임대 단지정보</td><td>-</td><td>-</td><td>미신청 (운영계정은 심의 승인)</td><td>-</td><td>신청 전에는 불가</td></tr><tr><td>SH 주택관리현황·정보몽땅·추진현황</td><td>서울 한정</td><td>-</td><td>파일·크롤링</td><td>-</td><td>서울만</td></tr><tr><td>청약홈 분양정보</td><td>-</td><td>-</td><td>수집 미착수 (한도 미확인)</td><td>-</td><td>미확인</td></tr></tbody></table></div>
+<p class="note">레코드는 법정동 683곳(전체의 3.6%)을 시도·동/리 층으로 나눠 조회해 추정했고, 오차는 건축 레코드 ±12%, 주택 레코드 ±26%, 호출 ±10%(건축)·±4%(주택)입니다. 서울 주택인허가를 같은 방식으로 추정하면 12.9만 건인데 서울·경기 수집 표본에 실제로 받은 서울 건수는 13.0만 건으로 차이가 1%입니다. 이후 월 갱신도 법정동당 1호출 이상이라 한 번 순회에 건축·주택 각각 약 1.9일분(키 1개)이 듭니다. 한도는 신청 정리 문서의 개발계정 값이고 운영계정 한도는 확인하지 못했습니다.</p>
+
+<div class="log"><b>변경 이력</b><ul>
+<li>2026-10-08 — 1장 시작점 추가</li>
+<li>2026-10-08 — 2장 준비 연도 추가, 문서를 결론 중심으로 간소화</li>
+<li>2026-10-08 — 표를 장마다 1개로 줄이고, 데이터셋별 비교 표로 정리</li>
+<li>2026-10-08 — 3장 전국 수집 가능성·한도 추가</li></ul></div>
+</main></body></html>

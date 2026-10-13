@@ -1,0 +1,52 @@
+{
+ "type": "Notices",
+ "sgg": "44200",
+ "name": "충청남도 아산시",
+ "asOf": "2026-10-06",
+ "items": [
+  {
+   "id": "lh-2015122300020726",
+   "kind": "rental",
+   "title": "아산지역 국민임대주택 예비입주자 모집공고(2026.09.15)",
+   "agency": "한국토지주택공사",
+   "status": "접수중",
+   "housingType": "국민임대",
+   "supplyType": "임대주택",
+   "complex": "아산탕정2-A7BL 국민임대, 아산탕정 2-A15BL 국민임대 외 2",
+   "units": 1530,
+   "address": null,
+   "pnu": null,
+   "announcedAt": "2026-09-15",
+   "applyFrom": null,
+   "applyTo": "2026-10-14",
+   "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020726&ccrCnntSysDsCd=03&uppAisTpCd=06&aisTpCd=07&mi=1026",
+   "source": "lh"
+  },
+  {
+   "id": "rental-21342",
+   "kind": "rental",
+   "title": "[대전충남] 2026년 9월 신혼·신생아 I 매입임대주택 예비입주자 모집 공고",
+   "agency": "LH",
+   "status": "일반공고",
+   "housingType": "다가구주택",
+   "supplyType": "매입임대",
+   "complex": null,
+   "units": 40,
+   "address": null,
+   "pnu": null,
+   "announcedAt": "2026-09-29",
+   "applyFrom": "2026-10-12",
+   "applyTo": "2026-10-14",
+   "url": "https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcDetailView.do?pblancId=21342",
+   "source": "myhome"
+  }
+ ],
+ "meta": {
+  "source": "마이홈포털 공공주택 모집공고(HWSPR02) + 한국토지주택공사 분양임대공고문(15058530)·공급정보(15056765)",
+  "rental": 244,
+  "sale": 80,
+  "lh": 158,
+  "matched": 7,
+  "lhMatched": 1
+ }
+}

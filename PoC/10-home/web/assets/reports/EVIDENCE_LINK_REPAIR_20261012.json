@@ -1,0 +1,5301 @@
+{
+  "as_of_date": "2026-10-12",
+  "project_records": 292,
+  "proposed_links": 131,
+  "affected_projects": 98,
+  "added_links": 131,
+  "preserved_links": 0,
+  "proposed_stage_facts": {
+    "CONSTRUCTION": 147,
+    "SUPPLY": 25,
+    "MOVE_IN": 4,
+    "APPROVAL": 2,
+    "BUSINESS": 2
+  },
+  "proposals": [
+    {
+      "project_id": "PRO_70c16f89c02d428a47cc1de7",
+      "name": "고양장항 S-2BL 아파트 건설공사 6공구",
+      "region": "경기도",
+      "source_entity_id": "LH__3e2152ee902a95587151a592",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양장항 S-2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 945,
+      "match_key": [
+        "경기도",
+        "고양장항",
+        "S2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f25c0c21ce607faf686e73a5",
+      "name": "고양창릉 S-1BL 민간참여 공공주택 건설공사",
+      "region": "경기도",
+      "source_entity_id": "PRO_e72836551bdd58eec3660b80",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "고양창릉 S-01",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 494,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-04",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f25c0c21ce607faf686e73a5",
+      "name": "고양창릉 S-1BL 민간참여 공공주택 건설공사",
+      "region": "경기도",
+      "source_entity_id": "LH__61cd5792d76cf8e7bf9a880b",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-01",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 494,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_bc01f01ac015b15530c7e35b",
+      "name": "고양창릉 S-2BL 아파트 건설공사 4공구 (",
+      "region": "경기도",
+      "source_entity_id": "PRO_29bf4cef6fb4606948bb3b48",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "고양창릉 S-02",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 1057,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S2"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_bc01f01ac015b15530c7e35b",
+      "name": "고양창릉 S-2BL 아파트 건설공사 4공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__02606e66741be52b7171b14c",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-02",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1057,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f345f2ad0c4ce9f333d7e80d",
+      "name": "남양주왕숙 A-25BL 아파트 건설공사",
+      "region": "경기도",
+      "source_entity_id": "LH__b42e7e6608cce9f7c3223cf8",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 A-25",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1298,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "A25"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-10-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_266bd2e5c910accd84506663",
+      "name": "부천종합운동장 역세권 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__8604c86f492264dc3233ee09",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천종합운동장 역세권 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 293,
+      "match_key": [
+        "경기도",
+        "부천종합운동장역세권",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_981ca316073354b11ac87f21",
+      "name": "부천대장 A8",
+      "region": "경기도",
+      "source_entity_id": "LH__263e02c38ac8c27f8419b5e6",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천대장 A8",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 392,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A8"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-10-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_984164fef8c491cac3388381",
+      "name": "부천대장 A7",
+      "region": "경기도",
+      "source_entity_id": "LH__3c30d906dfeacbc904410da2",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천대장 A7",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 473,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A7"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-10-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_446826cdc93ccf8d880cb0f1",
+      "name": "남양주왕숙2 A01",
+      "region": "경기도",
+      "source_entity_id": "PRO_8f376db71f557323a80c0fd9",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 812,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 4.82
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-10-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1f460bcd27c1e4573d9337b6",
+      "name": "남양주왕숙2 A03",
+      "region": "경기도",
+      "source_entity_id": "PRO_4d0196c4344cf524a88ae0cc",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 686,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-09",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1f460bcd27c1e4573d9337b6",
+      "name": "남양주왕숙2 A03",
+      "region": "경기도",
+      "source_entity_id": "LH__ec40b182c2007524b867a36f",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙2 A03",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 686,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-04-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_9f9031c8f3a9ef0626b95757",
+      "name": "안산신길2 B1",
+      "region": "경기도",
+      "source_entity_id": "LH__8eeccb4d45ce011e681e6558",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "안산신길2 B-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 387,
+      "match_key": [
+        "경기도",
+        "안산신길2",
+        "B1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 B1 / B-1",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_3467a150907b93a0999e5c40",
+      "name": "군포대야미 A1",
+      "region": "경기도",
+      "source_entity_id": "PRO_a7012ddbc7d3e06fb0580569",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "군포대야미 A-1BL 아파트 건설공사 2공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 378,
+      "match_key": [
+        "경기도",
+        "군포대야미",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.02
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-15",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A1 / A-1",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_3467a150907b93a0999e5c40",
+      "name": "군포대야미 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__7aca1c80670ac6c92286cd69",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "군포대야미 A-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 378,
+      "match_key": [
+        "경기도",
+        "군포대야미",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-09-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A1 / A-1",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "name": "남양주진접2 A7",
+      "region": "경기도",
+      "source_entity_id": "LH__bac23f48750be8ea2e16a129",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주진접2 A-7",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 305,
+      "match_key": [
+        "경기도",
+        "남양주진접2",
+        "A7"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A7 / A-7",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_693fd7d6c158c2da26abe2c0",
+      "name": "오산세교2 A11",
+      "region": "경기도",
+      "source_entity_id": "PRO_7844728e32bd7d032106a1dc",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)오산세교2 A-11BL 아파트 건설공사 5공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 399,
+      "match_key": [
+        "경기도",
+        "오산세교2",
+        "A11"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2024-12-20",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 32.2
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-14",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A11 / A-11",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_693fd7d6c158c2da26abe2c0",
+      "name": "오산세교2 A11",
+      "region": "경기도",
+      "source_entity_id": "LH__69dc9c32eea1d1610dd87db0",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "오산세교2(06택3) A-11",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 399,
+      "match_key": [
+        "경기도",
+        "오산세교2",
+        "A11"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A11 / A-11",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_2dfb63f2826a3d14481c2fb4",
+      "name": "구리갈매역세권 A-3",
+      "region": "경기도",
+      "source_entity_id": "LH__cf3737d100acda554446ea63",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "구리갈매역세권 A-3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 287,
+      "match_key": [
+        "경기도",
+        "구리갈매역세권",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_bceb35af2280eaa50c810c09",
+      "name": "과천주암(뉴스테이) C2",
+      "region": "경기도",
+      "source_entity_id": "LH__18cd764ae82fa316b34a127d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "과천주암(뉴스테이) C2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 344,
+      "match_key": [
+        "경기도",
+        "과천주암",
+        "C2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_b0f7e7ded4e31142e5b39d02",
+      "name": "구리갈매역세권 A-1",
+      "region": "경기도",
+      "source_entity_id": "LH__b6d2bb08c97bddfd17402e8b",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "구리갈매역세권 A-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 609,
+      "match_key": [
+        "경기도",
+        "구리갈매역세권",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-10-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_2a87e83e13bdc703528e3afe",
+      "name": "부천괴안 A-1BL 아파트 건설공사 2공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__fe22157ffe61f0bfcd56eb51",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천괴안(공공주택) A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 499,
+      "match_key": [
+        "경기도",
+        "부천괴안",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e2aefb3da54e732fd248384d",
+      "name": "부천대장 A-2BL 통합형 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_69217405e9523695488434c1",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "부천대장 A2",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 548,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-09",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_96fbdceca532731914a07380",
+      "name": "평택고덕 A-63BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_def4c369f9c976b8a84511a4",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "평택고덕 A63",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 630,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A63"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-04",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_96fbdceca532731914a07380",
+      "name": "평택고덕 A-63BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__84f51792a8f8e31c2a1d12ea",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 A63",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 630,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A63"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_573605b60cae1ca0690fe41b",
+      "name": "평택고덕 A-64BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__e61b9882d27208925fb67124",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 A64",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 536,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A64"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_6ba966490828eff7628082f7",
+      "name": "평택고덕 A-65BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_e0405cae5623f83a2647ac0c",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "평택고덕 A65",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 837,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A65"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-08",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_6ba966490828eff7628082f7",
+      "name": "평택고덕 A-65BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__c05c237ed9a187d9da1eb2a0",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 A65",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 837,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A65"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_94becbf0cbd773bbf5ab565c",
+      "name": "평택고덕 A-34BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_62fe58b54a39d604d6cf3e87",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "평택고덕 A34",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 679,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A34"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-05",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Aa34 / A34",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_833127d228d37d6e4e73898d",
+      "name": "평택고덕 Aa-38BL 아파트 건설공사 15공구",
+      "region": "경기도",
+      "source_entity_id": "LH__e9cb8f124e954fadc27aaa2d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 Aa38",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 966,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "AA38"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f579d71a70d2f60499abdb0b",
+      "name": "평택고덕 A-31BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_89b769c87e8d8ee8f6a837bf",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "평택고덕 A31",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-05",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Ab31 / A31",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f579d71a70d2f60499abdb0b",
+      "name": "평택고덕 A-31BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "DOC_4ba74e1a3e32648bf3f3218b",
+      "source_revision_no": 1,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · 기관추천 특별공급 안내",
+      "evidence_url": "https://www.anyang.go.kr/manan/selectBbsNttView.do?bbsNo=157&key=3315&nttNo=446074",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06-25",
+          "milestone": "SUPPLY",
+          "basis": "지자체 특별공급 안내의 모집공고 예정일 · 실제 공고 확인 아님"
+        },
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2029-07",
+          "milestone": "MOVE_IN",
+          "basis": "지자체 특별공급 안내의 입주 예정월 · 실제 입주 아님"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Ab31 / A31",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f579d71a70d2f60499abdb0b",
+      "name": "평택고덕 A-31BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "DOC_937f1f9bb5ca654efb977da6",
+      "source_revision_no": 1,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · 사업계획 변경승인 첨부문서",
+      "evidence_url": "https://www.molit.go.kr/LCMS/DWN.jsp?fold=/N01_B/&fileName=%EB%B3%80%EA%B2%BD%EC%8A%B9%EC%9D%B8_%EA%B3%A0%EC%8B%9C%EB%AC%B8%28%ED%8F%89%ED%83%9D%EA%B3%A0%EB%8D%95_A-31BL%29.pdf",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "APPROVAL",
+          "kind": "DOCUMENT",
+          "date": null,
+          "date_label": "고시번호·승인일 미확정",
+          "basis": "국토부 사업계획 변경승인 첨부문서 확보 · 제2025-000호/일자 공란 · 최종 고시 검증 필요"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Ab31 / A31",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f579d71a70d2f60499abdb0b",
+      "name": "평택고덕 A-31BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "DOC_47f6e8a0112fe95098b9422a",
+      "source_revision_no": 2,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · LH 우선협상대상자 공고",
+      "evidence_url": "https://www.lh.or.kr/board.es?mid=a10601020000&bid=0034&list_no=720881&act=view",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "BUSINESS",
+          "kind": "STATE",
+          "date": "2024-09-05",
+          "basis": "LH 민간참여사업 우선협상대상자 공고 · 최초 사업화일 아님"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Ab31 / A31",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_5ff66dc50d3ad524d26511b6",
+      "name": "평택고덕 A-35BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_1eb195e8ab43ebb1a9bee921",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "평택고덕 A35",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 753,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A35"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-05",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 Ab35 / A35",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_310ee8dc2c45b6ac03a9bc8f",
+      "name": "조달청)평택고덕 Ab-37BL 아파트 건설공사 16공구",
+      "region": "경기도",
+      "source_entity_id": "LH__0efb643d7152593ebd09b45b",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 Ab37",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 603,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "AB37"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_254e6d4ae135e6e081f67607",
+      "name": "과천지식정보타운 S-12BL 민간참여 공공주택건설사업(건축)",
+      "region": "경기도",
+      "source_entity_id": "PRO_6a66b31b8f84244d491514e6",
+      "source_revision_no": 3,
+      "source_id": "lh_rent",
+      "source_name": "과천지식정보타운 S-12",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "units": 1424,
+      "match_key": [
+        "경기도",
+        "과천지식정보타운",
+        "S12"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-10",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        },
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-11",
+          "basis": "원천 임대 입주 시작 예정월",
+          "milestone": "MOVE_IN"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_254e6d4ae135e6e081f67607",
+      "name": "과천지식정보타운 S-12BL 민간참여 공공주택건설사업(건축)",
+      "region": "경기도",
+      "source_entity_id": "LH__030bb34eaca2fea7f9a35187",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "과천지식정보타운 S-12",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1424,
+      "match_key": [
+        "경기도",
+        "과천지식정보타운",
+        "S12"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-08-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_672dfd527cf2fe8d9d71cf5c",
+      "name": "민간참여) 화성동탄2 C-14 민간참여 공공주택 건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__704a5f4bf0428031957722de",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "화성동탄2 C-14",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 610,
+      "match_key": [
+        "경기도",
+        "화성동탄2",
+        "C14"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A1 / C-14",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_a1474954caef110fbe9dbedf",
+      "name": "조달청)화성동탄2 C-27BL 아파트 건설공사 30공구 (",
+      "region": "경기도",
+      "source_entity_id": "PRO_112f13b479d372ba51663856",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "화성동탄2 C-27",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 563,
+      "match_key": [
+        "경기도",
+        "화성동탄2",
+        "C27"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-05",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        },
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-07",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_a1474954caef110fbe9dbedf",
+      "name": "조달청)화성동탄2 C-27BL 아파트 건설공사 30공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__0a5c8ee8031ac03bb85b2d3d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "화성동탄2 C-27",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 563,
+      "match_key": [
+        "경기도",
+        "화성동탄2",
+        "C27"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7844728e32bd7d032106a1dc",
+      "name": "조달청)오산세교2 A-11BL 아파트 건설공사 5공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_693fd7d6c158c2da26abe2c0",
+      "source_revision_no": 3,
+      "source_id": "lh_rent",
+      "source_name": "오산세교2 A11",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "units": 399,
+      "match_key": [
+        "경기도",
+        "오산세교2",
+        "A11"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-08",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A-11 / A11",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7844728e32bd7d032106a1dc",
+      "name": "조달청)오산세교2 A-11BL 아파트 건설공사 5공구",
+      "region": "경기도",
+      "source_entity_id": "LH__69dc9c32eea1d1610dd87db0",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "오산세교2(06택3) A-11",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 399,
+      "match_key": [
+        "경기도",
+        "오산세교2",
+        "A11"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4a6fe65e22783ed2e16c1cc5",
+      "name": "오산세교2 A-12BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__3832159aa63f62a322c36248",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "오산세교2(06택3) A-12",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 433,
+      "match_key": [
+        "경기도",
+        "오산세교2",
+        "A12"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A12 / A-12",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_afa121ebed699e8aab86cd60",
+      "name": "이천장호원 B2BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "LH__38a64177710c76e699a9f17f",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "이천장호원(08주3) B2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 620,
+      "match_key": [
+        "경기도",
+        "이천장호원",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2026-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_0d475dbdf35690c529f845be",
+      "name": "의왕초평 A4BL 민간참여 공공주택 건설사업",
+      "region": "경기도",
+      "source_entity_id": "PRO_840dde9c0a83c846e6d18690",
+      "source_revision_no": 3,
+      "source_id": "lh_rent",
+      "source_name": "의왕초평(뉴스테이) A4",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "units": 381,
+      "match_key": [
+        "경기도",
+        "의왕초평",
+        "A4"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-12",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        },
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-06",
+          "basis": "원천 임대 입주 시작 예정월",
+          "milestone": "MOVE_IN"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 04 / A4",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_0d475dbdf35690c529f845be",
+      "name": "의왕초평 A4BL 민간참여 공공주택 건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__d104d67e76f618b82e7f8414",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의왕초평(뉴스테이) A-4",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 381,
+      "match_key": [
+        "경기도",
+        "의왕초평",
+        "A4"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 04 / A-4",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_613ae41b8f0bd647833d71d1",
+      "name": "조달청)수원당수 B-2BL 아파트 건설공사 6공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_e24ec7ed0705de50dfcfb55e",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "수원당수 B2",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 347,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-08",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_613ae41b8f0bd647833d71d1",
+      "name": "조달청)수원당수 B-2BL 아파트 건설공사 6공구",
+      "region": "경기도",
+      "source_entity_id": "LH__7a34ccf6d32e9dc7c58fbc55",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "수원당수 B2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 347,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7ad0bdb14a2577612c11a3c6",
+      "name": "조달청)수원당수 B-3BL 아파트 건설공사 7공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_57af98abdfc6232a25ccc8d0",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "수원당수 B3",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 394,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B3"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-12",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7ad0bdb14a2577612c11a3c6",
+      "name": "조달청)수원당수 B-3BL 아파트 건설공사 7공구",
+      "region": "경기도",
+      "source_entity_id": "LH__396219ad71885bdaa2dc774c",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "수원당수 B3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 394,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_a7012ddbc7d3e06fb0580569",
+      "name": "군포대야미 A-1BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_3467a150907b93a0999e5c40",
+      "source_revision_no": 3,
+      "source_id": "lh_rent",
+      "source_name": "군포대야미 A1",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "units": 378,
+      "match_key": [
+        "경기도",
+        "군포대야미",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A-1 / A1",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_a7012ddbc7d3e06fb0580569",
+      "name": "군포대야미 A-1BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__7aca1c80670ac6c92286cd69",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "군포대야미 A-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 378,
+      "match_key": [
+        "경기도",
+        "군포대야미",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-09-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_3e4fe820f1cb21379bbbe611",
+      "name": "민간참여) 성남신촌 A-1BL 민간참여 공공주택 건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__b92e637ee90abc62cba2cfda",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "성남신촌 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 227,
+      "match_key": [
+        "경기도",
+        "성남신촌",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2026-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7af1f4c60e23bd2da29910fc",
+      "name": "조달청)시흥하중 A-2BL 아파트 건설공사 3공구",
+      "region": "경기도",
+      "source_entity_id": "LH__8bff1eef2fd7592b659084a3",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "시흥하중 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 412,
+      "match_key": [
+        "경기도",
+        "시흥하중",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_de06501cdfc05a4baead9d6c",
+      "name": "평택고덕 A-56BL 민간참여 공공주택건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__67843d16becf945fcd46e509",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕 A-56BL 민간참여 공공주택 건설사업 A-56BL",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1499,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A56"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_8c391ca1a19b12b73f9bd9bd",
+      "name": "파주운정3 A20BL 아파트 건설공사 13공구",
+      "region": "경기도",
+      "source_entity_id": "LH__ede79b95525a99b4d1227e54",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "파주운정3(07택1) A20",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 612,
+      "match_key": [
+        "경기도",
+        "파주운정3",
+        "A20"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_58dd448826d821eaa4ef979c",
+      "name": "조달청)양주회천 A-26BL공동주택 건설공사",
+      "region": "경기도",
+      "source_entity_id": "LH__854d59af4b5380e076ec6f64",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "양주회천(택) A26",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 792,
+      "match_key": [
+        "경기도",
+        "양주회천",
+        "A26"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_46a39b2e958153bd4b912fb3",
+      "name": "조달청)양주옥정 A-22BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "LH__3da493c072fad0475b5993e9",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "양주옥정(08기)A-22 A-22",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1126,
+      "match_key": [
+        "경기도",
+        "양주옥정",
+        "A22"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4e0a46c41cc48a371a6fc916",
+      "name": "고양장항 S-1BL 아파트 건설공사 5공구",
+      "region": "경기도",
+      "source_entity_id": "LH__b0747b3e5b5ee6365119695d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양장항 S-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 869,
+      "match_key": [
+        "경기도",
+        "고양장항",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_120626d9ffa1c95cd3e9a326",
+      "name": "조달청)남양주진접2 A-1BL 아파트 건설공사 5공구",
+      "region": "경기도",
+      "source_entity_id": "LH__3cce43249f4f4dd714fe9527",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주진접2 A-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 920,
+      "match_key": [
+        "경기도",
+        "남양주진접2",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-02-29",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1f4c8795c658a64e348d64d0",
+      "name": "조달청)남양주진접2 B-1BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__7fe87a679fd3af3210a06d81",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주진접2 B-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 260,
+      "match_key": [
+        "경기도",
+        "남양주진접2",
+        "B1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-08-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_3703d67f2bab49410930e182",
+      "name": "조달청)구리갈매역세권 A-2BL 아파트 건설공사 3공구",
+      "region": "경기도",
+      "source_entity_id": "LH__7243c6dcd171a43d43919446",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "구리갈매역세권 A-2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 362,
+      "match_key": [
+        "경기도",
+        "구리갈매역세권",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-01-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_9bd9311231d4f52cf4fd0d2a",
+      "name": "조달청)의정부우정 A-1BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "LH__f20125b277962a3fc9e445d1",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부우정 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 538,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1c43b0f814e69ac298b474bd",
+      "name": "조달청)의정부우정 A-2BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_5df894e901b0cf27c15875bc",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "의정부우정 A2",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 463,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-08",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1c43b0f814e69ac298b474bd",
+      "name": "조달청)의정부우정 A-2BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__83dc4d1a863b43ba7785d9f8",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부우정 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 463,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_9bb2aea471cca4dfe1473b62",
+      "name": "조달청)의정부우정 A-3BL 아파트 건설공사 3공구",
+      "region": "경기도",
+      "source_entity_id": "LH__063669e8933f3c1785758aac",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부우정 A3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 640,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_80a5c2cd5cc076e96d8dd72c",
+      "name": "고양창릉 S-3BL 아파트 건설공사 5공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_4d29636ffa571ff2fdf7c72e",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "고양창릉 S-03",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 1282,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S3"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_cc5d09785c131c57c2e7e642",
+      "name": "고양창릉 S-4BL 아파트 건설공사 6공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_0a79310e612f5bc1215fcad3",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "고양창릉 S-04",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 1024,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S4"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+      "name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__7c6d377912b4d94347e82069",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-05",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 759,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S5"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_148663cc20e9552d2c42c304",
+      "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+      "region": "경기도",
+      "source_entity_id": "LH__cae8ffbdd879547bb684b020",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-06",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 430,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S6"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1988cb01f60debc386947bee",
+      "name": "남양주왕숙 A-1BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "LH__c1d6dfea9609cacb0b9d26b2",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 A-01",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 629,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1b0f09c1abb6e68c92fac227",
+      "name": "남양주왕숙 A-3BL 아파트 건설공사 7공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__21a0dfbeef3ba22876158142",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 A-03",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 428,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-01-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_ed25b25037ed0881f19d9a12",
+      "name": "조달청)남양주왕숙 A-6BL 아파트 건설공사 8공구",
+      "region": "경기도",
+      "source_entity_id": "LH__67cb6ae860f01e3d7c9811e9",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 A-06",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 954,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "A6"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-05",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_d9a942fb86e1bca36d15a8ed",
+      "name": "남양주왕숙 B-1BL 아파트 건설공사 6공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__ec2ba4733812550425b7903e",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 B-01",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 560,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "B1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_51b6a96ba3923d28008f12f0",
+      "name": "남양주왕숙 B-2BL 아파트 건설공사 5공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__6ae788a198710fa20be52043",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 B-02",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 587,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_b6318a6756a3b039af39fdc7",
+      "name": "조달청)남양주왕숙 B-17BL 아파트 건설공사 3공구 (",
+      "region": "경기도",
+      "source_entity_id": "LH__87511c64f9c77b1e185449a1",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙 B-17",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 491,
+      "match_key": [
+        "경기도",
+        "남양주왕숙",
+        "B17"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-10-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f4df90618b2cfb95837b4d92",
+      "name": "하남교산 A-2BL 공공주택 건설사업",
+      "region": "경기도",
+      "source_entity_id": "LH__e33dbc942675f8630e5bba91",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "하남교산 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1115,
+      "match_key": [
+        "경기도",
+        "하남교산",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-10-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A-2 / A2",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_8f376db71f557323a80c0fd9",
+      "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "region": "경기도",
+      "source_entity_id": "PRO_446826cdc93ccf8d880cb0f1",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "남양주왕숙2 A01",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 812,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-04",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4d0196c4344cf524a88ae0cc",
+      "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "PRO_1f460bcd27c1e4573d9337b6",
+      "source_revision_no": 3,
+      "source_id": "lh_sale",
+      "source_name": "남양주왕숙2 A03",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 686,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-04",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4d0196c4344cf524a88ae0cc",
+      "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "region": "경기도",
+      "source_entity_id": "LH__ec40b182c2007524b867a36f",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "남양주왕숙2 A03",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 686,
+      "match_key": [
+        "경기도",
+        "남양주왕숙2",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-04-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_78e980421f549ed99961abc8",
+      "name": "조달청)의정부법조타운 S3BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__0bef31fc5ef32e6440eb3cd3",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부법조타운 S3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 544,
+      "match_key": [
+        "경기도",
+        "의정부법조타운",
+        "S3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_78e980421f549ed99961abc8",
+      "name": "조달청)의정부법조타운 S3BL 아파트 건설공사 2공구",
+      "region": "경기도",
+      "source_entity_id": "LH__3e3e94ee6c02bc574b8069bf",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부법조타운 S-3BL S3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 544,
+      "match_key": [
+        "경기도",
+        "의정부법조타운",
+        "S3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_9ac25f1509bc7f37adddafd1",
+      "name": "인천가정2 B2",
+      "region": "인천광역시",
+      "source_entity_id": "PRO_f6fe760da2c698c308f46373",
+      "source_revision_no": 1,
+      "source_id": "lh_incheon_construction",
+      "source_name": "인천가정2 B-2BL 아파트 건설공사 4공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 308,
+      "match_key": [
+        "인천광역시",
+        "인천가정2",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 16.82
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-01-28",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4f1c664272dc56715a82cb02",
+      "name": "인천영종 A62",
+      "region": "인천광역시",
+      "source_entity_id": "PRO_315b38f36059a51d91060291",
+      "source_revision_no": 1,
+      "source_id": "lh_incheon_construction",
+      "source_name": "조달청)인천영종 A62BL 아파트 건설공사 11공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 792,
+      "match_key": [
+        "인천광역시",
+        "인천영종",
+        "A62"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.36
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-13",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_315b38f36059a51d91060291",
+      "name": "조달청)인천영종 A62BL 아파트 건설공사 11공구",
+      "region": "인천광역시",
+      "source_entity_id": "PRO_4f1c664272dc56715a82cb02",
+      "source_revision_no": 1,
+      "source_id": "lh_incheon_sale",
+      "source_name": "인천영종 A62",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 792,
+      "match_key": [
+        "인천광역시",
+        "인천영종",
+        "A62"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-10",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_f6fe760da2c698c308f46373",
+      "name": "인천가정2 B-2BL 아파트 건설공사 4공구",
+      "region": "인천광역시",
+      "source_entity_id": "PRO_9ac25f1509bc7f37adddafd1",
+      "source_revision_no": 1,
+      "source_id": "lh_incheon_sale",
+      "source_name": "인천가정2 B2",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "units": 308,
+      "match_key": [
+        "인천광역시",
+        "인천가정2",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-04",
+          "basis": "원천 면적별 공급계획",
+          "milestone": "SUPPLY"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e72836551bdd58eec3660b80",
+      "name": "고양창릉 S-01",
+      "region": "경기도",
+      "source_entity_id": "PRO_f25c0c21ce607faf686e73a5",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "고양창릉 S-1BL 민간참여 공공주택 건설공사",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 494,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 1.84
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-04-08",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e72836551bdd58eec3660b80",
+      "name": "고양창릉 S-01",
+      "region": "경기도",
+      "source_entity_id": "LH__61cd5792d76cf8e7bf9a880b",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-01",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 494,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_def4c369f9c976b8a84511a4",
+      "name": "평택고덕 A63",
+      "region": "경기도",
+      "source_entity_id": "PRO_96fbdceca532731914a07380",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "평택고덕 A-63BL 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 630,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A63"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-09-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 4.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-02-28",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_def4c369f9c976b8a84511a4",
+      "name": "평택고덕 A63",
+      "region": "경기도",
+      "source_entity_id": "LH__84f51792a8f8e31c2a1d12ea",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 A63",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 630,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A63"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_b3d348e364dc16b744cc949d",
+      "name": "시흥하중 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__728f564591e1b4ee1f54025d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "시흥하중 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 400,
+      "match_key": [
+        "경기도",
+        "시흥하중",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-01",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_112f13b479d372ba51663856",
+      "name": "화성동탄2 C-27",
+      "region": "경기도",
+      "source_entity_id": "PRO_a1474954caef110fbe9dbedf",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)화성동탄2 C-27BL 아파트 건설공사 30공구 (",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 563,
+      "match_key": [
+        "경기도",
+        "화성동탄2",
+        "C27"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-27",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 15.5
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-07-19",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_112f13b479d372ba51663856",
+      "name": "화성동탄2 C-27",
+      "region": "경기도",
+      "source_entity_id": "LH__0a5c8ee8031ac03bb85b2d3d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "화성동탄2 C-27",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 563,
+      "match_key": [
+        "경기도",
+        "화성동탄2",
+        "C27"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_0a79310e612f5bc1215fcad3",
+      "name": "고양창릉 S-04",
+      "region": "경기도",
+      "source_entity_id": "PRO_cc5d09785c131c57c2e7e642",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "고양창릉 S-4BL 아파트 건설공사 6공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 1024,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S4"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-03-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-11-13",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_89b769c87e8d8ee8f6a837bf",
+      "name": "평택고덕 A31",
+      "region": "경기도",
+      "source_entity_id": "PRO_f579d71a70d2f60499abdb0b",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "평택고덕 A-31BL 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A31 / Ab31",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_89b769c87e8d8ee8f6a837bf",
+      "name": "평택고덕 A31",
+      "region": "경기도",
+      "source_entity_id": "DOC_4ba74e1a3e32648bf3f3218b",
+      "source_revision_no": 1,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · 기관추천 특별공급 안내",
+      "evidence_url": "https://www.anyang.go.kr/manan/selectBbsNttView.do?bbsNo=157&key=3315&nttNo=446074",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "SUPPLY",
+          "kind": "PLAN",
+          "date": "2026-06-25",
+          "milestone": "SUPPLY",
+          "basis": "지자체 특별공급 안내의 모집공고 예정일 · 실제 공고 확인 아님"
+        },
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2029-07",
+          "milestone": "MOVE_IN",
+          "basis": "지자체 특별공급 안내의 입주 예정월 · 실제 입주 아님"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_89b769c87e8d8ee8f6a837bf",
+      "name": "평택고덕 A31",
+      "region": "경기도",
+      "source_entity_id": "DOC_937f1f9bb5ca654efb977da6",
+      "source_revision_no": 1,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · 사업계획 변경승인 첨부문서",
+      "evidence_url": "https://www.molit.go.kr/LCMS/DWN.jsp?fold=/N01_B/&fileName=%EB%B3%80%EA%B2%BD%EC%8A%B9%EC%9D%B8_%EA%B3%A0%EC%8B%9C%EB%AC%B8%28%ED%8F%89%ED%83%9D%EA%B3%A0%EB%8D%95_A-31BL%29.pdf",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "APPROVAL",
+          "kind": "DOCUMENT",
+          "date": null,
+          "date_label": "고시번호·승인일 미확정",
+          "basis": "국토부 사업계획 변경승인 첨부문서 확보 · 제2025-000호/일자 공란 · 최종 고시 검증 필요"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_89b769c87e8d8ee8f6a837bf",
+      "name": "평택고덕 A31",
+      "region": "경기도",
+      "source_entity_id": "DOC_47f6e8a0112fe95098b9422a",
+      "source_revision_no": 2,
+      "source_id": "official_document",
+      "source_name": "평택고덕 A31 · LH 우선협상대상자 공고",
+      "evidence_url": "https://www.lh.or.kr/board.es?mid=a10601020000&bid=0034&list_no=720881&act=view",
+      "units": 690,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A31"
+      ],
+      "facts": [
+        {
+          "stage": "BUSINESS",
+          "kind": "STATE",
+          "date": "2024-09-05",
+          "basis": "LH 민간참여사업 우선협상대상자 공고 · 최초 사업화일 아님"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_62fe58b54a39d604d6cf3e87",
+      "name": "평택고덕 A34",
+      "region": "경기도",
+      "source_entity_id": "PRO_94becbf0cbd773bbf5ab565c",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "평택고덕 A-34BL 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 679,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A34"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A34 / Aa34",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1eb195e8ab43ebb1a9bee921",
+      "name": "평택고덕 A35",
+      "region": "경기도",
+      "source_entity_id": "PRO_5ff66dc50d3ad524d26511b6",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "평택고덕 A-35BL 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 753,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A35"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A35 / Ab35",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_77a162724b5fb3200f074687",
+      "name": "성남낙생 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__dc398e13ccd890053cdc2fba",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "성남낙생 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 933,
+      "match_key": [
+        "경기도",
+        "성남낙생",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-01-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+      "name": "고양창릉 S-02",
+      "region": "경기도",
+      "source_entity_id": "PRO_bc01f01ac015b15530c7e35b",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "고양창릉 S-2BL 아파트 건설공사 4공구 (",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 1057,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-09-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 1.31
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-06-07",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+      "name": "고양창릉 S-02",
+      "region": "경기도",
+      "source_entity_id": "LH__02606e66741be52b7171b14c",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "고양창릉 S-02",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1057,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-05-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4d29636ffa571ff2fdf7c72e",
+      "name": "고양창릉 S-03",
+      "region": "경기도",
+      "source_entity_id": "PRO_80a5c2cd5cc076e96d8dd72c",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "고양창릉 S-3BL 아파트 건설공사 5공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 1282,
+      "match_key": [
+        "경기도",
+        "고양창릉",
+        "S3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-04-15",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-10-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_8aa9dcf9ed7eaafe3bef3196",
+      "name": "부천역곡 A2",
+      "region": "경기도",
+      "source_entity_id": "LH__112e5dd9d3321cb75b25d23f",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천역곡 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 976,
+      "match_key": [
+        "경기도",
+        "부천역곡",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1372e9a98923707ece293d63",
+      "name": "성남복정2 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__17f1b31bade9c6289fc7f0ea",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "성남복정2 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 594,
+      "match_key": [
+        "경기도",
+        "성남복정2",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2030-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+      "name": "시흥거모 S1",
+      "region": "경기도",
+      "source_entity_id": "LH__171dc6e8ece59abaa9870717",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "시흥거모(공공주택) S-1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 300,
+      "match_key": [
+        "경기도",
+        "시흥거모",
+        "S1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 S1 / S-1",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_56c23b88a629f40dd3071afc",
+      "name": "시흥거모 A5",
+      "region": "경기도",
+      "source_entity_id": "LH__f894caf701a82cb0dd84ee0e",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "시흥거모(공공주택) A5",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 290,
+      "match_key": [
+        "경기도",
+        "시흥거모",
+        "A5"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_1993865f89886304beac4322",
+      "name": "평택고덕 Abc12",
+      "region": "경기도",
+      "source_entity_id": "LH__d92b383afb2a3c9ab520f84b",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 Abc12",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 942,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "ABC12"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e0405cae5623f83a2647ac0c",
+      "name": "평택고덕 A65",
+      "region": "경기도",
+      "source_entity_id": "PRO_6ba966490828eff7628082f7",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "평택고덕 A-65BL 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 837,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A65"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-03-19",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-07-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e0405cae5623f83a2647ac0c",
+      "name": "평택고덕 A65",
+      "region": "경기도",
+      "source_entity_id": "LH__c05c237ed9a187d9da1eb2a0",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "평택고덕국제화계획 A65",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 837,
+      "match_key": [
+        "경기도",
+        "평택고덕",
+        "A65"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_5df894e901b0cf27c15875bc",
+      "name": "의정부우정 A2",
+      "region": "경기도",
+      "source_entity_id": "PRO_1c43b0f814e69ac298b474bd",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)의정부우정 A-2BL 아파트 건설공사 2공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 463,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 4.19
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-15",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_5df894e901b0cf27c15875bc",
+      "name": "의정부우정 A2",
+      "region": "경기도",
+      "source_entity_id": "LH__83dc4d1a863b43ba7785d9f8",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부우정 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 463,
+      "match_key": [
+        "경기도",
+        "의정부우정",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e24ec7ed0705de50dfcfb55e",
+      "name": "수원당수 B2",
+      "region": "경기도",
+      "source_entity_id": "PRO_613ae41b8f0bd647833d71d1",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)수원당수 B-2BL 아파트 건설공사 6공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 347,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-06-30",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 3.79
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-07-07",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_e24ec7ed0705de50dfcfb55e",
+      "name": "수원당수 B2",
+      "region": "경기도",
+      "source_entity_id": "LH__7a34ccf6d32e9dc7c58fbc55",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "수원당수 B2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 347,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_69217405e9523695488434c1",
+      "name": "부천대장 A2",
+      "region": "경기도",
+      "source_entity_id": "PRO_e2aefb3da54e732fd248384d",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "부천대장 A-2BL 통합형 민간참여 공공주택건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 548,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-02-01",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-05-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_a2d73c8fd81adb49dfba0fa3",
+      "name": "시흥거모 A10",
+      "region": "경기도",
+      "source_entity_id": "LH__24ccb28d2ecba4dfd2e8e719",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "시흥거모(공공주택) A10",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 301,
+      "match_key": [
+        "경기도",
+        "시흥거모",
+        "A10"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-04-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_57af98abdfc6232a25ccc8d0",
+      "name": "수원당수 B3",
+      "region": "경기도",
+      "source_entity_id": "PRO_7ad0bdb14a2577612c11a3c6",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "조달청)수원당수 B-3BL 아파트 건설공사 7공구",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 394,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2025-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 0.0
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-10-24",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_57af98abdfc6232a25ccc8d0",
+      "name": "수원당수 B3",
+      "region": "경기도",
+      "source_entity_id": "LH__396219ad71885bdaa2dc774c",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "수원당수 B3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 394,
+      "match_key": [
+        "경기도",
+        "수원당수",
+        "B3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_fcc796121d9c033bc356aaad",
+      "name": "성남금토 A2",
+      "region": "경기도",
+      "source_entity_id": "LH__0b789a33f5a525176e280b12",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "성남금토 A2",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 438,
+      "match_key": [
+        "경기도",
+        "성남금토",
+        "A2"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2026-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_60b4a8833ed549023a6ef1a5",
+      "name": "부천대장 A5",
+      "region": "경기도",
+      "source_entity_id": "LH__509466042d4c6974910737f5",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천대장 A5",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 314,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A5"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_d86ce8966f5ed10d5ef2d175",
+      "name": "부천대장 A6",
+      "region": "경기도",
+      "source_entity_id": "LH__816bc78e7861abed9c87b888",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "부천대장 A6",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 227,
+      "match_key": [
+        "경기도",
+        "부천대장",
+        "A6"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_b572acaa0e4e1468c625d137",
+      "name": "성남금토 A4",
+      "region": "경기도",
+      "source_entity_id": "LH__e4bfee89662416b714697b54",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "성남금토 A4",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 384,
+      "match_key": [
+        "경기도",
+        "성남금토",
+        "A4"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_7dbb8517958f6375fc421333",
+      "name": "의왕청계2 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__687c73bfa7819cfe7c7d5a21",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의왕청계2 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 160,
+      "match_key": [
+        "경기도",
+        "의왕청계2",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-02-26",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_6a66b31b8f84244d491514e6",
+      "name": "과천지식정보타운 S-12",
+      "region": "경기도",
+      "source_entity_id": "PRO_254e6d4ae135e6e081f67607",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "과천지식정보타운 S-12BL 민간참여 공공주택건설사업(건축)",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 1424,
+      "match_key": [
+        "경기도",
+        "과천지식정보타운",
+        "S12"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2024-12-31",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 52.35
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-07-30",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_6a66b31b8f84244d491514e6",
+      "name": "과천지식정보타운 S-12",
+      "region": "경기도",
+      "source_entity_id": "LH__030bb34eaca2fea7f9a35187",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "과천지식정보타운 S-12",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 1424,
+      "match_key": [
+        "경기도",
+        "과천지식정보타운",
+        "S12"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-08-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "name": "의왕월암 A3",
+      "region": "경기도",
+      "source_entity_id": "LH__0906040ae32678367c09de39",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의왕월암 A3",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 218,
+      "match_key": [
+        "경기도",
+        "의왕월암",
+        "A3"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-04-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_b5b91172d6eed372aeb26e11",
+      "name": "의왕월암 A1",
+      "region": "경기도",
+      "source_entity_id": "LH__b6cc1d03f4f3afaec2631f0d",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의왕월암 A1",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 228,
+      "match_key": [
+        "경기도",
+        "의왕월암",
+        "A1"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_840dde9c0a83c846e6d18690",
+      "name": "의왕초평(뉴스테이) A4",
+      "region": "경기도",
+      "source_entity_id": "PRO_0d475dbdf35690c529f845be",
+      "source_revision_no": 1,
+      "source_id": "lh_construction",
+      "source_name": "의왕초평 A4BL 민간참여 공공주택 건설사업",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "units": 381,
+      "match_key": [
+        "경기도",
+        "의왕초평",
+        "A4"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2024-12-27",
+          "basis": "동일 사업 후보의 원천 착공 기록",
+          "milestone": "CONSTRUCTION"
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-07-01",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 35.72
+        },
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-07-31",
+          "basis": "공사 계약 준공예정 · 입주일 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A4 / 04",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    },
+    {
+      "project_id": "PRO_840dde9c0a83c846e6d18690",
+      "name": "의왕초평(뉴스테이) A4",
+      "region": "경기도",
+      "source_entity_id": "LH__d104d67e76f618b82e7f8414",
+      "source_revision_no": 1,
+      "source_id": "lh_completion_plan",
+      "source_name": "의왕초평(뉴스테이) A-4",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "units": 381,
+      "match_key": [
+        "경기도",
+        "의왕초평",
+        "A4"
+      ],
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION"
+        }
+      ],
+      "status": "REVIEW",
+      "reviewed": false,
+      "basis": "시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요 · 원천 블록 표기 A4 / A-4",
+      "matching_version": "district-block-units-v1",
+      "base_date": "2026-10-12"
+    }
+  ],
+  "held": [
+    {
+      "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+      "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+      "source_name": "고양창릉 A-04",
+      "source_entity_id": "LH__6ac1bf8ac48d17b7945a759a",
+      "project_units": 900,
+      "source_units": 603,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+      "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+      "source_name": "고양창릉 A-04",
+      "source_entity_id": "LH__45ba74ee4da582bf6e82d860",
+      "project_units": 900,
+      "source_units": 297,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_1a98096fd39a060c2144684a",
+      "name": "화성동탄2 C-14",
+      "source_name": "민간참여) 화성동탄2 C-14 민간참여 공공주택 건설사업",
+      "source_entity_id": "PRO_672dfd527cf2fe8d9d71cf5c",
+      "project_units": 850,
+      "source_units": 610,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_1a98096fd39a060c2144684a",
+      "name": "화성동탄2 C-14",
+      "source_name": "화성동탄2 C-14",
+      "source_entity_id": "LH__6e43d615d6cef143cf000b8f",
+      "project_units": 850,
+      "source_units": 240,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_1a98096fd39a060c2144684a",
+      "name": "화성동탄2 C-14",
+      "source_name": "화성동탄2 C-14",
+      "source_entity_id": "LH__704a5f4bf0428031957722de",
+      "project_units": 850,
+      "source_units": 610,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_36bfc1e9221a570c5661f8ea",
+      "name": "남양주왕숙 S-18",
+      "source_name": "남양주왕숙 S-18",
+      "source_entity_id": "LH__76d3bf6eeef10eaf815e383c",
+      "project_units": 965,
+      "source_units": 1067,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_446826cdc93ccf8d880cb0f1",
+      "name": "남양주왕숙2 A01",
+      "source_name": "남양주왕숙2 A01",
+      "source_entity_id": "LH__1bdd495a9b865fb51b82b8f3",
+      "project_units": 812,
+      "source_units": 803,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_9f9031c8f3a9ef0626b95757",
+      "name": "안산신길2 B1",
+      "source_name": "조달청)안산신길2 B-1BL 아파트 건설공사 2공구",
+      "source_entity_id": "PRO_5cc020482e16fc7f3825af4f",
+      "project_units": 387,
+      "source_units": 382,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_498d0e9db7798af601231a87",
+      "name": "의정부법조타운 S1",
+      "source_name": "의정부법조타운 S-1BL S1",
+      "source_entity_id": "LH__7aa8e9f751d2c32b393388e7",
+      "project_units": null,
+      "source_units": 354,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b39de55a5159fecbfe750bb6",
+      "name": "의정부법조타운 S3",
+      "source_name": "조달청)의정부법조타운 S3BL 아파트 건설공사 2공구",
+      "source_entity_id": "PRO_78e980421f549ed99961abc8",
+      "project_units": null,
+      "source_units": 544,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b39de55a5159fecbfe750bb6",
+      "name": "의정부법조타운 S3",
+      "source_name": "의정부법조타운 S3",
+      "source_entity_id": "LH__0bef31fc5ef32e6440eb3cd3",
+      "project_units": null,
+      "source_units": 544,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b39de55a5159fecbfe750bb6",
+      "name": "의정부법조타운 S3",
+      "source_name": "의정부법조타운 S-3BL S3",
+      "source_entity_id": "LH__3e3e94ee6c02bc574b8069bf",
+      "project_units": null,
+      "source_units": 544,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "name": "남양주진접2 A7",
+      "source_name": "조달청)남양주진접2 A-7BL 아파트 건설공사 6공구",
+      "source_entity_id": "PRO_7b3aa15241d24df4972a9f95",
+      "project_units": 305,
+      "source_units": 710,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "name": "남양주진접2 A7",
+      "source_name": "남양주진접2 A-7",
+      "source_entity_id": "LH__edfedac85a8fec69d3c4efe1",
+      "project_units": 305,
+      "source_units": 405,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_bceb35af2280eaa50c810c09",
+      "name": "과천주암(뉴스테이) C2",
+      "source_name": "조달청)과천주암 C-2BL 공동주택 건설공사 2공구",
+      "source_entity_id": "PRO_a56077631c9e69c156861889",
+      "project_units": 344,
+      "source_units": 1030,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_bceb35af2280eaa50c810c09",
+      "name": "과천주암(뉴스테이) C2",
+      "source_name": "과천주암(뉴스테이) C2",
+      "source_entity_id": "LH__f3acb977a159187305a2662b",
+      "project_units": 344,
+      "source_units": 686,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b0f7e7ded4e31142e5b39d02",
+      "name": "구리갈매역세권 A-1",
+      "source_name": "구리갈매역세권 A-1BL 아파트 건설공사",
+      "source_entity_id": "PRO_6861d287cc87790fa4d52028",
+      "project_units": 609,
+      "source_units": 1791,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b0f7e7ded4e31142e5b39d02",
+      "name": "구리갈매역세권 A-1",
+      "source_name": "구리갈매역세권 A-1",
+      "source_entity_id": "LH__b4c096aef492f64ddc68d005",
+      "project_units": 609,
+      "source_units": 1182,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_e4e3d8647720b2239bc5b5c1",
+      "name": "부천역곡 A-2BL 민간참여 공공주택 건설사업",
+      "source_name": "부천역곡 A2",
+      "source_entity_id": "PRO_8aa9dcf9ed7eaafe3bef3196",
+      "project_units": 1464,
+      "source_units": 976,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_e4e3d8647720b2239bc5b5c1",
+      "name": "부천역곡 A-2BL 민간참여 공공주택 건설사업",
+      "source_name": "부천역곡 A2",
+      "source_entity_id": "LH__112e5dd9d3321cb75b25d23f",
+      "project_units": 1464,
+      "source_units": 976,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_e4e3d8647720b2239bc5b5c1",
+      "name": "부천역곡 A-2BL 민간참여 공공주택 건설사업",
+      "source_name": "부천역곡 A2",
+      "source_entity_id": "LH__5baa2c04c9e8c72b488f39c0",
+      "project_units": 1464,
+      "source_units": 488,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_672dfd527cf2fe8d9d71cf5c",
+      "name": "민간참여) 화성동탄2 C-14 민간참여 공공주택 건설사업",
+      "source_name": "화성동탄2 C-14",
+      "source_entity_id": "PRO_1a98096fd39a060c2144684a",
+      "project_units": 610,
+      "source_units": 850,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_672dfd527cf2fe8d9d71cf5c",
+      "name": "민간참여) 화성동탄2 C-14 민간참여 공공주택 건설사업",
+      "source_name": "화성동탄2 C-14",
+      "source_entity_id": "LH__6e43d615d6cef143cf000b8f",
+      "project_units": 610,
+      "source_units": 240,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_9ee37f274e85961971980bc6",
+      "name": "조달청)과천주암 C-1BL 공동주택 건설공사 1공구",
+      "source_name": "과천주암(뉴스테이) C1",
+      "source_entity_id": "LH__3c7ca89acdac43437626d665",
+      "project_units": 1338,
+      "source_units": 932,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_9ee37f274e85961971980bc6",
+      "name": "조달청)과천주암 C-1BL 공동주택 건설공사 1공구",
+      "source_name": "과천주암(뉴스테이) C1",
+      "source_entity_id": "LH__83cd9ab050015670d871712c",
+      "project_units": 1338,
+      "source_units": 406,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_a56077631c9e69c156861889",
+      "name": "조달청)과천주암 C-2BL 공동주택 건설공사 2공구",
+      "source_name": "과천주암(뉴스테이) C2",
+      "source_entity_id": "PRO_bceb35af2280eaa50c810c09",
+      "project_units": 1030,
+      "source_units": 344,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_a56077631c9e69c156861889",
+      "name": "조달청)과천주암 C-2BL 공동주택 건설공사 2공구",
+      "source_name": "과천주암(뉴스테이) C2",
+      "source_entity_id": "LH__f3acb977a159187305a2662b",
+      "project_units": 1030,
+      "source_units": 686,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_a56077631c9e69c156861889",
+      "name": "조달청)과천주암 C-2BL 공동주택 건설공사 2공구",
+      "source_name": "과천주암(뉴스테이) C2",
+      "source_entity_id": "LH__18cd764ae82fa316b34a127d",
+      "project_units": 1030,
+      "source_units": 344,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_c6f5a8ea506ed720419b999a",
+      "name": "수원당수 A-5BL 아파트 건설공사 5공구",
+      "source_name": "수원당수 A5",
+      "source_entity_id": "LH__3d56e40bb7ac939f7cbbc374",
+      "project_units": 726,
+      "source_units": 484,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_c6f5a8ea506ed720419b999a",
+      "name": "수원당수 A-5BL 아파트 건설공사 5공구",
+      "source_name": "수원당수 A5",
+      "source_entity_id": "LH__45e63c995ef4418a0872bf2d",
+      "project_units": 726,
+      "source_units": 242,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b08b4358cb7f64e9637fb3a0",
+      "name": "군포대야미 A-2BL 아파트 건설공사 1공구",
+      "source_name": "군포대야미 A-2",
+      "source_entity_id": "LH__60342d3d8707cc6f79ef9a34",
+      "project_units": 1511,
+      "source_units": 1003,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b08b4358cb7f64e9637fb3a0",
+      "name": "군포대야미 A-2BL 아파트 건설공사 1공구",
+      "source_name": "군포대야미 A-2",
+      "source_entity_id": "LH__6c18ba1aad2249592692055b",
+      "project_units": 1511,
+      "source_units": 508,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_5cc020482e16fc7f3825af4f",
+      "name": "조달청)안산신길2 B-1BL 아파트 건설공사 2공구",
+      "source_name": "안산신길2 B1",
+      "source_entity_id": "PRO_9f9031c8f3a9ef0626b95757",
+      "project_units": 382,
+      "source_units": 387,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_5cc020482e16fc7f3825af4f",
+      "name": "조달청)안산신길2 B-1BL 아파트 건설공사 2공구",
+      "source_name": "안산신길2 B-1",
+      "source_entity_id": "LH__8eeccb4d45ce011e681e6558",
+      "project_units": 382,
+      "source_units": 387,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7bdab913be1c06af3cd62f18",
+      "name": "의왕월암 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕월암 A1",
+      "source_entity_id": "PRO_b5b91172d6eed372aeb26e11",
+      "project_units": 674,
+      "source_units": 228,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7bdab913be1c06af3cd62f18",
+      "name": "의왕월암 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕월암 A1",
+      "source_entity_id": "LH__c1c1491aef114eefc05a7339",
+      "project_units": 674,
+      "source_units": 446,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7bdab913be1c06af3cd62f18",
+      "name": "의왕월암 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕월암 A1",
+      "source_entity_id": "LH__b6cc1d03f4f3afaec2631f0d",
+      "project_units": 674,
+      "source_units": 228,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_d17c29dff54b362101f15d36",
+      "name": "의왕월암 A-3BL 아파트 건설공사 2공구",
+      "source_name": "의왕월암 A3",
+      "source_entity_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "project_units": 642,
+      "source_units": 218,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_d17c29dff54b362101f15d36",
+      "name": "의왕월암 A-3BL 아파트 건설공사 2공구",
+      "source_name": "의왕월암 A3",
+      "source_entity_id": "LH__f5a603903765a7bf1990eed8",
+      "project_units": 642,
+      "source_units": 424,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_d17c29dff54b362101f15d36",
+      "name": "의왕월암 A-3BL 아파트 건설공사 2공구",
+      "source_name": "의왕월암 A3",
+      "source_entity_id": "LH__0906040ae32678367c09de39",
+      "project_units": 642,
+      "source_units": 218,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_3faad76d14e22fbad1a26071",
+      "name": "성남금토 A-4BL 아파트 건설공사 2공구",
+      "source_name": "성남금토 A4",
+      "source_entity_id": "PRO_b572acaa0e4e1468c625d137",
+      "project_units": 1150,
+      "source_units": 384,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_3faad76d14e22fbad1a26071",
+      "name": "성남금토 A-4BL 아파트 건설공사 2공구",
+      "source_name": "성남금토 A4",
+      "source_entity_id": "LH__698a82790f34a6df33d7d8a3",
+      "project_units": 1150,
+      "source_units": 766,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_3faad76d14e22fbad1a26071",
+      "name": "성남금토 A-4BL 아파트 건설공사 2공구",
+      "source_name": "성남금토 A4",
+      "source_entity_id": "LH__e4bfee89662416b714697b54",
+      "project_units": 1150,
+      "source_units": 384,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_70da87e9fa493fcc566e02e3",
+      "name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+      "source_name": "시흥거모 A5",
+      "source_entity_id": "PRO_56c23b88a629f40dd3071afc",
+      "project_units": 435,
+      "source_units": 290,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_70da87e9fa493fcc566e02e3",
+      "name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+      "source_name": "시흥거모(공공주택) A5",
+      "source_entity_id": "LH__f894caf701a82cb0dd84ee0e",
+      "project_units": 435,
+      "source_units": 290,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_70da87e9fa493fcc566e02e3",
+      "name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+      "source_name": "시흥거모(공공주택) A5",
+      "source_entity_id": "LH__d7bb9e48ca62cc43af21f9c5",
+      "project_units": 435,
+      "source_units": 145,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ecac22dd522009f174891d30",
+      "name": "의왕청계2 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕청계2 A1",
+      "source_entity_id": "PRO_7dbb8517958f6375fc421333",
+      "project_units": 480,
+      "source_units": 160,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ecac22dd522009f174891d30",
+      "name": "의왕청계2 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕청계2 A1",
+      "source_entity_id": "LH__d4e1dc1001515ecd08660736",
+      "project_units": 480,
+      "source_units": 320,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ecac22dd522009f174891d30",
+      "name": "의왕청계2 A-1BL 아파트 건설공사 1공구",
+      "source_name": "의왕청계2 A1",
+      "source_entity_id": "LH__687c73bfa7819cfe7c7d5a21",
+      "project_units": 480,
+      "source_units": 160,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_956d75d8144b84a201c71b73",
+      "name": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+      "source_name": "시흥하중 A1",
+      "source_entity_id": "PRO_b3d348e364dc16b744cc949d",
+      "project_units": 600,
+      "source_units": 400,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_956d75d8144b84a201c71b73",
+      "name": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+      "source_name": "시흥하중 A1",
+      "source_entity_id": "LH__728f564591e1b4ee1f54025d",
+      "project_units": 600,
+      "source_units": 400,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_956d75d8144b84a201c71b73",
+      "name": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+      "source_name": "시흥하중 A1",
+      "source_entity_id": "LH__db74df5fd26c6b3e72965217",
+      "project_units": 600,
+      "source_units": 200,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_07535d298d1b6d593fdde152",
+      "name": "조달청)시흥하중 A-4BL 공동주택 건설공사 2공구",
+      "source_name": "시흥하중 A4",
+      "source_entity_id": "LH__a327ee086dc60af68776cc94",
+      "project_units": 584,
+      "source_units": 390,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_07535d298d1b6d593fdde152",
+      "name": "조달청)시흥하중 A-4BL 공동주택 건설공사 2공구",
+      "source_name": "시흥하중 A4",
+      "source_entity_id": "LH__478d87219a1369e56626dfcc",
+      "project_units": 584,
+      "source_units": 194,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ff961a60763365c3c98a5f65",
+      "name": "민간참여) 성남낙생 A-1BL 민간참여 공공주택 건설사업",
+      "source_name": "성남낙생 A1",
+      "source_entity_id": "PRO_77a162724b5fb3200f074687",
+      "project_units": 1400,
+      "source_units": 933,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ff961a60763365c3c98a5f65",
+      "name": "민간참여) 성남낙생 A-1BL 민간참여 공공주택 건설사업",
+      "source_name": "성남낙생 A1",
+      "source_entity_id": "LH__dc398e13ccd890053cdc2fba",
+      "project_units": 1400,
+      "source_units": 933,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_ff961a60763365c3c98a5f65",
+      "name": "민간참여) 성남낙생 A-1BL 민간참여 공공주택 건설사업",
+      "source_name": "성남낙생 A1",
+      "source_entity_id": "LH__c45ec0a28c1bb9e620215137",
+      "project_units": 1400,
+      "source_units": 467,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_58dd448826d821eaa4ef979c",
+      "name": "조달청)양주회천 A-26BL공동주택 건설공사",
+      "source_name": "양주회천 A26",
+      "source_entity_id": "PRO_687b3d75300242efdbf92fcc",
+      "project_units": 792,
+      "source_units": null,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_879ed3ac20d377a411aa7d9f",
+      "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+      "source_name": "남양주진접2 A-3",
+      "source_entity_id": "LH__7662041a83446a7f168d8838",
+      "project_units": 366,
+      "source_units": 208,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_879ed3ac20d377a411aa7d9f",
+      "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+      "source_name": "남양주진접2 A-3",
+      "source_entity_id": "LH__f3bb5b040f6873e6f7f5499c",
+      "project_units": 366,
+      "source_units": 158,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_67142027aa77136be6cb3593",
+      "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+      "source_name": "남양주진접2 A-4",
+      "source_entity_id": "LH__d50d90559d2588876c192b8b",
+      "project_units": 448,
+      "source_units": 255,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_67142027aa77136be6cb3593",
+      "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+      "source_name": "남양주진접2 A-4",
+      "source_entity_id": "LH__7b8f88d21ff7dbc9f74e6fd6",
+      "project_units": 448,
+      "source_units": 193,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7b3aa15241d24df4972a9f95",
+      "name": "조달청)남양주진접2 A-7BL 아파트 건설공사 6공구",
+      "source_name": "남양주진접2 A7",
+      "source_entity_id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "project_units": 710,
+      "source_units": 305,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7b3aa15241d24df4972a9f95",
+      "name": "조달청)남양주진접2 A-7BL 아파트 건설공사 6공구",
+      "source_name": "남양주진접2 A-7",
+      "source_entity_id": "LH__edfedac85a8fec69d3c4efe1",
+      "project_units": 710,
+      "source_units": 405,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7b3aa15241d24df4972a9f95",
+      "name": "조달청)남양주진접2 A-7BL 아파트 건설공사 6공구",
+      "source_name": "남양주진접2 A-7",
+      "source_entity_id": "LH__bac23f48750be8ea2e16a129",
+      "project_units": 710,
+      "source_units": 305,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_6861d287cc87790fa4d52028",
+      "name": "구리갈매역세권 A-1BL 아파트 건설공사",
+      "source_name": "구리갈매역세권 A-1",
+      "source_entity_id": "PRO_b0f7e7ded4e31142e5b39d02",
+      "project_units": 1791,
+      "source_units": 609,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_6861d287cc87790fa4d52028",
+      "name": "구리갈매역세권 A-1BL 아파트 건설공사",
+      "source_name": "구리갈매역세권 A-1",
+      "source_entity_id": "LH__b4c096aef492f64ddc68d005",
+      "project_units": 1791,
+      "source_units": 1182,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_6861d287cc87790fa4d52028",
+      "name": "구리갈매역세권 A-1BL 아파트 건설공사",
+      "source_name": "구리갈매역세권 A-1",
+      "source_entity_id": "LH__b6d2bb08c97bddfd17402e8b",
+      "project_units": 1791,
+      "source_units": 609,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_e79e6d9e96f006b1537e24f4",
+      "name": "조달청)구리갈매역세권 A-4BL 아파트 건설공사 2공구",
+      "source_name": "구리갈매역세권 A-4",
+      "source_entity_id": "LH__f71a3cebb9670e331d0e331b",
+      "project_units": 561,
+      "source_units": 251,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_e79e6d9e96f006b1537e24f4",
+      "name": "조달청)구리갈매역세권 A-4BL 아파트 건설공사 2공구",
+      "source_name": "구리갈매역세권 A-4",
+      "source_entity_id": "LH__5d2ebeeba935420af0382de7",
+      "project_units": 561,
+      "source_units": 310,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_5c41696f54ce584f4f9b324c",
+      "name": "조달청)김포고촌2 A1BL 아파트 건설공사 1공구",
+      "source_name": "김포고촌2 A1",
+      "source_entity_id": "LH__eddef6c27124370f2cce2298",
+      "project_units": 350,
+      "source_units": 262,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_5c41696f54ce584f4f9b324c",
+      "name": "조달청)김포고촌2 A1BL 아파트 건설공사 1공구",
+      "source_name": "김포고촌2 A1",
+      "source_entity_id": "LH__5379df37e7621d8ed9e4a342",
+      "project_units": 350,
+      "source_units": 88,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b94e9de3e3e2bbd4f05e5272",
+      "name": "조달청)남양주왕숙 A-2BL 아파트 건설공사 2공구",
+      "source_name": "남양주왕숙 A-02",
+      "source_entity_id": "LH__d4e74e32672f1539c84a0e0a",
+      "project_units": 608,
+      "source_units": 401,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b94e9de3e3e2bbd4f05e5272",
+      "name": "조달청)남양주왕숙 A-2BL 아파트 건설공사 2공구",
+      "source_name": "남양주왕숙 A-02",
+      "source_entity_id": "LH__d5d9208ae8f3bfa3949d1c7d",
+      "project_units": 608,
+      "source_units": 207,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_92a0bd4e283231a4a8007d2a",
+      "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+      "source_name": "남양주왕숙 A-24",
+      "source_entity_id": "LH__f4c20caf6951447174752a00",
+      "project_units": 589,
+      "source_units": 390,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_92a0bd4e283231a4a8007d2a",
+      "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+      "source_name": "남양주왕숙 A-24",
+      "source_entity_id": "LH__f53d1a92b7b35eaaadd48935",
+      "project_units": 589,
+      "source_units": 199,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_8f376db71f557323a80c0fd9",
+      "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "source_name": "남양주왕숙2 A01",
+      "source_entity_id": "LH__1bdd495a9b865fb51b82b8f3",
+      "project_units": 812,
+      "source_units": 803,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_78e980421f549ed99961abc8",
+      "name": "조달청)의정부법조타운 S3BL 아파트 건설공사 2공구",
+      "source_name": "의정부법조타운 S3",
+      "source_entity_id": "PRO_b39de55a5159fecbfe750bb6",
+      "project_units": 544,
+      "source_units": null,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_421fe0f0243dd68b11f2712c",
+      "name": "인천계양 A9",
+      "source_name": "조달청)인천계양 A9BL 아파트 건설공사 3공구",
+      "source_entity_id": "PRO_95b506af61f0ff28ddff817c",
+      "project_units": 317,
+      "source_units": 475,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_12d91632b8ca640e1505869f",
+      "name": "인천계양 A17",
+      "source_name": "인천계양 A17BL 아파트 건설공사 6공구 (",
+      "source_entity_id": "PRO_c1f32197fe5a45ab84ea895f",
+      "project_units": 309,
+      "source_units": 463,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_3cb5f412f922f460f58516ca",
+      "name": "인천검단 AA19",
+      "source_name": "인천검단 AA19BL 민간참여 공공주택건설사업",
+      "source_entity_id": "PRO_38a37a66ed2666efe40ae527",
+      "project_units": 332,
+      "source_units": 1323,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_8ccbf751972faf82dc5b094d",
+      "name": "인천검단 AA19",
+      "source_name": "인천검단 AA19BL 민간참여 공공주택건설사업",
+      "source_entity_id": "PRO_38a37a66ed2666efe40ae527",
+      "project_units": 991,
+      "source_units": 1323,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_38a37a66ed2666efe40ae527",
+      "name": "인천검단 AA19BL 민간참여 공공주택건설사업",
+      "source_name": "인천검단 AA19",
+      "source_entity_id": "PRO_3cb5f412f922f460f58516ca",
+      "project_units": 1323,
+      "source_units": 332,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_38a37a66ed2666efe40ae527",
+      "name": "인천검단 AA19BL 민간참여 공공주택건설사업",
+      "source_name": "인천검단 AA19",
+      "source_entity_id": "PRO_8ccbf751972faf82dc5b094d",
+      "project_units": 1323,
+      "source_units": 991,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_c1f32197fe5a45ab84ea895f",
+      "name": "인천계양 A17BL 아파트 건설공사 6공구 (",
+      "source_name": "인천계양 A17",
+      "source_entity_id": "PRO_12d91632b8ca640e1505869f",
+      "project_units": 463,
+      "source_units": 309,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_95b506af61f0ff28ddff817c",
+      "name": "조달청)인천계양 A9BL 아파트 건설공사 3공구",
+      "source_name": "인천계양 A9",
+      "source_entity_id": "PRO_421fe0f0243dd68b11f2712c",
+      "project_units": 475,
+      "source_units": 317,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b3d348e364dc16b744cc949d",
+      "name": "시흥하중 A1",
+      "source_name": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+      "source_entity_id": "PRO_956d75d8144b84a201c71b73",
+      "project_units": 400,
+      "source_units": 600,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b3d348e364dc16b744cc949d",
+      "name": "시흥하중 A1",
+      "source_name": "시흥하중 A1",
+      "source_entity_id": "LH__db74df5fd26c6b3e72965217",
+      "project_units": 400,
+      "source_units": 200,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_77a162724b5fb3200f074687",
+      "name": "성남낙생 A1",
+      "source_name": "민간참여) 성남낙생 A-1BL 민간참여 공공주택 건설사업",
+      "source_entity_id": "PRO_ff961a60763365c3c98a5f65",
+      "project_units": 933,
+      "source_units": 1400,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_77a162724b5fb3200f074687",
+      "name": "성남낙생 A1",
+      "source_name": "성남낙생 A1",
+      "source_entity_id": "LH__c45ec0a28c1bb9e620215137",
+      "project_units": 933,
+      "source_units": 467,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_8aa9dcf9ed7eaafe3bef3196",
+      "name": "부천역곡 A2",
+      "source_name": "부천역곡 A-2BL 민간참여 공공주택 건설사업",
+      "source_entity_id": "PRO_e4e3d8647720b2239bc5b5c1",
+      "project_units": 976,
+      "source_units": 1464,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_8aa9dcf9ed7eaafe3bef3196",
+      "name": "부천역곡 A2",
+      "source_name": "부천역곡 A2",
+      "source_entity_id": "LH__5baa2c04c9e8c72b488f39c0",
+      "project_units": 976,
+      "source_units": 488,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_1372e9a98923707ece293d63",
+      "name": "성남복정2 A1",
+      "source_name": "성남복정2 A1",
+      "source_entity_id": "LH__2464231f6cc10eeb0bd03bb1",
+      "project_units": 594,
+      "source_units": 298,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_56c23b88a629f40dd3071afc",
+      "name": "시흥거모 A5",
+      "source_name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+      "source_entity_id": "PRO_70da87e9fa493fcc566e02e3",
+      "project_units": 290,
+      "source_units": 435,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_56c23b88a629f40dd3071afc",
+      "name": "시흥거모 A5",
+      "source_name": "시흥거모(공공주택) A5",
+      "source_entity_id": "LH__d7bb9e48ca62cc43af21f9c5",
+      "project_units": 290,
+      "source_units": 145,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_687b3d75300242efdbf92fcc",
+      "name": "양주회천 A26",
+      "source_name": "조달청)양주회천 A-26BL공동주택 건설공사",
+      "source_entity_id": "PRO_58dd448826d821eaa4ef979c",
+      "project_units": null,
+      "source_units": 792,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_687b3d75300242efdbf92fcc",
+      "name": "양주회천 A26",
+      "source_name": "양주회천(택) A26",
+      "source_entity_id": "LH__854d59af4b5380e076ec6f64",
+      "project_units": null,
+      "source_units": 792,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_f4d0df2ada51ce61f9bb6b72",
+      "name": "안산신길2 A6",
+      "source_name": "안산신길2 A-6",
+      "source_entity_id": "LH__66fb986b3322193a4c76a947",
+      "project_units": 251,
+      "source_units": 252,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_f4d0df2ada51ce61f9bb6b72",
+      "name": "안산신길2 A6",
+      "source_name": "안산신길2 A-6",
+      "source_entity_id": "LH__0b49512351a39c39729a2254",
+      "project_units": 251,
+      "source_units": 126,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_fcc796121d9c033bc356aaad",
+      "name": "성남금토 A2",
+      "source_name": "성남금토 A2",
+      "source_entity_id": "LH__112db79118a0a3026d58cf7c",
+      "project_units": 438,
+      "source_units": 195,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_60b4a8833ed549023a6ef1a5",
+      "name": "부천대장 A5",
+      "source_name": "부천대장 A5",
+      "source_entity_id": "LH__243e26dadb460675dd49d235",
+      "project_units": 314,
+      "source_units": 638,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_d86ce8966f5ed10d5ef2d175",
+      "name": "부천대장 A6",
+      "source_name": "부천대장 A6",
+      "source_entity_id": "LH__bd8232fa74c8e317a6731ab2",
+      "project_units": 227,
+      "source_units": 461,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b572acaa0e4e1468c625d137",
+      "name": "성남금토 A4",
+      "source_name": "성남금토 A-4BL 아파트 건설공사 2공구",
+      "source_entity_id": "PRO_3faad76d14e22fbad1a26071",
+      "project_units": 384,
+      "source_units": 1150,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b572acaa0e4e1468c625d137",
+      "name": "성남금토 A4",
+      "source_name": "성남금토 A4",
+      "source_entity_id": "LH__698a82790f34a6df33d7d8a3",
+      "project_units": 384,
+      "source_units": 766,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7dbb8517958f6375fc421333",
+      "name": "의왕청계2 A1",
+      "source_name": "의왕청계2 A-1BL 아파트 건설공사 1공구",
+      "source_entity_id": "PRO_ecac22dd522009f174891d30",
+      "project_units": 160,
+      "source_units": 480,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_7dbb8517958f6375fc421333",
+      "name": "의왕청계2 A1",
+      "source_name": "의왕청계2 A1",
+      "source_entity_id": "LH__d4e1dc1001515ecd08660736",
+      "project_units": 160,
+      "source_units": 320,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "name": "의왕월암 A3",
+      "source_name": "의왕월암 A-3BL 아파트 건설공사 2공구",
+      "source_entity_id": "PRO_d17c29dff54b362101f15d36",
+      "project_units": 218,
+      "source_units": 642,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "name": "의왕월암 A3",
+      "source_name": "의왕월암 A3",
+      "source_entity_id": "LH__f5a603903765a7bf1990eed8",
+      "project_units": 218,
+      "source_units": 424,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b5b91172d6eed372aeb26e11",
+      "name": "의왕월암 A1",
+      "source_name": "의왕월암 A-1BL 아파트 건설공사 1공구",
+      "source_entity_id": "PRO_7bdab913be1c06af3cd62f18",
+      "project_units": 228,
+      "source_units": 674,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    },
+    {
+      "project_id": "PRO_b5b91172d6eed372aeb26e11",
+      "name": "의왕월암 A1",
+      "source_name": "의왕월암 A1",
+      "source_entity_id": "LH__c1c1491aef114eefc05a7339",
+      "project_units": 228,
+      "source_units": 446,
+      "reason": "동일 블록이나 물량 범위가 다르거나 미확인 · 부분 공급/계약 확인 필요"
+    }
+  ],
+  "notice": "자료 연결 후보만 저장. 사업 물량 추가 합산·정책 귀속 확정·날짜 보간 없음. 담당자 판정/해제 링크는 재수집해도 보존.",
+  "captured_documents": [
+    {
+      "id": "DOC_47f6e8a0112fe95098b9422a",
+      "sha256": "ac6552e292622467fad42bb4eaa0d2da600f8a7520cf0884ceca94da27d76542",
+      "url": "https://www.lh.or.kr/board.es?mid=a10601020000&bid=0034&list_no=720881&act=view",
+      "file": "/app/data/raw/official_document/ac6552e292622467fad42bb4eaa0d2da600f8a7520cf0884ceca94da27d76542.html"
+    },
+    {
+      "id": "DOC_4ba74e1a3e32648bf3f3218b",
+      "sha256": "3929e1b299bea7726e6c6c4b88fee45fbd126ab3f4588c8d25e1975c4a34a3b9",
+      "url": "https://www.anyang.go.kr/manan/selectBbsNttView.do?bbsNo=157&key=3315&nttNo=446074",
+      "file": "/app/data/raw/official_document/3929e1b299bea7726e6c6c4b88fee45fbd126ab3f4588c8d25e1975c4a34a3b9.html"
+    },
+    {
+      "id": "DOC_937f1f9bb5ca654efb977da6",
+      "sha256": "a4d54d336b462ffb6885813a9d10b93ead7c22be6956e349870e609b4c1319c1",
+      "url": "https://www.molit.go.kr/LCMS/DWN.jsp?fold=/N01_B/&fileName=%EB%B3%80%EA%B2%BD%EC%8A%B9%EC%9D%B8_%EA%B3%A0%EC%8B%9C%EB%AC%B8%28%ED%8F%89%ED%83%9D%EA%B3%A0%EB%8D%95_A-31BL%29.pdf",
+      "file": "/app/data/raw/official_document/a4d54d336b462ffb6885813a9d10b93ead7c22be6956e349870e609b4c1319c1.pdf"
+    }
+  ]
+}

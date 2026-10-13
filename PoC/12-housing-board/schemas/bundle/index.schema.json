@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "regions/index.json",
+  "description": "지역 목록. 화면이 가장 먼저 읽는다.",
+  "type": "object",
+  "required": ["schema_version", "regions"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"$ref": "#/$defs/semver"},
+    "dataBase": {"type": "string", "description": "지역 데이터 폴더의 기본 주소. 기본값 'regions/'. 저장 위치가 바뀌어도 화면 코드는 바뀌지 않는다."},
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "name", "visibility", "updatedAt", "schema_version"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+          "name": {"type": "string"},
+          "default": {"type": "boolean", "description": "?region= 이 없을 때 여는 지역"},
+          "visibility": {"enum": ["public", "preview"], "description": "preview 지역은 운영 빌드에서 제외된다"},
+          "updatedAt": {"type": "string", "format": "date"},
+          "schema_version": {"$ref": "#/$defs/semver"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "semver": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"}
+  }
+}

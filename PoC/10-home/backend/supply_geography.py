@@ -1,4 +1,5 @@
 """Reviewed administrative membership and independent milestone evidence."""
+import re
 from .roadmap import source_events
 
 
@@ -7,6 +8,15 @@ def municipal_membership(rows,boundaries,districts,key_for):
     def explicit(row):
         matches=[area["id"] for area in boundaries if area["region"]==row["region"] and row.get("municipality") in
                  {area["name"],area["name"][:-1] if area["region"]=="경기도" else area["name"]}]
+        if not matches and row['region']=='인천광역시':
+            # Incheon LH responses name the district in the project title, while
+            # the legacy Seoul/Gyeonggi parser leaves municipality unresolved.
+            # Match only explicit city+district names; do not guess new districts
+            # from legacy '서구' or neighbourhood names after boundary changes.
+            text=' '.join(str(row.get(k) or '') for k in ('name','district','address'))
+            matches=[area['id'] for area in boundaries if area['region']==row['region']
+                     and re.search(r'인천(?:광역시)?\s*'+re.escape(area['name'].removesuffix('구').removesuffix('군'))+
+                                   r'(?:구|군)?(?=\s|[\[\]()A-Z0-9]|$)',text)]
         return matches[0] if len(matches)==1 else None
     for row in rows:
         area=explicit(row)

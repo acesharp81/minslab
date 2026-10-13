@@ -54,7 +54,7 @@ const BlockMonitor=(()=>{
   }
   function tooltip(row,data){
     const p=row.progress,s=status(p),statusKnown=['early','normal','late'].includes(s.code);
-    return `<b>${esc(row.name)}${statusKnown?' · '+esc(s.label):''}</b><dl>${fact('총 공급계획',row.target_units)}${fact('현재 누적 목표',p.cumulative_goal_units)}${fact('올해 관리자 목표',p.annual_manual_goal_units)}${fact('현재 확인 '+(data.measure==='SUPPLY'?'모집공고':'실적'),p.observed_units)}${fact('확인 비율 · 하한',p.observed_pct,'%')}${row.projection.future.slice(0,3).map(f=>fact('+'+f.offset+'년 예상 누적',f.cumulative_units)+fact('+'+f.offset+'년까지 추가 예정',f.increment_units)+fact('+'+f.offset+'년 관리자 누적 목표',row.future?.[f.offset-1]?.manual_units)).join('')}${stages(row)}</dl><small>${esc(data.measure_label)} 기준 · 원천 연결 검토<br>지구 대표점 주변에 펼친 그래프 · 실제 블록 위치 미확정</small>`;
+    return `<b>${esc(row.name)}${statusKnown?' · '+esc(s.label):''}</b><dl>${fact('총 공급계획',row.target_units)}${fact('현재 누적 목표',p.cumulative_goal_units)}${fact('올해 관리자 목표',p.annual_manual_goal_units)}${fact('현재 확인 '+(data.measure==='SUPPLY'?'모집공고':'실적'),p.observed_units)}${fact('확인 비율 · 하한',p.observed_pct,'%')}${row.projection.future.slice(0,3).map(f=>fact('+'+f.offset+'년 예상 누적',f.cumulative_units)+fact('+'+f.offset+'년까지 추가 예정',f.increment_units)+fact('+'+f.offset+'년 관리자 누적 목표',row.future?.[f.offset-1]?.manual_units)).join('')}${stages(row)}</dl><small>${esc(data.measure_label)} 기준 · 원천 연결 검토<br>${esc(row.location_label||'지구 대표점 주변 그래프 · 실제 블록 위치 미확정')}</small>`;
   }
   function stageDetails(row){
     const content=stages(row);

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template id="s2-gather-template">
+      <style>
+      @font-face { font-family: "Gothic A1"; font-weight: 400; src: url("assets/fonts/gothic-a1-400.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 600; src: url("assets/fonts/gothic-a1-600.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 800; src: url("assets/fonts/gothic-a1-800.woff2") format("woff2"); }
+        #s2-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          color: #eaf2ff;
+          font-family: "Gothic A1", sans-serif;
+          word-break: keep-all;
+        }
+        #s2-root .eyebrow {
+          position: absolute;
+          left: 128px;
+          top: 92px;
+          display: flex;
+          gap: 20px;
+          align-items: baseline;
+          opacity: 0;
+        }
+        #s2-root .m {
+          font-family: "Space Mono", monospace;
+          font-size: 28px;
+          color: #ffc247;
+          letter-spacing: 3px;
+        }
+        #s2-root .t {
+          font-size: 28px;
+          font-weight: 600;
+          color: #bbd3f3;
+        }
+        #s2-root .head {
+          position: absolute;
+          left: 128px;
+          top: 432px;
+          width: 1664px;
+        }
+        #s2-root .hl {
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          white-space: nowrap;
+        }
+        #s2-root .l1 {
+          font-size: 148px;
+          line-height: 1.14;
+        }
+        #s2-root .l2 {
+          font-size: 124px;
+          line-height: 1.14;
+          color: #ffc247;
+        }
+        #s2-root .w + .w {
+          margin-left: 0.26em;
+        }
+        #s2-root .w {
+          display: inline-block;
+          opacity: 0;
+        }
+        #s2-root .chip {
+          position: absolute;
+          width: 440px;
+          height: 140px;
+          padding: 22px 28px;
+          background: #0f3568;
+          border: 2px solid rgba(187, 211, 243, 0.6);
+          border-radius: 6px;
+          opacity: 0;
+        }
+        #s2-root .chip .tag {
+          font-family: "Space Mono", monospace;
+          font-size: 22px;
+          letter-spacing: 1px;
+          color: #bbd3f3;
+        }
+        #s2-root .chip .nm {
+          margin-top: 12px;
+          font-size: 32px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          white-space: nowrap;
+          color: #eaf2ff;
+        }
+        #s2-root .chip .nm b {
+          font-family: "Space Mono", monospace;
+          font-weight: 700;
+          color: #ffc247;
+          margin-right: 10px;
+        }
+        #s2-root .core {
+          position: absolute;
+          left: 893px;
+          top: 510px;
+          width: 96px;
+          height: 66px;
+          border: 4px solid #ffc247;
+          border-radius: 10px;
+          background: #e9edf2;
+          opacity: 0;
+        }
+        #s2-root .flash {
+          position: absolute;
+          left: 861px;
+          top: 478px;
+          width: 160px;
+          height: 130px;
+          border: 3px solid #ffc247;
+          border-radius: 16px;
+          opacity: 0;
+        }
+      </style>
+
+      <div data-hf-id="hf-ifyb" id="s2-root" data-composition-id="s2-gather" data-width="1920" data-height="1080" data-duration="1.875">
+        <div data-hf-id="hf-zynu" class="eyebrow" id="s2-eyebrow">
+          <span data-hf-id="hf-zkz8" class="m">SHEET 02 / 04</span>
+          <span data-hf-id="hf-7i7q" class="t">문제 · 기관마다 따로</span>
+        </div>
+
+        <div data-hf-id="hf-2hty" class="head" id="s2-head">
+          <h1 data-hf-id="hf-qw2z" class="hl l1"><span data-hf-id="hf-90nu" class="w" id="s2-w1">기관마다</span><span data-hf-id="hf-qgnd" class="w" id="s2-w2">따로</span></h1>
+          <h1 data-hf-id="hf-g0lc" class="hl l2">
+            <span data-hf-id="hf-2k73" class="w" id="s2-w3">흩어진</span><span data-hf-id="hf-v08y" class="w" id="s2-w4">주택공급</span><span data-hf-id="hf-gyzn" class="w" id="s2-w5">정보</span>
+          </h1>
+        </div>
+
+        <div data-hf-id="hf-wa48" class="chip" id="s2-c1" style="left: 128px; top: 196px">
+          <div data-hf-id="hf-jl1a" class="tag">공급계획 · 단지정보 · 공정율</div>
+          <div data-hf-id="hf-lmza" class="nm"><b data-hf-id="hf-cqk9">LH</b>한국토지주택공사</div>
+        </div>
+        <div data-hf-id="hf-7ivk" class="chip" id="s2-c2" style="left: 1352px; top: 236px">
+          <div data-hf-id="hf-6eeu" class="tag">공급계획 · 공사계약</div>
+          <div data-hf-id="hf-03l5" class="nm"><b data-hf-id="hf-mxvi">SH</b>서울주택도시개발공사</div>
+        </div>
+        <div data-hf-id="hf-31qd" class="chip" id="s2-c3" style="left: 200px; top: 792px">
+          <div data-hf-id="hf-56dv" class="tag">특별공급 공고 현황</div>
+          <div data-hf-id="hf-xi6f" class="nm"><b data-hf-id="hf-nijd">국방부</b>군 특별공급 주택</div>
+        </div>
+        <div data-hf-id="hf-fgnn" class="chip" id="s2-c4" style="left: 1280px; top: 804px">
+          <div data-hf-id="hf-fwo1" class="tag">인허가 · 착공 · 준공 · 분양</div>
+          <div data-hf-id="hf-syta" class="nm"><b data-hf-id="hf-uk1k">국토부</b>통계누리</div>
+        </div>
+
+        <div data-hf-id="hf-wao6" class="flash" id="s2-flash"></div>
+        <div data-hf-id="hf-4kyc" class="core" id="s2-core"></div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const BEAT = 60 / 128;
+
+          const wf = (sel, t, dy, dur) => {
+            tl.set(sel, { opacity: 1 }, t);
+            tl.fromTo(sel, { y: dy }, { y: 0, duration: dur, ease: "power4.out", immediateRender: false }, t);
+          };
+
+          tl.fromTo("#s2-eyebrow", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.0);
+
+          wf("#s2-w1", 0.02, 90, 0.2);
+          wf("#s2-w2", 0.14, 80, 0.18);
+          wf("#s2-w3", 0.26, 80, 0.18);
+          wf("#s2-w4", 0.36, 64, 0.16);
+          wf("#s2-w5", 0.46, 64, 0.16);
+
+          // 기관 카드 4장: 모서리 바깥에서 도착
+          const chips = [
+            { id: "#s2-c1", fx: -560, fy: -280, cx: 128 + 220, cy: 196 + 70 },
+            { id: "#s2-c2", fx: 560, fy: -280, cx: 1352 + 220, cy: 236 + 70 },
+            { id: "#s2-c3", fx: -560, fy: 280, cx: 200 + 220, cy: 792 + 70 },
+            { id: "#s2-c4", fx: 560, fy: 280, cx: 1280 + 220, cy: 804 + 70 },
+          ];
+          const CORE = { x: 941, y: 543 }; // S3 프레임이 커지는 시작점(중심)
+          chips.forEach((c, i) => {
+            const t = 0.0 + i * 0.1;
+            tl.set(c.id, { opacity: 1 }, t);
+            tl.fromTo(c.id, { x: c.fx, y: c.fy }, { x: 0, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, t);
+            // 2박(0.9375s)에 전부 한 점으로 모인다
+            tl.to(c.id, { x: CORE.x - c.cx, y: CORE.y - c.cy, scale: 0.22, duration: 0.8, ease: "power3.in" }, BEAT * 2);
+            tl.to(c.id, { opacity: 0, duration: 0.12, ease: "power1.in" }, BEAT * 2 + 0.68);
+          });
+          tl.to("#s2-head", { opacity: 0, scale: 0.94, duration: 0.4, ease: "power2.in" }, BEAT * 2 + 0.05);
+
+          // 모인 점 = 곧 커질 지도 프레임의 축소판
+          tl.fromTo("#s2-core", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power3.out" }, BEAT * 2 + 0.62);
+          tl.fromTo("#s2-flash", { opacity: 0.9, scale: 0.6 }, { opacity: 0, scale: 1.5, duration: 0.3, ease: "power2.out", immediateRender: false }, BEAT * 2 + 0.7);
+          tl.to("#s2-eyebrow", { opacity: 0, duration: 0.2, ease: "power1.in" }, BEAT * 2 + 0.2);
+
+          window.__timelines["s2-gather"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

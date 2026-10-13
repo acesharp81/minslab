@@ -54,6 +54,16 @@ GUIDES = [
          url="https://apply.lh.or.kr/lhapply/land/cwsttList.do?mi=1352",purpose="블록별 공정률·공사 설명·날짜 이력 수집",
          gap="공개 이력이 없는 연도·블록과 SH·GH 공정률은 별도 확보 필요. 공정률은 공급·입주율과 구분합니다.",
          steps=["API 키 없이 전체 목록과 블록별 공개 상세 페이지 수집", "원본 등록일·사진 기준월을 분리하고 기존 사업과 지구·블록으로 대조"],readiness="CONNECTOR_READY"),
+    dict(id='ih_supply',name='iH 인천도시공사 임대주택 공급대상·실적',priority='인천 기관자료 추가',mode='API',
+         key_env='POC10_IH_SERVICE_KEY',existing_key_env='POC10_LH_NOTICE_SERVICE_KEY',
+         url='https://www.data.go.kr/data/15168460/openapi.do',
+         purpose='인천 LH 자료 밖 iH 주택별 재고·계약·공가 참조 자료 확보',
+         gap='공식 응답 명세는 재고·계약·공가 유형별 수량입니다. 관측일·신규 건설 여부를 검증하기 전 9·7 신규 착공 실적에서 제외. 연결 실패는 0호가 아닙니다.',
+         steps=['공공데이터포털 로그인 → 해당 서비스 활용신청',
+                '목적: HOME 수도권 주택공급 단계·기관별 실적 검증; URL: https://www.minslab.kr/poc/home/',
+                '개발계정 자동승인 후 마이페이지에서 일반 인증키(Decoding) 확인. 기존 키와 같아도 해당 서비스 활용승인 필요',
+                'PoC/10-home/.env의 POC10_IH_SERVICE_KEY에 저장. env.example에는 실제 키를 넣지 않음',
+                '기존 HOME 공공데이터포털 키도 사용 가능. 수집 실행 후 원천 응답·건수로 실제 연결 상태 확인'],readiness='CONNECTOR_READY'),
 ]
 
 
@@ -68,6 +78,7 @@ def connection_audit(sources):
         source = by_id.get(guide["id"])
         if source and source.get("implemented"):
             guide.update(readiness="CONNECTED" if source["status"] == "SUCCESS" else "CONNECTOR_READY",
+                         key_configured=source.get('key_configured',guide['key_configured']),
                          status=source["status"], record_count=source["record_count"], last_success=source["last_success"],
                          error=source.get("error"), stats=source.get("stats", {}))
     return dict(checked_date="2026-10-03", connected=connected, planned=planned,

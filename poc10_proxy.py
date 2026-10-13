@@ -36,7 +36,7 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
         await send({"type": "http.response.start", "status": status, "headers": headers})
         await send({"type": "http.response.body", "body": b"" if method == "HEAD" else data})
 
-    admin_write = method == "POST" and (path == PREFIX + "/api/admin/refresh" or path.startswith(PREFIX + "/api/admin/mappings/")
+    admin_write = method == "POST" and (path in {PREFIX + "/api/admin/refresh", PREFIX + "/api/admin/evidence-bridge", PREFIX + "/api/admin/stage-evidence", PREFIX + "/api/admin/stage-evidence/refresh", PREFIX + "/api/admin/project-collection/assessment"} or path.startswith(PREFIX + "/api/admin/mappings/")
                                         or path.startswith(PREFIX + "/api/admin/targets/")
                                         or re.fullmatch(r"/poc/home/api/admin/programs/[^/]+/policy", path)
                                         or re.fullmatch(r"/poc/home/api/admin/projects/[^/]+/program", path))
@@ -49,7 +49,12 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
         if origin.netloc != incoming.get("host") or origin.scheme not in {"http", "https"}:
             return await error(403, "같은 사이트에서 요청해야 합니다.")
     secret = internal_secret()
-    headers = {"accept": incoming.get("accept", "*/*")}
+    headers = {"accept": incoming.get("accept", "*/*"),
+               "accept-encoding": incoming.get("accept-encoding", "identity")}
+    if method in {"GET", "HEAD"}:
+        for name in ("if-none-match", "if-modified-since"):
+            if incoming.get(name):
+                headers[name] = incoming[name]
     if incoming.get("content-type"):
         headers["content-type"] = incoming["content-type"]
     # Never forward the incoming signature or parent/other PoC cookies.
@@ -74,12 +79,16 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
     url = upstream.rstrip("/") + path + ("?" + query if query else "")
     try:
         async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
-            response = await client.request(method, url, headers=headers, content=bytes(body))
-        payload = b"" if method == "HEAD" else response.content
-        output_headers = [(k.encode(), v.encode("latin1")) for k, v in response.headers.items()
-                          if k.lower() in {"content-type", "cache-control", "location", "content-disposition", "content-security-policy", "x-frame-options", "referrer-policy"}]
-        length = response.headers.get("content-length", "0") if method == "HEAD" else str(len(payload))
-        output_headers.extend([(b"content-length", length.encode()), (b"x-content-type-options", b"nosniff")])
+            # Preserve the negotiated wire representation. response.content
+            # transparently decompresses, undoing HOME's gzip before the WAN.
+            async with client.stream(method, url, headers=headers, content=bytes(body)) as response:
+                payload = b"" if method == "HEAD" else b"".join([part async for part in response.aiter_raw()])
+                output_headers = [(k.encode(), v.encode("latin1")) for k, v in response.headers.items()
+                                  if k.lower() in {"content-type", "cache-control", "location", "content-disposition", "content-security-policy", "x-frame-options", "referrer-policy", "content-encoding", "vary", "etag", "last-modified", "x-home-cache"}]
+                length = response.headers.get("content-length", "0") if method == "HEAD" else str(len(payload))
+                if response.status_code != 304:
+                    output_headers.append((b"content-length", length.encode()))
+                output_headers.append((b"x-content-type-options", b"nosniff"))
         await send({"type": "http.response.start", "status": response.status_code, "headers": output_headers})
         await send({"type": "http.response.body", "body": payload})
     except httpx.RequestError:

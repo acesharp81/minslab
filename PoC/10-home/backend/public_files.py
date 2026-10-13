@@ -132,14 +132,14 @@ def parse_legal_dongs(content,source):
     records=[];seen=set()
     for row in csv.DictReader(io.StringIO(text),delimiter='\t'):
         code,name,status=row.get('법정동코드',''),row.get('법정동명',''),row.get('폐지여부','')
-        if status!='존재' or code[:2] not in ('11','41') or code[5:]=='00000':continue
+        if status!='존재' or code[:2] not in source.get('region_prefixes',('11','41')) or code[5:]=='00000':continue
         if not re.fullmatch(r'\d{10}',code) or code in seen:raise ValueError('법정동 코드 형식·중복 오류')
         seen.add(code)
         payload=base(source,'legal_dong',name,name.split()[0],name)
         payload.update(source_object_id=code,sigungu_code=code[:5],bjdong_code=code[5:],
             code_status=status,stage_label='현존 법정동 · API 수집 범위',units=None,unit_basis='행정코드 · 공급 물량 아님')
-        records.append(('legal_dong',code,payload))
-    if len(records)<2000:raise ValueError('서울·경기 법정동 전체 파일 누락')
+        records.append((source.get('code_kind','legal_dong'),code,payload))
+    if len(records)<source.get('minimum_codes',2000):raise ValueError('요청 범위 법정동 전체 파일 누락')
     return records,dict(provided=len(records),fetched=len(records),complete_query=True,complete_population=False,
         region_counts={r:dict(matching_records=sum(x[2]['region']==r for x in records),fetched=sum(x[2]['region']==r for x in records),complete_query=True) for r in ('서울특별시','경기도')},
         scope_note='행정표준코드 전체 파일의 서울·경기 현존 동·읍·면·리. 전체 주택사업 확보와 구분')

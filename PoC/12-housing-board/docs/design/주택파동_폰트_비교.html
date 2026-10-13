@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주택파동 · 상황판 폰트 비교</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0A1030;--pn:#101A44;--line:#22305E;--ink:#E8EDFF;--sub:#9AA8D6;--acc:#FF8A65;--ok:#4ADE9E;--warn:#FFC24D;--bad:#FF6B88}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+main{max-width:1440px;margin:0 auto;padding:28px 28px 48px}
+h1{margin:0 0 4px;font-size:22px}
+.lead{margin:0 0 22px;color:var(--sub);font-size:13px}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.col{border:1px solid var(--line);border-radius:12px;background:var(--pn);padding:16px 18px;min-width:0}
+.col>h2{margin:0;font:700 14px/1.3 'Noto Sans KR',sans-serif;color:var(--acc)}
+.col>p{margin:4px 0 14px;font:400 12px/1.5 'Noto Sans KR',sans-serif;color:var(--sub);min-height:54px}
+.col>p b{color:var(--ink)}
+.stack{font-family:var(--f-body)}
+.disp{font-family:var(--f-disp);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+/* 각 칸의 글꼴 */
+.a{--f-body:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;--f-disp:'Do Hyeon','Noto Sans KR',sans-serif}
+.b{--f-body:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;--f-disp:'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.c{--f-body:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;--f-disp:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.b .disp,.c .disp{font-weight:700;letter-spacing:0}
+.sample{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:10px;background:rgba(255,255,255,.02)}
+.lbl{font:700 10.5px/1 'Noto Sans KR',sans-serif;color:var(--sub);letter-spacing:.06em;margin:0 0 8px}
+.ptitle{margin:0;font-size:22px;line-height:1.2;font-weight:400}
+.ptitle small{font:400 12px 'Noto Sans KR',sans-serif;color:var(--sub);margin-left:6px}
+.b .ptitle,.c .ptitle{font-weight:700;font-size:20px}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:358px}
+.trio>div{padding:8px 10px;border-radius:10px;min-width:0}
+.trio .l{font-size:12px}
+.trio .n{font-size:28px;line-height:1.1;white-space:nowrap}
+.trio small{font-family:'Noto Sans KR',sans-serif;font-size:11px;margin-left:2px;opacity:.8}
+.dir{display:block}
+.dir .t{font-size:11px;color:var(--sub)}
+.dir .m{font-size:22px;line-height:1.15}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) 70px 78px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+.srow .v{font-size:18px;text-align:right}
+.srow:last-child{border:0}
+.body{font-size:13px;color:var(--ink)}
+.body .sub{color:var(--sub);font-size:12px}
+.wts{display:flex;gap:16px;font-size:15px;margin-top:6px}
+table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11.5px;color:var(--sub);font-weight:700}
+.up{color:var(--warn)}
+.ok{color:var(--ok)}
+.note{margin-top:22px;font-size:12.5px;color:var(--sub);line-height:1.7}
+.note b{color:var(--ink)}
+@media(max-width:1360px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>상황판 폰트 비교 <span style="font-size:13px;color:var(--sub);font-weight:400">· 현재 상황판 · 지도 앱 · 지도 지정 글꼴로 통일</span></h1>
+  <p class="lead">같은 문구·같은 크기로 세 가지를 나란히 그렸습니다. 아래 표의 폭은 이 브라우저에서 실제로 잰 값입니다.</p>
+
+  <div class="cols">
+    <section class="col a">
+      <h2>A · 현재 상황판</h2>
+      <p><b>제목·큰 숫자</b> Do Hyeon(웹폰트) · <b>본문</b> Noto Sans KR 400/500/700(웹폰트)</p>
+      <div class="sample"><div class="lbl">카드 제목</div><h3 class="ptitle disp">월별 공급 파동 <small>· 연도별 총량</small></h3></div>
+      <div class="sample"><div class="lbl">정상·주의·지연 칸</div>
+        <div class="trio">
+          <div style="background:#2A1428"><div class="l" style="color:#FFB3C2">지연</div><div class="n disp" style="color:var(--bad)">10,000<small>호</small></div></div>
+          <div style="background:#2A2418"><div class="l" style="color:#FFE9A3">주의</div><div class="n disp" style="color:var(--warn)">18,000<small>호</small></div></div>
+          <div style="background:#10283A"><div class="l" style="color:#A8F0CE">정상</div><div class="n disp" style="color:var(--ok)">72,000<small>호</small></div></div>
+        </div></div>
+      <div class="sample"><div class="lbl">지시 칩</div><span class="dir"><span class="t">09.03 · 범부처 통합·병목</span><span class="m disp">병목 착공 4,100호</span></span></div>
+      <div class="sample"><div class="lbl">단계 행(우측 숫자 칸 78px)</div>
+        <div class="srow"><span class="body">착공 <span class="sub">· 병목</span></span><span class="sub">지연 5,160</span><span class="v disp">24,600</span></div>
+        <div class="srow"><span class="body">인허가</span><span class="sub">지연 2,840</span><span class="v disp">18,200</span></div></div>
+      <div class="sample"><div class="lbl">본문</div><div class="body">계획에서 입주까지, 대한민국 주택공급의 흐름을 한눈에<br><span class="sub">기준일 2026-10-07 · SAMPLE 시안 수치</span></div>
+        <div class="wts"><span style="font-weight:400">400 공급</span><span style="font-weight:500">500 공급</span><span style="font-weight:700">700 공급</span></div></div>
+    </section>
+
+    <section class="col b">
+      <h2>B · 지도 앱이 실제로 쓰는 글꼴</h2>
+      <p>지도는 <b>Noto Sans KR 을 지정만 하고 불러오지 않습니다.</b> 설치돼 있지 않으면 <b>Apple SD Gothic Neo(맥) / 맑은 고딕(윈도우)</b>로 그려집니다. 제목·숫자도 같은 글꼴의 굵은 글씨입니다.</p>
+      <div class="sample"><div class="lbl">카드 제목</div><h3 class="ptitle disp">월별 공급 파동 <small>· 연도별 총량</small></h3></div>
+      <div class="sample"><div class="lbl">정상·주의·지연 칸</div>
+        <div class="trio">
+          <div style="background:#2A1428"><div class="l" style="color:#FFB3C2">지연</div><div class="n disp" style="color:var(--bad)">10,000<small>호</small></div></div>
+          <div style="background:#2A2418"><div class="l" style="color:#FFE9A3">주의</div><div class="n disp" style="color:var(--warn)">18,000<small>호</small></div></div>
+          <div style="background:#10283A"><div class="l" style="color:#A8F0CE">정상</div><div class="n disp" style="color:var(--ok)">72,000<small>호</small></div></div>
+        </div></div>
+      <div class="sample"><div class="lbl">지시 칩</div><span class="dir"><span class="t">09.03 · 범부처 통합·병목</span><span class="m disp">병목 착공 4,100호</span></span></div>
+      <div class="sample"><div class="lbl">단계 행(우측 숫자 칸 78px)</div>
+        <div class="srow"><span class="body">착공 <span class="sub">· 병목</span></span><span class="sub">지연 5,160</span><span class="v disp">24,600</span></div>
+        <div class="srow"><span class="body">인허가</span><span class="sub">지연 2,840</span><span class="v disp">18,200</span></div></div>
+      <div class="sample"><div class="lbl">본문</div><div class="body">계획에서 입주까지, 대한민국 주택공급의 흐름을 한눈에<br><span class="sub">기준일 2026-10-07 · SAMPLE 시안 수치</span></div>
+        <div class="wts"><span style="font-weight:400">400 공급</span><span style="font-weight:500">500 공급</span><span style="font-weight:700">700 공급</span></div></div>
+    </section>
+
+    <section class="col c">
+      <h2>C · Noto Sans KR 한 가지로 통일</h2>
+      <p>지도가 <b>의도한 글꼴</b>(Noto Sans KR)을 웹폰트로 불러와 제목·숫자·본문에 모두 씁니다. 로고 글자도 Noto Sans KR 을 바탕으로 한 것이라 서로 맞습니다.</p>
+      <div class="sample"><div class="lbl">카드 제목</div><h3 class="ptitle disp">월별 공급 파동 <small>· 연도별 총량</small></h3></div>
+      <div class="sample"><div class="lbl">정상·주의·지연 칸</div>
+        <div class="trio">
+          <div style="background:#2A1428"><div class="l" style="color:#FFB3C2">지연</div><div class="n disp" style="color:var(--bad)">10,000<small>호</small></div></div>
+          <div style="background:#2A2418"><div class="l" style="color:#FFE9A3">주의</div><div class="n disp" style="color:var(--warn)">18,000<small>호</small></div></div>
+          <div style="background:#10283A"><div class="l" style="color:#A8F0CE">정상</div><div class="n disp" style="color:var(--ok)">72,000<small>호</small></div></div>
+        </div></div>
+      <div class="sample"><div class="lbl">지시 칩</div><span class="dir"><span class="t">09.03 · 범부처 통합·병목</span><span class="m disp">병목 착공 4,100호</span></span></div>
+      <div class="sample"><div class="lbl">단계 행(우측 숫자 칸 78px)</div>
+        <div class="srow"><span class="body">착공 <span class="sub">· 병목</span></span><span class="sub">지연 5,160</span><span class="v disp">24,600</span></div>
+        <div class="srow"><span class="body">인허가</span><span class="sub">지연 2,840</span><span class="v disp">18,200</span></div></div>
+      <div class="sample"><div class="lbl">본문</div><div class="body">계획에서 입주까지, 대한민국 주택공급의 흐름을 한눈에<br><span class="sub">기준일 2026-10-07 · SAMPLE 시안 수치</span></div>
+        <div class="wts"><span style="font-weight:400">400 공급</span><span style="font-weight:500">500 공급</span><span style="font-weight:700">700 공급</span></div></div>
+    </section>
+  </div>
+
+  <table id="wt" aria-label="글꼴별 폭 비교">
+    <thead><tr><th>문구 (상황판에서 쓰는 크기)</th><th>A 현재</th><th>B 지도(시스템)</th><th>C Noto Sans KR</th><th>C ÷ A</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <p class="note" id="env"></p>
+</main>
+<script>
+(function () {
+  var F = {
+    A: "'Do Hyeon','Noto Sans KR',sans-serif",
+    B: "'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+    C: "'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
+  };
+  // [문구, 글자 크기, A 굵기, B·C 굵기]
+  var ROWS = [
+    ['10,000', 28, 400, 700], ['72,000', 28, 400, 700], ['24,600', 18, 400, 700],
+    ['병목 착공 4,100호', 22, 400, 700], ['월별 공급 파동', 22, 400, 700], ['지연·주의 추이', 22, 400, 700]
+  ];
+  function width(txt, fam, size, wt) {
+    var s = document.createElement('span');
+    s.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:' + fam + ';font-size:' + size + 'px;font-weight:' + wt;
+    s.textContent = txt; document.body.appendChild(s);
+    var w = s.getBoundingClientRect().width; s.remove(); return w;
+  }
+  function run() {
+    var tb = document.querySelector('#wt tbody'), out = [];
+    ROWS.forEach(function (r) {
+      var a = width(r[0], F.A, r[1], r[2]), b = width(r[0], F.B, r[1], r[3]), c = width(r[0], F.C, r[1], r[3]);
+      out.push(r[0] + ' a=' + a.toFixed(1) + ' b=' + b.toFixed(1) + ' c=' + c.toFixed(1));
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r[0] + ' <span style="color:var(--sub)">· ' + r[1] + 'px</span></td><td>' + a.toFixed(1) + 'px</td><td>' + b.toFixed(1) + 'px</td><td>' + c.toFixed(1) + 'px</td><td class="' + (c / a > 1.15 ? 'up' : 'ok') + '">×' + (c / a).toFixed(2) + '</td>';
+      tb.appendChild(tr);
+    });
+    var chk = function (f) { return document.fonts.check('16px ' + f); };
+    document.getElementById('env').innerHTML =
+      '<b>이 브라우저에서</b> Do Hyeon ' + (document.fonts.check("16px 'Do Hyeon'") ? '불러옴' : '없음') +
+      ' · Noto Sans KR ' + (document.fonts.check("700 16px 'Noto Sans KR'") ? '불러옴' : '없음') +
+      '<br>B 열은 설치된 시스템 글꼴 그대로입니다(맥 Apple SD Gothic Neo, 윈도우 맑은 고딕). 사용하는 기기마다 모양과 폭이 조금씩 다릅니다.';
+    document.title = document.title + ' |' + out.join(' ; ');
+  }
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
+    Promise.all([document.fonts.load("400 28px 'Do Hyeon'"), document.fonts.load("400 14px 'Noto Sans KR'"), document.fonts.load("700 14px 'Noto Sans KR'")]).then(run, run);
+  });
+})();
+</script>
+</body>
+</html>

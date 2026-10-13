@@ -10,6 +10,7 @@ from backend.app import create_app
 from backend.db import Base, Mapping, upsert_revision
 from backend.service import HomeService, today
 from backend.supply_dashboard import block_key, build_dashboard, inventory, linked_notices, market_notices, quantities
+from backend.supply_geography import municipal_membership
 
 
 def project(id="P", **extra):
@@ -19,6 +20,29 @@ def project(id="P", **extra):
 
 
 class SupplyTests(unittest.TestCase):
+    def test_incheon_source_names_resolve_without_guessing_legacy_boundaries(self):
+        boundaries=[dict(id='GY',name='계양구',region='인천광역시'),
+                    dict(id='SH',name='서해구',region='인천광역시')]
+        rows=[dict(project('A'),name='인천계양 A17',region='인천광역시',municipality='서울 (구 확인 필요)'),
+              dict(project('B'),name='인천서구(석남어울림) 1',region='인천광역시')]
+        self.assertEqual(municipal_membership(rows,boundaries,[],block_key),{'A':'GY'})
+
+    def test_incheon_is_in_main_groups_and_uses_same_lh_inventory_rules(self):
+        sale={**project('IC_SALE'), 'source_id':'lh_incheon_sale', 'name':'인천계양 A17',
+              'district':'인천계양', 'block':'A17', 'region':'인천광역시', 'municipality':'계양구'}
+        construction={**sale,'id':'IC_BUILD','source_id':'lh_incheon_construction'}
+        boundary={'id':'IC_GY','name':'계양구','region':'인천광역시',
+                  'longitude':126.73,'latitude':37.54,'district_names':['인천계양']}
+        notice={'id':'IC_NOTICE','name':'인천계양 A17블록 공공분양주택',
+                'region':'인천광역시','units':95,'developer':'한국토지주택공사','source_date':'2026-07-01'}
+        data=build_dashboard([sale,construction],[],[],[],[],[notice],[],date(2026,10,12),2018,municipalities=[boundary])
+        group=next(r for r in data['groups']['region'] if r['id']=='인천광역시')
+        self.assertEqual(group['target_units'],100)
+        self.assertEqual(group['current_notice_units'],95)
+        self.assertEqual(data['municipalities'][0]['project_ids'],['IC_SALE','IC_BUILD'])
+        filtered=build_dashboard([sale,construction],[],[],[],[],[],[],date(2026,10,12),2018,source_id='lh_incheon_sale')
+        self.assertEqual([r['id'] for r in filtered['items']],['IC_SALE'])
+
     def test_notice_links_require_provider_exact_district_block_and_tenure(self):
         row={**project(),'source_id':'lh_sale'}
         notice={'id':'N','name':'고양창릉지구 A-01블록 공공분양주택(본청약)','region':'경기도',
@@ -59,9 +83,11 @@ class SupplyTests(unittest.TestCase):
         row=project(rows=[{'units':100,'move_in_month':'2027-03'}])
         notice={'id':'N','name':'고양창릉 A1블록 공공임대주택 본청약','region':'경기도','units':95,
                 'developer':'한국토지주택공사','source_date':'2026-07-01','move_in_plan_month':'202805'}
-        data=build_dashboard([row],[],[],[],[],[notice],[],date(2026,10,3),2018,horizon=3)
+        data=build_dashboard([row],[],[],[],[],[notice],[],date(2026,10,3),2018,horizon=3,measure='MOVE_IN')
         self.assertIsNone(data['summary']['future'][0]['source_units'])
-        self.assertEqual(data['summary']['future'][1]['source_units'],95)
+        self.assertIsNone(data['summary']['future'][1]['source_units'])
+        self.assertEqual(data['summary']['future'][1]['start_date'],'2028-05')
+        self.assertEqual(data['items'][0]['move_in_start']['date'],'2028-05')
         event=data['items'][0]['annual'][2]['events'][0]
         self.assertIn('모집공고',event['basis'])
         self.assertFalse(event['actual_verified'])
@@ -70,8 +96,9 @@ class SupplyTests(unittest.TestCase):
         row=project(rows=[{'units':100,'move_in_month':'2027-03'}])
         notice={'id':'N','name':'고양창릉 A1블록 공공임대주택 본청약','region':'경기도','units':95,
                 'developer':'한국토지주택공사','source_date':'2025-07-01','move_in_plan_month':'202805'}
-        data=build_dashboard([row],[],[],[],[],[notice],[],date(2026,10,3),2018,horizon=3)
-        self.assertEqual(data['summary']['future'][0]['source_units'],100)
+        data=build_dashboard([row],[],[],[],[],[notice],[],date(2026,10,3),2018,horizon=3,measure='MOVE_IN')
+        self.assertIsNone(data['summary']['future'][0]['source_units'])
+        self.assertEqual(data['summary']['future'][0]['start_date'],'2027-03')
         self.assertEqual(data['summary']['current_notice_units'],95)
 
     def test_supply_completion_and_move_in_are_not_combined(self):
@@ -83,7 +110,9 @@ class SupplyTests(unittest.TestCase):
         q=quantities([rent,contract],{},date(2026,10,2),3,"MOVE_IN")
         self.assertEqual(q['target_units'],100)
         self.assertEqual(q['target_excluded_projects'],1)
-        self.assertEqual([r['source_units'] for r in q['future']],[60,100,100])
+        self.assertEqual([r['source_units'] for r in q['future']],[None,None,None])
+        self.assertEqual([r['start_date'] for r in q['future']],['2027-05','2027-05','2027-05'])
+        self.assertEqual(q['projection']['future'][0]['status'],'DATE_ONLY')
         self.assertIsNone(q['current_units'])
         self.assertEqual(quantities([rent,contract],{},date(2026,10,2),3,"COMPLETION")['future'][0]['source_units'],110)
         self.assertEqual(quantities([rent,contract],{},date(2026,10,2),3,"SUPPLY")['future'][0]['source_units'],100)
@@ -93,8 +122,9 @@ class SupplyTests(unittest.TestCase):
         plans={'P':{'targets':[{'year':2027,'stage':'MOVE_IN','units':80}]}}
         q=quantities([row],plans,date(2026,10,2),2,"MOVE_IN")
         self.assertIsNone(q['future'][0]['source_units'])
-        self.assertEqual(q['future'][0]['manual_units'],80)
-        self.assertEqual(q['future'][0]['units_missing_events'],1)
+        self.assertIsNone(q['future'][0]['manual_units'])
+        self.assertEqual(q['future'][0]['start_date'],'2027-03')
+        self.assertEqual(q['future'][0]['units_missing_events'],0)
         self.assertIsNone(quantities([project()],{},date(2026,10,2),2,"MOVE_IN")['future'][0]['source_units'])
 
     def test_ambiguous_plan_blocks_and_multisite_contracts_are_excluded(self):
@@ -126,9 +156,10 @@ class SupplyTests(unittest.TestCase):
         a=project('A',rows=[{'units':100,'move_in_month':'2027-03'}])
         b={**project('B'),'source_id':'lh_construction','program':'공공주택 건설','district':'고양창릉','block':'A1','planned_units':110,
            'completion_plan_date':'2027-01-01'}
-        data=build_dashboard([a,b],[],[],[],[],[],[],date(2026,10,2),2018,2026,3)
+        data=build_dashboard([a,b],[],[],[],[],[],[],date(2026,10,2),2018,2026,3,'MOVE_IN')
         self.assertEqual(sum(row['target_units'] or 0 for row in data['groups']['program']),data['summary']['target_units'])
-        self.assertEqual(sum(row['future'][0]['source_units'] or 0 for row in data['groups']['program']),100)
+        self.assertTrue(all(row['future'][0]['source_units'] is None for row in data['groups']['program']))
+        self.assertEqual(data['summary']['future'][0]['start_date'],'2027-03')
 
     def test_notice_amendments_deduplicate_and_do_not_become_actual_supply(self):
         notices=[dict(id='1',house_manage_no='X',region='경기도',source_date='2025-01-01',units=100,move_in_plan_month='202703'),
@@ -136,8 +167,8 @@ class SupplyTests(unittest.TestCase):
                  dict(id='3',house_manage_no='Y',region='서울특별시',source_date='2026-12-01',units=70,move_in_plan_month='202703')]
         q=market_notices(notices,date(2026,10,2),3,'경기도')
         self.assertEqual(q['notice_count'],1);self.assertEqual(q['announced_units'],80)
-        self.assertIsNone(q['future_move_in'][0]['units'])
-        self.assertEqual(q['future_move_in'][1]['units'],80)
+        self.assertIsNone(q['future_move_in'][0]['start_date'])
+        self.assertEqual(q['future_move_in'][1]['start_date'],'2028-05')
         old=market_notices(notices,date(2025,12,31),3,'경기도')
         self.assertEqual(old['announced_units'],100)
 

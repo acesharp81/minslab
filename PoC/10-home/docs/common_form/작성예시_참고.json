@@ -1,0 +1,32 @@
+{
+  "note": "이 파일은 설명 예시이며 제출할 데이터가 아닙니다.",
+  "source": {
+    "source_ref": "WAVE-SRC-01",
+    "source_owner": "HOUSING_WAVE",
+    "provider": "LH",
+    "dataset_name": "2026 임대주택 공급계획",
+    "collected_at": "2026-10-06"
+  },
+  "project": {
+    "local_project_id": "WAVE-PRJ-001",
+    "project_name": "오산세교2 A11",
+    "project_unit": "BLOCK",
+    "parent_area_name": "오산세교2",
+    "block_name": "A11",
+    "region": "경기",
+    "organization": "LH",
+    "public_scope": "PUBLIC",
+    "is_demo": false,
+    "source_ref": "WAVE-SRC-01"
+  },
+  "unit": {
+    "local_project_id": "WAVE-PRJ-001",
+    "quantity_type": "SUPPLY_PLAN",
+    "housing_type": "6년 공공임대주택",
+    "unit_count": 399,
+    "reference_period": "2026-08",
+    "unit_scope": "SUBTYPE",
+    "source_ref": "WAVE-SRC-01",
+    "review_status": "CONFIRMED"
+  }
+}

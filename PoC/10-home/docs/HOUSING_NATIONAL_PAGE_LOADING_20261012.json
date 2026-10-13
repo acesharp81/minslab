@@ -1,0 +1,274 @@
+{
+  "date": "2026-10-12",
+  "method": "Public HTTPS, same headless Chromium / SwiftShader, 1440x1000, navigation to first .d907-chart; one observed run each, not an SLA or p95",
+  "before": {
+    "firstChartMs": 30746,
+    "resources": [
+      {
+        "url": "/poc/home/api/samples?as_of_date=2026-10-12&page=1&page_size=100",
+        "ms": 23438,
+        "bytes": 123022
+      },
+      {
+        "url": "/poc/home/api/overview?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 15709,
+        "bytes": 2091
+      },
+      {
+        "url": "/poc/home/api/policy-delivery?compact=true&as_of_date=2026-10-12",
+        "ms": 4411,
+        "bytes": 2555041
+      },
+      {
+        "url": "/poc/home/api/policy-geo/metrics?as_of_date=2026-10-12&analysis_year=2026&measure=COMPLETION",
+        "ms": 4049,
+        "bytes": 1322126
+      },
+      {
+        "url": "/poc/home/api/policy-geo/schematic?as_of_date=2026-10-12",
+        "ms": 4048,
+        "bytes": 106654
+      },
+      {
+        "url": "/poc/home/api/policy-geo/metrics?as_of_date=2026-10-12&analysis_year=2026&measure=SUPPLY",
+        "ms": 4032,
+        "bytes": 1319019
+      },
+      {
+        "url": "/poc/home/api/identity-reviews?page=1&page_size=20",
+        "ms": 3355,
+        "bytes": 11506
+      },
+      {
+        "url": "/poc/home/api/identity-options",
+        "ms": 3319,
+        "bytes": 30893
+      },
+      {
+        "url": "/poc/home/api/plans",
+        "ms": 3294,
+        "bytes": 1705
+      },
+      {
+        "url": "/poc/home/api/connections",
+        "ms": 3275,
+        "bytes": 307292
+      },
+      {
+        "url": "/poc/home/api/identities?page_size=1",
+        "ms": 3274,
+        "bytes": 767
+      },
+      {
+        "url": "/poc/home/api/map/dashboard?as_of_date=2026-10-12&policy_id=POL_2025_0907&horizon=10&measure=SUPPLY&schedule_status=all",
+        "ms": 3239,
+        "bytes": 7793128
+      },
+      {
+        "url": "/poc/home/api/mappings?as_of_date=2026-10-12",
+        "ms": 3194,
+        "bytes": 755153
+      },
+      {
+        "url": "/poc/home/api/map?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 3134,
+        "bytes": 196137
+      },
+      {
+        "url": "/poc/home/api/validation?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 2329,
+        "bytes": 131468
+      },
+      {
+        "url": "/poc/home/api/policy-monitor?as_of_date=2026-10-12",
+        "ms": 1963,
+        "bytes": 373628
+      },
+      {
+        "url": "/poc/home/api/map?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 1462,
+        "bytes": 196137
+      },
+      {
+        "url": "/poc/home/api/area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+        "ms": 1373,
+        "bytes": 3641
+      },
+      {
+        "url": "/poc/home/api/history?as_of_date=2026-10-12&policy_id=POL_2025_0907&page=1",
+        "ms": 1277,
+        "bytes": 402306
+      },
+      {
+        "url": "/poc/home/api/history?as_of_date=2026-10-12&policy_id=POL_2025_0907&page=1",
+        "ms": 1197,
+        "bytes": 402306
+      },
+      {
+        "url": "/poc/home/api/roadmap?as_of_date=2026-10-12&policy_id=POL_2025_0907&horizon=10",
+        "ms": 1048,
+        "bytes": 369423
+      },
+      {
+        "url": "/poc/home/api/area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+        "ms": 985,
+        "bytes": 3571
+      },
+      {
+        "url": "/poc/home/api/roadmap?as_of_date=2026-10-12&policy_id=POL_2025_0907&horizon=10",
+        "ms": 857,
+        "bytes": 369423
+      },
+      {
+        "url": "/poc/home/api/projects?as_of_date=2026-10-12&policy_id=POL_2025_0907&page=1&page_size=25",
+        "ms": 783,
+        "bytes": 60876
+      },
+      {
+        "url": "/poc/home/api/tree?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 643,
+        "bytes": 425149
+      },
+      {
+        "url": "/poc/home/api/sources",
+        "ms": 554,
+        "bytes": 1137691
+      },
+      {
+        "url": "/poc/home/api/projects?as_of_date=2026-10-12&policy_id=POL_2025_0907&page=1&page_size=25",
+        "ms": 548,
+        "bytes": 60876
+      },
+      {
+        "url": "/poc/home/api/tree?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 504,
+        "bytes": 425149
+      },
+      {
+        "url": "/poc/home/api/sources",
+        "ms": 400,
+        "bytes": 1130571
+      },
+      {
+        "url": "/poc/home/api/area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+        "ms": 273,
+        "bytes": 16615
+      },
+      {
+        "url": "/poc/home/api/area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+        "ms": 272,
+        "bytes": 15675
+      },
+      {
+        "url": "/poc/home/api/policies?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 267,
+        "bytes": 5505
+      },
+      {
+        "url": "/poc/home/api/sources",
+        "ms": 250,
+        "bytes": 1130571
+      },
+      {
+        "url": "/poc/home/api/policies?as_of_date=2026-10-12&policy_id=POL_2025_0907",
+        "ms": 227,
+        "bytes": 5505
+      },
+      {
+        "url": "/poc/home/api/programs/PRG_3bf413f44de7e85afab8e73b/history?as_of_date=2026-10-12",
+        "ms": 182,
+        "bytes": 670
+      },
+      {
+        "url": "/poc/home/api/execution?as_of_date=2026-10-12",
+        "ms": 150,
+        "bytes": 195
+      },
+      {
+        "url": "/poc/home/api/policies",
+        "ms": 91,
+        "bytes": 5505
+      },
+      {
+        "url": "/poc/home/api/admin/status",
+        "ms": 81,
+        "bytes": 23
+      }
+    ]
+  },
+  "after": {
+    "firstChartMs": 6637,
+    "resources": [
+      {
+        "url": "/poc/home/api/policy-delivery?compact=true&as_of_date=2026-10-12",
+        "ms": 4253,
+        "bytes": 2555128
+      },
+      {
+        "url": "/poc/home/api/area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+        "ms": 1263,
+        "bytes": 3641
+      },
+      {
+        "url": "/poc/home/api/policy-geo/metrics?as_of_date=2026-10-12&analysis_year=2026&measure=SUPPLY",
+        "ms": 1130,
+        "bytes": 1319019
+      },
+      {
+        "url": "/poc/home/api/area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+        "ms": 937,
+        "bytes": 3571
+      },
+      {
+        "url": "/poc/home/api/policy-monitor?as_of_date=2026-10-12",
+        "ms": 674,
+        "bytes": 373628
+      },
+      {
+        "url": "/poc/home/api/mappings?as_of_date=2026-10-12",
+        "ms": 343,
+        "bytes": 755153
+      },
+      {
+        "url": "/poc/home/api/sources",
+        "ms": 238,
+        "bytes": 1137691
+      },
+      {
+        "url": "/poc/home/api/sources",
+        "ms": 192,
+        "bytes": 1137691
+      },
+      {
+        "url": "/poc/home/api/execution?as_of_date=2026-10-12",
+        "ms": 182,
+        "bytes": 195
+      },
+      {
+        "url": "/poc/home/api/area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+        "ms": 173,
+        "bytes": 15675
+      },
+      {
+        "url": "/poc/home/api/area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+        "ms": 162,
+        "bytes": 16615
+      },
+      {
+        "url": "/poc/home/api/policies",
+        "ms": 102,
+        "bytes": 5505
+      },
+      {
+        "url": "/poc/home/api/admin/status",
+        "ms": 84,
+        "bytes": 23
+      },
+      {
+        "url": "/poc/home/api/programs/PRG_3bf413f44de7e85afab8e73b/history?as_of_date=2026-10-12",
+        "ms": 64,
+        "bytes": 670
+      }
+    ]
+  }
+}

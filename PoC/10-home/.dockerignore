@@ -5,3 +5,7 @@ data
 tests
 docs
 __pycache__
+
+# Local audit artifacts: publication has not been approved.
+web/assets/reports/SEOUL_INCHEON_SCOPE_AUDIT_20261013.html
+web/assets/reports/SEOUL_INCHEON_SCOPE_AUDIT_20261013.json

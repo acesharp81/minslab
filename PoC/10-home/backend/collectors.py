@@ -15,8 +15,8 @@ from bs4 import BeautifulSoup
 
 from .sources import POLICIES
 
-PARSER_VERSION = "home-collection-1.5"
-ALLOWED_HOSTS = {"bizmap.lh.or.kr", "apply.lh.or.kr", "www.lh.or.kr", "lh.or.kr", "www.korea.kr", "m.korea.kr", "d.nts.go.kr", "api.odcloud.kr", "infuser.odcloud.kr", "apis.data.go.kr", "api.vworld.kr", "stat.molit.go.kr", "www.gh.or.kr", "gh.or.kr", "data.seoul.go.kr", "datafile.seoul.go.kr", "www.data.go.kr", "www.code.go.kr", "sgisapi.mods.go.kr", "kosis.kr"}
+PARSER_VERSION = "home-collection-1.6"
+ALLOWED_HOSTS = {"cleanup.seoul.go.kr", "cis.seoul.go.kr", "www.i-sh.co.kr", "openapi.seoul.go.kr", "bizmap.lh.or.kr", "apply.lh.or.kr", "www.lh.or.kr", "lh.or.kr", "www.korea.kr", "m.korea.kr", "d.nts.go.kr", "api.odcloud.kr", "infuser.odcloud.kr", "apis.data.go.kr", "api.vworld.kr", "stat.molit.go.kr", "www.gh.or.kr", "gh.or.kr", "apply.gh.or.kr", "apply-cdn.gh.or.kr", "data.seoul.go.kr", "datafile.seoul.go.kr", "www.data.go.kr", "www.code.go.kr", "event.seoul.go.kr", "www.molit.go.kr", "sgisapi.mods.go.kr", "kosis.kr", "www.index.go.kr", "index.go.kr"}
 SECRET_PARAMS = {"key", "servicekey", "apikey", "authkey", "access_token", "accesstoken", "consumer_key", "consumer_secret", "authorization"}
 GYEONGGI_CITIES = "수원 성남 의정부 안양 부천 광명 평택 동두천 안산 고양 과천 구리 남양주 오산 시흥 군포 의왕 하남 용인 파주 이천 안성 김포 화성 광주 양주 포천 여주 연천 가평 양평".split()
 
@@ -46,10 +46,9 @@ def date_iso(value):
 
 
 def month_iso(value):
-    match = re.search(r"(20\d{2})\D*(\d{1,2})\s*월", clean(value))
-    if match:
-        return f"{match[1]}-{int(match[2]):02d}"
-    return None
+    from .schedule_period import schedule_period
+    period=schedule_period(value)
+    return period['month'] if period else None
 
 
 class Fetcher:
@@ -87,9 +86,10 @@ class Fetcher:
                 if len(response.content) < (2 if suffix == 'json' else 100):
                     raise ValueError("원천 응답이 비었거나 차단됨")
                 break
-            except (httpx.RequestError, httpx.HTTPStatusError):
+            except (httpx.RequestError, httpx.HTTPStatusError) as error:
                 if attempt == 2:
-                    raise RuntimeError("공식 원천 연결 실패 (timeout/HTTP 오류)") from None
+                    detail = "HTTP " + str(error.response.status_code) if isinstance(error, httpx.HTTPStatusError) else type(error).__name__
+                    raise RuntimeError("공식 원천 연결 실패 (" + detail + ")") from None
                 time.sleep(attempt + 1)
         data = response.content
         # Preserve API data after removing credentials, including echoed errors.
@@ -138,7 +138,8 @@ def parse_lh_plan(html, rent=False):
             total = integer(total)
         rows.append({"region": region, "tenure": tenure, "name": name, "area": area,
                      "total_units": total, "units": integer(units), "supply_month": month_iso(supply),
-                     "move_in_month": month_iso(move), "org": org, "note": note})
+                     "move_in_month": month_iso(move), "supply_raw": supply, "move_in_raw": move,
+                     "supply_field_present": True, "move_in_field_present": rent, "org": org, "note": note})
     if not rows:
         raise ValueError("LH 공급계획 행이 없음: 기존 정상 snapshot 유지")
     total_box = soup.select_one(".bbs_total")
@@ -146,6 +147,18 @@ def parse_lh_plan(html, rent=False):
     if not match:
         raise ValueError("LH pagination 총건수 미확인")
     return int(year_match[1]), int(match[1].replace(",", "")), rows
+
+
+def lh_plan_site(name, region):
+    """Extract a single published block suffix without guessing multi-block sites."""
+    match = re.fullmatch(r'(.+?)\s+([A-Za-z]{1,3}-?\d+(?:-\d+)?(?:BL)?)', clean(name), re.I)
+    if not match:
+        return {}
+    district, block = match.groups()
+    city = next((label + '시' for label in GYEONGGI_CITIES
+                 if region == '경기도' and district.startswith(label)), None)
+    return {'district': district, 'block': block, 'municipality': city,
+            'location_name_basis': 'LH_SUPPLY_PLAN_SINGLE_BLOCK_SUFFIX'}
 
 
 def collect_lh_plan(source, fetcher):
@@ -167,7 +180,7 @@ def collect_lh_plan(source, fetcher):
     groups = defaultdict(list)
     excluded = 0
     for row in all_rows:
-        if row["region"] not in {"서울특별시", "경기도"}:
+        if row["region"] not in set(source.get('regions', ['서울특별시', '경기도'])):
             excluded += 1
             continue
         if any(term in row["tenure"] for term in ("매입", "전세")):
@@ -191,6 +204,7 @@ def collect_lh_plan(source, fetcher):
         if planned is not None and supply_units is not None and supply_units > planned:
             warnings.append("SUPPLY_EXCEEDS_TOTAL")
         program = "건설형 공공임대" if rent else "3기 신도시" if any(x in key[2] for x in ("왕숙", "창릉", "교산", "대장")) else "공공택지·공공분양"
+        site = lh_plan_site(key[2], key[0])
         payload = {"name": key[2], "region": key[0], "municipality": "지역 상세 확인 필요", "program": program,
                    "tenure": key[1], "planned_units": planned, "supply_units": supply_units, "rows": rows,
                    "stage": "PLANNED_SUPPLY", "stage_label": "공급계획", "base_date": f"{year}-01-01", "date_precision": "YEAR",
@@ -198,11 +212,14 @@ def collect_lh_plan(source, fetcher):
                    "schedule_basis": "모집/공급 예정월", "progress_pct": None, "developer": "LH", "warnings": warnings,
                    "proposed_policy": "POL_2025_0907", "mapping_basis": "LH 공급계획에서 발견한 정책 후보. 개별 정책 귀속은 담당자 확인 필요",
                    "evidence_url": source["url"], "availability": "PUBLIC", "unit_basis": "공급계획 총세대수" if totals else "임대 공급계획 호수"}
+        payload.update({field: value for field, value in site.items() if value is not None})
+        if not site and re.search(r'[A-Za-z]{1,3}-?\d+\s*,\s*[A-Za-z]{1,3}-?\d+', key[2]):
+            payload['warnings'].append('MULTI_BLOCK_NAME_NOT_LOCATED')
         records.append(("project", "|".join(key), payload))
     return records, {"raw_rows": total, "excluded_rows": excluded, "included_rows": total - excluded, "provided":total, "fetched":len(all_rows), "pages":page, "complete_query":True, "complete_population":False, "source_base_date":str(year)}
 
 
-def parse_construction(data, base_date):
+def parse_construction(data, base_date, include_incheon=False):
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         root = ET.fromstring(archive.read("word/document.xml"))
@@ -213,7 +230,9 @@ def parse_construction(data, base_date):
             continue
         org, team, trade, block, district, site, contractor, amount, units, unit, start, end, pct = values
         city = next((c for c in GYEONGGI_CITIES if district.startswith(c)), None)
-        region = "경기도" if city else "서울특별시" if district.startswith("서울") else None
+        region = "경기도" if city else "서울특별시" if district.startswith("서울") else '인천광역시' if include_incheon and district.startswith('인천') else None
+        if include_incheon and region != '인천광역시':
+            continue
         if not region:
             # The HQ is not a geographic boundary: 위례 etc must be reviewed separately.
             skipped += 1
@@ -251,7 +270,7 @@ def collect_construction(source, fetcher):
         raise ValueError("LH 공사 현황 DOCX 링크를 찾지 못함")
     latest, url = max(files)
     base = f"{latest[:4]}-{latest[4:6]}-{latest[6:8]}"
-    records, stats = parse_construction(fetcher.get(url, "docx"), base)
+    records, stats = parse_construction(fetcher.get(url, "docx"), base, source.get('include_incheon', False))
     for _, _, payload in records:
         payload["evidence_url"] = url
     stats["source_base_date"] = base
@@ -354,4 +373,9 @@ def collect(source, fetcher):
         keys={key for kind,key,_ in records if kind=='project'}
         if keys.intersection(key for _,key,_ in extra):raise ValueError('정책 본문·별첨 사업 중복: 기존 데이터 유지')
         records.extend(extra);stats.update(metadata,named_projects=sum(kind=='project' for kind,_,_ in records))
+    if source['id'] in ('policy_907', 'policy_129'):
+        from .policy_project_registry import supplement_records
+        records = supplement_records(source['id'], records)
+        stats['named_projects'] = sum(kind == 'project' for kind, _, _ in records)
+        stats['registry_scope'] = '공식 문서 명시 사업 보완 · 정책 귀속/기간별 산입량 검토 대상 · 전체 사업 전수 아님'
     return records, stats

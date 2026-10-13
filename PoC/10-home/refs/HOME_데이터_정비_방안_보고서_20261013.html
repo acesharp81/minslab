@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>HOME 데이터 정비 방안 | 정책과 사업을 연결하는 공통 식별체계</title>
+<style>
+:root{--navy:#102d50;--navy2:#173f69;--blue:#1b65b3;--sky:#edf5fd;--ice:#f6f9fd;--cyan:#49a8d3;--teal:#147d79;--emerald:#23745c;--orange:#bc6e2c;--red:#a9494c;--text:#23354b;--muted:#60738b;--line:#d9e4ef;--white:#fff;--shadow:0 10px 32px rgba(16,49,84,.065);--radius:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f0f5f9;color:var(--text);font:15px/1.77 -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;letter-spacing:-.018em}button{font:inherit;cursor:pointer}a{color:#176bb2;text-decoration:none}a:hover{text-decoration:underline}strong{font-weight:800}p{margin:0 0 12px}h1,h2,h3,h4{line-height:1.35;letter-spacing:-.045em}h2{font-size:27px;color:var(--navy);margin:0 0 14px}h3{font-size:19px;color:#173e65;margin:0 0 12px}h4{font-size:15px;margin:0 0 9px;color:var(--navy)}.shell{max-width:1580px;margin:auto;display:grid;grid-template-columns:225px minmax(0,1fr);gap:24px;padding:26px 26px 70px}.sidebar{position:sticky;top:20px;align-self:start;max-height:calc(100vh - 40px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow);padding:20px 13px 16px}.side-logo{padding:0 10px 14px;margin-bottom:11px;border-bottom:1px solid var(--line);font-weight:900;font-size:18px;color:var(--navy)}.side-logo small{display:block;color:#6b849a;font-size:10px;font-weight:700;letter-spacing:.13em}.nav a{display:block;padding:9px 11px;font-size:12px;color:#47617b;border-radius:9px;font-weight:650;line-height:1.5}.nav a:hover,.nav a:focus{background:#e9f2fc;color:#0a5eaa;text-decoration:none}.side-foot{font-size:11px;padding:14px 10px 0;margin-top:12px;border-top:1px solid var(--line);color:#72869a}.main{min-width:0}.cover{border-radius:23px;padding:44px 48px 35px;background:linear-gradient(111deg,#102d50 0%,#17507f 62%,#207d9a 100%);color:white;position:relative;overflow:hidden;box-shadow:0 14px 46px rgba(18,58,98,.18)}.cover:before,.cover:after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.14);width:470px;height:470px;right:-140px;top:-235px;box-shadow:0 0 0 58px rgba(255,255,255,.025),0 0 0 118px rgba(255,255,255,.022)}.cover:after{width:240px;height:240px;top:auto;bottom:-175px;right:22%;box-shadow:0 0 0 28px rgba(255,255,255,.025)}.cover-content{position:relative;z-index:1}.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:850;text-transform:uppercase;color:#a9d7ef;margin-bottom:20px}.cover h1{font-size:46px;letter-spacing:-.065em;line-height:1.22;margin:0 0 17px}.cover .lead{font-size:18px;color:#e3eef9;max-width:830px;line-height:1.75}.cover-meta{display:flex;gap:11px;flex-wrap:wrap;margin-top:30px}.pill{display:inline-block;border:1px solid rgba(255,255,255,.25);border-radius:100px;background:rgba(255,255,255,.09);color:#f6fbff;font-size:12px;padding:7px 13px;font-weight:700}.cover-lower{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-top:32px;border-top:1px solid rgba(255,255,255,.18);padding-top:24px}.cover-lower .linehead{font-weight:850;font-size:12px;color:#9fe0ff;margin-bottom:8px}.cover-lower div{font-size:13px;color:#e2edf9;line-height:1.65}.content-section{background:#fff;border:1px solid var(--line);border-radius:19px;box-shadow:var(--shadow);margin-top:18px;padding:31px 34px 35px;scroll-margin-top:18px}.section-tag{font-weight:850;font-size:11px;letter-spacing:.14em;color:#2373ae;margin-bottom:9px}.intro{font-size:15px;color:#506a82;margin-bottom:20px}.muted{color:var(--muted)}.small{font-size:12px}.xs{font-size:11px}.strong{font-weight:800}.highlight{font-weight:900;color:#145a9a}.rule{height:1px;background:var(--line);margin:21px 0}.cap{font-size:11px;color:#7b90a5;margin-top:9px;line-height:1.6}.cite{font-size:11px;color:#668098;margin-top:12px;border-top:1px solid #ebf0f5;padding-top:10px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.card{border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;background:#fbfdff}.card .no{font-size:12px;font-weight:850;color:#2e83b3;letter-spacing:.06em}.card h3{font-size:18px;margin:8px 0 9px}.card p{font-size:13px;margin:0;color:#526981;line-height:1.68}.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.kpi{background:#f0f6fc;border:1px solid #d9e8f6;padding:17px;border-radius:13px}.kpi b{display:block;font-size:25px;color:#165a96;line-height:1.25;margin:4px 0 6px}.kpi small{font-size:11px;color:#617b95;line-height:1.55;display:block}.kpi span{font-size:11px;font-weight:800;color:#5a7c9e}.callout{padding:16px 18px;border-radius:12px;background:#edf6fc;border-left:4px solid #2f90c5;margin:15px 0;font-size:14px}.callout.warn{background:#fff7ed;border-left-color:#d99945}.callout.green{background:#edf8f4;border-left-color:#1f987d}.callout p:last-child{margin:0}.process{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:22px 0}.proc{background:#f0f6fd;border:1px solid #d6e6f5;border-radius:12px;text-align:center;padding:13px 5px;position:relative;min-width:0}.proc:after{content:'›';position:absolute;right:-10px;top:39%;z-index:2;color:#3684bd;font-size:24px;font-weight:850}.proc:last-child:after{display:none}.proc b{display:block;color:#153f68;font-size:14px}.proc small{display:block;font-size:11px;color:#617c96;margin-top:5px}.panelgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.panel{border:1px solid var(--line);border-radius:14px;min-width:0;overflow:hidden;background:#fff}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:9px;padding:15px 16px;background:#f3f7fb;border-bottom:1px solid var(--line)}.panelhead b{font-size:15px;color:#1c456c}.panelhead span{font-size:10px;letter-spacing:.04em;color:#6e879e;font-weight:750}.panelbody{padding:16px}.pipe{display:flex;flex-direction:column;gap:9px}.pipe-node{position:relative;padding:12px 14px;border:1px solid #dbe7f3;border-radius:11px;background:#f9fcff;min-width:0}.pipe-node b{font-size:12px;color:#1c4c77;display:block}.pipe-node span{font-size:12px;color:#596e85;display:block}.pipe-arrow{text-align:center;color:#719cc4;font-size:17px;line-height:10px}.pipe-node.problem{background:#fff8f4;border-color:#ead5c6}.pipe-node.solution{background:#f0faf7;border-color:#bfdfd3}.check{display:inline-block;padding:3px 7px;border-radius:100px;background:#e3f4ee;color:#187557;font-size:10px;font-weight:850}.issue{display:inline-block;padding:3px 7px;border-radius:100px;background:#fff0e7;color:#a35d27;font-size:10px;font-weight:850}.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#60768e;margin:13px 0}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px}.diagram{border:1px solid var(--line);border-radius:14px;background:#fbfdff;overflow:hidden;padding:15px}.diagram svg{width:100%;height:auto;display:block}.comparison-title{font-size:13px;font-weight:850;color:#25537b;display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}.switcher{display:inline-flex;background:#eaf1f9;padding:4px;border-radius:10px;gap:4px}.switcher button{border:0;background:transparent;color:#486b8c;font-size:12px;font-weight:800;padding:7px 12px;border-radius:8px}.switcher button.active{background:white;color:#0c5ca0;box-shadow:0 1px 6px rgba(22,74,111,.15)}.diagram-shell{padding:18px 14px;background:linear-gradient(#fbfdff,#f4f8fd);border:1px solid #dce7f4;border-radius:12px}.hidden{display:none!important}.source-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.source-card{padding:14px;border-radius:12px;border:1px solid #dbe7f2;background:#f8fbff}.source-card b{display:block;font-size:13px;color:#164a77}.source-card span{display:block;font-size:11px;color:#60798e;margin-top:5px}.table-wrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:12px}.report-table{border-collapse:collapse;width:100%;font-size:12px;min-width:740px;line-height:1.65}.report-table th{background:#eaf3fb;color:#164873;text-align:left;font-weight:850;padding:11px 12px;border-bottom:1px solid #cbddec;white-space:nowrap}.report-table td{padding:11px 12px;vertical-align:top;border-bottom:1px solid #e5edf5;color:#344e66}.report-table tr:last-child td{border-bottom:0}.report-table tr:nth-child(2n) td{background:#fbfdff}.report-table td:first-child{font-weight:800;color:#1c5078}.tag{display:inline-block;border-radius:5px;font-size:10px;font-weight:850;padding:3px 7px;white-space:nowrap;background:#edf4fc;color:#24629b}.tag.teal{background:#e9f5f1;color:#1b7764}.tag.amber{background:#fff3e4;color:#946022}.tag.gray{background:#f0f2f5;color:#687683}.keyflow{display:grid;grid-template-columns:1fr 38px 1.05fr 38px 1fr;gap:7px;align-items:stretch;margin-top:17px}.keybox{background:#f7fbff;border:1px solid #d8e7f3;border-radius:12px;padding:18px 12px}.keybox h4{margin:0 0 12px}.keybox .row{font-size:12px;border-bottom:1px solid #e4edf5;padding:7px 0;line-height:1.55}.keybox .row:last-child{border:none}.keybox .row b{font-size:12px}.keyarrow{display:flex;align-items:center;justify-content:center;color:#2d83b3;font-weight:900;font-size:24px}.id-hierarchy{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}.idbox{border-radius:12px;padding:17px;background:linear-gradient(165deg,#f2f8fe,#ffffff);border:1px solid #d9e6f2}.idbox b{display:block;font-size:15px;color:#124e80}.idbox code{display:block;font-size:12px;color:#285f88;margin:9px 0 4px}.idbox small{color:#607b91;font-size:11px}.idbox .sub{margin-top:12px;border-top:1px solid #deebf6;padding-top:9px;font-size:11px;color:#536e85}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 20px}.step{border:1px solid #d8e5f2;border-radius:12px;padding:17px;background:linear-gradient(180deg,#ffffff,#f7fbff)}.step .n{display:inline-block;border-radius:999px;background:#1c629f;color:#fff;font-size:11px;font-weight:850;padding:4px 10px;margin-bottom:9px}.step h4{font-size:15px;margin:0 0 7px}.step p{font-size:12px;color:#597085;line-height:1.65;margin:0}.dim-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.dim{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fbfdff}.dim .letter{font-size:21px;font-weight:900;color:#2c83b3}.dim h4{margin:5px 0 8px}.dim p{font-size:12px;color:#647a90;margin:0}.scope-example{border:1px solid #d7e5f1;padding:15px;border-radius:12px;background:#f7fbff;margin-top:13px}.scope-bars{display:grid;grid-template-columns:165px 1fr;gap:9px 13px;align-items:center}.scope-bars label{font-size:12px;font-weight:800;color:#34556f}.barback{background:#e1eaf3;border-radius:7px;height:25px;overflow:hidden;position:relative}.barfill{height:100%;border-radius:7px;background:linear-gradient(90deg,#68b4e4,#176aac)}.barfill.green{background:linear-gradient(90deg,#73c9b0,#198476)}.barfill.orange{background:linear-gradient(90deg,#fed4a4,#d18c35)}.barback em{position:absolute;left:9px;top:1px;font-style:normal;color:#173d5f;font-size:11px;font-weight:900;text-shadow:0 1px white}.api-sample{background:#0f2846;border-radius:13px;padding:17px 18px;color:#dfeafa;overflow:auto;font:12px/1.8 'SFMono-Regular',Consolas,'Malgun Gothic',monospace;white-space:pre;tab-size:2}.api-sample .h{color:#94dbf1}.api-sample .v{color:#c0efb4}.api-sample .c{color:#8fa9c3}.timeline{display:flex;gap:8px;align-items:stretch;margin:17px 0}.phase{flex:1;min-width:0;background:#fff;border:1px solid #d8e5f2;border-radius:12px;padding:15px 12px;position:relative}.phase::after{content:'›';position:absolute;right:-10px;top:42%;font-size:24px;color:#6c97bc;z-index:2}.phase:last-child::after{display:none}.phase .head{color:#1b659d;font-size:11px;font-weight:900;margin-bottom:6px}.phase b{display:block;font-size:13px}.phase p{font-size:11px;color:#61758b;margin:8px 0 0}.deliver{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.delivery{padding:16px;border:1px solid var(--line);border-radius:12px;background:#fbfdff}.delivery b{color:#1d507a;font-size:14px}.delivery p{font-size:12px;color:#5d748a;margin:7px 0 0}.formula{font-size:12px;font-weight:850;color:#1b557f;background:#f0f7fd;border:1px solid #d8e8f4;border-radius:9px;display:inline-block;padding:5px 9px;margin-top:6px}.glossary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.term{padding:12px 14px;background:#f8fbfe;border-radius:10px;border:1px solid #e0eaf2}.term b{display:block;font-size:13px;color:#1a547e}.term span{font-size:12px;color:#667d94}.quote{border-left:4px solid #1c789f;padding:17px 21px;font-size:17px;font-weight:800;background:#eef7fb;border-radius:0 12px 12px 0;color:#173e61;margin:14px 0}.ask{counter-reset:decision}.ask .decision{counter-increment:decision;padding:13px 15px;border-bottom:1px solid #e4ebf3;display:flex;gap:12px;font-size:14px}.decision:before{content:counter(decision,decimal-leading-zero);color:#1a6aa3;font-weight:900;font-size:14px}.decision:last-child{border-bottom:0}.footnotes{font-size:12px;color:#62788c;line-height:1.9}.footer{padding:25px 9px 40px;text-align:center;color:#7a8b9b;font-size:11px}.source-line{font-size:12px;margin-top:8px;color:#57718a}.table-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.highlight-note{font-size:13px;background:#f8fbff;border:1px solid #e0e9f2;padding:13px 15px;border-radius:10px;margin-top:12px}.source-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.source-index .box{background:#fff;border:1px solid #dbe7f0;padding:15px;border-radius:11px}.source-index b{font-size:12px;color:#2c6292}.source-index strong{display:block;font-size:21px;color:#16436c;margin:7px 0}.source-index span{font-size:11px;color:#647c92}.source-index .box:hover{background:#f4faff}
+@media(max-width:1180px){.shell{grid-template-columns:1fr}.sidebar{position:relative;max-height:none}.nav{display:flex;gap:4px;flex-wrap:wrap}.nav a{display:inline-block}.cover h1{font-size:37px}}
+@media(max-width:760px){.shell{padding:10px}.cover{padding:28px 22px}.cover h1{font-size:31px}.cover-lower,.cards,.kpis,.panelgrid,.table-grid,.id-hierarchy,.dim-list,.steps,.deliver,.glossary,.source-index{grid-template-columns:1fr}.content-section{padding:24px 19px}.process{grid-template-columns:repeat(3,minmax(0,1fr))}.proc:nth-child(3):after{display:none}.keyflow{grid-template-columns:1fr}.keyarrow{height:23px;transform:rotate(90deg)}.timeline{display:grid;grid-template-columns:1fr 1fr}.phase:nth-child(2)::after{display:none}.scope-bars{grid-template-columns:1fr}.side-logo{display:none}}
+@page{size:A4;margin:14mm 12mm}
+@media print{html,body{background:#fff!important;font-size:10.5px;line-height:1.58;-webkit-print-color-adjust:exact;print-color-adjust:exact}.shell{display:block;max-width:none;margin:0;padding:0}.sidebar{display:none}.content-section{margin:12px 0 0;padding:18px 0 18px;border:none;border-top:1px solid #d9e3ed;border-radius:0;box-shadow:none;break-before:auto;break-inside:auto}.cover{border-radius:0;box-shadow:none;min-height:200px;padding:32px 28px}.cover h1{font-size:32px}.cover-lower{margin-top:20px}.content-section h2{font-size:20px}.content-section h3{font-size:16px}.table-wrap{overflow:visible}.report-table{min-width:0;font-size:9px}.report-table th,.report-table td{padding:7px 7px}.cards,.panelgrid,.steps,.deliver,.dim-list{break-inside:avoid}.card,.panel,.callout,.diagram,.source-card,.step{break-inside:avoid}.phase{break-inside:avoid}.switcher{display:none}.hidden.print-visible{display:block!important}.footer{padding:15px}.nav{display:none}.process{break-inside:avoid}.kpi b{font-size:18px}.api-sample{font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere}.section-tag{font-size:9px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" aria-label="보고서 차례">
+  <div class="side-logo"><small>HOME · DATA GOVERNANCE</small>데이터 정비 방안</div>
+  <nav class="nav">
+    <a href="#executive">01. 핵심 제안</a>
+    <a href="#what">02. HOME이 무엇인가</a>
+    <a href="#problem">03. 왜 자동 연결이 어려운가</a>
+    <a href="#current">04. 현재 어떻게 관리하는가</a>
+    <a href="#target">05. 앞으로 어떻게 바꿀 것인가</a>
+    <a href="#identifiers">06. 공통 식별키 설계</a>
+    <a href="#governance">07. 누가 발급·관리하는가</a>
+    <a href="#api">08. 기관별 데이터 제공 개선</a>
+    <a href="#example">09. 표준 연계 예시</a>
+    <a href="#roadmap">10. 단계별 추진 방안</a>
+    <a href="#effect">11. 성과와 검증방법</a>
+    <a href="#risks">12. 추진 시 유의사항</a>
+    <a href="#decision">13. 협의·결정 요청사항</a>
+    <a href="#appendix">부록. 용어 및 확인 근거</a>
+  </nav>
+  <div class="side-foot">기준 자료: 「HOME 데이터 정비 방안 · 현재 구조」 7쪽, 2026.10.13<br>유형: 관계기관 협의·정비 방향 제안</div>
+</aside>
+<main class="main">
+<section class="cover" id="top">
+  <div class="cover-content">
+    <div class="eyebrow">HOUSING OPERATIONS MONITORING &amp; EXECUTION · DATA REMEDIATION PROPOSAL</div>
+    <h1>HOME 데이터 정비 방안<br><span style="color:#b6e6ff">정책과 사업을 연결하는 공통 식별체계</span></h1>
+    <p class="lead">주택공급 정보는 여러 기관에 존재합니다. 이제는 정보를 <b>더 많이 모으는 것</b>을 넘어, 서로 다른 자료가 <b>같은 정책·같은 사업·같은 공급물량</b>을 가리킨다는 사실을 일관되게 확인할 수 있어야 합니다.</p>
+    <div class="cover-meta"><span class="pill">관계기관 협의용 보고서</span><span class="pill">현행 구조 분석 + 개선 제안</span><span class="pill">작성 기준 2026.10.13</span></div>
+    <div class="cover-lower">
+      <div><div class="linehead">정비의 출발점</div>정책·사업을 식별하는 공통 키가 원천 데이터에 없을 경우, 시스템은 명칭·주소·블록·수량을 대조하고 담당자가 연결 관계를 검토해야 합니다.</div>
+      <div><div class="linehead">정비의 도착점</div>관리 주체가 공통 ID를 발급·관리하고 제공기관은 기존 원천번호와 함께 공통 ID 또는 공식 대응표를 제공하는 체계입니다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section" id="executive">
+  <div class="section-tag">01 · EXECUTIVE SUMMARY</div>
+  <h2>핵심 제안: “정보 수집”에서 “정보 연결”로</h2>
+  <p class="intro">본 보고서의 목적은 HOME이라는 개별 시연 시스템을 홍보하는 것이 아니라, <strong>기관마다 따로 관리하는 주택공급 정보가 정책 집행관리에서 하나의 사실로 이어질 수 있도록 공통 연계기준을 정립하자는 제안</strong>입니다.</p>
+  <div class="cards">
+    <div class="card"><div class="no">WHY · 왜 필요한가</div><h3>같은 사업을 다른 번호로 관리</h3><p>정책문서, 인허가, 공사현황, 공급공고, 입주자료의 관리번호가 달라서 동일 사업인지 사람이 판단해야 합니다.</p></div>
+    <div class="card"><div class="no">WHAT · 무엇을 바꾸는가</div><h3>공통 ID와 연결정보 제공</h3><p>정책·프로그램·사업을 안정적으로 식별하고, 원천기관의 기존 ID 및 공급범위·단계·근거를 함께 관리합니다.</p></div>
+    <div class="card"><div class="no">HOW · 어떻게 시작하는가</div><h3>시범사업부터 단계적 확대</h3><p>기존 API를 유지하면서 공통 식별키 추가 또는 공식 ID 대응표 제공을 시범 도입하고 품질을 검증합니다.</p></div>
+  </div>
+  <div class="callout green"><strong>제안의 핵심</strong><br>모든 기관이 정책ID 하나만 추가한다고 자동 연결이 완성되지는 않습니다. <b>① 정책·프로그램 귀속, ② 통합 사업 식별, ③ 지구·블록·공급물량 범위, ④ 원천 사건·판본</b>을 구분해 연결해야 합니다. 다만 일회성 수작업을 반복하지 않도록 기관에서 확인된 식별정보를 제공할 수 있게 해야 합니다.</div>
+  <div class="kpis">
+    <div class="kpi"><span>현재 자료에 설명된 실제 업무 테이블</span><b>12개</b><small>첨부 문서의 현행 구조 설명 기준. 독립 테이블과 JSON 내부 자료종류를 구분합니다.</small></div>
+    <div class="kpi"><span>통합관리하려는 사업의 주요 흐름</span><b>6단계</b><small>정책 → 사업화 → 인허가 → 건설 → 공급 → 입주</small></div>
+    <div class="kpi"><span>개선의 중심 수단</span><b>공통 ID + 대응표</b><small>원천번호를 폐기하지 않고 정책·사업·세부 공급범위와 공식적으로 연결</small></div>
+  </div>
+  <div class="cite">근거: 첨부 PDF 1쪽(검토 결론), 3쪽(현행 12개 테이블), 4쪽(단계별 저장·연결 경로), 6~7쪽(개선 요청).</div>
+</section>
+
+<section class="content-section" id="what">
+  <div class="section-tag">02 · SERVICE OVERVIEW</div>
+  <h2>HOME은 무엇을 하려는 시스템인가</h2>
+  <p class="intro">주택공급 정책은 “몇 호를 공급하겠다”는 발표에서 끝나지 않습니다. 실제로는 사업 지정, 인허가, 건설, 분양·임대공고, 준공과 입주까지 여러 기관의 업무가 이어집니다. HOME은 이 진행을 하나의 정책·사업 흐름에서 확인하기 위해 개발 중인 통합 모니터링 PoC입니다.</p>
+  <div class="process" role="img" aria-label="정책, 사업화, 인허가, 건설, 공급, 입주 6단계 업무흐름">
+    <div class="proc"><b>정책</b><small>정부 목표·대책</small></div>
+    <div class="proc"><b>사업화</b><small>후보·지구 지정</small></div>
+    <div class="proc"><b>인허가</b><small>승인·허가</small></div>
+    <div class="proc"><b>건설</b><small>착공·공정·준공</small></div>
+    <div class="proc"><b>공급</b><small>분양·임대공고</small></div>
+    <div class="proc"><b>입주</b><small>예정·실제 확인</small></div>
+  </div>
+  <div class="panelgrid">
+    <div class="panel"><div class="panelhead"><b>현재 현장에서 생기는 질문</b><span>정책관리자의 관점</span></div><div class="panelbody"><p>“이 정책에 포함된 사업은 무엇인가?”</p><p>“인허가와 공사현황의 이 사업이 같은 사업인가?”</p><p>“당초 계획한 물량이 실제 착공·준공·입주로 이어지고 있는가?”</p><p>“어느 지역의 어떤 단계가 지연되었는가?”</p></div></div>
+    <div class="panel"><div class="panelhead"><b>HOME이 제공하고자 하는 답</b><span>통합 조회의 관점</span></div><div class="panelbody"><p>정책 → 프로그램 → 실제 사업 → 지구·블록의 연결 관계</p><p>각 단계의 공식 원천자료·원본 근거·변경 이력</p><p>동일 공급범위 기준 계획 대비 실제 진행·일정</p><p>시도·시군구 지도와 연도별 시계열의 연계</p></div></div>
+  </div>
+  <div class="callout"><strong>쉽게 말하면</strong> HOME은 개별 기관의 기존 시스템을 대체하려는 것이 아니라, <b>기관들이 만든 공식 정보를 같은 사업이라는 연결고리로 묶어 한눈에 보는 상황판</b>입니다.</div>
+</section>
+
+<section class="content-section" id="problem">
+  <div class="section-tag">03 · THE CORE PROBLEM</div>
+  <h2>왜 지금은 자동으로 연결되지 않는가</h2>
+  <p class="intro">같은 실제 주택공급 사업도 업무 단계와 기관에 따라 서로 다른 식별번호를 사용하기 때문입니다. 개별 API가 충분한 데이터를 제공하더라도, 그 번호가 어느 정책·프로그램·실제 사업에 해당하는지 자동으로 알 수는 없습니다.</p>
+  <div class="diagram-shell">
+    <div class="comparison-title"><span>한 사업이 여러 기관의 자료에 등장하는 모습</span><div class="switcher" role="group" aria-label="연계 구조 비교"><button class="active" id="modeNow" aria-pressed="true">현재 방식</button><button id="modeFuture" aria-pressed="false">개선 후</button></div></div>
+    <div id="diagramNow">
+      <svg viewBox="0 0 1100 380" role="img" aria-label="현재 정책, 공사, 인허가, 공급, 입주정보가 각각 다른 번호로 존재하고 HOME에서 별도 확인하는 구조">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#7a9cba"/></marker></defs>
+        <rect x="19" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="36" y="48" font-size="18" font-weight="800" fill="#144873">정책자료</text><text x="36" y="76" font-size="13" fill="#476885">정책 문구 · 목표</text>
+        <rect x="235" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="251" y="48" font-size="18" font-weight="800" fill="#144873">인허가</text><text x="251" y="76" font-size="13" fill="#476885">허가 관리번호</text>
+        <rect x="452" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="468" y="48" font-size="18" font-weight="800" fill="#144873">공사현황</text><text x="468" y="76" font-size="13" fill="#476885">기관 사업·블록코드</text>
+        <rect x="669" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="685" y="48" font-size="18" font-weight="800" fill="#144873">공급공고</text><text x="685" y="76" font-size="13" fill="#476885">공고·주택관리번호</text>
+        <rect x="886" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="902" y="48" font-size="18" font-weight="800" fill="#144873">입주자료</text><text x="902" y="76" font-size="13" fill="#476885">입주예정·관측번호</text>
+        <path d="M116 103 C116 172 545 154 545 210 M332 103 C332 166 545 162 545 210 M549 103 V210 M766 103 C766 166 545 162 545 210 M983 103 C983 172 545 154 545 210" stroke="#a0b4c8" stroke-width="2" fill="none" stroke-dasharray="7 6" marker-end="url(#ah)"/>
+        <rect x="313" y="210" width="465" height="100" rx="14" fill="#fff7ed" stroke="#dfa96d" stroke-width="2"/>
+        <text x="545" y="246" text-anchor="middle" font-size="20" font-weight="800" fill="#89541f">HOME의 매칭 후보 생성·검토</text>
+        <text x="545" y="272" text-anchor="middle" font-size="15" fill="#936a46">원천번호 · 지역 · 지구/블록명 · 수량 · 시기 대조</text>
+        <text x="545" y="291" text-anchor="middle" font-size="13" fill="#936a46">담당자 승인 전에는 확정된 공식 귀속으로 취급하지 않음</text>
+        <text x="550" y="347" text-anchor="middle" font-size="13" fill="#687f95">점선 = 원천 자료 간 동일성 확인이 필요한 연결</text>
+      </svg>
+    </div>
+    <div id="diagramFuture" class="hidden print-visible">
+      <svg viewBox="0 0 1100 380" role="img" aria-label="개선 후 공통 사업ID 및 공식 대응표를 통해 원천 정보를 연결하고 관계 근거를 보존하는 구조">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#4a9a88"/></marker></defs>
+        <rect x="19" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="36" y="48" font-size="18" font-weight="800" fill="#144873">정책자료</text><text x="36" y="76" font-size="13" fill="#476885">정책ID · 귀속 근거</text>
+        <rect x="235" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="251" y="48" font-size="18" font-weight="800" fill="#144873">인허가</text><text x="251" y="76" font-size="13" fill="#476885">기존 허가번호 + 사업ID</text>
+        <rect x="452" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="468" y="48" font-size="18" font-weight="800" fill="#144873">공사현황</text><text x="468" y="76" font-size="13" fill="#476885">기존 코드 + 사업ID</text>
+        <rect x="669" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="685" y="48" font-size="18" font-weight="800" fill="#144873">공급공고</text><text x="685" y="76" font-size="13" fill="#476885">공고번호 + 블록·범위</text>
+        <rect x="886" y="20" width="195" height="83" rx="12" fill="#e6f2fc" stroke="#bdd8ed"/><text x="902" y="48" font-size="18" font-weight="800" fill="#144873">입주자료</text><text x="902" y="76" font-size="13" fill="#476885">사건ID + 사업·블록</text>
+        <path d="M116 103 C116 163 545 161 545 201 M332 103 C332 160 545 168 545 201 M549 103 V201 M766 103 C766 160 545 168 545 201 M983 103 C983 163 545 161 545 201" stroke="#4b9e8f" stroke-width="3" fill="none" marker-end="url(#a2)"/>
+        <rect x="313" y="202" width="465" height="108" rx="14" fill="#eaf8f3" stroke="#4aa98a" stroke-width="2"/>
+        <text x="545" y="240" text-anchor="middle" font-size="20" font-weight="800" fill="#176953">공통 사업ID + 기관별 공식 대응표</text>
+        <text x="545" y="269" text-anchor="middle" font-size="15" fill="#317766">사업·블록 · 공급범위 · 원천 사건·버전 · 관계 상태</text>
+        <text x="545" y="288" text-anchor="middle" font-size="13" fill="#317766">정확한 ID가 제공되면 후보 탐색을 줄이고 검증된 연결을 재사용</text>
+        <text x="550" y="347" text-anchor="middle" font-size="13" fill="#687f95">실선 = 기관이 제공·확인한 공통 식별관계 (범위·권한 검증은 유지)</text>
+      </svg>
+    </div>
+    <div class="cap">위 그림은 구조 이해용 개념도입니다. 실제 모든 기관이 현재 공통 사업ID를 제공한다는 의미는 아니며, 개선 후 모습은 향후 협의가 필요한 목표 모델입니다.</div>
+  </div>
+  <div class="cards" style="margin-top:14px">
+    <div class="card"><div class="no">문제 1</div><h3>이름이 같아도 다른 사업</h3><p>지구 재지정, 사업 단계 분할, 동일한 블록명 반복 등으로 명칭만 같다고 동일 사업으로 확정할 수 없습니다.</p></div>
+    <div class="card"><div class="no">문제 2</div><h3>번호가 같아도 범위가 다름</h3><p>하나의 지구 전체 3,000호와 하위 블록 1,200호를 동시에 더하면 계획물량이 중복됩니다.</p></div>
+    <div class="card"><div class="no">문제 3</div><h3>상태가 달라도 같은 숫자로 보임</h3><p>계획·모집공고·준공·입주예정은 다른 단계의 수치이며, 하나의 공급 실적으로 합산하면 오류가 발생합니다.</p></div>
+  </div>
+  <div class="cite">근거: 첨부 PDF 1쪽, 5쪽(후보 정규화·물량 범위·PNU·공식 문서·저장 관계).</div>
+</section>
+
+<section class="content-section" id="current">
+  <div class="section-tag">04 · AS-IS OPERATION</div>
+  <h2>현재 HOME은 어떻게 연결·관리하고 있는가</h2>
+  <p class="intro">HOME은 근거 없는 공식 ID를 만들어 기관이 부여한 ID인 것처럼 사용하는 구조가 아닙니다. <b>기관별 원천 객체와 판본을 보존하고, 정규화한 사업 후보에 연결 근거와 검토 상태를 별도로 관리</b>합니다. 현재 연결은 담당자의 확인이 전제되는 업무상 매핑입니다.</p>
+  <div class="steps">
+    <div class="step"><span class="n">1. 수집</span><h4>원천 보존</h4><p>API·공개파일·공식 문서 수집. 수집 배치, 원본 해시, 판본 기록.</p></div>
+    <div class="step"><span class="n">2. 후보 생성</span><h4>사업 찾기</h4><p>기관 원천번호, 지구·블록명, 주소, 시기 등을 비교.</p></div>
+    <div class="step"><span class="n">3. 범위 판정</span><h4>같은 물량인가</h4><p>전체·일부·중복·분할, 공급유형과 공고 차수를 구분.</p></div>
+    <div class="step"><span class="n">4. 검토·이력</span><h4>담당자 승인</h4><p>검토·확정·연결 해제와 판단 근거·변경 이력 관리.</p></div>
+  </div>
+  <h3>현재 자료에 설명된 12개 실제 테이블</h3>
+  <p class="small muted">DB 구조를 모르는 독자를 위해 기능별로 묶었습니다. <code>policy</code>, <code>permit</code>, <code>project</code> 등의 자료종류는 주로 <code>home_revision.kind</code>로 분류되는 원천 정보이며, 모두 독립 물리 테이블을 뜻하지 않습니다.</p>
+  <div class="source-index" aria-label="현재 12개 테이블 기능별 구성">
+    <div class="box"><b>수집·판본 보존</b><strong>3개</strong><span>home_batch · home_revision · home_coverage</span></div>
+    <div class="box"><b>사업 식별·근거</b><strong>3개</strong><span>home_project · home_identity_alias · home_project_evidence</span></div>
+    <div class="box"><b>법정 계획·고시</b><strong>3개</strong><span>home_plan · home_plan_event · home_plan_project_link</span></div>
+    <div class="box"><b>정책 관계·감사</b><strong>3개</strong><span>home_mapping · home_program_mapping · home_audit</span></div>
+  </div>
+  <div class="table-wrap" style="margin-top:13px"><table class="report-table"><thead><tr><th style="width:25%">현재 구성</th><th>관리하는 정보</th><th>개선 시 유의할 점</th></tr></thead><tbody>
+    <tr><td>원천·판본 원장<br><span class="tag">3개 테이블</span></td><td>기관별 원천 객체, 수집 실행, 원본·변경판본, 수집 범위/누락</td><td>기존 원천 고유번호와 과거 판본·원본을 삭제하지 않고 유지</td></tr>
+    <tr><td>사업 후보·식별 대응<br><span class="tag">3개 테이블</span></td><td>HOME 사업 후보 <code>HPR_…</code>, 원천 ID 대응, 증거 판본</td><td>현재 후보 ID를 기관이 공식 인정한 공통 사업번호로 오해하지 않음</td></tr>
+    <tr><td>법정 계획·고시 원장<br><span class="tag">3개 테이블</span></td><td>지구·계획 지정, 변경·해제 사건, 사업과 법정 계획의 관계</td><td>계획과 사업은 다른 객체로 관리하며 다대다 관계를 허용</td></tr>
+    <tr><td>정책·프로그램 연결 및 감사<br><span class="tag">3개 테이블</span></td><td>프로그램→정책, 원천 사업 후보→프로그램 연결, 승인·변경·해제 기록</td><td>현재 관계는 코드상의 논리 참조가 있으므로 개편 시 참조 대상과 승인 이력 확인 필수</td></tr>
+  </tbody></table></div>
+  <div class="callout warn"><strong>반드시 구분할 두 종류의 사업 ID</strong><br>첨부 자료의 현행 설명에서 <code>PRO_…</code>는 원천 사업 객체를 구분하는 <code>home_revision.entity_id</code>, <code>HPR_…</code>는 HOME에서 생성한 통합 사업 후보 <code>home_project.id</code>입니다. 두 값을 이름만 보고 같은 번호로 취급하면 잘못 연결될 수 있습니다. 이 구분은 향후 공식 사업ID 설계에서도 유지되어야 합니다.</div>
+  <h3>현재 매칭에 활용하는 근거</h3>
+  <div class="dim-list">
+    <div class="dim"><div class="letter">01</div><h4>원천 고유번호</h4><p>기관·자료종류와 해당 시스템의 객체번호를 함께 사용합니다.</p></div>
+    <div class="dim"><div class="letter">02</div><h4>지구·블록·주소</h4><p>법정동, 필지/PNU, 사업명과 블록명을 대조하되 단독 확정 근거로 사용하지 않습니다.</p></div>
+    <div class="dim"><div class="letter">03</div><h4>물량·사건 범위</h4><p>전체와 일부, 분양·임대, 공급공고 차수, 예정과 실제 여부를 판별합니다.</p></div>
+    <div class="dim"><div class="letter">04</div><h4>공식 문서</h4><p>고시번호·발행기관·문서판본·고시일 등을 서로 비교합니다.</p></div>
+    <div class="dim"><div class="letter">05</div><h4>검토 상태</h4><p>후보(REVIEW)와 담당자 확정(CONFIRMED), 해제(RELEASED)를 분리합니다.</p></div>
+    <div class="dim"><div class="letter">06</div><h4>감사·판본 이력</h4><p>어떤 근거로 누가 연결했는지, 이후 어떤 변경이 있었는지 보존합니다.</p></div>
+  </div>
+  <div class="cite">근거: 첨부 PDF 1~5쪽. 본 보고서는 첨부 문서의 현재 구현 설명을 재구성한 것으로, 실 운영 DB와 소스코드를 이번에 별도 대조하지 않았습니다.</div>
+</section>
+
+<section class="content-section" id="target">
+  <div class="section-tag">05 · TO-BE ARCHITECTURE</div>
+  <h2>개선 방향: ‘찾아 맞추기’에서 ‘함께 식별하기’로</h2>
+  <p class="intro">현행의 원천 수집·원본 보존·담당자 검토 기능은 유지하되, 정책관리 주체와 원천기관이 <b>같은 사업을 가리키는 공통 식별정보</b>를 함께 관리하는 체계로 전환합니다. 핵심은 모든 기관의 데이터베이스를 하나로 합치는 것이 아니라, 기존 데이터를 서로 연결할 수 있는 <strong>최소한의 공통 언어</strong>를 마련하는 것입니다.</p>
+  <div class="keyflow">
+    <div class="keybox"><h4>① 관리 주체</h4><div class="row"><b>정책ID</b><br>공식 정책·대책 단위</div><div class="row"><b>프로그램ID</b><br>실행 유형·관리사업 묶음</div><div class="row"><b>통합 사업ID</b><br>실제 사업을 대표하는 안정적인 번호</div></div>
+    <div class="keyarrow">→</div>
+    <div class="keybox" style="background:#edf7fc;border-color:#bcdcee"><h4>② 공통 연계 등록부</h4><div class="row"><b>기관 기존번호 ↔ 통합 사업ID</b></div><div class="row"><b>정책·프로그램·사업 간 관계</b></div><div class="row"><b>지구·블록·공급유형 및 유효기간</b></div><div class="row"><b>증거·검토·변경 이력</b></div></div>
+    <div class="keyarrow">←</div>
+    <div class="keybox"><h4>③ 원천기관</h4><div class="row"><b>기존 고유번호는 유지</b></div><div class="row"><b>공통 사업ID 추가 제공</b> 또는 공식 대응표 제공</div><div class="row"><b>단계·공급범위·기준일</b> 동시 제공</div></div>
+  </div>
+  <div class="callout green"><strong>정비 후 기대되는 업무 변화</strong><br>인허가·공사·공급·입주 자료가 들어올 때마다 담당자가 처음부터 동일 사업을 찾는 비중을 줄일 수 있습니다. 다만 ID 일치만으로 모든 공급 물량을 자동 합산하는 것은 금지하며, 사업 분할·범위 변경·정책 귀속 관계는 계속 관리합니다.</div>
+  <h3>통합 데이터의 목표 구조</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 1080 400" role="img" aria-label="정책, 프로그램, 통합 사업, 블록과 법정 계획 관계 및 원천 데이터 매핑 구조">
+      <defs><marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#638aaa"/></marker></defs>
+      <rect x="36" y="28" width="240" height="66" rx="11" fill="#164f81"/><text x="156" y="55" text-anchor="middle" fill="white" font-size="19" font-weight="800">정책 POLICY</text><text x="156" y="77" text-anchor="middle" fill="#ceeafa" font-size="13">대책 · 목표 · 기간</text>
+      <rect x="36" y="135" width="240" height="66" rx="11" fill="#226ba0"/><text x="156" y="163" text-anchor="middle" fill="white" font-size="19" font-weight="800">프로그램 PROGRAM</text><text x="156" y="185" text-anchor="middle" fill="#ceeafa" font-size="13">공공택지 · 정비 · 임대 등</text>
+      <rect x="36" y="244" width="240" height="73" rx="11" fill="#137977"/><text x="156" y="273" text-anchor="middle" fill="white" font-size="19" font-weight="800">통합 사업 PROJECT</text><text x="156" y="298" text-anchor="middle" fill="#d2f2ea" font-size="13">기관 간 공통 식별 대상</text>
+      <rect x="36" y="350" width="240" height="42" rx="10" fill="#e2f4f0" stroke="#90c6b9"/><text x="156" y="377" text-anchor="middle" fill="#236b64" font-size="16" font-weight="800">블록 · 공급묶음</text>
+      <path d="M156 94 V135 M156 201 V244 M156 317 V350" stroke="#547e9e" stroke-width="3" marker-end="url(#arrow-blue)"/>
+      <rect x="353" y="129" width="240" height="106" rx="11" fill="#f4f8fc" stroke="#9fc7df" stroke-width="2"/><text x="473" y="158" text-anchor="middle" font-size="18" fill="#155078" font-weight="800">법정 계획·고시 PLAN</text><text x="473" y="185" text-anchor="middle" font-size="14" fill="#4a6982">지정 · 변경 · 해제</text><text x="473" y="209" text-anchor="middle" font-size="13" fill="#7a8ea1">사업과 다대다 연결</text>
+      <path d="M276 279 C313 279 314 235 353 184" fill="none" stroke="#668fa5" stroke-width="2.5" stroke-dasharray="6 5"/><text x="298" y="248" font-size="12" fill="#607993">N:M</text>
+      <rect x="677" y="30" width="358" height="67" rx="12" fill="#e6f4fd" stroke="#adcfe9"/><text x="856" y="57" text-anchor="middle" fill="#16547a" font-size="17" font-weight="800">기관별 원천자료</text><text x="856" y="81" text-anchor="middle" fill="#597b98" font-size="13">원천 ID · 파일/응답 · 판본 보존</text>
+      <rect x="677" y="146" width="358" height="79" rx="12" fill="#f0f8fb" stroke="#a6d5d2"/><text x="856" y="175" text-anchor="middle" fill="#176a6d" font-size="17" font-weight="800">공통 ID 대응표</text><text x="856" y="198" text-anchor="middle" fill="#5d797e" font-size="13">기관 코드 + 기존 ID ↔ 통합 사업ID</text>
+      <rect x="677" y="276" width="358" height="78" rx="12" fill="#fff8ee" stroke="#e6cdab"/><text x="856" y="303" text-anchor="middle" fill="#995a26" font-size="17" font-weight="800">연결 범위·상태·감사</text><text x="856" y="329" text-anchor="middle" fill="#987252" font-size="13">전체/일부 · 승인/해제 · 근거·일자</text>
+      <path d="M856 97 V146 M856 225 V276" stroke="#638aaa" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+      <path d="M677 185 C608 185 611 281 276 281" stroke="#54a7a0" stroke-width="3" fill="none" marker-end="url(#arrow-blue)"/>
+    </svg>
+    <div class="cap">논리 구조 개념도입니다. 계획과 사업, 정책과 사업은 반드시 1:1 관계가 아닙니다. 실제 물리 테이블·FK와 API 설계는 시범검증 후 확정할 사항입니다.</div>
+  </div>
+  <div class="cite">근거: 첨부 PDF 2~3쪽(현재 사업/계획/매핑 구조), 6쪽(추가 구분키 및 관리원칙). 위 목표 구조는 본 보고서의 개선 제안입니다.</div>
+</section>
+
+<section class="content-section" id="identifiers">
+  <div class="section-tag">06 · IDENTIFIER DESIGN</div>
+  <h2>정책ID만이 아니라 무엇을 식별해야 하는가</h2>
+  <p class="intro">서로 다른 기관에 같은 번호를 붙이려면 **무엇을 하나의 객체로 볼 것인지부터 합의**해야 합니다. 정책은 여러 프로그램을 포함할 수 있고, 하나의 사업은 여러 정책에 포함될 수 있으며, 지구 전체와 하위 블록은 공급범위가 다릅니다.</p>
+  <div class="id-hierarchy">
+    <div class="idbox"><b>정책 ID</b><code>POL-예시-001</code><small>공식 발표·개정 단위</small><div class="sub">대책의 목표와 기간, 다른 정책과의 계승관계</div></div>
+    <div class="idbox"><b>프로그램 ID</b><code>PRG-예시-001</code><small>정책을 실행하는 관리 묶음</small><div class="sub">공공택지·도심복합 등 업무상 공급 유형</div></div>
+    <div class="idbox"><b>통합 사업 ID</b><code>PRJ-예시-001</code><small>실제 사업의 지속적 정체성</small><div class="sub">부처·기관의 원천번호와 공식 대응 관계</div></div>
+    <div class="idbox"><b>블록·공급범위 ID</b><code>COH-예시-001</code><small>지구/블록/분양·임대 등의 물량 구분</small><div class="sub">중복집계 방지와 공급 단계별 이력</div></div>
+  </div>
+  <div class="callout warn"><strong>위 코드는 설명용 가상 예시입니다.</strong> 실제 부여 규칙·접두어·발급 주체는 관계기관이 합의해야 하며, HOME의 현재 <code>HPR_…</code> 식별자를 일괄적으로 공통 공식번호로 전환한다는 뜻이 아닙니다.</div>
+  <h3>“ID만 있으면 합산해도 된다”가 아닌 이유</h3>
+  <p>아래는 동일 사업의 범위 차이를 설명하기 위한 <strong>완전한 가상 사례</strong>입니다. 어떤 지구의 계획 총량이 3,000호이고, 그중 A블록 1,200호·B블록 900호만 세부 확인되었다고 가정해 봅니다.</p>
+  <div class="scope-example">
+    <div class="scope-bars">
+      <label>지구 총계획</label><div class="barback"><div class="barfill" style="width:100%"></div><em>3,000호 · 전체 기준</em></div>
+      <label>A블록</label><div class="barback"><div class="barfill green" style="width:40%"></div><em>1,200호 · 일부 범위</em></div>
+      <label>B블록</label><div class="barback"><div class="barfill green" style="width:30%"></div><em>900호 · 일부 범위</em></div>
+      <label>하위 미확인 잔여</label><div class="barback"><div class="barfill orange" style="width:30%"></div><em>900호 · 세부 배분 미확인</em></div>
+    </div>
+    <div class="cap">지구 3,000호 + A블록 1,200호 + B블록 900호를 더하면 5,100호가 되어 중복됩니다. A·B 및 미배정 잔여의 합이 지구 계획 총량을 설명할 뿐, 미배정분은 별도의 실제 사업으로 생성하지 않습니다.</div>
+  </div>
+  <div class="table-wrap" style="margin-top:18px"><table class="report-table"><thead><tr><th>구분</th><th>핵심 필드</th><th>반드시 함께 관리할 정보</th><th>유의사항</th></tr></thead><tbody>
+    <tr><td>정책·프로그램</td><td><code>policy_id</code>, <code>program_id</code></td><td>소관, 공식 근거, 발표/시행/종료, 관계 유효기간, 귀속 유형</td><td>한 사업이 여러 정책에 연결될 수 있음</td></tr>
+    <tr><td>실제 사업</td><td><code>common_project_id</code></td><td>대표 사업의 정의, 기관 사업ID, 사업 분할·합병·변경 이력</td><td>건축허가번호 하나가 사업 전체를 대표하지 않을 수 있음</td></tr>
+    <tr><td>공간·공급범위</td><td><code>project_area_id</code>, <code>block_id</code>, <code>supply_scope_id</code></td><td>지구·블록·필지, 임대/분양, 전체/일부, 물량의 유효범위</td><td>상위 지구와 하위 블록 이중집계 방지</td></tr>
+    <tr><td>단계별 원천 기록</td><td><code>source_system_id</code>, <code>source_record_id</code></td><td>인허가/공사/공고/입주 사건, 원천 기준일, 판본, 원문 URL</td><td>원천 번호는 그대로 보존, 공통 사업ID와 별도</td></tr>
+    <tr><td>연결 관리</td><td><code>link_type</code>, <code>link_status</code></td><td>연결 근거, 확인 주체, 확정/검토/해제, 관계 적용기간</td><td>ID 제공이 없거나 충돌 시 임의 확정 금지</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="content-section" id="governance">
+  <div class="section-tag">07 · GOVERNANCE</div>
+  <h2>누가 번호를 만들고, 누가 검증·관리해야 하는가</h2>
+  <p class="intro">공통 ID는 기술개발자가 임의로 발급할 번호가 아니라 <strong>정책과 사업에 대해 실제 책임이 있는 관리 주체가 승인해야 하는 기준정보</strong>입니다. 발급 권한, 정정 권한, 원천기관의 제공 책임을 분리해야 여러 시스템에서 지속적으로 활용할 수 있습니다.</p>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>역할(제안)</th><th>담당 업무</th><th>관리 대상</th><th>핵심 통제</th></tr></thead><tbody>
+    <tr><td>정책 총괄·관리 주체</td><td>공통 표준과 등록부 운영, 정책ID 발급·관리, 기관 간 조정</td><td>정책·프로그램 분류, 목표·기간, 승인된 관리대상</td><td>정책 귀속의 공식 확인과 유효기간 보존</td></tr>
+    <tr><td>사업 주관·시행기관</td><td>실제 사업의 정체성 제안·확정, 자체 사업ID와 공통 ID 대응</td><td>사업·지구·블록, 분할/합병, 공급범위</td><td>명칭·관리번호 변경 시 ID 및 대응 이력 유지</td></tr>
+    <tr><td>원천정보 제공기관</td><td>기존 데이터/API에 공통 ID 또는 공식 대응표 추가, 원천번호 유지</td><td>인허가·공사·공고·입주 사건 및 기존 시스템 PK</td><td>모르는 정책귀속을 추정해서 기입하지 않음</td></tr>
+    <tr><td>통합 관리 플랫폼(HOME 등)</td><td>연결 유효성 검증, 집계·중복 검사, 증거와 검토 상태 노출</td><td>원천-사업 연결, 단계별 실적, 품질·수집 커버리지</td><td>미검증 후보를 공식 확정 데이터로 노출하지 않음</td></tr>
+    <tr><td>업무담당자·데이터 관리자</td><td>모호한 사례의 최종 판단, 연결 해제·변경, 이의 처리</td><td>예외·충돌·누락·정정 신청</td><td>결정자·시간·근거와 이전 상태 감사 기록</td></tr>
+  </tbody></table></div>
+  <div class="callout"><strong>권한 설계의 핵심</strong><br>정책ID는 정책을 관리할 권한이 있는 주체가, 실제 사업ID는 사업을 확정할 권한이 있는 주체가 발급·등록하는 것이 원칙입니다. 통합 플랫폼은 공통 ID를 사용하되 기관의 법정 권한을 대신 행사하지 않습니다. 공동 발급체계의 구체적 권한 배분은 관계기관 협의로 확정해야 합니다.</div>
+  <h3>신규·변경·종료에도 유지되는 번호 체계</h3>
+  <div class="steps">
+    <div class="step"><span class="n">등록</span><h4>사업 ID 생성</h4><p>중복 조회 → 주관기관 확인 → 고유 ID 발급 또는 기존 번호 연결.</p></div>
+    <div class="step"><span class="n">연결</span><h4>원천 ID 대응</h4><p>기관 원천번호, 계획·인허가·공고 등 관련 레코드 연결.</p></div>
+    <div class="step"><span class="n">변경</span><h4>이력 갱신</h4><p>명칭·사업자·공급규모가 바뀌어도 기존 이력 보존, 분할·합병 별도 관계 관리.</p></div>
+    <div class="step"><span class="n">종료</span><h4>재사용 금지</h4><p>사업 완료·취소·해제 이후에도 ID 재발급·재사용을 제한하고 과거 추적 유지.</p></div>
+  </div>
+</section>
+
+<section class="content-section" id="api">
+  <div class="section-tag">08 · DATA PROVIDER ACTIONS</div>
+  <h2>원천기관 API에 무엇을 추가로 요청할 것인가</h2>
+  <p class="intro">기관별 현재 사용 키는 서로 다릅니다. <strong>모든 API에 정책ID를 일괄 의무화하기보다</strong> 사업을 실제로 식별할 수 있는 기관·사업ID와 공식 대응정보를 우선 제공받고, 정책 귀속은 권한 있는 관리주체가 연결하는 방식을 제안합니다.</p>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>원천자료</th><th>첨부 문서상 확인된 현재 서비스·키</th><th>추가 요청할 정보(제안)</th><th>운영상 유의사항</th></tr></thead><tbody>
+    <tr><td>건축HUB 주택인허가<br><span class="tag">15136560</span></td><td><code>mgmHsrgstPk</code>; 시군구·법정동·대지·번지</td><td>기관 사업ID, 해당 인허가가 속한 실제 사업·지구·블록, 최초/변경 허가 관계, 전체/부분 유형</td><td>인허가 시스템 PK를 여러 API 간 범용 사업ID처럼 취급하지 않음</td></tr>
+    <tr><td>건축물대장<br><span class="tag">15134735</span></td><td><code>mgmBldrgstPk</code></td><td>주택인허가 PK와 대응 관계, 사용승인 대상 동·세대 범위, 기관 사업ID</td><td>건축물대장과 인허가 PK는 별개이며 준공 확인과 실제 입주를 구분</td></tr>
+    <tr><td>LH 공고·상세<br><span class="tag">15058530</span></td><td><code>PAN_ID</code>, <code>UPP_AIS_TP_CD</code>, <code>AIS_TP_CD</code> 등 조합</td><td>기관 사업·공사 ID, 지구·블록 ID, 임대/분양 유형ID, 공고→정정공고·차수·취소 관계, 정책 귀속 목록(공식 확인 시)</td><td>한 공고의 여러 단지·유형 및 일부·잔여 물량 관계를 분리</td></tr>
+    <tr><td>청약홈 분양정보<br><span class="tag">15098547</span></td><td><code>HOUSE_MANAGE_NO</code> + <code>PBLANC_NO</code></td><td>기관·통합 사업ID(확인 가능한 경우), 인허가 연결키, 블록·유형·공고 차수, 추가/잔여·정정 관계</td><td>주택관리번호는 공고 연계에 유용하지만 모든 공사·정책원천의 공통 사업번호는 아님</td></tr>
+    <tr><td>LH·SH·GH 공급·공사 파일</td><td>기관별 사업·공사 코드, 일부 파일의 지구·블록·공급유형 식별자</td><td>내부 사업ID를 전 단계 공통 제공, 공사/사업/공고 매핑표, 공공·정책 귀속, 기준일·공급범위</td><td>파일명·계약번호를 통합 사업ID로 간주하지 않음</td></tr>
+    <tr><td>국토부·지자체 고시·정책 첨부표</td><td>발행기관·고시번호·문서판본·보도자료·사업명/목록</td><td>정책ID, 프로그램ID, 공식 사업 ID의 대응 목록, 포함 지구·블록, 목표연도·인정물량, 변경 이력</td><td>하나의 정책에 여러 사업이 포함되고 동일 사업이 여러 대책에 재등장할 수 있음</td></tr>
+    <tr><td>사업자·관리기관 입주현황</td><td>공개 입주예정 공고, 일부 실입주 시각·범위</td><td>사업/단지/유형 ID, 관측월, 입주가능·실제 입주 구분, 조사 대상범위, 기준일</td><td>실제 입주 세대수 전수가 공개자료로 확인된다는 의미는 아님</td></tr>
+  </tbody></table></div>
+  <div class="highlight-note"><strong>확인 범위:</strong> 위의 카탈로그 번호와 사용 키는 첨부 PDF 6~7쪽에 적힌 <em>해당 HOME 수집기 사용 현황</em>입니다. 이 보고서 작성 시 해당 API의 최신 명세, 실제 추가 필드 제공 가능 여부, 변경 비용 또는 기관 합의 여부를 별도로 검증하지 않았습니다. “추가 요청”은 제공 예정 사실이 아닌 정책 제안입니다.</div>
+  <h3 style="margin-top:23px">개선 경로는 한 가지만 강제하지 않습니다</h3>
+  <div class="cards">
+    <div class="card"><div class="no">방식 A · 권장</div><h3>기존 API에 ID 추가</h3><p>현행 API 응답은 유지하고 선택적 공통사업 ID·공급범위 정보를 신규 필드로 제공합니다.</p></div>
+    <div class="card"><div class="no">방식 B · 과도기</div><h3>공식 대응표 별도 제공</h3><p>기관 사업ID ↔ 공통 사업ID의 유효기간·등록 상태·근거를 CSV/API로 제공합니다.</p></div>
+    <div class="card"><div class="no">방식 C · 예외</div><h3>등록·검토 절차 활용</h3><p>원천 시스템이 공통 ID를 아직 제공하지 못하면 근거 기반 REVIEW 매칭을 유지하고 개선 대상을 누적 관리합니다.</p></div>
+  </div>
+</section>
+
+<section class="content-section" id="example">
+  <div class="section-tag">09 · ILLUSTRATIVE STANDARD</div>
+  <h2>원천 API에는 어떤 모습으로 담길 수 있는가</h2>
+  <p class="intro">기존 원천번호를 지우지 않고 공통 ID와 연결 메타데이터를 <b>추가</b>하면 데이터 제공기관의 고유 업무 의미를 유지하면서 기관 간 연계가 쉬워집니다. 아래는 이해를 돕기 위한 <b>가상의 예시 JSON</b>이며 실제 서비스 응답 형식이 아닙니다.</p>
+  <div class="panelgrid">
+    <div class="panel"><div class="panelhead"><b>현재형 응답(개념 예시)</b><span>기관이 개별 관리</span></div><div class="panelbody"><pre class="api-sample">{
+  <span class="h">"source_system_id"</span>: <span class="v">"AGENCY_X"</span>,
+  <span class="h">"source_record_id"</span>: <span class="v">"PERMIT-045"</span>,
+  <span class="h">"project_name"</span>: <span class="v">"가상 A지구"</span>,
+  <span class="h">"event_type"</span>: <span class="v">"APPROVAL"</span>,
+  <span class="h">"units"</span>: <span class="v">1200</span>
+}
+
+<span class="c">// 어느 정책/사업의 어떤 물량인지</span>
+<span class="c">// 다른 기관 자료와 재판정 필요</span></pre></div></div>
+    <div class="panel"><div class="panelhead"><b>개선형 응답(예시)</b><span>공통 ID·범위 정보 추가</span></div><div class="panelbody"><pre class="api-sample">{
+  <span class="h">"source_system_id"</span>: <span class="v">"AGENCY_X"</span>,
+  <span class="h">"source_record_id"</span>: <span class="v">"PERMIT-045"</span>,
+  <span class="h">"common_project_id"</span>: <span class="v">"PRJ-EX-001"</span>,
+  <span class="h">"block_id"</span>: <span class="v">"BLK-EX-A1"</span>,
+  <span class="h">"scope_type"</span>: <span class="v">"PARTIAL"</span>,
+  <span class="h">"event_type"</span>: <span class="v">"APPROVAL"</span>,
+  <span class="h">"units"</span>: <span class="v">1200</span>,
+  <span class="h">"base_date"</span>: <span class="v">"2026-10"</span>,
+  <span class="h">"link_status"</span>: <span class="v">"VERIFIED"</span>
+}
+
+<span class="c">// ID 확인 주체·근거·유효기간은</span>
+<span class="c">// 공통 등록부/연계 API에 별도 보존</span></pre></div></div>
+  </div>
+  <div class="callout"><strong>원칙: 원천값은 변경하지 않고 연계 메타데이터를 추가합니다.</strong> 공통사업 ID를 갖지 않은 데이터는 값이 없는 것으로 둡니다. 담당기관이 확인하지 않은 정책 귀속을 자동 생성하거나 허가 관리번호를 곧바로 공식 사업ID로 대체해서는 안 됩니다.</div>
+</section>
+
+<section class="content-section" id="roadmap">
+  <div class="section-tag">10 · ROADMAP</div>
+  <h2>일괄 개편보다 단계적인 공동 정비가 현실적입니다</h2>
+  <p class="intro">기존 시스템을 전면 개편하면 업무 중단·예산·데이터 정합성 문제가 발생할 수 있습니다. 먼저 실제 원천키와 통합 후보를 확인하고, 일부 사업에서 공통 ID 체계를 시범 적용한 뒤 관계기관과 점진적으로 확대하는 방법이 합리적입니다.</p>
+  <div class="timeline">
+    <div class="phase"><div class="head">1단계 · 공통 정의</div><b>식별 대상·권한 합의</b><p>정책/프로그램/사업/블록 구분, 발급·정정 주체, 필수 필드 결정</p></div>
+    <div class="phase"><div class="head">2단계 · 시범 등록</div><b>골든셋·대응표 구축</b><p>서로 다른 유형의 실제 사업 선정, 기존 번호와 공통 ID의 대응 정확도 검증</p></div>
+    <div class="phase"><div class="head">3단계 · 공급기관 연계</div><b>API/파일 추가 제공</b><p>기존 API 필드 유지 + 공통 ID 및 공식 대응표, 배치·판본 시험</p></div>
+    <div class="phase"><div class="head">4단계 · 운영 정착</div><b>확대·품질관리</b><p>기관별 적용범위 확대, 변경·해제 이력, 담당자 검토와 성과 관리</p></div>
+  </div>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>단계</th><th>기관 간 핵심 협의</th><th>구체적 산출물</th><th>다음 단계로 넘어갈 기준</th></tr></thead><tbody>
+    <tr><td>1. 표준·권한 합의</td><td>무엇을 동일 사업으로 볼지, 누가 공식 ID를 발급할지</td><td>표준 데이터 사전, ID 규칙, 관계·범위 코드, 책임 분담</td><td>중복·합병·분할·취소 예외를 해석할 수 있는 정의 승인</td></tr>
+    <tr><td>2. 시범사업 검증</td><td>기관 원천 사업번호와 공통 사업ID 대응 확인</td><td>시범 사업목록, 매칭 근거, 오류·누락·보류 사례집</td><td>대표 유형에 대해 수집→매칭→담당자 검토→재수집 일관성 통과</td></tr>
+    <tr><td>3. 제공체계 시험</td><td>원천 API 수정 또는 공식 대응표 제공 방식 선택</td><td>버전 호환 API 명세/대응표, 시험 결과, 권한·이용조건 검토</td><td>기존 이용자 영향 없이 신규 키 및 대응관계 조회 가능</td></tr>
+    <tr><td>4. 상시 관리</td><td>기관별 데이터 품질·갱신 책임과 이의처리</td><td>등록부 운영지침, 품질 대시보드, 변경·해제 이력 관리체계</td><td>오연결·누락·기준일·집계 충돌을 정기 확인하고 조치</td></tr>
+  </tbody></table></div>
+  <div class="callout green"><strong>단기 성과의 현실적 목표</strong><br>모든 정책·사업을 한 번에 완전 연결하겠다고 선언하기보다, <b>선정된 시범사업에서 인허가·공사·공급·입주 자료가 공통 ID와 근거를 통해 얼마나 정확하게 재현되는지</b> 검증하는 것을 우선합니다.</div>
+</section>
+
+<section class="content-section" id="effect">
+  <div class="section-tag">11 · EXPECTED EFFECTS &amp; QUALITY</div>
+  <h2>무엇이 달라지는가: 기대효과와 검증 방법</h2>
+  <p class="intro">효과를 뒷받침할 운영 측정값이 아직 제시되지 않았으므로, 절감시간·비용·정확도 향상률을 임의로 추정하지 않았습니다. 대신 <b>어떤 업무가 바뀌고, 무엇을 수치로 측정해야 하는지</b> 제시합니다.</p>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>영역</th><th>현행의 어려움</th><th>정비 후 기대되는 변화</th><th>측정 지표(제안)</th></tr></thead><tbody>
+    <tr><td>연결 효율</td><td>새 원천자료 유입 때마다 후보 대조·담당자 판단</td><td>기관이 확인한 대응관계를 자동 재사용하고 예외에 집중</td><td>전체 대상 중 공통 ID 확인 연결 비율</td></tr>
+    <tr><td>집계 신뢰성</td><td>정책별·기관별·지구/블록 물량 중복 위험</td><td>같은 공급묶음을 식별하고 지표·범위가 일치할 때만 합산</td><td>중복·범위 충돌 검출 건수, 해결율</td></tr>
+    <tr><td>추적 가능성</td><td>정책 목표와 개별 인허가·공고·입주 자료 추적이 어려움</td><td>정책→프로그램→사업→원천판본까지 근거 조회</td><td>출처·기준일·승인 상태가 확인되는 수치의 비율</td></tr>
+    <tr><td>정책 집행관리</td><td>기관별 진행정보를 개별 조회해야 함</td><td>동일 사업의 최초·변경·실제 사건 비교 및 일정 지연 확인</td><td>단계별 실제일·계획일 확보율</td></tr>
+    <tr><td>기관 협업</td><td>같은 사업에 대한 다른 기관 ID의 대응 확인에 시간 소요</td><td>공식 대응표와 변경 통지로 재확인 필요성 축소</td><td>이의·정정 처리 소요기간, 미해결 연결 건수</td></tr>
+  </tbody></table></div>
+  <h3 style="margin-top:20px">핵심 품질지표는 ‘행 수’가 아니라 ‘검증된 연결’입니다</h3>
+  <div class="dim-list">
+    <div class="dim"><div class="letter">①</div><h4>공통 ID 확보율</h4><p>해당 원천 범위에서 공통 사업ID 또는 공식 대응표를 제공하는 원천 기록 비율</p><div class="formula">확보 행 ÷ 연결 대상 행</div></div>
+    <div class="dim"><div class="letter">②</div><h4>실사업 연결률</h4><p>확인 대상 사업 가운데 동일 사업으로 승인되어 연결된 사업의 비율</p><div class="formula">확정 연결 사업 ÷ 대상 사업</div></div>
+    <div class="dim"><div class="letter">③</div><h4>증거 추적 가능률</h4><p>화면의 핵심 수치에서 원본·기준일·판본·관리주체까지 추적 가능한 비율</p><div class="formula">근거 완비 수치 ÷ 검증 대상 수치</div></div>
+    <div class="dim"><div class="letter">④</div><h4>예외·오류 해결율</h4><p>중복·충돌·분할·범위 미일치 등 검토 항목을 처리한 비율</p><div class="formula">처리 완료 건 ÷ 등록된 예외 건</div></div>
+    <div class="dim"><div class="letter">⑤</div><h4>단계 정보 확보율</h4><p>관리대상 사업의 승인·착공·준공·입주 사건 중 확인된 범위를 단계별로 측정</p><div class="formula">확인 단계 수 ÷ 해당 대상 단계 수</div></div>
+    <div class="dim"><div class="letter">⑥</div><h4>검토 반복 축소 정도</h4><p>같은 사업에 대한 과거 연결 결정을 재사용하여 줄인 수기 검토량</p><div class="formula">시범 전후 재검토 건수 비교</div></div>
+  </div>
+  <div class="cap">지표의 분모는 사전에 승인한 대상 원천·지역·기간·사업 모집단으로 고정해야 합니다. 0건, 미수집, 미공개, 미연계는 구분하며, 제안 수식을 실제 KPI로 채택하기 전 정의·중복기준 검증이 필요합니다.</div>
+</section>
+
+<section class="content-section" id="risks">
+  <div class="section-tag">12 · SAFEGUARDS</div>
+  <h2>공통 ID를 도입할 때 반드시 지켜야 할 원칙</h2>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>위험</th><th>잘못된 접근</th><th>권고하는 통제</th></tr></thead><tbody>
+    <tr><td>정책ID 만능주의</td><td>정책ID만 같으면 다른 기관의 모든 자료를 하나로 합산</td><td>사업ID·지구/블록·공급묶음·지표·기간·관계 유형을 함께 판단</td></tr>
+    <tr><td>같은 명칭의 오병합</td><td>사업명·주소만 유사하면 자동으로 동일 사업 확정</td><td>공식 번호·고시·시기·필지·물량범위를 함께 확인, 불명확 시 검토 보류</td></tr>
+    <tr><td>법정번호 혼용</td><td>PNU나 인허가 관리번호를 모든 기관 공통 사업ID로 대체</td><td>각 원천 PK를 유지하고 별도 안정 사업ID 및 대응관계 관리</td></tr>
+    <tr><td>분할·합병·재지정</td><td>기존 사업번호 삭제 후 새 번호로 일괄 덮어쓰기</td><td>유효기간과 승계·분할 관계를 버전으로 관리, 기존 식별자 재사용 금지</td></tr>
+    <tr><td>정책 실적 오인</td><td>연결확정된 사업 계획물량을 공식 준공·입주 실적으로 표시</td><td>정책 귀속 확인과 단계별 실제 사건 확인을 별도 승인</td></tr>
+    <tr><td>기관 업무 부담</td><td>모든 제공기관에 일괄 신규 정책ID 입력 요구</td><td>공식 사업ID·대응표부터 시작, 정책 귀속은 관리주체가 별도 연계</td></tr>
+    <tr><td>공개·보안</td><td>내부 검토자료와 담당자 정보를 공개 API에 그대로 제공</td><td>공개등급·접근권한·출처·수정 이력 분리, 공식 공개 승인 후 제공</td></tr>
+  </tbody></table></div>
+  <div class="quote">“공통 식별체계의 목적은 매칭을 모두 자동화하는 것이 아니라, 반복 확인을 줄이고 사람이 판단해야 할 예외를 명확히 남기는 데 있다.”</div>
+</section>
+
+<section class="content-section" id="decision">
+  <div class="section-tag">13 · REQUEST FOR COORDINATION</div>
+  <h2>관계기관에 제안하는 협의·결정 사항</h2>
+  <p class="intro">다음 사항은 현재 확정된 기관 간 합의가 아니라, 공통 식별체계 마련을 위한 <strong>협의 요청 안건</strong>입니다.</p>
+  <div class="ask">
+    <div class="decision"><div><b>공통 식별대상 확정</b><br>정책·프로그램·실제 사업·지구/블록·공급범위의 구분 기준과 원천번호와의 관계를 공동 정의</div></div>
+    <div class="decision"><div><b>발급·변경 권한 분담</b><br>정책관리 주체와 사업 시행기관의 역할, 공통 ID 등록부의 운영·정정·이의처리 주체 지정</div></div>
+    <div class="decision"><div><b>원천기관 시범 연계</b><br>건축HUB, LH/SH/GH, 청약홈, 정책·고시 자료 가운데 우선 적용 대상을 선정하고 기존 API 필드 추가 또는 공식 대응표 제공 방식 검토</div></div>
+    <div class="decision"><div><b>공식 연결 증거와 관리기준 합의</b><br>정책 포함 여부, 전체/부분 공급 범위, 중복 제외, 예정·실제 사건 구분, 변경 이력과 승인상태의 최소 제공항목 결정</div></div>
+    <div class="decision"><div><b>검증 가능한 시범성과 확인</b><br>시범사업의 실제 자료를 기준으로 공통 ID 연결률, 오매칭, 증거 추적, 기존 사용자 호환성 검증 후 확대 여부 판단</div></div>
+  </div>
+  <div class="callout green"><strong>종합 제안</strong><br>현재 HOME이 수행하는 수집→판본 보존→후보 매칭→담당자 검토 체계를 유지하면서, 관계기관이 공통 사업 식별키와 원천 ID 대응정보를 제공할 수 있도록 데이터 생산·제공 단계의 표준을 정비할 필요가 있습니다. 이를 통해 정책 발표부터 입주까지의 정보 연결을 개별 시스템의 추정에만 의존하지 않고, 공식 기준정보를 활용하는 방향으로 발전시킬 수 있습니다.</div>
+</section>
+
+<section class="content-section" id="appendix">
+  <div class="section-tag">APPENDIX · REFERENCE</div>
+  <h2>용어 해설과 근거의 범위</h2>
+  <div class="glossary">
+    <div class="term"><b>API</b><span>기관 데이터가 다른 시스템으로 자동 전달되도록 하는 정보 제공 방식</span></div>
+    <div class="term"><b>ID(식별자)</b><span>정책·사업·원천 기록을 서로 구별하기 위해 부여한 고유번호</span></div>
+    <div class="term"><b>통합 사업ID</b><span>기관별 번호가 달라도 하나의 실제 사업을 지속적으로 식별하기 위한 공통 번호</span></div>
+    <div class="term"><b>원천번호</b><span>기존 기관 시스템에서 독자적으로 사용하는 허가·공고·단지·기록 관리번호</span></div>
+    <div class="term"><b>대응표(Crosswalk)</b><span>원천기관의 기존 ID와 공통 사업ID가 어떤 관계인지 정리한 공식 목록</span></div>
+    <div class="term"><b>판본(Revision)</b><span>데이터가 언제 어떤 값으로 바뀌었는지 추적하기 위한 변경 기록</span></div>
+    <div class="term"><b>공급묶음(Supply cohort)</b><span>중복 합산을 막기 위해 동일한 물량의 지구·블록·공급유형·범위를 구분한 단위</span></div>
+    <div class="term"><b>확정/검토/해제</b><span>관계가 담당자에 의해 확인되었는지, 아직 후보인지, 기존 연결이 철회되었는지 나타내는 상태</span></div>
+  </div>
+  <div class="rule"></div>
+  <h3>작성 근거와 확인 수준</h3>
+  <div class="footnotes">
+    <p><strong>기준 문서:</strong> 사용자가 제공한 「HOME 데이터 정비 방안 · 현재 구조」(2026.10.13, 7쪽).</p>
+    <p><strong>현행 구현 설명:</strong> 1쪽은 검토 결론, 1~2쪽은 현재 ER 구조, 3쪽은 테이블별 핵심 필드·수집방식, 4쪽은 정책~입주 저장·연결 경로, 5쪽은 조사·매칭·담당자 검토, 6~7쪽은 기관별 개선 요청에 관한 내용입니다.</p>
+    <p><strong>추가 검증 범위:</strong> 이번 보고서는 제출된 PDF를 대중 친화적으로 재구성한 문서이며, 코드·운영 DB의 최신 상태나 각 기관 API의 최신 계약·변경 가능성을 독립적으로 검증한 결과는 아닙니다. 현행 시스템에 관한 문장은 PDF가 설명하는 2026.10.13 시점 기준으로 이해해야 합니다.</p>
+    <p><strong>제안·예시:</strong> 공통 ID 접두어, JSON 필드, 운영 절차, KPI 정의, 간략 데이터 사례와 다이어그램은 향후 협의·시범검증을 위한 제안 또는 가상 예시입니다. 공식 기관 합의사항이나 검증된 실적값으로 해석해서는 안 됩니다.</p>
+  </div>
+</section>
+<div class="footer">HOME · DATA REMEDIATION REPORT · 2026.10.13<br>정책별 공급량과 집행상태의 신뢰 가능한 연결을 위한 공동 데이터 정비 제안</div>
+</main>
+</div>
+<script>
+(function(){
+  const now=document.getElementById('modeNow');
+  const future=document.getElementById('modeFuture');
+  const a=document.getElementById('diagramNow');
+  const b=document.getElementById('diagramFuture');
+  function toggle(showFuture){
+    now.classList.toggle('active',!showFuture);future.classList.toggle('active',showFuture);
+    now.setAttribute('aria-pressed', String(!showFuture));future.setAttribute('aria-pressed', String(showFuture));
+    a.classList.toggle('hidden',showFuture); b.classList.toggle('hidden',!showFuture);
+  }
+  now.addEventListener('click',()=>toggle(false));future.addEventListener('click',()=>toggle(true));
+})();
+</script>
+</body>
+</html>

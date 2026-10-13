@@ -30,6 +30,8 @@ def json_rows(path):
         end = False
         for line in stream:
             value = line.strip().rstrip(',')
+            if not value:
+                continue
             if value == ']':
                 end = True
                 break
@@ -63,6 +65,24 @@ def verify(root):
             raise ValueError(f'프로그램이 없는 링크: {pid}')
         if projects[link['project_id']]['link']['program_id'] != pid:
             raise ValueError(f'편의 뷰와 링크 불일치: {link["project_id"]}')
+    if (root/'project_identities.json.gz').is_file():
+        identities = {r['id'] for r in json_rows(root/'project_identities.json.gz')}
+        aliases = list(json_rows(root/'identity_aliases.json.gz'))
+        if len({r['source_entity_id'] for r in aliases}) != len(aliases):
+            raise ValueError('정체성 별칭의 원천 객체 키 중복')
+        for alias in aliases:
+            if alias['project_id'] not in identities:
+                raise ValueError('정체성 별칭의 사업 ID 누락')
+        for item in json_rows(root/'project_evidence.json.gz'):
+            if item['project_id'] not in identities:
+                raise ValueError('사업 근거의 정체성 ID 누락')
+        plans = {r['id'] for r in json_rows(root/'plans.json.gz')}
+        for item in json_rows(root/'plan_events.json.gz'):
+            if item['plan_id'] not in plans:
+                raise ValueError('고시 사건의 계획 ID 누락')
+        for item in json_rows(root/'plan_project_links.json.gz'):
+            if item['plan_id'] not in plans or item['project_id'] not in identities:
+                raise ValueError('계획·사업 링크의 대상 ID 누락')
     print(f'VERIFIED {len(manifest["files"])} files, {len(projects)} current projects, {len(programs)} programmes', flush=True)
 
 

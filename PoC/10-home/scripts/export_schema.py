@@ -63,6 +63,15 @@ def schemas(kinds):
             'payload_hash': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'},
             'batch_id': string, 'recorded_at': dt, 'superseded_at': ndt,
         }),
+        'source-coverage': table_schema('HOME verified query scope', {
+            'id': string, 'batch_id': string, 'source_id': string, 'endpoint': string,
+            'region': nullable('string'), 'area_code': nullable('string'),
+            'source_period': nullable('string'), 'expected_count': nullable('integer'),
+            'fetched_count': number,
+            'query_status': {'enum': ['COMPLETE_QUERY', 'PARTIAL']},
+            'population_status': {'enum': ['PARTIAL_SCOPE', 'UNVERIFIED']},
+            'scope_note': nullable('string'), 'recorded_at': dt,
+        }),
         'collection-batch': table_schema('HOME collection batch', {
             'id': string, 'source_id': string, 'started_at': dt, 'finished_at': ndt,
             'status': string, 'stats': obj, 'error': nullable('string'),
@@ -70,6 +79,33 @@ def schemas(kinds):
                 'url': string, 'sha256': string, 'bytes': number, 'file': string,
                 'parser_version': string, 'credentials_removed': {'type': 'boolean'}},
                 'additionalProperties': True}},
+        }),
+        'project-identity': table_schema('HOME candidate real-project identity', {
+            'id': string, 'name': string, 'region': string, 'identity_status': string, 'created_at': dt,
+        }),
+        'identity-alias': table_schema('HOME source object to candidate project review link', {
+            'id': string, 'project_id': string, 'source_entity_id': string, 'source_id': string,
+            'relation_status': string, 'match_rule': string, 'unit_comparison': nullable('string'),
+            'basis': string, 'evidence_revision_id': string, 'evidence_url': string,
+            'created_at': dt, 'reviewed_at': ndt,
+        }),
+        'project-evidence': table_schema('HOME project supporting source revision', {
+            'id': string, 'project_id': string, 'revision_id': string,
+            'evidence_role': string, 'created_at': dt,
+        }),
+        'plan': table_schema('HOME legal plan candidate', {
+            'id': string, 'name': string, 'region': string, 'plan_type': string,
+            'legal_status': string, 'created_at': dt,
+        }),
+        'plan-event': table_schema('HOME official legal notice event', {
+            'id': string, 'plan_id': string, 'event_type': string, 'notice_no': nullable('string'),
+            'notice_date': nullable('string'), 'evidence_url': string,
+            'evidence_sha256': nullable('string'), 'source_revision_id': nullable('string'),
+            'verification_status': string, 'created_at': dt,
+        }),
+        'plan-project-link': table_schema('HOME plan to project review link', {
+            'id': string, 'plan_id': string, 'project_id': string, 'status': string,
+            'basis': string, 'evidence_url': string, 'reviewed_at': ndt,
         }),
         'project-program-link': table_schema('HOME project to programme review link', {
             'id': string, 'project_id': string, 'policy_id': string, 'program_id': nullable('string'),
@@ -111,9 +147,23 @@ def relationships():
         'entities': [
             {'name': 'source_registry', 'file': 'source_registry.json', 'key': ['id'], 'meaning': '수집기 정의와 이 스냅샷의 원천별 범위'},
             {'name': 'home_batch', 'file': 'collection_batches.json.gz', 'key': ['id'], 'meaning': '수집 시도·성공/실패·원본 manifest'},
+            {'name': 'home_coverage', 'file': 'source_coverage.json.gz', 'key': ['id'],
+             'meaning': '배치별 endpoint·지역 조회 완결성; 서울·경기 전체 사업 전수 의미 아님'},
             {'name': 'home_revision', 'file': 'revisions/{kind}.json.gz', 'key': ['id'],
              'logical_key': ['entity_id', 'revision_no'], 'current_rule': 'superseded_at == null',
              'meaning': '원천 자료의 불변 판본; kind 별 파일로 분리'},
+            {'name': 'home_project', 'file': 'project_identities.json.gz', 'key': ['id'],
+             'meaning': '원천 사업 후보에서 시작한 안정 정체성; 검토 전 실사업 동일성 확정 아님'},
+            {'name': 'home_identity_alias', 'file': 'identity_aliases.json.gz', 'key': ['id'],
+             'unique': ['source_entity_id'], 'meaning': '원천 객체→정체성 검토 링크'},
+            {'name': 'home_project_evidence', 'file': 'project_evidence.json.gz', 'key': ['id'],
+             'meaning': '정체성을 뒷받침하는 원천 판본'},
+            {'name': 'home_plan', 'file': 'plans.json.gz', 'key': ['id'],
+             'meaning': '법적 계획 후보. 정책·사업과 별도 정체성'},
+            {'name': 'home_plan_event', 'file': 'plan_events.json.gz', 'key': ['id'],
+             'meaning': '공식 고시 원문과 날짜·번호·원본 해시'},
+            {'name': 'home_plan_project_link', 'file': 'plan_project_links.json.gz', 'key': ['id'],
+             'meaning': '계획↔실사업 검토 링크; 계획 없는 사업 허용'},
             {'name': 'home_mapping', 'file': 'project_program_links.json.gz', 'key': ['id'],
              'unique': ['project_id'], 'meaning': '사업 → 프로그램 검토 링크'},
             {'name': 'home_program_mapping', 'file': 'program_policy_links.json.gz', 'key': ['id'],
@@ -124,10 +174,26 @@ def relationships():
              'meaning': '현재 사업 판본과 두 단계 유효 링크를 합친 편의 뷰'},
         ],
         'relations': [
+            {'from': 'home_coverage.batch_id', 'to': 'home_batch.id', 'cardinality': 'many-to-one'},
+            {'from': 'home_coverage.source_id', 'to': 'source_registry.id', 'cardinality': 'many-to-one'},
             {'from': 'home_revision.source_id', 'to': 'source_registry.id', 'cardinality': 'many-to-one'},
             {'from': 'home_batch.source_id', 'to': 'source_registry.id', 'cardinality': 'many-to-one'},
             {'from': 'home_revision.batch_id', 'to': 'home_batch.id', 'cardinality': 'many-to-one'},
             {'from': 'home_revision.previous_id', 'to': 'home_revision.id', 'cardinality': 'previous-version'},
+            {'from': 'home_identity_alias.project_id', 'to': 'home_project.id', 'cardinality': 'many-to-one'},
+            {'from': 'home_identity_alias.source_entity_id', 'to': 'home_revision.entity_id',
+             'cardinality': 'one-to-one-source-object'},
+            {'from': 'home_identity_alias.evidence_revision_id', 'to': 'home_revision.id',
+             'cardinality': 'many-to-one'},
+            {'from': 'home_project_evidence.project_id', 'to': 'home_project.id',
+             'cardinality': 'many-to-one'},
+            {'from': 'home_project_evidence.revision_id', 'to': 'home_revision.id',
+             'cardinality': 'many-to-one'},
+            {'from': 'home_plan_event.plan_id', 'to': 'home_plan.id', 'cardinality': 'many-to-one'},
+            {'from': 'home_plan_event.source_revision_id', 'to': 'home_revision.id',
+             'cardinality': 'many-to-one-optional'},
+            {'from': 'home_plan_project_link.plan_id', 'to': 'home_plan.id', 'cardinality': 'many-to-one'},
+            {'from': 'home_plan_project_link.project_id', 'to': 'home_project.id', 'cardinality': 'many-to-one'},
             {'from': 'home_mapping.project_id', 'to': 'home_revision.entity_id',
              'condition': 'kind == project; current row has superseded_at == null', 'cardinality': 'one-to-one-current'},
             {'from': 'home_mapping.program_id', 'to': 'home_program_mapping.id', 'cardinality': 'many-to-one'},
@@ -166,6 +232,8 @@ def build(root):
             assert handle.readline().strip() == '['
             for line in handle:
                 row = line.strip().rstrip(',')
+                if not row:
+                    continue
                 if row == ']':
                     break
                 payload = json.loads(row)['payload']

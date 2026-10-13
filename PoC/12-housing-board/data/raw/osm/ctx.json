@@ -1,0 +1,971 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-03T14:18:20Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 368886148,
+  "lat": 37.5479863,
+  "lon": 126.7439676,
+  "tags": {
+    "amenity": "kindergarten",
+    "check_date": "2023-09-20",
+    "name": "보람유치원",
+    "name:en": "Boram Kindergarten",
+    "name:ko": "보람유치원",
+    "name:ko-Latn": "Boramyuchiwon"
+  }
+},
+{
+  "type": "node",
+  "id": 3152004117,
+  "lat": 37.5715012,
+  "lon": 126.7358582,
+  "tags": {
+    "name": "계양",
+    "name:en": "Gyeyang",
+    "name:ja": "ケヤン(桂陽)",
+    "name:ko": "계양",
+    "name:zh": "桂阳",
+    "operator": "인천교통공사",
+    "operator:en": "Incheon Transit Corporation",
+    "operator:ko": "인천교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q483883",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I110",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q54261",
+    "wikipedia": "ko:계양역"
+  }
+},
+{
+  "type": "node",
+  "id": 3152004118,
+  "lat": 37.5717670,
+  "lon": 126.7363110,
+  "tags": {
+    "name": "계양",
+    "name:en": "Gyeyang",
+    "name:ja": "ケヤン(桂陽)",
+    "name:ko": "계양",
+    "name:zh": "桂阳",
+    "name:zh-Hans": "桂阳",
+    "name:zh-Hant": "桂陽",
+    "operator": "공항철도주식회사",
+    "operator:en": "Airport Railroad Corporation",
+    "operator:ko": "공항철도주식회사",
+    "operator:short": "A'REX",
+    "operator:type": "consortium",
+    "operator:wikidata": "Q4675224",
+    "operator:wikipedia": "en:Airport Railroad Corporation",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:ref": "계양",
+    "ref": "A06",
+    "ref:AFC": "4208",
+    "ref:ARS": "0905",
+    "ref:KROIS": "C10270",
+    "ref:XROIS": "3900931",
+    "station": "train",
+    "train": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 3152004119,
+  "lat": 37.5663544,
+  "lon": 126.7426554,
+  "tags": {
+    "name": "귤현",
+    "name:en": "Gyulhyeon",
+    "name:ja": "キュルヒョン(橘峴)",
+    "name:ko": "귤현",
+    "name:zh": "橘岘",
+    "operator": "인천교통공사",
+    "operator:en": "Incheon Transit Corporation",
+    "operator:ko": "인천교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q483883",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I111",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q491159",
+    "wikipedia": "ko:귤현역"
+  }
+},
+{
+  "type": "node",
+  "id": 3401205505,
+  "lat": 37.5058355,
+  "lon": 126.7531743,
+  "tags": {
+    "name": "상동",
+    "name:en": "Sang-dong",
+    "name:ja": "サンドン(上洞)",
+    "name:ko": "상동",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69073",
+    "wikipedia": "ko:상동역 (부천)"
+  }
+},
+{
+  "type": "node",
+  "id": 6050654946,
+  "lat": 37.5070226,
+  "lon": 126.7313370,
+  "tags": {
+    "name": "굴포천",
+    "name:en": "Gulpocheon",
+    "name:ja": "クルポチョン(掘浦川)",
+    "name:ko": "굴포천",
+    "name:zh": "掘浦川",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69082",
+    "wikipedia": "ko:굴포천역"
+  }
+},
+{
+  "type": "node",
+  "id": 6050654947,
+  "lat": 37.5064960,
+  "lon": 126.7423475,
+  "tags": {
+    "name": "삼산체육관",
+    "name:en": "Samsan Gymnasium",
+    "name:ja": "サムサンチェユックァン(三山体育館)",
+    "name:ko": "삼산체육관",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69077",
+    "wikipedia": "ko:삼산체육관역"
+  }
+},
+{
+  "type": "node",
+  "id": 6050654949,
+  "lat": 37.5030388,
+  "lon": 126.7762325,
+  "tags": {
+    "addr:housenumber": "지하314",
+    "addr:street": "길주로",
+    "name": "신중동",
+    "name:en": "Sinjung-dong",
+    "name:ja": "シンジュンドン(新中洞)",
+    "name:ko": "신중동",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69061",
+    "wikipedia": "ko:신중동역"
+  }
+},
+{
+  "type": "node",
+  "id": 6050654950,
+  "lat": 37.5037314,
+  "lon": 126.7872014,
+  "tags": {
+    "addr:housenumber": "지하406",
+    "addr:street": "길주로",
+    "name": "춘의",
+    "name:en": "Chunui",
+    "name:ja": "チュヌィ(春衣)",
+    "name:ko": "춘의",
+    "name:zh": "春衣",
+    "name:zh-Hans": "春衣",
+    "name:zh-Hant": "春衣",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "limited",
+    "wikidata": "Q69056",
+    "wikipedia": "ko:춘의역"
+  }
+},
+{
+  "type": "node",
+  "id": 6050654951,
+  "lat": 37.5054566,
+  "lon": 126.7972885,
+  "tags": {
+    "name": "부천종합운동장",
+    "name:en": "Bucheon Stadium",
+    "name:ja": "プチョンチョンハブンドンジャン(富川総合運動場)",
+    "name:ko": "부천종합운동장",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69052",
+    "wikipedia": "ko:부천종합운동장역"
+  }
+},
+{
+  "type": "node",
+  "id": 6122528127,
+  "lat": 37.5074652,
+  "lon": 126.7211040,
+  "tags": {
+    "name": "부평구청",
+    "name:en": "Bupyeong-gu Office",
+    "name:ja": "プピョングチョン(富平区庁)",
+    "name:ko": "부평구청",
+    "name:zh": "富平区厅",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "759",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q20301",
+    "wikipedia": "ko:부평구청역"
+  }
+},
+{
+  "type": "node",
+  "id": 6185441876,
+  "lat": 37.5086974,
+  "lon": 126.7036926,
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:district": "부평구",
+    "addr:housenumber": "379",
+    "addr:street": "길주로",
+    "internet_access": "wlan",
+    "name": "산곡",
+    "name:en": "Sangok",
+    "name:ja": "サンゴク(山谷)",
+    "name:ko": "산곡",
+    "name:zh": "山谷",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "start_date": "2021-05-22",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q23994867",
+    "wikipedia": "ko:산곡역"
+  }
+},
+{
+  "type": "node",
+  "id": 8232932947,
+  "lat": 37.5785381,
+  "lon": 126.7976654,
+  "tags": {
+    "name": "개화",
+    "name:en": "Gaehwa",
+    "name:ja": "ケファ(開花)",
+    "name:ko": "개화",
+    "network": "수도권 전철",
+    "network:en": "Seoul Metropolitan Subway",
+    "network:ko": "수도권 전철",
+    "network:wikidata": "Q16950",
+    "operator": "서울시메트로9호선",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 8368008538,
+  "lat": 37.5480937,
+  "lon": 126.7438562,
+  "tags": {
+    "amenity": "kindergarten",
+    "check_date": "2023-09-20",
+    "name": "병방어린이집"
+  }
+},
+{
+  "type": "node",
+  "id": 8390080118,
+  "lat": 37.5082283,
+  "lon": 126.7205539,
+  "tags": {
+    "name": "부평구청",
+    "name:en": "Bupyeong-gu Office",
+    "name:ja": "プピョングチョン(富平区庁)",
+    "name:ko": "부평구청",
+    "name:zh": "富平区厅",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I118",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q20301",
+    "wikipedia": "ko:부평구청역"
+  }
+},
+{
+  "type": "node",
+  "id": 8390080120,
+  "lat": 37.5168126,
+  "lon": 126.7215178,
+  "tags": {
+    "name": "갈산",
+    "name:en": "Galsan",
+    "name:ja": "カルサン(葛山)",
+    "name:ko": "갈산",
+    "name:zh": "葛山",
+    "operator": "인천교통공사",
+    "operator:en": "Incheon Transit Corporation",
+    "operator:ko": "인천교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q483883",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I117",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q491231",
+    "wikipedia": "ko:갈산역 (인천)"
+  }
+},
+{
+  "type": "node",
+  "id": 8390080121,
+  "lat": 37.5303129,
+  "lon": 126.7225307,
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "작전동",
+    "name": "작전",
+    "name:en": "Jakjeon",
+    "name:ja": "チャクチョン(鵲田)",
+    "name:ko": "작전",
+    "name:zh": "鹊田",
+    "operator": "인천교통공사",
+    "platforms": "2",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I116",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q490985",
+    "wikipedia": "ko:작전역"
+  }
+},
+{
+  "type": "node",
+  "id": 8390080122,
+  "lat": 37.5384076,
+  "lon": 126.7226027,
+  "tags": {
+    "name": "경인교대입구",
+    "name:en": "Gyeongin Nat'l Univ. of Education",
+    "name:ja": "キョンインギョデイック(京仁教大入口)",
+    "name:ko": "경인교대입구",
+    "name:ko-Latn": "Gyeongingyodaeipgu",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I115",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q490940",
+    "wikipedia": "ko:경인교대입구역"
+  }
+},
+{
+  "type": "node",
+  "id": 8390080123,
+  "lat": 37.5433360,
+  "lon": 126.7278571,
+  "tags": {
+    "name": "계산",
+    "name:en": "Gyesan",
+    "name:ja": "ケサン(桂山)",
+    "name:ko": "계산",
+    "name:zh": "桂山",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I114",
+    "station": "subway",
+    "subway": "yes",
+    "wikidata": "Q491181",
+    "wikipedia": "ko:계산역"
+  }
+},
+{
+  "type": "node",
+  "id": 9417728884,
+  "lat": 37.5058364,
+  "lon": 126.7974606,
+  "tags": {
+    "name": "부천종합운동장",
+    "name:en": "Bucheon Stadium",
+    "name:ja": "プチョンチョンハブンドンジャン(富川総合運動場)",
+    "name:ko": "부천종합운동장",
+    "network": "코레일",
+    "not:network:wikidata": "Q167674",
+    "operator": "한국철도공사",
+    "operator:en": "Korea Railroad Corporation",
+    "operator:ko": "한국철도공사",
+    "operator:short": "KORAIL",
+    "operator:type": "public",
+    "operator:wikidata": "Q18169",
+    "operator:wikipedia": "en:Korail",
+    "public_transport": "station",
+    "railway": "station",
+    "railway:ref": "부천종",
+    "ref": "S15",
+    "ref:AFC": "1982",
+    "ref:KROIS": "270027",
+    "ref:XROIS": "3901122",
+    "start_date": "2023-07-01",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69052",
+    "wikipedia": "ko:부천종합운동장역"
+  }
+},
+{
+  "type": "node",
+  "id": 12961370706,
+  "lat": 37.5922592,
+  "lon": 126.7133006,
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "검단구",
+    "addr:housenumber": "지하393",
+    "addr:street": "이음대로",
+    "addr:subdistrict": "당하동",
+    "name": "아라",
+    "name:en": "Ara",
+    "name:ja": "アラ",
+    "name:ko": "아라",
+    "name:zh": "阿拉",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I109",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q130284078",
+    "wikipedia": "ko:아라역"
+  }
+},
+{
+  "type": "way",
+  "id": 224161509,
+  "center": {
+    "lat": 37.5506728,
+    "lon": 126.7440977
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "954",
+    "addr:postcode": "21028",
+    "addr:street": "장제로",
+    "addr:subdistrict": "병방동",
+    "amenity": "school",
+    "check_date": "2023-09-10",
+    "grades": "1-6",
+    "isced:level": "1",
+    "name": "인천양촌초등학교",
+    "name:en": "Incheon Yangchon Elementary School",
+    "name:ko": "인천양촌초등학교",
+    "wikidata": "Q21060048"
+  }
+},
+{
+  "type": "way",
+  "id": 224161511,
+  "center": {
+    "lat": 37.5690991,
+    "lon": 126.7391329
+  },
+  "tags": {
+    "amenity": "school",
+    "isced:level": "2",
+    "name": "계양중학교",
+    "name:en": "Gyeyang Middle School",
+    "wikidata": "Q17986978"
+  }
+},
+{
+  "type": "way",
+  "id": 224161513,
+  "center": {
+    "lat": 37.5514863,
+    "lon": 126.7446204
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "966",
+    "addr:postcode": "21028",
+    "addr:street": "장제로",
+    "addr:subdistrict": "병방동",
+    "amenity": "school",
+    "check_date": "2023-09-10",
+    "grades": "10-12",
+    "isced:level": "3",
+    "name": "인천세원고등학교",
+    "name:en": "Incheon Sewon High School",
+    "name:ko": "인천세원고등학교",
+    "wikidata": "Q12613515"
+  }
+},
+{
+  "type": "way",
+  "id": 224161515,
+  "center": {
+    "lat": 37.5500661,
+    "lon": 126.7450235
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "13",
+    "addr:postcode": "21028",
+    "addr:street": "장제로948번길",
+    "addr:subdistrict": "병방동",
+    "amenity": "school",
+    "check_date": "2023-09-10",
+    "grades": "7-9",
+    "isced:level": "2",
+    "name": "인천양촌중학교",
+    "name:en": "Incheon Yangchon Middle School",
+    "name:ko": "인천양촌중학교",
+    "wikidata": "Q17503795"
+  }
+},
+{
+  "type": "way",
+  "id": 224626521,
+  "center": {
+    "lat": 37.5536572,
+    "lon": 126.7448919
+  },
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "covered": "yes",
+    "description": "train_station",
+    "layer": "-1",
+    "lit": "yes",
+    "name": "박촌",
+    "name:en": "Bakchon",
+    "name:ja": "パクチョン(朴村)",
+    "name:ko": "박촌",
+    "name:zh": "朴村",
+    "operator": "인천교통공사",
+    "operator:en": "Incheon Transit Corporation",
+    "operator:ko": "인천교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q483883",
+    "platforms": "4",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I112",
+    "station": "subway",
+    "subway": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q491172",
+    "wikipedia": "ko:박촌역"
+  }
+},
+{
+  "type": "way",
+  "id": 224643507,
+  "center": {
+    "lat": 37.5459174,
+    "lon": 126.7404313
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "894",
+    "addr:postcode": "21035",
+    "addr:street": "장제로",
+    "addr:subdistrict": "병방동",
+    "amenity": "school",
+    "grades": "7-9",
+    "isced:level": "2",
+    "name": "임학중학교",
+    "name:en": "Imhak Middle School",
+    "name:ko": "임학중학교",
+    "wikidata": "Q17346841"
+  }
+},
+{
+  "type": "way",
+  "id": 224643519,
+  "center": {
+    "lat": 37.5466934,
+    "lon": 126.7410655
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "2",
+    "addr:postcode": "21035",
+    "addr:street": "병방로",
+    "addr:subdistrict": "병방동",
+    "amenity": "school",
+    "grades": "1-6",
+    "isced:level": "1",
+    "name": "인천병방초등학교",
+    "name:en": "Incheon Byeongbang Elementary School",
+    "name:ko": "인천병방초등학교",
+    "wikidata": "Q21060022"
+  }
+},
+{
+  "type": "way",
+  "id": 224643539,
+  "center": {
+    "lat": 37.5559595,
+    "lon": 126.7422864
+  },
+  "tags": {
+    "amenity": "school",
+    "isced:level": "1",
+    "name": "인천소양초등학교",
+    "name:en": "Incheon Soyang Elementary School",
+    "wikidata": "Q19161970"
+  }
+},
+{
+  "type": "way",
+  "id": 224673530,
+  "center": {
+    "lat": 37.5388743,
+    "lon": 126.7434955
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "용종동",
+    "amenity": "school",
+    "isced:level": "1",
+    "name": "인천신대초등학교",
+    "name:en": "Incheon Sindae Elementary School",
+    "name:ko": "인천신대초등학교",
+    "wikidata": "Q21060044"
+  }
+},
+{
+  "type": "way",
+  "id": 224673556,
+  "center": {
+    "lat": 37.5344760,
+    "lon": 126.7394113
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "47",
+    "addr:postcode": "21070",
+    "addr:street": "도두리로",
+    "addr:subdistrict": "계산동",
+    "amenity": "school",
+    "isced:level": "3",
+    "name": "계산공업고등학교",
+    "name:en": "Kyesan Technical High School",
+    "name:ko": "계산공업고등학교",
+    "name:ko-Latn": "Gyesangongeopgodeunghakgyo",
+    "website": "http://iks.icehs.kr/main.do",
+    "wikidata": "Q12583992",
+    "wikipedia": "ko:계산공업고등학교"
+  }
+},
+{
+  "type": "way",
+  "id": 224673579,
+  "center": {
+    "lat": 37.5388111,
+    "lon": 126.7423399
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "용종동",
+    "amenity": "school",
+    "isced:level": "3",
+    "name": "계산여자고등학교",
+    "name:en": "Gyesan Girls' High School",
+    "name:ko": "계산여자고등학교",
+    "wikidata": "Q12583995"
+  }
+},
+{
+  "type": "way",
+  "id": 225141970,
+  "center": {
+    "lat": 37.5684242,
+    "lon": 126.7471176
+  },
+  "tags": {
+    "amenity": "school",
+    "isced:level": "1",
+    "name": "인천귤현초등학교",
+    "name:en": "Incheon Gyulhyeon Elementary School",
+    "name:ko": "인천귤현초등학교",
+    "wikidata": "Q19940889"
+  }
+},
+{
+  "type": "way",
+  "id": 225163187,
+  "center": {
+    "lat": 37.5545200,
+    "lon": 126.7407463
+  },
+  "tags": {
+    "amenity": "school",
+    "barrier": "fence",
+    "isced:level": "2",
+    "name": "인천예일중학교",
+    "name:en": "Incheon Yeil Middle School",
+    "name:ko": "인천예일중학교"
+  }
+},
+{
+  "type": "way",
+  "id": 225163188,
+  "center": {
+    "lat": 37.5540009,
+    "lon": 126.7417942
+  },
+  "tags": {
+    "amenity": "school",
+    "barrier": "fence",
+    "isced:level": "3",
+    "name": "인천예일고등학교",
+    "name:en": "Incheon Yeil High School",
+    "name:ko": "인천예일고등학교"
+  }
+},
+{
+  "type": "way",
+  "id": 226064376,
+  "center": {
+    "lat": 37.5585207,
+    "lon": 126.7593794
+  },
+  "tags": {
+    "amenity": "school",
+    "isced:level": "1",
+    "name": "인천당산초등학교",
+    "name:en": "Incheon Dangsan Elementary School",
+    "wikidata": "Q19599336"
+  }
+},
+{
+  "type": "way",
+  "id": 226064381,
+  "center": {
+    "lat": 37.5622628,
+    "lon": 126.7608752
+  },
+  "tags": {
+    "amenity": "school",
+    "isced:level": "2",
+    "name": "동양중학교",
+    "name:en": "Dongyang Middle School",
+    "name:ko": "동양중학교",
+    "wikidata": "Q17990661",
+    "wikipedia": "ko:인천동양중학교"
+  }
+},
+{
+  "type": "way",
+  "id": 226419170,
+  "center": {
+    "lat": 37.5417076,
+    "lon": 126.7426693
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "용종동",
+    "amenity": "school",
+    "isced:level": "1",
+    "name": "인천길주초등학교",
+    "name:en": "Incheon Gilju Elementary School",
+    "name:ko": "인천길주초등학교",
+    "wikidata": "Q19940890"
+  }
+},
+{
+  "type": "way",
+  "id": 226419192,
+  "center": {
+    "lat": 37.5349515,
+    "lon": 126.7449156
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "서운동",
+    "amenity": "school",
+    "isced:level": "2",
+    "name": "인천계수중학교",
+    "name:en": "Incheon Gyesu Middle School",
+    "wikidata": "Q17990643"
+  }
+},
+{
+  "type": "way",
+  "id": 226544066,
+  "center": {
+    "lat": 37.5435652,
+    "lon": 126.7406036
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:housenumber": "878",
+    "addr:postcode": "21035",
+    "addr:street": "장제로",
+    "addr:subdistrict": "병방동",
+    "amenity": "kindergarten",
+    "building": "yes",
+    "check_date": "2024-09-18",
+    "name": "상아유치원",
+    "name:ko": "상아유치원"
+  }
+},
+{
+  "type": "way",
+  "id": 227895543,
+  "center": {
+    "lat": 37.5451276,
+    "lon": 126.7387707
+  },
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "covered": "yes",
+    "description": "train_station",
+    "layer": "-1",
+    "lit": "yes",
+    "name": "임학",
+    "name:en": "Imhak",
+    "name:ja": "イムハク(林鶴)",
+    "name:ko": "임학",
+    "name:zh": "林鹤",
+    "operator": "인천교통공사",
+    "operator:en": "Incheon Transit Corporation",
+    "operator:ko": "인천교통공사",
+    "operator:type": "public",
+    "operator:wikidata": "Q483883",
+    "platforms": "2",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "I113",
+    "station": "subway",
+    "subway": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q491162",
+    "wikipedia": "ko:임학역"
+  }
+},
+{
+  "type": "way",
+  "id": 268233172,
+  "center": {
+    "lat": 37.5046451,
+    "lon": 126.7635965
+  },
+  "tags": {
+    "ele": "-1",
+    "name": "부천시청",
+    "name:en": "Bucheon City Hall",
+    "name:ja": "プチョンシチョン(富川市庁)",
+    "name:ko": "부천시청",
+    "operator": "인천교통공사",
+    "public_transport": "station",
+    "railway": "station",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "yes",
+    "wikidata": "Q69067",
+    "wikipedia": "ko:부천시청역"
+  }
+},
+{
+  "type": "relation",
+  "id": 5864033,
+  "center": {
+    "lat": 37.5416329,
+    "lon": 126.7438746
+  },
+  "tags": {
+    "addr:city": "인천광역시",
+    "addr:country": "KR",
+    "addr:district": "계양구",
+    "addr:subdistrict": "용종동",
+    "amenity": "school",
+    "isced:level": "3",
+    "name": "계양고등학교",
+    "name:en": "Gyeyang High School",
+    "name:ko": "계양고등학교",
+    "type": "multipolygon",
+    "wikidata": "Q12584009"
+  }
+}
+
+  ]
+}

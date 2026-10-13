@@ -48,12 +48,12 @@ def build_outlook(region, area, annual, projection, current_year):
             'households': baseline['households'], 'gap_units': baseline['gap_units']},
             'completion_current_year': completion, 'forecast_published_at': area['household_forecast'][0]['published_at'] if area['household_forecast'] else None,
             'years': records,
-            'note': '주택 재고 기준연도 + 당해연도 확인 준공 총계 + 중복·용량 충돌을 제외한 사업 준공 예정량의 단순 합. 멸실·공실·민간 미래계획 미확보와 예정 변경을 반영하지 않은 검토 시나리오. 수급 부족 또는 여유의 확정치가 아님.'}
+            'note': '주택 재고 기준연도 + 당해연도 확인 준공 총계 + 중복·용량 충돌을 제외한 사업 준공 예정량의 단순 합. 기준 재고 이후 멸실·공실·민간 미래계획 미확보와 예정 변경을 반영하지 않은 검토 시나리오. 수급 부족 또는 여유의 확정치가 아님.'}
 
 
 def area_outlook(service, region):
-    if region not in ('서울특별시', '경기도'):
-        raise ValueError('서울·경기 지역만 조회할 수 있습니다')
+    if region not in ('서울특별시', '경기도', '인천광역시'):
+        raise ValueError('수도권 지역만 조회할 수 있습니다')
     year = date.today().year
     area = area_context(service, region, None, year)
     annual = annual_supply(service, region, year)

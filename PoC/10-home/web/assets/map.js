@@ -3,6 +3,7 @@ const HousingMap = (() => {
   const stages={PLANNING:'계획',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급',COMPLETION:'준공',MOVE_IN:'입주'};
   const icons={PLANNING:'▤',APPROVAL:'✓',CONSTRUCTION:'⌁',SUPPLY:'▥',COMPLETION:'◇',MOVE_IN:'⌂'};
   let payload, roadmap, supply, selectedId, selectedDistrict, year, mode='current', timer, userSelected=false, pickerSignature='';
+  const hasLocation=row=>['LH_PUBLIC_BLOCK_LABEL_POINT','BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(row?.coordinate_basis)&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude);
   const events=row=>row.annual.find(a=>a.year===year)?.events||[];
   const currentStage=row=>({CANDIDATE:'PLANNING',PLANNED_SUPPLY:'SUPPLY',COMPLETED:'COMPLETION'}[row.stage]||row.stage);
   function rows() {
@@ -16,7 +17,7 @@ const HousingMap = (() => {
     const blocks=supply.blocks.filter(row=>row.project_ids.some(id=>visible.has(id)))
       .sort((a,b)=>(a.district_name+' '+a.block).localeCompare(b.district_name+' '+b.block,'ko',{numeric:true}));
     const signature=blocks.map(row=>row.id+':'+row.coordinate_basis).join('|');
-    if(signature!==pickerSignature){select.innerHTML='<option value="">블록으로 이동</option>'+blocks.map(row=>`<option value="${esc(row.id)}">${esc(row.district_name)} · ${esc(row.block)}${row.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'?'':' · 위치 미연계'}</option>`).join('');pickerSignature=signature;}
+    if(signature!==pickerSignature){select.innerHTML='<option value="">블록으로 이동</option>'+blocks.map(row=>`<option value="${esc(row.id)}">${esc(row.district_name)} · ${esc(row.block)}${hasLocation(row)?(row.coordinate_basis.startsWith('APPROXIMATE')?' · 근사 위치':''):' · 위치 미연계'}</option>`).join('');pickerSignature=signature;}
     select.value=selectedBlock()?.id||'';
   }
   function init(){
@@ -37,7 +38,7 @@ const HousingMap = (() => {
     userSelected=true;selectedId=id;selectedDistrict=districtName||payload.districts.find(d=>d.project_ids.includes(id))?.name||null;
     draw();
     const block=selectedBlock();
-    if(block?.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT')MapThreeD.focus(block);
+    if(hasLocation(block))MapThreeD.focus(block);
     else {const district=payload.districts.find(row=>row.name===selectedDistrict);if(district)MapThreeD.focus(district,13.5);}
   }
   function selectDistrict(district) {
@@ -50,9 +51,9 @@ const HousingMap = (() => {
     const filtered=rows(), ids=new Set(filtered.map(row=>row.id));
     if(!ids.has(selectedId)) {
       const counts=new Map();
-      for(const block of supply.blocks.filter(row=>row.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'&&row.project_ids.some(id=>ids.has(id))))counts.set(block.district_name,(counts.get(block.district_name)||0)+1);
+      for(const block of supply.blocks.filter(row=>hasLocation(row)&&row.project_ids.some(id=>ids.has(id))))counts.set(block.district_name,(counts.get(block.district_name)||0)+1);
       const districtName=[...counts].filter(([name])=>payload.districts.some(row=>row.name===name)).sort((a,b)=>b[1]-a[1])[0]?.[0];
-      const firstBlock=supply.blocks.find(row=>row.district_name===districtName&&row.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'&&row.project_ids.some(id=>ids.has(id)));
+      const firstBlock=supply.blocks.find(row=>row.district_name===districtName&&hasLocation(row)&&row.project_ids.some(id=>ids.has(id)));
       const first=payload.districts.find(row=>row.name===districtName)||payload.districts.find(row=>row.project_ids.some(id=>ids.has(id)));
       const group=first?districtRows(first):filtered;
       selectedId=firstBlock?.project_ids.find(id=>ids.has(id))||(group.find(row=>events(row).length)||group[0])?.id;
@@ -60,12 +61,12 @@ const HousingMap = (() => {
     }
     const viewport=MapThreeD.view();
     if(viewport?.level==='block'&&!userSelected){
-      const near=supply.blocks.filter(block=>block.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'&&block.project_ids.some(id=>ids.has(id)))
+      const near=supply.blocks.filter(block=>hasLocation(block)&&block.project_ids.some(id=>ids.has(id)))
         .sort((a,b)=>{const distance=point=>((point.longitude-viewport.center.lng)*Math.cos(viewport.center.lat*Math.PI/180))**2+(point.latitude-viewport.center.lat)**2;return distance(a)-distance(b);})[0];
       if(near){selectedId=near.project_ids.find(id=>ids.has(id));selectedDistrict=near.district_name;}
     }
     MapThreeD.render(supply,ids,selectedId,selectedDistrict,choose);
-    if(!geographyOnly){MapSupply.render(supply);renderPanels(filtered);renderTimeline(filtered);}
+    if(!geographyOnly){MapSupply.render(supply);renderPanels(filtered);}
     else renderBlockList(filtered);
     MapMonitor.panel(supply,{...(MapThreeD.view()||{}),explicitBlockId:userSelected?selectedBlock()?.id:null});
     const located=new Set(payload.districts.flatMap(d=>d.project_ids.filter(id=>ids.has(id))));
@@ -92,8 +93,8 @@ const HousingMap = (() => {
       .map(SupplyBars.scoped).filter(row=>row&&row.project_count)
       .sort((a,b)=>a.block.localeCompare(b.block,'en',{numeric:true}));
     if(!blocks.length){list.innerHTML='<h3>지구별 블록</h3><p class="map-block-empty">지구를 선택하면 연결된 블록을 각각 볼 수 있습니다.</p>';return;}
-    const labelled=blocks.filter(block=>['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT'].includes(block.coordinate_basis)).length;
-    const locationFor=block=>block.coordinate_basis==='BLOCK_BOUNDARY'?'블록 경계 확인':block.coordinate_basis==='OFFICIAL_ADDRESS_POINT'?'공식 주소 위치':block.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'?'LH 블록 라벨 위치':'블록 위치 미연계';
+    const labelled=blocks.filter(block=>['BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','LH_PUBLIC_BLOCK_LABEL_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(block.coordinate_basis)).length;
+    const locationFor=block=>block.coordinate_basis==='BLOCK_BOUNDARY'?'블록 경계 확인':block.coordinate_basis==='OFFICIAL_ADDRESS_POINT'?'공식 주소 위치':block.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'?'LH 블록 라벨 위치':block.coordinate_basis?.startsWith('APPROXIMATE')?(block.location_label||'근사 위치'):'블록 위치 미연계';
     methodBlock.textContent=`각 블록의 공급량과 일정은 별도 항목입니다. 블록별 위치 근거 ${labelled}/${blocks.length}개 · ${blocks.map(block=>block.block+' '+locationFor(block)).join(' · ')}. LH 라벨점은 경계나 건물 위치가 아닙니다. 미연계 블록은 지구 대표 위치에서 목록으로만 표시합니다.`;
     methodBlock.hidden=false;
     list.innerHTML=`<h3>${esc(selectedDistrict)} · ${blocks.length}개 블록</h3>${blocks.map(block=>{
@@ -116,7 +117,7 @@ const HousingMap = (() => {
       const district=payload.districts.find(item=>item.name===selectedDistrict);
       const group=district?districtRows(district):[];
       const annual=events(row);
-      $('map-project-detail').innerHTML=`<div class="map-detail-title"><span class="map-stage-dot ${stageFor([row]).toLowerCase()}"></span><h3>${esc(row.name)}</h3></div>${group.length>1?`<label class="map-business-select">지구 내 원천 사업 <select id="map-project-select" aria-label="선택 지구의 사업">${group.map(item=>`<option value="${esc(item.id)}" ${item.id===row.id?'selected':''}>${esc(item.name)}</option>`).join('')}</select></label>`:''}<dl><dt>${row.historical_report?'당시 보고 상태':'원천 상태'}</dt><dd>${esc(row.stage_label)}</dd><dt>원천 기준일</dt><dd>${esc(baseText(row))}</dd>${row.planned_units!=null?`<dt>계획 물량</dt><dd>${num(row.planned_units)}호</dd>`:''}${row.progress_pct!=null?`<dt>원천 공정률</dt><dd>${num(row.progress_pct)}%${row.progress_date?` · ${esc(row.progress_date_precision==='MONTH'?row.progress_date.slice(0,7):row.progress_date)}`:''}</dd>`:''}</dl>${district?MapSupply.districtPanel(district):''}${annual.length?`<h4>${year}년 추진목표</h4>${annual.map(eventMarkup).join('')}`:''}${row.past_due_count?'<p class="map-schedule-warning">! 지난 예정일의 실제 이행 확인 필요</p>':''}<p class="map-coordinate-note">${district?'지구 공동주택용지 대표 위치 · 블록 연결 검토':'위치 근거 미연결 · 지도 표식 없음'}${row.historical_report?' · 마지막 보고 기준 상태, 이후 이행 미확인':''}</p><div class="map-detail-actions">${row.historical_report?`<a href="${esc(safeUrl(row.evidence_url))}" target="_blank" rel="noopener">당시 보고서 원문 ↗</a>`:`<button data-project="${esc(row.id)}">원천·변경이력 ↗</button>`}${row.master_id?`<button data-target-project="${esc(row.master_id)}">${row.historical_report?'현재 사업 목표':state.admin?'목표 관리':'연도별 목표'} ↗</button>`:''}</div>`;
+      $('map-project-detail').innerHTML=`<div class="map-detail-title"><span class="map-stage-dot ${stageFor([row]).toLowerCase()}"></span><h3>${esc(row.name)}</h3></div>${group.length>1?`<label class="map-business-select">지구 내 원천 사업 <select id="map-project-select" aria-label="선택 지구의 사업">${group.map(item=>`<option value="${esc(item.id)}" ${item.id===row.id?'selected':''}>${esc(item.name)}</option>`).join('')}</select></label>`:''}<dl><dt>${row.historical_report?'당시 보고 상태':'원천 상태'}</dt><dd>${esc(row.stage_label)}</dd><dt>원천 기준일</dt><dd>${esc(baseText(row))}</dd><dt>계획 물량</dt><dd>${row.planned_units!=null?num(row.planned_units)+'호':'개별 물량 미입수'}</dd><dt>실제 공정률</dt><dd>${row.progress_pct!=null?num(row.progress_pct)+'%'+(row.progress_date?' · '+esc(row.progress_date_precision==='MONTH'?row.progress_date.slice(0,7):row.progress_date):''):'미입수 · 0%나 미착수 확인 아님'}</dd></dl>${district?MapSupply.districtPanel(district):''}${annual.length?`<h4>${year}년 추진목표</h4>${annual.map(eventMarkup).join('')}`:''}${row.past_due_count?'<p class="map-schedule-warning">! 지난 예정일의 실제 이행 확인 필요</p>':''}<p class="map-coordinate-note">${district?'지구 공동주택용지 대표 위치 · 블록 연결 검토':'위치 근거 미연결 · 지도 표식 없음'}${row.historical_report?' · 마지막 보고 기준 상태, 이후 이행 미확인':''}</p><div class="map-detail-actions"><button type="button" data-view="validation">빈 항목 원인 보기</button>${row.historical_report?`<a href="${esc(safeUrl(row.evidence_url))}" target="_blank" rel="noopener">당시 보고서 원문 ↗</a>`:`<button data-project="${esc(row.id)}">원천·변경이력 ↗</button>`}${row.master_id?`<button data-target-project="${esc(row.master_id)}">${row.historical_report?'현재 사업 목표':state.admin?'목표 관리':'연도별 목표'} ↗</button>`:''}</div>`;
       $('map-project-select')?.addEventListener('change',event=>choose(event.target.value,selectedDistrict));
       if(row.notice_evidence){
         const notice=row.notice_evidence;
@@ -130,51 +131,34 @@ const HousingMap = (() => {
     $('map-pending-summary').textContent='위치 미연결 사업 '+num(pending.length)+'건';
     $('map-pending-list').innerHTML=pending.length?pending.map(row=>`<button data-map-project="${esc(row.id)}"><span>${esc(row.name)}</span><small>${esc(row.region)} · ${esc(row.stage_label)}</small></button>`).join(''):'<p>조회한 모든 후보에 지구 대표 위치가 연결되어 있습니다.</p>';
   }
-  function renderTimeline(filtered) {
-    const years=timelineYears();
-    $('map-year-buttons').innerHTML=years.map(value=>`<button data-map-year="${value}" class="${value===year?'selected':''}" aria-pressed="${value===year}">${value}<small>${value<roadmap.current_year?'과거 자료':value===roadmap.current_year?'현재 자료':'+'+(value-roadmap.current_year)+'년'}</small></button>`).join('');
-    $('map-year-slider').max=years.length-1;$('map-year-slider').value=years.indexOf(year);
-    $('map-selected-year').textContent=mode==='forecast'?year+'년 예정·목표':supply.analysis_year+'년 원천 자료';
-    $('map-stage-summary').innerHTML=Object.entries(stages).map(([stage,label])=>{
-      const count=mode==='current'?filtered.filter(row=>currentStage(row)===stage).length:filtered.filter(row=>events(row).some(event=>event.stage===stage)).length;
-      const source=filtered.filter(row=>events(row).some(event=>event.stage===stage&&event.origin==='SOURCE')).length;
-      const manual=filtered.filter(row=>events(row).some(event=>event.stage===stage&&event.origin==='MANUAL')).length;
-      const heading=mode==='current'?({CONSTRUCTION:'공사 진행',SUPPLY:'공급계획',COMPLETION:'공사 완료'}[stage]||label):label;
-      return `<article class="map-stage-card ${stage.toLowerCase()}"><span class="map-stage-icon"><span>${icons[stage]}</span></span><div><h4>${heading}</h4><strong>${count?num(count)+'<small>건</small>':'<small>'+(mode==='current'?'해당 기록 없음':'목표 미등록')+'</small>'}</strong><p>${mode==='current'?'원천상 상태 기록':'원천 '+source+' · 관리자 '+manual}</p></div></article>`;
-    }).join('');
-  }
-  function timelineYears(){return Array.from({length:roadmap.current_year+roadmap.horizon-supply.start_year+1},(_,index)=>supply.start_year+index);}
   function changeYear(value) {
     year=Number(value);mode=year<=roadmap.current_year?'current':'forecast';
     const analysis=Math.min(year,roadmap.current_year);$('map-analysis-year').value=analysis;
     Roadmap.selectYear(year>roadmap.current_year?year:null);
     if(analysis!==supply.analysis_year)load();else draw();
   }
-  function stop() {clearInterval(timer);timer=null;$('map-play').textContent='▶';$('map-play').setAttribute('aria-label','연도 재생');}
+  function stop() {clearInterval(timer);timer=null;}
   function start() {
     $('map-fit').addEventListener('click',fit);
     $('map-3d-block-picker').addEventListener('change',event=>{const block=supply?.blocks.find(row=>row.id===event.target.value);const visible=new Set(rows().map(row=>row.id));const id=block?.project_ids.find(value=>visible.has(value));if(id)choose(id,block.district_name);});
-    const panelBody=document.querySelector('.housing-map-body'),panel=document.querySelector('.map-side-panel'),panelToggle=$('map-panel-toggle');
+    const panelBody=document.querySelector('.housing-map-body'),panel=document.querySelector('.map-side-panel'),locationPanel=document.querySelector('.map-location-panel');
     if(localStorage.getItem('home-map-panel-collapsed')==='true')panelBody.classList.add('panel-collapsed');
-    const syncPanel=()=>{const mobile=window.matchMedia('(max-width:800px)').matches,opened=mobile?panel.classList.contains('panel-open'):!panelBody.classList.contains('panel-collapsed');panelToggle.setAttribute('aria-expanded',String(opened));panelToggle.textContent=opened?'상세 접기':'상세 펼치기';};
-    panelToggle.addEventListener('click',()=>{if(window.matchMedia('(max-width:800px)').matches)panel.classList.toggle('panel-open');else{panelBody.classList.toggle('panel-collapsed');localStorage.setItem('home-map-panel-collapsed',String(panelBody.classList.contains('panel-collapsed')));setTimeout(()=>MapThreeD.resize(),220);}syncPanel();});
-    window.addEventListener('resize',syncPanel);syncPanel();
+    if(localStorage.getItem('home-map-location-collapsed')==='true')panelBody.classList.add('location-collapsed');
+    const syncPanels=()=>{const mobile=window.matchMedia('(max-width:800px)').matches;for(const [kind,node,collapsed,id] of [['progress',panel,'panel-collapsed','map-panel-toggle'],['location',locationPanel,'location-collapsed','map-location-toggle']]){const opened=mobile?node.classList.contains('panel-open'):!panelBody.classList.contains(collapsed);$(id).setAttribute('aria-expanded',String(opened));$(id).textContent=opened?'접기':'펼치기';document.querySelector('[data-map-panel="'+kind+'"]').setAttribute('aria-expanded',String(opened));}};
+    const togglePanel=kind=>{const target=kind==='progress'?panel:locationPanel,other=kind==='progress'?locationPanel:panel;if(window.matchMedia('(max-width:800px)').matches){const was=target.classList.contains('panel-open');other.classList.remove('panel-open');target.classList.toggle('panel-open',!was);}else{const cls=kind==='progress'?'panel-collapsed':'location-collapsed';panelBody.classList.toggle(cls);localStorage.setItem(kind==='progress'?'home-map-panel-collapsed':'home-map-location-collapsed',String(panelBody.classList.contains(cls)));setTimeout(()=>MapThreeD.resize(),220);}syncPanels();};
+    $('map-panel-toggle').addEventListener('click',()=>togglePanel('progress'));
+    $('map-location-toggle').addEventListener('click',()=>togglePanel('location'));
+    document.querySelectorAll('[data-map-panel]').forEach(b=>b.addEventListener('click',()=>togglePanel(b.dataset.mapPanel)));
+    locationPanel.addEventListener('click',event=>{const button=event.target.closest('[data-location-jump]');if(!button)return;const selectors={employment:'.area-context-rate, .area-context-grid',household:'[data-demographic="household"]',age:'[data-demographic="age"]',unsold:'.unsold-context',infrastructure:'#map-infrastructure-panel'};const target=locationPanel.querySelector(selectors[button.dataset.locationJump]);if(!target)return;if(target.tagName==='DETAILS')target.open=true;locationPanel.scrollTo({top:locationPanel.scrollTop+target.getBoundingClientRect().top-locationPanel.getBoundingClientRect().top-125,behavior:'smooth'});});
+    window.addEventListener('resize',syncPanels);syncPanels();
     for(const id of ['map-land-layer','map-observation-layer'])$(id).addEventListener('change',draw);
     $('roadmap-status').addEventListener('change',()=>load());
     MapSupply.start(draw,fit,changeYear);
-    $('map-measure').value='SUPPLY';
+    $('map-measure').value='ALL';
     MapMonitor.start(setLevel);
-    $('map-year-slider').addEventListener('input',event=>{stop();changeYear(timelineYears()[Number(event.target.value)]);});
-    $('map-play').addEventListener('click',()=>{
-      if(timer){stop();return;}if(!roadmap)return;
-      $('map-play').textContent='Ⅱ';$('map-play').setAttribute('aria-label','연도 재생 정지');
-      timer=setInterval(()=>{if(state.view!=='overview'||document.hidden){stop();return;}if(!$('loading').hidden)return;changeYear(year>=roadmap.current_year+roadmap.horizon?supply.start_year:year+1);},1800);
-    });
-    document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
     document.addEventListener('click',event=>{
       const camera=event.target.closest('[data-map-3d-camera]');if(camera)MapThreeD.camera(camera.getAttribute('data-map-3d-camera'));
       const tab=event.target.closest('[data-map-mode]');if(tab){stop();mode=tab.dataset.mapMode;Roadmap.selectYear(mode==='forecast'&&year>roadmap.current_year?year:null);draw();}
-      const target=event.target.closest('[data-map-year]');if(target){stop();changeYear(target.dataset.mapYear);}
       const blockChoice=event.target.closest('[data-map-block-id]');if(blockChoice){const block=supply.blocks.find(row=>row.id===blockChoice.dataset.mapBlockId);const id=block?.project_ids.find(value=>rows().some(row=>row.id===value));if(id)choose(id,block.district_name);}
       const pending=event.target.closest('[data-map-project]');if(pending){choose(pending.dataset.mapProject);if(selectedDistrict)setLevel('block');}
       const region=event.target.closest('[data-map-region]');if(region){$('region').value=region.dataset.mapRegion;$('region').dispatchEvent(new Event('change'));}

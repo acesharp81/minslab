@@ -46,7 +46,7 @@ def progress_metrics(selected, event_rows, plans, reference, measure, notice_lin
                 on_time.add(row["id"])
         elif overdue:
             pending.add(row["id"])
-    manual = [goal for row in (manual_rows if manual_rows is not None else selected) for goal in plans.get(row.get("master_id") or row["id"], {}).get("targets", [])
+    manual = [] if measure=="MOVE_IN" else [goal for row in (manual_rows if manual_rows is not None else selected) for goal in plans.get(row.get("master_id") or row["id"], {}).get("targets", [])
               if goal["stage"] == measure and goal["year"] == reference.year]
     return {"measure": measure, "actual_delivery_units": None, "actual_delivery_pct": None,
             "observed_units": milestone_units,
@@ -57,7 +57,7 @@ def progress_metrics(selected, event_rows, plans, reference, measure, notice_lin
             "capacity_projects": len(capacities),
             "year_to_date_goal_units": total(year_elapsed),
             "cumulative_goal_units": total([event for _, event in elapsed]),
-            "goal_missing_events": sum(event["units"] is None for _, event in elapsed),
+            "goal_missing_events": 0 if measure=="MOVE_IN" else sum(event["units"] is None for _, event in elapsed),
             "year_to_date_goal_events": len(year_elapsed),
             "annual_manual_goal_units": total(manual),
             "early_projects": sorted(early), "early_count": len(early),

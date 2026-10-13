@@ -4,7 +4,8 @@ from .api_samples import DISTRICTS
 
 
 def next_districts(service,source_id):
-    codes=service.rows('legal_dong')
+    codes=service.rows('policy_legal_dong') if source_id=='building_hub_incheon' else service.rows('legal_dong')
+    if source_id=='building_register_recap':codes+=service.rows('policy_legal_dong')
     if not codes:raise ValueError('공식 법정동 코드 수집이 먼저 필요합니다')
     old=service.latest_collection_stats(source_id)
     counts={}
@@ -20,7 +21,7 @@ def next_districts(service,source_id):
     def priority(row):
         return (0 if any(row['address'] in address for address in addresses if address) else 1,row['source_object_id'])
     pending=sorted((r for r in codes if not counts.get(r['source_object_id'],{}).get('complete_query')),key=priority)
-    limit=max(1,min(20,int(os.environ.get('POC10_BUILDING_DONGS_PER_BATCH','4'))))
+    limit=max(1,min(20,int(os.environ.get('POC10_BUILDING_DONGS_PER_BATCH','20'))))
     selected=pending[:limit]
     districts=[(r['region'],r['sigungu_code'],r['bjdong_code'],r['address'].split(' ',1)[1]) for r in selected]
     return districts,counts,len(codes)

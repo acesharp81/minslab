@@ -10,7 +10,7 @@ def supply_csv(data, group_by="all", group_id=None):
               "current_notice_units", "current_notice_count", "actual_delivery_units", "actual_delivery_pct",
               "observed_units", "observed_pct", "observed_projects", "ratio_excluded_notice_units", "year_to_date_goal_units", "cumulative_goal_units",
               "goal_missing_events", "annual_manual_goal_units", "early_count", "max_lead_months", "on_time_count", "schedule_comparison_basis", "late_count", "max_lag_months", "schedule_gap_count", "max_gap_months", "verification_count",
-              "offset", "end_year", "source_units", "manual_units", "source_events", "manual_events", "units_missing_events",
+              "offset", "end_year", "start_date", "source_units", "manual_units", "source_events", "manual_events", "units_missing_events",
               "projection_baseline_units", "projected_increment_units", "projected_cumulative_units", "projected_cumulative_pct",
               "projection_excluded_events", "projection_excluded_units", "projection_status", "projection_basis",
               "status", "observed_basis", "goal_basis", "future_basis"]

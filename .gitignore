@@ -18,15 +18,21 @@ __pycache__/
 /data/
 *.log
 analysis/
+!PoC/12-housing-board/docs/analysis/
+!PoC/12-housing-board/docs/analysis/**
 *_report_test*.json
 gemma*_report*.json
 qwen*_report*.json
 
 # Large or source documents used during local experiments
 *.hwpx
+!PoC/12-housing-board/data/raw/lh/public/*.hwpx
 PoC/04-master-press/data/
 # Generated PoC data artifacts
 PoC/**/*.csv
+!PoC/12-housing-board/data/raw/**/*.csv
+!PoC/12-housing-board/data/processed/*.csv
+!PoC/12-housing-board/docs/data-interface/**/*.csv
 !PoC/07-NationalAssembly/docs/SPEAKER_REVIEW_QUEUE_2026-09-27.csv
 !PoC/07-NationalAssembly/docs/ONTOLOGY_REVIEW_QUEUE_2026-09-27.csv
 PoC/**/*.pkl

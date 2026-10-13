@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from .api_samples import base, today
+from .schedule_period import schedule_period
 from .collection_period import collection_start
 from .collectors import clean, integer, urban_project
 
@@ -34,7 +35,7 @@ def collect_sh_inventory(source, fetcher, service):
             mapping_basis='SH 공식 사업 목록에서 확인. 특정 공급대책 귀속은 담당자 검토 필요')
         if origin == 'sh_supply_plan':
             payload['rows'] = [dict(units=r.get('main_subscription_units'),
-                supply_month=r.get('schedule_month'), move_in_month=None,
+                supply_month=r.get('schedule_month'), supply_raw=r.get('schedule_original'), move_in_month=None,
                 supply_basis='SH 본청약 예정 물량 · 사전청약 제외') for r in rows
                 if r.get('main_subscription_units') not in (None, 0)]
             payload['schedule_month'] = row.get('schedule_month')
@@ -94,15 +95,18 @@ def parse_gh_plan(source, html):
             evidence_url=source['url'], stage_label='GH 공급계획 · 실적 미확인', warnings=['AGENCY_PLAN_NOT_ACTUAL'],
             source_supply_label=supply, source_move_in_label=move_in, schedule_basis='GH 공식 공급계획 예정 일정',
             mapping_basis='GH 공급계획에서 확인한 사업. 개별 공급대책 귀속 담당자 검토 필요', rows=[])
-        match = re.fullmatch(r'(20\d{2})년\s*(\d{1,2})월', supply)
-        if match:
-            payload['rows']=[dict(units=payload['planned_units'],supply_month=f'{match[1]}-{int(match[2]):02d}',move_in_month=None)]
-            payload['schedule_month']=payload['rows'][0]['supply_month']
-        # Half-year / month ranges stay labels; never invent an exact month.
+        supply_period=schedule_period(supply);move_period=schedule_period(move_in)
+        if supply_period or move_period:
+            payload['rows']=[dict(units=payload['planned_units'],
+                supply_month=supply_period['month'] if supply_period else None,
+                move_in_month=move_period['month'] if move_period else None,
+                supply_raw=supply,move_in_raw=move_in,
+                supply_period=supply_period,move_in_period=move_period)]
+            payload['schedule_month']=supply_period['month'] if supply_period else None
         records.append(('project', name, payload))
     if not records: raise ValueError('GH 공급계획 사업 없음: 기존 데이터 유지')
     return records, dict(complete_query=True, complete_population=False, source_base_date=source_month,
-        provided=len(records), fetched=len(records), scope_note='GH 공식 분양/임대 계획 표 전체. 다른 GH 사업·과거 판본 전체를 뜻하지 않음. 반기 일정은 월로 추정하지 않음')
+        provided=len(records), fetched=len(records), scope_note='GH 공식 분양/임대 계획 표 전체. 다른 GH 사업·과거 판본 전체를 뜻하지 않음. 분기·반기·범위 일정은 마지막 달로 집계하고 원문 보존')
 
 
 def parse_gh_notices(source, html):

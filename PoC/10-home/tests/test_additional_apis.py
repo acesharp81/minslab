@@ -52,6 +52,12 @@ class AdditionalApiTests(unittest.TestCase):
     def parse_lh(self, rows):
         return parse_lh_notices([dict(resHeader=[dict(SS_CODE="Y")],dsList=rows)],SOURCES_BY_ID["lh_notice"],"41","06","2018-01-01","2026-10-03")
 
+    def test_lh_honeymoon_category_and_incheon_are_included(self):
+        row=dict(self.notice(),UPP_AIS_TP_CD='39',AIS_TP_CD='39',AIS_TP_CD_NM='공공분양(신혼희망)',CNP_CD_NM='인천광역시')
+        result=parse_lh_notices([dict(resHeader=[dict(SS_CODE='Y')],dsList=[row])],SOURCES_BY_ID['lh_notice'],'28','39','2018-01-01','2026-10-12')
+        self.assertEqual(result[0][0][2]['region'],'인천광역시')
+        self.assertEqual(result[0][0][2]['notice_type'],'공공분양(신혼희망)')
+
     def test_lh_keeps_old_notice_identifier_and_unknown_units(self):
         records,total,fetched,excluded,_=self.parse_lh([self.notice()])
         self.assertEqual((total,fetched,excluded),(1,1,{"nonhousing":0,"multi_region":0}))

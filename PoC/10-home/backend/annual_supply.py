@@ -11,21 +11,23 @@ from sqlalchemy import select
 
 from .db import Revision
 
-REGIONS = ("서울특별시", "경기도")
-METRICS = ("분양승인", "인허가", "착공", "준공")
+from .national_statistics import REGION_NAMES
+REGIONS = tuple(REGION_NAMES.values())
+METRICS = ("분양승인", "인허가", "착공", "준공", "멸실")
 SOURCES = {
     "분양승인": "https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=488",
     "인허가": "https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=31",
     "착공": "https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=471",
     "준공": "https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=468",
+    "멸실": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839",
 }
 
 
 def annual_supply(service, region=None, through_year=None):
     if region is not None and region not in REGIONS:
-        raise ValueError("서울·경기 지역만 조회할 수 있습니다")
+        raise ValueError("전국 시도 조회할 수 있습니다")
     with service.sessions() as session:
-        query = select(Revision.payload).where(Revision.source_id == "molit_statistics",
+        query = select(Revision.payload).where(Revision.source_id.in_(("molit_statistics", "molit_demolition", "incheon_statistics", "national_statistics")),
                                                Revision.kind == "statistic",
                                                Revision.superseded_at.is_(None))
         if region:
@@ -45,9 +47,9 @@ def annual_supply(service, region=None, through_year=None):
         if through_year is not None and year > through_year:
             continue
         month = int(period[4:]) if row.get("statistic_frequency") == "MONTH" and len(period) == 6 else None
-        if metric != "인허가" and (month is None or not 1 <= month <= 12):
+        if metric not in ("인허가", "멸실") and (month is None or not 1 <= month <= 12):
             continue
-        if metric == "인허가" and (month is not None or len(period) != 4):
+        if metric in ("인허가", "멸실") and (month is not None or len(period) != 4):
             continue
         key = (place, year, metric)
         period_key = month or 0
@@ -61,13 +63,14 @@ def annual_supply(service, region=None, through_year=None):
                 "last_year": None, "rows": [], "metrics": list(METRICS),
                 "sources": SOURCES}
     places = (region,) if region else REGIONS
+    latest_demolition_year = max((y for (place, y, metric) in observed if metric == "멸실"), default=None)
     records = []
     for place in places:
         for year in range(first_year, last_year + 1):
             record = {"region": place, "year": year, "metrics": {}}
             for metric in METRICS:
                 periods = observed.get((place, year, metric), {})
-                if metric == "인허가":
+                if metric in ("인허가", "멸실"):
                     item = periods.get(0)
                     cell = {"units": item["units"] if item else None, "periods": 1 if item else 0,
                             "expected_periods": 1, "complete": bool(item), "through_period": str(year) if item else None}
@@ -81,26 +84,33 @@ def annual_supply(service, region=None, through_year=None):
                         cell["breakdown"] = {component: sum(row["supply_approval_breakdown"][component] for row in periods.values())
                                              for component in ("분양", "임대", "조합")}
                 prior = observed.get((place, year - 1, metric), {})
-                prior_complete = bool(prior.get(0)) if metric == "인허가" else sorted(prior) == list(range(1, 13))
+                prior_complete = bool(prior.get(0)) if metric in ("인허가", "멸실") else sorted(prior) == list(range(1, 13))
                 if cell["complete"] and prior_complete:
-                    previous = prior[0]["units"] if metric == "인허가" else sum(row["units"] for row in prior.values())
+                    previous = prior[0]["units"] if metric in ("인허가", "멸실") else sum(row["units"] for row in prior.values())
                     cell["change_yoy_units"] = cell["units"] - previous
                     cell["change_yoy_pct"] = round(100 * (cell["units"] - previous) / previous, 1) if previous else None
                 else:
                     cell["change_yoy_units"] = None
                     cell["change_yoy_pct"] = None
+                cell["availability_status"] = ("ACQUIRED" if cell["units"] is not None and cell["complete"] else
+                    "PARTIAL" if cell["units"] is not None else
+                    "SOURCE_NOT_PUBLISHED" if metric == "멸실" and latest_demolition_year is not None and year > latest_demolition_year else
+                    "NOT_ACQUIRED")
                 record["metrics"][metric] = cell
+            completion, demolition = record["metrics"]["준공"], record["metrics"]["멸실"]
+            record["net_change_reference"] = (completion["units"] - demolition["units"]
+                if completion["complete"] and demolition["complete"] else None)
             records.append(record)
     return {"regions": list(places), "first_year": first_year, "last_year": last_year,
             "rows": records, "metrics": list(METRICS),
-            "sources": SOURCES,
-            "note": "서울·경기 시도 전체(공공·민간 포함). 분양승인은 공동주택 승인 순계, 인허가·착공·준공은 주택건설 단계별 실적. 서로 합산하거나 정책·블록별 실적으로 배분하지 않음. 12개월 미만 연도는 부분 집계."}
+            "sources": SOURCES, "demolition_latest_year": latest_demolition_year,
+            "note": "전국 시도 전체(공공·민간 포함). 분양승인은 공동주택 승인 순계, 인허가·착공·준공은 주택건설 단계별 실적. 멸실은 기존 주택 재고 감소로 신규 공급과 구분. 준공−멸실은 통계 보정 전 산술 참고값이며 공식 재고 변동이 아님. 정책·블록별 실적으로 배분하지 않음. 12개월 미만 연도는 부분 집계."}
 
 
 def annual_supply_csv(data):
     fields = ["region", "year", "metric", "units", "periods", "expected_periods",
               "complete", "through_period", "change_yoy_units", "change_yoy_pct",
-              "sale_units", "rental_units", "cooperative_units", "source_url"]
+              "sale_units", "rental_units", "cooperative_units", "net_change_reference", "source_url"]
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=fields)
     writer.writeheader()
@@ -114,5 +124,6 @@ def annual_supply_csv(data):
                              "through_period": cell["through_period"], "change_yoy_units": cell["change_yoy_units"],
                              "change_yoy_pct": cell["change_yoy_pct"], "sale_units": breakdown.get("분양"),
                              "rental_units": breakdown.get("임대"), "cooperative_units": breakdown.get("조합"),
+                             "net_change_reference": item.get("net_change_reference"),
                              "source_url": data["sources"][metric]})
     return "\ufeff" + buffer.getvalue()

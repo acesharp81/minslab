@@ -1,0 +1,808 @@
+{
+  "title": "주택파동 요구사항 적합성 점검 — HOME PoC10",
+  "reference_date": "2026-10-12",
+  "scope": "/poc/home 운영 API·화면, PoC/10-home 코드·DB 모델. 조장 플랫폼 PoC12는 이번 점검 대상이 아님.",
+  "input_spec": "첨부 「주택파동 핵심 기능 요구사항 및 기존 시스템 점검 명세서」",
+  "counts": {
+    "충족": 0,
+    "부분 충족": 11,
+    "미충족": 1,
+    "확인 불가": 0
+  },
+  "judgment_rule": "각 F 항목의 전체 범위와 실제 데이터 판단 가능성을 기준으로 판정. 화면 존재만으로 충족 판정하지 않음. 점검 자체는 진단이며 사용자 추가 승인한 Y축 조정만 기능 수정.",
+  "snapshot": {
+    "projects": {
+      "count": 292,
+      "regions": {
+        "경기도": 167,
+        "서울특별시": 99,
+        "인천광역시": 26
+      },
+      "mapping_status": {
+        "REVIEW": 292
+      },
+      "known_fields": {
+        "planned_units": 248,
+        "developer": 292,
+        "municipality": 290,
+        "progress_pct": 118,
+        "schedule_month": 177,
+        "start_actual_date": 103,
+        "completion_plan_date": 112,
+        "move_in_start": 19
+      },
+      "source_ids": {
+        "lh_construction": 87,
+        "policy_129": 47,
+        "lh_sale": 34,
+        "lh_rent": 18,
+        "gh_supply_plan": 2,
+        "lh_progress": 9,
+        "urban_930": 51,
+        "sh_inventory": 18,
+        "lh_incheon_construction": 16,
+        "lh_incheon_sale": 5,
+        "lh_incheon_rent": 5
+      }
+    },
+    "policy907": {
+      "target_units": 1350000,
+      "allocated_units": 21172,
+      "reserve_units": 1328828,
+      "allocation_pct": 1.568,
+      "current_totals": {
+        "POLICY": 1328828,
+        "BUSINESS": 7058,
+        "APPROVAL": 3578,
+        "CONSTRUCTION": 3431,
+        "SUPPLY": 5419,
+        "MOVE_IN": 0,
+        "UNKNOWN": 1686
+      },
+      "raw_project_count": 178,
+      "canonical_portfolio_count": 119,
+      "prior_start_count": 80,
+      "settings_targets": 0,
+      "settings_events": 0,
+      "occupancy_observations": 0,
+      "source_annual_goals": [
+        {
+          "year": 2026,
+          "units": 269000,
+          "seoul_units": 68000
+        },
+        {
+          "year": 2027,
+          "units": 246000,
+          "seoul_units": 63000
+        },
+        {
+          "year": 2028,
+          "units": 250000,
+          "seoul_units": 61000
+        },
+        {
+          "year": 2029,
+          "units": 249000,
+          "seoul_units": 59000
+        },
+        {
+          "year": 2030,
+          "units": 335000,
+          "seoul_units": 83000
+        }
+      ],
+      "last_regional_start": {
+        "month": "2026-08",
+        "units": 8845,
+        "cumulative_units": 86739,
+        "by_region": {
+          "서울특별시": 1172,
+          "경기도": 4068,
+          "인천광역시": 3605
+        }
+      },
+      "issues": {
+        "VERIFY": 16
+      }
+    },
+    "stage_links": {
+      "counts": {
+        "REVIEW": 312,
+        "UNMATCHED": 44
+      },
+      "methods": {
+        "PREREQUISITE": 185,
+        "SIMILAR": 127
+      }
+    },
+    "mappings": {
+      "counts": {
+        "REVIEW": 292
+      },
+      "audit": {
+        "review_programs": 16,
+        "review_projects": 292,
+        "unlinked_projects": 0,
+        "unlinked_policy_projects": 0,
+        "unlinked_programs": 0
+      }
+    },
+    "validation_keys": [
+      "items",
+      "total",
+      "baseline_status",
+      "coverage",
+      "coverage_details",
+      "data_gaps",
+      "notes"
+    ],
+    "coverage_keys": [
+      "items",
+      "complete_population",
+      "notice"
+    ],
+    "roadmap": {
+      "total": 178,
+      "as_of_date": "2026-10-12",
+      "current_year": 2026,
+      "horizon": 10,
+      "future_target_count": 101,
+      "no_schedule_count": 26,
+      "manual_project_count": 0,
+      "past_due_project_count": 46,
+      "notice": "원천 예정과 관리자 목표를 구분합니다. 입주는 시작 예정월만 관리하며 호수·달성률로 집계하지 않습니다. 준공 전 공정률은 원천 보고값만 표시합니다. 목표 미등록은 0호가 아닙니다."
+    },
+    "annual_structure": {
+      "regions": 2,
+      "first_year": 2018,
+      "last_year": 2026,
+      "rows": 18,
+      "metrics": 5,
+      "sources": [
+        "분양승인",
+        "인허가",
+        "착공",
+        "준공",
+        "멸실"
+      ],
+      "demolition_latest_year": 2024
+    },
+    "monitor_structure": {
+      "items": 5,
+      "reference_date": "2026-10-12",
+      "year": 2026,
+      "project_count": 292,
+      "review_count": 292,
+      "confirmed_count": 0,
+      "released_count": 0
+    },
+    "coverage_structure": {
+      "items": 29,
+      "complete_population": false
+    }
+  },
+  "api_checks": {
+    "delivery": {
+      "path": "/policy-delivery",
+      "status": 200,
+      "seconds": 4.26
+    },
+    "dashboard": {
+      "path": "/map/dashboard?policy_id=POL_2025_0907&measure=SUPPLY&horizon=5",
+      "status": 200,
+      "seconds": 2.37
+    },
+    "mappings": {
+      "path": "/mappings",
+      "status": 200,
+      "seconds": 1.09
+    },
+    "sources": {
+      "path": "/sources",
+      "status": 200,
+      "seconds": 0.34
+    },
+    "validation": {
+      "path": "/validation",
+      "status": 200,
+      "seconds": 1.77
+    },
+    "coverage": {
+      "path": "/coverage",
+      "status": 200,
+      "seconds": 0.05
+    },
+    "annual": {
+      "path": "/annual-supply?through_year=2026",
+      "status": 200,
+      "seconds": 0.05
+    },
+    "roadmap": {
+      "path": "/roadmap?policy_id=POL_2025_0907&horizon=10",
+      "status": 200,
+      "seconds": 2.02
+    },
+    "projects1": {
+      "path": "/projects?page=1&page_size=200",
+      "status": 200,
+      "seconds": 1.45
+    },
+    "projects2": {
+      "path": "/projects?page=2&page_size=200",
+      "status": 200,
+      "seconds": 0.71
+    },
+    "evidence": {
+      "path": "/stage-evidence?policy_id=POL_2025_0907",
+      "status": 200,
+      "seconds": 0.77
+    },
+    "monitor": {
+      "path": "/policy-monitor",
+      "status": 200,
+      "seconds": 1.14
+    },
+    "annual_incheon": {
+      "path": "/annual-supply?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "status": 422,
+      "seconds": 0.01
+    },
+    "outlook_incheon": {
+      "path": "/area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "status": 422,
+      "seconds": 0.01
+    },
+    "area_incheon": {
+      "path": "/area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "status": 422
+    },
+    "agency_filter": {
+      "path": "/projects?page_size=1&source_id=lh_construction",
+      "status": 200
+    }
+  },
+  "test_result": {
+    "backend": "82개 관련 회귀 테스트 통과(운영 DB 쓰기 없음)",
+    "browser": "읽기 전용 지역→사업/목표면/11년/2D/단계검토/사업상세 점검 통과; 기존 정책 UI 검사 통과(저장 POST는 가로챔)",
+    "axis": {
+      "whole": 1350000,
+      "goyang": 7760,
+      "project": 869,
+      "seoul_official": 334000,
+      "gyeonggi": 48545,
+      "errors": []
+    }
+  },
+  "requirements": [
+    {
+      "id": "F-01",
+      "name": "주택공급 현황 통합 조회",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "복수 원천·정책·프로그램·사업과 지역/블록 조회, 연결 사업 목록, 원천 필터가 구현되어 있다.",
+      "runtime": "운영 공급지도·사업 목록 API 200. 서울·인천·경기 사업 후보 292건. 같은 정책/단계의 지도 수치 대조와 지역 선택이 동작한다.",
+      "data": "전국 사업 원장이 아니다. 292건은 원천 후보 레코드이며 중복 없는 전국 사업 수가 아니다. 인천 지도는 있지만 연도별/인구가구 분석은 서울·경기로 제한되어 HTTP 422.",
+      "evidence": [
+        "backend/supply_dashboard.py:inventory/build_dashboard",
+        "backend/service.py:578 supply_dashboard",
+        "backend/app.py:269,306,322",
+        "GET /api/map/dashboard, /api/projects, /api/annual-supply",
+        "tests/test_supply_dashboard.py, tests/test_home.py",
+        "읽기 전용 브라우저 지역→사업 상세 점검"
+      ],
+      "problems": [
+        "전국 지원과 수도권 지원을 화면·API별로 통일하지 못함",
+        "실사업 안정 ID가 기존 모든 집계의 기준으로 전환되지 않음",
+        "9·7 연결사업 119묶음 중 13묶음은 시군구 위치 미연계"
+      ],
+      "actions": [
+        "지역/정책/단계/기간/주택유형의 공통 집계 범위와 단일 read model 정의",
+        "인천 분석 경로부터 일치시킨 뒤 전국 공식 지역통계와 기관 사업 원장을 단계적으로 확대",
+        "집계 수치에서 포함·제외 사업/물량과 제외 사유를 재현 가능한 목록으로 제공"
+      ],
+      "rank": "P0/P1"
+    },
+    {
+      "id": "F-02",
+      "name": "목표 대비 이행실적 관리",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "9·7 공식 연도별 착공 목표와 지역 통계, 단계별 담당자 목표·변경 이력·면적 비교가 구현되어 있다.",
+      "runtime": "135만 목표와 2026~2030 원문 목표표 조회 가능. 수도권 착공 확인량은 2026년 8월까지 86,739호. 목표 수정은 인증/낙관적 잠금/감사 이력 테스트 통과.",
+      "data": "목표기간 사업에 배분된 계획량 21,172호(목표의 1.568%). 1,328,828호는 사업 미특정 잔여. 사업화·인허가 목표점과 담당자 목표 등록은 현재 0건. 기관별 목표·실적 비교가 없다.",
+      "evidence": [
+        "backend/policy_delivery.py:25 save_settings,81 build_delivery",
+        "backend/policy_delivery_comparison.py:comparison_index/_official_targets/_regional_actual",
+        "GET /api/policy-delivery; POST /api/admin/policy-delivery",
+        "tests/test_policy_delivery.py, tests/test_policy_delivery_comparison.py"
+      ],
+      "problems": [
+        "목표 식별 범위를 달성률로 오해할 수 있음",
+        "공식 지역 통계와 식별된 사업 실적의 대상 범위 차이",
+        "상세 목표관리 엔진은 9·7 정책 ID에 고정",
+        "정책 발표 목표 자체의 변경/승인 버전 모델과 기관 차원 비교 미완료"
+      ],
+      "actions": [
+        "정책 집계 기준선·목표 버전·근거와 승인 상태를 공통 관리",
+        "공식확인량/검토포함량/사업미특정량을 함께 표시",
+        "다른 정책과 기관에도 같은 목표 엔진 적용"
+      ],
+      "rank": "P0"
+    },
+    {
+      "id": "F-03",
+      "name": "공급 단계별 진행상황 관리",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "정책·사업화·인허가·건설·공급·입주 6단계 구성과 누적 도달량, 준공 별도 비교지표, 단계근거 검토 입력이 존재한다.",
+      "runtime": "9·7 단계 합계 1,350,000호 보존. 단계별 목표면·진행면·차이 면, 선택 범위 Y축 조정이 동작한다. 부분 공급과 중복 제외 테스트 통과.",
+      "data": "사업화·인허가 356연결 슬롯 중 REVIEW 312/UNMATCHED 44. REVIEW는 착공 선행 추정 185, 유사자료 127; 정식 허가서 확정 연결이 아니다. 실제 입주 비교 시계열은 비어 있다.",
+      "evidence": [
+        "backend/policy_delivery.py:18 STAGES,166 cohort_state",
+        "backend/stage_evidence.py:70 refresh,148 linked_events",
+        "backend/policy_delivery_comparison.py:METRICS",
+        "web/assets/policy-stage-flow.js:render/targetAreas",
+        "tests/test_stage_evidence.py, tests/test_policy_delivery.py"
+      ],
+      "problems": [
+        "POLICY 잔여면에는 실제 정책수립 완료가 아닌 미특정 목표가 포함됨",
+        "준공은 별도 지표로는 존재하나 6단계 잔량 원장에 독립 단계로 포함되지 않음",
+        "사업화·인허가 실제 사건일과 추정 확인일이 혼재",
+        "부분 단계 물량의 표준 공급묶음·평행 단계 모델이 부족"
+      ],
+      "actions": [
+        "목표 미배분과 실제 정책수립 단계의 의미를 분리 표시",
+        "단계별 도달 조건/주택수 측정기준/사건일·확인일 정의",
+        "준공 이정표와 분양/모집의 병행 여부를 모델로 명시",
+        "공급묶음별 부분 단계 도달과 근거 버전을 연결"
+      ],
+      "rank": "P0"
+    },
+    {
+      "id": "F-04",
+      "name": "사업별 상세정보 조회",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "명칭·지역·유형·시행기관·규모·공정률·원천 일정·원문·수집 판본·변경 이력의 상세 팝업과 정책/지역→사업 연결이 존재한다.",
+      "runtime": "운영 상세 경로/브라우저에서 사업명·계획물량·단계·근거·판본을 조회했다.",
+      "data": "292건 중 계획호수 248, 실제 공정률 118, 일정 177. 시행기관 92건은 실제 기관명이 아니라 “시행기관 확인 필요”이다. 9·7 기준 26건은 원천 일정이 없다.",
+      "evidence": [
+        "backend/service.py:694 detail,831 history",
+        "web/assets/app.js:프로젝트 상세 처리",
+        "GET /api/projects/{project_id}, /api/projects/{project_id}/targets",
+        "tests/test_home.py:historical_detail/CSV/provenance",
+        "읽기 전용 브라우저 상세 팝업"
+      ],
+      "problems": [
+        "누가/얼마/언제에 답할 수 없는 사업이 남음",
+        "일반 사업의 원천 단계와 9·7 원장 대표 단계가 같은 모델로 완전히 통합되지 않음",
+        "물리적 위치·관할·시행기관 역할 확인이 부족"
+      ],
+      "actions": [
+        "필수 필드별 확보 상태/담당 확인과제를 상세 화면에 연계",
+        "실사업 ID 기준으로 다른 원천의 기관·위치·단계 근거를 묶음",
+        "일정 미정과 데이터 미입수를 구분 유지"
+      ],
+      "rank": "P0/P1"
+    },
+    {
+      "id": "F-05",
+      "name": "연도별 공급계획·시계열 분석",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "현재±5년 11년 그래프, 연도/지역/사업 연동, 과거 공식 지역통계(2018~2026), 미래 원천 일정 및 누적 목표가 존재한다.",
+      "runtime": "11년 슬라이더와 지역별 Y축·표 범위 연동 확인. 계획/실적/예정의 시계열 API 응답 정상.",
+      "data": "서울·경기 연도별 18지역연도 행이 있으나 인천 연도별 API 미지원. 정책 기간별 모든 단계 목표가 채워진 것은 아니다. 실제 준공·입주 사업 실적의 비교점은 비어 있다.",
+      "evidence": [
+        "backend/annual_supply.py:25 annual_supply",
+        "backend/roadmap.py:68 project_roadmap",
+        "backend/policy_delivery_comparison.py:comparison_index",
+        "backend/policy_geo.py:115 _annual_series",
+        "web/assets/policy-907.js:render/flow",
+        "tests/test_annual_supply.py, tests/test_roadmap.py"
+      ],
+      "problems": [
+        "시도 공식 총계와 정책/사업의 과거 이력 확보 범위가 다름",
+        "창 크기·원천 기준일·조회 기준일·사건일의 의미가 화면마다 다름",
+        "원천 목표 날짜 사이 직선/월간 균등 연결은 공식 월별 목표가 아님"
+      ],
+      "actions": [
+        "공통 기간·자료 기준일·사건일·원천 버전 처리 정의",
+        "단계별 역사 사건을 보완하고 예정/관측/시나리오를 통일된 표식으로 표시",
+        "인천을 포함해 지역별 시계열 확보 범위 표 제공"
+      ],
+      "rank": "P0/P1"
+    },
+    {
+      "id": "F-06",
+      "name": "사업 일정·지연 관리",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "현재 원천 예정/확인 공고·공정률에 따른 지연 또는 확인필요 계산, 담당자 지연 입력, 판본 이력이 있다.",
+      "runtime": "9·7 원장 이행확인 대상 16건(VERIFY), 확인된 지연(DELAYED) 0건. 일반 roadmap의 과거 예정 대상 46건은 지연 확정이 아니다.",
+      "data": "최초 약속 일정·현재 변경 일정·실제 완료일의 독립 기준선이 없다. 현 원천 판본을 최초 계획으로 사용할 수 없다.",
+      "evidence": [
+        "backend/supply_progress.py:5 progress_metrics",
+        "backend/policy_delivery.py:issues 생성",
+        "backend/service.py:648 save_targets,831 history",
+        "tests/test_supply_dashboard.py:delay 계산 관련 검증",
+        "tests/test_roadmap.py:goal_history"
+      ],
+      "problems": [
+        "원천 판본 변경 이력만으로 당초 약속과 지연기간을 확정할 수 없음",
+        "변경 사유·승인자·최초 일정 기준이 구조화되지 않음",
+        "지역·기관·단계별 일정 지연 집계가 완전하지 않음"
+      ],
+      "actions": [
+        "최초 승인 일정/최신 승인 일정/실제 사건을 별도 관리",
+        "변경일·사유코드·승인기관·근거 문서를 이력화",
+        "기준선 대비 지연과 최신 목표 미달, 데이터 확인필요를 분리"
+      ],
+      "rank": "P0/P1"
+    },
+    {
+      "id": "F-07",
+      "name": "지연 원인·병목 관리",
+      "priority": "중요",
+      "status": "미충족",
+      "implementation": "검토 basis와 단순 지연 사건은 있으나 병목·조치의 업무 관리 기능은 없다.",
+      "runtime": "스키마·API·UI 검색에서 구조화된 지연 사유/조치/담당기관/장기미해결 관리 경로를 찾지 못했다.",
+      "data": "인허가·보상·기반시설·기관 협의 등 원인별 사건, 담당기관, 조치기한, 영향물량 데이터 없음.",
+      "evidence": [
+        "backend/db.py:현재 모델 목록",
+        "backend/app.py:현재 API 목록",
+        "backend/policy_delivery.py:DeliveryEvent/issue 출력",
+        "backend/stage_evidence.py:basis는 연결 근거이며 병목 사건 아님"
+      ],
+      "problems": [
+        "붉은 차이 면에서 원인·해결 담당자를 확인할 수 없음",
+        "반복/장기 미해결 사업과 영향물량을 집계할 수 없음"
+      ],
+      "actions": [
+        "병목 사건·영향 사업/공급묶음·담당기관·조치기한·상태 모델 추가",
+        "원인코드, 증거, 조치이력, 장기미해결/기한초과 필터 추가",
+        "같은 사업의 복수 병목은 영향물량을 중복 합산하지 않음"
+      ],
+      "rank": "P1"
+    },
+    {
+      "id": "F-08",
+      "name": "기관별·정책별 추진현황",
+      "priority": "중요",
+      "status": "부분 충족",
+      "implementation": "시행기관 표시와 원천기관 필터, 정책/프로그램별 진행 조회는 가능하다.",
+      "runtime": "기관 원천 필터 API 200, 5개 정책/프로그램 관점 조회 가능. 프로그램16·사업292 연결은 모두 REVIEW.",
+      "data": "시행자 이름과 수집 원천기관은 행정상 주관/협력/승인/보상/시설기관 관계와 다르다. 기관 담당 목표·협의 건 없음.",
+      "evidence": [
+        "backend/service.py:380 projects,703 policy_monitor",
+        "backend/policy_monitor.py:build_monitor",
+        "GET /api/projects?source_id=..., /api/policy-monitor",
+        "backend/db.py:Mapping/ProgramMapping"
+      ],
+      "problems": [
+        "기관별 책임 물량·협력 역할·해결해야 할 협의 과제를 알 수 없음",
+        "복수 기관 사업의 중복 집계/책임 배분 규칙 없음"
+      ],
+      "actions": [
+        "기관 마스터와 사업–기관 역할/담당부서 관계 추가",
+        "기관별 목표·실적·지연·조치 과제 read model",
+        "협의 요청·회신·기한·처리상태 관리"
+      ],
+      "rank": "P1"
+    },
+    {
+      "id": "F-09",
+      "name": "국민의 공급 예측가능성",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "관심 지역의 공급/준공/입주 예정, 일정 미정과 원문을 조회할 수 있다.",
+      "runtime": "공개 화면 지역·사업·연도 탐색과 예정 표 조회 정상. 주택 외형이 가상임을 안내한다.",
+      "data": "9·7 178원천 사업 중 향후 일정 있는 사업 101, 원천 일정 없음 26. 일정의 확정/잠정/변경가능성이 업무 승인 상태와 완전히 연계되지 않음.",
+      "evidence": [
+        "backend/roadmap.py:source_events/project_roadmap",
+        "backend/occupancy_targets.py:6 occupancy_schedules",
+        "web/assets/policy-report.js, policy-907.js",
+        "GET /api/roadmap, /api/policy-delivery",
+        "tests/test_roadmap.py, tests/test_stage_evidence.py"
+      ],
+      "problems": [
+        "담당자용 추정 연결·관리목표·시나리오가 국민용 정보와 같은 화면 흐름에 있음",
+        "분양 예정과 본 모집 실적, 준공 예정과 입주 시작/실입주를 구분해야 함",
+        "공급 일정의 공표/확정/취소 및 변경가능성 상태 부족"
+      ],
+      "actions": [
+        "공식 공개 가능한 관측/공표 일정과 내부 검토 포함량을 필터/표식으로 구분",
+        "확정·잠정·계약예정·변경가능·미정 상태와 변경 알림 연결",
+        "원천의 일정 변경을 관심 지역/사업에서 확인 가능하게 제공"
+      ],
+      "rank": "P0/P1"
+    },
+    {
+      "id": "F-10",
+      "name": "신뢰성·갱신 관리",
+      "priority": "필수",
+      "status": "부분 충족",
+      "implementation": "원본 snapshot/hash·판본·수집 batch·커버리지·실패 유지·검토 이력·미확보 구분이 구현되어 있다.",
+      "runtime": "관련 provenance/unknown/재수집/권한 테스트 통과. /api/coverage.complete_population=false. 원천 2종 최근 실패와 미수집 영역을 탐지한다.",
+      "data": "인허가 1630/2629법정동, 건축물대장1522/2629, 상세378/2629. iH 첫 성공 없음, 상세 원천 컬럼 변화로 최근 실패. 전체성은 미완료다.",
+      "evidence": [
+        "backend/db.py:Revision/Batch/Coverage/Audit",
+        "backend/source_coverage.py:coverage_rows",
+        "backend/service.py:515 coverage_details,530 data_gaps",
+        "GET /api/validation, /api/coverage, /api/sources",
+        "tests/test_home.py, tests/test_source_coverage.py, tests/test_data_gaps.py"
+      ],
+      "problems": [
+        "추정·유사 매칭을 포함한 도달량을 정식 정책 확인 실적으로 오인할 여지",
+        "합계 보존이 사업 전수성이나 공식 사업 귀속을 보장하지 않음",
+        "원천 실패 복구·갱신 경보·명시적 공표 승인 절차가 부족"
+      ],
+      "actions": [
+        "공식확인/검토포함/시나리오/미확보를 수치와 그래프에 공통 표시",
+        "실패 원천의 실제 응답·스키마를 복구하고 보존·재처리 테스트",
+        "집계 조건/버전과 포함·제외 근거를 다운로드 가능하게 유지"
+      ],
+      "rank": "P0"
+    },
+    {
+      "id": "F-11",
+      "name": "정책 이행 종합 판단",
+      "priority": "중요",
+      "status": "부분 충족",
+      "implementation": "정책 목표·단계 구성·지역 그래프·차이/확인필요·사업 drilldown이 있다.",
+      "runtime": "9·7 전체·지역·사업 탐색과 목표면·단계면 동작. 선택 범위 Y축 요청은 이번 점검 중 별도 승인된 수정으로 반영한다.",
+      "data": "공식 사업 귀속 확정·각 단계 목표·일정 기준선·병목 원인이 부족해 국가 전체의 정상/지연을 결론낼 수 없다.",
+      "evidence": [
+        "web/assets/policy-907.js:flow/axisForScope/report",
+        "web/assets/policy-stage-flow.js:targetAreas/render",
+        "backend/policy_delivery.py:build_delivery",
+        "GET /api/policy-delivery, /api/policy-monitor"
+      ],
+      "problems": [
+        "지연 대상 0건은 지연이 없다는 뜻이 아님",
+        "연말 목표 대비 일부 기간 실적은 미달 확정치가 아님",
+        "우선 점검 사업을 위험·규모·경과기간으로 정렬하는 운영 목록 없음"
+      ],
+      "actions": [
+        "정상/확인된 지연/기한 전/목표 미등록/자료 미확보를 공통 판정",
+        "영향물량·지연기간·조치기한 기반 우선 점검 목록",
+        "종합 지표에 판정 가능 범위와 데이터 신뢰도 표시"
+      ],
+      "rank": "P1"
+    },
+    {
+      "id": "F-12",
+      "name": "예측·시나리오 분석",
+      "priority": "확장",
+      "status": "부분 충족",
+      "implementation": "일정 기반 누적 공급 전망, 주택재고+준공예정 대 가구 추계 산술 비교, SCENARIO 목표 입력이 존재한다.",
+      "runtime": "예정/추정 구분과 원천 근거는 조회 가능. 분석 전용 가정 비교·실행·저장 결과는 없다.",
+      "data": "멸실·공실·민간 미래계획·사업 지연의 지역 물량 영향에 필요한 입력이 불완전. 시군구 장래가구 추계는 수집 미시작.",
+      "evidence": [
+        "backend/supply_projection.py:projections",
+        "backend/area_outlook.py:build_outlook",
+        "backend/app.py:DeliveryTarget.origin",
+        "backend/policy_delivery.py:193 future goal 처리",
+        "backend/policy_delivery_comparison.py:management_points"
+      ],
+      "problems": [
+        "SCENARIO/관리목표가 별도 scenario_id 없이 같은 목표 목록/미래 원장 계산에 포함됨",
+        "기준/대안 시나리오 비교와 지연 전파 모델 없음",
+        "재고+예정량의 차이는 가용 주택 부족/여유 확정치가 아님"
+      ],
+      "actions": [
+        "기준 계획 버전과 시나리오 조정값을 분리 저장",
+        "사업별 단계 지연이 준공/공급/입주 연도에 미치는 이동을 비교",
+        "불확실한 데이터·제외물량과 가정·산식을 결과에 함께 표시"
+      ],
+      "rank": "P2"
+    }
+  ],
+  "work_plan": [
+    {
+      "id": "W0",
+      "priority": "P0",
+      "name": "수치의 의미와 정책 집계 기준선 확정",
+      "requirements": [
+        "F-01",
+        "F-02",
+        "F-03",
+        "F-10"
+      ],
+      "impact": "기존 원천·매칭·검토 이력을 유지하며 집계 계약과 read model을 보강한다.",
+      "code": [
+        "policy_delivery.py",
+        "policy_delivery_comparison.py",
+        "supply_dashboard.py",
+        "policy_monitor.py",
+        "policy-907.js"
+      ],
+      "data": "135만 목표의 실제 사업 목록·신규 착공 포함조건·지역/기간/유형·공식 목표 버전 확보. 미특정 잔여를 실제 단계 완료로 취급하지 않는다.",
+      "test": "같은 범위의 지도/표/CSV/단계 합계 재현; 공식확인/검토포함을 각각 검증; 미확보·0·제외를 구분.",
+      "done": "담당자가 모든 주요 수치의 대상·단계·기간·출처·확정 여부를 한 번에 설명할 수 있다."
+    },
+    {
+      "id": "W1",
+      "priority": "P0",
+      "name": "실패 원천 복구와 빠진 사업·단계 근거 확보",
+      "requirements": [
+        "F-02",
+        "F-03",
+        "F-04",
+        "F-05",
+        "F-10"
+      ],
+      "impact": "기존 수집기를 수정하고 원본·마지막 성공 판본을 보존한다. 전수 확보 전에 전수 완료로 표시하지 않는다.",
+      "code": [
+        "api_samples.py",
+        "building_scope.py",
+        "additional_apis.py",
+        "ih_stock.py",
+        "stage_evidence.py",
+        "source_coverage.py",
+        "data_gaps.py"
+      ],
+      "data": "iH timeout/HTTP 원인과 실제 제공 범위 재확인; 건축HUB 상세 “호수 컬럼 형식 변경” 재현/파서 보완; 미조회999/1107/2251동 이어받기; 44미연계·185선행추정의 정식 근거 확보.",
+      "test": "실제 실패 응답을 비밀값 제거 후 fixture로 보관; 스키마 변화/빈응답/다중페이지/재처리 테스트; 검토 확정·해제 결과 보존.",
+      "done": "수집 미시작/미입수/원천0/실패/미연계가 분리되고 반복 실패가 경보로 보인다."
+    },
+    {
+      "id": "W2",
+      "priority": "P0/P1",
+      "name": "단계별 목표와 최초 일정·변경 일정 관리",
+      "requirements": [
+        "F-02",
+        "F-03",
+        "F-05",
+        "F-06",
+        "F-09"
+      ],
+      "impact": "delivery_setting·Revision/Audit를 활용하되 승인 기준선과 일정 이력을 명시적 모델로 추가한다.",
+      "code": [
+        "db.py + 신규 migration",
+        "policy_delivery.py",
+        "roadmap.py",
+        "supply_progress.py",
+        "stage-evidence.js"
+      ],
+      "data": "공식 보고서의 사업화·허가·착공·공급·준공·입주 목표, 최초/최신 승인 일정·변경사유·실제 사건일 확보. 없으면 근거를 가진 담당자 관리목표로 입력.",
+      "test": "최초 기준선 고정, 변경 일정 비교, 부분 완료, 취소/분할, 월/일 정밀도, 기준일 재현과 실제 지연/확인필요 구분.",
+      "done": "당초 언제까지 무엇을 약속했고 지금 얼마나 바뀌었는지 사업별로 답할 수 있다."
+    },
+    {
+      "id": "W3",
+      "priority": "P1",
+      "name": "병목 원인·기관 책임·후속 조치 관리",
+      "requirements": [
+        "F-07",
+        "F-08",
+        "F-11"
+      ],
+      "impact": "기존 issue/검토 화면 위에 기관 역할과 조치 사건을 추가한다. 지도나 전체 UI를 교체할 필요가 없다.",
+      "code": [
+        "db.py + 신규 issue/agency 관계",
+        "app.py의 읽기·검토 API",
+        "policy_delivery.py 집계",
+        "기존 연결/지연 대상 UI"
+      ],
+      "data": "인허가·보상·기반시설·재원·협의 원인, 주관/협력/조치기관, 조치기한·상태·영향 공급묶음·물량.",
+      "test": "복수 병목 영향물량 중복 제외; 협력기관 중복 합산 방지; 장기 미해결/기한초과/해결 이력과 담당 권한.",
+      "done": "점검 사업에서 원인·담당기관·다음 조치·기한까지 이어진다."
+    },
+    {
+      "id": "W4",
+      "priority": "P1·필수 범위",
+      "name": "전국 확대와 기관/지역 지원 범위 통일",
+      "requirements": [
+        "F-01",
+        "F-02",
+        "F-05",
+        "F-08",
+        "F-09"
+      ],
+      "impact": "지역 목록/검증 규칙의 하드코딩을 공통 지역 마스터로 바꾼다. 9·7은 수도권 정책 범위를 유지하고 전국을 9·7에 합산하지 않는다.",
+      "code": [
+        "annual_supply.py",
+        "area_stats.py",
+        "app.py 지역 pattern",
+        "sources.py",
+        "additional_apis.py",
+        "supply_geography.py"
+      ],
+      "data": "먼저 인천 지역 분석 완결, 이어 전국 시도 공식 공급 통계·기관 사업 목록 확대. 2026 인천 행정구역 변동과 과거 지명은 원천 판본으로 대응한다.",
+      "test": "전국=지역 합계, 지역=포함 사업 소계(같은 모집단에 한함); 지역별 제공/미제공·공표 기간 차이를 검증.",
+      "done": "전국·지역·기관별 조회의 지원 범위와 제외 이유가 일치한다."
+    },
+    {
+      "id": "W5",
+      "priority": "P2·확장",
+      "name": "격리된 지연 시나리오와 가구 비교",
+      "requirements": [
+        "F-12"
+      ],
+      "impact": "현재 원천 예정과 확정 목표는 유지하고 scenario_id/baseline_revision/adjustment를 별도 저장한다.",
+      "code": [
+        "supply_projection.py",
+        "area_outlook.py",
+        "policy_delivery.py 시나리오 분리",
+        "시나리오 비교 API/UI"
+      ],
+      "data": "사업별 지연 조정값·후속 단계 연결·지역 가구추계·멸실/공실/민간 계획의 확보 수준.",
+      "test": "조정0은 기준 결과와 일치; 1사업만 지연하면 관련 연도 물량만 이동; 기준 원장/공식실적 불변; 근거 없는 예측 미생성.",
+      "done": "기준 대비 지연/조기화의 공급 연도·물량·가구 대비 영향이 가정과 함께 비교된다."
+    }
+  ],
+  "confirmation_topics": [
+    {
+      "type": "기능 결함",
+      "detail": "F-06의 최초 일정 기준선, F-07의 병목/조치, F-08의 기관 역할, F-12의 시나리오 격리는 코드·업무 모델을 추가해야 한다. API 키만 늘려서 해결되지 않는다."
+    },
+    {
+      "type": "자료 확보",
+      "detail": "실사업 목록과 단계 원문, SH·GH 공정 이력, 실제 입주 시작/입주량, 변경 일정·사유, 지역별 세분화 추계의 공개·제공 범위를 확인해야 한다. 없으면 담당자 입력과 기관 연계가 필요하다."
+    },
+    {
+      "type": "현재 원천 장애",
+      "detail": "iH는 timeout/HTTP 실패로 첫 성공이 없다. 인증키 미신청이나 원천0호로 단정할 수 없다. 건축HUB 상세는 컬럼 형식 변화이며 API 키 추가보다 파서·실응답 재검증이 우선이다."
+    },
+    {
+      "type": "행정·정책 정의",
+      "detail": "135만 목표의 포함사업/착공 귀속, 단계별 도달 기준, 최초 약속 일정의 효력, 분양·모집 실적과 입주 시작/실입주량의 정의를 운영 주체와 합의해야 한다. 이는 구현 결함과 별도다."
+    },
+    {
+      "type": "미확정 자동 연결의 활용",
+      "detail": "사용자가 승인 대기 연결도 통계에 포함하도록 이미 결정했다. 이를 유지하면서 “검토포함”과 “공식/담당자 확인”을 나란히 표시해야 한다. 공개 가능한 정보 범위와 최종 승인 권한은 운영기관이 정한다."
+    },
+    {
+      "type": "외부 협업·권한",
+      "detail": "기존 관리자 인증 검증은 가능했으나 실제 부처/기관 계정·입력 책임·협의 회신·정기 제공 협약 및 비공개 데이터 접근 가능 여부는 이번 점검만으로 확인 불가이다."
+    },
+    {
+      "type": "추가 인증",
+      "detail": "이번 진단과 Y축 수정에 추가 키는 필요하지 않았다. 전국/기관 확대 때 새 서비스가 확인되면 실제 엔드포인트·신청 링크·env 변수·권한을 별도 목록으로 확정해야 한다."
+    }
+  ],
+  "final_questions": [
+    {
+      "question": "전국적으로 얼마나 계획·진행됐는가?",
+      "answer": "부분: 수도권 후보·공식 지역 통계 일부에 답할 수 있으나 전국 전수 사업 원장은 없다."
+    },
+    {
+      "question": "어느 지역에서 어떤 사업이 추진되는가?",
+      "answer": "부분: 292원천 후보와 지역/사업 조회 가능; 전국 누락과 9·7 13묶음 시군구 미연계가 있다."
+    },
+    {
+      "question": "사업은 현재 어느 단계인가?",
+      "answer": "부분: 원천 단계·공정률·누적 도달량 확인; 유사/선행 추정 근거의 최종 확정 필요."
+    },
+    {
+      "question": "전체 정책의 단계별 목표 달성은?",
+      "answer": "부분: 착공 목표·통계와 일부 공급 실적 가능; 사업화/인허가 목표·정식 근거와 입주 실제량 부족."
+    },
+    {
+      "question": "앞으로 언제 얼마나 공급되는가?",
+      "answer": "부분: 확보된 원천 일정은 설명 가능; 미공표/미입수 사업은 예정치를 만들 수 없다."
+    },
+    {
+      "question": "당초 계획 대비 어떤 사업이 얼마나 지연됐는가?",
+      "answer": "부분: 최신 목표 미달/공정 근거 일부; 최초 약속 일정의 독립 기준선이 없다."
+    },
+    {
+      "question": "지연 원인과 조치기관은?",
+      "answer": "미충족: 구조화된 병목 원인·기관 책임·조치 업무 모델이 없다."
+    },
+    {
+      "question": "국민의 관심지역 향후 공급정보는?",
+      "answer": "부분: 공표 일정/원문 조회 가능; 전국·확정/잠정 구분·변경 알림 보완 필요."
+    },
+    {
+      "question": "공식 자료·기준일·출처를 검증 가능한가?",
+      "answer": "부분: 원본·판본·출처는 추적 가능; 사업 귀속/단계 근거는 모두 정식 확정된 것이 아니다."
+    },
+    {
+      "question": "예정/전망과 실제·확정정보가 구분되는가?",
+      "answer": "부분: 표식·근거는 있으나 시나리오 격리와 검토 포함 수치의 공통 표현을 보강해야 한다."
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 # HOME 첫 수집 원천과 포함 규칙
 
+> 2026-10-10 연도별 주택멸실현황 공개본과 데이터 공백 판정은 [데이터 공백 판정과 운영](DATA_AVAILABILITY.md)을 참고하세요. 신규 정비사업·LH 준공예정·건축HUB 상세 원천, 실제 건수 및 신청 상태는 [적용·검증 현황](HOME_IMPLEMENTATION_STATUS_20261010.md)과 [API 연결 안내](HOME_API_CONNECTIONS_20261010.md)를 우선 확인하세요. 아래 내용은 앞선 수집 판본의 기록입니다.
+
+
 실행 registry는 `backend/sources.py`입니다. 공개 정책자료 4개와 LH 자료 3개를 수집합니다. 정부 주택공급 정책과 서울·경기 사업의 전체 목록을 확보했다는 의미는 아닙니다.
 
 추가로 청약홈·건축HUB·VWorld의 **수동 API 테스트 표본**을 별도 kind로 저장합니다. 정책 사업 Master와 매핑을 생성하지 않습니다. [실제 수집 검증](TEST_COLLECTION.md).

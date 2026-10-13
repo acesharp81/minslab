@@ -1,0 +1,2164 @@
+{
+ "schema": "project-registry/1",
+ "updatedAt": "2026-10-06",
+ "counters": {
+  "11290": 13,
+  "12170": 12,
+  "12330": 4,
+  "28245": 6,
+  "41450": 42
+ },
+ "projects": [
+  {
+   "id": "PRJ-11290-0001",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103170000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100003921",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "꿈의숲대명루첸아파트",
+   "units": 611
+  },
+  {
+   "id": "PRJ-11290-0002",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103160002"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009139",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장월 에스에이치빌 1단지",
+   "units": 254
+  },
+  {
+   "id": "PRJ-11290-0003",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103160005"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009140",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장월 에스에이치빌 2단지",
+   "units": 373
+  },
+  {
+   "id": "PRJ-11290-0004",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103220000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100004902",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "래미안 포레카운티",
+   "units": 939
+  },
+  {
+   "id": "PRJ-11290-0005",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103200000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100004802",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "래미안 장위 퍼스트하이",
+   "units": 1562
+  },
+  {
+   "id": "PRJ-11290-0006",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100620001"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100004822",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위자이 레디언트",
+   "units": 2840
+  },
+  {
+   "id": "PRJ-11290-0007",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100680037"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100004842",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위10구역 주택재개발 정비사업 신축공사",
+   "units": 1931
+  },
+  {
+   "id": "PRJ-11290-0008",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100250055"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1000000000000000137508",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위6구역 주택재개발정비사업",
+   "units": 1637
+  },
+  {
+   "id": "PRJ-11290-0009",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103230000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100005682",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "꿈의숲아이파크",
+   "units": 1711
+  },
+  {
+   "id": "PRJ-11290-0010",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800103220022"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1009100016523",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위 지웰 에스테이트",
+   "units": 173
+  },
+  {
+   "id": "PRJ-11290-0011",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100630112"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1000000000000000178551",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "석관지구 특별계획구역2 신축사업",
+   "units": 510
+  },
+  {
+   "id": "PRJ-11290-0012",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100680833"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1000000000000000223358",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위11-2구역 가로주택정비사업",
+   "units": 160
+  },
+  {
+   "id": "PRJ-11290-0013",
+   "sgg": "11290",
+   "bjdCodes": [
+    "1129013800"
+   ],
+   "pnus": [
+    "1129013800100680435"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1000000000000000299159",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "장위11-1구역 가로주택정비사업 공동주택(아파트) 신축공사",
+   "units": 136
+  },
+  {
+   "id": "PRJ-12170-0001",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400100010000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-1",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "이노시티애시앙1단지",
+   "units": 1478
+  },
+  {
+   "id": "PRJ-12170-0002",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400103100000"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-310",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주전남공동혁신도시 C7블럭 부영아파트",
+   "units": 797
+  },
+  {
+   "id": "PRJ-12170-0003",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400103250000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-325",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "사랑으로부영1단지",
+   "units": 946
+  },
+  {
+   "id": "PRJ-12170-0004",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400103740000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-374",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주전남공동혁신도시 빛가람 대방엘리움 로얄카운티 2차",
+   "units": 351
+  },
+  {
+   "id": "PRJ-12170-0005",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400103780000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-378",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주전남공동혁신도시 빛가람 대방엘리움 로얄카운티 1차",
+   "units": 414
+  },
+  {
+   "id": "PRJ-12170-0006",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400103940000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-394",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "LH빛가람1단지"
+  },
+  {
+   "id": "PRJ-12170-0007",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400105280000"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-528",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주전남공동혁신도시 B7블럭 부영아파트",
+   "units": 760
+  },
+  {
+   "id": "PRJ-12170-0008",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400105500000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-550",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "빛가람 이지더원 아파트",
+   "units": 293
+  },
+  {
+   "id": "PRJ-12170-0009",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400105580000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-558",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주 전남혁신도시 영무예다음",
+   "units": 614
+  },
+  {
+   "id": "PRJ-12170-0010",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400106000000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-600",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "대광로제비앙",
+   "units": 920
+  },
+  {
+   "id": "PRJ-12170-0011",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400106240000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-624",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "빛가람LH3단지"
+  },
+  {
+   "id": "PRJ-12170-0012",
+   "sgg": "12170",
+   "bjdCodes": [
+    "1217013400"
+   ],
+   "pnus": [
+    "1217013400108600000"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/jeonnam-naju/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "jeonnam-naju",
+     "value": "bitgaram-860",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주전남공동혁신도시 C6블럭 부영아파트",
+   "units": 729
+  },
+  {
+   "id": "PRJ-12330-0001",
+   "sgg": "12330",
+   "bjdCodes": [
+    "1233010600"
+   ],
+   "pnus": [
+    "1233010600105190000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/gwangju-gwangsan/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "gwangju-gwangsan",
+     "value": "sunwoon2-A1",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주선운2 A-1블록 신혼희망타운",
+   "units": 828
+  },
+  {
+   "id": "PRJ-12330-0002",
+   "sgg": "12330",
+   "bjdCodes": [
+    "1233010600"
+   ],
+   "pnus": [
+    "1233010600105240000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/gwangju-gwangsan/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "gwangju-gwangsan",
+     "value": "sunwoon2-A3",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주선운2 A-3블록 신혼희망타운",
+   "units": 406
+  },
+  {
+   "id": "PRJ-12330-0003",
+   "sgg": "12330",
+   "bjdCodes": [
+    "1233010600"
+   ],
+   "pnus": [
+    "1233010600105410000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/gwangju-gwangsan/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "gwangju-gwangsan",
+     "value": "sunwoon2-A2",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "광주선운2 A-2블록 LH아파트",
+   "units": 606
+  },
+  {
+   "id": "PRJ-12330-0004",
+   "sgg": "12330",
+   "bjdCodes": [
+    "1233010600"
+   ],
+   "pnus": [
+    "1233010600105460000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/gwangju-gwangsan/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "gwangju-gwangsan",
+     "value": "sunwoon2-unsu-546",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "선운2지구 예다음 퍼스티지",
+   "units": 554
+  },
+  {
+   "id": "PRJ-28245-0001",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824510900"
+   ],
+   "pnus": [
+    "2824510900101840001"
+   ],
+   "stageCode": "05",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A6",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A6 블록",
+   "units": 663
+  },
+  {
+   "id": "PRJ-28245-0002",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824510900"
+   ],
+   "pnus": [
+    "2824510900102770001"
+   ],
+   "stageCode": "05",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A17",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A17 블록",
+   "units": 309
+  },
+  {
+   "id": "PRJ-28245-0003",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824511000"
+   ],
+   "pnus": [
+    "2824511000102030001"
+   ],
+   "stageCode": "04",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A9",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A9 블록",
+   "units": 317
+  },
+  {
+   "id": "PRJ-28245-0004",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824511000"
+   ],
+   "pnus": [
+    "2824511000104090003"
+   ],
+   "stageCode": "04",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A3",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A3 블록",
+   "units": 359
+  },
+  {
+   "id": "PRJ-28245-0005",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824511000"
+   ],
+   "pnus": [
+    "2824511000104130003"
+   ],
+   "stageCode": "04",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A2",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A2 블록",
+   "units": 747
+  },
+  {
+   "id": "PRJ-28245-0006",
+   "sgg": "28245",
+   "bjdCodes": [
+    "2824511000"
+   ],
+   "pnus": [
+    "2824511000104480001"
+   ],
+   "stageCode": "04",
+   "source": {
+    "provider": "주택파동 지도 번들",
+    "dataset": "regions/incheon-gyeyang/projects.json"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "bundle",
+     "key": "incheon-gyeyang",
+     "value": "techno-A10",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "인천계양 테크노밸리 A10 블록",
+   "units": 778
+  },
+  {
+   "id": "PRJ-41450-0001",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107750000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100003881",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "휴먼시아 꽃뫼마을",
+   "units": 748
+  },
+  {
+   "id": "PRJ-41450-0002",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107770000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100003882",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "휴먼시아꽃뫼마을",
+   "units": 638
+  },
+  {
+   "id": "PRJ-41450-0003",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107940000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100003861",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "휴먼시아 새뜰마을",
+   "units": 401
+  },
+  {
+   "id": "PRJ-41450-0004",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800108220000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100003862",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "휴먼시아 새뜰마을",
+   "units": 330
+  },
+  {
+   "id": "PRJ-41450-0005",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800105190004"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "11152",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "크로바 연립 재건축아파트공사",
+   "units": 72
+  },
+  {
+   "id": "PRJ-41450-0006",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800103690002"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "11153",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "프라임아파트",
+   "units": 41
+  },
+  {
+   "id": "PRJ-41450-0007",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800103520001"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "11154",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "효천수리골마을 아파트",
+   "units": 103
+  },
+  {
+   "id": "PRJ-41450-0008",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106890000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111512",
+     "asOf": "2026-10-06"
+    },
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111536",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "한솔리치빌아파트5단지",
+   "units": 268
+  },
+  {
+   "id": "PRJ-41450-0009",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106880000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111514",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "한솔리치빌아파트3단지",
+   "units": 283
+  },
+  {
+   "id": "PRJ-41450-0010",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106910000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111520",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남자이",
+   "units": 875
+  },
+  {
+   "id": "PRJ-41450-0011",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106920000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111521",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남한솔솔파크",
+   "units": 616
+  },
+  {
+   "id": "PRJ-41450-0012",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106870000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111515",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "한승미메이드아파트",
+   "units": 46
+  },
+  {
+   "id": "PRJ-41450-0013",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106900000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111519",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "케이씨씨아파트",
+   "units": 244
+  },
+  {
+   "id": "PRJ-41450-0014",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800106950000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111522",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "벽산블루밍아파트",
+   "units": 696
+  },
+  {
+   "id": "PRJ-41450-0015",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800103690001"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111517",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "덕풍동 369-1 아파트",
+   "units": 24
+  },
+  {
+   "id": "PRJ-41450-0016",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800103690004"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111516",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "송도연립재건축아파트",
+   "units": 44
+  },
+  {
+   "id": "PRJ-41450-0017",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800108210000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111513",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "참아름",
+   "units": 777
+  },
+  {
+   "id": "PRJ-41450-0018",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107470000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111526",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남풍산센트레빌아파트",
+   "units": 168
+  },
+  {
+   "id": "PRJ-41450-0019",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107290000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111527",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "삼부르네상스",
+   "units": 471
+  },
+  {
+   "id": "PRJ-41450-0020",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107590000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111528",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "제일풍경채",
+   "units": 140
+  },
+  {
+   "id": "PRJ-41450-0021",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107650000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111529",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "제일풍경채",
+   "units": 120
+  },
+  {
+   "id": "PRJ-41450-0022",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107480000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111530",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "동원베네스트",
+   "units": 217
+  },
+  {
+   "id": "PRJ-41450-0023",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107310000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111531",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남풍산아이파크5단지",
+   "units": 365
+  },
+  {
+   "id": "PRJ-41450-0024",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800108230000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111532",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남풍산아이파크1단지",
+   "units": 686
+  },
+  {
+   "id": "PRJ-41450-0025",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107280000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111533",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "우남퍼스트빌리젠트",
+   "units": 95
+  },
+  {
+   "id": "PRJ-41450-0026",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107460000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "111534",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "대명세라뷰아파트",
+   "units": 97
+  },
+  {
+   "id": "PRJ-41450-0027",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800109460000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100003921",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남더샵센트럴뷰",
+   "units": 672
+  },
+  {
+   "id": "PRJ-41450-0028",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [
+    "4145011400105190000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100009981",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일 금강펜테리움 센트럴파크",
+   "units": 684
+  },
+  {
+   "id": "PRJ-41450-0029",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400",
+    "4145011500"
+   ],
+   "pnus": [
+    "4145011500104460000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100010141",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일 스타힐스",
+   "units": 578
+  },
+  {
+   "id": "PRJ-41450-0030",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400",
+    "4145011500"
+   ],
+   "pnus": [
+    "4145011500105300000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100008101",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남감일스윗시티",
+   "units": 934
+  },
+  {
+   "id": "PRJ-41450-0031",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800109470000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100006901",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남 덕풍역 파크 어울림",
+   "units": 383
+  },
+  {
+   "id": "PRJ-41450-0032",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [
+    "4145011400105240000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100010161",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남감일 스윗시티 행복주택 7단지",
+   "units": 425
+  },
+  {
+   "id": "PRJ-41450-0033",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400",
+    "4145011500"
+   ],
+   "pnus": [
+    "4145011500104570000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100008381",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일스윗시티10단지",
+   "units": 753
+  },
+  {
+   "id": "PRJ-41450-0034",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400",
+    "4145011500"
+   ],
+   "pnus": [
+    "4145011500104580000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100008501",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "힐스테이트 포웰시티",
+   "units": 932
+  },
+  {
+   "id": "PRJ-41450-0035",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [
+    "4145011400104810000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100008561",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일스윗시티1단지",
+   "units": 669
+  },
+  {
+   "id": "PRJ-41450-0036",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800107880000"
+   ],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100012021",
+     "asOf": "2026-10-06"
+    },
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1083100004201",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남덕풍행복주택",
+   "units": 30
+  },
+  {
+   "id": "PRJ-41450-0037",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [
+    "4145011400105230000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100009061",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남감일 스윗시티 행복주택 6단지",
+   "units": 672
+  },
+  {
+   "id": "PRJ-41450-0038",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100008801",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "LH아파트",
+   "units": 1094
+  },
+  {
+   "id": "PRJ-41450-0039",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [
+    "4145011400105330000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100009861",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일포엠포레",
+   "units": 617
+  },
+  {
+   "id": "PRJ-41450-0040",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400",
+    "4145011500"
+   ],
+   "pnus": [
+    "4145011500104480000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100010181",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "감일 파크 센트레빌",
+   "units": 595
+  },
+  {
+   "id": "PRJ-41450-0041",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145011400"
+   ],
+   "pnus": [],
+   "stageCode": "03",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1083100004561",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남감일 공공주택지구 B-9BL",
+   "units": 866
+  },
+  {
+   "id": "PRJ-41450-0042",
+   "sgg": "41450",
+   "bjdCodes": [
+    "4145010800"
+   ],
+   "pnus": [
+    "4145010800108280000"
+   ],
+   "stageCode": "06",
+   "source": {
+    "provider": "국토교통부",
+    "dataset": "건축HUB 주택인허가정보",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do"
+   },
+   "asOf": "2026-10-06",
+   "refs": [
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1115100016821",
+     "asOf": "2026-10-06"
+    },
+    {
+     "system": "hub-hs-basis",
+     "key": "mgmHsrgstPk",
+     "value": "1083100004701",
+     "asOf": "2026-10-06"
+    }
+   ],
+   "issuedAt": "2026-10-06",
+   "name": "하남덕풍 경기 행복주택",
+   "units": 131
+  }
+ ]
+}

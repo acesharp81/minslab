@@ -1,0 +1,87 @@
+{
+ "type": "Infra",
+ "bjd": "4145010800",
+ "asOf": "2026-10-06",
+ "sources": [
+  {
+   "id": "edu-newschool",
+   "label": "지방교육재정알리미 신설예정학교",
+   "publisher": "교육부·한국교육학술정보원",
+   "url": "https://eduinfo.go.kr/portal/theme/newSchMapPage.do",
+   "redistributable": "unknown",
+   "asOf": "2026-10-06"
+  },
+  {
+   "id": "tago-bus",
+   "label": "국토교통부 TAGO 버스정류소정보",
+   "publisher": "국토교통부",
+   "url": "https://www.data.go.kr/data/15098534/openapi.do",
+   "license": "이용허락범위 제한 없음",
+   "redistributable": "Y",
+   "asOf": "2026-10-06"
+  }
+ ],
+ "schools": [
+  {
+   "id": "edu-136",
+   "name": "미사4고",
+   "level": "고등학교",
+   "status": "신설예정",
+   "openYm": "2027-03",
+   "classes": 37,
+   "students": 1015,
+   "address": "하남시 풍산동 562",
+   "lon": 127.1850913,
+   "lat": 37.5490196,
+   "sources": [
+    "edu-newschool"
+   ]
+  },
+  {
+   "id": "edu-202",
+   "name": "교산1중",
+   "level": "중학교",
+   "status": "신설예정",
+   "openYm": "2030-03",
+   "classes": 32,
+   "students": 840,
+   "address": "하남시 천현동 63-2 일원",
+   "lon": 127.2201952,
+   "lat": 37.5331721,
+   "sources": [
+    "edu-newschool"
+   ]
+  }
+ ],
+ "stops": [
+  {
+   "id": "GGB227000520",
+   "name": "꽃뫼마을1단지.덕풍중학교",
+   "lon": 127.19925,
+   "lat": 37.55245,
+   "no": "28325"
+  },
+  {
+   "id": "GGB227000523",
+   "name": "꽃뫼마을1단지.덕풍중학교",
+   "lon": 127.199033,
+   "lat": 37.552533,
+   "no": "28328"
+  },
+  {
+   "id": "GGB227000208",
+   "name": "나룰.풍산근린3호공원",
+   "lon": 127.206567,
+   "lat": 37.551267,
+   "no": "28224"
+  }
+ ],
+ "meta": {
+  "centers": 30,
+  "schoolsNational": 220,
+  "schools": 3,
+  "stopCalls": 20,
+  "stops": 117,
+  "stopsSource": "tago"
+ }
+}

@@ -1,0 +1,18 @@
+{
+  "sources": [
+    {"id": "news-lh-transport", "label": "SBS Biz 2026-09-22 \"3기 신도시 첫 입주 인천계양…다음달부터 서울 출퇴근 버스 달린다\"(LH 발표 보도)", "publisher": "SBS Biz", "url": "https://biz.sbs.co.kr/amp/article/20000336163", "asOf": "2026-09-22", "redistributable": "N"},
+    {"id": "news-segye-kinder", "label": "세계일보 2026-04-15 계양신도시 공립단설유치원 신설 보도", "publisher": "세계일보", "url": "https://www.segye.com/newsView/20260415514534", "asOf": "2026-04-15", "redistributable": "N"}
+  ],
+  "measures": [
+    {"id": "m-bus-7701", "category": "교통", "title": "7701번 시내버스 신설", "short": "7701번", "when": "2026-10", "status": "예정",
+     "detail": "작전역·계양구청·임학역·인천계양지구·계양역 26.1km, 하루 54회, 배차 17~23분. 지구를 지나는 노선은 기존 5개에 더해 입주 초기부터 6개", "sources": ["news-lh-transport"]},
+    {"id": "m-mbus", "category": "교통", "title": "서울 강남권 M버스 신규 노선 신청", "short": "M버스", "when": "2026-11", "status": "검토",
+     "detail": "인천시가 5월 대도시권광역교통위원회에 신청했고, 11월 노선위원회 심의에서 신설 여부가 정해짐", "sources": ["news-lh-transport"]},
+    {"id": "m-shuttle", "category": "교통", "title": "셔틀버스 등 연계 교통수단 협의", "status": "검토",
+     "detail": "LH가 6월 주요 경로의 버스 혼잡도를 조사했고, 결과를 바탕으로 인천시와 셔틀버스 도입 등을 협의 중", "sources": ["news-lh-transport"]},
+    {"id": "m-brt", "category": "교통", "title": "간선급행버스(BRT)·대장홍대선의 계양 연계", "status": "미정",
+     "detail": "중장기 과제로 관계기관과 협의할 계획이며 시기는 공개되지 않음", "sources": ["news-lh-transport"]},
+    {"id": "m-kinder", "category": "교육", "title": "계양1·2유치원(공립단설) 신설", "short": "계양1·2유치원", "when": "2029-09", "status": "예정",
+     "detail": "동양동·병방동, 18학급(일반 15·특수 3). 시교육청 자체투자심사를 통과했고 2029년 9월 개원이 목표", "sources": ["news-segye-kinder"]}
+  ]
+}

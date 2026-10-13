@@ -1,6 +1,7 @@
 'use strict';
 const MappingWorkbench=(()=>{
   let payload, stage='policy', selectedProgram, selectedProject, page=1, saving=false, generation=0;
+  let pendingFocus=null;
   const checked=new Set();
   const realPolicies=()=>payload.policies.filter(p=>p.monitor_kind==='POLICY');
   const policyName=id=>id==='UNASSIGNED'||!id?'정책 미연계':payload.policies.find(p=>p.policy_id===id)?.name||'정책 미확인';
@@ -11,11 +12,17 @@ const MappingWorkbench=(()=>{
   const programLabel=p=>`${p.name} · ${policyName(p.policy_id)}${p.seed_policy_id!==p.policy_id?' (원천 제안과 다름)':''}`;
   function setStage(value){
     stage=value;
+    $('mapping-operations-workspace').hidden=stage!=='operations';
+    $('mapping-tab-operations').setAttribute('aria-selected',String(stage==='operations'));
+    $('mapping-evidence-workspace').hidden=stage!=='evidence';
+    $('mapping-tab-evidence').setAttribute('aria-selected',String(stage==='evidence'));
     $('mapping-policy-workspace').hidden=stage!=='policy';
     $('mapping-project-workspace').hidden=stage!=='project';
     $('mapping-tab-policy').setAttribute('aria-selected',String(stage==='policy'));
     $('mapping-tab-project').setAttribute('aria-selected',String(stage==='project'));
-    if(payload)stage==='policy'?renderPrograms():renderProjects();
+    if(stage==='evidence')StageEvidenceWorkbench.load();
+    else if(stage==='operations')DeliveryOperations.load();
+    else if(payload)stage==='policy'?renderPrograms():renderProjects();
   }
   function render(data){
     payload=data;
@@ -30,11 +37,11 @@ const MappingWorkbench=(()=>{
     $('mapping-queue-programme').innerHTML='<option value="">프로그램 전체</option><option value="UNASSIGNED">프로그램 미연계</option>'+[...new Set(data.programs.map(p=>p.name))].sort().map(name=>`<option value="NAME:${esc(name)}">동일 이름 전체 · ${esc(name)}</option>`).join('')+options(data.programs,null,'id',programLabel);
     $('mapping-queue-programme').value=queueProgram;
     $('mapping-bulk-program').innerHTML='<option value="">현재 연결 유지</option>'+options(data.programs,null,'id',programLabel);
-    $('mapping-queue-counts').innerHTML=[['사업 승인 대기',data.counts.REVIEW||0],['사업 확정',data.counts.CONFIRMED||0],['정책 미연계 사업',data.audit.unlinked_policy_projects]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
-    $('mapping-program-counts').innerHTML=[['정책–프로그램 확인 필요',data.audit.review_programs],['프로그램–사업 확인 필요',data.audit.review_projects],['정책 미연계 프로그램',data.audit.unlinked_programs]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
-    $('mapping-queue-notice').textContent=data.notice;
+    $('mapping-queue-counts').innerHTML=[['사업 승인 대기',data.counts.REVIEW||0],['사업 확정',data.counts.CONFIRMED||0],['프로그램 미연계 사업',data.audit.unlinked_projects],['정책 미연계 사업',data.audit.unlinked_policy_projects]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
+    $('mapping-program-counts').innerHTML=[['정책–프로그램 승인 대기',data.audit.review_programs],['프로그램–사업 승인 대기',data.audit.review_projects],['정책 미연계 프로그램',data.audit.unlinked_programs]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
+    $('mapping-queue-notice').textContent='현재 정책–프로그램 미연계 '+num(data.audit.unlinked_programs)+'건 · 프로그램–사업 미연계 '+num(data.audit.unlinked_projects)+'건. 연결된 REVIEW는 미연계가 아니라 담당자 승인 대기입니다. '+data.notice;
     $('mapping-bulk').hidden=!state.admin;
-    setStage(stage);
+    if(pendingFocus){const focus=pendingFocus;pendingFocus=null;focus.kind==='project'?focusProject(focus.id):focusPolicy(focus.id);}else setStage(stage);
   }
   function filteredPrograms(){return payload.programs.filter(p=>(!$('mapping-program-status').value||p.status===$('mapping-program-status').value)&&(!$('mapping-program-policy').value||p.policy_id===$('mapping-program-policy').value));}
   function renderPrograms(){
@@ -103,18 +110,20 @@ const MappingWorkbench=(()=>{
     saving=false;await load();$('mapping-bulk-status').textContent=`${success}건 저장${failures.length?' · '+failures.join(' / '):' · 통계 반영 완료'}`;
   }
   function focusPolicy(id){
-    if(!payload)return;
+    if(!payload){pendingFocus={kind:'policy',id};return;}
     if(id==='MON_THIRD_NEW_TOWN'||id==='MON_URBAN_COMPLEX'){
       setStage('project');$('mapping-queue-policy').value='';$('mapping-queue-programme').value='NAME:'+(id==='MON_THIRD_NEW_TOWN'?'3기 신도시':'도심 공공주택 복합사업');renderProjects();
     }else{setStage('policy');$('mapping-program-policy').value=id;renderPrograms();}
   }
   function focusProject(id){
-    if(!payload)return;
+    if(!payload){pendingFocus={kind:'project',id};return;}
     $('mapping-queue-status').value='';$('mapping-queue-policy').value='';$('mapping-queue-programme').value='';
     selectedProject=id;page=Math.floor(Math.max(0,payload.items.findIndex(r=>r.id===id))/30)+1;
     setStage('project');
   }
   function start(){
+    $('mapping-tab-operations').addEventListener('click',()=>setStage('operations'));
+    $('mapping-tab-evidence').addEventListener('click',()=>setStage('evidence'));
     $('mapping-tab-policy').addEventListener('click',()=>setStage('policy'));
     $('mapping-tab-project').addEventListener('click',()=>setStage('project'));
     for(const id of ['mapping-program-policy','mapping-program-status'])$(id).addEventListener('change',renderPrograms);

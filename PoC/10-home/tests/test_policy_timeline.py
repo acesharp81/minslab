@@ -16,8 +16,9 @@ class PolicyTimelineTests(unittest.TestCase):
         self.assertEqual(annual[2026]["SUPPLY"]["units"],40)
         self.assertEqual(annual[2027]["SUPPLY"]["units"],60)
         self.assertIsNone(annual[2028]["SUPPLY"]["units"])
-        self.assertEqual(annual[2028]["MOVE_IN"]["units"],40)
-        self.assertEqual(annual[2029]["MOVE_IN"]["units"],60)
+        self.assertIsNone(annual[2028]["MOVE_IN"]["units"])
+        self.assertEqual(annual[2028]["MOVE_IN"]["start_dates"],["2028-03"])
+        self.assertEqual(annual[2029]["MOVE_IN"]["start_dates"],[])
 
     def test_manual_goal_replaces_source_in_year_without_double_counting(self):
         goals=[dict(project_id="P",targets=[dict(year=2026,stage="SUPPLY",units=50,basis="관리자",evidence_url="https://example.com")])]
@@ -70,7 +71,7 @@ class PolicyTimelineTests(unittest.TestCase):
         result=build_monitor([row],[pol],[],[],date(2026,10,3))["items"][0]
         self.assertEqual(result["timeline"]["years"][0],2025)
         a=next(a for a in result["timeline"]["annual"] if a["year"]==2026)
-        self.assertEqual(a["official_start_units"],270000)
+        self.assertEqual(a["official_start_units"],269000)
         self.assertEqual(a["SUPPLY"]["units"],100)
         self.assertIn("착공",result["overview"]["period"])
 

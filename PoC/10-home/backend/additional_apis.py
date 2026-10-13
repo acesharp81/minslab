@@ -11,7 +11,8 @@ REGISTER_URL = "https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo
 LH_URL = "https://apis.data.go.kr/B552555/lhLeaseNoticeInfo1/lhLeaseNoticeInfo1"
 STAT_URL = "https://stat.molit.go.kr/portal/openapi/service/rest/getList.do"
 STAT_PERIOD_URL = "https://stat.molit.go.kr/portal/api/period.do"
-LH_REGIONS = {"11": "서울특별시", "41": "경기도"}
+LH_REGIONS = {"11": "서울특별시", "41": "경기도", "28": "인천광역시"}
+LH_CATEGORIES = {"05":"분양", "06":"임대", "39":"신혼희망타운"}
 STAT_REGIONS = {"서울": "서울특별시", "경기": "경기도"}
 STAT_SERIES = [("5372", "1", "MONTH", "준공", "사용검사실적"),
                ("5386", "1", "MONTH", "착공", "착공실적"),
@@ -20,6 +21,7 @@ STAT_SERIES = [("5372", "1", "MONTH", "준공", "사용검사실적"),
 
 
 def parse_register(data, source, region, sigungu, bjdong):
+    kind = source.get('register_kind', 'register')
     response = data.get("response", {})
     if str(response.get("header", {}).get("resultCode")) != "00":
         raise ValueError("건축물대장 인증/응답 오류: 서비스 활용승인 확인 필요")
@@ -43,7 +45,7 @@ def parse_register(data, source, region, sigungu, bjdong):
         purpose = clean(row.get("mainPurpsCdNm"))
         if purpose not in {"공동주택", "단독주택"}:
             continue
-        payload = base(source, "register", clean(row.get("bldNm")) or address, region, address, day(row.get("crtnDay")))
+        payload = base(source, kind, clean(row.get("bldNm")) or address, region, address, day(row.get("crtnDay")))
         payload.update(source_object_id=identifier, sigungu_code=sigungu, bjdong_code=bjdong,
                        units=integer(row.get("hhldCnt")), unit_basis="건축물 표제부 세대수 · 기존 재고 포함, 신규 공급량 아님",
                        source_date_label="대장 레코드 생성일", main_purpose=purpose, building_dong=clean(row.get("dongNm")),
@@ -53,7 +55,12 @@ def parse_register(data, source, region, sigungu, bjdong):
                               "건축물 사용승인일": day(row.get("useAprDay"))})
         if payload["units"] == 0:
             payload["warnings"].append("ZERO_UNITS_REVIEW")
-        records.append(("register", identifier, payload))
+        payload.update(block=clean(row.get('block')) or None,lot=clean(row.get('lot')) or None,
+            bun=clean(row.get('bun')) or None,ji=clean(row.get('ji')) or None,
+            related_lot_count=integer(row.get('bylotCnt')),register_endpoint=source.get('register_endpoint','getBrTitleInfo'))
+        from .parcel_identity import enrich_source
+        enrich_source(payload, row)
+        records.append((kind, identifier, payload))
     return records, total, len(rows)
 
 
@@ -68,7 +75,8 @@ def collect_register(source, fetcher, service=None):
         while True:
             params = dict(serviceKey=key_for(source), sigunguCd=sigungu, bjdongCd=bjdong,
                           numOfRows=SAMPLE_LIMIT, pageNo=page, _type="json")
-            data = response_json(fetcher.get(REGISTER_URL, "json", params=params))
+            url=REGISTER_URL.replace('getBrTitleInfo', source.get('register_endpoint','getBrTitleInfo'))
+            data = response_json(fetcher.get(url, "json", params=params))
             current, total, count = parse_register(data, source, region, sigungu, bjdong)
             if expected is None:
                 expected = total
@@ -158,7 +166,7 @@ def collect_lh_notices(source, fetcher):
     start, end = collection_start().isoformat(), today().isoformat()
     records, counts, seen = [], {}, set()
     for region_code, region in LH_REGIONS.items():
-        for category in ("05", "06"):
+        for category in LH_CATEGORIES:
             page, fetched, expected = 1, 0, None
             excluded = Counter()
             while True:
@@ -181,20 +189,21 @@ def collect_lh_notices(source, fetcher):
                 if fetched == total:
                     break
                 page += 1
-            counts[region + (" 분양" if category == "05" else " 임대")] = dict(
+            counts[region + " " + LH_CATEGORIES[category]] = dict(
                 matching_records=expected, fetched=fetched, excluded_nonhousing=excluded["nonhousing"],
                 excluded_multi_region=excluded["multi_region"],
                 collected=fetched-sum(excluded.values()), pages=page, complete_query=True,
                 status="COLLECTED" if expected else "NO_RESULTS_UNVERIFIED")
     if not records:
-        raise ValueError("서울·경기 LH 공고 없음: 기존 데이터 유지")
+        raise ValueError("수도권 LH 공고 없음: 기존 데이터 유지")
     annual = Counter((r[2]["source_date"][:4], r[2]["region"]) for r in records)
     return records, dict(collection_mode="TEST_SAMPLE", complete_population=False, period_start=start, period_end=end,
                          region_counts=counts, annual_counts=[dict(year=int(y), region=r, records=n) for (y,r),n in sorted(annual.items())],
-                         scope_note="2018년 정책 기원부터 서울·경기 분양·임대 전체 조회 페이지. 어린이집과 시도별 배분 미확인 복수지역 공고는 표시 제외하고 원문 보존. 공고 건수는 공급량·입주량 아님")
+                         scope_note="2018년 정책 기원부터 서울·경기·인천 분양·임대·신혼희망타운 전체 조회 페이지. 어린이집과 시도별 배분 미확인 복수지역 공고는 표시 제외하고 원문 보존. 공고 건수는 공급량·입주량 아님")
 
 
 def parse_statistics(data, source, series, start, end):
+    regions = source.get('stat_regions', STAT_REGIONS)
     form, style, frequency, label, metric = series
     status = data.get("result_status", {}).get("status_code")
     if status == "INFO-200":
@@ -208,14 +217,14 @@ def parse_statistics(data, source, series, start, end):
     records, seen = [], set()
     for row in rows:
         if label == "분양승인":
-            if row.get("구분1") != "수도권" or row.get("구분2") not in STAT_REGIONS:
+            if (not source.get("all_regions") and row.get("구분1") != "수도권") or row.get("구분2") not in regions:
                 continue
             region_name = row["구분2"]
             components = {name: integer(row.get("순계>" + name)) for name in ("분양", "임대", "조합")}
             if any(value is None for value in components.values()) or sum(components.values()) != integer(row.get(metric)):
                 raise ValueError("통계누리 분양승인 순계·구성항목 불일치")
         else:
-            if row.get("시도별") not in STAT_REGIONS:
+            if row.get("시도별") not in regions:
                 continue
             if row.get("부문명") != "총계" or row.get("구  분", row.get("구분명")) != "총계":
                 continue
@@ -223,7 +232,7 @@ def parse_statistics(data, source, series, start, end):
         period = str(row.get("date", ""))
         if len(period) != (6 if frequency == "MONTH" else 4) or not period.isdigit() or not start <= period <= end:
             raise ValueError("통계누리 조회 기간 불일치")
-        region = STAT_REGIONS[region_name]
+        region = regions[region_name]
         identifier = f"{form}:{style}:{period}:{region_name}"
         units = integer(row.get(metric))
         if identifier in seen or units is None:
@@ -274,7 +283,7 @@ def collect_statistics(source, fetcher):
                                          style_num=style, start_dt=chunk[0], end_dt=chunk[-1])))
             current = parse_statistics(data, source, series, chunk[0], chunk[-1])
             present = {(r[2]["statistic_period"], r[2]["region"]) for r in current}
-            missing.extend(dict(period=p, region=r) for p in chunk for r in STAT_REGIONS.values() if (p,r) not in present)
+            missing.extend(dict(period=p, region=r) for p in chunk for r in source.get('stat_regions', STAT_REGIONS).values() if (p,r) not in present)
             for record in current:
                 if record[1] in seen:
                     raise ValueError("통계누리 조회 묶음 간 중복")

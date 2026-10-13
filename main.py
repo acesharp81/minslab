@@ -158,6 +158,10 @@ MMJ_UPSTREAM = env_first("POC09_UPSTREAM", default="http://127.0.0.1:18090").rst
 HOME_BASE_PATH = "/poc/home"
 HOME_UPSTREAM = env_first("POC10_UPSTREAM", default="http://127.0.0.1:18100").rstrip("/")
 HOME_PAGE = Path(__file__).parent / "PoC" / "10-home" / "web" / "index.html"
+POC12_BASE_PATH = "/poc/housing-board"
+POC12_UPSTREAM = env_first("POC12_UPSTREAM", default="http://127.0.0.1:18120").rstrip("/")
+POC12_PROXY_PATH = Path(__file__).parent / "PoC" / "12-housing-board" / "bridge.py"
+POC12_PROXY = None
 POC11_BASE_PATH = "/poc/consultation-cases"
 POC11_SERVICE_PATH = Path(__file__).parent / "PoC" / "11-consultation-cases" / "service.py"
 POC11_SERVICE = None
@@ -167,6 +171,7 @@ POC_SHORTCUT_REDIRECTS = {
     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
     "/mmj": f"{MMJ_BASE_PATH}/",
     "/home": f"{HOME_BASE_PATH}/",
+    "/home2": POC12_BASE_PATH,
     "/counsel": f"{POC11_BASE_PATH}/",
 }
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
@@ -1437,6 +1442,13 @@ def load_module_from_path(name, path):
     return module
 
 
+def load_poc12_proxy():
+    global POC12_PROXY
+    if POC12_PROXY is None:
+        POC12_PROXY = load_module_from_path("poc12_bridge", POC12_PROXY_PATH)
+    return POC12_PROXY
+
+
 def load_poc11_service():
     global POC11_SERVICE
     if POC11_SERVICE is None:
@@ -2424,6 +2436,10 @@ async def app(scope, receive, send):
         ]
         await send({"type": "http.response.start", "status": 307, "headers": headers})
         await send({"type": "http.response.body", "body": b""})
+        return
+
+    if path == POC12_BASE_PATH or path.startswith(f"{POC12_BASE_PATH}/"):
+        await load_poc12_proxy().proxy_poc12(scope, receive, send, POC12_UPSTREAM)
         return
 
     if path == POC11_BASE_PATH or path.startswith(f"{POC11_BASE_PATH}/"):

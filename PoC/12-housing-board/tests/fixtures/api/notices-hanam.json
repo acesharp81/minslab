@@ -1,0 +1,52 @@
+{
+ "type": "Notices",
+ "sgg": "41450",
+ "name": "경기도 하남시",
+ "asOf": "2026-10-06",
+ "items": [
+  {
+   "id": "rental-21372-1",
+   "kind": "rental",
+   "title": "하남시 신혼희망타운 행복주택 예비입주자 모집공고(2026.10.01)",
+   "agency": "LH",
+   "status": "일반공고",
+   "housingType": "아파트",
+   "supplyType": "행복주택",
+   "complex": "하남감일A7BL",
+   "units": 20,
+   "address": "경기도 하남시 감일순환로 40",
+   "pnu": "4145011500104680000",
+   "announcedAt": "2026-10-01",
+   "applyFrom": "2026-10-12",
+   "applyTo": "2026-10-14",
+   "url": "https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcDetailView.do?pblancId=21372&houseSn=1",
+   "source": "myhome"
+  },
+  {
+   "id": "rental-21372-2",
+   "kind": "rental",
+   "title": "하남시 신혼희망타운 행복주택 예비입주자 모집공고(2026.10.01)",
+   "agency": "LH",
+   "status": "일반공고",
+   "housingType": "아파트",
+   "supplyType": "행복주택",
+   "complex": "하남위례A3-3bBL",
+   "units": 53,
+   "address": "경기도 하남시 위례학암로 30",
+   "pnu": "4145011600106450000",
+   "announcedAt": "2026-10-01",
+   "applyFrom": "2026-10-12",
+   "applyTo": "2026-10-14",
+   "url": "https://www.myhome.go.kr/hws/portal/sch/selectRsdtRcritNtcDetailView.do?pblancId=21372&houseSn=2",
+   "source": "myhome"
+  }
+ ],
+ "meta": {
+  "source": "마이홈포털 공공주택 모집공고(HWSPR02) + 한국토지주택공사 분양임대공고문(15058530)·공급정보(15056765)",
+  "rental": 244,
+  "sale": 80,
+  "lh": 158,
+  "matched": 2,
+  "lhMatched": 0
+ }
+}

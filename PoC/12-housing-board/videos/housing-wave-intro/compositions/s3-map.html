@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template id="s3-map-template">
+      <style>
+      @font-face { font-family: "Gothic A1"; font-weight: 400; src: url("assets/fonts/gothic-a1-400.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 600; src: url("assets/fonts/gothic-a1-600.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 800; src: url("assets/fonts/gothic-a1-800.woff2") format("woff2"); }
+        #s3-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          color: #eaf2ff;
+          font-family: "Gothic A1", sans-serif;
+          word-break: keep-all;
+        }
+        #s3-root .eyebrow {
+          position: absolute;
+          left: 128px;
+          top: 84px;
+          display: flex;
+          gap: 20px;
+          align-items: baseline;
+          opacity: 0;
+        }
+        #s3-root .m {
+          font-family: "Space Mono", monospace;
+          font-size: 28px;
+          color: #ffc247;
+          letter-spacing: 3px;
+        }
+        #s3-root .t {
+          font-size: 28px;
+          font-weight: 600;
+          color: #bbd3f3;
+        }
+        #s3-root .cap {
+          position: absolute;
+          left: 728px;
+          width: 600px;
+          top: 90px;
+          text-align: right;
+          font-size: 24px;
+          font-weight: 600;
+          color: #bbd3f3;
+          opacity: 0;
+        }
+        #s3-root .cap .m {
+          font-size: 22px;
+          letter-spacing: 2px;
+        }
+        #s3-root .frame {
+          position: absolute;
+          left: 128px;
+          top: 150px;
+          width: 1200px;
+          height: 820px;
+          background: #e9edf2;
+          border: 3px solid rgba(187, 211, 243, 0.8);
+          border-radius: 6px;
+          overflow: hidden;
+          transform-origin: 832px 370px;
+        }
+        #s3-root .frame video {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        #s3-root .flash {
+          position: absolute;
+          inset: 0;
+          background: #ffffff;
+          opacity: 0;
+        }
+        #s3-root .corners {
+          position: absolute;
+          left: 116px;
+          top: 138px;
+          width: 1224px;
+          height: 844px;
+          opacity: 0;
+        }
+        #s3-root .card {
+          position: absolute;
+          left: 1368px;
+          width: 424px;
+          padding: 24px 26px;
+          background: #0f3568;
+          border: 2px solid rgba(187, 211, 243, 0.55);
+          border-radius: 6px;
+          opacity: 0;
+        }
+        #s3-root #s3-card1 {
+          top: 150px;
+          height: 424px;
+        }
+        #s3-root #s3-card2 {
+          top: 594px;
+          height: 376px;
+        }
+        #s3-root .lab {
+          display: flex;
+          gap: 14px;
+          align-items: baseline;
+          height: 34px;
+        }
+        #s3-root .lab .m {
+          font-size: 22px;
+          letter-spacing: 2px;
+        }
+        #s3-root .lab .k {
+          font-size: 28px;
+          font-weight: 600;
+          color: #bbd3f3;
+        }
+        #s3-root .big {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          height: 112px;
+          margin-top: 4px;
+        }
+        #s3-root .num {
+          display: inline-block;
+          font-size: 104px;
+          font-weight: 800;
+          line-height: 1.05;
+          letter-spacing: -0.03em;
+          font-variant-numeric: tabular-nums;
+          color: #eaf2ff;
+          transform-origin: left bottom;
+        }
+        #s3-root .unit {
+          display: inline-block;
+          font-size: 40px;
+          font-weight: 600;
+          color: #bbd3f3;
+          opacity: 0;
+        }
+        #s3-root .sub {
+          font-size: 24px;
+          color: #bbd3f3;
+          height: 30px;
+          white-space: nowrap;
+        }
+        #s3-root .rule {
+          height: 2px;
+          background: rgba(187, 211, 243, 0.4);
+          margin: 14px 0 6px;
+        }
+        #s3-root .st {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 50px;
+          opacity: 0;
+        }
+        #s3-root .st .l {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          font-size: 28px;
+          font-weight: 600;
+        }
+        #s3-root .st .sw {
+          display: block;
+          width: 22px;
+          height: 22px;
+          border-radius: 3px;
+        }
+        #s3-root .st .v {
+          font-size: 36px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+        }
+        #s3-root .pr {
+          position: relative;
+          height: 55px;
+          margin: 0 -10px;
+          padding: 0 10px;
+          opacity: 0;
+          border-radius: 4px;
+        }
+        #s3-root .pr .top {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          height: 34px;
+        }
+        #s3-root .pr .id {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+        }
+        #s3-root .pr .pc {
+          font-family: "Space Mono", monospace;
+          font-size: 26px;
+          font-weight: 700;
+        }
+        #s3-root .pr .trk {
+          position: relative;
+          height: 10px;
+          margin-top: 5px;
+          background: rgba(187, 211, 243, 0.25);
+          border-radius: 2px;
+          overflow: hidden;
+        }
+        #s3-root .pr .bar {
+          display: block;
+          width: 100%;
+          height: 100%;
+          transform-origin: left center;
+          transform: scaleX(0);
+        }
+        #s3-root .credit {
+          position: absolute;
+          left: 128px;
+          top: 984px;
+          font-size: 22px;
+          color: #bbd3f3;
+          white-space: nowrap;
+          opacity: 0;
+        }
+      </style>
+
+      <div data-hf-id="hf-i0am" id="s3-root" data-composition-id="s3-map" data-width="1920" data-height="1080" data-duration="6.1">
+        <div data-hf-id="hf-krcn" class="eyebrow" id="s3-eyebrow">
+          <span data-hf-id="hf-fhv1" class="m">SHEET 03 / 04</span>
+          <span data-hf-id="hf-bkg2" class="t">현황 지도 · 인천 계양구</span>
+        </div>
+        <div data-hf-id="hf-z4um" class="cap" id="s3-cap"><span data-hf-id="hf-3phs" class="m">SCREEN CAPTURE</span> · 주택파동 공급 지도</div>
+
+        <div data-hf-id="hf-y5wr" class="frame" id="s3-frame">
+          <video data-hf-id="hf-01s7" id="s3-vid" class="clip" src="assets/footage/map.mp4" muted playsinline data-start="0" data-duration="6.1" data-track-index="1"></video>
+          <div data-hf-id="hf-t3hv" class="flash" id="s3-flash"></div>
+        </div>
+
+        <svg data-hf-id="hf-ijnr" class="corners" id="s3-corners" viewBox="-12 -12 1224 844" aria-hidden="true">
+          <path data-hf-id="hf-3g08" d="M-8 40 V-8 H40" fill="none" stroke="#ffc247" stroke-width="5" />
+          <path data-hf-id="hf-93a8" d="M1160 -8 H1208 V40" fill="none" stroke="#ffc247" stroke-width="5" />
+          <path data-hf-id="hf-o59s" d="M-8 780 V828 H40" fill="none" stroke="#ffc247" stroke-width="5" />
+          <path data-hf-id="hf-u0m4" d="M1160 828 H1208 V780" fill="none" stroke="#ffc247" stroke-width="5" />
+        </svg>
+
+        <div data-hf-id="hf-qa3u" class="card" id="s3-card1">
+          <div data-hf-id="hf-mnnx" class="lab"><span data-hf-id="hf-6jwk" class="m">TOTAL</span><span data-hf-id="hf-djae" class="k">공급 예정 합계</span></div>
+          <div data-hf-id="hf-vf1u" class="big"><span data-hf-id="hf-cqzn" class="num" id="s3-count">0</span><span data-hf-id="hf-elf2" class="unit" id="s3-unit">세대</span></div>
+          <div data-hf-id="hf-zbgk" class="sub">6개 단지 · 인천계양 테크노밸리</div>
+          <div data-hf-id="hf-a46i" class="rule"></div>
+          <div data-hf-id="hf-lnm4" class="st" id="s3-st1">
+            <span data-hf-id="hf-s727" class="l"><i data-hf-id="hf-p49f" class="sw" style="background: #ff8a3d"></i>분양중</span><span data-hf-id="hf-59rh" class="v">972</span>
+          </div>
+          <div data-hf-id="hf-wj3r" class="st" id="s3-st2">
+            <span data-hf-id="hf-q2vx" class="l"><i data-hf-id="hf-8i2j" class="sw" style="background: #5aa9ff"></i>건설 단계</span><span data-hf-id="hf-h46m" class="v">1,095</span>
+          </div>
+          <div data-hf-id="hf-skzq" class="st" id="s3-st3">
+            <span data-hf-id="hf-yrb3" class="l"><i data-hf-id="hf-5q93" class="sw" style="background: #3fd0a0"></i>준공 임박</span><span data-hf-id="hf-ug9d" class="v">1,106</span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-k4e1" class="card" id="s3-card2">
+          <div data-hf-id="hf-8io1" class="lab"><span data-hf-id="hf-ul5h" class="m">PROGRESS</span><span data-hf-id="hf-o2oa" class="k">단지별 공정율</span></div>
+          <div data-hf-id="hf-wt9n" style="height: 12px"></div>
+          <div data-hf-id="hf-pct6" class="pr" id="s3-p1">
+            <div data-hf-id="hf-sijt" class="top"><span data-hf-id="hf-blne" class="id">A2·A3</span><span data-hf-id="hf-uyhm" class="pc" style="color: #3fd0a0">100%</span></div>
+            <div data-hf-id="hf-l3rt" class="trk"><i data-hf-id="hf-sbz6" class="bar" style="background: #3fd0a0"></i></div>
+          </div>
+          <div data-hf-id="hf-lep5" class="pr" id="s3-p2">
+            <div data-hf-id="hf-8kpp" class="top"><span data-hf-id="hf-9lsc" class="id">A9</span><span data-hf-id="hf-v3wg" class="pc" style="color: #5aa9ff">11.3%</span></div>
+            <div data-hf-id="hf-wqi5" class="trk"><i data-hf-id="hf-gqfq" class="bar" style="background: #5aa9ff"></i></div>
+          </div>
+          <div data-hf-id="hf-kn1c" class="pr" id="s3-p3">
+            <div data-hf-id="hf-9rms" class="top"><span data-hf-id="hf-q8ak" class="id">A10</span><span data-hf-id="hf-2227" class="pc" style="color: #5aa9ff">1.74%</span></div>
+            <div data-hf-id="hf-xxf8" class="trk"><i data-hf-id="hf-33y2" class="bar" style="background: #5aa9ff"></i></div>
+          </div>
+          <div data-hf-id="hf-goxb" class="pr" id="s3-p4">
+            <div data-hf-id="hf-9dbr" class="top"><span data-hf-id="hf-6tn5" class="id">A6</span><span data-hf-id="hf-6g3o" class="pc" style="color: #ff8a3d">0.85%</span></div>
+            <div data-hf-id="hf-xj47" class="trk"><i data-hf-id="hf-t9zy" class="bar" style="background: #ff8a3d"></i></div>
+          </div>
+          <div data-hf-id="hf-aj7i" class="pr" id="s3-p5">
+            <div data-hf-id="hf-ak8u" class="top"><span data-hf-id="hf-qmll" class="id">A17</span><span data-hf-id="hf-dbdj" class="pc" style="color: #ff8a3d">0.42%</span></div>
+            <div data-hf-id="hf-yq1a" class="trk"><i data-hf-id="hf-in5u" class="bar" style="background: #ff8a3d"></i></div>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-1mol" class="credit" id="s3-credit">
+          건물 © 국토교통부 GIS건물통합정보(V-World) · 역·학교 © OpenStreetMap contributors · 공정율 LH 청약플러스 공사현황
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const BEAT = 60 / 128;
+          const BAR = BEAT * 4;
+
+          tl.fromTo("#s3-eyebrow", { opacity: 0, y: -14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 0.3);
+          tl.fromTo("#s3-cap", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 0.45);
+          tl.fromTo("#s3-credit", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.7);
+
+          // 1) S2에서 모인 점(축소판 프레임)이 커진다 — 5.625s 드롭에 맞춤
+          tl.fromTo("#s3-frame", { scale: 0.08 }, { scale: 1, duration: 0.62, ease: "power3.out" }, 0);
+          tl.fromTo("#s3-corners", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" }, 0.4);
+
+          // 2) 수치 카드 1: 합계 카운트업 (counting-dynamic-scale)
+          tl.fromTo("#s3-card1", { x: 90, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.4);
+          const state = { v: 0 };
+          const COUNT_DUR = 1.4;
+          tl.to(state, {
+            v: 3173,
+            duration: COUNT_DUR,
+            ease: "power3.out",
+            onUpdate: () => {
+              document.getElementById("s3-count").textContent = Math.round(state.v).toLocaleString("en-US");
+            },
+          }, 0.5);
+          tl.fromTo("#s3-count", { scale: 0.7 }, { scale: 1, duration: COUNT_DUR, ease: "power3.out" }, 0.5);
+          tl.fromTo("#s3-unit", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.5 + COUNT_DUR);
+
+          // 3) 4마디(=1.875s): 보기 기준이 층수 → 공정율로 바뀌는 컷, 상태 3줄이 박마다 켜진다
+          tl.fromTo("#s3-flash", { opacity: 0.45 }, { opacity: 0, duration: 0.22, ease: "power2.out", immediateRender: false }, BAR);
+          ["#s3-st1", "#s3-st2", "#s3-st3"].forEach((id, i) => {
+            const T = BAR + i * BEAT;
+            tl.fromTo(id, { opacity: 0, x: 28 }, { opacity: 1, x: 0, duration: 0.28, ease: "power3.out" }, T);
+            tl.fromTo(id + " .sw", { scale: 0.3 }, { scale: 1, duration: 0.3, ease: "power3.out" }, T);
+          });
+
+          // 4) 6마디 (3.75s): 공정율 카드 — 막대가 박에 맞춰 자란다
+          tl.fromTo("#s3-card2", { x: 90, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, BAR * 2);
+          const FRACTION = [1, 0.113, 0.0174, 0.0085, 0.0042]; // 지도 화면의 공정율 그대로(A2·A3, A9, A10, A6, A17)
+          ["#s3-p1", "#s3-p2", "#s3-p3", "#s3-p4", "#s3-p5"].forEach((id, i) => {
+            const T = BAR * 2 + 0.2 + i * 0.1;
+            const f = FRACTION[i];
+            tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, T);
+            tl.fromTo(id + " .bar", { scaleX: 0 }, { scaleX: f, duration: 0.8, ease: "power3.out" }, T);
+          });
+          // 준공 임박(A2·A3 100%)에 금색 강조 링 — 유한 반복
+          tl.fromTo("#s3-p1", { boxShadow: "0 0 0 0px rgba(255,194,71,0)" },
+            { boxShadow: "0 0 0 5px rgba(255,194,71,0.85)", duration: 0.3, ease: "power2.out", immediateRender: false }, BAR * 2 + 0.9);
+          tl.fromTo("#s3-p1", { backgroundColor: "rgba(63,208,160,0)" },
+            { backgroundColor: "rgba(63,208,160,0.16)", duration: 0.3, ease: "power2.out", immediateRender: false }, BAR * 2 + 0.9);
+
+          window.__timelines["s3-map"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

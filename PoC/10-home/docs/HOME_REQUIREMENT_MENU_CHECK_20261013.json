@@ -1,0 +1,218 @@
+[
+  {
+    "view": "manual",
+    "ms": 432,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "requirements",
+    "ms": 412,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "requirements-status"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "sources",
+    "ms": 1212,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "sources"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "keys",
+    "ms": 562,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "sources?compact=true",
+      "connections",
+      "api-requests"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "tree",
+    "ms": 1069,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "tree?as_of_date=2026-10-13&policy_id=POL_2025_0907",
+      "mappings?as_of_date=2026-10-13",
+      "programs/PRG_3bf413f44de7e85afab8e73b/history?as_of_date=2026-10-13"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "validation",
+    "ms": 1535,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "validation?as_of_date=2026-10-13&policy_id=POL_2025_0907",
+      "identities?page_size=1",
+      "plans",
+      "identity-reviews?page=1&page_size=20",
+      "identity-options",
+      "connections"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "samples",
+    "ms": 6055,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "samples?as_of_date=2026-10-13&page=1&page_size=100"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "history",
+    "ms": 1055,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "history?as_of_date=2026-10-13&policy_id=POL_2025_0907&page=1",
+      "policy-geo/geometry?as_of_date=2026-10-13",
+      "policy-geo/metrics?as_of_date=2026-10-13&analysis_year=2026&measure=SUPPLY"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "policy-progress",
+    "ms": 7469,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "policy-monitor?as_of_date=2026-10-13",
+      "mappings?as_of_date=2026-10-13",
+      "policy-delivery?compact=true&as_of_date=2026-10-13",
+      "policy-geo/metrics?as_of_date=2026-10-13&analysis_year=2026&measure=SUPPLY",
+      "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+      "area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+      "area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+      "execution?as_of_date=2026-10-13"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "program-progress",
+    "ms": 1425,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "policy-monitor?as_of_date=2026-10-13",
+      "mappings?as_of_date=2026-10-13",
+      "policy-delivery?compact=true&as_of_date=2026-10-13",
+      "policy-geo/metrics?as_of_date=2026-10-13&analysis_year=2026&measure=SUPPLY",
+      "execution?as_of_date=2026-10-13"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "projects",
+    "ms": 672,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "projects?as_of_date=2026-10-13&policy_id=POL_2025_0907&page=1&page_size=25",
+      "policy-monitor?as_of_date=2026-10-13",
+      "mappings?as_of_date=2026-10-13",
+      "policy-geo/geometry?as_of_date=2026-10-13",
+      "policy-geo/metrics?as_of_date=2026-10-13&analysis_year=2026&measure=SUPPLY",
+      "policy-delivery?as_of_date=2026-10-13"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "project-collection",
+    "ms": 3434,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "project-collection/version",
+      "project-collection?policy_id=POL_2025_0907"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "annual-supply",
+    "ms": 479,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "annual-supply"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "area",
+    "ms": 541,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "area-places",
+      "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+      "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+      "annual-supply?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&through_year=2026",
+      "area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84"
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "overview",
+    "ms": 1568,
+    "requests": [
+      "policies",
+      "sources?compact=true",
+      "admin/status",
+      "map/dashboard?as_of_date=2026-10-13&policy_id=POL_2025_0907&horizon=10&measure=SUPPLY&schedule_status=all&compact=true",
+      "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026&municipality=%EC%84%9C%EC%B4%88%EA%B5%AC",
+      "annual-supply?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&through_year=2026"
+    ],
+    "errors": [],
+    "error": null
+  }
+]

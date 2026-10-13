@@ -1,5 +1,27 @@
 # HOME API 키 발급·연결 안내
 
+2026-10-12 **9·7 수도권 확대**: 인천 LH 분양·임대계획 10건, 착공·공정 16건,
+통계누리 320행, VWorld 시군구 경계 11개와 건축물대장 총괄표제부 1,539건을 실제 수집했습니다.
+이 자료에는 추가 키가 필요하지 않았습니다. VWorld·통계누리·건축물대장 기존 HOME 키를 재사용합니다.
+
+추가 기관 자료로 [iH 임대주택 공급대상 및 실적 조회](https://www.data.go.kr/data/15168460/openapi.do)를 안내합니다.
+공공데이터포털 로그인 → **활용신청** → 개발계정 자동승인 → 마이페이지의 **일반 인증키(Decoding)**를 확인합니다.
+신청 목적은 수도권 주택공급 단계·기관별 실적 검증, 서비스 URL은 `https://www.minslab.kr/poc/home/`입니다.
+발급 키가 기존 포털 키와 같아도 해당 서비스 활용승인이 필요합니다.
+실제 키는 `PoC/10-home/.env`의 `POC10_IH_SERVICE_KEY=`에 저장합니다. `.env.example`에는 빈 변수명만 등록했습니다.
+iH 수집기는 연결했으며 전용 키가 비어 있으면 기존 HOME `POC10_LH_NOTICE_SERVICE_KEY`를 재사용합니다.
+2026-10-12 신청 후 검증에서 API 서버가 **HTTP 504 / SERVICETIMEOUT_ERROR(05)**를 반환했습니다.
+이는 원천 기관 연결 실패 응답이고 자료 0건·0호를 의미하지 않습니다. 데이터 검증의 배치 상태에서 재시도 여부를 확인합니다.
+공식 Swagger 응답은 주택별 재고(`totalHouseholds`), 계약(`contractHouseholds`), 공가(`vacantHouseholds`)의 유형별 수량입니다.
+소개 문구의 ‘공급실적’을 연간 신규 착공·모집 실적과 동일하게 해석하지 않습니다. 개별 관측일·정책 귀속 확인 전 `agency_stock` 참조자료로 별도 보관합니다.
+원천 복구 후 `sudo docker exec poc10-home-api python -m scripts.collect --source ih_supply`로 다시 수집할 수 있습니다.
+이 신청은 인천 LH·지역 통계 조회와 독립적입니다. iH 자료를 아직 확보하지 않은 것을 0호로 표시하지 않습니다.
+
+> 2026-10-10 추가 확보한 [GH 사용검사·승인 PDF](https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeList.do)와 [한국부동산원 단지 식별정보 CSV](https://www.data.go.kr/data/15106861/fileData.do)는 **새 API 키 없이** 수집했습니다. 기존 건축HUB·건축물대장 키로 법정동 조회도 확대했습니다. 최신 수량과 남은 핵심 공백은 [데이터 공백 판정과 운영](DATA_AVAILABILITY.md), [미입수 자료 확보 순서](DATA_ACQUISITION_PRIORITIES.md)를 참고하세요.
+
+> 2026-10-10 신규 정비사업·LH 준공예정·건축HUB 상세 원천, 실제 건수 및 신청 상태는 [적용·검증 현황](HOME_IMPLEMENTATION_STATUS_20261010.md)과 [API 연결 안내](HOME_API_CONNECTIONS_20261010.md)를 우선 확인하세요. 아래 내용은 앞선 수집 판본의 기록입니다.
+
+
 2026-10-03 점검. **최신 공식 원천 7개와 과거 정책·공사 원천 2개는 API 키 없이 수집합니다.** 청약홈·주택인허가·VWorld와 신규 건축물대장·LH 공고·통계누리까지 SH 분양계획·재개발·재건축까지 총 8개 API의 키 적용과 실제 수집을 확인했습니다. 실제 준공 근거·공공임대·SH/GH 범위 확대는 아래 추가 서비스별로 구분합니다. 다른 PoC의 키를 자동 공유하지 않습니다.
 
 2026-10-02 소급 수집: 기존 세 키로 정책 기원 2018년부터 조회하여 **청약공고 1,110·인허가 3,870·누적 주소 조회 52개**, 총 5,032개를 보관했습니다. 이 기존 수집 범위를 유지하는 데 추가 키가 필요하지 않습니다. 이후 시군구 경계 56개도 기존 VWorld 키로 수집했습니다. 최초 검증은 [API_KEY_VERIFICATION.md](API_KEY_VERIFICATION.md), 수집 범위는 [HISTORICAL_COLLECTION.md](HISTORICAL_COLLECTION.md), 현재 연결·통계 기준은 [POLICY_PROGRESS_AND_MATCHING.md](POLICY_PROGRESS_AND_MATCHING.md)에 기록했습니다.
@@ -96,3 +118,11 @@ POC10_SH_SERVICE_KEY=
 ## 2026-10-05 공급량 연도별 비교
 
 기존 `POC10_MOLIT_STAT_API_KEY`로 [국토교통 통계누리 분양실적](https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=488) 양식 5557/1이 조회되어 새 키 신청 없이 월별 분양승인 2018.01~2026.08 서울·경기 208행을 추가 수집했다. 기존 세 지표 432행과 합쳐 640행이다. 자세한 기간·연도별 수치는 [ANNUAL_SUPPLY.md](ANNUAL_SUPPLY.md)에 기록했다.
+
+## 2026-10-12 보완 작업 이후
+
+이번 전국 공급통계 확대·인천 KOSIS 이력·건축HUB 복구에는 추가 키가 필요하지 않았다. 실제 키는 계속 `.env`에만 저장한다. 전국 통계는 보관한 공식 응답을 해시 검증 후 확대 추출했으며 이후 국토부 수집 성공 시 같은 확대 경로를 실행한다.
+
+iH 임대주택 재고·계약·공가 API는 기존 설정으로 재시도했으나 HTTP 504였다. 원천 0건 또는 새 키 필요로 판정하지 않는다. [iH 활용신청](https://www.data.go.kr/data/15168460/openapi.do)의 승인 상태와 제공기관 응답을 확인하고, 오류가 계속되면 조회시각·HTTP 504를 제공기관에 전달한다. 설정명은 `POC10_IH_SERVICE_KEY`이고 없으면 기존 `POC10_LH_NOTICE_SERVICE_KEY`를 대체 사용한다. 키가 같아도 서비스 활용승인은 별도다.
+
+[데이터 구조·보완 결과·남은 공백 설명자료](HOME_REMEDIATION_STATUS_20261012.html)에 수집 범위, DB 매칭, 담당자 입력 및 후속 조치를 함께 정리했다.

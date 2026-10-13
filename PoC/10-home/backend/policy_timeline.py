@@ -16,7 +16,7 @@ PROFILES = {
         "period": "2026~2030년 신규 착공 목표 · 2025.09.07 발표",
         "details": ["공공택지 LH 직접 시행", "노후 임대주택·공공청사·미사용 학교용지 활용", "재건축·재개발 촉진"],
         "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95091185",
-        "annual_official": {year:270000 for year in range(2026,2031)},
+        "annual_official": dict(zip(range(2026,2031), (269000,246000,250000,249000,335000))),
     },
     "POL_2026_0129": {
         "purpose": "도심의 유휴부지와 노후 청사를 활용해 청년·신혼부부 등의 주거 수요에 대응합니다.",
@@ -104,6 +104,8 @@ def build_timeline(policy, members, canonical, plans, reference, context, policy
                     events.append(dict(event,project_id=row["id"]))
                     evidence(event.get("evidence_url"),row["name"]+" · "+event["label"],"사업 계획·현황")
             for goal in plans.get(row["id"],{}).get("targets",[]):
+                if goal["stage"]=="MOVE_IN":
+                    continue  # Historical annual unit goal is not a move-in start date.
                 if row["id"] in context["manual_ids"].get(goal["stage"],set()):
                     manual.append(dict(goal,month=None,label=STAGES[goal["stage"]]+" 목표",origin="MANUAL",project_id=row["id"]))
                     evidence(goal.get("evidence_url"),row["name"]+" · 관리자 목표","관리자 근거")
@@ -141,10 +143,11 @@ def build_timeline(policy, members, canonical, plans, reference, context, policy
         quantities = {}
         for stage in ("SUPPLY","COMPLETION","MOVE_IN","CONSTRUCTION"):
             events = [e for b in blocks for e in b["events"] if e["year"]==year and e["stage"]==stage]
-            quantities[stage] = dict(units=known_sum(e.get("units") for e in events),
-                                     source_units=known_sum(e.get("units") for e in events if e["origin"]=="SOURCE"),
-                                     manual_units=known_sum(e.get("units") for e in events if e["origin"]=="MANUAL"),
-                                     missing_events=sum(e.get("units") is None for e in events))
+            quantities[stage] = dict(units=None if stage=="MOVE_IN" else known_sum(e.get("units") for e in events),
+                                     source_units=None if stage=="MOVE_IN" else known_sum(e.get("units") for e in events if e["origin"]=="SOURCE"),
+                                     manual_units=None if stage=="MOVE_IN" else known_sum(e.get("units") for e in events if e["origin"]=="MANUAL"),
+                                     start_dates=sorted({e["month"] for e in events if e.get("month")}) if stage=="MOVE_IN" else [],
+                                     missing_events=0 if stage=="MOVE_IN" else sum(e.get("units") is None for e in events))
         annual.append(dict(year=year,**quantities,official_start_units=profile.get("annual_official",{}).get(year)))
     regions = []
     for region in sorted({b["region"] for b in blocks}):

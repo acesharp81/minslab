@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.pool import StaticPool
 
 from backend.app import create_app
-from backend.collectors import Fetcher, collect_lh_plan, parse_construction, parse_lh_plan, parse_policy
+from backend.collectors import Fetcher, collect_lh_plan, lh_plan_site, parse_construction, parse_lh_plan, parse_policy
 from backend.db import Audit, Base, Batch, Mapping, Revision, factory, upsert_revision
 from backend.service import HomeService, today
 
@@ -79,6 +79,25 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(records[0][2]['supply_units'],494)
         self.assertEqual(stats['excluded_rows'],1)
         self.assertEqual(records[0][2]['stage'],'PLANNED_SUPPLY')
+
+    def test_lh_raw_schedule_keeps_explicit_undecided_and_absent_columns(self):
+        from backend.plan_schedule import plan_schedule
+        _,_,rows=parse_lh_plan(lh_html([
+            ['경기도','행복주택','고양창릉 S-02','59','100','2026년06월','미정','경기','']]),rent=True)
+        self.assertEqual(rows[0]['move_in_raw'],'미정')
+        self.assertTrue(rows[0]['move_in_field_present'])
+        self.assertEqual(plan_schedule(rows[0],'move_in','lh_rent')['status'],'UNDETERMINED')
+        _,_,rows=parse_lh_plan(lh_html([
+            ['공공분양','경기도','고양창릉 S-02','100','59','100','2026년06월','경기','']]))
+        self.assertFalse(rows[0]['move_in_field_present'])
+        self.assertEqual(plan_schedule(rows[0],'move_in','lh_sale')['status'],'NOT_PROVIDED')
+
+    def test_lh_plan_site_keeps_single_block_and_rejects_combined_site(self):
+        self.assertEqual(lh_plan_site('고양창릉 S-01', '경기도'), {
+            'district': '고양창릉', 'block': 'S-01', 'municipality': '고양시',
+            'location_name_basis': 'LH_SUPPLY_PLAN_SINGLE_BLOCK_SUFFIX'})
+        self.assertEqual(lh_plan_site('안산신길2 A1,A3', '경기도'), {})
+        self.assertEqual(lh_plan_site('서울공릉(복합개발) 1', '서울특별시'), {})
 
     def test_corrupt_schema_does_not_parse_as_empty_success(self):
         with self.assertRaises(ValueError):
@@ -146,7 +165,8 @@ class StorageApiTests(unittest.TestCase):
     def test_api_filter_scope_and_unknown_fields(self):
         response=self.client.get('/poc/home/api/projects?region=경기도')
         self.assertEqual(response.json()['total'],0)
-        self.assertEqual(self.client.get('/poc/home/api/projects?region=인천광역시').status_code,400)
+        self.assertEqual(self.client.get('/poc/home/api/projects?region=인천광역시').status_code,200)
+        self.assertEqual(self.client.get('/poc/home/api/projects?region=부산광역시').status_code,400)
         self.assertEqual(self.client.get('/poc/home/api/projects?q=서울').json()['total'],1)
         self.assertEqual(self.client.get('/poc/home/api/projects?as_of_date=2099-01-01').status_code,400)
 

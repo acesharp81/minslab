@@ -36,8 +36,11 @@ class AreaStatsTests(unittest.TestCase):
                 upsert_revision(session,'area_stat','kosis_housing',f'경기도|수원시|{year}',{
                     'name':'수원시','region':'경기도','municipality':'수원시','metric_group':'kosis_housing',
                     'year':year,'base_date':f'{year}-12-31','housing_units':stock,'households':households,
-                    'official_ratio':None,'housing_source_table':'DT_1MH2090'},'batch')
+                    'census_housing_units':850 if year == 2023 else 880,
+                    'census_housing_source_table':'DT_1IN1502',
+                    'official_ratio':None,'housing_source_table':'DT_1MH2090' if stock is not None else None},'batch')
         rows=area_context(service,'경기도','수원시',2026)['housing_balance']
+        self.assertEqual(rows[0]['census_housing_units'],850)
         self.assertIsNone(rows[0]['gap_units'])
         self.assertEqual(rows[1]['gap_units'],-90)
         self.assertEqual(rows[1]['stock_to_household_pct'],91.1)

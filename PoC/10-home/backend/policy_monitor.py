@@ -3,7 +3,7 @@ from .roadmap import source_events
 from .supply_dashboard import inventory, quantities, block_key
 from .matching_rules import catalogue, automatic_proposal, policy_members
 
-def monitor_metrics(rows, quantity, reference, canonical_ids, notices, plans):
+def monitor_metrics(rows, quantity, reference, canonical_ids, notices, plans, announced_at=None):
     selected = [row for row in rows if row["id"] in canonical_ids and row.get("planned_units") is not None]
     source_rows, _ = inventory([row for row in rows if any(e["stage"] == "SUPPLY" for e in source_events(row, reference))])
     annual = []
@@ -26,36 +26,57 @@ def monitor_metrics(rows, quantity, reference, canonical_ids, notices, plans):
     known = [e["units"] for e in annual if e.get("units") is not None]
     goal = sum(known) if known else None
     linked = [(row, notices[row["id"]]) for row in selected if row["id"] in notices]
+    # A public main sale/rental notice completes the SUPPLY stage even when that
+    # project's planned capacity is missing. Keep this distinct from occupancy.
+    supply_notices = {}
+    for row in rows:
+        if row["id"] in canonical_ids and row["id"] in notices:
+            notice = notices[row["id"]]
+            supply_notices[notice.get("house_manage_no") or notice.get("id") or row["id"]] = notice
+    actual_supply = sum(n["units"] for n in supply_notices.values() if n.get("units") is not None) if supply_notices else None
+    actual_supply_annual = sum(n["units"] for n in supply_notices.values()
+                               if n.get("units") is not None and (n.get("source_date") or "")[:4] == str(reference.year)) if supply_notices else None
+    period_notices = [n for n in supply_notices.values() if n.get("units") is not None
+                      and (not announced_at or (n.get("source_date") or "") >= announced_at)]
+    actual_supply_period = sum(n["units"] for n in period_notices) if period_notices else None
     observed = sum(notice["units"] for _, notice in linked) if linked else None
     year_observed = sum(notice["units"] for _, notice in linked if notice["source_date"][:4] == str(reference.year)) if linked else None
     capacity = quantity["target_units"]
     schedules = []
+    move_in_starts = []
     scheduled_keys = set()
     capacity_by_key = {(block_key(row) or row["id"]): row["planned_units"] for row in selected}
     for row in rows:
         key = block_key(row) or row["id"]
         if "MULTI_SITE_CONTRACT" in row.get("warnings", []):
             continue
-        events = [e for e in source_events(row, reference) if e["stage"] in {"MOVE_IN", "COMPLETION"}]
+        source = source_events(row, reference)
+        move_in_starts.extend(e["month"] for e in source if e["stage"] == "MOVE_IN")
+        events = [e for e in source if e["stage"] == "COMPLETION"]
         dates = [e["month"] for e in events]
         if dates:
             schedules.extend(dates)
-            for stage in ("MOVE_IN", "COMPLETION"):
+            for stage in ("COMPLETION",):
                 stage_events = [e for e in events if e["stage"] == stage]
                 if stage_events and all(e.get("units") is not None for e in stage_events) and sum(e["units"] for e in stage_events) == capacity_by_key.get(key):
                     scheduled_keys.add(key)
     capacity_keys = {block_key(row) or row["id"] for row in selected}
     complete = bool(capacity_keys) and capacity_keys <= scheduled_keys and not quantity["target_missing_projects"]
-    return dict(annual_goal_units=goal, annual_observed_units=year_observed,
+    return dict(actual_supply_units=actual_supply, actual_supply_annual_units=actual_supply_annual,
+                actual_supply_period_units=actual_supply_period, actual_supply_period_start=announced_at,
+                actual_supply_status="REVIEW" if actual_supply is not None else "NOT_ACQUIRED",
+                actual_supply_basis="공식 본 모집·분양공고 확인 물량 · 공급 단계 실적 · 정책 연결 담당자 검토 전 · 준공·실입주 아님",
+                annual_goal_units=goal, annual_observed_units=year_observed,
                 annual_achievement_pct=round(year_observed / goal * 100, 2) if year_observed is not None and goal else None,
                 cumulative_observed_units=observed,
                 cumulative_achievement_pct=round(observed / capacity * 100, 2) if observed is not None and capacity else None,
                 annual_goal_missing_events=sum(e.get("units") is None for e in annual), annual_goal_project_count=len(annual_covered),
                 annual_goal_basis="관리자 공급 목표가 있으면 해당 사업 원천 연간 공급 예정 대신 사용",
+                earliest_move_in_start_month=min(move_in_starts) if move_in_starts else None,
                 expected_completion_month=max(schedules) if complete and schedules else None,
                 latest_known_completion_month=max(schedules) if schedules else None,
                 completion_schedule_projects=len(capacity_keys & scheduled_keys), completion_capacity_projects=len(capacity_keys),
-                completion_basis="연결 사업의 준공·입주 예정 중 마지막 시점 · 일정 미확보 사업이 있으면 전체 완료 전망 미확보",
+                completion_basis="연결 사업의 준공 예정 중 마지막 시점 · 입주 시작일은 준공 완료일로 해석하지 않음 · 일정 미확보 사업이 있으면 전체 완료 전망 미확보",
                 review_count=sum(r.get("mapping", {}).get("status") == "REVIEW" for r in rows),
                 confirmed_count=sum(r.get("mapping", {}).get("status") == "CONFIRMED" for r in rows),
                 actual_annual_achievement_pct=None, actual_cumulative_achievement_pct=None,
@@ -83,7 +104,7 @@ def build_monitor(projects, policies, goals, notices, reference, reports=(), dis
     for policy in policies:
         members = policy_members(policy, rows)
         quantity = quantities(members, plans, reference, 3, "SUPPLY", target_ids=canonical, notice_links=linked)
-        metrics = monitor_metrics(members, quantity, reference, canonical, linked, plans)
+        metrics = monitor_metrics(members, quantity, reference, canonical, linked, plans, policy.get("announced_at"))
         overview,timeline = build_timeline(policy,members,canonical,plans,reference,context,policy_events)
         result.append(dict(overview=overview,timeline=timeline,id=policy["policy_id"], name=policy["name"], kind=policy.get("monitor_kind", "POLICY"),
                            announced_at=policy.get("announced_at"), announced_target_units=policy.get("target_units"),

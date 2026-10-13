@@ -1,0 +1,35 @@
+{
+  "fonts": [
+    {
+      "name": "blackhansans",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/blackhansans/BlackHanSans-Regular.ttf",
+      "size": 6540
+    },
+    {
+      "name": "dohyeon",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/dohyeon/DoHyeon-Regular.ttf",
+      "size": 4560
+    },
+    {
+      "name": "jua",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf",
+      "size": 12556
+    },
+    {
+      "name": "gugi",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/gugi/Gugi-Regular.ttf",
+      "size": 5392
+    },
+    {
+      "name": "notoserifkr",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifkr/NotoSerifKR%5Bwght%5D.ttf",
+      "size": 14416
+    },
+    {
+      "name": "gowunbatang",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/gowunbatang/GowunBatang-Bold.ttf",
+      "size": 7016
+    }
+  ],
+  "note": "Logo and header-menu subset. Internal subset font names renamed to HousingLogo*. Original outlines unchanged. 2026-10-09."
+}

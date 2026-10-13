@@ -38,6 +38,8 @@ def day(value):
 
 def key_for(source):
     key = os.environ.get(source["key_env"], "").strip()
+    if not key and source.get('fallback_key_env'):
+        key = os.environ.get(source['fallback_key_env'], '').strip()
     if not key:
         raise ValueError("API 키 미설정: HOME .env와 실행 설정을 확인하세요")
     return unquote(key) if re.search(r"%[0-9a-fA-F]{2}", key) else key
@@ -156,6 +158,8 @@ def parse_permits(data, source, region, sigungu, bjdong):
         payload = base(source, "permit", clean(row.get("bldNm")) or address, region, address, day(row.get("crtnDay")))
         payload.update(source_object_id=identifier, sigungu_code=sigungu, bjdong_code=bjdong,
                        units=integer(row.get("totHhldCnt")), unit_basis="원천 기본개요 총세대수 (중복·공급묶음 검토 전)",
+                       main_purpose=clean(row.get('mainPurpsCdNm')) or None,block=clean(row.get('block')) or None,
+                       lot=clean(row.get('lot')) or None,bun=clean(row.get('bun')) or None,ji=clean(row.get('ji')) or None,
                        source_date_label="원천 레코드 생성일", warnings=["USE_INSPECTION_FIELD_REVIEW"],
                        dates={"원천 허가일 (apprvDay)": day(row.get("apprvDay")), "원천 착공일 (stcnsDay)": day(row.get("stcnsDay")),
                               "원천 착공예정일 (stcnsSchedDay)": day(row.get("stcnsSchedDay")),
@@ -163,6 +167,8 @@ def parse_permits(data, source, region, sigungu, bjdong):
                               "사용검사 필드 useInsptSchedDay": day(row.get("useInsptSchedDay"))})
         if payload["units"] == 0:
             payload["warnings"].append("ZERO_UNITS_REVIEW")
+        from .parcel_identity import enrich_source
+        enrich_source(payload, row)
         records.append(("permit", identifier, payload))
     return records, int(body["totalCount"])
 

@@ -1,0 +1,20 @@
+[Unit]
+Description=PoC 12 Housing Board Next.js service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/12-housing-board
+Environment=NODE_ENV=production
+Environment=PATH=/home/ubuntu/apps/myservice/PoC/12-housing-board/.runtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/home/ubuntu/apps/myservice/PoC/12-housing-board/.runtime/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 18120
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

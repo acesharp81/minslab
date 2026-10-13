@@ -54,7 +54,13 @@ class RoadmapTests(unittest.TestCase):
         self.assertEqual(len(row['annual']),11)
         self.assertEqual(row['annual'][0]['events'][0]['units'],494)
         self.assertEqual(row['annual'][1]['events'][0]['stage'],'MOVE_IN')
-        self.assertEqual(row['annual'][1]['events'][0]['units'],494)
+        self.assertIsNone(row['annual'][1]['events'][0]['units'])
+        self.assertEqual(row['move_in_start']['date'],f'{today().year+1}-07')
+        self.assertEqual(row['move_in_start']['precision'],'MONTH')
+        self.assertIsNone(row['construction_progress']['pct'])
+        project=self.client.get('/poc/home/api/projects?page_size=1').json()['items'][0]
+        self.assertEqual(project['move_in_start']['date'],f'{today().year+1}-07')
+        self.assertIsNone(project['construction_progress']['pct'])
         self.assertEqual(row['annual'][-1]['status'],'NOT_SET')
         self.assertEqual(row['annual'][-1]['events'],[])
         self.assertEqual(self.client.get('/poc/home/api/roadmap?region=경기도').json()['total'],0)
@@ -95,7 +101,7 @@ class RoadmapTests(unittest.TestCase):
         path='/poc/home/api/admin/targets/'+self.project
         with patch.dict(os.environ,{'POC10_INTERNAL_SECRET':'goal-test-secret'}):
             for targets,status in [([self.goal(),self.goal()],400),([self.goal(today().year+11)],400),
-                                   ([dict(self.goal(),units=-1)],422),([dict(self.goal(),basis=' ')],400),
+                                   ([dict(self.goal(),units=-1)],422),([dict(self.goal(),stage='MOVE_IN')],422),([dict(self.goal(),basis=' ')],400),
                                    ([dict(self.goal(),evidence_url='http://example.org')],400)]:
                 response=self.client.post(path,json={'revision_no':0,'targets':targets},headers=self.auth(path))
                 self.assertEqual(response.status_code,status)

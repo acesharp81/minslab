@@ -1,0 +1,207 @@
+{
+  "at": "2026-10-12",
+  "environment": "Headless Chromium / SwiftShader software WebGL / loopback, no basemap tiles",
+  "scope": "Actual geometry from 3 regional bundles, not a national E2E load test",
+  "sizes": [
+    {
+      "key": "small",
+      "features": 1889,
+      "bytes": 604350,
+      "gzipBytes": 86249
+    },
+    {
+      "key": "large",
+      "features": 16724,
+      "bytes": 5997804,
+      "gzipBytes": 926635
+    },
+    {
+      "key": "combined",
+      "features": 25515,
+      "bytes": 8767530,
+      "gzipBytes": 1321426
+    }
+  ],
+  "runs": [
+    {
+      "mode": "2d",
+      "key": "small",
+      "run": 1,
+      "parseMs": 28.699999809265137,
+      "firstIdleMs": 517.7999992370605,
+      "moveIdleMs": 16.699999809265137,
+      "heap": 13577559,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "small",
+      "run": 2,
+      "parseMs": 21,
+      "firstIdleMs": 417.30000019073486,
+      "moveIdleMs": 16.59999942779541,
+      "heap": 13562015,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "small",
+      "run": 3,
+      "parseMs": 22.5,
+      "firstIdleMs": 410.19999980926514,
+      "moveIdleMs": 20.299999237060547,
+      "heap": 13591723,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "large",
+      "run": 1,
+      "parseMs": 280.20000076293945,
+      "firstIdleMs": 1535.3000001907349,
+      "moveIdleMs": 346.3999996185303,
+      "heap": 42332975,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "large",
+      "run": 2,
+      "parseMs": 216.30000019073486,
+      "firstIdleMs": 1128.5999994277954,
+      "moveIdleMs": 365.5,
+      "heap": 42522696,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "large",
+      "run": 3,
+      "parseMs": 202.60000038146973,
+      "firstIdleMs": 1474.1000003814697,
+      "moveIdleMs": 373.6000003814697,
+      "heap": 42442548,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "combined",
+      "run": 1,
+      "parseMs": 283.79999923706055,
+      "firstIdleMs": 1519.1999998092651,
+      "moveIdleMs": 332,
+      "heap": 61127752,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "combined",
+      "run": 2,
+      "parseMs": 269.8999996185303,
+      "firstIdleMs": 1429.8999996185303,
+      "moveIdleMs": 354.3999996185303,
+      "heap": 60979296,
+      "errors": []
+    },
+    {
+      "mode": "2d",
+      "key": "combined",
+      "run": 3,
+      "parseMs": 291,
+      "firstIdleMs": 1574.8000001907349,
+      "moveIdleMs": 341.19999980926514,
+      "heap": 61136308,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "small",
+      "run": 1,
+      "parseMs": 27.700000762939453,
+      "firstIdleMs": 409.9000005722046,
+      "moveIdleMs": 16.699999809265137,
+      "heap": 14559354,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "small",
+      "run": 2,
+      "parseMs": 23.799999237060547,
+      "firstIdleMs": 500.1000003814697,
+      "moveIdleMs": 16.90000057220459,
+      "heap": 14553154,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "small",
+      "run": 3,
+      "parseMs": 24,
+      "firstIdleMs": 446.69999980926514,
+      "moveIdleMs": 16.600000381469727,
+      "heap": 14561222,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "large",
+      "run": 1,
+      "parseMs": 231.60000038146973,
+      "firstIdleMs": 1404.1999998092651,
+      "moveIdleMs": 16.90000057220459,
+      "heap": 52601746,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "large",
+      "run": 2,
+      "parseMs": 193.5999994277954,
+      "firstIdleMs": 1371.5,
+      "moveIdleMs": 16.59999942779541,
+      "heap": 49848726,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "large",
+      "run": 3,
+      "parseMs": 204.9000005722046,
+      "firstIdleMs": 1366.2999992370605,
+      "moveIdleMs": 16.90000057220459,
+      "heap": 49825419,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "combined",
+      "run": 1,
+      "parseMs": 302.1000003814697,
+      "firstIdleMs": 1521.6999998092651,
+      "moveIdleMs": 16.40000057220459,
+      "heap": 68325966,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "combined",
+      "run": 2,
+      "parseMs": 286.70000076293945,
+      "firstIdleMs": 1477,
+      "moveIdleMs": 16.90000057220459,
+      "heap": 67792959,
+      "errors": []
+    },
+    {
+      "mode": "3d",
+      "key": "combined",
+      "run": 3,
+      "parseMs": 288.80000019073486,
+      "firstIdleMs": 1480.8000001907349,
+      "moveIdleMs": 16.90000057220459,
+      "heap": 68625150,
+      "errors": []
+    }
+  ]
+}

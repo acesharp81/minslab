@@ -8,6 +8,7 @@
 | 인허가 | 626/125 / 연간 시도 총계 | 2018~2025 | [주택건설실적통계(인허가)](https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=31) |
 | 착공 | 5386/1 / 월별 시도 총계 | 2018.01~2026.08 | [주택건설실적통계(착공)](https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=471) |
 | 준공·사용검사 | 5372/1 / 월별 시도 총계 | 2018.01~2026.08 | [주택건설실적통계(준공)](https://stat.molit.go.kr/portal/cate/statMetaView.do?hRsId=468) |
+| 멸실 | e-나라지표 연도별 XLSX / 시도 총계·주택유형 | 2018~2024 | [주택멸실현황](https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839) |
 
 공식 API 정상 수집 원본은 서울·경기 각 320행, 합계 **640행**이다. 2018~2025년은 두 시도의 모든 월이 각각 12/12로 확보되며, 인허가는 각 연간값이 확보된다. 2026년은 8/12개월로 부분 집계이고 연간 인허가는 아직 공개되지 않았다. 원천이 0호인 월은 관측된 0호이며, 제공되지 않은 월은 `미확보`로 유지한다. 전년 대비 값은 양쪽 연도가 모두 완결된 경우에만 계산한다.
 
@@ -37,3 +38,5 @@
 분양승인은 공동주택의 승인 실적이고 청약공고 건수·입주 세대수와 다르다. 인허가·착공·준공은 주택건설 단계별 시도 전체 총계로 민간 사업을 포함한다. 서로 다른 단계를 합산하지 않고, 사업·블록 또는 특정 정책의 달성률에 자동 배분하지 않는다. 주택 재고의 연간 증감은 준공 실적과 같지 않다. 국토부는 [2014~2024년 주택건설실적을 2025-09-30 수정 공표](https://stat.molit.go.kr/portal/notice/noticeView.do?gubun=1&hNum=279&keyword=&page_no=1&page_row=10)했으며 현재 API의 수정된 시계열을 사용한다.
 
 조회: [`/poc/home/api/annual-supply`](https://www.minslab.kr/poc/home/api/annual-supply) · CSV: [`/poc/home/api/annual-supply/export.csv`](https://www.minslab.kr/poc/home/api/annual-supply/export.csv). `region=서울특별시|경기도`, `through_year=연도` 필터를 지원한다. 웹에서는 **연도별 공급 비교** 메뉴를 연다. 수집: `sudo docker exec poc10-home-api python -m scripts.collect --samples --source molit_statistics`.
+
+2026-10-10 추가: 공식 주택멸실현황 2018~2024년 공개 첨부 7개에서 서울·경기 각 1행씩 수집한다. API 키가 필요하지 않다. `멸실`은 기존 재고 감소로 신규 공급과 별도 차트에 표시한다. `준공−멸실`은 두 원천 모두 완결된 연도에만 계산하는 산술 대조이며 공식 재고 순증이나 실제 입주량이 아니다. 현재 공개 첨부에는 시군구별 멸실량과 2025년 이후 파일이 없어 빈칸으로 둔다. [공백 판정](DATA_AVAILABILITY.md)을 참고한다.

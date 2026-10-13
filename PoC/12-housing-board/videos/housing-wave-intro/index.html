@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>주택파동 소개 15초</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Gothic A1";
+        font-weight: 400;
+        src: url("assets/fonts/gothic-a1-400.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Gothic A1";
+        font-weight: 600;
+        src: url("assets/fonts/gothic-a1-600.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Gothic A1";
+        font-weight: 800;
+        src: url("assets/fonts/gothic-a1-800.woff2") format("woff2");
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b2b5a;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0b2b5a;
+        font-family: "Gothic A1", sans-serif;
+      }
+      #root .layer {
+        position: absolute;
+        inset: 0;
+      }
+      /* 도면 격자: 60px 간격, 2px 선 */
+      #grid {
+        z-index: 0;
+        background-image: repeating-linear-gradient(0deg, rgba(234, 242, 255, 0.1) 0 2px, transparent 2px 60px),
+          repeating-linear-gradient(90deg, rgba(234, 242, 255, 0.1) 0 2px, transparent 2px 60px);
+      }
+      #glow {
+        position: absolute;
+        right: -260px;
+        top: -360px;
+        width: 1200px;
+        height: 1200px;
+        z-index: 1;
+        background: radial-gradient(closest-side, rgba(255, 194, 71, 0.2), rgba(255, 194, 71, 0));
+      }
+      #frame {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        z-index: 2;
+      }
+      [data-composition-id="main"] > div[data-composition-src] {
+        position: absolute;
+        inset: 0;
+      }
+      #gold-wrap {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+      }
+      #gold {
+        position: absolute;
+        inset: 0;
+        background-color: #ffc247;
+        background-image: repeating-linear-gradient(0deg, rgba(11, 43, 90, 0.1) 0 2px, transparent 2px 60px),
+          repeating-linear-gradient(90deg, rgba(11, 43, 90, 0.1) 0 2px, transparent 2px 60px);
+        clip-path: circle(0px at 960px 560px);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-kbh8" id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div data-hf-id="hf-kbnh" id="grid" class="layer"></div>
+      <div data-hf-id="hf-27c6" id="glow"></div>
+      <svg data-hf-id="hf-4a50" id="frame" viewBox="0 0 1920 1080" aria-hidden="true">
+        <rect data-hf-id="hf-c9yo" id="frame-rect" x="48" y="48" width="1824" height="984" fill="none" stroke="#bbd3f3" stroke-width="2" />
+      </svg>
+
+      <!-- 박자: 128 BPM, 1마디 = 1.875s. 경계 = 0 / 3.75 / 5.625 / 11.25 -->
+      <div data-hf-id="hf-khnr" id="el-s1" data-composition-id="s1-hook" data-composition-src="compositions/s1-hook.html" data-start="0" data-duration="3.75" data-track-index="1" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <div data-hf-id="hf-x5wh" id="el-s2" data-composition-id="s2-gather" data-composition-src="compositions/s2-gather.html" data-start="3.75" data-duration="1.875" data-track-index="1" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <div data-hf-id="hf-oa6z" id="el-s3" data-composition-id="s3-map" data-composition-src="compositions/s3-map.html" data-start="5.625" data-duration="6.1" data-track-index="2" data-width="1920" data-height="1080" style="z-index: 4"></div>
+
+      <!-- 11.25s 임팩트: 금색 원형 와이프가 S3를 덮는다 -->
+      <div data-hf-id="hf-uz3o" id="gold-wrap">
+        <div data-hf-id="hf-yh13" id="gold"></div>
+      </div>
+
+      <div data-hf-id="hf-c23z" id="el-s4" data-composition-id="s4-close" data-composition-src="compositions/s4-close.html" data-start="11.25" data-duration="3.75" data-track-index="4" data-width="1920" data-height="1080" style="z-index: 6"></div>
+
+      <audio data-hf-id="hf-kxkb" id="bgm" src="assets/audio/bgm-128bpm.wav" data-start="0" data-duration="15" data-track-index="10" data-volume="1"></audio>
+    </div>
+
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        const rect = document.getElementById("frame-rect");
+        const len = rect.getTotalLength();
+        rect.style.strokeDasharray = String(len);
+
+        tl.fromTo("#grid", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out" }, 0);
+        tl.fromTo("#frame-rect", { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }, 0);
+        // 호흡하는 글로우: 3.75s 주기, 정확히 15s 안에 끝나는 유한 반복
+        tl.fromTo("#glow", { scale: 1 }, { scale: 1.12, duration: 3.75, ease: "sine.inOut", repeat: 3, yoyo: true }, 0);
+        // 11.25s 임팩트 — 금색 원형 와이프
+        tl.fromTo(
+          "#gold",
+          { clipPath: "circle(0px at 960px 560px)" },
+          { clipPath: "circle(1250px at 960px 560px)", duration: 0.5, ease: "power3.inOut" },
+          11.25,
+        );
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

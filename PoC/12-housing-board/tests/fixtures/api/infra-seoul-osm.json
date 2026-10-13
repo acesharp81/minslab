@@ -1,0 +1,45 @@
+{
+ "type": "Infra",
+ "bjd": "1129013800",
+ "asOf": "2026-10-05",
+ "sources": [
+  {
+   "id": "osm-bus",
+   "label": "OpenStreetMap 버스 정류장",
+   "publisher": "OpenStreetMap contributors",
+   "url": "https://www.openstreetmap.org/copyright",
+   "license": "ODbL 1.0(출처 표시)",
+   "redistributable": "Y",
+   "asOf": "2026-10-05"
+  }
+ ],
+ "schools": [],
+ "stops": [
+  {
+   "id": "osm-357857620",
+   "name": "광운대학교",
+   "lon": 127.058058,
+   "lat": 37.619723
+  },
+  {
+   "id": "osm-357831427",
+   "name": "광운중.광운인공지능고등학교",
+   "lon": 127.056602,
+   "lat": 37.61889
+  },
+  {
+   "id": "osm-357859293",
+   "name": "광운중.광운인공지능고등학교",
+   "lon": 127.0564,
+   "lat": 37.618916
+  }
+ ],
+ "meta": {
+  "centers": 13,
+  "schoolsNational": 220,
+  "schools": 0,
+  "stopCalls": 0,
+  "stops": 66,
+  "stopsSource": "osm"
+ }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "regions/<slug>/context.json",
+  "description": "주변 지하철역·학교 위치(OpenStreetMap).",
+  "type": "object",
+  "required": ["stations", "schools", "asOf", "source"],
+  "properties": {
+    "stations": {"type": "array", "items": {"$ref": "#/$defs/place"}},
+    "schools": {"type": "array", "items": {"$ref": "#/$defs/place"}},
+    "asOf": {"type": "string", "format": "date"},
+    "source": {"type": "string"}
+  },
+  "$defs": {
+    "place": {
+      "type": "object",
+      "required": ["name", "lon", "lat"],
+      "properties": {"name": {"type": "string"}, "lon": {"type": "number"}, "lat": {"type": "number"}}
+    }
+  }
+}

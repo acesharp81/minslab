@@ -9,10 +9,10 @@ from sqlalchemy import or_, select, text, update, func
 
 from .collectors import Fetcher, collect
 from .api_samples import collect_sample
-from .db import Audit, Batch, Mapping, ProgramMapping, Revision, entity_id, factory, now, upsert_revision
+from .db import Audit, Batch, Coverage, Mapping, ProgramMapping, Revision, entity_id, factory, now, upsert_revision
 from .program_hierarchy import program_id, policy_proposal, effective_mapping
 from .matching_rules import policy_members
-from .roadmap import build_roadmap, project_roadmap
+from .roadmap import build_roadmap, project_roadmap, milestone_state
 from .map_data import collect_districts
 from .municipality_geo import collect_municipalities
 from .history_data import collect_policy_events,collect_project_reports
@@ -25,7 +25,15 @@ from .lh_progress import collect_progress
 from .lh_reit_progress import collect_reit_progress
 from .public_files import collect_sh_files, collect_gh_files, collect_legal_dongs
 from .agency_data import collect_sh_inventory, collect_gh_notices, parse_gh_plan
+from .gh_completion import collect_gh_completion
+from .complex_approvals import collect_complex_approvals
 from .policy_monitor import catalogue, automatic_proposal, build_monitor
+from .official_supply_files import collect_renewal_inventory, collect_lh_completion_plan
+from .building_details import collect_building_details
+from .plan_notices import collect_plan_notice, upsert_plan_notice
+from .source_coverage import coverage_rows
+from .data_gaps import data_gap_audit, project_data_status
+from .demolition import collect_demolition
 from .area_stats import collect_sgis_area, collect_kosis_employment, collect_kosis_household_forecast, collect_kosis_housing, collect_kosis_household_size
 
 KST = ZoneInfo("Asia/Seoul")
@@ -54,7 +62,7 @@ class HomeService:
         self.sessions = factory(engine)
         self.data_dir = Path(data_dir)
 
-    def collect_all(self, source_id=None, samples=False):
+    def collect_all(self, source_id=None, samples=False, scheduled=False, interval_seconds=86400):
         if not LOCAL_LOCK.acquire(blocking=False):
             return {"status": "BUSY"}
         connection = None
@@ -64,6 +72,11 @@ class HomeService:
                 if not connection.scalar(text("SELECT pg_try_advisory_lock(1018100)")):
                     return {"status": "BUSY"}
             results = []
+            successes, attempts = {}, {}
+            if scheduled:
+                with self.sessions() as session:
+                    successes = {b.source_id: as_utc(b.finished_at) for b in latest_batches(session, 'SUCCESS') if b.finished_at}
+                    attempts = {b.source_id: (b.status, as_utc(b.started_at)) for b in latest_batches(session)}
             for source in SOURCES:
                 if source.get("implemented", True) is False or (source_id and source_id != source["id"]):
                     continue
@@ -71,8 +84,51 @@ class HomeService:
                     continue
                 if not samples and not source_id and source.get("manual_only"):
                     continue
+                if scheduled:
+                    instant = datetime.now(timezone.utc)
+                    refresh_seconds = source.get('refresh_days', interval_seconds / 86400) * 86400
+                    if source['id'] in successes and successes[source['id']] > instant - timedelta(seconds=refresh_seconds):
+                        continue
+                    attempt = attempts.get(source['id'])
+                    if attempt and attempt[0] in {'FAILED', 'RUNNING'} and attempt[1] > instant - timedelta(hours=1):
+                        continue
+                if not samples and not source_id and source.get("refresh_days"):
+                    with self.sessions() as session:
+                        last_success = session.scalar(select(Batch.finished_at).where(
+                            Batch.source_id == source["id"], Batch.status == "SUCCESS")
+                            .order_by(Batch.finished_at.desc()).limit(1))
+                    if last_success and as_utc(last_success) > datetime.now(timezone.utc) - timedelta(days=source["refresh_days"]):
+                        continue
+                if source["id"] in {"building_hub", "building_register", "building_hub_details"} and not source_id and not self.rows("legal_dong"):
+                    continue
                 results.append(self.collect_one(source))
-            return {"status": "FINISHED", "results": results}
+                if source["id"]=="molit_statistics" and results[-1].get("status")=="SUCCESS":
+                    results.append(self.collect_one(next(s for s in SOURCES if s["id"]=="national_statistics")))
+            if any(r.get('source_id')=='lh_notice' and r.get('status')=='SUCCESS' for r in results) and not any(r.get('source_id')=='lh_notice_detail' for r in results):
+                results.append(self.collect_one(next(s for s in SOURCES if s['id']=='lh_notice_detail')))
+            if results and (not source_id or source_id in {'lh_sale','lh_rent','lh_construction','lh_incheon_sale','lh_incheon_rent','lh_incheon_construction','building_hub','building_hub_incheon','sh_redevelopment','molit_renewal_inventory'}):
+                from .stage_evidence import refresh
+                try: stage_links=refresh(self,refresh_candidates=True)
+                except Exception as error: stage_links={'status':'FAILED','message':str(error)[:250]}
+            else:stage_links=None
+            collection_links=None
+            if results and (not source_id or source_id in {'cheongyak','lh_movein_history','lh_sale','lh_rent','lh_incheon_sale','lh_incheon_rent'}):
+                from .project_collection import refresh_links
+                try:collection_links=refresh_links(self)
+                except Exception as error:collection_links={'status':'FAILED','message':str(error)[:250]}
+            bridges=None
+            if any(r.get('status')=='SUCCESS' for r in results):
+                from .evidence_bridge import reconcile
+                try:
+                    summary=reconcile(self,apply=True)
+                    bridges={k:v for k,v in summary.items() if k not in ('proposals','held')}
+                except Exception as error:bridges={'status':'FAILED','message':str(error)[:250]}
+            parcel_links=None
+            if any(r.get('status')=='SUCCESS' and r.get('source_id') in {'building_hub','building_hub_incheon','building_hub_details','building_register','building_register_recap'} for r in results):
+                from .parcel_identity import reconcile as reconcile_parcels
+                try:parcel_links=reconcile_parcels(self)
+                except Exception as error:parcel_links={'status':'FAILED','message':str(error)[:250]}
+            return {"status": "FINISHED", "results": results,"stage_evidence":stage_links,'collection_links':collection_links,'evidence_bridges':bridges,'parcel_links':parcel_links}
         finally:
             if connection:
                 connection.execute(text("SELECT pg_advisory_unlock(1018100)"))
@@ -90,8 +146,58 @@ class HomeService:
             batch_id = batch.id
         fetcher = Fetcher(source["id"], self.data_dir / "raw")
         try:
-            if source['id']=='kosis_housing':
+            if source['id']=='project_locations':
+                from .project_locations import collect_locations
+                records,stats=collect_locations(source,fetcher,self)
+            elif source['id']=='gh_notice':
+                from .gh_portal import reconcile as reconcile_gh
+                reconcile_gh(self)
+            if source['id']=='kosis_age':
+                from .age_distribution import collect as collect_age
+                records,stats=collect_age(source,fetcher)
+            elif source['id']=='unsold_statistics':
+                from .unsold import collect as collect_unsold
+                records,stats=collect_unsold(source,fetcher,self)
+            elif source['id']=='seoul_cleanup':
+                from .seoul_cleanup import collect_cleanup
+                records,stats=collect_cleanup(source,fetcher,self)
+            elif source['id']=='lh_notice_detail':
+                from .lh_notice_detail import collect_details
+                records,stats=collect_details(source,fetcher,self)
+            elif source['id']=='national_statistics':
+                from .national_statistics import replay
+                records,stats=replay(self,source,fetcher)
+            elif source['id']=='ih_supply':
+                from .ih_stock import collect_ih_stock
+                records,stats=collect_ih_stock(source,fetcher)
+            elif source['id']=='incheon_legal_dongs':
+                records,stats=collect_legal_dongs(source,fetcher)
+            elif source['id']=='building_hub_incheon':
+                from .api_samples import collect_permits
+                records,stats=collect_permits(source,fetcher,self)
+            elif source.get('collection_mode')=='REGISTER_RECAP':
+                from .additional_apis import collect_register
+                records,stats=collect_register(source,fetcher,self)
+            elif source.get('collection_mode')=='POLICY_DELIVERY':
+                from .policy_907_sources import (collect_original_plan, collect_incheon_geometry,
+                    collect_incheon_statistics, collect_incheon_lh, collect_incheon_construction)
+                if source['id']=='policy_907_plan': records,stats=collect_original_plan(source,fetcher)
+                elif source['id']=='policy_907_incheon_geometry': records,stats=collect_incheon_geometry(source,fetcher,self)
+                elif source['id']=='incheon_statistics': records,stats=collect_incheon_statistics(source,fetcher)
+                elif source['id']=='lh_incheon_construction': records,stats=collect_incheon_construction(source,fetcher)
+                else: records,stats=collect_incheon_lh(source,fetcher)
+            elif source['id']=='molit_demolition':
+                records,stats=collect_demolition(source,fetcher)
+            elif source['id']=='kosis_housing':
                 records,stats=collect_kosis_housing(source,fetcher)
+            elif source['id'] in ('seoul_plan_notice_pilot', 'gyeonggi_plan_notice_pilot'):
+                records,stats=collect_plan_notice(source,fetcher)
+            elif source['id']=='building_hub_details':
+                records,stats=collect_building_details(source,fetcher,self)
+            elif source['id']=='molit_renewal_inventory':
+                records,stats=collect_renewal_inventory(source,fetcher)
+            elif source['id']=='lh_completion_plan':
+                records,stats=collect_lh_completion_plan(source,fetcher)
             elif source['id']=='kosis_household_size':
                 records,stats=collect_kosis_household_size(source,fetcher)
             elif source['id']=='sgis_area':
@@ -116,8 +222,13 @@ class HomeService:
                 records,stats=collect_sh_inventory(source,fetcher,self)
             elif source['id'] == 'gh_supply_plan':
                 records,stats=parse_gh_plan(source,fetcher.get(source['url']))
+            elif source['id'] == 'complex_approval_reference':
+                records,stats=collect_complex_approvals(source,fetcher)
+            elif source['id'] == 'gh_completion_evidence':
+                records,stats=collect_gh_completion(source,fetcher)
             elif source['id'] == 'gh_notice':
-                records,stats=collect_gh_notices(source,fetcher)
+                from .gh_portal import collect as collect_gh_portal
+                records,stats=collect_gh_portal(source,fetcher,self)
             elif source.get("collection_mode")=="MUNICIPALITY_LAYER":
                 records,stats=collect_municipalities(source,fetcher,self)
             elif source.get("collection_mode")=="MAP_LAYER":
@@ -142,6 +253,8 @@ class HomeService:
                     record, outcome = upsert_revision(session, kind, source["id"], key, payload, batch_id)
                     counts[outcome] += 1
                     entity_ids.append(record.entity_id)
+                    if kind == "plan_notice":
+                        upsert_plan_notice(session, record, payload)
                     if kind == "project":
                         mapping = session.scalar(select(Mapping).where(Mapping.project_id == record.entity_id))
                         if mapping is None:
@@ -156,10 +269,35 @@ class HomeService:
                 if stats.get('incremental'):
                     session.flush()
                     stats['cumulative_record_count']=session.scalar(select(func.count()).select_from(Revision).where(Revision.source_id==source['id'],Revision.superseded_at.is_(None)))
+                for item in coverage_rows(source['id'], stats):
+                    session.add(Coverage(batch_id=batch_id, source_id=source['id'], **item))
                 batch = session.get(Batch, batch_id)
                 batch.finished_at, batch.status = now(), "SUCCESS"
                 batch.manifest = fetcher.manifest
                 batch.stats = dict(stats, **counts, record_count=len(records), entity_ids=entity_ids)
+            if source['id']=='gh_notice':
+                from .gh_portal import reconcile as reconcile_gh
+                reconcile_gh(self)
+            if source['id']=='seoul_cleanup':
+                from .seoul_cleanup import reconcile
+                reconcile(self)
+            if any(kind == 'project' for kind, _, _ in records) or source['id'] == 'lh_completion_plan':
+                from .identity import reconcile_identity_links
+                try:
+                    identity_result = reconcile_identity_links(self)
+                    identity_status = 'SUCCESS'
+                except Exception:
+                    identity_result = None
+                    identity_status = 'FAILED'
+                with self.sessions.begin() as session:
+                    batch = session.get(Batch, batch_id)
+                    batch.stats = dict(batch.stats, identity_sync_status=identity_status,
+                                       identity_sync=identity_result)
+            from .collection_repairs import record_collection
+            try: record_collection(self, source, True)
+            except Exception:
+                import logging
+                logging.getLogger(__name__).warning("수집 조치 이력 기록 실패: 배치 이력에서 확인 필요")
             return {"source_id": source["id"], "status": "SUCCESS", "records": len(records), **counts}
         except Exception as error:
             # No request URLs, credentials or traceback are persisted in public errors.
@@ -169,6 +307,11 @@ class HomeService:
                 batch.finished_at, batch.status = now(), "FAILED"
                 batch.error = message[:300]
                 batch.manifest = fetcher.manifest
+            from .collection_repairs import record_collection
+            try: record_collection(self, source, False)
+            except Exception:
+                import logging
+                logging.getLogger(__name__).warning("수집 조치 이력 기록 실패: 배치 이력에서 확인 필요")
             return {"source_id": source["id"], "status": "FAILED", "error": message[:300]}
         finally:
             fetcher.close()
@@ -244,15 +387,23 @@ class HomeService:
             records=session.scalars(query).all()
             mappings = {x.project_id: x for x in session.scalars(select(Mapping)).all()} if kind == "project" else {}
             programs = {}
+            project_history = defaultdict(list)
             if kind == "project":
-                for program in session.scalars(select(ProgramMapping)).all():
+                program_rows = session.scalars(select(ProgramMapping)).all()
+                # One history query for the whole result, rather than one per
+                # project/program. Descending order preserves historical rewind.
+                ids = [r.entity_id for r in records] + [p.id for p in program_rows]
+                for change in session.scalars(select(Audit).where(
+                        Audit.entity_id.in_(ids), Audit.recorded_at >= cutoff)
+                        .order_by(Audit.recorded_at.desc())):
+                    project_history[change.entity_id].append(change)
+                for program in program_rows:
                     if as_utc(program.created_at) >= cutoff:
                         continue
                     state = {"id": program.id, "name": program.name, "policy_id": program.policy_id,
                              "status": program.status, "revision_no": program.revision_no}
-                    changes = session.scalars(select(Audit).where(Audit.entity_id == program.id,
-                        Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO']), Audit.recorded_at >= cutoff)
-                        .order_by(Audit.recorded_at.desc())).all()
+                    changes = [change for change in project_history[program.id]
+                               if change.action in ('PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO')]
                     for change in changes:
                         state.update(change.before)
                     programs[program.id] = state
@@ -287,8 +438,8 @@ class HomeService:
                                       "revision_no": mapping.revision_no if mapping else 1,
                                       "basis": mapping.basis if mapping else payload.get("mapping_basis"),
                                       "evidence_url": mapping.evidence_url if mapping else payload.get("evidence_url")}
-                    history = session.scalars(select(Audit).where(Audit.entity_id == record.entity_id, Audit.action != "TARGETS_UPDATED",
-                        Audit.recorded_at >= cutoff).order_by(Audit.recorded_at.desc())).all()
+                    history = [change for change in project_history[record.entity_id]
+                               if change.action != 'TARGETS_UPDATED']
                     for change in history:
                         if change.before:
                             row["mapping"] = change.before
@@ -308,6 +459,19 @@ class HomeService:
 
     def projects(self, as_of=None, region=None, policy_id=None, source_id=None, stage=None, q=None, mapping_status=None):
         rows = self.rows("project", as_of)
+        locations={r['project_id']:r for r in self.rows('project_location',as_of) if r.get('status')!='RELEASED'}
+        for row in rows:
+            location=locations.get(row['id'])
+            if location and not (row.get('longitude') is not None and row.get('latitude') is not None):
+                row.update({k:location.get(k) for k in ('longitude','latitude','coordinate_basis','location_label')})
+                row['location_evidence_url']=location.get('evidence_url')
+                if not row.get('municipality') or '확인' in row['municipality']:row['municipality']=location.get('municipality')
+        from .plan_schedule import plan_schedule
+        from .construction_plan import construction_plan
+        for row in rows:
+            row["construction_plan"]=construction_plan(row,as_of or today())
+            if row.get("rows"):
+                row["rows"]=[dict(r,**{field+"_schedule":plan_schedule(r,field,row["source_id"]) for field in ("supply","move_in")}) for r in row["rows"]]
         # Independent progress evidence enriches the view without overwriting plans,
         # policy approvals or the original project revision.
         latest={}
@@ -322,6 +486,8 @@ class HomeService:
                 row.update(progress_pct=report['progress_pct'],progress_date=report['report_date'],
                     progress_evidence_url=report['evidence_url'],progress_date_basis=report.get('progress_date_basis'),
                     progress_date_precision=report.get('date_precision','DAY'))
+        for row in rows:
+            row.update(milestone_state(row, as_of or today()))
         for field, value in (("region", region), ("source_id", source_id), ("stage", stage)):
             if value:
                 rows = [r for r in rows if r.get(field) == value]
@@ -333,12 +499,14 @@ class HomeService:
             rows = [r for r in rows if r["mapping"]["status"] == mapping_status]
         if q:
             rows = [r for r in rows if q.casefold() in " ".join(str(r.get(k, "")) for k in ("name", "program", "municipality", "district")).casefold()]
+        for row in rows:
+            row["data_status"] = project_data_status(row)
         return sorted(rows, key=lambda r: (r["region"], r["name"]))
 
     def sample_select(self, as_of=None, region=None, source_id=None, q=None, kind=None, source_year=None):
         day=as_of or today()
         cutoff=datetime.combine(day+timedelta(days=1),time.min,KST).astimezone(timezone.utc)
-        kinds=(kind,) if kind else ('notice','permit','location','register','lh_notice','statistic','sh_plan','sh_project','gh_notice','agency_stock','legal_dong','lh_supply','lh_movein_plan','lh_stock')
+        kinds=(kind,) if kind else ('notice','permit','location','register','register_recap','lh_notice','statistic','sh_plan','sh_project','gh_notice','gh_completion_evidence','complex_approval_reference','agency_stock','legal_dong','lh_supply','lh_movein_plan','lh_stock','renewal_inventory','lh_completion_plan','permit_dong','permit_parcel','plan_notice')
         active=Revision.superseded_at.is_(None) if day==today() else or_(Revision.superseded_at.is_(None),Revision.superseded_at>=cutoff)
         query=select(Revision).where(Revision.kind.in_(kinds),Revision.recorded_at<cutoff,
             active,Revision.sample_base_date<=day.isoformat())
@@ -350,37 +518,68 @@ class HomeService:
         if source_year:query=query.where(func.substr(Revision.sample_source_date,1,4)==str(source_year))
         return query
 
+    def _snapshot_members(self, session, source_ids, day):
+        """Membership in the last successful file edition at the requested knowledge date."""
+        source_ids = set(source_ids) & {'molit_renewal_inventory', 'lh_completion_plan'}
+        if not source_ids:
+            return {}
+        cutoff = datetime.combine(day + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
+        result = {}
+        for source_id in source_ids:
+            batch = session.scalar(select(Batch).where(Batch.source_id == source_id,
+                Batch.status == 'SUCCESS', Batch.finished_at < cutoff)
+                .order_by(Batch.finished_at.desc()).limit(1))
+            result[source_id] = set(batch.stats.get('entity_ids', [])) if batch else None
+        return result
+
+    @staticmethod
+    def _mark_snapshot(row, record, members):
+        if record.source_id in members:
+            ids = members[record.source_id]
+            row['in_latest_source'] = record.entity_id in ids if ids is not None else None
+            if row['in_latest_source'] is False:
+                row['warnings'] = list(row.get('warnings') or []) + ['MISSING_IN_LATEST_SOURCE']
+        return row
+
     def sample_page(self, page=1, page_size=100, **filters):
         day=filters.get('as_of') or today()
         query=self.sample_select(**filters)
         unfiltered=self.sample_select(**dict(filters,source_year=None)).subquery()
-        sub=query.subquery()
         with self.sessions() as session:
-            counts=dict(session.execute(select(sub.c.kind,func.count()).group_by(sub.c.kind)).all())
-            region_expr=sub.c.sample_region.label('region')
-            regions=dict(session.execute(select(region_expr,func.count()).group_by(region_expr)).all())
-            years=session.scalars(select(func.substr(unfiltered.c.sample_source_date,1,4)).distinct()).all()
+            # Scan compact observation metadata once for all sidebar totals.
+            # Year options retain the full range even when a year is selected.
+            year_expr=func.substr(unfiltered.c.sample_source_date,1,4)
+            rollup=session.execute(select(unfiltered.c.kind,unfiltered.c.sample_region,
+                year_expr,func.count()).group_by(unfiltered.c.kind,unfiltered.c.sample_region,year_expr)).all()
+            counts=Counter();regions=Counter();years=set()
+            for category,region,year,count in rollup:
+                years.add(year)
+                if filters.get('source_year') and year!=str(filters['source_year']):continue
+                counts[category]+=count;regions[region]+=count
             records=session.scalars(query.order_by(Revision.kind,Revision.sample_region,Revision.sample_name,Revision.entity_id).offset((page-1)*page_size).limit(page_size)).all()
-            rows=[dict(r.payload,id=r.entity_id,source_id=r.source_id,revision_no=r.revision_no,
+            members = self._snapshot_members(session, (record.source_id for record in records), day)
+            rows=[self._mark_snapshot(dict(r.payload,id=r.entity_id,source_id=r.source_id,revision_no=r.revision_no,
                 recorded_at=as_utc(r.recorded_at).isoformat(),source_age_days=(day-date.fromisoformat(r.payload['base_date'])).days,
-                warnings=list(r.payload.get('warnings',[]))) for r in records]
+                warnings=list(r.payload.get('warnings',[]))), r, members) for r in records]
         return dict(items=rows,total=sum(counts.values()),page=page,page_size=page_size,counts=counts,regions=regions,
-            source_years=sorted({int(y) for y in years if y and y.isdigit()},reverse=True),collection_mode='TEST_SAMPLE',
-            notice='공식 원천 검증 자료입니다. 기존 재고·행정코드를 신규 정책 공급실적에 합산하지 않습니다.')
+            source_years=sorted({int(y) for y in years if y and y.isdigit()},reverse=True),collection_mode='SOURCE_EVIDENCE',
+            notice='공식 원천 검증 자료입니다. 후보·준공예정·기존 재고를 실제 정책 공급실적에 합산하지 않습니다.')
 
     def iterate_samples(self, **filters):
         query=self.sample_select(**filters).order_by(Revision.kind,Revision.sample_region,Revision.sample_name,Revision.entity_id)
         with self.sessions() as session:
+            day = filters.get('as_of') or today()
+            members = self._snapshot_members(session, ('molit_renewal_inventory', 'lh_completion_plan'), day)
             for record in session.scalars(query.execution_options(yield_per=200)):
-                yield dict(record.payload,id=record.entity_id,source_id=record.source_id,revision_no=record.revision_no,
-                    recorded_at=as_utc(record.recorded_at).isoformat())
+                yield self._mark_snapshot(dict(record.payload,id=record.entity_id,source_id=record.source_id,
+                    revision_no=record.revision_no, recorded_at=as_utc(record.recorded_at).isoformat()), record, members)
 
     def sample_count(self, **filters):
         with self.sessions() as session:
             return session.scalar(select(func.count()).select_from(self.sample_select(**filters).subquery()))
 
     def samples(self, as_of=None, region=None, source_id=None, q=None, kind=None, source_year=None):
-        rows = [row for category in ((kind,) if kind else ("notice", "permit", "location", "register", "lh_notice", "statistic", "sh_plan", "sh_project", "gh_notice", "agency_stock", "legal_dong", "lh_supply", "lh_movein_plan", "lh_stock")) for row in self.rows(category, as_of)]
+        rows = [row for category in ((kind,) if kind else ("notice", "permit", "location", "register", "register_recap", "lh_notice", "statistic", "sh_plan", "sh_project", "gh_notice", "gh_completion_evidence", "complex_approval_reference", "agency_stock", "legal_dong", "lh_supply", "lh_movein_plan", "lh_stock", "renewal_inventory", "lh_completion_plan", "permit_dong", "permit_parcel", "plan_notice")) for row in self.rows(category, as_of)]
         for field, value in (("region", region), ("source_id", source_id)):
             if value:
                 rows = [row for row in rows if row.get(field) == value]
@@ -391,7 +590,7 @@ class HomeService:
             rows = [row for row in rows if (row.get("source_date") or "")[:4] == str(source_year)]
         return sorted(rows, key=lambda row: (row["sample_kind"], row["region"], row["name"], row["id"]))
 
-    def sources(self):
+    def sources(self, compact=False):
         with self.sessions() as session:
             attempts={b.source_id:b for b in latest_batches(session)}
             successes={b.source_id:b for b in latest_batches(session,'SUCCESS')}
@@ -400,16 +599,38 @@ class HomeService:
                 last=attempts.get(source['id']);success=successes.get(source['id'])
                 item = dict(source)
                 key_env = source["key_env"]
-                item["key_configured"] = bool(key_env and os.environ.get(key_env))
+                item["key_configured"] = bool(key_env and (os.environ.get(key_env) or os.environ.get(source.get('fallback_key_env',''))))
                 item["status"] = last.status if last else "CONNECTOR_PENDING" if source.get("implemented") is False else "NOT_COLLECTED"
                 item["last_attempt"] = as_utc(last.started_at).isoformat() if last else None
                 item["last_success"] = as_utc(success.finished_at).isoformat() if success else None
                 item["error"] = last.error if last else None
                 item["record_count"] = success.stats.get("cumulative_record_count", success.stats.get("record_count", 0)) if success else 0
-                item["stats"] = {k: v for k, v in success.stats.items() if k != "entity_ids"} if success else {}
-                item["snapshots"] = success.manifest if success else []
+                item["stats"] = ({k: v for k, v in success.stats.items() if k in {"source_base_date", "dataset_version"}} if compact else {k: v for k, v in success.stats.items() if k != "entity_ids"}) if success else {}
+                item["snapshot_count"] = len(success.manifest) if success else 0
+                item["snapshots"] = success.manifest if success and not compact else []
                 result.append(item)
             return result
+
+    def coverage_details(self):
+        """Latest successful query scopes; older successful facts remain auditable by batch."""
+        with self.sessions() as session:
+            batch_ids = [batch.id for batch in latest_batches(session, 'SUCCESS')]
+            if not batch_ids:
+                return []
+            rows = session.scalars(select(Coverage).where(Coverage.batch_id.in_(batch_ids))
+                .order_by(Coverage.source_id, Coverage.endpoint, Coverage.region, Coverage.area_code)).all()
+            return [dict(source_id=row.source_id, batch_id=row.batch_id,
+                endpoint=row.endpoint, region=row.region, area_code=row.area_code,
+                source_period=row.source_period, expected_count=row.expected_count,
+                fetched_count=row.fetched_count, query_status=row.query_status,
+                population_status=row.population_status, scope_note=row.scope_note,
+                recorded_at=as_utc(row.recorded_at).isoformat()) for row in rows]
+
+    def data_gaps(self, sources=None, projects=None):
+        sources = sources if sources is not None else self.sources()
+        projects = projects if projects is not None else self.projects()
+        with self.sessions() as session:
+            return data_gap_audit(session, sources, projects, today().year)
 
     def roadmap(self, as_of=None, horizon=10, **filters):
         plans = {r["project_id"]:r for r in self.rows("goal",as_of)}
@@ -453,15 +674,19 @@ class HomeService:
         if through:query=query.where(stamp<=through.isoformat())
         with self.sessions() as session:return Counter(dict(session.execute(query).all()))
 
-    def supply_dashboard(self,as_of=None,analysis_year=None,horizon=10,measure="MOVE_IN",**filters):
+    def supply_dashboard(self,as_of=None,analysis_year=None,horizon=10,measure="SUPPLY",**filters):
         knowledge=as_of or today()
         reference=min(date(analysis_year or knowledge.year,12,31),knowledge)
         show_market=not any(filters.get(k) for k in ('policy_id','source_id','stage','mapping_status','q'))
         annual_permit_count=self.observation_year_counts('permit',as_of,filters.get('region'),through=reference)[str(reference.year)] if show_market else 0
+        from .evidence_bridge import supply_notices
+        from .map_stage_state import evidence_events
         return build_dashboard(self.projects(as_of),self.rows("project_report",as_of),self.rows("district",as_of),
             self.mapping_policies(as_of),self.rows("goal",as_of),self.rows("notice",as_of),self.rows("policy_event",as_of),
             knowledge,collection_start().year,analysis_year,horizon,measure,annual_permit_count=annual_permit_count,
-            municipalities=self.rows("municipality",as_of),block_locations=self.rows("block_location",as_of),**filters)
+            municipalities=list({r['id']:r for r in self.rows("municipality",as_of)+self.rows("policy_municipality",as_of)}.values()),
+            block_locations=self.rows("block_location",as_of),stored_supply_links=supply_notices(self,reference),
+            stage_events=evidence_events(self,reference),**filters)
 
     def historical_data(self,as_of=None,year=None,page=1,page_size=100,**filters):
         end=as_of or today()
@@ -526,6 +751,8 @@ class HomeService:
         years = [target["year"] for target in targets]
         if len(years)!=len(set(years)) or any(year>today().year+10 for year in years):
             raise ValueError("목표 연도 중복 또는 향후 10년 범위 초과")
+        if any(target["stage"] == "MOVE_IN" for target in targets):
+            raise ValueError("입주는 시작 예정일만 관리합니다. 연도별 호수 목표로 등록할 수 없습니다")
         if any(not target["basis"].strip() for target in targets):
             raise ValueError("연도별 추진목표 근거·메모가 필요합니다")
         if any(target.get("evidence_url") and not target["evidence_url"].startswith("https://") for target in targets):
@@ -595,7 +822,7 @@ class HomeService:
         ids = {p["policy_id"] for p in policies}
         rows = self.projects(as_of, **filters)
         programs = self.program_links(as_of, rows)
-        return {"items": [dict(r, auto_match=automatic_proposal(r, ids),
+        return {"items": [dict(r, auto_match=dict(policy_id=r["mapping"].get("policy_id"),basis=r["mapping"].get("basis"),rule="DB_SAVED_LINK",confidence="저장된 연결",revision_no=r["mapping"].get("revision_no")),
                     statistics_included=r["mapping"]["status"] != "RELEASED",
                     policy_statistics_included=r["mapping"]["status"] != "RELEASED" and
                         r["mapping"]["policy_id"] not in (None, "UNASSIGNED")) for r in rows],
@@ -697,8 +924,10 @@ class HomeService:
     def sample_detail(self, entity_id, as_of=None):
         with self.sessions() as session:
             record=session.scalar(self.sample_select(as_of=as_of).where(Revision.entity_id==entity_id))
-            current=dict(record.payload,id=record.entity_id,source_id=record.source_id,revision_no=record.revision_no,
-                recorded_at=as_utc(record.recorded_at).isoformat()) if record else None
+            day = as_of or today()
+            members = self._snapshot_members(session, [record.source_id] if record else [], day)
+            current=self._mark_snapshot(dict(record.payload,id=record.entity_id,source_id=record.source_id,revision_no=record.revision_no,
+                recorded_at=as_utc(record.recorded_at).isoformat()), record, members) if record else None
         return dict(current, history=self.history(entity_id, as_of)) if current else None
 
     def history(self, entity_id, as_of=None):

@@ -12,10 +12,14 @@ REFERENCE_DOCS = (
     'SOURCE_REGISTRY.md', 'COLLECTION_COVERAGE.md', 'PROGRAM_HIERARCHY.md',
     'HISTORICAL_COLLECTION.md', 'AREA_CONTEXT.md', 'ANNUAL_SUPPLY.md',
     'SH_API_VERIFICATION.md', 'ADDITIONAL_API_VERIFICATION.md', 'API_KEYS.md',
+    'HOME_FINAL_APPLICATION_PLAN.md', 'HOME_IMPLEMENTATION_STATUS_20261010.md',
+    'HOME_OPERATIONS_NEXT_STEPS_20261010.md', 'HOME_API_CONNECTIONS_20261010.md',
+    'DATA_AVAILABILITY.md',
 )
 SHARING_SCRIPTS = (
     'export_json.py', 'export_schema.py', 'export_collection_methods.py',
     'write_data_sharing_guide.py', 'finalize_export.py', 'verify_export.py',
+    'crosscheck_lh_completion.py',
 )
 
 
@@ -52,6 +56,13 @@ def finalize(snapshot):
         if existing and 'records' in existing:
             entry['records'] = existing['records']
         manifest['files'][existing_key] = entry
+    unique_files = {}
+    seen_paths = set()
+    for key, entry in manifest['files'].items():
+        if entry['path'] not in seen_paths:
+            unique_files[key] = entry
+            seen_paths.add(entry['path'])
+    manifest['files'] = unique_files
     manifest['package_notes'] = 'ZIP은 같은 이름의 폴더를 포함함. 압축을 풀고 해당 폴더에서 python verify_export.py . 실행.'
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+'\n')
     verify(snapshot)

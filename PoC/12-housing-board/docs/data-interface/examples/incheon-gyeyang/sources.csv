@@ -1,0 +1,5 @@
+﻿source_id,label,publisher,license,url,as_of,redistributable,usage_note
+lh-cwstt,LH청약플러스 공사현황,한국토지주택공사,,https://apply.lh.or.kr/lhapply/land/cwsttList.do,2026-10-03,unknown,robots.txt가 허용하는 화면. 이용조건 미확인
+lh-notice,LH 입주자모집공고문,한국토지주택공사,,,,unknown,공고문 PDF는 한 건씩 내려받음. 재배포 조건 미확인
+lh-pamphlet,LH 팸플릿 동호배치도,한국토지주택공사,,,,unknown,동별 최상층(필로티 1층 포함)
+vworld-lhblpn,V-World 데이터 API LT_C_LHBLPN,국토교통부 V-World,,,2026-10-03,unknown,이용 조건 확인 필요

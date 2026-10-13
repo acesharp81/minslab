@@ -219,7 +219,7 @@ class SampleStorageTests(unittest.TestCase):
         with patch.object(self.service,'collect_one',return_value={'status':'SUCCESS'}) as collect:
             self.service.collect_all()
         self.assertEqual([call.args[0]['id'] for call in collect.call_args_list],
-                         [s['id'] for s in SOURCES if not s.get('manual_only')])
+                         [s['id'] for s in SOURCES if not s.get('manual_only') and s['id'] not in {'building_hub', 'building_register', 'building_hub_details'}])
         self.assertEqual(self.client.post('/poc/home/api/admin/refresh?mode=sample').status_code,401)
         path='/poc/home/api/admin/refresh'
         stamp=str(int(time.time()))

@@ -3,6 +3,12 @@ from .roadmap import source_events
 
 
 def projections(selected, event_rows, reference, horizon, measure, links, key_for):
+    if measure=="MOVE_IN":
+        return {"baseline_units":None,"baseline_pct":None,"future":[
+            {"offset":offset,"end_year":reference.year+offset,"increment_units":None,
+             "cumulative_units":None,"cumulative_pct":None,"eligible_events":0,
+             "excluded_events":0,"excluded_units":0,"excluded_reasons":[],"status":"DATE_ONLY"}
+            for offset in range(1,horizon+1)],"basis":"입주는 시작 예정월만 관리 · 물량·달성률 집계 제외"}
     capacities={row["id"]:row["planned_units"] for row in selected if row.get("planned_units") is not None}
     owners={key_for(row):row["id"] for row in selected if key_for(row) and row["id"] in capacities}
     baseline=sum(notice["units"] for pid,notice in (links or {}).items() if pid in capacities) if measure=="SUPPLY" else None

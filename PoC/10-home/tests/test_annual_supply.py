@@ -28,6 +28,26 @@ class AnnualSupplyTests(unittest.TestCase):
         response['result_data']['formList']=[bad]
         with self.assertRaises(ValueError):parse_statistics(response,source,series,'201801','201801')
 
+    def test_demolition_is_separate_from_supply_and_net_reference_requires_full_year(self):
+        engine=create_engine('sqlite+pysqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
+        Base.metadata.create_all(engine)
+        service=HomeService(engine)
+        with service.sessions.begin() as session:
+            upsert_revision(session,'statistic','molit_demolition','2024:서울특별시',
+                            {'name':'멸실','region':'서울특별시','statistic_metric':'멸실',
+                             'statistic_frequency':'YEAR','statistic_period':'2024','units':20,
+                             'source_date':'2024-12-31'},'batch')
+            for month in range(1,13):
+                upsert_revision(session,'statistic','molit_statistics',f'준공|2024{month:02d}',
+                                {'name':'준공','region':'서울특별시','statistic_metric':'준공',
+                                 'statistic_frequency':'MONTH','statistic_period':f'2024{month:02d}',
+                                 'units':10,'source_date':f'2024-{month:02d}-28'},'batch')
+        row=annual_supply(service,'서울특별시',2024)['rows'][0]
+        self.assertEqual(row['metrics']['멸실']['units'],20)
+        self.assertEqual(row['metrics']['준공']['units'],120)
+        self.assertEqual(row['net_change_reference'],100)
+        self.assertIsNone(row['metrics']['인허가']['units'])
+
     def test_annual_totals_require_all_months_for_full_year_comparison(self):
         engine=create_engine('sqlite+pysqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
         Base.metadata.create_all(engine)

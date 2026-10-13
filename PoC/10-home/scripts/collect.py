@@ -10,10 +10,24 @@ parser.add_argument("--source")
 parser.add_argument("--samples", action="store_true", help="Collect bounded API samples, separately from projects")
 parser.add_argument("--history",action="store_true",help="Backfill policy origins and all available dated LH reports")
 parser.add_argument('--expand-building',action='store_true',help='Continue statutory-area permit/register collection')
+parser.add_argument('--expand-building-details',action='store_true',help='Continue Housing HUB dong/parcel detail collection')
 parser.add_argument('--rounds',type=int,default=1,help='Number of resumable area batches (1~1000)')
 args = parser.parse_args()
 service = HomeService(engine_for())
-if args.expand_building:
+if args.expand_building_details:
+    if args.samples or args.source or args.history or args.expand_building or not 1<=args.rounds<=1000:
+        parser.error('상세 확대 수집은 --rounds 1~1000과 함께 사용하세요')
+    if not service.rows('legal_dong'):
+        print(json.dumps(service.collect_all('legal_dongs'),ensure_ascii=False),flush=True)
+    for iteration in range(args.rounds):
+        meta=service.latest_collection_stats('building_hub_details')
+        if meta.get('complete_scope'):break
+        result=service.collect_all('building_hub_details')
+        print(json.dumps(dict(round=iteration+1,result=result),ensure_ascii=False),flush=True)
+        if result.get('status')=='BUSY' or any(r.get('status')=='FAILED' for r in result.get('results',[])):
+            raise SystemExit('상세 수집 중단: 정상 배치 보존. 원천 응답·호출량 확인 후 재실행하세요')
+    result={'status':'FINISHED','coverage':{k:v for k,v in service.latest_collection_stats('building_hub_details').items() if k.startswith('scope_')}}
+elif args.expand_building:
     if args.samples or args.source or args.history or not 1<=args.rounds<=1000:parser.error('확대 수집은 --rounds 1~1000과 함께 사용하세요')
     if not service.rows('legal_dong'):
         print(json.dumps(service.collect_all('legal_dongs'),ensure_ascii=False),flush=True)

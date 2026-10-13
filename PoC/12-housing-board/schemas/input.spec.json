@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0.0",
+  "enums": {
+    "code_type": ["sido", "sigungu", "bjdong"],
+    "zone_type": ["택지개발", "공공주택지구", "혁신도시", "신도시", "도시개발", "산업단지", "기타"],
+    "sponsor_type": ["public", "private", "joint", "unknown"],
+    "project_kind": ["공공분양", "신혼희망타운", "통합공공임대", "행복주택", "국민임대", "영구임대", "공공임대", "민간분양", "민간임대", "공공지원민간임대", "기타"],
+    "on_public_land": ["Y", "N", "unknown"],
+    "event_type": ["notice", "permit_approved", "construction_start", "progress", "completion_inspection", "move_in", "structure_observed"],
+    "redistributable": ["Y", "N", "unknown"],
+    "tier": ["official", "building", "schematic"]
+  },
+  "public_land_zone_types": ["택지개발", "공공주택지구", "혁신도시", "신도시"],
+  "files": {
+    "regions.csv": {
+      "required_file": true,
+      "description": "지역(시군구) 1행. 폴더 이름과 region_slug가 같아야 한다.",
+      "primary_key": ["region_slug"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자. 폴더 이름과 같아야 함. 예: gwangju-gwangsan"},
+        {"name": "region_name", "type": "text", "required": true, "desc": "화면에 표시할 이름. 예: 광주 광산구"},
+        {"name": "sido_name", "type": "text", "desc": "예: 광주광역시"},
+        {"name": "sigungu_name", "type": "text", "desc": "예: 광산구"},
+        {"name": "center_lon", "type": "lon", "desc": "시작 지도 중심 경도. 비우면 지구 경계에서 계산"},
+        {"name": "center_lat", "type": "lat", "desc": "시작 지도 중심 위도. 비우면 지구 경계에서 계산"},
+        {"name": "default_zoom", "type": "number", "min": 8, "max": 18, "desc": "시작 확대 수준. 비우면 자동"},
+        {"name": "note", "type": "text", "desc": "메모"}
+      ]
+    },
+    "region_codes.csv": {
+      "required_file": true,
+      "description": "지역 코드와 유효기간. 행정구역이 바뀌어 코드가 달라진 경우를 기록한다.",
+      "primary_key": ["region_slug", "code", "code_type"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자"},
+        {"name": "code", "type": "code", "required": true, "desc": "시도 2자리, 시군구 5자리, 법정동 8~10자리 숫자"},
+        {"name": "code_type", "type": "enum", "enum": "code_type", "required": true, "desc": "코드 종류"},
+        {"name": "code_name", "type": "text", "desc": "코드의 이름. 예: 광산구"},
+        {"name": "valid_from", "type": "date", "desc": "유효 시작일. 비우면 처음부터"},
+        {"name": "valid_to", "type": "date", "desc": "유효 종료일. 비우면 현재도 유효"},
+        {"name": "note", "type": "text", "desc": "메모"}
+      ],
+      "refs": [
+        {"columns": ["region_slug"], "to": "regions.csv", "to_columns": ["region_slug"]}
+      ]
+    },
+    "sources.csv": {
+      "required_file": true,
+      "description": "출처. 다른 파일의 source_id가 여기를 가리킨다. redistributable이 Y가 아니면 운영 사이트에 노출하지 않는다.",
+      "primary_key": ["source_id"],
+      "columns": [
+        {"name": "source_id", "type": "slug", "required": true, "desc": "출처 식별자. 예: myhome-notice"},
+        {"name": "label", "type": "text", "required": true, "desc": "화면에 표시될 출처 이름"},
+        {"name": "publisher", "type": "text", "desc": "제공기관"},
+        {"name": "license", "type": "text", "desc": "이용조건 요약"},
+        {"name": "url", "type": "url", "desc": "출처 주소"},
+        {"name": "as_of", "type": "date", "desc": "자료 기준일"},
+        {"name": "redistributable", "type": "enum", "enum": "redistributable", "required": true, "desc": "공개 사이트에 가공 결과를 실어도 되는지"},
+        {"name": "usage_note", "type": "text", "desc": "이용 관련 메모"}
+      ]
+    },
+    "zones.csv": {
+      "required_file": true,
+      "description": "지구(구역). 파일이 비어 있어도(헤더만) 된다. 지구에 속하지 않는 단지는 projects.zone_id를 비운다.",
+      "primary_key": ["region_slug", "zone_id"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자"},
+        {"name": "zone_id", "type": "slug", "required": true, "desc": "지역 안에서 유일한 지구 식별자. 예: sunwoon2"},
+        {"name": "zone_name", "type": "text", "required": true, "desc": "공식 지구명. 예: 광주선운2 공공주택지구"},
+        {"name": "zone_type", "type": "enum", "enum": "zone_type", "required": true, "desc": "지구 유형. 앞의 네 유형이 공공택지"},
+        {"name": "organizer", "type": "text", "desc": "조성 주체. 예: LH"},
+        {"name": "source_id", "type": "slug", "required": true, "desc": "근거 출처"},
+        {"name": "note", "type": "text", "desc": "메모"}
+      ],
+      "refs": [
+        {"columns": ["region_slug"], "to": "regions.csv", "to_columns": ["region_slug"]},
+        {"columns": ["source_id"], "to": "sources.csv", "to_columns": ["source_id"]}
+      ]
+    },
+    "projects.csv": {
+      "required_file": true,
+      "description": "단지(블록) 1행. 시행자 유형은 시행자를 직접 말하는 자료(공고문·공사현황·공급기관명)로 정한다.",
+      "primary_key": ["region_slug", "project_id"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자"},
+        {"name": "project_id", "type": "text", "required": true, "desc": "지역 안에서 유일하고 바뀌지 않는 단지 식별자. 권장 형식 <zone_id>-<블록>. 예: sunwoon2-A1"},
+        {"name": "zone_id", "type": "slug", "desc": "소속 지구. 지구 밖 단지는 비움"},
+        {"name": "project_name", "type": "text", "required": true, "desc": "공고·공사현황의 이름. 예: 광주선운2 A-1블록 신혼희망타운"},
+        {"name": "block_label", "type": "text", "required": true, "desc": "지도에 짧게 보일 이름. 예: A-1"},
+        {"name": "block_name_raw", "type": "text", "desc": "출처 원문 블록 이름. 예: A-1BL. 매칭에 쓰인다"},
+        {"name": "sponsor_name", "type": "text", "required": true, "desc": "시행자 이름. 예: LH"},
+        {"name": "sponsor_type", "type": "enum", "enum": "sponsor_type", "required": true, "desc": "시행자 유형. public 공공, private 민간, joint 민관 공동, unknown 미확인"},
+        {"name": "project_kind", "type": "enum", "enum": "project_kind", "required": true, "desc": "사업 유형"},
+        {"name": "on_public_land", "type": "enum", "enum": "on_public_land", "desc": "공공택지 위 여부. 비우면 지구 유형으로 계산"},
+        {"name": "units", "type": "int", "min": 0, "desc": "총 세대수. 모르면 비움"},
+        {"name": "dong_count", "type": "int", "min": 0, "desc": "주동 수"},
+        {"name": "pnu_list", "type": "pnu_list", "desc": "필지 번호(PNU) 19자리 목록, 세미콜론(;)으로 구분. 윤곽·블록 매칭의 1순위 키"},
+        {"name": "address", "type": "text", "desc": "주소"},
+        {"name": "source_id", "type": "slug", "required": true, "desc": "이 행의 근거 출처"},
+        {"name": "observed_at", "type": "date", "required": true, "desc": "수집한 날"},
+        {"name": "verified", "type": "yn", "desc": "사람이 원문으로 확인했으면 Y"},
+        {"name": "note", "type": "text", "desc": "메모"}
+      ],
+      "refs": [
+        {"columns": ["region_slug"], "to": "regions.csv", "to_columns": ["region_slug"]},
+        {"columns": ["region_slug", "zone_id"], "to": "zones.csv", "to_columns": ["region_slug", "zone_id"], "optional_column": "zone_id"},
+        {"columns": ["source_id"], "to": "sources.csv", "to_columns": ["source_id"]}
+      ]
+    },
+    "events.csv": {
+      "required_file": true,
+      "description": "단지의 사건. 추가만 하고 수정·삭제하지 않는다. 상태는 입력하지 않고 이 사건들에서 계산한다.",
+      "primary_key": ["region_slug", "project_id", "event_type", "event_date", "source_ref"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자"},
+        {"name": "project_id", "type": "text", "required": true, "desc": "단지 식별자"},
+        {"name": "event_type", "type": "enum", "enum": "event_type", "required": true, "desc": "사건 종류"},
+        {"name": "event_date", "type": "date_or_month", "required": true, "desc": "사건이 일어난(또는 예정인) 날. move_in만 YYYY-MM 허용"},
+        {"name": "is_planned", "type": "yn", "desc": "예정일이면 Y. 비우면 N. construction_start·completion_inspection·move_in만 예정 허용"},
+        {"name": "value", "type": "number", "min": 0, "desc": "사건별 값. progress는 공정율(0~100) 필수, notice·permit_approved는 세대수, structure_observed는 관측된 동 수"},
+        {"name": "source_id", "type": "slug", "required": true, "desc": "근거 출처"},
+        {"name": "source_ref", "type": "text", "desc": "원자료 식별자. 예: 공고 ID, 허가 관리번호"},
+        {"name": "note", "type": "text", "desc": "메모"}
+      ],
+      "refs": [
+        {"columns": ["region_slug"], "to": "regions.csv", "to_columns": ["region_slug"]},
+        {"columns": ["region_slug", "project_id"], "to": "projects.csv", "to_columns": ["region_slug", "project_id"]},
+        {"columns": ["source_id"], "to": "sources.csv", "to_columns": ["source_id"]}
+      ]
+    },
+    "dongs.csv": {
+      "required_file": false,
+      "description": "동(선택). 열 이름이 아니라 정의된 의미를 따른다: floors_above는 지상, floors_below는 지하 층수.",
+      "primary_key": ["region_slug", "project_id", "dong_no"],
+      "columns": [
+        {"name": "region_slug", "type": "slug", "required": true, "desc": "지역 식별자"},
+        {"name": "project_id", "type": "text", "required": true, "desc": "단지 식별자"},
+        {"name": "dong_no", "type": "text", "required": true, "desc": "동 번호. 예: 601"},
+        {"name": "floors_above", "type": "int", "min": 0, "max": 120, "desc": "지상 층수"},
+        {"name": "floors_below", "type": "int", "min": 0, "max": 15, "desc": "지하 층수"},
+        {"name": "height_m", "type": "number", "min": 0, "max": 700, "desc": "건물 높이(m)"},
+        {"name": "units", "type": "int", "min": 0, "desc": "동의 세대수"},
+        {"name": "dong_use", "type": "text", "desc": "동의 용도. 예: 공동주택, 상가"},
+        {"name": "source_id", "type": "slug", "required": true, "desc": "근거 출처"},
+        {"name": "observed_at", "type": "date", "required": true, "desc": "수집한 날"}
+      ],
+      "refs": [
+        {"columns": ["region_slug"], "to": "regions.csv", "to_columns": ["region_slug"]},
+        {"columns": ["region_slug", "project_id"], "to": "projects.csv", "to_columns": ["region_slug", "project_id"]},
+        {"columns": ["source_id"], "to": "sources.csv", "to_columns": ["source_id"]}
+      ]
+    },
+    "geometry_overrides.geojson": {
+      "kind": "geojson",
+      "required_file": false,
+      "description": "손으로 그린 윤곽(선택). FeatureCollection이며 아래 열은 각 Feature의 properties이다. geometry는 Polygon 또는 MultiPolygon, 좌표는 WGS84 [경도, 위도].",
+      "primary_key": ["region_slug", "project_id", "dong_no"],
+      "columns": [
+        {"name": "project_id", "type": "text", "required": true, "desc": "단지 식별자"},
+        {"name": "dong_no", "type": "text", "desc": "동 번호. 비우면 블록 윤곽"},
+        {"name": "tier", "type": "enum", "enum": "tier", "required": true, "desc": "윤곽 등급"},
+        {"name": "basis", "type": "text", "required": true, "desc": "그린 근거. 예: LH 팸플릿 단지배치도"},
+        {"name": "source_id", "type": "slug", "required": true, "desc": "근거 출처"},
+        {"name": "observed_at", "type": "date", "required": true, "desc": "작성한 날"}
+      ],
+      "refs": [
+        {"columns": ["region_slug", "project_id"], "to": "projects.csv", "to_columns": ["region_slug", "project_id"]},
+        {"columns": ["source_id"], "to": "sources.csv", "to_columns": ["source_id"]}
+      ]
+    }
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "regions/<slug>/infra.json",
+  "description": "입주 전 기반시설 점검 자료(1.2.0 추가, 선택 파일). 교육(신설예정 학교·부지·초등 통학구역), 교통(버스 정류소·노선, 1.3.0에서 TAGO 로 바뀜), 전기 등 시설 부지, 지구 안 비주택 건축 인허가, 문서 근거 대책. 이 파일이 없으면 화면은 기반시설 구역을 보이지 않는다.",
+  "type": "object",
+  "required": ["schema_version", "asOf", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"$ref": "#/$defs/semver"},
+    "asOf": {"type": "string", "format": "date", "description": "이 파일을 만든 날(수집 기준일)"},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+    "schools": {"type": "array", "items": {"$ref": "#/$defs/school"}},
+    "zones": {"type": "array", "items": {"$ref": "#/$defs/zone"}},
+    "attendance": {"type": "array", "items": {"$ref": "#/$defs/attendance"}},
+    "stops": {"type": "array", "items": {"$ref": "#/$defs/stop"}},
+    "busRoutes": {"type": "array", "items": {"$ref": "#/$defs/busRoute"}},
+    "busCityCode": {"type": "integer", "minimum": 1, "description": "TAGO 도시코드(인천 23). 실시간 노선(busRoutes[].live)이 있을 때 화면이 버스 위치를 부르는 데 쓴다"},
+    "sites": {"type": "array", "items": {"$ref": "#/$defs/site"}},
+    "permits": {"type": "array", "items": {"$ref": "#/$defs/permit"}},
+    "measures": {"type": "array", "items": {"$ref": "#/$defs/measure"}}
+  },
+  "$defs": {
+    "semver": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "ym": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$", "description": "YYYY-MM"},
+    "lon": {"type": "number", "minimum": 120, "maximum": 135},
+    "lat": {"type": "number", "minimum": 30, "maximum": 45},
+    "lonlat": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2, "description": "[경도, 위도]"},
+    "ring": {"type": "array", "items": {"$ref": "#/$defs/lonlat"}, "minItems": 3, "description": "닫지 않은 바깥 고리(첫 점을 끝에 되풀이하지 않음)"},
+    "ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "description": "sources[].id"},
+    "source": {
+      "type": "object",
+      "required": ["id", "label", "redistributable"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "publisher": {"type": "string"},
+        "license": {"type": "string"},
+        "url": {"type": "string"},
+        "asOf": {"type": ["string", "null"], "format": "date"},
+        "redistributable": {"enum": ["Y", "N", "unknown"]}
+      }
+    },
+    "school": {
+      "type": "object",
+      "required": ["id", "name", "level", "status", "lon", "lat", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "level": {"enum": ["유치원", "초등학교", "중학교", "고등학교", "특수학교"]},
+        "status": {"enum": ["신설예정", "부지만"], "description": "신설예정 = 개교 예정이 공시됨, 부지만 = 학교 부지(도시계획시설)는 있으나 개교 일정 공시가 없음"},
+        "openYm": {"$ref": "#/$defs/ym", "description": "개교 예정 년월(공시). 신설예정에만"},
+        "classes": {"type": "integer", "minimum": 0},
+        "students": {"type": "integer", "minimum": 0},
+        "address": {"type": "string"},
+        "areaM2": {"type": "number", "minimum": 0},
+        "lon": {"$ref": "#/$defs/lon"},
+        "lat": {"$ref": "#/$defs/lat"},
+        "poly": {"$ref": "#/$defs/ring", "description": "부지 윤곽(도시계획시설). 없으면 점만"},
+        "note": {"type": "string"},
+        "sources": {"$ref": "#/$defs/ids"}
+      }
+    },
+    "zone": {
+      "type": "object",
+      "required": ["id", "name", "school", "poly", "asOf", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string", "description": "통학구역 이름(자료 그대로)"},
+        "school": {"type": "string"},
+        "schoolLon": {"$ref": "#/$defs/lon"},
+        "schoolLat": {"$ref": "#/$defs/lat"},
+        "poly": {"$ref": "#/$defs/ring"},
+        "asOf": {"type": "string", "format": "date", "description": "자료 기준일"},
+        "sources": {"$ref": "#/$defs/ids"}
+      }
+    },
+    "attendance": {
+      "type": "object",
+      "required": ["projectId", "zoneId"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {"type": "string", "description": "projects.json 의 단지 id"},
+        "zoneId": {"type": "string", "description": "zones[].id"}
+      }
+    },
+    "stop": {
+      "type": "object",
+      "required": ["name", "lon", "lat"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "description": "TAGO 정류소 id(nodeid)"},
+        "name": {"type": "string"},
+        "no": {"type": "string", "description": "정류소 번호(정류소 표지에 적힌 번호)"},
+        "lon": {"$ref": "#/$defs/lon"},
+        "lat": {"$ref": "#/$defs/lat"},
+        "routes": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true, "description": "이 정류소를 지나는 노선 id(busRoutes[].id), 노선 번호 순"}
+      }
+    },
+    "busRoute": {
+      "type": "object",
+      "required": ["id", "no"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "description": "TAGO 노선 id(routeid)"},
+        "no": {"type": "string", "description": "노선 번호(화면에 쓰는 이름, 예 87)"},
+        "type": {"type": "string", "description": "노선 유형(간선버스·지선버스·광역버스 …, 자료 그대로)"},
+        "from": {"type": "string", "description": "기점 정류소 이름"},
+        "to": {"type": "string", "description": "종점 정류소 이름"},
+        "live": {"const": true, "description": "단지 가까이를 지나 화면이 실시간 위치를 부르는 노선. 이때만 path 가 있다"},
+        "path": {"type": "array", "items": {"$ref": "#/$defs/lonlat"}, "minItems": 2, "description": "정류소 순서대로 이은 점(왕복 전체). path[정류소순서-1] 이 그 정류소 — 버스 위치 응답의 정류소순서로 진행 방향을 구한다"}
+      }
+    },
+    "site": {
+      "type": "object",
+      "required": ["id", "category", "name", "poly", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "category": {"enum": ["전기", "교통", "하수·환경", "방재"]},
+        "name": {"type": "string"},
+        "areaM2": {"type": "number", "minimum": 0},
+        "poly": {"$ref": "#/$defs/ring"},
+        "note": {"type": "string"},
+        "sources": {"$ref": "#/$defs/ids"}
+      }
+    },
+    "permit": {
+      "type": "object",
+      "required": ["id", "name", "use", "permitDate", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "use": {"type": "string", "description": "주용도(건축물대장 용어)"},
+        "permitDate": {"type": "string", "format": "date"},
+        "startDate": {"type": ["string", "null"], "format": "date"},
+        "approvalDate": {"type": ["string", "null"], "format": "date"},
+        "note": {"type": "string"},
+        "sources": {"$ref": "#/$defs/ids"}
+      }
+    },
+    "measure": {
+      "type": "object",
+      "required": ["id", "category", "title", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "category": {"enum": ["교통", "교육", "전기", "기타"]},
+        "title": {"type": "string"},
+        "short": {"type": "string", "maxLength": 14, "description": "타임라인에 쓰는 짧은 이름(없으면 title)"},
+        "when": {"type": "string", "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$", "description": "시기 YYYY 또는 YYYY-MM"},
+        "status": {"enum": ["완료", "진행", "예정", "검토", "미정"]},
+        "detail": {"type": "string"},
+        "sources": {"$ref": "#/$defs/ids"}
+      }
+    }
+  }
+}

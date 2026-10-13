@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>주택파동 · 주택공급 종합상황판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#0A1030; --bg2:#0E1740; --pn:#101A44; --pn2:#16225A; --on:#1B2A66; --line:#22305E; --line2:#3A4C8C;
+  --ink:#E8EDFF; --ink2:#D6DEFA; --sub:#9AA8D6; --mute:#8FA0C8; --acc:#FF8A65; --acc-ink:#2A0E04;
+  --ok:#4ADE9E; --warn:#FFC24D; --bad:#FF6B88;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;min-height:100vh;color:var(--ink);background:#0A1030 radial-gradient(1200px 420px at 70% -10%,#1A2A6E 0%,#0A1030 62%) no-repeat;
+  font:15px/1.55 'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.disp{font-family:'Do Hyeon','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.sub{font-size:12px;color:var(--sub)}
+.tag{display:inline-block;font-size:11px;line-height:17px;padding:0 8px;border-radius:999px;font-weight:700;white-space:nowrap}
+.app{max-width:1440px;margin:0 auto;padding:0 28px 36px}
+
+/* 칸 높이 고정: 문구가 바뀌어도 칸이 변하지 않도록 가장 긴 문구를 보이지 않게 겹쳐 둔다 */
+.stk{display:grid}
+.stk>*{grid-area:1/1;min-width:0}
+.sz{visibility:hidden;pointer-events:none;user-select:none}
+
+/* 헤더 */
+.top{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:24px 0 16px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand h1{margin:0;font-size:36px;line-height:1;font-weight:400}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--sub)}
+.tags{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* 지시 */
+.dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:8px}
+.dir{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:2px;padding:10px 14px 12px;border-radius:12px;background:var(--pn);border:1px solid var(--line);min-width:0;transition:background .15s,border-color .15s}
+.dir:hover{background:var(--pn2)}
+.dir .d{font-size:11px;color:var(--sub)}
+.dir .m{font-size:22px;line-height:1.15}
+.dir .mrow{display:flex;align-items:center;flex-wrap:wrap;column-gap:8px;min-width:0}
+.dir .dv{display:flex;flex-direction:column;line-height:1.15;font-size:12px;font-weight:700;white-space:nowrap}
+.dir .dv small{font-size:10.5px;font-weight:400;color:var(--sub)}
+.dir .bar{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--acc);transition:width .9s linear}
+.dir[aria-pressed="true"]{background:var(--on);border-color:var(--acc)}
+.dir[aria-pressed="true"] .m{color:var(--acc)}
+.quote{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;padding:8px 14px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.quote .tag{background:var(--acc);color:var(--acc-ink)}
+#quote{flex:1 1 280px}
+
+/* 패널 */
+.pnl{display:flex;flex-direction:column;background:var(--pn);border:1px solid var(--line);border-radius:14px;padding:18px 20px;min-width:0}
+.pnl>svg{flex:none}
+.ringable{transition:box-shadow .25s}
+.ringable.ring{box-shadow:0 0 0 3px var(--acc)}
+.ptitle{margin:0;font-size:22px;line-height:1.2;font-weight:400}
+.ptitle small{font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--sub)}
+.note{padding:9px 12px;border-radius:8px;background:var(--bg2);font-size:13px;color:var(--ink2)}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:14px;margin-top:14px;align-items:stretch}
+.row3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px;margin-top:14px}
+.row2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin-top:14px;align-items:stretch}
+@media (max-width:1100px){.hero,.row2{grid-template-columns:1fr}}
+
+/* 월별 공급 파동 */
+.ph{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.legend{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.legend button{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 9px;border-radius:999px;border:1px solid transparent;transition:background .15s,border-color .15s}
+.legend button:hover{background:var(--pn2)}
+.legend button[aria-pressed="true"]{border-color:var(--acc);background:var(--on)}
+.legend i,.srow i{width:11px;height:11px;border-radius:3px;display:block;flex:none}
+.chartwrap{position:relative;background:#0B1233;border:1px solid var(--line);border-radius:10px;cursor:pointer;touch-action:pan-y}
+#chart{display:block;width:100%;height:auto}
+#chart text{font-family:'Noto Sans KR',sans-serif}
+.tip{position:absolute;z-index:3;pointer-events:none;min-width:168px;padding:9px 11px;border-radius:10px;background:#0A1030;border:1px solid var(--line2);box-shadow:0 8px 22px rgba(0,0,0,.45);font-size:12px;line-height:1.5}
+.tip[hidden]{display:none}
+.tip .tl{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tip .tr{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.tip .tr span:first-child{display:flex;align-items:center;gap:6px}
+.tip i{width:9px;height:9px;border-radius:2px;display:block}
+.ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.play{flex:none;width:46px;height:46px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.play:hover{transform:scale(1.06)}
+.slider{flex:1 1 220px;min-width:160px}
+input[type=range]{width:100%;margin:0;height:28px;cursor:pointer;accent-color:var(--acc)}
+.jumps{display:flex;gap:6px;flex-wrap:wrap}
+.jumps button,.tour{font-size:13px;font-weight:700;padding:7px 12px;border-radius:7px;border:1.5px solid var(--line2);color:var(--ink2);transition:background .15s}
+.jumps button:hover,.tour:hover{background:var(--pn2)}
+.jumps button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.tour[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* 선택 시점 */
+.snaphead{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trio>div{padding:8px 10px;border-radius:10px;min-width:0}
+.trio .l{font-size:12px}
+.trio .n{font-size:28px;line-height:1.1;white-space:nowrap}
+.trio small{font-family:'Noto Sans KR',sans-serif;font-size:11px;margin-left:2px;opacity:.8}
+.srows{display:flex;flex-direction:column;margin-top:8px;flex:1 1 auto}
+.srow{flex:1 1 auto;display:grid;grid-template-columns:minmax(0,1fr) 78px 70px;gap:10px;align-items:center;padding:5px 4px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .k{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.srow .v{font-size:18px;text-align:right}
+.srow .dl{font-size:12px;text-align:right}
+/* 카드 내부 */
+.row3 .ptitle small{display:block;margin-top:2px}
+.bar3{display:flex;height:10px;border-radius:3px;overflow:hidden;gap:1px}
+.bar3 span{display:block}
+.risk{display:flex;flex-direction:column;gap:5px;margin-top:6px;flex:1 1 auto;justify-content:space-around}
+.risk .rr{display:grid;grid-template-columns:96px 1fr 92px;gap:10px;align-items:center;font-size:12.5px}
+.risk .rb{display:flex;height:9px;gap:1px;background:#1B2858;border-radius:3px;overflow:hidden}
+#fmonths{flex:1 1 76px;min-height:76px;width:100%;display:block}
+.mini{display:grid;grid-template-columns:54px repeat(4,1fr);margin-top:12px;font-size:13px}
+.mini>span{padding:5px 0;border-top:1px solid var(--line)}
+.mini .h{border-top:0;font-size:11px;text-align:right}
+.mini .r{text-align:right}
+.ags{display:flex;flex-direction:column;justify-content:space-around;gap:10px;flex:1 1 auto;margin-top:12px}
+.ag{display:grid;grid-template-columns:96px minmax(0,1fr) 84px;gap:10px;align-items:center}
+.ag .an b{display:block;font-size:13px;line-height:1.25}
+.ag .ad{text-align:right;line-height:1.2}
+.ag .ad b{display:block;font-size:17px;font-weight:400}
+
+/* 시도 */
+.rlegend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--sub)}
+.rlegend>span{display:flex;align-items:center;gap:5px}
+.rlegend i{width:24px;height:12px;border-radius:3px;display:block;border:1px solid rgba(255,255,255,.12)}
+.regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));grid-auto-rows:minmax(0,1fr);gap:6px;flex:1 1 auto;margin:10px 0}
+.reg{padding:8px 9px;border-radius:10px;background:var(--rc);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;justify-content:space-between;gap:6px;transition:filter .15s,box-shadow .15s}
+.reg:hover{filter:brightness(1.2)}
+.reg[aria-pressed="true"]{box-shadow:0 0 0 2px var(--acc);border-color:var(--acc)}
+.reg .nm{display:flex;justify-content:space-between;align-items:baseline;gap:4px;font-size:13px;font-weight:700;color:#fff}
+.reg .nm em{font-style:normal;font-size:10px;font-weight:400;color:#FFD2C2;margin-left:4px}
+.reg .rt{font-size:12.5px}
+.reg .num{display:flex;gap:8px;font-size:15px;padding:2px 8px;border-radius:7px;background:rgba(10,16,48,.74);align-self:flex-start}
+
+/* 흐름 */
+.flowv{display:flex;flex-direction:column;flex:1 1 auto;margin:12px 0 10px}
+.fstep{flex:1 1 auto;display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;align-items:center;width:100%;padding:8px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);transition:background .15s,border-color .15s}
+.fstep:hover{background:var(--pn2)}
+.fstep[aria-pressed="true"]{background:var(--on);border-color:var(--acc)}
+.fstep .no{width:28px;height:28px;border-radius:50%;background:var(--line2);display:flex;align-items:center;justify-content:center;font-size:15px}
+.fstep[aria-pressed="true"] .no{background:var(--acc);color:var(--acc-ink)}
+.fstep .k{display:block;font-size:14px;font-weight:700;line-height:1.3}
+.fstep .s{display:block;font-size:11.5px;color:var(--sub);line-height:1.35}
+.vc{flex:none;width:2px;height:10px;margin-left:25px;background:linear-gradient(var(--acc) 50%,transparent 0) 0 0/2px 8px;animation:vflow 1s linear infinite}
+@keyframes vflow{to{background-position:0 8px}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 48 32" width="52" height="34" aria-hidden="true"><path d="M2 10 C10 -2 16 22 24 10 S40 -2 46 8" fill="none" stroke="#FF8A65" stroke-width="3.4" stroke-linecap="round"/><path d="M2 20 C10 8 16 32 24 20 S40 8 46 18" fill="none" stroke="#7A93F0" stroke-width="3.4" stroke-linecap="round"/><path d="M2 30 C10 18 16 42 24 30 S40 18 46 28" fill="none" stroke="#4FB6B6" stroke-width="3.4" stroke-linecap="round"/></svg>
+    <div>
+      <h1 class="disp">주택파동</h1>
+      <p>계획에서 입주까지, 대한민국 주택공급의 흐름을 한눈에</p>
+    </div>
+  </div>
+  <div class="tags">
+    <span class="tag" style="background:#FFE08A;color:#3B2B00" title="수치는 시안용 SAMPLE이며 성북구 3개 사업만 실데이터입니다. 월별 호수는 7개 시점 스냅숏을 이어 만든 값이라, 실제로는 월 단위 수집 이력이 쌓여야 그릴 수 있습니다.">SAMPLE 시안 수치 · 성북구만 실데이터</span>
+    <span class="sub">기준일 2026-10-07</span>
+  </div>
+</header>
+
+<section aria-label="총리 지시 6건">
+  <div class="dirs" id="dirs"></div>
+  <div class="quote"><span class="tag">지시 요지</span><span class="stk" id="quote"></span></div>
+</section>
+
+<div class="hero">
+  <section class="pnl ringable" id="p-chart" aria-label="월별 공급 파동">
+    <div class="ph">
+      <h2 class="ptitle disp">월별 공급 파동 <small>· 100,000호의 단계별 위치 · 2026.10까지 실적, 이후 예정(빗금)</small></h2>
+      <div class="legend" id="legend" role="group" aria-label="단계 범례 (누르면 해당 단계를 강조)"></div>
+    </div>
+    <div class="chartwrap" id="chartwrap">
+      <svg id="chart" viewBox="0 0 960 392" role="img" aria-label="2025년 1월부터 2028년 10월까지 단계별 호수를 쌓은 월별 막대 그래프. 아래 슬라이더로 시점을 고릅니다."></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <div class="ctrl">
+      <button class="play" id="play" aria-label="재생"></button>
+      <div class="slider"><input type="range" id="slider" min="0" max="45" step="1" value="21" aria-label="시점 선택 (2025.01 ~ 2028.10)"></div>
+      <div class="jumps" id="jumps" role="group" aria-label="시점 바로가기"></div>
+      <button class="tour" id="tour" aria-pressed="true">순환 표시 <span id="tourLabel">켜짐</span></button>
+    </div>
+  </section>
+
+  <section class="pnl" id="p-snap" aria-label="선택 시점의 판정과 단계별 호수">
+    <div class="snaphead"><h2 class="ptitle disp" id="snapMonth"></h2><span class="tag" id="snapKind"></span></div>
+    <div class="trio">
+      <div style="background:#2A1428"><div class="l" style="color:#FFB3C2">지연</div><div class="n disp" id="sd" style="color:var(--bad)"></div></div>
+      <div style="background:#2A2418"><div class="l" style="color:#FFE9A3">주의</div><div class="n disp" id="sw" style="color:var(--warn)"></div></div>
+      <div style="background:#10283A"><div class="l" style="color:#A8F0CE">정상</div><div class="n disp" id="sok" style="color:var(--ok)"></div></div>
+    </div>
+    <div class="sub stk" id="snapNote" style="margin-top:6px"></div>
+    <div class="srows" id="srows" aria-label="단계별 호수와 현재 대비 증감"></div>
+  </section>
+</div>
+
+<div class="row3">
+  <section class="pnl ringable" id="p-trend" aria-label="지연·주의 추이와 단계별 지연">
+    <h2 class="ptitle disp">지연·주의 추이 <small>· 호 · 실적 기준</small></h2>
+    <svg id="trend" viewBox="0 0 560 200" role="img" aria-label="지연과 주의 호수 추이" style="display:block;width:100%;height:auto;margin-top:6px"></svg>
+    <div class="sub" style="display:flex;justify-content:space-between"><span>2025.01</span><span>2026.10</span></div>
+    <div class="sub stk" id="trendNote" style="margin-top:6px;color:var(--ink2)"></div>
+    <div class="sub" style="margin-top:12px;color:var(--ink2);font-weight:700">단계별 지연·주의 <span style="font-weight:400;color:var(--sub)">· 2026.10 마지막 판정 (호)</span></div>
+    <div class="risk" id="stageRisk"></div>
+  </section>
+
+  <section class="pnl ringable" id="p-fut" aria-label="향후 12개월 공급 예정">
+    <h2 class="ptitle disp">향후 12개월 공급 예정 <small>· 월별 (호)</small></h2>
+    <svg id="fmonths" viewBox="0 0 240 100" preserveAspectRatio="none" role="img" aria-label="2026.10부터 2027.09까지 월별 착공·모집·준공·입주 예정" style="margin-top:12px"></svg>
+    <div class="sub" style="display:flex;justify-content:space-between;margin-top:3px"><span>2026.10</span><span>2027.03</span><span>2027.09</span></div>
+    <div class="sub stk" id="futRead" style="margin-top:8px;color:var(--ink2)"></div>
+    <div class="mini" id="mini"></div>
+  </section>
+
+  <section class="pnl ringable" id="p-agency" aria-label="기관별 진행">
+    <h2 class="ptitle disp">기관별 진행 <small>· 호 · 지연은 전체 지연 10,000호 중 비중</small></h2>
+    <div class="ags" id="ags"></div>
+    <div class="sub" style="margin-top:10px">군인 특별공급(국방부)은 수작업 입력 대기 상태입니다.</div>
+  </section>
+</div>
+
+<div class="row2">
+  <section class="pnl ringable" id="p-region" aria-label="전국 17개 시도">
+    <h2 class="ptitle disp">전국 17개 시도 <small>· 지연 · 주의 · 정상 (사업 수) · 바탕색 = 지연율 단계</small></h2>
+    <div class="rlegend" id="rlegend" aria-label="바탕색과 지연율 구간"></div>
+    <div class="regions" id="regions"></div>
+    <div class="note stk" id="regionNote"></div>
+  </section>
+
+  <section class="pnl ringable" id="p-flow" aria-label="데이터 흐름">
+    <h2 class="ptitle disp">데이터 흐름 <small>· 단계를 누르면 설명이 바뀝니다</small></h2>
+    <div class="flowv" id="flow"></div>
+    <div class="note stk" id="flowNote"></div>
+  </section>
+</div>
+
+
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ── 데이터 (SAMPLE) ───────────────────────────── */
+const NOW = 21, LAST = 45;
+const CIR = ['①', '②', '③', '④', '⑤', '⑥'];
+const K = ['계획', '인허가', '착공', '모집', '준공', '입주'];
+const C = ['#7BA7FF', '#45D3C4', '#FF9F43', '#C7D0DA', '#A5E56D', '#D9A6FF'];
+const AN = [
+  [0,  [52000, 22000, 14000, 4000, 5000, 3000]],
+  [9,  [40000, 24000, 18000, 6000, 7000, 5000]],
+  [15, [31000, 22500, 22000, 7500, 9500, 7500]],
+  [21, [24000, 21000, 26000, 9000, 12000, 8000]],
+  [27, [17000, 17000, 29000, 10000, 14700, 12300]],
+  [33, [11000, 13500, 29000, 10000, 19600, 16900]],
+  [45, [4000, 7000, 22000, 8000, 22000, 37000]]
+];
+const AD = [[0, 1200], [9, 3400], [15, 6100], [21, 10000]];
+const AW = [[0, 2100], [9, 4500], [15, 9800], [21, 18000]];
+const STG = [[1800, 3000], [3200, 5400], [4100, 6300], [300, 1200], [400, 1500], [200, 600]]; // [지연, 주의] 2026.10
+const FS = [
+  ['착공', [1900, 2100, 2200, 2300, 2200, 2100, 1900, 1950, 1950, 1950, 1950, 2000]],
+  ['모집', [1000, 1000, 1100, 1400, 1500, 1400, 1200, 1250, 1250, 1250, 1250, 1200]],
+  ['준공', [800, 800, 800, 1000, 1100, 1100, 900, 900, 950, 950, 950, 950]],
+  ['입주', [600, 650, 650, 800, 800, 800, 700, 750, 800, 800, 800, 750]]
+];
+const FSC = [C[2], C[3], C[4], C[5]];
+const ACH = { p: [34.6, 40.0], a: [29.7, 34.1] }; // 착공 누적 계획·실적 (천 호), 2026.08 · 2026.09
+const AG = [ // [기관, 정상, 주의, 지연]
+  ['LH', 37500, 9100, 5400], ['GH', 14900, 4300, 1800], ['SH', 10300, 2300, 1400],
+  ['지자체·민관', 6000, 1500, 500], ['국방부(군 특공)', 3300, 800, 900]
+];
+const REG = [
+  ['서울', 15, 33, 120, 1], ['경기', 23, 60, 231, 1],
+  ['인천', 6, 12, 41], ['부산', 4, 9, 33], ['대구', 2, 6, 21], ['광주', 1, 3, 14], ['대전', 1, 4, 16], ['울산', 1, 2, 9],
+  ['세종', 0, 3, 17], ['강원', 2, 5, 22], ['충북', 2, 5, 20], ['충남', 3, 8, 31], ['전북', 2, 4, 19], ['전남', 3, 6, 24],
+  ['경북', 3, 7, 28], ['경남', 4, 9, 35], ['제주', 1, 2, 8]
+].map((r) => ({ n: r[0], d: r[1], w: r[2], ok: r[3], big: !!r[4], tot: r[1] + r[2] + r[3] }));
+const DIR = [
+  { date: '08.14', t: '진척 관리', m: '달성률 ' + Math.round(ACH.a[1] / ACH.p[1] * 100) + '%', dv: (ACH.a[1] / ACH.p[1] - ACH.a[0] / ACH.p[0]) * 100, p: ['p-chart'], q: '제1차 점검회의 — 주택공급을 최우선 과제로, 예정 일정대로 이행되는지 매월 진척을 보고받고 매주 현장을 점검한다.' },
+  { date: '08.19', t: '사업장별 현황판', m: '482 사업장', p: ['p-region'], q: '인천계양 현장점검 — 현황판으로 사업장별 밀착 관리, 입주 전 교통·교육·전기 기반시설까지 함께 점검한다.' },
+  { date: '09.03', t: '범부처 통합·병목', m: '병목 착공 4,100호', p: ['p-trend', 'p-agency'], q: '제2차 점검회의 — 부처별 관리로는 전체를 한눈에 파악해 즉시 대응하기 어렵다. 수시 점검과 병목 해소가 핵심이다.' },
+  { date: '09.04', t: '예측가능성', m: '착공 6,200호', p: ['p-fut'], q: '동대문 신축매입주택 점검 — 공급계획을 가능한 범위에서 미리 공개해 수요자의 예측가능성을 높인다.' },
+  { date: '09.18', t: '일정 지연 관리', m: '지연 38사업', p: ['p-trend'], q: '태릉지구 점검 — 정부가 제시한 착공일정을 전제로 더 이상 일정 지연이 없어야 한다.' },
+  { date: '09.30', t: '국민 공개·공식 원천', m: '원천 14곳', p: ['p-flow'], q: '제3차 점검회의 — 국민이 공급 진행을 체감하도록 ‘주택공급 디지털 상황판’을 조속히 구현하고 공식 정보를 일관되게 제공한다.' }
+];
+const FL = [
+  { k: '원천', s: 'API 8 · 파일 4 · 수작업 2', t: '공식 원천에서 일·월·분기·연 주기로 수집하고, 원천·기준일·원문 링크를 레코드와 함께 보존합니다.' },
+  { k: '사업 코드', s: '계획 P- · 사업 SB-', t: '같은 사업의 변경·중복 인허가를 하나로 묶고, 한 번 붙인 코드는 유지합니다. 계획과 사업은 지번·이름·경계로 연결합니다.' },
+  { k: '6단계 표준화', s: '계획 → 입주', t: '기관마다 다른 용어를 계획·인허가·착공·모집·준공·입주로 통일합니다. 성북구의 5단계에서 준공과 입주를 나눠 정책 문서의 6단계에 맞췄습니다.' },
+  { k: '판정', s: '지연 · 주의 · 정상', t: '예정일과 실적일을 비교합니다. 예정일이 6개월 넘게 지났는데 실적이 없으면 지연, 6개월 미만이면 주의, 예정일 내 진행이면 정상입니다. 서류 기준이라 실제 지연인지 입력 지연인지는 확인이 필요합니다.' },
+  { k: '화면', s: '담당자 · 국민', t: '담당자용은 병목·지연·기관을, 국민용은 우리 지역의 현재 단계와 다음 일정을 보여줍니다. 공공 확정·확인 필요 건만 공개합니다.' }
+];
+const JUMPS = [['−12M', 9], ['NOW', 21], ['+6M', 27], ['+12M', 33], ['+24M', 45]];
+
+/* ── 계산 ─────────────────────────────────────── */
+const f = (n) => n.toLocaleString('en-US');
+const r10 = (n) => Math.round(n / 10) * 10;
+const sg = (n) => (n >= 0 ? '+' : '−') + f(Math.abs(n));
+const ml = (m) => (2025 + Math.floor(m / 12)) + '.' + String(m % 12 + 1).padStart(2, '0');
+const kind = (m) => (m === NOW ? '현재' : (m < NOW ? '실적 기준' : '예정 기준'));
+function inv(m) {
+  for (let i = 0; i < AN.length - 1; i++) {
+    const a = AN[i], b = AN[i + 1];
+    if (m >= a[0] && m <= b[0]) { const u = (m - a[0]) / (b[0] - a[0]); return a[1].map((v, k) => v + (b[1][k] - v) * u); }
+  }
+  return AN[AN.length - 1][1];
+}
+function ip(arr, m) {
+  const mm = Math.min(m, NOW);
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (mm >= arr[i][0] && mm <= arr[i + 1][0]) { const u = (mm - arr[i][0]) / (arr[i + 1][0] - arr[i][0]); return arr[i][1] + (arr[i + 1][1] - arr[i][1]) * u; }
+  }
+  return arr[arr.length - 1][1];
+}
+
+/* ── 문구 (칸 높이 예약에도 같은 함수를 씁니다) ───── */
+const RANGE = Array.from({ length: LAST + 1 }, (_, i) => i);
+const txSnap = (cur) => (cur > NOW ? '예정 구간의 판정은 마지막 실적 판정(2026.10) 값을 유지합니다.' : '');
+function txTrend(cur) {
+  const c = Math.min(cur, NOW), p = Math.max(c - 1, 0);
+  return ml(c) + ' 전월 대비 — 지연 ' + sg(r10(ip(AD, c) - ip(AD, p))) + '호 · 주의 ' + sg(r10(ip(AW, c) - ip(AW, p))) + '호';
+}
+function txFut(cur) {
+  const fi = cur - NOW;
+  if (fi >= 0 && fi < 12) return ml(cur) + ' 예정 — ' + FS.map((x) => x[0] + ' ' + f(x[1][fi])).join(' · ') + '호';
+  return cur < NOW
+    ? '지난 시점에는 월별 공급 실적 이력이 아직 적재되지 않았습니다. 월 단위 수집을 시작한 뒤부터 쌓입니다.'
+    : '이 시점은 12개월 예정 범위(2026.10~2027.09) 밖이라 월별 예정 물량이 아직 연계되지 않았습니다.';
+}
+const txRegion = (r) => r.n + ' — 사업 ' + r.tot + '건 · 지연율 ' + (r.d / r.tot * 100).toFixed(1) + '% · ' +
+  (r.big ? '사업 단위 일정·공정·출처까지 연계' : '판정만 연계된 요약 단계 (사업 상세는 확대 대상)');
+
+/* ── 상태·참조 ────────────────────────────────── */
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S = { focus: 1, cursor: NOW, playing: false, region: '서울', fn: 0, tour: !reduce, tick: 0, hl: -1 };
+const $ = (s) => document.querySelector(s);
+const el = {};
+['dirs', 'quote', 'legend', 'chart', 'chartwrap', 'tip', 'play', 'slider', 'jumps', 'tour', 'tourLabel', 'snapMonth', 'snapKind', 'sd', 'sw', 'sok', 'snapNote',
+  'srows', 'trend', 'trendNote', 'stageRisk', 'fmonths', 'futRead', 'mini', 'ags', 'regions', 'regionNote', 'flow', 'flowNote']
+  .forEach((id) => { el[id] = document.getElementById(id); });
+
+const setLive = (node, t) => { node.querySelector('.live').textContent = t; };
+function reserve(node, list) {
+  node.innerHTML = '<span class="live"></span>';
+  Array.from(new Set(list)).sort((a, b) => b.length - a.length).slice(0, 3).forEach((t) => {
+    const sp = document.createElement('span');
+    sp.className = 'sz'; sp.setAttribute('aria-hidden', 'true'); sp.textContent = t;
+    node.appendChild(sp);
+  });
+}
+const press = (nodes, idx) => nodes.forEach((n, i) => n.setAttribute('aria-pressed', String(i === idx)));
+
+/* ── 정적 구성 (한 번만 그림) ──────────────────── */
+reserve(el.quote, DIR.map((d) => d.q));
+reserve(el.snapNote, [txSnap(LAST), 'x']);
+reserve(el.trendNote, RANGE.map(txTrend));
+reserve(el.futRead, RANGE.map(txFut));
+reserve(el.regionNote, REG.map(txRegion));
+reserve(el.flowNote, FL.map((x) => x.t));
+
+const dvHTML = (v) => '<span class="dv" style="color:' + (v >= 0 ? 'var(--ok)' : 'var(--bad)') + '"><span>' + (v >= 0 ? '▲' : '▼') + ' ' + Math.abs(v).toFixed(1) + '%p</span><small>전월 대비</small></span>';
+el.dirs.innerHTML = DIR.map((d, i) => '<button class="dir" data-i="' + i + '" aria-pressed="false"' + (d.dv !== undefined ? ' aria-label="' + d.t + ' ' + d.m + ', 전월 대비 ' + Math.abs(d.dv).toFixed(1) + '%p ' + (d.dv >= 0 ? '상승' : '하락') + '"' : '') + '><span class="d">' + d.date + ' · ' + d.t + '</span><span class="mrow"><span class="m disp">' + d.m + '</span>' + (d.dv !== undefined ? dvHTML(d.dv) : '') + '</span><span class="bar"></span></button>').join('');
+const dirBtns = Array.from(el.dirs.children);
+el.legend.innerHTML = K.map((k, i) => '<button data-hl="' + i + '" aria-pressed="false"><i style="background:' + C[i] + '"></i>' + k + '</button>').join('');
+const legBtns = Array.from(el.legend.children);
+el.jumps.innerHTML = JUMPS.map((j) => '<button data-jump="' + j[1] + '" aria-pressed="false">' + j[0] + '</button>').join('');
+const jumpBtns = Array.from(el.jumps.children);
+el.srows.innerHTML = K.map((k, i) => '<div class="srow"><span class="k"><i style="background:' + C[i] + '"></i>' + CIR[i] + ' ' + k + '</span><span class="v disp"></span><span class="dl"></span></div>').join('');
+const srowV = Array.from(el.srows.querySelectorAll('.v')), srowD = Array.from(el.srows.querySelectorAll('.dl'));
+
+// 단계별 지연·주의 (병목 표시)
+const STGMAX = Math.max(...STG.map((x) => x[0] + x[1])), STGTOP = STG.reduce((b, x, i) => (x[0] > STG[b][0] ? i : b), 0);
+el.stageRisk.innerHTML = STG.map((x, i) =>
+  '<div class="rr"><span style="font-weight:700">' + CIR[i] + ' ' + K[i] + (i === STGTOP ? ' <span class="tag" style="background:#3B1D2B;color:#FFB3C2;font-size:10px;line-height:15px;padding:0 6px">병목</span>' : '') + '</span>' +
+  '<div class="rb"><span style="width:' + (x[0] / STGMAX * 100).toFixed(1) + '%;background:var(--bad)"></span><span style="width:' + (x[1] / STGMAX * 100).toFixed(1) + '%;background:var(--warn)"></span></div>' +
+  '<span class="disp" style="text-align:right;font-size:13px"><span style="color:var(--bad)">' + f(x[0]) + '</span> · <span style="color:var(--warn)">' + f(x[1]) + '</span></span></div>').join('');
+
+// 기관별 (지연은 전체 지연 중 비중)
+el.ags.innerHTML = AG.map((a) => {
+  const t = a[1] + a[2] + a[3];
+  return '<div class="ag"><div class="an"><b>' + a[0] + '</b><span class="sub">' + f(t) + '호</span></div>' +
+    '<div class="bar3" style="height:12px"><span style="width:' + (a[1] / t * 100).toFixed(1) + '%;background:var(--ok)"></span><span style="width:' + (a[2] / t * 100).toFixed(1) + '%;background:var(--warn)"></span><span style="width:' + (a[3] / t * 100).toFixed(1) + '%;background:var(--bad)"></span></div>' +
+    '<div class="ad"><b class="disp" style="color:var(--bad)">' + f(a[3]) + '</b><span class="sub">지연 ' + (a[3] / 100).toFixed(0) + '%</span></div></div>';
+}).join('');
+
+// 공급 예정: 12개월 월별 + 3·6·12개월 합계
+const tot12 = FS[0][1].map((_, m) => FS.reduce((a, x) => a + x[1][m], 0)), mx12 = Math.max(...tot12);
+let fm = '';
+for (let m = 0; m < 12; m++) {
+  let y = 100;
+  for (let i = 3; i >= 0; i--) { const h = FS[i][1][m] / mx12 * 92; y -= h; fm += '<rect x="' + (m * 20 + 1.5) + '" y="' + y.toFixed(1) + '" width="17" height="' + Math.max(h - 0.6, 0.4).toFixed(1) + '" fill="' + FSC[i] + '"/>'; }
+}
+el.fmonths.innerHTML = fm + '<rect id="fmCur" x="0" y="1" width="20" height="99" rx="1" fill="none" stroke="#FFFFFF" stroke-width="2" style="vector-effect:non-scaling-stroke" visibility="hidden"/>';
+const fmCur = $('#fmCur');
+const sumTo = (a, n) => a.slice(0, n).reduce((x, y) => x + y, 0);
+el.mini.innerHTML = '<span class="h" style="text-align:left;color:var(--sub)">구간</span>' + FS.map((x, i) => '<span class="h" style="color:' + FSC[i] + '">' + x[0] + '</span>').join('') +
+  [[3, '3개월'], [6, '6개월'], [12, '12개월']].map((h) => '<span style="font-weight:700">' + h[1] + '</span>' + FS.map((x) => '<span class="r disp" style="font-size:15px">' + f(sumTo(x[1], h[0])) + '</span>').join('')).join('');
+
+// 시도 (바탕색 = 지연율 단계, 6단계 · 구간은 범례에 표시)
+const RTH = [5, 7, 8.5, 10]; // 지연율(%) 경계
+const RCOL = ['#14204F', '#323B80', '#5B3A93', '#8C3A94', '#BE3F7F', '#E0485A'];
+const RLAB = ['0', '~5', '5~7', '7~8.5', '8.5~10', '10+'];
+const rcls = (rate) => (rate === 0 ? 0 : 1 + RTH.filter((t) => rate >= t).length);
+$('#rlegend').innerHTML = '<span style="color:var(--ink2);font-weight:700">지연율(%)</span>' + RCOL.map((c, i) => '<span><i style="background:' + c + '"></i>' + RLAB[i] + '</span>').join('');
+el.regions.innerHTML = REG.map((r) => {
+  const rate = r.d / r.tot * 100;
+  return '<button class="reg" data-region="' + r.n + '" aria-pressed="false" style="--rc:' + RCOL[rcls(rate)] + '" aria-label="' + r.n + ' 지연 ' + r.d + ' 주의 ' + r.w + ' 정상 ' + r.ok + ' 지연율 ' + rate.toFixed(1) + '%"><span class="nm"><span>' + r.n + (r.big ? '<em>상세</em>' : '') + '</span><span class="rt disp">' + rate.toFixed(1) + '%</span></span>' +
+    '<span class="num disp"><span style="color:var(--bad)">' + r.d + '</span><span style="color:var(--warn)">' + r.w + '</span><span style="color:var(--ok)">' + r.ok + '</span></span></button>';
+}).join('');
+const regBtns = Array.from(el.regions.children);
+
+// 데이터 흐름
+el.flow.innerHTML = FL.map((n, i) =>
+  '<button class="fstep" data-fn="' + i + '" aria-pressed="false"><span class="no disp">' + (i + 1) + '</span><span><span class="k">' + n.k + '</span><span class="s">' + n.s + '</span></span></button>' +
+  (i < FL.length - 1 ? '<div class="vc" aria-hidden="true"></div>' : '')).join('');
+const flowBtns = Array.from(el.flow.querySelectorAll('.fstep'));
+
+// 지연·주의 추이 (선·점은 시점에 따라 움직임)
+const tx = (m) => (m * 560 / NOW).toFixed(1), ty = (val) => (190 - val / 20000 * 180).toFixed(1);
+(function buildTrend() {
+  const pts = (arr) => RANGE.slice(0, NOW + 1).map((m) => tx(m) + ',' + ty(ip(arr, m))).join(' ');
+  el.trend.innerHTML = '<line x1="0" y1="55" x2="560" y2="55" stroke="#22305E"/><line x1="0" y1="100" x2="560" y2="100" stroke="#22305E"/><line x1="0" y1="145" x2="560" y2="145" stroke="#22305E"/>' +
+    '<polyline points="' + pts(AW) + '" fill="none" stroke="#FFC24D" stroke-width="2.4"/><polyline points="' + pts(AD) + '" fill="none" stroke="#FF6B88" stroke-width="2.8"/>' +
+    '<line id="tCur" x1="0" y1="6" x2="0" y2="194" stroke="#FF8A65" stroke-width="2"/><circle id="tD" r="4.5" fill="#FF6B88"/><circle id="tW" r="4.5" fill="#FFC24D"/>';
+})();
+
+/* ── 차트 ─────────────────────────────────────── */
+const VW = 960, PX0 = 46, PW = 908, PITCH = PW / (LAST + 1), BW = PITCH - 4, TOP = 14, PH = 350;
+let cols = [], curRect = null, hoverRect = null;
+const barOp = (m, k) => { const b = m === S.cursor ? 1 : (m <= NOW ? 0.92 : 0.62); return (S.hl >= 0 && S.hl !== k) ? b * 0.28 : b; };
+const paintCol = (m) => cols[m].forEach((r, idx) => r.setAttribute('fill-opacity', barOp(m, 5 - idx).toFixed(2)));
+const paintAll = () => cols.forEach((_, m) => paintCol(m));
+function buildChart() {
+  let s = '<defs><pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#0A1030" stroke-width="3.5" stroke-opacity=".55"/></pattern></defs>';
+  [100000, 75000, 50000, 25000, 0].forEach((v) => {
+    const y = TOP + PH * (1 - v / 100000);
+    s += '<line x1="' + PX0 + '" y1="' + y + '" x2="' + (VW - 2) + '" y2="' + y + '" stroke="#22305E"/><text x="' + (PX0 - 6) + '" y="' + (y + 4) + '" fill="#8FA0C8" font-size="11" text-anchor="end">' + (v ? v / 1000 + 'k' : '0') + '</text>';
+  });
+  for (let m = 0; m <= LAST; m++) {
+    const mv = inv(m);
+    let acc = 0;
+    for (let k = 5; k >= 0; k--) {
+      const h = mv[k] / 100000 * PH;
+      s += '<rect data-m="' + m + '" x="' + (PX0 + m * PITCH + 2).toFixed(1) + '" y="' + (TOP + PH - (acc + mv[k]) / 100000 * PH).toFixed(1) + '" width="' + BW.toFixed(1) + '" height="' + Math.max(h - 0.8, 0.4).toFixed(1) + '" fill="' + C[k] + '"/>';
+      acc += mv[k];
+    }
+  }
+  const nowX = PX0 + (NOW + 1) * PITCH;
+  s += '<rect x="' + nowX.toFixed(1) + '" y="' + TOP + '" width="' + (PX0 + PW - nowX).toFixed(1) + '" height="' + PH + '" fill="url(#hatch)" pointer-events="none"/>';
+  s += '<line x1="' + nowX.toFixed(1) + '" y1="8" x2="' + nowX.toFixed(1) + '" y2="' + (TOP + PH + 2) + '" stroke="#E8EDFF" stroke-width="1.4" stroke-dasharray="5 4" pointer-events="none"/>';
+  s += '<text x="' + nowX.toFixed(1) + '" y="388" fill="#E8EDFF" font-size="12" text-anchor="middle">기준일 2026.10</text>';
+  [0, 6, 12, 18, 30, 36, 42].forEach((m) => { s += '<text x="' + (PX0 + m * PITCH + PITCH / 2).toFixed(1) + '" y="388" fill="#8FA0C8" font-size="11" text-anchor="middle">' + ml(m) + '</text>'; });
+  s += '<rect id="hoverCol" x="0" y="' + (TOP - 4) + '" width="' + PITCH.toFixed(1) + '" height="' + (PH + 8) + '" fill="#FFFFFF" fill-opacity=".10" visibility="hidden" pointer-events="none"/>';
+  s += '<rect id="curRect" x="0" y="' + (TOP - 4) + '" width="' + PITCH.toFixed(1) + '" height="' + (PH + 8) + '" rx="3" fill="none" stroke="#FFFFFF" stroke-width="2.4" pointer-events="none"/>';
+  el.chart.innerHTML = s;
+  cols = RANGE.map((m) => Array.from(el.chart.querySelectorAll('rect[data-m="' + m + '"]')));
+  curRect = $('#curRect'); hoverRect = $('#hoverCol');
+}
+const moveCursorRect = () => curRect.setAttribute('x', (PX0 + S.cursor * PITCH).toFixed(1));
+
+function monthAt(clientX) {
+  const r = el.chart.getBoundingClientRect();
+  const m = Math.floor(((clientX - r.left) * (VW / r.width) - PX0) / PITCH);
+  return (m < 0 || m > LAST) ? -1 : m;
+}
+function tipHTML(m) {
+  const v = inv(m);
+  let h = '<div class="tl"><b class="disp" style="font-size:16px">' + ml(m) + '</b><span class="tag" style="background:' + (m <= NOW ? 'var(--ink)' : 'var(--acc)') + ';color:' + (m <= NOW ? 'var(--bg)' : 'var(--acc-ink)') + '">' + kind(m) + '</span></div>';
+  h += K.map((k, i) => '<div class="tr"><span><i style="background:' + C[i] + '"></i>' + CIR[i] + ' ' + k + '</span><b class="disp">' + f(r10(v[i])) + '</b></div>').join('');
+  if (m <= NOW) h += '<div class="tr" style="margin-top:3px;padding-top:3px;border-top:1px solid var(--line)"><span style="color:var(--bad)">지연</span><b class="disp">' + f(r10(ip(AD, m))) + '</b></div><div class="tr"><span style="color:var(--warn)">주의</span><b class="disp">' + f(r10(ip(AW, m))) + '</b></div>';
+  return h;
+}
+function showTip(m, e) {
+  const wr = el.chartwrap.getBoundingClientRect();
+  hoverRect.setAttribute('x', (PX0 + m * PITCH).toFixed(1)); hoverRect.setAttribute('visibility', 'visible');
+  el.tip.innerHTML = tipHTML(m); el.tip.hidden = false;
+  const tw = el.tip.offsetWidth, th = el.tip.offsetHeight;
+  let x = e.clientX - wr.left + 14, y = e.clientY - wr.top + 14;
+  if (x + tw > wr.width - 6) x = e.clientX - wr.left - tw - 14;
+  if (y + th > wr.height - 6) y = wr.height - th - 6;
+  el.tip.style.left = Math.max(x, 6) + 'px'; el.tip.style.top = Math.max(y, 6) + 'px';
+}
+function hideTip() { el.tip.hidden = true; hoverRect.setAttribute('visibility', 'hidden'); }
+
+/* ── 갱신 (속성·글자만 바꿈) ───────────────────── */
+function renderSnap() {
+  const cur = S.cursor, v = inv(cur), nv = inv(NOW), past = cur <= NOW;
+  el.snapMonth.textContent = ml(cur);
+  el.snapKind.textContent = kind(cur);
+  el.snapKind.style.background = past ? 'var(--ink)' : 'var(--acc)';
+  el.snapKind.style.color = past ? 'var(--bg)' : 'var(--acc-ink)';
+  const d = r10(ip(AD, cur)), w = r10(ip(AW, cur));
+  el.sd.innerHTML = f(d) + '<small>호</small>'; el.sw.innerHTML = f(w) + '<small>호</small>'; el.sok.innerHTML = f(100000 - d - w) + '<small>호</small>';
+  setLive(el.snapNote, txSnap(cur));
+  K.forEach((k, i) => {
+    const dlt = r10(v[i] - nv[i]);
+    srowV[i].textContent = f(r10(v[i]));
+    srowD[i].textContent = dlt === 0 ? '현재' : sg(dlt);
+    srowD[i].style.color = dlt === 0 ? 'var(--mute)' : (dlt > 0 ? '#7FE3B8' : '#FFB86B');
+  });
+}
+function renderTrend() {
+  const c = Math.min(S.cursor, NOW), x = tx(c);
+  $('#tCur').setAttribute('x1', x); $('#tCur').setAttribute('x2', x);
+  $('#tD').setAttribute('cx', x); $('#tD').setAttribute('cy', ty(ip(AD, c)));
+  $('#tW').setAttribute('cx', x); $('#tW').setAttribute('cy', ty(ip(AW, c)));
+  setLive(el.trendNote, txTrend(S.cursor));
+}
+function renderFut() {
+  const fi = S.cursor - NOW, has = fi >= 0 && fi < 12;
+  fmCur.setAttribute('visibility', has ? 'visible' : 'hidden');
+  if (has) fmCur.setAttribute('x', String(fi * 20 + 0.5));
+  setLive(el.futRead, txFut(S.cursor));
+}
+function renderCtrl() {
+  el.slider.value = S.cursor;
+  el.slider.setAttribute('aria-valuetext', ml(S.cursor) + ' ' + kind(S.cursor));
+  el.play.innerHTML = S.playing
+    ? '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="4" y="3" width="4" height="14" fill="#2A0E04"/><rect x="12" y="3" width="4" height="14" fill="#2A0E04"/></svg>'
+    : '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 3 L17 10 L5 17 Z" fill="#2A0E04"/></svg>';
+  el.play.setAttribute('aria-label', S.playing ? '일시정지' : '재생');
+  jumpBtns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-jump')) === S.cursor)));
+  el.tour.setAttribute('aria-pressed', String(S.tour));
+  el.tourLabel.textContent = S.tour ? '켜짐' : '꺼짐';
+}
+function tickBar() {
+  dirBtns.forEach((b, i) => { b.querySelector('.bar').style.width = (i === S.focus - 1 && S.tour) ? (((S.tick % 7) + 1) / 7 * 100).toFixed(0) + '%' : '0'; });
+}
+function renderDirs() {
+  press(dirBtns, S.focus - 1);
+  setLive(el.quote, DIR[S.focus - 1].q);
+  const on = DIR[S.focus - 1].p;
+  document.querySelectorAll('.ringable').forEach((n) => n.classList.toggle('ring', on.indexOf(n.id) >= 0));
+  tickBar();
+}
+function renderRegion() {
+  press(regBtns, REG.findIndex((r) => r.n === S.region));
+  setLive(el.regionNote, txRegion(REG.find((r) => r.n === S.region)));
+}
+function renderFlow() { press(flowBtns, S.fn); setLive(el.flowNote, FL[S.fn].t); }
+function renderCursor(prev) {
+  if (prev !== undefined && prev !== S.cursor) paintCol(prev);
+  paintCol(S.cursor); moveCursorRect();
+  renderSnap(); renderTrend(); renderFut(); renderCtrl();
+}
+
+/* ── 동작 ─────────────────────────────────────── */
+function goto(m, keepPlay) {
+  const prev = S.cursor;
+  S.cursor = Math.max(0, Math.min(LAST, m));
+  if (!keepPlay) S.playing = false;
+  renderCursor(prev);
+}
+el.chartwrap.addEventListener('pointermove', (e) => { const m = monthAt(e.clientX); if (m < 0) hideTip(); else showTip(m, e); });
+el.chartwrap.addEventListener('pointerleave', hideTip);
+el.chartwrap.addEventListener('click', (e) => { const m = monthAt(e.clientX); if (m >= 0) goto(m); });
+el.slider.addEventListener('input', () => goto(Number(el.slider.value)));
+el.play.addEventListener('click', () => {
+  if (!S.playing && S.cursor >= LAST) { const p = S.cursor; S.cursor = 0; S.playing = true; renderCursor(p); } else { S.playing = !S.playing; renderCtrl(); }
+});
+el.tour.addEventListener('click', () => { S.tour = !S.tour; renderCtrl(); tickBar(); });
+el.jumps.addEventListener('click', (e) => { const b = e.target.closest('[data-jump]'); if (b) goto(Number(b.getAttribute('data-jump'))); });
+el.dirs.addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; S.focus = Number(b.getAttribute('data-i')) + 1; S.tour = false; renderCtrl(); renderDirs(); });
+el.legend.addEventListener('click', (e) => { const b = e.target.closest('[data-hl]'); if (!b) return; const k = Number(b.getAttribute('data-hl')); S.hl = S.hl === k ? -1 : k; press(legBtns, S.hl); paintAll(); });
+el.regions.addEventListener('click', (e) => { const b = e.target.closest('[data-region]'); if (b) { S.region = b.getAttribute('data-region'); renderRegion(); } });
+el.flow.addEventListener('click', (e) => { const b = e.target.closest('[data-fn]'); if (b) { S.fn = Number(b.getAttribute('data-fn')); renderFlow(); } });
+
+setInterval(() => {
+  if (!S.playing) return;
+  if (S.cursor >= LAST) { S.playing = false; renderCtrl(); return; }
+  goto(S.cursor + 1, true);
+}, 420);
+setInterval(() => {
+  S.tick += 1;
+  if (S.tour && S.tick % 7 === 0) { S.focus = (S.focus % 6) + 1; renderDirs(); } else if (S.tour) tickBar();
+}, 1000);
+
+buildChart(); paintAll(); moveCursorRect();
+press(legBtns, S.hl);
+renderDirs(); renderCursor(); renderRegion(); renderFlow();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <template id="s1-hook-template">
+      <style>
+      @font-face { font-family: "Gothic A1"; font-weight: 400; src: url("assets/fonts/gothic-a1-400.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 600; src: url("assets/fonts/gothic-a1-600.woff2") format("woff2"); }
+      @font-face { font-family: "Gothic A1"; font-weight: 800; src: url("assets/fonts/gothic-a1-800.woff2") format("woff2"); }
+        #s1-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          color: #eaf2ff;
+          font-family: "Gothic A1", sans-serif;
+          word-break: keep-all;
+        }
+        #s1-root .eyebrow {
+          position: absolute;
+          left: 128px;
+          top: 92px;
+          display: flex;
+          gap: 20px;
+          align-items: baseline;
+          opacity: 0;
+        }
+        #s1-root .m {
+          font-family: "Space Mono", monospace;
+          font-size: 28px;
+          color: #ffc247;
+          letter-spacing: 3px;
+        }
+        #s1-root .t {
+          font-size: 28px;
+          font-weight: 600;
+          color: #bbd3f3;
+        }
+        #s1-root .head {
+          position: absolute;
+          left: 128px;
+          top: 214px;
+          width: 1664px;
+        }
+        #s1-root .hl {
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          white-space: nowrap;
+        }
+        #s1-root .l1 {
+          font-size: 168px;
+          line-height: 1.14;
+        }
+        #s1-root .l2 {
+          font-size: 140px;
+          line-height: 1.14;
+        }
+        #s1-root .w + .w {
+          margin-left: 0.26em;
+        }
+        #s1-root .w {
+          display: inline-block;
+          position: relative;
+          opacity: 0;
+        }
+        #s1-root .gold {
+          color: #ffc247;
+        }
+        #s1-root .ul {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 4px;
+          height: 9px;
+          background: #ffc247;
+          transform-origin: left center;
+          transform: scaleX(0);
+          display: block;
+        }
+        #s1-root .dim {
+          position: absolute;
+          left: 128px;
+          top: 716px;
+          width: 1415px;
+          height: 2px;
+          background: rgba(187, 211, 243, 0.55);
+          transform-origin: left center;
+          transform: scaleX(0);
+        }
+        #s1-root .dimtick {
+          position: absolute;
+          top: 704px;
+          width: 2px;
+          height: 26px;
+          background: rgba(187, 211, 243, 0.8);
+          opacity: 0;
+        }
+        #s1-root .dimlbl {
+          position: absolute;
+          left: 128px;
+          top: 676px;
+          font-family: "Space Mono", monospace;
+          font-size: 24px;
+          letter-spacing: 3px;
+          color: #bbd3f3;
+          opacity: 0;
+        }
+        #s1-root .track {
+          position: absolute;
+          left: 128px;
+          top: 790px;
+          width: 1664px;
+          height: 220px;
+        }
+        #s1-root .base,
+        #s1-root .fill {
+          position: absolute;
+          left: 14px;
+          top: 12px;
+          width: 1387px;
+          height: 4px;
+          transform-origin: left center;
+          transform: scaleX(0);
+        }
+        #s1-root .base {
+          background: rgba(187, 211, 243, 0.45);
+        }
+        #s1-root .fill {
+          background: #ffc247;
+        }
+        #s1-root .stage {
+          position: absolute;
+          top: 0;
+          width: 260px;
+          height: 200px;
+          opacity: 0;
+        }
+        #s1-root .node {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 4px solid #bbd3f3;
+          background: #0b2b5a;
+          display: block;
+        }
+        #s1-root .ring {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 3px solid #ffc247;
+          opacity: 0;
+          display: block;
+        }
+        #s1-root .no {
+          position: absolute;
+          left: 0;
+          top: 52px;
+          font-family: "Space Mono", monospace;
+          font-size: 30px;
+          font-weight: 700;
+          color: #ffc247;
+          letter-spacing: 3px;
+        }
+        #s1-root .nm {
+          position: absolute;
+          left: 0;
+          top: 92px;
+          font-size: 56px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          color: #bbd3f3;
+          white-space: nowrap;
+        }
+        #s1-root .cross {
+          position: absolute;
+          left: 1640px;
+          top: 120px;
+          width: 120px;
+          height: 120px;
+          opacity: 0;
+        }
+      </style>
+
+      <div data-hf-id="hf-y3n5" id="s1-root" data-composition-id="s1-hook" data-width="1920" data-height="1080" data-duration="3.75">
+        <div data-hf-id="hf-2prx" id="s1-content">
+          <div data-hf-id="hf-5ynd" class="eyebrow" id="s1-eyebrow">
+            <span data-hf-id="hf-i4wv" class="m">SHEET 01 / 04</span>
+            <span data-hf-id="hf-1xdu" class="t">「주택파동」 · 주택공급 디지털 상황판 PoC</span>
+          </div>
+
+          <svg data-hf-id="hf-dywi" class="cross" id="s1-cross" viewBox="0 0 120 120" aria-hidden="true">
+            <circle data-hf-id="hf-jrdy" cx="60" cy="60" r="38" fill="none" stroke="#bbd3f3" stroke-width="3" />
+            <path data-hf-id="hf-m9l7" d="M60 4 V116 M4 60 H116" fill="none" stroke="#bbd3f3" stroke-width="3" />
+            <circle data-hf-id="hf-a26e" cx="60" cy="60" r="7" fill="#ffc247" />
+          </svg>
+
+          <div data-hf-id="hf-z992" class="head">
+            <h1 data-hf-id="hf-qw2z" class="hl l1">
+              <span data-hf-id="hf-tzlt" class="w" id="s1-w1">정책에서</span><span data-hf-id="hf-798j" class="w" id="s1-w2">입주까지,</span>
+            </h1>
+            <h1 data-hf-id="hf-g0lc" class="hl l2">
+              <span data-hf-id="hf-1cgg" class="w" id="s1-w3">주택공급은</span><span data-hf-id="hf-e652" class="w" id="s1-w4">지금</span><span data-hf-id="hf-p010" class="w gold" id="s1-w5">어디쯤?<i data-hf-id="hf-wtjd" class="ul" id="s1-ul"></i></span>
+            </h1>
+          </div>
+
+          <div data-hf-id="hf-squ2" class="dimlbl" id="s1-dimlbl">STAGE 01 → 06</div>
+          <i data-hf-id="hf-cybw" class="dimtick" id="s1-dt0" style="left: 128px"></i>
+          <i data-hf-id="hf-akk1" class="dimtick" id="s1-dt1" style="left: 1541px"></i>
+          <div data-hf-id="hf-odtp" class="dim" id="s1-dim"></div>
+
+          <div data-hf-id="hf-heah" class="track" id="s1-track">
+            <div data-hf-id="hf-gkhx" class="base" id="s1-base"></div>
+            <div data-hf-id="hf-zhc1" class="fill" id="s1-fill"></div>
+            <div data-hf-id="hf-2kif" class="stage" id="s1-st0" style="left: 0px">
+              <i data-hf-id="hf-bkkl" class="node" id="s1-n0"></i><i data-hf-id="hf-v3dj" class="ring" id="s1-r0"></i>
+              <b data-hf-id="hf-syoj" class="no">01</b><span data-hf-id="hf-1dr0" class="nm">정책</span>
+            </div>
+            <div data-hf-id="hf-4lc0" class="stage" id="s1-st1" style="left: 277.4px">
+              <i data-hf-id="hf-asws" class="node" id="s1-n1"></i><i data-hf-id="hf-r59i" class="ring" id="s1-r1"></i>
+              <b data-hf-id="hf-skdi" class="no">02</b><span data-hf-id="hf-gk7b" class="nm">사업화</span>
+            </div>
+            <div data-hf-id="hf-ohx1" class="stage" id="s1-st2" style="left: 554.8px">
+              <i data-hf-id="hf-loef" class="node" id="s1-n2"></i><i data-hf-id="hf-n75h" class="ring" id="s1-r2"></i>
+              <b data-hf-id="hf-s62h" class="no">03</b><span data-hf-id="hf-8x8q" class="nm">인허가</span>
+            </div>
+            <div data-hf-id="hf-gk57" class="stage" id="s1-st3" style="left: 832.2px">
+              <i data-hf-id="hf-fiom" class="node" id="s1-n3"></i><i data-hf-id="hf-mfho" class="ring" id="s1-r3"></i>
+              <b data-hf-id="hf-rrrg" class="no">04</b><span data-hf-id="hf-yeem" class="nm">건설</span>
+            </div>
+            <div data-hf-id="hf-sroy" class="stage" id="s1-st4" style="left: 1109.6px">
+              <i data-hf-id="hf-qe69" class="node" id="s1-n4"></i><i data-hf-id="hf-9wz7" class="ring" id="s1-r4"></i>
+              <b data-hf-id="hf-rdgf" class="no">05</b><span data-hf-id="hf-6mtk" class="nm">공급</span>
+            </div>
+            <div data-hf-id="hf-9ayd" class="stage" id="s1-st5" style="left: 1387px">
+              <i data-hf-id="hf-pmig" class="node" id="s1-n5"></i><i data-hf-id="hf-5yv6" class="ring" id="s1-r5"></i>
+              <b data-hf-id="hf-qz5e" class="no">06</b><span data-hf-id="hf-fzzb" class="nm">입주</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          const BEAT = 60 / 128; // 0.46875 s — BGM과 같은 박자표
+
+          // 웨터폴 도착: 아래에서 한 방향으로 휙, 불투명도는 이진(0→1)
+          const wf = (sel, t, dy, dur) => {
+            tl.set(sel, { opacity: 1 }, t);
+            tl.fromTo(sel, { y: dy }, { y: 0, duration: dur, ease: "power4.out", immediateRender: false }, t);
+          };
+
+          tl.fromTo("#s1-eyebrow", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 0.05);
+          tl.fromTo("#s1-cross", { opacity: 0, rotation: -40 }, { opacity: 0.85, rotation: 0, duration: 0.6, ease: "power3.out" }, 0.1);
+          tl.fromTo("#s1-cross", { rotation: 0 }, { rotation: 60, duration: 3.05, ease: "none", immediateRender: false }, 0.7);
+
+          // 제목 두 줄 (1박에 첫 줄, 2박에 둘째 줄)
+          wf("#s1-w1", 0.1, 90, 0.2);
+          wf("#s1-w2", 0.24, 80, 0.18);
+          wf("#s1-w3", BEAT + 0.02, 80, 0.18);
+          wf("#s1-w4", BEAT + 0.14, 64, 0.16);
+          wf("#s1-w5", BEAT + 0.26, 90, 0.2);
+          tl.fromTo("#s1-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, BEAT + 0.6);
+
+          // 치수선과 단계 트랙
+          tl.fromTo("#s1-dim", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power3.out" }, 0.55);
+          tl.set(["#s1-dt0", "#s1-dt1", "#s1-dimlbl"], { opacity: 1 }, 0.62);
+          tl.fromTo("#s1-dimlbl", { y: 10 }, { y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, 0.62);
+          tl.fromTo("#s1-base", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power2.out" }, 0.65);
+          tl.fromTo(".stage", { opacity: 0 }, { opacity: 0.7, duration: 0.3, ease: "power1.out", stagger: 0.04 }, 0.7);
+
+          // 6단계 칩: 1마디 3박(=2박 뒤)부터 박마다 하나씩 — BGM 핑과 같은 시각
+          for (let k = 0; k < 6; k++) {
+            const T = BEAT * (2 + k);
+            tl.fromTo(`#s1-n${k}`, { scale: 0.55, backgroundColor: "#0b2b5a", borderColor: "#bbd3f3" },
+              { scale: 1, backgroundColor: "#ffc247", borderColor: "#ffc247", duration: 0.34, ease: "power3.out" }, T);
+            tl.fromTo(`#s1-r${k}`, { scale: 1, opacity: 0.9 }, { scale: 2.4, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, T);
+            tl.to(`#s1-st${k} .nm`, { color: "#eaf2ff", duration: 0.2, ease: "power1.out" }, T);
+            tl.to(`#s1-st${k}`, { opacity: 1, duration: 0.2, ease: "power1.out" }, T);
+            if (k > 0) tl.to("#s1-fill", { scaleX: k / 5, duration: BEAT * 0.85, ease: "power2.inOut" }, T - BEAT * 0.85);
+          }
+
+          // 박(마디 끝) 직전 퇴장
+          tl.to("#s1-content", { x: -70, opacity: 0, duration: 0.28, ease: "power3.in" }, 3.75 - 0.3);
+
+          window.__timelines["s1-hook"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
