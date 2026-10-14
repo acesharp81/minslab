@@ -2088,6 +2088,11 @@ function renderMeetingBrief(item, record) {
       topic_ids: [String(topic.id)],
       topic_count: 1,
     }));
+  const openTasks = (brief.tasks || []).filter((task) => task.status !== "RESOLVED");
+  const documentTaskGroup = (brief.follow_up_task_groups || []).find(
+    (group) => group.kind === "DOCUMENT_SUBMISSION" && group.task_count > 1,
+  );
+  const groupedTaskIds = new Set(documentTaskGroup?.task_ids || []);
   stage.replaceChildren();
   const root = magazineElement("section", "meeting-brief-view", "");
   const hero = magazineElement("header", "meeting-brief-hero", "");
@@ -2148,7 +2153,7 @@ function renderMeetingBrief(item, record) {
   const metrics = magazineElement("dl", "meeting-brief-metrics", "");
   for (const [label, value] of [
     ["대상 주제", topicGroups.length],
-    ["도출 과제", brief.tasks?.filter((task) => task.status !== "RESOLVED").length || 0],
+    ["도출 과제", openTasks.length - groupedTaskIds.size + (documentTaskGroup ? 1 : 0)],
     ["근거 발언", brief.utterance_count || item.utterance_count || 0],
   ]) {
     const metric = document.createElement("div");
@@ -2216,16 +2221,35 @@ function renderMeetingBrief(item, record) {
 
   const sourceView = magazineElement("div", "meeting-source-view", "");
   sourceView.id = "meetingBriefSourceView";
-  const openTasks = (brief.tasks || []).filter((task) => task.status !== "RESOLVED");
-
   const topicTaskOverview = magazineElement("section", "meeting-topic-task-overview", "");
   const overviewHead = magazineElement("header", "", "");
   overviewHead.append(
     magazineElement("strong", "", "대상 주제"),
     magazineElement("strong", "", "도출 과제"),
   );
+  if (documentTaskGroup) {
+    const documentTasks = openTasks.filter((task) => groupedTaskIds.has(task.id));
+    const details = magazineElement("details", "meeting-document-task-group", "");
+    details.append(magazineElement(
+      "summary", "",
+      `공통 과제 · 자료 제출 요구 (${documentTasks.length.toLocaleString("ko-KR")}건)`,
+    ));
+    const list = magazineElement("div", "meeting-document-task-list", "");
+    for (const task of documentTasks) {
+      const button = meetingEvidenceButton(item, "task", task.id, "", task.title);
+      button.classList.add("meeting-topic-task-button");
+      button.append(
+        officialTextElement("strong", "", task.title, task, "title"),
+        meetingTaskOwnerTags(task),
+      );
+      list.append(button);
+    }
+    details.append(list);
+    topicTaskOverview.append(details);
+  }
   const topicTaskOverviewList = magazineElement("div", "meeting-topic-task-overview-list", "");
-  topicTaskOverview.append(overviewHead, topicTaskOverviewList);
+  topicTaskOverview.prepend(overviewHead);
+  topicTaskOverview.append(topicTaskOverviewList);
   const linkedTaskIds = new Set();
   for (const group of topicGroups) {
     const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
@@ -2246,9 +2270,13 @@ function renderMeetingBrief(item, record) {
     const groupTopicTitles = new Set(
       group.topic_ids.map((topicId) => topicById.get(topicId)?.title).filter(Boolean),
     );
-    const linkedTasks = openTasks.filter((task) => (
+    const matchesGroup = (task) => (
       task.topic_id ? groupTopicIds.has(String(task.topic_id)) : groupTopicTitles.has(task.topic_title)
-    ));
+    );
+    const linkedTasks = openTasks.filter((task) => !groupedTaskIds.has(task.id) && matchesGroup(task));
+    const groupedHere = documentTaskGroup
+      ? openTasks.filter((task) => groupedTaskIds.has(task.id) && matchesGroup(task)).length
+      : 0;
     for (const task of linkedTasks) linkedTaskIds.add(task.id);
     for (const task of linkedTasks.slice(0, 1)) {
       const taskButton = meetingEvidenceButton(item, "task", task.id, "", task.title);
@@ -2268,12 +2296,17 @@ function renderMeetingBrief(item, record) {
       taskCell.append(taskButton);
     }
     if (!linkedTasks.length) {
-      taskCell.append(magazineElement("span", "meeting-topic-no-task", "이 주제에서 확인된 도출 과제가 없습니다."));
+      taskCell.append(magazineElement(
+        "span", "meeting-topic-no-task",
+        groupedHere
+          ? `공통 과제 ‘자료 제출 요구’에 포함 · ${groupedHere.toLocaleString("ko-KR")}건`
+          : "이 주제에서 확인된 도출 과제가 없습니다.",
+      ));
     }
     overviewRow.append(topicButton, taskCell);
     topicTaskOverviewList.append(overviewRow);
   }
-  const unlinkedTasks = openTasks.filter((task) => !linkedTaskIds.has(task.id));
+  const unlinkedTasks = openTasks.filter((task) => !groupedTaskIds.has(task.id) && !linkedTaskIds.has(task.id));
   for (const task of unlinkedTasks) {
     const overviewRow = magazineElement("article", "meeting-topic-task-row", "");
     overviewRow.append(magazineElement("div", "meeting-topic-unlinked", "주제 연결 확인 필요"));

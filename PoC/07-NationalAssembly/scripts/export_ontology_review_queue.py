@@ -14,6 +14,7 @@ from app.db.live_repository import LiveRepository
 from app.db.meeting_brief_repository import MeetingBriefRepository
 from app.db.official_integration_repository import OfficialIntegrationRepository
 from app.services.meeting_topic_groups import attach_meeting_topic_groups
+from app.services.meeting_brief import link_tasks_to_topics
 from app.services.ontology_sources import select_current_ontology_brief
 
 
@@ -41,7 +42,7 @@ def export() -> int:
             brief, source = select_current_ontology_brief(
                 item, integration, document_id,
             )
-            grouped = attach_meeting_topic_groups(brief)
+            grouped = attach_meeting_topic_groups(link_tasks_to_topics(brief))
             topics = {str(topic.get("id")): topic
                       for topic in grouped.get("topics") or []}
             title = connection.execute(

@@ -1903,7 +1903,21 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
     ]
     if not tasks:
         lines.append("- 확인된 미해결 과제가 없습니다.")
+    document_group = next((
+        group for group in brief.get("follow_up_task_groups") or []
+        if group.get("kind") == "DOCUMENT_SUBMISSION"
+    ), None)
+    grouped_task_ids = set(document_group.get("task_ids") or []) if document_group else set()
+    if document_group:
+        lines.append(f"- 자료 제출 요구 ({len(grouped_task_ids)}건)")
+        for task in tasks:
+            if str(task.get("id")) not in grouped_task_ids:
+                continue
+            ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
+            lines.append(f"  - {task.get('title') or '제출 대상 확인 필요'} ({ministries})")
     for task in tasks:
+        if str(task.get("id")) in grouped_task_ids:
+            continue
         ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
         lines.append(f"- {task.get('title') or '과제'} ({ministries})")
     lines.extend(("", "## 공식자료 반영", ""))

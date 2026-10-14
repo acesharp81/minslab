@@ -74,6 +74,8 @@ Dots 3 Note 무료 endpoint는 OpenRouter에서 2026-09-30 종료를 예고했�
 
 미연결 화자와 온톨로지 보류 항목은 `scripts/export_speaker_review_queue.py`, `scripts/export_ontology_review_queue.py`로 읽기 전용 CSV를 다시 만들 수 있습니다. 실행 중 컨테이너에 각각 `sudo docker exec -i poc07-national-assembly-official-minutes-worker python - < scripts/export_speaker_review_queue.py > /tmp/speaker-review.csv`, `sudo docker exec -i poc07-national-assembly-api python - < scripts/export_ontology_review_queue.py > /tmp/ontology-review.csv`를 사용합니다. 공식 문서 ID, 현재 보고서 ID, 근거 발언 ID를 확인한 뒤 검토하며 이름이나 정책 주제는 빈 칸을 추정으로 채우지 않습니다.
 
+2026-10-14 온톨로지 1.11 적용 시 공개 보고서 40건의 정책 주제 891개 중 859개가 분류됐고 무결성 오류는 0건입니다. 남은 보류 32건은 공식 원문 미발행 21건, 안전한 정책 대상 부재 6건, 공식 발언 연결 부재 2건, 공식 원문만 연결되고 요약 대조가 지연된 3건입니다. 분류 보류와 실시간 주제 계보의 미연결은 다른 지표이므로 서로 합산하지 않습니다. 자료 제출 요구 묶음은 원본 과제·근거를 보존한 공개 읽기 모델이며 별도 마이그레이션이나 LLM 호출은 없습니다.
+
 기존 복수 화자 자막의 조각별 매칭은 새 이미지와 마이그레이션 적용 후 `python -m app.ingestion.backfill_official_part_matches --all-ready`로 미리 계산하고, 결과 확인 뒤 `--apply`를 붙여 한 번 저장합니다. 외부 API·LLM 호출은 없습니다. 새 공식 문서 통합은 전용 워커가 같은 조각별 관계를 한 번 저장합니다.
 검토자가 확인한 예외는 `official_speaker_review_decisions`에 브리프·공식 문서·요지 ID, LIVE 원문 SHA-256, 공식 발언 ID, 검토자와 사유를 함께 저장해야 합니다. 현재 문서와 원문 해시가 달라지면 이전 검토 보정은 자동으로 적용되지 않습니다.
 

@@ -185,6 +185,31 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn(".meeting-evidence-panel", styles)
         self.assertIn("position: sticky", styles)
 
+    def test_markdown_keeps_document_requests_under_one_task(self):
+        from app.main import _meeting_brief_markdown
+
+        record = {"brief": {
+            "headline": "회의 결과",
+            "topics": [{
+                "id": "topic-1", "title": "자료 요청", "summary": "자료 요청 논의",
+                "evidence_ids": ["evidence-1"],
+            }],
+            "tasks": [
+                {"id": "task-1", "title": "예산 자료 제출", "status": "OPEN",
+                 "topic_id": "topic-1", "ministries": ["기획예산처"],
+                 "evidence_ids": ["evidence-1"]},
+                {"id": "task-2", "title": "인사 현황 제출", "status": "OPEN",
+                 "topic_id": "topic-1", "ministries": ["행정안전부"],
+                 "evidence_ids": ["evidence-1"]},
+            ],
+        }}
+
+        markdown = _meeting_brief_markdown(record)
+
+        self.assertIn("\n- 자료 제출 요구 (2건)\n", markdown)
+        self.assertIn("\n  - 예산 자료 제출 (기획예산처)\n", markdown)
+        self.assertIn("\n  - 인사 현황 제출 (행정안전부)\n", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()

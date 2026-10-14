@@ -923,6 +923,51 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
     topics = [item for item in result.get("topics", []) if isinstance(item, dict)]
     if not topics:
         return result
+    # An old stored report can contain duplicate topic IDs. Keep the ID used
+    # by a matching LIVE lineage reference and give the other topic a new ID.
+    # The stored report stays untouched; task links are recomputed below.
+    duplicate_ids = {
+        str(topic.get("id")) for topic in topics
+        if topic.get("id") and sum(
+            str(other.get("id")) == str(topic.get("id")) for other in topics
+        ) > 1
+    }
+    lineage = result.get("live_topic_lineage") or {}
+    clusters = lineage.get("clusters") or [] if isinstance(lineage, dict) else []
+    used_ids = {str(topic.get("id")) for topic in topics if topic.get("id")}
+    next_id = len(topics) + 1
+    for duplicate_id in sorted(duplicate_ids):
+        copies = [topic for topic in topics if str(topic.get("id")) == duplicate_id]
+        references = [
+            cluster for cluster in clusters
+            if isinstance(cluster, dict)
+            and duplicate_id in [str(value) for value in cluster.get("final_topic_ids") or []]
+        ]
+        keeper = copies[0]
+        if references:
+            winners: list[dict[str, Any]] = []
+            for ref in references:
+                scores = [
+                    len(_topic_tokens(topic.get("title")) & _topic_tokens(ref.get("title")))
+                    for topic in copies
+                ]
+                best = max(scores)
+                if best < 2 or scores.count(best) != 1:
+                    break
+                winners.append(copies[scores.index(best)])
+            if len(winners) != len(references) or any(
+                winner is not winners[0] for winner in winners
+            ):
+                continue
+            keeper = winners[0]
+        for topic in copies:
+            if topic is keeper:
+                continue
+            while f"topic-{next_id}" in used_ids:
+                next_id += 1
+            topic["id"] = f"topic-{next_id}"
+            used_ids.add(topic["id"])
+            next_id += 1
     for task in result.get("tasks", []):
         if not isinstance(task, dict):
             continue

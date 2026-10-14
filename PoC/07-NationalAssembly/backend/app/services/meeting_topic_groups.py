@@ -7,9 +7,11 @@ from math import ceil
 from typing import Any
 
 from .official_brief_integration import semantic_tokens
+from .meeting_task_groups import group_document_submission_tasks
+from .meeting_brief import link_tasks_to_topics
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.10"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.11"
 GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT"
 
 
@@ -24,6 +26,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "518민주화", "부마항쟁", "민주화운동",
             "정당해산", "해산제소", "민주적기본질서", "내란청산",
             "국민의힘해산", "헌법소원", "표현의자유",
+            "헌법재판관지명", "탄핵심판",
         ),
     ),
     (
@@ -34,7 +37,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "중대범죄수사청", "중수청",
             "특별사법경찰", "특사경", "제주청장", "경찰청장사망사건",
             "경무관경찰서", "경찰내부감독", "치안혼란",
-            "경찰의내부감독",
+            "경찰의내부감독", "전기충격기", "테이저건",
         ),
     ),
     (
@@ -51,7 +54,8 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "공소취소", "공소취소특검법", "정치적수사", "허위자료",
             "허위서류", "협동수사", "공소기각", "경제법형사처벌",
             "경제법의형사처벌", "수사에서의인권보장", "수사인권보장",
-            "수사준칙", "불송치",
+            "수사준칙", "불송치", "별건수사", "먼지털이수사",
+            "정치인수사",
         ),
     ),
     (
@@ -72,7 +76,15 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "사법제도", "검사정원",
             "사법부독립", "대통령재판중단", "소액사건", "판결이유기재",
             "헤이그협약", "아동인도집행", "가사소송법",
-            "양형기준",
+            "양형기준", "정부법무공단",
+        ),
+    ),
+    (
+        "correctional-services",
+        "교정시설·수용자 처우",
+        (
+            "교정시설", "과밀수용", "수감자영치금", "마약수감자",
+            "교정프로그램", "교도소무기탄약",
         ),
     ),
     (
@@ -84,8 +96,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "감찰", "공직자범위", "기획총균과정", "총리실직원",
             "과충성행위", "내부자료유출",
             "감사원", "강압적감사", "특수활동비", "자체감사",
-            "감사위원특수비",
-            "특검특활비",
+            "감사위원특수비", "특검특활비", "수사비위",
         ),
     ),
     (
@@ -99,7 +110,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "청탁문자", "청탁부당성", "청탁의부당성",
             "배우자주식보유", "사외이사임명", "금융실명동의서",
             "차용증서", "재원출처", "고액후원",
-            "후원자연락처",
+            "후원자연락처", "퇴직경찰관취업심사",
         ),
     ),
     (
@@ -108,6 +119,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "공직적격성평가", "인사관리체계", "공무원인사관리",
             "공무원보수", "공무원복리후생", "특별정려금",
+            "부단체장공석",
         ),
     ),
     (
@@ -166,6 +178,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "지방의회", "지방의회법", "지방의정", "정책지원관",
             "정책지원인력", "정책지원방식", "국회처모델",
             "지방자치", "경남도의회", "의정연구센터",
+            "기초지방정부",
         ),
     ),
     (
@@ -218,6 +231,11 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "2030년양산",
             "반도체서남권",
         ),
+    ),
+    (
+        "space-program",
+        "우주개발·발사체",
+        ("누리호", "한국형발사체", "우주발사체"),
     ),
     (
         "automotive-ev",
@@ -332,7 +350,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "세제혜택", "세법", "부가가치세", "환경간접세", "조세감면",
             "세부담", "과세기준", "비과세", "세액공제", "소득공제",
             "공정시장가액비율", "조세정책",
-            "양도세", "할당관세",
+            "양도세", "할당관세", "고액체납",
         ),
     ),
     (
@@ -361,7 +379,8 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "공공기금", "기금통합", "의무지출", "세수전달",
             "국방비미지출", "미지출사태",
             "기금재정건전성", "정책펀드", "지방재정교부금",
-            "농어촌구조개선특별회계",
+            "농어촌구조개선특별회계", "보조사업제로베이스",
+            "실질채무", "소방재원",
         ),
     ),
     (
@@ -421,6 +440,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "119시스템", "소방출동", "통합119", "소방감리",
             "상주감리", "소방현장인력",
             "승강기안전", "승강기검사", "재해구호협회", "구호물품전달",
+            "관계성범죄", "재범예방",
         ),
     ),
     (
@@ -471,6 +491,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "외국인아동", "출생등록", "미등록부모", "그림자아동",
             "국적법", "출입국", "체류권", "이주아동",
+            "유학생유치정책",
         ),
     ),
     (
@@ -505,7 +526,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "달빛고속철도", "광역교통망", "광역버스", "트램", "철도망",
             "BRT", "청주공항", "무안공항", "광주공항", "국도79호선",
             "지천다리", "도선법", "교통카드",
-            "출퇴근시간분산", "출근시간분산",
+            "출퇴근시간분산", "출근시간분산", "장거리운임차액",
         ),
     ),
     (
@@ -539,6 +560,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "정서적학대", "교육재정", "지방인재장학", "적정학생수",
             "교육인재계정", "국교위포럼", "공론화부재",
             "지방학생", "수도권대학진학",
+            "교사학생관계", "훈육위축",
         ),
     ),
     (
@@ -697,6 +719,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "재외국민", "개발협력", "ODA", "외교정상화", "지정학적위기",
             "인도적지원", "재외공관", "G20",
             "외교순방", "외국순방", "한중앙아시아", "외교부",
+            "대외협상",
         ),
     ),
     (
@@ -755,6 +778,7 @@ ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         (
             "constitutional-order", "police-investigation",
             "criminal-case-procedure", "prosecution-judiciary",
+            "correctional-services",
             "public-discipline", "public-integrity-funds",
             "civil-service-personnel", "public-appointments", "assembly-procedure",
             "local-council-autonomy",
@@ -767,6 +791,7 @@ ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "economy", "경제·산업·재정", "#fbbf24",
         (
             "balanced-development", "industry-semiconductors",
+            "space-program",
             "automotive-ev", "shipbuilding-maritime", "energy-electricity",
             "water-resources-climate", "environment-waste",
             "enterprise-innovation", "housing-real-estate",
@@ -847,6 +872,7 @@ _REPORT_ARTIFACT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"^개회및신규임원인사$"),
     re.compile(r"^법안심사업무.*정회선포$"),
     re.compile(r"^재재청요구가능여부논의시작$"),
+    re.compile(r"^.+국정감사개시및업무보고$"),
 )
 
 _DYNAMIC_GENERIC_SUFFIXES = (
@@ -1193,6 +1219,7 @@ def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
     source = _repair_brief_language(brief)
     groups = build_meeting_topic_groups(source)
     source["topic_groups"] = groups
+    source["follow_up_task_groups"] = group_document_submission_tasks(source)
     topics = [
         topic for topic in source.get("topics") or []
         if isinstance(topic, dict) and topic.get("id")
@@ -1343,7 +1370,7 @@ def build_meeting_topic_ontology(
     for brief in briefs:
         if not isinstance(brief, dict):
             continue
-        grouped = attach_meeting_topic_groups(brief)
+        grouped = attach_meeting_topic_groups(link_tasks_to_topics(brief))
         audit = grouped.get("topic_grouping") or {}
         totals["report_count"] += 1
         totals["topic_count"] += int(audit.get("detailed_topic_count") or 0)

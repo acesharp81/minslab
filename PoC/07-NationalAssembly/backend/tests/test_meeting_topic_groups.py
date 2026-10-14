@@ -33,7 +33,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
 
         keys = [key for domain in result["domains"] for key in domain["group_keys"]]
         self.assertEqual(len(result["domains"]), 5)
-        self.assertEqual(len(result["groups"]), 64)
+        self.assertEqual(len(result["groups"]), 66)
         self.assertEqual(len(keys), len(set(keys)))
         self.assertEqual(set(keys), {group["key"] for group in result["groups"]})
         self.assertEqual(result["metrics"]["topic_count"], 2)
@@ -418,7 +418,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(2, by_key["youth-employment"]["topic_count"])
         self.assertEqual(2, by_key["water-resources-climate"]["topic_count"])
         self.assertEqual(2, by_key["education"]["topic_count"])
-        self.assertEqual("assembly-meeting-topic-grouping/1.10", GROUPING_VERSION)
+        self.assertEqual("assembly-meeting-topic-grouping/1.11", GROUPING_VERSION)
 
     def test_classifies_operational_policy_gaps_without_procedure_swallowing_subject(self):
         brief = {
