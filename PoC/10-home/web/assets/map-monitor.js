@@ -3,7 +3,8 @@ const MapMonitor=(()=>{
   const colors=['#1665ee','#21a9ca','#8265d5','#ce649a'];
   const units=value=>value==null?'미확보':num(value)+'호';
   const percent=value=>value==null?'—':num(value)+'%';
-  const levelAt=zoom=>zoom<10?'region':zoom<13?'municipality':'block';
+  const wideZoom=zoom=>zoom-Math.log2(1.5);
+  const levelAt=zoom=>zoom<wideZoom(10)?'region':zoom<wideZoom(13)?'municipality':'block';
   function initialize(){
     if($('map-policy-monitor'))return;
     const panel=document.createElement('section');panel.id='map-policy-monitor';panel.className='map-info-card policy-monitor';
@@ -11,7 +12,7 @@ const MapMonitor=(()=>{
   }
   function panel(data,viewport){
     initialize();
-    MapTrends.panel(data,viewport);
+    MapProgressTracking.panel(data,viewport);
     MapAreaContext.panel(data,viewport);
   }
   function arc(cx,cy,r,start,end){
@@ -102,5 +103,5 @@ const MapMonitor=(()=>{
   }
 
   function start(setLevel){document.addEventListener('click',event=>{const button=event.target.closest('[data-bar-level]');if(button)setLevel(button.dataset.barLevel);const tab=event.target.closest('[data-monitor-policy]');if(tab)MapSupply.select('policy',tab.dataset.monitorPolicy);});}
-  return {draw,panel,start,levelAt};
+  return {draw,panel,start,levelAt,wideZoom};
 })();

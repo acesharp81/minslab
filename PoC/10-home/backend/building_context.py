@@ -73,16 +73,17 @@ class BuildingContext:
         self._lock = threading.RLock()
         self._cache = {}
 
-    def get(self, block_id, service):
+    def get(self, block_id, service, anchor=None):
         with self._lock:
-            cached = self._cache.get(block_id)
+            cache_key = (block_id, anchor["latitude"], anchor["longitude"], anchor["coordinate_basis"]) if anchor else block_id
+            cached = self._cache.get(cache_key)
             if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
-                self._cache.pop(block_id)
-                self._cache[block_id] = cached
+                self._cache.pop(cache_key)
+                self._cache[cache_key] = cached
                 return cached[1]
             locations = {"|".join((row["region"], row["district_key"], row["block"])): row
                          for row in service.rows("block_location")}
-            point = locations.get(block_id)
+            point = anchor or locations.get(block_id)
             if not point:
                 raise ValueError("개별 위치가 검증된 블록이 아닙니다")
             latitude, longitude = point["latitude"], point["longitude"]
@@ -123,6 +124,7 @@ class BuildingContext:
                 "status": "READY" if total else "NO_BUILDINGS",
                 "block_id": block_id, "latitude": latitude, "longitude": longitude,
                 "location_basis": point["coordinate_basis"],
+                "origin": dict(point),
                 "context_basis": "VWorld GIS건물통합정보 · 주변 기존 건물 · 공급 블록 건물 매칭 아님",
                 "source_url": SOURCE_URL, "source_layer": LAYER,
                 "collected_at": datetime.now(ZoneInfo("Asia/Seoul")).date().isoformat(),
@@ -131,7 +133,7 @@ class BuildingContext:
                 "floor_estimate_count": floor_estimate_count, "visual_only_count": visual_only_count,
                 "geojson": {"type": "FeatureCollection", "features": features},
             }
-            self._cache[block_id] = (time.monotonic(), result)
+            self._cache[cache_key] = (time.monotonic(), result)
             while len(self._cache) > 8:
                 self._cache.pop(next(iter(self._cache)))
             return result

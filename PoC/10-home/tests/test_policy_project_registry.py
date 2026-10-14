@@ -29,7 +29,8 @@ class RegistryTests(unittest.TestCase):
         base=registry_records('policy_907')
         newer=dict(base[0][2],planned_units=18000,base_date='2026-10-13')
         merged=supplement_records('policy_907',[(base[0][0],base[0][1],newer)])
-        self.assertEqual(len(merged),13)
+        self.assertEqual(len(merged),16)
+        self.assertTrue({"과천과천 공공주택지구","번동2단지","원종역사 복합개발"}.issubset({key for _,key,_ in merged}))
         self.assertEqual(merged[0][2]['planned_units'],18000)
         self.assertEqual(supplement_records('policy_907',merged),merged)
 

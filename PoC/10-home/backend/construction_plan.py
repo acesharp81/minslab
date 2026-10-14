@@ -1,6 +1,7 @@
 """Monthly construction baseline inferred from source start/end dates, never actual progress."""
 from calendar import monthrange
 from datetime import date, timedelta
+from .input_status import input_status,input_label
 
 
 def construction_plan(project, reference):
@@ -25,7 +26,8 @@ def construction_plan(project, reference):
     actual=project.get('progress_pct')
     comparison=None
     if isinstance(actual,(int,float)) and not isinstance(actual,bool) and 0<=actual<=100 and actual_on and actual_on<=reference:
-        comparison=dict(date=actual_on.isoformat(),actual_pct=actual,planned_pct=pct(actual_on),
+        manual=project.get('manual_fields',{}).get('progress_pct')
+        comparison=dict(input_status=input_status(manual or {}),input_label=input_label(manual) if manual else '원천 공정률',date=actual_on.isoformat(),actual_pct=actual,planned_pct=pct(actual_on),
                         gap_percentage_points=round(pct(actual_on)-actual,1))
     return dict(start_date=start.isoformat(),completion_date=end.isoformat(),method='LINEAR_ESTIMATE',
                 basis='착공~준공 기간에 비례한 월별 추정 계획 · 공식 중간 공정목표 아님',

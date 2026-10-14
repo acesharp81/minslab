@@ -52,6 +52,12 @@ def classify_existing(service):
             outcomes.append(dict(id=old.entity_id, repair_type=kind, revision_no=new.revision_no))
     return outcomes
 ACTIONS = {
+    'PROGRAM_PROJECT_MERGE':'중복 프로그램 사업 연결 이관',
+    'PROGRAM_POLICY_MERGE':'중복 프로그램 ID 별칭 정비',
+    'PROGRAM_IDENTITY_MERGE':'프로그램 대표 ID 통합 근거',
+    'PROGRAM_SOURCE_SUPPLEMENT': '정책 원문 프로그램·사업 근거 보강',
+    'PROGRAM_PROFILE_UPDATED': '프로그램정보 사용자 입력',
+    'PROGRAM_PROJECT_REVIEW': '프로그램–사업 연결 변경',
     'EVIDENCE_BRIDGE_AUTO': '원천 간 연결 후보 추가',
     'EVIDENCE_BRIDGE_REVIEW': '담당자 연결 검토',
     'STAGE_EVIDENCE_AUTO': '단계 근거 후보 저장',
@@ -118,6 +124,8 @@ def save(service, key, payload):
         if old:
             for field in ('quality_checks','related_keys'):
                 if field not in payload and field in old.payload:payload[field]=old.payload[field]
+        for field in ('source_ids','project_ids'):
+            if field not in payload:payload[field]=(old.payload.get(field) or []) if old else []
         record, outcome = upsert_revision(db, KIND, 'repair_log', key, payload, 'repair_log')
         return dict(id=record.entity_id, revision_no=record.revision_no, outcome=outcome)
 
@@ -160,7 +168,7 @@ def enrich(service, items, reference):
             stages = [after['stage']] if after.get('stage') else sorted({f['stage'] for f in after.get('facts', [])})
             lookup[pid]['link_changes'].append(dict(id=change.id, title=ACTIONS[change.action],
                 recorded_at=change.recorded_at.isoformat(), stages=stages, status=after.get('status'),
-                basis=after.get('review_basis') or after.get('upgrade_basis') or new.get('basis') or after.get('basis'),
+                basis=after.get('review_basis') or after.get('upgrade_basis') or new.get('basis') or after.get('basis') or after.get('reason'),
                 before=dict(status=before.get('status'), date=old.get('event_date') or ' / '.join(sorted({f['date'] for f in before.get('facts', []) if f.get('date')})) or None, method=old.get('method')),
                 after=dict(status=after.get('status'), date=new.get('event_date') or ' / '.join(sorted({f['date'] for f in after.get('facts', []) if f.get('date')})) or None, method=new.get('method'))))
     for item in items:

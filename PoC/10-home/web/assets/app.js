@@ -7,7 +7,7 @@ const baseText = r => r.date_precision === 'YEAR' ? r.base_date.slice(0,4) + '�
 const revisionText = r => `<p>계획호수 ${num(r.planned_units)}${r.planned_units == null ? '' : '호'} · ${esc(r.stage_label)} · 공정률 ${r.progress_pct == null ? '미확보' : num(r.progress_pct) + '%'}</p>`;
 const sourceNames = new Map();
 const warningNames = {POLICY_PLAN_NOT_ACTUAL:'정책 계획 · 실적 미확인',JOINT_QUANTITY_UNALLOCATED:'여러 지구 합계 · 개별 물량 미확보',AGENCY_PLAN_NOT_ACTUAL:'기관 계획 · 실적 미확인',MUNICIPALITY_UNVERIFIED:'시군구 연결 검토',MAPPING_REVIEW:'정책 귀속 검토 필요', STALE_SOURCE:'원천 기준일 30일 초과', PAST_PLAN_UNVERIFIED:'지난 예정일 · 실제 이행 미확인', UNITS_UNKNOWN:'개별 물량 미확보', TOTAL_CONFLICT:'총세대수 불일치', SUPPLY_EXCEEDS_TOTAL:'공급호수 > 총세대수', MISSING_IN_LATEST_SOURCE:'최신 원천에서 미발견', MULTI_SITE_CONTRACT:'복수 현장 계약 · 지역별 물량 확인', USE_INSPECTION_FIELD_REVIEW:'사용검사 필드 의미 검토 · 준공으로 확정하지 않음', ZERO_UNITS_REVIEW:'원천 세대수 0 · 용도·집계 기준 확인', ADDRESS_APPROXIMATE:'주소 일부를 정리해 검색 · 사업 경계 확인 필요', GEOCODE_NOT_FOUND:'주소 좌표 미발견'};
-const labels = {overview:'공급현황','annual-supply':'연도별 공급 비교',area:'인구·가구·고용 분석','policy-progress':'정책별 추진현황','program-progress':'프로그램별 추진현황',history:'정책 흐름·과거 자료', projects:'사업별 추진현황', tree:'정책-프로그램-사업연결', validation:'데이터 검증', samples:'원천 검증 자료', sources:'출처와 수집현황', keys:'API 연결 안내','project-collection':'사업별 수집·연계',manual:'매뉴얼',requirements:'총리님 요구사항'};
+const labels = {overview:'공급현황','annual-supply':'연도별 공급 비교',area:'인구·가구·고용 분석','policy-progress':'정책별 추진현황','program-progress':'프로그램별 추진현황',history:'정책 흐름·과거 자료', projects:'사업별 추진현황', tree:'정책-프로그램-사업연결', validation:'데이터 검증', samples:'원천 검증 자료', sources:'출처와 수집현황', keys:'API 연결 안내','project-collection':'사업별 수집·연계',manual:'사용 안내',requirements:'총리님 요구사항'};
 warningNames.PHOTO_MONTH_BASIS='사진 원본의 현장 기준월 · 등록일과 구분';
 warningNames.PLAN_NOT_ACTUAL='입주계획 · 실제 입주실적 아님';
 warningNames.ANNOUNCEMENT_NOT_OCCUPANCY='공고 공급호수 · 준공·실입주량 아님';
@@ -268,18 +268,11 @@ async function load() {
       const historyData=await request('/history?'+historyParams);
       if(version!==state.generation)return;HistoryPanel.render(historyData);
     }else if(state.view==='projects'){
-      const [projects,monitor,mappings]=await Promise.all([
-        request(`/projects?${qs}&page=${state.page}&page_size=25`),request('/policy-monitor?'+reportQs),request('/mappings?'+reportQs)]);
+      await ProjectWorkspace.load();
       if(version!==state.generation)return;
-      state.total=projects.total;PolicyReport.setData(monitor,mappings);
-      $('project-list').innerHTML=table(projects.items);
-      $('project-total').textContent=`사업 후보 기록 ${num(projects.total)}건`;
-      $('page-info').textContent=`${state.page} / ${Math.max(1,Math.ceil(projects.total/25))}`;
-      $('prev').disabled=state.page===1;$('next').disabled=state.page*25>=projects.total;
-      $('export').href=API+'/export.csv?'+qs;
     }
     $('content').hidden=false;
-    if(policyViews.has(state.view))PolicyGeo3D.dataChanged();
+    if(policyViews.has(state.view)&&state.view!=='projects')PolicyGeo3D.dataChanged();
   } catch (error) {
     if (version !== state.generation) return;
     $('error').textContent = error.message + ' 잠시 후 다시 조회해 주세요.';
@@ -299,7 +292,7 @@ function setView(view,options={}) {
   const previous=state.view;
   if(previous!==view)++state.generation;
   state.view=view;
-  for (const pane of document.querySelectorAll('.pane')) pane.hidden = pane.id !== 'pane-' + view && !(pane.id==='pane-policy-geo'&&policyViews.has(view));
+  for (const pane of document.querySelectorAll('.pane')) pane.hidden = pane.id !== 'pane-' + view && !(pane.id==='pane-policy-geo'&&policyViews.has(view)&&view!=='projects');
   const category=supplyViews.has(view)?'supply':policyViews.has(view)?'policy':view==='tree'||sourceViews.has(view)?'data':'manual';
   if(category==='policy')toggleNavGroup('policy',true);
   if(category==='data')toggleNavGroup('data',true);
@@ -318,7 +311,10 @@ function setView(view,options={}) {
   }
   $('page-label').textContent=labels[view];
   document.body.classList.toggle('home-map-view',view==='overview');
-  document.body.classList.toggle('policy-geo-view',policyViews.has(view));
+  document.body.classList.toggle('user-guide-view',view==='manual');
+  document.body.classList.toggle('policy-geo-view',policyViews.has(view)&&view!=='projects');
+  document.body.classList.toggle('project-workspace-view',view==='projects');
+  if(previous==='projects'&&view!=='projects')ProjectWorkspace.hidden();
   document.body.classList.toggle('policy-summary-view',view==='policy-progress');
   document.body.classList.toggle('policy-compact-view',['policy-progress','program-progress'].includes(view));
   $('report-policy-picker').hidden=!['policy-progress','program-progress'].includes(view);
@@ -328,15 +324,16 @@ function setView(view,options={}) {
   document.querySelector('.policy-geo-toolbar h2').textContent=view==='policy-progress'?'지역별 정책 공급 분포':'정책·프로그램·사업 지역 그래프';
   $('policy-geo-map').setAttribute('aria-label',view==='policy-progress'?'정책현황 시군구 공급 분포도':'정책현황 3D 지역 지도');
   if(view==='overview')HousingMap.visible();else if(previous==='overview')HousingMap.hidden();
-  document.querySelector('.filterbar').hidden=['area','annual-supply','policy-progress','program-progress','history','manual','requirements','project-collection'].includes(view);
+  document.querySelector('.filterbar').hidden=['area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection'].includes(view);
   document.querySelector('.page-heading').hidden=['area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection'].includes(view);
   if(view==='area')AreaDashboard.visible();
   if(view==='annual-supply')AnnualSupply.visible();
   if(view==='project-collection'&&(previous!==view||!options.fromHistory))ProjectCollection.visible({refresh:previous!==view});
   if(view==='requirements')RequirementsManual.visible();
+  if(view==='manual')UserGuide.visible();
   $('policy-filter-label').hidden=view==='samples';
   $('search').placeholder=view==='samples'?'표본명, 주소, 원천 식별자 검색':'사업명, 지구명, 프로그램 검색';
-  if(policyViews.has(view))PolicyGeo3D.visible(view);else PolicyGeo3D.hidden();
+  if(policyViews.has(view)&&view!=='projects')PolicyGeo3D.visible(view);else PolicyGeo3D.hidden();
   if(!options.fromHistory){const next='#'+view;if(location.hash!==next)history[options.replace?'replaceState':'pushState'](null,'',next);}
   if(!options.deferLoad&&previous!==view&&!['manual','requirements','project-collection','area','annual-supply'].includes(view))load();
 }

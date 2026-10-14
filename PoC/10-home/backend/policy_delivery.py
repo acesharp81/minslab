@@ -30,6 +30,7 @@ def save_settings(service,revision_no,targets,events,occupancy_observations=None
     projects={r['id']:r for r in service.projects(policy_id=POLICY_ID)}
     project_ids=set(projects)
     program_ids={r.get('mapping',{}).get('program_id') for r in projects.values()}
+    if hasattr(service,'program_links'):program_ids.update(p['id'] for p in service.program_links() if p['policy_id']==POLICY_ID and p['status']!='RELEASED')
     program_ids.update(p['id'] for row in service.rows('policy_delivery_plan') for p in row.get('programs',[]))
     for target in targets:
         if target.get('origin')=='SCENARIO':raise ValueError('시나리오는 일정·병목 관리의 별도 시나리오에서 입력하세요')
@@ -89,9 +90,15 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     plan=next((r for r in plans if r.get('policy_id')==POLICY_ID),None)
     if not plan:return dict(policy_id=POLICY_ID,status='PLAN_NOT_COLLECTED',target_units=1350000,
                              notice='9·7 공식 원문 목표표 수집이 필요합니다')
+    from .policy_profile import apply_profile, profile
+    plan=apply_profile(plan,profile(service,reference))
     raw=service.projects(as_of=reference,policy_id=POLICY_ID)
     aliases={'lh_incheon_sale':'lh_sale','lh_incheon_rent':'lh_rent','lh_incheon_construction':'lh_construction'}
     rows=[dict(r,source_id=aliases.get(r['source_id'],r['source_id']),origin_source_id=r['source_id']) for r in raw]
+    from .program_profile import profiles
+    program_details=profiles(service,reference)
+    linked_programs=service.program_links(reference,projects=raw) if hasattr(service,'program_links') else []
+    plan['program_profiles']={p['id']:dict(program_details[p['id']],name=p['name']) for p in linked_programs if p['id'] in program_details and p['policy_id']==POLICY_ID and p['status']!='RELEASED'}
     chosen,excluded=inventory(rows)
     all_by_key=defaultdict(list)
     for row in rows:all_by_key[block_key(row) or ('ID',row['id'])].append(row)
@@ -105,6 +112,9 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     from .evidence_bridge import by_project
     bridge_links=by_project(service,reference)
     occupancy=occupancy_schedules(service,rows,reference)
+    from .project_profile import progress_events
+    managed_progress=defaultdict(list)
+    for event in progress_events(service,reference):managed_progress[event['project_id']].append(event)
     manual=defaultdict(list)
     for event in config.get('events',[]):manual[event['project_id']].append(event)
     dashboard=service.supply_dashboard(as_of=reference,horizon=5,measure='SUPPLY')
@@ -133,7 +143,8 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
                     basis=event.get('basis'),source_id=member['origin_source_id'],source_object_id=member['id'],
                     source_base_date=member['base_date']))
             if member.get('progress_pct') is not None:
-                progress.append(dict(pct=member['progress_pct'],as_of_date=member.get('progress_date') or member['base_date'],evidence_url=member['evidence_url']))
+                override=member.get('manual_fields',{}).get('progress_pct',{})
+                progress.append(dict(pct=member['progress_pct'],as_of_date=member.get('progress_date') or member['base_date'],evidence_url=member['evidence_url'],inferred=bool(override.get('inferred')),origin='MANUAL' if override else 'SOURCE'))
             events.extend(dict(e,origin='MANUAL') for e in manual.get(member['id'],[]))
             events.extend(stage_links.get(member['id'],[]))
             # Collection diagrams and policy charts consume the same pinned evidence.
@@ -163,6 +174,10 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
             schedules=[s for s in schedules if not (s.get('source_object_id')==member['id'] and s['stage'] in managed_stages)]
             schedules.extend(dict(t,precision='DAY') for t in config.get('targets',[])
                              if t['scope_kind']=='project' and t['scope_id']==member['id'])
+        overrides=[e for m in group for e in managed_progress.get(m['id'],[])]
+        if overrides:
+            stages={e['stage'] for e in overrides}
+            events=[e for e in events if e['stage'] not in stages]+overrides
         starts=[e['event_date'] for e in events if e['stage']=='CONSTRUCTION' and e.get('status','ACTUAL')=='ACTUAL']
         before_period=bool(starts and min(starts)<plan['period_start'])
         if before_period:
@@ -184,12 +199,17 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
             if inferred:city_id=inferred['id'];city_name=inferred['name']
         block=next((blocks[m['id']] for m in group if m['id'] in blocks),None)
         p=max(progress,key=lambda x:x['as_of_date']) if progress else None
-        if p and p['pct']==100:
+        if p and p['pct']==100 and not p.get('inferred'):
             events.append(dict(stage='COMPLETION',event_date=p['as_of_date'],units=cap,
-                               evidence_url=p['evidence_url'],origin='SOURCE',basis='원천 공정률 100% 확인일'))
+                               evidence_url=p['evidence_url'],origin=p.get('origin','SOURCE'),basis='담당자 확인 공정률 100% 확인일' if p.get('origin')=='MANUAL' else '원천 공정률 100% 확인일'))
+        overrides=[e for m in group for e in managed_progress.get(m['id'],[])]
+        if overrides:
+            stages={e['stage'] for e in overrides}
+            events=[e for e in events if e['stage'] not in stages]+overrides
         portfolio.append(dict(id=row['id'],source_ids=[m['id'] for m in group],name=row['name'],units=cap,
             planned_units=planned_cap,quantity_basis='PLAN' if planned_cap else 'NOTICE_ONLY',region=row['region'],municipality=city_name,municipality_id=city_id,program_id=row.get('mapping',{}).get('program_id'),
             program=row.get('mapping',{}).get('program_name') or row.get('program'),block=row.get('block'),
+            developer=next((m.get('developer') for m in group if m.get('developer')),None),
             longitude=(block or {}).get('longitude'),latitude=(block or {}).get('latitude'),
             coordinate_basis=(block or {}).get('coordinate_basis'),events=events,schedules=schedules,
             construction_plan=next((value for m in sorted(group,key=lambda m:m.get('base_date',''),reverse=True) if (value:=construction_plan(m,reference))),None),
@@ -208,9 +228,10 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
                 active+= [dict(stage=s['stage'],event_date=s['due_date'],units=s['units'],origin='PLANNED')
                           for s in c['schedules'] if s['units'] is not None and reference.isoformat()<s['due_date']<=cutoff and s['stage']!='MOVE_IN']
             supplied=min(c['units'],max((e['units'] if e.get('units') is not None else c['units'] for e in active if e['stage']=='SUPPLY'),default=0))
-            entry=any(e['stage']=='MOVE_IN' and e.get('origin')!='PLANNED' for e in active)
-            if entry:supplied=c['units'] # Verified start date covers the project's target homes, not resident counts.
-            parts={'MOVE_IN' if entry else 'SUPPLY':supplied};assigned=supplied
+            entry_units=min(c['units'],max((e['units'] if e.get('units') is not None else c['units'] for e in active if e['stage']=='MOVE_IN' and e.get('origin')!='PLANNED'),default=0))
+            entry=entry_units>0
+            supplied=max(supplied,entry_units)
+            parts={'MOVE_IN':entry_units,'SUPPLY':supplied-entry_units};assigned=supplied
             for stage in ('CONSTRUCTION','APPROVAL','BUSINESS'):
                 reached=min(c['units'],max((e['units'] if e.get('units') is not None else c['units'] for e in active if e['stage']==stage),default=0))
                 parts[stage]=max(0,reached-assigned);assigned+=parts[stage]
@@ -223,8 +244,8 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
             # The original document plans starts for an unenumerated target pool.
             # Transfer that planned pool only; never present it as observed output.
             year=int(cutoff[:4]);month=int(cutoff[5:7])
-            planned=sum(a['units'] for a in plan['annual'] if a['year']<year)
-            planned+=round(sum(a['units'] for a in plan['annual'] if a['year']==year)*month/12)
+            planned=sum((a['units'] or 0) for a in plan['annual'] if a['year']<year)
+            planned+=round(sum((a['units'] or 0) for a in plan['annual'] if a['year']==year)*month/12)
             known=sum(c['units'] for c in cohorts if any(e['stage']=='CONSTRUCTION' and e['event_date']<=cutoff for e in c['events']))
             transfer=min(totals['POLICY'],max(0,planned-known))
             totals['POLICY']-=transfer;totals['CONSTRUCTION']+=transfer
@@ -239,7 +260,8 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
         return dict(date=cutoff,month=cutoff[:7],totals=totals,total_units=sum(totals.values()),forecast=forecast,cohorts=details)
     snapshots=[]
     dates=[d for c in portfolio for d in [*(e['event_date'] for e in c['events']),*(s['due_date'] for s in c['schedules'])] if d]
-    first_year=min([reference.year-5]+[int(d[:4]) for d in dates]);last_year=max([reference.year+5]+[int(d[:4]) for d in dates])
+    dates.extend(d for p in plan.get('program_profiles',{}).values() for d in (p['values']['period_start'],p['values']['period_end']))
+    first_year=min([reference.year-5,int(plan['period_start'][:4])]+[int(d[:4]) for d in dates]);last_year=max([reference.year+5,int(plan['period_end'][:4])]+[int(d[:4]) for d in dates])
     for year in range(first_year,last_year+1):
         for month in range(1,13):
             cutoff=f'{year}-{month:02d}-{monthrange(year,month)[1]:02d}'
@@ -261,14 +283,14 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
             gap=max(0,(goal.get('units') or c['units'])-amount)
             if not gap:continue
             pct=c.get('progress')
-            confirmed=goal['stage']=='COMPLETION' and pct and pct['as_of_date']>goal['due_date'] and pct['pct']<100
+            confirmed=goal['stage']=='COMPLETION' and pct and not pct.get('inferred') and pct['as_of_date']>goal['due_date'] and pct['pct']<100
             confirmed=confirmed or any(e.get('status')=='DELAYED' for e in manual.get(c['id'],[]) if e['stage']==goal['stage'])
             issues.append(dict(project_id=c['id'],name=c['name'],region=c['region'],municipality_id=c['municipality_id'],
                 stage=goal['stage'],units=min(c['units'],gap),due_date=goal['due_date'],status='DELAYED' if confirmed else 'VERIFY',
                 evidence_url=(pct or {}).get('evidence_url') if confirmed and pct else goal.get('evidence_url')))
             break # Each cohort contributes once to the combined problem subtotal.
     statistics=service.rows('statistic',reference)
-    yearly_comparisons=comparison_index(plan,cohorts,config,statistics,reference)
+    yearly_comparisons=comparison_index(plan,cohorts,config,statistics,reference,program_cohorts=portfolio)
     macro_points=yearly_comparisons['policy']['metrics']['CONSTRUCTION']['actual_points']
     regional_months=[dict(month=p['date'][:7],units=p['annual_units'],cumulative_units=p['units'],by_region=p['by_region']) for p in macro_points]
     annual=[]
@@ -293,14 +315,16 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
         actual=sum(found) if found else None;due=goal['due_date']<=reference.isoformat()
         comparisons.append(dict(goal,observed_units=actual,gap_units=max(0,goal['units']-actual) if actual is not None else None,
             comparison_status='VERIFY' if actual is None or due and actual<goal['units'] else 'OBSERVED_GOAL_REACHED' if actual>=goal['units'] else 'UPCOMING'))
-    return dict(policy_id=POLICY_ID,status='READY',name='주택공급 확대방안 (9·7)',as_of_date=reference.isoformat(),
+    from .program_management import assessment
+    program_assessments={pid:assessment(pid,p['values'],p['source'],dict(portfolio_cohorts=portfolio),raw) for pid,p in plan.get('program_profiles',{}).items()}
+    return dict(policy_id=POLICY_ID,status='READY',name=plan['name'],as_of_date=reference.isoformat(),
         measurement_contract=dict(version='2026-10-12.1',target_metric='CONSTRUCTION',supply_metric='SUPPLY',
             scope='9·7 수도권 2026–2030 신규 착공',partition='EXCLUSIVE',map_measure='CUMULATIVE_REACHED',
             reserve_status='PROJECT_NOT_IDENTIFIED',unknown_status='STAGE_NOT_VERIFIED',
             identification_pct=round(allocated/target*100,4),legacy_scenario_targets_excluded=sum(g.get('origin')=='SCENARIO' for g in stored_config.get('targets',[])),
             conservation_ok=current['total_units']==target,rounding_reserve=plan.get('rounding_unallocated_units'),
             mapping_review_included=True),
-        target_units=target,plan=plan,annual=annual,stages=STAGES,current=current,snapshots=snapshots,cohorts=cohorts,
+        target_units=target,plan=plan,annual=annual,program_assessments=program_assessments,stages=STAGES,current=current,snapshots=snapshots,cohorts=cohorts,
         allocated_units=allocated,reserve_units=reserve,historical=historical,excluded_source_ids=excluded,missing_quantity_ids=missing,
         issues=issues,settings=stored_config,geometry=shape,sources=sources,goal_comparisons=comparisons,regional_start_months=regional_months,
         management_projects=[dict(id=r['id'],name=r['name'],units=r.get('planned_units'),program_id=r.get('mapping',{}).get('program_id'),program=r.get('program')) for r in raw],

@@ -65,3 +65,23 @@ def collect_locations(source,fetcher,service):
             evidence_url=evidence,base_date=today().isoformat(),date_precision='COLLECTION',
             warnings=['APPROXIMATE_NOT_PARCEL','NO_PNU_INFERENCE'])))
     return records,dict(counts,complete_population=False,scope_note='원문 대표 지번 우선; 주소 미확보 시 소속 시군구 내부 대표점. 근사 위치를 필지/PNU나 사업 경계로 쓰지 않음')
+
+
+def resolve_anchor(project, locations=None, record=None):
+    """One stored coordinate and provenance for map, editor and facility queries."""
+    locations=locations or {};record=record or {}
+    def valid(row):
+        return (type(row.get('latitude')) in (int,float) and type(row.get('longitude')) in (int,float)
+                and 33<=row['latitude']<=39 and 124<=row['longitude']<=132)
+    blocks=[b for b in locations.get('blocks',[]) if project['id'] in (b.get('project_ids') or []) and valid(b)]
+    precise=next((b for b in blocks if b.get('coordinate_basis')=='LH_PUBLIC_BLOCK_LABEL_POINT'),None)
+    city=next((b for b in locations.get('municipalities',[]) if project['id'] in (b.get('project_ids') or []) and valid(b)),None)
+    point=precise or (project if valid(project) else None) or next(iter(blocks),None) or city
+    if not point:return None
+    basis=point.get('coordinate_basis') or ('MUNICIPAL_REPRESENTATIVE' if point is city else 'REPRESENTATIVE')
+    label=('LH 공개 블록 대표점' if precise else point.get('location_label') or
+           ('시군구 대표점 · 개별 사업 위치 아님' if point is city or basis in ('APPROXIMATE_AREA','MUNICIPAL_REPRESENTATIVE') else '지구 대표점 · 개별 사업 위치 미확인' if basis=='DISTRICT_REPRESENTATIVE' else '사업 대표 위치 · 근사 좌표'))
+    return dict(latitude=point['latitude'],longitude=point['longitude'],coordinate_basis=basis,label=label,
+                approximate=not bool(precise),address=project.get('address') or (record.get('address_original') if point is project else None),
+                evidence_url=point.get('location_evidence_url') or point.get('evidence_url') or record.get('evidence_url'),
+                block_id=precise['id'] if precise else None,project_id=project['id'])

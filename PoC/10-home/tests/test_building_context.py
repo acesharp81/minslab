@@ -36,5 +36,28 @@ class BuildingContextTests(unittest.TestCase):
             self.assertEqual((len(page1),len(page2),total,last_total),(2,1,3,3))
             with self.assertRaises(ValueError):parse_buildings(document([feature('C',None,None)],3),1)
 
+    def test_representative_anchor_loads_buildings_and_cache_tracks_coordinates(self):
+        from unittest.mock import patch, Mock
+        from pathlib import Path
+        from backend.building_context import BuildingContext
+        service=Mock(data_dir=Path('/tmp'))
+        service.rows.return_value=[]
+        anchor=dict(latitude=37.48, longitude=127.1, coordinate_basis='APPROXIMATE_ADDRESS', label='대표 지번 근사 위치')
+        with patch('backend.building_context.Fetcher') as factory, patch('backend.building_context.key_for', return_value='test'):
+            fetcher=factory.return_value
+            fetcher.get.return_value=document([feature('A',25,8)])
+            fetcher.manifest=[]
+            context=BuildingContext()
+            result=context.get('PROJECT', service, anchor)
+            self.assertEqual(result['feature_count'],1)
+            self.assertEqual(result['location_basis'],'APPROXIMATE_ADDRESS')
+            self.assertEqual(result['origin']['longitude'],127.1)
+            self.assertEqual(result['search_radius_metres'],1000)
+            self.assertEqual(context.get('PROJECT', service, anchor),result)
+            self.assertEqual(fetcher.get.call_count,1)
+            moved=context.get('PROJECT', service, dict(anchor, longitude=127.2))
+            self.assertEqual(moved['longitude'],127.2)
+            self.assertEqual(fetcher.get.call_count,2)
+
     def test_zero_building_response(self):
         self.assertEqual(parse_buildings(json.dumps({'response':{'status':'NOT_FOUND'}}).encode()),([],0))

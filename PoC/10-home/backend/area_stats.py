@@ -316,10 +316,14 @@ def area_context(service, region, municipality, year):
                               for row in housing if row.get("population") is not None and row["year"] not in seen_years)
     from .unsold import context as unsold_context
     from .age_distribution import context as age_context
+    from .area_benchmarks import context as benchmark_context
+    from .area_living import context as living_context
+    age=age_context(service,region,municipality,year)
+    national=benchmark_context(service,age,sorted(household_size,key=lambda r:r['year']),census_series)
     reference=date(year,12,31) if year and year<today().year else today()
     return {"region": region, "municipality": municipality, "analysis_year": year,
             "unsold":unsold_context(service,region,municipality,reference),
-            "age_distribution":age_context(service,region,municipality,year),
+            "age_distribution":age,"national_benchmarks":national,"living":living_context(service,region,municipality,year),
             "census": census_series, "population_history": sorted(population_history, key=lambda row: row["year"]),
             "employment": employment_series,
             "housing_balance": sorted(housing, key=lambda row: row["year"]),

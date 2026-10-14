@@ -104,4 +104,42 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(subset['management_points'],[])
 
 
+    def test_manual_movein_and_past_project_targets_are_not_hidden(self):
+        self.cohort['events']=[dict(stage='MOVE_IN',event_date='2025-10-01',units=400,origin='MANUAL',inferred=True)]
+        self.cohort['schedules']=[dict(stage='MOVE_IN',due_date='2025-09-01',units=500,origin='MANUAL',managed_schedule=True)]
+        c=self.model()['policy']['metrics']['MOVE_IN']
+        self.assertEqual(c['actual_points'][-1]['units'],400)
+        self.assertEqual(c['tracking']['target_points'][-1]['units'],500)
+        self.assertEqual(c['tracking']['actual_points'][-1]['manual_units'],400)
+        self.assertEqual(c['tracking']['actual_points'][-1]['inferred_units'],400)
+
+    def test_tracking_includes_registered_old_projects_but_keeps_macro_separate(self):
+        self.add_month('01')
+        old=dict(self.cohort,id='OLD',source_ids=['OLD'],events=[dict(stage='CONSTRUCTION',event_date='2025-01-01',units=700,origin='MANUAL')],schedules=[dict(stage='CONSTRUCTION',due_date='2025-01-01',units=800,origin='MANUAL',managed_schedule=True)])
+        c=comparison_index(self.plan,[self.cohort],self.config,self.statistics,self.reference,program_cohorts=[self.cohort,old])['policy']['metrics']['CONSTRUCTION']
+        self.assertEqual(c['actual_points'][-1]['units'],600)
+        self.assertEqual(c['tracking']['actual_points'][-1]['units'],700)
+        self.assertEqual(c['tracking']['target_points'][-1]['units'],800)
+        self.assertEqual(c['tracking']['project_count'],2)
+
+    def test_future_movein_plan_never_creates_measured_points(self):
+        self.cohort['schedules']=[dict(stage='MOVE_IN',due_date='2028-01-01',units=1000,origin='MANUAL',managed_schedule=True)]
+        c=self.model()['policy']['metrics']['MOVE_IN']['tracking']
+        self.assertEqual(c['target_points'][0]['units'],1000)
+        self.assertEqual(c['actual_points'],[])
+
+
+    def test_tracking_cumulative_reach_includes_later_stages_without_double_counting(self):
+        self.cohort['events']=[dict(stage='APPROVAL',event_date='2026-01-01',units=50),dict(stage='SUPPLY',event_date='2026-02-01',units=100,origin='MANUAL')]
+        m=self.model()['policy']['metrics']
+        for stage in ('BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY'):
+            self.assertEqual(m[stage]['tracking']['actual_points'][-1]['units'],100)
+        self.assertEqual(m['MOVE_IN']['tracking']['actual_points'],[])
+        self.assertEqual(m['BUSINESS']['actual_points'],[])  # preserve the original same-stage reference
+
+    def test_explicit_zero_measurement_is_retained(self):
+        self.cohort['events']=[dict(stage='SUPPLY',event_date='2026-01-01',units=0,origin='MANUAL')]
+        self.assertEqual(self.model()['policy']['metrics']['SUPPLY']['tracking']['actual_points'][-1]['units'],0)
+
+
 if __name__=='__main__':unittest.main()

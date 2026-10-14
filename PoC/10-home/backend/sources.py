@@ -76,6 +76,8 @@ SOURCES = [
     {"id":"kosis_housing","name":"KOSIS 서울·경기 일반가구·다가구 반영 주택 재고","org":"국가데이터처 / 국토교통부",
      "url":"https://kosis.kr/openapi/devGuide/devGuide_0201List.do","type":"STATISTIC",
      "key_env":"POC10_KOSIS_API_KEY","collection_mode":"AREA_SERIES","implemented":True,"show_key_card":False},
+    {"id":"kosis_living","name":"KOSIS 소득·인구이동·거주기간·주거형태","org":"국가데이터처 / 국토교통부",
+     "url":"https://kosis.kr/openapi/devGuide/devGuide_0201List.do","type":"STATISTIC","key_env":"POC10_KOSIS_API_KEY","collection_mode":"AREA_SERIES","implemented":True,"show_key_card":False},
     {"id":"kosis_household_size","name":"KOSIS 서울·경기 가구원수별 일반가구","org":"국가데이터처 KOSIS",
      "url":"https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE",
      "type":"STATISTIC","key_env":"POC10_KOSIS_API_KEY","collection_mode":"AREA_SERIES","implemented":True,"show_key_card":False},
@@ -168,6 +170,9 @@ SOURCES = [
     {"id":"sh_inventory","name":"SH 최신 공개본 사업 연결","org":"서울주택도시공사",
      "url":"https://www.data.go.kr/data/15124798/fileData.do","type":"PLAN","key_env":None,
      "collection_mode":"DERIVED_INVENTORY"},
+    {'id':'area_national_benchmarks','name':'전국 연령·가구원수·산업 종사자 비교 기준','org':'KOSIS·SGIS',
+     'url':'https://kosis.kr/openapi/index/index.do','type':'STATISTIC','key_env':'POC10_KOSIS_API_KEY',
+     'implemented':True,'collection_mode':'NATIONAL_BENCHMARK','refresh_days':7,'show_key_card':False},
 ]
 
 for _source in SOURCES:

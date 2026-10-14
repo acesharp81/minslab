@@ -152,7 +152,13 @@ class HomeService:
             elif source['id']=='gh_notice':
                 from .gh_portal import reconcile as reconcile_gh
                 reconcile_gh(self)
-            if source['id']=='kosis_age':
+            if source['id']=='kosis_living':
+                from .area_living import collect as collect_living
+                records,stats=collect_living(source,fetcher,self)
+            elif source['id']=='area_national_benchmarks':
+                from .area_benchmarks import collect as collect_benchmarks
+                records,stats=collect_benchmarks(source,fetcher,self)
+            elif source['id']=='kosis_age':
                 from .age_distribution import collect as collect_age
                 records,stats=collect_age(source,fetcher)
             elif source['id']=='unsold_statistics':
@@ -321,6 +327,8 @@ class HomeService:
         name = (payload.get('program') or '프로그램 미분류').strip()
         seed = mapping.policy_id or 'UNASSIGNED'
         pid = program_id(name, seed)
+        from .program_identity import resolve_in_session
+        pid = resolve_in_session(session,pid)
         programme = session.get(ProgramMapping, pid)
         if programme is None:
             proposed_policy, reason = policy_proposal(name, seed, real_policies)
@@ -486,7 +494,14 @@ class HomeService:
                 row.update(progress_pct=report['progress_pct'],progress_date=report['report_date'],
                     progress_evidence_url=report['evidence_url'],progress_date_basis=report.get('progress_date_basis'),
                     progress_date_precision=report.get('date_precision','DAY'))
+        from .project_profile import overlay
+        overlay(self, rows, as_of)
         for row in rows:
+            plan_row=dict(row)
+            for milestone,field in (('CONSTRUCTION','start_plan_date'),('COMPLETION','completion_plan_date')):
+                approved=row.get('managed_schedules',{}).get(milestone)
+                if approved:plan_row[field]=approved['due_date']
+            row["construction_plan"]=construction_plan(plan_row,as_of or today())
             row.update(milestone_state(row, as_of or today()))
         for field, value in (("region", region), ("source_id", source_id), ("stage", stage)):
             if value:
@@ -800,7 +815,14 @@ class HomeService:
         return dict(current, history=self.history(entity_id, as_of), mapping_history=self.mapping_history(entity_id, as_of))
 
     def mapping_policies(self, as_of=None):
-        return catalogue(self.policy_rows(as_of), self.rows("policy_event", as_of))
+        policies = catalogue(self.policy_rows(as_of), self.rows("policy_event", as_of))
+        from .policy_profile import profile, POLICY_ID
+        overrides = profile(self, as_of).get('overrides', {})
+        for policy in policies:
+            if policy['policy_id'] == POLICY_ID:
+                for field in ('name','target_units','period_start','period_end'):
+                    if field in overrides: policy[field] = overrides[field]['value']
+        return policies
 
     def policy_monitor(self, as_of=None, **filters):
         policies = self.mapping_policies(as_of)
@@ -848,20 +870,31 @@ class HomeService:
                     policy_id=row.policy_id, status=row.status, revision_no=row.revision_no,
                     basis=row.basis, evidence_url=row.evidence_url)
                 for change in session.scalars(select(Audit).where(Audit.entity_id == row.id,
-                        Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO']), Audit.recorded_at >= cutoff)
+                        Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO', 'PROGRAM_POLICY_MERGE']), Audit.recorded_at >= cutoff)
                         .order_by(Audit.recorded_at.desc())).all():
                     state.update(change.before)
                 members = [p for p in projects if p['mapping'].get('program_id') == row.id]
                 state['project_count'] = len(members)
-                state['active_project_count'] = sum(p['mapping']['status'] != 'RELEASED' for p in members)
+                state['active_project_count'] = sum(p['mapping']['status'] not in ('RELEASED','REJECTED') for p in members)
                 result.append(state)
-            return result
+            from .program_profile import profiles
+        from .program_availability import availability
+        details=profiles(self,as_of)
+        aliases={r['alias_id'] for r in self.rows('program_alias',as_of)}
+        result=[p for p in result if p['id'] not in aliases]
+        for p in result:
+            item=details.get(p['id'])
+            if item:
+                p['profile']=item['values'];p['source_profile']=item['source']
+                p['name']=item['values']['name'] or p['name']
+            p.update(availability(p))
+        return result
 
     def program_policy_history(self, program_id, as_of=None):
         cutoff = datetime.combine((as_of or today()) + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
         with self.sessions() as session:
             records = session.scalars(select(Audit).where(Audit.entity_id == program_id,
-                Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO']), Audit.recorded_at < cutoff)
+                Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO', 'PROGRAM_POLICY_MERGE','PROGRAM_IDENTITY_MERGE']), Audit.recorded_at < cutoff)
                 .order_by(Audit.recorded_at.desc())).all()
             return [dict(action=r.action, before=r.before, after=r.after,
                          recorded_at=as_utc(r.recorded_at).isoformat()) for r in records]
@@ -917,7 +950,7 @@ class HomeService:
         day = as_of or today()
         cutoff = datetime.combine(day + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
         with self.sessions() as session:
-            records = session.scalars(select(Audit).where(Audit.entity_id == project_id, Audit.action.in_(["MAPPING_AUTO", "MAPPING_REVIEW", "PROGRAM_PROJECT_REVIEW"]),
+            records = session.scalars(select(Audit).where(Audit.entity_id == project_id, Audit.action.in_(["MAPPING_AUTO", "MAPPING_REVIEW", "PROGRAM_PROJECT_REVIEW", "PROGRAM_SOURCE_SUPPLEMENT", "PROGRAM_PROJECT_MERGE"]),
                 Audit.recorded_at < cutoff).order_by(Audit.recorded_at.desc())).all()
             return [dict(action=r.action, before=r.before, after=r.after, recorded_at=as_utc(r.recorded_at).isoformat()) for r in records]
 

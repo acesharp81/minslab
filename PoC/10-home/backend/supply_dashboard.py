@@ -29,6 +29,12 @@ def block_key(row):
         match = re.search(r"\s+([A-Za-z]{1,3})\s*-?\s*(\d+)(?:BL)?(?:\s|\(|$)", row["name"], re.I)
         block = "".join(match.groups()) if match else None
     match = re.fullmatch(r"([A-Za-z]{1,3})\s*-?\s*0*(\d+)(?:BL)?", block or "", re.I)
+    if not match:
+        # Contract site codes can differ from the one explicit housing block in
+        # the title. Derive the display key without rewriting the source field.
+        explicit=set(re.findall(r'([A-Za-z]{1,3})[-－]?(\d+)(?:BL|블록)', row.get('name',''), re.I))
+        if len(explicit)==1:
+            prefix,number=next(iter(explicit));match=re.fullmatch(r'([A-Za-z]{1,3})(\d+)',prefix+number)
     if not term or not match:
         return None
     term = re.sub(r"\s+", "", term).replace("국제화계획", "")
@@ -56,6 +62,13 @@ def inventory(rows):
     selected = []
     for group in grouped.values():
         plans = [row for row in group if row["source_id"] in {"lh_sale", "lh_rent"}]
+        # Distinct named rental cohorts are disjoint, not duplicate snapshots.
+        rental_types={'국민임대','영구임대','행복주택','통합공공임대'}
+        tenures=[r.get('tenure') for r in plans]
+        if len(plans)>1 and len(set(tenures))==len(plans) and all(t in rental_types for t in tenures):
+            selected.extend(plans)
+            excluded.extend(r['id'] for r in group if r not in plans)
+            continue
         if len(plans) > 1 or (not plans and len(group) > 1):
             excluded.extend(row["id"] for row in group)
             continue
@@ -234,6 +247,7 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
         item = project_roadmap(row, plans.get(row.get("master_id") or row["id"], {}), reference, horizon, annual_horizon=max(horizon, 5))
         item.update(master_id=row.get("master_id"), historical_report=row.get("historical_report", False), municipality=row.get("municipality"),
                     report_date=row.get("report_date"), evidence_url=row.get("evidence_url"))
+        item["map_quantities"] = quantities([row], plans, reference, horizon, measure, notice_links=initial_links)
         items.append(item)
     condition=filters.get("schedule_status","all")
     if condition!="all":
@@ -257,6 +271,14 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
     def calculate(members):
         amount = quantities(members,plans,reference,horizon,measure,*canonical,notice_links=notice_links)
         amount['stage_distribution'] = aggregate_stages([r for r in members if r['id'] in canonical[0]], stage_parts)
+        return amount
+    def display_amount(members):
+        amount=calculate(members)
+        # A valid individual target must stay visible even when that contract
+        # cannot be added to the deduplicated portfolio (e.g. multi-site scope).
+        if amount['target_units'] is None and len(members)==1 and members[0].get('planned_units') is not None:
+            amount=dict(amount,aggregate_target_units=None,target_units=members[0]['planned_units'],
+                        quantity_basis='PROJECT_REFERENCE',quantity_note='사업 목표 표시 · 중복·복합공사 범위로 전체 합계 별도')
         return amount
     active_policies = [policy for policy in policies if policy["announced_at"] <= reference.isoformat()
                        and (not filters.get("policy_id") or policy["policy_id"] == filters["policy_id"])]
@@ -315,14 +337,20 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
         anchors = [district for district in mapped if ids.intersection(district["project_ids"])]
         anchor = anchors[0] if len(anchors) == 1 else None
         location = locations.get(key)
+        if not location and not anchor:
+            points={(r.get('latitude'),r.get('longitude')) for r in members if r.get('latitude') is not None and r.get('longitude') is not None}
+            if len(points)==1:
+                source=next(r for r in members if r.get('latitude') is not None)
+                location=dict(latitude=source['latitude'],longitude=source['longitude'],coordinate_basis=source.get('coordinate_basis'),evidence_url=source.get('location_evidence_url'))
         block=group("|".join(key), key[1]+" "+key[2], members, region=key[0], block=key[2],
             district_name=anchor["name"] if anchor else key[1],
             latitude=location["latitude"] if location else anchor["latitude"] if anchor else None,
             longitude=location["longitude"] if location else anchor["longitude"] if anchor else None,
             coordinate_basis=location["coordinate_basis"] if location else "DISTRICT_REPRESENTATIVE" if anchor else "UNLOCATED",
             location_evidence_url=location.get("evidence_url") if location else None,
-            group_quantities={kind:{item["id"]:calculate([row for row in members if row["id"] in item["project_ids"]])
+            group_quantities={kind:{item["id"]:display_amount([row for row in members if row["id"] in item["project_ids"]])
                 for item in grouping if ids.intersection(item["project_ids"])} for kind,grouping in groups.items()})
+        block.update(display_amount(members))
         block["milestones"]=block_milestones(members,notice_links,reference)
         blocks.append(block)
     # Named Seoul projects and area-only locations were excluded by block syntax.
@@ -331,7 +359,7 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
     for row in rows:
         if row['id'] in represented or row.get('latitude') is None or row.get('longitude') is None:continue
         name=row['name'];members=[row];ids={row['id']}
-        scopes={kind:{g['id']:calculate(members) for g in grouping if ids.intersection(g['project_ids'])} for kind,grouping in groups.items()}
+        scopes={kind:{g['id']:display_amount(members) for g in grouping if ids.intersection(g['project_ids'])} for kind,grouping in groups.items()}
         anchor=dict(id='location:'+row['id'],name=name,project_ids=[row['id']],regions=[row['region']],
             latitude=row['latitude'],longitude=row['longitude'],coordinate_basis=row.get('coordinate_basis'),
             location_label=row.get('location_label'),link_status='REVIEW',geometry=None,
@@ -340,6 +368,7 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
         b=group(anchor['id'],name,members,region=row['region'],block='대표 위치',district_name=name,
             latitude=row['latitude'],longitude=row['longitude'],coordinate_basis=row.get('coordinate_basis'),
             location_label=row.get('location_label'),location_evidence_url=row.get('location_evidence_url'),group_quantities=scopes)
+        b.update(display_amount(members))
         b['milestones']=block_milestones(members,notice_links,reference);blocks.append(b)
     municipality_groups=[]
     resolved=municipal_membership(rows,municipalities or [],mapped,block_key)

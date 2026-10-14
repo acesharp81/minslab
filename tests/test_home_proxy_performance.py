@@ -36,3 +36,28 @@ class HomeProxyPerformanceTests(unittest.IsolatedAsyncioTestCase):
         req,head,body=await self.call(httpx.Response(200,headers={'content-length':'42'},stream=httpx.ByteStream(b'')),method='HEAD')
         self.assertEqual(req.headers['accept-encoding'],'identity')
         self.assertEqual(body,b'');self.assertEqual(dict(head['headers'])[b'content-length'],b'42')
+
+
+class HomePolicyWriteBoundaryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_policy_information_requires_admin_and_same_origin(self):
+        async def run(admin, origin, path="/poc/home/api/admin/policy-information"):
+            seen=[];sent=[]
+            async def receive():return {'type':'http.request','body':b'{"changes":{}}'}
+            async def send(message):sent.append(message)
+            async def handler(request):
+                seen.append(request)
+                return httpx.Response(200,stream=httpx.ByteStream(b'{}'))
+            client=httpx.AsyncClient
+            with patch('poc10_proxy.internal_secret',return_value='test'),patch('poc10_proxy.httpx.AsyncClient',side_effect=lambda **kw:client(transport=httpx.MockTransport(handler),**kw)):
+                await proxy_home({'path':path,'method':'POST','headers':[(b'host',b'example.test'),(b'origin',origin),(b'x-home-admin',b'forged')],'query_string':b''},receive,send,'http://home',is_admin=admin)
+            return sent[0]['status'],seen
+        self.assertEqual((await run(False,b'https://example.test'))[0],401)
+        self.assertEqual((await run(True,b'https://other.test'))[0],403)
+        status,seen=await run(True,b'https://example.test')
+        self.assertEqual(status,200);self.assertNotEqual(seen[0].headers['x-home-admin'],'forged')
+
+        for path in ('/poc/home/api/admin/project-information/PRO_TEST',):
+            self.assertEqual((await run(False,b'https://example.test',path))[0],401)
+            self.assertEqual((await run(True,b'https://other.test',path))[0],403)
+            status,seen=await run(True,b'https://example.test',path)
+            self.assertEqual(status,200);self.assertNotEqual(seen[0].headers['x-home-admin'],'forged')

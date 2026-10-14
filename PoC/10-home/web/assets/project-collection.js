@@ -18,12 +18,12 @@ const ProjectCollection=(()=>{
       render();if(pendingCell){const choice=pendingCell;pendingCell=null;focusCell(choice.id,choice.stage);}el('pc-message').textContent=value.as_of_date+' 기준 · '+n(value.total)+'개 사업 기록 · DB 변경 20초 간격 확인 · 조회 시 재매칭 없음';
     }catch(error){el('pc-message').textContent='조회 실패 · '+error.message;}finally{if(token===generation)el('pc-reload').disabled=false;}
   }
-  function constructionPlanHtml(plan,compact=false){
+  function constructionPlanHtml(plan,compact=false,narrow=false){
     if(!plan)return '';
     if(compact)return '<span class="pc-progress-mini"><strong>계획 공정률 '+plan.current_planned_pct+'%</strong><small>0% 착공 → 100% 준공 · 기간 비례 추정</small><progress class="pc-progress-track" max="100" value="'+plan.current_planned_pct+'" aria-label="기간 비례 추정 계획 공정률"></progress></span>';
-    const first=Date.parse(plan.start_date),last=Date.parse(plan.completion_date),x=d=>45+550*Math.max(0,Math.min(1,(Date.parse(d)-first)/(last-first))),y=p=>135-p;
-    const actual=plan.comparison,point=actual?'<circle cx="'+x(actual.date)+'" cy="'+y(actual.actual_pct)+'" r="5" fill="#15775f"><title>'+e(actual.date)+' 원천 공정률 '+actual.actual_pct+'%</title></circle>':'';
-    return '<section class="pc-construction-plan"><h4>건설 공정계획 · 0~100%</h4><p>'+e(plan.basis)+'</p><svg viewBox="0 0 640 165" role="img" aria-label="착공 0%부터 준공 100%까지 기간 비례 추정 계획과 원천 공정률"><path d="M45 135 L595 35 L595 135Z" fill="#f1b35f" opacity=".3"/><path d="M45 135 L595 35" stroke="#d48927" stroke-width="2" stroke-dasharray="5 4"/>'+[0,25,50,75,100].map(v=>'<text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+v+'%</text>').join('')+point+'<text x="45" y="157">'+e(plan.start_date)+'</text><text x="595" y="157" text-anchor="end">'+e(plan.completion_date)+'</text></svg><div class="pc-progress-milestones">'+plan.milestones.map(m=>'<span><strong>'+m.pct+'%</strong><small>'+e(m.date)+'</small></span>').join('')+'</div>'+(actual?'<p>원천 공정률 <b>'+actual.actual_pct+'%</b> · '+e(actual.date)+' 기준 / 같은 날 추정 계획 '+actual.planned_pct+'% · 차이 '+actual.gap_percentage_points+'%p (공식 지연 판정 아님)</p>':'<p>실제 공정률 미확보</p>')+'<details><summary>월별 계획 공정률 보기 ('+plan.monthly.length+'개월)</summary><div class="pc-progress-months"><table><thead><tr><th>연월</th><th>추정 계획 공정률</th></tr></thead><tbody>'+plan.monthly.map(m=>'<tr><td>'+e(m.month)+'</td><td>'+m.planned_pct+'%</td></tr>').join('')+'</tbody></table></div></details></section>';
+    const width=narrow?340:640,right=narrow?315:595,first=Date.parse(plan.start_date),last=Date.parse(plan.completion_date),x=d=>45+(right-45)*Math.max(0,Math.min(1,(Date.parse(d)-first)/(last-first))),y=p=>135-p;
+    const actual=plan.comparison,point=actual?'<circle cx="'+x(actual.date)+'" cy="'+y(actual.actual_pct)+'" r="5" fill="#15775f"><title>'+e(actual.date)+' '+e(actual.input_label||'원천 공정률')+' '+actual.actual_pct+'%</title></circle>':'';
+    return '<section class="pc-construction-plan"><h4>건설 공정계획 · 0~100%</h4><p>'+e(plan.basis)+'</p><svg viewBox="0 0 '+width+' 165" role="img" aria-label="착공 0%부터 준공 100%까지 기간 비례 추정 계획과 원천 공정률"><path d="M45 135 L'+right+' 35 L'+right+' 135Z" fill="#f1b35f" opacity=".3"/><path d="M45 135 L'+right+' 35" stroke="#d48927" stroke-width="2" stroke-dasharray="5 4"/>'+[0,25,50,75,100].map(v=>'<text x="36" y="'+(y(v)+4)+'" text-anchor="end">'+v+'%</text>').join('')+point+'<text x="45" y="157">'+e(plan.start_date)+'</text><text x="'+right+'" y="157" text-anchor="end">'+e(plan.completion_date)+'</text></svg><div class="pc-progress-milestones">'+plan.milestones.map(m=>'<span><strong>'+m.pct+'%</strong><small>'+e(m.date)+'</small></span>').join('')+'</div>'+(actual?'<p>'+e(actual.input_label||'원천 공정률')+' <b>'+actual.actual_pct+'%</b> · '+e(actual.date)+' 기준 / 같은 날 추정 계획 '+actual.planned_pct+'% · 차이 '+actual.gap_percentage_points+'%p (공식 지연 판정 아님)</p>':'<p>실제 공정률 미확보</p>')+'<details><summary>월별 계획 공정률 보기 ('+plan.monthly.length+'개월)</summary><div class="pc-progress-months"><table><thead><tr><th>연월</th><th>추정 계획 공정률</th></tr></thead><tbody>'+plan.monthly.map(m=>'<tr><td>'+e(m.month)+'</td><td>'+m.planned_pct+'%</td></tr>').join('')+'</tbody></table></div></details></section>';
   }
   function progressHtml(c,s,detail=false){
     const p=c.progress;if(!p||s==='POLICY')return '';
@@ -33,7 +33,7 @@ const ProjectCollection=(()=>{
     const rows=(p.research||[]).slice().sort((a,b)=>(b.checked_at||'').localeCompare(a.checked_at||'')||(b.iteration||1)-(a.iteration||1));
     return rows.length?'<section class="pc-research"><h4>인터넷 조회 · 케이스별 점검 이력</h4>'+rows.map(r=>'<details><summary>'+e(r.case_label||'개별 원문 점검')+' · '+n(r.iteration||1)+'차 조회 · '+e(r.checked_at||r.base_date)+' · '+e(r.status_label||r.status)+'</summary><p>검색어: '+e(r.query||r.term)+'</p><p>'+e(r.result_note||'검색 결과는 원문·사업 범위 검증 후 연결합니다.')+'</p>'+(r.candidates||[]).map(c=>'<p><a href="'+e(safeUrl(c.url))+'" target="_blank" rel="noopener">'+e(c.title||c.url)+'</a> <small>'+e(c.verification_label||'원문 확인 대상')+'</small></p>').join('')+'</details>').join('')+'</section>':'';
   }
-  function cellContent(c,s){
+  function legacyCellContent(c,s){
     const targets=c.targets||[],records=c.sources.filter(r=>r.kind!=='PLAN'&&r.kind!=='PLAN_STATUS');
     const targetHtml=targets.length?'<span class="pc-cell-target"><span class="pc-cell-caption">목표 · 예정 일정</span>'+targets.map(t=>'<span class="pc-target-item"><strong>'+e(t.label)+' · '+e((t.date||t.date_label)+(t.date_conversion==='PERIOD_END'?' · 원문 '+t.date_label+' → 마지막 달':''))+'</strong><small>'+e(t.name)+(t.reference_only?' · 일부 범위: 전체 목표 아님':'')+(t.review_status==='REVIEW'?' · 연결 검토':'')+'</small></span>').join('')+'</span>':'';
     const actuals=records.filter(r=>r.kind==='ACTUAL');
@@ -41,6 +41,69 @@ const ProjectCollection=(()=>{
       records.some(r=>r.kind==='DOCUMENT')?records.filter(r=>r.kind==='DOCUMENT').map(r=>r.basis).join(' / '):records.some(r=>r.kind==='PLAN_STATUS')?records.filter(r=>r.kind==='PLAN_STATUS').map(r=>r.basis).join(' / '):c.inferred_available?'선행 단계 추정':s==='POLICY'?'정책 연결 근거':'단계 근거 · 실적 여부 검토';
     const evidenceHtml=records.length?'<span class="pc-cell-evidence"><span class="pc-cell-caption">확보된 '+stages[s]+' 정보</span><strong>'+e([...new Set(records.map(r=>r.name))].join(' / '))+'</strong><small>'+e(actualText)+(records.some(r=>r.review_status==='REVIEW')?' · 연결 확인 필요':'')+'</small></span>':'';
     return progressHtml(c,s)+((targetHtml?targetHtml.replace(/<\/span>$/,constructionPlanHtml(c.construction_plan,true)+'</span>'):c.construction_plan?'<span class="pc-cell-target">'+constructionPlanHtml(c.construction_plan,true)+'</span>':'')+evidenceHtml||'<span class="pc-cell-evidence pc-cell-missing"><strong>'+e(c.label)+'</strong><small>'+e(c.reason)+'</small></span>');
+  }
+
+  const inputLabels={CONFIRMED:'확인 완료',COLLECTED:'수집완료',ESTIMATED_UNCOLLECTED:'추정 입력(미수집)',ESTIMATED_UNAVAILABLE:'추정 입력(수집 불가)'};
+  function compactBadge(status){const estimate=status?.startsWith('ESTIMATED');return '<span class="pc-input-tag '+(estimate?'pc-input-estimate':status==='CONFIRMED'?'pc-input-manual':'pc-input-collected')+'" data-input-status="'+e(status)+'">'+e(inputLabels[status]||'수집완료')+'</span>';}
+
+  function managementGap(c,s){
+    if(s==='POLICY'||!c.management)return '';
+    const m=c.management,asOf=el('as-of')?.value;if(!asOf)return '';
+    const milestones=[...new Set((m.target||[]).map(r=>r.milestone))];
+    return milestones.map(milestone=>{
+      const goal=(m.target||[]).filter(r=>r.milestone===milestone&&r.date&&r.date<=asOf).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
+      const actual=(m.measurement||[]).filter(r=>r.milestone===milestone&&r.date&&r.date<=asOf).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
+      const check=PolicyStageFlow.assessGap(goal?.units,actual?.units);
+      return check.gap>0?'<span class="gap-management '+check.status.toLowerCase()+'" data-management-status="'+check.status+'">'+(s==='CONSTRUCTION'?e(goal.label)+' · ':'')+check.label+' · 부족 '+n(check.gap)+'호 ('+PolicyStageFlow.formatGapRate(check.rate)+')</span>':'';
+    }).join('');
+  }
+  function cellContent(c,s){
+    if(!c.management)return legacyCellContent(c,s);
+    const m=c.management;
+    const missing=(kind,r,field)=>{
+      const code=(m.remaining||[]).find(x=>x.milestone===r.milestone&&x.field===kind+'.'+field)?.code;
+      return kind==='measurement'&&code==='UPCOMING'?(field==='date'?'미도래·미진행':'해당 없음'):kind==='measurement'&&code==='NOT_OBSERVED'?'미측정':field==='date'?'일자 미확보':'수량 미확보';
+    };
+    const section=(kind,label)=>{
+      const list=m[kind]||[];
+      return '<span class="pc-value-section"><span class="pc-value-heading">'+label+[...new Set(list.filter(r=>r.date||r.units!=null).map(r=>r.input_status||(r.inferred?'ESTIMATED_UNCOLLECTED':r.manual?'CONFIRMED':'COLLECTED')))].map(compactBadge).join('')+'</span>'+list.map(r=>'<span class="pc-value-line">'+(s==='CONSTRUCTION'?'<b>'+e(r.label)+'</b>':'')+'<span>'+e(r.date||missing(kind,r,'date'))+'</span><strong>'+(r.units==null?missing(kind,r,'units'):n(r.units)+'호')+'</strong></span>').join('')+(s==='POLICY'&&kind==='measurement'?'<span class="pc-value-line">'+(c.officer_confirmed?'담당자 연결 확인 완료':'정책 연결 근거')+'</span>':'')+(kind==='measurement'&&m.progress_pct?'<span class="pc-value-line"><b>공정률</b>'+compactBadge(m.progress_pct.input_status||'COLLECTED')+'<span>'+e(m.progress_pct.date||'')+'</span><strong>'+n(m.progress_pct.pct)+'%</strong></span>':'')+'</span>';
+    };
+    const remaining=m.remaining||[],labels=[...new Set(remaining.map(r=>r.label))];
+    return section('target','목표')+section('measurement','측정값')+managementGap(c,s)+(remaining.length?'<span class="pc-remaining" title="'+e(remaining.map(r=>(r.milestone==='COMPLETION'?'준공 ':r.milestone==='CONSTRUCTION'?'착공 ':'')+({'target.date':'목표일','target.units':'목표량','measurement.date':'측정일','measurement.units':'측정량'}[r.field]||r.field)+' · '+r.label).join('\n'))+'">'+e(labels.join(' · '))+' <b>'+remaining.length+'항목</b></span>':'');
+  }
+  function calculationContent(value){
+    if(!value)return '';
+    const c=value.construction,intervals=value.intervals||{};
+    return '<div class="pc-calculation"><strong>담당자 목표 산정식</strong>'+(c?'<p>'+n(c.units)+'호 × '+Number(c.days_per_unit).toFixed(4)+'일/호 ÷ '+n(c.parallel_groups)+'개 병행 공구 = <b>'+n(c.days)+'일</b></p><p>공사 표본 '+n(c.sample_count)+'개 · '+e(c.parallel_basis)+'</p>'+(c.collected_schedule_priority?'<p>확보 일정 우선 적용: 실제 목표 간격 '+n(c.applied_days)+'일</p>':''):'')+Object.entries(intervals).map(([k,r])=>'<p>'+e({BUSINESS_APPROVAL:'사업화 → 인허가',APPROVAL_CONSTRUCTION:'인허가 → 착공',CONSTRUCTION_COMPLETION:'착공 → 준공',COMPLETION_MOVE_IN:'준공 → 입주',CONSTRUCTION_SUPPLY:'착공 → 공급'}[k]||k)+' 평균 '+n(r.mean_days)+'일 · 표본 '+n(r.sample_count)+'개</p>').join('')+'</div>';
+  }
+  function detailContent(c,s){
+    const remain=c.management?.remaining||[];
+    return '<div class="pc-source-expand"><button type="button" class="pc-source-open" aria-haspopup="dialog" data-source-stage="'+e(stages[s]||s)+'">근거·수집 원문·남은 항목 자세히 보기 ('+n(c.sources.length)+'건)</button><template>'+(remain.length?'<div class="pc-remaining-list">'+remain.map(r=>'<p>'+e((r.milestone==='COMPLETION'?'준공 ':r.milestone==='CONSTRUCTION'?'착공 ':'')+({'target.date':'목표일','target.units':'목표량','measurement.date':'측정일','measurement.units':'측정량'}[r.field]||r.field)+' · '+r.label)+'</p>').join('')+'</div>':'')+c.sources.map(r=>'<article><strong>'+e(r.name)+' · '+e(kinds[r.kind]||r.kind)+'</strong>'+compactBadge(r.input_status||(r.inferred?'ESTIMATED_UNCOLLECTED':r.source_id==='officer'||r.officer_confirmed?'CONFIRMED':'COLLECTED'))+'<p>'+e(r.date||r.date_label||'일자 미확보')+(r.units!=null?' · '+n(r.units)+'호':'')+'</p><p>'+e(r.basis)+'</p>'+(r.actor?'<small>'+e(r.actor)+' · '+e(r.reason)+' · '+e(r.changed_at||'')+'</small>':'')+(r.input_basis?'<p>'+e(r.input_basis)+'</p>':'')+calculationContent(r.calculation)+Object.entries(r.field_provenance||{}).map(([k,v])=>'<p>'+e(k==='units'?'수량':'일자')+': '+e(v.basis||v.rule)+'</p>').join('')+(r.evidence_url?'<a href="'+e(safeUrl(r.evidence_url))+'" target="_blank" rel="noopener">출처 원문 ↗</a>':'')+'</article>').join('')+'</template></div>';
+  }
+
+  function showSourceDialog(title,fragment,trigger){
+    const dialog=document.createElement('dialog');dialog.className='pc-source-dialog';
+    dialog.setAttribute('aria-label',title+' · 근거·수집 원문·남은 항목 자세히 보기');
+    dialog.innerHTML='<header><h3>'+e(title)+' · 근거·수집 원문·남은 항목 자세히 보기</h3><button type="button" aria-label="닫기" autofocus>×</button></header><div class="pc-source-body"></div>';
+    dialog.querySelector('.pc-source-body').append(fragment.cloneNode(true));
+    if(!dialog.querySelector('.pc-source-body').children.length)dialog.querySelector('.pc-source-body').textContent='확보된 근거와 남은 항목이 없습니다.';
+    dialog.querySelector('header button').onclick=()=>dialog.close();
+    dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});
+    dialog.addEventListener('close',()=>{dialog.remove();if(trigger?.isConnected)trigger.focus({preventScroll:true});},{once:true});
+    document.body.append(dialog);dialog.showModal();return dialog;
+  }
+  document.addEventListener('click',event=>{
+    const trigger=event.target.closest('.pc-source-open');if(!trigger)return;
+    const template=trigger.nextElementSibling;if(!template?.matches('template'))return;
+    showSourceDialog(trigger.dataset.sourceStage,template.content,trigger);
+  });
+  function openCellSources(project,cellStage,trigger){
+    const template=document.createElement('template');template.innerHTML=detailContent(project.cells[cellStage],cellStage);
+    const dialog=showSourceDialog(project.name+' · '+stages[cellStage],template.content.querySelector('template').content,trigger);
+    const footer=document.createElement('footer'),manage=document.createElement('button');
+    manage.type='button';manage.className='button';manage.textContent='수집 상태·연결 관리';
+    manage.onclick=()=>{dialog.close();detail={id:project.id,stage:cellStage};renderDetail();el('pc-cell-detail').scrollIntoView({behavior:'smooth',block:'start'});};
+    footer.append(manage);dialog.append(footer);
   }
 
   function renderGaps(list){
@@ -65,8 +128,8 @@ const ProjectCollection=(()=>{
     const metrics=[['dated_plan_available','날짜 있는 목표'],['actual_available','실적·진척 확인'],['partial_actual_available','일부 범위 실적'],['inferred_available','선행 단계 추정']];
     coverage.innerHTML='<h3>단계별 확보 내용 <small>조회 사업 기록 기준</small></h3><table><thead><tr><th>확보 구분</th>'+Object.values(stages).map(label=>'<th>'+label+'</th>').join('')+'</tr></thead><tbody>'+metrics.map(([key,label])=>'<tr><th>'+label+'</th>'+Object.keys(stages).map(s=>'<td>'+n(list.filter(p=>p.cells[s][key]).length)+'개</td>').join('')+'</tr>').join('')+'<tr><th>연결 근거</th>'+Object.keys(stages).map(s=>'<td>'+n(list.reduce((v,p)=>v+(p.cells[s].evidence_count||0),0))+'건</td>').join('')+'</tr></tbody></table><p>원천 확보는 자료가 있는 칸 수입니다. 같은 칸에 근거를 추가해도 칸 수는 늘지 않습니다. 각 행은 중복될 수 있으며 합산하지 않습니다. 원문에 명시된 ‘미정’은 자료 확보로 유지하고, 항목 미제공·공란만 있는 칸은 제외합니다. 실적·진척에는 착공·공정률 등이 포함되며 단계 완료나 주택 호수와 다릅니다.</p>';
     const size=30,totalPages=Math.max(1,Math.ceil(list.length/size));page=Math.min(page,totalPages);const shown=list.slice((page-1)*size,page*size);
-    el('pc-table').innerHTML='<table class="pc-matrix"><thead><tr><th>사업 / 지역</th>'+Object.entries(stages).map(([s,label])=>'<th><span class="pc-stage-dot" data-stage="'+s+'"></span>'+label+'</th>').join('')+'</tr></thead><tbody>'+shown.map(p=>'<tr class="'+(selected===p.id?'pc-selected':'')+'"><th><button type="button" data-pc-project="'+e(p.id)+'">'+e(p.name)+'</button><small>'+e(p.region+' · '+(p.municipality||'지역 상세 미확인'))+'</small><small>'+e(p.program||'프로그램 미연결')+'</small></th>'+Object.keys(stages).map(s=>{
-      const c=p.cells[s];return '<td><button class="pc-cell pc-'+c.status+(detail?.id===p.id&&detail?.stage===s?' pc-cell-active':'')+'" type="button" data-pc-cell="'+e(p.id)+'" data-pc-stage="'+s+'">'+cellContent(c,s)+'</button></td>';
+    el('pc-table').innerHTML='<table class="pc-matrix"><thead><tr><th>사업 / 지역</th>'+Object.entries(stages).map(([s,label])=>'<th><span class="pc-stage-dot" data-stage="'+s+'"></span>'+label+'</th>').join('')+'</tr></thead><tbody>'+shown.map(p=>'<tr class="'+(selected===p.id?'pc-selected':'')+'"><th><button type="button" data-pc-project="'+e(p.id)+'">'+e(p.name)+'</button>'+(state.admin?'<button type="button" class="pc-project-edit" data-pc-edit="'+e(p.id)+'" aria-haspopup="dialog" aria-label="'+e(p.name)+' 사업정보 수정">✎ 수정</button>':'')+'<small>'+e(p.region+' · '+(p.municipality||'지역 상세 미확인'))+'</small><small>'+e(p.program||'프로그램 미연결')+'</small></th>'+Object.keys(stages).map(s=>{
+      const c=p.cells[s];return '<td><button class="pc-cell pc-'+c.status+(detail?.id===p.id&&detail?.stage===s?' pc-cell-active':'')+'" type="button" data-pc-cell="'+e(p.id)+'" data-pc-stage="'+s+'" aria-haspopup="dialog" aria-label="'+e(p.name+' · '+stages[s]+' 근거·수집 원문·남은 항목 자세히 보기')+'">'+cellContent(c,s)+'</button></td>';
     }).join('')+'</tr>').join('')+'</tbody></table>'+(shown.length?'':'<p>조건에 맞는 사업이 없습니다.</p>');
     el('pc-page').textContent=page+' / '+totalPages+' · '+n(list.length)+'개';el('pc-prev').disabled=page<=1;el('pc-next').disabled=page>=totalPages;
     renderGaps(list);drawDiagram();renderDetail();
@@ -79,14 +142,14 @@ const ProjectCollection=(()=>{
   }
   function renderDetail(){
     const host=el('pc-cell-detail'),p=(data.items||[]).find(p=>p.id===detail?.id);host.hidden=!p;if(!p)return;
-    const c=p.cells[detail.stage];const checks=(p.sequence_checks||[]).filter(x=>x.stage===detail.stage||x.downstream===detail.stage);host.innerHTML='<div class="pc-detail-head"><h3>'+e(p.name)+' · '+stages[detail.stage]+'</h3><button type="button" data-pc-detail-close>닫기</button></div><p><strong>'+e(c.label)+'</strong>'+(c.review_required?' · 연결 확인 필요':'')+'</p>'+progressHtml(c,detail.stage,true)+researchHtml(p)+((c.targets||[]).length?'<div class="pc-detail-targets"><h4>목표 · 예정 일정</h4>'+c.targets.map(t=>'<p><strong>'+e(t.label)+' · '+e((t.date||t.date_label)+(t.date_conversion==='PERIOD_END'?' · 원문 '+t.date_label+' → 마지막 달':''))+'</strong><small> '+e(t.name)+(t.reference_only?' · 일부 유형 참고 일정: 전체 사업 목표·실적으로 집계하지 않음':'')+(t.review_status==='REVIEW'?' · 연결 확인 필요':'')+'</small></p>').join('')+'</div>':'')+(checks.length?'<div class="pc-detail-targets"><h4>선후 관계 수집 점검</h4>'+checks.map(x=>'<p><strong>'+e(x.label)+'</strong><small>'+e(x.reason)+'</small></p>').join('')+'</div>':'')+(c.sources.length?'<div class="pc-evidence-list">'+c.sources.map(r=>'<article><strong>'+e(r.name)+'</strong><span class="badge neutral">'+e(kinds[r.kind])+'</span><p>'+e(r.basis||'저장된 원천 근거')+'</p><small>'+e(r.date||r.date_label||'사건일 미확인')+(r.units!=null?' · 확인 물량 '+n(r.units)+'호':'')+(r.pct!=null?' · 공정률 '+r.pct+'%':'')+(r.review_status==='REVIEW'?' · 담당자 확인 필요':'')+'</small></article>').join('')+'</div>':'<p>'+e(c.reason)+'</p>')+constructionPlanHtml(c.construction_plan)+(c.assessment?'<p class="pc-assessment-basis">담당자 판정: '+e(c.assessment.basis)+(c.assessment_conflict?' · 이후 자료 확보로 재검토 필요':'')+'</p>':'')+'<div class="pc-detail-actions"><button type="button" data-pc-open-project="'+e(p.id)+'">사업 상세 보기</button><button type="button" data-pc-open-mapping="'+e(p.id)+'">정책–프로그램–사업 연결에서 검토</button></div>';
+    const c=p.cells[detail.stage];const checks=(p.sequence_checks||[]).filter(x=>x.stage===detail.stage||x.downstream===detail.stage);host.innerHTML='<div class="pc-detail-head"><h3>'+e(p.name)+' · '+stages[detail.stage]+'</h3><button type="button" data-pc-detail-close>닫기</button></div><p><strong>'+e(c.label)+'</strong>'+(c.review_required?' · 연결 확인 필요':'')+'</p>'+progressHtml(c,detail.stage,true)+researchHtml(p)+((c.targets||[]).length?'<div class="pc-detail-targets"><h4>목표 · 예정 일정</h4>'+c.targets.map(t=>'<p><strong>'+e(t.label)+' · '+e((t.date||t.date_label)+(t.date_conversion==='PERIOD_END'?' · 원문 '+t.date_label+' → 마지막 달':''))+'</strong><small> '+e(t.name)+(t.reference_only?' · 일부 유형 참고 일정: 전체 사업 목표·실적으로 집계하지 않음':'')+(t.review_status==='REVIEW'?' · 연결 확인 필요':'')+'</small></p>').join('')+'</div>':'')+(checks.length?'<div class="pc-detail-targets"><h4>선후 관계 수집 점검</h4>'+checks.map(x=>'<p><strong>'+e(x.label)+'</strong><small>'+e(x.reason)+'</small></p>').join('')+'</div>':'')+detailContent(c,detail.stage)+constructionPlanHtml(c.construction_plan)+(c.assessment?'<p class="pc-assessment-basis">담당자 판정: '+e(c.assessment.basis)+(c.assessment_conflict?' · 이후 자료 확보로 재검토 필요':'')+'</p>':'')+'<div class="pc-detail-actions"><button type="button" data-pc-open-project="'+e(p.id)+'">사업 상세 보기</button><button type="button" data-pc-open-mapping="'+e(p.id)+'">정책–프로그램–사업 연결에서 검토</button></div>';
     host.insertAdjacentHTML('beforeend',CollectionRepairs.html(data,[p],detail.stage));
     const bridges=(p.evidence_bridges||[]).filter(b=>b.facts.some(f=>f.stage===detail.stage));
     if(bridges.length)host.insertAdjacentHTML('beforeend','<section class="pc-bridge-review"><h4>추가 연결 근거 · 담당자 검토</h4><p>지역·지구·블록을 대조한 후보입니다. 일부 유형 연결은 적용 호수와 전체 호수를 별도로 표시합니다. 확정은 자료 연결의 확인이며, 예정일을 실적으로 바꾸지 않습니다.</p>'+bridges.map(b=>'<form class="pc-bridge-form" data-bridge-id="'+e(b.id)+'" data-bridge-revision="'+b.revision_no+'"><strong>'+e(b.source_name)+'</strong><p>'+e(b.basis)+'</p><small>고정 원천 판본 '+b.source_revision_no+' · '+e(b.base_date)+'</small><p><a href="'+e(safeUrl(b.evidence_url))+'" target="_blank" rel="noopener">연결 원문 ↗</a></p><label>연결 상태<select name="status" '+(state.admin?'':'disabled')+'>'+Object.entries({REVIEW:'검토 후보',CONFIRMED:'담당자 확정',RELEASED:'연결 해제'}).map(([v,label])=>'<option value="'+v+'" '+(v===b.status?'selected':'')+'>'+label+'</option>').join('')+'</select></label><label>검토 기록<textarea name="basis" required maxlength="2000" '+(state.admin?'':'disabled')+'>'+e(b.review_basis||b.basis)+'</textarea></label>'+(state.admin?'<button type="submit" class="button primary">연결 검토 저장</button>':'')+'<p role="status" class="pc-bridge-result"></p></form>').join('')+'</section>');
-    if(state.admin){host.insertAdjacentHTML('beforeend','<form id="pc-assessment-form"><h4>미확보 원인 확인</h4><p>원천 또는 담당자 확인 근거를 남겨 수집 상태를 관리합니다. 확보된 자료가 있으면 해당 자료를 우선 표시합니다.</p><label>판정<select name="status"><option value="COLLECTION_REQUIRED">제공처 확인 · 수집/연결 필요</option><option value="NOT_PLANNED">확인됨 · 아직 계획 미수립</option><option value="METHOD_UNKNOWN">수집 방안 미확인</option><option value="RELEASED">담당자 판정 해제</option></select></label><label>확인 근거<textarea name="basis" required maxlength="2000" placeholder="확인한 자료명·담당기관·확인일 또는 제공처 조사 결과"></textarea></label><button type="submit" class="button primary">판정 저장</button><p id="pc-save-status" role="status"></p></form>');if(c.assessment){host.querySelector('[name="status"]').value=c.assessment.status;host.querySelector('[name="basis"]').value=c.assessment.basis;}}
+    if(state.admin){host.insertAdjacentHTML('beforeend','<form id="pc-assessment-form"><h4>미확보 원인 확인</h4><p>원천 또는 담당자 확인 근거를 남겨 수집 상태를 관리합니다. 확보된 자료가 있으면 해당 자료를 우선 표시합니다.</p><label>판정<select name="status"><option value="COLLECTION_REQUIRED">제공처 확인 · 수집/연결 필요</option><option value="NOT_PLANNED">확인됨 · 아직 계획 미수립</option><option value="METHOD_UNKNOWN">수집 방안 미확인</option><option value="COLLECTION_UNAVAILABLE">확인됨 · 수집 불가</option><option value="RELEASED">담당자 판정 해제</option></select></label><label>확인 근거<textarea name="basis" required maxlength="2000" placeholder="확인한 자료명·담당기관·확인일 또는 제공처 조사 결과"></textarea></label><button type="submit" class="button primary">판정 저장</button><p id="pc-save-status" role="status"></p></form>');if(c.assessment){host.querySelector('[name="status"]').value=c.assessment.status;host.querySelector('[name="basis"]').value=c.assessment.basis;}}
   }
   async function refreshIfChanged(){
-    if(polling||!loaded||document.hidden||!el('pane-project-collection').offsetParent||el('pc-reload').disabled)return;
+    if(polling||!loaded||document.hidden||!el('pane-project-collection').offsetParent||el('pc-reload').disabled||document.querySelector('#project-information-dialog'))return;
     polling=true;try{const next=await request('/project-collection/version');if(next.version!==version){if(dirty){el('pc-message').textContent='새 변경이 있습니다. 작성 중인 입력을 보존하며 저장·닫기 후 반영합니다.';}else await load({preserveSelection:true,automatic:true});}}catch(error){el('pc-message').textContent='변경 확인 실패 · 기존 화면 유지. 다음 주기에 재시도합니다.';}finally{polling=false;}
   }
   function setup(){
@@ -97,18 +160,25 @@ const ProjectCollection=(()=>{
     el('pc-policy').addEventListener('change',load);el('pc-reload').addEventListener('click',load);
     for(const id of ['pc-region','pc-status'])el(id).addEventListener('change',()=>{page=1;render();});el('pc-search').addEventListener('input',()=>{page=1;render();});
     el('pc-prev').addEventListener('click',()=>{page--;render();});el('pc-next').addEventListener('click',()=>{page++;render();});
-    el('pane-project-collection').addEventListener('click',event=>{
+    el('pane-project-collection').addEventListener('click',async event=>{
       const t=event.target.closest('button');if(!t)return;
+      if(t.dataset.pcEdit){
+        if(!state.admin)return;t.disabled=true;
+        try{const dialog=await ProjectWorkspace.openEditor(t.dataset.pcEdit,()=>load({preserveSelection:true}));dialog?.addEventListener('close',()=>{if(t.isConnected)t.focus({preventScroll:true});},{once:true});}
+        catch(error){el('pc-message').textContent='사업정보 조회 실패 · '+error.message;}
+        finally{t.disabled=false;}return;
+      }
       if(t.dataset.pcDiagram){stage=t.dataset.pcDiagram;drawDiagram();}
       if(t.dataset.pcProject){selected=t.dataset.pcProject;drawDiagram();render();}
       if(t.id==='pc-clear-project'){selected=null;render();}
       if(t.dataset.pcCell){
-        const fromGroup=Boolean(t.closest('.pc-gap-projects'));
-        detail={id:t.dataset.pcCell,stage:t.dataset.pcStage};selected=detail.id;stage=detail.stage;
-        if(fromGroup){const index=rows().findIndex(p=>p.id===detail.id);if(index>=0)page=Math.floor(index/30)+1;}
+        const project=data.items.find(p=>p.id===t.dataset.pcCell),cellStage=t.dataset.pcStage;
+        if(!project||!Object.hasOwn(stages,cellStage))return;
+        selected=project.id;stage=cellStage;detail=null;
+        const index=rows().findIndex(p=>p.id===project.id);if(index>=0)page=Math.floor(index/30)+1;
         render();
-        if(fromGroup){const cell=el('pc-table').querySelector('[data-pc-cell="'+CSS.escape(detail.id)+'"][data-pc-stage="'+detail.stage+'"]');cell?.focus({preventScroll:true});cell?.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});}
-        else el('pc-cell-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+        const trigger=el('pc-table').querySelector('[data-pc-cell="'+CSS.escape(project.id)+'"][data-pc-stage="'+cellStage+'"]');
+        openCellSources(project,cellStage,trigger);
       }
       if(t.hasAttribute('data-pc-detail-close')){detail=null;dirty=false;renderDetail();refreshIfChanged();}
       if(t.dataset.pcOpenProject)openDetail(t.dataset.pcOpenProject);
@@ -135,5 +205,5 @@ const ProjectCollection=(()=>{
     const index=rows().findIndex(p=>p.id===id);if(index<0){el('pc-message').textContent='선택 사업을 현재 수집 범위에서 확인할 수 없습니다.';return;}
     page=Math.floor(index/30)+1;selected=id;stage=cellStage;detail={id,stage};render();el('pc-cell-detail').scrollIntoView({block:'start',behavior:'smooth'});
   }
-  let ready=false;return {visible(options={}){if(!ready){setup();ready=true;}if(loaded)refreshIfChanged();else load({preserveSelection:true});},reload:load,refreshIfChanged,constructionPlanHtml,focusCell};
+  let ready=false;return {visible(options={}){if(!ready){setup();ready=true;}if(loaded)refreshIfChanged();else load({preserveSelection:true});},reload:load,refreshIfChanged,constructionPlanHtml,cellContent,detailContent,calculationContent,compactBadge,focusCell};
 })();

@@ -36,7 +36,7 @@ const HousingMap = (() => {
   }
   function choose(id,districtName) {
     userSelected=true;selectedId=id;selectedDistrict=districtName||payload.districts.find(d=>d.project_ids.includes(id))?.name||null;
-    draw();
+    draw();init();
     const block=selectedBlock();
     if(hasLocation(block))MapThreeD.focus(block);
     else {const district=payload.districts.find(row=>row.name===selectedDistrict);if(district)MapThreeD.focus(district,13.5);}
@@ -149,7 +149,7 @@ const HousingMap = (() => {
     $('map-panel-toggle').addEventListener('click',()=>togglePanel('progress'));
     $('map-location-toggle').addEventListener('click',()=>togglePanel('location'));
     document.querySelectorAll('[data-map-panel]').forEach(b=>b.addEventListener('click',()=>togglePanel(b.dataset.mapPanel)));
-    locationPanel.addEventListener('click',event=>{const button=event.target.closest('[data-location-jump]');if(!button)return;const selectors={employment:'.area-context-rate, .area-context-grid',household:'[data-demographic="household"]',age:'[data-demographic="age"]',unsold:'.unsold-context',infrastructure:'#map-infrastructure-panel'};const target=locationPanel.querySelector(selectors[button.dataset.locationJump]);if(!target)return;if(target.tagName==='DETAILS')target.open=true;locationPanel.scrollTo({top:locationPanel.scrollTop+target.getBoundingClientRect().top-locationPanel.getBoundingClientRect().top-125,behavior:'smooth'});});
+    locationPanel.addEventListener('click',event=>{const button=event.target.closest('[data-location-jump]');if(!button)return;const selectors={employment:'[data-demographic=employment], .area-context-rate, .area-context-grid',household:'[data-demographic="household"]',age:'[data-demographic="age"]',unsold:'.unsold-context',infrastructure:'#map-infrastructure-panel'};const target=locationPanel.querySelector(selectors[button.dataset.locationJump]);if(!target)return;if(target.tagName==='DETAILS')target.open=true;locationPanel.scrollTo({top:locationPanel.scrollTop+target.getBoundingClientRect().top-locationPanel.getBoundingClientRect().top-125,behavior:'smooth'});});
     window.addEventListener('resize',syncPanels);syncPanels();
     for(const id of ['map-land-layer','map-observation-layer'])$(id).addEventListener('change',draw);
     $('roadmap-status').addEventListener('change',()=>load());
@@ -171,7 +171,7 @@ const HousingMap = (() => {
     year=Math.min(Math.max(year,dashboard.start_year),annual.current_year+annual.horizon);
     draw();init();requestAnimationFrame(()=>MapThreeD.resize());
   }
-  function visible(){init();requestAnimationFrame(()=>MapThreeD.resize());}
+  function visible(){requestAnimationFrame(()=>{if(state.view!=='overview')return;init();MapThreeD.resize();});}
   function hidden(){MapThreeD.exit();stop();}
   function reset(){MapThreeD.exit();MapSupply.reset();year=null;mode='current';userSelected=false;stop();}
   function setLevel(level){MapThreeD.setLevel(level);draw(true);}

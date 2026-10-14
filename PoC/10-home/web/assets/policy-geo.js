@@ -91,10 +91,10 @@ const PolicyGeo3D=(()=>{
     return {value,basis:baseline==null?'확인된 예정량만 표시 · 현재 실적 미확보':'공고 연결 검토량 + 원천 예정량 · 실제 실적 아님',status:'FORECAST'};
   }
   function scopeOptions(){
-    const rows=scopeRows();
-    if(!rows.some(row=>row.id===selected))selected=(mode==='policy-progress'?rows.find(row=>row.id==='POL_2025_0907'):null)?.id||rows.find(row=>row.project_count>0||groupKind()==='project')?.id||rows[0]?.id||'';
-    $('policy-geo-scope').innerHTML=rows.map(row=>`<option value="${esc(row.id)}" ${row.id===selected?'selected':''}>${esc(row.name)}</option>`).join('');
-    if(mode==='program-progress'){$('report-program-select').innerHTML=rows.map(r=>`<option value="${esc(r.id)}" ${r.id===selected?'selected':''}>${esc(r.name)}</option>`).join('')||'<option value="">9.7 연결 프로그램 없음</option>';}
+    const rows=scopeRows(),enabled=rows.filter(r=>r.selection_enabled!==false);
+    if(!enabled.some(row=>row.id===selected))selected=(mode==='policy-progress'?enabled.find(row=>row.id==='POL_2025_0907'):null)?.id||enabled.find(row=>row.project_count>0||groupKind()==='project')?.id||enabled[0]?.id||'';
+    $('policy-geo-scope').innerHTML=rows.map(row=>`<option value="${esc(row.id)}" ${row.id===selected?'selected':''} ${row.selection_enabled===false?'disabled':''}>${esc(row.name)}${row.selection_enabled===false?' (비활성 · 목표·사업 없음)':''}</option>`).join('');
+    if(mode==='program-progress'){$('report-program-select').innerHTML=rows.map(r=>`<option value="${esc(r.id)}" ${r.id===selected?'selected':''} ${r.selection_enabled===false?'disabled':''}>${esc(r.name)}${r.selection_enabled===false?' (비활성 · 목표·사업 없음)':''}</option>`).join('')||'<option value="">9.7 연결 프로그램 없음</option>';}
     $('policy-geo-context').textContent=(scopeRow()?.name||'선택 대상 미확보')+' · 서울·경기 연결 후보만 집계 · 인천 범위 외';
     document.dispatchEvent(new CustomEvent('home:policy-geo-scope',{detail:{view:mode,id:selected,metrics}}));
   }

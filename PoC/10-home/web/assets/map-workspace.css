@@ -389,3 +389,72 @@ body.home-map-view .map-location-shortcuts{position:sticky;top:70px;z-index:3;di
 body.home-map-view .map-location-shortcuts button{flex:1;min-width:0;padding:5px 2px;border:1px solid #cfdfeb;border-radius:5px;background:#f4f9fc;color:#235c84;font-size:10px;white-space:nowrap}
 body.home-map-view .map-location-shortcuts button:hover{background:#dfedf7}
 @media(min-width:801px){body.home-map-view .location-collapsed .map-location-shortcuts{display:none}}
+/* Shared policy/project charts, adapted to the map's narrow companion panels. */
+#map-policy-monitor .d907-stage-table{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#map-policy-monitor .d907-stage-value{padding:7px;min-width:0}
+#map-policy-monitor .d907-stage-number b{font-size:12px}
+#map-policy-monitor .d907-stage-table .d907-highlight-all{grid-column:1/-1}
+#map-policy-monitor .d907-stage-number{flex-wrap:wrap}
+#map-policy-monitor .d907-chart{height:450px;width:auto;max-width:none;min-width:0}
+#map-policy-monitor .d907-monthly{margin:0;padding:0;border:0;border-radius:0}
+#map-policy-monitor .d907-pattern-legend{padding:7px;gap:6px;font-size:10px;margin-top:6px}
+#map-policy-monitor .d907-pattern-legend i{width:20px;height:12px}
+.map-progress-program{display:grid;gap:4px;font-size:11px}
+.map-progress-program select{width:100%;min-width:0;border:1px solid #c8daeb;border-radius:5px;padding:6px;color:#245c8e;background:white}
+#map-area-context .pac-heading{display:block;margin-bottom:8px}
+#map-area-context .pac-heading small{display:block;font-size:10px}
+#map-area-context .pac-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+#map-area-context .pac-card{padding:9px;grid-column:1;overflow-x:auto}
+#map-area-context .pac-card h4{font-size:13px}
+#map-area-context .pac-card svg{min-width:0}
+#map-area-context .pac-trend svg{min-width:630px}
+#map-area-context .pac-metrics{gap:6px}
+#map-area-context .pac-metrics b{font-size:16px}
+#map-area-context .pac-legend li{flex-wrap:wrap}
+/* Fit companion summaries to the panel rather than placing desktop timelines inside it. */
+#map-policy-monitor,#map-area-context{min-width:0;max-width:100%;box-sizing:border-box}
+#map-area-context .pac-card{overflow:visible;min-width:0;max-width:100%;box-sizing:border-box}
+#map-area-context .pac-card svg,#map-area-context .pac-trend svg{min-width:0;width:100%;max-width:100%;height:auto}
+#map-area-context .pac-trend .pac-value{font-size:8px}#map-area-context .pac-card a{overflow-wrap:anywhere}
+#map-area-context .pac-legend b{white-space:normal}#map-area-context .pac-compact-values{display:block;line-height:1.6}#map-area-context .pac-compact-values span{display:block}
+.map-compact-stages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:9px 0}.map-compact-stages>div{min-width:0;border:1px solid #d5e3ed;border-top:3px solid var(--stage-color);border-radius:4px;padding:6px;background:#f8fbfe}.map-compact-stages small,.map-compact-stages b,.map-compact-stages span{display:block;overflow-wrap:anywhere}.map-compact-stages small,.map-compact-stages span{font-size:10px;color:#60798d}.map-compact-stages b{font-size:13px;color:#204f70;margin:3px 0}
+.map-stage-bars{display:block;width:100%;height:auto}.map-stage-bars text{font-size:10px;font-family:inherit;fill:#41617b}.map-compact-progress .trend-heading{gap:5px}.map-compact-progress .trend-heading h4{font-size:13px;overflow-wrap:anywhere}.map-compact-progress .trend-heading>div{min-width:0}.map-compact-progress .trend-heading>span{flex-shrink:0;font-size:10px}.map-original-supply{font-size:11px}.map-original-supply .bar-column{width:85px;min-width:0;flex:none}.map-original-supply .bar-values{min-width:0;font-size:10px;overflow-wrap:anywhere}.map-original-supply .supply-bar-chart{gap:4px;max-width:100%;min-width:0}.map-original-supply .bar-column svg{width:80px;max-width:100%}
+.map-selected-project{border-top:1px solid #d7e4ed;margin-top:8px;padding-top:10px}.map-selected-project h4{font-size:13px;overflow-wrap:anywhere;margin:0 0 5px}.map-project-stage{font-size:11px}.map-project-quantities{display:grid;gap:4px;font-size:11px}.map-project-quantities span{display:flex;justify-content:space-between}.map-project-schedule{display:grid;grid-template-columns:48px minmax(0,1fr);gap:6px;font-size:10px}.map-project-schedule dd{margin:0}.map-project-schedule dd span{display:block}.map-selected-project button,.map-selected-project select{max-width:100%;font-size:11px;border:1px solid #c8d9e6;background:white;border-radius:4px;padding:5px;color:#285a7d}.map-selected-project select{width:100%}
+
+/* Distinct colocated blocks retain bars; source aliases share one block. */
+.map-separated-bars{display:flex;flex-direction:column;align-items:center;padding-bottom:18px;pointer-events:none}
+.map-separated-bar-grid{display:grid;gap:12px;align-items:end;max-height:360px;overflow:auto;box-sizing:content-box;padding:4px;pointer-events:auto;background:#ffffffb8;border-radius:8px;border:1px solid #b1c5d9}
+.map-separated-bars>small{background:#fff;color:#345775;font-size:10px;padding:2px 5px;border-radius:3px}
+.map-separated-bars:after{content:'';position:absolute;bottom:0;left:50%;height:18px;border-left:2px solid #4e7192}
+.map-radius-label{padding:2px 6px;background:#fffffff2;border:1px solid currentColor;border-radius:10px;font-size:11px;font-weight:700;pointer-events:none;color:#8150a7}
+.map-radius-label.radius-500{color:#087f8c}.map-radius-label.radius-1000{color:#2875c7}
+body.home-map-view .map-infra-marker.childcare{border-color:#b86ba5;color:#86467d}
+.psr-poi-childcare{fill:#b6539a}
+
+.map-radius-legend{border-left:1px solid #ccd8e5;padding-left:8px;color:#476a93}
+body.home-map-view .map-infra-marker.planned{border-style:dashed;background:#fff6db;color:#815b14}
+.map-facility-plans,.pjt-planned-facilities{padding:8px 0;border-top:1px solid #dbe5eb}
+.map-facility-plans h4,.pjt-planned-facilities h4{font-size:13px;margin:6px 0}
+.map-facility-plans article,.pjt-planned-facilities article{display:grid;gap:3px;padding:8px 0;border-bottom:1px solid #e2e9ed;font-size:11px}
+.map-facility-plans button{display:grid;gap:3px;text-align:left;background:#fffaf0;border:1px dashed #c9ab63;border-radius:5px;padding:7px;color:#795a19}
+.map-facility-plans small,.pjt-planned-facilities small{display:block;font-size:10px;line-height:1.6;color:#698197}
+
+/* Facility names must not cover the quantities or selection of a project. */
+body.home-map-view .map-infra-marker{z-index:2}
+.map-3d-block-marker,.map-separated-bars{z-index:3}
+.map-3d-block-marker.selected,.map-separated-bars.selected{z-index:4}
+.map-radius-label{z-index:1}
+.map-radius-origin{z-index:4;display:block;max-width:160px;padding:4px 7px 10px;border-radius:6px;background:#ffffffed;border:1px solid #df503c;color:#7a3d30;font-size:11px;font-weight:700}
+.map-radius-origin:after{content:'';position:absolute;width:8px;height:8px;border-radius:50%;background:#e3442f;bottom:-4px;left:calc(50% - 4px)}
+
+.map-block-leaders{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:2}
+.map-block-leaders line{stroke-opacity:.95;stroke-dasharray:4 2}
+
+.mapping-info-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}.mapping-info-heading h3{margin:0}.mapping-info-edit{font-size:11px!important;padding:5px 8px!important;margin:4px 0 4px 6px;white-space:nowrap}.mapping-info-edit.policy{background:#2457a6!important}.mapping-info-edit.program{background:#7652a4!important}.mapping-info-edit.project{background:#087d72!important}.mapping-info-edit:disabled,[data-program-edit]:disabled,[data-mapping-edit]:disabled{opacity:.45;cursor:not-allowed}.mapping-info-edit:disabled{background:#94a3ad!important}
+
+.map-supply-conditions,.map-selected-plans{border-top:1px solid #dbe5eb;padding:9px 0;margin-top:10px;overflow-wrap:anywhere}.map-supply-conditions article,.map-selected-plans article{padding:6px 0;border-bottom:1px solid #edf1f5}.map-supply-conditions article>a{float:right}.map-supply-conditions p,.map-selected-plans p{font-size:11px;line-height:1.7;margin:4px 0}.map-supply-conditions dl{display:grid;grid-template-columns:65px minmax(0,1fr);gap:7px;font-size:11px}.map-supply-conditions dd{margin:0}.map-selected-plans article{display:grid;gap:4px;font-size:11px}.map-selected-plans small,.map-supply-conditions small{font-size:10px;line-height:1.6;color:#637b91}
+
+.housing-map-toolbar .map-building-transparency{display:flex;align-items:center;gap:7px;margin-left:4px;flex-shrink:0;white-space:nowrap;font-size:11px;color:#48627f}.map-building-transparency input[type=range]{width:110px;min-width:0;height:18px;padding:0;cursor:pointer;accent-color:#2868a5}.map-building-transparency output{min-width:33px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#24557e}
+
+/* Open details sit above facility labels, project bars and anchor lines. */
+#housing-map-3d .maplibregl-popup,#housing-map-3d .mapboxgl-popup{z-index:20}

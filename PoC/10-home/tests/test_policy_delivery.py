@@ -33,6 +33,15 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(model['historical'][0]['id'],'old')
         self.assertTrue(all(p['total_units']==1350000 for p in model['snapshots']))
         self.assertEqual(len(model['snapshots']),132)
+    def test_estimated_progress_100_is_not_source_completion(self):
+        service=FakeService();service.project_rows[0].update(progress_pct=100,manual_fields={'progress_pct':{'inferred':True}})
+        model=build_delivery(service,date(2026,10,12))
+        self.assertFalse(any(e['stage']=='COMPLETION' for c in model['cohorts'] for e in c['events']))
+        service.project_rows[0]['manual_fields']['progress_pct']['inferred']=False
+        model=build_delivery(service,date(2026,10,12))
+        done=[e for c in model['cohorts'] for e in c['events'] if e['stage']=='COMPLETION']
+        self.assertTrue(done);self.assertTrue(all(e['origin']=='MANUAL' for e in done))
+
     def test_compact_projection_keeps_policy_and_project_evidence(self):
         service=FakeService()
         full=build_delivery(service,date(2026,10,12))
@@ -40,6 +49,15 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(compact['portfolio_comparisons'],{})
         for key in ('yearly_comparisons','cohorts','portfolio_cohorts','current','snapshots'):
             self.assertEqual(compact[key],full[key])
+
+    def test_partial_move_in_does_not_promote_all_homes(self):
+        service=FakeService();service.config=[dict(policy_id='POL_2025_0907',events=[dict(project_id='new',
+            stage='MOVE_IN',event_date='2026-09-01',status='ACTUAL',units=50)],targets=[])]
+        model=build_delivery(service,date(2026,10,12))
+        self.assertEqual(model['current']['totals']['MOVE_IN'],50)
+        self.assertEqual(model['current']['totals']['SUPPLY'],150)
+        self.assertEqual(model['current']['totals']['CONSTRUCTION'],800)
+        self.assertTrue(all(p['total_units']==1350000 for p in model['snapshots']))
 
     def test_manual_delay_is_not_an_actual_milestone(self):
         service=FakeService();service.config=[dict(policy_id='POL_2025_0907',events=[dict(project_id='new',

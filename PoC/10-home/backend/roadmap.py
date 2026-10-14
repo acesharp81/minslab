@@ -48,6 +48,8 @@ def source_events(row, as_of):
         if not row.get("start_actual_date"):
             add("CONSTRUCTION",row.get("start_plan_date"),row.get("planned_units"),"원천 계약 착공 예정일")
         add("COMPLETION",row.get("completion_plan_date"),row.get("planned_units"),"공사 계약 준공예정 · 입주일 아님")
+    if row.get('start_plan_year') and not row.get('start_actual_date') and not row.get('start_plan_date'):
+        add('CONSTRUCTION',str(row['start_plan_year'])+'년',row.get('planned_units'),row.get('schedule_basis') or '공식 착공 예정연도 · 연말 표기')
     if row.get('source_id')=='policy_129':
         add('CONSTRUCTION',row.get('start_plan_month'),row.get('planned_units'),'1·29 공식 별첨 착공 예정월 · 준공·공급월 아님')
     for field,stage in (('source_supply_label','SUPPLY'),('source_move_in_label','MOVE_IN')):
@@ -55,6 +57,9 @@ def source_events(row, as_of):
         if period:
             events=[e for e in events if e['stage']!=stage]
             add(stage,row[field],row.get('planned_units'),'원천 예정 범위 · 마지막 달 기준 집계')
+            if stage=='MOVE_IN' and row.get('move_in_evidence_url'):
+                for event in events:
+                    if event['stage']=='MOVE_IN':event['evidence_url']=row['move_in_evidence_url']
     notice_month=month(row.get("notice_move_in_month"))
     if notice_month:
         # A matched main notice is a more concrete move-in plan than an annual

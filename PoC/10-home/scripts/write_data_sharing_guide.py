@@ -15,6 +15,10 @@ WEB = {'lh_sale','lh_rent','lh_progress','lh_block_location','gh_supply_plan','g
 
 
 def method(source_id):
+    if source_id == "kosis_living":
+        return "KOSIS 공식 통계표·국가지표체계 PIR 원문 수집 및 연도·지역·단위 검증"
+    if source_id == "area_national_benchmarks":
+        return "KOSIS 전국(00) 연령·가구, SGIS 17개 시도 종사자 합계 및 전국 총계 교차 검증"
     if source_id == "national_statistics":
         return "공식 API 보관 원본 재처리 · SHA256 검증·상위 수집 배치 추적"
     if source_id in API:

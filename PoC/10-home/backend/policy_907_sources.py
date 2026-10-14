@@ -36,7 +36,10 @@ def parse_original_plan(content):
                     '21.9 6.4 5.2 4.8 2.8 2.7','35.5 7.1 7.1 7.1 7.1 7.1'):
         if not re.search(r'\s+'.join(re.escape(n) for n in numbers.split()),compact):
             raise ValueError('9·7 지역·유형별 목표 원문 변경: 담당자 재검증 필요')
-    return dict(policy_id='POL_2025_0907', target_units=1350000, metric='CONSTRUCTION',
+    from .policy_field_evidence import extract_evidence
+    import hashlib
+    field_evidence=extract_evidence(pages,hashlib.sha256(content).hexdigest())
+    return dict(field_evidence=field_evidence, policy_id='POL_2025_0907', target_units=1350000, metric='CONSTRUCTION',
         period_start='2026-01-01', period_end='2030-12-31', announced_at='2025-09-07',
         annual=[dict(year=2026+i,units=value,seoul_units=SEOUL[i]) for i,value in enumerate(ANNUAL)],
         programs=[dict(id=key,name=name,annual=[dict(year=2026+i,units=v) for i,v in enumerate(values)],

@@ -46,20 +46,11 @@ const MapAreaContext=(()=>{
     if(method&&!method.querySelector('.area-context-method'))method.insertAdjacentHTML('beforeend',`<p class="area-context-method">지역 통계: <a href="https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html" target="_blank" rel="noopener">SGIS 원천 ↗</a> · <a href="https://kosis.kr/openapi/devGuide/devGuide_0201List.do" target="_blank" rel="noopener">KOSIS 원천 ↗</a>. 주택 재고−일반가구는 단순 수량 차이이며 공실·가용 주택 수나 정책 공급 실적이 아닙니다.</p>`);
   }
   function render(node,data,place,supply){
-    const census=data.census.at(-1),population=(data.population_history||data.census).at(-1);
-    const employment=data.employment.at(-1),future=data.household_forecast;
-    const housing=data.housing_balance.filter(row=>known(row.housing_units)&&known(row.households)).at(-1);
-    const title=place.municipality||place.region;
-    const industry=Object.values(census?.industry_workers||{}).sort((a,b)=>b.workers-a.workers).slice(0,3);
-    const gap=housing?.gap_units,ratio=housing?.stock_to_household_pct;
-    const balance=known(gap)?`<div class="area-context-balance ${gap<0?'short':'surplus'}"><small>${housing.year}년 주택 재고−일반가구</small><strong>${gap<0?`가구보다 ${num(-gap)}호 적음`:`가구보다 ${num(gap)}호 많음`}</strong><div class="area-context-meter"><i style="width:${Math.min(100,ratio)}%"></i></div><span>재고 ${fmt(housing.housing_units)}호 / 일반가구 ${fmt(housing.households)}가구 · ${ratio}%</span></div>`:'<p class="area-context-empty">같은 연도의 주택 재고·가구 비교 미확보</p>';
-    node.innerHTML=`<h3>지역 생활·수요 지표</h3><p class="area-context-location">${esc(title)} <small>${esc(place.note)}</small></p>${balance}
-      <div class="area-context-grid">${label('인구',population?.population,'명',population?.year?population.year+'년 '+(population.source||'SGIS'):'')}${label('일반가구',data.housing_balance.at(-1)?.households,'가구',data.housing_balance.at(-1)?.year?data.housing_balance.at(-1).year+'년 KOSIS':'')}${label('사업체 종사자',census?.workplace_workers,'명',census?.year?census.year+'년 SGIS':'')}${label('거주지 취업자',employment?.resident_employed,'명',employment?.period?employment.period.slice(0,4)+'년 '+Number(employment.period.slice(-2))+'반기 KOSIS':'')}</div>
-      ${place.municipality?`<p class="area-context-rate">고용률 <strong>${known(employment?.employment_rate)?employment.employment_rate+'%':'미확보'}</strong> <small>거주지 기준 · ${employment?.period?employment.period.slice(0,4)+'년 '+Number(employment.period.slice(-2))+'반기':'기준 미확보'}</small></p>`:''}
-      ${householdShares(data)}${ageShares(data)}${integratedTrend(data,null,place)}<section class="unsold-context">${UnsoldIndicators.html(data.unsold)}</section>
-      ${industry.length?`<div class="area-context-industry"><b>산업별 종사자 상위 3개</b>${industry.map(item=>`<span>${esc(item.name)} <strong>${fmt(item.workers)}명</strong></span>`).join('')}</div>`:''}
-      ${future.length?`<div class="area-context-forecast"><b>시도 장래가구 추계</b><div>${future.filter((_,i)=>i===0||i===4||i===9).map(item=>`<span>${item.year}년 <strong>${fmt(item.households)}가구</strong></span>`).join('')}</div></div>`:place.municipality?'<p class="area-context-definition">시군구 장래가구 추계 미확보 · 시도 단위에서만 조회 가능</p>':''}
-      <button type="button" class="area-context-open" data-view="area">인구·가구·고용 전체 분석 보기 ↗</button><p class="area-context-definition">주택 재고와 가구 수의 차이는 실제 공급 부족·공실 수가 아닙니다. 인구·가구·고용은 정책 실적에 합산하지 않습니다.</p>`;
+    ProjectAreaCharts.render(node,data,place,{compact:true});
+    const cards=node.querySelectorAll('.pac-card');
+    for(const [index,key] of [[0,'age'],[1,'household'],[2,'industry']])if(cards[index])cards[index].dataset.demographic=key;
+    const employment=node.querySelector('.pac-employment-summary');if(employment)employment.dataset.demographic='employment';
+    cards[3]?.classList.add('unsold-context');
     ensureMethod();
   }
   async function panel(supply,viewport){
@@ -81,5 +72,5 @@ const MapAreaContext=(()=>{
       if(current===request)render(node,data,place,null);
     }catch(_){if(current===request){node.innerHTML='<h3>지역 생활·수요 지표</h3><p>통계 연결 확인 필요</p>';signature='';}}
   }
-  return {panel,householdShares,ageShares};
+  return {panel,householdShares,ageShares,renderAt:(node,data,place)=>render(node,data,place,null)};
 })();

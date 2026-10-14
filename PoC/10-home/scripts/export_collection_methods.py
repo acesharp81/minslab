@@ -94,6 +94,8 @@ METRIC_DEFINITIONS = {
 }
 
 MODULE = {
+    'kosis_living': 'backend/area_living.py',
+    'area_national_benchmarks':'backend/area_benchmarks.py',
     'project_locations': 'backend/project_locations.py',
     'seoul_cleanup': 'backend/seoul_cleanup.py',
     'unsold_statistics': 'backend/unsold.py',
@@ -127,6 +129,7 @@ MODULE = {
     **{key: 'backend/history_data.py' for key in ('policy_history','lh_history')},
 }
 VALIDATION = {
+    'kosis_living': 'KOSIS 표·연도·지역·분류 및 단위 검증; 소득·이동·거주기간·점유형태·주택유형·PIR의 통계 범위와 결측을 구분',
     'project_locations': '주소·지역·사업 식별자와 위치 근거 검증; 대표/근사 위치를 필지 PNU나 공식 경계로 해석하지 않음',
     'seoul_cleanup': '서울시 정비사업 공개 페이지의 주소·명칭·추진경과 확인; 신청과 인가, 예정과 실적 구분; 담당자 확정 연결 보존',
     'unsold_statistics': '월·지역 코드·전체/준공 후 지표·시군구 합계 검증; 미제공과 0 구분; 실제 미입주 호수로 전환하지 않음',

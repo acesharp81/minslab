@@ -16,7 +16,7 @@ from .sources import SOURCES
 
 STAGES = {'POLICY':'정책','BUSINESS':'사업화','APPROVAL':'인허가','CONSTRUCTION':'건설','SUPPLY':'공급','MOVE_IN':'입주'}
 STATUS = {'ACQUIRED':'원천 확보','NOT_PLANNED':'미확보 · 아직 계획 미수립',
-          'COLLECTION_REQUIRED':'원천 수집 필요','LINK_REQUIRED':'원천 후보 있음 · 연결 필요','METHOD_UNKNOWN':'수집 방안 미확인'}
+          'COLLECTION_REQUIRED':'원천 수집 필요','COLLECTION_UNAVAILABLE':'수집 불가 · 담당자 확인','LINK_REQUIRED':'원천 후보 있음 · 연결 필요','METHOD_UNKNOWN':'수집 방안 미확인'}
 SHORT = {'policy_907':'9·7 정책 발표','policy_907_plan':'9·7 연도별 계획',
          'policy_129':'1·29 정책 발표','policy_813':'8·13 정책 발표','urban_930':'도심복합 후속자료',
          'policy_history':'정책 발표 이력','lh_sale':'LH 분양계획','lh_rent':'LH 임대계획',
@@ -167,7 +167,7 @@ def refresh_links(service):
     return dict(count)
 
 def save_assessment(service,project_id,stage,revision_no,status,basis):
-    if stage not in STAGES or status not in ('NOT_PLANNED','METHOD_UNKNOWN','COLLECTION_REQUIRED','RELEASED'):
+    if stage not in STAGES or status not in ('NOT_PLANNED','METHOD_UNKNOWN','COLLECTION_REQUIRED','COLLECTION_UNAVAILABLE','RELEASED'):
         raise ValueError('수집 판정 값 오류')
     if not basis.strip():raise ValueError('확인 근거 또는 제공처 조사 결과를 입력하세요')
     if not any(p['id']==project_id for p in service.projects()):raise ValueError('사업을 찾을 수 없습니다')
@@ -198,6 +198,7 @@ def collection_matrix(service,as_of=None,**filters):
         for e in setting.get('events',[]):manual_events[e['project_id']].append(e)
         for g in setting.get('targets',[]):
             if g.get('scope_kind')=='project' and g.get('origin')!='SCENARIO':manual_goals[g['scope_id']].append(g)
+    profiles={r['project_id']:r for r in service.rows('project_profile',reference)}
     baselines=service.rows('execution_schedule',reference)
     for s in baselines:
         if s.get('status')!='RELEASED':manual_goals[s['project_id']].append(s)
@@ -217,15 +218,16 @@ def collection_matrix(service,as_of=None,**filters):
         mapping=p.get('mapping',{});policy=policies.get(mapping.get('policy_id'))
         if policy and mapping.get('status')!='RELEASED':
             add('POLICY',policy['source_id'],'LINK',mapping.get('basis') or '저장된 정책–프로그램–사업 연결',
-                url=mapping.get('evidence_url') or policy.get('evidence_url'),review=mapping.get('status'),source_entity_id=policy['id'])
+                url=mapping.get('evidence_url') or policy.get('evidence_url'),review=mapping.get('status'),source_entity_id=policy['id'],officer_confirmed=mapping.get('basis','').startswith('사용자 입력'))
         for stage in ('BUSINESS','APPROVAL'):
             r=stage_links.get((p['id'],stage),{});picked=r.get('selected')
             if picked and r.get('status') in ('REVIEW','CONFIRMED'):
-                add(stage,picked.get('source_id'),'ACTUAL' if picked.get('event_date') and picked.get('method') not in ('PREREQUISITE','STAGE_INFERENCE') else 'STATE',picked.get('basis'),picked.get('event_date') or picked.get('observed_on'),picked.get('evidence_url'),r['status'],picked.get('source_entity_id'),source_revision_no=picked.get('source_revision_no'),method=picked.get('method'),scope_partial=picked.get('scope_partial',False),scope_label=picked.get('scope_label'),relation_type=picked.get('relation_type'),source_units=picked.get('source_units'),units=picked.get('units'),event_type=picked.get('event_type'))
+                add(stage,picked.get('source_id'),'ACTUAL' if picked.get('event_date') and (picked.get('original_method') or picked.get('method')) not in ('PREREQUISITE','STAGE_INFERENCE') else 'STATE',picked.get('basis'),picked.get('event_date') or picked.get('observed_on'),picked.get('evidence_url'),r['status'],picked.get('source_entity_id'),source_revision_no=picked.get('source_revision_no'),method=picked.get('method'),original_method=picked.get('original_method'),scope_partial=picked.get('scope_partial',False),scope_label=picked.get('scope_label'),relation_type=picked.get('relation_type'),source_units=picked.get('source_units'),units=picked.get('units'),event_type=picked.get('event_type'),officer_confirmed=bool(r.get('actor')))
         if p.get('start_actual_date'):add('CONSTRUCTION',p['source_id'],'ACTUAL','원천 실제 착공일',p['start_actual_date'],p.get('evidence_url'),milestone='CONSTRUCTION')
-        if p.get('progress_pct') is not None:
+        source_progress=p.get('source_values',p)
+        if source_progress.get('progress_pct') is not None:
             sid='lh_progress' if p.get('progress_evidence_url') and p.get('progress_evidence_url')!=p.get('evidence_url') else p['source_id']
-            add('CONSTRUCTION',sid,'ACTUAL','준공까지 원천 공정률',p.get('progress_date') or p.get('base_date'),p.get('progress_evidence_url') or p.get('evidence_url'),pct=p['progress_pct'])
+            add('CONSTRUCTION',sid,'ACTUAL','준공까지 원천 공정률',source_progress.get('progress_date') or p.get('base_date'),p.get('progress_evidence_url') or p.get('evidence_url'),pct=source_progress['progress_pct'])
         if p.get('completion_actual_date') and p.get('completion_evidence_url'):
             add('CONSTRUCTION',p['source_id'],'ACTUAL','원천 실제 준공일',p['completion_actual_date'],p['completion_evidence_url'],milestone='COMPLETION')
         if p.get('move_in_actual_date'):
@@ -236,7 +238,7 @@ def collection_matrix(service,as_of=None,**filters):
                 stamp=e['month']
                 field={'CONSTRUCTION':'start_plan_date','COMPLETION':'completion_plan_date'}.get(e['stage'])
                 if field and month(p.get(field))==stamp:stamp=p[field]
-                add(stage,p['source_id'],'PLAN',e['basis'],stamp,e.get('evidence_url'),milestone=e['stage'],date_label=e.get('source_date_label'),date_conversion=e.get('date_conversion'))
+                add(stage,p['source_id'],'PLAN',e['basis'],stamp,e.get('evidence_url'),milestone=e['stage'],date_label=e.get('source_date_label'),date_conversion=e.get('date_conversion'),units=e.get('units'))
         # These sources already store contract schedules; the old matrix only read lh_construction.
         for field,milestone in [('start_plan_date','CONSTRUCTION'),('completion_plan_date','COMPLETION')]:
             stamp=p.get(field)
@@ -267,13 +269,23 @@ def collection_matrix(service,as_of=None,**filters):
                         date_label=schedule['label'],schedule_status=schedule['status'])
         for stage in ('SUPPLY','MOVE_IN'):
             for e in links.get((p['id'],stage),{}).get('links',[]):
-                add(stage,e.get('source_id'),e['kind'],e['basis'],e.get('date'),e.get('evidence_url'),e.get('review_status'),e.get('source_entity_id'),source_revision_no=e.get('source_revision_no'))
+                add(stage,e.get('source_id'),e['kind'],e['basis'],e.get('date'),e.get('evidence_url'),e.get('review_status'),e.get('source_entity_id'),source_revision_no=e.get('source_revision_no'),officer_confirmed=bool(e.get('actor')))
         for e in manual_events[p['id']]:
             stage='CONSTRUCTION' if e['stage']=='COMPLETION' else e['stage']
-            if stage in evidence and e.get('status','ACTUAL')=='ACTUAL':add(stage,'officer','ACTUAL',e.get('basis') or '담당자 실적 기록',e['event_date'],e.get('evidence_url'),e.get('review_status'),milestone=e['stage'],units=e.get('units'))
+            if stage in evidence and e.get('status','ACTUAL')=='ACTUAL':add(stage,'officer','ACTUAL',e.get('basis') or '담당자 실적 기록',e['event_date'],e.get('evidence_url'),e.get('review_status'),milestone=e['stage'],units=e.get('units'),inferred=e.get('inferred',False),input_rule=e.get('input_rule'),field_provenance=e.get('field_provenance',{}))
         for e in manual_goals[p['id']]:
             stage='CONSTRUCTION' if e['stage']=='COMPLETION' else e['stage']
-            if stage in evidence:add(stage,'officer','PLAN',e.get('basis'),e['due_date'],e.get('evidence_url'),e.get('status','REVIEW'),milestone=e['stage'])
+            if stage in evidence:add(stage,'officer','PLAN',e.get('basis'),e['due_date'],e.get('evidence_url'),e.get('status','REVIEW'),milestone=e['stage'],units=e.get('units'),actor=e.get('actor'),reason=e.get('reason'),inferred=e.get('inferred',False),input_rule=e.get('input_rule'),input_basis=e.get('input_basis'),field_provenance=e.get('field_provenance',{}),calculation=e.get('calculation'),changed_at=e.get('changed_at'))
+        for stage,r in profiles.get(p['id'],{}).get('progress',{}).items():
+            target='CONSTRUCTION' if stage=='COMPLETION' else stage
+            add(target,'officer','ACTUAL','사용자 입력 · '+r['actor']+' · '+r['reason'],r.get('event_date') or None,
+                review='CONFIRMED',milestone=stage,units=r.get('units'),changed_at=r['changed_at'],manual_priority=True,actor=r['actor'],reason=r['reason'],inferred=r.get('inferred',False),input_rule=r.get('input_rule'),input_basis=r.get('input_basis'),field_provenance=r.get('field_provenance',{}))
+        # Keep the original observation and the adopted/estimated override separately.
+        manual=p.get('manual_fields',{}).get('progress_pct')
+        if manual:
+            add('CONSTRUCTION','officer','ACTUAL','사용자 입력 공정률',p.get('progress_date'),p.get('progress_evidence_url') or p.get('evidence_url'),
+                pct=manual['value'],manual_priority=True,actor=manual.get('actor'),reason=manual.get('reason'),changed_at=manual.get('changed_at'),
+                inferred=manual.get('inferred',False),input_rule=manual.get('input_rule'),input_basis=manual.get('input_basis'),field_provenance=manual.get('field_provenance',{}))
         cells={}
         for bridge in bridges.get(p['id'],[]):
             if bridge['status']=='RELEASED':continue
@@ -282,7 +294,7 @@ def collection_matrix(service,as_of=None,**filters):
                 evidence[f['stage']].append(dict(f,name=short(bridge['source_id']),source_id=bridge['source_id'],
                     source_entity_id=bridge['source_entity_id'],source_revision_no=bridge['source_revision_no'],
                     evidence_url=bridge['evidence_url'],review_status=bridge['status'],bridge_id=bridge['id'],
-                    method='CROSS_SOURCE',date=f.get('date'),basis=f['basis']+' · '+bridge['basis']))
+                    officer_confirmed=bool(bridge.get('actor')),method='CROSS_SOURCE',date=f.get('date'),basis=f['basis']+' · '+bridge['basis']))
         for stage,records in evidence.items():
             pending=[r for r in research.get(p['id'],[]) if r.get('status')=='LINK_PENDING' and stage in r.get('link_stages',[])]
             stage_discovery=max(pending,key=lambda r:(r.get('checked_at',''),r.get('iteration',1)),default=None) or discovery
@@ -296,7 +308,7 @@ def collection_matrix(service,as_of=None,**filters):
             targets=[dict(e,label=labels.get(e.get('milestone',stage),STAGES[stage]+' 목표')+(' · '+e['scope_label'] if e.get('scope_partial') else ''),reference_only=bool(e.get('scope_partial')))
                      for e in unique if e['kind']=='PLAN' and (e.get('date') or e.get('date_label'))]
             targets.sort(key=lambda t:({'CONSTRUCTION':0,'COMPLETION':1}.get(t.get('milestone'),0),t.get('date') or t.get('date_label') or '',t['name']))
-            cells[stage]=dict(status=status,construction_plan=construction_plan(p,reference) if stage=='CONSTRUCTION' else None,targets=targets,label=STATUS[status],sources=unique,source_names=list(dict.fromkeys(e['name'] for e in unique)),
+            cells[stage]=dict(status=status,construction_plan=(p.get('construction_plan') or construction_plan(p,reference)) if stage=='CONSTRUCTION' else None,targets=targets,label=STATUS[status],sources=unique,source_names=list(dict.fromkeys(e['name'] for e in unique)),
                 actual_available=any(e['kind']=='ACTUAL' and not e.get('scope_partial') for e in unique),plan_available=any(e['kind']=='PLAN' for e in unique),
                 dated_plan_available=any(e['kind']=='PLAN' and e.get('date') and not e.get('scope_partial') for e in unique),
                 partial_actual_available=any(e['kind']=='ACTUAL' and e.get('scope_partial') for e in unique),
@@ -305,6 +317,8 @@ def collection_matrix(service,as_of=None,**filters):
                 review_required=any(e.get('review_status')=='REVIEW' for e in unique),reason=reason,
                 assessment=assessment,assessment_conflict=bool(active and acquired))
             cells[stage]['progress']=progress_state(cells[stage],stage,reference,phase,stage_discovery)
+        from .stage_display import annotate
+        annotate(cells,p,profiles.get(p['id'],{}),{r['stage']:r for r in manual_goals[p['id']] if r.get('origin')=='MANUAL'},reference,policy)
         from .sequence_audit import sequence_checks
         items.append(dict(id=p['id'],name=p['name'],region=p['region'],municipality=p.get('municipality'),program=p.get('program'),
             policy_id=mapping.get('policy_id'),policy_name=(policy or {}).get('name'),mapping_status=mapping.get('status'),stage_label=p.get('stage_label'),collection_owner=collection_owner(p),research=research.get(p['id'],[]),cells=cells,sequence_checks=sequence_checks(cells),gaps=collection_gaps(cells),evidence_bridges=bridges.get(p['id'],[])))

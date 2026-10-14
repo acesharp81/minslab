@@ -25,7 +25,7 @@ const PolicyRegionMap = (() => {
     });
   }
   function dispose(){for(const c of cards){c.observer?.disconnect();c.scene?.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of [o.material].flat())m.dispose();}});c.intentionalLoss=true;c.renderer?.dispose();c.renderer?.forceContextLoss();}cards=[];}
-  function color(value,max){if(!value)return '#acd1e1';const t=Math.sqrt(value/Math.max(max,1));return `hsl(201 ${48+37*t}% ${78-48*t}%)`;}
+  function color(value,max){if(!value)return '#acd1e1';const t=Math.sqrt(value/Math.max(max,1));return `hsl(201, ${48+37*t}%, ${78-48*t}%)`;}
   function islandInset(shapes){
     const islands=shapes.flatMap(p=>p.islands.map(r=>({id:p.id,name:p.name,ring:r})));if(!islands.length)return '';
     const all=islands.flatMap(p=>p.ring),xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),w=Math.min(...xs),e=Math.max(...xs),s=Math.min(...ys),n=Math.max(...ys),scale=Math.min(85/(e-w),55/(n-s));
@@ -33,13 +33,14 @@ const PolicyRegionMap = (() => {
   }
   function createShell(host,model){
     dispose();const control=document.getElementById('policy-map-controls'),places=model.allowedRegions||regions;
-    control.innerHTML='<div class="prm-heading"><h3>지역·표시 기준</h3><div class="prm-view-tabs" role="tablist" aria-label="지역 그래프 표현 방식"><button role="tab" data-prm-mode="2d">2D</button><button role="tab" data-prm-mode="3d">3D</button></div></div><div class="pd-region-tabs" role="tablist" aria-label="추진현황 조회 지역">'+[['','전체'],['서울특별시','서울'],['경기도','경기'],['인천광역시','인천']].filter(([r])=>!r||places.includes(r)).map(([r,n])=>'<button role="tab" data-d907-region="'+r+'">'+n+'</button>').join('')+'</div><div class="d907-map-controller"><div class="prm-stage-group" role="group" aria-label="추진 단계">'+Object.entries(model.stages).map(([k,label])=>'<button data-d907-stage="'+k+'"><i class="d907-color-'+k+'"></i>'+label+'</button>').join('')+'</div><label>기준 연도 <b>'+model.year+'</b><input aria-label="지도·진행현황 기준 연도" data-d907-year type="range" min="'+(model.currentYear-5)+'" max="'+(model.currentYear+5)+'" value="'+model.year+'"></label></div><div class="prm-year-limits"><span>'+ (model.currentYear-5)+'</span><span>'+model.currentYear+' 현재</span><span>'+(model.currentYear+5)+'</span></div><button class="pw-now" data-d907-now>현재 연도로</button><div class="d907-map-readout"></div>';
+    control.innerHTML='<div class="prm-heading"><h3>지역·표시 기준</h3><div class="prm-view-tabs" role="tablist" aria-label="지역 그래프 표현 방식"><button role="tab" data-prm-mode="2d">2D</button><button role="tab" data-prm-mode="3d">3D</button></div></div><div class="pd-region-tabs" role="tablist" aria-label="추진현황 조회 지역">'+[['','전체'],['서울특별시','서울'],['경기도','경기'],['인천광역시','인천']].filter(([r])=>r?places.includes(r):places.length>1).map(([r,n])=>'<button role="tab" data-d907-region="'+r+'">'+n+'</button>').join('')+'</div><div class="d907-map-controller"><div class="prm-stage-group" role="group" aria-label="추진 단계">'+Object.entries(model.stages).map(([k,label])=>'<button data-d907-stage="'+k+'"><i class="d907-color-'+k+'"></i>'+label+'</button>').join('')+'</div><label>기준 연도 <b>'+model.year+'</b><input aria-label="지도·진행현황 기준 연도" data-d907-year type="range" min="'+(model.currentYear-5)+'" max="'+(model.currentYear+5)+'" value="'+model.year+'"></label></div><div class="prm-year-limits"><span>'+ (model.currentYear-5)+'</span><span>'+model.currentYear+' 현재</span><span>'+(model.currentYear+5)+'</span></div><button class="pw-now" data-d907-now>현재 연도로</button><div class="d907-map-readout"></div>';
     const displayRegion=model.region||'수도권';
     host.innerHTML='<h3 class="pw-map-title">'+(model.region?escape(model.region)+' 시군구별 추진현황':'수도권 지역별 추진현황')+'</h3><div class="prm-cards pd-single-region"><article class="prm-card" data-prm-region="'+escape(displayRegion)+'"><header><span class="prm-selected-tag" hidden></span></header><div class="prm-stats"></div><div class="prm-scene"><div class="prm-surface"></div><div class="prm-labels"></div><div class="prm-hover" role="status" hidden></div><div class="prm-scale"><span>적음</span><i></i><span>많음</span></div></div><footer></footer><details class="prm-accessible"><summary>지역별 수치 보기</summary><div></div></details></article></div>';
     cards=[{region:displayRegion,node:host.querySelector('.prm-card'),shapes:layout(model.shapes),meshes:[],labels:[]}];
     control.querySelectorAll('[data-prm-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.prmMode;render(host,lastModel.rawModel||lastModel);}));
   }
   function mapModel(raw){
+    if(raw.allowedRegions?.length===1&&!raw.region)raw={...raw,region:raw.allowedRegions[0]};
     if(raw.region)return {...raw,rawModel:raw,shapes:raw.shapes.filter(s=>s.region===raw.region)};
     const anchors={'서울특별시':[126.98,37.56],'경기도':[127.08,37.32],'인천광역시':[126.63,37.48]},places=raw.allowedRegions||regions;
     const shapes=places.map(r=>raw.regionShapes?.find(s=>s.region===r)||({id:r,name:r,region:r,aggregate:true,rings:raw.shapes.filter(p=>p.region===r).flatMap(p=>p.rings.filter(ring=>ring.some(v=>v[0]>126.1)).sort((a,b)=>ringArea(b)-ringArea(a)).slice(0,1)),longitude:anchors[r][0],latitude:anchors[r][1]})).filter(p=>p.rings.length);
@@ -47,8 +48,9 @@ const PolicyRegionMap = (() => {
     return {...raw,rawModel:raw,aggregate:true,shapes,values,regions:{...raw.regions,'수도권':sum},max:raw.regionMax||raw.max};
   }
   function values(c,model){
+    // Keep relief low: tall foreground districts obscure the regions behind them.
     const max=model.max||1;
-    return c.shapes.map(p=>({...p,...model.values[p.id],height:7+(model.values[p.id]?.value>0?43*Math.sqrt(model.values[p.id].value/max):0),color:color(model.values[p.id]?.value||0,max)}));
+    return c.shapes.map(p=>({...p,...model.values[p.id],height:3+(model.values[p.id]?.value>0?12*Math.sqrt(Math.min(model.values[p.id].value/max,1)):0),color:color(model.values[p.id]?.value||0,max)}));
   }
   function labels(c,items,project){
     const layer=c.node.querySelector('.prm-labels');layer.innerHTML='';const used=[];
@@ -67,21 +69,21 @@ const PolicyRegionMap = (() => {
     const points=items.flatMap(p=>p.rings.flat()),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
     const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys),scale=Math.min(Math.max(w-40,1)/Math.max(right-left,1),Math.max(h-48,1)/Math.max(top-bottom,1));
     const x=v=>w/2+(v-(left+right)/2)*scale,y=v=>h/2-(v-(bottom+top)/2)*scale;
-    surface.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" aria-label="'+c.region+' 2D 단계별 공급량">'+items.map(p=>'<path data-d907-city="'+p.id+'" d="'+[...p.rings,...(p.holes||[]).flat()].map(r=>r.map((v,i)=>(i?'L':'M')+x(v[0]).toFixed(2)+','+y(v[1]).toFixed(2)).join('')+'Z').join(' ')+'" fill-rule="evenodd" fill="'+p.color+'" stroke="'+(p.id===lastModel.city?'#fba843':'#ffffff')+'" stroke-width="'+(lastModel.aggregate?0:p.id===lastModel.city?2.4:1)+'"><title>'+escape(p.name)+' · '+(p.value?units(p.value):'확인 물량 없음')+'</title></path>').join('')+'</svg>';
+    surface.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" aria-label="'+c.region+' 2D 단계별 공급량">'+items.map(p=>'<path data-d907-city="'+p.id+'" d="'+[...p.rings,...(p.holes||[]).flat()].map(r=>r.map((v,i)=>(i?'L':'M')+x(v[0]).toFixed(2)+','+y(v[1]).toFixed(2)).join('')+'Z').join(' ')+'" fill-rule="evenodd" fill="'+p.color+'" stroke="'+(p.id===lastModel.city?'#fba843':lastModel.aggregate?'#4d7184':'#708f9f')+'" stroke-width="'+(p.id===lastModel.city?2.4:lastModel.aggregate?1.6:1)+'"><title>'+escape(p.name)+' · '+(p.value?units(p.value):'확인 물량 없음')+'</title></path>').join('')+'</svg>';
     labels(c,items,p=>[x(p.anchor[0]),y(p.anchor[1])]);
   }
   function create3d(T,c){
     const surface=c.node.querySelector('.prm-surface');surface.innerHTML='';
     const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.domElement.setAttribute('role','img');renderer.domElement.setAttribute('aria-label',c.region+' 공식 경계 3D 공급 현황');surface.append(renderer.domElement);
     const scene=new T.Scene(),camera=new T.OrthographicCamera(-120,120,120,-120,.1,900);camera.up.set(0,0,1);camera.position.set(28,-145,185);camera.lookAt(0,0,7);
-    scene.add(new T.HemisphereLight(0xe9f7ff,0x6e91a8,1.9));
+    const ambient=new T.HemisphereLight(0xe9f7ff,0x6e91a8,1.9);ambient.position.set(0,0,1);scene.add(ambient);
     const light=new T.DirectionalLight(0xffffff,2.2);light.position.set(-80,-70,200);light.castShadow=true;light.shadow.mapSize.set(1024,1024);Object.assign(light.shadow.camera,{left:-140,right:140,top:140,bottom:-140,near:1,far:450});light.shadow.normalBias=.3;light.shadow.bias=-.0002;light.shadow.radius=4;scene.add(light);
     const floor=new T.Mesh(new T.PlaneGeometry(900,900),new T.ShadowMaterial({opacity:.2}));floor.position.z=-1;floor.receiveShadow=true;scene.add(floor);
     for(const p of c.shapes){
       for(const [index,ring] of p.rings.entries()){if(ring.length<4)continue;const shape=new T.Shape(ring.map(v=>new T.Vector2(...v)));for(const hole of p.holes?.[index]||[])if(hole.length>=4&&ringArea(hole)>1e-8)shape.holes.push(new T.Path(hole.map(v=>new T.Vector2(...v))));const geometry=new T.ExtrudeGeometry(shape,{depth:1,steps:1,bevelEnabled:false,curveSegments:1});
         const top=new T.MeshStandardMaterial({color:0xb4ddeb,roughness:.72,metalness:.05});const side=new T.MeshStandardMaterial({color:0x78acbf,roughness:.85});
         const mesh=new T.Mesh(geometry,[top,side]);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.id=p.id;scene.add(mesh);c.meshes.push(mesh);
-        const edge=new T.LineLoop(new T.BufferGeometry().setFromPoints(ring.map(v=>new T.Vector3(v[0],v[1],1.005))),new T.LineBasicMaterial({color:0xf1fbff,transparent:true,opacity:.9}));edge.visible=!lastModel.aggregate;mesh.add(edge);
+        const edge=new T.LineLoop(new T.BufferGeometry().setFromPoints(ring.map(v=>new T.Vector3(v[0],v[1],1.005))),new T.LineBasicMaterial({color:0x4d7184,depthTest:true,depthWrite:false}));edge.renderOrder=1;mesh.add(edge);
       }
     }
     c.renderer=renderer;c.scene=scene;c.camera=camera;c.THREE=T;c.intentionalLoss=false;
@@ -95,7 +97,7 @@ const PolicyRegionMap = (() => {
   function draw3d(T,c,items){
     if(!c.renderer)create3d(T,c);
     const byId=Object.fromEntries(items.map(p=>[p.id,p]));
-    for(const mesh of c.meshes){const p=byId[mesh.userData.id];mesh.scale.z=p.height;mesh.material[0].color.set(p.color);mesh.material[1].color.set(p.color).multiplyScalar(.73);mesh.children[0]?.material.color.set(p.id===lastModel.city?'#ffae4e':'#effbff');}
+    for(const mesh of c.meshes){const p=byId[mesh.userData.id];mesh.scale.z=p.height;mesh.material[0].color.set(p.color);mesh.material[1].color.copy(mesh.material[0].color).multiplyScalar(.78);mesh.children[0]?.material.color.set(p.id===lastModel.city?'#ffae4e':'#4d7184');}
     const surface=c.node.querySelector('.prm-surface'),w=surface.clientWidth,h=surface.clientHeight;if(!w||!h)return;
     // Fit the visible footprint AND extruded heights in camera space. A fixed
     // frustum leaves unused space and shifts tall regions toward the top.

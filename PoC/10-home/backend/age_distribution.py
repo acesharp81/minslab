@@ -46,6 +46,18 @@ def parse(rows,period):
     return result
 
 
+def parse_sexes(rows,period):
+    total=parse(rows,period)
+    sexes={key:parse([dict(r,ITM_ID='T2') for r in rows if r.get('ITM_ID')==item],period)
+           for key,item in [('male','T3'),('female','T4')]}
+    for target,v in total.items():
+        for age,count_ in v['age_classes'].items():
+            if sum(sexes[key][target]['age_classes'][age] for key in sexes)!=count_:
+                raise ValueError('남녀 연령 합계와 총인구 불일치')
+        v['sex_age_classes']={key:sexes[key][target]['age_classes'] for key in sexes}
+    return total
+
+
 def collect(source,fetcher):
     key=kosis_key();now=today();ordinal=now.year*12+now.month-2
     period=None;metadata=None
@@ -55,14 +67,14 @@ def collect(source,fetcher):
         if rows:period=candidate;metadata=rows;break
     if not period:raise ValueError('연령 통계 최신 공개월 미확인')
     codes=sorted({str(r['C1']) for r in metadata if place(r)})
-    rows=kosis_rows(fetcher,key,TABLE,'M','T2',period,period,objL1='+'.join(codes),objL2='ALL')
-    places=parse(rows,period);records=[]
+    rows=kosis_rows(fetcher,key,TABLE,'M','T2+T3+T4',period,period,objL1='+'.join(codes),objL2='ALL')
+    places=parse_sexes(rows,period);records=[]
     for (region,municipality),v in sorted(places.items(),key=lambda t:(t[0][0],t[0][1] or '')):
         payload=dict(name=municipality or region,region=region,municipality=municipality,metric_group='kosis_age',
                      year=int(period[:4]),period=period[:4]+'-'+period[4:],base_date=today().isoformat(),
                      source_date=max((r.get('LST_CHN_DE','') for r in rows),default=''),
                      table_id=TABLE,evidence_url=URL,population_total=v['total'],age_bands=v['bands'],age_labels=BANDS,
-                     age_classes=v['age_classes'],region_code=v['region_code'],
+                     age_classes=v['age_classes'],sex_age_classes=v['sex_age_classes'],region_code=v['region_code'],
                      definition='주민등록인구 총인구(T2)의 연령 분포. 일반가구·인구총조사 인구와 분모가 다르며 외국인 포함 여부 등 원천 정의 유지')
         records.append(('area_stat',f'{region}|{municipality or "ALL"}|{period}',payload))
     return records,dict(period=period,covered_places=len(places),table_id=TABLE,complete_query=True,
@@ -78,5 +90,5 @@ def context(service,region,municipality,year):
     if not latest:return dict(current=None,fallback=False,requested_municipality=municipality)
     total=latest['population_total']
     return dict(current=dict(period=latest['period'],total=total,bands=[dict(id=k,label=BANDS[k],count=latest['age_bands'][k],percent=round(latest['age_bands'][k]/total*100,1) if total else None) for k in BANDS],
-                             source_date=latest.get('source_date'),evidence_url=latest['evidence_url'],definition=latest['definition']),
+                             sex_age_classes=latest.get('sex_age_classes'),age_classes=latest.get('age_classes'),source_date=latest.get('source_date'),evidence_url=latest['evidence_url'],definition=latest['definition']),
                 fallback=fallback,requested_municipality=municipality,municipality=None if fallback else municipality)

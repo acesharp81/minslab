@@ -1,0 +1,37 @@
+{
+  "reviewed_at": "2026-10-14T08:53:08.694248+09:00",
+  "scope": "2026-10-14 운영 API 조회 결과와 사용자 CSV 및 저장된 공식 PDF 대조; 최신 사업별 인허가 전수 재조사는 아님",
+  "production_writes": 0,
+  "project_records": 308,
+  "policy_project_records": 194,
+  "program_records": 21,
+  "policy_program_records": 13,
+  "external_programs": 17,
+  "external_projects": 39,
+  "programs_without_named_projects_in_csv": 12,
+  "separate_program_registration_candidates": 10,
+  "project_review_counts": {
+    "기존 사업 대응": 13,
+    "신규 등록 후보": 3,
+    "지구 단위 공급계획": 20,
+    "기존 묶음의 하위 부지": 3
+  },
+  "files": [
+    {
+      "path": "docs/주택공급_프로그램_리스트.csv",
+      "sha256": "d4622f6d43b8fff4fcfaebe3089b4ceee6f30f13b80a64a856097fcb8b125eab"
+    },
+    {
+      "path": "docs/주택공급_사업_리스트.csv",
+      "sha256": "8bbf6a4d31786d278d0bd04129d4216ad4ffe6a00e0099d11b284570d9ed423c"
+    },
+    {
+      "path": "data/raw/policy_907_plan/6a72c5e14edcc3705043dfd58ac7aad2b0167fb343270d47ecd80522eeb0c5e6.pdf",
+      "sha256": "6a72c5e14edcc3705043dfd58ac7aad2b0167fb343270d47ecd80522eeb0c5e6"
+    },
+    {
+      "path": "data/raw/official_document/7e86a78751ff4d8c42f0178eda436e54620bd1281d884b59b9a396c0f502c092.pdf",
+      "sha256": "7e86a78751ff4d8c42f0178eda436e54620bd1281d884b59b9a396c0f502c092"
+    }
+  ]
+}

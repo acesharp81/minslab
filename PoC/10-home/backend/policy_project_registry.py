@@ -67,6 +67,7 @@ def registry_records(source_id):
         if name in renewal:
             existing,planned,agency,start,move=renewal[name]
             p.update(existing_stock_units=existing,planned_units=planned,developer=agency,
+                     source_move_in_label=str(move)+'년',move_in_evidence_url='https://eiec.kdi.re.kr/policy/materialView.do?num=271965',
                      net_additional_units=planned-existing,start_plan_year=start,
                      unit_basis='국토부 2025-10-01 후속계획의 재건축 후 계획호수 · 기존 재고/순증과 구분',
                      quantity_status='APPROVED_PLAN' if agency=='SH' else 'OFFICIAL_ESTIMATE',
@@ -87,7 +88,8 @@ def registry_records(source_id):
 def supplement_records(source_id, records):
     """Prefer a newly parsed source row; never duplicate or overwrite it with a snapshot."""
     present = {(kind, key) for kind, key, _ in records}
-    extra = [r for r in registry_records(source_id) if r[:2] not in present]
+    from .program_catalog import site_records
+    extra = [r for r in registry_records(source_id)+(site_records() if source_id=='policy_907' else []) if r[:2] not in present]
     return list(records) + extra
 
 

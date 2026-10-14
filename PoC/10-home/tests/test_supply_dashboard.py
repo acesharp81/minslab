@@ -20,6 +20,14 @@ def project(id="P", **extra):
 
 
 class SupplyTests(unittest.TestCase):
+    def test_colocated_bars_keep_each_source_quantity_without_changing_totals(self):
+        rent = dict(project('RENT'), planned_units=438, name='성남금토 A2')
+        construction = dict(rent, id='BUILD', source_id='lh_construction', planned_units=633)
+        data = build_dashboard([rent, construction], [], [], [], [], [], [], date(2026, 10, 14), 2018)
+        self.assertEqual({r['id']:r['map_quantities']['target_units'] for r in data['items']}, {'RENT':438, 'BUILD':633})
+        self.assertEqual(data['summary']['target_units'], 438)
+        self.assertEqual(data['blocks'][0]['target_units'], 438)
+
     def test_incheon_source_names_resolve_without_guessing_legacy_boundaries(self):
         boundaries=[dict(id='GY',name='계양구',region='인천광역시'),
                     dict(id='SH',name='서해구',region='인천광역시')]
@@ -211,3 +219,23 @@ class SupplyAPITests(unittest.TestCase):
         self.assertEqual(self.client.get('/poc/home/api/map/supply.csv?group_by=region&group_id=UNKNOWN').status_code,422)
         self.assertEqual(self.client.get('/poc/home/api/map/supply.csv?measure=INVALID').status_code,422)
         self.assertEqual(self.client.get('/poc/home/api/map/supply.csv?analysis_year='+str(today().year+1)).status_code,422)
+
+
+def test_distinct_aa19_rental_cohorts_and_contract_share_one_located_block():
+    first=dict(project('N'),name='인천검단 AA19',district='인천검단',block='AA19',region='인천광역시',tenure='국민임대',planned_units=991,latitude=37.6,longitude=126.7,coordinate_basis='APPROXIMATE_ADDRESS')
+    second=dict(first,id='Y',tenure='영구임대',planned_units=332)
+    contract=dict(first,id='C',name='인천검단 AA19BL 민간참여 공공주택건설사업',block='A13-1',source_id='lh_construction',tenure='유형 확인 필요',planned_units=1323)
+    d=build_dashboard([first,second,contract],[],[],[],[],[],[],date(2026,10,14),2018)
+    assert len(d['blocks'])==1
+    assert d['blocks'][0]['target_units']==1323
+    assert d['summary']['target_units']==1323
+    assert set(d['blocks'][0]['project_ids'])=={'N','Y','C'}
+
+
+def test_excluded_multisite_contract_keeps_own_visual_target_without_inflating_totals():
+    row=dict(project('M'),source_id='lh_construction',warnings=['MULTI_SITE_CONTRACT'],latitude=37.5,longitude=127,coordinate_basis='APPROXIMATE_ADDRESS',planned_units=747)
+    d=build_dashboard([row],[],[],[],[],[],[],date(2026,10,14),2018)
+    assert d['summary']['target_units'] is None
+    assert d['blocks'][0]['target_units']==747
+    assert d['blocks'][0]['quantity_basis']=='PROJECT_REFERENCE'
+    assert d['blocks'][0]['group_quantities']['region']['경기도']['target_units']==747

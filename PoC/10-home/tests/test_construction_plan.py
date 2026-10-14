@@ -29,3 +29,8 @@ class ConstructionPlanTests(unittest.TestCase):
             self.assertEqual(events[0]['due_date'],'2027-01-31')
             self.assertEqual(events[-1]['due_date'],'2029-08-22')
             self.assertEqual(events[-1]['precision'],'DAY')
+
+    def test_estimated_manual_progress_is_not_labelled_source_observation(self):
+        row=dict(start_plan_date='2026-01-01',completion_plan_date='2027-01-01',progress_pct=70,progress_date='2026-10-01',manual_fields={'progress_pct':dict(origin='MANUAL',inferred=True)})
+        p=construction_plan(row,date(2026,10,14))
+        self.assertEqual(p['comparison']['input_label'],'추정 입력(미수집)')

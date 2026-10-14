@@ -36,8 +36,10 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
         await send({"type": "http.response.start", "status": status, "headers": headers})
         await send({"type": "http.response.body", "body": b"" if method == "HEAD" else data})
 
-    admin_write = method == "POST" and (path in {PREFIX + "/api/admin/refresh", PREFIX + "/api/admin/evidence-bridge", PREFIX + "/api/admin/stage-evidence", PREFIX + "/api/admin/stage-evidence/refresh", PREFIX + "/api/admin/project-collection/assessment"} or path.startswith(PREFIX + "/api/admin/mappings/")
+    admin_write = method == "POST" and (path in {PREFIX + "/api/admin/policy-information", PREFIX + "/api/admin/refresh", PREFIX + "/api/admin/evidence-bridge", PREFIX + "/api/admin/stage-evidence", PREFIX + "/api/admin/stage-evidence/refresh", PREFIX + "/api/admin/project-collection/assessment"} or path.startswith(PREFIX + "/api/admin/mappings/")
                                         or path.startswith(PREFIX + "/api/admin/targets/")
+                                        or re.fullmatch(r"/poc/home/api/admin/program-information/[^/]+", path)
+                                        or re.fullmatch(r"/poc/home/api/admin/project-information/[^/]+", path)
                                         or re.fullmatch(r"/poc/home/api/admin/programs/[^/]+/policy", path)
                                         or re.fullmatch(r"/poc/home/api/admin/projects/[^/]+/program", path))
     if method not in {"GET", "HEAD"} and not admin_write:
@@ -71,7 +73,7 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
             if message["type"] == "http.disconnect":
                 return
             body.extend(message.get("body", b""))
-            if len(body) > (65_536 if path.startswith(PREFIX + "/api/admin/targets/") else 16_384):
+            if len(body) > (65_536 if (path.startswith(PREFIX + "/api/admin/targets/") or path == PREFIX + "/api/admin/policy-information" or path.startswith(PREFIX + "/api/admin/program-information/") or path.startswith(PREFIX + "/api/admin/project-information/")) else 16_384):
                 return await error(413, "request body too large")
             if not message.get("more_body"):
                 break
@@ -82,9 +84,13 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
             # Preserve the negotiated wire representation. response.content
             # transparently decompresses, undoing HOME's gzip before the WAN.
             async with client.stream(method, url, headers=headers, content=bytes(body)) as response:
-                payload = b"" if method == "HEAD" else b"".join([part async for part in response.aiter_raw()])
+                buffered = response.is_stream_consumed
+                payload = b"" if method == "HEAD" else response.content if buffered else b"".join([part async for part in response.aiter_raw()])
                 output_headers = [(k.encode(), v.encode("latin1")) for k, v in response.headers.items()
                                   if k.lower() in {"content-type", "cache-control", "location", "content-disposition", "content-security-policy", "x-frame-options", "referrer-policy", "content-encoding", "vary", "etag", "last-modified", "x-home-cache"}]
+                if buffered and method != "HEAD":
+                    # Custom/in-memory transports may already have decoded the body.
+                    output_headers = [(k,v) for k,v in output_headers if k != b"content-encoding"]
                 length = response.headers.get("content-length", "0") if method == "HEAD" else str(len(payload))
                 if response.status_code != 304:
                     output_headers.append((b"content-length", length.encode()))

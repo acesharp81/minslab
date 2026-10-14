@@ -48,6 +48,30 @@ def authenticated(request):
         return False
 
 
+class PolicyProfileEdit(BaseModel):
+    revision_no: int = Field(ge=0)
+    changes: dict = Field(default_factory=dict, max_length=140)
+    program_changes: dict[str, dict] = Field(default_factory=dict, max_length=500)
+    actor: str = Field(min_length=1, max_length=100)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class ProgramProfileEdit(PolicyProfileEdit):
+    mapping_revision_no: int = Field(ge=1)
+
+
+class ProjectProfileEdit(BaseModel):
+    progress: dict = Field(default_factory=dict, max_length=6)
+    revision_no: int = Field(ge=0)
+    mapping_revision_no: int = Field(ge=1)
+    changes: dict = Field(default_factory=dict, max_length=20)
+    mapping: dict | None = None
+    schedules: dict = Field(default_factory=dict, max_length=6)
+    approvals: dict = Field(default_factory=dict, max_length=6)
+    actor: str = Field(min_length=1, max_length=100)
+    reason: str = Field(min_length=1, max_length=1000)
+
+
 class Review(BaseModel):
     policy_id: str = Field(max_length=80)
     revision_no: int = Field(ge=1)
@@ -238,7 +262,7 @@ def create_app(engine=None, auto_collect=None):
     service = HomeService(engine or engine_for(), os.environ.get("POC10_DATA_DIR", str(ROOT / "data")))
     delivery_cache = ProjectionCache(lambda: projection_version(service))
     read_caches = {name: ProjectionCache(lambda: projection_version(service))
-                   for name in ('overview', 'samples', 'policy_metrics', 'supply_dashboard', 'map', 'project_collection', 'requirements_status', 'policy_monitor', 'mappings', 'tree', 'validation', 'history', 'geometry', 'schematic', 'annual_supply', 'area_context', 'area_outlook', 'execution_insights', 'unsold')}
+                   for name in ('overview', 'samples', 'policy_metrics', 'supply_dashboard', 'map', 'project_collection', 'requirements_status', 'policy_monitor', 'mappings', 'tree', 'validation', 'history', 'geometry', 'schematic', 'annual_supply', 'area_context', 'area_outlook', 'execution_insights', 'unsold', 'project_workspace', 'project_locations')}
     def cached_json(name, parameters, build):
         # Relative "today" queries must not reuse yesterday's projection.
         body, status = read_caches[name].get((today(),tuple(sorted(parameters.items()))), build)
@@ -342,8 +366,16 @@ def create_app(engine=None, auto_collect=None):
                         headers={'Content-Disposition':f'attachment; filename="home-progress-{history_year or "all"}.csv"'})
 
     @app.get(PREFIX + "/api/map/buildings")
-    def map_buildings(block_id: str = Query(..., min_length=4, max_length=150)):
+    def map_buildings(block_id: str | None = Query(None, min_length=4, max_length=150), project_id: str | None = Query(None, min_length=4, max_length=150)):
         try:
+            if bool(block_id)==bool(project_id):raise ValueError('사업 또는 블록 중 하나를 선택하세요')
+            if project_id:
+                from .project_locations import resolve_anchor
+                project=next((p for p in service.projects(policy_id='POL_2025_0907') if p['id']==project_id),None)
+                if project is None:raise ValueError('연결된 사업을 찾을 수 없습니다')
+                anchor=resolve_anchor(project,json.loads(project_locations().body))
+                if not anchor:raise ValueError('확보된 대표 위치가 없습니다')
+                return building_context.get(project_id,service,anchor)
             return building_context.get(block_id, service)
         except ValueError as error:
             raise HTTPException(422, str(error)) from None
@@ -351,8 +383,16 @@ def create_app(engine=None, auto_collect=None):
             raise HTTPException(503, "공식 건물 공간정보 연결 확인 필요") from None
 
     @app.get(PREFIX + "/api/map/infrastructure")
-    def map_infrastructure(block_id: str = Query(..., min_length=4, max_length=150)):
+    def map_infrastructure(block_id: str | None = Query(None, min_length=4, max_length=150),project_id: str | None = Query(None,min_length=4,max_length=150)):
         try:
+            if bool(block_id)==bool(project_id):raise ValueError('사업 또는 블록 중 하나를 선택하세요')
+            if project_id:
+                from .project_locations import resolve_anchor
+                project=next((p for p in service.projects(policy_id='POL_2025_0907') if p['id']==project_id),None)
+                if project is None:raise ValueError('연결된 사업을 찾을 수 없습니다')
+                anchor=resolve_anchor(project,json.loads(project_locations().body))
+                if not anchor:raise ValueError('확보된 대표 위치가 없습니다')
+                return infrastructure_context.get(project_id,service,anchor)
             return infrastructure_context.get(block_id, service)
         except ValueError as error:
             raise HTTPException(422, str(error)) from None
@@ -510,6 +550,40 @@ def create_app(engine=None, auto_collect=None):
         rows = service.projects(**f)
         return {"items": rows[(page - 1) * page_size:page * page_size], "total": len(rows), "page": page, "page_size": page_size}
 
+    @app.get(PREFIX + '/api/project-workspace')
+    def project_workspace():
+        def build():
+            keys=('id','name','region','municipality','mapping','planned_units')
+            return dict(items=[{k:p.get(k) for k in keys} for p in service.projects(policy_id='POL_2025_0907') if p['mapping']['status'] not in ('RELEASED','REJECTED')],
+                        programs=[p for p in service.program_links() if p['policy_id']=='POL_2025_0907' and p['status'] not in ('RELEASED','REJECTED')],
+                        policies=[p for p in service.mapping_policies() if p.get('monitor_kind')=='POLICY'])
+        return cached_json('project_workspace',{},build)
+
+    @app.get(PREFIX + '/api/project-locations')
+    def project_locations():
+        def build():
+            data=service.supply_dashboard(policy_id='POL_2025_0907')
+            keys=('id','name','project_ids','latitude','longitude','coordinate_basis','location_evidence_url','evidence_url')
+            return {kind:[{k:r.get(k) for k in keys} for r in data[kind]] for kind in ('blocks','municipalities')}
+        return cached_json('project_locations',{},build)
+
+    @app.get(PREFIX + '/api/project-information/{project_id}')
+    def project_information(project_id: str):
+        from .project_profile import view
+        from .project_collection import collection_matrix
+        matrix=cached_json('project_collection',{'policy_id':'POL_2025_0907'},lambda:collection_matrix(service,policy_id='POL_2025_0907'))
+        try: return view(service,project_id,json.loads(matrix.body),json.loads(project_locations().body))
+        except ValueError as error:raise HTTPException(404,str(error)) from None
+
+    @app.post(PREFIX + '/api/admin/project-information/{project_id}')
+    def project_information_save(project_id: str,payload: ProjectProfileEdit,request: Request):
+        if not authenticated(request):raise HTTPException(401,'관리자 로그인이 필요합니다')
+        from .project_profile import save
+        try:result=save(service,project_id,**payload.model_dump())
+        except (ValueError,TypeError) as error:raise HTTPException(422,str(error)) from None
+        if result.get('conflict'):raise HTTPException(409,'사업 또는 연결 근거가 변경됐습니다. 다시 조회하세요')
+        return result
+
     @app.get(PREFIX + "/api/projects/{project_id}")
     def detail(project_id: str, f=Depends(filters)):
         result = service.detail(project_id, f["as_of"])
@@ -540,6 +614,58 @@ def create_app(engine=None, auto_collect=None):
             lambda: build_delivery(service, day, include_portfolio_comparisons=not compact))
         return Response(body, media_type='application/json',
                         headers={'X-Home-Cache': status, 'Cache-Control': 'no-cache'})
+
+    @app.get(PREFIX + '/api/map/progress')
+    def map_progress(project_ids: list[str] = Query(default=[]), as_of_date: date | None = None,
+                     region: str | None = None, program_id: str | None = None, level: str = 'block'):
+        from .map_progress import build_progress
+        day = as_of_date or today()
+        if day > today() or len(project_ids) > 1000:
+            raise HTTPException(422, '기준일 또는 조회 사업 범위를 확인하세요')
+        body, _ = delivery_cache.get((day.isoformat(), True),
+            lambda: build_delivery(service, day, include_portfolio_comparisons=False))
+        model=json.loads(body)
+        if model.get('status') != 'READY':
+            return dict(status=model.get('status'), as_of_date=day.isoformat(), notice=model.get('notice', '해당 기준일 자료 미확보'))
+        return build_progress(model, project_ids, region, program_id, level)
+
+    @app.get(PREFIX + '/api/policy-information')
+    def policy_information(request: Request):
+        if not authenticated(request): raise HTTPException(401, 'MinsLab 관리자 로그인이 필요합니다')
+        from .policy_profile import view
+        body, _ = delivery_cache.get((today().isoformat(), True),
+            lambda: build_delivery(service, today(), include_portfolio_comparisons=False))
+        model = json.loads(body)
+        if model.get('status') != 'READY': raise HTTPException(409, '정책 원문 수집이 필요합니다')
+        return view(service, model)
+
+    @app.post(PREFIX + '/api/admin/policy-information')
+    def policy_information_save(payload: PolicyProfileEdit, request: Request):
+        if not authenticated(request): raise HTTPException(401, 'MinsLab 관리자 로그인이 필요합니다')
+        from .policy_profile import save
+        try:
+            result = save(service, **payload.model_dump())
+        except ValueError as error: raise HTTPException(422, str(error)) from None
+        if result.get('conflict'): raise HTTPException(409, '다른 담당자가 수정했습니다. 입력 내용을 기록한 뒤 다시 열어 주세요')
+        return result
+
+    @app.get(PREFIX + '/api/program-information/{program_id}')
+    def program_information(program_id: str, request: Request):
+        if not authenticated(request): raise HTTPException(401, 'MinsLab 관리자 로그인이 필요합니다')
+        from .program_profile import view
+        body, _ = delivery_cache.get((today().isoformat(), True),
+            lambda: build_delivery(service, today(), include_portfolio_comparisons=False))
+        try: return view(service, program_id, json.loads(body))
+        except ValueError as error: raise HTTPException(422, str(error)) from None
+
+    @app.post(PREFIX + '/api/admin/program-information/{program_id}')
+    def program_information_save(program_id: str, payload: ProgramProfileEdit, request: Request):
+        if not authenticated(request): raise HTTPException(401, 'MinsLab 관리자 로그인이 필요합니다')
+        from .program_profile import save
+        try: result = save(service, program_id, **payload.model_dump())
+        except ValueError as error: raise HTTPException(422, str(error)) from None
+        if result.get('conflict'): raise HTTPException(409, '다른 담당자가 변경했습니다. 다시 조회하세요')
+        return result
 
     @app.get(PREFIX + '/api/policy-delivery/settings')
     def policy_delivery_settings():
@@ -641,7 +767,9 @@ def create_app(engine=None, auto_collect=None):
 
     @app.get(PREFIX + "/api/programs")
     def programs(f=Depends(filters)):
-        return {"items": service.program_links(f["as_of"]),
+        rows=service.program_links(f['as_of'])
+        if f.get('policy_id'):rows=[p for p in rows if p['policy_id']==f['policy_id'] and p['status'] not in ('RELEASED','REJECTED')]
+        return {"items": rows,
                 "policy_link_history": "GET /api/programs/{program_id}/history"}
 
     @app.get(PREFIX + "/api/programs/{program_id}/history")
@@ -762,7 +890,7 @@ def create_app(engine=None, auto_collect=None):
     def requirements_status():
         from .project_collection import collection_matrix
         from .requirements_status import build_status
-        return cached_json('requirements_status', {}, lambda: build_status(service, collection_matrix(service, policy_id='POL_2025_0907')))
+        return cached_json('requirements_status', {}, lambda: build_status(service, collection_matrix(service, policy_id='POL_2025_0907'), json.loads(project_locations().body)))
 
     @app.post(PREFIX + '/api/admin/evidence-bridge')
     def evidence_bridge_review(payload: EvidenceBridgeReview,request: Request):

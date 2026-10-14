@@ -40,7 +40,7 @@ def facts(row,reference):
     add('MOVE_IN','ACTUAL',row.get('move_in_actual_date'),'원천 입주 시작일')
     for e in source_events(row,reference):
         stage='CONSTRUCTION' if e['stage']=='COMPLETION' else e['stage']
-        add(stage,'PLAN',e['due_date'] if e.get('precision')=='DAY' else e['month'],e['basis'],milestone=e['stage'])
+        add(stage,'PLAN',e['due_date'] if e.get('precision')=='DAY' else e['month'],e['basis'],milestone=e['stage'],units=e.get('units'))
     if row.get('sample_kind')=='lh_completion_plan':
         add('CONSTRUCTION','PLAN',row.get('completion_plan_date'),'LH 블록별 준공예정 · 실제 준공·입주 아님',milestone='COMPLETION')
     return result

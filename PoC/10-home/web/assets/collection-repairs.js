@@ -9,7 +9,7 @@ const CollectionRepairs=(()=>{
  const open=key=>expanded.has(key)?' open':'';
  function relevant(data,rows,stage='ALL',sources=null,keys=null){
   const ids=new Set(rows.flatMap(p=>p.repair_ids||[]));
-  return (data.repairs||[]).filter(r=>ids.has(r.id)&&(stage==='ALL'||r.stages.includes(stage))&&(!sources||r.source_ids.some(s=>sources.includes(s)))&&(!keys||(r.related_keys||[]).some(k=>keys.includes(k))));
+  return (data.repairs||[]).filter(r=>ids.has(r.id)&&(stage==='ALL'||r.stages.includes(stage))&&(!sources||(r.source_ids||[]).some(s=>sources.includes(s)))&&(!keys||(r.related_keys||[]).some(k=>keys.includes(k))));
  }
  function scope(rows,stage,sources,keys){
   const value=[rows.map(p=>p.id).sort().join(','),stage,(sources||[]).slice().sort().join(','),(keys||[]).slice().sort().join(',')].join('|');let hash=2166136261;

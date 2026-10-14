@@ -21,6 +21,17 @@ class RepairHistoryTests(unittest.TestCase):
         return dict(title='오류',cause='원인',action='조치',remaining='검토 필요',stages=['APPROVAL'],status='APPLIED_REVIEW_PENDING',base_date='2026-10-12',source_ids=['building_hub'],**kw)
     def item(self,pid='p1'):
         return dict(id=pid,cells={'APPROVAL':dict(sources=[dict(source_id='building_hub')])})
+    def test_project_only_repair_accepts_missing_source_list_and_preserves_scope(self):
+        payload=self.payload(project_ids=['p1']);payload.pop('source_ids')
+        save(self.s,'project-only',payload)
+        self.assertEqual(self.s.rows('collection_repair')[0]['source_ids'],[])
+        save(self.s,'scoped',self.payload(project_ids=['p1']))
+        update=self.payload();update.pop('source_ids');update['action']='추가 조치'
+        save(self.s,'scoped',update)
+        record=next(r for r in self.s.rows('collection_repair') if r['action']=='추가 조치')
+        self.assertEqual(record['source_ids'],['building_hub'])
+        self.assertEqual(record['project_ids'],['p1'])
+
     def test_idempotence_history_and_scope(self):
         self.assertEqual(save(self.s,'one',self.payload(project_ids=['p1']))['revision_no'],1)
         self.assertEqual(save(self.s,'one',self.payload(project_ids=['p1']))['outcome'],'unchanged')

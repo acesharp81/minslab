@@ -16,9 +16,9 @@ RADIUS_METRES = 3500
 PAGE_SIZE = 1000
 MAX_TOTAL_PER_QUERY = 3000
 CACHE_SECONDS = 24 * 3600
-QUERIES = (("subway", "지하철역"), ("school", "초등학교"), ("school", "중학교"),
-           ("school", "고등학교"), ("hospital", "병원"))
-DISPLAY_LIMITS = {"subway": 10, "school": 25, "hospital": 12}
+QUERIES = (("subway", "지하철역"), ("bus", "버스정류장"), ("school", "초등학교"), ("school", "중학교"),
+           ("school", "고등학교"), ("childcare", "어린이집"), ("hospital", "병원"))
+DISPLAY_LIMITS = {"subway": 10, "bus": 20, "school": 25, "childcare": 25, "hospital": 12}
 GTX_RADIUS_METRES = 12000
 # GTX-A operation is checked against MOLIT's opened sections. These are
 # VWorld POIs checked on 2026-10-04. A station POI is preferred; when absent,
@@ -46,7 +46,7 @@ def nearby_gtx_stations(latitude, longitude):
         distance = distance_metres(latitude, longitude, lat, lon)
         if distance <= GTX_RADIUS_METRES:
             location_note = "역 출구 인근 버스정류장 위치" if location_basis.endswith("PROXY") else "기존 역 POI 대표 위치"
-            result.append({"id": poi_id, "kind": "gtx", "line": "GTX-A", "name": name,
+            result.append({"id": poi_id, "kind": "subway", "line": "GTX-A", "name": name,
                            "category": "GTX-A 운영역 · VWorld " + location_note,
                            "latitude": lat, "longitude": lon, "distance_m": distance,
                            "address": "", "service_status": "OPERATING",
@@ -82,15 +82,19 @@ def parse_places(content, page=1):
     return items, total
 
 
-def normalize_place(item, kind, latitude, longitude):
+def normalize_place(item, kind, latitude, longitude, radius_metres=RADIUS_METRES):
     name = str(item.get("title") or "").strip()
     category = str(item.get("category") or "").strip()
     if not name:
         return None
     if kind == "subway" and ("철도/지하철" not in category or not name.endswith("역")):
         return None
+    if kind == "bus" and (not category.endswith("버스정류장") or re.search(r"미정차|폐쇄|폐지|운행중지", name)):
+        return None
     if kind == "school" and (not re.search(r"(초등학교|중학교|고등학교|초교|중교|고교)$", name)
                               or not any(word in category for word in ("초등학교", "중학교", "고등학교"))):
+        return None
+    if kind == "childcare" and ("어린이집" not in category or not name.endswith("어린이집") or re.search(r"폐원|폐쇄|예정", name)):
         return None
     if kind == "hospital" and (not category.startswith("병원") or not name.endswith("병원")):
         return None
@@ -102,7 +106,7 @@ def normalize_place(item, kind, latitude, longitude):
     if not (33 <= lat <= 39 and 124 <= lon <= 132):
         return None
     distance = distance_metres(latitude, longitude, lat, lon)
-    if distance > RADIUS_METRES:
+    if distance > radius_metres:
         return None
     address = item.get("address") or {}
     if not isinstance(address, dict):
@@ -112,63 +116,92 @@ def normalize_place(item, kind, latitude, longitude):
             "distance_m": distance, "address": str(address.get("road") or address.get("parcel") or "")}
 
 
+def deduplicate_places(places):
+    """Keep opposite-direction bus stops; other POIs retain name/proximity dedupe."""
+    def canonical(name):
+        return re.sub(r"\s+", "", name).replace("초교", "초등학교").replace("중교", "중학교").replace("고교", "고등학교")
+    result=[]
+    for row in places:
+        if row['kind']=='bus':
+            duplicate=any(other['kind']=='bus' and ((row['id'] and other['id']==row['id']) or
+                (not row['id'] and not other['id'] and row['name']==other['name'] and row['latitude']==other['latitude'] and row['longitude']==other['longitude'])) for other in result)
+        else:
+            duplicate=any(other['kind']==row['kind'] and canonical(other['name'])==canonical(row['name']) and
+                distance_metres(other['latitude'],other['longitude'],row['latitude'],row['longitude'])<=150 for other in result)
+        if not duplicate:result.append(row)
+    return result
+
+
+def merge_rail_stations(items,gtx_stations):
+    """GTX is a rail line, not a separate facility class; keep its provenance."""
+    result=[dict(row) for row in items]
+    for gtx in gtx_stations:
+        existing=next((r for r in result if r['kind']=='subway' and
+            (r['id']==gtx['id'] or (r['name']==gtx['name'] and distance_metres(r['latitude'],r['longitude'],gtx['latitude'],gtx['longitude'])<=150))),None)
+        if existing is None:result.append(dict(gtx))
+        else:
+            existing.update(line=gtx['line'],service_status=gtx['service_status'],service_status_source_url=gtx['service_status_source_url'],
+                            location_basis='VWORLD_EXISTING_STATION_POI',category=existing['category']+' · '+gtx['line']+' 운영역')
+    return result
+
+
 class InfrastructureContext:
     def __init__(self):
         self._lock = threading.RLock()
         self._cache = {}
 
-    def get(self, block_id, service):
+    def get(self, block_id, service, anchor=None):
         with self._lock:
-            cached = self._cache.get(block_id)
+            cache_key=(block_id,anchor['latitude'],anchor['longitude'],anchor['coordinate_basis'],anchor['label']) if anchor else block_id
+            cached = self._cache.get(cache_key)
             if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
                 return cached[1]
-            locations = {"|".join((row["region"], row["district_key"], row["block"])): row
-                         for row in service.rows("block_location")}
-            point = locations.get(block_id)
-            if not point:
-                raise ValueError("개별 위치가 검증된 블록이 아닙니다")
+            if anchor:
+                point=anchor
+            else:
+                locations = {"|".join((row["region"], row["district_key"], row["block"])): row for row in service.rows("block_location")}
+                point = locations.get(block_id)
+                if not point:raise ValueError("개별 위치가 검증된 블록이 아닙니다")
             latitude, longitude = point["latitude"], point["longitude"]
-            lat_delta = RADIUS_METRES / 111320
-            lon_delta = RADIUS_METRES / (111320 * math.cos(math.radians(latitude)))
-            bbox = f"{longitude-lon_delta:.7f},{latitude-lat_delta:.7f},{longitude+lon_delta:.7f},{latitude+lat_delta:.7f}"
             source = next(row for row in SOURCES if row["id"] == "vworld")
             fetcher = Fetcher("vworld_infrastructure", service.data_dir / "raw")
             all_places = []
             try:
                 api_key = key_for(source)
+                rail_radius = RADIUS_METRES
                 for kind, query in QUERIES:
-                    params = {"key": api_key, "service": "search", "request": "search", "version": "2.0",
-                              "query": query, "type": "place", "bbox": bbox, "crs": "EPSG:4326",
-                              "size": PAGE_SIZE, "format": "json"}
-                    first, total = parse_places(fetcher.get(SEARCH_URL, "json", params={**params, "page": 1},
-                                                            headers={"Referer": "https://www.minslab.kr/poc/home/"}), 1)
-                    if total > MAX_TOTAL_PER_QUERY:
-                        raise ValueError("시설 검색 결과가 표시 한도를 초과합니다")
-                    items = first
-                    for page in range(2, math.ceil(total / PAGE_SIZE) + 1):
-                        batch, page_total = parse_places(fetcher.get(SEARCH_URL, "json", params={**params, "page": page},
-                                                                     headers={"Referer": "https://www.minslab.kr/poc/home/"}), page)
-                        if page_total != total:
-                            raise ValueError("시설 검색 중 원천 건수 변경")
-                        items.extend(batch)
-                    for item in items:
-                        place = normalize_place(item, kind, latitude, longitude)
-                        if place:
-                            all_places.append(place)
+                    # UI radius controls only presentation. Search farther when no
+                    # nearby rail station exists, so a distant GTX cannot hide a
+                    # closer conventional station outside the default radius.
+                    for radius in ((RADIUS_METRES, 12000, 50000) if kind == "subway" else (RADIUS_METRES,)):
+                        lat_delta = radius / 111320
+                        lon_delta = radius / (111320 * math.cos(math.radians(latitude)))
+                        bbox = f"{longitude-lon_delta:.7f},{latitude-lat_delta:.7f},{longitude+lon_delta:.7f},{latitude+lat_delta:.7f}"
+                        params = {"key": api_key, "service": "search", "request": "search", "version": "2.0",
+                                  "query": query, "type": "place", "bbox": bbox, "crs": "EPSG:4326",
+                                  "size": PAGE_SIZE, "format": "json"}
+                        first, total = parse_places(fetcher.get(SEARCH_URL, "json", params={**params, "page": 1},
+                                                                headers={"Referer": "https://www.minslab.kr/poc/home/"}), 1)
+                        if total > MAX_TOTAL_PER_QUERY:
+                            raise ValueError("시설 검색 결과가 표시 한도를 초과합니다")
+                        items = first
+                        for page in range(2, math.ceil(total / PAGE_SIZE) + 1):
+                            batch, page_total = parse_places(fetcher.get(SEARCH_URL, "json", params={**params, "page": page},
+                                                                         headers={"Referer": "https://www.minslab.kr/poc/home/"}), page)
+                            if page_total != total:
+                                raise ValueError("시설 검색 중 원천 건수 변경")
+                            items.extend(batch)
+                        found = [p for item in items if (p := normalize_place(item, kind, latitude, longitude, radius))]
+                        all_places.extend(found)
+                        if kind == "subway":
+                            rail_radius = radius
+                        if found or (kind == "subway" and any(r["distance_m"] <= radius for r in nearby_gtx_stations(latitude, longitude))):
+                            break
                 manifest = [entry["sha256"] for entry in fetcher.manifest]
             finally:
                 fetcher.close()
             all_places.sort(key=lambda row: (row["distance_m"], row["name"]))
-            unique = []
-            def canonical_name(name):
-                return re.sub(r"\s+", "", name).replace("초교", "초등학교").replace("중교", "중학교").replace("고교", "고등학교")
-            for place in all_places:
-                if any(other["kind"] == place["kind"]
-                       and canonical_name(other["name"]) == canonical_name(place["name"])
-                       and distance_metres(other["latitude"], other["longitude"],
-                                           place["latitude"], place["longitude"]) <= 150 for other in unique):
-                    continue
-                unique.append(place)
+            unique = deduplicate_places(all_places)
             counts = {kind: 0 for kind in DISPLAY_LIMITS}
             items = []
             for place in unique:
@@ -178,21 +211,27 @@ class InfrastructureContext:
                 counts[kind] += 1
                 items.append(place)
             gtx_items = nearby_gtx_stations(latitude, longitude)
-            items.extend(gtx_items)
+            items = merge_rail_stations(items, gtx_items)
             items.sort(key=lambda row: (row["distance_m"], row["name"]))
-            counts["gtx"] = len(gtx_items)
+            counts["subway"] = sum(row["kind"] == "subway" for row in items)
             planned_gtx = []
-            if point["district_key"] == "고양창릉":
+            if point.get("district_key") == "고양창릉":
                 planned_gtx.append({"line": "GTX-A", "name": "창릉역", "service_status": "PLANNED",
                                     "location_status": "UNLINKED", "source_url": GTX_A_PLANNED_URL})
-            result = {"status": "READY", "block_id": block_id, "search_radius_metres": RADIUS_METRES,
+            from .facility_plans import nearby_plans
+            planned_facilities, plan_coverage = nearby_plans(latitude, longitude, distance_metres, district_key=point.get("district_key"))
+            result = {"planned_facilities": planned_facilities, "plan_coverage_note": plan_coverage, "status": "READY", "block_id": block_id, "search_radius_metres": RADIUS_METRES,
                       "gtx_search_radius_metres": GTX_RADIUS_METRES,
+                      "subway_search_radius_metres": rail_radius,
                       "gtx_status_source_url": GTX_A_STATUS_URL,
                       "gtx_location_source_url": SOURCE_URL,
                       "planned_gtx": planned_gtx,
+                      "bus_note": "정류장 위치 정보 · 노선·배차·실시간 도착 정보 아님 · 미정차 표기 제외",
                       "distance_basis": "블록 라벨점부터의 직선거리 · 도보/차량 이동거리 아님",
                       "source_url": SOURCE_URL, "source_name": "VWorld 국가관심지점 장소 검색",
                       "collected_at": datetime.now(ZoneInfo("Asia/Seoul")).date().isoformat(),
                       "source_sha256": manifest, "counts": counts, "items": items}
-            self._cache[block_id] = (time.monotonic(), result)
+            result['origin']=anchor or dict(latitude=latitude,longitude=longitude,coordinate_basis='LH_PUBLIC_BLOCK_LABEL_POINT',label='LH 공개 블록 대표점',approximate=False,block_id=block_id)
+            if anchor:result['distance_basis']=anchor['label']+'부터의 참고 직선거리 · 도보/차량 이동거리 아님'
+            self._cache[cache_key] = (time.monotonic(), result)
             return result

@@ -6,12 +6,10 @@ const BlockMonitor=(()=>{
   const value=n=>n==null?'—':num(n)+'호';
   const forecastColors=['#0085a4','#7955c6','#bc397c'];
   function status(p){
-    if(p.late_count)return {code:'late',label:`지연 ${p.max_lag_months}개월`,color:'#cf402d'};
-    if(p.schedule_gap_count)return {code:'review',label:`지연 검토 +${p.max_gap_months}개월`,color:'#a46c0b'};
-    if(p.verification_count)return {code:'unknown',label:'이행 확인 필요',color:'#66758b'};
-    if(p.early_count)return {code:'early',label:`조기 ${p.max_lead_months}개월`,color:'#087f67'};
-    if(p.on_time_count)return {code:'normal',label:'정상 · 동월',color:'#1761bd'};
-    return {code:'unknown',label:'일정 비교 미확보',color:'#66758b'};
+    const check=PolicyStageFlow.assessGap(p.cumulative_goal_units,p.observed_units);
+    if(check.status==='DELAYED'||check.status==='WARNING')return {code:check.status==='DELAYED'?'late':'warning',label:check.label+' · 부족률 '+PolicyStageFlow.formatGapRate(check.rate),color:check.color};
+    if(check.status==='NORMAL')return {code:'normal',label:'목표 도달',color:check.color};
+    return {code:'unknown',label:'목표·측정 비교 미확보',color:'#66758b'};
   }
   function graph(row){
     const p=row.progress,projection=row.projection,capacity=row.target_units;
@@ -19,7 +17,7 @@ const BlockMonitor=(()=>{
     const left=31,barWidth=10,top=45,barHeight=barHeightFor(row),base=top+barHeight,svgHeight=heightFor(row);
     const y=n=>base-(known?Math.min(1,Math.max(0,n/capacity)):0)*barHeight;
     let previous=observed;
-    let segments=known&&observed!=null?`<rect class="block-current-fill" x="${left}" y="${y(observed)}" width="${barWidth}" height="${base-y(observed)}" fill="${['early','normal','late'].includes(s.code)?s.color:'#1665ee'}"/>`:'';
+    let segments=known&&observed!=null?`<rect class="block-current-fill" x="${left}" y="${y(observed)}" width="${barWidth}" height="${base-y(observed)}" fill="${['early','normal','late','warning'].includes(s.code)?s.color:'#1665ee'}"/>`:'';
     projection.future.slice(0,3).forEach((f,i)=>{
       if(!known||previous==null||f.cumulative_units==null)return;
       const height=Math.max(0,y(previous)-y(f.cumulative_units));
@@ -39,9 +37,9 @@ const BlockMonitor=(()=>{
     const district=row.district_name.replace(/(?:공공주택지구|택지개발지구)$/,'');
     const name=district.length>10?district.slice(0,9)+'…':district;
     const shortStatus={early:'조기',normal:'정상',late:'지연',review:'검토',unknown:''}[s.code];
-    const statusKnown=['early','normal','late'].includes(s.code);
+    const statusKnown=['early','normal','late','warning'].includes(s.code);
     const facts=[capacity!=null?'총 공급계획 '+value(capacity):'',goal!=null?'누적 목표 '+value(goal):'',observed!=null?'현재 확인 '+value(observed):'',statusKnown?s.label:''].filter(Boolean);
-    return `<svg viewBox="0 0 ${width} ${svgHeight}" role="img" data-capacity-scale="1000" aria-label="${esc(row.name)}: ${esc(facts.join(', '))}" class="block-glyph block-vertical-glyph" data-block-id="${esc(row.id)}" data-status="${statusKnown?s.code:'unclassified'}"><text x="41" y="10" text-anchor="middle" class="block-district">${esc(name)}</text><text x="41" y="28" text-anchor="middle" class="block-code">${esc(row.block)}</text>${statusKnown?`<circle cx="6" cy="24" r="3" fill="${s.color}"/><text x="79" y="26" text-anchor="end" class="block-status-text" fill="${s.color}">${shortStatus}</text>`:''}${capacity!=null?`<text x="41" y="40" text-anchor="middle" class="block-total">총 ${value(capacity)}</text>`:''}${known?`<rect class="block-capacity-bar" x="${left}" y="${top}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="#d4dfe9" fill-opacity=".45" stroke="#7791a9"/>`:''}${segments}${known&&goal!=null?`<path class="block-goal-tick" data-goal="${goal}" d="M${left-4} ${y(goal)}h${barWidth+8}" stroke="#cb8c17" stroke-width="2"/><text x="5" y="${y(goal)+3}" class="block-goal-label">목표</text>`:''}${future}${observed!=null?`<text x="41" y="${base+14}" text-anchor="middle" class="block-observed">현재 ${value(observed)}</text>`:''}${goal!=null?`<text x="41" y="${base+27}" text-anchor="middle" class="block-goal">목표 ${value(goal)}</text>`:''}</svg>`;
+    return `<svg viewBox="0 0 ${width} ${svgHeight}" role="img" data-capacity-scale="1000" aria-label="${esc(row.name)}: ${esc(facts.join(', '))}" class="block-glyph block-vertical-glyph" data-block-id="${esc(row.id)}" data-status="${statusKnown?s.code:'unclassified'}"><text x="41" y="10" text-anchor="middle" class="block-district">${esc(name)}</text><text x="41" y="28" text-anchor="middle" class="block-code">${esc(row.block)}</text>${statusKnown?`<circle cx="6" cy="24" r="3" fill="${s.color}"/><text x="79" y="26" text-anchor="end" class="block-status-text" fill="${s.color}">${shortStatus}</text>`:''}${capacity!=null?`<text x="41" y="40" text-anchor="middle" class="block-total">총 ${value(capacity)}</text>`:'<text x="41" y="40" text-anchor="middle" class="block-total">목표 미확보</text>'}${known?`<rect class="block-capacity-bar" x="${left}" y="${top}" width="${barWidth}" height="${barHeight}" rx="1.5" fill="#d4dfe9" fill-opacity=".45" stroke="#7791a9"/>`:''}${segments}${known&&goal!=null?`<path class="block-goal-tick" data-goal="${goal}" d="M${left-4} ${y(goal)}h${barWidth+8}" stroke="#cb8c17" stroke-width="2"/><text x="5" y="${y(goal)+3}" class="block-goal-label">목표</text>`:''}${future}${observed!=null?`<text x="41" y="${base+14}" text-anchor="middle" class="block-observed">현재 ${value(observed)}</text>`:''}${goal!=null?`<text x="41" y="${base+27}" text-anchor="middle" class="block-goal">목표 ${value(goal)}</text>`:''}</svg>`;
   }
   const fact=(label,v,suffix='호')=>v==null?'':`<dt>${esc(label)}</dt><dd>${num(v)}${suffix}</dd>`;
   const knownMilestones=row=>(row.milestones||[]).filter(m=>m.actual_date||m.planned_month||['OBSERVED','REPORTED'].includes(m.status)||m.progress_pct!=null);
@@ -53,7 +51,7 @@ const BlockMonitor=(()=>{
     }).join('');
   }
   function tooltip(row,data){
-    const p=row.progress,s=status(p),statusKnown=['early','normal','late'].includes(s.code);
+    const p=row.progress,s=status(p),statusKnown=['early','normal','late','warning'].includes(s.code);
     return `<b>${esc(row.name)}${statusKnown?' · '+esc(s.label):''}</b><dl>${fact('총 공급계획',row.target_units)}${fact('현재 누적 목표',p.cumulative_goal_units)}${fact('올해 관리자 목표',p.annual_manual_goal_units)}${fact('현재 확인 '+(data.measure==='SUPPLY'?'모집공고':'실적'),p.observed_units)}${fact('확인 비율 · 하한',p.observed_pct,'%')}${row.projection.future.slice(0,3).map(f=>fact('+'+f.offset+'년 예상 누적',f.cumulative_units)+fact('+'+f.offset+'년까지 추가 예정',f.increment_units)+fact('+'+f.offset+'년 관리자 누적 목표',row.future?.[f.offset-1]?.manual_units)).join('')}${stages(row)}</dl><small>${esc(data.measure_label)} 기준 · 원천 연결 검토<br>${esc(row.location_label||'지구 대표점 주변 그래프 · 실제 블록 위치 미확정')}</small>`;
   }
   function stageDetails(row){

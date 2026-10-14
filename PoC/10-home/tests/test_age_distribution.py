@@ -33,3 +33,14 @@ class AgeTests(unittest.TestCase):
             def rows(self,kind):return [dict(metric_group='kosis_age',region='인천광역시',municipality=None,year=2026,period='2026-09',population_total=0,age_bands={k:0 for k in ('0-14','15-34','35-64','65+')},evidence_url='https://kosis.kr/',definition='주민등록')]
         d=context(Service(),'인천광역시','구행정구역',2026);self.assertTrue(d['fallback']);self.assertTrue(all(r['percent'] is None for r in d['current']['bands']))
         self.assertIsNone(context(Service(),'인천광역시',None,2025)['current'])
+
+    def test_sex_age_population_conservation(self):
+        from backend.age_distribution import parse_sexes
+        rows=self.rows()
+        sexes=[dict(r,ITM_ID=sex) for r in rows for sex in ('T3','T4')]
+        totals=[dict(r,DT=str(int(r['DT'])*2)) for r in rows]
+        result=parse_sexes(totals+sexes,'202609')
+        v=result[('서울특별시',None)]
+        self.assertEqual(v['sex_age_classes']['male']['0']+v['sex_age_classes']['female']['0'],v['total'])
+        with self.assertRaises(ValueError):parse_sexes(totals+sexes[:-1],'202609')
+        with self.assertRaisesRegex(ValueError,'남녀'):parse_sexes(rows+sexes,'202609')

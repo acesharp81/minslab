@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {chromium}=require('/tmp/poc07-playwright/node_modules/playwright');
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:'/home/ubuntu/.cache/ms-playwright/chromium-1148/chrome-linux/chrome',args:['--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader']});try{
+const ctx=await browser.newContext({viewport:{width:1440,height:900}});await ctx.addCookies(JSON.parse(fs.readFileSync('/tmp/program-check-cookie.json','utf8')));
+const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+const list=await (await ctx.request.get('https://www.minslab.kr/poc/home/api/programs')).json();const program=list.items.find(p=>p.name==='학교용지 복합개발');assert.ok(program);assert.equal(program.active_project_count,0);
+const response=await ctx.request.get('https://www.minslab.kr/poc/home/api/program-information/'+program.id);assert.equal(response.status(),200);const model=await response.json();assert.equal(model.fields.target_units.value,3000);assert.equal(model.actual['전체'].value,null);
+await page.goto('https://www.minslab.kr/poc/home/#program-progress');await page.waitForSelector('[data-program-information]',{timeout:90000});await page.locator('#report-program-select').selectOption(program.id);await page.locator('[data-program-information]').click();await page.waitForSelector('#program-information-dialog .pi-stages',{timeout:90000});
+assert.equal(await page.locator('[data-pi-input="target_units"]').inputValue(),'3000');assert.equal(await page.locator('[data-pi-input="name"]').inputValue(),'학교용지 복합개발');assert.equal(await page.locator('[data-pi-program]:checked').count(),0);
+await page.locator('[data-pi-evidence="target_units"]').hover();assert.ok(Array.from(await page.locator('#pi-tooltip').innerText()).length<=200);
+await page.locator('[data-pi-evidence="target_units"]').click();assert.match(await page.locator('.pi-popup').innerText(),/3,?000|3000/);await page.locator('.pi-popup [data-close]').click();
+await page.screenshot({path:'/tmp/program-information-desktop.png'});
+await page.locator('[data-pi-input="name"]').fill('프로그램 편집 검증');await page.locator('[data-pi-input="annual:전체:2026"]').fill('500');
+await page.locator('[data-pi-scope="서울특별시"]').click();await page.locator('[data-pi-scope="전체"]').click();assert.equal(await page.locator('[data-pi-input="annual:전체:2026"]').inputValue(),'500');
+const project=model.programs[0];await page.locator('[data-pi-program="'+project.id+'"]').check();
+let saved=null;await page.route('**/api/admin/program-information/*',async route=>{saved=route.request().postDataJSON();await route.fulfill({status:200,contentType:'application/json',body:'{"revision_no":1}'});});
+await page.locator('#pi-actor').fill('브라우저 검증');await page.locator('#pi-reason').fill('저장 전송 검증 · 운영 쓰기 차단');await Promise.all([page.waitForResponse(r=>r.url().includes('/api/admin/program-information/')&&r.request().method()==='POST'),page.locator('[data-pi-save]').click()]);await page.waitForSelector('#program-information-dialog .pi-stages');
+assert.equal(saved.changes.name,'프로그램 편집 검증');assert.equal(saved.changes['annual:전체:2026'],500);assert.equal(saved.program_changes[project.id].selected,true);assert.equal(saved.mapping_revision_no,model.mapping_revision_no);
+await page.setViewportSize({width:1366,height:768});await page.screenshot({path:'/tmp/program-information-1366.png'});
+const layout=await page.evaluate(()=>{const b=document.querySelector('.pi-body');return {height:b.clientHeight,scroll:b.scrollHeight,overflow:document.documentElement.scrollWidth>innerWidth};});assert.equal(layout.overflow,false);
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/program-information-mobile.png'});assert.equal(await page.evaluate(()=>{const d=document.querySelector('#program-information-dialog'),r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&d.scrollWidth<=d.clientWidth+1;}),true);
+const guest=await browser.newContext();assert.equal((await guest.request.get('https://www.minslab.kr/poc/home/api/program-information/'+program.id)).status(),401);assert.equal((await guest.request.post('https://www.minslab.kr/poc/home/api/admin/program-information/'+program.id,{data:{}})).status(),401);
+assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,programs:list.items.length,emptyProgramTarget:3000,saveIntercepted:true,productionTestWrites:0,layout,errors}));
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});

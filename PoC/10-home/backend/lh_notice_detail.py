@@ -31,6 +31,24 @@ def candidates(projects,notices):
             if len(matches)==1:found.append((n,matches[0]))
     return found
 
+def supply_terms(scope):
+    result=[]
+    for table in scope.select('table'):
+        heads=[compact(th.get_text(' ',strip=True)) for th in table.select('thead th')]
+        if '전용면적(㎡)' not in heads or '평균분양가격(원)' not in heads:continue
+        for tr in table.select('tbody tr'):
+            cells=tr.find_all(['th','td'],recursive=False)
+            if len(cells)!=len(heads):continue
+            row=dict(zip(heads,[c.get_text(' ',strip=True) for c in cells]))
+            price=row['평균분양가격(원)'].replace(',','').strip()
+            if not price.isdigit():continue
+            number=lambda value:int(value.replace(',','')) if value and value.replace(',','').isdigit() else None
+            result.append(dict(housing_type=row.get('주택형'),area=row['전용면적(㎡)'],
+                               units=number(row.get('세대수')),offered_units=number(row.get('금회공급세대수')),
+                               average_price_won=int(price),price_basis='주택형별 평균분양가격(원) · 층·동·옵션별 실제 계약가격과 다름'))
+    return result
+
+
 def parse_detail(body,notice,key):
     soup=BeautifulSoup(body,'html.parser');name=notice['name']
     text=soup.get_text(' ',strip=True)
@@ -118,7 +136,7 @@ def parse_detail(body,notice,key):
         facts=[dict(f,scope_partial=True,scope_units=offered,
                     scope_label=f"금회 공급 {offered:,}호 / 전체 {units:,}호",
                     basis=f['basis']+' · 금회 공급 부분 범위; 전체 단지 일정 별도 확인') for f in facts]
-    return dict(scope_breakdown=breakdown,complex_scope_breakdown=mixed_breakdown,complex_total_units=mixed_total,name=(key[1]+' '+key[2]+' · '+notice.get('notice_type','')+' 모집공고' if multi else name),notice_title=name,multi_complex=multi,notice_round=round_kind,sample_kind='document_evidence',region=key[0],district=key[1],block=key[2],
+    return dict(supply_terms=supply_terms(scope),scope_breakdown=breakdown,complex_scope_breakdown=mixed_breakdown,complex_total_units=mixed_total,name=(key[1]+' '+key[2]+' · '+notice.get('notice_type','')+' 모집공고' if multi else name),notice_title=name,multi_complex=multi,notice_round=round_kind,sample_kind='document_evidence',region=key[0],district=key[1],block=key[2],
         tenure=notice.get('notice_type'),planned_units=units,offered_units=offered,address=address,
         unit_basis='공급정보 총세대수 · 혼합단지 여부와 금회 공급호수를 별도 확인; 별도 합산 금지',
         move_in_month=stamp,move_in_raw=raw,source_date=notice.get('source_date'),announcement_date=announced,

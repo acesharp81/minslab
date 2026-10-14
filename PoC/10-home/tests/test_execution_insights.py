@@ -28,15 +28,15 @@ class InsightsTests(OperationsTests):
     def test_approved_baseline_delay_plan_and_actual(self):
         v=self.schedule();v['due_date']='2026-08-31';a=save(self.s,'schedule','new:SUPPLY',0,v)
         sources=[dict(kind='ACTUAL',date='2026-09-05',units=1000)]
-        r=build(self.s,self.matrix(sources),date(2026,10,13))['items'][0]
+        r=build(self.s,self.matrix(sources),date.today())['items'][0]
         self.assertEqual(r['status'],'DELAYED');self.assertEqual(r['delay_days'],5)
         save(self.s,'schedule','new:SUPPLY',a['revision_no'],dict(v,due_date='2026-11-01',change_reason='기반시설 일정 변경'))
-        r=build(self.s,self.matrix(),date(2026,10,13))['items'][0];self.assertEqual(r['status'],'PLAN_DELAY')
+        r=build(self.s,self.matrix(),date.today())['items'][0];self.assertEqual(r['status'],'PLAN_DELAY')
     def test_agency_validation_history_and_missing_actual(self):
         v=dict(project_id='new',stage='SUPPLY',units=700,due_date='2026-09-30',responsible_org='LH',cooperating_orgs=['고양시'],approving_org='국토부',status='CONFIRMED',basis='기관 배정표',evidence_url='https://www.lh.or.kr/plan',change_reason='')
         with self.assertRaisesRegex(ValueError,'HTTPS'):save(self.s,'agency','new:SUPPLY',0,dict(v,evidence_url=None))
         a=save(self.s,'agency','new:SUPPLY',0,v)
-        d=build(self.s,self.matrix(),date(2026,10,13));self.assertIsNone(d['assignments'][0]['gap_units'])
+        d=build(self.s,self.matrix(),date.today());self.assertIsNone(d['assignments'][0]['gap_units'])
         with self.assertRaisesRegex(ValueError,'변경 사유'):save(self.s,'agency','new:SUPPLY',a['revision_no'],dict(v,units=800))
         b=save(self.s,'agency','new:SUPPLY',a['revision_no'],dict(v,units=800,change_reason='배정 변경 승인'))
         self.assertEqual(b['baseline']['units'],700);self.assertEqual(len(history(self.s,'agency','new:SUPPLY')),2)
