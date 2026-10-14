@@ -18,3 +18,5 @@ body.policy-summary-view:has(.prm-cards) #policy-geo-map{display:block;height:au
 @media(max-width:760px){body.policy-summary-view:has(.prm-cards) #policy-geo-map{padding:12px}.prm-cards{grid-template-columns:1fr}.prm-scene{height:360px}.prm-stats{grid-template-columns:repeat(3,1fr)}.prm-stats>div:last-child{display:block}.d907-overview{grid-template-columns:1fr;gap:13px}.d907-overview-stats b{font-size:17px}.prm-heading h3{font-size:16px}.prm-stage-group{flex-wrap:wrap}.prm-stage-group button{flex:1;padding:8px}.d907-stage-totals{grid-template-columns:repeat(3,1fr)}.d907-chart-wrap{overflow:auto}.d907-chart{min-width:740px}.d907-chart-tooltip{width:190px}.prm-view-tabs button{padding:8px 17px}}
 
 .d907-metric-controls{align-items:center}.d907-metric-controls>strong{font-size:11px;margin-right:7px;color:#547791}
+
+.prm-label .prm-delay-marker{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;margin-right:3px;border:2px solid white;border-radius:50%;background:#b51f38;color:white;font-size:14px;font-weight:900;line-height:1;text-shadow:none;box-shadow:0 1px 4px #74203755;vertical-align:middle}.prm-delay-key{color:#b51f38}

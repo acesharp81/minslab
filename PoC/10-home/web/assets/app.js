@@ -81,7 +81,6 @@ function table(rows, small = false) {
 function renderOverview(overview, rows, roadmap) {
   const cards = [['수집 사업 후보',overview.project_count,'건','같은 사업이 원천별로 존재할 수 있음','▤'],['향후 목표 확보',roadmap.future_target_count,'건',`향후 ${roadmap.horizon}년 · 원천 예정과 관리자 목표`,'⑂'],['확대 API 데이터',overview.api_sample_count,'건','청약·인허가·주소 조회 · 정책 연결 검토 전','⌖'],['일정 미확보',roadmap.no_schedule_count,'건','사업별 연도 목표 확인 필요','◎']];
   $('metrics').innerHTML = cards.map(([title, value, unit, note, icon]) => `<article class="metric"><div class="metric-label">${title}<span class="metric-icon">${icon}</span></div><div class="metric-value">${num(value)}<small>${unit}</small></div><div class="metric-note">${note}</div></article>`).join('');
-  $('nav-count').textContent = num(overview.project_count);
   $('policy-cards').innerHTML = state.policies.length ? state.policies.map(p => `<div class="policy-row"><div class="policy-date">${esc(p.announced_at.slice(0,4))}<strong>${esc(p.announced_at.slice(5).replace('-','.'))}</strong></div><div class="policy-info"><h3><a href="${esc(safeUrl(p.evidence_url))}" target="_blank" rel="noopener noreferrer">${esc(p.name)} ↗</a></h3><p>${esc(p.metric)}</p><span class="policy-target">${num(p.target_units)}호 <small>${esc(p.target_scope)} · 서울·경기 배정량과 구분</small></span></div><span class="badge review">유효상태 검토</span></div>`).join('') : empty('정책 원문을 수집 중입니다.');
   const maximum = Math.max(1, ...Object.values(overview.regions));
   $('region-summary').innerHTML = `<div class="region-block">${['서울특별시','경기도'].map(region => `<div class="region-line"><div><span>${region}</span><strong>${num(overview.regions[region] || 0)} <small>건</small></strong></div><progress value="${overview.regions[region] || 0}" max="${maximum}" aria-label="${region} 사업 후보 수"></progress></div>`).join('')}</div>`;
@@ -101,6 +100,7 @@ function renderSources(sources) {
     element.dataset.loaded='true';
   });
   sources.forEach((source,index)=>{if(source.collection_mode==='HISTORY')document.querySelectorAll('.source-card')[index].querySelector('p').textContent=source.org+' · 정책 기원부터 과거 원천 누적 수집';});
+  SourcePreview.attach($('sources-list'),sources);
   const running = sources.some(s => s.status === 'RUNNING');
   $('refresh').disabled = running;
   $('refresh').textContent = running ? '수집 중…' : '지금 수집 ↻';
@@ -228,7 +228,6 @@ async function load() {
       const dashboard=await request('/map/dashboard?'+qs+'&'+HousingMap.query()+'&compact=true');
       if(version!==state.generation)return;
       state.workspaceOnly=true;$('content').hidden=false;
-      $('nav-count').textContent=num(dashboard.items.length);
       HousingMap.render({districts:dashboard.districts},dashboard,dashboard);
       return;
     }
@@ -244,7 +243,6 @@ async function load() {
         request('/policy-monitor?'+reportQs),request('/mappings?'+reportQs)]);
       if(version!==state.generation)return;
       state.workspaceOnly=true;
-      $('nav-count').textContent=num(mappings.items.filter(r=>r.mapping?.policy_id==='POL_2025_0907'&&r.mapping?.status!=='RELEASED').length);
       PolicyReport.setData(monitor,mappings);PolicyDashboard.render(monitor);
       $('content').hidden=false;PolicyGeo3D.dataChanged();
       return;

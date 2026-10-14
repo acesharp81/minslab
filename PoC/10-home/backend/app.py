@@ -835,6 +835,14 @@ def create_app(engine=None, auto_collect=None):
     def sources(compact: bool = False):
         return {"items": service.sources(compact=compact)}
 
+    @app.get(PREFIX + "/api/sources/{source_id}/samples")
+    def source_samples(source_id: str):
+        from .source_preview import source_preview
+        try:
+            return source_preview(service, source_id)
+        except KeyError:
+            raise HTTPException(status_code=404, detail="등록되지 않은 수집 원천입니다.")
+
     @app.get(PREFIX + "/api/coverage")
     def coverage():
         return {"items": service.coverage_details(), "complete_population": False,

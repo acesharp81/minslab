@@ -31,3 +31,15 @@ s=statistics([warn,exact,absent],'2026-10-14');
 assert.equal(s.delays.at(-1).WARNING,19);assert.equal(s.delays.at(-1).DELAYED,20);
 assert.equal(s.agencies[0].WARNING,1000);assert.equal(s.agencies[0].DELAYED,1000);assert.equal(s.agencies[0].UNKNOWN,1000);
 assert.equal('VERIFY' in s.delays.at(-1),false);
+
+// Statistics and regional markers must use the same tracking points as the flow.
+const {delayAt,mapDelay}=require('../../web/assets/policy-decision.js');
+const comparisons={BUSINESS:{tracking:{target_points:[{date:'2026-02-01',units:1000}],actual_points:[{date:'2026-02-01',units:600}]}},SUPPLY:{tracking:{target_points:[{date:'2026-09-01',units:1000}],actual_points:[{date:'2026-08-01',units:1000},{date:'2026-09-01',units:990}]}}};
+assert.equal(delayAt(comparisons,'2026-10-14').DELAYED,400);
+assert.equal(delayAt(comparisons,'2026-10-14').WARNING,10);
+assert.equal(delayAt(comparisons,'2026-01-01').DELAYED,null);
+assert.equal(statistics([],'2026-10-14',2026,comparisons).delays.at(-1).WARNING,10);
+assert.equal(mapDelay(comparisons,'2026-10-14').delayed,true);
+assert.equal(mapDelay({SUPPLY:comparisons.SUPPLY},'2026-10-14').delayed,false);
+assert.equal(mapDelay({},'2026-10-14').delayed,false);
+assert.equal(mapDelay(comparisons,'2026-01-01').delayed,false);
