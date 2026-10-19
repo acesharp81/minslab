@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from .db.topic_structure_repository import TopicStructureRepository
+from .services.topic_structure import snapshot_evidence_items
+
 import hmac
 import json
 import re
@@ -1266,6 +1269,7 @@ def policy_ontology() -> dict[str, object]:
             live_repository = LiveRepository(connection)
             integration_repository = OfficialIntegrationRepository(connection)
             briefs = []
+            structured_report_count = 0
             official_report_count = 0
             for item in items:
                 context = live_repository.broadcast_official_context(
@@ -1280,10 +1284,20 @@ def policy_ontology() -> dict[str, object]:
                 brief, source = select_current_ontology_brief(
                     item, integration, document_id,
                 )
+                if source == "PROVISIONAL":
+                    structure = TopicStructureRepository(connection).ready_current(item)
+                    if structure:
+                        brief = structure
+                        structured_report_count += 1
+                    else:
+                        brief = attach_meeting_topic_groups(
+                            link_tasks_to_topics(brief), recover_live_topics=True,
+                        )
                 briefs.append(brief)
                 official_report_count += source == "OFFICIAL_INTEGRATED"
         result = build_meeting_topic_ontology(briefs)
         result["metrics"]["official_report_count"] = official_report_count
+        result["metrics"]["structured_report_count"] = structured_report_count
         result["metrics"]["provisional_report_count"] = (
             len(briefs) - official_report_count
         )
@@ -1655,6 +1669,8 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
         with connect(get_settings().database_url) as connection:
             repository = MeetingBriefRepository(connection)
             item = repository.latest(broadcast_id)
+            structure = TopicStructureRepository(connection).ready_current(item) if item else None
+            structure_progress = TopicStructureRepository(connection).progress(item) if item else None
             progress = repository.progress(broadcast_id)
             official_context = LiveRepository(connection).broadcast_official_context(
                 broadcast_id
@@ -1774,6 +1790,9 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             "generated_at": integration["generated_at"],
         }
     else:
+        public["brief"] = attach_meeting_topic_groups(
+            link_tasks_to_topics(public["brief"]), recover_live_topics=True,
+        )
         if is_legislature:
             public["brief"] = present_brief_speaker_references(
                 overlay_confirmed_brief_speakers(
@@ -1808,13 +1827,24 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             "report": {},
         }
     public["official_context"] = official_context
+    public["structure_progress"] = structure_progress
+    if structure:
+        public["structured_brief"] = structure
+        from .services.live_topic_resolution import build_live_topic_resolution
+        public["live_topic_resolution"] = build_live_topic_resolution(
+            public["brief"], structure, public.get("brief_id"),
+        )
+        if public.get("default_brief_view") != "OFFICIAL":
+            public["provisional_brief"] = public["brief"]
+            public["brief"] = structure
+            public["default_brief_view"] = "STRUCTURED"
     return public
 
 
 def _meeting_brief_markdown(record: dict[str, object]) -> str:
-    brief = attach_meeting_topic_groups(
-        link_tasks_to_topics(dict(record.get("brief") or {}))
-    )
+    brief = dict(record.get("brief") or {})
+    if not brief.get("topic_structure"):
+        brief = attach_meeting_topic_groups(link_tasks_to_topics(brief))
     integration = dict(record.get("official_integration") or {})
     lines = [
         f"# {brief.get('headline') or '회의 결과'}",
@@ -1865,6 +1895,8 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
                     "",
                 )
             )
+            if topic.get("coverage_origin") == "LIVE_TOPIC_SUPPLEMENT":
+                lines.extend(("> 실시간 근거로 복원한 보완 쟁점 · 잠정 · 공식 원문 대조 필요", ""))
             for point in topic.get("speaker_points") or []:
                 lines.append(
                     f"- {point.get('speaker_label') or '화자 확인 중'}: "
@@ -1873,6 +1905,18 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
             if topic.get("speaker_points"):
                 lines.append("")
     lineage = brief.get("live_topic_lineage") or {}
+    resolution = record.get("live_topic_resolution") or {}
+    if resolution and not brief.get("topic_structure"):
+        lines.extend((
+            "## 실시간 논의 재구조화 연결 · AI 잠정", "",
+            f"- 전체 {resolution['cluster_count']}묶음 · 쟁점 연결 {resolution['linked_count']} · "
+            f"절차 {resolution['procedural_count']} · 추가 확인 {resolution['review_count']}",
+            f"- 기존 요약의 연결 확인 {resolution['legacy_pending_count']}묶음 중 "
+            f"구조화 연결 {resolution['legacy_pending_linked_count']} · "
+            f"절차 {resolution['legacy_pending_procedural_count']} · "
+            f"추가 확인 {resolution['legacy_pending_review_count']}",
+            "- 저장된 LIVE 원문 기반 잠정 연결이며 공식 요약·공식 근거의 연결 상태는 아래에 보존합니다.", "",
+        ))
     if lineage.get("cluster_count"):
         lines.extend(
             (
@@ -1903,23 +1947,25 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
     ]
     if not tasks:
         lines.append("- 확인된 미해결 과제가 없습니다.")
-    document_group = next((
-        group for group in brief.get("follow_up_task_groups") or []
-        if group.get("kind") == "DOCUMENT_SUBMISSION"
-    ), None)
-    grouped_task_ids = set(document_group.get("task_ids") or []) if document_group else set()
-    if document_group:
-        lines.append(f"- 자료 제출 요구 ({len(grouped_task_ids)}건)")
-        for task in tasks:
-            if str(task.get("id")) not in grouped_task_ids:
-                continue
-            ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
-            lines.append(f"  - {task.get('title') or '제출 대상 확인 필요'} ({ministries})")
-    for task in tasks:
-        if str(task.get("id")) in grouped_task_ids:
+    displayed_tasks = set()
+    for group in brief.get("topic_groups") or []:
+        topic_ids = set(group.get("topic_ids") or [])
+        matched = [t for t in tasks if t.get("topic_id") in topic_ids
+                   or topic_ids.intersection(t.get("related_topic_ids") or [])]
+        if not matched:
             continue
-        ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
-        lines.append(f"- {task.get('title') or '과제'} ({ministries})")
+        lines.extend((f"### {group.get('title') or '대상 주제'}", ""))
+        for task in matched:
+            displayed_tasks.add(str(task.get("id")))
+            ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
+            lines.append(f"- {task.get('title') or '과제'} ({ministries})")
+        lines.append("")
+    remaining_tasks = [t for t in tasks if str(t.get("id")) not in displayed_tasks]
+    if remaining_tasks:
+        lines.extend(("### 주제 연결 확인 필요", ""))
+        for task in remaining_tasks:
+            ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
+            lines.append(f"- {task.get('title') or '과제'} ({ministries})")
     lines.extend(("", "## 공식자료 반영", ""))
     if integration.get("status") == "READY":
         lines.append(
@@ -1939,8 +1985,13 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
 
 
 @app.get("/api/live/broadcasts/{broadcast_id}/brief.md", tags=["live"])
-def ended_live_broadcast_brief_markdown(broadcast_id: UUID) -> Response:
+def ended_live_broadcast_brief_markdown(broadcast_id: UUID, view: str | None = None) -> Response:
     record = ended_live_broadcast_brief(broadcast_id)
+    if view == "structured" and record.get("structured_brief"):
+        record["brief"] = record["structured_brief"]
+        record["authority_status"] = "PROVISIONAL"
+    elif view == "provisional" and record.get("provisional_brief"):
+        record["brief"] = record["provisional_brief"]
     return Response(
         content=_meeting_brief_markdown(record),
         media_type="text/markdown; charset=utf-8",
@@ -2063,7 +2114,7 @@ def ended_live_broadcast_brief_evidence(
     entity_id: str,
 ) -> dict[str, object]:
     if entity_type not in {
-        "topic", "topic_group", "task", "speaker", "live_topic_cluster",
+        "topic", "topic_group", "task", "speaker", "live_topic_cluster", "structure_review",
     }:
         raise HTTPException(status_code=422, detail="unsupported evidence entity type")
     if not entity_id or len(entity_id) > 80:
@@ -2090,14 +2141,22 @@ def ended_live_broadcast_brief_evidence(
                 if integration and integration.get("status") == "READY"
                 else brief.get("brief") or {}
             )
+            is_structured = entity_id.startswith("structured-")
+            if is_structured:
+                evidence_brief = TopicStructureRepository(connection).ready_current(brief)
+                if not evidence_brief:
+                    raise HTTPException(status_code=404, detail="현재 구조화 버전이 없습니다.")
+                integration = None
             if integration and integration.get("status") == "READY":
                 evidence_brief = attach_official_evidence_from_changes(
                     evidence_brief,
                     integration.get("changes") or [],
                 )
-            evidence_brief = attach_meeting_topic_groups(
-                link_tasks_to_topics(evidence_brief)
-            )
+            if not is_structured:
+                evidence_brief = attach_meeting_topic_groups(
+                    link_tasks_to_topics(evidence_brief),
+                    recover_live_topics=not (integration and integration.get("status") == "READY"),
+                )
             if integration and integration.get("status") == "READY":
                 point_source_ids = list(dict.fromkeys(
                     str(value)
@@ -2147,7 +2206,12 @@ def ended_live_broadcast_brief_evidence(
                     status_code=404, detail="연결된 근거 발언이 없습니다."
                 )
             live_utterances = []
-            if evidence_ids:
+            if is_structured:
+                source_snapshot = TopicStructureRepository(connection).snapshot(
+                    evidence_brief['topic_structure']['revision_id'],
+                )
+                live_utterances = snapshot_evidence_items(source_snapshot, evidence_ids)
+            elif evidence_ids:
                 snapshot = live_repository.ended_transcript_snapshot(broadcast_id)
                 revision_ids = [
                     segment["revision_id"] for segment in snapshot["segments"]
@@ -2211,6 +2275,7 @@ def ended_live_broadcast_brief_evidence(
             # newly-added official topic.
             if (
                 entity_type in {"topic", "topic_group", "task"}
+                and not is_structured
                 and current_official_rows
                 and not current_official_ids
             ):
@@ -2249,12 +2314,17 @@ def ended_live_broadcast_brief_evidence(
                         document.get("authority_status") or "PROVISIONAL"
                     ),
                 )
-                if current_official_rows
+                if current_official_rows and not is_structured
                 else []
             )
             utterances = (
                 official_presentations or live_utterances or official_utterances
             )
+            direct_task_spans = []
+            if is_structured and entity_type == "task":
+                from .services.task_source_links import verified_task_spans
+                task = next((t for t in evidence_brief.get("tasks", []) if t["id"] == entity_id), {})
+                direct_task_spans = verified_task_spans(task, utterances)
     except HTTPException:
         raise
     except Exception as exc:
@@ -2266,6 +2336,7 @@ def ended_live_broadcast_brief_evidence(
         "entity_type": entity_type,
         "entity_id": entity_id,
         "items": utterances,
+        "direct_task_spans": direct_task_spans,
         "count": len(utterances),
         "authority_status": (
             str(document.get("authority_status"))
@@ -2273,7 +2344,7 @@ def ended_live_broadcast_brief_evidence(
             else "PROVISIONAL"
         ),
         "source": (
-            "OFFICIAL_TRANSCRIPT_PRESENTATION"
+            "LIVE_STRUCTURE_SNAPSHOT" if is_structured else "OFFICIAL_TRANSCRIPT_PRESENTATION"
             if official_presentations
             else "LIVE_CAPTION_TURN"
             if live_utterances

@@ -446,6 +446,8 @@ class MeetingBriefRepository:
                 if cluster.get("id") == entity_id:
                     return [str(value) for value in cluster.get("utterance_ids", [])]
             return []
+        elif entity_type == "structure_review":
+            entities = payload.get("structure_review_items", [])
         elif entity_type == "speaker":
             entities = [
                 point

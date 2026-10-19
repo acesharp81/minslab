@@ -1,0 +1,10 @@
+[Unit]
+Description=PoC7 runtime restart policy and endpoint checks
+After=docker.service nginx.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/ubuntu/apps/myservice/PoC/07-NationalAssembly/scripts/check_runtime.py --scope all --repair-restart-policy
+TimeoutStartSec=90
+Nice=10
+NoNewPrivileges=true

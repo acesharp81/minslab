@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import time
+from collections import Counter
 from collections.abc import Callable, Iterable
 from copy import deepcopy
 from dataclasses import dataclass
@@ -856,7 +857,7 @@ def promote_unassigned_live_topics(
         )[:360].strip()
         topics.append(
             {
-                "id": f"topic-{len(topics) + 1}",
+                "id": f"live-promoted-{cluster_id}",
                 "title": title,
                 "summary": evidence_summary or (
                     f"회의에서는 '{title}' 관련 쟁점과 대응 필요성을 논의했다."
@@ -926,11 +927,10 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
     # An old stored report can contain duplicate topic IDs. Keep the ID used
     # by a matching LIVE lineage reference and give the other topic a new ID.
     # The stored report stays untouched; task links are recomputed below.
+    id_counts = Counter(str(topic.get("id")) for topic in topics)
     duplicate_ids = {
-        str(topic.get("id")) for topic in topics
-        if topic.get("id") and sum(
-            str(other.get("id")) == str(topic.get("id")) for other in topics
-        ) > 1
+        str(topic["id"]) for topic in topics
+        if topic.get("id") and id_counts[str(topic["id"])] > 1
     }
     lineage = result.get("live_topic_lineage") or {}
     clusters = lineage.get("clusters") or [] if isinstance(lineage, dict) else []
@@ -943,31 +943,68 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
             if isinstance(cluster, dict)
             and duplicate_id in [str(value) for value in cluster.get("final_topic_ids") or []]
         ]
-        keeper = copies[0]
-        if references:
-            winners: list[dict[str, Any]] = []
-            for ref in references:
-                scores = [
-                    len(_topic_tokens(topic.get("title")) & _topic_tokens(ref.get("title")))
-                    for topic in copies
-                ]
-                best = max(scores)
-                if best < 2 or scores.count(best) != 1:
-                    break
+        winners: list[dict[str, Any] | None] = []
+        for ref in references:
+            evidence = {str(value) for value in ref.get("utterance_ids") or []}
+            scores = [
+                (
+                    len(evidence & {str(value) for value in topic.get("evidence_ids") or []}),
+                    len(_topic_tokens(topic.get("title")) & _topic_tokens(ref.get("title"))),
+                )
+                for topic in copies
+            ]
+            best = max(scores)
+            if not (best[0] > 0 or best[1] >= 2) or scores.count(best) != 1:
+                winners.append(None)
+            else:
                 winners.append(copies[scores.index(best)])
-            if len(winners) != len(references) or any(
-                winner is not winners[0] for winner in winners
-            ):
-                continue
-            keeper = winners[0]
+        keeper = next((winner for winner in winners if winner is not None), copies[0])
         for topic in copies:
             if topic is keeper:
                 continue
             while f"topic-{next_id}" in used_ids:
                 next_id += 1
+            topic["source_topic_id"] = duplicate_id
             topic["id"] = f"topic-{next_id}"
             used_ids.add(topic["id"])
             next_id += 1
+        for ref, winner in zip(references, winners, strict=True):
+            if winner is None:
+                ref["source_final_topic_ids"] = list(ref.get("final_topic_ids") or [])
+                ref["source_mapping_status"] = ref.get("mapping_status")
+                ref["final_topic_ids"] = []
+                ref["mapping_status"] = "MULTIPLE_FINAL_TOPICS"
+                ref["match_score"] = 0.0
+                continue
+            ref["final_topic_ids"] = [
+                str(winner["id"]) if str(value) == duplicate_id else value
+                for value in ref.get("final_topic_ids") or []
+            ]
+        for topic in copies:
+            topic["live_topic_cluster_ids"] = [
+                str(ref["id"]) for ref, winner in zip(references, winners, strict=True)
+                if winner is topic and ref.get("id")
+            ]
+    if duplicate_ids and clusters:
+        unmapped = sum(c.get("mapping_status") == "UNMAPPED" for c in clusters)
+        ambiguous = sum(c.get("mapping_status") in {
+            "MULTIPLE_FINAL_TOPICS", "AMBIGUOUS", "LEXICAL_CANDIDATE",
+        } for c in clusters)
+        lineage.update(
+            mapped_cluster_count=len(clusters) - unmapped - ambiguous,
+            unmapped_cluster_count=unmapped,
+            ambiguous_cluster_count=ambiguous,
+            coverage_status="COMPLETE" if not unmapped and not ambiguous else "PARTIAL",
+        )
+    # Topic features are invariant across tasks. Compare the cheap, higher
+    # priority score first; sequence similarity only breaks ties in that score.
+    topic_features = []
+    for index, topic in enumerate(topics):
+        title = _clean_text(topic.get("title"), 100)
+        topic_features.append((
+            index, topic, {str(value) for value in topic.get("evidence_ids", [])},
+            _topic_tokens(title), " ".join(title.casefold().split()),
+        ))
     for task in result.get("tasks", []):
         if not isinstance(task, dict):
             continue
@@ -976,30 +1013,28 @@ def link_tasks_to_topics(brief: dict[str, Any]) -> dict[str, Any]:
         raw_title = _clean_text(task.get("topic_title"), 100)
         raw_tokens = _topic_tokens(raw_title)
         normalized_raw = " ".join(raw_title.casefold().split())
-        candidates: list[tuple[tuple[float, ...], dict[str, Any]]] = []
-        for index, topic in enumerate(topics):
-            topic_title = _clean_text(topic.get("title"), 100)
-            topic_evidence = {str(value) for value in topic.get("evidence_ids", [])}
+        candidates: list[tuple[tuple[float, ...], int, dict[str, Any], str]] = []
+        for index, topic, topic_evidence, topic_tokens, normalized_topic in topic_features:
             shared_evidence = len(task_evidence & topic_evidence)
-            topic_tokens = _topic_tokens(topic_title)
             shared_terms = len(raw_tokens & topic_tokens)
-            normalized_topic = " ".join(topic_title.casefold().split())
             exact_title = float(
                 bool(normalized_raw and normalized_raw == normalized_topic)
             )
-            title_ratio = SequenceMatcher(
-                None, normalized_raw, normalized_topic
-            ).ratio()
             score = (
                 float(shared_evidence > 0),
                 float(shared_evidence),
                 exact_title,
                 float(shared_terms),
-                title_ratio,
-                float(-index),
             )
-            candidates.append((score, topic))
-        _, canonical = max(candidates, key=lambda item: item[0])
+            candidates.append((score, index, topic, normalized_topic))
+        best_prefix = max(candidate[0] for candidate in candidates)
+        _, _, canonical, _ = max(
+            (candidate for candidate in candidates if candidate[0] == best_prefix),
+            key=lambda candidate: (
+                SequenceMatcher(None, normalized_raw, candidate[3]).ratio(),
+                -candidate[1],
+            ),
+        )
         task["topic_id"] = canonical.get("id")
         task["topic_title"] = canonical.get("title")
     return result
@@ -1248,7 +1283,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 if request_model == OPENROUTER_STRUCTURED_RETRY_MODEL
                 else (
                     OPENROUTER_FINAL_MAX_TOKENS
-                    if schema_name == "meeting_brief"
+                    if schema_name in {"meeting_brief", "discussion_structure_consolidation"}
                     else 12000
                 )
             ),
@@ -1714,7 +1749,7 @@ class NvidiaMeetingBriefClient(OpenRouterMeetingBriefClient):
             "stream": False,
             "temperature": 1.0,
             "top_p": 0.95,
-            "max_tokens": 20_000 if schema_name == "meeting_brief" else 12_000,
+            "max_tokens": 20_000 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else 12_000,
             "reasoning_effort": "none",
             "response_format": {
                 "type": "json_schema",
@@ -1729,7 +1764,7 @@ class NvidiaMeetingBriefClient(OpenRouterMeetingBriefClient):
                 "Accept": "application/json",
             },
             json=body,
-            timeout=300.0 if schema_name == "meeting_brief" else self.timeout_seconds,
+            timeout=300.0 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else self.timeout_seconds,
         )
         if response.status_code >= 400:
             raise requests.HTTPError(
@@ -1777,7 +1812,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         self, prompt: str, schema: dict[str, Any], schema_name: str,
         model_override: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        max_output_tokens = 20_000 if schema_name == "meeting_brief" else 8_000
+        max_output_tokens = 20_000 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else 8_000
         body = {
             "model": model_override or self.model,
             "messages": [
@@ -1842,7 +1877,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                     "Accept": "application/json",
                 },
                 json=body,
-                timeout=(300.0 if schema_name == "meeting_brief" else self.timeout_seconds),
+                timeout=(300.0 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else self.timeout_seconds),
             )
             if response.status_code >= 400:
                 raise requests.HTTPError(

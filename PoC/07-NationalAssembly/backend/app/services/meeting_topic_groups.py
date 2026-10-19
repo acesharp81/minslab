@@ -3,15 +3,19 @@ from __future__ import annotations
 import hashlib
 import re
 from copy import deepcopy
+from functools import lru_cache
 from math import ceil
 from typing import Any
 
 from .official_brief_integration import semantic_tokens
 from .meeting_task_groups import group_document_submission_tasks
 from .meeting_brief import link_tasks_to_topics
+from .live_topic_recovery import recover_live_topic_coverage
+from .ontology_context import CONTEXT_ALIASES, CONTEXT_CONCEPTS, match_topic_context
+from .ontology_semantic import semantic_match, METHOD as SEMANTIC_METHOD
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.11"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.15"
 GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT"
 
 
@@ -38,6 +42,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "특별사법경찰", "특사경", "제주청장", "경찰청장사망사건",
             "경무관경찰서", "경찰내부감독", "치안혼란",
             "경찰의내부감독", "전기충격기", "테이저건",
+            "치안상황실", "미신고집회",
         ),
     ),
     (
@@ -56,6 +61,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "경제법의형사처벌", "수사에서의인권보장", "수사인권보장",
             "수사준칙", "불송치", "별건수사", "먼지털이수사",
             "정치인수사",
+            "형사처벌적절성", "처벌규정의불합리성", "내란죄", "내란진상규명", "내란잔재청산", "내란전담수사본부", "국회봉쇄",
         ),
     ),
     (
@@ -69,10 +75,10 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "형사사법체계", "공소청출범", "검찰청건물", "서부지검",
             "공수처", "고위공직자범죄수사처", "공소장", "기소유예",
             "형사소송법", "통신영장", "재판배당", "피해자권리",
-            "군형사소송법", "보안수사권", "보완수사권",
+            "보안수사권", "보완수사권",
             "파면검사", "피선거권박탈", "전관예우",
             "특별검사", "특검법", "재정신청", "군사법정보시스템",
-            "군사법원법",
+
             "사법제도", "검사정원",
             "사법부독립", "대통령재판중단", "소액사건", "판결이유기재",
             "헤이그협약", "아동인도집행", "가사소송법",
@@ -85,6 +91,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "교정시설", "과밀수용", "수감자영치금", "마약수감자",
             "교정프로그램", "교도소무기탄약",
+            "국군교도소",
         ),
     ),
     (
@@ -97,6 +104,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "과충성행위", "내부자료유출",
             "감사원", "강압적감사", "특수활동비", "자체감사",
             "감사위원특수비", "특검특활비", "수사비위",
+            "업무추진비", "식사비지출", "허위출장계획서", "주민감사청구", "예산유용", "군내횡령", "검사직무정지", "검찰총장징계", "검사장성명", "검사장집단성명",
         ),
     ),
     (
@@ -137,6 +145,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "수사기관수장", "직무대행체제", "기관장임명지연",
             "후보자의적격성",
             "국무총리재청", "재청권",
+            "비서실장임명", "보은인사",
         ),
     ),
     (
@@ -282,6 +291,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "환경오염", "환경변화", "훼손지역", "훼손부지", "주민보상",
             "환경간접세", "자원순환",
             "해양쓰레기", "도서지역쓰레기", "생물관리", "야생생물",
+            "생활폐기물",
         ),
     ),
     (
@@ -307,6 +317,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "공시가격", "공정시장가액비율", "실거주판정", "민간임대",
             "지식산업센터", "3기신도시", "신도시건설",
             "주거난", "지분적립형주택", "서울시주택공", "LH구조개편", "전월세시장",
+            "재건축인허가", "재개발권한이양",
         ),
     ),
     (
@@ -381,6 +392,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "기금재정건전성", "정책펀드", "지방재정교부금",
             "농어촌구조개선특별회계", "보조사업제로베이스",
             "실질채무", "소방재원",
+            "국비매칭", "예타문제",
         ),
     ),
     (
@@ -441,6 +453,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "상주감리", "소방현장인력",
             "승강기안전", "승강기검사", "재해구호협회", "구호물품전달",
             "관계성범죄", "재범예방",
+            "기후보험",
         ),
     ),
     (
@@ -454,6 +467,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "응급의료", "응급실", "응급환자", "응급의료이송체계",
             "지역별이송체계", "자살예방", "정신건강", "검역법",
             "결핵예방법", "예방접종",
+            "보조생식술",
         ),
     ),
     (
@@ -483,6 +497,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "성폭력범죄", "성폭력처벌법", "성폭력피해자", "미성년성폭력",
             "아동청소년성보호법", "아동청소년의성보호", "성범죄피해",
             "영상녹화증거능력", "검사면담증거능력",
+            "성폭력피해신고", "이예람중사",
         ),
     ),
     (
@@ -527,6 +542,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "BRT", "청주공항", "무안공항", "광주공항", "국도79호선",
             "지천다리", "도선법", "교통카드",
             "출퇴근시간분산", "출근시간분산", "장거리운임차액",
+            "한강버스",
         ),
     ),
     (
@@ -609,6 +625,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "개인정보", "개인정보유출", "통신품질", "해외로밍", "이심",
             "2심사용", "위치정보", "GPS자료", "통신자료", "정보보호",
             "망분리",
+            "따릉이유출", "디지털기록삭제",
         ),
     ),
     (
@@ -629,7 +646,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "북핵 위협·억제 대응",
         (
             "북핵", "핵무기", "핵공유", "전술핵", "핵억제", "핵위협",
-            "핵잠수함", "확장억제", "전략자산", "정찰위성", "위성영상",
+            "북한미사일발사", "핵잠수함", "확장억제", "전략자산", "정찰위성", "위성영상",
             "미사일방어", "방공미사일", "핵무장", "핵방격", "F35", "B16",
         ),
     ),
@@ -642,6 +659,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "두국가론", "919군사합의", "남북소통", "대북정책",
             "한반도평화", "한반도정세", "남북평화", "북미관계", "북미회담",
             "대화재개", "소통채널복원", "북한군포로", "북극항로",
+            "북한의대미관계",
         ),
     ),
     (
@@ -650,18 +668,20 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "군사분계선", "MDL", "최전선", "전방경계", "경계태세",
             "경계작전", "경고사격", "월선", "GP환경", "비무장지대",
-            "DMZ", "휴전선", "경계선", "불법침범", "GP부대", "최전방",
+            "대남확성기", "DMZ", "휴전선", "경계선", "불법침범", "GP부대", "최전방",
+            "빈총경계", "지뢰작전", "지뢰사고", "북한지뢰", "북한드론", "평양드론", "개인화기삽탄",
         ),
     ),
     (
         "military-personnel-reform",
         "군 구조·인력·복무",
         (
-            "모병제", "선택적모병", "전작권", "전시작전통제권", "사관학교",
+            "모병제", "선택적모병", "사관학교",
             "군복무", "복무기간", "군지휘관", "지휘관인사", "자주국방",
             "군통수권", "군구조", "병력구조", "병역제도", "지휘관",
             "전역전환", "합동성", "병역특례",
             "군생활",
+            "해군실종병사",
         ),
     ),
     (
@@ -671,6 +691,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "한미동맹", "한미관계", "연합방위", "연합훈련", "한미훈련",
             "군사연습", "상호군수지원", "주한미군", "방위비분담",
             "한미연합", "군수지원", "한미간",
+            "유엔사", "전작권", "전시작전통제권", "전시작전권",
         ),
     ),
     (
@@ -683,6 +704,30 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "군의드론도입",
             "드론도입",
         ),
+    ),
+    (
+        "military-justice",
+        "군 사법·군판사·법률지원",
+        (
+            "군사법원", "군판사", "군사법체계", "군사법정보시스템",
+            "군형사소송법", "군인피고인", "항명죄",
+            "검찰단장계급",
+        ),
+    ),
+    (
+        "military-security",
+        "군사기밀·방첩",
+        ("군사기밀", "암구호", "방첩기능", "중국인간첩", "중국인감청사건"),
+    ),
+    (
+        "military-facilities",
+        "군 시설·주변지역 보상",
+        ("사격장이전", "탄약고주변", "군사시설보호구역보상"),
+    ),
+    (
+        "military-gambling",
+        "군 불법도박 예방·대응",
+        ("군내불법도박", "군불법도박"),
     ),
     (
         "middle-east-dispatch",
@@ -720,6 +765,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "인도적지원", "재외공관", "G20",
             "외교순방", "외국순방", "한중앙아시아", "외교부",
             "대외협상",
+            "배우자동반외교관행",
         ),
     ),
     (
@@ -748,6 +794,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "기관분리통합", "공공기관통합",
             "정부신뢰도", "정부의신뢰도", "대통령지시정책",
             "훈장부여오류", "허위답변정정",
+            "법령해석", "법령심사", "국정과제입법", "법령속표현", "법제처법리", "도정집중도", "청원답변주체",
         ),
     ),
     (
@@ -756,6 +803,7 @@ TARGET_ONTOLOGY: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         (
             "안보정책", "안보개념", "동북아시아안보", "국가안보",
             "국방전략", "정부준비태세", "국방부공청회",
+            "주적규정", "주적표현", "북한군의적성",
         ),
     ),
     (
@@ -827,6 +875,8 @@ ONTOLOGY_DOMAINS: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "north-korea-nuclear", "inter-korean-peace",
             "frontline-operations", "military-personnel-reform",
             "alliance-defense", "defense-industry-capability",
+            "military-justice", "military-security", "military-facilities",
+            "military-gambling",
             "middle-east-dispatch", "japan-relations", "china-taiwan",
             "public-diplomacy-culture", "international-cooperation",
             "national-security-strategy",
@@ -961,12 +1011,21 @@ def _compact(value: object) -> str:
     return _NON_WORD.sub("", str(value or "")).upper()
 
 
+@lru_cache(maxsize=1)
+def _normalized_ontology(
+    ontology: tuple[tuple[str, str, tuple[str, ...]], ...],
+) -> tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...]:
+    return tuple(
+        (key, title, tuple((_compact(keyword), keyword) for keyword in keywords))
+        for key, title, keywords in ontology
+    )
+
+
 def _ontology_match(topic: dict[str, Any]) -> dict[str, Any] | None:
     title_haystack = _compact(topic.get("title") or "")
     summary_haystack = _compact(topic.get("summary") or "")
     best: tuple[int, int, str, str, str, str] | None = None
-    for order, (key, title, keywords) in enumerate(TARGET_ONTOLOGY):
-        normalized = [(_compact(keyword), keyword) for keyword in keywords]
+    for order, (key, title, normalized) in enumerate(_normalized_ontology(TARGET_ONTOLOGY)):
         title_matches = [
             (keyword, raw) for keyword, raw in normalized
             if keyword and keyword in title_haystack
@@ -1142,7 +1201,8 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
             )
             group["topics"].append(topic)
             continue
-        match = _ontology_match(topic)
+        match = (_ontology_match(topic) or match_topic_context(topic, TARGET_ONTOLOGY)
+                 or semantic_match(topic, TARGET_ONTOLOGY))
         if match is None:
             fallback_records.append(_fallback_record(index, topic))
             continue
@@ -1161,9 +1221,12 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
         group["topics"].append(topic)
         group["classification_evidence"].append({
             "topic_id": str(topic["id"]),
+            "topic_title": str(topic.get("title") or ""),
             "keyword": match["matched_keyword"],
             "field": match["matched_field"],
             "score": match["score"],
+            "method": match.get("classification_method", "TITLE_OR_SUMMARY_KEYWORD"),
+            "supporting_spans": match.get("supporting_spans", []),
         })
 
     for records in _dynamic_clusters(fallback_records):
@@ -1215,8 +1278,13 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
     return result
 
 
-def attach_meeting_topic_groups(brief: dict[str, Any]) -> dict[str, Any]:
+def attach_meeting_topic_groups(
+    brief: dict[str, Any], *, recover_live_topics: bool = False,
+) -> dict[str, Any]:
     source = _repair_brief_language(brief)
+    if recover_live_topics:
+        source = recover_live_topic_coverage(source, _ontology_match)
+        source = link_tasks_to_topics(source)
     groups = build_meeting_topic_groups(source)
     source["topic_groups"] = groups
     source["follow_up_task_groups"] = group_document_submission_tasks(source)
@@ -1353,12 +1421,16 @@ def build_meeting_topic_ontology(
         raise RuntimeError("ontology domain map must cover every target exactly once")
 
     usage = {
-        key: {"topic_count": 0, "report_count": 0, "keyword_usage": {}}
+        key: {"topic_count": 0, "report_count": 0, "keyword_usage": {},
+              "context_topic_count": 0, "semantic_topic_count": 0, "context_examples": []}
         for key in ontology
     }
     totals = {
         "report_count": 0,
         "topic_count": 0,
+        "core_topic_count": 0,
+        "supplementary_topic_count": 0,
+        "supplementary_report_count": 0,
         "policy_topic_count": 0,
         "ontology_topic_count": 0,
         "dynamic_topic_count": 0,
@@ -1366,14 +1438,28 @@ def build_meeting_topic_ontology(
         "report_artifact_topic_count": 0,
         "integrity_failure_count": 0,
         "quality_review_count": 0,
+        "context_topic_count": 0,
+        "semantic_topic_count": 0,
+        "semantic_reviewed_topic_count": 0,
     }
     for brief in briefs:
         if not isinstance(brief, dict):
             continue
         grouped = attach_meeting_topic_groups(link_tasks_to_topics(brief))
+        totals["semantic_reviewed_topic_count"] += sum(
+            bool(topic.get("ontology_semantic_review"))
+            for topic in grouped.get("topics") or []
+        )
         audit = grouped.get("topic_grouping") or {}
         totals["report_count"] += 1
         totals["topic_count"] += int(audit.get("detailed_topic_count") or 0)
+        supplementary = sum(
+            topic.get("coverage_origin") == "LIVE_TOPIC_SUPPLEMENT"
+            for topic in grouped.get("topics") or []
+        )
+        totals["supplementary_topic_count"] += supplementary
+        totals["core_topic_count"] += int(audit.get("detailed_topic_count") or 0) - supplementary
+        totals["supplementary_report_count"] += supplementary > 0
         totals["policy_topic_count"] += int(audit.get("policy_topic_count") or 0)
         totals["ontology_topic_count"] += int(audit.get("ontology_topic_count") or 0)
         totals["dynamic_topic_count"] += int(audit.get("dynamic_topic_count") or 0)
@@ -1392,6 +1478,25 @@ def build_meeting_topic_ontology(
             usage[key]["topic_count"] += int(group.get("topic_count") or 0)
             usage[key]["report_count"] += 1
             for evidence in group.get("classification_evidence") or []:
+                if evidence.get("method") == SEMANTIC_METHOD:
+                    usage[key]["semantic_topic_count"] += 1
+                    totals["semantic_topic_count"] += 1
+                if evidence.get("supporting_spans"):
+                    usage[key]["context_topic_count"] += 1
+                    totals["context_topic_count"] += 1
+                    examples = usage[key]["context_examples"]
+                    example = {
+                            "topic_id": evidence["topic_id"],
+                            "topic_title": evidence["topic_title"],
+                            "source_brief_id": (brief.get("topic_structure") or {}).get("source_brief_id"),
+                            "method": evidence["method"],
+                            "authority_status": "PROVISIONAL",
+                            "supporting_span": evidence["supporting_spans"][0],
+                        }
+                    if len(examples) < 3:
+                        examples.append(example)
+                    elif evidence["method"] == SEMANTIC_METHOD and not any(x["method"] == SEMANTIC_METHOD for x in examples):
+                        examples[-1] = example
                 keyword = str(evidence.get("keyword") or "")
                 if keyword:
                     keyword_usage = usage[key]["keyword_usage"]
@@ -1418,6 +1523,8 @@ def build_meeting_topic_ontology(
                 **ontology[key],
                 "domain_key": domain_key,
                 "keyword_count": len(ontology[key]["keywords"]),
+                "context_keywords": list(CONTEXT_ALIASES.get(key, ())),
+                "context_patterns": [label for label, _ in CONTEXT_CONCEPTS.get(key, ())],
                 "matched_keywords": [
                     {"keyword": keyword, "topic_count": count}
                     for keyword, count in sorted(

@@ -1,5 +1,18 @@
 # Data Model
 
+## 온톨로지 1.13 파생 필드 (2026-10-19)
+
+DB 원본 변경 없이 주제 그룹의 `classification_evidence`에 `topic_title`, `method`, `supporting_spans`를 추가한다. 보완 연결 방법은 `ISSUE_AND_SOURCE_AGREEMENT` 또는 `PARENT_AND_SOURCE_AGREEMENT`이며 각 구간은 evidence ID·start/end·quote·content hash·revision IDs·상위 주제·일치 정책어를 보존한다. 기존 분류는 `TITLE_OR_SUMMARY_KEYWORD`로 구별한다.
+
+온톨로지 API의 `metrics.context_topic_count`는 원문 문맥으로 추가 연결된 주제 수다. 분류별 `context_topic_count`, `context_keywords`, `context_examples`(최대 3건)를 제공한다. 예시는 출처 보고서 ID·주제 ID·근거 구간과 `PROVISIONAL` 권위를 포함한다. DB migration은 없으며 조회 시 계산한다.
+
+## 실시간 누락 쟁점 복원 projection (2026-10-16)
+
+- 저장된 `MeetingBrief.brief`는 수정하지 않는다. 잠정 보고서의 공개 읽기 모델에만 `coverage_origin=LIVE_TOPIC_SUPPLEMENT`, `summary_source=PRESERVED_LIVE_TOPIC`, `authority_status=PROVISIONAL`인 보완 topic을 추가한다. ID는 `live-issue-{cluster_id}`이며 원래 `utterance_ids`를 `evidence_ids`로 보존한다. 새 과제·화자·공식 근거를 만들지 않는다.
+- 계보의 `mapping_status=SUPPLEMENTARY_EVIDENCE`는 보완 쟁점의 발언 근거를 뜻한다. `live_topic_assignment`의 기존 모델 연결 결과·요청 hash·미연결 목록은 그대로 두며, 조회 시 집계한 연결/미연결 수는 `live_topic_lineage`에 표시한다.
+- `live_topic_coverage`에는 규칙 버전, 원래 미연결·단일 발언 수, 핵심/보완 주제 수, 복원한 cluster ID, 추가 호출 0회를 기록한다. 온톨로지 집계는 `core_topic_count`, `supplementary_topic_count`, `supplementary_report_count`로 분모 변경을 공개한다.
+- 공식 대조본에는 복원 기능을 적용하지 않는다. 주제별 근거 endpoint는 표시된 잠정 보고서와 같은 규칙으로 보완 ID를 해석한다. DB schema 변경·migration은 없다.
+
 ## 공식 회의록 비교 projection
 
 - `MeetingBrief.brief`는 LIVE/STT 기반 잠정 초안이며 공식 자료 게시 뒤에도 원본을 유지한다.
@@ -134,3 +147,52 @@ AIAnnotation은 canonical official table에 요약 필드로 삽입하지 않습
 - `LiveRegressionAudit`: 방송별 revision/final/partial/수집 공백과 공식 통합 확인 결과를 실행 시점별로 저장합니다.
 - `TopicReport`: 사용자 검색 조건, 당시 선별된 공개 근거 snapshot과 hash, provider/model/prompt, 검증된 보고서 JSON, 사용량과 비동기 lease를 저장합니다. 같은 조건·근거·모델·프롬프트의 READY 결과는 재사용합니다. READY 결과는 계정과 무관한 공개 읽기 모델이며 `generated_at` 기준 최근 30일의 최신 50건만 유지합니다. 공개 응답에서는 subscriber와 upstream 사용 metadata를 제거하고, 미완료·실패 상태는 요청자에게만 반환합니다.
 - `TopicReportDailyUsage`: 사용자별 UTC 일일 요청 수를, `TopicReportGlobalDailyUsage`는 주제 보고서 전용 UTC 일일 요청 수를 원자적으로 제한합니다. 실제 외부 호출 전에는 공용 `LlmProviderDailyUsage` 500회 장부도 함께 예약합니다.
+# 2026-10-19 추가: 논의 구조화 버전
+
+- `meeting_topic_structures`: 원본 `meeting_briefs.id`, 원본 주제·과제·계보 해시, 구조화 버전으로 구분한 AI 파생 결과입니다. 원문 스냅샷에는 발언 ID, 수집 revision/segment ID, 텍스트·위치·앞뒤 맥락을 저장합니다. 공식 원문 테이블을 수정하지 않습니다.
+- `meeting_topic_structure_batches`: 요청 단위의 원문·쟁점 목록, 모델 응답, 사용량, 시도 번호와 실패 사유를 추가 저장합니다. 성공한 분할 작업은 재사용하며 동일 입력·응답 형식/요청 프로필에 최대 3회 시도합니다. 입력 또는 검증 형식을 보완한 재처리도 기존 시도를 덮어쓰지 않고 추가 저장합니다. 최종 쟁점 통합은 별도 batch index로 보존합니다.
+- `evidence_span`: `evidence_id`, `start`, `end`, `content_hash`, `revision_ids`, `segment_ids`, 원문 인용을 포함합니다. 위치는 해당 수집 발언 문자열의 Python 문자 오프셋이며 `end`는 제외됩니다.
+- `structured_brief`: 기존 보고서와 별도로 제공하는 PROVISIONAL 파생 보기입니다. `structured-*` 식별자로 기존 근거 API를 이용하며 공식 원문 자동 추정 연결을 수행하지 않습니다. 공식 보고서는 기본 보기를 유지합니다.
+- 구조화 근거 API의 `LIVE_STRUCTURE_SNAPSHOT`은 해당 분석 시점에 저장한 발언을 반환합니다. 긴 발언의 겹치는 저장 구간은 오프셋으로 복원하며, 이후 자막 수정으로 원문과 인용 위치가 달라지는 것을 방지합니다.
+- `topic_structure`: 실행·근거 검증·전체 통합 상태, 원본 계보 집계, 검토 보류와 절차성 발언을 보존합니다. ‘근거 검증 통과’는 참조·구간 검증이며 발언 주장의 사실성이나 의미 분류의 정답 보증이 아닙니다.
+
+## 온톨로지 의미 검토 감사 기록 (2026-10-19)
+
+- 스키마 추가 없이 `meeting_topic_structure_batches.batch_index >= 200000`을 의미 검토에 할당한다. 기존 발언 구조화(`<100000`)와 최종 통합(`100002`)에서 제외된다.
+- `request_snapshot`: `profile=ontology-semantic/1.3`, 분류 사전, 항목별 제목·원문 구간·fingerprint. `response`: 원본 `proposals` 및 `verification`. `usage_metadata`: 공급자·모델·각 단계 사용량. 실패 응답도 새 attempt로 추가한다.
+- 읽기 투영의 `ontology_evidence_spans`는 원래 인용의 위치와 같은 발언 내 보완 구간 위치를 함께 보존한다. `ontology_semantic_review`는 fingerprint가 현재 입력과 일치하는 완료 기록만 반영한다.
+- API의 `semantic_topic_count`는 `context_topic_count`의 부분집합이다. 기존 정책 주제 분모에서 미분류 주제를 제거하지 않는다. 분류 예시에는 잠정 상태, 실제 인용, 출처 위치와 검토 사유를 포함한다.
+
+첫 단계 응답은 두 번째 호출 전에 `VERIFICATION_PENDING` 오류 코드의 감사 행으로 즉시 보존한다. 이 행은 완료 분류로 적용하거나 실패 횟수 상한에 포함하지 않는다. 같은 묶음의 완료/실패 결과는 새로운 attempt 행에 기록한다.
+
+`semantic_reviewed_topic_count`는 현재 입력과 일치하는 저장된 AI 검토 건수이며 승인과 보류를 포함한다. `semantic_topic_count`는 실제 공통 분류에 반영된 부분집합이다.
+# 실시간 논의 연결 읽기 모델 (2026-10-19)
+
+회의 보고서 API의 `live_topic_resolution`은 저장된 공식/잠정 보고서를 수정하지 않는 파생 필드다. `source_brief_id`, 구조화 `revision_id`, `source_hash`, `authority_status=PROVISIONAL`을 포함한다. 기존 `live_topic_lineage`는 보존한다.
+
+- `entries`: 기존 묶음 ID, 구조화 묶음 ID, 과거 상태, 현재 `LINKED/PROCEDURAL/PARTIAL/UNRESOLVED`, 연결 쟁점 ID·제목, 검토 원문 항목을 제공한다. 묶음 원문 발언 집합이 일치하고 모든 쟁점 ID가 존재해야 연결 상태를 수용한다.
+- `legacy_pending_*`: 기존 요약에서 연결 확인 대상이었던 항목의 처리 결과다. `review_count`는 기존 연결 여부와 관계없이 보고서 전체의 남은 검토 묶음 수다.
+- 구조화 projection 1.2의 묶음별 `review_evidence_ids`는 부분 연결 묶음 안에서 실제로 추가 확인해야 하는 원문 발언만 가리킨다. 기존 `structure_review` 근거 API로 저장 스냅샷을 조회한다.
+- DB 스키마·저장 보고서·모델 응답 변경은 없다. 공식 자료 권위와 잠정 연결 권위를 합치지 않는다.
+
+## 자료 요구 과제 투영 1.3
+
+`topic_structure.document_requests`는 원문 요청 구간과 `related_topic_ids`, `topic_link_method`, `context_spans`를 담는다. 각 구간은 atom/evidence ID, 원문 start/end, quote, content_hash, revision_ids로 추적한다. `document_request_count`, `document_request_linked_count`는 구간 수다.
+
+과제에 `task_kind=DOCUMENT_SUBMISSION`, `request_spans`, `topic_link_status`, `source_evidence_ids`를 부가한다. 필요한 앞 발언의 맥락은 `context_spans`에 구분하고 조회 가능한 `evidence_ids`에도 포함한다. `follow_up_task_groups`는 단일 주제 내부의 선택적 메타데이터(`scope=TOPIC`)만 제공하며 화면에서 개별 과제를 대체하지 않는다. `topic_identity_parent`는 공통 상위 분류를 복원할 때 기존 쟁점 ID를 유지하기 위한 이전 parent다. 원본 저장 스키마 변경은 없다.
+
+## 과제 직접 언급 구간 투영 1.4
+
+`tasks[].task_evidence_spans`는 원문 atom/evidence ID, start/end, quote, content_hash, revision_ids, topic_ids를 포함한다. `topic_link_method=DIRECT_TASK_REQUEST_OR_COMMITMENT`는 직접 요청·약속 문장 대조 결과이며, `SOURCE_SPAN_REVIEW`는 직접 구간 확인이 필요한 기존 연결이다. 과제 근거 API의 `direct_task_spans`는 반환 원문의 텍스트·위치·해시·버전 검증을 통과한 구간만 담는다. 공식 근거에 LIVE 오프셋을 적용하지 않는다. 원본 저장 스키마 변경은 없다.
+
+### 문맥 자동 재분류 (2026-10-20)
+
+기존 `meeting_topic_structure_batches`에 `request_snapshot.profile=discussion-context-review/3`을 가진 배치를 추가한다. 구조화 원문 배치(<100000), 통합 배치(100002), 온톨로지 분류 배치와 profile로 구분한다. 별도 migration은 없다. request의 `atoms`/`targets`는 대상 원문과 교체할 미분류 facet이며, response의 `assignments`/`reasons`는 모델 판단과 사유다. 원본은 수정하지 않는다.
+
+투영 1.5의 `topic_structure.automatic_review`는 처리한 원문/대기 원문/실패 원문 수를 구분한다. `structure_review_items.review_state`는 `AUTO_PENDING`, `ANALYSIS_FAILED`, `SOURCE_LIMITED`, `PROCEDURAL`이다. SOURCE_LIMITED는 자동 재분석이 수행됐으나 현재 근거로 주제를 특정하지 못한 상태이며 사용자 확인 요청이 아니다. 일반 발언 근거는 기존 위치 필드를 유지하고, 문맥 근거는 `classification_context_spans`에 별도로 기록한다.
+
+주제 미연결 자료 요구는 `discussion-request-context/1` profile로 같은 문맥 재분류 경로에 들어간다. 요구 구간의 대상이 확인되면 해당 쟁점 및 REQUEST 과제를 생성한다. `replacement_kind=DOCUMENT_REQUEST`는 기존의 일반 자료 요구/절차 facet만 교체하며 같은 발언의 다른 정책 쟁점을 보존한다. `pending_request_atom_count`와 `unresolved_request_atom_count`로 아직 처리하지 않은 요구와 재분석 후에도 연결 대상이 불명확한 요구를 구분한다.
+
+`discussion-uncertain-check/1`은 원문이 충분한데 첫 재분류가 UNCERTAIN으로 남긴 발언에 대한 다른 모델의 추가 판단이다. 보고서별 잠금과 동일한 원문 검증을 사용하며 각 원문은 이 profile에서 한 번의 성공 결과만 채택한다. 추가 판단 대기를 완료/원문 불명확으로 조기에 표시하지 않는다. 짧게 잘린 원문은 불필요한 재호출을 하지 않는다.
+
+주제 미연결 자료 요구도 `structure_review_items`에 `request_atom_id`와 원문·분류 사유를 제공한다. 처리 전은 AUTO_PENDING, 모델 처리가 끝났으나 대상이 불명확하면 REQUEST_SOURCE_LIMITED이며, UI에서 ‘주제 특정이 어려운 자료 요구’로 분리한다. 원문·과제는 유지하고 사람의 확인 작업으로 전환하지 않는다.

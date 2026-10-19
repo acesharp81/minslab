@@ -1786,6 +1786,11 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 .meeting-lineage-unmapped { margin:14px 18px 0; overflow:hidden; border:1px solid #f0cc72; border-radius:12px; background:#fffaf0; }
 .meeting-lineage-unmapped > summary { padding:13px 15px; color:#805200; cursor:pointer; font-size:13px; font-weight:850; }
 .meeting-lineage-unmapped > p { margin:0; padding:0 15px 12px; color:#7a5a20; font-size:11px; line-height:1.55; }
+.meeting-live-resolution section { display:grid; gap:8px; padding:12px 15px; border-top:1px solid #f2d995; background:#fff; overflow-wrap:anywhere; }
+.meeting-live-resolution section > strong { font-size:13px; }
+.meeting-live-resolution section p { margin:0; font-size:12px; line-height:1.6; }
+.meeting-live-resolution section button { min-width:0; padding:9px 11px; text-align:left; white-space:normal; overflow-wrap:anywhere; border:1px solid #e1d5b8; border-radius:8px; background:#fffaf0; color:#60430e; cursor:pointer; }
+.meeting-live-resolution-linked > summary { padding:12px 15px; font-size:12px; cursor:pointer; }
 .meeting-lineage-unmapped > ul,
 .meeting-topic-lineage > ul { display:grid; gap:0; margin:0; padding:0; list-style:none; }
 .meeting-lineage-unmapped > ul { max-height:340px; overflow-y:auto; border-top:1px solid #f2d995; background:white; }
@@ -1806,3 +1811,10 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 .meeting-topic-lineage li > button { display:grid; gap:3px; width:100%; padding:0; border:0; color:inherit; background:transparent; text-align:left; cursor:pointer; }
 .meeting-lineage-unmapped li > button:hover strong,
 .meeting-topic-lineage li > button:hover strong { color:#2457a7; text-decoration:underline; text-underline-offset:2px; }
+
+.meeting-topic-more-tasks { min-width:0; }
+.meeting-topic-more-tasks > summary { cursor:pointer; padding:8px 0; font-size:12px; }
+.meeting-topic-more-tasks[open] { display:grid; gap:6px; }
+.meeting-topic-more-tasks .meeting-topic-task-button { width:100%; margin-top:6px; }
+
+.meeting-task-direct-quote { color:#667085; font-size:12px; font-weight:400; line-height:1.6; overflow-wrap:anywhere; }

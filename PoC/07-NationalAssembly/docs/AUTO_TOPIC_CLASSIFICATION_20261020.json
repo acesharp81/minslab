@@ -1,0 +1,1714 @@
+{
+  "checked_at": "2026-10-19T21:25:19.895473+00:00",
+  "report_count": 44,
+  "metrics": {
+    "atoms": 8512,
+    "topics": 5351,
+    "uncertain": 14,
+    "procedural": 543,
+    "failed": 0,
+    "missing": 0,
+    "eligible_review_atoms": 0,
+    "linked_clusters": 2866,
+    "unresolved_clusters": 11
+  },
+  "source_spans_checked": 10279,
+  "invalid_source_spans": [],
+  "reports": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "brief_id": "68a522cb-f971-4c1f-8d23-296d29344438",
+      "headline": "제439회 국회 본회의, 총리 출석 문제와 정부 과제에 대한 심의",
+      "source_hash": "313b185a5bddf35e3b0461d7b54d4126f0b41b44deaff489e27b548b654ed7f6",
+      "source_hash_preserved": true,
+      "atoms": 250,
+      "topics": 131,
+      "uncertain": 0,
+      "procedural": 2,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 2
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 84,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 8,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "brief_id": "50fbdf82-5588-42c4-b3a4-07a2e46354a4",
+      "headline": "제439회 국회(정기회) 제06차 본회의 종합 브리프",
+      "source_hash": "7e6d89cd9553f76fabb8f37b1644b2eadd8773f99cc16975364b6634ec844b0a",
+      "source_hash_preserved": true,
+      "atoms": 222,
+      "topics": 151,
+      "uncertain": 0,
+      "procedural": 0,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {},
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 87,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "brief_id": "99d3e3e8-d893-469f-bd69-7e32fa7b5b0d",
+      "headline": "경기도 재정위기·자치권한·치안 현안이 집중된 행정안전위 국정감사",
+      "source_hash": "a8e00135a3cd0ee5491b88d53669c1576879b18a570ca919af78ccf5cfc2b4d9",
+      "source_hash_preserved": true,
+      "atoms": 249,
+      "topics": 151,
+      "uncertain": 0,
+      "procedural": 17,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 17,
+        "REQUEST_SOURCE_LIMITED": 2
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 9,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 2,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 83,
+      "unresolved_clusters": 2,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 8,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "brief_id": "bc9b146a-bdc4-4c09-98fd-1b6f52f4d18b",
+      "headline": "제439회 국회(정기회) 제06차 법제사법위원회 특별감찰관 임명 청문회 및 감찰 제도 논의",
+      "source_hash": "0cf5a4fa9ba528420475b52942dbcb40ddcb156ec7474abe95215c0266527baa",
+      "source_hash_preserved": true,
+      "atoms": 142,
+      "topics": 81,
+      "uncertain": 0,
+      "procedural": 13,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 13
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 30,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 5,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "brief_id": "5381898d-6541-49e2-8d93-49cb9a7256d4",
+      "headline": "제438회 국회 임시회 법제사법위원회, 중수청·보완수사권·탄소중립법·방송법 핵심 쟁점 심사",
+      "source_hash": "91c8fe6912b648995cec622fbdc6f6db2963ba355406532fad7416be3ffcdb9e",
+      "source_hash_preserved": true,
+      "atoms": 126,
+      "topics": 78,
+      "uncertain": 0,
+      "procedural": 27,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 27
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 35,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "brief_id": "a42b73d1-af02-44ab-9907-03ee773a5ca5",
+      "headline": "제439회 국회 법제사법위원회, 증인 문제와 대법원장 의혹 논의",
+      "source_hash": "692b5db3e3e52549249a2c51e780b3dac955aa9cf3645b45d36f7b786825a3d2",
+      "source_hash_preserved": true,
+      "atoms": 20,
+      "topics": 7,
+      "uncertain": 0,
+      "procedural": 13,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 13,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 3,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "brief_id": "dc1f0d1b-c41b-43c1-91db-3beb4de57aa1",
+      "headline": "법제사법위원회 고위공직자범죄수사처 국정감사 및 헌법재판소 감사",
+      "source_hash": "b75caad89e9d8c14ad19de24430e4bba7c61c5e1dfd87ba5ce84e73334f0f60d",
+      "source_hash_preserved": true,
+      "atoms": 260,
+      "topics": 101,
+      "uncertain": 0,
+      "procedural": 17,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 17
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 14,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 73,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "brief_id": "1de56e9b-ea21-4bb3-9724-6ebc4e80f343",
+      "headline": "제439회 국회(정기회) 제01차 법제사법위원회 회의 브리프",
+      "source_hash": "eb26875e306664ef0c76b3aadc9a5fb055d05c89450410d1cb6b7c28dc2eee1b",
+      "source_hash_preserved": true,
+      "atoms": 119,
+      "topics": 43,
+      "uncertain": 0,
+      "procedural": 18,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 18,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 30,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 17,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "brief_id": "de74a687-269a-4410-a4ac-3db2958b2526",
+      "headline": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "source_hash": "c99a96ef697a4a6f3ab80201708722e92994c8d4f7ab084cda11e1376801f5ba",
+      "source_hash_preserved": true,
+      "atoms": 350,
+      "topics": 224,
+      "uncertain": 0,
+      "procedural": 9,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 9
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 196,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 11,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "brief_id": "a5901e5c-f820-4dfc-8f4e-93e8f619009d",
+      "headline": "예산결산특별위원회, 주택·지방재정·미래대응기금 등 쟁점 다수 논의",
+      "source_hash": "0e93ee8fadc9240b2bd6c3bd5422cbfe28f65f9c351ed547f96b74b98703c644",
+      "source_hash_preserved": true,
+      "atoms": 411,
+      "topics": 318,
+      "uncertain": 0,
+      "procedural": 4,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 4,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 193,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 13,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "brief_id": "84d008f6-46d5-4f09-bca0-47b17aec64a7",
+      "headline": "행안위 경찰청 국감, 수사 통계 왜곡·제식구 감싸기·전기충격기 사업 불공정 등 개혁 실효성 집중 추궁",
+      "source_hash": "e00a8e74ecdf00ad68c78ea41b30f8e3b7ecd66fa84f8e353486158e81a510b8",
+      "source_hash_preserved": true,
+      "atoms": 224,
+      "topics": 121,
+      "uncertain": 0,
+      "procedural": 3,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 3
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 34,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 68,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "brief_id": "5c005bac-fce7-4754-8dc1-e416982d6b4b",
+      "headline": "제44회 국무회의, 복지·자살예방·북극항로·조세정의 등 민생·국익 현안 종합 점검",
+      "source_hash": "aca840ab9d3b51bbe68b4c0e147ee37c2af4513c811cae427700a3f654f278b1",
+      "source_hash_preserved": true,
+      "atoms": 74,
+      "topics": 68,
+      "uncertain": 0,
+      "procedural": 8,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 8
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 24,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "brief_id": "a9ff620a-7cf7-492d-9e23-585eb070eb88",
+      "headline": "제439회 법제사법위원회, 중수청 및 인사청문, 특별법·법안 의결 핵심 논의",
+      "source_hash": "a477ba5b58ec87941248476d7b280612c6740ff578cbf1b605ac674f6677adfe",
+      "source_hash_preserved": true,
+      "atoms": 122,
+      "topics": 79,
+      "uncertain": 0,
+      "procedural": 21,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 21,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 20,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "brief_id": "740101da-7ceb-497d-b53e-9b47f6f4927c",
+      "headline": "제439회 국회 법제사법위원회 인사청문회 및 검찰개혁 논의",
+      "source_hash": "bf513f420fa66be236e65c5140c31202f03357a2ac4095e027329bfdae8e0a8f",
+      "source_hash_preserved": true,
+      "atoms": 137,
+      "topics": 150,
+      "uncertain": 0,
+      "procedural": 16,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 16,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 3,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 44,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 5,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "brief_id": "91f141c9-385c-4f99-8d5d-3a82fae6fd0a",
+      "headline": "제38회 국무회의: 민생 대개혁, 예산 편성, 채불 대책, 청년 정책, 실종 대응 등 주요 과제 논의",
+      "source_hash": "6917cc006a1ef32ca8095c414bc07f1b242dcce3d26641981e060a28fda9b7e7",
+      "source_hash_preserved": true,
+      "atoms": 71,
+      "topics": 51,
+      "uncertain": 1,
+      "procedural": 3,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1,
+        "PROCEDURAL": 3
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 16,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "brief_id": "97ba0394-91ac-4fa1-bf3b-63431b27d5ca",
+      "headline": "제439회 국회 행정안전위원회, 결산 승인 및 중수청법 논의",
+      "source_hash": "a60800a5a870626823266e5c2a61a6b52c37484b411527773b3fb857fbc1230e",
+      "source_hash_preserved": true,
+      "atoms": 69,
+      "topics": 57,
+      "uncertain": 0,
+      "procedural": 27,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 27
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 17,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "brief_id": "8ce27f4f-3606-47c5-abe3-0003babf76b4",
+      "headline": "제438회 국회 임시회 행안위, 중수청 출범·재난 대응·소방 쇄신 등 24개 핵심 쟁점 논의",
+      "source_hash": "f777ea1350e2716d6f243fb3cf1441014ef1ea986a7828fb8154734528c32c63",
+      "source_hash_preserved": true,
+      "atoms": 260,
+      "topics": 145,
+      "uncertain": 0,
+      "procedural": 8,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 8
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 3,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 86,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "brief_id": "39fe1954-723c-4e05-b205-c73939c659ec",
+      "headline": "제439회 국회(정기회) 제03차 행정안전위원회: 지방의회법 제정 및 정책지원관 확대 논의",
+      "source_hash": "c8a36c5f850f34f49d291a30db75dbbe33b43396544d9958d1a10446d52a9d57",
+      "source_hash_preserved": true,
+      "atoms": 123,
+      "topics": 59,
+      "uncertain": 4,
+      "procedural": 3,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 4,
+        "PROCEDURAL": 3
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 7,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 21,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "brief_id": "00ecf4a8-8bb6-463e-acdb-d87c63bf3091",
+      "headline": "법제처·군사법원 국정감사에서 헌법 해석, 입법 검토, 군 인권·안보 현안이 집중 질의된 회의",
+      "source_hash": "d2b3716c092e467950bc045e85cf0baa899bc21304a74bf787f6eec7cb66d2f6",
+      "source_hash_preserved": true,
+      "atoms": 264,
+      "topics": 200,
+      "uncertain": 0,
+      "procedural": 16,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 16
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 6,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 120,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "brief_id": "39ac51ad-7398-4276-91f1-53fea51d8ea8",
+      "headline": "제439회 국회(정기회) 제08차 법제사법위원회 브리프 요약",
+      "source_hash": "863df6133d460168b351743bd767cdb79709fa372bdc2f3ed58494496e6175a4",
+      "source_hash_preserved": true,
+      "atoms": 199,
+      "topics": 70,
+      "uncertain": 1,
+      "procedural": 10,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1,
+        "PROCEDURAL": 10
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 9,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 58,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "brief_id": "f688fdcd-dab3-4827-aece-282115eff27a",
+      "headline": "중앙 선거관리위원회 등 국정감사 및 정책 개선 요구",
+      "source_hash": "45c4d2aa0ed1164730a416c061c7e8335eed467ba82084c1cb72d1c449be816a",
+      "source_hash_preserved": true,
+      "atoms": 282,
+      "topics": 148,
+      "uncertain": 0,
+      "procedural": 11,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 11,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 19,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 119,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "brief_id": "98662fda-12b0-4e81-bfd3-0f7b8bcbfe83",
+      "headline": "제439회 국회 정기회 제05차 본회의 종합 브리프",
+      "source_hash": "43d9de83bdc422fe57f26caf51d367ffe7b8a01e4fbbcdbee45e860a28cbd61a",
+      "source_hash_preserved": true,
+      "atoms": 169,
+      "topics": 149,
+      "uncertain": 0,
+      "procedural": 5,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 5
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 80,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 6,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "brief_id": "ece0fe2f-49c6-49d9-bc6a-6ed205b1235c",
+      "headline": "제439회 국회 정기회 10차 본회의 – 법안 의결 및 인사 발의 요약",
+      "source_hash": "4ea28f8f8f2a39e06cfa9bc84fd9e74f9cd934a45bb48e146f0c46a0f66d612c",
+      "source_hash_preserved": true,
+      "atoms": 55,
+      "topics": 79,
+      "uncertain": 0,
+      "procedural": 6,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 6
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 21,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 2,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "brief_id": "9bd1edc4-438a-4a2d-a643-8431faa47374",
+      "headline": "제439회 국회 제05차 법제사법위원회 인사청문 보고서 채택 및 형사사법 개편 논의",
+      "source_hash": "7aeb877000520db7235f89913cb7be27d56c78e7b34792a671b3e5a193293a46",
+      "source_hash_preserved": true,
+      "atoms": 93,
+      "topics": 59,
+      "uncertain": 4,
+      "procedural": 17,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 4,
+        "PROCEDURAL": 17,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 8,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 10,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "brief_id": "561e5d30-588f-488d-8c53-a2a1b3031e1c",
+      "headline": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "source_hash": "6e957a67433ef0f9bfcdb7d2602d33485ed3aa44a82a3bdb8d3e519608f3a87a",
+      "source_hash_preserved": true,
+      "atoms": 65,
+      "topics": 32,
+      "uncertain": 1,
+      "procedural": 6,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1,
+        "PROCEDURAL": 6
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 19,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "brief_id": "c6488bdf-d1f9-4895-a225-3b95b4cc76e8",
+      "headline": "제439회 국회 제03차 법제사법위원회 인사청문회 요약",
+      "source_hash": "4c3e20b24aa52c2fa35da486929299e0f8764e9be5f354d5d09b6fe6c7e0d28d",
+      "source_hash_preserved": true,
+      "atoms": 288,
+      "topics": 156,
+      "uncertain": 0,
+      "procedural": 21,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 21,
+        "REQUEST_SOURCE_LIMITED": 2
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 12,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 2,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 118,
+      "unresolved_clusters": 2,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "brief_id": "ce69402c-5afc-4945-ac74-b2018b6f9cea",
+      "headline": "대법원 공백·국감 출석 논란과 사법행정 운영 전반을 둘러싼 공방",
+      "source_hash": "2815e4e5343c991136f5b8d0c563a09d1295c531953d8e70f931fd752c360ae1",
+      "source_hash_preserved": true,
+      "atoms": 269,
+      "topics": 149,
+      "uncertain": 1,
+      "procedural": 33,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1,
+        "PROCEDURAL": 33
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 24,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 50,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "brief_id": "7795ad77-a77a-40c1-a04e-4fb9495999f7",
+      "headline": "제439회 국회(정기회) 제07차 행정안전위원회 인사청문회 요약",
+      "source_hash": "61c502652b1ade64d62e4464dd5cf7c3fffe375b5e160d851af97f253e984e27",
+      "source_hash_preserved": true,
+      "atoms": 333,
+      "topics": 190,
+      "uncertain": 0,
+      "procedural": 12,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 12,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 4,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 48,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 11,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "brief_id": "a9c51c0b-4e0d-4801-a67f-5152830ff6b8",
+      "headline": "행정안전부 국감, 중수청·재난안전·지방재정 쟁점과 자료 요구 집중",
+      "source_hash": "655e704a99aa6466d3998114a499e83d49a2df06d49f9eb77a0d3e2a3da997c8",
+      "source_hash_preserved": true,
+      "atoms": 266,
+      "topics": 163,
+      "uncertain": 0,
+      "procedural": 15,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 15
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 123,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "brief_id": "e251c122-7277-4259-ba18-5271c7430fba",
+      "headline": "광역공소청 국정감사: 수사·기소 분리 체계 정착 및 검찰 개혁 쟁점 다수",
+      "source_hash": "d576702f5811533f4a60d2059b7015a0a40a276629441a826bc084de85cc4f6a",
+      "source_hash_preserved": true,
+      "atoms": 273,
+      "topics": 259,
+      "uncertain": 0,
+      "procedural": 9,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 9
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 103,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 4
+      }
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "brief_id": "f2c76f0e-5621-455e-bcab-54995cc2f06f",
+      "headline": "제438회 국회(임시회) 제04차 예산결산특별위원회 전체 회의 브리프",
+      "source_hash": "5ba94e3dad03d1d4e244c573c1ecf21104d049cf0fa6654fb5d43a48acfa6941",
+      "source_hash_preserved": true,
+      "atoms": 98,
+      "topics": 108,
+      "uncertain": 0,
+      "procedural": 2,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 2
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 37,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "brief_id": "a0d232c7-65a9-49fa-a215-1b249788f696",
+      "headline": "제22대 국회 법제사법위원회 법무부·산하기관 국정감사: 검찰개혁·특검협조·교정행정·외국인정책 등 전방위 현안 격돌",
+      "source_hash": "a3e1a2f432eab00a79682c65f63401bccd1f47d8272a95eda602750a0f41d260",
+      "source_hash_preserved": true,
+      "atoms": 396,
+      "topics": 188,
+      "uncertain": 0,
+      "procedural": 18,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 18
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 141,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 13,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "brief_id": "4253c34d-fd84-46f9-ba23-9426ddaa8d29",
+      "headline": "제438회 국회 임시회 제05차 예산결산특별위원회 종합 브리프",
+      "source_hash": "ab559725a123e05262eb88aa07d61a41d8e909635e89743bd82e753249115082",
+      "source_hash_preserved": true,
+      "atoms": 422,
+      "topics": 295,
+      "uncertain": 0,
+      "procedural": 8,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 8
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 183,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 14,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "brief_id": "32a7abe0-0baf-4f1e-958d-a770c0603d26",
+      "headline": "법제사법위원회 2026년도 국정감사: 사법부 신뢰 회복과 제도 개선 요구",
+      "source_hash": "6cfbb4e184f2b9f72050f764c4cdbf43f2cc32b3b37a42d1ad85a40f5cf332f9",
+      "source_hash_preserved": true,
+      "atoms": 260,
+      "topics": 129,
+      "uncertain": 0,
+      "procedural": 18,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 18
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 21,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 92,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "brief_id": "86a76558-a239-4c88-bf28-a2cb2de28840",
+      "headline": "법제사법위원회, 2026년 8월 임시회 2차 회의 종합 분석: 검찰 개혁·공수처·중수청 등 핵심 쟁점",
+      "source_hash": "312c83f6d11494e91e52b736877c25af2ee915e8053514d7399aaac88d039001",
+      "source_hash_preserved": true,
+      "atoms": 24,
+      "topics": 37,
+      "uncertain": 0,
+      "procedural": 0,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 0,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "brief_id": "dc7b5242-f837-4890-8aca-79908aba939b",
+      "headline": "제42회 국무회의 종합 결과 보고서",
+      "source_hash": "67ad3de5967d5bbbe9697550a9b4091102a029107067499e7ddccd21b8f6e379",
+      "source_hash_preserved": true,
+      "atoms": 85,
+      "topics": 50,
+      "uncertain": 0,
+      "procedural": 5,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 5
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 27,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "brief_id": "d885609a-7774-4caa-98d6-66f7edcbf150",
+      "headline": "감사원 국정감사에서 정치감사·내부 징계·특활비·법원·형사사법 권한 쟁점까지 전방위 점검",
+      "source_hash": "e483dfe3bad09c67cc298e16c6cb275eeab4564c1f190da4a86f5a9d78600cfd",
+      "source_hash_preserved": true,
+      "atoms": 204,
+      "topics": 118,
+      "uncertain": 0,
+      "procedural": 18,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 18
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 12,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 45,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "brief_id": "558fcb23-a980-4e2a-9aad-0ab1d6407b87",
+      "headline": "법제사법위원회 임시회 첫날: 대법관 제청 지연·사법부 독립성 논란 등 핵심 쟁점 집중",
+      "source_hash": "8d1eec9d52458c60d42e4b69b3a38e3f71f32e657788e50e1a5d5804de10dc11",
+      "source_hash_preserved": true,
+      "atoms": 30,
+      "topics": 37,
+      "uncertain": 0,
+      "procedural": 1,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 0,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "brief_id": "a6dee964-c2cb-4435-ab53-0896df5b7f2e",
+      "headline": "서울시 및 산하기관 대상 행정안전위원회 국정감사",
+      "source_hash": "94699db8c187075358e60fd6428ebe03ff3c2bd8f9b29c7a4d7a22c0c25222c1",
+      "source_hash_preserved": true,
+      "atoms": 382,
+      "topics": 180,
+      "uncertain": 0,
+      "procedural": 21,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 21
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 15,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 66,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 12,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "brief_id": "468c0a13-cc39-46e5-8647-9c1a9e6f4076",
+      "headline": "제439회 국회 본회, AI·반도체·전기차·부동산·조선업 등 경제 안보와 민생 쟁점 다뤄",
+      "source_hash": "b41f0aaf36a2cfbb94bf8877b9adf42435b03a20509ddcd64b4c7ec389f6c140",
+      "source_hash_preserved": true,
+      "atoms": 186,
+      "topics": 147,
+      "uncertain": 0,
+      "procedural": 1,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 81,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 6,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "brief_id": "8af1d205-b403-4ff0-a8e1-6a17a26ad759",
+      "headline": "제438회 국회(임시회) 제01차 예산결산특별위원회 전체 회의 요약",
+      "source_hash": "9f9ee4a475b5ab3a27bec61ce0cde84ef45f68bb6464d46b7d87c3387f35cb7a",
+      "source_hash_preserved": true,
+      "atoms": 366,
+      "topics": 264,
+      "uncertain": 0,
+      "procedural": 10,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 10
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 170,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 12,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "brief_id": "6070d881-3c41-4052-9ab9-361096062f6f",
+      "headline": "제43회 국무회의",
+      "source_hash": "a2fc391b2d4a60dc8f7e843d9038f999851d1cd62672b8e6a1630ca28bf13dca",
+      "source_hash_preserved": true,
+      "atoms": 94,
+      "topics": 72,
+      "uncertain": 1,
+      "procedural": 0,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 8,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 26,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "brief_id": "ffddc3aa-a102-43b4-a400-691c0d83550f",
+      "headline": "제439회 국회 정기회 제09차 본회의 법안 의결 및 국정감사 대상 기관 승인",
+      "source_hash": "030234d09d39a97a94786ba5c8e340fcd7c1c67fe468546dd04c57480dcb575e",
+      "source_hash_preserved": true,
+      "atoms": 81,
+      "topics": 34,
+      "uncertain": 0,
+      "procedural": 57,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "PROCEDURAL": 57
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 12,
+      "unresolved_clusters": 0,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      }
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "brief_id": "818a59c9-5c9f-46da-9e3f-1989aa6a9ac3",
+      "headline": "제439회 국회 행정안전위원회, 중수청 출범과 인사 청문 절차 지연 논란",
+      "source_hash": "94725f2064b46a9a196aa8a76c50c7a4fc5f0067778a3d6070ca19a625bb28a2",
+      "source_hash_preserved": true,
+      "atoms": 99,
+      "topics": 23,
+      "uncertain": 1,
+      "procedural": 14,
+      "failed": 0,
+      "missing": 0,
+      "review_states": {
+        "SOURCE_LIMITED": 1,
+        "PROCEDURAL": 14,
+        "REQUEST_SOURCE_LIMITED": 1
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 6,
+        "pending_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "eligible_review_atoms": 0,
+      "linked_clusters": 20,
+      "unresolved_clusters": 1,
+      "progress": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      }
+    }
+  ],
+  "baseline": {
+    "report_count": 44,
+    "uncertain": 238,
+    "procedural": 520,
+    "failed": 64,
+    "unresolved_clusters": 122
+  },
+  "original_reports_unchanged": 44,
+  "verification": {
+    "python_tests_passed": 101,
+    "browser": {
+      "results": [
+        {
+          "base": "https://kjon.aigov.go.kr",
+          "summaries": [
+            "회의 진행·의례 원문 18건"
+          ],
+          "collapsed": true,
+          "source_button": true,
+          "mobile": true
+        },
+        {
+          "base": "https://www.minslab.kr/poc/national-assembly",
+          "summaries": [
+            "회의 진행·의례 원문 18건"
+          ],
+          "collapsed": true,
+          "source_button": true,
+          "mobile": true
+        }
+      ],
+      "errors": []
+    },
+    "runtime": {
+      "status": "ok",
+      "scope": "all",
+      "checks": [
+        {
+          "check": "poc07-national-assembly-db",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "db_network_alias",
+          "ok": true
+        },
+        {
+          "check": "db_persistent_volume",
+          "ok": true
+        },
+        {
+          "check": "poc07-national-assembly-api",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-openrouter-gateway",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-live-monitor",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-caption-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-executive-caption-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-schedule-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-summary-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-meeting-brief-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-official-minutes-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-official-integration-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-watch-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-watch-summary-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-notification-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-topic-report-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-review-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "postgres_ready",
+          "ok": true
+        },
+        {
+          "check": "http://127.0.0.1:18070/api/health",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://kjon.aigov.go.kr/",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://kjon.aigov.go.kr/api/health",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://www.minslab.kr/poc/national-assembly/",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+          "ok": true,
+          "http_status": 200
+        }
+      ]
+    },
+    "direct_task_source_regression": {
+      "related_topics": 1,
+      "start": 209,
+      "end": 269
+    },
+    "request_source_browser": {
+      "results": [
+        {
+          "base": "https://kjon.aigov.go.kr",
+          "summaries": [
+            "실시간 논의 재분석 후 원문 불명확 2묶음",
+            "주제 특정이 어려운 자료 요구 2건",
+            "회의 진행·의례 원문 17건"
+          ],
+          "collapsed": true,
+          "source_button": true,
+          "mobile": true
+        },
+        {
+          "base": "https://www.minslab.kr/poc/national-assembly",
+          "summaries": [
+            "실시간 논의 재분석 후 원문 불명확 2묶음",
+            "주제 특정이 어려운 자료 요구 2건",
+            "회의 진행·의례 원문 17건"
+          ],
+          "collapsed": true,
+          "source_button": true,
+          "mobile": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "deployment_image": "poc07-national-assembly-api:auto-topic-20261020"
+}

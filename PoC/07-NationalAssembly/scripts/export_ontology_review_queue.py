@@ -13,15 +13,19 @@ from app.db.connection import connect
 from app.db.live_repository import LiveRepository
 from app.db.meeting_brief_repository import MeetingBriefRepository
 from app.db.official_integration_repository import OfficialIntegrationRepository
+from app.db.topic_structure_repository import TopicStructureRepository
 from app.services.meeting_topic_groups import attach_meeting_topic_groups
 from app.services.meeting_brief import link_tasks_to_topics
 from app.services.ontology_sources import select_current_ontology_brief
+from app.services.ontology_context import review_topic_context, verified_topic_spans
+from app.services.meeting_topic_groups import TARGET_ONTOLOGY
 
 
 FIELDS = (
     "broadcast_id", "broadcast_title", "meeting_brief_id", "official_document_id",
     "official_url", "source_status", "topic_id", "title", "summary",
     "live_evidence_ids", "official_evidence_ids", "review_reason", "review_status",
+    "parent_titles", "source_quotes", "source_revision_ids",
 )
 
 
@@ -42,7 +46,12 @@ def export() -> int:
             brief, source = select_current_ontology_brief(
                 item, integration, document_id,
             )
-            grouped = attach_meeting_topic_groups(link_tasks_to_topics(brief))
+            structure = TopicStructureRepository(connection).ready_current(item) if source == "PROVISIONAL" else None
+            if structure:
+                brief = structure
+            grouped = attach_meeting_topic_groups(
+                link_tasks_to_topics(brief), recover_live_topics=source == "PROVISIONAL" and not structure,
+            )
             topics = {str(topic.get("id")): topic
                       for topic in grouped.get("topics") or []}
             title = connection.execute(
@@ -60,6 +69,8 @@ def export() -> int:
                             == "SOURCE_ONLY_TIMEOUT"
                     )
                     reason = (
+                        review_topic_context(topic, TARGET_ONTOLOGY)["reason"]
+                        if structure else
                         "SOURCE_ONLY_SUMMARY_UNVERIFIED"
                         if source_only
                         else "OFFICIAL_INTEGRATION_PENDING"
@@ -86,6 +97,12 @@ def export() -> int:
                         "official_evidence_ids": "|".join(str(value) for value in official_ids),
                         "review_reason": reason,
                         "review_status": "PENDING_SOURCE_REVIEW",
+                        "parent_titles": " | ".join(dict.fromkeys(
+                            s.get("parent", "") for s in verified_topic_spans(topic))),
+                        "source_quotes": " | ".join(
+                            s["quote"] for s in verified_topic_spans(topic)),
+                        "source_revision_ids": "|".join(dict.fromkeys(
+                            str(rev) for s in verified_topic_spans(topic) for rev in s["revision_ids"])),
                     })
     for row in sorted(rows, key=lambda value: (
         value["broadcast_title"], value["topic_id"],

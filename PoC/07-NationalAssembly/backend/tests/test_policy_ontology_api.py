@@ -32,9 +32,11 @@ class PolicyOntologyApiTests(unittest.TestCase):
         with mock.patch("app.main.connect", fake_connect), \
              mock.patch("app.main.get_settings") as settings, \
              mock.patch("app.main.MeetingBriefRepository") as briefs, \
+             mock.patch("app.main.TopicStructureRepository") as structures, \
              mock.patch("app.main.LiveRepository") as live, \
              mock.patch("app.main.OfficialIntegrationRepository") as integrations:
             settings.return_value.database_url = "unused"
+            structures.return_value.ready_current.return_value = None
             briefs.return_value.latest_all.return_value = items
             live.return_value.broadcast_official_context.side_effect = [
                 {"official_document_id": current_document}, None,

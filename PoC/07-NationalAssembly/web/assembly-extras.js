@@ -16,6 +16,7 @@
     items: [],
     loadedKey: "",
     loading: false,
+    loadedAt: 0,
     retryAttempt: 0,
     retryTimer: null,
   };
@@ -39,6 +40,7 @@
     wired: false,
     scene3d: null,
     force2d: false,
+    loading: false,
   };
   const svgNamespace = "http://www.w3.org/2000/svg";
   let ontology3dLoader = null;
@@ -46,7 +48,7 @@
   async function loadOntology3DEngine() {
     if (window.AssemblyOntology3D) return window.AssemblyOntology3D;
     if (!ontology3dLoader) {
-      ontology3dLoader = import("./ontology-starmap.js?v=20260917-4")
+      ontology3dLoader = import("./ontology-starmap.js?v=20261019-refresh-1")
         .then(() => window.AssemblyOntology3D);
     }
     return ontology3dLoader;
@@ -716,7 +718,7 @@
       ontologyMetric("공식 대조본", Number(metrics.official_report_count || 0).toLocaleString()),
       ontologyMetric("정책 주제", `${Number(metrics.policy_topic_count || 0).toLocaleString()}건`),
       ontologyMetric("분류된 주제", `${Number(metrics.ontology_topic_count || 0).toLocaleString()}건`),
-      ontologyMetric("온톨로지 적용률", `${coverage.toFixed(1)}%`, coverage >= 95 ? "is-good" : "is-review"),
+      ontologyMetric("공통 분류 연결률", `${coverage.toFixed(1)}%`, coverage >= 95 ? "is-good" : "is-review"),
       ontologyMetric("분류 보류", `${Number(metrics.unclassified_topic_count || 0).toLocaleString()}건`, Number(metrics.unclassified_topic_count || 0) ? "is-review" : "is-good"),
       ontologyMetric("초안 산출물", `${Number(metrics.report_artifact_topic_count || 0).toLocaleString()}건`, Number(metrics.report_artifact_topic_count || 0) ? "is-review" : "is-good"),
       ontologyMetric("무결성 오류", `${Number(metrics.integrity_failure_count || 0).toLocaleString()}건`, Number(metrics.integrity_failure_count || 0) ? "is-review" : "is-good"),
@@ -736,21 +738,28 @@
         element("span", "", String(payload.version || "ONTOLOGY").replace("assembly-meeting-topic-grouping/", "ONTOLOGY ").toUpperCase()),
         element("h3", "", payload.root?.title || "국정 온톨로지"),
         element("p", "", "회의 보고서의 세부 주제를 정책 대상으로 묶는 현재 운영 분류 체계입니다."),
+        element("p", "", `연결률은 정책 주제 중 공통 분류에 연결된 비율입니다. 문맥·원문으로 보완한 ${Number(metrics.context_topic_count || 0).toLocaleString()}건 중 AI 의미 분류·재검증 ${Number(metrics.semantic_topic_count || 0).toLocaleString()}건이 포함됩니다. AI 검토는 잠정 분류이며, 연결률은 사실 정확도나 공식 확정 비율을 뜻하지 않습니다.`),
       );
+      if (Number(metrics.structured_report_count || 0) > 0) {
+        target.append(element("p", "assembly-ontology-coverage-basis", `현재 집계는 공식 대조본 ${Number(metrics.official_report_count || 0).toLocaleString()}건과 전체 구조화 보고서 ${Number(metrics.structured_report_count).toLocaleString()}건 등의 정책 주제를 대상으로 합니다. 연결 ${Number(metrics.ontology_topic_count || 0).toLocaleString()}건 ÷ 정책 주제 ${Number(metrics.policy_topic_count || 0).toLocaleString()}건 = ${coverage.toFixed(1)}%입니다. 요약 중심으로 집계하던 과거 비율과는 대상·분모가 다릅니다. 세분화된 쟁점의 공통 분류 보완은 아직 진행이 필요합니다.`));
+      }
+      if (Number.isFinite(metrics.semantic_reviewed_topic_count)) {
+        target.append(element("p", "", `저장된 AI 의미 검토 ${metrics.semantic_reviewed_topic_count.toLocaleString()}건 중 분류와 근거 검증을 통과한 결과를 반영했습니다. 분류가 다르거나 인용이 맞지 않는 결과는 보류합니다.`));
+      }
       const stats = element("dl");
       stats.append(
         element("dt", "", "정책 영역"), element("dd", "", `${domains.length}개`),
         element("dt", "", "세부 분류"), element("dd", "", `${(payload.groups || []).length}개`),
         element("dt", "", "전체 세부 주제"), element("dd", "", Number(metrics.topic_count || 0).toLocaleString() + "건"),
         element("dt", "", "정책 주제"), element("dd", "", Number(metrics.policy_topic_count || 0).toLocaleString() + "건"),
-        element("dt", "", "온톨로지 적용률"), element("dd", "", coverage + "%"),
+        element("dt", "", "공통 분류 연결률"), element("dd", "", coverage + "%"),
         element("dt", "", "분류 보류"), element("dd", "", Number(metrics.unclassified_topic_count || 0).toLocaleString() + "건"),
         element("dt", "", "초안·대화 산출물"), element("dd", "", Number(metrics.report_artifact_topic_count || 0).toLocaleString() + "건"),
       );
       const status = element("div", Number(metrics.integrity_failure_count || 0) ? "assembly-ontology-status is-review" : "assembly-ontology-status");
       status.textContent = Number(metrics.integrity_failure_count || 0)
         ? `무결성 재검토 ${Number(metrics.integrity_failure_count).toLocaleString()}개 보고서`
-        : "모든 세부 주제가 중복·누락 없이 한 번씩 묶였습니다.";
+        : "그룹 내 중복·누락은 없습니다. 분류 보류 항목은 별도 검토가 필요합니다.";
       target.append(stats, status);
       return;
     }
@@ -810,6 +819,32 @@
     const keywords = element("div", "assembly-ontology-keywords");
     (node.keywords || []).forEach((keyword) => keywords.append(element("span", "", keyword)));
     target.append(keywords);
+    if ((node.context_keywords || []).length) {
+      target.append(element("h4", "", "원문 확인이 필요한 보완 정책어"));
+      const contextKeywords = element("div", "assembly-ontology-keywords");
+      node.context_keywords.forEach(keyword => contextKeywords.append(element("span", "", keyword)));
+      target.append(contextKeywords);
+    }
+    if ((node.context_patterns || []).length) {
+      target.append(element("h4", "", "함께 확인하는 정책 표현"));
+      target.append(element("p", "", node.context_patterns.join(" · ")));
+    }
+    if ((node.context_examples || []).length) {
+      target.append(element("h4", "", `문맥·원문 연결 ${Number(node.context_topic_count || 0).toLocaleString()}건 · 예시`));
+      if (node.semantic_topic_count) {
+        target.append(element("p", "", `이 중 AI 의미 분류·재검증 ${Number(node.semantic_topic_count).toLocaleString()}건 · 잠정 연결`));
+      }
+      node.context_examples.forEach(example => {
+        target.append(element("p", "", example.topic_title));
+        target.append(element("blockquote", "", example.supporting_span.quote));
+        const semantic = example.method === "SEMANTIC_TWO_STAGE_SOURCE_REVIEW";
+        const relocated = example.supporting_span.context_origin === "SAME_UTTERANCE_TITLE_ANCHORS";
+        target.append(element("small", "", `잠정 자료 · ${semantic ? "AI 의미 분류·재검증" : "정책 표현·원문 대조"} · ${relocated ? "같은 발언에서 찾은 관련 원문 구간" : "해당 쟁점에 저장된 원문 구간"}`));
+        if (semantic && example.supporting_span.review_reason) {
+          target.append(element("p", "", `검토 사유: ${example.supporting_span.review_reason}`));
+        }
+      });
+    }
   }
 
   function ontologyLayout(width, height) {
@@ -1065,28 +1100,56 @@
     }).observe(canvas);
   }
 
-  async function openOntologyMap() {
+  async function openOntologyMap(options = {}) {
     const dialog = document.querySelector("#assemblyOntologyDialog");
     if (!dialog.open) dialog.showModal();
+    if (ontologyState.loading) return;
     wireOntologyCanvas();
     const engineLoad = loadOntology3DEngine().catch((error) => {
       ontologyState.force2d = true;
       document.querySelector("#assemblyOntologyCanvas").dataset.rendererError = String(error?.message || error || "MODULE_LOAD_FAILED");
     });
-    if (!ontologyState.payload) {
+    if (!ontologyState.payload || options.force === true || Date.now() - ontologyState.loadedAt > 60000) {
+      ontologyState.loading = true;
+      const refreshButton = document.querySelector("#assemblyOntologyRefresh");
+      if (refreshButton) refreshButton.disabled = true;
+      const status = document.querySelector("#assemblyOntologyLoadStatus");
+      status.hidden = false;
+      status.textContent = "보고서의 주제 연결을 불러오고 있습니다…";
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000);
       document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "불러오는 중"));
       document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "현재 온톨로지 구성을 불러오는 중입니다."));
       try {
-        const response = await fetch("api/policy/ontology", { cache: "no-store", headers: { Accept: "application/json" } });
+        const response = await fetch("api/policy/ontology", { cache: "no-store", signal: controller.signal, headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("ontology");
-        ontologyState.payload = await response.json();
+        const payload = await response.json();
+        cancelAnimationFrame(ontologyState.animation);
+        ontologyState.scene3d?.dispose();
+        ontologyState.scene3d = null;
+        ontologyState.payload = payload;
+        ontologyState.loadedAt = Date.now();
+        ontologyState.selected = null;
+        ontologyState.activeDomain = "";
+        ontologyState.zoom = 1;
+        ontologyState.panX = ontologyState.panY = 0;
         renderOntologyMetrics(ontologyState.payload);
         renderOntologyLegend(ontologyState.payload);
         renderOntologyDetail(null);
+        status.hidden = true;
       } catch (_) {
+        status.textContent = "불러오지 못했습니다. 다시 시도해 주세요.";
         document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "연결 실패", "is-review"));
         document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "온톨로지 구성을 불러오지 못했습니다."));
+        const retry = element("button", "assembly-ontology-open", "다시 시도");
+        retry.type = "button";
+        retry.addEventListener("click", () => openOntologyMap({ force: true }));
+        document.querySelector("#assemblyOntologyDetail").append(retry);
         return;
+      } finally {
+        clearTimeout(timeout);
+        ontologyState.loading = false;
+        if (refreshButton) refreshButton.disabled = false;
       }
     }
     await engineLoad;
@@ -1400,6 +1463,7 @@
     if (event.target === event.currentTarget) event.currentTarget.close();
   });
   document.querySelector("#assemblyOntologyOpen")?.addEventListener("click", openOntologyMap);
+  document.querySelector("#assemblyOntologyRefresh")?.addEventListener("click", () => openOntologyMap({ force: true }));
   document.querySelector("#assemblyOntologyReset")?.addEventListener("click", resetOntologyView);
   document.querySelector("#assemblyOntologyClose")?.addEventListener("click", () => {
     document.querySelector("#assemblyOntologyDialog")?.close();

@@ -8,6 +8,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Abort before stopping healthy services if the deployed DB cannot recover safely.
+python3 "${SCRIPT_DIR}/check_runtime.py" --scope database
 PROJECT_ENV="${PROJECT_DIR}/.env"
 IMAGE="${POC07_IMAGE:-poc07-national-assembly-api:local}"
 NETWORK="poc07-national-assembly"

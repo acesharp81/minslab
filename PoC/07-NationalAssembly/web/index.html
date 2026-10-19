@@ -7,9 +7,9 @@
     <title>국정ON</title>
     <link rel="stylesheet" href="assets/styles.css?v=20260903-11" />
     <link rel="stylesheet" href="assets/topic-reports.css?v=20260917-4" />
-    <link rel="stylesheet" href="assets/assembly-extras.css?v=20260917-4" />
+    <link rel="stylesheet" href="assets/assembly-extras.css?v=20261019-refresh-1" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20261007-1" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20261019-task-source-4" />
     <link rel="stylesheet" href="assets/official-integration.css?v=20260921-1" />
     <link rel="stylesheet" href="assets/watch-alerts.css?v=20260903-5" />
   </head>
@@ -354,12 +354,16 @@
       <div class="assembly-ontology-shell">
         <header>
           <div><span>POLICY KNOWLEDGE CONSTELLATION</span><h2 id="assemblyOntologyTitle">국정 온톨로지 3D 스타맵</h2><p id="assemblyOntologyMeta">현재 분류 체계와 저장 보고서 적용 현황</p></div>
-          <button id="assemblyOntologyClose" type="button" aria-label="온톨로지 스타맵 닫기">×</button>
+          <div class="assembly-ontology-actions">
+            <button id="assemblyOntologyRefresh" type="button" aria-label="온톨로지 데이터 새로고침">새로고침</button>
+            <button id="assemblyOntologyClose" type="button" aria-label="온톨로지 스타맵 닫기">×</button>
+          </div>
         </header>
         <div class="assembly-ontology-metrics" id="assemblyOntologyMetrics" aria-live="polite"></div>
         <div class="assembly-ontology-body">
           <section class="assembly-ontology-stage" aria-label="국정 온톨로지 관계도">
             <canvas id="assemblyOntologyCanvas"></canvas>
+            <p class="assembly-ontology-load-status" id="assemblyOntologyLoadStatus" role="status" hidden></p>
             <div class="assembly-ontology-legend" id="assemblyOntologyLegend"></div>
             <button class="assembly-ontology-reset" id="assemblyOntologyReset" type="button" title="전체 보기" aria-label="스타맵 전체 보기">↺</button>
           </section>
@@ -370,10 +374,10 @@
 
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
     <script src="assets/official-integration.js?v=20260927-2" defer></script>
-    <script src="assets/app.js?v=20261007-4" defer></script>
+    <script src="assets/app.js?v=20261020-context-review-final" defer></script>
     <script src="assets/watch-alerts.js?v=20260904-3" defer></script>
     <script src="assets/topic-reports.js?v=20260923-1" defer></script>
-    <script src="assets/assembly-extras.js?v=20260927-1" defer></script>
+    <script src="assets/assembly-extras.js?v=20261019-coverage-basis-1" defer></script>
     <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

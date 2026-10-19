@@ -30,29 +30,27 @@ def _unique_values(tasks: list[dict[str, Any]], field: str) -> list[str]:
     ))
 
 
+def is_document_submission_task(task: dict[str, Any]) -> bool:
+    return task.get("task_kind") == "DOCUMENT_SUBMISSION" or bool(
+        _DOCUMENT_REQUEST.search(str(task.get("title") or ""))
+        and not _OTHER_ACTION.search(str(task.get("title") or "")))
+
+
 def group_document_submission_tasks(brief: dict[str, Any]) -> list[dict[str, Any]]:
-    """Group same-meeting document requests without losing each request's source."""
-    requests = [
-        task for task in brief.get("tasks") or []
-        if isinstance(task, dict)
-        and task.get("id")
-        and task.get("status") != "RESOLVED"
-        and _DOCUMENT_REQUEST.search(str(task.get("title") or ""))
-        and not _OTHER_ACTION.search(str(task.get("title") or ""))
-    ]
-    if len(requests) < 2:
-        return []
+    """Optional within-topic metadata only; never merge requests across subjects."""
+    by_topic: dict[str, list[dict[str, Any]]] = {}
+    for task in brief.get("tasks") or []:
+        if not isinstance(task, dict) or not task.get("id") or task.get("status") == "RESOLVED":
+            continue
+        ids = task.get("related_topic_ids") or ([task["topic_id"]] if task.get("topic_id") else [])
+        if len(ids) == 1 and is_document_submission_task(task):
+            by_topic.setdefault(str(ids[0]), []).append(task)
     return [{
-        "id": "task-group-document-submission",
-        "kind": "DOCUMENT_SUBMISSION",
-        "title": "자료 제출 요구",
-        "task_count": len(requests),
-        "task_ids": [str(task["id"]) for task in requests],
-        "topic_ids": list(dict.fromkeys(
-            str(task["topic_id"])
-            for task in requests if task.get("topic_id")
-        )),
-        "ministries": _unique_values(requests, "ministries"),
-        "evidence_ids": _unique_values(requests, "evidence_ids"),
-        "official_evidence_ids": _unique_values(requests, "official_evidence_ids"),
-    }]
+        "id": "task-group-document-submission-" + topic_id,
+        "kind": "DOCUMENT_SUBMISSION", "scope": "TOPIC",
+        "title": "자료 제출 요구", "task_count": len(tasks),
+        "task_ids": [str(t["id"]) for t in tasks], "topic_ids": [topic_id],
+        "ministries": _unique_values(tasks, "ministries"),
+        "evidence_ids": _unique_values(tasks, "evidence_ids"),
+        "official_evidence_ids": _unique_values(tasks, "official_evidence_ids"),
+    } for topic_id, tasks in by_topic.items() if len(tasks) > 1]

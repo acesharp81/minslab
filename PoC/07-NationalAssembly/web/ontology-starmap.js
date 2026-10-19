@@ -101,6 +101,7 @@ function lineBetween(from, to, color, opacity = .32) {
 }
 
 function createStarmap(canvas, payload, callbacks = {}) {
+  const inputEvents = new AbortController();
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x02040b);
   scene.fog = new THREE.FogExp2(0x02040b, .021);
@@ -356,7 +357,7 @@ function createStarmap(canvas, payload, callbacks = {}) {
     moved = false;
     lastX = event.clientX;
     lastY = event.clientY;
-  });
+  }, { signal: inputEvents.signal });
   canvas.addEventListener("pointermove", (event) => {
     const rect = canvas.getBoundingClientRect();
     pointerTarget.x = ((event.clientX - rect.left) / rect.width - .5) * 2;
@@ -373,7 +374,7 @@ function createStarmap(canvas, payload, callbacks = {}) {
     }
     hovered = pick(event);
     canvas.style.cursor = hovered ? "pointer" : "grab";
-  });
+  }, { signal: inputEvents.signal });
   canvas.addEventListener("pointerup", (event) => {
     if (!moved) {
       const object = pick(event);
@@ -385,16 +386,16 @@ function createStarmap(canvas, payload, callbacks = {}) {
       }
     }
     dragging = false;
-  });
+  }, { signal: inputEvents.signal });
   canvas.addEventListener("pointerleave", () => {
     dragging = false;
     hovered = null;
     pointerTarget.set(0, 0);
-  });
+  }, { signal: inputEvents.signal });
   canvas.addEventListener("wheel", (event) => {
     event.preventDefault();
     targetCameraZ = Math.max(24, Math.min(49, targetCameraZ + event.deltaY * .018));
-  }, { passive: false });
+  }, { passive: false, signal: inputEvents.signal });
 
   const clock = new THREE.Clock();
   function animate() {
@@ -450,6 +451,28 @@ function createStarmap(canvas, payload, callbacks = {}) {
     stop() {
       running = false;
       cancelAnimationFrame(frame);
+    },
+    dispose() {
+      running = false;
+      cancelAnimationFrame(frame);
+      inputEvents.abort();
+      const disposed = new Set();
+      const release = (resource) => {
+        if (resource && !disposed.has(resource)) {
+          disposed.add(resource);
+          resource.dispose();
+        }
+      };
+      scene.traverse((object) => {
+        release(object.geometry);
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.filter(Boolean).forEach((material) => {
+          Object.values(material).filter(value => value?.isTexture).forEach(release);
+          release(material);
+        });
+      });
+      renderer.dispose();
+      delete canvas.dataset.renderer;
     },
     resize,
     reset,

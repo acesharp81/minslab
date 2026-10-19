@@ -1,5 +1,67 @@
 # Operations
 
+## 서버 재부팅 후 DB 복구와 자동 재시작 점검
+
+2026-10-19 20:33(KST) 서버 재부팅 때 PostgreSQL이 정상 종료됐지만, 운영 DB 컨테이너의 실제 restart policy가 `no`여서 재부팅 후 DB가 기동되지 않았다. API·워커는 `db` 이름을 해석하지 못해 재시작을 반복했고, 전용 도메인은 502, 기존 경로는 503을 반환했다. Compose의 DB 설정은 이미 `unless-stopped`였으므로 파일 설정과 실제 컨테이너 설정이 달랐다.
+
+기존 볼륨 `poc07_national_assembly_pgdata`를 연결한 컨테이너를 그대로 기동하고 실제 정책을 수정했다. 23:42경 DB가 연결을 받기 시작했으며, 이후 두 주소의 HTML·정적 자산·health·보고서 조회가 모두 200으로 복구됐다. DB를 재생성하거나 초기화할 필요는 없었다.
+
+재부팅 전후에는 Compose 파일뿐 아니라 실제 컨테이너 설정을 확인한다.
+
+```bash
+sudo docker inspect --format 'status={{.State.Status}} restart={{.HostConfig.RestartPolicy.Name}}' poc07-national-assembly-db
+sudo docker exec poc07-national-assembly-db pg_isready -U national_assembly -d national_assembly
+```
+
+DB가 중단되고 자동 복귀 설정이 빠진 장애의 복구 명령은 다음과 같다.
+
+```bash
+sudo docker update --restart unless-stopped poc07-national-assembly-db
+sudo docker start poc07-national-assembly-db
+sudo docker exec poc07-national-assembly-db pg_isready -U national_assembly -d national_assembly
+```
+
+`accepting connections` 이후 API·워커의 재시도 복귀를 확인한다. API가 재시작 지연 중이면 해당 컨테이너만 재시작한다. `pg_isready`는 계정을 명시한다. 기본 root 계정으로 실행하면 불필요한 role 오류가 DB 로그에 남을 수 있다.
+
+```bash
+sudo docker restart poc07-national-assembly-api
+curl -fsS https://kjon.aigov.go.kr/api/health
+curl -fsS https://www.minslab.kr/poc/national-assembly/api/health
+```
+
+DB 컨테이너를 명시적으로 수동 중지한 경우 `unless-stopped`는 그 중지 의도를 유지한다. 재부팅만으로 서비스가 복귀해야 하는 운영 중 상태에서 실제 정책·기동 여부를 함께 확인한다.
+
+## 재발 방지 자동 점검과 배포 차단
+
+2026-10-19 복구 이후 실제 서버에 `poc07-runtime-check.timer`를 설치했다. 부팅 60초 후 첫 점검, 이후 약 1분마다 `scripts/check_runtime.py`를 실행한다. Docker·Nginx의 부팅 자동 시작과 운영 컨테이너 16개의 `unless-stopped` 설정을 확인했다.
+
+자동 점검은 다음 25개 항목을 확인한다.
+
+- 운영 컨테이너 16개의 실행 상태와 실제 restart policy. rollback·backup 컨테이너는 대상에서 제외한다.
+- DB의 `db` 네트워크 별칭, 기존 영구 볼륨 `poc07_national_assembly_pgdata`, PostgreSQL 연결 준비 상태.
+- 내부 health, DB를 실제 조회하는 방송 목록 API, 두 공인 주소의 HTML·health 응답 6개.
+
+실행 중인 대상 컨테이너의 restart policy가 변경되면 `unless-stopped`로 복원하고 다시 조회해 적용 여부를 확인한다. 컨테이너를 재생성하거나 서비스를 재시작하지 않는다. 중지된 컨테이너를 자동 기동하지 않으므로 운영자가 의도한 수동 중지는 유지된다. HTTP·DB·컨테이너 오류는 systemd 실패 상태와 journal에 기록하며 외부 메시지를 발송하지 않는다.
+
+API·일반 워커·수집 워커 배포 스크립트는 기존 컨테이너를 중지하기 **전에** `check_runtime.py --scope database`를 실행한다. DB가 중단됐거나 정책·볼륨·네트워크가 다르면 배포를 중단한다. 이 사전 점검은 설정을 자동 변경하지 않는다.
+
+설치와 확인:
+
+```bash
+sudo bash scripts/install_runtime_check.sh
+sudo systemctl is-enabled poc07-runtime-check.timer
+sudo systemctl list-timers poc07-runtime-check.timer
+sudo systemctl show poc07-runtime-check.service -p Result -p ExecMainStatus
+sudo journalctl -u poc07-runtime-check.service -n 10 --no-pager
+sudo python3 scripts/check_runtime.py --scope all
+```
+
+계획된 점검 중에는 `sudo systemctl stop poc07-runtime-check.timer`, 점검 후에는 `sudo systemctl start poc07-runtime-check.timer`로 정기 점검을 제어한다. 부팅 자동 등록을 없애는 명령은 아니다.
+
+설정 누락·DB 중단·수동 중지 유지·볼륨/별칭 오류·502 및 잘못된 health 응답·정책 변경 후 재조회·배포 중단을 8개 테스트로 검증했다. 테스트용 실행 파일로 배포 사전 점검 실패를 재현해 실제 Docker에 접근하지 않고 기존 서비스를 중지하기 전에 배포가 종료되는 것을 확인했다. 운영 서버 재부팅은 수행하지 않았다. 기존 서비스와 재부팅 설정을 유지한 채 정책·자동 타이머·장애 모의를 검증했다.
+
+[실제 적용 확인 기록](RUNTIME_PREVENTION_20261019.json)
+
 ## KJON 공인 도메인과 인증서
 
 - 운영 주소: `https://kjon.aigov.go.kr/`. 기존 `https://www.minslab.kr/poc/national-assembly/` 주소는 유지한다. `/poc/kjon`은 PoC7의 기존 경로가 아니므로 도메인 매핑에 사용하지 않는다.
@@ -369,3 +431,16 @@ PYTHONPATH=backend python3 -m app.ingestion.live_regression_audit --limit 20
 ~~~
 
 실방송 audit가 `PENDING`이면 실패나 통과로 바꾸지 않습니다. 실제 final 자막 또는 종료 후 공식 통합이 아직 관측되지 않았다는 뜻입니다. `REVIEW_REQUIRED`는 final 부재나 cursor 중복처럼 운영자가 확인해야 할 조건입니다.
+
+### 미분류 논의의 자동 처리 (2026-10-20)
+
+meeting worker의 회의 보고서 처리 후 구조화 실패 재시도 → 문맥 자동 재분류 → 온톨로지 분류가 실행된다. 종료된 회의만 처리하고 보고서별 advisory lock으로 중복 모델 호출을 막는다. 정상 배치·원문·기존 응답은 보존한다. API 재배포와 meeting worker 재배포에 같은 이미지를 사용한다.
+
+- 운영 점검: `scripts/audit_structure_review.py`를 backend 환경에서 실행하면 전체 보고서의 실패·보류·절차 수와 근거 구간 일치 여부를 JSON으로 출력한다.
+- 특정 보고서의 통신 실패 복구: `python -m app.ingestion.topic_structure_worker --broadcast-id <id> --repair`. 30분 cooldown과 총 9회 상한을 지킨다.
+- 문맥 재분류: `python -m app.ingestion.structure_review_worker --all --batch-limit 12`. 정상 운영은 회차당 1보고서·1배치이며 이 명령은 기존 적체 처리에 쓴다.
+- UI는 자동 재분류 대기, 분석 지연, 재분석 후 원문 불명확, 회의 진행·의례를 접힌 목록으로 분리한다. 대기 수를 사람의 확인 업무로 표시하지 않는다.
+
+기존 적체를 일괄 처리할 때 `--workers 3`을 추가할 수 있다. 보고서별 잠금·NIM 호출 간격·OpenAI 토큰 예약은 동일하게 적용한다. 자료 요구 자체가 파악됐지만 주제 연결이 빠진 경우도 자동 재분류 대상이다. 원문이 부족한 결과와 아직 미처리인 결과를 합쳐 완료라고 표시하지 않는다.
+
+2026-10-20 적용 이미지는 `poc07-national-assembly-api:auto-topic-20261020`이며 API와 meeting worker에 동일하게 적용했다. 전체 재분류 점검은 `docs/AUTO_TOPIC_CLASSIFICATION_20261020.md`와 JSON에 기록한다. 기능 관련 테스트 101개, 두 도메인의 보조 목록·원문 버튼·모바일 확인, 원문 해시/위치 전수 검증을 수행했다.

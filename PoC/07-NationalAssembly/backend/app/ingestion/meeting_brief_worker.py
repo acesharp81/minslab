@@ -1084,6 +1084,19 @@ def main() -> None:
             ),
             flush=True,
         )
+        if not args.broadcast_id and not any(x.get("status") in {"PROCESSING", "DEFERRED"} for x in output):
+            try:
+                from .topic_structure_worker import process_available as structure_available
+                print(json.dumps({"event": "topic_structure.run", "items": structure_available()},
+                                 ensure_ascii=False), flush=True)
+                from .structure_review_worker import process_available as review_available
+                print(json.dumps({"event": "structure_review.run", "items": review_available()},
+                                 ensure_ascii=False), flush=True)
+                from .ontology_review_worker import process_available as ontology_available
+                print(json.dumps({"event": "ontology_review.run", "items": ontology_available()},
+                                 ensure_ascii=False), flush=True)
+            except Exception as exc:
+                print(json.dumps({"event": "topic_structure.error", "error": safe_brief_error_code(exc)}), flush=True)
         if args.once or args.broadcast_id:
             return
         time.sleep(args.interval)

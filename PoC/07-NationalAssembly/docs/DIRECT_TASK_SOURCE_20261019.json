@@ -1,0 +1,553 @@
+{
+  "projection_version": "1.4",
+  "report_count": 43,
+  "source_spans_verified": 912,
+  "additional_model_calls": 0,
+  "reports": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "headline": "제439회 국회 본회의, 총리 출석 문제와 정부 과제에 대한 심의",
+      "source_hash": "313b185a5bddf35e3b0461d7b54d4126f0b41b44deaff489e27b548b654ed7f6",
+      "original_tasks": 20,
+      "multi_link_before": 7,
+      "multi_link_after": 0,
+      "direct_source_tasks": 8,
+      "source_review_tasks": 12,
+      "target": null
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "headline": "제439회 국회(정기회) 제06차 본회의 종합 브리프",
+      "source_hash": "7e6d89cd9553f76fabb8f37b1644b2eadd8773f99cc16975364b6634ec844b0a",
+      "original_tasks": 20,
+      "multi_link_before": 9,
+      "multi_link_after": 0,
+      "direct_source_tasks": 10,
+      "source_review_tasks": 10,
+      "target": null
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "headline": "경기도 재정위기·자치권한·치안 현안이 집중된 행정안전위 국정감사",
+      "source_hash": "a8e00135a3cd0ee5491b88d53669c1576879b18a570ca919af78ccf5cfc2b4d9",
+      "original_tasks": 20,
+      "multi_link_before": 8,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "headline": "제439회 국회(정기회) 제06차 법제사법위원회 특별감찰관 임명 청문회 및 감찰 제도 논의",
+      "source_hash": "0cf5a4fa9ba528420475b52942dbcb40ddcb156ec7474abe95215c0266527baa",
+      "original_tasks": 20,
+      "multi_link_before": 16,
+      "multi_link_after": 0,
+      "direct_source_tasks": 7,
+      "source_review_tasks": 13,
+      "target": null
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "headline": "제438회 국회 임시회 법제사법위원회, 중수청·보완수사권·탄소중립법·방송법 핵심 쟁점 심사",
+      "source_hash": "91c8fe6912b648995cec622fbdc6f6db2963ba355406532fad7416be3ffcdb9e",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 0,
+      "direct_source_tasks": 10,
+      "source_review_tasks": 10,
+      "target": null
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "headline": "제439회 국회 법제사법위원회, 증인 문제와 대법원장 의혹 논의",
+      "source_hash": "692b5db3e3e52549249a2c51e780b3dac955aa9cf3645b45d36f7b786825a3d2",
+      "original_tasks": 7,
+      "multi_link_before": 0,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 1,
+      "target": null
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "headline": "법제사법위원회 고위공직자범죄수사처 국정감사 및 헌법재판소 감사",
+      "source_hash": "b75caad89e9d8c14ad19de24430e4bba7c61c5e1dfd87ba5ce84e73334f0f60d",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 0,
+      "direct_source_tasks": 8,
+      "source_review_tasks": 12,
+      "target": null
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "headline": "제439회 국회(정기회) 제01차 법제사법위원회 회의 브리프",
+      "source_hash": "eb26875e306664ef0c76b3aadc9a5fb055d05c89450410d1cb6b7c28dc2eee1b",
+      "original_tasks": 20,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "headline": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "source_hash": "c99a96ef697a4a6f3ab80201708722e92994c8d4f7ab084cda11e1376801f5ba",
+      "original_tasks": 20,
+      "multi_link_before": 2,
+      "multi_link_after": 0,
+      "direct_source_tasks": 7,
+      "source_review_tasks": 13,
+      "target": null
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "headline": "예산결산특별위원회, 주택·지방재정·미래대응기금 등 쟁점 다수 논의",
+      "source_hash": "0e93ee8fadc9240b2bd6c3bd5422cbfe28f65f9c351ed547f96b74b98703c644",
+      "original_tasks": 20,
+      "multi_link_before": 13,
+      "multi_link_after": 0,
+      "direct_source_tasks": 14,
+      "source_review_tasks": 6,
+      "target": null
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "headline": "행안위 경찰청 국감, 수사 통계 왜곡·제식구 감싸기·전기충격기 사업 불공정 등 개혁 실효성 집중 추궁",
+      "source_hash": "e00a8e74ecdf00ad68c78ea41b30f8e3b7ecd66fa84f8e353486158e81a510b8",
+      "original_tasks": 20,
+      "multi_link_before": 3,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "headline": "제44회 국무회의, 복지·자살예방·북극항로·조세정의 등 민생·국익 현안 종합 점검",
+      "source_hash": "aca840ab9d3b51bbe68b4c0e147ee37c2af4513c811cae427700a3f654f278b1",
+      "original_tasks": 20,
+      "multi_link_before": 8,
+      "multi_link_after": 0,
+      "direct_source_tasks": 14,
+      "source_review_tasks": 6,
+      "target": null
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "headline": "제439회 법제사법위원회, 중수청 및 인사청문, 특별법·법안 의결 핵심 논의",
+      "source_hash": "a477ba5b58ec87941248476d7b280612c6740ff578cbf1b605ac674f6677adfe",
+      "original_tasks": 13,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 7,
+      "target": null
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "headline": "제439회 국회 법제사법위원회 인사청문회 및 검찰개혁 논의",
+      "source_hash": "bf513f420fa66be236e65c5140c31202f03357a2ac4095e027329bfdae8e0a8f",
+      "original_tasks": 20,
+      "multi_link_before": 13,
+      "multi_link_after": 1,
+      "direct_source_tasks": 11,
+      "source_review_tasks": 9,
+      "target": null
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "headline": "제38회 국무회의: 민생 대개혁, 예산 편성, 채불 대책, 청년 정책, 실종 대응 등 주요 과제 논의",
+      "source_hash": "6917cc006a1ef32ca8095c414bc07f1b242dcce3d26641981e060a28fda9b7e7",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 0,
+      "direct_source_tasks": 5,
+      "source_review_tasks": 15,
+      "target": null
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "headline": "제439회 국회 행정안전위원회, 결산 승인 및 중수청법 논의",
+      "source_hash": "a60800a5a870626823266e5c2a61a6b52c37484b411527773b3fb857fbc1230e",
+      "original_tasks": 15,
+      "multi_link_before": 4,
+      "multi_link_after": 1,
+      "direct_source_tasks": 11,
+      "source_review_tasks": 4,
+      "target": null
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "headline": "제438회 국회 임시회 행안위, 중수청 출범·재난 대응·소방 쇄신 등 24개 핵심 쟁점 논의",
+      "source_hash": "f777ea1350e2716d6f243fb3cf1441014ef1ea986a7828fb8154734528c32c63",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 1,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "headline": "제439회 국회(정기회) 제03차 행정안전위원회: 지방의회법 제정 및 정책지원관 확대 논의",
+      "source_hash": "c8a36c5f850f34f49d291a30db75dbbe33b43396544d9958d1a10446d52a9d57",
+      "original_tasks": 20,
+      "multi_link_before": 3,
+      "multi_link_after": 0,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "headline": "법제처·군사법원 국정감사에서 헌법 해석, 입법 검토, 군 인권·안보 현안이 집중 질의된 회의",
+      "source_hash": "d2b3716c092e467950bc045e85cf0baa899bc21304a74bf787f6eec7cb66d2f6",
+      "original_tasks": 12,
+      "multi_link_before": 3,
+      "multi_link_after": 0,
+      "direct_source_tasks": 8,
+      "source_review_tasks": 4,
+      "target": {
+        "id": "structured-task-a7839a2a78f004a1",
+        "title": "국정감사 지적사항 검토 및 업무 개선 반영",
+        "status": "OPEN",
+        "topic_id": "structured-topic-3d8e225a18d768d4",
+        "ministries": [
+          "법제처"
+        ],
+        "owner_basis": "EXPLICIT",
+        "topic_title": "법제처 국정감사 개회와 업무보고",
+        "evidence_ids": [
+          "3c562adb-8e63-406a-bc37-53828d1d9684:1"
+        ],
+        "source_task_id": "task-1",
+        "task_evidence_spans": [
+          {
+            "atom_id": "a-aa0e68cc3f47c7e8",
+            "evidence_id": "3c562adb-8e63-406a-bc37-53828d1d9684:1",
+            "start": 209,
+            "end": 269,
+            "quote": "이번 국정감사를 통해 여러 위원님들께서 지적해 주시는 사항은 빠짐없이 검토하여 업무 개선의 기회로 삼겠습니다",
+            "content_hash": "c3128cf2868b55ec1157554a1e5933637268d41d1282e196d87df77c37c74052",
+            "revision_ids": [
+              "c78cde7e-d40c-4acb-aa8f-5228b7c032ee",
+              "b38cc795-5b28-4700-add1-10d3ef075489",
+              "fa75c97f-fea0-4795-be6a-6d0b7be26515",
+              "bc40db42-ad32-4c79-b05f-7204a3a49ddd",
+              "ce5785c2-bf1a-4e7a-9a27-29d157c71788",
+              "b45bf419-1744-4e23-b261-ae76c040e3a4",
+              "ed24c07b-6023-451c-a6ef-dc789371de94",
+              "acf2c566-8f16-44b2-ab86-84202c45e5ad",
+              "473800d2-b91e-485b-a5b5-adb873605545",
+              "ff36cd54-fa3a-4e93-b6f2-62f565f64029",
+              "64a0ec6f-318c-495f-8045-f3cccbebc327",
+              "c4f98683-7698-4111-90f0-c7671596e6a0"
+            ],
+            "segment_ids": [
+              "3c562adb-8e63-406a-bc37-53828d1d9684:1",
+              "05fea80b-2be8-4f05-af8d-23522317ecc4:0",
+              "be466eb6-23d8-4e95-8915-9c6ca9f47085:0",
+              "cc747ff0-b484-4d8d-ade9-38f386f2c799:0",
+              "c75bc310-ad51-4851-8252-886d58c4f61a:0",
+              "25fc3ecf-2148-49be-8691-aa6cacce07a0:0",
+              "a4fbe959-9dd1-427b-8d6f-ba5dc807ce5b:0",
+              "bb004729-caf3-4098-a3a8-3ddd4cf0daf5:0",
+              "d80d1561-a0b4-45b0-9321-96eee90299dd:0",
+              "043ded60-acd0-433b-ab12-183d8c77828c:0",
+              "4d83560b-4846-4671-a980-9467ceb87cb5:0",
+              "0153fe84-d46a-4385-a6ee-0970e28efd23:0"
+            ],
+            "topic_ids": [
+              "structured-topic-3d8e225a18d768d4"
+            ],
+            "method": "DIRECT_TASK_REQUEST_OR_COMMITMENT"
+          }
+        ],
+        "topic_link_method": "DIRECT_TASK_REQUEST_OR_COMMITMENT",
+        "topic_link_status": "LINKED",
+        "source_topic_id": "topic-1",
+        "related_topic_ids": [
+          "structured-topic-3d8e225a18d768d4"
+        ]
+      }
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "headline": "제439회 국회(정기회) 제08차 법제사법위원회 브리프 요약",
+      "source_hash": "863df6133d460168b351743bd767cdb79709fa372bdc2f3ed58494496e6175a4",
+      "original_tasks": 20,
+      "multi_link_before": 1,
+      "multi_link_after": 0,
+      "direct_source_tasks": 11,
+      "source_review_tasks": 9,
+      "target": null
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "headline": "중앙 선거관리위원회 등 국정감사 및 정책 개선 요구",
+      "source_hash": "45c4d2aa0ed1164730a416c061c7e8335eed467ba82084c1cb72d1c449be816a",
+      "original_tasks": 20,
+      "multi_link_before": 8,
+      "multi_link_after": 0,
+      "direct_source_tasks": 19,
+      "source_review_tasks": 1,
+      "target": null
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "headline": "제439회 국회 정기회 제05차 본회의 종합 브리프",
+      "source_hash": "43d9de83bdc422fe57f26caf51d367ffe7b8a01e4fbbcdbee45e860a28cbd61a",
+      "original_tasks": 20,
+      "multi_link_before": 2,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 14,
+      "target": null
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "headline": "제439회 국회 정기회 10차 본회의 – 법안 의결 및 인사 발의 요약",
+      "source_hash": "4ea28f8f8f2a39e06cfa9bc84fd9e74f9cd934a45bb48e146f0c46a0f66d612c",
+      "original_tasks": 19,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 7,
+      "source_review_tasks": 12,
+      "target": null
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "headline": "제439회 국회 제05차 법제사법위원회 인사청문 보고서 채택 및 형사사법 개편 논의",
+      "source_hash": "7aeb877000520db7235f89913cb7be27d56c78e7b34792a671b3e5a193293a46",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 1,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "headline": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "source_hash": "6e957a67433ef0f9bfcdb7d2602d33485ed3aa44a82a3bdb8d3e519608f3a87a",
+      "original_tasks": 20,
+      "multi_link_before": 4,
+      "multi_link_after": 0,
+      "direct_source_tasks": 10,
+      "source_review_tasks": 10,
+      "target": null
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "headline": "제439회 국회 제03차 법제사법위원회 인사청문회 요약",
+      "source_hash": "4c3e20b24aa52c2fa35da486929299e0f8764e9be5f354d5d09b6fe6c7e0d28d",
+      "original_tasks": 20,
+      "multi_link_before": 13,
+      "multi_link_after": 0,
+      "direct_source_tasks": 2,
+      "source_review_tasks": 18,
+      "target": null
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "headline": "대법원 공백·국감 출석 논란과 사법행정 운영 전반을 둘러싼 공방",
+      "source_hash": "2815e4e5343c991136f5b8d0c563a09d1295c531953d8e70f931fd752c360ae1",
+      "original_tasks": 20,
+      "multi_link_before": 10,
+      "multi_link_after": 0,
+      "direct_source_tasks": 5,
+      "source_review_tasks": 15,
+      "target": null
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "headline": "제439회 국회(정기회) 제07차 행정안전위원회 인사청문회 요약",
+      "source_hash": "61c502652b1ade64d62e4464dd5cf7c3fffe375b5e160d851af97f253e984e27",
+      "original_tasks": 20,
+      "multi_link_before": 10,
+      "multi_link_after": 0,
+      "direct_source_tasks": 11,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "headline": "행정안전부 국감, 중수청·재난안전·지방재정 쟁점과 자료 요구 집중",
+      "source_hash": "655e704a99aa6466d3998114a499e83d49a2df06d49f9eb77a0d3e2a3da997c8",
+      "original_tasks": 20,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 7,
+      "target": null
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "headline": "제438회 국회(임시회) 제04차 예산결산특별위원회 전체 회의 브리프",
+      "source_hash": "5ba94e3dad03d1d4e244c573c1ecf21104d049cf0fa6654fb5d43a48acfa6941",
+      "original_tasks": 20,
+      "multi_link_before": 13,
+      "multi_link_after": 1,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "headline": "제22대 국회 법제사법위원회 법무부·산하기관 국정감사: 검찰개혁·특검협조·교정행정·외국인정책 등 전방위 현안 격돌",
+      "source_hash": "a3e1a2f432eab00a79682c65f63401bccd1f47d8272a95eda602750a0f41d260",
+      "original_tasks": 20,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 14,
+      "target": null
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "headline": "제438회 국회 임시회 제05차 예산결산특별위원회 종합 브리프",
+      "source_hash": "ab559725a123e05262eb88aa07d61a41d8e909635e89743bd82e753249115082",
+      "original_tasks": 20,
+      "multi_link_before": 8,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "headline": "법제사법위원회 2026년도 국정감사: 사법부 신뢰 회복과 제도 개선 요구",
+      "source_hash": "6cfbb4e184f2b9f72050f764c4cdbf43f2cc32b3b37a42d1ad85a40f5cf332f9",
+      "original_tasks": 20,
+      "multi_link_before": 4,
+      "multi_link_after": 0,
+      "direct_source_tasks": 5,
+      "source_review_tasks": 15,
+      "target": null
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "headline": "법제사법위원회, 2026년 8월 임시회 2차 회의 종합 분석: 검찰 개혁·공수처·중수청 등 핵심 쟁점",
+      "source_hash": "312c83f6d11494e91e52b736877c25af2ee915e8053514d7399aaac88d039001",
+      "original_tasks": 15,
+      "multi_link_before": 10,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 6,
+      "target": null
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "headline": "제42회 국무회의 종합 결과 보고서",
+      "source_hash": "67ad3de5967d5bbbe9697550a9b4091102a029107067499e7ddccd21b8f6e379",
+      "original_tasks": 20,
+      "multi_link_before": 6,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "headline": "감사원 국정감사에서 정치감사·내부 징계·특활비·법원·형사사법 권한 쟁점까지 전방위 점검",
+      "source_hash": "e483dfe3bad09c67cc298e16c6cb275eeab4564c1f190da4a86f5a9d78600cfd",
+      "original_tasks": 20,
+      "multi_link_before": 5,
+      "multi_link_after": 0,
+      "direct_source_tasks": 10,
+      "source_review_tasks": 10,
+      "target": null
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "headline": "법제사법위원회 임시회 첫날: 대법관 제청 지연·사법부 독립성 논란 등 핵심 쟁점 집중",
+      "source_hash": "8d1eec9d52458c60d42e4b69b3a38e3f71f32e657788e50e1a5d5804de10dc11",
+      "original_tasks": 7,
+      "multi_link_before": 6,
+      "multi_link_after": 0,
+      "direct_source_tasks": 5,
+      "source_review_tasks": 2,
+      "target": null
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "headline": "서울시 및 산하기관 대상 행정안전위원회 국정감사",
+      "source_hash": "94699db8c187075358e60fd6428ebe03ff3c2bd8f9b29c7a4d7a22c0c25222c1",
+      "original_tasks": 20,
+      "multi_link_before": 10,
+      "multi_link_after": 0,
+      "direct_source_tasks": 9,
+      "source_review_tasks": 11,
+      "target": null
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "headline": "제439회 국회 본회, AI·반도체·전기차·부동산·조선업 등 경제 안보와 민생 쟁점 다뤄",
+      "source_hash": "b41f0aaf36a2cfbb94bf8877b9adf42435b03a20509ddcd64b4c7ec389f6c140",
+      "original_tasks": 20,
+      "multi_link_before": 2,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 14,
+      "target": null
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "headline": "제438회 국회(임시회) 제01차 예산결산특별위원회 전체 회의 요약",
+      "source_hash": "9f9ee4a475b5ab3a27bec61ce0cde84ef45f68bb6464d46b7d87c3387f35cb7a",
+      "original_tasks": 20,
+      "multi_link_before": 3,
+      "multi_link_after": 0,
+      "direct_source_tasks": 12,
+      "source_review_tasks": 8,
+      "target": null
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "headline": "제43회 국무회의",
+      "source_hash": "a2fc391b2d4a60dc8f7e843d9038f999851d1cd62672b8e6a1630ca28bf13dca",
+      "original_tasks": 20,
+      "multi_link_before": 8,
+      "multi_link_after": 0,
+      "direct_source_tasks": 10,
+      "source_review_tasks": 10,
+      "target": null
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "headline": "제439회 국회 정기회 제09차 본회의 법안 의결 및 국정감사 대상 기관 승인",
+      "source_hash": "030234d09d39a97a94786ba5c8e340fcd7c1c67fe468546dd04c57480dcb575e",
+      "original_tasks": 12,
+      "multi_link_before": 3,
+      "multi_link_after": 0,
+      "direct_source_tasks": 6,
+      "source_review_tasks": 6,
+      "target": null
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "headline": "제439회 국회 행정안전위원회, 중수청 출범과 인사 청문 절차 지연 논란",
+      "source_hash": "94725f2064b46a9a196aa8a76c50c7a4fc5f0067778a3d6070ca19a625bb28a2",
+      "original_tasks": 20,
+      "multi_link_before": 5,
+      "multi_link_after": 1,
+      "direct_source_tasks": 7,
+      "source_review_tasks": 13,
+      "target": null
+    }
+  ],
+  "verification": {
+    "python_tests_passed": 137,
+    "production_browser_passed": true,
+    "base_url": "https://kjon.aigov.go.kr",
+    "task_detail_occurrences": 1,
+    "exact_source_highlight": true,
+    "mobile": true,
+    "javascript_errors": [],
+    "image": "poc07-national-assembly-api:direct-task-source-20261019"
+  }
+}

@@ -1,0 +1,1509 @@
+{
+  "review_date": "2026-10-16",
+  "grouping_version": "assembly-meeting-topic-grouping/1.12",
+  "additional_llm_calls": 0,
+  "source_reports_sha256": "9012f770ef58d6cb5d5d841706d6b9efd0297d19ffd4412fe9007de006559378",
+  "source_report_count": 42,
+  "original_reports_modified": 0,
+  "baseline_metrics": {
+    "report_count": 42,
+    "topic_count": 950,
+    "policy_topic_count": 939,
+    "ontology_topic_count": 887,
+    "dynamic_topic_count": 14,
+    "unclassified_topic_count": 52,
+    "report_artifact_topic_count": 11,
+    "integrity_failure_count": 1,
+    "quality_review_count": 8,
+    "ontology_coverage": 0.9446,
+    "official_report_count": 17,
+    "provisional_report_count": 25
+  },
+  "dictionary_only_metrics": {
+    "report_count": 42,
+    "topic_count": 950,
+    "core_topic_count": 950,
+    "supplementary_topic_count": 0,
+    "supplementary_report_count": 0,
+    "policy_topic_count": 939,
+    "ontology_topic_count": 916,
+    "dynamic_topic_count": 2,
+    "unclassified_topic_count": 23,
+    "report_artifact_topic_count": 11,
+    "integrity_failure_count": 0,
+    "quality_review_count": 5,
+    "ontology_coverage": 0.9755
+  },
+  "after_metrics": {
+    "report_count": 42,
+    "topic_count": 1281,
+    "core_topic_count": 950,
+    "supplementary_topic_count": 331,
+    "supplementary_report_count": 22,
+    "policy_topic_count": 1270,
+    "ontology_topic_count": 1247,
+    "dynamic_topic_count": 2,
+    "unclassified_topic_count": 23,
+    "report_artifact_topic_count": 11,
+    "integrity_failure_count": 0,
+    "quality_review_count": 5,
+    "ontology_coverage": 0.9819
+  },
+  "target": {
+    "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+    "title": "법제사법위원회 국정감사(군사법원)",
+    "meeting_brief_id": "00ecf4a8-8bb6-463e-acdb-d87c63bf3091",
+    "source": "PROVISIONAL",
+    "core_topic_count": 24,
+    "displayed_topic_count": 85,
+    "supplementary_topic_count": 61,
+    "integrity": "PASS",
+    "before": {
+      "mapped": 43,
+      "unmapped": 78,
+      "ambiguous": 2,
+      "single_utterance_unmapped": 64
+    },
+    "after": {
+      "mapped": 103,
+      "unmapped": 17,
+      "ambiguous": 3,
+      "single_utterance_unmapped": 16
+    },
+    "coverage": {
+      "version": "live-topic-coverage/1.0",
+      "method": "CLASSIFIED_LIVE_EVIDENCE_SUPPLEMENT",
+      "core_topic_count": 24,
+      "supplementary_topic_count": 61,
+      "recovered_cluster_ids": [
+        "live-topic-16",
+        "live-topic-17",
+        "live-topic-21",
+        "live-topic-23",
+        "live-topic-24",
+        "live-topic-25",
+        "live-topic-28",
+        "live-topic-32",
+        "live-topic-46",
+        "live-topic-49",
+        "live-topic-50",
+        "live-topic-51",
+        "live-topic-52",
+        "live-topic-57",
+        "live-topic-58",
+        "live-topic-59",
+        "live-topic-61",
+        "live-topic-62",
+        "live-topic-64",
+        "live-topic-65",
+        "live-topic-66",
+        "live-topic-67",
+        "live-topic-68",
+        "live-topic-69",
+        "live-topic-70",
+        "live-topic-71",
+        "live-topic-75",
+        "live-topic-77",
+        "live-topic-79",
+        "live-topic-80",
+        "live-topic-81",
+        "live-topic-83",
+        "live-topic-84",
+        "live-topic-85",
+        "live-topic-87",
+        "live-topic-88",
+        "live-topic-89",
+        "live-topic-90",
+        "live-topic-92",
+        "live-topic-93",
+        "live-topic-94",
+        "live-topic-96",
+        "live-topic-97",
+        "live-topic-101",
+        "live-topic-103",
+        "live-topic-104",
+        "live-topic-105",
+        "live-topic-106",
+        "live-topic-107",
+        "live-topic-108",
+        "live-topic-110",
+        "live-topic-111",
+        "live-topic-113",
+        "live-topic-114",
+        "live-topic-115",
+        "live-topic-116",
+        "live-topic-117",
+        "live-topic-118",
+        "live-topic-120",
+        "live-topic-121",
+        "live-topic-122"
+      ],
+      "original_unmapped_cluster_count": 78,
+      "original_single_utterance_unmapped_count": 64,
+      "additional_llm_calls": 0
+    },
+    "remaining": [
+      {
+        "id": "live-topic-20",
+        "title": "토라 엄마카제 식당 사용 내역 오류 지적",
+        "utterance_ids": [
+          "9163657c-f762-477c-b49b-472a08e99d8e:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-22",
+        "title": "법제처의 성과와 평가",
+        "utterance_ids": [
+          "a5739a02-588a-435d-9e62-953ea6cf204c:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-39",
+        "title": "박형수 간사의 잘못된 발언 지적",
+        "utterance_ids": [
+          "d2b75d8e-4128-46e7-b4d8-db4cad81e181:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-44",
+        "title": "인사정책과 시장 반응에 대한 입장 표명",
+        "utterance_ids": [
+          "a2231b6c-da28-4db0-9ff1-bb14dc7aeb68:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-53",
+        "title": "군 관계자 및 장병에 대한 감사 표명",
+        "utterance_ids": [
+          "54bb8f3e-5257-4774-bd7a-732e43516f57:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-54",
+        "title": "군 가족의 희생과 국정감사 마무리 인사",
+        "utterance_ids": [
+          "6b306339-f94a-4788-b3f6-dd86a94746e8:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-55",
+        "title": "해군의 안보 및 해상교통로 책임과 장병 안전 복무 다짐",
+        "utterance_ids": [
+          "ac3a46dd-7b28-470d-a9d7-7ab8eda17155:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-56",
+        "title": "공군의 국가방위와 군 기강 확립 의지 표명",
+        "utterance_ids": [
+          "04a173e6-b80f-44d5-bbbc-a1279704ef1b:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-60",
+        "title": "군대의 정치적 눈치 보기 비판",
+        "utterance_ids": [
+          "b035756f-c565-43f8-88c6-5a3b2023d0db:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-72",
+        "title": "국민 안심과 안보 장사꾼에 대한 대응",
+        "utterance_ids": [
+          "cec31127-d835-458b-8fa3-4f085213dd97:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-76",
+        "title": "법무부장관 지명 관련 질의 중단 요청",
+        "utterance_ids": [
+          "f2de48b9-9b26-4331-b7f6-35fae60da11f:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-91",
+        "title": "군사 상황 판단 처벌 반대",
+        "utterance_ids": [
+          "6585127e-61e4-4149-a970-54b07a22c10d:0",
+          "36d8ce74-3b4e-4196-8589-64d44c502c7e:3"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-95",
+        "title": "험지 대응을 위한 첨단 장비 투자 필요성",
+        "utterance_ids": [
+          "9552617c-8952-4d1f-9754-1b06e2b4114d:1"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-98",
+        "title": "내란 잔재 청산 및 특검 수사 촉구",
+        "utterance_ids": [
+          "a1531269-90d5-4e37-87af-9264bfd022bc:1"
+        ],
+        "status": "LEXICAL_CANDIDATE"
+      },
+      {
+        "id": "live-topic-99",
+        "title": "김재규 사진 게시 논란과 사법 판단 존중 촉구",
+        "utterance_ids": [
+          "c421ce34-3df0-4509-bfec-5575119804e1:1"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-100",
+        "title": "암살범 미화 영화와 대통령 골프 외교 비판",
+        "utterance_ids": [
+          "d68752e2-c284-4e25-b6de-e082d852ae27:0"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-102",
+        "title": "군사법원 독립성 및 계엄 시 관할 문제",
+        "utterance_ids": [
+          "dd65c3a0-10be-4900-8d9e-131509effb92:1"
+        ],
+        "status": "AMBIGUOUS"
+      },
+      {
+        "id": "live-topic-109",
+        "title": "군공항 소음 피해 보상액 inadequacy",
+        "utterance_ids": [
+          "1e9f4da6-4027-4561-aea7-766d6a41ec16:0",
+          "26352b94-f399-4ecf-b2cd-a2321bb5adfe:3"
+        ],
+        "status": "MULTIPLE_FINAL_TOPICS"
+      },
+      {
+        "id": "live-topic-119",
+        "title": "지침 변경의 감사 초점 적절성",
+        "utterance_ids": [
+          "b065f11c-655d-4e92-81b3-ccf04d55bbfa:1"
+        ],
+        "status": "UNMAPPED"
+      },
+      {
+        "id": "live-topic-123",
+        "title": "국정감사 서면질의 답변 요청 및 조치 당부",
+        "utterance_ids": [
+          "d2f06894-8d86-4e73-bf1e-b851b8b2413e:0"
+        ],
+        "status": "UNMAPPED"
+      }
+    ],
+    "recovered": [
+      {
+        "id": "live-issue-live-topic-16",
+        "title": "우편물 우표 떼기 행위의 형사처벌 적절성",
+        "evidence_ids": [
+          "b4ca617c-4ae6-4f73-bf9d-01e912d3f913:1"
+        ],
+        "classification": {
+          "target_key": "criminal-case-procedure",
+          "matched_keyword": "형사처벌적절성",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-17",
+        "title": "군복과 경찰복 착용 시 처벌 규정의 불합리성",
+        "evidence_ids": [
+          "145e7a36-c3ba-45e9-bbad-724229b5c83f:1",
+          "bdc84a87-8b4a-4162-bd90-11999796c4d5:0"
+        ],
+        "classification": {
+          "target_key": "criminal-case-procedure",
+          "matched_keyword": "처벌규정의불합리성",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-21",
+        "title": "간담회 참석 인원 및 식사비 지출 내역 설명",
+        "evidence_ids": [
+          "0b12ae02-8e4f-4adb-ae78-cf752076f917:1"
+        ],
+        "classification": {
+          "target_key": "public-discipline",
+          "matched_keyword": "식사비지출",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-23",
+        "title": "임광현 국세청장의 비서실장 임명 논란",
+        "evidence_ids": [
+          "5eb2667d-57f5-42f1-8383-fb66c7f20aa8:1"
+        ],
+        "classification": {
+          "target_key": "public-appointments",
+          "matched_keyword": "비서실장임명",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-24",
+        "title": "비서실장 임명 과정의 전문성 및 정치적 영향력 우려",
+        "evidence_ids": [
+          "7f6306c3-cdb0-4bbf-a3f7-aff080e7fa74:0"
+        ],
+        "classification": {
+          "target_key": "public-appointments",
+          "matched_keyword": "비서실장임명",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-25",
+        "title": "대장동 변호인 공직 독식 및 보은인사 의혹",
+        "evidence_ids": [
+          "feb044ab-ba65-4397-b737-a684db7ded41:2"
+        ],
+        "classification": {
+          "target_key": "public-appointments",
+          "matched_keyword": "보은인사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-28",
+        "title": "법제처 법리 부역 조사 및 책임 촉구",
+        "evidence_ids": [
+          "f34a86ce-435f-4ce1-ac49-faf67764909f:1"
+        ],
+        "classification": {
+          "target_key": "government-operations",
+          "matched_keyword": "법제처법리",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-32",
+        "title": "법령 속 표현 개선을 통한 차별 해소 노력",
+        "evidence_ids": [
+          "4af898a8-d30b-4a0d-8910-bb1edcf8c681:1",
+          "a129286a-6315-4c2f-94fb-6a53506330a4:1",
+          "027c8182-81c7-40af-b310-772304c97516:1",
+          "b98ae695-b220-47a2-8c0d-3f524cd38ea0:0",
+          "faa4ae05-9134-4393-a2d4-918befd2ce41:2",
+          "6efb3f9e-764d-4010-859c-c05d871950aa:0"
+        ],
+        "classification": {
+          "target_key": "government-operations",
+          "matched_keyword": "법령속표현",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-46",
+        "title": "윤석열 대통령의 내란죄와 수사 조작 주장",
+        "evidence_ids": [
+          "5d4a833b-ee9b-431c-845b-31e676e46f5d:0"
+        ],
+        "classification": {
+          "target_key": "criminal-case-procedure",
+          "matched_keyword": "내란죄",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-49",
+        "title": "군 사법체계 개혁 및 인권보장 추진 현황",
+        "evidence_ids": [
+          "ccc119e5-c6b2-4d0e-b0cb-5790de5a846e:0"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군사법체계",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-50",
+        "title": "해군 실종 병사 수사 지연 우려",
+        "evidence_ids": [
+          "a8ce3103-43fc-4976-a91c-9640e1c96ea5:1"
+        ],
+        "classification": {
+          "target_key": "military-personnel-reform",
+          "matched_keyword": "해군실종병사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-51",
+        "title": "25사단 미군 정찰기 소동 관련 전파 실패 및 빈총 경계 설명 요청",
+        "evidence_ids": [
+          "b459e518-fe2a-4e4a-816c-e186e52becd0:1"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "빈총경계",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-52",
+        "title": "고 이예람 중사 추모 상징물 설치 논의",
+        "evidence_ids": [
+          "a7cfc945-2566-49ae-9e60-6509fff268c8:1",
+          "9f9f2543-68f4-4393-aed8-0d6d5fca40e0:2"
+        ],
+        "classification": {
+          "target_key": "sexual-violence-victim-protection",
+          "matched_keyword": "이예람중사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-57",
+        "title": "과거 정부 지뢰 사고 조사 및 광복절 경축사의 정치적 의도",
+        "evidence_ids": [
+          "37f346a0-13e4-4881-adf9-bf638828f2fe:1",
+          "696fd136-833e-47f6-bbff-3abedde6e984:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "지뢰사고",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-58",
+        "title": "북한 지뢰 제거 행위의 단호한 대응 평가",
+        "evidence_ids": [
+          "9c29871c-0b73-4a26-9988-3d79791fa84f:0",
+          "3cbe616c-3acb-4e2c-b0c7-21fe3d7ad3e9:0",
+          "db101184-2c75-4ecc-93f3-ffe41c7c349a:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "북한지뢰",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-59",
+        "title": "북한 미사일 발사에 대한 표현 문제",
+        "evidence_ids": [
+          "e7b501b2-ad7b-46ae-ba0b-6e71738c51ed:0"
+        ],
+        "classification": {
+          "target_key": "north-korea-nuclear",
+          "matched_keyword": "북한미사일발사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-61",
+        "title": "대북 확성기 효과 및 주적 표현 문제",
+        "evidence_ids": [
+          "702c0c20-4f75-458a-8633-7d09ce966051:0",
+          "4a5b8bad-b726-4fc8-9a0d-ce76a354f793:1"
+        ],
+        "classification": {
+          "target_key": "national-security-strategy",
+          "matched_keyword": "주적표현",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-62",
+        "title": "평양 드론 사고와 군 대응의 필요성",
+        "evidence_ids": [
+          "50db49e4-b2f3-4d0a-b93b-1a6608f83d77:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "평양드론",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-64",
+        "title": "군사기밀 암구호 유출 실태",
+        "evidence_ids": [
+          "ebfd44f9-2573-4944-bc08-6019c6c8b9e8:3"
+        ],
+        "classification": {
+          "target_key": "military-security",
+          "matched_keyword": "군사기밀",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-65",
+        "title": "군 내 성폭력 피해자 보호조치 적절성 논란",
+        "evidence_ids": [
+          "dfbbd96d-9893-4c8c-85c4-b6b9edf3f367:0",
+          "b4180629-6412-4ab8-86e9-73a29f8f08b5:0"
+        ],
+        "classification": {
+          "target_key": "sexual-violence-victim-protection",
+          "matched_keyword": "성폭력피해자",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-66",
+        "title": "성폭력 피해 신고 절차의 성희롱 오표기 문제",
+        "evidence_ids": [
+          "45056597-1162-47ad-be75-555fd4ebede0:5"
+        ],
+        "classification": {
+          "target_key": "sexual-violence-victim-protection",
+          "matched_keyword": "성폭력피해신고",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-67",
+        "title": "군인 피고인의 국선변호인 지원 실태 점검 필요",
+        "evidence_ids": [
+          "08a50f2a-ba5d-4718-94fd-5ead5081f4b1:0"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군인피고인",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-68",
+        "title": "군사법원 내 국선변호인 접촉 통계 부재 문제",
+        "evidence_ids": [
+          "8f6e67a2-64f7-4131-8524-aff6f13cea33:2"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군사법원",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-69",
+        "title": "북한 대남 확성기 방송에 대한 정부 대응 미흡 비판",
+        "evidence_ids": [
+          "2d643a03-3262-4c03-9cd1-3d7a46cb8428:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "대남확성기",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-70",
+        "title": "전작권 전환과 한미 군사 협의",
+        "evidence_ids": [
+          "088bf291-b1f2-47df-9deb-6fdccc396e41:4",
+          "a678ad8b-9aef-43ed-a3ed-543198a4453a:1",
+          "8381109b-e724-4019-9484-7dfaa98d0ae0:0",
+          "91ff43c5-7b2d-4b58-bf14-0cda7925cf9d:2",
+          "cf249b27-242c-4021-8991-1f0ee9327652:0",
+          "90893d77-692d-4353-ab17-83aae1a1c4a9:0"
+        ],
+        "classification": {
+          "target_key": "alliance-defense",
+          "matched_keyword": "전작권",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-71",
+        "title": "전작권 전환과 국방부장관의 역할",
+        "evidence_ids": [
+          "f8b1b09d-3078-4cec-9a38-3cc401717288:4"
+        ],
+        "classification": {
+          "target_key": "alliance-defense",
+          "matched_keyword": "전작권",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-75",
+        "title": "장성 사격장 이전 위치 선정 및 추진 지원 요청",
+        "evidence_ids": [
+          "c53609ce-0083-4462-b9dc-6f99d3480839:0"
+        ],
+        "classification": {
+          "target_key": "military-facilities",
+          "matched_keyword": "사격장이전",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-77",
+        "title": "인사검증 절차와 중국인 간첩 사건 문의",
+        "evidence_ids": [
+          "b0f8c9ad-e18c-460f-9406-ac085e0d11ec:1",
+          "ef356f99-1724-4635-9540-240a2cc8b1bf:1",
+          "63f44d8e-cc30-4515-8a78-642bc5bd5184:1",
+          "eb2573e9-9226-4890-b399-a9ffbe2497ec:0"
+        ],
+        "classification": {
+          "target_key": "military-security",
+          "matched_keyword": "중국인간첩",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-79",
+        "title": "북한 드론 행위 처벌 촉구",
+        "evidence_ids": [
+          "58756cd7-5c90-4f96-ad0b-7c1aecec07b1:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "북한드론",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-80",
+        "title": "전시작전권 전환과 미국 평가 변화에 대한 항의 요구",
+        "evidence_ids": [
+          "8bdf28d9-816f-414c-9acb-6ea8e0434034:2"
+        ],
+        "classification": {
+          "target_key": "alliance-defense",
+          "matched_keyword": "전시작전권",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-81",
+        "title": "내란 진상 규명 수사 지연 문제",
+        "evidence_ids": [
+          "e3bc9612-82ec-415b-813c-c37a523c262a:0",
+          "f4e1c8ae-fc48-4d0c-aded-84ca50daaffc:1",
+          "e953ee14-a1bb-4e6b-af9e-d6bd4192254f:0",
+          "c7675674-3e28-441e-9e21-edc9afc115b6:1"
+        ],
+        "classification": {
+          "target_key": "criminal-case-procedure",
+          "matched_keyword": "내란진상규명",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-83",
+        "title": "보리스 사건 군사법원 판단의 문제점",
+        "evidence_ids": [
+          "82f0f3bf-f3f0-4253-a665-eaeefc6b343b:2"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군사법원",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-84",
+        "title": "군사법원법 개정 후 군판사 정원 미충원 문제",
+        "evidence_ids": [
+          "7ccc03c0-cb04-4d56-8682-9c98c05db1a5:0"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군사법원",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-85",
+        "title": "군판사 인력 부족 문제",
+        "evidence_ids": [
+          "5eedc3f8-def1-4a5b-8261-ef82fc446fe8:1",
+          "60280ab1-c592-4c46-ba74-a7855ae4cfdb:2"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군판사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-87",
+        "title": "북미 관계 개선과 체제 보장 필요성",
+        "evidence_ids": [
+          "22f5fecf-92cc-484b-9bca-cea10ac8a30f:3"
+        ],
+        "classification": {
+          "target_key": "inter-korean-peace",
+          "matched_keyword": "북미관계",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-88",
+        "title": "북한의 대미 관계 개선과 제재 해제 주장",
+        "evidence_ids": [
+          "acb77777-5349-4225-b36e-f13ad0d8d8b2:0"
+        ],
+        "classification": {
+          "target_key": "inter-korean-peace",
+          "matched_keyword": "북한의대미관계",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-89",
+        "title": "전시작전통제권 이양 문제의 핵심 쟁점",
+        "evidence_ids": [
+          "09f5a39b-2677-4060-9f5d-3d17736062f7:0"
+        ],
+        "classification": {
+          "target_key": "alliance-defense",
+          "matched_keyword": "전시작전통제권",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-90",
+        "title": "지뢰작전 지휘부의 책임 검토 요구",
+        "evidence_ids": [
+          "0b6b7d4a-97ef-43d0-ac10-71d044c843cf:3"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "지뢰작전",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-92",
+        "title": "유엔사와 주한미군사령관 겸직 문제",
+        "evidence_ids": [
+          "56d9692a-6535-48d0-99b1-4f9eae4323d0:2"
+        ],
+        "classification": {
+          "target_key": "alliance-defense",
+          "matched_keyword": "주한미군",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-93",
+        "title": "MDL 불일치로 인한 군사적 유실 위험과 남북 군사적 해결 필요성",
+        "evidence_ids": [
+          "a69f4483-c94b-450d-a898-7723210288de:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "MDL",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-94",
+        "title": "군사분계선 명확화 및 재난 대응 로봇 개발 촉구",
+        "evidence_ids": [
+          "85f7c457-2b9e-452a-9589-2d8aaeba031d:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "군사분계선",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-96",
+        "title": "북한 무인기 침투 주장의 사실 오류 지적",
+        "evidence_ids": [
+          "58f25c2b-efdb-4e06-bf67-7da422955bf6:2"
+        ],
+        "classification": {
+          "target_key": "defense-industry-capability",
+          "matched_keyword": "무인기",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-97",
+        "title": "윤석열의 국회 봉쇄 및 장기 집권 음모 의혹",
+        "evidence_ids": [
+          "1678cd20-3e68-402c-a5b6-25893a945b43:0"
+        ],
+        "classification": {
+          "target_key": "criminal-case-procedure",
+          "matched_keyword": "국회봉쇄",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-101",
+        "title": "안지영 검찰단장 계급 변경 이유 설명 요청",
+        "evidence_ids": [
+          "f657eb9a-064a-4149-b24a-df493fdd9adb:1"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "검찰단장계급",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-103",
+        "title": "군 내 횡령 범죄 증가 및 관련 징계 현황",
+        "evidence_ids": [
+          "1a87eb17-6c32-44dc-ad6c-3f8891f7ceac:0"
+        ],
+        "classification": {
+          "target_key": "public-discipline",
+          "matched_keyword": "군내횡령",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-104",
+        "title": "육군사관학교 생도대장의 예산 유용 및 비위 행위",
+        "evidence_ids": [
+          "77144ad2-e87b-4b54-b1d3-5fe236efeb3c:3"
+        ],
+        "classification": {
+          "target_key": "public-discipline",
+          "matched_keyword": "예산유용",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-105",
+        "title": "군판사 진급 차별 문제",
+        "evidence_ids": [
+          "8606ca71-b9ad-48ef-9c0d-8e33bd03e54a:0"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군판사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-106",
+        "title": "군판사 진급 현황 및 국방부 점검 미흡 문제",
+        "evidence_ids": [
+          "7bc5eab5-6ce2-445b-9ca5-be90a77f91cb:1"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "군판사",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-107",
+        "title": "김정은의 대남 인식과 주적 규정",
+        "evidence_ids": [
+          "4775431d-248f-430f-9208-3c0675db69ff:4"
+        ],
+        "classification": {
+          "target_key": "national-security-strategy",
+          "matched_keyword": "주적규정",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-108",
+        "title": "북한군의 적성 인식 필요성",
+        "evidence_ids": [
+          "2e74c301-71ec-4d8e-819e-ed51514c4a3a:0"
+        ],
+        "classification": {
+          "target_key": "national-security-strategy",
+          "matched_keyword": "북한군의적성",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-110",
+        "title": "중국인 감청사건과 한미동맹 기준 준수 요구",
+        "evidence_ids": [
+          "9827b649-0f90-46b7-817f-a5bea83a1e1c:0"
+        ],
+        "classification": {
+          "target_key": "military-security",
+          "matched_keyword": "중국인감청사건",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-111",
+        "title": "방첩 기능 유지 및 군·경찰 협조 필요성",
+        "evidence_ids": [
+          "faee63fa-2f0f-41bb-acd2-f7f5546e06d4:0"
+        ],
+        "classification": {
+          "target_key": "military-security",
+          "matched_keyword": "방첩기능",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-113",
+        "title": "박재훈 대령 항명죄 사건의 진상규명 요구",
+        "evidence_ids": [
+          "952c34d7-c1bd-47b9-a4a4-0048412894aa:0"
+        ],
+        "classification": {
+          "target_key": "military-justice",
+          "matched_keyword": "항명죄",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-114",
+        "title": "국군교도소 장기 수용자 문제 해결 촉구",
+        "evidence_ids": [
+          "687c1ea8-deb8-4b96-98ea-c0e8c86d12b6:0"
+        ],
+        "classification": {
+          "target_key": "correctional-services",
+          "matched_keyword": "국군교도소",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-115",
+        "title": "군 내 불법도박 실태 및 대책 요구",
+        "evidence_ids": [
+          "f9c39141-23f3-4e7f-8f9a-da4e1e484d98:0",
+          "40a6a7b9-17ec-4075-b133-dbc4eea76832:0"
+        ],
+        "classification": {
+          "target_key": "military-gambling",
+          "matched_keyword": "군내불법도박",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-116",
+        "title": "군 내 불법도박 문제 대응 및 대책 마련",
+        "evidence_ids": [
+          "faa938cf-ef35-4316-953f-352d09803da7:0"
+        ],
+        "classification": {
+          "target_key": "military-gambling",
+          "matched_keyword": "군내불법도박",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-117",
+        "title": "대공수사 인력 규모 오해와 실제 현황",
+        "evidence_ids": [
+          "55cebc94-858a-4161-86c5-d0fc2fdba194:0"
+        ],
+        "classification": {
+          "target_key": "police-investigation",
+          "matched_keyword": "수사인력",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-118",
+        "title": "대통령의 골프 라운드와 군사기밀 문제",
+        "evidence_ids": [
+          "9b6326bb-cf49-4d55-9362-8898089327b3:0"
+        ],
+        "classification": {
+          "target_key": "military-security",
+          "matched_keyword": "군사기밀",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-120",
+        "title": "개인화기 삽탄 미실시 부대 문제",
+        "evidence_ids": [
+          "ff06e9f4-1ee9-41eb-9af9-7080d9b5bca8:0"
+        ],
+        "classification": {
+          "target_key": "frontline-operations",
+          "matched_keyword": "개인화기삽탄",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-121",
+        "title": "지휘관 판단 오류 처리 및 사탄 사용 지침",
+        "evidence_ids": [
+          "daceccb6-da25-4476-b0b6-36022bfdac1c:6"
+        ],
+        "classification": {
+          "target_key": "military-personnel-reform",
+          "matched_keyword": "지휘관",
+          "matched_field": "title"
+        }
+      },
+      {
+        "id": "live-issue-live-topic-122",
+        "title": "군산 미군 탄약고 주변 마을의 보상 및 기반시설 소외 문제",
+        "evidence_ids": [
+          "a8c759b1-1a02-43df-87d4-bd9388d688d8:0",
+          "3b2d8b0a-32fa-4d37-b1bc-7ec0975bdb48:1",
+          "308426d2-c6de-452a-817a-74aa157dbf87:0"
+        ],
+        "classification": {
+          "target_key": "military-facilities",
+          "matched_keyword": "탄약고주변",
+          "matched_field": "title"
+        }
+      }
+    ]
+  },
+  "reports": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "title": "제439회 국회(정기회) 제08차 본회의",
+      "meeting_brief_id": "68a522cb-f971-4c1f-8d23-296d29344438",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 72,
+      "supplementary_topic_count": 48,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "title": "제439회 국회(정기회) 제06차 본회의",
+      "meeting_brief_id": "50fbdf82-5588-42c4-b3a4-07a2e46354a4",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 51,
+      "supplementary_topic_count": 27,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "title": "행정안전위원회 국정감사(경기남부경찰청 등)",
+      "meeting_brief_id": "99d3e3e8-d893-469f-bd69-7e32fa7b5b0d",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 36,
+      "supplementary_topic_count": 12,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+      "meeting_brief_id": "bc9b146a-bdc4-4c09-98fd-1b6f52f4d18b",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+      "meeting_brief_id": "5381898d-6541-49e2-8d93-49cb9a7256d4",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+      "meeting_brief_id": "a42b73d1-af02-44ab-9907-03ee773a5ca5",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 9,
+      "displayed_topic_count": 9,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "title": "법제사법위원회 국정감사(고위공직자범죄수사처)",
+      "meeting_brief_id": "dc1f0d1b-c41b-43c1-91db-3beb4de57aa1",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 26,
+      "supplementary_topic_count": 2,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+      "meeting_brief_id": "1de56e9b-ea21-4bb3-9724-6ebc4e80f343",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 26,
+      "supplementary_topic_count": 2,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "meeting_brief_id": "de74a687-269a-4410-a4ac-3db2958b2526",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+      "meeting_brief_id": "a5901e5c-f820-4dfc-8f4e-93e8f619009d",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "title": "행정안전위원회 국정감사(경찰청 등)",
+      "meeting_brief_id": "84d008f6-46d5-4f09-bca0-47b17aec64a7",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 26,
+      "supplementary_topic_count": 2,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "title": "제44회 국무회의",
+      "meeting_brief_id": "5c005bac-fce7-4754-8dc1-e416982d6b4b",
+      "source": "PROVISIONAL",
+      "core_topic_count": 19,
+      "displayed_topic_count": 19,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+      "meeting_brief_id": "a9ff620a-7cf7-492d-9e23-585eb070eb88",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+      "meeting_brief_id": "740101da-7ceb-497d-b53e-9b47f6f4927c",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 44,
+      "supplementary_topic_count": 20,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "title": "제38회 국무회의",
+      "meeting_brief_id": "91f141c9-385c-4f99-8d5d-3a82fae6fd0a",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+      "meeting_brief_id": "97ba0394-91ac-4fa1-bf3b-63431b27d5ca",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+      "meeting_brief_id": "8ce27f4f-3606-47c5-abe3-0003babf76b4",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+      "meeting_brief_id": "39fe1954-723c-4e05-b205-c73939c659ec",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "title": "법제사법위원회 국정감사(군사법원)",
+      "meeting_brief_id": "00ecf4a8-8bb6-463e-acdb-d87c63bf3091",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 85,
+      "supplementary_topic_count": 61,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+      "meeting_brief_id": "39ac51ad-7398-4276-91f1-53fea51d8ea8",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "title": "행정안전위원회 국정감사(중앙선거관리위원회 등)",
+      "meeting_brief_id": "f688fdcd-dab3-4827-aece-282115eff27a",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 28,
+      "supplementary_topic_count": 4,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "title": "제439회 국회(정기회) 제05차 본회의",
+      "meeting_brief_id": "98662fda-12b0-4e81-bfd3-0f7b8bcbfe83",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 65,
+      "supplementary_topic_count": 41,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "title": "제439회 국회(정기회) 제10차 본회의",
+      "meeting_brief_id": "ece0fe2f-49c6-49d9-bc6a-6ed205b1235c",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+      "meeting_brief_id": "9bd1edc4-438a-4a2d-a643-8431faa47374",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "meeting_brief_id": "561e5d30-588f-488d-8c53-a2a1b3031e1c",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 18,
+      "displayed_topic_count": 18,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+      "meeting_brief_id": "c6488bdf-d1f9-4895-a225-3b95b4cc76e8",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "title": "법제사법위원회 국정감사(대법원 등)",
+      "meeting_brief_id": "ce69402c-5afc-4945-ac74-b2018b6f9cea",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 26,
+      "supplementary_topic_count": 2,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+      "meeting_brief_id": "7795ad77-a77a-40c1-a04e-4fb9495999f7",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 29,
+      "supplementary_topic_count": 5,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "meeting_brief_id": "a9c51c0b-4e0d-4801-a67f-5152830ff6b8",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 48,
+      "supplementary_topic_count": 24,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+      "meeting_brief_id": "f2c76f0e-5621-455e-bcab-54995cc2f06f",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "meeting_brief_id": "a0d232c7-65a9-49fa-a215-1b249788f696",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 44,
+      "supplementary_topic_count": 20,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+      "meeting_brief_id": "4253c34d-fd84-46f9-ba23-9426ddaa8d29",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+      "meeting_brief_id": "86a76558-a239-4c88-bf28-a2cb2de28840",
+      "source": "PROVISIONAL",
+      "core_topic_count": 8,
+      "displayed_topic_count": 8,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "title": "제42회 국무회의",
+      "meeting_brief_id": "dc7b5242-f837-4890-8aca-79908aba939b",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 28,
+      "supplementary_topic_count": 4,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "title": "법제사법위원회 국정감사(감사원)",
+      "meeting_brief_id": "d885609a-7774-4caa-98d6-66f7edcbf150",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+      "meeting_brief_id": "558fcb23-a980-4e2a-9aad-0ab1d6407b87",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 8,
+      "displayed_topic_count": 8,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "title": "행정안전위원회 국정감사(서울경찰청)",
+      "meeting_brief_id": "731975be-c5c3-47fc-ba7d-91f5f5edc046",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "title": "제439회 국회(정기회) 제07차 본회의",
+      "meeting_brief_id": "468c0a13-cc39-46e5-8647-9c1a9e6f4076",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 75,
+      "supplementary_topic_count": 51,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+      "meeting_brief_id": "8af1d205-b403-4ff0-a8e1-6a17a26ad759",
+      "source": "OFFICIAL_INTEGRATED",
+      "core_topic_count": 24,
+      "displayed_topic_count": 24,
+      "supplementary_topic_count": 0,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "title": "제43회 국무회의",
+      "meeting_brief_id": "6070d881-3c41-4052-9ab9-361096062f6f",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "title": "제439회 국회(정기회) 제09차 본회의",
+      "meeting_brief_id": "ffddc3aa-a102-43b4-a400-691c0d83550f",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+      "meeting_brief_id": "818a59c9-5c9f-46da-9e3f-1989aa6a9ac3",
+      "source": "PROVISIONAL",
+      "core_topic_count": 24,
+      "displayed_topic_count": 25,
+      "supplementary_topic_count": 1,
+      "integrity": "PASS"
+    }
+  ],
+  "verification": {
+    "unit_tests_passed": 78,
+    "core_evidence_preserved": true,
+    "no_unknown_lineage_targets": true,
+    "all_topic_ids_unique": true,
+    "all_group_integrity_passed": true,
+    "production_url": "https://kjon.aigov.go.kr",
+    "production_browser_passed": true,
+    "desktop_and_390px_passed": true,
+    "supplementary_evidence_api_returned_utterances": 2,
+    "markdown_provisional_label_verified": true,
+    "official_sample_topic_count_preserved": 24,
+    "official_sample_evidence_ids_preserved": 117,
+    "worker_runtime_id_patch": "Single promotion ID expression updated; idle worker restarted",
+    "production_ontology_version": "assembly-meeting-topic-grouping/1.12"
+  }
+}

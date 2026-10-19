@@ -5,7 +5,7 @@ from app.services.meeting_task_groups import group_document_submission_tasks
 
 
 class MeetingTaskGroupsTest(unittest.TestCase):
-    def test_document_requests_are_one_follow_up_with_original_evidence(self) -> None:
+    def test_document_requests_are_not_grouped_across_topics(self) -> None:
         brief = {"tasks": [
         {"id": "task-1", "title": "예산 집행 자료 제출 요구", "status": "OPEN",
          "topic_id": "topic-1", "ministries": ["기획예산처"],
@@ -23,14 +23,17 @@ class MeetingTaskGroupsTest(unittest.TestCase):
 
         groups = group_document_submission_tasks(brief)
 
+        self.assertEqual(groups, [])
+        brief['tasks'].append({"id": "task-6", "title": "예산 집행 내역 자료 제출", "status": "OPEN",
+                               "topic_id": "topic-1", "evidence_ids": ["utterance-6"]})
+        groups = group_document_submission_tasks(brief)
         self.assertEqual(len(groups), 1)
-        self.assertEqual(groups[0]["title"], "자료 제출 요구")
-        self.assertEqual(groups[0]["task_ids"], ["task-1", "task-2"])
-        self.assertEqual(groups[0]["topic_ids"], ["topic-1", "topic-2"])
-        self.assertEqual(groups[0]["ministries"], ["기획예산처", "행정안전부"])
-        self.assertEqual(groups[0]["evidence_ids"], ["utterance-1", "utterance-2"])
-        self.assertEqual(groups[0]["official_evidence_ids"], ["official-1", "official-2"])
-        self.assertEqual(len(brief["tasks"]), 5)
+        self.assertEqual(groups[0]["scope"], "TOPIC")
+        self.assertEqual(groups[0]["task_ids"], ["task-1", "task-6"])
+        self.assertEqual(groups[0]["topic_ids"], ["topic-1"])
+        self.assertEqual(groups[0]["evidence_ids"], ["utterance-1", "utterance-6"])
+        self.assertEqual(groups[0]["official_evidence_ids"], ["official-1"])
+        self.assertEqual(len(brief["tasks"]), 6)
 
     def test_single_document_request_stays_an_individual_task(self) -> None:
         brief = {"tasks": [{
@@ -60,7 +63,7 @@ class MeetingTaskGroupsTest(unittest.TestCase):
         self.assertEqual(result["tasks"][0]["topic_id"], "topic-3")
         self.assertEqual(brief["topics"][0]["id"], "topic-18")
 
-    def test_ambiguous_lineage_keeps_duplicate_for_review(self) -> None:
+    def test_ambiguous_lineage_keeps_source_ids_for_review(self) -> None:
         brief = {
             "topics": [
                 {"id": "topic-2", "title": "주택 공급", "evidence_ids": ["a"]},
@@ -74,9 +77,13 @@ class MeetingTaskGroupsTest(unittest.TestCase):
 
         result = link_tasks_to_topics(brief)
 
-        self.assertEqual([topic["id"] for topic in result["topics"]], ["topic-2", "topic-2"])
+        self.assertEqual([topic["id"] for topic in result["topics"]], ["topic-2", "topic-3"])
+        cluster = result["live_topic_lineage"]["clusters"][0]
+        self.assertEqual(cluster["source_final_topic_ids"], ["topic-2"])
+        self.assertEqual(cluster["final_topic_ids"], [])
+        self.assertEqual(cluster["mapping_status"], "MULTIPLE_FINAL_TOPICS")
 
-    def test_conflicting_lineage_references_keep_duplicate_for_review(self) -> None:
+    def test_distinct_lineage_references_follow_split_topics(self) -> None:
         brief = {
             "topics": [
                 {"id": "topic-2", "title": "교사 학생 관계", "evidence_ids": ["a"]},
@@ -91,4 +98,8 @@ class MeetingTaskGroupsTest(unittest.TestCase):
 
         result = link_tasks_to_topics(brief)
 
-        self.assertEqual([topic["id"] for topic in result["topics"]], ["topic-2", "topic-2"])
+        self.assertEqual([topic["id"] for topic in result["topics"]], ["topic-2", "topic-3"])
+        self.assertEqual(
+            [c["final_topic_ids"] for c in result["live_topic_lineage"]["clusters"]],
+            [["topic-2"], ["topic-3"]],
+        )
