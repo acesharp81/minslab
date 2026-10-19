@@ -1,0 +1,185 @@
+{
+  "captured_at": "2026-10-19T07:34:47.478794+00:00",
+  "statistical_checks": [
+    {
+      "region": "서울특별시",
+      "metric": "착공",
+      "value": 20679,
+      "pdf_page": 8,
+      "home_value": 20679,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "인천광역시",
+      "metric": "착공",
+      "value": 17515,
+      "pdf_page": 8,
+      "home_value": 17515,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "경기도",
+      "metric": "착공",
+      "value": 48545,
+      "pdf_page": 8,
+      "home_value": 48545,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "서울특별시",
+      "metric": "준공",
+      "value": 25630,
+      "pdf_page": 10,
+      "home_value": 25630,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "인천광역시",
+      "metric": "준공",
+      "value": 10278,
+      "pdf_page": 10,
+      "home_value": 10278,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "경기도",
+      "metric": "준공",
+      "value": 44167,
+      "pdf_page": 10,
+      "home_value": 44167,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "서울특별시",
+      "metric": "분양승인",
+      "value": 15962,
+      "pdf_page": 9,
+      "home_value": 15962,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "인천광역시",
+      "metric": "분양승인",
+      "value": 14896,
+      "pdf_page": 9,
+      "home_value": 14896,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "경기도",
+      "metric": "분양승인",
+      "value": 57720,
+      "pdf_page": 9,
+      "home_value": 57720,
+      "difference": 0,
+      "method": "월별 관측 8개월 합산"
+    },
+    {
+      "region": "서울특별시",
+      "metric": "인허가",
+      "value": 39940,
+      "pdf_page": 7,
+      "home_value": 39940,
+      "difference": 0,
+      "method": "공식 PDF 누계"
+    },
+    {
+      "region": "인천광역시",
+      "metric": "인허가",
+      "value": 10056,
+      "pdf_page": 7,
+      "home_value": 10056,
+      "difference": 0,
+      "method": "공식 PDF 누계"
+    },
+    {
+      "region": "경기도",
+      "metric": "인허가",
+      "value": 46060,
+      "pdf_page": 7,
+      "home_value": 46060,
+      "difference": 0,
+      "method": "공식 PDF 누계"
+    }
+  ],
+  "coverage": [
+    {
+      "source_id": "building_general_permit",
+      "name": "건축HUB 일반 건축인허가",
+      "before": 8,
+      "after": 13,
+      "total": 2907,
+      "remaining": 2894
+    },
+    {
+      "source_id": "building_hub",
+      "name": "건축HUB 주택인허가",
+      "before": 2535,
+      "after": 2629,
+      "total": 2629,
+      "remaining": 0
+    },
+    {
+      "source_id": "building_hub_incheon",
+      "name": "9·7 인천 주택인허가 원천",
+      "before": 65,
+      "after": 80,
+      "total": 278,
+      "remaining": 198
+    },
+    {
+      "source_id": "building_hub_details",
+      "name": "건축HUB 동별·대지위치 파일럿",
+      "before": 776,
+      "after": 776,
+      "total": 2907,
+      "remaining": 2131
+    },
+    {
+      "source_id": "building_register",
+      "name": "건축HUB 주거용 건축물대장",
+      "before": 2247,
+      "after": 2247,
+      "total": 2629,
+      "remaining": 382
+    },
+    {
+      "source_id": "building_register_recap",
+      "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+      "before": 20,
+      "after": 20,
+      "total": 2629,
+      "remaining": 2609
+    }
+  ],
+  "before_candidate_rows": 44,
+  "candidate_rows": 51,
+  "candidate_evidence_linked": 51,
+  "candidate_positive_rows": 45,
+  "candidate_raw_units": 628,
+  "candidate_units_are_verified_missing_supply": false,
+  "seoul_detail_rows": 62,
+  "seoul_unlinked_details": 41,
+  "confirmed_mappings_preserved": 208,
+  "profiles_preserved": 208,
+  "sources": 67,
+  "source_status": {
+    "SUCCESS": 66,
+    "FAILED": 1
+  },
+  "raw_counts": {
+    "general_permit": 33182,
+    "permit": 246877,
+    "project": 323,
+    "statistic_reference": 6
+  },
+  "before_source_count": 66
+}

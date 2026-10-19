@@ -1,0 +1,13 @@
+{
+  "endpoint": "/poc/home/api/policy-delivery",
+  "original_uncompressed_bytes": 51503034,
+  "final_uncompressed_bytes": 20022331,
+  "final_wire_bytes": 975436,
+  "cold_before_seconds": 24.488062,
+  "cold_after_seconds": 10.378608,
+  "warm_after_seconds": 0.136988,
+  "cache": "HIT",
+  "note": "운영 중 수집 작업과 자원 사용에 따라 달라지는 개별 측정. 전체 브라우저 렌더링 시간 아님.",
+  "public_api_seconds": 0.241293,
+  "public_api_status": 200
+}

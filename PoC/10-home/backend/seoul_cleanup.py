@@ -1,10 +1,39 @@
 """Public Seoul redevelopment roster and dated history, matched at collection time."""
 import re
+import hashlib
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from .api_samples import today
 
 URL='https://cleanup.seoul.go.kr/cleanup/bsnssttus/lscrMainIndx.do'
+
+
+def parse_overview(body):
+    soup=BeautifulSoup(body,'html.parser');components={};tables=[];partial={}
+    for table in soup.select('table'):
+        caption=table.caption.get_text(' ',strip=True) if table.caption else ''
+        if caption not in ('주택공급계획 분양','주택공급계획 임대'):continue
+        tables.append(dict(caption=caption,text=table.get_text(' ',strip=True)))
+        values=[]
+        for tr in table.select('tr'):
+            cells=tr.find_all('td',recursive=False)
+            if not cells:continue
+            if len(cells)!=9:continue
+            raw=[c.get_text(strip=True).replace(',','') for c in cells]
+            # Column 4 is apartment-building count, never a household count.
+            total=int(raw[4]) if raw[4].isdigit() else None
+            parts=[int(v) for v in raw[5:8]] if all(v.isdigit() for v in raw[5:8]) else []
+            partial['분양' if caption.endswith('분양') else '임대'] = dict(
+                reported_total=total,area_band_units=[int(v) if v.isdigit() else None for v in raw[5:8]],
+                missing_band_indices=[i for i,v in enumerate(raw[5:8]) if not v.isdigit()],
+                complete=bool(parts))
+            if total is not None and parts and total!=sum(parts):raise ValueError('정비사업 개요 세대수 합계 충돌')
+            if total is not None or parts:values.append(total if total is not None else sum(parts))
+        if len(values)==1:components['분양' if caption.endswith('분양') else '임대']=values[0]
+    return dict(housing_plan_components=components,housing_plan_partial_components=partial,
+        housing_plan_total=sum(components.values()) if len(components)==2 else None,
+        housing_plan_tables=tables,overview_date_status='UNDATED_PLAN',
+        overview_scope_note='사업개요의 분양·임대 계획. 기준 판본·변경일 미확정으로 착공·승인 실적 물량에 전용하지 않음')
 
 
 def address_key(value):
@@ -86,15 +115,37 @@ def collect_cleanup(source,fetcher,service):
         candidates=[r for r in roster if matches(p,r)]
         if len(candidates)==1:linked.setdefault(candidates[0]['source_object_id'],[]).append(p['id'])
         elif len(candidates)>1:ambiguous.append(p['id'])
-    records=[];errors=[];stamp=today().isoformat()
+    stamp=today().isoformat()
+    # Preserve the discovered roster even when no managed project matches it.
+    # This exposes missing projects instead of silently discarding them.
+    records=[('renewal_roster',r['source_object_id'],dict(r,sample_kind='renewal_roster',region='서울특별시',
+        base_date=stamp,date_precision='COLLECTION',policy_candidate_only=True,proposed_policy='UNASSIGNED',facts=[],
+        unit_basis='정비사업 공개 명부 · 개별 사건일·실적 물량과 구분')) for r in roster]
+    errors=[];overview_errors=[]
+    # Discover active construction outside the existing managed-project list.
+    # Bounded, resumable visits avoid a closed loop of only known projects.
+    previous=service.latest_collection_stats(source['id'])
+    seen_discovery=set(previous.get('discovery_checked_ids',[]))
+    unlinked=[r for r in roster if r['source_object_id'] not in linked
+              and any(s in r['source_stage'] for s in ('사업시행인가','관리처분','착공'))]
+    pending=[r for r in unlinked if r['source_object_id'] not in seen_discovery]
+    if not pending:
+        seen_discovery=set();pending=unlinked
+    discovery_ids={r['source_object_id'] for r in sorted(pending,key=lambda r:r['source_object_id'])[:10]}
     for r in roster:
-        if r['source_object_id'] not in linked:continue
+        if r['source_object_id'] not in linked and r['source_object_id'] not in discovery_ids:continue
         facts=[dict(stage='BUSINESS',kind='STATE',date=stamp,basis='서울 공식 사업장 목록 확인 · 원천 진행단계: '+r['source_stage']+' · 조회일이며 실제 사업화일 아님')]
         if any(w in r['source_stage'] for w in ('사업시행인가','관리처분','착공','준공','이전고시','조합해산','조합청산')):
             facts.append(dict(stage='APPROVAL',kind='STATE',date=stamp,method='STAGE_INFERENCE',basis='원천 진행단계 '+r['source_stage']+'에서 승인 도달 확인 · 개별 사건일은 추진경과 확인'))
-        history_url=None;error=None
+        history_url=None;error=None;overview={}
         try:
             page=BeautifulSoup(fetcher.get(r['evidence_url']),'html.parser')
+            overview_link=next((a.get('href') for a in page.select('a[href]') if a.get_text(strip=True)=='사업개요'),None)
+            if overview_link:
+                try:
+                    overview_url=urljoin(r['evidence_url'],overview_link);body=fetcher.get(overview_url)
+                    overview=dict(parse_overview(body),overview_url=overview_url,overview_sha256=hashlib.sha256(body).hexdigest(),overview_original_file='raw/'+fetcher.manifest[-1]['file'])
+                except Exception:overview_errors.append(r['source_object_id'])
             link=next((a.get('href') for a in page.select('a[href]') if a.get_text(strip=True)=='추진경과'),None)
             if not link:raise ValueError('추진경과 공개 링크 없음')
             history_url=urljoin(r['evidence_url'],link)
@@ -104,13 +155,18 @@ def collect_cleanup(source,fetcher,service):
         payload=dict(r,sample_kind='document_evidence',region='서울특별시',base_date=stamp,date_precision='COLLECTION',
             source_date_label='공개 목록 조회일 · 사건일은 facts에 별도 보존',planned_units=None,
             reported_phase=r['source_stage'],phase_observed_at=stamp,
-            matched_project_ids=linked[r['source_object_id']],facts=facts,history_url=history_url,history_error=error,
+            matched_project_ids=linked.get(r['source_object_id'],[]),facts=facts,history_url=history_url,history_error=error,
+            discovery_candidate=r['source_object_id'] in discovery_ids,
             verification_status='SOURCE_CONTENT_CHECKED',unit_basis='단계 및 일정 근거 · 기존 사업 물량 유지',
-            matching_basis='동일 자치구·대표 지번 또는 고유 사업명 단일 후보 · 담당자 검토')
+            matching_basis='동일 자치구·대표 지번 또는 고유 사업명 단일 후보 · 담당자 검토',**overview)
         records.append(('document_evidence',r['source_object_id'],payload))
-    return records,dict(roster_rows=len(roster),matched_projects=sum(map(len,linked.values())),documents=len(records),
-        ambiguous_project_ids=ambiguous,history_failures=errors,complete_query=True,complete_population=False,
-        scope_note='서울 공개 정비사업 목록 전체 대조. 일치 사업만 추진경과 수집. 단계 날짜 없는 상태는 조회일 관측으로 구분. 일반분양승인은 모집실적 아님')
+        if r['source_object_id'] in discovery_ids and error is None and r['source_object_id'] not in overview_errors:
+            seen_discovery.add(r['source_object_id'])
+    return records,dict(roster_rows=len(roster),roster_records=len(roster),matched_projects=sum(map(len,linked.values())),documents=sum(k=='document_evidence' for k,_,_ in records),
+        ambiguous_project_ids=ambiguous,history_failures=errors,overview_failures=overview_errors,complete_query=True,complete_population=False,
+        discovery_candidates=len(unlinked),discovery_visited=len(discovery_ids),discovery_checked_ids=sorted(seen_discovery),
+        discovery_remaining=sum(r['source_object_id'] not in seen_discovery for r in unlinked),
+        scope_note='서울 공개 명부 전체 대조. 기존 사업 및 미등록 사업시행인가·관리처분·착공 후보 10개씩 상세 순환 조회. 날짜 없는 상태는 조회일 관측. 일반분양승인은 모집실적 아님')
 
 
 def reconcile(service):

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "blackstone11_overview",
+    "url": "https://cleanup.seoul.go.kr/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=590900000557U51&stepSeCode=102&div=sumry",
+    "bytes": 35729,
+    "status": 200
+  },
+  {
+    "name": "blackstone11_history",
+    "url": "https://cleanup.seoul.go.kr/cafe/mainIndx/cleanup-prtnelapse/vscr.do?cafeId=590900000557U51&bsnsPk=11590-900000557",
+    "bytes": 65533,
+    "status": 200
+  },
+  {
+    "name": "silim2_overview",
+    "url": "https://cleanup.seoul.go.kr/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=620100004002L96&stepSeCode=102&div=sumry",
+    "bytes": 35480,
+    "status": 200
+  },
+  {
+    "name": "silim2_history",
+    "url": "https://cleanup.seoul.go.kr/cafe/mainIndx/cleanup-prtnelapse/vscr.do?cafeId=620100004002L96&bsnsPk=11620-100004002",
+    "bytes": 66455,
+    "status": 200
+  }
+]

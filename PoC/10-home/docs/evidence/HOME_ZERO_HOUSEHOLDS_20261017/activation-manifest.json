@@ -1,0 +1,7 @@
+{
+  "purpose": "기본 수집과 연결 이력 구분 정정. 수정 전 기록은 HOME_GENERAL_API_UPDATE_20261017 및 DB 감사에 보존",
+  "files": {
+    "general-api-activation.json": "8bc4d6d45d5eda168012b068758dc6492b7575dab9f28efc229175c7019a2398",
+    "인허가_0세대_목록.html": "d1529bd13930ae20a6888c7bb2c6c4b97dc2e124662db36ac16395656aa9672f"
+  }
+}

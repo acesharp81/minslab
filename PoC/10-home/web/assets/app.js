@@ -7,7 +7,8 @@ const baseText = r => r.date_precision === 'YEAR' ? r.base_date.slice(0,4) + '�
 const revisionText = r => `<p>계획호수 ${num(r.planned_units)}${r.planned_units == null ? '' : '호'} · ${esc(r.stage_label)} · 공정률 ${r.progress_pct == null ? '미확보' : num(r.progress_pct) + '%'}</p>`;
 const sourceNames = new Map();
 const warningNames = {POLICY_PLAN_NOT_ACTUAL:'정책 계획 · 실적 미확인',JOINT_QUANTITY_UNALLOCATED:'여러 지구 합계 · 개별 물량 미확보',AGENCY_PLAN_NOT_ACTUAL:'기관 계획 · 실적 미확인',MUNICIPALITY_UNVERIFIED:'시군구 연결 검토',MAPPING_REVIEW:'정책 귀속 검토 필요', STALE_SOURCE:'원천 기준일 30일 초과', PAST_PLAN_UNVERIFIED:'지난 예정일 · 실제 이행 미확인', UNITS_UNKNOWN:'개별 물량 미확보', TOTAL_CONFLICT:'총세대수 불일치', SUPPLY_EXCEEDS_TOTAL:'공급호수 > 총세대수', MISSING_IN_LATEST_SOURCE:'최신 원천에서 미발견', MULTI_SITE_CONTRACT:'복수 현장 계약 · 지역별 물량 확인', USE_INSPECTION_FIELD_REVIEW:'사용검사 필드 의미 검토 · 준공으로 확정하지 않음', ZERO_UNITS_REVIEW:'원천 세대수 0 · 용도·집계 기준 확인', ADDRESS_APPROXIMATE:'주소 일부를 정리해 검색 · 사업 경계 확인 필요', GEOCODE_NOT_FOUND:'주소 좌표 미발견'};
-const labels = {overview:'공급현황','annual-supply':'연도별 공급 비교',area:'인구·가구·고용 분석','policy-progress':'정책별 추진현황','program-progress':'프로그램별 추진현황',history:'정책 흐름·과거 자료', projects:'사업별 추진현황', tree:'정책-프로그램-사업연결', validation:'데이터 검증', samples:'원천 검증 자료', sources:'출처와 수집현황', keys:'API 연결 안내','project-collection':'사업별 수집·연계',manual:'사용 안내',requirements:'총리님 요구사항'};
+const labels = {'supply-conditions':'지역여건',overview:'공급현황 지도','annual-supply':'연도별 공급 비교',area:'인구·가구·고용 분석','policy-progress':'정책 추진현황','program-progress':'프로그램 추진현황',history:'정책 흐름·과거 자료', projects:'사업 추진현황', tree:'정책-프로그램-사업 연결', validation:'데이터 검증', samples:'원천 검증 자료', sources:'출처와 수집현황', keys:'API 연결 안내','project-collection':'사업별 수집연계',manual:'사용법',requirements:'요구사항정의'};
+labels['data-integrity']='데이터 정합성 확인';
 warningNames.PHOTO_MONTH_BASIS='사진 원본의 현장 기준월 · 등록일과 구분';
 warningNames.PLAN_NOT_ACTUAL='입주계획 · 실제 입주실적 아님';
 warningNames.ANNOUNCEMENT_NOT_OCCUPANCY='공고 공급호수 · 준공·실입주량 아님';
@@ -19,7 +20,7 @@ warningNames.STAGE_UNVERIFIED='진행 단계 미확인';
 warningNames.ZERO_PLANNED_UNITS_UNVERIFIED='예정 세대수 0 · 실제 공급 0호 아님';
 warningNames.UNCONFIRMED_UNITS='준공예정 세대수 미확정 · 실적 아님';
 warningNames.PARCEL_LOT_MISSING='원천 대지위치에 지번 누락 · 허가 관리번호로만 연결';
-const sampleKinds = {notice:'청약공고', permit:'인허가', location:'주소 좌표', register:'주거용 건축물대장', register_recap:'주거용 총괄표제부', lh_notice:'LH 분양·임대 공고', statistic:'지역 주택건설 통계', sh_plan:'SH 분양 공급계획', sh_project:'SH 재개발·재건축 사업', gh_notice:'GH 주택 공고', agency_stock:'SH·GH 관리·매입 재고', legal_dong:'공식 법정동 코드', lh_supply:'LH 과거 공공분양 공급현황', lh_movein_plan:'LH 연도별 입주계획', lh_stock:'LH 단지 준공·입주지정 일정',renewal_inventory:'국토부 정비사업 현황 후보',lh_completion_plan:'LH 블록별 준공예정',permit_dong:'건축HUB 동별 가구 구성',permit_parcel:'건축HUB 대지위치',plan_notice:'공식 계획 고시 원문'};
+const sampleKinds = {notice:'청약공고', permit:'주택인허가', general_permit:'일반 건축인허가', location:'주소 좌표', register:'주거용 건축물대장', register_recap:'주거용 총괄표제부', lh_notice:'LH 분양·임대 공고', statistic:'지역 주택건설 통계', sh_plan:'SH 분양 공급계획', sh_project:'SH 재개발·재건축 사업', gh_notice:'GH 주택 공고', agency_stock:'SH·GH 관리·매입 재고', legal_dong:'공식 법정동 코드', lh_supply:'LH 과거 공공분양 공급현황', lh_movein_plan:'LH 연도별 입주계획', lh_stock:'LH 단지 준공·입주지정 일정',renewal_inventory:'국토부 정비사업 현황 후보',lh_completion_plan:'LH 블록별 준공예정',agency_plan:'기관별 공급·입주 계획',agency_contract:'SH 공사계약 참고자료',permit_dong:'건축HUB 동별 가구 구성',permit_parcel:'건축HUB 대지위치',plan_notice:'공식 계획 고시 원문'};
 const sampleUnit = r => r.units == null ? '' : r.sample_kind === 'statistic' ? '호' : '세대';
 const sampleQuantity = r => r.value_status === 'NOT_APPLICABLE' ? '해당 없음' : r.value_status === 'UNVERIFIED' ? '미확정' : num(r.units) + sampleUnit(r);
 Object.assign(warningNames, {SH_PLAN_NOT_ACTUAL:'SH 계획 물량 · 공급 실적 미확인', SH_HISTORY_SNAPSHOT:'과거 공개본 · 다른 공개본과 물량 중복 합산 금지', SH_OLD_STATUS:'과거 기준일의 추진현황 · 현재 상태 확인 필요', SH_SCHEDULE_NOT_ACTUAL:'공급 예정월 · 실제 공급·지연 확인 필요', REGISTER_STOCK_NOT_SUPPLY:'건축물대장 기존 재고 · 신규 공급 실적과 구분', USE_APPROVAL_NOT_MOVE_IN:'건축물 사용승인일 · 주택법 사용검사·실입주와 구분', NOTICE_DETAIL_UNITS_REQUIRED:'공고 상세 세대수·정정·재공고 중복 확인 필요', REGIONAL_TOTAL_NOT_POLICY_ACTUAL:'시도 전체 통계 · 개별 정책 실적 합산 제외'});
@@ -90,16 +91,47 @@ function renderOverview(overview, rows, roadmap) {
   // Historical views never reconstruct information collected after that date.
   $('as-of').min = overview.first_collection_date || '';
 }
+function renderSourceVolumes(data) {
+  const root=$('source-volume-summary');root.setAttribute('aria-busy','false');
+  for(const node of root.querySelectorAll('[data-source-volume]')){
+    const key=node.dataset.sourceVolume,unit=key==='linked_records'?'건':'개';
+    node.title=data.definitions[key]+(key==='linked_records'?' · 오늘: '+data.definitions.today_linked_records:' · '+data.definitions.today);
+    node.querySelector('strong').innerHTML=num(data.current[key])+'<small>'+unit+'</small>';
+    node.querySelector('p b').textContent=num(data.today[key]);
+  }
+  $('source-volume-status').hidden=false;
+  $('source-volume-status').textContent='집계 시각 '+timeText(data.generated_at)+(data.refreshing?' · 최신 집계 갱신 중':data.refresh_failed?' · 최신 집계 재시도 예정':'');
+  $('source-volume-details').querySelector('summary').textContent='소스 유형별 자세히 보기 · '+data.as_of_date+' 기준';
+  const cells=r=>'<td class="source-volume-number">'+num(r.source_count)+'</td><td class="source-volume-number">'+num(r.records)+'</td><td class="source-volume-number">'+num(r.columns)+'</td><td class="source-volume-number source-volume-emphasis">'+num(r.extracted_cells)+'</td><td class="source-volume-number source-volume-today">'+num(r.today_extracted_cells)+'</td><td class="source-volume-number">'+num(r.linked_records)+'</td>';
+  const totals=data.types.reduce((v,r)=>{for(const k of ['source_count','records','columns','extracted_cells','today_extracted_cells','linked_records'])v[k]=(v[k]||0)+r[k];return v;},{});
+  $('source-volume-breakdown').innerHTML='<table><caption class="sr-only">소스 유형별 현재 수집·추출·연결 현황과 오늘 수집량</caption><thead><tr><th scope="col">소스 데이터 유형</th><th scope="col">출처 수</th><th scope="col">수집 행</th><th scope="col">컬럼 합계</th><th scope="col">추출 데이터<br>(행 × 컬럼)</th><th scope="col">오늘 수집량<br>(행 × 컬럼)</th><th scope="col">연결 데이터<br>(건)</th></tr></thead><tbody>'+data.types.map(r=>'<tr><th scope="row">'+esc(r.label)+'<span class="source-type-description">'+esc(r.description||'')+'</span>'+((r.sources||[]).length?'<details class="source-type-examples"><summary>실제 수집 자료 '+num(r.sources.length)+'개 보기</summary><ul>'+r.sources.map(s=>'<li><a href="'+esc(safeUrl(s.url))+'" target="_blank" rel="noopener noreferrer">'+esc(s.name)+' ↗</a></li>').join('')+'</ul></details>':'<small>현재 수집된 자료 없음</small>')+'</th>'+cells(r)+'</tr>').join('')+'</tbody><tfoot><tr><th scope="row">합계</th>'+cells(totals)+'</tr></tfoot></table>';
+}
+async function loadSourceVolumes(version) {
+  $('source-volume-summary').setAttribute('aria-busy','true');
+  try{
+    const data=await request('/source-summary');
+    if(version!==state.generation||state.view!=='sources')return;
+    if(data.current)renderSourceVolumes(data);
+    else {$('source-volume-status').hidden=false;$('source-volume-status').textContent='수집 통계를 집계하고 있습니다. 완료하면 자동으로 표시됩니다.';}
+    if(data.refreshing||!data.current)setTimeout(()=>{if(version===state.generation&&state.view==='sources')loadSourceVolumes(version);},5000);
+  }catch(_){
+    if(version!==state.generation||state.view!=='sources')return;
+    $('source-volume-summary').setAttribute('aria-busy','false');$('source-volume-status').hidden=false;
+    $('source-volume-status').textContent='통계 조회를 재시도합니다. 기존 집계값은 유지합니다.';
+    setTimeout(()=>{if(version===state.generation&&state.view==='sources')loadSourceVolumes(version);},15000);
+  }
+}
+
 function renderSources(sources) {
   const statusNames = {SUCCESS:'수집 정상', FAILED:'수집 실패', RUNNING:'수집 중', NOT_COLLECTED:'수집 대기', INTERRUPTED:'수집 중단', CONNECTOR_PENDING:'연결 준비'};
-  $('sources-list').innerHTML = sources.map(s => `<article class="source-card"><div class="source-title"><h3>${esc(s.name)}</h3><span class="badge ${s.status === 'SUCCESS' ? 'confirmed' : s.status === 'FAILED' ? 'failed' : 'neutral'}">${statusNames[s.status] || esc(s.status)}</span></div><p>${esc(s.org)} · ${s.collection_mode==='PUBLIC_FILE' ? '공식 공개 파일 · 판본별 수집' : s.id==='gh_notice' ? '공식 웹 공고 목록 · 수동 수집' : s.collection_mode==='PILOT_DETAIL' ? '건축HUB API 상세 · 수동 수집' : s.collection_mode==='DERIVED_INVENTORY' ? '최신 API 공개본 사업 연결' : s.collection_mode === 'TEST_SAMPLE' ? 'API 테스트 표본 · 수동 수집' : s.collection_mode === 'MAP_LAYER' ? '공식 공간정보 · 수동 수집' : '키 없이 웹·파일 수집'}</p><div class="source-data"><div><span>마지막 정상 수집</span><strong>${timeText(s.last_success)}</strong></div><div><span>${s.collection_mode === 'TEST_SAMPLE' ? '테스트 표본' : s.collection_mode === 'MAP_LAYER' ? '공동주택용지 지구' : '정상 레코드'}</span><strong>${num(s.record_count)}건</strong></div></div>${(s.stats.source_base_date || s.stats.dataset_version) ? `<p>원천 자료 기준일 ${esc(s.stats.source_base_date || s.stats.dataset_version)} · 현재 실적과 구분</p>` : ''}${s.error ? `<p>${esc(s.error)}</p>` : ''}<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">공식 원천 확인 ↗</a>${s.snapshots.length ? `<details data-source-snapshots="${esc(s.id)}"><summary>근거 snapshot ${s.snapshots.length}개 · SHA-256</summary><div class="source-snapshot-body"></div></details>` : ''}</article>`).join('');
+  $('sources-list').innerHTML = sources.map(s => `<article class="source-card"><div class="source-title"><h3>${esc(s.name)}</h3><span class="badge ${s.status === 'SUCCESS' ? 'confirmed' : s.status === 'FAILED' ? 'failed' : 'neutral'}">${statusNames[s.status] || esc(s.status)}</span></div><p><span class="source-kind-tag">${esc(s.data_type_label||'웹 자료')}</span> ${esc(s.org)} · ${s.collection_mode==='PUBLIC_FILE' ? '공식 공개 파일 · 판본별 수집' : s.id==='gh_notice' ? '공식 웹 공고 목록 · 수동 수집' : s.collection_mode==='PILOT_DETAIL' ? '건축HUB API 상세 · 수동 수집' : s.collection_mode==='DERIVED_INVENTORY' ? '최신 API 공개본 사업 연결' : s.collection_mode === 'TEST_SAMPLE' ? 'API 테스트 표본 · 수동 수집' : s.collection_mode === 'MAP_LAYER' ? '공식 공간정보 · 수동 수집' : '키 없이 웹·파일 수집'}</p><div class="source-data"><div><span>마지막 정상 수집</span><strong>${timeText(s.last_success)}</strong></div><div><span>${s.collection_mode === 'TEST_SAMPLE' ? '테스트 표본' : s.collection_mode === 'MAP_LAYER' ? '공동주택용지 지구' : '정상 레코드'}</span><strong>${num(s.record_count)}건</strong></div></div>${(s.stats.source_base_date || s.stats.dataset_version) ? `<p>원천 자료 기준일 ${esc(s.stats.source_base_date || s.stats.dataset_version)} · 현재 실적과 구분</p>` : ''}${s.error ? `<p>${esc(s.error)}</p>` : ''}<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">공식 원천 확인 ↗</a>${s.snapshots.length ? `<details data-source-snapshots="${esc(s.id)}"><summary>근거 snapshot ${s.snapshots.length}개 · SHA-256</summary><div class="source-snapshot-body"></div></details>` : ''}</article>`).join('');
   for(const element of $('sources-list').querySelectorAll('[data-source-snapshots]'))element.addEventListener('toggle',()=>{
     if(!element.open||element.dataset.loaded)return;
     const source=sources.find(s=>s.id===element.dataset.sourceSnapshots);
     element.querySelector('.source-snapshot-body').innerHTML=source.snapshots.map(m=>`<p><a href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener noreferrer">수집 원문 ↗</a> · ${num(m.bytes)} bytes${m.credentials_removed?' · 인증정보 제거':''}</p><div class="hash">${esc(m.sha256)}</div>`).join('');
     element.dataset.loaded='true';
   });
-  sources.forEach((source,index)=>{if(source.collection_mode==='HISTORY')document.querySelectorAll('.source-card')[index].querySelector('p').textContent=source.org+' · 정책 기원부터 과거 원천 누적 수집';});
+  sources.forEach((source,index)=>{if(source.collection_mode==='HISTORY')document.querySelectorAll('.source-card')[index].querySelector('p').innerHTML='<span class="source-kind-tag">'+esc(source.data_type_label||'공개 파일')+'</span> '+esc(source.org)+' · 정책 기원부터 과거 원천 누적 수집';});
   SourcePreview.attach($('sources-list'),sources);
   const running = sources.some(s => s.status === 'RUNNING');
   $('refresh').disabled = running;
@@ -110,8 +142,8 @@ function renderSources(sources) {
   $('refresh-status').textContent = running ? '공식 원천을 수집하고 있습니다. 결과는 자동 갱신됩니다.' : failed.length ? `${failed.length}개 원천의 수집을 확인하세요. 마지막 정상 데이터는 유지됩니다.` : '';
 }
 function renderKeys(sources) {
-  const purposes = {sh_supply_plan:'SH 분양계획의 최신·과거 공개본과 공급 예정월', sh_redevelopment:'SH 재개발·재건축 위치·계획 세대수·원천 추진현황', cheongyak:'정책 기원 연도부터 서울·경기 공고의 연도별 전체 조회 페이지 수집', building_hub:'서울·경기 6개 법정동의 과거 인허가 전체 조회 페이지 수집', vworld:'주소 좌표·공식 공동주택용지·배경지도 조회', building_register:'6개 법정동 전체 조회 페이지 중 주거용 건축물대장 · 사용승인일 검증', lh_notice:'2018년부터 서울·경기 LH 분양·임대 공고 전체 페이지', molit_statistics:'2018년부터 서울·경기 월별 분양승인·착공·준공과 연간 인허가 총계'};
-  $('keys-list').innerHTML = sources.filter(s => s.key_env && s.show_key_card!==false).map(s => `<article class="key-card"><div><h3>${esc(s.name)} <span class="badge neutral">공식 API 연결</span></h3><p>${esc(purposes[s.id]||'공식 공간정보 조회')}</p><code>${esc(s.key_env)}</code><p>${s.key_configured ? `서버에 키 설정됨 · ${s.status === 'SUCCESS' ? num(s.record_count) + '건 수집 정상' : '수집 상태: ' + esc(s.status)}` : 'API 키 미설정 · HOME 서버 설정 확인 필요'}</p></div><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">발급·활용신청 ↗</a></article>`).join('');
+  const purposes = {building_general_permit:'일반 건축인허가의 허가일·실제착공일·세대수 확인. 기존 공공데이터포털 키 재사용 가능 · 이 서비스 활용신청 필요', sh_supply_plan:'SH 분양계획의 최신·과거 공개본과 공급 예정월', sh_redevelopment:'SH 재개발·재건축 위치·계획 세대수·원천 추진현황', cheongyak:'정책 기원 연도부터 서울·경기 공고의 연도별 전체 조회 페이지 수집', building_hub:'서울·경기 6개 법정동의 과거 인허가 전체 조회 페이지 수집', vworld:'주소 좌표·공식 공동주택용지·배경지도 조회', building_register:'6개 법정동 전체 조회 페이지 중 주거용 건축물대장 · 사용승인일 검증', lh_notice:'2018년부터 서울·경기 LH 분양·임대 공고 전체 페이지', molit_statistics:'2018년부터 서울·경기 월별 분양승인·착공·준공과 연간 인허가 총계'};
+  $('keys-list').innerHTML = sources.filter(s => s.key_env && s.show_key_card!==false).map(s => `<article class="key-card"><div><h3>${esc(s.name)} <span class="badge neutral">공식 API 연결</span></h3><p>${esc(purposes[s.id]||'공식 공간정보 조회')}</p><code>${esc(s.key_env)}</code>${s.fallback_key_env ? `<p>별도 키 입력은 선택 사항 · 기존 <code>${esc(s.fallback_key_env)}</code> 재사용 가능</p>` : ''}${s.connection_confirmation ? `<p>연결 확인 · ${esc(s.connection_confirmation.actor)} · ${esc(s.connection_confirmation.reason)}</p>` : ''}<p>${s.key_configured ? `서버에 키 설정됨 · ${s.status === 'SUCCESS' ? num(s.record_count) + '건 수집 정상' : '수집 상태: ' + esc(s.status)}` : 'API 키 미설정 · HOME 서버 설정 확인 필요'}</p></div><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">발급·활용신청 ↗</a></article>`).join('');
 }
 function renderTree(tree) {
   $('tree-list').innerHTML = tree.items.length ? tree.items.map(p => `<details class="tree-policy" open><summary>${esc(p.name)} <span class="badge neutral">${num(p.groups.reduce((n,g) => n + g.count,0))}건</span></summary>${p.groups.map(g => `<details class="tree-group" open><summary>${esc(g.name)} · ${num(g.count)}건</summary>${g.projects.map(r => `<div class="tree-project"><button class="project-name" data-project="${esc(r.id)}">${esc(r.name)}<small class="row-sub">${esc(r.region)} · ${esc(sourceNames.get(r.source_id) || r.source_id)}</small></button><div><span>${num(r.planned_units)}${r.planned_units == null ? '' : '호'}</span>${badge(r.mapping.status)}</div></div>`).join('')}</details>`).join('')}</details>`).join('') : empty('선택한 조건의 정책–프로그램–사업 연결이 없습니다.');
@@ -219,7 +251,8 @@ async function load() {
   $('error').hidden = true;
   $('loading').hidden = !$('content').hidden;
   try {
-    if(['project-collection','area','annual-supply','manual','requirements'].includes(state.view)){
+    if(state.view==='supply-conditions'){state.workspaceOnly=true;$('content').hidden=false;SupplyConditions.visible();return;}
+    if(['project-collection','data-integrity','area','annual-supply','manual','requirements'].includes(state.view)){
       // These workspaces own their requests. Do not queue the other menus'
       // large projections behind their initial render.
       state.workspaceOnly=true;$('content').hidden=false;return;
@@ -232,6 +265,7 @@ async function load() {
       return;
     }
     if(['sources','keys'].includes(state.view)){
+      if(state.view==='sources')loadSourceVolumes(version);
       const sources=await request(state.view==='sources'?'/sources':'/sources?compact=true');if(version!==state.generation)return;
       state.sources=sources.items;state.workspaceOnly=true;
       if(state.view==='sources')renderSources(sources.items);else {renderKeys(sources.items);const connections=await request('/connections');if(version!==state.generation)return;ConnectionGuide.render(connections);ApiRequests.load();}$('content').hidden=false;return;
@@ -266,6 +300,7 @@ async function load() {
       const historyData=await request('/history?'+historyParams);
       if(version!==state.generation)return;HistoryPanel.render(historyData);
     }else if(state.view==='projects'){
+      $('content').hidden=false;$('loading').hidden=true;
       await ProjectWorkspace.load();
       if(version!==state.generation)return;
     }
@@ -278,8 +313,8 @@ async function load() {
   } finally {if (version === state.generation) $('loading').hidden = true;}
 }
 const policyViews = new Set(['policy-progress','program-progress','projects','history']);
-const supplyViews = new Set(['overview','annual-supply','area']);
-const sourceViews = new Set(['sources','validation','samples','keys','project-collection']);
+const supplyViews = new Set(['overview','supply-conditions','annual-supply','area']);
+const sourceViews = new Set(['sources','validation','samples','keys','project-collection','data-integrity']);
 function toggleNavGroup(group,open) {
   const button=document.querySelector(`[data-nav-group="${group}"]`);
   const children=$(button.getAttribute('aria-controls'));
@@ -292,22 +327,24 @@ function setView(view,options={}) {
   state.view=view;
   for (const pane of document.querySelectorAll('.pane')) pane.hidden = pane.id !== 'pane-' + view && !(pane.id==='pane-policy-geo'&&policyViews.has(view)&&view!=='projects');
   const category=supplyViews.has(view)?'supply':policyViews.has(view)?'policy':view==='tree'||sourceViews.has(view)?'data':'manual';
+  if(category==='supply')toggleNavGroup('supply',true);
   if(category==='policy')toggleNavGroup('policy',true);
   if(category==='data')toggleNavGroup('data',true);
   if(category==='manual')toggleNavGroup('manual',true);
   for(const nav of document.querySelectorAll('#home-main-nav .nav-item')){
-    const active=nav.dataset.view===view || (category==='supply'&&nav.dataset.view==='overview') ||
+    const active=nav.dataset.view===view || (category==='supply'&&view!=='supply-conditions'&&nav.dataset.view==='overview') ||
       (category==='policy'&&nav.dataset.view==='policy-progress'&&view==='history') ||
-      (category==='data'&&nav.dataset.view==='sources'&&sourceViews.has(view)&&view!=='project-collection');
+      (category==='data'&&nav.dataset.view==='sources'&&sourceViews.has(view)&&!['project-collection','data-integrity'].includes(view));
     nav.classList.toggle('active',active);
     if(active&&nav.dataset.view===view)nav.setAttribute('aria-current','page');else nav.removeAttribute('aria-current');
   }
   for(const button of document.querySelectorAll('#home-main-nav .nav-group-toggle'))button.classList.toggle('group-active',button.dataset.navGroup===category);
-  for(const id of ['supply-subnav','data-subnav'])$(id).hidden=id==='supply-subnav'?category!=='supply':(!sourceViews.has(view)||view==='project-collection');
+  for(const id of ['supply-subnav','data-subnav'])$(id).hidden=id==='supply-subnav'?(category!=='supply'||view==='supply-conditions'):(!sourceViews.has(view)||['project-collection','data-integrity'].includes(view));
   for(const button of document.querySelectorAll('.home-subnav [data-view]')){
     const active=button.dataset.view===view;button.classList.toggle('active',active);button.setAttribute('aria-current',active?'page':'false');
   }
-  $('page-label').textContent=labels[view];
+  $('page-label').textContent=labels[view];ReportMD.syncView(view);
+  document.body.classList.toggle('source-summary-view',view==='sources');$('source-volume-summary').hidden=view!=='sources';$('source-volume-details').hidden=view!=='sources';
   document.body.classList.toggle('home-map-view',view==='overview');
   document.body.classList.toggle('user-guide-view',view==='manual');
   document.body.classList.toggle('policy-geo-view',policyViews.has(view)&&view!=='projects');
@@ -322,18 +359,24 @@ function setView(view,options={}) {
   document.querySelector('.policy-geo-toolbar h2').textContent=view==='policy-progress'?'지역별 정책 공급 분포':'정책·프로그램·사업 지역 그래프';
   $('policy-geo-map').setAttribute('aria-label',view==='policy-progress'?'정책현황 시군구 공급 분포도':'정책현황 3D 지역 지도');
   if(view==='overview')HousingMap.visible();else if(previous==='overview')HousingMap.hidden();
-  document.querySelector('.filterbar').hidden=['area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection'].includes(view);
-  document.querySelector('.page-heading').hidden=['area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection'].includes(view);
+  document.querySelector('.filterbar').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity'].includes(view);
+  document.querySelector('.page-heading').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity'].includes(view);
+  // These workspaces load their own data. A cancelled request from the
+  // previous menu must not leave their shared content container hidden.
+  if(['manual','requirements','project-collection','data-integrity','area','annual-supply'].includes(view)){
+    state.workspaceOnly=true;$('content').hidden=false;$('loading').hidden=true;$('error').hidden=true;
+  }
   if(view==='area')AreaDashboard.visible();
   if(view==='annual-supply')AnnualSupply.visible();
   if(view==='project-collection'&&(previous!==view||!options.fromHistory))ProjectCollection.visible({refresh:previous!==view});
+  if(view==='data-integrity')DataIntegrity.visible();
   if(view==='requirements')RequirementsManual.visible();
   if(view==='manual')UserGuide.visible();
   $('policy-filter-label').hidden=view==='samples';
   $('search').placeholder=view==='samples'?'표본명, 주소, 원천 식별자 검색':'사업명, 지구명, 프로그램 검색';
   if(policyViews.has(view)&&view!=='projects')PolicyGeo3D.visible(view);else PolicyGeo3D.hidden();
   if(!options.fromHistory){const next='#'+view;if(location.hash!==next)history[options.replace?'replaceState':'pushState'](null,'',next);}
-  if(!options.deferLoad&&previous!==view&&!['manual','requirements','project-collection','area','annual-supply'].includes(view))load();
+  if(!options.deferLoad&&previous!==view&&!['manual','requirements','project-collection','data-integrity','area','annual-supply'].includes(view))load();
 }
 async function openDetail(id) {
   const generation = ++state.detailGeneration;
@@ -408,7 +451,7 @@ async function start() {
   Roadmap.start();
   HousingMap.start();
   AreaDashboard.start();
-  AnnualSupply.start();
+  AnnualSupply.start();ReportMD.start();
   HistoryPanel.start();
   PolicyDashboard.start();MappingWorkbench.start();PolicySchematic.start();PolicyGeo3D.start();PolicyReport.start();Policy907.start();
   const day = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());

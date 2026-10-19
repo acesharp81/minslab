@@ -104,7 +104,9 @@ def progress_events(service,as_of=None):
 
 
 def view(service,pid,matrix,locations=None):
-    p=service.detail(pid)
+    projects=service.projects()
+    current=next((p for p in projects if p['id']==pid),None)
+    p=dict(deepcopy(current),history=service.history(pid),mapping_history=service.mapping_history(pid)) if current else None
     if not p:raise ValueError('사업을 찾을 수 없습니다')
     saved=profile(service,pid)
     cellrow=next((r for r in matrix['items'] if r['id']==pid),None)
@@ -148,7 +150,7 @@ def view(service,pid,matrix,locations=None):
         c['review']=approved
         c['review_current']=bool(approved and approved['fingerprint']==c['fingerprint'])
     schedules={r['stage']:r for r in service.rows('execution_schedule') if r['project_id']==pid}
-    programs=service.program_links()
+    programs=service.program_links(projects=projects)
     progress={stage:progress_default(cells['CONSTRUCTION' if stage=='COMPLETION' else stage],stage,saved.get('progress',{}).get(stage)) for stage in STAGES}
     defaults={stage:target_default(cells['CONSTRUCTION' if stage=='COMPLETION' else stage],stage,schedules.get(stage)) for stage in STAGES}
     for stage,v in progress.items():
@@ -160,7 +162,7 @@ def view(service,pid,matrix,locations=None):
     source_defaults={stage:dict(target=target_default(raw_cells['CONSTRUCTION' if stage=='COMPLETION' else stage],stage),progress=progress_default(raw_cells['CONSTRUCTION' if stage=='COMPLETION' else stage],stage)) for stage in STAGES}
     parent=next((r for r in programs if r['id']==p['mapping'].get('program_id')),None)
     from .supply_conditions import conditions
-    supply_conditions=conditions(service,p,location)
+    supply_conditions=conditions(service,p,location,projects=projects)
     return dict(supply_conditions=supply_conditions,project=p,location=location,fields=fields,cells=cells,target_defaults=defaults,progress_defaults=progress,source_defaults=source_defaults,stages=matrix['stages'],schedule_stages=STAGES,schedules=schedules,
                 programs=[r for r in programs if r['policy_id']==POLICY and r['status'] not in ('RELEASED','REJECTED')],
                 parent=parent,revision_no=saved.get('revision_no',0),mapping_revision_no=p['mapping']['revision_no'],

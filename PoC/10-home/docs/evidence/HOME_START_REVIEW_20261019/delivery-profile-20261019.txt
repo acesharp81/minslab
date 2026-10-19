@@ -1,0 +1,33 @@
+         16484095 function calls (16100757 primitive calls) in 22.270 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2609 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.073    0.073   22.167   22.167 /app/backend/policy_delivery.py:88(build_delivery)
+      134    0.000    0.000   13.458    0.100 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1372(execute)
+      134    0.000    0.000   13.457    0.100 /usr/local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:514(_execute_on_connection)
+      134    0.001    0.000   13.457    0.100 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1588(_execute_clauseelement)
+      137    0.001    0.000   13.402    0.098 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1788(_execute_context)
+      441   13.181    0.030   13.394    0.030 /usr/local/lib/python3.12/site-packages/psycopg/connection.py:399(wait)
+      137    0.001    0.000   13.377    0.098 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1847(_exec_single_context)
+      199    0.000    0.000   13.374    0.067 /usr/local/lib/python3.12/site-packages/psycopg/cursor.py:80(execute)
+      137    0.000    0.000   13.364    0.098 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py:944(do_execute)
+       54    0.218    0.004   13.169    0.244 /app/backend/service.py:437(rows)
+      131    0.002    0.000   11.630    0.089 /usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2138(_execute_internal)
+      131    0.000    0.000   11.556    0.088 /usr/local/lib/python3.12/site-packages/sqlalchemy/orm/context.py:296(orm_execute_statement)
+      127    0.000    0.000   11.340    0.089 /usr/local/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2444(scalars)
+        2    0.007    0.003    9.144    4.572 /app/backend/stage_evidence.py:233(linked_events)
+        1    0.017    0.017    8.726    8.726 /app/backend/service.py:759(supply_dashboard)
+        1    0.002    0.002    4.698    4.698 /app/backend/map_stage_state.py:7(evidence_events)
+        2    1.257    0.629    2.809    1.404 /app/backend/policy_delivery_comparison.py:10(comparison_index)
+        1    0.054    0.054    2.151    2.151 /app/backend/supply_dashboard.py:190(build_dashboard)
+        1    0.001    0.001    1.977    1.977 /app/backend/policy_geo.py:293(region_outlines)
+        3    0.000    0.000    1.914    0.638 /app/backend/policy_geo.py:280(_region_outline)
+     4226    0.098    0.000    1.816    0.000 /app/backend/supply_dashboard.py:123(quantities)
+     3805    0.009    0.000    1.794    0.000 /app/backend/supply_dashboard.py:271(calculate)
+      120    0.000    0.000    1.542    0.013 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/result.py:1759(all)
+      121    0.000    0.000    1.542    0.013 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/result.py:543(_allrows)
+      120    0.000    0.000    1.541    0.013 /usr/local/lib/python3.12/site-packages/sqlalchemy/engine/result.py:1673(_fetchall_impl)
+
+

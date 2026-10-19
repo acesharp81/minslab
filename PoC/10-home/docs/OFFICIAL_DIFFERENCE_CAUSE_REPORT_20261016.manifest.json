@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-16",
+  "purpose": "상이 원인 결과 보고서",
+  "classification": {
+    "R11": {
+      "label": "차이 없음",
+      "count": 1,
+      "ids": [
+        "M01"
+      ]
+    },
+    "R01": {
+      "label": "정책 목표의 발표 판본·적용 범위 차이",
+      "count": 3,
+      "ids": [
+        "M02",
+        "M03",
+        "M35"
+      ]
+    },
+    "R02": {
+      "label": "관측 종료시점·수집 주기 단위 차이",
+      "count": 2,
+      "ids": [
+        "M04",
+        "M30"
+      ]
+    },
+    "R09": {
+      "label": "신규 지표·운영 항목의 동일 범위 데이터 미등록",
+      "count": 16,
+      "ids": [
+        "M05",
+        "M07",
+        "M09",
+        "M10",
+        "M11",
+        "M12",
+        "M13",
+        "M23",
+        "M24",
+        "M25",
+        "M26",
+        "M28",
+        "M32",
+        "M33",
+        "M34",
+        "M36"
+      ]
+    },
+    "R03": {
+      "label": "프로그램·모집단·집계 범위 차이",
+      "count": 11,
+      "ids": [
+        "M06",
+        "M08",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M18",
+        "M19",
+        "M20",
+        "M21",
+        "M22"
+      ]
+    },
+    "R10": {
+      "label": "정성·운영 과제를 물량 정확도로 비교할 수 없음",
+      "count": 3,
+      "ids": [
+        "M27",
+        "M29",
+        "M37"
+      ]
+    },
+    "R08": {
+      "label": "발표 숫자의 표시 정밀도 차이",
+      "count": 2,
+      "ids": [
+        "M31",
+        "S01"
+      ]
+    },
+    "R07": {
+      "label": "공식 발표의 블록·부분 물량 식별 부족",
+      "count": 5,
+      "ids": [
+        "S02",
+        "S10",
+        "S13",
+        "S15",
+        "S16"
+      ]
+    },
+    "R05": {
+      "label": "착공 사건의 발생연도 차이",
+      "count": 2,
+      "ids": [
+        "S03",
+        "S04"
+      ]
+    },
+    "R04": {
+      "label": "원천 자료와 사업 관리 객체의 연결 공백",
+      "count": 4,
+      "ids": [
+        "S05",
+        "S06",
+        "S07",
+        "S12"
+      ]
+    },
+    "R06": {
+      "label": "공급·입주 계획의 기간 또는 대상 블록 미대응",
+      "count": 4,
+      "ids": [
+        "S08",
+        "S09",
+        "S11",
+        "S14"
+      ]
+    }
+  },
+  "input_hashes": {
+    "docs/OFFICIAL_ACCURACY_REVIEW_20261016.json": "e4a1931067d6724a167babc004f725dd103ec3daad89738275c0d1ba8f4d855e",
+    "docs/official/jutaekpadong_metric_compare_20261016.csv": "5a79f69837db62fd68db2a1348eb4279fef2dfcadcf22773587d07232c74df43",
+    "docs/official/jutaekpadong_project_mapping_20261016.csv": "18a7c4b32dff6c1a2992476a243763c3795201947dc38de798c666dff2143999",
+    "docs/official/jutaekpadong_briefing_comparison_20261016.xlsx": "dfa7847ec7d4eb50f9cb8c3ebb8c4305949804ee8877f542de28aee8bdf1372b",
+    "backend/sources.py": "75e745ee94b6c5e53d2b30875cd0b29be954b88f44b35dcd5a888f98c0247f2e",
+    "backend/service.py": "9aec91c14d4147f8d3a04f895b1305e80c97e5d9ba58ac89891852ba28bfe0ec",
+    "backend/official_supply_files.py": "daf018ec58dbe547cb3218d620b36a6b6997321fd288506ad2bbc4bb7a637b6d",
+    "backend/additional_apis.py": "40f8281be3c723a830b2ee39b4b87ccc2e40c42d42917f0a2866c8d778ba7e5b",
+    "backend/annual_supply.py": "0b6f998a07a59edc3b0c2c650a54855adb91e966491f0afb93811b3c97978b1b",
+    "backend/evidence_bridge.py": "7db263950938a692270f57643800b383f0fda77968bbd2119492ea56e2f7f59c"
+  },
+  "report": {
+    "path": "docs/OFFICIAL_DIFFERENCE_CAUSE_REPORT_20261016.md",
+    "bytes": 36288,
+    "lines": 410,
+    "sha256": "74d78e2d6cfed4c297363bfbab50808a8035f5c47daa07f3f37f22bd96d8fca3"
+  }
+}

@@ -7,7 +7,7 @@ import csv
 import io
 from collections import defaultdict
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from .db import Revision
 
@@ -27,13 +27,17 @@ def annual_supply(service, region=None, through_year=None):
     if region is not None and region not in REGIONS:
         raise ValueError("전국 시도 조회할 수 있습니다")
     with service.sessions() as session:
-        query = select(Revision.payload).where(Revision.source_id.in_(("molit_statistics", "molit_demolition", "incheon_statistics", "national_statistics")),
-                                               Revision.kind == "statistic",
-                                               Revision.superseded_at.is_(None))
+        query = select(Revision.payload).where(Revision.source_id.in_(("molit_statistics", "molit_demolition", "incheon_statistics", "national_statistics", "molit_monthly_release")),
+                                               Revision.kind.in_(("statistic", "statistic_reference")))
+        cutoff=getattr(service,'known_at',None)
+        if cutoff is not None:
+            query=query.where(Revision.recorded_at<cutoff,or_(Revision.superseded_at.is_(None),Revision.superseded_at>=cutoff))
+        else:query=query.where(Revision.superseded_at.is_(None))
         if region:
             query = query.where(Revision.sample_region == region)
         source_rows = session.scalars(query).all()
     observed = defaultdict(dict)
+    cumulative = {}
     first_year = None
     last_year = None
     for row in source_rows:
@@ -45,6 +49,13 @@ def annual_supply(service, region=None, through_year=None):
             continue
         year = int(period[:4])
         if through_year is not None and year > through_year:
+            continue
+        if row.get('sample_kind') == 'statistic_reference':
+            if metric=='인허가' and row.get('statistic_frequency')=='YTD' and len(period)==6 and 1<=int(period[4:])<=12:
+                key=(place,year,metric)
+                if period>str(cumulative.get(key,{}).get('statistic_period','')):cumulative[key]=row
+                first_year=year if first_year is None else min(first_year,year)
+                last_year=year if last_year is None else max(last_year,year)
             continue
         month = int(period[4:]) if row.get("statistic_frequency") == "MONTH" and len(period) == 6 else None
         if metric not in ("인허가", "멸실") and (month is None or not 1 <= month <= 12):
@@ -74,6 +85,12 @@ def annual_supply(service, region=None, through_year=None):
                     item = periods.get(0)
                     cell = {"units": item["units"] if item else None, "periods": 1 if item else 0,
                             "expected_periods": 1, "complete": bool(item), "through_period": str(year) if item else None}
+                    fallback=cumulative.get((place,year,metric))
+                    if item is None and fallback:
+                        period=fallback['statistic_period'];months=int(period[4:])
+                        cell=dict(units=fallback['units'],periods=months,expected_periods=12,complete=months==12,
+                            through_period=period,aggregation='OFFICIAL_YTD',source_url=fallback['evidence_url'],
+                            period_basis='공식 원문 누계 · 개별 월별 관측을 전부 확보했다는 뜻이 아님')
                 else:
                     months = sorted(periods)
                     cell = {"units": sum(row["units"] for row in periods.values()) if months else None,
@@ -125,5 +142,5 @@ def annual_supply_csv(data):
                              "change_yoy_pct": cell["change_yoy_pct"], "sale_units": breakdown.get("분양"),
                              "rental_units": breakdown.get("임대"), "cooperative_units": breakdown.get("조합"),
                              "net_change_reference": item.get("net_change_reference"),
-                             "source_url": data["sources"][metric]})
+                             "source_url": cell.get('source_url') or data["sources"][metric]})
     return "\ufeff" + buffer.getvalue()

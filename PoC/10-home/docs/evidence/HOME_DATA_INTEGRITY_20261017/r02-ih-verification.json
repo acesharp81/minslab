@@ -1,0 +1,129 @@
+{
+  "verified_at": "2026-10-16T15:27:54.600014+00:00",
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용",
+  "source_id": "ih_notice",
+  "projects": 7,
+  "documents": 39,
+  "original_files": 59,
+  "project_records": [
+    {
+      "id": "PRO_30970726b72b0633c3d177fd",
+      "name": "검단 공공임대 주택건설사업(AA7BL)",
+      "planned_units": 1006,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=136&landDiv=1120",
+      "source_revision_id": "ac6f5fd9-0845-4497-99eb-f987cdf5cc40"
+    },
+    {
+      "id": "PRO_45aceae5763836cc763a2fa1",
+      "name": "검암 주택건설사업(S3BL)",
+      "planned_units": 614,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=130&landDiv=1120",
+      "source_revision_id": "edc31a2f-c092-44a1-b6ea-3b53c9b83f9d"
+    },
+    {
+      "id": "PRO_f6263baf545293a2283f4ad1",
+      "name": "검단 주택건설사업(AA10-1BL)",
+      "planned_units": null,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=16&landDiv=1120",
+      "source_revision_id": "94d0c96f-2746-438f-a9eb-18527ee86f23"
+    },
+    {
+      "id": "PRO_f08b63fead363ac75686d4bb",
+      "name": "도화 공공임대 주택건설사업(B3BL)",
+      "planned_units": 435,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=132&landDiv=1120",
+      "source_revision_id": "2fb3fc92-b7e3-4c70-b994-bdd06598cf63"
+    },
+    {
+      "id": "PRO_bcb5f7b7460670e177a71413",
+      "name": "검암 주택건설사업(S2BL)",
+      "planned_units": 1032,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=163&landDiv=1120",
+      "source_revision_id": "f76c748e-5687-4ded-bdd2-e52f5ed3b11a"
+    },
+    {
+      "id": "PRO_ff1be3ef81c8e493688a802d",
+      "name": "검암 주택건설사업(B1BL)",
+      "planned_units": 441,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=131&landDiv=1120",
+      "source_revision_id": "5718c939-38ca-41b8-baec-6fb7d289f383"
+    },
+    {
+      "id": "PRO_340eec94ce4d031a950cc369",
+      "name": "송도 주택건설사업(Rc5-1BL)",
+      "planned_units": 1508,
+      "policy_id": "UNASSIGNED",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=164&landDiv=1120",
+      "source_revision_id": "2f639c85-c985-4c22-8424-aae49fbec465"
+    }
+  ],
+  "board_checkpoints": {
+    "rental": {
+      "next_page": 13,
+      "complete_window": false,
+      "total": 938,
+      "pages": 94,
+      "queried_pages": [
+        1,
+        2,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "housing": {
+      "next_page": 4,
+      "complete_window": true,
+      "total": 29,
+      "pages": 3,
+      "queried_pages": [
+        1,
+        2
+      ]
+    }
+  },
+  "source_failures": [],
+  "policy_records": 197,
+  "approved_mappings_preserved": 197,
+  "approved_mappings_changed": 0,
+  "snapshot_id": "SNP_4519ab160c644949d2c260909b90abc2",
+  "snapshot_counts": {
+    "candidate_events": 228,
+    "selected_events": 37,
+    "exclusions": 137,
+    "conflicts": 4
+  },
+  "stage_evidence": {
+    "candidate_lists_updated": 0,
+    "CONFIRMED": 318,
+    "UNMATCHED": 268,
+    "REVIEW": 60
+  },
+  "collection_links": {
+    "preserved": 632,
+    "unmatched": 14
+  },
+  "bridge_changes": {
+    "as_of_date": "2026-10-17",
+    "project_records": 323,
+    "proposed_links": 0,
+    "affected_projects": 0,
+    "added_links": 0,
+    "preserved_links": 309,
+    "proposed_stage_facts": {},
+    "notice": "자료 연결 후보만 저장. 사업 물량 추가 합산·정책 귀속 확정·날짜 보간 없음. 담당자 판정/해제 링크는 재수집해도 보존."
+  },
+  "api_status": "HTTP_504_UNRESOLVED",
+  "api_address_check": "공식 Swagger host와 path가 기존 주소와 일치. 504의 상세 원인은 미확정.",
+  "unverified": "공고·사업 계획 확보와 신규 정책 실적·계약·실입주 확보를 구분. 정책 전체 모집단은 미확정."
+}

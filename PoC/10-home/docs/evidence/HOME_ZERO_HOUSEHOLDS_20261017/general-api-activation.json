@@ -1,0 +1,152 @@
+{
+  "checked_at": "2026-10-16T17:15:27.017046+00:00",
+  "source_id": "building_general_permit",
+  "records": 11958,
+  "completed_dongs": 6,
+  "total_dongs": 2907,
+  "zero_households": 8835,
+  "missing_households": 0,
+  "positive_households": 3123,
+  "regions": {
+    "서울특별시": 11958
+  },
+  "batches": [
+    {
+      "id": "407f286a-ae21-47ed-a59e-b66f4eefb0a8",
+      "status": "SUCCESS",
+      "started_at": "2026-10-16T17:12:29.161238+00:00",
+      "finished_at": "2026-10-16T17:13:08.402214+00:00",
+      "raw_pages": 2,
+      "stats": {
+        "incremental": true,
+        "scope_total_dongs": 2907,
+        "scope_completed_dongs": 1,
+        "scope_remaining_dongs": 2906,
+        "batch_records": 128,
+        "complete_scope": false,
+        "complete_query": true,
+        "district_counts": {
+          "1111012000": {
+            "matching_records": 128,
+            "sampled": 128,
+            "pages": 2,
+            "complete_query": true,
+            "legal_dong_code": "1111012000",
+            "label": "종로구 신문로1가",
+            "checked_at": "2026-10-16T17:13:07.876657+00:00"
+          }
+        },
+        "revisit_after_days": 7,
+        "scope_note": "공식 현존 법정동 2907개 중 1개 조회 완료. 미수집 동 확장과 7일 경과 완료 동 재방문을 병행. 조회 완료는 최신성·모집단 완결과 구분하며 기존 재고·인허가를 정책 공급실적으로 자동 합산하지 않음",
+        "collection_mode": "GENERAL_BUILDING_PERMIT",
+        "complete_population": false,
+        "actual_events_created": 0,
+        "endpoint": "getApBasisOulnInfo",
+        "cumulative_record_count": 128,
+        "new": 128,
+        "record_count": 128
+      }
+    },
+    {
+      "id": "dcf128e0-9c58-49e8-b202-77fe8140f732",
+      "status": "SUCCESS",
+      "started_at": "2026-10-16T17:13:52.598932+00:00",
+      "finished_at": "2026-10-16T17:14:48.114419+00:00",
+      "raw_pages": 121,
+      "stats": {
+        "incremental": true,
+        "scope_total_dongs": 2907,
+        "scope_completed_dongs": 6,
+        "scope_remaining_dongs": 2901,
+        "batch_records": 11830,
+        "complete_scope": false,
+        "complete_query": true,
+        "district_counts": {
+          "1111012000": {
+            "matching_records": 128,
+            "sampled": 128,
+            "pages": 2,
+            "complete_query": true,
+            "legal_dong_code": "1111012000",
+            "label": "종로구 신문로1가",
+            "checked_at": "2026-10-16T17:13:07.876657+00:00"
+          },
+          "1117011900": {
+            "matching_records": 626,
+            "sampled": 626,
+            "pages": 7,
+            "complete_query": true,
+            "legal_dong_code": "1117011900",
+            "label": "용산구 효창동",
+            "checked_at": "2026-10-16T17:14:00.994924+00:00"
+          },
+          "1117012900": {
+            "matching_records": 307,
+            "sampled": 307,
+            "pages": 4,
+            "complete_query": true,
+            "legal_dong_code": "1117012900",
+            "label": "용산구 이촌동",
+            "checked_at": "2026-10-16T17:14:01.504157+00:00"
+          },
+          "1120011200": {
+            "matching_records": 270,
+            "sampled": 270,
+            "pages": 3,
+            "complete_query": true,
+            "legal_dong_code": "1120011200",
+            "label": "성동구 금호동4가",
+            "checked_at": "2026-10-16T17:14:02.072373+00:00"
+          },
+          "1121510300": {
+            "matching_records": 5237,
+            "sampled": 5237,
+            "pages": 53,
+            "complete_query": true,
+            "legal_dong_code": "1121510300",
+            "label": "광진구 구의동",
+            "checked_at": "2026-10-16T17:14:10.306180+00:00"
+          },
+          "1121510500": {
+            "matching_records": 5390,
+            "sampled": 5390,
+            "pages": 54,
+            "complete_query": true,
+            "legal_dong_code": "1121510500",
+            "label": "광진구 자양동",
+            "checked_at": "2026-10-16T17:14:17.274157+00:00"
+          }
+        },
+        "revisit_after_days": 7,
+        "scope_note": "공식 현존 법정동 2907개 중 6개 조회 완료. 미수집 동 확장과 7일 경과 완료 동 재방문을 병행. 조회 완료는 최신성·모집단 완결과 구분하며 기존 재고·인허가를 정책 공급실적으로 자동 합산하지 않음",
+        "collection_mode": "GENERAL_BUILDING_PERMIT",
+        "complete_population": false,
+        "actual_events_created": 0,
+        "endpoint": "getApBasisOulnInfo",
+        "cumulative_record_count": 11958,
+        "new": 11830,
+        "record_count": 11830
+      }
+    }
+  ],
+  "actual_events_created": 0,
+  "complete_population": false,
+  "note": "등록된 키로 실제 수집 성공. 일반 인허가는 주택인허가와 별도 보존하며 사업·주택 범위·중복 검증 전 공급실적으로 합산하지 않음.",
+  "record_scope": "BASE_COLLECTION",
+  "connection_confirmation": {
+    "id": "SOU_00ae0f399df89c4ef50671da",
+    "revision_no": 1,
+    "source_id": "building_general_permit",
+    "title": "일반 건축인허가 API 연결 확인",
+    "actor": "김민",
+    "reason": "담당자 확인(자동연결)",
+    "status": "CONNECTED",
+    "base_date": "2026-10-17",
+    "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+    "evidence_batch_ids": [
+      "407f286a-ae21-47ed-a59e-b66f4eefb0a8",
+      "dcf128e0-9c58-49e8-b202-77fe8140f732"
+    ],
+    "scope": "API 원천 연결 확인. 사업별 매칭·사건 확정을 뜻하지 않음."
+  }
+}

@@ -5,9 +5,52 @@ from sqlalchemy.pool import StaticPool
 from backend.db import Base, Mapping, ProgramMapping, upsert_revision
 from backend.service import HomeService
 from backend.projection_cache import ProjectionCache, projection_version
+from backend.projection_cache import collection_projection_version
 
 
 class ProjectionCacheTests(unittest.TestCase):
+    def test_policy_cache_preserves_raw_imports_but_invalidates_confirmed_links(self):
+        from backend.projection_cache import delivery_projection_version
+        from backend.db import Batch,Audit,now
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        Base.metadata.create_all(engine);service=HomeService(engine)
+        initial=delivery_projection_version(service)
+        with service.sessions.begin() as db:
+            upsert_revision(db,'general_permit','building_general_permit','raw',{'units':20},'raw')
+            db.add(Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()))
+            db.add(Audit(entity_id='raw',action='START_CANDIDATE_FOUND',before={},after={}))
+        self.assertEqual(initial,delivery_projection_version(service))
+        with service.sessions.begin() as db:
+            upsert_revision(db,'evidence_bridge','cross_source','link',{'status':'CONFIRMED','facts':[{'stage':'CONSTRUCTION','units':20}]},'review')
+        linked=delivery_projection_version(service);self.assertNotEqual(initial,linked)
+        with service.sessions.begin() as db:
+            upsert_revision(db,'delivery_setting','officer','goal',{'targets':[{'units':30}]},'edit')
+        edited=delivery_projection_version(service);self.assertNotEqual(linked,edited)
+        with service.sessions.begin() as db:
+            db.add(Batch(source_id='ih_supply',status='FAILED',finished_at=now()))
+        self.assertNotEqual(edited,delivery_projection_version(service))
+        engine.dispose()
+
+    def test_matrix_ignores_unlinked_raw_ingestion_but_sees_links_and_reviews(self):
+        from backend.db import Audit, Batch, now
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        Base.metadata.create_all(engine);service=HomeService(engine)
+        initial=collection_projection_version(service)
+        with service.sessions.begin() as db:
+            upsert_revision(db,'general_permit','building_general_permit','raw',{'base_date':'2026-10-18'},'batch')
+            db.add(Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()))
+        self.assertEqual(initial,collection_projection_version(service))
+        with service.sessions.begin() as db:
+            upsert_revision(db,'collection_link','auto','link',{'base_date':'2026-10-18'},'batch')
+        linked=collection_projection_version(service);self.assertNotEqual(initial,linked)
+        with service.sessions.begin() as db:
+            db.add(Audit(entity_id='pr',action='PROGRAM_POLICY_REVIEW',before={},after={'actor':'김민'}))
+        reviewed=collection_projection_version(service);self.assertNotEqual(linked,reviewed)
+        with service.sessions.begin() as db:
+            db.add(Batch(source_id='ih_notice',status='FAILED',finished_at=now()))
+        self.assertNotEqual(reviewed,collection_projection_version(service))
+        engine.dispose()
+
     def test_revision_change_and_variant_separation(self):
         version=[1];calls=[]
         cache=ProjectionCache(lambda:version[0])

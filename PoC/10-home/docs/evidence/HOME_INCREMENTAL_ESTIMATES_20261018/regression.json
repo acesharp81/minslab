@@ -1,0 +1,11 @@
+{
+  "pytest_passed": 46,
+  "groups": [
+    "incremental_estimates",
+    "officer_completion",
+    "officer_duration",
+    "independent_integrity",
+    "projection_cache"
+  ],
+  "browser_report": "../HOME_PROJECT_COMPARISON_20261018/browser.json"
+}

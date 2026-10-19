@@ -1,0 +1,32 @@
+{
+  "policy_records": 208,
+  "added_projects_visible": 11,
+  "stage_targets_per_project": 6,
+  "middle_estimate": {
+    "milestone": "CONSTRUCTION",
+    "label": "착공",
+    "date": "2026-08-15",
+    "units": 3178,
+    "manual": true,
+    "inferred": true,
+    "actor": "김민",
+    "reason": "공식 자료 확인 및 IH 추가 연결",
+    "input_basis": "기존 절차 적용: 원천 일정·전후 단계·평균 소요기간에 따른 현재 추정값. 실제 사건 증빙 아님",
+    "field_provenance": {
+      "units": {
+        "rule": "PROJECT_SCOPE_ESTIMATE",
+        "value": 3178,
+        "basis": "원천 사건별 물량 대신 사업 총규모를 적용한 담당자 추정"
+      },
+      "event_date": {
+        "rule": "OFFICER_CURRENT_ESTIMATE",
+        "value": "2026-08-15",
+        "basis": "저장 일정과 전후 관계를 이용한 관리 추정일 · 실제 사건일 확정 아님"
+      }
+    },
+    "changed_at": "2026-10-18T12:07:21.502130+00:00",
+    "input_status": "ESTIMATED_UNCOLLECTED"
+  },
+  "detail_estimate_visible": true,
+  "history_visible": true
+}

@@ -1,0 +1,14 @@
+{
+  "backend/incremental_estimates.py": "8fcf12e7bb7696df76a5260c2ec2ef554435c8fe4294caa075cb5e23e2befe4a",
+  "scripts/complete_added_project_estimates_20261018.py": "3ab91020009455c3897856be9ebd2e06f8c2c428fb825b675c9b30c860e7f4fd",
+  "tests/test_incremental_estimates.py": "ebcf1b7fb60f449df34dca4e97833a32d9c4c0b8dcb7edfe17b2a7a667baf853",
+  "docs/HOME_OFFICIAL_PROJECT_COMPARISON_20261018.html": "004556a8243a9daed403c90e24e666effe22e4cab963af315cc7ab080d13cc5e",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/history.json": "22275d49d6f3b917d3e86bbd114980bec58004620ea06ef94c52b8c64f1f2196",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/regression.json": "0d20e676a7193f4966db1cef2e83417300c86227531fc20c4d5b06779e05cf8f",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/verification.json": "1c15ca75655e03693c176134d4dd0d354a7afd501f59d89444a8a38a7c6973ac",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/applied.json": "04c421b5bb5e8057daff803bb711a93e9ddd06c550631c0463ea30bfeef56464",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/api-verification.json": "54f8d9d251f456bc8ff90b3a9e7dd2637c56ce9cc7d95fb6e85f36ae5ef38b5c",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/plan.json": "1f0dc2b9cdc7bc5d022ee48c4829dfd70a3bb29127bb9b45cf5c4d6d29b41051",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/metadata-correction.json": "23ecc8e433b0279b8ddb4f63b91693b8ec8803fa7c550d1465b5db87074f6e91",
+  "docs/evidence/HOME_INCREMENTAL_ESTIMATES_20261018/collection-browser.json": "c5c9c901e70961c6b830e494769b5e3c52b6e237e21a6569643f857ee5707c4c"
+}

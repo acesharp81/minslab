@@ -1,0 +1,62 @@
+{
+  "CONSTRUCTION": {
+    "before": {
+      "actual": 76936,
+      "year_end": 80800
+    },
+    "after": {
+      "actual": 76936,
+      "year_end": 80800
+    }
+  },
+  "SUPPLY": {
+    "before": {
+      "actual": 58195,
+      "year_end": 69902
+    },
+    "after": {
+      "actual": 58195,
+      "year_end": 69902
+    }
+  },
+  "BUSINESS": {
+    "before": {
+      "actual": 89459,
+      "year_end": 139316
+    },
+    "after": {
+      "actual": 89459,
+      "year_end": 139316
+    }
+  },
+  "APPROVAL": {
+    "before": {
+      "actual": 86945,
+      "year_end": 91387
+    },
+    "after": {
+      "actual": 86945,
+      "year_end": 91387
+    }
+  },
+  "COMPLETION": {
+    "before": {
+      "actual": 3501,
+      "year_end": 7816
+    },
+    "after": {
+      "actual": 3501,
+      "year_end": 7816
+    }
+  },
+  "MOVE_IN": {
+    "before": {
+      "actual": null,
+      "year_end": 3845
+    },
+    "after": {
+      "actual": null,
+      "year_end": 3845
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "programsConfirmed": 6,
+  "projectsConfirmed": 11,
+  "policyProjects": 208,
+  "ihProjects": 7,
+  "programReviewPending": 0,
+  "actor": "김민",
+  "reason": "공식 자료 확인 및 IH 추가 연결",
+  "csv": "PASS",
+  "scorecard": "PASS",
+  "browser": "PASS",
+  "errors": []
+}

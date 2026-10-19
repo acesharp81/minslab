@@ -1,0 +1,72 @@
+{
+  "files": [
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/loading-plan-before-sample_count.json",
+      "sha256": "7b30acf60305be90a02f3464278d233c1058aedcddbfa28cb1dd134b63430bce"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/report.html",
+      "sha256": "7482e1edf43bc7de911d842f202486cf889e058fa8ca8e13282a5f575f1df349"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/loading-plan-after-vacuum.json",
+      "sha256": "b11e9533ac9d5481eebf812e6a98f4e5df43efc1389b9f579e18404f27a81546"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/loading-before-overview.json",
+      "sha256": "8168d422194a9000c3c4b90e3427365f52eec14dfd1fb5925577ee9c5fad334c"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/api-before.json",
+      "sha256": "e6720db038b19a52700131caf80f714041564d2ae434d9071b4b25a0f10cc07d"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/report.json",
+      "sha256": "de75d714aae3b6f197d1b46f668c67836e2ba7c2e45b5e3420dd96e7d8e5fbb6"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/api-after.json",
+      "sha256": "f81528ee2fe0a021f24c328cf0fe38d1e1dba9bd420a62c8bef9ab6fbf1fffe2"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/loading-plan-before-project_rows.json",
+      "sha256": "5df3fa03d1e0952aecdabff87efcf0c9a8dbe79c0ff0916f909e504a7d465ae1"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/browser.json",
+      "sha256": "f42b2b80eac17519a8e728211780a2d64e17f1c1063bee9feb48e35a00201a60"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/regression.xml",
+      "sha256": "eebfef2314acf6c3c4b0cf04d71036c29aba23a9c4a8a85b00be138ca2aa4f95"
+    },
+    {
+      "path": "docs/evidence/HOME_LOADING_PERFORMANCE_20261018/loading-before-profile.json",
+      "sha256": "44511942e42b8f9f85d774ebebb762e52f1ee5ccca1dba584fe413062db7c555"
+    },
+    {
+      "path": "backend/projection_cache.py",
+      "sha256": "0e87e50962843d69dcfe5a2c23b1f622eacf7e688c48c0a28c82abe85c1aedb9"
+    },
+    {
+      "path": "backend/app.py",
+      "sha256": "30adb6439c13e0ac11ef83d60c17547356b84372a2e4123a63e16f84ae485e6a"
+    },
+    {
+      "path": "backend/db.py",
+      "sha256": "870f3491bcc94c5f08ca97c43f39ae4e895d05feccb29ea6d7209ad7c16cd045"
+    },
+    {
+      "path": "db/migrations/versions/0013_loading_performance.py",
+      "sha256": "30115a77525eae95e5727ef5451215910bc3cca78c9d0cdadea670ba6022b58e"
+    },
+    {
+      "path": "tests/test_projection_cache.py",
+      "sha256": "f3375007aace3911cc19d8433a1647bd6bc1f00e3d91bfcf8472e4d3ed2d2dbf"
+    },
+    {
+      "path": "tests/test_evidence_bridge.py",
+      "sha256": "8fad1a97e63e42733c1fc6c6818f1bc80ad89366767cc472e97fc4594c8e1e39"
+    }
+  ]
+}

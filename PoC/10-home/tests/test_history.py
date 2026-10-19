@@ -58,7 +58,7 @@ class PeriodTests(unittest.TestCase):
                 return json.dumps({'data':rows,'matchCount':len(rows)})
         with patch.dict(os.environ,{'POC10_CHEONGYAK_SERVICE_KEY':'fake','POC10_NOTICE_START_DATE':'2018-01-01'}):
             records,stats=collect_notices(source,Fetch())
-        self.assertEqual(len(records),2*(today().year-2020+1))
+        self.assertEqual(len(records),3*(today().year-2020+1))
         self.assertTrue(all(row['status']=='NO_RESULTS_UNVERIFIED' for row in stats['annual_counts'] if row['year']<2020))
 
     def test_permit_default_full_pages_exceeds_previous_500_limit(self):

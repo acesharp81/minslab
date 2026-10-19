@@ -1,0 +1,627 @@
+[
+  {
+    "source_id": "ih_housing_inventory",
+    "name": "iH 공개 임대단지 명부·상세",
+    "url": "https://www.ih.co.kr/main/lease/leaseAptList.do",
+    "status": "SUCCESS",
+    "record_count": 19,
+    "last_success": "2026-10-16T16:17:10.862813+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "reb_apartment_price",
+    "name": "한국부동산원 수도권 아파트 매매가격지수",
+    "url": "https://www.reb.or.kr/r-one/portal/stat/easyStatPage/A_2024_00045.do",
+    "status": "SUCCESS",
+    "record_count": 626,
+    "last_success": "2026-10-15T23:02:11.038317+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_age",
+    "name": "KOSIS 수도권 시군구 연령별 주민등록인구",
+    "url": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1B04005N",
+    "status": "SUCCESS",
+    "record_count": 70,
+    "last_success": "2026-10-14T05:07:13.411600+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "unsold_statistics",
+    "name": "수도권 미분양·준공 후 미분양 월별 재고",
+    "url": "https://stat.molit.go.kr/portal/api/info.do",
+    "status": "SUCCESS",
+    "record_count": 418,
+    "last_success": "2026-10-16T12:09:32.927320+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "project_locations",
+    "name": "사업 대표 주소·지역 근사 좌표",
+    "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+    "status": "SUCCESS",
+    "record_count": 194,
+    "last_success": "2026-10-12T23:04:25.413708+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "seoul_cleanup",
+    "name": "서울 정비사업 정보몽땅·추진경과",
+    "url": "https://cleanup.seoul.go.kr/cleanup/bsnssttus/lscrMainIndx.do",
+    "status": "SUCCESS",
+    "record_count": 1201,
+    "last_success": "2026-10-16T16:17:24.180374+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "national_statistics",
+    "name": "전국 주택 공급단계 통계 · 보관 원본 확대 추출",
+    "url": "https://stat.molit.go.kr/portal/api/info.do",
+    "status": "SUCCESS",
+    "record_count": 4468,
+    "last_success": "2026-10-12T04:37:32.192376+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "ih_notice",
+    "name": "iH 공식 주택 사업·분양·임대 모집공고",
+    "url": "https://www.ih.co.kr/main/business/house.jsp",
+    "status": "SUCCESS",
+    "record_count": 288,
+    "last_success": "2026-10-16T16:21:44.393559+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "ih_supply",
+    "name": "iH 임대 재고·계약·공가 API · 접근 미확인",
+    "url": "https://www.data.go.kr/data/15168460/openapi.do",
+    "status": "FAILED",
+    "record_count": 0,
+    "last_success": null,
+    "scope": {}
+  },
+  {
+    "source_id": "incheon_legal_dongs",
+    "name": "9·7 인천 전체 법정동 코드",
+    "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+    "status": "SUCCESS",
+    "record_count": 278,
+    "last_success": "2026-10-12T00:03:38.331915+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "building_hub_incheon",
+    "name": "9·7 인천 주택인허가 원천",
+    "url": "https://www.data.go.kr/data/15136560/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 556,
+    "last_success": "2026-10-16T16:51:30.695128+00:00",
+    "scope": {
+      "scope_total_dongs": 278,
+      "scope_completed_dongs": 35,
+      "scope_remaining_dongs": 243
+    }
+  },
+  {
+    "source_id": "building_register_recap",
+    "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 1539,
+    "last_success": "2026-10-11T23:50:54.326005+00:00",
+    "scope": {
+      "scope_total_dongs": 2629,
+      "scope_completed_dongs": 20,
+      "scope_remaining_dongs": 2609
+    }
+  },
+  {
+    "source_id": "policy_907_plan",
+    "name": "9·7 전체 연도·유형별 착공 목표 원문",
+    "url": "https://eiec.kdi.re.kr/policy/materialView.do?num=270716",
+    "status": "SUCCESS",
+    "record_count": 1,
+    "last_success": "2026-10-12T03:44:15.691456+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "policy_907_incheon_geometry",
+    "name": "9·7 인천 시군구 경계",
+    "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+    "status": "SUCCESS",
+    "record_count": 11,
+    "last_success": "2026-10-11T23:50:21.329470+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "incheon_statistics",
+    "name": "인천 주택 인허가·착공·준공·분양승인 통계",
+    "url": "https://stat.molit.go.kr/portal/api/info.do",
+    "status": "SUCCESS",
+    "record_count": 320,
+    "last_success": "2026-10-11T23:50:36.837726+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_incheon_sale",
+    "name": "LH 인천 분양 공급계획",
+    "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+    "status": "SUCCESS",
+    "record_count": 5,
+    "last_success": "2026-10-16T08:51:32.137715+00:00",
+    "scope": {
+      "source_base_date": "2026"
+    }
+  },
+  {
+    "source_id": "lh_incheon_rent",
+    "name": "LH 인천 임대 공급계획",
+    "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+    "status": "SUCCESS",
+    "record_count": 5,
+    "last_success": "2026-10-16T08:51:33.011315+00:00",
+    "scope": {
+      "source_base_date": "2026"
+    }
+  },
+  {
+    "source_id": "lh_incheon_construction",
+    "name": "LH 인천 실제 착공·공정 현황",
+    "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+    "status": "SUCCESS",
+    "record_count": 16,
+    "last_success": "2026-10-16T16:46:58.602229+00:00",
+    "scope": {
+      "source_base_date": "2026-07-01"
+    }
+  },
+  {
+    "source_id": "molit_demolition",
+    "name": "국토부 연도별 주택멸실현황 · 서울·경기",
+    "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839",
+    "status": "SUCCESS",
+    "record_count": 14,
+    "last_success": "2026-10-16T11:08:01.940018+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "seoul_plan_notice_pilot",
+    "name": "서울 공덕1 정비구역 변경 고시 원문",
+    "url": "https://event.seoul.go.kr/seoulsibo/detailview.do?cn_seq=MTc1Mjc%3D&tr_code=snews",
+    "status": "SUCCESS",
+    "record_count": 1,
+    "last_success": "2026-10-10T04:15:47.721985+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "gyeonggi_plan_notice_pilot",
+    "name": "경기 고양창릉 지구지정 변경 고시 원문",
+    "url": "https://www.molit.go.kr/USR/I0204/m_45/dtl.jsp?idx=18272",
+    "status": "SUCCESS",
+    "record_count": 1,
+    "last_success": "2026-10-10T04:15:53.327417+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "building_hub_details",
+    "name": "건축HUB 동별·대지위치 파일럿",
+    "url": "https://www.data.go.kr/data/15136560/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 335068,
+    "last_success": "2026-10-16T11:08:54.740621+00:00",
+    "scope": {
+      "scope_total_dongs": 2907,
+      "scope_completed_dongs": 760,
+      "scope_remaining_dongs": 2147
+    }
+  },
+  {
+    "source_id": "molit_renewal_inventory",
+    "name": "국토부 전국 정비사업 통합 현황 · 서울·경기 후보",
+    "url": "https://www.data.go.kr/data/15160169/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 885,
+    "last_success": "2026-10-16T11:08:55.562303+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_completion_plan",
+    "name": "LH 공공주택 블록별 준공예정",
+    "url": "https://www.data.go.kr/data/15141761/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 181,
+    "last_success": "2026-10-16T11:08:56.375291+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_housing",
+    "name": "KOSIS 서울·경기 일반가구·다가구 반영 주택 재고",
+    "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+    "status": "SUCCESS",
+    "record_count": 552,
+    "last_success": "2026-10-16T11:09:19.217446+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_living",
+    "name": "KOSIS 소득·인구이동·거주기간·주거형태",
+    "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+    "status": "SUCCESS",
+    "record_count": 965,
+    "last_success": "2026-10-16T10:22:23.701874+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_household_size",
+    "name": "KOSIS 서울·경기 가구원수별 일반가구",
+    "url": "https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE",
+    "status": "SUCCESS",
+    "record_count": 552,
+    "last_success": "2026-10-16T11:09:26.111249+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "sgis_area",
+    "name": "SGIS 서울·경기 인구·가구·사업체·산업 종사자",
+    "url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html",
+    "status": "SUCCESS",
+    "record_count": 483,
+    "last_success": "2026-10-16T11:09:27.541044+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_employment",
+    "name": "KOSIS 시군구별 반기 고용·취업자",
+    "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+    "status": "SUCCESS",
+    "record_count": 912,
+    "last_success": "2026-10-16T11:09:30.778956+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "kosis_household_forecast",
+    "name": "KOSIS 시도별 장래가구추계",
+    "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+    "status": "SUCCESS",
+    "record_count": 33,
+    "last_success": "2026-10-16T11:09:31.197158+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_block_location",
+    "name": "LH 공개 지도 블록 라벨 위치",
+    "url": "https://bizmap.lh.or.kr/lhmap.do",
+    "status": "SUCCESS",
+    "record_count": 273,
+    "last_success": "2026-10-16T11:09:34.376051+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_reit_progress",
+    "name": "LH 공공임대리츠 실제 공정률 · 2018 투자보고서",
+    "url": "https://www.lh.or.kr/boardDownload.es?bid=0028&list_no=651950&seq=1",
+    "status": "SUCCESS",
+    "record_count": 1,
+    "last_success": "2026-10-16T11:09:37.903412+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_progress",
+    "name": "LH 블록별 실제 공정률 · 공개 상세 이력",
+    "url": "https://apply.lh.or.kr/lhapply/land/cwsttList.do",
+    "status": "SUCCESS",
+    "record_count": 566,
+    "last_success": "2026-10-16T11:09:59.805586+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_supply_history",
+    "name": "LH 공공분양 공급현황 2020~2025",
+    "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=727605&mid=a10103040000&nPage=1",
+    "status": "SUCCESS",
+    "record_count": 76,
+    "last_success": "2026-10-16T11:10:01.390164+00:00",
+    "scope": {
+      "source_base_date": "2025-11-13"
+    }
+  },
+  {
+    "source_id": "lh_movein_history",
+    "name": "LH 연도별 입주계획 공개본",
+    "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654827&mid=a10103010000&nPage=1",
+    "status": "SUCCESS",
+    "record_count": 217,
+    "last_success": "2026-10-16T11:10:04.731202+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_stock",
+    "name": "LH 단지정보 · 과거 준공·입주지정 일정",
+    "url": "https://www.data.go.kr/data/15080989/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 1815,
+    "last_success": "2026-10-16T11:10:18.754516+00:00",
+    "scope": {
+      "source_base_date": "2026-08-10"
+    }
+  },
+  {
+    "source_id": "legal_dongs",
+    "name": "서울·경기 전체 법정동 코드",
+    "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+    "status": "SUCCESS",
+    "record_count": 2629,
+    "last_success": "2026-10-16T11:10:36.853135+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "sh_files",
+    "name": "SH 주택관리현황 2024~2026 공개본",
+    "url": "https://data.seoul.go.kr/dataList/OA-12027/S/1/datasetView.do",
+    "status": "SUCCESS",
+    "record_count": 2364,
+    "last_success": "2026-10-16T11:10:48.681672+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "gh_files",
+    "name": "GH 재건축 매입임대 현황",
+    "url": "https://www.data.go.kr/data/15112600/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 21,
+    "last_success": "2026-10-16T11:10:49.201260+00:00",
+    "scope": {
+      "source_base_date": "2026-08-21"
+    }
+  },
+  {
+    "source_id": "gh_supply_plan",
+    "name": "GH 주택 분양·임대 공급계획",
+    "url": "https://www.gh.or.kr/gh/housing-stability-in-gyeonggi-do001.do",
+    "status": "SUCCESS",
+    "record_count": 2,
+    "last_success": "2026-10-16T11:10:49.411473+00:00",
+    "scope": {
+      "source_base_date": "2026-04"
+    }
+  },
+  {
+    "source_id": "complex_approval_reference",
+    "name": "한국부동산원 공동주택 단지·필지 사용승인 참조",
+    "url": "https://www.data.go.kr/data/15106861/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 24835,
+    "last_success": "2026-10-10T06:04:23.655527+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "gh_completion_evidence",
+    "name": "GH 사용검사·사용승인 원문 증빙",
+    "url": "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeList.do",
+    "status": "SUCCESS",
+    "record_count": 7,
+    "last_success": "2026-10-16T16:35:18.320314+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "gh_notice",
+    "name": "GH 주택 공고·과거 목록",
+    "url": "https://apply.gh.or.kr/sb/sr/sr7150/selectPbancRentHouseList.do",
+    "status": "SUCCESS",
+    "record_count": 257,
+    "last_success": "2026-10-16T16:36:45.561921+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "policy_907",
+    "name": "9·7 주택공급 확대방안",
+    "url": "https://d.nts.go.kr/cheonan/na/ntt/selectNttInfo.do?mi=4611&nttSn=1353601",
+    "status": "SUCCESS",
+    "record_count": 17,
+    "last_success": "2026-10-16T11:10:58.233033+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "policy_129",
+    "name": "1·29 도심 주택공급 확대 및 신속화",
+    "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156742030",
+    "status": "SUCCESS",
+    "record_count": 51,
+    "last_success": "2026-10-16T11:11:02.766348+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "policy_813",
+    "name": "8·13 주택 신속공급 방안",
+    "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156774369",
+    "status": "SUCCESS",
+    "record_count": 1,
+    "last_success": "2026-10-16T11:11:03.788527+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "urban_930",
+    "name": "서울 도심복합사업 9·30 후속조치",
+    "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148972807",
+    "status": "SUCCESS",
+    "record_count": 52,
+    "last_success": "2026-10-16T11:11:07.206299+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_sale",
+    "name": "LH 연간 분양주택 공급계획",
+    "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+    "status": "SUCCESS",
+    "record_count": 34,
+    "last_success": "2026-10-16T11:11:07.839492+00:00",
+    "scope": {
+      "source_base_date": "2026"
+    }
+  },
+  {
+    "source_id": "lh_rent",
+    "name": "LH 연간 임대주택 공급계획",
+    "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+    "status": "SUCCESS",
+    "record_count": 18,
+    "last_success": "2026-10-16T11:11:08.512627+00:00",
+    "scope": {
+      "source_base_date": "2026"
+    }
+  },
+  {
+    "source_id": "lh_construction",
+    "name": "LH 건설공사 현황",
+    "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+    "status": "SUCCESS",
+    "record_count": 87,
+    "last_success": "2026-10-16T16:46:56.058383+00:00",
+    "scope": {
+      "source_base_date": "2026-07-01"
+    }
+  },
+  {
+    "source_id": "cheongyak",
+    "name": "청약홈 분양정보",
+    "url": "https://www.data.go.kr/data/15098547/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 1113,
+    "last_success": "2026-10-14T02:20:44.684918+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "building_hub",
+    "name": "건축HUB 주택인허가",
+    "url": "https://www.data.go.kr/data/15136560/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 237433,
+    "last_success": "2026-10-16T11:11:35.947810+00:00",
+    "scope": {
+      "scope_total_dongs": 2629,
+      "scope_completed_dongs": 2505,
+      "scope_remaining_dongs": 124
+    }
+  },
+  {
+    "source_id": "building_register",
+    "name": "건축HUB 주거용 건축물대장",
+    "url": "https://www.data.go.kr/data/15134735/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 1046841,
+    "last_success": "2026-10-16T11:18:51.493186+00:00",
+    "scope": {
+      "scope_total_dongs": 2629,
+      "scope_completed_dongs": 2217,
+      "scope_remaining_dongs": 412
+    }
+  },
+  {
+    "source_id": "lh_notice",
+    "name": "LH 분양·임대 공고",
+    "url": "https://www.data.go.kr/data/15058530/openapi.do",
+    "status": "SUCCESS",
+    "record_count": 4018,
+    "last_success": "2026-10-16T16:55:24.497106+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_notice_detail",
+    "name": "LH 모집공고 상세 · 입주 예정월",
+    "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do",
+    "status": "SUCCESS",
+    "record_count": 132,
+    "last_success": "2026-10-16T16:37:42.023960+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "molit_statistics",
+    "name": "서울·경기 주택건설 공식 통계",
+    "url": "https://stat.molit.go.kr/portal/api/info.do",
+    "status": "SUCCESS",
+    "record_count": 640,
+    "last_success": "2026-10-05T08:31:26.213692+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "sh_supply_plan",
+    "name": "SH 주택분양 공급계획·과거 공개본",
+    "url": "https://www.data.go.kr/data/15008820/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 20,
+    "last_success": "2026-10-03T02:00:56.267749+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "sh_redevelopment",
+    "name": "SH 공공재개발·재건축 사업현황",
+    "url": "https://www.data.go.kr/data/15124798/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 16,
+    "last_success": "2026-10-03T02:00:56.420461+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "vworld",
+    "name": "행정구역 경계·주소 좌표",
+    "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+    "status": "SUCCESS",
+    "record_count": 100,
+    "last_success": "2026-10-03T07:30:24.390608+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "vworld_district",
+    "name": "VWorld 공공주택지구 공동주택용지",
+    "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+    "status": "SUCCESS",
+    "record_count": 35,
+    "last_success": "2026-10-02T14:58:19.584893+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "vworld_municipality",
+    "name": "VWorld 서울·경기 시군구 경계",
+    "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+    "status": "SUCCESS",
+    "record_count": 56,
+    "last_success": "2026-10-02T23:36:25.221720+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "policy_history",
+    "name": "정책 기원·후속조치 이력",
+    "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148856563",
+    "status": "SUCCESS",
+    "record_count": 5,
+    "last_success": "2026-10-16T11:18:54.401057+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "lh_history",
+    "name": "LH 과거 건설공사 현황",
+    "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+    "status": "SUCCESS",
+    "record_count": 641,
+    "last_success": "2026-10-16T11:19:02.097270+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "sh_inventory",
+    "name": "SH 최신 공개본 사업 연결",
+    "url": "https://www.data.go.kr/data/15124798/fileData.do",
+    "status": "SUCCESS",
+    "record_count": 18,
+    "last_success": "2026-10-16T16:33:16.169820+00:00",
+    "scope": {}
+  },
+  {
+    "source_id": "area_national_benchmarks",
+    "name": "전국 연령·가구원수·산업 종사자 비교 기준",
+    "url": "https://kosis.kr/openapi/index/index.do",
+    "status": "SUCCESS",
+    "record_count": 3,
+    "last_success": "2026-10-14T05:31:50.552661+00:00",
+    "scope": {}
+  }
+]

@@ -1,0 +1,192 @@
+{
+  "captured_at": "2026-10-19T11:54:28.531102+00:00",
+  "packaged_at": "2026-10-19T11:58:47.555519+00:00",
+  "fresh_sources": [
+    {
+      "source_id": "lh_sale",
+      "checked_at": "2026-10-19T11:54:45.929227+00:00",
+      "status": "SUCCESS",
+      "stats": {
+        "raw_rows": 96,
+        "excluded_rows": 21,
+        "included_rows": 75,
+        "provided": 96,
+        "fetched": 96,
+        "pages": 1,
+        "complete_query": true,
+        "complete_population": false,
+        "source_base_date": "2026"
+      },
+      "fresh_count": 34,
+      "stored_count": 34,
+      "new_ids": [],
+      "missing_from_current_ids": [],
+      "changed": []
+    },
+    {
+      "source_id": "lh_rent",
+      "checked_at": "2026-10-19T11:54:46.322881+00:00",
+      "status": "SUCCESS",
+      "stats": {
+        "raw_rows": 113,
+        "excluded_rows": 85,
+        "included_rows": 28,
+        "provided": 113,
+        "fetched": 113,
+        "pages": 2,
+        "complete_query": true,
+        "complete_population": false,
+        "source_base_date": "2026"
+      },
+      "fresh_count": 15,
+      "stored_count": 18,
+      "new_ids": [],
+      "missing_from_current_ids": [
+        "PRO_2dfb63f2826a3d14481c2fb4",
+        "PRO_549ddb7c7141ef73cf07ffb0",
+        "PRO_693fd7d6c158c2da26abe2c0"
+      ],
+      "changed": []
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "checked_at": "2026-10-19T11:54:46.959442+00:00",
+      "status": "SUCCESS",
+      "stats": {
+        "file_rows": 351,
+        "included_rows": 204,
+        "excluded_rows": 147,
+        "region_counts": {
+          "인천광역시": 23,
+          "경기도": 167,
+          "서울특별시": 14
+        },
+        "unknown_units_rows": 0,
+        "dataset_version": "2026-01-27",
+        "complete_query": true,
+        "complete_population": false,
+        "scope_note": "파일 기준 착공(예정) 후 공공주택 블록의 준공예정. 실제 준공·입주 및 모든 공공주택 전수 아님"
+      },
+      "fresh_count": 204,
+      "stored_count": 204,
+      "new_ids": [],
+      "missing_from_current_ids": [],
+      "changed": []
+    },
+    {
+      "source_id": "gh_supply_plan",
+      "checked_at": "2026-10-19T11:54:47.350712+00:00",
+      "status": "SUCCESS",
+      "stats": {
+        "complete_query": true,
+        "complete_population": false,
+        "source_base_date": "2026-04",
+        "provided": 2,
+        "fetched": 2,
+        "scope_note": "GH 공식 분양/임대 계획 표 전체. 다른 GH 사업·과거 판본 전체를 뜻하지 않음. 분기·반기·범위 일정은 마지막 달로 집계하고 원문 보존"
+      },
+      "fresh_count": 2,
+      "stored_count": 2,
+      "new_ids": [],
+      "missing_from_current_ids": [],
+      "changed": []
+    }
+  ],
+  "movein_omissions_by_year": [
+    {
+      "year": 2026,
+      "rows": 8,
+      "units": 3710,
+      "blocks": 5,
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10882"
+    },
+    {
+      "year": 2025,
+      "rows": 8,
+      "units": 3257,
+      "blocks": 5,
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10881"
+    },
+    {
+      "year": 2024,
+      "rows": 7,
+      "units": 4821,
+      "blocks": 6,
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=2"
+    },
+    {
+      "year": 2023,
+      "rows": 8,
+      "units": 6485,
+      "blocks": 7,
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10875"
+    },
+    {
+      "year": 2022,
+      "rows": 4,
+      "units": 1695,
+      "blocks": 3,
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10877"
+    }
+  ],
+  "latest_rent_absent": [
+    {
+      "id": "PRO_2dfb63f2826a3d14481c2fb4",
+      "name": "구리갈매역세권 A-3",
+      "units": 287
+    },
+    {
+      "id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "name": "남양주진접2 A7",
+      "units": 305
+    },
+    {
+      "id": "PRO_693fd7d6c158c2da26abe2c0",
+      "name": "오산세교2 A11",
+      "units": 399
+    }
+  ],
+  "completion_links": {
+    "source_rows": 204,
+    "linked_source_rows": 80,
+    "confirmed_source_rows": 68,
+    "link_status": {
+      "CONFIRMED": 81,
+      "REVIEW": 18
+    }
+  },
+  "managed_schedules": {
+    "count": 1800,
+    "projects": 300,
+    "statuses": {
+      "CONFIRMED": 1800
+    }
+  },
+  "policy": {
+    "cohorts": 153,
+    "source_projects": 208,
+    "year_end_construction": 80800,
+    "current_construction": 76936,
+    "tracking_keys": [
+      "target_points",
+      "actual_points",
+      "project_count",
+      "basis"
+    ]
+  },
+  "snapshot_role": "보완 전 감사 스냅샷. 이후 수정 결과는 collection-results/links-applied/after-comparison 참고",
+  "remediation": {
+    "new_routes": 6,
+    "plan_rows_added": 605,
+    "contract_rows_added": 792,
+    "lh_movein_rows_added": 35,
+    "lh_supply_rows_added": 11,
+    "lh_stock_rows_added": 249,
+    "confirmed_links": 31,
+    "consolidated_review_links": 9,
+    "protected_unchanged": true,
+    "source_and_link_updates_applied": true
+  },
+  "snapshot_read_only": true,
+  "final_checked_at": "2026-10-19T12:21:32.898436+00:00"
+}

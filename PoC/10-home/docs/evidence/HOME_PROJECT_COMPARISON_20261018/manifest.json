@@ -1,0 +1,10 @@
+{
+  "known_at": "2026-10-18T12:12:24.036999+00:00",
+  "capture_sha256": "2b3d01647924ed6953cd84f0842fb8e4a987fb36754e8d6e7eede628a86910a1",
+  "html_sha256": "004556a8243a9daed403c90e24e666effe22e4cab963af315cc7ab080d13cc5e",
+  "data_sha256": "a930851149197a034cf55e9b13c8fac904b88986b309854241f21a83ee9259e4",
+  "builder_sha256": "ab302f4c0d9f5e3db97219d3a1994639ab81f718506693a8d32834f049d416d1",
+  "template_sha256": "3bce824976bebae57130b63d703f577fb09b1f9e07c1306d168f8d51297c4db8",
+  "database_mutations": false,
+  "new_assessment_round": false
+}

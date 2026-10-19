@@ -1,0 +1,32 @@
+{
+  "plan_digest": "7a8aa2cbe3c0f442c20f7f20c8199776d6a2f446df6bbeb6295f0cf93edcfdd7",
+  "project_ids": [
+    "PRO_30970726b72b0633c3d177fd",
+    "PRO_340eec94ce4d031a950cc369",
+    "PRO_45aceae5763836cc763a2fa1",
+    "PRO_8afa3f6b5386e8b6e5f1eda2",
+    "PRO_9636a0a7813451b2cb76372b",
+    "PRO_af0e615a920526eee9302fe0",
+    "PRO_bcb5f7b7460670e177a71413",
+    "PRO_f08b63fead363ac75686d4bb",
+    "PRO_f5bf0d92748d113c80d49497",
+    "PRO_f6263baf545293a2283f4ad1",
+    "PRO_ff1be3ef81c8e493688a802d"
+  ],
+  "counts": {
+    "project_profile": 11,
+    "execution_schedule": 66
+  },
+  "summary": {
+    "projects": 11,
+    "targets": 66,
+    "estimated_measurements": 24,
+    "pending_measurements": 42,
+    "source_capacity_recovered": 1,
+    "source_anchors": 20,
+    "prior_projects_preserved": 197
+  },
+  "actual_events_created": 0,
+  "actor": "김민",
+  "reason": "공식 자료 확인 및 IH 추가 연결"
+}

@@ -1,0 +1,17 @@
+{
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용",
+  "correction_reason": "담당자 매칭 확인 오류 수정",
+  "round_id": "HOME-INTEGRITY-R01-CONSOLIDATED-20261017",
+  "files": {
+    "preview-browser-verification.json": "30bed09328904e34cac0aa85fd58b9f1013a69ceaada4d0956cfd8152a5cf59f",
+    "javascript-tests.tap": "63ad690c4a81301f85cc9c00bedc4bef4746adbdfd3fa2c7f9e70be5b6d2120f",
+    "diagnostics.json": "59db13416c83ffd50ab4429940b167c854fed933f892e60e02238052d1e9792a",
+    "production-browser-verification.json": "6fcd2e3b415c45ec13b3c082a8b088f24fce6ec0e08a1abc4a02c1ba76418d69",
+    "verification.json": "94bcf90c75b6771e02480dc76ebb21633bbecb967bab8cfbd0407029add151aa",
+    "matching-corrections.json": "7b3e11b28ce420b81ee97c70a87f076255ce1a2c1fbdc2af983ae2a3c23643b5",
+    "applied-code-manifest.json": "c66a0669880c0a80df40642f59697b268706d59ca7c3b943645ef6a9c607ad29",
+    "post-publication-repair-history.json": "cd9e5d201162a368dd2658f23f99e923e9a29143f24a32b5b55120060c71ea5f",
+    "regression.xml": "300437cb1678d3fce231dbf9874d4832e300b7313209a678718b3b4fb49b958e"
+  }
+}

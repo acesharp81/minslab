@@ -1,0 +1,32 @@
+{
+  "repair": {
+    "id": "COL_12c10bc6346680dcd3840851",
+    "revision_no": 1,
+    "outcome": "new"
+  },
+  "source": {
+    "id": "building_general_permit",
+    "name": "건축HUB 일반 건축인허가",
+    "org": "국토교통부",
+    "url": "https://www.data.go.kr/data/15136267/openapi.do",
+    "type": "ACTUAL_EVIDENCE",
+    "key_env": "POC10_GENERAL_BUILDING_SERVICE_KEY",
+    "implemented": true,
+    "manual_only": false,
+    "collection_mode": "GENERAL_BUILDING_PERMIT",
+    "refresh_days": 1,
+    "requires_key_for_schedule": true,
+    "data_type": "API",
+    "data_type_label": "기관 시스템 직접 연계 (API)",
+    "access_method": "API",
+    "key_configured": false,
+    "status": "NOT_COLLECTED",
+    "last_attempt": null,
+    "last_success": null,
+    "error": null,
+    "record_count": 0,
+    "stats": {},
+    "snapshot_count": 0,
+    "snapshots": []
+  }
+}

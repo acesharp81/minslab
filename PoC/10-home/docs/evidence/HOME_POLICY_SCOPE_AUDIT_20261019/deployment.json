@@ -1,0 +1,57 @@
+[
+  {
+    "path": "backend/start_linkage.py",
+    "sha256": "40371eda7cec9a3626da4c59ead6e284ad8633725d579dcdacfe139041ca19ac",
+    "runtime_matches": true
+  },
+  {
+    "path": "backend/policy_scope_correction.py",
+    "sha256": "48abdb77e19926ac8b60fbf6390142ba709d5a3a607692a07eaa568cf7b0c4f1",
+    "runtime_matches": true
+  },
+  {
+    "path": "backend/policy_delivery.py",
+    "sha256": "bd2328038a6cebcd8bb6ffff079dfc477a8cd91c067f9d9c302768be20c50be5",
+    "runtime_matches": true
+  },
+  {
+    "path": "backend/policy_delivery_comparison.py",
+    "sha256": "0de3f3b14b3ec3b94dd51c4c91ffdcc02b3f2dfe1f3c1ae59d2ba2368f238550",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/policy-907.js",
+    "sha256": "210dc81ad21d47587fca0ed42935296659a22b99921521a0270c35acdd22e4ed",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/policy-stage-flow.js",
+    "sha256": "1960e17e6fca3360656dc3d0087f3b9fc2b78e71ff526edf9003307583df8b73",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/policy-region-map.js",
+    "sha256": "30a1af3f2ddb772081c590ee25805f6381d58b5421da6371ac19422131647c5a",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/policy-907.css",
+    "sha256": "1fd430cd548834e300f83e4490f0a10d24d364b5bddd1f9247d5e1c019778f2d",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/report-md.js",
+    "sha256": "5ef56ec000a5d13b219cfc9b60c319983d1b397e3ef01bfa4ef0d00dd70d2aff",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/assets/user-guide.js",
+    "sha256": "7c31f2c5fdc4a2f29f3b6e24c52801dab1c65ca08cd56db44ee066e18aaf1ab9",
+    "runtime_matches": true
+  },
+  {
+    "path": "web/index.html",
+    "sha256": "f8e7a702d3a25bd36b7496845ab2f56c9adf814bf95ee1012d0e34962764d8eb",
+    "runtime_matches": true
+  }
+]

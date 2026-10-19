@@ -107,7 +107,7 @@ def propose(project, sources, permits):
                                             observed_on=project.get('start_actual_date') or project.get('progress_date') or project['base_date'],method='PREREQUISITE'))
     return {stage:sorted(values,key=lambda v:(v['score'],v['event_date'] or '',v['source_entity_id']),reverse=True)[:5] for stage,values in results.items()}
 
-def refresh(service, refresh_candidates=False):
+def refresh(service, refresh_candidates=False, actor='자동 수집', reason='원천 변경 후 단계 근거 후보 갱신'):
     """Persisted links are authoritative. Only missing links are auto-created.
 
     An explicit candidate refresh updates the alternatives, never the chosen link.
@@ -179,7 +179,7 @@ def refresh(service, refresh_candidates=False):
                         counts['inference_upgraded']+=1
                     counts['candidate_lists_updated']+=int(old.payload.get('candidates')!=choices)
                 row,outcome=upsert_revision(db,KIND,'stage_match',key,payload,'stage_match')
-                if outcome!='unchanged':db.add(Audit(entity_id=eid,action='STAGE_CANDIDATES_UPDATED' if old and (old.payload.get('selected') or old.payload.get('reviewed')) else 'STAGE_EVIDENCE_AUTO',before=old.payload if old else {},after=payload))
+                if outcome!='unchanged':db.add(Audit(entity_id=eid,action='STAGE_CANDIDATES_UPDATED' if old and (old.payload.get('selected') or old.payload.get('reviewed')) else 'STAGE_EVIDENCE_AUTO',before=old.payload if old else {},after=dict(payload,actor=actor,reason=reason)))
                 counts[payload['status']]+=1
     return dict(counts)
 
@@ -232,7 +232,8 @@ def save_link(service,project_id,stage,revision_no,status,selected,basis):
 
 def linked_events(service,as_of):
     result={}
-    for row in service.rows(KIND,as_of):
+    rows=service.selected_stage_links(as_of) if hasattr(service,'selected_stage_links') else service.rows(KIND,as_of)
+    for row in rows:
         picked=row.get('selected')
         if row['status'] not in ('REVIEW','CONFIRMED') or not picked:continue
         effective=picked.get('event_date') or picked.get('observed_on')

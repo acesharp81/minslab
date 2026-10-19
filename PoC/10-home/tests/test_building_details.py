@@ -56,7 +56,8 @@ class BuildingDetailTests(unittest.TestCase):
                 return [{'address': '서울특별시 강동구 고덕동 1'}]
         selected, completed, total = next_detail_dongs(Service())
         self.assertEqual(total, 3)
-        self.assertEqual(selected, ('1174010200', '4111710300'))
+        self.assertEqual(selected, ('4111710300', '1174010200', '1168010300'))
+        # Legacy completed dongs have no visit date and must be revisited.
         self.assertTrue(completed['1168010300']['complete_query'])
 
     def test_identical_source_duplicates_keep_query_complete(self):
@@ -118,3 +119,18 @@ class NegativeFloorsTest(unittest.TestCase):
         records,_=parse_detail_rows(data,{'url':'https://www.data.go.kr/'},'permit_dong','서울특별시','11110','10100')
         value=records[0][2];self.assertIsNone(value['floors']);self.assertEqual(value['raw_floors'],-1)
         self.assertIn('FLOORS_INVALID',value['warnings']);self.assertEqual(value['household_breakdown']['hhldCnt'],12)
+
+
+def test_parallel_detail_failure_never_publishes_completed_dongs(monkeypatch):
+    import pytest
+    from backend.building_details import collect_building_details
+    monkeypatch.setenv('POC10_BUILDING_DETAIL_QUERY_WORKERS','2')
+    completed={}
+    def fetch(source,fetcher,code):
+        if code.endswith('10400'):raise ValueError('원천 실패')
+        return [],[]
+    with patch('backend.building_details.next_detail_dongs',return_value=(('1168010300','1168010400'),completed,2)), \
+         patch('backend.building_details._fetch_code',side_effect=fetch):
+        with pytest.raises(ValueError,match='원천 실패'):
+            collect_building_details(SOURCE,object(),object())
+    assert completed=={}

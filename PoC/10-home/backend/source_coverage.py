@@ -3,6 +3,20 @@
 
 def coverage_rows(source_id, stats):
     note = stats.get('scope_note')
+    if source_id in ('lh_department_plans','eum_housing_notices'):
+        return [dict(endpoint='official_plan_attachments' if source_id=='lh_department_plans' else 'housing_notice_details',
+            region=None,area_code=None,source_period='2025~' if source_id=='lh_department_plans' else stats.get('period_start')+'~'+stats.get('period_end'),
+            expected_count=stats.get('provided',stats.get('housing_candidates',0)),
+            fetched_count=stats.get('fetched',len(stats.get('detail_checked',{}))),
+            query_status='COMPLETE_QUERY' if stats.get('complete_query') else 'PARTIAL',
+            population_status='PARTIAL_SCOPE',scope_note=note)]
+    if source_id=='ih_notice':
+        return [dict(endpoint='ih_'+board+'_board_pages',region='인천광역시',area_code=None,
+                     source_period=stats.get('period_start')+'~'+stats.get('period_end'),
+                     expected_count=meta['pages'],fetched_count=len(meta['queried_pages']),
+                     query_status='COMPLETE_QUERY' if meta['complete_window'] and not stats.get('failures') else 'PARTIAL',
+                     population_status='PARTIAL_SCOPE',scope_note='배치 조회 페이지 수와 기간 커버리지 · '+(note or ''))
+                for board,meta in stats.get('board_checkpoints',{}).items()]
     if source_id == 'lh_notice_detail':
         return [dict(endpoint='project_matched_notice_details',region=None,area_code=None,source_period=None,
             expected_count=stats.get('candidate_notices',0),fetched_count=stats.get('detail_acquired',0),
@@ -16,7 +30,7 @@ def coverage_rows(source_id, stats):
             query_status='COMPLETE_QUERY' if count == len(years) and stats.get('complete_query') else 'PARTIAL',
             population_status='PARTIAL_SCOPE', scope_note='공개 첨부 연도 수 · 시도 단위; 시군구 미제공')
             for region, count in sorted(stats.get('region_counts', {}).items())]
-    if source_id in ('building_hub', 'building_register') and stats.get('scope_total_dongs'):
+    if source_id in ('building_hub', 'building_hub_incheon', 'building_general_permit', 'building_register', 'building_register_recap') and stats.get('scope_total_dongs'):
         # These counters measure legal dongs, not housing units or projects.
         total = stats['scope_total_dongs']
         done = stats.get('scope_completed_dongs', 0)

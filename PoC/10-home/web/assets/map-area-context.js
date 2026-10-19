@@ -52,6 +52,8 @@ const MapAreaContext=(()=>{
     const employment=node.querySelector('.pac-employment-summary');if(employment)employment.dataset.demographic='employment';
     cards[3]?.classList.add('unsold-context');
     ensureMethod();
+    const method=document.getElementById('map-location-method-content');
+    if(method){method.querySelectorAll('.pac-method').forEach(n=>n.remove());for(const d of node.querySelectorAll('.pac-method')){const title=d.closest('.pac-card')?.querySelector('h4')?.textContent;d.querySelector('summary').textContent=title+' · 기준·원천';method.append(d);}}
   }
   async function panel(supply,viewport){
     let node=document.getElementById('map-area-context');
@@ -61,6 +63,7 @@ const MapAreaContext=(()=>{
     document.getElementById('map-location-status').textContent=(place.municipality||place.region)+' · '+place.note;
     const key=[place.region,place.municipality||'',new Date().getFullYear()].join('|');
     if(key===signature){ensureMethod();return;}
+    document.getElementById('map-location-method-content')?.querySelectorAll('.pac-method').forEach(n=>n.remove());
     signature=key;node.innerHTML='<h3>지역 생활·수요 지표</h3><p>공식 통계를 조회하고 있습니다…</p>';
     const query=new URLSearchParams({region:place.region,year:String(new Date().getFullYear())});
     if(place.municipality)query.set('municipality',place.municipality);

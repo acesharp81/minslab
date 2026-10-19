@@ -1,0 +1,14 @@
+{
+  "base": "https://www.minslab.kr/poc/home",
+  "rounds": 2,
+  "baseline": 51.6,
+  "current": 63,
+  "items": 40,
+  "benchmarkRows": 53,
+  "corrections": 15,
+  "agreement": 4.26,
+  "metrics": 4,
+  "downloads": "PASS",
+  "mobile": "PASS",
+  "consoleErrors": []
+}

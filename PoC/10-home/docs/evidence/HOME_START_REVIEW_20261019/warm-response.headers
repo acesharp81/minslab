@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+date: Mon, 19 Oct 2026 11:45:50 GMT
+server: uvicorn
+x-home-cache: HIT
+cache-control: no-store
+content-length: 975436
+content-type: application/json
+vary: Accept-Encoding
+content-encoding: gzip
+x-content-type-options: nosniff
+referrer-policy: strict-origin-when-cross-origin
+x-frame-options: SAMEORIGIN
+content-security-policy: default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'
+

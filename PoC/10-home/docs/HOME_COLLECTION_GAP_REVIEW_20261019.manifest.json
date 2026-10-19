@@ -1,0 +1,210 @@
+{
+  "database_captured_at": "2026-10-19T06:56:25.638164+00:00",
+  "construction_captured_at": "2026-10-19T06:59:31.491607+00:00",
+  "api_captures": [
+    {
+      "name": "sources",
+      "path": "sources",
+      "captured_at": "2026-10-19T06:54:08.841879+00:00",
+      "keys": [
+        "items"
+      ],
+      "bytes": 2450134
+    },
+    {
+      "name": "coverage",
+      "path": "coverage",
+      "captured_at": "2026-10-19T06:54:05.815855+00:00",
+      "keys": [
+        "items",
+        "complete_population",
+        "notice"
+      ],
+      "bytes": 21164
+    },
+    {
+      "name": "jobs",
+      "path": "collection-jobs",
+      "captured_at": "2026-10-19T06:54:05.814670+00:00",
+      "keys": [
+        "items"
+      ],
+      "bytes": 36334
+    },
+    {
+      "name": "annual",
+      "error": "'ascii' codec can't encode characters in position 39-43: ordinal not in range(128)"
+    }
+  ],
+  "database_mutations": false,
+  "files": {
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/index_permits.txt": {
+      "bytes": 30280,
+      "sha256": "5830fad4d520a1c7e9ca11d27de4cb88e69f4e75130478cec376ae80fc4a16ae"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/blackstone11_overview.txt": {
+      "bytes": 3455,
+      "sha256": "9e8d7b7867c4653a182e680013d0705d0599b94aa0c824f5bd1f35add4823489"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/blackstone11_history.txt": {
+      "bytes": 8513,
+      "sha256": "51f8a63dcaa42fe57fd532f166c8cf8436868abfaf1f6636cf2a259bb647a73a"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/database.json": {
+      "bytes": 634911,
+      "sha256": "e1ab473b1a18c84c4a6a7e117c47a45e85dc5c4d2239e19537aec4182434ab39"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/capture.json": {
+      "bytes": 677,
+      "sha256": "a4ca2d7c61c54d88e0699f97a4503fde65f2d53805d0fcc93ed71272faa3d5fd"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/silim2_overview.txt": {
+      "bytes": 3340,
+      "sha256": "500088c4483fb6aa2598b8f819df71120afe92a60d2b39b3aae9c343bfe94157"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/official_august.txt": {
+      "bytes": 45779,
+      "sha256": "1d0115f104a19a6b954ee376890bd90f06dab3a5ef0b7dc2b1b43c61878fb51b"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/seoul_fetch.json": {
+      "bytes": 842,
+      "sha256": "7c343d77aec3a9f74b574c0777acc73a295d1c3ca276aba5f1121af82de0eb58"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/jobs.json": {
+      "bytes": 36334,
+      "sha256": "a4b4124624be598d4758abd12cc1f6bd25359f22addd1ce773157da1110d42ac"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/construction.json": {
+      "bytes": 2965585,
+      "sha256": "0ceb40d433ab2763f9e4546d8e9ace9fa604a7cc18bf88c95ce13bf53ae3cf97"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/pdf_fetch.json": {
+      "bytes": 150,
+      "sha256": "67259e8de4be05826f8041f24257a92827d4c7cf56d8366b8b7bc99f85a0e282"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/sources.json": {
+      "bytes": 2450134,
+      "sha256": "585b4d8c8b2d3b0cf4c55ec3d01839e234847d2fcb9baefa298c3b234d52d9a7"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/period_starts.json": {
+      "bytes": 40,
+      "sha256": "23e9114cbd32571272d32547f4066c0d16dda4fd33300c9561c09badd1560b43"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/external_fetch.json": {
+      "bytes": 1134,
+      "sha256": "d91cd318de3b353a708f8d3e0b3bb51ac51d19dacb5c6e953fc04bd2c1e3a1c2"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/coverage.json": {
+      "bytes": 21164,
+      "sha256": "781178071b8ff6052d710368495835d9883f123e73eff46491ebc55b3105ef30"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/capture_construction_readonly.py": {
+      "bytes": 2543,
+      "sha256": "e3b05cf6e1145d5664ed9d7d919a421f28a1303f31f230a51161b56de7b38544"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/official_august_transcription.json": {
+      "bytes": 1552,
+      "sha256": "77a89e3b996fb5d9f62b15b4c214400eae4a90cfd9d6cae1c87a0243cc2ad5fe"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/annual.json": {
+      "bytes": 10439,
+      "sha256": "89b2c41c22bc3e1231e52eaff149ace43a764db0f939addf4926a708cab7c096"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/README.md": {
+      "bytes": 2014,
+      "sha256": "55d24c600be36bd5c0788ce0a311121a24b626ad33dc797dc754a06693cf5c3f"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/silim2_history.html": {
+      "bytes": 66455,
+      "sha256": "95d3b083e7340066cc7d93c2d4c206186437c0fe8c515c7591734336036a5326"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/blackstone11_overview.html": {
+      "bytes": 35729,
+      "sha256": "fbfbf85f5701e4926c06a45e6e440dfd180d5fa285176b5d34c16500b881c814"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/period_permits.json": {
+      "bytes": 17,
+      "sha256": "a5246d5732811375189bbc156caca8927fae73b92db9d0c719cd58d26a276463"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/blackstone11_history.html": {
+      "bytes": 65533,
+      "sha256": "82ce99c0677b4ca973d644736af94abdcd6852dfebd8dad46af29f1f78efcd63"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/silim2_overview.html": {
+      "bytes": 35480,
+      "sha256": "a8834de1f7238529ee20ac311d3cc1aee1b905bf17224103463cfc0370815379"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/official_august.pdf": {
+      "bytes": 1575825,
+      "sha256": "3ec695b50133e2e302ec09e6ef22666c4df0fbba99c75a4f6465c155b64812d0"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/index_permits.html": {
+      "bytes": 227244,
+      "sha256": "cafe0621a07a406d9c145e727c48bab65e0237697439adfec9554172e0cb36c5"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/silim2_history.txt": {
+      "bytes": 7556,
+      "sha256": "5c46ed5d28154824d5a21c746e7b4aad72ac66258dfb3ea683d22214b29e72ff"
+    },
+    "docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019/capture_readonly.py": {
+      "bytes": 2828,
+      "sha256": "de874722da84789c052f66f7cb209bd06ab1406048f1760430a9d38086521a9f"
+    },
+    "scripts/audit_collection_gap.py": {
+      "bytes": 6555,
+      "sha256": "896af21875917e821a22a8643c926a3c40b9a75a50fb9d8481b0063aae32c505"
+    },
+    "docs/HOME_COLLECTION_GAP_REVIEW_20261019.template.md": {
+      "bytes": 31692,
+      "sha256": "2c86b0506f725fde44635ca04361eafc0526fb729f50b12d0c1bdad5d12d6df5"
+    },
+    "docs/HOME_COLLECTION_GAP_REVIEW_20261019.md": {
+      "bytes": 32922,
+      "sha256": "2eea0bbbbf48cf4b203417430773b7342e5566543abc41ea0e0e86df2f55220a"
+    },
+    "docs/HOME_COLLECTION_GAP_REVIEW_20261019.json": {
+      "bytes": 5203,
+      "sha256": "ee91f0cf49667eab98b2141e608c89a290f7027c69cd4193be9b4666975a2441"
+    },
+    "docs/HOME_COLLECTION_GAP_REVIEW_20261019_construction_candidates.csv": {
+      "bytes": 8698,
+      "sha256": "d54c5b2b8ca3a6a33ac6578078c99894db5603283b1d20003182157cf30b562e"
+    },
+    "backend/additional_apis.py": {
+      "bytes": 19753,
+      "sha256": "9134066141528aa2019457037cee5d66a6d809689c46f2278bb6f0796231ee11"
+    },
+    "backend/sources.py": {
+      "bytes": 21689,
+      "sha256": "a392b9d5412cd686bc96f7e89a3637c744e5326c93e951d5743a0512192b73bf"
+    },
+    "backend/building_scope.py": {
+      "bytes": 3428,
+      "sha256": "c260497cf10a101a7e76841532ac13b2afdb814e3bc994fc87cb373378511cc1"
+    },
+    "backend/collection_jobs.py": {
+      "bytes": 7397,
+      "sha256": "329800c0949093b2a4b7750493c87430f006003f077bd7f4e5778e1d7c347aac"
+    },
+    "backend/general_building_permits.py": {
+      "bytes": 5049,
+      "sha256": "2e007746db504501f01e7e4516e5da07432d8941eeceaa2c98f9c5a349b810d2"
+    },
+    "backend/seoul_cleanup.py": {
+      "bytes": 11833,
+      "sha256": "0f52b788d8c6ca025a52c15d3f818a42ed88893a151c9366850fa1abae14e81f"
+    },
+    "backend/lh_notice_detail.py": {
+      "bytes": 11622,
+      "sha256": "60786e08ee915c48517785155e26d95e3040aaf442f7a53990cc61d3c7fe8c01"
+    },
+    "backend/independent_metrics.py": {
+      "bytes": 18339,
+      "sha256": "21e873a0ce119a7a3d944d4a9bebd3540a18a245c0a97d0dd20a9ee01c216a8e"
+    },
+    "backend/evidence_bridge.py": {
+      "bytes": 16042,
+      "sha256": "f9b330708c58b4e4a2310bb14212271b2f2777e495218611f00c8a71fcf9a47a"
+    }
+  }
+}

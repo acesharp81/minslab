@@ -35,6 +35,48 @@ class InfrastructureTests(unittest.TestCase):
             self.assertIsNone(normalize_place(place(name, category), "childcare", *origin))
         self.assertIsNone(normalize_place(place("먼어린이집", "어린이집", 35, 128), "childcare", *origin))
 
+    def test_large_mart_store_names_and_categories_exclude_tenants_and_small_stores(self):
+        origin = (37.6222, 126.8709)
+        for name, category in [('이마트 수서점', '음ㆍ식료품위주종합소매업 > 슈퍼마켓'),
+                ('홈플러스(주)가양점', '기타식품제조업 > 기타식사용가공처리조리식품제조업'),
+                ('롯데마트 김포공항점', '기타정보서비스업 > 재해구호물자구매업체'),
+                ('트레이더스홀세일클럽마곡점', '음ㆍ식료품위주종합소매업 > 슈퍼마켓'),
+                ('코스트코 양평점', '대형종합소매업 > 대형마트'),
+                ('메가마트', '대형종합소매업 > 대형마트')]:
+            with self.subTest(name=name):
+                self.assertEqual(normalize_place(place(name,category),'mart',*origin)['kind'],'mart')
+        for name, category in [('이마트24수서점','슈퍼마켓'), ('이마트에브리데이마곡점','슈퍼마켓'),
+                ('홈플러스익스프레스가양점','대형마트'), ('동네마트','슈퍼마켓'),
+                ('이마트,증미역','도로시설 > 버스터미널/정류장'), ('이마트가양점입구','진출입시설'),
+                ('이마트문화센터가양점','교육'), ('이마트가양점','버스정류장'),
+                ('공차트레이더스마곡점','음식점업 > 카페'), ('홈플러스아모레잠실점','화장품소매업'),
+                ('롯데마트문화비송파점','슈퍼마켓'), ('홈플러스도서문화비잠실점','슈퍼마켓'),
+                ('NC백화점강서점','대형종합소매업 > 대형마트'), ('제이에스엠케이','대형마트'),
+                ('폐점이마트가양점','대형마트'), ('롯데하이마트화곡점','슈퍼마켓')]:
+            with self.subTest(name=name):
+                self.assertIsNone(normalize_place(place(name,category),'mart',*origin))
+        self.assertIsNone(normalize_place(place('코스트코양평점','대형마트',35,128),'mart',*origin))
+        self.assertIsNone(normalize_place({'title':'이마트가양점','category':'슈퍼마켓'},'mart',*origin))
+
+    def test_large_marts_are_searched_deduplicated_counted_and_cached(self):
+        from backend.infrastructure import InfrastructureContext
+        from unittest.mock import MagicMock
+        from pathlib import Path
+        fetcher=MagicMock();fetcher.manifest=[]
+        items=[place('홈플러스(주)가양점','슈퍼마켓'),place('홈플러스가양점','슈퍼마켓'),
+               place('홈플러스익스프레스가양점','슈퍼마켓')]
+        fetcher.get.side_effect=lambda *a,params,**kw:document(items) if params['query'] in ('대형마트','홈플러스') else document([])
+        anchor=dict(latitude=37.6222,longitude=126.8709,coordinate_basis='APPROXIMATE_ADDRESS',label='대표 위치',approximate=True)
+        with patch('backend.infrastructure.Fetcher',return_value=fetcher),patch('backend.infrastructure.key_for',return_value='test'):
+            context=InfrastructureContext();result=context.get('mart-block',MagicMock(data_dir=Path('/tmp')),anchor)
+            calls=fetcher.get.call_count
+            self.assertEqual(context.get('mart-block',MagicMock(),anchor),result)
+            self.assertEqual(fetcher.get.call_count,calls)
+        self.assertEqual(result['counts']['mart'],1)
+        self.assertEqual(len([p for p in result['items'] if p['kind']=='mart']),1)
+        self.assertIn('영업',result['mart_note'])
+        self.assertIn('롯데마트',{c.kwargs['params']['query'] for c in fetcher.get.call_args_list})
+
     def test_opening_plans_preserve_month_precision_and_unlocated_status(self):
         from backend.facility_plans import nearby_plans
         from backend.infrastructure import distance_metres

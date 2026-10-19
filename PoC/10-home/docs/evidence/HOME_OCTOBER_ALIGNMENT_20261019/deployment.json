@@ -1,0 +1,32 @@
+[
+  {
+    "file": "backend/october_alignment.py",
+    "sha256": "0b87da6904c3df71914c2c09368f42e3506c6e18fa8bc5b3a5c35fb8db5fd463",
+    "match": true
+  },
+  {
+    "file": "backend/policy_delivery.py",
+    "sha256": "d22b3567db700a961269233075434633132c91024711a0a4713692a95364e6c9",
+    "match": true
+  },
+  {
+    "file": "web/assets/policy-907.js",
+    "sha256": "6787f90b6a5d5dd365c7529a6cea7953243fcfebd92f1cc18564050f2bfdd04f",
+    "match": true
+  },
+  {
+    "file": "web/assets/user-guide.js",
+    "sha256": "e337b39131e14ead6ea0fef85d92bdee1efac33606f86fc71cd1f8fb1d516bda",
+    "match": true
+  },
+  {
+    "file": "web/assets/report-md.js",
+    "sha256": "70b6846bd7b9387d88fa9b9f4320bbcfd24e3cb1a0c818f298a2c414620bf801",
+    "match": true
+  },
+  {
+    "file": "web/index.html",
+    "sha256": "722c0d985e7d6fee391dd987dfdb38323a76913a25d820a45e8e01b3dd1180e9",
+    "match": true
+  }
+]

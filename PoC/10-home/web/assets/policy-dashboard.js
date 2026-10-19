@@ -58,7 +58,7 @@ const PolicyDashboard=(()=>{
   function detail(){
     const row=payload.items.find(r=>r.id===selected);if(!row){$('policy-monitor-detail').innerHTML='';return;}
     $('policy-monitor-detail').setAttribute('aria-labelledby','policy-tab-'+row.id);
-    $('policy-monitor-detail').innerHTML='<div id="policy-report-detail"></div><details class="pr-extra-data"><summary>지역·블록 상세 시계열과 원본 자료 펼쳐보기</summary>'+tree(row)+evidence(row)+'</details>';
+    $('policy-monitor-detail').innerHTML='<div id="policy-report-detail"></div><details id="policy-program-members" class="pr-extra-data"><summary>선택 범위의 프로그램 펼쳐보기</summary><div data-pr-program-members></div></details><details class="pr-extra-data"><summary>지역·블록 상세 시계열과 원본 자료 펼쳐보기</summary>'+tree(row)+evidence(row)+'</details>';
     PolicyReport.policyChanged(row);
     document.dispatchEvent(new CustomEvent('home:policy-selected',{detail:{id:row.id}}));
   }

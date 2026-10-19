@@ -1,0 +1,336 @@
+[
+  {
+    "source_id": "sh_happy_plan_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:12:04.464330+00:00",
+    "stats": {
+      "file_rows": 19,
+      "included_rows": 19,
+      "duplicate_rows": 0,
+      "excluded_rows": 0,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2026-08-03",
+      "region_counts": {
+        "서울특별시": 19
+      },
+      "warning_counts": {},
+      "scope_note": "공개 파일 수도권 행 전체·원천 판본 보존. 공급/입주 예정계획. 정책 귀속·실적 자동 생성 없음",
+      "unchanged": 19,
+      "record_count": 19
+    }
+  },
+  {
+    "source_id": "gh_supply_plan",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:06:21.888554+00:00",
+    "stats": {
+      "complete_query": true,
+      "complete_population": false,
+      "source_base_date": "2026-04",
+      "provided": 2,
+      "fetched": 2,
+      "scope_note": "GH 공식 분양/임대 계획 표 전체. 다른 GH 사업·과거 판본 전체를 뜻하지 않음. 분기·반기·범위 일정은 마지막 달로 집계하고 원문 보존",
+      "changed": 1,
+      "unchanged": 1,
+      "record_count": 2,
+      "identity_sync_status": "SUCCESS",
+      "identity_sync": {
+        "source_anchors_added": 0,
+        "forecast_proposals_added": 0,
+        "ambiguous_forecasts": 46,
+        "forecast_rows": 204,
+        "approval_effect": "NONE"
+      }
+    }
+  },
+  {
+    "source_id": "sh_contract_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:12:08.068674+00:00",
+    "stats": {
+      "file_rows": 792,
+      "included_rows": 792,
+      "duplicate_rows": 0,
+      "excluded_rows": 0,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2026-08-03",
+      "region_counts": {
+        "null": 792
+      },
+      "warning_counts": {
+        "CONTRACT_NOT_CONSTRUCTION_ACTUAL": 792,
+        "LOCATION_NOT_VERIFIED": 792
+      },
+      "scope_note": "SH 공사계약 파일 전체. 사업 소재지·주택 공사 여부는 개별 연결 전 미확인",
+      "unchanged": 792,
+      "record_count": 792
+    }
+  },
+  {
+    "source_id": "sh_national_plan_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:12:01.428236+00:00",
+    "stats": {
+      "file_rows": 7,
+      "included_rows": 7,
+      "duplicate_rows": 0,
+      "excluded_rows": 0,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2026-08-31",
+      "region_counts": {
+        "서울특별시": 7
+      },
+      "warning_counts": {
+        "SOURCE_TOTAL_MISMATCH": 1
+      },
+      "scope_note": "공개 파일 수도권 행 전체·원천 판본 보존. 공급/입주 예정계획. 정책 귀속·실적 자동 생성 없음",
+      "unchanged": 7,
+      "record_count": 7
+    }
+  },
+  {
+    "source_id": "lh_happy_plan_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:11:59.970840+00:00",
+    "stats": {
+      "file_rows": 323,
+      "included_rows": 159,
+      "duplicate_rows": 0,
+      "excluded_rows": 164,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2025-09-22",
+      "region_counts": {
+        "경기도": 109,
+        "인천광역시": 37,
+        "서울특별시": 13
+      },
+      "warning_counts": {
+        "AMBIGUOUS_PLAN_DIMENSION": 2
+      },
+      "scope_note": "공개 파일 수도권 행 전체·원천 판본 보존. 공급/입주 예정계획. 정책 귀속·실적 자동 생성 없음",
+      "unchanged": 159,
+      "record_count": 159
+    }
+  },
+  {
+    "source_id": "sh_jeonse_plan_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:12:03.010854+00:00",
+    "stats": {
+      "file_rows": 30,
+      "included_rows": 30,
+      "duplicate_rows": 0,
+      "excluded_rows": 0,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2026-08-31",
+      "region_counts": {
+        "서울특별시": 30
+      },
+      "warning_counts": {},
+      "scope_note": "공개 파일 수도권 행 전체·원천 판본 보존. 공급/입주 예정계획. 정책 귀속·실적 자동 생성 없음",
+      "unchanged": 30,
+      "record_count": 30
+    }
+  },
+  {
+    "source_id": "lh_stock",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:06:21.548530+00:00",
+    "stats": {
+      "provided": 2064,
+      "fetched": 2064,
+      "complete_query": true,
+      "complete_population": false,
+      "national_records": 6217,
+      "excluded_nonresidential_or_aggregate": 435,
+      "unlocated_or_outside_rows": 3718,
+      "source_base_date": "2026-08-10",
+      "period_start": "1974-10-01",
+      "period_end": "2028-09-30",
+      "region_counts": {
+        "서울특별시": 190,
+        "경기도": 1625,
+        "인천광역시": 249
+      },
+      "historic_2018_2024_records": 395,
+      "scope_note": "현재 단지정보에 남아 있는 과거 준공·입주지정 일정. 미래 예정일도 포함하며 당시 월별 공정률·실입주량을 증명하지 않음",
+      "unchanged": 1815,
+      "new": 249,
+      "record_count": 2064
+    }
+  },
+  {
+    "source_id": "lh_movein_history",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:06:18.027238+00:00",
+    "stats": {
+      "dataset_versions": [
+        {
+          "year": 2022,
+          "records": 71,
+          "complete_query": true,
+          "complete_population": false,
+          "national_detail_rows": 160,
+          "national_published_units": 61997,
+          "national_detail_units": 61997,
+          "summary_matches_details": true,
+          "unlocated_or_outside_rows": 89,
+          "region_counts": {
+            "경기도": 61,
+            "서울특별시": 6,
+            "인천광역시": 4
+          },
+          "scope_units": 30740
+        },
+        {
+          "year": 2023,
+          "records": 78,
+          "complete_query": true,
+          "complete_population": false,
+          "national_detail_rows": 150,
+          "national_published_units": 58389,
+          "national_detail_units": 58389,
+          "summary_matches_details": true,
+          "unlocated_or_outside_rows": 72,
+          "region_counts": {
+            "경기도": 62,
+            "서울특별시": 8,
+            "인천광역시": 8
+          },
+          "scope_units": 42850
+        },
+        {
+          "year": 2024,
+          "records": 41,
+          "complete_query": true,
+          "complete_population": false,
+          "national_detail_rows": 86,
+          "national_published_units": 31892,
+          "national_detail_units": 31892,
+          "summary_matches_details": true,
+          "unlocated_or_outside_rows": 45,
+          "region_counts": {
+            "서울특별시": 2,
+            "인천광역시": 7,
+            "경기도": 32
+          },
+          "scope_units": 22607
+        },
+        {
+          "year": 2025,
+          "records": 35,
+          "complete_query": true,
+          "complete_population": false,
+          "national_detail_rows": 83,
+          "national_published_units": 24976,
+          "national_detail_units": 24976,
+          "summary_matches_details": true,
+          "unlocated_or_outside_rows": 48,
+          "region_counts": {
+            "서울특별시": 4,
+            "경기도": 23,
+            "인천광역시": 8
+          },
+          "scope_units": 12483
+        },
+        {
+          "year": 2026,
+          "records": 27,
+          "complete_query": true,
+          "complete_population": false,
+          "national_detail_rows": 38,
+          "national_published_units": 32645,
+          "national_detail_units": 14388,
+          "summary_matches_details": false,
+          "unlocated_or_outside_rows": 11,
+          "region_counts": {
+            "경기도": 19,
+            "인천광역시": 8
+          },
+          "scope_units": 11944
+        }
+      ],
+      "complete_query": true,
+      "complete_population": false,
+      "period_start": 2022,
+      "period_end": 2026,
+      "missing_years": [
+        2018,
+        2019,
+        2020,
+        2021
+      ],
+      "region_counts": {
+        "경기도": 197,
+        "서울특별시": 20,
+        "인천광역시": 35
+      },
+      "scope_note": "공식 첨부 전체 입주계획. 실제 소재지 확인되는 서울·경기·인천 지구 포함. 원천 총계·상세 불일치는 별도 표시",
+      "unchanged": 217,
+      "new": 35,
+      "record_count": 252
+    }
+  },
+  {
+    "source_id": "reb_movein_plan_file",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:12:06.220796+00:00",
+    "stats": {
+      "file_rows": 703,
+      "included_rows": 390,
+      "duplicate_rows": 0,
+      "excluded_rows": 313,
+      "complete_query": true,
+      "complete_population": false,
+      "dataset_version": "2026-06-30",
+      "region_counts": {
+        "경기도": 231,
+        "서울특별시": 108,
+        "인천광역시": 51
+      },
+      "warning_counts": {
+        "MOVE_IN_DATE_UNPARSED": 1
+      },
+      "scope_note": "공개 파일 수도권 행 전체·원천 판본 보존. 공급/입주 예정계획. 정책 귀속·실적 자동 생성 없음",
+      "unchanged": 390,
+      "record_count": 390
+    }
+  },
+  {
+    "source_id": "lh_supply_history",
+    "status": "SUCCESS",
+    "finished_at": "2026-10-19 12:07:26.708012+00:00",
+    "stats": {
+      "provided": 87,
+      "fetched": 87,
+      "complete_query": true,
+      "complete_population": false,
+      "national_records": 107,
+      "source_base_date": "2025-11-13",
+      "period_start": "2020-04-16",
+      "period_end": "2025-09-26",
+      "year_counts": {
+        "2020": 20,
+        "2021": 14,
+        "2022": 16,
+        "2023": 6,
+        "2024": 11,
+        "2025": 20
+      },
+      "region_counts": {
+        "인천광역시": 11,
+        "경기도": 72,
+        "서울특별시": 4
+      },
+      "scope_note": "공개 XLSX의 서울·경기·인천 공급유형별 합계. 공고 공급량이며 실제 입주·준공량이 아님",
+      "new": 11,
+      "changed": 76,
+      "record_count": 87
+    }
+  }
+]

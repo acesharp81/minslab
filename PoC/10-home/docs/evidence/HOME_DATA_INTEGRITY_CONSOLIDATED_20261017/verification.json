@@ -1,0 +1,17 @@
+{
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용",
+  "round_id": "HOME-INTEGRITY-R01-CONSOLIDATED-20261017",
+  "snapshot_id": "SNP_2e569bebe10cf141aeeb1f5f5045eab5",
+  "snapshot_counts": {
+    "candidate_events": 228,
+    "selected_events": 37,
+    "exclusions": 139,
+    "conflicts": 3
+  },
+  "original_policy_mappings_preserved": 197,
+  "original_policy_mappings_changed": 0,
+  "agreement_percent": 4.26,
+  "current_benchmark_rows": 53,
+  "independent_actual_matches": 0
+}

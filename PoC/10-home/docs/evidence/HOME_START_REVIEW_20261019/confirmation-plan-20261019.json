@@ -1,0 +1,279 @@
+[
+  {
+    "id": "PRO_f3dcde6035029d54a848ef8d",
+    "name": "구리갈매역세권 A-5",
+    "units": 566,
+    "key": [
+      "경기도",
+      "구리갈매역세권",
+      "A5"
+    ],
+    "matches": []
+  },
+  {
+    "id": "PRO_1f7b4e6e8526c78ef164dd70",
+    "name": "인천가정2 B2",
+    "units": 308,
+    "key": [
+      "인천광역시",
+      "인천가정2",
+      "B2"
+    ],
+    "matches": [
+      {
+        "id": "PRO_f6fe760da2c698c308f46373",
+        "name": "인천가정2 B-2BL 아파트 건설공사 4공구",
+        "source": "lh_incheon_construction",
+        "units": 308,
+        "key": [
+          "인천광역시",
+          "인천가정2",
+          "B2"
+        ]
+      },
+      {
+        "id": "PRO_9ac25f1509bc7f37adddafd1",
+        "name": "인천가정2 B2",
+        "source": "lh_incheon_sale",
+        "units": 308,
+        "key": [
+          "인천광역시",
+          "인천가정2",
+          "B2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_42f49eac956e19c57750cff4",
+    "name": "인천검단 AA13-1",
+    "units": 702,
+    "key": [
+      "인천광역시",
+      "인천검단",
+      "AA13"
+    ],
+    "matches": []
+  },
+  {
+    "id": "PRO_6cd92fc3a8e9e13eb4faddfd",
+    "name": "인천검단 AA13-2",
+    "units": 964,
+    "key": [
+      "인천광역시",
+      "인천검단",
+      "AA13"
+    ],
+    "matches": []
+  },
+  {
+    "id": "PRO_0a072111d825a2a16a7310e6",
+    "name": "인천검단 AA19",
+    "units": 1323,
+    "key": [
+      "인천광역시",
+      "인천검단",
+      "AA19"
+    ],
+    "matches": [
+      {
+        "id": "PRO_8ccbf751972faf82dc5b094d",
+        "name": "인천검단 AA19",
+        "source": "lh_incheon_rent",
+        "units": 991,
+        "key": [
+          "인천광역시",
+          "인천검단",
+          "AA19"
+        ]
+      },
+      {
+        "id": "PRO_3cb5f412f922f460f58516ca",
+        "name": "인천검단 AA19",
+        "source": "lh_incheon_rent",
+        "units": 332,
+        "key": [
+          "인천광역시",
+          "인천검단",
+          "AA19"
+        ]
+      },
+      {
+        "id": "PRO_38a37a66ed2666efe40ae527",
+        "name": "인천검단 AA19BL 민간참여 공공주택건설사업",
+        "source": "lh_incheon_construction",
+        "units": 1323,
+        "key": [
+          "인천광역시",
+          "인천검단",
+          "AA19"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_14c83b236f723ae28ad1edff",
+    "name": "인천계양 A10",
+    "units": 778,
+    "key": [
+      "인천광역시",
+      "인천계양",
+      "A10"
+    ],
+    "matches": [
+      {
+        "id": "PRO_017fafed01a4f905828cb913",
+        "name": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+        "source": "lh_incheon_construction",
+        "units": 778,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A10"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_fe4aa9d7d9211312f996dec5",
+    "name": "인천계양 A17",
+    "units": 463,
+    "key": [
+      "인천광역시",
+      "인천계양",
+      "A17"
+    ],
+    "matches": [
+      {
+        "id": "PRO_12d91632b8ca640e1505869f",
+        "name": "인천계양 A17",
+        "source": "lh_incheon_sale",
+        "units": 309,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A17"
+        ]
+      },
+      {
+        "id": "PRO_c1f32197fe5a45ab84ea895f",
+        "name": "인천계양 A17BL 아파트 건설공사 6공구 (",
+        "source": "lh_incheon_construction",
+        "units": 463,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A17"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_26946080e95877a9475efc35",
+    "name": "인천계양 A6",
+    "units": 663,
+    "key": [
+      "인천광역시",
+      "인천계양",
+      "A6"
+    ],
+    "matches": [
+      {
+        "id": "PRO_04a4f394cc7df91c10403fd5",
+        "name": "인천계양 A6",
+        "source": "lh_incheon_sale",
+        "units": 663,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A6"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_63647d3c6344c256c7c98313",
+    "name": "인천계양 A9",
+    "units": 475,
+    "key": [
+      "인천광역시",
+      "인천계양",
+      "A9"
+    ],
+    "matches": [
+      {
+        "id": "PRO_421fe0f0243dd68b11f2712c",
+        "name": "인천계양 A9",
+        "source": "lh_incheon_sale",
+        "units": 317,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A9"
+        ]
+      },
+      {
+        "id": "PRO_95b506af61f0ff28ddff817c",
+        "name": "조달청)인천계양 A9BL 아파트 건설공사 3공구",
+        "source": "lh_incheon_construction",
+        "units": 475,
+        "key": [
+          "인천광역시",
+          "인천계양",
+          "A9"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "PRO_4b859c7f4b18222558932b97",
+    "name": "인천부평 A",
+    "units": 350,
+    "key": null,
+    "matches": []
+  },
+  {
+    "id": "PRO_4e534476d1d747285e612f85",
+    "name": "인천서구 1",
+    "units": 110,
+    "key": null,
+    "matches": []
+  },
+  {
+    "id": "PRO_a9e2bffb100945377e90ef33",
+    "name": "인천서구 1",
+    "units": 58,
+    "key": null,
+    "matches": []
+  },
+  {
+    "id": "PRO_b2a3fc2ab9bda6c7ffaa3b0e",
+    "name": "인천송림4 1",
+    "units": 1198,
+    "key": null,
+    "matches": []
+  },
+  {
+    "id": "PRO_9e0ff74c948175dffb824830",
+    "name": "인천영종 A24",
+    "units": 641,
+    "key": [
+      "인천광역시",
+      "인천영종",
+      "A24"
+    ],
+    "matches": [
+      {
+        "id": "PRO_3f8c1fea26831aa04fcfdcb7",
+        "name": "인천영종 A-24BL 아파트 건설공사 12공구",
+        "source": "lh_incheon_construction",
+        "units": 641,
+        "key": [
+          "인천광역시",
+          "인천영종",
+          "A24"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용 · 왕숙2 공식 착공 성과 포함 및 미재현 사유 기록",
+  "round_id": "HOME-INTEGRITY-R01-CONSOLIDATED-20261017",
+  "verification": "운영 API·화면·HTML·다운로드 JSON 일치, 공식 포함/미재현 표기 확인",
+  "new_round": false,
+  "own_event_quantities_changed": false,
+  "score_changed": false,
+  "files": [
+    {
+      "path": "docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/review.json",
+      "sha256": "ec77118c4b74b2f7ae6ad532e61721faa81aa8d75a04f6fe98a579e27fc28435"
+    },
+    {
+      "path": "docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/briefing_official.txt",
+      "sha256": "4e8bdf8f8376b97c75d9e9b964750dcf8cdc5bb94fa4e05d2d0aa0553d775182"
+    },
+    {
+      "path": "docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/round.html",
+      "sha256": "ce16e677a5abde405241da4029e746b28a9d901c29ed87365cfcf3f513803947"
+    },
+    {
+      "path": "docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/round.json",
+      "sha256": "0fc868762fe16f2432a681d63310f92156d32cc00d75e6fece6ce223a1466d6c"
+    },
+    {
+      "path": "docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/browser.json",
+      "sha256": "57b282e6ff65c26e0dd0f783e7536d97492eceaf9c5a3801d4be71fce4af4a95"
+    },
+    {
+      "path": "data/remediation/wangsuk2-official-review-20261017/before.json",
+      "sha256": "64a7ff691a13763fad653c3c78f58bb5a9a89a91ec33a10f3718b20eebc0c3ab"
+    },
+    {
+      "path": "data/remediation/wangsuk2-official-review-20261017/before.html",
+      "sha256": "5e2539188ee2936199690f2aaee7266b34d6c991f11a67fd31a3373a218fe677"
+    },
+    {
+      "path": "scripts/amend_wangsuk2_official_review.py",
+      "sha256": "79562cea1302f3ddb90e29d01402e97937f5a691dd10bf2daccaf5c2fe6a187b"
+    }
+  ]
+}

@@ -1,0 +1,337 @@
+TAP version 13
+# Subtest: project-only repair without optional source IDs does not break lineage source nodes
+ok 1 - project-only repair without optional source IDs does not break lineage source nodes
+  ---
+  duration_ms: 1.539323
+  ...
+# Subtest: each camera scale covers 1.5 times the linear geographic range
+ok 2 - each camera scale covers 1.5 times the linear geographic range
+  ---
+  duration_ms: 3.576046
+  ...
+# Subtest: region, municipality and block boundaries use the same wider scale
+ok 3 - region, municipality and block boundaries use the same wider scale
+  ---
+  duration_ms: 0.180436
+  ...
+# Subtest: nearby bars with separate actual rectangles stay at their coordinates
+ok 4 - nearby bars with separate actual rectangles stay at their coordinates
+  ---
+  duration_ms: 5.06629
+  ...
+# Subtest: overlapping bars shift minimally and deterministically without grouping
+ok 5 - overlapping bars shift minimally and deterministically without grouping
+  ---
+  duration_ms: 2.912067
+  ...
+# Subtest: coincident bars remain individually readable
+ok 6 - coincident bars remain individually readable
+  ---
+  duration_ms: 3.091319
+  ...
+# Subtest: facilities follow building radius, with only nearest rail exception
+ok 7 - facilities follow building radius, with only nearest rail exception
+  ---
+  duration_ms: 2.258946
+  ...
+# Subtest: supply scale conserves units and volume from small blocks to large districts
+ok 8 - supply scale conserves units and volume from small blocks to large districts
+  ---
+  duration_ms: 57.706475
+  ...
+# Subtest: names and selection-independent repeated generation do not change building heights or coordinates
+ok 9 - names and selection-independent repeated generation do not change building heights or coordinates
+  ---
+  duration_ms: 0.504498
+  ...
+# Subtest: unknown, zero and invalid supply never create invented buildings
+ok 10 - unknown, zero and invalid supply never create invented buildings
+  ---
+  duration_ms: 3.338937
+  ...
+# Subtest: model footprints stay the same size and do not overlap within a block
+ok 11 - model footprints stay the same size and do not overlap within a block
+  ---
+  duration_ms: 6.725123
+  ...
+# Subtest: confirmed one month or range only; unknown endpoints and same month are concise
+ok 12 - confirmed one month or range only; unknown endpoints and same month are concise
+  ---
+  duration_ms: 1.473262
+  ...
+# Subtest: cards never substitute targets or later-stage cumulative counts for stage actuals
+ok 13 - cards never substitute targets or later-stage cumulative counts for stage actuals
+  ---
+  duration_ms: 17.797403
+  ...
+# Subtest: actual cards preserve the shared two-percent red/yellow management rule
+ok 14 - actual cards preserve the shared two-percent red/yellow management rule
+  ---
+  duration_ms: 0.379279
+  ...
+# Subtest: all draws disjoint stages, construction includes later stages
+ok 15 - all draws disjoint stages, construction includes later stages
+  ---
+  duration_ms: 5.551454
+  ...
+# Subtest: supply and move in use their own cumulative portions
+ok 16 - supply and move in use their own cumulative portions
+  ---
+  duration_ms: 0.140972
+  ...
+# Subtest: unknown stage and missing denominator have explicit labels
+ok 17 - unknown stage and missing denominator have explicit labels
+  ---
+  duration_ms: 0.148459
+  ...
+# Subtest: mapping selectors disable inactive policies/programs and use shared edit buttons
+ok 18 - mapping selectors disable inactive policies/programs and use shared edit buttons
+  ---
+  duration_ms: 3.228314
+  ...
+# Subtest: targetless projects cannot be selected and valid projects use the common editor
+ok 19 - targetless projects cannot be selected and valid projects use the common editor
+  ---
+  duration_ms: 2.052271
+  ...
+# Policy decision semantics: missing ≠ zero, start ≠ occupied, historical cutoffs, no duplicate schedules, scenario isolation OK
+# Subtest: /home/ubuntu/apps/myservice/PoC/10-home/tests/js/policy-decision.test.cjs
+ok 8 - /home/ubuntu/apps/myservice/PoC/10-home/tests/js/policy-decision.test.cjs
+  ---
+  duration_ms: 111.756798
+  ...
+# Subtest: shares are weighted by housing units, not project count
+ok 21 - shares are weighted by housing units, not project count
+  ---
+  duration_ms: 2.274803
+  ...
+# Subtest: counts each project once and uses furthest recorded stage rather than latest event date
+ok 22 - counts each project once and uses furthest recorded stage rather than latest event date
+  ---
+  duration_ms: 0.211518
+  ...
+# Subtest: future, planned, delayed and zero quantity events do not advance projects; past cutoff applies
+ok 23 - future, planned, delayed and zero quantity events do not advance projects; past cutoff applies
+  ---
+  duration_ms: 0.227772
+  ...
+# Subtest: partial supply and occupancy leave remaining units in earlier stages, without overlap
+ok 24 - partial supply and occupancy leave remaining units in earlier stages, without overlap
+  ---
+  duration_ms: 0.167357
+  ...
+# Subtest: repeated or inconsistent stage observations stay capped and quantities remain conserved
+ok 25 - repeated or inconsistent stage observations stay capped and quantities remain conserved
+  ---
+  duration_ms: 0.23949
+  ...
+# Subtest: scoped comparison counts duplicate completion dates once and caps later installments at project capacity
+ok 26 - scoped comparison counts duplicate completion dates once and caps later installments at project capacity
+  ---
+  duration_ms: 22.264951
+  ...
+# Subtest: municipality selection explicitly withholds a forecast instead of applying a province forecast to city units
+ok 27 - municipality selection explicitly withholds a forecast instead of applying a province forecast to city units
+  ---
+  duration_ms: 2.338539
+  ...
+# Subtest: missing schedules remain missing and detached views do not receive late async writes
+ok 28 - missing schedules remain missing and detached views do not receive late async writes
+  ---
+  duration_ms: 10.23286
+  ...
+# Subtest: dated cumulative difference uses the threshold; interpolated future goals are not overdue
+ok 29 - dated cumulative difference uses the threshold; interpolated future goals are not overdue
+  ---
+  duration_ms: 1.38155
+  ...
+# Subtest: missing actuals remain unknown; latest measured and explicit zero are compared
+ok 30 - missing actuals remain unknown; latest measured and explicit zero are compared
+  ---
+  duration_ms: 0.19283
+  ...
+# Subtest: early goal attainment is retained and missing targets never imply zero
+ok 31 - early goal attainment is retained and missing targets never imply zero
+  ---
+  duration_ms: 0.123212
+  ...
+# Subtest: confirmed delays deduplicate projects and officer targets take precedence
+ok 32 - confirmed delays deduplicate projects and officer targets take precedence
+  ---
+  duration_ms: 0.146472
+  ...
+# Subtest: reference axis magnifies early activity without counting the policy remainder
+ok 33 - reference axis magnifies early activity without counting the policy remainder
+  ---
+  duration_ms: 0.818299
+  ...
+# Subtest: reference axis follows dated goals, keeps cumulative stages separate, and changes with reference date
+ok 34 - reference axis follows dated goals, keeps cumulative stages separate, and changes with reference date
+  ---
+  duration_ms: 7.475794
+  ...
+# Subtest: reference axis preserves observed zero and has a finite full-range fallback
+ok 35 - reference axis preserves observed zero and has a finite full-range fallback
+  ---
+  duration_ms: 0.350953
+  ...
+# Subtest: tracked stacks conserve disjoint quantities and keep missing measurements distinct
+ok 36 - tracked stacks conserve disjoint quantities and keep missing measurements distinct
+  ---
+  duration_ms: 0.62908
+  ...
+# Subtest: stale observations use management severity while retaining a refresh notice
+ok 37 - stale observations use management severity while retaining a refresh notice
+  ---
+  duration_ms: 6.661787
+  ...
+# Subtest: all five shortage callouts fit without overlap even at the same clipped value
+ok 38 - all five shortage callouts fit without overlap even at the same clipped value
+  ---
+  duration_ms: 0.440309
+  ...
+# Subtest: monthly curve samples retain exact reference values without changing raw observations
+ok 39 - monthly curve samples retain exact reference values without changing raw observations
+  ---
+  duration_ms: 0.371979
+  ...
+# Subtest: two percent is inclusive and assessed before display rounding
+ok 40 - two percent is inclusive and assessed before display rounding
+  ---
+  duration_ms: 0.158352
+  ...
+# Subtest: future goals and missing values do not produce colored shortage cards
+ok 41 - future goals and missing values do not produce colored shortage cards
+  ---
+  duration_ms: 0.459251
+  ...
+# Subtest: rounding never displays a warning as 2 percent or zero percent
+ok 42 - rounding never displays a warning as 2 percent or zero percent
+  ---
+  duration_ms: 0.199906
+  ...
+# Policy statistics: monthly deltas, duplicate schedules, partial supply, delay timing and recovery, historical scope, agency classification passed
+# Subtest: /home/ubuntu/apps/myservice/PoC/10-home/tests/js/policy-statistics.test.cjs
+ok 12 - /home/ubuntu/apps/myservice/PoC/10-home/tests/js/policy-statistics.test.cjs
+  ---
+  duration_ms: 133.404124
+  ...
+# Subtest: facility markers use exact coordinates; planned markers require coordinates and selected radius
+ok 44 - facility markers use exact coordinates; planned markers require coordinates and selected radius
+  ---
+  duration_ms: 4.065463
+  ...
+# Subtest: radius change removes old markers instead of accumulating them
+ok 45 - radius change removes old markers instead of accumulating them
+  ---
+  duration_ms: 4.284409
+  ...
+# Subtest: current stage uses recorded progress, including officer estimates, not future targets or zero quantities
+ok 46 - current stage uses recorded progress, including officer estimates, not future targets or zero quantities
+  ---
+  duration_ms: 1.410337
+  ...
+# Subtest: dated milestone without quantity and positive progress are reached; documents alone are not
+ok 47 - dated milestone without quantity and positive progress are reached; documents alone are not
+  ---
+  duration_ms: 2.572516
+  ...
+# Subtest: nearest subway stays visible at every radius; other facilities remain radius filtered; planned rail excluded
+ok 48 - nearest subway stays visible at every radius; other facilities remain radius filtered; planned rail excluded
+  ---
+  duration_ms: 0.368964
+  ...
+# Subtest: large marts follow the selected facility radius without the subway exception
+ok 49 - large marts follow the selected facility radius without the subway exception
+  ---
+  duration_ms: 0.891852
+  ...
+# Subtest: summary only marks recorded milestones, not previous stages or planned completion
+ok 50 - summary only marks recorded milestones, not previous stages or planned completion
+  ---
+  duration_ms: 17.822737
+  ...
+# Subtest: future milestones and zero quantities do not advance the summary
+ok 51 - future milestones and zero quantities do not advance the summary
+  ---
+  duration_ms: 0.201215
+  ...
+# Subtest: no public housing status is inferred from a generic program or unknown developer
+ok 52 - no public housing status is inferred from a generic program or unknown developer
+  ---
+  duration_ms: 0.26272
+  ...
+# Subtest: records remain out of summary, deduplicate identical records and keep stage roles
+ok 53 - records remain out of summary, deduplicate identical records and keep stage roles
+  ---
+  duration_ms: 0.866778
+  ...
+# Subtest: package retains exact numbers, distinguishes zero and missing, and includes every requirement and evaluation question
+ok 54 - package retains exact numbers, distinguishes zero and missing, and includes every requirement and evaluation question
+  ---
+  duration_ms: 5.587869
+  ...
+# Subtest: source text cannot close the raw JSON fence or create executable table markup
+ok 55 - source text cannot close the raw JSON fence or create executable table markup
+  ---
+  duration_ms: 1.174917
+  ...
+# Subtest: scoped execution supplement never attributes another project or policy-wide row to a selected project
+ok 56 - scoped execution supplement never attributes another project or policy-wide row to a selected project
+  ---
+  duration_ms: 0.330881
+  ...
+# Subtest: filename carries region, municipality, comparison year and date without path characters
+ok 57 - filename carries region, municipality, comparison year and date without path characters
+  ---
+  duration_ms: 1.858292
+  ...
+# Subtest: same-scope asynchronous redraw reacquires graph values and preserves supplemental query statuses
+ok 58 - same-scope asynchronous redraw reacquires graph values and preserves supplemental query statuses
+  ---
+  duration_ms: 16.533051
+  ...
+# Subtest: changed scope or page aborts the export rather than mixing chart and filter snapshots
+ok 59 - changed scope or page aborts the export rather than mixing chart and filter snapshots
+  ---
+  duration_ms: 4.627246
+  ...
+# Subtest: supplement query failure remains explicitly unavailable while graph data can still be exported
+ok 60 - supplement query failure remains explicitly unavailable while graph data can still be exported
+  ---
+  duration_ms: 2.578775
+  ...
+# Subtest: adopted values retain quantities, dates and management risks while removing generation diagnostics from all appendices
+ok 61 - adopted values retain quantities, dates and management risks while removing generation diagnostics from all appendices
+  ---
+  duration_ms: 3.082412
+  ...
+# Subtest: each requirement score has a reason and transparent denominator
+ok 62 - each requirement score has a reason and transparent denominator
+  ---
+  duration_ms: 1.967973
+  ...
+# Subtest: overall review uses all original subitems and preserves partial national and identity coverage
+ok 63 - overall review uses all original subitems and preserves partial national and identity coverage
+  ---
+  duration_ms: 0.519631
+  ...
+# Subtest: unresolved age filters exclude resolved records
+ok 64 - unresolved age filters exclude resolved records
+  ---
+  duration_ms: 0.185201
+  ...
+# Subtest: same-project impacts never add twice inside a group
+ok 65 - same-project impacts never add twice inside a group
+  ---
+  duration_ms: 0.298281
+  ...
+1..65
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1147.492654

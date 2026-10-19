@@ -1,0 +1,272 @@
+[
+  {
+    "event_id": "EVT_e4f484e1f44478cbd52cbcfd",
+    "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+    "quantity": 812,
+    "event_date": "2026-04-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "9c8f1b26-884d-4861-a286-6d8f88a98d8c",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061080&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_f109f3511cf05bb1a8b2bd98",
+    "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+    "quantity": 686,
+    "event_date": "2026-04-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "f3b11a5e-f5a3-46f1-9bed-f92fdffed7da",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061082&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_7dafb5d13fd9363197dd09bf",
+    "name": "군포대야미 A-1BL 아파트 건설공사 2공구",
+    "quantity": 377,
+    "event_date": "2026-06-30",
+    "before": "UNKNOWN",
+    "after": "RENT",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "5aa38c1a-69a3-4590-9bfd-c1c75931a973",
+      "value": "RENT"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061115&ccrCnntSysDsCd=02&uppAisTpCd=06&aisTpCd=52&mi=1026"
+  },
+  {
+    "event_id": "EVT_d65d2417442a9ce86924f97c",
+    "name": "고양창릉 S-1BL 민간참여 공공주택 건설공사",
+    "quantity": 494,
+    "event_date": "2026-04-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "eedf1014-c313-4932-99f4-1b4d66917b98",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061081&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_9cd240e29e5f179212db258f",
+    "name": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+    "quantity": 400,
+    "event_date": "2026-04-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "a32bcf98-882e-4d7e-9b1b-e5f70b89b6eb",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061078&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_b0cdad4ae0d570906d49cef0",
+    "name": "고양창릉 S-4BL 아파트 건설공사 6공구",
+    "quantity": 1024,
+    "event_date": "2026-06-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "35a7fe8a-679e-4e72-ae15-4cf135cf9ab9",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061134&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_f5c5caea2ba31cf15f9b511c",
+    "name": "민간참여) 성남낙생 A-1BL 민간참여 공공주택 건설사업",
+    "quantity": 933,
+    "event_date": "2026-05-29",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "d6373033-0b3b-447a-80c8-df3923bbf67e",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061126&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_ebb7b52755e277e49a8308e7",
+    "name": "부천역곡 A-2BL 민간참여 공공주택 건설사업",
+    "quantity": 976,
+    "event_date": "2026-06-26",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "1be52ad4-4214-43b4-b426-04ee147b2ae4",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061128&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_4c3f8beeec5f5f071fb20228",
+    "name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+    "quantity": 290,
+    "event_date": "2026-08-07",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "b036862e-ecf0-4c24-94cf-a999f38ffe10",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061152&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_732e96669c94c67cd78cded1",
+    "name": "조달청)의정부우정 A-2BL 아파트 건설공사 2공구",
+    "quantity": 463,
+    "event_date": "2026-08-26",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "0042b640-8329-4652-905a-1d7f858da922",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061159&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_60d1fb1d05e05410c8bd813d",
+    "name": "조달청)인천계양 A9BL 아파트 건설공사 3공구",
+    "quantity": 317,
+    "event_date": "2026-04-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "e9fae893-9093-4432-809b-d0c4c7135de6",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061083&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_a40a151cf3b624cfb38de250",
+    "name": "인천계양 A17BL 아파트 건설공사 6공구 (",
+    "quantity": 309,
+    "event_date": "2026-09-30",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "6be7b6c0-e257-41e8-9f21-9988e90046e8",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061179&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027"
+  },
+  {
+    "event_id": "EVT_6f105af00774625c372ae9bb",
+    "name": "조달청)화성동탄2 C-27BL 아파트 건설공사 30공구 (",
+    "quantity": 473,
+    "event_date": "2026-05-29",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "f5c76942-8ab4-4db2-a235-e3d0a8d48138",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061101&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_c272471bea1ed076005965ae",
+    "name": "[(105037)성남금토]성남금토A-2BL아파트건설공사1공구및국토지리정보원복합시설건설공사1공구",
+    "quantity": 219,
+    "event_date": "2026-07-08",
+    "before": "UNKNOWN",
+    "after": "RENT",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "910b4aa7-e13d-4bb6-8f0f-b547106114db",
+      "value": "RENT"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020360&ccrCnntSysDsCd=03&uppAisTpCd=06&aisTpCd=07&mi=1026"
+  },
+  {
+    "event_id": "EVT_fafd8e85493fde9c549b7f22",
+    "name": "성남금토 A-4BL 아파트 건설공사 2공구",
+    "quantity": 187,
+    "event_date": "2026-08-11",
+    "before": "UNKNOWN",
+    "after": "RENT",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "200f1c98-6e7e-4a24-bfec-ed240968a1a8",
+      "value": "RENT"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020534&ccrCnntSysDsCd=03&uppAisTpCd=39&aisTpCd=42&mi=1026"
+  },
+  {
+    "event_id": "EVT_79632047328080029782a7f8",
+    "name": "의왕청계2 A-1BL 아파트 건설공사 1공구",
+    "quantity": 159,
+    "event_date": "2026-09-29",
+    "before": "UNKNOWN",
+    "after": "RENT",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "fd2d9e14-7027-4177-95fc-66e422c6f214",
+      "value": "RENT"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020803&ccrCnntSysDsCd=03&uppAisTpCd=39&aisTpCd=42&mi=1026"
+  },
+  {
+    "event_id": "EVT_c66065a730e37e5026c8cad9",
+    "name": "조달청)양주회천 A-26BL공동주택 건설공사",
+    "quantity": 792,
+    "event_date": "2026-08-27",
+    "before": "UNKNOWN",
+    "after": "SALE",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "f07d7268-6ccb-4038-9b95-b339cd6ca738",
+      "value": "SALE"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061158&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+  },
+  {
+    "event_id": "EVT_96ec9948ecc32dbf97df48b6",
+    "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+    "quantity": 294,
+    "event_date": "2026-06-16",
+    "before": "UNKNOWN",
+    "after": "RENT",
+    "evidence": {
+      "field": "supply_mode",
+      "basis": "모집 사건 원문 분류",
+      "source_revision_id": "a89cbb0c-a3c9-47a4-8530-bd09cc33f691",
+      "value": "RENT"
+    },
+    "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020139&ccrCnntSysDsCd=03&uppAisTpCd=39&aisTpCd=42&mi=1026"
+  }
+]

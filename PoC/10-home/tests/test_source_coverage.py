@@ -30,13 +30,13 @@ class SourceCoverageTests(unittest.TestCase):
             self.assertEqual(result['results'][0]['status'], 'SUCCESS')
             with service.sessions() as session:
                 self.assertEqual(session.scalar(select(func.count()).select_from(Mapping)), 0)
-                self.assertEqual(session.scalar(select(func.count()).select_from(Coverage)), 2)
+                self.assertEqual(session.scalar(select(func.count()).select_from(Coverage)), 3)
             app = create_app(engine, auto_collect=False)
             with TestClient(app) as client:
                 body = client.get('/poc/home/api/coverage').json()
                 self.assertEqual(body['complete_population'], False)
-                self.assertEqual(len(body['items']), 2)
-                self.assertEqual([row['fetched_count'] for row in body['items']], [1, 1])
+                self.assertEqual(len(body['items']), 3)
+                self.assertEqual([row['fetched_count'] for row in body['items']], [1, 1, 0])
                 self.assertTrue(all(row['query_status'] == 'COMPLETE_QUERY' for row in body['items']))
                 self.assertTrue(all(row['population_status'] == 'PARTIAL_SCOPE' for row in body['items']))
                 rows = client.get('/poc/home/api/samples?kind=renewal_inventory').json()

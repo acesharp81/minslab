@@ -1,0 +1,681 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="euc-kr">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<meta name="Keywords" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계">
+	<meta name="Description" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계 제공">
+	<meta name="Robots" content="INDEX, FOLLOW">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="토지이음">
+	<meta property="og:description" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계 제공">
+	<meta property="og:image" content="/web/favicon.png"/>
+	<meta property="og:url" content="http://www.eum.go.kr">
+	<title>고시정보 &gt; 고시 상세보기| 토지이음</title>
+	<link rel="shortcut icon" type="image/x-icon" href="/web/favicon.ico">
+	
+	<link rel="stylesheet" href="/web/css/reset.css">
+	<link rel="stylesheet" href="/web/css/common.css">
+	
+	
+	<script type="text/javascript" src="/web/js/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="/web/js/jquery-ui.js"></script>
+	<script type="text/javascript" src="/web/js/ux.js"></script>
+	<script type="text/javascript" src="/web/js/mb/mbCmmn.js"></script>
+	<script type="text/javascript" src="/web/js/jquery.cookie.js"></script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-M5PF8WRR6M"></script>
+	<script type="text/javascript" src="/web/js/google_analytics.js"></script>
+	<script>
+
+	var login='false';
+	if(login=='false'){
+		var loginFlag=$.cookie("loginFlag");
+		if(loginFlag=="true"){
+			alert("로그인 시간 제한이 만료되었습니다.");
+		}
+	}
+
+	if(login=='true'){
+		$.cookie("loginFlag",login);
+	}else{
+		$.removeCookie('loginFlag');
+	}
+
+	var context = "/web";
+	var hostLocation= location.protocol+"//"+location.host;
+	</script>
+	<script type="text/javascript" src="/web/js/ac/common.js"></script>
+
+
+	<script>
+		$(document).ready(function(){
+			if('Y'=='N'){
+				openLayer('login_info_layer');
+				//if(confirm("임시 비밀번호를 변경하신 후\n서비스를 이용하실 수 있습니다.")){
+				//	$.fn.movePage("/web/mb/mbUpdateInfo.jsp");
+				//}
+			}
+
+			//메뉴
+			$('.menu').children('li').removeClass('on');
+			$('.menu').children('li').eq(3).addClass('on');
+			var link = document.location.href;
+
+			if(link.indexOf("/am/amMain.jsp") >-1){
+				$("div.header_wrap").addClass("main_header");
+			}else {
+				$("div.header_wrap").addClass("sub_header");
+			}
+
+      $("#skipNav").keyup(function(e) {
+        if(e.keyCode === 9){
+          $(this).children().css('top',0);
+        }
+      });
+
+      $("#skipNav a").focusout(function() {
+        $(this).hide();
+
+      });
+
+      $(".m_conts").click(function(e) {
+        $(this).css('top','-38px');
+      });
+
+		});
+	</script>
+</head>
+<body class="ebbody">
+	
+	<div id="skipNav">
+		<a href="#m_conts" class="m_conts" style="z-index:2">본문 바로가기</a>
+		<a href="#lnbWrap" class="lnbWrap">주메뉴 바로가기</a>
+	</div>
+	<div class="wrap">
+		<!-- header 영역 -->
+		<div class="header_wrap">
+			<div class="header_top">
+				
+			</div>
+			<!-- 모바일메뉴 -->
+			<div class="m_header_wrap">
+				<div class="m_header">
+					<ul>
+					<li><a href="javascript:;">토지이음 모바일</a></li>
+					
+					</ul>
+					<span class="first" title="새창"><a href="javascript:;" onclick="openVisit();" title="새창">처음오셨나요?</a></span>
+					<!-- <span class="pcver"><a href="">PC 버전</a></span> -->
+					<a href="javascript:;" class="m_btnx"><img src="/web/images/ac/m_btnx.png" alt="닫기"></a>
+				</div>
+				<div class="m_con">
+					<ul class="dp01">
+						<li class="m01"><a href="javascript:fn_goLand();">토지이용계획</a>
+							<ul class="dp02">
+								<li><a href="javascript:fn_goLand();">토지이용계획 열람</a></li>
+								<li><a href="/web/ar/lw/lwLawDet.jsp" target="_blank">규제법령집&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+							</ul>
+						</li>
+						<li class="m06"><a href="javascript:fn_goUpis();">도시계획</a>
+							<ul class="dp02">
+								<li><a href="javascript:fn_goUpis();">도시계획 열람</a></li>
+								<li><a href="/web/cp/hr/hrPeopleHearList.jsp">주민의견청취 공람</a></li>
+								<li><a href="/web/cp/ih/ihHearingList.jsp">인터넷 주민의견 청취</a></li>
+								<li><a href="/web/cp/pr/prHowtoDet.jsp">도시·군관리계획 입안 제안</a></li>
+								
+
+								<li><a href="/web/cp/st/stUpisStatDet.jsp">도시계획통계</a></li>
+							</ul>
+						</li>
+						<li class="m03"><a href="/web/gd/eb/ebGuideBookDet.jsp">규제안내서</a>
+							<ul class="dp02">
+								<li><a href="/web/gd/eb/ebGuideBookDet.jsp">쉬운 규제안내서</a></li>
+								<li><a href="/web/gd/ec/ecGuideMastDet.jsp">쉬운 인허가사례</a></li>
+							</ul>
+						</li>
+						<li class="m04"><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a>
+							<ul class="dp02">
+								<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a></li>
+							</ul>
+						</li>
+						<li class="m05"><a href="/web/in/al/alBoardList.jsp">정보마당</a>
+							<ul class="dp02">
+								<li><a href="/web/in/al/alBoardList.jsp">공지사항</a></li>
+								<li><a href="/web/in/cp/cpQnaList.jsp">질의회신사례</a></li>
+								<li><a href="/web/in/dc/dcDictList.jsp">용어사전</a></li>
+								<li><a href="/web/in/pd/pdBoardList.jsp">자료실</a></li>
+								<li><a href="/web/op/sv/svItemList.jsp">데이터개방</a></li>
+								<li><a href="/web/in/rs/rsSiteDet.jsp">관련사이트</a></li>
+							</ul>
+						</li>
+					</ul>
+					<div class="footer_top">
+						<div class="footer_menu">
+							<ul class="fm">
+								<li><a href="/web/lc/bi/biPersonInfo.jsp">개인정보처리방침</a></li>
+								<li><a href="/web/lc/bi/biCopyRight.jsp">저작권 정책</a></li>
+								<li><a href="/web/lc/hr/hrSurveyStartDet.jsp">의견수렴</a></li>
+								<li><a href="javascript:;" onclick="openTelLayer();">문의처</a></li>
+							</ul>
+
+
+
+
+
+						</div>
+					</div>
+					<div class="footer">
+						<div class="ft_info">
+							<p class="mt10"><span class="address">우)30103 세종특별자치시 도움6로 11</span><span class="m_inb">국토교통부 국토도시실 도시정책관 도시정책과</span><span class="email">이메일: luris@korea.kr</span><span class="pc m_tel"><a href="tel:02-838-4405">02-838-4405</a></span></p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="dim"></div>
+			<!-- //모바일메뉴 -->
+			<div class="korea_wrap">
+				<div class="korea_header">
+					<div class="left_logo">
+					<p><img class="official_flag" src="/web/images/ac/flag.svg" alt="">이 누리집은 대한민국 공식 전자정부 누리집입니다.</p>
+					</div>
+					<div  class="right_logout">
+					
+					</div> 
+				</div>
+			</div>			
+			<div class="header">
+				<h1><a href="/web/am/amMain.jsp" id="siteLogo" title="메인페이지로 이동"><img src="/web/images/ac/logo.png" alt="토지이음 로고"></a></h1>
+				<div class="nav_wrap" id="lnbWrap">
+					<h2><a href="javascript:;" class="m_allmenu"><img src="/web/images/ac/m_menu.png" alt="메뉴"></a></h2>
+					<ul class="menu mb">
+						<li><a href="javascript:fn_goLand();">토지이용계획</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="javascript:fn_goLand();">토지이용계획 열람</a></li>
+								<li><a href="/web/ar/lw/lwLawDet.jsp" target="_blank">규제법령집&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+							</ul>
+						</li>
+						<li><a href="javascript:fn_goUpis();">도시계획</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="javascript:fn_goUpis();">도시계획 열람</a></li>
+								<li><a href="/web/cp/hr/hrPeopleHearList.jsp">주민의견청취 공람</a></li>
+								<li><a href="/web/cp/ih/ihHearingList.jsp">인터넷 주민의견 청취</a></li>
+								<li><a href="/web/cp/pr/prHowtoDet.jsp">도시·군관리계획 입안 제안</a></li>
+								
+
+								<li><a href="/web/cp/st/stUpisStatDet.jsp">도시계획통계</a></li>
+							</ul>
+						</li>
+						<li><a href="/web/gd/eb/ebGuideBookDet.jsp">규제안내서</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/gd/eb/ebGuideBookDet.jsp">쉬운 규제안내서</a></li>
+								<li><a href="/web/gd/ec/ecGuideMastDet.jsp">쉬운 인허가사례</a></li>
+							</ul>
+						</li>
+						<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a></li>
+							</ul> 
+						</li>
+						<li><a href="/web/in/al/alBoardList.jsp">정보마당</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/in/al/alBoardList.jsp">공지사항</a></li>
+								<li><a href="/web/in/cp/cpQnaList.jsp">질의회신사례</a></li>
+								<li><a href="/web/in/dc/dcDictList.jsp">용어사전</a></li>
+								<li><a href="/web/in/pd/pdBoardList.jsp">자료실</a></li>
+								<li><a href="/web/op/sv/svItemList.jsp">데이터개방</a></li>
+								<li><a href="/web/in/rs/rsSiteDet.jsp">관련사이트</a></li>
+							</ul>
+						</li>
+					</ul>
+					<div class="util mb">
+						<span class="invite"><a href="javascript:;" onclick="openVisit();" title="새창으로 열기">처음오셨나요?</a></span>
+						<span class="txt_scale">글자크기<a href="javascript:zoomIn();" class="plus"><img src="/web/images/ac/plus.png" alt="글자확대"></a><a href="javascript:zoomOut();"><img src="/web/images/ac/minus.png" alt="글자축소"></a></span>
+					</div>
+				</div>
+			</div>
+			<div class="menu_bg mb">
+				<div class="menu_img">
+					<div class="allm">
+						<img src="/web/images/ac/all.png" alt="전체메뉴">
+					</div>
+					<div class="btn_close"><a href="javascript:closeMenu();"><img src="/web/images/ac/btn_close.png" alt="닫기"></a></div>
+				</div>
+			</div>
+		</div>
+	</div>		
+		<!--//header 영역 -->
+
+
+
+<link rel="stylesheet" href="/web/css/tree.css">
+<script type="text/javascript" src="/web/js/jquery.xml2json.js"></script>
+<script type="text/javascript" src="/web/js/tree.js"></script>
+<script type="text/javascript" src="/web/js/gs/gv/gvGosiDet.js"></script>
+<script>
+var getUpisUrlConnector = "/web/api/Upis/UrlConnector.jsp";
+var selectWtnncCdAndRelNtfcByNtfcNo = "/upispweb/linkmgmt/api/selectWtnncCdAndRelNtfcByNtfcNo";
+var selectNtfcAndHistoryByWtnnc = "/upispweb/linkmgmt/api/selectNtfcAndHistoryByWtnnc";
+</script>
+
+<script language="javascript">
+	//비정상접근처리
+	
+	
+	
+</script>
+
+<script type="text/javascript">
+	function download(url, file) {
+		var prevAction = document.frm.action;
+		var prevTarget = document.frm.target;
+		document.frm.action = url;
+		document.frm.target = "fileDownFrame";
+		document.frm.file.value = file;
+		document.frm.submit();
+		document.frm.target = prevTarget;
+		document.frm.action = prevAction;
+	}
+</script>
+<div id="fileDownFrame" style="width:0px;height:0px;"></div>
+<form method="post" name="frm">
+<input type="hidden" name="file">
+<input type="hidden" name="gosi" value="Y">
+<input type="hidden" name="seq" id="seq" value="642265" />
+<input type="hidden" name="mobile_yn" id="mobile_yn" value="" />
+</form>
+
+		<!--//header 영역 -->
+		<div class="container" id="m_conts">
+			<div class="bread_crumb">
+				<ol>
+					<li class="home">홈</li>
+					<li><img src="/web/images/ac/arw.png" alt="하위메뉴"/>고시정보</li>
+					<li><div class="on"><img src="/web/images/ac/arw.png" alt="하위메뉴"/>고시정보</div></li>
+				</ol>
+			</div>
+			<h3 class="title">고시정보</h3>			
+			<div class="subcont">
+				<div class="gv_det">
+					<div class="tbl02">										
+						<table>
+							<caption>도시관리계획(도로: 대로1-14호선) 실시계획인가(변경) 고시 - 고시번호, 담당기관,고시일,문의처,열람장소,첨부파일로 구성</caption>
+							<colgroup>
+								<col style="width:21%">
+								<col>
+								<col style="width:21%">
+								<col>
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="row" colspan="4">도시관리계획(도로: 대로1-14호선) 실시계획인가(변경) 고시</th>
+								</tr>
+							</thead>
+							<tbody>								
+								<tr>
+									<th class="bg" scope="row">고시번호</th>
+									<td class="left" colspan="3">인천광역시 고시 제2026-278호</td>									
+								</tr>
+								<tr>
+									<th class="bg" scope="row">담당기관</th>
+									<td class="left" colspan="3">인천광역시</td>
+								</tr>
+								<tr>
+								    <th class="bg" id="tb1_cel_4_1">고시일</th>
+								    <td class="left" headers="tb1_cel_4_1">
+								        2026-10-06
+								    </td>
+								
+								    <th class="bg" id="tb1_cel_4_3">문의처</th>
+								    <td class="left" headers="tb1_cel_4_3">
+								        032-440-3794
+								    </td>		
+								</tr>
+								<tr>
+									<th class="bg" scope="row">열람장소</th>
+									<td class="left" colspan="3"></td>
+								</tr>
+								
+								
+								
+								
+								 
+								<tr>
+									<th class="bg" scope="row">첨부파일</th>
+									<td colspan="3" class="left">
+										<ul class="file_add" >
+											<!-- // 첨부파일 -->										
+											
+												
+													
+													
+														
+															
+															
+																<li><a class="link font_blue04" href="javascript:download('/web/FileDownload.do', '/20261006/webcommon/mapboard/WcBdMapForm.jsp/고시문(인천광역시고시 제2026-278호).pdf')">고시문(인천광역시고시 제2026-278호).pdf (77&nbsp;KByte)</a></li>
+															
+														
+													
+												
+																				
+											<!-- 첨부파일 // -->
+											
+										</ul>
+										
+										
+										
+											<!-- <p class="btn_alldw"><span><a href="/web/ac/DownloadZip.jsp;jsessionid=StdLJkWK321bgn9I7lktDVXWELQ3DIWl6aOtlccEXs6I5EHQTSrnqNXlV2h06Sxa.NEW_WAS_servlet_engine5?seq=642265">일괄 다운로드</a></span></p> -->
+										
+									</td>
+								</tr>
+								<tr>
+									<td colspan="4">
+										<div class="edit_view">
+											<!-- // 컨텐츠 내용 -->
+											
+												
+				
+													
+														
+															<p class="number">인천광역시 고시 제2026-278호</p>
+														
+														
+													
+				
+													<p class="title">도시관리계획(도로: 대로1-14호선) 실시계획인가(변경) 고시</p>
+													도시계획시설(도로: 대로1-14호선 / 사업명: 인천대공원 치유의 숲 조성사업 구간 가감속차로 설치공사) 사업에 대하여 ?국토의 계획 및 이용에 관한 법률? 제88조에 따른 실시계획을 인가(변경)하고, 같은 법 제32조와 ?토지이용규제기본법? 제8조에 따라 지형도면을 고시합니다.
+ 관계도서는 인천광역시청(도로과 ☎032-440-3794), 인천대공원사업소(☎032-440-5826), 남동구청(도시재생과 ☎032-453-2955)에 갖추어 놓았습니다.                                                                                                           
+				
+													<p class="content mt20 con_date">2026년 10월 06일</p>
+													<p class="com">인천광역시장</p>
+				
+				
+												
+												
+											
+											<!-- 컨텐츠 내용 // -->
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					
+					
+					
+					<div class="list_btn">
+						<span><a href="gvGosiList.jsp?pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&gosichrg=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=">목록으로</a></span>
+					</div>					
+				</div>
+				<div class="city_wrap">
+					<div class="city_noti">
+						<strong>원문출처</strong><span class="font_red underline">고시 정보</span>는 해당 행정기관에서 직접 등재하고 있으며, 이와 관련한 사항은 해당 <span class="font_red underline">행정기관(032-440-3794)으로 문의</span>하시기 바랍니다.
+							<div class="city_noti_nuri">											
+								<table>
+								    <caption>공공누리 출처표시 안내</caption>
+								    <thead>
+								        <tr>
+								            <th scope="col" class="sr-only">이미지</th>
+								            <th scope="col" class="sr-only">설명</th>
+								        </tr>
+								    </thead>
+								    <tbody>
+								        <tr>
+								            <td><img src="../../images/ar/nuri.png" title="공공누리 로고" alt="공공누리 로고"></td>
+								            <td style="padding-left: 10px; padding-right: 10px; line-height: 20px;">
+								                <span class="font_red underline">데이터는 공공누리 출처표시 조건에 따라 자유이용이 가능합니다.</span>
+								                <br> 
+								                ※공공누리 마크가 부착되지 않은 자료는 자유이용이 불가능 합니다.
+								            </td>
+								        </tr>
+								    </tbody>
+								</table>
+							</div>
+
+					</div>
+					<div class="city_satis">
+						
+							
+							
+							
+						
+
+
+
+
+
+<form name="grade_frm1" method="post" action="/web/ac/grade.jsp">
+	<input type="hidden" name="mode" value="createGrade" />
+	<input type="hidden" name="SA_CD" value="642265" />
+	<input type="hidden" name="SA_CD2" value="" />
+	<input type="hidden" name="SA_CD3" value="" />
+	<input type="hidden" name="SA_DIV" value="S1" />
+	<input type="hidden" name="ipaddr" value="180.210.78.241">
+	<input type="hidden" name="gradeDesc" value="" />
+
+	<span class="txt">정보에 만족하셨습니까?</span>
+	<select name="SA_GRADE" id="page_grade" title="만족도 점수 선택" class="mb10">
+		<option value="5">5점 (매우만족)</option>
+		<option value="4">4점 (만족)</option>
+		<option value="3">3점 (보통)</option>
+		<option value="2">2점 (불만족)</option>
+		<option value="1">1점 (매우불만족)</option>
+	</select>
+	
+	<span class="btn_md mt10"><a href="javascript:document.grade_frm1.submit();">제출하기</a></span>
+</form>
+
+
+					</div>
+				</div>
+			</div>
+			<!--고시정보 레이어 팝업 -->
+			<div class="layer_pop gosi_layer">
+				<div class="layer-bg"></div>
+				<div class="layer_content">
+					<div class="layer_content_wrap">
+						<div class="layer_header">
+							<h3>고시별 조서정보 보기</h3>
+							<a class="layer_close" href="javascript:closeLayer('gosi_layer');"><img src="../../images/ac/layer_x.png" alt="레이어닫기"></a>	
+						</div>
+						<div class="layer_body">
+							<div class="tbl04">										
+								<table>
+									<caption>고시별 조서정보 보기 확인 표</caption>
+									<colgroup>
+										<col style="width:25%">
+										<col>
+									</colgroup>
+									<tbody>
+										<tr>
+											<th scope="row" class="bg">고시번호</th>
+											<th scope="row" id="gosi_no"></th>
+										</tr>
+										<tr>
+											<th scope="row" class="bg">고시제목</th>
+											<th scope="row" id="gosi_title"></th>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<p class="gosi"><strong id="gosi_full_title"></strong></p>
+							<div class="gosi_tree">
+								
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--//고시정보 레이어 팝업 -->			
+		</div>
+
+
+
+
+
+
+
+		<!-- footer 영역 -->
+		<div class="footer_top">
+			<div class="footer_menu">
+				<ul class="fm">
+					<li><a href="/web/lc/bi/biPersonInfo.jsp">개인정보처리방침</a></li>
+					<li><a href="/web/lc/bi/biCopyRight.jsp">저작권 정책</a></li>
+					<li><a href="/web/lc/bi/biOpenDet.jsp">자료개방</a></li>
+					<li><a href="/web/lc/bi/biServiceIntro.jsp">서비스안내</a></li>
+					<li><a href="/web/lc/hr/hrSurveyStartDet.jsp">의견수렴보내기</a></li>
+					<li><a href="https://data.molit.go.kr/systemQuality/list?system_id=S0002" target="_blank">품질오류 신고 및 확인&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+				</ul>
+				<div class="family_site mb">
+					<!-- 24.6.27. 관련사이트 삭제
+					
+					<span><a href="javascript:;" title="관련사이트 바로가기">관련사이트 바로가기</a></span>
+					<div class="family">
+						<ul>
+							<li><a href="http://www.molit.go.kr/portal.do" target="_blank" title="국토교통부 웹사이트 새 창으로 열림" class="on">국토교통부</a></li>
+							<li><a href="http://www.minwon.go.kr/main?a=AA020InfoMainApp" target="_blank" title="민원24 웹사이트 새 창으로 열림">민원24</a></li>
+							<li><a href="https://kras.go.kr:444/cmmmain/goMainPage.do" target="_blank" title="일사편리 웹사이트 새 창으로 열림">일사편리</a></li>
+							<li><a href="https://seereal.lh.or.kr/main.do" target="_blank" title="씨리얼 웹사이트 새 창으로 열림">씨리얼</a></li>
+							<li><a href="http://www.law.go.kr/" target="_blank" title="국가법령정보센터 웹사이트 새 창으로 열림">국가법령정보센터</a></li>
+							<li><a href="http://www.elis.go.kr/" target="_blank" title="자치법규정보시스템 웹사이트 새 창으로 열림">자치법규정보시스템</a></li>
+							<li><a href="http://rt.molit.go.kr/" target="_blank" title="실거래가 공개시스템 웹사이트 새 창으로 열림">실거래가 공개시스템</a></li>
+							<li><a href="http://www.realtyprice.kr/notice/main/mainBody.htm" target="_blank" title="부동산공시가격 알리미 웹사이트 새 창으로 열림">부동산공시가격 알리미</a></li>
+							<li><a href="http://www.nsdi.go.kr/lxportal/?menuno=2679" target="_blank" title="국가공간정보포털 웹사이트 새 창으로 열림">국가공간정보포털</a></li>
+						</ul>
+					</div> -->
+				</div>
+			</div>
+		</div>
+
+		<div class="footer">
+			<p class="ft_logo mb"><a href="http://www.molit.go.kr/portal.do" target="_blank"><img src="/web/images/ac/ft_logo.png" alt="국토교통부" title="새창열림"></a></p>
+			<div class="ft_info">
+				<p class="mb"><strong>헬프데스크 <span class="f_blue">02-838-4405</span></strong><span class="line_btn">평일</span>09:00~18:00<span class="line_btn">점심시간</span>12:00~13:00</p>
+				<p class="mt10"><span class="address">우)30103 세종특별자치시 도움6로 11</span><span class="m_inb">국토교통부 국토도시실 도시정책관 도시정책과</span><span class="email">이메일: luris@korea.kr</span><span class="pc m_tel"><a href="tel:02-838-4405">02-838-4405</a></span></p>
+				<p><span class="m_inb">필지정보는 지자체로 문의바랍니다.</span></p>
+				<p class="copy mb">Copyright ⓒ 국토교통부 All rights reserved.</p>
+			</div>
+
+			<a href="javascript:gotoTop();" class="m_btn_up"><img src="/web/images/ac/m_top.png" alt="위로"></a>
+			<div class="ft_visit mb" style="text-align: right;">
+			  <span style="display: inline-block; vertical-align: middle;">
+			    <img src="/web/images/ac/wa.png" border="0" alt="웹접근성 인증 마크">
+			  </span>
+			  <div style="display: inline-block; vertical-align: middle; margin-left: 8px;">	
+				
+					
+					
+					
+				
+				</div>
+			</div>
+		</div>
+
+		<!--에러팝업-->
+		<div class="layer_pop error_layer">
+			<div class="layer-bg"></div>
+			<div class="layer_content">
+				<div class="layer_content_wrap">
+					<div class="layer_header">
+						<h3>시스템 이용안내</h3>
+						<a class="layer_close" href="javascript:closeLayer('error_layer');">닫기</a>
+					</div>
+					<div class="layer_body">
+						<p class="error_title"><strong id="errorTitle"></strong></p>
+						<div class="error_con">
+							<div>
+								<span>원인</span><p id="errorCause"></p>
+							</div>
+							<div>
+								<span>처리방법</span><p id="errorMethod"></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--/에러팝업-->
+
+		<!--문의처 레이어 팝업 -->
+		<div class="layer_pop question_layer">
+			<div class="layer-bg"></div>
+			<div class="layer_content">
+				<div class="layer_content_wrap">
+					<div class="layer_header">
+						<h3>문의처</h3>
+						<a class="layer_close" href="javascript:closeLayer('question_layer');">닫기</a>
+					</div>
+					<div class="layer_body">
+						<fieldset>
+							<legend>문의처검색</legend>
+							<div class="q_sel">
+                
+                <select id="sido_cd" name="sido_cd" class="q01" onChange="$.fn.selectAmSggList(this.value);" title="광역시도 선택">
+									<option value="" selected>광역시도 전체</option>
+									<option value="11" >서울특별시</option>
+									<option value="12" >전남광주통합특별시</option>
+									<option value="26" >부산광역시</option>
+									<option value="27" >대구광역시</option>
+									<option value="28" >인천광역시</option>
+									<option value="30" >대전광역시</option>
+									<option value="31" >울산광역시</option>
+									<option value="36" >세종특별자치시</option>
+									<option value="41" >경기도</option>
+									<option value="51" >강원특별자치도</option>
+									<option value="43" >충청북도</option>
+									<option value="44" >충청남도</option>
+									<option value="52" >전북특별자치도</option>
+									<option value="47" >경상북도</option>
+									<option value="48" >경상남도</option>
+									<option value="50" >제주특별자치도</option>
+								</select>
+								<select name="sgg_cd" id="sgg_cd" class="q02" title="시군 선택">
+									<option value="">시군전체</option>
+								</select>
+								<input type="text" placeholder="시군구명" title="시군구명"
+								id="searchWord_T" name="searchWord_T" class="q03 input_S" maxlength="15" value="">
+								<span class="sch"><a href="javascript:;">검색</a></span>
+							</div>
+						</fieldset>
+						<div class="tbl02">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--//문의처 레이어 팝업 -->
+</body>
+</html>

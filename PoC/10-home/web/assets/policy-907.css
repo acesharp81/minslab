@@ -21,3 +21,6 @@
 .d907-stage-gap.is-warning{color:#8a6200}.d907-key-warning{background:repeating-linear-gradient(45deg,transparent 0px,transparent 5px,#d99b13 5px,#d99b13 6px),repeating-linear-gradient(-45deg,#fff8df 0px,#fff8df 5px,#d99b13 5px,#d99b13 6px)}
 .gap-management{display:block;padding:5px 7px;border-radius:4px;font-size:10px;line-height:1.5;font-weight:700;margin-top:4px;white-space:normal}.gap-management.delayed{color:#a71c33;background:#fff0f2;border-left:3px solid #b51f38}.gap-management.warning{color:#755100;background:#fff7d7;border-left:3px solid #e8ad25}
 .pd-stat-totals .pd-delay-total b{color:#b51f38}.pd-stat-totals .pd-warning-total b{color:#8a6200}
+
+/* Keep the longer current/year-end labels and missing-value text readable. */
+.d907-stage-number{flex-wrap:wrap}.d907-stage-number b{white-space:nowrap;flex-shrink:0}.d907-stage-number small{word-break:keep-all}

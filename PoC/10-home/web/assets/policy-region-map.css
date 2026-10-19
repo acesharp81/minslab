@@ -20,3 +20,17 @@ body.policy-summary-view:has(.prm-cards) #policy-geo-map{display:block;height:au
 .d907-metric-controls{align-items:center}.d907-metric-controls>strong{font-size:11px;margin-right:7px;color:#547791}
 
 .prm-label .prm-delay-marker{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;margin-right:3px;border:2px solid white;border-radius:50%;background:#b51f38;color:white;font-size:14px;font-weight:900;line-height:1;text-shadow:none;box-shadow:0 1px 4px #74203755;vertical-align:middle}.prm-delay-key{color:#b51f38}
+
+/* 2D regional callouts: pale administrative outlines and exclusive housing quantities. */
+.prm-card[data-rendered="2d"] .prm-scene{background:#fff}
+.prm-card[data-rendered="2d"] .prm-scale{display:none}
+.prm-number{cursor:pointer}.prm-connector{pointer-events:none}
+.prm-region-detail{position:absolute;pointer-events:auto;box-sizing:border-box;height:116px;padding:9px 10px;border:1px solid #dbe3ee;border-radius:9px;background:#fff;color:#233e5e;text-align:left;cursor:pointer;font:inherit;box-shadow:0 2px 5px #18345805}
+.prm-region-detail.selected,.prm-region-detail:hover{border-color:#315b8a;background:#fafcff}
+.prm-region-detail:focus-visible{outline:2px solid #315b8a;outline-offset:1px}
+.prm-detail-title{display:flex;justify-content:space-between;gap:5px;font-size:11px}.prm-detail-title>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.prm-card-delay{color:#b51f38;font-size:10px;white-space:nowrap}
+.prm-detail-total{display:block;font-size:11px;margin:3px 0 7px}.prm-detail-total strong{font-size:20px;color:#233e5e}.prm-detail-total small{font-size:9px;color:#76879d;margin-left:5px}
+.prm-stage-bar{display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;background:#eef1f5;margin:5px 0 7px}.prm-stage-bar>i{height:100%;flex:none;min-width:0}
+.prm-stage-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 9px;font-size:9px;color:#6e7e92;font-variant-numeric:tabular-nums}.prm-stage-counts>span{display:flex;align-items:center;gap:3px;white-space:nowrap}.prm-stage-counts i{height:5px;width:5px;flex:none;border-radius:1px}.prm-stage-counts b{color:#233e5e;margin-left:auto;font-weight:600}
+.prm-detail-number{display:inline-grid;place-items:center;border-radius:50%;background:#29466e;color:white;width:12px;height:12px;font-size:8px}.prm-region-detail{border-radius:7px;padding:8px 9px}.prm-region-detail.selected{border-color:#29466e;box-shadow:inset 0 0 0 .5px #29466e}.prm-detail-total{margin:2px 0 3px}.prm-detail-total strong{font-size:19px}.prm-detail-total small{font-size:8px;margin-left:3px}
+.prm-card-pagination{position:absolute;left:10px;right:10px;display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:10px;color:#7c8da1}.prm-card-pagination button{pointer-events:auto;border:1px solid #dbe3ee;border-radius:4px;background:white;color:#294d77;cursor:pointer}.prm-card-pagination button:disabled{opacity:.35}.prm-card-pagination small{font-size:9px}

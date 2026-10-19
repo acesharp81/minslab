@@ -85,7 +85,13 @@ def save_settings(service,revision_no,targets,events,occupancy_observations=None
         if outcome!='unchanged':session.add(Audit(entity_id=POLICY_ID,action='DELIVERY_TARGETS_UPDATED',before=old.payload if old else {},after=payload))
         return dict(payload,revision_no=row.revision_no,outcome=outcome)
 
-def build_delivery(service,reference,include_portfolio_comparisons=True):
+def build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False):
+    from .read_scope import projection_reads
+    with projection_reads():
+        return _build_delivery(service,reference,include_portfolio_comparisons,indicators_only)
+
+
+def _build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False):
     plans=service.rows('policy_delivery_plan',reference)
     plan=next((r for r in plans if r.get('policy_id')==POLICY_ID),None)
     if not plan:return dict(policy_id=POLICY_ID,status='PLAN_NOT_COLLECTED',target_units=1350000,
@@ -103,6 +109,11 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     all_by_key=defaultdict(list)
     for row in rows:all_by_key[block_key(row) or ('ID',row['id'])].append(row)
     notices=linked_notices(chosen,service.rows('notice',reference),reference)
+    from .evidence_bridge import supply_notices
+    eligible={r['id']:r for r in chosen}
+    for pid,notice in supply_notices(service,reference).items():
+        if pid in eligible and notice['units']<=(eligible[pid].get('planned_units') or 0):
+            notices[pid]=notice
     stored_config=settings(service,reference)
     from .delivery_operations import schedule_goals
     approved_schedules=schedule_goals(service,reference)
@@ -121,13 +132,20 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     extra=service.rows('policy_municipality',reference)
     places=list({p['id']:p for p in extra+dashboard['municipalities']}.values())
     shape=schematic_view(dict(dashboard,municipalities=places))
-    shape['region_shapes']=region_outlines(places,getattr(service,'engine',None))
+    if not indicators_only:
+        shape['region_shapes']=region_outlines(places,getattr(service,'engine',None))
     place_lookup={(p['region'],p['name']):p for p in places}
     city_of={pid:city['id'] for city in dashboard['municipalities'] for pid in city['project_ids']}
     blocks={pid:block for block in dashboard['blocks'] for pid in block['project_ids']}
     cohorts=[];portfolio=[];historical=[];missing=[]
+    selected_ids={r['id'] for r in chosen}
     for row in chosen:
         group=all_by_key[block_key(row) or ('ID',row['id'])]
+        # Distinct rental tenures at one block are disjoint inventories. Do not
+        # copy a sibling's or the whole-block contract's dates/quantities into
+        # both tenures. Each retains its own approved observations and plans.
+        if sum(m['id'] in selected_ids for m in group)>1:
+            group=[m for m in group if m['id']==row['id']]
         planned_cap=row.get('planned_units');cap=planned_cap
         if cap is None or cap<=0:
             missing.append(row['id']);cap=(notices.get(row['id']) or {}).get('units')
@@ -158,7 +176,10 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
                     if fact.get('kind')=='ACTUAL' and when and len(when)==10 and when<=reference.isoformat():
                         events.append(dict(stage=stage,event_date=when,units=fact.get('units'),status='ACTUAL',
                             review_status=bridge['status'],origin='LINKED_EVIDENCE',source_id=bridge['source_id'],
-                            evidence_url=bridge.get('evidence_url'),basis=fact.get('basis')))
+                            evidence_url=bridge.get('evidence_url'),basis=fact.get('basis'),
+                            date_basis=fact.get('date_basis','EVENT'),
+                            source_event_date=when if fact.get('date_basis','EVENT')=='EVENT' else fact.get('source_event_date'),
+                            observed_on=fact.get('observed_on'),method=fact.get('method')))
                     elif fact.get('kind')=='PLAN':
                         from .schedule_period import schedule_period
                         period=schedule_period(when)
@@ -220,6 +241,12 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     target=plan['target_units'];allocated=sum(c['units'] for c in cohorts)
     if allocated>target:raise ValueError('연결 사업 물량이 정책 목표 초과: 배분 검토 필요')
     reserve=target-allocated
+    if indicators_only:
+        # Regional indicators consume these same reviewed cohorts, events and
+        # plans. They do not use monthly policy animation, program comparison
+        # matrices, province dissolves or full-source diagnostic payloads.
+        return dict(status='READY',policy_id=POLICY_ID,name=plan['name'],plan=plan,
+            target_units=target,cohorts=cohorts,portfolio_cohorts=portfolio,geometry=shape)
     def cohort_state(cutoff,forecast=False):
         totals={k:0 for k in STAGES};totals['UNKNOWN']=0;details=[]
         for c in cohorts:
@@ -273,7 +300,7 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
     for c in portfolio:
         c.update(current_index.get(c['id'],dict(representative_stage='UNKNOWN')))
     issues=[]
-    for c in cohorts:
+    for c in portfolio:
         goals=[s for s in c['schedules'] if s['stage'] in ('SUPPLY','CONSTRUCTION','COMPLETION')]
         goals+= [dict(t,precision='DAY') for t in config.get('targets',[]) if t['scope_kind']=='project' and t['scope_id'] in c['source_ids']]
         for goal in sorted(goals,key=lambda x:x['due_date']):
@@ -317,7 +344,9 @@ def build_delivery(service,reference,include_portfolio_comparisons=True):
             comparison_status='VERIFY' if actual is None or due and actual<goal['units'] else 'OBSERVED_GOAL_REACHED' if actual>=goal['units'] else 'UPCOMING'))
     from .program_management import assessment
     program_assessments={pid:assessment(pid,p['values'],p['source'],dict(portfolio_cohorts=portfolio),raw) for pid,p in plan.get('program_profiles',{}).items()}
-    return dict(policy_id=POLICY_ID,status='READY',name=plan['name'],as_of_date=reference.isoformat(),
+    from .october_alignment import build as october_alignment
+    official_alignment=october_alignment(portfolio,raw,reference)
+    return dict(official_alignment=official_alignment,policy_id=POLICY_ID,status='READY',name=plan['name'],as_of_date=reference.isoformat(),
         measurement_contract=dict(version='2026-10-12.1',target_metric='CONSTRUCTION',supply_metric='SUPPLY',
             scope='9·7 수도권 2026–2030 신규 착공',partition='EXCLUSIVE',map_measure='CUMULATIVE_REACHED',
             reserve_status='PROJECT_NOT_IDENTIFIED',unknown_status='STAGE_NOT_VERIFIED',

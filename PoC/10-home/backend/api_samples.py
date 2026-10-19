@@ -12,7 +12,7 @@ from .collection_period import annual_windows, collection_start
 NOTICE_URL = "https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail"
 PERMIT_URL = "https://apis.data.go.kr/1613000/HsPmsHubService/getHpBasisOulnInfo"
 GEO_URL = "https://api.vworld.kr/req/address"
-REGIONS = {"100": "서울특별시", "410": "경기도"}
+REGIONS = {"100": "서울특별시", "410": "경기도", "400": "인천광역시"}
 DISTRICTS = [("서울특별시", "11680", "10300", "강남구 개포동"),
              ("서울특별시", "11740", "10200", "강동구 고덕동"),
              ("서울특별시", "11380", "11400", "은평구 진관동"),
@@ -202,6 +202,9 @@ def collect_permits(source, fetcher, service=None):
             page += 1
         records.extend(parsed)
         counts[sigungu+bjdong if service is not None else label] = {"matching_records": expected, "sampled": len(parsed), "pages": page, "complete_query": len(parsed)==expected,"legal_dong_code":sigungu+bjdong,"label":label}
+        if service is not None:
+            from .db import now
+            counts[sigungu+bjdong]['checked_at']=now().isoformat()
     if service is not None:
         from .building_scope import expansion_stats
         return records,dict(expansion_stats(counts,scope_total,len(records)),collection_mode='TEST_SAMPLE',complete_population=False,

@@ -1,4 +1,4 @@
-"""Evidence-backed nearby transit, schools and hospitals for a located supply block."""
+"""Evidence-backed nearby transit, schools, hospitals and large marts."""
 import math
 import re
 import threading
@@ -17,8 +17,10 @@ PAGE_SIZE = 1000
 MAX_TOTAL_PER_QUERY = 3000
 CACHE_SECONDS = 24 * 3600
 QUERIES = (("subway", "지하철역"), ("bus", "버스정류장"), ("school", "초등학교"), ("school", "중학교"),
-           ("school", "고등학교"), ("childcare", "어린이집"), ("hospital", "병원"))
-DISPLAY_LIMITS = {"subway": 10, "bus": 20, "school": 25, "childcare": 25, "hospital": 12}
+           ("school", "고등학교"), ("childcare", "어린이집"), ("hospital", "병원"),
+           ("mart", "대형마트"), ("mart", "이마트"), ("mart", "홈플러스"),
+           ("mart", "롯데마트"), ("mart", "코스트코"), ("mart", "트레이더스"), ("mart", "하나로클럽"))
+DISPLAY_LIMITS = {"subway": 10, "bus": 20, "school": 25, "childcare": 25, "hospital": 12, "mart": 12}
 GTX_RADIUS_METRES = 12000
 # GTX-A operation is checked against MOLIT's opened sections. These are
 # VWorld POIs checked on 2026-10-04. A station POI is preferred; when absent,
@@ -82,6 +84,28 @@ def parse_places(content, page=1):
     return items, total
 
 
+def mart_name(name):
+    return re.sub(r"\s+|\(주\)|㈜|주식회사", "", name).replace("트레이더스홈세일", "트레이더스홀세일")
+
+
+def is_large_mart(name, category):
+    """VWorld uses several retail/permit categories for the same large store.
+
+    Require a main-store name plus compatible category. Exclude SSM/convenience
+    stores, tenants and station/parking POIs, even if a brand appears in them.
+    This classifies the stored POI; it does not verify today's opening hours.
+    """
+    name = mart_name(name)
+    if re.search(r"이마트24|에브리데이|익스프레스|메트로|노브랜드|롯데슈퍼|폐점|폐업|폐쇄|예정|주차|입구|버스|정류장|문화센터|문화비|도서", name):
+        return False
+    retail = any(word in category for word in ("대형마트", "대형할인", "슈퍼마켓", "판매시설",
+        "기타식사용가공처리조리식품", "재해구호물자구매업체"))
+    brand_store = re.fullmatch(r"(?:이마트(?:트레이더스)?|홈플러스|롯데마트(?:맥스)?|코스트코(?:코리아)?|"
+        r"트레이더스(?:홀세일클럽|홈세일클럽)?|(?:농협)?하나로클럽)[가-힣A-Za-z0-9-]*점", name)
+    generic_store = ("대형마트" in category or "대형할인" in category) and bool(re.search(r"마트|할인점|하나로클럽", name))
+    return bool(retail and (brand_store or generic_store))
+
+
 def normalize_place(item, kind, latitude, longitude, radius_metres=RADIUS_METRES):
     name = str(item.get("title") or "").strip()
     category = str(item.get("category") or "").strip()
@@ -97,6 +121,8 @@ def normalize_place(item, kind, latitude, longitude, radius_metres=RADIUS_METRES
     if kind == "childcare" and ("어린이집" not in category or not name.endswith("어린이집") or re.search(r"폐원|폐쇄|예정", name)):
         return None
     if kind == "hospital" and (not category.startswith("병원") or not name.endswith("병원")):
+        return None
+    if kind == "mart" and not is_large_mart(name, category):
         return None
     try:
         point = item["point"]
@@ -126,7 +152,7 @@ def deduplicate_places(places):
             duplicate=any(other['kind']=='bus' and ((row['id'] and other['id']==row['id']) or
                 (not row['id'] and not other['id'] and row['name']==other['name'] and row['latitude']==other['latitude'] and row['longitude']==other['longitude'])) for other in result)
         else:
-            duplicate=any(other['kind']==row['kind'] and canonical(other['name'])==canonical(row['name']) and
+            duplicate=any(other['kind']==row['kind'] and (mart_name(other['name']) if row['kind']=='mart' else canonical(other['name']))==(mart_name(row['name']) if row['kind']=='mart' else canonical(row['name'])) and
                 distance_metres(other['latitude'],other['longitude'],row['latitude'],row['longitude'])<=150 for other in result)
         if not duplicate:result.append(row)
     return result
@@ -226,6 +252,7 @@ class InfrastructureContext:
                       "gtx_status_source_url": GTX_A_STATUS_URL,
                       "gtx_location_source_url": SOURCE_URL,
                       "planned_gtx": planned_gtx,
+                      "mart_note": "대형마트·창고형 매장 장소 정보 · 편의점/기업형 슈퍼/입점 매장 제외 · 영업 여부·시간은 별도 확인",
                       "bus_note": "정류장 위치 정보 · 노선·배차·실시간 도착 정보 아님 · 미정차 표기 제외",
                       "distance_basis": "블록 라벨점부터의 직선거리 · 도보/차량 이동거리 아님",
                       "source_url": SOURCE_URL, "source_name": "VWorld 국가관심지점 장소 검색",

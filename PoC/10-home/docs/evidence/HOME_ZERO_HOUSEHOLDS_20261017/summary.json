@@ -1,0 +1,41 @@
+{
+  "known_at": "2026-10-16T16:58:26.799247+00:00",
+  "period_start": "2026-01-01",
+  "period_end": "2026-10-17",
+  "counts": {
+    "all_zero_rows": 226207,
+    "all": 226147,
+    "approved": 22221,
+    "started": 2152,
+    "approval_date_unconfirmed": 60
+  },
+  "regions": {
+    "all": {
+      "경기도": 100935,
+      "서울특별시": 124691,
+      "인천광역시": 521
+    },
+    "approved": {
+      "경기도": 11060,
+      "서울특별시": 11138,
+      "인천광역시": 23
+    },
+    "started": {
+      "경기도": 1219,
+      "서울특별시": 931,
+      "인천광역시": 2
+    }
+  },
+  "project_counts": {
+    "POL_2026_0129 / REVIEW": 47,
+    "POL_2025_0907 / CONFIRMED": 184,
+    "MON_THIRD_NEW_TOWN / CONFIRMED": 3,
+    "UNASSIGNED / REVIEW": 27,
+    "POL_2026_0813 / REVIEW": 51,
+    "UNASSIGNED / CONFIRMED": 10,
+    "UNASSIGNED / RELEASED": 1
+  },
+  "definition": "原천 총세대수=0이며 실제 형식의 허가일이 존재하는 인허가 원장 행. 개별 현장 검증 완료 또는 공급0을 뜻하지 않음. 행 수는 고유 사업 수가 아님.",
+  "original_2152_scope": "2026년 착공일이 있는 0세대 원장 행. 2026년 허가된 행 전체와 다른 범위.",
+  "source_url": "https://www.data.go.kr/data/15136560/openapi.do"
+}

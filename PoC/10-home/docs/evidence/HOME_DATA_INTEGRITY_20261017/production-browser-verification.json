@@ -1,0 +1,12 @@
+{
+  "domain": "https://www.minslab.kr/poc/home/#data-integrity",
+  "rounds": 3,
+  "items": 40,
+  "metrics": 4,
+  "score": 62.8,
+  "search": "PASS",
+  "htmlDownload": "PASS",
+  "reportJsonDownload": "PASS",
+  "mobile": "PASS",
+  "consoleErrors": []
+}

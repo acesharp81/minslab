@@ -1,0 +1,26 @@
+{
+  "CONSTRUCTION": {
+    "actual": 76936,
+    "year_end": 80800
+  },
+  "SUPPLY": {
+    "actual": 58195,
+    "year_end": 69902
+  },
+  "BUSINESS": {
+    "actual": 89459,
+    "year_end": 139316
+  },
+  "APPROVAL": {
+    "actual": 86945,
+    "year_end": 91387
+  },
+  "COMPLETION": {
+    "actual": 3501,
+    "year_end": 7816
+  },
+  "MOVE_IN": {
+    "actual": null,
+    "year_end": 3845
+  }
+}

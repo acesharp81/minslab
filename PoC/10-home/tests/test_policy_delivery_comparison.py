@@ -13,6 +13,18 @@ class ComparisonTests(unittest.TestCase):
         self.statistics=[]
         self.reference=date(2026,10,12)
 
+    def test_portfolio_sentinel_omits_empty_century_and_keeps_old_starts(self):
+        self.cohort['events']=[dict(stage='CONSTRUCTION',event_date='2005-04-01',units=1000)]
+        plan=dict(self.plan,period_start='1900-01-01',period_end='2030-12-31',portfolio=True)
+        metrics=comparison_index(plan,[self.cohort],self.config,[],self.reference)['policy']['metrics']
+        c=metrics['CONSTRUCTION']
+        self.assertEqual(c['annual'][0]['year'],2005)
+        self.assertEqual(c['tracking']['actual_points'][-1]['units'],1000)
+        self.assertEqual(next(y for y in c['annual'] if y['year']==2005)['actual_units'],1000)
+        self.assertEqual(next(y for y in c['annual'] if y['year']==2026)['actual_cumulative_units'],1000)
+        self.assertEqual(metrics['MOVE_IN']['annual'][0]['year'],2021)
+        self.assertLess(len(c['annual']),30)
+
     def model(self):
         return comparison_index(self.plan,[self.cohort],self.config,self.statistics,self.reference)
 
@@ -113,14 +125,14 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(c['tracking']['actual_points'][-1]['manual_units'],400)
         self.assertEqual(c['tracking']['actual_points'][-1]['inferred_units'],400)
 
-    def test_tracking_includes_registered_old_projects_but_keeps_macro_separate(self):
+    def test_tracking_uses_map_cohort_scope_and_keeps_macro_separate(self):
         self.add_month('01')
         old=dict(self.cohort,id='OLD',source_ids=['OLD'],events=[dict(stage='CONSTRUCTION',event_date='2025-01-01',units=700,origin='MANUAL')],schedules=[dict(stage='CONSTRUCTION',due_date='2025-01-01',units=800,origin='MANUAL',managed_schedule=True)])
         c=comparison_index(self.plan,[self.cohort],self.config,self.statistics,self.reference,program_cohorts=[self.cohort,old])['policy']['metrics']['CONSTRUCTION']
         self.assertEqual(c['actual_points'][-1]['units'],600)
-        self.assertEqual(c['tracking']['actual_points'][-1]['units'],700)
-        self.assertEqual(c['tracking']['target_points'][-1]['units'],800)
-        self.assertEqual(c['tracking']['project_count'],2)
+        self.assertEqual(c['tracking']['actual_points'],[])
+        self.assertEqual(c['tracking']['target_points'],[])
+        self.assertEqual(c['tracking']['project_count'],1)
 
     def test_future_movein_plan_never_creates_measured_points(self):
         self.cohort['schedules']=[dict(stage='MOVE_IN',due_date='2028-01-01',units=1000,origin='MANUAL',managed_schedule=True)]

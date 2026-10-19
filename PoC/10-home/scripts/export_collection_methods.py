@@ -58,7 +58,7 @@ METRIC_DEFINITIONS = {
         'fields': {'units': '호 · 입주 예정 물량'},
         'do_not_combine_with': '입주 실적과 혼용 금지'},
     'renewal_inventory': {
-        'time_field': 'dataset_version', 'basis': '국토부 전국 정비사업 단일 공개본의 서울·경기 후보',
+        'time_field': 'dataset_version', 'basis': '국토부 전국 정비사업 단일 공개본의 서울·경기·인천 후보',
         'fields': {'planned_units': '세대 · 정비사업 후 공급 예정 규모; 0·해당없음은 별도 값 상태'},
         'do_not_combine_with': '법적 고시 사건·정책 확정 귀속·실제 준공/입주와 혼용 금지'},
     'lh_completion_plan': {
@@ -94,6 +94,21 @@ METRIC_DEFINITIONS = {
 }
 
 MODULE = {
+    'lh_policy_followup': 'backend/lh_policy_followup.py::collect',
+    'lh_happy_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
+    'sh_national_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
+    'sh_jeonse_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
+    'sh_happy_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
+    'reb_movein_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
+    'sh_contract_file': 'backend/agency_plan_files.py::collect_plan_file',
+
+    'lh_department_plans':'backend/route_documents.py::collect_lh_department_plans',
+    'eum_housing_notices':'backend/route_documents.py::collect_eum',
+    'molit_monthly_release': 'backend/monthly_release.py',
+    'ih_notice': 'backend/ih_public.py',
+    'building_general_permit': 'backend/general_building_permits.py',
+    'ih_housing_inventory': 'backend/ih_public.py',
+    'reb_apartment_price': 'backend/apartment_prices.py',
     'kosis_living': 'backend/area_living.py',
     'area_national_benchmarks':'backend/area_benchmarks.py',
     'project_locations': 'backend/project_locations.py',
@@ -129,6 +144,10 @@ MODULE = {
     **{key: 'backend/history_data.py' for key in ('policy_history','lh_history')},
 }
 VALIDATION = {
+    'ih_notice': 'iH 공식 게시판 코드·공고 ID·페이지·게시일·본문 제목·첨부 고유번호·원문 해시 대조; 예비/추가/정정과 실제 공급·계약·실입주 분리',
+    'building_general_permit': '일반 건축인허가 전용키·mgmPmsrgstPk·법정동·전체 페이지 검증. hhldCnt/hoCnt/fmlyCnt와 실제/예정 착공일을 분리하고 기존 주택인허가에 자동 병합하지 않음',
+    'ih_housing_inventory': 'iH 공개 단지 고유번호·명부 7열·재고호수·상세 원문 해시 검증; 운영단지와 광역 프로그램을 분리하고 신규 실적으로 합산하지 않음',
+    'reb_apartment_price': '한국부동산원 주간 지수의 기준주·지역·단위·계열 검증; 지수와 실제 거래가격·사업 실적을 구분',
     'kosis_living': 'KOSIS 표·연도·지역·분류 및 단위 검증; 소득·이동·거주기간·점유형태·주택유형·PIR의 통계 범위와 결측을 구분',
     'project_locations': '주소·지역·사업 식별자와 위치 근거 검증; 대표/근사 위치를 필지 PNU나 공식 경계로 해석하지 않음',
     'seoul_cleanup': '서울시 정비사업 공개 페이지의 주소·명칭·추진경과 확인; 신청과 인가, 예정과 실적 구분; 담당자 확정 연결 보존',

@@ -1,0 +1,37 @@
+{
+  "projects_p1.json": {
+    "storage": "projects_p1.json.gz",
+    "original_bytes": 2877200,
+    "original_sha256": "64dfa2ec84b882cde295c4ec808cd6c42b9bfaf72daca9257bae3bbcb1931108",
+    "stored_bytes": 187950,
+    "stored_sha256": "513f0e48aba883d346bd7b14313895b12daa2bcecf0c3cf0a69eabc574d719d0"
+  },
+  "policy_monitor.json": {
+    "storage": "policy_monitor.json.gz",
+    "original_bytes": 456110,
+    "original_sha256": "1beb2952f9483fc3da5c28042fda6f9a1bf05140b54c6bebc78c78ee28f40e0e",
+    "stored_bytes": 53195,
+    "stored_sha256": "af2407ddfb93032f85edc14761b897418dc6e33c9910fd0da94afaa1782eb1bb"
+  },
+  "delivery.json": {
+    "storage": "delivery.json.gz",
+    "original_bytes": 9453902,
+    "original_sha256": "e90e90f04718d075cf7084daf1f5864636a33731322be27bb990559c4e21690c",
+    "stored_bytes": 538047,
+    "stored_sha256": "26fad1aedd6f5c8c651c5d1d003ec3b4b679126c0f2552fdefb1f1ec1e18cc97"
+  },
+  "selected_database.json": {
+    "storage": "selected_database.json.gz",
+    "original_bytes": 16204809,
+    "original_sha256": "f282ec94e447a1714480ae37d26413fc44384b3a1b0a7bdc14a662222b8a5d26",
+    "stored_bytes": 974849,
+    "stored_sha256": "af7352b422833f727a298b06626fe142d8a39ea506cbd79add82030e2a71e399"
+  },
+  "projects_p2.json": {
+    "storage": "projects_p2.json.gz",
+    "original_bytes": 987717,
+    "original_sha256": "a52cc10fc8d4a0917a5e2ba9cc1abc77abe2d8741fbeb90d5ce0dd5a7fc3937d",
+    "stored_bytes": 72177,
+    "stored_sha256": "92b6b012b10dc747c166bdca70cac1905a0c5e28ee6276cdba65680f27bedd2d"
+  }
+}

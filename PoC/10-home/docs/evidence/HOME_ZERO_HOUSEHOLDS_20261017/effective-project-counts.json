@@ -1,0 +1,8 @@
+{
+  "definition": "HomeService.rows(project)의 프로그램 정책 반영 후 유효 정책 연결 기준. 원시 home_mapping.policy_id 단순 그룹과 구분.",
+  "total": 323,
+  "policy_907_confirmed": 197,
+  "other_policy_review": 114,
+  "unassigned_review": 11,
+  "released": 1
+}

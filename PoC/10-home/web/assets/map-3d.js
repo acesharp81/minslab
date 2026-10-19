@@ -8,13 +8,14 @@ const MapThreeD=(()=>{
   let selectedRegionId='',selectedMunicipalityId='',overlapPopup=null,resizeObserver=null;
   let radiusSignature='',contextRadius=500,contextRadiusLinked=false;
   let blockMarkers=[],leaderSvg=null,layoutFrame=0;
-  let contextTransparency=50;
+  let contextTransparency=50,markerLevel='',requestedLevel='region';
   const transparencyKey='home-map-existing-building-transparency';
   const withinContext=p=>Number.isFinite(p.distance_m)&&p.distance_m<=contextRadius;
   const visibleInfrastructure=()=>{const nearest=infraItems.filter(p=>p.kind==='subway').sort((a,b)=>a.distance_m-b.distance_m)[0];return infraItems.filter(p=>withinContext(p)||p===nearest);};
   const planned=()=>(infraSource?.planned_facilities||[]).filter(p=>withinContext(p)||p.distance_m==null);
   const planStamp=p=>(p.kind==='school'?'개교':'개원')+' 예정 '+(p.opening_date||'미정');
   const contextCache=new Map();
+  const facilityMethods=new Map();
   const empty=()=>({type:'FeatureCollection',features:[]});
   const located=row=>['LH_PUBLIC_BLOCK_LABEL_POINT','BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(row?.coordinate_basis)&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude);
   const precise=row=>row?.coordinate_basis==='LH_PUBLIC_BLOCK_LABEL_POINT'&&located(row);
@@ -157,12 +158,37 @@ const MapThreeD=(()=>{
   }
   function selectedBlock(){return data?.blocks.find(row=>row.project_ids.includes(selectedId)&&row.district_name===selectedDistrict);}
   function selectBlock(block){const id=block.project_ids.find(value=>visibleIds.has(value));if(id)choose?.(id,block.district_name);}
-  const infraTypes={subway:{icon:'🚇',label:'지하철'},bus:{icon:'🚌',label:'버스 정류장'},school:{icon:'🏫',label:'학교'},childcare:{icon:'🧸',label:'어린이집'},hospital:{icon:'🏥',label:'병원'}};
+  const infraTypes={subway:{icon:'🚇',label:'지하철'},bus:{icon:'🚌',label:'버스 정류장'},school:{icon:'🏫',label:'학교'},childcare:{icon:'🧸',label:'어린이집'},hospital:{icon:'🏥',label:'병원'},mart:{icon:'🛒',label:'대형마트'}};
   const distanceText=metres=>metres>=1000?(metres/1000).toFixed(1)+'km':num(metres)+'m';
+  function recordFacilityMethod(place,result,blockId){
+    if(blockId!==infraBlockId)return;
+    facilityMethods.set(place.kind+':'+place.id,{place,result});renderFacilityMethods();
+  }
+  function renderFacilityMethods(){
+    const host=$('map-facility-detail-methods');if(!host)return;
+    host.innerHTML=[...facilityMethods.values()].map(({place,result})=>`<section><h5>${esc(place.name)}</h5><p>${esc(result.as_of||'기준일 미확보')} · 조회 ${esc(result.collected_at||'미확보')}</p>${result.source_url?`<a href="${esc(safeUrl(result.source_url))}" target="_blank" rel="noopener">${esc(result.source_name||'상세 원천')} ↗</a>`:''}${(result.notes||[]).map(note=>`<p>${esc(note)}</p>`).join('')}</section>`).join('');
+  }
   function infraPopup(place){
     const node=document.createElement('div');node.className='map-3d-popup';
-    node.innerHTML=`<strong>${esc(infraTypes[place.kind].icon+' '+place.name)}</strong><p>${esc(place.category)}</p>${place.service_status==='PLANNED'?`<p><b>${esc(planStamp(place))}</b></p><small>${esc(place.location_note)} · 자료 ${esc(place.source_date)}</small><br><a href="${esc(safeUrl(place.source_url))}" target="_blank" rel="noopener">${esc(place.source_name)} ↗</a>`:''}<p>${esc(place.address||(place.line?.startsWith('GTX')?(place.location_basis==='VWORLD_STATION_EXIT_BUS_STOP_PROXY'?'역 출구 인근 버스정류장 위치':'기존 역 POI 대표 위치'):'주소 미확보'))}</p><small>선택 블록에서 직선거리 ${esc(distanceText(place.distance_m))} · 이동거리 아님</small>${place.line?.startsWith('GTX')?`<br><a href="${esc(safeUrl(place.service_status_source_url))}" target="_blank" rel="noopener">GTX-A 운영 구간 근거 ↗</a>`:''}`;
-    new library.Popup({maxWidth:'270px'}).setLngLat([place.longitude,place.latitude]).setDOMContent(node).addTo(gl);
+    node.innerHTML=`<strong>${esc(infraTypes[place.kind].icon+' '+place.name)}</strong><p>${esc(place.address||'')}</p><div class="map-facility-fields" aria-live="polite"></div>`;
+    const fields=node.querySelector('.map-facility-fields'),block=selectedBlock(),blockId=infraBlockId;
+    const popup=new library.Popup({maxWidth:'330px'}).setLngLat([place.longitude,place.latitude]).setDOMContent(node).addTo(gl);
+    let closed=false;popup.on('close',()=>{closed=true;});
+    if(place.service_status==='PLANNED'){
+      fields.innerHTML=`<p><b>${esc(planStamp(place))}</b></p>`;
+      recordFacilityMethod(place,{as_of:place.source_date,source_name:place.source_name,source_url:place.source_url,notes:[place.location_note].filter(Boolean)},blockId);return;
+    }
+    fields.textContent='상세정보 조회 중…';
+    if(!block){fields.textContent='상세정보 미확보';return;}
+    const query=new URLSearchParams({place_id:place.id,kind:place.kind});
+    query.set(precise(block)?'block_id':'project_id',precise(block)?block.id:selectedId);
+    fetch(API+'/map/facility-details?'+query,{credentials:'same-origin'}).then(async response=>{
+      if(!response.ok)throw Error('상세정보 조회 실패');return response.json();
+    }).then(result=>{
+      if(closed||blockId!==infraBlockId)return;
+      recordFacilityMethod(place,result,blockId);
+      fields.innerHTML=result.fields?.length?`<dl>${result.fields.map(f=>`<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd></div>`).join('')}</dl>`:'<p>상세정보 미확보</p>';
+    }).catch(()=>{if(!closed)fields.textContent='상세정보를 지금 조회할 수 없습니다.';});
   }
   function focusInfrastructure(place){
     if(!active||!gl||!place||!Number.isFinite(place.longitude)||!Number.isFinite(place.latitude))return;
@@ -176,11 +202,15 @@ const MapThreeD=(()=>{
     if(infraState==='unlocated'){count.textContent='위치 미연계';body.textContent='블록 위치가 확인되면 주변 시설을 조회합니다.';return;}
     if(infraState==='loading'){count.textContent='조회 중';body.textContent='VWorld 장소 정보를 확인하고 있습니다…';return;}
     if(infraState==='error'){count.textContent='조회 실패';body.textContent='공식 장소 정보를 지금 확인할 수 없습니다.';return;}
-    count.textContent=`${selectedBlock()?.district_name||''} ${selectedBlock()?.block||''} · 시설 반경 ${distanceText(contextRadius)}${contextRadiusLinked?' · 3D 건물 범위와 동일':' · 기본 범위'}`;
-    body.innerHTML=Object.entries(infraTypes).map(([kind,info])=>{
+    count.textContent=`${selectedBlock()?.district_name||''} ${selectedBlock()?.block||''} · ${visibleInfrastructure().length}곳`;
+    const summary=(entries)=>entries.map(([kind,info])=>{
       const places=visibleInfrastructure().filter(row=>row.kind===kind),first=places[0],index=first?infraItems.indexOf(first):-1;
       return `<button type="button" class="map-infra-summary ${kind}" data-infra-index="${index}" ${first?'':'disabled'}><span class="map-infra-summary-icon">${info.icon}</span><span><b>${info.label} <small>가까운 ${places.length}곳</small></b><em>${first?esc(first.name)+(first.line?' · '+esc(first.line):'')+(!withinContext(first)?' · 반경 밖 최근접 역':''):'조회 결과 미확보'}</em></span><strong>${first?esc(distanceText(first.distance_m)):'—'}</strong></button>`;
-    }).join('')+`<section class="map-facility-plans"><h4>학교·어린이집 개교·개원 예정</h4>${planned().length?planned().map((p,i)=>`<article><button type="button" data-plan-index="${i}" ${Number.isFinite(p.latitude)?'':'disabled'}><b>${esc(p.name)}</b><span>${esc(planStamp(p))} · ${p.distance_m==null?'위치 미연계':esc(distanceText(p.distance_m))}</span></button><a href="${esc(safeUrl(p.source_url))}" target="_blank" rel="noopener">공식 계획 · ${esc(p.source_date)} ↗</a></article>`).join(''):'<p>이 조회 범위에서 연결된 예정 시설 자료가 없습니다.</p>'}<small>${esc(infraSource?.plan_coverage_note||'공식 계획 확인분만 표시합니다.')}</small></section>`+(infraSource?.planned_gtx||[]).map(row=>`<p class="map-infra-planned">🚄 ${esc(row.line+' '+row.name)} · 계획/미개통 · 위치 미연계 <a href="${esc(safeUrl(row.source_url))}" target="_blank" rel="noopener">근거 ↗</a></p>`).join('')+`<p>시설 표시 반경 ${esc(distanceText(contextRadius))} · ${contextRadiusLinked?'주변 3D 건물 조회 반경과 동일':'건물 조회 전·미확보 시 기본 반경'}<br>지하철은 반경 밖이라도 가장 가까운 역 1곳을 별도 안내 · 선택 위치 기준 직선거리<br>지하철은 GTX 포함 · 버스는 정류장 위치만 제공<br>GTX-A는 역 POI 또는 출구 인근 정류장 대표 위치 · 이동시간 미반영<br><a href="${esc(safeUrl(infraSource?.source_url))}" target="_blank" rel="noopener">VWorld 장소 검색 원천 ↗</a> · <a href="${esc(safeUrl(infraSource?.gtx_status_source_url))}" target="_blank" rel="noopener">GTX-A 운영 근거 ↗</a> · 조회 ${esc(infraSource?.collected_at||'미확보')}</p>`;
+    }).join('');
+    body.innerHTML=summary(Object.entries(infraTypes));
+    const method=$('map-infrastructure-method');if(method)method.innerHTML=`<h4>주변 시설·거리·원천</h4><p>시설 표시 반경 ${esc(distanceText(contextRadius))} · ${contextRadiusLinked?'주변 3D 건물 조회 반경과 동일':'건물 조회 전·미확보 시 기본 반경'}<br>지하철은 반경 밖이라도 최근접 역 1곳 안내 · 대표 위치 기준 직선거리<br>GTX-A는 역 POI 또는 출구 인근 정류장 대표점. 시설 상세의 기준일·연계 상태는 클릭하여 확인합니다.</p><p><a href="${esc(safeUrl(infraSource?.source_url))}" target="_blank" rel="noopener">장소 정보 원천 ↗</a> · 조회 ${esc(infraSource?.collected_at||'미확보')}</p><p>${esc(infraSource?.plan_coverage_note||'공식 개교·개원 계획 확인분만 표시하며 전수 자료가 아닙니다.')} 좌표가 확인된 예정 시설만 지도 반경 안에 표시합니다.</p><div id="map-facility-detail-methods"></div>`;
+    renderFacilityMethods();
+
   }
   function drawInfrastructureMarkers(zoom){
     if(zoom<MapMonitor.wideZoom(12))return;
@@ -189,8 +219,8 @@ const MapThreeD=(()=>{
       const element=document.createElement('button');element.type='button';element.className='map-infra-marker '+place.kind+(place.service_status==='PLANNED'?' planned':'');
       element.dataset.distanceMetres=place.distance_m;element.dataset.facilityKind=place.kind;element.dataset.contextRadius=contextRadius;
       element.setAttribute('aria-label',`${info.label} ${place.name} · 직선거리 ${distanceText(place.distance_m)}`);
-      element.title=`${place.name} · 선택 블록에서 직선거리 ${distanceText(place.distance_m)}`;
-      element.innerHTML=`<span aria-hidden="true">${info.icon}</span>${(place.line?.startsWith('GTX')||zoom>=MapMonitor.wideZoom(15.2))?`<b>${esc(place.line?.startsWith('GTX')?'GTX-A '+place.name:place.name)}${place.service_status==='PLANNED'?' · '+esc(planStamp(place)):''}</b>`:''}`;
+      element.title=place.name+(place.service_status==='PLANNED'?' · '+planStamp(place):'');
+      element.innerHTML=`<span aria-hidden="true">${info.icon}</span>${place.service_status==='PLANNED'?'<small>예정</small>':(place.line?.startsWith('GTX')||zoom>=MapMonitor.wideZoom(15.2))?`<b>${esc(place.line?.startsWith('GTX')?'GTX-A '+place.name:place.name)}${place.service_status==='PLANNED'?' · '+esc(planStamp(place)):''}</b>`:''}`;
       element.addEventListener('click',event=>{event.stopPropagation();infraPopup(place);});
       marker(element,place.longitude,place.latitude);
     }
@@ -198,10 +228,10 @@ const MapThreeD=(()=>{
   async function updateInfrastructure(){
     const block=selectedBlock();
     if(!located(block)){
-      infraBlockId='';infraTicket++;infraItems=[];infraSource=null;infraState=located(block)?'approximate':'unlocated';renderInfrastructurePanel();refreshMarkers();return;
+      facilityMethods.clear();if($('map-infrastructure-method'))$('map-infrastructure-method').replaceChildren();infraBlockId='';infraTicket++;infraItems=[];infraSource=null;infraState=located(block)?'approximate':'unlocated';renderInfrastructurePanel();refreshMarkers();return;
     }
     if(infraBlockId===block.id)return;
-    infraBlockId=block.id;const ticket=++infraTicket;infraItems=[];infraSource=null;infraState='loading';renderInfrastructurePanel();refreshMarkers();
+    facilityMethods.clear();if($('map-infrastructure-method'))$('map-infrastructure-method').replaceChildren();infraBlockId=block.id;const ticket=++infraTicket;infraItems=[];infraSource=null;infraState='loading';renderInfrastructurePanel();refreshMarkers();
     try{
       const response=await fetch(API+'/map/infrastructure?'+(precise(block)?'block_id='+encodeURIComponent(block.id):'project_id='+encodeURIComponent(selectedId)),{credentials:'same-origin'});
       if(!response.ok)throw new Error('infrastructure unavailable');
@@ -237,7 +267,8 @@ const MapThreeD=(()=>{
     if(!active||!gl||!data)return;
     clearMarkers();radiusLabels();
     const zoom=gl.getZoom();
-    const level=MapMonitor.levelAt(zoom);
+    const level=MapMonitor.levelAt(zoom);markerLevel=level;
+    document.querySelectorAll('[data-map-level]').forEach(button=>{const selected=button.dataset.mapLevel===level;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
     $('map-bar-level').textContent=({region:'시도별 3D 공간 현황',municipality:'시군구별 3D 공간 현황',block:'블록별 가상 아파트 3D'}[level])+` · 확대 ${zoom.toFixed(1)}`;
     $('map-view-status').textContent=level==='block'?'블록별 공급 현황':'시도·시군구 공급 현황';
     if(level==='region'){
@@ -334,7 +365,7 @@ const MapThreeD=(()=>{
       const current=selectedBlock();const exact=data.blocks.filter(row=>located(row)&&row.project_ids.some(id=>ids.has(id)));
       const center=located(current)?[current.longitude,current.latitude]:exact.length?[exact[0].longitude,exact[0].latitude]:[127.02,37.52];
       const style={version:8,sources:{base:{type:'raster',tiles:[API+'/tiles/{z}/{x}/{y}.png'],tileSize:256,maxzoom:18,attribution:'© VWorld · 국토교통부'}},layers:[{id:'base',type:'raster',source:'base'}]};
-      const map=gl=new mod.Map({container:'housing-map-3d',style,center,zoom:MapMonitor.wideZoom(located(current)?16.1:exact.length?15.4:9),pitch:58,bearing:-20,minZoom:7,maxZoom:18,canvasContextAttributes:{antialias:true},attributionControl:false});
+      const map=gl=new mod.Map({container:'housing-map-3d',style,center:[126.97,37.48],zoom:MapMonitor.wideZoom(9.8),pitch:45,bearing:-20,minZoom:7,maxZoom:18,canvasContextAttributes:{antialias:true},attributionControl:false});
       gl.addControl(new mod.NavigationControl({visualizePitch:true}),'bottom-right');
       // Prepare supply layers when the local style is ready; raster tile failures must not remove the entire map.
       await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('3D 지도 초기화 시간 초과')),20000);const ready=()=>{clearTimeout(timeout);resolve();};if(map.isStyleLoaded())ready();else map.once('style.load',ready);map.once('remove',ready);});
@@ -350,15 +381,34 @@ const MapThreeD=(()=>{
       gl.on('click','context-buildings-3d',event=>{const feature=event.features?.[0];if(!feature)return;const props=feature.properties||{},basis=props.height_basis;const detail=basis==='OFFICIAL_HEIGHT'?`공식 높이 ${props.height_m}m`:basis==='FLOOR_ESTIMATE'?`공식 층수 ${props.floors}층 · 층당 3m 추정`:'높이 미확보 · 지도 표현용 7.5m';const node=document.createElement('div');node.className='map-3d-popup';node.textContent=`주변 기존 건물 · ${detail} · 공급사업 건물 미연계`;new mod.Popup({maxWidth:'250px'}).setLngLat(event.lngLat).setDOMContent(node).addTo(gl);});
       for(const layer of ['simulated-towers','context-buildings-3d']){gl.on('mouseenter',layer,()=>{gl.getCanvas().style.cursor='pointer';});gl.on('mouseleave',layer,()=>{gl.getCanvas().style.cursor='';});}
       gl.on('move',scheduleBlockLayout);
+      gl.on('zoom',()=>{if(active&&MapMonitor.levelAt(gl.getZoom())!==markerLevel)refreshMarkers();});
       gl.on('zoomend',()=>{refreshMarkers();onViewport?.();});
       gl.on('moveend',()=>{if(gl&&active)onViewport?.();});
-      active=true;render(data,visibleIds,selectedId,selectedDistrict,choose);resize();if(selectedBlock()?.id!==current?.id)focus(selectedBlock());onViewport?.();
+      active=true;render(data,visibleIds,selectedId,selectedDistrict,choose);resize();setLevel(requestedLevel);onViewport?.();
       return true;
-    })().catch(error=>{if(ticket!==generation)return false;status('3D 지도를 열 수 없습니다. 브라우저의 WebGL 설정과 네트워크를 확인하세요.','missing');surface(false);if(gl){gl.remove();gl=null;}active=false;return false;}).finally(()=>{if(ticket===generation)opening=null;});
+    })().catch(error=>{if(ticket!==generation)return false;console.warn('3D 지도 초기화 실패',error);status('3D 지도를 열 수 없습니다. 브라우저의 WebGL 설정과 네트워크를 확인하세요.','missing');surface(false);if(gl){gl.remove();gl=null;}active=false;return false;}).finally(()=>{if(ticket===generation)opening=null;});
     return opening;
   }
   function focus(block,zoom=15.2){if(!active||!gl||!Number.isFinite(block?.latitude)||!Number.isFinite(block?.longitude))return;gl.flyTo({center:[block.longitude,block.latitude],zoom:MapMonitor.wideZoom(zoom),pitch:55,bearing:-20,duration:650});}
-  function setLevel(level){if(!active||!gl)return;if(level==='policy'){gl.flyTo({center:[127.02,37.52],zoom:MapMonitor.wideZoom(8.6),pitch:45,bearing:0,duration:650});return;}if(level==='municipality'){const block=selectedBlock();const center=Number.isFinite(block?.latitude)?[block.longitude,block.latitude]:[127.02,37.52];gl.flyTo({center,zoom:MapMonitor.wideZoom(11.1),pitch:50,bearing:-20,duration:650});return;}const block=selectedBlock()||data.blocks.find(row=>located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(block)focus(block,15.3);}
+  function setLevel(level){
+    requestedLevel=level==='policy'?'region':level;
+    if(!active||!gl)return;
+    gl.stop();
+    if(requestedLevel==='region'){
+      selectedRegionId='';selectedMunicipalityId='';
+      gl.flyTo({center:[126.97,37.48],zoom:MapMonitor.wideZoom(9.8),pitch:45,bearing:-20,duration:650});return;
+    }
+    if(requestedLevel==='municipality'){
+      const group=MapSupply.selection(),block=selectedBlock();
+      const regionId=group.kind==='region'&&group.id?group.id:selectedRegionId;
+      const cities=data.municipalities.filter(row=>(!regionId||row.region===regionId)&&row.project_ids.some(id=>visibleIds.has(id))&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude));
+      const center=regionId&&cities.length?[cities.reduce((n,r)=>n+r.longitude,0)/cities.length,cities.reduce((n,r)=>n+r.latitude,0)/cities.length]:[126.95,37.52];
+      gl.flyTo({center,zoom:MapMonitor.wideZoom(11.3),pitch:50,bearing:-20,duration:650});return;
+    }
+    const block=selectedBlock()||data.blocks.find(row=>located(row)&&row.project_ids.some(id=>visibleIds.has(id)));
+    if(located(block))focus(block,15.3);
+    else gl.flyTo({zoom:MapMonitor.wideZoom(13.7),pitch:50,bearing:0,duration:650});
+  }
   function fit(){if(!active||!gl)return;const points=data.blocks.filter(row=>located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(points.length){const west=Math.min(...points.map(row=>row.longitude)),south=Math.min(...points.map(row=>row.latitude)),east=Math.max(...points.map(row=>row.longitude)),north=Math.max(...points.map(row=>row.latitude));gl.fitBounds([[west,south],[east,north]],{padding:90,maxZoom:MapMonitor.wideZoom(10),pitch:45,bearing:0,duration:650});}else setLevel('policy');}
   function camera(view){if(!active||!gl)return;if(view==='overview'){const districtBlocks=data.blocks.filter(row=>row.district_name===selectedDistrict&&located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(districtBlocks.length){const west=Math.min(...districtBlocks.map(row=>row.longitude)),south=Math.min(...districtBlocks.map(row=>row.latitude)),east=Math.max(...districtBlocks.map(row=>row.longitude)),north=Math.max(...districtBlocks.map(row=>row.latitude));gl.fitBounds([[west,south],[east,north]],{padding:110,maxZoom:MapMonitor.wideZoom(14.8),pitch:50,bearing:0,duration:450});}else fit();}else{const settings={top:{pitch:0,bearing:0},oblique:{pitch:55,bearing:-20},north:{pitch:55,bearing:0}}[view];if(!settings)return;gl.easeTo({...settings,duration:450});}document.querySelectorAll('[data-map-3d-camera]').forEach(button=>{const selected=button.getAttribute('data-map-3d-camera')===view;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});}
   function resize(){gl?.resize();scheduleBlockLayout();}

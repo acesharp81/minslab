@@ -39,7 +39,10 @@ class LHProgressTests(unittest.TestCase):
     def test_block_normalization_uses_actual_region_not_headquarters(self):
         meta=site_meta(BeautifulSoup(SITE,'html.parser').tr)
         self.assertEqual((meta['district'],meta['block'],meta['municipality']),('고양창릉','A-04','고양'))
-        self.assertIsNone(site_meta(BeautifulSoup(SITE.replace('경기도','인천광역시'),'html.parser').tr))
+        incheon=site_meta(BeautifulSoup(SITE.replace('경기도','인천광역시'),'html.parser').tr)
+        self.assertEqual(incheon['region'],'인천광역시')
+        self.assertEqual(incheon['municipality'],'인천광역시 (구 확인 필요)')
+        self.assertIsNone(site_meta(BeautifulSoup(SITE.replace('경기도','부산광역시'),'html.parser').tr))
         with self.assertRaises(ValueError):detail_data('<html>정보 없음</html>')
 
     def collect(self,pct=30,projects=()):
@@ -69,9 +72,17 @@ class LHProgressTests(unittest.TestCase):
         records,_=self.collect(pct=100)
         self.assertEqual([r[0] for r in records],['project_report']*3)
 
+    def test_incheon_source_alias_links_existing_contract_without_new_project(self):
+        owner=dict(id='contract',source_id='lh_incheon_construction',region='인천광역시',district='인천계양(공공주택)',block='A10',name='인천계양 A10BL 공사',warnings=[])
+        site=SITE.replace('경기도','인천광역시').replace('고양창릉','인천계양').replace('A-04','A10')
+        with patch('test_lh_progress.SITE',site):
+            records,_=self.collect(projects=[owner])
+        self.assertFalse(any(r[0]=='project' for r in records))
+        self.assertTrue(all(r[2]['current_project_id']=='contract' for r in records))
+
     def test_page_two_uses_boundaries_and_repeated_page_is_rejected(self):
         calls=[]
-        filler=SITE.replace('경기도','인천광역시')
+        filler=SITE.replace('경기도','부산광역시')
         class Fetch:
             def get(self,url,**kwargs):
                 if 'cwsttList' in url:

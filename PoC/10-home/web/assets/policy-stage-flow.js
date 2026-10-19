@@ -124,18 +124,23 @@ const PolicyStageFlow = (() => {
     for(let i=placed.length-1;i>=0;i--)placed[i].y=Math.min(placed[i].y,i===placed.length-1?bottom-height:placed[i+1].y-height-gap);
     return placed;
   }
+  function summaryValues(m){
+    const yearEnd=String(m.year||m.asOf.slice(0,4))+'-12-31';
+    return Object.fromEntries(Object.entries(m.stages).filter(([k])=>k!=='POLICY').map(([k,label])=>{
+      const actual=measuredAt(m,k,m.asOf),expected=goalSeries(m,k).filter(p=>p.date<=yearEnd).at(-1);
+      return [k,{label,as_of_date:m.asOf,measurement_date:actual?.date||null,current_units:actual?.units??null,year_end:yearEnd,expected_units:expected?.units??null,plan_date:expected?.date||null,basis:'12월 31일까지 저장된 계획 누계'}];
+    }));
+  }
   function summaryTable(m){
-    const {comparisons,policyTarget,originalComparisons={}}=m;
+    const {policyTarget}=m,summary=summaryValues(m),yearEnd=String(m.year||m.asOf.slice(0,4))+'-12-31';
     return Object.entries(m.stages).map(([k,v])=>{
-      const check=PolicyStageFlow.comparisonStatus({comparisons,asOf:m.asOf},k),goal=check.due||check.next,actual=check.actual;
-      const official=PolicyStageFlow.comparisonStatus({comparisons:originalComparisons,asOf:m.asOf},k),scopeGoal=official.due||official.next;
-      const gap=goal&&actual?goal.units-actual.units:null;
-      const gapLabel=(check.gap>0?check.assessment.label+' · ':'')+(gap==null?'갭 산정 불가':gap>0?(check.due?'부족 ':'다음 목표까지 ')+num(gap)+'호':gap<0?'초과 '+num(-gap)+'호':'일치 · 0호');
-      const referenceLabel=scopeGoal?.basis?.startsWith('연결 사업')?'기간 내 사업 목표':(m.scopeGoalLabel||'정책 연간 목표');
-      const reference=scopeGoal&&goal&&scopeGoal.units!==goal.units?'<small class="d907-scope-goal">'+referenceLabel+' '+num(scopeGoal.units)+'호 · '+esc(scopeGoal.date)+'</small>':'';
-      return '<button type="button" class="d907-stage-value d907-stage-'+k+'" data-d907-highlight="'+k+'" aria-pressed="false" title="'+v+' 단계 강조 · 다시 누르면 전체 보기"><span class="d907-stage-name">'+esc(k==='CONSTRUCTION'?'착공(건설)':v)+'<span aria-hidden="true">▤</span></span>'+(k==='POLICY'?'<span class="d907-stage-number"><small>전체 목표</small><b>'+num(policyTarget??m.max)+'호</b></span><small>입력 목표 · 그래프 배경 기준</small>':'<span class="d907-stage-number"><small>'+(check.due?'도래 목표':'다음 목표')+'</small><b>'+(goal?num(goal.units)+'호':'미확보')+'</b></span><small>'+esc(goal?.date||'목표일 미확보')+'</small><span class="d907-stage-number"><small>누적 측정</small><b>'+(actual?num(actual.units)+'호':'미측정')+'</b></span><small>'+esc(actual?.date||'측정일 미확보')+'</small><strong class="d907-stage-gap '+(check.status==='DELAYED'?'is-short':check.status==='WARNING'?'is-warning':'')+'">'+gapLabel+'</strong>'+(check.stale?'<small>측정 갱신 필요</small>':'')+reference)+'</button>';
+      const value=summary[k],actual=value?.current_units==null?null:{units:value.current_units},expected=value?.expected_units==null?null:{units:value.expected_units};
+      const remainder=actual&&expected?expected.units-actual.units:null;
+      const note=remainder==null?'':remainder>0?'연말 계획까지 '+num(remainder)+'호':remainder<0?'연말 계획 대비 '+num(-remainder)+'호 초과':'연말 계획과 일치';
+      return '<button type="button" class="d907-stage-value d907-stage-'+k+'" data-d907-highlight="'+k+'" aria-pressed="false" title="'+v+' 단계 강조 · 다시 누르면 전체 보기"><span class="d907-stage-name">'+esc(k==='CONSTRUCTION'?'착공(건설)':v)+'<span aria-hidden="true">▤</span></span>'+(k==='POLICY'?'<span class="d907-stage-number"><small>전체 목표</small><b>'+num(policyTarget??m.max)+'호</b></span><small>입력 목표 · 그래프 배경 기준</small>':'<span class="d907-stage-number"><small>현재 누적 측정량</small><b>'+(actual?num(actual.units)+'호':'미측정')+'</b></span><small>'+esc(m.asOf)+' 기준</small><span class="d907-stage-number"><small>12월 말 기준 누적 예상량</small><b>'+(expected?num(expected.units)+'호':'계획 미확보')+'</b></span><small>'+esc(yearEnd)+' · 계획 기준</small>'+(note?'<strong class="d907-stage-gap">'+note+'</strong>':''))+'</button>';
     }).join('');
   }
+
   function render(m){
     const model=m;models.set(m.instanceKey||'policy',m);const width=m.axisUnit==='month'?Math.max(1100,(m.end-m.start+1)*12*30+148):1100;model.plotRight=width-58;const max=m.max,left=90,right=model.plotRight,top=85,bottom=410,first=Date.parse(m.start+'-01-01'),last=Date.parse(m.end+'-12-31');
     const x=date=>left+(Date.parse(date)-first)/(last-first)*(right-left),y=value=>bottom-(bottom-top)*value/max;
@@ -234,7 +239,7 @@ const PolicyStageFlow = (() => {
     });
     document.addEventListener('pointerout',e=>{if(!e.target.hasAttribute?.('data-d907-hover'))return;const wrap=e.target.closest('.d907-chart-wrap');wrap?.querySelector('.d907-chart-tooltip')?.setAttribute('hidden','');wrap?.querySelector('.d907-hover-line')?.setAttribute('visibility','hidden');});
   }
-  return {assessGap,formatGapRate,render,start,totals,trackingPoints,monthlyPoints,referenceAxis,comparisonStatus,delaySummary,layoutCallouts,summaryTable};
+  return {assessGap,formatGapRate,render,start,totals,trackingPoints,monthlyPoints,referenceAxis,comparisonStatus,delaySummary,layoutCallouts,summaryTable,summaryValues};
 })();
 
 if(typeof module!=='undefined')module.exports=PolicyStageFlow;

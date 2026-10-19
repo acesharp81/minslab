@@ -34,7 +34,7 @@ class EvidenceBridgeTests(unittest.TestCase):
         self.assertTrue(cell['actual_available']);self.assertTrue(cell['plan_available']);self.assertTrue(cell['review_required'])
         self.assertTrue(any(f.get('pct')==0 for f in cell['sources']))
         self.assertFalse(next(p for p in matrix['items'] if p['id']==target)['cells']['SUPPLY']['targets'])
-        self.assertEqual(self.s.rows('project')[0]['block'],'A31')
+        self.assertEqual(next(p for p in self.s.rows('project') if p['id']==target)['block'],'A31')
     def test_quantity_conflict_and_cross_region_and_multi_site_held(self):
         self.pair()
         self.put('lh_construction','construction',dict(self.base,name='평택고덕 A-31BL',planned_units=100,start_actual_date='2025-01-01'))

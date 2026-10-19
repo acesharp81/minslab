@@ -58,3 +58,5 @@ body.policy-summary-view .ps-canvas{min-height:300px;height:300px;flex:none}body
 @media(max-width:620px){.pd-stat-grid{grid-template-columns:minmax(0,1fr)}.pd-stat-grid .pr-card{min-height:280px}}
 
 .pd-stage-gaps{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;margin:8px 0}
+
+.pd-stat-grid .pr-projection .pr-chart-scroll svg{min-width:0;max-height:185px}.pd-stat-grid .pr-projection .pr-chart-key{font-size:9px;gap:5px;flex-wrap:wrap}.pd-stat-grid .pr-projection .pr-projection-outcome{font-size:10px;padding:7px;margin-top:7px}.pd-stat-grid .pr-projection details{font-size:10px;margin-top:8px;color:#6b8397}

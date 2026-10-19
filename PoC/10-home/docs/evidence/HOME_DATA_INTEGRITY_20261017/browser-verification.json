@@ -1,0 +1,30 @@
+[
+  {
+    "file": "HOME_DATA_COLLECTION_MIDTERM_20261016",
+    "score": 51.6,
+    "metrics": 4,
+    "mobileOverflow": false,
+    "download": "PASS"
+  },
+  {
+    "file": "HOME_DATA_INTEGRITY_R01_20261017",
+    "score": 61.7,
+    "metrics": 4,
+    "mobileOverflow": false,
+    "download": "PASS"
+  },
+  {
+    "file": "HOME_DATA_INTEGRITY_R02_20261017",
+    "score": 62.8,
+    "metrics": 4,
+    "mobileOverflow": false,
+    "download": "PASS"
+  },
+  {
+    "app": "preview",
+    "fourthMenu": true,
+    "rows": 40,
+    "rounds": 2,
+    "errors": []
+  }
+]

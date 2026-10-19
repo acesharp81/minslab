@@ -160,7 +160,7 @@ def quantities(rows, plans, reference, horizon, measure, target_ids=None,event_i
             "target_counted_projects": len(known), "target_excluded_projects": len(excluded),
             "target_missing_projects": len(selected)-len(known), "current_units": None,
             "current_status": "ACTUAL_NOT_COLLECTED", "current_notice_units":sum(row["units"] for row in linked) if linked else None,
-            "current_notice_count":len(linked),"current_notice_status":"REVIEW", "future": future,
+            "current_notice_count":len(linked),"current_notice_status":"CONFIRMED" if linked and all(n.get('review_status')=='CONFIRMED' for n in linked) else "REVIEW", "future": future,
             "chart_target_ids": [row["id"] for row in selected],
             "chart_schedule_ids": [row["id"] for row in event_rows],
             "chart_manual_ids": [row["id"] for row in manual_rows],

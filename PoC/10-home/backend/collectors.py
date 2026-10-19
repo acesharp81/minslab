@@ -1,7 +1,9 @@
 import hashlib
 import io
 import json
+import os
 import re
+import threading
 import time
 import zipfile
 from collections import defaultdict
@@ -14,10 +16,13 @@ import httpx
 from bs4 import BeautifulSoup
 
 from .sources import POLICIES
+from .matching_rules import construction_program_classification, lh_plan_program_classification
 
 PARSER_VERSION = "home-collection-1.6"
-ALLOWED_HOSTS = {"cleanup.seoul.go.kr", "cis.seoul.go.kr", "www.i-sh.co.kr", "openapi.seoul.go.kr", "bizmap.lh.or.kr", "apply.lh.or.kr", "www.lh.or.kr", "lh.or.kr", "www.korea.kr", "m.korea.kr", "d.nts.go.kr", "api.odcloud.kr", "infuser.odcloud.kr", "apis.data.go.kr", "api.vworld.kr", "stat.molit.go.kr", "www.gh.or.kr", "gh.or.kr", "apply.gh.or.kr", "apply-cdn.gh.or.kr", "data.seoul.go.kr", "datafile.seoul.go.kr", "www.data.go.kr", "www.code.go.kr", "event.seoul.go.kr", "www.molit.go.kr", "sgisapi.mods.go.kr", "kosis.kr", "www.index.go.kr", "index.go.kr"}
+ALLOWED_HOSTS = {"www.schoolinfo.go.kr", "iseoul.seoul.go.kr", "emartapp.emart.com", "topis.seoul.go.kr", "bus.go.kr", "www.samsunghospital.com", "cleanup.seoul.go.kr", "cis.seoul.go.kr", "www.i-sh.co.kr", "openapi.seoul.go.kr", "bizmap.lh.or.kr", "apply.lh.or.kr", "www.lh.or.kr", "lh.or.kr", "www.korea.kr", "m.korea.kr", "d.nts.go.kr", "api.odcloud.kr", "infuser.odcloud.kr", "apis.data.go.kr", "api.vworld.kr", "stat.molit.go.kr", "www.gh.or.kr", "gh.or.kr", "apply.gh.or.kr", "apply-cdn.gh.or.kr", "data.seoul.go.kr", "datafile.seoul.go.kr", "www.data.go.kr", "www.code.go.kr", "event.seoul.go.kr", "www.molit.go.kr", "sgisapi.mods.go.kr", "kosis.kr", "www.index.go.kr", "index.go.kr"}
 SECRET_PARAMS = {"key", "servicekey", "apikey", "authkey", "access_token", "accesstoken", "consumer_key", "consumer_secret", "authorization"}
+ALLOWED_HOSTS.add('www.ih.co.kr')
+ALLOWED_HOSTS.add('www.eum.go.kr')
 GYEONGGI_CITIES = "수원 성남 의정부 안양 부천 광명 평택 동두천 안산 고양 과천 구리 남양주 오산 시흥 군포 의왕 하남 용인 파주 이천 안성 김포 화성 광주 양주 포천 여주 연천 가평 양평".split()
 
 
@@ -51,6 +56,21 @@ def month_iso(value):
     return period['month'] if period else None
 
 
+_api_request_lock = threading.Lock()
+_api_next_request = 0.0
+
+
+def pace_api(host):
+    """Optional process-wide pacing shared by parallel official API collectors."""
+    global _api_next_request
+    interval=max(0.0,min(10.0,float(os.environ.get('POC10_API_REQUEST_INTERVAL','0'))))
+    if host!='apis.data.go.kr' or not interval:return
+    with _api_request_lock:
+        delay=max(0,_api_next_request-time.monotonic())
+        if delay:time.sleep(delay)
+        _api_next_request=time.monotonic()+interval
+
+
 class Fetcher:
     def __init__(self, source_id, raw_dir):
         self.source_id = source_id
@@ -65,13 +85,18 @@ class Fetcher:
         if urlparse(url).hostname not in ALLOWED_HOSTS:
             raise ValueError("허용된 공식 원천 호스트가 아님")
         # httpx params replaces the existing query; preserve the source type.
-        request_url = httpx.URL(url).copy_merge_params(params or {})
+        request_url = httpx.URL(url)
+        # Preserve pre-encoded legacy (e.g. CP949) download queries.
+        if params:
+            request_url = request_url.copy_merge_params(params)
         secrets = [value for key, value in request_url.params.multi_items() if key.lower() in SECRET_PARAMS and value]
         if secrets and request_url.scheme != "https":
             raise ValueError("API 인증 요청은 HTTPS만 허용")
         response = None
-        for attempt in range(3):
+        attempts=max(3,min(10,int(os.environ.get('POC10_FETCH_ATTEMPTS','3'))))
+        for attempt in range(attempts):
             try:
+                pace_api(request_url.host)
                 response = self.client.get(request_url, headers=headers)
                 for _ in range(5):
                     if not response.is_redirect:
@@ -84,13 +109,29 @@ class Fetcher:
                     response = self.client.get(target, headers=headers)
                 response.raise_for_status()
                 if len(response.content) < (2 if suffix == 'json' else 100):
+                    # Official APIs intermittently return HTTP 200 with an empty
+                    # body. Retry the same page; never treat it as zero records.
+                    if attempt < attempts-1:
+                        time.sleep(attempt + 1)
+                        continue
                     raise ValueError("원천 응답이 비었거나 차단됨")
                 break
             except (httpx.RequestError, httpx.HTTPStatusError) as error:
-                if attempt == 2:
+                if attempt == attempts-1:
                     detail = "HTTP " + str(error.response.status_code) if isinstance(error, httpx.HTTPStatusError) else type(error).__name__
                     raise RuntimeError("공식 원천 연결 실패 (" + detail + ")") from None
-                time.sleep(attempt + 1)
+                delay=attempt+1
+                if isinstance(error,httpx.HTTPStatusError) and error.response.status_code in (429,503):
+                    # Honor the server's backoff; requests are never reinterpreted
+                    # as empty pages when the upstream service is overloaded.
+                    retry_after=error.response.headers.get('Retry-After','')
+                    if retry_after.isdigit():delay=max(delay,int(retry_after))
+                    elif retry_after:
+                        from email.utils import parsedate_to_datetime
+                        try:delay=max(delay,parsedate_to_datetime(retry_after).timestamp()-time.time())
+                        except (ValueError,TypeError,OverflowError):pass
+                    if error.response.status_code==429:delay=max(delay,min(60,15*(attempt+1)))
+                time.sleep(delay)
         data = response.content
         # Preserve API data after removing credentials, including echoed errors.
         for secret in secrets:
@@ -203,7 +244,7 @@ def collect_lh_plan(source, fetcher):
         planned = next(iter(totals)) if len(totals) == 1 else supply_units if rent else None
         if planned is not None and supply_units is not None and supply_units > planned:
             warnings.append("SUPPLY_EXCEEDS_TOTAL")
-        program = "건설형 공공임대" if rent else "3기 신도시" if any(x in key[2] for x in ("왕숙", "창릉", "교산", "대장")) else "공공택지·공공분양"
+        program = lh_plan_program_classification(rent, key[2], key[1])['program']
         site = lh_plan_site(key[2], key[0])
         payload = {"name": key[2], "region": key[0], "municipality": "지역 상세 확인 필요", "program": program,
                    "tenure": key[1], "planned_units": planned, "supply_units": supply_units, "rows": rows,
@@ -240,12 +281,20 @@ def parse_construction(data, base_date, include_incheon=False):
         progress = float(pct.replace(",", "")) if re.fullmatch(r"\d+(\.\d+)?", pct) else None
         if progress is not None and not 0 <= progress <= 100:
             raise ValueError("공정률 범위 오류")
+        multiple = "및" in site or ("위례" in site and "위례" not in district)
+        started = date_iso(start) if date_iso(start) and date_iso(start) <= base_date else None
+        # The construction table supplies the date AND housing quantity in the
+        # same row. Keep this provenance distinct from an ordinary plan capacity.
+        start_evidence = dict(event_date=started, units=integer(units), unit=unit,
+            work_type=trade, scope='MULTI_SITE_CONTRACT' if multiple else 'SINGLE_BLOCK',
+            source_fields=['착공일', '공사규모', '단위'], source_base_date=base_date,
+            source_row=values)
         records.append(("project", f"{district}|{block}|{site}", {
             "name": site, "district": district, "block": block, "region": region, "municipality": city or "서울 (구 확인 필요)",
-            "program": "3기 신도시" if any(x in district for x in ("왕숙", "창릉", "교산", "대장")) else "공공주택 건설",
+            "program": construction_program_classification(district)['program'],
             "tenure": "유형 확인 필요", "planned_units": integer(units), "supply_units": None, "progress_pct": progress,
             "stage": "COMPLETED" if progress == 100 else "CONSTRUCTION", "stage_label": "원천상 공사 완료" if progress == 100 else "원천상 공사 진행",
-            "start_actual_date": date_iso(start) if date_iso(start) and date_iso(start) <= base_date else None,
+            "start_actual_date": started, "construction_start_evidence": start_evidence,
             "start_plan_date": date_iso(start), "completion_plan_date": date_iso(end),
             "schedule_month": date_iso(end)[:7] if date_iso(end) else None, "schedule_basis": "공사 계약 준공예정 (입주일 아님)",
             "base_date": base_date, "date_precision": "DAY", "developer": "LH", "contractor": contractor,

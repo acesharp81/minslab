@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-16T17:02:23.517448+00:00",
+  "endpoint": "https://apis.data.go.kr/1613000/ArchPmsHubService/getApBasisOulnInfo",
+  "results": [
+    {
+      "key_setting": "POC10_BUILDING_HUB_SERVICE_KEY",
+      "status": 403,
+      "body": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n",
+      "body_sha256": "c41369295887d9454b7f06970e62d5892fdc0c7c16cb3843a2eb20f80df4aade"
+    },
+    {
+      "key_setting": "POC10_BUILDING_REGISTER_SERVICE_KEY",
+      "status": 403,
+      "body": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n",
+      "body_sha256": "c41369295887d9454b7f06970e62d5892fdc0c7c16cb3843a2eb20f80df4aade"
+    }
+  ],
+  "control": {
+    "service": "HsPmsHubService",
+    "http_status": 200,
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE"
+    }
+  }
+}

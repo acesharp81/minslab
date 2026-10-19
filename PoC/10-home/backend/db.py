@@ -53,6 +53,15 @@ Index("ix_home_sample_counts", Revision.kind, Revision.sample_source_date, Revis
 Index("uq_home_current", Revision.entity_id, unique=True,
       postgresql_where=Revision.superseded_at.is_(None), sqlite_where=Revision.superseded_at.is_(None))
 
+# Per-source cumulative counts run after each incremental batch. Keep current
+# source membership in one compact index instead of reading historical payloads.
+Index("ix_home_current_source", Revision.source_id,
+      postgresql_where=Revision.superseded_at.is_(None), sqlite_where=Revision.superseded_at.is_(None))
+
+Index("ix_home_general_actual_start", Revision.payload['dates']['실제착공일 (realStcnsDay)'].as_string(),
+      postgresql_where=(Revision.kind == 'general_permit') & Revision.superseded_at.is_(None),
+      sqlite_where=(Revision.kind == 'general_permit') & Revision.superseded_at.is_(None))
+
 
 class Batch(Base):
     __tablename__ = "home_batch"
@@ -194,7 +203,58 @@ class Audit(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class MetricSnapshot(Base):
+    """Frozen inputs and results; new knowledge creates another snapshot."""
+    __tablename__ = 'home_metric_snapshot'
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    known_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    actor: Mapped[str] = mapped_column(String(100))
+    reason: Mapped[str] = mapped_column(Text)
+    context: Mapped[dict] = mapped_column(JSON)
+    result: Mapped[dict] = mapped_column(JSON)
+    digest: Mapped[str] = mapped_column(String(64))
+
+
+class IntegrityRound(Base):
+    """Append-only scorecards retain the previous rubric and item comments."""
+    __tablename__ = 'home_integrity_round'
+    id: Mapped[str] = mapped_column(String(80), primary_key=True)
+    sequence: Mapped[int] = mapped_column(Integer, unique=True)
+    parent_id: Mapped[str | None] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    actor: Mapped[str] = mapped_column(String(100))
+    reason: Mapped[str] = mapped_column(Text)
+    snapshot_id: Mapped[str | None] = mapped_column(String(80))
+    score: Mapped[str] = mapped_column(String(20))
+    result: Mapped[dict] = mapped_column(JSON)
+    report_html: Mapped[str] = mapped_column(Text)
+    digest: Mapped[str] = mapped_column(String(64))
+
+
+class CollectionJob(Base):
+    __tablename__ = 'home_collection_job'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    source_id: Mapped[str] = mapped_column(String(40), index=True)
+    status: Mapped[str] = mapped_column(String(24), default='QUEUED', index=True)
+    stage: Mapped[str] = mapped_column(String(24), default='COLLECT')
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    run_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_token: Mapped[str | None] = mapped_column(String(36))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    error: Mapped[str | None] = mapped_column(Text)
+
+
+Index('uq_home_active_collection_job', CollectionJob.source_id, unique=True,
+      postgresql_where=CollectionJob.status.in_(('QUEUED', 'RUNNING', 'RETRY')),
+      sqlite_where=CollectionJob.status.in_(('QUEUED', 'RUNNING', 'RETRY')))
+
+
 Index('ix_home_revision_recorded', Revision.recorded_at.desc())
+Index('ix_home_revision_kind_recorded', Revision.kind, Revision.recorded_at.desc())
 Index('ix_home_revision_entity_version', Revision.entity_id, Revision.revision_no.desc())
 Index('ix_home_audit_entity_recorded', Audit.entity_id, Audit.recorded_at.desc())
 Index('ix_home_batch_status_source_started', Batch.status, Batch.source_id, Batch.started_at.desc())
@@ -229,6 +289,44 @@ def upsert_revision(session, kind, source_id, key, payload, batch_id):
     session.add(new)
     session.flush()
     return new, "changed" if old else "new"
+
+
+def upsert_raw_revisions(session, source_id, records, batch_id, chunk_size=500):
+    """Batch raw API revisions with the same hashes and history as single upserts.
+
+    The caller owns the transaction. Duplicate keys retain sequential semantics;
+    projects and records with per-row side effects must use upsert_revision.
+    """
+    allowed={'permit','general_permit','register','register_recap','permit_dong','permit_parcel'}
+    if any(kind not in allowed for kind,_,_ in records):
+        raise ValueError('원천 API 기록만 일괄 적재할 수 있습니다')
+    keys=[entity_id(kind,source_id,key) for kind,key,_ in records]
+    if len(keys)!=len(set(keys)):
+        for kind,key,payload in records:
+            yield upsert_revision(session,kind,source_id,key,payload,batch_id)
+        return
+    for offset in range(0,len(records),chunk_size):
+        chunk=records[offset:offset+chunk_size];ids=keys[offset:offset+chunk_size]
+        existing={r.entity_id:r for r in session.scalars(select(Revision).where(
+            Revision.entity_id.in_(ids),Revision.superseded_at.is_(None)))}
+        results=[];pending=[]
+        for (kind,key,payload),eid in zip(chunk,ids):
+            digest=hashlib.sha256(json.dumps(payload,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+            old=existing.get(eid)
+            if old and old.payload_hash==digest:
+                results.append((old,'unchanged'));continue
+            if old:old.superseded_at=now()
+            row=Revision(entity_id=eid,kind=kind,source_id=source_id,revision_no=old.revision_no+1 if old else 1,
+                previous_id=old.id if old else None,payload=payload,payload_hash=digest,batch_id=batch_id,
+                sample_base_date=payload.get('base_date'),sample_region=payload.get('region'),sample_name=payload.get('name'),
+                sample_source_date=payload.get('source_date'),
+                sample_event_day=((payload.get('dates') or {}).get('원천 허가일 (apprvDay)') or payload.get('source_date')) if kind=='permit' else payload.get('source_date'))
+            pending.append(row);results.append((row,'changed' if old else 'new'))
+        # Retire previous versions before inserting their replacements, preserving
+        # the unique current-version index. Both flushes remain in one transaction.
+        session.flush()
+        session.add_all(pending);session.flush()
+        yield from results
 
 # Latest-change checks run for every cached read.
 Index('ix_home_audit_recorded', Audit.recorded_at.desc())

@@ -8,6 +8,9 @@ def schedule_period(value, year=None):
     raw=str(value or '').strip()
     if not raw or re.search(r'미정|미확정|추후|이후|이전|미수립',raw):return None
     text=re.sub(r'\s+','',raw).replace('예정','').replace('목표','').strip('()')
+    # GH appends a notice-round qualifier to an otherwise complete date range.
+    # Only this explicit qualifier is removed; unknown/free text stays unparsed.
+    text=re.sub(r'중\(최초\)?$','',text)
     text=re.sub(r"^[‘’'](\d{2})(?=년|[./-])",r'20\1',text)
     m=re.fullmatch(r'(20\d{2})[-./](\d{1,2})(?:[-./](\d{1,2}))?\.?',text)
     if not m:m=re.fullmatch(r'(20\d{2})년(\d{1,2})월(?:(\d{1,2})일)?',text)

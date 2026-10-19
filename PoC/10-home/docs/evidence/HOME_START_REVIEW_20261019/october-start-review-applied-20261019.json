@@ -1,0 +1,141 @@
+{
+  "actor": "담당자 대행 · 사용자 지시 2026-10-19",
+  "applied": true,
+  "duplicates": [
+    {
+      "source": "PRO_1f7b4e6e8526c78ef164dd70",
+      "name": "인천가정2 B2",
+      "target": "PRO_f6fe760da2c698c308f46373",
+      "units": 308,
+      "link": {
+        "id": "EVI_f039b49e28e74f63f7c4f166",
+        "result": "confirmed",
+        "target": "인천가정2 B-2BL 아파트 건설공사 4공구",
+        "units": 308
+      }
+    },
+    {
+      "source": "PRO_0a072111d825a2a16a7310e6",
+      "name": "인천검단 AA19",
+      "target": "PRO_38a37a66ed2666efe40ae527",
+      "units": 1323,
+      "link": {
+        "id": "EVI_6655427ba346badfea7612ae",
+        "result": "confirmed",
+        "target": "인천검단 AA19BL 민간참여 공공주택건설사업",
+        "units": 1323
+      }
+    },
+    {
+      "source": "PRO_14c83b236f723ae28ad1edff",
+      "name": "인천계양 A10",
+      "target": "PRO_017fafed01a4f905828cb913",
+      "units": 778,
+      "link": {
+        "id": "EVI_950b6730f7aaf119d06cd1a3",
+        "result": "confirmed",
+        "target": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+        "units": 778
+      }
+    },
+    {
+      "source": "PRO_fe4aa9d7d9211312f996dec5",
+      "name": "인천계양 A17",
+      "target": "PRO_c1f32197fe5a45ab84ea895f",
+      "units": 463,
+      "link": {
+        "id": "EVI_faa148169f2885b24030c2b9",
+        "result": "confirmed",
+        "target": "인천계양 A17BL 아파트 건설공사 6공구 (",
+        "units": 463
+      }
+    },
+    {
+      "source": "PRO_26946080e95877a9475efc35",
+      "name": "인천계양 A6",
+      "target": "PRO_04a4f394cc7df91c10403fd5",
+      "units": 663,
+      "link": {
+        "id": "EVI_cd3c8c8a8e66ab74921751e1",
+        "result": "confirmed",
+        "target": "인천계양 A6",
+        "units": 663
+      }
+    },
+    {
+      "source": "PRO_63647d3c6344c256c7c98313",
+      "name": "인천계양 A9",
+      "target": "PRO_95b506af61f0ff28ddff817c",
+      "units": 475,
+      "link": {
+        "id": "EVI_76f4815dacacd57ff41b91b3",
+        "result": "confirmed",
+        "target": "조달청)인천계양 A9BL 아파트 건설공사 3공구",
+        "units": 475
+      }
+    },
+    {
+      "source": "PRO_9e0ff74c948175dffb824830",
+      "name": "인천영종 A24",
+      "target": "PRO_3f8c1fea26831aa04fcfdcb7",
+      "units": 641,
+      "link": {
+        "id": "EVI_920ec5f000be099646438d47",
+        "result": "confirmed",
+        "target": "인천영종 A-24BL 아파트 건설공사 12공구",
+        "units": 641
+      }
+    }
+  ],
+  "announced": [
+    {
+      "id": "EVI_a9614501224d9cee63133c5d",
+      "result": "confirmed",
+      "target": "흑석11재정비촉진",
+      "units": 1515
+    },
+    {
+      "id": "EVI_3b592c39f53f0d27167e859e",
+      "result": "confirmed",
+      "target": "신림2재정비촉진",
+      "units": 1430
+    }
+  ],
+  "held": [
+    {
+      "id": "PRO_f3dcde6035029d54a848ef8d",
+      "name": "구리갈매역세권 A-5",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_42f49eac956e19c57750cff4",
+      "name": "인천검단 AA13-1",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_6cd92fc3a8e9e13eb4faddfd",
+      "name": "인천검단 AA13-2",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_4b859c7f4b18222558932b97",
+      "name": "인천부평 A",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_4e534476d1d747285e612f85",
+      "name": "인천서구 1",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_a9e2bffb100945377e90ef33",
+      "name": "인천서구 1",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    },
+    {
+      "id": "PRO_b2a3fc2ab9bda6c7ffaa3b0e",
+      "name": "인천송림4 1",
+      "reason": "기존 승인 사업의 동일 블록·동일 호수 단일 상대 없음; 분할 블록·정책 근거 추가 확인"
+    }
+  ]
+}

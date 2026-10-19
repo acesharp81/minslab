@@ -1,0 +1,35 @@
+[
+  {
+    "name": "sources",
+    "path": "sources",
+    "captured_at": "2026-10-19T06:54:08.841879+00:00",
+    "keys": [
+      "items"
+    ],
+    "bytes": 2450134
+  },
+  {
+    "name": "coverage",
+    "path": "coverage",
+    "captured_at": "2026-10-19T06:54:05.815855+00:00",
+    "keys": [
+      "items",
+      "complete_population",
+      "notice"
+    ],
+    "bytes": 21164
+  },
+  {
+    "name": "jobs",
+    "path": "collection-jobs",
+    "captured_at": "2026-10-19T06:54:05.814670+00:00",
+    "keys": [
+      "items"
+    ],
+    "bytes": 36334
+  },
+  {
+    "name": "annual",
+    "error": "'ascii' codec can't encode characters in position 39-43: ordinal not in range(128)"
+  }
+]

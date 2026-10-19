@@ -1,0 +1,111 @@
+{
+  "candidate_rows": 2152,
+  "regions": {
+    "경기도": 1219,
+    "서울특별시": 931,
+    "인천광역시": 2
+  },
+  "quantity_states": {
+    "ZERO_QUANTITY_UNRESOLVED": 2152
+  },
+  "examples": [
+    {
+      "entity_id": "PER_c852a59ae9f0eea9af4096f1",
+      "revision_id": "9684508b-90a5-4248-a020-787ed85a3e74",
+      "name": "경기도 수원시 영통구 매탄동 176번지",
+      "start_date": "2026-03-27",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_8364fb98ace5361ff49b91d3",
+      "revision_id": "6f34cfe8-8f41-4da4-a03f-f6f57495e8a7",
+      "name": "경기도 수원시 영통구 매탄동 1352번지",
+      "start_date": "2026-07-03",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_1257ac39323097a9a6d26b97",
+      "revision_id": "237ba4f5-b428-4ab7-af82-aec426f93946",
+      "name": "경기도 수원시 영통구 하동 1013번지",
+      "start_date": "2026-03-03",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_91916922bc908fca2a88502b",
+      "revision_id": "f705d850-2ee0-4685-92f3-7f8ef74bcf53",
+      "name": "경기도 수원시 영통구 하동 1034번지",
+      "start_date": "2026-02-10",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_92ebfe6bb29ed037345dd51a",
+      "revision_id": "b43d25a4-6c7c-4a3a-9ab6-ac6525a00433",
+      "name": "경기도 수원시 영통구 영통동 966-2번지",
+      "start_date": "2026-05-05",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_d51a239ff3f3f9625bc162d4",
+      "revision_id": "dae4f4c1-5080-4686-b3ff-a93b118f4b76",
+      "name": "경기도 수원시 영통구 영통동 1048-2번지",
+      "start_date": "2026-07-04",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_c26f3e0195cc8edb55d0e467",
+      "revision_id": "0af777a0-4d39-46ae-b219-5032f23fd92c",
+      "name": "경기도 수원시 팔달구 인계동 371-1번지",
+      "start_date": "2026-01-14",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_9c85be20f9a9548be90c5f1d",
+      "revision_id": "bf1f2517-0104-4603-80de-d3209cf8dc0d",
+      "name": "경기도 수원시 영통구 매탄동 1162번지",
+      "start_date": "2026-02-26",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_fd290b9d44c6723d9e0b75db",
+      "revision_id": "4b46a4e2-9f16-42fc-8448-e24959a937a4",
+      "name": "경기도 수원시 영통구 매탄동 1285번지",
+      "start_date": "2026-01-06",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_a55eaa69bbb617f10b241a9f",
+      "revision_id": "23422ba9-252d-4c83-9bd5-1056a6417ca3",
+      "name": "경기도 수원시 영통구 하동 1021번지",
+      "start_date": "2026-05-16",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_287b7d84e568562005743abd",
+      "revision_id": "cd9246ab-d904-43c7-b578-6fe0a38ab512",
+      "name": "경기도 수원시 영통구 영통동 948-4번지",
+      "start_date": "2026-06-26",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    },
+    {
+      "entity_id": "PER_e7645607e2bbabbe698948f4",
+      "revision_id": "3725d971-c047-47d4-81ba-22df3c203c79",
+      "name": "경기도 수원시 영통구 영통동 955-1번지",
+      "start_date": "2026-03-24",
+      "units": 0,
+      "status": "ZERO_QUANTITY_UNRESOLVED"
+    }
+  ],
+  "counted_as_actual": false,
+  "note": "착공일 필드가 있는 허가 행. 신규 건설·변경·행위 구분과 총세대수 및 중복 관계를 확인하기 전 실적에 산입하지 않음."
+}

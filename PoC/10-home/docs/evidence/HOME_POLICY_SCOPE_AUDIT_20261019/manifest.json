@@ -1,0 +1,14 @@
+{
+  "reference": "2026-10-19",
+  "files": {
+    "docs/HOME_POLICY_SCOPE_AND_OFFICIAL_GAP_20261019.md": "4ddbec169bae72527af683e2ec62254940b6cc23416becfc3daea0851c5411ee",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/audit.json": "00533d64c3c29a2a00ed5dcad3d4b0063c3da3a75bb82a07928eb286d38a9a9c",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/delivery-corrected.json.gz": "9c2ca3f73842592745ab62fc7c90e1a1e2098f230567eea4aa1bbc5d6d26cc2b",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/scope-corrected-snapshot.json": "3e9e45a5610132f9dda4fc1326e77c4278f52d50c432eda16fa24a5d655c5647",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/policy-scope-corrected.json": "3636259cfc36e912c641577566fa0e702ecc6650be4d798938140dfd5fe0a49f",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/browser.json": "c71dd890db668fb3b0822fda989c81cc3d64e8843dbc363a40359deb6835394a",
+    "backend/data/official_benchmark_20261016.json": "99a9911be65f9c406404490ea6e7dfdaf40144b0e59ec6c2dd715871d9124cf8",
+    "docs/evidence/HOME_POLICY_SCOPE_AUDIT_20261019/report-before-scope-restoration.md": "d42336d64dc937cb3b01ad3febc135e128bbc7502a4346cf298e2735a890de98"
+  },
+  "superseded_by": "docs/HOME_OCTOBER_ALIGNMENT_CORRECTION_20261019.md"
+}

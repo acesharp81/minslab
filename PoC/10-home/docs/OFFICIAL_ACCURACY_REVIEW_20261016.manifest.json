@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-16",
+  "read_only": true,
+  "inputs": {
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/README.md": {
+      "bytes": 1035,
+      "sha256": "84c9b16271923c98a4325529fb4e1bc9eb50183f494082d9590ba7850ab78b46"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/annual_supply.json": {
+      "bytes": 10439,
+      "sha256": "89b2c41c22bc3e1231e52eaff149ace43a764db0f939addf4926a708cab7c096"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/briefing_official.html": {
+      "bytes": 178048,
+      "sha256": "752669882c51f4f100c3599968795abeb4b8b591fee17cf2a779594df3ac308f"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/briefing_official.txt": {
+      "bytes": 23555,
+      "sha256": "4e8bdf8f8376b97c75d9e9b964750dcf8cdc5bb94fa4e05d2d0aa0553d775182"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/capture.json": {
+      "bytes": 1654,
+      "sha256": "71ad9859c85f49d80d4103fe69842b0ac437492ede08b5baf1720bf52fa46223"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/capture_database.py": {
+      "bytes": 1901,
+      "sha256": "9d06fa1c50a765e17d3bc3ec9f8290b935573787891d4a27808cd14985aaa0a2"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/compression.json": {
+      "bytes": 1537,
+      "sha256": "18f457cebd699d495138e9ce76f776d620286781e0f9850abe93f1082cceb3ad"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/delivery.json.gz": {
+      "bytes": 538047,
+      "sha256": "26fad1aedd6f5c8c651c5d1d003ec3b4b679126c0f2552fdefb1f1ec1e18cc97"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/official_fetch.json": {
+      "bytes": 358,
+      "sha256": "f5e2e0c558de94ea86fd27fd5ce675b6d728d7506fdb3a7d41bf42356d540c0a"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/policy_monitor.json.gz": {
+      "bytes": 53195,
+      "sha256": "af2407ddfb93032f85edc14761b897418dc6e33c9910fd0da94afaa1782eb1bb"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/programs.json": {
+      "bytes": 82581,
+      "sha256": "2c2c0ce2d577999d738aa964e4fd934c8d1b9cb5ee14f643cc5f61b44a2b77d6"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/projects_p1.json.gz": {
+      "bytes": 187950,
+      "sha256": "513f0e48aba883d346bd7b14313895b12daa2bcecf0c3cf0a69eabc574d719d0"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/projects_p2.json.gz": {
+      "bytes": 72177,
+      "sha256": "92b6b012b10dc747c166bdca70cac1905a0c5e28ee6276cdba65680f27bedd2d"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/public_housing_official.html": {
+      "bytes": 173010,
+      "sha256": "bfa461d506e1f81c42d8473204b1f994f74fa61e9bf7e05262ce0ce96d5695ff"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/public_housing_official.txt": {
+      "bytes": 5852,
+      "sha256": "b910e581e394df07cabd48041c5cef96b39a28b12fa0e7c75faedb6bed67334b"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/selected_database.json.gz": {
+      "bytes": 974849,
+      "sha256": "af7352b422833f727a298b06626fe142d8a39ea506cbd79add82030e2a71e399"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/source_summary.json": {
+      "bytes": 35684,
+      "sha256": "642d72b4997bbb58a9e026d8f650aa76651dd891f6174bad58e32b20aacf849d"
+    },
+    "docs/evidence/OFFICIAL_ACCURACY_20261016/sources.json": {
+      "bytes": 38855,
+      "sha256": "487bb05c12e1dc5cf68de1fcfcadae5f9c4ee8f389393f445d1f19ffc7444d91"
+    },
+    "docs/official/jutaekpadong_briefing_comparison_20261016.xlsx": {
+      "bytes": 37120,
+      "sha256": "dfa7847ec7d4eb50f9cb8c3ebb8c4305949804ee8877f542de28aee8bdf1372b"
+    },
+    "docs/official/jutaekpadong_metric_compare_20261016.csv": {
+      "bytes": 13141,
+      "sha256": "5a79f69837db62fd68db2a1348eb4279fef2dfcadcf22773587d07232c74df43"
+    },
+    "docs/official/jutaekpadong_project_mapping_20261016.csv": {
+      "bytes": 6509,
+      "sha256": "18a7c4b32dff6c1a2992476a243763c3795201947dc38de798c666dff2143999"
+    }
+  },
+  "outputs": {
+    "OFFICIAL_ACCURACY_REVIEW_20261016.md": {
+      "bytes": 58690,
+      "sha256": "5bfc3eb916f3dc8908b497fbc8b65198881c4ce10b1d28de961421d25bf98134"
+    },
+    "OFFICIAL_ACCURACY_REVIEW_20261016.json": {
+      "bytes": 95781,
+      "sha256": "e4a1931067d6724a167babc004f725dd103ec3daad89738275c0d1ba8f4d855e"
+    },
+    "OFFICIAL_ACCURACY_REVIEW_20261016_metrics.csv": {
+      "bytes": 8825,
+      "sha256": "0b62668ea3dc106da757cb80ede8dad0bd016ee09a312badd5286326629c254f"
+    },
+    "OFFICIAL_ACCURACY_REVIEW_20261016_sites.csv": {
+      "bytes": 4862,
+      "sha256": "a0e2d26a6862f8bcc1059356acab3762942e7bd987e431931ecdefe291022d89"
+    }
+  }
+}

@@ -1,0 +1,1621 @@
+{
+  "as_of_date": "2026-10-16",
+  "timezone": "Asia/Seoul",
+  "generated_at": "2026-10-16T20:54:56.890091+09:00",
+  "current": {
+    "sources": 62,
+    "extracted_cells": 55437397,
+    "linked_records": 884
+  },
+  "today": {
+    "sources": 36,
+    "extracted_cells": 405125,
+    "linked_records": 432
+  },
+  "types": [
+    {
+      "id": "API",
+      "label": "기관 시스템 직접 연계 (API)",
+      "source_ids": [
+        "area_national_benchmarks",
+        "building_hub",
+        "building_hub_details",
+        "building_hub_incheon",
+        "building_register",
+        "building_register_recap",
+        "incheon_statistics",
+        "kosis_age",
+        "kosis_employment",
+        "kosis_household_forecast",
+        "kosis_household_size",
+        "kosis_housing",
+        "kosis_living",
+        "molit_statistics",
+        "policy_907_incheon_geometry",
+        "project_locations",
+        "sgis_area",
+        "sh_redevelopment",
+        "sh_supply_plan",
+        "unsold_statistics",
+        "vworld",
+        "vworld_district",
+        "vworld_municipality"
+      ],
+      "today_source_ids": [
+        "building_hub",
+        "building_register",
+        "kosis_employment",
+        "kosis_household_forecast",
+        "kosis_household_size",
+        "kosis_housing",
+        "kosis_living",
+        "sgis_area"
+      ],
+      "records": 1628134,
+      "columns": 518,
+      "extracted_cells": 54215972,
+      "linked_records": 265,
+      "today_records": 5318,
+      "today_extracted_cells": 138954,
+      "today_linked_records": 0,
+      "access_methods": [
+        "API"
+      ],
+      "description": "기관이 제공하는 데이터 조회 기능에 연결해 인허가·주택·지역 정보를 가져옵니다.",
+      "sources": [
+        {
+          "id": "area_national_benchmarks",
+          "name": "전국 연령·가구원수·산업 종사자 비교 기준",
+          "url": "https://kosis.kr/openapi/index/index.do"
+        },
+        {
+          "id": "building_hub",
+          "name": "건축HUB 주택인허가",
+          "url": "https://www.data.go.kr/data/15136560/openapi.do"
+        },
+        {
+          "id": "building_hub_details",
+          "name": "건축HUB 동별·대지위치 파일럿",
+          "url": "https://www.data.go.kr/data/15136560/openapi.do"
+        },
+        {
+          "id": "building_hub_incheon",
+          "name": "9·7 인천 주택인허가 원천",
+          "url": "https://www.data.go.kr/data/15136560/openapi.do"
+        },
+        {
+          "id": "building_register",
+          "name": "건축HUB 주거용 건축물대장",
+          "url": "https://www.data.go.kr/data/15134735/openapi.do"
+        },
+        {
+          "id": "building_register_recap",
+          "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+          "url": "https://www.data.go.kr/data/15134735/openapi.do"
+        },
+        {
+          "id": "incheon_statistics",
+          "name": "인천 주택 인허가·착공·준공·분양승인 통계",
+          "url": "https://stat.molit.go.kr/portal/api/info.do"
+        },
+        {
+          "id": "kosis_age",
+          "name": "KOSIS 수도권 시군구 연령별 주민등록인구",
+          "url": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1B04005N"
+        },
+        {
+          "id": "kosis_employment",
+          "name": "KOSIS 시군구별 반기 고용·취업자",
+          "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do"
+        },
+        {
+          "id": "kosis_household_forecast",
+          "name": "KOSIS 시도별 장래가구추계",
+          "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do"
+        },
+        {
+          "id": "kosis_household_size",
+          "name": "KOSIS 서울·경기 가구원수별 일반가구",
+          "url": "https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE"
+        },
+        {
+          "id": "kosis_housing",
+          "name": "KOSIS 서울·경기 일반가구·다가구 반영 주택 재고",
+          "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do"
+        },
+        {
+          "id": "kosis_living",
+          "name": "KOSIS 소득·인구이동·거주기간·주거형태",
+          "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do"
+        },
+        {
+          "id": "molit_statistics",
+          "name": "서울·경기 주택건설 공식 통계",
+          "url": "https://stat.molit.go.kr/portal/api/info.do"
+        },
+        {
+          "id": "policy_907_incheon_geometry",
+          "name": "9·7 인천 시군구 경계",
+          "url": "https://www.vworld.kr/v4po_openapi_s001.do"
+        },
+        {
+          "id": "project_locations",
+          "name": "사업 대표 주소·지역 근사 좌표",
+          "url": "https://www.vworld.kr/v4po_openapi_s001.do"
+        },
+        {
+          "id": "sgis_area",
+          "name": "SGIS 서울·경기 인구·가구·사업체·산업 종사자",
+          "url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html"
+        },
+        {
+          "id": "sh_redevelopment",
+          "name": "SH 공공재개발·재건축 사업현황",
+          "url": "https://www.data.go.kr/data/15124798/fileData.do"
+        },
+        {
+          "id": "sh_supply_plan",
+          "name": "SH 주택분양 공급계획·과거 공개본",
+          "url": "https://www.data.go.kr/data/15008820/fileData.do"
+        },
+        {
+          "id": "unsold_statistics",
+          "name": "수도권 미분양·준공 후 미분양 월별 재고",
+          "url": "https://stat.molit.go.kr/portal/api/info.do"
+        },
+        {
+          "id": "vworld",
+          "name": "행정구역 경계·주소 좌표",
+          "url": "https://www.vworld.kr/v4po_openapi_s001.do"
+        },
+        {
+          "id": "vworld_district",
+          "name": "VWorld 공공주택지구 공동주택용지",
+          "url": "https://www.vworld.kr/v4po_openapi_s001.do"
+        },
+        {
+          "id": "vworld_municipality",
+          "name": "VWorld 서울·경기 시군구 경계",
+          "url": "https://www.vworld.kr/v4po_openapi_s001.do"
+        }
+      ],
+      "source_count": 23,
+      "today_source_count": 8
+    },
+    {
+      "id": "PRESS",
+      "label": "정부·공공기관 보도자료",
+      "source_ids": [
+        "policy_129",
+        "policy_813",
+        "policy_907",
+        "policy_907_plan",
+        "policy_history",
+        "urban_930"
+      ],
+      "today_source_ids": [
+        "policy_129",
+        "policy_813",
+        "policy_907",
+        "policy_history",
+        "urban_930"
+      ],
+      "records": 164,
+      "columns": 218,
+      "extracted_cells": 4683,
+      "linked_records": 117,
+      "today_records": 126,
+      "today_extracted_cells": 3762,
+      "today_linked_records": 117,
+      "access_methods": [
+        "웹",
+        "파일"
+      ],
+      "description": "정부와 공공기관이 발표한 정책 내용·공급 목표·후속 계획을 수집합니다.",
+      "sources": [
+        {
+          "id": "policy_129",
+          "name": "1·29 도심 주택공급 확대 및 신속화",
+          "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156742030"
+        },
+        {
+          "id": "policy_813",
+          "name": "8·13 주택 신속공급 방안",
+          "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156774369"
+        },
+        {
+          "id": "policy_907",
+          "name": "9·7 주택공급 확대방안",
+          "url": "https://d.nts.go.kr/cheonan/na/ntt/selectNttInfo.do?mi=4611&nttSn=1353601"
+        },
+        {
+          "id": "policy_907_plan",
+          "name": "9·7 전체 연도·유형별 착공 목표 원문",
+          "url": "https://eiec.kdi.re.kr/policy/materialView.do?num=270716"
+        },
+        {
+          "id": "policy_history",
+          "name": "정책 기원·후속조치 이력",
+          "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148856563"
+        },
+        {
+          "id": "urban_930",
+          "name": "서울 도심복합사업 9·30 후속조치",
+          "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148972807"
+        }
+      ],
+      "source_count": 6,
+      "today_source_count": 5
+    },
+    {
+      "id": "NEWS",
+      "label": "언론사 뉴스 기사",
+      "source_ids": [],
+      "today_source_ids": [],
+      "records": 0,
+      "columns": 0,
+      "extracted_cells": 0,
+      "linked_records": 0,
+      "today_records": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "access_methods": [],
+      "description": "언론사가 보도한 주택 정책과 사업 관련 기사를 수집하는 유형입니다.",
+      "sources": [],
+      "source_count": 0,
+      "today_source_count": 0
+    },
+    {
+      "id": "NOTICE",
+      "label": "분양·임대 입주자 모집공고",
+      "source_ids": [
+        "cheongyak",
+        "gh_notice",
+        "lh_notice",
+        "lh_notice_detail"
+      ],
+      "today_source_ids": [],
+      "records": 5956,
+      "columns": 127,
+      "extracted_cells": 138118,
+      "linked_records": 168,
+      "today_records": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "access_methods": [
+        "API",
+        "웹"
+      ],
+      "description": "분양·임대 모집공고에서 공급 호수·주택형·모집 일정·입주 예정일을 가져옵니다.",
+      "sources": [
+        {
+          "id": "cheongyak",
+          "name": "청약홈 분양정보",
+          "url": "https://www.data.go.kr/data/15098547/openapi.do"
+        },
+        {
+          "id": "gh_notice",
+          "name": "GH 주택 공고·과거 목록",
+          "url": "https://apply.gh.or.kr/sb/sr/sr7150/selectPbancRentHouseList.do"
+        },
+        {
+          "id": "lh_notice",
+          "name": "LH 분양·임대 공고",
+          "url": "https://www.data.go.kr/data/15058530/openapi.do"
+        },
+        {
+          "id": "lh_notice_detail",
+          "name": "LH 모집공고 상세 · 입주 예정월",
+          "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do"
+        }
+      ],
+      "source_count": 4,
+      "today_source_count": 0
+    },
+    {
+      "id": "STATISTICS",
+      "label": "주택·인구·가격 공식 통계",
+      "source_ids": [
+        "molit_demolition",
+        "national_statistics",
+        "reb_apartment_price"
+      ],
+      "today_source_ids": [
+        "molit_demolition",
+        "reb_apartment_price"
+      ],
+      "records": 5169,
+      "columns": 62,
+      "extracted_cells": 148364,
+      "linked_records": 0,
+      "today_records": 640,
+      "today_extracted_cells": 9002,
+      "today_linked_records": 0,
+      "access_methods": [
+        "웹",
+        "파일"
+      ],
+      "description": "기관이 공표한 주택 공급량·멸실량·가격지수 등의 통계 수치를 가져옵니다.",
+      "sources": [
+        {
+          "id": "molit_demolition",
+          "name": "국토부 연도별 주택멸실현황 · 서울·경기",
+          "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839"
+        },
+        {
+          "id": "national_statistics",
+          "name": "전국 주택 공급단계 통계 · 보관 원본 확대 추출",
+          "url": "https://stat.molit.go.kr/portal/api/info.do"
+        },
+        {
+          "id": "reb_apartment_price",
+          "name": "한국부동산원 수도권 아파트 매매가격지수",
+          "url": "https://www.reb.or.kr/r-one/portal/stat/easyStatPage/A_2024_00045.do"
+        }
+      ],
+      "source_count": 3,
+      "today_source_count": 2
+    },
+    {
+      "id": "FILE",
+      "label": "기관 공개 데이터 파일",
+      "source_ids": [
+        "complex_approval_reference",
+        "gh_files",
+        "lh_completion_plan",
+        "lh_history",
+        "lh_movein_history",
+        "lh_progress",
+        "lh_reit_progress",
+        "lh_stock",
+        "lh_supply_history",
+        "molit_renewal_inventory",
+        "sh_files"
+      ],
+      "today_source_ids": [
+        "gh_files",
+        "lh_completion_plan",
+        "lh_history",
+        "lh_movein_history",
+        "lh_progress",
+        "lh_reit_progress",
+        "lh_stock",
+        "lh_supply_history",
+        "molit_renewal_inventory",
+        "sh_files"
+      ],
+      "records": 31602,
+      "columns": 340,
+      "extracted_cells": 860086,
+      "linked_records": 130,
+      "today_records": 6767,
+      "today_extracted_cells": 189541,
+      "today_linked_records": 130,
+      "access_methods": [
+        "파일"
+      ],
+      "description": "기관이 공개한 파일에서 사업 목록·공급계획·건설 실적 등을 읽어옵니다.",
+      "sources": [
+        {
+          "id": "complex_approval_reference",
+          "name": "한국부동산원 공동주택 단지·필지 사용승인 참조",
+          "url": "https://www.data.go.kr/data/15106861/fileData.do"
+        },
+        {
+          "id": "gh_files",
+          "name": "GH 재건축 매입임대 현황",
+          "url": "https://www.data.go.kr/data/15112600/fileData.do"
+        },
+        {
+          "id": "lh_completion_plan",
+          "name": "LH 공공주택 블록별 준공예정",
+          "url": "https://www.data.go.kr/data/15141761/fileData.do"
+        },
+        {
+          "id": "lh_history",
+          "name": "LH 과거 건설공사 현황",
+          "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682"
+        },
+        {
+          "id": "lh_movein_history",
+          "name": "LH 연도별 입주계획 공개본",
+          "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654827&mid=a10103010000&nPage=1"
+        },
+        {
+          "id": "lh_progress",
+          "name": "LH 블록별 실제 공정률 · 공개 상세 이력",
+          "url": "https://apply.lh.or.kr/lhapply/land/cwsttList.do"
+        },
+        {
+          "id": "lh_reit_progress",
+          "name": "LH 공공임대리츠 실제 공정률 · 2018 투자보고서",
+          "url": "https://www.lh.or.kr/boardDownload.es?bid=0028&list_no=651950&seq=1"
+        },
+        {
+          "id": "lh_stock",
+          "name": "LH 단지정보 · 과거 준공·입주지정 일정",
+          "url": "https://www.data.go.kr/data/15080989/fileData.do"
+        },
+        {
+          "id": "lh_supply_history",
+          "name": "LH 공공분양 공급현황 2020~2025",
+          "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=727605&mid=a10103040000&nPage=1"
+        },
+        {
+          "id": "molit_renewal_inventory",
+          "name": "국토부 전국 정비사업 통합 현황 · 서울·경기 후보",
+          "url": "https://www.data.go.kr/data/15160169/fileData.do"
+        },
+        {
+          "id": "sh_files",
+          "name": "SH 주택관리현황 2024~2026 공개본",
+          "url": "https://data.seoul.go.kr/dataList/OA-12027/S/1/datasetView.do"
+        }
+      ],
+      "source_count": 11,
+      "today_source_count": 10
+    },
+    {
+      "id": "GIS",
+      "label": "지도 경계·위치·행정구역 자료",
+      "source_ids": [
+        "incheon_legal_dongs",
+        "legal_dongs",
+        "lh_block_location"
+      ],
+      "today_source_ids": [
+        "legal_dongs",
+        "lh_block_location"
+      ],
+      "records": 3180,
+      "columns": 55,
+      "extracted_cells": 64596,
+      "linked_records": 0,
+      "today_records": 2902,
+      "today_extracted_cells": 58758,
+      "today_linked_records": 0,
+      "access_methods": [
+        "웹",
+        "파일"
+      ],
+      "description": "지도에 표시할 행정구역 코드·지구 경계·블록 위치를 가져옵니다.",
+      "sources": [
+        {
+          "id": "incheon_legal_dongs",
+          "name": "9·7 인천 전체 법정동 코드",
+          "url": "https://www.code.go.kr/stdcode/regCodeL.do"
+        },
+        {
+          "id": "legal_dongs",
+          "name": "서울·경기 전체 법정동 코드",
+          "url": "https://www.code.go.kr/stdcode/regCodeL.do"
+        },
+        {
+          "id": "lh_block_location",
+          "name": "LH 공개 지도 블록 라벨 위치",
+          "url": "https://bizmap.lh.or.kr/lhmap.do"
+        }
+      ],
+      "source_count": 3,
+      "today_source_count": 2
+    },
+    {
+      "id": "DOCUMENT",
+      "label": "사업계획·고시·추진현황 문서",
+      "source_ids": [
+        "gh_completion_evidence",
+        "gyeonggi_plan_notice_pilot",
+        "lh_incheon_construction",
+        "lh_incheon_rent",
+        "lh_incheon_sale",
+        "seoul_cleanup",
+        "seoul_plan_notice_pilot"
+      ],
+      "today_source_ids": [
+        "gh_completion_evidence",
+        "lh_incheon_construction",
+        "lh_incheon_rent",
+        "lh_incheon_sale"
+      ],
+      "records": 54,
+      "columns": 178,
+      "extracted_cells": 1341,
+      "linked_records": 45,
+      "today_records": 33,
+      "today_extracted_cells": 871,
+      "today_linked_records": 26,
+      "access_methods": [
+        "웹",
+        "파일"
+      ],
+      "description": "사업계획·변경 고시·추진현황 문서에서 사업별 물량과 일정을 확인합니다.",
+      "sources": [
+        {
+          "id": "gh_completion_evidence",
+          "name": "GH 사용검사·사용승인 원문 증빙",
+          "url": "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeList.do"
+        },
+        {
+          "id": "gyeonggi_plan_notice_pilot",
+          "name": "경기 고양창릉 지구지정 변경 고시 원문",
+          "url": "https://www.molit.go.kr/USR/I0204/m_45/dtl.jsp?idx=18272"
+        },
+        {
+          "id": "lh_incheon_construction",
+          "name": "LH 인천 실제 착공·공정 현황",
+          "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682"
+        },
+        {
+          "id": "lh_incheon_rent",
+          "name": "LH 인천 임대 공급계획",
+          "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06"
+        },
+        {
+          "id": "lh_incheon_sale",
+          "name": "LH 인천 분양 공급계획",
+          "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05"
+        },
+        {
+          "id": "seoul_cleanup",
+          "name": "서울 정비사업 정보몽땅·추진경과",
+          "url": "https://cleanup.seoul.go.kr/cleanup/bsnssttus/lscrMainIndx.do"
+        },
+        {
+          "id": "seoul_plan_notice_pilot",
+          "name": "서울 공덕1 정비구역 변경 고시 원문",
+          "url": "https://event.seoul.go.kr/seoulsibo/detailview.do?cn_seq=MTc1Mjc%3D&tr_code=snews"
+        }
+      ],
+      "source_count": 7,
+      "today_source_count": 4
+    },
+    {
+      "id": "WEB",
+      "label": "기관 홈페이지 게시자료",
+      "source_ids": [
+        "gh_supply_plan",
+        "lh_construction",
+        "lh_rent",
+        "lh_sale",
+        "sh_inventory"
+      ],
+      "today_source_ids": [
+        "gh_supply_plan",
+        "lh_construction",
+        "lh_rent",
+        "lh_sale",
+        "sh_inventory"
+      ],
+      "records": 159,
+      "columns": 131,
+      "extracted_cells": 4237,
+      "linked_records": 159,
+      "today_records": 159,
+      "today_extracted_cells": 4237,
+      "today_linked_records": 159,
+      "access_methods": [
+        "웹"
+      ],
+      "description": "기관 홈페이지의 사업·주택 현황 등 게시 내용에서 필요한 항목을 가져옵니다.",
+      "sources": [
+        {
+          "id": "gh_supply_plan",
+          "name": "GH 주택 분양·임대 공급계획",
+          "url": "https://www.gh.or.kr/gh/housing-stability-in-gyeonggi-do001.do"
+        },
+        {
+          "id": "lh_construction",
+          "name": "LH 건설공사 현황",
+          "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682"
+        },
+        {
+          "id": "lh_rent",
+          "name": "LH 연간 임대주택 공급계획",
+          "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06"
+        },
+        {
+          "id": "lh_sale",
+          "name": "LH 연간 분양주택 공급계획",
+          "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05"
+        },
+        {
+          "id": "sh_inventory",
+          "name": "SH 최신 공개본 사업 연결",
+          "url": "https://www.data.go.kr/data/15124798/fileData.do"
+        }
+      ],
+      "source_count": 5,
+      "today_source_count": 5
+    }
+  ],
+  "groups": [
+    {
+      "source_id": "area_national_benchmarks",
+      "kind": "area_benchmark",
+      "rows": 3,
+      "columns": 15,
+      "extracted_cells": 45,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_hub",
+      "kind": "permit",
+      "rows": 237433,
+      "columns": 30,
+      "extracted_cells": 7122990,
+      "linked_records": 56,
+      "today_rows": 4,
+      "today_extracted_cells": 120,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_hub_details",
+      "kind": "permit_dong",
+      "rows": 84291,
+      "columns": 26,
+      "extracted_cells": 2191566,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_hub_details",
+      "kind": "permit_parcel",
+      "rows": 250777,
+      "columns": 28,
+      "extracted_cells": 7021756,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_hub_incheon",
+      "kind": "permit",
+      "rows": 441,
+      "columns": 26,
+      "extracted_cells": 11466,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_register",
+      "kind": "register",
+      "rows": 1046841,
+      "columns": 36,
+      "extracted_cells": 37686276,
+      "linked_records": 0,
+      "today_rows": 2231,
+      "today_extracted_cells": 80316,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "building_register_recap",
+      "kind": "register_recap",
+      "rows": 1539,
+      "columns": 32,
+      "extracted_cells": 49248,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "cheongyak",
+      "kind": "notice",
+      "rows": 1113,
+      "columns": 24,
+      "extracted_cells": 26712,
+      "linked_records": 42,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "API"
+    },
+    {
+      "source_id": "complex_approval_reference",
+      "kind": "complex_approval_reference",
+      "rows": 24835,
+      "columns": 27,
+      "extracted_cells": 670545,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "gh_completion_evidence",
+      "kind": "gh_completion_evidence",
+      "rows": 7,
+      "columns": 27,
+      "extracted_cells": 189,
+      "linked_records": 0,
+      "today_rows": 7,
+      "today_extracted_cells": 189,
+      "today_linked_records": 0,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "gh_files",
+      "kind": "agency_stock",
+      "rows": 21,
+      "columns": 28,
+      "extracted_cells": 588,
+      "linked_records": 0,
+      "today_rows": 21,
+      "today_extracted_cells": 588,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "gh_notice",
+      "kind": "document_evidence",
+      "rows": 4,
+      "columns": 25,
+      "extracted_cells": 100,
+      "linked_records": 4,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "gh_notice",
+      "kind": "gh_notice",
+      "rows": 694,
+      "columns": 21,
+      "extracted_cells": 14574,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "gh_supply_plan",
+      "kind": "project",
+      "rows": 2,
+      "columns": 24,
+      "extracted_cells": 48,
+      "linked_records": 2,
+      "today_rows": 2,
+      "today_extracted_cells": 48,
+      "today_linked_records": 2,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "gyeonggi_plan_notice_pilot",
+      "kind": "plan_notice",
+      "rows": 1,
+      "columns": 26,
+      "extracted_cells": 26,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "incheon_legal_dongs",
+      "kind": "policy_legal_dong",
+      "rows": 278,
+      "columns": 21,
+      "extracted_cells": 5838,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "incheon_statistics",
+      "kind": "statistic",
+      "rows": 320,
+      "columns": 27,
+      "extracted_cells": 8640,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_age",
+      "kind": "area_stat",
+      "rows": 70,
+      "columns": 17,
+      "extracted_cells": 1190,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_employment",
+      "kind": "area_stat",
+      "rows": 912,
+      "columns": 17,
+      "extracted_cells": 15504,
+      "linked_records": 0,
+      "today_rows": 912,
+      "today_extracted_cells": 15504,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_household_forecast",
+      "kind": "area_stat",
+      "rows": 33,
+      "columns": 12,
+      "extracted_cells": 396,
+      "linked_records": 0,
+      "today_rows": 33,
+      "today_extracted_cells": 396,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_household_size",
+      "kind": "area_stat",
+      "rows": 552,
+      "columns": 12,
+      "extracted_cells": 6624,
+      "linked_records": 0,
+      "today_rows": 552,
+      "today_extracted_cells": 6624,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_housing",
+      "kind": "area_stat",
+      "rows": 552,
+      "columns": 21,
+      "extracted_cells": 11592,
+      "linked_records": 0,
+      "today_rows": 552,
+      "today_extracted_cells": 11592,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "kosis_living",
+      "kind": "living_stat",
+      "rows": 965,
+      "columns": 24,
+      "extracted_cells": 23160,
+      "linked_records": 0,
+      "today_rows": 965,
+      "today_extracted_cells": 23160,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "legal_dongs",
+      "kind": "legal_dong",
+      "rows": 2629,
+      "columns": 21,
+      "extracted_cells": 55209,
+      "linked_records": 0,
+      "today_rows": 2629,
+      "today_extracted_cells": 55209,
+      "today_linked_records": 0,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_block_location",
+      "kind": "block_location",
+      "rows": 273,
+      "columns": 13,
+      "extracted_cells": 3549,
+      "linked_records": 0,
+      "today_rows": 273,
+      "today_extracted_cells": 3549,
+      "today_linked_records": 0,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "kind": "lh_completion_plan",
+      "rows": 181,
+      "columns": 27,
+      "extracted_cells": 4887,
+      "linked_records": 117,
+      "today_rows": 181,
+      "today_extracted_cells": 4887,
+      "today_linked_records": 117,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_construction",
+      "kind": "project",
+      "rows": 87,
+      "columns": 27,
+      "extracted_cells": 2349,
+      "linked_records": 87,
+      "today_rows": 87,
+      "today_extracted_cells": 2349,
+      "today_linked_records": 87,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_history",
+      "kind": "project_report",
+      "rows": 641,
+      "columns": 32,
+      "extracted_cells": 20512,
+      "linked_records": 0,
+      "today_rows": 641,
+      "today_extracted_cells": 20512,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_incheon_construction",
+      "kind": "project",
+      "rows": 16,
+      "columns": 27,
+      "extracted_cells": 432,
+      "linked_records": 16,
+      "today_rows": 16,
+      "today_extracted_cells": 432,
+      "today_linked_records": 16,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_incheon_rent",
+      "kind": "project",
+      "rows": 5,
+      "columns": 25,
+      "extracted_cells": 125,
+      "linked_records": 5,
+      "today_rows": 5,
+      "today_extracted_cells": 125,
+      "today_linked_records": 5,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_incheon_sale",
+      "kind": "project",
+      "rows": 5,
+      "columns": 25,
+      "extracted_cells": 125,
+      "linked_records": 5,
+      "today_rows": 5,
+      "today_extracted_cells": 125,
+      "today_linked_records": 5,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "kind": "lh_movein_plan",
+      "rows": 217,
+      "columns": 31,
+      "extracted_cells": 6727,
+      "linked_records": 0,
+      "today_rows": 217,
+      "today_extracted_cells": 6727,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_notice",
+      "kind": "lh_notice",
+      "rows": 4018,
+      "columns": 23,
+      "extracted_cells": 92414,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "API"
+    },
+    {
+      "source_id": "lh_notice_detail",
+      "kind": "document_evidence",
+      "rows": 127,
+      "columns": 34,
+      "extracted_cells": 4318,
+      "linked_records": 122,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_progress",
+      "kind": "project",
+      "rows": 9,
+      "columns": 29,
+      "extracted_cells": 261,
+      "linked_records": 9,
+      "today_rows": 9,
+      "today_extracted_cells": 261,
+      "today_linked_records": 9,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_progress",
+      "kind": "project_report",
+      "rows": 557,
+      "columns": 28,
+      "extracted_cells": 15596,
+      "linked_records": 0,
+      "today_rows": 557,
+      "today_extracted_cells": 15596,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_reit_progress",
+      "kind": "project_report",
+      "rows": 1,
+      "columns": 26,
+      "extracted_cells": 26,
+      "linked_records": 0,
+      "today_rows": 1,
+      "today_extracted_cells": 26,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_rent",
+      "kind": "project",
+      "rows": 18,
+      "columns": 25,
+      "extracted_cells": 450,
+      "linked_records": 18,
+      "today_rows": 18,
+      "today_extracted_cells": 450,
+      "today_linked_records": 18,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_sale",
+      "kind": "project",
+      "rows": 34,
+      "columns": 25,
+      "extracted_cells": 850,
+      "linked_records": 34,
+      "today_rows": 34,
+      "today_extracted_cells": 850,
+      "today_linked_records": 34,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "lh_stock",
+      "kind": "lh_stock",
+      "rows": 1815,
+      "columns": 29,
+      "extracted_cells": 52635,
+      "linked_records": 0,
+      "today_rows": 1815,
+      "today_extracted_cells": 52635,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "lh_supply_history",
+      "kind": "lh_supply",
+      "rows": 76,
+      "columns": 31,
+      "extracted_cells": 2356,
+      "linked_records": 0,
+      "today_rows": 76,
+      "today_extracted_cells": 2356,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "molit_demolition",
+      "kind": "statistic",
+      "rows": 14,
+      "columns": 17,
+      "extracted_cells": 238,
+      "linked_records": 0,
+      "today_rows": 14,
+      "today_extracted_cells": 238,
+      "today_linked_records": 0,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "molit_renewal_inventory",
+      "kind": "renewal_inventory",
+      "rows": 885,
+      "columns": 25,
+      "extracted_cells": 22125,
+      "linked_records": 4,
+      "today_rows": 885,
+      "today_extracted_cells": 22125,
+      "today_linked_records": 4,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "molit_statistics",
+      "kind": "statistic",
+      "rows": 640,
+      "columns": 27,
+      "extracted_cells": 17280,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "national_statistics",
+      "kind": "statistic",
+      "rows": 4468,
+      "columns": 31,
+      "extracted_cells": 138508,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "policy_129",
+      "kind": "policy",
+      "rows": 1,
+      "columns": 12,
+      "extracted_cells": 12,
+      "linked_records": 0,
+      "today_rows": 1,
+      "today_extracted_cells": 12,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_129",
+      "kind": "project",
+      "rows": 50,
+      "columns": 32,
+      "extracted_cells": 1600,
+      "linked_records": 50,
+      "today_rows": 50,
+      "today_extracted_cells": 1600,
+      "today_linked_records": 50,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_813",
+      "kind": "policy",
+      "rows": 1,
+      "columns": 12,
+      "extracted_cells": 12,
+      "linked_records": 0,
+      "today_rows": 1,
+      "today_extracted_cells": 12,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_907",
+      "kind": "policy",
+      "rows": 1,
+      "columns": 12,
+      "extracted_cells": 12,
+      "linked_records": 0,
+      "today_rows": 1,
+      "today_extracted_cells": 12,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_907",
+      "kind": "project",
+      "rows": 16,
+      "columns": 37,
+      "extracted_cells": 592,
+      "linked_records": 16,
+      "today_rows": 16,
+      "today_extracted_cells": 592,
+      "today_linked_records": 16,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_907_incheon_geometry",
+      "kind": "policy_municipality",
+      "rows": 11,
+      "columns": 11,
+      "extracted_cells": 121,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "policy_907_plan",
+      "kind": "policy_delivery_plan",
+      "rows": 1,
+      "columns": 21,
+      "extracted_cells": 21,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_907_plan",
+      "kind": "program_district_plan",
+      "rows": 20,
+      "columns": 28,
+      "extracted_cells": 560,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_907_plan",
+      "kind": "program_source",
+      "rows": 17,
+      "columns": 20,
+      "extracted_cells": 340,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "policy_history",
+      "kind": "policy_event",
+      "rows": 5,
+      "columns": 10,
+      "extracted_cells": 50,
+      "linked_records": 0,
+      "today_rows": 5,
+      "today_extracted_cells": 50,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "project_locations",
+      "kind": "project_location",
+      "rows": 194,
+      "columns": 15,
+      "extracted_cells": 2910,
+      "linked_records": 194,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "reb_apartment_price",
+      "kind": "market_price",
+      "rows": 687,
+      "columns": 14,
+      "extracted_cells": 9618,
+      "linked_records": 0,
+      "today_rows": 626,
+      "today_extracted_cells": 8764,
+      "today_linked_records": 0,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "seoul_cleanup",
+      "kind": "document_evidence",
+      "rows": 19,
+      "columns": 22,
+      "extracted_cells": 418,
+      "linked_records": 19,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "seoul_plan_notice_pilot",
+      "kind": "plan_notice",
+      "rows": 1,
+      "columns": 26,
+      "extracted_cells": 26,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "sgis_area",
+      "kind": "area_stat",
+      "rows": 483,
+      "columns": 18,
+      "extracted_cells": 8694,
+      "linked_records": 0,
+      "today_rows": 69,
+      "today_extracted_cells": 1242,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "sh_files",
+      "kind": "agency_stock",
+      "rows": 2364,
+      "columns": 27,
+      "extracted_cells": 63828,
+      "linked_records": 0,
+      "today_rows": 2364,
+      "today_extracted_cells": 63828,
+      "today_linked_records": 0,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일"
+    },
+    {
+      "source_id": "sh_inventory",
+      "kind": "project",
+      "rows": 18,
+      "columns": 30,
+      "extracted_cells": 540,
+      "linked_records": 18,
+      "today_rows": 18,
+      "today_extracted_cells": 540,
+      "today_linked_records": 18,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "sh_redevelopment",
+      "kind": "sh_project",
+      "rows": 16,
+      "columns": 26,
+      "extracted_cells": 416,
+      "linked_records": 15,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "sh_supply_plan",
+      "kind": "sh_plan",
+      "rows": 20,
+      "columns": 27,
+      "extracted_cells": 540,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "unsold_statistics",
+      "kind": "unsold",
+      "rows": 1798,
+      "columns": 17,
+      "extracted_cells": 30566,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "urban_930",
+      "kind": "document",
+      "rows": 1,
+      "columns": 5,
+      "extracted_cells": 5,
+      "linked_records": 0,
+      "today_rows": 1,
+      "today_extracted_cells": 5,
+      "today_linked_records": 0,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "urban_930",
+      "kind": "project",
+      "rows": 51,
+      "columns": 29,
+      "extracted_cells": 1479,
+      "linked_records": 51,
+      "today_rows": 51,
+      "today_extracted_cells": 1479,
+      "today_linked_records": 51,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹"
+    },
+    {
+      "source_id": "vworld",
+      "kind": "location",
+      "rows": 152,
+      "columns": 24,
+      "extracted_cells": 3648,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "vworld_district",
+      "kind": "district",
+      "rows": 35,
+      "columns": 16,
+      "extracted_cells": 560,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    },
+    {
+      "source_id": "vworld_municipality",
+      "kind": "municipality",
+      "rows": 56,
+      "columns": 14,
+      "extracted_cells": 784,
+      "linked_records": 0,
+      "today_rows": 0,
+      "today_extracted_cells": 0,
+      "today_linked_records": 0,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API"
+    }
+  ],
+  "definitions": {
+    "sources": "현재 저장된 데이터가 있는 등록 출처 수",
+    "extracted_cells": "출처·레코드 유형별 최신 행 수 × 고유 컬럼 수의 합계. 빈칸 포함, 중첩 값은 1컬럼",
+    "linked_records": "사업 데이터로 정리되거나 사업 근거로 연결된 고유 원천 레코드 수. 후보 목록·해제 링크 제외",
+    "today": "한국시간 오늘 성공 수집한 고유 레코드 기준. 재수집 포함, 같은 날 반복 수집 중복 제외",
+    "today_linked_records": "오늘 수집된 데이터 중 현재 사업에 연결된 고유 원천 레코드 수",
+    "types": "모집공고·보도자료 등 성격을 먼저 분류하고 나머지 API 연계 여부를 구분. 각 출처는 1유형만 집계"
+  }
+}

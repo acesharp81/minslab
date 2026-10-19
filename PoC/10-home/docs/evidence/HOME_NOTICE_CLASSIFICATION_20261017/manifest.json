@@ -1,0 +1,114 @@
+{
+  "round_id": "HOME-INTEGRITY-R01-CONSOLIDATED-20261017",
+  "previous_digest": "5ec20e59da2fb38dacfc5331b27730fbb4b649eecb0bfd009cb0a03b28c400cd",
+  "snapshot_id": "SNP_a33f8a68c30c8a7ad3de4fc257e2a678",
+  "known_at": "2026-10-16T17:28:30.757933+00:00",
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용 · 모집공고 사건의 분양·임대 분류 유실 수정",
+  "image": "a333f5d1c18f",
+  "verification": {
+    "python_tests": 659,
+    "subtests": 61,
+    "browser": "PASS"
+  },
+  "raw_collection_changed": false,
+  "project_mappings_changed": false,
+  "files": [
+    {
+      "path": "data/remediation/notice-classification-20261017/newly-excluded.json",
+      "sha256": "4bd618588887fe63839cf00353de69cb6a3b4c5ac6bececc2768358122ddfdb6"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/snapshot-before.json",
+      "sha256": "c23bb6260d748486d42de8e37c70cc0b82a4f701fdc64c8b05f8038df6712bd8"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/reference-rows.json",
+      "sha256": "48844057619ee69dd0eddfc835db7772af6638105c6ae2c839623776bba3268b"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/classification-changes.json",
+      "sha256": "932552d7fe31c3f48166aaeae0eabad1bd83d617f4b7aa44e7d78e054d1f34a4"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/diagnostics.json",
+      "sha256": "e1e092f4adcc517378f6ca33f3314059a42cc1d83eb0a8c3366f6243d4f070c5"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/inventory.json",
+      "sha256": "6eb137c6fc13f15faacc8c0e02857135b616edae747b123fe4cb5f5a7b80fc81"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/round.json",
+      "sha256": "ffdf20de0582e374f610fbef6c17b6d941d827cb1fc233f64a3b72f050e90ecd"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/before.json",
+      "sha256": "6225bb1b60afc3c2b7763340131d275fa0751fae9948243a85bf3a6705a77ef7"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/annual.json",
+      "sha256": "ae8cc8507355af8feddc791abdd2cb257963b093e016e9ef9f550410fa3a8c80"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/assessment.json",
+      "sha256": "bef63036638af2a109193ed06f0724e2874bc0371a0d86f179cbdb96f85da08c"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/delivery.json",
+      "sha256": "12a4d7455c33c41a6fd348be045c8a217c4b33aadfc8ea2ee5250422dbd57ef2"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/snapshot.json",
+      "sha256": "c509d39a2ab009093ebacdf15b50852b19c9aa36cc35a615b45a57807233c491"
+    },
+    {
+      "path": "data/remediation/notice-classification-20261017/projects.json",
+      "sha256": "77e06f0887f5fd44b97798666060cdb883d4113f7a92ac90da6839b34b86d4d6"
+    },
+    {
+      "path": "backend/independent_metrics.py",
+      "sha256": "21e873a0ce119a7a3d944d4a9bebd3540a18a245c0a97d0dd20a9ee01c216a8e"
+    },
+    {
+      "path": "tests/test_independent_integrity.py",
+      "sha256": "8051b8935923725e3d76abb31bd9b1beb9c1c723bbd19bf62fdb776cc9933d7d"
+    },
+    {
+      "path": "scripts/amend_notice_classification.py",
+      "sha256": "775bc909d31e9818a8b0b24266107395e1b75960c653faceefcf3fe4040cc756"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/newly-excluded.json",
+      "sha256": "4bd618588887fe63839cf00353de69cb6a3b4c5ac6bececc2768358122ddfdb6"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/round.html",
+      "sha256": "5e2539188ee2936199690f2aaee7266b34d6c991f11a67fd31a3373a218fe677"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/classification-changes.json",
+      "sha256": "932552d7fe31c3f48166aaeae0eabad1bd83d617f4b7aa44e7d78e054d1f34a4"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/diagnostics.json",
+      "sha256": "e1e092f4adcc517378f6ca33f3314059a42cc1d83eb0a8c3366f6243d4f070c5"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/round.json",
+      "sha256": "ffdf20de0582e374f610fbef6c17b6d941d827cb1fc233f64a3b72f050e90ecd"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/assessment.json",
+      "sha256": "bef63036638af2a109193ed06f0724e2874bc0371a0d86f179cbdb96f85da08c"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/browser.json",
+      "sha256": "57b282e6ff65c26e0dd0f783e7536d97492eceaf9c5a3801d4be71fce4af4a95"
+    },
+    {
+      "path": "docs/evidence/HOME_NOTICE_CLASSIFICATION_20261017/regression.xml",
+      "sha256": "52fb386b1352a9abde889bbd27de75968d1596922998534acac6f89c6c7f32db"
+    }
+  ]
+}

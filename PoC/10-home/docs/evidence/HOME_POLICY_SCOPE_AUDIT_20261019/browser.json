@@ -1,0 +1,384 @@
+{
+  "results": [
+    {
+      "label": "policy SUPPLY",
+      "exported": {
+        "label": "공급",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 8742,
+        "year_end": "2026-12-31",
+        "expected_units": 10676,
+        "plan_date": "2026-12-31",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "SUPPLY",
+        "metric": "SUPPLY",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 8742,
+      "measurement": 8742,
+      "expected": 10676,
+      "card": "공급\n▤\n현재 누적 측정량\n8,742호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n10,676호\n2026-12-31 · 계획 기준\n연말 계획까지 1,934호",
+      "values": [
+        8742,
+        10676
+      ],
+      "regions": {
+        "서울특별시": 502,
+        "인천광역시": 1082,
+        "경기도": 7158
+      }
+    },
+    {
+      "label": "policy CONSTRUCTION",
+      "exported": {
+        "label": "건설",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 13680,
+        "year_end": "2026-12-31",
+        "expected_units": 20489,
+        "plan_date": "2026-12-31",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "CONSTRUCTION",
+        "metric": "CONSTRUCTION",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 13680,
+      "measurement": 13680,
+      "expected": 20489,
+      "card": "착공(건설)\n▤\n현재 누적 측정량\n13,680호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n20,489호\n2026-12-31 · 계획 기준\n연말 계획까지 6,809호",
+      "values": [
+        13680,
+        20489
+      ],
+      "regions": {
+        "서울특별시": 3680,
+        "인천광역시": 1082,
+        "경기도": 8918
+      }
+    },
+    {
+      "label": "policy BUSINESS",
+      "exported": {
+        "label": "사업화",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 29143,
+        "year_end": "2026-12-31",
+        "expected_units": 79000,
+        "plan_date": "2026-02-17",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "BUSINESS",
+        "metric": "BUSINESS",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 29143,
+      "measurement": 29143,
+      "expected": 79000,
+      "card": "사업화\n▤\n현재 누적 측정량\n29,143호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n79,000호\n2026-12-31 · 계획 기준\n연말 계획까지 49,857호",
+      "values": [
+        29143,
+        79000
+      ],
+      "regions": {
+        "서울특별시": 8324,
+        "인천광역시": 9808,
+        "경기도": 11011
+      }
+    },
+    {
+      "label": "policy APPROVAL",
+      "exported": {
+        "label": "인허가",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 26629,
+        "year_end": "2026-12-31",
+        "expected_units": 31071,
+        "plan_date": "2026-12-31",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "APPROVAL",
+        "metric": "APPROVAL",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 26629,
+      "measurement": 26629,
+      "expected": 31071,
+      "card": "인허가\n▤\n현재 누적 측정량\n26,629호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n31,071호\n2026-12-31 · 계획 기준\n연말 계획까지 4,442호",
+      "values": [
+        26629,
+        31071
+      ],
+      "regions": {
+        "서울특별시": 8324,
+        "인천광역시": 7294,
+        "경기도": 11011
+      }
+    },
+    {
+      "label": "policy MOVE_IN",
+      "exported": {
+        "label": "입주",
+        "as_of_date": "2026-10-19",
+        "measurement_date": null,
+        "current_units": null,
+        "year_end": "2026-12-31",
+        "expected_units": null,
+        "plan_date": null,
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "MOVE_IN",
+        "metric": "MOVE_IN",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 0,
+      "measurement": null,
+      "expected": null,
+      "card": "입주\n▤\n현재 누적 측정량\n미측정\n2026-10-19 기준\n12월 말 기준 누적 예상량\n계획 미확보\n2026-12-31 · 계획 기준",
+      "values": [
+        0,
+        0
+      ],
+      "regions": {
+        "서울특별시": 0,
+        "인천광역시": 0,
+        "경기도": 0
+      }
+    },
+    {
+      "label": "Gyeonggi supply",
+      "exported": {
+        "label": "공급",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 7158,
+        "year_end": "2026-12-31",
+        "expected_units": 9209,
+        "plan_date": "2026-12-31",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "경기도",
+        "region": "경기도",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "SUPPLY",
+        "metric": "SUPPLY",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 7158,
+      "measurement": 7158,
+      "expected": 9209,
+      "card": "공급\n▤\n현재 누적 측정량\n7,158호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n9,209호\n2026-12-31 · 계획 기준\n연말 계획까지 2,051호",
+      "values": [
+        7158,
+        9209
+      ],
+      "regions": {
+        "서울특별시": 502,
+        "인천광역시": 1082,
+        "경기도": 7158
+      }
+    },
+    {
+      "label": "municipality supply",
+      "exported": {
+        "label": "공급",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 972,
+        "year_end": "2026-12-31",
+        "expected_units": 972,
+        "plan_date": "2026-09-30",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "계양구",
+        "region": "인천광역시",
+        "municipality_id": "POL_e5267d0a612a029882da204a",
+        "municipality": "계양구",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "SUPPLY",
+        "metric": "SUPPLY",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 972,
+      "measurement": 972,
+      "expected": 972,
+      "card": "공급\n▤\n현재 누적 측정량\n972호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n972호\n2026-12-31 · 계획 기준\n연말 계획과 일치",
+      "values": [
+        972,
+        972
+      ],
+      "regions": {
+        "서울특별시": 502,
+        "인천광역시": 1082,
+        "경기도": 7158
+      }
+    },
+    {
+      "label": "2027 plans, measurements capped at current date",
+      "exported": {
+        "label": "공급",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-09-30",
+        "current_units": 8742,
+        "year_end": "2027-12-31",
+        "expected_units": 21854,
+        "plan_date": "2027-11-16",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "",
+        "name": "수도권 전체",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2027,
+        "as_of_date": "2026-10-19",
+        "stage": "SUPPLY",
+        "metric": "SUPPLY",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 8742,
+      "measurement": 8742,
+      "expected": 21854,
+      "card": "공급\n▤\n현재 누적 측정량\n8,742호\n2026-10-19 기준\n12월 말 기준 누적 예상량\n21,854호\n2027-12-31 · 계획 기준\n연말 계획까지 13,112호",
+      "values": [
+        8742,
+        21854
+      ],
+      "regions": {
+        "서울특별시": 502,
+        "인천광역시": 1082,
+        "경기도": 7158
+      }
+    },
+    {
+      "label": "program supply",
+      "exported": {
+        "label": "공급",
+        "as_of_date": "2026-10-19",
+        "measurement_date": "2026-08-31",
+        "current_units": 1686,
+        "year_end": "2026-12-31",
+        "expected_units": 421,
+        "plan_date": "2026-08-31",
+        "basis": "12월 31일까지 저장된 계획 누계"
+      },
+      "scope": {
+        "policy_id": "POL_2025_0907",
+        "program_id": "PRG_ebcb517f90886388a9700386",
+        "name": "토지임대부",
+        "region": "",
+        "municipality_id": "",
+        "municipality": "",
+        "project_id": "",
+        "year": 2026,
+        "as_of_date": "2026-10-19",
+        "stage": "SUPPLY",
+        "metric": "CONSTRUCTION",
+        "axis_unit": "month",
+        "full_axis": false,
+        "portfolio": false
+      },
+      "map": 1686,
+      "measurement": 1686,
+      "expected": 421,
+      "card": "공급▤현재 누적 측정량1,686호2026-10-19 기준12월 말 기준 누적 예상량421호2026-12-31 · 계획 기준연말 계획 대비 1,265호 초과",
+      "values": [
+        1686,
+        421
+      ],
+      "regions": {
+        "서울특별시": 1686,
+        "인천광역시": 0,
+        "경기도": 0
+      }
+    }
+  ],
+  "errors": [],
+  "mobileOverflow": false
+}

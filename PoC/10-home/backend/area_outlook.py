@@ -52,6 +52,12 @@ def build_outlook(region, area, annual, projection, current_year):
 
 
 def area_outlook(service, region):
+    from .read_scope import projection_reads
+    with projection_reads():
+        return _area_outlook(service, region)
+
+
+def _area_outlook(service, region):
     if region not in ('서울특별시', '경기도', '인천광역시'):
         raise ValueError('수도권 지역만 조회할 수 있습니다')
     year = date.today().year

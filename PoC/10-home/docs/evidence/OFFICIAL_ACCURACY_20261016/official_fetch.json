@@ -1,0 +1,16 @@
+[
+  {
+    "name": "briefing",
+    "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+    "status": 200,
+    "bytes": 178048,
+    "has_268000": true
+  },
+  {
+    "name": "public_housing",
+    "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148973657",
+    "status": 200,
+    "bytes": 173010,
+    "has_268000": true
+  }
+]

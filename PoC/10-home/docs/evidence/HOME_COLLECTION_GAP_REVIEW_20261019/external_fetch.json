@@ -1,0 +1,35 @@
+[
+  {
+    "name": "period_starts",
+    "url": "https://stat.molit.go.kr/portal/api/period.do?form_id=5386&style_num=1",
+    "status": 200,
+    "bytes": 40,
+    "time": "2026-10-19T06:54:59.003727+00:00"
+  },
+  {
+    "name": "period_permits",
+    "url": "https://stat.molit.go.kr/portal/api/period.do?form_id=5375&style_num=1",
+    "status": 200,
+    "bytes": 17,
+    "time": "2026-10-19T06:54:59.011704+00:00"
+  },
+  {
+    "name": "molit_august_alt",
+    "url": "https://molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092469",
+    "error": "HTTP Error 307: The HTTP server returned a redirect error that would lead to an infinite loop.\nThe last 30x error message was:\nTemporary Redirect"
+  },
+  {
+    "name": "index_permits",
+    "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=1229",
+    "status": 200,
+    "bytes": 227244,
+    "time": "2026-10-19T06:54:59.682096+00:00"
+  },
+  {
+    "name": "annual",
+    "url": "http://127.0.0.1:18100/poc/home/api/annual-supply?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+    "status": 200,
+    "bytes": 10439,
+    "time": "2026-10-19T06:54:59.125929+00:00"
+  }
+]

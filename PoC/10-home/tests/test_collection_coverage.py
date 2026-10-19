@@ -67,7 +67,7 @@ class CollectionCoverageTests(unittest.TestCase):
         html='''<div id="cms-content">(‘26년 4월 기준)<table><thead><tr><th>사업지구</th><th>분양/임대</th><th>전용면적(㎡)</th><th>공급세대</th><th>입주자모집</th><th>입주일</th><th>문의처</th></tr></thead><tbody><!--<tr><td>과거사업</td></tr>--><tr></tr><tr><td>다산지금A3</td><td rowspan="2">통합공공임대</td><td>60㎡미만</td><td>518세대</td><td>2026년 5~6월 중(최초)</td><td>2027년 하반기 예정</td><td>공급센터</td></tr><tr><td>광주역세권</td><td>60㎡미만</td><td>316세대</td><td>2026년 5월</td><td>2026년 하반기 예정</td><td>공급센터</td></tr></tbody></table></div>'''
         rows,stats=parse_gh_plan(BY_ID['gh_supply_plan'],html)
         self.assertEqual(len(rows),2);self.assertEqual(rows[1][2]['tenure'],'통합공공임대')
-        self.assertIsNone(rows[0][2]['schedule_month']);self.assertEqual(rows[1][2]['schedule_month'],'2026-05')
+        self.assertEqual(rows[0][2]['schedule_month'],'2026-06');self.assertEqual(rows[1][2]['schedule_month'],'2026-05')
         self.assertEqual(rows[0][2]['source_move_in_label'],'2027년 하반기 예정')
         self.assertIsNone(rows[0][2]['supply_units']);self.assertFalse(stats['complete_population'])
 

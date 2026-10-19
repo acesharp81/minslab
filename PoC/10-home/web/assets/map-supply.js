@@ -10,12 +10,11 @@ const MapSupply=(()=>{
   function set(value){data=value;if(groupId&&!active())groupId='';}
   function render(value){
     set(value);MapStageRing.legend();const groups=data.groups[grouping],offsets=Array.from({length:data.horizon},(_,index)=>index+1);
-    $('map-group-select').innerHTML='<option value="">전체 그룹</option>'+groups.map(row=>`<option value="${esc(row.id)}">${esc(row.name)}</option>`).join('');$('map-group-select').value=groupId;
-    document.querySelectorAll('[data-map-group]').forEach(button=>{button.classList.toggle('selected',button.dataset.mapGroup===grouping);button.setAttribute('aria-pressed',String(button.dataset.mapGroup===grouping));});
+    $('map-group-select').innerHTML='<option value="">전체 범주</option>'+Object.entries({policy:'정책',program:'프로그램',region:'지역'}).map(([kind,label])=>'<optgroup label="'+label+'">'+(data.groups[kind]||[]).map(row=>'<option value="'+esc(kind+'|'+row.id)+'">'+esc(row.name)+'</option>').join('')+'</optgroup>').join('');
+    $('map-group-select').value=groupId?grouping+'|'+groupId:'';
     const visible=active()?[active()]:groups;
     $('map-supply-table').innerHTML=`<table class="map-supply-table"><thead><tr><th>${{policy:'정책',program:'프로그램',region:'지역'}[grouping]} · 지도 선택</th><th>목표·계획 물량</th><th>현재 공급량<small>모집공고 확인 · 연결 검토</small></th>${offsets.map(offset=>`<th>향후 ${offset}년 내<small>~${data.analysis_year+offset}년 말 · ${esc(data.measure_label)}</small></th>`).join('')}</tr></thead><tbody>${visible.map(row=>`<tr class="${row.id===groupId?'selected':''}"><th><button data-map-group-id="${esc(row.id)}">${esc(row.name)}</button><small>원천 사업 ${num(row.project_count)}건</small></th><td><b>${units(row.announced_target_units??row.target_units)}</b><small>${row.announced_target_units!=null?esc(row.target_metric)+' · '+esc(row.target_scope):'확보 계획량 · 검토 합계'}</small>${row.announced_target_units!=null?`<small>수도권 사업계획 ${textUnits(row.target_units)}</small>`:''}<small>${num(row.target_counted_projects)}건 집계 · 중복/모호 ${num(row.target_excluded_projects)}건 제외</small></td><td>${currentCell(row)}</td>${offsets.map(offset=>`<td>${cell(row.future[offset-1])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${3+offsets.length}">${data.analysis_year}년의 연결된 사업 자료가 없습니다. 지도 옆에서 정책 발표와 공고 이력을 확인하세요.</td></tr>`}</tbody></table>`;
     $('map-supply-note').textContent=data.reference_date+' 자료 기준 · '+data.future_basis+' · '+data.notice;
-    $('map-analysis-year').innerHTML=Array.from({length:data.current_year-data.start_year+1},(_,index)=>data.start_year+index).map(value=>`<option value="${value}">${value}년${value===data.current_year?' (현재)':''}</option>`).join('');$('map-analysis-year').value=data.analysis_year;
     $('roadmap-export').hidden=data.analysis_year<data.current_year;$('roadmap-export').textContent='현재 사업 목표 CSV ↓';
     const csvParams=new URLSearchParams(window.query());
     for(const [key,value] of new URLSearchParams(query()))csvParams.set(key,value);
@@ -46,18 +45,16 @@ const MapSupply=(()=>{
     return items.length?`<div class="map-district-quantity"><b>선택 지구 · ${esc(data.measure_label)} 예정</b>${items.map(item=>`<span>${item.offset}년 내 <strong>${units(item.source_units)}</strong></span>`).join('')}</div>`:'';
   }
 
-  function start(draw,fit,changeYear){
+  function start(draw,fit){
     redraw=draw;
     refit=fit;
-    $('map-group-select').addEventListener('change',event=>{groupId=event.target.value;draw();fit();});
-    $('map-measure').addEventListener('change',()=>{MapStageRing.legend();draw();});$('map-analysis-year').addEventListener('change',event=>changeYear(event.target.value));
+    $('map-group-select').addEventListener('change',event=>{const value=event.target.value,index=value.indexOf('|');grouping=index>=0?value.slice(0,index):'policy';groupId=index>=0?value.slice(index+1):'';draw();fit();});
     document.addEventListener('click',event=>{
-      const tab=event.target.closest('[data-map-group]');if(tab){grouping=tab.dataset.mapGroup;groupId='';draw();fit();}
       const group=event.target.closest('[data-map-group-id]');if(group){groupId=groupId===group.dataset.mapGroupId?'':group.dataset.mapGroupId;draw();fit();}
     });
   }
-  function query(){const params=new URLSearchParams({horizon:$('roadmap-horizon').value,measure:'SUPPLY',schedule_status:$('roadmap-status').value});const value=$('map-analysis-year').value;if(value&&Number(value)<Number($('as-of').value.slice(0,4)))params.set('analysis_year',value);return params.toString();}
-  function reset(){groupId='';$('map-analysis-year').value='';}
+  function query(){return new URLSearchParams({horizon:10,measure:'SUPPLY',schedule_status:'all'}).toString();}
+  function reset(){groupId='';grouping='policy';}
   function select(kind,id){grouping=kind;groupId=id;redraw();refit();}
   return {set,render,panels,filter,start,query,reset,textUnits,districtQuantity,districtPanel,active,selection:()=>({kind:grouping,id:groupId}),select};
 })();

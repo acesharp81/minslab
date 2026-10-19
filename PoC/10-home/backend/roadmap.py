@@ -48,6 +48,8 @@ def source_events(row, as_of):
         if not row.get("start_actual_date"):
             add("CONSTRUCTION",row.get("start_plan_date"),row.get("planned_units"),"원천 계약 착공 예정일")
         add("COMPLETION",row.get("completion_plan_date"),row.get("planned_units"),"공사 계약 준공예정 · 입주일 아님")
+    if row.get('source_id')=='lh_policy_followup':
+        add('CONSTRUCTION',row.get('start_plan_month'),row.get('planned_units'),'LH 정책 후속 개별 공모 착공 목표월')
     if row.get('start_plan_year') and not row.get('start_actual_date') and not row.get('start_plan_date'):
         add('CONSTRUCTION',str(row['start_plan_year'])+'년',row.get('planned_units'),row.get('schedule_basis') or '공식 착공 예정연도 · 연말 표기')
     if row.get('source_id')=='policy_129':

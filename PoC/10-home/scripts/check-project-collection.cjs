@@ -4,17 +4,17 @@ const assert=require('node:assert/strict');
 try{const base=process.env.HOME_CHECK_BASE||'http://127.0.0.1:18101',page=await browser.newPage({viewport:{width:1600,height:1100}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.goto(base+'/poc/home/#project-collection');await page.waitForSelector('.pc-matrix tbody tr',{timeout:90000});
 assert.equal(await page.locator('#pc-policy').inputValue(),'POL_2025_0907');assert.equal(await page.locator('.pc-matrix thead th').count(),7);assert.equal(await page.locator('#pc-stage-tabs button').count(),7);
-assert.match(await page.locator('#pc-diagram').innerText(),/수집 원천/);assert.equal(await page.locator('#pc-table a,#pc-diagram a').count(),0);
-assert.equal(await page.locator('[data-cl-node^="key-"]:not([data-cl-node^="key-edge-"])').count(),6);
-assert(await page.locator('.cl-missing').count()>0);assert.equal(await page.locator('[data-cl-node^="extra-edge-"]').count(),8);
-await page.locator('[data-cl-node="key-pnu"]').click();assert.match(await page.locator('#pc-diagram-detail').innerText(),/미확보/);
-await page.locator('[data-cl-node="extra-parcel"]').focus();await page.keyboard.press('Enter');assert.match(await page.locator('#pc-diagram-detail').innerText(),/19자리 PNU/);
+assert.match(await page.locator('#pc-diagram').innerText(),/단계별 입력 자료/);assert.equal(await page.locator('#pc-table a,#pc-diagram a').count(),0);
+assert.equal(await page.locator('[data-cl-node^="stage-"]').count(),6);
+assert.equal(await page.locator('[data-cl-node^="transition-"]').count(),5);
+await page.locator('[data-cl-node="key-pnu"]').click();assert.match(await page.locator('#pc-lineage-dialog').innerText(),/PNU|필지/);await page.keyboard.press('Escape');
+await page.locator('[data-cl-node="key-pnu"]').focus();await page.keyboard.press('Enter');assert.match(await page.locator('#pc-lineage-dialog').innerText(),/19자리 PNU/);await page.keyboard.press('Escape');
 const overflow=await page.locator('text[data-cl-width]').evaluateAll(nodes=>nodes.filter(t=>t.getComputedTextLength()>Number(t.dataset.clWidth)+1).length);assert.equal(overflow,0);
 await page.locator('.pc-diagram-card').screenshot({path:'/tmp/home-lineage-overview.png'});
-for(const stage of ['POLICY','BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY','MOVE_IN']){await page.locator('[data-pc-diagram="'+stage+'"]').click();assert.equal(await page.locator('.cl-graph').count(),1);assert.equal(await page.locator('[data-cl-node^="output-"]:not([data-cl-node^="output-edge-"])').count(),4);}
+for(const stage of ['POLICY','BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY','MOVE_IN']){await page.locator('[data-pc-diagram="'+stage+'"]').click();assert.equal(await page.locator('.cl-graph').count(),1);assert.equal(await page.locator('[data-cl-node^="output-"]:not([data-cl-node^="output-edge-"])').count(),4);assert.equal(await page.locator('[data-cl-node^="extra-edge-"]').count(),8);}
 await page.locator('[data-pc-diagram="ALL"]').click();
 await page.screenshot({path:'/tmp/home-project-collection-overview.png',fullPage:true});
-const sourceBefore=await page.locator('#pc-diagram').innerText();await page.locator('[data-pc-diagram="APPROVAL"]').click();assert.notEqual(await page.locator('#pc-diagram').innerText(),sourceBefore);assert.match(await page.locator('#pc-diagram').innerText(),/건축HUB/);
+const sourceBefore=await page.locator('#pc-diagram').innerText();await page.locator('[data-pc-diagram="APPROVAL"]').click();assert.notEqual(await page.locator('#pc-diagram').innerText(),sourceBefore);assert.match(await page.locator('#pc-diagram').innerText(),/추가 확보·연결 보완 자료/);assert.match(await page.locator('#pc-diagram').innerText(),/건축HUB/);
 const projectName=await page.locator('[data-pc-project]').first().innerText();await page.locator('[data-pc-project]').first().click();assert((await page.locator('#pc-diagram-context').innerText()).includes(projectName));
 await page.locator('[data-pc-cell][data-pc-stage="MOVE_IN"]').first().click();await page.locator('.pc-source-dialog footer button').click();await page.locator('.pc-source-dialog').waitFor({state:'detached'});await page.locator('#pc-cell-detail').waitFor({state:'visible'});assert.equal(await page.locator('#pc-assessment-form').count(),0);
 await page.locator('#pc-region').selectOption('인천광역시');assert((await page.locator('#pc-table').innerText()).includes('인천광역시'));assert(!(await page.locator('#pc-table').innerText()).includes('서울특별시'));
@@ -25,5 +25,5 @@ await page.locator('[data-pc-cell][data-pc-stage="MOVE_IN"]').first().click();aw
 await page.locator('#pc-assessment-form').waitFor();let submitted;await page.route('**/api/admin/project-collection/assessment',async r=>{submitted=r.request().postDataJSON();await r.fulfill({json:{...submitted,revision_no:1}});});
 await page.locator('#pc-assessment-form [name="status"]').selectOption('NOT_PLANNED');await page.locator('#pc-assessment-form [name="basis"]').fill('브라우저 검증 · 실제 저장하지 않음');await page.locator('#pc-assessment-form button').click();await page.locator('#pc-message').filter({hasText:'DB에 저장했습니다'}).waitFor();assert.equal(submitted.status,'NOT_PLANNED');assert(submitted.project_id);
 const csv=await page.request.get(base+'/poc/home/api/project-collection/export.csv?policy_id=POL_2025_0907');assert.equal(csv.status(),200);assert.match(await csv.text(),/사업,지역,정책,프로그램,정책,사업화,인허가,건설,공급,입주/);
-assert.deepEqual(errors,[]);console.log(JSON.stringify({errors,checks:['별도 메뉴·9.7 기본값','6단계 필드 연결 다이어그램·미확보/보완 경로','키 상세·키보드 탐색·텍스트 경계','사업 선택 연동','지역·검색·미확보 필터','URL 없는 사업별 표·CSV','관리자 판정 폼'],admin_write_intercepted:true},null,2));
+assert.deepEqual(errors,[]);console.log(JSON.stringify({errors,checks:['별도 메뉴·9.7 기본값','정책→입주 6단계·사업 ID 연결 흐름','키 상세·키보드 탐색·텍스트 경계','사업 선택 연동','지역·검색·미확보 필터','URL 없는 사업별 표·CSV','관리자 판정 폼'],admin_write_intercepted:true},null,2));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});

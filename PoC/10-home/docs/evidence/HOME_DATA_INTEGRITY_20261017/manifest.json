@@ -1,0 +1,34 @@
+{
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용",
+  "files": {
+    "ih-official-swagger.json": {
+      "sha256": "b8712e838ef96e7fe0c67b5b8de9e5bd377276ab85890b2ee2b0827040cb0e04",
+      "bytes": 55385
+    },
+    "production-browser-verification.json": {
+      "sha256": "a08c1f667817dfb53769665ceb396adf1371cefb21e532024808ff7dd348ebca",
+      "bytes": 249
+    },
+    "r01-operation.json": {
+      "sha256": "d679e617d30e0f84f412b5f17caa6f2da35d4fa8e3133801040ef1e689cee122",
+      "bytes": 2079
+    },
+    "r02-ih-verification.json": {
+      "sha256": "64405bc144dd85dfe36e34f6965df39272cfe1c9aa1a05e7e9e41386d2bb63e0",
+      "bytes": 4242
+    },
+    "browser-verification.json": {
+      "sha256": "48c7441af299f0fae84c605d8e6cc836ba05f6e78a7d7b86bcdb596c5e11ea50",
+      "bytes": 550
+    },
+    "r02-regression.xml": {
+      "sha256": "330016eb62120f0b01ec086271b43a679e8558ac09cdb5d03b815fa400346c72",
+      "bytes": 90168
+    },
+    "matching-evaluation.json": {
+      "sha256": "058c56ef4d4cee5d4cbcd73bb2f8b0070281f050b44d6e0c1c0913cff933e331",
+      "bytes": 15536
+    }
+  }
+}

@@ -65,13 +65,66 @@ const PolicyRegionMap = (() => {
       b.innerHTML=(p.delayed?'<span class="prm-delay-marker" aria-hidden="true">!</span>':'')+escape(p.name.replace(c.region+' ',''))+(value?'<strong>'+units(value)+'</strong>':lastModel.aggregate?'<strong>확인량 미확보</strong>':'');b.title=p.name+' · '+lastModel.stages[lastModel.stage]+' '+(value?units(value):'확인 물량 없음');if(p.delayed)b.title+=' · 지연: '+p.delayNote;b.setAttribute('aria-label',b.title);layer.append(b);
     }
   }
+  const cardStages=[['POLICY','정책','#285e66'],['BUSINESS','사업화','#43968e'],['APPROVAL','인허가','#8b9f53'],['CONSTRUCTION','건설','#bf9c52'],['SUPPLY','공급','#957b94'],['MOVE_IN','입주','#647e9c']];
+  // Split housing quantities into exclusive stages, allocating later stages first.
+  function stageDistribution(items,when,asOf){
+    const counts=Object.fromEntries(cardStages.map(([key])=>[key,0])),projects=new Map(),cutoff=when<asOf?when:asOf;
+    let total=0;
+    for(const item of items){const id=item.id??item;const previous=projects.get(id);projects.set(id,previous?{...previous,events:[...(previous.events||[]),...(item.events||[])]}:item);}
+    for(const item of projects.values()){
+      const rawCapacity=Number(item.units??item.planned_units??0),capacity=Number.isFinite(rawCapacity)?Math.max(0,rawCapacity):0;
+      const reached=Object.fromEntries(cardStages.map(([key])=>[key,0]));
+      total+=capacity;
+      for(const event of item.events||[]){
+        if(!event.event_date||event.event_date>cutoff||event.status==='DELAYED'||event.origin==='PLANNED')continue;
+        const key=event.stage==='COMPLETION'?'CONSTRUCTION':event.stage,quantity=Number(event.units??capacity);
+        if(key in reached&&Number.isFinite(quantity))reached[key]=Math.max(reached[key],Math.min(capacity,Math.max(0,quantity)));
+      }
+      let assigned=0;
+      for(const [key] of cardStages.slice(1).reverse()){
+        const quantity=Math.max(0,reached[key]-assigned);
+        counts[key]+=quantity;assigned+=quantity;
+      }
+      counts.POLICY+=capacity-assigned;
+    }
+    return {total,counts,unit:'호'};
+  }
   function draw2d(c,items){
-    const surface=c.node.querySelector('.prm-surface'),w=surface.clientWidth,h=surface.clientHeight;if(!w||!h)return;
+    c.node.dataset.rendered='2d';
+    const scene=c.node.querySelector('.prm-scene'),surface=c.node.querySelector('.prm-surface'),w=surface.clientWidth;
+    if(!w)return;
+    const available=items.filter(p=>p.rings.length).sort((a,b)=>(b.value||0)-(a.value||0)||a.name.localeCompare(b.name));
+    const pageCount=Math.max(1,Math.ceil(available.length/4));
+    c.page=Math.min(c.page||0,pageCount-1);
+    if(c.selectedCity!==lastModel.city){c.selectedCity=lastModel.city;const i=available.findIndex(p=>p.id===lastModel.city);if(i>=0)c.page=Math.floor(i/4);}
+    const shown=available.slice(c.page*4,c.page*4+4),mobile=w<520,cardHeight=126;
+    const minHeight=mobile?300+shown.length*cardHeight+42:Math.max(440,shown.length*cardHeight+50);
+    scene.style.minHeight=minHeight+'px';
+    const h=surface.clientHeight,cardW=mobile?w-24:(w*.47-28)*2/3,mapWidth=mobile?w:w-cardW-28,mapHeight=mobile?280:h-36;
     const points=items.flatMap(p=>p.rings.flat()),xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
-    const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys),scale=Math.min(Math.max(w-40,1)/Math.max(right-left,1),Math.max(h-48,1)/Math.max(top-bottom,1));
-    const x=v=>w/2+(v-(left+right)/2)*scale,y=v=>h/2-(v-(bottom+top)/2)*scale;
-    surface.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" aria-label="'+c.region+' 2D 단계별 공급량">'+items.map(p=>'<path data-d907-city="'+p.id+'" d="'+[...p.rings,...(p.holes||[]).flat()].map(r=>r.map((v,i)=>(i?'L':'M')+x(v[0]).toFixed(2)+','+y(v[1]).toFixed(2)).join('')+'Z').join(' ')+'" fill-rule="evenodd" fill="'+p.color+'" stroke="'+(p.id===lastModel.city?'#fba843':lastModel.aggregate?'#4d7184':'#708f9f')+'" stroke-width="'+(p.id===lastModel.city?2.4:lastModel.aggregate?1.6:1)+'"><title>'+escape(p.name)+' · '+(p.value?units(p.value):'확인 물량 없음')+'</title></path>').join('')+'</svg>';
-    labels(c,items,p=>[x(p.anchor[0]),y(p.anchor[1])]);
+    const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys),scale=Math.min(Math.max(mapWidth-36,1)/Math.max(right-left,1),Math.max(mapHeight-40,1)/Math.max(top-bottom,1));
+    const x=v=>mapWidth/2+(v-(left+right)/2)*scale,y=v=>mapHeight/2-(v-(bottom+top)/2)*scale;
+    const cardX=mobile?12:mapWidth+16,startY=mobile?292:Math.max(14,(h-40-shown.length*cardHeight)/2);
+    const selected=new Set(shown.map(p=>p.id)),activeId=lastModel.city||shown[0]?.id;
+    surface.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" aria-label="'+escape(c.region)+' 2D 지역별 추진현황"><defs><marker id="prm-arrow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6" fill="#899bb1"/></marker></defs>'+items.map(p=>'<path data-d907-city="'+escape(p.id)+'" d="'+[...p.rings,...(p.holes||[]).flat()].map(r=>r.map((v,i)=>(i?'L':'M')+x(v[0]).toFixed(2)+','+y(v[1]).toFixed(2)).join('')+'Z').join(' ')+'" fill-rule="evenodd" fill="'+(p.id===activeId?'#a7bbd3':selected.has(p.id)?'#edf1f7':'#f8f9fb')+'" stroke="'+(p.id===activeId?'#233f69':'#cbd5e3')+'" stroke-width="'+(p.id===activeId?2:.65)+'"><title>'+escape(p.name)+' · '+units(p.value||0)+'</title></path>').join('')+shown.map((p,i)=>{
+      const px=x(p.anchor[0]),py=y(p.anchor[1]),cy=startY+i*cardHeight+32;
+      return (!mobile?'<path class="prm-connector" d="M'+px+','+py+' L'+(cardX-12)+','+cy+' H'+(cardX-2)+'" fill="none" stroke="#899bb1" stroke-width="1" marker-end="url(#prm-arrow)"/>':'')+'<g class="prm-number" data-d907-city="'+escape(p.id)+'"><circle cx="'+px+'" cy="'+py+'" r="10" fill="'+(p.delayed?'#b51f38':'#fff')+'" stroke="'+(p.delayed?'#b51f38':'#294d77')+'"/><text x="'+px+'" y="'+(py+3.5)+'" text-anchor="middle" fill="'+(p.delayed?'white':'#294d77')+'" font-size="10">'+(p.delayed?'!':i+1+c.page*4)+'</text><title>'+escape(p.name)+(p.delayed?' · 지연':'')+'</title></g>';
+    }).join('')+'</svg>';
+    c.node.querySelector('.prm-labels').innerHTML=shown.map((p,i)=>{
+      const distribution=p.stageDistribution||{total:0,counts:{}};
+      return '<button class="prm-region-detail'+(p.id===activeId?' selected':'')+'" data-d907-city="'+escape(p.id)+'"><span class="prm-detail-title"><b><span class="prm-detail-number">'+(i+1+c.page*4)+'</span> '+escape(p.name.replace(c.region+' ',''))+'</b>'+(p.delayed?'<span class="prm-card-delay" title="'+escape(p.delayNote||'지연 단계 있음')+'">! 지연</span>':'')+'</span><span class="prm-detail-total"><strong>'+num(p.value||0)+'</strong>호 <small>'+escape(lastModel.stages[lastModel.stage])+' 누적</small></span><span class="prm-stage-bar" role="img" aria-label="전체 '+distribution.total+'호의 현재 단계별 물량 비율">'+cardStages.map(([key,label])=>'<i title="'+label+' '+(distribution.counts[key]||0)+'호 · '+(distribution.total?((distribution.counts[key]||0)/distribution.total*100).toFixed(1):'0')+'%"></i>').join('')+'</span><span class="prm-stage-counts">'+cardStages.map(([key,label])=>'<span><i></i>'+label+' <b>'+num(distribution.counts[key]||0)+'호</b></span>').join('')+'</span></button>';
+    }).join('')+'<div class="prm-card-pagination">'+(pageCount>1?'<button data-prm-page="-1" '+(!c.page?'disabled':'')+' aria-label="이전 지역">‹</button><span>'+(c.page+1)+' / '+pageCount+'</span><button data-prm-page="1" '+(c.page===pageCount-1?'disabled':'')+' aria-label="다음 지역">›</button>':'')+'<small>색상 바: 현재 단계별 주택 물량 · 호</small></div>';
+    // CSSOM keeps dynamic positions and widths compatible with production CSP.
+    c.node.querySelectorAll('.prm-region-detail').forEach((node,i)=>{
+      Object.assign(node.style,{left:cardX+'px',top:(startY+i*cardHeight)+'px',width:cardW+'px'});
+      const distribution=shown[i].stageDistribution||{total:0,counts:{}};
+      node.querySelectorAll('.prm-stage-bar>i').forEach((segment,j)=>{
+        segment.style.background=cardStages[j][2];segment.style.width=(distribution.total?(distribution.counts[cardStages[j][0]]||0)/distribution.total*100:0)+'%';
+      });
+      node.querySelectorAll('.prm-stage-counts i').forEach((segment,j)=>segment.style.background=cardStages[j][2]);
+    });
+    c.node.querySelector('.prm-card-pagination').style.top=(h-29)+'px';
+    c.node.querySelectorAll('[data-prm-page]').forEach(b=>b.onclick=()=>{c.page+=Number(b.dataset.prmPage);draw2d(c,values(c,lastModel));});
   }
   function create3d(T,c){
     const surface=c.node.querySelector('.prm-surface');surface.innerHTML='';
@@ -96,6 +149,7 @@ const PolicyRegionMap = (() => {
     renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();if(c.renderer===renderer&&!c.intentionalLoss&&lastHost?.isConnected){mode='2d';render(lastHost,lastModel);}});
   }
   function draw3d(T,c,items){
+    c.node.dataset.rendered='3d';c.node.querySelector('.prm-scene').style.minHeight='';
     if(!c.renderer)create3d(T,c);
     const byId=Object.fromEntries(items.map(p=>[p.id,p]));
     for(const mesh of c.meshes){const p=byId[mesh.userData.id];mesh.scale.z=p.height;mesh.material[0].color.set(p.color);mesh.material[1].color.copy(mesh.material[0].color).multiplyScalar(.78);mesh.children[0]?.material.color.set(p.id===lastModel.city?'#ffae4e':'#4d7184');}
@@ -125,7 +179,7 @@ const PolicyRegionMap = (() => {
     control.querySelectorAll('.pd-region-tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.d907Region===model.region));
     control.querySelectorAll('[data-prm-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.prmMode===mode);b.setAttribute('aria-selected',b.dataset.prmMode===mode);});
     control.querySelectorAll('[data-d907-stage]').forEach(b=>{b.classList.toggle('selected',b.dataset.d907Stage===model.stage);b.setAttribute('aria-pressed',b.dataset.d907Stage===model.stage);});
-    const readout=control.querySelector('.d907-map-readout');readout.innerHTML='<strong>'+escape(model.stages[model.stage])+' 누적 · '+model.year+'년'+(model.year>model.currentYear?' 예정':' 확인')+'</strong><small>면 높이·색 농도는 누적 도달량 · <span class="prm-delay-key">🔴 !</span> 지연 단계 있음 (부족률 2% 이상)</small><button data-d907-clear>지역 선택 해제</button>';
+    const readout=control.querySelector('.d907-map-readout');readout.innerHTML='<strong>'+escape(model.stages[model.stage])+' 누적 · '+escape(model.measurementDate||model.year+'년')+' 기준'+'</strong>'+(model.scopeNote?'<small>'+escape(model.scopeNote)+'</small>':'')+'<small>'+(mode==='2d'?'색상 바는 현재 단계별 주택 물량 비율':'면 높이·색 농도는 누적 도달량')+' · <span class="prm-delay-key">🔴 !</span> 지연 단계 있음 (부족률 2% 이상)</small><button data-d907-clear>지역 선택 해제</button>';
     const range=control.querySelector('[data-d907-year]');range.value=model.year;range.parentElement.querySelector('b').textContent=model.year;
     if(!model.shapes.length){host.querySelector('.prm-surface').innerHTML='<p class="pd-empty">선택 프로그램의 위치 연결 자료가 없습니다.</p>';return;}
     let T;if(mode==='3d'){try{threePromise??=import('./vendor/three/three.module.js');T=await threePromise;}catch(e){mode='2d';readout.insertAdjacentHTML('beforeend','<small>3D 모듈을 불러오지 못해 2D로 표시합니다.</small>');}if(token!==generation)return;}
@@ -143,5 +197,5 @@ const PolicyRegionMap = (() => {
     control.querySelectorAll('[data-prm-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.prmMode===mode);b.setAttribute('aria-selected',b.dataset.prmMode===mode);});
   }
   function suspend(){++generation;dispose();if(lastHost?.querySelector('.prm-cards'))lastHost.innerHTML='';}
-  return {render,suspend};
+  return {render,suspend,stageDistribution};
 })();

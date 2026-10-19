@@ -1,0 +1,904 @@
+{
+  "as_of": "2026-10-19",
+  "lh": [
+    {
+      "id": "PRO_0a072111d825a2a16a7310e6",
+      "name": "인천검단 AA19",
+      "units": 1323,
+      "progress": 32.0,
+      "progress_date": "2026-02-03",
+      "construction_period_start": "2025-02-07",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=100585&hcBlkCd=34&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B2%80%EB%8B%A8&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=AA19"
+    },
+    {
+      "id": "PRO_14c83b236f723ae28ad1edff",
+      "name": "인천계양 A10",
+      "units": 778,
+      "progress": 1.741,
+      "progress_date": "2026-09-21",
+      "construction_period_start": "2026-06-25",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105130&hcBlkCd=07&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B3%84%EC%96%91%28%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A10"
+    },
+    {
+      "id": "PRO_1f7b4e6e8526c78ef164dd70",
+      "name": "인천가정2 B2",
+      "units": 308,
+      "progress": 24.91,
+      "progress_date": "2026-09-29",
+      "construction_period_start": "2025-06-30",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105083&hcBlkCd=04&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B0%80%EC%A0%952&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=B2"
+    },
+    {
+      "id": "PRO_26946080e95877a9475efc35",
+      "name": "인천계양 A6",
+      "units": 663,
+      "progress": 0.85,
+      "progress_date": "2026-09-21",
+      "construction_period_start": "2026-08-14",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105130&hcBlkCd=03&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B3%84%EC%96%91%28%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A6"
+    },
+    {
+      "id": "PRO_42f49eac956e19c57750cff4",
+      "name": "인천검단 AA13-1",
+      "units": 702,
+      "progress": 24.0,
+      "progress_date": "2026-02-03",
+      "construction_period_start": "2021-05-21",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=100585&hcBlkCd=17&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B2%80%EB%8B%A8&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=AA13-1"
+    },
+    {
+      "id": "PRO_4b859c7f4b18222558932b97",
+      "name": "인천부평 A",
+      "units": 350,
+      "progress": 54.11,
+      "progress_date": "2026-09-30",
+      "construction_period_start": "2023-03-31",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105250&hcBlkCd=01&seBzdtNm=%EC%9D%B8%EC%B2%9C%EB%B6%80%ED%8F%89%28%EB%8F%84%EC%8B%9C%EC%9E%AC%EC%83%9D%EB%89%B4%EB%94%9C%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A"
+    },
+    {
+      "id": "PRO_4e534476d1d747285e612f85",
+      "name": "인천서구 1",
+      "units": 110,
+      "progress": 31.02,
+      "progress_date": "2026-06-26",
+      "construction_period_start": "2025-03-05",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105409&hcBlkCd=01&seBzdtNm=%EC%9D%B8%EC%B2%9C%EC%84%9C%EA%B5%AC%28%EC%84%9D%EB%82%A8%EC%96%B4%EC%9A%B8%EB%A6%BC%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=1"
+    },
+    {
+      "id": "PRO_63647d3c6344c256c7c98313",
+      "name": "인천계양 A9",
+      "units": 475,
+      "progress": 11.29,
+      "progress_date": "2026-09-21",
+      "construction_period_start": "2025-11-24",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105130&hcBlkCd=06&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B3%84%EC%96%91%28%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A9"
+    },
+    {
+      "id": "PRO_6cd92fc3a8e9e13eb4faddfd",
+      "name": "인천검단 AA13-2",
+      "units": 964,
+      "progress": 24.0,
+      "progress_date": "2026-02-03",
+      "construction_period_start": "2021-05-21",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=100585&hcBlkCd=35&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B2%80%EB%8B%A8&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=AA13-2"
+    },
+    {
+      "id": "PRO_9e0ff74c948175dffb824830",
+      "name": "인천영종 A24",
+      "units": 641,
+      "progress": 17.5,
+      "progress_date": "2026-09-29",
+      "construction_period_start": "2025-06-30",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=100327&hcBlkCd=03&seBzdtNm=%EC%9D%B8%EC%B2%9C%EC%98%81%EC%A2%85&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A24"
+    },
+    {
+      "id": "PRO_a9e2bffb100945377e90ef33",
+      "name": "인천서구 1",
+      "units": 58,
+      "progress": 33.7,
+      "progress_date": "2026-06-26",
+      "construction_period_start": "2025-03-05",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105410&hcBlkCd=01&seBzdtNm=%EC%9D%B8%EC%B2%9C%EC%84%9C%EA%B5%AC%28%EA%B1%B0%EB%B6%81%EC%9D%B4%EA%B8%B0%EC%A7%80%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=1"
+    },
+    {
+      "id": "PRO_b2a3fc2ab9bda6c7ffaa3b0e",
+      "name": "인천송림4 1",
+      "units": 1198,
+      "progress": 37.45,
+      "progress_date": "2026-10-02",
+      "construction_period_start": "2024-07-10",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=102283&hcBlkCd=01&seBzdtNm=%EC%9D%B8%EC%B2%9C%EC%86%A1%EB%A6%BC4%2808%2C%EC%A3%BC%ED%99%98%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=1"
+    },
+    {
+      "id": "PRO_f3dcde6035029d54a848ef8d",
+      "name": "구리갈매역세권 A-5",
+      "units": 566,
+      "progress": 0.0,
+      "progress_date": "2026-10-19",
+      "construction_period_start": "2026-10-16",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105017&hcBlkCd=03&seBzdtNm=%EA%B5%AC%EB%A6%AC%EA%B0%88%EB%A7%A4%EC%97%AD%EC%84%B8%EA%B6%8C&cnpNm=%EA%B2%BD%EA%B8%B0%EB%8F%84&bnm=A-5"
+    },
+    {
+      "id": "PRO_fe4aa9d7d9211312f996dec5",
+      "name": "인천계양 A17",
+      "units": 463,
+      "progress": 0.42,
+      "progress_date": "2026-09-30",
+      "construction_period_start": "2026-07-29",
+      "policy": "UNASSIGNED",
+      "program": "UNASSIGNED",
+      "status": "REVIEW",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttInfo.do?mi=1352&bzdtCd=105130&hcBlkCd=05&seBzdtNm=%EC%9D%B8%EC%B2%9C%EA%B3%84%EC%96%91%28%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D%29&cnpNm=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&bnm=A17"
+    }
+  ],
+  "general": [
+    {
+      "id": "GEN_e8c93c3d980b48e228d7a27a",
+      "name": "서울특별시 성북구 종암동 3-237번지",
+      "units": 0,
+      "actual_start": "2026-07-30",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_b637248f6fa5cc4e755dfdb5",
+      "name": "종암동 34-9",
+      "units": 35,
+      "actual_start": "2026-09-11",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_5c6b6f173a266a3923656533",
+      "name": "갈현동 276-21오; 1필지 도시형생활주택",
+      "units": 20,
+      "actual_start": "2026-05-22",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_abbd8edae9d96ae7ca146a7d",
+      "name": "서울특별시 은평구 신사동 40-37번지",
+      "units": 8,
+      "actual_start": "2026-03-23",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_63e64bd79ced300ef8b8cb98",
+      "name": "공릉동312번지기숙사신축공사",
+      "units": 0,
+      "actual_start": "2026-07-30",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_91691fa9814397c53b623558",
+      "name": "서울특별시 은평구 갈현동 391-32번지",
+      "units": 0,
+      "actual_start": "2026-01-13",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_4d4e71ecae01dd03ff84288b",
+      "name": "서울특별시 은평구 신사동 4-3번지",
+      "units": 0,
+      "actual_start": "2026-05-11",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_f80196a6aa0ff72fe37bff88",
+      "name": "미아동 783-15",
+      "units": 12,
+      "actual_start": "2026-07-29",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_4d0655de0941dabf8cb48286",
+      "name": ".",
+      "units": 13,
+      "actual_start": "2026-06-02",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_8a8da2019e47af28f0879899",
+      "name": "미아동 231-1",
+      "units": 12,
+      "actual_start": "2026-09-10",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3f8ff300d9c47b98f9119fad",
+      "name": "금호동4가 1310",
+      "units": 0,
+      "actual_start": "2026-03-20",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_eec27a70611d790c7fe0a682",
+      "name": "구의동 64-25",
+      "units": 16,
+      "actual_start": "2026-06-24",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_6a51a9a29a36add5a85d47fe",
+      "name": "르베르떼 구의",
+      "units": 16,
+      "actual_start": "2026-03-19",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e40503923a8e35fa54a4d908",
+      "name": "서울특별시 광진구 구의동 242-9번지",
+      "units": 16,
+      "actual_start": "2026-09-17",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_10564dd3e2b9e5eaceca685a",
+      "name": "서울특별시 광진구 구의동 63-32번지",
+      "units": 16,
+      "actual_start": "2026-08-20",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_edd0e8c2cfb4a3be2543b25d",
+      "name": "서울특별시 광진구 구의동 210-16번지",
+      "units": 16,
+      "actual_start": "2026-03-03",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_20c8a092f27f335b8dd22c60",
+      "name": "구의동 210-18",
+      "units": 14,
+      "actual_start": "2026-08-07",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_f12a0c06454553143de55fb2",
+      "name": "구의동 221-25 ,26 신축건축물",
+      "units": 12,
+      "actual_start": "2026-09-21",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_b5f34f385785f8a7fbedb371",
+      "name": "서울특별시 광진구 구의동 242-41번지",
+      "units": 16,
+      "actual_start": "2026-05-06",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_a4cefc3bf71b51f887157fc8",
+      "name": "광진구 구의동 652-8,9 도시형생활주택 신축공사",
+      "units": 17,
+      "actual_start": "2026-06-17",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_0121745aabed5a3bc7757a7a",
+      "name": "서울특별시 광진구 자양동 217-3번지",
+      "units": 12,
+      "actual_start": "2026-01-15",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_2fb3bf7a62bfa87f98b72452",
+      "name": "서울특별시 광진구 구의동 210-12번지",
+      "units": 15,
+      "actual_start": "2026-07-02",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e3ec85b10949f86d6ad0247c",
+      "name": "구의동 210-36 단지형다세대주택",
+      "units": 16,
+      "actual_start": "2026-09-09",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_8ec0ea0de97ca801f511b53d",
+      "name": "서울특별시 광진구 구의동 221-13번지",
+      "units": 16,
+      "actual_start": "2026-07-16",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e900c9a748f985d941200f45",
+      "name": "구의동 232-38",
+      "units": 16,
+      "actual_start": "2026-06-05",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_65bde4dba598e200b12a80d3",
+      "name": "구의 파크뷰",
+      "units": 12,
+      "actual_start": "2026-02-25",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_5c473c35744d3eb5cb3b364c",
+      "name": "구의동 232-60",
+      "units": 22,
+      "actual_start": "2026-06-09",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_0330041332a073554ded19f6",
+      "name": "서울특별시 광진구 구의동 251-66번지",
+      "units": 16,
+      "actual_start": "2026-04-29",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_22ed71c1692eeba73ac046ee",
+      "name": "서울특별시 광진구 구의동 634-7번지",
+      "units": 12,
+      "actual_start": "2026-08-07",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_dc8072ace4dc5d6f3aafc409",
+      "name": "구의동 643-4",
+      "units": 16,
+      "actual_start": "2026-05-27",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_2265347622d3df08b12ada05",
+      "name": "자양동601-4,5번지 도시형생활주택",
+      "units": 29,
+      "actual_start": "2026-02-10",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3dadacd1cc30956d5e413e21",
+      "name": "서울특별시 광진구 구의동 231-9번지",
+      "units": 16,
+      "actual_start": "2026-05-18",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_27510896df94255b4c5ffb2b",
+      "name": "구의동 231-47",
+      "units": 10,
+      "actual_start": "2026-08-03",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_f559c86d357a7fc934ba5d07",
+      "name": "구의동 231-56 도시형생활주택 신축공사",
+      "units": 11,
+      "actual_start": "2026-07-24",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_774ef96aa46a87deaf500f94",
+      "name": "서울특별시 광진구 구의동 232-28번지",
+      "units": 10,
+      "actual_start": "2026-08-04",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_12d1a810f2a1aee6e573ff50",
+      "name": "서울특별시 광진구 구의동 239-86번지",
+      "units": 6,
+      "actual_start": "2026-05-29",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_26141d36f5178bb9ba841c15",
+      "name": "카이벨로체 구의1차",
+      "units": 26,
+      "actual_start": "2026-03-09",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_da376a5887521d9ac6d03267",
+      "name": "서울특별시 광진구 구의동 634-3번지",
+      "units": 13,
+      "actual_start": "2026-08-07",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e4c654687317a51f24c3e658",
+      "name": "자양동 217-3",
+      "units": 12,
+      "actual_start": "2026-01-15",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_42f4a5e3ca113b2e7f8ae962",
+      "name": "자양동 624-4",
+      "units": 16,
+      "actual_start": "2026-06-26",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_9fe1ab03e87819bacb155416",
+      "name": "카이벨로체 자양3차",
+      "units": 8,
+      "actual_start": "2026-01-13",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_802914c73dd63335d165227f",
+      "name": "서울특별시 광진구 자양동 635-38번지",
+      "units": 8,
+      "actual_start": "2026-01-07",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_ef050e462dc220b78defff97",
+      "name": "자양동 662-2번지 도시형생활주택",
+      "units": 14,
+      "actual_start": "2026-02-24",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_55e487bf7bd7469cbf62cb95",
+      "name": "자양동 841-3",
+      "units": 8,
+      "actual_start": "2026-07-24",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_129fe4284ca7fe9e156c59bb",
+      "name": "서울특별시 은평구 응암동 427-73번지",
+      "units": 0,
+      "actual_start": "2026-07-16",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_d19d1681f42b03c64d99e4f4",
+      "name": "서울특별시 광진구 자양동 613-24번지",
+      "units": 12,
+      "actual_start": "2026-09-01",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_4513f231f04edf022a94fbf5",
+      "name": "서울특별시 광진구 자양동 614-13번지",
+      "units": 10,
+      "actual_start": "2026-07-02",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_58ded6a2defe516ca3dee02f",
+      "name": "서울특별시 광진구 자양동 623-26번지",
+      "units": 10,
+      "actual_start": "2026-08-31",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_5b45bacc836c1b263712ec33",
+      "name": "서울특별시 광진구 자양동 846-9번지",
+      "units": 0,
+      "actual_start": "2026-01-26",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_844d41571f2199ce1be2b237",
+      "name": "자양동 613-33",
+      "units": 16,
+      "actual_start": "2026-05-28",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_21872312289d66d9154d80bd",
+      "name": "자양동 617-20",
+      "units": 10,
+      "actual_start": "2026-03-06",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_297e9db1d54456d009c51103",
+      "name": "서울특별시 광진구 자양동 621-11번지",
+      "units": 14,
+      "actual_start": "2026-07-21",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_26dca1659250eee872bc1e71",
+      "name": ".",
+      "units": 22,
+      "actual_start": "2026-04-21",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_da3090803e75b3f59f25d970",
+      "name": "서울특별시 광진구 자양동 839-11번지",
+      "units": 8,
+      "actual_start": "2026-09-30",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_ae333e5aa14f9167af51c8fe",
+      "name": "응암동 596-14",
+      "units": 0,
+      "actual_start": "2026-05-19",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3f3a072c5e1a5a048378e753",
+      "name": "아스트로",
+      "units": 10,
+      "actual_start": "2026-04-30",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_9803fa0b9e685b1ffcb2197c",
+      "name": "태원D&C(주) 메종 드 연희 주택",
+      "units": 0,
+      "actual_start": "2026-01-26",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_2b65bb3701d2402e700e9ec4",
+      "name": "연희동 112-36 단독주택",
+      "units": 0,
+      "actual_start": "2026-03-06",
+      "identity_status": "CONFIRMED",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_7925defde30ebbc56bfb9540",
+      "name": "제기동 122-668",
+      "units": 0,
+      "actual_start": "2026-01-06",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_775c31685efcc09487facb6e",
+      "name": "청운스카이빌딩",
+      "units": 0,
+      "actual_start": "2026-03-09",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_c9ec391c6fd3912705524479",
+      "name": "진하우스",
+      "units": 20,
+      "actual_start": "2026-03-06",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_9e9491635748f1a017a91aaa",
+      "name": "제기동 135-116",
+      "units": 0,
+      "actual_start": "2026-07-08",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_7d4ec97cec7a0a8618e665d9",
+      "name": "신수동 281",
+      "units": 8,
+      "actual_start": "2026-01-12",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_11dfc3230e417ef0800500dd",
+      "name": "연남동 365-8",
+      "units": 0,
+      "actual_start": "2026-05-21",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_fe9c77de090ac4673dadc26a",
+      "name": "홍은동 410-45 단독주택 (김성근)",
+      "units": 0,
+      "actual_start": "2026-04-23",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_a7b451ecf095274689a4c370",
+      "name": "서울특별시 마포구 신수동 287-1번지",
+      "units": 6,
+      "actual_start": "2026-05-29",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_2966c689b3647d496eb20cb0",
+      "name": "서울특별시 마포구 망원동 57-492번지",
+      "units": 0,
+      "actual_start": "2026-08-28",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_85dd16b0c4d345d1c105256b",
+      "name": "서울특별시 마포구 망원동 380-6번지",
+      "units": 1,
+      "actual_start": "2026-04-16",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_d6aea3ee4a2775afabcfbe95",
+      "name": "트리니티",
+      "units": 12,
+      "actual_start": "2026-01-29",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_704f8b1bfd685b4ed19c9fd1",
+      "name": "서울특별시 마포구 신수동 275-1번지",
+      "units": 20,
+      "actual_start": "2026-03-13",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_61001f3763be87ef2d506290",
+      "name": "서울특별시 마포구 망원동 425-26번지",
+      "units": 20,
+      "actual_start": "2026-09-08",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_153472bdd0b42ec6b6df80b1",
+      "name": "연남동 241-94",
+      "units": 0,
+      "actual_start": "2026-05-08",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_92b7b7c673b5d319fd64da0c",
+      "name": "(청년)SH신축약정 매입임대주택",
+      "units": 19,
+      "actual_start": "2026-02-20",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_5125ce6720b8faf9044b110a",
+      "name": "만석동 36-22",
+      "units": 0,
+      "actual_start": "2026-07-29",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_dd9fd9d2db132a14f950a5f2",
+      "name": "신수동 421-2",
+      "units": 12,
+      "actual_start": "2026-06-10",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e1e90be055f7f998f0ba6e9d",
+      "name": "연남동 487-284 다세대주택",
+      "units": 9,
+      "actual_start": "2026-05-18",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3ead2a7519c23d5fa395e2dc",
+      "name": "목동 547-4",
+      "units": 22,
+      "actual_start": "2026-06-29",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_d8c6e4c243ac81f19e430f06",
+      "name": "서울특별시 양천구 목동 548-15번지",
+      "units": 10,
+      "actual_start": "2026-07-06",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_1c25b3a3e693ca8b4027ee78",
+      "name": "서울특별시 강서구 등촌동 646-26번지",
+      "units": 12,
+      "actual_start": "2026-06-09",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_0e504a79e4a9939dad010743",
+      "name": "화곡동 353-31번지 다세대주택",
+      "units": 16,
+      "actual_start": "2026-01-07",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3fb2cb370571970e7c36f5ea",
+      "name": "서울특별시 강서구 화곡동 811-12번지",
+      "units": 9,
+      "actual_start": "2026-08-10",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_668c2e0bacfab2ecaa33b2dd",
+      "name": "화곡동 910-51 단독주택",
+      "units": 0,
+      "actual_start": "2026-06-04",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_5fe5a7cc8c4090ed16e1523e",
+      "name": "화곡동 970-10",
+      "units": 11,
+      "actual_start": "2026-06-02",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_88d96c304be3b0af6e3cd793",
+      "name": "화곡동 1076-19",
+      "units": 94,
+      "actual_start": "2026-05-08",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_7e322162111a468fae1c0e29",
+      "name": "선호빌",
+      "units": 3,
+      "actual_start": "2026-02-02",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_3b980ce5146cb21ee2410a37",
+      "name": "서울특별시 강서구 화곡동 1043-27번지",
+      "units": 12,
+      "actual_start": "2026-02-04",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_4da37ad9163fc6b9bcaac818",
+      "name": "경기도 수원시 장안구 이목동 758-13번지",
+      "units": 0,
+      "actual_start": "2026-05-08",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_e4b502cad559caa38ecb5cc8",
+      "name": "서울특별시 금천구 시흥동 855-1번지",
+      "units": 10,
+      "actual_start": "2026-03-04",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_88c8b74b5020fa0abc513431",
+      "name": "율전동 395-31번지 다중주택",
+      "units": 0,
+      "actual_start": "2026-03-09",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    },
+    {
+      "id": "GEN_c22acded8eec8e54010035fb",
+      "name": "경기도 수원시 장안구 율전동 294-2번지",
+      "units": 99,
+      "actual_start": "2026-03-13",
+      "identity_status": "REVIEW",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do"
+    }
+  ],
+  "seoul": [
+    {
+      "id": "DOC_144107cccce967490d30b575",
+      "name": "장미아파트주택재건축정비사업",
+      "source_stage": "착공",
+      "facts": [],
+      "url": "https://cleanup.seoul.go.kr/cafe/mainIndx.do?cafeUrl=kbret02"
+    }
+  ]
+}

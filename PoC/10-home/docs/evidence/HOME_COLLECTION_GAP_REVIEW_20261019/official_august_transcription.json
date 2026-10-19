@@ -1,0 +1,24 @@
+{
+  "title": "2026년 8월 주택통계 및 2025년 주택건설실적 통계 확정치 공표",
+  "published_at": "2026-09-30",
+  "period_start": "2026-01-01",
+  "period_end": "2026-08-31",
+  "unit": "호",
+  "source_url": "https://www.index.go.kr/unity/potal/FileDown.do?seq=17704&id=1229&div=1",
+  "original_listing": "https://www.molit.go.kr/USR/NEWS/dtl.jsp?id=95092469&lcmspage=1",
+  "method": "공식 PDF의 7~10쪽 지역별 표 2026년 1~8월 열을 전사. 착공 8쪽은 이미지로도 확인. 총계와 세부 지역을 중복 표본으로 세지 않음.",
+  "regional_totals": [
+    {"region":"서울특별시","metric":"착공","value":20679,"pdf_page":8},
+    {"region":"인천광역시","metric":"착공","value":17515,"pdf_page":8},
+    {"region":"경기도","metric":"착공","value":48545,"pdf_page":8},
+    {"region":"서울특별시","metric":"준공","value":25630,"pdf_page":10},
+    {"region":"인천광역시","metric":"준공","value":10278,"pdf_page":10},
+    {"region":"경기도","metric":"준공","value":44167,"pdf_page":10},
+    {"region":"서울특별시","metric":"분양승인","value":15962,"pdf_page":9},
+    {"region":"인천광역시","metric":"분양승인","value":14896,"pdf_page":9},
+    {"region":"경기도","metric":"분양승인","value":57720,"pdf_page":9},
+    {"region":"서울특별시","metric":"인허가","value":39940,"pdf_page":7},
+    {"region":"인천광역시","metric":"인허가","value":10056,"pdf_page":7},
+    {"region":"경기도","metric":"인허가","value":46060,"pdf_page":7}
+  ]
+}

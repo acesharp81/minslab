@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Seoul",
+  "causes": [
+    "약 196만 원장 판본의 정리 지연으로 인덱스 전용 건수 조회에서 189,082회 heap fetch 발생",
+    "관련 없는 원천 수집 완료도 수집·연계 캐시를 무효화"
+  ],
+  "changes": [
+    "온라인 VACUUM ANALYZE 및 자동 정리/분석 기준 조정",
+    "유형·수집시각 복합 인덱스 추가(온라인 생성, 유효 상태 확인)",
+    "수집·연계 화면 캐시를 관련 원장과 출처 배치로 한정; 담당자 감사·매핑 변경은 동기 무효화 유지"
+  ],
+  "database": {
+    "migration": "0013_loading_performance",
+    "heap_fetches_before": 189082,
+    "heap_fetches_after": 0,
+    "index": "ix_home_revision_kind_recorded",
+    "index_valid": true
+  },
+  "api_measurements": [
+    {
+      "path": "overview?policy_id=POL_2025_0907",
+      "before_seconds": 16.898,
+      "after_seconds": 2.796,
+      "cached_seconds": 0.021
+    },
+    {
+      "path": "project-collection?policy_id=POL_2025_0907",
+      "before_seconds": 4.671,
+      "after_seconds": 2.996,
+      "cached_seconds": 0.348
+    },
+    {
+      "path": "mappings?policy_id=POL_2025_0907",
+      "before_seconds": 0.938,
+      "after_seconds": 0.505,
+      "cached_seconds": 0.069
+    }
+  ],
+  "limitations": [
+    "단일 운영 환경에서 순차 측정한 결과이며 지속 부하의 P95가 아니다.",
+    "새 관련 데이터 반영 후 최초 계산은 여전히 약 3초이며 캐시 적중 응답과 구분한다."
+  ],
+  "checks": {
+    "python_tests": 665,
+    "subtests": 61,
+    "projects": 208,
+    "browser": {
+      "collectionReadySeconds": 2.396,
+      "projects": 208,
+      "ihSearch": "PASS",
+      "consoleErrors": []
+    },
+    "health": "healthy"
+  },
+  "image": "f6adbb94b5f8",
+  "business_data_modified": false
+}

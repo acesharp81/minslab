@@ -1,0 +1,30 @@
+{
+  "document": "HOME_COLLECTION_PIPELINE_MASTER_20261016.md",
+  "date": "2026-10-16",
+  "source_generated_at": "2026-10-16T20:54:56.890091+09:00",
+  "registered_sources": 63,
+  "data_sources": 62,
+  "latest_rows": 1674418,
+  "current": {
+    "sources": 62,
+    "extracted_cells": 55437397,
+    "linked_records": 884
+  },
+  "today": {
+    "sources": 36,
+    "extracted_cells": 405125,
+    "linked_records": 432
+  },
+  "repair_records": 64,
+  "bytes": 363480,
+  "lines": 4754,
+  "sha256": "3ab630e91c7485c8b3a49822c1915d3b9ddfe70c4a6b9ff6d687d3c9aad42225",
+  "evidence_sha256": {
+    "summary.json": "88fc2c35fbd3d3354fc14f029372cb80f3d28f387ae650c4e80b67ec97d6ab61",
+    "sources.json": "ea1ad6d02b4b73932e9e5544ce25d26642d0f5a32a90e62c07ab8983246c20ed",
+    "quality.json": "300a6d3399df8b371998d0d6bfc25adc858c952e2079a1f0707a8b76f800145d",
+    "requirements.json": "e2712bc165d2e1e72f081f569d6916fec7af97600f6a06eb64d7ad54444c882c"
+  },
+  "external_api_reference": "부록 F",
+  "appendices": 6
+}

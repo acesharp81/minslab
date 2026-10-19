@@ -1,0 +1,17 @@
+{
+  "policy_project_count": 208,
+  "confirmed_programs": 6,
+  "confirmed_projects": 11,
+  "excluded_duplicate": [
+    {
+      "id": "PRO_f1c6943904562af0fb4043c8",
+      "name": "광교 A17BL 민간참여 공공주택사업",
+      "status": "RELEASED",
+      "basis": "원천 고유번호는 다르나 동일 사업명·주소·물량 후보와 중복 의심. 관리 집계 제외 후 별개 사업 여부 검토."
+    }
+  ],
+  "other_project_mappings_unchanged": true,
+  "actor": "김민",
+  "reason": "공식 자료 확인 및 IH 추가 연결",
+  "checked_at": "2026-10-18T20:13:59.176380+09:00"
+}

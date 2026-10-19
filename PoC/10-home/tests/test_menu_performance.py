@@ -17,6 +17,40 @@ class MenuPerformanceTests(unittest.TestCase):
         self.client=TestClient(create_app(self.engine,auto_collect=False))
         self.addCleanup(self.client.close);self.addCleanup(self.engine.dispose)
 
+    def test_live_rows_use_current_index_and_knowledge_snapshot_keeps_history(self):
+        from datetime import timedelta
+        from sqlalchemy import event
+        from backend.db import Revision
+        instant=now();queries=[]
+        with self.service.sessions.begin() as db:
+            old,_=upsert_revision(db,'stage_evidence','test','one',{'base_date':'2026-01-01','value':1},'a')
+            old.recorded_at=instant-timedelta(minutes=2)
+            new,_=upsert_revision(db,'stage_evidence','test','one',{'base_date':'2026-01-01','value':2},'b')
+            old.superseded_at=new.recorded_at=instant-timedelta(minutes=1)
+        def capture(conn,cursor,statement,parameters,context,executemany):queries.append(statement)
+        event.listen(self.engine,'before_cursor_execute',capture)
+        try:
+            self.assertEqual(self.service.rows('stage_evidence')[0]['value'],2)
+            self.assertFalse(any('superseded_at IS NULL OR' in q for q in queries))
+            historical=HomeService(self.engine,known_at=instant-timedelta(seconds=90))
+            self.assertEqual(historical.rows('stage_evidence')[0]['value'],1)
+            self.assertTrue(any('superseded_at IS NULL OR' in q for q in queries))
+        finally:event.remove(self.engine,'before_cursor_execute',capture)
+
+    def test_chart_stage_projection_keeps_selection_without_candidate_payload(self):
+        from backend.stage_evidence import linked_events
+        from backend.service import today
+        selected=dict(event_date='2026-01-02',observed_on=None,units=12,method='SOURCE',basis='official',evidence_url='https://example.org/',source_id='test')
+        with self.service.sessions.begin() as db:
+            upsert_revision(db,'stage_evidence','test','selected',dict(base_date='2026-01-01',project_id='P',stage='APPROVAL',status='CONFIRMED',selected=selected,candidates=[{'large':'x'*10000}]),'batch')
+            upsert_revision(db,'stage_evidence','test','released',dict(base_date='2026-01-01',project_id='Q',stage='APPROVAL',status='RELEASED',selected=selected),'batch')
+        from types import SimpleNamespace
+        expected=linked_events(SimpleNamespace(rows=self.service.rows),today())
+        self.assertEqual(linked_events(self.service,today()),expected)
+        compact=self.service.selected_stage_links(today())
+        self.assertEqual(len(compact),1)
+        self.assertNotIn('candidates',compact[0])
+
     def test_compact_sources_keep_status_and_full_evidence_remains_available(self):
         with self.service.sessions.begin() as db:
             db.add(Batch(source_id=SOURCES[0]['id'],status='SUCCESS',finished_at=now(),

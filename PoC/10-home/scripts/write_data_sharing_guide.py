@@ -8,7 +8,7 @@ KST = timezone(timedelta(hours=9))
 API = {'kosis_housing','kosis_household_size','sgis_area','kosis_employment','kosis_household_forecast',
        'cheongyak','building_hub','building_hub_details','building_register','lh_notice','molit_statistics',
        'sh_supply_plan','sh_redevelopment','vworld','vworld_district','vworld_municipality'}
-PUBLIC_FILE = {'molit_demolition','molit_renewal_inventory','lh_completion_plan','lh_supply_history','lh_movein_history','lh_stock','legal_dongs','sh_files','gh_files','complex_approval_reference'}
+PUBLIC_FILE = {'lh_happy_plan_file','sh_national_plan_file','sh_jeonse_plan_file','sh_happy_plan_file','reb_movein_plan_file','sh_contract_file','molit_demolition','molit_renewal_inventory','lh_completion_plan','lh_supply_history','lh_movein_history','lh_stock','legal_dongs','sh_files','gh_files','complex_approval_reference'}
 DOCUMENT = {'policy_907','policy_129','policy_813','urban_930','policy_history','lh_reit_progress',
             'lh_construction','lh_history','seoul_plan_notice_pilot','gyeonggi_plan_notice_pilot','gh_completion_evidence'}
 WEB = {'lh_sale','lh_rent','lh_progress','lh_block_location','gh_supply_plan','gh_notice'}

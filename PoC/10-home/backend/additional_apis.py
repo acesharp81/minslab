@@ -103,6 +103,9 @@ def collect_register(source, fetcher, service=None):
             page += 1
         counts[sigungu+bjdong if service is not None else label] = dict(matching_records=total, fetched=fetched, residential_records=residential,
                              pages=page, complete_query=True,legal_dong_code=sigungu+bjdong,label=label)
+        if service is not None:
+            from .db import now
+            counts[sigungu+bjdong]['checked_at']=now().isoformat()
     if service is not None:
         from .building_scope import expansion_stats
         return records,dict(expansion_stats(counts,scope_total,len(records)),collection_mode='TEST_SAMPLE',complete_population=False,page_size=SAMPLE_LIMIT)
@@ -298,4 +301,4 @@ def collect_statistics(source, fetcher):
     return records, dict(collection_mode="TEST_SAMPLE", complete_population=False,
                          period_start=str(begin_year), series=coverage,
                          unavailable_series=[dict(metric="인허가", frequency="MONTH", reason="5375 API 개방 취소(INFO-300), 정상 제공 연간 626/125 사용")],
-                         scope_note="정책 기원 2018년부터 서울·경기 월별 분양승인·착공·준공 및 연간 인허가. 시도 총계만 수록하여 소계 중복 제외. 최신 공개 기간까지 수집")
+                         scope_note="정책 기원 2018년부터 "+"·".join(source.get('stat_regions',STAT_REGIONS).values())+" 월별 분양승인·착공·준공 및 연간 인허가. 시도 총계만 수록하여 소계 중복 제외. 최신 공개 기간까지 수집")

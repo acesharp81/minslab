@@ -21,3 +21,9 @@ test('nearest subway stays visible at every radius; other facilities remain radi
  assert.equal(visible(rows,500).some(r=>r.kind==='school'),false);assert.equal(visible(rows,1000).some(r=>r.kind==='school'),true);
  assert.equal(rows[0].kind,'gtx');assert.equal(visible(rows,500).some(r=>r.name==='계획역'),false);
 });
+
+test('large marts follow the selected facility radius without the subway exception',()=>{
+ const rows=[{kind:'mart',name:'근처마트',distance_m:450},{kind:'mart',name:'먼마트',distance_m:900},{kind:'subway',name:'최근접역',distance_m:1800}];
+ assert.deepEqual(Array.from(visible(rows,500),r=>r.name),['근처마트','최근접역']);
+ assert.deepEqual(Array.from(visible(rows,1000),r=>r.name),['근처마트','먼마트','최근접역']);
+});

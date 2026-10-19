@@ -1,0 +1,102 @@
+{
+  "round_id": "HOME-INTEGRITY-R01-CONSOLIDATED-20261017",
+  "actor": "김민",
+  "reason": "공식 자료 확인 및 IH 추가 연결",
+  "programs_confirmed": 6,
+  "projects_confirmed": 11,
+  "before_policy_projects": 197,
+  "after_policy_projects": 208,
+  "raw_project_record_count": 323,
+  "duplicate_remains_released": true,
+  "technical_score": 63.1,
+  "tests": {
+    "python": 664,
+    "subtests": 61,
+    "javascript": 65
+  },
+  "image": "001b0bb3ef05",
+  "files": [
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/ih-basic-collection.json",
+      "sha256": "3a2928f6c0fb861417f343c9fef5a2f7e7c65bf57ba9bb68784d3b31c41783ca"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/history.json",
+      "sha256": "b8ef77a05ae65d9597cf2744a73c0c6952a11e874fb1084b3c8c4e3a28e73988"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/round.html",
+      "sha256": "036d20a8d024154af6887692f5c9fc1e2fce4a62e482b1ec3e2202ea44f95edc"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/evidence.json",
+      "sha256": "1bae074b202ae27b318cc7cb0433f406cdd1a2bd3eabc7ac5ebd5e11d6539a5c"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/round.json",
+      "sha256": "a5cc18bb7c0f28433733169af6ef8753ccd08265dd7ca294aa562e7e277d1a78"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/ih-before.json",
+      "sha256": "c9eab4f6e7f8d468e630f7601600c0bee2f2f9fd52024e6cebbad725fedd4814"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/verification.json",
+      "sha256": "953188129798a00ea86d4d91a3c7da1c2e0805c55a91079ac27755e799a17c2f"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/applied.json",
+      "sha256": "1a024b9924b4ffef2ef0712e91fb6663b718aa39eca2b945ed8c801edbb3e60c"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/plan.json",
+      "sha256": "3a2fd3508bee64ad2f1a029c52d0ebc005f8c154728cffa49a48dbfc5118f1e1"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/javascript.tap",
+      "sha256": "9e993047f7725ddc52d0bcb7a2d19e71bd4c4ba0632358ecb59eeaf697241a5f"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/scorecard-browser.json",
+      "sha256": "57b282e6ff65c26e0dd0f783e7536d97492eceaf9c5a3801d4be71fce4af4a95"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/regression.xml",
+      "sha256": "79675ab39d1e96a15b9d36d9db70b307e05d0fe4451e2fa683152f76db2aa6e7"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/ih-after.json",
+      "sha256": "0734e8e497b912743a98661e6f644544ac31c2dd659bb84a6f044c8fd443813e"
+    },
+    {
+      "path": "docs/evidence/HOME_POLICY_CONNECTIONS_20261018/collection-browser.json",
+      "sha256": "8d42314485e7365d1a6db98534cc293e482b129d2e3c2b8e1aa14ac93887c4f4"
+    },
+    {
+      "path": "backend/connection_confirmation.py",
+      "sha256": "80d8a4dd795e44fe526baa71a03e2b8b8910be961a8c4feda747c31d676e828b"
+    },
+    {
+      "path": "backend/ih_public.py",
+      "sha256": "375f65596883f77f3b47938bdde26a0b01249ec2f8c3851ebc74d80bf2245419"
+    },
+    {
+      "path": "scripts/confirm_policy_connections_20261018.py",
+      "sha256": "755332dc4e69bfc1fe2211a848c0adbf3f7560504c9d61f32373623ac673c657"
+    },
+    {
+      "path": "tests/test_connection_confirmation.py",
+      "sha256": "f9ed8ba8c9f92aa8b93aac3a186b6cd7d357f557d5820a9d6c9b7ddf0617c8b3"
+    },
+    {
+      "path": "tests/test_ih_public.py",
+      "sha256": "138b452edfc06b16de7c2305f5207a99eb07280a16a95914f2db8fd9a4d5cd0b"
+    }
+  ],
+  "verification": {
+    "collection_screen": "PASS",
+    "csv": "PASS",
+    "scorecard": "PASS",
+    "console_errors": []
+  }
+}

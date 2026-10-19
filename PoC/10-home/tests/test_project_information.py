@@ -18,6 +18,37 @@ class ProjectInformationTests(unittest.TestCase):
             self.pid=row.entity_id
             db.add(ProgramMapping(id='PRG_TEST',name='프로그램',seed_policy_id='POL_2025_0907',policy_id='POL_2025_0907',status='REVIEW',revision_no=1,basis='문서',evidence_url='https://example.org'))
             db.add(Mapping(project_id=self.pid,program_id='PRG_TEST',policy_id='POL_2025_0907',status='REVIEW',revision_no=1,basis='원천',evidence_url='https://example.org'))
+    def test_single_project_projection_preserves_full_profile_and_evidence(self):
+        with self.s.sessions.begin() as db:
+            other,_=upsert_revision(db,'project','lh_construction','other',dict(name='다른 사업',region='경기도',base_date='2026-01-01',planned_units=77,stage='CONSTRUCTION',stage_label='공사 진행'), 'test')
+            db.add(Mapping(project_id=other.entity_id,program_id='PRG_TEST',policy_id='POL_2025_0907',status='REVIEW',revision_no=1,basis='원천',evidence_url='https://example.org'))
+        full=collection_matrix(self.s)
+        scoped=collection_matrix(self.s,project_ids=(self.pid,))
+        self.assertGreater(full['total'],scoped['total'])
+        self.assertEqual(scoped['total'],1)
+        self.assertEqual(scoped['items'][0],next(r for r in full['items'] if r['id']==self.pid))
+        self.assertEqual(view(self.s,self.pid,full),view(self.s,self.pid,scoped))
+        self.assertEqual(collection_matrix(self.s,project_ids=())['items'],[])
+
+    def test_cached_profile_invalidates_after_officer_and_source_edits(self):
+        from fastapi.testclient import TestClient
+        from backend.app import create_app
+        with TestClient(create_app(self.engine,auto_collect=False)) as client:
+            path='/poc/home/api/project-information/'+self.pid
+            first=client.get(path)
+            self.assertEqual(first.status_code,200)
+            self.assertEqual(client.get(path).headers['x-home-cache'],'HIT')
+            self.edit({'planned_units':120})
+            edited=client.get(path)
+            self.assertEqual(edited.headers['x-home-cache'],'MISS')
+            self.assertEqual(edited.json()['fields']['planned_units']['value'],120)
+            self.assertEqual(client.get(path).headers['x-home-cache'],'HIT')
+            row=self.s.rows('project')[0]
+            with self.s.sessions.begin() as db:
+                upsert_revision(db,'project','lh_construction','editor-test',dict(row,contractor='변경 시공사'),'source update')
+            self.assertEqual(client.get(path).headers['x-home-cache'],'MISS')
+            self.assertEqual(client.get('/poc/home/api/project-information/missing').status_code,404)
+
     def edit(self,changes=None,version=0,**kw):return save(self.s,self.pid,version,1,changes or {},'담당자','근거 대조',**kw)
     def test_priority_restore_and_source_immutable(self):
         self.edit({'name':'수정 사업','planned_units':120,'progress_pct':25,'progress_date':'2026-05-01'})

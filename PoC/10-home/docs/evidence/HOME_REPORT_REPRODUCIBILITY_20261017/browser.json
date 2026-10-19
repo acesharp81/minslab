@@ -1,0 +1,22 @@
+{
+  "reportabilityRows": 53,
+  "thirdTownEvents": 5,
+  "thirdTownUnits": 4112,
+  "fullReportReady": false,
+  "base": "https://www.minslab.kr/poc/home",
+  "constructionBefore": 309,
+  "constructionAfter": 8755,
+  "constructionEvents": 9,
+  "unresolvedPermitRows": 2152,
+  "rounds": 2,
+  "baseline": 51.6,
+  "current": 63.1,
+  "items": 40,
+  "benchmarkRows": 53,
+  "corrections": 15,
+  "agreement": 4.26,
+  "metrics": 4,
+  "downloads": "PASS",
+  "mobile": "PASS",
+  "consoleErrors": []
+}

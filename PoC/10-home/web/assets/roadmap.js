@@ -9,7 +9,7 @@ const Roadmap = (() => {
   function render(value) {
     data=value;
     if (selectedYear && !data.years.some(year=>year.year===selectedYear)) selectedYear=null;
-    const condition=$('roadmap-status').value;
+    const condition='all';
     let rows=data.items.filter(row=>condition==='future'?row.has_future_target:condition==='missing'?!row.has_any_target:condition==='past'?row.past_due_count:condition==='manual'?row.manual_count:true);
     if (selectedYear) rows=rows.filter(row=>row.annual.some(year=>year.year===selectedYear && year.events.length));
     $('roadmap-total').textContent=`${num(rows.length)} / ${num(data.total)}개 원천 사업 후보`;
@@ -19,7 +19,7 @@ const Roadmap = (() => {
     const years=[data.current_year,...data.years.map(year=>year.year)];
     $('roadmap-list').innerHTML=rows.length ? `<table class="roadmap-table"><colgroup><col class="roadmap-name-col"><col class="roadmap-state-col"><col class="roadmap-units-col">${years.map(()=>'<col>').join('')}</colgroup><thead><tr><th>사업 / 정책 연결</th><th>현재 상태</th><th>전체 계획</th>${years.map((year,index)=>`<th class="${selectedYear===year?'selected-year':''}">${year}<small>${index===0?'당해연도':'+'+index+'년'}</small></th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr data-roadmap-project="${esc(row.id)}"><td><button class="project-name" data-project="${esc(row.id)}">${esc(row.name)}</button><small class="row-sub">${esc(row.region)} · ${esc(sourceNames.get(row.source_id)||row.source_id)}</small>${badge(row.mapping.status)} <button class="target-open" data-target-project="${esc(row.id)}">${state.admin?'목표 관리':'연도 목표'} ↗</button></td><td><span class="roadmap-current-stage">${esc(row.stage_label)}</span><small class="row-sub">${row.progress_pct==null?'공정률 미확보':num(row.progress_pct)+'%'} · ${esc(baseText(row))}</small>${row.past_due_count?'<small class="roadmap-overdue">예정 경과 · 확인 필요</small>':''}</td><td>${num(row.planned_units)}${row.planned_units==null?'':'호'}</td>${row.annual.map(year=>`<td class="annual-cell ${selectedYear===year.year?'selected-year':''}">${year.events.length?year.events.map(eventCard).join(''):'<span class="annual-unset">미등록</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table>` : empty('선택한 조건의 사업 목표가 없습니다. 표시 조건과 연도 선택을 확인하세요.');
     $('roadmap-note').textContent=`향후 목표 확보 ${num(data.future_target_count)}건 · 일정 미확보 ${num(data.no_schedule_count)}건 · 관리자 목표 등록 ${num(data.manual_project_count)}건. ${data.notice}`;
-    const params=query();params.set('horizon',$('roadmap-horizon').value);params.set('target_filter',condition);
+    const params=query();params.set('horizon',10);params.set('target_filter',condition);
     if(selectedYear)params.set('target_year',selectedYear);
     $('roadmap-export').href=API+'/roadmap/export.csv?'+params;
   }
@@ -56,8 +56,6 @@ const Roadmap = (() => {
     } catch(error) {if(version===generation) $('target-content').innerHTML=empty(error.message);}
   }
   function start() {
-    $('roadmap-horizon').addEventListener('change',()=>load());
-    $('roadmap-status').addEventListener('change',()=>{if(data) render(data);});
     $('roadmap-year-reset').addEventListener('click',()=>{selectedYear=null;if(data)render(data);});
     document.addEventListener('click',event=>{
       const year=event.target.closest('[data-target-year]');
@@ -66,5 +64,5 @@ const Roadmap = (() => {
     });
     $('close-target').addEventListener('click',()=>{$('target-dialog').close();++generation;});
   }
-  return {render,open,start,selectYear:year=>{selectedYear=year;if(data)render(data);},reset:()=>{selectedYear=null;$('roadmap-status').value='all';}};
+  return {render,open,start,selectYear:year=>{selectedYear=year;if(data)render(data);},reset:()=>{selectedYear=null;}};
 })();

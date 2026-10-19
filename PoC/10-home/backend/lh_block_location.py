@@ -43,10 +43,10 @@ def parse_label_points(content):
     grouped = defaultdict(list)
     inspected = 0
     for row in rows:
-        if str(row.get("flag")) != "4" or str(row.get("sggCd")) not in {"11", "41"}:
+        if str(row.get("flag")) != "4" or str(row.get("sggCd")) not in {"11", "28", "41"}:
             continue
         inspected += 1
-        region = {"11": "서울특별시", "41": "경기도"}[str(row["sggCd"])]
+        region = {"11": "서울특별시", "28": "인천광역시", "41": "경기도"}[str(row["sggCd"])]
         district, block = district_key(row.get("bzdtNm")), block_code(row.get("bnm"))
         try:
             x, y = float(row["x"]), float(row["y"])
@@ -56,7 +56,7 @@ def parse_label_points(content):
             continue
         grouped[region, district, block].append((x, y, row["bzdtNm"], row.get("zonecode")))
     if inspected == 0:
-        raise ValueError("LH 공개 지도 서울·경기 블록 라벨 없음")
+        raise ValueError("LH 공개 지도 수도권 블록 라벨 없음")
     unique = {}
     ambiguous = 0
     for key, values in grouped.items():

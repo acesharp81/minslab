@@ -103,7 +103,7 @@ def patch_details(service, key, updates):
 
 
 def quality_guide(data):
-    fields=('id','title','repair_type','status','base_date','recorded_at','revision_no','source_ids','project_ids','stages','related_keys','cause','action','impact','remaining','report_url','quality_checks')
+    fields=('id','title','repair_type','status','base_date','recorded_at','revision_no','source_ids','project_ids','stages','related_keys','cause','action','impact','remaining','report_url','quality_checks','actor','reason','round_id')
     return dict(as_of_date=data['as_of_date'],project_count=data['total'],quality_kinds=QUALITY_KINDS,quality_layers=QUALITY_LAYERS,quality_results=QUALITY_RESULTS,
         repairs=[{k:r.get(k) for k in fields} for r in data['repairs']],
         note='점검 숫자는 각 기록의 점검일·점검범위 기준입니다. 조회 범위의 사업 수와 동일하지 않을 수 있습니다. 원천값 오류, 제공 범위의 한계, 수집·연결·표시 문제를 구분하고 미확보를 0으로 해석하지 않습니다.')
@@ -127,6 +127,8 @@ def save(service, key, payload):
         for field in ('source_ids','project_ids'):
             if field not in payload:payload[field]=(old.payload.get(field) or []) if old else []
         record, outcome = upsert_revision(db, KIND, 'repair_log', key, payload, 'repair_log')
+        if outcome != 'unchanged':
+            db.add(Audit(entity_id=record.entity_id, action='COLLECTION_REPAIR', before=old.payload if old else {}, after=payload))
         return dict(id=record.entity_id, revision_no=record.revision_no, outcome=outcome)
 
 
@@ -168,6 +170,7 @@ def enrich(service, items, reference):
             stages = [after['stage']] if after.get('stage') else sorted({f['stage'] for f in after.get('facts', [])})
             lookup[pid]['link_changes'].append(dict(id=change.id, title=ACTIONS[change.action],
                 recorded_at=change.recorded_at.isoformat(), stages=stages, status=after.get('status'),
+                actor=after.get('actor'), reason=after.get('reason'),
                 basis=after.get('review_basis') or after.get('upgrade_basis') or new.get('basis') or after.get('basis') or after.get('reason'),
                 before=dict(status=before.get('status'), date=old.get('event_date') or ' / '.join(sorted({f['date'] for f in before.get('facts', []) if f.get('date')})) or None, method=old.get('method')),
                 after=dict(status=after.get('status'), date=new.get('event_date') or ' / '.join(sorted({f['date'] for f in after.get('facts', []) if f.get('date')})) or None, method=new.get('method'))))

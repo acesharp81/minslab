@@ -92,6 +92,22 @@ class CollectorTests(unittest.TestCase):
         self.assertFalse(rows[0]['move_in_field_present'])
         self.assertEqual(plan_schedule(rows[0],'move_in','lh_sale')['status'],'NOT_PROVIDED')
 
+    def test_rent_program_preserves_native_type_and_excludes_purchase_lease(self):
+        class Fetch:
+            def get(self,*args,**kwargs):
+                return lh_html([
+                    ['경기도','행복주택','과천주암(뉴스테이) C2','46','30','2026년12월','2028년06월','경기남부',''],
+                    ['경기도','행복주택','과천주암(뉴스테이) C2','55','314','2026년12월','2028년06월','경기남부',''],
+                    ['경기도','매입임대','테스트 매입','46','10','2026년12월','2028년06월','경기남부',''],
+                    ['경기도','전세임대','테스트 전세','46','10','2026년12월','2028년06월','경기남부','']])
+        records,stats=collect_lh_plan(dict(id='lh_rent',url='https://example.org/rent'),Fetch())
+        self.assertEqual(len(records),1);self.assertEqual(stats['excluded_rows'],2)
+        raw=records[0][2]
+        self.assertEqual(raw['tenure'],'행복주택')
+        self.assertEqual(raw['program'],'건설형 공공임대')
+        self.assertEqual(raw['supply_units'],344)
+        self.assertEqual([r['tenure'] for r in raw['rows']],['행복주택','행복주택'])
+
     def test_lh_plan_site_keeps_single_block_and_rejects_combined_site(self):
         self.assertEqual(lh_plan_site('고양창릉 S-01', '경기도'), {
             'district': '고양창릉', 'block': 'S-01', 'municipality': '고양시',

@@ -38,6 +38,9 @@ CATALOG = {
  'CONSTRUCTION':['lh_construction','lh_incheon_construction','lh_progress','lh_reit_progress','lh_completion_plan','building_register_recap','gh_completion_evidence'],
  'SUPPLY':['cheongyak','lh_notice','gh_notice','lh_sale','lh_rent','sh_supply_plan','gh_supply_plan'],
  'MOVE_IN':['lh_notice_detail','lh_movein_history','cheongyak','lh_rent','lh_incheon_rent']}
+for _stage in ('BUSINESS','CONSTRUCTION','SUPPLY'):
+    CATALOG[_stage].append('ih_notice')
+SHORT['ih_notice']='iH 공식 사업·주택 모집공고'
 KEYS = {'POLICY':'정책 ID → 프로그램 ID → 사업 ID','BUSINESS':'사업 ID · 지구/블록 · 사업명',
         'APPROVAL':'사업 ID → 허가 PK · 상세주소/필지', 'CONSTRUCTION':'사업 ID · 지구/블록 · 공사번호',
         'SUPPLY':'사업 ID → 주택관리번호 · 지구/블록','MOVE_IN':'사업 ID · 지구/블록 → 시작일/예정월'}
@@ -124,7 +127,7 @@ def collection_cell_text(cell):
     progress=cell.get('progress',{})
     return (progress.get('label','')+' | ' if progress else '')+'목표: '+targets+' | 확보 정보: '+sources+(' · 실적·진척 있음' if cell['actual_available'] else ' · 실적 미확인')+(' · 연결 확인 필요' if cell['review_required'] else '')
 
-def refresh_links(service):
+def refresh_links(service, actor='자동 수집', reason='원천 변경 후 수집 연결 후보 갱신'):
     """Backfill once, then propose only new/changed unmatched objects at collection time."""
     projects=service.projects();saved={(r['project_id'],r['stage']):r for r in service.rows('collection_link')}
     with service.sessions() as db:
@@ -162,7 +165,7 @@ def refresh_links(service):
                 if old and old.payload.get('links'):count['preserved']+=1;continue
                 payload=dict(project_id=p['id'],stage=stage,links=links,fingerprint=fingerprints[p['id']],base_date=today().isoformat())
                 row,outcome=upsert_revision(db,'collection_link','stage_collection',p['id']+':'+stage,payload,'collection_link')
-                if outcome!='unchanged':db.add(Audit(entity_id=eid,action='COLLECTION_LINK_AUTO',before=old.payload if old else {},after=payload))
+                if outcome!='unchanged':db.add(Audit(entity_id=eid,action='COLLECTION_LINK_AUTO',before=old.payload if old else {},after=dict(payload,actor=actor,reason=reason)))
                 count['linked' if links else 'unmatched']+=1
     return dict(count)
 
@@ -182,7 +185,16 @@ def save_assessment(service,project_id,stage,revision_no,status,basis):
         return dict(payload,revision_no=row.revision_no)
 
 def collection_matrix(service,as_of=None,**filters):
+    from .read_scope import projection_reads
+    with projection_reads():
+        return _collection_matrix(service,as_of,**filters)
+
+
+def _collection_matrix(service,as_of=None,project_ids=None,**filters):
     reference=as_of or today();projects=service.projects(as_of=reference,**filters)
+    if project_ids is not None:
+        selected=set(project_ids)
+        projects=[p for p in projects if p['id'] in selected]
     from .evidence_bridge import by_project
     bridges=by_project(service,reference)
     policies={p['policy_id']:p for p in service.policy_rows(reference)}
@@ -218,11 +230,11 @@ def collection_matrix(service,as_of=None,**filters):
         mapping=p.get('mapping',{});policy=policies.get(mapping.get('policy_id'))
         if policy and mapping.get('status')!='RELEASED':
             add('POLICY',policy['source_id'],'LINK',mapping.get('basis') or '저장된 정책–프로그램–사업 연결',
-                url=mapping.get('evidence_url') or policy.get('evidence_url'),review=mapping.get('status'),source_entity_id=policy['id'],officer_confirmed=mapping.get('basis','').startswith('사용자 입력'))
+                url=mapping.get('evidence_url') or policy.get('evidence_url'),review=mapping.get('status'),source_entity_id=policy['id'],officer_confirmed=mapping.get('basis','').startswith('사용자 입력'),link_origin='POLICY_ASSIGNMENT')
         for stage in ('BUSINESS','APPROVAL'):
             r=stage_links.get((p['id'],stage),{});picked=r.get('selected')
             if picked and r.get('status') in ('REVIEW','CONFIRMED'):
-                add(stage,picked.get('source_id'),'ACTUAL' if picked.get('event_date') and (picked.get('original_method') or picked.get('method')) not in ('PREREQUISITE','STAGE_INFERENCE') else 'STATE',picked.get('basis'),picked.get('event_date') or picked.get('observed_on'),picked.get('evidence_url'),r['status'],picked.get('source_entity_id'),source_revision_no=picked.get('source_revision_no'),method=picked.get('method'),original_method=picked.get('original_method'),scope_partial=picked.get('scope_partial',False),scope_label=picked.get('scope_label'),relation_type=picked.get('relation_type'),source_units=picked.get('source_units'),units=picked.get('units'),event_type=picked.get('event_type'),officer_confirmed=bool(r.get('actor')))
+                add(stage,picked.get('source_id'),'ACTUAL' if picked.get('event_date') and (picked.get('original_method') or picked.get('method')) not in ('PREREQUISITE','STAGE_INFERENCE') else 'STATE',picked.get('basis'),picked.get('event_date') or picked.get('observed_on'),picked.get('evidence_url'),r['status'],picked.get('source_entity_id'),source_revision_no=picked.get('source_revision_no'),method=picked.get('method'),original_method=picked.get('original_method'),scope_partial=picked.get('scope_partial',False),scope_label=picked.get('scope_label'),relation_type=picked.get('relation_type'),source_units=picked.get('source_units'),units=picked.get('units'),event_type=picked.get('event_type'),officer_confirmed=bool(r.get('actor')),link_origin='STAGE_EVIDENCE',match_score=picked.get('score'),decision_basis=r.get('basis'))
         if p.get('start_actual_date'):add('CONSTRUCTION',p['source_id'],'ACTUAL','원천 실제 착공일',p['start_actual_date'],p.get('evidence_url'),milestone='CONSTRUCTION')
         source_progress=p.get('source_values',p)
         if source_progress.get('progress_pct') is not None:
@@ -294,7 +306,7 @@ def collection_matrix(service,as_of=None,**filters):
                 evidence[f['stage']].append(dict(f,name=short(bridge['source_id']),source_id=bridge['source_id'],
                     source_entity_id=bridge['source_entity_id'],source_revision_no=bridge['source_revision_no'],
                     evidence_url=bridge['evidence_url'],review_status=bridge['status'],bridge_id=bridge['id'],
-                    officer_confirmed=bool(bridge.get('actor')),method='CROSS_SOURCE',date=f.get('date'),basis=f['basis']+' · '+bridge['basis']))
+                    officer_confirmed=bool(bridge.get('actor')),method='CROSS_SOURCE',date=f.get('date'),basis=f['basis']+' · '+bridge['basis'],link_origin='EVIDENCE_BRIDGE',match_key=bridge.get('match_key'),matching_version=bridge.get('matching_version'),decision_basis=bridge.get('review_basis'),relation_type=bridge.get('relation_type')))
         for stage,records in evidence.items():
             pending=[r for r in research.get(p['id'],[]) if r.get('status')=='LINK_PENDING' and stage in r.get('link_stages',[])]
             stage_discovery=max(pending,key=lambda r:(r.get('checked_at',''),r.get('iteration',1)),default=None) or discovery
@@ -333,7 +345,7 @@ def collection_matrix(service,as_of=None,**filters):
                 collection_status=s.get('status'),last_success=s.get('last_success')))
         diagrams.append(dict(stage=stage,label=label,join_key=KEYS[stage],sources=sources,counts=dict(counts)))
     from .collection_lineage import enrich
-    lineage=enrich(service,projects,items,reference,source_states,baselines=baselines)
+    lineage=enrich(service,projects,items,reference,source_states,baselines=baselines,policy_names={k:p['name'] for k,p in policies.items()})
     from .collection_repairs import enrich as enrich_repairs, REPAIR_TYPES
     repairs=enrich_repairs(service,items,reference)
     return dict(repair_types=REPAIR_TYPES,repairs=repairs,items=items,gap_groups=summarize_gaps(items),total=len(items),stages=STAGES,statuses=STATUS,progress_statuses=PROGRESS,diagram=diagrams,lineage=lineage,as_of_date=reference.isoformat(),

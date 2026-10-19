@@ -1,6 +1,20 @@
 """Source-supported policy proposals and programme membership."""
 from .collection_period import ORIGINS
 
+def construction_program_classification(district):
+    """LH construction collector's category rule, also exposed for explanation."""
+    keywords=('왕숙','창릉','교산','대장')
+    matched=[word for word in keywords if word in (district or '')]
+    return dict(program='3기 신도시' if matched else '공공주택 건설',
+                field='지구명',value=district,keywords=list(keywords),matched=matched)
+
+def lh_plan_program_classification(rent, name, tenure):
+    """Describe the collector's actual source/type filter, not a semantic inference."""
+    excluded=[word for word in ('매입','전세') if word in (tenure or '')]
+    keywords=[word for word in ('왕숙','창릉','교산','대장') if word in (name or '')]
+    return dict(program=None if excluded else '건설형 공공임대' if rent else '3기 신도시' if keywords else '공공택지·공공분양',
+                excluded=excluded,matched=keywords,rent=rent)
+
 def catalogue(policies, events):
     result = [dict(row, monitor_kind="POLICY") for row in policies]
     evidenced = {row.get("origin_id") for row in events}

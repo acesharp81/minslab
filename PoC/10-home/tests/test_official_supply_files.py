@@ -37,7 +37,8 @@ class OfficialSupplyFileTests(unittest.TestCase):
             '인천검증,B2,인천광역시 중구,공공분양,200,2027-01-01\n'
         ).encode('cp949')
         records, stats = parse_lh_completion_plan(content, SOURCES_BY_ID['lh_completion_plan'], '2026-01-27')
-        self.assertEqual(len(records), 2)
+        self.assertEqual(len(records), 3)
+        self.assertEqual(stats['region_counts']['인천광역시'], 1)
         self.assertEqual(stats['file_rows'], 3)
         self.assertEqual(stats['unknown_units_rows'], 1)
         self.assertFalse(stats['complete_population'])
@@ -47,6 +48,17 @@ class OfficialSupplyFileTests(unittest.TestCase):
         self.assertEqual(records[1][2]['schedule_status'], 'DATE_UNKNOWN')
         self.assertIsNone(records[1][2]['units'])
         self.assertTrue(all(kind == 'lh_completion_plan' for kind, _, _ in records))
+
+    def test_identical_renewal_duplicates_preserve_lines_without_double_counting(self):
+        header='시도,시군구,구역명칭,현 사업추진단계,사업유형,사업시행자,공급 예정 세대수\n'
+        row='인천광역시,남동구,남촌동,정비구역지정,주거환경개선,조합,0\n'
+        records,stats=parse_renewal_inventory((header+row+row).encode(),SOURCES_BY_ID['molit_renewal_inventory'],'2026-05-18')
+        self.assertEqual(len(records),1)
+        self.assertEqual(records[0][2]['identical_source_row_numbers'],[2,3])
+        self.assertEqual(stats['identical_duplicate_rows'],1)
+        self.assertEqual(stats['excluded_rows'],0)
+        with self.assertRaisesRegex(ValueError,'값 충돌'):
+            parse_renewal_inventory((header+row+row.replace(',0',',100')).encode(),SOURCES_BY_ID['molit_renewal_inventory'],'2026-05-18')
 
     def test_duplicate_natural_key_blocks_ambiguous_file(self):
         content = (

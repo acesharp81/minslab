@@ -40,11 +40,6 @@ def comparison_index(plan, cohorts, config, statistics, reference, program_cohor
         scope_end=profile['values']['period_end'] if profile else plan.get('period_end','2100-12-31')
         comparable=[dict(c,events=[e for e in c['events'] if scope_start<=e['event_date']<=scope_end]) for c in scope['cohorts']] if profile else scope['cohorts']
         tracked=scope['cohorts']
-        if program_cohorts is not None and not scope['kind'].startswith('program'):
-            tracked=[c for c in program_cohorts if scope['kind']=='policy' or
-                     scope['kind']=='region' and c['region']==scope['id'] or
-                     scope['kind']=='city' and c.get('municipality_id')==scope['id'] or
-                     scope['kind']=='project' and (c['id']==scope['id'] or scope['id'] in c['source_ids'])]
         for metric in METRICS:
             macro = not plan.get('portfolio') and metric == 'CONSTRUCTION' and scope['kind'] in ('policy', 'region')
             plans = _official_targets(plan, scope, metric) if macro else _schedule_targets(scope['cohorts'], metric, scope_start)
@@ -63,7 +58,14 @@ def comparison_index(plan, cohorts, config, statistics, reference, program_cohor
             profile_priority = (macro or profile is not None) and any(p.get('origin') == 'MANUAL' for p in plans)
             if profile_priority: management = plans
             years = []
-            for year in range(min(reference.year - 5,int(scope_start[:4])), max(reference.year + 5,int(scope_end[:4])) + 1):
+            # 1900 is the inclusive ledger sentinel, not a chart's first year.
+            # Keep every real event/plan year, including old starts, without
+            # emitting a century of empty cells for each region/program/project.
+            first_year = int(scope_start[:4])
+            if first_year == 1900:
+                first_year = min([reference.year - 5] +
+                    [int(p['date'][:4]) for p in plans + actual + management])
+            for year in range(min(reference.year - 5,first_year), max(reference.year + 5,int(scope_end[:4])) + 1):
                 year_end = f'{year}-12-31'
                 yearly_plans = [p for p in plans if p['date'].startswith(str(year))]
                 observation_end = min(year_end, reference.isoformat())
@@ -81,7 +83,7 @@ def comparison_index(plan, cohorts, config, statistics, reference, program_cohor
                                   actual_status='FUTURE' if year > reference.year else 'PARTIAL' if yearly_actual and (not macro or yearly_actual[-1]['date'] < year_end) else 'OBSERVED' if yearly_actual else 'NOT_ACQUIRED'))
             tracking=dict(target_points=_schedule_targets(tracked,metric,'1900-01-01'),
                           actual_points=_events(tracked,metric,reference,'1900-01-01',cumulative=True),
-                          project_count=len(tracked),basis='등록 사업 현재+후속 단계 누적 · 담당자 입력·추정 포함 · 원천 중복 제외')
+                          project_count=len(tracked),basis='선택 범위 사업 현재+후속 단계 누적 · 담당자 입력·추정 포함 · 원천 중복 제외')
             metrics[metric] = dict(label=METRICS[metric], target_points=plans, actual_points=actual,
                                    tracking=tracking,
                                    management_points=management, annual=years,

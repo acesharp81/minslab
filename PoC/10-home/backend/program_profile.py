@@ -130,7 +130,7 @@ def view(service,pid,model):
         fields[k]=dict(value=values.get(k),manual=k in overrides,evidence=([overrides[k]] if k in overrides else [])+[evidence])
     for row in service.rows('program_district_plan'):
         if row.get('program_id')==pid:
-            fields['overview']['evidence'].append(dict(origin='SOURCE',value=row['사업명']+' · '+row['공급목표량또는분양계획량'],excerpt=row['분양시기']+' · '+row['검토내용'],basis='지구 단위 분양계획 · 블록 미특정',evidence_url=row['검증근거URL'],document_name='주택공급 확대방안.pdf',printed_page=10,pdf_page=13))
+            fields['overview']['evidence'].append(dict(origin='SOURCE',value=row['사업명']+' · '+row['공급목표량또는분양계획량'],excerpt=row['분양시기']+' · '+row['검토내용'],basis=row.get('evidence_basis','지구 단위 분양계획 · 블록 미특정'),evidence_url=row['검증근거URL'],document_name=row.get('document_name','주택공급 확대방안.pdf'),printed_page=row.get('printed_page',10),pdf_page=row.get('source_page',13)))
     from .program_management import members,assessment,current_parts
     cohorts=members(model,pid)
     actual={}

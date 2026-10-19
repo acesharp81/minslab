@@ -1,0 +1,998 @@
+{
+  "captured_at": "2026-10-19T10:38:58.977520+00:00",
+  "api_count": 27,
+  "items": [
+    {
+      "source_id": "building_general_permit",
+      "status": "수정·확대 중",
+      "geography": "수도권 현존 법정동 2,907개",
+      "period": "기간 제한 없는 허가 원장",
+      "paging": "100행씩 끝 페이지; 내부 1만행 제한→10만행 안전 상한",
+      "note": "지역 교대·7일 재방문. 최초 조회와 주거용 신축·착공 사건 대조는 별개",
+      "source": {
+        "id": "building_general_permit",
+        "name": "건축HUB 일반 건축인허가",
+        "org": "국토교통부",
+        "url": "https://www.data.go.kr/data/15136267/openapi.do",
+        "type": "ACTUAL_EVIDENCE",
+        "key_env": "POC10_GENERAL_BUILDING_SERVICE_KEY",
+        "fallback_key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+        "implemented": true,
+        "manual_only": false,
+        "collection_mode": "GENERAL_BUILDING_PERMIT",
+        "refresh_days": 1,
+        "backfill_seconds": 900,
+        "requires_key_for_schedule": true
+      },
+      "counts": [
+        {
+          "kind": "general_permit",
+          "region": "경기도",
+          "records": 6118
+        },
+        {
+          "kind": "general_permit",
+          "region": "서울특별시",
+          "records": 107293
+        },
+        {
+          "kind": "general_permit",
+          "region": "인천광역시",
+          "records": 2898
+        },
+        {
+          "kind": "project",
+          "region": "서울특별시",
+          "records": 51
+        },
+        {
+          "kind": "source_connection",
+          "region": null,
+          "records": 1
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 10:21:52.624055+00:00"
+    },
+    {
+      "source_id": "kosis_age",
+      "status": "조건 내 정상",
+      "geography": "수도권 시도+시군구; 인천 10/11개 구분",
+      "period": "원천 최신 공개 월; 최근 3개월부터 확인",
+      "paging": "지역·연령 구간·인구 합계 검증",
+      "note": "이전 경계의 연령값을 현재 행정구역으로 임의 배분하지 않음",
+      "source": {
+        "id": "kosis_age",
+        "name": "KOSIS 수도권 시군구 연령별 주민등록인구",
+        "org": "국가데이터처 KOSIS",
+        "url": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1B04005N",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "implemented": true,
+        "collection_mode": "AREA_AGE",
+        "refresh_days": 7,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 32
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 26
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 12
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-14 05:07:13.411600+00:00"
+    },
+    {
+      "source_id": "unsold_statistics",
+      "status": "조건 내 정상",
+      "geography": "수도권 시도 및 원천 시군구",
+      "period": "최초 최근 13개월; 이후 최근 3개월 재조회",
+      "paging": "월별 총계·시군구 합계·준공후 부분집합 검사",
+      "note": "13개월보다 오래된 시계열과 과거 3개월 밖 정정은 자동 재조회 범위 밖",
+      "source": {
+        "id": "unsold_statistics",
+        "name": "수도권 미분양·준공 후 미분양 월별 재고",
+        "org": "국토교통 통계누리",
+        "url": "https://stat.molit.go.kr/portal/api/info.do",
+        "type": "MARKET_REFERENCE",
+        "key_env": "POC10_MOLIT_STAT_API_KEY",
+        "implemented": true,
+        "collection_mode": "UNSOLD_REFERENCE",
+        "refresh_days": 1,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "unsold",
+          "region": "경기도",
+          "records": 832
+        },
+        {
+          "kind": "unsold",
+          "region": "서울특별시",
+          "records": 676
+        },
+        {
+          "kind": "unsold",
+          "region": "인천광역시",
+          "records": 290
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 12:10:42.772777+00:00"
+    },
+    {
+      "source_id": "project_locations",
+      "status": "관리사업 범위",
+      "geography": "현재 관리 사업의 주소 또는 소속 시군구",
+      "period": "현재 사업 목록, 확정 좌표 보존",
+      "paging": "주소별 조회; 유효 좌표·대체 대표점 구분",
+      "note": "전국 주소 전수 자료가 아님. 주소 근사점은 블록 경계·PNU 근거가 아님",
+      "source": {
+        "id": "project_locations",
+        "name": "사업 대표 주소·지역 근사 좌표",
+        "org": "VWorld·공식 행정구역",
+        "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+        "type": "GIS",
+        "key_env": "POC10_VWORLD_API_KEY",
+        "collection_mode": "PROJECT_LOCATION",
+        "implemented": true,
+        "refresh_days": 7
+      },
+      "counts": [
+        {
+          "kind": "project_location",
+          "region": "경기도",
+          "records": 75
+        },
+        {
+          "kind": "project_location",
+          "region": "서울특별시",
+          "records": 110
+        },
+        {
+          "kind": "project_location",
+          "region": "인천광역시",
+          "records": 9
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-12 23:04:25.413708+00:00"
+    },
+    {
+      "source_id": "ih_supply",
+      "status": "접속 장애·범위 미확정",
+      "geography": "iH 재고·계약·공가; 지역 필터 비움",
+      "period": "전월 말 조회조건",
+      "paging": "전체 건수까지 페이지; 부분 응답 실패 처리",
+      "note": "HTTP 오류로 원장 미확보. 홈페이지 공고/단지 수집 성공과 구분; 재고를 신규 착공에 더하지 않음",
+      "source": {
+        "id": "ih_supply",
+        "name": "iH 임대 재고·계약·공가 API · 접근 미확인",
+        "org": "인천도시공사",
+        "url": "https://www.data.go.kr/data/15168460/openapi.do",
+        "type": "STOCK_REFERENCE",
+        "key_env": "POC10_IH_SERVICE_KEY",
+        "fallback_key_env": "POC10_LH_NOTICE_SERVICE_KEY",
+        "implemented": true,
+        "manual_only": true,
+        "collection_mode": "IH_STOCK",
+        "show_key_card": false
+      },
+      "counts": [],
+      "latest_status": "FAILED",
+      "last_success": null
+    },
+    {
+      "source_id": "building_hub_incheon",
+      "status": "확대 확인",
+      "geography": "인천 278동",
+      "period": "전체 주택허가 원장",
+      "paging": "100행씩 전 페이지",
+      "note": "개편 법정동의 원천 갱신·과거 폐지 코드와의 교차 연결은 지속 관리",
+      "source": {
+        "id": "building_hub_incheon",
+        "name": "9·7 인천 주택인허가 원천",
+        "org": "국토교통부",
+        "url": "https://www.data.go.kr/data/15136560/openapi.do",
+        "type": "ACTUAL",
+        "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+        "implemented": true,
+        "manual_only": false,
+        "collection_mode": "INCREMENTAL_INCHEON",
+        "backfill_seconds": 900,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "permit",
+          "region": "인천광역시",
+          "records": 18287
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 09:55:46.505715+00:00"
+    },
+    {
+      "source_id": "building_register_recap",
+      "status": "수정·확대 중",
+      "geography": "인천 포함 2,907동",
+      "period": "총괄표제부·사용승인 참조",
+      "paging": "전 페이지; 표제부와 다른 자료 종류",
+      "note": "수동 전용 해제. 개별 동 표제부와 총괄표제부를 호수로 중복 합산하지 않음",
+      "source": {
+        "id": "building_register_recap",
+        "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+        "org": "국토교통부",
+        "url": "https://www.data.go.kr/data/15134735/openapi.do",
+        "type": "ACTUAL_EVIDENCE",
+        "key_env": "POC10_BUILDING_REGISTER_SERVICE_KEY",
+        "implemented": true,
+        "manual_only": false,
+        "backfill_seconds": 900,
+        "requires_key_for_schedule": true,
+        "collection_mode": "REGISTER_RECAP",
+        "register_kind": "register_recap",
+        "register_endpoint": "getBrRecapTitleInfo",
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "register_recap",
+          "region": "경기도",
+          "records": 338
+        },
+        {
+          "kind": "register_recap",
+          "region": "서울특별시",
+          "records": 3617
+        },
+        {
+          "kind": "register_recap",
+          "region": "인천광역시",
+          "records": 63
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 10:29:48.201957+00:00"
+    },
+    {
+      "source_id": "policy_907_incheon_geometry",
+      "status": "분리 수집 정상",
+      "geography": "인천 코드 28 전체, 도서 포함",
+      "period": "현재 경계 판본",
+      "paging": "sig_cd 속성 필터; 전체 건수=수신 건수",
+      "note": "11개 현재 관할 확보. 과거 10개 지역 통계를 새 경계로 임의 재배분하지 않음",
+      "source": {
+        "id": "policy_907_incheon_geometry",
+        "name": "9·7 인천 시군구 경계",
+        "org": "국토교통부 VWorld",
+        "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+        "type": "GIS",
+        "key_env": "POC10_VWORLD_API_KEY",
+        "implemented": true,
+        "collection_mode": "POLICY_DELIVERY",
+        "manual_only": false,
+        "show_key_card": false,
+        "refresh_days": 7
+      },
+      "counts": [
+        {
+          "kind": "policy_municipality",
+          "region": "인천광역시",
+          "records": 11
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 23:50:42.374788+00:00"
+    },
+    {
+      "source_id": "incheon_statistics",
+      "status": "분리 수집 정상",
+      "geography": "인천",
+      "period": "동일 통계기간·동일 정의",
+      "paging": "molit_statistics와 같은 파서, 인천만 필터",
+      "note": "수집 설명에 서울·경기가 표시되던 문구를 실제 요청 지역으로 수정",
+      "source": {
+        "id": "incheon_statistics",
+        "name": "인천 주택 인허가·착공·준공·분양승인 통계",
+        "org": "국토교통 통계누리",
+        "url": "https://stat.molit.go.kr/portal/api/info.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_MOLIT_STAT_API_KEY",
+        "implemented": true,
+        "collection_mode": "POLICY_DELIVERY",
+        "manual_only": false,
+        "show_key_card": false,
+        "refresh_days": 7
+      },
+      "counts": [
+        {
+          "kind": "statistic",
+          "region": "인천광역시",
+          "records": 320
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 23:51:47.964569+00:00"
+    },
+    {
+      "source_id": "building_hub_details",
+      "status": "수정·확대 중",
+      "geography": "수도권 2,907동",
+      "period": "동별개요·대지위치 두 endpoint",
+      "paging": "원천 총건수 대비 전 페이지; 완전히 동일한 중복만 정리",
+      "note": "최초 완료 후 정지하던 구조 수정: 지역 교대·7일 재방문. 1만행 안전 상한은 별도 남음",
+      "source": {
+        "id": "building_hub_details",
+        "name": "건축HUB 동별·대지위치 파일럿",
+        "org": "국토교통부",
+        "url": "https://www.data.go.kr/data/15136560/openapi.do",
+        "type": "ACTUAL",
+        "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+        "collection_mode": "PILOT_DETAIL",
+        "backfill_seconds": 900,
+        "implemented": true,
+        "manual_only": false,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "permit_dong",
+          "region": "경기도",
+          "records": 9865
+        },
+        {
+          "kind": "permit_dong",
+          "region": "서울특별시",
+          "records": 56418
+        },
+        {
+          "kind": "permit_dong",
+          "region": "인천광역시",
+          "records": 18551
+        },
+        {
+          "kind": "permit_parcel",
+          "region": "경기도",
+          "records": 12896
+        },
+        {
+          "kind": "permit_parcel",
+          "region": "서울특별시",
+          "records": 206569
+        },
+        {
+          "kind": "permit_parcel",
+          "region": "인천광역시",
+          "records": 35067
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 10:35:23.060118+00:00"
+    },
+    {
+      "source_id": "kosis_housing",
+      "status": "조건 내 정상",
+      "geography": "서울·경기·인천; 시도·시군구",
+      "period": "2018년 이후 총조사; 보정 재고는 해당 표 제공연도",
+      "paging": "KOSIS 표별 ALL 응답; 경기 시 총계와 하위 구 중복 제외",
+      "note": "인천 실제 레코드 확보 확인. 과거 총조사 주택수와 보정 주택재고는 다른 지표",
+      "source": {
+        "id": "kosis_housing",
+        "name": "KOSIS 서울·경기 일반가구·다가구 반영 주택 재고",
+        "org": "국가데이터처 / 국토교통부",
+        "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "collection_mode": "AREA_SERIES",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 256
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 208
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 88
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 11:12:04.921017+00:00"
+    },
+    {
+      "source_id": "kosis_living",
+      "status": "지표별 제한 확인",
+      "geography": "이동·주거형태는 수도권; 소득분포·PIR은 전국/수도권 참고",
+      "period": "통계표별 최신; 이동은 최근 13개월",
+      "paging": "각 표의 단위·범주·분포 합계 검증",
+      "note": "전국 소득 6구간을 시군구 소득분포로 오인하지 않음. 최신 단면과 시계열을 구분",
+      "source": {
+        "id": "kosis_living",
+        "name": "KOSIS 소득·인구이동·거주기간·주거형태",
+        "org": "국가데이터처 / 국토교통부",
+        "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "collection_mode": "AREA_SERIES",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "living_stat",
+          "region": "전국",
+          "records": 12
+        },
+        {
+          "kind": "living_stat",
+          "region": "경기도",
+          "records": 449
+        },
+        {
+          "kind": "living_stat",
+          "region": "서울특별시",
+          "records": 365
+        },
+        {
+          "kind": "living_stat",
+          "region": "인천광역시",
+          "records": 139
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 10:25:48.547648+00:00"
+    },
+    {
+      "source_id": "kosis_household_size",
+      "status": "조건 내 정상",
+      "geography": "서울·경기·인천; 시도·시군구",
+      "period": "2018년~직전 연도(공표된 연도)",
+      "paging": "가구원수 전체 구간·총계 대조",
+      "note": "수집기 명칭의 서울·경기 문구와 달리 코드·실제 응답은 인천 포함",
+      "source": {
+        "id": "kosis_household_size",
+        "name": "KOSIS 서울·경기 가구원수별 일반가구",
+        "org": "국가데이터처 KOSIS",
+        "url": "https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "collection_mode": "AREA_SERIES",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 256
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 208
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 88
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 11:12:11.295665+00:00"
+    },
+    {
+      "source_id": "sgis_area",
+      "status": "수정 완료",
+      "geography": "서울 11·경기 31·인천 23",
+      "period": "2018년~원천 최신 2024년",
+      "paging": "인구·가구·사업체 및 21개 산업 분류",
+      "note": "인천 누락 수정, 과거 완료 체크포인트를 지역×연도로 변경. 과거 완료 연도의 정정본 재방문은 최신연도와 별도 보완 필요",
+      "source": {
+        "id": "sgis_area",
+        "name": "SGIS 서울·경기·인천 인구·가구·사업체·산업 종사자",
+        "org": "국가데이터처 SGIS",
+        "url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html",
+        "type": "STATISTIC",
+        "key_env": "POC10_SGIS_CONSUMER_KEY",
+        "collection_mode": "AREA_SERIES",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 308
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 175
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 70
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 09:46:38.831652+00:00"
+    },
+    {
+      "source_id": "kosis_employment",
+      "status": "조건 내 정상",
+      "geography": "수도권 시군구",
+      "period": "2018년~현재 반기; 실제 제공기간별 차이",
+      "paging": "취업자·경제활동인구·고용률 3개 항목",
+      "note": "서울·인천의 과거 시군구 제공기간은 경기와 다름. 미공표 기간을 0이나 서울·경기 값으로 보충하지 않음",
+      "source": {
+        "id": "kosis_employment",
+        "name": "KOSIS 시군구별 반기 고용·취업자",
+        "org": "국가데이터처 KOSIS",
+        "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "collection_mode": "AREA_SERIES",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 527
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 275
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 110
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 11:12:17.424005+00:00"
+    },
+    {
+      "source_id": "kosis_household_forecast",
+      "status": "조건 내 정상",
+      "geography": "수도권 시도 3개",
+      "period": "현재~10년 후, 현재 2026~2036",
+      "paging": "가구원수 전체 총계만 선택",
+      "note": "33개 시도×연도 값 확인. 시군구 전망이나 실적이 아님",
+      "source": {
+        "id": "kosis_household_forecast",
+        "name": "KOSIS 시도별 장래가구추계",
+        "org": "국가데이터처 KOSIS",
+        "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "collection_mode": "AREA_FORECAST",
+        "implemented": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_stat",
+          "region": "경기도",
+          "records": 11
+        },
+        {
+          "kind": "area_stat",
+          "region": "서울특별시",
+          "records": 11
+        },
+        {
+          "kind": "area_stat",
+          "region": "인천광역시",
+          "records": 11
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-18 11:12:18.806049+00:00"
+    },
+    {
+      "source_id": "cheongyak",
+      "status": "수정 완료",
+      "geography": "서울 100·경기 410·인천 400",
+      "period": "2018-01-01~수집일, 연도별 조회",
+      "paging": "APT 분양정보 100행씩 전 페이지",
+      "note": "인천 추가·일 자동 갱신. 무순위/잔여·취소후재공급·오피스텔·민간임대 등 다른 API endpoint는 이번 연결 범위 밖",
+      "source": {
+        "id": "cheongyak",
+        "name": "청약홈 분양정보",
+        "org": "한국부동산원",
+        "url": "https://www.data.go.kr/data/15098547/openapi.do",
+        "type": "NOTICE",
+        "key_env": "POC10_CHEONGYAK_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false,
+        "requires_key_for_schedule": true,
+        "refresh_days": 1
+      },
+      "counts": [
+        {
+          "kind": "notice",
+          "region": "경기도",
+          "records": 920
+        },
+        {
+          "kind": "notice",
+          "region": "서울특별시",
+          "records": 195
+        },
+        {
+          "kind": "notice",
+          "region": "인천광역시",
+          "records": 225
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 09:52:00.728486+00:00"
+    },
+    {
+      "source_id": "building_hub",
+      "status": "분리 수집 정상",
+      "geography": "서울·경기 2,629동; 인천은 별도 수집기",
+      "period": "전체 허가 원장; 과거 실제 사건일 보존",
+      "paging": "100행씩 전 페이지·총건수·중복 검사",
+      "note": "인천 제외가 누락은 아님: building_hub_incheon과 합쳐 진단",
+      "source": {
+        "id": "building_hub",
+        "name": "건축HUB 주택인허가",
+        "org": "국토교통부",
+        "backfill_seconds": 900,
+        "url": "https://www.data.go.kr/data/15136560/openapi.do",
+        "type": "ACTUAL",
+        "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false
+      },
+      "counts": [
+        {
+          "kind": "permit",
+          "region": "경기도",
+          "records": 107459
+        },
+        {
+          "kind": "permit",
+          "region": "서울특별시",
+          "records": 130380
+        },
+        {
+          "kind": "project",
+          "region": "경기도",
+          "records": 2
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 07:32:30.104058+00:00"
+    },
+    {
+      "source_id": "building_register",
+      "status": "수정·확대 중",
+      "geography": "기존 서울·경기→인천 포함 2,907동",
+      "period": "기간 제한 없이 주거용 표제부",
+      "paging": "비주거 행 포함 전 페이지를 읽은 뒤 주거용 선별",
+      "note": "범위 분모 증가를 수집량 감소로 해석하지 않음; hoCnt를 세대수로 사용하지 않음",
+      "source": {
+        "id": "building_register",
+        "backfill_seconds": 900,
+        "name": "건축HUB 주거용 건축물대장",
+        "org": "국토교통부",
+        "url": "https://www.data.go.kr/data/15134735/openapi.do",
+        "type": "ACTUAL",
+        "key_env": "POC10_BUILDING_REGISTER_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false
+      },
+      "counts": [
+        {
+          "kind": "register",
+          "region": "경기도",
+          "records": 626259
+        },
+        {
+          "kind": "register",
+          "region": "서울특별시",
+          "records": 426351
+        },
+        {
+          "kind": "register",
+          "region": "인천광역시",
+          "records": 8602
+        }
+      ],
+      "latest_status": "RUNNING",
+      "last_success": "2026-10-19 10:21:19.530790+00:00"
+    },
+    {
+      "source_id": "lh_notice",
+      "status": "조건 내 정상",
+      "geography": "서울 11·경기 41·인천 28",
+      "period": "2018년~현재; 분양·임대·신혼희망타운",
+      "paging": "100행씩 전 페이지; 지역×유형 총계 검증",
+      "note": "어린이집 및 시도 배분 불명 복수지역 공고는 제외 사유·원문 보존. 이를 주택 0호로 취급하지 않음",
+      "source": {
+        "id": "lh_notice",
+        "name": "LH 분양·임대 공고",
+        "org": "한국토지주택공사",
+        "url": "https://www.data.go.kr/data/15058530/openapi.do",
+        "type": "NOTICE",
+        "key_env": "POC10_LH_NOTICE_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false,
+        "refresh_days": 1
+      },
+      "counts": [
+        {
+          "kind": "lh_notice",
+          "region": "경기도",
+          "records": 3205
+        },
+        {
+          "kind": "lh_notice",
+          "region": "서울특별시",
+          "records": 201
+        },
+        {
+          "kind": "lh_notice",
+          "region": "인천광역시",
+          "records": 613
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 10:24:29.196604+00:00"
+    },
+    {
+      "source_id": "molit_statistics",
+      "status": "분리 수집 정상",
+      "geography": "서울·경기; 인천은 incheon_statistics",
+      "period": "2018년~원천 최신 공개기간",
+      "paging": "월별 착공·준공·분양승인 2개월 묶음; 연간 인허가",
+      "note": "월 인허가 API 개방 취소는 공식 PDF 보완 경로 사용; 시도 소계·총계를 중복 더하지 않음",
+      "source": {
+        "id": "molit_statistics",
+        "name": "서울·경기 주택건설 공식 통계",
+        "org": "국토교통 통계누리",
+        "url": "https://stat.molit.go.kr/portal/api/info.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_MOLIT_STAT_API_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false,
+        "requires_key_for_schedule": true,
+        "refresh_days": 1
+      },
+      "counts": [
+        {
+          "kind": "statistic",
+          "region": "경기도",
+          "records": 320
+        },
+        {
+          "kind": "statistic",
+          "region": "서울특별시",
+          "records": 320
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 07:27:47.145492+00:00"
+    },
+    {
+      "source_id": "sh_supply_plan",
+      "status": "수정 완료",
+      "geography": "SH 공개 공급계획; 서울",
+      "period": "메타데이터에 노출된 모든 공개본",
+      "paging": "100행씩 전 페이지·공개본별 분리",
+      "note": "수동 전용→키 설정 시 7일 자동 확인. 현재 최신 공개본은 2026-06-22, 최신 모집공고 게시판과 다름",
+      "source": {
+        "id": "sh_supply_plan",
+        "name": "SH 주택분양 공급계획·과거 공개본",
+        "org": "서울주택도시공사",
+        "url": "https://www.data.go.kr/data/15008820/fileData.do",
+        "type": "PLAN",
+        "key_env": "POC10_SH_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false,
+        "requires_key_for_schedule": true,
+        "refresh_days": 7,
+        "dataset_id": "15008820"
+      },
+      "counts": [
+        {
+          "kind": "sh_plan",
+          "region": "서울특별시",
+          "records": 20
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 09:58:58.605478+00:00"
+    },
+    {
+      "source_id": "sh_redevelopment",
+      "status": "수정 완료",
+      "geography": "SH 공개 정비사업 현황; 서울",
+      "period": "메타데이터에 노출된 모든 공개본",
+      "paging": "100행씩 전 페이지·공개본별 분리",
+      "note": "수동 전용→7일 자동 확인. 현재 최신 공개본 2023-11-02, 정보몽땅 최신 추진경과를 대체하지 못함",
+      "source": {
+        "id": "sh_redevelopment",
+        "name": "SH 공공재개발·재건축 사업현황",
+        "org": "서울주택도시공사",
+        "url": "https://www.data.go.kr/data/15124798/fileData.do",
+        "type": "PLAN",
+        "key_env": "POC10_SH_SERVICE_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": false,
+        "requires_key_for_schedule": true,
+        "refresh_days": 7,
+        "dataset_id": "15124798"
+      },
+      "counts": [
+        {
+          "kind": "sh_project",
+          "region": "서울특별시",
+          "records": 16
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-19 09:59:00.386910+00:00"
+    },
+    {
+      "source_id": "vworld",
+      "status": "수동 표본 잔여",
+      "geography": "원장 notice·permit 주소; 수도권 3개",
+      "period": "원문 주소 변화 시 신규 조회",
+      "paging": "유형×시도 최대 25건씩 증분",
+      "note": "과거 표본 기능; 수동 전용 및 NOT_FOUND 재검토 공백. 현재 사업 지도는 project_locations 경로 별도 사용",
+      "source": {
+        "id": "vworld",
+        "name": "행정구역 경계·주소 좌표",
+        "org": "국토교통부 VWorld",
+        "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+        "type": "GIS",
+        "key_env": "POC10_VWORLD_API_KEY",
+        "implemented": true,
+        "collection_mode": "TEST_SAMPLE",
+        "manual_only": true
+      },
+      "counts": [
+        {
+          "kind": "location",
+          "region": "경기도",
+          "records": 76
+        },
+        {
+          "kind": "location",
+          "region": "서울특별시",
+          "records": 76
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-03 07:30:24.390608+00:00"
+    },
+    {
+      "source_id": "vworld_district",
+      "status": "관리 지구 한정",
+      "geography": "관리 LH 지구명·수도권 사각범위",
+      "period": "현재 등록 지구",
+      "paging": "1,000개씩 전 페이지; 지구명과 공동주택 용도 대조",
+      "note": "전 수도권 개발지구 전수 아님. 고정 BOX(126.3,36.8,127.9,38.3)는 서해 도서 제외 가능; 신규 지구/도서 확장 시 보완 필요",
+      "source": {
+        "id": "vworld_district",
+        "name": "VWorld 공공주택지구 공동주택용지",
+        "org": "국토교통부 VWorld",
+        "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+        "type": "GIS",
+        "key_env": "POC10_VWORLD_API_KEY",
+        "implemented": true,
+        "collection_mode": "MAP_LAYER",
+        "manual_only": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "district",
+          "region": null,
+          "records": 35
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-02 14:58:19.584893+00:00"
+    },
+    {
+      "source_id": "vworld_municipality",
+      "status": "분리 수집 정상",
+      "geography": "서울 25구·경기 31시군",
+      "period": "현재 행정구역 판본",
+      "paging": "단일 응답 전체 건수=수신 건수, 56개 관할 검사",
+      "note": "인천은 별도 geometry 수집기. 수동 전용이므로 경계 변경 시 정례 확인 보완 필요",
+      "source": {
+        "id": "vworld_municipality",
+        "name": "VWorld 서울·경기 시군구 경계",
+        "org": "국토교통부 VWorld",
+        "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+        "type": "GIS",
+        "key_env": "POC10_VWORLD_API_KEY",
+        "implemented": true,
+        "collection_mode": "MUNICIPALITY_LAYER",
+        "manual_only": true,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "municipality",
+          "region": "경기도",
+          "records": 31
+        },
+        {
+          "kind": "municipality",
+          "region": "서울특별시",
+          "records": 25
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-02 23:36:25.221720+00:00"
+    },
+    {
+      "source_id": "area_national_benchmarks",
+      "status": "의도된 전국 범위",
+      "geography": "전국",
+      "period": "지역 차트와 맞는 연령·가구·산업 기준기간",
+      "paging": "해당 기준표/지역 통계의 기간으로 조회",
+      "note": "수도권 필터 누락이 아니라 비교용 전국 기준",
+      "source": {
+        "id": "area_national_benchmarks",
+        "name": "전국 연령·가구원수·산업 종사자 비교 기준",
+        "org": "KOSIS·SGIS",
+        "url": "https://kosis.kr/openapi/index/index.do",
+        "type": "STATISTIC",
+        "key_env": "POC10_KOSIS_API_KEY",
+        "implemented": true,
+        "collection_mode": "NATIONAL_BENCHMARK",
+        "refresh_days": 7,
+        "show_key_card": false
+      },
+      "counts": [
+        {
+          "kind": "area_benchmark",
+          "region": "전국",
+          "records": 3
+        }
+      ],
+      "latest_status": "SUCCESS",
+      "last_success": "2026-10-14 05:31:50.552661+00:00"
+    }
+  ]
+}

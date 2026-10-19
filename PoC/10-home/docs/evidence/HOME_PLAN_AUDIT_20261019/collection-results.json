@@ -1,0 +1,73 @@
+{
+  "initial_attempts": [
+    {
+      "source_id": "lh_supply_history",
+      "status": "FAILED",
+      "error": "time data '미정' does not match format '%Y%m'"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "status": "SUCCESS",
+      "records": 252,
+      "unchanged": 217,
+      "new": 35
+    },
+    {
+      "source_id": "lh_stock",
+      "status": "SUCCESS",
+      "records": 2064,
+      "unchanged": 1815,
+      "new": 249
+    },
+    {
+      "source_id": "gh_supply_plan",
+      "status": "SUCCESS",
+      "records": 2,
+      "changed": 1,
+      "unchanged": 1
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "status": "SUCCESS",
+      "records": 159,
+      "new": 159
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "status": "SUCCESS",
+      "records": 7,
+      "new": 7
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "status": "SUCCESS",
+      "records": 30,
+      "new": 30
+    },
+    {
+      "source_id": "sh_happy_plan_file",
+      "status": "SUCCESS",
+      "records": 19,
+      "new": 19
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "status": "SUCCESS",
+      "records": 390,
+      "new": 390
+    },
+    {
+      "source_id": "sh_contract_file",
+      "status": "SUCCESS",
+      "records": 792,
+      "new": 792
+    }
+  ],
+  "lh_supply_retry": {
+    "source_id": "lh_supply_history",
+    "status": "SUCCESS",
+    "records": 87,
+    "new": 11,
+    "changed": 76
+  }
+}

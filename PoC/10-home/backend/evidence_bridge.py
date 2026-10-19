@@ -7,9 +7,10 @@ from .api_samples import today
 from .db import Revision, Audit, entity_id, upsert_revision
 from .supply_dashboard import block_key
 from .roadmap import source_events
+from .subject_identity import numeric_complex_key, normalized_tenure
 
 KIND='evidence_bridge'
-VERSION='district-block-cohort-v3'
+VERSION='district-block-event-scope-v4'
 
 
 def match_key(row):
@@ -19,7 +20,7 @@ def match_key(row):
     hits=set(re.findall(r'(?<![A-Z0-9])([A-Z]{1,3})\s*[-－]?\s*(\d+)\s*(?:BL|블록|\b)',name))
     if len(hits)>1 or 'MULTI_SITE_CONTRACT' in row.get('warnings',[]):return None
     p=dict(row,district=row.get('district') or row.get('district_name'))
-    if not p['district']:return None
+    if not p['district']:return numeric_complex_key(row)
     if len(hits)==1:
         prefix,num=next(iter(hits));p['block']=prefix+str(int(num))
     # Reuse district/block normalization without the supply map's source allowlist.
@@ -33,7 +34,16 @@ def facts(row,reference):
     def add(stage,kind,stamp,basis,**extra):
         if stamp and (kind!='ACTUAL' or stamp<=reference.isoformat()):
             result.append(dict(stage=stage,kind=kind,date=stamp,basis=basis,**extra))
-    add('CONSTRUCTION','ACTUAL',row.get('start_actual_date'),'동일 사업 후보의 원천 착공 기록',milestone='CONSTRUCTION')
+    start = row.get('construction_start_evidence') or {}
+    quantity = start.get('units')
+    direct_start = (start.get('event_date') == row.get('start_actual_date')
+                    and start.get('unit') == '호' and start.get('work_type') == '건축'
+                    and start.get('scope') == 'SINGLE_BLOCK'
+                    and 'MULTI_SITE_CONTRACT' not in row.get('warnings', [])
+                    and isinstance(quantity, int) and not isinstance(quantity, bool) and quantity > 0)
+    add('CONSTRUCTION','ACTUAL',row.get('start_actual_date'),
+        'LH 건설공사 원문 동일 행의 착공일·주택 공사규모(호)' if direct_start else '동일 사업 후보의 원천 착공 기록',
+        milestone='CONSTRUCTION', **({'units': quantity} if direct_start else {}))
     if row.get('progress_pct') is not None:
         add('CONSTRUCTION','ACTUAL',row.get('progress_date') or row.get('base_date'),'동일 사업 후보의 원천 공정률',pct=row['progress_pct'])
     add('CONSTRUCTION','ACTUAL',row.get('completion_actual_date'),'원천 실제 준공일',milestone='COMPLETION')
@@ -56,15 +66,26 @@ def tenure_key(value):
 
 def contained_facts(project,source,witnesses,reference):
     """Transfer only a documented housing cohort, never proportionally guess it."""
-    target=project.get('planned_units');total=source.get('planned_units');tenure=tenure_key(project.get('tenure'))
+    target=project.get('planned_units');total=source.get('planned_units');tenure=normalized_tenure(project)
     if not tenure or not isinstance(target,int) or not isinstance(total,int) or not 0<target<total:return None
+    # A document can explicitly attest an event's 381 units in a 577-unit
+    # complex without supplying a complete allocation table. Only that exact
+    # event transfers; the remaining complex capacity is never inferred.
+    exact=[dict(f,scope_partial=False,scope_units=target,source_total_units=total,
+                scope_label=f'직접 사건 {target}호 / 원천 전체 {total}호',
+                scope_proof_entity_id=source['id'],scope_proof_revision_no=source.get('revision_no'))
+           for f in facts(source,reference)
+           if f.get('kind')=='ACTUAL' and f.get('units')==target
+           and f.get('scope_units',target)==target
+           and f.get('notice_round',source.get('notice_round','MAIN'))=='MAIN'
+           and source.get('verification_status')=='SOURCE_CONTENT_CHECKED']
     proof_rows=[dict(w,planned_units=w['complex_total_units'],scope_breakdown=w['complex_scope_breakdown']) if w.get('complex_total_units') and w.get('complex_scope_breakdown') else w for w in witnesses]
     proofs=[w for w in proof_rows if w.get('verification_status')=='SOURCE_CONTENT_CHECKED'
             and w.get('planned_units',0)==total and w.get('scope_breakdown')
             and all(isinstance(n,int) and n>0 for n in w['scope_breakdown'].values())
             and sum(w['scope_breakdown'].values())==total
             and w['scope_breakdown'].get(tenure)==target]
-    if not proofs:return None
+    if not proofs:return exact or None
     result=[]
     for f in facts(source,reference):
         # Construction and permits cover the complex. Supply/occupancy only
@@ -84,7 +105,7 @@ def contained_facts(project,source,witnesses,reference):
     return result or None
 
 
-def reconcile(service,apply=False):
+def reconcile(service,apply=False,actor='자동 수집',reason='원천 근거 연결 후보 갱신'):
     projects=service.rows('project');sources=projects+service.rows('lh_completion_plan')+service.rows('document_evidence')
     # A mixed housing/non-housing contract is only eligible after a separate
     # official approval explicitly corroborates its housing total and breakdown.
@@ -127,7 +148,9 @@ def reconcile(service,apply=False):
             evidence=[f for f in evidence if r['source_id']=='lh_notice_detail' or (f['stage'],f['kind'],f.get('date'),f.get('pct'),f.get('milestone')) not in own]
             if not evidence:continue
             old=saved.get((p['id'],r['id']))
-            if old:
+            upgrade=bool(old and old.get('status')=='REVIEW' and not old.get('reviewed') and contained
+                         and any(f.get('scope_partial') for f in old.get('facts',[])))
+            if old and not upgrade:
                 preserved+=1
                 if old.get('source_revision_no')!=r.get('revision_no'):
                     held.append(dict(project_id=p['id'],name=p['name'],source_name=r['name'],source_entity_id=r['id'],
@@ -135,7 +158,7 @@ def reconcile(service,apply=False):
                 continue
             basis=('시도·지구·블록 일치 · 일부 주택유형 '+str(units)+'호 / 건설사업 '+str(target)+'호 · 부분 범위 후보, 전체 실적·목표로 합산 금지'
                    if partial else '시도·지구·사업명 블록·총세대수 일치 · 동일 사업 후보, 담당자 최종 확인 필요')
-            if contained:basis=f'시도·지구·블록 일치 및 공식 유형별 구성 확인 · 전체 {units}호 중 {tenure_key(p.get("tenure"))} {target}호의 포함 관계 · 담당자 검토 필요'
+            if contained:basis=f'지역·사업 구획 일치 및 원문 사건/유형 구성 확인 · 전체 {units}호 중 {normalized_tenure(p)} {target}호의 포함 관계 · 담당자 검토 필요'
             if partial and not contained:
                 evidence=[dict(f,scope_partial=True,scope_units=units,scope_label=(r.get('tenure') or '주택유형')+' '+str(units)+'호 / 전체 '+str(target)+'호') for f in evidence]
             if 'MULTI_SITE_CONTRACT' in p.get('warnings',[]):basis+=' · 복합 계약: 별도 공식 승인 문서의 주택 구성·총호수 대조, 비주택 범위 제외 검토'
@@ -144,7 +167,8 @@ def reconcile(service,apply=False):
                 source_revision_no=r.get('revision_no'),source_id=r['source_id'],evidence_source_id=r['source_id'],source_name=r['name'],
                 relation_type='CONTAINED_SCOPE' if contained else 'PARTIAL_SCOPE' if partial else 'SAME_SCOPE',
                 evidence_url=r.get('evidence_url'),units=units,match_key=list(key),facts=evidence,
-                status='REVIEW',reviewed=False,basis=basis,matching_version=VERSION,base_date=today().isoformat()))
+                status='REVIEW',reviewed=False,basis=basis,matching_version=VERSION,
+                actor=actor,reason=reason,source_notice_round=r.get('notice_round','MAIN'),base_date=today().isoformat()))
     added=0
     if apply:
         with service.sessions.begin() as db:
@@ -152,9 +176,10 @@ def reconcile(service,apply=False):
             for payload in proposals:
                 key=payload['project_id']+':'+payload['source_entity_id']
                 eid=entity_id(KIND,'cross_source',key)
-                if db.scalar(select(Revision.id).where(Revision.entity_id==eid,Revision.superseded_at.is_(None))):continue
+                previous=db.scalar(select(Revision).where(Revision.entity_id==eid,Revision.superseded_at.is_(None)))
+                if previous and (previous.payload.get('status')!='REVIEW' or previous.payload.get('reviewed') or payload['facts']==previous.payload.get('facts')):continue
                 row,_=upsert_revision(db,KIND,'cross_source',key,payload,'cross_source_repair')
-                db.add(Audit(entity_id=row.entity_id,action='EVIDENCE_BRIDGE_AUTO',before={},after=payload));added+=1
+                db.add(Audit(entity_id=row.entity_id,action='EVIDENCE_BRIDGE_AUTO',before=previous.payload if previous else {},after=payload));added+=1
     return dict(as_of_date=today().isoformat(),project_records=len(projects),proposed_links=len(proposals),
                 affected_projects=len({p['project_id'] for p in proposals}),added_links=added,preserved_links=preserved,
                 proposed_stage_facts=dict(Counter(f['stage'] for p in proposals for f in p['facts'])),proposals=proposals,held=held,
@@ -190,8 +215,10 @@ def supply_notices(service,reference):
         choices=[]
         for bridge in bridges:
             if bridge.get('status') not in ('REVIEW','CONFIRMED'):continue
+            if bridge.get('source_notice_round','MAIN')!='MAIN':continue
             for f in bridge.get('facts',[]):
                 if f.get('stage')!='SUPPLY' or f.get('kind')!='ACTUAL' or f.get('scope_partial'):continue
+                if f.get('notice_round','MAIN')!='MAIN':continue
                 if not f.get('date') or f['date']>reference.isoformat() or not f.get('units'):continue
                 key=bridge['source_entity_id'];owners[key].add(pid)
                 choices.append(dict(id=key,name=bridge['source_name'],units=f['units'],source_date=f['date'],

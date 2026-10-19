@@ -1,0 +1,36 @@
+{
+  "purpose": "보유 원장 기반 보고서 작성 가능성 재검증 · 새 회차 없이 보완1 갱신",
+  "input_files": {
+    "data/remediation/report-reproducibility-20261017/own-data-report.html": "64411dc1ef48507e832f6f75b8670e891f7bd610bbb13f4d8c369e131c35d742",
+    "data/remediation/report-reproducibility-20261017/round.html": "6dc0669c640a28496db86dd5286c4a8cbdaa30c046dd19c56dc526631f5442a4",
+    "data/remediation/report-reproducibility-20261017/reference-rows.json": "48844057619ee69dd0eddfc835db7772af6638105c6ae2c839623776bba3268b",
+    "data/remediation/report-reproducibility-20261017/diagnostics.json": "9257f4a136b708e12af0fa0c13213cf8a21db77f9a6c05b6f3a2fcbf50d0a9e7",
+    "data/remediation/report-reproducibility-20261017/inventory.json": "6eb137c6fc13f15faacc8c0e02857135b616edae747b123fe4cb5f5a7b80fc81",
+    "data/remediation/report-reproducibility-20261017/sources.json": "8e2abf570d6b6a6a49b0c2d2bb84407e2d0db4b6795e557eb5f6c0643055c4ea",
+    "data/remediation/report-reproducibility-20261017/round.json": "c028aa282e88db2819c18c81a9ab7d291ada8254493ae65a5d9ccebdc0af06e8",
+    "data/remediation/report-reproducibility-20261017/before.json": "46343e0010033d7ee616b002f99fb72ea05cea808f0a791f249849ef1298c13d",
+    "data/remediation/report-reproducibility-20261017/before.html": "ea84a7b429a53746e947fc26f8ae88218614807fdc34b05e0b54611d684bdca2",
+    "data/remediation/report-reproducibility-20261017/annual.json": "ae8cc8507355af8feddc791abdd2cb257963b093e016e9ef9f550410fa3a8c80",
+    "data/remediation/report-reproducibility-20261017/assessment.json": "0eeb264ee47c31d7bb843ecfe0dee35e340fea7c3b75833bf531cb2895eb07f8",
+    "data/remediation/report-reproducibility-20261017/delivery.json": "12a4d7455c33c41a6fd348be045c8a217c4b33aadfc8ea2ee5250422dbd57ef2",
+    "data/remediation/report-reproducibility-20261017/javascript.tap": "ce09192ad9dcba1b7afd1f68ffb4de6d68ecf485e6dd42b8ddda9d3ed6a36e5b",
+    "data/remediation/report-reproducibility-20261017/regression.xml": "ea811902aec6c9bcf4fd14f1922137c05a8989226275295e1d98c6bd16f1d307",
+    "data/remediation/report-reproducibility-20261017/snapshot.json": "4b4726e6990a29783e994c75f06357861bfe0636f209f7e22f83e4e436790491",
+    "data/remediation/report-reproducibility-20261017/projects.json": "77e06f0887f5fd44b97798666060cdb883d4113f7a92ac90da6839b34b86d4d6"
+  },
+  "algorithm_files": {
+    "backend/report_reproducibility.py": "029846694978ceb2a13e219483f9e52937eb6317351ce21eee675e660aae64e5",
+    "backend/integrity_diagnostics.py": "4b47b0720893346eda9cefa0d38a735b4973d5d0aaf71286c90ea0c10b478c6e",
+    "scripts/reassess_report_reproducibility.py": "a235f072a1bc96106da75c45d46f0e6e8995676a9a48da740956f11a8f04d5e4"
+  },
+  "artifacts": {
+    "own-data-report.html": "64411dc1ef48507e832f6f75b8670e891f7bd610bbb13f4d8c369e131c35d742",
+    "round.html": "6dc0669c640a28496db86dd5286c4a8cbdaa30c046dd19c56dc526631f5442a4",
+    "diagnostics.json": "9257f4a136b708e12af0fa0c13213cf8a21db77f9a6c05b6f3a2fcbf50d0a9e7",
+    "round.json": "c028aa282e88db2819c18c81a9ab7d291ada8254493ae65a5d9ccebdc0af06e8",
+    "assessment.json": "0eeb264ee47c31d7bb843ecfe0dee35e340fea7c3b75833bf531cb2895eb07f8",
+    "browser.json": "b32257d0b8c10721e6777f76e07cb0280904c75c03a6e4fe8f7f7b4046f2924b",
+    "javascript.tap": "ce09192ad9dcba1b7afd1f68ffb4de6d68ecf485e6dd42b8ddda9d3ed6a36e5b",
+    "regression.xml": "ea811902aec6c9bcf4fd14f1922137c05a8989226275295e1d98c6bd16f1d307"
+  }
+}

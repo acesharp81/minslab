@@ -1,0 +1,75 @@
+{
+  "verified_at": "2026-10-16T15:09:36.691718+00:00",
+  "approved_mappings_preserved": 197,
+  "approved_mappings_changed": 0,
+  "representative_supply_checks": [
+    {
+      "project_id": "PRO_c96377d9ec7e60cf32e1ccdb",
+      "name": "마곡지구 17단지",
+      "expected": 381,
+      "stored_notice_units": 381,
+      "map_notice_units": 381,
+      "policy_supply_units": [
+        381
+      ],
+      "policy_inferred": [
+        false
+      ],
+      "note": "기존 담당자 추정 입력은 원래 표식을 보존. 독립 사건 집계는 별도 원천 직접 근거만 사용."
+    },
+    {
+      "project_id": "PRO_12d91632b8ca640e1505869f",
+      "name": "인천계양 A17",
+      "expected": 309,
+      "stored_notice_units": 309,
+      "map_notice_units": 309,
+      "policy_supply_units": [
+        309
+      ],
+      "policy_inferred": [
+        true
+      ],
+      "note": "기존 담당자 추정 입력은 원래 표식을 보존. 독립 사건 집계는 별도 원천 직접 근거만 사용."
+    }
+  ],
+  "live_queue_steps": [
+    {
+      "id": "ee45d8f9-369a-4edd-99a3-ceec75617e7d",
+      "source_id": "sh_inventory",
+      "stage": "COLLECT",
+      "attempts": 1,
+      "status": "ADVANCED",
+      "next_stage": "LINK"
+    },
+    {
+      "id": "ee45d8f9-369a-4edd-99a3-ceec75617e7d",
+      "source_id": "sh_inventory",
+      "stage": "LINK",
+      "attempts": 1,
+      "status": "ADVANCED",
+      "next_stage": "SNAPSHOT"
+    },
+    {
+      "id": "ee45d8f9-369a-4edd-99a3-ceec75617e7d",
+      "source_id": "sh_inventory",
+      "stage": "SNAPSHOT",
+      "attempts": 1,
+      "status": "SUCCESS",
+      "next_stage": null
+    }
+  ],
+  "independent_snapshot_id": "SNP_9e12096195ee1e78bf81d3d1c8e1fe26",
+  "independent_counts": {
+    "candidate_events": 228,
+    "selected_events": 37,
+    "exclusions": 137,
+    "conflicts": 4
+  },
+  "attributed_audit_rows": 897,
+  "concurrent_reservations": 6,
+  "created_jobs": 1,
+  "source_lock_conflict_preserved": true,
+  "benchmark_promotions": 0,
+  "platform_population_status": "UNVERIFIED",
+  "status": "PASS"
+}

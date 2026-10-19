@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공식 발표 × HOME · 사업별 데이터 대조</title>
+<style>
+:root{--estimate:#8b5913}
+:root{--ink:#152f3b;--muted:#5b6f78;--line:#dbe4e7;--blue:#156b86;--pale:#eaf5f8;--amber:#946016;--green:#23715e}
+*{box-sizing:border-box}body{margin:0;background:#f3f6f7;color:var(--ink);font:14px/1.65 system-ui,-apple-system,"Noto Sans KR",sans-serif}main{max-width:1520px;margin:auto;padding:32px 28px 70px}h1{font-size:30px;letter-spacing:-1px;margin:8px 0}h2{font-size:22px;margin:0}h3{font-size:16px;margin:10px 0}p{margin:7px 0}a{color:var(--blue);text-underline-offset:3px}button,input,select{font:inherit}button,select,input{border:1px solid #bacbd1;border-radius:7px;padding:8px 12px;background:white;color:var(--ink)}button{cursor:pointer}button:hover{background:var(--pale)}input{min-width:240px;flex:1}label{display:flex;align-items:center;gap:7px}header{border-top:5px solid var(--blue);padding:22px 26px;background:white;border-radius:4px 4px 12px 12px}.eyebrow{color:var(--blue);font-size:12px;letter-spacing:1.3px;font-weight:750}.lede{font-size:16px;max-width:1080px}.muted,small{color:var(--muted)}small{font-size:12px;display:block}.tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;align-items:center}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.metric{background:white;border:1px solid var(--line);border-radius:10px;padding:16px 20px}.metric strong{font-size:29px;display:block;line-height:1.4;font-variant-numeric:tabular-nums}.metric span{font-size:12px;color:var(--muted)}.panel{background:white;border:1px solid var(--line);border-radius:10px;margin:20px 0;padding:22px}.notice{background:#fdf8ee;border-left:4px solid #c89944;padding:12px 16px;border-radius:4px;margin:16px 0}.hint{padding:12px 16px;background:var(--pale);border-radius:6px;margin:12px 0}.sectionhead{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:7px;margin-top:14px;max-width:100%}table{width:100%;border-collapse:collapse;min-width:1360px;table-layout:fixed}th,td{padding:14px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{background:#edf3f5;font-size:12px;color:#365561}tbody tr:last-child td{border-bottom:0}tbody tr.case:hover{background:#fafdfe}th:nth-child(1){width:12%}th:nth-child(2){width:12%}th:nth-child(3){width:17%}th:nth-child(4){width:17%}th:nth-child(5){width:17%}th:nth-child(6){width:9%}th:nth-child(7){width:16%}.estimate{color:var(--estimate)}.value{display:block;font-size:23px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1.45}.own{color:var(--blue)}.compact{font-size:13px}.badge{display:inline-block;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:650;background:#edf1f3;color:#455b65;margin:3px 3px 3px 0}.badge.warn{background:#fbefd8;color:#85530d}.badge.good{background:#e5f4ef;color:#246b57}.badge.blue{background:#e4f2f7;color:#14667c}.code{font:11px/1.7 ui-monospace,monospace;overflow-wrap:anywhere}.detailrow td{background:#f7fafb;padding:4px 14px 17px}.detailrow details>summary{font-size:12px;color:var(--blue);cursor:pointer}.group{border:1px solid var(--line);border-radius:7px;margin:10px 0;background:white}.group>summary{cursor:pointer;padding:12px 15px;display:list-item;margin-left:17px}.groupbody{padding:0 15px 14px}.groupgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.facts{background:#f5f8f9;padding:10px 12px;border-radius:6px}.factline{padding:4px 0;border-bottom:1px dotted #d8e1e5}.factline:last-child{border:0}.record{border-top:1px solid var(--line);padding:12px 0}.recordhead{display:flex;justify-content:space-between;gap:15px}.record>details{margin-top:6px}summary{cursor:pointer}ul.rules{padding-left:20px}.rules li{margin:7px 0}.empty{padding:22px;color:var(--muted)}.program{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}.program>summary{font-size:16px;font-weight:700}.program .group{margin-left:0}.unmentionedline{display:flex;justify-content:space-between;gap:20px;align-items:start}.pillrow{display:flex;gap:6px;flex-wrap:wrap}.right{text-align:right}.legend{font-size:12px;color:var(--muted)}.legend b{color:var(--ink)}footer{font-size:12px;color:var(--muted);margin-top:22px}#statusline{font-size:12px;color:var(--muted)}noscript{display:block;background:#fff2c9;padding:15px}
+@media(max-width:800px){main{padding:16px 12px 40px}header,.panel{padding:17px}h1{font-size:25px}.metrics{grid-template-columns:1fr 1fr}.metric{padding:12px}.metric strong{font-size:25px}.groupgrid{grid-template-columns:1fr}.tools>label{width:100%}.tools select{flex:1}input{min-width:0;width:100%}.recordhead{display:block}.unmentionedline{display:block}}
+@media print{body{background:white;font-size:10px}main{max-width:none;padding:0}.tools,.screenonly{display:none!important}.panel,header{padding:10px;break-inside:auto;border:0}.metrics{gap:5px}.metric{padding:7px}.metric strong{font-size:20px}.tablewrap{overflow:visible}table{min-width:0}th,td{padding:7px 5px;font-size:10px}.value{font-size:17px}thead{display:table-header-group}tr.case{break-inside:avoid}.detailrow{display:none}.group{break-inside:avoid}.groupgrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><main>
+<header>
+<div class="eyebrow">HOME / INDEPENDENT DATA CHECK</div>
+<h1>공식 발표와 저장 데이터, 사업별로 대조</h1>
+<p class="lede">같은 사업의 <b>공식 발표 값</b>, <b>HOME 확인값</b>, <b>전후 관계에 따른 추정값</b>을 나란히 확인합니다. 실제 사건, 공급 계획, 사업 총규모와 담당자 관리값을 구분했습니다.</p>
+<p class="muted" id="asof"></p>
+<div class="tools screenonly"><a href="#official-section">공식 언급 사업</a><a href="#unmentioned-section">공식 미언급 사업 묶음</a><button id="download">대조 데이터 JSON 저장</button><button id="print">인쇄 / PDF</button></div>
+</header>
+<noscript>이 파일은 외부 연결 없이 실행됩니다. 표와 필터를 보려면 브라우저의 JavaScript를 허용하세요.</noscript>
+<div class="tools" aria-label="대조 범위 선택">
+<label>사업 범위 <select id="scope"><option value="POL_2025_0907">9·7 정책 · 208개 기록</option><option value="ALL">전체 정책 · 활성 322개 기록</option></select></label>
+<input id="search" type="search" aria-label="사업명·블록·기관 검색" placeholder="사업명·블록·기관 검색 (예: 왕숙2, iH)">
+<label>공식 항목 <select id="stage"><option value="ALL">전체 단계</option><option value="CONSTRUCTION">착공 실적</option><option value="SUPPLY">분양·임대 모집 계획</option><option value="MOVE_IN">입주 계획</option></select></label>
+<button id="reset">초기화</button>
+</div>
+<div class="metrics" id="metrics"></div>
+<div class="hint" id="estimate-update"></div>
+<div class="notice"><b>수치 차이와 데이터 오류를 구분합니다.</b> 공식 발표는 지구 단위의 개략 물량이며 구성 블록을 제시하지 않았습니다. 이 대조에서 계산한 차이는 단순 수치 차이입니다. 범위·기간·판본을 확인하기 전에는 정확도 오차나 실제 누락 물량으로 확정할 수 없습니다. <b>미확인은 0호가 아닙니다.</b></div>
+<section class="panel" id="official-section">
+<div class="sectionhead"><h2>01 · 공식 자료에서 언급한 사업</h2><span id="case-count" class="muted"></span></div>
+<p class="compact muted">사업별 16개 언급을 대조합니다. 같은 지구의 착공·분양·입주는 서로 다른 항목이며 합산하지 않습니다. 지구가 언급되어도 각 블록의 공식 실적 포함 여부는 미확인입니다.</p>
+<div class="tablewrap"><table aria-label="공식 값과 HOME 확인값 추정값 사업별 비교"><thead><tr><th>사업 · 단계</th><th>공식 발표</th><th>HOME · 원천 확인값</th><th>HOME · 담당자 추정값</th><th>HOME · 함께 저장된 참고값</th><th>단순 수치 차이<br>HOME − 공식</th><th>대조 판단</th></tr></thead><tbody id="official-rows"></tbody></table></div>
+<p class="legend"><b>부분집계</b> = 등록된 사업 원장에서 인정한 직접 사건만 집계 · <b>원천 계획</b> = 아직 이행되지 않은 일정 · <b>총규모 후보</b> = 출처마다 다를 수 있는 사업 물량 · <b>담당자 관리값</b> = 입력·추정 내역이며 직접 실적과 별도</p>
+</section>
+<section class="panel" id="unmentioned-section">
+<div class="sectionhead"><h2>02 · 공식 자료에서 언급하지 않은 사업 묶음</h2><span id="unmentioned-count" class="muted"></span></div>
+<p class="compact muted">보관된 브리핑 속기의 12개 지구·정비구역 이름에 대응하지 않는 활성 기록입니다. 기관·프로그램별로 묶고 같은 블록 후보를 함께 보여줍니다. 공식 수치는 <b>미언급</b>으로 표시하며 0호로 보지 않습니다. 다른 첨부자료 전체의 미언급 여부까지 판정한 결과는 아닙니다.</p>
+<div id="unmentioned-rows"></div>
+</section>
+<section class="panel"><details id="method"><summary><b>대조 기준 · 제외 기록 · 원천 추적</b></summary><ul class="rules" id="rules"></ul><p id="provenance" class="code"></p><details><summary>해제·거절 기록 (기본 집계 제외)</summary><div id="inactive"></div></details></details></section>
+<footer>이 HTML은 저장된 확인값·추정값을 읽어 만든 대조본입니다. 추정값 보완은 별도 변경 이력으로 보존했고 공식 발표 수치를 자체 실적 산출에 입력하지 않았습니다. 모든 표 데이터와 필터는 이 HTML에 포함되어 있습니다.</footer>
+</main>
+<script type="application/json" id="comparison-data">__COMPARISON_DATA__</script>
+<script>
+'use strict';
+const D=JSON.parse(document.getElementById('comparison-data').textContent);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>v==null?'미확인':Number(v).toLocaleString('ko-KR');
+const units=v=>v==null?'호수 미확인':`${num(v)}호`;
+const active=r=>!['RELEASED','REJECTED'].includes(r.mapping.status);
+const stageNames={BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급·모집',COMPLETION:'준공',MOVE_IN:'입주 시작'};
+const eventNames={CONSTRUCTION_STARTED:'착공',RECRUITMENT_PUBLISHED:'모집공고',APPROVAL_GRANTED:'인허가',APPROVAL_AMENDED:'인허가 변경',COMPLETION_VERIFIED:'준공',MOVE_IN_STARTED:'입주 시작'};
+const policyNames={POL_2025_0907:'9·7',POL_2026_0129:'1·29',POL_2026_0813:'8·13',UNASSIGNED:'미귀속'};
+const statusNames={CONFIRMED:'연결 확정',REVIEW:'연결 검토',RELEASED:'연결 해제',REJECTED:'연결 거절'};
+const sourceNames={ih_notice:'iH',lh_sale:'LH 분양계획',lh_rent:'LH 임대계획',lh_construction:'LH 건설공사',lh_incheon_construction:'LH 인천 건설공사',lh_incheon_sale:'LH 인천 분양계획',molit_renewal_inventory:'국토부 정비사업',building_hub:'건축HUB',sh_inventory:'SH',lh_progress:'LH 공정',gh_notice:'GH 공고'};
+const link=(url,label)=>/^https?:\/\//.test(url||'')?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`:esc(label);
+const badge=(text,cls='')=>`<span class="badge ${cls}">${esc(text)}</span>`;
+const normalized=v=>String(v).toUpperCase().replace(/[^가-힣A-Z0-9]/g,'');
+const matches=(g,q)=>!q||normalized([g.label,g.region,...g.records.flatMap(r=>[r.name,r.source_name,r.source_id,sourceNames[r.source_id],r.mapping.program_name,r.id])].join(' ')).includes(normalized(q));
+function groupsFor(scope){return D.groups.map(g=>{const records=g.records.filter(r=>active(r)&&(scope==='ALL'||r.mapping.policy_id===scope));const ids=new Set(records.map(r=>r.id));return {...g,records,plans:g.plans.filter(p=>ids.has(p.project_id)),events:g.events.filter(e=>ids.has(e.project_id)),excluded_events:g.excluded_events.filter(e=>ids.has(e.project_id))};}).filter(g=>g.records.length);}
+function uniq(rows,key){return [...new Map(rows.map(r=>[key(r),r])).values()];}
+const planKey=p=>[p.stage,p.due_date.slice(0,7),p.units,p.supply_mode,p.scope_label||''].join('|');
+function inWindow(p,c){const stamp=p.due_date||'';if(stamp.length<7)return c.start.endsWith('01-01')&&c.end.endsWith('12-31')&&stamp===c.start.slice(0,4);return c.start.slice(0,7)<=stamp.slice(0,7)&&stamp.slice(0,7)<=c.end.slice(0,7);}
+function caseResult(c,gs){
+ const events=gs.flatMap(g=>g.events).filter(e=>e.event_type==='CONSTRUCTION_STARTED'&&c.start<=e.event_date&&e.event_date<=c.end);
+ const plans=gs.flatMap(g=>uniq(g.plans.filter(p=>p.stage===c.target_stage&&inWindow(p,c)),planKey).map(p=>({...p,group_id:g.id,group_label:g.label})));
+ const eligible=plans.filter(p=>!c.supply_mode||p.supply_mode===c.supply_mode);
+ let value=null,headline='',sub='',status='',comment='';
+ if(c.kind==='ACTUAL'){
+  value=events.length?events.reduce((n,e)=>n+e.quantity,0):null;
+  headline=value==null?'직접 착공 물량 미확인':units(value);
+  sub=value==null?'등록 사업의 2026년 착공 사건·호수 산출 미완료':`2026년 직접 사건 ${events.length}건 · 부분집계`;
+  status=value==null?'실적 증빙 미연결·미확인':'직접 사건 부분 확인';
+  comment=value==null?'사업 기록이 있어도 올해 착공의 사건일·해당 물량이 확인되지 않으면 실적에 넣지 않습니다.':'발표 지구명에 해당하는 저장 사건입니다. 공식 구성 블록·반올림·집계 마감일 대조가 필요합니다.';
+ }else if(c.target_stage==='MOVE_IN'){
+  const dates=[...new Set(eligible.map(p=>p.due_date.slice(0,7)))].sort();
+  headline=dates.length?dates.join(' / '):'같은 기간 입주계획 미확인';
+  sub=dates.length?`원천 예정월 · ${new Set(eligible.map(p=>p.group_id)).size}개 블록 대조묶음 · 실제 입주 아님`:'다른 기간 일정·준공 예정은 아래 원천에서 별도 확인';
+  status=dates.length?'예정 시기 일부 확인':'해당 시기 계획 미확인';
+  comment=dates.length?'연도/월 방향은 대조 가능하지만 발표의 대상 블록·최신 판본은 미확인입니다. 공식 호수가 없어 물량 차이는 산정하지 않습니다.':'해당 시기 입주 예정월의 연결을 확인하지 못했습니다. 실제 입주 0 또는 지연으로 단정하지 않습니다.';
+ }else{
+  let safe=[];let ambiguous=false;
+  for(const gid of new Set(eligible.map(p=>p.group_id))){const ps=eligible.filter(p=>p.group_id===gid);const options=new Set(ps.map(p=>[p.due_date.slice(0,7),p.units].join('|')));if(options.size===1&&ps[0].units!=null&&!ps[0].scope_partial&&ps.every(p=>p.status!=='REVIEW'))safe.push(ps[0]);else ambiguous=true;}
+  value=safe.length?safe.reduce((n,p)=>n+p.units,0):null;
+  headline=value==null?'같은 기간·유형 물량 미확인':units(value);
+  sub=value==null?'해당 분기 원천 계획/분양·임대 구분 연결 미확인':`원천 ${c.supply_mode==='RENT'?'임대':'분양'} 계획 · ${safe.length}개 블록 대조묶음`;
+  if(ambiguous)sub+=' · 상충·미확정 후보 별도';
+  status=value==null?'모집 계획 보완 필요':'원천 모집계획 일부 확인';
+  comment=value==null?'기존 다른 분기의 계획이나 사업 총규모가 존재해도 4분기 모집계획으로 바꾸지 않습니다.':'공식의 개략 물량과 보유 계획을 나란히 표시합니다. 전체 대상·회차·변경 판본 확인 전에는 같은 계획으로 확정할 수 없습니다.';
+ }
+ if(c.id==='S04')comment='공식 실적 포함은 확인했습니다. 보유 A1·A3의 착공일은 2025-12-31(812+686=1,498호), 본 모집은 2026-04-30(1,498호)입니다. 공식 1,100호의 구성 블록·기간 대조는 아직 미완료입니다.';
+ if(c.id==='S05')comment='사업 연결은 확정되어 있습니다. 저장 인허가 후보의 착공 예정일 2026-08-15와 총규모 3,178호로 추정 진행값을 보완했습니다. 공식 약 3,100호와 추정 차이는 +78호이며 실제 착공의 동일 범위 대조는 미완료입니다.';
+ if(c.id==='S06')comment='공식 착공 약 2,500호와 저장 정비사업 후 공급 예정 1,515호는 크게 다릅니다. 사업구역·계획 판본·사건 범위를 우선 대조해야 하며 985호 누락으로 확정할 수 없습니다.';
+ const difference=value!=null&&c.official_value!=null?value-c.official_value:null;
+ return {events,plans,eligible,value,headline,sub,status,comment,difference};
+}
+function referenceText(gs,c){
+ const capacities=gs.map(g=>({label:g.label,values:[...new Set(g.records.map(r=>r.planned_units).filter(v=>v!=null))]}));
+ const cap=capacities.filter(x=>x.values.length).map(x=>`${esc(x.label)} ${x.values.map(units).join(' / ')}`);
+ const starts=uniq(gs.flatMap(g=>g.records.filter(r=>r.start_actual_date).map(r=>({label:g.label,date:r.start_actual_date,units:r.construction_start_evidence?.units}))),r=>[r.label,r.date,r.units].join('|'));
+ let lines=[];
+ if(c.id==='S04')lines.push('<b>A1 812호 + A3 686호 = 1,498호</b><small>착공 2025-12-31 / 본 모집 2026-04-30<br>모두 저장되어 있으나 공식 2026년 착공과 별도</small>');
+ else if(c.kind==='ACTUAL'&&starts.some(s=>s.date<'2026-01-01'))lines.push(starts.filter(s=>s.date<'2026-01-01').slice(0,2).map(s=>`${esc(s.label)} ${units(s.units)}<small>과거 착공 ${esc(s.date)}</small>`).join(''));
+ if(c.kind==='PLAN'){
+  const earlier=uniq(gs.flatMap(g=>g.plans.filter(p=>p.stage===c.target_stage&&!inWindow(p,c)).map(p=>({...p,label:g.label}))),p=>[p.label,planKey(p)].join('|'));
+  if(earlier.length)lines.push(earlier.slice(0,2).map(p=>`${esc(p.label)}<small>${esc(p.source_date_label||p.due_date)} · ${units(p.units)} · 원천 계획</small>`).join(''));
+ }
+ if(cap.length)lines.push(`<small>저장 총규모 후보 (실적 대체 불가)</small>${cap.slice(0,c.kind==='ACTUAL'&&!starts.length?3:2).join('<br>')}${cap.length>2?'<small>전체 값은 아래 블록별 원천에서 확인</small>':''}`);
+ return lines.join('<br>')||'<span class="muted">연결된 참고값 미확인</span>';
+}
+function eventLine(e){return `<div class="factline">${esc(eventNames[e.event_type]||e.event_type)} <b>${units(e.quantity)}</b> · ${esc(e.event_date)} ${badge(e.quantity_scope==='WHOLE'?'해당 사건 범위':'부분 범위')}<small>${esc(e.name)} · ${link(e.evidence_url,e.source_id||'원천')} · ${esc(e.review_status||'')}</small></div>`;}
+function planLine(p){return `<div class="factline">${esc(stageNames[p.stage]||p.stage)} 예정 <b>${esc(p.source_date_label||p.due_date)}</b> · ${units(p.units)} ${p.status==='REVIEW'?badge('연결 검토','warn'):''}${p.scope_partial?badge('일부 유형 범위','warn'):''}<small>${esc(p.basis||'')} · ${link(p.evidence_url,p.source_id||'원천')}</small></div>`;}
+function recordHtml(r){
+ const dates=[['원천 실제 착공일',r.start_actual_date],['원천 착공 예정일',r.start_plan_date],['원천 준공 예정일',r.completion_plan_date],['원천 실제 준공일',r.completion_actual_date],['원천 실제 입주일',r.move_in_actual_date]].filter(x=>x[1]);
+ const management=[...Object.entries(r.managed_schedules).map(([k,v])=>`<div class="factline">${esc(stageNames[k]||k)} 목표 ${units(v.units)} · ${esc(v.due_date||'일자 미확인')}${badge(v.inferred?'추정 계획':'담당자 관리 계획',v.inferred?'warn':'')}<small>${esc(v.actor||'')} · ${esc(v.reason||'')} · ${esc(v.input_rule||'')} · ${esc(v.input_basis||'')}</small></div>`),...Object.entries(r.officer_progress).map(([k,v])=>`<div class="factline">${esc(stageNames[k]||k)} 관리 측정 ${units(v.units)} · ${esc(v.event_date||'일자 미확인')}${badge(v.inferred?'추정값 · 직접 실적 제외':'담당자 입력 · 직접 증빙 별도',v.inferred?'warn':'')}<small>${esc(v.actor||'')} · ${esc(v.reason||'')} · ${esc(v.input_basis||'')}</small></div>`)];
+ return `<div class="record"><div class="recordhead"><b>${esc(r.name)}</b><span>${badge(sourceNames[r.source_id]||r.source_id,'blue')}${badge(policyNames[r.mapping.policy_id]||r.mapping.policy_id)}${badge(statusNames[r.mapping.status]||r.mapping.status)}</span></div><p>원천 저장 총규모 <b>${units(r.planned_units)}</b> · 화면/관리 총목표 <b>${units(r.managed_units)}</b><small>${esc(r.unit_basis||'물량 범위 미기재')} · ${esc(r.tenure||'유형 미기재')}</small></p>${dates.map(x=>`<div>${esc(x[0])} <b>${esc(x[1])}</b></div>`).join('')}${r.progress_pct!=null?`<div>원천 공정률 ${esc(r.progress_pct)}% · ${esc(r.progress_date||r.base_date||'기준일 미확인')}</div>`:''}<p>${link(r.evidence_url,'원문 열기')} · 원천 기준일 <b>${esc(r.base_date||r.source_date||'미기재')}</b> · 경과 ${esc(r.source_age_days??'미확인')}일</p>${r.in_latest_source===false?badge('최신 원천 목록에서 미확인','warn'):''}${r.warnings?.includes('STALE_SOURCE')?badge('원천 갱신 경과 주의','warn'):''}<details><summary>저장 식별자 · 담당자 값 · 연결 근거</summary><p class="code">사업 ${esc(r.id)}<br>원천 revision ${esc(r.source_revision_id)} (v${esc(r.revision_no)})<br>payload SHA-256 ${esc(r.source_payload_hash)}<br>저장 시각 ${esc(r.recorded_at)}</p><p class="compact">${esc(r.mapping.basis||'')}</p>${r.manual_fields.planned_units?`<p>총목표 담당자 입력: ${units(r.manual_fields.planned_units.value)} · ${esc(r.manual_fields.planned_units.actor)} · ${esc(r.manual_fields.planned_units.reason)}</p>`:''}${management.join('')||'<p class="muted">담당자 관리 입력 없음</p>'}</details></div>`;
+}
+function groupHtml(g){
+ const cap=[...new Set(g.records.map(r=>r.planned_units).filter(v=>v!=null))];
+ const events=uniq(g.events,e=>e.event_id);
+ const plans=uniq(g.plans,planKey).sort((a,b)=>a.due_date.localeCompare(b.due_date));
+ const eventBrief=Object.entries(eventNames).map(([type,label])=>{const es=events.filter(e=>e.event_type===type);return es.length?`${label} ${units(es.reduce((n,e)=>n+e.quantity,0))}`:null;}).filter(Boolean).join(' · ');
+ const managedCaps=[...new Set(g.records.map(r=>r.managed_units).filter(v=>v!=null))];
+ const estimatedStarts=uniq(g.records.map(r=>r.officer_progress.CONSTRUCTION).filter(r=>r?.inferred),r=>[r.event_date,r.units].join('|'));
+ const startGoals=uniq(g.records.map(r=>r.managed_schedules.CONSTRUCTION).filter(Boolean),r=>[r.due_date,r.units].join('|'));
+ const managementBrief=estimatedStarts.length?'착공 추정 '+estimatedStarts.map(r=>`${units(r.units)} · ${r.event_date}`).join(' / '):startGoals.length?'착공 관리 목표 '+startGoals.map(r=>`${units(r.units)} · ${r.due_date}`).join(' / '):'착공 추정·목표 미확인';
+ const invalid=g.excluded_events.filter(e=>['CONSTRUCTION_STARTED','RECRUITMENT_PUBLISHED'].includes(e.event_type));
+ return `<details class="group" data-group="${esc(g.id)}"><summary><b>${esc(g.label)}</b> · ${g.records.length}개 원천 기록 · 총규모 후보 ${cap.length?cap.map(units).join(' / '):'미확인'} ${cap.length>1?badge('물량 범위·판본 차이','warn'):''}<small>공식: ${g.official_areas.length?'지구 언급 · 블록 대상 미확인':'미언급'} / HOME 2026년 직접 사건: ${esc(eventBrief||'물량 미확인')}</small><small class="estimate">${esc(managementBrief)}${managedCaps.length?' · 관리 총목표 '+managedCaps.map(units).join(' / '):''}</small></summary><div class="groupbody"><small>${esc(g.region)} · ${g.key[0]==='SOURCE_ANCHOR'?'동일 블록 식별 미확정 · 원천별 별도 유지':'지역·지구·블록 기준 대조묶음 · 고유 사업 수 확정 아님'}</small><div class="groupgrid"><div class="facts"><b>2026년 직접 사건 (부분집계)</b>${events.map(eventLine).join('')||'<p class="muted">인정 가능한 직접 사건·호수 조합 미확인 (0호 아님)</p>'}</div><div class="facts"><b>저장 원천의 계획 일정</b>${plans.filter(p=>['SUPPLY','MOVE_IN'].includes(p.stage)).map(planLine).join('')||'<p class="muted">모집·입주 원천 계획 미확인</p>'}</div></div>${g.conflicts.length?'<p class="notice">동일 사건 물량·범위 상충으로 직접 집계에서 제외된 후보가 있습니다.</p>':''}${invalid.length?`<details><summary>직접 실적 제외 후보 ${invalid.length}건 · 미확인 사유</summary>${invalid.map(e=>`<div class="factline">${esc(eventNames[e.event_type]||e.event_type)} · ${esc(e.event_date||'일자 미확인')} · ${units(e.quantity)}<small>${esc((e.validation_reasons||[]).join(', '))} · ${esc(e.source_id||'')} · ${link(e.evidence_url,'원문')}</small></div>`).join('')}</details>`:''}${g.records.map(recordHtml).join('')}</div></details>`;
+}
+function estimateResult(c,gs){
+ const rows=[];
+ for(const g of gs)for(const r of g.records){
+  const item=(c.kind==='ACTUAL'?r.officer_progress:r.managed_schedules)[c.target_stage];
+  if(!item)continue;
+  const stamp=c.kind==='ACTUAL'?item.event_date:item.due_date;
+  if(!stamp)continue;
+  if(c.kind==='ACTUAL'&&!item.inferred)continue;
+  rows.push({...item,date:stamp,group_id:g.id,label:g.label,in_window:c.start<=stamp&&stamp<=c.end});
+ }
+ const eligible=uniq(rows.filter(r=>r.in_window),r=>[r.group_id,r.date,r.units].join('|'));
+ let safe=[];
+ for(const gid of new Set(eligible.map(r=>r.group_id))){const own=eligible.filter(r=>r.group_id===gid);if(own.length===1&&own[0].units!=null)safe.push(own[0]);}
+ const value=safe.length?safe.reduce((n,r)=>n+r.units,0):null;
+ return {rows,eligible,value,difference:value!=null&&c.official_value!=null?value-c.official_value:null};
+}
+function estimateHtml(c,gs){
+ const e=estimateResult(c,gs);
+ const main=c.target_stage==='MOVE_IN'?(e.eligible.length?[...new Set(e.eligible.map(r=>r.date.slice(0,7)))].sort().join(' / '):'같은 기간 추정값 없음'):(e.value==null?'같은 기간 추정값 없음':units(e.value));
+ const candidates=e.eligible.length?e.eligible:e.rows;
+ return `<span class="value estimate">${esc(main)}</span>${badge(c.kind==='ACTUAL'?'추정 진행 · 실제 확인과 별도':'담당자 관리 계획','warn')}<small>${candidates.slice(0,3).map(r=>`${esc(r.label)} ${units(r.units)} · ${esc(r.date)}${!r.in_window?' (비교기간 밖)':''}`).join('<br>')||'아래 블록별 원천에서 미도래·미산출 상태 확인'}</small>${e.eligible.length?'<small>원천 일정·단계 전후 관계·평균 소요기간에 따른 관리값. 직접 실적에 합산하지 않음.</small>':''}`;
+}
+function caseHtml(c,groups){
+ const gs=groups.filter(g=>g.official_areas.includes(c.name));const r=caseResult(c,gs);
+ const estimate=estimateResult(c,gs);
+ const estimateDiff=estimate.difference==null?'미산출':`${estimate.difference>0?'+':''}${num(estimate.difference)}호`;
+ const diff=r.difference==null?'미산출':`${r.difference>0?'+':''}${num(r.difference)}호`;
+ const official=c.official_value==null?'호수 미제시':units(c.official_value);
+ return `<tr class="case" data-case="${c.id}"><td><b>${esc(c.name)}</b><small>${c.id} · ${esc(c.stage)}</small>${badge(c.kind==='ACTUAL'?'착공 실적':'향후 계획',c.kind==='ACTUAL'?'blue':'')}<small>${gs.reduce((n,g)=>n+g.records.length,0)}개 원천 기록 / ${gs.length}개 대조묶음</small></td><td><span class="value">${official}</span><small>${esc(c.official_period)}${c.official_value!=null?'<br>개략 호수 · 블록 미제시':''}</small>${link(c.official_url,'공식 발표 원문')}</td><td><span class="value own">${esc(r.headline)}</span><small>${esc(r.sub)}</small>${r.events.length?'<small>'+r.events.map(e=>`${esc(e.name)} ${units(e.quantity)} · ${esc(e.event_date)}`).join('<br>')+'</small>':''}${c.target_stage==='MOVE_IN'&&r.eligible.length?'<small>'+[...new Set(r.eligible.map(p=>esc(p.group_label)))].join(' / ')+'</small>':''}</td><td>${estimateHtml(c,gs)}</td><td class="compact">${referenceText(gs,c)}</td><td><b>확인 ${diff}</b><br><b class="estimate">추정 ${estimateDiff}</b><small>${r.difference==null?'서로 비교할 수 있는 호수 미확인':'범위 미검증 · 오차 확정 아님'}</small></td><td>${badge(r.status,r.value!=null||r.eligible.length?'blue':'warn')}<p class="compact">${esc(r.comment)}</p></td></tr><tr class="detailrow"><td colspan="7"><details><summary>${esc(c.name)} · 블록별 저장 값과 원천 보기 (${gs.length}개 대조묶음)</summary>${gs.map(groupHtml).join('')||'<p class="empty">선택 범위에 해당 사업 기록이 없습니다.</p>'}</details></td></tr>`;
+}
+function render(){
+ const scope=$('scope').value,q=$('search').value.trim(),stage=$('stage').value;
+ const all=groupsFor(scope),filtered=all.filter(g=>matches(g,q));
+ const mentioned=all.filter(g=>g.official_areas.length),unmentioned=all.filter(g=>!g.official_areas.length);
+ const count=gs=>gs.reduce((n,g)=>n+g.records.length,0);
+ $('metrics').innerHTML=[['조회 대상 원천 기록',num(count(all)),`${all.length}개 블록 대조묶음 · 고유 사업 수 아님`],['공식 언급 지구에 대응',num(count(mentioned)),`${mentioned.length}개 대조묶음 · 블록 포함 확정 아님`],['공식 미언급 묶음',num(count(unmentioned)),`${unmentioned.length}개 대조묶음 · 0 실적 뜻하지 않음`],['공식 비교 항목','16개',`12개 지구·정비구역 / 착공·모집·입주`]].map(([label,value,note])=>`<div class="metric"><span>${label}</span><strong>${value}</strong><span>${note}</span></div>`).join('');
+ const cases=D.cases.filter(c=>(stage==='ALL'||c.target_stage===stage)&&(!q||normalized(c.name).includes(normalized(q))||filtered.some(g=>g.official_areas.includes(c.name))));
+ // Search selects cases, but does not silently reduce the project population of a case.
+ $('official-rows').innerHTML=cases.map(c=>caseHtml(c,all)).join('')||'<tr><td colspan="7" class="empty">검색 조건에 해당하는 공식 항목이 없습니다.</td></tr>';
+ $('case-count').textContent=`표시 ${cases.length} / 16개 항목`;
+ const rest=filtered.filter(g=>!g.official_areas.length),programs=new Map();
+ for(const g of rest){const names=[...new Set(g.records.map(r=>(r.mapping.program_name||'프로그램 미정')))];const key=names.sort().join(' / ');if(!programs.has(key))programs.set(key,[]);programs.get(key).push(g);}
+ $('unmentioned-count').textContent=`${count(rest)}개 기록 · ${rest.length}개 대조묶음`;
+ $('unmentioned-rows').innerHTML=[...programs].sort((a,b)=>a[0].localeCompare(b[0],'ko')).map(([name,gs])=>`<details class="program" open><summary>${esc(name)} · ${count(gs)}개 기록 / ${gs.length}개 대조묶음</summary><p class="compact muted">공식 발표 값: <b>미언급</b> · HOME 저장 값은 각 묶음에서 확인</p>${gs.map(g=>groupHtml(g)).join('')}</details>`).join('')||'<p class="empty">이 범위에 공식 미언급 사업이 없습니다.</p>';
+ window.comparisonView={scope,source_records:count(all),mentioned_records:count(mentioned),unmentioned_records:count(unmentioned),visible_cases:cases.map(c=>({id:c.id,...caseResult(c,all.filter(g=>g.official_areas.includes(c.name))),estimate:estimateResult(c,all.filter(g=>g.official_areas.includes(c.name)))})),unmentioned_groups:rest.map(g=>g.id)};
+}
+$('asof').textContent=`공식 발표 2026-10-16 · HOME 저장 인지 기준 ${new Date(D.known_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false})} (KST) · 기본 9·7 정책, 전체 정책으로 전환 가능`;
+$('estimate-update').innerHTML=D.estimate_update?.projects?`<b>추가 사업 추정값 보완 완료</b> · ${D.estimate_update.projects}개 사업 / ${D.estimate_update.target_count}개 단계 목표 / ${D.estimate_update.measurement_count}개 추정 진행값. 담당자 ${esc(D.estimate_update.actor)} · ${esc(D.estimate_update.reason)}. 원천 확인값과 추정값을 별도 열에서 비교합니다.`:'기존 담당자 추정값을 별도 열에 표시합니다.';
+$('rules').innerHTML=D.rules.map(r=>`<li>${esc(r)}</li>`).join('');
+$('provenance').innerHTML=`공식 보관 속기 SHA-256 ${esc(D.official_archive_sha256)}<br>DB 조회 기준본 SHA-256 ${esc(D.capture_sha256)}<br>사건 산출 방식 ${esc(D.event_method)}<br>공식 수치 사용: 비교 표시만 / DB 수정: 없음 / 신규 평가 회차 생성: 없음`;
+$('inactive').innerHTML=D.groups.flatMap(g=>g.records.filter(r=>!active(r))).map(recordHtml).join('')||'<p>없음</p>';
+for(const id of ['scope','stage'])$(id).addEventListener('change',render);
+let timer;$('search').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(render,140);});
+$('reset').onclick=()=>{$('scope').value=D.default_policy;$('stage').value='ALL';$('search').value='';render();};
+$('print').onclick=()=>window.print();
+$('download').onclick=()=>{const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='HOME_OFFICIAL_PROJECT_COMPARISON_20261018.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+render();
+</script></body></html>

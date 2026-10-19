@@ -17,6 +17,7 @@ from .public_files import xlsx_rows
 HP={'hp':'http://www.hancom.co.kr/hwpml/2011/paragraph'}
 W={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
 SEOUL_NAMES='서울 관악 강동 면목 강서 금천 번동 수서 잠실'.split()
+CAPITAL_REGIONS=('서울특별시','경기도','인천광역시')
 
 
 def identity(*values):
@@ -24,14 +25,17 @@ def identity(*values):
 
 
 def address_area(address):
-    match=re.match(r'^(서울특별시|서울|경기도|경기)\s+(\S+)',address)
+    match=re.match(r'^(서울특별시|서울|경기도|경기|인천광역시|인천)\s+(\S+)',address)
     if not match:return None,None
-    return ('서울특별시' if match[1].startswith('서울') else '경기도'),match[2]
+    region=next(r for r in CAPITAL_REGIONS if r.startswith(match[1][:2]))
+    return region,match[2]
 
 
 def name_area(name):
     # A regional headquarters is NOT the location. Ambiguous Wirye/Gwangju stays unlocated.
     compact=re.sub(r'\s','',name)
+    # Explicit city in the district name, not the responsible LH headquarters.
+    if compact.startswith('인천'):return '인천광역시',None
     if any(compact.startswith(n) for n in SEOUL_NAMES):return '서울특별시',None
     if compact.startswith('경기'):compact=compact[2:]
     city=next((c for c in GYEONGGI_CITIES if c!='광주' and compact.startswith(c)),None)
@@ -60,13 +64,14 @@ def parse_supply(content,source,evidence):
     for r in rows[header+1:]:
         if not re.fullmatch(r'20\d{2}',r.get('A','')):continue
         national+=1
-        if r.get('D') not in ('서울특별시','경기도'):continue
+        if r.get('D') not in CAPITAL_REGIONS:continue
         year=int(r['A']);region,city=address_area(r.get('E',''))
         if region!=r['D']:raise ValueError('LH 공급현황 소재지·시도 불일치')
         day=datetime.strptime(r['H'],'%Y%m%d').date().isoformat()
         if int(day[:4])!=year:raise ValueError('LH 공급년도·모집공고일 불일치')
         month=r.get('I','');movein=None
-        if month:
+        undecided=bool(re.search(r'미정|미확정|추후',month))
+        if month and not undecided:
             parsed=datetime.strptime(month,'%Y%m');movein=parsed.strftime('%Y-%m')
         identifier=identity(year,r['B'],r['C'],r['F'],day)
         if identifier in seen:raise ValueError('LH 공급현황 사업·블록·공고 중복')
@@ -76,17 +81,18 @@ def parse_supply(content,source,evidence):
         p.update(source_object_id=identifier,sample_mode='PUBLIC_FILE',agency='LH',municipality=city,
             district_name=r['B'],block=r['C'],housing_type=r['F'],units=units,total_units=total,dataset_year=year,
             dataset_version=version,is_latest_dataset=True,latest_dataset_version=version,
-            source_date_label='모집공고일 · 공급년도 기준',move_in_plan_month=movein,
+            source_date_label='모집공고일 · 공급년도 기준',move_in_plan_month=movein,move_in_raw=month,
             unit_basis='공급유형별 합계(공고 공급호수) · 총세대수·실입주량과 구분',
             stage_label='LH 공공분양 공고 공급현황 · 실입주 검증 전',
             dates={'모집공고일':day,'최초입주시기 (원천, 예정 포함)':movein},evidence_url=evidence,
-            warnings=['ANNOUNCEMENT_NOT_OCCUPANCY'],native_fields=r)
+            warnings=['ANNOUNCEMENT_NOT_OCCUPANCY']+(['MOVE_IN_UNDETERMINED'] if undecided else []),native_fields=r)
         records.append(('lh_supply',identifier,p))
-    if not records:raise ValueError('LH 서울·경기 과거 공급현황 행 미확보')
+    if not records:raise ValueError('LH 수도권 과거 공급현황 행 미확보')
     return records,dict(provided=len(records),fetched=len(records),complete_query=True,complete_population=False,
         national_records=national,source_base_date=version,period_start=min(p[2]['source_date'] for p in records),
         period_end=max(p[2]['source_date'] for p in records),year_counts=dict(Counter(p[2]['dataset_year'] for p in records)),
-        scope_note='공개 XLSX의 서울·경기 공급유형별 합계. 공고 공급량이며 실제 입주·준공량이 아님')
+        region_counts=dict(Counter(p[2]['region'] for p in records)),
+        scope_note='공개 XLSX의 서울·경기·인천 공급유형별 합계. 공고 공급량이며 실제 입주·준공량이 아님')
 
 
 def collect_supply(source,fetcher):
@@ -145,10 +151,11 @@ def parse_movein(content,source,year,evidence,supply_lookup=None):
             dates={'입주 예정월':month},warnings=['PLAN_NOT_ACTUAL'],evidence_url=evidence)
         if published_total!=national_total:p['warnings'].append('SOURCE_TOTAL_MISMATCH')
         records.append(('lh_movein_plan',identifier,p))
-    if not records:raise ValueError('LH 서울·경기 입주계획 행 미확보')
+    if not records:raise ValueError('LH 수도권 입주계획 행 미확보')
     return records,dict(year=year,records=len(records),complete_query=True,complete_population=False,
         national_detail_rows=len(rows),national_published_units=published_total,national_detail_units=national_total,
         summary_matches_details=published_total==national_total,unlocated_or_outside_rows=unknown,
+        region_counts=dict(Counter(r[2]['region'] for r in records)),
         scope_units=sum(r[2]['units'] for r in records))
 
 
@@ -170,7 +177,8 @@ def collect_movein(source,fetcher,service):
     return records,dict(dataset_versions=versions,complete_query=True,complete_population=False,
         period_start=min(v['year'] for v in versions),period_end=max(v['year'] for v in versions),
         missing_years=[y for y in range(2018,max(v['year'] for v in versions)+1) if y not in {v['year'] for v in versions}],
-        scope_note='공식 첨부 전체 입주계획. 실제 소재지 확인되는 서울·경기 지구만 포함. 원천 총계·상세 불일치는 별도 표시')
+        region_counts=dict(Counter(p[2]['region'] for p in records)),
+        scope_note='공식 첨부 전체 입주계획. 실제 소재지 확인되는 서울·경기·인천 지구 포함. 원천 총계·상세 불일치는 별도 표시')
 
 
 def parse_stock(content,source,evidence,version):
@@ -198,11 +206,12 @@ def parse_stock(content,source,evidence,version):
         if not address:p['warnings'].append('ADDRESS_MISSING')
         if p['units']==0:p['warnings'].append('ZERO_STOCK_UNITS_UNVERIFIED')
         records.append(('lh_stock',code,p))
-    if not records:raise ValueError('LH 서울·경기 단지정보 미확보')
+    if not records:raise ValueError('LH 수도권 단지정보 미확보')
     dated=[p[2]['source_date'] for p in records if p[2]['dates']['입주지정시작일'] or p[2]['dates']['준공일']]
     return records,dict(provided=len(records),fetched=len(records),complete_query=True,complete_population=False,
         national_records=len(rows),excluded_nonresidential_or_aggregate=excluded,unlocated_or_outside_rows=missing_location,
         source_base_date=version,period_start=min(dated),period_end=max(dated),
+        region_counts=dict(Counter(p[2]['region'] for p in records)),
         historic_2018_2024_records=sum('2018'<=p[2]['source_date'][:4]<='2024' for p in records),
         scope_note='현재 단지정보에 남아 있는 과거 준공·입주지정 일정. 미래 예정일도 포함하며 당시 월별 공정률·실입주량을 증명하지 않음')
 

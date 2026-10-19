@@ -1,0 +1,82 @@
+[
+  {
+    "round": 1,
+    "path": "project-collection/version",
+    "seconds": 0.035,
+    "bytes": 78,
+    "cache": null,
+    "encoding": null
+  },
+  {
+    "round": 1,
+    "path": "project-collection?policy_id=POL_2025_0907",
+    "seconds": 2.996,
+    "bytes": 2436376,
+    "cache": "MISS",
+    "encoding": "gzip"
+  },
+  {
+    "round": 1,
+    "path": "overview?policy_id=POL_2025_0907",
+    "seconds": 2.796,
+    "bytes": 2972,
+    "cache": "MISS",
+    "encoding": null
+  },
+  {
+    "round": 1,
+    "path": "mappings?policy_id=POL_2025_0907",
+    "seconds": 0.505,
+    "bytes": 401651,
+    "cache": "MISS",
+    "encoding": "gzip"
+  },
+  {
+    "round": 1,
+    "path": "sources?compact=true",
+    "seconds": 0.074,
+    "bytes": 7766,
+    "cache": null,
+    "encoding": "gzip"
+  },
+  {
+    "round": 2,
+    "path": "project-collection/version",
+    "seconds": 0.006,
+    "bytes": 78,
+    "cache": null,
+    "encoding": null
+  },
+  {
+    "round": 2,
+    "path": "project-collection?policy_id=POL_2025_0907",
+    "seconds": 0.348,
+    "bytes": 2436376,
+    "cache": "HIT",
+    "encoding": "gzip"
+  },
+  {
+    "round": 2,
+    "path": "overview?policy_id=POL_2025_0907",
+    "seconds": 0.021,
+    "bytes": 2972,
+    "cache": "HIT",
+    "encoding": null
+  },
+  {
+    "round": 2,
+    "path": "mappings?policy_id=POL_2025_0907",
+    "seconds": 0.069,
+    "bytes": 401651,
+    "cache": "HIT",
+    "encoding": "gzip"
+  },
+  {
+    "round": 2,
+    "path": "sources?compact=true",
+    "seconds": 0.073,
+    "bytes": 7766,
+    "cache": null,
+    "encoding": "gzip"
+  }
+]

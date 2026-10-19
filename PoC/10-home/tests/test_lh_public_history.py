@@ -28,7 +28,9 @@ class LhPublicHistoryTests(unittest.TestCase):
     def test_movein_uses_actual_city_instead_of_headquarters_and_flags_mismatched_total(self):
         data=self.hwpx(2026,1000,[['성남복정1','A1','60이하','공공분양','100','2026- 12'],['인천검단','A2','60이하','공공분양','200','2026-01'],['위례','A3','60이하','행복','300','2026-01']])
         rows,meta=parse_movein(data,S['lh_movein_history'],2026,'https://www.lh.or.kr/')
-        self.assertEqual(len(rows),1);self.assertEqual(rows[0][2]['region'],'경기도')
+        self.assertEqual(len(rows),2);self.assertEqual(rows[0][2]['region'],'경기도')
+        self.assertEqual(rows[1][2]['region'],'인천광역시')
+        self.assertEqual(meta['region_counts'],{'경기도':1,'인천광역시':1})
         self.assertEqual(rows[0][2]['source_date'],'2026-12');self.assertIn('PLAN_NOT_ACTUAL',rows[0][2]['warnings'])
         self.assertIn('SOURCE_TOTAL_MISMATCH',rows[0][2]['warnings']);self.assertEqual(meta['national_detail_units'],600)
         self.assertFalse(meta['summary_matches_details'])

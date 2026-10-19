@@ -8,7 +8,7 @@ from html import unescape
 from .collectors import clean, integer
 
 FILE_URL = re.compile(r'"contentUrl"\s*:\s*"(https://www\.data\.go\.kr/cmm/cmm/fileDownload\.do\?[^"\s]+)"')
-REGIONS = {'서울특별시', '경기도'}
+REGIONS = {'서울특별시', '경기도', '인천광역시'}
 
 
 def _download(source, fetcher, title_pattern):
@@ -37,14 +37,15 @@ def _csv_rows(content, required):
 
 
 def parse_renewal_inventory(content, source, version):
-    """One dated national inventory, filtered to Seoul/Gyeonggi; not a plan event."""
+    """One dated capital-region inventory; not a plan event."""
     columns = ('시도', '시군구', '구역명칭', '현 사업추진단계', '사업유형', '사업시행자', '공급 예정 세대수')
     rows = _csv_rows(content, columns)
-    records, seen = [], set()
+    records, seen = [], {}
+    identical_duplicates = 0
     regional = {region: 0 for region in REGIONS}
     unverified_zero = 0
     not_applicable = 0
-    for row in rows:
+    for line,row in enumerate(rows,2):
         region = clean(row['시도'])
         if region not in REGIONS:
             continue
@@ -52,9 +53,19 @@ def parse_renewal_inventory(content, source, version):
         if not all((city, name, kind)):
             raise ValueError('정비사업 필수 지역·구역명·유형 누락')
         key = '|'.join((region, city, name, kind))
+        canonical={k:clean(v) for k,v in row.items()}
         if key in seen:
-            raise ValueError('정비사업 구역 자연키 중복: 임의 병합 금지')
-        seen.add(key)
+            previous,index,first_line=seen[key]
+            if canonical!=previous:
+                raise ValueError('정비사업 구역 자연키 중복·값 충돌: 임의 병합 금지')
+            # Exact repeated source rows are one candidate, with source-line provenance.
+            payload=records[index][2]
+            payload.setdefault('identical_source_row_numbers',[first_line]).append(line)
+            if 'IDENTICAL_SOURCE_ROWS_COLLAPSED' not in payload['warnings']:
+                payload['warnings'].append('IDENTICAL_SOURCE_ROWS_COLLAPSED')
+            identical_duplicates+=1
+            continue
+        seen[key]=(canonical,len(records),line)
         raw_units = clean(row['공급 예정 세대수'])
         if raw_units == '해당없음':
             units, value_status = None, 'NOT_APPLICABLE'
@@ -84,14 +95,15 @@ def parse_renewal_inventory(content, source, version):
         records.append(('renewal_inventory', key, payload))
         regional[region] += 1
     if not records:
-        raise ValueError('정비사업 CSV에서 서울·경기 행 미확보')
+        raise ValueError('정비사업 CSV에서 서울·경기·인천 행 미확보')
     return records, {
         'file_rows': len(rows), 'included_rows': len(records),
-        'excluded_rows': len(rows) - len(records), 'region_counts': regional,
+        'excluded_rows': len(rows) - len(records) - identical_duplicates, 'region_counts': regional,
+        'identical_duplicate_rows': identical_duplicates,
         'unverified_zero_rows': unverified_zero, 'not_applicable_rows': not_applicable,
         'dataset_version': version,
         'complete_query': True, 'complete_population': False,
-        'scope_note': '공개일 기준 전국 정비구역 현황 파일 중 서울·경기 행. 고시 이력·모든 유형의 공급사업·실제 준공 전수 아님',
+        'scope_note': '공개일 기준 전국 정비구역 현황 파일 중 서울·경기·인천 행. 고시 이력·모든 유형의 공급사업·실제 준공 전수 아님',
     }
 
 
@@ -149,7 +161,7 @@ def parse_lh_completion_plan(content, source, version):
         records.append(('lh_completion_plan', key, payload))
         regional[region] += 1
     if not records:
-        raise ValueError('LH 준공예정 CSV에서 서울·경기 행 미확보')
+        raise ValueError('LH 준공예정 CSV에서 서울·경기·인천 행 미확보')
     return records, {
         'file_rows': len(rows), 'included_rows': len(records),
         'excluded_rows': len(rows) - len(records), 'region_counts': regional,

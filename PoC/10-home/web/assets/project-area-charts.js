@@ -51,12 +51,25 @@ const ProjectAreaCharts=(()=>{
   });
   const legend=[['인구 · 선',colors[0]],['가구 · 막대',colors[2]],['주택 재고 · 선',colors[1]],['준공 후 미분양 · 막대 / 오른쪽 축',colors[3]]].map(([name,color])=>'<span><i style="background:'+color+'"></i>'+name+'</span>').join('');
   const detail=compact?'<details><summary>전체 연도별 수치·기준월</summary>'+allRows.map(r=>'<p class="pac-compact-values"><b>'+r.year+'년</b><span>인구 '+n(r.population)+'명 · 가구 '+n(r.households)+'가구<br>주택 '+n(r.housing)+'호 · 준공 후 미분양 '+n(r.unsold)+'호 ('+e(r.unsoldPeriod||'기준 미확보')+')</span></p>').join('')+'</details>':'<details><summary>연도별 수치·미분양 기준월</summary><table><thead><tr><th>연도</th><th>인구(명)</th><th>가구</th><th>주택(호)</th><th>준공 후(호)</th><th>기준월</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.year+'</td><td>'+n(r.population)+'</td><td>'+n(r.households)+'</td><td>'+n(r.housing)+'</td><td>'+n(r.unsold)+'</td><td>'+e(r.unsoldPeriod||'미확보')+'</td></tr>').join('')+'</tbody></table></details>';
-  return card('인구·가구·주택 재고·준공 후 미분양','<div class="pac-series">'+legend+'</div>'+svg(body,W,H,'연도별 인구·가구·주택 재고 선·막대 및 준공 후 미분양 보조축')+'<p class="pac-note">미분양은 연도별 마지막 확보 월의 재고입니다(합산 아님). '+e(data.unsold?.fallback?'미분양은 시도 참고, 나머지는 선택 지역 통계. ':'')+'빈 기간은 연결·보간하지 않습니다.</p>'+detail+source(data.sources?.kosis,'KOSIS 수집 기준')+' · '+source(data.unsold?.current?.completed_evidence_url,'준공 후 미분양 원문'),'pac-trend');
+  return card('인구·가구·주택 재고·준공 후 미분양','<div class="pac-series">'+legend+'</div>'+svg(body,W,H,'연도별 인구·가구·주택 재고 선·막대 및 준공 후 미분양 보조축')+'<details class="pac-method"><summary>기준·원천</summary><p class="pac-note">미분양은 연도별 마지막 확보 월의 재고입니다(합산 아님). '+e(data.unsold?.fallback?'미분양은 시도 참고, 나머지는 선택 지역 통계. ':'')+'빈 기간은 연결·보간하지 않습니다.</p>'+detail+source(data.sources?.kosis,'KOSIS 수집 기준')+' · '+source(data.unsold?.current?.completed_evidence_url,'준공 후 미분양 원문')+'</details>','pac-trend');
  }
  function render(host,data,place,options={}){const c=(data.census||[]).at(-1),h=(data.household_size||[]).at(-1),bench=data.national_benchmarks||{},industry=industryComparison(c,bench.industry),{all,shown}=industry;
   const household=h?pie(['1','2','3','4','5+'].map(k=>({label:k==='5+'?'5인 이상':k+'인 가구',value:h.sizes[k],national_pct:bench.household?.year===h.year&&bench.household.total>0&&valid(bench.household.sizes[k])?bench.household.sizes[k]/bench.household.total*100:null})),h.total,'가구','가구원수 비율'):empty('가구원수 비율');
   const unsold=data.unsold?.current,em=(data.employment||[]).at(-1);
   host.innerHTML='<div class="pac-heading"><b>'+e(place.municipality||place.region)+' 입지 지표</b><small>'+e(place.note)+' · 각 원천의 최신 확보 기준</small></div><div class="pac-grid">'+pyramid(data,place)+card('가구원수 비율',household+'<p class="pac-note">'+e(h?.year||'')+'년 · 지역·전국 일반가구 기준 / 전국 전체 가구 중 비율</p>'+source('https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1JC1516','KOSIS 가구원수 원천'))+card('산업별 종사자 비율',pie(shown,industry.total,'명','산업별 종사자 비율')+'<p class="pac-note">'+e(c?.year||'')+'년 · 지역·전국 사업체 소재지 종사자 기준<br>전국 총종사자 중 비율. 기타는 양쪽 모두 위 5개 산업을 제외합니다.'+(industry.unknown?' 지역 분류 미확인 '+n(industry.unknown)+'명은 기타에 포함합니다.':'')+'</p><p class="pac-note pac-employment-summary">고용률 <b>'+n(em?.employment_rate)+(em?.employment_rate==null?'':'%')+'</b> ('+e(em?.period||'기준 미확보')+') · 사업체 수 <b>'+n(c?.businesses)+(c?.businesses==null?'':'개')+'</b> ('+e(c?.year||'기준 미확보')+'년)<br>고용률은 거주지 기준, 사업체·종사자는 사업체 소재지 기준입니다.</p><details><summary>전체 산업별 수치</summary>'+all.map(r=>'<p>'+e(r.label)+' <b>'+n(r.value)+'명 <small class="pac-national">'+(valid(r.national_pct)?'(전국 평균 '+n(r.national_pct)+'%)':'(전국 비교 미확보)')+'</small></b></p>').join('')+'</details>'+source(data.sources?.sgis,'SGIS 사업체·산업 원천'))+(options.includeLiving?ProjectLivingCharts.render(data,place):'')+(options.omitTrend?'':trend(data,options))+'</div>';
+  collapseMethods(host);
  }
- return{render,trend,trendRows,ageComparison,industryComparison};
+ function collapseMethods(host,options={}){
+  const collector=options.collector;
+  for(const card of host.querySelectorAll('.pac-card')){
+   const nodes=[...card.querySelectorAll('.pac-note:not(.pac-employment-summary),a[href]')].filter(n=>!n.closest('details')&&!/^(자료 미확보|공식 PIR 미확보|소득 분포 미확보|전입·전출 통계 미확보)$/.test(n.textContent.trim()));
+   if(!nodes.length)continue;
+   const details=document.createElement('details');details.className='pac-method';details.innerHTML='<summary>'+ (collector?card.querySelector('h4')?.textContent+' · 기준·원천':'기준·원천')+'</summary>';
+   const employment=card.querySelector('.pac-employment-summary');if(employment){const line=employment.querySelector('br');if(line){const explanation=document.createElement('p');explanation.className='pac-note';while(line.nextSibling)explanation.append(line.nextSibling);line.remove();nodes.push(explanation);}}
+   for(const node of nodes)details.append(node);
+   for(const text of [...card.childNodes])if(text.nodeType===3&&text.textContent.trim()==='·')text.remove();
+   (collector||card).append(details);
+  }
+ }
+ return{render,trend,trendRows,ageComparison,industryComparison,collapseMethods};
 })();

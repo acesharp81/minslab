@@ -12,7 +12,7 @@ from .api_samples import today
 from .collection_period import collection_start
 from .collectors import clean, date_iso, integer, GYEONGGI_CITIES
 from .db import entity_id
-from .supply_dashboard import block_key
+from .supply_dashboard import block_key, SOURCE_ALIASES
 
 
 def detail_data(html):
@@ -59,7 +59,7 @@ def observation_date(row, allow_photo_month=False):
 
 def site_meta(tr):
     region = tr.get('data-cnpnm')
-    if region not in ('서울특별시', '경기도'):
+    if region not in ('서울특별시', '경기도', '인천광역시'):
         return None
     district = clean(re.sub(r'\([^)]*\)', '', tr.get('data-bzdtnm') or ''))
     block = clean(tr.get('data-bnm'))
@@ -68,7 +68,8 @@ def site_meta(tr):
     if match:
         district, block = match[1], match[2]
     district = re.sub(r'[A-Z]+-?\d+$', '', district) if district.endswith(block) and re.fullmatch(r'[A-Z]+-?\d+', block) else district
-    municipality = next((city for city in GYEONGGI_CITIES if district.startswith(city)), None) if region == '경기도' else '서울 (구 확인 필요)'
+    municipality = (next((city for city in GYEONGGI_CITIES if district.startswith(city)), None)
+                    if region == '경기도' else region+' (구 확인 필요)')
     meta = dict(region=region, district=district.strip(), block=block,
                 municipality=municipality or '시군구 확인 필요', source_id='lh_progress')
     params = {key: tr.get('data-'+attr) for key,attr in (
@@ -113,7 +114,7 @@ def collect_progress(source, fetcher, service):
     owned={row.get('source_object_id'):row for row in current if row['source_id']=='lh_progress'}
     for row in current:
         if row['source_id'] == 'lh_progress' or 'MULTI_SITE_CONTRACT' in row.get('warnings',[]): continue
-        key = block_key(row)
+        key = block_key(dict(row,source_id=SOURCE_ALIASES.get(row['source_id'],row['source_id'])))
         if key: owners[key].append(row)
     records = []
     annual = Counter()
@@ -130,7 +131,7 @@ def collect_progress(source, fetcher, service):
         snapshots = data.get('cntCwsttDetailList',[])
         if not isinstance(snapshots,list): raise ValueError('LH 공정률 이력 목록 변경')
         candidates = owners.get(block_key(meta),[]) if block_key(meta) else []
-        construction = [r for r in candidates if r['source_id']=='lh_construction']
+        construction = [r for r in candidates if SOURCE_ALIASES.get(r['source_id'],r['source_id'])=='lh_construction']
         candidate = construction[0] if len(construction)==1 else candidates[0] if len(candidates)==1 else None
         project_id = candidate['id'] if candidate else owned[identifier]['id'] if identifier in owned else None
         observed = []
@@ -162,7 +163,7 @@ def collect_progress(source, fetcher, service):
                 schedule_month=(date_iso(info.get('ccwDt')) or '')[:7] or None,
                 schedule_basis='LH 공개 공사기간 종료 예정 · 입주일 아님',warnings=[],
                 unit_basis='LH 공사진행현황 단지 세대수 · 공급·입주 실적과 구분',availability='PUBLIC',
-                proposed_policy=None,mapping_basis='LH 신규 공사 발견 · 프로그램 자동 매칭 후 정책 귀속 최종 승인 필요')
+                policy_candidate_only=True,proposed_policy=None,mapping_basis='LH 신규 공사 발견 · 프로그램 자동 매칭 후 정책 귀속 최종 승인 필요')
             records.append(('project',identifier,payload))
         if project_id: linked.add(identifier)
         for stamp,precision,registered,basis,row,progress in eligible:
@@ -190,4 +191,4 @@ def collect_progress(source, fetcher, service):
         period_end=max(r[2]['report_date'] for r in records if r[0]=='project_report'),
         missing_observation_date_blocks=unknown_dates,incremental=True,complete_query=True,
         provided=total,fetched=total,
-        scope_note='공개 목록 전 페이지 및 서울·경기 블록별 상세 이력. 공정률은 공급·입주율로 환산하지 않음; 누락 연도 보간 없음')
+        scope_note='공개 목록 전 페이지 및 서울·경기·인천 블록별 상세 이력. 공정률은 공급·입주율로 환산하지 않음; 누락 연도 보간 없음')

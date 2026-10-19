@@ -1,0 +1,16 @@
+{
+  "id": "SOU_00ae0f399df89c4ef50671da",
+  "revision_no": 1,
+  "source_id": "building_general_permit",
+  "title": "일반 건축인허가 API 연결 확인",
+  "actor": "김민",
+  "reason": "담당자 확인(자동연결)",
+  "status": "CONNECTED",
+  "base_date": "2026-10-17",
+  "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+  "evidence_batch_ids": [
+    "407f286a-ae21-47ed-a59e-b66f4eefb0a8",
+    "dcf128e0-9c58-49e8-b202-77fe8140f732"
+  ],
+  "scope": "API 원천 연결 확인. 사업별 매칭·사건 확정을 뜻하지 않음."
+}

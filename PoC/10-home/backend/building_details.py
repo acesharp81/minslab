@@ -1,6 +1,7 @@
 """Bounded Housing HUB dong/parcel evidence linked by the native housing permit PK."""
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -130,49 +131,72 @@ def next_detail_dongs(service):
     targeted = target_dongs(service) if hasattr(service, 'sessions') else set()
     pending.sort(key=lambda row: (-1 if row['source_object_id'] in targeted else 0 if any(row['address'] in address for address in addresses if address) else 1,
                                   row['source_object_id']))
+    from .building_scope import balanced_pending
+    pending=balanced_pending(codes,completed,pending)
     limit = max(1, min(8, int(os.environ.get('POC10_BUILDING_DETAIL_DONGS_PER_BATCH', '8'))))
-    return tuple(row['source_object_id'] for row in pending[:limit]), completed, len(codes)
+    from datetime import datetime,timedelta,timezone
+    instant=datetime.now(timezone.utc)
+    def overdue(row):
+        try:return datetime.fromisoformat(completed[row['source_object_id']]['checked_at']).astimezone(timezone.utc)<=instant-timedelta(days=7)
+        except (KeyError,TypeError,ValueError):return True
+    revisit=sorted((r for r in codes if completed.get(r['source_object_id'],{}).get('complete_query') and overdue(r)),
+        key=lambda r:(completed[r['source_object_id']].get('checked_at') or '',r['source_object_id']))
+    reserve=min(len(revisit),max(1,limit//4)) if limit>1 or not pending or not previous.get('single_revisit_batch') else 0
+    selected=pending[:limit-reserve]+revisit[:reserve]
+    if len(selected)<limit:selected+=revisit[reserve:reserve+limit-len(selected)]
+    service._detail_single_revisit_batch=bool(limit==1 and selected and selected[0] in revisit)
+    return tuple(row['source_object_id'] for row in selected), completed, len(codes)
+
+
+def _fetch_code(source, fetcher, code):
+    records,coverage=[],[]
+    sigungu, bjdong = code[:5], code[5:]
+    region = {'11':'서울특별시','28':'인천광역시','41':'경기도'}[code[:2]]
+    for kind, endpoint in ENDPOINTS.items():
+        total, seen, collected, page, raw_fetched, duplicate_rows = None, {}, [], 1, 0, 0
+        while True:
+            params = {'serviceKey': key_for(source), 'sigunguCd': sigungu,
+                      'bjdongCd': bjdong, 'pageNo': page, 'numOfRows': PAGE_SIZE, '_type': 'json'}
+            data = response_json(fetcher.get(BASE_URL + endpoint, 'json', params=params))
+            current, found = parse_detail_rows(data, source, kind, region, sigungu, bjdong)
+            if total is None:
+                total = found
+                if total > 10000:
+                    raise ValueError('건축HUB 상세 파일럿 페이지 상한 초과')
+            if found != total or len(current) != min(PAGE_SIZE, max(0, total - raw_fetched)):
+                raise ValueError('건축HUB 상세 페이지 누락·수집 중 건수 변경')
+            raw_fetched += len(current)
+            for item in current:
+                previous = seen.get(item[1])
+                if previous is not None:
+                    if previous != item[2]:
+                        raise ValueError('건축HUB 상세 원천키 충돌: 같은 키의 다른 내용')
+                    duplicate_rows += 1
+                    continue
+                seen[item[1]] = item[2]
+                collected.append(item)
+            if raw_fetched >= total:
+                break
+            page += 1
+        records.extend(collected)
+        coverage.append({'endpoint': endpoint, 'kind': kind, 'legal_dong_code': code,
+            'region': region, 'expected': total, 'fetched': raw_fetched,
+            'unique_records': len(collected), 'duplicate_rows': duplicate_rows,
+            'pages': page, 'complete_query': True})
+    return records,coverage
 
 
 def collect_building_details(source, fetcher, service=None):
     records, coverage = [], []
     selected, completed, total_dongs = (next_detail_dongs(service) if service is not None
                                         else (pilot_dongs(), {}, None))
-    for code in selected:
-        sigungu, bjdong = code[:5], code[5:]
-        region = {'11':'서울특별시','28':'인천광역시','41':'경기도'}[code[:2]]
-        for kind, endpoint in ENDPOINTS.items():
-            total, seen, collected, page, raw_fetched, duplicate_rows = None, {}, [], 1, 0, 0
-            while True:
-                params = {'serviceKey': key_for(source), 'sigunguCd': sigungu,
-                          'bjdongCd': bjdong, 'pageNo': page, 'numOfRows': PAGE_SIZE, '_type': 'json'}
-                data = response_json(fetcher.get(BASE_URL + endpoint, 'json', params=params))
-                current, found = parse_detail_rows(data, source, kind, region, sigungu, bjdong)
-                if total is None:
-                    total = found
-                    if total > 10000:
-                        raise ValueError('건축HUB 상세 파일럿 페이지 상한 초과')
-                if found != total or len(current) != min(PAGE_SIZE, max(0, total - raw_fetched)):
-                    raise ValueError('건축HUB 상세 페이지 누락·수집 중 건수 변경')
-                raw_fetched += len(current)
-                for item in current:
-                    previous = seen.get(item[1])
-                    if previous is not None:
-                        if previous != item[2]:
-                            raise ValueError('건축HUB 상세 원천키 충돌: 같은 키의 다른 내용')
-                        duplicate_rows += 1
-                        continue
-                    seen[item[1]] = item[2]
-                    collected.append(item)
-                if raw_fetched >= total:
-                    break
-                page += 1
-            records.extend(collected)
-            coverage.append({'endpoint': endpoint, 'kind': kind, 'legal_dong_code': code,
-                'region': region, 'expected': total, 'fetched': raw_fetched,
-                'unique_records': len(collected), 'duplicate_rows': duplicate_rows,
-                'pages': page, 'complete_query': True})
-        completed[code] = {'complete_query': True,
+    workers=max(1,min(4,int(os.environ.get('POC10_BUILDING_DETAIL_QUERY_WORKERS','1'))))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results=list(pool.map(lambda code:_fetch_code(source,fetcher,code),selected))
+    for code,(new_records,new_coverage) in zip(selected,results):
+        records.extend(new_records);coverage.extend(new_coverage)
+        from .db import now
+        completed[code] = {'complete_query': True,'checked_at':now().isoformat(),
                            'fetched': sum(item['fetched'] for item in coverage if item['legal_dong_code'] == code)}
     if not records and service is None:
         raise ValueError('건축HUB 상세 파일럿 근거가 없음')
@@ -189,7 +213,8 @@ def collect_building_details(source, fetcher, service=None):
         stats['scope_note'] += f" 원천 동일 중복행 {stats['duplicate_rows']}건은 1회 저장; 다른 내용의 원천키 충돌은 배치 실패."
     if service is not None:
         done = sum(item.get('complete_query') is True for item in completed.values())
-        stats.update(incremental=True, district_counts=completed,
+        stats.update(incremental=True, district_counts=completed,revisit_after_days=7,
+                     single_revisit_batch=getattr(service,'_detail_single_revisit_batch',False),
                      scope_total_dongs=total_dongs, scope_completed_dongs=done,
                      scope_remaining_dongs=max(0, total_dongs - done), complete_scope=done == total_dongs,
                      scope_note=f'현존 서울·경기·인천 법정동 {total_dongs}개 중 {done}개 상세 2개 endpoint 전체 페이지 확인. 원천 동일 중복행 {stats["duplicate_rows"]}건은 1회 저장. 실제 정책 공급실적은 별도 검증')

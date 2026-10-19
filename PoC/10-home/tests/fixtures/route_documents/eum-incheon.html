@@ -1,0 +1,1570 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="euc-kr">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<meta name="Keywords" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계">
+	<meta name="Description" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계 제공">
+	<meta name="Robots" content="INDEX, FOLLOW">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="토지이음">
+	<meta property="og:description" content="이음지도, 용어사전, 질의회신사례, 규제법령집, 주민의견청취 공람, 도시계획통계 제공">
+	<meta property="og:image" content="/web/favicon.png"/>
+	<meta property="og:url" content="http://www.eum.go.kr">
+	<title>고시정보 &gt; 고시정보 목록 | 토지이음</title>
+	<link rel="shortcut icon" type="image/x-icon" href="/web/favicon.ico">
+	
+	<link rel="stylesheet" href="/web/css/reset.css">
+	<link rel="stylesheet" href="/web/css/common.css">
+	
+	
+	<script type="text/javascript" src="/web/js/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="/web/js/jquery-ui.js"></script>
+	<script type="text/javascript" src="/web/js/ux.js"></script>
+	<script type="text/javascript" src="/web/js/mb/mbCmmn.js"></script>
+	<script type="text/javascript" src="/web/js/jquery.cookie.js"></script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-M5PF8WRR6M"></script>
+	<script type="text/javascript" src="/web/js/google_analytics.js"></script>
+	<script>
+
+	var login='false';
+	if(login=='false'){
+		var loginFlag=$.cookie("loginFlag");
+		if(loginFlag=="true"){
+			alert("로그인 시간 제한이 만료되었습니다.");
+		}
+	}
+
+	if(login=='true'){
+		$.cookie("loginFlag",login);
+	}else{
+		$.removeCookie('loginFlag');
+	}
+
+	var context = "/web";
+	var hostLocation= location.protocol+"//"+location.host;
+	</script>
+	<script type="text/javascript" src="/web/js/ac/common.js"></script>
+
+
+	<script>
+		$(document).ready(function(){
+			if('Y'=='N'){
+				openLayer('login_info_layer');
+				//if(confirm("임시 비밀번호를 변경하신 후\n서비스를 이용하실 수 있습니다.")){
+				//	$.fn.movePage("/web/mb/mbUpdateInfo.jsp");
+				//}
+			}
+
+			//메뉴
+			$('.menu').children('li').removeClass('on');
+			$('.menu').children('li').eq(3).addClass('on');
+			var link = document.location.href;
+
+			if(link.indexOf("/am/amMain.jsp") >-1){
+				$("div.header_wrap").addClass("main_header");
+			}else {
+				$("div.header_wrap").addClass("sub_header");
+			}
+
+      $("#skipNav").keyup(function(e) {
+        if(e.keyCode === 9){
+          $(this).children().css('top',0);
+        }
+      });
+
+      $("#skipNav a").focusout(function() {
+        $(this).hide();
+
+      });
+
+      $(".m_conts").click(function(e) {
+        $(this).css('top','-38px');
+      });
+
+		});
+	</script>
+</head>
+<body class="ebbody">
+	
+	<div id="skipNav">
+		<a href="#m_conts" class="m_conts" style="z-index:2">본문 바로가기</a>
+		<a href="#lnbWrap" class="lnbWrap">주메뉴 바로가기</a>
+	</div>
+	<div class="wrap">
+		<!-- header 영역 -->
+		<div class="header_wrap">
+			<div class="header_top">
+				
+			</div>
+			<!-- 모바일메뉴 -->
+			<div class="m_header_wrap">
+				<div class="m_header">
+					<ul>
+					<li><a href="javascript:;">토지이음 모바일</a></li>
+					
+					</ul>
+					<span class="first" title="새창"><a href="javascript:;" onclick="openVisit();" title="새창">처음오셨나요?</a></span>
+					<!-- <span class="pcver"><a href="">PC 버전</a></span> -->
+					<a href="javascript:;" class="m_btnx"><img src="/web/images/ac/m_btnx.png" alt="닫기"></a>
+				</div>
+				<div class="m_con">
+					<ul class="dp01">
+						<li class="m01"><a href="javascript:fn_goLand();">토지이용계획</a>
+							<ul class="dp02">
+								<li><a href="javascript:fn_goLand();">토지이용계획 열람</a></li>
+								<li><a href="/web/ar/lw/lwLawDet.jsp" target="_blank">규제법령집&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+							</ul>
+						</li>
+						<li class="m06"><a href="javascript:fn_goUpis();">도시계획</a>
+							<ul class="dp02">
+								<li><a href="javascript:fn_goUpis();">도시계획 열람</a></li>
+								<li><a href="/web/cp/hr/hrPeopleHearList.jsp">주민의견청취 공람</a></li>
+								<li><a href="/web/cp/ih/ihHearingList.jsp">인터넷 주민의견 청취</a></li>
+								<li><a href="/web/cp/pr/prHowtoDet.jsp">도시·군관리계획 입안 제안</a></li>
+								
+
+								<li><a href="/web/cp/st/stUpisStatDet.jsp">도시계획통계</a></li>
+							</ul>
+						</li>
+						<li class="m03"><a href="/web/gd/eb/ebGuideBookDet.jsp">규제안내서</a>
+							<ul class="dp02">
+								<li><a href="/web/gd/eb/ebGuideBookDet.jsp">쉬운 규제안내서</a></li>
+								<li><a href="/web/gd/ec/ecGuideMastDet.jsp">쉬운 인허가사례</a></li>
+							</ul>
+						</li>
+						<li class="m04"><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a>
+							<ul class="dp02">
+								<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a></li>
+							</ul>
+						</li>
+						<li class="m05"><a href="/web/in/al/alBoardList.jsp">정보마당</a>
+							<ul class="dp02">
+								<li><a href="/web/in/al/alBoardList.jsp">공지사항</a></li>
+								<li><a href="/web/in/cp/cpQnaList.jsp">질의회신사례</a></li>
+								<li><a href="/web/in/dc/dcDictList.jsp">용어사전</a></li>
+								<li><a href="/web/in/pd/pdBoardList.jsp">자료실</a></li>
+								<li><a href="/web/op/sv/svItemList.jsp">데이터개방</a></li>
+								<li><a href="/web/in/rs/rsSiteDet.jsp">관련사이트</a></li>
+							</ul>
+						</li>
+					</ul>
+					<div class="footer_top">
+						<div class="footer_menu">
+							<ul class="fm">
+								<li><a href="/web/lc/bi/biPersonInfo.jsp">개인정보처리방침</a></li>
+								<li><a href="/web/lc/bi/biCopyRight.jsp">저작권 정책</a></li>
+								<li><a href="/web/lc/hr/hrSurveyStartDet.jsp">의견수렴</a></li>
+								<li><a href="javascript:;" onclick="openTelLayer();">문의처</a></li>
+							</ul>
+
+
+
+
+
+						</div>
+					</div>
+					<div class="footer">
+						<div class="ft_info">
+							<p class="mt10"><span class="address">우)30103 세종특별자치시 도움6로 11</span><span class="m_inb">국토교통부 국토도시실 도시정책관 도시정책과</span><span class="email">이메일: luris@korea.kr</span><span class="pc m_tel"><a href="tel:02-838-4405">02-838-4405</a></span></p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="dim"></div>
+			<!-- //모바일메뉴 -->
+			<div class="korea_wrap">
+				<div class="korea_header">
+					<div class="left_logo">
+					<p><img class="official_flag" src="/web/images/ac/flag.svg" alt="">이 누리집은 대한민국 공식 전자정부 누리집입니다.</p>
+					</div>
+					<div  class="right_logout">
+					
+					</div> 
+				</div>
+			</div>			
+			<div class="header">
+				<h1><a href="/web/am/amMain.jsp" id="siteLogo" title="메인페이지로 이동"><img src="/web/images/ac/logo.png" alt="토지이음 로고"></a></h1>
+				<div class="nav_wrap" id="lnbWrap">
+					<h2><a href="javascript:;" class="m_allmenu"><img src="/web/images/ac/m_menu.png" alt="메뉴"></a></h2>
+					<ul class="menu mb">
+						<li><a href="javascript:fn_goLand();">토지이용계획</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="javascript:fn_goLand();">토지이용계획 열람</a></li>
+								<li><a href="/web/ar/lw/lwLawDet.jsp" target="_blank">규제법령집&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+							</ul>
+						</li>
+						<li><a href="javascript:fn_goUpis();">도시계획</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="javascript:fn_goUpis();">도시계획 열람</a></li>
+								<li><a href="/web/cp/hr/hrPeopleHearList.jsp">주민의견청취 공람</a></li>
+								<li><a href="/web/cp/ih/ihHearingList.jsp">인터넷 주민의견 청취</a></li>
+								<li><a href="/web/cp/pr/prHowtoDet.jsp">도시·군관리계획 입안 제안</a></li>
+								
+
+								<li><a href="/web/cp/st/stUpisStatDet.jsp">도시계획통계</a></li>
+							</ul>
+						</li>
+						<li><a href="/web/gd/eb/ebGuideBookDet.jsp">규제안내서</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/gd/eb/ebGuideBookDet.jsp">쉬운 규제안내서</a></li>
+								<li><a href="/web/gd/ec/ecGuideMastDet.jsp">쉬운 인허가사례</a></li>
+							</ul>
+						</li>
+						<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/gs/gv/gvGosiList.jsp">고시정보</a></li>
+							</ul> 
+						</li>
+						<li><a href="/web/in/al/alBoardList.jsp">정보마당</a><i></i>
+							<ul class="sub_menu">
+								<li><a href="/web/in/al/alBoardList.jsp">공지사항</a></li>
+								<li><a href="/web/in/cp/cpQnaList.jsp">질의회신사례</a></li>
+								<li><a href="/web/in/dc/dcDictList.jsp">용어사전</a></li>
+								<li><a href="/web/in/pd/pdBoardList.jsp">자료실</a></li>
+								<li><a href="/web/op/sv/svItemList.jsp">데이터개방</a></li>
+								<li><a href="/web/in/rs/rsSiteDet.jsp">관련사이트</a></li>
+							</ul>
+						</li>
+					</ul>
+					<div class="util mb">
+						<span class="invite"><a href="javascript:;" onclick="openVisit();" title="새창으로 열기">처음오셨나요?</a></span>
+						<span class="txt_scale">글자크기<a href="javascript:zoomIn();" class="plus"><img src="/web/images/ac/plus.png" alt="글자확대"></a><a href="javascript:zoomOut();"><img src="/web/images/ac/minus.png" alt="글자축소"></a></span>
+					</div>
+				</div>
+			</div>
+			<div class="menu_bg mb">
+				<div class="menu_img">
+					<div class="allm">
+						<img src="/web/images/ac/all.png" alt="전체메뉴">
+					</div>
+					<div class="btn_close"><a href="javascript:closeMenu();"><img src="/web/images/ac/btn_close.png" alt="닫기"></a></div>
+				</div>
+			</div>
+		</div>
+	</div>		
+		<!--//header 영역 -->
+
+
+
+<link rel="stylesheet" href="/web/css/jquery-ui.css">
+<script type="text/javascript" src="/web/js/jquery-ui.js"></script>
+<script type="text/javascript" src="/web/js/gs/gv/gvGosiList.js"></script>
+<script language="javascript">
+	//비정상접근처리
+	
+	
+	
+</script>
+
+<script type="text/javascript">
+	var sggData = '510000000000_강릉시_5115000000&510000000000_고성군_5182000000&510000000000_동해시_5117000000&510000000000_삼척시_5123000000&510000000000_속초시_5121000000&510000000000_양구군_5180000000&510000000000_양양군_5183000000&510000000000_영월군_5175000000&510000000000_원주시_5113000000&510000000000_인제군_5181000000&510000000000_정선군_5177000000&510000000000_철원군_5178000000&510000000000_춘천시_5111000000&510000000000_태백시_5119000000&510000000000_평창군_5176000000&510000000000_홍천군_5172000000&510000000000_화천군_5179000000&510000000000_횡성군_5173000000&410000000000_가평군_4182000000&410000000000_고양시_4128000000&410000000000_고양시 덕양구_4128100000&410000000000_고양시 일산동구_4128500000&410000000000_고양시 일산서구_4128700000&410000000000_과천시_4129000000&410000000000_광명시_4121000000&410000000000_광주시_4161000000&410000000000_구리시_4131000000&410000000000_군포시_4141000000&410000000000_김포시_4157000000&410000000000_남양주시_4136000000&410000000000_동두천시_4125000000&410000000000_부천시_4119000000&410000000000_부천시 소사구_4119400000&410000000000_부천시 오정구_4119600000&410000000000_부천시 원미구_4119200000&410000000000_성남시_4113000000&410000000000_성남시 분당구_4113500000&410000000000_성남시 수정구_4113100000&410000000000_성남시 중원구_4113300000&410000000000_수원시_4111000000&410000000000_수원시 권선구_4111300000&410000000000_수원시 영통구_4111700000&410000000000_수원시 장안구_4111100000&410000000000_수원시 팔달구_4111500000&410000000000_시흥시_4139000000&410000000000_안산시_4127000000&410000000000_안산시 단원구_4127300000&410000000000_안산시 상록구_4127100000&410000000000_안성시_4155000000&410000000000_안양시_4117000000&410000000000_안양시 동안구_4117300000&410000000000_안양시 만안구_4117100000&410000000000_양주시_4163000000&410000000000_양평군_4183000000&410000000000_여주시_4167000000&410000000000_연천군_4180000000&410000000000_오산시_4137000000&410000000000_용인시_4146000000&410000000000_용인시 기흥구_4146300000&410000000000_용인시 수지구_4146500000&410000000000_용인시 처인구_4146100000&410000000000_의왕시_4143000000&410000000000_의정부시_4115000000&410000000000_이천시_4150000000&410000000000_파주시_4148000000&410000000000_평택시_4122000000&410000000000_포천시_4165000000&410000000000_하남시_4145000000&410000000000_화성시_4159000000&410000000000_화성시 동탄구_4159700000&410000000000_화성시 만세구_4159100000&410000000000_화성시 병점구_4159500000&410000000000_화성시 효행구_4159300000&480000000000_거제시_4831000000&480000000000_거창군_4888000000&480000000000_고성군_4882000000&480000000000_김해시_4825000000&480000000000_남해군_4884000000&480000000000_밀양시_4827000000&480000000000_사천시_4824000000&480000000000_산청군_4886000000&480000000000_양산시_4833000000&480000000000_의령군_4872000000&480000000000_진주시_4817000000&480000000000_창녕군_4874000000&480000000000_창원시 마산합포구_4812500000&480000000000_창원시 마산회원구_4812700000&480000000000_창원시 성산구_4812300000&480000000000_창원시 의창구_4812100000&480000000000_창원시 진해구_4812900000&480000000000_창원시(통합)_4812000000&480000000000_통영시_4822000000&480000000000_하동군_4885000000&480000000000_함안군_4873000000&480000000000_함양군_4887000000&480000000000_합천군_4889000000&470000000000_경산시_4729000000&470000000000_경주시_4713000000&470000000000_고령군_4783000000&470000000000_구미시_4719000000&470000000000_김천시_4715000000&470000000000_문경시_4728000000&470000000000_봉화군_4792000000&470000000000_상주시_4725000000&470000000000_성주군_4784000000&470000000000_안동시_4717000000&470000000000_영덕군_4777000000&470000000000_영양군_4776000000&470000000000_영주시_4721000000&470000000000_영천시_4723000000&470000000000_예천군_4790000000&470000000000_울릉군_4794000000&470000000000_울진군_4793000000&470000000000_의성군_4773000000&470000000000_청도군_4782000000&470000000000_청송군_4775000000&470000000000_칠곡군_4785000000&470000000000_포항시_4711000000&470000000000_포항시 남구_4711100000&470000000000_포항시 북구_4711300000&270000000000_군위군_2772000000&270000000000_남구_2720000000&270000000000_달서구_2729000000&270000000000_달성군_2771000000&270000000000_동구_2714000000&270000000000_북구_2723000000&270000000000_서구_2717000000&270000000000_수성구_2726000000&270000000000_중구_2711000000&300000000000_대덕구_3023000000&300000000000_동구_3011000000&300000000000_서구_3017000000&300000000000_유성구_3020000000&300000000000_중구_3014000000&260000000000_강서구_2644000000&260000000000_금정구_2641000000&260000000000_기장군_2671000000&260000000000_남구_2629000000&260000000000_동구_2617000000&260000000000_동래구_2626000000&260000000000_부산진구_2623000000&260000000000_북구_2632000000&260000000000_사상구_2653000000&260000000000_사하구_2638000000&260000000000_서구_2614000000&260000000000_수영구_2650000000&260000000000_연제구_2647000000&260000000000_영도구_2620000000&260000000000_중구_2611000000&260000000000_해운대구_2635000000&110000000000_강남구_1168000000&110000000000_강동구_1174000000&110000000000_강북구_1130500000&110000000000_강서구_1150000000&110000000000_관악구_1162000000&110000000000_광진구_1121500000&110000000000_구로구_1153000000&110000000000_금천구_1154500000&110000000000_노원구_1135000000&110000000000_도봉구_1132000000&110000000000_동대문구_1123000000&110000000000_동작구_1159000000&110000000000_마포구_1144000000&110000000000_서대문구_1141000000&110000000000_서초구_1165000000&110000000000_성동구_1120000000&110000000000_성북구_1129000000&110000000000_송파구_1171000000&110000000000_양천구_1147000000&110000000000_영등포구_1156000000&110000000000_용산구_1117000000&110000000000_은평구_1138000000&110000000000_종로구_1111000000&110000000000_중구_1114000000&110000000000_중랑구_1126000000&360000000000_세종시_3611000000&310000000000_남구_3114000000&310000000000_동구_3117000000&310000000000_북구_3120000000&310000000000_울주군_3171000000&310000000000_중구_3111000000&280000000000_강화군_2871000000&280000000000_검단구_2829000000&280000000000_계양구_2824500000&280000000000_남동구_2820000000&280000000000_미추홀구_2817700000&280000000000_부평구_2823700000&280000000000_서해구_2827500000&280000000000_연수구_2818500000&280000000000_영종구_2815500000&280000000000_옹진군_2872000000&280000000000_제물포구_2812500000&120000000000_강진군_1278000000&120000000000_고흥군_1274000000&120000000000_곡성군_1272000000&120000000000_광산구_1233000000&120000000000_광양시_1219000000&120000000000_구례군_1273000000&120000000000_나주시_1217000000&120000000000_남구_1227000000&120000000000_담양군_1271000000&120000000000_동구_1221000000&120000000000_목포시_1211000000&120000000000_무안군_1281000000&120000000000_보성군_1275000000&120000000000_북구_1230000000&120000000000_서구_1224000000&120000000000_순천시_1215000000&120000000000_신안군_1287000000&120000000000_여수시_1213000000&120000000000_영광군_1283000000&120000000000_영암군_1280000000&120000000000_완도군_1285000000&120000000000_장성군_1284000000&120000000000_장흥군_1277000000&120000000000_진도군_1286000000&120000000000_함평군_1282000000&120000000000_해남군_1279000000&120000000000_화순군_1276000000&520000000000_고창군_5279000000&520000000000_군산시_5213000000&520000000000_김제시_5221000000&520000000000_남원시_5219000000&520000000000_무주군_5273000000&520000000000_부안군_5280000000&520000000000_순창군_5277000000&520000000000_완주군_5271000000&520000000000_익산시_5214000000&520000000000_임실군_5275000000&520000000000_장수군_5274000000&520000000000_전주시_5211000000&520000000000_전주시 덕진구_5211300000&520000000000_전주시 완산구_5211100000&520000000000_정읍시_5218000000&520000000000_진안군_5272000000&500000000000_서귀포시_5013000000&500000000000_제주시_5011000000&440000000000_계룡시_4425000000&440000000000_공주시_4415000000&440000000000_금산군_4471000000&440000000000_논산시_4423000000&440000000000_당진시_4427000000&440000000000_보령시_4418000000&440000000000_부여군_4476000000&440000000000_서산시_4421000000&440000000000_서천군_4477000000&440000000000_아산시_4420000000&440000000000_예산군_4481000000&440000000000_천안시_4413000000&440000000000_천안시 동남구_4413100000&440000000000_천안시 서북구_4413300000&440000000000_청양군_4479000000&440000000000_태안군_4482500000&440000000000_홍성군_4480000000&430000000000_괴산군_4376000000&430000000000_단양군_4380000000&430000000000_보은군_4372000000&430000000000_영동군_4374000000&430000000000_옥천군_4373000000&430000000000_음성군_4377000000&430000000000_제천시_4315000000&430000000000_증평군_4374500000&430000000000_진천군_4375000000&430000000000_청주시_4311000000&430000000000_청주시 상당구_4311100000&430000000000_청주시 서원구_4311200000&430000000000_청주시 청원구_4311400000&430000000000_청주시 흥덕구_4311300000&430000000000_충주시_4313000000&';
+</script>
+<script type="text/javascript">
+	$(document).ready(function(){
+
+		
+			// 조건이 있을 경우 검색 조건에 맞게 셋팅
+			selSgg('2800000000', '');
+		
+
+		$.datepicker.regional['ko'] = {
+			closeText: '닫기',
+			prevText: '이전달',
+			nextText: '다음달',
+			currentText: '오늘',
+			monthNames: ['1월(JAN)','2월(FEB)','3월(MAR)','4월(APR)','5월(MAY)','6월(JUN)',
+			'7월(JUL)','8월(AUG)','9월(SEP)','10월(OCT)','11월(NOV)','12월(DEC)'],
+			monthNamesShort: ['1월','2월','3월','4월','5월','6월',
+			'7월','8월','9월','10월','11월','12월'],
+			dayNames: ['일','월','화','수','목','금','토'],
+			dayNamesShort: ['일','월','화','수','목','금','토'],
+			dayNamesMin: ['일','월','화','수','목','금','토'],
+			weekHeader: 'Wk',
+			dateFormat: 'yy-mm-dd',
+			firstDay: 0,
+			isRTL: false,
+			showMonthAfterYear: true,
+			yearSuffix: '',
+			showOn: 'both',
+			//buttonText: "달력",
+			changeMonth: true,
+			changeYear: true,
+			showButtonPanel: true,
+			yearRange: 'c-99:c+99',
+		};
+		$.datepicker.setDefaults($.datepicker.regional['ko']);
+		$("#gosiStartDt, #gosiEndDt").datepicker({
+	        showOn: "focus",
+	        buttonImage: "/web/images/gs/cal.png",
+	        buttonImageOnly: false,
+	        buttonText: "고시일 선택 달력" //2017.02.07 수정
+	      });
+
+	});
+</script>
+
+
+
+
+
+
+		<!--//header 영역 -->
+		<div class="container" id="m_conts">
+			<div class="bread_crumb">
+				<ol>
+					<li class="home"><a href="/web/am/amMain.jsp">홈</a></li>
+					<li><div class="on"><img src="/web/images/ac/arw.png" alt="하위메뉴"/><a href="/web/gs/gv/gvGosiList.jsp">고시정보 &gt; 고시정보 목록 | 토지이음</a></div></li>
+				</ol>
+			</div>
+			<h3 class="title">고시정보</h3>
+			<div class="subcont">
+				<form name="form" method="post" action="gvGosiList.jsp" id="frmGosi">
+				<input type="hidden" name="pageNo" value="1" />
+				<input type="hidden" name="mode" />
+				<input type="hidden" name="zonenm_t" value="" />
+				<input type="hidden" name="area" value="" />
+				<input type="hidden" name="chrgorg_t" value="" />
+				<input type="hidden" name="selSggCd" id="selSggCd" value="" />
+				<input type="hidden" name="mobile_yn" id="mobile_yn" value="" />
+				<div class="gvgosch_wrap">
+					<div class="gvgosch">
+						<ul>
+							<li><span><label for="zonenm">고시제목</label></span><input type="text" id="zonenm" name="zonenm" title="고시제목" value=""></li>
+							<li class="gvli04"><span>지역</span><select name="select2" id="gosiSelect2" title="광역시도 선택">
+											<option value="">전체 광역시도</option>
+											<option value="1100000000" >서울특별시</option>
+											<option value="1200000000" >전남광주통합특별시</option>
+											<option value="2600000000" >부산광역시</option>
+											<option value="2700000000" >대구광역시</option>
+											<option value="2800000000" selected>인천광역시</option>
+											<option value="3000000000" >대전광역시</option>
+											<option value="3100000000" >울산광역시</option>
+											<option value="3600000000" >세종특별자치시</option>
+											<option value="4100000000" >경기도</option>
+											<option value="5100000000" >강원특별자치도</option>
+											<option value="4300000000" >충청북도</option>
+											<option value="4400000000" >충청남도</option>
+											<option value="5200000000" >전북특별자치도</option>
+											<option value="4700000000" >경상북도</option>
+											<option value="4800000000" >경상남도</option>
+											<option value="5000000000" >제주특별자치도</option>
+											</select><select name="select3" id="gosiSelect3" title="시군구 선택" class="sel01"><option value="">전체 시군구</option></select></li>
+
+							<li class="gvli02"><span>고 시 일</span><input type="text" id="gosiStartDt" name="startdt" value="2025-09-07" title="고시일시작" maxlength="10" autocomplete="off"><em>-</em><input type="text" title="고시일종료" id="gosiEndDt" name="enddt" value="2026-10-19" maxlength="10" autocomplete="off"></li>
+							<li><span><label for="chrgorg">담당기관</label></span><input type="text" title="담당기관" id="chrgorg" name="chrgorg" value=""  placeholder="담당기관"></li>
+
+							<li class="gvli03"><span><label for="gosichrg">고시기관</label></span><input type="text" title="고시기관" id="gosichrg" name="gosichrg" value=""  placeholder="고시기관  예)국토교통부"></li>
+							<li><span><label for="gosino">고시번호</label></span><input type="text" title="고시번호" id="gosino" name="gosino" value=""  placeholder="고시연도-호번호  예) 2021-201"></li>
+
+							<li class="gvli05"><span>고시단계</span>
+								<span class="input_btn first"><label for="c01"><input type="checkbox" title="결정고시" id="c01" name="geul_yn" value="Y" style="display:inline;" > 결정고시<span style="display:none;">결정고시</span></label></span>
+								<span class="input_btn"><label for="c02"><input type="checkbox" title="지형도면고시" id="c02" name="gihyung_yn" value="Y" style="display:inline;" > 지형도면고시<span style="display:none;">지형도면고시</span></label></span>
+								<span class="input_btn3"><label for="c03"><input type="checkbox" title="실시계획인가고시" id="c03" name="silsi_yn" value="Y" style="display:inline;" > 실시계획인가고시<span style="display:none;">실시계획인가고시</span></label></span>
+							</li>
+							<li class="gvli06"> </li>
+							<li class="gvli07" style="display:none;"><span>주제</span><select name="prj_cat_cd" id="prj_cat_cd" title="주제선택"><option value="">전체</option>
+											
+							</select></li>
+						</ul>
+						<div class="gv_right">
+							<div class="gv_sch">
+								<span><a href="javascript:document.form.pageNo.value='1';$('#frmGosi').submit();">검색</a></span>
+							</div>
+						</div>
+					</div>
+					<div class="gb_con_list">
+						<div class="list_count_list">
+							<select name="listSize" id="listSize" title="리스트갯수나열">
+								<option value="10" >10개</option>
+								<option value="20" >20개</option>
+								<option value="30" >30개</option>
+								<option value="40" >40개</option>
+								<option value="50" selected>50개</option>
+							</select>
+						</div>
+						<div class="tbl02">
+							<table>
+								<caption>고시정보 목록으로 고시일, 고시번호, 고시제목, 담당기관 조회 정보 제공</caption>
+								<colgroup>
+									<col style="" class="mb">
+									<col style="width:20%" class="mb">
+									<col style="width:45%">
+									<col style="width:20%" class="mb">
+									<!-- <col width="" class="mb">-->
+								</colgroup>
+								<thead>
+									<tr>
+										<th scope="col" class="mb">고시일</th>
+										<th scope="col" class="mb">고시번호</th>
+										<th scope="col">[구분]고시제목</th>
+										<th scope="col" class="mb">담당기관</th>
+										<!-- <th scope="col" class="mb">조회수</th>-->
+									</tr>
+								</thead>
+								<tbody>
+									
+									<tr class="center">
+										<td class="mb">2026-10-06</td>
+										<td class="left mb" title="인천광역시 고시 제2026-278호">
+											
+												인천광역시 고시 제2026-278호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=642265&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도로: 대로1-14호선) 실시계획인가(변경) 고시' >
+													[변경]
+													도시관리계획(도로: 대로1-14호선) 실시계획인가(변경) 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-10-06</td>
+										<td class="left mb" title="인천광역시 고시 제2026-282호">
+											
+												인천광역시 고시 제2026-282호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=642234&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 13호선) 결정, 도시관리계획(도로: 입체도로) 결정 및 도시계획시설사업 실시계획인가 및 지형도면 고시' >
+													[신규]
+													도로구역(광역시도 13호선) 결정, 도시관리계획(도로: 입체도로) 결정 및 도시계획시설사업 실시계획인가 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-29</td>
+										<td class="left mb" title="인천광역시 고시 제2026-277호">
+											
+												인천광역시 고시 제2026-277호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641865&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(전기공급설비)사업 실시계획(변경) 인가 고시' >
+													[변경]
+													도시계획시설(전기공급설비)사업 실시계획(변경) 인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-28</td>
+										<td class="left mb" title="인천광역시 고시 제2026-270호">
+											
+												인천광역시 고시 제2026-270호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641857&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='광역시도 3호선 도로구역 결정(변경), 실시계획인가(변경) 및 지형도면 고시' >
+													[변경]
+													광역시도 3호선 도로구역 결정(변경), 실시계획인가(변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-28</td>
+										<td class="left mb" title="인천광역시 고시 제2026-272호">
+											
+												인천광역시 고시 제2026-272호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641852&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 공원) 결정(경미한 변경)  및 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 공원) 결정(경미한 변경)  및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-21</td>
+										<td class="left mb" title="인천광역시 고시 제2026-267호">
+											
+												인천광역시 고시 제2026-267호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643019&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천 미추홀구 제물포역 북측 도심 공공주택 복합지구 지정 변경(2차) 및 복합사업계획 변경(2차) 승인 고시' >
+													[변경]
+													인천 미추홀구 제물포역 북측 도심 공공주택 복합지구 지정 변경(2차) 및 복합사업계획 변경(2차) 승인 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-21</td>
+										<td class="left mb" title="인천광역시 고시 제2026-269호">
+											
+												인천광역시 고시 제2026-269호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641547&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천 용유2 도시개발구역 지정, 개발계획 수립 및 지형도면 고시' >
+													[신규]
+													인천 용유2 도시개발구역 지정, 개발계획 수립 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-21</td>
+										<td class="left mb" title="인천광역시 고시 제2026-266호">
+											
+												인천광역시 고시 제2026-266호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641437&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(북항배후부지 지구단위계획) 결정(변경) 및 지형도면 고시' >
+													[변경]
+													도시관리계획(북항배후부지 지구단위계획) 결정(변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-17</td>
+										<td class="left mb" title="인천광역시 고시 제2026-264호">
+											
+												인천광역시 고시 제2026-264호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641548&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(도로: 대1-1호선)사업 실시계획인가(변경) 고시' >
+													[변경]
+													도시계획시설(도로: 대1-1호선)사업 실시계획인가(변경) 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-14</td>
+										<td class="left mb" title="인천광역시 고시 제2026-256호">
+											
+												인천광역시 고시 제2026-256호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641350&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(새벌근린공원)사업 실시계획(변경)인가 고시' >
+													[변경]
+													도시계획시설(새벌근린공원)사업 실시계획(변경)인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-14</td>
+										<td class="left mb" title="인천광역시 고시 제2026-258호">
+											
+												인천광역시 고시 제2026-258호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641156&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 62호선) 결정(변경),    실시계획(변경)인가 및 지형도면 고시' >
+													[변경]
+													도로구역(광역시도 62호선) 결정(변경),    실시계획(변경)인가 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-09</td>
+										<td class="left mb" title="국토교통부 고시 제2026-473호">
+											
+												국토교통부 고시 제2026-473호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641646&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천계양테크노밸리 공공주택지구 지구계획 변경(4차) 승인' >
+													[변경]
+													인천계양테크노밸리 공공주택지구 지구계획 변경(4차) 승인<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="국토교통부">국토교통부</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-07</td>
+										<td class="left mb" title="인천광역시 고시 제2026-253호">
+											
+												인천광역시 고시 제2026-253호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643404&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 56호선) 결정(변경) 및 실시계획 인가(변경) 고시' >
+													[변경]
+													도로구역(광역시도 56호선) 결정(변경) 및 실시계획 인가(변경) 고시<!-- 2016.08.29 -->
+													
+														<img src="/web/images/ac/ico_new.png" alt="최신글">
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-09-07</td>
+										<td class="left mb" title="인천광역시 고시 제2026-254호">
+											
+												인천광역시 고시 제2026-254호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641348&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(청능근린공원) 실시계획(변경)인가 고시' >
+													[변경]
+													도시계획시설(청능근린공원) 실시계획(변경)인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-31</td>
+										<td class="left mb" title="인천광역시 고시 제2026-242호">
+											
+												인천광역시 고시 제2026-242호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643401&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 도로 대로3-61호선) 실시계획(변경)인가 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 도로 대로3-61호선) 실시계획(변경)인가 고시<!-- 2016.08.29 -->
+													
+														<img src="/web/images/ac/ico_new.png" alt="최신글">
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-31</td>
+										<td class="left mb" title="인천광역시 고시 제2026-237호">
+											
+												인천광역시 고시 제2026-237호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=641197&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천계양 테크노밸리 도시첨단산업단지 산업단지계획(변경) 승인 및 지형도면 고시' >
+													[변경]
+													인천계양 테크노밸리 도시첨단산업단지 산업단지계획(변경) 승인 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-31</td>
+										<td class="left mb" title="인천광역시 고시 제2026-246호">
+											
+												인천광역시 고시 제2026-246호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=640699&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획[도시계획시설(학교:경인여대) 세부시설 조성계획] 결정(경미한 변경) 및 도시계획시설사업  실시계획(변경)인가 정정 고시' >
+													[변경]
+													도시관리계획[도시계획시설(학교:경인여대) 세부시설 조성계획] 결정(경미한 변경) 및 도시계획시설사업  실시계획(변경)인가 정정 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-31</td>
+										<td class="left mb" title="인천광역시 고시 제2026-233호">
+											
+												인천광역시 고시 제2026-233호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=640426&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 도로 대3-37호선) 결정(변경) 정정 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 도로 대3-37호선) 결정(변경) 정정 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-31</td>
+										<td class="left mb" title="인천광역시 고시 제2026-239호">
+											
+												인천광역시 고시 제2026-239호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639978&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='주안 2,4동 일원 재정비촉진계획(경미한 변경) 결정 및 정정, 지형도면 고시' >
+													[변경]
+													주안 2,4동 일원 재정비촉진계획(경미한 변경) 결정 및 정정, 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-26</td>
+										<td class="left mb" title="인천광역시 고시 제2026-236호">
+											
+												인천광역시 고시 제2026-236호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639885&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='마니산 관광지 지정(변경) 및 조성계획(변경) 승인 및 지형도면 고시' >
+													[변경]
+													마니산 관광지 지정(변경) 및 조성계획(변경) 승인 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-24</td>
+										<td class="left mb" title="인천광역시 고시 제2026-235호">
+											
+												인천광역시 고시 제2026-235호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=640248&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획[도시계획시설(학교:경인여대) 세부시설 조성계획] 결정(경미한 변경) 및 도시계획시설사업  실시계획(변경)인가 고시' >
+													[변경]
+													도시관리계획[도시계획시설(학교:경인여대) 세부시설 조성계획] 결정(경미한 변경) 및 도시계획시설사업  실시계획(변경)인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-24</td>
+										<td class="left mb" title="인천광역시 고시 제2026-231호">
+											
+												인천광역시 고시 제2026-231호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639657&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(수도공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(경미한 변경) 지형도면 정정 고시' >
+													[변경]
+													도시계획시설(수도공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(경미한 변경) 지형도면 정정 고...<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-24</td>
+										<td class="left mb" title="인천광역시 고시 제2026-229호">
+											
+												인천광역시 고시 제2026-229호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639638&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 수도공급설비) 결정(변경) 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 수도공급설비) 결정(변경) 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-18</td>
+										<td class="left mb" title="인천광역시 고시 제2026-226호">
+											
+												인천광역시 고시 제2026-226호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639576&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(소래염전생태공원 조성계획) 결정(최초) 및 지형도면 고시' >
+													[신규]
+													도시관리계획(소래염전생태공원 조성계획) 결정(최초) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-18</td>
+										<td class="left mb" title="인천광역시 고시 제2026-223호">
+											
+												인천광역시 고시 제2026-223호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639332&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 52호선) 결정(변경), 도시관리계획 결정 (경미한 변경) 및 실시계획인가(변경) 고시' >
+													[변경]
+													도로구역(광역시도 52호선) 결정(변경), 도시관리계획 결정 (경미한 변경) 및 실시계획인가(변경) 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-10</td>
+										<td class="left mb" title="인천광역시 고시 제2026-216호">
+											
+												인천광역시 고시 제2026-216호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643051&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 46,29호선) 결정(변경), 실시계획(변경) 인가 및 지형도면 고시' >
+													[변경]
+													도로구역(광역시도 46,29호선) 결정(변경), 실시계획(변경) 인가 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-10</td>
+										<td class="left mb" title="인천광역시 고시 제2026-218호">
+											
+												인천광역시 고시 제2026-218호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639725&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천발 KTX 직결사업 실시계획 변경 승인  [도시관리계획(도시계획시설: 철도) 결정(변경)]  의제에 따른 지형도면 고시' >
+													[신규]
+													인천발 KTX 직결사업 실시계획 변경 승인  [도시관리계획(도시계획시설: 철도) 결정(변경)]  의제에 따른 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-10</td>
+										<td class="left mb" title="인천광역시 고시 제2026-219호">
+											
+												인천광역시 고시 제2026-219호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639611&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='검암배수지 건설공사 일반수도사업(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(변경), 실시계획(변경) 인가 고시' >
+													[변경]
+													검암배수지 건설공사 일반수도사업(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(변경), 실시계획(변경) 인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-10</td>
+										<td class="left mb" title="인천광역시 고시 제2026-217호">
+											
+												인천광역시 고시 제2026-217호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639248&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(수도공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(경미한 변경) 지형도면 고시' >
+													[변경]
+													도시계획시설(수도공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 수도공급설비) 결정(경미한 변경) 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-03</td>
+										<td class="left mb" title="인천광역시 고시 제2026-213호">
+											
+												인천광역시 고시 제2026-213호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639368&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(공원)사업  시행자 지정(변경) 및 실시계획(변경) 인가 고시' >
+													[변경]
+													도시계획시설(공원)사업  시행자 지정(변경) 및 실시계획(변경) 인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-03</td>
+										<td class="left mb" title="인천광역시 고시 제2026-209호">
+											
+												인천광역시 고시 제2026-209호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639062&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(연희근린공원 조성계획) 결정(변경) 및 지형도면 고시' >
+													[변경]
+													도시관리계획(연희근린공원 조성계획) 결정(변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-03</td>
+										<td class="left mb" title="인천광역시 고시 제2026-208호">
+											
+												인천광역시 고시 제2026-208호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639061&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(길상어린이공원 조성계획) 결정(변경) 및 지형도면 고시' >
+													[변경]
+													도시관리계획(길상어린이공원 조성계획) 결정(변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-08-03</td>
+										<td class="left mb" title="인천광역시 고시 제2026-210호">
+											
+												인천광역시 고시 제2026-210호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=638951&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 수도공급설비) 결정(변경) 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 수도공급설비) 결정(변경) 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-27</td>
+										<td class="left mb" title="인천광역시 고시 제2026-203호">
+											
+												인천광역시 고시 제2026-203호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=638437&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 공원, 도로) 결정(경미한 변경) 및 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 공원, 도로) 결정(경미한 변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-20</td>
+										<td class="left mb" title="인천광역시 경제자유구역청 고시 제2026-23호">
+											
+												인천광역시 경제자유구역청 고시 제2026-23호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=640540&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천경제자유구역 송도국제도시 첨단산업클러스터(C) 실시계획(변경) 승인 정정 고시' >
+													[변경]
+													인천경제자유구역 송도국제도시 첨단산업클러스터(C) 실시계획(변경) 승인 정정 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시 경제자유구역청">인천광역시 경제자유구역청</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-20</td>
+										<td class="left mb" title="인천광역시 고시 제2026-197호">
+											
+												인천광역시 고시 제2026-197호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=638482&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='수인선 학익역(가칭) 2단계 신설사업 사업실시계획 승인  [도시관리계획(도시계획시설: 철도, 도로, 공원) 결정(변경)]  의제에 따른 지형도면 고시' >
+													[신규]
+													수인선 학익역(가칭) 2단계 신설사업 사업실시계획 승인  [도시관리계획(도시계획시설: 철도, 도로, 공원) 결정(변경)]  의제에 따른 지형...<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-20</td>
+										<td class="left mb" title="인천광역시 고시 제2026-198호">
+											
+												인천광역시 고시 제2026-198호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=638140&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 공원, 도로) 결정(경미한 변경) 및 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 공원, 도로) 결정(경미한 변경) 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-16</td>
+										<td class="left mb" title="인천광역시 고시 제2026-196호">
+											
+												인천광역시 고시 제2026-196호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=640545&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(하수도) 실시계획 인가 및 공공하수도 설치 고시' >
+													[신규]
+													도시계획시설(하수도) 실시계획 인가 및 공공하수도 설치 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="인천광역시 고시 제2026-21호">
+											
+												인천광역시 고시 제2026-21호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639085&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천경제자유구역 송도국제도시 지식정보산업단지 실시계획(변경) 승인 고시' >
+													[변경]
+													인천경제자유구역 송도국제도시 지식정보산업단지 실시계획(변경) 승인 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="인천광역시 고시 제2026-188호">
+											
+												인천광역시 고시 제2026-188호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=638275&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도로구역(광역시도 73호선,68호선) 결정(변경),  실시계획(변경)인가 및 지형도면 고시' >
+													[변경]
+													도로구역(광역시도 73호선,68호선) 결정(변경),  실시계획(변경)인가 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="인천광역시 고시 제2026-182호">
+											
+												인천광역시 고시 제2026-182호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=637869&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 대로1-501호선) 결정 (경미한 변경) 및 실시계획 인가 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 대로1-501호선) 결정 (경미한 변경) 및 실시계획 인가 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="대도시권광역교통위원회 고시 제2026-6호">
+											
+												대도시권광역교통위원회 고시 제2026-6호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=637844&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='서울도시철도 7호선 청라국제도시 연장 사업 사업계획(변경) 승인' >
+													[변경]
+													서울도시철도 7호선 청라국제도시 연장 사업 사업계획(변경) 승인<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="국토교통부 대도시권광역교통위원회">국토교통부 대도시권광역교통위원회</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="인천광역시 고시 제2026-186호">
+											
+												인천광역시 고시 제2026-186호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=637750&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='계양산업단지 산업단지계획(변경) 승인 고시' >
+													[변경]
+													계양산업단지 산업단지계획(변경) 승인 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-13</td>
+										<td class="left mb" title="인천광역시 고시 제2026-181호">
+											
+												인천광역시 고시 제2026-181호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=637137&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시계획시설(전기공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 전기공급설비) 결정(경미한 변경) 지형도면 고시' >
+													[변경]
+													도시계획시설(전기공급설비)사업 실시계획(변경) 인가 및 도시관리계획(도시계획시설: 전기공급설비) 결정(경미한 변경) 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-06</td>
+										<td class="left mb" title="인천광역시 경제자유구역청 고시 제2026-19호">
+											
+												인천광역시 경제자유구역청 고시 제2026-19호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643126&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천경제자유구역 송도국제도시 국제업무단지 실시계획(변경) 승인 및 지형도면 고시' >
+													[변경]
+													인천경제자유구역 송도국제도시 국제업무단지 실시계획(변경) 승인 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시 경제자유구역청">인천광역시 경제자유구역청</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-06</td>
+										<td class="left mb" title="인천광역시 고시 제2026-180호">
+											
+												인천광역시 고시 제2026-180호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=643047&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='광역시도 19호선 도로구역 결정(변경), 실시계획인가(변경), 사업인정 및 지형도면 고시' >
+													[변경]
+													광역시도 19호선 도로구역 결정(변경), 실시계획인가(변경), 사업인정 및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-06</td>
+										<td class="left mb" title="국토교통부 고시 제2026-352호">
+											
+												국토교통부 고시 제2026-352호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639724&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천발 KTX 직결사업 실시계획 변경 승인' >
+													[변경]
+													인천발 KTX 직결사업 실시계획 변경 승인<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="국토교통부">국토교통부</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-06</td>
+										<td class="left mb" title="인천광역시 고시 제2026-177호">
+											
+												인천광역시 고시 제2026-177호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=637063&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획(도시계획시설: 공원) 결정(경미한 변경)  및 지형도면 고시' >
+													[변경]
+													도시관리계획(도시계획시설: 공원) 결정(경미한 변경)  및 지형도면 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-07-02</td>
+										<td class="left mb" title="인천광역시 고시 제2026-179호">
+											
+												인천광역시 고시 제2026-179호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=639612&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='도시관리계획[도시계획시설(공원, 도로), 공원조성계획] 결정(변경) 및 지형도면 고시,  도시계획시설(검단16호근린공원)사업 실시계획(변경)인가 고시' >
+													[변경]
+													도시관리계획[도시계획시설(공원, 도로), 공원조성계획] 결정(변경) 및 지형도면 고시,  도시계획시설(검단16호근린공원)사업 실시계획(변...<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시">인천광역시</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+									<tr class="center">
+										<td class="mb">2026-06-30</td>
+										<td class="left mb" title="인천광역시 경제자유구역청 고시 제2026-18호">
+											
+												인천광역시 경제자유구역청 고시 제2026-18호
+											
+											
+										</td>
+										<td class="left">
+											<a href='gvGosiDet.jsp?seq=642667&pageNo=1&zonenm=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&selSggCd=2800000000&select2=2800000000&select_3=&gosino=&prj_nm=&prj_cat_cd=&geul_yn=&gihyung_yn=&silsi_yn=&mobile_yn=' title='인천경제자유구역 청라국제도시 실시계획(2-①, 2-②, 2-③, 2-④단계) 변경 승인 고시' >
+													[변경]
+													인천경제자유구역 청라국제도시 실시계획(2-①, 2-②, 2-③, 2-④단계) 변경 승인 고시<!-- 2016.08.29 -->
+													
+											</a>
+										</td>
+										<td class="left mb" title="인천광역시 경제자유구역청">인천광역시 경제자유구역청</td>
+										<!-- <td class="mb">0</td>-->
+									</tr>
+									
+
+									
+
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="paging">
+						
+						
+						
+						
+						<a href="gvGosiList.jsp?pageNo=2&zonenm=&area=&startdt=2025-09-07&enddt=2026-10-19&chrgorg=&gosino=&gosichrg=&selSggCd=2800000000&select2=2800000000&select3=&geul_yn=&gihyung_yn=&silsi_yn=&listSize=50&mobile_yn=" style="padding:0 12px;" title="다음목록">다음목록</a>
+						
+					</div>
+				</div>
+				</form>
+			</div>
+		</div>
+
+
+
+
+
+
+
+		<!-- footer 영역 -->
+		<div class="footer_top">
+			<div class="footer_menu">
+				<ul class="fm">
+					<li><a href="/web/lc/bi/biPersonInfo.jsp">개인정보처리방침</a></li>
+					<li><a href="/web/lc/bi/biCopyRight.jsp">저작권 정책</a></li>
+					<li><a href="/web/lc/bi/biOpenDet.jsp">자료개방</a></li>
+					<li><a href="/web/lc/bi/biServiceIntro.jsp">서비스안내</a></li>
+					<li><a href="/web/lc/hr/hrSurveyStartDet.jsp">의견수렴보내기</a></li>
+					<li><a href="https://data.molit.go.kr/systemQuality/list?system_id=S0002" target="_blank">품질오류 신고 및 확인&nbsp;&nbsp;<img src="/web/images/ac/ico_window.png" alt="새창"></a></li>
+				</ul>
+				<div class="family_site mb">
+					<!-- 24.6.27. 관련사이트 삭제
+					
+					<span><a href="javascript:;" title="관련사이트 바로가기">관련사이트 바로가기</a></span>
+					<div class="family">
+						<ul>
+							<li><a href="http://www.molit.go.kr/portal.do" target="_blank" title="국토교통부 웹사이트 새 창으로 열림" class="on">국토교통부</a></li>
+							<li><a href="http://www.minwon.go.kr/main?a=AA020InfoMainApp" target="_blank" title="민원24 웹사이트 새 창으로 열림">민원24</a></li>
+							<li><a href="https://kras.go.kr:444/cmmmain/goMainPage.do" target="_blank" title="일사편리 웹사이트 새 창으로 열림">일사편리</a></li>
+							<li><a href="https://seereal.lh.or.kr/main.do" target="_blank" title="씨리얼 웹사이트 새 창으로 열림">씨리얼</a></li>
+							<li><a href="http://www.law.go.kr/" target="_blank" title="국가법령정보센터 웹사이트 새 창으로 열림">국가법령정보센터</a></li>
+							<li><a href="http://www.elis.go.kr/" target="_blank" title="자치법규정보시스템 웹사이트 새 창으로 열림">자치법규정보시스템</a></li>
+							<li><a href="http://rt.molit.go.kr/" target="_blank" title="실거래가 공개시스템 웹사이트 새 창으로 열림">실거래가 공개시스템</a></li>
+							<li><a href="http://www.realtyprice.kr/notice/main/mainBody.htm" target="_blank" title="부동산공시가격 알리미 웹사이트 새 창으로 열림">부동산공시가격 알리미</a></li>
+							<li><a href="http://www.nsdi.go.kr/lxportal/?menuno=2679" target="_blank" title="국가공간정보포털 웹사이트 새 창으로 열림">국가공간정보포털</a></li>
+						</ul>
+					</div> -->
+				</div>
+			</div>
+		</div>
+
+		<div class="footer">
+			<p class="ft_logo mb"><a href="http://www.molit.go.kr/portal.do" target="_blank"><img src="/web/images/ac/ft_logo.png" alt="국토교통부" title="새창열림"></a></p>
+			<div class="ft_info">
+				<p class="mb"><strong>헬프데스크 <span class="f_blue">02-838-4405</span></strong><span class="line_btn">평일</span>09:00~18:00<span class="line_btn">점심시간</span>12:00~13:00</p>
+				<p class="mt10"><span class="address">우)30103 세종특별자치시 도움6로 11</span><span class="m_inb">국토교통부 국토도시실 도시정책관 도시정책과</span><span class="email">이메일: luris@korea.kr</span><span class="pc m_tel"><a href="tel:02-838-4405">02-838-4405</a></span></p>
+				<p><span class="m_inb">필지정보는 지자체로 문의바랍니다.</span></p>
+				<p class="copy mb">Copyright ⓒ 국토교통부 All rights reserved.</p>
+			</div>
+
+			<a href="javascript:gotoTop();" class="m_btn_up"><img src="/web/images/ac/m_top.png" alt="위로"></a>
+			<div class="ft_visit mb" style="text-align: right;">
+			  <span style="display: inline-block; vertical-align: middle;">
+			    <img src="/web/images/ac/wa.png" border="0" alt="웹접근성 인증 마크">
+			  </span>
+			  <div style="display: inline-block; vertical-align: middle; margin-left: 8px;">	
+				
+					
+					
+					
+				
+				</div>
+			</div>
+		</div>
+
+		<!--에러팝업-->
+		<div class="layer_pop error_layer">
+			<div class="layer-bg"></div>
+			<div class="layer_content">
+				<div class="layer_content_wrap">
+					<div class="layer_header">
+						<h3>시스템 이용안내</h3>
+						<a class="layer_close" href="javascript:closeLayer('error_layer');">닫기</a>
+					</div>
+					<div class="layer_body">
+						<p class="error_title"><strong id="errorTitle"></strong></p>
+						<div class="error_con">
+							<div>
+								<span>원인</span><p id="errorCause"></p>
+							</div>
+							<div>
+								<span>처리방법</span><p id="errorMethod"></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--/에러팝업-->
+
+		<!--문의처 레이어 팝업 -->
+		<div class="layer_pop question_layer">
+			<div class="layer-bg"></div>
+			<div class="layer_content">
+				<div class="layer_content_wrap">
+					<div class="layer_header">
+						<h3>문의처</h3>
+						<a class="layer_close" href="javascript:closeLayer('question_layer');">닫기</a>
+					</div>
+					<div class="layer_body">
+						<fieldset>
+							<legend>문의처검색</legend>
+							<div class="q_sel">
+                
+                <select id="sido_cd" name="sido_cd" class="q01" onChange="$.fn.selectAmSggList(this.value);" title="광역시도 선택">
+									<option value="" selected>광역시도 전체</option>
+									<option value="11" >서울특별시</option>
+									<option value="12" >전남광주통합특별시</option>
+									<option value="26" >부산광역시</option>
+									<option value="27" >대구광역시</option>
+									<option value="28" >인천광역시</option>
+									<option value="30" >대전광역시</option>
+									<option value="31" >울산광역시</option>
+									<option value="36" >세종특별자치시</option>
+									<option value="41" >경기도</option>
+									<option value="51" >강원특별자치도</option>
+									<option value="43" >충청북도</option>
+									<option value="44" >충청남도</option>
+									<option value="52" >전북특별자치도</option>
+									<option value="47" >경상북도</option>
+									<option value="48" >경상남도</option>
+									<option value="50" >제주특별자치도</option>
+								</select>
+								<select name="sgg_cd" id="sgg_cd" class="q02" title="시군 선택">
+									<option value="">시군전체</option>
+								</select>
+								<input type="text" placeholder="시군구명" title="시군구명"
+								id="searchWord_T" name="searchWord_T" class="q03 input_S" maxlength="15" value="">
+								<span class="sch"><a href="javascript:;">검색</a></span>
+							</div>
+						</fieldset>
+						<div class="tbl02">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--//문의처 레이어 팝업 -->
+</body>
+</html>
+

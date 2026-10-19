@@ -102,6 +102,6 @@ const MapMonitor=(()=>{
 
   }
 
-  function start(setLevel){document.addEventListener('click',event=>{const button=event.target.closest('[data-bar-level]');if(button)setLevel(button.dataset.barLevel);const tab=event.target.closest('[data-monitor-policy]');if(tab)MapSupply.select('policy',tab.dataset.monitorPolicy);});}
+  function start(setLevel){document.addEventListener('click',event=>{const button=event.target.closest('[data-map-level], [data-bar-level]');if(button)setLevel(button.dataset.mapLevel||button.dataset.barLevel);const tab=event.target.closest('[data-monitor-policy]');if(tab)MapSupply.select('policy',tab.dataset.monitorPolicy);});}
   return {draw,panel,start,levelAt,wideZoom};
 })();

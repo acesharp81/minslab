@@ -9,7 +9,7 @@ const ProjectCollection=(()=>{
   function rows(){return (data?.items||[]).filter(p=>(!el('pc-region').value||p.region===el('pc-region').value)&&(!el('pc-search').value||[p.name,p.program,p.municipality].join(' ').toLowerCase().includes(el('pc-search').value.toLowerCase()))&&(!el('pc-status').value||Object.values(p.cells).some(c=>c.status===el('pc-status').value)));}
   async function load(options={}){
     const token=++generation;el('pc-message').textContent='사업별 저장 근거를 조회하고 있습니다…';el('pc-reload').disabled=true;
-    try{const observed=await request('/project-collection/version');const value=await request('/project-collection?'+params());if(token!==generation)return;if(options.automatic&&dirty){el('pc-message').textContent='새 변경이 있습니다. 작성 중인 입력을 보존하며 저장·닫기 후 반영합니다.';return;}data=value;version=observed.version;loaded=true;dirty=false;
+    try{const [observed,value]=await Promise.all([request('/project-collection/version'),request('/project-collection?'+params())]);if(token!==generation)return;if(options.automatic&&dirty){el('pc-message').textContent='새 변경이 있습니다. 작성 중인 입력을 보존하며 저장·닫기 후 반영합니다.';return;}data=value;version=observed.version;loaded=true;dirty=false;
       if(!options.preserveSelection){page=1;selected=null;detail=null;}
       else {if(selected&&!value.items.some(p=>p.id===selected))selected=null;if(detail&&!value.items.some(p=>p.id===detail.id))detail=null;page=Math.min(page,Math.max(1,Math.ceil(rows().length/30)));}
       const chosen=el('pc-policy').value;el('pc-policy').innerHTML='<option value="POL_2025_0907">9·7 정책</option><option value="">정책 전체</option>'+(value.policies||[]).filter(p=>p.policy_id!=='POL_2025_0907').map(p=>'<option value="'+e(p.policy_id)+'">'+e(p.name)+'</option>').join('');el('pc-policy').value=chosen;
@@ -136,7 +136,7 @@ const ProjectCollection=(()=>{
   }
   function drawDiagram(){
     const list=rows(),p=list.find(p=>p.id===selected);
-    el('pc-diagram-context').textContent=p?p.name+' · 저장된 사업 연결':'조회 범위 '+n(list.length)+'개 사업 · 저장된 연결';el('pc-clear-project').hidden=!p;
+    el('pc-diagram-context').textContent=(p?p.name:'조회 범위 '+n(list.length)+'개 사업')+' · '+(stage==='ALL'?'정책부터 입주까지 연결 키':'저장된 '+stages[stage]+' 연결');el('pc-clear-project').hidden=!p;
     el('pc-stage-tabs').innerHTML='<button type="button" data-pc-diagram="ALL" aria-pressed="'+(stage==='ALL')+'">전체 흐름</button>'+Object.entries(stages).map(([s,label],i)=>'<button type="button" data-pc-diagram="'+s+'" aria-pressed="'+(stage===s)+'">'+(i+1)+' '+label+'</button>').join('');
     CollectionLineage.render({host:el('pc-diagram'),detailHost:el('pc-diagram-detail'),data,rows:p?[p]:list,stage,projectName:p?.name});
   }

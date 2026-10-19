@@ -1,0 +1,8 @@
+{
+  "source": {"name":"주택공급 확대방안 (R2509345)","announced_at":"2025-09-07","evidence_url":"https://eiec.kdi.re.kr/policy/materialView.do?num=270716","pdf_url":"https://eiec.kdi.re.kr/policy/callDownload.do?filenum=2&num=270716","sha256":"6a72c5e14edcc3705043dfd58ac7aad2b0167fb343270d47ecd80522eeb0c5e6"},
+  "long_average": {"period":"2015~2024","printed_page":1,"수도권":{"인허가":279000,"착공":258000,"준공":250000},"서울특별시":{"인허가":69000,"착공":68000,"준공":67000}},
+  "types": {"scope":"수도권 전체","period":"2022~2024","printed_page":1,"long_average_period":"2015~2024","non_apartment_average":69000,"public_average":47000,"rows":[{"year":2022,"non_apartment":46000,"public":21000},{"year":2023,"non_apartment":19000,"public":14000},{"year":2024,"non_apartment":14000,"public":28000}]},
+  "demand": {"period":"2026~2030","printed_page":3,"수도권":{"annual_demand":245000,"adequate_supply":250000,"baseline_starts":158000,"annual_shortage":92000},"서울특별시":{"annual_demand":61000,"adequate_supply":65000,"baseline_starts":39000,"annual_shortage":26000},"baseline_period":"2022~2024","definition":"가구·소득·멸실 요인을 고려한 제3차 장기 주거종합계획 수요, 9·7 원문 적정 공급과 과거 추세 지속 시 부족분"},
+  "goal_scale": {"scope":"수도권 신규 착공","baseline_period":"2022~2024","baseline_annual":158000,"target_annual":270000,"published_multiplier":1.7,"published_increment":110000,"printed_page":43},
+  "occupancy": {"scope":"수도권 아파트 전체","printed_page":2,"announced_at":"2025-09-07","long_average":179000,"seoul_long_average":38000,"rows":[{"year":2023,"units":195000,"seoul_units":27000,"role":"REFERENCE"},{"year":2024,"units":185000,"seoul_units":38000,"role":"REFERENCE"},{"year":2025,"units":161000,"seoul_units":48000,"role":"FORECAST_AT_PUBLICATION"},{"year":2026,"units":112000,"seoul_units":29000,"role":"FORECAST_AT_PUBLICATION"}]}
+}

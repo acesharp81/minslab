@@ -1,0 +1,1370 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "인천도시공사가 제공하는 “임대주택 공급대상 및 실적 조회 서비스”는 인천광역시 전역의 영구임대·행복주택·매입임대·전세임대 등 다양한 임대주택 유형별 대상자 선정 기준과 실제 공급 실적을 한눈에 확인할 수 있도록 설계된 공공데이터입니다. 신청자격, 대상자치구, 공급규모, 계약형태 등 핵심 정보를 통합 제공해 정책 투명성을 높이고, 시민이 자신에게 해당되는 주택을 쉽게 파악하도록 돕습니다.  \n\n데이터는 연도별·사업별·주택유형별로 구분된 표형식 파일과 API 형태로 제공되며, 매월 말 기준 최신 실적을 업데이트합니다. 주요 필드에는 사업명, 공급대상(소득·가구 규모·주거형태 등), 선정 기준점수, 공급 수량, 계약 시작·종료일, 입주자 연령·가구 구성 등이 포함됩니다. 또한 대상자치구별 지리정보와 연계해 시각화·분석이 가능하도록 GIS 좌표도 제공됩니다.  \n\n이 서비스를 활용하면 지방자치단체 담당자는 임대주택 정책 효과를 정량적으로 평가하고, 민간 연구기관·언론은 주거복지 현황을 심층 분석할 수 있습니다. 또한 일반 시민은 자신이 해당되는 공급대상을 신속히 확인해 신청 절차를 준비할 수 있어, 주거 안정과 복지 향상에 직접적인 기여를 기대할 수 있습니다.",
+    "version": "1.0.0",
+    "title": "인천도시공사_임대주택 공급대상 및 실적 조회 서비스"
+  },
+  "host": "apis.data.go.kr/B552831/ls",
+  "basePath": "",
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/rntHousSplTrgtAcrs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "성공",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "header": {
+                  "type": "object",
+                  "description": "header",
+                  "properties": {
+                    "resultCode": {
+                      "type": "string",
+                      "description": "결과코드",
+                      "properties": {}
+                    },
+                    "resultMsg": {
+                      "type": "string",
+                      "description": "결과메시지",
+                      "properties": {}
+                    }
+                  }
+                },
+                "body": {
+                  "type": "object",
+                  "description": "body",
+                  "properties": {
+                    "pageNo": {
+                      "type": "number",
+                      "description": "페이지 번호",
+                      "properties": {}
+                    },
+                    "numOfRows": {
+                      "type": "number",
+                      "description": "한 페이지 결과 수",
+                      "properties": {}
+                    },
+                    "totalPageNo": {
+                      "type": "number",
+                      "description": "전체 페이지 수",
+                      "properties": {}
+                    },
+                    "totalCount": {
+                      "type": "number",
+                      "description": "전체 결과 수",
+                      "properties": {}
+                    },
+                    "houses": {
+                      "type": "array",
+                      "description": "주택 목록",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "regionName": {
+                            "type": "string",
+                            "description": "시군구명",
+                            "properties": {}
+                          },
+                          "housName": {
+                            "type": "string",
+                            "description": "주택명",
+                            "properties": {}
+                          },
+                          "vacantHouseholds": {
+                            "type": "object",
+                            "description": "공가 세대수",
+                            "properties": {
+                              "commercialRental": {
+                                "type": "number",
+                                "description": "분양상가 수",
+                                "properties": {}
+                              },
+                              "detachedHouse": {
+                                "type": "number",
+                                "description": "단독주택 수",
+                                "properties": {}
+                              },
+                              "purchaseRental": {
+                                "type": "number",
+                                "description": "매입임대 수",
+                                "properties": {}
+                              },
+                              "publicRental": {
+                                "type": "number",
+                                "description": "공공임대 수",
+                                "properties": {}
+                              },
+                              "permanentRental": {
+                                "type": "number",
+                                "description": "영구임대 수",
+                                "properties": {}
+                              },
+                              "jeonseRental": {
+                                "type": "number",
+                                "description": "전세임대 수",
+                                "properties": {}
+                              },
+                              "happyHouse": {
+                                "type": "number",
+                                "description": "행복주택 수",
+                                "properties": {}
+                              },
+                              "substituteProcessing": {
+                                "type": "number",
+                                "description": "대환처리 수",
+                                "properties": {}
+                              },
+                              "multiUnitHouse": {
+                                "type": "number",
+                                "description": "다중주택 수",
+                                "properties": {}
+                              },
+                              "installmentCommercial": {
+                                "type": "number",
+                                "description": "할부상가 수",
+                                "properties": {}
+                              },
+                              "sale": {
+                                "type": "number",
+                                "description": "분양 수",
+                                "properties": {}
+                              },
+                              "multiFamilyHouse": {
+                                "type": "number",
+                                "description": "다가구주택 수",
+                                "properties": {}
+                              },
+                              "nationalRental": {
+                                "type": "number",
+                                "description": "국민임대 수",
+                                "properties": {}
+                              },
+                              "installmentRental": {
+                                "type": "number",
+                                "description": "분납임대 수",
+                                "properties": {}
+                              },
+                              "longTermRental": {
+                                "type": "number",
+                                "description": "장기임대 수",
+                                "properties": {}
+                              },
+                              "commercialSale": {
+                                "type": "number",
+                                "description": "임대상가 수",
+                                "properties": {}
+                              },
+                              "safeHouse": {
+                                "type": "number",
+                                "description": "안전주택 수",
+                                "properties": {}
+                              }
+                            }
+                          },
+                          "totalHouseholds": {
+                            "type": "object",
+                            "description": "총 세대수",
+                            "properties": {
+                              "commercialRental": {
+                                "type": "number",
+                                "description": "분양상가 수",
+                                "properties": {}
+                              },
+                              "detachedHouse": {
+                                "type": "number",
+                                "description": "단독주택 수",
+                                "properties": {}
+                              },
+                              "purchaseRental": {
+                                "type": "number",
+                                "description": "매입임대 수",
+                                "properties": {}
+                              },
+                              "publicRental": {
+                                "type": "number",
+                                "description": "공공임대 수",
+                                "properties": {}
+                              },
+                              "permanentRental": {
+                                "type": "number",
+                                "description": "영구임대 수",
+                                "properties": {}
+                              },
+                              "jeonseRental": {
+                                "type": "number",
+                                "description": "전세임대 수",
+                                "properties": {}
+                              },
+                              "happyHouse": {
+                                "type": "number",
+                                "description": "행복주택 수",
+                                "properties": {}
+                              },
+                              "substituteProcessing": {
+                                "type": "number",
+                                "description": "대환처리 수",
+                                "properties": {}
+                              },
+                              "multiUnitHouse": {
+                                "type": "number",
+                                "description": "다중주택 수",
+                                "properties": {}
+                              },
+                              "installmentCommercial": {
+                                "type": "number",
+                                "description": "할부상가 수",
+                                "properties": {}
+                              },
+                              "sale": {
+                                "type": "number",
+                                "description": "분양 수",
+                                "properties": {}
+                              },
+                              "multiFamilyHouse": {
+                                "type": "number",
+                                "description": "다가구주택 수",
+                                "properties": {}
+                              },
+                              "nationalRental": {
+                                "type": "number",
+                                "description": "국민임대 수",
+                                "properties": {}
+                              },
+                              "installmentRental": {
+                                "type": "number",
+                                "description": "분납임대 수",
+                                "properties": {}
+                              },
+                              "longTermRental": {
+                                "type": "number",
+                                "description": "장기임대 수",
+                                "properties": {}
+                              },
+                              "commercialSale": {
+                                "type": "number",
+                                "description": "임대상가 수",
+                                "properties": {}
+                              },
+                              "safeHouse": {
+                                "type": "number",
+                                "description": "안전주택 수",
+                                "properties": {}
+                              }
+                            }
+                          },
+                          "contractHouseholds": {
+                            "type": "object",
+                            "description": "계약 세대수",
+                            "properties": {
+                              "commercialRental": {
+                                "type": "number",
+                                "description": "분양상가 수",
+                                "properties": {}
+                              },
+                              "detachedHouse": {
+                                "type": "number",
+                                "description": "단독주택 수",
+                                "properties": {}
+                              },
+                              "purchaseRental": {
+                                "type": "number",
+                                "description": "매입임대 수",
+                                "properties": {}
+                              },
+                              "publicRental": {
+                                "type": "number",
+                                "description": "공공임대 수",
+                                "properties": {}
+                              },
+                              "permanentRental": {
+                                "type": "number",
+                                "description": "영구임대 수",
+                                "properties": {}
+                              },
+                              "jeonseRental": {
+                                "type": "number",
+                                "description": "전세임대 수",
+                                "properties": {}
+                              },
+                              "happyHouse": {
+                                "type": "number",
+                                "description": "행복주택 수",
+                                "properties": {}
+                              },
+                              "substituteProcessing": {
+                                "type": "number",
+                                "description": "대환처리 수",
+                                "properties": {}
+                              },
+                              "multiUnitHouse": {
+                                "type": "number",
+                                "description": "다중주택 수",
+                                "properties": {}
+                              },
+                              "installmentCommercial": {
+                                "type": "number",
+                                "description": "할부상가 수",
+                                "properties": {}
+                              },
+                              "sale": {
+                                "type": "number",
+                                "description": "분양 수",
+                                "properties": {}
+                              },
+                              "multiFamilyHouse": {
+                                "type": "number",
+                                "description": "다가구주택 수",
+                                "properties": {}
+                              },
+                              "nationalRental": {
+                                "type": "number",
+                                "description": "국민임대 수",
+                                "properties": {}
+                              },
+                              "installmentRental": {
+                                "type": "number",
+                                "description": "분납임대 수",
+                                "properties": {}
+                              },
+                              "longTermRental": {
+                                "type": "number",
+                                "description": "장기임대 수",
+                                "properties": {}
+                              },
+                              "commercialSale": {
+                                "type": "number",
+                                "description": "임대상가 수",
+                                "properties": {}
+                              },
+                              "safeHouse": {
+                                "type": "number",
+                                "description": "안전주택 수",
+                                "properties": {}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "xml": {
+                "name": "response"
+              }
+            }
+          }
+        },
+        "tags": [
+          "API 목록"
+        ],
+        "summary": "임대주택 공급대상 및 실적 조회",
+        "description": "임대주택 공급대상 및 실적 조회 서비스",
+        "operationId": "rntHousSplTrgtAcrs",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "serviceKey",
+          "description": "공공데이터포털에서 받은 인증키",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        },
+        {
+          "name": "pageNo",
+          "description": "페이지번호",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        },
+        {
+          "name": "numOfRows",
+          "description": "한 페이지 결과 수",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        },
+        {
+          "name": "crtrYmd",
+          "description": "대상 및 실적 기준일",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        },
+        {
+          "name": "regionName",
+          "description": "시군구명",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        },
+        {
+          "name": "housName",
+          "description": "주택명",
+          "type": "string",
+          "required": true,
+          "in": "query"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "rntHousSplTrgtAcrs_response": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "object",
+          "description": "header",
+          "properties": {
+            "resultCode": {
+              "type": "string",
+              "description": "결과코드"
+            },
+            "resultMsg": {
+              "type": "string",
+              "description": "결과메시지"
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "description": "body",
+          "properties": {
+            "pageNo": {
+              "type": "number",
+              "description": "페이지 번호"
+            },
+            "numOfRows": {
+              "type": "number",
+              "description": "한 페이지 결과 수"
+            },
+            "totalPageNo": {
+              "type": "number",
+              "description": "전체 페이지 수"
+            },
+            "totalCount": {
+              "type": "number",
+              "description": "전체 결과 수"
+            },
+            "houses": {
+              "type": "array",
+              "description": "주택 목록",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "regionName": {
+                    "type": "string",
+                    "description": "시군구명"
+                  },
+                  "housName": {
+                    "type": "string",
+                    "description": "주택명"
+                  },
+                  "vacantHouseholds": {
+                    "type": "object",
+                    "description": "공가 세대수",
+                    "properties": {
+                      "commercialRental": {
+                        "type": "number",
+                        "description": "분양상가 수"
+                      },
+                      "detachedHouse": {
+                        "type": "number",
+                        "description": "단독주택 수"
+                      },
+                      "purchaseRental": {
+                        "type": "number",
+                        "description": "매입임대 수"
+                      },
+                      "publicRental": {
+                        "type": "number",
+                        "description": "공공임대 수"
+                      },
+                      "permanentRental": {
+                        "type": "number",
+                        "description": "영구임대 수"
+                      },
+                      "jeonseRental": {
+                        "type": "number",
+                        "description": "전세임대 수"
+                      },
+                      "happyHouse": {
+                        "type": "number",
+                        "description": "행복주택 수"
+                      },
+                      "substituteProcessing": {
+                        "type": "number",
+                        "description": "대환처리 수"
+                      },
+                      "multiUnitHouse": {
+                        "type": "number",
+                        "description": "다중주택 수"
+                      },
+                      "installmentCommercial": {
+                        "type": "number",
+                        "description": "할부상가 수"
+                      },
+                      "sale": {
+                        "type": "number",
+                        "description": "분양 수"
+                      },
+                      "multiFamilyHouse": {
+                        "type": "number",
+                        "description": "다가구주택 수"
+                      },
+                      "nationalRental": {
+                        "type": "number",
+                        "description": "국민임대 수"
+                      },
+                      "installmentRental": {
+                        "type": "number",
+                        "description": "분납임대 수"
+                      },
+                      "longTermRental": {
+                        "type": "number",
+                        "description": "장기임대 수"
+                      },
+                      "commercialSale": {
+                        "type": "number",
+                        "description": "임대상가 수"
+                      },
+                      "safeHouse": {
+                        "type": "number",
+                        "description": "안전주택 수"
+                      }
+                    }
+                  },
+                  "totalHouseholds": {
+                    "type": "object",
+                    "description": "총 세대수",
+                    "properties": {
+                      "commercialRental": {
+                        "type": "number",
+                        "description": "분양상가 수"
+                      },
+                      "detachedHouse": {
+                        "type": "number",
+                        "description": "단독주택 수"
+                      },
+                      "purchaseRental": {
+                        "type": "number",
+                        "description": "매입임대 수"
+                      },
+                      "publicRental": {
+                        "type": "number",
+                        "description": "공공임대 수"
+                      },
+                      "permanentRental": {
+                        "type": "number",
+                        "description": "영구임대 수"
+                      },
+                      "jeonseRental": {
+                        "type": "number",
+                        "description": "전세임대 수"
+                      },
+                      "happyHouse": {
+                        "type": "number",
+                        "description": "행복주택 수"
+                      },
+                      "substituteProcessing": {
+                        "type": "number",
+                        "description": "대환처리 수"
+                      },
+                      "multiUnitHouse": {
+                        "type": "number",
+                        "description": "다중주택 수"
+                      },
+                      "installmentCommercial": {
+                        "type": "number",
+                        "description": "할부상가 수"
+                      },
+                      "sale": {
+                        "type": "number",
+                        "description": "분양 수"
+                      },
+                      "multiFamilyHouse": {
+                        "type": "number",
+                        "description": "다가구주택 수"
+                      },
+                      "nationalRental": {
+                        "type": "number",
+                        "description": "국민임대 수"
+                      },
+                      "installmentRental": {
+                        "type": "number",
+                        "description": "분납임대 수"
+                      },
+                      "longTermRental": {
+                        "type": "number",
+                        "description": "장기임대 수"
+                      },
+                      "commercialSale": {
+                        "type": "number",
+                        "description": "임대상가 수"
+                      },
+                      "safeHouse": {
+                        "type": "number",
+                        "description": "안전주택 수"
+                      }
+                    }
+                  },
+                  "contractHouseholds": {
+                    "type": "object",
+                    "description": "계약 세대수",
+                    "properties": {
+                      "commercialRental": {
+                        "type": "number",
+                        "description": "분양상가 수"
+                      },
+                      "detachedHouse": {
+                        "type": "number",
+                        "description": "단독주택 수"
+                      },
+                      "purchaseRental": {
+                        "type": "number",
+                        "description": "매입임대 수"
+                      },
+                      "publicRental": {
+                        "type": "number",
+                        "description": "공공임대 수"
+                      },
+                      "permanentRental": {
+                        "type": "number",
+                        "description": "영구임대 수"
+                      },
+                      "jeonseRental": {
+                        "type": "number",
+                        "description": "전세임대 수"
+                      },
+                      "happyHouse": {
+                        "type": "number",
+                        "description": "행복주택 수"
+                      },
+                      "substituteProcessing": {
+                        "type": "number",
+                        "description": "대환처리 수"
+                      },
+                      "multiUnitHouse": {
+                        "type": "number",
+                        "description": "다중주택 수"
+                      },
+                      "installmentCommercial": {
+                        "type": "number",
+                        "description": "할부상가 수"
+                      },
+                      "sale": {
+                        "type": "number",
+                        "description": "분양 수"
+                      },
+                      "multiFamilyHouse": {
+                        "type": "number",
+                        "description": "다가구주택 수"
+                      },
+                      "nationalRental": {
+                        "type": "number",
+                        "description": "국민임대 수"
+                      },
+                      "installmentRental": {
+                        "type": "number",
+                        "description": "분납임대 수"
+                      },
+                      "longTermRental": {
+                        "type": "number",
+                        "description": "장기임대 수"
+                      },
+                      "commercialSale": {
+                        "type": "number",
+                        "description": "임대상가 수"
+                      },
+                      "safeHouse": {
+                        "type": "number",
+                        "description": "안전주택 수"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "swaggerOprtinVOs": [
+    {
+      "oprtinUrl": "http://61.101.22.155:8080/api/v1/ls/rntHousSplTrgtAcrs",
+      "oprtinNm": "임대주택 공급대상 및 실적 조회",
+      "oprtinDc": "임대주택 공급대상 및 실적 조회 서비스",
+      "gwSvcNm": "rntHousSplTrgtAcrs",
+      "operationId": "rntHousSplTrgtAcrs",
+      "publicDataTyDetailCode": "PRDE02",
+      "reqList": [
+        {
+          "paramtrNm": "serviceKey",
+          "paramtrBassValue": "-",
+          "paramtrDc": "공공데이터포털에서 받은 인증키",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        },
+        {
+          "paramtrNm": "pageNo",
+          "paramtrBassValue": "1",
+          "paramtrDc": "페이지번호",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        },
+        {
+          "paramtrNm": "numOfRows",
+          "paramtrBassValue": "10",
+          "paramtrDc": "한 페이지 결과 수",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        },
+        {
+          "paramtrNm": "crtrYmd",
+          "paramtrBassValue": "YYYY-MM-DD",
+          "paramtrDc": "대상 및 실적 기준일",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        },
+        {
+          "paramtrNm": "regionName",
+          "paramtrBassValue": "검단구",
+          "paramtrDc": "시군구명",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        },
+        {
+          "paramtrNm": "housName",
+          "paramtrBassValue": "마전포레스트",
+          "paramtrDc": "주택명",
+          "paramtrTy": "string",
+          "paramtrDivision": "필수",
+          "ck": true
+        }
+      ],
+      "resList": [
+        {
+          "paramtrNm": "header",
+          "paramtrDc": "header",
+          "arrayYn": "N",
+          "paramtrDefNm": "#/definitions/rntHousSplTrgtAcrs-header",
+          "subDefNm": "rntHousSplTrgtAcrs-header",
+          "paramtrTy": "object",
+          "paramtrDivision": "필수",
+          "ck": true,
+          "subParam": [
+            {
+              "paramtrNm": "resultCode",
+              "paramtrDc": "결과코드",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "string",
+              "paramtrDivision": "필수",
+              "ck": true
+            },
+            {
+              "paramtrNm": "resultMsg",
+              "paramtrDc": "결과메시지",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "string",
+              "paramtrDivision": "필수",
+              "ck": true
+            }
+          ]
+        },
+        {
+          "paramtrNm": "body",
+          "paramtrDc": "body",
+          "arrayYn": "N",
+          "paramtrDefNm": "#/definitions/rntHousSplTrgtAcrs-body",
+          "subDefNm": "rntHousSplTrgtAcrs-body",
+          "paramtrTy": "object",
+          "paramtrDivision": "필수",
+          "ck": true,
+          "subParam": [
+            {
+              "paramtrNm": "pageNo",
+              "paramtrDc": "페이지 번호",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "number",
+              "paramtrDivision": "필수",
+              "ck": true
+            },
+            {
+              "paramtrNm": "numOfRows",
+              "paramtrDc": "한 페이지 결과 수",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "number",
+              "paramtrDivision": "필수",
+              "ck": true
+            },
+            {
+              "paramtrNm": "totalPageNo",
+              "paramtrDc": "전체 페이지 수",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "number",
+              "paramtrDivision": "필수",
+              "ck": true
+            },
+            {
+              "paramtrNm": "totalCount",
+              "paramtrDc": "전체 결과 수",
+              "arrayYn": "N",
+              "paramtrDefNm": "",
+              "paramtrTy": "number",
+              "paramtrDivision": "필수",
+              "ck": true
+            },
+            {
+              "paramtrNm": "houses",
+              "paramtrDc": "주택 목록",
+              "arrayYn": "Y",
+              "paramtrDefNm": "#/definitions/rntHousSplTrgtAcr-houses",
+              "subDefNm": "rntHousSplTrgtAcr-houses",
+              "paramtrTy": "object",
+              "paramtrDivision": "필수",
+              "ck": true,
+              "subParam": [
+                {
+                  "paramtrNm": "regionName",
+                  "paramtrDc": "시군구명",
+                  "arrayYn": "N",
+                  "paramtrDefNm": "",
+                  "paramtrTy": "string",
+                  "paramtrDivision": "필수",
+                  "ck": true
+                },
+                {
+                  "paramtrNm": "housName",
+                  "paramtrDc": "주택명",
+                  "arrayYn": "N",
+                  "paramtrDefNm": "",
+                  "paramtrTy": "string",
+                  "paramtrDivision": "필수",
+                  "ck": true
+                },
+                {
+                  "paramtrNm": "vacantHouseholds",
+                  "paramtrDc": "공가 세대수",
+                  "arrayYn": "N",
+                  "paramtrDefNm": "#/definitions/rntHousSplTrgtAcr-vacantHouseholds",
+                  "subDefNm": "rntHousSplTrgtAcr-vacantHouseholds",
+                  "paramtrTy": "object",
+                  "paramtrDivision": "필수",
+                  "ck": true,
+                  "subParam": [
+                    {
+                      "paramtrNm": "commercialRental",
+                      "paramtrDc": "분양상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "detachedHouse",
+                      "paramtrDc": "단독주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "purchaseRental",
+                      "paramtrDc": "매입임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "publicRental",
+                      "paramtrDc": "공공임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "permanentRental",
+                      "paramtrDc": "영구임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "jeonseRental",
+                      "paramtrDc": "전세임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "happyHouse",
+                      "paramtrDc": "행복주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "substituteProcessing",
+                      "paramtrDc": "대환처리 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiUnitHouse",
+                      "paramtrDc": "다중주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentCommercial",
+                      "paramtrDc": "할부상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "sale",
+                      "paramtrDc": "분양 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiFamilyHouse",
+                      "paramtrDc": "다가구주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "nationalRental",
+                      "paramtrDc": "국민임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentRental",
+                      "paramtrDc": "분납임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "longTermRental",
+                      "paramtrDc": "장기임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "commercialSale",
+                      "paramtrDc": "임대상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "safeHouse",
+                      "paramtrDc": "안전주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    }
+                  ]
+                },
+                {
+                  "paramtrNm": "totalHouseholds",
+                  "paramtrDc": "총 세대수",
+                  "arrayYn": "N",
+                  "paramtrDefNm": "#/definitions/rntHousSplTrgtAcr-totalHouseholds",
+                  "subDefNm": "rntHousSplTrgtAcr-totalHouseholds",
+                  "paramtrTy": "object",
+                  "paramtrDivision": "필수",
+                  "ck": true,
+                  "subParam": [
+                    {
+                      "paramtrNm": "commercialRental",
+                      "paramtrDc": "분양상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "detachedHouse",
+                      "paramtrDc": "단독주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "purchaseRental",
+                      "paramtrDc": "매입임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "publicRental",
+                      "paramtrDc": "공공임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "permanentRental",
+                      "paramtrDc": "영구임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "jeonseRental",
+                      "paramtrDc": "전세임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "happyHouse",
+                      "paramtrDc": "행복주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "substituteProcessing",
+                      "paramtrDc": "대환처리 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiUnitHouse",
+                      "paramtrDc": "다중주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentCommercial",
+                      "paramtrDc": "할부상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "sale",
+                      "paramtrDc": "분양 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiFamilyHouse",
+                      "paramtrDc": "다가구주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "nationalRental",
+                      "paramtrDc": "국민임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentRental",
+                      "paramtrDc": "분납임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "longTermRental",
+                      "paramtrDc": "장기임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "commercialSale",
+                      "paramtrDc": "임대상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "safeHouse",
+                      "paramtrDc": "안전주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    }
+                  ]
+                },
+                {
+                  "paramtrNm": "contractHouseholds",
+                  "paramtrDc": "계약 세대수",
+                  "arrayYn": "N",
+                  "paramtrDefNm": "#/definitions/rntHousSplTrgtAcr-contractHouseholds",
+                  "subDefNm": "rntHousSplTrgtAcr-contractHouseholds",
+                  "paramtrTy": "object",
+                  "paramtrDivision": "필수",
+                  "ck": true,
+                  "subParam": [
+                    {
+                      "paramtrNm": "commercialRental",
+                      "paramtrDc": "분양상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "detachedHouse",
+                      "paramtrDc": "단독주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "purchaseRental",
+                      "paramtrDc": "매입임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "publicRental",
+                      "paramtrDc": "공공임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "permanentRental",
+                      "paramtrDc": "영구임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "jeonseRental",
+                      "paramtrDc": "전세임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "happyHouse",
+                      "paramtrDc": "행복주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "substituteProcessing",
+                      "paramtrDc": "대환처리 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiUnitHouse",
+                      "paramtrDc": "다중주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentCommercial",
+                      "paramtrDc": "할부상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "sale",
+                      "paramtrDc": "분양 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "multiFamilyHouse",
+                      "paramtrDc": "다가구주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "nationalRental",
+                      "paramtrDc": "국민임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "installmentRental",
+                      "paramtrDc": "분납임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "longTermRental",
+                      "paramtrDc": "장기임대 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "commercialSale",
+                      "paramtrDc": "임대상가 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    },
+                    {
+                      "paramtrNm": "safeHouse",
+                      "paramtrDc": "안전주택 수",
+                      "arrayYn": "N",
+                      "paramtrDefNm": "",
+                      "paramtrTy": "number",
+                      "paramtrDivision": "필수",
+                      "ck": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

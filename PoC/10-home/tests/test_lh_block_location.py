@@ -12,6 +12,15 @@ def page(rows):
 
 
 class LHBlockLocationTests(unittest.TestCase):
+    def test_incheon_labels_are_collected_once_across_tenures(self):
+        row={'flag':4,'sggCd':'28','bzdtNm':'인천계양','bnm':'A-16',
+             'x':178121.98,'y':449231.47,'zonecode':'28245MX2019001'}
+        points,stats=parse_label_points(page([row,dict(row,supplyTp='공공분양'),
+            dict(row,sggCd='30',bzdtNm='대전'),dict(row,flag=2)]))
+        self.assertEqual(list(points),[('인천광역시','인천계양','A16')])
+        self.assertEqual(stats['source_label_rows'],2)
+        self.assertEqual(stats['unique_blocks'],1)
+
     def test_exact_block_label_points_exclude_other_flags_and_conflicting_positions(self):
         base={'flag':4,'sggCd':'41','bzdtNm':'고양창릉지구','bnm':'A-01','x':186010.742,'y':435363.571,'zonecode':'Z'}
         changed=dict(base,x=186200,bnm='S1')

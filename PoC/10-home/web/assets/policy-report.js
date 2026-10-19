@@ -3,7 +3,7 @@
    not a plan, construction percentage, completion, or occupancy. */
 const PolicyReport=(()=>{
   let monitor=null,mappings=null,geo=null,view='policy-progress',selected='',measure='SUPPLY',focusYear=null,mapStage='COMPLETION',selectedCityId='',selectedRegion='',projectTicket=0;
-  const outlookCache=new Map(),areaCache=new Map();
+  const outlookCache=new Map(),areaCache=new Map(),reportChartData=new WeakMap();
   const label={SUPPLY:'모집·공급',COMPLETION:'준공 예정'};
   const fmt=value=>value==null?'미확보':num(value)+'호';
   const safe=value=>esc(value==null?'':String(value));
@@ -155,16 +155,16 @@ const PolicyReport=(()=>{
     if(!outlookCache.has(region))outlookCache.set(region,request('/area-outlook?region='+encodeURIComponent(region)));
     return outlookCache.get(region);
   }
-  function projectionChart(groupRow,token){
-    const target=document.querySelector((view==='program-progress'?'#program-progress-detail':'#policy-report-detail')+' [data-pr-projection]');
-    if(!target)return;
-    if(selectedRegion==='인천광역시'){target.innerHTML='<p>인천 가구 추계·주택 재고의 동일 범위 비교 자료는 미확보입니다.</p>';return;}
-    const city=selectedCity();if(city){target.innerHTML='<p>'+safe(city.name)+'의 연도별 미래 가구 추계는 미확보입니다. 시도 가구 추계를 시군구 공급량과 합쳐 부족·잔여를 산출하지 않습니다.</p>';return;}
-    const items=projectionMembers(groupRow),memberIds=new Set(groupRow?.project_ids||[]),regions=[...new Set((geo?.items||[]).filter(item=>memberIds.has(item.id)).map(item=>item.region).filter(region=>region==='서울특별시'||region==='경기도'))];
-    if(!regions.length){target.innerHTML='<p>연결 지역 또는 준공 일정이 미확보되어 지역 가구 추계와 비교할 수 없습니다.</p>';return;}
-    target.innerHTML='<p>서울·경기 가구 추계와 연결된 준공 일정 확인 중…</p>';
+  function projectionChart(groupRow,token,options={}){
+    const target=options.host||document.querySelector((view==='program-progress'?'#program-progress-detail':'#policy-report-detail')+' [data-pr-projection]');
+    if(!target)return;reportChartData.set(target,{status:'LOADING'});
+    const unavailable=notice=>{reportChartData.set(target,{status:'UNAVAILABLE',notice});target.innerHTML='<p>'+safe(notice)+'</p>';};
+    const city=options.host?options.city:selectedCity();if(city){unavailable(city.name+'의 연도별 미래 가구 추계는 미확보입니다. 시도 가구 추계를 시군구 공급량과 합쳐 부족·잔여를 산출하지 않습니다.');return;}
+    const items=options.items||projectionMembers(groupRow),memberIds=new Set(groupRow?.project_ids||[]),regions=options.regions||[...new Set((geo?.items||[]).filter(item=>memberIds.has(item.id)).map(item=>item.region).filter(region=>['서울특별시','경기도','인천광역시'].includes(region)))];
+    if(!regions.length){unavailable('연결 지역 또는 준공 일정이 미확보되어 지역 가구 추계와 비교할 수 없습니다.');return;}
+    target.innerHTML='<p>선택 지역 가구 추계와 연결된 준공 일정 확인 중…</p>';
     Promise.all(regions.map(outlook)).then(data=>{
-      if(token!==projectTicket||!target.isConnected)return;
+      if(!target.isConnected||(!options.host&&token!==projectTicket))return;
       const now=yearNow(),years=Array.from({length:6},(_,i)=>now+i),scheduled=new Map(),regionRows=new Map(data.map(row=>[row.region,row]));
       for(const item of items){
         const future=(item.annual_series||[]).filter(event=>event.year>now),stage='COMPLETION';
@@ -183,15 +183,17 @@ const PolicyReport=(()=>{
         }
         return available?{year,households,stock,planned:stock+planned,delayed:stock+delayed}:null;
       }).filter(Boolean);
-      if(!rows.length){target.innerHTML='<p>해당 범위의 가구 추계 또는 주택 재고 기준값 미확보</p>';return;}
+      if(!rows.length){unavailable('해당 범위의 가구 추계 또는 주택 재고 기준값 미확보');return;}
       const min=Math.min(...rows.flatMap(row=>[row.households,row.stock])),max=Math.max(...rows.flatMap(row=>[row.households,row.planned]))+1;
-      const x=i=>65+i*170,y=v=>225-(v-min)/(max-min)*175;
+      const x=i=>60+i*370/Math.max(1,rows.length-1),y=v=>164-(v-min)/(max-min)*126;
+      const tick=v=>v>=10000?(v/10000).toLocaleString('ko-KR',{maximumFractionDigits:1})+'만':num(Math.round(v));
       const line=key=>rows.map((row,i)=>(i?'L':'M')+x(i)+' '+y(row[key])).join(' ');
       const legend='<div class="pr-chart-key"><span><i class="households"></i>가구 추계</span><span><i class="stock"></i>현재 재고 + 관측 준공</span>'+(hasSchedule?'<span><i class="plan"></i>연결 준공 예정 반영</span><span><i class="delay"></i>1년 지연 가정</span>':'')+'</div>';
-      const svg='<div class="pr-chart-scroll"><svg viewBox="0 0 1000 275" role="img" aria-label="지역 가구 추계와 주택 재고 및 연결 예정 준공 비교"><g class="pr-chart-grid">'+[0,.5,1].map(f=>'<line x1="60" x2="930" y1="'+(225-f*175)+'" y2="'+(225-f*175)+'" stroke="#e4ebf4"/><text x="55" y="'+(229-f*175)+'" text-anchor="end">'+num(Math.round(min+(max-min)*f))+'</text>').join('')+'</g><path d="'+line('households')+'" fill="none" stroke="#d67a30" stroke-width="3"/><path d="'+line('stock')+'" fill="none" stroke="#71889b" stroke-width="3"/>'+(hasSchedule?'<path d="'+line('planned')+'" fill="none" stroke="#1766db" stroke-width="3"/><path d="'+line('delayed')+'" fill="none" stroke="#b34c65" stroke-width="2" stroke-dasharray="5 4"/>':'')+rows.map((row,i)=>'<text x="'+x(i)+'" y="252" text-anchor="middle">'+row.year+'</text>').join('')+'</svg></div>';
+      const svg='<div class="pr-chart-scroll"><svg viewBox="0 0 460 210" role="img" aria-label="지역 가구 추계와 주택 재고 및 연결 예정 준공 비교"><text x="60" y="18">가구·호</text><g class="pr-chart-grid">'+[0,.5,1].map(f=>'<line x1="60" x2="430" y1="'+(164-f*126)+'" y2="'+(164-f*126)+'" stroke="#e4ebf4"/><text x="53" y="'+(168-f*126)+'" text-anchor="end">'+tick(min+(max-min)*f)+'</text>').join('')+'</g><path d="'+line('households')+'" fill="none" stroke="#d67a30" stroke-width="3"/><path d="'+line('stock')+'" fill="none" stroke="#71889b" stroke-width="3"/>'+(hasSchedule?'<path d="'+line('planned')+'" fill="none" stroke="#1766db" stroke-width="3"/><path d="'+line('delayed')+'" fill="none" stroke="#b34c65" stroke-width="2" stroke-dasharray="5 4"/>':'')+rows.map((row,i)=>'<text x="'+x(i)+'" y="192" text-anchor="middle">'+row.year+'</text>').join('')+'</svg></div>';
       const final=rows.at(-1),gap=hasSchedule?final.planned-final.households:null;
-      target.innerHTML=legend+svg+'<div class="pr-projection-outcome"><strong>'+safe(hasSchedule?(gap>=0?'가구 추계 대비 단순 잔여 '+fmt(gap):'가구 추계 대비 단순 부족 '+fmt(-gap)):'정책 효과 산정 미확보')+'</strong><span>'+safe(regions.join(' + '))+' · '+final.year+'년 기준</span></div><p class="pr-note">가구 추계와 주택 재고는 시도 합계입니다. 연결 사업의 확인된 향후 준공 예정 물량만 100% 재고 증가로 가정한 참고 시나리오이며, 멸실·공실·타 사업 공급·중복 사업·가구당 주택 수를 반영하지 않았습니다. 1년 지연선은 확인된 준공 일정만 1년 이동한 가정입니다. 사업별 정책 효과나 시군구 수급 판정으로 사용하지 마세요.</p>';
-    }).catch(error=>{if(target.isConnected)target.textContent='지역 추계 조회 실패: '+error.message;});
+      reportChartData.set(target,{status:'READY',chart:'household_supply_projection',regions,rows,has_schedule:hasSchedule,final_gap:gap,scenario:'확보 준공 예정만 재고에 가산 / 1년 지연 가정 / 멸실·공실·타 공급 미반영',sources:data});
+      target.innerHTML=legend+svg+'<div class="pr-projection-outcome"><strong>'+safe(hasSchedule?(gap>=0?'가구 추계 대비 단순 잔여 '+fmt(gap):'가구 추계 대비 단순 부족 '+fmt(-gap)):'정책 효과 산정 미확보')+'</strong><span>'+safe(regions.join(' + '))+' · '+final.year+'년 기준</span></div><details><summary>비교 기준·산출 가정</summary><p class="pr-note">가구 추계와 주택 재고는 시도 합계입니다. 연결 사업의 확인된 향후 준공 예정 물량만 100% 재고 증가로 가정한 참고 시나리오이며, 멸실·공실·타 사업 공급·중복 사업·가구당 주택 수를 반영하지 않았습니다. 1년 지연선은 확인된 준공 일정만 1년 이동한 가정입니다. 사업별 정책 효과나 시군구 수급 판정으로 사용하지 마세요.</p></details>';
+    }).catch(error=>{if(target.isConnected)unavailable('지역 추계 조회 실패: '+error.message);});
   }
   function areaContext(region,municipality){
     const key=region+'|'+(municipality||'')+'|'+yearNow();
@@ -203,9 +205,11 @@ const PolicyReport=(()=>{
   }
   function demographicCharts(groupRow,token,options={}){
     const host=options.host||document.querySelector('#policy-report-detail [data-pr-demography]');if(!host)return;
+    reportChartData.set(host,{status:'LOADING'});
     const isCurrent=()=>host.isConnected&&(options.host||token===projectTicket);
-    const empty=message=>{host.innerHTML=['1·2·3·4인 이상 가구 변화','인구·가구 변화와 주택 재고'].map(title=>'<article class="pr-card"><h3>'+title+'</h3><p class="pd-empty">'+safe(message)+'</p></article>').join('');};
-    const city=options.host?options.city:selectedCity(),memberIds=new Set(groupRow?.project_ids||[]),regions=options.regions|| (city?[city.region]:selectedRegion?[selectedRegion]:[...new Set((geo?.items||[]).filter(item=>memberIds.has(item.id)).map(item=>item.region).filter(region=>region==='서울특별시'||region==='경기도'))]);
+    const titles=options.householdsOnly?['1·2·3·4인 이상 가구 변화']:options.populationOnly?['인구·가구 변화와 주택 재고']:['1·2·3·4인 이상 가구 변화','인구·가구 변화와 주택 재고'];
+    const empty=message=>{reportChartData.set(host,{status:'UNAVAILABLE',notice:message});host.innerHTML=titles.map(title=>'<article class="pr-card"><h3>'+title+'</h3><p class="pd-empty">'+safe(message)+'</p></article>').join('');};
+    const city=options.host?options.city:selectedCity(),memberIds=new Set(groupRow?.project_ids||[]),regions=options.regions|| (city?[city.region]:selectedRegion?[selectedRegion]:[...new Set((geo?.items||[]).filter(item=>memberIds.has(item.id)).map(item=>item.region).filter(region=>['서울특별시','경기도','인천광역시'].includes(region)))]);
     const scopeLabel=city?city.region+' · '+city.name:regions.join(' + ');
     if(!regions.length){empty(options.emptyNote||'동일 범위의 지역 통계 미확보');return;}
     Promise.all(regions.map(region=>areaContext(region,city?.name))).then(data=>{
@@ -233,7 +237,8 @@ const PolicyReport=(()=>{
       const latestBalance=[...trend].reverse().find(row=>row.households!=null&&row.housing!=null),difference=latestBalance?latestBalance.housing-latestBalance.households:null;
       const balance=difference==null?'재고·가구 동년 비교 미확보':difference<0?'주택 재고가 가구보다 '+fmt(-difference)+' 적음':'주택 재고가 가구보다 '+fmt(difference)+' 많음';
       const popCard='<article class="pr-card"><div class="pr-card-head"><div><small>PEOPLE & HOMES</small><h3>인구·가구 변화와 주택 재고</h3></div><span>'+safe(scopeLabel)+'</span></div><div class="pr-chart-key"><span><i class="plan"></i>인구 지수</span><span><i class="households"></i>일반가구 지수</span></div><svg class="pr-demographic-line" viewBox="0 0 540 185" role="img" aria-label="정책 포함 지역 인구와 가구 변화 지수"><line x1="55" x2="505" y1="150" y2="150" stroke="#d8e4ef"/><path d="'+path('population')+'" fill="none" stroke="#1766db" stroke-width="3"/><path d="'+path('households')+'" fill="none" stroke="#d67a30" stroke-width="3"/>'+index.map((row,i)=>'<text x="'+xx(i)+'" y="174" text-anchor="middle">'+String(row.year).slice(2)+'</text>').join('')+'</svg><div class="pr-insight"><strong>'+safe(balance)+'</strong><span>'+(latestBalance?latestBalance.year+'년 · 재고 '+fmt(latestBalance.housing)+' / 일반가구 '+num(latestBalance.households)+'가구':'같은 연도 자료 미확보')+'</span></div><p class="pr-note">인구·가구는 첫 공통 확보연도=100으로 지수화했습니다. 재고−가구는 공가·주택 품질을 반영하지 않은 단순 수량 차이입니다.</p></article>';
-      host.innerHTML=householdCard+popCard;
+      reportChartData.set(host,{status:'READY',chart:options.householdsOnly?'household_composition':'population_household_stock',scope:scopeLabel,households:options.populationOnly?undefined:household,population_stock:options.householdsOnly?undefined:trend,population_index:options.householdsOnly?undefined:index,latest_balance:options.householdsOnly?undefined:latestBalance,sources:data.map(d=>({region:d.region,municipality:d.municipality,sources:d.sources}))});
+      host.innerHTML=options.householdsOnly?householdCard:options.populationOnly?popCard:householdCard+popCard;
       host.querySelectorAll('[data-pr-width]').forEach(element=>{element.style.width=element.dataset.prWidth+'%';});
     }).catch(error=>{if(isCurrent())empty('자료 조회 실패: '+error.message);});
   }
@@ -247,7 +252,7 @@ const PolicyReport=(()=>{
     const end=kind==='policy'?row.official_target_end_year:null;
     summaryPanel(row,kind==='policy'?members(group()?.project_ids||[]):rows,kind);
     const note=kind==='policy'?'공식 정책 목표는 '+safe(row.announced_target_scope)+' · '+safe(row.announced_target_metric)+' 기준입니다. 아래 계획·실적은 '+(city?safe(city.name):'서울·경기')+' 연결 사업의 모집·공급 기준이므로 공식 목표 달성률로 나누지 않습니다.':'프로그램의 정책 귀속은 담당자 확인 전 제안입니다. 연결 사업의 중복·지역 배분을 검토해야 합니다.';
-    if(kind==='policy')return '<div class="pr-report">'+graphCard(groupRow,{start,end})+'<section id="policy-decision-workspace"></section><div class="pr-grid">'+projectionCard()+programmeList(row.id,selectedRegion)+'</div><details class="pr-card"><summary>집계 기준과 원천</summary><p>'+note+'</p></details></div>';
+    if(kind==='policy')return '<div class="pr-report">'+graphCard(groupRow,{start,end})+'<section id="policy-decision-workspace"></section><details class="pr-card"><summary>집계 기준과 원천</summary><p>'+note+'</p></details></div>';
     return '<div class="pr-report">'+(city?'<div class="pr-scope-banner"><strong>'+safe(city.region)+' · '+safe(city.name)+' 추진현황</strong><span>지도 선택 지역의 연결 사업만 집계</span><button type="button" data-pr-clear-city>전체 정책 보기 ×</button></div>':'')+cards(row,groupRow,kind)+(kind==='policy'?'':'<div class="pr-grid">'+overviewCard(row,kind)+regionsCard(rows,groupRow)+'</div>')+'<h2 class="pr-section-title">추진현황'+(city?' · '+safe(city.name):'')+'</h2>'+graphCard(groupRow,{start,end})+(kind==='policy'?'<h2 class="pr-section-title">지역 수요와 공급 비교'+(city?' · '+safe(city.name):'')+'</h2>'+demographicCard():'')+'<div class="pr-grid">'+projectionCard()+(kind==='policy'?programmeList(row.id):projectTree(row.id))+'</div><p class="pr-report-basis">'+note+'</p></div>';
   }
   function renderScope(){
@@ -256,7 +261,7 @@ const PolicyReport=(()=>{
       const target=$('policy-report-detail');if(!target)return;
       if(!geo){target.innerHTML='<article class="pr-card">지역·공급 근거를 불러오는 중입니다…</article>';return;}
       const row=policy();target.innerHTML=report('policy',row,scopedGroup())||'<p>정책 자료 미확보</p>';
-      const token=++projectTicket;projectionChart(scopedGroup(),token);genericDecision();demographicCharts(scopedGroup(),token);
+      const token=++projectTicket;genericDecision();projectionChart(scopedGroup(),token);demographicCharts(scopedGroup(),token,{host:target.querySelector('[data-pr-demography]'),populationOnly:true});const membersHost=document.querySelector('#policy-program-members [data-pr-program-members]');if(membersHost)membersHost.innerHTML=programmeList(row.id,selectedRegion,scopedGroup()?.project_ids);
     }else if(view==='program-progress'){
       Policy907.showProgram(selected);return;
       const target=$('program-progress-detail');if(!target)return;
@@ -289,8 +294,8 @@ const PolicyReport=(()=>{
   }
   function supplemental907(cityId,region,sourceIds){
     const host=$('d907-context');if(!host||!geo)return;selectedCityId=cityId||'';selectedRegion=region||'';++projectTicket;
-    if(region==='인천광역시'||(cityId&&!geo.municipalities.some(c=>c.id===cityId))){
-      host.innerHTML='<article class="pr-card"><h3>인천 인구·가구와 공급 비교</h3><p>인천 인구·가구 추계는 아직 미확보입니다. 확보한 착공·주택 공급 통계와 별도로 표시합니다.</p></article>';return;
+    if(cityId&&!geo.municipalities.some(c=>c.id===cityId)){
+      host.innerHTML='<article class="pr-card"><h3>선택 지역 수요와 공급 비교</h3><p>선택 시군구의 경계 연결을 확인해야 합니다. 시도 통계와 시군구 물량을 혼합하지 않습니다.</p></article>';return;
     }
     selectedCityId=cityId||'';
     let scoped=scopedGroup();
@@ -301,17 +306,41 @@ const PolicyReport=(()=>{
       scoped={...scoped,project_ids:ids,chart_target_ids:targets,chart_schedule_ids:schedules,annual_series:[...annual.values()],target_units:items.filter(i=>targets.includes(i.id)).reduce((s,i)=>s+(i.planned_units||0),0)};
     }
     if(scoped&&sourceIds){const allow=new Set(sourceIds);scoped={...scoped,project_ids:scoped.project_ids.filter(id=>allow.has(id)),chart_target_ids:scoped.chart_target_ids.filter(id=>allow.has(id)),chart_schedule_ids:scoped.chart_schedule_ids.filter(id=>allow.has(id))};}
-    host.innerHTML='<h2 class="pr-section-title">지역 수요와 주택 공급 비교</h2>'+(!region?'<p class="pr-note">서울·경기 확보 통계만 비교합니다. 인천 인구·가구 통계는 미확보로 합계에서 제외됩니다.</p>':'')+'<div class="pr-grid">'+projectionCard()+programmeList('POL_2025_0907',region,sourceIds)+'</div>';
-    const token=++projectTicket;projectionChart(scoped,token);
+    host.innerHTML='';
+    const membersHost=document.querySelector('#policy-program-members [data-pr-program-members]');
+    if(membersHost)membersHost.innerHTML=programmeList('POL_2025_0907',region,scoped?.project_ids||sourceIds);
+
   }
-  function statisticsDemographics(host,cohorts,cityId,region){
+  function statisticsProjection(host,cohorts,cityId,region,sourceCity=null){
     if(!host)return;
-    const city=cityId?geo?.municipalities?.find(c=>c.id===cityId):null;
-    const requested=city?[city.region]:region?[region]:[...new Set(cohorts.map(c=>c.region).filter(Boolean))];
-    const regions=requested.filter(r=>r==='서울특별시'||r==='경기도');
+    const city=sourceCity||(cityId?geo?.municipalities?.find(c=>c.id===cityId):null);
+    if(cityId&&!city){host.innerHTML='<p>선택 시군구의 미래 가구 추계 미확보</p>';return;}
+    const regions=(city?[city.region]:region?[region]:[...new Set(cohorts.map(c=>c.region))]).filter(r=>['서울특별시','경기도','인천광역시'].includes(r));
+    const items=cohorts.map(c=>{
+      const unique=new Map();for(const s of c.schedules||[])if(s.stage==='COMPLETION'&&s.due_date&&Number.isFinite(s.units))unique.set(s.due_date,Math.max(unique.get(s.due_date)||0,Math.max(0,s.units)));
+      let remaining=Math.max(0,c.units||0);const annual=new Map();
+      for(const [date,units] of [...unique].sort((a,b)=>a[0].localeCompare(b[0]))){const amount=Math.min(remaining,units);remaining-=amount;if(amount>0){const year=Number(date.slice(0,4));annual.set(year,(annual.get(year)||0)+amount);}}
+      return {region:c.region,annual_series:[...annual].map(([year,COMPLETION])=>({year,COMPLETION}))};
+    });
+    projectionChart(null,0,{host,city,regions,items});
+  }
+  function statisticsDemographics(host,cohorts,cityId,region,sourceCity=null,options={}){
+    if(!host)return;
+    const city=sourceCity||(cityId?geo?.municipalities?.find(c=>c.id===cityId):null);
+    const requested=options.regions||(city?[city.region]:region?[region]:[...new Set(cohorts.map(c=>c.region).filter(Boolean))]);
+    const regions=requested.filter(r=>['서울특별시','경기도','인천광역시'].includes(r));
     const excluded=requested.filter(r=>!regions.includes(r));
-    if(cityId&&!city){host.innerHTML=['1·2·3·4인 이상 가구 변화','인구·가구 변화와 주택 재고'].map(t=>'<article class="pr-card"><h3>'+t+'</h3><p>선택 시군구 통계 미확보</p></article>').join('');return;}
-    demographicCharts(null,0,{host,city,regions,note:(excluded.length?excluded.join(' · ')+' 통계 미확보로 합계 제외. ':'')+'선택 사업이 속한 지역의 전체 가구 통계이며 사업 입주자 통계가 아닙니다.',emptyNote:requested.join(' · ')+' 인구·가구·주택 재고 통계 미확보'});
+    if(cityId&&!city){host.innerHTML=(options.householdsOnly?['1·2·3·4인 이상 가구 변화']:options.populationOnly?['인구·가구 변화와 주택 재고']:['1·2·3·4인 이상 가구 변화','인구·가구 변화와 주택 재고']).map(t=>'<article class="pr-card"><h3>'+t+'</h3><p>선택 시군구 통계 미확보</p></article>').join('');return;}
+    demographicCharts(null,0,{...options,host,city,regions,note:(excluded.length?excluded.join(' · ')+' 통계 미확보로 합계 제외. ':'')+'선택 사업이 속한 지역의 전체 가구 통계이며 사업 입주자 통계가 아닙니다.',emptyNote:requested.join(' · ')+' 인구·가구·주택 재고 통계 미확보'});
+  }
+  async function reportCharts(root){
+    const nodes=[...root.querySelectorAll('[data-pr-demography],[data-mi-households],[data-pr-projection]')],start=Date.now();
+    while(nodes.some(n=>reportChartData.get(n)?.status==='LOADING')&&Date.now()-start<30000){
+      if(!root.isConnected||nodes.some(n=>!n.isConnected))throw Error('조회 조건이 변경되었습니다. 현재 화면에서 다시 만들어 주세요.');
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    if(!root.isConnected||nodes.some(n=>!n.isConnected))throw Error('조회 조건이 변경되었습니다. 현재 화면에서 다시 만들어 주세요.');
+    return nodes.map(n=>{const value=reportChartData.get(n);return !value||value.status==='LOADING'?{status:'UNAVAILABLE',notice:n.textContent.trim()||'해당 그래프 조회 미완료'}:JSON.parse(JSON.stringify(value));});
   }
   function policyChanged(row){if(!row)return;if(selected!==row.id){selectedCityId='';selectedRegion='';}view='policy-progress';selected=row.id;measure='SUPPLY';renderScope();}
   function scopeChanged(nextView,id,metrics){if(!id)return;geo=metrics;view=nextView;selected=id;renderScope();}
@@ -327,5 +356,5 @@ const PolicyReport=(()=>{
       const policy=event.target.closest('[data-pr-policy]');if(policy){PolicyGeo3D.choose('policy-progress',policy.dataset.prPolicy);PolicyDashboard.select(policy.dataset.prPolicy);}
     });
   }
-  return {statisticsDemographics,programMembers:projectTree,start,setData,policyChanged,scopeChanged,selectProject,supplemental907,policyInfo:id=>monitor?.items?.find(row=>row.id===id)||null};
+  return {statisticsDemographics,statisticsProjection,reportCharts,programMembers:projectTree,start,setData,policyChanged,scopeChanged,selectProject,supplemental907,policyInfo:id=>monitor?.items?.find(row=>row.id===id)||null};
 })();

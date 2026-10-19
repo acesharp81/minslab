@@ -24,6 +24,17 @@ class FakeService:
     def sources(self):return []
 
 class DeliveryTests(unittest.TestCase):
+    def test_regional_input_has_same_indicator_values_as_full_projection(self):
+        from backend.housing_indicators import build_indicators
+        day=date(2026,10,12)
+        full=build_delivery(FakeService(),day)
+        lean=build_delivery(FakeService(),day,indicators_only=True)
+        self.assertNotIn('yearly_comparisons',lean)
+        for portfolio in (False,True):
+            params=dict(kind='policy',scope_id='POL_2025_0907',reference=day,portfolio=portfolio)
+            self.assertEqual(build_indicators(full,[],[],[],[],**params),
+                             build_indicators(lean,[],[],[],[],**params))
+
     def test_conservation_partial_supply_and_old_start_exclusion(self):
         model=build_delivery(FakeService(),date(2026,10,12))
         self.assertEqual(model['allocated_units'],1000)
@@ -33,6 +44,16 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(model['historical'][0]['id'],'old')
         self.assertTrue(all(p['total_units']==1350000 for p in model['snapshots']))
         self.assertEqual(len(model['snapshots']),132)
+    def test_disjoint_rental_tenures_do_not_borrow_sibling_or_whole_block_events(self):
+        service=FakeService();base=dict(service.project_rows[0],source_id='lh_rent',district='인천검단',block='AA19',region='인천광역시',start_actual_date=None)
+        service.project_rows=[dict(base,id='national',name='인천검단 AA19',tenure='국민임대',planned_units=991),dict(base,id='permanent',name='인천검단 AA19',tenure='영구임대',planned_units=332),dict(base,id='contract',source_id='lh_construction',name='인천검단 AA19BL 공사',planned_units=1323,start_actual_date='2025-01-01')]
+        service.config=[dict(policy_id='POL_2025_0907',targets=[],events=[dict(project_id='national',stage='SUPPLY',event_date='2026-08-01',units=991,status='ACTUAL'),dict(project_id='permanent',stage='SUPPLY',event_date='2026-12-01',units=332,status='ACTUAL')])]
+        model=build_delivery(service,date(2026,10,19));cs=model['portfolio_cohorts']
+        self.assertEqual(len(cs),2)
+        self.assertEqual([c['source_ids'] for c in cs],[['national'],['permanent']])
+        self.assertEqual(model['yearly_comparisons']['policy']['metrics']['SUPPLY']['tracking']['actual_points'][-1]['units'],991)
+        self.assertFalse(any(e['stage']=='CONSTRUCTION' for c in cs for e in c['events']))
+
     def test_estimated_progress_100_is_not_source_completion(self):
         service=FakeService();service.project_rows[0].update(progress_pct=100,manual_fields={'progress_pct':{'inferred':True}})
         model=build_delivery(service,date(2026,10,12))
@@ -133,3 +154,24 @@ class LinkedMilestoneTests(unittest.TestCase):
         self.assertEqual(len([e for e in c['events'] if e['stage']=='APPROVAL']),2)
         self.assertEqual(model['current']['totals']['MOVE_IN'],0)
         self.assertTrue(all(p['total_units']==1350000 for p in model['snapshots']))
+
+
+class AnnouncedStartTests(unittest.TestCase):
+    def test_official_confirmation_date_is_not_invented_start_date(self):
+        service=FakeService();original=service.rows
+        service.project_rows[0].pop('start_actual_date')
+        def rows(kind,as_of=None):
+            if kind=='evidence_bridge':return [dict(project_id='new',source_entity_id='official',source_revision_no=1,source_name='10월 공식 발표',source_id='cross_source',evidence_source_id='official_document',status='CONFIRMED',evidence_url='https://www.korea.kr/',facts=[dict(stage='CONSTRUCTION',kind='ACTUAL',date='2026-10-16',units=1000,date_basis='OBSERVED_BY',source_event_date=None,observed_on='2026-10-16',method='OFFICIAL_ANNOUNCED_STATE',basis='발표일까지 착공 확인')])]
+            if kind=='notice':return []
+            return original(kind,as_of)
+        service.rows=rows
+        model=build_delivery(service,date(2026,10,19))
+        c=next(c for c in model['portfolio_cohorts'] if c['id']=='new')
+        event=next(e for e in c['events'] if e.get('method')=='OFFICIAL_ANNOUNCED_STATE')
+        self.assertEqual(event['date_basis'],'OBSERVED_BY')
+        self.assertIsNone(event['source_event_date'])
+        self.assertEqual(event['observed_on'],'2026-10-16')
+        self.assertEqual(event['units'],1000)
+        previous=build_delivery(service,date(2026,10,15))
+        old=next(c for c in previous['portfolio_cohorts'] if c['id']=='new')
+        self.assertFalse(any(e.get('method')=='OFFICIAL_ANNOUNCED_STATE' for e in old['events']))

@@ -35,8 +35,8 @@ def count(value):
 
 
 def sgis_geography(region, name):
-    if region == "서울특별시":
-        return name if re.fullmatch(r"[가-힣]+구", name or "") else None
+    if region in ("서울특별시", "인천광역시"):
+        return name if re.fullmatch(r"[가-힣]+[구군]", name or "") else None
     city = (name or "").split()[0]
     return city if city in GYEONGGI else None
 
@@ -84,7 +84,11 @@ def collect_sgis_area(source, fetcher, service):
         raise ValueError("SGIS 제공 연도 확인 필요")
     prior = service.latest_collection_stats(source["id"])
     completed = {int(y) for y in prior.get("years_complete", []) if str(y).isdigit()}
-    years = [y for y in range(2018, latest + 1) if y not in completed or y == latest]
+    region_completed=set(prior.get('region_years_complete',[]))
+    if not region_completed:
+        # Legacy checkpoints covered Seoul/Gyeonggi only; Incheon must backfill.
+        region_completed={f'{y}:{r}' for y in completed for r in ('서울특별시','경기도')}
+    years=[y for y in range(2018,latest+1) if y==latest or any(f'{y}:{r}' not in region_completed for r in ('서울특별시','경기도','인천광역시'))]
     sectors = sgis_data(fetcher, "stats/industrycode.json", token, class_deg=11)
     if not sectors or not all(re.fullmatch(r"[A-Z]", str(x.get("class_code", ""))) for x in sectors):
         raise ValueError("SGIS 산업분류표 확인 필요")
@@ -92,11 +96,12 @@ def collect_sgis_area(source, fetcher, service):
     records = []
     coverage = {}
     for year in years:
-        for region, adm_cd in (("서울특별시", "11"), ("경기도", "31")):
+        for region, adm_cd in (("서울특별시", "11"), ("경기도", "31"), ("인천광역시", "23")):
+            if year!=latest and f'{year}:{region}' in region_completed:continue
             data = {}
             for endpoint in ("population", "household", "company"):
                 rows = sgis_data(fetcher, f"stats/{endpoint}.json", token, year=year, adm_cd=adm_cd, low_search=1)
-                if rows is None or len(rows) != EXPECTED[region]:
+                if rows is None or len(rows) not in ((10,11) if region=="인천광역시" and year>=2026 else (10,) if region=="인천광역시" else (EXPECTED[region],)):
                     raise ValueError(f"SGIS {year}년 {region} {endpoint} 행 수 확인 필요")
                 keyed = {str(row.get("adm_cd")): row for row in rows}
                 if len(keyed) != len(rows):
@@ -114,6 +119,7 @@ def collect_sgis_area(source, fetcher, service):
                         raise ValueError("SGIS 산업별 행정코드 확인 필요")
                     industry[code][class_code] = count(row.get("tot_worker"))
             coverage[f"{year}:{region}"] = len(data["population"])
+            region_completed.add(f"{year}:{region}")
             for code, person in data["population"].items():
                 municipality = sgis_geography(region, person.get("adm_nm"))
                 if municipality is None:
@@ -135,7 +141,8 @@ def collect_sgis_area(source, fetcher, service):
     if not records:
         raise ValueError("SGIS 통계 행 미확보")
     return records, {"years_complete": sorted(completed | set(years)), "latest_available_year": latest,
-                     "queried_years": years, "region_year_rows": coverage,
+                     "queried_years": years, "region_year_rows": coverage,"region_years_complete":sorted(region_completed),
+                     "regions":["서울특별시","경기도","인천광역시"],
                      "industry_count": len(classes), "complete_query": True, "incremental": True}
 
 
@@ -282,10 +289,9 @@ def area_context(service, region, municipality, year):
         elif group == "kosis_household_forecast" and not municipality and year <= row["year"] <= year + 10:
             forecast.append({"year": row["year"], "households": row["forecast_households"],
                              "published_at": row["source_date"]})
-    expected = None if municipality else EXPECTED.get(region, 10 if year < 2026 else 11)
     census_series = []
     for observed_year, group in sorted(census.items()):
-        required = expected or len(group)
+        required = len(group) if municipality else EXPECTED.get(region,10 if observed_year<2026 else 11)
         industry_labels = group[0].get("industry_labels", {})
         industries = {}
         for code, label in industry_labels.items():

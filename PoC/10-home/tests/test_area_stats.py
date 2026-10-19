@@ -94,3 +94,27 @@ class AreaStatsTests(unittest.TestCase):
         self.assertEqual(city['census'][0]['industry_workers']['C']['workers'],125)
         self.assertIsNone(region['census'][0]['population'])
         self.assertEqual(region['census'][0]['covered_units'],2)
+
+
+def test_sgis_legacy_checkpoint_backfills_incheon_and_revisits_latest():
+    from backend.area_stats import collect_sgis_area
+    from types import SimpleNamespace
+    from datetime import date
+    class FixedDate(date):
+        @classmethod
+        def today(cls):return cls(2025,10,19)
+    calls=[]
+    def data(fetcher,path,token,**p):
+        if path.endswith('industrycode.json'):return [dict(class_code='A',class_nm='농업')]
+        if p['year']>2024:return None
+        calls.append((p['year'],p['adm_cd']))
+        n={'11':25,'31':44,'23':10}[p['adm_cd']]
+        name={'11':'종로구','31':'수원시 장안구','23':'연수구'}[p['adm_cd']]
+        return [dict(adm_cd=p['adm_cd']+str(i).zfill(3),adm_nm=name,tot_ppltn='10',household_cnt='5',tot_worker='2',corp_cnt='1') for i in range(n)]
+    service=SimpleNamespace(latest_collection_stats=lambda _: {'years_complete':list(range(2018,2025))})
+    with patch('backend.area_stats.sgis_token',return_value='test'),patch('backend.area_stats.sgis_data',side_effect=data),patch('backend.area_stats.date',FixedDate):
+        records,stats=collect_sgis_area({'id':'sgis_area'},object(),service)
+    assert len(records)==25+44+10*7
+    assert (2018,'23') in calls and (2018,'11') not in calls
+    assert len(stats['region_years_complete'])==21
+    assert sum(p['region']=='인천광역시' for _,_,p in records)==70

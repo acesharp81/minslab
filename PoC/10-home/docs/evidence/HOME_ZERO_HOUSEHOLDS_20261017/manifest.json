@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "known_at": "2026-10-16T16:58:26.799247+00:00",
+    "period_start": "2026-01-01",
+    "period_end": "2026-10-17",
+    "counts": {
+      "all_zero_rows": 226207,
+      "all": 226147,
+      "approved": 22221,
+      "started": 2152,
+      "approval_date_unconfirmed": 60
+    },
+    "regions": {
+      "all": {
+        "경기도": 100935,
+        "서울특별시": 124691,
+        "인천광역시": 521
+      },
+      "approved": {
+        "경기도": 11060,
+        "서울특별시": 11138,
+        "인천광역시": 23
+      },
+      "started": {
+        "경기도": 1219,
+        "서울특별시": 931,
+        "인천광역시": 2
+      }
+    },
+    "project_counts": {
+      "POL_2026_0129 / REVIEW": 47,
+      "POL_2025_0907 / CONFIRMED": 184,
+      "MON_THIRD_NEW_TOWN / CONFIRMED": 3,
+      "UNASSIGNED / REVIEW": 27,
+      "POL_2026_0813 / REVIEW": 51,
+      "UNASSIGNED / CONFIRMED": 10,
+      "UNASSIGNED / RELEASED": 1
+    },
+    "definition": "原천 총세대수=0이며 실제 형식의 허가일이 존재하는 인허가 원장 행. 개별 현장 검증 완료 또는 공급0을 뜻하지 않음. 행 수는 고유 사업 수가 아님.",
+    "original_2152_scope": "2026년 착공일이 있는 0세대 원장 행. 2026년 허가된 행 전체와 다른 범위.",
+    "source_url": "https://www.data.go.kr/data/15136560/openapi.do"
+  },
+  "files": {
+    "2026년착공일_0세대.json": {
+      "bytes": 1142650,
+      "sha256": "bfb908b879d24298305d389859bb92974074d2b62d309ceda3b16b6928158aa5"
+    },
+    "summary.json": {
+      "bytes": 1283,
+      "sha256": "19c2fb1149242f8d291698b244befc832f3aa800c1c589e84c95a965b52fbb5b"
+    },
+    "2026년착공일_0세대.csv": {
+      "bytes": 611240,
+      "sha256": "1f0811e967467cc059e3fb26048c9e11827c962d18fc499ba6a1db6c1b5ad0ac"
+    },
+    "source-status.json": {
+      "bytes": 20271,
+      "sha256": "0d4c8b1c9eb5462761242108bda1d4c475e9c304cf3b436056b4d16c131134eb"
+    },
+    "허가일확인_0세대_전체.csv": {
+      "bytes": 60799008,
+      "sha256": "759fac8494f79e54a423d639fac21611cf1c3ae1d55bdaf1647e128e9c1c7164"
+    },
+    "2026년허가_0세대.csv": {
+      "bytes": 6111480,
+      "sha256": "adbb4d3e56562491d54638b74c3b0e02a1774552865e4efa8e02666e4d8332f8"
+    },
+    "허가일확인_0세대_전체.zip": {
+      "bytes": 11771962,
+      "sha256": "39128af1d189d237349d8c896b80d2d16454c8dcb5d789094c3f3d09c20530be"
+    }
+  }
+}

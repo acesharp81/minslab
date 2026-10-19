@@ -88,3 +88,15 @@ test('future goals and missing values do not produce colored shortage cards',()=
 });
 
 test('rounding never displays a warning as 2 percent or zero percent',()=>{assert.equal(context.flow.formatGapRate(1.999),'2% 미만');assert.equal(context.flow.formatGapRate(.001),'0.1% 미만');assert.equal(context.flow.formatGapRate(2),'2.0%');});
+
+test('cards pair current cumulative measurements with selected December saved cumulative plan',()=>{
+ const comparisons={SUPPLY:{target_points:[{date:'2026-09-01',units:100},{date:'2026-12-31',units:450},{date:'2027-01-01',units:900}],actual_points:[{date:'2026-10-01',units:80},{date:'2026-11-01',units:200}]}};
+ const html=context.flow.summaryTable({asOf:'2026-10-19',year:2026,stages:{SUPPLY:'공급'},comparisons});
+ assert.match(html,/현재 누적 측정량<\/small><b>80호/);
+ assert.match(html,/12월 말 기준 누적 예상량<\/small><b>450호/);
+ assert.match(html,/2026-12-31 · 계획 기준/);assert.doesNotMatch(html,/900호|200호|도래 목표/);
+ const later=context.flow.summaryTable({asOf:'2026-10-19',year:2027,stages:{SUPPLY:'공급'},comparisons});
+ assert.match(later,/예상량<\/small><b>900호/);
+ const missing=context.flow.summaryTable({asOf:'2026-10-19',year:2025,stages:{SUPPLY:'공급'},comparisons});
+ assert.match(missing,/계획 미확보/);
+});

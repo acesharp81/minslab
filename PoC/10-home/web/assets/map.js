@@ -6,10 +6,7 @@ const HousingMap = (() => {
   const hasLocation=row=>['LH_PUBLIC_BLOCK_LABEL_POINT','BLOCK_BOUNDARY','OFFICIAL_ADDRESS_POINT','APPROXIMATE_ADDRESS','APPROXIMATE_AREA'].includes(row?.coordinate_basis)&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude);
   const events=row=>row.annual.find(a=>a.year===year)?.events||[];
   const currentStage=row=>({CANDIDATE:'PLANNING',PLANNED_SUPPLY:'SUPPLY',COMPLETED:'COMPLETION'}[row.stage]||row.stage);
-  function rows() {
-    const condition=$('roadmap-status').value;
-    return MapSupply.filter(supply.items).filter(row=>condition==='future'?row.has_future_target:condition==='missing'?!row.has_any_target:condition==='past'?row.past_due_count:condition==='manual'?row.manual_count:true);
-  }
+  function rows(){return MapSupply.filter(supply.items);}
   function selectedBlock(){return supply?.blocks.find(row=>row.project_ids.includes(selectedId)&&row.district_name===selectedDistrict);}
   function update3DBlockPicker(){
     const select=$('map-3d-block-picker');if(!select||!supply)return;
@@ -24,7 +21,7 @@ const HousingMap = (() => {
     if(state.view!=='overview'||!supply)return;
     MapThreeD.start(supply,new Set(rows().map(row=>row.id)),selectedId,selectedDistrict,choose,()=>draw(true));
   }
-  function fit(){MapThreeD.fit();}
+  function fit(){MapThreeD.setLevel(MapThreeD.view()?.level||'region');}
   function districtRows(district) {
     const linked=new Set(district.project_ids);
     return rows().filter(row=>linked.has(row.id));
@@ -131,15 +128,8 @@ const HousingMap = (() => {
     $('map-pending-summary').textContent='위치 미연결 사업 '+num(pending.length)+'건';
     $('map-pending-list').innerHTML=pending.length?pending.map(row=>`<button data-map-project="${esc(row.id)}"><span>${esc(row.name)}</span><small>${esc(row.region)} · ${esc(row.stage_label)}</small></button>`).join(''):'<p>조회한 모든 후보에 지구 대표 위치가 연결되어 있습니다.</p>';
   }
-  function changeYear(value) {
-    year=Number(value);mode=year<=roadmap.current_year?'current':'forecast';
-    const analysis=Math.min(year,roadmap.current_year);$('map-analysis-year').value=analysis;
-    Roadmap.selectYear(year>roadmap.current_year?year:null);
-    if(analysis!==supply.analysis_year)load();else draw();
-  }
   function stop() {clearInterval(timer);timer=null;}
   function start() {
-    $('map-fit').addEventListener('click',fit);
     $('map-3d-block-picker').addEventListener('change',event=>{const block=supply?.blocks.find(row=>row.id===event.target.value);const visible=new Set(rows().map(row=>row.id));const id=block?.project_ids.find(value=>visible.has(value));if(id)choose(id,block.district_name);});
     const panelBody=document.querySelector('.housing-map-body'),panel=document.querySelector('.map-side-panel'),locationPanel=document.querySelector('.map-location-panel');
     if(localStorage.getItem('home-map-panel-collapsed')==='true')panelBody.classList.add('panel-collapsed');
@@ -152,13 +142,10 @@ const HousingMap = (() => {
     locationPanel.addEventListener('click',event=>{const button=event.target.closest('[data-location-jump]');if(!button)return;const selectors={employment:'[data-demographic=employment], .area-context-rate, .area-context-grid',household:'[data-demographic="household"]',age:'[data-demographic="age"]',unsold:'.unsold-context',infrastructure:'#map-infrastructure-panel'};const target=locationPanel.querySelector(selectors[button.dataset.locationJump]);if(!target)return;if(target.tagName==='DETAILS')target.open=true;locationPanel.scrollTo({top:locationPanel.scrollTop+target.getBoundingClientRect().top-locationPanel.getBoundingClientRect().top-125,behavior:'smooth'});});
     window.addEventListener('resize',syncPanels);syncPanels();
     for(const id of ['map-land-layer','map-observation-layer'])$(id).addEventListener('change',draw);
-    $('roadmap-status').addEventListener('change',()=>load());
-    MapSupply.start(draw,fit,changeYear);
-    $('map-measure').value='ALL';
+    MapSupply.start(draw,fit);
     MapMonitor.start(setLevel);
     document.addEventListener('click',event=>{
       const camera=event.target.closest('[data-map-3d-camera]');if(camera)MapThreeD.camera(camera.getAttribute('data-map-3d-camera'));
-      const tab=event.target.closest('[data-map-mode]');if(tab){stop();mode=tab.dataset.mapMode;Roadmap.selectYear(mode==='forecast'&&year>roadmap.current_year?year:null);draw();}
       const blockChoice=event.target.closest('[data-map-block-id]');if(blockChoice){const block=supply.blocks.find(row=>row.id===blockChoice.dataset.mapBlockId);const id=block?.project_ids.find(value=>rows().some(row=>row.id===value));if(id)choose(id,block.district_name);}
       const pending=event.target.closest('[data-map-project]');if(pending){choose(pending.dataset.mapProject);if(selectedDistrict)setLevel('block');}
       const region=event.target.closest('[data-map-region]');if(region){$('region').value=region.dataset.mapRegion;$('region').dispatchEvent(new Event('change'));}

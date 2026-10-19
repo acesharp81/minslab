@@ -1,0 +1,2744 @@
+{
+  "as_of_date": "2026-10-16",
+  "read_only": true,
+  "summary": {
+    "metric_rows": 37,
+    "numeric_metric_rows": 34,
+    "site_rows": 16,
+    "numeric_site_rows": 13,
+    "unique_areas": 12,
+    "project_records": 311,
+    "confirmed_projects": 197,
+    "raw_lookup_rows": 5754,
+    "direct_numeric_count": 3,
+    "exact_matches": 1,
+    "display_compatible": 3,
+    "managed_site_rows": 12,
+    "raw_site_rows": 16,
+    "managed_unique_areas": 8,
+    "raw_unique_areas": 12,
+    "metro_latest_period": "2026-08",
+    "metro_known_units": 86739,
+    "annual_target_old": 269000,
+    "annual_target_new": 268000,
+    "metric_status_counts": {
+      "MATCH_EXACT": 1,
+      "VERSION_MISSING": 2,
+      "VERSION_DIFFERENCE": 1,
+      "PERIOD_GAP": 1,
+      "NOT_REGISTERED": 17,
+      "SCOPE_GAP": 11,
+      "QUALITATIVE": 3,
+      "MATCH_ROUNDED": 1
+    },
+    "site_status_counts": {
+      "MATCH_ROUNDED": 1,
+      "PARTIAL_SCOPE": 1,
+      "PERIOD_GAP": 2,
+      "RAW_ONLY": 4,
+      "PLAN_SCOPE_GAP": 4,
+      "CANDIDATE_ONLY": 1,
+      "CANDIDATE_MATCH": 1,
+      "PLAN_CANDIDATE": 2
+    },
+    "workbook_csv_identical": true
+  },
+  "comparable": [
+    {
+      "id": "M01",
+      "name": "9·7 원래 착공목표",
+      "official_value": 1350000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026~2030/수도권",
+      "actual_value": 1350000,
+      "actual_scope": "2026~2030 · 9·7 최초목표",
+      "status": "MATCH_EXACT",
+      "evidence_field": "plan.target_units",
+      "difference": 0.0,
+      "difference_pct": 0.0,
+      "accuracy_eligible": true,
+      "explanation": "발표 하한 135만과 동일. 후속 통합 목표와 별도 버전으로 유지.",
+      "action": "유지",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156721813",
+      "rounding_quantum": 1,
+      "display_compatible": true
+    },
+    {
+      "id": "M31",
+      "name": "서울 착공 개선",
+      "official_value": 21000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026.1~8/서울",
+      "actual_value": 20679,
+      "actual_scope": "2026-01~2026-08 · 서울",
+      "status": "MATCH_ROUNDED",
+      "evidence_field": "annual_supply[2026].착공.units",
+      "difference": -321.0,
+      "difference_pct": -1.5285714285714285,
+      "accuracy_eligible": true,
+      "explanation": "20679를 천호 단위로 반올림하면21000. 차이321호, 발표 대비1.5286%.",
+      "action": "유지",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+      "rounding_quantum": 1000,
+      "display_compatible": true
+    },
+    {
+      "id": "S01",
+      "name": "고양창릉",
+      "stage": "착공",
+      "official_value": 2300.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 2306,
+      "difference": 6.0,
+      "difference_pct": 0.2608695652173913,
+      "status": "MATCH_ROUNDED",
+      "accuracy_eligible": true,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_f25c0c21ce607faf686e73a5",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_148663cc20e9552d2c42c304"
+      ],
+      "raw_entity_ids": [
+        "DOC_163b9043a4e1b6c396807905",
+        "DOC_2c21f5deedf8e3647afc85af",
+        "DOC_3af53c375b3135d677abfd58",
+        "DOC_40568394acf657168283f458",
+        "DOC_455f51da28e1db80b9fcbc47",
+        "DOC_52c0c1cdaf32fdfe8d3e018e",
+        "DOC_aca05e03f6ebb6f8c907a121",
+        "DOC_cad1e1f77e6227fa08833941",
+        "DOC_d69898a11d907d1c2e7d6a58",
+        "DOC_e1d1a2c9aed0739ff93bd2b9",
+        "DOC_fe8c62c710544566ebd635d0",
+        "LH__02606e66741be52b7171b14c",
+        "LH__45ba74ee4da582bf6e82d860",
+        "LH__61cd5792d76cf8e7bf9a880b",
+        "LH__6ac1bf8ac48d17b7945a759a",
+        "LH__7c6d377912b4d94347e82069",
+        "LH__cae8ffbdd879547bb684b020",
+        "LH__07f13f28a9d61f66a0a55b4e",
+        "LH__18f80d6594d065e6cbf441bc",
+        "LH__4cafce2ec1962c8ed54d33a5",
+        "LH__ab576bef8c526393aca9e003",
+        "NOT_02133e1a0ce8a8df130e5df3",
+        "NOT_10674462d208371af419fa9d",
+        "NOT_606a0c426da12b1d742d586b",
+        "NOT_7d84fefdcfa30a6246417f03",
+        "NOT_c197f105537739c300ebe947",
+        "NOT_c40056259940cb65890c8b36",
+        "PER_054a0bb36f0112acd86cec62",
+        "PER_690954bbf0deb1c1ed0eeba9",
+        "PER_6e764f61643e0212436d1fcf",
+        "PER_7b16ad8ed7e1d46e16cbe05b",
+        "PER_8df7c65a0f031f420c029d73",
+        "PER_90e8189bc19a2a0ca0def934",
+        "PER_9f57512220ed1f4ba507d4c1",
+        "PER_afd15eec0a82101abce17903",
+        "PER_b3bb861a6e3da4b28f5e91c7",
+        "PER_b68b15b93a4f13ab02086f98",
+        "PER_b69351d9e88129cc999c606b",
+        "PER_b74b428207ad4bdf05a17349",
+        "PER_ca852ea1dc48fc539e2458dd",
+        "PER_e068ba27d824f81d1cc49d06",
+        "PER_f3cde208e5488be5859a98f3",
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_148663cc20e9552d2c42c304",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_f25c0c21ce607faf686e73a5"
+      ],
+      "starts": {
+        "known_units": 2306,
+        "records": [
+          {
+            "project_id": "PRO_4d29636ffa571ff2fdf7c72e",
+            "name": "고양창릉 S-03",
+            "units": 1282,
+            "dates": [
+              "2026-04-15"
+            ],
+            "source_ids": [
+              "PRO_4d29636ffa571ff2fdf7c72e",
+              "PRO_80a5c2cd5cc076e96d8dd72c"
+            ]
+          },
+          {
+            "project_id": "PRO_0a79310e612f5bc1215fcad3",
+            "name": "고양창릉 S-04",
+            "units": 1024,
+            "dates": [
+              "2026-03-31"
+            ],
+            "source_ids": [
+              "PRO_0a79310e612f5bc1215fcad3",
+              "PRO_cc5d09785c131c57c2e7e642"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+            "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+            "units": 900,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_09fa29b63ffb3ea986cf233f"
+            ]
+          },
+          {
+            "project_id": "PRO_e72836551bdd58eec3660b80",
+            "name": "고양창릉 S-01",
+            "units": 494,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_e72836551bdd58eec3660b80",
+              "PRO_f25c0c21ce607faf686e73a5"
+            ]
+          },
+          {
+            "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+            "name": "고양창릉 S-02",
+            "units": 1057,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_29bf4cef6fb4606948bb3b48",
+              "PRO_bc01f01ac015b15530c7e35b"
+            ]
+          },
+          {
+            "project_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+            "name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+            "units": 759,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_cd0ad7de7ca676c6f3981f1f"
+            ]
+          },
+          {
+            "project_id": "PRO_148663cc20e9552d2c42c304",
+            "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+            "units": 430,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_148663cc20e9552d2c42c304"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "S03 1282+S04 1024=2306호, 승인 착공일은2026년3~4월. 발표2300과6호 차이로 백호 표시 정밀도에 부합. 공식 블록ID 직접 검증과 구별.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+      "rounding_quantum": 100,
+      "display_compatible": true
+    }
+  ],
+  "metrics": [
+    {
+      "id": "M01",
+      "name": "9·7 원래 착공목표",
+      "official_value": 1350000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026~2030/수도권",
+      "actual_value": 1350000,
+      "actual_scope": "2026~2030 · 9·7 최초목표",
+      "status": "MATCH_EXACT",
+      "evidence_field": "plan.target_units",
+      "difference": 0.0,
+      "difference_pct": 0.0,
+      "accuracy_eligible": true,
+      "explanation": "발표 하한 135만과 동일. 후속 통합 목표와 별도 버전으로 유지.",
+      "action": "유지",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156721813",
+      "rounding_quantum": 1,
+      "display_compatible": true
+    },
+    {
+      "id": "M02",
+      "name": "확대 통합 착공목표",
+      "official_value": 1500000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026~2030/수도권",
+      "actual_value": null,
+      "actual_scope": "통합 목표 버전 미등록",
+      "status": "VERSION_MISSING",
+      "evidence_field": "plan.target_units=1350000 (기존 목표)",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "150만 이상은 후속 통합 목표. 기존 135만에 더하지 않고 포함관계·통합 버전으로 추가.",
+      "action": "P0 · 통합 목표 버전",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M03",
+      "name": "2026 수도권 착공목표",
+      "official_value": 268000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026/수도권",
+      "actual_value": 269000,
+      "actual_scope": "2026 · 승인된 기존 9·7 목표",
+      "status": "VERSION_DIFFERENCE",
+      "evidence_field": "plan.annual[2026].units",
+      "difference": 1000.0,
+      "difference_pct": 0.373134328358209,
+      "accuracy_eligible": false,
+      "explanation": "기존 269000과 최신 발표 268000의 목표 버전 차이. 승인값 오류로 단정하지 않음.",
+      "action": "P0 · 연간 목표 변경 이력",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M04",
+      "name": "2026 착공 실적",
+      "official_value": 99000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지/수도권",
+      "actual_value": 86739,
+      "actual_scope": "2026-01~2026-08",
+      "status": "PERIOD_GAP",
+      "evidence_field": "regional_start_months[-1].cumulative_units",
+      "difference": -12261.0,
+      "difference_pct": -12.384848484848485,
+      "accuracy_eligible": false,
+      "explanation": "발표는 10월 둘째 주, 보유 통계는 8월까지. 차이는 최신성 대사이며 정확도 오차가 아님.",
+      "action": "P0 · 최신 관측 추가",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M05",
+      "name": "2026 연말 착공 전망",
+      "official_value": 218000.0,
+      "official_upper": 235000.0,
+      "unit": "호",
+      "official_period": "2026년 말/수도권",
+      "actual_value": null,
+      "actual_scope": "정부 전망 범위 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "218000~235000 전망을 실제 착공 및 자체 사업 전망과 별도 관리.",
+      "action": "P1 · 전망 구간",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M06",
+      "name": "공공주택 착공 목표",
+      "official_value": 62000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026/수도권",
+      "actual_value": null,
+      "actual_scope": "기존 공공택지 등 목표",
+      "status": "SCOPE_GAP",
+      "evidence_field": "plan.programs[PUBLIC_LAND].annual[2026]=52000",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "공공택지 52000은 공공주택 전체 62000과 같은 모집단이 아니므로 대체 비교 제외.",
+      "action": "P0 · 공공주택 통합 범위",
+      "official_url": "https://m.korea.kr/news/policyNewsView.do?newsId=148973657"
+    },
+    {
+      "id": "M07",
+      "name": "공공주택 착공 실적",
+      "official_value": 16200.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "actual_scope": "공공주택 전체 실적 미집계",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "정책뉴스 16200을 대표값으로 사용. 속기 16000은 반올림 표현. 일부 LH 사업 합계로 전수 대체 불가.",
+      "action": "P0 · 공공주택 실적 관측",
+      "official_url": "https://m.korea.kr/news/policyNewsView.do?newsId=148973657"
+    },
+    {
+      "id": "M08",
+      "name": "3기 신도시 착공 실적",
+      "official_value": 7300.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "actual_scope": "선별 지구·블록 자료 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "portfolio_cohorts; S01~S04",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "3기 전체 7300의 해당연도·블록 구성이 미확보. 선별 합계를 정확도로 부르지 않음.",
+      "action": "P0 · 지구·블록 명세",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M09",
+      "name": "도심 공급 착공",
+      "official_value": 2000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지/서울 등",
+      "actual_value": null,
+      "actual_scope": "관련 도심사업 후보 존재",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "projects; plan.programs",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "노후청사 등 2000호의 대상 명세가 없어 기존 전체 프로그램과 직접 비교 불가.",
+      "action": "P1 · 대상 사업 명세",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M10",
+      "name": "신축매입 주택 착공",
+      "official_value": 13000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "actual_scope": "신축매입 전체 착공 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "매입약정·재고를 착공 13000호와 혼용하지 않음.",
+      "action": "P1 · 신축매입 착공 원장",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M11",
+      "name": "서울 신축매입 착공",
+      "official_value": 3600.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지/서울",
+      "actual_value": null,
+      "actual_scope": "서울 신축매입 실적 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "전체 13000의 부분집합인 서울 3600. 중복 합산 금지.",
+      "action": "P1 · 서울 부분집합",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M12",
+      "name": "매입약정 접수 추이",
+      "official_value": 18000.0,
+      "official_upper": null,
+      "unit": "건/월",
+      "official_period": "2026년 8월 이후",
+      "actual_value": null,
+      "actual_scope": "접수 건/월 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "주택 호수·공고 건수로 18000건/월을 대체하지 않음.",
+      "action": "P1 · 접수 시계열",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M13",
+      "name": "매입약정 8월 증가",
+      "official_value": 63.0,
+      "official_upper": null,
+      "unit": "%",
+      "official_period": "2026.8/4~7월 평균 대비",
+      "actual_value": null,
+      "actual_scope": "접수 비교 분모 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "63%의 기준기간인 8월과 4~7월 평균의 원천이 필요.",
+      "action": "P1 · 분모·기간",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M14",
+      "name": "민간정비사업 착공",
+      "official_value": 17000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "actual_scope": "민간정비 전체 착공 미집계",
+      "status": "SCOPE_GAP",
+      "evidence_field": "targeted_raw; S05~S07",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "중계본·흑석11·신림2 원천이 있으나 전체 17000 실적 집계에 연결되지 않음.",
+      "action": "P0 · 민간정비 관리 연결",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M15",
+      "name": "일반·민간주택 착공",
+      "official_value": 47000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "actual_scope": "일반·민간 전체 착공 미집계",
+      "status": "SCOPE_GAP",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "공공·정비사업과 경계가 맞는 분류 없이 47000과 비교하지 않음.",
+      "action": "P1 · 사업 분류 대사",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M16",
+      "name": "공공분양 3분기 실적",
+      "official_value": 14800.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 1~3분기",
+      "actual_value": null,
+      "actual_scope": "선택 정책의 공급 확인량 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "policy_monitor.actual_supply_annual_units",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "발표는 공공분양 전체 1~3분기 14800. 9·7 일부 사업 공급량과 직접 비교 제외.",
+      "action": "P1 · 공공분양 전체·분기 집계",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M17",
+      "name": "4분기 공공분양",
+      "official_value": 10000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "사업별 예정 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "goal_comparisons[SUPPLY]",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "Q4 공공분양 전체 10000과 기존 승인 일정의 동일 모집단이 확인되지 않음.",
+      "action": "P1 · 분기·유형 집계",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M18",
+      "name": "4분기 3기 신도시 분양",
+      "official_value": 2000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "왕숙 등 Q4 후보 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "S08~S10",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "발표 1100+500+400=2000. 공식 블록과 기존 블록 대응은 미공표.",
+      "action": "P1 · Q4 블록 대사",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M19",
+      "name": "공공임대 3분기 모집",
+      "official_value": 15000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 1~3분기",
+      "actual_value": null,
+      "actual_scope": "임대 계획·공고 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "projects; lh_rent/lh_notice",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "전체 공공임대 1~3분기 모집 15000과 연결 범위가 다름.",
+      "action": "P1 · 임대 모집 전체 집계",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M20",
+      "name": "4분기 공공임대 모집",
+      "official_value": 5000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "과천지식 S12 Q4 후보 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "S13",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "1424호 후보 하나로 전체 5000 이상 모집을 대체할 수 없음.",
+      "action": "P1 · 임대 Q4 범위",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M21",
+      "name": "4분기 총 입주자 모집",
+      "official_value": 15000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "Q4 통합 모집 미집계",
+      "status": "SCOPE_GAP",
+      "evidence_field": "M17+M20",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "분양 10000+임대 5000이상의 합. 하위 항목과 중복 합산 금지.",
+      "action": "P1 · 모집 통합 관계",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M22",
+      "name": "공적주택 실제 입주 목표",
+      "official_value": 100000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026년 4분기~2027년 말/수도권",
+      "actual_value": null,
+      "actual_scope": "시장 전망·개별 입주 일정 존재",
+      "status": "SCOPE_GAP",
+      "evidence_field": "plan.occupancy_outlook; goal_comparisons",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "기존 2026 수도권 아파트 전망112000과 신규 2026Q4~2027 공적주택100000은 대상·기간이 다름.",
+      "action": "P1 · 공적주택 입주 목표",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M23",
+      "name": "8·13 후속 과제 전체",
+      "official_value": 145.0,
+      "official_upper": null,
+      "unit": "건",
+      "official_period": "2026.10.16",
+      "actual_value": null,
+      "actual_scope": "후속과제 원장 미발견",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "145는 과제 건수이며 사업 수·호수와 별도 관리.",
+      "action": "P1 · 제도 과제 원장",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M24",
+      "name": "8·13 후속 과제 완료",
+      "official_value": 48.0,
+      "official_upper": null,
+      "unit": "건",
+      "official_period": "2026.10.16",
+      "actual_value": null,
+      "actual_scope": "완료 과제 관측 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "48건 완료는 주택 공급 실적이 아님.",
+      "action": "P1 · 과제 완료 근거",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M25",
+      "name": "8·13 후속 과제 추진",
+      "official_value": 97.0,
+      "official_upper": null,
+      "unit": "건",
+      "official_period": "2026.10.16",
+      "actual_value": null,
+      "actual_scope": "미완료 과제 미집계",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "97=145-48로 계산되는 값. 직접 관측과 산술값을 구분.",
+      "action": "P1 · 과제 상태",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M26",
+      "name": "PF 집중관리 사업장",
+      "official_value": 300.0,
+      "official_upper": null,
+      "unit": "사업장",
+      "official_period": "2026.10.16",
+      "actual_value": null,
+      "actual_scope": "PF 관리 사업장 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "300여 사업장과 주택 공급 호수는 단위가 다름.",
+      "action": "P2 · PF 사업장 관계",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M27",
+      "name": "통합 지원센터",
+      "official_value": null,
+      "official_upper": null,
+      "unit": "기관",
+      "official_period": "2026년 말",
+      "actual_value": null,
+      "actual_scope": "기관 설치·운영 계획",
+      "status": "QUALITATIVE",
+      "evidence_field": "수치 정확도 제외",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "개설일·담당기관·가동 상태로 점검하는 정성 과제.",
+      "action": "P2 · 운영 과제",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M28",
+      "name": "공급 정례브리핑",
+      "official_value": 2.0,
+      "official_upper": null,
+      "unit": "회/월",
+      "official_period": "2026.10.16 이후",
+      "actual_value": null,
+      "actual_scope": "브리핑 빈도 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "월2회는 주택 호수가 아닌 발표 빈도.",
+      "action": "P2 · 수집 일정",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M29",
+      "name": "정부 디지털 상황판",
+      "official_value": null,
+      "official_upper": null,
+      "unit": "서비스",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "정부 상황판 구축 계획",
+      "status": "QUALITATIVE",
+      "evidence_field": "수치 정확도 제외",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "HOME의 현재 기능을 정부 상황판 완료로 간주하지 않음.",
+      "action": "P2 · 과제 상태",
+      "official_url": "https://m.korea.kr/news/policyNewsView.do?newsId=148973657"
+    },
+    {
+      "id": "M30",
+      "name": "서울 인허가 개선",
+      "official_value": 40000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026.1~8/서울",
+      "actual_value": null,
+      "actual_scope": "2026 서울 인허가 1~8월 미확보",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "annual_supply[2026].인허가.units=null",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "허가 원장 행 수나 연간 통계로 같은 기간 40000호를 대체하지 않음.",
+      "action": "P0 · 월별 인허가",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M31",
+      "name": "서울 착공 개선",
+      "official_value": 21000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2026.1~8/서울",
+      "actual_value": 20679,
+      "actual_scope": "2026-01~2026-08 · 서울",
+      "status": "MATCH_ROUNDED",
+      "evidence_field": "annual_supply[2026].착공.units",
+      "difference": -321.0,
+      "difference_pct": -1.5285714285714285,
+      "accuracy_eligible": true,
+      "explanation": "20679를 천호 단위로 반올림하면21000. 차이321호, 발표 대비1.5286%.",
+      "action": "유지",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+      "rounding_quantum": 1000,
+      "display_compatible": true
+    },
+    {
+      "id": "M32",
+      "name": "서울 소규모 일반주택 인허가",
+      "official_value": 84.0,
+      "official_upper": null,
+      "unit": "%",
+      "official_period": "최근 6개월/서울",
+      "actual_value": null,
+      "actual_scope": "소규모 일반주택 미집계",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "전체 인허가 증감률과 최근6개월 세부유형84%는 다른 지표.",
+      "action": "P1 · 유형별 기간 비교",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M33",
+      "name": "서울 소규모 일반주택 착공",
+      "official_value": 87.0,
+      "official_upper": null,
+      "unit": "%",
+      "official_period": "최근 6개월/서울",
+      "actual_value": null,
+      "actual_scope": "소규모 일반주택 착공 미집계",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "전체 착공 증감률로 최근6개월 세부유형87%를 대체하지 않음.",
+      "action": "P1 · 유형별 기간 비교",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M34",
+      "name": "주택 매매 소비심리",
+      "official_value": 132.5,
+      "official_upper": 130.8,
+      "unit": "지수",
+      "official_period": "2026.8→9/서울",
+      "actual_value": null,
+      "actual_scope": "소비심리지수 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "132.5→130.8은8월·9월 두 시점 값. 하한/상한이나 가격지수로 해석하지 않음.",
+      "action": "P2 · 별도 지수 원천",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M35",
+      "name": "보편형 공공임대 추진",
+      "official_value": 190000.0,
+      "official_upper": null,
+      "unit": "호",
+      "official_period": "2030년까지",
+      "actual_value": null,
+      "actual_scope": "보편형 임대 목표 미등록",
+      "status": "VERSION_MISSING",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "2030까지190000 공급을 착공·모집 목표와 중복 합산하지 않음.",
+      "action": "P1 · 신규 프로그램 버전",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M36",
+      "name": "장기 민간임대 생태계",
+      "official_value": 20.0,
+      "official_upper": null,
+      "unit": "년",
+      "official_period": "향후",
+      "actual_value": null,
+      "actual_scope": "장기 민간임대 제도 미등록",
+      "status": "NOT_REGISTERED",
+      "evidence_field": "미발견",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "20은 임대 기간(년)이며 공급 호수가 아님.",
+      "action": "P2 · 제도 항목",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "M37",
+      "name": "연말 집중 착공 리스크",
+      "official_value": null,
+      "official_upper": null,
+      "unit": "위험",
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "actual_scope": "계획 분포로 후속 분석 가능",
+      "status": "QUALITATIVE",
+      "evidence_field": "수치 정확도 제외",
+      "difference": null,
+      "difference_pct": null,
+      "accuracy_eligible": false,
+      "explanation": "연말 집중 리스크는 정성 발언. 일정 분포와 별도 평가.",
+      "action": "P1 · Q4 집중도",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    }
+  ],
+  "sites": [
+    {
+      "id": "S01",
+      "name": "고양창릉",
+      "stage": "착공",
+      "official_value": 2300.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 2306,
+      "difference": 6.0,
+      "difference_pct": 0.2608695652173913,
+      "status": "MATCH_ROUNDED",
+      "accuracy_eligible": true,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_f25c0c21ce607faf686e73a5",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_148663cc20e9552d2c42c304"
+      ],
+      "raw_entity_ids": [
+        "DOC_163b9043a4e1b6c396807905",
+        "DOC_2c21f5deedf8e3647afc85af",
+        "DOC_3af53c375b3135d677abfd58",
+        "DOC_40568394acf657168283f458",
+        "DOC_455f51da28e1db80b9fcbc47",
+        "DOC_52c0c1cdaf32fdfe8d3e018e",
+        "DOC_aca05e03f6ebb6f8c907a121",
+        "DOC_cad1e1f77e6227fa08833941",
+        "DOC_d69898a11d907d1c2e7d6a58",
+        "DOC_e1d1a2c9aed0739ff93bd2b9",
+        "DOC_fe8c62c710544566ebd635d0",
+        "LH__02606e66741be52b7171b14c",
+        "LH__45ba74ee4da582bf6e82d860",
+        "LH__61cd5792d76cf8e7bf9a880b",
+        "LH__6ac1bf8ac48d17b7945a759a",
+        "LH__7c6d377912b4d94347e82069",
+        "LH__cae8ffbdd879547bb684b020",
+        "LH__07f13f28a9d61f66a0a55b4e",
+        "LH__18f80d6594d065e6cbf441bc",
+        "LH__4cafce2ec1962c8ed54d33a5",
+        "LH__ab576bef8c526393aca9e003",
+        "NOT_02133e1a0ce8a8df130e5df3",
+        "NOT_10674462d208371af419fa9d",
+        "NOT_606a0c426da12b1d742d586b",
+        "NOT_7d84fefdcfa30a6246417f03",
+        "NOT_c197f105537739c300ebe947",
+        "NOT_c40056259940cb65890c8b36",
+        "PER_054a0bb36f0112acd86cec62",
+        "PER_690954bbf0deb1c1ed0eeba9",
+        "PER_6e764f61643e0212436d1fcf",
+        "PER_7b16ad8ed7e1d46e16cbe05b",
+        "PER_8df7c65a0f031f420c029d73",
+        "PER_90e8189bc19a2a0ca0def934",
+        "PER_9f57512220ed1f4ba507d4c1",
+        "PER_afd15eec0a82101abce17903",
+        "PER_b3bb861a6e3da4b28f5e91c7",
+        "PER_b68b15b93a4f13ab02086f98",
+        "PER_b69351d9e88129cc999c606b",
+        "PER_b74b428207ad4bdf05a17349",
+        "PER_ca852ea1dc48fc539e2458dd",
+        "PER_e068ba27d824f81d1cc49d06",
+        "PER_f3cde208e5488be5859a98f3",
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_148663cc20e9552d2c42c304",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_f25c0c21ce607faf686e73a5"
+      ],
+      "starts": {
+        "known_units": 2306,
+        "records": [
+          {
+            "project_id": "PRO_4d29636ffa571ff2fdf7c72e",
+            "name": "고양창릉 S-03",
+            "units": 1282,
+            "dates": [
+              "2026-04-15"
+            ],
+            "source_ids": [
+              "PRO_4d29636ffa571ff2fdf7c72e",
+              "PRO_80a5c2cd5cc076e96d8dd72c"
+            ]
+          },
+          {
+            "project_id": "PRO_0a79310e612f5bc1215fcad3",
+            "name": "고양창릉 S-04",
+            "units": 1024,
+            "dates": [
+              "2026-03-31"
+            ],
+            "source_ids": [
+              "PRO_0a79310e612f5bc1215fcad3",
+              "PRO_cc5d09785c131c57c2e7e642"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+            "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+            "units": 900,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_09fa29b63ffb3ea986cf233f"
+            ]
+          },
+          {
+            "project_id": "PRO_e72836551bdd58eec3660b80",
+            "name": "고양창릉 S-01",
+            "units": 494,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_e72836551bdd58eec3660b80",
+              "PRO_f25c0c21ce607faf686e73a5"
+            ]
+          },
+          {
+            "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+            "name": "고양창릉 S-02",
+            "units": 1057,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_29bf4cef6fb4606948bb3b48",
+              "PRO_bc01f01ac015b15530c7e35b"
+            ]
+          },
+          {
+            "project_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+            "name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+            "units": 759,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_cd0ad7de7ca676c6f3981f1f"
+            ]
+          },
+          {
+            "project_id": "PRO_148663cc20e9552d2c42c304",
+            "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+            "units": 430,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_148663cc20e9552d2c42c304"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "S03 1282+S04 1024=2306호, 승인 착공일은2026년3~4월. 발표2300과6호 차이로 백호 표시 정밀도에 부합. 공식 블록ID 직접 검증과 구별.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+      "rounding_quantum": 100,
+      "display_compatible": true
+    },
+    {
+      "id": "S02",
+      "name": "인천계양",
+      "stage": "착공",
+      "official_value": 2300.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 1289,
+      "difference": -1011.0,
+      "difference_pct": -43.95652173913044,
+      "status": "PARTIAL_SCOPE",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_12d91632b8ca640e1505869f",
+        "PRO_c1f32197fe5a45ab84ea895f",
+        "PRO_325adcce78038cd49c65a01f",
+        "PRO_7dffd65ce8143bd3adcb788a",
+        "PRO_04a4f394cc7df91c10403fd5",
+        "PRO_421fe0f0243dd68b11f2712c",
+        "PRO_017fafed01a4f905828cb913",
+        "PRO_95b506af61f0ff28ddff817c"
+      ],
+      "raw_entity_ids": [
+        "DOC_0d3bb2ff7f41a3933de0fb2e",
+        "DOC_26bf618cf9f52ed17b7bbe7c",
+        "DOC_567399b741819ac6174a35d1",
+        "DOC_8cbb02ee7d9032f425fc15ea",
+        "DOC_96131d25e28a18b567965e4c",
+        "DOC_c132fe15ad6b2af64b677dc0",
+        "DOC_e0aa7665d54fe7c96cf29185",
+        "DOC_ea0933409dbba622a1a6b767",
+        "PRO_017fafed01a4f905828cb913",
+        "PRO_04a4f394cc7df91c10403fd5",
+        "PRO_12d91632b8ca640e1505869f",
+        "PRO_325adcce78038cd49c65a01f",
+        "PRO_421fe0f0243dd68b11f2712c",
+        "PRO_7dffd65ce8143bd3adcb788a",
+        "PRO_95b506af61f0ff28ddff817c",
+        "PRO_c1f32197fe5a45ab84ea895f"
+      ],
+      "starts": {
+        "known_units": 1289,
+        "records": [
+          {
+            "project_id": "PRO_12d91632b8ca640e1505869f",
+            "name": "인천계양 A17",
+            "units": 309,
+            "dates": [
+              "2026-06-01"
+            ],
+            "source_ids": [
+              "PRO_12d91632b8ca640e1505869f",
+              "PRO_c1f32197fe5a45ab84ea895f"
+            ]
+          },
+          {
+            "project_id": "PRO_04a4f394cc7df91c10403fd5",
+            "name": "인천계양 A6",
+            "units": 663,
+            "dates": [
+              "2026-08-29"
+            ],
+            "source_ids": [
+              "PRO_04a4f394cc7df91c10403fd5"
+            ]
+          },
+          {
+            "project_id": "PRO_421fe0f0243dd68b11f2712c",
+            "name": "인천계양 A9",
+            "units": 317,
+            "dates": [
+              "2026-04-30"
+            ],
+            "source_ids": [
+              "PRO_421fe0f0243dd68b11f2712c",
+              "PRO_95b506af61f0ff28ddff817c"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_017fafed01a4f905828cb913",
+            "name": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+            "units": 778,
+            "dates": [
+              "2025-12-29"
+            ],
+            "source_ids": [
+              "PRO_017fafed01a4f905828cb913"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [
+        {
+          "project_id": "PRO_017fafed01a4f905828cb913",
+          "name": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+          "units": 778,
+          "dates": [
+            "2026-11-14"
+          ]
+        }
+      ],
+      "explanation": "현재 관리한2026 착공 A17 309+A6 663+A9 317=1289호. 발표2300 대비56.04%의 대응량. A17 전체463과 부분309를 더하지 않음. 남은1011호는 범위 대사 대상.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S03",
+      "name": "하남교산",
+      "stage": "착공",
+      "official_value": 1100.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PERIOD_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_f4df90618b2cfb95837b4d92"
+      ],
+      "raw_entity_ids": [
+        "DOC_67e3badd3cdd9607de39de3a",
+        "DOC_7a3a67da47238bf518302a2d",
+        "DOC_cec78dcdefa07084d7c8c40b",
+        "LH__e33dbc942675f8630e5bba91",
+        "PER_04c9c1bb6fb04de2ac4f16b3",
+        "PER_06f586c15728f6d6a570fb37",
+        "PER_10a2af930fc1d7a2a3729c8a",
+        "PER_20ef5dadacecd3a4c08ca6f4",
+        "PER_2bf3d6da5dec6a67c74c3d9b",
+        "PER_31d4ee87308fa3894ba1af8a",
+        "PER_32a02a8edd6c06d63e9bc5e2",
+        "PER_4297743439f1ed2354ae76b5",
+        "PER_472552970c2b55cb4b505d1b",
+        "PER_4954aa84a4e27d618278479b",
+        "PER_49acf4097011a07e5c9fbfb1",
+        "PER_575659d19c62e21bfcdcfc32",
+        "PER_b2a975eae2b115658a9acfe0",
+        "PER_c0fe107f093c8ceabdd5cb4c",
+        "PER_c57f5fe94d279957f2b3ba94",
+        "PER_daffec6b25c8bb27fec1b175",
+        "PER_e2488368104f39e601d7e0cc",
+        "PER_e9d721096aec349580db636c",
+        "PER_ed3acb9f72b12b9629812820",
+        "PER_ee2089c08ae5d45c814ff9a5",
+        "PER_faa0687c9ccb5d20b9792418",
+        "PER_fe3f33b62fb3cd77e895ffec",
+        "PRO_f4df90618b2cfb95837b4d92"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": [
+          {
+            "project_id": "PRO_f4df90618b2cfb95837b4d92",
+            "name": "하남교산 A-2BL 공공주택 건설사업",
+            "units": 1115,
+            "dates": [
+              "2024-10-30"
+            ],
+            "source_ids": [
+              "PRO_f4df90618b2cfb95837b4d92"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "A2 1115호의 승인 착공일2024-10-30. 발표1100과 가까워도2026 착공으로 세지 않음.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S04",
+      "name": "남양주왕숙2",
+      "stage": "착공",
+      "official_value": 1100.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PERIOD_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_8f376db71f557323a80c0fd9",
+        "PRO_446826cdc93ccf8d880cb0f1",
+        "PRO_1f460bcd27c1e4573d9337b6",
+        "PRO_4d0196c4344cf524a88ae0cc"
+      ],
+      "raw_entity_ids": [
+        "DOC_2eec136ebf3884bbadd1ccbf",
+        "DOC_382d3325d7dad7b4d69b1aee",
+        "DOC_5face25cc06ffdd6019f47b9",
+        "DOC_e9999beca29af343c488b26b",
+        "LH__1bdd495a9b865fb51b82b8f3",
+        "LH__89467421a860f1950397f7d4",
+        "LH__b1de1dbc55c82790d8e06aa9",
+        "LH__e219e254436f6151335eb219",
+        "LH__ec40b182c2007524b867a36f",
+        "LH__f1ef7a820171ec04c9c6a934",
+        "NOT_5be1a7fda7fa29f1a71831a2",
+        "PER_1bd83b706c6d9b579fe68662",
+        "PER_4c842543903f19a9106c1898",
+        "PER_77dc1c4223b3712fcf207eb8",
+        "PER_7a4dad75e25549c2895bca50",
+        "PER_83482a14e3b5ab4bdb520a8c",
+        "PER_e7a64ef936b535a45c1ee752",
+        "PER_f7cd0747aa486aa12a5bd427",
+        "PRO_1f460bcd27c1e4573d9337b6",
+        "PRO_446826cdc93ccf8d880cb0f1",
+        "PRO_4d0196c4344cf524a88ae0cc",
+        "PRO_8f376db71f557323a80c0fd9"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": [
+          {
+            "project_id": "PRO_446826cdc93ccf8d880cb0f1",
+            "name": "남양주왕숙2 A01",
+            "units": 812,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_8f376db71f557323a80c0fd9",
+              "PRO_446826cdc93ccf8d880cb0f1"
+            ]
+          },
+          {
+            "project_id": "PRO_1f460bcd27c1e4573d9337b6",
+            "name": "남양주왕숙2 A03",
+            "units": 686,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_1f460bcd27c1e4573d9337b6",
+              "PRO_4d0196c4344cf524a88ae0cc"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "A01 812+A03 686의 승인 착공일2025-12-31. 발표2026 착공1100의 신규 블록·사건 대사 필요.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S05",
+      "name": "중계본동",
+      "stage": "착공",
+      "official_value": 3100.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 3178,
+      "difference": 78.0,
+      "difference_pct": 2.5161290322580645,
+      "status": "RAW_ONLY",
+      "accuracy_eligible": false,
+      "managed_name_found": false,
+      "raw_name_found": true,
+      "managed_project_ids": [],
+      "raw_entity_ids": [
+        "PER_4961aa5246de416fd9b083e3",
+        "PER_7339b012f342c8cb4db059f3",
+        "PER_8e7a85aace110f56b66ddfcd",
+        "PER_d99d71f4c5f77ed2919c0e9d",
+        "PER_f623dcd2fd1402a692cb8506",
+        "REN_0b735683d66c1824c471811a"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": []
+      },
+      "matching_schedules": [],
+      "explanation": "원천 중계본동3178호·관리처분 및 착공예정 자료 존재. 관리 목록 중계1단지1370호는 다른 사업이라 제외.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S06",
+      "name": "흑석11구역",
+      "stage": "착공",
+      "official_value": 2500.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 1515,
+      "difference": -985.0,
+      "difference_pct": -39.4,
+      "status": "RAW_ONLY",
+      "accuracy_eligible": false,
+      "managed_name_found": false,
+      "raw_name_found": true,
+      "managed_project_ids": [],
+      "raw_entity_ids": [
+        "PER_c8b1ef84419602b52c49902b",
+        "REN_f75b965b68dd23e32a7af2c3"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": []
+      },
+      "matching_schedules": [],
+      "explanation": "흑석11 정비·허가 원천1515호와 기존 착공 단계 존재. 발표2500과985호 차이. 최신 변경계획·총량/순증·범위 대사 우선.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S07",
+      "name": "신림2구역",
+      "stage": "착공",
+      "official_value": 1400.0,
+      "official_period": "2026년 10월 둘째 주까지",
+      "actual_value": 1430,
+      "difference": 30.0,
+      "difference_pct": 2.142857142857143,
+      "status": "RAW_ONLY",
+      "accuracy_eligible": false,
+      "managed_name_found": false,
+      "raw_name_found": true,
+      "managed_project_ids": [],
+      "raw_entity_ids": [
+        "PER_455a0b45ebf6e92dd1e727c4",
+        "PER_743ae37aaa05b3920df3c0d0",
+        "PER_cf250d827c48615c3b299d3b",
+        "REN_62d4dbf29b2d973797f293a8"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": []
+      },
+      "matching_schedules": [],
+      "explanation": "신림2 정비1430호와 획지별 허가 존재. 발표1400과30호 차이로 백호 정밀도 부합하나 실제2026 착공 연결 미완료.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S08",
+      "name": "고양창릉",
+      "stage": "분양공고",
+      "official_value": 1100.0,
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PLAN_SCOPE_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_f25c0c21ce607faf686e73a5",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_148663cc20e9552d2c42c304"
+      ],
+      "raw_entity_ids": [
+        "DOC_163b9043a4e1b6c396807905",
+        "DOC_2c21f5deedf8e3647afc85af",
+        "DOC_3af53c375b3135d677abfd58",
+        "DOC_40568394acf657168283f458",
+        "DOC_455f51da28e1db80b9fcbc47",
+        "DOC_52c0c1cdaf32fdfe8d3e018e",
+        "DOC_aca05e03f6ebb6f8c907a121",
+        "DOC_cad1e1f77e6227fa08833941",
+        "DOC_d69898a11d907d1c2e7d6a58",
+        "DOC_e1d1a2c9aed0739ff93bd2b9",
+        "DOC_fe8c62c710544566ebd635d0",
+        "LH__02606e66741be52b7171b14c",
+        "LH__45ba74ee4da582bf6e82d860",
+        "LH__61cd5792d76cf8e7bf9a880b",
+        "LH__6ac1bf8ac48d17b7945a759a",
+        "LH__7c6d377912b4d94347e82069",
+        "LH__cae8ffbdd879547bb684b020",
+        "LH__07f13f28a9d61f66a0a55b4e",
+        "LH__18f80d6594d065e6cbf441bc",
+        "LH__4cafce2ec1962c8ed54d33a5",
+        "LH__ab576bef8c526393aca9e003",
+        "NOT_02133e1a0ce8a8df130e5df3",
+        "NOT_10674462d208371af419fa9d",
+        "NOT_606a0c426da12b1d742d586b",
+        "NOT_7d84fefdcfa30a6246417f03",
+        "NOT_c197f105537739c300ebe947",
+        "NOT_c40056259940cb65890c8b36",
+        "PER_054a0bb36f0112acd86cec62",
+        "PER_690954bbf0deb1c1ed0eeba9",
+        "PER_6e764f61643e0212436d1fcf",
+        "PER_7b16ad8ed7e1d46e16cbe05b",
+        "PER_8df7c65a0f031f420c029d73",
+        "PER_90e8189bc19a2a0ca0def934",
+        "PER_9f57512220ed1f4ba507d4c1",
+        "PER_afd15eec0a82101abce17903",
+        "PER_b3bb861a6e3da4b28f5e91c7",
+        "PER_b68b15b93a4f13ab02086f98",
+        "PER_b69351d9e88129cc999c606b",
+        "PER_b74b428207ad4bdf05a17349",
+        "PER_ca852ea1dc48fc539e2458dd",
+        "PER_e068ba27d824f81d1cc49d06",
+        "PER_f3cde208e5488be5859a98f3",
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_148663cc20e9552d2c42c304",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_f25c0c21ce607faf686e73a5"
+      ],
+      "starts": {
+        "known_units": 2306,
+        "records": [
+          {
+            "project_id": "PRO_4d29636ffa571ff2fdf7c72e",
+            "name": "고양창릉 S-03",
+            "units": 1282,
+            "dates": [
+              "2026-04-15"
+            ],
+            "source_ids": [
+              "PRO_4d29636ffa571ff2fdf7c72e",
+              "PRO_80a5c2cd5cc076e96d8dd72c"
+            ]
+          },
+          {
+            "project_id": "PRO_0a79310e612f5bc1215fcad3",
+            "name": "고양창릉 S-04",
+            "units": 1024,
+            "dates": [
+              "2026-03-31"
+            ],
+            "source_ids": [
+              "PRO_0a79310e612f5bc1215fcad3",
+              "PRO_cc5d09785c131c57c2e7e642"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+            "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+            "units": 900,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_09fa29b63ffb3ea986cf233f"
+            ]
+          },
+          {
+            "project_id": "PRO_e72836551bdd58eec3660b80",
+            "name": "고양창릉 S-01",
+            "units": 494,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_e72836551bdd58eec3660b80",
+              "PRO_f25c0c21ce607faf686e73a5"
+            ]
+          },
+          {
+            "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+            "name": "고양창릉 S-02",
+            "units": 1057,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_29bf4cef6fb4606948bb3b48",
+              "PRO_bc01f01ac015b15530c7e35b"
+            ]
+          },
+          {
+            "project_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+            "name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+            "units": 759,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_cd0ad7de7ca676c6f3981f1f"
+            ]
+          },
+          {
+            "project_id": "PRO_148663cc20e9552d2c42c304",
+            "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+            "units": 430,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_148663cc20e9552d2c42c304"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "기존 창릉 관리 공급일정은 주로상반기. Q4 1100 대응 블록 묶음이 고정 관리일정에서 미확인.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S09",
+      "name": "부천대장",
+      "stage": "분양공고",
+      "official_value": 500.0,
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PLAN_SCOPE_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_f84e7049e2e679bdad59fdcb",
+        "PRO_d45f401d3810473a7b1a1030",
+        "PRO_e2aefb3da54e732fd248384d",
+        "PRO_b880a907c24a95915be5fb6e",
+        "PRO_4ce4de9490cbe0a07f49c657",
+        "PRO_69217405e9523695488434c1",
+        "PRO_60b4a8833ed549023a6ef1a5",
+        "PRO_d86ce8966f5ed10d5ef2d175",
+        "PRO_984164fef8c491cac3388381",
+        "PRO_981ca316073354b11ac87f21",
+        "PRO_4d3397869cc1cd2e52d0da8f",
+        "PRO_64708e6eff91c584399a3045"
+      ],
+      "raw_entity_ids": [
+        "DOC_00fd1ec215a0ef98ecbcf5f8",
+        "DOC_2639c3a9e9d722506449af81",
+        "DOC_567718fb49205821758bef93",
+        "DOC_7b8a4c75d5ba91402710458b",
+        "DOC_826a7766f7b5cb5bd24e04ae",
+        "DOC_85a6fbb2285bc945c1fef527",
+        "DOC_ae7835f52640fb851f74399e",
+        "DOC_c97f9c9f27bfd12f6b3ad2cb",
+        "LH__243e26dadb460675dd49d235",
+        "LH__263e02c38ac8c27f8419b5e6",
+        "LH__3c30d906dfeacbc904410da2",
+        "LH__509466042d4c6974910737f5",
+        "LH__816bc78e7861abed9c87b888",
+        "LH__bd8232fa74c8e317a6731ab2",
+        "LH__419b6039b6a3ca2cd938e18e",
+        "LH__48252c1d8ee44cad29ee42f4",
+        "LH__603f034b977c5741f5d75ef9",
+        "LH__71a866383e42acd39ea662b6",
+        "NOT_3aca01df7e1cc1d38d3b6a3d",
+        "NOT_b1e81e390a644f1762eae187",
+        "NOT_bba3413015c72edb1baaf78d",
+        "NOT_c5f7be64e43a1e57392f76e0",
+        "PER_0eb27067f0a691afe580a236",
+        "PER_126f05ecc047b18c659206d6",
+        "PER_19c0b5a2c917797157bf2453",
+        "PER_24da8339977fa1f0f5607b57",
+        "PER_4a4d9ecb55b6a81af40508b5",
+        "PER_659498cd3ee4d1ca7910c9da",
+        "PER_e8e5689db2ee15466049b6a7",
+        "PER_f8d86ede5027726f4a0b9a32",
+        "PRO_4ce4de9490cbe0a07f49c657",
+        "PRO_4d3397869cc1cd2e52d0da8f",
+        "PRO_60b4a8833ed549023a6ef1a5",
+        "PRO_64708e6eff91c584399a3045",
+        "PRO_69217405e9523695488434c1",
+        "PRO_981ca316073354b11ac87f21",
+        "PRO_984164fef8c491cac3388381",
+        "PRO_b880a907c24a95915be5fb6e",
+        "PRO_d45f401d3810473a7b1a1030",
+        "PRO_d86ce8966f5ed10d5ef2d175",
+        "PRO_e2aefb3da54e732fd248384d",
+        "PRO_f84e7049e2e679bdad59fdcb"
+      ],
+      "starts": {
+        "known_units": 1343,
+        "records": [
+          {
+            "project_id": "PRO_f84e7049e2e679bdad59fdcb",
+            "name": "부천대장 A-12BL 통합형 민간참여 공공주택건설사업",
+            "units": 795,
+            "dates": [
+              "2026-03-01"
+            ],
+            "source_ids": [
+              "PRO_f84e7049e2e679bdad59fdcb"
+            ]
+          },
+          {
+            "project_id": "PRO_69217405e9523695488434c1",
+            "name": "부천대장 A2",
+            "units": 548,
+            "dates": [
+              "2026-02-01"
+            ],
+            "source_ids": [
+              "PRO_e2aefb3da54e732fd248384d",
+              "PRO_69217405e9523695488434c1"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_d45f401d3810473a7b1a1030",
+            "name": "부천대장 A-1BL 아파트 건설공사 3공구",
+            "units": 1002,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_d45f401d3810473a7b1a1030"
+            ]
+          },
+          {
+            "project_id": "PRO_60b4a8833ed549023a6ef1a5",
+            "name": "부천대장 A5",
+            "units": 314,
+            "dates": [
+              "2025-01-28",
+              "2025-03-24"
+            ],
+            "source_ids": [
+              "PRO_4ce4de9490cbe0a07f49c657",
+              "PRO_60b4a8833ed549023a6ef1a5"
+            ]
+          },
+          {
+            "project_id": "PRO_d86ce8966f5ed10d5ef2d175",
+            "name": "부천대장 A6",
+            "units": 227,
+            "dates": [
+              "2025-03-24"
+            ],
+            "source_ids": [
+              "PRO_b880a907c24a95915be5fb6e",
+              "PRO_d86ce8966f5ed10d5ef2d175"
+            ]
+          },
+          {
+            "project_id": "PRO_984164fef8c491cac3388381",
+            "name": "부천대장 A7",
+            "units": 473,
+            "dates": [
+              "2024-12-30"
+            ],
+            "source_ids": [
+              "PRO_984164fef8c491cac3388381",
+              "PRO_4d3397869cc1cd2e52d0da8f"
+            ]
+          },
+          {
+            "project_id": "PRO_981ca316073354b11ac87f21",
+            "name": "부천대장 A8",
+            "units": 392,
+            "dates": [
+              "2024-12-30"
+            ],
+            "source_ids": [
+              "PRO_981ca316073354b11ac87f21",
+              "PRO_64708e6eff91c584399a3045"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "대장 A2 548호는 기존9월 공급일정. 발표Q4 500과 수치만 비슷하다고 같은 물량으로 확정하지 않음.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S10",
+      "name": "남양주왕숙",
+      "stage": "분양공고",
+      "official_value": 400.0,
+      "official_period": "2026년 4분기",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "CANDIDATE_ONLY",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_60f74ae611079cfae69ea20e",
+        "PRO_1988cb01f60debc386947bee",
+        "PRO_f345f2ad0c4ce9f333d7e80d",
+        "PRO_1b0f09c1abb6e68c92fac227",
+        "PRO_d9a942fb86e1bca36d15a8ed",
+        "PRO_51b6a96ba3923d28008f12f0",
+        "PRO_36bfc1e9221a570c5661f8ea",
+        "PRO_92a0bd4e283231a4a8007d2a",
+        "PRO_b94e9de3e3e2bbd4f05e5272",
+        "PRO_ed25b25037ed0881f19d9a12",
+        "PRO_b6318a6756a3b039af39fdc7"
+      ],
+      "raw_entity_ids": [
+        "DOC_0b7db10d2567fafb3df8dab3",
+        "DOC_2e24df70fd70480fd48a1e75",
+        "DOC_399cced2d41d2d87998ea1f6",
+        "DOC_431b7ea61eec83b27eb82cad",
+        "DOC_4d2aa3a81a240b5e5ae041e2",
+        "DOC_7ac697daa7fee7ae34ba02a9",
+        "DOC_8f16d9317396bcd0e620fa37",
+        "DOC_97b84616f54e8e4ed86506d6",
+        "DOC_b72cad7d68ba8a78d3d4ddf1",
+        "DOC_e3096f063d130341ec7d05d9",
+        "DOC_e35595dd6efcee9fde3ab3b0",
+        "LH__21a0dfbeef3ba22876158142",
+        "LH__2a34e4642381f2228120c694",
+        "LH__67cb6ae860f01e3d7c9811e9",
+        "LH__6ae788a198710fa20be52043",
+        "LH__76d3bf6eeef10eaf815e383c",
+        "LH__87511c64f9c77b1e185449a1",
+        "LH__8bc318766c16a009590bb381",
+        "LH__b42e7e6608cce9f7c3223cf8",
+        "LH__c1d6dfea9609cacb0b9d26b2",
+        "LH__d4e74e32672f1539c84a0e0a",
+        "LH__d5d9208ae8f3bfa3949d1c7d",
+        "LH__ec2ba4733812550425b7903e",
+        "LH__f4c20caf6951447174752a00",
+        "LH__f53d1a92b7b35eaaadd48935",
+        "LH__fc1a5c5ca5b320ffdf19c3e4",
+        "NOT_1c1c917032a67810c5574985",
+        "NOT_492022d7925707043c3d1089",
+        "NOT_68ef916c4dbdf88a58f17e8f",
+        "NOT_ebc7402ef71be86ce70a8b53",
+        "PER_02edeb136ec01c0882b14521",
+        "PER_0d5cc6a30484a36aa89080a0",
+        "PER_19985f307c25efc56ce4b96e",
+        "PER_1d7640a37aeaa448360179a0",
+        "PER_2a0e80fe0f69f7d710f50044",
+        "PER_31f4c1e2b5f6e7b9cd6744a3",
+        "PER_41a9b057490e01f6fbf56d6e",
+        "PER_427b717c834c182cab42801b",
+        "PER_5281c48111830c9189bddbe9",
+        "PER_528eaaafd84f64399aa4c89a",
+        "PER_535def308182358c3474866a",
+        "PER_6157ec32b68e1b1568dd9020",
+        "PER_68b28b8fae527a2f123bc4f1",
+        "PER_719a7180537237c1fcb30d67",
+        "PER_7eb9369495967af25d6acce2",
+        "PER_8072dbdcd12f5b620c1bf316",
+        "PER_860e8de42a08a71ea58de5ab",
+        "PER_866826b9bc2300f320a31d00",
+        "PER_9278a07d5f7ef4227d541c7b",
+        "PER_9a15221c487b630cdad647f4",
+        "PER_a6daf1e7806a9e1df06d917a",
+        "PER_a72c7acd77b9ebaa8ddfbe7d",
+        "PER_b2028086b4635eafaa69825e",
+        "PER_b2d6afafb57307f7be166b79",
+        "PER_b3637d6a2dd3b55b128b5ccd",
+        "PER_bb3d0c2e9a24a4e0421235b2",
+        "PER_bfb2fb26dffbac77972a445e",
+        "PER_c49082131f4f2e1eb80e28fa",
+        "PER_cb81088ce4880fa69bf1022a",
+        "PER_cc423c0fb37d51931a31b631",
+        "PER_d5f685c8beb74916f4652935",
+        "PER_ddece437ac368eb51f8b6e19",
+        "PER_f379959dde4de7b4f3a9c93f",
+        "PER_f83da45736661629d267df8a",
+        "PRO_1988cb01f60debc386947bee",
+        "PRO_1b0f09c1abb6e68c92fac227",
+        "PRO_36bfc1e9221a570c5661f8ea",
+        "PRO_51b6a96ba3923d28008f12f0",
+        "PRO_60f74ae611079cfae69ea20e",
+        "PRO_92a0bd4e283231a4a8007d2a",
+        "PRO_b6318a6756a3b039af39fdc7",
+        "PRO_b94e9de3e3e2bbd4f05e5272",
+        "PRO_d9a942fb86e1bca36d15a8ed",
+        "PRO_ed25b25037ed0881f19d9a12",
+        "PRO_f345f2ad0c4ce9f333d7e80d"
+      ],
+      "starts": {
+        "known_units": 965,
+        "records": [
+          {
+            "project_id": "PRO_36bfc1e9221a570c5661f8ea",
+            "name": "남양주왕숙 S-18",
+            "units": 965,
+            "dates": [
+              "2026-09-01"
+            ],
+            "source_ids": [
+              "PRO_36bfc1e9221a570c5661f8ea"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_1988cb01f60debc386947bee",
+            "name": "남양주왕숙 A-1BL 아파트 건설공사 1공구",
+            "units": 629,
+            "dates": [
+              "2024-12-31"
+            ],
+            "source_ids": [
+              "PRO_1988cb01f60debc386947bee"
+            ]
+          },
+          {
+            "project_id": "PRO_f345f2ad0c4ce9f333d7e80d",
+            "name": "남양주왕숙 A-25BL 아파트 건설공사",
+            "units": 1298,
+            "dates": [
+              "2025-12-30"
+            ],
+            "source_ids": [
+              "PRO_f345f2ad0c4ce9f333d7e80d"
+            ]
+          },
+          {
+            "project_id": "PRO_1b0f09c1abb6e68c92fac227",
+            "name": "남양주왕숙 A-3BL 아파트 건설공사 7공구 (",
+            "units": 428,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_1b0f09c1abb6e68c92fac227"
+            ]
+          },
+          {
+            "project_id": "PRO_d9a942fb86e1bca36d15a8ed",
+            "name": "남양주왕숙 B-1BL 아파트 건설공사 6공구 (",
+            "units": 560,
+            "dates": [
+              "2025-07-08"
+            ],
+            "source_ids": [
+              "PRO_d9a942fb86e1bca36d15a8ed"
+            ]
+          },
+          {
+            "project_id": "PRO_51b6a96ba3923d28008f12f0",
+            "name": "남양주왕숙 B-2BL 아파트 건설공사 5공구 (",
+            "units": 587,
+            "dates": [
+              "2025-07-08"
+            ],
+            "source_ids": [
+              "PRO_51b6a96ba3923d28008f12f0"
+            ]
+          },
+          {
+            "project_id": "PRO_92a0bd4e283231a4a8007d2a",
+            "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+            "units": 589,
+            "dates": [
+              "2024-12-31"
+            ],
+            "source_ids": [
+              "PRO_92a0bd4e283231a4a8007d2a"
+            ]
+          },
+          {
+            "project_id": "PRO_b94e9de3e3e2bbd4f05e5272",
+            "name": "조달청)남양주왕숙 A-2BL 아파트 건설공사 2공구",
+            "units": 608,
+            "dates": [
+              "2024-12-31"
+            ],
+            "source_ids": [
+              "PRO_b94e9de3e3e2bbd4f05e5272"
+            ]
+          },
+          {
+            "project_id": "PRO_ed25b25037ed0881f19d9a12",
+            "name": "조달청)남양주왕숙 A-6BL 아파트 건설공사 8공구",
+            "units": 954,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_ed25b25037ed0881f19d9a12"
+            ]
+          },
+          {
+            "project_id": "PRO_b6318a6756a3b039af39fdc7",
+            "name": "조달청)남양주왕숙 B-17BL 아파트 건설공사 3공구 (",
+            "units": 491,
+            "dates": [
+              "2024-12-31"
+            ],
+            "source_ids": [
+              "PRO_b6318a6756a3b039af39fdc7"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [
+        {
+          "project_id": "PRO_60f74ae611079cfae69ea20e",
+          "name": "남양주왕숙 A-17",
+          "units": 379,
+          "dates": [
+            "2026-10-31"
+          ]
+        },
+        {
+          "project_id": "PRO_f345f2ad0c4ce9f333d7e80d",
+          "name": "남양주왕숙 A-25BL 아파트 건설공사",
+          "units": 1298,
+          "dates": [
+            "2026-11-15"
+          ]
+        },
+        {
+          "project_id": "PRO_ed25b25037ed0881f19d9a12",
+          "name": "조달청)남양주왕숙 A-6BL 아파트 건설공사 8공구",
+          "units": 954,
+          "dates": [
+            "2026-11-16"
+          ]
+        }
+      ],
+      "explanation": "A17 379호·2026-10-31은 발표400의 후보. 같은 지구에 다른Q4 계획도 있어 공식 블록 명세 필요.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S11",
+      "name": "고덕강일",
+      "stage": "분양공고",
+      "official_value": 1300.0,
+      "official_period": "2026년 4분기",
+      "actual_value": 1305,
+      "difference": 5.0,
+      "difference_pct": 0.38461538461538464,
+      "status": "PLAN_SCOPE_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_1fbf5c7629634fa05be7652a"
+      ],
+      "raw_entity_ids": [
+        "DOC_4b27024e42d1f93cfbede62c",
+        "DOC_88ac39d7d4dd5104250c7612",
+        "DOC_8c86c11eadbca18ae914485e",
+        "DOC_ef7119b2e052464658053bcf",
+        "DOC_f339f48516e43754dcf93fc8",
+        "NOT_39eecdc07c8def3a60cb7910",
+        "NOT_a2fb4f1fceaa281c47c94dbd",
+        "NOT_bfc596f17c10c43563330f2b",
+        "NOT_f6c153553f1dc20076adad20",
+        "PER_39a2e6844acb972b50510182",
+        "PER_66fd06fbb5f315577b4a9aed",
+        "PER_6b5164ac61ede771566d4b8a",
+        "PER_78bbf1c2433a1e7e0e5d7fa2",
+        "PER_c630fb66d9d7757235228961",
+        "PER_f7af37dd8ee122be26285e60",
+        "PRO_1fbf5c7629634fa05be7652a"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": [
+          {
+            "project_id": "PRO_1fbf5c7629634fa05be7652a",
+            "name": "고덕강일 3단지",
+            "units": 1305,
+            "dates": [
+              "2023-05-15"
+            ],
+            "source_ids": [
+              "PRO_1fbf5c7629634fa05be7652a"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "고덕강일3단지1305호는 발표1300과5호 차이이나 기존 승인 공급일8월31일과 발표Q4가 다름. 신규회차·범위·목표변경 대사.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S12",
+      "name": "광교",
+      "stage": "분양공고",
+      "official_value": 600.0,
+      "official_period": "2026년 4분기",
+      "actual_value": 600,
+      "difference": 0.0,
+      "difference_pct": 0.0,
+      "status": "RAW_ONLY",
+      "accuracy_eligible": false,
+      "managed_name_found": false,
+      "raw_name_found": true,
+      "managed_project_ids": [],
+      "raw_entity_ids": [
+        "LH__144ad615c0490385ddf9ed2a",
+        "LH__164cc0d6c167a7790834118d",
+        "LH__1c206faec094b0bd2ebf8e48",
+        "LH__2027fe2d79b4c5a3e28e4874",
+        "LH__2edf04d97458787080e62ff4",
+        "LH__41a7da75f5693a27127a038d",
+        "LH__4b8faf3436257d645345c319",
+        "LH__60a8b89a880604548c763228",
+        "LH__7e197f7ee81a39de675a8987",
+        "LH__80153325e4ade4e3a7b2b839",
+        "LH__89d65523ffb0ec19e50c71d9",
+        "LH__cdc7bafa551d17a9885bfc19",
+        "LH__d3509c3585bc2e89769a4f1f",
+        "LH__ff83aa2156b0096f8d252cc7",
+        "NOT_13c4f9ab19f4160ded06d25f",
+        "NOT_1431daa8a3816a5ca6b3bad6",
+        "NOT_91ec2150c7dd70d88f437b51",
+        "NOT_c0f3e6e45a5661305336044d",
+        "NOT_dd9ddcb62ca7ef0a2f616e18",
+        "PER_0043fd3110739b7674101d86",
+        "PER_0b12c2032dcbd234d65775c9",
+        "PER_11af3e8b0f13e636abe18779",
+        "PER_123258cdc319fefe9500565f",
+        "PER_1fbde3f95069eb27b8229e1a",
+        "PER_222996310ef6ee12c870c301",
+        "PER_22a7fe5b7a93c395aa7a748a",
+        "PER_236784c748daeb21eb143f8c",
+        "PER_26965d575b3396ab0f13a0a3",
+        "PER_28d839a7e70c2c6b49a39a29",
+        "PER_2e1f7716459d3423832f756f",
+        "PER_2f17fcb1582f5e910a748897",
+        "PER_3701ad7c4bfab0ff4be760b2",
+        "PER_3a9eb239097930b7e814b991",
+        "PER_3e65f1f51ab93aeeb6cc4a81",
+        "PER_3ee0c6da756ef3911bb3433a",
+        "PER_40514134f6f353d95a7cb303",
+        "PER_437e2b41a2b96f2e99c2a93b",
+        "PER_48b717343f50cf8bd28cfe0d",
+        "PER_495e9302144d934e43e228d2",
+        "PER_4a3c63fbaab29019bdfb24d6",
+        "PER_4a8c1a1f71f3091efe32a6e7",
+        "PER_5654b9101d21ffd77b8905bc",
+        "PER_5767ba1e1b2d6dbd9031ca4f",
+        "PER_58c97265d447a77b58f5c5ac",
+        "PER_5b0e4828e34044a915f70805",
+        "PER_61694c35f8a0c5050fd16dd4",
+        "PER_6d65a3d4a16b01d34f259fc9",
+        "PER_7c10cb22d4899bb402d95e99",
+        "PER_7f53d87a034beab9868252ca",
+        "PER_885d10d50ce9c612671d163e",
+        "PER_8e2473ea1ec6dfd37198bfd9",
+        "PER_9056b07710779a5a5bfd2a2d",
+        "PER_9194df6ff8b19624d50cf861",
+        "PER_94ba412f23f6b608e8a6401f",
+        "PER_95e37c5da4db9e3122ed0664",
+        "PER_9d086462fc693f571c3a7bdc",
+        "PER_9d8c31f9ee2319dc72ec1e3b",
+        "PER_a6f40b8b56c8d1bef287025d",
+        "PER_a7e08d54c643ea943a1309f5",
+        "PER_a905ff891b03483c14231481",
+        "PER_aedc877b46de1f3cbd2a3b0b",
+        "PER_b28aa2d7fac0728bef175f5e",
+        "PER_b88b5eb01e804ba2755a121f",
+        "PER_baa138c8ebbaedec221e4800",
+        "PER_bc5cc17fd93c25ee1deddbf2",
+        "PER_be8fbb7e803cfa443261862e",
+        "PER_bf73a18704d482f958e50cdd",
+        "PER_c60761b19315bc71dbf0e16a",
+        "PER_cd33d3137acaa95f594192de",
+        "PER_d349f4763a12f6e68c15caa0",
+        "PER_d6d034ecee50c67a42ad4c78",
+        "PER_d9c9f94ecfe96f47b44d3913",
+        "PER_dcc0f70c5990f4d704fcb945",
+        "PER_dd92353d8e95e1b273244600",
+        "PER_dffe3c97aee3cfab7c25f101",
+        "PER_edcb1d0a498ee8e569751fbc",
+        "PER_f25a6c871f0f414e0bff013e",
+        "PER_f6db13ec9ddb44f97805b789",
+        "PER_fa14ed2dbb4b7939a2d10fce",
+        "PER_fa3825b428a0bec73adf63c7",
+        "PER_fe99744a4a06ca832ac40d26",
+        "PER_fef574f0c1e951d1cd8e7ed4"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": []
+      },
+      "matching_schedules": [],
+      "explanation": "광교 A17 공공주택 허가600호 존재. 관리 사업과Q4 분양일정에는 미연결. 호수 일치만으로 공급 일정 일치 판정 제외.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S13",
+      "name": "과천지식정보타운",
+      "stage": "입주자 모집",
+      "official_value": 1400.0,
+      "official_period": "2026년 4분기",
+      "actual_value": 1424,
+      "difference": 24.0,
+      "difference_pct": 1.7142857142857142,
+      "status": "CANDIDATE_MATCH",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_6a66b31b8f84244d491514e6",
+        "PRO_254e6d4ae135e6e081f67607"
+      ],
+      "raw_entity_ids": [
+        "LH__030bb34eaca2fea7f9a35187",
+        "LH__1611233de7bb27adf5c20a37",
+        "LH__3ecfdff8b3da777ebda97e32",
+        "LH__8f3bdc295429bbd8a02587ab",
+        "LH__92665bf2b071ac50c9af4329",
+        "LH__947195aa79aa724e26bbbfb2",
+        "LH__9904cc603f8ad1a1b89cd41d",
+        "LH__a326ad3b67adf0d586e63d44",
+        "LH__b646ee92ce8167202684c69c",
+        "LH__bcb8eeb215dc9eb3fe2fe408",
+        "LH__d676dceb3b8f35084224ccba",
+        "LH__e38a465b3edf658b9a2e93de",
+        "LH__e55e8283d4137afd64063be0",
+        "LH__ed65cb6b4c7aeea62731a4ad",
+        "NOT_0b93c14bf3f3e7a4e25aa57d",
+        "NOT_4613fd589e4e536194235bbf",
+        "NOT_6d703f5dbbb3a39bd8a9e93d",
+        "NOT_9fe936a2592fc029062d6411",
+        "PER_15307425d29ca7516494562d",
+        "PER_5048c6167f5e2e230b2ea3ef",
+        "PER_66e8b948a49746fa64b69eba",
+        "PER_697e41ffc5cdd629657f1c8d",
+        "PER_cb6e79110649050f6f6b0730",
+        "PRO_254e6d4ae135e6e081f67607",
+        "PRO_6a66b31b8f84244d491514e6"
+      ],
+      "starts": {
+        "known_units": null,
+        "records": [],
+        "prior": [
+          {
+            "project_id": "PRO_6a66b31b8f84244d491514e6",
+            "name": "과천지식정보타운 S-12",
+            "units": 1424,
+            "dates": [
+              "2024-12-31"
+            ],
+            "source_ids": [
+              "PRO_6a66b31b8f84244d491514e6",
+              "PRO_254e6d4ae135e6e081f67607"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [
+        {
+          "project_id": "PRO_6a66b31b8f84244d491514e6",
+          "name": "과천지식정보타운 S-12",
+          "units": 1424,
+          "dates": [
+            "2026-10-31"
+          ]
+        }
+      ],
+      "explanation": "S12 1424호·2026-10-31 임대 공급계획이 발표1400·Q4와 호환. 공식 블록 미공표로 정확도 분모 제외.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S14",
+      "name": "인천계양",
+      "stage": "입주 시작",
+      "official_value": null,
+      "official_period": "2026년 12월",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PLAN_SCOPE_GAP",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_12d91632b8ca640e1505869f",
+        "PRO_c1f32197fe5a45ab84ea895f",
+        "PRO_325adcce78038cd49c65a01f",
+        "PRO_7dffd65ce8143bd3adcb788a",
+        "PRO_04a4f394cc7df91c10403fd5",
+        "PRO_421fe0f0243dd68b11f2712c",
+        "PRO_017fafed01a4f905828cb913",
+        "PRO_95b506af61f0ff28ddff817c"
+      ],
+      "raw_entity_ids": [
+        "DOC_0d3bb2ff7f41a3933de0fb2e",
+        "DOC_26bf618cf9f52ed17b7bbe7c",
+        "DOC_567399b741819ac6174a35d1",
+        "DOC_8cbb02ee7d9032f425fc15ea",
+        "DOC_96131d25e28a18b567965e4c",
+        "DOC_c132fe15ad6b2af64b677dc0",
+        "DOC_e0aa7665d54fe7c96cf29185",
+        "DOC_ea0933409dbba622a1a6b767",
+        "PRO_017fafed01a4f905828cb913",
+        "PRO_04a4f394cc7df91c10403fd5",
+        "PRO_12d91632b8ca640e1505869f",
+        "PRO_325adcce78038cd49c65a01f",
+        "PRO_421fe0f0243dd68b11f2712c",
+        "PRO_7dffd65ce8143bd3adcb788a",
+        "PRO_95b506af61f0ff28ddff817c",
+        "PRO_c1f32197fe5a45ab84ea895f"
+      ],
+      "starts": {
+        "known_units": 1289,
+        "records": [
+          {
+            "project_id": "PRO_12d91632b8ca640e1505869f",
+            "name": "인천계양 A17",
+            "units": 309,
+            "dates": [
+              "2026-06-01"
+            ],
+            "source_ids": [
+              "PRO_12d91632b8ca640e1505869f",
+              "PRO_c1f32197fe5a45ab84ea895f"
+            ]
+          },
+          {
+            "project_id": "PRO_04a4f394cc7df91c10403fd5",
+            "name": "인천계양 A6",
+            "units": 663,
+            "dates": [
+              "2026-08-29"
+            ],
+            "source_ids": [
+              "PRO_04a4f394cc7df91c10403fd5"
+            ]
+          },
+          {
+            "project_id": "PRO_421fe0f0243dd68b11f2712c",
+            "name": "인천계양 A9",
+            "units": 317,
+            "dates": [
+              "2026-04-30"
+            ],
+            "source_ids": [
+              "PRO_421fe0f0243dd68b11f2712c",
+              "PRO_95b506af61f0ff28ddff817c"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_017fafed01a4f905828cb913",
+            "name": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+            "units": 778,
+            "dates": [
+              "2025-12-29"
+            ],
+            "source_ids": [
+              "PRO_017fafed01a4f905828cb913"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [],
+      "explanation": "발표2026-12 첫입주에 대응하는 승인 블록 일정 미확인. 기존 A2/A3 관리 입주목표2027-04-13. 대상 블록·일정 대사 필요.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S15",
+      "name": "고양창릉",
+      "stage": "입주 진행",
+      "official_value": null,
+      "official_period": "2027년",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PLAN_CANDIDATE",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_f25c0c21ce607faf686e73a5",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_148663cc20e9552d2c42c304"
+      ],
+      "raw_entity_ids": [
+        "DOC_163b9043a4e1b6c396807905",
+        "DOC_2c21f5deedf8e3647afc85af",
+        "DOC_3af53c375b3135d677abfd58",
+        "DOC_40568394acf657168283f458",
+        "DOC_455f51da28e1db80b9fcbc47",
+        "DOC_52c0c1cdaf32fdfe8d3e018e",
+        "DOC_aca05e03f6ebb6f8c907a121",
+        "DOC_cad1e1f77e6227fa08833941",
+        "DOC_d69898a11d907d1c2e7d6a58",
+        "DOC_e1d1a2c9aed0739ff93bd2b9",
+        "DOC_fe8c62c710544566ebd635d0",
+        "LH__02606e66741be52b7171b14c",
+        "LH__45ba74ee4da582bf6e82d860",
+        "LH__61cd5792d76cf8e7bf9a880b",
+        "LH__6ac1bf8ac48d17b7945a759a",
+        "LH__7c6d377912b4d94347e82069",
+        "LH__cae8ffbdd879547bb684b020",
+        "LH__07f13f28a9d61f66a0a55b4e",
+        "LH__18f80d6594d065e6cbf441bc",
+        "LH__4cafce2ec1962c8ed54d33a5",
+        "LH__ab576bef8c526393aca9e003",
+        "NOT_02133e1a0ce8a8df130e5df3",
+        "NOT_10674462d208371af419fa9d",
+        "NOT_606a0c426da12b1d742d586b",
+        "NOT_7d84fefdcfa30a6246417f03",
+        "NOT_c197f105537739c300ebe947",
+        "NOT_c40056259940cb65890c8b36",
+        "PER_054a0bb36f0112acd86cec62",
+        "PER_690954bbf0deb1c1ed0eeba9",
+        "PER_6e764f61643e0212436d1fcf",
+        "PER_7b16ad8ed7e1d46e16cbe05b",
+        "PER_8df7c65a0f031f420c029d73",
+        "PER_90e8189bc19a2a0ca0def934",
+        "PER_9f57512220ed1f4ba507d4c1",
+        "PER_afd15eec0a82101abce17903",
+        "PER_b3bb861a6e3da4b28f5e91c7",
+        "PER_b68b15b93a4f13ab02086f98",
+        "PER_b69351d9e88129cc999c606b",
+        "PER_b74b428207ad4bdf05a17349",
+        "PER_ca852ea1dc48fc539e2458dd",
+        "PER_e068ba27d824f81d1cc49d06",
+        "PER_f3cde208e5488be5859a98f3",
+        "PRO_09fa29b63ffb3ea986cf233f",
+        "PRO_0a79310e612f5bc1215fcad3",
+        "PRO_148663cc20e9552d2c42c304",
+        "PRO_29bf4cef6fb4606948bb3b48",
+        "PRO_4d29636ffa571ff2fdf7c72e",
+        "PRO_80a5c2cd5cc076e96d8dd72c",
+        "PRO_bc01f01ac015b15530c7e35b",
+        "PRO_cc5d09785c131c57c2e7e642",
+        "PRO_cd0ad7de7ca676c6f3981f1f",
+        "PRO_e72836551bdd58eec3660b80",
+        "PRO_f25c0c21ce607faf686e73a5"
+      ],
+      "starts": {
+        "known_units": 2306,
+        "records": [
+          {
+            "project_id": "PRO_4d29636ffa571ff2fdf7c72e",
+            "name": "고양창릉 S-03",
+            "units": 1282,
+            "dates": [
+              "2026-04-15"
+            ],
+            "source_ids": [
+              "PRO_4d29636ffa571ff2fdf7c72e",
+              "PRO_80a5c2cd5cc076e96d8dd72c"
+            ]
+          },
+          {
+            "project_id": "PRO_0a79310e612f5bc1215fcad3",
+            "name": "고양창릉 S-04",
+            "units": 1024,
+            "dates": [
+              "2026-03-31"
+            ],
+            "source_ids": [
+              "PRO_0a79310e612f5bc1215fcad3",
+              "PRO_cc5d09785c131c57c2e7e642"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_09fa29b63ffb3ea986cf233f",
+            "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+            "units": 900,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_09fa29b63ffb3ea986cf233f"
+            ]
+          },
+          {
+            "project_id": "PRO_e72836551bdd58eec3660b80",
+            "name": "고양창릉 S-01",
+            "units": 494,
+            "dates": [
+              "2025-12-31"
+            ],
+            "source_ids": [
+              "PRO_e72836551bdd58eec3660b80",
+              "PRO_f25c0c21ce607faf686e73a5"
+            ]
+          },
+          {
+            "project_id": "PRO_29bf4cef6fb4606948bb3b48",
+            "name": "고양창릉 S-02",
+            "units": 1057,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_29bf4cef6fb4606948bb3b48",
+              "PRO_bc01f01ac015b15530c7e35b"
+            ]
+          },
+          {
+            "project_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+            "name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+            "units": 759,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_cd0ad7de7ca676c6f3981f1f"
+            ]
+          },
+          {
+            "project_id": "PRO_148663cc20e9552d2c42c304",
+            "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+            "units": 430,
+            "dates": [
+              "2024-10-31"
+            ],
+            "source_ids": [
+              "PRO_148663cc20e9552d2c42c304"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [
+        {
+          "project_id": "PRO_148663cc20e9552d2c42c304",
+          "name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+          "units": 430,
+          "dates": [
+            "2027-12-31"
+          ]
+        }
+      ],
+      "explanation": "창릉 S6 승인 입주목표2027-12-31 존재. 발표2027과 기간 호환. 물량·블록 미공표로 수치 정확도 제외.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    },
+    {
+      "id": "S16",
+      "name": "부천대장",
+      "stage": "입주 진행",
+      "official_value": null,
+      "official_period": "2027년",
+      "actual_value": null,
+      "difference": null,
+      "difference_pct": null,
+      "status": "PLAN_CANDIDATE",
+      "accuracy_eligible": false,
+      "managed_name_found": true,
+      "raw_name_found": true,
+      "managed_project_ids": [
+        "PRO_f84e7049e2e679bdad59fdcb",
+        "PRO_d45f401d3810473a7b1a1030",
+        "PRO_e2aefb3da54e732fd248384d",
+        "PRO_b880a907c24a95915be5fb6e",
+        "PRO_4ce4de9490cbe0a07f49c657",
+        "PRO_69217405e9523695488434c1",
+        "PRO_60b4a8833ed549023a6ef1a5",
+        "PRO_d86ce8966f5ed10d5ef2d175",
+        "PRO_984164fef8c491cac3388381",
+        "PRO_981ca316073354b11ac87f21",
+        "PRO_4d3397869cc1cd2e52d0da8f",
+        "PRO_64708e6eff91c584399a3045"
+      ],
+      "raw_entity_ids": [
+        "DOC_00fd1ec215a0ef98ecbcf5f8",
+        "DOC_2639c3a9e9d722506449af81",
+        "DOC_567718fb49205821758bef93",
+        "DOC_7b8a4c75d5ba91402710458b",
+        "DOC_826a7766f7b5cb5bd24e04ae",
+        "DOC_85a6fbb2285bc945c1fef527",
+        "DOC_ae7835f52640fb851f74399e",
+        "DOC_c97f9c9f27bfd12f6b3ad2cb",
+        "LH__243e26dadb460675dd49d235",
+        "LH__263e02c38ac8c27f8419b5e6",
+        "LH__3c30d906dfeacbc904410da2",
+        "LH__509466042d4c6974910737f5",
+        "LH__816bc78e7861abed9c87b888",
+        "LH__bd8232fa74c8e317a6731ab2",
+        "LH__419b6039b6a3ca2cd938e18e",
+        "LH__48252c1d8ee44cad29ee42f4",
+        "LH__603f034b977c5741f5d75ef9",
+        "LH__71a866383e42acd39ea662b6",
+        "NOT_3aca01df7e1cc1d38d3b6a3d",
+        "NOT_b1e81e390a644f1762eae187",
+        "NOT_bba3413015c72edb1baaf78d",
+        "NOT_c5f7be64e43a1e57392f76e0",
+        "PER_0eb27067f0a691afe580a236",
+        "PER_126f05ecc047b18c659206d6",
+        "PER_19c0b5a2c917797157bf2453",
+        "PER_24da8339977fa1f0f5607b57",
+        "PER_4a4d9ecb55b6a81af40508b5",
+        "PER_659498cd3ee4d1ca7910c9da",
+        "PER_e8e5689db2ee15466049b6a7",
+        "PER_f8d86ede5027726f4a0b9a32",
+        "PRO_4ce4de9490cbe0a07f49c657",
+        "PRO_4d3397869cc1cd2e52d0da8f",
+        "PRO_60b4a8833ed549023a6ef1a5",
+        "PRO_64708e6eff91c584399a3045",
+        "PRO_69217405e9523695488434c1",
+        "PRO_981ca316073354b11ac87f21",
+        "PRO_984164fef8c491cac3388381",
+        "PRO_b880a907c24a95915be5fb6e",
+        "PRO_d45f401d3810473a7b1a1030",
+        "PRO_d86ce8966f5ed10d5ef2d175",
+        "PRO_e2aefb3da54e732fd248384d",
+        "PRO_f84e7049e2e679bdad59fdcb"
+      ],
+      "starts": {
+        "known_units": 1343,
+        "records": [
+          {
+            "project_id": "PRO_f84e7049e2e679bdad59fdcb",
+            "name": "부천대장 A-12BL 통합형 민간참여 공공주택건설사업",
+            "units": 795,
+            "dates": [
+              "2026-03-01"
+            ],
+            "source_ids": [
+              "PRO_f84e7049e2e679bdad59fdcb"
+            ]
+          },
+          {
+            "project_id": "PRO_69217405e9523695488434c1",
+            "name": "부천대장 A2",
+            "units": 548,
+            "dates": [
+              "2026-02-01"
+            ],
+            "source_ids": [
+              "PRO_e2aefb3da54e732fd248384d",
+              "PRO_69217405e9523695488434c1"
+            ]
+          }
+        ],
+        "prior": [
+          {
+            "project_id": "PRO_d45f401d3810473a7b1a1030",
+            "name": "부천대장 A-1BL 아파트 건설공사 3공구",
+            "units": 1002,
+            "dates": [
+              "2025-09-30"
+            ],
+            "source_ids": [
+              "PRO_d45f401d3810473a7b1a1030"
+            ]
+          },
+          {
+            "project_id": "PRO_60b4a8833ed549023a6ef1a5",
+            "name": "부천대장 A5",
+            "units": 314,
+            "dates": [
+              "2025-01-28",
+              "2025-03-24"
+            ],
+            "source_ids": [
+              "PRO_4ce4de9490cbe0a07f49c657",
+              "PRO_60b4a8833ed549023a6ef1a5"
+            ]
+          },
+          {
+            "project_id": "PRO_d86ce8966f5ed10d5ef2d175",
+            "name": "부천대장 A6",
+            "units": 227,
+            "dates": [
+              "2025-03-24"
+            ],
+            "source_ids": [
+              "PRO_b880a907c24a95915be5fb6e",
+              "PRO_d86ce8966f5ed10d5ef2d175"
+            ]
+          },
+          {
+            "project_id": "PRO_984164fef8c491cac3388381",
+            "name": "부천대장 A7",
+            "units": 473,
+            "dates": [
+              "2024-12-30"
+            ],
+            "source_ids": [
+              "PRO_984164fef8c491cac3388381",
+              "PRO_4d3397869cc1cd2e52d0da8f"
+            ]
+          },
+          {
+            "project_id": "PRO_981ca316073354b11ac87f21",
+            "name": "부천대장 A8",
+            "units": 392,
+            "dates": [
+              "2024-12-30"
+            ],
+            "source_ids": [
+              "PRO_981ca316073354b11ac87f21",
+              "PRO_64708e6eff91c584399a3045"
+            ]
+          }
+        ]
+      },
+      "matching_schedules": [
+        {
+          "project_id": "PRO_60b4a8833ed549023a6ef1a5",
+          "name": "부천대장 A5",
+          "units": 314,
+          "dates": [
+            "2027-11-30"
+          ]
+        },
+        {
+          "project_id": "PRO_d86ce8966f5ed10d5ef2d175",
+          "name": "부천대장 A6",
+          "units": 227,
+          "dates": [
+            "2027-11-30"
+          ]
+        }
+      ],
+      "explanation": "대장 A5/A6 승인 입주목표2027-11-30 존재. 발표2027과 기간 호환. 수량 미발표로 정확도 제외.",
+      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506"
+    }
+  ],
+  "database_capture": {
+    "captured_at": "2026-10-16T13:01:22.058432+00:00",
+    "snapshot": "37248:37248:"
+  },
+  "methodology": {
+    "approval": "담당자 승인값·연결은 정확한 확정값",
+    "rounding": "분석자의 표시 정밀도 비교이며 공식 오차 허용치 아님",
+    "exclusion": "기간·모집단·버전·블록 대응이 다른 항목은 정확도 분모 제외"
+  }
+}

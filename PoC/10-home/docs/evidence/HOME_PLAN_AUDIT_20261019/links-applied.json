@@ -1,0 +1,7630 @@
+{
+  "applied": true,
+  "actor": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19",
+  "protected_before": "cf89280e575a7a1befe4014b6788de9a436b36706bb1d0249678dec3530d654a",
+  "protected_after": "cf89280e575a7a1befe4014b6788de9a436b36706bb1d0249678dec3530d654a",
+  "proposed": [
+    {
+      "id": "EVI_991d4a6be588fc01a52d7082",
+      "target_id": "PRO_687b3d75300242efdbf92fcc",
+      "target_name": "양주회천 A26",
+      "source_id": "lh_completion_plan",
+      "source_name": "양주회천(택) A26",
+      "source_ids": [
+        "LH__854d59af4b5380e076ec6f64"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 792,
+      "scope_key": [
+        "경기도",
+        "양주회천",
+        "A26"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 792
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 양주회천, 블록 A26, 공식 계획 792호 = 기존 승인 사업 792호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_39cdcb364b7344252e9c606e",
+      "target_id": "PRO_b39de55a5159fecbfe750bb6",
+      "target_name": "의정부법조타운 S3",
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부법조타운 S3",
+      "source_ids": [
+        "LH__0bef31fc5ef32e6440eb3cd3"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 544,
+      "scope_key": [
+        "경기도",
+        "의정부법조타운",
+        "S3"
+      ],
+      "tenure": "분양주택(이익공유형)",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-02-28",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 544
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의정부법조타운, 블록 S3, 공식 계획 544호 = 기존 승인 사업 544호. 원천 유형 분양주택(이익공유형); 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "not_in_reviewed_allow_list"
+    },
+    {
+      "id": "EVI_ca552dc2f5769b21ec14f780",
+      "target_id": "PRO_b39de55a5159fecbfe750bb6",
+      "target_name": "의정부법조타운 S3",
+      "source_id": "lh_completion_plan",
+      "source_name": "의정부법조타운 S-3BL S3",
+      "source_ids": [
+        "LH__3e3e94ee6c02bc574b8069bf"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 544,
+      "scope_key": [
+        "경기도",
+        "의정부법조타운S-3BL",
+        "S3"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2029-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 544
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의정부법조타운S-3BL, 블록 S3, 공식 계획 544호 = 기존 승인 사업 544호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "not_in_reviewed_allow_list"
+    },
+    {
+      "id": "EVI_fd3eae236c6d5ba31e828d66",
+      "target_id": "PRO_9ac25f1509bc7f37adddafd1",
+      "target_name": "인천가정2 B2",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천가정2 B2",
+      "source_ids": [
+        "LH__6a2161c689b19f89aaa573b7"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 308,
+      "scope_key": [
+        "인천광역시",
+        "인천가정2",
+        "B2"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-03-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 308
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천가정2, 블록 B2, 공식 계획 308호 = 기존 승인 사업 308호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_8e18e0862360f66fb047f0dc",
+      "target_id": "PRO_8ccbf751972faf82dc5b094d",
+      "target_name": "인천검단 AA19",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천검단 AA19",
+      "source_ids": [
+        "LH__0d2010851fac0ed1680b0a91"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 991,
+      "scope_key": [
+        "인천광역시",
+        "인천검단",
+        "AA19"
+      ],
+      "tenure": "국민임대",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 991
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천검단, 블록 AA19, 공식 계획 991호 = 기존 승인 사업 991호. 원천 유형 국민임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_fab2feea1d5ea27e93587b59",
+      "target_id": "PRO_3cb5f412f922f460f58516ca",
+      "target_name": "인천검단 AA19",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천검단 AA19",
+      "source_ids": [
+        "LH__82db82966e08073f94a19b3a"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 332,
+      "scope_key": [
+        "인천광역시",
+        "인천검단",
+        "AA19"
+      ],
+      "tenure": "영구임대",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2027-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 332
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천검단, 블록 AA19, 공식 계획 332호 = 기존 승인 사업 332호. 원천 유형 영구임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_42967fc13690de48895ea145",
+      "target_id": "PRO_76abe08cb7c430960fb40f03",
+      "target_name": "인천검단 AA-21BL 아파트 건설공사 7공구",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천검단 AA21",
+      "source_ids": [
+        "LH__785413428b88b9beb9fbcca6"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 1224,
+      "scope_key": [
+        "인천광역시",
+        "인천검단",
+        "AA21"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2026-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 1224
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천검단, 블록 AA21, 공식 계획 1224호 = 기존 승인 사업 1224호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_09d4ec2f4597a795eefe2618",
+      "target_id": "PRO_017fafed01a4f905828cb913",
+      "target_name": "조달청)인천계양 A-10BL 아파트 건설공사 4공구",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천계양(공공주택) A10",
+      "source_ids": [
+        "LH__51592092bc31d339c7787854"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 778,
+      "scope_key": [
+        "인천광역시",
+        "인천계양",
+        "A10"
+      ],
+      "tenure": "통합공공임대",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-09-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 778
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천계양, 블록 A10, 공식 계획 778호 = 기존 승인 사업 778호. 원천 유형 통합공공임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_efd0ba6314f5b266d7392d8c",
+      "target_id": "PRO_04a4f394cc7df91c10403fd5",
+      "target_name": "인천계양 A6",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천계양(공공주택) A6",
+      "source_ids": [
+        "LH__096a81dba543b4f6faa58c36"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 663,
+      "scope_key": [
+        "인천광역시",
+        "인천계양",
+        "A6"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 663
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천계양, 블록 A6, 공식 계획 663호 = 기존 승인 사업 663호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_29b2b6dab640946a4e40b164",
+      "target_id": "PRO_421fe0f0243dd68b11f2712c",
+      "target_name": "인천계양 A9",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천계양(공공주택) A9",
+      "source_ids": [
+        "LH__be1d2a540a55530694e9dafb"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 317,
+      "scope_key": [
+        "인천광역시",
+        "인천계양",
+        "A9"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-12-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 317
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천계양, 블록 A9, 공식 계획 317호 = 기존 승인 사업 317호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_6f5876c101b6a9f56dadb644",
+      "target_id": "PRO_3f8c1fea26831aa04fcfdcb7",
+      "target_name": "인천영종 A-24BL 아파트 건설공사 12공구",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천영종 A24",
+      "source_ids": [
+        "LH__d31e82b3067874028f03237e"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 641,
+      "scope_key": [
+        "인천광역시",
+        "인천영종",
+        "A24"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-08-31",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 641
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천영종, 블록 A24, 공식 계획 641호 = 기존 승인 사업 641호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_df80369c69ff7d0e4c94ed87",
+      "target_id": "PRO_4f1c664272dc56715a82cb02",
+      "target_name": "인천영종 A62",
+      "source_id": "lh_completion_plan",
+      "source_name": "인천영종 A62",
+      "source_ids": [
+        "LH__c324e9f30267564f4f2a3a69"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 792,
+      "scope_key": [
+        "인천광역시",
+        "인천영종",
+        "A62"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "CONSTRUCTION",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "basis": "LH 블록별 준공예정 · 실제 준공·입주 아님",
+          "milestone": "COMPLETION",
+          "units": 792
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천영종, 블록 A62, 공식 계획 792호 = 기존 승인 사업 792호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_1139b1787d318f83c5daa837",
+      "target_id": "PRO_3e4fe820f1cb21379bbbe611",
+      "target_name": "민간참여) 성남신촌 A-1BL 민간참여 공공주택 건설사업",
+      "source_id": "lh_movein_history",
+      "source_name": "성남신촌 A1 · 통합공공임대 60이하㎡",
+      "source_ids": [
+        "LH__206e438135d86b25029b5199",
+        "LH__b383377308eb790ebd675116"
+      ],
+      "source_revision_nos": [
+        18,
+        18
+      ],
+      "units": 227,
+      "scope_key": [
+        "경기도",
+        "성남신촌",
+        "A1"
+      ],
+      "tenure": "통합공공임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2026-10-31",
+          "precision": "MONTH",
+          "date_label": "2026-10",
+          "units": 227,
+          "basis": "LH 연간 입주계획 원문 동일 블록·주택유형·면적별 계획"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 성남신촌, 블록 A1, 공식 계획 227호 = 기존 승인 사업 227호. 원천 유형 통합공공임대; 원천 2행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10882",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_73d981e0e0a66d814ede00ed",
+      "target_id": "PRO_76abe08cb7c430960fb40f03",
+      "target_name": "인천검단 AA-21BL 아파트 건설공사 7공구",
+      "source_id": "lh_movein_history",
+      "source_name": "인천검단 AA21 · 공공분양 60-85㎡",
+      "source_ids": [
+        "LH__3a257c5570614fe630c4ad37"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 1224,
+      "scope_key": [
+        "인천광역시",
+        "인천검단",
+        "AA21"
+      ],
+      "tenure": "공공분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2026-10-31",
+          "precision": "MONTH",
+          "date_label": "2026-10",
+          "units": 1224,
+          "basis": "LH 연간 입주계획 원문 동일 블록·주택유형·면적별 계획"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 인천광역시, 지구 인천검단, 블록 AA21, 공식 계획 1224호 = 기존 승인 사업 1224호. 원천 유형 공공분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654827&seq=10882",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_39779df5c8883bda0dd87873",
+      "target_id": "PRO_4e0a46c41cc48a371a6fc916",
+      "target_name": "고양장항 S-1BL 아파트 건설공사 5공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "고양장항S1(공공분양)",
+      "source_ids": [
+        "AGE_45d57f8cbcaf51fc53daf5ec"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 869,
+      "scope_key": [
+        "경기도",
+        "고양장항",
+        "S1"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-03-31",
+          "units": 869,
+          "date_label": "2028-03",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 고양장항, 블록 S1, 공식 계획 869호 = 기존 승인 사업 869호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_dbdf8f5175a7f2e25df64fa7",
+      "target_id": "PRO_cd0ad7de7ca676c6f3981f1f",
+      "target_name": "고양창릉 S-5BL 아파트 건설공사 2공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "고양창릉지구 S-5 공공분양",
+      "source_ids": [
+        "AGE_fd5e1ead1ca30f033988cb66"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 759,
+      "scope_key": [
+        "경기도",
+        "고양창릉",
+        "S5"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-01-31",
+          "units": 759,
+          "date_label": "2028-01",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 고양창릉, 블록 S5, 공식 계획 759호 = 기존 승인 사업 759호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_f30ca0dbbe10a450d79af9ff",
+      "target_id": "PRO_148663cc20e9552d2c42c304",
+      "target_name": "고양창릉 S-6BL 아파트 건설공사 3공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "고양창릉지구 S-6 공공분양",
+      "source_ids": [
+        "AGE_f46f3deefbe383c9cde4297f"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 430,
+      "scope_key": [
+        "경기도",
+        "고양창릉",
+        "S6"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "units": 430,
+          "date_label": "2027-12",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 고양창릉, 블록 S6, 공식 계획 430호 = 기존 승인 사업 430호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_bbacbe448261aafba3b0affd",
+      "target_id": "PRO_bceb35af2280eaa50c810c09",
+      "target_name": "과천주암(뉴스테이) C2",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "과천주암(뉴스테이)C2(행복주택)",
+      "source_ids": [
+        "AGE_d2efc34d602b0560679c27c8"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 344,
+      "scope_key": [
+        "경기도",
+        "과천주암",
+        "C2"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "units": 344,
+          "date_label": "2028-06",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 과천주암, 블록 C2, 공식 계획 344호 = 기존 승인 사업 344호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_77cc2707c55fb464d23bddb8",
+      "target_id": "PRO_6a66b31b8f84244d491514e6",
+      "target_name": "과천지식정보타운 S-12",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "과천지식정보타운 S-12BL 행복주택",
+      "source_ids": [
+        "AGE_14e0453d1e51636e7d56d9cc"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 1424,
+      "scope_key": [
+        "경기도",
+        "과천지식정보타운",
+        "S12"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-12-31",
+          "units": 1424,
+          "date_label": "2027-12",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 과천지식정보타운, 블록 S12, 공식 계획 1424호 = 기존 승인 사업 1424호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_9837d8a773f35b60dc7b8388",
+      "target_id": "PRO_1f4c8795c658a64e348d64d0",
+      "target_name": "조달청)남양주진접2 B-1BL 아파트 건설공사 2공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "남양주진접2B1(공공분양)",
+      "source_ids": [
+        "AGE_ca47ad6a1d9911f0691f3729"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 260,
+      "scope_key": [
+        "경기도",
+        "남양주진접2",
+        "B1"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-04-30",
+          "units": 260,
+          "date_label": "2028-04",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 남양주진접2, 블록 B1, 공식 계획 260호 = 기존 승인 사업 260호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_1866913b99ae0e9549d77f51",
+      "target_id": "PRO_4a1b0a207f5a806c3f755e5e",
+      "target_name": "다산지금A3",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "다산지금A3(통합공공임대)",
+      "source_ids": [
+        "AGE_d4e620bbd52eaad2231257d3"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 518,
+      "scope_key": [
+        "경기도",
+        "다산지금",
+        "A3"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-05-31",
+          "units": 518,
+          "date_label": "2027-05",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 다산지금, 블록 A3, 공식 계획 518호 = 기존 승인 사업 518호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_7518ee73f81c4cdcef4b212a",
+      "target_id": "PRO_984164fef8c491cac3388381",
+      "target_name": "부천대장 A7",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "부천대장A7(공공분양)",
+      "source_ids": [
+        "AGE_7a523754324e4aa4418e45ba"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 473,
+      "scope_key": [
+        "경기도",
+        "부천대장",
+        "A7"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-01-31",
+          "units": 473,
+          "date_label": "2028-01",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 부천대장, 블록 A7, 공식 계획 473호 = 기존 승인 사업 473호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_dab401e18ee2c5c7da09b602",
+      "target_id": "PRO_981ca316073354b11ac87f21",
+      "target_name": "부천대장 A8",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "부천대장A8(공공분양)",
+      "source_ids": [
+        "AGE_d296d5c3fa99a4a29e65633e"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 392,
+      "scope_key": [
+        "경기도",
+        "부천대장",
+        "A8"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-01-31",
+          "units": 392,
+          "date_label": "2028-01",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 부천대장, 블록 A8, 공식 계획 392호 = 기존 승인 사업 392호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_a9eec9d007fc86344c4606e5",
+      "target_id": "PRO_b572acaa0e4e1468c625d137",
+      "target_name": "성남금토 A4",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "성남금토A4(행복주택)",
+      "source_ids": [
+        "AGE_807c6928f8ac9699ffc5335f"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 384,
+      "scope_key": [
+        "경기도",
+        "성남금토",
+        "A4"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "units": 384,
+          "date_label": "2027-11",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 성남금토, 블록 A4, 공식 계획 384호 = 기존 승인 사업 384호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_8fcdccc08e628413d4d2925e",
+      "target_id": "PRO_3e4fe820f1cb21379bbbe611",
+      "target_name": "민간참여) 성남신촌 A-1BL 민간참여 공공주택 건설사업",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "성남신촌 A1블록 통합공공임대주택",
+      "source_ids": [
+        "AGE_bb5bed80281506f46bc45b6c"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 227,
+      "scope_key": [
+        "경기도",
+        "성남신촌",
+        "A1"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2026-10-31",
+          "units": 227,
+          "date_label": "2026-10",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 성남신촌, 블록 A1, 공식 계획 227호 = 기존 승인 사업 227호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_3f8af4858ae1e8940fa39a23",
+      "target_id": "PRO_b5b91172d6eed372aeb26e11",
+      "target_name": "의왕월암 A1",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "의왕월암A1(행복주택)",
+      "source_ids": [
+        "AGE_e410a7ce7771376256fda1d7"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 228,
+      "scope_key": [
+        "경기도",
+        "의왕월암",
+        "A1"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-11-30",
+          "units": 228,
+          "date_label": "2027-11",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의왕월암, 블록 A1, 공식 계획 228호 = 기존 승인 사업 228호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_ad52a93d9cdff4a097a1d925",
+      "target_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "target_name": "의왕월암 A3",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "의왕월암A3(행복주택)",
+      "source_ids": [
+        "AGE_76eb41d20945e0d371af3f7b"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 218,
+      "scope_key": [
+        "경기도",
+        "의왕월암",
+        "A3"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-04-30",
+          "units": 218,
+          "date_label": "2028-04",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의왕월암, 블록 A3, 공식 계획 218호 = 기존 승인 사업 218호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_eb81edd9ede45f3937bfa819",
+      "target_id": "PRO_7dbb8517958f6375fc421333",
+      "target_name": "의왕청계2 A1",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "의왕청계2A1(행복주택)",
+      "source_ids": [
+        "AGE_8d5adea8b54a701cb71292df"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 160,
+      "scope_key": [
+        "경기도",
+        "의왕청계2",
+        "A1"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-04-30",
+          "units": 160,
+          "date_label": "2028-04",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의왕청계2, 블록 A1, 공식 계획 160호 = 기존 승인 사업 160호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_2a7f37d56a33a81a9a0c1547",
+      "target_id": "PRO_840dde9c0a83c846e6d18690",
+      "target_name": "의왕초평(뉴스테이) A4",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "의왕초평 A-4BL",
+      "source_ids": [
+        "AGE_3e6eca8518ce225247a93862"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 381,
+      "scope_key": [
+        "경기도",
+        "의왕초평",
+        "A4"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-06-30",
+          "units": 381,
+          "date_label": "2027-06",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의왕초평, 블록 A4, 공식 계획 381호 = 기존 승인 사업 381호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_45c0a37679274ec060d3f576",
+      "target_id": "PRO_9bd9311231d4f52cf4fd0d2a",
+      "target_name": "조달청)의정부우정 A-1BL 아파트 건설공사 1공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "의정부우정 A1블록 공공분양주택(본청약)",
+      "source_ids": [
+        "AGE_7c2dec4895b3dbd0810bc96b"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 538,
+      "scope_key": [
+        "경기도",
+        "의정부우정",
+        "A1"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2028-06-30",
+          "units": 538,
+          "date_label": "2028-06",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 의정부우정, 블록 A1, 공식 계획 538호 = 기존 승인 사업 538호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_0cd39930cd4d9eff2b9af724",
+      "target_id": "PRO_afa121ebed699e8aab86cd60",
+      "target_name": "이천장호원 B2BL 아파트 건설공사 1공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "이천장호원B2(통합공공임대)",
+      "source_ids": [
+        "AGE_68020b6b6722cf5d33f9df4e"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 620,
+      "scope_key": [
+        "경기도",
+        "이천장호원",
+        "B2"
+      ],
+      "tenure": "임대",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2026-11-30",
+          "units": 620,
+          "date_label": "2026-11",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 이천장호원, 블록 B2, 공식 계획 620호 = 기존 승인 사업 620호. 원천 유형 임대; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_0ea1670d4ba54a78afef0e06",
+      "target_id": "PRO_8c391ca1a19b12b73f9bd9bd",
+      "target_name": "파주운정3 A20BL 아파트 건설공사 13공구",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "파주운정3지구 A20블록 공공분양주택",
+      "source_ids": [
+        "AGE_07d0216e7c26db6508f313bc"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 612,
+      "scope_key": [
+        "경기도",
+        "파주운정3",
+        "A20"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-08-31",
+          "units": 612,
+          "date_label": "2027-08",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 경기도, 지구 파주운정3, 블록 A20, 공식 계획 612호 = 기존 승인 사업 612호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    },
+    {
+      "id": "EVI_4be7d26323371d3752a5e333",
+      "target_id": "PRO_1fbf5c7629634fa05be7652a",
+      "target_name": "고덕강일 3단지",
+      "source_id": "reb_movein_plan_file",
+      "source_name": "고덕강일3단지",
+      "source_ids": [
+        "AGE_5a670c35d5d236ef445225e3"
+      ],
+      "source_revision_nos": [
+        1
+      ],
+      "units": 1305,
+      "scope_key": [
+        "서울특별시",
+        "고덕강일",
+        "COMPLEX_3"
+      ],
+      "tenure": "분양",
+      "facts": [
+        {
+          "stage": "MOVE_IN",
+          "kind": "PLAN",
+          "date": "2027-05-31",
+          "units": 1305,
+          "date_label": "2027-05",
+          "precision": "MONTH",
+          "date_conversion": "MONTH_END",
+          "basis": "공식 공개파일 예정 일정 · 실제 사건일 아님"
+        }
+      ],
+      "basis": "담당자 대행 · 사용자 연결 검토 지시 2026-10-19. 시도 서울특별시, 지구 고덕강일, 블록 COMPLEX_3, 공식 계획 1305호 = 기존 승인 사업 1305호. 원천 유형 분양; 원천 1행의 동일 예정시기 세부 물량 대조. 승인 정책·사업 범위 유지, 계획 근거만 연결.",
+      "evidence_url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "result": "confirmed"
+    }
+  ],
+  "held": [
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 371,
+      "source_ids": [
+        "LH__c3f14362ef6eeff64ffda097"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 279,
+      "source_ids": [
+        "LH__df006e207b603c7e11460c17"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A6"
+      ],
+      "tenure": "행복주택",
+      "units": 915,
+      "source_ids": [
+        "LH__796887cd9ec203f5462d98a3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "고양창릉",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 603,
+      "source_ids": [
+        "LH__6ac1bf8ac48d17b7945a759a"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_09fa29b63ffb3ea986cf233f",
+          "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+          "units": 900
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "고양창릉",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 297,
+      "source_ids": [
+        "LH__45ba74ee4da582bf6e82d860"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_09fa29b63ffb3ea986cf233f",
+          "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+          "units": 900
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "과천주암",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 386,
+      "source_ids": [
+        "LH__d43fb2a7e2d9e735b6462bc0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "과천주암",
+        "C1"
+      ],
+      "tenure": "공공분양",
+      "units": 932,
+      "source_ids": [
+        "LH__3c7ca89acdac43437626d665"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_9ee37f274e85961971980bc6",
+          "name": "조달청)과천주암 C-1BL 공동주택 건설공사 1공구",
+          "units": 1338
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "과천주암",
+        "C1"
+      ],
+      "tenure": "행복주택",
+      "units": 406,
+      "source_ids": [
+        "LH__83cd9ab050015670d871712c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_9ee37f274e85961971980bc6",
+          "name": "조달청)과천주암 C-1BL 공동주택 건설공사 1공구",
+          "units": 1338
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "과천주암",
+        "C2"
+      ],
+      "tenure": "공공분양",
+      "units": 686,
+      "source_ids": [
+        "LH__f3acb977a159187305a2662b"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_bceb35af2280eaa50c810c09",
+          "name": "과천주암(뉴스테이) C2",
+          "units": 344
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "과천지식S11BL",
+        "S11"
+      ],
+      "tenure": "행복주택",
+      "units": 846,
+      "source_ids": [
+        "LH__c9d6ad6c62d82b5a31ade1c6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "구리갈매역세권",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 1182,
+      "source_ids": [
+        "LH__b4c096aef492f64ddc68d005"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b0f7e7ded4e31142e5b39d02",
+          "name": "구리갈매역세권 A-1",
+          "units": 609
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "구리갈매역세권",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 251,
+      "source_ids": [
+        "LH__f71a3cebb9670e331d0e331b"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_e79e6d9e96f006b1537e24f4",
+          "name": "조달청)구리갈매역세권 A-4BL 아파트 건설공사 2공구",
+          "units": 561
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "구리갈매역세권",
+        "A4"
+      ],
+      "tenure": "공공임대(6년)",
+      "units": 310,
+      "source_ids": [
+        "LH__5d2ebeeba935420af0382de7"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_e79e6d9e96f006b1537e24f4",
+          "name": "조달청)구리갈매역세권 A-4BL 아파트 건설공사 2공구",
+          "units": 561
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "구리갈매역세권",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 566,
+      "source_ids": [
+        "LH__da1d460e24ed100aef8558e6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "군포대야미",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 1003,
+      "source_ids": [
+        "LH__60342d3d8707cc6f79ef9a34"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b08b4358cb7f64e9637fb3a0",
+          "name": "군포대야미 A-2BL 아파트 건설공사 1공구",
+          "units": 1511
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "군포대야미",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 508,
+      "source_ids": [
+        "LH__6c18ba1aad2249592692055b"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b08b4358cb7f64e9637fb3a0",
+          "name": "군포대야미 A-2BL 아파트 건설공사 1공구",
+          "units": 1511
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "김포고촌2",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 262,
+      "source_ids": [
+        "LH__eddef6c27124370f2cce2298"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_5c41696f54ce584f4f9b324c",
+          "name": "조달청)김포고촌2 A1BL 아파트 건설공사 1공구",
+          "units": 350
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "김포고촌2",
+        "A1"
+      ],
+      "tenure": "통합공공임대",
+      "units": 88,
+      "source_ids": [
+        "LH__5379df37e7621d8ed9e4a342"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_5c41696f54ce584f4f9b324c",
+          "name": "조달청)김포고촌2 A1BL 아파트 건설공사 1공구",
+          "units": 350
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 401,
+      "source_ids": [
+        "LH__d4e74e32672f1539c84a0e0a"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b94e9de3e3e2bbd4f05e5272",
+          "name": "조달청)남양주왕숙 A-2BL 아파트 건설공사 2공구",
+          "units": 608
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 207,
+      "source_ids": [
+        "LH__d5d9208ae8f3bfa3949d1c7d"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b94e9de3e3e2bbd4f05e5272",
+          "name": "조달청)남양주왕숙 A-2BL 아파트 건설공사 2공구",
+          "units": 608
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A20"
+      ],
+      "tenure": "공공분양",
+      "units": 634,
+      "source_ids": [
+        "LH__8bc318766c16a009590bb381"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A20"
+      ],
+      "tenure": "행복주택",
+      "units": 327,
+      "source_ids": [
+        "LH__fc1a5c5ca5b320ffdf19c3e4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A22"
+      ],
+      "tenure": "통합공공임대",
+      "units": 801,
+      "source_ids": [
+        "LH__2a34e4642381f2228120c694"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A24"
+      ],
+      "tenure": "공공분양",
+      "units": 390,
+      "source_ids": [
+        "LH__f4c20caf6951447174752a00"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_92a0bd4e283231a4a8007d2a",
+          "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+          "units": 589
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "A24"
+      ],
+      "tenure": "행복주택",
+      "units": 199,
+      "source_ids": [
+        "LH__f53d1a92b7b35eaaadd48935"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_92a0bd4e283231a4a8007d2a",
+          "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+          "units": 589
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙",
+        "S18"
+      ],
+      "tenure": "통합공공임대",
+      "units": 1067,
+      "source_ids": [
+        "LH__76d3bf6eeef10eaf815e383c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_36bfc1e9221a570c5661f8ea",
+          "name": "남양주왕숙 S-18",
+          "units": 965
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙2",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 803,
+      "source_ids": [
+        "LH__1bdd495a9b865fb51b82b8f3"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_446826cdc93ccf8d880cb0f1",
+          "name": "남양주왕숙2 A01",
+          "units": 812
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙2",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 525,
+      "source_ids": [
+        "LH__89467421a860f1950397f7d4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙2",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 262,
+      "source_ids": [
+        "LH__e219e254436f6151335eb219"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙2",
+        "A6"
+      ],
+      "tenure": "공공분양",
+      "units": 468,
+      "source_ids": [
+        "LH__b1de1dbc55c82790d8e06aa9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주왕숙2",
+        "A7"
+      ],
+      "tenure": "공공분양",
+      "units": 552,
+      "source_ids": [
+        "LH__f1ef7a820171ec04c9c6a934"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A2"
+      ],
+      "tenure": "영구임대",
+      "units": 316,
+      "source_ids": [
+        "LH__d93c1383d410e241d9544258"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 300,
+      "source_ids": [
+        "LH__c77411110d0fc882a162045f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 208,
+      "source_ids": [
+        "LH__7662041a83446a7f168d8838"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_879ed3ac20d377a411aa7d9f",
+          "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+          "units": 366
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 158,
+      "source_ids": [
+        "LH__f3bb5b040f6873e6f7f5499c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_879ed3ac20d377a411aa7d9f",
+          "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+          "units": 366
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 255,
+      "source_ids": [
+        "LH__d50d90559d2588876c192b8b"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_67142027aa77136be6cb3593",
+          "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+          "units": 448
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 193,
+      "source_ids": [
+        "LH__7b8f88d21ff7dbc9f74e6fd6"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_67142027aa77136be6cb3593",
+          "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+          "units": 448
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A7"
+      ],
+      "tenure": "공공분양",
+      "units": 405,
+      "source_ids": [
+        "LH__edfedac85a8fec69d3c4efe1"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_549ddb7c7141ef73cf07ffb0",
+          "name": "남양주진접2 A7",
+          "units": 305
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A9"
+      ],
+      "tenure": "국민임대",
+      "units": 314,
+      "source_ids": [
+        "LH__ba8e7d5e262c84d953103569"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A9"
+      ],
+      "tenure": "행복주택",
+      "units": 252,
+      "source_ids": [
+        "LH__a47da0748807cedebca5a0b7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "부천대장",
+        "A5"
+      ],
+      "tenure": "공공분양",
+      "units": 638,
+      "source_ids": [
+        "LH__243e26dadb460675dd49d235"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_60b4a8833ed549023a6ef1a5",
+          "name": "부천대장 A5",
+          "units": 314
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "부천대장",
+        "A6"
+      ],
+      "tenure": "공공분양",
+      "units": 461,
+      "source_ids": [
+        "LH__bd8232fa74c8e317a6731ab2"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_d86ce8966f5ed10d5ef2d175",
+          "name": "부천대장 A6",
+          "units": 227
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "부천역곡",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 488,
+      "source_ids": [
+        "LH__5baa2c04c9e8c72b488f39c0"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_8aa9dcf9ed7eaafe3bef3196",
+          "name": "부천역곡 A2",
+          "units": 976
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "부천원종",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 422,
+      "source_ids": [
+        "LH__86882e90ed1de701d29aec9b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "부천원종",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 472,
+      "source_ids": [
+        "LH__80c876f14cf09b59327d33fb"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남금토",
+        "A2"
+      ],
+      "tenure": "영구임대",
+      "units": 195,
+      "source_ids": [
+        "LH__112db79118a0a3026d58cf7c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_fcc796121d9c033bc356aaad",
+          "name": "성남금토 A2",
+          "units": 438
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남금토",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 766,
+      "source_ids": [
+        "LH__698a82790f34a6df33d7d8a3"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b572acaa0e4e1468c625d137",
+          "name": "성남금토 A4",
+          "units": 384
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남낙생",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 467,
+      "source_ids": [
+        "LH__c45ec0a28c1bb9e620215137"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_77a162724b5fb3200f074687",
+          "name": "성남낙생 A1",
+          "units": 933
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남낙생",
+        "A2"
+      ],
+      "tenure": "통합공공임대",
+      "units": 1016,
+      "source_ids": [
+        "LH__cce6e1dfc760ada78f40864f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "C1"
+      ],
+      "tenure": "행복주택",
+      "units": 272,
+      "source_ids": [
+        "LH__4d743a4c7367be0b8b888875"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남복정2",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 298,
+      "source_ids": [
+        "LH__2464231f6cc10eeb0bd03bb1"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_1372e9a98923707ece293d63",
+          "name": "성남복정2 A1",
+          "units": 594
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "성남신촌",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 320,
+      "source_ids": [
+        "LH__e7cb41db3c3c4a4cea9c13c4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A5"
+      ],
+      "tenure": "공공분양",
+      "units": 484,
+      "source_ids": [
+        "LH__3d56e40bb7ac939f7cbbc374"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_c6f5a8ea506ed720419b999a",
+          "name": "수원당수 A-5BL 아파트 건설공사 5공구",
+          "units": 726
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 242,
+      "source_ids": [
+        "LH__45e63c995ef4418a0872bf2d"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_c6f5a8ea506ed720419b999a",
+          "name": "수원당수 A-5BL 아파트 건설공사 5공구",
+          "units": 726
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥거모",
+        "A3"
+      ],
+      "tenure": "통합공공임대",
+      "units": 813,
+      "source_ids": [
+        "LH__fcfa8dab69ef67178f5b4e38"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥거모",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 145,
+      "source_ids": [
+        "LH__d7bb9e48ca62cc43af21f9c5"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_56c23b88a629f40dd3071afc",
+          "name": "시흥거모 A5",
+          "units": 290
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥거모",
+        "A7"
+      ],
+      "tenure": "공공임대(6년)",
+      "units": 565,
+      "source_ids": [
+        "LH__228d873c9662f87d75060a95"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥하중",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 200,
+      "source_ids": [
+        "LH__db74df5fd26c6b3e72965217"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b3d348e364dc16b744cc949d",
+          "name": "시흥하중 A1",
+          "units": 400
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥하중",
+        "A3"
+      ],
+      "tenure": "통합공공임대",
+      "units": 279,
+      "source_ids": [
+        "LH__67dc50d6671fc0d108c4eb4c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥하중",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 390,
+      "source_ids": [
+        "LH__a327ee086dc60af68776cc94"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_07535d298d1b6d593fdde152",
+          "name": "조달청)시흥하중 A-4BL 공동주택 건설공사 2공구",
+          "units": 584
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "시흥하중",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 194,
+      "source_ids": [
+        "LH__478d87219a1369e56626dfcc"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_07535d298d1b6d593fdde152",
+          "name": "조달청)시흥하중 A-4BL 공동주택 건설공사 2공구",
+          "units": 584
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산신길2",
+        "A13"
+      ],
+      "tenure": "공공분양",
+      "units": 335,
+      "source_ids": [
+        "LH__999d22dff81446a97f715415"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산신길2",
+        "A13"
+      ],
+      "tenure": "행복주택",
+      "units": 168,
+      "source_ids": [
+        "LH__bcd2f2ffa2ae32d126396609"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산신길2",
+        "A24"
+      ],
+      "tenure": "공공분양",
+      "units": 474,
+      "source_ids": [
+        "LH__d3aa064b0a53e0b762d270c2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산신길2",
+        "A6"
+      ],
+      "tenure": "공공분양",
+      "units": 252,
+      "source_ids": [
+        "LH__66fb986b3322193a4c76a947"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_f4d0df2ada51ce61f9bb6b72",
+          "name": "안산신길2 A6",
+          "units": 251
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산신길2",
+        "A6"
+      ],
+      "tenure": "행복주택",
+      "units": 126,
+      "source_ids": [
+        "LH__0b49512351a39c39729a2254"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_f4d0df2ada51ce61f9bb6b72",
+          "name": "안산신길2 A6",
+          "units": 251
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산장상",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 299,
+      "source_ids": [
+        "LH__5364c3f8cf2f5a39ee657188"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산장상",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 150,
+      "source_ids": [
+        "LH__8ada18495ea7afe0b00a3ee8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "안산장상",
+        "A9"
+      ],
+      "tenure": "공공분양",
+      "units": 673,
+      "source_ids": [
+        "LH__0e9f819c7b0d75535ebb439f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A25"
+      ],
+      "tenure": "국민임대",
+      "units": 1002,
+      "source_ids": [
+        "LH__840350c9fe37f1ebef6a502d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A25"
+      ],
+      "tenure": "영구임대",
+      "units": 472,
+      "source_ids": [
+        "LH__66195034fc490203ef87dd4f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 934,
+      "source_ids": [
+        "LH__ccd6bb9e17cbc06ef4e4d45c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "위례A2-7BL",
+        "A2-7"
+      ],
+      "tenure": "공공분양",
+      "units": 1090,
+      "source_ids": [
+        "LH__72cb9172740ac9c12b3e196b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "위례A2-7BL",
+        "A2-7"
+      ],
+      "tenure": "행복주택",
+      "units": 219,
+      "source_ids": [
+        "LH__2e16b3903744f8564db1d14b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의왕월암",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 446,
+      "source_ids": [
+        "LH__c1c1491aef114eefc05a7339"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b5b91172d6eed372aeb26e11",
+          "name": "의왕월암 A1",
+          "units": 228
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의왕월암",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 424,
+      "source_ids": [
+        "LH__f5a603903765a7bf1990eed8"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+          "name": "의왕월암 A3",
+          "units": 218
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의왕청계2",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 320,
+      "source_ids": [
+        "LH__d4e1dc1001515ecd08660736"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_7dbb8517958f6375fc421333",
+          "name": "의왕청계2 A1",
+          "units": 160
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의왕청계2",
+        "A4"
+      ],
+      "tenure": "통합공공임대",
+      "units": 400,
+      "source_ids": [
+        "LH__2c774954c8e6db096848a6d6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의정부법조타운",
+        "S2"
+      ],
+      "tenure": "공공임대(6년)",
+      "units": 539,
+      "source_ids": [
+        "LH__5d445ddafba78ead50ad1f56"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의정부법조타운A-3BL",
+        "A3"
+      ],
+      "tenure": "통합공공임대",
+      "units": 528,
+      "source_ids": [
+        "LH__169846c1272748759d90110e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "의정부법조타운S-1BL",
+        "S1"
+      ],
+      "tenure": "공공분양",
+      "units": 354,
+      "source_ids": [
+        "LH__7aa8e9f751d2c32b393388e7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A22"
+      ],
+      "tenure": "공공분양",
+      "units": 642,
+      "source_ids": [
+        "LH__96db9ee49aa3fc1f67152996"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A23"
+      ],
+      "tenure": "공공분양",
+      "units": 1012,
+      "source_ids": [
+        "LH__b9d137c0be7c3c1bbb256e3d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "파주운정A40",
+        "A40"
+      ],
+      "tenure": "공공분양",
+      "units": 419,
+      "source_ids": [
+        "LH__74bc9c010d798805de02bfe9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "판교창조경제밸리",
+        "G6"
+      ],
+      "tenure": "행복주택",
+      "units": 195,
+      "source_ids": [
+        "LH__99d33f41a74c4a63bfb15492"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA34"
+      ],
+      "tenure": "공공분양",
+      "units": 679,
+      "source_ids": [
+        "LH__0c499800ae5c5f2ac5f493ca"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB31"
+      ],
+      "tenure": "공공분양",
+      "units": 690,
+      "source_ids": [
+        "LH__857b4589fda8304b0e4b41fd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB35"
+      ],
+      "tenure": "공공분양",
+      "units": 753,
+      "source_ids": [
+        "LH__e4805a216447f2274de92fe6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "C14"
+      ],
+      "tenure": "공공분양",
+      "units": 240,
+      "source_ids": [
+        "LH__6e43d615d6cef143cf000b8f"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_672dfd527cf2fe8d9d71cf5c",
+          "name": "민간참여) 화성동탄2 C-14 민간참여 공공주택 건설사업",
+          "units": 610
+        },
+        {
+          "id": "PRO_1a98096fd39a060c2144684a",
+          "name": "화성동탄2 C-14",
+          "units": 850
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "경기도",
+        "화성어천",
+        "A4"
+      ],
+      "tenure": "통합공공임대",
+      "units": 623,
+      "source_ids": [
+        "LH__b614caeb9bc2719334f522f0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 534,
+      "source_ids": [
+        "LH__c09c0f9009f340af6750ca3c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 267,
+      "source_ids": [
+        "LH__4076eb842482145aed7245c4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA13-1"
+      ],
+      "tenure": "공공분양",
+      "units": 702,
+      "source_ids": [
+        "LH__2d4d8b792b2923ad1d042998"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA13-2"
+      ],
+      "tenure": "공공분양",
+      "units": 964,
+      "source_ids": [
+        "LH__4229476b02ebafd9de850b57"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 747,
+      "source_ids": [
+        "LH__5d3aa316c098ed04eb968ff2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 359,
+      "source_ids": [
+        "LH__0d76199b3b85a0446614e251"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 179,
+      "source_ids": [
+        "LH__9706d197cde9144df7113127"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A9"
+      ],
+      "tenure": "행복주택",
+      "units": 158,
+      "source_ids": [
+        "LH__7bc36c794a98bc133208b6de"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_421fe0f0243dd68b11f2712c",
+          "name": "인천계양 A9",
+          "units": 317
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "key": [
+        "인천광역시",
+        "인천산곡",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 400,
+      "source_ids": [
+        "LH__ae86df397c4cc85342ccdd52"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 1242,
+      "source_ids": [
+        "AGE_cc07770a504f086ceafe329a",
+        "AGE_0af5ec4e575ea67e3bf2d727",
+        "AGE_d88fde8736f5510f87c97cb1",
+        "AGE_f0f7624dd1b65e8e237d1566"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 279,
+      "source_ids": [
+        "AGE_6a7fa2638221a4232c984d63"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 279,
+      "source_ids": [
+        "AGE_e3654175b0df1e6785ca2ed2",
+        "AGE_ed507e2299a66aeb2783721c",
+        "AGE_42472166f2346a9ec4c7d1d7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 572,
+      "source_ids": [
+        "AGE_a2a6fe1aef46661f6967e7e0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 315,
+      "source_ids": [
+        "AGE_e662c85bafe5eb8dc8b00e2e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "고양지축",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 194,
+      "source_ids": [
+        "AGE_39e15dcaddea72474432f4c6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S3"
+      ],
+      "tenure": "행복주택",
+      "units": 182,
+      "source_ids": [
+        "AGE_e532135dfd2cc26979ade31d",
+        "AGE_3a5edc5e958d20713f952447"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S7"
+      ],
+      "tenure": "행복주택",
+      "units": 140,
+      "source_ids": [
+        "AGE_6a5df80b6bff65afa823f205"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S8"
+      ],
+      "tenure": "행복주택",
+      "units": 114,
+      "source_ids": [
+        "AGE_3d18643f6014f20619c820a3",
+        "AGE_d9d72ee2020913f80cd5a5e4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "부천괴안",
+        "B1"
+      ],
+      "tenure": "행복주택",
+      "units": 30,
+      "source_ids": [
+        "AGE_b001f067b905878078b7ee8f",
+        "AGE_12a4fb5da3387b1cfc4986a7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "부천도당",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 136,
+      "source_ids": [
+        "AGE_3c09433bc1d5eed414167e83",
+        "AGE_e1c602468441efdc210c0e5e",
+        "AGE_9f50b737f22f2f19692cefd5",
+        "AGE_46ed3284fa7f6e542accc9bd",
+        "AGE_0dd4c3e60d0595135c57b446"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "부천원종",
+        "B2"
+      ],
+      "tenure": "행복주택",
+      "units": 197,
+      "source_ids": [
+        "AGE_489cca1f3af40e312992ff94",
+        "AGE_8fb0097862b806bd2681f5f6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 129,
+      "source_ids": [
+        "AGE_66174da96e9d2f85e35a5639",
+        "AGE_f90a1362de493c2de235721e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 105,
+      "source_ids": [
+        "AGE_7fc4df7acf8a344449f7f2e8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "성남판교대장",
+        "A10"
+      ],
+      "tenure": "행복주택",
+      "units": 374,
+      "source_ids": [
+        "AGE_a62eaba497d76ec159be765d",
+        "AGE_346456bddb350e6d41d186a1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 1150,
+      "source_ids": [
+        "AGE_25dcde90c351aa430f4426d1",
+        "AGE_8949ebb0d65ddd65ac73310c",
+        "AGE_3c2e90fad20beb1d8743ad3c",
+        "AGE_e759297f109518ca909df755"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 134,
+      "source_ids": [
+        "AGE_a2a90a69d92152258d7e4449"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "수원매산",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 58,
+      "source_ids": [
+        "AGE_1d66ef9fed059bc01fd4432c",
+        "AGE_74f1e9f11c7fbb8c81440207"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "시흥장현)",
+        "A9"
+      ],
+      "tenure": "행복주택",
+      "units": 410,
+      "source_ids": [
+        "AGE_9e5d30524b5a372e328d22ad",
+        "AGE_a333958b9444ec07ebdae17b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "양주옥정",
+        "A25"
+      ],
+      "tenure": "행복주택",
+      "units": 1215,
+      "source_ids": [
+        "AGE_b9445e259e871c26a2a91684",
+        "AGE_729d72cece235ad2e4bf34f0",
+        "AGE_0ac20d863d808f127232cad8",
+        "AGE_fcd4919c18cbb5c6c36c0dc0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A10"
+      ],
+      "tenure": "행복주택",
+      "units": 680,
+      "source_ids": [
+        "AGE_d3e971fef09c5af0c3b248b9",
+        "AGE_48a03131c3220cc615dfedc7",
+        "AGE_6287adf089602d6cb03ae51e",
+        "AGE_585c9e58db00192a95b1df9b",
+        "AGE_98ffdf36f14602349b06416e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A15"
+      ],
+      "tenure": "행복주택",
+      "units": 880,
+      "source_ids": [
+        "AGE_2601cd05087bf5d788d8ca6c",
+        "AGE_00acbab296c88d3b4da29c8c",
+        "AGE_f8015f2070e2202d55a7f7b4",
+        "AGE_1e3ff036de8e26529b929cf8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "오산세교2",
+        "A6"
+      ],
+      "tenure": "행복주택",
+      "units": 603,
+      "source_ids": [
+        "AGE_66b98a6399d73c72fad5ca34",
+        "AGE_ae40367e6f112e0267484cf1",
+        "AGE_e41a0bd14b4c86e4651fa6b8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "위례",
+        "A2-6"
+      ],
+      "tenure": "행복주택",
+      "units": 147,
+      "source_ids": [
+        "AGE_e0175ef84586c7184c5f2b7a",
+        "AGE_b82cf60111875c1738726ca5",
+        "AGE_f342dcc715990f148a46ff4a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "위례",
+        "A2-7"
+      ],
+      "tenure": "행복주택",
+      "units": 219,
+      "source_ids": [
+        "AGE_1988906ea7778f9aa16ab3bf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "의왕고천",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 290,
+      "source_ids": [
+        "AGE_aa126e2e7c84d8f8a99a32d3",
+        "AGE_9d7e51e9fb1f7847c79906cc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "의왕초평",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 327,
+      "source_ids": [
+        "AGE_b6ae2e4df8471abe6c2520b5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "이천중리",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 400,
+      "source_ids": [
+        "AGE_7e2422a6aa2e69ca37cf8bdd",
+        "AGE_986b2757f9b39079169b4af2",
+        "AGE_1813d25fa080ba3a81df01db",
+        "AGE_fb48b324b8e0d0ad8bdc3afa"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A47"
+      ],
+      "tenure": "행복주택",
+      "units": 882,
+      "source_ids": [
+        "AGE_54724c9246ce0aa514f34f9a",
+        "AGE_fbada543d18b47de6f90486e",
+        "AGE_ed395c3b1ab3e297dee15a04"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA53"
+      ],
+      "tenure": "행복주택",
+      "units": 389,
+      "source_ids": [
+        "AGE_f3b7a9749322bdaeef2f5ffa"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB3"
+      ],
+      "tenure": "행복주택",
+      "units": 166,
+      "source_ids": [
+        "AGE_a319101915e1150636db2099"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB57-2"
+      ],
+      "tenure": "행복주택",
+      "units": 129,
+      "source_ids": [
+        "AGE_8519636a1c152197e864d769"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "평택소사벌",
+        "A7"
+      ],
+      "tenure": "행복주택",
+      "units": 350,
+      "source_ids": [
+        "AGE_0877079dc5ad67e18f9e3a60",
+        "AGE_52926fba4c519395eb5c3f93",
+        "AGE_c2e1ee78e7f758cdefd9598d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "평택청북",
+        "B13"
+      ],
+      "tenure": "행복주택",
+      "units": 260,
+      "source_ids": [
+        "AGE_0c1675e1499a77943a9d69f7",
+        "AGE_1fac170a86b5de3f4bd9b5e8",
+        "AGE_a52cb5d45fe4bec51acab71b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A53"
+      ],
+      "tenure": "행복주택",
+      "units": 700,
+      "source_ids": [
+        "AGE_dfcb9deb03cc587a316c6a7c",
+        "AGE_c6954f8cb72585be641e9fee",
+        "AGE_b7cc1ba0620c82fba5d14fe4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A54"
+      ],
+      "tenure": "행복주택",
+      "units": 1350,
+      "source_ids": [
+        "AGE_1035563bc4a7ed9517e98a07",
+        "AGE_79539fbd20bd7f61d7cdea38",
+        "AGE_ce3bed4b0babaad15b549047",
+        "AGE_740887b1bda5b0250861ff98",
+        "AGE_f17529e027986f7b481a251d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 329,
+      "source_ids": [
+        "AGE_d263cdd25835ad2b923712c7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 758,
+      "source_ids": [
+        "AGE_a8a18fb51d6d9a9a5d9458a7",
+        "AGE_3665bd64de14134167f609bc",
+        "AGE_f5541899bec8fdaa80af05da"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "경기도",
+        "화성향남2",
+        "B15"
+      ],
+      "tenure": "행복주택",
+      "units": 922,
+      "source_ids": [
+        "AGE_ed891e46d30cfc819b85ebff",
+        "AGE_90c18f8b4cab6c9e7962d41e",
+        "AGE_3a120b1b6478dd4832d1d9fc",
+        "AGE_705b2f9402f196d987e67595"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H1"
+      ],
+      "tenure": "행복주택",
+      "units": 140,
+      "source_ids": [
+        "AGE_673b78d8000166775f7bf60b",
+        "AGE_0c2720c0524a6d1c03eabf24"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H2"
+      ],
+      "tenure": "행복주택",
+      "units": 36,
+      "source_ids": [
+        "AGE_898ed40145878af329322e3e",
+        "AGE_8cff52833d81ff626c15a7c5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H3"
+      ],
+      "tenure": "행복주택",
+      "units": 60,
+      "source_ids": [
+        "AGE_f03a133151bfb716e78d9bfc",
+        "AGE_a77445b96928972b9ace9e51"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "부천원종",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 472,
+      "source_ids": [
+        "AGE_90f83b0062e59af5c9410c00",
+        "AGE_0bd94e756da9c38d359f3f64",
+        "AGE_56d7b0cce2fb1cb63d4d9f75",
+        "AGE_82f039fba18ba09390792a6b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "부천원종",
+        "C1"
+      ],
+      "tenure": "행복주택",
+      "units": 323,
+      "source_ids": [
+        "AGE_049c9693d08c0b41671ad33f",
+        "AGE_a3cca75b9fa3fefcb7a6ef02",
+        "AGE_17abde7b72706fe43f8cf91f",
+        "AGE_0d6dc20cc3bbb78ba26f90b9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 510,
+      "source_ids": [
+        "AGE_0bc44b0a5d407e23095f61d0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 510,
+      "source_ids": [
+        "AGE_4b3abade44316436d6931fb5",
+        "AGE_cfa5b8c1a621b093f7c4f2c5",
+        "AGE_389dbc3dcf93458f5784c352",
+        "AGE_15a0fa6c0c7954ab6510c12e",
+        "AGE_abf9189a7399df3c19a81d1f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 267,
+      "source_ids": [
+        "AGE_2731e2433275dfbf4279e857"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 246,
+      "source_ids": [
+        "AGE_ccac471125c0611b8ab121c1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA35-1"
+      ],
+      "tenure": "행복주택",
+      "units": 855,
+      "source_ids": [
+        "AGE_1e9f6a7b2a18fbf308348975",
+        "AGE_2b4364ddcfc412d9681f4114",
+        "AGE_4c12ee82eb356db99689f251"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 179,
+      "source_ids": [
+        "AGE_8392c96c50a9fa27fb92a320"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "key": [
+        "인천광역시",
+        "인천산곡",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 400,
+      "source_ids": [
+        "AGE_8250b25d329acab077b3c8e9",
+        "AGE_6d8d6f9e78b61226fd366bab",
+        "AGE_7eda46a17f68eae2ffa56dee",
+        "AGE_d6b518c023068a176f104843"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양덕은",
+        "A1"
+      ],
+      "tenure": "국민임대",
+      "units": 364,
+      "source_ids": [
+        "LH__cd18733a9488107ad888b153"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양삼송",
+        "A11-1"
+      ],
+      "tenure": "행복주택",
+      "units": 777,
+      "source_ids": [
+        "LH__de12eab838015dbcef152a74"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양삼송",
+        "A24"
+      ],
+      "tenure": "행복주택",
+      "units": 947,
+      "source_ids": [
+        "LH__f2c2e180d4353f56121e49ae"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양지축",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 500,
+      "source_ids": [
+        "LH__5bf961065da08fd6ec686357"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양지축",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 250,
+      "source_ids": [
+        "LH__6623238e8c5e0304f1c1d6c2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "김포마송",
+        "B3"
+      ],
+      "tenure": "영구임대",
+      "units": 48,
+      "source_ids": [
+        "LH__7bcf53ff5fe1d53f863ca079"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "김포마송",
+        "B3"
+      ],
+      "tenure": "행복주택",
+      "units": 450,
+      "source_ids": [
+        "LH__7452d9f14869aad7b0894bd1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "김포양곡E-1BL",
+        "E1"
+      ],
+      "tenure": "행복주택",
+      "units": 990,
+      "source_ids": [
+        "LH__ae0718906dedfea5e185b5fe"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "남양주별내A-25BL",
+        "A25"
+      ],
+      "tenure": "공공분양",
+      "units": 252,
+      "source_ids": [
+        "LH__4e1408c0f0975c94c0b4bea9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "남양주별내A-25BL",
+        "A25"
+      ],
+      "tenure": "행복주택",
+      "units": 128,
+      "source_ids": [
+        "LH__8b5220f84018ae3dff2c3482"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남금광1",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 1135,
+      "source_ids": [
+        "LH__776e792de1b3d9fdd428e6ab",
+        "LH__80d65c7abcaefbcb81a7d9aa"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남금광1",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 443,
+      "source_ids": [
+        "LH__fc041719a09b644f7ab60f9e",
+        "LH__c4b9ea4311d172dd5c1fa78c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남금광1",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 784,
+      "source_ids": [
+        "LH__9e1e3ebc56703ec7a5b599f6",
+        "LH__4f5efe24bff9abb092156f0c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남금광1",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 948,
+      "source_ids": [
+        "LH__1d6b2d35ad5b904523a2836d",
+        "LH__a4d81051afa5c65c21ac3264"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남금광1",
+        "A5"
+      ],
+      "tenure": "공공분양",
+      "units": 1102,
+      "source_ids": [
+        "LH__0fb038af4185325bc8cccca2",
+        "LH__d5c0e825f0a22b002c19e68d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남중동1",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 1267,
+      "source_ids": [
+        "LH__306632f2b6d46c4b44db8b81",
+        "LH__f7296d8a804fdddbedf745d2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남중동1",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 332,
+      "source_ids": [
+        "LH__36ad91049fcc54f367521cab"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남중동1",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 400,
+      "source_ids": [
+        "LH__9e96ce2ed6424f5afe6fccca",
+        "LH__25c7851f68937fc2159f4448"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A12"
+      ],
+      "tenure": "공공분양",
+      "units": 276,
+      "source_ids": [
+        "LH__c4d393d4f2f068d9775e16a6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A12"
+      ],
+      "tenure": "행복주택",
+      "units": 137,
+      "source_ids": [
+        "LH__4102f7fd7ca16a6da7c3697f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A6"
+      ],
+      "tenure": "국민임대",
+      "units": 708,
+      "source_ids": [
+        "LH__e106a803814e8090c740ded2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A6"
+      ],
+      "tenure": "영구임대",
+      "units": 350,
+      "source_ids": [
+        "LH__c59fdc606b5d84206b3eab3b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A8"
+      ],
+      "tenure": "공공분양",
+      "units": 349,
+      "source_ids": [
+        "LH__d4e0baeedeff84016fbbf2f4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A8"
+      ],
+      "tenure": "행복주택",
+      "units": 197,
+      "source_ids": [
+        "LH__0f070a96fee0332d1f0bc791"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "안양명학",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 24,
+      "source_ids": [
+        "LH__536a3f4840e2169fa86edd0d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A17"
+      ],
+      "tenure": "공공분양",
+      "units": 506,
+      "source_ids": [
+        "LH__64997b69b70f2c7500e9ff59"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A17"
+      ],
+      "tenure": "행복주택",
+      "units": 254,
+      "source_ids": [
+        "LH__42740988aa103f7ccec5da53"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "오산세교2",
+        "A15"
+      ],
+      "tenure": "국민임대",
+      "units": 694,
+      "source_ids": [
+        "LH__43379bf30d3b306e2c30b0db"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의정부고산",
+        "S6"
+      ],
+      "tenure": "공공분양",
+      "units": 587,
+      "source_ids": [
+        "LH__6904a35dd46a84ddbbf18c6e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의정부고산",
+        "S6"
+      ],
+      "tenure": "행복주택",
+      "units": 293,
+      "source_ids": [
+        "LH__f7c49d0c9afc0562a5585061"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주교하",
+        "A16"
+      ],
+      "tenure": "행복주택",
+      "units": 320,
+      "source_ids": [
+        "LH__2ef1f1dd4821012e98fc0457"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A26"
+      ],
+      "tenure": "공공분양",
+      "units": 486,
+      "source_ids": [
+        "LH__429a6547d2709b28c0d3fca2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A26"
+      ],
+      "tenure": "행복주택",
+      "units": 242,
+      "source_ids": [
+        "LH__96546ae2e0c7d34a461b00a1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A34"
+      ],
+      "tenure": "영구임대",
+      "units": 241,
+      "source_ids": [
+        "LH__4fdc09671c1b2910d005468a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A34"
+      ],
+      "tenure": "행복주택",
+      "units": 1207,
+      "source_ids": [
+        "LH__31adcfcc10329d7d25252e88"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA39"
+      ],
+      "tenure": "공공분양",
+      "units": 811,
+      "source_ids": [
+        "LH__ccb69ef9bf4304a2c7bd6dfa"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA6"
+      ],
+      "tenure": "행복주택",
+      "units": 1600,
+      "source_ids": [
+        "LH__50915a4ac314df2964357b33"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "하남감일",
+        "A7"
+      ],
+      "tenure": "공공분양",
+      "units": 340,
+      "source_ids": [
+        "LH__8d2784f2796327d9f5b2e05d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "하남감일",
+        "A7"
+      ],
+      "tenure": "행복주택",
+      "units": 170,
+      "source_ids": [
+        "LH__1ace69274da27160c7cf07c4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A104"
+      ],
+      "tenure": "공공분양",
+      "units": 781,
+      "source_ids": [
+        "LH__dcbf2c588966285dba5dfa53"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A104"
+      ],
+      "tenure": "행복주택",
+      "units": 390,
+      "source_ids": [
+        "LH__53c4275e652bacd2196b5df1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A57-1"
+      ],
+      "tenure": "행복주택",
+      "units": 850,
+      "source_ids": [
+        "LH__9a03f8b81a75ca06dd401735"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성봉담2",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 304,
+      "source_ids": [
+        "LH__469f016039593af685a23c7d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성봉담2",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 152,
+      "source_ids": [
+        "LH__65d1e190077d5229b11ec796"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성태안3",
+        "A1"
+      ],
+      "tenure": "국민임대",
+      "units": 790,
+      "source_ids": [
+        "LH__89d4ab416e0980b53582d4a4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성태안3",
+        "A2"
+      ],
+      "tenure": "국민임대",
+      "units": 640,
+      "source_ids": [
+        "LH__3594e5a33ff7b85188d1b417"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울양원",
+        "S1"
+      ],
+      "tenure": "국민임대",
+      "units": 192,
+      "source_ids": [
+        "LH__101be0073ed52358cc562844"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울양원",
+        "S1"
+      ],
+      "tenure": "영구임대",
+      "units": 100,
+      "source_ids": [
+        "LH__de19aa51e99932302f6f8be6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울양원",
+        "S1"
+      ],
+      "tenure": "행복주택",
+      "units": 924,
+      "source_ids": [
+        "LH__3f2ccc8812f7534c73c9ce2e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울양원",
+        "S2"
+      ],
+      "tenure": "공공분양",
+      "units": 269,
+      "source_ids": [
+        "LH__b961154de9a7786d4ffb4c58"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울양원",
+        "S2"
+      ],
+      "tenure": "행복주택",
+      "units": 134,
+      "source_ids": [
+        "LH__b4ce917c195a473f1697ad6c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA5"
+      ],
+      "tenure": "국민임대",
+      "units": 750,
+      "source_ids": [
+        "LH__ade48488234b90a8703a32ea"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA5"
+      ],
+      "tenure": "영구임대",
+      "units": 250,
+      "source_ids": [
+        "LH__1201e6ee9d4433938fec5ada"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A67"
+      ],
+      "tenure": "국민임대",
+      "units": 457,
+      "source_ids": [
+        "LH__d70619a3d5bb6f40534e6dc8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양지축",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 389,
+      "source_ids": [
+        "LH__b5198f577f282e820802f006"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양지축",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 194,
+      "source_ids": [
+        "LH__371771dfb267bc8d606f0d17"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S7"
+      ],
+      "tenure": "공공분양",
+      "units": 280,
+      "source_ids": [
+        "LH__46f57023d3111b9c7fdae8f0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S7"
+      ],
+      "tenure": "공공임대(10년)",
+      "units": 52,
+      "source_ids": [
+        "LH__d16e538f963b86fce0365150"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S7"
+      ],
+      "tenure": "행복주택",
+      "units": 140,
+      "source_ids": [
+        "LH__0dd78ab808a0fd5ef036e841"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "김포양곡",
+        "C1"
+      ],
+      "tenure": "행복주택",
+      "units": 1134,
+      "source_ids": [
+        "LH__48a6fe39ee275c1db0aaa5e1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "남양주별내",
+        "A1-1"
+      ],
+      "tenure": "통합공공임대",
+      "units": 576,
+      "source_ids": [
+        "LH__188699f598b0522a26c18df3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남대장기관토지",
+        "A9"
+      ],
+      "tenure": "국민임대",
+      "units": 221,
+      "source_ids": [
+        "LH__3e894f847008f00e6454196c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남신흥2",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 1852,
+      "source_ids": [
+        "LH__99689977986ff597898932e3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남신흥2",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 1270,
+      "source_ids": [
+        "LH__8a682fe7bcf249904ab8ec37"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남신흥2",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 840,
+      "source_ids": [
+        "LH__866ce0901257b70112785c7a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남재생산단",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 194,
+      "source_ids": [
+        "LH__783493cd3567cbfa8d02a9c8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A1"
+      ],
+      "tenure": "영구임대",
+      "units": 150,
+      "source_ids": [
+        "LH__296284aa833a426b05d56c76"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 1350,
+      "source_ids": [
+        "LH__a3c5f50382edccd5c3eae720"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 266,
+      "source_ids": [
+        "LH__db7a09d90b07ddcd034b4f4e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 134,
+      "source_ids": [
+        "LH__9c2f854d12b6130c89ea39fe"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A4"
+      ],
+      "tenure": "공공분양",
+      "units": 406,
+      "source_ids": [
+        "LH__2a0f4c74d3e06d8227427651"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A4"
+      ],
+      "tenure": "행복주택",
+      "units": 204,
+      "source_ids": [
+        "LH__9bfb4a9566f8d15f999985f8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A9"
+      ],
+      "tenure": "공공분양",
+      "units": 822,
+      "source_ids": [
+        "LH__723be8835421df00b98ae2ad"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현",
+        "A9"
+      ],
+      "tenure": "행복주택",
+      "units": 410,
+      "source_ids": [
+        "LH__2e7a32ae5cb839bc4521a4cb"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주고읍",
+        "A14"
+      ],
+      "tenure": "행복주택",
+      "units": 372,
+      "source_ids": [
+        "LH__000a05ae614890876b222450"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주옥정",
+        "A4-1"
+      ],
+      "tenure": "공공분양",
+      "units": 1409,
+      "source_ids": [
+        "LH__1c05f8cf15282c50e86a9584"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A14"
+      ],
+      "tenure": "국민임대",
+      "units": 957,
+      "source_ids": [
+        "LH__95dab09eae3c80a4b4bcdae5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A21"
+      ],
+      "tenure": "공공분양",
+      "units": 995,
+      "source_ids": [
+        "LH__0ad15a352d6ab7c00f1c1e53"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "오산세교2",
+        "A6"
+      ],
+      "tenure": "영구임대",
+      "units": 260,
+      "source_ids": [
+        "LH__371ec55bb82d92222a637cf0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "오산세교2",
+        "A6"
+      ],
+      "tenure": "행복주택",
+      "units": 603,
+      "source_ids": [
+        "LH__c4b38a16e0d3aafa90587298"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "위례",
+        "A3-3"
+      ],
+      "tenure": "공공분양",
+      "units": 336,
+      "source_ids": [
+        "LH__4f138be822f6632bb0ff2420"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "위례",
+        "A3-3"
+      ],
+      "tenure": "공공임대(10년)",
+      "units": 75,
+      "source_ids": [
+        "LH__bea5be8d9634d7a87c708d4f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의왕고천",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 580,
+      "source_ids": [
+        "LH__d5cfb9f7af5e9f3d797ad64a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의왕고천",
+        "A2"
+      ],
+      "tenure": "행복주택",
+      "units": 290,
+      "source_ids": [
+        "LH__22f488d74431988f2d4c1801"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의왕초평",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 654,
+      "source_ids": [
+        "LH__9dfcf4e54cc521fc66e59228"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "의왕초평",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 327,
+      "source_ids": [
+        "LH__b78c4e00ab8fe24e3a1dd05b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "이천중리",
+        "A1"
+      ],
+      "tenure": "국민임대",
+      "units": 258,
+      "source_ids": [
+        "LH__befd3c075b460dbaac661877"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "이천중리",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 400,
+      "source_ids": [
+        "LH__95c9990cebcda25f2d14fc37"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주와동",
+        "A1"
+      ],
+      "tenure": "공공분양",
+      "units": 290,
+      "source_ids": [
+        "LH__b43267db593f29732757edba"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주와동",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 144,
+      "source_ids": [
+        "LH__21fb586da732a5a00849a53a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A16"
+      ],
+      "tenure": "공공분양",
+      "units": 1498,
+      "source_ids": [
+        "LH__3bca487075fefe883e29a5a3",
+        "LH__f8c1fea5a93f439887ee5c12"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A37"
+      ],
+      "tenure": "국민임대",
+      "units": 1358,
+      "source_ids": [
+        "LH__f30e7f328316a5d37a97ba9d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A37"
+      ],
+      "tenure": "영구임대",
+      "units": 452,
+      "source_ids": [
+        "LH__f5ee4e77ed6cfe1224cbef2b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA54"
+      ],
+      "tenure": "공공분양",
+      "units": 1582,
+      "source_ids": [
+        "LH__b14fc9d44e04fc5215d14f58"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB3"
+      ],
+      "tenure": "공공분양",
+      "units": 330,
+      "source_ids": [
+        "LH__5541d09432553bb4b7e1f12d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB3"
+      ],
+      "tenure": "행복주택",
+      "units": 166,
+      "source_ids": [
+        "LH__02350c3af41d9ccbde2e56f2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB57-1"
+      ],
+      "tenure": "행복주택",
+      "units": 900,
+      "source_ids": [
+        "LH__4b40b83fbfb95c3562b71637"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택소사벌A-7BL",
+        "A7"
+      ],
+      "tenure": "행복주택",
+      "units": 350,
+      "source_ids": [
+        "LH__6432926dc50422d9d9ca4f7e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택청북",
+        "B13"
+      ],
+      "tenure": "행복주택",
+      "units": 260,
+      "source_ids": [
+        "LH__cd44c45dfe9f681b1069c3ed"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성능동",
+        "B1"
+      ],
+      "tenure": "공공분양",
+      "units": 298,
+      "source_ids": [
+        "LH__00d79e6c513f0ddc1fc882bd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성능동",
+        "B1"
+      ],
+      "tenure": "행복주택",
+      "units": 149,
+      "source_ids": [
+        "LH__d692a70f23d84d4898f1571e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A53"
+      ],
+      "tenure": "행복주택",
+      "units": 700,
+      "source_ids": [
+        "LH__90c3b7ac4dbe1224a034cafa"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성동탄2",
+        "A54"
+      ],
+      "tenure": "행복주택",
+      "units": 1350,
+      "source_ids": [
+        "LH__f7ca8b7f2b3e1befe6988737"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A4"
+      ],
+      "tenure": "국민임대",
+      "units": 545,
+      "source_ids": [
+        "LH__c893a70d9b0963609dcc9827"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A4"
+      ],
+      "tenure": "영구임대",
+      "units": 182,
+      "source_ids": [
+        "LH__abe5441efa291e0367c39c3a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A5"
+      ],
+      "tenure": "영구임대",
+      "units": 136,
+      "source_ids": [
+        "LH__5dcd411e9bc1e4e7908e4ad0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A5"
+      ],
+      "tenure": "행복주택",
+      "units": 758,
+      "source_ids": [
+        "LH__21db85079c5d80a9f6a9886d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성향남2",
+        "B15"
+      ],
+      "tenure": "행복주택",
+      "units": 922,
+      "source_ids": [
+        "LH__2d8df0569be8de412c976b44"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울금천",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 282,
+      "source_ids": [
+        "LH__53746f5c189f0a04fdde915e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울수서KTX",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 830,
+      "source_ids": [
+        "LH__264d00b68bd48340258d0c32"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울수서KTX",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 398,
+      "source_ids": [
+        "LH__31a5efa34ca9f383b40c6e2c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울수서KTX",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 199,
+      "source_ids": [
+        "LH__ea5f01b59d42b3c3886c32c0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A1"
+      ],
+      "tenure": "행복주택",
+      "units": 510,
+      "source_ids": [
+        "LH__298e9f269c9aed368a042190"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A3"
+      ],
+      "tenure": "행복주택",
+      "units": 246,
+      "source_ids": [
+        "LH__0bad2efa5ba990b638ca76ab"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA13-1"
+      ],
+      "tenure": "공공분양",
+      "units": 702,
+      "source_ids": [
+        "LH__8e421f90bc0c2f969ba424b8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA13-2"
+      ],
+      "tenure": "공공분양",
+      "units": 964,
+      "source_ids": [
+        "LH__bade9d5c3dda77c28050fe23"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA34"
+      ],
+      "tenure": "국민임대",
+      "units": 1746,
+      "source_ids": [
+        "LH__a6b7216ec0caf9ce74c97e94"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A4"
+      ],
+      "tenure": "공분",
+      "units": 994,
+      "source_ids": [
+        "LH__2b612a9d1bd525adab8b73d9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A4"
+      ],
+      "tenure": "행복",
+      "units": 572,
+      "source_ids": [
+        "LH__02554771857ddf773c218d85"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A5"
+      ],
+      "tenure": "공분",
+      "units": 444,
+      "source_ids": [
+        "LH__5aa72d9ea318d2727da7ccc2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A5"
+      ],
+      "tenure": "행복",
+      "units": 315,
+      "source_ids": [
+        "LH__c985cc8be6a664f937bcab56"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양지축",
+        "B1"
+      ],
+      "tenure": "공분",
+      "units": 612,
+      "source_ids": [
+        "LH__1b6180c511c2d8092a248e6e",
+        "LH__8525bad6cb1ae7d9163ca888"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S10"
+      ],
+      "tenure": "통합임대",
+      "units": 605,
+      "source_ids": [
+        "LH__2e6f0e2366fcf1ffbe0ef32b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S3"
+      ],
+      "tenure": "공분",
+      "units": 365,
+      "source_ids": [
+        "LH__8c8c98ede493ac6e1941eb8b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S3"
+      ],
+      "tenure": "행복",
+      "units": 182,
+      "source_ids": [
+        "LH__94d8b21fd9f03ef5af7cc569"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S8"
+      ],
+      "tenure": "공분",
+      "units": 545,
+      "source_ids": [
+        "LH__5149ee020271c516d639db44",
+        "LH__d13f47529c3cb93d17a5a01e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S8"
+      ],
+      "tenure": "행복",
+      "units": 114,
+      "source_ids": [
+        "LH__24e89d00047214b00bce638a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천괴안",
+        "B1"
+      ],
+      "tenure": "공분",
+      "units": 193,
+      "source_ids": [
+        "LH__9e3c11306ed007a99ee9d8f3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천괴안",
+        "B1"
+      ],
+      "tenure": "행복",
+      "units": 96,
+      "source_ids": [
+        "LH__47e31dda0ac5e645fa558e8d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남판교대장A-10BL",
+        "A10"
+      ],
+      "tenure": "공분",
+      "units": 749,
+      "source_ids": [
+        "LH__65cad52d2de5391903629bae"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남판교대장A-10BL",
+        "A10"
+      ],
+      "tenure": "행복",
+      "units": 374,
+      "source_ids": [
+        "LH__299b2f1d0a530b2dd86cd2cc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원당수",
+        "A2"
+      ],
+      "tenure": "행복",
+      "units": 1150,
+      "source_ids": [
+        "LH__2b31d17f9c12e8284f765d4b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "시흥장현)",
+        "A3"
+      ],
+      "tenure": "공분",
+      "units": 534,
+      "source_ids": [
+        "LH__f63ac9da625a76271ae06ae0",
+        "LH__e7dacf5730e8cd0aa820a72d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주옥정A-1",
+        "A1"
+      ],
+      "tenure": "공분",
+      "units": 2049,
+      "source_ids": [
+        "LH__af011790b5995a3b3ffb3339"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주옥정A-25BL",
+        "A25"
+      ],
+      "tenure": "행복",
+      "units": 1215,
+      "source_ids": [
+        "LH__e8a28541ba86e0ff14238cdc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A10"
+      ],
+      "tenure": "행복",
+      "units": 680,
+      "source_ids": [
+        "LH__36f289460532ac1d4ff07f7d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A15"
+      ],
+      "tenure": "행복",
+      "units": 880,
+      "source_ids": [
+        "LH__4091140aefdebf75a1181ff5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A18"
+      ],
+      "tenure": "공분",
+      "units": 1304,
+      "source_ids": [
+        "LH__b1f7c9c586290e0e24ad0482"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A24"
+      ],
+      "tenure": "공분",
+      "units": 869,
+      "source_ids": [
+        "LH__d45e307a3f111fe92a000f4e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A17"
+      ],
+      "tenure": "공분",
+      "units": 660,
+      "source_ids": [
+        "LH__586c91ce8f39be10579def75",
+        "LH__1aabc9467f58db35f2af2373"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA53"
+      ],
+      "tenure": "공분",
+      "units": 778,
+      "source_ids": [
+        "LH__c7ae6c5ee9e491bbf66156e6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA53"
+      ],
+      "tenure": "행복",
+      "units": 389,
+      "source_ids": [
+        "LH__f39da50e4d8d9d738109e6bf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "서울수서KTX",
+        "A2"
+      ],
+      "tenure": "행복",
+      "units": 1080,
+      "source_ids": [
+        "LH__4ecc0844a40df10a605fbb28"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA10-2"
+      ],
+      "tenure": "국민",
+      "units": 854,
+      "source_ids": [
+        "LH__56120ea50a810b7e36461879"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA10-2"
+      ],
+      "tenure": "영구",
+      "units": 298,
+      "source_ids": [
+        "LH__b4731ab9de02bd883337e4fd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA6"
+      ],
+      "tenure": "공분",
+      "units": 822,
+      "source_ids": [
+        "LH__a988bb9fed135562bb0bd9dd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A10"
+      ],
+      "tenure": "공분",
+      "units": 600,
+      "source_ids": [
+        "LH__cca55739f4b9139392580d21"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A33"
+      ],
+      "tenure": "공분",
+      "units": 447,
+      "source_ids": [
+        "LH__0c3f7ce89bea387236bb9ebf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A40"
+      ],
+      "tenure": "공분",
+      "units": 870,
+      "source_ids": [
+        "LH__fb3b6c12a16346624d1e1390"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A42"
+      ],
+      "tenure": "공분",
+      "units": 930,
+      "source_ids": [
+        "LH__38f0b33158ef28a76ec51a49"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A1"
+      ],
+      "tenure": "행복",
+      "units": 1242,
+      "source_ids": [
+        "LH__a4f33f08676e8e503178d5bc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천원종",
+        "B2"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 394,
+      "source_ids": [
+        "LH__0665f5496a1fd326635c4f04"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천원종",
+        "B2"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 197,
+      "source_ids": [
+        "LH__7bf3b9eae4463c9d279e87fd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A1"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 615,
+      "source_ids": [
+        "LH__0cde91d6bf29500ed2981e1d",
+        "LH__d18aff85e420a2ea01c2c485"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A2"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 258,
+      "source_ids": [
+        "LH__43fa59a488f4993c847e1e7e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A2"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 129,
+      "source_ids": [
+        "LH__07952c26837095702c76bd54"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A3"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 210,
+      "source_ids": [
+        "LH__48ce8e39ff62e368bb658dad"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "A3"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 105,
+      "source_ids": [
+        "LH__df672c76b789fd76ca2a632a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "수원매산",
+        "A1"
+      ],
+      "tenure": "행복",
+      "units": 58,
+      "source_ids": [
+        "LH__83aa8004d8bffec224cccde6"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A24"
+      ],
+      "tenure": "국민",
+      "units": 806,
+      "source_ids": [
+        "LH__cd76c3f2b6311f8e912746a9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A24"
+      ],
+      "tenure": "영구",
+      "units": 272,
+      "source_ids": [
+        "LH__4e3dab2f8e9354c772ae07ef"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A47"
+      ],
+      "tenure": "행복",
+      "units": 882,
+      "source_ids": [
+        "LH__46933f56937e96ba9ce669f2"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA58"
+      ],
+      "tenure": "국민",
+      "units": 383,
+      "source_ids": [
+        "LH__340988833263f9a93101c062"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AA58"
+      ],
+      "tenure": "영구",
+      "units": 912,
+      "source_ids": [
+        "LH__8ce98ab3279c5d8d75acfe40"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB57-2"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 256,
+      "source_ids": [
+        "LH__ba9dc1229fd78d2f6f640cd1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "평택고덕",
+        "AB57-2"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 129,
+      "source_ids": [
+        "LH__813b7237f1e6e7fe53cd8eff"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A3"
+      ],
+      "tenure": "공공분양",
+      "units": 659,
+      "source_ids": [
+        "LH__3977fe69447c7dce042acedb"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성비봉",
+        "A3"
+      ],
+      "tenure": "행복",
+      "units": 329,
+      "source_ids": [
+        "LH__ae55a05e3b5b482456586209"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H1"
+      ],
+      "tenure": "행복",
+      "units": 140,
+      "source_ids": [
+        "LH__0e351e9077ed8589968b4a52"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H2"
+      ],
+      "tenure": "행복",
+      "units": 36,
+      "source_ids": [
+        "LH__d2132abaafd6bfeb55c9d994"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "서울특별시",
+        "관악봉천",
+        "H3"
+      ],
+      "tenure": "행복",
+      "units": 60,
+      "source_ids": [
+        "LH__a4faf4a2c44c73d80eb7933c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA35-1"
+      ],
+      "tenure": "행복",
+      "units": 855,
+      "source_ids": [
+        "LH__eab75153b41cf29d8d6a0fcf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA35-2"
+      ],
+      "tenure": "국민",
+      "units": 593,
+      "source_ids": [
+        "LH__6e059873a0f64bc09e974c7e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA35-2"
+      ],
+      "tenure": "영구",
+      "units": 490,
+      "source_ids": [
+        "LH__59492b085f8c2c9d19c2b9cc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A37"
+      ],
+      "tenure": "공공분양",
+      "units": 514,
+      "source_ids": [
+        "LH__5f50b886ccb82e5e51e5975b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천영종",
+        "A60"
+      ],
+      "tenure": "공공분양",
+      "units": 675,
+      "source_ids": [
+        "LH__98251fefc43dc2abf633e7b0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 371,
+      "source_ids": [
+        "LH__d0841a66d4a8680fdbfac278"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "고양장항",
+        "A2"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 279,
+      "source_ids": [
+        "LH__61a701569587d05b9b6ed2d9"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "과천지식정보타운",
+        "S11"
+      ],
+      "tenure": "행복",
+      "units": 846,
+      "source_ids": [
+        "LH__fb08bdb45275e49e00534c76"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천원종",
+        "A1"
+      ],
+      "tenure": "행복",
+      "units": 422,
+      "source_ids": [
+        "LH__84dcb0e4ef1561b5f6afe0f0"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천원종",
+        "A2"
+      ],
+      "tenure": "행복",
+      "units": 472,
+      "source_ids": [
+        "LH__4d3bab38d655341052fd2810"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "부천원종",
+        "C1"
+      ],
+      "tenure": "행복",
+      "units": 323,
+      "source_ids": [
+        "LH__7e95f15a93f75378801b4334"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "성남신촌",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 320,
+      "source_ids": [
+        "LH__81bb25c940f50c8fb496a4d5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A25"
+      ],
+      "tenure": "국민",
+      "units": 1002,
+      "source_ids": [
+        "LH__4d36f4c4167001a2bb5b3fa3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A25"
+      ],
+      "tenure": "영구",
+      "units": 472,
+      "source_ids": [
+        "LH__7e81c9d0f168f9d32e423d71"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "위례A2-7BL",
+        "A2-7"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 440,
+      "source_ids": [
+        "LH__66aea9d26a69fe6fefebe374"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "위례A2-7BL",
+        "A2-7"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 219,
+      "source_ids": [
+        "LH__a7742ea4a204ef608764682a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A22"
+      ],
+      "tenure": "공공분양",
+      "units": 642,
+      "source_ids": [
+        "LH__3bfdb4ca8471d72f7c7d8bd1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A23"
+      ],
+      "tenure": "공공분양",
+      "units": 1012,
+      "source_ids": [
+        "LH__0362b0462b7c0d2b0c1dd314",
+        "LH__d921d08705dff7e63460e637"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "경기도",
+        "화성태안3",
+        "B3"
+      ],
+      "tenure": "일반형",
+      "units": 688,
+      "source_ids": [
+        "LH__eff64e589e8ab9dccd36ff6a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A2"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 534,
+      "source_ids": [
+        "LH__bf672c41729fd2dba6a67f18"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천가정2",
+        "A2"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 267,
+      "source_ids": [
+        "LH__7378a79798e086101117cbdc"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A2"
+      ],
+      "tenure": "공공분양",
+      "units": 747,
+      "source_ids": [
+        "LH__50bebc0b354e065c9a2e0d49",
+        "LH__ce7705d9fef9dd91a937a3df"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "공공분양(신혼)",
+      "units": 359,
+      "source_ids": [
+        "LH__2066d51adb3ad52d01d40955"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "행복(신혼)",
+      "units": 179,
+      "source_ids": [
+        "LH__fb5585fc791b2f521b3cc4cf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "key": [
+        "인천광역시",
+        "인천산곡",
+        "A1"
+      ],
+      "tenure": "행복",
+      "units": 400,
+      "source_ids": [
+        "LH__6d6104a61f90cd76bc9c3f2e"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "고양창릉",
+        "A4"
+      ],
+      "tenure": "분양",
+      "units": 603,
+      "source_ids": [
+        "AGE_9d3a6fa678252a1500ce0c09"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_09fa29b63ffb3ea986cf233f",
+          "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+          "units": 900
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "고양창릉",
+        "A4"
+      ],
+      "tenure": "임대",
+      "units": 297,
+      "source_ids": [
+        "AGE_9ea493fd92d7e0a6d00b033c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_09fa29b63ffb3ea986cf233f",
+          "name": "고양창릉 A-4BL 아파트 건설공사 1공구",
+          "units": 900
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "과천주암",
+        "C2"
+      ],
+      "tenure": "분양",
+      "units": 686,
+      "source_ids": [
+        "AGE_02757cffb3d95ecd84cdefb6"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_bceb35af2280eaa50c810c09",
+          "name": "과천주암(뉴스테이) C2",
+          "units": 344
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "군포대야미대방디에트르시그니처",
+        "B3"
+      ],
+      "tenure": "분양",
+      "units": 640,
+      "source_ids": [
+        "AGE_efc4f7f6370fbd405674623d"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A3"
+      ],
+      "tenure": "분양",
+      "units": 208,
+      "source_ids": [
+        "AGE_714de9d94ea21807e2893138"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_879ed3ac20d377a411aa7d9f",
+          "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+          "units": 366
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A3"
+      ],
+      "tenure": "임대",
+      "units": 158,
+      "source_ids": [
+        "AGE_e5f02a7f11e4636752f3c5f1"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_879ed3ac20d377a411aa7d9f",
+          "name": "조달청)남양주진접2 A-3BL 아파트 건설공사 3공구 (",
+          "units": 366
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A4"
+      ],
+      "tenure": "분양",
+      "units": 255,
+      "source_ids": [
+        "AGE_13025240ac0ea096bd503800"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_67142027aa77136be6cb3593",
+          "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+          "units": 448
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "남양주진접2",
+        "A4"
+      ],
+      "tenure": "임대",
+      "units": 193,
+      "source_ids": [
+        "AGE_a0aeb61067283dfebe68d503"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_67142027aa77136be6cb3593",
+          "name": "조달청)남양주진접2 A-4BL 아파트 건설공사 4공구",
+          "units": 448
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "성남금토",
+        "A2"
+      ],
+      "tenure": "임대",
+      "units": 633,
+      "source_ids": [
+        "AGE_344787033bf4ff3cba4dd886",
+        "AGE_2dc3ecf4b9ee22382a97827c"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_fcc796121d9c033bc356aaad",
+          "name": "성남금토 A2",
+          "units": 438
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "성남금토",
+        "A4"
+      ],
+      "tenure": "분양",
+      "units": 766,
+      "source_ids": [
+        "AGE_c41b827b6357adef651d93e9"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b572acaa0e4e1468c625d137",
+          "name": "성남금토 A4",
+          "units": 384
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "성남복정1",
+        "B1"
+      ],
+      "tenure": "분양",
+      "units": 315,
+      "source_ids": [
+        "AGE_c3912a799ca74c0c66541ac1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "양주회천",
+        "A25"
+      ],
+      "tenure": "임대",
+      "units": 1474,
+      "source_ids": [
+        "AGE_a9bd4689094dc6373ba9cbf8",
+        "AGE_46958808cec90e80b1b7b1be"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "엘리프한신더휴수원",
+        "C3"
+      ],
+      "tenure": "분양",
+      "units": 452,
+      "source_ids": [
+        "AGE_71369f4455f105682904cf03"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "오산세교2",
+        "A5"
+      ],
+      "tenure": "임대",
+      "units": 1050,
+      "source_ids": [
+        "AGE_08e683aab133ecafd8bfd0f8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "왕숙푸르지오더퍼스트",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 560,
+      "source_ids": [
+        "AGE_4de7db05da49432ea14f417c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "왕숙푸르지오더퍼스트",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 587,
+      "source_ids": [
+        "AGE_6116eb695587e562fa278a05"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "용인푸르지오원클러스터",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 1681,
+      "source_ids": [
+        "AGE_9cd392eaea99597dd2f3edd1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "용인푸르지오원클러스터",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 1804,
+      "source_ids": [
+        "AGE_58dbaf999bfcd664e477fa18"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "용인푸르지오원클러스터",
+        "COMPLEX_3"
+      ],
+      "tenure": "분양",
+      "units": 239,
+      "source_ids": [
+        "AGE_d5287d9faa7f8f1a8fcf3ddb"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "위례",
+        "A2-7"
+      ],
+      "tenure": "분양",
+      "units": 440,
+      "source_ids": [
+        "AGE_7ca46f011b8bc5714d8b6f0a"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "위례",
+        "A2-7"
+      ],
+      "tenure": "임대",
+      "units": 219,
+      "source_ids": [
+        "AGE_6f70d2f1c1eeb636787b1246"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "의왕월암",
+        "A1"
+      ],
+      "tenure": "분양",
+      "units": 446,
+      "source_ids": [
+        "AGE_62858f660494591a6a462770"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_b5b91172d6eed372aeb26e11",
+          "name": "의왕월암 A1",
+          "units": 228
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "의왕월암",
+        "A3"
+      ],
+      "tenure": "분양",
+      "units": 424,
+      "source_ids": [
+        "AGE_b0c95826527ed8d63e378817"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+          "name": "의왕월암 A3",
+          "units": 218
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "의왕청계2",
+        "A1"
+      ],
+      "tenure": "분양",
+      "units": 320,
+      "source_ids": [
+        "AGE_dee0b8e7d45674b6d2f2c8e5"
+      ],
+      "candidates": [
+        {
+          "id": "PRO_7dbb8517958f6375fc421333",
+          "name": "의왕청계2 A1",
+          "units": 160
+        }
+      ],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "이천중리",
+        "A2"
+      ],
+      "tenure": "분양",
+      "units": 523,
+      "source_ids": [
+        "AGE_c9b01a230049beea89925358"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "이천중리",
+        "B3"
+      ],
+      "tenure": "분양",
+      "units": 1009,
+      "source_ids": [
+        "AGE_f627c8df0b4657ed4196923b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "제일풍경채운정",
+        "A45"
+      ],
+      "tenure": "분양",
+      "units": 520,
+      "source_ids": [
+        "AGE_1e41cdda624435dbb7de9639"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "파주운정3",
+        "A3"
+      ],
+      "tenure": "임대",
+      "units": 1222,
+      "source_ids": [
+        "AGE_77a117a1a13647940fa30237"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "편한세상신곡시그니처뷰",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 815,
+      "source_ids": [
+        "AGE_3572b7d510d5f60093b71d95"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "편한세상일산메이포레",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 321,
+      "source_ids": [
+        "AGE_ea0ea09458fe38916f9c44b4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "편한세상일산메이포레",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 564,
+      "source_ids": [
+        "AGE_a7c6917e6a1507cbb28f4a48"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "편한세상일산메이포레",
+        "COMPLEX_3"
+      ],
+      "tenure": "분양",
+      "units": 457,
+      "source_ids": [
+        "AGE_5b58a73aec0eb01c8ed3e822"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "평택고더국제신도시",
+        "A48"
+      ],
+      "tenure": "분양",
+      "units": 431,
+      "source_ids": [
+        "AGE_86f14b43b899925d65376474"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "화성향남2",
+        "B16"
+      ],
+      "tenure": "임대",
+      "units": 772,
+      "source_ids": [
+        "AGE_996ca9285d146d26cb2ec097"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "힐스테이트이천역",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 937,
+      "source_ids": [
+        "AGE_2977b9bbab4e3d66f76f9362"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "경기도",
+        "힐스테이트이천역",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 885,
+      "source_ids": [
+        "AGE_3ee0e8eeaf50aaa7958aa123"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "서울특별시",
+        "마곡",
+        "COMPLEX_16"
+      ],
+      "tenure": "분양임대",
+      "units": 608,
+      "source_ids": [
+        "AGE_d051afadb134c592b13c5c1c"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "서울특별시",
+        "마곡엠밸리",
+        "COMPLEX_17"
+      ],
+      "tenure": "분양임대",
+      "units": 577,
+      "source_ids": [
+        "AGE_b771a57d8714894f20a1da4f"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "서울특별시",
+        "엘리프미아역",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양임대",
+      "units": 78,
+      "source_ids": [
+        "AGE_0548d0c03e3111525ae9e016"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "서울특별시",
+        "엘리프미아역",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양임대",
+      "units": 182,
+      "source_ids": [
+        "AGE_f3bbda77d408a4d76c8a3b51"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "서울특별시",
+        "위례",
+        "A1-14"
+      ],
+      "tenure": "분양임대",
+      "units": 555,
+      "source_ids": [
+        "AGE_1d6efbe6fad8a095d5912d79"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "계양롯데캐슬파크시티",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 1964,
+      "source_ids": [
+        "AGE_b0ac568776924f70be2425bd"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "계양롯데캐슬파크시티",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 1089,
+      "source_ids": [
+        "AGE_75c391cae178d106ac104a50"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "송도자이풍경채그라노블",
+        "COMPLEX_1"
+      ],
+      "tenure": "분양",
+      "units": 469,
+      "source_ids": [
+        "AGE_79acca2872f5acc5b4430817"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "송도자이풍경채그라노블",
+        "COMPLEX_2"
+      ],
+      "tenure": "분양",
+      "units": 548,
+      "source_ids": [
+        "AGE_c1eeb07242f3ab9c7207bfdf"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "송도자이풍경채그라노블",
+        "COMPLEX_3"
+      ],
+      "tenure": "분양",
+      "units": 597,
+      "source_ids": [
+        "AGE_e5a83721a0350f4f041be9f4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "송도자이풍경채그라노블",
+        "COMPLEX_4"
+      ],
+      "tenure": "분양",
+      "units": 504,
+      "source_ids": [
+        "AGE_0d1391921718b3634e43c7a1"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "송도자이풍경채그라노블",
+        "COMPLEX_5"
+      ],
+      "tenure": "분양",
+      "units": 610,
+      "source_ids": [
+        "AGE_b4725f3de3eb0a6619dd6581"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "시티오씨엘",
+        "COMPLEX_6"
+      ],
+      "tenure": "분양",
+      "units": 1734,
+      "source_ids": [
+        "AGE_079314c25756d9f8a525a4b4"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "인천검단",
+        "AA19"
+      ],
+      "source_ids": [
+        "AGE_21e2ed04234bf8e8f0b25d2c",
+        "AGE_3dd13ffd78e7cdbc5ef608c6"
+      ],
+      "units": 1323,
+      "reason": "같은 블록의 주택유형별 물량과 전체 블록 물량 범위 충돌"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "인천검단신도시",
+        "AB13"
+      ],
+      "tenure": "분양",
+      "units": 905,
+      "source_ids": [
+        "AGE_572e62b380fc46144787f784"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "분양",
+      "units": 359,
+      "source_ids": [
+        "AGE_15cb06915a357f7f2c0931b3"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "인천계양",
+        "A3"
+      ],
+      "tenure": "임대",
+      "units": 179,
+      "source_ids": [
+        "AGE_a5c3041ac98ee268e78a41e8"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "key": [
+        "인천광역시",
+        "인천산곡",
+        "A1"
+      ],
+      "tenure": "임대",
+      "units": 400,
+      "source_ids": [
+        "AGE_eb1eedb7cd2b142747e96221"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "key": [
+        "서울특별시",
+        "마곡엠밸리",
+        "COMPLEX_17"
+      ],
+      "tenure": "장기전세",
+      "units": 196,
+      "source_ids": [
+        "AGE_90df46408765504bb591c215"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "key": [
+        "서울특별시",
+        "고덕강일",
+        "COMPLEX_13"
+      ],
+      "tenure": "국민임대",
+      "units": 336,
+      "source_ids": [
+        "AGE_c1ea1f7dc92d4f6a3d45a2c7"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "key": [
+        "서울특별시",
+        "고덕강일",
+        "COMPLEX_6"
+      ],
+      "tenure": "국민임대",
+      "units": 689,
+      "source_ids": [
+        "AGE_be05ed7e03447f943b40f20b"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "key": [
+        "서울특별시",
+        "고덕강일",
+        "COMPLEX_7"
+      ],
+      "tenure": "국민임대",
+      "units": 619,
+      "source_ids": [
+        "AGE_13e0ae1086f50ac8c5537ed5"
+      ],
+      "candidates": [],
+      "reason": "동일 물리적 범위·동일 호수의 단일 승인 사업 또는 계획일 미확보"
+    }
+  ],
+  "skipped": {
+    "물리적 지구·블록 키 없음": 464,
+    "원천 세부 행 범위·합계 검토": 3,
+    "기존 담당자 확인 연결 유지": 65
+  }
+}

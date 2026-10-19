@@ -7,7 +7,7 @@ import os
 import threading
 import time
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import date, datetime
 from collections import Counter
 from pathlib import Path
 
@@ -258,11 +258,25 @@ class EvidenceBridgeReview(BaseModel):
     basis: str = Field(min_length=1,max_length=2000)
 
 
+class SnapshotRequest(BaseModel):
+    actor: str = Field(min_length=1,max_length=100)
+    reason: str = Field(min_length=1,max_length=1000)
+    known_at: datetime | None = None
+
+
 def create_app(engine=None, auto_collect=None):
+    from .facility_details import FacilityDetails
+    facility_details=FacilityDetails()
     service = HomeService(engine or engine_for(), os.environ.get("POC10_DATA_DIR", str(ROOT / "data")))
-    delivery_cache = ProjectionCache(lambda: projection_version(service))
+    from .projection_cache import delivery_projection_version
+    delivery_cache = ProjectionCache(lambda: delivery_projection_version(service))
+    indicator_input_cache = ProjectionCache(lambda: delivery_projection_version(service), max_entries=4)
     read_caches = {name: ProjectionCache(lambda: projection_version(service))
-                   for name in ('overview', 'samples', 'policy_metrics', 'supply_dashboard', 'map', 'project_collection', 'requirements_status', 'policy_monitor', 'mappings', 'tree', 'validation', 'history', 'geometry', 'schematic', 'annual_supply', 'area_context', 'area_outlook', 'execution_insights', 'unsold', 'project_workspace', 'project_locations')}
+                   for name in ('overview', 'samples', 'policy_metrics', 'supply_dashboard', 'map', 'project_collection', 'requirements_status', 'policy_monitor', 'mappings', 'tree', 'validation', 'history', 'geometry', 'schematic', 'annual_supply', 'area_context', 'area_outlook', 'execution_insights', 'unsold', 'housing_indicators', 'project_workspace', 'project_locations', 'project_information', 'source_summary')}
+    from .projection_cache import collection_projection_version
+    read_caches['project_collection'] = ProjectionCache(lambda: collection_projection_version(service))
+    for name in ('housing_indicators', 'area_context', 'area_outlook'):
+        read_caches[name] = ProjectionCache(lambda: delivery_projection_version(service))
     def cached_json(name, parameters, build):
         # Relative "today" queries must not reuse yesterday's projection.
         body, status = read_caches[name].get((today(),tuple(sorted(parameters.items()))), build)
@@ -271,14 +285,23 @@ def create_app(engine=None, auto_collect=None):
     stop = threading.Event()
 
     def collect_loop():
-        interval = max(3600, int(os.environ.get("POC10_COLLECTION_INTERVAL_SECONDS", "86400")))
+        from .collection_jobs import enqueue_due
         while not stop.is_set():
             try:
-                service.collect_all(scheduled=True, interval_seconds=interval)
+                enqueue_due(service)
             except Exception:
                 # Connectivity errors are reflected by /health, never leak credentials.
                 pass
-            stop.wait(min(300, interval))
+            stop.wait(60)
+
+    def collection_worker(lane):
+        from .collection_jobs import run_next
+        while not stop.is_set():
+            try:
+                result=run_next(service,lane)
+            except Exception:
+                result=None
+            stop.wait(1 if result else 10)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -288,6 +311,8 @@ def create_app(engine=None, auto_collect=None):
         reconcile_identity_links(service)
         if enabled:
             threading.Thread(target=collect_loop, name="home-collector", daemon=True).start()
+            for lane in ('LATEST','BACKFILL'):
+                threading.Thread(target=collection_worker, args=(lane,), name=f'home-source-worker-{lane}', daemon=True).start()
         yield
         stop.set()
 
@@ -296,6 +321,89 @@ def create_app(engine=None, auto_collect=None):
     building_context = BuildingContext()
     infrastructure_context = InfrastructureContext()
     app.add_middleware(GZipMiddleware, minimum_size=16384, compresslevel=4)
+
+    @app.get(PREFIX + '/api/data-integrity')
+    def integrity_rounds():
+        from .data_integrity import rounds
+        return rounds(service)
+
+    @app.get(PREFIX + '/api/data-integrity/diagnostics')
+    def integrity_diagnostics():
+        from .db import IntegrityRound
+        from sqlalchemy import select
+        with service.sessions() as db:
+            row=db.scalar(select(IntegrityRound).order_by(IntegrityRound.sequence.desc()).limit(1))
+            return dict(round_id=row.id if row else None,diagnostics=row.result.get('diagnostics') if row else None,
+                        note='선택 회차 평가 시점의 고정 재대조 결과. 기준시각 이후 원천 변화는 다음 평가에서 반영.')
+
+    @app.get(PREFIX + '/api/data-integrity/construction-audit')
+    def construction_audit():
+        from .construction_audit import latest
+        return latest(service)
+
+    @app.get(PREFIX + '/api/data-integrity/rounds/{identity}/report.md')
+    def integrity_markdown(identity: str):
+        from .data_integrity import get_round
+        try: record = get_round(service, identity)
+        except ValueError: raise HTTPException(404, '성적표가 없습니다') from None
+        body = record['result'].get('report_markdown') if record else None
+        if not body: raise HTTPException(404, '보고서가 없습니다')
+        return Response(body, media_type='text/markdown; charset=utf-8',
+            headers={'Content-Disposition':'attachment; filename="HOME_COLLECTION_OFFICIAL_GAP_20261020.md"'})
+
+    @app.get(PREFIX + '/api/data-integrity/rounds/{identity}/report.html')
+    def integrity_report(identity: str):
+        from .data_integrity import get_round
+        try:
+            return Response(get_round(service,identity,html=True),media_type='text/html')
+        except ValueError as error:
+            raise HTTPException(404,str(error))
+
+    @app.get(PREFIX + '/api/data-integrity/rounds/{identity}')
+    def integrity_detail(identity: str):
+        from .data_integrity import get_round
+        try:return get_round(service,identity)
+        except ValueError as error:raise HTTPException(404,str(error))
+
+    @app.get(PREFIX + '/api/independent-snapshots/{identity}')
+    def independent_snapshot(identity: str):
+        from .independent_metrics import get_snapshot
+        try:return get_snapshot(service,identity)
+        except ValueError as error:raise HTTPException(404,str(error))
+
+    @app.get(PREFIX + '/api/independent-snapshots/{identity}/events.csv')
+    def independent_snapshot_csv(identity: str):
+        from .independent_metrics import get_snapshot
+        try:data=get_snapshot(service,identity)
+        except ValueError as error:raise HTTPException(404,str(error))
+        output=io.StringIO();writer=csv.writer(output)
+        keys=('event_id','project_id','name','event_type','event_date','quantity','quantity_scope','source_revision_id','source_payload_hash','evidence_url')
+        writer.writerow(('snapshot_id','known_at',*keys))
+        for event in data['result']['selected_events']:
+            values=[str(event.get(k,'')) for k in keys]
+            writer.writerow([data['id'],data['known_at'],*["'"+v if v.startswith(('=','+','-','@')) else v for v in values]])
+        return Response('\ufeff'+output.getvalue(),media_type='text/csv',headers={'Content-Disposition':f'attachment; filename="HOME-{identity}-events.csv"'})
+
+    @app.get(PREFIX + '/api/independent-metrics')
+    def independent_metrics():
+        from .db import MetricSnapshot
+        from sqlalchemy import select
+        from .independent_metrics import get_snapshot
+        with service.sessions() as db:
+            identity=db.scalar(select(MetricSnapshot.id).order_by(MetricSnapshot.known_at.desc()).limit(1))
+        return get_snapshot(service,identity) if identity else dict(id=None,note='집계 기준본 생성 전입니다')
+
+    @app.get(PREFIX + '/api/collection-jobs')
+    def collection_jobs():
+        from .collection_jobs import status
+        return dict(items=status(service))
+
+    @app.post(PREFIX + '/api/admin/independent-snapshots')
+    def create_snapshot(request: Request, payload: SnapshotRequest):
+        if not authenticated(request):raise HTTPException(403,'관리자 인증이 필요합니다')
+        from .independent_metrics import freeze
+        try:return freeze(service,**payload.model_dump())
+        except ValueError as error:raise HTTPException(422,str(error))
 
     @app.middleware("http")
     async def headers(request, call_next):
@@ -306,6 +414,8 @@ def create_app(engine=None, auto_collect=None):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+        if request.url.path.startswith(PREFIX+'/api/data-integrity/rounds/') and request.url.path.endswith('/report.html'):
+            response.headers['Content-Security-Policy']="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
         return response
 
     @app.get("/health")
@@ -398,6 +508,15 @@ def create_app(engine=None, auto_collect=None):
             raise HTTPException(422, str(error)) from None
         except RuntimeError:
             raise HTTPException(503, "공식 주변 시설 연결 확인 필요") from None
+
+    @app.get(PREFIX + "/api/map/facility-details")
+    def map_facility_details(place_id: str = Query(min_length=1,max_length=150), kind: str = Query(pattern="^(school|childcare|bus|subway|hospital|mart)$"),
+            block_id: str | None = Query(None,min_length=4,max_length=150),project_id: str | None = Query(None,min_length=4,max_length=150)):
+        # IDs are resolved against the selected location's public POIs; callers cannot supply URLs.
+        data=map_infrastructure(block_id,project_id)
+        place=next((p for p in data['items'] if p['id']==place_id and p['kind']==kind),None)
+        if place is None:raise HTTPException(404,'선택 위치의 시설을 찾을 수 없습니다')
+        return facility_details.get(place,service)
 
     @app.get(PREFIX + "/api/map/dashboard")
     def supply_dashboard(f=Depends(filters),analysis_year:int|None=Query(None,ge=2010,le=2100),
@@ -553,10 +672,13 @@ def create_app(engine=None, auto_collect=None):
     @app.get(PREFIX + '/api/project-workspace')
     def project_workspace():
         def build():
-            keys=('id','name','region','municipality','mapping','planned_units')
-            return dict(items=[{k:p.get(k) for k in keys} for p in service.projects(policy_id='POL_2025_0907') if p['mapping']['status'] not in ('RELEASED','REJECTED')],
-                        programs=[p for p in service.program_links() if p['policy_id']=='POL_2025_0907' and p['status'] not in ('RELEASED','REJECTED')],
-                        policies=[p for p in service.mapping_policies() if p.get('monitor_kind')=='POLICY'])
+            from .read_scope import projection_reads
+            with projection_reads():
+                keys=('id','name','region','municipality','mapping','planned_units')
+                projects=service.projects()
+                return dict(items=[{k:p.get(k) for k in keys} for p in projects if p['mapping']['policy_id']=='POL_2025_0907' and p['mapping']['status'] not in ('RELEASED','REJECTED')],
+                            programs=[p for p in service.program_links(projects=projects) if p['policy_id']=='POL_2025_0907' and p['status'] not in ('RELEASED','REJECTED')],
+                            policies=[p for p in service.mapping_policies() if p.get('monitor_kind')=='POLICY'])
         return cached_json('project_workspace',{},build)
 
     @app.get(PREFIX + '/api/project-locations')
@@ -571,8 +693,12 @@ def create_app(engine=None, auto_collect=None):
     def project_information(project_id: str):
         from .project_profile import view
         from .project_collection import collection_matrix
-        matrix=cached_json('project_collection',{'policy_id':'POL_2025_0907'},lambda:collection_matrix(service,policy_id='POL_2025_0907'))
-        try: return view(service,project_id,json.loads(matrix.body),json.loads(project_locations().body))
+        from .read_scope import projection_reads
+        def build():
+            with projection_reads():
+                matrix=collection_matrix(service,policy_id='POL_2025_0907',project_ids=(project_id,))
+                return view(service,project_id,matrix,json.loads(project_locations().body))
+        try: return cached_json('project_information',{'project_id':project_id},build)
         except ValueError as error:raise HTTPException(404,str(error)) from None
 
     @app.post(PREFIX + '/api/admin/project-information/{project_id}')
@@ -614,6 +740,23 @@ def create_app(engine=None, auto_collect=None):
             lambda: build_delivery(service, day, include_portfolio_comparisons=not compact))
         return Response(body, media_type='application/json',
                         headers={'X-Home-Cache': status, 'Cache-Control': 'no-cache'})
+
+    @app.get(PREFIX + '/api/housing-indicators')
+    def housing_indicators_api(kind: str = Query('policy',pattern='^(policy|program|project)$'),
+            scope_id: str = Query('POL_2025_0907',min_length=4,max_length=150),
+            region: str | None = Query(None,pattern='^(서울특별시|경기도|인천광역시)$'),
+            municipality_id: str | None = Query(None,min_length=2,max_length=100),
+            as_of_date: date | None = None,year: int | None = Query(None,ge=2018,le=2100),
+            baseline_years: int = Query(3,ge=3,le=10),portfolio:bool=False):
+        from .housing_indicators import housing_indicators
+        day=as_of_date or today()
+        if day>today() or year and year>day.year+10 or baseline_years not in (3,5,10):raise HTTPException(422,'비교 기간 또는 기준일을 확인하세요')
+        parameters=dict(kind=kind,scope_id=scope_id,reference=day,region=region,municipality_id=municipality_id,year=year or day.year,baseline_years=baseline_years,portfolio=portfolio)
+        def build():
+            body,_=indicator_input_cache.get(day.isoformat(),lambda:build_delivery(service,day,include_portfolio_comparisons=False,indicators_only=True))
+            return housing_indicators(service,json.loads(body),**parameters)
+        try:return cached_json('housing_indicators',parameters,build)
+        except ValueError as error:raise HTTPException(422,str(error)) from None
 
     @app.get(PREFIX + '/api/map/progress')
     def map_progress(project_ids: list[str] = Query(default=[]), as_of_date: date | None = None,
@@ -780,7 +923,7 @@ def create_app(engine=None, auto_collect=None):
     def documents():
         return {"items": service.rows("document")}
 
-    def sample_filters(f=Depends(filters), kind: str | None = Query(None, pattern="^(notice|permit|location|register|register_recap|lh_notice|statistic|sh_plan|sh_project|gh_notice|gh_completion_evidence|complex_approval_reference|agency_stock|legal_dong|lh_supply|lh_movein_plan|lh_stock|renewal_inventory|lh_completion_plan|permit_dong|permit_parcel|plan_notice)$"),
+    def sample_filters(f=Depends(filters), kind: str | None = Query(None, pattern="^(notice|permit|general_permit|location|register|register_recap|lh_notice|statistic|sh_plan|sh_project|gh_notice|gh_completion_evidence|complex_approval_reference|agency_stock|legal_dong|lh_supply|lh_movein_plan|lh_stock|renewal_inventory|lh_completion_plan|agency_plan|agency_contract|permit_dong|permit_parcel|plan_notice)$"),
                        source_year: int | None = Query(None, ge=1900, le=2100)):
         return dict(as_of=f["as_of"], region=f["region"], source_id=f["source_id"], q=f["q"], kind=kind, source_year=source_year)
 
@@ -831,9 +974,21 @@ def create_app(engine=None, auto_collect=None):
     def plans_api():
         return plan_summary(service)
 
+    from .source_summary_cache import SourceSummaryCache
+    from .source_summary import build as build_source_summary
+    source_summary_cache = SourceSummaryCache(service.data_dir / 'runtime/source-summary-result.json',
+        lambda: build_source_summary(service), lambda: projection_version(service))
+
     @app.get(PREFIX + "/api/sources")
     def sources(compact: bool = False):
         return {"items": service.sources(compact=compact)}
+
+    @app.get(PREFIX + "/api/source-summary")
+    def source_summary():
+        from .source_summary import build
+        if service.engine.dialect.name == 'postgresql':
+            return source_summary_cache.get()
+        return cached_json('source_summary', {}, lambda: build(service))
 
     @app.get(PREFIX + "/api/sources/{source_id}/samples")
     def source_samples(source_id: str):
@@ -879,7 +1034,7 @@ def create_app(engine=None, auto_collect=None):
     @app.get(PREFIX + '/api/project-collection/version')
     def project_collection_version():
         import hashlib
-        return {'version': hashlib.sha256(repr(projection_version(service)).encode()).hexdigest()}
+        return {'version': hashlib.sha256(repr(collection_projection_version(service)).encode()).hexdigest()}
 
     @app.get(PREFIX + '/api/project-collection')
     def project_collection(f=Depends(filters)):

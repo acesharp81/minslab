@@ -1,0 +1,20 @@
+{
+  "target": "file:///home/ubuntu/apps/myservice/PoC/10-home/docs/HOME_OFFICIAL_PROJECT_COMPARISON_20261018.html",
+  "known_at": "2026-10-18T11:44:16.951340+00:00",
+  "source_records": 323,
+  "default_policy_records": 208,
+  "all_active_records": 322,
+  "mentioned_records_default": 54,
+  "unmentioned_records_default": 154,
+  "ih_unmentioned_groups": 7,
+  "official_cases": 16,
+  "official_areas": 12,
+  "wangsuk2_period_and_event_separation": "PASS",
+  "direct_events_and_source_plans": "PASS",
+  "missing_is_not_zero": "PASS",
+  "scope_filters": "PASS",
+  "mobile": "PASS",
+  "download": "PASS",
+  "offline": "PASS",
+  "errors": []
+}

@@ -100,10 +100,11 @@ class SampleParserTests(unittest.TestCase):
                 return json.dumps({'data':rows,'matchCount':205})
         with patch.dict(os.environ,{'POC10_CHEONGYAK_SERVICE_KEY':'fake-key','POC10_NOTICE_START_DATE':'2018-01-01'}):
             records,stats=collect_notices(SAMPLE_SOURCES['cheongyak'],Fetch())
-            self.assertEqual(len(records),410*(today().year-2018+1))
-            self.assertEqual(len(calls),6*(today().year-2018+1))
+            self.assertEqual(len(records),615*(today().year-2018+1))
+            self.assertEqual(len(calls),9*(today().year-2018+1))
             self.assertEqual(stats['period_start'],'2018-01-01')
-            self.assertEqual(len(stats['annual_counts']),2*(today().year-2018+1))
+            self.assertEqual(len(stats['annual_counts']),3*(today().year-2018+1))
+            self.assertTrue(stats['region_counts']['인천광역시']['complete_query'])
             self.assertTrue(stats['region_counts']['서울특별시']['complete_query'])
             duplicate=True
             with self.assertRaises(ValueError):
@@ -218,8 +219,11 @@ class SampleStorageTests(unittest.TestCase):
     def test_scheduler_skips_manual_samples_and_admin_refresh_selects_sample_mode(self):
         with patch.object(self.service,'collect_one',return_value={'status':'SUCCESS'}) as collect:
             self.service.collect_all()
-        self.assertEqual([call.args[0]['id'] for call in collect.call_args_list],
-                         [s['id'] for s in SOURCES if not s.get('manual_only') and s['id'] not in {'building_hub', 'building_register', 'building_hub_details'}])
+        expected=[s['id'] for s in SOURCES if not s.get('manual_only') and s['id'] not in {'building_hub', 'building_register', 'building_hub_details'}]
+        # A successful automatic regional-statistics refresh replays its raw
+        # national observations as a dependent collection.
+        expected.insert(expected.index('molit_statistics')+1,'national_statistics')
+        self.assertEqual([call.args[0]['id'] for call in collect.call_args_list],expected)
         self.assertEqual(self.client.post('/poc/home/api/admin/refresh?mode=sample').status_code,401)
         path='/poc/home/api/admin/refresh'
         stamp=str(int(time.time()))

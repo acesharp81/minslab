@@ -32,6 +32,15 @@ def test_gh_range_reaches_graph_without_recollect():
     e=source_events(r,date(2026,10,13));assert {x['month'] for x in e}=={'2027-12','2028-09'}
     assert all(x['date_conversion']=='PERIOD_END' for x in e)
 
+def test_gh_first_notice_range_retains_original_and_end_month():
+    raw='2026년 5~6월 중(최초)'
+    p=schedule_period(raw)
+    assert p['due_date']=='2026-06-30' and p['precision']=='MONTH_RANGE'
+    assert p['original']==raw and p['conversion']=='PERIOD_END'
+    events=source_events(dict(source_id='gh_supply_plan',planned_units=518,source_supply_label=raw),date(2026,10,19))
+    assert len(events)==1 and events[0]['units']==518 and events[0]['stage']=='SUPPLY'
+    assert schedule_period('2026년 5~6월 중(취소)') is None
+
 def test_sh_split_columns_allow_quarter():
     from backend.sh_apis import scheduled_month
     assert scheduled_month({'공급시기 예정 년도':2027,'공급시기 예정월':'3분기'})=='2027-09'

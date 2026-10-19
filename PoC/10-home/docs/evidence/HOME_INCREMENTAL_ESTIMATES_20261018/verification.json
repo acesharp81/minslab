@@ -1,0 +1,20 @@
+{
+  "projects": 11,
+  "targets": 66,
+  "estimated_measurements": 24,
+  "pending_measurements": 42,
+  "source_capacity_recovered": 1,
+  "source_anchors": 20,
+  "prior_projects_preserved": 197,
+  "policy_projects": 208,
+  "profiles_before": 197,
+  "profiles_after": 208,
+  "independent_primary_events_unchanged": true,
+  "source_revisions_unchanged": true,
+  "mappings_unchanged": true,
+  "prior_manual_values_unchanged": true,
+  "audit_records": 80,
+  "actor": "김민",
+  "reason": "공식 자료 확인 및 IH 추가 연결",
+  "idempotent": true
+}

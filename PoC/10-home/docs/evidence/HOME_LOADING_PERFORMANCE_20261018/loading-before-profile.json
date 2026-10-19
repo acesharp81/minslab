@@ -1,0 +1,98 @@
+{
+  "elapsed": 3.5608846489340067,
+  "total": 208,
+  "sql_calls": 46,
+  "sql_time": 1.8433236768469214,
+  "top_queries": [
+    {
+      "key": "472b6252fdaf",
+      "calls": 24,
+      "seconds": 1.051,
+      "sql": "SELECT home_revision.id, home_revision.entity_id, home_revision.kind, home_revision.source_id, home_revision.revision_no, home_revision.previous_id, home_revision.sample_base_date, home_revision.sample_region, home_revision.sample_name, home_revision.sample_source_date, home_revision.sample_event_day, home_revision.payload, home_revision.payload_hash, home_revision.batch_id, home_revision.recorded_at, home_revision.superseded_at \nFROM home_revision \nWHERE home_revision.kind = %(kind_1)s::VARCHAR AND home_revision.recorded_at < %(recorded_at_1)s::TIMESTAMP WITH TIME ZONE AND (home_revision.superseded_at IS NULL OR home_revision.superseded_at >= %(superseded_at_1)s::TIMESTAMP WITH TIME ZONE)"
+    },
+    {
+      "key": "b3d075ae658e",
+      "calls": 1,
+      "seconds": 0.308,
+      "sql": "SELECT home_audit.id, home_audit.entity_id, home_audit.action, home_audit.before, home_audit.after, home_audit.recorded_at \nFROM home_audit JOIN (SELECT home_audit.id AS id, row_number() OVER (PARTITION BY home_audit.entity_id ORDER BY home_audit.recorded_at DESC, home_audit.id DESC) AS rn \nFROM home_audit \nWHERE home_audit.entity_id IN (%(entity_id_1_1)s::VARCHAR, %(entity_id_1_2)s::VARCHAR, %(entity_id_1_3)s::VARCHAR, %(entity_id_1_4)s::VARCHAR, %(entity_id_1_5)s::VARCHAR, %(entity_id_1_6)s::VARCHAR, %(entity_id_1_7)s::VARCHAR, %(entity_id_1_8)s::VARCHAR, %(entity_id_1_9)s::VARCHAR, %(entity_id_1_10)s::VARCHAR, %(entity_id_1_11)s::VARCHAR, %(entity_id_1_12)s::VARCHAR, %(entity_id_1_13)s::VARCHAR, %(entity_id_1_14)s::VARCHAR, %(entity_id_1_15)s::VARCHAR, %(entity_id_1_16)s::VARCHAR, %(entity_id_1_17)s::VARCHAR, %(entity_id_1_18)s::VARCHAR, %(entity_id_1_19)s::VARCHAR, %(entity_id_1_20)s::VARCHAR, %(entity_id_1_21)s::VARCHAR, %(entity_id_1_22)s::VARCHAR, %(entity_id_1_23)s::VARCHAR, %("
+    },
+    {
+      "key": "b92cc907c69d",
+      "calls": 1,
+      "seconds": 0.169,
+      "sql": "SELECT home_revision.entity_id, home_revision.revision_no, home_revision.kind, home_revision.payload \nFROM home_revision \nWHERE (home_revision.entity_id, home_revision.revision_no) IN ((%(param_1_1_1)s, %(param_1_1_2)s), (%(param_1_2_1)s, %(param_1_2_2)s), (%(param_1_3_1)s, %(param_1_3_2)s), (%(param_1_4_1)s, %(param_1_4_2)s), (%(param_1_5_1)s, %(param_1_5_2)s), (%(param_1_6_1)s, %(param_1_6_2)s), (%(param_1_7_1)s, %(param_1_7_2)s), (%(param_1_8_1)s, %(param_1_8_2)s), (%(param_1_9_1)s, %(param_1_9_2)s), (%(param_1_10_1)s, %(param_1_10_2)s), (%(param_1_11_1)s, %(param_1_11_2)s), (%(param_1_12_1)s, %(param_1_12_2)s), (%(param_1_13_1)s, %(param_1_13_2)s), (%(param_1_14_1)s, %(param_1_14_2)s), (%(param_1_15_1)s, %(param_1_15_2)s), (%(param_1_16_1)s, %(param_1_16_2)s), (%(param_1_17_1)s, %(param_1_17_2)s), (%(param_1_18_1)s, %(param_1_18_2)s), (%(param_1_19_1)s, %(param_1_19_2)s), (%(param_1_20_1)s, %(param_1_20_2)s), (%(param_1_21_1)s, %(param_1_21_2)s), (%(param_1_22_1)s, %(param_1_22_2)s"
+    },
+    {
+      "key": "97a95ad40b4c",
+      "calls": 1,
+      "seconds": 0.156,
+      "sql": "SELECT home_revision.entity_id, home_revision.revision_no, home_revision.kind, home_revision.payload \nFROM home_revision \nWHERE (home_revision.entity_id, home_revision.revision_no) IN ((%(param_1_1_1)s, %(param_1_1_2)s), (%(param_1_2_1)s, %(param_1_2_2)s), (%(param_1_3_1)s, %(param_1_3_2)s), (%(param_1_4_1)s, %(param_1_4_2)s), (%(param_1_5_1)s, %(param_1_5_2)s), (%(param_1_6_1)s, %(param_1_6_2)s), (%(param_1_7_1)s, %(param_1_7_2)s), (%(param_1_8_1)s, %(param_1_8_2)s), (%(param_1_9_1)s, %(param_1_9_2)s), (%(param_1_10_1)s, %(param_1_10_2)s), (%(param_1_11_1)s, %(param_1_11_2)s), (%(param_1_12_1)s, %(param_1_12_2)s), (%(param_1_13_1)s, %(param_1_13_2)s), (%(param_1_14_1)s, %(param_1_14_2)s), (%(param_1_15_1)s, %(param_1_15_2)s), (%(param_1_16_1)s, %(param_1_16_2)s), (%(param_1_17_1)s, %(param_1_17_2)s), (%(param_1_18_1)s, %(param_1_18_2)s), (%(param_1_19_1)s, %(param_1_19_2)s), (%(param_1_20_1)s, %(param_1_20_2)s), (%(param_1_21_1)s, %(param_1_21_2)s), (%(param_1_22_1)s, %(param_1_22_2)s"
+    },
+    {
+      "key": "279a6aa9adad",
+      "calls": 2,
+      "seconds": 0.049,
+      "sql": "SELECT home_batch.id, home_batch.source_id, home_batch.started_at, home_batch.finished_at, home_batch.status, home_batch.stats, home_batch.error, home_batch.manifest \nFROM home_batch \nWHERE home_batch.id IN (SELECT anon_1.id \nFROM (SELECT home_batch.id AS id, row_number() OVER (PARTITION BY home_batch.source_id ORDER BY home_batch.started_at DESC) AS rn \nFROM home_batch \nWHERE home_batch.status = %(status_1)s::VARCHAR AND home_batch.finished_at < %(finished_at_1)s::TIMESTAMP WITH TIME ZONE) AS anon_1 \nWHERE anon_1.rn = %(rn_1)s::INTEGER)"
+    },
+    {
+      "key": "e3c97fcf3dff",
+      "calls": 1,
+      "seconds": 0.022,
+      "sql": "SELECT home_batch.id, home_batch.source_id, home_batch.started_at, home_batch.finished_at, home_batch.status, home_batch.stats, home_batch.error, home_batch.manifest \nFROM home_batch \nWHERE home_batch.id IN (SELECT anon_1.id \nFROM (SELECT home_batch.id AS id, row_number() OVER (PARTITION BY home_batch.source_id ORDER BY home_batch.started_at DESC) AS rn \nFROM home_batch \nWHERE home_batch.status = %(status_1)s::VARCHAR) AS anon_1 \nWHERE anon_1.rn = %(rn_1)s::INTEGER)"
+    },
+    {
+      "key": "0c69100261b5",
+      "calls": 1,
+      "seconds": 0.022,
+      "sql": "SELECT home_batch.id, home_batch.source_id, home_batch.started_at, home_batch.finished_at, home_batch.status, home_batch.stats, home_batch.error, home_batch.manifest \nFROM home_batch \nWHERE home_batch.id IN (SELECT anon_1.id \nFROM (SELECT home_batch.id AS id, row_number() OVER (PARTITION BY home_batch.source_id ORDER BY home_batch.started_at DESC) AS rn \nFROM home_batch) AS anon_1 \nWHERE anon_1.rn = %(rn_1)s::INTEGER)"
+    },
+    {
+      "key": "33f5aba85d50",
+      "calls": 1,
+      "seconds": 0.018,
+      "sql": "SELECT home_revision.id, home_revision.entity_id, home_revision.kind, home_revision.source_id, home_revision.revision_no, home_revision.previous_id, home_revision.sample_base_date, home_revision.sample_region, home_revision.sample_name, home_revision.sample_source_date, home_revision.sample_event_day, home_revision.payload, home_revision.payload_hash, home_revision.batch_id, home_revision.recorded_at, home_revision.superseded_at \nFROM home_revision \nWHERE home_revision.kind = %(kind_1)s::VARCHAR AND home_revision.entity_id IN (%(entity_id_1_1)s::VARCHAR, %(entity_id_1_2)s::VARCHAR, %(entity_id_1_3)s::VARCHAR, %(entity_id_1_4)s::VARCHAR, %(entity_id_1_5)s::VARCHAR, %(entity_id_1_6)s::VARCHAR, %(entity_id_1_7)s::VARCHAR, %(entity_id_1_8)s::VARCHAR, %(entity_id_1_9)s::VARCHAR, %(entity_id_1_10)s::VARCHAR, %(entity_id_1_11)s::VARCHAR, %(entity_id_1_12)s::VARCHAR, %(entity_id_1_13)s::VARCHAR, %(entity_id_1_14)s::VARCHAR, %(entity_id_1_15)s::VARCHAR, %(entity_id_1_16)s::VARCHAR, %(entity_id_"
+    },
+    {
+      "key": "47042aab0b04",
+      "calls": 2,
+      "seconds": 0.016,
+      "sql": "SELECT home_audit.id, home_audit.entity_id, home_audit.action, home_audit.before, home_audit.after, home_audit.recorded_at \nFROM home_audit \nWHERE home_audit.entity_id IN (%(entity_id_1_1)s::VARCHAR, %(entity_id_1_2)s::VARCHAR, %(entity_id_1_3)s::VARCHAR, %(entity_id_1_4)s::VARCHAR, %(entity_id_1_5)s::VARCHAR, %(entity_id_1_6)s::VARCHAR, %(entity_id_1_7)s::VARCHAR, %(entity_id_1_8)s::VARCHAR, %(entity_id_1_9)s::VARCHAR, %(entity_id_1_10)s::VARCHAR, %(entity_id_1_11)s::VARCHAR, %(entity_id_1_12)s::VARCHAR, %(entity_id_1_13)s::VARCHAR, %(entity_id_1_14)s::VARCHAR, %(entity_id_1_15)s::VARCHAR, %(entity_id_1_16)s::VARCHAR, %(entity_id_1_17)s::VARCHAR, %(entity_id_1_18)s::VARCHAR, %(entity_id_1_19)s::VARCHAR, %(entity_id_1_20)s::VARCHAR, %(entity_id_1_21)s::VARCHAR, %(entity_id_1_22)s::VARCHAR, %(entity_id_1_23)s::VARCHAR, %(entity_id_1_24)s::VARCHAR, %(entity_id_1_25)s::VARCHAR, %(entity_id_1_26)s::VARCHAR, %(entity_id_1_27)s::VARCHAR, %(entity_id_1_28)s::VARCHAR, %(entity_id_1_29)s::VARCH"
+    },
+    {
+      "key": "40bc6a733091",
+      "calls": 1,
+      "seconds": 0.013,
+      "sql": "SELECT home_audit.id, home_audit.entity_id, home_audit.action, home_audit.before, home_audit.after, home_audit.recorded_at \nFROM home_audit \nWHERE home_audit.entity_id IN (%(entity_id_1_1)s::VARCHAR, %(entity_id_1_2)s::VARCHAR, %(entity_id_1_3)s::VARCHAR, %(entity_id_1_4)s::VARCHAR, %(entity_id_1_5)s::VARCHAR, %(entity_id_1_6)s::VARCHAR, %(entity_id_1_7)s::VARCHAR, %(entity_id_1_8)s::VARCHAR, %(entity_id_1_9)s::VARCHAR, %(entity_id_1_10)s::VARCHAR, %(entity_id_1_11)s::VARCHAR, %(entity_id_1_12)s::VARCHAR, %(entity_id_1_13)s::VARCHAR, %(entity_id_1_14)s::VARCHAR, %(entity_id_1_15)s::VARCHAR, %(entity_id_1_16)s::VARCHAR, %(entity_id_1_17)s::VARCHAR, %(entity_id_1_18)s::VARCHAR, %(entity_id_1_19)s::VARCHAR, %(entity_id_1_20)s::VARCHAR, %(entity_id_1_21)s::VARCHAR, %(entity_id_1_22)s::VARCHAR, %(entity_id_1_23)s::VARCHAR, %(entity_id_1_24)s::VARCHAR, %(entity_id_1_25)s::VARCHAR, %(entity_id_1_26)s::VARCHAR, %(entity_id_1_27)s::VARCHAR, %(entity_id_1_28)s::VARCHAR, %(entity_id_1_29)s::VARCH"
+    },
+    {
+      "key": "458f0c18ae79",
+      "calls": 1,
+      "seconds": 0.008,
+      "sql": "SELECT home_revision.entity_id, home_revision.revision_no, home_revision.kind, home_revision.payload \nFROM home_revision JOIN (SELECT home_revision.entity_id AS entity_id, max(home_revision.revision_no) AS rev \nFROM home_revision \nWHERE home_revision.entity_id IN (%(entity_id_1_1)s::VARCHAR) AND home_revision.recorded_at < %(recorded_at_1)s::TIMESTAMP WITH TIME ZONE GROUP BY home_revision.entity_id) AS anon_1 ON home_revision.entity_id = anon_1.entity_id AND home_revision.revision_no = anon_1.rev"
+    },
+    {
+      "key": "140afcd7b14e",
+      "calls": 2,
+      "seconds": 0.003,
+      "sql": "SELECT home_mapping.id, home_mapping.project_id, home_mapping.policy_id, home_mapping.program_id, home_mapping.status, home_mapping.revision_no, home_mapping.basis, home_mapping.evidence_url, home_mapping.reviewed_at \nFROM home_mapping"
+    },
+    {
+      "key": "706201e60205",
+      "calls": 1,
+      "seconds": 0.003,
+      "sql": "SELECT home_revision.id, home_revision.entity_id, home_revision.kind, home_revision.source_id, home_revision.revision_no, home_revision.previous_id, home_revision.sample_base_date, home_revision.sample_region, home_revision.sample_name, home_revision.sample_source_date, home_revision.sample_event_day, home_revision.payload, home_revision.payload_hash, home_revision.batch_id, home_revision.recorded_at, home_revision.superseded_at \nFROM home_revision \nWHERE home_revision.kind = %(kind_1)s::VARCHAR AND home_revision.superseded_at IS NULL"
+    },
+    {
+      "key": "e484421f23a2",
+      "calls": 3,
+      "seconds": 0.002,
+      "sql": "SELECT home_revision.id, home_revision.entity_id, home_revision.kind, home_revision.source_id, home_revision.revision_no, home_revision.previous_id, home_revision.sample_base_date, home_revision.sample_region, home_revision.sample_name, home_revision.sample_source_date, home_revision.sample_event_day, home_revision.payload, home_revision.payload_hash, home_revision.batch_id, home_revision.recorded_at, home_revision.superseded_at \nFROM home_revision \nWHERE home_revision.entity_id = %(entity_id_1)s::VARCHAR AND home_revision.revision_no = %(revision_no_1)s::INTEGER"
+    },
+    {
+      "key": "af438da11f2c",
+      "calls": 2,
+      "seconds": 0.002,
+      "sql": "SELECT home_program_mapping.id, home_program_mapping.name, home_program_mapping.seed_policy_id, home_program_mapping.policy_id, home_program_mapping.status, home_program_mapping.revision_no, home_program_mapping.basis, home_program_mapping.evidence_url, home_program_mapping.reviewed_at, home_program_mapping.created_at \nFROM home_program_mapping"
+    }
+  ]
+}

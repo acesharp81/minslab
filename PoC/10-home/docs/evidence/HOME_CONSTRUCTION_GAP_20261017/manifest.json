@@ -1,0 +1,31 @@
+{
+  "actor": "김민",
+  "reason": "공식 발표 후 도출된 보완 사항 적용",
+  "files": {
+    "backend/collectors.py": "44f1626d61bbfc2f8281901ca221889fd9a55d4d9639acaa63c2c4fb2a812ffe",
+    "backend/evidence_bridge.py": "f9b330708c58b4e4a2310bb14212271b2f2777e495218611f00c8a71fcf9a47a",
+    "backend/independent_metrics.py": "0d62e283ccd19e873b3cec0242ecaebb922f4af7b724d687a2c0dac825a9f6b0",
+    "backend/construction_audit.py": "a87089e6dc63b2540092113aaf5edfd8dde336f1b9c4c88d5af3a6c77dca4812",
+    "backend/app.py": "44b92f56d7aee618381c39b4d01af9e60a2c29fb8a41946caa238c070cd1be37",
+    "backend/sources.py": "d343f8d0aff5abcbe7175141ce57c98d09935aa81cfb7837a1d21dee42923e92",
+    "web/assets/data-integrity.js": "20006c1d485f2384d2cd92e1c4278ad09467703a17559a166336cde39b9446ad",
+    "scripts/repair_construction_quantity.py": "56afed90a4b54cf2c342c2f86237937bd2737cabe4a9e3e166741a96bbb40185",
+    "tests/test_construction_actuals.py": "9983c1578b1c51a7558e22943cda2883b65f3839b875bb13fe824de4fd41c30b"
+  },
+  "evidence": {
+    "permit-audit.json": "fa0f0d1f3d22413b6c0e18fc1a1b1efe6c41d90cf3ed04528ad0882d2ce1cbbd",
+    "collection.json": "09f60eaf8b453248a441df9ccb27a156df20740a1d12bc4725557666ed76341c",
+    "javascript-tests.tap": "6c7350a2cea35f4b3cf55c41c15fa39734dcd7b33942213afd63e050672ce785",
+    "audit.json": "0ed6618cbf97afe5553b1c848fe7db237b50313befd4835ae54f64753b950180",
+    "production-browser-verification.json": "9e746fd149be126f5b264d197ecf74d0a3e5daa11c4c3995731318a29f3b8c65",
+    "repair-history.json": "dfd0a6ce59fc2b63e4e9a607dc5e84a399fc58ef9a3247f943adef29cfed90c4",
+    "regression.xml": "36e8943f57a890b6446ee79c340da34153ddab1e008581fa4cebd2aa5713881f",
+    "rounds-before.json": "66ca971ce743320d0e5d5fb7bcfa22cac009cd28c0d64ad319fe8cec2643f9ed"
+  },
+  "tests": {
+    "full_suite": "640 passed + 61 subtests",
+    "additional_construction_suite": "8 passed (includes additional knowledge-time test)",
+    "javascript": "65 passed",
+    "browser": "production PASS"
+  }
+}

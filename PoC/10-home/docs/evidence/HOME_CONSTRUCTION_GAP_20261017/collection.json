@@ -1,0 +1,20 @@
+[
+  {
+    "source_id": "lh_construction",
+    "result": {
+      "source_id": "lh_construction",
+      "status": "SUCCESS",
+      "records": 87,
+      "changed": 87
+    }
+  },
+  {
+    "source_id": "lh_incheon_construction",
+    "result": {
+      "source_id": "lh_incheon_construction",
+      "status": "SUCCESS",
+      "records": 16,
+      "changed": 16
+    }
+  }
+]

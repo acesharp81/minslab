@@ -1,0 +1,15 @@
+{
+  "backend/matching_corrections.py": "34f3e662009b6b399f5f18fe43f16cf86e7a06b04a2be67d61c824da831184dc",
+  "backend/integrity_diagnostics.py": "86f7c6c7a6e552456f8464bd67093560267ee8275ef5469d54d33ca2191d6950",
+  "backend/independent_metrics.py": "2b2c3b591b5faf2576fceafc957e8719d4503a2884f026207e520f571ddcbf38",
+  "backend/ih_public.py": "b45a7ab630402715c836862008dcf9dfca03451fceaa445f09dae70380b29208",
+  "backend/seoul_cleanup.py": "0f52b788d8c6ca025a52c15d3f818a42ed88893a151c9366850fa1abae14e81f",
+  "backend/data_integrity.py": "a73a0bc541644b60f6afd4d02591e590680f08614f358fa5da655585270b75c5",
+  "backend/annual_supply.py": "0ad166568a124c71523bee70cd6957e5a9b548d546fcf0ef3fa37f09a7f42c57",
+  "backend/app.py": "27bc1d97a7a166c24e46d3fdc05e4d58d713fc363918b9383738af11aa03799b",
+  "backend/service.py": "ec979c24c384de9233ca2cfafdae9c72046e43b811236d89d36b21d1f98cf8f0",
+  "backend/sources.py": "776086e7fe339848aa2a8c8331aa70c6bb33ced860a53a0ec9b3bbcebc926da3",
+  "scripts/build_consolidated_integrity.py": "d5f0e9df247680b3f83eabb9b0720fa2c7c4e1d427db8c2bed2083f6b2c6f3fb",
+  "scripts/run_integrity_consolidation.py": "4df3ee313d80812b90cca52b0c8d4fa752727811654ba920f88d63cd3d2644f0",
+  "web/assets/data-integrity.js": "6a9212c806fc7ffb977869566e8eff7ad0f1874443e23a94e0deb16804c786cf"
+}

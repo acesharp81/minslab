@@ -1,0 +1,994 @@
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+<head>
+<title>사업개요  정비사업 정보몽땅</title>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8,IE=EmulateIE9"/> 
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta http-equiv="Content-Script-Type" content="text/javascript;" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="imagetoolbar" content="no" />
+<meta name="robots" content="index,follow" />
+<meta name="subject" content="정비사업 정보몽땅 신림2재정비촉진구역 재개발정비사업조합" />
+<meta name="description" content="정비사업 정보몽땅 신림2재정비촉진구역 재개발정비사업조합 화면입니다." />
+<meta name="copyright" content="copyrights 2010 서울특별시청" />
+<meta name="author" content="서울특별시청" />
+<meta name="language" content="ko" /> 
+
+<!-- 공통 css -->
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/font-face.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/common.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/default.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/board.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/jquery-ui.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/jquery-ui.theme.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/slick.css"/>
+<link rel="stylesheet" media="all" href="/cmm/cmmCss/jquery.mCustomScrollbar.css"/>
+
+<!-- 홈페이지 전용 css -->
+<link rel="stylesheet" media="all" href="/share/cafe/css/layout.css"/>
+<link rel="stylesheet" media="all" href="/share/cafe/css/content.css"/>
+
+<script type="text/javascript" src="/cmmn/js/jquery/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="/cmmn/js/jquery-migrate-1.1.1.min.js"></script>
+
+<script type="text/javascript" src="/cmmn/js/jquery/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/cafe/js/iframe-jQuery.min.js"></script>
+<script type="text/javascript" src="/cafe/js/common.js"></script>
+<script type="text/javascript" src="/cmmn/js/jquery/jquery.form.js"></script>
+
+<!-- 공통 js -->
+<script type="text/javascript" src="/cmm/cmmJs/slick.min.js"></script>
+<script type="text/javascript" src="/cmm/cmmJs/jquery.mCustomScrollbar.min.js"></script>
+<script type="text/javascript" src="/cmm/cmmJs/default.js" defer="defer"></script>
+
+<!-- 홈페이지 전용 js -->
+<script type="text/javascript" src="/share/cafe/js/sub.js" defer="defer"></script>
+
+<!-- 990 손님등급 -->
+
+
+<script type="text/javascript">
+//<![CDATA[ 
+$(function() {
+	parent.$("#layer_nticeList").dialog('close'); //알림팝업 닫기
+		
+	if('102' == "102"){
+		titleStr = "조합안내";
+	}if('102' == "101"){
+		titleStr = "추진위원회안내";
+	}
+    if($.browser.mozilla || $.browser.msie){
+    	parent.document.getElementById('cafeMainTitle').html = "사업현황&gt;"+ titleStr + "&gt;신림2재정비촉진구역 재개발정비사업조합  정비사업 정보몽땅";
+    } else {
+    	$('#cafeMainTitle', parent.document).html("사업현황&gt;"+ titleStr + "&gt;신림2재정비촉진구역 재개발정비사업조합  정비사업 정보몽땅"); //tab타이틀
+    }
+	
+	$('td').each(function() {
+		if ($(this).html().length == 0) {
+			$(this).html('&nbsp;');
+		}
+	});
+	// 위치도 이미지 크기 맞춤
+	$('.loc_image img').each(function() {
+		var $img = $(this);
+		if ($img.width() > 620) {
+			$img.width(620);
+		}
+	});
+	
+	bodyOnload();
+	//보완요청 레이어
+	$('#inputRequest').dialog({
+		open:function(){
+			//타이틀 없애기
+			$(this).parents(".ui-dialog").find(".ui-dialog-titlebar").remove();
+		},
+		position: { my: "center", at: "top", of: window },
+		bgiframe  : true,
+		resizable : false,
+		modal     : true,
+		width     : '100%',
+		height    : 650,
+		autoOpen  : false,
+		create: function( event, ui ) {
+		    // Set maxWidth
+		    $(this).parent().css("maxWidth", "1020px");
+		  }
+	});
+});
+function writeRequest(){
+	/*
+ 	 * 보완요청하기 버튼 클릭 또는 대상항목 클릭시 미로그인상태이면, “권한이 없습니다. 먼저 로그인을 해주세요.” 
+ 	 * 로그인자가 조합회원/공무원(승인받은 조합회원/공무원을 의미하며 이하 동일하게 칭함)에 속하지 않으면 , “권한이 없습니다. 조합회원/공무원만 가능합니다.”
+ 	 * 공무원 권한은 제외 
+	 */
+	 //공무원 여부
+		
+			
+				alert("권한이 없습니다. 먼저 로그인을 해주세요");
+				return;
+			
+			
+			
+		
+	
+	
+	$('#inputRequest').dialog('open');
+	
+	//분류정보와 같은 누락자료 공개요청건이 몇건 존재하는지 조회
+/* 	$('#openDataWriteCheckForm').ajaxSubmit({
+		url     : "/service/opendata/othbcDocInput/dupReqCnt.do",
+		dataType: 'json',
+		error   : function (data, status, e){ alert("에러코드 : " + data.status +"\n"); },
+		success : function(responseText, statusText) {
+			if (Number(responseText.regCnt) > 0) {  //현 공개자료의 누락자료보완요청건이 있다면 메시지로 알림..
+				alert(responseText.msg);
+				return;
+			} else {
+				$('#inputRequest').dialog('open');
+			}
+		}
+	}); */
+}
+function bodyOnload(){
+	if ( $("#id_val_1_1").length > 0 && $("#id_val_1_2").length > 0 && $("#id_val_1_3").length > 0 ){
+		var val1_1 = $("#id_val_1_1").html().replace(/,/gi,'');
+		var val1_2 = $("#id_val_1_2").html().replace(/,/gi,'');
+		var val1_3 = $("#id_val_1_3").html().replace(/,/gi,'');
+		
+		if (Number(val1_1) != NaN && Number(val1_2) != NaN && Number(val1_3) != NaN ) 
+		{
+			$("#id_sum_1").html(commify(Number(val1_1) + Number(val1_2) + Number(val1_3)));
+		}
+	}
+
+	if ( $("#id_val_2_1").length > 0 && $("#id_val_2_2").length > 0 && $("#id_val_2_3").length > 0 ){
+		var val2_1 = $("#id_val_2_1").html().replace(/,/gi,'');
+		var val2_2 = $("#id_val_2_2").html().replace(/,/gi,'');
+		var val2_3 = $("#id_val_2_3").html().replace(/,/gi,'');
+		
+		if (Number(val2_1) != NaN && Number(val2_2) != NaN && Number(val2_3) != NaN ) 
+		{
+			$("#id_sum_2").html(commify(Number(val2_1) + Number(val2_2) + Number(val2_3)));
+		}
+	}
+}
+function commify(n) {
+	var reg = /(^[+-]?\d+)(\d{3})/; //정규식
+	n += ''; //숫자를 문자열로 변환
+	while (reg.test(n))
+	n = n.replace(reg, '$1' + ',' + '$2');
+	return n;
+}
+
+//]]>
+</script>
+
+<style type="text/css">
+.ui-widget.ui-widget-content {border-radius:0 !important; background:#f4f6f7}
+.ui-dialog .ui-dialog-content {padding:0;}
+#vscrOmiDataReqFrame {overflow:visible !important;}
+</style>
+
+</head>
+<body>
+
+
+<div class="container_wrap">
+	<div class="inwrap pos_r">
+	
+		<div class="contents-wrap">
+
+
+		<div class="location_wrap">
+			<div class="location_inwrap">
+				<p class="subpage-title">사업개요<br><span>정비사업 추진과정을 유리알처럼 투명하게 공개</span></p>
+				
+
+<!-- <div class="subTop-btns-box">
+	<div class="subTop-btns">
+		<button class="page-download" onclick="javascript:subTop_btns_open(this);"><span class="behind">페이지 다운로드</span></button>
+		<div class="subTop-btn-cont">
+			<div class="subTop-btn-cont-inwrap">
+				<p class="tit">뷰어 다운로드</p>
+				<div class="btns">
+					<a href="#n" class="viewerD hwp"><span>한글뷰어</span></a>
+					<a href="#n" class="viewerD pdf"><span>PDF뷰어</span></a>
+					<a href="#n" class="viewerD word"><span>워드뷰어</span></a>
+					<a href="#n" class="viewerD excel"><span>엑셀뷰어</span></a>
+					<a href="#n" class="viewerD power"><span>파워포인트</span></a>
+				</div>
+				<a href="#n" class="close" onclick="javascript:subTop_btns_close(this);"><span class="behind">팝업닫기</span></a>
+			</div>
+		</div>
+	</div>
+	<div class="subTop-btns">
+		<button class="page-share" onclick="javascript:subTop_btns_open(this);"><span class="behind">페이지 공유</span></button>
+		<div class="subTop-btn-cont">
+			<div class="subTop-btn-cont-inwrap">
+				<div class="btns">
+					<a href="#n" class="pgshare twiter"><span>트위터</span></a>
+					<a href="#n" class="pgshare facebook"><span>페이스북</span></a>
+					<a href="#n" class="pgshare kakao"><span>카카오톡</span></a>
+				</div>
+				<a href="#n" class="close" onclick="javascript:subTop_btns_close(this);"><span class="behind">팝업닫기</span></a>
+			</div>
+		</div>
+	</div>
+	<div class="subTop-btns">
+		<button class="page-print"><span class="behind">페이지 프린트</span></button>
+	</div>
+</div> -->
+			</div>
+		</div>
+			<!-- e : tit -->
+			<!-- s : subCon -->
+			<div class="cont-quick">
+			
+				<div class="contents" id="contents">
+					<div>
+						<h3 class="u-tit01">정비사업개요</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>정비사업개요 </caption>
+									<colgroup>
+										<col style="width:18%" />
+										<col style="width:32%" />
+										<col style="width:18%" />
+										<col style="width:32%" />
+									</colgroup>
+									<tbody>
+										<tr class="top">
+											<th>정비구역 명칭</th>
+											<td class="tl">
+												
+												
+												
+													신림2재정비촉진구역 주택재개발정비사업조합 
+												
+												
+											</td>
+											<th>사업유형</th>
+											<td class="tl">110</td>
+										</tr>
+										<tr>
+											<th>사업구분</th>
+											<td class="tl">재개발(주택정비형)</td>
+											<th>추진위수행 여부</th>
+											<td class="tl">Y</td>
+										</tr>
+										<tr>
+											<th>정비구역 위치</th>
+											<td class="tl">
+												
+												
+												
+													관악구 신림동 324-25번지 
+												
+												
+												일대
+											</td>
+											<th>공공지원 대상여부</th>
+											<td class="tl">N</td>
+										</tr>
+										<tr>
+											<th>정비구역 면적(㎡)</th>
+											<td class="tl">95,797.5</td>
+											<th>조합원 수</th>
+											<td class="tl">679명</td>
+										</tr>
+										<tr>
+											<th>토지등 소유자 수</th>
+											<td class="tl">
+												<ul>
+													<li>714명</li>
+													<li>*재건축의 경우 조합원인 토지등소유자수 포함</li>
+												</ul>
+											</td>
+											<th>세입자 수</th>
+											<td class="tl">899명</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">도시계획 사항</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>도시계획 사항</caption>
+									<colgroup>
+										<col style="width:17%" />
+										<col style="width:83%" />
+									</colgroup>
+									<tbody>
+										
+										<tr class="top">
+											<th>용도지역</th>
+											<td class="tl">제2종주거일반지역 자연녹지지역</td>
+										</tr>
+										<tr>
+											<th>용도지구</th>
+											<td class="tl">재정비촉진지구</td>
+										</tr>
+										
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">토지이용 계획</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>토지이용 계획</caption>
+									<colgroup>
+										<col />
+										<col style="width:17%" />
+										<col style="width:14%" />
+										<col style="width:14%" />
+										<col style="width:14%" />
+										<col style="width:14%" />
+										<col style="width:13%" />
+									</colgroup>
+									
+									<thead>
+										<tr>
+											<th scope="col" rowspan="2">택지(㎡)</th>
+											<th scope="col" colspan="6" class="last">정비기반시설(㎡)</th>
+										</tr>
+										<tr class="borNo">
+											<th scope="col">도로</th>
+											<th scope="col">공원</th>
+											<th scope="col">녹지</th>
+											<th scope="col">공공공지</th>
+											<th scope="col">학교</th>
+											<th scope="col" class="last">기타</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>58,241.2</td>
+											<td>5,434.8</td>
+											<td>22,977.5</td>
+											<td>1,105.7</td>
+											<td>397.5</td>
+											<td></td>
+											<td class="last">7,978.9</td>
+										</tr>
+									</tbody>
+									
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">건축계획</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>건축계획</caption>
+									<colgroup>
+										<col style="width:13%" />
+										<col style="width:13%" />
+										<col style="width:13%" />
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:13%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col">주용도</th>
+											<th scope="col">대지면적(㎡)</th>
+											<th scope="col">건축면적(㎡)</th>
+											<th scope="col">연면적(㎡)</th>
+											<th scope="col">건폐율(%)</th>
+											<th scope="col">용적률(%)</th>
+											<th scope="col">최고높이(m)</th>
+										<th scope="col" class="last">층수</th>
+										</tr>
+									</thead>
+									<tbody>
+									
+									<tr>
+										<td>공동주택</td>
+										<td>55,622</td>
+										<td>13,997</td>
+										<td>138,339</td>
+										<td>25</td>
+										<td>249</td>
+										<td>7,955</td>
+										<td class="last">지상:28/지하:7</td>
+									</tr>
+						  			
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">주택공급계획</h3>
+						<p class="u-tit03">분양</p>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>주택공급계획 분양 </caption>
+									<colgroup>
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:9%" />
+										<col style="width:9%" />
+										<col style="width:10%" />
+										<col style="width:17%" />
+										<col style="width:10%" />
+										<col style="width:9%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col" rowspan="2">대지면적(㎡)</th>
+											<th scope="col" rowspan="2">건축면적(㎡)</th>
+											<th scope="col" rowspan="2">연면적(㎡)</th>
+											<th scope="col" rowspan="2">동수</th>
+											<th scope="col" colspan="4">전용면적별 세대수</th>
+											<th scope="col" class="last" rowspan="2">비고</th>
+										</tr>
+										<tr class="borNo">
+											<th scope="col">계</th>
+											<th scope="col">60㎡이하</th>
+											<th scope="col">60㎡초과~85㎡이하</th>
+											<th scope="col">85㎡초과</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td></td>
+											<td></td>
+											<td>222,016.56</td>
+											<td></td>
+											<td><div id="id_sum_1"></div></td>
+											<td><div id="id_val_1_1">811</div></td>
+											<td><div id="id_val_1_2">357</div></td>
+											<td><div id="id_val_1_3">84</div></td>
+											<td class="last"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						
+						<div class="gap20"></div>
+						<p class="u-tit03">임대</p>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>주택공급계획 임대</caption>
+									<colgroup>
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:12%" />
+										<col style="width:9%" />
+										<col style="width:9%" />
+										<col style="width:10%" />
+										<col style="width:17%" />
+										<col style="width:10%" />
+										<col style="width:9%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col" rowspan="2">대지면적(㎡)</th>
+											<th scope="col" rowspan="2">건축면적(㎡)</th>
+											<th scope="col" rowspan="2">연면적(㎡)</th>
+											<th scope="col" rowspan="2">동수</th>
+											<th scope="col" colspan="4">전용면적별 세대수</th>
+											<th scope="col" class="last" rowspan="2">비고</th>
+										</tr>
+										<tr class="borNo">
+											<th scope="col">계</th>
+											<th scope="col">40㎡이하</th>
+											<th scope="col">40㎡초과~50㎡이하</th>
+											<th scope="col">50㎡초과</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td></td>
+											<td></td>
+											<td>25,660.23</td>
+											<td></td>
+											<td><div id="id_sum_2"></div></td>
+											<td><div id="id_val_2_1">57</div></td>
+											<td><div id="id_val_2_2"></div></td>
+											<td><div id="id_val_2_3">126</div></td>
+											<td class="last"></td>
+										 </tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">공동이용 시설설치 계획</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>공동이용 시설설치 계획</caption>
+									<colgroup>
+										<col style="width:27%" />
+										<col style="width:27%" />
+										<col style="width:27%" />
+										<col style="width:19%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col">시설의 종류</th>
+											<th scope="col">위치</th>
+											<th scope="col">면적(㎡)</th>
+											<th scope="col" class="last">비고</th>
+										</tr>
+									</thead>
+									<tbody>
+									
+										<tr>
+											<td>0</td>
+											<td></td>
+											<td></td>
+											<td class="last"></td>
+										</tr>
+									
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">기존 건축물의 개량에 관한 계획</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>기존 건축물의 개량에 관한 계획 </caption>
+									<colgroup>
+										<col style="width:19%" />
+										<col style="width:27%" />
+										<col style="width:27%" />
+										<col style="width:27%" />
+									</colgroup>
+									<thead>
+										<tr>
+											<th scope="col" class="last" colspan="4">정비개량 계획(동)</th>
+										</tr>
+										<tr class="borNo">
+											<th scope="col">계</th>
+											<th scope="col">존치</th>
+											<th scope="col">개수</th>
+											<th scope="col" class="last">철거후 신축</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>0</td>
+											<td></td>
+											<td></td>
+											<td class="last"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="mt40">
+						<h3 class="u-tit01">정비사업시행 예정시기</h3>
+						<div class="rspvn-box-wrap ty980">
+							<div class="rspvn-box">
+								<span class="bodrTop-line"></span>
+								<table class="tbl_st03">
+									<caption>이 표는 정비사업시행 예정시기 게시판의 표로 정비사업시행 예정시기로 구성되어 있습니다.</caption>
+									<colgroup>
+										<col style="width:30%" />
+										<col style="width:70%" />
+									</colgroup>
+									<tbody>
+									
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					
+					<div class="complementary_request-cont">
+					
+						
+						<div class="tr">	
+							<a href="javascript:writeRequest();" class="bt-btn dk-grey"><span>보완요청하기</span></a>	
+						</div>					
+						
+						
+						
+					
+					<div class="line-box"></div>			
+								
+	
+				<!-- s : subCon -->
+				<form id="openDataWriteCheckForm" name="openDataWriteCheckForm" method="post">
+					<input type="hidden" name="cafeId" value="620100004002L96"  />
+					<input type="hidden" name="othbcIemSn" value="995" />
+					<input type="hidden" name="othbcCheckSn" id="othbcCheckSn" value="1" />
+					<input type="hidden" name="resultNoticeTypeCodeNm" value="기본정보" />
+					<input type="hidden" name="dataSj" value="사업개요" />
+				</form>
+				
+				<div id="layer_recptnList">
+					<div class="layer_recptnList_cont" id="layer_recptnList_cont" style="overflow:hidden;display:none;"> 
+						<iframe id="recptnList_frame" style="border:none;width:100%;height:300px;" title="이 페이지에서 프레임을 사용합니다." ></iframe>
+					</div>
+				</div>
+	
+				
+				<div id="inputRequest" style="display:none;" title="보완요청" >
+					
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+//<![CDATA[ 
+
+var selectBoxHtml="";
+$(document).ready(function(){
+	//화면에서 받아오는 파라미터
+	var cafeId = $('#openDataWriteCheckForm input[name=cafeId]').val();
+	var othbcIemSn = $('#openDataWriteCheckForm input[name=othbcIemSn]').val(); 
+	var othbcCheckSn = $('#openDataWriteCheckForm input[name=othbcCheckSn]').val();
+	var resultNoticeTypeCodeNm = $('#openDataWriteCheckForm input[name=resultNoticeTypeCodeNm]').val(); //대상항목 
+	var dataSj = $('#openDataWriteCheckForm input[name=dataSj]').val();
+	$('#sumrySuppForm #cafeId').val(cafeId);
+	$('#sumrySuppForm input[name=othbcIemSn]').val(othbcIemSn);
+	$('#sumrySuppForm input[name=othbcCheckSn]').val(othbcCheckSn);
+	$('#sumrySuppForm #resultNoticeTypeCodeNm').text(resultNoticeTypeCodeNm);
+ 
+	getSumrySuppDataReq(dataSj); //누락자료공개요청 기본정보 조회
+
+	$('#btnSave').click(function(){
+		//$('#dataSj').attr("disabled",false); //대상항목
+		if(dataSj != "찾아오시는길" || dataSj != "사업개요"){
+			$('input[name=dataSj]').val(dataSj);
+		}
+		
+		//분류정보와 같은 누락자료 공개요청건이 몇건 존재하는지 조회
+		$('#sumrySuppForm').ajaxSubmit({
+			url     : "/service/opendata/othbcDocInput/dupReqCnt.do",
+			dataType: 'json',
+			error   : function (data, status, e){ alert("에러코드 : " + data.status +"\n"); },
+			success : function(responseText, statusText) {
+				if (Number(responseText.regCnt) > 0) {  //현 공개자료의 누락자료보완요청건이 있다면 메시지로 알림..
+					alert(responseText.msg);
+					return;
+				} else {
+
+					if( checkInputData() == true){
+						//누락자료보완요청 등록
+						$('#sumrySuppForm').ajaxSubmit({
+							url : "/service/opendata/othbcDocInput/sumrySuppDataSave.do",
+							dataType: 'json',
+							success : function(responseText, statusText) {
+								alert(responseText.success);
+								$('#btnClose2').click();
+							}
+						});
+					}
+
+				}
+			}
+		});
+	});
+		
+
+	//닫기 버튼 클릭시
+	$('#btnClose, #btnClose2').click(function(){
+		$('[id*=tr_]').each(function(index){
+			if(index > 0) $(this).remove();
+		});
+		$('#dataSj_1').val("");
+		$('#requestResn_1').val("");
+		isDupChecked = false;
+
+		$('#inputRequest').dialog('close');
+		location.reload(true);
+	});
+
+	if($('#reqBody > tr').length == 0) {
+		$('#btnAdd').click();
+	};
+});
+
+function checkInputData(){
+	if($('#dataSj').val() == "") {
+		alert("대상항목을 선택해주시기 바랍니다.");
+		$('#dataSj').focus();
+		return false;
+	}
+	
+	if($('#suppRequestResn').val() == '') {
+		alert("보완필요사유 정보가 없습니다.");
+		$('#suppRequestResn').focus();
+		return false;
+	}
+	
+	return true;
+}
+
+//기본정보 조회
+function getSumrySuppDataReq(dataSj){
+	$('#sumrySuppForm').ajaxSubmit({
+		url      : "/service/opendata/othbcDocInput/sumrySuppDataReq.do",
+		error    : function (data, status, e){ alert("에러코드 : " + data.status +"\n"); },
+		success  : function(responseText) {
+			$("#bsnsPk").val(responseText.bsnsPk);
+			//대상항목 코드리스트
+			//alert( JSON.stringify(responseText.othbcIemSnCode) );
+			if(null != responseText.othbcIemSnCode){
+				$('#dataSjCode').append("<select name='dataSj' id='dataSj' class='sel01' title='검색조건 선택' onchange='_gotoSelect(this.value);'><option value=''>선택</option></select>");
+
+				for (var i = 0; i < responseText.othbcIemSnCode.length; i++) {
+					$('#dataSj').append( othbcIemSnCodeHTML(responseText.othbcIemSnCode[i]) ); //코드리스트생성(selectBox Option)
+				}
+			}else{
+				$('#dataSjCode').text(dataSj);
+			}
+
+			$("#resultNoticeTypeCodeStr").text(responseText.resultNoticeTypeCodeStr); //결과통보코드명
+			$("#resultNoticeTypeCode").val(responseText.resultNoticeTypeCode); //결과통보방법 코드
+		}
+	});	
+}
+//코드리스트생성(selectBox Option)
+function othbcIemSnCodeHTML(data){
+	selectBoxHtml = '<option value="'+data.value+'">'+data.text+'</option>';
+	return selectBoxHtml;
+}
+//대상항목 코드리스트selectBox 이벤트 
+function _gotoSelect(value){
+	$('#sumrySuppForm input[name="othbcCheckSn"]').val(value);
+}
+//]]>
+</script>
+
+<div id="popupWrap" class="inner-pop">
+	<div class="rel-box">
+        <div class="pop-conts">
+			<h3 id="popupTitle" class="u-tit01">보완 요청 등록</h3>
+			<p class="u-txt01 fw-600">※ 보완요청시 주의사항</p>
+	        <p class="u-txt01">추진위/조합의 기본정보(조직도, 사무실주소/전화번호, 협력업체, 위치도, 추진경과) 보완요청을 하는 곳입니다.</p>
+	        <ul class="dot-list01">
+	            <li>요청하신 사항이 아래와 같은 경우 요청이 반려됩니다.
+	                
+	                <ul class="das-list01">
+	                    <li>공개자료에 미비사항이 없음에도 불구하고 보완요청을 하는 경우</li>
+	                    <li>요청기재내용이 포괄적 요구 / 부정확 / 애매모호한 경우</li>
+	                </ul>
+	            </li>
+	        </ul>
+	        
+			<form id="sumrySuppForm" name="sumrySuppForm" method="post" action="">
+				<input type="hidden" id="cafeId" name="cafeId" value=""/>
+				<input type="hidden" id="bsnsPk" name="bsnsPk" />
+				<input type="hidden" id="updateYn" />
+				<input type="hidden" name="dataSj" />
+				<input type="hidden" name="othbcIemSn" value=""/>
+				<input type="hidden" name="othbcCheckSn" value="" />
+				<input type="hidden" id="resultNoticeTypeCode" name="resultNoticeTypeCode" value="" />
+				<input type="hidden" id="requestTypeCode" name="requestTypeCode" value="S" />
+			
+				<div>
+			        <div class="rspvn-box-wrap ty980">
+			            <div class="rspvn-box mt25">
+			                <span class="bodrTop-line"></span>
+							<table summary="보완요청 등록 게시판" class="tbl_st01 form_tbl">
+								<caption>이 표는 보완요청 등록의 표로 선택, 자료분류, 요청분류, 제목, 보완필요사유로 구성되어 있습니다.</caption>
+								<colgroup>
+									<col width="19%"/>
+									<col width="28%"/>
+									<col width="19%"/>
+									<col width="34%"/>
+								</colgroup>
+								<tbody>
+									<tr>
+										<th scope="col">분류</th>
+										<td id="resultNoticeTypeCodeNm"></td>
+										<th scope="col" class="last">대상항목</th>
+										<td class="last" id="dataSjCode"></td>
+									</tr>
+									<tr>
+										<th scope="col">보완필요사유</th>
+										<td class="last" colspan="3"><input type="text" class="w100p" id="suppRequestResn" name="suppRequestResn" title="보완필요사유"/></td>
+									</tr>
+									<tr>
+										<th>결과통보방법</th>
+										<td class="last" colspan="3" style="text-align: left;">
+											<span id="resultNoticeTypeCodeStr"></span>
+											<br/>※ SMS와 이메일 통보는 정비사업 정보몽땅 사용자가본정보에서 SMS/메일링 수신을 선택한 경우 제공되며, 연락처와 이메일주소가 정확하지 않을 경우 SMS/이메일 통보가 되지 않을 수 있습니다.
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			
+			</form>
+		
+			<div class="board-btnBox mt20 tr">
+				<a href="#a" id="btnSave" class="ty02"><span>저장</span></a>
+				<a href="#a" id="btnClose" class="ty01"><span>취소</span></a>
+				<!-- <li><a href="#a" id="btnClose" class="btn_rect02">닫기</a></li> -->			
+			</div>
+		</div><!-- pop-conts :: e -->
+		<a href="#a" class="pop-closed-btn" id="btnClose2">
+            <span class="blinde">팝업 닫기</span>
+        </a>
+        
+    </div>
+</div>
+
+				</div>
+	 		</div>
+	 		</div>
+	 		
+	 		
+	 		
+
+
+
+<script type="text/javascript">
+
+	function othbcIemLscrUrl(){
+		var frm = document.othbcIemLscrForm;
+		var operSeCode = frm.operSeCode.value;
+		var largeCategoryIemSn = frm.largeCategoryIemSn.value;
+		var othbcIemSn = frm.othbcIemSn.value;
+		var url = '/service/opendata/othbcDocInput/othbcIemLscrOpen.do?cafeId=620100004002L96&operSeCode=' + operSeCode + '&largeCategoryIemSn=' + largeCategoryIemSn + '&othbcIemSn=' + othbcIemSn;
+		location.href = url;
+	}
+
+	function loadLargeCategory(operSeCode) {
+		var cafeId = '620100004002L96';
+		$('#largeCategoryIemSn').empty().append('<option value="0">-- 중분류 선택 --</option>');
+		$('#othbcIemSn').empty().append('<option value="0">-- 소분류 선택 --</option>');
+		if (!operSeCode || operSeCode === '0') return;
+		$.getJSON('/service/opendata/othbcDocInput/getLargeCategory.do', {cafeId: cafeId, operSeCode: operSeCode}, function(data) {
+			$.each(data, function(i, item) {
+				$('#largeCategoryIemSn').append('<option value="' + item.othbcIemSn + '">' + item.iemDc + '</option>');
+			});
+		});
+	}
+
+	function loadSmallCategory(largeCategoryIemSn) {
+		var cafeId = '620100004002L96';
+		$('#othbcIemSn').empty().append('<option value="0">-- 소분류 선택 --</option>');
+		if (!largeCategoryIemSn || largeCategoryIemSn === '0') return;
+		$.getJSON('/service/opendata/othbcDocInput/getSmallCategory.do', {cafeId: cafeId, largeCategoryIemSn: largeCategoryIemSn}, function(data) {
+			$.each(data, function(i, item) {
+				$('#othbcIemSn').append('<option value="' + item.othbcIemSn + '">' + item.iemDc + '</option>');
+			});
+		});
+	}
+
+</script>
+
+<div class="public-dataBox">
+	<div class="pd-btm-box">
+		<h3 class="main-tit">정보공개 항목별<br/> 공개자료 조회</h3>
+		<div class="main-inputBox">
+			<form id="othbcIemLscrForm" name="othbcIemLscrForm">
+				<select id="operSeCode" name="operSeCode" title="운영구분 선택" class="sel01" onchange="loadLargeCategory(this.value);">
+					<option value="0">--운영구분--</option>
+					<option value="100">추진주체구성전</option>
+					<option value="101">추진위원회</option>
+					<option value="102">조합</option>
+					<option value="103">청산위원회</option>
+				</select>
+				<select id="largeCategoryIemSn" name="largeCategoryIemSn" title="중분류 선택" class="sel01 main-input02" onchange="loadSmallCategory(this.value);">
+					<option value="0">-- 중분류 선택 --</option>
+				</select>
+				<select id="othbcIemSn" name="othbcIemSn" title="소분류 선택" class="sel01 main-input02">
+					<option value="0">-- 소분류 선택 --</option>
+				</select>
+				<button type="button" class="btn_search" onclick="javascript:othbcIemLscrUrl();"><span>조회</span></button>
+			</form>
+		</div>
+		<div class="tooltipBox">
+			<div class="tooltipIcon"><span class="a11y">툴팁 아이콘</span></div>
+			<div class="txt">정보공개 항목별로 공개된 자료들을 조회해 보실 수 있습니다.</div>
+		</div>
+	</div>
+	
+	<div class="sub-quickLink">
+		<div class="subLink-cont">
+			<div class="subLink-item">
+				<a href="/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=620100004002L96&amp;stepSeCode=103&amp;div=sumry"><span class="summary">사업개요</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=620100004002L96&amp;stepSeCode=103&amp;div=locImage"><span class="location">위치도</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=620100004002L96&amp;stepSeCode=103&amp;div=sceImage"><span class="perspective">조감도</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=620100004002L96&amp;stepSeCode=103&amp;div=posImage"><span class="layout">배치도</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/service/opendata/cafeOthbc/vscrCafe.do?cafeId=620100004002L96&othbcIemSn=205"><span class="unitplan">단위세대<br>평면도</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/cafe/cleanup-asscinfo/vscrAsscAdi.do?cafeId=620100004002L96"><span class="direction">찾아오시는길</span></a>
+			</div>
+		</div>
+		<div class="subLink-cont view">
+			<div class="subLink-item">
+			
+			
+				
+				
+			
+				<a href="/service/opendata/othbcDocSumry/lscr.do?cafeId=620100004002L96&amp;publicManage=103" tabindex="-1"><span class="opendata">정보공개<br>자료열람</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/cafe/mainIndx/cleanup-prtnelapse/vscr.do?cafeId=620100004002L96&amp;bsnsPk=11545-900000775" tabindex="-1"><span class="progress">추진경과</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="#n" onclick="parent.Othbc.lscrOpen('218');" tabindex="-1"><span class="costchange">공사비<br>변경내역</span></a>
+			</div>
+			<div class="subLink-item">
+				<a href="/assc/bbs-use/vscrScdl.do?cafeId=620100004002L96&amp;bbsSn=1" tabindex="-1"><span class="schedule">향후일정</span></a>
+			</div>
+		</div>
+		<div class="subLink-all-btn">
+			<a href="#n" onclick="side_all_open(event)"><span>전체보기</span></a>
+		</div>
+	</div>
+</div>
+	 	</div>
+	 	
+	
+			
+
+		</div><!-- contents-wrap :: e -->
+		
+	</div><!-- inwrap :: e -->
+
+</div>
+
+</body>
+</html>

@@ -9,9 +9,10 @@ def condition_key(row):
     return block_key(dict(row,source_id='lh_sale'))
 
 
-def conditions(service, project, location):
+def conditions(service, project, location, projects=None):
     key=condition_key(project)
-    peers=[r for r in service.projects() if key and condition_key(r)==key and r['id']!=project['id']]
+    projects=service.projects() if projects is None else projects
+    peers=[r for r in projects if key and condition_key(r)==key and r['id']!=project['id']]
     records=[project,*peers]
     plans=[r for r in records if r.get('rows') or r.get('source_id') in ('lh_sale','lh_rent','lh_incheon_sale','lh_incheon_rent','gh_supply_plan')]
     groups=[]
