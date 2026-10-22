@@ -293,7 +293,13 @@ const PolicyReport=(()=>{
     const panel=$('policy-execution-panel');if(panel)panel.innerHTML='<h3>담당기관 조치</h3><p class="pd-empty">이 정책의 일정 기준선·병목 조치 자료는 아직 연결되지 않았습니다.</p>';
   }
   function supplemental907(cityId,region,sourceIds){
-    const host=$('d907-context');if(!host||!geo)return;selectedCityId=cityId||'';selectedRegion=region||'';++projectTicket;
+    const host=$('d907-context');if(!host)return;selectedCityId=cityId||'';selectedRegion=region||'';++projectTicket;
+    if(!geo){
+      host.innerHTML='';
+      const membersHost=document.querySelector('#policy-program-members [data-pr-program-members]');
+      if(membersHost)membersHost.innerHTML=programmeList('POL_2025_0907',region,sourceIds);
+      return;
+    }
     if(cityId&&!geo.municipalities.some(c=>c.id===cityId)){
       host.innerHTML='<article class="pr-card"><h3>선택 지역 수요와 공급 비교</h3><p>선택 시군구의 경계 연결을 확인해야 합니다. 시도 통계와 시군구 물량을 혼합하지 않습니다.</p></article>';return;
     }

@@ -12,7 +12,7 @@ const PolicyGeo3D=(()=>{
   const metricMeasure=()=>$('policy-geo-measure').value==='CAPACITY'?'SUPPLY':$('policy-geo-measure').value;
   const analysisYear=()=>currentYear();
   const empty=()=>({type:'FeatureCollection',features:[]});
-  const scopeRows=()=>groupKind()==='project'?metrics?.items||[]:groupKind()==='program_link'?Policy907.programs().map(p=>({...p,...metrics?.groups?.program_link?.find(g=>g.id===p.id)})):(metrics?.groups?.policy||[]).filter(p=>p.id==='POL_2025_0907');
+  const scopeRows=()=>groupKind()==='project'?metrics?.items||[]:groupKind()==='program_link'?Policy907.programs().map(p=>({...p,...metrics?.groups?.program_link?.find(g=>g.id===p.id)})):(metrics?.groups?.policy||[PolicyReport.policyInfo('POL_2025_0907')].filter(Boolean)).filter(p=>p.id==='POL_2025_0907');
   const scopeRow=()=>scopeRows().find(row=>row.id===selected);
   function scopedSeries(row){
     const scope=scopeRow();
@@ -91,7 +91,7 @@ const PolicyGeo3D=(()=>{
     return {value,basis:baseline==null?'확인된 예정량만 표시 · 현재 실적 미확보':'공고 연결 검토량 + 원천 예정량 · 실제 실적 아님',status:'FORECAST'};
   }
   function scopeOptions(){
-    const rows=scopeRows(),enabled=rows.filter(r=>r.selection_enabled!==false);
+    const rows=scopeRows().filter(r=>r.selection_enabled!==false),enabled=rows;
     if(!enabled.some(row=>row.id===selected))selected=(mode==='policy-progress'?enabled.find(row=>row.id==='POL_2025_0907'):null)?.id||enabled.find(row=>row.project_count>0||groupKind()==='project')?.id||enabled[0]?.id||'';
     $('policy-geo-scope').innerHTML=rows.map(row=>`<option value="${esc(row.id)}" ${row.id===selected?'selected':''} ${row.selection_enabled===false?'disabled':''}>${esc(row.name)}${row.selection_enabled===false?' (비활성 · 목표·사업 없음)':''}</option>`).join('');
     if(mode==='program-progress'){$('report-program-select').innerHTML=rows.map(r=>`<option value="${esc(r.id)}" ${r.id===selected?'selected':''} ${r.selection_enabled===false?'disabled':''}>${esc(r.name)}${r.selection_enabled===false?' (비활성 · 목표·사업 없음)':''}</option>`).join('')||'<option value="">9.7 연결 프로그램 없음</option>';}
@@ -192,6 +192,14 @@ const PolicyGeo3D=(()=>{
   async function fetchData(){
     if(!active)return;
     const stamp=$('as-of').value||'',generation=++ticket;
+    // These workspaces draw the map and chart from Policy907's single ledger.
+    // Their pickers already have the catalogue; the legacy supply projection
+    // is a second, unrelated full calculation and is not needed here.
+    if(['policy-progress','program-progress'].includes(mode)){
+      geometry=null;metrics=null;completionMetrics=null;scopeOptions();
+      if(map){map.remove();map=null;document.getElementById('policy-geo-map').innerHTML='';}
+      $('policy-geo-map-fallback').hidden=true;drawMap();return;
+    }
     const geoKey=stamp,measure=mode==='policy-progress'?'SUPPLY':metricMeasure(),reference=analysisYear(),metricKey=`${stamp}:${measure}:${reference}`;
     if(!metrics)$('policy-geo-context').textContent='지역 공급계획을 확인하고 있습니다…';
     try{
@@ -274,6 +282,6 @@ const PolicyGeo3D=(()=>{
     document.addEventListener('home:policy-selected',event=>{if(mode!=='policy-progress'||!metrics)return;if(metrics.groups.policy.some(row=>row.id===event.detail.id)){selected=event.detail.id;selectedPlace=null;PolicySchematic.reset();scopeOptions();yearControls();drawMap();}});
     window.addEventListener('resize',resize);
   }
-  function choose(view,id){setView(view);selected=id;selectedPlace=null;if(metrics){scopeOptions();yearControls();drawMap();renderProgram();fit();}}
+  function choose(view,id){setView(view);selected=id;selectedPlace=null;if(['policy-progress','program-progress'].includes(mode)){scopeOptions();drawMap();return;}if(metrics){scopeOptions();yearControls();drawMap();renderProgram();fit();}}
   return {start,visible,hidden,resize,dataChanged,choose};
 })();

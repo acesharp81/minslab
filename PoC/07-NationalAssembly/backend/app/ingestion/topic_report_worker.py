@@ -131,6 +131,19 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
             return {"status": "FAILED", "generated": 0}
 
 
+def record_topic_report_usage(usage: SummaryRepository, model: str, metadata: dict) -> None:
+    snapshots = (metadata.get("generation_audit") or {}).get("response_snapshots") or []
+    if snapshots:
+        for payload in snapshots:
+            if payload.get("id") and payload.get("usage"):
+                usage.record_monthly_token_usage(
+                    "openrouter", str(payload.get("model") or model),
+                    {"request_id": payload["id"], "usage": payload["usage"]},
+                )
+    elif metadata.get("request_id") and metadata.get("usage"):
+        usage.record_monthly_token_usage("openrouter", model, metadata)
+
+
 def run_once(database_url: str) -> dict[str, object]:
     settings = get_settings()
     if not settings.topic_reports_enabled:
@@ -165,19 +178,33 @@ def run_once(database_url: str) -> dict[str, object]:
         ) is None:
             repository.fail(item["report_id"], "OPENROUTER_DAILY_LIMIT", limited=True)
             return {"status": "GLOBAL_LIMIT_REACHED", "generated": 0}
+        # Persist ownership and quota before a potentially multi-request generation.
+        connection.commit()
+
+        def reserve_additional_request() -> None:
+            if usage.reserve_daily_request(
+                "openrouter", max(1, min(settings.openrouter_daily_limit, 950)),
+            ) is None:
+                raise TopicReportResponseError("OPENROUTER_DAILY_LIMIT")
+            connection.execute(
+                "UPDATE topic_reports SET lease_expires_at = clock_timestamp() + interval '3 minutes' "
+                "WHERE id = %s AND status = 'PROCESSING' AND lease_owner = %s",
+                (item["report_id"], worker_id),
+            )
+            connection.commit()
+
         try:
             result = OpenRouterTopicReportClient(
                 settings.openrouter_api_key, model=model,
                 base_url=settings.openrouter_base_url,
+                before_additional_request=reserve_additional_request,
             ).generate(
                 ministry=item["ministry"], topic=item["topic"],
                 period_start=item["period_start"].isoformat(),
                 period_end=item["period_end"].isoformat(),
                 evidence=list(item.get("evidence") or []),
             )
-            usage.record_monthly_token_usage(
-                "openrouter", model, result.usage_metadata,
-            )
+            record_topic_report_usage(usage, model, result.usage_metadata)
             repository.complete(
                 item["report_id"], report=result.report,
                 usage_metadata=result.usage_metadata,
@@ -185,7 +212,12 @@ def run_once(database_url: str) -> dict[str, object]:
             return {"status": "READY", "generated": 1, "report_id": str(item["report_id"])}
         except Exception as exc:
             safe_error = safe_topic_report_error(exc)
-            repository.fail(item["report_id"], safe_error)
+            metadata = getattr(exc, "usage_metadata", {})
+            record_topic_report_usage(usage, model, metadata)
+            repository.fail(
+                item["report_id"], safe_error, usage_metadata=metadata,
+                limited=safe_error == "OPENROUTER_DAILY_LIMIT",
+            )
             LOGGER.warning("topic report failed without evidence payload: %s", safe_error)
             return {"status": "FAILED", "generated": 0}
 

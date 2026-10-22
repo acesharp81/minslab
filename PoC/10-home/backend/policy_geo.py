@@ -281,12 +281,35 @@ def schematic_view(dashboard):
 def _region_outline(engine, collection):
     """Geometry content is the cache key; a new boundary cannot reuse old output."""
     from sqlalchemy import text
+    from pathlib import Path
+    import os,json,hashlib,tempfile
+    key=hashlib.sha256(('union-simplify-002-v1\n'+collection).encode()).hexdigest()
+    folder=Path(os.environ.get('POC10_DATA_DIR',str(Path(__file__).resolve().parents[1]/'data')))/'runtime/region-outlines'
+    cached=folder/(key+'.json')
+    try:
+        saved=json.loads(cached.read_text())
+        shape=json.loads(saved['shape']);anchor=json.loads(saved['anchor'])
+        if saved['key']==key and shape.get('type') in ('Polygon','MultiPolygon') and anchor.get('type')=='Point':
+            return saved['shape'],saved['anchor']
+    except (OSError,ValueError,KeyError,TypeError):pass
     with engine.connect() as conn:
         value = conn.execute(text("""WITH outline AS (
           SELECT ST_SimplifyPreserveTopology(ST_UnaryUnion(ST_CollectionExtract(
             ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(:value),4326)),3)),0.002) g)
           SELECT ST_AsGeoJSON(g) shape, ST_AsGeoJSON(ST_PointOnSurface(g)) anchor FROM outline"""),
           {'value': collection}).mappings().one()
+    temporary=None
+    try:
+        folder.mkdir(parents=True,exist_ok=True)
+        with tempfile.NamedTemporaryFile(mode='w',dir=folder,delete=False) as output:
+            temporary=output.name
+            json.dump(dict(key=key,shape=value['shape'],anchor=value['anchor']),output)
+        os.replace(temporary,cached);temporary=None
+    except OSError:pass
+    finally:
+        if temporary:
+            try:os.unlink(temporary)
+            except OSError:pass
     return value['shape'], value['anchor']
 
 
@@ -300,7 +323,10 @@ def region_outlines(places, engine):
         geoms = [p['geometry'] for p in places if p.get('region') == region and p.get('geometry')]
         if not geoms:
             continue
-        collection = json.dumps(dict(type='GeometryCollection', geometries=geoms))
+        # Database row order is not geography. A stable content key lets the
+        # unchanged union survive restarts and unrelated source collections.
+        geoms.sort(key=lambda g:json.dumps(g,sort_keys=True,separators=(',',':')))
+        collection = json.dumps(dict(type='GeometryCollection', geometries=geoms),sort_keys=True,separators=(',',':'))
         shape, anchor = _region_outline(engine, collection)
         polygons = _polygons(json.loads(shape))
         point = json.loads(anchor)['coordinates']

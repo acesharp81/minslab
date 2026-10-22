@@ -1,0 +1,609 @@
+{
+  "reports": 44,
+  "summary_count": 997,
+  "all_summaries_available": true,
+  "all_originals_preserved": true,
+  "items": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 131,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 151,
+      "tasks": 26,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 151,
+      "tasks": 37,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 81,
+      "tasks": 25,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 78,
+      "tasks": 26,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "summary_count": 9,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 7,
+      "tasks": 8,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 101,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 43,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 224,
+      "tasks": 46,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 318,
+      "tasks": 66,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 121,
+      "tasks": 63,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "summary_count": 19,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 68,
+      "tasks": 31,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 79,
+      "tasks": 22,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 150,
+      "tasks": 40,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 51,
+      "tasks": 28,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 57,
+      "tasks": 22,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 145,
+      "tasks": 40,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 59,
+      "tasks": 23,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 200,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 70,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 148,
+      "tasks": 49,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 149,
+      "tasks": 29,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 79,
+      "tasks": 19,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 59,
+      "tasks": 35,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "summary_count": 18,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 32,
+      "tasks": 21,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 156,
+      "tasks": 39,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 149,
+      "tasks": 32,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 190,
+      "tasks": 44,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 163,
+      "tasks": 57,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 259,
+      "tasks": 30,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 108,
+      "tasks": 41,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 188,
+      "tasks": 38,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 295,
+      "tasks": 61,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 129,
+      "tasks": 37,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "summary_count": 8,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 37,
+      "tasks": 18,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 50,
+      "tasks": 24,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 118,
+      "tasks": 46,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "summary_count": 8,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 37,
+      "tasks": 13,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 180,
+      "tasks": 65,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 147,
+      "tasks": 31,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 264,
+      "tasks": 51,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 72,
+      "tasks": 29,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "summary_count": 23,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 34,
+      "tasks": 13,
+      "original_preserved": true,
+      "quote_points_marked": true
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "summary_count": 24,
+      "summary_status": "AVAILABLE",
+      "structured_topics": 23,
+      "tasks": 23,
+      "original_preserved": true,
+      "quote_points_marked": true
+    }
+  ],
+  "browser": {
+    "results": [
+      {
+        "base": "https://kjon.aigov.go.kr",
+        "summary_topics": 24,
+        "source_collapsed": true,
+        "summary_evidence": true,
+        "source_expand": true,
+        "direct_task_span": "209:269",
+        "mobile": true,
+        "official_source_collapsed": true
+      },
+      {
+        "base": "https://www.minslab.kr/poc/national-assembly",
+        "summary_topics": 24,
+        "source_collapsed": true,
+        "summary_evidence": true,
+        "source_expand": true,
+        "direct_task_span": "209:269",
+        "mobile": true,
+        "official_source_collapsed": true
+      }
+    ],
+    "errors": []
+  },
+  "source_verification": {
+    "checked_at": "2026-10-19T22:02:36.292745+00:00",
+    "report_count": 44,
+    "metrics": {
+      "atoms": 8512,
+      "topics": 5351,
+      "uncertain": 14,
+      "procedural": 543,
+      "failed": 0,
+      "missing": 0,
+      "eligible_review_atoms": 0,
+      "linked_clusters": 2866,
+      "unresolved_clusters": 11
+    },
+    "source_spans_checked": 10279,
+    "invalid_source_spans": []
+  },
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  },
+  "python_tests_passed": 38,
+  "markdown_summary_before_source": true,
+  "image": "poc07-national-assembly-api:summary-first-20261020"
+}

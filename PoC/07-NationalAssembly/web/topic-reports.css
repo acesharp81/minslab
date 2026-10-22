@@ -549,3 +549,38 @@
   .topic-report-hero p { padding-left:13px; }
   .topic-report-hero p::first-letter { float:none; margin:0; font-size:inherit; }
 }
+
+.topic-report-preview-guide { margin: 0 0 10px; color: #536b87; font-size: 12px; line-height: 1.6; }
+.topic-report-preview-list:focus-visible { outline: 2px solid #315fbd; outline-offset: 3px; }
+
+.topic-report-completeness-note { margin: 0; padding: 14px clamp(20px, 4vw, 58px); border-top: 1px solid #d3dce7; background: #f5f8fc; color: #41546a; font-size: 12px; line-height: 1.7; }
+.topic-report-source-details { margin: 32px clamp(20px, 4vw, 58px); border-top: 2px solid #263648; color: #263648; }
+.topic-report-source-details > summary { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 16px 0; cursor: pointer; }
+.topic-report-source-details > summary::before { content: "▸"; }
+.topic-report-source-details[open] > summary::before { content: "▾"; }
+.topic-report-source-details > summary strong { font-size: 18px; }
+.topic-report-source-details > summary span { color: #52677e; font-size: 12px; }
+.topic-report-source-details-note { margin: 0 0 16px; color: #52677e; font-size: 12px; line-height: 1.7; }
+.topic-report-source-detail { padding: 20px 0; border-top: 1px solid #d3dce7; overflow-wrap: anywhere; }
+.topic-report-source-detail h4 { margin: 0 0 10px; font-size: 15px; line-height: 1.6; }
+.topic-report-source-detail-summary { margin: 0; font-size: 13px; line-height: 1.85; white-space: pre-line; }
+.topic-report-source-detail-owners, .topic-report-source-detail footer { margin: 10px 0 0; color: #52677e; font-size: 11px; line-height: 1.7; }
+.topic-report-source-detail footer a { color: #315a85; }
+.topic-report-source-detail-task-label { display: block; margin-top: 12px; font-size: 12px; }
+.topic-report-source-detail-tasks { margin: 6px 0 0; padding-left: 22px; font-size: 12px; line-height: 1.8; }
+.topic-report-source-detail-tasks li { margin: 4px 0; }
+.topic-report-source-detail-tasks small { color: #52677e; }
+@media print {
+  body.topic-report-print-mode .topic-report-source-details:not([open]) > :not(summary) { display: block !important; }
+  body.topic-report-print-mode .topic-report-source-details > summary { break-after: avoid; }
+  body.topic-report-print-mode .topic-report-source-detail h4 { break-after: avoid; }
+  body.topic-report-print-mode .topic-report-source-detail p, body.topic-report-print-mode .topic-report-source-detail li { orphans: 3; widows: 3; }
+}
+
+@media print { body.topic-report-print-mode .topic-report-source-details::details-content { content-visibility: visible !important; } }
+
+.topic-report-section-discussions { display: grid; gap: 14px; margin: 16px 0; }
+.topic-report-discussion { border-top: 1px solid #dce5ef; padding-top: 12px; }
+.topic-report-discussion h4 { margin: 0 0 6px; font-size: 15px; color: #223e5b; }
+.topic-report-discussion > p { margin: 0 0 8px; line-height: 1.75; white-space: pre-line; }
+@media print { .topic-report-discussion { break-inside: avoid; } }

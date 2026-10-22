@@ -6,6 +6,7 @@ assigns a building, its households or its progress to the selected supply block.
 import math
 import threading
 import time
+from weakref import WeakValueDictionary
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -72,14 +73,18 @@ class BuildingContext:
     def __init__(self):
         self._lock = threading.RLock()
         self._cache = {}
+        self._key_locks = WeakValueDictionary()
 
     def get(self, block_id, service, anchor=None):
+        cache_key = (block_id, anchor["latitude"], anchor["longitude"], anchor["coordinate_basis"]) if anchor else block_id
         with self._lock:
-            cache_key = (block_id, anchor["latitude"], anchor["longitude"], anchor["coordinate_basis"]) if anchor else block_id
+            key_lock=self._key_locks.setdefault(cache_key,threading.RLock())
+        with key_lock:
             cached = self._cache.get(cache_key)
             if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
-                self._cache.pop(cache_key)
-                self._cache[cache_key] = cached
+                with self._lock:
+                    self._cache.pop(cache_key,None)
+                    self._cache[cache_key] = cached
                 return cached[1]
             locations = {"|".join((row["region"], row["district_key"], row["block"])): row
                          for row in service.rows("block_location")}
@@ -133,7 +138,7 @@ class BuildingContext:
                 "floor_estimate_count": floor_estimate_count, "visual_only_count": visual_only_count,
                 "geojson": {"type": "FeatureCollection", "features": features},
             }
-            self._cache[cache_key] = (time.monotonic(), result)
-            while len(self._cache) > 8:
-                self._cache.pop(next(iter(self._cache)))
+            with self._lock:
+                self._cache[cache_key] = (time.monotonic(), result)
+                while len(self._cache) > 8:self._cache.pop(next(iter(self._cache)),None)
             return result

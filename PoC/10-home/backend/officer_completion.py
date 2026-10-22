@@ -39,7 +39,7 @@ def meta(stamp,rule,basis,inferred=False):
                 input_rule=rule,input_basis=basis,inferred=inferred,authentication='ADMIN',actor_basis='사용자 지정 담당자 이름')
 
 def project_values(p,cells,stamp,parent=None,previous=None):
-    """Only missing earlier values inherit later measured values; never use a plan as an actual."""
+    """Collected measurements take priority; missing fields use goals only with independent event evidence."""
     previous=previous or {};cap=p.get('planned_units');issues=[];progress={};targets={}
     overrides=deepcopy(previous.get('overrides',{}))
     if type(cap) is int:overrides['planned_units']=dict(meta(stamp,'SOURCE_ACCEPTED','현재 수집된 사업 총 목표 공급량 채택'),value=cap)
@@ -64,25 +64,6 @@ def project_values(p,cells,stamp,parent=None,previous=None):
             targets[stage]=dict(meta(stamp,'SOURCE_ACCEPTED','같은 사업·단계의 수집 예정값 채택'),due_date=planned['due_date'],units=u)
         if '상충' in measured.get('display_note','') or '서로 다른' in planned.get('display_note',''):
             issues.append(dict(stage=stage,code='SOURCE_CONFLICT',reason='서로 다른 원천 날짜·수량은 상세 근거에서 비교 필요'))
-    # Preserve existing manual progress, and fill fields independently.
-    for stage in reversed(list(STAGES)):
-        candidates=[(s,progress[s]) for s in SUCCESSORS[stage] if s in progress]
-        record=progress.get(stage,{})
-        for field in ('event_date','units'):
-            if record.get(field) not in (None,''):continue
-            choices=[(s,r) for s,r in candidates if r.get(field) not in (None,'')]
-            if not choices:continue
-            s,r=min(choices,key=lambda x:x[1].get('event_date') or '9999')
-            if not record:record=dict(meta(stamp,'PREDECESSOR_ASSUMPTION','후속 확인값을 선행 단계의 담당자 가정값으로 채택',True),event_date='',units=None)
-            record[field]=r[field];record['inferred']=True
-            record.setdefault('field_provenance',{})[field]=dict(rule='PREDECESSOR_ASSUMPTION',from_stage=s,value=r[field],basis='정확한 선행 사건일 미확보: 후속 확인일을 상한일로 동일 입력' if field=='event_date' else '후속 단계에서 확인된 동일 범위 물량을 선행 물량으로 채택')
-            progress[stage]=record
-    for stage,record in progress.items():
-        # Officer assumes full-scope milestones apply to the project quantity.
-        # A known partial quantity (including zero) or a conflicting scope wins.
-        if record.get('event_date') and record.get('units') is None and type(cap) is int and not any(i['stage']==stage and i['code']=='SCOPE_CONFLICT' for i in issues):
-            record['units']=cap;record['inferred']=True
-            record.setdefault('field_provenance',{})['units']=dict(rule='PROJECT_CAPACITY_ASSUMPTION',value=cap,basis='담당자 가정: 일자가 확인된 단계에 사업 총량 적용 · 실제 부분 물량 확보 시 재검토')
     for stage in STAGES:
         actual=progress.get(stage,{})
         goal=targets.get(stage,{})
@@ -114,6 +95,10 @@ def project_values(p,cells,stamp,parent=None,previous=None):
         if targets['CONSTRUCTION'].get('inferred'):targets.pop('CONSTRUCTION')
         elif targets['COMPLETION'].get('inferred'):targets.pop('COMPLETION')
         else:targets.pop('CONSTRUCTION')
+    from .measurement_estimates import reconcile
+    progress=reconcile(progress,targets,cells,today(),scope_limit=cap)['progress']
+    for record in progress.values():
+        for key,metadata_value in meta(stamp,record['input_rule'],record['input_basis'],record['inferred']).items():record.setdefault(key,metadata_value)
     for stage in STAGES:
         c=cells['CONSTRUCTION' if stage=='COMPLETION' else stage];a=progress.get(stage,{});t=targets.get(stage,{})
         for field,v in [('target.date',t.get('due_date')),('target.units',t.get('units')),('measurement.date',a.get('event_date')),('measurement.units',a.get('units'))]:
@@ -264,8 +249,8 @@ def distribute(total,weights):
 def complete_values(p,cells,value,stamp,duration=1095,parent=None):
     """Explicit user-authorized completion; every assumption carries its derivation.
 
-    Missing measurements become current observations (zero confirmed volume), not
-    invented event dates. These observations do not create milestone events.
+    Missing measurement fields equal their own due targets, explicitly marked as
+    estimates. Collected measurements, including zero, are preserved.
     """
     cap=p['planned_units'];parent=parent or {};progress=value['progress'];targets=value['targets']
     decisions=deepcopy(value['remaining'])
@@ -283,13 +268,6 @@ def complete_values(p,cells,value,stamp,duration=1095,parent=None):
         if stage in progress and progress[stage].get('units') is None:
             progress[stage].update(units=cap,inferred=True)
             progress[stage].setdefault('field_provenance',{})['units']=dict(rule='SCOPE_RECONCILIATION',basis='사업 총 목표량을 초과하는 타 범위 원천 대신 현재 사업 총량을 채택',value=cap)
-    for stage in reversed(list(STAGES)):
-        if progress.get(stage,{}).get('event_date'):continue
-        options=[(s,progress[s]) for s in SUCCESSORS[stage] if progress.get(s,{}).get('event_date') and progress[s].get('units',0)>0]
-        if options:
-            s,r=min(options,key=lambda x:x[1]['event_date'])
-            previous=progress.get(stage,{})
-            progress[stage]=dict(meta(stamp,'PREDECESSOR_ASSUMPTION','후속 '+STAGES[s]+' 확인일을 선행 단계 완료 상한일로 채택',True),event_date=r['event_date'],units=previous.get('units') if previous.get('units') is not None else r['units'])
     def shift(d,days):return (date.fromisoformat(d)+timedelta(days=days)).isoformat()
     def known(stage):return targets.get(stage,{}).get('due_date') or progress.get(stage,{}).get('event_date')
     start=known('CONSTRUCTION')
@@ -312,23 +290,12 @@ def complete_values(p,cells,value,stamp,duration=1095,parent=None):
     bound=min(targets['CONSTRUCTION']['due_date'],targets['SUPPLY']['due_date'])
     if targets['APPROVAL']['due_date']>bound:adjust('APPROVAL',bound,'인허가 목표는 착공·공급 이전')
     if targets['BUSINESS']['due_date']>targets['APPROVAL']['due_date']:adjust('BUSINESS',targets['APPROVAL']['due_date'],'사업화 목표는 인허가 이전')
-    for stage in STAGES:
-        if stage in progress and progress[stage].get('event_date') and progress[stage].get('units') is not None:continue
-        future=targets[stage]['due_date']>today().isoformat()
-        c=cells['CONSTRUCTION' if stage=='COMPLETION' else stage]
-        not_reached=c.get('progress',{}).get('code') in ('NOT_REACHED_REPORTED','SCHEDULE_PENDING')
-        if future or not_reached:
-            progress.pop(stage,None)
-            continue  # Nonexistent events stay absent; UI explicitly says not due.
-        progress[stage]=dict(meta(stamp,'OFFICER_CURRENT_ESTIMATE','기한이 지난 단계: 수집 일정·사업 총량·후속 단계 정합성을 기준으로 담당자가 선택한 현재값. 원천 실적 확인과 구분',True),event_date=targets[stage]['due_date'],units=cap)
-    # Inferred earlier events may not postdate a known later event.
-    for stage in reversed(list(STAGES)):
-        r=progress.get(stage)
-        bounds=[progress[s]['event_date'] for s in SUCCESSORS[stage] if s in progress]
-        if r and bounds and r['event_date']>min(bounds) and r.get('inferred'):
-            before=r['event_date'];r['event_date']=min(bounds)
-            r.setdefault('field_provenance',{})['event_date']=dict(rule='SEQUENCE_RECONCILIATION',previous_value=before,basis='후속 확인일 이내로 추정 선행일 조정')
-    if not value['overrides'].get('progress_pct') and 'CONSTRUCTION' in progress:
+    from .measurement_estimates import reconcile
+    progress=reconcile(progress,targets,cells,today(),scope_limit=cap)['progress']
+    for record in progress.values():
+        for key,metadata_value in meta(stamp,record['input_rule'],record['input_basis'],record['inferred']).items():record.setdefault(key,metadata_value)
+    value['progress']=progress
+    if not value['overrides'].get('progress_pct') and progress.get('CONSTRUCTION',{}).get('event_date'):
         start=date.fromisoformat(progress['CONSTRUCTION']['event_date']);end=date.fromisoformat(targets['COMPLETION']['due_date'])
         pct=100 if 'COMPLETION' in progress else min(99,max(0,round(100*(today()-start).days/max(1,(end-start).days),1)))
         for key,v in [('progress_pct',pct),('progress_date',today().isoformat())]:value['overrides'][key]=dict(meta(stamp,'TIME_PROGRESS_ESTIMATE','착공 확인/채택일과 준공 목표 사이 경과일 비율 · 담당자 추정 공정률',True),value=v)

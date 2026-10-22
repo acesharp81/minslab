@@ -88,16 +88,3 @@ const PolicyDashboard=(()=>{
   function select(id){if(!payload||!payload.items.some(row=>row.id===id))return;selected=id;collapsed.clear();render(payload);}
   return {render,start,select};
 })();
-
-const ConnectionGuide=(()=>{
-  function render(data){
-    const statusText=g=>g.readiness==='CONNECTED'?`${num(g.record_count)}건 수집 정상 · ${timeText(g.last_success)}`:
-      g.readiness==='CONNECTOR_READY'?`수집기 연결됨 · ${g.status==='FAILED'?'최근 수집 실패':g.status==='RUNNING'?'수집 중':'수집 대기'}`:
-      g.mode==='FILE'?'API 키 불필요 · 파일 수집기 연결 대기':g.key_configured?'키 설정됨 · 수집기 연결 대기':g.existing_key_configured?'기존 포털 키 있음 · 서비스 승인 확인 필요':'추가 키 미설정 · 대상 서비스 신청 필요';
-    const scope=g=>g.stats?.scope_note||'';
-    const cards=data.planned.map(g=>`<article class="connection-plan"><div><span class="badge ${g.readiness==='CONNECTED'?'confirmed':'review'}">${esc(g.readiness==='CONNECTED'?'연결 확인':g.priority)}</span><h3>${esc(g.name)}</h3></div><p>${esc(g.purpose)}</p><p class="connection-gap">${esc(g.gap)}</p><small>${esc(statusText(g))}</small>${g.error?`<p class="connection-gap">${esc(g.error)}</p>`:''}${scope(g)?`<p>${esc(scope(g))}</p>`:''}${g.stats?.dataset_versions?`<p>${g.stats.dataset_versions.map(r=>`${esc(r.version)} · ${num(r.records)}건${r.is_latest?' · 최신 공개본':' · 과거 공개본'}`).join('<br>')}</p>`:''}${g.stats?.series?`<p>${g.stats.series.map(r=>`${esc(r.metric)} ${esc(r.period_start)}~${esc(r.period_end)} · ${num(r.records)}건${r.complete_query?'':' · 일부 기간 미확보'}`).join('<br>')}</p>`:''}<details><summary>신청·연결 방법</summary><ol>${g.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>${g.key_env?`<p>HOME 서버 설정: <code>${esc(g.key_env)}</code></p>`:''}<p>${g.readiness==='DATASET_SELECTION_REQUIRED'?'대상 데이터셋 선택 필요':g.readiness==='CONNECTED'?'실제 수집 응답·이력으로 검증됨':g.readiness==='CONNECTOR_READY'?'수집기 연결 완료 · 배치 결과 확인':'수집기 연결 준비 단계'}</p></details><a href="${esc(safeUrl(g.url))}" target="_blank" rel="noopener noreferrer">공식 데이터·신청 안내 ↗</a></article>`).join('');
-    $('connection-guide').innerHTML=`<div class="section-title"><div><h2>추가 연결 점검</h2><p>${esc(data.notice)}</p></div><span class="tag">${esc(data.checked_date)} 점검</span></div><div class="connection-grid">${cards}</div>`;
-    $('validation-connections').innerHTML=`<div><strong>API 연결 점검</strong><p>${data.connected.filter(r=>r.status==='SUCCESS').length}/${data.connected.length}개 API 수집 정상. 건축물대장·LH·SH·통계누리의 실제 연결 상태와 자료 기준일을 확인하세요.</p><button class="text-button" data-view="keys">신청 방법·연결 상태 보기 ↗</button></div>`;
-  }
-  return {render};
-})();

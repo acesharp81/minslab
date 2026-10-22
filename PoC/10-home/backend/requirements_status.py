@@ -67,6 +67,27 @@ def _metrics(raw_projects, records, matrix, include_estimates, locations=None):
     return metrics
 
 
+def acquisition_summary(matrix):
+    # Six milestones × target/measurement × date/units: one common field denominator.
+    counts={'without_estimates':0,'with_estimates':0};total=0
+    for project in matrix['items']:
+        for stage in STAGES:
+            management=project.get('cells',{}).get(stage,{}).get('management',{})
+            milestones=('CONSTRUCTION','COMPLETION') if stage=='CONSTRUCTION' else (stage,)
+            for kind in ('target','measurement'):
+                for milestone in milestones:
+                    row=next((r for r in management.get(kind,[]) if r.get('milestone')==milestone),{})
+                    for field in ('date','units'):
+                        total+=1
+                        if row.get(field) in (None,''):continue
+                        category=(row.get('field_tags',{}).get(field) or row.get('collection_tag') or {}).get('code')
+                        if category in ('OFFICIAL','OFFICER'):
+                            counts['without_estimates']+=1;counts['with_estimates']+=1
+                        elif category=='ESTIMATED':counts['with_estimates']+=1
+    note='등록된 9·7 사업별 사업화·인허가·착공·준공·공급·입주의 목표일·목표량·측정일·측정량 24개 필드. 두 카드의 분모는 같으며 미도래도 빈 필드로 분모에 유지합니다.'
+    return {mode:indicator('데이터 확보',count,total,note) for mode,count in counts.items()}
+
+
 def build_status(service, matrix, locations=None):
     raw_projects = service.projects(policy_id='POL_2025_0907')
     records = {kind: service.rows(kind) for kind in ('execution_schedule', 'execution_case', 'execution_scenario', 'execution_agency')}
@@ -76,6 +97,6 @@ def build_status(service, matrix, locations=None):
                         estimate_added_count=value['count'] - excluded[key]['count'])
                for key, value in included.items()}
     return dict(as_of_date=matrix.get('as_of_date') or today().isoformat(), policy_id='POL_2025_0907',
-                project_count=len(matrix['items']), metrics=metrics,
+                project_count=len(matrix['items']), metrics=metrics, acquisition=acquisition_summary(matrix),
                 notice='등록된 9·7 사업 기록 기준. 두 지표는 같은 분모를 사용합니다. 추정 제외는 수집 근거·비추정 확인 입력, 추정 포함은 담당자 가정·평균기간 보완을 추가합니다. 미도래 측정값은 미확보이며, 분모 0은 산정 불가입니다. 자료 존재율로서 정확도·전국 전수 확보율이 아닙니다.',
                 estimate_basis='저장된 추정 여부·항목별 산정 근거·선행단계 추론으로 구분합니다. 확인 승인만으로 추정 여부가 사라지지 않습니다. 혼합 기록은 추정 제외에서 제외하되 별도로 보존된 수집 근거가 있으면 해당 셀을 확보로 셉니다. 수집값을 관리목표로 채택한 비추정 입력은 포함합니다. 사업화~입주 5단계이며 건설은 착공·준공을 통합한 셀입니다.')

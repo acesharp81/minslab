@@ -1,6 +1,7 @@
 """Evidence-year map projections. Knowledge dates and supply measures stay separate."""
 import re
 from collections import defaultdict
+from copy import deepcopy
 from datetime import date
 
 from .map_data import district_term, same_district
@@ -9,6 +10,7 @@ from .supply_progress import progress_metrics
 from .supply_projection import projections
 from .supply_geography import municipal_membership, block_milestones
 from .matching_rules import policy_members
+from .block_identity import normalize_block, title_blocks
 
 MEASURES = {"SUPPLY": "모집·공급", "MOVE_IN": "입주 시작일", "COMPLETION": "준공"}
 SOURCE_ALIASES = {"lh_incheon_sale": "lh_sale", "lh_incheon_rent": "lh_rent",
@@ -23,23 +25,42 @@ def marker_view(dashboard):
 
 
 def block_key(row):
+    if not row.get('region'):return None
     term = district_term(row)
     block = row.get("block")
-    if not block:
-        match = re.search(r"\s+([A-Za-z]{1,3})\s*-?\s*(\d+)(?:BL)?(?:\s|\(|$)", row["name"], re.I)
-        block = "".join(match.groups()) if match else None
-    match = re.fullmatch(r"([A-Za-z]{1,3})\s*-?\s*0*(\d+)(?:BL)?", block or "", re.I)
-    if not match:
+    block_code = normalize_block(block)
+    explicit=title_blocks(row.get('name',''))
+    if len(explicit)==1 and (not block_code or '-' in block_code):
+        # A construction contract's site code is not necessarily its housing
+        # block. The one explicit housing block in its title takes precedence.
+        block_code=next(iter(explicit))
+    if not block_code:
         # Contract site codes can differ from the one explicit housing block in
         # the title. Derive the display key without rewriting the source field.
-        explicit=set(re.findall(r'([A-Za-z]{1,3})[-－]?(\d+)(?:BL|블록)', row.get('name',''), re.I))
         if len(explicit)==1:
-            prefix,number=next(iter(explicit));match=re.fullmatch(r'([A-Za-z]{1,3})(\d+)',prefix+number)
-    if not term or not match:
+            block_code=next(iter(explicit))
+    if not term:
         return None
+    if not block_code:
+        # Some LH blocks have a letter only (e.g. 인천부평 A). Supply
+        # plans put it at the end of the title; construction/progress rows
+        # supply a separate district and block. Preserve the district rather
+        # than treating those sources as independent housing inventories.
+        suffix = re.fullmatch(r"(.+?)\s+([A-Za-z])(?:BL|블록)?", term, re.I)
+        letter = re.fullmatch(r"[A-Za-z]", str(block or ""))
+        if letter:
+            block_code = letter[0].upper()
+            if suffix and suffix[2].upper() != block_code:
+                return None
+        elif not block and suffix:
+            block_code = suffix[2].upper()
+        else:
+            return None
+        if suffix:
+            term = suffix[1]
     term = re.sub(r"\s+", "", term).replace("국제화계획", "")
     term = re.sub(r"(?:공공주택지구|택지개발사업|택지개발지구|지구)+$", "", term)
-    return (row["region"], term, match[1].upper()+str(int(match[2])))
+    return (row["region"], term, block_code)
 
 
 def inventory(rows):
@@ -90,16 +111,21 @@ def linked_notices(rows,notices,reference):
     for row in rows:
         key=block_key(row)
         if key:
-            block=re.fullmatch(r"([A-Z]+)(\d+)",key[2])
+            block=re.fullmatch(r"([A-Z]+)(\d+)(?:-(\d+))?",key[2])
+            # Letter-only blocks are deduplicated above, but a notice title
+            # needs a separately reviewed link rather than a loose letter match.
+            if block is None:
+                continue
             pattern=re.compile(re.escape(key[1])+r"(?:공공주택지구|택지개발지구|지구)?"+
-                re.escape(block[1])+r"-?0*"+block[2]+r"(?:BL|블록)?(?![A-Z0-9])")
+                re.escape(block[1])+r"[-－]?0*"+block[2]+
+                (r'[-－]0*'+block[3] if block[3] else '')+r"(?:BL|블록)?(?![A-Z0-9－-])")
             candidates.append((row,pattern))
     for notice in sorted(notices,key=lambda row:(row.get("source_date") or "",row["id"])):
         if not notice.get("source_date") or notice["source_date"]>reference.isoformat():continue
         if "한국토지주택공사" not in re.sub(r"\s+","",notice.get("developer", "")):continue
         name=re.sub(r"\s+","",notice["name"]).replace("국제화계획", "").upper()
         if any(word in name for word in ("사전","잔여","추가","취소","무순위","정정")):continue
-        if len(set(re.findall(r"[A-Z]{1,3}-?\d+(?:BL|블록)",name)))>1:continue
+        if len(title_blocks(name))>1:continue
         if notice.get("units") is None or notice["units"]<=0:continue
         owners=[]
         for row,pattern in candidates:
@@ -268,9 +294,13 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
     for item in items:
         notice=notice_links.get(item["id"])
         item["notice_evidence"]={key:notice.get(key) for key in ("id","name","units","source_date","evidence_url")} if notice else None
+    calculated = {}
     def calculate(members):
+        key=tuple(r['id'] for r in members)
+        if key in calculated:return deepcopy(calculated[key])
         amount = quantities(members,plans,reference,horizon,measure,*canonical,notice_links=notice_links)
         amount['stage_distribution'] = aggregate_stages([r for r in members if r['id'] in canonical[0]], stage_parts)
+        calculated[key]=deepcopy(amount)
         return amount
     def display_amount(members):
         amount=calculate(members)

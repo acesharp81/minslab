@@ -5,6 +5,9 @@ from .db import IntegrityRound, Audit, MetricSnapshot
 from .service import as_utc
 from .independent_metrics import digest
 
+# Dedicated to assessment writes; 1019113 is held by the collection worker.
+INTEGRITY_WRITE_LOCK = 1019114
+
 
 def replace_consolidated_round(service, identity, result, html, actor, reason):
     """User-authorized replacement of obsolete R01/R02, preserving an archive.
@@ -19,7 +22,7 @@ def replace_consolidated_round(service, identity, result, html, actor, reason):
     archive=service.data_dir/'remediation/retired-rounds-20261017'
     archive.mkdir(parents=True,exist_ok=True)
     with service.engine.begin() as connection:
-        if service.engine.dialect.name=='postgresql':connection.execute(text('SELECT pg_advisory_xact_lock(1019113)'))
+        if service.engine.dialect.name=='postgresql':connection.execute(text('SELECT pg_advisory_xact_lock(:key)'), {'key': INTEGRITY_WRITE_LOCK})
         elif service.engine.dialect.name=='sqlite':connection.exec_driver_sql('BEGIN')
         scoped=HomeService(service.engine,service.data_dir)
         scoped.sessions=sessionmaker(bind=connection,expire_on_commit=False,join_transaction_mode='create_savepoint')
@@ -65,7 +68,7 @@ def amend_round(service, identity, expected_digest, result, html, actor, reason)
     from sqlalchemy.orm import sessionmaker
     from .service import HomeService
     with service.engine.begin() as connection:
-        if service.engine.dialect.name=='postgresql':connection.execute(text('SELECT pg_advisory_xact_lock(1019113)'))
+        if service.engine.dialect.name=='postgresql':connection.execute(text('SELECT pg_advisory_xact_lock(:key)'), {'key': INTEGRITY_WRITE_LOCK})
         elif service.engine.dialect.name=='sqlite':connection.exec_driver_sql('BEGIN')
         scoped=HomeService(service.engine,service.data_dir)
         scoped.sessions=sessionmaker(bind=connection,expire_on_commit=False,join_transaction_mode='create_savepoint')
@@ -86,7 +89,7 @@ def amend_round(service, identity, expected_digest, result, html, actor, reason)
             sequence,parent_id=old.sequence,old.parent_id
             db.add(Audit(entity_id=identity,action='DATA_INTEGRITY_ROUND_AMENDED',
                 before=dict(digest=old.digest,score=old.score),after=dict(actor=actor,reason=reason,
-                    requested_change='새 회차 없이 기존 보완1 갱신',archive=str(path.relative_to(service.data_dir)),
+                    requested_change=f'새 회차 없이 기존 보완{old.sequence} 갱신',archive=str(path.relative_to(service.data_dir)),
                     archive_sha256=hashlib.sha256(body.encode()).hexdigest())))
             db.delete(old)
         save_round(scoped,identity,sequence,result,html,actor,reason,snapshot_id=result.get('snapshot_id'),parent_id=parent_id)
@@ -108,7 +111,7 @@ def save_round(service, identity, sequence, result, html, actor, reason, snapsho
         raise ValueError('합산 점수가 항목 점수와 다릅니다')
     checksum=digest(dict(result=result,html=html,actor=actor,reason=reason,snapshot_id=snapshot_id,parent_id=parent_id))
     with service.sessions.begin() as db:
-        if service.engine.dialect.name=='postgresql':db.execute(text('SELECT pg_advisory_xact_lock(1019113)'))
+        if service.engine.dialect.name=='postgresql':db.execute(text('SELECT pg_advisory_xact_lock(:key)'), {'key': INTEGRITY_WRITE_LOCK})
         old=db.get(IntegrityRound,identity)
         if old:
             if old.digest!=checksum:raise ValueError('발행 성적표는 변경할 수 없습니다. 새 보완회차로 등록하세요')

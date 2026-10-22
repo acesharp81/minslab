@@ -60,6 +60,16 @@ class OpenRouterSummaryTests(unittest.TestCase):
             request.call_args.kwargs["headers"]["Authorization"], "Bearer secret"
         )
         self.assertNotIn("secret", request.call_args.args[0])
+        self.assertEqual(request.call_args.kwargs["json"]["reasoning"], {"enabled": False, "exclude": True})
+        self.assertNotIn("liquid/lfm-2.5-2.6b:free", request.call_args.kwargs["json"]["models"])
+        self.assertGreaterEqual(request.call_args.kwargs["json"]["max_tokens"], 8192)
+
+    def test_other_models_keep_reasoning_enabled_by_provider(self):
+        response = FakeResponse({"choices": [{"message": {"content": '{"summaries": []}'}}]})
+        with mock.patch("app.services.openrouter_summary.requests.post", return_value=response) as request:
+            OpenRouterSummaryClient("fixture", model="liquid/lfm-2.5-2.6b:free").summarize([])
+        self.assertEqual({"exclude": True}, request.call_args.kwargs["json"]["reasoning"])
+        self.assertNotIn("models", request.call_args.kwargs["json"])
 
     def test_uses_complete_target_and_adjacent_turns_as_context(self):
         utterances = [

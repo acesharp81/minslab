@@ -55,7 +55,6 @@ class Settings(BaseSettings):
     executive_transcription_usd_per_minute: float = 0.003
     watch_alerts_enabled: bool = True
     watch_test_broadcasts_enabled: bool = True
-    watch_digest_enabled: bool = True
     watch_kakao_enabled: bool = False
     watch_llm_enabled: bool = False
     watch_llm_provider: str = "openrouter"

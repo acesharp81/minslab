@@ -190,7 +190,7 @@ def collection_matrix(service,as_of=None,**filters):
         return _collection_matrix(service,as_of,**filters)
 
 
-def _collection_matrix(service,as_of=None,project_ids=None,**filters):
+def _collection_matrix(service,as_of=None,project_ids=None,include_link_history=True,**filters):
     reference=as_of or today();projects=service.projects(as_of=reference,**filters)
     if project_ids is not None:
         selected=set(project_ids)
@@ -204,7 +204,9 @@ def _collection_matrix(service,as_of=None,project_ids=None,**filters):
     research=defaultdict(list)
     for r in service.rows('collection_research',reference):
         for pid in r.get('project_ids',[]):research[pid].append(r)
-    all_documents={r['id']:r for r in service.rows('document_evidence',reference)}
+    document_index = (service.document_evidence_index(reference) if hasattr(service, 'document_evidence_index')
+                      else service.rows('document_evidence', reference))
+    all_documents={r['id']:r for r in document_index}
     manual_events=defaultdict(list);manual_goals=defaultdict(list)
     for setting in service.rows('delivery_setting',reference):
         for e in setting.get('events',[]):manual_events[e['project_id']].append(e)
@@ -215,7 +217,7 @@ def _collection_matrix(service,as_of=None,project_ids=None,**filters):
     for s in baselines:
         if s.get('status')!='RELEASED':manual_goals[s['project_id']].append(s)
     source_states={s['id']:s for s in service.sources()};items=[]
-    documents=[r for r in service.rows('document_evidence',reference) if r['source_id']=='official_document']
+    documents=[r for r in document_index if r['source_id']=='official_document']
     if documents:source_states['official_document']=dict(name='공식 공고·고시 원문',org='LH·국토부·지자체',record_count=len(documents),status='SUCCESS',collection_mode='PUBLIC_DOCUMENT')
     for p in projects:
         phase_sources=[all_documents.get(b.get('source_entity_id'),{}) for b in bridges.get(p['id'],[]) if b.get('status')!='RELEASED']
@@ -303,7 +305,8 @@ def _collection_matrix(service,as_of=None,project_ids=None,**filters):
             if bridge['status']=='RELEASED':continue
             for f in bridge['facts']:
                 if f['kind']=='ACTUAL' and f.get('date') and f['date']>reference.isoformat():continue
-                evidence[f['stage']].append(dict(f,name=short(bridge['source_id']),source_id=bridge['source_id'],
+                stage = 'CONSTRUCTION' if f['stage'] == 'COMPLETION' else f['stage']
+                evidence[stage].append(dict(f,milestone=f.get('milestone',f['stage']),name=short(bridge['source_id']),source_id=bridge['source_id'],
                     source_entity_id=bridge['source_entity_id'],source_revision_no=bridge['source_revision_no'],
                     evidence_url=bridge['evidence_url'],review_status=bridge['status'],bridge_id=bridge['id'],
                     officer_confirmed=bool(bridge.get('actor')),method='CROSS_SOURCE',date=f.get('date'),basis=f['basis']+' · '+bridge['basis'],link_origin='EVIDENCE_BRIDGE',match_key=bridge.get('match_key'),matching_version=bridge.get('matching_version'),decision_basis=bridge.get('review_basis'),relation_type=bridge.get('relation_type')))
@@ -317,7 +320,7 @@ def _collection_matrix(service,as_of=None,project_ids=None,**filters):
             reason=assessment['basis'] if active and not acquired else '연결된 자료 없음 · 원천/사업 연결 확인 필요' if status=='COLLECTION_REQUIRED' else '사업별 제공처·조회 방법 추가 확인 필요' if status=='METHOD_UNKNOWN' else assessment.get('basis') if active else ''
             unique=list({(e['source_id'],e.get('source_entity_id'),e.get('source_revision_no'),e['kind'],e['date'],e.get('date_label'),e.get('scope_label'),e['basis']):e for e in records}.values())
             labels={'CONSTRUCTION':'착공 예정','COMPLETION':'예상 준공','SUPPLY':'분양·모집 예정','MOVE_IN':'입주 예정'}
-            targets=[dict(e,label=labels.get(e.get('milestone',stage),STAGES[stage]+' 목표')+(' · '+e['scope_label'] if e.get('scope_partial') else ''),reference_only=bool(e.get('scope_partial')))
+            targets=[dict(e,label=labels.get(e.get('milestone',stage),STAGES[stage]+' 목표')+(' · '+(e.get('scope_label') or '부분 범위 · 전체 목표 아님') if e.get('scope_partial') else ''),reference_only=bool(e.get('scope_partial') or e.get('reference_only')))
                      for e in unique if e['kind']=='PLAN' and (e.get('date') or e.get('date_label'))]
             targets.sort(key=lambda t:({'CONSTRUCTION':0,'COMPLETION':1}.get(t.get('milestone'),0),t.get('date') or t.get('date_label') or '',t['name']))
             cells[stage]=dict(status=status,construction_plan=(p.get('construction_plan') or construction_plan(p,reference)) if stage=='CONSTRUCTION' else None,targets=targets,label=STATUS[status],sources=unique,source_names=list(dict.fromkeys(e['name'] for e in unique)),
@@ -347,7 +350,8 @@ def _collection_matrix(service,as_of=None,project_ids=None,**filters):
     from .collection_lineage import enrich
     lineage=enrich(service,projects,items,reference,source_states,baselines=baselines,policy_names={k:p['name'] for k,p in policies.items()})
     from .collection_repairs import enrich as enrich_repairs, REPAIR_TYPES
-    repairs=enrich_repairs(service,items,reference)
+    # Coverage indicators consume the cells, not the expandable audit history.
+    repairs=enrich_repairs(service,items,reference) if include_link_history else []
     return dict(repair_types=REPAIR_TYPES,repairs=repairs,items=items,gap_groups=summarize_gaps(items),total=len(items),stages=STAGES,statuses=STATUS,progress_statuses=PROGRESS,diagram=diagrams,lineage=lineage,as_of_date=reference.isoformat(),
         policies=[dict(policy_id=k,name=p['name']) for k,p in policies.items()],
         notice='자료 확보와 실적 확인은 다릅니다. 예정·실적·연결 검토를 구분하며 빈칸으로 미계획이나 원천 0건을 추정하지 않습니다.')

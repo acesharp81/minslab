@@ -41,6 +41,8 @@
     scene3d: null,
     force2d: false,
     loading: false,
+    pollTimer: null,
+    resizeObserver: null,
   };
   const svgNamespace = "http://www.w3.org/2000/svg";
   let ontology3dLoader = null;
@@ -48,8 +50,12 @@
   async function loadOntology3DEngine() {
     if (window.AssemblyOntology3D) return window.AssemblyOntology3D;
     if (!ontology3dLoader) {
-      ontology3dLoader = import("./ontology-starmap.js?v=20261019-refresh-1")
-        .then(() => window.AssemblyOntology3D);
+      ontology3dLoader = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("3D_ENGINE_TIMEOUT")), 8000);
+        import("./ontology-starmap.js?v=20261020-ontology-1")
+          .then(() => resolve(window.AssemblyOntology3D), reject)
+          .finally(() => clearTimeout(timeout));
+      }).catch((error) => { ontology3dLoader = null; throw error; });
     }
     return ontology3dLoader;
   }
@@ -563,10 +569,9 @@
     );
   }
 
-  function renderPolicyTimeline(payload) {
-    const target = mount.querySelector("#assemblyPolicyTimeline");
+  function renderPolicyTimeline(payload, target = mount.querySelector("#assemblyPolicyTimeline"), limit = 5) {
     target.replaceChildren();
-    const items = (payload.items || []).slice(0, 5);
+    const items = (payload.items || []).slice(0, limit ?? undefined);
     if (!items.length) {
       target.append(element("p", "assembly-insight-empty", "정부와 국회에서 공통 근거가 확인된 정책 흐름이 없습니다."));
       return;
@@ -618,10 +623,9 @@
     }
   }
 
-  function renderIssueTrends(payload) {
-    const target = mount.querySelector("#assemblyIssueTrends");
+  function renderIssueTrends(payload, target = mount.querySelector("#assemblyIssueTrends"), limit = 8) {
     target.replaceChildren();
-    const rows = (payload.items || []).slice(0, 8);
+    const rows = (payload.items || []).slice(0, limit ?? undefined);
     if (!rows.length) {
       target.append(element("p", "assembly-insight-empty", "비교할 구체 논의 주제가 아직 없습니다."));
       return;
@@ -649,15 +653,14 @@
     }
   }
 
-  function renderInstitutionFlow(payload) {
-    const target = mount.querySelector("#assemblyInstitutionFlow");
+  function renderInstitutionFlow(payload, target = mount.querySelector("#assemblyInstitutionFlow"), limit = 8) {
     target.replaceChildren();
     const stageOrder = { BILL_LINKED: 4, DECISION_MENTIONED: 3, FORMALIZATION_MENTIONED: 2, FOLLOW_UP_TASK: 1 };
     const items = [...(payload.items || [])]
       .filter((item) => item.transition_stage !== "DISCUSSION")
       .sort((a, b) => (stageOrder[b.transition_stage] || 0) - (stageOrder[a.transition_stage] || 0)
         || Number(b.current_meeting_count || 0) - Number(a.current_meeting_count || 0))
-      .slice(0, 8);
+      .slice(0, limit ?? undefined);
     if (!items.length) {
       target.append(element("p", "assembly-insight-empty", "후속 과제·의결·공식 의안으로 전환된 구체 주제가 아직 없습니다."));
       return;
@@ -701,6 +704,120 @@
     }
   }
 
+  const insightLists = {
+    timeline: { title: "정책 흐름 타임라인", endpoint: "cross-institution-flow", render: renderPolicyTimeline },
+    trend: { title: "지속·급증·소멸 쟁점", endpoint: "specific-issues", render: renderIssueTrends },
+    institution: { title: "논의 → 제도화 전환", endpoint: "specific-issues", category: "institution", render: renderInstitutionFlow },
+  };
+  let closeInsightList = null;
+
+  function openInsightList(kind) {
+    const config = insightLists[kind];
+    const dialog = document.querySelector("#assemblyInsightListDialog");
+    if (!config || !dialog) return;
+    closeInsightList?.();
+    const viewport = dialog.querySelector(".assembly-insight-list-scroll");
+    const list = dialog.querySelector(".assembly-insight-list-items");
+    const status = dialog.querySelector("[role=status]");
+    const more = dialog.querySelector(".assembly-insight-list-more");
+    const form = dialog.querySelector(".assembly-insight-search");
+    const input = form.querySelector("input");
+    const reset = form.querySelector(".assembly-insight-search-reset");
+    const lifetime = new AbortController();
+    let request = null, timer = null, generation = 0;
+    let offset = 0, busy = false, hasMore = true, search = "";
+    document.querySelector("#assemblyInsightListTitle").textContent = config.title + " · 전체 보기";
+    input.value = "";
+    dialog.showModal();
+    input.focus({ preventScroll: true });
+    async function loadMore() {
+      if (busy || timer || !hasMore || lifetime.signal.aborted) return;
+      const current = generation;
+      const controller = new AbortController();
+      request = controller;
+      busy = true;
+      more.disabled = true;
+      status.textContent = "목록을 불러오는 중입니다.";
+      const query = new URLSearchParams({ limit: "10", offset: String(offset) });
+      if (config.category) query.set("category", config.category);
+      if (search) query.set("q", search);
+      try {
+        const response = await fetch("api/policy/" + config.endpoint + "?" + query, {
+          headers: { Accept: "application/json" }, signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("INSIGHT_PAGE_FAILED");
+        const payload = await response.json();
+        if (typeof payload.has_more !== "boolean" || (search && payload.query !== search)) throw new Error("INSIGHT_PAGE_UNAVAILABLE");
+        if (current !== generation || lifetime.signal.aborted) return;
+        if (search && !(payload.items || []).length && offset === 0) {
+          list.append(element("p", "assembly-insight-empty", "검색 결과가 없습니다. 다른 검색어를 입력해 주세요."));
+        } else {
+          const fragment = element("div");
+          config.render(payload, fragment, null);
+          fragment.querySelectorAll(".assembly-insight-guide").forEach(node => node.remove());
+          list.append(...fragment.children);
+        }
+        offset += (payload.items || []).length;
+        hasMore = Boolean(payload.has_more);
+        status.textContent = `${search ? "검색 결과" : "전체"} ${Number(payload.total_count || 0).toLocaleString()}개 중 ${offset.toLocaleString()}개 표시`;
+        more.hidden = !hasMore;
+        more.textContent = "10개 더 보기";
+      } catch (error) {
+        if (error.name === "AbortError" || current !== generation || lifetime.signal.aborted) return;
+        status.textContent = "목록을 불러오지 못했습니다. 다시 시도해 주세요.";
+        more.hidden = false;
+        more.textContent = "다시 시도";
+      } finally {
+        if (current === generation && !lifetime.signal.aborted) {
+          busy = false;
+          more.disabled = false;
+        }
+      }
+    }
+    function searchList(delay = 0) {
+      clearTimeout(timer);
+      request?.abort();
+      generation += 1;
+      search = input.value.trim();
+      offset = 0;
+      busy = false;
+      hasMore = true;
+      list.replaceChildren();
+      viewport.scrollTop = 0;
+      more.hidden = false;
+      more.disabled = true;
+      more.textContent = "10개 더 보기";
+      status.textContent = search ? "전체 목록에서 검색 중입니다." : "목록을 불러오는 중입니다.";
+      timer = null;
+      if (delay) timer = setTimeout(() => { timer = null; loadMore(); }, delay);
+      else loadMore();
+    }
+    form.addEventListener("submit", event => { event.preventDefault(); searchList(); }, { signal: lifetime.signal });
+    input.addEventListener("input", event => { if (!event.isComposing) searchList(300); }, { signal: lifetime.signal });
+    input.addEventListener("compositionstart", () => { clearTimeout(timer); timer = null; }, { signal: lifetime.signal });
+    input.addEventListener("compositionend", () => searchList(300), { signal: lifetime.signal });
+    reset.addEventListener("click", () => { input.value = ""; searchList(); input.focus(); }, { signal: lifetime.signal });
+    viewport.addEventListener("scroll", () => {
+      if (viewport.scrollTop > 0 && viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 160) loadMore();
+    }, { passive: true, signal: lifetime.signal });
+    more.addEventListener("click", loadMore, { signal: lifetime.signal });
+    closeInsightList = () => {
+      generation += 1;
+      clearTimeout(timer);
+      request?.abort();
+      lifetime.abort();
+      closeInsightList = null;
+    };
+    searchList();
+  }
+  document.querySelectorAll("[data-insight-list]").forEach(button => {
+    button.addEventListener("click", () => openInsightList(button.dataset.insightList));
+  });
+  const insightListDialog = document.querySelector("#assemblyInsightListDialog");
+  insightListDialog?.querySelector(".assembly-insight-list-close").addEventListener("click", () => insightListDialog.close());
+  insightListDialog?.addEventListener("close", () => closeInsightList?.());
+  insightListDialog?.addEventListener("click", event => { if (event.target === insightListDialog) insightListDialog.close(); });
+
   function ontologyMetric(label, value, className = "") {
     const item = element("div", className);
     item.append(element("span", "", label), element("strong", "", value));
@@ -710,6 +827,14 @@
   function renderOntologyMetrics(payload) {
     const target = document.querySelector("#assemblyOntologyMetrics");
     const metrics = payload.metrics || {};
+    if (payload.snapshot && !payload.snapshot.generated_at) {
+      target.replaceChildren(
+        ontologyMetric("정책 영역", String((payload.domains || []).length)),
+        ontologyMetric("세부 분류", String((payload.groups || []).length)),
+        ontologyMetric("보고서 집계", payload.snapshot.status === "FAILED" ? "재시도 필요" : "집계 중"),
+      );
+      return;
+    }
     const coverage = Math.round(Number(metrics.ontology_coverage || 0) * 1000) / 10;
     target.replaceChildren(
       ontologyMetric("정책 영역", Number((payload.domains || []).length).toLocaleString()),
@@ -731,6 +856,13 @@
     const metrics = payload.metrics || {};
     const domains = payload.domains || [];
     target.replaceChildren();
+    if (payload.snapshot && !payload.snapshot.generated_at) {
+      target.append(element("h3", "", node?.title || payload.root?.title || "국정 온톨로지"),
+        element("p", "", "분류 체계를 먼저 표시했습니다. 보고서별 적용 건수와 연결률을 집계하고 있습니다."));
+      if (payload.snapshot.status === "FAILED") target.append(element("p", "", "보고서 집계를 완료하지 못했습니다. 새로고침으로 다시 시도할 수 있습니다."));
+      if (node?.keywords?.length) target.append(element("p", "", node.keywords.join(" · ")));
+      return;
+    }
     if (!node || node.type === "root") {
       const coverage = Math.round(Number(metrics.ontology_coverage || 0) * 1000) / 10;
       target.style.setProperty("--detail-color", "#5eead4");
@@ -885,8 +1017,24 @@
     };
   }
 
+  function useOntology2d(error) {
+    ontologyState.scene3d?.dispose();
+    ontologyState.scene3d = null;
+    ontologyState.force2d = true;
+    ontologyState.resizeObserver?.disconnect();
+    const oldCanvas = document.querySelector("#assemblyOntologyCanvas");
+    const canvas = oldCanvas.cloneNode(false);
+    canvas.dataset.renderer = "canvas2d";
+    canvas.dataset.rendererError = String(error?.message || error || "WEBGL_UNAVAILABLE");
+    oldCanvas.replaceWith(canvas);
+    ontologyState.wired = false;
+    wireOntologyCanvas();
+    document.querySelector("#assemblyOntologyMeta").textContent = "이 장치에서는 호환형 스타맵으로 표시합니다.";
+    return canvas;
+  }
+
   function drawOntology() {
-    const canvas = document.querySelector("#assemblyOntologyCanvas");
+    let canvas = document.querySelector("#assemblyOntologyCanvas");
     const dialog = document.querySelector("#assemblyOntologyDialog");
     if (!canvas || !dialog?.open || !ontologyState.payload) return;
     if (!window.AssemblyOntology3D && !ontologyState.force2d) {
@@ -909,12 +1057,11 @@
             },
           },
         );
-        document.querySelector("#assemblyOntologyMeta").textContent = `실시간 3D 지식 성단 · Three.js r${window.AssemblyOntology3D.version}`;
+        document.querySelector("#assemblyOntologyMeta").textContent = "국정 온톨로지 · 영역이나 분류를 선택해 연결 내용을 확인하세요.";
+        if (ontologyState.activeDomain) ontologyState.scene3d.filter(ontologyState.activeDomain);
+        if (ontologyState.selected) ontologyState.scene3d.select(ontologyState.selected.key);
       } catch (error) {
-        ontologyState.force2d = true;
-        canvas.dataset.renderer = "canvas2d";
-        canvas.dataset.rendererError = String(error?.message || error || "WEBGL_UNAVAILABLE");
-        document.querySelector("#assemblyOntologyMeta").textContent = "이 장치에서는 호환형 스타맵으로 표시합니다.";
+        canvas = useOntology2d(error);
       }
     }
     if (ontologyState.scene3d) {
@@ -930,6 +1077,8 @@
       canvas.height = Math.round(height * ratio);
     }
     const context = canvas.getContext("2d");
+    if (!context) return;
+    canvas.dataset.renderer = "canvas2d";
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
     context.fillStyle = "#050812";
@@ -1089,7 +1238,13 @@
       event.preventDefault();
       ontologyState.zoom = Math.min(2.2, Math.max(.72, ontologyState.zoom * (event.deltaY > 0 ? .9 : 1.1)));
     }, { passive: false });
-    new ResizeObserver(() => {
+    canvas.addEventListener("webglcontextlost", (event) => {
+      event.preventDefault();
+      useOntology2d("WEBGL_CONTEXT_LOST");
+      cancelAnimationFrame(ontologyState.animation);
+      ontologyState.animation = requestAnimationFrame(drawOntology);
+    });
+    ontologyState.resizeObserver = new ResizeObserver(() => {
       if (document.querySelector("#assemblyOntologyDialog")?.open) {
         if (ontologyState.scene3d) ontologyState.scene3d.resize();
         else {
@@ -1097,64 +1252,99 @@
           ontologyState.animation = requestAnimationFrame(drawOntology);
         }
       }
-    }).observe(canvas);
+    });
+    ontologyState.resizeObserver.observe(canvas);
+  }
+
+  function ontologySnapshotStatus(payload) {
+    const status = document.querySelector("#assemblyOntologyLoadStatus");
+    const snapshot = payload.snapshot;
+    status.classList.toggle("is-background", Boolean(ontologyState.payload));
+    status.hidden = false;
+    if (!snapshot) { status.hidden = true; return; }
+    const at = snapshot.generated_at ? new Date(snapshot.generated_at).toLocaleTimeString("ko-KR", {
+      timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false,
+    }) : "";
+    if (snapshot.status === "LOADING") status.textContent = "분류 체계 표시 완료 · 보고서 적용 현황을 집계하고 있습니다…";
+    else if (snapshot.status === "REFRESHING") status.textContent = `${at} 집계 결과 표시 중 · 최신 현황을 갱신하고 있습니다…`;
+    else if (snapshot.status === "STALE") status.textContent = `${at} 집계 결과 표시 중 · 최신 갱신 실패, 새로고침으로 재시도할 수 있습니다.`;
+    else if (snapshot.status === "FAILED") status.textContent = "분류 체계 표시 중 · 보고서 집계 실패, 새로고침으로 다시 시도해 주세요.";
+    else status.textContent = `${at} (한국시간) 집계 · 화면을 열어 두면 최신 현황을 확인합니다.`;
   }
 
   async function openOntologyMap(options = {}) {
     const dialog = document.querySelector("#assemblyOntologyDialog");
     if (!dialog.open) dialog.showModal();
     if (ontologyState.loading) return;
+    clearTimeout(ontologyState.pollTimer);
     wireOntologyCanvas();
-    const engineLoad = loadOntology3DEngine().catch((error) => {
-      ontologyState.force2d = true;
-      document.querySelector("#assemblyOntologyCanvas").dataset.rendererError = String(error?.message || error || "MODULE_LOAD_FAILED");
+    const engineLoad = ontologyState.force2d ? Promise.resolve() : loadOntology3DEngine().catch((error) => {
+      useOntology2d(error);
     });
-    if (!ontologyState.payload || options.force === true || Date.now() - ontologyState.loadedAt > 60000) {
+    if (!ontologyState.payload || options.force === true || options.poll === true
+        || Date.now() - ontologyState.loadedAt > 60000) {
       ontologyState.loading = true;
       const refreshButton = document.querySelector("#assemblyOntologyRefresh");
       if (refreshButton) refreshButton.disabled = true;
       const status = document.querySelector("#assemblyOntologyLoadStatus");
       status.hidden = false;
-      status.textContent = "보고서의 주제 연결을 불러오고 있습니다…";
+      status.classList.toggle("is-background", Boolean(ontologyState.payload));
+      status.textContent = ontologyState.payload ? "현재 결과를 유지하며 갱신하고 있습니다…" : "분류 체계를 불러오고 있습니다…";
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000);
-      document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "불러오는 중"));
-      document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "현재 온톨로지 구성을 불러오는 중입니다."));
+      const timeout = setTimeout(() => controller.abort(), 12000);
       try {
-        const response = await fetch("api/policy/ontology", { cache: "no-store", signal: controller.signal, headers: { Accept: "application/json" } });
-        if (!response.ok) throw new Error("ontology");
+        const params = new URLSearchParams({ background: "true" });
+        if (options.force) params.set("refresh", "true");
+        const response = await fetch("api/policy/ontology?" + params, {
+          cache: "no-store", signal: controller.signal, headers: { Accept: "application/json" },
+        });
+        if (!response.ok) throw new Error("ONTOLOGY_HTTP_" + response.status);
         const payload = await response.json();
-        cancelAnimationFrame(ontologyState.animation);
-        ontologyState.scene3d?.dispose();
-        ontologyState.scene3d = null;
-        ontologyState.payload = payload;
+        const revision = (value) => value?.snapshot ? value.snapshot.generated_at : JSON.stringify(value?.metrics);
+        const changed = !ontologyState.payload || revision(payload) !== revision(ontologyState.payload);
+        if (changed) {
+          cancelAnimationFrame(ontologyState.animation);
+          ontologyState.scene3d?.dispose();
+          ontologyState.scene3d = null;
+          const selected = ontologyState.selected;
+          ontologyState.payload = payload;
+          if (selected) {
+            const current = [...(payload.domains || []), ...(payload.groups || [])].find((node) => node.key === selected.key);
+            ontologyState.selected = current ? { ...current, type: selected.type } : null;
+          }
+          renderOntologyLegend(payload);
+          document.querySelectorAll("#assemblyOntologyLegend button").forEach((button, index) => {
+            button.classList.toggle("is-active", payload.domains[index]?.key === ontologyState.activeDomain);
+          });
+        } else ontologyState.payload = payload;
         ontologyState.loadedAt = Date.now();
-        ontologyState.selected = null;
-        ontologyState.activeDomain = "";
-        ontologyState.zoom = 1;
-        ontologyState.panX = ontologyState.panY = 0;
-        renderOntologyMetrics(ontologyState.payload);
-        renderOntologyLegend(ontologyState.payload);
-        renderOntologyDetail(null);
-        status.hidden = true;
-      } catch (_) {
-        status.textContent = "불러오지 못했습니다. 다시 시도해 주세요.";
-        document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "연결 실패", "is-review"));
-        document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", "온톨로지 구성을 불러오지 못했습니다."));
-        const retry = element("button", "assembly-ontology-open", "다시 시도");
-        retry.type = "button";
-        retry.addEventListener("click", () => openOntologyMap({ force: true }));
-        document.querySelector("#assemblyOntologyDetail").append(retry);
-        return;
+        renderOntologyMetrics(payload);
+        renderOntologyDetail(ontologyState.selected);
+        ontologySnapshotStatus(payload);
+      } catch (error) {
+        status.textContent = ontologyState.payload
+          ? "현재 결과를 유지합니다. 최신 현황 연결에 실패했습니다. 새로고침으로 다시 시도해 주세요."
+          : "분류 체계를 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.";
+        if (!ontologyState.payload) {
+          document.querySelector("#assemblyOntologyMetrics").replaceChildren(ontologyMetric("온톨로지", "연결 실패", "is-review"));
+          document.querySelector("#assemblyOntologyDetail").replaceChildren(element("p", "", status.textContent));
+        }
       } finally {
         clearTimeout(timeout);
         ontologyState.loading = false;
         if (refreshButton) refreshButton.disabled = false;
       }
-    }
+    } else ontologySnapshotStatus(ontologyState.payload);
     await engineLoad;
+    if (!dialog.open) return;
     cancelAnimationFrame(ontologyState.animation);
     ontologyState.animation = requestAnimationFrame(drawOntology);
+    const snapshot = ontologyState.payload?.snapshot;
+    if (ontologyState.payload && !["FAILED", "STALE"].includes(snapshot?.status)) {
+      ontologyState.pollTimer = setTimeout(() => {
+        if (dialog.open) openOntologyMap({ poll: true });
+      }, snapshot?.refresh_in_progress ? 3000 : 60000);
+    }
   }
 
   const INSIGHT_RETRY_DELAYS_MS = [800, 2000, 5000];
@@ -1472,6 +1662,8 @@
     if (event.target === event.currentTarget) event.currentTarget.close();
   });
   document.querySelector("#assemblyOntologyDialog")?.addEventListener("close", () => {
+    clearTimeout(ontologyState.pollTimer);
+    ontologyState.pollTimer = null;
     cancelAnimationFrame(ontologyState.animation);
     ontologyState.animation = 0;
     ontologyState.scene3d?.stop();

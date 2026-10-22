@@ -46,3 +46,17 @@ body.policy-compact-view:has(.prm-cards) .policy-geo-map-wrap{grid-column:3;grid
 
 .pw-flow-viewport{position:relative;min-width:0}.pw-fixed-y-axis{position:absolute;left:0;top:0;width:93px;height:450px;z-index:1;pointer-events:none;font-size:12px;fill:#375d7d}
 body.policy-compact-view .d907-flow .d907-chart-wrap.d907-monthly{margin-top:0;padding:0;border:0;border-radius:0}.pw-fixed-y-axis{font-size:11px}
+
+/* Chart navigation and the final stage control share one footer row. */
+.pw-flow-footer{display:grid;grid-template-columns:minmax(0,9fr) minmax(96px,1fr);gap:12px;align-items:center;margin:5px 0}
+.pw-flow-footer .pw-month-nav{margin:0;flex-wrap:nowrap}
+.pw-flow-footer .pw-month-nav button{white-space:nowrap}
+.pw-flow-footer .pw-business-control{display:flex;margin:0;padding:0 10px;border:0;background:transparent}
+.pw-flow-footer .pw-business-control button{width:100%;font-size:10px;padding:4px 8px}
+.pw-flow-chart{overflow-x:auto;overflow-y:hidden}
+.pw-flow-chart .d907-chart-wrap{overflow:visible}
+@media(max-width:760px){.pw-flow-footer{grid-template-columns:minmax(0,1fr) 88px;gap:4px}}
+.pw-flow-chart .d907-chart-tooltip{width:300px;max-width:calc(100vw - 48px);padding:10px;font-size:10px}
+.pw-flow-chart .d907-chart-tooltip h4{font-size:13px;margin-bottom:6px}
+.pw-flow-chart .d907-chart-tooltip>div{line-height:1.5}
+.pw-flow-chart .d907-chart-tooltip .d907-tip-foot{margin-top:6px;padding-top:5px}

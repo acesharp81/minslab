@@ -141,11 +141,12 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(c['actual_points'],[])
 
 
-    def test_tracking_cumulative_reach_includes_later_stages_without_double_counting(self):
+    def test_tracking_cumulative_reach_respects_presale_sequence_without_double_counting(self):
         self.cohort['events']=[dict(stage='APPROVAL',event_date='2026-01-01',units=50),dict(stage='SUPPLY',event_date='2026-02-01',units=100,origin='MANUAL')]
         m=self.model()['policy']['metrics']
-        for stage in ('BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY'):
+        for stage in ('BUSINESS','APPROVAL','SUPPLY'):
             self.assertEqual(m[stage]['tracking']['actual_points'][-1]['units'],100)
+        self.assertEqual(m['CONSTRUCTION']['tracking']['actual_points'],[]) # presale is not proof of construction
         self.assertEqual(m['MOVE_IN']['tracking']['actual_points'],[])
         self.assertEqual(m['BUSINESS']['actual_points'],[])  # preserve the original same-stage reference
 
@@ -153,5 +154,48 @@ class ComparisonTests(unittest.TestCase):
         self.cohort['events']=[dict(stage='SUPPLY',event_date='2026-01-01',units=0,origin='MANUAL')]
         self.assertEqual(self.model()['policy']['metrics']['SUPPLY']['tracking']['actual_points'][-1]['units'],0)
 
+    def test_forecast_unions_projects_instead_of_clamping_aggregate_totals(self):
+        # A has no plan but 2024 actuals. B has only a 2026 plan. max(totals)
+        # would lose either A or B; adding totals would double-count partial C.
+        from backend.policy_delivery_comparison import _forecast_points
+        old=dict(self.cohort,id='old',events=[dict(stage='CONSTRUCTION',event_date='2024-07-10',units=1000)])
+        future=dict(self.cohort,id='future',schedules=[dict(stage='CONSTRUCTION',due_date='2026-12-01',units=300,origin='SOURCE')])
+        partial=dict(self.cohort,id='partial',events=[dict(stage='CONSTRUCTION',event_date='2025-01-01',units=200)],schedules=[dict(stage='CONSTRUCTION',due_date='2026-12-01',units=500,origin='SOURCE')])
+        points=_forecast_points([old,future,partial],'CONSTRUCTION',self.reference)
+        self.assertEqual(points[-1]['units'],1800)
+        self.assertEqual(points[-1]['observed_units'],1200)
+        self.assertEqual(points[-1]['remaining_plan_units'],600)
+        self.assertEqual(points[0]['units'],1000)
+
+    def test_forecast_keeps_actuals_when_plan_is_lower_or_later_and_excludes_future_actual(self):
+        from backend.policy_delivery_comparison import _forecast_points
+        self.cohort['events']=[dict(stage='COMPLETION',event_date='2024-01-01',units=500),dict(stage='MOVE_IN',event_date='2027-01-01',units=1000)]
+        self.cohort['schedules']=[dict(stage='CONSTRUCTION',due_date='2027-01-01',units=1000,origin='SOURCE')]
+        for stage in ('BUSINESS','APPROVAL','CONSTRUCTION','COMPLETION'):
+            points=_forecast_points([self.cohort],stage,self.reference)
+            self.assertEqual(next(p for p in reversed(points) if p['date']<='2026-12-31')['units'],500)
+        self.assertEqual(_forecast_points([self.cohort],'MOVE_IN',self.reference),[])
+        self.cohort['schedules']=[dict(stage='COMPLETION',due_date='2026-12-01',units=100,origin='SOURCE')]
+        self.assertEqual(_forecast_points([self.cohort],'COMPLETION',self.reference)[-1]['units'],500)
+
+    def test_program_tracking_retains_pre_profile_events(self):
+        self.cohort['program_id']='P'
+        self.cohort['events']=[dict(stage='CONSTRUCTION',event_date='2024-01-01',units=1000)]
+        plan=dict(self.plan,portfolio=True,period_start='1900-01-01',program_profiles={'P':dict(values=dict(period_start='2026-01-01',period_end='2030-12-31',unit='호',metric='CONSTRUCTION'))})
+        result=comparison_index(plan,[self.cohort],self.config,[],self.reference)
+        for key in ('policy','region:경기도','city:CITY','project:A1','program:P','program:P|region:경기도','program:P|city:CITY'):
+            tracking=result[key]['metrics']['CONSTRUCTION']['tracking']
+            self.assertEqual(tracking['actual_points'][-1]['units'],1000,key)
+            self.assertEqual(tracking['forecast_points'][-1]['units'],1000,key)
+
 
 if __name__=='__main__':unittest.main()
+
+
+def test_missing_quantity_does_not_implicitly_become_project_capacity():
+    from datetime import date
+    from backend.policy_delivery_comparison import _events
+    c=dict(id='partial',units=100,events=[dict(stage='CONSTRUCTION',event_date='2025-01-01',units=None)])
+    assert _events([c],'CONSTRUCTION',date(2026,10,22),'1900-01-01',cumulative=True)==[]
+    c['events'].append(dict(stage='COMPLETION',event_date='2026-01-01',units=30))
+    assert _events([c],'CONSTRUCTION',date(2026,10,22),'1900-01-01',cumulative=True)[-1]['units']==30

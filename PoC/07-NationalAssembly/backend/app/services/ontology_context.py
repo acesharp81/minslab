@@ -220,7 +220,7 @@ def _compact(value: str) -> str:
     return _NON_WORD.sub('', value).upper()
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=4)
 def _terms(catalog: Catalog) -> tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...]:
     # Short substrings (e.g. 전세 in 전세계) and generic institutions must not
     # become evidence for a new contextual assignment.

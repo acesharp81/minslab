@@ -53,6 +53,27 @@ class RepairHistoryTests(unittest.TestCase):
         with self.s.sessions.begin() as db:
             for r in db.scalars(select(Revision)):r.recorded_at=datetime(2026,11,1,tzinfo=timezone.utc)
         self.assertFalse(enrich(self.s,[self.item()],date(2026,10,12)))
+
+    def test_recent_changes_are_three_per_entity_with_cutoff_action_and_tie_order(self):
+        from backend.collection_repairs import recent_link_changes
+        from sqlalchemy.dialects import postgresql
+        cutoff=datetime(2026,10,13,tzinfo=timezone.utc)
+        with self.s.sessions.begin() as db:
+            for pid in ('p1','p2'):
+                for n in range(5):
+                    db.add(Audit(id=f'{pid}_{n}',entity_id=pid,action='MAPPING_REVIEW',before={},after={'n':n},recorded_at=datetime(2026,10,12,tzinfo=timezone.utc)))
+                db.add(Audit(entity_id=pid,action='IGNORED',before={},after={},recorded_at=datetime(2026,10,12,23,tzinfo=timezone.utc)))
+                db.add(Audit(entity_id=pid,action='MAPPING_REVIEW',before={},after={},recorded_at=cutoff))
+            db.add(Audit(entity_id='outside',action='MAPPING_REVIEW',before={},after={},recorded_at=datetime(2026,10,12,tzinfo=timezone.utc)))
+        with self.s.sessions() as db:
+            changes=db.scalars(recent_link_changes({'p1','p2'},cutoff,'sqlite')).all()
+        self.assertEqual(len(changes),6)
+        for pid in ('p1','p2'):
+            self.assertEqual(sorted(c.after['n'] for c in changes if c.entity_id==pid),[2,3,4])
+        statement=str(recent_link_changes({'p1','p2'},cutoff,'postgresql').compile(dialect=postgresql.dialect()))
+        self.assertIn('JOIN LATERAL',statement)
+        self.assertIn('LIMIT',statement)
+        self.assertNotIn('row_number',statement)
     def test_collection_failure_recovery_preserves_both_versions(self):
         source=dict(id='building_hub',name='건축HUB')
         record_collection(self.s,source,True)

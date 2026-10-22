@@ -8,21 +8,23 @@ from .db import Revision, Audit, entity_id, upsert_revision
 from .supply_dashboard import block_key
 from .roadmap import source_events
 from .subject_identity import numeric_complex_key, normalized_tenure
+from .block_identity import title_blocks
 
 KIND='evidence_bridge'
 VERSION='district-block-event-scope-v4'
 
 
 def match_key(row):
+    if not row.get('region'):return None
     # Never collapse Ab31 to A31 globally. A single explicit block in the
     # project title can supply a candidate key, retaining the original value.
     name=str(row.get('name','')).upper()
-    hits=set(re.findall(r'(?<![A-Z0-9])([A-Z]{1,3})\s*[-－]?\s*(\d+)\s*(?:BL|블록|\b)',name))
+    hits=title_blocks(name)
     if len(hits)>1 or 'MULTI_SITE_CONTRACT' in row.get('warnings',[]):return None
     p=dict(row,district=row.get('district') or row.get('district_name'))
     if not p['district']:return numeric_complex_key(row)
     if len(hits)==1:
-        prefix,num=next(iter(hits));p['block']=prefix+str(int(num))
+        p['block']=next(iter(hits))
     # Reuse district/block normalization without the supply map's source allowlist.
     # This temporary discriminator is never written into the source record.
     return block_key(dict(p,source_id='lh_sale'))
@@ -201,7 +203,10 @@ def review(service,link_id,revision_no,status,basis):
 
 def by_project(service,reference):
     result=defaultdict(list)
-    origins={r['id']:r['source_id'] for kind in ('project','lh_completion_plan','document_evidence') for r in service.rows(kind,reference)}
+    origins={r['id']:r['source_id'] for kind in ('project','lh_completion_plan') for r in service.rows(kind,reference)}
+    documents = (service.document_evidence_index(reference) if hasattr(service, 'document_evidence_index')
+                 else service.rows('document_evidence', reference))
+    origins.update({r['id']:r['source_id'] for r in documents})
     for row in service.rows(KIND,reference):
         row=dict(row,source_id=row.get('evidence_source_id') or origins.get(row['source_entity_id'],row['source_id']))
         result[row['project_id']].append(row)

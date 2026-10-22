@@ -7,7 +7,7 @@ METRICS = {'CONSTRUCTION': '착공(건설)', 'SUPPLY': '공급(분양·모집)',
 REGIONS = ('서울특별시', '경기도', '인천광역시')
 
 
-def comparison_index(plan, cohorts, config, statistics, reference, program_cohorts=None):
+def comparison_index(plan, cohorts, config, statistics, reference, program_cohorts=None, scope_keys=None, extra_scopes=None):
     """Return compact source points plus yearly pairs for every selectable scope."""
     scopes = {'policy': dict(name='수도권 전체', kind='policy', id=plan['policy_id'], cohorts=cohorts)}
     for region in REGIONS:
@@ -32,8 +32,10 @@ def comparison_index(plan, cohorts, config, statistics, reference, program_cohor
             local = [c for c in members if c.get('municipality_id') == city]
             scopes[key + '|city:' + city] = dict(name=local[0].get('municipality') or city,
                 kind='program_city', id=city,program_id=pid, cohorts=local)
+    scopes.update(extra_scopes or {})
     result = {}
     for key, scope in scopes.items():
+        if scope_keys is not None and key not in scope_keys:continue
         metrics = {}
         profile=plan.get('program_profiles',{}).get(scope['id'] if scope['kind']=='program' else scope.get('program_id')) if scope['kind'].startswith('program') else None
         scope_start=profile['values']['period_start'] if profile else plan['period_start']
@@ -83,6 +85,7 @@ def comparison_index(plan, cohorts, config, statistics, reference, program_cohor
                                   actual_status='FUTURE' if year > reference.year else 'PARTIAL' if yearly_actual and (not macro or yearly_actual[-1]['date'] < year_end) else 'OBSERVED' if yearly_actual else 'NOT_ACQUIRED'))
             tracking=dict(target_points=_schedule_targets(tracked,metric,'1900-01-01'),
                           actual_points=_events(tracked,metric,reference,'1900-01-01',cumulative=True),
+                          forecast_points=_forecast_points(tracked,metric,reference),
                           project_count=len(tracked),basis='선택 범위 사업 현재+후속 단계 누적 · 담당자 입력·추정 포함 · 원천 중복 제외')
             metrics[metric] = dict(label=METRICS[metric], target_points=plans, actual_points=actual,
                                    tracking=tracking,
@@ -149,20 +152,21 @@ def _regional_actual(statistics, reference, period_start, regions):
 def _events(cohorts, metric, reference, period_start, cumulative=False):
     later={'BUSINESS':{'BUSINESS','APPROVAL','CONSTRUCTION','COMPLETION','SUPPLY','MOVE_IN'},
            'APPROVAL':{'APPROVAL','CONSTRUCTION','COMPLETION','SUPPLY','MOVE_IN'},
-           'CONSTRUCTION':{'CONSTRUCTION','COMPLETION','SUPPLY','MOVE_IN'},
+           'CONSTRUCTION':{'CONSTRUCTION','COMPLETION','MOVE_IN'},
            'COMPLETION':{'COMPLETION','MOVE_IN'},'SUPPLY':{'SUPPLY','MOVE_IN'},'MOVE_IN':{'MOVE_IN'}}
     accepted=later.get(metric,{metric}) if cumulative else {metric}
     by_date = defaultdict(list)
     for c in cohorts:
         for e in c['events']:
-            if (e['stage'] in accepted and e.get('status', 'ACTUAL') == 'ACTUAL'
+            if (e['stage'] in accepted and type(e.get('units')) in (int, float)
+                    and e.get('status', 'ACTUAL') == 'ACTUAL'
                     and e['event_date'] <= reference.isoformat()):
                 by_date[e['event_date']].append((c, e))
     counts = {}; confirmed = {}; attributed = {}; manual_counts={}; inferred_counts={}
     points = []
     for when, events in sorted(by_date.items()):
         for c, e in events:
-            units = c['units'] if e.get('units') is None else e['units']
+            units = e['units']
             counts[c['id']] = max(counts.get(c['id'], 0), min(c['units'], units))
             if e.get('origin')=='MANUAL':manual_counts[c['id']]=max(manual_counts.get(c['id'],0),min(c['units'],units))
             if e.get('inferred'):inferred_counts[c['id']]=max(inferred_counts.get(c['id'],0),min(c['units'],units))
@@ -170,6 +174,34 @@ def _events(cohorts, metric, reference, period_start, cumulative=False):
             if e.get('review_status')!='REVIEW' and c.get('mapping_status')=='CONFIRMED':attributed[c['id']]=max(attributed.get(c['id'],0),min(c['units'],units))
         points.append(dict(date=when, units=sum(counts.values()), confirmed_units=sum(confirmed.values()),policy_confirmed_units=sum(attributed.values()),review_units=sum(counts.values())-sum(confirmed.values()), origin='SOURCE_OR_MANUAL',manual_units=sum(manual_counts.values()),inferred_units=sum(inferred_counts.values()),
                            evidence_urls=sorted({e['evidence_url'] for _, e in events if e.get('evidence_url')})))
+    return points
+
+
+def _forecast_points(cohorts, metric, reference):
+    """Union observed reach and saved plans per physical cohort, never totals.
+
+    A completed stage survives a missing/older plan and a later plan adds only
+    the unobserved remainder of that cohort. Historical starts have no lower
+    date bound. Plans remain forecasts even when their due date has passed.
+    """
+    changes = defaultdict(list)
+    for c in cohorts:
+        actual = _events([c], metric, reference, '1900-01-01', cumulative=True)
+        plans = _schedule_targets([c], metric, '1900-01-01')
+        for kind, points in (('actual', actual), ('plan', plans)):
+            for p in points:
+                changes[p['date']].append((c['id'], kind, p['units']))
+    states = {}; total = 0; observed = 0; points = []
+    for when, updates in sorted(changes.items()):
+        for pid, kind, units in updates:
+            state = states.setdefault(pid, {'actual': 0, 'plan': 0})
+            previous = max(state.values()); prior_actual = state['actual']
+            state[kind] = units
+            total += max(state.values()) - previous
+            observed += state['actual'] - prior_actual
+        points.append(dict(date=when, units=total, observed_units=observed,
+                           remaining_plan_units=total-observed,
+                           basis='사업별 누적 도달량 + 기한 내 미도달 계획량 · 중복 제외'))
     return points
 
 

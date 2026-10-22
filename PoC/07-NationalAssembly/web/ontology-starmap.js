@@ -111,7 +111,7 @@ function createStarmap(canvas, payload, callbacks = {}) {
     antialias: true,
     alpha: false,
     powerPreference: "high-performance",
-    preserveDrawingBuffer: true,
+    preserveDrawingBuffer: false,
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -225,7 +225,7 @@ function createStarmap(canvas, payload, callbacks = {}) {
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowMap, color, transparent: true, opacity: .58, depthWrite: false, blending: THREE.AdditiveBlending }));
     glow.scale.set(5.2, 5.2, 1);
     group.add(glow);
-    const label = makeLabel(domain.title, domain.color, `${Number(domain.topic_count || 0).toLocaleString()} SIGNALS`, 3.5);
+    const label = makeLabel(domain.title, domain.color, payload.snapshot && !payload.snapshot.generated_at ? "집계 중" : `${Number(domain.topic_count || 0).toLocaleString()}개 주제`, 3.5);
     label.position.set(0, -1.8, 0);
     group.add(label);
     visualNodes.push({ mesh, wire, glow, label, domainKey: domain.key, baseScale: 1, phase: domainIndex * 1.7 });
@@ -270,7 +270,7 @@ function createStarmap(canvas, payload, callbacks = {}) {
       glow.position.copy(position);
       glow.scale.set(radius * 4.5, radius * 4.5, 1);
       world.add(glow);
-      const label = makeLabel(item.title, domain.color, `${Number(item.topic_count || 0).toLocaleString()} TOPICS`, 1.65);
+      const label = makeLabel(item.title, domain.color, payload.snapshot && !payload.snapshot.generated_at ? "집계 중" : `${Number(item.topic_count || 0).toLocaleString()}개 주제`, 1.65);
       label.position.copy(position).add(new THREE.Vector3(0, -.68, 0));
       label.visible = false;
       label.userData.record = mesh.userData.record;

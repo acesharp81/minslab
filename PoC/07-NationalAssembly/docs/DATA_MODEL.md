@@ -1,5 +1,16 @@
 # Data Model
 
+## 2026-10-22 — 인사이트 전체 목록 검색
+
+두 인사이트 API(`specific-issues`, `cross-institution-flow`)는 선택 `q`(최대 200자)를 받는다. 항목별 전체 집합에서 검색한 뒤 페이지를 나누며, 검색 단어는 모두 포함해야 한다. 기관 별칭과 대소문자를 비교용 텍스트에서 정규화한다. URL·내부 ID는 검색하지 않는다. 응답의 `query`는 적용 검색어, `total_count`는 검색 결과 수, `unfiltered_total_count`는 검색 전 해당 항목 전체 수다. 저장 자료 수정 없음.
+
+## 2026-10-22 — 인사이트 페이지 조회 및 온톨로지 어휘 확장
+
+- `/api/policy/specific-issues`: 선택 `limit`(1~500), `offset`(0 이상), `category`(`all`/`institution`). 기존 무제한 조회도 유지한다.
+- `/api/policy/cross-institution-flow`: 기존 `committee` 외 선택 `limit`(1~500), `offset`(0 이상).
+- 응답의 `items`, `count`는 현재 페이지이며 `total_count`, `offset`, `has_more`, `next_offset`(마지막은 null)을 제공한다. 제도화 전체 건수는 DISCUSSION을 제외한 지원 전환 단계의 수다.
+- 온톨로지 파생 `classification_evidence.method`에 `REPORT_VOCABULARY_SOURCE_AGREEMENT`를 추가한다. 기존 `supporting_spans`와 출처/위치 추적 조건을 유지한다. 그룹 `context_keywords`에 보완 어휘, `vocabulary_version`에 `report-vocabulary/2026-10-22`를 노출한다. DB 스키마·원본 수정 없음.
+
 ## 온톨로지 1.13 파생 필드 (2026-10-19)
 
 DB 원본 변경 없이 주제 그룹의 `classification_evidence`에 `topic_title`, `method`, `supporting_spans`를 추가한다. 보완 연결 방법은 `ISSUE_AND_SOURCE_AGREEMENT` 또는 `PARENT_AND_SOURCE_AGREEMENT`이며 각 구간은 evidence ID·start/end·quote·content hash·revision IDs·상위 주제·일치 정책어를 보존한다. 기존 분류는 `TITLE_OR_SUMMARY_KEYWORD`로 구별한다.
@@ -196,3 +207,69 @@ AIAnnotation은 canonical official table에 요약 필드로 삽입하지 않습
 `discussion-uncertain-check/1`은 원문이 충분한데 첫 재분류가 UNCERTAIN으로 남긴 발언에 대한 다른 모델의 추가 판단이다. 보고서별 잠금과 동일한 원문 검증을 사용하며 각 원문은 이 profile에서 한 번의 성공 결과만 채택한다. 추가 판단 대기를 완료/원문 불명확으로 조기에 표시하지 않는다. 짧게 잘린 원문은 불필요한 재호출을 하지 않는다.
 
 주제 미연결 자료 요구도 `structure_review_items`에 `request_atom_id`와 원문·분류 사유를 제공한다. 처리 전은 AUTO_PENDING, 모델 처리가 끝났으나 대상이 불명확하면 REQUEST_SOURCE_LIMITED이며, UI에서 ‘주제 특정이 어려운 자료 요구’로 분리한다. 원문·과제는 유지하고 사람의 확인 작업으로 전환하지 않는다.
+
+
+## 회의 보고서 표시 투영 (2026-10-20)
+
+- `structured_brief.report_summary`: `status=AVAILABLE|PENDING`, `source=PRESERVED_AI_BRIEF`, `authority_status=PROVISIONAL`, `topics`. 실제 저장된 AI 서술 요약만 포함하며, 구조화 주제 수/온톨로지 분모에는 포함하지 않는다.
+- 각 요약 topic은 `structured-summary-*` ID, `source_topic_id`, 원래 `title`, `summary`, `evidence_ids`, `authority_status=PROVISIONAL`을 가진다. 원 보고서를 수정하지 않고 현재 읽기 투영에서 생성한다.
+- 기존 호환 필드 `speaker_points.summary`의 원문 인용은 `summary_kind=SOURCE_QUOTE`, 구조화 topic의 역할별 건수는 `summary_kind=ROLE_COUNTS`로 구별한다. 화면은 이를 서술 요약으로 취급하지 않는다.
+- `/api/live/broadcasts/{id}/brief/evidence?entity_type=summary_topic&entity_id=structured-summary-*`는 요약이 참조한 구조화 스냅샷을 조회한다. 원문 hash·revision_ids와 `LIVE_STRUCTURE_SNAPSHOT`·`PROVISIONAL`을 유지한다.
+- DB schema·기존 모델 응답·구조화 분류 ID 변경 없음. 최신 보고서 읽기 시 자동 적용된다.
+
+
+### 요약 계층 보존 보완 (2026-10-20)
+
+`report_summary.topic_groups`는 기존 대주제 이름과 topic 순서를 보존하며 요약 topic ID로 참조한다. 각 topic의 `speaker_points`는 저장된 AI 세부 발언 요약, `source_point_id`, `evidence_ids`를 보존한다. `summary_speaker` 근거 조회는 `structured-summary-point-*` ID로 해당 세부 발언의 구조화 스냅샷을 연다. 대주제·발언 묶음·세부 요약은 순서대로 표시하며, 평면 카드 목록으로 펼치지 않는다.
+
+
+### 공통 보고서 카드 투영 (2026-10-20)
+
+- 모든 표시용 brief(공식·잠정·구조화)에 `report_summary.presentation_version=meeting-summary/3`을 제공한다. 원 brief의 자료 권위와 기본 화면 선택은 바꾸지 않는다.
+- `evidence_type`은 요약/세부 행의 기존 근거 조회 타입이다. 구조화 요약은 `summary_topic`, `summary_speaker`, 공식·잠정 요약은 `topic`, `speaker`를 사용한다. 공식 원문을 참조해도 서술 요약의 authority_status는 PROVISIONAL이다.
+- 공식 원문 발췌인 speaker point는 보존된 `provisional_summary`로 요약 행을 만들고 원문은 그대로 보존한다. 공식 화자 근거가 있는 경우에만 확인된 화자명을 표시한다.
+- 요약 topic의 `task_ids`는 같은 brief.tasks의 표시용 참조다. 기존 topic_id/source_topic_id 및 원래 주제 제목을 우선 사용하고, 새 과제는 근거가 하나의 요약 카드만 가리킬 때 보조 연결한다. canonical 과제 연결/원문 구간을 변경하지 않는다.
+- Markdown은 이미 준비된 공통 투영의 주제·과제 연결을 재분류하지 않고 그대로 사용한다.
+
+
+### 온톨로지 집계 스냅샷 응답 (2026-10-20)
+
+`GET /api/policy/ontology?background=true[&refresh=true]`는 기존 온톨로지 응답에 `snapshot`을 추가한다. DB schema 변경은 없다.
+
+- `status`: `LOADING`(분류 체계만 있음), `READY`(집계 완료), `REFRESHING`(이전 집계 표시·갱신 중), `STALE`(갱신 실패·이전 집계 유지), `FAILED`(최초 집계 실패).
+- `generated_at`: 마지막 성공 집계 시각(UTC ISO 8601). null이면 적용 건수·연결률을 유효한 통계로 표시하지 않는다.
+- `refresh_in_progress`: 서버에서 단일 집계가 수행 중인지 여부.
+- `max_age_seconds`: 정상 캐시 재집계 기준, 현재 120초. `retry_after_seconds`: 재요청 간격 안내.
+- 기본 조회(쿼리 없음)는 기존의 동기 전체 집계를 유지한다. 공식 자료 선택 규칙·구조화 투영·지표 산식·원문 참조는 같다.
+
+
+### 주제별 보고서 전체 근거 응답·생성 감사 (2026-10-20)
+
+DB migration 없이 기존 JSON 저장 경계와 읽기 응답을 확장한다.
+
+- 검색 응답 `items/count/total_count/selection_limited`: 기본 조회는 전체 조건 일치 자료를 반환한다. `report_input.compatible`과 제한 시 `reason`은 모델 입력 가능 여부이며 검색 자료의 존재 여부와 다르다.
+- READY 상세·Markdown은 원래 `evidence`와 모델 `report`를 변경하지 않고 `supplementary_evidence`를 별도로 붙인다. 원래 검색 조건의 현재 자료 중 저장 ID에 없는 항목이다.
+- `evidence_scope`: `saved_count`, `additional_count`, `current_match_count`, `checked_at`(UTC), `basis=SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY`. 재검색 실패 시 `status=UNAVAILABLE`이며 보완 완료로 표시하지 않는다.
+- `coverage`: `evidence_count`, `narrative_cited_count`, `report_cited_count`, 미인용 ID 목록, `source_task_count`, `detail_evidence_count`, `semantic_completeness_verified=false`. 상세 응답은 저장+보완 자료를 대상으로 계산한다. `evidence_scope`로 출처를 구분하며 인용 수를 의미상 완전성 지표로 사용하지 않는다.
+- 프롬프트 `topic-report/1.7`: 전체 근거 ID가 sections에 포함되어야 한다. 누락은 `EVIDENCE_COVERAGE_INCOMPLETE`, 전체 입력 예산 초과는 `EVIDENCE_INPUT_TOO_LARGE`, 출력 필드 초과는 `OUTPUT_FIELD_TOO_LONG`으로 처리한다. 기존 `OUTPUT_TRUNCATED` 검증도 유지한다.
+- 성공 시 비공개 `usage_metadata.generation_audit`에 입력·출력 검증 건수, 종료 사유, 원 모델 응답 `response_snapshot`을 보존한다. 공개 응답에서 usage_metadata와 소유자 정보는 제외한다. 기존 응답을 덮어쓰지 않는다.
+
+
+### 주제별 보고서 1.8의 근거별 세부 요약 보완
+
+DB migration 없이 `report.sections[].discussions[]`를 선택적으로 추가한다. 각 항목은 `heading`, `body`, `evidence_ids`를 가지며 근거 한 건을 직접 요약한다. 상위 절의 evidence_ids는 기존 본문 근거와 실제 보완 요약 근거의 합집합이다. 요약 없이 근거 ID만 덧붙이지 않는다. 기존 보고서에 이 필드가 없으면 이전처럼 표시한다.
+
+`usage_metadata.generation_audit.response_snapshots`는 초기·보완·전체 요약 응답을 순서대로 보존한다. `coverage_repair`는 initial_missing_count, repaired_count, requests, summary_refreshed 및 실패 시 remaining_ids를 기록한다. 공개 응답에는 노출하지 않는다. 실패는 usage_metadata.failed_attempts에 오류·시각·원 응답 감사 기록을 추가하고 성공 저장 시 이전 실패 이력을 유지한다. 모든 응답의 사용량은 개별 provider request_id로 기록하여 캐시 재생과 재시도의 이중 집계를 막는다.
+
+작업 소유권·할당량 예약을 생성 전에 커밋하고, 추가 호출마다 제공자 일일 제한과 lease_owner를 유지하며 임대를 3분 갱신한다. 사용자 작성 한도는 동일 보고서 복구에 중복 차감하지 않는다.
+
+## 관심주제 발송 생명주기 (0054)
+
+- `watch_topic_episodes`: 규칙·정규화 키워드별 감지 구간. `OPEN → WAITING(정회/종료 요약 대기) → CLOSED`, 규칙 변경/중지 시 `CANCELED`. 시작 cursor, 규칙 revision, 경계 및 저장 요약을 보존.
+- `watch_episode_detections`: 감지와 키워드별 구간을 다대다 연결. 한 자막에 여러 키워드가 있으면 각각 최초 감지하며 다른 키워드의 열린 구간이 이를 막지 않음. `watch_detection_events.episode_id`는 누적 대상 여부를 확인하는 연결.
+- `watch_meeting_boundaries`: 정회/종료 시각, cutoff cursor, 원문 revision 또는 SourceDocumentVersion 근거. 방송·종류·cursor 유일.
+- `watch_broadcast_signals`: 공식 중계/명시적 선포의 최신 상태. 회의 생명주기 및 자료 권위와 별도 신호.
+- `watch_dispatches`: 소유자·session·단계(1/2/3)·영구 dedupe key·순번·발송 당시 JSON. 알림함 삭제로 제거되지 않으며 규칙/계정 삭제 시 cascade. 저장 요약은 LIVE 권위이며 원문 segment/revision ID를 보존.
+- `watch_notifications.dispatch_id`, `TOPIC_COMPLETE` 유형 추가. 외부 발송 대기 기록은 자동 50건 정리 대상에서 제외.
+- 구형 frequency/digest/cooldown DB 컬럼은 이전 버전과의 배포 호환을 위해 보존하지만 새 API·로직에서는 사용하지 않음.
+- `watch_lifecycle_rollout`: 신규 생명주기 적용 시작 시각. 과거 회의를 소급 발송하지 않음.

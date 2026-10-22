@@ -11,6 +11,16 @@ def goals():
     return {s:dict(due_date=d,units=500,input_rule='OFFICER_SCHEDULE_ESTIMATE',inferred=True) for s,d in zip(STAGES,dates)}
 
 class DurationTests(unittest.TestCase):
+    def test_verified_official_plan_survives_later_average_refinement(self):
+        for rule in ('OFFICER_VERIFIED_PLAN','OFFICIAL_PLAN_ACCEPTED'):
+            g=goals();g['SUPPLY'].update(due_date='2026-12-31',input_rule=rule,inferred=False,source_type='OFFICIAL',source_precision='QUARTER')
+            g['MOVE_IN'].update(due_date='2029-09-30',input_rule=rule,inferred=False,source_type='OFFICIAL',source_precision='MONTH')
+            before=deepcopy(g)
+            changes,_=refine_project(dict(name='test',planned_units=500,block='A1'),g,dict(progress={}),model())
+            self.assertNotIn('SUPPLY',changes)
+            self.assertNotIn('MOVE_IN',changes)
+            self.assertEqual(g,before)
+
     def test_large_district_parallel_model_not_serial_80_year_build(self):
         v=construction_days(dict(planned_units=20000,block=None),model())
         self.assertGreater(v['parallel_groups'],1)

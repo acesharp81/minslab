@@ -33,3 +33,56 @@ body.source-summary-view .page-heading-copy{display:none}body.source-summary-vie
 @media(min-width:761px) and (max-width:1000px){.source-volume-summary{gap:12px}.source-volume-stat{padding-left:12px}.source-volume-stat strong{font-size:22px}}
 
 .source-volume-breakdown tbody th{min-width:290px;max-width:370px;white-space:normal;vertical-align:top;line-height:1.5}.source-type-description{display:block;color:#6d8076;font-size:11px;font-weight:400;margin-top:5px}.source-type-examples{margin-top:7px;font-size:11px;font-weight:400}.source-type-examples summary{cursor:pointer;color:#286750}.source-type-examples ul{padding-left:16px;margin:8px 0}.source-type-examples li{margin:6px 0;overflow-wrap:anywhere}.source-type-examples a{color:#286750}
+.source-operation-tags{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px}
+.source-operation-tag{display:inline-flex;max-width:100%;padding:3px 7px;border-radius:5px;background:#edf4fa;color:#315674;border:1px solid #d9e5ee;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.source-operation-tag.manual{background:#fff4df;border-color:#edd8aa;color:#805c17}.source-operation-tag.auto{background:#eaf5ef;border-color:#c9e2d3;color:#276147}
+.source-operation-info{font:inherit;font-size:11px;color:#265d87;background:none;border:0;padding:3px 1px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.source-operation-dialog{box-sizing:border-box;width:min(760px,calc(100% - 24px));max-height:85vh;overflow:auto;border:1px solid #bfcedb;border-radius:12px;padding:24px;color:#23435b}.source-operation-dialog::backdrop{background:#102f4866}
+.source-operation-dialog form{text-align:right}.source-operation-dialog h2{font-size:21px;line-height:1.5;margin:10px 0}.source-operation-dialog dl>div{padding:12px 0;border-bottom:1px solid #e2e9ef}.source-operation-dialog dt{font-weight:700;font-size:14px}.source-operation-dialog dd{margin:6px 0 0;font-size:14px;line-height:1.7;overflow-wrap:anywhere}.source-operation-dialog>p{font-size:12px;color:#647785;line-height:1.6}
+
+/* All registry and document-publisher cards use the same collapsed row. */
+@media(min-width:1101px){#sources-list .source-row-header{height:108px;min-height:108px;grid-template-columns:minmax(210px,1.4fr) minmax(140px,1fr) minmax(210px,1.2fr) auto 155px}}
+#sources-list .source-row-header .source-title{max-height:108px;overflow:auto}
+#sources-list .source-row-header .source-title h3{line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#sources-list .source-row-header>p{max-height:72px;overflow:auto}
+#sources-list .source-preview-toggle{width:155px;min-height:34px;justify-self:end;white-space:nowrap}
+#sources-list .source-row-header .source-operation-tags{max-height:44px;overflow:auto}
+@media(min-width:601px) and (max-width:1100px){#sources-list .source-row-header{height:222px;grid-template-rows:108px 46px 40px;gap:10px 16px}}
+@media(max-width:600px){#sources-list .source-row-header{height:340px;grid-template-rows:108px 60px 58px 24px 42px;gap:12px}#sources-list .source-preview-toggle{justify-self:start}}
+
+.source-volume-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.source-channel-summary{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding:0 0 18px;border-bottom:1px solid #d9e3df}.source-channel-stat{min-width:0;padding-left:24px;border-left:1px solid #d9e3df}.source-channel-stat:first-child{padding-left:0;border:0}.source-channel-stat h2{font-size:17px;font-weight:650;color:#315d53;margin:0 0 12px}.source-channel-stat>strong{display:block;color:#244c43;font-size:38px;line-height:1.2;font-weight:700}.source-channel-stat>strong small{font-size:14px;margin-left:5px}.source-channel-stat p{font-size:11px;color:#6f8580;line-height:1.5;margin:8px 0 0}.source-channel-stat .source-channel-error{color:#9a532f;font-size:11px}.source-volume-stat[hidden]{display:none}.source-channel-summary~.source-volume-stat{border:0;padding-left:0}.source-channel-summary~.source-volume-stat>strong{font-size:25px}@media(max-width:600px){.source-channel-summary{gap:12px}.source-channel-stat{padding-left:12px}.source-channel-stat h2{font-size:13px}.source-channel-stat>strong{font-size:29px}.source-channel-stat p{font-size:10px}.source-volume-summary{grid-template-columns:1fr}}
+
+/* A single compact desktop row for five source metrics. */
+body.source-summary-view .scope-stamp{display:none}
+body.source-summary-view .page-heading{margin-bottom:12px}
+body.source-summary-view .source-volume-summary{grid-template-columns:repeat(3,minmax(155px,1fr)) minmax(205px,1.35fr) minmax(150px,1fr);gap:12px 0;padding:8px 0}
+body.source-summary-view .source-channel-summary{display:contents}
+body.source-summary-view .source-channel-stat,body.source-summary-view .source-volume-stat{border:0;border-left:1px solid #d9e3df;padding:0 18px;min-width:0}
+body.source-summary-view .source-channel-stat:first-child{border:0;padding-left:0}
+body.source-summary-view .source-channel-stat h2,body.source-summary-view .source-volume-stat>span{font-size:13px;line-height:1.5;font-weight:600;margin:0 0 8px;min-height:20px;color:#315d53}
+body.source-summary-view .source-channel-stat>strong,body.source-summary-view .source-volume-stat>strong{font-size:27px;line-height:1.2;margin:0}
+body.source-summary-view .source-channel-stat>strong small{font-size:12px;font-weight:400}
+body.source-summary-view .source-channel-stat p,body.source-summary-view .source-volume-stat p{font-size:10px;line-height:1.5;margin:6px 0 0}
+body.source-summary-view .source-volume-status{font-size:10px;margin:0}
+.source-years-section{border-top:1px solid #dbe5df;padding:14px 15px 18px}
+.source-years-section h3{font-size:15px;margin:0 0 12px;color:#315d53}
+#source-years{max-height:520px;overflow:auto}
+#source-years>.source-volume-note{padding-left:0;white-space:normal}
+.source-years-legend{font-size:11px;margin:8px 0 12px}
+#source-years table{min-width:980px;width:100%;border-collapse:collapse}
+#source-years thead th{position:sticky;top:0;background:#f0f6f3;z-index:1}
+#source-years th,#source-years td{font-size:11px;padding:10px 7px;border-bottom:1px solid #e1e9e4;text-align:center}
+#source-years th:first-child{min-width:225px;text-align:left}
+#source-years th small{display:block;font-weight:400;font-size:10px;margin-top:4px;color:#70877c}
+#source-years .data-gap-cell{white-space:nowrap}
+@media(max-width:1100px){body.source-summary-view .source-volume-summary{grid-template-columns:repeat(3,minmax(0,1fr))}body.source-summary-view .source-volume-stat{padding-left:0;border-left:0}body.source-summary-view .source-channel-stat{padding:0 12px}}
+@media(max-width:600px){body.source-summary-view .source-volume-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}body.source-summary-view .source-channel-stat,body.source-summary-view .source-volume-stat{padding:0!important;border:0}body.source-summary-view .source-channel-stat>strong,body.source-summary-view .source-volume-stat>strong{font-size:24px}.source-years-section{padding:12px}}
+.collected-record-dialog{width:min(1000px,92vw);max-height:88vh;border:1px solid #ccdbe2;border-radius:12px;padding:22px;color:#23465d}.collected-record-dialog::backdrop{background:#10263388}.collected-record-dialog header{display:flex;justify-content:space-between;gap:12px}.collected-record-dialog table{width:100%;border-collapse:collapse;table-layout:fixed}.collected-record-dialog th,.collected-record-dialog td{padding:10px;border:1px solid #dce5ec;text-align:left;vertical-align:top;overflow-wrap:anywhere}.collected-record-dialog th{width:30%;background:#f0f6fa}.collected-record-dialog pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+
+/* Failed collection stays visible across the whole collapsed or expanded card. */
+#sources-list .source-card.source-collection-failed{background:#fff0f5;border-color:#ebc5d3}
+#sources-list .source-collection-failed .source-row-header,
+#sources-list .source-collection-failed .source-preview,
+#sources-list .source-collection-failed .source-preview-body{background:transparent}
+#sources-list .source-collection-failed .source-preview-scroll tbody tr{background:#fff0f5}
+#sources-list .source-collection-failed .source-preview-scroll thead th{background:#fbe2eb}

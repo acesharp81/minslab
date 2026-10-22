@@ -57,3 +57,16 @@ def _excerpt(text: str, normalized_term: str, radius: int = 90) -> str:
     start = max(0, index - radius)
     end = min(len(compact), index + len(normalized_term) + radius)
     return f"{'…' if start else ''}{compact[start:end].strip()}{'…' if end < len(compact) else ''}"
+
+
+def match_watch_terms(text: str, rule: dict[str, Any]) -> list[WatchMatch]:
+    """Keep independently registered keywords independent during an open topic."""
+    matches: list[WatchMatch] = []
+    seen: set[str] = set()
+    for term in rule.get('include_terms') or []:
+        key = normalize_watch_text(term).replace(' ', '')
+        match = match_watch_rule(text, {**rule, 'include_terms': [term]})
+        if match and key not in seen:
+            seen.add(key)
+            matches.append(match)
+    return matches

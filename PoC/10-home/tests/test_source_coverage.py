@@ -39,7 +39,7 @@ class SourceCoverageTests(unittest.TestCase):
                 self.assertEqual([row['fetched_count'] for row in body['items']], [1, 1, 0])
                 self.assertTrue(all(row['query_status'] == 'COMPLETE_QUERY' for row in body['items']))
                 self.assertTrue(all(row['population_status'] == 'PARTIAL_SCOPE' for row in body['items']))
-                rows = client.get('/poc/home/api/samples?kind=renewal_inventory').json()
+                rows = service.sample_page(kind='renewal_inventory')
                 self.assertEqual(rows['total'], 2)
                 self.assertTrue(all(row['policy_mapping_status'] == 'UNMAPPED' for row in rows['items']))
             # A later official edition omits one zone. Keep its prior evidence, but flag it.
@@ -48,11 +48,11 @@ class SourceCoverageTests(unittest.TestCase):
             with patch('backend.service.collect_renewal_inventory', return_value=(records[:1], revised_stats)):
                 self.assertEqual(service.collect_all(source['id'])['results'][0]['status'], 'SUCCESS')
             with TestClient(create_app(engine, auto_collect=False)) as client:
-                rows = client.get('/poc/home/api/samples?kind=renewal_inventory').json()['items']
+                rows = service.sample_page(kind='renewal_inventory')['items']
                 self.assertEqual(len(rows), 2)
                 self.assertEqual(sum(row['in_latest_source'] is False for row in rows), 1)
                 old = next(row for row in rows if row['in_latest_source'] is False)
-                detail = client.get('/poc/home/api/samples/' + old['id']).json()
+                detail = service.sample_detail(old['id'])
                 self.assertIn('MISSING_IN_LATEST_SOURCE', detail['warnings'])
                 self.assertEqual(len(client.get('/poc/home/api/coverage').json()['items']), 1)
         engine.dispose()

@@ -10,12 +10,61 @@ from backend.service import HomeService
 from backend.sources import SOURCES
 
 class MenuPerformanceTests(unittest.TestCase):
+    def test_document_index_preserves_live_and_historical_visibility_without_text(self):
+        from datetime import timedelta
+        from backend.service import today
+        instant=now();day=today()
+        with self.service.sessions.begin() as db:
+            old,_=upsert_revision(db,'document_evidence','official_document','doc',
+                {'base_date':day.isoformat(),'reported_phase':'승인','phase_observed_at':day.isoformat(),'text':'원문'*10000},'a')
+            old.recorded_at=instant-timedelta(minutes=2)
+            new,_=upsert_revision(db,'document_evidence','official_document','doc',
+                {'base_date':day.isoformat(),'reported_phase':'착공','text':'수정 원문\x00'*10000},'b')
+            old.superseded_at=new.recorded_at=instant-timedelta(minutes=1)
+            upsert_revision(db,'document_evidence','official_document','future',
+                {'base_date':(day+timedelta(days=1)).isoformat()},'a')
+            upsert_revision(db,'document_evidence','official_document','undated',{},'a')
+        historical=HomeService(self.engine,known_at=instant-timedelta(seconds=90))
+        keys=('id','source_id','base_date','reported_phase','phase_observed_at')
+        for service,phase in ((self.service,'착공'),(historical,'승인')):
+            expected=[{k:r.get(k) for k in keys} for r in service.rows('document_evidence')]
+            self.assertEqual(service.document_evidence_index(),expected)
+            self.assertEqual(expected[0]['reported_phase'],phase)
+            self.assertEqual(len(expected),1)
+        self.assertNotIn('text',self.service.document_evidence_index()[0])
+
+    def test_screen_mapping_payload_preserves_membership_units_and_full_detail(self):
+        from copy import deepcopy
+        full=dict(items=[dict(id='p',planned_units=8,mapping={'status':'CONFIRMED'},evidence_url='https://example.org/',
+            managed_schedules={'SUPPLY':{'units':8,'calculation':{'x':100}}},manual_fields={'x':8},source_values={'planned_units':8})],programs=[{'id':'P'}],total=1)
+        saved=deepcopy(full)
+        with patch.object(HomeService,'mappings',return_value=full):
+            compact=self.client.get('/poc/home/api/mappings?compact=true').json()
+            ordinary=self.client.get('/poc/home/api/mappings').json()
+        self.assertEqual(full,saved);self.assertEqual(ordinary,full)
+        self.assertEqual(compact['items'][0],{k:v for k,v in full['items'][0].items() if k not in ('managed_schedules','manual_fields','source_values')})
+        self.assertEqual(compact['programs'],full['programs'])
     def setUp(self):
         self.engine=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
         Base.metadata.create_all(self.engine)
         self.service=HomeService(self.engine)
         self.client=TestClient(create_app(self.engine,auto_collect=False))
         self.addCleanup(self.client.close);self.addCleanup(self.engine.dispose)
+
+    def test_view_polling_ignores_unlinked_raw_import_but_sees_officer_changes(self):
+        from backend.db import Audit
+        urls=['/poc/home/api/view-version?view='+v for v in ('projects','policy-progress','program-progress')]
+        before=[self.client.get(u).json()['version'] for u in urls]
+        with self.service.sessions.begin() as db:
+            upsert_revision(db,'general_permit','building_general_permit','raw-candidate',{'units':8},'batch')
+            db.add(Audit(entity_id='raw',action='START_CANDIDATE_FOUND',before={},after={}))
+            db.add(Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()))
+        self.assertEqual(before,[self.client.get(u).json()['version'] for u in urls])
+        with self.service.sessions.begin() as db:
+            upsert_revision(db,'project_profile','manual_project','p',{'overrides':{'planned_units':{'value':8}}},'edit')
+        after=[self.client.get(u).json()['version'] for u in urls]
+        self.assertTrue(all(a!=b for a,b in zip(before,after)))
+        self.assertEqual(self.client.get('/poc/home/api/view-version?view=arbitrary').status_code,422)
 
     def test_live_rows_use_current_index_and_knowledge_snapshot_keeps_history(self):
         from datetime import timedelta

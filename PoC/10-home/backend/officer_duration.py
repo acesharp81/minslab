@@ -67,7 +67,9 @@ def refine_project(project,schedules,profile,model):
         return p.get('event_date') if p.get('input_rule') in ('SOURCE_ACCEPTED','BEST_SOURCE_SELECTED') and 'event_date' not in p.get('field_provenance',{}) else None
     def fixed(stage):
         g=goals[stage]
-        return g['due_date'] if g.get('input_rule')=='SOURCE_ACCEPTED' and not g.get('inferred') else observed(stage)
+        official_plan=(g.get('input_rule') in ('SOURCE_ACCEPTED','OFFICER_VERIFIED_PLAN','OFFICIAL_PLAN_ACCEPTED')
+                       or g.get('source_type')=='OFFICIAL')
+        return g['due_date'] if official_plan and not g.get('inferred') else observed(stage)
     anchors={s:fixed(s) for s in STAGES}
     move_gap=model['COMPLETION_MOVE_IN']['mean_days']
     start=anchors['CONSTRUCTION']

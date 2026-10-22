@@ -243,11 +243,14 @@ class KakaoNotificationProvider:
             f"{self.settings.watch_public_base_url.rstrip('/')}"
             f"?watch_session={delivery['session_id']}"
         )
+        if delivery.get('dispatch_id'):
+            deep_link += f"&watch_dispatch={delivery['dispatch_id']}"
+        from .watch_lifecycle import compact_message
         message = {
             "object_type": "text",
-            "text": f"{delivery['title']}\n{delivery['body']}"[:200],
+            "text": compact_message(delivery["title"], delivery["body"]),
             "link": {"web_url": deep_link, "mobile_web_url": deep_link},
-            "button_title": "근거 발언 보기",
+            "button_title": "전체 요약 보기",
         }
         response = self._request(
             "https://kapi.kakao.com/v2/api/talk/memo/default/send",

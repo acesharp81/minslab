@@ -46,6 +46,39 @@ class SummaryWorkerTests(unittest.TestCase):
         self.assertEqual(2, len(result))
         self.assertEqual("답변 시작", result[-1]["text"])
 
+    def test_watched_closed_partial_waits_five_minutes_but_open_turn_stays_open(self):
+        segments = self._segments()
+        segments[0]["is_final"] = False
+        end = segments[1]["received_at"]
+        self.assertEqual([], closed_utterances(segments, lifecycle_status="LIVE",
+            include_stable_partial=True, now=end + timedelta(minutes=4, seconds=59)))
+        result = closed_utterances(segments, lifecycle_status="LIVE",
+            include_stable_partial=True, now=end + timedelta(minutes=5))
+        self.assertEqual(len(result), 1)
+        self.assertFalse(result[0]["is_final"])
+
+    def test_worker_entrypoint_calls_processor_with_supported_arguments(self):
+        from unittest.mock import patch
+
+        from app.config import Settings
+        from app.ingestion import summary_worker
+        settings = Settings(ai_enrichment_enabled=True, openrouter_api_key="fixture")
+        with patch("sys.argv", ["summary_worker", "--once"]), \
+             patch("app.config.get_settings", return_value=settings), \
+             patch("app.db.migrate.apply_migrations"), \
+             patch.object(summary_worker, "build_summary_client"), \
+             patch.object(summary_worker, "process_available", autospec=True,
+                          return_value={"saved": 0, "api_requests": 0, "failed": 0, "deferred": 0}) as process:
+            summary_worker.main()
+        process.assert_called_once()
+
+    def test_watch_scope_prioritizes_alerts_and_keeps_four_preceding_context_turns(self):
+        from app.ingestion.summary_worker import watch_summary_scope
+        turns = [{"last_cursor": i * 10, "text": f"발언 {i}"} for i in range(20)]
+        self.assertEqual(turns[6:], watch_summary_scope(turns, 95))
+        self.assertEqual(turns, watch_summary_scope(turns, 0))
+        self.assertEqual([], watch_summary_scope(turns, 9999))
+
 
 if __name__ == "__main__":
     def test_worker_and_backfill_use_the_same_snapshot_as_the_screen(self):

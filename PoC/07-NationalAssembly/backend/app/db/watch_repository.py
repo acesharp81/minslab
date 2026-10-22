@@ -9,7 +9,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from ..services.watch_matcher import match_watch_rule, normalize_watch_text
+from ..services.watch_matcher import match_watch_terms, normalize_watch_text
 from ..services.transcript_presentation import (
     group_transcript_segments,
     summarize_utterance,
@@ -99,6 +99,8 @@ def build_watch_fallback_summary(
     return items
 
 
+
+
 class WatchRepository:
     def __init__(self, connection: Any):
         self.connection = connection
@@ -143,8 +145,7 @@ class WatchRepository:
         rows = self.connection.execute(
             """
             SELECT id, name, include_terms, exclude_terms, institution,
-                   committee_name, notification_policy, cooldown_minutes,
-                   digest_enabled, kakao_enabled, enabled, starts_at, current_revision,
+                   committee_name, kakao_enabled, enabled, starts_at, current_revision,
                    created_at, updated_at
             FROM watch_rules WHERE subscriber_id = %s AND archived_at IS NULL
             ORDER BY enabled DESC, created_at DESC
@@ -153,8 +154,7 @@ class WatchRepository:
         ).fetchall()
         columns = (
             "rule_id", "name", "include_terms", "exclude_terms", "institution",
-            "committee_name", "notification_policy", "cooldown_minutes",
-            "digest_enabled", "kakao_enabled", "enabled", "starts_at", "current_revision",
+            "committee_name", "kakao_enabled", "enabled", "starts_at", "current_revision",
             "created_at", "updated_at",
         )
         return [dict(zip(columns, row, strict=True)) for row in rows]
@@ -168,9 +168,6 @@ class WatchRepository:
         exclude_terms: list[str],
         institution: str | None,
         committee_name: str | None,
-        notification_policy: str,
-        cooldown_minutes: int = 10,
-        digest_enabled: bool = False,
         kakao_enabled: bool = False,
     ) -> dict[str, Any]:
         active_count = self.connection.execute(
@@ -183,25 +180,21 @@ class WatchRepository:
             """
             INSERT INTO watch_rules (
                 id, subscriber_id, name, include_terms, exclude_terms,
-                institution, committee_name, notification_policy,
-                cooldown_minutes, digest_enabled, kakao_enabled
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                institution, committee_name, kakao_enabled
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, name, include_terms, exclude_terms, institution,
-                      committee_name, notification_policy, cooldown_minutes,
-                      digest_enabled, kakao_enabled, enabled, starts_at, current_revision,
+                      committee_name, kakao_enabled, enabled, starts_at, current_revision,
                       created_at, updated_at
             """,
             (
                 uuid.uuid4(), subscriber_id, name, include_terms, exclude_terms,
-                institution, committee_name, notification_policy,
-                cooldown_minutes, digest_enabled, kakao_enabled,
+                institution, committee_name, kakao_enabled,
             ),
         ).fetchone()
         item = dict(zip(
             (
                 "rule_id", "name", "include_terms", "exclude_terms", "institution",
-                "committee_name", "notification_policy", "cooldown_minutes",
-                "digest_enabled", "kakao_enabled", "enabled", "starts_at", "current_revision",
+                "committee_name", "kakao_enabled", "enabled", "starts_at", "current_revision",
                 "created_at", "updated_at",
             ),
             row,
@@ -215,8 +208,7 @@ class WatchRepository:
     ) -> dict[str, Any] | None:
         allowed = {
             "name", "include_terms", "exclude_terms", "institution",
-            "committee_name", "notification_policy", "cooldown_minutes",
-            "digest_enabled", "kakao_enabled", "enabled",
+            "committee_name", "kakao_enabled", "enabled",
         }
         assignments: list[str] = []
         parameters: list[Any] = []
@@ -238,8 +230,7 @@ class WatchRepository:
             UPDATE watch_rules SET {', '.join(assignments)}
             WHERE id = %s AND subscriber_id = %s
             RETURNING id, name, include_terms, exclude_terms, institution,
-                      committee_name, notification_policy, cooldown_minutes,
-                      digest_enabled, kakao_enabled, enabled, starts_at, current_revision,
+                      committee_name, kakao_enabled, enabled, starts_at, current_revision,
                       created_at, updated_at
             """,
             parameters,
@@ -249,8 +240,7 @@ class WatchRepository:
         item = dict(zip(
             (
                 "rule_id", "name", "include_terms", "exclude_terms", "institution",
-                "committee_name", "notification_policy", "cooldown_minutes",
-                "digest_enabled", "kakao_enabled", "enabled", "starts_at", "current_revision",
+                "committee_name", "kakao_enabled", "enabled", "starts_at", "current_revision",
                 "created_at", "updated_at",
             ),
             row,
@@ -263,8 +253,7 @@ class WatchRepository:
         configuration = {
             key: rule.get(key) for key in (
                 "name", "include_terms", "exclude_terms", "institution",
-                "committee_name", "notification_policy", "cooldown_minutes",
-                "digest_enabled", "kakao_enabled", "enabled",
+                "committee_name", "kakao_enabled", "enabled",
             )
         }
         self.connection.execute(
@@ -309,7 +298,7 @@ class WatchRepository:
                    notification.is_test, notification.read_at,
                    notification.created_at, notification.session_id,
                    event.matched_term, event.excerpt, event.speaker_label,
-                   notification.notification_type,
+                   notification.notification_type, notification.dispatch_id,
                    broadcast.title, broadcast.institution, broadcast.lifecycle_status
             FROM watch_notifications notification
             LEFT JOIN watch_detection_events event ON event.id = notification.detection_event_id
@@ -323,7 +312,7 @@ class WatchRepository:
         columns = (
             "notification_id", "title", "body", "is_test", "read_at", "created_at",
             "session_id", "matched_term", "excerpt", "speaker_label",
-            "notification_type", "meeting_title", "institution", "lifecycle_status",
+            "notification_type", "dispatch_id", "meeting_title", "institution", "lifecycle_status",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
         unread = self.connection.execute(
@@ -387,6 +376,11 @@ class WatchRepository:
                 SELECT stale.id
                 FROM watch_notifications stale
                 WHERE stale.subscriber_id = %s
+                  AND NOT EXISTS (
+                    SELECT 1 FROM notification_outbox pending WHERE pending.notification_id=stale.id
+                    AND pending.channel='KAKAO' AND pending.status IN ('PENDING','FAILED','SENDING')
+                    AND pending.attempt_count<3
+                  )
                 ORDER BY stale.created_at DESC, stale.id DESC
                 OFFSET %s
               )
@@ -410,6 +404,9 @@ class WatchRepository:
                   AND NOT EXISTS (
                     SELECT 1 FROM watch_notifications notification
                     WHERE notification.session_id = session.id
+                  )
+                  AND NOT EXISTS (
+                    SELECT 1 FROM watch_topic_episodes episode WHERE episode.session_id = session.id
                   )
                 """,
                 (session_id, subscriber_id),
@@ -695,9 +692,10 @@ class WatchRepository:
         rules = self._candidate_rules(revision)
         created = 0
         for rule in rules:
-            match = match_watch_rule(str(revision.get("text") or ""), rule)
-            if not match:
+            matches = match_watch_terms(str(revision.get("text") or ""), rule)
+            if not matches:
                 continue
+            match = matches[0]
             event_id = uuid.uuid4()
             event = self.connection.execute(
                 """
@@ -740,112 +738,24 @@ class WatchRepository:
                     """,
                     (revision["received_at"], session_id),
                 )
-            if self._should_notify(rule, revision):
-                notification_id = uuid.uuid4()
-                dedupe_key = self._notification_dedupe_key(rule, revision, event_id)
-                notification = self.connection.execute(
-                    """
-                    INSERT INTO watch_notifications (
-                        id, subscriber_id, detection_event_id, session_id, title, body,
-                        is_test, notification_type, dedupe_key
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, 'MATCH', %s)
-                    ON CONFLICT DO NOTHING RETURNING id
-                    """,
-                    (
-                        notification_id, rule["subscriber_id"], event_id, session_id,
-                        f"{rule['name']} 언급 감지",
-                        f"{revision['title']} · {match.excerpt}",
-                        _is_test_source(revision.get("source_system")),
-                        dedupe_key,
-                    ),
-                ).fetchone()
-                if notification:
-                    self._enqueue_outbox(
-                        rule["subscriber_id"], notification_id,
-                        kakao_enabled=(
-                            bool(rule.get("kakao_enabled"))
-                            and _allows_kakao_delivery(
-                                revision.get("source_system"), revision.get("received_at")
-                            )
-                        ),
+            from .watch_lifecycle_repository import WatchLifecycleRepository
+            lifecycle = WatchLifecycleRepository(self.connection)
+            for match in matches:
+                episode_id = lifecycle.on_detection(session_id, rule, revision, event_id, matched_term=match.term)
+                if episode_id:
+                    lifecycle.dispatch(
+                        subscriber_id=rule['subscriber_id'], session_id=session_id,
+                        key=f"detected:{episode_id}", stage=1,
+                        title=f"키워드 감지 · {rule['name']}",
+                        body=f"{revision['title']} · {match.excerpt}",
+                        details={'matched_term': match.term, 'excerpt': match.excerpt,
+                                 'meeting_title': revision['title'], 'authority': 'LIVE'},
+                        source_system=revision['source_system'], occurred_at=revision['received_at'],
+                        kakao=bool(rule.get('kakao_enabled')), event_id=event_id,
                     )
-                    self.prune_notification_history(rule["subscriber_id"])
+                    self.prune_notification_history(rule['subscriber_id'])
             created += 1
         return created
-
-    def finalize_ended_sessions(self, *, digest_enabled: bool = True) -> dict[str, int]:
-        rows = self.connection.execute(
-            """
-            SELECT session.id, session.subscriber_id, session.rule_id,
-                   session.broadcast_id, session.title, session.match_count,
-                   rule.name, rule.digest_enabled, rule.kakao_enabled,
-                   broadcast.source_system, broadcast.ended_at,
-                   COUNT(DISTINCT COALESCE(match.speaker_label, ''))
-            FROM watch_sessions session
-            JOIN watch_rules rule ON rule.id = session.rule_id
-            JOIN live_broadcasts broadcast ON broadcast.id = session.broadcast_id
-            LEFT JOIN watch_matches match ON match.session_id = session.id
-            WHERE broadcast.lifecycle_status = 'ENDED'
-              AND (
-                session.status = 'LIVE'
-                OR (
-                  rule.digest_enabled
-                  AND NOT EXISTS (
-                    SELECT 1 FROM watch_notifications notification
-                    WHERE notification.session_id = session.id
-                      AND notification.notification_type = 'DIGEST'
-                  )
-                )
-              )
-            GROUP BY session.id, rule.id, broadcast.id
-            """
-        ).fetchall()
-        digests = 0
-        subscribers_to_prune: set[uuid.UUID] = set()
-        for row in rows:
-            (
-                session_id, subscriber_id, rule_id, broadcast_id, title,
-                match_count, rule_name, wants_digest, wants_kakao,
-                source_system, ended_at, speaker_count,
-            ) = row
-            self.connection.execute(
-                "UPDATE watch_sessions SET status = 'ENDED', updated_at = now() WHERE id = %s",
-                (session_id,),
-            )
-            if not digest_enabled or not wants_digest:
-                continue
-            notification_id = uuid.uuid4()
-            notification = self.connection.execute(
-                """
-                INSERT INTO watch_notifications (
-                    id, subscriber_id, detection_event_id, session_id, title, body,
-                    is_test, notification_type, dedupe_key
-                ) VALUES (%s, %s, NULL, %s, %s, %s, %s, 'DIGEST', %s)
-                ON CONFLICT (dedupe_key) DO NOTHING RETURNING id
-                """,
-                (
-                    notification_id, subscriber_id, session_id,
-                    f"{rule_name} 회의 종료 요약",
-                    f"{title} · 관련 발언 {match_count}묶음 · 화자 {speaker_count}명",
-                    _is_test_source(source_system),
-                    f"digest:{rule_id}:{broadcast_id}",
-                ),
-            ).fetchone()
-            if notification:
-                self._enqueue_outbox(
-                    subscriber_id, notification_id,
-                    kakao_enabled=(
-                        bool(wants_kakao)
-                        and _allows_kakao_delivery(source_system, ended_at)
-                    ),
-                )
-                subscribers_to_prune.add(subscriber_id)
-                digests += 1
-        # A fetched row may refer to another session owned by this subscriber.
-        # Pruning inside the loop can delete it before its digest is inserted.
-        for subscriber_id in subscribers_to_prune:
-            self.prune_notification_history(subscriber_id)
-        return {"sessions_ended": len(rows), "digests_created": digests}
 
     def _enqueue_outbox(
         self, subscriber_id: uuid.UUID, notification_id: uuid.UUID, *,
@@ -1041,8 +951,7 @@ class WatchRepository:
             """
             SELECT rule.id, rule.subscriber_id, rule.name, rule.include_terms,
                    rule.exclude_terms, rule.institution, rule.committee_name,
-                   rule.notification_policy, rule.cooldown_minutes,
-                   rule.digest_enabled, rule.kakao_enabled, rule.current_revision
+                   rule.kakao_enabled, rule.current_revision
             FROM watch_rules rule
             WHERE rule.enabled AND rule.archived_at IS NULL AND rule.starts_at <= %s
               AND (rule.institution IS NULL OR rule.institution = %s)
@@ -1055,8 +964,7 @@ class WatchRepository:
         ).fetchall()
         columns = (
             "rule_id", "subscriber_id", "name", "include_terms", "exclude_terms",
-            "institution", "committee_name", "notification_policy",
-            "cooldown_minutes", "digest_enabled", "kakao_enabled", "current_revision",
+            "institution", "committee_name", "kakao_enabled", "current_revision",
         )
         return [dict(zip(columns, row, strict=True)) for row in rows]
 
@@ -1079,59 +987,3 @@ class WatchRepository:
             ),
         ).fetchone()
         return row[0]
-
-    def _should_notify(self, rule: dict[str, Any], revision: dict[str, Any]) -> bool:
-        policy = rule["notification_policy"]
-        if policy == "EVERY_MATCH":
-            return True
-        if policy == "FIRST_PER_SPEAKER":
-            row = self.connection.execute(
-                """
-                SELECT 1
-                FROM watch_notifications notification
-                JOIN watch_detection_events event ON event.id = notification.detection_event_id
-                WHERE event.rule_id = %s AND event.broadcast_id = %s
-                  AND COALESCE(event.speaker_label, '') = COALESCE(%s, '')
-                  AND notification.notification_type = 'MATCH'
-                LIMIT 1
-                """,
-                (
-                    rule["rule_id"], revision["broadcast_id"],
-                    revision.get("speaker_label"),
-                ),
-            ).fetchone()
-            return row is None
-        row = self.connection.execute(
-            """
-            SELECT MAX(notification.created_at)
-            FROM watch_notifications notification
-            JOIN watch_detection_events event ON event.id = notification.detection_event_id
-            WHERE event.rule_id = %s AND event.broadcast_id = %s
-            """,
-            (rule["rule_id"], revision["broadcast_id"]),
-        ).fetchone()
-        last = row[0]
-        if last is None:
-            return True
-        interval_minutes = {
-            "ONCE_PER_10_MINUTES": 10,
-            "INTERVAL_15_MINUTES": 15,
-            "INTERVAL_30_MINUTES": 30,
-            "INTERVAL_60_MINUTES": 60,
-        }.get(policy)
-        if interval_minutes:
-            return last <= datetime.now(last.tzinfo) - timedelta(minutes=interval_minutes)
-        return False
-
-    @staticmethod
-    def _notification_dedupe_key(
-        rule: dict[str, Any], revision: dict[str, Any], event_id: uuid.UUID,
-    ) -> str:
-        policy = rule["notification_policy"]
-        prefix = f"{rule['rule_id']}:{revision['broadcast_id']}"
-        if policy == "FIRST_PER_MEETING":
-            return f"first:{prefix}"
-        if policy == "FIRST_PER_SPEAKER":
-            speaker = str(revision.get("speaker_label") or "unknown")
-            return f"speaker:{prefix}:{hashlib.sha256(speaker.encode()).hexdigest()[:16]}"
-        return f"match:{event_id}"

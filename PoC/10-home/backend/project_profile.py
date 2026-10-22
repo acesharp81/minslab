@@ -11,6 +11,7 @@ from .api_samples import today
 
 POLICY = 'POL_2025_0907'
 FIELDS = dict(name='사업명', overview='사업 개요', developer='시행사', contractor='시공사', address='위치·주소',
+              supply_type='공급유형', supply_type_basis='공급유형 판단 근거', supply_type_evidence_url='공급유형 출처 URL',
               planned_units='총 목표량 (호)', progress_pct='확인 공정률 (%)', progress_date='공정률 기준일')
 STAGES = dict(BUSINESS='사업화', APPROVAL='인허가', CONSTRUCTION='착공', COMPLETION='준공', SUPPLY='공급·모집', MOVE_IN='입주 시작')
 
@@ -23,12 +24,15 @@ def overlay(service, rows, as_of=None):
     for r in service.rows('execution_schedule',as_of):
         if r.get('status')!='RELEASED':schedules.setdefault(r['project_id'],{})[r['stage']]=r
     for p in rows:
+        from .supply_type import source_fields, assess
+        p.update(source_fields(p))
         p['managed_schedules']=schedules.get(p['id'],{})
         overrides=saved.get(p['id'],{}).get('overrides',{})
         if p.get('progress_pct') is not None and not p.get('progress_date'):p['progress_date']=p.get('base_date')
         p['source_values']={k:p.get(k) for k in FIELDS}
         p['manual_fields']=overrides
         p.update({k:v['value'] for k,v in overrides.items()})
+        p['supply_type_assessment']=assess(p)
     return rows
 
 def fingerprint(cell):
@@ -39,7 +43,7 @@ from .input_status import input_status,input_label
 def target_default(cell, stage, saved=None):
     """Date input normalisation only; source precision and conflicting scopes survive."""
     if saved and saved.get('status')!='RELEASED':
-        return dict(saved,precision='DAY',input_status=input_status(saved,cell.get('assessment'),True),display_note='입력값 · '+input_label(saved,cell.get('assessment'),True)+' · '+saved.get('actor','담당자'))
+        return dict(saved,precision=saved.get('source_precision') or saved.get('date_precision') or 'DAY',input_status=input_status(saved,cell.get('assessment'),True),display_note='입력값 · '+input_label(saved,cell.get('assessment'),True)+' · '+saved.get('actor','담당자'))
     choices=[]
     for t in cell.get('targets',[]):
         if t.get('reference_only') or t.get('scope_partial'):continue
@@ -90,10 +94,16 @@ def progress_default(cell,stage,manual=None):
     if manual:return dict(manual,manual=True,input_status=input_status(manual,cell.get('assessment'),True),display_note='입력값 · '+input_label(manual,cell.get('assessment'),True)+' · '+manual['actor'])
     facts=[r for r in cell.get('sources',[]) if r.get('kind')=='ACTUAL'
            and r.get('pct') is None and not r.get('scope_partial') and (r.get('milestone')==stage or (not r.get('milestone') and stage!='COMPLETION'))]
-    dates={r['date'] for r in facts if r.get('date') and len(r['date'])==10}
+    dates={r['date'] for r in facts if r.get('date') and len(r['date'])==10 and r.get('date_basis')!='OBSERVED_BY'}
+    observed={r['date'] for r in facts if r.get('date') and len(r['date'])==10 and r.get('date_basis')=='OBSERVED_BY'}
+    # A later report that a project has already started corroborates an earlier
+    # exact start. Its publication/observation date is not a competing event day.
+    date_conflict=len(dates)>1 or bool(dates and observed and max(dates)>min(observed))
     units={r['units'] for r in facts if r.get('units') is not None}
-    return dict(event_date=next(iter(dates)) if len(dates)==1 else '',units=next(iter(units)) if len(units)==1 else None,
-                manual=False,display_note='원천 상충 · 근거 확인' if len(dates)>1 or len(units)>1 else
+    return dict(event_date=next(iter(dates)) if len(dates)==1 and not date_conflict else '',units=next(iter(units)) if len(units)==1 else None,
+                observed_by=min(observed) if observed else None,
+                manual=False,display_note='원천 상충 · 근거 확인' if date_conflict or len(units)>1 else
+                '기실적 확인 · 실제 사건일 미확보' if observed and not dates else
                 '수집 실적 · 연결 검토 중' if any(r.get('review_status')=='REVIEW' for r in facts) else
                 '수집 실적' if facts else missing_progress_note(cell,stage),has_evidence=bool(cell.get('sources')))
 
@@ -120,6 +130,13 @@ def view(service,pid,matrix,locations=None):
         source=dict(origin='SOURCE',value=p.get('source_values',{}).get(k),basis=p.get('unit_basis') if k=='planned_units' else p.get('schedule_basis') or '수집 원천의 해당 항목',evidence_url=(p.get('progress_evidence_url') or p.get('evidence_url')) if k in ('progress_pct','progress_date') else p.get('evidence_url'),base_date=p.get('base_date'),name=source_meta.get('name') or p.get('source_id'),collection_method='공개 API 조회' if source_meta.get('key_env') else '공식 원천 수집·항목 추출')
         manual=saved.get('overrides',{}).get(k)
         fields[k]=dict(label=label,value=p.get(k),manual=bool(manual),input_label=input_label(manual) if manual else None,evidence=([manual] if manual else [])+[source])
+        if k.startswith('supply_type'):
+            assessment=p['supply_type_assessment']
+            source.update(basis=assessment['basis'],evidence_url=assessment['evidence_url'])
+            fields[k]['assessment']=assessment
+            if k=='supply_type':
+                from .supply_type import TYPES
+                fields[k]['options']=TYPES
     if location:
         if not p.get('address') and location.get('address'):
             fields['address'].update(value=location['address'],linked=True,review_required=location['approximate'])
@@ -208,9 +225,19 @@ def save(service,pid,revision_no,mapping_revision_no,changes,actor,reason,mappin
                 if type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=100:raise ValueError('공정률은 0~100입니다')
             elif k=='progress_date':
                 if date.fromisoformat(v)>today():raise ValueError('공정률 기준일은 미래일 수 없습니다')
+            elif k=='supply_type':
+                from .supply_type import TYPES
+                if not isinstance(v,str) or v not in TYPES:raise ValueError('공급유형을 목록에서 선택하세요')
+            elif k=='supply_type_evidence_url':
+                from .supply_type import valid_url
+                if not isinstance(v,str) or len(v)>2000 or not valid_url(v):raise ValueError('공급유형 출처는 http 또는 https URL입니다')
             elif not isinstance(v,str) or not v.strip() or len(v)>(4000 if k=='overview' else 500):raise ValueError('명칭·설명을 확인하세요')
             value['overrides'][k]=dict(meta,value=v)
         effective=dict(p.get('source_values',{}));effective.update({k:v['value'] for k,v in value['overrides'].items()})
+        if 'supply_type' in value['overrides'] and effective.get('supply_type')!='UNKNOWN':
+            from .supply_type import valid_url
+            if not all(key in value['overrides'] for key in ('supply_type_basis','supply_type_evidence_url')) or not (effective.get('supply_type_basis') or '').strip() or not valid_url(effective.get('supply_type_evidence_url')):
+                raise ValueError('공급유형 확정에는 판단 근거와 출처 URL이 필요합니다')
         if 'progress_pct' in value['overrides'] and not effective.get('progress_date'):raise ValueError('입력 공정률의 기준일이 필요합니다')
         value.setdefault('progress',{})
         for stage,v in (progress or {}).items():
@@ -229,6 +256,9 @@ def save(service,pid,revision_no,mapping_revision_no,changes,actor,reason,mappin
         mapping_before=None
         if mapping:
             target=db.get(ProgramMapping,mapping.get('program_id'))
+            from .mapping_decisions import ensure_candidate_restored
+            ensure_candidate_restored(db,'project',pid)
+            ensure_candidate_restored(db,'program',mapping.get('program_id'))
             if not target or target.policy_id!=POLICY or target.status in ('RELEASED','REJECTED'):raise ValueError('9.7 소속 프로그램을 선택하세요')
             if mapping.get('program_revision_no')!=target.revision_no:return dict(conflict=True)
             if mapping.get('status') not in ('CONFIRMED','REVIEW'):raise ValueError('연결 검토 상태를 확인하세요')

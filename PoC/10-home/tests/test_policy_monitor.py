@@ -175,7 +175,6 @@ class MappingWorkflowTests(unittest.TestCase):
         row=self.collect()
         self.assertEqual(self.client.get("/poc/home/api/mappings").json()["items"][0]["statistics_included"],True)
         self.assertEqual(self.client.get("/poc/home/api/policy-monitor").json()["review_count"],1)
-        self.assertEqual(self.client.get("/poc/home/api/connections").status_code,200)
         payload=dict(policy_id="POL",revision_no=1,status="CONFIRMED",basis="검토",evidence_url="https://www.korea.kr/")
         self.assertEqual(self.client.post("/poc/home/api/admin/mappings/"+row["id"],json=payload,headers={"x-home-admin":"forged"}).status_code,401)
         self.service.confirm_mapping(row["id"],"POL",1,"RELEASED","대상 제외","https://www.korea.kr/")

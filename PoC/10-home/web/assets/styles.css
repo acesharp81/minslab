@@ -25,14 +25,19 @@ td,th,.source-data strong,.detail-grid strong,.detail-grid span,.review-form inp
 
 .coverage-panel{margin-bottom:20px}.coverage-panel td{vertical-align:top;min-width:160px}.coverage-panel td:nth-child(3),.coverage-panel td:nth-child(4){min-width:240px}
 
-/* The primary HOME navigation is an independent, persistent collapsible rail. */
+/* The service logo stays legible on the dark navigation rail. */
 .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.sidebar-head .brand{padding:0;min-width:0;font-size:23px}
-.sidebar-head .brand-name{white-space:nowrap}
+.sidebar-head .brand{padding:0;min-width:0;font-size:23px;flex-direction:column;align-items:flex-start;gap:5px}
+.brand-logo{display:block;width:156px;max-width:100%;height:48px;padding:6px;background:#faf7f1;border-radius:7px;overflow:hidden}
+.brand-logo img{display:block;width:100%;height:auto}
+.sidebar-head .brand small{margin-top:0;font-size:10px;letter-spacing:0;color:#c5d7d0}
+.sidebar-head .brand-name{display:block;width:100%;text-align:center;white-space:nowrap}
 .sidebar-toggle{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #547568;border-radius:7px;background:#1c4138;color:#e8f1ed;font-size:17px}
 .sidebar-toggle:hover{background:#2e5b4a}
 body.sidebar-collapsed .sidebar{width:68px;padding:19px 8px}
 body.sidebar-collapsed .sidebar-head{flex-direction:column;gap:12px}
+body.sidebar-collapsed .brand-logo{width:44px;height:44px;padding:4px}
+body.sidebar-collapsed .brand-logo img{width:140.625px;max-width:none;height:36px}
 body.sidebar-collapsed .sidebar-head .brand-name,body.sidebar-collapsed .workspace,body.sidebar-collapsed .nav-label,body.sidebar-collapsed .sidebar-bottom{display:none}
 body.sidebar-collapsed .sidebar nav{margin-top:26px}
 body.sidebar-collapsed .sidebar .nav-item{justify-content:center;padding:12px 0;min-height:46px}
@@ -43,6 +48,8 @@ body.sidebar-collapsed .shell{margin-left:68px}
   body.sidebar-collapsed .sidebar{position:relative;width:100%;padding:16px 17px}
   body.sidebar-collapsed .sidebar-head{flex-direction:row}
   body.sidebar-collapsed .sidebar-head .brand-name{display:block}
+  body.sidebar-collapsed .brand-logo{width:156px;height:48px;padding:6px}
+  body.sidebar-collapsed .brand-logo img{width:100%;height:auto}
   body.sidebar-collapsed .sidebar nav{display:none}
   body.sidebar-collapsed .shell{margin-left:0}
 }
@@ -56,8 +63,16 @@ body.sidebar-collapsed .shell{margin-left:68px}
 
 .data-gap-cell.SOURCE_NOT_PUBLISHED,.data-gap-legend.SOURCE_NOT_PUBLISHED{background:#f2eef9;color:#7967a3}
 
-#stage-evidence-list{max-height:720px;overflow:auto}#stage-evidence-list table{table-layout:fixed;width:100%}#stage-evidence-list th:first-child{width:44%}#stage-evidence-list th:nth-child(2){width:34%}#stage-evidence-list td{overflow-wrap:anywhere;word-break:normal}#stage-evidence-list button{text-align:left;white-space:normal}.stage-evidence-method{margin-top:20px;font-size:12px;color:#66788c}.prm-scope{display:flex;gap:6px}.prm-scope button[aria-pressed=true]{background:#1768c0;color:white}.mapping-stage-tabs{flex-wrap:wrap}
 
 .stage-target-matrix{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.stage-target-matrix>div{display:grid;gap:4px;padding:10px;border:1px solid #dce5ef;border-radius:8px}.stage-target-matrix small{font-size:11px;color:#70829b}.d907-chart-tooltip b small{display:block;font-size:10px;opacity:.82}.d907-occupancy-chart{width:100%;max-height:260px}.d907-occupancy-chart text{font-size:12px;fill:#49698b}
 
 .stage-duplicate-tag{display:inline-block;margin:4px 0;padding:2px 7px;border:1px solid #e8bf77;border-radius:5px;background:#fff2d9;color:#815013;font-size:11px;font-weight:700;white-space:nowrap}.stage-duplicate-note{margin:12px 0;padding:12px;background:#fffbef;border:1px solid #e8cf9a;border-radius:8px}.stage-duplicate-note p{font-size:12px;margin:5px 0}.stage-duplicate-note small{color:#6c583d}
+
+.view-update-notice{border:1px solid #bad9d0;background:#edf8f3;color:#236a55;border-radius:7px;font-size:12px;padding:7px 10px;cursor:pointer;white-space:nowrap}.view-update-notice[hidden]{display:none}.view-update-notice:focus-visible{outline:2px solid #176eae;outline-offset:2px}
+
+/* The year matrix has no trailing explanation column: every year uses the same width. */
+#source-years .source-years-matrix{table-layout:fixed;width:100%;min-width:var(--source-years-min-width)}
+#source-years .source-years-matrix col.source-years-label{width:240px}
+#source-years .source-years-matrix th,#source-years .source-years-matrix td{min-width:0;text-align:center;vertical-align:middle}
+#source-years .source-years-matrix th:first-child{text-align:left;white-space:normal;overflow-wrap:anywhere}
+#source-years .source-years-matrix thead th{height:52px}

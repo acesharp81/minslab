@@ -25,6 +25,13 @@ _REQUEST = re.compile(_OBJECT + r'.{0,70}?' + _ACTION + r'.{0,8}?' + _DIRECTIVE
 _ELLIPTICAL = re.compile(r'(?:제출|송부|보내).{0,15}(?:주시|주십|주세요|주도록|하시|하겠|해주|주셔)')
 
 
+def _reference_only(value: str) -> bool:
+    """Reading already distributed material is not a new document request."""
+    return bool(re.search(r'참고|참조', value)) and not bool(
+        re.search(r'제출|송부|보내|제공|공개|열람', value)
+    )
+
+
 def generic_document_issue(value: str) -> bool:
     return re.sub(r'\s+', '', value) in _GENERIC
 
@@ -42,14 +49,16 @@ def document_request_span(atom: dict[str, Any], facet: dict[str, Any]) -> dict[s
     positions = [i for i, char in enumerate(text) if not char.isspace()]
     compact = ''.join(text[i] for i in positions)
     matches = [m for m in _REQUEST.finditer(compact)
-               if not re.search(r'띄워|넘겨|화면.*보여|발언(?:기회)?|질의해|질의하|의사진행|의결|상정', m.group())]
+               if not _reference_only(m.group())
+               and not re.search(r'띄워|넘겨|화면.*보여|발언(?:기회)?|질의해|질의하|의사진행|의결|상정', m.group())]
     if not matches and (generic_document_issue(facet['issue']) or '제출' in facet['issue']):
         matches = [m for m in _ELLIPTICAL.finditer(compact)
                    if not re.search(r'발언|질의|관련|하고있|하도록되어', m.group())]
     if not matches and facet['role'] == 'REQUEST':
         # Existing source-grounded REQUESTs also include reported/past demands.
         matches = [m for m in re.finditer(_OBJECT + r'.{0,45}?' + _ACTION, compact)
-                   if not re.search(r'발언|질의해|질의하|관련된', m.group())]
+                   if not _reference_only(m.group())
+                   and not re.search(r'발언|질의해|질의하|관련된', m.group())]
     if not matches:
         return None
     anchor = max(0, facet['start'] - atom['offset'])

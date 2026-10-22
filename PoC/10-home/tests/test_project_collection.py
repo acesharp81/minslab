@@ -16,6 +16,19 @@ class CollectionTests(unittest.TestCase):
             stage='PLANNED_SUPPLY',mapping=dict(policy_id='POL_2025_0907',status='REVIEW',program_id='pr'),program='공공주택')
         self.patch=patch.object(self.s,'projects',return_value=[self.project]);self.patch.start();self.addCleanup(self.patch.stop)
     def cells(self):return collection_matrix(self.s)['items'][0]['cells']
+    def test_coverage_projection_skips_audit_history_without_changing_metrics(self):
+        from backend.requirements_status import build_status
+        from backend.collection_repairs import enrich
+        full=collection_matrix(self.s)
+        expected=build_status(self.s,full)
+        with patch('backend.collection_repairs.enrich',side_effect=AssertionError('coverage must not load audit history')):
+            coverage=collection_matrix(self.s,include_link_history=False)
+        self.assertEqual(coverage['items'][0]['cells'],full['items'][0]['cells'])
+        self.assertEqual(build_status(self.s,coverage),expected)
+        with patch('backend.collection_repairs.enrich',wraps=enrich) as history:
+            collection_matrix(self.s)
+            history.assert_called_once()
+
     def test_equal_months_keep_distinct_official_documents_and_partial_scopes(self):
         bridges=[]
         for i,units in enumerate((715,590)):
@@ -28,6 +41,44 @@ class CollectionTests(unittest.TestCase):
         self.assertEqual(len(cell['targets']),2)
         self.assertEqual({t['scope_units'] for t in cell['targets']},{715,590})
         self.assertTrue(all(t['reference_only'] for t in cell['targets']))
+
+    def test_completion_bridge_stays_in_construction_not_move_in(self):
+        bridge=dict(id='completion',project_id='p1',source_id='official_document',
+            source_entity_id='doc1',source_revision_no=1,evidence_url='https://example.org/1',
+            status='CONFIRMED',basis='공식 준공 근거',facts=[dict(stage='COMPLETION',
+                kind='ACTUAL',date='2026-01-01',basis='실제 준공',units=100)])
+        with patch('backend.evidence_bridge.by_project',return_value={'p1':[bridge]}):
+            cells=self.cells()
+        self.assertTrue(cells['CONSTRUCTION']['actual_available'])
+        self.assertFalse(cells['MOVE_IN']['actual_available'])
+        fact=next(x for x in cells['CONSTRUCTION']['sources'] if x.get('bridge_id')=='completion')
+        self.assertEqual(fact['milestone'],'COMPLETION')
+        self.assertEqual(fact['units'],100)
+
+    def test_historical_plan_remains_reference_in_targets_and_editor(self):
+        from backend.project_profile import target_default
+        bridge=dict(id='historical',project_id='p1',source_id='official_document',source_entity_id='sh',
+            source_revision_no=1,evidence_url='https://example.org/sh',status='CONFIRMED',basis='SH 과거계획',
+            facts=[dict(stage='CONSTRUCTION',kind='PLAN',date='2025-11',precision='MONTH',
+                        milestone='CONSTRUCTION',units=8,reference_only=True,basis='당시 계획')])
+        with patch('backend.evidence_bridge.by_project',return_value={'p1':[bridge]}):
+            cell=self.cells()['CONSTRUCTION']
+        target=next(t for t in cell['targets'] if t.get('bridge_id')=='historical')
+        self.assertTrue(target['reference_only'])
+        self.assertEqual(target['date'],'2025-11')
+        self.assertEqual(target_default(cell,'CONSTRUCTION')['due_date'],'')
+        self.assertFalse(cell['actual_available'])
+
+    def test_partial_plan_without_display_label_still_loads_and_stays_reference(self):
+        bridge=dict(id='partial',project_id='p1',source_id='official_document',source_entity_id='partial-doc',
+            source_revision_no=1,evidence_url='https://example.org/partial',status='CONFIRMED',basis='부분 계획',
+            facts=[dict(stage='SUPPLY',kind='PLAN',date='2026-12',units=8,scope_partial=True,basis='일부 모집')])
+        with patch('backend.evidence_bridge.by_project',return_value={'p1':[bridge]}):
+            cell=self.cells()['SUPPLY']
+        t=next(t for t in cell['targets'] if t.get('bridge_id')=='partial')
+        self.assertTrue(t['reference_only'])
+        self.assertEqual(t['units'],8)
+        self.assertIn('부분 범위',t['label'])
 
     def test_missing_never_infers_unplanned_or_zero(self):
         c=self.cells();self.assertEqual(c['SUPPLY']['status'],'COLLECTION_REQUIRED')

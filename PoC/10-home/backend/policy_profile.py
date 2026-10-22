@@ -113,6 +113,9 @@ def save(service, revision_no, changes, actor, reason, program_changes=None):
             if type(change.get('selected')) is not bool or type(change.get('revision_no')) is not int:
                 raise ValueError('프로그램 선택값과 버전을 확인하세요')
             if row.revision_no != change['revision_no']: return dict(conflict=True, revision_no=version)
+            if change['selected']:
+                from .mapping_decisions import ensure_candidate_restored
+                ensure_candidate_restored(session,'program',pid,POLICY_ID)
             if not change['selected'] and row.policy_id != POLICY_ID:
                 raise ValueError('다른 정책의 연결은 이 화면에서 해제할 수 없습니다')
             before = {k:getattr(row,k) for k in ('policy_id','status','basis','evidence_url','revision_no')}

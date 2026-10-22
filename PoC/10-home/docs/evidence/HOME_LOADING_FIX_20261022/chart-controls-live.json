@@ -1,0 +1,36 @@
+{
+  "policy-progress": {
+    "first_max": 4,
+    "last_max": 228800,
+    "now_max": 229200,
+    "first_project_date": "2008-08-27",
+    "first_x": 100.81481165233578,
+    "same_row": true,
+    "current_center": 0.5113175873111686,
+    "last": 0,
+    "business_synced": true,
+    "overflow": "hidden",
+    "height": 450,
+    "content": 450,
+    "horizontal": true,
+    "tooltip": true
+  },
+  "program-progress": {
+    "first_max": 2192,
+    "last_max": 3840,
+    "now_max": 3840,
+    "first_project_date": "2018-06-27",
+    "first_x": 100.62177454301582,
+    "same_row": true,
+    "current_center": 0.034131182948385685,
+    "last": 0,
+    "business_synced": true,
+    "overflow": "hidden",
+    "height": 450,
+    "content": 450,
+    "horizontal": true,
+    "tooltip": true
+  },
+  "narrow_buttons_same_row": true,
+  "errors": []
+}

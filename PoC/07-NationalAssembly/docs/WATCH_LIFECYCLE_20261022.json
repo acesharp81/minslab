@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-22",
+  "grace_seconds": 300,
+  "migration": "0054_watch_topic_lifecycle",
+  "focused_tests_passed": 87,
+  "full_suite": {
+    "passed": 685,
+    "failed": 2,
+    "skipped": 1,
+    "existing_failures": [
+      "test_meeting_brief_schema.py:149 (unchanged web/app.js visibilitychange expectation)",
+      "test_meeting_topic_groups.py:421 (pre-existing generator version 1.15/1.16 mismatch)"
+    ]
+  },
+  "browser": [
+    {
+      "desktop": true,
+      "old_controls_removed": true,
+      "five_minute_policy_visible": true
+    },
+    {
+      "mobile": true,
+      "no_horizontal_overflow": true
+    },
+    {
+      "dispatch_deep_link": true,
+      "five_topics_and_evidence": true
+    },
+    {
+      "guide_pages": 21,
+      "guide_pdf_updated": true,
+      "page_errors": []
+    }
+  ],
+  "deployment": [
+    {
+      "service": "api",
+      "image_id": "sha256:a13d1ee56910171a1ea23d1b813939d4d1d448836713f568de241d2b0c6ac8df",
+      "status": "running"
+    },
+    {
+      "service": "watch-worker",
+      "image_id": "sha256:481aad91df4f71ab88e64d02bd5856c137e674acafa7050fcc26cbef6f6ad706",
+      "status": "running"
+    },
+    {
+      "service": "notification-worker",
+      "image_id": "sha256:a13d1ee56910171a1ea23d1b813939d4d1d448836713f568de241d2b0c6ac8df",
+      "status": "running"
+    },
+    {
+      "service": "summary-worker",
+      "image_id": "sha256:6318f02ffacdcca25cd17b20be15a53aa4c199b84eb8bf527b79aa7f973ace97",
+      "status": "running"
+    },
+    {
+      "service": "live-monitor",
+      "image_id": "sha256:a13d1ee56910171a1ea23d1b813939d4d1d448836713f568de241d2b0c6ac8df",
+      "status": "running"
+    }
+  ],
+  "provider_verification": "Production stage-1 Kakao API acceptance observed; no synthetic live messages were sent.",
+  "schema_backup": "/tmp/poc7-watch-pre0054-schema.sql"
+}

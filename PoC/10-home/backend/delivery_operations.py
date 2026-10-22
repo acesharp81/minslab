@@ -155,7 +155,9 @@ def history(service, kind, key):
 def schedule_goals(service, reference):
     return [dict(scope_kind='project', scope_id=r['project_id'], stage=r['stage'], due_date=r['due_date'],
                  units=r['units'], origin='SOURCE_REVIEW' if r['status'] == 'REVIEW' else 'MANUAL',
-                 basis=r['basis'], evidence_url=r.get('evidence_url'), precision='DAY',
+                 basis=r['basis'], evidence_url=r.get('evidence_url'), precision=r.get('source_precision') or r.get('date_precision') or 'DAY',
+                 source_date_label=r.get('source_date_label'),date_conversion=r.get('date_conversion'),
+                 inferred=r.get('inferred'),source_type=r.get('source_type'),
                  baseline=r.get('baseline'), managed_schedule=True)
             for r in service.rows(KINDS['schedule'], reference) if r['status'] != 'RELEASED' and r.get('units') is not None]
 

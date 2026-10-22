@@ -1,0 +1,346 @@
+{
+  "reports": 44,
+  "groups": 533,
+  "bundles": 997,
+  "detail_summaries": 2231,
+  "items": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "groups": 9,
+      "bundles": 24,
+      "detail_summaries": 75,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "groups": 16,
+      "bundles": 24,
+      "detail_summaries": 80,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "groups": 15,
+      "bundles": 24,
+      "detail_summaries": 56,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "groups": 7,
+      "bundles": 24,
+      "detail_summaries": 61,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "groups": 12,
+      "bundles": 24,
+      "detail_summaries": 61,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "groups": 3,
+      "bundles": 9,
+      "detail_summaries": 19,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "groups": 9,
+      "bundles": 24,
+      "detail_summaries": 46,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 62,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "groups": 16,
+      "bundles": 24,
+      "detail_summaries": 63,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "groups": 17,
+      "bundles": 24,
+      "detail_summaries": 65,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "groups": 15,
+      "bundles": 24,
+      "detail_summaries": 51,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "groups": 18,
+      "bundles": 19,
+      "detail_summaries": 38,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 49,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "groups": 9,
+      "bundles": 24,
+      "detail_summaries": 46,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "groups": 14,
+      "bundles": 24,
+      "detail_summaries": 55,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "groups": 10,
+      "bundles": 24,
+      "detail_summaries": 41,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "groups": 18,
+      "bundles": 24,
+      "detail_summaries": 55,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "groups": 11,
+      "bundles": 24,
+      "detail_summaries": 58,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "groups": 12,
+      "bundles": 24,
+      "detail_summaries": 46,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "groups": 19,
+      "bundles": 24,
+      "detail_summaries": 63,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "groups": 16,
+      "bundles": 24,
+      "detail_summaries": 37,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "groups": 11,
+      "bundles": 24,
+      "detail_summaries": 51,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "groups": 19,
+      "bundles": 24,
+      "detail_summaries": 16,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 55,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "groups": 10,
+      "bundles": 18,
+      "detail_summaries": 42,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 45,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 48,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 47,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "groups": 15,
+      "bundles": 24,
+      "detail_summaries": 55,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "groups": 13,
+      "bundles": 24,
+      "detail_summaries": 45,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "groups": 15,
+      "bundles": 24,
+      "detail_summaries": 52,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "groups": 20,
+      "bundles": 24,
+      "detail_summaries": 51,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "groups": 15,
+      "bundles": 24,
+      "detail_summaries": 74,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "groups": 8,
+      "bundles": 24,
+      "detail_summaries": 47,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "groups": 8,
+      "bundles": 8,
+      "detail_summaries": 21,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "groups": 21,
+      "bundles": 24,
+      "detail_summaries": 45,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "groups": 7,
+      "bundles": 24,
+      "detail_summaries": 64,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "groups": 8,
+      "bundles": 8,
+      "detail_summaries": 17,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "groups": 16,
+      "bundles": 24,
+      "detail_summaries": 58,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "groups": 10,
+      "bundles": 24,
+      "detail_summaries": 50,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "groups": 12,
+      "bundles": 24,
+      "detail_summaries": 58,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "groups": 17,
+      "bundles": 24,
+      "detail_summaries": 60,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "groups": 7,
+      "bundles": 23,
+      "detail_summaries": 41,
+      "source_preserved": true
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "groups": 7,
+      "bundles": 24,
+      "detail_summaries": 62,
+      "source_preserved": true
+    }
+  ],
+  "browser": {
+    "results": [
+      {
+        "base": "https://kjon.aigov.go.kr",
+        "groups": 12,
+        "summary_bundles": 24,
+        "detail_summaries": 46,
+        "hierarchy": true,
+        "detail_source_button": true,
+        "appendix_navigation": true,
+        "mobile": true,
+        "task_direct_span": "209:269"
+      },
+      {
+        "base": "https://www.minslab.kr/poc/national-assembly",
+        "groups": 12,
+        "summary_bundles": 24,
+        "detail_summaries": 46,
+        "hierarchy": true,
+        "detail_source_button": true,
+        "appendix_navigation": true,
+        "mobile": true,
+        "task_direct_span": "209:269"
+      }
+    ],
+    "errors": []
+  },
+  "tests_passed": 42,
+  "image": "poc07-national-assembly-api:summary-hierarchy-20261020",
+  "markdown_hierarchy": true
+}

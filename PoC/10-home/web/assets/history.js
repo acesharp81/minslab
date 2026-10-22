@@ -22,7 +22,6 @@ const HistoryPanel=(()=>{
     document.addEventListener('click',event=>{const button=event.target.closest('[data-history-year]');if(button)select(button.dataset.historyYear);});
     $('history-prev').addEventListener('click',()=>{if(data?.page>1){state.historyPage--;load();}});
     $('history-next').addEventListener('click',()=>{if(data?.page*data.page_size<data.report_total){state.historyPage++;load();}});
-    document.querySelector('#pane-samples .method-note p').textContent='정책 기원 연도(현재 2018년)부터 서울·경기 청약공고를 연도별로 수집하고, 인허가는 개포·고덕·진관·이의·다산·덕풍동의 전체 조회 페이지를 수집합니다. 과거 허가·착공일과 수집일을 구분합니다. API에서 자료를 제공하지 않는 연도도 있으며 전체 정책 사업의 확정 실적을 의미하지 않습니다.';
   }
   return {render,start};
 })();

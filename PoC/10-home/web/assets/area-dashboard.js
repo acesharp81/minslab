@@ -1,18 +1,12 @@
 'use strict';
 const AreaDashboard=(()=>{
-  let places=null, generation=0, loadedKey='', regionCache=new Map(), supplyCache=new Map(), outlookCache=new Map();
+  let places=null, generation=0, loadedKey='', loadedAt=0,retryTimer=null;
   const known=n=>Number.isFinite(n);
   const count=n=>known(n)?num(n):'미확보';
   const pct=n=>known(n)?n.toFixed(1)+'%':'미확보';
   const textGap=n=>!known(n)?'비교 미확보':n<0?`일반가구보다 ${num(-n)}호 적음`:n>0?`일반가구보다 ${num(n)}호 많음`:'주택 수와 일반가구 수 동일';
   const gapClass=n=>!known(n)?'unknown':n<0?'short':'surplus';
   const compact=n=>!known(n)?'—':Math.abs(n)>=1000000?(n/1000000).toFixed(1)+'백만':Math.abs(n)>=10000?(n/10000).toFixed(1)+'만':num(Math.round(n));
-  async function get(region,municipality,year){
-    const q=new URLSearchParams({region,year:String(year)});if(municipality)q.set('municipality',municipality);
-    const response=await fetch('/poc/home/api/area-context?'+q);
-    if(!response.ok)throw Error('지역 공식 통계 조회 실패');
-    return response.json();
-  }
   function plot(rows,lines,title,{index=false,unit='',labels=4,zero=true}={}){
     const width=690,height=240,left=53,right=14,top=17,bottom=205;
     const mapped=rows.map(row=>({...row,label:String(row.label??row.year??row.period)}));
@@ -31,15 +25,6 @@ const AreaDashboard=(()=>{
     const step=Math.max(1,Math.ceil(mapped.length/labels));
     const xs=mapped.map((row,i)=>i%step===0||i===mapped.length-1?`<text x="${x(i)}" y="${bottom+17}" text-anchor="middle">${esc(row.label.replace(/^20/,'').replace('01',' 상').replace('02',' 하'))}</text>`:'').join('');
     return `<div class="area-chart-scroll"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(title)}">${grid}${paths}${xs}</svg></div><div class="area-chart-legend">${lines.map((line,i)=>`<span><i style="background:${line.color||['#1865bd','#eb8539','#208f79'][i%3]}"></i>${esc(line.name)}</span>`).join('')}</div>`;
-  }
-  async function getSupply(region,year){
-    const key=region+'|'+year;
-    if(!supplyCache.has(key))supplyCache.set(key,fetch('/poc/home/api/annual-supply?'+new URLSearchParams({region,through_year:String(year)})).then(response=>{if(!response.ok)throw Error('연도별 공식 공급 통계 조회 실패');return response.json()}));
-    return supplyCache.get(key);
-  }
-  async function getOutlook(region){
-    if(!outlookCache.has(region))outlookCache.set(region,fetch('/poc/home/api/area-outlook?region='+encodeURIComponent(region)).then(response=>{if(!response.ok)throw Error('주택·가구 미래 비교 조회 실패');return response.json()}));
-    return outlookCache.get(region);
   }
   function renderHouseholdSizes(data){
     const rows=data.household_size||[],keys=['1','2','3','4','5+'];
@@ -121,19 +106,25 @@ const AreaDashboard=(()=>{
     $('area-evidence').innerHTML=`<a href="https://kosis.kr/openapi/devGuide/devGuide_0201List.do" target="_blank" rel="noopener">KOSIS 원천·API ↗</a><a href="https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html" target="_blank" rel="noopener">SGIS 원천·API ↗</a><p>주택 재고는 기존 전체 주택을 포함합니다. 재고−일반가구는 단순 수량 차이이며 공실, 사용 가능 여부, 임대료, 통근 범위나 정책별 신규 공급을 반영한 실제 수급 부족량이 아닙니다. 사업체 종사자는 소재지, 취업자는 거주지 기준입니다.</p>`;
   }
   async function load(){
+    clearTimeout(retryTimer);
     const id=++generation,region=$('area-region').value,municipality=$('area-municipality').value,year=Number($('area-year').value);
-    const key=[region,municipality,year].join('|');if(key===loadedKey)return;
-    $('area-dashboard-status').textContent='공식 시계열을 조회하고 있습니다…';
+    const key=[region,municipality,year].join('|');if(key===loadedKey&&Date.now()-loadedAt<60000)return;
+    $('area-dashboard-status').textContent='저장된 지역 자료를 불러오고 있습니다…';
     try{
-      const [data,seoul,gyeonggi,incheon,supply]=await Promise.all([get(region,municipality,year),
-        regionCache.get('서울특별시|'+year)||get('서울특별시',null,year),
-        regionCache.get('경기도|'+year)||get('경기도',null,year),regionCache.get('인천광역시|'+year)||get('인천광역시',null,year),getSupply(region,year)]);
-      if(id!==generation)return;
-      regionCache.set('서울특별시|'+year,seoul);regionCache.set('경기도|'+year,gyeonggi);regionCache.set('인천광역시|'+year,incheon);
-      loadedKey=key;render(data,{'서울특별시':seoul,'경기도':gyeonggi,'인천광역시':incheon},supply);
-      if(year===new Date().getFullYear())getOutlook(region).then(outlook=>{if(id===generation)renderOutlook(outlook,municipality)}).catch(error=>{if(id===generation)$('area-outlook-chart').innerHTML='<h3>주택 재고·장래가구 비교</h3><p class="area-empty">'+esc(error.message)+'</p>'});
+      const q=new URLSearchParams({region,year:String(year)});if(municipality)q.set('municipality',municipality);
+      const response=await fetch('/poc/home/api/area-dashboard?'+q);
+      if(!response.ok){
+        if(response.status===503&&id===generation)retryTimer=setTimeout(()=>{if(state.view==='area')load();},5000);
+        throw Error(response.status===503?'지역 자료를 처음 준비하고 있습니다. 5초 후 자동으로 다시 조회합니다.':'저장된 지역 자료 조회 실패. 잠시 후 다시 방문해 주세요.');
+      }
+      const bundle=await response.json();if(id!==generation||state.view!=='area')return;
+      const {data,regions,supply,outlook,snapshot}=bundle;
+      loadedKey=key;loadedAt=Date.now();places=bundle.places;
+      render(data,regions,supply);
+      if(outlook)renderOutlook(outlook,municipality);
       else $('area-outlook-chart').innerHTML='<h3>주택 재고·장래가구 비교</h3><p class="area-empty">과거 연도 선택 중입니다. 현재 연도를 선택하면 최신 장래가구·준공 예정 비교가 표시됩니다.</p>';
-      $('area-dashboard-status').textContent=`${data.municipality||data.region} · ${year}년까지 확보된 원천 자료`;
+      const warning=snapshot.refresh_failed?' · 갱신 재시도 중, 마지막 완료 자료 표시':snapshot.stale?' · 갱신 지연, 마지막 완료 자료 표시':snapshot.refreshing?' · 새 자료 반영 중':'';
+      $('area-dashboard-status').textContent=`${data.municipality||data.region} · ${year}년까지 확보된 원천 자료 · 내부 자료 갱신 ${new Date(snapshot.generated_at).toLocaleString('ko-KR')}${warning} · 실제 자료 기준일은 그래프별 표기`;
     }catch(error){if(id===generation)$('area-dashboard-status').textContent=error.message;}
   }
   async function visible(){
@@ -152,6 +143,7 @@ const AreaDashboard=(()=>{
     if((places?.regions?.[region]||[]).includes(selected))$('area-municipality').value=selected;
   }
   function start(){
+    setInterval(()=>{if(state.view==='area')load();},60000);
     $('area-region').addEventListener('change',()=>{updateMunicipalities();load();});
     for(const id of ['area-municipality','area-year'])$(id).addEventListener('change',load);
     $('area-region-compare').addEventListener('click',event=>{const button=event.target.closest('[data-area-region]');if(button){$('area-region').value=button.dataset.areaRegion;updateMunicipalities();$('area-municipality').value='';load();}});

@@ -20,6 +20,62 @@ def project(id="P", **extra):
 
 
 class SupplyTests(unittest.TestCase):
+    def test_repeated_group_members_compute_once_without_sharing_mutable_output(self):
+        from unittest.mock import patch
+        from collections import Counter
+        rows=[dict(project('P1'),program='하나'),dict(project('P2'),name='고양창릉 A2',program='둘')]
+        calls=[]
+        def counted(members,*args,**kwargs):
+            calls.append(tuple(r['id'] for r in members));return quantities(members,*args,**kwargs)
+        with patch('backend.supply_dashboard.quantities',side_effect=counted):
+            data=build_dashboard(rows,[],[],[],[],[],[],date(2026,10,20),2018)
+        self.assertEqual(Counter(calls)[('P1','P2')],1)
+        regional=next(r for r in data['groups']['region'] if r['id']=='경기도')
+        self.assertEqual(data['summary']['target_units'],regional['target_units'])
+        data['summary']['chart_target_ids'].append('mutated')
+        self.assertNotIn('mutated',regional['chart_target_ids'])
+    def test_bupyeong_letter_block_counts_supply_and_progress_once(self):
+        rent = dict(project('RENT'), source_id='lh_incheon_rent',
+                    name='인천부평(도시재생뉴딜) A', region='인천광역시',
+                    municipality='부평구', planned_units=350, tenure='행복주택')
+        progress = dict(rent, id='PROGRESS', source_id='lh_progress',
+                        name='인천부평 A', district='인천부평', block='A',
+                        mapping={'policy_id':'UNASSIGNED', 'status':'REVIEW'})
+        construction = dict(rent, id='BUILD', source_id='lh_incheon_construction',
+                            name='인천부평 행복주택 및 도시재생뉴딜 혁신센터 건설공사',
+                            district='인천부평(도시재생뉴딜)', block='A',
+                            warnings=['MULTI_SITE_CONTRACT'])
+        data = build_dashboard([rent, progress, construction], [], [], [], [], [], [],
+                               date(2026, 10, 20), 2018)
+        self.assertEqual(data['summary']['target_units'], 350)
+        self.assertEqual(data['summary']['chart_target_ids'], ['RENT'])
+        self.assertEqual({r['id'] for r in data['items']}, {'RENT', 'PROGRESS', 'BUILD'})
+        self.assertEqual(len(data['blocks']), 1)
+        self.assertEqual(data['blocks'][0]['target_units'], 350)
+        self.assertEqual(set(data['blocks'][0]['project_ids']), {'RENT', 'PROGRESS', 'BUILD'})
+
+    def test_letter_blocks_keep_different_regions_districts_and_tenures_separate(self):
+        rent = dict(project('RENT'), name='인천부평(도시재생뉴딜) A',
+                    region='인천광역시', tenure='국민임대', planned_units=200)
+        permanent = dict(rent, id='PERMANENT', tenure='영구임대', planned_units=150)
+        progress = dict(rent, id='PROGRESS', source_id='lh_progress',
+                        district='인천부평', block='A', planned_units=350)
+        selected, excluded = inventory([rent, permanent, progress])
+        self.assertEqual({r['id'] for r in selected}, {'RENT', 'PERMANENT'})
+        self.assertEqual(sum(r['planned_units'] for r in selected), 350)
+        self.assertEqual(excluded, ['PROGRESS'])
+        for other in (dict(rent, region='경기도'), dict(rent, name='인천부평2 A'),
+                      dict(rent, name='인천부평 B'), dict(rent, name='인천부평 A1')):
+            self.assertNotEqual(block_key(rent), block_key(other))
+        self.assertIsNone(block_key(dict(rent, block='B')))
+        self.assertIsNone(block_key(dict(rent, name='인천부평 사업')))
+
+    def test_letter_block_does_not_create_unreviewed_notice_link(self):
+        row = dict(project(), name='인천부평(도시재생뉴딜) A', region='인천광역시')
+        notice = dict(id='N', name='인천부평 A블록 공공임대주택', region='인천광역시',
+                      units=100, developer='한국토지주택공사', source_date='2026-07-01')
+        self.assertEqual(linked_notices([row], [notice], date(2026, 10, 20)), {})
+
     def test_colocated_bars_keep_each_source_quantity_without_changing_totals(self):
         rent = dict(project('RENT'), planned_units=438, name='성남금토 A2')
         construction = dict(rent, id='BUILD', source_id='lh_construction', planned_units=633)

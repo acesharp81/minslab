@@ -105,8 +105,18 @@ def probe_assembly_live_once(
                 media_stream_url=(str(contract["stream_url"]) if contract["stream_url"] else None),
             ))
     if lifecycle_sink is not None:
+        if hasattr(lifecycle_sink, 'observe_watch_status'):
+            lifecycle_sink.observe_watch_status(assembly['items'], listing_payload.retrieved_at, SourceVersionInput(
+                source_type='assembly_live_list', source_url=listing_payload.source_url,
+                content_hash=listing_artifact.content_hash, raw_path=listing_artifact.content_path,
+                retrieved_at=listing_payload.retrieved_at, parser_version=PARSER_VERSION,
+                content_type=listing_payload.content_type, metadata={},
+            ))
         lifecycle_sink.finish_poll(
-            [str(item["meeting_external_id"]) for item in assembly["items"] if item["is_live"]],
+            [str(item["meeting_external_id"]) for item in assembly["items"]
+             if item["meeting_external_id"] and (item["is_live"]
+                 or '계속예정' in str(item.get('status_text') or '').replace(' ', '')
+                 or str(item.get('status_text') or '').replace(' ', '').startswith('정회'))],
             listing_payload.retrieved_at,
         )
     previous: dict[str, Any] = {}

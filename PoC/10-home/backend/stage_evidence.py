@@ -38,6 +38,10 @@ def search_term(project):
 
 
 def similarity(project, source):
+    for owner,other in ((project,source),(source,project)):
+        if any(r.get('relation')=='NOT_SAME_PROJECT' and r.get('entity_id')==other.get('id')
+               for r in owner.get('identity_exclusions',[])):
+            return 0,'담당자 확인 · 서로 다른 사업으로 식별'
     if project.get('region') != source.get('region'): return 0, '시도 불일치'
     pkey,skey=evidence_key(project),evidence_key(source)
     if pkey and skey:
@@ -119,15 +123,16 @@ def refresh(service, refresh_candidates=False, actor='자동 수집', reason='�
         versions=list(db.execute(select(Revision.kind,func.count(),func.max(Revision.recorded_at)).where(
             Revision.kind.in_(('permit','renewal_inventory','sh_project','plan_notice','document_evidence')),
             Revision.superseded_at.is_(None)).group_by(Revision.kind)))
-    evidence_version='stored-links-v3:'+repr(sorted(tuple(str(v) for v in row) for row in versions))
+    evidence_version='stored-links-v4:'+repr(sorted(tuple(str(v) for v in row) for row in versions))
     fingerprints={p['id']:hashlib.sha256((evidence_version+json.dumps({k:p.get(k) for k in
-        ('id','revision_no','name','region','district','block','address','start_actual_date','progress_pct','progress_date','base_date')},sort_keys=True)).encode()).hexdigest() for p in projects}
+        ('id','revision_no','name','region','municipality','district','block','address','planned_units','source_id','start_actual_date','progress_pct','progress_date','base_date')},sort_keys=True)).encode()).hexdigest() for p in projects}
     counts=Counter();work={}
     for p in projects:
         todo=[]
         for stage in STAGES:
             old=saved.get((p['id'],stage))
-            if not refresh_candidates and old and (old.get('selected') or old.get('reviewed') or old.get('matching_fingerprint')==fingerprints[p['id']]):
+            if old and (old.get('matching_fingerprint')==fingerprints[p['id']] or
+                        (not refresh_candidates and (old.get('selected') or old.get('reviewed')))):
                 counts['preserved']+=1
             else:todo.append(stage)
         if todo:work[p['id']]=todo
@@ -164,15 +169,17 @@ def refresh(service, refresh_candidates=False, actor='자동 수집', reason='�
                 eid=entity_id(KIND,'stage_match',key)
                 old=db.scalar(select(Revision).where(Revision.entity_id==eid,Revision.superseded_at.is_(None)))
                 # Re-check under the write lock so a concurrent reviewer always wins.
+                if old and old.payload.get('matching_fingerprint')==fingerprints[p['id']]:
+                    counts['preserved']+=1;continue
                 if old and not refresh_candidates and (old.payload.get('reviewed') or old.payload.get('selected')):
                     counts['preserved']+=1;continue
                 picked=choices[0] if choices else None
                 payload=dict(project_id=p['id'],name=p['name'],region=p['region'],stage=stage,
                     policy_id=p.get('mapping',{}).get('policy_id'),status='REVIEW' if picked else 'UNMATCHED',
                     selected=picked,candidates=choices,reviewed=False,base_date=today().isoformat(),
-                    matching_fingerprint=fingerprints[p['id']],matching_version='stored-links-v3')
+                    matching_fingerprint=fingerprints[p['id']],matching_version='stored-links-v4')
                 if old and (old.payload.get('selected') or old.payload.get('reviewed')):
-                    payload=dict(old.payload,candidates=choices,matching_fingerprint=fingerprints[p['id']],matching_version='stored-links-v3')
+                    payload=dict(old.payload,candidates=choices,matching_fingerprint=fingerprints[p['id']],matching_version='stored-links-v4')
                     previous=old.payload.get('selected') or {}
                     if not old.payload.get('reviewed') and old.payload.get('status')=='REVIEW' and previous.get('method') in ('PREREQUISITE','STAGE_INFERENCE') and picked and picked.get('event_date') and picked['score']>=.99 and not picked.get('scope_partial'):
                         payload.update(selected=picked,status='REVIEW',upgrade_basis='미검토 선행단계 추정을 공식 사건일 후보로 보강; 담당자 최종 검토 필요')

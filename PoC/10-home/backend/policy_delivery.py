@@ -85,13 +85,13 @@ def save_settings(service,revision_no,targets,events,occupancy_observations=None
         if outcome!='unchanged':session.add(Audit(entity_id=POLICY_ID,action='DELIVERY_TARGETS_UPDATED',before=old.payload if old else {},after=payload))
         return dict(payload,revision_no=row.revision_no,outcome=outcome)
 
-def build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False):
+def build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None):
     from .read_scope import projection_reads
     with projection_reads():
-        return _build_delivery(service,reference,include_portfolio_comparisons,indicators_only)
+        return _build_delivery(service,reference,include_portfolio_comparisons,indicators_only,comparison_scopes)
 
 
-def _build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False):
+def _build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None):
     plans=service.rows('policy_delivery_plan',reference)
     plan=next((r for r in plans if r.get('policy_id')==POLICY_ID),None)
     if not plan:return dict(policy_id=POLICY_ID,status='PLAN_NOT_COLLECTED',target_units=1350000,
@@ -128,7 +128,8 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
     for event in progress_events(service,reference):managed_progress[event['project_id']].append(event)
     manual=defaultdict(list)
     for event in config.get('events',[]):manual[event['project_id']].append(event)
-    dashboard=service.supply_dashboard(as_of=reference,horizon=5,measure='SUPPLY')
+    dashboard=service.supply_dashboard(as_of=reference,horizon=5,measure='SUPPLY',
+        **({'policy_id':POLICY_ID} if comparison_scopes is not None else {}))
     extra=service.rows('policy_municipality',reference)
     places=list({p['id']:p for p in extra+dashboard['municipalities']}.values())
     shape=schematic_view(dict(dashboard,municipalities=places))
@@ -150,6 +151,12 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
         if cap is None or cap<=0:
             missing.append(row['id']);cap=(notices.get(row['id']) or {}).get('units')
             if not cap:continue
+        # An officer-verified event for this exact cohort supersedes an older
+        # whole-contract estimate on sibling source records at the same block.
+        verified_stages={e['stage'] for e in managed_progress.get(row['id'],[])
+                         if not e.get('inferred',True) and e.get('input_rule')=='OFFICER_VERIFIED_SOURCE'}
+        scoped_overrides=[e for m in group for e in managed_progress.get(m['id'],[])
+                          if m['id']==row['id'] or e['stage'] not in verified_stages]
         events=[];schedules=[];progress=[]
         for member in group:
             if member.get('start_actual_date'):
@@ -169,7 +176,7 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
             for bridge in bridge_links.get(member['id'],[]):
                 if bridge.get('status') not in ('REVIEW','CONFIRMED'):continue
                 for fact in bridge.get('facts',[]):
-                    if fact.get('scope_partial'):continue
+                    if fact.get('scope_partial') or fact.get('reference_only'):continue
                     stage='COMPLETION' if fact.get('stage')=='CONSTRUCTION' and fact.get('milestone')=='COMPLETION' else fact.get('stage')
                     if stage not in set(STAGES)|{'COMPLETION'}:continue
                     when=fact.get('date') or fact.get('date_label')
@@ -193,9 +200,9 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
             schedules.extend(occupancy.get(member['id'],[]))
             managed_stages={t['stage'] for t in approved_schedules if t['scope_id']==member['id']}
             schedules=[s for s in schedules if not (s.get('source_object_id')==member['id'] and s['stage'] in managed_stages)]
-            schedules.extend(dict(t,precision='DAY') for t in config.get('targets',[])
+            schedules.extend(dict(t,precision=t.get('precision','DAY')) for t in config.get('targets',[])
                              if t['scope_kind']=='project' and t['scope_id']==member['id'])
-        overrides=[e for m in group for e in managed_progress.get(m['id'],[])]
+        overrides=scoped_overrides
         if overrides:
             stages={e['stage'] for e in overrides}
             events=[e for e in events if e['stage'] not in stages]+overrides
@@ -215,15 +222,16 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
                     source_base_date=notice['source_date'],basis='본 모집공고 입주 예정 물량 · 실입주 아님',evidence_url=notice['evidence_url']))
         city_id=city_of.get(row['id']);city_name=next((p['name'] for p in places if p['id']==city_id),row.get('municipality'))
         if row['region']=='인천광역시':
-            district=row.get('district') or row['name']
-            inferred=next((p for p in extra if p['name'].replace('인천광역시 ','').removesuffix('구') in district),None)
+            # Use the dated administrative label resolved from the source, not
+            # a substring of a station name (제물포역 is in 미추홀구).
+            inferred=next((p for p in extra if p['name']==row.get('municipality')),None)
             if inferred:city_id=inferred['id'];city_name=inferred['name']
         block=next((blocks[m['id']] for m in group if m['id'] in blocks),None)
         p=max(progress,key=lambda x:x['as_of_date']) if progress else None
         if p and p['pct']==100 and not p.get('inferred'):
             events.append(dict(stage='COMPLETION',event_date=p['as_of_date'],units=cap,
                                evidence_url=p['evidence_url'],origin=p.get('origin','SOURCE'),basis='담당자 확인 공정률 100% 확인일' if p.get('origin')=='MANUAL' else '원천 공정률 100% 확인일'))
-        overrides=[e for m in group for e in managed_progress.get(m['id'],[])]
+        overrides=scoped_overrides
         if overrides:
             stages={e['stage'] for e in overrides}
             events=[e for e in events if e['stage'] not in stages]+overrides
@@ -302,7 +310,7 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
     issues=[]
     for c in portfolio:
         goals=[s for s in c['schedules'] if s['stage'] in ('SUPPLY','CONSTRUCTION','COMPLETION')]
-        goals+= [dict(t,precision='DAY') for t in config.get('targets',[]) if t['scope_kind']=='project' and t['scope_id'] in c['source_ids']]
+        goals+= [dict(t,precision=t.get('precision','DAY')) for t in config.get('targets',[]) if t['scope_kind']=='project' and t['scope_id'] in c['source_ids']]
         for goal in sorted(goals,key=lambda x:x['due_date']):
             if goal['due_date']>=reference.strftime('%Y-%m')+'-01':continue
             actual=[e for e in c['events'] if e.get('status','ACTUAL')=='ACTUAL' and e['stage']==goal['stage'] and e['event_date']<=reference.isoformat()]
@@ -317,7 +325,8 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
                 evidence_url=(pct or {}).get('evidence_url') if confirmed and pct else goal.get('evidence_url')))
             break # Each cohort contributes once to the combined problem subtotal.
     statistics=service.rows('statistic',reference)
-    yearly_comparisons=comparison_index(plan,cohorts,config,statistics,reference,program_cohorts=portfolio)
+    yearly_comparisons=comparison_index(plan,cohorts,config,statistics,reference,program_cohorts=portfolio,
+        scope_keys=None if comparison_scopes is None else set(comparison_scopes)|{'policy'})
     macro_points=yearly_comparisons['policy']['metrics']['CONSTRUCTION']['actual_points']
     regional_months=[dict(month=p['date'][:7],units=p['annual_units'],cumulative_units=p['units'],by_region=p['by_region']) for p in macro_points]
     annual=[]
@@ -330,7 +339,7 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
     source_ids={'policy_907_plan','policy_907_incheon_geometry','incheon_statistics','lh_incheon_sale','lh_incheon_rent','lh_incheon_construction','ih_supply'}
     sources=[dict(id=s['id'],name=s['name'],status=s['status'],last_success=s.get('last_success'),record_count=s.get('record_count')) for s in service.sources() if s['id'] in source_ids]
     comparisons=[]
-    for goal in config.get('targets',[]):
+    for goal in config.get('targets',[]) if comparison_scopes is None else []:
         scope=[c for c in cohorts if goal['scope_kind']=='policy' or
                (goal['scope_kind']=='region' and c['region']==goal['scope_id']) or
                (goal['scope_kind']=='project' and goal['scope_id'] in c['source_ids']) or
@@ -346,7 +355,8 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
     program_assessments={pid:assessment(pid,p['values'],p['source'],dict(portfolio_cohorts=portfolio),raw) for pid,p in plan.get('program_profiles',{}).items()}
     from .october_alignment import build as october_alignment
     official_alignment=october_alignment(portfolio,raw,reference)
-    return dict(official_alignment=official_alignment,policy_id=POLICY_ID,status='READY',name=plan['name'],as_of_date=reference.isoformat(),
+    return dict(**({'_comparison_inputs':dict(config=config,statistics=[s for s in statistics if s.get('statistic_metric')=='착공'])} if comparison_scopes is not None else {}),
+        official_alignment=official_alignment,policy_id=POLICY_ID,status='READY',name=plan['name'],as_of_date=reference.isoformat(),
         measurement_contract=dict(version='2026-10-12.1',target_metric='CONSTRUCTION',supply_metric='SUPPLY',
             scope='9·7 수도권 2026–2030 신규 착공',partition='EXCLUSIVE',map_measure='CUMULATIVE_REACHED',
             reserve_status='PROJECT_NOT_IDENTIFIED',unknown_status='STAGE_NOT_VERIFIED',
@@ -358,7 +368,7 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
         issues=issues,settings=stored_config,geometry=shape,sources=sources,goal_comparisons=comparisons,regional_start_months=regional_months,
         management_projects=[dict(id=r['id'],name=r['name'],units=r.get('planned_units'),program_id=r.get('mapping',{}).get('program_id'),program=r.get('program')) for r in raw],
         occupancy_monitor=build_occupancy_monitor(plan,config,reference),yearly_comparisons=yearly_comparisons,portfolio_cohorts=portfolio,
-        portfolio_comparisons=comparison_index(dict(plan,period_start='1900-01-01',portfolio=True),portfolio,config,[],reference) if include_portfolio_comparisons else {},
+        portfolio_comparisons=comparison_index(dict(plan,period_start='1900-01-01',portfolio=True),portfolio,config,[],reference,scope_keys=comparison_scopes) if include_portfolio_comparisons else {},
         map_reconciliation=dict(default_scope='PORTFOLIO',default_stage='SUPPLY',
             linked_units=sum(c['planned_units'] or 0 for c in portfolio),policy_period_units=allocated,
             prior_start_units=sum(c['units'] for c in portfolio if c['eligibility_status']=='PRE_POLICY_START'),

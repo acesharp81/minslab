@@ -1818,3 +1818,65 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 .meeting-topic-more-tasks .meeting-topic-task-button { width:100%; margin-top:6px; }
 
 .meeting-task-direct-quote { color:#667085; font-size:12px; font-weight:400; line-height:1.6; overflow-wrap:anywhere; }
+
+/* Narrative is the report body. Verbatim source is opened only on demand. */
+.meeting-narrative-summary { margin-bottom: 28px; }
+.meeting-summary-topic + .meeting-summary-topic { margin-top: 12px; }
+.meeting-source-quotes > summary { padding: 12px 18px; color: #475467; font-size: 12px; cursor: pointer; }
+body.meeting-report-print-mode .meeting-source-quotes { display: none; }
+
+.meeting-summary-group .meeting-topic-group-head small { grid-column: -2 / -1; }
+.meeting-structure-appendix > summary { padding: 16px 0; color: #475467; font-size: 13px; cursor: pointer; }
+
+/* Align report header columns with the scrolling rows and compact empty/single-task rows. */
+.meeting-topic-task-overview:not(.live-draft-overview) > header { padding-right: var(--overview-scrollbar-width, 0px); }
+.meeting-topic-task-overview:not(.live-draft-overview) > header strong { padding: 6px 12px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-row { height: auto; min-height: 36px; overflow: visible; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-summary-button { min-height: 35px; gap: 0; padding: 3px 12px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-summary-button strong { font-size: 13px; line-height: 17px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-summary-button small { line-height: 11px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-button { min-height: 35px; padding: 3px 12px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-no-task,
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-unlinked { padding: 3px 12px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-more-tasks > summary { padding: 3px 12px; font-size: 11px; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-more-tasks .meeting-topic-task-button { margin-top: 0; }
+.meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-overview-list.is-scrollable { max-height: 180px; }
+@media (max-width: 760px) {
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-summary-button::before { margin-bottom: 1px; }
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-cell::before { margin-bottom: 0; padding: 3px 12px 0; }
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-button:has(.meeting-task-owner-tags) { gap: 2px; }
+  .meeting-topic-task-overview:not(.live-draft-overview) .meeting-topic-task-overview-list.is-scrollable { max-height: 300px; }
+}
+
+/* Introductory guide under the service caption. */
+.topbar > .brand-area { display: flex; align-items: center; flex: 0 0 auto; gap: 12px; }
+.brand-area .brand-copy { display: grid; gap: 4px; }
+.brand-area .brand-copy small { display: block; color: #667085; font-size: 12px; white-space: nowrap; }
+.usage-guide-button { display: flex; align-items: center; gap: 8px; width: fit-content; padding: 3px 9px; border: 1px solid #ccd8ec; border-radius: 6px; background: #f4f8ff; color: #245493; font-size: 11px; font-weight: 700; text-decoration: none; }
+.usage-guide-button:hover { background: #e9f1ff; }
+@media (max-width: 1180px) { .brand-area .brand-copy small { display: none; } }
+@media (max-width: 900px) { .topbar > .brand-area { order: 1; gap: 8px; } }
+@media print { .usage-guide-button { display: none !important; } }
+
+.usage-guide-button[hidden] { display: none; }
+
+.usage-guide-button { position: relative; min-height: 29px; padding: 4px 10px; gap: 6px; border-color: #245fba; color: #fff; background: linear-gradient(115deg, #205cbe, #164888); box-shadow: 0 3px 10px #205cbe35; font-weight: 800; transition: transform .15s, box-shadow .15s; }
+.usage-guide-button::after { content: ""; position: absolute; inset: -3px; border: 2px solid #79aaff; border-radius: 9px; pointer-events: none; opacity: 0; animation: guide-button-attention 2.8s ease-out 3; }
+.usage-guide-button:hover { color: #fff; background: linear-gradient(115deg, #164da9, #103f7e); transform: translateY(-1px); box-shadow: 0 5px 14px #205cbe50; }
+.usage-guide-button svg { flex: 0 0 16px; }
+@keyframes guide-button-attention { 0%, 65%, 100% { opacity: 0; transform: scale(1); } 18% { opacity: .85; } 45% { opacity: 0; transform: scale(1.08, 1.2); } }
+@media (prefers-reduced-motion: reduce) { .usage-guide-button::after { animation: none; } .usage-guide-button { transition: none; } .usage-guide-button:hover { transform: none; } }
+
+.meeting-report-tools .meeting-document-open-button { display: inline-flex; position: relative; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 8px 14px; border: 1px solid #245fba; color: #fff; background: linear-gradient(115deg, #205cbe, #164888); box-shadow: 0 3px 10px #205cbe30; font-weight: 800; }
+.meeting-report-tools .meeting-document-open-button:hover { border-color: #164888; color: #fff; background: #164888; box-shadow: 0 4px 12px #205cbe45; }
+.meeting-document-open-button svg { flex: 0 0 16px; }
+
+.user-guide-dialog { width: min(1360px, calc(100vw - 32px)); height: calc(100dvh - 36px); max-width: none; max-height: none; padding: 0; border: 1px solid #c8d7ed; border-radius: 14px; color: #19395e; background: #fff; overflow: hidden; box-shadow: 0 24px 90px #102f5b50; }
+.user-guide-dialog[open] { display: flex; flex-direction: column; }
+.user-guide-dialog::backdrop { background: #102a4d99; }
+.user-guide-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex: 0 0 auto; padding: 13px 18px; border-bottom: 1px solid #d7e1ed; background: #f5f8fd; }
+.user-guide-dialog > header strong { display: block; font-size: 16px; }
+.user-guide-dialog > header span { color: #617994; font-size: 11px; }
+.user-guide-dialog > header button { min-height: 34px; padding: 6px 12px; border: 1px solid #c5d4e9; border-radius: 7px; color: #254f85; background: #fff; cursor: pointer; }
+.user-guide-dialog iframe { display: block; width: 100%; flex: 1 1 auto; min-height: 0; border: 0; }
+@media (max-width: 620px) { .user-guide-dialog { width: calc(100vw - 10px); height: calc(100dvh - 10px); border-radius: 10px; } .user-guide-dialog > header { padding: 9px 12px; } }

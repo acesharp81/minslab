@@ -33,7 +33,7 @@
               <div class="topic-report-actions"><button type="button" id="topicReportPreview">자료 검색</button><button type="submit" form="topicReportForm" id="topicReportCreate" class="is-primary" disabled>보고서 작성</button><button type="button" id="topicReportExternal" disabled>외부도구 사용</button></div>
             </header>
             <form id="topicReportForm">
-              <label class="topic-report-ministry"><span>소관 부처 <small>선택</small></span><input id="topicReportMinistry" maxlength="80" placeholder="예: 행정안전부" /></label>
+              <label class="topic-report-ministry"><span>소관 부처 <small>선택</small></span><input id="topicReportMinistry" maxlength="80" placeholder="예: 행정안전부 또는 행안부" /></label>
               <label class="topic-report-topic"><span>주제 <small>선택</small></span><input id="topicReportTopic" maxlength="160" placeholder="예: AI 민주정부 추진과 공공서비스 변화" /></label>
               <label class="topic-report-start"><span>시작일</span><input id="topicReportStart" type="date" required /></label>
               <label class="topic-report-end"><span>종료일</span><input id="topicReportEnd" type="date" required /></label>
@@ -139,8 +139,13 @@
     previewContainer.replaceChildren();
     const summary = node("p", "topic-report-preview-summary", `관련 회의 ${payload.meeting_count}건 · 근거 주제 ${payload.count}건 · 추가 LLM 호출 0회`);
     previewContainer.append(summary);
+    const items = payload.items || [];
+    if (items.length) previewContainer.append(node("p", "topic-report-preview-guide", `검색된 근거 ${items.length}건을 모두 표시합니다. 목록을 아래로 스크롤해 전체 자료를 확인하세요.`));
     const list = node("div", "topic-report-preview-list");
-    for (const item of (payload.items || []).slice(0, 8)) {
+    list.tabIndex = 0;
+    list.setAttribute("role", "region");
+    list.setAttribute("aria-label", `검색된 근거 자료 ${items.length}건`);
+    for (const item of items) {
       const card = node("article", "topic-report-preview-item");
       const tags = node("div", "topic-report-preview-tags");
       tags.append(node("span", `is-${String(item.authority_status || "").toLowerCase()}`, isOfficialAuthority(item.authority_status) ? "공식 반영" : "비공식"));
@@ -220,6 +225,7 @@
       "- 공식 반영 자료를 우선하되 비공식 자료도 구분해 활용하라. 자료끼리 충돌하면 어느 자료가 다른지 명시하고 임의로 사실을 확정하지 마라.",
       "- 추론은 사실처럼 단정하지 말고 '분석' 또는 '전망'임을 밝히라. 근거에 없는 수치·인물·발언·정책을 만들지 마라.",
       "- 각 핵심 논점과 후속 과제에는 관련 근거 번호([근거 01] 형식)를 표시하라.",
+      "- 모든 검색 근거의 독립된 논의와 요구 과제를 적어도 한 본문 항목에 포함하라. 상위 주제를 합쳐도 수치·지역·기관·조건·요구를 생략하지 마라.",
       "- 전체 요약 바로 다음에 여러 논점을 관통하는 '정책적 시사점'을 먼저 두고, 그 뒤에 개별 정책 항목을 설명하라.",
       "- 정책적 시사점은 요약을 반복하지 말고 정책의 의미, 상충관계, 실행 위험과 점검 방향을 제시하라.",
       "- 개별 정책 항목의 제목에는 '[행정안전부]'처럼 근거에서 확인되는 소관 부처를 태그로 함께 표시하라.",
@@ -331,8 +337,12 @@
     exportMessage.textContent = "외부 LLM에 첨부할 MD 파일을 내려받았습니다.";
   }
 
+  function allReportEvidence(item) {
+    return [...(item.evidence || []), ...(item.supplementary_evidence || [])];
+  }
+
   function evidenceMap(item) {
-    return new Map((item.evidence || []).map((source) => [String(source.id), source]));
+    return new Map(allReportEvidence(item).map((source) => [String(source.id), source]));
   }
 
   function evidenceLinks(ids, sources) {
@@ -501,12 +511,73 @@
   }
 
   function pendingElapsed(item) {
-    const startedAt = Date.parse(item.created_at || "");
+    const startedAt = Date.parse(item.updated_at || item.created_at || "");
     if (!Number.isFinite(startedAt)) return "처리 시간 확인 중";
     const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
     const minutes = Math.floor(seconds / 60);
     return `진행 시간 ${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   }
+
+  function reportSourceDetails(item) {
+    const evidence = allReportEvidence(item);
+    if (!evidence.length) return null;
+    const taskCount = evidence.reduce((count, source) => count + (source.tasks || []).length, 0);
+    const section = node("details", "topic-report-source-details");
+    section.open = true;
+    const heading = node("summary", "");
+    heading.append(node("strong", "", "세부 논의와 요구 과제 전체"),
+      node("span", "", `근거 ${evidence.length}건 · 기록된 과제 ${taskCount}건`));
+    section.append(heading, node("p", "topic-report-source-details-note", item.evidence_scope?.status === "UNAVAILABLE"
+      ? "현재 보고서의 저장 근거만 표시합니다. 검색 범위 보완 자료 조회에 실패했으므로 전체 검색 범위를 대조하지 못했습니다. 잠시 후 다시 열어 주세요."
+      : "보고서 저장 근거와 같은 조건에서 추가 확인한 근거의 요약·요구 과제를 모두 수록합니다. 검색 범위 보완 근거는 기존 AI 요약에 소급해서 반영된 내용이 아니므로 별도로 표시합니다."));
+    const list = node("div", "topic-report-source-details-list");
+    const supplementaryIds = new Set((item.supplementary_evidence || []).map((source) => String(source.id)));
+    evidence.forEach((source, index) => {
+      const row = node("article", "topic-report-source-detail");
+      row.dataset.evidenceId = source.id;
+      row.append(node("h4", "", `${index + 1}. ${source.topic_title || "세부 논의"}`),
+        node("p", "topic-report-source-detail-summary", source.summary || "저장된 요약 없음"));
+      const owners = source.ministries || [];
+      if (owners.length) row.append(node("p", "topic-report-source-detail-owners", `관련 기관: ${owners.join(" · ")}`));
+      if ((source.tasks || []).length) {
+        const tasks = node("ul", "topic-report-source-detail-tasks");
+        for (const task of source.tasks) {
+          const point = node("li", "");
+          point.append(node("span", "", task.title || ""));
+          if ((task.ministries || []).length) point.append(node("small", "", ` · ${task.ministries.join(" · ")}`));
+          tasks.append(point);
+        }
+        row.append(node("strong", "topic-report-source-detail-task-label", "기록된 요구·과제"), tasks);
+      }
+      const origin = node("footer", "");
+      origin.append(node("span", "", supplementaryIds.has(String(source.id)) ? "검색 범위 보완 근거 · " : "보고서 저장 근거 · "), sourceLink(source));
+      row.append(origin);
+      list.append(row);
+    });
+    section.append(list);
+    return section;
+  }
+
+  let topicReportPrintState = null;
+  function beginTopicReportPrint() {
+    if (topicReportPrintState) return;
+    const details = [...resultContainer.querySelectorAll(".topic-report-source-details")];
+    topicReportPrintState = details.map((element) => ({ element, open: element.open }));
+    for (const detail of details) detail.open = true;
+    document.body.classList.add("topic-report-print-mode");
+  }
+  function finishTopicReportPrint() {
+    for (const detail of topicReportPrintState || []) {
+      if (detail.element.isConnected) detail.element.open = detail.open;
+    }
+    topicReportPrintState = null;
+    document.body.classList.remove("topic-report-print-mode");
+  }
+  window.addEventListener("beforeprint", () => {
+    if (!document.querySelector('[data-workspace-panel="topic-reports"]')?.hidden
+        && !resultContainer.hidden && !document.querySelector("dialog[open]")) beginTopicReportPrint();
+  });
+  window.addEventListener("afterprint", finishTopicReportPrint);
 
   function renderReport(item) {
     if (state.timer) window.clearTimeout(state.timer);
@@ -520,7 +591,7 @@
       const activities = isProcessing
         ? ["회의 근거 구조화 중", "유사 논점 관계 검토 중", "정책 흐름과 후속 과제 연결 중"]
         : ["작성 요청을 작업 대기열에 등록했습니다"];
-      const startedAt = Date.parse(item.created_at || "");
+      const startedAt = Date.parse(item.updated_at || item.created_at || "");
       const elapsedSeconds = Number.isFinite(startedAt) ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
       const activity = activities[Math.floor(elapsedSeconds / 4) % activities.length];
       const copy = node("div", "topic-report-pending-copy");
@@ -528,7 +599,7 @@
         node("small", "topic-report-pending-kicker", isProcessing ? "근거 분석 중" : "작성 요청 접수"),
         node("strong", "", "보고서 작성 중"),
         node("p", "", isProcessing
-          ? `선택된 근거 ${evidenceCount}건을 읽고 정책 흐름과 후속 과제를 구성하고 있습니다.`
+          ? `선택된 근거 ${evidenceCount}건을 읽고 정책 흐름과 후속 과제를 구성하고 있습니다. 연결이 빠진 논의는 자동으로 보완한 뒤 저장합니다.`
           : `검색 조건과 근거 ${evidenceCount}건을 저장했습니다. 작성 작업 순서를 기다리고 있습니다.`),
       );
       const head = node("div", "topic-report-pending-head");
@@ -552,12 +623,19 @@
       return;
     }
     if (item.status !== "READY") {
-      const errorText = item.last_error === "EVIDENCE_RELEVANCE_REVIEW_REQUIRED"
+      const completenessErrors = {
+        EVIDENCE_COVERAGE_INCOMPLETE: "전체 근거의 본문 요약·연결 검증을 완료하지 못했습니다. 저장된 세부 논의와 요구 과제는 아래에서 모두 확인할 수 있습니다.",
+        EVIDENCE_INPUT_TOO_LARGE: "전체 근거가 한 번에 처리할 수 있는 분량을 초과했습니다. 일부 근거를 제외해 보고서를 만들지 않았습니다. 기간이나 조건을 좁히거나 외부도구를 사용해 주세요.",
+        OUTPUT_FIELD_TOO_LONG: "출력 문장이 허용 분량을 초과했습니다. 문장을 중간에서 자르지 않고 생성을 중단했습니다.",
+      };
+      const errorText = completenessErrors[item.last_error] || (item.last_error === "EVIDENCE_RELEVANCE_REVIEW_REQUIRED"
         ? "요청 주제와 직접 연결되는 회의 근거가 부족해 기존 보고서를 재검토 대상으로 전환했습니다."
         : item.status === "LIMIT_REACHED"
           ? "오늘의 작성 한도에 도달했습니다. 저장된 보고서는 계속 볼 수 있습니다."
-          : "보고서 작성에 실패했습니다. 조건을 조정해 다시 시도해 주세요.";
+          : "보고서 작성에 실패했습니다. 조건을 조정해 다시 시도해 주세요.");
       resultContainer.append(node("p", "topic-report-error", errorText));
+      const details = reportSourceDetails(item);
+      if (details) resultContainer.append(details);
       return;
     }
 
@@ -569,7 +647,7 @@
     const sources = evidenceMap(item);
     const assignment = assignTasksToSections(sections, tasks);
     const uniqueMeetings = new Map();
-    for (const source of item.evidence || []) {
+    for (const source of allReportEvidence(item)) {
       const key = String(source.broadcast_id || source.meeting_title || source.id);
       const existing = uniqueMeetings.get(key);
       if (existing) {
@@ -602,14 +680,9 @@
     const print = node("button", "", "인쇄·PDF");
     print.type = "button";
     print.addEventListener("click", () => {
-      const cleanup = () => {
-        document.body.classList.remove("topic-report-print-mode");
-        window.removeEventListener("afterprint", cleanup);
-      };
-      document.body.classList.add("topic-report-print-mode");
-      window.addEventListener("afterprint", cleanup, { once: true });
+      beginTopicReportPrint();
       window.print();
-      window.setTimeout(cleanup, 60000);
+      window.setTimeout(finishTopicReportPrint, 60000);
     });
     actions.append(download, print);
     heroCopy.append(actions);
@@ -628,6 +701,7 @@
       stats.append(stat);
     }
     paper.append(masthead, hero);
+    if (allReportEvidence(item).length) paper.append(node("p", "topic-report-completeness-note", `핵심 요약 아래 ‘세부 논의와 요구 과제 전체’에 저장 근거 ${(item.evidence || []).length}건${(item.supplementary_evidence || []).length ? `과 검색 범위 보완 근거 ${item.supplementary_evidence.length}건` : ""}을 모두 수록했습니다. AI 요약은 잠정 정보입니다.`));
 
     let editorialSection = 1;
     if (policyImplications.length) {
@@ -691,7 +765,17 @@
           : "기존 저장본에는 발언량 메타데이터가 없어 근거 항목당 1건으로 보수 계산했습니다. 새 자료 검색부터 고유 발언 근거 수를 적용합니다.";
         article.append(rankMeta);
       }
-      article.append(node("p", "", section.body));
+      if (section.body) article.append(node("p", "", section.body));
+      if ((section.discussions || []).length) {
+        const discussions = node("div", "topic-report-section-discussions");
+        for (const discussion of section.discussions) {
+          const detail = node("section", "topic-report-discussion");
+          detail.append(node("h4", "", discussion.heading), node("p", "", discussion.body),
+            reportEvidenceLinks(discussion.evidence_ids, sources));
+          discussions.append(detail);
+        }
+        article.append(discussions);
+      }
       appendTaskGroup(article, linkedTasks, sources);
       article.append(reportEvidenceLinks(section.evidence_ids, sources));
       issueGrid.append(article);
@@ -709,6 +793,9 @@
       remaining.append(heading, grid);
       paper.append(remaining);
     }
+
+    const sourceDetails = reportSourceDetails(item);
+    if (sourceDetails) paper.append(sourceDetails);
 
     const sourceIndex = node("details", "topic-report-source-index");
     const sourceSummary = node("summary", "");
@@ -756,8 +843,12 @@
       const payload = await response.json();
       renderPreview(payload);
       state.previewCriteriaKey = criteriaKey(values);
-      createButton.disabled = !payload.count;
+      createButton.disabled = !payload.count || payload.report_input?.compatible === false;
       externalButton.disabled = !payload.count;
+      if (payload.report_input?.compatible === false) {
+        message.textContent = "전체 근거를 찾았지만 한 번에 요약할 수 있는 분량을 초과했습니다. 자료를 제외하지 않았습니다. 기간·조건을 좁히거나 외부도구를 사용해 주세요.";
+        return;
+      }
       message.textContent = payload.count ? "검색 결과를 확인한 뒤 보고서를 작성할 수 있습니다." : "조건에 맞는 회의 자료가 없습니다.";
     } catch (error) {
       resetSearchResult();

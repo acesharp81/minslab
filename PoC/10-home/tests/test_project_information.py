@@ -10,6 +10,27 @@ from backend.delivery_operations import schedule_goals
 from backend.api_samples import today
 
 class ProjectInformationTests(unittest.TestCase):
+    def test_supply_type_edit_requires_evidence_keeps_numbers_and_can_reset(self):
+        before=self.s.projects()[0]
+        with self.assertRaisesRegex(ValueError,'판단 근거'):
+            self.edit({'supply_type':'PUBLIC'})
+        with self.assertRaises(ValueError):
+            self.edit({'supply_type':'INVALID'})
+        with self.assertRaises(ValueError):
+            self.edit({'supply_type_evidence_url':'javascript:alert(1)'})
+        self.edit({'supply_type':'PUBLIC','supply_type_basis':'공식 공공분양 사업 확인',
+                   'supply_type_evidence_url':'https://example.org/public-notice'})
+        p=self.s.projects()[0]
+        self.assertEqual(p['supply_type_assessment']['code'],'PUBLIC')
+        self.assertEqual(p['supply_type_assessment']['rule'],'OFFICER_REVIEW')
+        self.assertEqual(p['planned_units'],before['planned_units'])
+        self.assertEqual(p['start_actual_date'],before['start_actual_date'])
+        info=view(self.s,self.pid,collection_matrix(self.s,project_ids=(self.pid,)))
+        self.assertEqual(info['fields']['supply_type']['options']['PUBLIC'],'공공주택')
+        self.assertEqual(info['fields']['supply_type']['evidence'][0]['actor'],'담당자')
+        self.edit({'supply_type':None,'supply_type_basis':None,'supply_type_evidence_url':None},version=1)
+        self.assertEqual(self.s.projects()[0]['supply_type'],'UNKNOWN')
+
     def setUp(self):
         self.engine=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
         Base.metadata.create_all(self.engine);self.s=HomeService(self.engine)

@@ -5,7 +5,6 @@ from typing import Any, Iterable
 
 from .transcript_presentation import summarize_utterance
 
-
 PROMPT_VERSION = "assembly-conversation-summary/2.1"
 MAX_SUMMARY_CHARS = 180
 MAX_TOPIC_CHARS = 80
@@ -216,14 +215,14 @@ def add_conversation_context(
 
 
 def iter_summary_batches(
-    utterances: Iterable[dict[str, Any]],
+    utterances: Iterable[dict[str, Any]], *, max_items: int = MAX_BATCH_ITEMS,
 ) -> Iterable[list[dict[str, Any]]]:
     batch: list[dict[str, Any]] = []
     char_count = 0
     for utterance in utterances:
         item_chars = len(str(utterance.get("text") or ""))
         if batch and (
-            len(batch) >= MAX_BATCH_ITEMS
+            len(batch) >= max_items
             or char_count + item_chars > MAX_BATCH_CHARS
         ):
             yield batch

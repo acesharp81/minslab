@@ -8,7 +8,7 @@ const SourcePreview=(()=>{
  }
  function attach(host,sources){
   host.querySelectorAll('.source-card').forEach((card,i)=>{
-   const source=sources[i],details=document.createElement('section'),header=document.createElement('div'),toggle=document.createElement('button');details.className='source-preview';details.hidden=true;details.id='source-preview-'+source.id;header.className='source-row-header';
+   const source=sources.find(s=>s.id===card.dataset.sourceId)||sources[i];const details=document.createElement('section'),header=document.createElement('div'),toggle=document.createElement('button');details.className='source-preview';details.hidden=true;details.id='source-preview-'+source.id;header.className='source-row-header';
    toggle.type='button';toggle.className='button secondary source-preview-toggle';toggle.textContent='수집항목·샘플 펼치기';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls',details.id);
    const title=card.querySelector('.source-title'),description=card.querySelector('p'),counts=card.querySelector('.source-data'),link=card.querySelector(':scope > a');
    for(const node of [title,description,counts,link])if(node)header.append(node);

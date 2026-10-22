@@ -7,14 +7,12 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from .evidence_bridge import match_key
 from .roadmap import month
+from .block_identity import title_blocks
 
-VERSION='lh-notice-detail-v2-block-scoped'
+VERSION='lh-notice-detail-v4-split-block-identity'
 
 def compact(value):
     return re.sub(r'\s+','',value or '').upper()
-
-def title_blocks(name):
-    return {a+str(int(b)) for a,b in re.findall(r'([A-Z]{1,3})[-－]?(\d+)(?:BL|블록|[^0-9]|$)',compact(name))}
 
 def district_in(value,district):
     # 왕숙 and 왕숙2 are distinct districts; substring matching conflates their A3 blocks.
@@ -117,11 +115,15 @@ def parse_detail(body,notice,key):
     if len(tenure_pairs)>=2 and '혼합' in text and units in tenure_pairs.values():
         mixed_breakdown=tenure_pairs;mixed_total=sum(tenure_pairs.values())
     status='CANCELLED' if '취소' in name else 'CORRECTION' if '정정' in name else 'ORIGINAL'
-    round_kind='ADDITIONAL' if any(t in name for t in ('추가','잔여','재공고')) else 'MAIN'
+    round_kind=('WAITLIST' if re.search(r'예비\s*입주자',name) else
+                'ADDITIONAL' if any(t in name for t in ('추가','잔여','재공고')) else 'MAIN')
     facts=[]
     if announced and status!='CANCELLED':
-        facts.append(dict(stage='SUPPLY',kind='ACTUAL',date=announced,milestone='NOTICE',units=offered,
+        facts.append(dict(stage='SUPPLY',kind='STATE' if round_kind=='WAITLIST' else 'ACTUAL',date=announced,milestone='NOTICE',units=None if round_kind=='WAITLIST' else offered,
             notice_round=round_kind,basis=('LH 추가·잔여 모집공고 게시 확인 · 본 모집량에 중복 합산 금지 · 금회 공급 ' if round_kind=='ADDITIONAL' else 'LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 ')+(str(offered)+'호' if offered is not None else '호수 미확인')))
+        if round_kind=='WAITLIST':
+            facts[-1].update(event_kind='WAITLIST_RECRUITMENT_NOTICE',recruitment_persons=offered,
+                basis='LH 예비입주자 모집공고 게시 확인 · 대기자 모집인원은 신규 공급호수에 가산하지 않음')
     if raw and status!='CANCELLED':
         facts.append(dict(stage='MOVE_IN',kind='PLAN',date=stamp,date_label=raw,milestone='MOVE_IN',
             schedule_status='DATED' if stamp else 'UNDETERMINED' if '미정' in raw else 'TEXT',

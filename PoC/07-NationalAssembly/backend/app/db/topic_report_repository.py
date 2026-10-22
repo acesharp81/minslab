@@ -8,13 +8,14 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+from ..domain.ministry import canonical_ministry_name, normalize_ministry_mentions
 
 from psycopg.types.json import Jsonb
 
 from ..services.official_brief_integration import semantic_tokens
 
 
-PROMPT_VERSION = "topic-report/1.6"
+PROMPT_VERSION = "topic-report/1.8"
 PUBLIC_REPORT_RETENTION_DAYS = 30
 PUBLIC_REPORT_MAX_ITEMS = 50
 
@@ -108,6 +109,7 @@ def _official_executive_evidence(
     ministry: str, topic: str, period_start: date, period_end: date,
 ) -> list[dict[str, Any]]:
     """Convert official State Council material into topic-report evidence."""
+    ministry = canonical_ministry_name(ministry)
     query_tokens = semantic_tokens(topic)
     ministry_tokens = semantic_tokens(ministry)
     normalized_topic = _normalized(topic)
@@ -171,10 +173,11 @@ def _official_executive_evidence(
             haystack_normalized = _normalized(haystack)
             haystack_tokens = semantic_tokens(haystack)
             topic_overlap = len(query_tokens & haystack_tokens) / max(1, len(query_tokens))
-            ministry_overlap = len(ministry_tokens & haystack_tokens) / max(1, len(ministry_tokens))
+            ministry_haystack = normalize_ministry_mentions(haystack) if ministry_tokens else haystack
+            ministry_overlap = len(ministry_tokens & semantic_tokens(ministry_haystack)) / max(1, len(ministry_tokens))
             exact_topic = bool(normalized_topic and normalized_topic in haystack_normalized)
             exact_ministry = bool(
-                normalized_ministry and normalized_ministry in haystack_normalized
+                normalized_ministry and normalized_ministry in _normalized(ministry_haystack)
             )
             if normalized_topic and not _has_topic_relevance(
                 query_tokens, haystack_tokens, exact_topic,
@@ -206,7 +209,7 @@ def _official_executive_evidence(
                     "title": " ".join(str(row.get("text") or "").split()),
                     "status": "OFFICIAL",
                     "ministries": list(row.get("target_ministries") or ministries),
-                } for row in guidance[:8]],
+                } for row in guidance],
                 "mention_count": 1,
                 "mention_basis": "OFFICIAL_ITEM",
                 "score": score,
@@ -221,7 +224,7 @@ class TopicReportRepository:
 
     def search(
         self, *, ministry: str, topic: str, period_start: date,
-        period_end: date, institution: str | None = None, limit: int = 40,
+        period_end: date, institution: str | None = None, limit: int | None = None,
         official_executive_items: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         rows = self.connection.execute(
@@ -267,6 +270,7 @@ class TopicReportRepository:
                 institution,
             ),
         ).fetchall()
+        ministry = canonical_ministry_name(ministry)
         query_tokens = semantic_tokens(topic)
         ministry_tokens = semantic_tokens(ministry)
         normalized_topic = _normalized(topic)
@@ -314,10 +318,11 @@ class TopicReportRepository:
                 haystack_normalized = _normalized(haystack)
                 haystack_tokens = semantic_tokens(haystack)
                 topic_overlap = len(query_tokens & haystack_tokens) / max(1, len(query_tokens))
-                ministry_overlap = len(ministry_tokens & haystack_tokens) / max(1, len(ministry_tokens))
+                ministry_haystack = normalize_ministry_mentions(haystack) if ministry_tokens else haystack
+                ministry_overlap = len(ministry_tokens & semantic_tokens(ministry_haystack)) / max(1, len(ministry_tokens))
                 exact_topic = bool(normalized_topic and normalized_topic in haystack_normalized)
                 exact_ministry = bool(
-                    normalized_ministry and normalized_ministry in haystack_normalized
+                    normalized_ministry and normalized_ministry in _normalized(ministry_haystack)
                 )
                 if normalized_topic and not _topic_relevant_content(
                     topic, title, summary, task_text,
@@ -349,7 +354,7 @@ class TopicReportRepository:
                         "title": " ".join(str(task.get("title") or "").split()),
                         "status": str(task.get("status") or "CANDIDATE"),
                         "ministries": list(task.get("ministries") or []),
-                    } for task in linked_tasks[:8]],
+                    } for task in linked_tasks],
                     "mention_count": _topic_mention_count(item, linked_tasks),
                     "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
                     "score": score,
@@ -374,11 +379,15 @@ class TopicReportRepository:
                 period_start=period_start, period_end=period_end,
             ))
         evidence.sort(key=lambda item: (item["score"], item["meeting_at"]), reverse=True)
-        evidence = evidence[: max(1, min(limit, 80))]
+        total_count = len(evidence)
+        if limit is not None:
+            evidence = evidence[: max(1, min(limit, 80))]
         meeting_count = len({item["broadcast_id"] for item in evidence})
         return {
             "items": evidence,
             "count": len(evidence),
+            "total_count": total_count,
+            "selection_limited": len(evidence) < total_count,
             "meeting_count": meeting_count,
             "evidence_set_hash": _evidence_hash(evidence),
             "search_method": "STRUCTURED_TITLE_FIRST_TOPIC_RELEVANCE_V5",
@@ -516,7 +525,7 @@ class TopicReportRepository:
         self.connection.execute(
             """
             UPDATE topic_reports
-            SET status = 'READY', report = %s, usage_metadata = %s,
+            SET status = 'READY', report = %s, usage_metadata = COALESCE(usage_metadata, '{}'::jsonb) || %s,
                 generated_at = now(), lease_owner = NULL,
                 lease_expires_at = NULL, last_error = NULL, updated_at = now()
             WHERE id = %s
@@ -525,15 +534,21 @@ class TopicReportRepository:
         )
         self.prune_retention()
 
-    def fail(self, report_id: uuid.UUID, error: str, *, limited: bool = False) -> None:
+    def fail(self, report_id: uuid.UUID, error: str, *, limited: bool = False,
+             usage_metadata: dict[str, Any] | None = None) -> None:
         self.connection.execute(
             """
             UPDATE topic_reports
             SET status = %s, last_error = %s, lease_owner = NULL,
+                usage_metadata = COALESCE(usage_metadata, '{}'::jsonb) ||
+                    jsonb_build_object('failed_attempts',
+                        COALESCE(usage_metadata->'failed_attempts', '[]'::jsonb) || %s::jsonb),
                 lease_expires_at = NULL, updated_at = now()
             WHERE id = %s
             """,
-            ("LIMIT_REACHED" if limited else "FAILED", error[:240], report_id),
+            ("LIMIT_REACHED" if limited else "FAILED", error[:240],
+             Jsonb([{"error": error[:240], "recorded_at": datetime.now(timezone.utc).isoformat(),
+                     "usage_metadata": usage_metadata or {}}]), report_id),
         )
 
     def get(self, subscriber_id: uuid.UUID, report_id: uuid.UUID) -> dict[str, Any] | None:
@@ -667,6 +682,10 @@ class TopicReportRepository:
             owners = " ".join(f"[{value}]" for value in ministries)
             heading = section.get("heading") or "주요 내용"
             lines += [f"## {owners + ' ' if owners else ''}{heading}", "", str(section.get("body") or ""), ""]
+            for discussion in section.get("discussions") or []:
+                lines += [f"### {discussion.get('heading') or '세부 논의'}", "",
+                          str(discussion.get("body") or ""), "",
+                          "- 근거 ID: " + ", ".join(discussion.get("evidence_ids") or []), ""]
         tasks = report.get("tasks") or []
         if tasks:
             lines += ["## 도출 과제", ""]
@@ -674,6 +693,21 @@ class TopicReportRepository:
                 owners = ", ".join(task.get("ministries") or [])
                 lines.append(f"- {task.get('title')}" + (f" ({owners})" if owners else ""))
             lines.append("")
+        evidence = [*(item.get("evidence") or []), *(item.get("supplementary_evidence") or [])]
+        if evidence:
+            lines += ["## 세부 논의와 요구 과제 전체", "",
+                      f"저장 근거 {len(item.get('evidence') or [])}건과 검색 범위 보완 근거 {len(item.get('supplementary_evidence') or [])}건의 요약·요구 과제를 모두 수록합니다.", ""]
+            supplementary_ids = {str(source.get("id")) for source in item.get("supplementary_evidence") or []}
+            for index, source in enumerate(evidence, 1):
+                if str(source.get("id")) in supplementary_ids:
+                    lines += ["검색 범위 보완 근거 · 기존 AI 요약과 별도로 확인한 자료", ""]
+                lines += [f"### {index}. {source.get('topic_title') or '세부 논의'}", "",
+                          str(source.get("summary") or "요약 없음"), ""]
+                for task in source.get("tasks") or []:
+                    owners = ", ".join(task.get("ministries") or [])
+                    lines.append(f"- 요구·과제: {task.get('title') or ''}" + (f" ({owners})" if owners else ""))
+                lines += ["", f"- 근거 ID: {source.get('id')}",
+                          f"- 근거 회의: {str(source.get('meeting_at') or '')[:10]} · {source.get('meeting_title')}", ""]
         lines += ["## 근거 회의", ""]
         for evidence in item.get("evidence") or []:
             lines.append(

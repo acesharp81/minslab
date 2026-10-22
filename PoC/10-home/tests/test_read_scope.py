@@ -1,7 +1,7 @@
 import unittest
 from datetime import date
 from concurrent.futures import ThreadPoolExecutor
-from backend.read_scope import projection_reads, reuse_rows
+from backend.read_scope import projection_reads, reuse_rows, reuse_projection
 
 class Source:
     known_at = None
@@ -12,6 +12,38 @@ class Source:
         return [{'nested': {'value': self.calls}}]
 
 class ReadScopeTests(unittest.TestCase):
+    def test_metadata_projection_is_request_local_and_mutation_isolated(self):
+        class IndexSource:
+            known_at=None
+            calls=0
+            @reuse_projection
+            def index(self,day):
+                self.calls+=1
+                return [{'nested':{'value':self.calls},'day':day}]
+        s=IndexSource();day=date(2026,10,22)
+        with projection_reads():
+            s.index(day)[0]['nested']['value']=999
+            self.assertEqual(s.index(day)[0]['nested']['value'],1)
+            s.index(date(2026,10,21))
+            s.known_at='older';s.index(day)
+        with projection_reads():s.index(day)
+        self.assertEqual(s.calls,4)
+
+    def test_fast_row_copy_preserves_types_and_mutable_aliases_within_each_copy(self):
+        class TypedSource:
+            known_at=None
+            @reuse_rows
+            def rows(self,*args):
+                shared={'units':8}
+                return [{1:(date(2026,10,20),shared), 'same':shared}]
+        s=TypedSource()
+        with projection_reads():
+            first=s.rows('project');first[0]['same']['units']=96
+            assert first[0][1][1]['units']==96
+            second=s.rows('project')
+            assert second[0][1][0]==date(2026,10,20)
+            assert second[0]['same']['units']==8
+            assert second[0][1][1] is second[0]['same']
     def test_mutations_do_not_leak_and_next_build_reads_fresh(self):
         s = Source()
         with projection_reads():

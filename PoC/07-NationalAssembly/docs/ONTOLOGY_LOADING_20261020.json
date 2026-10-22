@@ -1,0 +1,220 @@
+{
+  "api_image": "poc07-national-assembly-api:ontology-snapshot-20261020",
+  "original_api_seconds": 38.466353,
+  "live_checks": {
+    "api": [
+      {
+        "round": 1,
+        "seconds": 0.039,
+        "status": "LOADING",
+        "metrics_valid": false
+      },
+      {
+        "round": 2,
+        "seconds": 0.013,
+        "status": "LOADING",
+        "metrics_valid": false
+      },
+      {
+        "round": 3,
+        "seconds": 0.014,
+        "status": "LOADING",
+        "metrics_valid": false
+      }
+    ],
+    "browser": [
+      {
+        "base": "https://kjon.aigov.go.kr",
+        "first_3d_seconds": 4.86,
+        "reopen_seconds": 0.378,
+        "metrics": "정책 영역\n5\n세부 분류\n70\n저장 보고서\n44\n공식 대조본\n17\n정책 주제\n3,623건\n분류된 주제\n2,722건\n공통 분류 연결률\n75.1%\n분류 보류\n901건\n초안 산출물\n8건\n무결성 오류\n0건",
+        "errors": []
+      },
+      {
+        "base": "https://www.minslab.kr/poc/national-assembly",
+        "first_3d_seconds": 2.5,
+        "reopen_seconds": 0.086,
+        "metrics": "정책 영역\n5\n세부 분류\n70\n저장 보고서\n44\n공식 대조본\n17\n정책 주제\n3,623건\n분류된 주제\n2,722건\n공통 분류 연결률\n75.1%\n분류 보류\n901건\n초안 산출물\n8건\n무결성 오류\n0건",
+        "errors": []
+      }
+    ],
+    "metrics_equal_before": true
+  },
+  "resilience_checks": [
+    {
+      "cold_counts_pending": true,
+      "snapshot_ready": true,
+      "selection_preserved": true,
+      "failed_refresh_preserves_map": true,
+      "webgl_loss_fallback": true,
+      "close_stops_polling": true,
+      "errors": []
+    },
+    {
+      "module_failure_fallback": true,
+      "mobile_no_overflow": true,
+      "errors": []
+    }
+  ],
+  "backend_tests_passed": 7,
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  }
+}

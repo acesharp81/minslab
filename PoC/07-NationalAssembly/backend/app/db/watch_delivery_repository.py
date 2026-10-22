@@ -256,6 +256,8 @@ class WatchDeliveryRepository:
             WITH candidate AS (
                 SELECT outbox.id
                 FROM notification_outbox outbox
+                JOIN watch_notifications n ON n.id=outbox.notification_id
+                LEFT JOIN watch_dispatches d ON d.id=n.dispatch_id
                 JOIN watch_kakao_accounts account
                   ON account.subscriber_id = outbox.subscriber_id
                  AND account.status = 'ACTIVE'
@@ -264,7 +266,15 @@ class WatchDeliveryRepository:
                   AND outbox.attempt_count < 3
                   AND outbox.next_attempt_at <= now()
                   AND (outbox.lease_expires_at IS NULL OR outbox.lease_expires_at < now())
-                ORDER BY outbox.created_at
+                  AND NOT EXISTS (
+                    SELECT 1 FROM notification_outbox earlier
+                    JOIN watch_notifications en ON en.id=earlier.notification_id
+                    JOIN watch_dispatches ed ON ed.id=en.dispatch_id
+                    WHERE earlier.subscriber_id=outbox.subscriber_id AND earlier.channel='KAKAO'
+                      AND earlier.status IN ('PENDING','FAILED','SENDING') AND earlier.attempt_count<3
+                      AND ed.sequence<d.sequence
+                  )
+                ORDER BY outbox.created_at, d.sequence NULLS FIRST, outbox.id
                 FOR UPDATE OF outbox SKIP LOCKED LIMIT 1
             )
             UPDATE notification_outbox outbox
@@ -281,7 +291,8 @@ class WatchDeliveryRepository:
         outbox_id, subscriber_id, notification_id, attempt_count = row
         notification = self.connection.execute(
             """
-            SELECT title, body, session_id FROM watch_notifications WHERE id = %s
+            SELECT n.title, COALESCE(d.details->>'kakao_body', n.body), n.session_id, n.dispatch_id
+            FROM watch_notifications n LEFT JOIN watch_dispatches d ON d.id=n.dispatch_id WHERE n.id = %s
             """,
             (notification_id,),
         ).fetchone()
@@ -293,7 +304,7 @@ class WatchDeliveryRepository:
             "outbox_id": outbox_id, "subscriber_id": subscriber_id,
             "notification_id": notification_id, "attempt_count": int(attempt_count),
             "title": notification[0], "body": notification[1],
-            "session_id": notification[2], "account": account,
+            "session_id": notification[2], "dispatch_id": notification[3], "account": account,
         }
 
     def finish(
@@ -306,6 +317,8 @@ class WatchDeliveryRepository:
         ).fetchone()
         attempts = int(row[0] if row else 0) + 1
         status = "SENT" if sent else "FAILED"
+        if not sent and not retryable:
+            attempts = 3
         delay_minutes = min(60, 2 ** max(0, attempts - 1)) if retryable and attempts < 3 else 0
         self.connection.execute(
             """

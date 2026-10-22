@@ -7,6 +7,7 @@ def sequence_checks(cells):
     def actual(stage):return any(f.get('kind')=='ACTUAL' and not f.get('scope_partial') for f in facts(stage))
     def planned(stage):return any(f.get('kind')=='PLAN' for f in facts(stage))
     result=[]
+    for c in cells.values():c['date_order_conflicts']=[]
     for downstream,prereqs in (('MOVE_IN',('APPROVAL','CONSTRUCTION','SUPPLY')),('SUPPLY',('APPROVAL','CONSTRUCTION')),('CONSTRUCTION',('BUSINESS','APPROVAL'))):
         observed=any(f.get('kind')=='ACTUAL' for f in facts(downstream));plan=planned(downstream)
         if not observed and not plan:continue
@@ -18,4 +19,17 @@ def sequence_checks(cells):
             result.append(dict(stage=stage,downstream=downstream,code='PREDECESSOR_SOURCE_GAP' if observed else 'PLAN_PREDECESSOR_CHECK',
                 priority='HIGH' if observed else 'NORMAL',label=LABELS[downstream]+(' 실적' if observed else ' 예정')+' 대비 '+LABELS[stage]+' 근거 확인',
                 reason=explanation+' · 자동 완료 보정 금지; 공식 고시·공사 상세·모집공고 우선 수집'))
+    from .stage_chronology import EDGES,estimated_field
+    for kind in ('target','measurement'):
+        rows={r['milestone']:r for c in cells.values() for r in c.get('management',{}).get(kind,[])}
+        for before,after in EDGES:
+            a,b=rows.get(before,{}),rows.get(after,{})
+            if not a.get('date') or not b.get('date') or a['date']<=b['date']:continue
+            estimated=estimated_field(a,'date') or estimated_field(b,'date')
+            result.append(dict(stage=before,downstream=after,code='ESTIMATED_DATE_ORDER_CONFLICT' if estimated else 'SOURCE_DATE_ORDER_CONFLICT',priority='HIGH',label='선후관계 확인 · '+('목표' if kind=='target' else '측정값'),reason=f"{before} {a['date']} → {after} {b['date']} · "+('추정일 산정 근거 재검토' if estimated else '원천 날짜 상충 · 최초/변경 인허가와 사건 범위 확인 필요 · 원천값 보존')))
+    for conflict in result:
+        if conflict['code'] not in ('SOURCE_DATE_ORDER_CONFLICT','ESTIMATED_DATE_ORDER_CONFLICT'):continue
+        for s in {conflict['stage'],conflict['downstream']}:
+            cell=cells.get('CONSTRUCTION' if s=='COMPLETION' else s)
+            if cell is not None:cell['date_order_conflicts'].append(conflict)
     return result

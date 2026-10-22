@@ -7,14 +7,15 @@ from typing import Any, Iterable
 
 import requests
 
+from .openrouter_gateway_client import openrouter_headers
 from .summary_contract import (
     PROMPT_VERSION as COMMON_PROMPT_VERSION,
+)
+from .summary_contract import (
     build_summary_prompt,
     summary_response_schema,
     validated_summary_items,
 )
-from .openrouter_gateway_client import openrouter_headers
-
 
 PROVIDER = "openrouter"
 PROMPT_VERSION = COMMON_PROMPT_VERSION
@@ -70,7 +71,7 @@ class OpenRouterSummaryClient:
         *,
         model: str = DEFAULT_MODEL,
         base_url: str = "https://openrouter.ai/api/v1",
-        timeout_seconds: float = 90.0,
+        timeout_seconds: float = 210.0,
     ) -> None:
         if not api_key.strip():
             raise ValueError("OPENROUTER_API_KEY is required")
@@ -89,14 +90,24 @@ class OpenRouterSummaryClient:
             ],
             "stream": False,
             "temperature": 0.1,
-            "max_tokens": 4096,
+            "max_tokens": 8192,
             "response_format": {"type": "json_schema", "json_schema": {"name": "assembly_summaries", "strict": True, "schema": summary_response_schema()}},
-            "reasoning": {"effort": "none", "exclude": True},
+            # Some endpoints require reasoning. Exclude its text without disabling it.
+            "reasoning": {"exclude": True},
             "provider": {
                 "data_collection": "allow",
                 "allow_fallbacks": True, "require_parameters": True,
             },
         }
+        # Provider capabilities checked 2026-10-22: these approved free models
+        # support optional reasoning. Exclude mandatory-reasoning fallbacks.
+        optional_reasoning_models = [
+            "nvidia/nemotron-3-super-120b-a12b:free",
+            "dots-studio/dots-3-note-preview:free",
+        ]
+        if self.model in optional_reasoning_models:
+            body["models"] = [self.model] + [m for m in optional_reasoning_models if m != self.model]
+            body["reasoning"] = {"enabled": False, "exclude": True}
         response = None
         for attempt in range(MAX_ATTEMPTS):
             response = requests.post(

@@ -62,6 +62,7 @@ from .services.meeting_topic_groups import (
     build_meeting_topic_ontology,
 )
 from .services.ontology_sources import select_current_ontology_brief
+from .services.ontology_snapshot import OntologySnapshotCache
 from .services.meeting_sessions import build_meeting_sessions
 from .services.mistral_budget import mistral_usage_cost_usd
 from .services.official_brief_integration import build_official_brief_integration
@@ -123,8 +124,6 @@ class WatchRulePayload(BaseModel):
     exclude_terms: list[str] = Field(default_factory=list, max_length=10)
     institution: str | None = None
     committee_name: str | None = Field(default=None, max_length=80)
-    notification_policy: str = "FIRST_PER_MEETING"
-    digest_enabled: bool = False
     kakao_enabled: bool = False
 
 
@@ -134,8 +133,6 @@ class WatchRuleUpdatePayload(BaseModel):
     exclude_terms: list[str] | None = Field(default=None, max_length=10)
     institution: str | None = None
     committee_name: str | None = Field(default=None, max_length=80)
-    notification_policy: str | None = None
-    digest_enabled: bool | None = None
     kakao_enabled: bool | None = None
     enabled: bool | None = None
 
@@ -150,25 +147,6 @@ class WatchReviewDecisionPayload(BaseModel):
     note: str = Field(default="", max_length=500)
     reviewed_by: str = Field(default="operator", min_length=1, max_length=80)
 
-
-
-WATCH_NOTIFICATION_POLICIES = {
-    "FIRST_PER_MEETING",
-    "FIRST_PER_SPEAKER",
-    "ONCE_PER_10_MINUTES",
-    "INTERVAL_15_MINUTES",
-    "INTERVAL_30_MINUTES",
-    "INTERVAL_60_MINUTES",
-    "EVERY_MATCH",
-}
-
-
-def _watch_cooldown_minutes(policy: str) -> int:
-    return {
-        "INTERVAL_15_MINUTES": 15,
-        "INTERVAL_30_MINUTES": 30,
-        "INTERVAL_60_MINUTES": 60,
-    }.get(policy, 10)
 
 
 def _clean_watch_terms(values: list[str]) -> list[str]:
@@ -1194,7 +1172,14 @@ def committee_policy_flow(committee: str | None = None) -> dict[str, object]:
 
 
 @app.get("/api/policy/cross-institution-flow", tags=["policy"])
-def cross_institution_policy_flow(committee: str | None = None) -> dict[str, object]:
+def cross_institution_policy_flow(committee: str | None = None,
+                                  limit: int | None = None, offset: int = 0,
+                                  q: str = "") -> dict[str, object]:
+    from .services.insight_pagination import insight_page
+    if (limit is not None and not 1 <= limit <= 500) or offset < 0:
+        raise HTTPException(status_code=422, detail="invalid pagination")
+    if len(q) > 200:
+        raise HTTPException(status_code=422, detail="search query exceeds 200 characters")
     if committee and committee not in TARGET_COMMITTEES:
         raise HTTPException(
             status_code=422, detail="committee is outside the target scope"
@@ -1230,18 +1215,23 @@ def cross_institution_policy_flow(committee: str | None = None) -> dict[str, obj
         raise HTTPException(
             status_code=503, detail="기관 간 정책 흐름을 조회할 수 없습니다."
         ) from exc
-    return {
+    return insight_page({
         **result,
         "committee_filter": committee,
         "source_status": "OFFICIAL_EXECUTIVE_WITH_SPECIFIC_REPORT_TOPIC_LINK",
-    }
+    }, limit, offset, q=q)
 
 
 @app.get("/api/policy/specific-issues", tags=["policy"])
-def specific_policy_issues(limit: int | None = None) -> dict[str, object]:
+def specific_policy_issues(limit: int | None = None, offset: int = 0,
+                          category: str = "all", q: str = "") -> dict[str, object]:
     """Return concrete report topics, their recurrence, and transition evidence."""
     if limit is not None and not 1 <= limit <= 500:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 500")
+    if offset < 0 or category not in {"all", "institution"}:
+        raise HTTPException(status_code=422, detail="invalid insight page filter")
+    if len(q) > 200:
+        raise HTTPException(status_code=422, detail="search query exceeds 200 characters")
     try:
         with connect(get_settings().database_url) as connection:
             result = PolicyIssueRepository(connection).specific_issue_flow()
@@ -1249,20 +1239,25 @@ def specific_policy_issues(limit: int | None = None) -> dict[str, object]:
         raise HTTPException(
             status_code=503, detail="구체 정책 쟁점을 조회할 수 없습니다."
         ) from exc
-    if limit is None:
-        return result
-    items = list(result.get("items") or [])[:limit]
-    return {
-        **result,
-        "items": items,
-        "count": len(items),
-        "total_count": int(result.get("count") or len(items)),
-    }
+    from .services.insight_pagination import insight_page
+    return insight_page(result, limit, offset, category, q)
+
+
+_ontology_snapshot_cache = OntologySnapshotCache()
 
 
 @app.get("/api/policy/ontology", tags=["policy"])
-def policy_ontology() -> dict[str, object]:
-    """Return the topic ontology plus usage and integrity metrics."""
+def policy_ontology(background: bool = False, refresh: bool = False) -> dict[str, object]:
+    """Return full metrics, or an immediate taxonomy/cached snapshot for the UI."""
+    if background:
+        return _ontology_snapshot_cache.get(
+            _build_policy_ontology, build_meeting_topic_ontology, refresh=refresh,
+        )
+    return _build_policy_ontology()
+
+
+def _build_policy_ontology() -> dict[str, object]:
+    """Compute the original, authority-checked report projection without model calls."""
     try:
         with connect(get_settings().database_url) as connection:
             items = MeetingBriefRepository(connection).latest_all()
@@ -1838,12 +1833,19 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
             public["provisional_brief"] = public["brief"]
             public["brief"] = structure
             public["default_brief_view"] = "STRUCTURED"
+    from .services.report_presentation import narrative_projection
+    seen_briefs = set()
+    for field in ("brief", "provisional_brief", "official_brief", "structured_brief"):
+        displayed = public.get(field)
+        if isinstance(displayed, dict) and id(displayed) not in seen_briefs:
+            seen_briefs.add(id(displayed))
+            displayed["report_summary"] = narrative_projection(displayed)
     return public
 
 
 def _meeting_brief_markdown(record: dict[str, object]) -> str:
     brief = dict(record.get("brief") or {})
-    if not brief.get("topic_structure"):
+    if not brief.get("topic_structure") and not brief.get("report_summary"):
         brief = attach_meeting_topic_groups(link_tasks_to_topics(brief))
     integration = dict(record.get("official_integration") or {})
     lines = [
@@ -1862,6 +1864,25 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
             "> 공식 회의록 발언·화자 반영 · 주제 요약은 LIVE 초안 기반(내용 대조 지연)",
             "",
         ]
+    from .services.report_presentation import narrative_projection
+    narrative = narrative_projection(brief)
+    if narrative is not None:
+        lines.extend(("> AI 요약 · 잠정 — 공식 근거의 자료 상태와 구분됩니다.", ""))
+        summary_by_id = {t['id']: t for t in narrative.get('topics', [])}
+        for group in narrative.get('topic_groups', []):
+            lines.extend((f"### {group['title']}", ""))
+            for topic_id in group['topic_ids']:
+                topic = summary_by_id[topic_id]
+                lines.extend((f"#### {topic['title']}", "", topic['summary'], ""))
+                lines.extend(f"- {p['summary']}" for p in topic.get('speaker_points', []))
+                for task in brief.get('tasks', []):
+                    if task['id'] in topic.get('task_ids', []):
+                        owners = ', '.join(task.get('ministries') or [])
+                        lines.append(f"- **과제**: {task['title']}" + (f" · {owners}" if owners else ""))
+                lines.append("")
+        if not narrative.get("topics"):
+            lines.extend(("AI 주요 논의 요약 생성 대기 중입니다.", ""))
+        lines.extend(("<details>", "<summary>세부 쟁점과 근거 원문</summary>", ""))
     detailed_topics = brief.get("topics") or []
     topic_by_id = {
         str(topic.get("id")): topic for topic in detailed_topics if topic.get("id")
@@ -1899,11 +1920,13 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
                 lines.extend(("> 실시간 근거로 복원한 보완 쟁점 · 잠정 · 공식 원문 대조 필요", ""))
             for point in topic.get("speaker_points") or []:
                 lines.append(
-                    f"- {point.get('speaker_label') or '화자 확인 중'}: "
+                    f"- {'[근거 원문] ' if point.get('summary_kind') == 'SOURCE_QUOTE' else ''}{point.get('speaker_label') or '화자 확인 중'}: "
                     f"{point.get('summary') or ''}"
                 )
             if topic.get("speaker_points"):
                 lines.append("")
+    if narrative is not None:
+        lines.extend(("</details>", ""))
     lineage = brief.get("live_topic_lineage") or {}
     resolution = record.get("live_topic_resolution") or {}
     if resolution and not brief.get("topic_structure"):
@@ -2114,7 +2137,7 @@ def ended_live_broadcast_brief_evidence(
     entity_id: str,
 ) -> dict[str, object]:
     if entity_type not in {
-        "topic", "topic_group", "task", "speaker", "live_topic_cluster", "structure_review",
+        "topic", "topic_group", "task", "speaker", "live_topic_cluster", "structure_review", "summary_topic", "summary_speaker",
     }:
         raise HTTPException(status_code=422, detail="unsupported evidence entity type")
     if not entity_id or len(entity_id) > 80:
@@ -2141,7 +2164,7 @@ def ended_live_broadcast_brief_evidence(
                 if integration and integration.get("status") == "READY"
                 else brief.get("brief") or {}
             )
-            is_structured = entity_id.startswith("structured-")
+            is_structured = entity_id.startswith("structured-") or entity_type in {"summary_topic", "summary_speaker"}
             if is_structured:
                 evidence_brief = TopicStructureRepository(connection).ready_current(brief)
                 if not evidence_brief:
@@ -2173,7 +2196,17 @@ def ended_live_broadcast_brief_evidence(
                     ),
                 )
             group_topic_ids: list[str] = []
-            if entity_type == "topic_group":
+            if entity_type in {"summary_topic", "summary_speaker"}:
+                summary_topics = evidence_brief.get("report_summary", {}).get("topics", [])
+                entities = summary_topics if entity_type == "summary_topic" else [
+                    p for t in summary_topics for p in t.get("speaker_points", [])]
+                topic = next((t for t in entities
+                              if t["id"] == entity_id), None)
+                if not topic:
+                    raise HTTPException(status_code=404, detail="요약 주제를 찾을 수 없습니다.")
+                evidence_ids = list(topic.get("evidence_ids") or [])
+                official_ids = []
+            elif entity_type == "topic_group":
                 group = next(
                     (
                         value for value in evidence_brief.get("topic_groups") or []
@@ -2576,8 +2609,6 @@ def create_watch_rule(
 ) -> dict[str, object]:
     if payload.institution and payload.institution not in ALLOWED_INSTITUTIONS:
         raise HTTPException(status_code=422, detail="지원하지 않는 기관 범위입니다.")
-    if payload.notification_policy not in WATCH_NOTIFICATION_POLICIES:
-        raise HTTPException(status_code=422, detail="지원하지 않는 알림 빈도입니다.")
     includes = _clean_watch_terms(payload.include_terms)
     excludes = (
         _clean_watch_terms(payload.exclude_terms) if payload.exclude_terms else []
@@ -2592,9 +2623,6 @@ def create_watch_rule(
                 exclude_terms=excludes,
                 institution=payload.institution,
                 committee_name=(payload.committee_name or "").strip() or None,
-                notification_policy=payload.notification_policy,
-                cooldown_minutes=_watch_cooldown_minutes(payload.notification_policy),
-                digest_enabled=payload.digest_enabled,
                 kakao_enabled=payload.kakao_enabled,
             )
     except HTTPException:
@@ -2617,11 +2645,6 @@ def update_watch_rule(
     values = payload.model_dump(exclude_unset=True)
     if values.get("institution") and values["institution"] not in ALLOWED_INSTITUTIONS:
         raise HTTPException(status_code=422, detail="지원하지 않는 기관 범위입니다.")
-    if (
-        values.get("notification_policy")
-        and values["notification_policy"] not in WATCH_NOTIFICATION_POLICIES
-    ):
-        raise HTTPException(status_code=422, detail="지원하지 않는 알림 빈도입니다.")
     if "include_terms" in values:
         values["include_terms"] = _clean_watch_terms(values["include_terms"])
     if "exclude_terms" in values:
@@ -2632,10 +2655,6 @@ def update_watch_rule(
         )
     if "name" in values:
         values["name"] = " ".join(values["name"].split())
-    if "notification_policy" in values:
-        values["cooldown_minutes"] = _watch_cooldown_minutes(
-            values["notification_policy"]
-        )
     try:
         with connect(get_settings().database_url) as connection:
             subscriber_id = _watch_subscriber(connection, x_watch_token)
@@ -3208,3 +3227,14 @@ if WEB_DIR.is_dir():
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(Path(WEB_DIR) / "index.html")
+
+
+@app.get("/api/watch/dispatches/{dispatch_id}", tags=["watch"])
+def watch_dispatch_detail(dispatch_id: UUID, x_watch_token: str | None = Header(default=None)) -> dict[str, object]:
+    from .db.watch_lifecycle_repository import WatchLifecycleRepository
+    with connect(get_settings().database_url) as connection:
+        subscriber_id = _watch_subscriber(connection, x_watch_token)
+        item = WatchLifecycleRepository(connection).detail(subscriber_id, dispatch_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="발송 요약을 찾을 수 없습니다.")
+    return item

@@ -1,0 +1,188 @@
+--- a/main.py
++++ b/main.py
+@@ -158,21 +158,12 @@
+ HOME_BASE_PATH = "/poc/home"
+ HOME_UPSTREAM = env_first("POC10_UPSTREAM", default="http://127.0.0.1:18100").rstrip("/")
+ HOME_PAGE = Path(__file__).parent / "PoC" / "10-home" / "web" / "index.html"
+-POC12_BASE_PATH = "/poc/housing-board"
+-POC12_UPSTREAM = env_first("POC12_UPSTREAM", default="http://127.0.0.1:18120").rstrip("/")
+-POC12_PROXY_PATH = Path(__file__).parent / "PoC" / "12-housing-board" / "bridge.py"
+-POC12_PROXY = None
+-POC11_BASE_PATH = "/poc/consultation-cases"
+-POC11_SERVICE_PATH = Path(__file__).parent / "PoC" / "11-consultation-cases" / "service.py"
+-POC11_SERVICE = None
+ POC_SHORTCUT_REDIRECTS = {
+     "/press": f"{MASTER_PRESS_BASE_PATH}/",
+     "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
+     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
+     "/mmj": f"{MMJ_BASE_PATH}/",
+     "/home": f"{HOME_BASE_PATH}/",
+-    "/home2": POC12_BASE_PATH,
+-    "/counsel": f"{POC11_BASE_PATH}/",
+ }
+ AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
+     5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
+@@ -1442,20 +1433,6 @@
+     return module
+ 
+ 
+-def load_poc12_proxy():
+-    global POC12_PROXY
+-    if POC12_PROXY is None:
+-        POC12_PROXY = load_module_from_path("poc12_bridge", POC12_PROXY_PATH)
+-    return POC12_PROXY
+-
+-
+-def load_poc11_service():
+-    global POC11_SERVICE
+-    if POC11_SERVICE is None:
+-        POC11_SERVICE = load_module_from_path("poc11_service", POC11_SERVICE_PATH)
+-    return POC11_SERVICE
+-
+-
+ def load_ai_safe_agent_module():
+     global AI_SAFE_AGENT_MODULE, AI_SAFE_AGENT_MTIME
+     mtime = AI_SAFE_AGENT_PATH.stat().st_mtime_ns
+@@ -2325,7 +2302,6 @@
+     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
+     if scope["type"] == "lifespan":
+         metrics_task = None
+-        poc11_task = None
+         master_press_tasks = []
+         owns_master_press_worker_lock = False
+         while True:
+@@ -2338,9 +2314,6 @@
+                 except (OSError, ValueError, RuntimeError) as error:
+                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
+                 metrics_task = asyncio.create_task(collect_system_metrics())
+-                poc11_service = load_poc11_service()
+-                if env_first("POC11_SCHEDULER_ENABLED", default="1").lower() not in {"0", "false", "no"}:
+-                    poc11_task = asyncio.create_task(poc11_service.scheduler_loop())
+                 if not master_press_is_paused():
+                     master_press_tasks.append(asyncio.create_task(warm_master_press_read_caches()))
+                 if MASTER_PRESS_BACKGROUND_ENABLED and not master_press_is_paused():
+@@ -2349,12 +2322,6 @@
+                     print("Master Press background workers disabled (set MASTER_PRESS_BACKGROUND_ENABLED=1 to enable).", file=sys.stderr)
+                 await send({"type": "lifespan.startup.complete"})
+             elif message["type"] == "lifespan.shutdown":
+-                if poc11_task is not None:
+-                    poc11_task.cancel()
+-                    try:
+-                        await poc11_task
+-                    except asyncio.CancelledError:
+-                        pass
+                 if metrics_task is not None:
+                     metrics_task.cancel()
+                     try:
+@@ -2436,14 +2403,6 @@
+         ]
+         await send({"type": "http.response.start", "status": 307, "headers": headers})
+         await send({"type": "http.response.body", "body": b""})
+-        return
+-
+-    if path == POC12_BASE_PATH or path.startswith(f"{POC12_BASE_PATH}/"):
+-        await load_poc12_proxy().proxy_poc12(scope, receive, send, POC12_UPSTREAM)
+-        return
+-
+-    if path == POC11_BASE_PATH or path.startswith(f"{POC11_BASE_PATH}/"):
+-        await load_poc11_service().handle_http(scope, receive, send, is_admin=bool(admin_session(scope)))
+         return
+ 
+     if path == HOME_BASE_PATH or path.startswith(f"{HOME_BASE_PATH}/"):
+--- a/README.md
++++ b/README.md
+@@ -21,8 +21,6 @@
+ | PoC 06 | AI Work Hub | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
+ | PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
+ | PoC 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
+-| PoC 11 | 상담사례 아카이브 | `/poc/consultation-cases` · `/counsel` | [PoC/11-consultation-cases](PoC/11-consultation-cases/README.md) |
+-| PoC 12 | 주택파동 · 9·7 정책 실데이터 상황판 | `/poc/housing-board` · `/home2` | [PoC/12-housing-board](PoC/12-housing-board/README.md) |
+ 
+ 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
+ 
+@@ -36,7 +34,6 @@
+   ├─ static workspace: AI Work Hub
+   ├─ proxied independent app: National Assembly
+   ├─ proxied independent app: HOME (localhost:18100)
+-  ├─ proxied independent app: Housing Board (localhost:18120)
+   └─ Streaming clients: Chat, RAG compare, AI Safe Assistant
+           │ HTTPS
+           ▼
+--- a/.gitignore
++++ b/.gitignore
+@@ -18,21 +18,15 @@
+ /data/
+ *.log
+ analysis/
+-!PoC/12-housing-board/docs/analysis/
+-!PoC/12-housing-board/docs/analysis/**
+ *_report_test*.json
+ gemma*_report*.json
+ qwen*_report*.json
+ 
+ # Large or source documents used during local experiments
+ *.hwpx
+-!PoC/12-housing-board/data/raw/lh/public/*.hwpx
+ PoC/04-master-press/data/
+ # Generated PoC data artifacts
+ PoC/**/*.csv
+-!PoC/12-housing-board/data/raw/**/*.csv
+-!PoC/12-housing-board/data/processed/*.csv
+-!PoC/12-housing-board/docs/data-interface/**/*.csv
+ !PoC/07-NationalAssembly/docs/SPEAKER_REVIEW_QUEUE_2026-09-27.csv
+ !PoC/07-NationalAssembly/docs/ONTOLOGY_REVIEW_QUEUE_2026-09-27.csv
+ PoC/**/*.pkl
+@@ -43,4 +37,3 @@
+ .vscode/
+ .idea/
+ *.orig
+-PoC/11-consultation-cases/data/
+--- a/PoC/README.md
++++ b/PoC/README.md
+@@ -14,8 +14,6 @@
+ | 06 | [AI Work Hub](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
+ | 07 | [07-NationalAssembly](07-NationalAssembly/README.md) | 국무회의·국회 회의·의안·표결의 공식 원문 기반 정책 흐름 | 독립 FastAPI + PostgreSQL + 루트 reverse proxy |
+ | 10 | [HOME](10-home/README.md) | 정부 정책과 서울·경기 사업 후보 수집·검토·현황 조회 | 독립 FastAPI + PostgreSQL/PostGIS + 루트 reverse proxy |
+-| 11 | [상담사례 아카이브](11-consultation-cases/README.md) | 통합콜센터 Q&A 수집·버전·RAG Markdown | 루트 ASGI + 파일 저장 |
+-| 12 | [주택파동](12-housing-board/README.md) | 9·7 정책 실데이터 상황판·3D 공급 지도 | 독립 Next.js + 루트 reverse proxy |
+ 
+ ## 등록 방식
+ 
+@@ -78,20 +76,9 @@
+ /poc/home/*
+   └─ PoC 10 HOME 독립 FastAPI 서비스(기본 localhost:18100) reverse proxy
+ 
+-/poc/consultation-cases/*
+-  └─ PoC 11 수집 현황·JSON/Markdown 다운로드
+-
+-/home2
+-  └─ /poc/housing-board로 이동
+-
+-/poc/housing-board/*
+-  └─ PoC 12 주택파동 독립 Next.js 서비스(기본 localhost:18120) reverse proxy
+-
+ /api/poc/*
+   └─ 서버 비밀값, 외부 API, 관리자 권한, LLM 호출 경계
+ ```
+-
+-PoC 12는 Next.js 앱을 독립 Node.js 프로세스로 실행하며 루트 ASGI가 `/poc/housing-board/`로 중계합니다.
+ 
+ PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다. 운영에서는 별도 Node 프로세스나 포트를 열지 않고 루트 ASGI가 `dist/` 파일을 제공합니다. PoC 07은 부모 저장소와 런타임을 공유하지 않는 독립 서비스이며, 루트 ASGI는 같은 출처의 `/poc/national-assembly/` 경로로만 프록시합니다.
+ 
+@@ -112,7 +99,6 @@
+ | 북한 야간조명 | `GEE_PROJECT` |
+ | AI Work Hub (`aiworks` 호환 식별자) | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_SOLAR_LIVE`, `AIWORKS_LOCAL_MCP_LIVE`, `AIWORKS_RHWP_*` |
+ | 국회 PoC 프록시 | `NATIONAL_ASSEMBLY_UPSTREAM` |
+-| 주택파동 PoC 프록시 | `POC12_UPSTREAM` |
+ 
+ Vite의 `VITE_*` 값과 Supabase publishable key는 브라우저 공개값입니다. service-role과 LLM API key는 어떤 경우에도 브라우저 번들에 넣지 않습니다.
+ 
+--- a/.env.example
++++ b/.env.example
+@@ -141,6 +141,3 @@
+ MINSLAB_MONITOR_URL=https://YOUR_DOMAIN/health
+ # 원본 IP 방문 이벤트 보존일입니다. 일별 누적 통계는 계속 유지됩니다.
+ MINSLAB_ANALYTICS_RETENTION_DAYS=90
+-
+-# PoC 12 주택파동 독립 Next.js 서비스의 내부 중계 주소입니다.
+-POC12_UPSTREAM=http://127.0.0.1:18120

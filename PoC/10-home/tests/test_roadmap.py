@@ -128,15 +128,14 @@ class RoadmapTests(unittest.TestCase):
         filtered=self.client.get('/poc/home/api/roadmap/export.csv?target_filter=missing').text
         self.assertNotIn('사업 A',filtered)
 
-    def test_expanded_samples_pagination_keeps_total_and_csv_scope(self):
+    def test_expanded_samples_pagination_keeps_total(self):
         with self.service.sessions.begin() as session:
             for index in range(215):
                 upsert_revision(session,'notice','cheongyak',str(index),{'name':f'공고 {index}','sample_kind':'notice',
                                 'region':'서울특별시','base_date':today().isoformat(),'source_object_id':str(index)},'test')
-        first=self.client.get('/poc/home/api/samples?page_size=100').json()
-        last=self.client.get('/poc/home/api/samples?page=3&page_size=100').json()
+        first=self.service.sample_page(page_size=100)
+        last=self.service.sample_page(page=3,page_size=100)
         self.assertEqual(first['total'],215)
         self.assertEqual(len(first['items']),100)
         self.assertEqual(len(last['items']),15)
         self.assertEqual(first['counts']['notice'],215)
-        self.assertEqual(len(self.client.get('/poc/home/api/samples/export.csv').text.splitlines()),216)

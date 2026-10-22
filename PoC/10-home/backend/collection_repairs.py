@@ -2,7 +2,8 @@
 import hashlib
 import json
 from datetime import datetime, time, timedelta
-from sqlalchemy import select, func, text
+from sqlalchemy import select, func, text, values, column, String, true
+from sqlalchemy.orm import aliased
 from .db import Audit, Revision, upsert_revision, entity_id, now
 from .service import today, KST
 
@@ -140,6 +141,22 @@ def applies(repair, item):
     return bool(sources.intersection(repair.get('source_ids', [])))
 
 
+def recent_link_changes(entities, cutoff, dialect):
+    """Three changes per entity, using bounded index probes on PostgreSQL."""
+    if dialect == 'postgresql':
+        targets = values(column('entity_id', String), name='audit_targets').data(
+            [(eid,) for eid in sorted(entities)])
+        latest = select(Audit).where(Audit.entity_id == targets.c.entity_id,
+            Audit.action.in_(ACTIONS), Audit.recorded_at < cutoff).order_by(
+            Audit.recorded_at.desc(), Audit.id.desc()).limit(3).correlate(targets).lateral('latest')
+        return select(aliased(Audit, latest)).select_from(targets.join(latest, true()))
+    # SQLite has no LATERAL; keep identical per-entity ordering in local tests.
+    ranked = select(Audit.id, func.row_number().over(partition_by=Audit.entity_id,
+        order_by=(Audit.recorded_at.desc(), Audit.id.desc())).label('rn')).where(
+        Audit.entity_id.in_(entities), Audit.action.in_(ACTIONS), Audit.recorded_at < cutoff).subquery()
+    return select(Audit).join(ranked, Audit.id == ranked.c.id).where(ranked.c.rn <= 3)
+
+
 def enrich(service, items, reference):
     repairs = service.rows(KIND, reference)
     repairs.sort(key=lambda r: (r['base_date'], r['id']), reverse=True)
@@ -157,11 +174,8 @@ def enrich(service, items, reference):
         entities.update(r['id'] for r in service.rows(kind, reference) if r.get('project_id') in lookup and r.get('id'))
     cutoff = datetime.combine(reference + timedelta(days=1), time.min, KST)
     if entities:
-        ranked = select(Audit.id, func.row_number().over(partition_by=Audit.entity_id,
-            order_by=(Audit.recorded_at.desc(), Audit.id.desc())).label('rn')).where(
-            Audit.entity_id.in_(entities), Audit.action.in_(ACTIONS), Audit.recorded_at < cutoff).subquery()
         with service.sessions() as db:
-            changes = db.scalars(select(Audit).join(ranked, Audit.id == ranked.c.id).where(ranked.c.rn <= 3)).all()
+            changes = db.scalars(recent_link_changes(entities, cutoff, service.engine.dialect.name)).all()
         for change in changes:
             after, before = change.after or {}, change.before or {}
             pid = after.get('project_id') or before.get('project_id') or change.entity_id

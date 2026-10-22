@@ -11,6 +11,11 @@ from urllib.parse import urlparse
 import httpx
 
 PREFIX = "/poc/home"
+# HTTPX otherwise reloads CA certificates synchronously for every asset/API
+# request, blocking the ASGI event loop during a page's parallel downloads.
+# Preserve HTTPX's verified TLS and environment trust settings; only reuse
+# the immutable context, not clients/cookies/admin credentials.
+_UPSTREAM_TLS_CONTEXT = httpx.create_ssl_context()
 
 
 def internal_secret():
@@ -80,7 +85,7 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
     query = scope.get("query_string", b"").decode("ascii", errors="ignore")
     url = upstream.rstrip("/") + path + ("?" + query if query else "")
     try:
-        async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=False, verify=_UPSTREAM_TLS_CONTEXT) as client:
             # Preserve the negotiated wire representation. response.content
             # transparently decompresses, undoing HOME's gzip before the WAN.
             async with client.stream(method, url, headers=headers, content=bytes(body)) as response:

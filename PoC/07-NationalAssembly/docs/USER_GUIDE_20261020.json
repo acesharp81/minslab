@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-20",
+  "pages": 21,
+  "source": "docs/user_guide_content.json",
+  "audience": "GENERAL_USERS",
+  "asset_version": "20261020-quick-sheet-1",
+  "administrator_content_excluded": {
+    "manual_text_checked": true,
+    "pdf_text_checked": true,
+    "all_screenshots_retaken": true,
+    "usage_cards_excluded_from_screenshots": true,
+    "watch_usage_metrics_excluded_from_screenshots": true,
+    "operator_panel_excluded_from_screenshots": true,
+    "old_model_usage_screenshot_deleted": true,
+    "service_administration_features_changed": false
+  },
+  "checks": [
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "pages": 21,
+      "popup_not_new_window": true,
+      "image_popup": true,
+      "all_pages_accessible": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "both_buttons_highlighted": true,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "pages": 21,
+      "popup_not_new_window": true,
+      "image_popup": true,
+      "all_pages_accessible": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "both_buttons_highlighted": true,
+      "js_errors": []
+    },
+    {
+      "pdf_pages": 21,
+      "quick_start_exactly_one_page": true,
+      "all_detailed_instructions_present": true
+    },
+    {
+      "reduced_motion_respected": true
+    }
+  ],
+  "quick_sheet_checks": [
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "main_menus": 4,
+      "concrete_actions_per_menu": 3,
+      "detail_links_work": true,
+      "popup_no_new_window": true,
+      "desktop_mobile_no_overflow": true,
+      "javascript_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "main_menus": 4,
+      "concrete_actions_per_menu": 3,
+      "detail_links_work": true,
+      "popup_no_new_window": true,
+      "desktop_mobile_no_overflow": true,
+      "javascript_errors": []
+    },
+    {
+      "pdf_pages": 21,
+      "four_menus_and_all_actions_on_first_sheet": true,
+      "detailed_pages_retained": true,
+      "administrator_content_excluded": true
+    }
+  ],
+  "first_page": "4 main menus: purpose, concrete button/input sequence, result, detailed-guide link"
+}

@@ -9,6 +9,9 @@ const MapThreeD=(()=>{
   let radiusSignature='',contextRadius=500,contextRadiusLinked=false;
   let blockMarkers=[],leaderSvg=null,layoutFrame=0;
   let contextTransparency=50,markerLevel='',requestedLevel='region';
+  let pendingFocus=null;
+  const cameraMotion={duration:1200,easing:t=>t*t*(3-2*t)};
+  function moveCamera(options){gl.easeTo({...cameraMotion,...options});}
   const transparencyKey='home-map-existing-building-transparency';
   const withinContext=p=>Number.isFinite(p.distance_m)&&p.distance_m<=contextRadius;
   const visibleInfrastructure=()=>{const nearest=infraItems.filter(p=>p.kind==='subway').sort((a,b)=>a.distance_m-b.distance_m)[0];return infraItems.filter(p=>withinContext(p)||p===nearest);};
@@ -264,6 +267,8 @@ const MapThreeD=(()=>{
     if(window.matchMedia('(max-width:800px)').matches)$('map-infrastructure-panel').open=false;
   }
   function refreshMarkers(){
+    // Keep current markers moving with the camera; rebuild after the transition.
+    if(gl?.isMoving())return;
     if(!active||!gl||!data)return;
     clearMarkers();radiusLabels();
     const zoom=gl.getZoom();
@@ -281,7 +286,7 @@ const MapThreeD=(()=>{
         const element=document.createElement('button');element.type='button';element.className='map-scene-region';
         element.innerHTML=`<b>${esc(({'서울특별시':'서울','인천광역시':'인천','경기도':'경기'}[region.name]||region.name))}</b><small>계획 ${region.target_units==null?'미확보':num(region.target_units)+'호'}</small><small>${esc(MapStageRing.metric(region).label)} ${esc(MapStageRing.metric(region).text)}</small>`;
         element.title=MapStageRing.description(region);
-        element.addEventListener('click',()=>{selectedRegionId=region.id;onViewport?.();gl.flyTo({center:[longitude,latitude],zoom:MapMonitor.wideZoom(11),pitch:50,bearing:-20,duration:650});});
+        element.addEventListener('click',()=>{selectedRegionId=region.id;onViewport?.();moveCamera({center:[longitude,latitude],zoom:MapMonitor.wideZoom(11),pitch:50,bearing:-20});});
         marker(element,longitude,latitude,'center');
       }
       return;
@@ -295,7 +300,7 @@ const MapThreeD=(()=>{
         element.title=MapStageRing.description(row);
         element.setAttribute('aria-label',element.title);
         element.innerHTML=MapStageRing.svg(row,Math.max(48,diameter))+`<strong>${esc(row.name)}</strong><small>${esc(MapStageRing.metric(row).label)} 도달 확인</small><small>${row.target_units==null?'계획 미확보':'계획 '+num(row.target_units)+'호'}</small>`;
-        element.addEventListener('click',()=>{selectedMunicipalityId=row.id;onViewport?.();gl.flyTo({center:[row.longitude,row.latitude],zoom:MapMonitor.wideZoom(13.7),pitch:55,bearing:-20,duration:650});});
+        element.addEventListener('click',()=>{selectedMunicipalityId=row.id;onViewport?.();moveCamera({center:[row.longitude,row.latitude],zoom:MapMonitor.wideZoom(13.7),pitch:55,bearing:-20});});
         marker(element,row.longitude,row.latitude,'center');
       }
       return;
@@ -384,34 +389,40 @@ const MapThreeD=(()=>{
       gl.on('zoom',()=>{if(active&&MapMonitor.levelAt(gl.getZoom())!==markerLevel)refreshMarkers();});
       gl.on('zoomend',()=>{refreshMarkers();onViewport?.();});
       gl.on('moveend',()=>{if(gl&&active)onViewport?.();});
-      active=true;render(data,visibleIds,selectedId,selectedDistrict,choose);resize();setLevel(requestedLevel);onViewport?.();
+      active=true;render(data,visibleIds,selectedId,selectedDistrict,choose);resize();if(pendingFocus)focus(pendingFocus.block,pendingFocus.zoom);else setLevel(requestedLevel);onViewport?.();
       return true;
     })().catch(error=>{if(ticket!==generation)return false;console.warn('3D 지도 초기화 실패',error);status('3D 지도를 열 수 없습니다. 브라우저의 WebGL 설정과 네트워크를 확인하세요.','missing');surface(false);if(gl){gl.remove();gl=null;}active=false;return false;}).finally(()=>{if(ticket===generation)opening=null;});
     return opening;
   }
-  function focus(block,zoom=15.2){if(!active||!gl||!Number.isFinite(block?.latitude)||!Number.isFinite(block?.longitude))return;gl.flyTo({center:[block.longitude,block.latitude],zoom:MapMonitor.wideZoom(zoom),pitch:55,bearing:-20,duration:650});}
+  function focus(block,zoom=15.2){
+    if(!Number.isFinite(block?.latitude)||!Number.isFinite(block?.longitude))return;
+    requestedLevel='block';
+    if(!active||!gl){pendingFocus={block,zoom};return;}
+    pendingFocus=null;
+    moveCamera({center:[block.longitude,block.latitude],zoom:MapMonitor.wideZoom(zoom),pitch:55,bearing:-20});
+  }
   function setLevel(level){
     requestedLevel=level==='policy'?'region':level;
+    pendingFocus=null;
     if(!active||!gl)return;
-    gl.stop();
     if(requestedLevel==='region'){
       selectedRegionId='';selectedMunicipalityId='';
-      gl.flyTo({center:[126.97,37.48],zoom:MapMonitor.wideZoom(9.8),pitch:45,bearing:-20,duration:650});return;
+      moveCamera({center:[126.97,37.48],zoom:MapMonitor.wideZoom(9.8),pitch:45,bearing:-20});return;
     }
     if(requestedLevel==='municipality'){
       const group=MapSupply.selection(),block=selectedBlock();
       const regionId=group.kind==='region'&&group.id?group.id:selectedRegionId;
       const cities=data.municipalities.filter(row=>(!regionId||row.region===regionId)&&row.project_ids.some(id=>visibleIds.has(id))&&Number.isFinite(row.latitude)&&Number.isFinite(row.longitude));
       const center=regionId&&cities.length?[cities.reduce((n,r)=>n+r.longitude,0)/cities.length,cities.reduce((n,r)=>n+r.latitude,0)/cities.length]:[126.95,37.52];
-      gl.flyTo({center,zoom:MapMonitor.wideZoom(11.3),pitch:50,bearing:-20,duration:650});return;
+      moveCamera({center,zoom:MapMonitor.wideZoom(11.3),pitch:50,bearing:-20});return;
     }
     const block=selectedBlock()||data.blocks.find(row=>located(row)&&row.project_ids.some(id=>visibleIds.has(id)));
     if(located(block))focus(block,15.3);
-    else gl.flyTo({zoom:MapMonitor.wideZoom(13.7),pitch:50,bearing:0,duration:650});
+    else moveCamera({zoom:MapMonitor.wideZoom(13.7),pitch:50,bearing:0});
   }
   function fit(){if(!active||!gl)return;const points=data.blocks.filter(row=>located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(points.length){const west=Math.min(...points.map(row=>row.longitude)),south=Math.min(...points.map(row=>row.latitude)),east=Math.max(...points.map(row=>row.longitude)),north=Math.max(...points.map(row=>row.latitude));gl.fitBounds([[west,south],[east,north]],{padding:90,maxZoom:MapMonitor.wideZoom(10),pitch:45,bearing:0,duration:650});}else setLevel('policy');}
   function camera(view){if(!active||!gl)return;if(view==='overview'){const districtBlocks=data.blocks.filter(row=>row.district_name===selectedDistrict&&located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(districtBlocks.length){const west=Math.min(...districtBlocks.map(row=>row.longitude)),south=Math.min(...districtBlocks.map(row=>row.latitude)),east=Math.max(...districtBlocks.map(row=>row.longitude)),north=Math.max(...districtBlocks.map(row=>row.latitude));gl.fitBounds([[west,south],[east,north]],{padding:110,maxZoom:MapMonitor.wideZoom(14.8),pitch:50,bearing:0,duration:450});}else fit();}else{const settings={top:{pitch:0,bearing:0},oblique:{pitch:55,bearing:-20},north:{pitch:55,bearing:0}}[view];if(!settings)return;gl.easeTo({...settings,duration:450});}document.querySelectorAll('[data-map-3d-camera]').forEach(button=>{const selected=button.getAttribute('data-map-3d-camera')===view;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});}
   function resize(){gl?.resize();scheduleBlockLayout();}
-  function exit(){cancelAnimationFrame(layoutFrame);layoutFrame=0;leaderSvg?.remove();leaderSvg=null;contextRadius=500;contextRadiusLinked=false;resizeObserver?.disconnect();resizeObserver=null;radiusSignature='';overlapPopup?.remove();overlapPopup=null;generation++;opening=null;contextTicket++;contextBlockId='';infraTicket++;infraBlockId='';infraItems=[];infraSource=null;infraState='loading';modelSignature='';modelFeatures=[];clearMarkers();if(gl){gl.remove();gl=null;}active=false;surface(false);}
+  function exit(){pendingFocus=null;cancelAnimationFrame(layoutFrame);layoutFrame=0;leaderSvg?.remove();leaderSvg=null;contextRadius=500;contextRadiusLinked=false;resizeObserver?.disconnect();resizeObserver=null;radiusSignature='';overlapPopup?.remove();overlapPopup=null;generation++;opening=null;contextTicket++;contextBlockId='';infraTicket++;infraBlockId='';infraItems=[];infraSource=null;infraState='loading';modelSignature='';modelFeatures=[];clearMarkers();if(gl){gl.remove();gl=null;}active=false;surface(false);}
   return {start,render,focus,setLevel,fit,camera,resize,exit,cancel:exit,status,active:()=>active,loading:()=>Boolean(opening),currentBlock:()=>selectedBlock()?.id,zoom:()=>gl?.getZoom()||0,view:()=>gl?{zoom:gl.getZoom(),level:MapMonitor.levelAt(gl.getZoom()),center:gl.getCenter(),regionId:selectedRegionId,municipalityId:selectedMunicipalityId}:null,modelStats:()=>({features:modelFeatures.length,approximateFeatures:modelFeatures.filter(row=>row.properties.location_basis?.startsWith('APPROXIMATE')).length,selectedFeatures:modelFeatures.filter(row=>row.properties.block_id===selectedBlock()?.id).length,simulated:modelFeatures.every(row=>row.properties.model_status==='ILLUSTRATIVE')})};
 })();

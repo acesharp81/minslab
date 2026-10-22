@@ -529,7 +529,7 @@ class WatchSchemaTests(unittest.TestCase):
         repository = (app_dir / "db" / "watch_repository.py").read_text(encoding="utf-8")
         worker = (app_dir / "ingestion" / "watch_worker.py").read_text(encoding="utf-8")
         api = (app_dir / "main.py").read_text(encoding="utf-8")
-        self.assertIn("def finalize_ended_sessions(", repository)
+        self.assertIn("WatchLifecycleRepository(connection).reconcile()", worker)
         self.assertIn("def refresh_official_verifications(", repository)
         self.assertIn("def metrics(", repository)
         self.assertIn("official_matches_verified", worker)

@@ -9,6 +9,114 @@ from backend.projection_cache import collection_projection_version
 
 
 class ProjectionCacheTests(unittest.TestCase):
+    def test_score_and_snapshot_audits_keep_project_cache_but_officer_edits_invalidate(self):
+        from backend.db import Audit
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        cache=ProjectionCache(lambda:collection_projection_version(service))
+        cache.get('project',lambda:{'units':8})
+        for action in ('INDEPENDENT_SNAPSHOT','DATA_INTEGRITY_ROUND','DATA_INTEGRITY_ROUND_AMENDED','DATA_INTEGRITY_ROUND_REPLACED'):
+            with service.sessions.begin() as db:
+                db.add(Audit(entity_id='snapshot',action=action,before={},after={}))
+            self.assertEqual(cache.get('project',lambda:self.fail(action+' rebuilt project'))[1],'HIT')
+        with service.sessions.begin() as db:
+            upsert_revision(db,'stage_evidence','officer','actual',{'units':16},'review')
+        self.assertEqual(cache.get('project',lambda:{'units':16})[1],'MISS')
+        with service.sessions.begin() as db:
+            db.add(Audit(entity_id='project',action='OFFICER_START_CONFIRMED',before={},after={}))
+        self.assertEqual(cache.get('project',lambda:{'units':16})[1],'MISS')
+
+    def test_requirements_cache_ignores_raw_imports_and_sees_execution_changes(self):
+        from backend.projection_cache import requirements_projection_version
+        from backend.db import Audit, Batch, now
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        initial=requirements_projection_version(service)
+        with service.sessions.begin() as db:
+            upsert_revision(db,'general_permit','building_general_permit','raw',{'units':20},'raw')
+            db.add(Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()))
+            db.add(Audit(entity_id='raw',action='START_CANDIDATE_FOUND',before={},after={}))
+        self.assertEqual(initial,requirements_projection_version(service))
+        for kind in ('execution_case','execution_scenario','execution_agency','project_profile','collection_assessment'):
+            previous=requirements_projection_version(service)
+            with service.sessions.begin() as db:upsert_revision(db,kind,'officer',kind,{'units':12},'review')
+            self.assertNotEqual(previous,requirements_projection_version(service),kind)
+
+    def test_large_cached_body_is_compact_but_returned_bytes_are_identical(self):
+        data={'한국어 근거':['공식 근거와 계획·실제 구분 '*40]*500}
+        cache=ProjectionCache(lambda:1)
+        first,status=cache.get('large',lambda:data)
+        second,status=cache.get('large',lambda:self.fail('rebuilt large cache'))
+        self.assertEqual(status,'HIT');self.assertEqual(second,first)
+        self.assertEqual(json.loads(second),data)
+        self.assertLess(len(cache.entries['large'][2]),len(first)//10)
+
+    def test_shared_cold_build_limit_keeps_hits_available_and_releases_after_failure(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import BoundedSemaphore,Event
+        from unittest.mock import Mock
+        gate=BoundedSemaphore(1);started=Event();release=Event();second_started=Event()
+        one=ProjectionCache(lambda:1,build_guard=gate);two=ProjectionCache(lambda:1,build_guard=gate)
+        two.get('ready',lambda:{'ok':True})
+        def slow():
+            started.set()
+            if not release.wait(3):raise RuntimeError('timed out')
+            raise ValueError('retryable')
+        def later():second_started.set();return {'ok':'later'}
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            first=pool.submit(one.get,'first',slow)
+            self.assertTrue(started.wait(1))
+            queued=pool.submit(two.get,'second',later)
+            try:
+                self.assertFalse(second_started.wait(.05))
+                self.assertEqual(two.get('ready',lambda:self.fail('hit rebuilt'))[1],'HIT')
+            finally:release.set()
+            with self.assertRaises(ValueError):first.result(1)
+            self.assertEqual(json.loads(queued.result(1)[0]),{'ok':'later'})
+
+    def test_collection_version_ignores_raw_candidate_audit_but_sees_review(self):
+        from backend.db import Audit
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        before=collection_projection_version(service)
+        with service.sessions.begin() as db:
+            upsert_revision(db,'general_permit','building_general_permit','raw',{'units':8},'batch')
+            db.add(Audit(entity_id='raw',action='START_CANDIDATE_FOUND',before={},after={}))
+        self.assertEqual(before,collection_projection_version(service))
+        with service.sessions.begin() as db:
+            db.add(Audit(entity_id='p',action='OFFICER_START_CONFIRMED',before={},after={}))
+        self.assertNotEqual(before,collection_projection_version(service))
+
+    def test_workspace_retains_cache_during_candidate_ingestion_and_sees_officer_edits(self):
+        from backend.projection_cache import workspace_projection_version
+        from backend.db import Audit, Batch, now
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        cache=ProjectionCache(lambda:workspace_projection_version(service))
+        self.assertEqual(cache.get('picker',lambda:{'name':'원본'})[1],'MISS')
+        with service.sessions.begin() as db:
+            upsert_revision(db,'stage_evidence','stage_match','candidate',{'status':'REVIEW'},'batch')
+            upsert_revision(db,'permit','building_hub','raw',{'units':8},'batch')
+            db.add(Audit(entity_id='candidate',action='STAGE_CANDIDATES_UPDATED',before={},after={}))
+            db.add(Batch(source_id='sh_inventory',status='SUCCESS',finished_at=now()))
+        self.assertEqual(cache.get('picker',lambda:self.fail('background ingestion rebuilt picker'))[1],'HIT')
+        with service.sessions.begin() as db:
+            upsert_revision(db,'project_profile','manual_project','p',{'overrides':{'name':{'value':'수정'}}},'edit')
+        body,status=cache.get('picker',lambda:{'name':'수정'})
+        self.assertEqual(status,'MISS');self.assertEqual(json.loads(body)['name'],'수정')
+        for kind in ('project','program_profile','program_alias','policy_profile'):
+            before=workspace_projection_version(service)
+            with service.sessions.begin() as db:upsert_revision(db,kind,'officer',kind,{'units':16},'edit')
+            self.assertNotEqual(before,workspace_projection_version(service),kind)
+        before=workspace_projection_version(service)
+        with service.sessions.begin() as db:
+            db.add(Mapping(project_id='p',policy_id='POL_A',status='CONFIRMED',revision_no=1,basis='검토',evidence_url='https://example.org'))
+        self.assertNotEqual(before,workspace_projection_version(service))
+        before=workspace_projection_version(service)
+        with service.sessions.begin() as db:
+            db.add(ProgramMapping(id='prg',name='프로그램',seed_policy_id='POL_A',policy_id='POL_A',status='CONFIRMED',revision_no=1,basis='검토',evidence_url='https://example.org'))
+        self.assertNotEqual(before,workspace_projection_version(service))
+
     def test_policy_cache_preserves_raw_imports_but_invalidates_confirmed_links(self):
         from backend.projection_cache import delivery_projection_version
         from backend.db import Batch,Audit,now

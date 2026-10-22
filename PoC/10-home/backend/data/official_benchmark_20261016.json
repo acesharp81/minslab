@@ -230,12 +230,17 @@
       "name": "공공임대 3분기 모집",
       "kind": "지표",
       "stage": null,
-      "official_value": 15000.0,
+      "official_value": 14700.0,
       "official_upper": null,
       "unit": "호",
       "official_period": "2026년 1~3분기",
-      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
-      "numeric": true
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87948&fileTy=ATTACH&fileNo=3#page=5",
+      "numeric": true,
+      "prior_source_value": 15000.0,
+      "official_spoken_value": 15000.0,
+      "official_spoken_qualifier": "APPROXIMATE",
+      "official_quantity_notation": "서면1.47만호 / 발언약1.5만호",
+      "source_correction_note": "2026-10-21 공식 별첨1 PDF5쪽 1.47만호 재확인. 발언 약1.5만호는 별도 보존. HOME 실적을 수정하거나 일치 판정한 것이 아님."
     },
     {
       "id": "M20",
@@ -270,8 +275,9 @@
       "official_upper": null,
       "unit": "호",
       "official_period": "2026년 4분기~2027년 말/수도권",
-      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
-      "numeric": true
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87948&fileTy=ATTACH&fileNo=4#page=2",
+      "numeric": true,
+      "official_scope_note": "공공분양0.9만·건설임대0.8만·매입임대2.9만·전세임대4.5만·공공지원민간임대0.5만호 등; 건설사업 원장 단독 비교 불가"
     },
     {
       "id": "M23",
@@ -389,9 +395,12 @@
       "official_value": 84.0,
       "official_upper": null,
       "unit": "%",
-      "official_period": "최근 6개월/서울",
-      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
-      "numeric": true
+      "official_period": "2026.3~8/서울, 2025.3~8 대비",
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87948&fileTy=ATTACH&fileNo=4#page=1",
+      "numeric": true,
+      "official_type_definition_status": "CODE_SCOPE_NOT_PUBLISHED",
+      "official_rounded_base_units": 2700,
+      "official_rounded_current_units": 5000
     },
     {
       "id": "M33",
@@ -401,9 +410,12 @@
       "official_value": 87.0,
       "official_upper": null,
       "unit": "%",
-      "official_period": "최근 6개월/서울",
-      "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
-      "numeric": true
+      "official_period": "2026.3~8/서울, 2025.3~8 대비",
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87948&fileTy=ATTACH&fileNo=4#page=1",
+      "numeric": true,
+      "official_type_definition_status": "CODE_SCOPE_NOT_PUBLISHED",
+      "official_rounded_base_units": 2200,
+      "official_rounded_current_units": 4200
     },
     {
       "id": "M34",

@@ -1,0 +1,202 @@
+{
+  "date": "2026-10-20",
+  "live_reports": [
+    {
+      "report_id": "481cba6a-8cc9-4562-b3e9-1534a1fd0176",
+      "period": [
+        "2026-10-01",
+        "2026-10-20"
+      ],
+      "saved_evidence": 40,
+      "supplementary_evidence": 12,
+      "all_detail_rows": 52,
+      "all_source_summaries_and_tasks_preserved": true,
+      "markdown_complete": true,
+      "coverage": {
+        "evidence_count": 52,
+        "narrative_cited_count": 8,
+        "report_cited_count": 18,
+        "narrative_uncited_ids": [
+          "0399600b-b268-4268-8cf3-f14078453b0b:topic-22",
+          "123d46c3-d8fc-4269-8f31-da8f5d807b47:topic-24",
+          "3f1648f0-3510-4497-845b-21dffeea92ee:topic-12",
+          "7128f3f4-fb05-45a6-8e72-021992157455:topic-10",
+          "7128f3f4-fb05-45a6-8e72-021992157455:topic-12",
+          "7128f3f4-fb05-45a6-8e72-021992157455:topic-14",
+          "86948faa-40de-44b5-aa53-93dd81a56957:topic-6",
+          "96e52910-09e4-457b-b090-19dfc3f19f4b:topic-2",
+          "96e52910-09e4-457b-b090-19dfc3f19f4b:topic-3",
+          "96e52910-09e4-457b-b090-19dfc3f19f4b:topic-4",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-1",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-10",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-11",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-12",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-13",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-14",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-15",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-16",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-17",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-18",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-19",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-2",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-20",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-21",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-22",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-23",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-24",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-3",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-4",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-5",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-6",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-7",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-8",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-9",
+          "bd4f65b1-6c3d-4369-8133-68c0af202695:topic-9",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-10",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-13",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-21",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-9",
+          "executive-official:148973414:agenda-2",
+          "executive-official:148973414:agenda-4",
+          "executive-official:148973949:agenda-3",
+          "f09e1d8c-35df-4ded-beb5-310d0830e53e:topic-12",
+          "f09e1d8c-35df-4ded-beb5-310d0830e53e:topic-6"
+        ],
+        "report_uncited_ids": [
+          "0399600b-b268-4268-8cf3-f14078453b0b:topic-22",
+          "123d46c3-d8fc-4269-8f31-da8f5d807b47:topic-24",
+          "3f1648f0-3510-4497-845b-21dffeea92ee:topic-12",
+          "7128f3f4-fb05-45a6-8e72-021992157455:topic-10",
+          "7128f3f4-fb05-45a6-8e72-021992157455:topic-14",
+          "86948faa-40de-44b5-aa53-93dd81a56957:topic-6",
+          "96e52910-09e4-457b-b090-19dfc3f19f4b:topic-2",
+          "96e52910-09e4-457b-b090-19dfc3f19f4b:topic-3",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-1",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-10",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-11",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-12",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-13",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-14",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-15",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-16",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-17",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-18",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-19",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-2",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-20",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-21",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-22",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-23",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-24",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-4",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-5",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-6",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-7",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-8",
+          "a4b7e5ae-80be-4687-9902-8b0f2d317793:topic-9",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-13",
+          "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-21",
+          "f09e1d8c-35df-4ded-beb5-310d0830e53e:topic-12"
+        ],
+        "source_task_count": 61,
+        "detail_evidence_count": 52,
+        "basis": "SAVED_EVIDENCE_SNAPSHOT",
+        "semantic_completeness_verified": false
+      }
+    },
+    {
+      "report_id": "70138ca1-673d-46f5-98f9-d85154a396d1",
+      "period": [
+        "2026-09-01",
+        "2026-09-30"
+      ],
+      "saved_evidence": 21,
+      "supplementary_evidence": 0,
+      "all_detail_rows": 21,
+      "all_source_summaries_and_tasks_preserved": true,
+      "markdown_complete": true,
+      "coverage": {
+        "evidence_count": 21,
+        "narrative_cited_count": 9,
+        "report_cited_count": 21,
+        "narrative_uncited_ids": [
+          "0ba2b2f8-aad1-47da-80d8-de3c5401d760:topic-13",
+          "0ba2b2f8-aad1-47da-80d8-de3c5401d760:topic-16",
+          "405fc847-07c0-4383-87a8-ef738ec3f97f:topic-23",
+          "4fbe49d7-2404-44fa-9396-d3128804e871:topic-1",
+          "4fbe49d7-2404-44fa-9396-d3128804e871:topic-2",
+          "4fbe49d7-2404-44fa-9396-d3128804e871:topic-5",
+          "4fbe49d7-2404-44fa-9396-d3128804e871:topic-7",
+          "4fbe49d7-2404-44fa-9396-d3128804e871:topic-8",
+          "590ef99a-1023-4b1f-a499-bdbc6bb15f85:topic-1",
+          "590ef99a-1023-4b1f-a499-bdbc6bb15f85:topic-3",
+          "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-1",
+          "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-2"
+        ],
+        "report_uncited_ids": [],
+        "source_task_count": 25,
+        "detail_evidence_count": 21,
+        "basis": "SAVED_EVIDENCE_SNAPSHOT",
+        "semantic_completeness_verified": false
+      }
+    },
+    {
+      "report_id": "25f707cb-fa73-424d-be2f-e413940db641",
+      "period": [
+        "2026-08-01",
+        "2026-08-31"
+      ],
+      "saved_evidence": 14,
+      "supplementary_evidence": 0,
+      "all_detail_rows": 14,
+      "all_source_summaries_and_tasks_preserved": true,
+      "markdown_complete": true,
+      "coverage": {
+        "evidence_count": 14,
+        "narrative_cited_count": 6,
+        "report_cited_count": 14,
+        "narrative_uncited_ids": [
+          "5d5f6051-09ac-41ad-a1ff-d4654be239b5:topic-1",
+          "5d5f6051-09ac-41ad-a1ff-d4654be239b5:topic-12",
+          "8bd13bcf-3484-46de-857f-c511574be758:topic-18",
+          "c63352bc-cb49-4474-b8b1-990d8ef24153:topic-2",
+          "e805641b-0fee-4d73-bd32-fac043b05f9d:topic-2",
+          "e805641b-0fee-4d73-bd32-fac043b05f9d:topic-7",
+          "executive-official:148970217:agenda-1",
+          "executive-official:148970217:agenda-2"
+        ],
+        "report_uncited_ids": [],
+        "source_task_count": 21,
+        "detail_evidence_count": 14,
+        "basis": "SAVED_EVIDENCE_SNAPSHOT",
+        "semantic_completeness_verified": false
+      }
+    }
+  ],
+  "print_checks": [
+    {
+      "report_id": "481cba6a-8cc9-4562-b3e9-1534a1fd0176",
+      "details": 52,
+      "pdf_all_details_present_when_screen_collapsed": true,
+      "original_report_and_snapshot_unchanged": true
+    },
+    {
+      "report_id": "70138ca1-673d-46f5-98f9-d85154a396d1",
+      "details": 21,
+      "pdf_all_details_present_when_screen_collapsed": true,
+      "original_report_and_snapshot_unchanged": true
+    },
+    {
+      "report_id": "25f707cb-fa73-424d-be2f-e413940db641",
+      "details": 14,
+      "pdf_all_details_present_when_screen_collapsed": true,
+      "original_report_and_snapshot_unchanged": true
+    }
+  ],
+  "tests": {
+    "backend_cases": 52,
+    "ministry_alias_subtests": 55
+  },
+  "original_snapshots_preserved": true,
+  "existing_model_narratives_regenerated": false
+}

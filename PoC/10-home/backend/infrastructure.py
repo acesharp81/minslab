@@ -3,6 +3,7 @@ import math
 import re
 import threading
 import time
+from weakref import WeakValueDictionary
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -175,10 +176,15 @@ class InfrastructureContext:
     def __init__(self):
         self._lock = threading.RLock()
         self._cache = {}
+        self._key_locks = WeakValueDictionary()
 
     def get(self, block_id, service, anchor=None):
+        cache_key=(block_id,anchor['latitude'],anchor['longitude'],anchor['coordinate_basis'],anchor['label']) if anchor else block_id
         with self._lock:
-            cache_key=(block_id,anchor['latitude'],anchor['longitude'],anchor['coordinate_basis'],anchor['label']) if anchor else block_id
+            key_lock=self._key_locks.setdefault(cache_key,threading.RLock())
+        # A slow external lookup for one location must not block another
+        # location or a previously collected result.
+        with key_lock:
             cached = self._cache.get(cache_key)
             if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
                 return cached[1]
@@ -260,5 +266,7 @@ class InfrastructureContext:
                       "source_sha256": manifest, "counts": counts, "items": items}
             result['origin']=anchor or dict(latitude=latitude,longitude=longitude,coordinate_basis='LH_PUBLIC_BLOCK_LABEL_POINT',label='LH 공개 블록 대표점',approximate=False,block_id=block_id)
             if anchor:result['distance_basis']=anchor['label']+'부터의 참고 직선거리 · 도보/차량 이동거리 아님'
-            self._cache[cache_key] = (time.monotonic(), result)
+            with self._lock:
+                self._cache[cache_key] = (time.monotonic(), result)
+                while len(self._cache)>64:self._cache.pop(next(iter(self._cache)),None)
             return result

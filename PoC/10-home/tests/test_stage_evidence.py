@@ -4,7 +4,7 @@ from backend.api_samples import today
 from unittest.mock import patch
 from sqlalchemy import create_engine,select
 from sqlalchemy.pool import StaticPool
-from backend.db import Base,Audit,Revision
+from backend.db import Base,Audit,Revision,upsert_revision
 from backend.service import HomeService
 from backend.stage_evidence import propose,similarity,refresh,list_links,save_link,linked_events
 from backend.policy_delivery import build_delivery
@@ -99,6 +99,8 @@ class PersistentLinkTests(unittest.TestCase):
                 list_links(s);linked_events(s,date(2026,10,12))
             after=list_links(s)['items'];self.assertEqual([r['revision_no'] for r in before],[r['revision_no'] for r in after])
             alternative={k:[dict(before[0]['selected'],source_name='새 후보',score=1)] for k in ('BUSINESS','APPROVAL')}
+            with s.sessions.begin() as db:
+                upsert_revision(db,'document_evidence','official_document','new-source',{'facts':[]},'test')
             with patch('backend.stage_evidence.propose',return_value=alternative):refresh(s,refresh_candidates=True)
             new=list_links(s)['items']
             self.assertEqual([r['selected'] for r in before],[r['selected'] for r in new])
@@ -108,7 +110,20 @@ class PersistentLinkTests(unittest.TestCase):
         p=dict(id='p',name='미확인 사업',region='서울특별시',source_id='other',base_date='2026-10-01',mapping={})
         with patch.object(s,'projects',return_value=[p]):
             refresh(s)
-            with patch('backend.stage_evidence.propose',side_effect=AssertionError('unchanged evidence')):self.assertEqual(refresh(s)['preserved'],2)
+            with patch('backend.stage_evidence.propose',side_effect=AssertionError('unchanged evidence')):
+                self.assertEqual(refresh(s)['preserved'],2)
+                self.assertEqual(refresh(s,refresh_candidates=True)['preserved'],2)
+
+    def test_changed_project_quantity_recomputes_candidate_scope(self):
+        engine=create_engine('sqlite://',poolclass=StaticPool);Base.metadata.create_all(engine)
+        self.addCleanup(engine.dispose);s=HomeService(engine)
+        p=dict(id='p',name='미확인 사업',region='서울특별시',source_id='other',planned_units=8,base_date='2026-10-01',mapping={})
+        with patch.object(s,'projects',return_value=[p]):
+            refresh(s)
+            p['planned_units']=16
+            with patch('backend.stage_evidence.propose',return_value={'BUSINESS':[],'APPROVAL':[]}) as propose_changed:
+                refresh(s,refresh_candidates=True)
+                propose_changed.assert_called_once()
 
 class ApprovalScopeRepairTests(unittest.TestCase):
     def setUp(self):

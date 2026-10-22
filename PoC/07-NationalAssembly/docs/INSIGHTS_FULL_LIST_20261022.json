@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-22",
+  "browser_cases": [
+    {
+      "kind": "timeline",
+      "initial": 10,
+      "second": 20,
+      "final": 25,
+      "details_and_return": true
+    },
+    {
+      "kind": "trend",
+      "initial": 10,
+      "second": 20,
+      "final": 25,
+      "details_and_return": true
+    },
+    {
+      "kind": "institution",
+      "initial": 10,
+      "second": 20,
+      "final": 25,
+      "details_and_return": true
+    },
+    {
+      "mobile_no_horizontal_overflow": true,
+      "retry_preserves_rows": true,
+      "errors": []
+    }
+  ],
+  "live_domains": [
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "timeline",
+      "total": 4,
+      "first_count": 4,
+      "last_count": 4,
+      "last_offset": 0,
+      "scroll_load": true,
+      "details_return": true
+    },
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "trend",
+      "total": 1009,
+      "first_count": 10,
+      "last_count": 9,
+      "last_offset": 1000,
+      "scroll_load": true,
+      "details_return": true
+    },
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "institution",
+      "total": 646,
+      "first_count": 10,
+      "last_count": 6,
+      "last_offset": 640,
+      "scroll_load": true,
+      "details_return": true
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "timeline",
+      "total": 4,
+      "first_count": 4,
+      "last_count": 4,
+      "last_offset": 0,
+      "scroll_load": true,
+      "details_return": true
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "trend",
+      "total": 1009,
+      "first_count": 10,
+      "last_count": 9,
+      "last_offset": 1000,
+      "scroll_load": true,
+      "details_return": true
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "institution",
+      "total": 646,
+      "first_count": 10,
+      "last_count": 6,
+      "last_offset": 640,
+      "scroll_load": true,
+      "details_return": true
+    }
+  ]
+}

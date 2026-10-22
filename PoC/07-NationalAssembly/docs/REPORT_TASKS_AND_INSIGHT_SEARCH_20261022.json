@@ -1,0 +1,427 @@
+{
+  "date": "2026-10-22",
+  "timezone": "Asia/Seoul",
+  "image": "poc07-national-assembly-api:report-task-summary-20261022",
+  "deployed_services": [
+    "api",
+    "meeting-brief-worker"
+  ],
+  "task_summary": {
+    "broadcast_id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+    "task_count_before": 48,
+    "task_count_after": 48,
+    "changed": 24,
+    "tasks": [
+      {
+        "id": "structured-task-83213aae24a84438",
+        "before_length": 230,
+        "after_length": 35,
+        "title": "교황 방한(세계가톨릭청년대회) 연계 유니버시아드 성공 지원 요청"
+      },
+      {
+        "id": "structured-task-b4bcaa20f4490d19",
+        "before_length": 262,
+        "after_length": 40,
+        "title": "2차 공공기관 이전 시 시장형 공기업·대형 공공기관 충북 우선 배치 요청"
+      },
+      {
+        "id": "structured-task-467d05cf84cf60ca",
+        "before_length": 285,
+        "after_length": 63,
+        "title": "중부고속도로 확장(증평~호법 예타 완료·기본설계비 30억, 서충주~증평 타당성 재조사·공사비 100억) 반영 요청"
+      },
+      {
+        "id": "structured-task-bfee6c3409d620b2",
+        "before_length": 248,
+        "after_length": 26,
+        "title": "청주교도소 이전 타당성조사비 5억 원 반영 요청"
+      },
+      {
+        "id": "structured-task-d42651002af24a80",
+        "before_length": 262,
+        "after_length": 40,
+        "title": "국도 19호선 미개설 구간 연결(괴산~관물) 사업비 30억 원 반영 요청"
+      },
+      {
+        "id": "structured-task-65edcdcb82d6b907",
+        "before_length": 263,
+        "after_length": 41,
+        "title": "청주국제공항 민간 전용 활주로 신설 및 제7차 공항개발 종합계획 반영 요청"
+      },
+      {
+        "id": "structured-task-53c0a73c48b51bf5",
+        "before_length": 259,
+        "after_length": 37,
+        "title": "공공의료 구급체계 전면 대전환 계획 미흡 지적 및 계획 재수립 요청"
+      },
+      {
+        "id": "structured-task-e5d853de2f29fd58",
+        "before_length": 243,
+        "after_length": 21,
+        "title": "소방공무원 처우개선 및 예산 확보 요청"
+      },
+      {
+        "id": "structured-task-ca2cdfa328d94280",
+        "before_length": 247,
+        "after_length": 25,
+        "title": "예방접종 지원 기준 마련 후 의원실 보고 요청"
+      },
+      {
+        "id": "structured-task-446e43a169080e6a",
+        "before_length": 292,
+        "after_length": 70,
+        "title": "소방병원(음성군) 운영 실태 현장 확인(이용객 미미, 홍보 부족, 충북도민 80%, 충북 예산 지원 전무) 및 지원 계획 질의"
+      },
+      {
+        "id": "structured-task-2742f8d27f677fb0",
+        "before_length": 292,
+        "after_length": 70,
+        "title": "소방병원(음성군) 운영 실태 현장 확인(이용객 미미, 홍보 부족, 충북도민 80%, 충북 예산 지원 전무) 및 지원 계획 질의"
+      },
+      {
+        "id": "structured-task-156598a2b78d53a0",
+        "before_length": 286,
+        "after_length": 64,
+        "title": "사회서비스원 수탁 부적절·현황 파악 실패·초과근무 보상체계 미비(주말·야간 학대 신고 다발) 지적, 즉각 시정 요청"
+      },
+      {
+        "id": "structured-task-dfdaa8b0f0fe9266",
+        "before_length": 286,
+        "after_length": 64,
+        "title": "JTX(용인~진천~청주공항) 및 청주공항 연계 반도체 물류·비즈니스 중요성 강조, 지자체 소통 및 행안위 지원 요청"
+      },
+      {
+        "id": "structured-task-8864038599c3e8d8",
+        "before_length": 276,
+        "after_length": 54,
+        "title": "질병관리청 연구 근거 고위험군 예방접종 접근성 중요성 강조 및 도 차원 조정·지원 방안 마련 요청"
+      },
+      {
+        "id": "structured-task-4e78373c8c1e3f81",
+        "before_length": 259,
+        "after_length": 37,
+        "title": "시군 협의 통한 예방접종 지원 가이드라인 마련 및 의원실 보고 요청"
+      },
+      {
+        "id": "structured-task-85b18a07b0cec087",
+        "before_length": 251,
+        "after_length": 29,
+        "title": "소방병원 주차장 부지 협소 및 접근성 불량 개선 요청"
+      },
+      {
+        "id": "structured-task-2b51c6ee486406aa",
+        "before_length": 256,
+        "after_length": 34,
+        "title": "민선 8기 채무 증가 원인 검증 및 차입 결정 과정 보고 요청"
+      },
+      {
+        "id": "structured-task-d977cc5690bc087a",
+        "before_length": 263,
+        "after_length": 41,
+        "title": "민선 8기 주요 자체 사업 재원·성과·차입금 사용 내역 정리 및 보고 요청"
+      },
+      {
+        "id": "structured-task-61e325c692e92a8d",
+        "before_length": 273,
+        "after_length": 51,
+        "title": "2026년 1월 지방채 안정적 관리 발언 당시 내부 재정 전망 자료 및 보고 경위 확인 요청"
+      },
+      {
+        "id": "structured-task-ba1872185f2f29fd",
+        "before_length": 245,
+        "after_length": 23,
+        "title": "2026년 당초 예산 관련 자료 제출 요청"
+      },
+      {
+        "id": "structured-task-c93529669be70968",
+        "before_length": 248,
+        "after_length": 59,
+        "title": "용인(R&D·생산)-청주(HBM·후공정) 반도체 클러스터 시너지 강화를 위한 권한 이양·규제혁파 지속 요청"
+      },
+      {
+        "id": "structured-task-822fdbc357f7aebb",
+        "before_length": 154,
+        "after_length": 23,
+        "title": "보은군 반려동물 테마파크 진흥원 유치 요청"
+      },
+      {
+        "id": "structured-task-00e1b591a187df09",
+        "before_length": 121,
+        "after_length": 34,
+        "title": "청주의료원 체불임금 해소를 위한 긴급 방안 마련 및 추진 요청"
+      },
+      {
+        "id": "structured-task-fcb74b583cd6d2e7",
+        "before_length": 242,
+        "after_length": 20,
+        "title": "충북도 국정감사 자료 제출 협조 요청"
+      }
+    ],
+    "source_links_unchanged": true,
+    "topics_unchanged": true
+  },
+  "daejeon": {
+    "broadcast_id": "e858014a-90c5-411c-a282-82e1ff8b094f",
+    "clusters": 49,
+    "linked": 44,
+    "procedure_before": 4,
+    "procedure_after": 5,
+    "pending_before": 1,
+    "pending_after": 0,
+    "split": 25,
+    "groups": 40,
+    "issues": 112,
+    "cause": "Reference-only guidance was incorrectly extracted as a document request after model classification."
+  },
+  "tests": {
+    "pytest_passed": 81,
+    "javascript_syntax": "passed",
+    "diff_whitespace": "passed"
+  },
+  "live_browser": [
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "timeline",
+      "query": "행안부",
+      "total": 2,
+      "loaded": 2
+    },
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "trend",
+      "query": "행안부",
+      "total": 72,
+      "loaded": 20
+    },
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "kind": "institution",
+      "query": "행안부",
+      "total": 54,
+      "loaded": 20
+    },
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "task_summary_and_original_link": true,
+      "daejeon_pending": 0,
+      "management_lines_removed": true,
+      "javascript_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "timeline",
+      "query": "행안부",
+      "total": 2,
+      "loaded": 2
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "trend",
+      "query": "행안부",
+      "total": 72,
+      "loaded": 20
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "kind": "institution",
+      "query": "행안부",
+      "total": 54,
+      "loaded": 20
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "task_summary_and_original_link": true,
+      "daejeon_pending": 0,
+      "management_lines_removed": true,
+      "javascript_errors": []
+    }
+  ],
+  "search_browser_fixtures": [
+    {
+      "kind": "timeline",
+      "search_beyond_loaded_page": true,
+      "search_pagination": true,
+      "empty_and_reset": true,
+      "detail_preserves_search": true
+    },
+    {
+      "kind": "trend",
+      "search_beyond_loaded_page": true,
+      "search_pagination": true,
+      "empty_and_reset": true,
+      "detail_preserves_search": true
+    },
+    {
+      "kind": "institution",
+      "search_beyond_loaded_page": true,
+      "search_pagination": true,
+      "empty_and_reset": true,
+      "detail_preserves_search": true
+    },
+    {
+      "stale_response_ignored": true,
+      "mobile_no_overflow": true,
+      "javascript_errors": []
+    }
+  ],
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  }
+}

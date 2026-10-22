@@ -69,6 +69,20 @@ class OpenRouterGatewayTests(unittest.TestCase):
         self.assertNotIn("response_body", columns)
 
     @patch("app.openrouter_gateway.requests.post")
+    def test_summary_candidates_preserve_reasoning_compatibility_and_free_allowlist(self, post):
+        post.return_value = self.response(200, {"id": "compatible", "choices": []})
+        headers = {**self.headers("compatible"), "X-Minslab-Workload": "utterance_summary"}
+        models = ["nvidia/nemotron-3-super-120b-a12b:free", "dots-studio/dots-3-note-preview:free"]
+        body = {"model": models[0], "models": models, "messages": [], "reasoning": {"enabled": False}}
+        response = self.client.post("/api/v1/chat/completions", json=body, headers=headers)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(models, post.call_args.kwargs["json"]["models"])
+        denied = self.client.post("/api/v1/chat/completions", json={**body, "models": ["unapproved/paid"]},
+                                  headers={**headers, "X-Idempotency-Key": "denied"})
+        self.assertEqual(400, denied.status_code)
+        post.assert_called_once()
+
+    @patch("app.openrouter_gateway.requests.post")
     def test_success_is_replayed_without_second_upstream_attempt(self, post: Mock) -> None:
         post.return_value = self.response(200, {"id": "one", "choices": []})
         body = {"model": "openai/gpt-oss-20b:free", "messages": []}

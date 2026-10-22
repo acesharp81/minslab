@@ -316,7 +316,7 @@ class SummaryRepository:
         ).fetchall()
         return {row[0] for row in rows}
 
-    def record_failure(self, broadcast_id: Any, content_hash: str, *, provider: str, model: str, prompt_version: str, error: str, retry_hours: int = 24) -> None:
+    def record_failure(self, broadcast_id: Any, content_hash: str, *, provider: str, model: str, prompt_version: str, error: str, retry_hours: float = 24) -> None:
         self.connection.execute(
             """INSERT INTO transcript_utterance_summary_failures (
                    broadcast_id, content_hash, provider, model, prompt_version,

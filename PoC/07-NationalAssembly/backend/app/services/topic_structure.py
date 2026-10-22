@@ -394,11 +394,13 @@ def materialize(brief: dict[str, Any], snapshot: dict[str, Any], facets: list[di
         topic['speaker_points'].append({
             'id': 'structured-point-' + digest(point_key)[:16],
             'speaker_label': ROLE_LABELS[role] + ' · 화자 원문 확인',
-            'summary': facet['quote'], 'evidence_ids': [facet['evidence_id']],
+            'summary': facet['quote'], 'summary_kind': 'SOURCE_QUOTE',
+            'evidence_ids': [facet['evidence_id']],
             'authority_status': 'PROVISIONAL', 'role': role, 'evidence_span': facet,
         })
     for topic in topics.values():
         counts = {role: sum(p['role'] == role for p in topic['speaker_points']) for role in ROLES}
+        topic['summary_kind'] = 'ROLE_COUNTS'
         topic['summary'] = ' · '.join(f'{ROLE_LABELS[r]} {n}건' for r, n in counts.items() if n)
     for group in groups.values():
         group['topic_count'] = len(group['topic_ids'])
@@ -432,6 +434,8 @@ def materialize(brief: dict[str, Any], snapshot: dict[str, Any], facets: list[di
     unresolved = sum(c['mapping_status'] == 'REVIEW_REQUIRED' for c in clusters)
     procedural = sum(c['mapping_status'] == 'PROCEDURAL' for c in clusters)
     multi = sum(c['mapping_status'] == 'STRUCTURED_MULTI_ISSUE' for c in clusters)
+    from .report_presentation import report_summary
+    result['report_summary'] = report_summary(brief, snapshot)
     result['topics'] = list(topics.values())
     result['topic_groups'] = list(groups.values())
     # Original tasks stay traceable, including multiple related issues.
@@ -461,7 +465,9 @@ def materialize(brief: dict[str, Any], snapshot: dict[str, Any], facets: list[di
                 continue
             result.setdefault('tasks', []).append({
                 'id': 'structured-task-' + digest(point['id'])[:16],
-                'title': topic['title'] + ': ' + point['summary'], 'topic_id': topic['id'],
+                # The issue title is the model's concise description. The point
+                # contains a verbatim source quote, retained in evidence spans.
+                'title': topic['title'], 'topic_id': topic['id'],
                 'task_evidence_spans': [{**point['evidence_span'], 'topic_ids': [topic['id']]}],
                 'related_topic_ids': [topic['id']], 'evidence_ids': point['evidence_ids'],
                 'status': 'OPEN', 'ministries': [], 'owner_basis': 'UNCONFIRMED',

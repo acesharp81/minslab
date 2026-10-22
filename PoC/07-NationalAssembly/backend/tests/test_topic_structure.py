@@ -61,6 +61,25 @@ def test_requested_plan_submission_is_linked_with_original_source():
     assert task['topic_link_status'] == 'REVIEW_REQUIRED'
 
 
+def test_derived_task_uses_issue_summary_and_preserves_full_source():
+    brief, snapshot = fixture()
+    quote = '청주교도소 이전 타당성조사비 5억 원 반영을 건의드립니다. 주민 불편 해소가 필요합니다.'
+    snapshot['atoms'][0]['text'] = quote
+    data = response(snapshot)
+    title = '청주교도소 이전 타당성조사비 5억 원 반영 요청'
+    data['assignments'][0]['facets'][0].update(parent='교정시설 이전', issue=title, role='REQUEST')
+    facets = validate_response(data, snapshot['atoms'])
+    original = deepcopy((brief, snapshot, facets))
+    result = materialize(brief, snapshot, facets, [], 'r')
+    task, = result['tasks']
+    assert task['title'] == title
+    assert task['task_evidence_spans'][0]['quote'] == quote
+    assert task['task_evidence_spans'][0]['revision_ids'] == ['r1']
+    assert task['evidence_ids'] == ['u1']
+    assert task['topic_id'] in task['related_topic_ids']
+    assert (brief, snapshot, facets) == original
+
+
 def test_partial_cluster_identifies_only_remaining_evidence():
     brief, snapshot = fixture()
     data = response(snapshot)

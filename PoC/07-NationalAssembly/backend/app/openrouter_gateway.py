@@ -505,6 +505,12 @@ def chat_completions(
     ]
     if x_minslab_workload == "meeting_brief_lineage" and model in FREE_MODELS:
         ordered_models = [model]
+    requested_models = payload.get("models")
+    if x_minslab_workload == "utterance_summary" and requested_models is not None:
+        if (not isinstance(requested_models, list) or not requested_models
+                or any(not isinstance(m, str) or m not in FREE_MODELS for m in requested_models)):
+            return _gateway_error(400, "unapproved_summary_model_candidates")
+        ordered_models = list(dict.fromkeys(requested_models))
     payload.pop("model", None)
     payload["models"] = ordered_models
     # Only the two public data classes above can reach this point. Enforce the

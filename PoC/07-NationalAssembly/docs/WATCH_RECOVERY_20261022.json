@@ -1,0 +1,89 @@
+{
+  "checked_at_utc": "2026-10-22T04:01:39Z",
+  "status": "RECOVERED_AND_VERIFIED",
+  "production": {
+    "dispatches": {
+      "stage_1": 72,
+      "stage_2": 0,
+      "stage_3": 0
+    },
+    "kakao_sent_stage_1": 34,
+    "waiting_episodes": 72,
+    "affected_broadcasts": 3,
+    "known_reasoning_failure_rows": 572
+  },
+  "causes": [
+    "OpenRouter HTTP 400: Reasoning is mandatory for this endpoint and cannot be disabled.",
+    "Summary candidates excluded <=180-character answers but completion required every turn to have a topic summary.",
+    "Closed partial captions could remain permanently unready.",
+    "Trailing unsummarized turns starved earlier completed topic windows."
+  ],
+  "repairs": [
+    "Limit non-reasoning extraction to existing free candidates whose provider metadata permits it; the gateway validates the requested subset against its free allowlist.",
+    "Summarize short answers in watched meetings, batches <=8 items/4000 original characters.",
+    "Keep current LIVE turn open; allow closed partial turns after 5 stable minutes or explicit boundary, preserving source finality and authority.",
+    "Permit completion after a fully processed five-minute transition window; unknown turns within window still block.",
+    "Suppress transient inferred end digest corrected to official recess at same cutoff.",
+    "Stop a worker pass on configuration HTTP 400 instead of spending quota on every batch; report failure/deferred counts.",
+    "Prioritize the first eligible keyword detection onward, retaining four preceding context turns.",
+    "Retry transient provider bad requests within reserved quota; split malformed or partial batches and preserve successful items.",
+    "Confirm lifecycle-only National Assembly end signals for five minutes so official recess corrections arrive first."
+  ],
+  "validation": {
+    "related_tests_passed": 97,
+    "isolated_postgres": true,
+    "real_stage_2_or_3_delivery_verified": true,
+    "diff_check": "passed",
+    "runtime_checks_passed": 25,
+    "external_reprocessing_completed": true,
+    "ruff_F": "passed"
+  },
+  "prepared_image": "poc07-national-assembly-api:watch-recovery-20261022-complete",
+  "deployment": {
+    "watch_image": "poc07-national-assembly-api:watch-recovery-20261022-complete",
+    "summary_image": "poc07-national-assembly-api:watch-recovery-20261022-complete",
+    "gateway_image": "poc07-openrouter-gateway:watch-recovery-20261022",
+    "ordinary_summary_worker_restored": true
+  },
+  "next_steps": [],
+  "approval": "User explicitly approved production deployment, public-caption reprocessing through existing OpenRouter service, and missing Kakao delivery verification.",
+  "approval_block_resolved": "Automatic review rejected the specific production-caption transfer twice; explicit user approval requested. No bypass or production replay performed.",
+  "gateway_image": "poc07-openrouter-gateway:watch-recovery-20261022",
+  "production_after": {
+    "checked_at_utc": "2026-10-22T05:03:29.363047+00:00",
+    "episodes": {
+      "CLOSED": 72
+    },
+    "dispatches": {
+      "1": 72,
+      "2": 161,
+      "3": 59
+    },
+    "kakao": [
+      {
+        "stage": 1,
+        "status": "SENT",
+        "count": 34
+      },
+      {
+        "stage": 2,
+        "status": "SENT",
+        "count": 65
+      },
+      {
+        "stage": 3,
+        "status": "SENT",
+        "count": 27
+      }
+    ],
+    "maximum_digest_topics": 5,
+    "invalid_summary_points": 0,
+    "missing_source_revisions": 0,
+    "duplicate_boundary_per_subscriber": 0,
+    "gateway_daily_quota": {
+      "operational_limit": 950,
+      "reserved": 697,
+      "remaining": 253
+    }
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "api_image": "poc07-national-assembly-api:ministry-aliases-20261020",
+  "organizations": 68,
+  "aliases_and_typos": 55,
+  "tests_passed": 45,
+  "alias_subtests_passed": 55,
+  "live_queries": {
+    "period": [
+      "2026-07-20",
+      "2026-10-20"
+    ],
+    "groups": [
+      {
+        "canonical": "행정안전부",
+        "queries": [
+          "행안부",
+          "행정안전부",
+          "행정안정부",
+          "행정 안전부"
+        ],
+        "count": 40,
+        "meeting_count": 11,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "과학기술정보통신부",
+        "queries": [
+          "과기정통부",
+          "과학기술정보통신부"
+        ],
+        "count": 9,
+        "meeting_count": 5,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "문화체육관광부",
+        "queries": [
+          "문체부",
+          "문화체육관광부"
+        ],
+        "count": 4,
+        "meeting_count": 3,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "보건복지부",
+        "queries": [
+          "복지부",
+          "보건복지부"
+        ],
+        "count": 21,
+        "meeting_count": 12,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "국토교통부",
+        "queries": [
+          "국토부",
+          "국토교통부"
+        ],
+        "count": 40,
+        "meeting_count": 17,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "농림축산식품부",
+        "queries": [
+          "농식품부",
+          "농림축산식품부"
+        ],
+        "count": 6,
+        "meeting_count": 5,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "중소벤처기업부",
+        "queries": [
+          "중기부",
+          "중소벤처기업부"
+        ],
+        "count": 7,
+        "meeting_count": 6,
+        "identical_full_response": true
+      },
+      {
+        "canonical": "금융위원회",
+        "queries": [
+          "금융위",
+          "금융위원회"
+        ],
+        "count": 17,
+        "meeting_count": 6,
+        "identical_full_response": true
+      }
+    ]
+  },
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  }
+}

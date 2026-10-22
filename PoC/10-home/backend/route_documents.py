@@ -199,6 +199,7 @@ def select_eum_details(pending, checked, limit=15):
 
 
 def collect_eum(source, fetcher, service):
+    import os
     old=service.latest_collection_stats(source['id'])
     # Whole-province UI uses the two-digit prefix; a ten-digit code restricts notices.
     checkpoints=old.get('region_checkpoints',{}) if old.get('scope_version')==2 else {}
@@ -208,7 +209,8 @@ def collect_eum(source, fetcher, service):
         cursor=max(2,int(checkpoint.get('next_page',2)))
         complete=bool(checkpoint.get('complete_window'))
         revisit=max(2,int(checkpoint.get('revisit_page',2)))
-        pages=sorted({1,2,*range(revisit if complete else max(2,cursor-1), (revisit if complete else cursor)+2)})
+        page_count=max(2,min(20,int(os.environ.get('POC10_EUM_BACKFILL_PAGES','2'))))
+        pages=sorted({1,2,*range(revisit if complete else max(2,cursor-1), (revisit if complete else cursor)+page_count)})
         exhausted=False
         for page in pages:
             body=fetcher.get(EUM+'gvGosiList.jsp',params=dict(select2=code,selSggCd=code[:2],
@@ -224,7 +226,7 @@ def collect_eum(source, fetcher, service):
             if len(current)<50:
                 exhausted=True;break
         new_checkpoints[code]=dict(next_page=cursor if complete else max(pages)+1,
-            complete_window=complete or exhausted,revisit_page=2 if exhausted else revisit+2 if complete else 2)
+            complete_window=complete or exhausted,revisit_page=2 if exhausted else revisit+page_count if complete else 2)
     # Save discovered source records even if no managed project matches.
     output=[('notice_catalogue',seq,dict(row,sample_kind='notice_catalogue',facts=[],planned_units=None,
              policy_candidate_only=True)) for seq,row in records.items()]
@@ -232,28 +234,55 @@ def collect_eum(source, fetcher, service):
     for seq,row in records.items():
         row['regions']=sorted(set(row.get('regions',[])+known.get(seq,{}).get('regions',[])))
     known.update(records)
-    checked=old.get('detail_checked',{});failures=[]
+    checked=dict(old.get('detail_checked',{}));failures=[]
+    retry_after=dict(old.get('detail_retry_after',{}))
     pending=[r for seq,r in known.items() if r.get('housing_candidate') and
              (seq not in checked or checked[seq] <= (today()-timedelta(days=7)).isoformat())]
     # Oldest-first alone delayed newly published amendments behind the backlog.
-    selected=select_eum_details(pending,checked)
-    for row in selected:
+    # Broken remote attachments remain pending, but cannot monopolize the next
+    # batch. Retry them the following day while draining never-fetched notices.
+    eligible=[r for r in pending if retry_after.get(r['source_object_id'],'')<=end]
+    detail_limit=max(1,min(100,int(os.environ.get('POC10_EUM_DETAILS_PER_BATCH','15'))))
+    selected=select_eum_details(eligible,checked,limit=detail_limit)
+    def acquire(row):
+        from .collectors import Fetcher
+        # Each concurrent document owns its raw manifest. Sharing a Fetcher
+        # would associate one attachment with another request's last file.
+        local=Fetcher(source['id'],fetcher.raw_dir) if detail_workers>1 else fetcher
         try:
-            body=fetcher.get(row['evidence_url']);p=eum_detail(body,row);p.update(original(fetcher,body))
-            eum_attachments(p,fetcher)
-            output.append(('document_evidence',row['source_object_id'],p))
-            if p['attachment_complete']:checked[row['source_object_id']]=end
-            else:failures.append(dict(seq=row['source_object_id'],error='ATTACHMENT_PENDING'))
+            body=local.get(row['evidence_url']);p=eum_detail(body,row);p.update(original(local,body))
+            eum_attachments(p,local)
+            return row,p,None,list(local.manifest) if detail_workers>1 else []
         except Exception as exc:
-            failures.append(dict(seq=row['source_object_id'],error=type(exc).__name__))
+            return row,None,type(exc).__name__,list(local.manifest) if detail_workers>1 else []
+        finally:
+            if detail_workers>1:local.close()
+    detail_workers=max(1,min(2,int(os.environ.get('POC10_EUM_DETAIL_WORKERS','1'))))
+    if detail_workers>1:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=detail_workers) as pool:acquired=list(pool.map(acquire,selected))
+    else:acquired=[acquire(row) for row in selected]
+    for row,p,error,manifest in acquired:
+        fetcher.manifest.extend(manifest)
+        if p is not None:
+            output.append(('document_evidence',row['source_object_id'],p))
+            if p['attachment_complete']:
+                checked[row['source_object_id']]=end;retry_after.pop(row['source_object_id'],None)
+            else:
+                failures.append(dict(seq=row['source_object_id'],error='ATTACHMENT_PENDING'))
+                retry_after[row['source_object_id']]=(today()+timedelta(days=1)).isoformat()
+        else:
+            failures.append(dict(seq=row['source_object_id'],error=error))
+            retry_after[row['source_object_id']]=(today()+timedelta(days=1)).isoformat()
     remaining=max(0,len(pending)-len(selected))+len(failures)
     backfill_pending=not all(c['complete_window'] for c in new_checkpoints.values()) or remaining>0
     return output,dict(incremental=True,complete_population=False,
         complete_query=not backfill_pending,backfill_pending=backfill_pending,
         period_start=period_start,period_end=end,scope_version=2,region_checkpoints=new_checkpoints,
         discovered=len(records),housing_candidates=sum(r.get('housing_candidate',False) for r in known.values()),
-        detail_checked=checked,details_fetched=sum(k=='document_evidence' for k,_,_ in output),
+        detail_checked=checked,detail_retry_after=retry_after,details_fetched=sum(k=='document_evidence' for k,_,_ in output),
+        details_deferred=len(pending)-len(eligible),details_per_batch=detail_limit,detail_workers=detail_workers,
         detail_remaining=remaining,failures=failures,
         attachment_statistics_scope='CURRENT_BATCH_ONLY',
         attachments_text_pending=sum(a.get('status')!='TEXT_EXTRACTED' for kind,_,p in output if kind=='document_evidence' for a in p.get('attachments',[])),
-        actual_events_created=0,scope_note='수도권 3개 지역 2025-09-07 이후 고시 목록: 최신 2페이지+과거 이어받기/재방문. 주택 관련 상세 15건씩 및 첨부 다운로드·PDF/HWPX 추출. HWP·OCR·사업별 물량 추출은 별도 상태')
+        actual_events_created=0,scope_note=f'수도권 3개 지역 2025-09-07 이후 고시 목록: 최신 2페이지+과거 이어받기/재방문. 주택 관련 상세 최대 {detail_limit}건씩 및 첨부 다운로드·PDF/HWPX 추출. 실패 첨부는 다음날 재시도하며 미완료로 유지. HWP·OCR·사업별 물량 추출은 별도 상태')

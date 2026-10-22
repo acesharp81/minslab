@@ -94,7 +94,6 @@ def main() -> None:
         ),
         "OPENROUTER_DAILY_LIMIT": source.get("OPENROUTER_DAILY_LIMIT", "500"),
         "WATCH_TEST_BROADCASTS_ENABLED": source.get("WATCH_TEST_BROADCASTS_ENABLED", "true"),
-        "WATCH_DIGEST_ENABLED": source.get("WATCH_DIGEST_ENABLED", "true"),
         "WATCH_KAKAO_ENABLED": "true",
         "WATCH_KAKAO_REDIRECT_URI": KAKAO_REDIRECT,
         "WATCH_PUBLIC_BASE_URL": PUBLIC_BASE,

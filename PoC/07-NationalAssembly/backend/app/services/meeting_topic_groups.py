@@ -13,9 +13,10 @@ from .meeting_brief import link_tasks_to_topics
 from .live_topic_recovery import recover_live_topic_coverage
 from .ontology_context import CONTEXT_ALIASES, CONTEXT_CONCEPTS, match_topic_context
 from .ontology_semantic import semantic_match, METHOD as SEMANTIC_METHOD
+from .ontology_extensions import match_topic_extension, EXTENSION_ALIASES, EXTENSION_VERSION
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.15"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.16"
 GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT"
 
 
@@ -1202,7 +1203,8 @@ def build_meeting_topic_groups(brief: dict[str, Any]) -> list[dict[str, Any]]:
             group["topics"].append(topic)
             continue
         match = (_ontology_match(topic) or match_topic_context(topic, TARGET_ONTOLOGY)
-                 or semantic_match(topic, TARGET_ONTOLOGY))
+                 or semantic_match(topic, TARGET_ONTOLOGY)
+                 or match_topic_extension(topic, TARGET_ONTOLOGY))
         if match is None:
             fallback_records.append(_fallback_record(index, topic))
             continue
@@ -1523,7 +1525,8 @@ def build_meeting_topic_ontology(
                 **ontology[key],
                 "domain_key": domain_key,
                 "keyword_count": len(ontology[key]["keywords"]),
-                "context_keywords": list(CONTEXT_ALIASES.get(key, ())),
+                "context_keywords": list((*CONTEXT_ALIASES.get(key, ()), *EXTENSION_ALIASES.get(key, ()))),
+                "vocabulary_version": EXTENSION_VERSION,
                 "context_patterns": [label for label, _ in CONTEXT_CONCEPTS.get(key, ())],
                 "matched_keywords": [
                     {"keyword": keyword, "topic_count": count}

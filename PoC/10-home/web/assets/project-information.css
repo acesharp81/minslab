@@ -64,7 +64,7 @@
 @media(min-width:900px) and (max-height:820px){#project-information-dialog .pi-card{padding:4px 8px}#project-information-dialog .pjt-edit-body{gap:4px}}
 
 /* Current measured stage and compact construction/stock comparison. */
-.pjt-stages .pjt-current-stage .pc-cell{border:2px solid #237a78;box-shadow:0 0 0 2px #237a7818}.pjt-current-badge{font-size:10px;font-weight:600;color:#237a78;background:#e9f4ef;border-radius:3px;padding:2px 4px;margin-left:auto;white-space:nowrap}.pjt-stages h4{align-items:center;gap:3px}
+.pjt-stages .pjt-current-stage .pc-cell{border:6px solid #185e5c;box-shadow:0 0 0 2px #237a7818}.pjt-current-badge{font-size:10px;font-weight:600;color:#237a78;background:#e9f4ef;border-radius:3px;padding:2px 4px;margin-left:auto;white-space:nowrap}.pjt-stages h4{align-items:center;gap:3px}
 .pjt-progress-context{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px;margin-top:16px;align-items:stretch}.pjt-progress-context>div{min-width:0}.pjt-progress-context .pc-construction-plan{margin:0;padding:12px;height:100%;box-sizing:border-box}.pjt-progress-context .pc-construction-plan>svg{width:100%;max-width:none;height:auto}.pjt-progress-context .pc-progress-milestones{flex-wrap:wrap;gap:6px}.pjt-progress-context .pc-progress-milestones small{font-size:9px}.pjt-progress-context .pac-trend{height:100%;box-sizing:border-box}.pac-employment-summary b{color:#245e63}.pac-grid>.pac-trend:last-child{grid-column:1/-1}
 @media(max-width:850px){.pjt-progress-context{grid-template-columns:1fr}.pjt-current-badge{font-size:9px}}
 

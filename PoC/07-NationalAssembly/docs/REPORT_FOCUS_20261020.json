@@ -1,0 +1,54 @@
+{
+  "asset_version": "20261020-report-focus-1",
+  "browser": "Playwright Chromium",
+  "checks": [
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "initial_evidence_id": "topic-1",
+      "source_header": "발언 확인 · 임시회의록 반영\n미처리 법률안 및 국정감사 대안 논의 촉구\n9개 공식 발언 · LIVE 대비 수정 문구 5곳\n선택 해제",
+      "foreground_report_requests": 0,
+      "scroll_and_selection_preserved": true,
+      "periodic_status_preserves_report": true,
+      "cached_open_evidence_requests": 1,
+      "js_errors": []
+    },
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "initial_evidence_id": "structured-summary-2c529ae781053f90",
+      "source_header": "발언 확인 · 구조화 시점의 LIVE 저장본\n학교폭력 사건 처리 지연 및 검찰 송치 문제\n6개 발언 묶음 · 핵심 문구 최대 3개를 표시합니다\n선택 해제",
+      "foreground_report_requests": 0,
+      "scroll_and_selection_preserved": true,
+      "periodic_status_preserves_report": true,
+      "cached_open_evidence_requests": 1,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "initial_evidence_id": "topic-1",
+      "source_header": "발언 확인 · 임시회의록 반영\n미처리 법률안 및 국정감사 대안 논의 촉구\n9개 공식 발언 · LIVE 대비 수정 문구 5곳\n선택 해제",
+      "foreground_report_requests": 0,
+      "scroll_and_selection_preserved": true,
+      "periodic_status_preserves_report": true,
+      "cached_open_evidence_requests": 1,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "initial_evidence_id": "structured-summary-2c529ae781053f90",
+      "source_header": "발언 확인 · 구조화 시점의 LIVE 저장본\n학교폭력 사건 처리 지연 및 검찰 송치 문제\n6개 발언 묶음 · 핵심 문구 최대 3개를 표시합니다\n선택 해제",
+      "foreground_report_requests": 0,
+      "scroll_and_selection_preserved": true,
+      "periodic_status_preserves_report": true,
+      "cached_open_evidence_requests": 1,
+      "js_errors": []
+    },
+    {
+      "explicit_evidence_preserved": true,
+      "stale_evidence_response_ignored": true
+    }
+  ]
+}

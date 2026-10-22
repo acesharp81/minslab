@@ -166,7 +166,7 @@ class SampleStorageTests(unittest.TestCase):
         self.engine.dispose()
         self.directory.cleanup()
 
-    def test_additional_types_are_queryable_with_history_and_csv_without_policy_mapping(self):
+    def test_additional_types_are_queryable_with_history_without_policy_mapping(self):
         for source_id,kind in (("building_register","register"),("lh_notice","lh_notice"),("molit_statistics","statistic"),("sh_supply_plan","sh_plan"),("sh_redevelopment","sh_project")):
             payload=base(SAMPLE_SOURCES[source_id],kind,'2018년 검증 자료','서울특별시','서울 시도 전체','2018-01-31')
             payload.update(source_object_id=kind,units=12 if kind=='statistic' else None,
@@ -177,21 +177,15 @@ class SampleStorageTests(unittest.TestCase):
                 second=self.service.collect_samples(source_id)
             self.assertEqual(first['results'][0]['new'],1)
             self.assertEqual(second['results'][0]['unchanged'],1)
-            response=self.client.get('/poc/home/api/samples?kind='+kind)
-            self.assertEqual(response.status_code,200)
-            row=response.json()['items'][0]
-            detail=self.client.get('/poc/home/api/samples/'+row['id']).json()
+            row=self.service.sample_page(kind=kind)['items'][0]
+            detail=self.service.sample_detail(row['id'])
             self.assertEqual(len(detail['history']),1)
             self.assertEqual(detail['source_date'],'2018-01-31')
-            by_year=self.client.get('/poc/home/api/samples?kind='+kind+'&source_year=2018').json()
+            by_year=self.service.sample_page(kind=kind,source_year=2018)
             self.assertEqual(by_year['total'],1)
             self.assertEqual(by_year['source_years'],[2018])
-            self.assertEqual(self.client.get('/poc/home/api/samples?kind='+kind+'&source_year=2026').json()['total'],0)
-            self.assertEqual(self.client.get('/poc/home/api/samples?kind='+kind+'&as_of_date='+(today()-timedelta(days=1)).isoformat()).json()['total'],0)
-        csv=self.client.get('/poc/home/api/samples/export.csv?kind=statistic').text
-        self.assertIn('statistic_period',csv)
-        self.assertIn('201801',csv)
-        self.assertIn('2018-01-31',csv)
+            self.assertEqual(self.service.sample_page(kind=kind,source_year=2026)['total'],0)
+            self.assertEqual(self.service.sample_page(kind=kind,as_of=today()-timedelta(days=1))['total'],0)
         self.assertEqual(self.client.get('/poc/home/api/projects').json()['total'],0)
 
     def test_sample_collection_is_idempotent_without_project_or_mapping(self):
@@ -205,16 +199,14 @@ class SampleStorageTests(unittest.TestCase):
             self.assertEqual(len(session.scalars(select(Revision)).all()),1)
             self.assertEqual(len(session.scalars(select(Mapping)).all()),0)
         self.assertEqual(self.client.get('/poc/home/api/overview').json()['project_count'],0)
-        data=self.client.get('/poc/home/api/samples?kind=notice').json()
+        data=self.service.sample_page(kind='notice')
         self.assertEqual(data['total'],1)
         identifier=data['items'][0]['id']
-        self.assertEqual(self.client.get('/poc/home/api/samples/'+identifier).json()['history'][0]['revision_no'],1)
-        self.assertEqual(self.client.get('/poc/home/api/samples?region=경기도').json()['total'],0)
-        self.assertEqual(self.client.get('/poc/home/api/samples?q=개포동').json()['total'],1)
-        self.assertEqual(self.client.get('/poc/home/api/samples?as_of_date='+(today()-timedelta(days=1)).isoformat()).json()['total'],0)
-        self.assertIn("'=표본 공고",self.client.get('/poc/home/api/samples/export.csv').text)
+        self.assertEqual(self.service.sample_detail(identifier)['history'][0]['revision_no'],1)
+        self.assertEqual(self.service.sample_page(region='경기도')['total'],0)
+        self.assertEqual(self.service.sample_page(q='개포동')['total'],1)
+        self.assertEqual(self.service.sample_page(as_of=today()-timedelta(days=1))['total'],0)
         self.assertNotIn('=표본 공고',self.client.get('/poc/home/api/export.csv').text)
-        self.assertEqual(self.client.get('/poc/home/api/samples?kind=project').status_code,422)
 
     def test_scheduler_skips_manual_samples_and_admin_refresh_selects_sample_mode(self):
         with patch.object(self.service,'collect_one',return_value={'status':'SUCCESS'}) as collect:

@@ -1,0 +1,48 @@
+{
+  "before": {
+    "chart_seconds": 6.826,
+    "long_tasks": [
+      {
+        "start": 175.7000000178814,
+        "duration": 158
+      },
+      {
+        "start": 854.1000000238419,
+        "duration": 5895
+      },
+      {
+        "start": 6901.100000023842,
+        "duration": 139
+      },
+      {
+        "start": 7040.700000017881,
+        "duration": 256
+      }
+    ],
+    "svg_sha256": "3f7a90c03634fc17b13c06972fca97806022dca7bcaba76661243bbc5cc473f6",
+    "errors": []
+  },
+  "after": {
+    "chart_seconds": 1.707,
+    "long_tasks": [
+      {
+        "start": 156.09999999403954,
+        "duration": 58
+      },
+      {
+        "start": 793.1999999880791,
+        "duration": 833
+      },
+      {
+        "start": 1768.0999999940395,
+        "duration": 114
+      },
+      {
+        "start": 1883.199999988079,
+        "duration": 233
+      }
+    ],
+    "svg_sha256": "3f7a90c03634fc17b13c06972fca97806022dca7bcaba76661243bbc5cc473f6",
+    "errors": []
+  }
+}

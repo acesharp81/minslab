@@ -14,8 +14,6 @@
 | 06 | [AI Work Hub](06-AIWorks/README.md) | 승인 기반 AI 업무 작업공간·문서 자동화·MCP 제작/스토어 | 정적 SPA + Python/SQLite + JSON Schema |
 | 07 | [07-NationalAssembly](07-NationalAssembly/README.md) | 국무회의·국회 회의·의안·표결의 공식 원문 기반 정책 흐름 | 독립 FastAPI + PostgreSQL + 루트 reverse proxy |
 | 10 | [HOME](10-home/README.md) | 정부 정책과 서울·경기 사업 후보 수집·검토·현황 조회 | 독립 FastAPI + PostgreSQL/PostGIS + 루트 reverse proxy |
-| 11 | [상담사례 아카이브](11-consultation-cases/README.md) | 통합콜센터 Q&A 수집·버전·RAG Markdown | 루트 ASGI + 파일 저장 |
-| 12 | [주택파동](12-housing-board/README.md) | 9·7 정책 실데이터 상황판·3D 공급 지도 | 독립 Next.js + 루트 reverse proxy |
 
 ## 등록 방식
 
@@ -78,20 +76,9 @@ PoC는 폴더 하나만으로 기능·설정·운영·테스트를 이해하고 
 /poc/home/*
   └─ PoC 10 HOME 독립 FastAPI 서비스(기본 localhost:18100) reverse proxy
 
-/poc/consultation-cases/*
-  └─ PoC 11 수집 현황·JSON/Markdown 다운로드
-
-/home2
-  └─ /poc/housing-board로 이동
-
-/poc/housing-board/*
-  └─ PoC 12 주택파동 독립 Next.js 서비스(기본 localhost:18120) reverse proxy
-
 /api/poc/*
   └─ 서버 비밀값, 외부 API, 관리자 권한, LLM 호출 경계
 ```
-
-PoC 12는 Next.js 앱을 독립 Node.js 프로세스로 실행하며 루트 ASGI가 `/poc/housing-board/`로 중계합니다.
 
 PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다. 운영에서는 별도 Node 프로세스나 포트를 열지 않고 루트 ASGI가 `dist/` 파일을 제공합니다. PoC 07은 부모 저장소와 런타임을 공유하지 않는 독립 서비스이며, 루트 ASGI는 같은 출처의 `/poc/national-assembly/` 경로로만 프록시합니다.
 
@@ -112,7 +99,6 @@ PoC 02와 03의 React 소스는 개발·빌드 시에만 Node를 사용합니다
 | 북한 야간조명 | `GEE_PROJECT` |
 | AI Work Hub (`aiworks` 호환 식별자) | `AIWORKS_STORE_SIGNING_SECRET`, `AIWORKS_APPROVAL_SECRET`, `AIWORKS_SOLAR_LIVE`, `AIWORKS_LOCAL_MCP_LIVE`, `AIWORKS_RHWP_*` |
 | 국회 PoC 프록시 | `NATIONAL_ASSEMBLY_UPSTREAM` |
-| 주택파동 PoC 프록시 | `POC12_UPSTREAM` |
 
 Vite의 `VITE_*` 값과 Supabase publishable key는 브라우저 공개값입니다. service-role과 LLM API key는 어떤 경우에도 브라우저 번들에 넣지 않습니다.
 

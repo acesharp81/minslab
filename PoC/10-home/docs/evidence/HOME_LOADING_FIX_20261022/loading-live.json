@@ -1,0 +1,753 @@
+{
+  "longTasks": [
+    {
+      "start": 1153.5,
+      "duration": 210
+    },
+    {
+      "start": 2030.2999999821186,
+      "duration": 66
+    },
+    {
+      "start": 2209.4000000059605,
+      "duration": 1226
+    },
+    {
+      "start": 3551.199999988079,
+      "duration": 70
+    },
+    {
+      "start": 3653.9000000059605,
+      "duration": 219
+    },
+    {
+      "start": 3873.699999988079,
+      "duration": 438
+    }
+  ],
+  "resources": [
+    {
+      "url": "assets/styles.css?v=20261022-brand-centered",
+      "duration": 171.40000000596046,
+      "start": 331.09999999403954,
+      "ttfb": 168.40000000596046,
+      "size": 8638
+    },
+    {
+      "url": "assets/vendor/leaflet/leaflet.css",
+      "duration": 254.90000000596046,
+      "start": 333.69999998807907,
+      "ttfb": 240.09999999403954,
+      "size": 15106
+    },
+    {
+      "url": "assets/map-monitor.css",
+      "duration": 311,
+      "start": 333.90000000596046,
+      "ttfb": 296,
+      "size": 8050
+    },
+    {
+      "url": "assets/map-bars.css",
+      "duration": 343.09999999403954,
+      "start": 333.90000000596046,
+      "ttfb": 328.89999997615814,
+      "size": 5911
+    },
+    {
+      "url": "assets/map.css",
+      "duration": 342.89999997615814,
+      "start": 333.90000000596046,
+      "ttfb": 327.30000001192093,
+      "size": 4738
+    },
+    {
+      "url": "assets/map-area-context.css",
+      "duration": 359.09999999403954,
+      "start": 334,
+      "ttfb": 343.7999999821186,
+      "size": 4920
+    },
+    {
+      "url": "assets/area-dashboard.css",
+      "duration": 397.19999998807907,
+      "start": 334,
+      "ttfb": 227.2999999821186,
+      "size": 8707
+    },
+    {
+      "url": "assets/annual-supply.css",
+      "duration": 405,
+      "start": 334.09999999403954,
+      "ttfb": 149.80000001192093,
+      "size": 4960
+    },
+    {
+      "url": "assets/history.css",
+      "duration": 398.2000000178814,
+      "start": 337.2999999821186,
+      "ttfb": 89.59999999403954,
+      "size": 1756
+    },
+    {
+      "url": "assets/map-workspace.css?v=20261016-controls-view",
+      "duration": 549.2999999821186,
+      "start": 337.40000000596046,
+      "ttfb": 208.90000000596046,
+      "size": 11264
+    },
+    {
+      "url": "assets/policy-dashboard.css",
+      "duration": 556.0999999940395,
+      "start": 337.40000000596046,
+      "ttfb": 214.2000000178814,
+      "size": 4849
+    },
+    {
+      "url": "assets/policy-geo.css",
+      "duration": 547.3000000119209,
+      "start": 337.7999999821186,
+      "ttfb": 190.2000000178814,
+      "size": 5041
+    },
+    {
+      "url": "assets/policy-report.css",
+      "duration": 559.9000000059605,
+      "start": 337.7999999821186,
+      "ttfb": 163.89999997615814,
+      "size": 16660
+    },
+    {
+      "url": "assets/policy-907.css?v=20261022-gap-label-v15",
+      "duration": 565.7000000178814,
+      "start": 337.7999999821186,
+      "ttfb": 167.09999999403954,
+      "size": 15090
+    },
+    {
+      "url": "assets/delivery-operations.css?v=20261022-ui-refinement",
+      "duration": 559.6999999880791,
+      "start": 337.90000000596046,
+      "ttfb": 157.80000001192093,
+      "size": 1691
+    },
+    {
+      "url": "assets/project-collection.css?v=20261022-field-cells-r2",
+      "duration": 627.2999999821186,
+      "start": 338,
+      "ttfb": 78,
+      "size": 8736
+    },
+    {
+      "url": "assets/data-integrity.css?v=20261022-two-column",
+      "duration": 627.5,
+      "start": 338,
+      "ttfb": 77.59999999403954,
+      "size": 4056
+    },
+    {
+      "url": "assets/user-guide.css?v=20261022-supply-control-v12",
+      "duration": 627.5999999940395,
+      "start": 338,
+      "ttfb": 71.09999999403954,
+      "size": 11533
+    },
+    {
+      "url": "assets/roadmap.js?v=20261016-controls-view",
+      "duration": 816.5999999940395,
+      "start": 338.09999999403954,
+      "ttfb": 28.299999982118607,
+      "size": 10298
+    },
+    {
+      "url": "assets/map-supply.js?v=20261016-controls-view",
+      "duration": 825.1999999880791,
+      "start": 338.09999999403954,
+      "ttfb": 23.900000005960464,
+      "size": 10617
+    },
+    {
+      "url": "assets/vendor/leaflet/leaflet.js",
+      "duration": 822,
+      "start": 338.09999999403954,
+      "ttfb": 68.89999997615814,
+      "size": 45102
+    },
+    {
+      "url": "assets/map-bars.js",
+      "duration": 831.4000000059605,
+      "start": 338.09999999403954,
+      "ttfb": 25.5,
+      "size": 4746
+    },
+    {
+      "url": "assets/block-monitor.js",
+      "duration": 835.1999999880791,
+      "start": 338.09999999403954,
+      "ttfb": 29.19999998807907,
+      "size": 8404
+    },
+    {
+      "url": "assets/map-trends.js",
+      "duration": 845.3000000119209,
+      "start": 338.09999999403954,
+      "ttfb": 32.5,
+      "size": 6378
+    },
+    {
+      "url": "assets/map-progress-tracking.js",
+      "duration": 845.3000000119209,
+      "start": 338.19999998807907,
+      "ttfb": 28.099999994039536,
+      "size": 11984
+    },
+    {
+      "url": "assets/area-dashboard.js",
+      "duration": 855.9000000059605,
+      "start": 338.19999998807907,
+      "ttfb": 32.89999997615814,
+      "size": 7905
+    },
+    {
+      "url": "assets/annual-supply.js",
+      "duration": 856,
+      "start": 338.2999999821186,
+      "ttfb": 30.19999998807907,
+      "size": 7099
+    },
+    {
+      "url": "assets/map-area-context.js",
+      "duration": 864.4000000059605,
+      "start": 338.2999999821186,
+      "ttfb": 32.5,
+      "size": 10566
+    },
+    {
+      "url": "assets/map-stage-ring.js",
+      "duration": 864.0999999940395,
+      "start": 338.40000000596046,
+      "ttfb": 28,
+      "size": 4081
+    },
+    {
+      "url": "assets/map-monitor.js?v=20261016-controls-view",
+      "duration": 871.5,
+      "start": 338.40000000596046,
+      "ttfb": 20.700000017881393,
+      "size": 10539
+    },
+    {
+      "url": "assets/apartment-shapes.js",
+      "duration": 871.5999999940395,
+      "start": 338.40000000596046,
+      "ttfb": 25.400000005960464,
+      "size": 5135
+    },
+    {
+      "url": "assets/map.js?v=20261022-ui-refinement",
+      "duration": 886.5999999940395,
+      "start": 338.40000000596046,
+      "ttfb": 30,
+      "size": 7133
+    },
+    {
+      "url": "assets/map-3d.js?v=20261022-ui-refinement",
+      "duration": 894.5,
+      "start": 338.40000000596046,
+      "ttfb": 37.29999998211861,
+      "size": 13922
+    },
+    {
+      "url": "assets/history.js?v=20261022-compact-sources",
+      "duration": 897.2999999821186,
+      "start": 338.5,
+      "ttfb": 32.60000002384186,
+      "size": 5036
+    },
+    {
+      "url": "assets/policy-dashboard.js?v=20261022-compact-sources",
+      "duration": 902.1999999880791,
+      "start": 338.5,
+      "ttfb": 36.69999998807907,
+      "size": 14661
+    },
+    {
+      "url": "assets/policy-schematic.js",
+      "duration": 906.1999999880791,
+      "start": 338.5,
+      "ttfb": 31.200000017881393,
+      "size": 15251
+    },
+    {
+      "url": "assets/policy-geo.js?v=20261022-candidate-exclusion",
+      "duration": 906.3000000119209,
+      "start": 338.59999999403954,
+      "ttfb": 33.29999998211861,
+      "size": 9460
+    },
+    {
+      "url": "assets/policy-delivery-flow.js",
+      "duration": 914,
+      "start": 338.59999999403954,
+      "ttfb": 25.400000005960464,
+      "size": 15846
+    },
+    {
+      "url": "assets/policy-report.js",
+      "duration": 924.6999999880791,
+      "start": 338.59999999403954,
+      "ttfb": 28.80000001192093,
+      "size": 15267
+    },
+    {
+      "url": "assets/vendor/d3-shape/d3-shape.min.js",
+      "duration": 924.5,
+      "start": 338.69999998807907,
+      "ttfb": 19.19999998807907,
+      "size": 8372
+    },
+    {
+      "url": "assets/vendor/d3-path/d3-path.min.js",
+      "duration": 924.0999999940395,
+      "start": 338.69999998807907,
+      "ttfb": 23.30000001192093,
+      "size": 2733
+    },
+    {
+      "url": "assets/policy-stage-flow.js?v=20261022-render-cache-v17",
+      "duration": 930.0999999940395,
+      "start": 338.69999998807907,
+      "ttfb": 21.5,
+      "size": 12995
+    },
+    {
+      "url": "assets/policy-region-map.js?v=20261019-scope-final",
+      "duration": 930,
+      "start": 338.69999998807907,
+      "ttfb": 20.799999982118607,
+      "size": 9871
+    },
+    {
+      "url": "assets/policy-decision.js",
+      "duration": 936.3000000119209,
+      "start": 338.69999998807907,
+      "ttfb": 20.30000001192093,
+      "size": 13309
+    },
+    {
+      "url": "assets/policy-information.css",
+      "duration": 639.8000000119209,
+      "start": 338.7999999821186,
+      "ttfb": 80.2999999821186,
+      "size": 5295
+    },
+    {
+      "url": "assets/policy-information.js?v=20261022-collected-programs",
+      "duration": 944.1000000238419,
+      "start": 338.7999999821186,
+      "ttfb": 18.399999976158142,
+      "size": 8825
+    },
+    {
+      "url": "assets/program-information.js?v=20261022-candidate-exclusion",
+      "duration": 955.1000000238419,
+      "start": 338.7999999821186,
+      "ttfb": 29.30000001192093,
+      "size": 13116
+    },
+    {
+      "url": "assets/housing-indicators.css",
+      "duration": 638.6999999880791,
+      "start": 338.90000000596046,
+      "ttfb": 78.39999997615814,
+      "size": 6896
+    },
+    {
+      "url": "assets/policy-907.js?v=20261022-visible-axis-v14",
+      "duration": 964.7999999821186,
+      "start": 338.90000000596046,
+      "ttfb": 32,
+      "size": 18209
+    },
+    {
+      "url": "assets/collected-records.js?v=20261022-records-r3",
+      "duration": 967.8999999761581,
+      "start": 338.90000000596046,
+      "ttfb": 28.5,
+      "size": 3458
+    },
+    {
+      "url": "assets/delivery-operations.js?v=20261022-ui-refinement",
+      "duration": 969.0999999940395,
+      "start": 338.90000000596046,
+      "ttfb": 35,
+      "size": 1817
+    },
+    {
+      "url": "assets/housing-indicators.js",
+      "duration": 970.0999999940395,
+      "start": 338.90000000596046,
+      "ttfb": 39.400000005960464,
+      "size": 13442
+    },
+    {
+      "url": "assets/collection-repairs.js",
+      "duration": 973.5,
+      "start": 339,
+      "ttfb": 13.099999994039536,
+      "size": 9470
+    },
+    {
+      "url": "assets/mapping-workbench.js?v=20261022-ui-refinement",
+      "duration": 972.7999999821186,
+      "start": 339,
+      "ttfb": 24,
+      "size": 6231
+    },
+    {
+      "url": "assets/collection-stage-lineage.js",
+      "duration": 989.6999999880791,
+      "start": 339,
+      "ttfb": 13.5,
+      "size": 8696
+    },
+    {
+      "url": "assets/collection-lineage.js",
+      "duration": 997.9000000059605,
+      "start": 339,
+      "ttfb": 24.399999976158142,
+      "size": 11139
+    },
+    {
+      "url": "assets/stage-field-view.js?v=20261022-fields",
+      "duration": 997.6999999880791,
+      "start": 339.09999999403954,
+      "ttfb": 25,
+      "size": 3487
+    },
+    {
+      "url": "assets/data-integrity.js?v=20261022-two-column",
+      "duration": 1005.4000000059605,
+      "start": 339.19999998807907,
+      "ttfb": 30.099999994039536,
+      "size": 4904
+    },
+    {
+      "url": "assets/project-collection.js?v=20261022-field-cells-r2",
+      "duration": 1005.3000000119209,
+      "start": 339.19999998807907,
+      "ttfb": 30.400000005960464,
+      "size": 11998
+    },
+    {
+      "url": "assets/project-facility-map.js?v=20261016-legend",
+      "duration": 1010.0999999940395,
+      "start": 339.19999998807907,
+      "ttfb": 17.69999998807907,
+      "size": 4490
+    },
+    {
+      "url": "assets/unsold-indicators.js",
+      "duration": 1010.0999999940395,
+      "start": 339.19999998807907,
+      "ttfb": 34.099999994039536,
+      "size": 4196
+    },
+    {
+      "url": "assets/project-location.js?v=20261016-facilities",
+      "duration": 1029.4000000059605,
+      "start": 339.2999999821186,
+      "ttfb": 31,
+      "size": 10468
+    },
+    {
+      "url": "assets/project-area-charts.js?v=20261022-null-statistics-v17",
+      "duration": 1029.300000011921,
+      "start": 339.2999999821186,
+      "ttfb": 21.30000001192093,
+      "size": 16256
+    },
+    {
+      "url": "assets/project-living-charts.js",
+      "duration": 1029.2000000178814,
+      "start": 339.2999999821186,
+      "ttfb": 28.400000005960464,
+      "size": 7183
+    },
+    {
+      "url": "assets/project-information.css?v=20261022-field-cells",
+      "duration": 634.7999999821186,
+      "start": 339.40000000596046,
+      "ttfb": 69.7000000178814,
+      "size": 8017
+    },
+    {
+      "url": "assets/scope-evidence.js",
+      "duration": 1039.5,
+      "start": 339.40000000596046,
+      "ttfb": 26.69999998807907,
+      "size": 8680
+    },
+    {
+      "url": "assets/project-information.js?v=20261022-project-desc",
+      "duration": 1044.199999988079,
+      "start": 339.40000000596046,
+      "ttfb": 27.900000005960464,
+      "size": 11980
+    },
+    {
+      "url": "assets/project-summary-card.js?v=20261016-columns",
+      "duration": 1040.7999999821186,
+      "start": 339.40000000596046,
+      "ttfb": 31.69999998807907,
+      "size": 7235
+    },
+    {
+      "url": "assets/requirements-manual.js?v=20261022-ui-refinement",
+      "duration": 1049.5999999940395,
+      "start": 339.40000000596046,
+      "ttfb": 19.400000005960464,
+      "size": 14029
+    },
+    {
+      "url": "assets/user-guide.js?v=20261022-documents-v16",
+      "duration": 1060.3999999761581,
+      "start": 339.40000000596046,
+      "ttfb": 30,
+      "size": 16789
+    },
+    {
+      "url": "assets/source-preview.css?v=20261022-failed-cards",
+      "duration": 655.5,
+      "start": 339.5,
+      "ttfb": 28.80000001192093,
+      "size": 14205
+    },
+    {
+      "url": "assets/source-preview.js?v=20261022-document-cards",
+      "duration": 1060.4000000059605,
+      "start": 339.5,
+      "ttfb": 30.400000005960464,
+      "size": 4482
+    },
+    {
+      "url": "assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2",
+      "duration": 1073.4000000059605,
+      "start": 339.5,
+      "ttfb": 28.5,
+      "size": 10167
+    },
+    {
+      "url": "assets/report-collection.css?v=20261022",
+      "duration": 703.4000000059605,
+      "start": 339.59999999403954,
+      "ttfb": 76.60000002384186,
+      "size": 5249
+    },
+    {
+      "url": "assets/progress-report.js?v=20261022-sequence-metrics-v2",
+      "duration": 1080.199999988079,
+      "start": 339.59999999403954,
+      "ttfb": 35,
+      "size": 16599
+    },
+    {
+      "url": "assets/collection-schema.js?v=20261022-starmap-3d-v3",
+      "duration": 1080.4000000059605,
+      "start": 339.59999999403954,
+      "ttfb": 35.400000005960464,
+      "size": 8304
+    },
+    {
+      "url": "assets/collection-starmap.css?v=20261022-starmap-3d-v3",
+      "duration": 666,
+      "start": 339.69999998807907,
+      "ttfb": 39.5,
+      "size": 10271
+    },
+    {
+      "url": "assets/report-md.js?v=20261022-sequence-rule",
+      "duration": 1085,
+      "start": 339.69999998807907,
+      "ttfb": 34.19999998807907,
+      "size": 16960
+    },
+    {
+      "url": "assets/source-years.js?v=20261022-ui-refinement",
+      "duration": 1087.0999999940395,
+      "start": 339.69999998807907,
+      "ttfb": 24.80000001192093,
+      "size": 2916
+    },
+    {
+      "url": "assets/app.js?v=20261022-failed-cards",
+      "duration": 1087.4000000059605,
+      "start": 340.19999998807907,
+      "ttfb": 25.599999994039536,
+      "size": 14999
+    },
+    {
+      "url": "assets/policy-region-map.css?v=20261016-unit-share",
+      "duration": 719.4000000059605,
+      "start": 340.2999999821186,
+      "ttfb": 84.19999998807907,
+      "size": 12806
+    },
+    {
+      "url": "assets/policy-decision.css",
+      "duration": 748.5,
+      "start": 340.2999999821186,
+      "ttfb": 110.40000000596046,
+      "size": 4803
+    },
+    {
+      "url": "assets/policy-workspace.css?v=20261022-visible-axis-v14",
+      "duration": 785,
+      "start": 340.2999999821186,
+      "ttfb": 145.69999998807907,
+      "size": 10284
+    },
+    {
+      "url": "assets/report-charts.css?v=20261022-estimate-legend",
+      "duration": 797.5999999940395,
+      "start": 340.40000000596046,
+      "ttfb": 131.59999999403954,
+      "size": 3761
+    },
+    {
+      "url": "assets/report-md.css",
+      "duration": 802.5999999940395,
+      "start": 340.40000000596046,
+      "ttfb": 146.40000000596046,
+      "size": 1760
+    },
+    {
+      "url": "assets/brand/the-jutaek.svg",
+      "duration": 801.6999999880791,
+      "start": 341.5,
+      "ttfb": 82.40000000596046,
+      "size": 3457
+    },
+    {
+      "url": "assets/mapping-workbench.css?v=20261022-ui-refinement",
+      "duration": 808.1999999880791,
+      "start": 341.5,
+      "ttfb": 106.19999998807907,
+      "size": 3856
+    },
+    {
+      "url": "api/policies",
+      "duration": 50.900000005960464,
+      "start": 1445.5999999940395,
+      "ttfb": 47.599999994039536,
+      "size": 6306
+    },
+    {
+      "url": "api/sources?compact=true",
+      "duration": 244.2000000178814,
+      "start": 1445.7999999821186,
+      "ttfb": 241.59999999403954,
+      "size": 14506
+    },
+    {
+      "url": "api/admin/status",
+      "duration": 23,
+      "start": 1446.5,
+      "ttfb": 20.799999982118607,
+      "size": 323
+    },
+    {
+      "url": "assets/favicon.svg?v=20261021-the-jutaek",
+      "duration": 24.700000017881393,
+      "start": 1455.2999999821186,
+      "ttfb": 21.700000017881393,
+      "size": 752
+    },
+    {
+      "url": "api/policy-delivery/view?as_of_date=2026-10-22&group=policy&scope=policy",
+      "duration": 325.90000000596046,
+      "start": 1707,
+      "ttfb": 252.90000000596046,
+      "size": 578451
+    },
+    {
+      "url": "api/policy-monitor?as_of_date=2026-10-22&policy_id=POL_2025_0907",
+      "duration": 245.2999999821186,
+      "start": 1707.4000000059605,
+      "ttfb": 239.7999999821186,
+      "size": 36079
+    },
+    {
+      "url": "api/mappings?as_of_date=2026-10-22&policy_id=POL_2025_0907&compact=true",
+      "duration": 241.40000000596046,
+      "start": 1707.5,
+      "ttfb": 233.5,
+      "size": 114513
+    },
+    {
+      "url": "api/view-version?view=policy-progress",
+      "duration": 105.09999999403954,
+      "start": 1707.5999999940395,
+      "ttfb": 101.69999998807907,
+      "size": 378
+    },
+    {
+      "url": "assets/vendor/three/three.module.js",
+      "duration": 79.7999999821186,
+      "start": 2581,
+      "ttfb": 66.19999998807907,
+      "size": 126426
+    },
+    {
+      "url": "api/area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "duration": 42.69999998807907,
+      "start": 2626.0999999940395,
+      "ttfb": 40.19999998807907,
+      "size": 8276
+    },
+    {
+      "url": "api/area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+      "duration": 40.20000001788139,
+      "start": 2628.2999999821186,
+      "ttfb": 36.599999994039536,
+      "size": 8142
+    },
+    {
+      "url": "api/area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+      "duration": 39.79999998211861,
+      "start": 2628.9000000059605,
+      "ttfb": 38.599999994039536,
+      "size": 7996
+    },
+    {
+      "url": "api/area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+      "duration": 43.900000005960464,
+      "start": 2632,
+      "ttfb": 40.69999998807907,
+      "size": 3941
+    },
+    {
+      "url": "api/area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+      "duration": 43.80000001192093,
+      "start": 2632.2999999821186,
+      "ttfb": 40.29999998211861,
+      "size": 3911
+    },
+    {
+      "url": "api/area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "duration": 49.099999994039536,
+      "start": 2632.5,
+      "ttfb": 17.799999982118607,
+      "size": 3917
+    },
+    {
+      "url": "assets/vendor/three/three.core.js",
+      "duration": 79.09999999403954,
+      "start": 3536.5,
+      "ttfb": 64.90000000596046,
+      "size": 299270
+    }
+  ],
+  "svgNodes": 1218,
+  "errors": []
+}

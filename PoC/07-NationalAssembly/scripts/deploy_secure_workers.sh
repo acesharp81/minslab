@@ -174,7 +174,7 @@ case "${TARGET}" in
     deploy_worker "official-minutes" "app.ingestion.official_minutes_worker" "300" "DATABASE_URL,NATIONAL_ASSEMBLY_API_KEY,RAW_DATA_DIR,PROCESSED_DATA_DIR" "yes" "no"
     deploy_worker "official-integration" "app.ingestion.official_integration_worker" "15" "${OPENROUTER_TEXT}" "no" "no"
     deploy_worker "executive-caption" "app.ingestion.executive_caption_worker" "5" "${EXECUTIVE_AUDIO}" "yes"
-    deploy_worker "watch" "app.ingestion.watch_worker" "1" "DATABASE_URL,WATCH_ALERTS_ENABLED,WATCH_TEST_BROADCASTS_ENABLED,WATCH_DIGEST_ENABLED,WATCH_KAKAO_ENABLED,WATCH_LLM_ENABLED" "no" "no"
+    deploy_worker "watch" "app.ingestion.watch_worker" "1" "DATABASE_URL,WATCH_ALERTS_ENABLED,WATCH_TEST_BROADCASTS_ENABLED,WATCH_KAKAO_ENABLED,WATCH_LLM_ENABLED" "no" "no"
     deploy_worker "notification" "app.ingestion.notification_worker" "2" "${WATCH_KAKAO}" "no" "no"
     deploy_worker "watch-summary" "app.ingestion.watch_summary_worker" "10" "${WATCH_SUMMARY}" "no" "no"
     deploy_worker "topic-report" "app.ingestion.topic_report_worker" "2" "${TOPIC_REPORT}" "no" "no"
@@ -201,7 +201,7 @@ case "${TARGET}" in
     deploy_worker "executive-caption" "app.ingestion.executive_caption_worker" "5" "${EXECUTIVE_AUDIO}" "yes"
     ;;
   watch)
-    deploy_worker "watch" "app.ingestion.watch_worker" "1" "DATABASE_URL,WATCH_ALERTS_ENABLED,WATCH_TEST_BROADCASTS_ENABLED,WATCH_DIGEST_ENABLED,WATCH_KAKAO_ENABLED,WATCH_LLM_ENABLED" "no" "no"
+    deploy_worker "watch" "app.ingestion.watch_worker" "1" "DATABASE_URL,WATCH_ALERTS_ENABLED,WATCH_TEST_BROADCASTS_ENABLED,WATCH_KAKAO_ENABLED,WATCH_LLM_ENABLED" "no" "no"
     ;;
   notification)
     deploy_worker "notification" "app.ingestion.notification_worker" "2" "${WATCH_KAKAO}" "no" "no"

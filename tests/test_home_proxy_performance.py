@@ -1,4 +1,5 @@
 import gzip
+import ssl
 import unittest
 from unittest.mock import patch
 import httpx
@@ -25,6 +26,14 @@ class HomeProxyPerformanceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(int(dict(head['headers'])[b'content-length']),len(payload))
         self.assertEqual(req.headers['accept-encoding'],'gzip')
         self.assertNotIn('cookie',req.headers);self.assertNotIn('x-home-admin',req.headers)
+
+    async def test_requests_reuse_verified_tls_context_without_reloading_certificates(self):
+        from poc10_proxy import _UPSTREAM_TLS_CONTEXT
+        self.assertEqual(_UPSTREAM_TLS_CONTEXT.verify_mode,ssl.CERT_REQUIRED)
+        self.assertTrue(_UPSTREAM_TLS_CONTEXT.check_hostname)
+        with patch('ssl.create_default_context',side_effect=AssertionError('certificate reload on request')):
+            await self.call(httpx.Response(200,stream=httpx.ByteStream(b'{}')))
+            await self.call(httpx.Response(200,stream=httpx.ByteStream(b'{}')))
 
     async def test_conditional_static_revalidation(self):
         req,head,body=await self.call(httpx.Response(304,headers={'etag':'"version1"'},stream=httpx.ByteStream(b'')),[(b'if-none-match',b'"version1"')])

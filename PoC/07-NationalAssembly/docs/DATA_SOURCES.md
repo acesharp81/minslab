@@ -133,3 +133,7 @@
 # 실시간 논의 연결 표시 보완 (2026-10-19)
 
 공식 대조본의 과거 연결 확인 항목은 저장된 LIVE 구조화 스냅샷과 `source_cluster_id`·원문 발언 집합으로 대조한다. 대응이 확인된 항목만 별도 잠정 연결 결과로 표시한다. 공식 회의록이나 공식 요약에 새 연결을 써넣지 않는다. 남은 검토 원문은 기존 `LIVE_STRUCTURE_SNAPSHOT` 근거 경로를 사용하며 새 외부 출처를 추가하지 않는다.
+
+## 관심주제 정회 판정 (2026-10-22)
+
+기존 `assembly_live_list` parser의 `status_text`(원본 xdesc), `meeting_external_id`와 `is_live`를 재사용한다. `정회`/`계속예정`을 발견하면 해당 회의 ID가 매칭되는 경우에만 경계를 만들며 원본 응답과 SourceDocumentVersion을 보존한다. 확정 자막의 의장·위원장 정회/산회 선포는 revision ID를 별도 근거로 저장한다. 새 endpoint나 추정 갱신주기는 추가하지 않는다.

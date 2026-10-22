@@ -60,10 +60,13 @@ def category(source):
 
 
 def source_metadata(source):
+    from .source_authority import authority, LABELS as AUTHORITY_LABELS
     key = category(source)
     access = 'API' if source.get('key_env') else '파일' if source.get('collection_mode') in {
         'PUBLIC_FILE', 'AGENCY_PLAN_FILE', 'HISTORY', 'LEGAL_PLAN_PILOT', 'RAW_REPLAY'} else '웹'
-    return dict(data_type=key, data_type_label=LABELS[key], access_method=access)
+    classification=authority(source.get('url'),source['id'])
+    return dict(data_type=key, data_type_label=LABELS[key], access_method=access,
+                authority=classification,authority_label=AUTHORITY_LABELS[classification])
 
 
 def _linked_ids(db, source_ids):

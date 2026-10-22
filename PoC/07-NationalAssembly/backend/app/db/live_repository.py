@@ -171,6 +171,12 @@ class LiveRepository:
         ).fetchone()
         return row is not None
 
+    def observe_watch_status(self, items: list[dict[str, Any]], observed_at: datetime, source: SourceVersionInput) -> None:
+        from .watch_lifecycle_repository import WatchLifecycleRepository
+        document_id = self._upsert_document(source, self.source_system)
+        version_id = self._upsert_source_version(document_id, source)
+        WatchLifecycleRepository(self.connection).observe_official(items, observed_at, version_id)
+
     def finish_poll(
         self, active_external_ids: Iterable[str], observed_at: datetime
     ) -> int:

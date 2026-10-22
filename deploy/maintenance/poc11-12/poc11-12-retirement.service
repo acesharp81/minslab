@@ -1,0 +1,15 @@
+[Unit]
+Description=Retire PoC 11 and 12 once in the approved maintenance window
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice
+ExecStart=/home/ubuntu/apps/myservice/.venv/bin/python /home/ubuntu/apps/myservice/deploy/maintenance/poc11-12/run.py --execute
+TimeoutStartSec=10min
+Restart=no
+UMask=0077
+StandardOutput=journal
+StandardError=journal

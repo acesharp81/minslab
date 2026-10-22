@@ -290,7 +290,7 @@ def parse_construction(data, base_date, include_incheon=False):
             source_fields=['착공일', '공사규모', '단위'], source_base_date=base_date,
             source_row=values)
         records.append(("project", f"{district}|{block}|{site}", {
-            "name": site, "district": district, "block": block, "region": region, "municipality": city or "서울 (구 확인 필요)",
+            "name": site, "district": district, "block": block, "region": region, "municipality": city or ("인천광역시 (구 확인 필요)" if region == '인천광역시' else "서울 (구 확인 필요)"),
             "program": construction_program_classification(district)['program'],
             "tenure": "유형 확인 필요", "planned_units": integer(units), "supply_units": None, "progress_pct": progress,
             "stage": "COMPLETED" if progress == 100 else "CONSTRUCTION", "stage_label": "원천상 공사 완료" if progress == 100 else "원천상 공사 진행",

@@ -9,6 +9,7 @@ from typing import Any
 from ..config import get_settings
 from ..db.connection import connect
 from ..db.watch_repository import WatchRepository
+from ..db.watch_lifecycle_repository import WatchLifecycleRepository
 from ..db.watch_test_repository import WatchTestRepository
 
 
@@ -25,7 +26,7 @@ def process_revisions(connection: Any, limit: int = 200) -> int:
         SELECT revision.event_cursor, revision.id, segment.id, segment.broadcast_id,
                revision.text, revision.speaker_label, revision.is_final,
                revision.received_at, broadcast.title, broadcast.institution,
-               broadcast.committee_name, broadcast.source_system
+               broadcast.committee_name, broadcast.source_system, revision.source_payload
         FROM transcript_segment_revisions revision
         JOIN transcript_segments segment ON segment.id = revision.segment_id
         JOIN live_broadcasts broadcast ON broadcast.id = segment.broadcast_id
@@ -39,10 +40,11 @@ def process_revisions(connection: Any, limit: int = 200) -> int:
     columns = (
         "cursor", "revision_id", "segment_id", "broadcast_id", "text",
         "speaker_label", "is_final", "received_at", "title", "institution",
-        "committee_name", "source_system",
+        "committee_name", "source_system", "source_payload",
     )
     for row in rows:
         revision = dict(zip(columns, row, strict=True))
+        WatchLifecycleRepository(connection).observe_revision(revision)
         repository.process_revision(revision)
         changed_broadcasts.add(revision["broadcast_id"])
         cursor = max(cursor, int(revision["cursor"]))
@@ -59,14 +61,16 @@ def process_revisions(connection: Any, limit: int = 200) -> int:
     return len(rows)
 
 
-def run_once(database_url: str, *, digest_enabled: bool = True) -> dict[str, int]:
+def run_once(database_url: str) -> dict[str, int]:
     emitted = revisions = 0
     with connect(database_url) as connection:
         while WatchTestRepository(connection).emit_due(datetime.now(timezone.utc)):
             emitted += 1
         revisions = process_revisions(connection)
         repository = WatchRepository(connection)
-        completion = repository.finalize_ended_sessions(digest_enabled=digest_enabled)
+        # Do not finalize against a snapshot while detection revisions are still queued.
+        pending = connection.execute("SELECT EXISTS (SELECT 1 FROM transcript_segment_revisions WHERE event_cursor > (SELECT event_cursor FROM watch_worker_state WHERE worker_name='watch-alerts'))").fetchone()[0]
+        completion = {} if pending else WatchLifecycleRepository(connection).reconcile()
         verified = repository.refresh_official_verifications()
     return {
         "test_segments_emitted": emitted,
@@ -85,10 +89,7 @@ def main() -> None:
     logging.basicConfig(level=settings.national_assembly_log_level)
     while True:
         try:
-            result = run_once(
-                settings.database_url,
-                digest_enabled=settings.watch_digest_enabled,
-            )
+            result = run_once(settings.database_url)
             if any(result.values()):
                 LOGGER.info("watch worker processed %s", result)
         except Exception:  # noqa: BLE001 - persistent worker retries after logging

@@ -19,7 +19,8 @@ class OfficerCompletionTests(unittest.TestCase):
     def test_partial_move_in_backfills_earlier_without_expanding_quantity(self):
         c=cells();fact(c,'MOVE_IN','2025-02-01',30)
         r=project_values(dict(planned_units=100),c,'test')
-        self.assertEqual(set(r['progress']),{'BUSINESS','APPROVAL','CONSTRUCTION','COMPLETION','SUPPLY','MOVE_IN'})
+        self.assertEqual(set(r['progress']),{'BUSINESS','APPROVAL','COMPLETION','SUPPLY','MOVE_IN'})
+        self.assertTrue(all(v['event_date']==r['targets'][stage]['due_date'] for stage,v in r['progress'].items()))
         self.assertTrue(all(v['units']==30 for v in r['progress'].values()))
         self.assertTrue(r['progress']['APPROVAL']['inferred'])
         self.assertEqual(r['progress']['APPROVAL']['actor'],ACTOR)

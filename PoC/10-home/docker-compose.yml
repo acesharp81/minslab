@@ -26,6 +26,7 @@ services:
     env_file: .env
     environment:
       POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+      POC10_AUTO_COLLECT: "false"
     ports:
       - "127.0.0.1:18100:8000"
     volumes:
@@ -39,5 +40,52 @@ services:
       timeout: 5s
       retries: 5
       start_period: 60s
+  worker:
+    image: poc10-home:local
+    container_name: poc10-home-worker
+    command: ["python", "-m", "backend.collection_worker"]
+    mem_limit: 1536m
+    memswap_limit: 2g
+    cpus: 1.0
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json; from datetime import datetime,timezone; from pathlib import Path; p=json.loads(Path('/app/data/runtime/collection-worker-health.json').read_text()); assert (datetime.now(timezone.utc)-datetime.fromisoformat(p['checked_at'])).total_seconds()<90; assert {'home-source-worker-LATEST','home-source-worker-BACKFILL'} <= set(p['running_threads'])"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+  area-worker:
+    image: poc10-home:local
+    container_name: poc10-home-area-worker
+    command: ["python", "-m", "backend.area_snapshot_worker"]
+    mem_limit: 1536m
+    memswap_limit: 2g
+    cpus: 0.75
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json; from datetime import datetime,timezone; from pathlib import Path; p=json.loads(Path('/app/data/runtime/area-snapshots/health.json').read_text()); assert (datetime.now(timezone.utc)-datetime.fromisoformat(p['checked_at'])).total_seconds()<90"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
 volumes:
   home_pgdata:

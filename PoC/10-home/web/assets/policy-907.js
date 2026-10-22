@@ -2,15 +2,17 @@
 /* One target ledger backs both the timeline and the thematic map. */
 const Policy907=(()=>{
   const ID='POL_2025_0907',colors={POLICY:'#718096',BUSINESS:'#a66b00',APPROVAL:'#0072b2',CONSTRUCTION:'#d55e00',SUPPLY:'#00856a',MOVE_IN:'#7a3e9d',UNKNOWN:'#dce5ed'};
-  let data=null,pending=null,stamp='',year=null,city='',region='',stage='SUPPLY',metric='SUPPLY',zoom=1,projectId='',full=false,flowWindow='11',axisUnit='month',fullAxis=false,programId='',programRows=[];
+  let referenceDate=null,comparisonDate=null,prepared=null,highlighted='',axisRange=null,axisTimer=null;
+  let data=null,pending=null,pendingKey='',requestVersion=0,stamp='',year=null,city='',region='',stage='SUPPLY',metric='SUPPLY',zoom=1,projectId='',flowWindow='11',axisUnit='month',fullAxis=false,programId='',programRows=[];
   const fmt=v=>v==null?'미확보':num(v)+'호',safe=v=>esc(v),current=()=>Number((data?.as_of_date||$('as-of').value).slice(0,4));
   const isProgram=()=>state.view==='program-progress';
   const active=()=>['policy-progress','program-progress'].includes(state.view);
   const program=()=>programRows.find(p=>p.id===programId);
   const detailHost=()=>$(isProgram()?'program-progress-detail':'policy-report-detail');
-  const portfolio=()=>!full, allRows=()=>{const list=(portfolio()||isProgram())?(data?.portfolio_cohorts||data?.cohorts||[]):(data?.cohorts||[]);return isProgram()?list.filter(c=>c.program_id===programId):list;};
+  const portfolio=()=>true, allRows=()=>{const list=data?.portfolio_cohorts||[];return isProgram()?list.filter(c=>c.program_id===programId):list;};
   const rows=()=>allRows().filter(c=>(!city||c.municipality_id===city)&&(!region||c.region===region)&&(!projectId||c.id===projectId))||[];
-  const cutoff=()=>year===current()?data.as_of_date:year+'-12-31';
+  const cutoff=()=>referenceDate||(year===current()?data.as_of_date:year+'-12-31');
+  const auxiliaryDate=()=>{const value=comparisonDate||PolicyStageFlow.quarterEnd(cutoff());return value<cutoff()?cutoff():value;};
   const amount=(items,k)=>items.reduce((a,c)=>a+(c.parts?.[k]||0),0);
   function stateAt(items,when){
     const future=when>data.as_of_date,result={};
@@ -38,7 +40,6 @@ const Policy907=(()=>{
   }
 
   function snapshot(when){
-    if(!isProgram()&&!city&&!region&&!projectId&&full)return data.snapshots.find(p=>p.date===when)||data.snapshots.filter(p=>p.date<=when).at(-1)||data.current;
     const totals=stateAt(rows(),when),p=program()?.profile;if(isProgram()&&!city&&!region&&!projectId&&p?.unit==='호'&&p.target_units!=null)totals.POLICY=Math.max(0,p.target_units-Object.values(totals).reduce((a,b)=>a+b,0));
     return {date:when,totals,forecast:when>data.as_of_date};
   }
@@ -56,7 +57,7 @@ const Policy907=(()=>{
     $('policy-report-summary').innerHTML='<div class="d907-summary pd-overview"><small>'+(is?'9.7 정책 · 프로그램 개요':'정책 개요 · 발표 '+safe(plan.announced_at))+'</small>'+'<h3>'+safe(is?r?.name||'연결 프로그램 없음':plan.name||'9·7 주택공급 확대방안')+(state.admin?(is?' <button type="button" class="button primary mapping-info-edit program" data-program-information>✎ 프로그램정보수정</button>':' <button type="button" class="button primary mapping-info-edit policy" data-policy-information>✎ 정책정보수정</button>'):'')+'</h3>'+((is?profile?.overview:plan.overview)?'<p class="pi-summary-overview">'+safe(is?profile.overview:plan.overview)+'</p>':'')+'<div class="pd-main-target"><span>'+(is?'프로그램 목표 · '+({CONSTRUCTION:'착공',SUPPLY:'공급·모집',BUSINESS:'사업화',APPROVAL:'인허가',COMPLETION:'준공',MOVE_IN:'입주',CAPACITY:'전체 규모·개소'}[profile?.metric]||'기준 미입력'):'수도권 신규 착공 목표')+'</span>'+pencil(is?'program':'policy',is?programId:ID)+'<strong class="d907-total">'+(units==null?'미확보':num(units)+'<span>'+safe(is?profile?.unit||'호':'호')+'</span>')+'</strong><b>'+period+'</b></div>'+programPlanSummary()+'<div class="pw-region-briefs">'+regions.map(place=>{const cap=is?profile?.['region:'+place]:plan.region_allocations[place];return '<div><header><button data-d907-region="'+place+'">'+place+'</button><strong>'+ (cap!=null?fmt(cap):'개별 목표 미배분')+'</strong>'+(is?'':pencil('region',place))+'</header><p>'+safe(is?'이 프로그램에 연결된 사업계획 · '+allRows().filter(c=>c.region===place).length+'개 사업':themes[place])+'</p></div>';}).join('')+'</div>'+(!is?'<p class="pd-joint">경기·인천 공동 <b>'+fmt(plan.joint_region_units)+'</b></p>':'<p class="pd-joint">프로그램 목표와 연결 사업계획은 별도입니다. 사업 미연결은 실적 0을 뜻하지 않습니다.</p>')+'<div class="pd-summary-foot"><a href="'+safe(plan.evidence_url)+'" target="_blank" rel="noopener">발표 원문 ↗</a><a href="https://www.korea.kr/news/policyNewsView.do?newsId=148948818" target="_blank" rel="noopener">공급 방향 설명 ↗</a></div></div>';
   }
   const scopeKey=()=>{const sub=projectId?'project:'+projectId:city?'city:'+city:region?'region:'+region:'';return isProgram()?'program:'+programId+(sub?'|'+sub:''):sub||'policy';};
-  const comparisonIndex=()=>(portfolio()?data.portfolio_comparisons:data.yearly_comparisons)||{};
+  const comparisonIndex=()=>data.portfolio_comparisons||{};
   const comparison=()=>comparisonIndex()[scopeKey()]?.metrics[metric]||{label:'공급(분양·모집)',annual:[],target_points:[],actual_points:[],management_points:[]};
   const scopeName=()=>comparisonIndex()[scopeKey()]?.name||(isProgram()?program()?.name:'수도권 전체')||'선택 범위';
   function comparisonLines(start,end,y){
@@ -80,27 +81,35 @@ const Policy907=(()=>{
     const scopeUnits=rows().reduce((sum,c)=>sum+c.units,0),officialGoal=!isProgram()&&region&&!city&&!projectId?data.plan.region_allocations?.[region]:null;
     const goals=Object.values(comparisons).flatMap(c=>[...(c.target_points||[]),...(c.management_points||[]),...(c.actual_points||[])]).map(p=>p.units).filter(Number.isFinite);
     const stacks=points.map(p=>Object.values(PolicyStageFlow.totals(p)).reduce((a,b)=>a+b,0));
-    const normal=!isProgram()&&!city&&!region&&!projectId?data.target_units:Math.max(1,scopeUnits,officialGoal||0,...goals,...stacks);
-    const auto=PolicyStageFlow.referenceAxis({points,comparisons,asOf:data.as_of_date,fullMax:normal});
+    const layout={comparisons,asOf:data.as_of_date,tracking:true};
+    const displayPeak=Math.max(0,...points.map(p=>PolicyStageFlow.stackExtent(layout,p.date)));
+    const normal=Math.max(displayPeak,!isProgram()&&!city&&!region&&!projectId?data.target_units:Math.max(1,scopeUnits,officialGoal||0,...goals,...stacks));
+    const key=state.view+':'+scopeKey()+':'+axisUnit;
+    const range=axisRange?.key===key?axisRange:{start:points[0]?.date||data.as_of_date,end:points.at(-1)?.date||data.as_of_date};
+    const auto=PolicyStageFlow.windowAxis(layout,range.start,range.end);
     return fullAxis?{max:normal,basis:'전체 물량·목표 기준',cropped:false,fullMax:normal}:
-      {max:auto.max,basis:auto.focused?'기준일 전후 3개월 · 목표·진행 물량 자동 확대':'기준일 부근 진행 물량 없음 · 전체 범위',cropped:auto.max<normal,fullMax:normal};
+      {max:auto.max,basis:'표시 구간 누적 최대값 × 1.3 · 자동 축척',cropped:false,fullMax:normal};
   }
+
   function flow(){
     const originalComparisons=comparisonIndex()[scopeKey()]?.metrics||{};
     const comparisons=Object.fromEntries(Object.entries(originalComparisons).map(([k,c])=>[k,c.tracking?{...c,...c.tracking,management_points:[]}:c]));
-    const dates=rows().flatMap(c=>[...c.events.map(e=>e.event_date),...c.schedules.map(s=>s.due_date)]).concat(Object.values(comparisons).flatMap(c=>[...(c.target_points||[]),...(c.management_points||[]),...(c.actual_points||[])].map(p=>p.date))).filter(Boolean);
+    const firstProjectDate=rows().flatMap(c=>[...c.events.map(e=>e.event_date),...c.schedules.map(s=>s.due_date)]).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d||'')).sort()[0]||data.as_of_date;
+    const dates=[data.as_of_date,PolicyStageFlow.quarterEnd(data.as_of_date),...rows().flatMap(c=>[...c.events.map(e=>e.event_date),...c.schedules.map(s=>s.due_date)]).concat(Object.values(comparisons).flatMap(c=>[...(c.target_points||[]),...(c.management_points||[]),...(c.actual_points||[])].map(p=>p.date))).filter(Boolean)];
     if(!region&&!city&&!projectId){if(!isProgram())dates.push(data.plan.period_start,data.plan.period_end);else if(program()?.profile)dates.push(program().profile.period_start,program().profile.period_end);}
     const years=dates.filter(Boolean).map(d=>Number(d.slice(0,4))),start=years.length?Math.min(...years):current(),end=Math.max(current(),...years);
     const points=PolicyStageFlow.trackingPoints({comparisons,start,end,asOf:data.as_of_date});
     const c=comparisons[metric]||comparison(),delays=data.issues.filter(i=>i.status==='DELAYED'&&rows().some(c=>c.id===i.project_id));
     const axis=axisForScope(points,comparisons);
     const policyTarget=projectId||city?rows().reduce((n,c)=>n+c.units,0):isProgram()?(region?program()?.profile?.['region:'+region]:program()?.profile?.target_units):region?data.plan.region_allocations?.[region]:data.target_units;
-    const legend=PolicyStageFlow.summaryTable({year,stages:data.stages,asOf:cutoff()<data.as_of_date?cutoff():data.as_of_date,comparisons,originalComparisons,policyTarget,max:axis.fullMax,scopeGoalLabel:isProgram()?'프로그램 목표':'정책 연간 목표'});
-    const metricButtons=Object.entries(data.yearly_comparisons?.policy.metrics||{}).map(([k,v])=>'<button data-d907-metric="'+k+'" aria-pressed="'+(metric===k)+'" class="'+(metric===k?'selected':'')+'">'+safe(v.label)+'</button>').join('');
-    const chart=PolicyStageFlow.render({tracking:true,policyTarget:policyTarget??axis.fullMax,max:axis.max,axisBasis:axis.basis,start,end,year,axisUnit,constructionPlans:rows().filter(c=>c.construction_plan).map(c=>({units:c.units,plan:c.construction_plan})),asOf:data.as_of_date,points,colors,stages:data.stages,comparison:c,comparisons,delays,metric});
+    const legend=PolicyStageFlow.summaryTable({year,stages:data.stages,asOf:cutoff(),dataAsOf:data.as_of_date,comparisonDate:auxiliaryDate(),comparisons,originalComparisons,policyTarget,projectCount:new Set(rows().map(c=>c.id)).size,max:axis.fullMax,scopeGoalLabel:isProgram()?'프로그램 목표':'정책 연간 목표'});
+    const metricButton=(k,label)=>'<button type="button" data-d907-metric="'+k+'" aria-pressed="'+(highlighted===k&&metric===k)+'" class="'+(highlighted===k&&metric===k?'selected':'')+'">'+label+'</button>';
+    const businessButton=data.yearly_comparisons?.policy.metrics?.BUSINESS?metricButton('BUSINESS','사업화'):'';
+    const metricButtons=[['MOVE_IN','입주'],['SUPPLY','공급'],['CONSTRUCTION','착공'],['APPROVAL','인허가']].filter(([k])=>data.yearly_comparisons?.policy.metrics?.[k]).map(([k,label])=>'<button data-d907-metric="'+k+'" aria-pressed="'+(highlighted===(metric==='COMPLETION'?'CONSTRUCTION':metric)&&metric===k)+'" class="'+(highlighted===(metric==='COMPLETION'?'CONSTRUCTION':metric)&&metric===k?'selected':'')+'">'+label+'</button>').join('');
+    const chart=PolicyStageFlow.render({tracking:true,policyTarget:policyTarget??axis.fullMax,max:axis.max,axisBasis:axis.basis,start,end,year,axisUnit,firstProjectDate,constructionPlans:rows().filter(c=>c.construction_plan).map(c=>({units:c.units,plan:c.construction_plan})),asOf:data.as_of_date,referenceDate:cutoff(),comparisonDate:auxiliaryDate(),points,colors,stages:data.stages,comparison:c,comparisons,delays,metric});
     const fixedAxis=axisUnit==='month'?'<svg class="pw-fixed-y-axis" viewBox="0 60 90 435" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="60" width="90" height="435" fill="#f8fbff"/><text x="34" y="72">(호)</text>'+[0,.25,.5,.75,1].map(r=>'<text x="80" y="'+(414-325*r)+'" text-anchor="end">'+num(axis.max*r)+'</text>').join('')+'</svg>':'';
-    const guide='<p class="pw-axis-note">지도와 단계 카드는 같은 사업 범위·조회 시점의 단계 도달량(호)을 표시합니다. '+(isProgram()?'선택 프로그램 연결 사업 전체.':portfolio()?'승인 연결 사업 전체 · 과거 착공 사업 포함.':'2026년 이전 착공 사업 제외.')+' 단계 간 물량과 갭은 합산하지 않습니다. 12월 말 예상량은 선택 연도 말까지의 저장된 계획 누계이며, 이후 연도 계획은 제외합니다.</p><div class="d907-pattern-legend"><span><i class="d907-key-solid"></i><b>실색·실선</b> 측정값 (입력·추정 포함)</span><span><i class="d907-key-plan"></i><b>사선·점선</b> 단계 목표</span><span><i class="d907-key-unknown"></i><b>회색 배경</b> 정책·프로그램 목표</span><span><i class="d907-key-gap"></i><b>빨간 격자</b> 지연 · 부족률 2% 이상</span><span><i class="d907-key-warning"></i><b>노란 격자</b> 주의 · 부족률 0% 초과~2% 미만</span></div><p class="d907-reading-guide">사업화→인허가→착공→공급→입주를 시간축에 쌓습니다. 실선은 누적 측정값, 점선은 같은 단계의 누적 목표입니다. 실색 면은 해당 단계에 머문 물량이며 회색 배경은 정책·프로그램 목표입니다. 기준일 이후에는 목표만 표시합니다.</p>';
-    return '<article class="pr-card d907-flow"><div class="pr-card-head"><div><small>Y축 0–'+num(axis.max)+'호 · '+safe(axis.basis)+' · 전체 범위 '+num(axis.fullMax)+'호</small><h3>'+safe(scopeName())+' · '+(isProgram()?'프로그램':'정책')+' 진행현황</h3></div><label class="pw-annual-axis"><input type="checkbox" data-d907-full-axis '+(fullAxis?'checked':'')+'>전체 목표 범위</label></div><div class="d907-legend d907-stage-table" aria-label="단계별 누적 목표·측정·갭 · 선택하면 해당 면 강조">'+legend+'<button type="button" data-d907-highlight="" aria-pressed="true" class="d907-highlight-all">전체 강조</button></div><div class="pw-flow-body"><div class="pw-flow-viewport"><div class="pw-flow-chart">'+chart+'</div>'+fixedAxis+'</div><div class="d907-metric-controls" aria-label="단계별 목표 비교"><label class="pw-time-unit">시간 단위<select data-d907-axis-unit aria-label="그래프 시간 단위"><option value="month" '+(axisUnit==='month'?'selected':'')+'>월</option><option value="year" '+(axisUnit==='year'?'selected':'')+'>년</option></select></label><strong>목표 비교</strong>'+metricButtons+'</div></div>'+(axisUnit==='month'?'<div class="pw-month-nav"><button type="button" data-d907-chart-position="first">← 처음</button><button type="button" data-d907-chart-position="now">현재 시점</button><button type="button" data-d907-chart-position="last">마지막 →</button></div>':'')+guide+'<p class="pw-axis-note">담당자 입력 목표·현재값 반영 · 추정 입력 포함. 현재값에서 채택한 목표는 변경 기준선이며 최초 계획 대비 지연과 구분합니다.</p><p class="pw-axis-note">'+start+'년부터 자료 표시 · '+(axisUnit==='month'?'월 단위 · 좌우로 이동하여 전체 기간 확인':'연 단위 눈금 · 월별 자료에 마우스를 올려 확인')+' · 월 사이 변화는 곡선으로 연결합니다. 곡선 중간값은 시각적 보간이며 목표·측정·갭 수치는 저장된 날짜와 값으로 계산합니다. 측정값은 기준일까지만 표시합니다.</p>'+(axis.cropped?'<p class="pw-axis-note">기준일 전후 3개월에 맞춰 Y축을 확대했습니다. 상한을 넘는 면은 잘려 보이며 원래 수치는 마우스를 올리거나 전체 목표 범위에서 확인할 수 있습니다.</p>':'')+'<details class="pd-comparison-detail"><summary>정책·프로그램 연간 목표와 공식 통계 · 별도 기준</summary>'+comparisonPanel()+'</details></article>';
+    const guide='<p class="pw-axis-note">지도와 단계 카드는 같은 사업 범위·조회 시점의 단계 도달량(호)을 표시합니다. '+(isProgram()?'선택 프로그램 연결 사업 전체 · 과거 착공 사업 포함.':'승인 연결 사업 전체 · 과거 착공 사업 포함.')+' 단계 간 물량과 갭은 합산하지 않습니다. 보조 기준일이 자료 기준일 이전이면 그날까지의 측정량을, 이후이면 단계별 현재 실적·목표 중 큰 물량에 오늘 이후 해당 날짜까지의 계획 증감을 반영한 예상량을 표시합니다. 같은 사업의 실적·계획은 중복 합산하지 않습니다.</p><div class="d907-pattern-legend"><span><i class="d907-key-solid"></i><b>실색</b> 현재 단계 물량</span><span><i class="d907-key-gap"></i><b>붉은색 사선</b> 목표 물량 대비 부족분</span><span><i class="d907-key-plan"></i><b>연한색</b> 현재 시점 이후 목표 기반 예상 물량</span></div><p class="d907-reading-guide">아래부터 사업화→인허가→착공→공급→입주 순서입니다. 각 단계의 실색 두께는 해당 단계 누적량에서 다음 단계 누적량을 뺀 물량이며, 바로 위에는 목표 물량에서 실적 물량을 뺀 양수 부족분만 같은 붉은색 사선으로 쌓습니다. 입주는 자체 누적량입니다. 부족 비율은 부족분 ÷ (부족분 + 해당 단계 누적 달성분)입니다. 실적 물량이 목표보다 많으면 그 실적을 유지하고 빗금은 0입니다. 현재 시점 이후는 각 단계의 현재 실적·목표 중 큰 물량에서 출발하며, 이후 목표 증가분에 따른 단계 이동을 연한색으로 표시합니다. 예정일에 공급이 늘면 건설에서 그만큼 빠지고 공급으로 이동합니다. 후속 단계 미측정 시 확인된 잔여량을 표시하며, 음수 차이는 면적 0으로 표시하고 원래 값은 툴팁에 남깁니다. Y축 상한은 현재 화면에 표시되는 기간의 누적 최대값에 약 1.3을 곱해 정합니다. 좌우로 이동하면 표시 구간에 맞춰 자동 조정합니다.</p>';
+    return '<article class="pr-card d907-flow"><div class="pr-card-head"><div><small>Y축 0–'+num(axis.max)+'호 · '+safe(axis.basis)+' · 전체 범위 '+num(axis.fullMax)+'호</small><h3>'+safe(scopeName())+' · '+(isProgram()?'프로그램':'정책')+' 진행현황</h3></div><div class="d907-date-controls"><label>기준일<input type="date" data-d907-reference-date aria-label="현재 누적량 측정 기준일" min="1900-01-01" max="'+safe(data.as_of_date)+'" value="'+safe(cutoff())+'"></label><label>보조 기준일<input type="date" data-d907-comparison-date min="'+safe(cutoff())+'" max="2100-12-31" aria-label="보조 누적량 기준일" value="'+safe(auxiliaryDate())+'"></label><button type="button" data-d907-reset-dates>오늘·분기말</button></div><label class="pw-annual-axis"><input type="checkbox" data-d907-full-axis '+(fullAxis?'checked':'')+'>전체 목표 범위</label></div><div class="d907-legend d907-stage-table" aria-label="단계별 누적 목표·측정·갭 · 선택하면 해당 면 강조">'+legend+'<button type="button" data-d907-highlight="" aria-pressed="true" class="d907-highlight-all">전체 강조</button></div><div class="pw-flow-body"><div class="pw-flow-viewport"><div class="pw-flow-chart">'+chart+'</div>'+fixedAxis+'</div><div class="d907-metric-controls" aria-label="단계별 목표 비교"><label class="pw-time-unit">시간 단위<select data-d907-axis-unit aria-label="그래프 시간 단위"><option value="month" '+(axisUnit==='month'?'selected':'')+'>월</option><option value="year" '+(axisUnit==='year'?'selected':'')+'>년</option></select></label><strong>목표 비교</strong>'+metricButtons+'</div></div>'+'<div class="pw-flow-footer"><div class="pw-month-nav">'+(axisUnit==='month'?'<button type="button" data-d907-chart-position="first" title="포함 사업의 가장 이른 시작일 '+safe(firstProjectDate)+'">← 처음</button><button type="button" data-d907-chart-position="now">현재</button><button type="button" data-d907-chart-position="last">마지막 →</button>':'')+'</div><div class="d907-metric-controls pw-business-control" aria-label="사업화 목표 비교">'+businessButton+'</div></div>'+guide+'<p class="pw-axis-note">담당자 입력 목표·현재값 반영 · 추정 입력 포함. 현재값에서 채택한 목표는 변경 기준선이며 최초 계획 대비 지연과 구분합니다.</p><p class="pw-axis-note">'+start+'년부터 자료 표시 · '+(axisUnit==='month'?'월 단위 · 좌우로 이동하여 전체 기간 확인':'연 단위 눈금 · 월별 자료에 마우스를 올려 확인')+' · 월 사이 변화는 곡선으로 연결합니다. 곡선 중간값은 시각적 보간이며 목표·측정·갭 수치는 저장된 날짜와 값으로 계산합니다. 실색과 연한 예상값의 전환은 현재 시점('+safe(data.as_of_date)+')에 고정됩니다. 날짜 입력은 카드의 조회값과 기준 막대만 바꾸며, 그래프 값은 바꾸지 않습니다. Y축은 화면에 표시되는 기간에 따라 조정됩니다. 미래 구간은 단계별 실적·목표 중 큰 물량에 이후 계획 증감을 반영하여 연결합니다.</p>'+(axis.cropped?'<p class="pw-axis-note">현재 시점의 목표 사업화 누적값에 맞춰 Y축을 조정했습니다. 상한을 넘는 면은 잘려 보이며 원래 수치는 마우스를 올리거나 전체 목표 범위에서 확인할 수 있습니다.</p>':'')+'<details class="pd-comparison-detail"><summary>정책·프로그램 연간 목표와 공식 통계 · 별도 기준</summary>'+comparisonPanel()+'</details></article>';
   }
   function occupancyPanel(){
     const monitor=data.occupancy_monitor;if(!monitor?.source?.annual?.length)return '';
@@ -137,32 +146,64 @@ const Policy907=(()=>{
     for(const r of ['서울특별시','인천광역시','경기도']){const cs=allRows().filter(c=>c.region===r),t=stateAt(cs,cutoff()),target=cs.reduce((a,c)=>a+(c.planned_units??0),0);regions[r]={...delayFor('region:'+r),stageDistribution:stageDistribution(cs),target,value:reached(cs,selectedStage,cutoff()),known:target-t.UNKNOWN,unplaced:cs.filter(c=>!c.municipality_id).reduce((a,c)=>a+c.units,0)};}
     // Stable scale for a stage across the entire 11-year slider prevents re-normalising away changes.
     const maxima=data.geometry.shapes.flatMap(p=>{const cs=allRows().filter(c=>c.municipality_id===p.id);return Array.from({length:11},(_,i)=>{return reached(cs,selectedStage,(current()-5+i)+'-12-28');});});
-    PolicyRegionMap.render(host,{shapes,regionShapes:data.geometry.region_shapes,allowedRegions,values,regions,max:Math.max(1,...maxima),regionMax:Math.max(1,...allowedRegions.flatMap(r=>Array.from({length:11},(_,i)=>reached(allRows().filter(c=>c.region===r),selectedStage,(current()-5+i)+'-12-28')))),year,currentYear:current(),measurementDate:cutoff()<data.as_of_date?cutoff():data.as_of_date,city,region,stage:selectedStage,stages:data.stages,scope:portfolio()?'PORTFOLIO':'POLICY_PERIOD',scopeNote:isProgram()?'카드와 동일 범위 · 선택 프로그램 연결 사업 전체':portfolio()?'승인 연결 사업 전체 · 착공연도로 자동 제외하지 않음':'카드와 동일 범위 · 2026년 이전 착공 제외'});
+    PolicyRegionMap.render(host,{shapes,regionShapes:data.geometry.region_shapes,allowedRegions,values,regions,max:Math.max(1,...maxima),regionMax:Math.max(1,...allowedRegions.flatMap(r=>Array.from({length:11},(_,i)=>reached(allRows().filter(c=>c.region===r),selectedStage,(current()-5+i)+'-12-28')))),year,currentYear:current(),measurementDate:cutoff()<data.as_of_date?cutoff():data.as_of_date,city,region,stage:selectedStage,stages:data.stages,scope:'PORTFOLIO',scopeNote:isProgram()?'카드와 동일 범위 · 선택 프로그램 연결 사업 전체':'승인 연결 사업 전체 · 착공연도로 자동 제외하지 않음'});
   }
   function positionFlow(mode){
     const host=detailHost(),scroller=host?.querySelector('.pw-flow-chart'),svg=scroller?.querySelector('svg');if(!scroller||!svg)return;
-    if(mode==='first')scroller.scrollLeft=0;
+    const scale=svg.getBoundingClientRect().width/svg.viewBox.baseVal.width;
+    if(mode==='first')scroller.scrollLeft=Math.max(0,Number(svg.dataset.firstProjectX||90)*scale-100);
     else if(mode==='last')scroller.scrollLeft=scroller.scrollWidth;
-    else{const line=svg.querySelector('[data-d907-now-line]');scroller.scrollLeft=line?Number(line.getAttribute('x1'))*svg.getBoundingClientRect().width/svg.viewBox.baseVal.width-scroller.clientWidth*.5:0;}
+    else scroller.scrollLeft=Math.max(0,Number(svg.dataset.currentX||90)*scale-scroller.clientWidth*.5);
+  }
+  function scheduleAxis(){clearTimeout(axisTimer);axisTimer=setTimeout(rescaleVisibleFlow,100);}
+  function rescaleVisibleFlow(){
+    if(!active()||!data)return;
+    const host=detailHost(),scroller=host?.querySelector('.pw-flow-chart'),svg=scroller?.querySelector('.d907-chart');
+    if(!svg||!scroller.clientWidth)return;
+    const box=svg.getBoundingClientRect(),view=svg.viewBox.baseVal,scale=box.width/view.width;
+    const first=Date.parse(svg.dataset.startYear+'-01-01'),last=Date.parse(svg.dataset.endYear+'-12-31'),left=90,right=view.width-58;
+    const day=x=>new Date(first+Math.max(0,Math.min(1,(x-left)/(right-left)))*(last-first)).toISOString().slice(0,10);
+    const range={key:state.view+':'+scopeKey()+':'+axisUnit,start:day((scroller.scrollLeft+(axisUnit==='month'?93:0))/scale),end:day((scroller.scrollLeft+scroller.clientWidth)/scale)};
+    axisRange=range;if(fullAxis)return;
+    const axis=PolicyStageFlow.visibleAxis(svg,range.start,range.end);if(!axis||axis.max===Number(svg.dataset.yMax))return;
+    const oldPosition=scroller.scrollLeft,scope=scroller.dataset.scope,temp=document.createElement('div');temp.innerHTML=flow();host.querySelector('.d907-flow').replaceWith(temp.firstElementChild);
+    const fresh=host.querySelector('.pw-flow-chart');fresh.dataset.scope=scope;fresh.scrollLeft=oldPosition;
+    PolicyStageFlow.applyHighlight(host.querySelector('.d907-flow'),highlighted);
   }
   function render(sliding=false){
-    if(!data||!active())return;summary();const host=detailHost();if(!host)return;
+    if(!data||!active())return;
+    if(!data.portfolio_comparisons?.[scopeKey()]){show();return;}
+    summary();const host=detailHost();if(!host)return;
     // Keep other views from retaining duplicate detail ids or stale chart models.
     const oldScroller=host.querySelector('.pw-flow-chart'),scrollKey=state.view+':'+scopeKey()+':'+axisUnit,oldPosition=oldScroller?.dataset.scope===scrollKey?oldScroller.scrollLeft:null;
     const other=$(isProgram()?'policy-report-detail':'program-progress-detail');if(other)other.innerHTML='';
     if(sliding&&host.querySelector('.d907-flow')){const temp=document.createElement('div');temp.innerHTML=flow();host.querySelector('.d907-flow').replaceWith(temp.firstElementChild);}else host.innerHTML=report();
+    PolicyStageFlow.applyHighlight(host.querySelector('.d907-flow'),highlighted);
     const scroller=host.querySelector('.pw-flow-chart');scroller.dataset.scope=scrollKey;if(oldPosition!=null)scroller.scrollLeft=oldPosition;else if(axisUnit==='month')positionFlow('now');
+    scheduleAxis();
     map();decision();
     if(isProgram()){const context=host.querySelector('#d907-context');context.innerHTML=PolicyReport.programMembers(programId,rows().flatMap(c=>c.source_ids));}
     else PolicyReport.supplemental907(city,region,rows().flatMap(c=>c.source_ids));
     DeliveryOperations.mountPolicy(rows().flatMap(c=>c.source_ids),host.querySelector('#policy-execution-panel'));
   }
+  function prepare(){
+    // Start the first chart read alongside catalogue requests, not after them.
+    // Keep only this in-flight/result promise until show() consumes it.
+    if(state.view!=='policy-progress'||data||prepared)return;
+    const day=$('as-of').value,group='policy',scope='policy';
+    prepared={key:day+'|'+group+'|'+scope,task:request('/policy-delivery/view?'+new URLSearchParams({as_of_date:day,group,scope}))};
+    prepared.task.catch(()=>{});
+  }
   async function show(force=false){
-    if(!active())return;const next=$('as-of').value;
-    if(data&&stamp===next&&!force){render();return;}
-    if(!pending||stamp!==next||force){stamp=next;pending=request('/policy-delivery?as_of_date='+next).finally(()=>pending=null);}
-    try{const value=await pending;if(stamp!==next)return;if(value.status!=='READY')throw new Error(value.notice);data=value;year=year??current();render();}
-    catch(e){const h=detailHost();if(h)h.innerHTML='<article class="pr-card">'+safe(e.message)+'</article>';}
+    if(!active()||(isProgram()&&!programId))return;const day=$('as-of').value,group=isProgram()?'program:'+programId:'policy',scope=scopeKey(),next=day+'|'+group,key=next+'|'+scope;
+    if(data&&data.view_group===group&&stamp===next&&!force&&data.portfolio_comparisons?.[scope]){render();return;}
+    if(!pending||pendingKey!==key||force){++requestVersion;pendingKey=key;const task=!force&&prepared?.key===key?prepared.task:request('/policy-delivery/view?'+new URLSearchParams({as_of_date:day,group,scope}));prepared=null;pending=task;task.finally(()=>{if(pending===task)pending=null;}).catch(()=>{});}
+    // Catalogue refresh can invalidate the loaded model while the selected
+    // request is still running. Track its generation independently of stamp,
+    // which describes only the model that has actually finished loading.
+    const version=requestVersion,currentRequest=()=>version===requestVersion&&pendingKey===key&&active()&&$('as-of').value===day&&(isProgram()?'program:'+programId:'policy')===group&&scopeKey()===scope;
+    try{const value=await pending;if(!currentRequest())return;if(value.status!=='READY')throw new Error(value.notice);data=value;stamp=next;year=year??current();referenceDate=referenceDate&&referenceDate<=data.as_of_date?referenceDate:data.as_of_date;comparisonDate=comparisonDate||PolicyStageFlow.quarterEnd(referenceDate);render();}
+    catch(e){if(!currentRequest())return;const h=detailHost();if(h)h.innerHTML='<article class="pr-card">'+safe(e.message)+'</article>';}
   }
   function editor(focusId,focusKind){
     const management=data.management_projects||data.portfolio_cohorts||data.cohorts;
@@ -181,7 +222,17 @@ const Policy907=(()=>{
   }
   function start(){
     PolicyStageFlow.start();
-    document.addEventListener('click',e=>{if(!active()&&!e.target.closest('#d907-editor'))return;const b=e.target.closest('button,[data-d907-city]');if(!b||b.hasAttribute('data-d907-highlight'))return;
+    document.addEventListener('click',e=>{if(!active()&&!e.target.closest('#d907-editor'))return;const b=e.target.closest('button,[data-d907-city]');if(!b)return;
+      if(b.hasAttribute('data-d907-highlight')){
+        const key=b.dataset.d907Highlight;highlighted=highlighted===key?'':key;
+        if(data.yearly_comparisons?.policy.metrics?.[key]){metric=key;stage=key;}
+        render(true);return;
+      }
+      if(b.dataset.d907Metric||b.dataset.d907DelayStage){
+        const chosen=b.dataset.d907Metric||b.dataset.d907DelayStage,selectedStage=chosen==='COMPLETION'?'CONSTRUCTION':chosen;
+        highlighted=highlighted===selectedStage&&metric===chosen?'':selectedStage;metric=chosen;stage=selectedStage;
+        render(true);return;
+      }
       if(b.dataset.d907ChartPosition){positionFlow(b.dataset.d907ChartPosition);return;}
       if(b.hasAttribute('data-program-information')){ProgramInformation.open(programId);return;}
       if(b.hasAttribute('data-policy-information')){PolicyInformation.open();return;}
@@ -189,35 +240,34 @@ const Policy907=(()=>{
       if(b.dataset.d907City){if(data.plan.geography.includes(b.dataset.d907City)){region=b.dataset.d907City;city='';}else{city=b.dataset.d907City;region=data.geometry.shapes.find(p=>p.id===city)?.region||'';}projectId='';}
       if(b.hasAttribute('data-d907-region')){region=b.dataset.d907Region;city='';projectId='';zoom=1;}
       if(b.dataset.d907Stage){stage=b.dataset.d907Stage;if(data.yearly_comparisons.policy.metrics[stage])metric=stage;}
-      if(b.dataset.d907Metric||b.dataset.d907DelayStage){metric=b.dataset.d907Metric||b.dataset.d907DelayStage;stage=metric==='COMPLETION'?'CONSTRUCTION':metric;}
-      if(b.dataset.d907YearButton)year=Number(b.dataset.d907YearButton);
-      if(b.hasAttribute('data-d907-now'))year=current();
+      if(b.dataset.d907YearButton){year=Number(b.dataset.d907YearButton);referenceDate=year===current()?data.as_of_date:year<current()?year+'-12-31':data.as_of_date;comparisonDate=year+'-12-31';}
+      if(b.hasAttribute('data-d907-now')||b.hasAttribute('data-d907-reset-dates')){year=current();referenceDate=data.as_of_date;comparisonDate=PolicyStageFlow.quarterEnd(referenceDate);}
       if(b.hasAttribute('data-d907-clear')){city='';region='';projectId='';}
-      if(b.hasAttribute('data-d907-full'))full=!full;
       if(b.dataset.d907Window)flowWindow=b.dataset.d907Window;
-      if(b.dataset.d907Scope){full=b.dataset.d907Scope==='POLICY_PERIOD';projectId='';}
       if(b.dataset.d907Zoom)zoom=Math.max(.85,Math.min(1.5,zoom+Number(b.dataset.d907Zoom)*.1));
       if(b.dataset.d907Project){projectId=b.dataset.d907Project;city=allRows().find(c=>c.id===projectId)?.municipality_id||'';region=allRows().find(c=>c.id===projectId)?.region||'';}
       if(b.dataset.d907Issues){document.querySelector('.d907-issue-list')?.scrollIntoView({behavior:'smooth'});return;}
       if([...b.attributes].some(a=>a.name.startsWith('data-d907-')))render();
     });
-    document.addEventListener('input',e=>{if(active()&&e.target.hasAttribute('data-d907-year')){year=Number(e.target.value);render(true);}});
-    document.addEventListener('change',e=>{if(active()&&e.target.hasAttribute('data-d907-axis-unit')){axisUnit=e.target.value;render(true);return;}if(active()&&e.target.hasAttribute('data-d907-full-axis')){fullAxis=e.target.checked;render(true);return;}if(e.target.hasAttribute('data-d907-map-stage')){stage=e.target.value;if(data.yearly_comparisons.policy.metrics[stage])metric=stage;render();}});
+    document.addEventListener('scroll',e=>{if(e.target.matches?.('.pw-flow-chart'))scheduleAxis();},true);
+    window.addEventListener('resize',scheduleAxis);
+    document.addEventListener('input',e=>{if(active()&&e.target.hasAttribute('data-d907-year')){year=Number(e.target.value);referenceDate=year===current()?data.as_of_date:year<current()?year+'-12-31':data.as_of_date;comparisonDate=year+'-12-31';render(true);}});
+    document.addEventListener('change',e=>{if(active()&&(e.target.hasAttribute('data-d907-reference-date')||e.target.hasAttribute('data-d907-comparison-date'))){const value=e.target.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||!e.target.checkValidity()){render(true);return;}if(e.target.hasAttribute('data-d907-reference-date')){referenceDate=value;if(comparisonDate&&comparisonDate<value)comparisonDate=value;}else comparisonDate=value;render(true);return;}if(active()&&e.target.hasAttribute('data-d907-axis-unit')){axisUnit=e.target.value;render(true);return;}if(active()&&e.target.hasAttribute('data-d907-full-axis')){fullAxis=e.target.checked;render(true);return;}if(e.target.hasAttribute('data-d907-map-stage')){stage=e.target.value;if(data.yearly_comparisons.policy.metrics[stage])metric=stage;render();}});
     document.addEventListener('keydown',e=>{const g=e.target.closest('[data-d907-city]');if(g&&['Enter',' '].includes(e.key)){e.preventDefault();city=g.dataset.d907City;region=data.geometry.shapes.find(p=>p.id===city)?.region||'';projectId='';render();}});
   }
   async function reportContext(){
-    const view=state.view,selection=()=>JSON.stringify([programId,city,region,projectId,stage,metric,year,axisUnit,fullAxis,full,$('as-of').value]),key=selection();
+    const view=state.view,selection=()=>JSON.stringify([programId,city,region,projectId,stage,metric,year,referenceDate,comparisonDate,axisUnit,fullAxis,$('as-of').value]),key=selection();
     if(pending)await pending;
     if(state.view!==view||selection()!==key)throw Error('조회 조건이 변경되었습니다. 현재 화면에서 다시 만들어 주세요.');
     const root=detailHost();if(!active()||!data||!root?.querySelector('.d907-flow')||pending)throw Error('추진현황 조회가 끝난 뒤 다시 선택하세요.');
     const stripTracking=({tracking,...c})=>c,original=Object.fromEntries(Object.entries(comparisonIndex()[scopeKey()]?.metrics||{}).map(([k,c])=>[k,stripTracking(c)])),comparisons=Object.fromEntries(Object.entries(comparisonIndex()[scopeKey()]?.metrics||{}).map(([k,c])=>[k,stripTracking(c.tracking?{...c,...c.tracking,management_points:[]}:c)]));
-    const dates=rows().flatMap(c=>[...c.events.map(e=>e.event_date),...c.schedules.map(s=>s.due_date)]).concat(Object.values(comparisons).flatMap(c=>[...(c.target_points||[]),...(c.management_points||[]),...(c.actual_points||[])].map(p=>p.date))).filter(Boolean);
+    const dates=[data.as_of_date,PolicyStageFlow.quarterEnd(data.as_of_date),...rows().flatMap(c=>[...c.events.map(e=>e.event_date),...c.schedules.map(s=>s.due_date)]).concat(Object.values(comparisons).flatMap(c=>[...(c.target_points||[]),...(c.management_points||[]),...(c.actual_points||[])].map(p=>p.date))).filter(Boolean)];
     if(!region&&!city&&!projectId){if(!isProgram())dates.push(data.plan.period_start,data.plan.period_end);else if(program()?.profile)dates.push(program().profile.period_start,program().profile.period_end);}
     const years=dates.filter(Boolean).map(d=>Number(d.slice(0,4))),start=years.length?Math.min(...years):current(),end=Math.max(current(),...years),trackingPoints=PolicyStageFlow.trackingPoints({comparisons,start,end,asOf:data.as_of_date});
     const allowed=isProgram()?[...new Set([...allRows().map(c=>c.region),...(program()?.source_profile?.geography||[])])]:data.plan.geography;
     const mapValues=data.geometry.shapes.filter(p=>allowed.includes(p.region)).map(p=>{const cs=allRows().filter(c=>c.municipality_id===p.id);return {id:p.id,name:p.name,region:p.region,stage,stageDistribution:PolicyRegionMap.stageDistribution(cs,cutoff(),data.as_of_date),value:reached(cs,stage,cutoff()),target:cs.reduce((a,c)=>a+(c.planned_units??0),0),...PolicyDecision.mapDelay(comparisonIndex()[(isProgram()?'program:'+programId+'|':'')+'city:'+p.id]?.metrics,cutoff()<data.as_of_date?cutoff():data.as_of_date)};});
-    return {kind:isProgram()?'program':'policy',root,scope:{policy_id:ID,program_id:isProgram()?programId:'',name:scopeName(),region,municipality_id:city,municipality:data.geometry.shapes.find(p=>p.id===city)?.name||'',project_id:projectId,year,as_of_date:data.as_of_date,stage,metric,axis_unit:axisUnit,full_axis:fullAxis,portfolio:portfolio()},
-      data:JSON.parse(JSON.stringify({plan:Object.fromEntries(Object.entries(data.plan).filter(([k])=>k!=='program_profiles')),program:isProgram()?program():null,program_assessment:isProgram()?data.program_assessments?.[programId]:null,comparisons,official_alignment:data.official_alignment,summary_cards:PolicyStageFlow.summaryValues({year,asOf:cutoff()<data.as_of_date?cutoff():data.as_of_date,comparisons,stages:data.stages}),original_comparisons:original,tracking_points:trackingPoints,timeline_range:{start,end},axis:axisForScope(trackingPoints,comparisons),map_values:mapValues,statistics:PolicyDecision.statistics(rows(),data.as_of_date,year,comparisonIndex()[scopeKey()]?.metrics||{}),cohorts:rows(),issues:data.issues.filter(i=>rows().some(c=>c.id===i.project_id)),reference_sources:{stage_note:data.stage_note,evidence_url:data.plan.evidence_url},stage_labels:data.stages}))};
+    return {kind:isProgram()?'program':'policy',root,scope:{policy_id:ID,program_id:isProgram()?programId:'',name:scopeName(),region,municipality_id:city,municipality:data.geometry.shapes.find(p=>p.id===city)?.name||'',project_id:projectId,year,as_of_date:cutoff(),data_as_of_date:data.as_of_date,comparison_date:auxiliaryDate(),stage,metric,axis_unit:axisUnit,full_axis:fullAxis,portfolio:portfolio()},
+      data:JSON.parse(JSON.stringify({plan:Object.fromEntries(Object.entries(data.plan).filter(([k])=>k!=='program_profiles')),program:isProgram()?program():null,program_assessment:isProgram()?data.program_assessments?.[programId]:null,comparisons,official_alignment:data.official_alignment,summary_cards:PolicyStageFlow.summaryValues({year,asOf:cutoff(),dataAsOf:data.as_of_date,comparisonDate:auxiliaryDate(),comparisons,stages:data.stages}),original_comparisons:original,tracking_points:trackingPoints,timeline_range:{start,end},axis:axisForScope(trackingPoints,comparisons),map_values:mapValues,statistics:PolicyDecision.statistics(rows(),cutoff(),year,comparisonIndex()[scopeKey()]?.metrics||{}),cohorts:rows(),issues:data.issues.filter(i=>rows().some(c=>c.id===i.project_id)),reference_sources:{stage_note:data.stage_note,evidence_url:data.plan.evidence_url},stage_labels:data.stages}))};
   }
-  return {start,show,reportContext,programs:()=>programRows,setPrograms:list=>{programRows=(list||[]).filter(p=>p.policy_id===ID&&p.status!=='REJECTED'&&p.status!=='RELEASED');stamp='';},showProgram:id=>{if(!isProgram())return;if(programId!==id){programId=id;city='';region='';projectId='';fullAxis=false;const m=program()?.profile?.metric;if(m&&m!=='CAPACITY')metric=m;}show();},invalidate:()=>{stamp='';},openEditor:async(projectId)=>{data=await request('/policy-delivery?as_of_date='+$('as-of').value);editor(projectId);},reset:()=>{city='';region='';projectId='';zoom=1;render();}};
+  return {start,show,prepare,reportContext,programs:()=>programRows,setPrograms:list=>{programRows=(list||[]).filter(p=>p.policy_id===ID&&p.status!=='REJECTED'&&p.status!=='RELEASED');stamp='';},showProgram:id=>{if(!isProgram())return;if(programId!==id){programId=id;city='';region='';projectId='';fullAxis=false;const m=program()?.profile?.metric;if(m&&m!=='CAPACITY')metric=m;}show();},invalidate:()=>{stamp='';prepared=null;},openEditor:async(projectId)=>{data=await request('/policy-delivery/view?'+new URLSearchParams({as_of_date:$('as-of').value,group:isProgram()?'program:'+programId:'policy',scope:scopeKey()}));editor(projectId);},reset:()=>{city='';region='';projectId='';zoom=1;render();}};
 })();

@@ -1,0 +1,1419 @@
+{
+  "reports": 44,
+  "items": [
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 80,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 80,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 75,
+          "task_rows": 22
+        },
+        "provisional_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 76,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 81,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 81,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 80,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 80,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 56,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 56,
+          "task_rows": 20
+        },
+        "provisional_brief": {
+          "groups": 11,
+          "bundles": 24,
+          "speaker_rows": 56,
+          "task_rows": 19
+        }
+      }
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 65,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 65,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 61,
+          "task_rows": 20
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 61,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 61,
+          "task_rows": 22
+        },
+        "provisional_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 3,
+          "bundles": 9,
+          "speaker_rows": 19,
+          "task_rows": 7
+        },
+        "official_brief": {
+          "groups": 3,
+          "bundles": 9,
+          "speaker_rows": 19,
+          "task_rows": 7
+        },
+        "structured_brief": {
+          "groups": 3,
+          "bundles": 9,
+          "speaker_rows": 19,
+          "task_rows": 7
+        },
+        "provisional_brief": {
+          "groups": 3,
+          "bundles": 9,
+          "speaker_rows": 19,
+          "task_rows": 7
+        }
+      }
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 25
+        },
+        "structured_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 25
+        },
+        "provisional_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 6,
+          "bundles": 24,
+          "speaker_rows": 66,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 6,
+          "bundles": 24,
+          "speaker_rows": 66,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 27
+        },
+        "provisional_brief": {
+          "groups": 6,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "provisional_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 68,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 68,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 17,
+          "bundles": 24,
+          "speaker_rows": 65,
+          "task_rows": 30
+        },
+        "provisional_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 65,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 30
+        },
+        "structured_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 30
+        },
+        "provisional_brief": {
+          "groups": 11,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 18,
+          "bundles": 19,
+          "speaker_rows": 38,
+          "task_rows": 15
+        },
+        "structured_brief": {
+          "groups": 18,
+          "bundles": 19,
+          "speaker_rows": 38,
+          "task_rows": 15
+        },
+        "provisional_brief": {
+          "groups": 16,
+          "bundles": 19,
+          "speaker_rows": 38,
+          "task_rows": 11
+        }
+      }
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 13
+        },
+        "official_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 13
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 49,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 49,
+          "task_rows": 13
+        }
+      }
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 49,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 49,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 34
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 14,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 28
+        },
+        "structured_brief": {
+          "groups": 14,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 28
+        },
+        "provisional_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 44,
+          "task_rows": 15
+        },
+        "official_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 44,
+          "task_rows": 15
+        },
+        "structured_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 41,
+          "task_rows": 17
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 42,
+          "task_rows": 15
+        }
+      }
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 57,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 57,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 18,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 24
+        },
+        "provisional_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 3,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 19
+        },
+        "official_brief": {
+          "groups": 3,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 19
+        },
+        "structured_brief": {
+          "groups": 11,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 22
+        },
+        "provisional_brief": {
+          "groups": 3,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 19
+        }
+      }
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 15
+        },
+        "structured_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 15
+        },
+        "provisional_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 46,
+          "task_rows": 11
+        }
+      }
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 19,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 26
+        },
+        "provisional_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 63,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 37,
+          "task_rows": 18
+        },
+        "structured_brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 37,
+          "task_rows": 18
+        },
+        "provisional_brief": {
+          "groups": 11,
+          "bundles": 24,
+          "speaker_rows": 37,
+          "task_rows": 14
+        }
+      }
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 16
+        },
+        "official_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 16
+        },
+        "structured_brief": {
+          "groups": 11,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 20
+        },
+        "provisional_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 16
+        }
+      }
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 16,
+          "task_rows": 19
+        },
+        "official_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 16,
+          "task_rows": 19
+        },
+        "structured_brief": {
+          "groups": 19,
+          "bundles": 24,
+          "speaker_rows": 16,
+          "task_rows": 19
+        },
+        "provisional_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 16,
+          "task_rows": 19
+        }
+      }
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 34
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 18,
+          "speaker_rows": 47,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 8,
+          "bundles": 18,
+          "speaker_rows": 47,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 10,
+          "bundles": 18,
+          "speaker_rows": 42,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 18,
+          "speaker_rows": 42,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 48,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 48,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 48,
+          "task_rows": 25
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 48,
+          "task_rows": 25
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 48,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 19
+        },
+        "official_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 19
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 22
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 19
+        }
+      }
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 25
+        },
+        "structured_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 25
+        },
+        "provisional_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 55,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 14
+        },
+        "structured_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 14
+        },
+        "provisional_brief": {
+          "groups": 13,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 11
+        }
+      }
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 61,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 61,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 35
+        },
+        "provisional_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 54,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 20,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 21
+        },
+        "structured_brief": {
+          "groups": 20,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 51,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 74,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 74,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 15,
+          "bundles": 24,
+          "speaker_rows": 74,
+          "task_rows": 24
+        },
+        "provisional_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 74,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 21
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 8,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 19
+        }
+      }
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 3,
+          "bundles": 8,
+          "speaker_rows": 21,
+          "task_rows": 15
+        },
+        "official_brief": {
+          "groups": 3,
+          "bundles": 8,
+          "speaker_rows": 21,
+          "task_rows": 15
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 8,
+          "speaker_rows": 21,
+          "task_rows": 17
+        },
+        "provisional_brief": {
+          "groups": 3,
+          "bundles": 8,
+          "speaker_rows": 21,
+          "task_rows": 15
+        }
+      }
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 21,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 23
+        },
+        "structured_brief": {
+          "groups": 21,
+          "bundles": 24,
+          "speaker_rows": 45,
+          "task_rows": 23
+        },
+        "provisional_brief": {
+          "groups": 14,
+          "bundles": 24,
+          "speaker_rows": 47,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 64,
+          "task_rows": 28
+        },
+        "structured_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 64,
+          "task_rows": 28
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 64,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 5,
+          "bundles": 8,
+          "speaker_rows": 17,
+          "task_rows": 7
+        },
+        "official_brief": {
+          "groups": 5,
+          "bundles": 8,
+          "speaker_rows": 17,
+          "task_rows": 7
+        },
+        "structured_brief": {
+          "groups": 8,
+          "bundles": 8,
+          "speaker_rows": 17,
+          "task_rows": 11
+        },
+        "provisional_brief": {
+          "groups": 5,
+          "bundles": 8,
+          "speaker_rows": 17,
+          "task_rows": 7
+        }
+      }
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 31
+        },
+        "structured_brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 31
+        },
+        "provisional_brief": {
+          "groups": 16,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 54,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 54,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 50,
+          "task_rows": 21
+        },
+        "provisional_brief": {
+          "groups": 10,
+          "bundles": 24,
+          "speaker_rows": 52,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 24
+        },
+        "provisional_brief": {
+          "groups": 9,
+          "bundles": 24,
+          "speaker_rows": 58,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "default_view": "STRUCTURED",
+      "views": {
+        "brief": {
+          "groups": 17,
+          "bundles": 24,
+          "speaker_rows": 60,
+          "task_rows": 27
+        },
+        "structured_brief": {
+          "groups": 17,
+          "bundles": 24,
+          "speaker_rows": 60,
+          "task_rows": 27
+        },
+        "provisional_brief": {
+          "groups": 12,
+          "bundles": 24,
+          "speaker_rows": 60,
+          "task_rows": 20
+        }
+      }
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 41,
+          "task_rows": 12
+        },
+        "official_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 41,
+          "task_rows": 12
+        },
+        "structured_brief": {
+          "groups": 7,
+          "bundles": 23,
+          "speaker_rows": 41,
+          "task_rows": 12
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 41,
+          "task_rows": 12
+        }
+      }
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "default_view": "OFFICIAL",
+      "views": {
+        "brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 67,
+          "task_rows": 20
+        },
+        "official_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 67,
+          "task_rows": 20
+        },
+        "structured_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 62,
+          "task_rows": 22
+        },
+        "provisional_brief": {
+          "groups": 7,
+          "bundles": 24,
+          "speaker_rows": 65,
+          "task_rows": 20
+        }
+      }
+    }
+  ],
+  "browser": {
+    "results": [
+      {
+        "base": "https://kjon.aigov.go.kr",
+        "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+        "default_view": "OFFICIAL",
+        "groups": 12,
+        "bundles": 24,
+        "details": 16,
+        "evidence_source": "OFFICIAL_TRANSCRIPT_PRESENTATION",
+        "geometry": {
+          "columnDifference": 0,
+          "emptyRowHeights": [
+            36,
+            36,
+            36,
+            36,
+            36,
+            36
+          ],
+          "height": 212.59375
+        },
+        "mobile": true
+      },
+      {
+        "base": "https://kjon.aigov.go.kr",
+        "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+        "default_view": "STRUCTURED",
+        "groups": 13,
+        "bundles": 24,
+        "details": 45,
+        "evidence_source": "LIVE_STRUCTURE_SNAPSHOT",
+        "geometry": {
+          "columnDifference": 0,
+          "emptyRowHeights": [
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36
+          ],
+          "height": 212.59375
+        },
+        "mobile": true
+      },
+      {
+        "base": "https://www.minslab.kr/poc/national-assembly",
+        "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+        "default_view": "OFFICIAL",
+        "groups": 12,
+        "bundles": 24,
+        "details": 16,
+        "evidence_source": "OFFICIAL_TRANSCRIPT_PRESENTATION",
+        "geometry": {
+          "columnDifference": 0,
+          "emptyRowHeights": [
+            36,
+            36,
+            36,
+            36,
+            36,
+            36
+          ],
+          "height": 212.59375
+        },
+        "mobile": true
+      },
+      {
+        "base": "https://www.minslab.kr/poc/national-assembly",
+        "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+        "default_view": "STRUCTURED",
+        "groups": 13,
+        "bundles": 24,
+        "details": 45,
+        "evidence_source": "LIVE_STRUCTURE_SNAPSHOT",
+        "geometry": {
+          "columnDifference": 0,
+          "emptyRowHeights": [
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36,
+            36
+          ],
+          "height": 212.59375
+        },
+        "mobile": true
+      }
+    ],
+    "errors": []
+  },
+  "card_actions": {
+    "header_evidence_count": 3,
+    "task_source": "OFFICIAL_TRANSCRIPT_PRESENTATION",
+    "expanded_task_row_before": 59.046875,
+    "expanded_task_row_after": 275.046875,
+    "all_tasks_accessible": true
+  },
+  "tests_passed": 32,
+  "image": "poc07-national-assembly-api:report-cards-final-20261020",
+  "assets": "20261020-report-cards-2",
+  "markdown_card_tasks": true
+}

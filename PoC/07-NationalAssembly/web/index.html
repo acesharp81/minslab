@@ -6,19 +6,20 @@
     <meta name="description" content="국회·대통령실·국무회의·부처의 국정 흐름을 주제·소관별로 보는 PoC" />
     <title>국정ON</title>
     <link rel="stylesheet" href="assets/styles.css?v=20260903-11" />
-    <link rel="stylesheet" href="assets/topic-reports.css?v=20260917-4" />
-    <link rel="stylesheet" href="assets/assembly-extras.css?v=20261019-refresh-1" />
+    <link rel="stylesheet" href="assets/topic-reports.css?v=20261020-coverage-repair-2" />
+    <link rel="stylesheet" href="assets/assembly-extras.css?v=20261022-insight-search-1" />
     <link rel="stylesheet" href="assets/dashboard.css?v=20260813-5" />
-    <link rel="stylesheet" href="assets/workspace.css?v=20261019-task-source-4" />
+    <link rel="stylesheet" href="assets/workspace.css?v=20261020-guide-dialog-1" />
+    <link rel="stylesheet" href="assets/meeting-report-document.css?v=20261020-document-2" />
     <link rel="stylesheet" href="assets/official-integration.css?v=20260921-1" />
     <link rel="stylesheet" href="assets/watch-alerts.css?v=20260903-5" />
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./" aria-label="국정ON 홈">
-        <img class="brand-logo" src="assets/images/gukjeong-on-small.png" alt="국정ON" />
-        <span class="brand-copy"><small>국회·정부 정책 통합 흐름</small></span>
-      </a>
+      <div class="brand-area">
+        <a class="brand" href="./" aria-label="국정ON 홈"><img class="brand-logo" src="assets/images/gukjeong-on-small.png" alt="국정ON" /></a>
+        <div class="brand-copy"><small>국회·정부 정책 통합 흐름</small><button class="usage-guide-button" type="button" aria-haspopup="dialog" aria-controls="userGuideDialog" aria-label="사용법 알아보기" title="처음 사용자를 위한 실제 화면 매뉴얼"><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4.5c3-1 6-.5 9 1.5 3-2 6-2.5 9-1.5v15c-3-1-6-.5-9 1.5-3-2-6-2.5-9-1.5zM12 6v15"/></svg>사용법 알아보기</button></div>
+      </div>
       <section class="today-schedule-board" id="todayScheduleBoard" aria-label="오늘 예정 회의">
         <div class="today-schedule-label"><span>오늘 예정</span><b id="todayScheduleCount">확인 중</b></div>
         <div class="today-schedule-viewport" id="todayScheduleViewport" tabindex="0" aria-live="polite">
@@ -159,9 +160,9 @@
               <button class="assembly-ontology-open" id="assemblyOntologyOpen" type="button"><span aria-hidden="true">✦</span> 3D 온톨로지</button>
             </header>
             <div class="assembly-insights-grid">
-              <article class="assembly-insight-card is-timeline"><header><span>정책 흐름 타임라인</span><small>정부 ↔ 국회</small></header><div id="assemblyPolicyTimeline"><p>정책 흐름을 불러오는 중입니다.</p></div></article>
-              <article class="assembly-insight-card is-trend"><header><span>지속·급증·소멸 쟁점</span><small>구체 주제 · 최근 14일 비교</small></header><div id="assemblyIssueTrends"><p>쟁점 추세를 계산하는 중입니다.</p></div></article>
-              <article class="assembly-insight-card is-institution"><header><span>논의 → 제도화 전환</span><small>구체 주제 · 과제·의결·의안</small></header><div id="assemblyInstitutionFlow"><p>직접 연결 근거를 확인하는 중입니다.</p></div></article>
+              <article class="assembly-insight-card is-timeline"><header><span>정책 흐름 타임라인</span><small>정부 ↔ 국회</small><button class="assembly-insight-all" type="button" data-insight-list="timeline">전체 보기</button></header><div id="assemblyPolicyTimeline"><p>정책 흐름을 불러오는 중입니다.</p></div></article>
+              <article class="assembly-insight-card is-trend"><header><span>지속·급증·소멸 쟁점</span><small>구체 주제 · 최근 14일 비교</small><button class="assembly-insight-all" type="button" data-insight-list="trend">전체 보기</button></header><div id="assemblyIssueTrends"><p>쟁점 추세를 계산하는 중입니다.</p></div></article>
+              <article class="assembly-insight-card is-institution"><header><span>논의 → 제도화 전환</span><small>구체 주제 · 과제·의결·의안</small><button class="assembly-insight-all" type="button" data-insight-list="institution">전체 보기</button></header><div id="assemblyInstitutionFlow"><p>직접 연결 근거를 확인하는 중입니다.</p></div></article>
             </div>
             <p class="assembly-insight-note">동일 주제·키워드 또는 공식 안건 번호로 직접 확인되는 관계만 표시합니다. 시간상 앞뒤에 있다는 이유만으로 인과관계를 만들지 않습니다.</p>
           </section>
@@ -266,9 +267,8 @@
               <label><span>감지 문구</span><input id="watchRuleTerms" maxlength="180" required placeholder="쉼표로 구분: AI 민주정부, 인공지능 정부" /></label>
               <div class="watch-form-row">
                 <label><span>범위</span><select id="watchRuleInstitution"><option value="">국회·정부 전체</option><option value="LEGISLATURE">국회</option><option value="EXECUTIVE">정부·국무회의</option></select></label>
-                <label><span>알림 빈도</span><select id="watchRulePolicy"><option value="FIRST_PER_MEETING">회의당 최초 1회</option><option value="FIRST_PER_SPEAKER">화자별 최초 1회</option><option value="ONCE_PER_10_MINUTES">10분마다 최대 1회</option><option value="INTERVAL_15_MINUTES">15분마다 최대 1회</option><option value="INTERVAL_30_MINUTES">30분마다 최대 1회</option><option value="INTERVAL_60_MINUTES">60분마다 최대 1회</option><option value="EVERY_MATCH">모든 감지</option></select></label>
               </div>
-              <label class="watch-digest-option"><input id="watchRuleDigest" type="checkbox" /><span>회의 종료 시 누적 결과 알림 받기 <small>추가 LLM 호출 없음</small></span></label>
+              <p class="watch-rule-help">키워드 최초 감지 → 주제 전환 후 5분간 관련 발언이 없으면 주제 요약 → 정회·종료 시 누적 상위 5개 요약을 보냅니다.</p>
               <label class="watch-digest-option"><input id="watchRuleKakao" type="checkbox" disabled /><span>카카오로도 받기 <small id="watchRuleKakaoHelp">나에게 보내기 연결 후 선택 가능</small></span></label>
               <div class="watch-form-actions"><button class="watch-primary" id="watchRuleSubmit" type="submit">알림 주제 저장</button><button id="watchRuleCancel" type="button" hidden>수정 취소</button></div>
             </form>
@@ -341,6 +341,18 @@
       </div>
     </dialog>
 
+    <dialog class="assembly-insight-dialog assembly-insight-list-dialog" id="assemblyInsightListDialog" aria-labelledby="assemblyInsightListTitle">
+      <header><div><span>GOVERNMENT FLOW INSIGHTS</span><h2 id="assemblyInsightListTitle">전체 보기</h2><p>항목을 누르면 상세 내용과 연결 근거를 확인할 수 있습니다.</p></div><button class="assembly-insight-list-close" type="button" aria-label="전체 목록 닫기">×</button></header>
+      <form class="assembly-insight-search" role="search">
+        <label for="assemblyInsightSearch">전체 목록에서 찾기</label>
+        <div><input id="assemblyInsightSearch" type="search" maxlength="200" placeholder="주제·내용·기관명 검색" autocomplete="off" /><button type="submit">찾기</button><button type="button" class="assembly-insight-search-reset">초기화</button></div>
+      </form>
+      <div class="assembly-insight-list-scroll" tabindex="0" aria-label="전체 목록, 아래로 스크롤하면 10개씩 추가 표시">
+        <div class="assembly-insight-list-items"></div>
+        <button class="assembly-insight-list-more" type="button">10개 더 보기</button>
+      </div>
+      <footer role="status" aria-live="polite"></footer>
+    </dialog>
     <dialog class="assembly-insight-dialog" id="assemblyInsightDialog" aria-labelledby="assemblyInsightDialogTitle">
       <header>
         <div><span id="assemblyInsightDialogEyebrow">POLICY INSIGHT</span><h2 id="assemblyInsightDialogTitle">정책 인사이트</h2><p id="assemblyInsightDialogMeta"></p></div>
@@ -372,12 +384,18 @@
       </div>
     </dialog>
 
+    <dialog class="user-guide-dialog" id="userGuideDialog" aria-labelledby="userGuideDialogTitle">
+      <header><div><strong id="userGuideDialogTitle">사용법 알아보기</strong><span>처음 사용자를 위한 실제 화면 매뉴얼</span></div><button id="userGuideDialogClose" type="button" autofocus aria-label="사용법 안내 닫기">닫기 ×</button></header>
+      <iframe id="userGuideFrame" title="국정ON 사용자 매뉴얼" referrerpolicy="same-origin"></iframe>
+    </dialog>
+
     <footer><span>POC-07</span><p>LIVE 자막·보정본·공식 자료를 구분하고 모든 인사이트를 원문 근거로 추적합니다.</p></footer>
     <script src="assets/official-integration.js?v=20260927-2" defer></script>
-    <script src="assets/app.js?v=20261020-context-review-final" defer></script>
-    <script src="assets/watch-alerts.js?v=20260904-3" defer></script>
-    <script src="assets/topic-reports.js?v=20260923-1" defer></script>
-    <script src="assets/assembly-extras.js?v=20261019-coverage-basis-1" defer></script>
+    <script src="assets/app.js?v=20261022-report-notes-1" defer></script>
+    <script src="assets/meeting-report-document.js?v=20261020-document-2" defer></script>
+    <script src="assets/watch-alerts.js?v=20261022-topic-stages-1" defer></script>
+    <script src="assets/topic-reports.js?v=20261020-coverage-repair-2" defer></script>
+    <script src="assets/assembly-extras.js?v=20261022-insight-search-1" defer></script>
     <script src="assets/dashboard.js?v=20260824-7" defer></script>
   </body>
 </html>

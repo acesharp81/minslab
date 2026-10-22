@@ -1,0 +1,55 @@
+{
+  "asset_version": "20261020-document-2",
+  "browser": "Playwright Chromium",
+  "pdf_size": "A4",
+  "checks": [
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "groups": 13,
+      "subtopics": 24,
+      "speech_summaries": 45,
+      "pdf_pages": 8,
+      "pdf_all_summaries_present": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "js_errors": []
+    },
+    {
+      "base": "https://kjon.aigov.go.kr",
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "groups": 12,
+      "subtopics": 24,
+      "speech_summaries": 16,
+      "pdf_pages": 5,
+      "pdf_all_summaries_present": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "groups": 13,
+      "subtopics": 24,
+      "speech_summaries": 45,
+      "pdf_pages": 8,
+      "pdf_all_summaries_present": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly",
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "groups": 12,
+      "subtopics": 24,
+      "speech_summaries": 16,
+      "pdf_pages": 5,
+      "pdf_all_summaries_present": true,
+      "close_preserves_report": true,
+      "mobile_no_overflow": true,
+      "js_errors": []
+    }
+  ]
+}

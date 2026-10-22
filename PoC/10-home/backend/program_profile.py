@@ -76,6 +76,10 @@ def save(service,pid,revision_no,changes,actor,reason,program_changes=None,mappi
             mapping=db.scalar(select(Mapping).where(Mapping.project_id==project_id).with_for_update())
             if mapping is None or type(c.get('selected')) is not bool or type(c.get('revision_no')) is not int:raise ValueError('사업 연결 정보 오류')
             if mapping.revision_no!=c['revision_no']:return dict(conflict=True)
+            if c['selected']:
+                from .mapping_decisions import ensure_candidate_restored
+                ensure_candidate_restored(db,'project',project_id,program.policy_id)
+                ensure_candidate_restored(db,'program',pid,program.policy_id)
             parent=db.get(ProgramMapping,mapping.program_id) if mapping.program_id else None
             current_policy=parent.policy_id if parent and parent.status!='RELEASED' else mapping.policy_id
             if c['selected'] and current_policy not in (program.policy_id,'UNASSIGNED'):raise ValueError('다른 정책 사업은 정책 귀속을 먼저 확인하세요')

@@ -158,21 +158,12 @@ MMJ_UPSTREAM = env_first("POC09_UPSTREAM", default="http://127.0.0.1:18090").rst
 HOME_BASE_PATH = "/poc/home"
 HOME_UPSTREAM = env_first("POC10_UPSTREAM", default="http://127.0.0.1:18100").rstrip("/")
 HOME_PAGE = Path(__file__).parent / "PoC" / "10-home" / "web" / "index.html"
-POC12_BASE_PATH = "/poc/housing-board"
-POC12_UPSTREAM = env_first("POC12_UPSTREAM", default="http://127.0.0.1:18120").rstrip("/")
-POC12_PROXY_PATH = Path(__file__).parent / "PoC" / "12-housing-board" / "bridge.py"
-POC12_PROXY = None
-POC11_BASE_PATH = "/poc/consultation-cases"
-POC11_SERVICE_PATH = Path(__file__).parent / "PoC" / "11-consultation-cases" / "service.py"
-POC11_SERVICE = None
 POC_SHORTCUT_REDIRECTS = {
     "/press": f"{MASTER_PRESS_BASE_PATH}/",
     "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
     "/mmj": f"{MMJ_BASE_PATH}/",
     "/home": f"{HOME_BASE_PATH}/",
-    "/home2": POC12_BASE_PATH,
-    "/counsel": f"{POC11_BASE_PATH}/",
 }
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
     5, int(env_first("AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS", "300") or "300")
@@ -1442,20 +1433,6 @@ def load_module_from_path(name, path):
     return module
 
 
-def load_poc12_proxy():
-    global POC12_PROXY
-    if POC12_PROXY is None:
-        POC12_PROXY = load_module_from_path("poc12_bridge", POC12_PROXY_PATH)
-    return POC12_PROXY
-
-
-def load_poc11_service():
-    global POC11_SERVICE
-    if POC11_SERVICE is None:
-        POC11_SERVICE = load_module_from_path("poc11_service", POC11_SERVICE_PATH)
-    return POC11_SERVICE
-
-
 def load_ai_safe_agent_module():
     global AI_SAFE_AGENT_MODULE, AI_SAFE_AGENT_MTIME
     mtime = AI_SAFE_AGENT_PATH.stat().st_mtime_ns
@@ -2325,7 +2302,6 @@ async def app(scope, receive, send):
     """Uvicorn에서 사용하는 최소 ASGI 애플리케이션."""
     if scope["type"] == "lifespan":
         metrics_task = None
-        poc11_task = None
         master_press_tasks = []
         owns_master_press_worker_lock = False
         while True:
@@ -2338,9 +2314,6 @@ async def app(scope, receive, send):
                 except (OSError, ValueError, RuntimeError) as error:
                     print(f"Initial system metrics collection failed: {error}", file=sys.stderr)
                 metrics_task = asyncio.create_task(collect_system_metrics())
-                poc11_service = load_poc11_service()
-                if env_first("POC11_SCHEDULER_ENABLED", default="1").lower() not in {"0", "false", "no"}:
-                    poc11_task = asyncio.create_task(poc11_service.scheduler_loop())
                 if not master_press_is_paused():
                     master_press_tasks.append(asyncio.create_task(warm_master_press_read_caches()))
                 if MASTER_PRESS_BACKGROUND_ENABLED and not master_press_is_paused():
@@ -2349,12 +2322,6 @@ async def app(scope, receive, send):
                     print("Master Press background workers disabled (set MASTER_PRESS_BACKGROUND_ENABLED=1 to enable).", file=sys.stderr)
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
-                if poc11_task is not None:
-                    poc11_task.cancel()
-                    try:
-                        await poc11_task
-                    except asyncio.CancelledError:
-                        pass
                 if metrics_task is not None:
                     metrics_task.cancel()
                     try:
@@ -2436,14 +2403,6 @@ async def app(scope, receive, send):
         ]
         await send({"type": "http.response.start", "status": 307, "headers": headers})
         await send({"type": "http.response.body", "body": b""})
-        return
-
-    if path == POC12_BASE_PATH or path.startswith(f"{POC12_BASE_PATH}/"):
-        await load_poc12_proxy().proxy_poc12(scope, receive, send, POC12_UPSTREAM)
-        return
-
-    if path == POC11_BASE_PATH or path.startswith(f"{POC11_BASE_PATH}/"):
-        await load_poc11_service().handle_http(scope, receive, send, is_admin=bool(admin_session(scope)))
         return
 
     if path == HOME_BASE_PATH or path.startswith(f"{HOME_BASE_PATH}/"):

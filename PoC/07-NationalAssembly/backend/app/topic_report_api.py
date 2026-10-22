@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date
+from datetime import date, datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Header, HTTPException, Response
@@ -14,7 +14,8 @@ from .db.topic_report_repository import TopicReportRepository
 from .db.watch_delivery_repository import WatchDeliveryRepository
 from .db.watch_repository import WatchRepository
 from .domain.ministry import canonical_ministry_name
-from .services.topic_report import DEFAULT_TOPIC_REPORT_MODEL
+from .services.topic_report import DEFAULT_TOPIC_REPORT_MODEL, prepare_topic_report_evidence, TopicReportResponseError
+from .services.topic_report_coverage import topic_report_coverage
 
 
 router = APIRouter(prefix="/api/topic-reports", tags=["topic-reports"])
@@ -55,11 +56,38 @@ def _optional_subscriber(connection: object, token: str | None) -> UUID | None:
 
 def _client_item(item: dict[str, object]) -> dict[str, object]:
     """Do not expose account or upstream request metadata on public reports."""
-    return {
+    public = {
         key: value
         for key, value in item.items()
         if key not in {"subscriber_id", "usage_metadata"}
     }
+    if isinstance(item.get("report"), dict):
+        public["coverage"] = topic_report_coverage(item["report"], [*(item.get("evidence") or []), *(item.get("supplementary_evidence") or [])])
+    return public
+
+
+def _with_scope_supplements(item: dict[str, object], repository: TopicReportRepository) -> dict[str, object]:
+    """Read projection: preserve the saved snapshot and expose newly found scope items separately."""
+    if item.get("status") != "READY":
+        return item
+    try:
+        current = repository.search(
+            ministry=str(item.get("ministry") or ""), topic=str(item.get("topic") or ""),
+            period_start=item["period_start"], period_end=item["period_end"],
+            institution=item.get("institution"), official_executive_items=_official_executive_items(),
+        )
+    except Exception as exc:
+        LOGGER.warning("topic report scope supplement unavailable: %s", type(exc).__name__)
+        return {**item, "supplementary_evidence": [], "evidence_scope": {"status": "UNAVAILABLE", "saved_count": len(item.get("evidence") or [])}}
+
+    saved = item.get("evidence") or []
+    saved_ids = {str(source.get("id")) for source in saved}
+    supplementary = [source for source in current["items"] if str(source.get("id")) not in saved_ids]
+    return {**item, "supplementary_evidence": supplementary, "evidence_scope": {
+        "saved_count": len(saved), "additional_count": len(supplementary),
+        "current_match_count": current["count"], "checked_at": datetime.now(timezone.utc).isoformat(),
+        "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY",
+    }}
 
 
 def _clean(payload: TopicReportQueryPayload) -> tuple[str, str, str | None]:
@@ -104,6 +132,11 @@ def search_topic_report(
     except Exception as exc:
         LOGGER.warning("topic report search failed: %s", type(exc).__name__)
         raise HTTPException(status_code=503, detail="주제 관련 자료를 검색할 수 없습니다.") from exc
+    try:
+        prepare_topic_report_evidence(result["items"])
+        result["report_input"] = {"compatible": True}
+    except TopicReportResponseError as exc:
+        result["report_input"] = {"compatible": False, "reason": str(exc)}
     response.headers["X-LLM-Calls"] = "0"
     return result
 
@@ -139,6 +172,10 @@ def create_topic_report(
                 raise HTTPException(
                     status_code=404, detail="조건에 맞는 회의 근거를 찾지 못했습니다."
                 )
+            try:
+                prepare_topic_report_evidence(search["items"])
+            except TopicReportResponseError as exc:
+                raise HTTPException(status_code=422, detail="전체 근거가 한 번에 처리할 수 있는 분량을 초과합니다. 일부 자료를 제외하지 않았습니다. 기간이나 조건을 좁히거나 외부도구를 사용해 주세요.") from exc
             item = repository.create_or_cached(
                 subscriber_id=subscriber_id, ministry=ministry, topic=topic,
                 period_start=payload.period_start, period_end=payload.period_end,
@@ -176,9 +213,10 @@ def topic_report_detail(
     try:
         with connect(get_settings().database_url) as connection:
             subscriber_id = _optional_subscriber(connection, x_watch_token)
-            item = TopicReportRepository(connection).get_visible(
-                report_id, subscriber_id,
-            )
+            repository = TopicReportRepository(connection)
+            item = repository.get_visible(report_id, subscriber_id)
+            if item is not None:
+                item = _with_scope_supplements(item, repository)
     except Exception as exc:
         raise HTTPException(status_code=503, detail="주제별 보고서를 불러올 수 없습니다.") from exc
     if item is None:
@@ -200,6 +238,7 @@ def topic_report_markdown(
                 raise HTTPException(status_code=404, detail="주제별 보고서를 찾을 수 없습니다.")
             if item["status"] != "READY":
                 raise HTTPException(status_code=409, detail="보고서 작성이 아직 완료되지 않았습니다.")
+            item = _with_scope_supplements(item, repository)
             content = repository.markdown(item)
     except HTTPException:
         raise

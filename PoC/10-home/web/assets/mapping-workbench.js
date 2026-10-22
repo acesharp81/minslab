@@ -1,114 +1,73 @@
 'use strict';
 const MappingWorkbench=(()=>{
-  let payload, stage='policy', selectedProgram, selectedProject, page=1, saving=false, generation=0;
-  let pendingFocus=null;
-  const checked=new Set();
-  const policyId='POL_2025_0907';
-  const enabledProgram=p=>Boolean(p&&p.policy_id===policyId&&p.selection_enabled!==false&&!['RELEASED','REJECTED'].includes(p.status));
-  const enabledProject=p=>Boolean(p&&p.mapping.policy_id===policyId&&Number.isFinite(p.planned_units)&&p.planned_units>0&&!['RELEASED','REJECTED'].includes(p.mapping.status));
-  const editButton=(kind,id,label,enabled=true)=>state.admin?`<button type="button" class="button primary mapping-info-edit ${kind}" data-mapping-info="${kind}" data-info-id="${esc(id)}" aria-haspopup="dialog" ${enabled?'':'disabled'}>✎ ${label}수정</button>`:'';
-  const realPolicies=()=>payload.policies.filter(p=>p.monitor_kind==='POLICY');
-  const policyName=id=>id==='UNASSIGNED'||!id?'정책 미연계':payload.policies.find(p=>p.policy_id===id)?.name||'정책 미확인';
-  const seedName=id=>id?.startsWith('MON_')?'프로그램 원점: '+policyName(id):policyName(id);
-  const program=id=>payload.programs.find(p=>p.id===id);
-  const programName=id=>id==='UNASSIGNED'||!id?'프로그램 미연계':program(id)?.name||'프로그램 확인 필요';
-  const options=(rows,selected,key,label)=>rows.map(row=>`<option value="${esc(row[key])}" ${row[key]===selected?'selected':''} ${(key==='policy_id'?row.policy_id!==policyId:!enabledProgram(row))?'disabled':''}>${esc(label(row))}${(key==='policy_id'?row.policy_id!==policyId:!enabledProgram(row))?' (비활성)':''}</option>`).join('');
-  const programLabel=p=>`${p.name} · ${policyName(p.policy_id)}${p.seed_policy_id!==p.policy_id?' (원천 제안과 다름)':''}`;
-  function setStage(value){
-    stage=value;
-    $('mapping-operations-workspace').hidden=stage!=='operations';
-    $('mapping-tab-operations').setAttribute('aria-selected',String(stage==='operations'));
-    $('mapping-evidence-workspace').hidden=stage!=='evidence';
-    $('mapping-tab-evidence').setAttribute('aria-selected',String(stage==='evidence'));
-    $('mapping-policy-workspace').hidden=stage!=='policy';
-    $('mapping-project-workspace').hidden=stage!=='project';
-    $('mapping-tab-policy').setAttribute('aria-selected',String(stage==='policy'));
-    $('mapping-tab-project').setAttribute('aria-selected',String(stage==='project'));
-    if(stage==='evidence')StageEvidenceWorkbench.load();
-    else if(stage==='operations')DeliveryOperations.load();
-    else if(payload)stage==='policy'?renderPrograms():renderProjects();
-  }
-  function render(data){
-    payload=data;
-    for(const id of checked)if(!data.items.some(r=>r.id===id))checked.delete(id);
-    $('mapping-program-policy').innerHTML=''+options(realPolicies(),null,'policy_id',p=>p.name);
-    $('mapping-program-policy').value=policyId;
-    $('mapping-queue-policy').innerHTML=''+options(realPolicies(),null,'policy_id',p=>p.name);
-    $('mapping-queue-policy').value=policyId;
-    const queueProgram=$('mapping-queue-programme').value;
-    $('mapping-queue-programme').innerHTML='<option value="">프로그램 전체</option>'+options(data.programs,null,'id',programLabel);
-    $('mapping-queue-programme').value=enabledProgram(program(queueProgram))?queueProgram:'';
-    $('mapping-bulk-program').innerHTML='<option value="">현재 연결 유지</option>'+options(data.programs,null,'id',programLabel);
-    $('mapping-queue-counts').innerHTML=[['사업 승인 대기',data.counts.REVIEW||0],['사업 확정',data.counts.CONFIRMED||0],['프로그램 미연계 사업',data.audit.unlinked_projects],['정책 미연계 사업',data.audit.unlinked_policy_projects]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
-    $('mapping-program-counts').innerHTML=[['정책–프로그램 승인 대기',data.audit.review_programs],['프로그램–사업 승인 대기',data.audit.review_projects],['정책 미연계 프로그램',data.audit.unlinked_programs]].map(([name,n])=>`<div><span>${esc(name)}</span><strong>${num(n)}건</strong></div>`).join('');
-    $('mapping-queue-notice').textContent='현재 정책–프로그램 미연계 '+num(data.audit.unlinked_programs)+'건 · 프로그램–사업 미연계 '+num(data.audit.unlinked_projects)+'건. 연결된 REVIEW는 미연계가 아니라 담당자 승인 대기입니다. '+data.notice;
-    $('mapping-bulk').hidden=true;
-    if(pendingFocus){const focus=pendingFocus;pendingFocus=null;focus.kind==='project'?focusProject(focus.id):focusPolicy(focus.id);}else setStage(stage);
-  }
-  function filteredPrograms(){return payload.programs.filter(p=>(!$('mapping-program-status').value||p.status===$('mapping-program-status').value)&&(!$('mapping-program-policy').value||p.policy_id===$('mapping-program-policy').value));}
-  function renderPrograms(){
-    const rows=filteredPrograms();
-    if(!rows.some(p=>p.id===selectedProgram&&enabledProgram(p)))selectedProgram=rows.find(enabledProgram)?.id;
-    $('mapping-program-list').innerHTML=rows.length?`<table><thead><tr><th>프로그램 / 연결 사업</th><th>상위 정책</th><th>상태</th></tr></thead><tbody>${rows.map(p=>`<tr class="${p.id===selectedProgram?'selected':''}"><td><button class="mapping-program-list-row" data-program-edit="${esc(p.id)}" ${enabledProgram(p)?'':'disabled'}><b>${esc(p.name)}</b><small>연결 ${num(p.project_count)}건 · 통계 반영 ${num(p.active_project_count)}건</small></button></td><td class="${p.policy_id==='UNASSIGNED'?'mapping-program-unlinked':''}">${esc(policyName(p.policy_id))}<small class="row-sub">원천 제안 ${esc(seedName(p.seed_policy_id))}</small></td><td>${badge(p.status)}</td></tr>`).join('')}</tbody></table>`:empty('해당 정책·상태의 프로그램이 없습니다.');
-    renderProgramEditor();
-  }
-  function renderProgramEditor(){
-    const p=program(selectedProgram),node=$('mapping-program-editor');generation++;
-    if(!enabledProgram(p)){node.innerHTML=empty('활성 프로그램을 선택하세요.');return;}
-    node.innerHTML=`<p class="section-kicker">정책 → 프로그램</p><div class="mapping-info-heading"><h3>${esc(policyName(p.policy_id))}</h3>${editButton('policy',p.policy_id,'정책정보')}</div><div class="mapping-info-heading"><h3>${esc(p.name)}</h3>${editButton('program',p.id,'프로그램정보')}</div><p>연결 사업 ${num(p.project_count)}건 · ${badge(p.status)}</p><p>수정 버튼에서 정보·목표·연결을 편집하며 기존 변경 이력을 함께 확인할 수 있습니다.</p><button type="button" class="text-button" data-show-program-projects="${esc(p.id)}">연결 사업 보기 ↗</button>`;
-  }
-  function filteredProjects(){return payload.items.filter(r=>(!$('mapping-queue-status').value||r.mapping.status===$('mapping-queue-status').value)&&(!$('mapping-queue-policy').value||r.mapping.policy_id===$('mapping-queue-policy').value)&&(!$('mapping-queue-programme').value||($('mapping-queue-programme').value.startsWith('NAME:')?r.program===$('mapping-queue-programme').value.slice(5):r.mapping.program_id===$('mapping-queue-programme').value)));}
-  function renderProjects(){
-    const rows=filteredProjects();page=Math.max(1,Math.min(page,Math.ceil(rows.length/30)||1));
-    if(!rows.some(r=>r.id===selectedProject&&enabledProject(r)))selectedProject=rows.find(enabledProject)?.id;
-    const visible=rows.slice((page-1)*30,page*30);
-    $('mapping-queue-list').innerHTML=visible.length?`<table><thead><tr><th>사업 / 원천 프로그램</th><th>연결 프로그램 → 정책</th></tr></thead><tbody>${visible.map(r=>`<tr class="${r.id===selectedProject?'selected':''}"><td><button class="project-name" data-mapping-edit="${esc(r.id)}" ${enabledProject(r)?'':'disabled'}>${esc(r.name)}${enabledProject(r)?'':' (비활성)'}</button><small class="row-sub">${esc(r.region)} · 목표 ${r.planned_units==null?'미확보':num(r.planned_units)+'호'}</small></td><td>${esc(programName(r.mapping.program_id))}<small class="row-sub">${esc(policyName(r.mapping.policy_id))} · ${badge(r.mapping.status)}</small></td></tr>`).join('')}</tbody></table>`:empty('해당 조건의 사업이 없습니다.');
-    $('mapping-queue-page').textContent=`${page}/${Math.ceil(rows.length/30)||1} · 조회 ${num(rows.length)}건 · 선택 ${num(checked.size)}건`;
-    $('mapping-queue-prev').disabled=page===1;$('mapping-queue-next').disabled=page*30>=rows.length;$('mapping-bulk-save').disabled=saving||!checked.size;
-    renderProjectEditor();
-  }
-  function renderProjectEditor(){
-    const r=payload.items.find(x=>x.id===selectedProject),node=$('mapping-editor');generation++;
-    if(!enabledProject(r)){node.innerHTML=empty('목표량이 있는 활성 사업을 선택하세요.');return;}
-    const p=program(r.mapping.program_id);
-    node.innerHTML=`<p class="section-kicker">정책 → 프로그램 → 사업</p><div class="mapping-info-heading"><h3>${esc(policyName(r.mapping.policy_id))}</h3>${editButton('policy',r.mapping.policy_id,'정책정보')}</div><div class="mapping-info-heading"><h3>${esc(programName(r.mapping.program_id))}</h3>${editButton('program',r.mapping.program_id,'프로그램정보',enabledProgram(p))}</div><div class="mapping-info-heading"><h3>${esc(r.name)}</h3>${editButton('project',r.id,'사업정보')}</div><p>목표 ${num(r.planned_units)}호 · ${badge(r.mapping.status)}</p><p>사업정보수정에서 상위 프로그램 연결·목표·측정값을 수정합니다.</p>`;
-  }
-  async function openInformation(kind,id){
-    if(!state.admin||document.querySelector('dialog[open]'))return;
-    if(kind==='policy'&&id===policyId)await PolicyInformation.open();
-    else if(kind==='program'&&enabledProgram(program(id)))await ProgramInformation.open(id);
-    else if(kind==='project'&&enabledProject(payload.items.find(p=>p.id===id))){await ProjectWorkspace.openEditor(id,async()=>load());return;}
-    else return;
-    document.querySelector('#'+kind+'-information-dialog')?.addEventListener('close',()=>load(),{once:true});
-  }
-  function focusPolicy(id){
-    if(!payload){pendingFocus={kind:'policy',id};return;}
-    if(id!==policyId)return;
-    setStage('policy');$('mapping-program-policy').value=id;renderPrograms();
-  }
-  function focusProject(id){
-    if(!payload){pendingFocus={kind:'project',id};return;}
-    if(!enabledProject(payload.items.find(r=>r.id===id)))return;
-    $('mapping-queue-status').value='';$('mapping-queue-policy').value=policyId;$('mapping-queue-programme').value='';
-    selectedProject=id;page=Math.floor(Math.max(0,filteredProjects().findIndex(r=>r.id===id))/30)+1;
-    setStage('project');
-  }
-  function start(){
-    $('mapping-tab-operations').addEventListener('click',()=>setStage('operations'));
-    $('mapping-tab-evidence').addEventListener('click',()=>setStage('evidence'));
-    $('mapping-tab-policy').addEventListener('click',()=>setStage('policy'));
-    $('mapping-tab-project').addEventListener('click',()=>setStage('project'));
-    for(const id of ['mapping-program-policy','mapping-program-status'])$(id).addEventListener('change',renderPrograms);
-    for(const id of ['mapping-queue-status','mapping-queue-programme','mapping-queue-policy'])$(id).addEventListener('change',()=>{page=1;renderProjects();});
-    $('mapping-queue-prev').addEventListener('click',()=>{page--;renderProjects();});$('mapping-queue-next').addEventListener('click',()=>{page++;renderProjects();});
-
-    document.addEventListener('click',event=>{
-      const info=event.target.closest('[data-mapping-info]');if(info&&!info.disabled){openInformation(info.dataset.mappingInfo,info.dataset.infoId);return;}
-      const p=event.target.closest('[data-program-edit]');if(p&&!p.disabled){selectedProgram=p.dataset.programEdit;renderPrograms();}
-      const r=event.target.closest('[data-mapping-edit]');if(r&&!r.disabled){selectedProject=r.dataset.mappingEdit;renderProjects();}
-      const jump=event.target.closest('[data-show-program-projects]');if(jump){setStage('project');$('mapping-queue-programme').value=jump.dataset.showProgramProjects;renderProjects();}
-    });
-
-  }
-  return {render,start,focusPolicy,focusProject};
+ let data=null,selected=null,pending=null,saving=false;
+ const labels={CONNECTED:'확인 완료(자동)',OFFICER:'확인 완료(담당자)',REVIEW:'확인 필요',UNLINKED:'후보',EXCLUDED:'제외 확인(담당자)'},groups=['CONNECTED','OFFICER','REVIEW','UNLINKED','EXCLUDED'];
+ const node=(kind,id)=>kind==='policy'?data.policies.find(p=>p.policy_id===id):(kind==='program'?data.programs:data.items).find(p=>p.id===id);
+ const pname=id=>data.policies.find(p=>p.policy_id===id)?.name||'정책 미연결';
+ const tag=r=>'<span class="mr-badge '+r.group+'" title="'+esc(r.reason)+'">'+labels[r.group]+'</span>';
+ const matches=r=>{const q=$('mapping-review-search').value.trim().toLowerCase(),group=$('mapping-review-filter').value;return (group?r.review.group===group:r.review.group!=='EXCLUDED')&&(!q||[r.name,r.region,r.municipality,r.basis,r.mapping?.basis,r.program].join(' ').toLowerCase().includes(q));};
+ const button=(kind,r)=>'<button type="button" class="mr-node" data-mr-node="'+kind+'" data-id="'+esc(r.id)+'" aria-pressed="'+(selected?.kind===kind&&selected.id===r.id)+'"><b>'+esc(r.name)+'</b>'+tag(r.review)+'<small>'+esc(kind==='program'?'프로그램 · 연결 사업 '+num(r.project_count)+'건':[r.region,r.municipality,r.confirmed_units==null?'호수 미확인':num(r.confirmed_units)+'호',r.stage_label].filter(Boolean).join(' · '))+'</small></button>';
+ const quantity=rows=>num(rows.reduce((n,r)=>n+(r.confirmed_units??0),0))+'호'+(rows.some(r=>r.confirmed_units==null)?' (호수 미확인 '+num(rows.filter(r=>r.confirmed_units==null).length)+'건)':'');
+ const pills=rows=>groups.map(g=>{const count=rows.filter(r=>r.review.group===g).length;return count?'<span class="mr-badge '+g+'">'+labels[g]+' '+num(count)+'</span>':'';}).join('');
+ function render(value){data=value;$('mapping-review-counts').innerHTML=groups.map(g=>'<button type="button" class="mr-count '+g+'" data-mr-filter="'+g+'"><span>'+labels[g]+'</span><strong>사업 '+num(data.counts[g]?.projects||0)+'건</strong><small>확인된 호수 '+num(data.counts[g]?.units||0)+'호'+(data.counts[g]?.unknown_units?' (호수 미확인 '+num(data.counts[g]?.unknown_units)+'건)':'')+'</small><small>프로그램 '+num(data.counts[g]?.programs||0)+'건</small></button>').join('');$('mapping-review-notice').textContent=data.notice;if(pending){selected=pending;pending=null;$('mapping-review-filter').value='';$('mapping-review-search').value='';}renderTree();renderDetail();}
+ function renderTree(){
+  if(!data)return;const opened=new Set([...$('mapping-review-tree').querySelectorAll('details[open]')].map(n=>n.dataset.key));
+  const projects=data.items.filter(matches),programs=data.programs.filter(p=>matches(p)||projects.some(r=>r.mapping.program_id===p.id));
+  const policyIds=[...new Set([...programs.map(p=>p.policy_id||'UNASSIGNED'),...projects.map(r=>r.mapping.policy_id||'UNASSIGNED')])];
+  const branch=(id,name,body,counts,level)=>'<details class="mr-branch" data-key="'+esc(id)+'" '+(opened.has(id)||level==='policy'?'open':'')+'><summary>'+esc(name)+' '+counts+'</summary><div class="mr-children">'+body+'</div></details>';
+  $('mapping-review-tree').innerHTML=policyIds.map(pid=>{
+   const ps=programs.filter(p=>(p.policy_id||'UNASSIGNED')===pid),owned=new Set(ps.map(p=>p.id));
+   const orphan=projects.filter(r=>(r.mapping.policy_id||'UNASSIGNED')===pid&&!data.programs.some(p=>p.id===r.mapping.program_id));
+   const body=ps.map(p=>{const rs=projects.filter(r=>r.mapping.program_id===p.id);return branch('program:'+p.id,p.name,button('program',p)+(rs.length?rs.map(r=>button('project',r)).join(''):'<p class="mr-empty">조건에 맞는 사업 없음</p>'),tag(p.review)+' · 사업 '+num(rs.length)+'건 · '+quantity(rs),'program');}).join('')+(orphan.length?branch('orphan:'+pid,'프로그램 미연결 후보',orphan.map(r=>button('project',r)).join(''),pills(orphan)+' · '+quantity(orphan),'program'):'');
+   const rs=projects.filter(r=>owned.has(r.mapping.program_id)||orphan.includes(r));return branch('policy:'+pid,pname(pid),'<button class="text-button" data-mr-node="policy" data-id="'+esc(pid)+'">정책 정보·근거 보기</button>'+body,'프로그램 '+num(ps.length)+'건 · 사업 '+num(rs.length)+'건 · '+quantity(rs)+' '+pills(rs),'policy');
+  }).join('')||'<p class="mr-empty">조건에 맞는 후보가 없습니다.</p>';
+  $('mapping-review-result').textContent='조회 사업 '+num(projects.length)+'건 · 프로그램 '+num(programs.length)+'건(상위 경로 포함) · 사업은 한 번씩 표시합니다. 연결 상태와 상위 프로그램의 검토 상태를 함께 확인하세요.';
+  if(selected){const el=[...$('mapping-review-tree').querySelectorAll('[data-mr-node]')].find(n=>n.dataset.mrNode===selected.kind&&n.dataset.id===selected.id);for(let p=el?.parentElement;p&&p!==$('mapping-review-tree');p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;}
+ }
+ function evidence(title,url,basis){return '<section class="mr-evidence"><b>'+esc(title)+'</b><p>'+esc(basis||'근거 설명 미등록')+'</p>'+(safeUrl(url)!=='#'?CollectedRecords.link(url,null,null,selected?.kind==='project'?selected.id:null):'<span>출처 URL 미확보</span>')+'</section>';}
+ function info(kind,id,label){return '<button class="button secondary" data-mr-info="'+kind+'" data-id="'+esc(id)+'" '+(!state.admin?'disabled title="관리자 로그인 후 수정할 수 있습니다"':'')+'>'+label+' 수정</button>';}
+ function renderDetail(){
+  const root=$('mapping-review-detail');if(!selected||!node(selected.kind,selected.id)){root.innerHTML='<h3>연결 근거 검토</h3><p>트리에서 프로그램 또는 사업을 선택하면 근거와 연결 검토 항목이 표시됩니다.</p>';return;}
+  const {kind,id}=selected,r=node(kind,id);if(kind==='policy'){root.innerHTML='<h3>'+esc(r.name)+'</h3>'+evidence('정책 원문',r.evidence_url,r.description||r.basis)+(id==='POL_2025_0907'?info('policy',id,'정책정보'):'<p>정책 기본정보 편집은 현재 9·7 정책에 제공됩니다.</p>');return;}
+  const m=kind==='program'?r:r.mapping,parent=kind==='project'?node('program',m.program_id):null;
+  root.innerHTML='<h3>'+esc(r.name)+'</h3>'+tag(r.review)+'<p>'+esc(r.review.reason)+'</p><p>현재 정책: '+esc(pname(m.policy_id))+(kind==='project'?'<br>현재 프로그램: '+esc(parent?.name||'미연결'):'')+'<br>저장 상태: '+esc({CONFIRMED:labels[r.review.group],REVIEW:'확인 필요',RELEASED:'연결 해제',REJECTED:'제외'}[m.status]||m.status)+'</p>'+evidence('연결 판단 근거 · '+r.review.publisher,r.review.evidence_url,m.basis)+(kind==='project'&&r.source_url!==r.review.evidence_url?evidence('사업 원천 · '+r.source_publisher,r.source_url,'사업 자체의 자료이며 정책 귀속 근거와 구분합니다.'):'')+(parent?evidence('상위 프로그램 → 정책 근거',parent.evidence_url,parent.basis):'')+'<div class="mr-info">'+info(kind,id,kind==='program'?'프로그램정보':'사업정보')+(parent?info('program',parent.id,'상위 프로그램정보'):'')+(m.policy_id==='POL_2025_0907'?info('policy',m.policy_id,'정책정보'):'')+'</div>';
+  if(r.decision){root.innerHTML+='<section class="mr-evidence"><b>담당자 후보 검토 기록</b><p>'+esc(r.decision.status==='EXCLUDED'?'제외 확인(담당자)':'후보 복원')+' · '+esc(r.decision.actor)+' · '+esc(new Date(r.decision.changed_at).toLocaleString('ko-KR'))+'</p><p>'+esc(r.decision.reason)+'</p>'+ (r.decision.evidence_url?evidence('검토 출처',r.decision.evidence_url,r.decision.reason):'')+'</section>';}
+  if(!state.admin){root.innerHTML+='<p>근거는 누구나 열람할 수 있습니다. 연결 저장·정보 수정은 관리자 로그인 후 이용하세요.</p>';return;}
+  if(['UNLINKED','EXCLUDED'].includes(r.review.group))root.innerHTML+='<form class="mr-form mr-decision" id="mapping-decision-form"><h4>후보 검토</h4><label>담당자<input name="actor" required maxlength="100" placeholder="성명 / 부서"></label><label>검토 사유<textarea name="reason" required maxlength="1800" placeholder="정책 대상이 아닌 것으로 확인한 이유"></textarea></label><label>확인 출처(URL · 선택)<input name="evidence_url" type="url" pattern="https://.*" maxlength="2000"></label><button class="button secondary" type="submit">'+(r.review.group==='EXCLUDED'?'후보로 복원':'검토 대상에서 제외 확인(담당자)')+'</button><p role="status"></p></form>';
+  if(r.review.group==='EXCLUDED')return;
+  const targets=kind==='program'?data.policies.filter(p=>p.monitor_kind==='POLICY').map(p=>({id:p.policy_id,name:p.name})):data.programs.filter(p=>p.status!=='RELEASED'&&p.policy_id&&p.policy_id!=='UNASSIGNED').map(p=>({id:p.id,name:p.name+' · '+pname(p.policy_id)}));
+  root.innerHTML+='<h4>'+ (kind==='program'?'상위 정책':'상위 프로그램')+' 연결 검토</h4><form class="mr-form" id="mapping-review-form"><label>연결 대상<select name="target" required><option value="">대상 선택</option>'+targets.map(p=>'<option value="'+esc(p.id)+'" '+(p.id===(kind==='program'?m.policy_id:m.program_id)?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label><label>검토 결과<select name="status"><option value="CONFIRMED">근거 확인 · 연결 확정</option><option value="REVIEW" '+(m.status==='REVIEW'?'selected':'')+'>확인 필요 · 검토 유지</option><option value="RELEASED" '+(m.status==='RELEASED'?'selected':'')+'>연결 해제 · 후보 보류</option></select></label><label>근거 URL<input type="url" name="evidence_url" required pattern="https://.*" maxlength="2000" value="'+esc(m.evidence_url||'')+'" placeholder="https://"></label><label>검토 근거<textarea name="basis" required maxlength="1800">'+esc(m.basis||'')+'</textarea></label><small>'+(kind==='program'?'프로그램의 정책 연결을 변경하면 하위 '+num(r.project_count)+'개 사업의 정책 귀속에도 영향을 줍니다.':'사업의 상위 프로그램과 해당 정책을 기준으로 연결합니다.')+' 비공식 자료를 확인하면 담당자 확인 - 출처를 함께 기록합니다.</small><button type="submit" class="button primary">검토 결과 저장</button><p id="mapping-review-save-status" role="status"></p></form>';
+ }
+ function isOfficial(url){try{const h=new URL(url).hostname;return data.official_domains.some(d=>h===d||h.endsWith('.'+d));}catch{return false;}}
+ async function save(event){event.preventDefault();if(saving||!state.admin)return;const form=event.target;if(!form.reportValidity())return;const values=Object.fromEntries(new FormData(form)),{kind,id}=selected,r=node(kind,id),m=kind==='program'?r:r.mapping,target=values.target;if(kind==='project'&&values.status==='CONFIRMED'&&node('program',target)?.status!=='CONFIRMED'){$('mapping-review-save-status').textContent='상위 프로그램의 정책 연결을 먼저 확인해 주세요.';return;}
+  saving=true;form.querySelector('button').disabled=true;try{const basis=values.status==='CONFIRMED'&&!isOfficial(values.evidence_url)?'담당자 확인 - 출처: '+values.evidence_url+' · '+values.basis:values.basis;if(basis.length>2000)throw Error('출처를 포함한 검토 근거를 2,000자 이내로 줄여 주세요.');await request('/admin/'+(kind==='program'?'programs/':'projects/')+encodeURIComponent(id)+(kind==='program'?'/policy':'/program'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({[kind==='program'?'policy_id':'program_id']:target,revision_no:m.revision_no,status:values.status,basis,evidence_url:values.evidence_url})});await load();$('mapping-review-save-status')&&($('mapping-review-save-status').textContent='저장했습니다. 연결 현황을 갱신했습니다.');}catch(error){$('mapping-review-save-status').textContent=error.message+' 변경 내용을 확인한 뒤 다시 조회하세요.';}finally{saving=false;if(form.isConnected)form.querySelector('button').disabled=false;}}
+ async function saveDecision(event){
+  event.preventDefault();if(saving||!state.admin)return;const form=event.target;if(!form.reportValidity())return;
+  const {kind,id}=selected,r=node(kind,id),values=Object.fromEntries(new FormData(form));
+  const action=r.review.group==='EXCLUDED'?'RESTORE':'EXCLUDE';
+  const previous=r.decision;
+  saving=true;const button=form.querySelector('button');button.disabled=true;
+  try{await request('/admin/mapping-decisions/'+kind+'/'+encodeURIComponent(id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...values,action,revision_no:previous?.revision_no||0})});$('mapping-review-filter').value=action==='EXCLUDE'?'EXCLUDED':'UNLINKED';await load();}
+  catch(error){form.querySelector('[role="status"]').textContent=error.message;}finally{saving=false;if(form.isConnected)button.disabled=false;}
+ }
+ async function openInfo(kind,id){if(!state.admin)return;try{if(kind==='project'){await ProjectWorkspace.openEditor(id,async()=>load());return;}if(kind==='program')await ProgramInformation.open(id);else if(id==='POL_2025_0907')await PolicyInformation.open();document.querySelector('#'+kind+'-information-dialog')?.addEventListener('close',()=>load(),{once:true});}catch(e){$('mapping-review-detail').insertAdjacentHTML('beforeend','<p role="alert">'+esc(e.message)+'</p>');}}
+ function focus(kind,id){pending={kind,id};if(data&&node(kind,id)){selected=pending;pending=null;$('mapping-review-filter').value='';$('mapping-review-search').value='';renderTree();renderDetail();}}
+ function filterChanged(){const r=data?.items.find(matches),p=data?.programs.find(matches);selected=r?{kind:'project',id:r.id}:p?{kind:'program',id:p.id}:null;renderTree();renderDetail();}
+ function candidateCsv(value,query=''){
+  const q=query.trim().toLowerCase(),stamp=new Date().toISOString();
+  const rows=value.items.filter(r=>r.review.group==='UNLINKED'&&(!q||[r.name,r.region,r.municipality,r.mapping?.basis,r.program].join(' ').toLowerCase().includes(q)));
+  const header=['사업 ID','사업명','시도','시군구','확인된 호수','호수 확인 상태','후보 프로그램 ID','후보 프로그램명','현재 정책 ID','연결 분류','저장 상태','검토 사유','연결 검토 근거','연결 근거 출처','사업 원천 출처','수집 출처 ID','검토 판본','검색 조건','내보낸 시각(UTC)'];
+  const cell=v=>{let t=String(v??'');if(/^[\s]*[=+@-]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};
+  const lines=rows.map(r=>{const m=r.mapping||{},p=value.programs.find(p=>p.id===m.program_id);return [r.id,r.name,r.region,r.municipality,r.confirmed_units,r.confirmed_units==null?'호수 미확인':'확인',m.program_id,p?.name||r.program,m.policy_id,labels[r.review.group],m.status,r.review.reason,m.basis,r.review.evidence_url,r.source_url,r.source_id,m.revision_no,query,stamp];});
+  return {count:rows.length,csv:'\ufeff'+[header,...lines].map(r=>r.map(cell).join(',')).join('\r\n')+'\r\n'};
+ }
+ function exportCandidates(){if(!data)return;const query=$('mapping-review-search').value,result=candidateCsv(data,query),url=URL.createObjectURL(new Blob([result.csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='the-jutaek-907-unlinked-projects-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$('mapping-review-export-scope').textContent=(query?'검색: '+query:'미연결 사업 전체')+' · '+num(result.count)+'건 다운로드';}
+ function start(){
+  $('mapping-review-export').onclick=exportCandidates;
+  $('mapping-review-filter').onchange=filterChanged;$('mapping-review-search').oninput=filterChanged;
+  $('mapping-review-expand').onclick=()=>document.querySelectorAll('#mapping-review-tree details').forEach(d=>d.open=true);$('mapping-review-collapse').onclick=()=>document.querySelectorAll('#mapping-review-tree details').forEach(d=>d.open=false);
+  $('pane-tree').addEventListener('submit',e=>{if(e.target.id==='mapping-review-form')save(e);else if(e.target.id==='mapping-decision-form')saveDecision(e);});
+  $('pane-tree').addEventListener('click',e=>{const f=e.target.closest('[data-mr-filter]');if(f){$('mapping-review-filter').value=f.dataset.mrFilter;filterChanged();return;}const n=e.target.closest('[data-mr-node]');if(n){selected={kind:n.dataset.mrNode,id:n.dataset.id};renderTree();renderDetail();return;}const i=e.target.closest('[data-mr-info]');if(i&&!i.disabled)openInfo(i.dataset.mrInfo,i.dataset.id);});
+ }
+ return {render,start,candidateCsv,focusPolicy:id=>focus('policy',id),focusProject:id=>focus('project',id)};
 })();

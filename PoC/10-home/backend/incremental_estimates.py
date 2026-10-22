@@ -72,7 +72,7 @@ def values(project, cells, model, stamp, actor, reason, reference, anchors=(), p
             else:
                 # Candidate event dates are estimation anchors, not new raw events.
                 cell['sources'].append(dict(kind='ACTUAL',date=choices[0]['due_date'],units=cap,
-                    milestone=stage,evidence_url=choices[0].get('evidence_url')))
+                    milestone=stage,evidence_url=choices[0].get('evidence_url'),estimation_anchor=True))
     base=project_values(p,c,stamp)
     if not any(s in accepted for s in ('CONSTRUCTION','COMPLETION')) and 'CONSTRUCTION' not in base['targets']:
         approval=base['progress'].get('APPROVAL',{}).get('event_date') or base['targets'].get('APPROVAL',{}).get('due_date')
@@ -103,22 +103,11 @@ def values(project, cells, model, stamp, actor, reason, reference, anchors=(), p
                 source_anchor=a,evidence_url=a.get('evidence_url'),date_precision=a.get('precision','DAY'),
                 source_date_label=a.get('original_schedule') or a['due_date'],
                 input_basis=a.get('basis','저장 원천 일정 채택')+' · 원문 '+str(a.get('original_schedule') or a['due_date'])+' · 범위 일정은 마지막 날을 관리 기준으로 사용')
-    # Recompute only explicitly assumed observations after target refinement.
+    from .stage_chronology import constrain_estimated_dates
+    result['sequence_date_corrections']=constrain_estimated_dates(result['targets'],'due_date')
+    from .measurement_estimates import reconcile
+    result['progress']=reconcile(result['progress'],result['targets'],c,reference,scope_limit=cap)['progress']
     progress=result['progress']
-    for stage in list(progress):
-        if progress[stage].get('input_rule')=='OFFICER_CURRENT_ESTIMATE':progress.pop(stage)
-    for stage,t in result['targets'].items():
-        if stage not in progress and t['due_date']<=reference.isoformat() and c['CONSTRUCTION' if stage=='COMPLETION' else stage].get('progress',{}).get('code') not in ('NOT_REACHED_REPORTED','SCHEDULE_PENDING'):
-            progress[stage]=dict(event_date=t['due_date'],units=cap,input_rule='OFFICER_CURRENT_ESTIMATE',
-                input_basis='기존 절차 적용: 원천 일정·전후 단계·평균 소요기간에 따른 현재 추정값. 실제 사건 증빙 아님')
-    for stage,r in progress.items():
-        # Every newly adopted measurement is explicitly a management estimate;
-        # raw primary facts remain available independently in the original ledger.
-        r.update(inferred=True)
-        r.setdefault('field_provenance',{}).update(units=dict(rule='PROJECT_SCOPE_ESTIMATE',value=r.get('units'),
-            basis='원천 사건별 물량 대신 사업 총규모를 적용한 담당자 추정'),
-            event_date=dict(rule=r.get('input_rule') or 'PREDECESSOR_ASSUMPTION',value=r.get('event_date'),
-                basis='저장 일정과 전후 관계를 이용한 관리 추정일 · 실제 사건일 확정 아님'))
     for field in ('progress_pct','progress_date'):result['overrides'].pop(field,None)
     if 'CONSTRUCTION' in progress:
         start=date.fromisoformat(progress['CONSTRUCTION']['event_date']);end=date.fromisoformat(result['targets']['COMPLETION']['due_date'])

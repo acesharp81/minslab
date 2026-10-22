@@ -23,18 +23,16 @@ def compute(p,anchors=()):
         return values(p,cells,model(),'2026-10-18T12:00:00+00:00','김민','공식 자료 확인 및 IH 추가 연결',date(2026,10,18),anchors,[500,900])
 
 
-def test_past_schedule_estimate_does_not_overwrite_raw_actual_and_keeps_quantity():
+def test_past_schedule_alone_does_not_create_measurements():
     p=dict(id='p',name='중계본동',region='서울특별시',planned_units=3178,source_id='molit_renewal_inventory',
            source_revision_id='raw',start_actual_date=None)
     original=deepcopy(p)
     r=compute(p,[dict(stage='CONSTRUCTION',due_date='2026-08-15',precision='DAY'),
                  dict(stage='COMPLETION',due_date='2029-10-31',precision='DAY')])
     assert p==original
-    assert r['progress']['CONSTRUCTION']['units']==3178
-    assert r['progress']['CONSTRUCTION']['event_date']=='2026-08-15'
-    assert all(x['inferred'] for x in r['progress'].values())
-    assert 'COMPLETION' not in r['progress'] and 'MOVE_IN' not in r['progress']
-    assert r['overrides']['progress_pct']['inferred']
+    assert r['targets']['CONSTRUCTION']['due_date']=='2026-08-15'
+    assert not r['progress']
+    assert 'progress_pct' not in r['overrides']
 
 
 def test_ih_explicit_fields_precede_capacity_model_and_preserve_half_year():
@@ -46,9 +44,9 @@ def test_ih_explicit_fields_precede_capacity_model_and_preserve_half_year():
     assert not r['overrides']['planned_units']['inferred']
     from backend.input_status import input_status
     assert input_status(r['overrides']['planned_units'])=='CONFIRMED'
-    assert all(input_status(v).startswith('ESTIMATED') for v in r['progress'].values())
+    assert not r['progress'] # source schedule alone is not a completed event
     assert r['targets']['CONSTRUCTION']['due_date']=='2023-11-30'
-    assert r['progress']['COMPLETION']['inferred']
+    assert 'COMPLETION' not in r['progress']
     p['planned_units']=749;p['source_fields']={'사업일정':'착공(예정) 27년 상반기, 준공(예정) 30년 하반기'}
     r=compute(p)
     assert r['targets']['CONSTRUCTION']['due_date']=='2027-06-30'
@@ -61,7 +59,7 @@ def test_missing_construction_uses_observed_approval_before_generic_deadline():
     p=dict(id='p',name='정비',region='서울특별시',planned_units=1430,source_id='test',source_revision_id='raw')
     r=compute(p,[dict(stage='APPROVAL',due_date='2025-07-03')])
     assert r['targets']['CONSTRUCTION']['due_date']=='2026-01-19'
-    assert r['progress']['CONSTRUCTION']['inferred']
+    assert 'CONSTRUCTION' not in r['progress']
 
 
 @pytest.fixture

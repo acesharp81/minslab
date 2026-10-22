@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import or_, select, text, update, func
 
-from .read_scope import reuse_rows
+from .read_scope import reuse_rows,reuse_projection,projection_builder
 from .collectors import Fetcher, collect
 from .api_samples import collect_sample
 from .db import Audit, Batch, Coverage, Mapping, ProgramMapping, Revision, entity_id, factory, now, upsert_revision
@@ -455,6 +455,7 @@ class HomeService:
         with self.sessions() as session:
             return session.scalar(select(Batch.stats).where(Batch.source_id==source_id,Batch.status=='SUCCESS').order_by(Batch.finished_at.desc()).limit(1)) or {}
 
+    @reuse_projection
     def selected_stage_links(self, as_of=None):
         """Only chosen evidence reaches charts; do not load the candidate archive."""
         day=as_of or today()
@@ -473,8 +474,36 @@ class HomeService:
             return [dict(project_id=pid,stage=stage,status=status,selected=selected)
                     for pid,stage,status,selected in db.execute(query) if selected]
 
+    @reuse_projection
+    def document_evidence_index(self, as_of=None):
+        """Document provenance/state only; keep full text in the evidence reader.
+
+        Match rows()'s event-date and knowledge-time visibility. Decode in small
+        batches and retain only metadata, rather than copying all document text.
+        """
+        day = as_of or today()
+        cutoff = datetime.combine(day + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
+        if self.known_at is not None:
+            if self.known_at.tzinfo is None:
+                raise ValueError('인지 기준시각에는 시간대가 필요합니다')
+            cutoff = min(cutoff, self.known_at.astimezone(timezone.utc))
+        visibility = (Revision.superseded_at.is_(None) if self.known_at is None and day == today() else
+                      or_(Revision.superseded_at.is_(None), Revision.superseded_at >= cutoff))
+        fields = ('base_date', 'reported_phase', 'phase_observed_at')
+        # Some extracted documents contain escaped NULs accepted by JSON/Python
+        # but rejected by PostgreSQL JSON field operators. Preserve the original
+        # payload and decode through the same driver as rows(), without ORM rows.
+        query = select(Revision.entity_id, Revision.source_id, Revision.payload).where(
+            Revision.kind == 'document_evidence', Revision.recorded_at < cutoff, visibility
+        ).execution_options(yield_per=64)
+        with self.sessions() as db:
+            return [dict(id=eid, source_id=sid, **{key:payload.get(key) for key in fields})
+                    for eid, sid, payload in db.execute(query)
+                    if payload.get('base_date', '9999') <= day.isoformat()]
+
     @reuse_rows
     def rows(self, kind, as_of=None, entity_ids=None, known_at=None):
+        excluded = {(r['subject_kind'],r['subject_id']) for r in self.rows('mapping_decision',as_of,known_at=known_at) if r.get('status')=='EXCLUDED' and r.get('policy_id')=='POL_2025_0907'} if kind=='project' else set()
         day = as_of or today()
         cutoff = datetime.combine(day + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
         knowledge = known_at or self.known_at
@@ -563,6 +592,10 @@ class HomeService:
                     # A generic programme's automatic proposal cannot grant it.
                     if (payload.get('source_reference_id') or payload.get('policy_candidate_only')) and direct_assignment.get('status')!='CONFIRMED' and direct_assignment.get('policy_id') in (None,'UNASSIGNED'):
                         row['mapping'].update(policy_id='UNASSIGNED',policy_status='REVIEW',reference_policy_pending=True)
+                    if ('project',record.entity_id) in excluded and row['mapping'].get('policy_id') in (None,'UNASSIGNED','POL_2025_0907'):
+                        row['mapping'].update(policy_id='UNASSIGNED',status='RELEASED',candidate_excluded=True)
+                    elif ('program',row['mapping'].get('program_id')) in excluded and row['mapping'].get('policy_id') in (None,'UNASSIGNED','POL_2025_0907'):
+                        row['mapping'].update(policy_id='UNASSIGNED',policy_status='RELEASED')
                     if program:
                         row["program"] = program["name"]
                     if row["mapping"]["status"] != "CONFIRMED" or row["mapping"].get('policy_status') == 'REVIEW':
@@ -576,6 +609,7 @@ class HomeService:
                 result.append(row)
             return result
 
+    @reuse_projection
     def projects(self, as_of=None, region=None, policy_id=None, source_id=None, stage=None, q=None, mapping_status=None):
         rows = self.rows("project", as_of)
         locations={r['project_id']:r for r in self.rows('project_location',as_of) if r.get('status')!='RELEASED'}
@@ -607,6 +641,9 @@ class HomeService:
                     progress_date_precision=report.get('date_precision','DAY'))
         from .project_profile import overlay
         overlay(self, rows, as_of)
+        from .project_region import normalize_project_region
+        for row in rows:
+            normalize_project_region(row, as_of or today())
         for row in rows:
             plan_row=dict(row)
             for milestone,field in (('CONSTRUCTION','start_plan_date'),('COMPLETION','completion_plan_date')):
@@ -716,8 +753,10 @@ class HomeService:
             rows = [row for row in rows if (row.get("source_date") or "")[:4] == str(source_year)]
         return sorted(rows, key=lambda row: (row["sample_kind"], row["region"], row["name"], row["id"]))
 
+    @reuse_projection
     def sources(self, compact=False):
         from .source_summary import source_metadata
+        from .source_operations import operations
         with self.sessions() as session:
             attempts={b.source_id:b for b in latest_batches(session)}
             successes={b.source_id:b for b in latest_batches(session,'SUCCESS')}
@@ -738,6 +777,7 @@ class HomeService:
                 item["stats"] = ({k: v for k, v in success.stats.items() if k in {"source_base_date", "dataset_version"}} if compact else {k: v for k, v in success.stats.items() if k != "entity_ids"}) if success else {}
                 item["snapshot_count"] = len(success.manifest) if success else 0
                 item["snapshots"] = success.manifest if success and not compact else []
+                item["operations"] = operations(source, success.stats if success else {})
                 result.append(item)
             return result
 
@@ -804,6 +844,7 @@ class HomeService:
         if through:query=query.where(stamp<=through.isoformat())
         with self.sessions() as session:return Counter(dict(session.execute(query).all()))
 
+    @projection_builder
     def supply_dashboard(self,as_of=None,analysis_year=None,horizon=10,measure="SUPPLY",**filters):
         knowledge=as_of or today()
         reference=min(date(analysis_year or knowledge.year,12,31),knowledge)
@@ -939,9 +980,10 @@ class HomeService:
                     if field in overrides: policy[field] = overrides[field]['value']
         return policies
 
+    @projection_builder
     def policy_monitor(self, as_of=None, **filters):
         policies = self.mapping_policies(as_of)
-        if any(r['mapping']['policy_id'] in (None, 'UNASSIGNED') and r['mapping']['status'] != 'RELEASED'
+        if not filters.get('policy_id') and any(r['mapping']['policy_id'] in (None, 'UNASSIGNED') and r['mapping']['status'] != 'RELEASED'
                for r in self.projects(as_of)):
             policies.append(dict(policy_id='UNASSIGNED', name='정책 미연계 · 검토 필요',
                 monitor_kind='UNMAPPED', announced_at=None, target_units=None,
@@ -954,6 +996,7 @@ class HomeService:
                              reports=self.rows("project_report",as_of),districts=self.rows("district",as_of),
                              municipalities=self.rows("municipality",as_of),policy_events=self.rows("policy_event",as_of))
 
+    @projection_builder
     def mappings(self, as_of=None, **filters):
         policies = self.mapping_policies(as_of)
         ids = {p["policy_id"] for p in policies}
@@ -973,10 +1016,20 @@ class HomeService:
                 "notice": "정책–프로그램과 프로그램–사업은 가장 가능성 높은 임시 연결로 제안합니다. 확인 필요 상태도 검토 통계에 포함하며 담당자가 각각 수정·확정할 수 있습니다. 임시 연결은 공식 사업 귀속 확인이 아닙니다."}
 
     def program_links(self, as_of=None, projects=None):
+        excluded = {r['subject_id'] for r in self.rows('mapping_decision',as_of) if r.get('status')=='EXCLUDED' and r.get('subject_kind')=='program' and r.get('policy_id')=='POL_2025_0907'}
         projects = projects if projects is not None else self.projects(as_of)
         cutoff = datetime.combine((as_of or today()) + timedelta(days=1), time.min, KST).astimezone(timezone.utc)
         with self.sessions() as session:
             programs = session.scalars(select(ProgramMapping).order_by(ProgramMapping.name, ProgramMapping.id)).all()
+            # One historical audit read for all programmes; do not issue one
+            # database round trip for every option in the selector.
+            changes_by_program = defaultdict(list)
+            if programs:
+                changes = session.scalars(select(Audit).where(
+                    Audit.entity_id.in_([p.id for p in programs]),
+                    Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO', 'PROGRAM_POLICY_MERGE']),
+                    Audit.recorded_at >= cutoff).order_by(Audit.recorded_at.desc())).all()
+                for change in changes: changes_by_program[change.entity_id].append(change)
             result = []
             for row in programs:
                 if as_utc(row.created_at) >= cutoff:
@@ -984,13 +1037,15 @@ class HomeService:
                 state = dict(id=row.id, name=row.name, seed_policy_id=row.seed_policy_id,
                     policy_id=row.policy_id, status=row.status, revision_no=row.revision_no,
                     basis=row.basis, evidence_url=row.evidence_url)
-                for change in session.scalars(select(Audit).where(Audit.entity_id == row.id,
-                        Audit.action.in_(['PROGRAM_POLICY_REVIEW', 'PROGRAM_POLICY_AUTO', 'PROGRAM_POLICY_MERGE']), Audit.recorded_at >= cutoff)
-                        .order_by(Audit.recorded_at.desc())).all():
+                for change in changes_by_program[row.id]:
                     state.update(change.before)
+                if row.id in excluded and state['policy_id'] in ('UNASSIGNED','POL_2025_0907'):
+                    state.update(policy_id='UNASSIGNED',status='RELEASED',candidate_excluded=True)
                 members = [p for p in projects if p['mapping'].get('program_id') == row.id]
                 state['project_count'] = len(members)
-                state['active_project_count'] = sum(p['mapping']['status'] not in ('RELEASED','REJECTED') for p in members)
+                active_members = [p for p in members if p['mapping']['status'] not in ('RELEASED','REJECTED')]
+                state['active_project_count'] = len(active_members)
+                state['linked_project_units'] = sum(p['planned_units'] for p in active_members if type(p.get('planned_units')) in (int,float) and p['planned_units']>0)
                 result.append(state)
             from .program_profile import profiles
         from .program_availability import availability
@@ -1028,6 +1083,9 @@ class HomeService:
                 raise KeyError(program_id)
             if row.revision_no != revision_no:
                 return {'conflict': True, 'revision_no': row.revision_no}
+            if status!='RELEASED':
+                from .mapping_decisions import ensure_candidate_restored
+                ensure_candidate_restored(session,'program',program_id,policy_id)
             before = dict(policy_id=row.policy_id, status=row.status, basis=row.basis,
                           evidence_url=row.evidence_url, revision_no=row.revision_no)
             row.policy_id, row.status, row.basis, row.evidence_url = policy_id, status, basis, evidence_url
@@ -1051,6 +1109,11 @@ class HomeService:
                 raise ValueError('수집된 프로그램을 선택해야 합니다')
             if row.revision_no != revision_no:
                 return {'conflict': True, 'revision_no': row.revision_no}
+            if status!='RELEASED':
+                from .mapping_decisions import ensure_candidate_restored
+                target=session.get(ProgramMapping,program_id)
+                ensure_candidate_restored(session,'project',project_id,target.policy_id if target else 'POL_2025_0907')
+                ensure_candidate_restored(session,'program',program_id,target.policy_id if target else 'POL_2025_0907')
             before = dict(program_id=row.program_id, policy_id=row.policy_id, status=row.status,
                           basis=row.basis, evidence_url=row.evidence_url, revision_no=row.revision_no)
             row.program_id, row.status, row.basis, row.evidence_url = program_id, status, basis, evidence_url
@@ -1135,6 +1198,9 @@ class HomeService:
                 raise KeyError(project_id)
             if mapping.revision_no != revision_no:
                 return {"conflict": True, "revision_no": mapping.revision_no}
+            if status!='RELEASED':
+                from .mapping_decisions import ensure_candidate_restored
+                ensure_candidate_restored(session,'project',project_id,policy_id)
             before = {"policy_id": mapping.policy_id, "status": mapping.status, "basis": mapping.basis,
                       "evidence_url": mapping.evidence_url, "revision_no": mapping.revision_no}
             mapping.policy_id, mapping.status, mapping.basis, mapping.evidence_url = policy_id, status, basis, evidence_url

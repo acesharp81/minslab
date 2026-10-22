@@ -101,7 +101,7 @@ def _cell_status(count, source, source_id=None, source_year=None, other_region_c
     return "NOT_ACQUIRED"
 
 
-def data_gap_audit(session, sources, projects, year=None):
+def data_gap_audit(session, sources, projects, year=None, regions=("서울특별시", "경기도")):
     """Annual source evidence, collection scope and project-field gaps."""
     current_year = year or date.today().year
     years = list(range(2018, current_year + 1))
@@ -116,8 +116,8 @@ def data_gap_audit(session, sources, projects, year=None):
         Revision.payload["municipality"].as_string(),
     ).where(Revision.source_id.in_(tracked), Revision.superseded_at.is_(None))
     counts = Counter()
-    for sid, region, source_date, payload_year, metric, housing, census_housing, municipality in session.execute(query):
-        if region not in {"서울특별시", "경기도"}:
+    for sid, region, source_date, payload_year, metric, housing, census_housing, municipality in session.execute(query.execution_options(yield_per=512)):
+        if region not in regions:
             continue
         source_year = _year_for(sid, source_date, payload_year)
         if sid == "kosis_household_forecast":
@@ -153,13 +153,13 @@ def data_gap_audit(session, sources, projects, year=None):
     rows = []
     for sid, label, selector, meaning in SERIES:
         source = source_map.get(sid)
-        for region in ("서울특별시", "경기도"):
+        for region in regions:
             observed = sorted(y for (s, sel, r, y), amount in counts.items()
                               if s == sid and sel == selector and r == region and amount)
             other_region = "경기도" if region == "서울특별시" else "서울특별시"
             cells = [{"year": y, "count": counts[(sid, selector, region, y)],
                       "status": _cell_status(counts[(sid, selector, region, y)], source, sid, y,
-                                             counts[(sid, selector, other_region, y)])} for y in years]
+                                             counts[(sid, selector, other_region, y)] if region in ("서울특별시", "경기도") else 0)} for y in years]
             missing = [cell["year"] for cell in cells if cell["status"] != "ACQUIRED"]
             rows.append({"source_id": sid, "label": label, "region": region, "meaning": meaning,
                          "cells": cells, "observed_years": observed, "missing_years": missing,
@@ -175,7 +175,7 @@ def data_gap_audit(session, sources, projects, year=None):
     forecast_source = source_map.get("kosis_household_forecast")
     forecast_years = list(range(current_year, current_year + 11))
     forecast_rows = []
-    for region in ("서울특별시", "경기도"):
+    for region in regions:
         forecast_rows.append({"region": region, "source_url": forecast_source.get("url") if forecast_source else None,
             "cells": [{"year": y, "count": counts[("kosis_household_forecast", None, region, y)],
                        "status": _cell_status(counts[("kosis_household_forecast", None, region, y)], forecast_source)}

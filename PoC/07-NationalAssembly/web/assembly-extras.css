@@ -376,3 +376,24 @@
 .assembly-ontology-actions { display:flex; gap:8px; flex:none; }
 #assemblyOntologyRefresh { width:auto; padding:0 10px; font-size:12px; }
 #assemblyOntologyRefresh:disabled { opacity:.55; cursor:wait; }
+
+.assembly-ontology-load-status.is-background { top: 10px; left: 12px; width: calc(100% - 24px); padding: 7px 10px; border-radius: 6px; background: #081524d9; font-size: 11px; line-height: 1.5; }
+
+/* Full insight lists: independently scrollable, ten rows per page. */
+.assembly-insight-card > header { flex-wrap:wrap; }
+.assembly-insight-all { margin-left:auto; padding:5px 9px; border:1px solid #bfd1e7; border-radius:7px; color:#245b96; background:#f1f6fd; font-size:11px; font-weight:800; cursor:pointer; }
+.assembly-insight-list-dialog[open] { display:flex; flex-direction:column; height:min(820px,88dvh); }
+.assembly-insight-list-scroll { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; overflow-anchor:none; padding:12px 20px; }
+.assembly-insight-list-items > section { margin-bottom:10px; }
+.assembly-insight-list-more { display:block; margin:16px auto; padding:10px 24px; border:1px solid #bfd1e7; border-radius:8px; background:#f1f6fd; color:#245b96; cursor:pointer; }
+.assembly-insight-list-more[hidden] { display:none; }
+.assembly-insight-list-dialog > footer { flex:none; }
+@media (max-width:600px) { .assembly-insight-list-scroll { padding:10px; } .assembly-insight-list-dialog > header { gap:10px; padding:14px; } .assembly-insight-list-dialog > header h2 { font-size:18px; } }
+
+.assembly-insight-search { flex:none; padding:12px 20px; border-bottom:1px solid #dce5ef; }
+.assembly-insight-search label { display:block; margin-bottom:6px; font-size:12px; font-weight:700; }
+.assembly-insight-search > div { display:flex; gap:6px; }
+.assembly-insight-search input { flex:1; min-width:0; padding:9px 11px; border:1px solid #b7c9df; border-radius:7px; font:inherit; font-size:14px; }
+.assembly-insight-search button { flex:none; padding:8px 12px; border:1px solid #b7c9df; border-radius:7px; background:#f1f6fd; color:#245b96; font-weight:700; cursor:pointer; }
+.assembly-insight-search button[type=submit] { color:#fff; background:#245b96; }
+@media (max-width:600px) { .assembly-insight-search { padding:10px; } .assembly-insight-search button { padding:8px; } .assembly-insight-search input { font-size:16px; } }

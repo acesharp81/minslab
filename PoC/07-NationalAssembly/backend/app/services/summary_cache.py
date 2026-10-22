@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from collections import deque
 from typing import Any
 
 import requests
@@ -13,12 +14,12 @@ from .mistral_budget import (
     mistral_budget_reached,
     mistral_usage_cost_usd,
 )
+from .summary_client import SummaryClient
 from .summary_contract import (
     MAX_SUMMARY_CHARS,
     add_conversation_context,
     iter_summary_batches,
 )
-from .summary_client import SummaryClient
 
 HARD_DAILY_REQUEST_LIMIT = 950
 MIN_REQUEST_INTERVAL_SECONDS = 3.5
@@ -72,7 +73,12 @@ def _summarize_with_reserved_attempts(connection: Any, repository: SummaryReposi
             return result, attempts
         except requests.HTTPError as exc:
             status_code = exc.response.status_code if exc.response is not None else 0
-            if status_code not in RETRYABLE_STATUS_CODES or attempt + 1 >= MAX_QUOTA_COUNTED_ATTEMPTS:
+            transient_bad_request = (
+                client.provider == "openrouter" and status_code == 400
+                and "bad request" in str(exc).lower()
+            )
+            if ((status_code not in RETRYABLE_STATUS_CODES and not transient_bad_request)
+                    or attempt + 1 >= MAX_QUOTA_COUNTED_ATTEMPTS):
                 raise
             time.sleep(10 * (attempt + 1))
     raise RuntimeError("unreachable summary provider retry state")
@@ -80,6 +86,8 @@ def _summarize_with_reserved_attempts(connection: Any, repository: SummaryReposi
 
 def cache_missing_summaries(connection: Any, broadcast_id: Any,
         utterances: list[dict[str, Any]], client: SummaryClient, *,
+        include_short: bool = False,
+        batch_items: int = 2,
         daily_limit: int = HARD_DAILY_REQUEST_LIMIT,
         monthly_credit_usd: float = DEFAULT_MONTHLY_CREDIT_USD,
         input_usd_per_million: float = DEFAULT_INPUT_USD_PER_MILLION,
@@ -89,7 +97,8 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
     contextualized = add_conversation_context(utterances)
     candidates = [
         item for item in contextualized
-        if len(str(item.get("text") or "")) > MAX_SUMMARY_CHARS
+        if str(item.get("text") or "").strip()
+        and (include_short or len(str(item.get("text") or "")) > MAX_SUMMARY_CHARS)
     ]
     hashes = [item["content_hash"] for item in candidates]
     existing = repository.existing_hashes(
@@ -100,7 +109,8 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
         broadcast_id, hashes, provider=client.provider, model=client.model,
         prompt_version=client.prompt_version,
     )
-    missing = [item for item in candidates if item["content_hash"] not in existing | deferred]
+    missing = list({item["content_hash"]: item for item in candidates
+                    if item["content_hash"] not in existing | deferred}.values())
     saved = 0
     failed = 0
     attempted = False
@@ -121,7 +131,9 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
         }
     )
     api_requests = 0
-    for batch in iter_summary_batches(missing):
+    batches = deque(iter_summary_batches(missing, max_items=batch_items))
+    while batches:
+        batch = batches.popleft()
         if attempted:
             time.sleep(MIN_REQUEST_INTERVAL_SECONDS)
         attempted = True
@@ -132,32 +144,47 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
                 input_usd_per_million, output_usd_per_million,
             )
             api_requests += attempts
+            generated_items = [item for item in result.items if not include_short
+                               or (item.get("live_insight") or {}).get("topic")]
+            if not generated_items:
+                raise ValueError("summary_response_has_no_complete_items")
         except requests.HTTPError as exc:
             status_code = exc.response.status_code if exc.response is not None else 0
             if status_code != 400:
                 raise
+            transient_bad_request = client.provider == "openrouter" and "bad request" in str(exc).lower()
+            if transient_bad_request and len(batch) > 1:
+                middle = len(batch) // 2
+                batches.extendleft(reversed([batch[:middle], batch[middle:]]))
+                continue
             for item in batch:
                 repository.record_failure(
                     broadcast_id, item["content_hash"], provider=client.provider,
                     model=client.model, prompt_version=client.prompt_version,
-                    error=str(exc),
+                    error=str(exc), retry_hours=5 / 60 if transient_bad_request else 24,
                 )
             connection.commit()
             failed += len(batch)
-            continue
+            if transient_bad_request:
+                continue
+            raise
         except (ValueError, KeyError) as exc:
+            if len(batch) > 1:
+                middle = len(batch) // 2
+                batches.extendleft(reversed([batch[:middle], batch[middle:]]))
+                continue
             for item in batch:
                 repository.record_failure(
                     broadcast_id, item["content_hash"], provider=client.provider,
                     model=client.model, prompt_version=client.prompt_version,
-                    error=type(exc).__name__,
+                    error=type(exc).__name__, retry_hours=5 / 60,
                 )
             connection.commit()
             failed += len(batch)
             continue
         source_by_hash = {item["content_hash"]: item for item in batch}
         rows = []
-        for generated in result.items:
+        for generated in generated_items:
             source = source_by_hash[generated["content_hash"]]
             rows.append({**generated,
                 "source_speaker_label": str(source.get("source_speaker_label") or ""),
@@ -168,6 +195,11 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
             prompt_version=client.prompt_version, usage_metadata=result.usage_metadata,
         )
         connection.commit()
+        returned = {item["content_hash"] for item in generated_items}
+        omitted = [item for item in batch if item["content_hash"] not in returned]
+        # A truncated response may contain some complete items. Preserve those
+        # and retry only omitted evidence in smaller, quota-reserved batches.
+        batches.extendleft(reversed(list(iter_summary_batches(omitted, max_items=2))))
     daily_usage_after = (
         repository.daily_usage(client.provider)
         if client.provider == "openrouter" else 0

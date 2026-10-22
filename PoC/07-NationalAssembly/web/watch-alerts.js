@@ -175,16 +175,7 @@
         textNode("span", "", rule.include_terms.join(" · ")),
       );
       const scopeBadge = textNode("small", "watch-rule-scope", scope);
-      const policyLabel = {
-        FIRST_PER_MEETING: "회의 1회",
-        FIRST_PER_SPEAKER: "화자별",
-        ONCE_PER_10_MINUTES: "10분",
-        INTERVAL_15_MINUTES: "15분",
-        INTERVAL_30_MINUTES: "30분",
-        INTERVAL_60_MINUTES: "60분",
-        EVERY_MATCH: "매회",
-      }[rule.notification_policy] || "회의 1회";
-      scopeBadge.textContent = `${scope} · ${policyLabel}${rule.digest_enabled ? " · 종료요약" : ""}${rule.kakao_enabled ? " · 카카오" : ""}`;
+      scopeBadge.textContent = `${scope} · 3단계 알림 · 주제 유예 5분${rule.kakao_enabled ? " · 카카오" : ""}`;
       const actions = textNode("div", "watch-rule-actions", "");
       const report = textNode("button", "watch-rule-report-button", "지금까지 보고서");
       report.type = "button";
@@ -435,8 +426,6 @@
     element("#watchRuleName").value = rule.name;
     element("#watchRuleTerms").value = rule.include_terms.join(", ");
     element("#watchRuleInstitution").value = rule.institution || "";
-    element("#watchRulePolicy").value = rule.notification_policy;
-    element("#watchRuleDigest").checked = Boolean(rule.digest_enabled);
     element("#watchRuleKakao").checked = Boolean(rule.kakao_enabled);
     element("#watchRuleSubmit").textContent = "수정 내용 저장";
     element("#watchRuleCancel").hidden = false;
@@ -464,8 +453,6 @@
         include_terms: terms,
         exclude_terms: [],
         institution: element("#watchRuleInstitution").value || null,
-        notification_policy: element("#watchRulePolicy").value,
-        digest_enabled: element("#watchRuleDigest").checked,
         kakao_enabled: element("#watchRuleKakao").checked,
       };
       const duplicate = state.rules.find((rule) => (
@@ -522,7 +509,7 @@
       button.append(
         textNode("span", "", notification.is_test
           ? "TEST"
-          : notification.notification_type === "DIGEST" ? "회의 종료" : notification.matched_term || "LIVE 감지"),
+          : notification.notification_type === "TOPIC_COMPLETE" ? "주제 완료" : notification.notification_type === "DIGEST" ? "정회·종료 요약" : notification.matched_term || "LIVE 감지"),
         textNode("strong", "", notification.title),
         textNode("small", "", `${notification.meeting_title} · ${formatTime(notification.created_at)}`),
       );
@@ -835,7 +822,9 @@
 
   async function openEvidence(notification) {
     try {
-      const payload = await watchFetch(`api/watch/sessions/${encodeURIComponent(notification.session_id)}`);
+      const dispatch = notification.dispatch_id
+        ? await watchFetch(`api/watch/dispatches/${encodeURIComponent(notification.dispatch_id)}`) : null;
+      const payload = await watchFetch(`api/watch/sessions/${encodeURIComponent(dispatch?.session_id || notification.session_id)}`);
       trigger?.click();
       const broadcastId = String(payload.broadcast_id || notification.broadcast_id || "");
       if (broadcastId) {
@@ -895,6 +884,24 @@
         appendHighlightedText(body, match.excerpt, match.matched_term);
         item.append(body);
         list.append(item);
+      }
+      if (dispatch?.topics?.length) {
+        element("#watchEvidenceTitle").textContent = dispatch.title;
+        element("#watchEvidenceCount").textContent = `${dispatch.meeting_title} · ${dispatch.topics.length}개 주제 · 방송 자막 기반 요약`;
+        summary.hidden = true;
+        integrated.hidden = false;
+        integrated.replaceChildren();
+        list.replaceChildren();
+        speakerFlow.replaceChildren();
+        for (const topic of dispatch.topics) {
+          integrated.append(textNode("h3", "", topic.title));
+          for (const point of topic.points || []) {
+            integrated.append(textNode("p", "", `${point.speaker} · ${point.summary}`));
+            const evidence = document.createElement("details");
+            evidence.append(textNode("summary", "", `${topic.title} · ${point.speaker} 근거 발언`), textNode("p", "", point.text));
+            list.append(evidence);
+          }
+        }
       }
       section.hidden = false;
       section.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1074,7 +1081,7 @@
         window.history.replaceState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}${window.location.hash}`);
       }
       const sessionId = params.get("watch_session");
-      if (sessionId) openEvidence({ session_id: sessionId });
+      if (sessionId || params.get("watch_dispatch")) openEvidence({ session_id: sessionId, dispatch_id: params.get("watch_dispatch") });
     })
     .catch(() => { if (trigger) trigger.title = "알림 연결을 확인할 수 없습니다."; });
   state.notificationTimer = window.setInterval(loadNotifications, 5000);
