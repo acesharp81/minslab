@@ -1,0 +1,25 @@
+{
+  "live": true,
+  "input_sha256": "684214d268aec2908d5b5e288e2d18cc0af32ec5e85e128d918d7b9406275728",
+  "source_hash_verified": true,
+  "metrics": 18,
+  "checks_pass": true,
+  "files": [
+    {
+      "file": "policy-brief-sample.pdf",
+      "sha256": "09b7afa433906c9e8f8c398a39af7b09bd346587961ba34d4a273b19d66cbcd6"
+    },
+    {
+      "file": "policy-brief-sample.html",
+      "sha256": "b3db556eec27aae60d2341408c0ac18d6518b97c8185336ba9efde408da91bf8"
+    },
+    {
+      "file": "policy-brief-sample.csv",
+      "sha256": "4d96a9365ada0cef212589b7796ffd94885a8da00b4904d06e6d40c2741f4151"
+    },
+    {
+      "file": "policy-brief-sample.json",
+      "sha256": "7e8f79e8e6934884d1820b19416d26d040f865dc8996c07528cdd571c8210bce"
+    }
+  ]
+}

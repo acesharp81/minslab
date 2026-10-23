@@ -1,0 +1,125 @@
+{
+  "status": "177개 사업 · 7개 본문 · 붙임 3개 생성. 누적 도달량·구성합 검증 통과.",
+  "live_deployment": true,
+  "downloads": {
+    "html": 613839,
+    "csv": 481646,
+    "json": 13960999
+  },
+  "errors": [],
+  "checks": [
+    {
+      "name": "사업화 화면 누계 대조",
+      "status": "PASS",
+      "expected": 152802,
+      "actual": 152802,
+      "reason": "동일 사업 원장·기준일"
+    },
+    {
+      "name": "사업화 연말 전망 대조",
+      "status": "PASS",
+      "expected": 174394,
+      "actual": 174394,
+      "reason": "대시보드와 동일 산식·기준일·연말"
+    },
+    {
+      "name": "사업화 구성합 대조",
+      "status": "PASS",
+      "expected": 152802,
+      "actual": 152802
+    },
+    {
+      "name": "인허가 화면 누계 대조",
+      "status": "PASS",
+      "expected": 99462,
+      "actual": 99462,
+      "reason": "동일 사업 원장·기준일"
+    },
+    {
+      "name": "인허가 연말 전망 대조",
+      "status": "PASS",
+      "expected": 126852,
+      "actual": 126852,
+      "reason": "대시보드와 동일 산식·기준일·연말"
+    },
+    {
+      "name": "인허가 구성합 대조",
+      "status": "PASS",
+      "expected": 99462,
+      "actual": 99462
+    },
+    {
+      "name": "착공 화면 누계 대조",
+      "status": "PASS",
+      "expected": 81131,
+      "actual": 81131,
+      "reason": "동일 사업 원장·기준일"
+    },
+    {
+      "name": "착공 연말 전망 대조",
+      "status": "PASS",
+      "expected": 117392,
+      "actual": 117392,
+      "reason": "대시보드와 동일 산식·기준일·연말"
+    },
+    {
+      "name": "착공 구성합 대조",
+      "status": "PASS",
+      "expected": 81131,
+      "actual": 81131
+    },
+    {
+      "name": "공급·분양 화면 누계 대조",
+      "status": "PASS",
+      "expected": 35410,
+      "actual": 35410,
+      "reason": "동일 사업 원장·기준일"
+    },
+    {
+      "name": "공급·분양 연말 전망 대조",
+      "status": "PASS",
+      "expected": 68267,
+      "actual": 68267,
+      "reason": "대시보드와 동일 산식·기준일·연말"
+    },
+    {
+      "name": "공급·분양 구성합 대조",
+      "status": "PASS",
+      "expected": 35410,
+      "actual": 35410
+    },
+    {
+      "name": "준공 구성합 대조",
+      "status": "PASS",
+      "expected": 697,
+      "actual": 697
+    },
+    {
+      "name": "입주 화면 누계 대조",
+      "status": "PASS",
+      "expected": null,
+      "actual": null,
+      "reason": "동일 사업 원장·기준일"
+    },
+    {
+      "name": "입주 연말 전망 대조",
+      "status": "PASS",
+      "expected": 3845,
+      "actual": 3845,
+      "reason": "대시보드와 동일 산식·기준일·연말"
+    },
+    {
+      "name": "입주 구성합 대조",
+      "status": "PASS",
+      "expected": null,
+      "actual": null
+    },
+    {
+      "name": "대표 사업 ID 유일성",
+      "status": "PASS",
+      "actual": 177,
+      "reason": "원장 대표 ID 유지"
+    }
+  ],
+  "historical_project_count": 21
+}

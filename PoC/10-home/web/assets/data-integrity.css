@@ -7,3 +7,11 @@
 .di-overview-grid .di-metrics article{padding:14px}
 .di-overview-grid .di-metrics strong{font-size:26px;margin-top:7px}
 @media(max-width:1000px){.di-overview-grid{grid-template-columns:minmax(0,1fr)}}
+
+.di-tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #cddeda;margin-bottom:16px;padding-bottom:10px}
+.di-tabs [role=tab]{padding:12px 20px;border:1px solid #cddeda;border-radius:8px;background:#fff;color:#315b55;font:inherit;font-weight:600;cursor:pointer}
+.di-tabs [role=tab][aria-selected=true]{background:#185e5c;border-color:#185e5c;color:#fff;box-shadow:0 2px 6px #185e5c22}
+.di-tabs [role=tab]:focus-visible{outline:3px solid #5d9fd1;outline-offset:3px}
+.di-tabs [hidden],.di-tab-panel[hidden]{display:none!important}
+.di-document{display:block;width:100%;height:calc(100dvh - 215px);min-height:560px;border:1px solid #dbe5df;border-radius:10px;background:#fff}
+@media(max-width:600px){.di-tabs{gap:6px}.di-tabs [role=tab]{font-size:13px;padding:10px 12px}.di-document{height:calc(100dvh - 235px);min-height:420px}}

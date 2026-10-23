@@ -4,7 +4,9 @@
 data
 backups
 tests
-docs
+docs/*
+!docs/공급유형별_추진절차.html
+!docs/데이터 신뢰도 확인.html
 __pycache__
 
 # Local audit artifacts: publication has not been approved.

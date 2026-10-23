@@ -105,6 +105,7 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
     program_details=profiles(service,reference)
     linked_programs=service.program_links(reference,projects=raw) if hasattr(service,'program_links') else []
     plan['program_profiles']={p['id']:dict(program_details[p['id']],name=p['name']) for p in linked_programs if p['id'] in program_details and p['policy_id']==POLICY_ID and p['status']!='RELEASED'}
+    from .supply_type import assess as assess_supply_type
     chosen,excluded=inventory(rows)
     all_by_key=defaultdict(list)
     for row in rows:all_by_key[block_key(row) or ('ID',row['id'])].append(row)
@@ -244,7 +245,14 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
             construction_plan=next((value for m in sorted(group,key=lambda m:m.get('base_date',''),reverse=True) if (value:=construction_plan(m,reference))),None),
             progress=p,move_in_start=row.get('move_in_start'),mapping_status=row.get('mapping',{}).get('status'),
             eligibility_status='PRE_POLICY_START' if before_period else 'START_IN_POLICY_PERIOD' if starts else 'PERIOD_MEMBERSHIP_REVIEW',
-            evidence_url=row['evidence_url']))
+            evidence_url=row['evidence_url'],
+            report_metadata=dict(
+                supply_type=assess_supply_type(row), tenure=row.get('tenure'),
+                unit=row.get('unit') or ('실' if '오피스텔' in (row.get('name') or '') else '호'),
+                mapping=row.get('mapping', {}),
+                source_revisions=[{k:m.get(k) for k in ('id','source_id','source_revision_id',
+                    'revision_no','source_payload_hash','recorded_at','last_collection_at','base_date','evidence_url')}
+                    for m in group])))
         if not before_period and planned_cap:cohorts.append(portfolio[-1])
     target=plan['target_units'];allocated=sum(c['units'] for c in cohorts)
     if allocated>target:raise ValueError('연결 사업 물량이 정책 목표 초과: 배분 검토 필요')

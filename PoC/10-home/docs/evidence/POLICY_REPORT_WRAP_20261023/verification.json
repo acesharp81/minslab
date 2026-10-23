@@ -1,0 +1,27 @@
+{
+  "screen": {
+    "cells": 1087,
+    "nowrap": 0,
+    "overflow": [],
+    "tables": 21
+  },
+  "main_print": {
+    "cells": 1087,
+    "nowrap": 0,
+    "overflow": [],
+    "tables": 21
+  },
+  "appendices_print": {
+    "cells": 8246,
+    "nowrap": 0,
+    "overflow": [],
+    "tables": 9
+  },
+  "mobile": {
+    "cells": 1087,
+    "nowrap": 0,
+    "overflow": [],
+    "tables": 21
+  },
+  "errors": []
+}

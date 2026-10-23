@@ -234,6 +234,7 @@ const ProgressReport=(()=>{
  function save(text,type,name){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
  let busy=false;
  async function create(){
+  if(typeof state!=='undefined'&&state.view==='policy-progress'&&typeof PolicyBriefReport!=='undefined'){try{await PolicyBriefReport.open();}catch(error){document.getElementById('error').textContent=error.message;document.getElementById('error').hidden=false;}return;}
   if(busy)return;const button=document.getElementById('progress-report-create');busy=true;button.disabled=true;button.textContent='보고서 구성 중…';
   try{
    const captured=ReportMD.clean(await ReportMD.capture()),m=model(captured),dialog=document.createElement('dialog');dialog.className='progress-report-dialog';dialog.setAttribute('aria-label','추진현황 보고서 미리보기');

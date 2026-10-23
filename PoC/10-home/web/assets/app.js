@@ -142,6 +142,10 @@ function renderProjectDataStatus(r) {
 }
 async function load() {
   const version = ++state.generation;
+  if(!['project-collection','data-integrity','area','annual-supply','manual','requirements','supply-conditions','projects'].includes(state.view)){
+    try{await ensureCatalogue();}catch(error){$('loading').hidden=true;$('error').hidden=false;$('error').textContent=error.message;return;}
+    if(version!==state.generation)return;
+  }
   $('view-update-notice').hidden=true;
   const params = query();
   const qs = params.toString();
@@ -316,6 +320,18 @@ function setupSidebar() {
   toggle.addEventListener('click',()=>{const collapsed=document.body.classList.toggle('sidebar-collapsed');try{localStorage.setItem('home-sidebar-collapsed',String(collapsed));}catch(_){}sync();setTimeout(()=>{if(state.view==='overview')HousingMap.visible();if(policyViews.has(state.view))PolicyGeo3D.resize();},220);});
   sync();
 }
+let catalogueReady=null;
+function ensureCatalogue(){
+  if(catalogueReady)return catalogueReady;
+  catalogueReady=Promise.all([request('/policies'),request('/sources?compact=true')]).then(([policies,sources])=>{
+    state.policies=policies.items;state.sources=sources.items;
+    $('policy').innerHTML=policies.items.map(p=>`<option value="${esc(p.policy_id)}">${esc(p.name)}</option>`).join('');
+    $('policy').value='POL_2025_0907';
+    $('source-filter').innerHTML='<option value="">원천 전체</option>'+sources.items.filter(s=>s.collection_mode!=='TEST_SAMPLE'&&s.type!=='POLICY_FOLLOWUP').map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    for(const source of sources.items)sourceNames.set(source.id,source.name);
+  }).catch(error=>{catalogueReady=null;throw error;});
+  return catalogueReady;
+}
 async function start() {
   setupSidebar();SourceYears.start();
   Roadmap.start();
@@ -327,12 +343,10 @@ async function start() {
   const day = new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
   $('as-of').value = day; $('as-of').max = day;
   try {
-    const [policies,sources,admin] = await Promise.all([request('/policies'),request('/sources?compact=true'),request('/admin/status')]);
-    state.policies = policies.items; state.sources = sources.items; state.admin = admin.authenticated;
-    $('policy').innerHTML = policies.items.map(p => `<option value="${esc(p.policy_id)}">${esc(p.name)}</option>`).join('');
-    $('policy').value = 'POL_2025_0907';
-    $('source-filter').innerHTML = '<option value="">원천 전체</option>' + sources.items.filter(s => s.collection_mode !== 'TEST_SAMPLE' && s.type !== 'POLICY_FOLLOWUP').map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
-    for (const source of sources.items) sourceNames.set(source.id,source.name);
+    // Static integrity documents do not wait for database-backed catalogues.
+    const adminRequest=request('/admin/status');
+    if(location.hash.slice(1)!=='data-integrity')await ensureCatalogue();
+    const admin=await adminRequest;state.admin=admin.authenticated;
     if (state.admin) $('admin-link').textContent = '관리자로 로그인됨 ↗';
     setView(location.hash.slice(1) || 'policy-progress',{replace:true,deferLoad:true});
     await load();

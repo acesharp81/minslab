@@ -20,10 +20,11 @@
   <link rel="stylesheet" href="/poc/home/assets/map-workspace.css?v=20261016-controls-view">
   <link rel="stylesheet" href="/poc/home/assets/policy-geo.css">
   <link rel="stylesheet" href="/poc/home/assets/policy-report.css">
+  <link rel="stylesheet" href="/poc/home/assets/policy-brief-report.css?v=20261023-wrap-v2">
   <link rel="stylesheet" href="/poc/home/assets/policy-907.css?v=20261022-gap-label-v15">
   <link rel="stylesheet" href="/poc/home/assets/delivery-operations.css?v=20261022-ui-refinement">
   <link rel="stylesheet" href="/poc/home/assets/project-collection.css?v=20261022-field-cells-r2">
-  <link rel="stylesheet" href="/poc/home/assets/data-integrity.css?v=20261022-two-column">
+  <link rel="stylesheet" href="/poc/home/assets/data-integrity.css?v=20261023-tabs">
   <link rel="stylesheet" href="/poc/home/assets/user-guide.css?v=20261022-supply-control-v12">
   <script src="/poc/home/assets/vendor/leaflet/leaflet.js" defer></script>
   <script src="/poc/home/assets/roadmap.js?v=20261016-controls-view" defer></script>
@@ -65,7 +66,7 @@
   <script src="/poc/home/assets/collection-lineage.js" defer></script>
   <script src="/poc/home/assets/stage-field-view.js?v=20261022-fields" defer></script>
   <script src="/poc/home/assets/project-collection.js?v=20261022-field-cells-r2" defer></script>
-  <script src="/poc/home/assets/data-integrity.js?v=20261022-two-column" defer></script>
+  <script src="/poc/home/assets/data-integrity.js?v=20261023-history-v1" defer></script>
   <script src="/poc/home/assets/unsold-indicators.js" defer></script>
   <script src="/poc/home/assets/project-facility-map.js?v=20261016-legend" defer></script>
   <script src="/poc/home/assets/project-location.js?v=20261016-facilities" defer></script>
@@ -80,13 +81,14 @@
   <link rel="stylesheet" href="/poc/home/assets/source-preview.css?v=20261022-failed-cards">
   <script src="/poc/home/assets/source-preview.js?v=20261022-document-cards" defer></script>
   <script src="/poc/home/assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2" defer></script>
-  <script src="/poc/home/assets/progress-report.js?v=20261022-sequence-metrics-v2" defer></script>
+  <script src="/poc/home/assets/policy-brief-report.js?v=20261023-v5-rates" defer></script>
+  <script src="/poc/home/assets/progress-report.js?v=20261023-policy-brief-v1" defer></script>
   <script src="/poc/home/assets/collection-schema.js?v=20261022-starmap-3d-v3" defer></script>
   <link rel="stylesheet" href="/poc/home/assets/report-collection.css?v=20261022">
   <link rel="stylesheet" href="/poc/home/assets/collection-starmap.css?v=20261022-starmap-3d-v3">
   <script src="/poc/home/assets/report-md.js?v=20261022-sequence-rule" defer></script>
   <script src="/poc/home/assets/source-years.js?v=20261022-ui-refinement" defer></script>
-  <script src="/poc/home/assets/app.js?v=20261022-failed-cards" defer></script>
+  <script src="/poc/home/assets/app.js?v=20261023-integrity-loading" defer></script>
   <link rel="stylesheet" href="/poc/home/assets/policy-region-map.css?v=20261016-unit-share">
   <link rel="stylesheet" href="/poc/home/assets/policy-decision.css"><link rel="stylesheet" href="/poc/home/assets/policy-workspace.css?v=20261022-visible-axis-v14">
   <link rel="stylesheet" href="/poc/home/assets/report-md.css">
@@ -138,8 +140,17 @@
       <div id="loading" class="loading" role="status">공식 자료를 불러오고 있습니다…</div>
       <div id="content" hidden>
         <section id="pane-data-integrity" class="pane" hidden aria-labelledby="integrity-heading">
-          <div class="section-title"><div><h2 id="integrity-heading">데이터 정합성 확인</h2><p>수집실적·4대 지표와 공식자료 매핑 50% + 자체 항목 50%의 1차 채점 결과를 확인합니다.</p></div></div>
-          <div id="integrity-content" aria-live="polite"></div>
+          <div class="section-title"><h2 id="integrity-heading">데이터 정합성 확인</h2></div>
+          <div class="di-tabs" role="tablist" aria-label="데이터 정합성 확인 자료">
+            <button id="integrity-tab-procedures" type="button" role="tab" data-integrity-tab="procedures" aria-controls="integrity-panel-procedures" aria-selected="true">공급유형별 추진절차</button>
+            <button id="integrity-tab-reliability" type="button" role="tab" data-integrity-tab="reliability" aria-controls="integrity-panel-reliability" aria-selected="false" tabindex="-1">데이터 신뢰도 확인</button>
+            <button id="integrity-tab-history" type="button" role="tab" data-integrity-tab="history" aria-controls="integrity-panel-history" aria-selected="false" tabindex="-1">데이터셋 개선 과정</button>
+            <button id="integrity-tab-assessment" type="button" role="tab" data-integrity-tab="assessment" aria-controls="integrity-panel-assessment" aria-selected="false" tabindex="-1" hidden>관리자 정합성 점검</button>
+          </div>
+          <section id="integrity-panel-procedures" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-procedures"><iframe id="integrity-doc-procedures" class="di-document" title="공급유형별 추진절차" data-src="/poc/home/integrity-documents/procedures" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-reliability" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-reliability" hidden><iframe id="integrity-doc-reliability" class="di-document" title="데이터 신뢰도 확인" data-src="/poc/home/integrity-documents/reliability" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-history" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-history" hidden><iframe id="integrity-doc-history" class="di-document" title="데이터셋 개선 과정" data-src="/poc/home/assets/integrity-history/index.html?v=1" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-assessment" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-assessment" hidden><div class="di-actions"><button id="integrity-refresh" class="button secondary" type="button">점검 결과 새로 조회</button></div><div id="integrity-content" aria-live="polite"></div></section>
         </section>
         <section id="pane-project-collection" class="pane" hidden>
           <div class="section-title"><div><h2>사업별 데이터 수집·연계</h2><p>정책부터 입주까지, 사업별로 어떤 자료를 가져왔고 무엇이 부족한지 확인합니다. 전체 데이터셋 CSV는 사업·단계·기록별 행으로 제공하며, 목표·측정·근거 행의 호수를 합산하지 않습니다. 상세 사업 메타정보 JSON은 사업별 첫 행에 담고, 사업ID로 연결합니다.</p></div><div class="pc-report-actions"><a id="pc-remediation-report" class="button secondary" href="/poc/home/assets/reports/HOME_DATA_REMEDIATION_20261013.html" target="_blank" rel="noopener">the주택 데이터 정비 방안 ↗</a><a id="pc-dataset-export" class="button primary" href="/poc/home/api/project-collection/dataset.csv?policy_id=POL_2025_0907" title="현재 조회 범위 전체 사업 · 목표·측정·원천 근거와 메타정보">전체 데이터셋 CSV ↓</a><a id="pc-export" class="button secondary" href="/poc/home/api/project-collection/export.csv?policy_id=POL_2025_0907">수집현황 CSV ↓</a></div></div>

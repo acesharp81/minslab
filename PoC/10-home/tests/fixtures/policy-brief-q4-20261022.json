@@ -1,0 +1,230 @@
+{
+  "source": "PoC/10-home/docs/analysis/THE_JUTAEK_PRESENTATION_EVIDENCE_20261022/07_official_validation/32_q4_projects.csv",
+  "snapshot": "2026-10-22 archived verification, not current performance",
+  "rows": [
+    {
+      "official_name": "고덕강일 3",
+      "home_cohort_id": "PRO_1fbf5c7629634fa05be7652a",
+      "count_once_units": "1305",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "전체1305호 일치. 기존 잔여계획215호와 달리 10월16일 본청약1305호를 비공식 원문으로 담당자 확인 완료. 사전당첨592+특별566+일반147. 기존8월31일 공급 추정일 보정."
+    },
+    {
+      "official_name": "고양창릉 S2",
+      "home_cohort_id": "PRO_29bf4cef6fb4606948bb3b48",
+      "count_once_units": "1057",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "사업량·원천 수량 일치. 원천·승인 6월↔발표 4분기."
+    },
+    {
+      "official_name": "화성병점복합타운 주복1",
+      "home_cohort_id": "PRO_e05c4608f73fa5151e560558",
+      "count_once_units": "726",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "정부780은아파트726+오피스텔54구성. HOME주택집계726, 별도오피스텔54보존"
+    },
+    {
+      "official_name": "평택고덕국제화계획 Ab35",
+      "home_cohort_id": "PRO_5ff66dc50d3ad524d26511b6",
+      "count_once_units": "753",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수집 완료: LH A35 753호·5월. Ab35 명칭 차이로 이전 비교표가 놓친 행을 이번에 교정."
+    },
+    {
+      "official_name": "평택고덕국제화계획 Ab31",
+      "home_cohort_id": "PRO_f579d71a70d2f60499abdb0b",
+      "count_once_units": "690",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수집 완료: LH A31 690호·5월. Ab31 별칭 대조 교정. 4분기와 일정 차이."
+    },
+    {
+      "official_name": "평택고덕국제화계획 Aa34",
+      "home_cohort_id": "PRO_94becbf0cbd773bbf5ab565c",
+      "count_once_units": "679",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수집 완료: LH A34 679호·5월. Aa34 별칭 대조 교정. 4분기와 일정 차이."
+    },
+    {
+      "official_name": "광교 A17",
+      "home_cohort_id": "PRO_9636a0a7813451b2cb76372b",
+      "count_once_units": "600",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "사업량 600호 일치. 보유 승인 공급일정 2027년. 등록 GH 계획 URL 이번 조회 HTTP 410; 미등록으로 단정 불가."
+    },
+    {
+      "official_name": "의정부법조타운 S3",
+      "home_cohort_id": "PRO_b39de55a5159fecbfe750bb6",
+      "count_once_units": "544",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "의정부법조타운 S1",
+      "home_cohort_id": "PRO_498d0e9db7798af601231a87",
+      "count_once_units": "354",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "부천대장 A2",
+      "home_cohort_id": "PRO_69217405e9523695488434c1",
+      "count_once_units": "548",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "정부498과국토부2026-501호·공식배포기관추천안내548이상이. 원인·제외범위미확정"
+    },
+    {
+      "official_name": "시흥거모 A6",
+      "home_cohort_id": "PRO_7d1b5e3e2b392b43d0c59a6b",
+      "count_once_units": "480",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수량 일치. 원천·승인 7월↔발표 4분기."
+    },
+    {
+      "official_name": "시흥거모 A10",
+      "home_cohort_id": "PRO_a2d73c8fd81adb49dfba0fa3",
+      "count_once_units": "301",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "시흥거모 S1",
+      "home_cohort_id": "PRO_5fd2115e976e1d5bb4e90456",
+      "count_once_units": "300",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "수원당수 B3",
+      "home_cohort_id": "PRO_57af98abdfc6232a25ccc8d0",
+      "count_once_units": "394",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "안산신길2 B1",
+      "home_cohort_id": "PRO_9f9031c8f3a9ef0626b95757",
+      "count_once_units": "387",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "정부382와10.13지자체배포LH기관추천안내387이상이. 원인·변경관계미확정"
+    },
+    {
+      "official_name": "안산신길2 A6",
+      "home_cohort_id": "PRO_f4d0df2ada51ce61f9bb6b72",
+      "count_once_units": "251",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "LH 재조회 251호와 보유값 일치. 발표 252호와 1호 차이의 변경 사유 미확정."
+    },
+    {
+      "official_name": "안산신길2 A1",
+      "home_cohort_id": "PRO_6b136676d58c65ca4274e4af",
+      "count_once_units": "357",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "A1+A3 합본 357호 1회만 집계. 공식 분리 합계 335호와 22호 차이 사유 미확정."
+    },
+    {
+      "official_name": "안산신길2 A3",
+      "home_cohort_id": "PRO_6b136676d58c65ca4274e4af",
+      "count_once_units": "0",
+      "comparison_status": "SCOPE_DIFFERENT",
+      "discrepancy_reason": "위 A1과 동일 합본; 이 행은 0호 추가. 별도 357호를 더하지 않음."
+    },
+    {
+      "official_name": "남양주왕숙 A17",
+      "home_cohort_id": "PRO_60f74ae611079cfae69ea20e",
+      "count_once_units": "379",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "과천지식정보타운 S12",
+      "home_cohort_id": "PRO_6a66b31b8f84244d491514e6",
+      "count_once_units": "1424",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "구리갈매역세권 A1",
+      "home_cohort_id": "PRO_b0f7e7ded4e31142e5b39d02",
+      "count_once_units": "609",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "구리갈매역세권 A3",
+      "home_cohort_id": "PRO_2dfb63f2826a3d14481c2fb4",
+      "count_once_units": "287",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "오산세교2 A11",
+      "home_cohort_id": "PRO_693fd7d6c158c2da26abe2c0",
+      "count_once_units": "399",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수량 일치. 원천·승인 8월↔발표 4분기."
+    },
+    {
+      "official_name": "의왕초평 A4",
+      "home_cohort_id": "PRO_840dde9c0a83c846e6d18690",
+      "count_once_units": "381",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "인천부평 A",
+      "home_cohort_id": "PRO_9a256c5d211050be9f0814ff",
+      "count_once_units": "350",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "전체350호 일치. LH10월19일 최초 행복주택 모집 확인 완료·실제 공급 반영. 공사·임대 원천 동일 현장350호를 한 번만 집계."
+    },
+    {
+      "official_name": "과천주암 C2",
+      "home_cohort_id": "PRO_bceb35af2280eaa50c810c09",
+      "count_once_units": "344",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "남양주진접2 A7",
+      "home_cohort_id": "PRO_549ddb7c7141ef73cf07ffb0",
+      "count_once_units": "305",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "수량 일치. 원천·승인 6월↔발표 4분기."
+    },
+    {
+      "official_name": "의왕월암 A1",
+      "home_cohort_id": "PRO_b5b91172d6eed372aeb26e11",
+      "count_once_units": "228",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "의왕월암 A3",
+      "home_cohort_id": "PRO_4678e7ce4d7bafb3d2e7e4ad",
+      "count_once_units": "218",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "원천 및 승인 공급일정의 수량·2026년 4분기 일치. 실제 공급 완료와는 구분."
+    },
+    {
+      "official_name": "방화차고지",
+      "home_cohort_id": "PRO_e925e787e29c13e42deafcda",
+      "count_once_units": "75",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "공식 계획 75호 채택·관리 연결 완료. 시의회에서 사업·75호·기착공 교차 확인. 독립 공급 분기 검증은 아님."
+    },
+    {
+      "official_name": "독산동 산업문화어울림센터",
+      "home_cohort_id": "PRO_18141914462204e2be0e5796",
+      "count_once_units": "20",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "공식 계획 20호 채택·관리 연결 완료. 건설알림이 사업·20호·기착공 교차 확인. 공급 완료 아님."
+    },
+    {
+      "official_name": "연남동 공공임대주택",
+      "home_cohort_id": "PRO_b8e9b07eb43ee60a807ec231",
+      "count_once_units": "8",
+      "comparison_status": "EXACT",
+      "discrepancy_reason": "정부4분기 계획8호 연결 유지. SH2025년11월 업무보고79쪽에서 독립 공공임대8호·대지277㎡·1동5층 확인; 연희96호 일부 가설 철회. 당시2025-11 착공·2026-10 준공은 월 단위 과거계획; 실제 착공·준공·모집 미확인. SH근거 https://mas.smc.seoul.kr/attach/record/SEOUL/appendix/a11/A0069855.pdf#page=79"
+    }
+  ]
+}

@@ -423,7 +423,11 @@ def create_app(engine=None, auto_collect=None):
 
     @app.middleware("http")
     async def headers(request, call_next):
-        response = await call_next(request)
+        private_integrity=request.url.path==PREFIX+'/api/data-integrity' or request.url.path.startswith(PREFIX+'/api/data-integrity/')
+        if private_integrity and not authenticated(request):
+            response=Response(json.dumps({'detail':'관리자 로그인이 필요합니다.'},ensure_ascii=False),status_code=401,media_type='application/json')
+        else:
+            response = await call_next(request)
         response.headers["Cache-Control"] = ("public, max-age=3600" if "/api/tiles/" in request.url.path and response.status_code==200
                                             else "no-store" if "/api/" in request.url.path else "no-cache")
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -431,6 +435,8 @@ def create_app(engine=None, auto_collect=None):
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; worker-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
         if request.url.path.startswith(PREFIX+'/api/data-integrity/rounds/') and request.url.path.endswith('/report.html'):
+            response.headers['Content-Security-Policy']="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
+        if request.url.path.startswith(PREFIX+'/integrity-documents/'):
             response.headers['Content-Security-Policy']="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
         return response
 
@@ -783,14 +789,18 @@ def create_app(engine=None, auto_collect=None):
                         headers={'X-Home-Cache': status, 'Cache-Control': 'no-cache'})
 
     @app.get(PREFIX + '/api/policy-delivery/view')
-    def policy_delivery_view(as_of_date: date | None = None,group: str = Query('policy',max_length=150),scope: str | None = Query(None,max_length=300)):
-        from .policy_delivery_view import screen_view
+    def policy_delivery_view(as_of_date: date | None = None,group: str = Query('policy',max_length=150),scope: str | None = Query(None,max_length=300),report: bool = False):
+        from .policy_delivery_view import screen_view, policy_report_view
         day=as_of_date or today()
         if day>today():raise HTTPException(422,'미래 실제 기준일은 조회할 수 없습니다')
+        if report:
+            if group != 'policy':raise HTTPException(422,'정책 보고서만 지원합니다')
+            try:return cached_json('delivery_view',dict(day=day,group=group,scope=scope,report=True),lambda:policy_report_view(service,day,scope))
+            except ValueError as error:raise HTTPException(422,str(error)) from None
         def build():
             body,_=delivery_screen_input.get(day.isoformat(),lambda:build_delivery(service,day,comparison_scopes=()))
-            return screen_view(json.loads(body),group,scope)
-        try:return cached_json('delivery_view',dict(day=day,group=group,scope=scope),build)
+            return screen_view(json.loads(body),group,scope,report=report)
+        try:return cached_json('delivery_view',dict(day=day,group=group,scope=scope,report=report),build)
         except ValueError as error:raise HTTPException(422,str(error)) from None
 
     @app.get(PREFIX + '/api/housing-indicators')
@@ -957,6 +967,18 @@ def create_app(engine=None, auto_collect=None):
     def stage_evidence_refresh(request: Request):
         if not authenticated(request):raise HTTPException(401,'MinsLab 관리자 로그인이 필요합니다')
         return stage_evidence.refresh(service,refresh_candidates=True)
+
+    @app.get(PREFIX + '/integrity-documents/{document}')
+    def integrity_document(document: str, request: Request):
+        names={'procedures':'공급유형별_추진절차.html','reliability':'데이터 신뢰도 확인.html'}
+        name=names.get(document)
+        if not name:raise HTTPException(404,'등록되지 않은 문서입니다')
+        path=ROOT/'docs'/name
+        if not path.is_file():raise HTTPException(404,'문서 파일이 없습니다')
+        stat=path.stat()
+        etag='"'+hashlib.sha256(f'{stat.st_mtime_ns}:{stat.st_size}'.encode()).hexdigest()+'"'
+        if request.headers.get('if-none-match')==etag:return Response(status_code=304,headers={'ETag':etag})
+        return FileResponse(path,media_type='text/html',headers={'ETag':etag},stat_result=stat)
 
     @app.get(PREFIX + "/api/mappings")
     def mappings(f=Depends(filters),compact:bool=False):

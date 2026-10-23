@@ -1,0 +1,43 @@
+{
+  "live_deployment": true,
+  "history_nodes_checked": [
+    "1-dataset",
+    "1-feedback",
+    "1-review",
+    "1-rules",
+    "1-data",
+    "2-dataset",
+    "2-feedback",
+    "2-review",
+    "2-rules",
+    "2-data",
+    "3-dataset",
+    "3-feedback",
+    "3-review",
+    "3-rules",
+    "3-data",
+    "4-dataset",
+    "4-feedback",
+    "4-review",
+    "4-rules",
+    "4-data",
+    "5-dataset",
+    "5-feedback",
+    "5-review",
+    "5-rules",
+    "5-data",
+    "6-dataset"
+  ],
+  "tabs": [
+    "공급유형별 추진절차",
+    "데이터 신뢰도 확인",
+    "데이터셋 개선 과정"
+  ],
+  "dates_only_on_first_dataset": true,
+  "mobile_no_horizontal_overflow": true,
+  "main_sections": 7,
+  "appendix_sections": 3,
+  "same_snapshot": true,
+  "appendices_no_network_fetch": true,
+  "console_errors": []
+}

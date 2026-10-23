@@ -601,6 +601,7 @@ class HomeService:
                     if row["mapping"]["status"] != "CONFIRMED" or row["mapping"].get('policy_status') == 'REVIEW':
                         row["warnings"].append("MAPPING_REVIEW")
                     batch = latest_success.get(record.source_id)
+                    row["last_collection_at"] = as_utc(batch.finished_at).isoformat() if batch and batch.finished_at else None
                     row["in_latest_source"] = bool(batch and record.entity_id in batch.stats.get("entity_ids", []))
                     if record.source_id=='lh_policy_followup' and payload.get('registration_set') in ('POLICY_READMISSION_20261019','FINAL_REVIEW_20261019'):
                         row['in_latest_source']=bool(batch and payload.get('source_reference_id') in batch.stats.get('entity_ids',[]))

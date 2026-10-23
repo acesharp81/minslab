@@ -3,7 +3,7 @@ from datetime import date
 from .policy_delivery_comparison import comparison_index, REGIONS
 
 
-def screen_view(model, group='policy', selected=None):
+def screen_view(model, group='policy', selected=None, report=False):
     if model.get('status')!='READY':return model
     portfolio=model['portfolio_cohorts'];selected=selected or group
     if group=='policy':
@@ -49,4 +49,39 @@ def screen_view(model, group='policy', selected=None):
     return dict({k:v for k,v in model.items() if k not in ('_comparison_inputs','goal_comparisons','sources')},
         plan={k:v for k,v in plan.items() if k!='program_profiles'},
         program_assessments={k:v for k,v in model['program_assessments'].items() if group=='program:'+k},
-        yearly_comparisons=yearly,portfolio_comparisons=cumulative,view_group=group,view_scope=selected)
+        yearly_comparisons=yearly,portfolio_comparisons=cumulative,view_group=group,view_scope=selected,
+        **(dict(report_programs=plan.get('program_profiles', {}),
+                report_snapshot=dict(as_of_date=model['as_of_date'],
+                    knowledge_rule='Revision.recorded_at < KST next day; historical mapping audit rewind',
+                    formula_version='HOME_POLICY_BRIEF_V1_20261023')) if report else {}))
+
+
+def policy_report_view(service, reference, selected='policy'):
+    """Policy brief needs the project ledger, not all market statistical revisions.
+
+    The shared lean path preserves the same inventory and approved events. It
+    returns before market time series, map animation and all-program matrices.
+    Historical reads still use HomeService's knowledge-time revision filter.
+    """
+    from .policy_delivery import build_delivery, STAGES
+    model = build_delivery(service, reference, indicators_only=True, comparison_scopes=())
+    if model.get('status') != 'READY':
+        return model
+    plan = model['plan']
+    selected = selected or 'policy'
+    extra = {}
+    if selected.startswith('city:') and not any(c.get('municipality_id') == selected[5:] for c in model['portfolio_cohorts']):
+        extra[selected] = dict(name=selected[5:], kind='city', id=selected[5:], cohorts=[])
+    if selected != 'policy' and not selected.startswith(('region:', 'city:', 'project:')):
+        raise ValueError('정책 보고서 범위를 확인하세요')
+    cumulative = comparison_index(dict(plan, period_start='1900-01-01', portfolio=True),
+        model['portfolio_cohorts'], {}, [], reference, scope_keys={selected}, extra_scopes=extra)
+    if selected not in cumulative:
+        raise ValueError('선택 사업이 기준일 정책 원장에 없습니다')
+    return dict(status='READY', policy_id=plan['policy_id'], as_of_date=reference.isoformat(),
+        plan={k:v for k,v in plan.items() if k != 'program_profiles'},
+        portfolio_cohorts=model['portfolio_cohorts'], portfolio_comparisons=cumulative,
+        stages=STAGES, issues=[], report_programs=plan.get('program_profiles', {}),
+        report_snapshot=dict(as_of_date=reference.isoformat(),
+            knowledge_rule='Revision.recorded_at < KST next day; historical mapping audit rewind',
+            formula_version='HOME_POLICY_BRIEF_V1_20261023', projection='PROJECT_LEDGER_ONLY'))

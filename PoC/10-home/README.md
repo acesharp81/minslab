@@ -1368,17 +1368,18 @@ node --test tests/js/*.test.cjs
 <a id="backup-records"></a>
 ### 8.3 공유용 DB 패키지와 검증 기록
 
-최신 공유용 DB 덤프: **2026-10-20T23:22:30.512261+09:00 기준**.
+최신 공유용 DB 덤프: **2026-10-22T22:35:44.723200+09:00 기준**.
 
-- ZIP: [backups/HOME_DB_20261020_232230.zip](backups/HOME_DB_20261020_232230.zip) · 1134.3 MiB
-- SHA-256: [backups/HOME_DB_20261020_232230.zip.sha256](backups/HOME_DB_20261020_232230.zip.sha256)
-- 복원 안내: [backups/HOME_DB_20261020_232230/README.md](backups/HOME_DB_20261020_232230/README.md)
-- 검증 명세: [backups/HOME_DB_20261020_232230/manifest.json](backups/HOME_DB_20261020_232230/manifest.json)
-- 동일 시점 스냅샷을 별도 임시 DB에 복원하고 사용자·확장 테이블 53개의 행 수, 확장 버전, 현재 원천 종류별 건수를 대조했습니다. 이는 업무 테이블만 53개라는 뜻이 아닙니다.
-- 담당자 입력·승인·추정 상태와 변경 이력, 단계 목표·측정값 및 최신 입지 통계·PIR 판본을 포함합니다. DB 외부 원문 파일·앱 소스·환경변수 인증키는 포함하지 않습니다. 패키지에 이 README의 사본과 복원 안내·체크섬을 동봉합니다.
-- 원본 DB를 변경하지 않았으며 검증용 임시 DB는 제거했습니다. 이전 공유본은 그대로 보존합니다. 덤프는 Git/정적 웹 공개 대상이 아닙니다.
+- ZIP: [backups/HOME_DB_20261022_223542.zip](backups/HOME_DB_20261022_223542.zip)
+- SHA-256: [backups/HOME_DB_20261022_223542.zip.sha256](backups/HOME_DB_20261022_223542.zip.sha256)
+- 복원 안내: [backups/HOME_DB_20261022_223542/README.md](backups/HOME_DB_20261022_223542/README.md)
+- 변경사항: [backups/HOME_DB_20261022_223542/SCHEMA_AND_DATA_CHANGES.md](backups/HOME_DB_20261022_223542/SCHEMA_AND_DATA_CHANGES.md)
+- 조원 전달문: [backups/HOME_DB_20261022_223542/SHARE_MESSAGE.txt](backups/HOME_DB_20261022_223542/SHARE_MESSAGE.txt)
+- 별도 격리 컨테이너 전체 복원 후 사용자·확장 테이블53개의 행 수·현재kind별 건수·확장·DDL·인덱스를 대조했습니다. 운영 DB 내용·자원 한도는 변경하지 않았습니다.
+- 이전 테스트본 대비 실제 건수 차이와 복구·일정 보완·앱 변경을 동봉했습니다. 보류3개 단계 항목과2027년 계획 미연결29개가 남아 있는 현재 상태의 공유본입니다.
+- 앱 소스·DB 외부 원문·환경 인증값은 포함하지 않습니다. 주요 코드 해시, README 사본·복원 안내·체크섬을 포함합니다. 덤프는 Git/정적 웹 공개 대상이 아닙니다.
 
-같은 형식으로 다시 생성하고 복원 검증하려면 앱 디렉터리에서 `python3 scripts/backup_database.py`를 실행합니다. Docker 접근 권한이 필요하며 운영 API/DB 컨테이너가 실행 중이어야 합니다.
+같은 형식의 기본 덤프 도구는 `scripts/backup_database.py`, 이번 격리 복원·패키지 작업은 `scripts/package_database_share_20261022.py`와 `scripts/finalize_database_share_20261022.py`를 사용합니다.
 
 | 자료·코드 | 패키지와 함께 확인할 경계 |
 | --- | --- |
