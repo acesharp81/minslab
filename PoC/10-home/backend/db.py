@@ -278,6 +278,14 @@ def upsert_revision(session, kind, source_id, key, payload, batch_id):
     old = session.scalar(select(Revision).where(Revision.entity_id == eid, Revision.superseded_at.is_(None)))
     if old and old.payload_hash == digest:
         return old, "unchanged"
+    if old and kind == 'document_evidence' and source_id == 'lh_notice_detail':
+        # Dynamic HTML changes raw hashes without changing extracted facts.
+        # Keep the immutable evidence revision; each fetch remains in its batch
+        # manifest/raw archive. Any other field change still creates a revision.
+        ignored = {'original_file', 'original_sha256'}
+        if ({k:v for k,v in old.payload.items() if k not in ignored} ==
+                {k:v for k,v in payload.items() if k not in ignored}):
+            return old, "unchanged"
     if old:
         old.superseded_at = now()
         session.flush()

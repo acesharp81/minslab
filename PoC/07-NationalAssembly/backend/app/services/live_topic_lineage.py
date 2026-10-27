@@ -126,22 +126,26 @@ def build_live_topic_clusters(
         insight = utterance.get("live_insight")
         if not isinstance(insight, dict):
             continue
-        topic = _clean(insight.get("topic"), 180)
+        semantic = insight.get("discussion_group") or {}
+        topic = _clean(semantic.get("title") or insight.get("topic"), 180)
         topic_key = _clean(insight.get("topic_key"), 180)
         utterance_id = _clean(utterance.get("utterance_id"), 100)
         if not topic or not utterance_id:
             continue
         source_insight_count += 1
-        source_titles.add(topic)
-        key = _normalized_key(topic_key or topic)
+        source_title = _clean(insight.get("topic"), 180) or topic
+        source_titles.add(source_title)
+        key = ("semantic:" + str(semantic["id"])) if semantic.get("id") else _normalized_key(topic_key or topic)
         hint_tokens = _tokens(topic_key, topic)
         hint_owners = _owner_tokens(insight.get("owners") or [])
         group = by_key.get(key)
 
-        if group is None and hint_tokens:
+        if group is None and hint_tokens and not semantic.get("id"):
             best: dict[str, Any] | None = None
             best_rank = 0.0
             for candidate in groups:
+                if candidate.get("_semantic"):
+                    continue
                 overlap = _overlap(hint_tokens, candidate["_tokens"])
                 denominator = min(len(hint_tokens), len(candidate["_tokens"])) or 1
                 coverage = overlap / denominator
@@ -161,6 +165,7 @@ def build_live_topic_clusters(
         if group is None:
             group = {
                 "id": "",
+                "_semantic": bool(semantic.get("id")),
                 "title": topic,
                 "aliases": [],
                 "topic_keys": [],
@@ -177,8 +182,8 @@ def build_live_topic_clusters(
 
         if key:
             by_key[key] = group
-        if topic not in group["aliases"]:
-            group["aliases"].append(topic)
+        if source_title not in group["aliases"]:
+            group["aliases"].append(source_title)
         if topic_key and topic_key not in group["topic_keys"]:
             group["topic_keys"].append(topic_key)
         if utterance_id not in group["utterance_ids"]:

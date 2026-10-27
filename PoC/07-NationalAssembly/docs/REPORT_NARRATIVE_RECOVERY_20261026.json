@@ -1,0 +1,228 @@
+{
+  "date": "2026-10-26",
+  "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+  "scope": "Explicitly approved prosecution report only",
+  "coverage": {
+    "profile": "structured-narrative/1.2",
+    "issue_count": 155,
+    "summarized_issue_count": 155,
+    "status": "COMPLETE"
+  },
+  "displayed_task_count": 38,
+  "source_point_count": 475,
+  "summary_card_count": 160,
+  "retained_original_task_cards": 5,
+  "preservation": {
+    "topics": true,
+    "topic_groups": true,
+    "tasks": true,
+    "live_topic_lineage": true,
+    "original_brief_unchanged": true,
+    "source_snapshot_unchanged": true,
+    "all_24_original_requests_responses_unchanged": true
+  },
+  "browser_checks": [
+    {
+      "base": "https://kjon.aigov.go.kr/",
+      "work_report_topics": 49,
+      "print_topics": 160,
+      "source_link": true,
+      "js_errors": []
+    },
+    {
+      "base": "https://www.minslab.kr/poc/national-assembly/",
+      "work_report_topics": 49,
+      "print_topics": 160,
+      "source_link": true,
+      "js_errors": []
+    }
+  ],
+  "unit_tests_passed": 67,
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  },
+  "deployment_image": "poc07-national-assembly-api:narrative-resume-20261026",
+  "retry": {
+    "persistent_queue": "structured_narrative_jobs",
+    "daily_budget_reset": "00:00 UTC / 09:00 Asia/Seoul",
+    "dispatch": "first available meeting-worker cycle after due time",
+    "completed_job_count": 1,
+    "pending_job_count": 0,
+    "db_timing_rollback_check_passed": true,
+    "nim_timeout_seconds": 240,
+    "nim_transient_inline_retries": 1,
+    "shared_structure_nim_start_interval_seconds": 6,
+    "nim_daily_request_cap": null
+  },
+  "diagnosis": {
+    "daily_quota_exhaustion_observed": false,
+    "openai_tokens_after_completion": 88429,
+    "configured_daily_limit": 650000,
+    "observed_failure_types": [
+      "ReadTimeout",
+      "NARRATIVE_POINT_COVERAGE",
+      "NARRATIVE_INVALID_SUMMARY",
+      "NARRATIVE_UNSUPPORTED_NUMBER",
+      "NARRATIVE_UNSUPPORTED_LANGUAGE",
+      "Malformed JSON"
+    ]
+  },
+  "nvidia_reference": "https://forums.developer.nvidia.com/t/request-more-4-000-credits-option-on-build-nvidia-com/344567"
+}

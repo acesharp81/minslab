@@ -274,15 +274,17 @@ def collect_eum(source, fetcher, service):
         else:
             failures.append(dict(seq=row['source_object_id'],error=error))
             retry_after[row['source_object_id']]=(today()+timedelta(days=1)).isoformat()
+    from .attachment_text import recover_batch
+    recovery=recover_batch(service,output)
     remaining=max(0,len(pending)-len(selected))+len(failures)
-    backfill_pending=not all(c['complete_window'] for c in new_checkpoints.values()) or remaining>0
+    backfill_pending=not all(c['complete_window'] for c in new_checkpoints.values()) or remaining>0 or recovery.get('text_recovery_remaining',0)>0
     return output,dict(incremental=True,complete_population=False,
         complete_query=not backfill_pending,backfill_pending=backfill_pending,
         period_start=period_start,period_end=end,scope_version=2,region_checkpoints=new_checkpoints,
         discovered=len(records),housing_candidates=sum(r.get('housing_candidate',False) for r in known.values()),
-        detail_checked=checked,detail_retry_after=retry_after,details_fetched=sum(k=='document_evidence' for k,_,_ in output),
+        detail_checked=checked,detail_retry_after=retry_after,details_fetched=sum(p is not None for _,p,_,_ in acquired),
         details_deferred=len(pending)-len(eligible),details_per_batch=detail_limit,detail_workers=detail_workers,
         detail_remaining=remaining,failures=failures,
-        attachment_statistics_scope='CURRENT_BATCH_ONLY',
+        **recovery,attachment_statistics_scope='CURRENT_BATCH_ONLY',
         attachments_text_pending=sum(a.get('status')!='TEXT_EXTRACTED' for kind,_,p in output if kind=='document_evidence' for a in p.get('attachments',[])),
-        actual_events_created=0,scope_note=f'수도권 3개 지역 2025-09-07 이후 고시 목록: 최신 2페이지+과거 이어받기/재방문. 주택 관련 상세 최대 {detail_limit}건씩 및 첨부 다운로드·PDF/HWPX 추출. 실패 첨부는 다음날 재시도하며 미완료로 유지. HWP·OCR·사업별 물량 추출은 별도 상태')
+        actual_events_created=0,scope_note=f'수도권 3개 지역 2025-09-07 이후 고시 목록: 최신 2페이지+과거 이어받기/재방문. 주택 관련 상세 최대 {detail_limit}건씩 및 첨부 다운로드·PDF/HWPX 추출. 실패 첨부는 다음날 재시도하며 미완료로 유지. 보관 첨부 배치당 4개 HWP/OCR 복구. OCR은 별도 검토 상태이며 사업별 물량 자동 생성 없음')

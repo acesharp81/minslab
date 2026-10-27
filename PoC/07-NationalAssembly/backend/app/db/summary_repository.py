@@ -3,6 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import Any, Iterable
 
+from ..services.summary_language import summary_language_error, utterance_sources
+from ..services.live_task_evidence import grounded_task, task_needs_review
+from ..config import get_settings
+from ..services.openrouter_quota import gateway_usage
+
 
 def token_usage_from_metadata(metadata: dict[str, Any] | None) -> dict[str, int]:
     usage = (metadata or {}).get("usage") or {}
@@ -35,6 +40,7 @@ class SummaryRepository:
         provider: str,
         model: str,
         prompt_version: str,
+        utterances: list[dict[str, Any]] | None = None,
     ) -> dict[tuple[Any, str], dict[str, Any]]:
         ids = list(broadcast_ids)
         if not ids:
@@ -47,8 +53,9 @@ class SummaryRepository:
             FROM transcript_utterance_summaries
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id, content_hash,
+                     created_at DESC,
                      (prompt_version = %s) DESC,
-                     (provider = %s AND model = %s) DESC, created_at DESC
+                     (provider = %s AND model = %s) DESC
             """,
             (ids, prompt_version, provider, model),
         ).fetchall()
@@ -57,7 +64,30 @@ class SummaryRepository:
             "prompt_version", "live_insight", "created_at",
         )
         items = [dict(zip(columns, row, strict=True)) for row in rows]
-        return {(item["broadcast_id"], item["content_hash"]): item for item in items}
+        sources = utterance_sources(utterances or [])
+        targets = {(u.get('broadcast_id'), u['content_hash']): u.get('text', '')
+                   for u in utterances or []}
+        for item in items:
+            key = (item['broadcast_id'], item['content_hash'])
+            # Unreviewed legacy labels are not verified tasks. Their summaries
+            # and original rows remain available; the worker rechecks them.
+            if key in targets:
+                item['live_insight'] = grounded_task(item['live_insight'] or {}, targets[key], require_quote=True)
+        return {(item["broadcast_id"], item["content_hash"]): item for item in items
+                if not summary_language_error(item['summary'], item['live_insight'],
+                    sources.get((item['broadcast_id'], item['content_hash'])))}
+
+    def task_review_hashes(self, broadcast_id: Any, content_hashes: Iterable[str]) -> set[str]:
+        hashes = list(content_hashes)
+        if not hashes:
+            return set()
+        rows = self.connection.execute(
+            """SELECT DISTINCT ON (content_hash) content_hash, live_insight
+               FROM transcript_utterance_summaries
+               WHERE broadcast_id=%s AND content_hash=ANY(%s)
+               ORDER BY content_hash,created_at DESC""", (broadcast_id, hashes),
+        ).fetchall()
+        return {h for h, insight in rows if task_needs_review(insight)}
 
     def existing_hashes(
         self,
@@ -67,6 +97,7 @@ class SummaryRepository:
         provider: str,
         model: str,
         prompt_version: str,
+        source_text_by_hash: dict[str, str] | None = None,
     ) -> set[str]:
         del provider, model, prompt_version
         hashes = list(content_hashes)
@@ -74,18 +105,43 @@ class SummaryRepository:
             return set()
         rows = self.connection.execute(
             """
-            SELECT DISTINCT content_hash FROM transcript_utterance_summaries
+            SELECT DISTINCT ON (content_hash) content_hash, summary, live_insight
+            FROM transcript_utterance_summaries
             WHERE broadcast_id = %s AND content_hash = ANY(%s)
+            ORDER BY content_hash, created_at DESC
             """,
             (broadcast_id, hashes),
         ).fetchall()
-        return {row[0] for row in rows}
+        return {row[0] for row in rows if not task_needs_review(row[2])
+            and not summary_language_error(row[1], row[2],
+            (source_text_by_hash or {}).get(row[0]))}
+
+    def record_rejected_response(self, broadcast_id: Any, *, provider: str,
+            model: str, prompt_version: str, request: list[dict[str, Any]],
+            response: dict[str, Any]) -> None:
+        from psycopg.types.json import Jsonb
+        self.connection.execute(
+            "INSERT INTO transcript_summary_rejections "
+            "(id,broadcast_id,provider,model,prompt_version,request_snapshot,response) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+            (uuid.uuid4(), broadcast_id, provider, model, prompt_version,
+             Jsonb([{'content_hash': u['content_hash'], 'text': u.get('text', ''),
+                     'conversation_context': u.get('conversation_context', [])} for u in request]),
+             Jsonb(response)),
+        )
 
     def reserve_daily_request(self, provider: str, limit: int) -> int | None:
         if provider != "openrouter":
             raise ValueError(
                 "daily request quota is reserved for OpenRouter only"
             )
+        gateway = gateway_usage(get_settings())
+        if gateway is not None:
+            # This is admission only. The gateway atomically reserves when it
+            # actually forwards the request, and does not charge cache replays.
+            # Never increment a second ledger or block on its legacy value.
+            return (gateway['used'] + 1
+                    if gateway['used'] < min(limit, gateway['limit']) else None)
         row = self.connection.execute(
             """
             INSERT INTO llm_provider_daily_usage (
@@ -102,6 +158,10 @@ class SummaryRepository:
         return int(row[0]) if row else None
 
     def daily_usage(self, provider: str) -> int:
+        if provider == 'openrouter':
+            gateway = gateway_usage(get_settings())
+            if gateway is not None:
+                return gateway['used']
         row = self.connection.execute(
             """
             SELECT request_count FROM llm_provider_daily_usage

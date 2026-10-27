@@ -1,0 +1,94 @@
+{
+  "date_kst": "2026-10-27",
+  "image": "poc07-national-assembly-api:retry-recovery-20261027-v6",
+  "image_id": "f8cd7d29f681",
+  "fixes": [
+    "Persist budget failure and continue through bounded provider round",
+    "Restart cooled review rounds at preferred model; UTC daily cap 9",
+    "Recover complete source-validated atoms from existing failed response without model calls",
+    "Keep independent verification separate from initial review",
+    "Reversible compact evidence and cluster IDs for NIM final synthesis",
+    "Shorter final summary sentences without reducing item caps",
+    "Retry LENGTH after 5 minutes instead of 6 hours",
+    "Skip individually deferred provider in auto pool; retain existing progress on skip",
+    "Persist reduction split plan and validated children; detect legacy child caches",
+    "Successful partial narrative work remains PROCESSING instead of sleeping five minutes",
+    "Oldest last-processed report selected first so newer long reports do not monopolize finalization"
+  ],
+  "validation": {
+    "backend_tests_passed": 147,
+    "runtime_checks_passed": 25
+  },
+  "interior_review": {
+    "previous_pending": 4,
+    "recovered_without_model_calls": 3,
+    "new_nim_review_passed": 1,
+    "pending_after": 0
+  },
+  "law_schedule_repair": {
+    "previous_schedule": [
+      [
+        "07426947-2688-4272-9dd6-24e35605a0eb",
+        "nvidia",
+        "MalformedMeetingBriefResponse:LENGTH",
+        "2026-10-26 23:08:09.435271+00:00",
+        "2026-10-26 17:08:09.435271+00:00"
+      ]
+    ],
+    "action": "release obsolete six-hour LENGTH cooldown after corrected request deployment"
+  },
+  "unchanged": [
+    "Daily model token/request allowances",
+    "OpenAI integration reserve",
+    "Raw transcripts and saved prior AI responses",
+    "Evidence validation and provisional authority",
+    "User report layout"
+  ],
+  "limitations": [
+    "Provider latency and invalid responses remain possible; no success is inferred from retries.",
+    "Full reports still require later ontology and narrative validation."
+  ],
+  "law_synthesis": {
+    "provider": "nvidia",
+    "saved_at_utc": "2026-10-26T21:23:30.444879+00:00",
+    "source_last_event_cursor": 1137318,
+    "topics": 24,
+    "tasks": 20,
+    "following_stage": "source structuring and validation; not yet final report completion"
+  },
+  "latest_public_states": {
+    "interior": {
+      "brief_status": "PROCESSING",
+      "finalization": {
+        "phase": "NARRATIVE",
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T21:28:06.554726+00:00",
+        "integration_batches_done": 8,
+        "integration_batches_total": 8
+      },
+      "progress": {
+        "phase": "NARRATIVE",
+        "status": "PROCESSING",
+        "completed_chunks": 33,
+        "total_chunks": 33
+      }
+    },
+    "law": {
+      "brief_status": "PROCESSING",
+      "finalization": {
+        "phase": "STRUCTURING",
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T21:25:05.726186+00:00"
+      },
+      "progress": {
+        "phase": "STRUCTURING",
+        "status": "PROCESSING",
+        "completed_chunks": 35,
+        "total_chunks": 35
+      }
+    }
+  },
+  "verified_at_utc": "2026-10-26T21:28:19.416301+00:00"
+}

@@ -1,0 +1,126 @@
+{
+  "date_kst": "2026-10-27",
+  "scope": "PoC7 meeting report worker; existing evidence and completion gates retained",
+  "deployed_image": "poc07-national-assembly-api:workload-pool-20261027-v3",
+  "image_id": "d519ba8a78d5",
+  "policy": {
+    "general": [
+      "nvidia",
+      "available_openrouter",
+      "gemini",
+      "groq"
+    ],
+    "verification": [
+      "nvidia",
+      "available_openrouter",
+      "gemini",
+      "groq",
+      "openai_if_openrouter_exhausted"
+    ],
+    "structure_integration": [
+      "openai_if_openrouter_exhausted_and_budget_available",
+      "nvidia",
+      "available_openrouter",
+      "gemini",
+      "groq"
+    ],
+    "whole_meeting_synthesis": "existing NIM-first automatic pool retained",
+    "mistral": "unchanged; no new text routing"
+  },
+  "openai": {
+    "daily_token_limit": 650000,
+    "integration_reserved_tokens": 300000,
+    "ordinary_effective_limit": 350000,
+    "reset": "UTC 00:00 / Asia/Seoul 09:00",
+    "observed_used": 636058,
+    "observed_remaining": 13942,
+    "existing_usage_not_reset": true,
+    "integration_schemas": [
+      "meeting_brief",
+      "meeting_reduction",
+      "discussion_structure_consolidation"
+    ]
+  },
+  "integration": {
+    "issues": 369,
+    "partitions": 8,
+    "maximum_issues_per_partition": 48,
+    "previous_prompt_bytes": 202800,
+    "previous_schema_bytes": 89488,
+    "prompt_bytes": [
+      98916,
+      95787,
+      99509,
+      95102,
+      96166,
+      95609,
+      96510,
+      83633
+    ],
+    "schema_bytes": [
+      11008,
+      11038,
+      11170,
+      11182,
+      11182,
+      11182,
+      11182,
+      7747
+    ],
+    "source_quotes": "unchanged from existing consolidation_input",
+    "target_number_contract": "all target numbers are required object properties; no omissions accepted",
+    "cross_partition_merge": "backward canonical references with existing semantic merge validator",
+    "cache": "existing meeting_topic_structure_batches, indices 110000+, aggregate 100002",
+    "prior_response_projection": "48 target assignments recovered from existing response without new model call; raw response retained",
+    "new_required_schema_runtime_validated": true
+  },
+  "nim_reduction": {
+    "large_prompt_split_bytes": 32000,
+    "timeout_behavior": "one attempt then recursively split multi-analysis reduction; reuse child cache",
+    "observed_law_saved_child_index": 100411
+  },
+  "validation": {
+    "backend_tests_passed": 149,
+    "ui_progress_tests_passed": 7,
+    "runtime_checks": "all passed",
+    "public_domains_http_status": [
+      200,
+      200
+    ],
+    "public_drafts_visible": true,
+    "browser_javascript_errors": []
+  },
+  "reports_complete": false,
+  "limitations": [
+    "Existing spent allowances are not restored by policy change.",
+    "NIM latency and provider rate limits still apply.",
+    "Provider account quotas are distinct from local operating budgets.",
+    "Report completion remains conditional on source classification, review, ontology and narrative validation."
+  ],
+  "observed_report_states": {
+    "interior": {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "status": "PROCESSING",
+      "phase": "CONSOLIDATING",
+      "completed": 3,
+      "total": 8,
+      "finalization": {
+        "phase": "CONSOLIDATING",
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T16:29:01.836259+00:00",
+        "integration_batches_done": 3,
+        "integration_batches_total": 8
+      }
+    },
+    "law": {
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "status": "PROCESSING",
+      "phase": "REDUCING",
+      "completed": 3,
+      "total": 5,
+      "finalization": {}
+    }
+  },
+  "verified_at_utc": "2026-10-26T16:30:39.882541+00:00"
+}

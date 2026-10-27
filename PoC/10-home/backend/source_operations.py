@@ -3,13 +3,14 @@ import os
 
 
 def duration(seconds):
+    seconds=int(seconds)
     if seconds % 86400 == 0:
         days = seconds // 86400
         return '매일' if days == 1 else f'{days}일마다'
     return f'{seconds // 3600}시간마다' if seconds % 3600 == 0 else f'{seconds // 60}분마다'
 
 
-def operations(source, stats=None):
+def operations(source, stats=None, scheduler_running=None):
     from .collection_jobs import FAST
     stats = stats or {}
     sid, mode = source['id'], source.get('collection_mode')
@@ -20,6 +21,7 @@ def operations(source, stats=None):
     keys = [source.get('key_env'), source.get('fallback_key_env')]
     key_ready = any(os.environ.get(k, '').strip() for k in keys if k)
     enabled = os.environ.get('POC10_AUTO_COLLECT', 'true').lower() == 'true'
+    if scheduler_running is not None:enabled = scheduler_running
     manual = source.get('manual_only', False)
     if source.get('implemented', True) is False:
         state, frequency = '연결 준비', '정기 수집 없음'
@@ -38,7 +40,11 @@ def operations(source, stats=None):
     parser = '출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.'
     pdf = ''
     manual_note = '작업자가 수집 범위와 실행 시점을 정합니다.' if manual else ''
-    if sid == 'lh_policy_followup':
+    if mode == 'PUBLICATION_WATCH':
+        discovery_tag = '신규 게시물 탐색'
+        discovery = '등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.'
+        parser = 'HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.'
+    elif sid == 'lh_policy_followup':
         discovery_tag = '지정 문서 재확인'
         discovery = '검토·등록된 LH 보도자료 4건과 공모 1건을 재다운로드합니다. 게시판 전체의 신규 공모를 자동 발견하는 수집기는 아닙니다.'
         parser = 'PDF는 pypdf PdfReader의 layout 텍스트 추출 후 지구·블록·호수·목표월 규칙으로 구조화합니다. HTML은 BeautifulSoup으로 읽습니다.'
@@ -48,7 +54,7 @@ def operations(source, stats=None):
         limit=max(1,min(100,int(stats.get('details_per_batch') or 15)))
         discovery = f'수도권 3개 시도, 2025-09-07 이후 고시의 최신 목록과 과거 이어받기 페이지를 조회합니다. 고시 ID로 상세·첨부를 추적하고, 최근 자료와 과거 대기를 나누어 배치당 최대 {limit}건을 처리합니다. 실패 첨부는 미완료로 유지하고 다음날 재시도합니다.'
         parser = 'PDF는 pypdf로 텍스트 추출, HWPX는 XML 본문·표 파싱을 수행합니다.'
-        pdf = '이미지 PDF는 문자 추출 대기(OCR_REQUIRED), 구형 HWP는 원문 보관 상태로 남겨 별도 판독·추출 보완 대상으로 관리합니다.'
+        pdf = '보관 HWP·스캔 PDF·이미지를 배치당 최대 4개 복구합니다. HWP는 hwp5txt, OCR_REQUIRED는 한국어 OCR로 최대 4쪽을 추출하며 OCR_REVIEW_REQUIRED로 별도 검토합니다. 지형도면·변환 실패·미처리 자료는 대기로 유지하고 실패는 7일 후 재시도합니다.'
         manual_note = '이미지 표의 문자·수치 판독과 자동 추출되지 않은 항목의 입력은 별도 수동 보완 대상으로 관리합니다.'
     elif sid == 'lh_department_plans':
         discovery_tag = '등록 게시글 첨부 탐색'

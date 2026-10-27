@@ -134,9 +134,19 @@ def attach_narrative_tasks(narrative: dict[str, Any], brief: dict[str, Any]) -> 
     """
     topics = narrative.get('topics', [])
     for topic in topics:
-        topic['task_ids'] = []
+        topic['task_ids'] = list(topic.get('retained_task_ids', []))
     for task in brief.get('tasks', []):
         if task.get('status') == 'RESOLVED':
+            continue
+        if any(task['id'] in t['task_ids'] for t in topics):
+            continue
+        linked = set(task.get('related_topic_ids') or [])
+        if task.get('topic_id'):
+            linked.add(task['topic_id'])
+        direct = [t for t in topics if t.get('source_structured_topic_id') in linked]
+        if direct:
+            for topic in direct:
+                topic['task_ids'].append(task['id'])
             continue
         if brief.get('topic_structure'):
             candidates = [t for t in topics if

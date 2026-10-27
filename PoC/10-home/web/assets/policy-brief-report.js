@@ -241,5 +241,5 @@ const PolicyBriefReport = (() => {
    }catch(error){status.textContent='붙임 생성 실패: '+error.message;}finally{inflight=false;controls.forEach(n=>n.disabled=false);period();}
   };
  }
- return {build,appendixModel,body,html,csv,markdown,open,load,contribution,schedules,comparisons,forecast,periodActual,precisionDate,setStyle:s=>{cssText=s;}};
+ return {tableHtml,sectionHtml,download,get,build,appendixModel,body,html,csv,markdown,open,load,contribution,schedules,comparisons,forecast,periodActual,precisionDate,setStyle:s=>{cssText=s;}};
 })();

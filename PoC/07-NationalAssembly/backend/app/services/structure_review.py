@@ -5,18 +5,25 @@ from copy import deepcopy
 from typing import Any
 import json
 
-from .topic_structure import build_prompt, digest, response_schema, validate_response
-from .structure_retry import retry_allowance
+from .topic_structure import build_prompt, digest, response_schema, validate_response, placeholder_label
+from .structure_retry import retry_allowance, review_retry_history
 
 PROFILE = 'discussion-context-review/3'
 DOCUMENT_PROFILE = 'discussion-request-context/1'
 VERIFY_PROFILE = 'discussion-uncertain-check/1'
-READ_PROFILES = {'discussion-context-review/1', 'discussion-context-review/2', PROFILE, DOCUMENT_PROFILE, VERIFY_PROFILE}
+LABEL_PROFILE = 'discussion-placeholder-review/1'
+READ_PROFILES = {'discussion-context-review/1', 'discussion-context-review/2', PROFILE, DOCUMENT_PROFILE, VERIFY_PROFILE, LABEL_PROFILE}
 BATCH_START = 400000
 
 
 def facet_key(facet: dict[str, Any]) -> tuple[str, int, str]:
     return facet['atom_id'], facet['start'], facet['issue']
+
+
+def placeholder_facets(brief: dict[str, Any]) -> list[dict[str, Any]]:
+    return [point['evidence_span'] for topic in brief.get('topics', [])
+            for point in topic.get('speaker_points', []) if point.get('evidence_span')
+            and any(placeholder_label(point['evidence_span'].get(k)) for k in ('parent', 'issue'))]
 
 
 def review_candidates(brief: dict[str, Any], snapshot: dict[str, Any],
@@ -36,12 +43,16 @@ def review_candidates(brief: dict[str, Any], snapshot: dict[str, Any],
         f.get('automatic_review') and len(f.get('quote', '').strip()) >= 80
         for f in targets) else PROFILE, atom_id, targets) for atom_id, targets in groups.items()]
     candidates += [(DOCUMENT_PROFILE, atom_id, targets) for atom_id, targets in documents.items()]
+    labels: dict[str, list[dict[str, Any]]] = {}
+    for facet in placeholder_facets(brief):
+        labels.setdefault(facet['atom_id'], []).append(facet)
+    candidates += [(LABEL_PROFILE, atom_id, targets) for atom_id, targets in labels.items()]
     for profile, atom_id, targets in candidates:
         if profile == DOCUMENT_PROFILE and any(p['atom']['id'] == atom_id for p in pending):
             continue
         attempts = [h for h in history if h['request'].get('profile') == profile
                     and atom_id in [a['id'] for a in h['request'].get('atoms', [])]]
-        if any(h['status'] == 'READY' for h in attempts) or not retry_allowance(attempts):
+        if any(h['status'] == 'READY' for h in attempts) or not retry_allowance(review_retry_history(attempts)):
             continue
         atom = deepcopy(atoms[atom_id])
         atom['context_spans'] = []
@@ -104,7 +115,7 @@ def review_prompt(request: dict[str, Any]) -> str:
 
 
 def validated_review(request: dict[str, Any], response: dict[str, Any]) -> list[dict[str, Any]]:
-    facets = validate_response(response, request['atoms'])
+    facets = validate_response(response, request['atoms'], strict_labels=request.get('profile') == LABEL_PROFILE)
     reasons = response.get('reasons', {})
     if set(reasons) != {a['id'] for a in request['atoms']} or any(
         not isinstance(v, str) or not v.strip() or len(v) > 200 for v in reasons.values()
@@ -147,11 +158,16 @@ def annotate_review_state(brief: dict[str, Any], reviewed: set[str],
                          and f['atom_id'] not in (verified_atoms or set()))
     request_atoms = {r['atom_id'] for r in meta.get('document_requests', []) if not r['related_topic_ids']}
     pending_requests = request_atoms - (reviewed_documents or set())
+    invalid_label_ids = {f['atom_id'] for f in placeholder_facets(brief)}
+    pending_ids = pending_atoms | pending_requests | invalid_label_ids | {f['atom_id'] for f in meta['rejected']}
+    total_ids = reviewed | (reviewed_documents or set()) | (verified_atoms or set()) | pending_ids
     meta['automatic_review'] = {'profile': PROFILE, 'reviewed_atom_count': len(reviewed),
-        'pending_atom_count': len(pending_atoms | pending_requests),
+        'completed_atom_count': len(total_ids - pending_ids), 'total_atom_count': len(total_ids),
+        'pending_atom_count': len(pending_atoms | pending_requests | invalid_label_ids),
+        'invalid_label_atom_count': len(invalid_label_ids),
         'pending_request_atom_count': len(pending_requests), 'unresolved_request_atom_count': len(request_atoms),
         'failed_atom_count': len(meta['rejected']),
-        'status': 'PENDING' if pending_atoms or pending_requests or meta['rejected'] else 'COMPLETED'}
+        'status': 'PENDING' if pending_atoms or pending_requests or invalid_label_ids or meta['rejected'] else 'COMPLETED'}
     by_id = {digest([f['atom_id'], f.get('role'), f.get('start')])[:16]: f
              for f in meta['uncertain']}
     for item in brief['structure_review_items']:
@@ -168,3 +184,23 @@ def annotate_review_state(brief: dict[str, Any], reviewed: set[str],
             item['review_state'] = 'SOURCE_LIMITED' if facet['atom_id'] in reviewed and facet['atom_id'] not in pending_atoms else 'AUTO_PENDING'
             item['reason'] = (facet.get('classification_reason') if item['review_state'] == 'SOURCE_LIMITED'
                               else '앞뒤 발언을 포함해 원문에 맞는 주제로 자동 재분류합니다.')
+
+
+def valid_review_subset(request: dict[str, Any], response: dict[str, Any],
+                        snapshot: dict[str, Any], pending_ids: set[str]):
+    """Recover only complete, source-validated atoms from a rejected review."""
+    from .topic_structure import materialize
+    facets = validated_review(request, response)
+    probe = materialize({'topics': [], 'tasks': []}, snapshot, facets, [], 'review-subset')
+    bad = {f['atom_id'] for f in probe['topic_structure']['uncertain'] if f.get('uncertainty_reason')}
+    good = {a['id'] for a in request['atoms']} & pending_ids - bad
+    if not good:
+        return None
+    subset_request = {**request, 'atoms': [a for a in request['atoms'] if a['id'] in good],
+                      'targets': [f for f in request['targets'] if f['atom_id'] in good]}
+    assignments = response['assignments']
+    subset_response = {'reasons': {k: v for k, v in response['reasons'].items() if k in good},
+        'assignments': ({k: v for k, v in assignments.items() if k in good} if isinstance(assignments, dict)
+                        else [a for a in assignments if a['atom_id'] in good])}
+    validated_review(subset_request, subset_response)
+    return subset_request, subset_response

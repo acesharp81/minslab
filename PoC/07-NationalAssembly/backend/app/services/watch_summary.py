@@ -138,7 +138,9 @@ class MistralWatchSummaryClient:
             }
         if self.provider == "openrouter":
             request_body.update({
-                "reasoning": {"effort": "none", "exclude": True},
+                # Mandatory-reasoning endpoints reject effort=none with HTTP 400.
+                "reasoning": {"effort": "low", "exclude": True},
+                "max_tokens": 8192,
                 "provider": {
                     "data_collection": "allow",
                     "allow_fallbacks": True, "require_parameters": True,

@@ -79,3 +79,22 @@ class ReadScopeTests(unittest.TestCase):
                 self.assertEqual(pool.submit(s.rows, 'project').result()[0]['nested']['value'], 4)
             self.assertEqual(s.rows('project')[0]['nested']['value'], 3)
         self.assertEqual(s.calls, 4)
+
+
+def test_bridge_reads_reuse_explicit_provenance_without_scanning_documents():
+    from backend.evidence_bridge import by_project
+    class EvidenceSource:
+        known_at=None
+        calls=0
+        def rows(self,kind,reference):
+            assert kind=='evidence_bridge'
+            self.calls+=1
+            return [dict(project_id='p',source_entity_id='doc',source_id='cross_source',evidence_source_id='official',facts=[dict(units=10)])]
+        def document_evidence_index(self,*args,**kwargs):raise AssertionError('Unneeded document scan')
+    s=EvidenceSource()
+    with projection_reads():
+        first=by_project(s,date(2026,10,27));first['p'][0]['facts'][0]['units']=0
+        second=by_project(s,date(2026,10,27))
+        assert second['p'][0]['source_id']=='official' and second['p'][0]['facts'][0]['units']==10
+        assert s.calls==1
+    by_project(s,date(2026,10,27));assert s.calls==2

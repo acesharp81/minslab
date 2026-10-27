@@ -630,12 +630,14 @@ function transcriptLine(item) {
 function inferLiveHint(item) {
   const insight = item.live_insight;
   if (insight?.topic && insight?.topic_key) {
+    const discussion = insight.discussion_group;
     const topicKey = String(insight.topic_key).toLocaleLowerCase("ko-KR")
       .replace(/[^가-힣a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     return {
-      topic_id: `ai:${topicKey || insight.topic}`,
+      topic_id: discussion?.id ? `discussion:${discussion.id}` : `ai:${topicKey || insight.topic}`,
+      semantic_group: Boolean(discussion?.id),
       topic_key: insight.topic_key,
-      topic: insight.topic,
+      topic: discussion?.title || insight.topic,
       role: insight.role || "STATEMENT",
       task: insight.task || null,
       task_id: insight.task ? item.utterance_id || item.segment_id : null,
@@ -651,7 +653,8 @@ function inferLiveHint(item) {
 }
 
 function liveTopicTokens(...values) {
-  const stop = new Set(["관련", "정책", "지원", "방안", "개선", "필요", "필요성", "요청", "검토", "추진"]);
+  const stop = new Set(["관련", "정책", "지원", "방안", "개선", "필요", "필요성", "요청", "검토", "추진",
+    "국정감사", "종합", "질의", "답변", "요구", "확인", "논의", "설명", "문제", "제기", "위원", "위원회"]);
   return new Set(
     values.flatMap((value) => (
       String(value || "").toLocaleLowerCase("ko-KR").match(/[가-힣a-z0-9]{2,}/g) || []
@@ -677,7 +680,8 @@ function liveOwnerTokens(values = []) {
 function liveTopicTokenRelated(left, right) {
   if (left === right) return true;
   const [shorter, longer] = left.length <= right.length ? [left, right] : [right, left];
-  return shorter.length >= 2 && longer.includes(shorter);
+  // A shared two-character fragment (국회/국감/위원) is not a shared issue.
+  return shorter.length >= 3 && longer.startsWith(shorter);
 }
 
 function liveTopicOverlap(left, right) {
@@ -698,14 +702,15 @@ function similarLiveTopic(groups, hintTokens, hintOwners, sequence) {
   let best = null;
   let bestScore = 0;
   for (const candidate of new Set(groups.values())) {
+    if (candidate.semanticGroup) continue;
     const candidateTokens = candidate.topicTokens || new Set();
     const overlap = liveTopicOverlap(hintTokens, candidateTokens);
-    const score = overlap / Math.min(hintTokens.size, candidateTokens.size || Infinity);
+    const score = (2 * overlap) / (hintTokens.size + candidateTokens.size || Infinity);
     const ownerMatch = liveTopicSetsOverlap(hintOwners, candidate.ownerTokens || new Set());
     const recent = sequence - Number(candidate.lastSeen || 0) <= 8;
-    const highConfidence = overlap >= 2 && score >= 0.6;
-    const lexicalMatch = overlap >= 2 && score >= 0.42;
-    const contextualMatch = ownerMatch && recent && overlap >= 2;
+    const highConfidence = overlap >= 2 && score >= 0.72;
+    const lexicalMatch = overlap >= 3 && score >= 0.6;
+    const contextualMatch = ownerMatch && recent && overlap >= 2 && score >= 0.65;
     const rank = score + (ownerMatch ? 0.24 : 0) + (recent ? 0.08 : 0);
     if (
       (highConfidence || lexicalMatch || contextualMatch)
@@ -723,7 +728,7 @@ function buildLiveTopics(segmentItems = null) {
   let insightSequence = 0;
   const items = [...(segmentItems || assemblyTranscriptState.segments.values())]
     .filter((item) => item.is_final === true)
-    .sort((a, b) => Number(a.cursor || 0) - Number(b.cursor || 0));
+    .sort((a, b) => Number(a.cursor || a.first_cursor || a.last_cursor || 0) - Number(b.cursor || b.first_cursor || b.last_cursor || 0));
   for (const item of items) {
     const hint = inferLiveHint(item);
     if (!hint) continue;
@@ -731,17 +736,19 @@ function buildLiveTopics(segmentItems = null) {
     insightSequence += 1;
     const hintTokens = liveTopicTokens(hint.topic_key, hint.topic);
     const hintOwners = liveOwnerTokens(hint.ministries);
-    let group = groups.get(hint.topic_id) || similarLiveTopic(groups, hintTokens, hintOwners, sequence);
+    let group = groups.get(hint.topic_id) || (!hint.semantic_group && similarLiveTopic(groups, hintTokens, hintOwners, sequence));
     if (!group) {
       group = {
         topic: hint.topic,
-        topicTokens: new Set(),
+        semanticGroup: Boolean(hint.semantic_group),
+        // Immutable anchor: unioning every matched topic causes A→B→C chains
+        // to absorb an entire meeting into its opening/procedural heading.
+        topicTokens: new Set(hintTokens),
         ownerTokens: new Set(),
         lastSeen: sequence,
         questions: [], answers: [], tasks: new Map(), ministries: new Set(), derived: false,
       };
     }
-    for (const token of hintTokens) group.topicTokens.add(token);
     for (const owner of hintOwners) group.ownerTokens.add(owner);
     group.lastSeen = sequence;
     groups.set(hint.topic_id, group);
@@ -2150,7 +2157,9 @@ function renderMeetingBrief(item, record, options = {}) {
   const identity = magazineElement("div", "", "");
   const labels = magazineElement("div", "meeting-brief-labels", "");
   const sourceOnly = record?.official_integration?.comparison_mode === "SOURCE_ONLY_TIMEOUT";
-  const resultLabel = briefView === "structured" ? "AI 요약 · 쟁점별 구조화 · 잠정"
+  const finalizationPending = record?.brief_finalization && record.brief_finalization.status !== "COMPLETED";
+  const resultLabel = finalizationPending ? "AI 요약 · 자동 검증 중인 초안"
+    : briefView === "structured" ? "AI 요약 · 쟁점별 구조화 · 잠정"
     : briefView === "official"
     ? (sourceOnly ? "공식 발언·화자 반영 · 요약 대조 지연"
       : officialStage === "TEMPORARY"
@@ -2174,6 +2183,22 @@ function renderMeetingBrief(item, record, options = {}) {
     officialTextElement("h3", "", brief.headline || item.title || "회의 결과 정리 중", brief, "headline"),
     officialTextElement("p", "", brief.summary || "저장된 회의 결과를 정리하는 중입니다.", brief, "summary"),
   );
+  if (finalizationPending) {
+    const stages = magazineElement("div", "meeting-stage-tags", "");
+    stages.setAttribute("aria-label", "비공식 정리 단계별 진행 현황");
+    for (const tag of meetingBriefStageTags({meeting_brief: record})) {
+      const badge = magazineElement("span", `meeting-card-tag is-${tag.tone}`, tag.label);
+      badge.title = tag.title || tag.label;
+      stages.append(badge);
+    }
+    identity.append(stages);
+    identity.append(magazineElement("p", "meeting-brief-scope-note",
+      "주제 연결·정책 분류·세부 요약을 자동 점검하고 있습니다. 완료 전 초안이며, 처리 결과를 이어서 반영합니다."));
+  }
+  if (item.has_saved_live_record) {
+    identity.append(magazineElement("p", "meeting-brief-scope-note",
+      `${item.is_recess ? "정회 · 재개 대기 중" : "진행 중인 회의"}의 누적 저장본입니다. 최종 보고서는 회의 종료 후 정리됩니다.`));
+  }
   const topicGrouping = brief.topic_grouping || {};
   if (!structuredBrief && record?.structure_progress?.status) {
     const progress = record.structure_progress;
@@ -2194,7 +2219,13 @@ function renderMeetingBrief(item, record, options = {}) {
     ));
   }
   const lineageTotal = Number(liveTopicLineage.cluster_count || 0);
-  if (lineageTotal > 0) {
+  if (lineageTotal > 0 && structure) {
+    const details = magazineElement("details", "meeting-source-processing-details", "");
+    details.append(magazineElement("summary", "", "주제 연결·원문 처리 내역"));
+    details.append(magazineElement("p", "meeting-brief-scope-note", structuredLineageSummary(brief)));
+    identity.append(details);
+  }
+  if (lineageTotal > 0 && !structure) {
     const lineageMapped = Number(liveTopicLineage.mapped_cluster_count || 0);
     const lineageAmbiguous = Number(liveTopicLineage.ambiguous_cluster_count || 0);
     const lineageUnmapped = Number(liveTopicLineage.unmapped_cluster_count || 0);
@@ -2240,8 +2271,29 @@ function renderMeetingBrief(item, record, options = {}) {
   documentPath.setAttribute("d", "M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6");
   documentIcon.append(documentPath);
   printButton.prepend(documentIcon);
-  printButton.addEventListener("click", () => {
-    openMeetingReportDocument(item, record, brief, briefView);
+  printButton.addEventListener("click", async () => {
+    reportTools.querySelector(".meeting-document-load-error")?.remove();
+    if (brief.report_summary?.topics?.length) {
+      openMeetingReportDocument(item, record, brief, briefView);
+      return;
+    }
+    printButton.disabled = true;
+    printButton.textContent = "요약 문서 준비 중…";
+    try {
+      // The initial list snapshot can render the toolbar before the full
+      // structured narrative arrives. Never export that incomplete snapshot.
+      const fullRecord = await requestMeetingBrief(item, { force: true });
+      if (assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+      const selected = meetingDocumentSource(fullRecord, record._brief_view);
+      openMeetingReportDocument(item, fullRecord, selected.brief, selected.view);
+    } catch (_) {
+      const error = magazineElement("span", "meeting-document-load-error", "요약 문서를 불러오지 못했습니다. 다시 눌러 주세요.");
+      error.setAttribute("role", "alert");
+      reportTools.append(error);
+    } finally {
+      printButton.disabled = false;
+      printButton.replaceChildren(documentIcon, document.createTextNode("요약 문서 · 인쇄/PDF"));
+    }
   });
   const markdownLink = magazineElement("a", "", "Markdown 저장");
   markdownLink.href = `api/live/broadcasts/${encodeURIComponent(item.broadcast_id)}/brief.md?view=${briefView}`;
@@ -2450,9 +2502,11 @@ function renderMeetingBrief(item, record, options = {}) {
       section.id = group.id;
       section.open = group === summaryGroups[0];
       const groupHead = magazineElement("summary", "meeting-topic-group-head", "");
+      const countLabel = group.topic_ids.every((id) => summaryById.get(id)?.source_structured_topic_id)
+        ? "세부 쟁점" : "발언 묶음";
       groupHead.append(magazineElement("span", "", "대주제"),
         magazineElement("h4", "", group.title),
-        magazineElement("small", "", `발언 묶음 ${group.topic_ids.length}개`));
+        magazineElement("small", "", `${countLabel} ${group.topic_ids.length}개`));
       section.append(groupHead);
       for (const topicId of group.topic_ids) {
         const topic = summaryById.get(topicId);
@@ -2547,7 +2601,8 @@ function renderMeetingBrief(item, record, options = {}) {
         const row = magazineElement("li", "", "");
         const status = cluster.mapping_status === "STRUCTURED_MULTI_ISSUE" ? "세부 쟁점 분리"
           : cluster.mapping_status === "STRUCTURED_EVIDENCE" ? "원문 근거 연결"
-          : cluster.mapping_status === "REVIEW_REQUIRED" ? "부분 연결·검토 필요"
+          : cluster.mapping_status === "REVIEW_REQUIRED"
+          ? (structure?.automatic_review?.status === "COMPLETED" ? "주제 연결·불명확 원문 별도 보존" : "부분 연결·자동 검토 중")
           : cluster.mapping_status === "MULTIPLE_FINAL_TOPICS"
           ? "교차 주제" : cluster.mapping_status === "DIRECT_EVIDENCE"
             ? "근거 직접 연결" : cluster.mapping_status === "SUPPLEMENTARY_EVIDENCE"
@@ -2916,6 +2971,85 @@ function meetingReportLoadingVisual(label) {
   return visual;
 }
 
+function meetingBriefProgressTag(item) {
+  const progress = item.brief_progress || item.meeting_brief?.brief_progress || {};
+  const total = Number(progress.total_chunks);
+  const done = Number(progress.completed_chunks);
+  const valid = Number.isInteger(total) && total > 0 && Number.isInteger(done) && done >= 0
+    && progress.status !== "COMPLETED";
+  const count = valid ? `${Math.min(done, total)}/${total}` : "";
+  const waiting = ["DEFERRED", "FAILED"].includes(progress.status);
+  const validationPhase = {STRUCTURING: "주제 검증중", REVIEWING: "발언 재검토중", ONTOLOGY: "정책 분류중", NARRATIVE: "세부 요약중", FINALIZING: "최종 검증중"}[progress.phase];
+  if (validationPhase) return {label: waiting ? "검증 재시도 대기" : validationPhase, tone: "processing",
+    title: "요약 초안은 열람할 수 있습니다. 원문 연결과 정책 분류·세부 요약을 확인한 뒤 완료됩니다."};
+  const phase = waiting ? "재시도 대기"
+    : progress.phase === "CONSOLIDATING" ? "쟁점 통합중"
+    : progress.phase === "SYNTHESIZING" ? "최종 통합중"
+    : progress.phase === "REDUCING" ? "주제 통합중" : "정리중";
+  const unit = progress.phase === "REDUCING" ? "주제 통합 묶음" : "발언 분석 구간";
+  return { label: count ? `${phase} ${count}` : phase, tone: "processing",
+    title: count ? `${unit} ${count} 완료 · ${phase}. 전체 보고서 완료율과는 다릅니다.` : `${phase}입니다.` };
+}
+
+function structuredLineageSummary(brief) {
+  const clusters = brief.live_topic_lineage?.clusters || [];
+  const linked = clusters.filter(c => c.final_topic_ids?.length).length;
+  const partial = clusters.filter(c => c.final_topic_ids?.length && c.review_evidence_ids?.length).length;
+  const unlinked = clusters.filter(c => !c.final_topic_ids?.length && c.mapping_status !== "PROCEDURAL").length;
+  const meta = brief.topic_structure || {};
+  const pending = Number(meta.automatic_review?.pending_atom_count || 0);
+  const saved = new Set((meta.uncertain || []).map(f => f.atom_id)).size;
+  return `${clusters.length}묶음 중 ${linked}묶음에 주제가 연결되어 있습니다.`
+    + (partial ? ` 이 중 ${partial}묶음에는 별도로 보존한 불명확 원문이 포함되어 있습니다.` : "")
+    + (unlinked ? ` 주제 미연결 ${unlinked}묶음.` : "")
+    + (saved ? ` 불명확 원문 ${saved}건은 근거에서 확인할 수 있습니다.` : "")
+    + (pending ? ` 자동 재분류 대상 ${pending}건을 처리하고 있습니다.` : "");
+}
+
+function meetingBriefStageTags(item) {
+  const record = item.meeting_brief || item;
+  const progress = item.brief_progress || record.brief_progress || {};
+  const finalization = item.brief_finalization || record.brief_finalization || {};
+  const ready = item.brief_status === "READY" || record.brief_status === "READY";
+  if (finalization.status === "COMPLETED" || (ready && !finalization.status)) {
+    return [{label: "비공식 정리 완료", tone: "provisional"}];
+  }
+  const definitions = [
+    ["ANALYZING", "발언 분석"], ["INTEGRATION", "통합"], ["REVIEWING", "주제 검증"],
+    ["ONTOLOGY", "정책 분류"], ["NARRATIVE", "세부 요약"], ["FINALIZING", "최종 확인"],
+  ];
+  let stages = progress.stages || finalization.stages;
+  if (!stages?.length) {
+    const phase = finalization.phase || progress.phase;
+    const currentKey = ["REDUCING", "SYNTHESIZING", "STRUCTURING", "CONSOLIDATING"].includes(phase)
+      ? "INTEGRATION" : phase;
+    const position = Math.max(0, definitions.findIndex(([key]) => key === currentKey));
+    stages = definitions.map(([key], index) => ({key, status: index < position ? "COMPLETED"
+      : index > position || phase === "QUEUED" ? "PENDING"
+      : ["DEFERRED", "FAILED"].includes(progress.status) ? "WAITING" : "PROCESSING"}));
+    const countStage = ["ANALYZING", "REDUCING", "CONSOLIDATING"].includes(phase) ? stages[position] : null;
+    if (countStage && Number(progress.total_chunks) > 0) {
+      Object.assign(countStage, {completed: progress.completed_chunks, total: progress.total_chunks, unit: "묶음"});
+    }
+  }
+  return stages.map(stage => {
+    const name = definitions.find(([key]) => key === stage.key)?.[1] || "정리";
+    const done = Number(stage.completed), total = Number(stage.total);
+    const count = stage.completed != null && stage.total != null && Number.isInteger(done)
+      && Number.isInteger(total) && total > 0 && done >= 0 ? ` (${Math.min(done, total)}/${total})` : "";
+    const complete = stage.status === "COMPLETED", future = stage.status === "PENDING";
+    const waiting = stage.status === "WAITING";
+    const suffix = complete ? " 완료" : future ? " 대기" : waiting ? " 재시도 대기" : " 중";
+    let title = `${name}${suffix}${count}${stage.unit ? ` · ${stage.unit} 기준` : ""}. 숫자는 검증을 통과해 저장된 완료 수/현재 전체 대상 수입니다. 추가 대상이 발견되면 총수가 바뀔 수 있습니다.`;
+    const retryAt = progress.retry_after || finalization.retry_after;
+    if (waiting && retryAt && !Number.isNaN(new Date(retryAt).valueOf())) {
+      title += ` 다음 재시도 가능 시각: ${new Date(retryAt).toLocaleString("ko-KR")}`;
+    }
+    return {label: `${name}${suffix}${complete || future ? "" : count}`,
+      tone: complete ? "stage-done" : future ? "stage-pending" : waiting ? "stage-waiting" : "processing", title};
+  });
+}
+
 function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}, record = item.meeting_brief) {
   const stage = document.querySelector("#liveExpandedStage");
   if (!stage) return;
@@ -2927,24 +3061,10 @@ function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}
   );
   const completed = Math.min(total, Number(progress.processed_utterances || 0));
   const percent = total ? Math.round(completed / total * 100) : 0;
-  const endedAt = Date.parse(item.ended_at || "");
-  const possibleResumeAt = Date.parse(item.possible_resume_at || "");
-  const settleUntil = Math.max(
-    Number.isFinite(endedAt) ? endedAt + 120 * 60 * 1000 : 0,
-    Number.isFinite(possibleResumeAt) ? possibleResumeAt + 120 * 60 * 1000 : 0,
-  );
-  const settling = item.institution === "LEGISLATURE"
-    && settleUntil > 0
-    && Date.now() < settleUntil;
-  const phaseLabel = settling
-    ? "재개 여부 확인 중"
-    : progress.phase === "SYNTHESIZING"
-    ? "전체 주제 통합 중"
-    : progress.status === "DEFERRED" || progress.status === "FAILED"
-      ? "재시도 대기 중" : "발언별 주제 분석 중";
-  const phaseDetail = settling
-    ? "같은 날 회의 재개 여부를 확인한 뒤 전체 회차를 한 번에 정리합니다."
-    : "완료되면 자동으로 결과를 표시합니다.";
+  const phaseLabel = progress.status === "DEFERRED" || progress.status === "FAILED"
+    ? "재시도 대기 중"
+    : ["REDUCING", "SYNTHESIZING"].includes(progress.phase) ? "전체 주제 통합 중" : "발언별 주제 분석 중";
+  const phaseDetail = "완료되면 자동으로 결과를 표시합니다.";
   const previousTotal = Number(record?.previous_utterance_count || 0);
   const staleCopy = record?.brief_is_stale && previousTotal
     ? `이전 보고서는 ${previousTotal.toLocaleString("ko-KR")}개 발언 기준입니다. 새로 확인된 ${Math.max(0, total - previousTotal).toLocaleString("ko-KR")}개 발언을 포함해 다시 정리합니다.`
@@ -2960,6 +3080,14 @@ function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}
     magazineElement("h3", "", item.title || item.committee_name || "회의 결과"),
     magazineElement("p", "", staleCopy),
   );
+  const stages = magazineElement("div", "meeting-stage-tags", "");
+  stages.setAttribute("aria-label", "비공식 정리 단계별 진행 현황");
+  for (const tag of meetingBriefStageTags({...item, brief_progress: progress, meeting_brief: record})) {
+    const badge = magazineElement("span", `meeting-card-tag is-${tag.tone}`, tag.label);
+    badge.title = tag.title || tag.label;
+    stages.append(badge);
+  }
+  identity.append(stages);
   const metrics = magazineElement("dl", "meeting-brief-metrics", "");
   for (const [label, value] of [["수집 발언", total], ["정리 완료", completed], ["진행률", `${percent}%`]]) {
     const metric = document.createElement("div");
@@ -3076,17 +3204,42 @@ function requestMeetingBrief(item, options = {}) {
   const cached = cachedMeetingBrief(item);
   if (cached && options.force !== true) return Promise.resolve(cached);
   if (meetingBriefRequests.has(key)) return meetingBriefRequests.get(key);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
   const request = fetch(
     `api/live/broadcasts/${encodeURIComponent(key)}/brief`,
-    { cache: "no-store" },
+    { cache: "no-store", signal: controller.signal },
   ).then(async (response) => {
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
     rememberMeetingBrief(item, payload);
     return payload;
-  }).finally(() => meetingBriefRequests.delete(key));
+  }).finally(() => {
+    window.clearTimeout(timeout);
+    meetingBriefRequests.delete(key);
+  });
   meetingBriefRequests.set(key, request);
   return request;
+}
+
+function renderMeetingBriefLoadError(retry, preserveReport = false) {
+  const stage = document.querySelector("#liveExpandedStage");
+  if (!stage) return;
+  stage.querySelector(".meeting-brief-load-error")?.remove();
+  const notice = magazineElement("section", "meeting-brief-view meeting-brief-load-error", "");
+  notice.setAttribute("role", "alert");
+  notice.append(
+    magazineElement("strong", "", "회의 보고서를 불러오지 못했습니다"),
+    magazineElement("p", "", preserveReport
+      ? "최신 내용을 확인하지 못했습니다. 아래에는 앞서 불러온 보고서를 유지합니다."
+      : "응답이 지연되거나 연결에 문제가 있습니다. 다시 시도해 주세요."),
+  );
+  const button = magazineElement("button", "meeting-evidence-button", "다시 불러오기");
+  button.type = "button";
+  button.addEventListener("click", retry, { once: true });
+  notice.append(button);
+  if (preserveReport) stage.prepend(notice);
+  else stage.replaceChildren(notice);
 }
 
 function prefetchMeetingBriefs(items) {
@@ -3103,6 +3256,20 @@ function prefetchMeetingBriefs(items) {
   }
 }
 
+function meetingBriefRenderSignature(record) {
+  const content = (value) => {
+    if (!value) return null;
+    const {finalization, ...body} = value;
+    return body;
+  };
+  return JSON.stringify([
+    record?.brief_status, record?.brief_finalization?.status, record?.brief_finalization?.phase,
+    record?.brief_progress?.stages,
+    content(record?.brief), content(record?.structured_brief), content(record?.official_brief),
+    record?.official_integration, record?.official_change_report, record?.structure_progress,
+  ]);
+}
+
 function expandMeetingBrief(item, row, options = {}) {
   stopAssemblyTranscript();
   const requestGeneration = assemblyTranscriptState.generation;
@@ -3115,10 +3282,16 @@ function expandMeetingBrief(item, row, options = {}) {
   document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
   row?.setAttribute?.("aria-current", "true");
   let renderedRecord = null;
+  let renderedSignature = null;
   const renderRecord = (record) => {
-    if (record === renderedRecord) return;
-    renderedRecord = record;
+    document.querySelector(".meeting-brief-load-error")?.remove();
+    const signature = meetingBriefRenderSignature(record);
+    if (signature === renderedSignature) return;
+    const scrollY = window.scrollY;
     renderMeetingBrief(item, record, options);
+    if (renderedRecord) window.scrollTo({top: scrollY, behavior: "instant"});
+    renderedRecord = record;
+    renderedSignature = signature;
   };
   const cached = cachedMeetingBrief(item);
   const visibleRecord = cached || item.meeting_brief;
@@ -3154,13 +3327,15 @@ function expandMeetingBrief(item, row, options = {}) {
         assemblyTranscriptState.generation !== requestGeneration
         || assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id
       ) return;
-      if (item.meeting_brief?.brief_content_loaded) {
-        renderRecord(item.meeting_brief);
-      } else {
-        renderMeetingBriefProcessing(item, item.brief_progress, item.meeting_brief);
-      }
       if (assemblyTranscriptState.briefPollTimer) window.clearTimeout(assemblyTranscriptState.briefPollTimer);
-      assemblyTranscriptState.briefPollTimer = window.setTimeout(() => loadBrief(true), 5000);
+      assemblyTranscriptState.briefPollTimer = null;
+      renderMeetingBriefLoadError(() => {
+        if (assemblyTranscriptState.generation !== requestGeneration
+            || assemblyTranscriptState.selectedBroadcastId !== item.broadcast_id) return;
+        document.querySelector(".meeting-brief-load-error")?.remove();
+        if (!renderedRecord) renderMeetingBriefLoading(item);
+        loadBrief(true);
+      }, Boolean(renderedRecord));
     });
   };
   loadBrief();
@@ -3394,20 +3569,42 @@ function startAssemblyTranscript(liveItems) {
 }
 
 function mergeOfficialLiveBroadcasts(statusPayload, activeTranscript) {
-  const active = (activeTranscript?.broadcasts || []).filter(
-    (item) => item.lifecycle_status === "LIVE" && !isWatchTestSource(item.source_system),
-  );
-  for (const item of statusPayload?.assembly?.items || []) {
-    if (!item.is_live) continue;
+  const active = (activeTranscript?.broadcasts || []).filter((item) => (
+    item.lifecycle_status === "LIVE" && item.source_system === "assembly.webcast.go.kr"
+    && !isWatchTestSource(item.source_system)
+  ));
+  if (!statusPayload?.assembly) return;
+  const items = statusPayload.assembly.items || (statusPayload.assembly.items = []);
+  const matched = new Set();
+  for (const item of items) {
     const match = active.find((candidate) => (
-      String(candidate.external_id || "") === String(item.meeting_external_id || "")
-      || candidate.committee_name === item.committee_name
+      item.meeting_external_id
+        ? String(candidate.external_id || "") === String(item.meeting_external_id)
+        : item.is_live && candidate.committee_name === item.committee_name
     ));
     if (!match) continue;
-    item.broadcast_id = match.broadcast_id || item.broadcast_id;
-    item.external_id = match.external_id || item.meeting_external_id;
+    matched.add(match.broadcast_id);
+    Object.assign(item, {
+      broadcast_id: match.broadcast_id, external_id: match.external_id,
+      detected_at: match.detected_at, lifecycle_status: match.lifecycle_status,
+      source_system: match.source_system, has_saved_live_record: true,
+      is_recess: !item.is_live && /정회|계속.*예정|재개.*예정/.test(String(item.status_text || "")),
+    });
     item.stream_url = item.stream_url || match.stream_url || null;
   }
+  // A temporary source-list omission must not hide an unfinished saved meeting.
+  for (const match of active) {
+    const lastSeen = Date.parse(match.last_seen_at || match.detected_at || "");
+    if (matched.has(match.broadcast_id) || !Number.isFinite(lastSeen)
+        || Date.now() - lastSeen > 24 * 60 * 60 * 1000) continue;
+    items.push({ ...match, meeting_external_id: match.external_id,
+      is_live: false, has_saved_live_record: true, is_recess: false,
+      status_text: "방송 상태 확인 중" });
+  }
+}
+
+function visibleAssemblyMeetings(items) {
+  return items.filter((item) => item.is_live || item.has_saved_live_record);
 }
 
 function renderDetectedAssemblyLive(items) {
@@ -3451,7 +3648,9 @@ function addMeetingRailCard(container, card) {
   row.setAttribute("aria-label", [...tags.map((tag) => tag.label), card.title, card.date, card.place, card.onClick ? "상세보기" : ""].filter(Boolean).join(" · "));
   const top = magazineElement("span", "meeting-card-tags", "");
   for (const tag of tags) {
-    top.append(magazineElement("em", `meeting-card-tag is-${tag.tone || "default"}`, tag.label));
+    const badge = magazineElement("em", `meeting-card-tag is-${tag.tone || "default"}`, tag.label);
+    if (tag.title) badge.title = tag.title;
+    top.append(badge);
   }
   const bottom = magazineElement("span", "meeting-card-bottom", "");
   const meta = magazineElement("span", "meeting-card-meta", "");
@@ -4151,22 +4350,34 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
     }
   }
   const matchedExecutiveKeys = new Set();
-  const liveItems = (statusPayload.assembly?.items || []).filter((item) => item.is_live);
+  const liveItems = visibleAssemblyMeetings(statusPayload.assembly?.items || []);
   for (const item of liveItems) {
+    const onAir = Boolean(item.is_live);
+    const stateLabel = onAir ? "진행중" : item.is_recess ? "정회 · 재개 대기" : "방송 상태 확인 중";
     addMeetingRailCard(liveContainer, {
-      state: "live", status: isWatchTestSource(item.source_system) ? "과거 방송 재현 · 기록 중" : "진행중 · 기록 중", institution: "국회",
+      state: onAir ? "live" : "processing", status: stateLabel, institution: "국회",
       tags: [
-        { label: "진행중", tone: "active" },
-        { label: "기록 중", tone: "recording" },
+        { label: stateLabel, tone: onAir ? "active" : "processing" },
+        { label: onAir ? "기록 중" : "누적 기록 보기", tone: onAir ? "recording" : "provisional" },
         ...(isWatchTestSource(item.source_system) ? [{ label: "재현", tone: "processing" }] : []),
         { label: "국회", tone: "institution" },
       ],
       title: item.title || item.committee_name,
-      date: "지금 LIVE", place: item.place || "국회", id: item.broadcast_id || item.meeting_external_id,
+      date: onAir ? "지금 LIVE" : item.status_text, place: item.place || "국회", id: item.broadcast_id || item.meeting_external_id,
       onClick: (row) => isWatchTestSource(item.source_system)
         ? renderWatchTestLive(watchTestLiveState, { focus: true, row })
         : expandLiveBroadcast(item, row),
     });
+    if (item.has_saved_live_record && !(historyPayload.items || []).some((saved) => saved.broadcast_id === item.broadcast_id)) {
+      addMeetingRailCard(reportContainer, {
+        state: "processing", status: stateLabel, institution: "국회",
+        tags: [{ label: stateLabel, tone: "processing" }, { label: "누적 저장본", tone: "provisional" }],
+        title: item.title || item.committee_name, date: onAir ? "회의 진행 중" : item.status_text,
+        place: "현재까지 저장된 요약·원문", id: item.broadcast_id,
+        reportTimestamp: reportTimestamp(item.detected_at), rememberReportSelection: true,
+        onClick: (row) => expandMeetingBrief(item, row),
+      });
+    }
   }
   if (statusPayload.executive?.is_live === true) {
     const executiveLive = {
@@ -4195,7 +4406,7 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       matchedExecutiveKeys.add(liveMatchKey);
     }
   }
-  const hasLive = liveItems.length > 0 || statusPayload.executive?.is_live === true;
+  const hasLive = liveItems.some((item) => item.is_live) || statusPayload.executive?.is_live === true;
   let firstProcessingRow = null;
   for (const ended of historyPayload.items || []) {
     const isExecutive = ended.institution === "EXECUTIVE";
@@ -4227,14 +4438,17 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       : Boolean(ended.official_integration_updated_at);
     const hasReportResult = hasProvisionalResult || hasOfficialResult;
     const showInLiveContinuity = broadcastWasActiveWithin24Hours(ended);
+    const processingTag = meetingBriefProgressTag(ended);
+    const stageTags = hasOfficialResult && !ended.meeting_brief ? [] : meetingBriefStageTags(ended);
     const resultTags = [];
     if (hasProvisionalResult) {
-      resultTags.push({ label: "비공식 정리", tone: "provisional" });
+      resultTags.push(...stageTags);
     } else if (!hasOfficialResult) {
-      resultTags.push({ label: "정리중", tone: "processing" });
+      resultTags.push(...stageTags);
     }
     if (hasOfficialResult) {
-      resultTags.push({ label: "공식정리", tone: "official" });
+      if (!resultTags.length) resultTags.push(...stageTags);
+      resultTags.push({ label: "공식 정리 완료", tone: "official" });
     } else if (!isExecutive && hasOfficialPublication) {
       const comparisonProgress = Math.max(
         0, Math.min(99, Number(ended.official_comparison_progress || 0)),
@@ -4270,10 +4484,10 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       let processingRow = null;
       if (showInLiveContinuity) {
         processingRow = addMeetingRailCard(liveContainer, {
-          state: "processing", status: "완료 · 정리중", institution: ended.institution_label,
+          state: "processing", status: `완료 · ${processingTag.label}`, institution: ended.institution_label,
           tags: [
-            { label: "완료", tone: "complete" },
-            { label: "정리중", tone: "processing" },
+            { label: "방송 종료", tone: "complete" },
+            ...stageTags,
             { label: ended.institution_label, tone: "institution" },
           ],
           title: ended.title || ended.committee_name,
@@ -4294,10 +4508,9 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       }
       if (ended.meeting_brief?.brief) {
         addMeetingRailCard(reportContainer, {
-          state: "processing", status: "완료 · 정리중", institution: ended.institution_label,
+          state: "processing", status: `완료 · ${processingTag.label}`, institution: ended.institution_label,
           tags: [
-            { label: "완료", tone: "complete" },
-            { label: "정리중", tone: "processing" },
+            ...stageTags,
             { label: ended.institution_label, tone: "institution" },
           ],
           title: ended.title || ended.committee_name,
@@ -4315,7 +4528,6 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       state: "result", status: resultTags.map((tag) => tag.label).join(" · ") || "완료",
       institution: ended.institution_label,
       tags: [
-        { label: "완료", tone: "complete" },
         ...resultTags,
         { label: ended.institution_label, tone: "institution" },
       ],
@@ -4333,7 +4545,8 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
         state: "handoff", status: "완료 · 보고서 이동", institution: ended.institution_label,
         tags: [
           { label: "완료", tone: "complete" },
-          { label: hasOfficialResult ? "공식정리" : "비공식 정리", tone: hasOfficialResult ? "official" : "provisional" },
+          ...stageTags,
+          ...(hasOfficialResult ? [{ label: "공식 정리 완료", tone: "official" }] : []),
           { label: ended.institution_label, tone: "institution" },
         ],
         title: ended.title || ended.committee_name,
@@ -4360,7 +4573,7 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       state: "result", status: "공식 정리", institution: "국무회의",
       tags: [
         { label: "완료", tone: "complete" },
-        { label: "공식정리", tone: "official" },
+        { label: "공식 정리 완료", tone: "official" },
         { label: "국무회의", tone: "institution" },
       ],
       title: meeting.title || "국무회의",
@@ -4375,12 +4588,12 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
     });
   }
   sortMeetingReportCards(reportContainer);
-  if (hasLive && !["LIVE", "EXECUTIVE_LIVE"].includes(assemblyTranscriptState.expandedMode)) {
+  const reportsVisible = document.querySelector('[data-workspace-panel="reports"]')?.hidden === false;
+  if (hasLive && !reportsVisible && !["LIVE", "EXECUTIVE_LIVE"].includes(assemblyTranscriptState.expandedMode)) {
     liveContainer.querySelector(".broadcast-row")?.click();
   } else if (!hasLive && firstProcessingRow && !assemblyTranscriptState.expanded) {
     firstProcessingRow.click();
   }
-  const reportsVisible = document.querySelector('[data-workspace-panel="reports"]')?.hidden === false;
   if (reportsVisible && latestMeetingReportState.pending) {
     window.requestAnimationFrame(() => openLatestMeetingReport());
   }
@@ -4541,6 +4754,7 @@ function modelUsageLine(item) {
 }
 
 function renderAiModelUsage(payload) {
+  if (!document.querySelector("#aiModelUsageOpen")) return;
   const models = payload.models || [];
   document.querySelector("#aiModelUsageOpen").title = `${models.length.toLocaleString("ko-KR")}개 모델별 사용량 보기`;
   document.querySelector("#aiModelUsageSummary").textContent = `${Number(payload.platform_count || 0).toLocaleString("ko-KR")}개 공급 경로 · ${models.length.toLocaleString("ko-KR")}개 모델을 60초마다 갱신합니다.`;
@@ -4606,50 +4820,65 @@ function renderAiModelUsage(payload) {
   }
 }
 
-function renderAiUsage(payload) {
+function aiRemainingCards(payload) {
   const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
-  const openrouter = providers.openrouter || (payload.provider === "openrouter" ? payload : {});
-  const openai = providers.openai || {};
-  const mistral = providers.mistral || (payload.provider === "mistral" ? payload : {});
-  const openrouterUsed = Number(openrouter.used || 0);
-  const openrouterLimit = Number(openrouter.official_limit || openrouter.limit || 1000);
-  const openrouterOperationalLimit = Number(openrouter.operational_limit || 950);
-  const openrouterRemaining = Number.isFinite(Number(openrouter.remaining))
-    ? Number(openrouter.remaining) : Math.max(0, openrouterLimit - openrouterUsed);
-  document.querySelector("#aiOpenRouterAmount").textContent = `${openrouterUsed.toLocaleString("ko-KR")} / ${openrouterLimit.toLocaleString("ko-KR")}회`;
-  document.querySelector("#aiOpenRouterDetail").textContent = `운영 ${openrouterOperationalLimit.toLocaleString("ko-KR")} · 남음 ${openrouterRemaining.toLocaleString("ko-KR")}`;
-  document.querySelector("#aiOpenRouterReset").textContent = formatUsageReset(openrouter.resets_at || payload.resets_at);
-  setAiUsageMeter("#aiOpenRouterMeter", openrouter.usage_percent ?? payload.usage_percent);
+  const auxiliaries = Object.fromEntries((payload.auxiliary_models || []).map((item) => [item.provider, item]));
+  const number = (value) => value === null || value === undefined || value === "" ? NaN : Number(value);
+  const unknown = (provider) => ({ provider, percent: null, label: "확인 불가", detail: "잔여량 미확인", title: "사용량 정보를 확인하지 못했습니다." });
+  const remaining = (provider, left, cap, detail, title, requestRatio = 1) => {
+    if (!Number.isFinite(left) || !Number.isFinite(cap) || cap <= 0 || !Number.isFinite(requestRatio)) return unknown(provider);
+    const percent = Math.max(0, Math.min(100, (left / cap) * 100, requestRatio * 100));
+    return { provider, percent, detail, title,
+      label: percent === 0 ? "소진" : percent < 1 ? "1% 미만" : `${Math.floor(percent)}% 남음` };
+  };
+  return ["openrouter", "gemini", "groq", "openai", "mistral"].map((provider) => {
+    if (payload.status === "UNAVAILABLE") return unknown(provider);
+    const item = providers[provider];
+    if (provider === "gemini" || provider === "groq") {
+      const aux = auxiliaries[provider];
+      if (!aux) return unknown(provider);
+      const cap = number(aux.daily_token_cap), left = Math.max(0, cap - number(aux.charged_tokens));
+      const requests = number(aux.daily_request_cap), requestLeft = Math.max(0, requests - number(aux.request_count));
+      const ratio = requests > 0 ? requestLeft / requests : NaN;
+      return remaining(provider, left, cap, "일일 기준",
+        `이 서비스의 일일 배정량 기준: 약 ${Math.floor(left).toLocaleString("ko-KR")}토큰 · ${requestLeft.toLocaleString("ko-KR")}회 남음. 공급자 계정 전체의 무료 잔여량과 다를 수 있습니다.`, ratio);
+    }
+    if (!item) return unknown(provider);
+    if (provider === "openrouter") {
+      const cap = number(item.operational_limit ?? item.limit);
+      const left = number(item.operational_remaining ?? (cap - number(item.used)));
+      return remaining(provider, left, cap, "일일 기준", `이 서비스가 사용하는 일일 운영 한도 기준: ${Math.max(0,left).toLocaleString("ko-KR")}회 남음`);
+    }
+    if (provider === "openai") {
+      const cap = number(item.limit);
+      const left = number(item.remaining ?? (cap - number(item.used) - number(item.reserved_tokens ?? 0)));
+      return remaining(provider, left, cap, "일일 기준", `이 서비스의 일일 배정량 기준: 약 ${Math.max(0,left).toLocaleString("ko-KR")}토큰 남음`);
+    }
+    const cap = number(item.credit_usd), left = cap - number(item.cost_usd);
+    return remaining(provider, left, cap, "이번 달 기준", `설정된 월간 이용 금액 기준: 약 $${Math.max(0,left).toFixed(2)} 남음`);
+  });
+}
 
-  if (providers.openai) {
-    const openaiUsed = Number(openai.used || 0);
-    const openaiLimit = Number(openai.limit || 650000);
-    const openaiRemaining = Number.isFinite(Number(openai.remaining))
-      ? Number(openai.remaining) : Math.max(0, openaiLimit - openaiUsed);
-    const openaiAmount = document.querySelector("#aiOpenAiAmount");
-    openaiAmount.textContent = `${openaiUsed.toLocaleString("ko-KR")} / ${openaiLimit.toLocaleString("ko-KR")}`;
-    openaiAmount.title = `오늘 ${openaiUsed.toLocaleString("ko-KR")} / ${openaiLimit.toLocaleString("ko-KR")}토큰`;
-    document.querySelector("#aiOpenAiDetail").textContent = `남음 ${openaiRemaining.toLocaleString("ko-KR")}토큰`;
-    document.querySelector("#aiOpenAiReset").textContent = formatUsageReset(openai.resets_at);
-    setAiUsageMeter("#aiOpenAiMeter", openai.usage_percent ?? (
-      openaiLimit ? (openaiUsed / openaiLimit) * 100 : 0
-    ));
-  } else {
-    document.querySelector("#aiOpenAiAmount").textContent = "사용량 확인 필요";
-    document.querySelector("#aiOpenAiDetail").textContent = "공급자 정보 없음";
-    document.querySelector("#aiOpenAiReset").textContent = "갱신일 확인 필요";
-    setAiUsageMeter("#aiOpenAiMeter", 0);
+function renderAiUsage(payload) {
+  for (const item of aiRemainingCards(payload)) {
+    const card = document.querySelector(`[data-usage-provider="${item.provider}"]`);
+    if (!card) continue;
+    card.querySelector(".ai-usage-value").textContent = item.label;
+    card.querySelector(".ai-usage-meta span").textContent = item.detail;
+    card.title = item.title;
+    const known = item.percent !== null;
+    card.classList.toggle("is-low", known && item.percent > 0 && item.percent < 10);
+    card.classList.toggle("is-exhausted", known && item.percent === 0);
+    const meter = card.querySelector(".ai-usage-meter");
+    meter.classList.toggle("is-unknown", !known);
+    meter.setAttribute("role", known ? "progressbar" : "img");
+    meter.setAttribute("aria-label", `${card.querySelector("strong").textContent} · ${item.label} · ${item.detail}`);
+    for (const [key,value] of [["aria-valuemin",0],["aria-valuemax",100],["aria-valuenow",Math.floor(item.percent || 0)]]) {
+      if (known) meter.setAttribute(key,String(value));
+      else meter.removeAttribute(key);
+    }
+    meter.querySelector("i").style.width = known ? `${item.percent}%` : "0%";
   }
-
-  const mistralCost = Number(mistral.cost_usd || 0);
-  const mistralCredit = Number(mistral.credit_usd || 0);
-  document.querySelector("#aiMistralAmount").textContent = `$${mistralCost.toFixed(2)} / $${mistralCredit.toFixed(2)}`;
-  document.querySelector("#aiMistralDetail").textContent = `STT ${Number(mistral.audio_request_count || 0).toLocaleString("ko-KR")}회 · ${(Number(mistral.audio_seconds || 0) / 60).toFixed(1)}분`;
-  document.querySelector("#aiMistralReset").textContent = formatUsageReset(mistral.resets_at);
-  setAiUsageMeter("#aiMistralMeter", mistral.usage_percent ?? (
-    mistralCredit ? (mistralCost / mistralCredit) * 100 : 0
-  ));
-  renderAiModelUsage(payload);
   document.querySelector("#aiUsage").classList.toggle("is-unavailable", payload.status === "UNAVAILABLE");
 }
 
@@ -4660,12 +4889,7 @@ function loadAiUsage() {
       return response.json();
     })
     .then(renderAiUsage)
-    .catch(() => {
-      document.querySelector("#aiOpenRouterDetail").textContent = "사용량 확인 필요";
-      document.querySelector("#aiOpenAiDetail").textContent = "사용량 확인 필요";
-      document.querySelector("#aiMistralDetail").textContent = "사용량 확인 필요";
-      document.querySelector("#aiUsage").classList.add("is-unavailable");
-    });
+    .catch(() => renderAiUsage({ status: "UNAVAILABLE" }));
 }
 
 document.querySelector("#aiModelUsageOpen")?.addEventListener("click", () => {

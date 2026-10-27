@@ -1,0 +1,797 @@
+{
+  "requests": [
+    {
+      "url": "",
+      "status": 200,
+      "ms": 56.3,
+      "end": 0.12,
+      "cache": null
+    },
+    {
+      "url": "assets/styles.css?v=20261022-brand-centered",
+      "status": 200,
+      "ms": 28.6,
+      "end": 0.19,
+      "cache": null
+    },
+    {
+      "url": "assets/vendor/leaflet/leaflet.css",
+      "status": 200,
+      "ms": 67.6,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/map.css",
+      "status": 200,
+      "ms": 82.1,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/map-monitor.css",
+      "status": 200,
+      "ms": 82.4,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/map-area-context.css",
+      "status": 200,
+      "ms": 82.7,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/map-bars.css",
+      "status": 200,
+      "ms": 82.9,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/area-dashboard.css",
+      "status": 200,
+      "ms": 83.1,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/annual-supply.css",
+      "status": 200,
+      "ms": 83.2,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/history.css",
+      "status": 200,
+      "ms": 92.3,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-dashboard.css",
+      "status": 200,
+      "ms": 101.0,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/map-workspace.css?v=20261016-controls-view",
+      "status": 200,
+      "ms": 106.9,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-geo.css",
+      "status": 200,
+      "ms": 112.8,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-report.css",
+      "status": 200,
+      "ms": 112.9,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/project-brief-report.css?v=20261023-v1",
+      "status": 200,
+      "ms": 113.0,
+      "end": 0.22,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-brief-report.css?v=20261023-wrap-v2",
+      "status": 200,
+      "ms": 113.7,
+      "end": 0.3,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-907.css?v=20261022-gap-label-v15",
+      "status": 200,
+      "ms": 126.2,
+      "end": 0.3,
+      "cache": null
+    },
+    {
+      "url": "assets/delivery-operations.css?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 127.7,
+      "end": 0.3,
+      "cache": null
+    },
+    {
+      "url": "assets/project-collection.css?v=20261022-field-cells-r2",
+      "status": 200,
+      "ms": 136.7,
+      "end": 0.33,
+      "cache": null
+    },
+    {
+      "url": "assets/user-guide.css?v=20261022-supply-control-v12",
+      "status": 200,
+      "ms": 136.9,
+      "end": 0.33,
+      "cache": null
+    },
+    {
+      "url": "assets/data-integrity.css?v=20261023-tabs",
+      "status": 200,
+      "ms": 137.1,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-information.css",
+      "status": 200,
+      "ms": 136.5,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/housing-indicators.css",
+      "status": 200,
+      "ms": 150.6,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/project-information.css?v=20261022-field-cells",
+      "status": 200,
+      "ms": 150.3,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/report-collection.css?v=20261022",
+      "status": 200,
+      "ms": 163.0,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/collection-starmap.css?v=20261022-starmap-3d-v3",
+      "status": 200,
+      "ms": 163.1,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/publication-reviews.css?v=20261026-3",
+      "status": 200,
+      "ms": 163.2,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/source-preview.css?v=20261022-failed-cards",
+      "status": 200,
+      "ms": 163.5,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-region-map.css?v=20261016-unit-share",
+      "status": 200,
+      "ms": 174.7,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-decision.css",
+      "status": 200,
+      "ms": 174.8,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/report-charts.css?v=20261022-estimate-legend",
+      "status": 200,
+      "ms": 186.5,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/report-md.css",
+      "status": 200,
+      "ms": 187.6,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-workspace.css?v=20261022-visible-axis-v14",
+      "status": 200,
+      "ms": 194.0,
+      "end": 0.36,
+      "cache": null
+    },
+    {
+      "url": "assets/mapping-workbench.css?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 200.9,
+      "end": 0.37,
+      "cache": null
+    },
+    {
+      "url": "assets/brand/the-jutaek.svg",
+      "status": 200,
+      "ms": 205.2,
+      "end": 0.37,
+      "cache": null
+    },
+    {
+      "url": "assets/vendor/leaflet/leaflet.js",
+      "status": 200,
+      "ms": 214.8,
+      "end": 0.37,
+      "cache": null
+    },
+    {
+      "url": "assets/map-bars.js",
+      "status": 200,
+      "ms": 234.2,
+      "end": 0.37,
+      "cache": null
+    },
+    {
+      "url": "assets/map-trends.js",
+      "status": 200,
+      "ms": 246.3,
+      "end": 0.39,
+      "cache": null
+    },
+    {
+      "url": "assets/roadmap.js?v=20261016-controls-view",
+      "status": 200,
+      "ms": 250.9,
+      "end": 0.39,
+      "cache": null
+    },
+    {
+      "url": "assets/map-supply.js?v=20261016-controls-view",
+      "status": 200,
+      "ms": 246.7,
+      "end": 0.39,
+      "cache": null
+    },
+    {
+      "url": "assets/block-monitor.js",
+      "status": 200,
+      "ms": 246.5,
+      "end": 0.41,
+      "cache": null
+    },
+    {
+      "url": "assets/map-progress-tracking.js",
+      "status": 200,
+      "ms": 253.1,
+      "end": 0.41,
+      "cache": null
+    },
+    {
+      "url": "assets/area-dashboard.js",
+      "status": 200,
+      "ms": 253.7,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/map-area-context.js",
+      "status": 200,
+      "ms": 274.7,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/map-monitor.js?v=20261016-controls-view",
+      "status": 200,
+      "ms": 281.3,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/annual-supply.js",
+      "status": 200,
+      "ms": 282.4,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/map-stage-ring.js",
+      "status": 200,
+      "ms": 287.4,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/apartment-shapes.js",
+      "status": 200,
+      "ms": 292.4,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/map-3d.js?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 292.5,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/map.js?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 299.0,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-dashboard.js?v=20261022-compact-sources",
+      "status": 200,
+      "ms": 308.0,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/history.js?v=20261022-compact-sources",
+      "status": 200,
+      "ms": 309.3,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-schematic.js",
+      "status": 200,
+      "ms": 309.4,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-delivery-flow.js",
+      "status": 200,
+      "ms": 321.4,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-geo.js?v=20261022-candidate-exclusion",
+      "status": 200,
+      "ms": 321.7,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-report.js",
+      "status": 200,
+      "ms": 328.5,
+      "end": 0.42,
+      "cache": null
+    },
+    {
+      "url": "assets/vendor/d3-path/d3-path.min.js",
+      "status": 200,
+      "ms": 341.9,
+      "end": 0.43,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-stage-flow.js?v=20261022-render-cache-v17",
+      "status": 200,
+      "ms": 342.0,
+      "end": 0.43,
+      "cache": null
+    },
+    {
+      "url": "assets/vendor/d3-shape/d3-shape.min.js",
+      "status": 200,
+      "ms": 342.3,
+      "end": 0.44,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-decision.js",
+      "status": 200,
+      "ms": 349.7,
+      "end": 0.45,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-region-map.js?v=20261019-scope-final",
+      "status": 200,
+      "ms": 349.8,
+      "end": 0.45,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-information.js?v=20261022-collected-programs",
+      "status": 200,
+      "ms": 355.0,
+      "end": 0.45,
+      "cache": null
+    },
+    {
+      "url": "assets/program-information.js?v=20261022-candidate-exclusion",
+      "status": 200,
+      "ms": 362.6,
+      "end": 0.45,
+      "cache": null
+    },
+    {
+      "url": "assets/housing-indicators.js",
+      "status": 200,
+      "ms": 366.7,
+      "end": 0.45,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-907.js?v=20261022-visible-axis-v14",
+      "status": 200,
+      "ms": 372.0,
+      "end": 0.46,
+      "cache": null
+    },
+    {
+      "url": "assets/delivery-operations.js?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 379.5,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/collected-records.js?v=20261022-records-r3",
+      "status": 200,
+      "ms": 380.0,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/mapping-workbench.js?v=20261026-publication-review",
+      "status": 200,
+      "ms": 380.7,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/collection-repairs.js",
+      "status": 200,
+      "ms": 383.7,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/collection-stage-lineage.js",
+      "status": 200,
+      "ms": 387.1,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/collection-lineage.js",
+      "status": 200,
+      "ms": 387.2,
+      "end": 0.47,
+      "cache": null
+    },
+    {
+      "url": "assets/stage-field-view.js?v=20261022-fields",
+      "status": 200,
+      "ms": 400.7,
+      "end": 0.48,
+      "cache": null
+    },
+    {
+      "url": "assets/project-collection.js?v=20261022-field-cells-r2",
+      "status": 200,
+      "ms": 403.3,
+      "end": 0.49,
+      "cache": null
+    },
+    {
+      "url": "assets/data-integrity.js?v=20261023-history-v1",
+      "status": 200,
+      "ms": 407.1,
+      "end": 0.49,
+      "cache": null
+    },
+    {
+      "url": "assets/project-facility-map.js?v=20261016-legend",
+      "status": 200,
+      "ms": 411.2,
+      "end": 0.49,
+      "cache": null
+    },
+    {
+      "url": "assets/unsold-indicators.js",
+      "status": 200,
+      "ms": 416.8,
+      "end": 0.5,
+      "cache": null
+    },
+    {
+      "url": "assets/project-location.js?v=20261016-facilities",
+      "status": 200,
+      "ms": 416.3,
+      "end": 0.5,
+      "cache": null
+    },
+    {
+      "url": "assets/project-living-charts.js",
+      "status": 200,
+      "ms": 421.5,
+      "end": 0.51,
+      "cache": null
+    },
+    {
+      "url": "assets/project-area-charts.js?v=20261022-null-statistics-v17",
+      "status": 200,
+      "ms": 430.3,
+      "end": 0.52,
+      "cache": null
+    },
+    {
+      "url": "assets/project-summary-card.js?v=20261016-columns",
+      "status": 200,
+      "ms": 430.4,
+      "end": 0.52,
+      "cache": null
+    },
+    {
+      "url": "assets/project-information.js?v=20261022-project-desc",
+      "status": 200,
+      "ms": 435.4,
+      "end": 0.52,
+      "cache": null
+    },
+    {
+      "url": "assets/scope-evidence.js",
+      "status": 200,
+      "ms": 440.5,
+      "end": 0.53,
+      "cache": null
+    },
+    {
+      "url": "assets/requirements-manual.js?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 440.6,
+      "end": 0.53,
+      "cache": null
+    },
+    {
+      "url": "assets/user-guide.js?v=20261022-documents-v16",
+      "status": 200,
+      "ms": 448.4,
+      "end": 0.53,
+      "cache": null
+    },
+    {
+      "url": "assets/source-preview.js?v=20261022-document-cards",
+      "status": 200,
+      "ms": 453.0,
+      "end": 0.54,
+      "cache": null
+    },
+    {
+      "url": "assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2",
+      "status": 200,
+      "ms": 466.2,
+      "end": 0.56,
+      "cache": null
+    },
+    {
+      "url": "assets/policy-brief-report.js?v=20261023-shared-v6",
+      "status": 200,
+      "ms": 464.9,
+      "end": 0.56,
+      "cache": null
+    },
+    {
+      "url": "assets/progress-report.js?v=20261023-project-brief-v2",
+      "status": 200,
+      "ms": 466.7,
+      "end": 0.56,
+      "cache": null
+    },
+    {
+      "url": "assets/project-brief-report.js?v=20261023-v7",
+      "status": 200,
+      "ms": 466.5,
+      "end": 0.56,
+      "cache": null
+    },
+    {
+      "url": "assets/collection-schema.js?v=20261022-starmap-3d-v3",
+      "status": 200,
+      "ms": 472.0,
+      "end": 0.56,
+      "cache": null
+    },
+    {
+      "url": "assets/report-md.js?v=20261022-sequence-rule",
+      "status": 200,
+      "ms": 472.0,
+      "end": 0.57,
+      "cache": null
+    },
+    {
+      "url": "assets/source-years.js?v=20261022-ui-refinement",
+      "status": 200,
+      "ms": 480.6,
+      "end": 0.57,
+      "cache": null
+    },
+    {
+      "url": "assets/publication-reviews.js?v=20261026-2",
+      "status": 200,
+      "ms": 481.7,
+      "end": 0.57,
+      "cache": null
+    },
+    {
+      "url": "assets/app.js?v=20261026-publication-review",
+      "status": 200,
+      "ms": 480.8,
+      "end": 0.57,
+      "cache": null
+    },
+    {
+      "url": "api/admin/status",
+      "status": 200,
+      "ms": 17.6,
+      "end": 0.6,
+      "cache": null
+    },
+    {
+      "url": "assets/favicon.svg?v=20261021-the-jutaek",
+      "status": 200,
+      "ms": 11.0,
+      "end": 0.61,
+      "cache": null
+    },
+    {
+      "url": "api/policies",
+      "status": 200,
+      "ms": 53.2,
+      "end": 0.63,
+      "cache": null
+    },
+    {
+      "url": "api/sources?compact=true",
+      "status": 200,
+      "ms": 235.8,
+      "end": 0.82,
+      "cache": null
+    },
+    {
+      "url": "api/publication-reviews/summary",
+      "status": 200,
+      "ms": 52.1,
+      "end": 0.87,
+      "cache": null
+    },
+    {
+      "url": "api/view-version?view=policy-progress",
+      "status": 200,
+      "ms": 120.5,
+      "end": 0.94,
+      "cache": null
+    },
+    {
+      "url": "api/policy-monitor?as_of_date=2026-10-27&policy_id=POL_2025_0907",
+      "status": 200,
+      "ms": 1622.8,
+      "end": 2.45,
+      "cache": "MISS"
+    },
+    {
+      "url": "api/mappings?as_of_date=2026-10-27&policy_id=POL_2025_0907&compact=true",
+      "status": 200,
+      "ms": 1663.7,
+      "end": 2.5,
+      "cache": "MISS"
+    },
+    {
+      "url": "api/policy-delivery/view?as_of_date=2026-10-27&group=policy&scope=policy",
+      "status": 200,
+      "ms": 5756.3,
+      "end": 6.63,
+      "cache": "MISS"
+    },
+    {
+      "url": "assets/vendor/three/three.module.js",
+      "status": 200,
+      "ms": 19.6,
+      "end": 7.22,
+      "cache": null
+    },
+    {
+      "url": "api/area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+      "status": 200,
+      "ms": 51.1,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "api/area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "status": 200,
+      "ms": 51.6,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "api/area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+      "status": 200,
+      "ms": 49.7,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "api/area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "status": 200,
+      "ms": 49.7,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "api/area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+      "status": 200,
+      "ms": 50.1,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "api/area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+      "status": 200,
+      "ms": 51.5,
+      "end": 7.22,
+      "cache": "AREA_SNAPSHOT"
+    },
+    {
+      "url": "assets/vendor/three/three.core.js",
+      "status": 200,
+      "ms": 74.1,
+      "end": 7.31,
+      "cache": null
+    },
+    {
+      "url": "api/view-version?view=policy-progress",
+      "status": 200,
+      "ms": 36.8,
+      "end": 20.6,
+      "cache": null
+    },
+    {
+      "url": "api/view-version?view=policy-progress",
+      "status": 200,
+      "ms": 31.7,
+      "end": 40.6,
+      "cache": null
+    }
+  ],
+  "errors": [],
+  "body": "주택공급 디지털 상황판\n☰\n주택공급 모니터링\nPoC 10\n\nWORKSPACE\n\n공급현황\n⌄\n추진현황\n⌄\n정책\n프로그램\n사업\n데이터관리\n⌄\n문서\n⌄\n공식 원천 기반 데이터\n\n서울 · 인천 · 경기\n\nMinsLab 프로젝트 ↗\nthe주택 / 정책 추진현황\n정책\n9.7 주택공급 확대방안\n관리자 로그인 ↗\n추진현황 보고서 만들기\n보고서용 MD파일 만들기\n지역·표시 기준\n2D\n3D\n전체\n서울\n경기\n인천\n정책\n사업화\n인허가\n건설\n공급\n입주\n기준 연도\n2026\n2021\n2026 현재\n2031\n현재 연도로\n공급 누적 · 2026-10-27 기준\n승인 연결 사업 전체 · 착공연도로 자동 제외하지 않음\n면 높이·색 농도는 누적 도달량 · 🔴 ! 지연 단계 있음 (부족률 2% 이상)\n지역 선택 해제\n수도권 지역별 추진현황\n경기도\n28,644호\n인천광역시\n5,245호\n서울특별시\n1,821호\n적음\n많음\n정책 개요 · 발표 2025-09-07\n9·7 주택공급 확대방안\n\n선호 입지에 내집 마련의 기회를 대폭 늘리고, 위축된 주택공급 여건을 개선하여 주택시장 안정 및 국민 주거안정 도모\n\n수도권 신규 착공 목표\n1,350,000호\n2026–2030년\n서울특별시\n334,000호\n\n노후 임대·공공청사·유휴부지 재정비와 재개발·재건축으로 도심 공급 확대. 서울 유휴부지 즉시 개발 4천 호 포함.\n\n경기도\n800,000호\n\n3기 신도시 등 공공택지 조기화와 LH 직접 시행, 노후계획도시 정비. 과천지구는 2029년 착공 추진.\n\n인천광역시\n216,000호\n\n수도권 공공택지 공급 확대·조기화 정책 적용. 인천 단독 테마별 물량은 원문에서 분리되지 않아 개별 배정 목표 확인 필요.\n\n경기·인천 공동 1,015,000호\n\n발표 원문 ↗\n공급 방향 설명 ↗\nY축 0–229,200호 · 표시 구간 누적 최대값 × 1.3 · 자동 축척 · 전체 범위 1,350,000호\n수도권 전체 · 정책 진행현황\n기준일\n보조 기준일\n오늘·분기말\n전체 목표 범위\n정책\n▤\n전체 목표\n1,350,000호\n입력 목표 · 그래프 배경 기준\n포함 사업\n177개\n사업화\n▤\n누적 측정량('26.10.27. 기준)\n152,802호\n예상 누적량('26.12.31. 기준)\n174,094호\n기준일 대비 +21,292호\n인허가\n▤\n누적 측정량('26.10.27. 기준)\n99,462호\n예상 누적량('26.12.31. 기준)\n126,552호\n기준일 대비 +27,090호\n착공(건설)\n▤\n누적 측정량('26.10.27. 기준)\n81,131호\n예상 누적량('26.12.31. 기준)\n117,092호\n기준일 대비 +35,961호\n공급\n▤\n누적 측정량('26.10.27. 기준)\n35,710호\n예상 누적량('26.12.31. 기준)\n68,267호\n기준일 대비 +32,557호\n입주\n▤\n누적 측정량('26.10.27. 기준)\n미측정\n예상 누적량('26.12.31. 기준)\n3,845호\n전체 강조\n(호)\n사업화\n사업화\n사업화\n사업화\n인허가\n사업화\n인허가\n사업화\n인허가\n사업화\n인허가\n건설\n사업화\n인허가\n건설\n공급\n사업화 예상\n건설 예상\n공급 예상\n인허가 예상\n건설 예상\n공급 예상\n입주 예상\n인허가 예상\n건설 예상\n공급 예상\n입주 예상\n건설 예상\n공급 예상\n입주 예상\n건설 예상\n공급 예상\n입주 예상\n건설 예상\n공급 예상\n입주 예상\n건설 예상\n공급 예상\n입주 예상\n건설 예상\n입주 예상\n건설 예상\n입주 예상\n미달성(공급)\n0\n57,300\n114,600\n171,900\n229,200\n기준일 2026-10-27\n보조 2026-12-31\n공급 목표대비 21,292호 부족 (37.4%)\n2026-09 목표 기준\n01\n2008년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2009년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2010년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2011년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2012년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2013년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2014년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2015년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2016년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2017년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2018년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2019년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2020년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2021년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2022년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2023년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2024년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2025년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2026년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2027년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2028년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2029년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2030년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2031년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2032년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2033년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2034년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n01\n2035년\n02\n03\n04\n05\n06\n07\n08\n09\n10\n11\n12\n(호)\n0\n57,300\n114,600\n171,900\n229,200\n시간 단위\n월\n년\n목표 비교\n입주\n공급\n착공\n인허가\n← 처음\n현재\n마지막 →\n사업화\n\n지도와 단계 카드는 같은 사업 범위·조회 시점의 단계 도달량(호)을 표시합니다. 승인 연결 사업 전체 · 과거 착공 사업 포함. 단계 간 물량과 갭은 합산하지 않습니다. 보조 기준일이 자료 기준일 이전이면 그날까지의 측정량을, 이후이면 단계별 현재 실적·목표 중 큰 물량에 오늘 이후 해당 날짜까지의 계획 증감을 반영한 예상량을 표시합니다. 같은 사업의 실적·계획은 중복 합산하지 않습니다.\n\n실색\n현재 단계 물량\n붉은색 사선\n목표 물량 대비 부족분\n연한색\n현재 시점 이후 목표 기반 예상 물량\n\n아래부터 사업화→인허가→착공→공급→입주 순서입니다. 각 단계의 실색 두께는 해당 단계 누적량에서 다음 단계 누적량을 뺀 물량이며, 바로 위에는 목표 물량에서 실적 물량을 뺀 양수 부족분만 같은 붉은색 사선으로 쌓습니다. 입주는 자체 누적량입니다. 부족 비율은 부족분 ÷ (부족분 + 해당 단계 누적 달성분)입니다. 실적 물량이 목표보다 많으면 그 실적을 유지하고 빗금은 0입니다. 현재 시점 이후는 각 단계의 현재 실적·목표 중 큰 물량에서 출발하며, 이후 목표 증가분에 따른 단계 이동을 연한색으로 표시합니다. 예정일에 공급이 늘면 건설에서 그만큼 빠지고 공급으로 이동합니다. 후속 단계 미측정 시 확인된 잔여량을 표시하며, 음수 차이는 면적 0으로 표시하고 원래 값은 툴팁에 남깁니다. Y축 상한은 현재 화면에 표시되는 기간의 누적 최대값에 약 1.3을 곱해 정합니다. 좌우로 이동하면 표시 구간에 맞춰 자동 조정합니다.\n\n담당자 입력 목표·현재값 반영 · 추정 입력 포함. 현재값에서 채택한 목표는 변경 기준선이며 최초 계획 대비 지연과 구분합니다.\n\n2008년부터 자료 표시 · 월 단위 · 좌우로 이동하여 전체 기간 확인 · 월 사이 변화는 곡선으로 연결합니다. 곡선 중간값은 시각적 보간이며 목표·측정·갭 수치는 저장된 날짜와 값으로 계산합니다. 실색과 연한 예상값의 전환은 현재 시점(2026-10-27)에 고정됩니다. 날짜 입력은 카드의 조회값과 기준 막대만 바꾸며, 그래프 값은 바꾸지 않습니다. Y축은 화면에 표시되는 기간에 따라 조정됩니다. 미래 구간은 단계별 실적·목표 중 큰 물량에 이후 계획 증감을 반영하여 연결합니다.\n\n정책·프로그램 연간 목표와 공식 통계 · 별도 기준\n10월 공식 발표 사업·물량 대조\n추진현황 통계\n선택 범위 연결 사업 177개 · 단계별 물량은 합산하지 않습니다\n수도권 전체 · 2026-10-27 기준\n월별 실적 흐름\n인허가\n착공\n분양·모집\n준공\n0\n7,550\n1.5만\n2024.11\n2025.05\n2025.11\n2026.05\n2026.10\n\n최근 24개월 단계별 누적 측정값의 월 증가분 · 입력·추정 포함. 0은 등록된 증가분 없음, 미확보는 해당 단계 측정 자료 없음입니다.\n\n지연·주의 추이\n주의 · 2% 미만\n지연 · 2% 이상\n0\n1.2만\n2.3만\n2024.11\n2025.05\n2025.11\n2026.05\n2026.10\n지연 최대 21,292호\n주의 최대 0호\n공급 지연 21,292호 · 37.4%\n준공 지연 4,792호 · 87.3%\n\n상단 누적 그래프와 같은 범위의 목표·측정값으로 월말을 재구성합니다. 부족률 2% 이상은 지연, 0% 초과~2% 미만은 주의입니다. 선과 합계는 상태별 단계 최대 부족량이며 단계 간 물량을 합산하지 않습니다. 비교 자료가 없으면 미확보로 표시합니다.\n\n향후 12개월 공급 예정\n16,616호 29개 사업\n0\n2,451\n4,901\n2026.10\n2027.01\n2027.04\n2027.07\n2027.09\n\n기준일 이후부터 2027-09 말까지 · 누적 공급 목표 증가분에서 이미 측정된 물량 제외. 지난 기한의 미달량은 미래 예정에 재배분하지 않습니다.\n\n기관별 진행현황\n목표 도달\n주의 · 2% 미만\n지연 · 2% 이상\n판정 미확보\nLH\n95,952호 · 144개 사업\n6.3%\n지연 사업 물량 비중\n기관 미상\n40,549호 · 14개 사업\n0.0%\n지연 사업 물량 비중\n인천도시공사\n6,629호 · 7개 사업\n0.0%\n지연 사업 물량 비중"
+}

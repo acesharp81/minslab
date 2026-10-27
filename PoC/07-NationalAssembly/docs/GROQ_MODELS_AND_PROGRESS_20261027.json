@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-27",
+  "image": "poc07-national-assembly-api:stage-progress-20261027-v1",
+  "image_id": "8286867043df",
+  "sources": [
+    "https://console.groq.com/docs/rate-limits",
+    "https://console.groq.com/docs/models",
+    "https://console.groq.com/docs/structured-outputs"
+  ],
+  "probe_scope": "3 synthetic Korean statements (question, answer with promised timing, document request with deadline); not a general benchmark",
+  "initial_probes": [
+    {
+      "model": "openai/gpt-oss-120b",
+      "passed": true,
+      "seconds": 0.92,
+      "usage": {
+        "queue_time": 0.123879771,
+        "prompt_tokens": 354,
+        "prompt_time": 0.023311336,
+        "completion_tokens": 268,
+        "completion_time": 0.557929239,
+        "total_tokens": 622,
+        "total_time": 0.581240575,
+        "completion_tokens_details": {
+          "reasoning_tokens": 134
+        }
+      },
+      "response": {
+        "q": {
+          "role": "QUESTION",
+          "summary": "재난 예산 집행 지연 이유를 묻는 질문"
+        },
+        "a": {
+          "role": "ANSWER",
+          "summary": "담당자 교체로 검토가 늦었으며 다음 주에 설명하겠다고 답변"
+        },
+        "r": {
+          "role": "DOCUMENT_REQUEST",
+          "summary": "지역별 재난 예산 집행 내역을 금요일까지 제출해 달라는 요청"
+        }
+      }
+    },
+    {
+      "model": "openai/gpt-oss-20b",
+      "error": "HTTPError"
+    },
+    {
+      "model": "qwen/qwen3.8-27b",
+      "passed": false,
+      "seconds": 0.93,
+      "usage": {
+        "queue_time": 0.055548695,
+        "prompt_tokens": 130,
+        "prompt_time": 0.009100662,
+        "completion_tokens": 352,
+        "completion_time": 0.676494172,
+        "total_tokens": 482,
+        "total_time": 0.685594834,
+        "completion_tokens_details": {
+          "reasoning_tokens": 260
+        }
+      },
+      "response": {
+        "a": {
+          "role": "QUESTION",
+          "summary": "위원이 재난 예산 집행 지연 원인을 묻고 있다."
+        },
+        "q": {
+          "role": "ANSWER",
+          "summary": "장관이 담당자 변경으로 인한 검토 지연을 설명하고 있다."
+        },
+        "r": {
+          "role": "QUESTION",
+          "summary": "위원이 지역별 재난 예산 집행 내역 금요일 제출을 요청하고 있다."
+        }
+      }
+    }
+  ],
+  "retry_probe": [
+    {
+      "model": "openai/gpt-oss-20b",
+      "passed": true,
+      "seconds": 0.63,
+      "usage": {
+        "queue_time": 0.262990172,
+        "prompt_tokens": 354,
+        "prompt_time": 0.006845711,
+        "completion_tokens": 120,
+        "completion_time": 0.131384423,
+        "total_tokens": 474,
+        "total_time": 0.138230134,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 30
+        }
+      },
+      "response": {
+        "q": {
+          "role": "QUESTION",
+          "summary": "재난 예산 집행 지연 원인 문의"
+        },
+        "a": {
+          "role": "ANSWER",
+          "summary": "장관이 담당자 변경으로 검토가 지연되었음을 밝힘"
+        },
+        "r": {
+          "role": "DOCUMENT_REQUEST",
+          "summary": "위원이 재난 예산 집행 내역 제출을 요청함"
+        }
+      }
+    }
+  ],
+  "semantic_review": {
+    "openai/gpt-oss-120b": "Correct source IDs and roles; next-week promise and Friday deadline preserved.",
+    "openai/gpt-oss-20b": "Initial HTTP 400; retry passed JSON and role checks but omitted next-week explanation promise and Friday deadline.",
+    "qwen/qwen3.8-27b": "Valid JSON but swapped question/answer source IDs; document request mislabeled QUESTION."
+  },
+  "decision": "Keep gpt-oss-120b for current production tasks. Do not enable candidates from this limited probe.",
+  "provider_free_limits_documented": {
+    "candidate_models_tpm": 8000,
+    "candidate_models_tpd": 200000,
+    "candidate_models_rpd": 1000
+  },
+  "local_budget_unchanged": {
+    "tokens_per_day": 100000,
+    "requests_per_day": 400,
+    "request_interval_seconds": 65
+  },
+  "changes": [
+    "Durable per-stage counters exposed on list and detail",
+    "Unique atom counts exclude second-pass pending atoms",
+    "Complete stage tags collapse into 비공식 정리 완료; retain alongside 공식 정리 완료",
+    "HTTP 400/404 cause 65-second cooldown; auth and 429 policy unchanged"
+  ],
+  "verification": {
+    "backend_tests_passed": 47,
+    "frontend_tests_passed": 11,
+    "runtime_checks_passed": 25,
+    "desktop_tag_clipping": false,
+    "mobile_tag_clipping": false,
+    "browser_errors": [],
+    "official_completion_preserves_provisional_tag": "passed using browser-only response fixture",
+    "mobile_title_visible_after_wrapped_tags": true
+  },
+  "observed_progress": {
+    "행안위": {
+      "completed": 302,
+      "total": 349,
+      "stage": "NARRATIVE",
+      "status": "PROCESSING"
+    },
+    "법사위": {
+      "completed": 59,
+      "total": 62,
+      "stage": "NARRATIVE",
+      "status": "WAITING"
+    }
+  }
+}

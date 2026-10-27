@@ -1,3 +1,4 @@
+import json
 import os
 import threading
 from collections import Counter, defaultdict
@@ -5,7 +6,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import or_, select, text, update, func
+from sqlalchemy import or_, select, text, update, func, column, Text, JSON, true
 
 from .read_scope import reuse_rows,reuse_projection,projection_builder
 from .collectors import Fetcher, collect
@@ -170,7 +171,10 @@ class HomeService:
             if source['id']=='gh_notice':
                 from .gh_portal import reconcile as reconcile_gh
                 reconcile_gh(self)
-            if source.get('collection_mode')=='AGENCY_PLAN_FILE':
+            if source.get('collection_mode')=='PUBLICATION_WATCH':
+                from .publication_watch import collect as collect_publications
+                records,stats=collect_publications(source,fetcher)
+            elif source.get('collection_mode')=='AGENCY_PLAN_FILE':
                 from .agency_plan_files import collect_plan_file
                 records,stats=collect_plan_file(source,fetcher)
             elif source['id']=='lh_policy_followup':
@@ -470,12 +474,23 @@ class HomeService:
         query=select(p['project_id'].as_string(),p['stage'].as_string(),p['status'].as_string(),p['selected']).where(
             Revision.kind=='stage_evidence',Revision.recorded_at<cutoff,visibility,
             p['base_date'].as_string()<=day.isoformat(),p['status'].as_string().in_(('REVIEW','CONFIRMED')))
+        if self.engine.dialect.name == 'postgresql':
+            # JSON (not JSONB) operators reparsed the full candidate archive for
+            # every selected field/predicate. Expand each visible row once and
+            # return only its chosen evidence; retain the same history cutoff.
+            visible=select(Revision.payload).where(Revision.kind=='stage_evidence',
+                Revision.recorded_at<cutoff,visibility).cte('visible_stage_rows').prefix_with('MATERIALIZED',dialect='postgresql')
+            fields=func.json_to_record(visible.c.payload).table_valued(
+                column('project_id',Text),column('stage',Text),column('status',Text),
+                column('selected',JSON),column('base_date',Text)).render_derived(name='stage_fields',with_types=True).lateral()
+            query=select(fields.c.project_id,fields.c.stage,fields.c.status,fields.c.selected).select_from(
+                visible.join(fields,true())).where(fields.c.base_date<=day.isoformat(),fields.c.status.in_(('REVIEW','CONFIRMED')))
         with self.sessions() as db:
             return [dict(project_id=pid,stage=stage,status=status,selected=selected)
                     for pid,stage,status,selected in db.execute(query) if selected]
 
     @reuse_projection
-    def document_evidence_index(self, as_of=None):
+    def document_evidence_index(self, as_of=None, entity_ids=None):
         """Document provenance/state only; keep full text in the evidence reader.
 
         Match rows()'s event-date and knowledge-time visibility. Decode in small
@@ -496,6 +511,7 @@ class HomeService:
         query = select(Revision.entity_id, Revision.source_id, Revision.payload).where(
             Revision.kind == 'document_evidence', Revision.recorded_at < cutoff, visibility
         ).execution_options(yield_per=64)
+        if entity_ids is not None:query=query.where(Revision.entity_id.in_(entity_ids))
         with self.sessions() as db:
             return [dict(id=eid, source_id=sid, **{key:payload.get(key) for key in fields})
                     for eid, sid, payload in db.execute(query)
@@ -611,7 +627,7 @@ class HomeService:
             return result
 
     @reuse_projection
-    def projects(self, as_of=None, region=None, policy_id=None, source_id=None, stage=None, q=None, mapping_status=None):
+    def _project_details(self, as_of=None):
         rows = self.rows("project", as_of)
         locations={r['project_id']:r for r in self.rows('project_location',as_of) if r.get('status')!='RELEASED'}
         for row in rows:
@@ -652,6 +668,11 @@ class HomeService:
                 if approved:plan_row[field]=approved['due_date']
             row["construction_plan"]=construction_plan(plan_row,as_of or today())
             row.update(milestone_state(row, as_of or today()))
+        return rows
+
+    @reuse_projection
+    def projects(self, as_of=None, region=None, policy_id=None, source_id=None, stage=None, q=None, mapping_status=None):
+        rows = self._project_details(as_of)
         for field, value in (("region", region), ("source_id", source_id), ("stage", stage)):
             if value:
                 rows = [r for r in rows if r.get(field) == value]
@@ -758,6 +779,12 @@ class HomeService:
     def sources(self, compact=False):
         from .source_summary import source_metadata
         from .source_operations import operations
+        scheduler_running=None
+        try:
+            heartbeat=json.loads((self.data_dir/'runtime/collection-worker-health.json').read_text())
+            age=(datetime.now(timezone.utc)-datetime.fromisoformat(heartbeat['checked_at'])).total_seconds()
+            scheduler_running=0<=age<90 and 'home-collector' in heartbeat['running_threads']
+        except (OSError,ValueError,KeyError,TypeError):pass
         with self.sessions() as session:
             attempts={b.source_id:b for b in latest_batches(session)}
             successes={b.source_id:b for b in latest_batches(session,'SUCCESS')}
@@ -775,10 +802,10 @@ class HomeService:
                 item["last_success"] = as_utc(success.finished_at).isoformat() if success else None
                 item["error"] = last.error if last else None
                 item["record_count"] = success.stats.get("cumulative_record_count", success.stats.get("record_count", 0)) if success else 0
-                item["stats"] = ({k: v for k, v in success.stats.items() if k in {"source_base_date", "dataset_version"}} if compact else {k: v for k, v in success.stats.items() if k != "entity_ids"}) if success else {}
+                item["stats"] = ({k: v for k, v in success.stats.items() if k in {"source_base_date", "dataset_version", "detail_remaining", "attachments_text_pending", "text_recovery_attempted", "text_recovered", "ocr_review_pending", "discovery_only", "latest_published"}} if compact else {k: v for k, v in success.stats.items() if k != "entity_ids"}) if success else {}
                 item["snapshot_count"] = len(success.manifest) if success else 0
                 item["snapshots"] = success.manifest if success and not compact else []
-                item["operations"] = operations(source, success.stats if success else {})
+                item["operations"] = operations(source, success.stats if success else {}, scheduler_running=scheduler_running)
                 result.append(item)
             return result
 

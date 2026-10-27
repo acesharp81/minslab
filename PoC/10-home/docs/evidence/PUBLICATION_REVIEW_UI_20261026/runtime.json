@@ -1,0 +1,207 @@
+{
+  "total": 18,
+  "pending": 18,
+  "counts": {
+    "REVIEW": 18
+  },
+  "priorities": {
+    "1": 1,
+    "2": 3,
+    "3": 8,
+    "4": 6
+  },
+  "production_reviews": 0,
+  "production_review_audits": 0,
+  "cases": [
+    {
+      "id": "DOC_528c011f03ec6fac320df953",
+      "title": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+      "priority": 1,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_df2b6ad28caa146e40165715",
+          "name": "중랑 면목행정복합타운",
+          "policy_id": "POL_2026_0129"
+        },
+        {
+          "id": "PRO_1a2f7971d22b94d5210c83b2",
+          "name": "면목(용마터널)",
+          "policy_id": "POL_2026_0813"
+        },
+        {
+          "id": "PRO_81b3115095b754e7ec4ed14a",
+          "name": "면목(상봉터미널)",
+          "policy_id": "POL_2026_0813"
+        }
+      ]
+    },
+    {
+      "id": "DOC_1689f50f06f6d3e57669e061",
+      "title": "'신길4구역'·'녹번동근린공원'·'송중동 주민센터 인근' 도심복합사업 본궤도...후속절차 속행",
+      "priority": 2,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_879332d8d922f83dd0c8ba74",
+          "name": "송중동 주민센터",
+          "policy_id": "POL_2026_0813"
+        },
+        {
+          "id": "PRO_aeec29784fa6fefa3869f86a",
+          "name": "녹번동근린공원",
+          "policy_id": "POL_2026_0813"
+        },
+        {
+          "id": "PRO_f6c0192892345ead1fe0e5de",
+          "name": "신길4",
+          "policy_id": "POL_2026_0813"
+        }
+      ]
+    },
+    {
+      "id": "DOC_46a03e4451788c1ae845bd74",
+      "title": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+      "priority": 2,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_095dc3097cc065c4cb4e9da4",
+      "title": "제물포역 북측 공공주택 복합사업 이주율 90.8% 달성… 연내 착공 청신호",
+      "priority": 2,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_a0d337124ee67a9f014a4b0f",
+          "name": "제물포 도심공공복합",
+          "policy_id": "POL_2025_0907"
+        }
+      ]
+    },
+    {
+      "id": "DOC_87cca7787d542e5eb6512549",
+      "title": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_5fd2115e976e1d5bb4e90456",
+          "name": "시흥거모 S1",
+          "policy_id": "POL_2025_0907"
+        }
+      ]
+    },
+    {
+      "id": "DOC_4ffc89d2df92899aa341db4d",
+      "title": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+      "title": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_5b74fdf3cdf3e46eb1fdf2ba",
+          "name": "수서 노후 임대 재건축",
+          "policy_id": "POL_2025_0907"
+        }
+      ]
+    },
+    {
+      "id": "DOC_c45f9c890c1f952db73a95a6",
+      "title": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": [
+        {
+          "id": "PRO_5b74fdf3cdf3e46eb1fdf2ba",
+          "name": "수서 노후 임대 재건축",
+          "policy_id": "POL_2025_0907"
+        }
+      ]
+    },
+    {
+      "id": "DOC_a15ac1688f0ad3ac70c3f17f",
+      "title": "새글 한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_47c1fe723b89426ace3ff7a5",
+      "title": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_6d057dab2fea19e2702fa60a",
+      "title": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_4ce61401faff4df183327aed",
+      "title": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+      "priority": 3,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_8342ce93f1d6ae7c53d1fb76",
+      "title": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_896355b48ccf361d4f64c579",
+      "title": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_9671d4d7729d0b82c52baab2",
+      "title": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_ee0ac34035f66904d8348637",
+      "title": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_cbe7b733bbc4f55f25f79092",
+      "title": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    },
+    {
+      "id": "DOC_94cab4bf5e40c75ed98b8d62",
+      "title": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+      "priority": 4,
+      "status": "REVIEW",
+      "candidates": []
+    }
+  ],
+  "hashes": {
+    "backend/publication_reviews.py": "07aae194af5e23b15c3af28c9969c929a13f31c02cb0f1c1ae2884f69028e9db",
+    "backend/mapping_workbench.py": "4dfb021c255ea5e8ab2511da64468e9c1a54bb0d7402007631847d8a4135014e",
+    "web/assets/publication-reviews.js": "d515cd9692b03df2661ffc5efaffe7c1635f1ad62bd7f8835695bae1830d459c",
+    "web/assets/publication-reviews.css": "7e6844be7f14d1eac3699a42f184250ab508291a3044c68b319e81c8da38e8bb",
+    "web/assets/mapping-workbench.js": "eeb8735ae63fd3061cbd0749a3d764d3ad3392b1815e157624406442900f680f",
+    "web/assets/app.js": "d32092e57a126ead12978833089e2ea0f6a9bedef0f999b043b079c2f7e13f2a"
+  }
+}

@@ -9,6 +9,7 @@ const sourceNames = new Map();
 const warningNames = {POLICY_PLAN_NOT_ACTUAL:'정책 계획 · 실적 미확인',JOINT_QUANTITY_UNALLOCATED:'여러 지구 합계 · 개별 물량 미확보',AGENCY_PLAN_NOT_ACTUAL:'기관 계획 · 실적 미확인',MUNICIPALITY_UNVERIFIED:'시군구 연결 검토',MAPPING_REVIEW:'정책 귀속 검토 필요', STALE_SOURCE:'원천 기준일 30일 초과', PAST_PLAN_UNVERIFIED:'지난 예정일 · 실제 이행 미확인', UNITS_UNKNOWN:'개별 물량 미확보', TOTAL_CONFLICT:'총세대수 불일치', SUPPLY_EXCEEDS_TOTAL:'공급호수 > 총세대수', MISSING_IN_LATEST_SOURCE:'최신 원천에서 미발견', MULTI_SITE_CONTRACT:'복수 현장 계약 · 지역별 물량 확인', USE_INSPECTION_FIELD_REVIEW:'사용검사 필드 의미 검토 · 준공으로 확정하지 않음', ZERO_UNITS_REVIEW:'원천 세대수 0 · 용도·집계 기준 확인', ADDRESS_APPROXIMATE:'주소 일부를 정리해 검색 · 사업 경계 확인 필요', GEOCODE_NOT_FOUND:'주소 좌표 미발견'};
 const labels = {'supply-conditions':'지역여건',overview:'공급현황 지도','annual-supply':'연도별 공급 비교',area:'인구·가구·고용 분석','policy-progress':'정책 추진현황','program-progress':'프로그램 추진현황',history:'정책 흐름·과거 자료', projects:'사업 추진현황', tree:'정책-프로그램-사업 연결', sources:'출처와 수집현황', 'project-collection':'사업별 수집연계',manual:'사용법',requirements:'요구사항정의'};
 labels['data-integrity']='데이터 정합성 확인';
+labels['publication-reviews']='신규 자료 검토';
 warningNames.PHOTO_MONTH_BASIS='사진 원본의 현장 기준월 · 등록일과 구분';
 warningNames.PLAN_NOT_ACTUAL='입주계획 · 실제 입주실적 아님';
 warningNames.ANNOUNCEMENT_NOT_OCCUPANCY='공고 공급호수 · 준공·실입주량 아님';
@@ -108,12 +109,12 @@ function renderSources(sources) {
   sources=sources.slice().sort((a,b)=>order[category(a)]-order[category(b)]);
   const registry=sources.filter(s=>!s.virtual),apiCount=registry.filter(s=>s.data_type==='API').length;
   document.querySelector('[data-source-volume="sources"] strong').innerHTML=num(registry.length)+'<small>개</small>';
-  $('source-registry-count').textContent='API '+num(apiCount)+'개 · 파일·웹 '+num(registry.length-apiCount)+'개';
-  $('source-channel-summary').innerHTML=Object.entries(labels).map(([key,label])=>{const group=sources.filter(s=>category(s)===key),errors=group.filter(s=>s.status==='FAILED'),excluded=group.filter(s=>s.id==='ih_supply'&&s.manual_only&&!s.record_count),paths=group.filter(s=>!s.virtual).length,docs=group.filter(s=>s.virtual).length;return '<section class="source-channel-stat"><h2>'+label+'</h2><strong>'+num(group.length)+'<small>개</small></strong><p>'+(key==='API'?'등록 API 경로':key==='OFFICIAL_WEB'?'등록 파일·웹 경로 '+num(paths)+'개 · 문서 출처 '+num(docs)+'곳':'확보 문서 출처 '+num(docs)+'곳')+'</p>'+(errors.length||excluded.length?'<p class="source-channel-error" data-collector-errors="'+key+'">'+(errors.length?'수집 오류 '+errors.length+'개':'')+(excluded.length?' · iH '+excluded.length+'개 자동 수집 제외':'')+'</p>':'')+'</section>';}).join('');
-  $('source-channel-summary').title='수집 목록의 항목 수입니다. 공식 웹에는 등록 파일·웹 경로와 별도 확보 문서 출처를 함께 표시하며 같은 기관이 여러 항목에 포함될 수 있습니다.';
+  $('source-registry-count').textContent='자동 '+num(registry.filter(s=>!s.manual_only&&s.implemented!==false).length)+'개 · 수동 '+num(registry.filter(s=>s.manual_only).length)+'개 · 문서 발행처 '+num(sources.filter(s=>s.virtual).length)+'곳';
+  $('source-channel-summary').innerHTML=Object.entries(labels).map(([key,label])=>{const group=sources.filter(s=>category(s)===key),errors=group.filter(s=>s.status==='FAILED'),excluded=group.filter(s=>s.id==='ih_supply'&&s.manual_only&&!s.record_count),paths=group.filter(s=>!s.virtual).length,docs=group.filter(s=>s.virtual).length;return '<section class="source-channel-stat"><h2>'+label+'</h2><strong>'+num(group.length)+'<small>개</small></strong><p>'+(key==='API'?'등록 API 경로':'등록 수집 경로 '+num(paths)+'개 · 문서 발행처 '+num(docs)+'곳')+'</p>'+(errors.length||excluded.length?'<p class="source-channel-error" data-collector-errors="'+key+'">'+(errors.length?'수집 오류 '+errors.length+'개':'')+(excluded.length?' · iH '+excluded.length+'개 자동 수집 제외':'')+'</p>':'')+'</section>';}).join('');
+  $('source-channel-summary').title='등록 수집기와 보관 문서의 발행처 분류를 함께 표시합니다. 문서 발행처는 독립된 자동 수집 경로가 아니며 같은 기관이 중복 표시될 수 있습니다.';
   const groupTitle=(s,i)=>i&&category(sources[i-1])===category(s)?'':'<h3 class="source-authority-heading" data-authority="'+esc(s.authority||'UNKNOWN')+'" data-source-category="'+category(s)+'">'+labels[category(s)]+' <small>'+num(sources.filter(r=>category(r)===category(s)).length)+'개 항목</small></h3>';
   const statusNames = {SUCCESS:'수집 정상', REGISTERED:'문서 확보', FAILED:'수집 실패', RUNNING:'수집 중', NOT_COLLECTED:'수집 대기', INTERRUPTED:'수집 중단', CONNECTOR_PENDING:'연결 준비'};
-  $('sources-list').innerHTML = sources.map((s,i) => `${groupTitle(s,i)}<article class="source-card${s.status === 'FAILED' ? ' source-collection-failed' : ''}" data-source-id="${esc(s.id)}"><div class="source-title"><h3 title="${esc(s.name)}">${esc(s.name)}</h3><span class="badge ${['SUCCESS','REGISTERED'].includes(s.status) ? 'confirmed' : s.status === 'FAILED' ? 'failed' : 'neutral'}">${statusNames[s.status] || esc(s.status)}</span><div class="source-operation-tags">${(s.operations?.tags||[]).map(t=>`<span class="source-operation-tag ${esc(t.kind)}">${esc(t.label)}</span>`).join('')}${s.operations?`<button type="button" class="source-operation-info" data-source-operations="${esc(s.id)}">수집·전처리 방식 ⓘ</button>`:""}</div></div><p><span class="source-kind-tag">${esc(s.data_type_label||'웹 자료')}</span> ${esc(s.org)} · ${esc(s.operations?.mode||(s.virtual?'수집·검토한 문서 원천':'수집 방식 확인 필요'))}</p><div class="source-data"><div><span>${s.virtual?'문서 기록 갱신':'마지막 정상 수집'}</span><strong>${timeText(s.virtual?s.last_recorded_at:s.last_success)}</strong></div><div><span>${s.virtual?'확보 문서 기록':s.collection_mode === 'TEST_SAMPLE' ? '테스트 표본' : s.collection_mode === 'MAP_LAYER' ? '공동주택용지 지구' : '정상 레코드'}</span><strong>${num(s.record_count)}건</strong></div></div>${(s.stats.source_base_date || s.stats.dataset_version) ? `<p>원천 자료 기준일 ${esc(s.stats.source_base_date || s.stats.dataset_version)} · 현재 실적과 구분</p>` : ''}${s.description?`<p>${esc(s.description)}</p>`:''}${s.error ? `<p>${esc(s.error)}</p>` : ''}<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">${s.authority==='OFFICIAL'?'공식 원천 확인':'출처 확인'} ↗</a>${s.snapshots.length ? `<details data-source-snapshots="${esc(s.id)}"><summary>근거 snapshot ${s.snapshots.length}개 · SHA-256</summary><div class="source-snapshot-body"></div></details>` : ''}</article>`).join('');
+  $('sources-list').innerHTML = sources.map((s,i) => `${groupTitle(s,i)}<article class="source-card${s.status === 'FAILED' ? ' source-collection-failed' : ''}" data-source-id="${esc(s.id)}"><div class="source-title"><h3 title="${esc(s.name)}">${esc(s.name)}</h3><span class="badge ${['SUCCESS','REGISTERED'].includes(s.status) ? 'confirmed' : s.status === 'FAILED' ? 'failed' : 'neutral'}">${statusNames[s.status] || esc(s.status)}</span><div class="source-operation-tags">${(s.operations?.tags||[]).map(t=>`<span class="source-operation-tag ${esc(t.kind)}">${esc(t.label)}</span>`).join('')}${s.operations?`<button type="button" class="source-operation-info" data-source-operations="${esc(s.id)}">수집·전처리 방식 ⓘ</button>`:""}</div></div><p><span class="source-kind-tag">${esc(s.data_type_label||'웹 자료')}</span> ${esc(s.org)} · ${esc(s.operations?.mode||(s.virtual?'수집·검토한 문서 원천':'수집 방식 확인 필요'))}</p><div class="source-data"><div><span>${s.virtual?'문서 기록 갱신':'마지막 정상 수집'}</span><strong>${timeText(s.virtual?s.last_recorded_at:s.last_success)}</strong></div><div><span>${s.virtual?'확보 문서 기록':s.collection_mode === 'TEST_SAMPLE' ? '테스트 표본' : s.collection_mode === 'MAP_LAYER' ? '공동주택용지 지구' : '정상 레코드'}</span><strong>${num(s.record_count)}건</strong></div></div>${(s.stats.source_base_date || s.stats.dataset_version) ? `<p>원천 자료 기준일 ${esc(s.stats.source_base_date || s.stats.dataset_version)} · 현재 실적과 구분</p>` : ''}${s.id==='eum_housing_notices'&&s.stats.detail_remaining!==undefined?`<p>상세 재조회·수집 대기 ${num(s.stats.detail_remaining)}건 · 이번 배치 첨부 추출 대기 ${num(s.stats.attachments_text_pending)}개 · 문자 복구 ${num(s.stats.text_recovered)}개 · OCR 검토 ${num(s.stats.ocr_review_pending)}개</p>`:''}${s.discovery_only?`<p>신규 게시물 검토 후보 · 실적 자동 반영 없음</p>`:''}${s.description?`<p>${esc(s.description)}</p>`:''}${s.error ? `<p>${esc(s.error)}</p>` : ''}<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer">${s.authority==='OFFICIAL'?'공식 원천 확인':'출처 확인'} ↗</a>${s.snapshots.length ? `<details data-source-snapshots="${esc(s.id)}"><summary>근거 snapshot ${s.snapshots.length}개 · SHA-256</summary><div class="source-snapshot-body"></div></details>` : ''}</article>`).join('');
   for(const element of $('sources-list').querySelectorAll('[data-source-snapshots]'))element.addEventListener('toggle',()=>{
     if(!element.open||element.dataset.loaded)return;
     const source=sources.find(s=>s.id===element.dataset.sourceSnapshots);
@@ -142,7 +143,7 @@ function renderProjectDataStatus(r) {
 }
 async function load() {
   const version = ++state.generation;
-  if(!['project-collection','data-integrity','area','annual-supply','manual','requirements','supply-conditions','projects'].includes(state.view)){
+  if(!['publication-reviews','project-collection','data-integrity','area','annual-supply','manual','requirements','supply-conditions','projects'].includes(state.view)){
     try{await ensureCatalogue();}catch(error){$('loading').hidden=true;$('error').hidden=false;$('error').textContent=error.message;return;}
     if(version!==state.generation)return;
   }
@@ -157,6 +158,7 @@ async function load() {
   $('error').hidden = true;
   $('loading').hidden = !$('content').hidden;
   try {
+    if(state.view==='publication-reviews'){state.workspaceOnly=true;$('content').hidden=false;$('loading').hidden=true;await PublicationReviews.load();return;}
     if(state.view==='supply-conditions'){state.workspaceOnly=true;$('content').hidden=false;SupplyConditions.visible();return;}
     if(['project-collection','data-integrity','area','annual-supply','manual','requirements'].includes(state.view)){
       // These workspaces own their requests. Do not queue the other menus'
@@ -192,7 +194,7 @@ async function load() {
     // Load only this menu. Source-wide counts and maps must not block editors.
     state.workspaceOnly=true;
     if(state.view==='tree'){
-      const mappings=await request('/mapping-workbench');
+      const mappings=await request('/mapping-workbench'+MappingWorkbench.query());
       if(version!==state.generation)return;
       MappingWorkbench.render(mappings);
     }else if(state.view==='history'){
@@ -216,7 +218,7 @@ async function load() {
 }
 const policyViews = new Set(['policy-progress','program-progress','projects','history']);
 const supplyViews = new Set(['overview','supply-conditions','annual-supply','area']);
-const sourceViews = new Set(['sources','project-collection','data-integrity']);
+const sourceViews = new Set(['sources','project-collection','data-integrity','publication-reviews']);
 function toggleNavGroup(group,open) {
   const button=document.querySelector(`[data-nav-group="${group}"]`);
   const children=$(button.getAttribute('aria-controls'));
@@ -226,6 +228,7 @@ function setView(view,options={}) {
   if(['validation','samples','keys'].includes(view))view='sources';
   if (!labels[view]) return;
   const previous=state.view;
+  if(previous==='publication-reviews'&&view!==previous&&!PublicationReviews.canLeave())return;
   if(previous!==view){++state.generation;state.viewVersion=null;$('view-update-notice').hidden=true;}
   state.view=view;
   for (const pane of document.querySelectorAll('.pane')) pane.hidden = pane.id !== 'pane-' + view && !(pane.id==='pane-policy-geo'&&policyViews.has(view)&&view!=='projects');
@@ -237,7 +240,7 @@ function setView(view,options={}) {
   for(const nav of document.querySelectorAll('#home-main-nav .nav-item')){
     const active=nav.dataset.view===view || (category==='supply'&&view!=='supply-conditions'&&nav.dataset.view==='overview') ||
       (category==='policy'&&nav.dataset.view==='policy-progress'&&view==='history') ||
-      (category==='data'&&nav.dataset.view==='sources'&&sourceViews.has(view)&&!['project-collection','data-integrity'].includes(view));
+      (category==='data'&&nav.dataset.view==='sources'&&sourceViews.has(view)&&!['project-collection','data-integrity','publication-reviews'].includes(view));
     nav.classList.toggle('active',active);
     if(active&&nav.dataset.view===view)nav.setAttribute('aria-current','page');else nav.removeAttribute('aria-current');
   }
@@ -262,8 +265,8 @@ function setView(view,options={}) {
   document.querySelector('.policy-geo-toolbar h2').textContent=view==='policy-progress'?'지역별 정책 공급 분포':'정책·프로그램·사업 지역 그래프';
   $('policy-geo-map').setAttribute('aria-label',view==='policy-progress'?'정책현황 시군구 공급 분포도':'정책현황 3D 지역 지도');
   if(view==='overview')HousingMap.visible();else if(previous==='overview')HousingMap.hidden();
-  document.querySelector('.filterbar').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity'].includes(view);
-  document.querySelector('.page-heading').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity'].includes(view);
+  document.querySelector('.filterbar').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity','publication-reviews'].includes(view);
+  document.querySelector('.page-heading').hidden=['supply-conditions','area','annual-supply','policy-progress','program-progress','projects','history','manual','requirements','project-collection','data-integrity','publication-reviews'].includes(view);
   // These workspaces load their own data. A cancelled request from the
   // previous menu must not leave their shared content container hidden.
   if(['manual','requirements','project-collection','data-integrity','area','annual-supply'].includes(view)){
@@ -347,6 +350,7 @@ async function start() {
     const adminRequest=request('/admin/status');
     if(location.hash.slice(1)!=='data-integrity')await ensureCatalogue();
     const admin=await adminRequest;state.admin=admin.authenticated;
+    PublicationReviews.refreshBadge();
     if (state.admin) $('admin-link').textContent = '관리자로 로그인됨 ↗';
     setView(location.hash.slice(1) || 'policy-progress',{replace:true,deferLoad:true});
     await load();

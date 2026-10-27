@@ -88,6 +88,7 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
         utterances: list[dict[str, Any]], client: SummaryClient, *,
         include_short: bool = False,
         batch_items: int = 2,
+        review_hashes: set[str] | None = None,
         daily_limit: int = HARD_DAILY_REQUEST_LIMIT,
         monthly_credit_usd: float = DEFAULT_MONTHLY_CREDIT_USD,
         input_usd_per_million: float = DEFAULT_INPUT_USD_PER_MILLION,
@@ -98,12 +99,15 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
     candidates = [
         item for item in contextualized
         if str(item.get("text") or "").strip()
-        and (include_short or len(str(item.get("text") or "")) > MAX_SUMMARY_CHARS)
+        and (include_short or item['content_hash'] in (review_hashes or set())
+             or len(str(item.get("text") or "")) > MAX_SUMMARY_CHARS)
     ]
     hashes = [item["content_hash"] for item in candidates]
     existing = repository.existing_hashes(
         broadcast_id, hashes, provider=client.provider, model=client.model,
         prompt_version=client.prompt_version,
+        source_text_by_hash={u['content_hash']: ' '.join(c['text']
+            for c in u['conversation_context']) for u in candidates},
     )
     deferred = repository.deferred_hashes(
         broadcast_id, hashes, provider=client.provider, model=client.model,
@@ -111,6 +115,8 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
     )
     missing = list({item["content_hash"]: item for item in candidates
                     if item["content_hash"] not in existing | deferred}.values())
+    if review_hashes:
+        missing.sort(key=lambda u: u['content_hash'] not in review_hashes)
     saved = 0
     failed = 0
     attempted = False
@@ -144,6 +150,13 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
                 input_usd_per_million, output_usd_per_million,
             )
             api_requests += attempts
+            if result.usage_metadata.get('rejected_ids'):
+                repository.record_rejected_response(
+                    broadcast_id, provider=client.provider, model=client.model,
+                    prompt_version=client.prompt_version, request=batch,
+                    response=result.usage_metadata,
+                )
+                connection.commit()
             generated_items = [item for item in result.items if not include_short
                                or (item.get("live_insight") or {}).get("topic")]
             if not generated_items:

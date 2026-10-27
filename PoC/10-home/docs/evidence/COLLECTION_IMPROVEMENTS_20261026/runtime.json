@@ -1,0 +1,46 @@
+{
+  "files": {
+    "backend/publication_watch.py": "2705cd1f8000187fd141d2b97f828a98247f9a5f8b4023499835fea802d19bed",
+    "backend/attachment_text.py": "f98acf59dc447f01a40729e88b99309d65a70edb7c45a2d28caee341fc389966",
+    "backend/collection_jobs.py": "5c7fddbaf18fecdae4e2899ed32d88622347465f0756f4e8a9398e7a4df032fd",
+    "backend/route_documents.py": "ec3af4f83a988008d3b37cc5de6f20c287b239894aee61f1945b46a8afcd66f5",
+    "backend/service.py": "17e715597f07a1a144901c3d1c8ec202e0319d7cda83b25323c14db45528c254",
+    "backend/db.py": "68a25e3dfc44a5e85f57511d34ddf99a447416f30b0a75deeff4724558aab7e1",
+    "web/assets/app.js": "8402f6f5fdd3b3fddd744fc90c3382d268a46fc7caaa233775af9758e863d28a"
+  },
+  "worker": {
+    "checked_at": "2026-10-25T23:08:19.088834+00:00",
+    "pid": 7,
+    "lanes": [
+      "LATEST",
+      "BACKFILL"
+    ],
+    "running_threads": [
+      "home-collector",
+      "home-source-worker-LATEST",
+      "home-source-worker-BACKFILL"
+    ]
+  },
+  "automatic": [
+    {
+      "id": "lh_press_watch",
+      "mode": "자동 수집",
+      "interval": 3600
+    },
+    {
+      "id": "ih_press_watch",
+      "mode": "자동 수집",
+      "interval": 3600
+    },
+    {
+      "id": "seoul_press_watch",
+      "mode": "자동 수집",
+      "interval": 3600
+    },
+    {
+      "id": "newsis_housing_watch",
+      "mode": "자동 수집",
+      "interval": 3600
+    }
+  ]
+}

@@ -1,0 +1,2230 @@
+{
+  "checked_at": "2026-10-26T07:18:16.157898+00:00",
+  "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+  "method": "CODEX_TARGET_SOURCE_REVIEW",
+  "external_model_calls": 0,
+  "repairs": [
+    {
+      "content_hash": "c92cff8f27bddf07b3def7a795894c4e13fb0f5252ec60b6b9c48d5ae01e2478",
+      "previous_summary_id": "130211bd-efb7-4ca8-9838-c423b6b24742",
+      "old_task": "자료제출 요구 방식을 예의적으로 조정하고, 담당 기관에 자료제출 요구를 전달할 것.",
+      "new_task": null,
+      "new_summary": "자료 제출 요구를 위원장에게 전달하고 서로 예의를 지켜 진행하라고 안내했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "48431730-5938-41ce-8174-5c216eb44cd0:0",
+        "bc461192-2862-4f69-b0c6-bb68ef1b55a4:0",
+        "a3afdc5f-d884-4944-9c96-137b008a5bc5:0",
+        "14903689-be76-4e05-99f3-a7d43f8a1b27:0"
+      ],
+      "source_revision_ids": [
+        "61164554-803b-4aaf-9740-0ca2e0bfeb48",
+        "9cb431be-6075-40ba-9d25-cef91f324ebb",
+        "d7917153-5bb4-428f-a126-75074ac530cc",
+        "200de2a2-fcd9-42de-97c0-cd4718d9580e"
+      ]
+    },
+    {
+      "content_hash": "329a5c0a5b0077afb222d961d48bc28a9a25e915df27e5319f0db233ec5d78ce",
+      "previous_summary_id": "f96bf521-0044-4a08-b316-8692078b6896",
+      "old_task": "자료제출 가능한 범위를 확인하고, 어려운 사항은 재의의로 조정할 것.",
+      "new_task": "타당한 자료 제출 요구에 따른 자료 제출",
+      "new_summary": "타당한 자료 제출 요구에는 자료를 제출해야 한다고 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:0"
+      ],
+      "source_revision_ids": [
+        "7b1949af-175a-4e7b-88e1-94d022f343d1"
+      ]
+    },
+    {
+      "content_hash": "678ca94367f26779e4d08acaa444e360795454b52bf7bfd01df14ab7487763dc",
+      "previous_summary_id": "f12406ae-0123-4eba-976f-cfc53cfda38d",
+      "old_task": "자료제출 관련 질문에 즉시 답변할 것.",
+      "new_task": null,
+      "new_summary": "자료 제출 관련 앞선 설명을 이어 갔으나, 이 발언 구간만으로는 추가 내용을 확인하기 어렵다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:1"
+      ],
+      "source_revision_ids": [
+        "7b1949af-175a-4e7b-88e1-94d022f343d1"
+      ]
+    },
+    {
+      "content_hash": "4542c178c86f358a15c60756821ac7bdade76d26f603b7c383c72ce6f67a11ed",
+      "previous_summary_id": "910cf796-8e1e-413e-af06-c9b108242b20",
+      "old_task": "자료제출 관련 질문에 즉시 답변할 것.",
+      "new_task": "자료 제출이 어려운 경우 별도 설명",
+      "new_summary": "자료 제출이 어려우면 위원장에게 다시 알리라고 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:2",
+        "fb2682a9-0787-4f0d-88bd-0da42d363931:0"
+      ],
+      "source_revision_ids": [
+        "7b1949af-175a-4e7b-88e1-94d022f343d1",
+        "209df7eb-9c18-4ac0-a267-e02625515e49"
+      ]
+    },
+    {
+      "content_hash": "28c8aa6156ae1910f0a5d23ec887a62b9d0233042f56adf9580de4a4d0a6e59e",
+      "previous_summary_id": "7f812ca0-2e6d-432c-904c-1ae34fb53bb9",
+      "old_task": "미배위원회 및 진상조사단 자료제출 보류 사유를 설명할 것.",
+      "new_task": null,
+      "new_summary": "지금 답변해도 되는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6a7dcbfa-f2c0-481f-8a4a-74a3530d7575:0"
+      ],
+      "source_revision_ids": [
+        "fdd3fd27-e1c2-4f53-9f34-5f70f1c465c8"
+      ]
+    },
+    {
+      "content_hash": "2eb73fba696e2fe4ea0a206ed3d21758e35c7594905d6181d9c34ff19556b17a",
+      "previous_summary_id": "688e389a-2c3a-42df-82ea-cca453e8900d",
+      "old_task": "자료제출 가능한 영역을 다시 설명하고 소통할 것.",
+      "new_task": null,
+      "new_summary": "앞선 요청에 짧게 동의했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "3fa8677c-fc2e-4e7b-91bd-6dc84ab19c17:1"
+      ],
+      "source_revision_ids": [
+        "60549d0a-3fb6-4ec3-b060-817650e5ae0c"
+      ]
+    },
+    {
+      "content_hash": "19705b83cc97f86261966da23b84017d2fc1ac8f5c7f63f1668442257741f939",
+      "previous_summary_id": "212f88bf-7562-48b6-bf00-178a1e940c69",
+      "old_task": "자료제출 보류 사유를 검토 후 답변할 것.",
+      "new_task": null,
+      "new_summary": "위원회 회의와 진상조사가 진행 중이어서 회의록·미완결 조사 결과 제출이 향후 업무에 영향을 줄 수 있다며, 현재 제출하기 어렵다고 설명했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6a7dcbfa-f2c0-481f-8a4a-74a3530d7575:2",
+        "363ec497-2608-43f2-8cb0-da788c6d9d1c:0",
+        "33622183-5675-42c5-998a-c0b494800fd2:0",
+        "f0f70632-4709-43f9-8681-b310a560c1a2:0"
+      ],
+      "source_revision_ids": [
+        "fdd3fd27-e1c2-4f53-9f34-5f70f1c465c8",
+        "25951936-8eab-46c5-a776-fefae92901a9",
+        "3fe66581-8250-47f5-967f-e4a70b4963a3",
+        "a7fe5374-7379-44c0-9928-98b1717379a4"
+      ]
+    },
+    {
+      "content_hash": "adc79f90e32375ea242addb668baeda17d18f62fcdd3ca8e7bc9cdefb36e05d0",
+      "previous_summary_id": "4352da41-ae02-404a-8beb-8d6cc1e25d54",
+      "old_task": "자료제출 가능한 영역을 다시 설명하고 소통할 것.",
+      "new_task": "자료 제출 가능한 범위 별도 설명",
+      "new_summary": "자료 제출 요구와 답변 내용을 위원장에게 별도로 설명하고, 제출 가능한 범위를 소통하도록 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "c37a0e4c-a958-481f-b9f5-349cea8bdb30:0",
+        "c12c8048-6948-4e98-afaa-e05adb3e7dd0:0"
+      ],
+      "source_revision_ids": [
+        "22b83c3f-e08f-4e96-a4ed-ecce90c04e0c",
+        "23673430-97fe-4802-ab9c-d04df2890e1a"
+      ]
+    },
+    {
+      "content_hash": "11c53406d1e3d1d959f18283df217c84438834b4a45600162c3f2ba242cd503d",
+      "previous_summary_id": "f8b1fafb-495a-46d3-91c5-a97d56701cb4",
+      "old_task": "미배위원회 및 진상조사단 조사 현황 검토, 자료 제출 가능 범위 논의",
+      "new_task": "별도 검토",
+      "new_summary": "자료 제출 문제를 별도로 검토하겠다는 취지를 밝혔다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "c12c8048-6948-4e98-afaa-e05adb3e7dd0:1"
+      ],
+      "source_revision_ids": [
+        "23673430-97fe-4802-ab9c-d04df2890e1a"
+      ]
+    },
+    {
+      "content_hash": "c3c44caa8611210d212b173c9a755a663763a848c340b9b45dda05a87eb71dae",
+      "previous_summary_id": "fa3f4168-9892-46ff-a947-359cefbb54a9",
+      "old_task": "자료집 제출 및 개선 과제 반영 촉구",
+      "new_task": "정책자료집 제출 및 개선 과제의 소관 업무·제도개선 반영",
+      "new_summary": "위원실의 정책자료집 준비에 감사를 표하고, 준비된 자료집 제출과 각 기관의 소관 업무·제도 개선 반영을 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "c12c8048-6948-4e98-afaa-e05adb3e7dd0:2",
+        "5ac299af-ede5-4cfb-bbff-61711488713f:0",
+        "49cdae0c-0770-4e2b-9185-c2a0e1d2efd6:0",
+        "3e939e48-a52e-45f8-b9e3-5b1df84f26c2:0",
+        "205c700b-b625-4045-88ec-ae8a0f41be01:0",
+        "016e2b22-b837-4357-b08c-00c5d7275e0c:0",
+        "126ce72f-c3b4-495f-94b6-10182cf3d6c4:0",
+        "c23b508a-45f0-40ca-bbbe-e0ac65f6833a:0",
+        "0d8a5d36-69ed-417f-9770-4a630b072eff:0",
+        "eda3161d-0eed-4bdc-a117-a6b5414ea2fe:0",
+        "e1b954de-273e-4f79-9f94-3610254e4af2:0",
+        "b04c7480-d070-4feb-8f64-69aef216447e:0",
+        "b35a63c8-308e-43eb-a4a1-5805cf101ad3:0",
+        "f0dce55e-6291-4ce3-b8af-8075bd282e93:0",
+        "800f01ce-3c82-428e-84cc-1ff9f2a3b903:0",
+        "dc265815-b3ae-4bd2-9ff0-4f96176e96ba:0",
+        "56626893-6868-4b3f-a5c6-be3b65ea9307:0",
+        "6e13c9ea-891d-4aa7-a1e9-d4fba9569489:0",
+        "9b0eba23-0cea-44ef-9fd9-3a9548966ebb:0",
+        "bba06ed8-17a8-49f0-85cc-01c20fd54688:0",
+        "9c0c4ddb-0ef1-43d5-9be4-79885e3f797b:0",
+        "f0cd5088-180a-47ef-918b-78687a97aa1c:0",
+        "438781ef-79fb-4092-bd65-7db336e1a2b6:0",
+        "e7f3580d-bbd3-4409-8309-c8fda2cd7b10:0",
+        "79cf4c52-eb74-4077-b02a-742c721de4ef:0",
+        "f4290dff-66c8-438e-85cc-ae0f054765d8:0",
+        "9691ed58-2ef0-4814-87b7-a72a0b004436:0",
+        "9478b2b3-2137-4cb4-98ae-27267576307a:0",
+        "470e8b68-c867-4f80-8c8a-63720ab0b3f0:0",
+        "4e77b479-e4c9-4e1a-a796-8e347a0b5ccd:0",
+        "b935e259-7334-4fb4-9a15-8c3287e6bba4:0",
+        "726c3475-5f83-4331-b7f5-4e8bafaa2650:0",
+        "29879e5d-c38d-4bd3-bd69-4650a6bf682d:0",
+        "edf5fb47-0e68-4707-91e4-112010289eb7:0"
+      ],
+      "source_revision_ids": [
+        "23673430-97fe-4802-ab9c-d04df2890e1a",
+        "b9adb688-d881-4f86-828f-573a277bd272",
+        "b8edecb5-def7-4064-a363-b01272f773b0",
+        "5159182f-dfd9-4297-a8dc-85fb5a80bbc3",
+        "0daaf777-46d3-4176-81d1-abdf86710c18",
+        "2d6e8bf6-13d0-4a5f-8613-2b775613dabd",
+        "323c76e9-e4a8-4c7b-bdc1-26f57475475a",
+        "46386a42-154b-4739-a9f8-92d4e693e4e4",
+        "5798a76c-6ff1-47af-b048-a2093a10b959",
+        "f896dc05-ca01-4480-89d5-c97caea96ffe",
+        "4d8f5e46-c1c5-4ba2-b374-ef0d2dad31cb",
+        "e4250cf5-7666-4394-bad5-0cea9a1b46ed",
+        "1b472660-2c1a-4517-8773-6e1a8da6f380",
+        "d427c935-5540-49ab-9f41-de6d1d6ca855",
+        "fa9de84b-b93a-40b5-aa3a-14a7223ab334",
+        "3f70d04e-c628-4af1-b385-bc2c429af232",
+        "317f3f8e-03b6-4d98-bc3b-f3687e097785",
+        "c4ba813d-c890-4f3a-b67f-091379ca84c1",
+        "8a6f9541-a888-4db3-8ac7-cfca42ac650a",
+        "faacd5e0-a69b-46a7-8166-e5778a0a09ac",
+        "32843aa3-43c0-4b9b-8397-da2815ee5f3f",
+        "eb434080-88b1-4571-9e8e-ca48c12a4206",
+        "01b4d0c0-46d8-4189-9b41-cdb91466a318",
+        "c05f6471-9149-47b2-ab03-58dfa14872ef",
+        "c43158f9-a572-4a7c-8120-58181720b8f1",
+        "14cfeb22-9410-49f0-881d-21fb50c168aa",
+        "291c6aa8-eedd-435a-bd80-e5dad57d2b00",
+        "d9d18fbc-1637-4ae8-be83-1603cf8df36f",
+        "032a0798-9291-45d8-b521-9fc7497acfcf",
+        "935dd300-c7fa-440a-94ef-d5472aa5f3d0",
+        "24bdfb96-4df7-429e-b9da-6906a53c3569",
+        "72a3884d-3a55-4bd6-a8d2-44f64ada5696",
+        "933eb153-c946-4a8c-9c5a-5f6d88e621e7",
+        "ded94c02-c672-4cc7-bfd7-ad85b2a07e0c"
+      ]
+    },
+    {
+      "content_hash": "0b85c2e8f66ce4f987b24b4fe315fa9ce98635ac4f8d8afe4216a416c33dcd46",
+      "previous_summary_id": "412ab4d7-0690-48bb-b460-da10b99222c6",
+      "old_task": "대법원장 및 대법원 업무추진비·격려금 관리 의혹 질문",
+      "new_task": null,
+      "new_summary": "여론조사 사건의 증거 판단을 비판하고, 대법원장 격려금 지급 결정과 업무추진비 사용·제출 내역의 사실관계를 질의했다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "8f9726ff-1c45-4c1f-a5e4-88c04fc45e12:0",
+        "192d5a36-c465-4b56-9b67-878444c6c189:0",
+        "a130e97e-1f95-4308-8824-cd2bb8f6834f:0",
+        "1929787a-af7f-4904-aa30-6f88242f6cd6:0",
+        "2e3ac52d-d331-47c2-8b4e-919ba5f2693c:0",
+        "9f7fd039-0f9a-4316-8f24-e2d94778a7d4:0",
+        "6f405195-236a-4f67-b859-16bd9fb263b1:0",
+        "7460fd16-2217-4786-8c78-e541152bdd13:0",
+        "bced479c-5970-4289-add4-6a292e5cb18a:0",
+        "88ee81b5-64af-44ec-ba33-8581baee21d2:0",
+        "5aca59e4-f127-49c0-be21-ac583c2c384d:0",
+        "7539b347-a195-41ad-b5f0-cad9eef1693a:0",
+        "27601c77-a777-4739-8c0d-5d6312db33c8:0",
+        "0b4ab0b7-7bc8-4651-a2ca-ff4ad5becd77:0",
+        "f25dc363-505c-41f6-89d9-2506e7b4a783:0",
+        "91644cc9-f646-43bc-930b-4653165638c2:0",
+        "e19484e1-af3f-4117-82ea-984e252477d3:0",
+        "245a608a-2d74-4211-856d-2ca3bfb290b1:0",
+        "83fd79c9-a5b9-416b-86ac-524382863981:0",
+        "a3a91b33-b366-477c-8d8e-6d04a19fc057:0",
+        "2fdc1a53-c3f9-4e57-8121-8608eb33d51c:0",
+        "1d13e923-a961-4708-92e9-83bbebfab749:0",
+        "f4019fd8-c4cb-4f4a-b382-3fe6470cc1a9:0",
+        "accea5f2-2de5-4267-85f7-2d59345981b9:0",
+        "a1fb4d41-6ee3-423f-8e51-5255caaea96c:0"
+      ],
+      "source_revision_ids": [
+        "e29e5f06-b890-411f-b140-2acab65c185d",
+        "bfe940b7-5d72-4d44-8b5c-63be24a7414b",
+        "2522a4ab-32e1-488f-8f8a-a84572260e61",
+        "b84f149c-8aac-4714-ade1-adf96969854b",
+        "f3a7d9af-3ef3-450f-acf2-4cbfe56446e0",
+        "2b27023c-4d8b-485b-8e36-77509d76c3ae",
+        "a325b772-2ad2-43b8-ba9c-1f665e2bcf09",
+        "3177adb7-131e-4897-b4d8-5fd55c078155",
+        "0561baa9-3f4c-477c-9eae-a23be73720a5",
+        "a3bac253-914f-42d9-8478-a059bd00236b",
+        "05dcc801-6a39-4f37-a257-8cc25ff09330",
+        "c8509438-2d83-4b82-a055-93d427aaac1c",
+        "bbeb1243-a050-4630-8d79-cbce0343e2a2",
+        "b02a5bd9-60cf-44b7-971a-05d4f3822b1d",
+        "2dfed3ad-fb11-4477-88cb-6c4b1026d758",
+        "2499a4f4-a578-4256-9429-38bc260ef21c",
+        "4531b0d2-6537-4602-9051-6975e585d438",
+        "920ff05f-e409-4225-89ea-9991cacc6279",
+        "26d4a997-bac3-4aba-830a-c7e279776b29",
+        "94129ff6-ee61-41af-a07f-a4c22c6d8b7b",
+        "abc3cbc1-8b60-4ce8-a5e3-b58c8b4a94fd",
+        "aaef47f6-c497-4c30-ab40-6f429094037f",
+        "ecbee8d0-2e69-4e79-a6ab-3b1842491f56",
+        "5be70d4c-2e1d-4e9b-95cb-06aa5d7de207",
+        "5c1d76bc-349e-4bda-b6a9-c2c46a9bea25"
+      ]
+    },
+    {
+      "content_hash": "2448c1d20d671a45744c52c02cc759462bb3211db625deece930a89ac001e488",
+      "previous_summary_id": "fec15b0e-c3cc-4c73-8ff7-b70bb6a3992e",
+      "old_task": "대법원장은 대법관 추천 과정과 내란 재판에서의 직무유기, 격려금 지급 결정 및 업무추진비 사용에 대해 소명하고 공정성 회복 방안을 제시해야 한다.",
+      "new_task": null,
+      "new_summary": "격려금 지급 관련 표현을 이어 갔으나, 이 구간만으로는 완결된 질의나 요구를 확인하기 어렵다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "9cb993df-295d-499f-a645-378e29223388:0"
+      ],
+      "source_revision_ids": [
+        "0a14655e-3c94-47a2-90fe-5282430ad9e7"
+      ]
+    },
+    {
+      "content_hash": "d00f468e4f6fc327c3856762b5ec0a33ce7c57f35f22352b0b6c872243e4fb93",
+      "previous_summary_id": "98eeb7df-22b1-4097-9512-c864c9ddff94",
+      "old_task": "대법원장은 업무추진비와 경력선 지급 과정에서의 본인의 관여 여부를 명확히 밝히고, 원장의 책임 범위를 판례에 근거해 설명해야 한다.",
+      "new_task": null,
+      "new_summary": "관여하지 않았다는 주장과 업무추진비 카드를 본 적이 없다는 취지의 말을 언급했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "9cb993df-295d-499f-a645-378e29223388:1",
+        "0e0f81eb-2883-4ca9-a402-f7abb23612af:0"
+      ],
+      "source_revision_ids": [
+        "0a14655e-3c94-47a2-90fe-5282430ad9e7",
+        "238c8774-e2e7-4b29-a197-22916061ead0"
+      ]
+    },
+    {
+      "content_hash": "2551238f646d65a69eae4015f4dd8a7612ca0cce46935e78ab5fc6ba8757b3a2",
+      "previous_summary_id": "9ba9a387-03a4-4a18-8245-011de7cabdca",
+      "old_task": "대법원장은 원장의 책임 범위를 판례에 근거해 설명하고, 직무수행 과정에서의 책임 소재를 명확히 제기해야 한다.",
+      "new_task": null,
+      "new_summary": "직원에게 책임을 돌리더라도 판례상 원장의 책임이 인정되는 것 아니냐고 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "0e0f81eb-2883-4ca9-a402-f7abb23612af:1",
+        "6ada1994-bec3-40cb-98a4-bd403b869bc2:0",
+        "a044985d-5798-44fc-870c-c8b606118747:0",
+        "57d8e457-053d-40ef-9e42-e3b774594781:0"
+      ],
+      "source_revision_ids": [
+        "238c8774-e2e7-4b29-a197-22916061ead0",
+        "2896d8cc-c316-43fd-a1db-f62c5ab8da18",
+        "22d5c867-3790-4e71-8384-e9c03c067b0e",
+        "3b4a8185-2ba6-4ea6-b53a-6f6e794f8525"
+      ]
+    },
+    {
+      "content_hash": "71bad86109802a147ec57b309ec89cc981894932d4eeb9c30fbc3fbcc00ce12a",
+      "previous_summary_id": "7491fcef-8b2f-40a4-bf34-3208e9d62431",
+      "old_task": "대법원장 탄핵",
+      "new_task": null,
+      "new_summary": "대법원의 판단과 대법원장의 책임 문제를 비판하고, 탄핵이 필요하다는 자신의 의견에 대한 법원행정처장의 견해를 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "68da2306-94a1-47ed-9e0c-5fcc4c541c40:0",
+        "65cd47d3-8fdf-468c-a650-099e374dd86d:0",
+        "1703fefe-e7f9-4013-a7a4-470f426dfc74:0",
+        "29745978-e0fe-4e87-b4c4-2c4da38775cd:0",
+        "7eb11f33-8e15-44cb-a346-a6d885ebf87a:0",
+        "85f6d53b-76a6-41d6-a25a-344739421509:0",
+        "b98cce1d-77e2-4aa5-91f0-682b620cd640:0",
+        "7a6857b6-ce8a-4321-923d-1187a117803f:0",
+        "c9cfeefe-b5b9-4640-9230-87c9e2f89529:0",
+        "f172e892-0c05-4e97-8ca8-b96adcd8ef56:0",
+        "21168310-a0e5-4898-9efb-19db2e6a27d5:0",
+        "a162a421-0317-4272-bb3d-c2b873b609e4:0",
+        "69f6b066-6f6b-4c73-b390-71763e317be5:0",
+        "c2f1b348-109c-4105-929d-f8cf10c7dca6:0",
+        "475d2ba6-f569-4d43-bc11-0bb78fb650b4:0",
+        "0da0e46c-0904-4287-9553-7164fbfc9145:0",
+        "fffb334b-e1f8-48da-95ca-fac9dab779aa:0",
+        "d14df821-10df-429b-b5af-6880aa472d3c:0",
+        "5f6ab629-0f36-4f4e-a7ef-82b2713a41ec:0",
+        "31b15c69-d2a4-40a1-88e0-2ad6a5e89cd1:0",
+        "51507349-dd8b-4efe-a177-b9a6f4f73a2b:0",
+        "3b4a2e7a-8844-4283-9f07-b538117d7a13:0",
+        "ff7a3608-42fa-4b36-977c-c42f82e80d08:0",
+        "66b06fda-fc4f-4a81-9a8c-f4b906565876:0",
+        "5a247384-b1c1-431a-8d35-c3fb743c40e6:0",
+        "5ce4c5c6-7433-4035-9a93-b407e2888cec:0",
+        "bd4cad79-a0d0-496c-bb1e-40ff5bff46c2:0",
+        "776fd22f-d736-4bc8-b2f5-e0087bbd7ffd:0"
+      ],
+      "source_revision_ids": [
+        "c37a109c-c7d8-4a09-8843-15e493388e1d",
+        "c1cd9495-d770-40bc-b2ae-75c9e8b034c7",
+        "bf46b8bb-97b4-4791-ae66-2bd8d7cb9c12",
+        "9b8b4d5d-f8f2-4e36-a7bc-7c27e8355e00",
+        "048962c9-2fff-4972-b5ef-e0768abcccfe",
+        "ce1a403a-32b1-4c23-a07c-07b79eb7da65",
+        "2f21e469-f404-4540-8609-b48fca43204b",
+        "11c5f299-35fe-49b5-af1d-260d8dd3aea3",
+        "1b1de5a0-23b3-47ec-8195-f5b5a8702790",
+        "3f712814-122d-4694-a99f-9b040d8c4078",
+        "010a3dc2-0724-4c9b-90c7-f5daefb70ec8",
+        "692134d1-0a9a-4807-b498-7272f4834095",
+        "afcdadb1-03ca-476a-be14-15a226ecfd85",
+        "3fb82e83-8ac5-40c4-9a2d-8fb808826c01",
+        "18f5fe03-3069-4e2b-8b8b-c60d5c428e78",
+        "9fb34e70-187c-4cc9-8dfc-a06353b8228b",
+        "ee62c6f9-3d3e-4a73-8fd3-4614b8a84f20",
+        "921fb6db-52da-4a05-9c2e-57c87e257aa1",
+        "db9442fd-847c-471a-b5ce-c32b5cab2697",
+        "a1bf1f0f-3846-4345-bc3d-659bdf8f8bf3",
+        "fe7e3748-2234-4a5d-8cda-43e390ab8682",
+        "8dd08b29-e930-460e-a338-1debe00a29fe",
+        "390095b9-9b9b-42ae-abee-54ff36fe9aad",
+        "8d0f5eec-17d1-4397-ae92-3c0721b9ee7c",
+        "e1e93d97-fd02-4321-9909-784c32109a65",
+        "1352977a-c6b9-463f-a9f9-691cfef5b278",
+        "e9759d6d-1a6c-4071-ad89-1525bdd2d2b3",
+        "3dd250b1-7e66-49c9-b6bc-d73ab7793988"
+      ]
+    },
+    {
+      "content_hash": "3d03f5c06245999e5630f0b2c550049198bfed9a4ba1a7ad2b511051c83dc22d",
+      "previous_summary_id": "508eb891-1f14-4e5d-a70d-2abb0ceca580",
+      "old_task": "대법원장 제청",
+      "new_task": null,
+      "new_summary": "대법원장이나 법원행정처가 하급심 재판에 관여하지 않으며 각 재판부가 증거와 사실관계에 따라 독자적으로 판단한다고 설명했다. 대법관 제청도 이미 이루어졌다고 답했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f616b4be-e49f-41bb-97e0-eaa2ebcfafe7:0",
+        "2782f7ca-c418-45e2-a527-7cdd26ff9bdd:0",
+        "71478941-2364-43b5-8480-fb706dcb425d:0",
+        "5c2f5316-f906-44e8-943b-a5f37761119c:0",
+        "9ac86002-5fe1-46a6-a18e-ab8c935d1a27:0",
+        "fc1a8188-958e-465a-95e5-924e060eecc7:0",
+        "8eba2b44-c87a-4402-ae87-8b576f7a1b49:0",
+        "ad5fa3fd-9966-45c8-917a-dffe8de0d62a:0",
+        "e00c11c5-9ae4-4f8c-bc01-4bb1020d7410:0",
+        "e9047f12-d16b-4369-a3e6-779a1ab4487d:0"
+      ],
+      "source_revision_ids": [
+        "b559686a-a5e3-43ab-8cf6-bedf8afa3af6",
+        "f5bc79a8-4e7a-43a3-83c2-09292a4aaedd",
+        "19399b54-0bf8-4edb-922b-8bd6d9a4e5a9",
+        "39ab4915-46db-47a0-ba08-dba2117d136f",
+        "66893348-9a7e-4a65-b86a-fdbad115587b",
+        "c4034c29-e341-47c5-ab11-c7fd46485b9f",
+        "88a0902d-6748-46c0-b111-6ce072295ff4",
+        "ef17e37c-91fc-4d75-9d8a-1cfac34daff3",
+        "cbf65461-0038-4261-99df-2a3b0e84d210",
+        "efe70529-954f-4510-816c-0f21b97f704d"
+      ]
+    },
+    {
+      "content_hash": "f903c54e7fb3255a6c3d85c2cf96344ba69758148cce69678ed5230afcc23721",
+      "previous_summary_id": "1fd816be-36b5-4d5d-b40d-9a7631afe32b",
+      "old_task": "대법원장 탄핵 동의 여부에 대한 답변을 요구함.",
+      "new_task": null,
+      "new_summary": "다음 질의자로 김기표 위원을 지명했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "9f090025-8d4a-468a-b4fa-4569b29be044:0"
+      ],
+      "source_revision_ids": [
+        "df8bac46-f7ef-4746-9bbb-7c684c61e57c"
+      ]
+    },
+    {
+      "content_hash": "9559e38a61128f1bfd8a02d4aaf5b8ace717bb09b483b0f7a44af0af813467fe",
+      "previous_summary_id": "fb8e0965-1eaf-40d8-a079-509d928bdf23",
+      "old_task": "법원은 여론조사 대가와 명패금 관계를 재심사하고, 연락 기록 등 객관적 증거를 반영해야 한다.",
+      "new_task": null,
+      "new_summary": "여론조사 관련 금전 지급 시기와 판결문 내용을 제시하며, 접점이 없던 사이의 송금 경위와 목적에 관한 판단이 모순된다고 비판했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "9f9fc952-1908-44b0-a295-344cc387c726:1",
+        "c9de9e71-9f52-447c-8acd-22b53e99a230:0",
+        "91e11203-e956-4e5c-9ca0-00ddf3c89b68:0",
+        "cc61066e-a058-4ad5-a809-2bcd036a29d9:0",
+        "c3f82baa-e3ad-45bc-95b1-e985b688020c:0",
+        "9ed7e272-c66d-4467-af79-7050e1b26af0:0",
+        "a80e5c4e-806b-4e33-814a-ac95a0d7f72a:0",
+        "681eebe4-c594-4912-8e82-3dad8c771b7e:0"
+      ],
+      "source_revision_ids": [
+        "07088539-4ded-463f-b941-06813fb60fe3",
+        "6db4da04-88a4-4a25-8f83-f3dd8ed6dbae",
+        "11a38ff9-0bbc-4ecc-8cb9-d06c474047ce",
+        "11b1305c-9c0e-49d2-8c6d-48a3f9c9aa88",
+        "bcd9b2fb-8b1a-4546-a56e-c744539c25ba",
+        "11290785-a498-49fd-92fc-b9b215c6690f",
+        "aa4cd306-22a4-4dce-8e07-f581fdd7a09c",
+        "c2194f5e-a4a5-45f4-b17a-f270c9d0392c"
+      ]
+    },
+    {
+      "content_hash": "9f565ca08eae05888a726ba65b8432fde4b4f9fc958ad0a9c57e9c5bb76c8889",
+      "previous_summary_id": "aac4904e-6359-4414-8c21-13fde1b34923",
+      "old_task": "법원은 지급 경위와 목적을 명확히 하고, 사전 연락 기록을 증거로 반영해야 한다.",
+      "new_task": null,
+      "new_summary": "판결문이 금전 지급에 대한 피고인 설명을 받아들였다고 비판하고, 이후 연락 기록이 종전 친분을 뒷받침하는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "b3b9c6a7-aba4-4d86-aad4-118cd5d30ba2:0",
+        "6e254319-b314-4ea4-a117-6c43a4d54d4c:0",
+        "c7d74bb5-bab2-4ca0-8944-e2ad6da27094:0",
+        "75ccd919-d32d-4670-ae85-a6963571034a:0",
+        "5c55e721-7a61-4463-9533-605a8fadde9a:0",
+        "3bfc3f75-e940-4e4e-b4b8-6a04f8c345dc:0",
+        "ad7fbead-6098-46f6-b024-8ec10d9929ba:0",
+        "10ff2cb2-ec83-4d98-b681-8c652c009bd1:0",
+        "bb5513bc-7d46-4c38-842e-c70121c29ea6:0",
+        "6165151e-e193-4175-9950-0043c63f393d:0",
+        "d2924d4c-4819-4bd8-bbd4-ef71c72e9d1f:0"
+      ],
+      "source_revision_ids": [
+        "5e311025-580c-471a-9b1e-063d15aa2ef7",
+        "9a1cd08c-a591-4c78-b7a9-1399b51097d5",
+        "0fc3349d-4a12-4a65-8bf1-ac45c20c80bc",
+        "90c5f7b7-b54b-479c-a127-bb49eef95cb5",
+        "e0d9316b-81c2-4e10-9a15-078de7c7e530",
+        "c677658c-d43b-42fc-b725-66ee4f9189ba",
+        "25cda4e9-93ed-4ade-abf7-9376c7bc01ca",
+        "be8c9b90-65ef-4477-94aa-8798e45a8b82",
+        "ae648505-91c4-43c5-9ba1-44643f219db5",
+        "d8adb441-4fda-4a2d-b4e1-3cba9fcde57b",
+        "549cda3e-4edc-41fc-89dc-2d2ebcb05838"
+      ]
+    },
+    {
+      "content_hash": "480079f3deb654ef6d41b816327bcf3e90e61746aa8c4a4fe58b39c88cd5e0eb",
+      "previous_summary_id": "ae392c7f-b66b-451d-8edc-4c414210e94f",
+      "old_task": "법원은 진술 신빙성 평가와 면죄부 적용에서 이중 표준을 제거하고 일관성을 확보해야 한다.",
+      "new_task": null,
+      "new_summary": "연락 시점과 진술을 근거로 삼은 판결 논리가 맞지 않으며, 금전 지급과 관계 지속에 관한 판단에 충분한 근거가 없다고 비판했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "ff4ab32b-2bd1-4184-a83f-3115243a118f:0",
+        "8a5bbfdf-74aa-4934-a1d8-09f31c95539a:0",
+        "b368a345-5e86-45e2-b1ff-28914803d1a2:0",
+        "e047ed65-0f8f-495d-91c1-a233359b5c1e:0",
+        "1be87f98-00c6-4f9f-8c30-f6f6cba09d9b:0",
+        "347e2630-d17f-477d-a6a7-c654d4451e03:0",
+        "37ef8319-ebb7-4eae-85bf-be757514188c:0",
+        "9de09354-323c-46f6-9e3c-18aa9edcd863:0",
+        "626b0967-1632-478b-b080-bf5445eeea88:0",
+        "f29c44f1-331d-4dca-a831-fbb110a78606:0",
+        "b7a1993d-6df6-4c27-952c-94d3b8da317a:0",
+        "487f1b8a-07e9-41f9-84a5-b97c9666a014:0",
+        "2c0c7904-09a0-441e-84f7-df5fe4fac51c:0",
+        "4980746b-8e14-4aa6-b380-f4187480c8ac:0",
+        "b394df29-40bf-4ae7-ae13-b524eca19868:0",
+        "24300e69-2ecf-450a-b83e-635c18812cec:0",
+        "a5b39359-c350-46e9-aff5-82b77246a045:0"
+      ],
+      "source_revision_ids": [
+        "03a6fb77-b570-4b77-8053-4bb6176dd853",
+        "ce2cb624-66b7-48e6-9616-366e6030a874",
+        "97326963-1bc9-4f89-a89f-aba20e5000ad",
+        "e7e06e76-8389-4f72-a5af-2749b44c665c",
+        "c1dfa4bc-70f6-465e-937d-977ecc5b6b89",
+        "95ad8171-65d7-4f9d-891c-d19d8f16f987",
+        "026e708b-df30-4b54-935c-ffccb67d15c6",
+        "1535672c-4a03-4a11-8c11-c81d028c3d78",
+        "6be3f53c-0bcf-4906-8e86-4f02b110bd95",
+        "095778a7-28e9-4b80-8f76-4d92b95b5c1e",
+        "2e812545-bf36-4dcd-a9d0-4a740f9f2e2c",
+        "d85aee8d-055f-4834-97b4-377ddfcaa972",
+        "581bec60-9a59-4245-89bb-c45b7e24490d",
+        "86234d4b-a702-4781-bdbb-5a1a7b5238c4",
+        "e2eee074-2382-47ef-a5cf-059341be0ead",
+        "af6051e8-4c4a-4df9-94f8-a88a4f499412",
+        "005efc84-d4b1-4fc4-8a11-75ea6a9d6a79"
+      ]
+    },
+    {
+      "content_hash": "134a3b3c602fa75bf54d4420539b3ac04919c52405ee2e174a092f6c546db017",
+      "previous_summary_id": "9748b290-ef12-4dd3-8d1c-22d4ff75bde4",
+      "old_task": "법원은 여론조사 의탁 단죄에 대한 증거를 명확히 하고, 판결의 원칙성을 강화해야 한다.",
+      "new_task": null,
+      "new_summary": "여론조사 자금 유입 예정과 캠프 관계자의 대화를 근거로, 여론조사 의뢰를 단정할 수 없다는 판결 판단을 비판했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "231bb151-627c-4126-b756-9031415a364d:1",
+        "fb9b58dc-bc67-4f54-abcf-76bf39c4bb46:0",
+        "6520d91b-2907-4d2c-890f-1222fbc82703:0",
+        "1ae49cd3-0ef8-4d5a-8bfa-5aa4af75e48c:0",
+        "7fa87347-086a-4692-bd5f-c676d895d4d0:0",
+        "cfaa57c8-ed70-44ff-97d3-d5d94c26267e:0"
+      ],
+      "source_revision_ids": [
+        "c949043e-9928-4188-aa44-05dab19ff827",
+        "fceb4fd3-eafc-4e62-8332-6619490a0572",
+        "235b4b63-305a-4aa3-9c6e-6e935ce2315b",
+        "19c8d4eb-01e3-495b-a43c-0bef1da67bfa",
+        "22e3231f-ba0f-4b6e-9d9b-013cc0581d39",
+        "cae93766-a3fc-4b9d-ad2c-f1c263f91de8"
+      ]
+    },
+    {
+      "content_hash": "97e465329fca22d716b8462458416be572e6d9ec327e0667cb917e1b38030f81",
+      "previous_summary_id": "95f59008-53b1-4c83-a2a1-00ce587edfed",
+      "old_task": "법원행정처에 1심·2심 판결문 비교 분석 요청",
+      "new_task": null,
+      "new_summary": "개별 사건에 대해 법원행정처장이 언급하는 것은 적절하지 않다고 답했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "24fe3ef3-1707-4db6-b805-3acbf58cfa31:0",
+        "6dc1df70-74fa-4add-8d8b-030e0621a27e:0"
+      ],
+      "source_revision_ids": [
+        "43140027-32e7-484a-8b74-a0f0d6adc37b",
+        "60c74573-9b99-4f9d-b47e-9f4b312baafc"
+      ]
+    },
+    {
+      "content_hash": "5bbfedf1a3f0741cc1cd9003de3ebc72b062511b41c2df59321ff4ef107c55d6",
+      "previous_summary_id": "171a4de3-b456-4fca-8547-870698a29f7b",
+      "old_task": "법원행정처장에 1심·2심 판결문 비교 분석 요청",
+      "new_task": "1심·2심 판결문 비교",
+      "new_summary": "법원행정처장에게 1심과 2심 판결문을 비교해 보라고 요청하며, 증거에 대한 상반된 판단이 법원 신뢰에 미칠 영향을 지적했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "ce859a46-4875-4b05-ba84-053e78dcbc76:0",
+        "1fd65330-2c3c-405c-a11e-6bfa8402956e:0",
+        "1a2d2c51-964b-48ff-b220-6f861bc0bc02:0",
+        "d3eba1c4-b3bf-4c00-892d-8b8a17199c43:0",
+        "a6b42ba4-85f6-4f9f-bf8e-b24b2628bfb2:0",
+        "81c3473d-21a3-412a-8396-5729d5448df3:0"
+      ],
+      "source_revision_ids": [
+        "aca926a3-c950-445f-8a72-2d5ce401b837",
+        "bc0f7ac1-92d4-4608-b3fb-a779545c6616",
+        "b3fa4bc2-ba94-4b19-a8af-4bd661b03c2c",
+        "0c097b2c-6105-4079-aacc-56ad0d85d339",
+        "5d2d3d2f-1659-4a1b-ac5a-b1dda67bcd42",
+        "5103d4b6-644d-4529-8bc3-c4ee91474dc0"
+      ]
+    },
+    {
+      "content_hash": "40f91da33feb83b8bc60f19ca6519f8e6d7ecb6f68bcfa85b850ed58a24c17a1",
+      "previous_summary_id": "6e6ad431-468c-4470-9e67-1988cd631c9d",
+      "old_task": "1심과 2심 판결문 비교 분석 및 증거 불일치에 대한 답변 제공",
+      "new_task": "1심·2심 판결문 비교",
+      "new_summary": "법원행정처장에게 1심과 2심 판결문을 비교하라고 요청하고, 판결에 대한 국민의 신뢰 문제를 지적했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "4c63b2d4-bb8e-4655-a64e-1a5c149c17d5:0",
+        "11a23b62-822c-4d87-a437-f09800553c1f:0",
+        "812ca1e1-33c9-4e8b-b22d-ece8ac45113a:0"
+      ],
+      "source_revision_ids": [
+        "479636d6-81e1-4641-b201-d7ce2694d7be",
+        "36e5254c-92d0-42f4-b3d9-86e3497bb1dc",
+        "65bbda9b-e20f-42f1-bebb-4592dd895b1b"
+      ]
+    },
+    {
+      "content_hash": "8e848d25dcfd315d88af1cde351106da962012458cadbed22f1bde1bf6ce84a6",
+      "previous_summary_id": "247a83b2-cb7e-4460-8bb1-0bb2ddb8c0ce",
+      "old_task": "법원 행정처장이 1심·2심 판결문 비교 분석 및 공개 답변 제출",
+      "new_task": null,
+      "new_summary": "1심·2심 판결문을 보고 답변해 달라고 요청한 뒤 다음 질의 순서를 안내했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "2ea59e9f-a0e0-49c3-b12f-b6f210aae693:0",
+        "f4dabd1c-f0e1-4fdd-8e11-e68f70dae0ae:0",
+        "54b5230f-5188-4a22-bba5-57e8ddb2dd17:0",
+        "1891290e-3cee-4492-9efc-02a562e042e3:0",
+        "3afe70e3-b88b-4e42-b9bd-3af2dc812be6:0",
+        "060c79bd-f2fa-4e13-9b72-7eac1ac4a921:0"
+      ],
+      "source_revision_ids": [
+        "6c06bcad-f224-470a-9978-b862f6b2461b",
+        "cf8fadd8-e4ab-432c-ac68-9e4bd1b6e442",
+        "92b8e0c7-9ad7-4ad2-ab22-a58fc555cf06",
+        "2013fd4f-3627-42c9-8884-31743d2572f8",
+        "9629c965-ee82-4ff1-beab-716bba461998",
+        "aebc6a38-4ea1-4edf-9d56-73d5d2226bd9"
+      ]
+    },
+    {
+      "content_hash": "8ce77d1ee7b4b79cc597f9360fd287c215982005ffc7d2aa3b6512daa9357c00",
+      "previous_summary_id": "ab2b38e5-ac7e-47a3-9a0b-3e88f498a889",
+      "old_task": "법원에 판결문 비교 분석과 답변 요구, 이재명 대통령 사건 재판 속도 조정을 요청.",
+      "new_task": null,
+      "new_summary": "2심 판결문을 보고 답변해 달라고 요청하고 다음 질의자를 안내했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f70f67f8-96d7-4e17-aa5a-7460ea98e652:0",
+        "eccd98a5-b852-48a1-be6e-5ab0e3953e3c:0",
+        "c393d126-b45b-4be5-83a6-2e6c8284dfbd:0",
+        "b282333c-a9f2-4ade-ac3d-a3cb14efbffe:0"
+      ],
+      "source_revision_ids": [
+        "d56a7d53-18c6-48ca-8cd5-5926da7c348d",
+        "f3ff3552-1402-4b36-acf5-6fac1f7363ef",
+        "2155dfdb-22ae-4606-bf4c-a6db3b570cb5",
+        "b30b6bfa-c8d2-48ee-98b0-a0fd324953a3"
+      ]
+    },
+    {
+      "content_hash": "83c563ba750a4a95570a542ca0e3b86dbceaef13427c90e646a79d2ca9f77d9c",
+      "previous_summary_id": "4ed6444c-58ea-491f-b57f-eada563f0cbc",
+      "old_task": "이재명 대통령 사건 재판 지연에 대한 항의 요구",
+      "new_task": null,
+      "new_summary": "오세훈 시장 사건을 담당한 재판부에 이재명 대통령 사건도 계류 중이라며, 재판부를 비판하려면 재판 지연에도 항의해야 한다고 주장했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f4262ddc-23b5-4e81-a325-f9ef5fdabb20:0",
+        "0947dc4f-284b-48ed-84c3-3abdd7788b6e:0",
+        "0bf8f0b5-929f-4c9c-8b19-ab1cf98b8fbe:0",
+        "40179732-2a6c-444e-8c64-22f86a8a38a1:0",
+        "bcc1242e-ca1b-4ec4-aa34-405910f0d5a3:0",
+        "d0fe19f1-285e-4bda-931f-41ece81ddb3b:0",
+        "d8f1690d-b4c5-4d1b-a60f-b09da43bbb20:0",
+        "07bde0a6-3957-4d94-8456-c542d0110e33:0"
+      ],
+      "source_revision_ids": [
+        "00e02e9b-b7ed-4fee-b170-d0c5d62672ea",
+        "37d73e0d-579e-405e-904d-773c6b0b23ab",
+        "d458edb9-244c-4d37-af2d-a1176437535f",
+        "0aa5c4a9-c7dd-4057-9f02-3748dba46e63",
+        "ed89fa06-a050-4879-8cd4-8f8e6a911597",
+        "f5dae22f-e93b-4b2d-887f-68582264a169",
+        "6779db1f-4341-4667-87fc-876ca733cf35",
+        "d40f765d-850f-4605-bf97-04980cd3c074"
+      ]
+    },
+    {
+      "content_hash": "310472ef0c7b2dd082ce91bfca3bcf0449bb480978689bf0e367a81e75b2e071",
+      "previous_summary_id": "2e28f067-abbb-4584-9a0a-1974f48bfb81",
+      "old_task": "법무부와 검찰청은 인천·서울 대규모 범죄 사건에 대한 수사 및 임명 절차를 신속히 진행하고, 대법원장 탄핵과 김성원 후보 낙마 관련 보복성 수사를 시작해야 한다.",
+      "new_task": null,
+      "new_summary": "탄핵·보복성 수사 관련 질의로 국정감사가 정쟁에 치우쳤다고 비판했다. 흉기 난동·방화 사건에 따른 국민 불안을 언급하고, 법무부에 검찰총장 등 기관장 임명 절차 진행 여부를 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "b70dbc8d-5f6d-47cd-8be6-fd1474956e06:0",
+        "19890e33-33a9-4ea9-9bf0-a0a70d2af3fa:0",
+        "d5cd7907-944a-4615-85c3-c3864d648408:0",
+        "b2520685-8c8a-411d-a74e-f8e2d2cc9a79:0",
+        "121a484d-9418-4c29-9528-49e275a8403b:0",
+        "cc205100-214e-4e22-bcb9-7228782d9256:0",
+        "421fc7de-7a99-4af2-ab83-2ef82615aa58:0",
+        "fc29bdc4-9c3f-4db6-a097-d4ea7f73fad5:0",
+        "21b0d8c5-2235-4bca-b643-848499653369:0",
+        "6489f0aa-d3f0-4750-9496-56324acdfc5a:0",
+        "972cc726-d5d9-4303-a33e-08e604e877a2:0",
+        "938aebb4-2846-42dc-ba91-bdd8d447c71a:0",
+        "13a6bcba-46ef-4c9f-a271-df2f82489b8a:0",
+        "864763c6-c752-45df-ae0f-a50cf3816ed7:0",
+        "fd098ad5-1cde-4587-be70-7317692c8df1:0",
+        "c34c6404-d622-464a-8760-04ad59a2e0d0:0",
+        "37b6a2bb-b742-435f-9848-0f15bad44c3a:0",
+        "b94a7791-1397-43ae-a085-1d97af2918d8:0",
+        "ac0e4ea1-f0bc-401e-862e-b8768ded867f:0",
+        "90d2c691-3dc1-478a-8eaa-96fbee9de8ac:0",
+        "a601bd73-b8d0-411a-917c-91e4447770d8:0",
+        "f1484599-7d3b-486b-ba37-091ae5667cea:0",
+        "f4cdeaad-9a4c-44ea-8cf2-3f6a0fce22ee:0",
+        "8f89172f-2a02-4505-8c94-c0adf37001aa:0",
+        "b313bef4-ec4d-4c12-b6dc-72b7dcf45395:0",
+        "a98b25d5-87c5-4b15-bcb2-18a911835fbf:0",
+        "49119a17-342e-4bc5-bed5-3848de14beb3:0",
+        "aee51bf1-05c9-4bb2-97a5-32d667ff14f4:0",
+        "4a068593-070c-4617-83f8-59465707d688:0",
+        "6503d78d-ba56-4038-8d54-a17391055a83:0",
+        "50d71381-6a71-42fa-b6cb-c9f8ef0919be:0",
+        "7a4499ab-3681-4cf9-988f-dc0272ff0884:0",
+        "666160c5-c494-4d4b-833f-f40d28b02b61:0",
+        "0bf10acc-cdf7-4a21-9ab2-680a478d7b98:0",
+        "ffc07192-b8ac-4520-8feb-95ef03c74848:0",
+        "26dc6e27-39f1-4ba3-9f65-ac2f784da7d7:0",
+        "f6fe66b3-24d4-4d51-bee3-8c11fb977870:0",
+        "ff0de771-1b8a-45db-86c0-6b6e4e173234:0",
+        "7723274b-15cb-48e5-a3b6-741140413872:0",
+        "dfd74eb0-dba4-4c52-ab6f-f65326340b10:0",
+        "1952dabe-e9c0-4c79-91de-2f9556ba864c:0",
+        "2cd741d9-afed-462b-a280-de1a1cf4d0a7:0",
+        "170f9b27-59b4-47f0-80dd-c9983a109617:0"
+      ],
+      "source_revision_ids": [
+        "952248bb-7791-42ee-ad02-962d981e075e",
+        "0c77c9e4-5e14-4fe2-8390-6ecbcd564e8d",
+        "25caf606-41b2-4621-9c1b-3b41a13e2bd9",
+        "850aa02f-a99b-45a4-9b07-466ccff16377",
+        "9619c923-7a04-49d6-ba35-04e16a378b05",
+        "0a4e2c86-5c92-433e-bfa2-e1af1b5d3b76",
+        "702302d2-eb06-4b3e-9a50-05d9a3d1f146",
+        "7954865a-0b1d-4abb-b745-dbad24a3925c",
+        "286e8561-15d6-4062-8177-8cd199c02582",
+        "da9b4a06-f7df-4e58-ab75-61e8524b5d3c",
+        "77e98a36-7749-4da8-bb6e-db16678e4b00",
+        "0eb04a79-673e-480f-b836-b85883f2ce1b",
+        "d40237cd-e1ce-440d-aa2a-e2246d735d32",
+        "1c6d14df-b6c6-40d6-9031-00d2db20601d",
+        "00700d21-2a8c-4150-a405-e64b174067c3",
+        "c86bb51a-c6e2-4993-82d8-2fbc7c233427",
+        "b5d1ba34-2016-46d5-bd13-d45e8c2a0745",
+        "a1b43019-2fe5-4bca-8578-ba88db6312d6",
+        "7b94428c-8043-4d8e-b2e5-0487b2d9f183",
+        "5d9cf57d-63d0-4dac-b91b-3d821c99a3e2",
+        "c08ccee8-51db-4543-a8ff-7f764220d3f3",
+        "96518370-306a-4d98-ac42-6965cacc2232",
+        "e9329b6a-5119-460b-9bde-c4f71a76bf49",
+        "f2e724e5-41cf-4dc0-8746-19022b470518",
+        "5e0706c2-3ea0-46a3-acff-c3b264c91b88",
+        "525ada77-f051-4c96-bfa1-e985709c1253",
+        "0eb52f13-5da6-4bfb-a79e-2ca49ed17b91",
+        "18520cea-45d2-41c6-a635-d3b9ab46d6f7",
+        "0b7f859f-1831-408a-ac48-9d0a8c98e5b6",
+        "e25bf470-6285-43e5-af51-54ccc38490c1",
+        "2c1f1842-375c-4413-96a9-47ea192fecc9",
+        "03d4d7fc-13b8-429a-af4e-345a1d050915",
+        "fa55032c-3400-437c-a826-e0934f87f740",
+        "5b2adf79-0c7b-46e4-92dd-d03c267a6173",
+        "f44766fa-cabc-4ecf-b926-c38125b26283",
+        "91f6d093-e5e6-479d-8fe1-be215de2ed1a",
+        "e1a27a7e-8844-4361-b5ca-58b1c6490b21",
+        "27992a6c-d092-437d-b499-103afdce4b0d",
+        "a81fe0b4-bd2b-4152-99c4-4683a16dc2ad",
+        "bad74297-bbd0-49d4-9e5b-f4d37e7d6995",
+        "2d7fa630-eb40-4f43-9036-c99154102953",
+        "4f529e40-90cc-45db-9b48-7825a4ad7184",
+        "e1e33bd5-39bd-48e9-b81a-e5c4ce4aa4f3"
+      ]
+    },
+    {
+      "content_hash": "125133ba84adcf14b2d95e8a95dd1e2e10a842bbb2819e49efb5158b2dc176ba",
+      "previous_summary_id": "f63b683f-263c-475d-b446-d5009ebbfb12",
+      "old_task": "임명 절차 진행 및 슬라이드 자료 제공 요구",
+      "new_task": "임명 절차 신속 진행",
+      "new_summary": "임명 절차가 진행 중이라는 답변에 신속히 진행하라고 요청한 뒤 슬라이드 확인으로 넘어갔다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "170f9b27-59b4-47f0-80dd-c9983a109617:1",
+        "43426a56-8ad4-479d-b80a-3c0e6fa18cab:0",
+        "c6520fe3-4a91-480b-bfbb-36ef361c8f0d:0"
+      ],
+      "source_revision_ids": [
+        "e1e33bd5-39bd-48e9-b81a-e5c4ce4aa4f3",
+        "d46bba7f-d4a2-402d-8284-e9ce5057a760",
+        "24b07757-7ff5-4d97-ab8a-9cc3fbd0608f"
+      ]
+    },
+    {
+      "content_hash": "df1b2cf885fdc8a32f3d0b87ce10221fd298afe14cdb335a0b037eb51c04bdd7",
+      "previous_summary_id": "99aa4fbe-ffad-4fbb-adab-3dfb67a3472d",
+      "old_task": "법무부와 검찰청은 정신질환자 관리 및 교정시설 확장 정책을 재검토하고, 범죄 예방을 위한 조치를 강화해야 한다.",
+      "new_task": null,
+      "new_summary": "인천 흉기 난동과 서울 연쇄 방화 사건을 언급하며, 정신병력이 의심되는 범죄자의 이상동기 범죄 문제를 제기했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "4daccd5b-b924-4d20-8537-250283dcd6d6:0",
+        "8af05644-8b14-48e9-9d4a-99da3d5ffbe7:0",
+        "8e39d025-5245-4da8-b65f-4761a8e81ff4:0",
+        "c2660ccd-6e95-4121-b218-afeabe33bca3:0",
+        "7480c64f-9bd3-4f14-ae0c-3c0738b8e902:0"
+      ],
+      "source_revision_ids": [
+        "0b2c9346-cf60-444b-8fe1-e640cfc1c995",
+        "c8f9a6b8-e674-4bc4-910a-097d1c841ade",
+        "6450b5ef-718e-4d95-a38e-02cfc2712b44",
+        "2d322871-17d5-4aa6-b0c5-5ed53e7bee9e",
+        "32f40e88-5c5b-4e26-9b51-a1662d2b1387"
+      ]
+    },
+    {
+      "content_hash": "90b4c015a66edff4a943365fcb78c45f89c7941c605a449f48f7ce22045aad01",
+      "previous_summary_id": "27586d1a-6f2e-433f-954c-e9c3161b569e",
+      "old_task": "치료감호 제도 부활 및 적극적 청구 촉구",
+      "new_task": "치료감호 적극 청구",
+      "new_summary": "치료감호의 적극적인 청구와 폐지된 보호감호 유사 제도의 재검토 필요성을 제기했다. 치료감호 청구가 저조한 이유를 묻자, 심신미약·심신상실 인정이 선고의 전제가 된다는 답변이 이어졌다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "5d6f0e89-a649-4ca6-a5c1-85711830f9cb:0",
+        "df4244dc-7b5e-4576-9735-f74f634e6034:0",
+        "06bbf0bd-ab1d-4b3d-b8be-c52d87e8020c:0",
+        "b7bc0086-8d84-468c-a0a2-4c222545bf90:0",
+        "8a392aec-fe19-4974-b834-8ebb088e5f95:0",
+        "a936f0d1-2c8a-46fd-8f56-e7e72b87ef30:0",
+        "f28c5655-ce9b-43ef-85cd-157c244f4567:0",
+        "4463f5a7-c0ce-4077-92ea-15b8b19e72b9:0",
+        "33ff9214-cb7c-4ab5-9321-c497adcff520:0",
+        "8d1af537-b04e-48db-b0e5-0f94467dcbc8:0"
+      ],
+      "source_revision_ids": [
+        "2aa09899-8961-4603-b849-12acd75b1db1",
+        "6bc26e6c-e4bc-4ef7-9dbc-4aead2f63716",
+        "2f456e66-93ac-441a-a369-a49d8b7aed5f",
+        "e99a3bee-b48a-4938-9d1f-9eb1288ecd6c",
+        "c2958d6b-a8a8-4a00-9c31-7fe25698cfd3",
+        "41ca3b40-8850-4f56-b681-575298577166",
+        "672bac94-1b3a-4039-9acb-ac02a525d4f3",
+        "c59a5d84-821c-4139-b8d8-7a8949d591c6",
+        "c961e0a3-6225-4156-8969-bcbb4f9dc6f1",
+        "0f186c44-8e12-4af2-87bd-e38a4a7fdf9e"
+      ]
+    },
+    {
+      "content_hash": "0cadd5eca3c95997aeb7d2aa5474db252aa2a98c4a2b20a82c14aeabc8052c5e",
+      "previous_summary_id": "e6fe1ac1-69ee-4772-90ea-11b9b9cd995b",
+      "old_task": "법원 판사 남용 의혹에 대한 기록 및 조사 요구",
+      "new_task": null,
+      "new_summary": "정신질환 범죄자에 대해 치료감호 대신 사법입원제 도입이 필요하다는 학계의 문제 제기를 소개했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "0803c597-066a-4f70-bfd8-32726e4c64b6:3",
+        "d57e8899-adf7-415b-99cc-53e5edcae175:0"
+      ],
+      "source_revision_ids": [
+        "fefe397f-bd85-4734-9c1c-ecfbeb85ead7",
+        "63c4d59e-6479-491f-9d77-717d7ff1bd39"
+      ]
+    },
+    {
+      "content_hash": "962e67edd14c383adc996be5a5dc7ca4a51d44e91d492b797cff56a8dc49a767",
+      "previous_summary_id": "8dfa0705-1b78-4050-94b5-42ae0d1ccd6d",
+      "old_task": "법원 판사 남용 의혹 기록 및 조사 진행",
+      "new_task": null,
+      "new_summary": "명태균 관련 진상조사단 활동과 증거 추적 경위를 설명하면서, 법원의 분위기에 문제가 있다고 주장했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "0badc483-6682-4ea1-b25b-1d2d7faa3d4f:0",
+        "45432606-a46d-4bef-b5e0-33504abcce32:0",
+        "2f732945-c9a7-4d82-af16-32c3ce03c04f:0",
+        "975435a4-8ea8-4690-b48c-54ab9f7abe92:0",
+        "785c26dc-6adf-403e-a2fb-f0223a480f99:0",
+        "49676fe9-0bab-4a95-a315-e9042a94bb06:0",
+        "09fc40e1-46a5-4bae-99a6-99cc6b6cde5f:0",
+        "c80f698b-bec6-4550-8a6e-b5e50495ef47:0",
+        "e0e5d119-9ef5-4ca0-b454-d4a1fffd366c:0",
+        "8da72b0b-eb88-474c-a57c-45ffd9ac4429:0"
+      ],
+      "source_revision_ids": [
+        "6066c8ee-3b4f-41ce-9165-8638be6921bc",
+        "ef30a4f6-099c-405f-a47a-a93f9d9dd628",
+        "ac2b8eda-acd6-4ee5-91d7-c87ee909ef52",
+        "bdd97e53-f12b-410f-b9f3-aee064b8633a",
+        "ab4ec216-aebf-48f9-9583-bbd4b6bed225",
+        "6a192b4d-ad88-49ab-a46e-76ec4aa233b5",
+        "c9360ec6-8e3e-4a81-802c-bb12cd343ab5",
+        "5f1b8cf4-1ace-4d2e-a241-e3916f99498a",
+        "d6ee9cb0-4ada-440e-8aad-050bfe1b7dc8",
+        "86644b52-396c-4f78-ba05-78bdb6de4a33"
+      ]
+    },
+    {
+      "content_hash": "cb02453f0c9b7ffdb56c534b01a720549fc379c3723b0992de3a638542b9c5c7",
+      "previous_summary_id": "6f608fa4-c0cd-46e7-91f7-c952d595beb9",
+      "old_task": "법원 판결 비판과 증거 조사",
+      "new_task": "판사의 권한 남용 여부 기록",
+      "new_summary": "특검 구형과 여론조사 관련 증거를 근거로 자신의 판결 비판 입장을 설명했다. 판사의 권한 남용 여부를 기록하겠다고 밝혔다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "c8480957-37a1-4740-a4ac-0287d61e6fe6:0",
+        "c134e646-f306-422b-9173-7d62adbd3f1d:0",
+        "e45ab2a9-6f94-4d2a-96f1-194a65dc6ab8:0",
+        "62d19991-1736-481d-a49f-48c8899cdf4f:0",
+        "d422fedf-1bcd-4369-99ab-de36df49dee4:0",
+        "8fa03f70-03c2-4736-b09e-0ed46d472291:0",
+        "77c1e202-279d-4725-923c-7d7146c9516b:0",
+        "6d629b3b-81c0-4d1c-bee2-95643a708813:0",
+        "3fc654e6-1586-4cf6-8cf1-3bbbc93a06d0:0",
+        "7455c2a4-5540-44b5-ac2f-a328482256a5:0",
+        "90a6d96f-5869-4d96-b7e5-76760121b421:0",
+        "3deff497-913f-4c63-a9e8-5797cc69afae:0",
+        "50eddc18-e836-4be6-950e-38b1d1fa4f7a:0",
+        "12c9601a-ab54-44e1-90a3-bbd2e57fa09e:0",
+        "fd655735-37f1-4a22-a953-ff3580bad6dc:0",
+        "4cbabc9a-32ec-4de1-a7bc-0eaa22c013e5:0",
+        "1e3646dd-a782-4af3-b744-67bcc5f005f8:0",
+        "cb228b9a-0cd8-4b6b-b642-0c4a25782874:0",
+        "39c471b3-8bed-4663-91a5-0df44dcccabb:0",
+        "7be989c0-69b1-4227-a76c-62a43a4cd25d:0",
+        "43342de5-5e9e-4082-a528-9d74e8a11f66:0",
+        "c4755dfe-b577-43e6-8b00-d60c3a3b9537:0",
+        "26dd445d-ea1c-46e5-b2f9-6b07eaaf1db8:0",
+        "a71d2a29-2461-4d6c-831f-5800df1ee2a4:0",
+        "16b5b5d0-4cff-40d2-a1bf-cc07dc7ac26f:0"
+      ],
+      "source_revision_ids": [
+        "535cc9e9-b100-49a8-90b6-4d11c7ffd4ba",
+        "e06f594e-a01a-41cf-a91f-489496fcfbbb",
+        "985229de-81ff-4562-9f67-e488d0b09b3f",
+        "1511578c-c4a3-4d59-a69b-41671f09ea46",
+        "c805acb3-6f08-439f-8710-52d9e8d972bb",
+        "61619921-c1c5-4e82-bffb-6ec43f39fe33",
+        "65fd0d24-70aa-446f-9816-e4d8f672eae2",
+        "036e733a-24a6-4edd-9745-efa0c9ba04a0",
+        "c0f3e693-c85c-4063-b1fa-773e5a47bdd4",
+        "db5cfaae-742a-48c0-b052-a5b9153d7f82",
+        "1a0b6426-d429-4752-8cd2-54217468250f",
+        "14a9ec4f-e6bd-4140-89e9-4361e7f1ebc1",
+        "4a00a2cf-394d-4923-b961-166714985939",
+        "ad3225f5-344a-48eb-8bd5-ed400b7ff94b",
+        "edfd524f-4834-45e9-838d-b7e03c8bfa1e",
+        "9166d382-b201-4f1d-87ed-038ba3d0fe2e",
+        "4bc1f661-bf23-43a9-9c69-257693f29c3b",
+        "0684ee58-0d06-4cc0-98c1-719c101ae603",
+        "8096009d-91e1-40a2-8c0e-aba0ef7df935",
+        "16b57c8c-7bad-4702-960e-52b6a1f9c576",
+        "781541ea-a5b6-46a4-85f8-46dea83760b3",
+        "8ed78af5-c002-4bff-8edb-210dbb0ae018",
+        "e88392b3-43c6-4fe6-8118-d0bf6da2bb2c",
+        "2969a37c-5b1f-430e-bed5-1c59440864d4",
+        "6198fbb8-922b-46d6-aa61-c376ceec8616"
+      ]
+    },
+    {
+      "content_hash": "5dfc480feaee7a7e289a0e38661c4df35afe081b188ddc7cb3fc19fcdbd9f87d",
+      "previous_summary_id": "7cf6d653-d852-4c59-aee4-05198b336b36",
+      "old_task": "더불어민주당 형사7부의 판사 교체 의혹 조사",
+      "new_task": null,
+      "new_summary": "형사7부 판사를 누가 교체했는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "7fc49133-e89d-413e-a46a-cd5181aa284a:0",
+        "d69468eb-b46d-4269-8321-cd258de2d079:0",
+        "78982a4c-ff06-4a0e-83f9-cf315e304f7b:0",
+        "16013d59-ec2e-4b6d-9fd7-a979d4c45710:0"
+      ],
+      "source_revision_ids": [
+        "7d7548f2-7221-4a35-b97d-2347bc51532c",
+        "ec3baecc-698f-4f93-9161-a29ee7851a0e",
+        "430ea7aa-3403-4b2c-9bc2-3825e13a4f7d",
+        "2113881a-a411-45d0-b071-600f6acc65fd"
+      ]
+    },
+    {
+      "content_hash": "84b10a9eb1a4bffbc17ea0cbfaf9d266bd80dcaa4c2185a76910ba9fa7a7400c",
+      "previous_summary_id": "bdf80e9c-8f83-43ef-af8d-d09d8b31d84e",
+      "old_task": "법원 판결 과정에서 판사 남용 여부와 대법원장 권한 범위에 대한 기록 보관을 요구한다.",
+      "new_task": null,
+      "new_summary": "판사를 누가 교체했는지 재차 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "fb0d0e15-11f5-4cb2-8bf4-fe1cd8716181:0",
+        "69ec1139-d1a3-4f5f-a2b8-e31fdad3bdd4:0"
+      ],
+      "source_revision_ids": [
+        "d0c0a374-6e95-40b3-bc6e-32b2d82eaad9",
+        "62c34ef9-5164-4368-a695-2e6a48b8ba6e"
+      ]
+    },
+    {
+      "content_hash": "b9d13d932ba2408afb0a71395c67ce4397a1a9212606bea6709f806dbcd7445b",
+      "previous_summary_id": "784eb523-bae0-469f-8438-d6ab9e067aac",
+      "old_task": "대법원장의 판사 교체 권한 범위와 형사7부 내부 인사 이동에 대한 검토를 요구한다.",
+      "new_task": null,
+      "new_summary": "판사 교체 주체를 묻고 대법원장의 인사 권한을 언급했다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "69ec1139-d1a3-4f5f-a2b8-e31fdad3bdd4:1",
+        "edf1500f-8713-4446-900b-ff02688df423:0",
+        "c724a603-085a-4bd2-bf17-a17fb44d3744:0"
+      ],
+      "source_revision_ids": [
+        "62c34ef9-5164-4368-a695-2e6a48b8ba6e",
+        "252c6c1e-1c57-4ec8-a917-90129c4e416f",
+        "4b8cb317-1b5b-4172-b3e8-19df52100f47"
+      ]
+    },
+    {
+      "content_hash": "a345847d703e6881d12deafa3991e48234749446f736026a426d6241d45326d8",
+      "previous_summary_id": "635b4702-3165-4872-a2f5-f17673459bcf",
+      "old_task": "대법원장의 판사 교체 권한과 형사7부 인사 이동에 대한 검토를 요구한다.",
+      "new_task": null,
+      "new_summary": "살인 이전에 반복된 폭력 피해와 위험 신호를 제시하고, 위치추적·직장 방문·관계 강요 등의 행위를 현행법으로 충분히 처벌할 수 있는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "ce10fc80-00b4-4f07-84f2-625f184620a8:0",
+        "372fbb91-924a-4683-a827-9a1dd052141a:0",
+        "07354035-2544-4844-8f5d-2705cc632289:0",
+        "1eeb2d9c-f4b9-4d21-9b43-ea82d1d07ce1:0",
+        "12ad0939-53e4-4a9a-8311-d4902cf7a730:0",
+        "66a2aae7-d843-4fbb-8d30-8054e3d371a3:0",
+        "022f35bb-0e44-40ad-ac9f-66d8d3b768c6:0",
+        "2fd9b372-bf6b-4bd2-8088-0234ee1fae9f:0",
+        "aea50e34-3646-4c96-a2af-43298898bb27:0",
+        "eca2e0ba-f442-48e0-8f9a-8467fe7c2203:0",
+        "bdd42432-0f37-4b5d-b970-53e1e566e9d8:0",
+        "1385de7d-82bf-4f33-847b-f79296d0cd3f:0",
+        "a4984c39-d76f-4ef6-9c80-6b0f769c5c1b:0",
+        "6e8c586d-b966-46f7-afad-4255682d8086:0",
+        "b7be704a-8f86-4d18-8d58-03c7396a6d63:0",
+        "960ab8ab-d41f-42c3-8ac9-f055039fb415:0"
+      ],
+      "source_revision_ids": [
+        "f5efd3c2-d3aa-4832-8d47-bf51590223d6",
+        "456efa70-9ed2-4d8c-bf91-e83964ec0a28",
+        "3da9ffd0-1a5d-4d25-be73-b41301c784b2",
+        "c81a7623-9841-473b-9626-106f2b469eea",
+        "0273f85f-ae17-414d-aec4-3236c097b7b1",
+        "21c85c46-c3ac-47ad-9b63-79ee0a789bda",
+        "d0eaa933-22d3-4f91-a437-7d065eca3a8b",
+        "e91bf6ae-1037-4d49-af34-a948376aaaa7",
+        "ab7061f9-c2ae-4746-af96-d791daedd5c1",
+        "7b5e8093-0aa0-48e2-9851-a7416fe3aacb",
+        "8639e979-02ef-455e-bc7a-d90fbb9ad5a1",
+        "56f40b01-3d4f-4728-a656-707786a4c511",
+        "7c5ddb37-43ac-4d4f-bf66-23342c0beae9",
+        "0c5ea0fe-b560-40da-882e-a75efe09f5a6",
+        "61c005c3-6488-4ab1-b9f3-02083072b33b",
+        "41cfd2d5-8364-42a5-bdd7-22e49cf0c81f"
+      ]
+    },
+    {
+      "content_hash": "ca35436d9d5ed67f3d622d794b60fdf397a43f9fc739a0030c6130a5d2ed1299",
+      "previous_summary_id": "8a9a6ea3-312e-4096-afa4-3fc16e9997cf",
+      "old_task": "관계 강요 등 폭행 미수반 행위에 대한 법적 공백을 해소하기 위한 법 개정을 요구한다.",
+      "new_task": null,
+      "new_summary": "관계 강요 행위에 폭행이나 협박이 수반되지 않으면 처벌하기 어려운 공백이 있다고 설명했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "528b554e-b1b3-425c-bcc7-4164e8fc06d7:0"
+      ],
+      "source_revision_ids": [
+        "907e6a80-de3a-4919-a0d3-96fd448fa9eb"
+      ]
+    },
+    {
+      "content_hash": "c66a1ef63211220009e440395e91deb55fd9b45eda3048799a2aa0cd4bbbd64b",
+      "previous_summary_id": "a01dc8a4-cc8b-476b-8296-d15391686d69",
+      "old_task": "스토킹처벌법 개정안의 조속한 본안 통과 및 현행법 공백 해소를 위한 법적 개정 요구",
+      "new_task": null,
+      "new_summary": "대표발의한 스토킹처벌법 개정안에 관계 강요, 감시 고지, 디지털 통제 등 지배·통제 행위를 담았다고 설명하고, 현행법의 처벌 한계를 확인했다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "3f2df792-9039-47dd-ae77-036c63a02222:0",
+        "c8dcf9db-0a69-47e3-9925-6683af9e3d8b:0",
+        "85080cd4-a1e1-4da2-8bad-4f70a1109d13:0",
+        "ee9d4cfa-77af-4947-accf-845da5740b6a:0",
+        "cdaca8d8-355a-4028-be65-5b4de081b4ee:0",
+        "098df549-4bf0-4a60-8a08-cb6cd5501e91:0",
+        "5a453690-c4dc-4dc3-b0d9-ced576df523f:0",
+        "918dd671-2031-4fac-a83a-d01cff916c2c:0",
+        "83cbfd95-a3a0-43f0-82e9-a4f165b95555:0",
+        "e0d5a806-2b94-4514-9f55-4baefd03deb3:0"
+      ],
+      "source_revision_ids": [
+        "512ec03c-795f-462e-b737-e6a777195ff8",
+        "bf9ce7ad-1f57-4f5a-9a09-26c56863b161",
+        "ef17e727-482f-4d6b-8b7f-29bc86a7a857",
+        "8d63d0a8-54c0-4be5-9de5-d80089580aeb",
+        "c1fd8d1b-a251-422d-9a46-92461ef08ef2",
+        "a24dbee0-9556-4168-b971-a70a0191035f",
+        "ab1463e5-0720-4301-8f91-11f0462bc875",
+        "8cb1fcd0-a2e0-4041-bae2-42353435ca46",
+        "57dd0d0d-1b68-47f3-ac2f-e5330ef90ead",
+        "9a1eeeba-aeb5-477d-8efc-978883b69e73"
+      ]
+    },
+    {
+      "content_hash": "bf7d33e3fb99e97ecb8c2e9ff031ae6835779d57965755a0477aef89400f3819",
+      "previous_summary_id": "96753829-38e9-4d71-9c83-6ab9231e73ba",
+      "old_task": "스토킹처벌법 개정안에 대한 업무 동의 및 법 개정을 위한 조속한 조치 요구",
+      "new_task": null,
+      "new_summary": "현행법의 처벌 공백에 관한 질의에 동의했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "e0d5a806-2b94-4514-9f55-4baefd03deb3:1"
+      ],
+      "source_revision_ids": [
+        "9a1eeeba-aeb5-477d-8efc-978883b69e73"
+      ]
+    },
+    {
+      "content_hash": "1d300bc861829ed5383eabed11ec34dd64a1cb318c41672f7b86a60dfae6c183",
+      "previous_summary_id": "db156ea9-a1d5-4942-9237-965555b8560f",
+      "old_task": "스토킹처벌법 개안 검토 및 반의사불벌죄 개정",
+      "new_task": null,
+      "new_summary": "피해자 의사에 반해 반복되는 행위를 처벌해야 한다는 견해에 동의하는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "e0d5a806-2b94-4514-9f55-4baefd03deb3:2",
+        "f8007355-63ee-45f0-b3b4-6ad7a7722693:0"
+      ],
+      "source_revision_ids": [
+        "9a1eeeba-aeb5-477d-8efc-978883b69e73",
+        "7e6c171d-e9d7-4fe1-9dcf-2f5b37e4a4a1"
+      ]
+    },
+    {
+      "content_hash": "2bef7d41ba800b18a680487f47222af6a4b15c359b1b8d58bbf66f918efda816",
+      "previous_summary_id": "0cf476a2-a66f-42f3-8fcd-af138286aa3d",
+      "old_task": "임시조사·잠정조사 만료 후 결정까지의 공백을 보완하는 제도 보완책을 검토하라.",
+      "new_task": "임시조치·잠정조치 만료 뒤 보호 공백 보완",
+      "new_summary": "접근금지 정보 공유 누락과 잠정조치 만료·재신청 사이의 공백을 지적하고, 새로운 결정 전까지 피해자 보호가 끊기지 않도록 보완해야 한다고 요구했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "1c96eb07-3651-4459-99d5-d34e96901fd6:0",
+        "afbbb1d7-baaf-4299-9182-f89095c237ef:0",
+        "82b72dbe-7d4b-4507-adc5-468aa6afb9a1:0",
+        "50c10ac9-e71a-444b-beb1-b238dc4ef4e1:0",
+        "7207d979-e787-45c5-be6f-c2fe51e340e7:0",
+        "afc5a104-7924-416e-afed-41cca35f8d5f:0",
+        "ae96f11f-c78f-45f4-a92b-32927ce060a1:0",
+        "4067d910-8935-4973-9132-63e85fe8a2f1:0",
+        "477049d1-2bf4-491a-8e4c-81922bcc8f08:0"
+      ],
+      "source_revision_ids": [
+        "7f61abf2-c076-4864-9688-cac29d60a70c",
+        "0f9cf962-7ab7-44a9-b6e6-525aa39f8075",
+        "4dcc8db1-8171-473a-aac1-1ebb03918e11",
+        "3ecc2372-e0fb-4f9b-aeaf-8f83c4108d64",
+        "849d000e-3152-4112-b72f-7a634b0f01d9",
+        "291ff694-48e7-4fe3-9236-e351c27e3677",
+        "43e09d38-79a9-4e67-8f8a-7d83dd0d8491",
+        "7d75a0fb-e026-400c-a951-9162ee415d36",
+        "e68d921f-8074-4654-9be7-ab87922003f8"
+      ]
+    },
+    {
+      "content_hash": "bb5d1fcadc195095fb4d51faab62d56a492b696f620edca8a7c10992a013f7de",
+      "previous_summary_id": "c22e6a8f-551c-4344-a0e0-3489738f9633",
+      "old_task": "예산 보호를 위해 제도 보완책을 검토하고 입법을 진행하라.",
+      "new_task": "제도 보완책 검토 및 입법 협력",
+      "new_summary": "잠정조치 연장 신청이 이루어지지 않아 처리가 지연된 측면을 설명하고, 제도 보완책 검토와 입법 협력 의사를 밝혔다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "fc4a880d-df81-4503-b3aa-d4580f2c3662:0",
+        "1bd477a8-a085-4618-8d82-c32e79dbffac:0",
+        "2c6f15dd-5f2e-4c96-90dc-47e094d8098d:0",
+        "7a247664-7737-4087-a297-2fd925c4a8da:0",
+        "d39b1a41-0d37-4ef8-987b-82a3db1da883:0"
+      ],
+      "source_revision_ids": [
+        "9a1f2613-dfad-4943-b809-1146e330fd4e",
+        "0d8ca6b6-dec6-4fa8-b276-7b6fbc6cb4f5",
+        "67fcd3e4-a9b1-476f-91e6-7e3c3ed9226b",
+        "333e955b-647b-4e1a-bcd0-9fce6cda5ee0",
+        "cf2e996f-5c30-4780-a44a-d5a5e16f2de3"
+      ]
+    },
+    {
+      "content_hash": "5ba17ea224b6f3a12f3b05371497fb0a6db5d23d5587417f116459b286f800de",
+      "previous_summary_id": "a1e50ed3-577f-4b7e-aef4-ee757b6affd5",
+      "old_task": "김민전 질의 진행",
+      "new_task": null,
+      "new_summary": "앞선 질의를 마무리하고 다음 위원에게 질의를 요청했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "73c18c76-f169-4840-a713-08485df73986:1",
+        "e8b10b68-be46-41bc-b2c6-bd647c9032f7:0",
+        "6e5f9020-cd12-4df6-87f9-c476e04094d8:0"
+      ],
+      "source_revision_ids": [
+        "38132190-c14e-48c7-96b1-b745a6a46980",
+        "50e7b845-ab36-45ea-8863-ff9338b5c313",
+        "42d9357f-92eb-4dc6-98d9-6b49c92662bb"
+      ]
+    },
+    {
+      "content_hash": "549742b9a19462ee2eea64dc7c55f4242765ab281b51e921619ffc29f6ebcb97",
+      "previous_summary_id": "0f6d54a0-b9ae-4100-84f9-6a807634cb91",
+      "old_task": "발언 시간 중단 및 예의 요구",
+      "new_task": null,
+      "new_summary": "질의 시간 계산을 중단해 달라고 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f986171e-9383-41e4-8ba7-3ba6a49a6b19:0"
+      ],
+      "source_revision_ids": [
+        "8822ccd0-0d09-43fc-9242-7b74d21e8177"
+      ]
+    },
+    {
+      "content_hash": "f606a51012120bd4c1903d77fee1d3845e33ab969483b6eb1819f676b57bde20",
+      "previous_summary_id": "fde199e9-0f3e-44e2-af63-3f934bf0d0d1",
+      "old_task": "업무 관리 방식 설명 요청",
+      "new_task": null,
+      "new_summary": "먼저 이야기하도록 요청하며 발언 순서를 조정했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "3472dfb1-0299-4e31-8221-55d6d909d31a:0"
+      ],
+      "source_revision_ids": [
+        "d3f5a29b-6f60-4af3-aa4b-fca9ed6628a6"
+      ]
+    },
+    {
+      "content_hash": "21b4af0207cfd591c511bf1f0e176dbb1253b3b17b720ce29bb1ccf56b119386",
+      "previous_summary_id": "53d9d49e-6e8a-49de-af77-b48ab94b57cb",
+      "old_task": "거짓말에 대한 법적 근거 요구",
+      "new_task": null,
+      "new_summary": "짧게 이어진 발언으로, 이 구간만으로는 독립적인 질의나 과제를 확인하기 어렵다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "af25d3ba-6be0-4164-91d2-0b919aa7a661:1"
+      ],
+      "source_revision_ids": [
+        "43d7df3f-cdfe-4054-8d94-d299f4895065"
+      ]
+    },
+    {
+      "content_hash": "a4245f292fd861cfcb4a7c63355088783e48d0ff98a0f97c7765ac968b2f5625",
+      "previous_summary_id": "29264a21-dd6a-44cb-823f-559a345ba04f",
+      "old_task": "외압 받은 이유와 질의 배경에 대한 설명 요구",
+      "new_task": null,
+      "new_summary": "회의장 내 발언을 정리하고 간사의 조정과 위원의 사과를 요구하며, 의사진행 발언을 허용하지 않겠다고 밝혔다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "4172fdcc-1fc1-4b23-afa1-18a69afa37c7:0",
+        "a2261873-e054-4660-965e-2e388404e156:0",
+        "6dac8475-652f-4458-ad10-9dade4c9e4dd:0",
+        "72c17a33-a3f9-4930-b32d-422472cd8894:0",
+        "9f4e2220-e677-4153-a821-583c7e429333:0",
+        "10ae17d2-4bd0-4301-a7c1-f8540376e151:0",
+        "f890ba49-8da1-4ee1-9bd7-fb8a18c9add8:0",
+        "d6be1d31-c043-405e-8478-e9b811ff4bd1:0",
+        "beba3674-4518-489b-849b-febb82eeb2d5:0",
+        "f34085b0-2109-4f2a-91a0-62f9f64aba41:0"
+      ],
+      "source_revision_ids": [
+        "37771ccb-d47b-44c0-b588-1048a15dc16c",
+        "bb6012fe-e095-4134-9959-c57039142db1",
+        "0c4076ec-454c-4572-bb7a-7db85c280b45",
+        "fee1252a-cfb4-4b2b-97f0-7882468b2710",
+        "ba2d9054-5384-4ac1-8e6d-1128698b94a4",
+        "5a8d71b0-93bc-4a58-b81d-df04ba07e3e4",
+        "6168ce9a-0d2d-486c-97dc-1a606dd45dd7",
+        "bf20fcfd-8af6-4639-b34f-b2fe0c7906ad",
+        "075fdad3-56fa-404e-9a64-3f5e49cec6dd",
+        "194c9fd1-0895-4dc4-af89-62d1e260dbd0"
+      ]
+    },
+    {
+      "content_hash": "79676f5dbc6242d73b3e22f84ce89728f131c4eb74adbc278892a5c6cf0529ff",
+      "previous_summary_id": "bc6c23ef-7715-46d5-a6d1-40637e7ac43a",
+      "old_task": "11시 30분에 질의 제기 및 감사 중지 선포",
+      "new_task": null,
+      "new_summary": "11시 30분 재개를 안내하고 감사 중지를 선포했다.",
+      "role": "DECISION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "b015c2ad-b4ee-4141-82fe-b5687d9e5b6b:0"
+      ],
+      "source_revision_ids": [
+        "4e0140b4-d4ef-43de-9064-dd8b026e05f6"
+      ]
+    },
+    {
+      "content_hash": "1622745751abde0c9bee1156534e3a8324cdba280c5d2dbaf02c466c82e1c37d",
+      "previous_summary_id": "15f293a6-aee5-4a5e-b286-6c2ec561bf5f",
+      "old_task": "책임 지시, 발언 허용, 향후 조치 논의",
+      "new_task": null,
+      "new_summary": "관련 발언에 잘못이 있으면 책임을 져야 한다고 언급하고, 김한규 위원에게 의사진행 발언을 요청했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "8553294b-75d9-4c93-a4d2-21a83b0dc8db:0",
+        "ecdbb267-0923-4d19-b10e-511035222254:0",
+        "ebf079e9-7010-41c0-9eef-7e492d29604e:0",
+        "f161eda4-5e8c-481c-8729-0d5d2354031f:0",
+        "87a72f49-4c42-4964-9189-5eaa49345147:0",
+        "d4258990-edb2-412e-b99b-6f06801dcb17:0"
+      ],
+      "source_revision_ids": [
+        "361292b3-9ed1-4d86-a288-4f990f2ffcc0",
+        "0747bc09-8955-4e6d-a9e8-0404381604c0",
+        "49009122-06bb-4b65-b9d6-de173420b675",
+        "18ea91df-e106-4bee-968a-e98dcdeb27fd",
+        "52ebff87-7562-4849-8343-8ad5e0d79d50",
+        "eda49e10-9e73-468b-ae7d-2b9b96f71124"
+      ]
+    },
+    {
+      "content_hash": "07d2a82a131add18945038462227377a769ff2fb748816fcce8d81c30d24808d",
+      "previous_summary_id": "ec31e629-644b-4624-89ef-5a47b5214ded",
+      "old_task": "의사진행발언 자제 및 다음 일정으로 일시 정지.",
+      "new_task": null,
+      "new_summary": "양측 모두 의사진행 발언으로 다룰 내용이 아니라며 논의를 정리하고 다음 순서로 넘어가려 했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f88d1662-04d1-4019-8aa3-fd0181417f98:1",
+        "1cbac435-c43d-412f-8615-35f2c03b900a:0",
+        "d8b92bbc-a946-4a0a-a1a0-197c037f852c:0",
+        "bec12d55-5d3a-402a-b914-fed56e775d0f:0",
+        "5f46e2cc-0a0d-4768-a193-c40028549b4c:0",
+        "b790e645-99a4-423c-a5ec-41526d46a214:0",
+        "b71a7833-f740-4eb4-a9c3-374706b5c804:0"
+      ],
+      "source_revision_ids": [
+        "c5aa9f17-93ec-4e57-9b9c-60cce556316e",
+        "406d5ffa-39d9-46f8-9dc9-3e75f56b9dd5",
+        "0ee79dad-5184-405b-a6c2-55657c3b6072",
+        "dd36f21a-36b6-4844-bfa8-36aba9a32a21",
+        "5618a9b4-02b0-4d6d-9e74-bad6a1398502",
+        "04a548fd-b9a2-43a3-b77c-3f4d269188b8",
+        "70b2a3ef-dc23-4ae8-ba36-0e780073920e"
+      ]
+    },
+    {
+      "content_hash": "817c975e4f9f99f2dba99b2b81f08f85577d56991811eaca03b398c02431c16d",
+      "previous_summary_id": "6b42fcaa-ab68-4e61-9841-b818cb656801",
+      "old_task": "감사원의 검찰청 감사 중단 사유에 대한 설명 요구",
+      "new_task": null,
+      "new_summary": "감사원이 검찰 감사를 시작한 시점을 알고 있는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f6f08100-fa08-41f8-9e0d-509869c9175f:0",
+        "04ab699a-f0c1-49ab-96be-d100ee26f903:0",
+        "271cdf34-a883-4ed5-93e1-8cf78a63e2b8:0",
+        "d5468ef4-488b-4269-86a4-53debb8c3b48:0"
+      ],
+      "source_revision_ids": [
+        "c3abd27c-c271-44cb-af0c-18c56b8915a2",
+        "62252d0f-3ea6-4335-b4c8-364be137c314",
+        "3e00dbf1-3a71-4127-8ad7-4177ca30d547",
+        "f01925d9-05a3-42c7-9d41-a34dd7ca17bb"
+      ]
+    },
+    {
+      "content_hash": "04c4aef0f6d5e1be78ac1384348f7d3d26b4439f22140b6427cc6ba3ebb7fdc5",
+      "previous_summary_id": "e8dd569f-68f6-428b-beb7-7de3f4924a34",
+      "old_task": "감사원이 검찰청 감사를 중단한 배경과 압박 여부에 대한 공식 설명을 요구한다.",
+      "new_task": null,
+      "new_summary": "행정상 문제가 지속해서 제기됐는데도 2022년부터 검찰 감사가 중단된 이유를 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "234db86f-0341-4e8e-bd44-14528df6b792:0",
+        "695af4ef-ca23-4899-a492-be20da7ef880:0"
+      ],
+      "source_revision_ids": [
+        "8b23bafe-9dcc-4a41-b695-57e1e771e8a1",
+        "b74930c8-3004-40eb-9bca-6bad49575a6f"
+      ]
+    },
+    {
+      "content_hash": "9cce1ae81ed8e43e8e491837440ee872fdae5e749f6d5191219ebc76199c1d29",
+      "previous_summary_id": "cc2c9d87-cf40-4ae1-87bc-c9439eff3d87",
+      "old_task": "감사 중단 사유 조사 및 신설 기관 감사 진행",
+      "new_task": null,
+      "new_summary": "감사원이 검찰 감사를 2년마다 하겠다고 발표했으나 별도 설명 없이 중단됐다고 지적했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "8ea90345-3d31-4b3f-80fa-0de2284e2752:1"
+      ],
+      "source_revision_ids": [
+        "59594e22-bd0a-4226-ad95-073169c5db2d"
+      ]
+    },
+    {
+      "content_hash": "141ec474115f451e3b7371b0ea2b542f1322e667d5d9a6f2209a3b813502a8a3",
+      "previous_summary_id": "3f12d166-d21e-4d64-b109-5cb24d30ee88",
+      "old_task": "감사 중단 사유 및 신설 기관 감사 요구",
+      "new_task": "감사 중단 경위 자체 감사·파악 및 보고",
+      "new_summary": "공소청·중수청에 대한 감사 필요성을 제기하고, 2022년 이후 감사 중단 경위를 자체 감사로 파악해 보고하고 필요한 처벌이 이루어지도록 요청했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "81d72c97-0e99-4868-a54d-c234bbaeb609:0",
+        "2958411b-595b-4e0f-89a9-5e610881f6b6:0",
+        "0b8b4e4c-ee1d-4750-a4dd-5f2cdbc51bd1:0",
+        "3c3016ee-56c9-435c-8aff-941cdd6b780e:0",
+        "f625a3dd-a480-4119-a4dd-41cff0208acf:0",
+        "03b061f9-9989-421b-af29-57e0e22c269a:0",
+        "93af58d2-9e93-4002-b94f-03d3a7512054:0"
+      ],
+      "source_revision_ids": [
+        "e2418cde-edd8-45de-9398-237bfbb6913e",
+        "2472442f-5c55-4300-b33c-5c9c3a2c8d4a",
+        "a838bef7-e972-4ada-a777-5a0a98bf6c6e",
+        "244ccb90-3ca9-4103-a607-225e41f6b45f",
+        "8e0b4487-68e0-4348-bbda-1f337a1d58cb",
+        "b6d8c020-3a2f-406a-b964-075ad4a7c100",
+        "0bdef1ff-3565-4b2c-9367-a26e48ed6da2"
+      ]
+    },
+    {
+      "content_hash": "bb7b59b8af6b246e9179fecdb70cb7209429b72bf5ba92da97402dd4087de62d",
+      "previous_summary_id": "99fda284-efe7-43d2-88f8-1f78103a66e7",
+      "old_task": "감사순계 기준 감사 진행을 위한 추가 점검",
+      "new_task": "감사 주기에 맞는 감사 진행",
+      "new_summary": "감사 주기에 맞춰 감사가 이루어지도록 더 살피겠다는 취지를 밝혔다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "26e675ce-644a-40c2-9dfe-c121dbf80b51:0"
+      ],
+      "source_revision_ids": [
+        "8032d51c-72de-465c-a952-9003a0917659"
+      ]
+    },
+    {
+      "content_hash": "694f80e0d151689f3a76203a17a49c3ecb1eb3f5e019990d97f7bce846535a67",
+      "previous_summary_id": "f0f1ce10-56a4-409c-b0a1-5fdb795b9dc1",
+      "old_task": "감사 중단 사유 및 신설 기관 감사 요구",
+      "new_task": "감사 중단 이유 밝히기",
+      "new_summary": "감사를 진행하는 것과 별개로 중단 이유도 명확하게 밝혀 달라고 요구하고 이행 의사를 확인했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "26e675ce-644a-40c2-9dfe-c121dbf80b51:1",
+        "7869b7eb-5461-4112-a6ef-83da85a489d4:0"
+      ],
+      "source_revision_ids": [
+        "8032d51c-72de-465c-a952-9003a0917659",
+        "28b670c3-9bc5-4ed1-a993-7d92e84d22ae"
+      ]
+    },
+    {
+      "content_hash": "61aa6bb12e280ad1bd592cfacc6cbcb5c10c871bf5a7cbddcf408af6a672c40e",
+      "previous_summary_id": "5cb6f839-8385-44bb-869e-a78ac5407580",
+      "old_task": "감사 중단 사유 조사 진행",
+      "new_task": "감사 중단 경위 살펴보기",
+      "new_summary": "감사 중단 경위를 살펴보겠다는 취지로 답했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "7869b7eb-5461-4112-a6ef-83da85a489d4:1"
+      ],
+      "source_revision_ids": [
+        "28b670c3-9bc5-4ed1-a993-7d92e84d22ae"
+      ]
+    },
+    {
+      "content_hash": "fac18071c77ada38296da1c26467d349c3e5b552b06f136fbd2aca8774dbaae8",
+      "previous_summary_id": "18fe1502-f8e8-4e67-b1c0-35084d0b4427",
+      "old_task": "법원행정처는 수수료 증액 배경과 자금 사용 내역을 명확히 설명하고, 적자 해소를 위한 대안을 제시할 것.",
+      "new_task": null,
+      "new_summary": "등기부 열람·발급 이용 규모와 수수료 인상안을 제시하고, 국민 부담을 늘리는 인상 이유를 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "7869b7eb-5461-4112-a6ef-83da85a489d4:2",
+        "45569023-50e8-403d-94fe-5a8e77b929be:0",
+        "ead3445e-145c-4c61-b3ca-204b568c60ea:0",
+        "1fc2291a-0bb8-4eec-9105-83dae5399721:0",
+        "f497b8fd-fac7-49a5-aacd-0a672f0922cc:0",
+        "ed5bce22-13c9-4eaa-9699-43fff27eca91:0",
+        "a6715977-f41a-473f-9ff0-bfb8f4c42248:0",
+        "0c1abe44-3af1-4a38-85df-4363cdc73147:0",
+        "deba7479-107b-4f3f-a3dc-5e5070a1a79a:0",
+        "f83b4445-23ef-409d-9d4b-7899b331b86c:0",
+        "3a0c4bb9-2dc6-49c0-b89d-598d48c3a77c:0",
+        "01c6dd8c-70d7-4351-a6d3-4d7aa0ee3cd1:0",
+        "51a0022a-a576-433d-b6cd-d85b2e34098a:0",
+        "b4dd0381-88e8-4b9d-8c0c-7b1f5f3ca103:0",
+        "2e77c205-ef86-42b8-9638-0a0e35cbf514:0",
+        "568ed274-ee90-4860-beec-06bbcb926904:0"
+      ],
+      "source_revision_ids": [
+        "28b670c3-9bc5-4ed1-a993-7d92e84d22ae",
+        "a4366bf4-bd69-422d-b10c-3219036d1eba",
+        "44b30ed4-35cf-4df1-8b1f-4321666103e2",
+        "3eb9903f-a95a-4cf6-9d2c-ad0f5c17a829",
+        "bc082e17-57f9-471a-b287-6e470569e644",
+        "f4fb54db-fcab-4de0-9059-c971cb8882f0",
+        "202792b0-671c-49ab-96c1-20cfc3097b08",
+        "60157953-d1f1-4218-9918-0d782f148df7",
+        "552c4d93-7e85-40c8-a2a7-eed1b3d2eac8",
+        "11c43134-1233-47a1-b478-0c3e6c6975c2",
+        "dfc098a4-2a76-48db-b9f3-852cb286296d",
+        "ec32a16c-d1c2-4f08-abc3-4c1740e27e48",
+        "ad0b766d-6592-4522-85e7-48d7ddd1e807",
+        "bd600c5e-ed06-4004-848c-f1d357c55df6",
+        "e1bf1c4c-bc68-406f-85fa-12c24338558b",
+        "1eb070f0-fec7-4bca-a28c-7e6f062cb928"
+      ]
+    },
+    {
+      "content_hash": "8b6f4c930c6ad52b548b2e03a271b5ed9e9c0086527a23ed9a3eaeede16e531b",
+      "previous_summary_id": "c5570341-51af-4f25-8359-268c3954f0ca",
+      "old_task": "등기부 수수료 증액을 위한 적자 해소 계획",
+      "new_task": null,
+      "new_summary": "수수료 동결로 누적된 적자를 해소하기 위해 한시적으로 인상하려는 것이라고 설명했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "7f5f7cbe-65cb-4e20-82e0-19cc518a5a84:0",
+        "e67f0a2d-e607-4e34-8918-0a4c86f9f5eb:0",
+        "1c4468f7-4d13-4463-ae67-114f746028c4:0"
+      ],
+      "source_revision_ids": [
+        "ae741cc3-2a35-43d7-b3fe-30b467a121f1",
+        "0c615fea-d2e7-4a9c-996c-684b9b3906b5",
+        "92a3b731-749c-4ebf-a030-71a8cdde4689"
+      ]
+    },
+    {
+      "content_hash": "f693225d516204244cb5a12b7aa10d3510ed25b6562716f12ee2cbb0eba0e773",
+      "previous_summary_id": "87bdee40-642a-4ccd-b171-59d630874646",
+      "old_task": "법원행정처는 등기특별회계 자금 투입 내역과 퇇직 수당 지급 여부를 검토하여 증명할 것.",
+      "new_task": null,
+      "new_summary": "등기 수수료가 어디에 사용되는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "791c9768-5038-4941-a1a9-782d272293de:0",
+        "0d50f751-789f-4ca0-a053-c038d65985e5:0"
+      ],
+      "source_revision_ids": [
+        "bd4060fa-b451-4255-aa8b-0f25586d8053",
+        "3755c254-4335-481b-9e15-94c3da008e7d"
+      ]
+    },
+    {
+      "content_hash": "5ebaeaea90d4afef5ba8bf89c277a8d784523dcb1a209b99f959b13d12e825ef",
+      "previous_summary_id": "6618b132-1d9b-4f35-a307-a7352c4293a7",
+      "old_task": "등기부 수수료 투입처 추가 확인",
+      "new_task": null,
+      "new_summary": "등기특별회계를 통해 전산화와 차세대 등기제도 등 제도 개선에 투입된다고 설명했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "0d50f751-789f-4ca0-a053-c038d65985e5:1"
+      ],
+      "source_revision_ids": [
+        "3755c254-4335-481b-9e15-94c3da008e7d"
+      ]
+    },
+    {
+      "content_hash": "b9d2824f37f9611e14c2a023ac98e6e1cadab7265621b8f383620600ed273f53",
+      "previous_summary_id": "9d900a5c-59e1-464f-ace9-c1274e01b1f9",
+      "old_task": "수수료 자금 사용 현황 확인 및 검토",
+      "new_task": "수수료 관련 지적 사항 확인",
+      "new_summary": "수수료 관련 지적 사항을 확인해 보겠다고 답했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "e477b839-1796-4813-bd27-80d130fe4cc2:1",
+        "3f074450-0a5a-4652-9822-352557b79208:0"
+      ],
+      "source_revision_ids": [
+        "d0385090-be0f-4e34-b11a-4b04ff60f175",
+        "398dfa01-53c3-48bf-aa2c-c383a246fa1a"
+      ]
+    },
+    {
+      "content_hash": "86fd0bb2f88d6a2a400e46665e16315bf6f5ec934de5c401d5566369534e54de",
+      "previous_summary_id": "f0adaecf-bb2f-4c2c-bd97-bf4415be2233",
+      "old_task": "법원행정처 등기수수료 증액 입법예고 철회 및 전환무료화 검토, 법사위 및 정부·국회에 예산 지원 요청",
+      "new_task": "수수료 인상 입법예고 철회 및 필요 예산 보고",
+      "new_summary": "등기 수수료 인상 입법예고 철회를 요구하고, 필요한 예산은 정부·국회에 보고해 확보하라고 요청했다. 이에 검토하겠다는 답변이 이어졌다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "d97fffd0-a872-4a08-8c32-d2f42f6e7fab:0",
+        "8f1a8a00-c091-4d04-9a22-ba592f08fedd:0",
+        "63a44d3b-4373-4be3-81f5-1372129e0fb7:0",
+        "784da95c-1955-4c5b-9074-756d919e9669:0",
+        "85c1eb35-6635-48f3-bc12-39663225803a:0",
+        "2e5fa249-b385-4279-9b9c-e3ca0ff425aa:0",
+        "d79dd897-c7c7-41ca-8a74-68b031b1bfeb:0"
+      ],
+      "source_revision_ids": [
+        "7a8ed0f5-519e-4414-98e9-40f205324414",
+        "a26e89fe-0957-4595-9c21-d5529df660db",
+        "1a58c4e4-81cd-4edc-8d62-8558673947a7",
+        "35b86450-8386-45f2-9e3f-88978351520e",
+        "916f6958-8537-48d4-9a13-d89d5753ba63",
+        "a7c67a46-60a6-4e20-bc58-c1d8e1538a61",
+        "5e6a22de-1d62-4ed3-a468-af812f7341b9"
+      ]
+    },
+    {
+      "content_hash": "9636138a059d26316139406c7064b38a91924b87189f633b356b07bd8c8f5556",
+      "previous_summary_id": "a4c49589-03cd-4f0b-b713-248f607579e9",
+      "old_task": "법원행정처 등기수수료 증액 입법예고 철회 및 정부·국회 예산 지원 요청 검토",
+      "new_task": null,
+      "new_summary": "오후 첫 질의로 순서를 조정하자고 설명하고, 여야 논의 등을 위해 오전 감사를 중지하겠다고 안내했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "9c3806c0-5450-4300-bedc-39dc70c7cb63:0",
+        "58e42fd6-7937-4436-97fb-88a39cdce0e8:0",
+        "3c1cbe2b-c749-412e-aca2-5dc302559160:0",
+        "e82fa119-100a-4798-84b1-3aabb69e11f6:0",
+        "4df75fda-9696-4b58-9585-e58426ddb462:0",
+        "f560c45e-3f22-4e54-9baa-522755fa4b7b:0",
+        "974ccbc5-3689-450c-bb51-8b6e78e8eaeb:0",
+        "695ef10d-e440-4838-aa7d-8fe3e07774e3:0",
+        "6ca397a8-28cb-4a84-8de7-ee608198ca1d:0",
+        "41cdaa14-047f-4907-b2dd-6e2673da66be:0",
+        "277fde7a-d794-46b7-853f-7bf4e4a11333:0",
+        "1b207066-27c1-4155-b9cf-adf893299714:0",
+        "5cfaddea-fed8-40c5-8fef-2b41d5d44663:0",
+        "47a73cc6-1cfc-46ba-9046-a215c464c152:0",
+        "9398e23d-3722-4c94-b329-505ff538cf41:0",
+        "3e4f1254-1d1a-44c7-b59e-09ef9a95fae9:0",
+        "16737f6c-f3a3-46b7-b24c-2e0d32584829:0"
+      ],
+      "source_revision_ids": [
+        "9a8f0c3e-0eff-4cf8-8748-7ea3ab6888c0",
+        "713309e8-40fc-4618-99cb-2cda20c26768",
+        "a6f965e7-a047-4eca-ad4c-2029993a6be3",
+        "5f149736-1378-435b-ab31-2fb9a3905db2",
+        "a1794b77-451d-4590-948d-4a0562d5ac16",
+        "c7d3668d-bf8e-4b8c-91a2-311404ec3789",
+        "c4789d0a-237a-42c9-b080-c57ddc0d2e86",
+        "21829631-9e98-4fe6-948e-7654554ca82d",
+        "f5c1e1d2-fe44-4cf0-b5a2-eaf5b49c567e",
+        "047fa642-aa21-400d-8c10-e146400abd95",
+        "1d99e332-06a5-4605-a04e-382085b812bc",
+        "6c805fe8-12b7-474e-b825-b7871ab50adb",
+        "f326ac62-b115-4e5b-be9b-4b46adb87142",
+        "f41bf702-6f9a-43eb-8309-6aa33ae3e334",
+        "a1a89b87-36fa-4997-9c03-96689a076f75",
+        "92e27a05-adc3-457b-99b9-03d872dffd07",
+        "13b106d9-7421-4bc4-b601-bf6ec4c5a805"
+      ]
+    },
+    {
+      "content_hash": "72f7e51bd908bf3313433aa78bb896a26e4c8c15eaaf36b43eaa4fd20d00b504",
+      "previous_summary_id": "7baf9e8a-58f7-49e0-b9c8-e02d204c3742",
+      "old_task": "법사위 및 정부에 수수료 증액 재검토와 예산 지원을 요청하고, 오후 감사 일정 조정을 요구한다.",
+      "new_task": null,
+      "new_summary": "의석 정돈을 요청하고 감사 재개를 선언한 뒤 의사진행 발언을 요청했다.",
+      "role": "DECISION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "5e4fb733-a621-4bdf-a21b-40f1363e76a1:0",
+        "35525a30-0a51-4682-a99e-72e09a893957:0",
+        "e2c78456-25a3-439b-a3ad-96b324e7e827:0",
+        "b7283866-cdfa-42ab-ac13-76312c30412b:0"
+      ],
+      "source_revision_ids": [
+        "7ae679a3-d843-41fc-8ec9-6ce440501ca8",
+        "90f9f700-ee48-4c48-be24-e1e0aabe4b59",
+        "d8da6241-374e-4b40-b8df-5b3b9b258271",
+        "6955aca6-9d9b-40fd-9bc8-5882af32ef21"
+      ]
+    },
+    {
+      "content_hash": "703ba3a3abde980dbc22b9053cb1812ecf7214c891acfa953072f0fa64db6d33",
+      "previous_summary_id": "7075d9f6-9a85-4186-bc2f-a6cfea379ff1",
+      "old_task": "법원행정처 등기수수료 증액에 대한 정부 예산 지원 요청 및 법사위 보고 요구",
+      "new_task": null,
+      "new_summary": "다음 질의자의 게시 영상이 출처와 형식상 국정감사에 적절하지 않다는 의견을 제기하고, 발언 순서를 두고 이견을 보였다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "301e0d0d-d423-4bfa-9cda-9341562499dc:0",
+        "b52189d5-17f4-4292-a7f4-11fe488b12ac:0",
+        "27c7a502-6a84-456c-b01b-1f119a8d1c2f:0",
+        "6c1a14c4-fdfd-4cea-8b60-7fd555118fe8:0",
+        "ee7ec699-860c-43b8-abe3-9dc474017c00:0",
+        "f0e7b7b6-fec4-4a00-9ded-ef29d488eb9e:0",
+        "a29e9c88-109e-49a3-8d29-d035a3f55c9e:0",
+        "d8620dba-49f4-471d-93cc-5fb7e220c2ca:0",
+        "109e5392-a3c2-4409-ad34-7d49c952dcad:0",
+        "9219b9c1-7674-4b35-9601-52c34c857953:0"
+      ],
+      "source_revision_ids": [
+        "fa1d07a4-2841-49b6-adca-4332c0d1fa7d",
+        "22bc1ab7-ad70-428b-a829-b7234f6761dd",
+        "487229ff-26ff-4e09-bdd8-02c94555f8d9",
+        "94715051-fb04-4de2-98d6-a7417b18f875",
+        "f3905b44-0517-4880-8453-69aacc96570d",
+        "20ed4f7a-0ebd-4c8d-a6c5-50f63a825793",
+        "7860ef09-4246-4b14-83d3-3a28123a66ba",
+        "3ec46e3d-e744-4b07-9e4f-8524808c1a38",
+        "f62699cd-d7cd-432f-addb-187b3d9feb2a",
+        "fbe24800-6ef5-46c5-a5b1-cbe64f9c032d"
+      ]
+    },
+    {
+      "content_hash": "17f916f9713e9dbabe825604c74c7d438a18f4ce814adb61ceb67ca82b2b02f7",
+      "previous_summary_id": "2f21595c-6082-4c20-994d-4a4a06aa8f95",
+      "old_task": "국정감사 계획서에 따른 영상 자료 허용 여부 검토",
+      "new_task": null,
+      "new_summary": "위원장과 다른 위원의 발언이 끝난 뒤 이야기하도록 요청하며 회의 질서를 정리했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "f8ae0533-ca28-4d43-b1b9-62bbc4eca8d6:0",
+        "d4ef171b-0eb7-4d3e-97c2-1a55d5c7cb43:0",
+        "eade53c5-ab22-4f04-a667-f771665f6d73:0",
+        "f9f65509-5f2a-4051-9d44-81db354dbf6c:0"
+      ],
+      "source_revision_ids": [
+        "480fe40a-fe4f-416d-a874-1930325db66b",
+        "c4329b9c-59a7-4cd0-aaad-5173c5ec8dbd",
+        "5add9d8d-5960-46e9-aa49-69505124dc54",
+        "f2ea55da-1076-4397-9392-2ae8e97ffca6"
+      ]
+    },
+    {
+      "content_hash": "2950f735e8c18f21aa12a208a4bf18fbb4ca9edd6b6bc72e0eff978a9e250120",
+      "previous_summary_id": "b3f1f243-6975-4f9c-ba58-f841ac14ceea",
+      "old_task": "법사위는 간사와 협의하여 부적절한 영상 자료를 제외하고, 허용 가능한 자료만 선별하여 재생할 것.",
+      "new_task": null,
+      "new_summary": "국정감사계획서의 영상 허용 조항을 설명하고, 부적절하다고 판단한 영상은 상영하지 말 것을 건의했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "8f2d9969-b206-494e-8b9e-f26a8919ad18:1",
+        "1c801a4e-c953-46c1-9edc-cdde6171f14a:0",
+        "bfdefdb9-7212-4300-85ae-6b50e0844c7a:0",
+        "817033ff-e132-4803-8e67-8b9ed5758c95:0",
+        "c3be2067-3948-4465-918c-7b5340604d69:0",
+        "ea08ef52-eea3-4201-8355-acdd1b8e94a4:0",
+        "d8220dc6-50b7-4b95-80f6-67eb3de4a9d4:0",
+        "0066e16c-3fc6-48af-a399-112be2ab19ae:0",
+        "51b92835-dae1-46e8-990f-1a0fb51fe964:0",
+        "f693fc7f-bfbc-4e19-9a76-de540d559a6e:0",
+        "c8ee88e4-2a84-4503-995a-5075cac770c9:0",
+        "79029230-2443-424c-bb7a-38e060497332:0"
+      ],
+      "source_revision_ids": [
+        "18860612-5d56-4509-a96a-6261265e22b2",
+        "ab61cdb1-ed58-4999-beb5-d3c4a85722b9",
+        "31d6534d-7cb6-455e-b93f-31c94a723f71",
+        "f833b7c5-1db4-45a1-a932-fc706b001707",
+        "1639acea-8c8d-4d0b-890d-8cd69d3655e6",
+        "c48b5825-3f96-4955-9f59-bf3ce41be4cd",
+        "eb96761a-1f26-4080-bd56-27e9578f2e8c",
+        "db9ddce5-2390-417b-9160-82ee01d54521",
+        "0d4ee3d5-f3e5-45d0-90fa-b9c3726418f0",
+        "4eb33ec0-b363-4010-a1d1-beb83f7081fe",
+        "da42fc86-6490-4d87-a2b5-8953024c4e78",
+        "bc0e2c7d-e946-4618-8ec1-94fc89c26d7a"
+      ]
+    },
+    {
+      "content_hash": "c0516ead00ba0aa334c80161b5167bfa8631df21d4562e7a3f0a1903fda1427a",
+      "previous_summary_id": "ba0a88b1-6edf-44b7-9015-93f71e81aaef",
+      "old_task": "김혜경 여사 골프 유무 및 윤혜경 여사 보좌 여부 확인, 이재명 대통령 골프 비용 자비 결제 여부 조사, 영상 투영 재생 요구",
+      "new_task": null,
+      "new_summary": "골프 여부와 결제 관련 확인 경위를 묻고, 관련 영상을 상영할 수 있도록 요청했다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "6d1bc7ac-203c-4bba-ade6-5f1d6bf85291:0",
+        "04a46790-8332-4816-9ef2-268184f98d98:0",
+        "2a9e8fb8-439e-44e6-b8c3-3c256701335a:0",
+        "dedb5f44-b385-413b-accb-701a956e8334:0",
+        "f8beee54-7d56-49bc-8639-3c235c371097:0",
+        "d22e69c4-700c-40f7-b0d0-ba686c4d05c4:0",
+        "88dbf193-0a97-462b-9fbd-1ff3a0cb5c44:0",
+        "0be49de0-d4cd-46f7-84be-6d5c7746a78c:0",
+        "2a8e8f8b-1908-4604-a41a-7ab4944db770:0"
+      ],
+      "source_revision_ids": [
+        "1d897ed9-f057-4df3-b670-983257da6787",
+        "23b83640-03bd-4858-97bd-a7281872a4cf",
+        "a784a2b9-4772-45fe-acc0-172e8b05455b",
+        "add15449-d3a6-410e-b833-1bcd1d98eeac",
+        "df7d62dd-0f7a-447a-b1eb-0bd47fa55e2d",
+        "1efe0311-c937-43c3-b06b-3a336eb4e37b",
+        "63a47ede-d022-40fb-af5b-a4e4fb130c31",
+        "dd00a28a-3e0e-494d-b6a7-cc660280d3a8",
+        "fa9a1e3b-2e5a-47c1-9796-60a473f56a3f"
+      ]
+    },
+    {
+      "content_hash": "2ac87f9f136f5738c69496f664b6166a481448da0d86bef1df3011d1ada7f056",
+      "previous_summary_id": "79238f43-81dc-4364-bdac-c9a133a9d062",
+      "old_task": "허위사실 유포 법적 책임 촉구 및 영상 불응 결정",
+      "new_task": null,
+      "new_summary": "해당 발언이 사실인지와 허위사실 유포 책임을 두고 공방이 이어졌으며, 회의장 밖에서 논의하라고 요청했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "51c0d7c0-8d27-404c-8390-1133b86b27ee:0",
+        "7e425561-216e-4aad-ac3d-20cb03713710:0",
+        "3c04fa20-d177-47da-bb0e-c88fb425061e:0",
+        "81d449e0-9f95-491f-8fb6-0369ebef76c0:0",
+        "2d3f10c3-1f29-4ec2-92be-7a780fd66be1:0",
+        "70e48e51-4260-434f-88a3-dbdd24953e31:0",
+        "16d38722-4b60-4af5-b59f-f6515bc76022:0",
+        "6a49bdbf-1530-4d20-bf28-ed42e20ba0c1:0",
+        "2f84f776-dbed-42e2-b2a1-12c8c62734f4:0"
+      ],
+      "source_revision_ids": [
+        "dc022761-0713-485e-bc83-36500da492b4",
+        "201d1a08-36c1-4032-93c0-ee5c4de88b0b",
+        "4dc61ecc-2bda-4363-808d-75ec7e9b0376",
+        "3059ea0d-1d13-47f5-8601-b66e015655f0",
+        "819c4ff3-e367-4fdd-bad5-f82ae0a3f06b",
+        "efc464a0-20a2-4993-9854-68aab6178e4a",
+        "0c63292c-f0c7-422f-a8f7-3f7a7d869185",
+        "396cb5a0-ca2a-4ee3-8ef7-20237f615f0f",
+        "36d02104-15df-49c5-addb-bc2b8b84aa03"
+      ]
+    },
+    {
+      "content_hash": "a8f1038b1873a98a416d46dc474586634824b8fff145361d1a3d095cb227b682",
+      "previous_summary_id": "b2340e4e-0e2e-4433-a78a-545a124160bf",
+      "old_task": "공수처 고발 요구 및 명의 도용 조사",
+      "new_task": "군 골프장 예약 명의 도용 의혹 고발",
+      "new_summary": "군 골프장 이용 자격과 차명 예약 의혹을 제기하고, 공수처에 고발해 예약 명의 도용 여부를 밝혀야 한다고 말했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "1f24eb86-f03d-4046-b49c-dbe4448eb721:0",
+        "a6f09af6-3636-4a85-a0d9-8e9f61b6f7ef:0",
+        "d6e08d10-0ab6-4fa9-a72c-42d9d7ba4045:0",
+        "a3984c8d-9032-41a0-a895-003d8f546808:0",
+        "cedcca6c-a653-4505-ac01-067610cb49c7:0",
+        "cec6e9af-761d-4018-86c1-99b56b909e61:0",
+        "1e76ed9c-8ce9-473f-a5d3-e4f2ca5c5a03:0",
+        "c34609c1-eeee-4a5f-9bb1-faf92f0376e0:0",
+        "ca358a0a-b9a4-4e9f-bc5c-7b1f31d43731:0",
+        "1c0c87b8-eacf-4eb9-9dc8-acec4d7915d9:0",
+        "7747eaed-0f11-4797-a91d-66bf5abf2543:0",
+        "84b8387d-e780-4dea-ba97-2933a0fcd6ea:0",
+        "d86fd802-f365-4b53-a23b-77e36d8141e4:0",
+        "62f69ea0-888f-4ebe-b59f-ce3fa7b0fb88:0",
+        "8ba01e32-7205-469b-806c-b195bad43550:0",
+        "8935c7fd-9288-4e57-b310-e1837cc71e9c:0",
+        "897cd32c-44df-4eaf-8adc-6c9d9ee784c6:0",
+        "1449301e-b336-48c1-984b-1ff2e9de67c1:0",
+        "c2a426db-31ce-458b-b81c-7cbd3c4e102a:0"
+      ],
+      "source_revision_ids": [
+        "d36cb6a3-ab9f-4f90-aef2-fa826f8af487",
+        "9e603d74-a953-4e1a-9f75-b3d10846dfa5",
+        "4898301f-07cf-411e-82f8-e73318b6f30e",
+        "07ff2ab7-7688-4cca-a9ce-1606677b882e",
+        "d7463a0a-f182-4ed3-8890-8802c93adee8",
+        "e059654e-d3df-426a-9f16-2cd8d62b0b37",
+        "da5d331b-35bf-4af9-ae8e-d54a69ba6b91",
+        "985ecf6d-e930-4fa6-808a-93d56f164443",
+        "d20656a3-4657-4bc1-94f2-601773586ebc",
+        "2283a580-d80e-4e07-9d1c-6038ca036ca1",
+        "efdd5950-929b-485f-b937-3ebb497f1cf8",
+        "0dea34a1-34e4-484e-ab56-b55da327b64d",
+        "ef9bb9a5-feec-4f50-af0d-f0cab9f4f2f8",
+        "64ef8908-9fbb-45c6-b51d-36064f48ab59",
+        "51ecfba4-0c8c-457e-9cb0-078f4b155cab",
+        "f859f8d9-a518-4982-a24c-90305a9bac30",
+        "796c8a78-8b96-4186-b22d-77ba222f6de9",
+        "df81c58b-7c1c-4165-9d53-b91a6402a2ef",
+        "0901493a-e120-463b-8a77-680f7e368f85"
+      ]
+    },
+    {
+      "content_hash": "834361892ee7d287a2088cac10d33992c4f35cbc1e2582298b9f3d07c8ca7d0c",
+      "previous_summary_id": "c5047adb-6d87-41e4-b036-da0675f24f2d",
+      "old_task": "결재 내역 공개 및 특활비 사용 의혹 조사 요구",
+      "new_task": null,
+      "new_summary": "아직 사건이 접수되지 않았다는 취지로 답변을 시작했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "aec68aa0-0986-4aa1-90b9-c5546eecda3b:0"
+      ],
+      "source_revision_ids": [
+        "010f1eb1-8b2e-44e4-bdd8-96185e7af2bb"
+      ]
+    },
+    {
+      "content_hash": "676869805c24d078370eb3fb03c6da5e38edb9ece5c5f1b6df9c883cd2f2e4e3",
+      "previous_summary_id": "36f72aae-3569-4157-aef8-954b6f1b9ef1",
+      "old_task": "의법 계산 및 결제 수단 검토",
+      "new_task": null,
+      "new_summary": "골프 비용의 실제 결제 내역과 현금·신용카드 여부가 확인되지 않았다고 지적하고, 특활비로 결제했다면 형사 문제가 되는지 물었다.",
+      "role": "QUESTION",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "ef211b06-cc9a-4592-a70c-529a33a3042f:0",
+        "498fdba6-95af-4177-9ad0-584f84eae17e:0",
+        "925ab44b-ddff-4a1e-addb-d02fe02b0a4a:0",
+        "6f410004-7b39-48f6-8b60-8d9fff4082c9:0",
+        "6406ddd5-bb88-43c2-b988-5b220af374e7:0",
+        "48e7ee17-9546-4c0d-b0f7-8f0b463b7d52:0",
+        "f64336d7-a0da-4d61-b80d-93d0edd52190:0",
+        "aa9506bf-bcc8-4806-b120-5ebd79db0fe2:0",
+        "1744f481-4e4f-401e-ba0b-e6ba4f7b2f86:0",
+        "f11b0652-07ce-4b89-bc72-0f842631ca8e:0",
+        "bb8bf730-51ba-4ebf-8c12-d1eed62b6820:0",
+        "4c26129d-63ff-4ce9-8700-b7b364a8b72a:0"
+      ],
+      "source_revision_ids": [
+        "0cb244b2-79cf-42f6-854f-f218264bc486",
+        "492bf6de-35fb-4075-a4dd-47cec63713a8",
+        "1f1674fe-67d9-4aee-a1ba-a8ff35ce7432",
+        "d33ad34c-a1c9-4039-8960-7ca63d49ec8e",
+        "c5745aef-3a9b-4043-a4ad-6f09ee218b95",
+        "3be54820-e54b-4189-8a7c-38a8920efd60",
+        "1224470b-2f41-48ff-a087-80be1625443b",
+        "0c1a4981-d2f0-4f46-ad85-e02f9e7b640a",
+        "f2f394f3-7bad-46da-aec1-e187c9026c87",
+        "a8efc623-e32e-45ad-b252-4c8a42976693",
+        "7c88a2cb-29c1-491e-95fc-f0141182e32d",
+        "5ca579d1-660f-4915-95db-bb37108b1969"
+      ]
+    },
+    {
+      "content_hash": "0bc51ff19eb025ef19c4b087c644580be6a9a2267631f7026682a22157c57107",
+      "previous_summary_id": "e1ae8c1e-c7fc-40c4-b1dc-0183713b0201",
+      "old_task": "지적 사항 포함 검토",
+      "new_task": "사건 접수 시 지적 사항 검토",
+      "new_summary": "가정에 근거해 답하기는 어렵지만, 사건이 접수되면 위원이 지적한 부분까지 포함해 검토하겠다고 답했다.",
+      "role": "ANSWER",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "4c26129d-63ff-4ce9-8700-b7b364a8b72a:1"
+      ],
+      "source_revision_ids": [
+        "5ca579d1-660f-4915-95db-bb37108b1969"
+      ]
+    },
+    {
+      "content_hash": "6c746760dbb26935c28346d1cf7e45372547318393633187fa8d15f7af6127fb",
+      "previous_summary_id": "c520fb39-e14f-4fda-9a13-ea81c234842b",
+      "old_task": "공수처 수사 촉구 및 원칙적 처리 요청",
+      "new_task": null,
+      "new_summary": "관련 사안을 따져 볼 필요가 있다고 말했다.",
+      "role": "STATEMENT",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "766a2f99-de8e-4724-9abf-a9e724fe6810:1"
+      ],
+      "source_revision_ids": [
+        "74b7f6ef-5ea2-4f7e-897d-dae0db2a6aa4"
+      ]
+    },
+    {
+      "content_hash": "65b532249090a8c603a573cedb651deb3083cec2ba3f2a844d74b9dc8e72cafd",
+      "previous_summary_id": "727a97bf-422a-4144-89a1-aa76d98c5cb8",
+      "old_task": "1호 사건 확인 및 공수처 수사 요구",
+      "new_task": "관련 사건 확인 및 공수처 수사",
+      "new_summary": "해당 사건부터 확인하고 공수처도 수사해야 한다고 주장했다. 과거에도 추가 증거 공개 이후 의혹이 인정됐다고 설명했다.",
+      "role": "REQUEST",
+      "original_record_preserved": true,
+      "inserted": 1,
+      "source_segment_ids": [
+        "e0a45ad8-4a24-4a1a-b6aa-7e61c97407e3:0",
+        "637f990c-f0ee-47b6-b924-2e701fa41517:0",
+        "1ce2490b-c593-445f-9b56-9a7a8e15ce6e:0",
+        "36dd7a22-e064-4b9f-8497-aa6dafed53d8:0",
+        "9b1ca3b2-4096-45a3-9ac0-79ce80562ac8:0",
+        "37a94704-df58-4fcb-aa0b-ac432414ca99:0"
+      ],
+      "source_revision_ids": [
+        "25007e1c-a65c-49cf-9116-2781ec9385f9",
+        "a15cfec3-b609-4c89-b371-db6610c92e59",
+        "5cc26d9e-2d66-4d2e-8cc5-0987c9196626",
+        "42835e7b-05e0-4933-8b1f-a10370dc974f",
+        "4b3b7f19-2ced-4bd4-9476-ea5214cec91a",
+        "9fd65a3f-473d-43ad-aed4-ee2dc53c608c"
+      ]
+    }
+  ],
+  "skipped": [],
+  "inserted": 78,
+  "retained_tasks": 21,
+  "verification": {
+    "unit_tests_passed": 46,
+    "runtime_checks_passed": 25,
+    "browser": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "task_rows": 20,
+        "false_task_removed": true,
+        "data_request_preserved": true,
+        "source_dialog_verified": true,
+        "javascript_errors": []
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "task_rows": 20,
+        "false_task_removed": true,
+        "data_request_preserved": true,
+        "source_dialog_verified": true,
+        "javascript_errors": []
+      }
+    ],
+    "latency_before": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "status": 200,
+        "seconds": 4.328,
+        "bytes": 34099
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "status": 200,
+        "seconds": 10.083,
+        "bytes": 34099
+      },
+      {
+        "url": "http://127.0.0.1:18070/api/health",
+        "status": 200,
+        "seconds": 3.704,
+        "bytes": 140
+      }
+    ],
+    "latency_after": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "status": 200,
+        "seconds": 0.068,
+        "bytes": 34099
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "status": 200,
+        "seconds": 0.069,
+        "bytes": 34099
+      },
+      {
+        "url": "http://127.0.0.1:18070/api/health",
+        "status": 200,
+        "seconds": 0.051,
+        "bytes": 140
+      }
+    ],
+    "source_capture_cursor_after": 1102742,
+    "latest_source_received_at": "2026-10-26T07:22:21.939512+00:00",
+    "source_capture_continued": true,
+    "api_and_summary_image": "poc07-national-assembly-api:task-evidence-20261026",
+    "new_generation_limitation": "Summary worker reported OpenRouter daily limit 950 after deployment; new model generation was not verified. Source collection and reviewed corrections are live."
+  },
+  "quota_diagnosis_correction": {
+    "reference": "OPENROUTER_QUOTA_RECONCILIATION_20261026.json",
+    "correction": "The summary worker was blocked by legacy local 950, not actual gateway exhaustion; gateway usage was 593. Central admission was fixed and new summaries resumed."
+  }
+}

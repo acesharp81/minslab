@@ -90,24 +90,26 @@ class OpenRouterSummaryClient:
             ],
             "stream": False,
             "temperature": 0.1,
-            "max_tokens": 8192,
+            "max_tokens": 12000,
             "response_format": {"type": "json_schema", "json_schema": {"name": "assembly_summaries", "strict": True, "schema": summary_response_schema()}},
             # Some endpoints require reasoning. Exclude its text without disabling it.
-            "reasoning": {"exclude": True},
+            "reasoning": {"effort": "low", "exclude": True},
             "provider": {
                 "data_collection": "allow",
                 "allow_fallbacks": True, "require_parameters": True,
             },
         }
-        # Provider capabilities checked 2026-10-22: these approved free models
-        # support optional reasoning. Exclude mandatory-reasoning fallbacks.
-        optional_reasoning_models = [
+        # Do not mix models with incompatible reasoning requirements in one
+        # gateway fallback request. Dots supports direct JSON without reasoning;
+        # Nemotron requires reasoning, which must remain enabled for that route.
+        if self.model in {
             "nvidia/nemotron-3-super-120b-a12b:free",
             "dots-studio/dots-3-note-preview:free",
-        ]
-        if self.model in optional_reasoning_models:
-            body["models"] = [self.model] + [m for m in optional_reasoning_models if m != self.model]
+        }:
+            body["models"] = [self.model]
+        if self.model == "dots-studio/dots-3-note-preview:free":
             body["reasoning"] = {"enabled": False, "exclude": True}
+            body["max_tokens"] = 8192
         response = None
         for attempt in range(MAX_ATTEMPTS):
             response = requests.post(
@@ -143,6 +145,11 @@ class OpenRouterSummaryClient:
             usage_metadata={
                 "request_id": str(payload.get("id") or ""),
                 "upstream_provider": str(payload.get("provider") or ""),
+                "response_model": str(payload.get("model") or ""),
+                "raw_response": str(message.get("content") or ""),
+                "rejected_ids": [str(row.get('id')) for row in parsed if isinstance(row, dict)
+                    and row.get('id') in {u['content_hash'] for u in utterances}
+                    and row.get('id') not in {i['content_hash'] for i in items}],
                 "usage": payload.get("usage") or {},
                 "privacy": {"data_collection": "allow", "zdr": False,
                             "public_evidence_only": True},

@@ -125,3 +125,23 @@ class SummaryCacheTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_short_unwatched_legacy_task_is_reviewed_before_new_long_turn():
+    from types import SimpleNamespace
+    repo=mock.Mock()
+    repo.existing_hashes.return_value=set()
+    repo.deferred_hashes.return_value=set()
+    repo.save_many.side_effect=lambda bid,items,**kwargs:len(items)
+    client=mock.Mock(provider='gemini',model='fixture',prompt_version='fixture')
+    seen=[]
+    def summarize(batch):
+        seen.extend(u['content_hash'] for u in batch)
+        return SimpleNamespace(items=[{'content_hash':u['content_hash'],'summary':'답변했다.','live_insight':{'task':None}} for u in batch],usage_metadata={})
+    client.summarize.side_effect=summarize
+    with mock.patch('app.services.summary_cache.SummaryRepository',return_value=repo),mock.patch('app.services.summary_cache.time.sleep'):
+        result=cache_missing_summaries(mock.Mock(),'bid',[
+            {'content_hash':'new','text':'긴 발언 '*50},
+            {'content_hash':'old','text':'예 그렇습니다.'}],client,review_hashes={'old'})
+    assert seen==['old','new']
+    assert result['saved']==2

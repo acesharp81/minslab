@@ -1,0 +1,464 @@
+{
+  "checked_at": "2026-10-25T23:02:19.113176+00:00",
+  "collections": [
+    {
+      "source_id": "lh_press_watch",
+      "first": {
+        "source_id": "lh_press_watch",
+        "status": "SUCCESS",
+        "records": 6,
+        "unchanged": 6
+      },
+      "second": {
+        "source_id": "lh_press_watch",
+        "status": "SUCCESS",
+        "records": 6,
+        "unchanged": 6
+      },
+      "stats": {
+        "incremental": true,
+        "complete_query": true,
+        "complete_population": false,
+        "discovery_only": true,
+        "provided": 12,
+        "fetched": 6,
+        "feed_counts": [
+          {
+            "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&nPage=1",
+            "listed": 12
+          }
+        ],
+        "latest_published": "2026-10-23",
+        "actual_events_created": 0,
+        "period_start": "2026-09-26",
+        "period_end": "2026-10-26",
+        "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음.",
+        "cumulative_record_count": 6,
+        "unchanged": 6,
+        "record_count": 6
+      },
+      "items": [
+        {
+          "id": "DOC_6d057dab2fea19e2702fa60a",
+          "revision": 1,
+          "title": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+          "date": "2026-10-15",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_1689f50f06f6d3e57669e061",
+          "revision": 1,
+          "title": "'신길4구역'·'녹번동근린공원'·'송중동 주민센터 인근' 도심복합사업 본궤도...후속절차 속행",
+          "date": "2026-10-16",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12159",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_47c1fe723b89426ace3ff7a5",
+          "revision": 1,
+          "title": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+          "date": "2026-10-16",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_a15ac1688f0ad3ac70c3f17f",
+          "revision": 1,
+          "title": "새글 한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+          "date": "2026-10-21",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_4ffc89d2df92899aa341db4d",
+          "revision": 1,
+          "title": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+          "date": "2026-10-22",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_87cca7787d542e5eb6512549",
+          "revision": 1,
+          "title": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급",
+          "date": "2026-10-23",
+          "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12169",
+          "authority": "OFFICIAL"
+        }
+      ]
+    },
+    {
+      "source_id": "ih_press_watch",
+      "first": {
+        "source_id": "ih_press_watch",
+        "status": "SUCCESS",
+        "records": 6,
+        "unchanged": 6
+      },
+      "second": {
+        "source_id": "ih_press_watch",
+        "status": "SUCCESS",
+        "records": 6,
+        "unchanged": 6
+      },
+      "stats": {
+        "incremental": true,
+        "complete_query": true,
+        "complete_population": false,
+        "discovery_only": true,
+        "provided": 10,
+        "fetched": 6,
+        "feed_counts": [
+          {
+            "url": "https://www.ih.co.kr/main/public/news_data.jsp",
+            "listed": 10
+          }
+        ],
+        "latest_published": "2026-10-23",
+        "actual_events_created": 0,
+        "period_start": "2026-09-26",
+        "period_end": "2026-10-26",
+        "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음.",
+        "cumulative_record_count": 6,
+        "unchanged": 6,
+        "record_count": 6
+      },
+      "items": [
+        {
+          "id": "DOC_94cab4bf5e40c75ed98b8d62",
+          "revision": 1,
+          "title": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+          "date": "2026-09-30",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_095dc3097cc065c4cb4e9da4",
+          "revision": 1,
+          "title": "제물포역 북측 공공주택 복합사업 이주율 90.8% 달성… 연내 착공 청신호",
+          "date": "2026-10-01",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2316",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_4ce61401faff4df183327aed",
+          "revision": 1,
+          "title": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+          "date": "2026-10-06",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_46a03e4451788c1ae845bd74",
+          "revision": 1,
+          "title": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+          "date": "2026-10-12",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_cbe7b733bbc4f55f25f79092",
+          "revision": 1,
+          "title": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+          "date": "2026-10-16",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_ee0ac34035f66904d8348637",
+          "revision": 1,
+          "title": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+          "date": "2026-10-23",
+          "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325",
+          "authority": "OFFICIAL"
+        }
+      ]
+    },
+    {
+      "source_id": "seoul_press_watch",
+      "first": {
+        "source_id": "seoul_press_watch",
+        "status": "SUCCESS",
+        "records": 3,
+        "unchanged": 3
+      },
+      "second": {
+        "source_id": "seoul_press_watch",
+        "status": "SUCCESS",
+        "records": 3,
+        "unchanged": 3
+      },
+      "stats": {
+        "incremental": true,
+        "complete_query": true,
+        "complete_population": false,
+        "discovery_only": true,
+        "provided": 50,
+        "fetched": 3,
+        "feed_counts": [
+          {
+            "url": "https://seoulboard.seoul.go.kr/rss/RSSGenerator?bbsNo=158",
+            "listed": 50
+          }
+        ],
+        "latest_published": "2026-10-23",
+        "actual_events_created": 0,
+        "period_start": "2026-09-26",
+        "period_end": "2026-10-26",
+        "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음.",
+        "cumulative_record_count": 3,
+        "unchanged": 3,
+        "record_count": 3
+      },
+      "items": [
+        {
+          "id": "DOC_c45f9c890c1f952db73a95a6",
+          "revision": 1,
+          "title": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+          "date": "2026-10-22",
+          "url": "https://www.seoul.go.kr/news/news_report.do#view/468633",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+          "revision": 1,
+          "title": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+          "date": "2026-10-22",
+          "url": "https://www.seoul.go.kr/news/news_report.do#view/468636",
+          "authority": "OFFICIAL"
+        },
+        {
+          "id": "DOC_528c011f03ec6fac320df953",
+          "revision": 1,
+          "title": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+          "date": "2026-10-23",
+          "url": "https://www.seoul.go.kr/news/news_report.do#view/468710",
+          "authority": "OFFICIAL"
+        }
+      ]
+    },
+    {
+      "source_id": "newsis_housing_watch",
+      "first": {
+        "source_id": "newsis_housing_watch",
+        "status": "SUCCESS",
+        "records": 3,
+        "unchanged": 3
+      },
+      "second": {
+        "source_id": "newsis_housing_watch",
+        "status": "SUCCESS",
+        "records": 3,
+        "unchanged": 3
+      },
+      "stats": {
+        "incremental": true,
+        "complete_query": true,
+        "complete_population": false,
+        "discovery_only": true,
+        "provided": 139,
+        "fetched": 3,
+        "feed_counts": [
+          {
+            "url": "https://www.newsis.com/RSS/economy.xml",
+            "listed": 61
+          },
+          {
+            "url": "https://www.newsis.com/RSS/met.xml",
+            "listed": 82
+          }
+        ],
+        "latest_published": "2026-10-25",
+        "actual_events_created": 0,
+        "period_start": "2026-09-26",
+        "period_end": "2026-10-26",
+        "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음.",
+        "cumulative_record_count": 3,
+        "unchanged": 3,
+        "record_count": 3
+      },
+      "items": [
+        {
+          "id": "DOC_8342ce93f1d6ae7c53d1fb76",
+          "revision": 1,
+          "title": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+          "date": "2026-10-25",
+          "url": "https://www.newsis.com/view/NISX20261023_0003838683",
+          "authority": "NONOFFICIAL"
+        },
+        {
+          "id": "DOC_896355b48ccf361d4f64c579",
+          "revision": 1,
+          "title": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+          "date": "2026-10-25",
+          "url": "https://www.newsis.com/view/NISX20261025_0003839816",
+          "authority": "NONOFFICIAL"
+        },
+        {
+          "id": "DOC_9671d4d7729d0b82c52baab2",
+          "revision": 1,
+          "title": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+          "date": "2026-10-25",
+          "url": "https://www.newsis.com/view/NISX20261025_0003839886",
+          "authority": "NONOFFICIAL"
+        }
+      ]
+    }
+  ],
+  "before": {
+    "home_mapping": {
+      "count": 452,
+      "sha256": "b496763592c6811c5b49d4b42df7eca19a1b066ed33a8f3d92905358e2a3cf57"
+    },
+    "home_program_mapping": {
+      "count": 45,
+      "sha256": "efa8056684484dbf904ceb46f0e53e6938b22d396d7bad7b27a00ba4a92a9386"
+    },
+    "home_identity_alias": {
+      "count": 4358,
+      "sha256": "8dfea7313971ca56a0d83175f49bf072140e543ce6ef8ab11b5e6e03be8d1f63"
+    },
+    "project": {
+      "count": 452,
+      "sha256": "da9756e4ecce833a12bef8d959122c5089465990704088635e4f399c185e2eb7"
+    },
+    "stage_evidence": {
+      "count": 904,
+      "sha256": "85eaec53d7cf696ea5a5a5ca2648dbc0dfc493245db1abd09cc6081527383fe4"
+    },
+    "mapping_decision": {
+      "count": 11,
+      "sha256": "4772243836169aa6b7b4f53d575a8fa18f4951000ab62a90c6cf9e8188e73e77"
+    },
+    "evidence_bridge": {
+      "count": 824,
+      "sha256": "a12c9d687cb77e5526773e836c904f61814307d5459a251ce9f11a0ac6473035"
+    }
+  },
+  "eum_result": {
+    "source_id": "eum_housing_notices",
+    "status": "SUCCESS",
+    "records": 602,
+    "unchanged": 599,
+    "changed": 3
+  },
+  "eum_stats": {
+    "incremental": true,
+    "complete_population": false,
+    "complete_query": false,
+    "backfill_pending": true,
+    "period_start": "2025-09-07",
+    "period_end": "2026-10-26",
+    "scope_version": 2,
+    "region_checkpoints": {
+      "1100000000": {
+        "next_page": 14,
+        "complete_window": true,
+        "revisit_page": 12
+      },
+      "2800000000": {
+        "next_page": 16,
+        "complete_window": true,
+        "revisit_page": 8
+      },
+      "4100000000": {
+        "next_page": 132,
+        "complete_window": true,
+        "revisit_page": 120
+      }
+    },
+    "discovered": 600,
+    "housing_candidates": 1140,
+    "details_fetched": 2,
+    "details_deferred": 114,
+    "details_per_batch": 1,
+    "detail_workers": 1,
+    "detail_remaining": 206,
+    "failures": [],
+    "text_recovery_attempted": 4,
+    "text_recovered": 0,
+    "ocr_review_pending": 4,
+    "text_recovery_failures": [],
+    "text_recovery_limit": 4,
+    "text_extractor_version": 1,
+    "attachment_statistics_scope": "CURRENT_BATCH_ONLY",
+    "attachments_text_pending": 19,
+    "actual_events_created": 0,
+    "scope_note": "수도권 3개 지역 2025-09-07 이후 고시 목록: 최신 2페이지+과거 이어받기/재방문. 주택 관련 상세 최대 1건씩 및 첨부 다운로드·PDF/HWPX 추출. 실패 첨부는 다음날 재시도하며 미완료로 유지. 보관 첨부 배치당 4개 HWP/OCR 복구. OCR은 별도 검토 상태이며 사업별 물량 자동 생성 없음",
+    "cumulative_record_count": 8699,
+    "unchanged": 599,
+    "changed": 3,
+    "record_count": 602
+  },
+  "eum_recovered": [
+    {
+      "id": "DOC_71ce082137d36c116b533f93",
+      "attachments": []
+    },
+    {
+      "id": "DOC_bea49b7aecd2d1e0ae16cff8",
+      "attachments": [
+        {
+          "name": "04_인천계양_도시계획시설 결정(변경)도_251201.pdf (5,181 KByte)",
+          "status": "OCR_REVIEW_REQUIRED",
+          "text_scope": "FIRST_4_PAGES_MAX",
+          "error": null,
+          "text_attempted_on": "2026-10-26"
+        },
+        {
+          "name": "04. 인천계양지구_토지이용계획도(5,000)_기정.pdf (7,841 KByte)",
+          "status": "OCR_REVIEW_REQUIRED",
+          "text_scope": "FIRST_4_PAGES_MAX",
+          "error": null,
+          "text_attempted_on": "2026-10-26"
+        },
+        {
+          "name": "05_인천계양_가구 및 획지에 관한 도시관리계획 결정(변경)도_251201.pdf (5,676 KByte)",
+          "status": "OCR_REVIEW_REQUIRED",
+          "text_scope": "FIRST_4_PAGES_MAX",
+          "error": null,
+          "text_attempted_on": "2026-10-26"
+        },
+        {
+          "name": "01_인천계양_용도지역ㆍ지구 결정(변경)도_251210.pdf (5,515 KByte)",
+          "status": "OCR_REVIEW_REQUIRED",
+          "text_scope": "FIRST_4_PAGES_MAX",
+          "error": null,
+          "text_attempted_on": "2026-10-26"
+        }
+      ]
+    }
+  ],
+  "after": {
+    "home_mapping": {
+      "count": 452,
+      "sha256": "b496763592c6811c5b49d4b42df7eca19a1b066ed33a8f3d92905358e2a3cf57"
+    },
+    "home_program_mapping": {
+      "count": 45,
+      "sha256": "efa8056684484dbf904ceb46f0e53e6938b22d396d7bad7b27a00ba4a92a9386"
+    },
+    "home_identity_alias": {
+      "count": 4358,
+      "sha256": "8dfea7313971ca56a0d83175f49bf072140e543ce6ef8ab11b5e6e03be8d1f63"
+    },
+    "project": {
+      "count": 452,
+      "sha256": "da9756e4ecce833a12bef8d959122c5089465990704088635e4f399c185e2eb7"
+    },
+    "stage_evidence": {
+      "count": 904,
+      "sha256": "85eaec53d7cf696ea5a5a5ca2648dbc0dfc493245db1abd09cc6081527383fe4"
+    },
+    "mapping_decision": {
+      "count": 11,
+      "sha256": "4772243836169aa6b7b4f53d575a8fa18f4951000ab62a90c6cf9e8188e73e77"
+    },
+    "evidence_bridge": {
+      "count": 824,
+      "sha256": "a12c9d687cb77e5526773e836c904f61814307d5459a251ce9f11a0ac6473035"
+    }
+  },
+  "preserved": true
+}

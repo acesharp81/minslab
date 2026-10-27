@@ -10,9 +10,13 @@ from typing import Any
 
 STRUCTURE_VERSION = 'discussion-structure/1.1'
 CONSOLIDATION_BATCH = 100002
-CONSOLIDATION_PROFILE = 'compact-20k/1'
+CONSOLIDATION_PROFILE = 'indexed-partitions/3'
 ROLES = ['QUESTION', 'ANSWER', 'POSITION', 'REQUEST', 'PROCEDURE', 'UNCERTAIN']
 ROLE_LABELS = dict(zip(ROLES, ['질의', '답변', '입장', '요구·과제', '회의 진행', '판단 보류']))
+
+
+def placeholder_label(value: Any) -> bool:
+    return str(value or '').strip().upper() in {*ROLES, 'UNKNOWN', 'NULL', 'NONE', 'N/A'}
 
 
 def digest(value: Any) -> str:
@@ -127,6 +131,7 @@ def build_prompt(atoms: list[dict[str, Any]], catalog: list[dict[str, str]]) -> 
         'assignments 객체의 키는 모든 source_turns.id이고 값은 해당 발언의 facets 배열이다. 누락 없이 반환하라. '
         '각 발언의 실질 쟁점을 facets로 나눈다. 서로 다른 사건이 섞이면 최대 4개로 분리하라. '
         'parent는 정책 대상별 중립적인 상위 주제, issue는 사건·제도와 구체 논점을 명시한 중립적 세부 쟁점이다. '
+        'UNCERTAIN 같은 분류 코드를 parent나 issue 제목으로 쓰지 마라. 분류 불가 여부는 role에만 표시하고 제목은 원문의 대상을 설명하라. '
         '같은 사건·같은 논점에 대한 질문, 답변, 찬성, 반대는 반드시 동일한 parent와 issue 문자열을 사용하고 role로 구분하라. '
         'existing_issues에 같은 쟁점이 있으면 해당 문자열을 그대로 사용하라. 다른 사건은 같은 기관·인명이 등장해도 합치지 마라. '
         '새 쟁점과 단일 발언의 독립 쟁점도 보존하라. 이전 hints의 묶음은 잘못 합쳐졌을 수 있으므로 정답으로 따르지 마라. '
@@ -140,7 +145,7 @@ def build_prompt(atoms: list[dict[str, Any]], catalog: list[dict[str, str]]) -> 
         + json.dumps(payload, ensure_ascii=False))
 
 
-def validate_response(response: dict[str, Any], atoms: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def validate_response(response: dict[str, Any], atoms: list[dict[str, Any]], *, strict_labels: bool = False) -> list[dict[str, Any]]:
     by_id = {a['id']: a for a in atoms}
     seen = set()
     result = []
@@ -169,6 +174,8 @@ def validate_response(response: dict[str, Any], atoms: list[dict[str, Any]]) -> 
             role = facet.get('role')
             if not parent or not issue or len(parent) > 80 or len(issue) > 120 or role not in ROLES:
                 raise ValueError('INVALID_CLASSIFICATION')
+            if strict_labels and role not in {'UNCERTAIN', 'PROCEDURE'} and (placeholder_label(parent) or placeholder_label(issue)):
+                raise ValueError('INVALID_TOPIC_LABEL')
             result.append({**facet, 'quote': quote, 'parent': parent, 'issue': issue,
                            'atom_id': atom_id, 'evidence_id': atom['evidence_id'],
                            'start': atom['offset'] + start, 'end': atom['offset'] + start + len(quote),

@@ -1,0 +1,48 @@
+{
+  "equal": false,
+  "only_collection_timestamps_changed": true,
+  "difference_paths": [
+    "/portfolio_cohorts/123/report_metadata/source_revisions/0/last_collection_at",
+    "/portfolio_cohorts/127/report_metadata/source_revisions/0/last_collection_at"
+  ],
+  "field_checks": {
+    "official_alignment": true,
+    "policy_id": true,
+    "status": true,
+    "name": true,
+    "as_of_date": true,
+    "measurement_contract": true,
+    "target_units": true,
+    "plan": true,
+    "annual": true,
+    "program_assessments": true,
+    "stages": true,
+    "current": true,
+    "snapshots": true,
+    "cohorts": true,
+    "allocated_units": true,
+    "reserve_units": true,
+    "historical": true,
+    "excluded_source_ids": true,
+    "missing_quantity_ids": true,
+    "issues": true,
+    "settings": true,
+    "geometry": true,
+    "regional_start_months": true,
+    "management_projects": true,
+    "occupancy_monitor": true,
+    "yearly_comparisons": true,
+    "portfolio_cohorts": false,
+    "portfolio_comparisons": true,
+    "map_reconciliation": true,
+    "stage_note": true,
+    "view_group": true,
+    "view_scope": true
+  },
+  "changed_fields": [
+    "portfolio_cohorts"
+  ],
+  "cohorts": 177,
+  "cache": "HIT",
+  "request_seconds": 0.207
+}

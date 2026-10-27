@@ -14,7 +14,7 @@ def reuse_projection(method):
         cache = _scope.get()
         if cache is None:
             return method(self, *args, **kwargs)
-        key = (id(self), method, args, tuple(sorted(kwargs.items())), self.known_at)
+        key = (id(self), method, args, tuple(sorted(kwargs.items())), getattr(self,'known_at',None))
         if key not in cache:
             result = method(self, *args, **kwargs)
             cache[key] = pickle.dumps(result, protocol=5)

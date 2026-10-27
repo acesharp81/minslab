@@ -32,7 +32,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         repository = (
             PROJECT_DIR / "backend/app/db/meeting_brief_repository.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("provider IN ('mistral', 'nvidia', 'openrouter', 'openai')", repository)
+        self.assertIn("provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')", repository)
         self.assertIn("def get_chunk_analysis", repository)
         self.assertIn("def save_chunk_analysis", repository)
         self.assertIn("current_source_last_event_cursor", repository)
@@ -106,7 +106,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("filter: blur(5px)", styles)
         self.assertIn("자동 정리 · 잠정", script)
         self.assertIn(
-            'item["provider"] in {"mistral", "nvidia", "openrouter", "openai"}', api
+            'item["provider"] in {"mistral", "nvidia", "openrouter", "openai", "gemini", "groq"}', api
         )
         self.assertIn("progress_map", api)
         self.assertIn("meetingBriefIsReady", script)
@@ -135,9 +135,9 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("전체 발언은 확인할 수 있습니다", script)
         self.assertIn("개 발언 중", script)
         self.assertIn("Math.max(", script)
-        self.assertIn("재개 여부 확인 중", script)
-        self.assertIn("endedAt + 120 * 60 * 1000", script)
-        self.assertIn("전체 회차를 한 번에 정리합니다", script)
+        self.assertIn("재시도 대기 중", script)
+        self.assertNotIn("endedAt + 120 * 60 * 1000", script)
+        self.assertIn("완료되면 자동으로 결과를 표시합니다", script)
         self.assertIn("if (ended.meeting_brief?.brief)", script)
         self.assertIn('onClick: (row) => expandMeetingBrief(ended, row)', script)
         self.assertIn("meeting-topic-task-processing", styles)
@@ -146,9 +146,9 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertNotIn(
             'document.querySelector("#liveExpanded").scrollIntoView', script
         )
-        self.assertIn('document.addEventListener("visibilitychange"', script)
-        self.assertIn('window.addEventListener("pageshow"', script)
-        self.assertIn("refreshMeetingReportAfterForeground", script)
+        self.assertNotIn('document.addEventListener("visibilitychange"', script)
+        self.assertNotIn('window.addEventListener("pageshow"', script)
+        self.assertNotIn("refreshMeetingReportAfterForeground", script)
         self.assertNotIn("brief ? expandMeetingBrief(ended, row)", script)
         self.assertIn("selectMeetingEvidenceHighlights", script)
         self.assertIn("highlightPlan.get(utteranceIndex)", script)

@@ -1,0 +1,488 @@
+{
+  "checked_at": "2026-10-25T23:10:11.968447+00:00",
+  "publications": [
+    {
+      "id": "DOC_94cab4bf5e40c75ed98b8d62",
+      "source": "ih_press_watch",
+      "name": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+      "source_date": "2026-09-30",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_095dc3097cc065c4cb4e9da4",
+      "source": "ih_press_watch",
+      "name": "제물포역 북측 공공주택 복합사업 이주율 90.8% 달성… 연내 착공 청신호",
+      "source_date": "2026-10-01",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2316",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_4ce61401faff4df183327aed",
+      "source": "ih_press_watch",
+      "name": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+      "source_date": "2026-10-06",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_46a03e4451788c1ae845bd74",
+      "source": "ih_press_watch",
+      "name": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+      "source_date": "2026-10-12",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_cbe7b733bbc4f55f25f79092",
+      "source": "ih_press_watch",
+      "name": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_ee0ac34035f66904d8348637",
+      "source": "ih_press_watch",
+      "name": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_6d057dab2fea19e2702fa60a",
+      "source": "lh_press_watch",
+      "name": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+      "source_date": "2026-10-15",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_1689f50f06f6d3e57669e061",
+      "source": "lh_press_watch",
+      "name": "'신길4구역'·'녹번동근린공원'·'송중동 주민센터 인근' 도심복합사업 본궤도...후속절차 속행",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12159",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_47c1fe723b89426ace3ff7a5",
+      "source": "lh_press_watch",
+      "name": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_a15ac1688f0ad3ac70c3f17f",
+      "source": "lh_press_watch",
+      "name": "새글 한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+      "source_date": "2026-10-21",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_4ffc89d2df92899aa341db4d",
+      "source": "lh_press_watch",
+      "name": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_87cca7787d542e5eb6512549",
+      "source": "lh_press_watch",
+      "name": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12169",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_8342ce93f1d6ae7c53d1fb76",
+      "source": "newsis_housing_watch",
+      "name": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261023_0003838683",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_896355b48ccf361d4f64c579",
+      "source": "newsis_housing_watch",
+      "name": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261025_0003839816",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_9671d4d7729d0b82c52baab2",
+      "source": "newsis_housing_watch",
+      "name": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261025_0003839886",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_c45f9c890c1f952db73a95a6",
+      "source": "seoul_press_watch",
+      "name": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468633",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+      "source": "seoul_press_watch",
+      "name": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468636",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    },
+    {
+      "id": "DOC_528c011f03ec6fac320df953",
+      "source": "seoul_press_watch",
+      "name": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468710",
+      "status": "REVIEW",
+      "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+      "facts": [],
+      "matched_project_ids": []
+    }
+  ],
+  "ocr": [
+    {
+      "document_id": "DOC_bea49b7aecd2d1e0ae16cff8",
+      "name": "인천계양테크노밸리 공공주택지구 지구지정 변경(4차) 및 지구계획 변경(3차) 승인",
+      "source_date": "2025-12-30",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=628605",
+      "attachment": {
+        "name": "04_인천계양_도시계획시설 결정(변경)도_251201.pdf (5,181 KByte)",
+        "path": "/20260127/webcommon/mapboard/WcBdMapForm.jsp/04_인천계양_도시계획시설 결정(변경)도_251201.pdf",
+        "original_sha256": "61924bf0c7d14ee70149b4e15d1c6cf308f6db5d1bed2fff0278735b0a9631d5",
+        "text_scope": "FIRST_4_PAGES_MAX",
+        "text_method": "TESSERACT_KOR_ENG",
+        "text_attempted_on": "2026-10-26"
+      },
+      "text_chars": 349,
+      "text_sample": "mt\n\nfin\n\nFa\n\nHazan\nera\n[23] 218 samme\n\n=\n=                            <\n두              AS.\na\n——                 ‘\n008 |\n=       때\nai\n\nof Ae        ;\n\n“ih iT) va)\n\nrr\n\n: 개\n\nSEH\n/            32         4  :   =\n\n인천계양 테크노밸리 공공주택지구\n도시계획시설 결정[변경]도\n시\n\nSCALE : 1 / 5000                      Ay\n—\n0 100      250           500                        1.0000\n\n"
+    },
+    {
+      "document_id": "DOC_bea49b7aecd2d1e0ae16cff8",
+      "name": "인천계양테크노밸리 공공주택지구 지구지정 변경(4차) 및 지구계획 변경(3차) 승인",
+      "source_date": "2025-12-30",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=628605",
+      "attachment": {
+        "name": "04. 인천계양지구_토지이용계획도(5,000)_기정.pdf (7,841 KByte)",
+        "path": "/20260127/webcommon/mapboard/WcBdMapForm.jsp/04. 인천계양지구_토지이용계획도(5,000)_기정.pdf",
+        "original_sha256": "3a7c154fd0bab96d8e703ab9e9b0e35520586f96050015684468b0b9063ae624",
+        "text_scope": "FIRST_4_PAGES_MAX",
+        "text_method": "TESSERACT_KOR_ENG",
+        "text_attempted_on": "2026-10-26"
+      },
+      "text_chars": 474,
+      "text_sample": "lowe ose                     인천계양 테크노밸리 공공주택지구\n\n(D)asseee    8888 ae                                  토지이용계획도 (기정)\n\nFuam sess   Mee\n범 | (jesse 0 | leusewewa ls 2\nman   ae\n\n[lene\neos [llevan                 00 9                                  .                                         <\n레 | 00484 | een     6 베자 | (i) saeves cawy [i 지시기                            SCALE: 17 5,000                             떠\n\n0 100 250              500                              000m\n\n"
+    },
+    {
+      "document_id": "DOC_bea49b7aecd2d1e0ae16cff8",
+      "name": "인천계양테크노밸리 공공주택지구 지구지정 변경(4차) 및 지구계획 변경(3차) 승인",
+      "source_date": "2025-12-30",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=628605",
+      "attachment": {
+        "name": "05_인천계양_가구 및 획지에 관한 도시관리계획 결정(변경)도_251201.pdf (5,676 KByte)",
+        "path": "/20260127/webcommon/mapboard/WcBdMapForm.jsp/05_인천계양_가구 및 획지에 관한 도시관리계획 결정(변경)도_251201.pdf",
+        "original_sha256": "be9314655a27532a4bc6b2d9e7d38937a58b4a21584f7cfb5c6072558db248b9",
+        "text_scope": "FIRST_4_PAGES_MAX",
+        "text_method": "TESSERACT_KOR_ENG",
+        "text_attempted_on": "2026-10-26"
+      },
+      "text_chars": 500,
+      "text_sample": "구\n\n임지 | [00 조지      sasua.ens Eo] swnaza                 인천계양 HAL Be] 공공주택\n\n| Ese         aes                                                          주택지\n르      gare         oo      6 54484       wae                            가구 및 획지에 관한 도시관리계획 결정[변경]도\nesa         aueswgen [jaa           eer                                                                 AN\n\nay | lex     weueen 20484084 [00424             SCALE: 1 / 5,000             a\n근린생활     지원씨설용자    종교      주차장              ————— ——— ㄴㄴ\n\n"
+    },
+    {
+      "document_id": "DOC_bea49b7aecd2d1e0ae16cff8",
+      "name": "인천계양테크노밸리 공공주택지구 지구지정 변경(4차) 및 지구계획 변경(3차) 승인",
+      "source_date": "2025-12-30",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=628605",
+      "attachment": {
+        "name": "01_인천계양_용도지역ㆍ지구 결정(변경)도_251210.pdf (5,515 KByte)",
+        "path": "/20260127/webcommon/mapboard/WcBdMapForm.jsp/01_인천계양_용도지역ㆍ지구 결정(변경)도_251210.pdf",
+        "original_sha256": "5e1d9beac48849251c2a898e278152f11df7c0d40dfb352cc3cb5cf0c106b08d",
+        "text_scope": "FIRST_4_PAGES_MAX",
+        "text_method": "TESSERACT_KOR_ENG",
+        "text_attempted_on": "2026-10-26"
+      },
+      "text_chars": 725,
+      "text_sample": "4  .\nㅣ\n;    O\n\n/\n\nvy [Stes Eeoane                                                      인천계양 테크노밸리 공공주택지구\n\n© | oreeesom ZZ ears                                                                 용도지역지구 결정[변경]도\n.2종일반주거지역 ㅣ           자연녹지지역                                                                                                                                                                                                                                          본 시 기\n\nay | Tissue ll] vx                                                                     SCALE: 1 / 5,000                                 AL\nseus                                                           0 100    250        500                 1,000m\n\n"
+    }
+  ],
+  "failures": [
+    {
+      "id": "DOC_559c9826c0e42b77ffe23fe0",
+      "name": "군포3구역 재개발사업 정비계획 변경 결정(경미한 사항) 및 지형도면 고시",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=643664",
+      "attachments": [
+        {
+          "name": "군포시_제2026-124호_고시.hwp (118 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_01_정비구역결정도(변경없음).pdf (59 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_02_용도지역지구 결정도(변경없음).pdf (67 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_03_도시계획시설 결정도(변경없음).pdf (79 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_04_건축물의 주용도 및 밀도등에 관한 결정(기정)도.pdf (87 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_05_건축물의 주용도 및 밀도등에 관한 결정(변경)도.pdf (147 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_06_정비계획결정(기정)도.pdf (112 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "군포시_2026-124_2026-10-22_07_정비계획결정(변경)도.pdf (191 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_ab44a6fd5a4b8f1977f2c4cd",
+      "name": "GTX금정역 역세권1구역 재개발사업 정비계획 변경 결정(경미한 사항) 및 지형도면 고시",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=643540",
+      "attachments": [
+        {
+          "name": "고시문.hwp (125 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_71b4d32467dffc3c4524057e",
+      "name": "시흥 도시관리계획(시흥목감 공공주택지구 지구단위계획) 결정(변경) 및 지형도면 고시",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=643045",
+      "attachments": [
+        {
+          "name": "고시문(목감지구).hwp (128 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_기정(2).pdf (194 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_변경(2).pdf (201 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_기정(10).pdf (231 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_변경(10).pdf (242 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_기정(17).pdf (167 KByte)",
+          "error": "ValueError"
+        },
+        {
+          "name": "261015_시흥목감지구 지형도면고시도_변경(17).pdf (172 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_d76d585fb7295cb61c525525",
+      "name": "민영주택건설사업계획(변경)승인 고시[숭의역2단지 지역주택조합]",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=640631",
+      "attachments": [
+        {
+          "name": "고시문(숭의역2단지 지역주택조합).pdf (48 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_60cd3c7758304ffeb5b94f06",
+      "name": "민영주택건설사업계획(변경)승인 고시[숭의역2단지 지역주택조합]",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=639775",
+      "attachments": [
+        {
+          "name": "고시문(숭의역2단지 지역주택조합).hwp (57 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_38027e84d6bf82395733f13f",
+      "name": "민영주택건설사업계획(변경)승인 고시(용현·학익1블록 공동3BL)",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=639597",
+      "attachments": [
+        {
+          "name": "고시문(용현학익1블록 도시개발사업 공동3BL).hwp (67 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_e58440c334cf81727d5cdf6e",
+      "name": "민영주택건설사업계획(변경)승인 고시(용현·학익1블록 공동3BL)",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=638880",
+      "attachments": [
+        {
+          "name": "고시문(용현학익1블록 도시개발사업 공동3BL).hwp (69 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    },
+    {
+      "id": "DOC_1dc2215e06b6663414a72259",
+      "name": "과천과천 공공주택지구 지정변경(4차), 지구계획 변경(1차) 및 주택지구 밖 사업(도로) 승인",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiDet.jsp?seq=643719",
+      "attachments": [
+        {
+          "name": "1. [고시문] 과천과천 공공주택지구 지정변경(4차), 지구계획 변경(1차) 및 지구 밖 사업(도로) 승인.pdf (4,543 KByte)",
+          "error": "ValueError"
+        }
+      ]
+    }
+  ],
+  "manual_sources": [
+    {
+      "id": "national_statistics",
+      "name": "전국 주택 공급단계 통계 · 보관 원본 확대 추출",
+      "mode": "RAW_REPLAY",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "ih_supply",
+      "name": "iH 임대 재고·계약·공가 API · 접근 미확인",
+      "mode": "IH_STOCK",
+      "url": "https://www.data.go.kr/data/15168460/openapi.do",
+      "status": "FAILED",
+      "error": "iH 기관 API 연결 실패(HTTP 504). 재시도 필요 · 데이터 존재 여부 미판정 · 0호 아님"
+    },
+    {
+      "id": "incheon_legal_dongs",
+      "name": "9·7 인천 전체 법정동 코드",
+      "mode": "PUBLIC_FILE",
+      "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "seoul_plan_notice_pilot",
+      "name": "서울 공덕1 정비구역 변경 고시 원문",
+      "mode": "LEGAL_PLAN_PILOT",
+      "url": "https://event.seoul.go.kr/seoulsibo/detailview.do?cn_seq=MTc1Mjc%3D&tr_code=snews",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "gyeonggi_plan_notice_pilot",
+      "name": "경기 고양창릉 지구지정 변경 고시 원문",
+      "mode": "LEGAL_PLAN_PILOT",
+      "url": "https://www.molit.go.kr/USR/I0204/m_45/dtl.jsp?idx=18272",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "vworld",
+      "name": "행정구역 경계·주소 좌표",
+      "mode": "TEST_SAMPLE",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "vworld_district",
+      "name": "VWorld 공공주택지구 공동주택용지",
+      "mode": "MAP_LAYER",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "id": "vworld_municipality",
+      "name": "VWorld 서울·경기 시군구 경계",
+      "mode": "MUNICIPALITY_LAYER",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "status": "SUCCESS",
+      "error": null
+    }
+  ],
+  "attachment_counts": {
+    "TEXT_EXTRACTED": 1109,
+    "ARCHIVED_TEXT_PENDING": 68,
+    "IMAGE_ARCHIVED": 2085,
+    "OCR_REQUIRED": 201,
+    "DOWNLOAD_FAILED": 429,
+    "OCR_REVIEW_REQUIRED": 4
+  },
+  "download_failed_documents": 123,
+  "download_failed_unique_paths": 429,
+  "ocr_unique_files": 4
+}

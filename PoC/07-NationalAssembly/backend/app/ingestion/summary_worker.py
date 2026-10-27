@@ -134,9 +134,13 @@ def process_available(
                 ).fetchone()[0]
                 if first_detection is not None:
                     utterances = watch_summary_scope(utterances, int(first_detection))
+            from ..db.summary_repository import SummaryRepository
+            review_hashes = SummaryRepository(connection).task_review_hashes(
+                broadcast_id, [u['content_hash'] for u in utterances])
             stats = cache_missing_summaries(
                 connection, broadcast_id, utterances, client,
                 include_short=watched, batch_items=8 if watched else 2,
+                review_hashes=review_hashes,
                 daily_limit=daily_limit,
                 monthly_credit_usd=monthly_credit_usd,
                 input_usd_per_million=input_usd_per_million,
@@ -188,10 +192,13 @@ def main() -> None:
         except DailyRequestLimitReached:
             print(json.dumps({
                 "event": "summary.daily_limit", "limit": min(daily_limit, 950),
+                "budget_source": "gateway" if settings.openrouter_gateway_status_url else "local",
             }), flush=True)
             if args.once:
                 return
-            time.sleep(3600)
+            # Recheck after central-state recovery; do not sleep for an hour
+            # based on a stale or corrected budget decision.
+            time.sleep(60)
             continue
         except MonthlyTokenLimitReached:
             print(json.dumps({

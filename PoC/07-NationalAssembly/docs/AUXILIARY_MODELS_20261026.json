@@ -1,0 +1,397 @@
+{
+  "date": "2026-10-26",
+  "priority": [
+    "nvidia",
+    "openrouter",
+    "gemini",
+    "groq",
+    "openai_after_confirmed_openrouter_exhaustion"
+  ],
+  "active": {
+    "groq": {
+      "model": "openai/gpt-oss-120b",
+      "daily_tokens": 100000,
+      "daily_requests": 400,
+      "min_interval_seconds": 65,
+      "max_reserved_tokens_per_request": 7000,
+      "reset_timezone": "UTC"
+    },
+    "gemini": {
+      "model": "gemini-3.1-flash-lite",
+      "daily_tokens": 300000,
+      "daily_requests": 200,
+      "min_interval_seconds": 15,
+      "max_reserved_tokens_per_request": 100000,
+      "reset_timezone": "America/Los_Angeles",
+      "free_project_confirmation": "User confirmed billing is not connected"
+    }
+  },
+  "pending": {},
+  "excluded": {
+    "cloudflare": "Initial probe changed evidence IDs; not enabled",
+    "upstage": "Free remaining credit not established; not enabled"
+  },
+  "probes": [
+    {
+      "provider": "groq",
+      "model": null,
+      "test": "initial",
+      "status": 200,
+      "valid": null,
+      "usage": {
+        "queue_time": 0.11345615,
+        "prompt_tokens": 297,
+        "prompt_time": 0.015408559,
+        "completion_tokens": 164,
+        "completion_time": 0.312227289,
+        "total_tokens": 461,
+        "total_time": 0.327635848,
+        "completion_tokens_details": {
+          "reasoning_tokens": 102
+        }
+      },
+      "seconds": 0.7
+    },
+    {
+      "provider": "cloudflare",
+      "model": null,
+      "test": "initial",
+      "status": 200,
+      "valid": null,
+      "usage": {
+        "prompt_tokens": 138,
+        "completion_tokens": 1309,
+        "total_tokens": 1447,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 36.95454788208008
+      },
+      "seconds": 29.3
+    },
+    {
+      "provider": "gemini",
+      "model": null,
+      "test": "initial",
+      "status": 200,
+      "valid": null,
+      "usage": {
+        "promptTokenCount": 123,
+        "candidatesTokenCount": 84,
+        "totalTokenCount": 207,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 123
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "seconds": 1.4
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "test": "group",
+      "status": 200,
+      "valid": true,
+      "usage": {
+        "queue_time": 0.120152629,
+        "prompt_tokens": 1059,
+        "prompt_time": 0.057650725,
+        "completion_tokens": 276,
+        "completion_time": 0.583348179,
+        "total_tokens": 1335,
+        "total_time": 0.640998904,
+        "completion_tokens_details": {
+          "reasoning_tokens": 78
+        }
+      },
+      "seconds": 0.9
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "test": "narrative",
+      "status": 200,
+      "valid": true,
+      "usage": {
+        "queue_time": 0.355866074,
+        "prompt_tokens": 1012,
+        "prompt_time": 0.043882585,
+        "completion_tokens": 197,
+        "completion_time": 0.411561315,
+        "total_tokens": 1209,
+        "total_time": 0.4554439,
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        }
+      },
+      "seconds": 1.0
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "test": "group",
+      "status": 200,
+      "valid": true,
+      "usage": {
+        "promptTokenCount": 857,
+        "candidatesTokenCount": 254,
+        "totalTokenCount": 1111,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 857
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "seconds": 1.7
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "test": "narrative",
+      "status": 200,
+      "valid": true,
+      "usage": {
+        "promptTokenCount": 829,
+        "candidatesTokenCount": 174,
+        "totalTokenCount": 1003,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 829
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "seconds": 1.4
+    }
+  ],
+  "runtime_probe": {
+    "status": "VERIFIED",
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "source_turns": 4,
+    "preserved_turns": 4,
+    "groups": [
+      {
+        "title": "2026년도 종합국정감사 실시 및 정책 중심 감사",
+        "scope": "법무부, 법제처, 감사원, 헌법재판소 등 6개 주무부처를 대상으로 2026년 10월 6일부터 21일까지 진행되는 종합국정감사"
+      }
+    ],
+    "usage": {
+      "queue_time": 0.409953076,
+      "prompt_tokens": 1188,
+      "prompt_time": 0.195540126,
+      "completion_tokens": 240,
+      "completion_time": 0.506343198,
+      "total_tokens": 1428,
+      "total_time": 0.701883324,
+      "completion_tokens_details": {
+        "reasoning_tokens": 99
+      }
+    },
+    "active_pool": [
+      "nvidia",
+      "groq",
+      "openai"
+    ]
+  },
+  "unit_tests_passed": 79,
+  "database_checks_passed": 6,
+  "runtime_checks": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  },
+  "deployment": {
+    "meeting_worker_image": "poc07-national-assembly-api:auxiliary-free-20261026-v2",
+    "api_image": "poc07-national-assembly-api:auxiliary-free-20261026-v2",
+    "groq_qualification_requests": 4,
+    "groq_qualification_tokens": 4433,
+    "gemini_enabled": true
+  },
+  "gemini_runtime_probe": {
+    "status": "VERIFIED",
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "source_turns": 4,
+    "preserved_turns": 4,
+    "groups": [
+      {
+        "title": "2026년도 국정감사 종합감사 실시 안내",
+        "scope": "2026년도 국정감사 종합감사의 개회 선언 및 실시 목적과 방향성 안내"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 987,
+      "completion_tokens": 117,
+      "total_tokens": 1104
+    },
+    "active_pool": [
+      "nvidia",
+      "gemini",
+      "groq",
+      "openai"
+    ]
+  },
+  "gemini_activation_regression_tests_passed": 23
+}

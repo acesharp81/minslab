@@ -47,6 +47,7 @@ from ..services.live_topic_mapping import (
     semantic_mapping_input_hash,
     unresolved_live_topic_clusters,
 )
+from ..services.model_workloads import reserve_openai_workload
 from ..services.meeting_brief import (
     ANALYSIS_CACHE_VERSION,
     OPENROUTER_FINAL_RETRY_MODEL,
@@ -99,6 +100,7 @@ def prepare_brief_utterances(
         provider=provider,
         model=model,
         prompt_version=summary_prompt_version,
+        utterances=utterances,
     )
     for utterance in utterances:
         item = cached.get((broadcast_id, utterance["content_hash"]))
@@ -106,6 +108,8 @@ def prepare_brief_utterances(
             utterance["summary"] = item["summary"]
             utterance["summary_kind"] = "AI_CACHED"
             utterance["live_insight"] = item.get("live_insight") or None
+    from ..db.live_discussion_repository import LiveDiscussionRepository
+    LiveDiscussionRepository(connection).attach(utterances)
     return utterances
 
 
@@ -139,7 +143,26 @@ def automatic_brief_provider(settings: Any) -> str:
         return "nvidia"
     if openrouter_brief_has_capacity(settings) is not False:
         return "openrouter"
-    return "openai" if settings.openai_api_key else "openrouter"
+    from ..services.auxiliary_models import enabled_auxiliaries
+    extras = enabled_auxiliaries(settings)
+    return extras[0] if extras else ("openai" if settings.openai_api_key else "openrouter")
+
+
+class ProviderPolicyDeferred(RuntimeError):
+    """The paid fallback is unavailable until the shared free quota is exhausted."""
+
+
+def require_openai_fallback(settings: Any) -> None:
+    # Check again at reservation time: UTC rollover can replenish the free pool
+    # after a client was constructed. An unknown status never authorizes spend.
+    if openrouter_brief_has_capacity(settings) is not False:
+        raise ProviderPolicyDeferred('OPENROUTER_QUOTA_NOT_EXHAUSTED')
+
+
+def narrative_backfill_ready(output: list[dict], structure_items: list[dict],
+                             review_items: list[dict]) -> bool:
+    return not structure_items and not review_items and all(
+        item.get('status') == 'CACHED' for item in output)
 
 
 def meeting_brief_identity(
@@ -160,6 +183,8 @@ def meeting_brief_identity(
             getattr(settings, "meeting_brief_mistral_model", "")
             or "mistral-small-2603"
         )
+    elif provider in {"groq", "gemini"}:
+        model = getattr(settings, provider + "_aux_model")
     elif provider == "openai":
         model = str(settings.meeting_brief_openai_model or "gpt-5.4-mini")
     return provider, model, PROMPT_VERSION
@@ -167,6 +192,9 @@ def meeting_brief_identity(
 
 def safe_brief_error_code(exc: Exception) -> str:
     """Return an operational error code without leaking an upstream response body."""
+    from ..db.auxiliary_model_budget import AuxiliaryUnavailable
+    if isinstance(exc, AuxiliaryUnavailable) and str(exc) in {'AUXILIARY_RATE_WAIT','AUXILIARY_DAILY_LIMIT','AUXILIARY_INPUT_TOO_LARGE','AUXILIARY_DISABLED'}:
+        return str(exc)
     status = None
     if isinstance(exc, requests.HTTPError):
         status = getattr(exc.response, "status_code", None)
@@ -178,6 +206,11 @@ def safe_brief_error_code(exc: Exception) -> str:
 
 
 def brief_retry_hours(exc: Exception) -> float:
+    from ..db.auxiliary_model_budget import AuxiliaryUnavailable
+    if isinstance(exc, MalformedMeetingBriefResponse) and str(exc.usage_metadata.get('finish_reason','')).lower() == 'length':
+        return 5 / 60
+    if isinstance(exc, AuxiliaryUnavailable):
+        return 5 / 60
     if isinstance(exc, (requests.ConnectionError, requests.Timeout)):
         return 5 / 60
     status = (
@@ -192,7 +225,9 @@ def map_unlinked_brief_once(
     brief: dict[str, Any], client: OpenRouterMeetingBriefClient, *, force: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     assignment = brief.get("live_topic_assignment") or {}
-    if assignment.get("semantic_mapping_version") == MAPPING_VERSION and not force:
+    if (assignment.get("semantic_mapping_version") == MAPPING_VERSION
+            and assignment.get("semantic_mapping_status") in {"COMPLETED", "COMPLETED_REVALIDATED"}
+            and not force):
         return attach_meeting_topic_groups(brief), {"status": "CACHED", "api_requests": 0}
     clusters = unresolved_live_topic_clusters(brief)
     if not clusters:
@@ -246,7 +281,7 @@ def generate_one(
     summary_provider, summary_model, _ = meeting_brief_identity(
         settings, provider_override=provider_override,
     )
-    if not settings.ai_enrichment_enabled or summary_provider not in {"mistral", "nvidia", "openrouter", "openai"}:
+    if not settings.ai_enrichment_enabled or summary_provider not in {"mistral", "nvidia", "openrouter", "openai", "groq", "gemini"}:
         raise RuntimeError("AI meeting brief enrichment is not enabled")
     live_summary_provider, live_summary_model, summary_prompt_version = summary_identity(
         settings,
@@ -429,6 +464,23 @@ def generate_one(
                 "source": "DETERMINISTIC_BROADCAST_REVIEW",
             },
         )
+        if (
+            repository.is_deferred(
+                broadcast_id,
+                transcript_hash,
+                provider=summary_provider,
+                model=summary_model,
+                prompt_version=PROMPT_VERSION,
+            )
+            and not force
+        ):
+            return {
+                "broadcast_id": str(broadcast_id),
+                "status": "DEFERRED",
+                "transcript_hash": transcript_hash,
+                "api_requests": 0,
+            }
+
         repository.save_progress(
             broadcast_id,
             transcript_hash,
@@ -442,37 +494,9 @@ def generate_one(
             total_chunks=0,
             completed_chunks=0,
         )
-        if (
-            repository.is_deferred(
-                broadcast_id,
-                transcript_hash,
-                provider=summary_provider,
-                model=summary_model,
-                prompt_version=PROMPT_VERSION,
-            )
-            and not force
-        ):
-            repository.save_progress(
-                broadcast_id,
-                transcript_hash,
-                provider=summary_provider,
-                model=summary_model,
-                prompt_version=PROMPT_VERSION,
-                status="DEFERRED",
-                phase="RETRY_WAIT",
-                total_utterances=len(utterances),
-                processed_utterances=0,
-                total_chunks=0,
-                completed_chunks=0,
-            )
-            return {
-                "broadcast_id": str(broadcast_id),
-                "status": "DEFERRED",
-                "transcript_hash": transcript_hash,
-                "api_requests": 0,
-            }
 
     def reserve_openai_tokens(estimated_tokens: int):
+        require_openai_fallback(settings)
         with connect(settings.database_url) as quota_connection:
             return OpenAIDailyBudget(quota_connection).reserve(
                 estimated_tokens, settings.openai_daily_token_limit,
@@ -490,6 +514,9 @@ def generate_one(
             base_url=settings.nvidia_base_url,
             min_interval_seconds=settings.meeting_brief_nvidia_min_interval_seconds,
         )
+    elif summary_provider in {"groq", "gemini"}:
+        from ..services.auxiliary_models import AuxiliaryMeetingBriefClient
+        client = AuxiliaryMeetingBriefClient(settings, summary_provider)
     elif summary_provider == "mistral":
         client = MistralMeetingBriefClient(
             settings.mistral_api_key, model=summary_model,
@@ -501,6 +528,7 @@ def generate_one(
             base_url=settings.openai_base_url,
             reserve_tokens=reserve_openai_tokens,
             settle_tokens=settle_openai_tokens,
+            reserve_for_workload=lambda tokens, schema: reserve_openai_workload(settings, tokens, schema),
         )
     else:
         client = OpenRouterMeetingBriefClient(
@@ -561,13 +589,15 @@ def generate_one(
                 model=summary_model,
                 prompt_version=ANALYSIS_CACHE_VERSION,
             )
-            if cached is None and summary_provider in {"nvidia", "openrouter", "openai"}:
+            if cached is None and summary_provider in {"nvidia", "openrouter", "openai", "groq", "gemini"}:
                 # Preserve validated work if a report changes provider.
                 alternatives = [
                     ("nvidia", settings.meeting_brief_nvidia_model),
                     ("openrouter", settings.meeting_brief_model),
                     ("openai", settings.meeting_brief_openai_model),
                 ]
+                from ..services.auxiliary_models import enabled_auxiliaries
+                alternatives.extend((p, getattr(settings, p + "_aux_model")) for p in enabled_auxiliaries(settings))
                 for alternate_provider, alternate_model in alternatives:
                     if alternate_provider == summary_provider:
                         continue
@@ -629,8 +659,10 @@ def generate_one(
             )
         raise
     enriched = enrich_brief(result.brief)
+    from .report_finalization import initial_state
+    enriched["finalization"] = initial_state()
     mapping_result = {"status": "NOT_APPLICABLE", "api_requests": 0}
-    if summary_provider in {"nvidia", "openrouter", "openai"}:
+    if summary_provider in {"nvidia", "openrouter", "openai", "groq", "gemini"}:
         enriched, mapping_result = map_unlinked_brief_once(enriched, client)
     with connect(settings.database_url) as connection:
         repository = MeetingBriefRepository(connection)
@@ -672,7 +704,7 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
                 SELECT DISTINCT ON (brief.broadcast_id)
                        brief.broadcast_id, brief.brief, brief.generated_at, brief.id
                 FROM meeting_briefs brief
-                WHERE brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
+                WHERE brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')
                 ORDER BY brief.broadcast_id, brief.generated_at DESC, brief.id DESC
             )
             SELECT latest.broadcast_id
@@ -698,10 +730,9 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
                             = 'COMPLETED'
                     )
                   )
-              AND COALESCE(
-                    latest.brief->'live_topic_assignment'->>'semantic_mapping_version',
-                    ''
-                  ) <> %s
+              AND (COALESCE(latest.brief->'live_topic_assignment'->>'semantic_mapping_version','') <> %s
+                   OR latest.brief->'live_topic_assignment'->>'semantic_mapping_status' = 'FAILED')
+              AND COALESCE((latest.brief->'live_topic_assignment'->>'semantic_mapping_retry_after')::timestamptz,'-infinity') <= now()
             ORDER BY broadcast.ended_at DESC NULLS LAST
             LIMIT %s
             """,
@@ -716,9 +747,9 @@ def map_existing_brief_one(
 ) -> dict[str, Any]:
     settings = get_settings()
     provider, model, _ = meeting_brief_identity(settings)
-    if provider_override == "openai":
-        provider, model = "openai", settings.meeting_brief_openai_model
-    if not settings.ai_enrichment_enabled or provider not in {"nvidia", "openrouter", "openai"}:
+    if provider_override in {"openai", "groq", "gemini"}:
+        provider, model, _ = meeting_brief_identity(settings, provider_override=provider_override)
+    if not settings.ai_enrichment_enabled or provider not in {"nvidia", "openrouter", "openai", "groq", "gemini"}:
         raise RuntimeError("Meeting brief semantic mapping is not enabled")
     if provider == "nvidia":
         client = NvidiaMeetingBriefClient(
@@ -726,8 +757,12 @@ def map_existing_brief_one(
             base_url=settings.nvidia_base_url,
             min_interval_seconds=settings.meeting_brief_nvidia_min_interval_seconds,
         )
+    elif provider in {"groq", "gemini"}:
+        from ..services.auxiliary_models import AuxiliaryMeetingBriefClient
+        client = AuxiliaryMeetingBriefClient(settings, provider)
     elif provider == "openai":
         def reserve_tokens(estimated_tokens: int):
+            require_openai_fallback(settings)
             with connect(settings.database_url) as quota_connection:
                 return OpenAIDailyBudget(quota_connection).reserve(
                     estimated_tokens, settings.openai_daily_token_limit,
@@ -745,6 +780,7 @@ def map_existing_brief_one(
             base_url=settings.openai_base_url,
             reserve_tokens=reserve_tokens,
             settle_tokens=settle_tokens,
+            reserve_for_workload=lambda tokens, schema: reserve_openai_workload(settings, tokens, schema),
         )
     else:
         client = OpenRouterMeetingBriefClient(
@@ -806,13 +842,14 @@ def recent_openai_mapping_candidate() -> UUID | None:
                 SELECT DISTINCT ON (broadcast_id)
                        broadcast_id, provider, brief
                 FROM meeting_briefs
-                WHERE provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
+                WHERE provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')
                 ORDER BY broadcast_id, generated_at DESC, id DESC
             )
             SELECT latest.broadcast_id
             FROM latest
             JOIN live_broadcasts broadcast ON broadcast.id = latest.broadcast_id
-            WHERE latest.provider = 'openai'
+            WHERE latest.provider IN ('nvidia','openrouter','openai','gemini','groq')
+              AND NOT (latest.brief ? 'finalization')
               AND broadcast.lifecycle_status = 'ENDED'
               AND broadcast.ended_at >= now() - interval '7 days'
               AND COALESCE(
@@ -822,10 +859,9 @@ def recent_openai_mapping_candidate() -> UUID | None:
                     (latest.brief->'live_topic_lineage'->>'ambiguous_cluster_count')::int,
                     0
                   ) > 0
-              AND COALESCE(
-                    latest.brief->'live_topic_assignment'->>'semantic_mapping_version',
-                    ''
-                  ) <> %s
+              AND (COALESCE(latest.brief->'live_topic_assignment'->>'semantic_mapping_version','') <> %s
+                   OR latest.brief->'live_topic_assignment'->>'semantic_mapping_status' = 'FAILED')
+              AND COALESCE((latest.brief->'live_topic_assignment'->>'semantic_mapping_retry_after')::timestamptz,'-infinity') <= now()
             ORDER BY broadcast.ended_at DESC
             LIMIT 1
             """,
@@ -880,14 +916,14 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
                   OR (broadcast.capture_status = 'COMPLETED'
                       AND broadcast.ended_at <= now() - interval '2 minutes')
               )
-              AND NOT EXISTS (
+              AND (%s = 'auto' OR NOT EXISTS (
                   SELECT 1 FROM meeting_brief_failures deferred_failure
                   WHERE deferred_failure.broadcast_id = broadcast.id
                     AND deferred_failure.provider = %s
                     AND deferred_failure.model = %s
                     AND deferred_failure.prompt_version = %s
                     AND deferred_failure.retry_after > now()
-              )
+              ))
               AND NOT EXISTS (
                   SELECT 1 FROM meeting_briefs current_brief
                   WHERE current_brief.broadcast_id = broadcast.id
@@ -907,7 +943,7 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
                   OR NOT EXISTS (
                       SELECT 1 FROM meeting_briefs finished_brief
                       WHERE finished_brief.broadcast_id = broadcast.id
-                        AND finished_brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')
+                        AND finished_brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')
                         AND finished_brief.prompt_version LIKE 'assembly-meeting-brief/%%'
                         AND finished_brief.brief->>'meeting_session_version' = %s
                         AND finished_brief.brief ? 'live_topic_assignment'
@@ -920,6 +956,7 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
             """,
             (
                 [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
+                str(settings.meeting_brief_provider or provider).lower(),
                 provider,
                 model,
                 prompt_version,
@@ -954,6 +991,8 @@ def openrouter_quota_exhausted(
 def next_brief_provider(
     settings: Any, failed_provider: str, exc: Exception,
 ) -> str | None:
+    from ..services.auxiliary_models import enabled_auxiliaries
+    extras = enabled_auxiliaries(settings)
     if failed_provider == "nvidia":
         if isinstance(exc, requests.HTTPError) and exc.response is not None:
             if exc.response.status_code == 429:
@@ -961,9 +1000,16 @@ def next_brief_provider(
                 _nvidia_retry_after = time.monotonic() + 120.0
         if openrouter_brief_has_capacity(settings) is not False:
             return "openrouter"
-        return "openai" if settings.openai_api_key else None
-    if failed_provider == "openrouter" and settings.openai_api_key:
-        return "openai" if openrouter_quota_exhausted(settings, exc) else None
+        return extras[0] if extras else ("openai" if settings.openai_api_key else None)
+    if failed_provider == "openrouter":
+        if extras:
+            return extras[0]
+        return "openai" if settings.openai_api_key and openrouter_quota_exhausted(settings, exc) else None
+    if failed_provider in extras:
+        index = extras.index(failed_provider) + 1
+        if index < len(extras):
+            return extras[index]
+        return "openai" if settings.openai_api_key and openrouter_brief_has_capacity(settings) is False else None
     return None
 
 
@@ -982,6 +1028,12 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
                     broadcast_id,
                     provider_override=provider if automatic else None,
                 )
+                if automatic and result.get('status') == 'DEFERRED':
+                    next_provider = next_brief_provider(settings, provider, RuntimeError('provider deferred'))
+                    if next_provider and next_provider not in failed_providers:
+                        failed_providers.append(provider)
+                        provider = next_provider
+                        continue
                 if failed_providers:
                     result["fallback_from"] = failed_providers
                 results.append(result)
@@ -1025,13 +1077,20 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
     ):
         try:
             candidate = recent_openai_mapping_candidate()
-            if candidate and openai_mapping_budget_available(get_settings()):
-                results.append({
-                    "workload": "LIVE_TOPIC_MAPPING",
-                    **map_existing_brief_one(
-                        candidate, provider_override="openai",
-                    ),
-                })
+            if candidate and openrouter_brief_has_capacity(get_settings()) is False:
+                from ..services.auxiliary_models import enabled_auxiliaries
+                fallback_pool = enabled_auxiliaries(get_settings())
+                if openai_mapping_budget_available(get_settings()):
+                    fallback_pool.append("openai")
+                for index, fallback_provider in enumerate(fallback_pool):
+                    try:
+                        mapped = map_existing_brief_one(candidate, provider_override=fallback_provider)
+                        results.append({"workload":"LIVE_TOPIC_MAPPING", **mapped})
+                        if mapped.get("status") not in {"FAILED", "DEFERRED"}:
+                            break
+                    except Exception:
+                        if index == len(fallback_pool) - 1:
+                            raise
         except Exception as exc:
             results.append({
                 "workload": "LIVE_TOPIC_MAPPING",
@@ -1073,6 +1132,17 @@ def main() -> None:
         )
         return
     while True:
+        if not args.broadcast_id:
+            from .report_finalization import process_available as finalize_available
+            finalizations = finalize_available()
+            print(json.dumps({'event': 'meeting_brief.finalization', 'items': finalizations}, ensure_ascii=False), flush=True)
+        if not args.broadcast_id:
+            from .live_discussion_worker import process_available as live_discussion_available
+            try:
+                live_groups = live_discussion_available()
+                print(json.dumps({'event':'live_discussion.run','items':live_groups}, ensure_ascii=False),flush=True)
+            except Exception as exc:
+                print(json.dumps({'event':'live_discussion.error','error':safe_brief_error_code(exc)}),flush=True)
         output = (
             [generate_one(args.broadcast_id, force=args.force)]
             if args.broadcast_id
@@ -1084,19 +1154,38 @@ def main() -> None:
             ),
             flush=True,
         )
+        if not args.broadcast_id:
+            from .report_finalization import process_available as finalize_available
+            finalizations = finalize_available()
+            print(json.dumps({'event': 'meeting_brief.finalization', 'items': finalizations}, ensure_ascii=False), flush=True)
+        structure_items, review_items = [], []
+        foreground_failed = False
         if not args.broadcast_id and not any(x.get("status") in {"PROCESSING", "DEFERRED"} for x in output):
             try:
                 from .topic_structure_worker import process_available as structure_available
-                print(json.dumps({"event": "topic_structure.run", "items": structure_available()},
+                structure_items = structure_available()
+                print(json.dumps({"event": "topic_structure.run", "items": structure_items},
                                  ensure_ascii=False), flush=True)
                 from .structure_review_worker import process_available as review_available
-                print(json.dumps({"event": "structure_review.run", "items": review_available()},
+                review_items = review_available()
+                print(json.dumps({"event": "structure_review.run", "items": review_items},
                                  ensure_ascii=False), flush=True)
                 from .ontology_review_worker import process_available as ontology_available
                 print(json.dumps({"event": "ontology_review.run", "items": ontology_available()},
                                  ensure_ascii=False), flush=True)
             except Exception as exc:
+                foreground_failed = True
                 print(json.dumps({"event": "topic_structure.error", "error": safe_brief_error_code(exc)}), flush=True)
+        if (not args.broadcast_id and not foreground_failed
+                and narrative_backfill_ready(output, structure_items, review_items)):
+            try:
+                from .narrative_jobs import process_due as narrative_due
+                resumed = narrative_due()
+                if resumed:
+                    print(json.dumps({'event': 'structured_narrative.resume', 'items': resumed},
+                                     ensure_ascii=False), flush=True)
+            except Exception as exc:
+                print(json.dumps({'event': 'structured_narrative.error', 'error': safe_brief_error_code(exc)}), flush=True)
         if args.once or args.broadcast_id:
             return
         time.sleep(args.interval)

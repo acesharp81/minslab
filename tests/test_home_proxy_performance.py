@@ -65,7 +65,7 @@ class HomePolicyWriteBoundaryTests(unittest.IsolatedAsyncioTestCase):
         status,seen=await run(True,b'https://example.test')
         self.assertEqual(status,200);self.assertNotEqual(seen[0].headers['x-home-admin'],'forged')
 
-        for path in ('/poc/home/api/admin/project-information/PRO_TEST',):
+        for path in ('/poc/home/api/admin/project-information/PRO_TEST','/poc/home/api/admin/publication-reviews/DOC_TEST'):
             self.assertEqual((await run(False,b'https://example.test',path))[0],401)
             self.assertEqual((await run(True,b'https://other.test',path))[0],403)
             status,seen=await run(True,b'https://example.test',path)

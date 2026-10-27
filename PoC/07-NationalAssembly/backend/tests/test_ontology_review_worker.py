@@ -45,7 +45,7 @@ def test_nim_429_uses_router_and_keeps_nim_cooldown_across_batches(monkeypatch):
         return {key: dict(fields) for key in schema['properties']}, {}
     router = SimpleNamespace(provider='openrouter', model='router', _post=MagicMock(side_effect=router_post))
     openai = SimpleNamespace(provider='openai', model='mini', _post=MagicMock(side_effect=AssertionError('unnecessary fallback')))
-    monkeypatch.setattr(worker, 'clients', lambda: [nim, router, openai])
+    monkeypatch.setattr(worker, 'clients', lambda *_: [nim, router, openai])
     result = worker.process_one('broadcast', batch_limit=2)
     assert result['status'] == 'COMPLETED'
     assert result['accepted'] == 32
@@ -60,7 +60,7 @@ def test_nim_429_uses_router_and_keeps_nim_cooldown_across_batches(monkeypatch):
 def test_daily_budget_defers_without_inventing_a_completed_review(monkeypatch):
     repo, _quote = setup_worker(monkeypatch, 1)
     client = SimpleNamespace(provider='openai', model='mini', _post=MagicMock(side_effect=worker.DailyTokenLimitReached()))
-    monkeypatch.setattr(worker, 'clients', lambda: [client])
+    monkeypatch.setattr(worker, 'clients', lambda *_: [client])
     result = worker.process_one('broadcast')
     assert result['status'] == 'BUDGET_DEFERRED'
     assert repo.record.call_args.args[-1] == 'DAILY_TOKEN_LIMIT'

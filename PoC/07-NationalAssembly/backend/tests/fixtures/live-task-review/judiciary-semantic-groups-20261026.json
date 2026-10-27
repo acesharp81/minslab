@@ -1,0 +1,4853 @@
+[
+  {
+    "utterance_id": "82204a32-4f10-43cb-b5e6-ddf739acf3ae:0",
+    "content_hash": "03fc6b388512671189fac144889222378bbc08507030bb9fe6e016a31679f78a",
+    "first_cursor": 1069789,
+    "last_cursor": 1069884,
+    "is_final": true,
+    "summary": "화자는 2026년도 국정감사 실시를 선포하며, 법무부, 법제처, 감사원 등 6개 소관 기관에 대해 오늘 종합감사를 실시한다고 알립니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "2026년도 국정감사 종합감사 실시 선포",
+      "owners": [
+        "국회",
+        "법무부",
+        "법제처",
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 종합감사, 법무부, 법제처",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "cfe2a5f2-9872-49e1-9f80-fbbaba05e751:0",
+    "content_hash": "ccbacae9d2d5cc7848420d59224cbb409bc9dccbcbb18b0a0d0cb453b80eaf9e",
+    "first_cursor": 1069900,
+    "last_cursor": 1069905,
+    "is_final": true,
+    "summary": "국회는 헌법 제61조 및 국정감사법에 따라 법무부, 법제처, 감사원, 헌법재판소 등 6개 주무부처에 대해 2026년도 종합국정감사를 실시하며, 10월 6일부터 21일까지 총 82개 기관을 대상으로 감사를 진행했다고 선언했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "2026년도 주무부처 대상 종합국정감사 실시 선언",
+      "owners": [
+        "법무부",
+        "법제처",
+        "감사원",
+        "헌법재판소"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 종합감사, 법무부, 헌법재판소",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "94b6fdea-0d5d-44fb-81e2-705640ca2b74:0",
+    "content_hash": "8883c4ccfc919adc70b3c8a49dfd8fbd6216530b0be61efc5e0cc1024dc395d3",
+    "first_cursor": 1069926,
+    "last_cursor": 1070023,
+    "is_final": true,
+    "summary": "종합감사는 기관별 제기 현안과 개선과제를 종합 점검하며 국정 방향 및 입법·예산 조치 방향을 모색하는 시간이며, 국정감사가 민생 중심의 정책국감으로 평가받을 수 있도록 마무리가 촉구된다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "2026년도 국정감사 종합감사 실시 및 정책 중심 감사 유도",
+      "owners": [
+        "법무부",
+        "법제처",
+        "감사원",
+        "헌법재판소"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 종합감사, 민생, 정책국감",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9e3fa707-d942-4ffe-bb6a-228c2ca8bca7:0",
+    "content_hash": "b3303094622da30f2e917da295130b74b65d806c8e740529d82cb094c25f7caa",
+    "first_cursor": 1070035,
+    "last_cursor": 1070039,
+    "is_final": true,
+    "summary": "종합감사는 각 기관의 조치계획과 제도적 개선과제를 종합적으로 점검하며 미래 국정 방향과 법·예산 조치 상황을 모색하는 시간이며, 국정감사가 민생 중심의 정책 중심 감사로 평가받도록 마무리가 촉구된다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "2026년도 국정감사 종합감사 실시 및 정책 중심 감사 유도",
+      "owners": [
+        "법무부",
+        "법제처",
+        "감사원",
+        "헌법재판소"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 종합감사, 민생, 정책국감",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c8380dd9-df6b-4066-bba0-bcddfe1b1494:0",
+    "content_hash": "191129e3c9c5ef981518a47f69d684c46c943716578d94c9cfb55dd658da4970",
+    "first_cursor": 1070042,
+    "last_cursor": 1070368,
+    "is_final": true,
+    "summary": "기관 증인 여든다섯 명의 출석과 일부 증인의 감사장 밖 대기를 안내했다. 질의할 증인은 행정실에 미리 알리도록 하고, 기존 증인 선서의 유효성과 성실한 답변 의무를 설명한 뒤 자료 제출 요청에 일 분을 부여했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "기관 증인 출석·대기 및 자료 제출 요청 순서 안내",
+      "owners": [
+        "법무부",
+        "감사원",
+        "법원행정처",
+        "법제처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "기관 증인 출석 증인 선서 자료 요청",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "1acda650-6af9-4f5b-a56a-ac9ffcdb2771:0",
+    "content_hash": "62fdac978172ec12fbc1086cdf6568beaaeef37c1433fbc7ea639d2fc0384702",
+    "first_cursor": 1070381,
+    "last_cursor": 1070533,
+    "is_final": true,
+    "summary": "화자는 국정감사 시작 전부터 법무부와 대검 등에 자료제출을 요청했으나 모두 거부당했으며, 특히 인권존중미래위원회 회의록과 진상조사단 결과보고서 제출이 이루어지지 않았다고 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법무부 및 대검의 자료제출 거부",
+      "owners": [
+        "법무부",
+        "대검찰청",
+        "인권존중미래위원회",
+        "예금진상조사단"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "자료제출 거부, 법무부, 대검, 회의록, 결과보고서",
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e0fd12b7-2f22-44ed-b486-53021ca2d9a3:0",
+    "content_hash": "8bfa2f9ffcd146d467af70f9c77a69ab6f86942a3134b41665ee710d3d64d649",
+    "first_cursor": 1070551,
+    "last_cursor": 1070551,
+    "is_final": true,
+    "summary": "화자는 대검 차장이 대검 국감에서 연장 의무를 수행했다고 언급한 것에 대해, 그 내용이 맞는지 확인하는 질문을 덧붙였다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "대검 차장의 연장 의무 수행 여부 확인",
+      "owners": [
+        "대검찰청"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대검 차장, 연장 의무, 국감, 확인",
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "20d26d75-ae0b-45ef-9308-9d8b74b05185:0",
+    "content_hash": "047c1bb6c85ab47b1f09548e81767f5038849b6f2c78b9b6c49b26fc035259fd",
+    "first_cursor": 1070570,
+    "last_cursor": 1070594,
+    "is_final": true,
+    "summary": "법무부와 대검청이 자료제출을 거부했으며, 대검 차장은 연장 가능성을 언급했으나 외부 발표는 없었다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법무부·대검청 자료거부 및 연장 가능성 논의",
+      "owners": [
+        "법무부",
+        "대검청",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "자료제출 거부, 연장 가능, 법무부, 대검청",
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "48431730-5938-41ce-8174-5c216eb44cd0:0",
+    "content_hash": "c92cff8f27bddf07b3def7a795894c4e13fb0f5252ec60b6b9c48d5ae01e2478",
+    "first_cursor": 1070651,
+    "last_cursor": 1070679,
+    "is_final": true,
+    "summary": "자료 제출 요구를 위원장에게 전달하고 서로 예의를 지켜 진행하라고 안내했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "자료 제출 요구 전달 절차",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "자료 제출 요구 전달 절차",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:0",
+    "content_hash": "329a5c0a5b0077afb222d961d48bc28a9a25e915df27e5319f0db233ec5d78ce",
+    "first_cursor": 1070708,
+    "last_cursor": 1070708,
+    "is_final": true,
+    "summary": "타당한 자료 제출 요구에는 자료를 제출해야 한다고 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "타당한 자료 제출 요구에 따른 자료 제출",
+      "topic": "자료 제출 범위",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "자료 제출 범위",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 38,
+      "task_evidence_quote": "자료제출 요구에 타당한 부분이 있으면 있는 대로 자료제출하셔야",
+      "task_evidence_start": 4,
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:1",
+    "content_hash": "678ca94367f26779e4d08acaa444e360795454b52bf7bfd01df14ab7487763dc",
+    "first_cursor": 1070708,
+    "last_cursor": 1070708,
+    "is_final": true,
+    "summary": "자료 제출 관련 앞선 설명을 이어 갔으나, 이 발언 구간만으로는 추가 내용을 확인하기 어렵다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "자료 제출 관련 발언 연결",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "자료 제출 관련 발언 연결",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6eb239a7-7ea7-4a63-84ed-b0876c91ea02:2",
+    "content_hash": "4542c178c86f358a15c60756821ac7bdade76d26f603b7c383c72ce6f67a11ed",
+    "first_cursor": 1070708,
+    "last_cursor": 1070727,
+    "is_final": true,
+    "summary": "자료 제출이 어려우면 위원장에게 다시 알리라고 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "자료 제출이 어려운 경우 별도 설명",
+      "topic": "자료 제출 어려움 보고",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "자료 제출 어려움 보고",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 36,
+      "task_evidence_quote": "그게 자료제출이 어려운 상황이면 저에게 다시 이야기를 해 주십시오",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6a7dcbfa-f2c0-481f-8a4a-74a3530d7575:0",
+    "content_hash": "28c8aa6156ae1910f0a5d23ec887a62b9d0233042f56adf9580de4a4d0a6e59e",
+    "first_cursor": 1070753,
+    "last_cursor": 1070753,
+    "is_final": true,
+    "summary": "지금 답변해도 되는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "답변 순서 확인",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "답변 순서 확인",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6a7dcbfa-f2c0-481f-8a4a-74a3530d7575:1",
+    "content_hash": "2eb73fba696e2fe4ea0a206ed3d21758e35c7594905d6181d9c34ff19556b17a",
+    "first_cursor": 1070753,
+    "last_cursor": 1070753,
+    "is_final": true,
+    "summary": "앞선 요청에 짧게 동의했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "답변 순서 확인",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "답변 순서 확인",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6a7dcbfa-f2c0-481f-8a4a-74a3530d7575:2",
+    "content_hash": "19705b83cc97f86261966da23b84017d2fc1ac8f5c7f63f1668442257741f939",
+    "first_cursor": 1070753,
+    "last_cursor": 1070834,
+    "is_final": true,
+    "summary": "위원회 회의와 진상조사가 진행 중이어서 회의록·미완결 조사 결과 제출이 향후 업무에 영향을 줄 수 있다며, 현재 제출하기 어렵다고 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "진행 중인 조사 자료 제출 제한",
+      "owners": [
+        "대검",
+        "미배위원회",
+        "진상조사단"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "진행 중인 조사 자료 제출 제한",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c37a0e4c-a958-481f-b9f5-349cea8bdb30:0",
+    "content_hash": "adc79f90e32375ea242addb668baeda17d18f62fcdd3ca8e7bc9cdefb36e05d0",
+    "first_cursor": 1070867,
+    "last_cursor": 1070886,
+    "is_final": true,
+    "summary": "자료 제출 요구와 답변 내용을 위원장에게 별도로 설명하고, 제출 가능한 범위를 소통하도록 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "자료 제출 가능한 범위 별도 설명",
+      "topic": "자료 제출 가능 범위 협의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "자료 제출 가능 범위 협의",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 101,
+      "task_evidence_quote": "우선 지금은 자료제출 요구를 하셨고 답변하셨고 그 내용을 다시 한번 틈을 내서 저에게도 설명을 해 주셔서 그러면 자료 제출할 수 있는 영역까지가 어디인지 그렇게 해서 소통하는 것으로",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c12c8048-6948-4e98-afaa-e05adb3e7dd0:1",
+    "content_hash": "11c53406d1e3d1d959f18283df217c84438834b4a45600162c3f2ba242cd503d",
+    "first_cursor": 1070886,
+    "last_cursor": 1070886,
+    "is_final": true,
+    "summary": "자료 제출 문제를 별도로 검토하겠다는 취지를 밝혔다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "별도 검토",
+      "topic": "자료 제출 가능 범위 검토",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "자료 제출 가능 범위 검토",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 20,
+      "task_evidence_quote": "저희가 따로 검토해 보도록",
+      "task_evidence_start": 6,
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c12c8048-6948-4e98-afaa-e05adb3e7dd0:2",
+    "content_hash": "c3c44caa8611210d212b173c9a755a663763a848c340b9b45dda05a87eb71dae",
+    "first_cursor": 1070886,
+    "last_cursor": 1071295,
+    "is_final": true,
+    "summary": "위원실의 정책자료집 준비에 감사를 표하고, 준비된 자료집 제출과 각 기관의 소관 업무·제도 개선 반영을 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "정책자료집 제출 및 개선 과제의 소관 업무·제도개선 반영",
+      "topic": "정책자료집 후속 반영",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "정책자료집 후속 반영",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 746,
+      "task_evidence_quote": "자료집을 제출하실 의원실이 있으시면 준비해 놓으신 자료를 집을 저희들에게 제출해 주시면 감사하겠습니다 자료 제출해 주신 위원님들 수고 참 많으셨고 보좌진 여러분 참 수고하셨습니다 그리고 각 기관에서도 이와 관련한 내용들을 함께해 주셔서 감사하다는 말씀 드리며 이 자료집에 관한 내용이 국민의 생명 안전과 기본권을 보장하고 피해자의 권리 회복과 국가의 경제안보를 뒷받침할 수 있도록 제시된 개선 과제를 소관 업무와 제도개선에 적극 반영해 주시기 바랍니다",
+      "task_evidence_start": 494,
+      "discussion_group": {
+        "id": "386e96ba-44d2-5fbb-b552-8ddbe9a11106",
+        "title": "법무부·대검찰청 자료제출 거부 및 범위 협의",
+        "scope": "자료제출 거부 지적, 요구 전달, 타당 자료 제출 요청, 제출 어려움 보고, 제출 가능 범위 협의·검토, 정책자료집 후속 반영 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "441d98cc-3a98-4032-aaac-10dbe309145f:0",
+    "content_hash": "87d25f1101b93d51f26356a3742df76f8f195fb558e804db9a0fa1f856f79f7f",
+    "first_cursor": 1071307,
+    "last_cursor": 1071435,
+    "is_final": true,
+    "summary": "이성윤 위원은 법원 행정처장에 대해 내란 세력과 국정농단 의심을 제기하며, 대선 후보에 대한 파기환송과 내란 공범 형량 감형, 5·18 폭동 무죄 판결 등을 들어 법원의 권위가 무너지고 있다며 심각한 의심을 표현했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법원의 권위 손상과 사법 독립성에 대한 의심 제기",
+      "owners": [
+        "미배위원회",
+        "대검찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법원 권위 손상, 내란 공범 형량, 파기환송, 사법 독립성",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e8205c1b-aaff-4eb5-bc84-71b6327d9833:1",
+    "content_hash": "179903b8dc1a881701f09af544a9272974a082fec8757e7235bb6f96003aca59",
+    "first_cursor": 1071435,
+    "last_cursor": 1071484,
+    "is_final": true,
+    "summary": "화자는 조병갑이 동학농민혁명을 이끌고 판사가 된 뒤 최시형에게 사형을 선고했다는 역사적 사실을 언급하며, 현대 법원의 내란 세력에 대한 관리 방식에 대한 국민들의 의심과 연결지어 비판하는 문맥을 형성한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "역사적 판사 조병갑의 사형 선고와 현대 법원의 공정성 의심",
+      "owners": [
+        "법원행정처",
+        "법원",
+        "국회",
+        "서영교 위원장실"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "조병갑, 동학농민혁명, 사형 선고, 법원 공정성",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4a50d554-6c58-4b89-801a-24aaf1aab0b4:0",
+    "content_hash": "399f3350f7bf74b4b375a49356bece1ab2602520d6688571e5e85f773b243877",
+    "first_cursor": 1071496,
+    "last_cursor": 1071496,
+    "is_final": true,
+    "summary": "화자는 조병갑이 도둑이었고 판사가 되어 동학혁명자들을 형벌한 역사적 비판을 이어가며, 법원의 정의성과 역사적 맥락을 의심하는 발언을 한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법원의 역사적 정의성과 조병갑의 판사 역할에 대한 비판",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "법원, 정의성, 조병갑, 동학혁명, 형벌",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4a50d554-6c58-4b89-801a-24aaf1aab0b4:1",
+    "content_hash": "f5e088edd653d1c7c22c9c1e3ff6d2197ffacfd53ac99a696764171a177a4912",
+    "first_cursor": 1071496,
+    "last_cursor": 1071826,
+    "is_final": true,
+    "summary": "대법원은 내란 비상계엄에 동조했고, 이재명 후보 사건을 9일 만에 유죄추로 파기환송한 뒤 윤석열에게만 시간으로 일자리 계산을 해주었으며, 노태악 후임 제청을 230일 이상 공석으로 두어 국민의 재판 받을 권리를 침해한 심각한 직무유기라고 비판한다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "대법원의 내란 사건 처리와 직무유기 논란",
+      "owners": [
+        "법원행정처",
+        "대법원",
+        "국회",
+        "법무부"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대법원, 내란, 유죄추로, 파기환송, 제청 공석",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0cc6cb28-cadc-43c5-9a86-5550188e460e:0",
+    "content_hash": "641355ed12fdc1065ccfe03442933550cdd32364c7ffd14b47e79f2f310f6fb3",
+    "first_cursor": 1071837,
+    "last_cursor": 1071854,
+    "is_final": true,
+    "summary": "요세훈 시장은 21일 무죄로 뒤집힌 판결에서 1심 유죄 판결이 무효화된 사례를 들어, 법원의 일관성과 공정성에 대한 국민의 의심이 커지고 있음을 지적한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "요세훈 시장 무죄 판결과 법원 일관성 논란",
+      "owners": [
+        "법원행정처",
+        "대법원",
+        "법무부",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "요세훈, 무죄 판결, 1심 유죄, 뒤집힘, 법원 공정성",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8f9726ff-1c45-4c1f-a5e4-88c04fc45e12:0",
+    "content_hash": "0b85c2e8f66ce4f987b24b4fe315fa9ce98635ac4f8d8afe4216a416c33dcd46",
+    "first_cursor": 1071873,
+    "last_cursor": 1072116,
+    "is_final": true,
+    "summary": "여론조사 사건의 증거 판단을 비판하고, 대법원장 격려금 지급 결정과 업무추진비 사용·제출 내역의 사실관계를 질의했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "격려금·업무추진비 관리 의혹 질의",
+      "owners": [
+        "대법원",
+        "국회",
+        "국민"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "격려금·업무추진비 관리 의혹 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9cb993df-295d-499f-a645-378e29223388:0",
+    "content_hash": "2448c1d20d671a45744c52c02cc759462bb3211db625deece930a89ac001e488",
+    "first_cursor": 1072126,
+    "last_cursor": 1072126,
+    "is_final": true,
+    "summary": "격려금 지급 관련 표현을 이어 갔으나, 이 구간만으로는 완결된 질의나 요구를 확인하기 어렵다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "격려금 지급 관련 발언 연결",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "격려금 지급 관련 발언 연결",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9cb993df-295d-499f-a645-378e29223388:1",
+    "content_hash": "d00f468e4f6fc327c3856762b5ec0a33ce7c57f35f22352b0b6c872243e4fb93",
+    "first_cursor": 1072126,
+    "last_cursor": 1072132,
+    "is_final": true,
+    "summary": "관여하지 않았다는 주장과 업무추진비 카드를 본 적이 없다는 취지의 말을 언급했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "업무추진비 관여 부인 언급",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "업무추진비 관여 부인 언급",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0e0f81eb-2883-4ca9-a402-f7abb23612af:1",
+    "content_hash": "2551238f646d65a69eae4015f4dd8a7612ca0cce46935e78ab5fc6ba8757b3a2",
+    "first_cursor": 1072132,
+    "last_cursor": 1072160,
+    "is_final": true,
+    "summary": "직원에게 책임을 돌리더라도 판례상 원장의 책임이 인정되는 것 아니냐고 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "원장의 책임에 관한 판례 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "원장의 책임에 관한 판례 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "68da2306-94a1-47ed-9e0c-5fcc4c541c40:0",
+    "content_hash": "71bad86109802a147ec57b309ec89cc981894932d4eeb9c30fbc3fbcc00ce12a",
+    "first_cursor": 1072172,
+    "last_cursor": 1072422,
+    "is_final": true,
+    "summary": "대법원의 판단과 대법원장의 책임 문제를 비판하고, 탄핵이 필요하다는 자신의 의견에 대한 법원행정처장의 견해를 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "대법원장 탄핵 필요성에 대한 의견 질의",
+      "owners": [
+        "대법원",
+        "법원노조",
+        "대법원장"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "대법원장 탄핵 필요성에 대한 의견 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f616b4be-e49f-41bb-97e0-eaa2ebcfafe7:0",
+    "content_hash": "3d03f5c06245999e5630f0b2c550049198bfed9a4ba1a7ad2b511051c83dc22d",
+    "first_cursor": 1072446,
+    "last_cursor": 1072596,
+    "is_final": true,
+    "summary": "대법원장이나 법원행정처가 하급심 재판에 관여하지 않으며 각 재판부가 증거와 사실관계에 따라 독자적으로 판단한다고 설명했다. 대법관 제청도 이미 이루어졌다고 답했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "하급심 재판 독립성 답변",
+      "owners": [
+        "대법원",
+        "대법원장",
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "하급심 재판 독립성 답변",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9f090025-8d4a-468a-b4fa-4569b29be044:0",
+    "content_hash": "f903c54e7fb3255a6c3d85c2cf96344ba69758148cce69678ed5230afcc23721",
+    "first_cursor": 1072612,
+    "last_cursor": 1072612,
+    "is_final": true,
+    "summary": "다음 질의자로 김기표 위원을 지명했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "김기표 위원 질의 순서 안내",
+      "owners": [
+        "더불어민주당"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "김기표 위원 질의 순서 안내",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "293bda49-39e6-45a7-8754-f5dd6cf5bc3d:0",
+    "content_hash": "d6357c445804857104b712987bae6d9087c4aaa54384196fa0442cab45de5301",
+    "first_cursor": 1072622,
+    "last_cursor": 1072798,
+    "is_final": true,
+    "summary": "법원의 판결 권한이 권력화되고 정치와 결합될 경우 사법 권위가 무너진다는 경고를 내며, 범죄자의 ‘별거 아님’ 인식을 비판함.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "사법 권위 보호와 판결 권력화 경고",
+      "owners": [
+        "국회의원",
+        "법원",
+        "대법원",
+        "국민"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "사법 권위, 판결 권력화, 범죄 인식, 법조인, 권력 휘두름",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "841bd157-958c-48b3-8d63-3242d8249cce:0",
+    "content_hash": "2c24d9990f64a70b5cf5e7e03c0af8c3a8c004b29f1a8eb5ea45762db84260b1",
+    "first_cursor": 1072804,
+    "last_cursor": 1072804,
+    "is_final": true,
+    "summary": "화자는 대법원의 판결이 합리적이고 신뢰할 수 있다는 점을 강조하며, 법원의 독립성과 권위를 지키는 것이 중요하다는 입장을 드러낸다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대법원 판결의 합리성과 권위 유지",
+      "owners": [
+        "대법원",
+        "법원노조",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대법원, 판결, 권위, 독립성",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "841bd157-958c-48b3-8d63-3242d8249cce:1",
+    "content_hash": "248ded5090439e65469ef2025e330a76ffe7a992da5c6c032022ca207deaed48",
+    "first_cursor": 1072804,
+    "last_cursor": 1072824,
+    "is_final": true,
+    "summary": "화자는 대법원장이 하급심 재판에 관여하지 않았으며, 각 재판부가 독자적으로 사실 관계와 증거에 따른 판결을 내렸다고 설명함.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "대법원장 비관여 및 재판부 독자적 판단",
+      "owners": [
+        "법원",
+        "법조인",
+        "국민",
+        "정치인"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대법원장, 하급심, 재판부, 증거, 사실관계",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "26f486b3-aade-47ff-bb4d-21a0ae2d697c:1",
+    "content_hash": "40bd38ae51de05b4ff060db93a46733a7f29a73b42ce7e54b366a283d347743a",
+    "first_cursor": 1072824,
+    "last_cursor": 1073091,
+    "is_final": true,
+    "summary": "오세훈 시장 재판 판결문을 비판하며, 특정 여론조사 대가를 지급한 김한정과 명태균 간의 대화 기록과 자금 흐름이 판결에 반영되지 않은 점을 지적했다. 판결문의 논리적 모순과 증거 부족을 문제 삼아 사법부 권위 손상 우려를 표현했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "오세훈 시장 재판 판결문의 논리적 모순 및 증거 부족 비판",
+      "owners": [
+        "서울고등법원",
+        "법원",
+        "사법부",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "오세훈 재판, 판결문, 김한정, 명태균, 여론조사",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9f9fc952-1908-44b0-a295-344cc387c726:1",
+    "content_hash": "9559e38a61128f1bfd8a02d4aaf5b8ace717bb09b483b0f7a44af0af813467fe",
+    "first_cursor": 1073091,
+    "last_cursor": 1073211,
+    "is_final": true,
+    "summary": "여론조사 관련 금전 지급 시기와 판결문 내용을 제시하며, 접점이 없던 사이의 송금 경위와 목적에 관한 판단이 모순된다고 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "여론조사 자금 지급 경위와 판결 근거",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "여론조사 자금 지급 경위와 판결 근거",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "b3b9c6a7-aba4-4d86-aad4-118cd5d30ba2:0",
+    "content_hash": "9f565ca08eae05888a726ba65b8432fde4b4f9fc958ad0a9c57e9c5bb76c8889",
+    "first_cursor": 1073213,
+    "last_cursor": 1073352,
+    "is_final": true,
+    "summary": "판결문이 금전 지급에 대한 피고인 설명을 받아들였다고 비판하고, 이후 연락 기록이 종전 친분을 뒷받침하는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "여론조사 관련 연락 기록의 해석",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "여론조사 관련 연락 기록의 해석",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ff4ab32b-2bd1-4184-a83f-3115243a118f:0",
+    "content_hash": "480079f3deb654ef6d41b816327bcf3e90e61746aa8c4a4fe58b39c88cd5e0eb",
+    "first_cursor": 1073361,
+    "last_cursor": 1073654,
+    "is_final": true,
+    "summary": "연락 시점과 진술을 근거로 삼은 판결 논리가 맞지 않으며, 금전 지급과 관계 지속에 관한 판단에 충분한 근거가 없다고 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "여론조사 사건 증거 판단 비판",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "여론조사 사건 증거 판단 비판",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "231bb151-627c-4126-b756-9031415a364d:0",
+    "content_hash": "483e989266ff39625681ab654ea0a9fc595f04ac8f045f8ea6eb0f59277f6156",
+    "first_cursor": 1073662,
+    "last_cursor": 1073662,
+    "is_final": true,
+    "summary": "화자는 1심 판결의 논리적 모순과 증거 부족을 비판하며, 항소심 판결이 2월 1일 자금 지급만을 문제 삼은 것에 대해 과도한 짚고임이라며, 판결문 내 소통 가능성을 근거로 한 면죄 부여가 비합리적이라고 지적한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "1심 및 항소심 판결의 논리 모순과 증거 부족 비판",
+      "owners": [
+        "서울고등법원",
+        "대법원",
+        "미래한국연구소",
+        "김한정"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "판결, 논리 모순, 증거 부족, 면죄 부여, 자금 지급",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "231bb151-627c-4126-b756-9031415a364d:1",
+    "content_hash": "134a3b3c602fa75bf54d4420539b3ac04919c52405ee2e174a092f6c546db017",
+    "first_cursor": 1073662,
+    "last_cursor": 1073799,
+    "is_final": true,
+    "summary": "여론조사 자금 유입 예정과 캠프 관계자의 대화를 근거로, 여론조사 의뢰를 단정할 수 없다는 판결 판단을 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "여론조사 의뢰 판단 비판",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "여론조사 의뢰 판단 비판",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c434053f-137e-4f57-a8ff-6aaf20e6ac01:0",
+    "content_hash": "32eca0938e86f8c807771e77b8ffa5e5b51b2e1dce2d0ac5644d927d7be78dd3",
+    "first_cursor": 1073878,
+    "last_cursor": 1073878,
+    "is_final": true,
+    "summary": "화자는 대법원이 개별 사건에 대해 법원행정처장이 언급하는 것은 적절하지 않다고 생각하며, 만약 법리적 오류가 있다면 상소를 통해 충분히 시정될 수 있을 것이라고 답변했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "법원행정처장의 사건 언급 부적절성과 상소를 통한 법리적 오류 시정 가능성",
+      "owners": [
+        "법원행정처",
+        "대법원",
+        "상소"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법원행정처, 대법원, 상소, 법리적 오류, 시정",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "24fe3ef3-1707-4db6-b805-3acbf58cfa31:0",
+    "content_hash": "97e465329fca22d716b8462458416be572e6d9ec327e0667cb917e1b38030f81",
+    "first_cursor": 1073906,
+    "last_cursor": 1073913,
+    "is_final": true,
+    "summary": "개별 사건에 대해 법원행정처장이 언급하는 것은 적절하지 않다고 답했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "개별 재판에 대한 답변 범위",
+      "owners": [
+        "법원행정처",
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "개별 재판에 대한 답변 범위",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "09ab2ca3-b461-411c-b7e3-214db3e87a41:0",
+    "content_hash": "ea0db7c1c548f36b065b79e12e0006908a4a3156a357955de0a7258ce631383d",
+    "first_cursor": 1073925,
+    "last_cursor": 1073939,
+    "is_final": true,
+    "summary": "만약 판결에 법리적 문제 있다면 상소로 시정 가능하다는 관점에서, 대법원의 일관성 있는 적용을 강조한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "상소 제도를 통한 판결 시정 가능성",
+      "owners": [
+        "법원",
+        "법원행정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "상소, 판결, 법리, 시정",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ce859a46-4875-4b05-ba84-053e78dcbc76:0",
+    "content_hash": "5bbfedf1a3f0741cc1cd9003de3ebc72b062511b41c2df59321ff4ef107c55d6",
+    "first_cursor": 1073961,
+    "last_cursor": 1074009,
+    "is_final": true,
+    "summary": "법원행정처장에게 1심과 2심 판결문을 비교해 보라고 요청하며, 증거에 대한 상반된 판단이 법원 신뢰에 미칠 영향을 지적했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "1심·2심 판결문 비교",
+      "topic": "1·2심 판결문 비교 요구",
+      "owners": [
+        "법원",
+        "법원행정처"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "1·2심 판결문 비교 요구",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 40,
+      "task_evidence_quote": "우리 법원행정처장님 가서 1심 판결문하고 2심 판결문 좀 비교해서 보세요",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a8e88248-cc8a-4408-a84a-14729bb82ce4:0",
+    "content_hash": "64aa8051936693eac0f11feb5138f5fa6354757c168a56b45e72d0ba65ec1869",
+    "first_cursor": 1074015,
+    "last_cursor": 1074016,
+    "is_final": true,
+    "summary": "법원 행정처장의 개별 사건 언급은 적절하지 않으며, 법리적 문제는 상소제도로 시정될 수 있다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법원 행정처장의 사건 언급 부적절성과 상소 제도 활용",
+      "owners": [
+        "법원",
+        "법원행정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법원, 행정처장, 상소, 판결문",
+      "discussion_group": {
+        "id": "b26057dc-5d90-5d4f-9ca8-3a72c52272ca",
+        "title": "사법부 독립성·공정성 논란 및 대법원장 책임 논쟁",
+        "scope": "법원 권위 손상 의심, 역사적 판례 비판, 내란·비상계엄 관련 대법원 판단, 직무유기·탄핵 필요성 주장, 하급심 독립성·대법원장 비관여 답변, 판결 합리성·권위 옹호 발언",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4c63b2d4-bb8e-4655-a64e-1a5c149c17d5:0",
+    "content_hash": "40f91da33feb83b8bc60f19ca6519f8e6d7ecb6f68bcfa85b850ed58a24c17a1",
+    "first_cursor": 1074017,
+    "last_cursor": 1074019,
+    "is_final": true,
+    "summary": "법원행정처장에게 1심과 2심 판결문을 비교하라고 요청하고, 판결에 대한 국민의 신뢰 문제를 지적했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "1심·2심 판결문 비교",
+      "topic": "1·2심 판결문 비교 요구",
+      "owners": [
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "1·2심 판결문 비교 요구",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 42,
+      "task_evidence_quote": "우리 법원 행정처장님 가서 1심 판결문하고 2심 판결문 좀 비교해서 보세요.",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "2ea59e9f-a0e0-49c3-b12f-b6f210aae693:0",
+    "content_hash": "8e848d25dcfd315d88af1cde351106da962012458cadbed22f1bde1bf6ce84a6",
+    "first_cursor": 1074022,
+    "last_cursor": 1074074,
+    "is_final": true,
+    "summary": "1심·2심 판결문을 보고 답변해 달라고 요청한 뒤 다음 질의 순서를 안내했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": null,
+      "topic": "판결문 관련 답변 요구",
+      "owners": [
+        "국민의힘"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "판결문 관련 답변 요구",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f70f67f8-96d7-4e17-aa5a-7460ea98e652:0",
+    "content_hash": "8ce77d1ee7b4b79cc597f9360fd287c215982005ffc7d2aa3b6512daa9357c00",
+    "first_cursor": 1074125,
+    "last_cursor": 1074128,
+    "is_final": true,
+    "summary": "2심 판결문을 보고 답변해 달라고 요청하고 다음 질의자를 안내했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": null,
+      "topic": "판결문 관련 답변 요구",
+      "owners": [
+        "국민의힘"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "판결문 관련 답변 요구",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ac49b98f-b8e2-4da9-a91c-5defde320cb8:0",
+    "content_hash": "99d77317b2c7eccacd0afae3eed7d1a39f3953ab25d787635452fcf18c936d9e",
+    "first_cursor": 1074129,
+    "last_cursor": 1074130,
+    "is_final": true,
+    "summary": "화자는 오세훈 시장의 무죄 판결을 인용하며, 서울고법 형사7부가 이재명 대통령 유죄 파기환송 사건을 지연시키고 있어 그에 대한 항의를 촉구한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "서울고법 형사7부의 재판 지연과 이재명 사건",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "서울고법 형사7부, 이재명 대통령, 유죄 파기환송",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f4262ddc-23b5-4e81-a325-f9ef5fdabb20:0",
+    "content_hash": "83c563ba750a4a95570a542ca0e3b86dbceaef13427c90e646a79d2ca9f77d9c",
+    "first_cursor": 1074152,
+    "last_cursor": 1074257,
+    "is_final": true,
+    "summary": "오세훈 시장 사건을 담당한 재판부에 이재명 대통령 사건도 계류 중이라며, 재판부를 비판하려면 재판 지연에도 항의해야 한다고 주장했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "재판 지연 비판의 일관성",
+      "owners": [
+        "서울고법 형사7부",
+        "이재명 대통령",
+        "대법원",
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "재판 지연 비판의 일관성",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "b70dbc8d-5f6d-47cd-8be6-fd1474956e06:0",
+    "content_hash": "310472ef0c7b2dd082ce91bfca3bcf0449bb480978689bf0e367a81e75b2e071",
+    "first_cursor": 1074283,
+    "last_cursor": 1074752,
+    "is_final": true,
+    "summary": "탄핵·보복성 수사 관련 질의로 국정감사가 정쟁에 치우쳤다고 비판했다. 흉기 난동·방화 사건에 따른 국민 불안을 언급하고, 법무부에 검찰총장 등 기관장 임명 절차 진행 여부를 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "국정감사 정쟁 비판과 기관장 임명 질의",
+      "owners": [
+        "법무부",
+        "경찰청"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "국정감사 정쟁 비판과 기관장 임명 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "3d1a8228-3c4d-582c-9ebc-ed703015422e",
+        "title": "국정감사 정쟁 비판 및 검찰·법무부 기관장 임명 질의",
+        "scope": "탄핵·보복 수사 관련 정쟁 비판, 흉기 난동·방화 사건 국민 불안 언급, 기관장 임명 절차 진행 여부 질의 및 신속 진행 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "170f9b27-59b4-47f0-80dd-c9983a109617:1",
+    "content_hash": "125133ba84adcf14b2d95e8a95dd1e2e10a842bbb2819e49efb5158b2dc176ba",
+    "first_cursor": 1074752,
+    "last_cursor": 1074766,
+    "is_final": true,
+    "summary": "임명 절차가 진행 중이라는 답변에 신속히 진행하라고 요청한 뒤 슬라이드 확인으로 넘어갔다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "임명 절차 신속 진행",
+      "topic": "기관장 임명 절차 진행",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "기관장 임명 절차 진행",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 28,
+      "task_evidence_quote": "빨리 진행하십시오",
+      "task_evidence_start": 19,
+      "discussion_group": {
+        "id": "3d1a8228-3c4d-582c-9ebc-ed703015422e",
+        "title": "국정감사 정쟁 비판 및 검찰·법무부 기관장 임명 질의",
+        "scope": "탄핵·보복 수사 관련 정쟁 비판, 흉기 난동·방화 사건 국민 불안 언급, 기관장 임명 절차 진행 여부 질의 및 신속 진행 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4daccd5b-b924-4d20-8537-250283dcd6d6:0",
+    "content_hash": "df1b2cf885fdc8a32f3d0b87ce10221fd298afe14cdb335a0b037eb51c04bdd7",
+    "first_cursor": 1074795,
+    "last_cursor": 1074836,
+    "is_final": true,
+    "summary": "인천 흉기 난동과 서울 연쇄 방화 사건을 언급하며, 정신병력이 의심되는 범죄자의 이상동기 범죄 문제를 제기했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "이상동기 범죄와 정신질환 문제",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "이상동기 범죄와 정신질환 문제",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3f6e0471-99f8-45f7-9490-3a07910dbfe3:0",
+    "content_hash": "778c18bd69791e5a1282a5a1bda60013f2a7782b48f64a13f76d5da4ddf23894",
+    "first_cursor": 1074851,
+    "last_cursor": 1074857,
+    "is_final": true,
+    "summary": "일반 시민들을 상대로 벌어지는 정신병력 의심 범죄가 증가하는 상황에서 교정시설 정신질환 수용자가 2017년 대비 2배 이상 증가했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "교정시설 정신질환 수용자 증가",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "검찰청",
+        "경찰청"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "교정시설, 정신질환, 수용자, 증가",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c8750c1e-1698-46ed-8371-1ff9c0af4125:0",
+    "content_hash": "3bb8b4c85c099d34524b56e8ae62e3afd7cb839516bd27a4cbeb92fcb0980306",
+    "first_cursor": 1074873,
+    "last_cursor": 1074886,
+    "is_final": true,
+    "summary": "교정시설의 정신질환 수용자가 2017년 대비 거의 2배로 증가했으며, 이는 정신건강복지법 개정 영향이다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "교정시설 정신질환 수용자 증가 추이",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "법원행정처",
+        "교정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "교정시설, 정신질환, 수용자, 증가",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "afb7d0d4-8b6e-4a08-a7b2-bfd849e88cd9:1",
+    "content_hash": "5b5f1df852f7bf666f700e091f0012d8947b27ab1f9cab37e8985538f28b3916",
+    "first_cursor": 1074886,
+    "last_cursor": 1074886,
+    "is_final": true,
+    "summary": "교정시설 정신질환 수용자가 2017년 대비 거의 2배로 증가했으며, 전체 수용자 중 정신질환자 비율이 15%에 달한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "교정시설 정신질환자 비율 증가",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "법원행정처",
+        "교정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "교정시설, 정신질환, 수용자, 비율",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d512da54-1dfb-4593-a24b-160b44bdd4d5:0",
+    "content_hash": "e6e07fb86e6c9ce3c7bd22598ae1c4a25bced36b3e1760366a1366fa0bf34483",
+    "first_cursor": 1074904,
+    "last_cursor": 1074904,
+    "is_final": true,
+    "summary": "전체 수용자 중 정신질환자 비율이 15%이며, 정신질환 범죄자의 전가 보유율은 67%로 일반 범죄자보다 훨씬 높다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정신질환 범죄자의 전가 보유율 및 비율",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "법원행정처",
+        "교정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "정신질환, 범죄자, 전가, 보유율",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d512da54-1dfb-4593-a24b-160b44bdd4d5:1",
+    "content_hash": "f0d257645978930f07ec0e56568adbbcbea97fe4c62ec615bf8c2f4fe500ce47",
+    "first_cursor": 1074904,
+    "last_cursor": 1074904,
+    "is_final": true,
+    "summary": "정신질환 수용자가 2017년 대비 2배 증가했으며 정신질환자 비율은 15%에 달하며 전가 보유율은 67%로 일반 법령의 44%를 훌쩍 넘어서, 치료감호 청구율은 0.5~1%에 불과해 제도의 실질적 작동이 위협받고 있다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "치료감호 청구율 저조성과 정신질환 범죄자 증가의 간격",
+      "owners": [
+        "법무부",
+        "법원행정처",
+        "교정처",
+        "정신건강의학과 관련 기관"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "치료감호, 정신질환, 범죄자, 청구율",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d512da54-1dfb-4593-a24b-160b44bdd4d5:2",
+    "content_hash": "d51e689469f616c2bce8115ec70d5adcc166d1249a2b92ac8259bfe09c8c773e",
+    "first_cursor": 1074904,
+    "last_cursor": 1075040,
+    "is_final": true,
+    "summary": "정신질환 범죄자에 대한 유일한 법적 제도인 치료감호의 청구율이 0.5~1%에 불과하며, 전자발찌 등 원격감시로는 적시 대응이 어렵다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "치료감호 청구율 저조 및 원격감시 한계",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "법원행정처",
+        "교정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "치료감호, 청구율, 원격감시, 한계",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "5d6f0e89-a649-4ca6-a5c1-85711830f9cb:0",
+    "content_hash": "90b4c015a66edff4a943365fcb78c45f89c7941c605a449f48f7ce22045aad01",
+    "first_cursor": 1075053,
+    "last_cursor": 1075179,
+    "is_final": true,
+    "summary": "치료감호의 적극적인 청구와 폐지된 보호감호 유사 제도의 재검토 필요성을 제기했다. 치료감호 청구가 저조한 이유를 묻자, 심신미약·심신상실 인정이 선고의 전제가 된다는 답변이 이어졌다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "치료감호 적극 청구",
+      "topic": "치료감호 청구와 제도 보완",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "치료감호 청구와 제도 보완",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 75,
+      "task_evidence_quote": "치료감호 같은 것이 적극적으로 청구가 돼야 되고",
+      "task_evidence_start": 49,
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3f5e9dcd-4784-4a82-b3a9-744f38ef4c3c:0",
+    "content_hash": "e6cd9ffa39d3a9134c7a7171ca54dd42c29229d651973b2820cc82e61a16e14b",
+    "first_cursor": 1075188,
+    "last_cursor": 1075243,
+    "is_final": true,
+    "summary": "교정시설 정신질환 수용자가 2017년 3300명에서 2026년 6500명으로 약 2배 증가했으며, 이는 정신건강복지법 개정으로 비자이입원 요건이 엄격화된 영향이다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정신건강복지법 개정에 따른 정신질환 수용자 증가",
+      "owners": [
+        "법사위원회",
+        "법무부",
+        "법원행정처",
+        "교정처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "정신건강복지법, 비자이입원, 정신질환, 수용자",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0803c597-066a-4f70-bfd8-32726e4c64b6:1",
+    "content_hash": "7818fba78b6c3c4875015d905606f87ed8825b263b111fc05d1ad523d210dfd5",
+    "first_cursor": 1075243,
+    "last_cursor": 1075243,
+    "is_final": true,
+    "summary": "화자는 정신질환 범죄자에 대한 치료감호 청구율이 0.5~1%에 불과하다며 이 제도의 저조함을 지적하고, 비자이입원 요건 엄격화로 인한 교정 시설 내 정신질환 수감자 증가를 그 결과로 인정했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정신질환 범죄자 대상 치료감호 청구율 저조성과 교정 시설 수용자 증가",
+      "owners": [
+        "법원행정처",
+        "교정시설",
+        "정신건강복지법",
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "치료감호, 청구율, 정신질환, 교정 시설, 비자이입원",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0803c597-066a-4f70-bfd8-32726e4c64b6:2",
+    "content_hash": "70ae9bc35b2d378b00ef6a136b9c1f990965c794f4fc40de16c1a3f2c2a2eeee",
+    "first_cursor": 1075243,
+    "last_cursor": 1075243,
+    "is_final": true,
+    "summary": "화자는 법원의 심신미약 기준과 교도소의 정신질환 기준이 다름을 설명하고, 선진국의 사법입원제는 전문의 진단에 법원이 수용 여부를 판단하는 제도임을 부연 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "사법입원제 도입을 위한 기준 차이와 선진국 제도 비교",
+      "owners": [
+        "법원",
+        "교도소",
+        "정신과 전문의",
+        "정신건강복지법"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "사법입원제, 심신미약, 심신상실, 전문의, 법원",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0803c597-066a-4f70-bfd8-32726e4c64b6:3",
+    "content_hash": "0cadd5eca3c95997aeb7d2aa5474db252aa2a98c4a2b20a82c14aeabc8052c5e",
+    "first_cursor": 1075243,
+    "last_cursor": 1075284,
+    "is_final": true,
+    "summary": "정신질환 범죄자에 대해 치료감호 대신 사법입원제 도입이 필요하다는 학계의 문제 제기를 소개했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "사법입원제 도입 논의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "사법입원제 도입 논의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "efa5bb6e-3e44-4dbb-8bb3-df4d42cd1907:0",
+    "content_hash": "e9ad98a3c1c614c1565618820463f6ba75d7c92e650bb68761eb665f2fac16d5",
+    "first_cursor": 1075334,
+    "last_cursor": 1075491,
+    "is_final": true,
+    "summary": "화자는 사법입원제의 기준 차이, 선진국 제도, 비자이입원 요건 강화로 인한 교도소 정신질환 수감자 급증을 설명하고, 인권과 입원 절차 제도 정비가 필요하다고 언급했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "사법입원제 기준과 정신질환 수감자 증가에 대한 제도적 정비 필요성",
+      "owners": [
+        "법원",
+        "교도소",
+        "정신건강복지법",
+        "정신과 전문의"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "사법입원제, 비자이입원, 정신질환 수감자, 인권, 제도 정비",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0badc483-6682-4ea1-b25b-1d2d7faa3d4f:0",
+    "content_hash": "962e67edd14c383adc996be5a5dc7ca4a51d44e91d492b797cff56a8dc49a767",
+    "first_cursor": 1075498,
+    "last_cursor": 1075564,
+    "is_final": true,
+    "summary": "명태균 관련 진상조사단 활동과 증거 추적 경위를 설명하면서, 법원의 분위기에 문제가 있다고 주장했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "판결 비판 발언의 배경 설명",
+      "owners": [
+        "법원",
+        "명비균 게이트 진상조사단",
+        "오세훈"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "판결 비판 발언의 배경 설명",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f703efc0-daee-4fd5-8e09-e46dbe29b63f:0",
+    "content_hash": "e338bfaa7b3f4b7fd0b485c162fc7e1a9b6f3f74eeb0e6ebb9170f48b2ca9ee8",
+    "first_cursor": 1075566,
+    "last_cursor": 1075586,
+    "is_final": true,
+    "summary": "화자는 나쁜 결정이 나올 수 있다는 판단을 했고, 증거가 많음을 언급하며 법원의 결정이 문제적임을 강조했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법원의 문제적 결정과 증거 과다성",
+      "owners": [
+        "법원",
+        "대법원",
+        "더불어민주당 형사7부"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법원 결정, 증거, 나쁜 결정, 대법원",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "c8480957-37a1-4740-a4ac-0287d61e6fe6:0",
+    "content_hash": "cb02453f0c9b7ffdb56c534b01a720549fc379c3723b0992de3a638542b9c5c7",
+    "first_cursor": 1075589,
+    "last_cursor": 1075772,
+    "is_final": true,
+    "summary": "특검 구형과 여론조사 관련 증거를 근거로 자신의 판결 비판 입장을 설명했다. 판사의 권한 남용 여부를 기록하겠다고 밝혔다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": "판사의 권한 남용 여부 기록",
+      "topic": "판결 과정 기록 의사",
+      "owners": [
+        "법원",
+        "오세훈"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "판결 과정 기록 의사",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 398,
+      "task_evidence_quote": "법원이 어떻게 그 구획원이라고 하는 판사가 남용을 했는지 다 기록해 놓겠습니다",
+      "task_evidence_start": 355,
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "7fc49133-e89d-413e-a46a-cd5181aa284a:0",
+    "content_hash": "5dfc480feaee7a7e289a0e38661c4df35afe081b188ddc7cb3fc19fcdbd9f87d",
+    "first_cursor": 1075778,
+    "last_cursor": 1075800,
+    "is_final": true,
+    "summary": "형사7부 판사를 누가 교체했는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "형사7부 판사 교체 질의",
+      "owners": [
+        "더불어민주당 형사7부"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "형사7부 판사 교체 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "fb0d0e15-11f5-4cb2-8bf4-fe1cd8716181:0",
+    "content_hash": "84b10a9eb1a4bffbc17ea0cbfaf9d266bd80dcaa4c2185a76910ba9fa7a7400c",
+    "first_cursor": 1075805,
+    "last_cursor": 1075813,
+    "is_final": true,
+    "summary": "판사를 누가 교체했는지 재차 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "판사 교체 주체 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "판사 교체 주체 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "69ec1139-d1a3-4f5f-a2b8-e31fdad3bdd4:1",
+    "content_hash": "b9d13d932ba2408afb0a71395c67ce4397a1a9212606bea6709f806dbcd7445b",
+    "first_cursor": 1075813,
+    "last_cursor": 1075829,
+    "is_final": true,
+    "summary": "판사 교체 주체를 묻고 대법원장의 인사 권한을 언급했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "판사 인사 권한 언급",
+      "owners": [
+        "대법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "판사 인사 권한 언급",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "2c8998d8-1d1b-456e-baa3-d37a2a57e9e2:0",
+    "content_hash": "42636316751b9de2fbbf02bd051e3d4a5a727499d4b90149b3fb03900ee167c8",
+    "first_cursor": 1075851,
+    "last_cursor": 1075946,
+    "is_final": true,
+    "summary": "오세훈 시장과 관련된 1심 판결문과 증거가 모두 공개된 후에도 무죄 판결이 나온 점에 대해 기록과 역사가 이를 반영한다고 말하며, 국민의힘도 이를 이해할 것이라고 강조했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "오세훈 무죄 판결에 대한 역사적 기록",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "오세훈, 무죄 판결, 역사 기록",
+      "discussion_group": {
+        "id": "ca1427e9-58be-50fa-8106-0918bf315994",
+        "title": "오세훈 시장·여론조사 사건 판결 비판 및 판결문 비교 요구",
+        "scope": "1·2심 판결 논리 모순·증거 부족 비판, 여론조사 자금 흐름·연락 기록 판단 문제 제기, 상소 제도 통한 시정 가능성 언급, 1·2심 판결문 비교 요구, 서울고법 형사7부 재판 지연 지적, 형사7부 판사 교체·인사 권한 질의, 무죄 판결 역사적 기록 언급",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "1c77dea5-bc46-4df6-be0f-2ddb7191cdf1:0",
+    "content_hash": "ec2a4baf6ae6c88d058fc977fe035525dc46e1cca5b53412233dfe4b47c6ecfc",
+    "first_cursor": 1075967,
+    "last_cursor": 1075978,
+    "is_final": true,
+    "summary": "정신질환자의 범죄율은 일반인보다 낮지만, 일부 재범률이 높아 위험군 관리가 필요하며, 정신 장애에 대한 편견을 강화하는 표현은 피해야 한다고 말했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정신질환자 범죄율과 편견 문제",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "정신질환자, 범죄율, 편견",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "2aa75520-52c6-446d-b9c2-7f1d525fdfd5:0",
+    "content_hash": "19f3d849f777a71662aca02100b964d3ac9326db1165f5b2b857df1c42dc575f",
+    "first_cursor": 1075995,
+    "last_cursor": 1076278,
+    "is_final": true,
+    "summary": "화자는 정신질환자의 범죄율은 낮지만 재범률이 높은 위험군에 대한 적극적인 관리가 필요하다며, 정신질환자에 대한 편견을 강화하는 표현은 조심해야 한다고 강조했다. 또한 남양주, 송파, 제주에서 발생한 세 가지 살인 사건을 인용해, 친밀한 관계에서 시작된 지배와 통제가 살인으로 이어지는 패턴을 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정신질환자 관리 및 친밀 관계 기반 살인 사례 분석",
+      "owners": [
+        "법원",
+        "경찰청",
+        "가족폭력방지센터",
+        "보건복지부"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "정신질환자, 재범률, 친밀 관계, 살인, 지배와 통제",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ce10fc80-00b4-4f07-84f2-625f184620a8:0",
+    "content_hash": "a345847d703e6881d12deafa3991e48234749446f736026a426d6241d45326d8",
+    "first_cursor": 1076289,
+    "last_cursor": 1076507,
+    "is_final": true,
+    "summary": "살인 이전에 반복된 폭력 피해와 위험 신호를 제시하고, 위치추적·직장 방문·관계 강요 등의 행위를 현행법으로 충분히 처벌할 수 있는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "스토킹·교제폭력의 처벌 공백",
+      "owners": [
+        "이재명"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "스토킹·교제폭력의 처벌 공백",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "528b554e-b1b3-425c-bcc7-4164e8fc06d7:0",
+    "content_hash": "ca35436d9d5ed67f3d622d794b60fdf397a43f9fc739a0030c6130a5d2ed1299",
+    "first_cursor": 1076534,
+    "last_cursor": 1076534,
+    "is_final": true,
+    "summary": "관계 강요 행위에 폭행이나 협박이 수반되지 않으면 처벌하기 어려운 공백이 있다고 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "관계 강요 행위의 처벌 공백",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "관계 강요 행위의 처벌 공백",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3f2df792-9039-47dd-ae77-036c63a02222:0",
+    "content_hash": "c66a1ef63211220009e440395e91deb55fd9b45eda3048799a2aa0cd4bbbd64b",
+    "first_cursor": 1076547,
+    "last_cursor": 1076729,
+    "is_final": true,
+    "summary": "대표발의한 스토킹처벌법 개정안에 관계 강요, 감시 고지, 디지털 통제 등 지배·통제 행위를 담았다고 설명하고, 현행법의 처벌 한계를 확인했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "스토킹처벌법 개정안의 범위",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "스토킹처벌법 개정안의 범위",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e0d5a806-2b94-4514-9f55-4baefd03deb3:1",
+    "content_hash": "bf7d33e3fb99e97ecb8c2e9ff031ae6835779d57965755a0477aef89400f3819",
+    "first_cursor": 1076729,
+    "last_cursor": 1076729,
+    "is_final": true,
+    "summary": "현행법의 처벌 공백에 관한 질의에 동의했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "스토킹 행위 처벌 공백 확인",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "스토킹 행위 처벌 공백 확인",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e0d5a806-2b94-4514-9f55-4baefd03deb3:2",
+    "content_hash": "1d300bc861829ed5383eabed11ec34dd64a1cb318c41672f7b86a60dfae6c183",
+    "first_cursor": 1076729,
+    "last_cursor": 1076736,
+    "is_final": true,
+    "summary": "피해자 의사에 반해 반복되는 행위를 처벌해야 한다는 견해에 동의하는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "반복적 통제행위 처벌 의견 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "반복적 통제행위 처벌 의견 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "fe7069b7-7e2f-4f04-bb22-c5cbcbda0e4a:1",
+    "content_hash": "b6726c865220c0489ca4f4ad13f24a363846e833ca96ce0d67e3ebc061331dea",
+    "first_cursor": 1076774,
+    "last_cursor": 1076973,
+    "is_final": true,
+    "summary": "스토핑처벌법 개정안을 대표발의해 9가지 지배통제 행위를 규제하며, 반의사불벌죄 제도를 제외해 국가가 신고 없이도 개입할 수 있도록 하고, 응급·잠정조건을 도입해 더 큰 폭력으로 이어지는 것을 사전에 차단하려는 의지를 밝혔다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "스토핑처벌법 개정안을 통한 지배통제 행위 규제 및 응급조건 도입",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": ",",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9963866a-3a01-4689-a53a-5bf6510579a8:0",
+    "content_hash": "0133e050045a77ad2d4ac023918f049b73bab73df4bc9fae82a31d235c63e1b7",
+    "first_cursor": 1076983,
+    "last_cursor": 1076992,
+    "is_final": true,
+    "summary": "스토핑법 개정이 중대한 범죄로 이어질 가능성이 크므로 신속히 필요하다고 동의하며, 회사와 일반 시민들의 불안과 공포를 해소하기 위해 제도 보완을 적극적으로 검토한다고 약속했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "스토핑법 개정의 필요성과 제도 보완 검토",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": ",,",
+      "discussion_group": {
+        "id": "593983c7-0b3f-5e34-8286-d9ce81745193",
+        "title": "스토킹·교제폭력 처벌 공백 및 스토킹처벌법 개정 논의",
+        "scope": "살인 이전 반복 폭력·위험 신호 제시, 위치추적·관계 강요 등 행위 현행법 처벌 가능 여부 질의, 관계 강요 처벌 공백 답변, 스토킹처벌법 개정안 범위(지배·통제 행위 9가지, 반의사불벌죄 제외, 응급·잠정조치 도입) 설명, 처벌 공백 확인, 반복 통제행위 처벌 의견 질의, 개정 필요성 동의 및 제도 보완 검토 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "1c96eb07-3651-4459-99d5-d34e96901fd6:0",
+    "content_hash": "2bef7d41ba800b18a680487f47222af6a4b15c359b1b8d58bbf66f918efda816",
+    "first_cursor": 1077020,
+    "last_cursor": 1077140,
+    "is_final": true,
+    "summary": "접근금지 정보 공유 누락과 잠정조치 만료·재신청 사이의 공백을 지적하고, 새로운 결정 전까지 피해자 보호가 끊기지 않도록 보완해야 한다고 요구했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "임시조치·잠정조치 만료 뒤 보호 공백 보완",
+      "topic": "접근금지 조치 사이 보호 공백 보완",
+      "owners": [
+        "법무부",
+        "법원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "접근금지 조치 사이 보호 공백 보완",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 338,
+      "task_evidence_quote": "직무대행님 이렇게 임시조치 잠정조치가 만료된 뒤 채 결정이 생기기까지 구호 공백 보완해야 되지 않겠습니까",
+      "task_evidence_start": 280,
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "fc4a880d-df81-4503-b3aa-d4580f2c3662:0",
+    "content_hash": "bb5d1fcadc195095fb4d51faab62d56a492b696f620edca8a7c10992a013f7de",
+    "first_cursor": 1077163,
+    "last_cursor": 1077257,
+    "is_final": true,
+    "summary": "잠정조치 연장 신청이 이루어지지 않아 처리가 지연된 측면을 설명하고, 제도 보완책 검토와 입법 협력 의사를 밝혔다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "제도 보완책 검토 및 입법 협력",
+      "topic": "피해자 보호 제도 보완 검토",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "피해자 보호 제도 보완 검토",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 173,
+      "task_evidence_quote": "더 적극적으로 제도 보완책을 검토하고 위원님들께서 입법이 이루어질 수 있도록 하겠습니다",
+      "task_evidence_start": 125,
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f57788be-05c2-437d-aeec-b93774328f27:0",
+    "content_hash": "8d9b3fefc855c8953468407b6c392b45e353cc4342181c30b350897f85267271",
+    "first_cursor": 1077276,
+    "last_cursor": 1077276,
+    "is_final": true,
+    "summary": "제도 보완책이 꼭 입법을 통해만 가능한가를 묻는 질문을 했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "제도 보완책 수단에 대한 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "제도보완책, 입법, 질문",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0b2fe7bb-a1fa-4aa6-a06d-9e862058fbf2:0",
+    "content_hash": "df159f47a890ff65503985e485398a14711e34b04fb0fa285e036a277910375a",
+    "first_cursor": 1077338,
+    "last_cursor": 1077338,
+    "is_final": true,
+    "summary": "화자는 '지금'이라며, 제도 보완이 입법 전에도 신속히 조치될 수 있음을 시사하며, 대처 부족 부분은 재발 방지로 관리된다고 암시했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "입법 전 조치 가능성 및 대처 부족 부분 관리",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "입법전조치, 대처부족, 재발방지, 제도보완",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0b2fe7bb-a1fa-4aa6-a06d-9e862058fbf2:1",
+    "content_hash": "168a1c3cb7cdd55929af600be22579f833d3470d2a11179df210b1b3f83066a7",
+    "first_cursor": 1077338,
+    "last_cursor": 1077338,
+    "is_final": true,
+    "summary": "화자는 입법을 통한 개선과 병행해 보안 조치가 바로 시행 가능하며, 김남희위원의언급처럼 사법·행정 조치로도 대응 가능하다고 강조했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "입법과 병행한 보안 조치 즉시 시행",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "입법, 보안시행, 행정조치, 김남희, 제도보완",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0b2fe7bb-a1fa-4aa6-a06d-9e862058fbf2:2",
+    "content_hash": "6af127780f763fcd960b32eb6cbe2f49faab2cbd128afa94830a6049b5e1e084",
+    "first_cursor": 1077338,
+    "last_cursor": 1077338,
+    "is_final": true,
+    "summary": "화자는 '있지'라며, 공백 부분은 대처 부족이었고 그 조치는 법 개정 전에도 신속히 이루어질 수 있음을 인정했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "공백 대처 및 법 개정 전 조치 가능성",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "공백, 대처부족, 법개정전조치, 신속조치, 제도보완",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0b2fe7bb-a1fa-4aa6-a06d-9e862058fbf2:3",
+    "content_hash": "73c0d0ef33b890e1c34afc5a9f2c237942eb51980ccae017fc15979c1b00d303",
+    "first_cursor": 1077338,
+    "last_cursor": 1077338,
+    "is_final": true,
+    "summary": "화자는 입법 과정 없이도 보안 조치를 즉시 시행할 수 있다는 점을 질문하며, 공백 해소를 위한 신속한 대응을 촉구하는 발언을 했습니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "보안 조치의 입법 여부 및 신속 대응 요구",
+      "owners": [
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "보안 조치, 입법, 신속 대응",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0b2fe7bb-a1fa-4aa6-a06d-9e862058fbf2:4",
+    "content_hash": "63a0a9307c2d2cdf4a6b182324626900d9abaab800d7e9370149eaac5358a552",
+    "first_cursor": 1077338,
+    "last_cursor": 1077354,
+    "is_final": true,
+    "summary": "법 개정 전에도 공백 발생 부분을 신속히 조치하여 재발을 방지하겠습니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "입법 공백 조치",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "공백 조치, 법 개정 전, 재발 방지",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "73c18c76-f169-4840-a713-08485df73986:1",
+    "content_hash": "5ba17ea224b6f3a12f3b05371497fb0a6db5d23d5587417f116459b286f800de",
+    "first_cursor": 1077354,
+    "last_cursor": 1077371,
+    "is_final": true,
+    "summary": "앞선 질의를 마무리하고 다음 위원에게 질의를 요청했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "다음 질의 순서 안내",
+      "owners": [
+        "국민의힘",
+        "김민전"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "다음 질의 순서 안내",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6a190fb5-aefb-4e83-9bd4-afb36e5152e1:0",
+    "content_hash": "38b189c2d342158da587552d2fce7261c6a4a66cd7c3c398710aae596b0053af",
+    "first_cursor": 1077419,
+    "last_cursor": 1077550,
+    "is_final": true,
+    "summary": "화자는 주요 기관과 보직이 대통령의 변호사들로 채워져 있다는 점을 지적하며, 이태영 공직기강비서관과 이재명의 2018년 공직선거법 위반 가능성을 언급했습니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "주요 보직의 대통령 변호사화 및 공직 선거법 위반 의심",
+      "owners": [
+        "대통령실",
+        "공직기강비서관",
+        "공직선거법",
+        "이재명"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대통령실, 공직기강비서관, 공직선거법, 이재명",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f986171e-9383-41e4-8ba7-3ba6a49a6b19:0",
+    "content_hash": "549742b9a19462ee2eea64dc7c55f4242765ab281b51e921619ffc29f6ebcb97",
+    "first_cursor": 1077555,
+    "last_cursor": 1077555,
+    "is_final": true,
+    "summary": "질의 시간 계산을 중단해 달라고 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": null,
+      "topic": "질의 시간 중단 요청",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "질의 시간 중단 요청",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3472dfb1-0299-4e31-8221-55d6d909d31a:0",
+    "content_hash": "f606a51012120bd4c1903d77fee1d3845e33ab969483b6eb1819f676b57bde20",
+    "first_cursor": 1077593,
+    "last_cursor": 1077593,
+    "is_final": true,
+    "summary": "먼저 이야기하도록 요청하며 발언 순서를 조정했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 순서 조정",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "발언 순서 조정",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3472dfb1-0299-4e31-8221-55d6d909d31a:1",
+    "content_hash": "48ebfeff0d66a567900eb81cbd0cbd5464fa8054789849b595ffb40ad2d285e2",
+    "first_cursor": 1077593,
+    "last_cursor": 1077678,
+    "is_final": true,
+    "summary": "화자는 전 세계에 같은 정부가 없는지를 묻는 질의를 이어가며, 국정감사의 예의와 질의의 타당성을 강조했습니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국가 형태 비교 및 국정감사 예의 강조",
+      "owners": [
+        "국회",
+        "윤소현",
+        "김민전"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국가 비교, 국정감사, 예의",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "af25d3ba-6be0-4164-91d2-0b919aa7a661:1",
+    "content_hash": "21b4af0207cfd591c511bf1f0e176dbb1253b3b17b720ce29bb1ccf56b119386",
+    "first_cursor": 1077678,
+    "last_cursor": 1077678,
+    "is_final": true,
+    "summary": "짧게 이어진 발언으로, 이 구간만으로는 독립적인 질의나 과제를 확인하기 어렵다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 연결 구간",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "발언 연결 구간",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "af25d3ba-6be0-4164-91d2-0b919aa7a661:2",
+    "content_hash": "9c6794001e7a30ec2708ba3a662bbb4ecbd36ff2873ea9e41adee80d3dd677d2",
+    "first_cursor": 1077678,
+    "last_cursor": 1077700,
+    "is_final": true,
+    "summary": "윤소현위원에게 말이 되는가 물었고, 전 세계에 같은 예의가 있는가 반문하며 국정감사의 예의를 강조했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사에서의 예의와 질의 적절성 논의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 예의, 질의, 윤소현",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "272d7fd7-3215-4f83-b507-8980ad35d26a:0",
+    "content_hash": "cb11be11c3766d507ebd290f69b43e621e6b688b0d6c2b7e80f4047b56ced8ad",
+    "first_cursor": 1077713,
+    "last_cursor": 1077713,
+    "is_final": true,
+    "summary": "화자는 상대방이 거짓말을 했는지 여부를 묻는 질문에 대해, 그 내용이 어느 법에 근거하는지 요구하며 반박할 수 있는 여지를 열었다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "발언의 법적 근거에 대한 질문",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법, 거짓말, 근거, 질문, 반박",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "272d7fd7-3215-4f83-b507-8980ad35d26a:1",
+    "content_hash": "a70334419b0690b8c0e6391eebe27dfd25c366187d3edd6ee4033f87ef24e036",
+    "first_cursor": 1077713,
+    "last_cursor": 1077728,
+    "is_final": true,
+    "summary": "화자는 이전 발언의 흐름을 이어서 ‘이 앞부다’라는 표현으로 연결을 시도하며, 논리적 흐름의 단절을 부정하는 듯한 태도를 보였다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": null,
+      "topic": "발언 흐름의 논리적 연결 시도",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "이 앞부다, 연결, 흐름, 부정, 논리",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "52d01dbd-1980-4ec5-b717-580ecdc10d00:1",
+    "content_hash": "38c61820e786f2346e9602851ab925f30402ec0ca277bf36f10f7a86d7cadf29",
+    "first_cursor": 1077728,
+    "last_cursor": 1077728,
+    "is_final": true,
+    "summary": "화자는 단순한 감정 표현으로 ‘그’라는 단어를 사용해 발언을 이어가며, 상대방의 논법에 대한 비판이나 동의를 표하지 않은 중립적 태도를 보였다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "중립적 발언 연결",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "그, 중립, 연결, 태도, 비판",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "52d01dbd-1980-4ec5-b717-580ecdc10d00:2",
+    "content_hash": "33de33eb2048cf57ae4800c970307dd2f08bb3f183a9db3163bd8f1dff9694ab",
+    "first_cursor": 1077728,
+    "last_cursor": 1077728,
+    "is_final": true,
+    "summary": "화자는 ‘뒤까지 상승하나요’라는 표현으로 논란이 확대될 수 있음을 경고하며, 국정감사장에서 하지 말아야 할 내용을 제거할 것을 요구했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사장 논란 확대 경고",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "상승, 논란, 제거, 경고, 예의",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "52d01dbd-1980-4ec5-b717-580ecdc10d00:3",
+    "content_hash": "cab20d0254d58f9419bda41bb580f5084a5e78a737a767210c5add01754f2035",
+    "first_cursor": 1077728,
+    "last_cursor": 1077744,
+    "is_final": true,
+    "summary": "화자는 앞에 있는위원들을 배제하고 국정감사장에서 예의를 지키지 않는 발언을 하지 말 것을 요구하며, 간사에게 조정을 맡기는 것을 제안한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사장에서의 예의와 발언 제한",
+      "owners": [
+        "국회",
+        "국정감사",
+        "의사진행",
+        "간사"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사장, 예의, 발언 제한, 간사",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e1aecfc3-dd2f-423b-b1f9-d21bf8272204:0",
+    "content_hash": "101f13c8561c93346f6b82fd2cffae3b91a85e7929bad58e10247d05863ae2cc",
+    "first_cursor": 1077755,
+    "last_cursor": 1077878,
+    "is_final": true,
+    "summary": "화자는 국정감사장에서 예의를 지키지 않는 발언은 검열이 아니라 본인의 문제라고 비판하며, 윤석열 비서관에게 조용히 하도록 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사장 예의 비판",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "예의, 검열, 윤석열, 비판, 본인의 문제",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4172fdcc-1fc1-4b23-afa1-18a69afa37c7:0",
+    "content_hash": "a4245f292fd861cfcb4a7c63355088783e48d0ff98a0f97c7765ac968b2f5625",
+    "first_cursor": 1077891,
+    "last_cursor": 1078040,
+    "is_final": true,
+    "summary": "회의장 내 발언을 정리하고 간사의 조정과 위원의 사과를 요구하며, 의사진행 발언을 허용하지 않겠다고 밝혔다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "회의 질서와 발언 조정",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "회의 질서와 발언 조정",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8f9a6f2a-2e36-4b4d-927f-558a8bf760b8:0",
+    "content_hash": "d3b93e5d6ed68893df95731878cfd3365ebf4762d7feb1523bbc96a6dc7ff5b4",
+    "first_cursor": 1078055,
+    "last_cursor": 1078055,
+    "is_final": true,
+    "summary": "화자는 외압을 받았다고 표현하며, 이제는 그로 인한 불필요한 논란에 말을 더 이상 하지 않겠다는 태도를 보이고 있다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "외압 논란과 국정감사장 내부 갈등",
+      "owners": [
+        "국회",
+        "국정감사 실무조정 간사",
+        "윤석열 비서관"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "외압, 국정감사장, 논란, 갈등",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8f9a6f2a-2e36-4b4d-927f-558a8bf760b8:1",
+    "content_hash": "71e5368615e6664fa0f0d54c31c829732d9a0a94cc854d9b479ce5f3b24d14c6",
+    "first_cursor": 1078055,
+    "last_cursor": 1078055,
+    "is_final": true,
+    "summary": "화자는 왜 그와 같은 질의를 하는가 묻으며, 그에 대한 반응을 촉구했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "질의에 대한 반응 요구",
+      "owners": [
+        "국회",
+        "국정감사",
+        "김민전",
+        "의사진행"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "질의, 반응, 김민전, 국정감사",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "b015c2ad-b4ee-4141-82fe-b5687d9e5b6b:0",
+    "content_hash": "79676f5dbc6242d73b3e22f84ce89728f131c4eb74adbc278892a5c6cf0529ff",
+    "first_cursor": 1078146,
+    "last_cursor": 1078146,
+    "is_final": true,
+    "summary": "11시 30분 재개를 안내하고 감사 중지를 선포했다.",
+    "live_insight": {
+      "role": "DECISION",
+      "task": null,
+      "topic": "감사 중지와 재개 시각 안내",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "감사 중지와 재개 시각 안내",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "715a4c57-a983-4868-8d35-4f97ad848dd0:0",
+    "content_hash": "7fccbf280ff5157c70caab30bcc08335460ca1e70eb85eeef0aee7c7199eef58",
+    "first_cursor": 1080293,
+    "last_cursor": 1080293,
+    "is_final": true,
+    "summary": "협의 미이행으로 감사가 원활하지 않다고 평가하며, 질의 내용이 부적절하다고 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사 협의 미이행과 질의 적절성 논의",
+      "owners": [
+        "국회",
+        "조정과"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "협의 미이행, 질의 적절성",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "715a4c57-a983-4868-8d35-4f97ad848dd0:1",
+    "content_hash": "e4cb7e8933007fe626d182c44011c59e5b18c9046015f103e64e986f78b292fa",
+    "first_cursor": 1080293,
+    "last_cursor": 1080374,
+    "is_final": true,
+    "summary": "대통령과 정부 고위 관료들의 변호인들이 주요 공직에 과다하게 분포하며 대법원까지 영향력을 확장하고 있다는 비판을 제기했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대통령 재판 변호인들의 공직 과다 분포 및 대법원 영향력 우려",
+      "owners": [
+        "국회",
+        "대법원",
+        "법무부",
+        "국정원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "대통령 변호인, 공직 분포, 대법원 영향력",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "92221239-b00d-4fe7-b7ce-7bdefb560be5:0",
+    "content_hash": "38c61820e786f2346e9602851ab925f30402ec0ca277bf36f10f7a86d7cadf29",
+    "first_cursor": 1080390,
+    "last_cursor": 1080390,
+    "is_final": true,
+    "summary": "화자는 단순한 감정 표현으로 ‘그’라는 단어를 사용해 발언을 이어가며, 상대방의 논법에 대한 비판이나 동의를 표하지 않은 중립적 태도를 보였다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "중립적 발언 연결",
+      "owners": [
+        "국회",
+        "국정감사장",
+        "국정감사위원회",
+        "이미화자"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "그, 중립, 연결, 태도, 비판",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "92221239-b00d-4fe7-b7ce-7bdefb560be5:1",
+    "content_hash": "33fd9522da4732bf12b9488a1d8824603469ede2a89d8da400ceb0a9836b67dc",
+    "first_cursor": 1080390,
+    "last_cursor": 1080526,
+    "is_final": true,
+    "summary": "대법원 및 주요 공직에 이재명 대통령의 변호인들이 포진해 있는 현상을 비판하며, 대법원까지 대장동 무죄 판결을 위한 변호인 배치 의도를 우려했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대법원 및 주요 공직에 이재명 변호인 포진 현상 비판",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "이재명, 변호인, 대법원, 공직",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ab45ee22-a02b-43a4-8a27-33793baf260e:1",
+    "content_hash": "d444049698026813b5c219fa709c65c7df5768a6c55be80193bf827351f28e05",
+    "first_cursor": 1080526,
+    "last_cursor": 1081410,
+    "is_final": true,
+    "summary": "대통령 재판을 위해 변호사 출신들이 주요 공직을 차지하는 정부 구조를 비판하며, 대법원까지 대장동 일당으로 채우려는 복안 의심을 제기했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대통령 재판 변호사 공직 독점과 대법원 인사 복안 의심",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "대통령 재판, 변호사 공직, 대법원 인사, 복안 의심",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a4e9445d-ed94-4134-b09d-14b1370f4634:0",
+    "content_hash": "029103c149e868302159e6fcb7e4b1df4af173168f21b9abb4bfee022bd73796",
+    "first_cursor": 1081457,
+    "last_cursor": 1081457,
+    "is_final": true,
+    "summary": "전 세계 문명국가 중 대통령 재판 변호사들이 주요 공직을 차지한 사례가 없으며, 이는 이해충돌이다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대통령 재판 변호사 공직 독점에 대한 전 세계적 무리함 지적",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "대통령 재판, 변호사 공직, 전 세계 문명국가, 이해충돌",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a4e9445d-ed94-4134-b09d-14b1370f4634:1",
+    "content_hash": "99a0f4d3a8f2cb8b2642b038ac50a144ef13c39c6876d403a57ca9f13af5e194",
+    "first_cursor": 1081457,
+    "last_cursor": 1081457,
+    "is_final": true,
+    "summary": "대통령을 위한 변호사들이 각 기관에서 유리한 자료 발굴과 발언을 반복하며 이해충돌 가능성을 확대한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대통령 변호사들의 이해충돌 확대 가능성을 지적",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "대통령 변호사, 이해충돌, 자료 발굴, 발언 반복",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a4e9445d-ed94-4134-b09d-14b1370f4634:2",
+    "content_hash": "5fb968b2bb7293cd98c11474118066a15f8f3ddb3483d7e0565efde1363ed95c",
+    "first_cursor": 1081457,
+    "last_cursor": 1081457,
+    "is_final": true,
+    "summary": "법제처장의 12개 협의가 모두 무죄라는 발언에 대해 전 세계 비교 근거 부족을 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법제처장 협의 무죄 판결에 대한 전 세계 비교 근거 부족 지적",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "법제처장, 12개 협의, 무죄, 전 세계 비교",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a4e9445d-ed94-4134-b09d-14b1370f4634:3",
+    "content_hash": "8c786062008908b8cad9638a9c28ca0db39260c6a2c4344afcc3a24dfa59f3fc",
+    "first_cursor": 1081457,
+    "last_cursor": 1081517,
+    "is_final": true,
+    "summary": "이화영 진술 변화로 인해 김현지가 변호인들을 관리하는 역할을 했는지 의심되며, 금감원이 대통령 유리 자료를 발굴하고 있어 이해충돌 가능성이 커졌다고 지적했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "대통령 변호인 네트워크와 기관 간 이해충돌 의심",
+      "owners": [
+        "금융감독원",
+        "검찰청",
+        "대법원",
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "변호인 관리, 금감원, 이해충돌, 자료 발굴, 김현지",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "961bc6ad-8c87-4ad3-b219-16cb1607e458:0",
+    "content_hash": "8a4b589254d5ed1875467d01cdeb5bb4ea3499fb5fa4c8a9c97659f6ae77f19b",
+    "first_cursor": 1081530,
+    "last_cursor": 1081569,
+    "is_final": true,
+    "summary": "전 세계 정부 정보가 없어 전 세계 비교 근거를 판단할 수 없다고 밝혔다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "전 세계 비교 근거에 대한 정보 부족으로 판단 불가",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "전 세계 비교, 정보 부족, 판단 불가",
+      "discussion_group": {
+        "id": "557c8cac-c2b8-525c-81fa-971d597d0ce3",
+        "title": "대통령 변호인 출신 고위 공직 임명 및 이해충돌 논란",
+        "scope": "주요 보직에 대통령 변호사 다수 포진 지적, 대법원·법제처·금감원 등 기관 인사 이해충돌 우려, 전 세계 비교 사례 부재 지적, 이화영 진술·김현지 관리 의혹 연계 질의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8553294b-75d9-4c93-a4d2-21a83b0dc8db:0",
+    "content_hash": "1622745751abde0c9bee1156534e3a8324cdba280c5d2dbaf02c466c82e1c37d",
+    "first_cursor": 1081601,
+    "last_cursor": 1081654,
+    "is_final": true,
+    "summary": "관련 발언에 잘못이 있으면 책임을 져야 한다고 언급하고, 김한규 위원에게 의사진행 발언을 요청했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 책임과 의사진행 안내",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "발언 책임과 의사진행 안내",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ee8b3289-4898-4595-bd1b-30ed64b123a5:0",
+    "content_hash": "8be7927f2fd6466fbe41225b74b2e796c7408891fdb0dc6d0d1f7b8726a5a1ab",
+    "first_cursor": 1081673,
+    "last_cursor": 1082194,
+    "is_final": true,
+    "summary": "김민전위원의 발언은 동료위원에 대한 모욕이며, 김현지 실장의 관리 여부에 대한 혐의는 증거 없이 비현실적이고, 공식 직책 없는 인물의 국정 관여가 비선실대라는 점을 지적하며, 상임위에서 동료위원을 모욕하는 발언은 부적절하다고 비판함.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국감에서 동료위원에 대한 모욕 발언 비판과 비선실대 인물의 관여 문제",
+      "owners": [
+        "국회",
+        "국감",
+        "법제처",
+        "금융감독원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "모욕 발언, 비선실대, 동료위원, 김현지 실장",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "47531f0f-d511-4ada-8eff-1a11b19c8a0e:0",
+    "content_hash": "4f7a0801764fa2ab8a3e10f93142007d2d37271480014d63d2c109625001ae97",
+    "first_cursor": 1082228,
+    "last_cursor": 1082267,
+    "is_final": true,
+    "summary": "화자는 전후 발언에서 동료위원에 대한 모욕적 발언과 증거 없는 혐의 제기로 인해 국감에서의 발언 통제가 필요하다며, 책임질 수 있는 부분은 책임지게 하겠다는 입장을 밝혔다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사에서 동료위원 발언 통제 및 책임 소재 논의",
+      "owners": [
+        "국회",
+        "감사원",
+        "금융감독원",
+        "검찰청"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 발언 통제, 책임 소재, 동료위원회",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f88d1662-04d1-4019-8aa3-fd0181417f98:1",
+    "content_hash": "07d2a82a131add18945038462227377a769ff2fb748816fcce8d81c30d24808d",
+    "first_cursor": 1082267,
+    "last_cursor": 1082328,
+    "is_final": true,
+    "summary": "양측 모두 의사진행 발언으로 다룰 내용이 아니라며 논의를 정리하고 다음 순서로 넘어가려 했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "의사진행 발언 정리",
+      "owners": [
+        "의사진행"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "의사진행 발언 정리",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "11197132-b8dd-4c7f-8929-df1027d6dc2d:0",
+    "content_hash": "dab9a9ee1c3c49de9cf0e2ca61587f6ac212cccb6e3c96725ad190e5f1336ea3",
+    "first_cursor": 1082340,
+    "last_cursor": 1082417,
+    "is_final": true,
+    "summary": "화자는 당사자인위원들의 발언이 아닌 다른 분의 발언으로 정리되도록 하며, 의사진행 발언으로 정리한 사례를 언급하고 다음 질의로 진행한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "의사진행 발언 정리 방식 검토",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": ":[",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f6f08100-fa08-41f8-9e0d-509869c9175f:0",
+    "content_hash": "817c975e4f9f99f2dba99b2b81f08f85577d56991811eaca03b398c02431c16d",
+    "first_cursor": 1082420,
+    "last_cursor": 1082464,
+    "is_final": true,
+    "summary": "감사원이 검찰 감사를 시작한 시점을 알고 있는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "검찰 감사 시작 시점 질의",
+      "owners": [
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "검찰 감사 시작 시점 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d5468ef4-488b-4269-86a4-53debb8c3b48:1",
+    "content_hash": "e7f98055fd883453adefb1f12023569cd984c354e1f209f507a24535be9e9b79",
+    "first_cursor": 1082464,
+    "last_cursor": 1082464,
+    "is_final": true,
+    "summary": "화자는 감사원이 검찰청에 대한 정기적 감사를 2018년부터 시작했으나 2022년 이후 유성열 정부 들어온 후 중단됐으며, 그 원인을 대통령실의 압박으로 추정했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "감사원의 검찰청 감사 중단 사유와 정부 영향",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "감사원, 검찰청, 감사 중단, 유성열 정부, 압박",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d5468ef4-488b-4269-86a4-53debb8c3b48:2",
+    "content_hash": "22616113d2e7bc62d3a27d7c34d1220b7644550c361159459275ea9d7fe4ad42",
+    "first_cursor": 1082464,
+    "last_cursor": 1082756,
+    "is_final": true,
+    "summary": "화자는 감사원이 2018년부터 검찰청에 대한 정기적 감사를 시작했고, 그전에는 법무부를 통해 간접적으로 감사했음을 설명한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "감사원 검찰청 감사 시작 시기 설명",
+      "owners": [
+        "감사원",
+        "검찰청",
+        "법무부",
+        "대법원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": ":[",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "234db86f-0341-4e8e-bd44-14528df6b792:0",
+    "content_hash": "04c4aef0f6d5e1be78ac1384348f7d3d26b4439f22140b6427cc6ba3ebb7fdc5",
+    "first_cursor": 1082765,
+    "last_cursor": 1082773,
+    "is_final": true,
+    "summary": "행정상 문제가 지속해서 제기됐는데도 2022년부터 검찰 감사가 중단된 이유를 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "검찰 감사 중단 사유 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "검찰 감사 중단 사유 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f6bc1cbf-5531-47ee-9521-395decfce828:0",
+    "content_hash": "28c8a74ce409e863c57b7dd578e3e6a6992259af250b147dec68510c20432165",
+    "first_cursor": 1082803,
+    "last_cursor": 1082816,
+    "is_final": true,
+    "summary": "감사원은 각 기관 감사순기를 정하나 실제 이행이 어려우며, 이로 인해 검찰청 감사 중단에도 영향이 있을 수 있다는 점을 공감하며 개선을 약속했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "감사순기 이행 부족과 검찰청 감사 중단 영향 분석",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "감사순기, 감사원, 검찰청, 감사 중단",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8ea90345-3d31-4b3f-80fa-0de2284e2752:1",
+    "content_hash": "9cce1ae81ed8e43e8e491837440ee872fdae5e749f6d5191219ebc76199c1d29",
+    "first_cursor": 1082816,
+    "last_cursor": 1082816,
+    "is_final": true,
+    "summary": "감사원이 검찰 감사를 2년마다 하겠다고 발표했으나 별도 설명 없이 중단됐다고 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "정기 감사 발표와 중단 문제",
+      "owners": [
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "정기 감사 발표와 중단 문제",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "5c7dd483-333a-4dc1-9891-76d8eecc6ea0:0",
+    "content_hash": "807aa0f3a918450f4fd3726389cd99af570f632c3ec168be6ec296b5f2e7d73c",
+    "first_cursor": 1082819,
+    "last_cursor": 1082826,
+    "is_final": true,
+    "summary": "감사원은 검찰청 감사가 2022년 이후 진행되지 않는 점을 인정하며, 이에 대한 점검을 약속했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "검찰청 감사 중단 점검 약속",
+      "owners": [
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "검찰청, 감사 중단, 감사원, 점검",
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "81d72c97-0e99-4868-a54d-c234bbaeb609:0",
+    "content_hash": "141ec474115f451e3b7371b0ea2b542f1322e667d5d9a6f2209a3b813502a8a3",
+    "first_cursor": 1082835,
+    "last_cursor": 1082913,
+    "is_final": true,
+    "summary": "공소청·중수청에 대한 감사 필요성을 제기하고, 2022년 이후 감사 중단 경위를 자체 감사로 파악해 보고하고 필요한 처벌이 이루어지도록 요청했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "감사 중단 경위 자체 감사·파악 및 보고",
+      "topic": "검찰 감사 중단 경위 조사·보고",
+      "owners": [
+        "대통령실",
+        "공소청"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "검찰 감사 중단 경위 조사·보고",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 208,
+      "task_evidence_quote": "이 부분에 대해서 필요한 부분은 자체적인 감사를 강하게 진행해서 경위를 파악해서 보고해 주시고 처벌할 수 있는 것은 분명하게 처벌될 수 있도록 부탁드리겠습니다",
+      "task_evidence_start": 120,
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "26e675ce-644a-40c2-9dfe-c121dbf80b51:0",
+    "content_hash": "bb7b59b8af6b246e9179fecdb70cb7209429b72bf5ba92da97402dd4087de62d",
+    "first_cursor": 1082932,
+    "last_cursor": 1082932,
+    "is_final": true,
+    "summary": "감사 주기에 맞춰 감사가 이루어지도록 더 살피겠다는 취지를 밝혔다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "감사 주기에 맞는 감사 진행",
+      "topic": "정기 감사 진행 점검",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "정기 감사 진행 점검",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 31,
+      "task_evidence_quote": "감사순계에 맞는 감사가 진행되도록 저희가 좀 더 살피도록",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "26e675ce-644a-40c2-9dfe-c121dbf80b51:1",
+    "content_hash": "694f80e0d151689f3a76203a17a49c3ecb1eb3f5e019990d97f7bce846535a67",
+    "first_cursor": 1082932,
+    "last_cursor": 1082936,
+    "is_final": true,
+    "summary": "감사를 진행하는 것과 별개로 중단 이유도 명확하게 밝혀 달라고 요구하고 이행 의사를 확인했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "감사 중단 이유 밝히기",
+      "topic": "감사 중단 경위 확인 요구",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "감사 중단 경위 확인 요구",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 37,
+      "task_evidence_quote": "왜 중단됐는지를 명확하게 밝혀 주십시오",
+      "task_evidence_start": 16,
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "7869b7eb-5461-4112-a6ef-83da85a489d4:1",
+    "content_hash": "61aa6bb12e280ad1bd592cfacc6cbcb5c10c871bf5a7cbddcf408af6a672c40e",
+    "first_cursor": 1082936,
+    "last_cursor": 1082936,
+    "is_final": true,
+    "summary": "감사 중단 경위를 살펴보겠다는 취지로 답했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "감사 중단 경위 살펴보기",
+      "topic": "감사 중단 경위 검토 응답",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "감사 중단 경위 검토 응답",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 7,
+      "task_evidence_quote": "예 살펴보도록",
+      "task_evidence_start": 0,
+      "discussion_group": {
+        "id": "ad56faba-32c4-515f-a287-1b6159a3bc09",
+        "title": "감사원 검찰청 정기 감사 중단 경위 조사·보고 요구",
+        "scope": "2018~2022년 검찰청 정기 감사 실시 후 2022년 이후 중단 사실 확인, 중단 사유(대통령실 압박 등) 질의, 감사 주기 미이행 인정·점검 약속, 자체 감사로 경위 파악·보고 및 처벌 요청, 재발 방지 다짐",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "7869b7eb-5461-4112-a6ef-83da85a489d4:2",
+    "content_hash": "fac18071c77ada38296da1c26467d349c3e5b552b06f136fbd2aca8774dbaae8",
+    "first_cursor": 1082936,
+    "last_cursor": 1083027,
+    "is_final": true,
+    "summary": "등기부 열람·발급 이용 규모와 수수료 인상안을 제시하고, 국민 부담을 늘리는 인상 이유를 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "등기 열람·발급 수수료 인상 질의",
+      "owners": [
+        "법원행정처"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "등기 열람·발급 수수료 인상 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "7f5f7cbe-65cb-4e20-82e0-19cc518a5a84:0",
+    "content_hash": "8b6f4c930c6ad52b548b2e03a271b5ed9e9c0086527a23ed9a3eaeede16e531b",
+    "first_cursor": 1083037,
+    "last_cursor": 1083047,
+    "is_final": true,
+    "summary": "수수료 동결로 누적된 적자를 해소하기 위해 한시적으로 인상하려는 것이라고 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "등기 수수료 인상 사유 답변",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "등기 수수료 인상 사유 답변",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "791c9768-5038-4941-a1a9-782d272293de:0",
+    "content_hash": "f693225d516204244cb5a12b7aa10d3510ed25b6562716f12ee2cbb0eba0e773",
+    "first_cursor": 1083052,
+    "last_cursor": 1083078,
+    "is_final": true,
+    "summary": "등기 수수료가 어디에 사용되는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "등기 수수료 사용처 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "등기 수수료 사용처 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0d50f751-789f-4ca0-a053-c038d65985e5:1",
+    "content_hash": "5ebaeaea90d4afef5ba8bf89c277a8d784523dcb1a209b99f959b13d12e825ef",
+    "first_cursor": 1083078,
+    "last_cursor": 1083078,
+    "is_final": true,
+    "summary": "등기특별회계를 통해 전산화와 차세대 등기제도 등 제도 개선에 투입된다고 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "등기 수수료 사용처 답변",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "등기 수수료 사용처 답변",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "15e5ea0d-1005-40aa-ade1-e92678c1b620:0",
+    "content_hash": "59a55f81b164649193c137aa435db9014aacd3e2752f9221c66f518ec901ea0c",
+    "first_cursor": 1083087,
+    "last_cursor": 1083089,
+    "is_final": true,
+    "summary": "화자 0은 등기부 열람 수수료 증액이 퇴직 공무원 수당 지급에 사용된 과거 사례를 지적하며, 감사원의 지적을 인용해 이 자금 사용의 타당성을 의심한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "등기부 수수료 증액 자금 사용 투명성 의심",
+      "owners": [
+        "법원행정처",
+        "감사원",
+        "등기특별회계"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "등기부 수수료, 퇴직 공무원 수당, 감사원 지적",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "e477b839-1796-4813-bd27-80d130fe4cc2:1",
+    "content_hash": "b9d2824f37f9611e14c2a023ac98e6e1cadab7265621b8f383620600ed273f53",
+    "first_cursor": 1083089,
+    "last_cursor": 1083092,
+    "is_final": true,
+    "summary": "수수료 관련 지적 사항을 확인해 보겠다고 답했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "수수료 관련 지적 사항 확인",
+      "topic": "수수료 관련 지적 확인 약속",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "수수료 관련 지적 확인 약속",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 16,
+      "task_evidence_quote": "제가 확인해 보겠습니다",
+      "task_evidence_start": 4,
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "be4226fd-de2c-4a1e-ab47-aaa6816ca2ef:0",
+    "content_hash": "ce45b407938ddd9e7b9c6dc9ac4a6a13b1e90d937f0d763f154e421f1eee45bb",
+    "first_cursor": 1083099,
+    "last_cursor": 1083141,
+    "is_final": true,
+    "summary": "화자 0은 등기특별회계를 퇴직 공무원 명예퇴직수당 등 다른 용도로 전용해 감사원 지적을 받았으며, 이로 인해 등기 제도 개선 자금이 부족해졌다고 지적한다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "등기특별회계 전용 오용 및 감사 지적",
+      "owners": [
+        "법원행정처",
+        "감사원",
+        "기획재정부",
+        "등기특별회계"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "등기특별회계, 전용 오용, 감사원 지적, 명예퇴직수당",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "592af78f-75cc-4649-9240-087325ae5748:0",
+    "content_hash": "3be984dc5f5c4c2c73ba55ac6fa18cbff7c9fee165516010901813f21bb684d7",
+    "first_cursor": 1083148,
+    "last_cursor": 1083150,
+    "is_final": true,
+    "summary": "화자 1은 법원행정처만 등기수수료를 부과하며, 다른 기관의 인터넷 발급 수수료를 없애고 왜 이 상태를 유지하는지 질문한다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "법원행정처 등기수수료 독점 부과 문제",
+      "owners": [
+        "법원행정처",
+        "감사원",
+        "기획재정부",
+        "등기특별회계"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "법원행정처, 등기수수료, 인터넷 발급, 수수료 부과",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6b7cb39c-5071-4c9f-a18f-ae29d3c5f18d:0",
+    "content_hash": "258ca26bd0071e86a77203afadc2f52e7df55ba6610d99bd2dd1ddb664ecb04d",
+    "first_cursor": 1083155,
+    "last_cursor": 1083155,
+    "is_final": true,
+    "summary": "화자 0은 등기 제도 개선을 위해 특별회계 자금을 투입하고 있으며, 이 과정에서 발생한 문제를 인지하고 있음을 재확인한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "등기 제도 개선을 위한 자금 투입",
+      "owners": [
+        "법원행정처",
+        "감사원",
+        "기획재정부",
+        "등기특별회계"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "등기 제도 개선, 특별회계, 자금 투입, 개선 계획",
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d97fffd0-a872-4a08-8c32-d2f42f6e7fab:0",
+    "content_hash": "86fd0bb2f88d6a2a400e46665e16315bf6f5ec934de5c401d5566369534e54de",
+    "first_cursor": 1083169,
+    "last_cursor": 1083211,
+    "is_final": true,
+    "summary": "등기 수수료 인상 입법예고 철회를 요구하고, 필요한 예산은 정부·국회에 보고해 확보하라고 요청했다. 이에 검토하겠다는 답변이 이어졌다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "수수료 인상 입법예고 철회 및 필요 예산 보고",
+      "topic": "등기 수수료 인상 철회와 예산 대안",
+      "owners": [
+        "법원행정처",
+        "법사위",
+        "정부",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "등기 수수료 인상 철회와 예산 대안",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 195,
+      "task_evidence_quote": "이것 증액한 입법예고와 철회하시고요 필요한 예산이 있으면 정부나 국회에 보고해서 증액하시기 바랍니다",
+      "task_evidence_start": 140,
+      "discussion_group": {
+        "id": "3a0bf53e-1a85-5a93-be00-e22717f01611",
+        "title": "등기부 열람·발급 수수료 인상 타당성 및 특별회계 운용 논란",
+        "scope": "수수료 인상안·이용 규모 제시, 누적 적자 해소 목적 한시 인상 설명, 수수료 사용처(등기특별회계·전산화·차세대 제도) 답변, 과거 퇴직공무원 수당 전용·감사원 지적 사례 제기, 법원행정처 독점 부과 문제 지적, 인상 철회 및 예산 대안 요구·수용",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9c3806c0-5450-4300-bedc-39dc70c7cb63:0",
+    "content_hash": "9636138a059d26316139406c7064b38a91924b87189f633b356b07bd8c8f5556",
+    "first_cursor": 1083217,
+    "last_cursor": 1083302,
+    "is_final": true,
+    "summary": "오후 첫 질의로 순서를 조정하자고 설명하고, 여야 논의 등을 위해 오전 감사를 중지하겠다고 안내했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "오전 감사 중지와 오후 질의 조정",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "오전 감사 중지와 오후 질의 조정",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "50392b24-7ca8-4ee8-aa9d-82d40178a577:0",
+    "content_hash": "73780ed0117a32be3366751f632dcbc8170612cf3c6b2221935b0045d403b14a",
+    "first_cursor": 1083308,
+    "last_cursor": 1083308,
+    "is_final": true,
+    "summary": "화자 미확인은 종합국감 일정과의 충돌을 고려해 오전 감사를 중지하고 10분 후 재개하기로 결정하며 감사중지를 선포한다.",
+    "live_insight": {
+      "role": "DECISION",
+      "task": null,
+      "topic": "감사 중지 및 재개 결정",
+      "owners": [
+        "국회",
+        "법원행정처",
+        "감사원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "감사 중지, 재개, 종합국감, 일정 조정",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "5e4fb733-a621-4bdf-a21b-40f1363e76a1:0",
+    "content_hash": "72f7e51bd908bf3313433aa78bb896a26e4c8c15eaaf36b43eaa4fd20d00b504",
+    "first_cursor": 1083315,
+    "last_cursor": 1083321,
+    "is_final": true,
+    "summary": "의석 정돈을 요청하고 감사 재개를 선언한 뒤 의사진행 발언을 요청했다.",
+    "live_insight": {
+      "role": "DECISION",
+      "task": null,
+      "topic": "감사 재개와 의사진행 안내",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "감사 재개와 의사진행 안내",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "d8c751b9-e80e-5832-805a-bdc778038115",
+        "title": "2026년도 국정감사 종합감사 개회·진행",
+        "scope": "종합감사 실시 선포, 대상 기관·기간 안내, 정책 중심 감사 유도, 증인 출석·대기 안내, 질의 순서 안내 등 회의 진행 전반",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "301e0d0d-d423-4bfa-9cda-9341562499dc:0",
+    "content_hash": "703ba3a3abde980dbc22b9053cb1812ecf7214c891acfa953072f0fa64db6d33",
+    "first_cursor": 1083326,
+    "last_cursor": 1083365,
+    "is_final": true,
+    "summary": "다음 질의자의 게시 영상이 출처와 형식상 국정감사에 적절하지 않다는 의견을 제기하고, 발언 순서를 두고 이견을 보였다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사 영상의 적절성 논쟁",
+      "owners": [
+        "법사위"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "국정감사 영상의 적절성 논쟁",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "910d157a-742a-44d7-9f0a-08c8b55e43b8:0",
+    "content_hash": "a8498699734ef9915691a051759cc425981a60e2aaa6e89107232f64e41e76c6",
+    "first_cursor": 1083371,
+    "last_cursor": 1083377,
+    "is_final": true,
+    "summary": "야당위원이 영상 공개를 약속했음에도 하지 않으려는 시도를 비판하며, 이는 국정감사 의무를 회피하는 행위라고 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "야당위원회 영상 공개 약속 이행 부재에 대한 비판",
+      "owners": [
+        "국회의사록심의부",
+        "법사위",
+        "국정감사조직",
+        "의사진행위원회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "야당위원회, 영상 공개, 약속, 비판",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "9b5eacc7-32de-444f-8916-e97f38bf1190:1",
+    "content_hash": "b8fb7c52ec877a1659b431047805e9b9226d54755b16f69fe0a69298a3b4c9e5",
+    "first_cursor": 1083394,
+    "last_cursor": 1083414,
+    "is_final": true,
+    "summary": "의사진행발언 중단을 요구하며 양측에 조용히 발언할 것을 지시하고, 이준호 위원과 허영위원의 발언 순서를 지정함.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "의사진행발언 중단 및 발언 순서 지정",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "의사진행발언, 발언 순서, 조용히 발언",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "61bd4fce-a85a-43d6-bfe6-29bee028ee39:1",
+    "content_hash": "c1b30dde650706849d0893ad24b83a87a97627d62f7b2c8bd1a08b739cda839b",
+    "first_cursor": 1083435,
+    "last_cursor": 1083435,
+    "is_final": true,
+    "summary": "법사위에서 발언 시간을 가진다고 하며, 의사진행발언 후에 주질의를 하도록 원칙을 강조했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "법사위 발언 시간과 질의 순서 원칙",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "법사위, 발언 시간, 질의 순서, 원칙",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "2516e772-d6d4-49c6-bd53-41faf8ec0d68:0",
+    "content_hash": "9bc80b04756500e75d052f74e18e59a3f368fa50c04cb70808db1b436a235826",
+    "first_cursor": 1083465,
+    "last_cursor": 1083465,
+    "is_final": true,
+    "summary": "의사진행발언을 중단시키는 행위를 비판하며, 감사 장면에서의 예의와 원칙을 요구했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "의사진행발언 중단에 대한 비판과 원칙 강조",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "의사진행발언, 중단, 비판, 원칙",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "cc3bf763-e96b-4519-9926-b59e136b0470:0",
+    "content_hash": "f8ccbc33988b51f8a24e88fb876273c6b9db1a3255768d352319a6293c450b85",
+    "first_cursor": 1083470,
+    "last_cursor": 1083470,
+    "is_final": true,
+    "summary": "화자는 발언 시간이 끝난 후에야 본격적인 논의를 시작하라고 지적하며, 양쪽 모두가 의사진행발언을 마치고 조용히 대화할 것을 요구했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "의사진행 발언 후 본격 논의 권고",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "의사진행발언, 발언시간, 조용히",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f8ae0533-ca28-4d43-b1b9-62bbc4eca8d6:0",
+    "content_hash": "17f916f9713e9dbabe825604c74c7d438a18f4ce814adb61ceb67ca82b2b02f7",
+    "first_cursor": 1083481,
+    "last_cursor": 1083505,
+    "is_final": true,
+    "summary": "위원장과 다른 위원의 발언이 끝난 뒤 이야기하도록 요청하며 회의 질서를 정리했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 순서와 질서 유지",
+      "owners": [
+        "국정감사"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "발언 순서와 질서 유지",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8f2d9969-b206-494e-8b9e-f26a8919ad18:0",
+    "content_hash": "ef0bb4315849e916f1d8a9f06998834c5922647df9c46c982c9ff0707e4605e1",
+    "first_cursor": 1083530,
+    "last_cursor": 1083530,
+    "is_final": true,
+    "summary": "법사위에서 국정감사 계획서에 따라 언론보도 영상 및 객관적 자료를 허용하되, 부적절한 내용은 간사와 협의 후 거부할 수 있다는 점을 설명하며 실제 적용 방식을 안내했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "국정감사 영상 자료 허용 기준 및 간사 협의 절차",
+      "owners": [
+        "법사위",
+        "국정감사위원회",
+        "간사",
+        "위원회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 영상 자료, 허용 기준, 간사 협의",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8f2d9969-b206-494e-8b9e-f26a8919ad18:1",
+    "content_hash": "2950f735e8c18f21aa12a208a4bf18fbb4ca9edd6b6bc72e0eff978a9e250120",
+    "first_cursor": 1083530,
+    "last_cursor": 1083616,
+    "is_final": true,
+    "summary": "국정감사계획서의 영상 허용 조항을 설명하고, 부적절하다고 판단한 영상은 상영하지 말 것을 건의했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": null,
+      "topic": "영상 상영 허용 기준 논의",
+      "owners": [
+        "법사위"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "영상 상영 허용 기준 논의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "5ac08ef6-3aeb-43b4-b411-3a5e0e77c01c:0",
+    "content_hash": "d3d3987995e37c1de7635b3404a68c6db8f26c89fc9c9891c52f42aed0b945e4",
+    "first_cursor": 1083644,
+    "last_cursor": 1083773,
+    "is_final": true,
+    "summary": "화자는 영상 재생 문제와 관련해 객관적 언론 보도와 국정감사 진행 중인 영상은 허용하되, 부적절한 내용은 간사와 협의해 허용 여부를 결정할 것이라고 설명하며, 발언 순서와 조용히 하라는 지시에 대해 의사진행 발언을 하라고 반박했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사에서 영상 허용 기준과 발언 순서 논의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 영상 허용, 간사 협의, 발언 순서",
+      "discussion_group": {
+        "id": "c0be41ac-9bdb-54cb-91ae-005c152ac29d",
+        "title": "국정감사장 질서·예의 및 발언 절차 논란",
+        "scope": "위원 간 모욕·비방 발언 비판, 발언 시간·순서 조정, 의사진행 발언 중단 요구, 간사 협의·사과 요구, 위원장 진행 권한 행사, 영상 자료 상영 적절성·허용 기준·간사 협의 절차 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "f58e72a9-949e-4cf2-88b9-0793d0c192d7:0",
+    "content_hash": "d85b49e27fe6d9a43448751f8499bd9bb5927107513a0acebd0ef608d9fe1b81",
+    "first_cursor": 1083797,
+    "last_cursor": 1084182,
+    "is_final": true,
+    "summary": "화자는 김혜경 여사의 황제꿀벌 영상 제보와 증거 확보를 언급하며, 민주당이 이를 차단하려는 시도를 비선실세와 같은 비민주적 차단으로 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "김혜경 여사 황제꿀벌 영상 제보 및 민주당 차단 시도 비판",
+      "owners": [
+        "청와대",
+        "민주당",
+        "국정감사",
+        "간사"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "김혜경, 황제꿀벌, 영상 제보, 민주당 차단, 비선실세 비판",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "870f88f8-ddd6-4e97-8492-fe8deecaa44b:1",
+    "content_hash": "d84693d547d561b38fc65311aeb83378e13e0347a79ba7c36f0d021fdf1e7282",
+    "first_cursor": 1084182,
+    "last_cursor": 1084182,
+    "is_final": true,
+    "summary": "화자는 영상 허용 여부와 관련해 법사위 내부 협의 절차를 지적하며, 권한 위임에 따른 부적절한 영상 차단 시도를 비판했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사 영상 허용 절차와 권한 위임 문제",
+      "owners": [
+        "국회법사위",
+        "국회위원회",
+        "국정감사위원회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사, 영상 허용, 법사위, 권한 위임",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "870f88f8-ddd6-4e97-8492-fe8deecaa44b:2",
+    "content_hash": "7a88f0073c94b0002c3b9018aa34459a866e59134f1d4f399f545b248e56254e",
+    "first_cursor": 1084182,
+    "last_cursor": 1084204,
+    "is_final": true,
+    "summary": "화자1은 영상 투영을 거부하는 것을 '의사진행발언'으로 비판하며, 제 영상이 진짜라면 청와대가 사실을 밝혀야 한다고 역도했다. 민주당이 아침부터 작전회의를 통해 영상 차단을 시도했다고 비판했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "영상 투영 거부에 대한 비판과 청와대에 사실 공개 요구",
+      "owners": [
+        "국회",
+        "법사위",
+        "위원회",
+        "민주당"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "영상 투영, 청와대, 사실 공개, 작전회의",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "6d1bc7ac-203c-4bba-ade6-5f1d6bf85291:0",
+    "content_hash": "c0516ead00ba0aa334c80161b5167bfa8631df21d4562e7a3f0a1903fda1427a",
+    "first_cursor": 1084211,
+    "last_cursor": 1084310,
+    "is_final": true,
+    "summary": "골프 여부와 결제 관련 확인 경위를 묻고, 관련 영상을 상영할 수 있도록 요청했다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "골프 관련 사실관계와 영상 상영 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "골프 관련 사실관계와 영상 상영 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "0af7f79b-fbbf-4f45-af75-762c2c2079dc:0",
+    "content_hash": "3c6ba05be5872028c1d2b5eba2b78b128675072d9c6f5149bc19147ff01ec935",
+    "first_cursor": 1084320,
+    "last_cursor": 1084818,
+    "is_final": true,
+    "summary": "화자 1은 김혜경 여사의 황제꿀벌 사안에 대해 증거 공개를 강조하며, 민주당과 청와대의 대응을 비판하고 허위사실 유포를 법적으로 책임질 것을 촉구한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "김혜경 여사 황제꿀벌 증거 공개 및 허위사실 비판",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": ":[",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "51c0d7c0-8d27-404c-8390-1133b86b27ee:0",
+    "content_hash": "2ac87f9f136f5738c69496f664b6166a481448da0d86bef1df3011d1ada7f056",
+    "first_cursor": 1084824,
+    "last_cursor": 1084920,
+    "is_final": true,
+    "summary": "해당 발언이 사실인지와 허위사실 유포 책임을 두고 공방이 이어졌으며, 회의장 밖에서 논의하라고 요청했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 내용의 사실성과 책임 공방",
+      "owners": [
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "발언 내용의 사실성과 책임 공방",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "31c7ed76-566f-4546-8d6b-bd08e5099a20:0",
+    "content_hash": "27be61e5d8c06dab870e753dfa574fb97a0afd43ea641cea4f34e251be2a5c42",
+    "first_cursor": 1084975,
+    "last_cursor": 1085032,
+    "is_final": true,
+    "summary": "코로나 시기 소상공인 인터뷰 내용이 여야에서 '안 트는 게 맞다'고 했음에도 행안위원회에서 이를 무시하고 발언했으며, 이와 같은 인터뷰는 증인이나 언론을 통해 공개될 수 있는 자료임을 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "코로나 시기 소상공인 인터뷰 발언 무시 문제",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "소상공인, 인터뷰, 행안위원회, 여야, 공개 자료",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a651511e-5a4a-46ba-88b8-132158d86ff9:0",
+    "content_hash": "e53f358c731adc02a8c4e73c453511ae85dc2ba228db3d11356610648fbfc95b",
+    "first_cursor": 1085073,
+    "last_cursor": 1085073,
+    "is_final": true,
+    "summary": "화자는 국정감사에서 허위사실 유포를 중단하고, 페북에 올라간 영상 등은 국정감사 자료로 다루지 말 것을 강조하며, 성남도 가짜 발언은 비하속 발언임을 지적한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사에서의 허위사실 유포 및 비공식 자료 다루어 금지",
+      "owners": [
+        "국회",
+        "국정감사",
+        "의사진행",
+        "화자 1"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "허위사실, 국정감사, 페북 영상, 성남도 가짜",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a651511e-5a4a-46ba-88b8-132158d86ff9:1",
+    "content_hash": "618dcbc4ab500d49fc2d36b4e2c0edcb68662f004e7e3bca43f431dc8df0cbed",
+    "first_cursor": 1085073,
+    "last_cursor": 1085073,
+    "is_final": true,
+    "summary": "화자 0은 전과 발언 내용에 대한 책임을 물고, 상대방의 발언을 반박하며 「사진도 있구먼요」라고 말해 증거 존재를 암시했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "발언 내용에 대한 책임과 증거 제시",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "책임, 반박, 증거, 발언",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "04388fca-5439-41ba-a062-c14cd191e126:0",
+    "content_hash": "b5d3e57a4f22b2889e0fa9ba73d91a22adc1f492ed0f5f6608fd9d0754787aa7",
+    "first_cursor": 1085322,
+    "last_cursor": 1085392,
+    "is_final": true,
+    "summary": "해릉CC에서 김혜경 여사와 3인 골프를 한 사실을 지적하며, 민간인 예약 가능하다는 청와대 설명은 턱없는 소리라며, 용산 출신 남성과 함께 골프를 한 정황이 공수처 수사 대상임을 강조한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "김혜경 여사 해릉CC 골프 이용 및 공수처 수사 의혹",
+      "owners": [
+        "국회",
+        "청와대",
+        "공수처",
+        "해군"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "김혜경 여사, 해릉CC, 3인 골프, 공수처 수사",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "1f24eb86-f03d-4046-b49c-dbe4448eb721:0",
+    "content_hash": "a8f1038b1873a98a416d46dc474586634824b8fff145361d1a3d095cb227b682",
+    "first_cursor": 1085407,
+    "last_cursor": 1085569,
+    "is_final": true,
+    "summary": "군 골프장 이용 자격과 차명 예약 의혹을 제기하고, 공수처에 고발해 예약 명의 도용 여부를 밝혀야 한다고 말했다.",
+    "live_insight": {
+      "role": "REQUEST",
+      "task": "군 골프장 예약 명의 도용 의혹 고발",
+      "topic": "군 골프장 예약 명의와 고발 예고",
+      "owners": [
+        "공수처"
+      ],
+      "status": "PROVISIONAL",
+      "task_kind": "FOLLOW_UP_REQUEST",
+      "topic_key": "군 골프장 예약 명의와 고발 예고",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 413,
+      "task_evidence_quote": "저는 공수처에서 이것 나중에 고발할 테니까 누구 명이 도용했는지 저는 밝혀야 된다라고 생각을 하고요",
+      "task_evidence_start": 358,
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "87a152bb-30bf-46ef-8fea-53fbe8353103:0",
+    "content_hash": "0f9ee28c35a22ff8e02ab412aeffabb66045cff2acdc86a24cc5a180f61392f8",
+    "first_cursor": 1085579,
+    "last_cursor": 1085839,
+    "is_final": true,
+    "summary": "김혜경 여사의 골프 레슨 비용이 수천만 원대에 이르며, 이 비용을 누가 지불했는지와 청와대의 자금 사용 투명성이 핵심 쟁점이며, 특별히 골프TF를 통해 유용이 사용된 경우 국가행정 문제로 비추어져 청와대의 입장을 규제해야 한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "김혜경 여사 골프 레슨비 유용 및 청와대 자금 투명성 문제",
+      "owners": [
+        "공수처",
+        "청와대",
+        "국회",
+        "해군"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "김혜경, 골프레슨비, 유용, 청와대, 골프TF",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "aec68aa0-0986-4aa1-90b9-c5546eecda3b:0",
+    "content_hash": "834361892ee7d287a2088cac10d33992c4f35cbc1e2582298b9f3d07c8ca7d0c",
+    "first_cursor": 1085855,
+    "last_cursor": 1085855,
+    "is_final": true,
+    "summary": "아직 사건이 접수되지 않았다는 취지로 답변을 시작했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "사건 접수 여부 답변",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "사건 접수 여부 답변",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "aec68aa0-0986-4aa1-90b9-c5546eecda3b:1",
+    "content_hash": "6af127780f763fcd960b32eb6cbe2f49faab2cbd128afa94830a6049b5e1e084",
+    "first_cursor": 1085855,
+    "last_cursor": 1085855,
+    "is_final": true,
+    "summary": "화자는 '있지'라며, 공백 부분은 대처 부족이었고 그 조치는 법 개정 전에도 신속히 이루어질 수 있음을 인정했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "공백 대처 및 법 개정 전 조치 가능성",
+      "owners": [
+        "법무부",
+        "경찰청",
+        "법원",
+        "국회"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "공백, 대처부족, 법개정전조치, 신속조치, 제도보완",
+      "discussion_group": {
+        "id": "1d994e3f-27e7-590d-a9c6-8c7ec9910ec1",
+        "title": "접근금지·잠정조치 만료 시 피해자 보호 공백 보완",
+        "scope": "접근금지 정보 공유 누락, 잠정조치 만료·재신청 사이 보호 공백 지적, 제도 보완 검토 및 입법 협력, 입법 전 행정·사법 조치 즉시 시행 가능 여부 질의·답변, 공백 재발 방지 약속",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "aec68aa0-0986-4aa1-90b9-c5546eecda3b:2",
+    "content_hash": "afa4534384f337c35538a9ce3c83da4feb70da5b0b655f4d1c53996d87d2b83e",
+    "first_cursor": 1085855,
+    "last_cursor": 1085855,
+    "is_final": true,
+    "summary": "사건이 들어오면 법과 원칙에 따라 처리하겠습니다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "사건 처리 원칙",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "topic_key": "법과 원칙, 사건 처리",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "ef211b06-cc9a-4592-a70c-529a33a3042f:0",
+    "content_hash": "676869805c24d078370eb3fb03c6da5e38edb9ece5c5f1b6df9c883cd2f2e4e3",
+    "first_cursor": 1085869,
+    "last_cursor": 1086016,
+    "is_final": true,
+    "summary": "골프 비용의 실제 결제 내역과 현금·신용카드 여부가 확인되지 않았다고 지적하고, 특활비로 결제했다면 형사 문제가 되는지 물었다.",
+    "live_insight": {
+      "role": "QUESTION",
+      "task": null,
+      "topic": "골프 비용 결제와 특활비 의혹 질의",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "골프 비용 결제와 특활비 의혹 질의",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4c26129d-63ff-4ce9-8700-b7b364a8b72a:1",
+    "content_hash": "0bc51ff19eb025ef19c4b087c644580be6a9a2267631f7026682a22157c57107",
+    "first_cursor": 1086016,
+    "last_cursor": 1086016,
+    "is_final": true,
+    "summary": "가정에 근거해 답하기는 어렵지만, 사건이 접수되면 위원이 지적한 부분까지 포함해 검토하겠다고 답했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": "사건 접수 시 지적 사항 검토",
+      "topic": "사건 접수 시 지적 사항 검토",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "COMMITMENT",
+      "topic_key": "사건 접수 시 지적 사항 검토",
+      "task_validation": "direct-follow-up/1",
+      "task_evidence_end": 78,
+      "task_evidence_quote": "사건이 들어오면 그런 위원님께서 지적하시는 부분까지 포함해서 검토하도록 하겠습니다",
+      "task_evidence_start": 33,
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "4ab60d9c-dede-4ff8-934a-daee5474af28:0",
+    "content_hash": "955d99eb8779d05c31313ed8396f178886c13265a071ac847dbf9ae58a355dae",
+    "first_cursor": 1086019,
+    "last_cursor": 1086149,
+    "is_final": true,
+    "summary": "대통령과 그 가족이 전용으로 이용하는 '황제클럽하우스'의 특혜성과, 김혜경 여사의 단독 이용 가능성을 지적하며 국고 행정 손실 우려를 제기함.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "대통령 가족의 NNCC 클럽하우스 전용 이용 특혜 논란",
+      "owners": [
+        "국회",
+        "법원",
+        "국민권익위원회",
+        "국정원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "황제클럽하우스, NNCC, 이재명, 김혜경, 특혜",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "766a2f99-de8e-4724-9abf-a9e724fe6810:1",
+    "content_hash": "6c746760dbb26935c28346d1cf7e45372547318393633187fa8d15f7af6127fb",
+    "first_cursor": 1086149,
+    "last_cursor": 1086149,
+    "is_final": true,
+    "summary": "관련 사안을 따져 볼 필요가 있다고 말했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "관련 사안 검토 필요성 언급",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "관련 사안 검토 필요성 언급",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "766a2f99-de8e-4724-9abf-a9e724fe6810:2",
+    "content_hash": "176672ce03a6379a8d36b14047ac5ef2ce996f801acf6de60ad76db8ff61c506",
+    "first_cursor": 1086149,
+    "last_cursor": 1086149,
+    "is_final": true,
+    "summary": "화자 0은 특별감찰관의 중립성과 공수처 수사의 필요성을 강조하며, 김혜경 여사와 이재명 대통령의 골프 이용 사안을 1호 사건으로 지적한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "특별감찰관 중립성과 공수처 1호 사건 지적",
+      "owners": [
+        "국회",
+        "청와대",
+        "공수처",
+        "민주당"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "특별감찰관, 중립성, 공수처, 1호 사건",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8fe1a0a7-7214-424c-a5d2-b26ae11549da:0",
+    "content_hash": "46f2f138dc14382e93dec45685e720a82b881ed6c315ad7c6650534f703443dd",
+    "first_cursor": 1086167,
+    "last_cursor": 1086167,
+    "is_final": true,
+    "summary": "화자 1은 사안을 정확히 모른다고 하면서도, 들어오면 원칙에 따라 처리하겠습니다고 밝히며, 공수처 수사를 촉구한다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "공수처 수사 촉구 및 원칙적 처리 약속",
+      "owners": [
+        "국회",
+        "청와대",
+        "공수처",
+        "민주당"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "공수처, 수사, 원칙적 처리, 약속",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "8d2167ec-7a7e-41c3-a2ec-4053ff769150:0",
+    "content_hash": "44c5529ebc905737678aafa5f689220cef7f6634f5a741384ad4fcde0fd8b460",
+    "first_cursor": 1086191,
+    "last_cursor": 1086191,
+    "is_final": true,
+    "summary": "화자는 특별감찰관 임명에 대해 대통령과 가족만 이용 가능한 황제클럽하우스 사용 의혹을 제기하며, 공수처 수사 필요성을 강조하고 감찰관의 중립성 문제를 지적했다.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "황제클럽하우스 이용 의혹과 특별감찰관 임명 문제",
+      "owners": [
+        "국회",
+        "공수처",
+        "법무부",
+        "국정감사원"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "황제클럽하우스, 특별감찰관, 공수처 수사, 대통령 가족, 중립성",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "a0c94d82-e3a7-48d0-ad3c-08445cef8e88:0",
+    "content_hash": "bdb76a67b57a46cb9dd8b202787c9bee734ebfe32e1bc25491795c7169ef7d56",
+    "first_cursor": 1086308,
+    "last_cursor": 1086345,
+    "is_final": true,
+    "summary": "화자는 국정감사장 내에서;",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "국정감사장 내에서 발언 권한과 분야 판단 권한",
+      "owners": [
+        "국회",
+        "법사',"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "국정감사장, 발언 권한, 판단 권한, 국정감사",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "29fa1596-e674-46ad-9cba-99a471355990:0",
+    "content_hash": "b3864e5e3906dec167d35738935d84ab5ea130a7685ac79956f6fd10f77a2f16",
+    "first_cursor": 1086509,
+    "last_cursor": 1086605,
+    "is_final": true,
+    "summary": "화자는 홍수처장과 대통령, 연구위가 군 체력단련장 정회원임을 지적하며 현원골프장 문제를 언급, 박정희 대통령 때 건설된 태릉골프장의 관례와 황제골프 이슈를 제기.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "태릉 골프장 관례와 황제골프 이슈",
+      "owners": [
+        "국회",
+        "국정감사원",
+        "법무부",
+        "공수처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "태릉골프장, 박정희, 체력단련장, 황제골프, 관례",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "d37bb381-16e9-410c-904b-a18086ff63d4:0",
+    "content_hash": "8872a36922ae739c408d0add6a82fe40941cf7d9710a75e002a3d6cc1f522d7b",
+    "first_cursor": 1086683,
+    "last_cursor": 1086904,
+    "is_final": true,
+    "summary": "화자는 윤석열이 골프장을 열어 분골프장을 이용했다고 지적하며, 태릉골프장이 박정희 때 건설된 대통령 가족 전용 체력단련장임을 관례로 언급, 황제골프 비용과 SN 수여 의혹을 제기.",
+    "live_insight": {
+      "role": "STATEMENT",
+      "task": null,
+      "topic": "태릉 골프장 관례와 황제골프 비용 의혹",
+      "owners": [
+        "국회",
+        "국정감사원",
+        "법무부",
+        "공수처"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "태릉골프장, 박정희, 대통령 가족, 황제골프, SN 수여",
+      "discussion_group": {
+        "id": "2c874b06-aefd-5f25-bdf7-e6c43659aa75",
+        "title": "김혜경 여사 ‘황제꿀벌’ 영상 제보·증거 공개 및 허위사실 공방",
+        "scope": "영상 제보·증거 확보 주장, 민주당·청와대 차단 시도 비판, 골프·결제 사실관계 확인 및 영상 상영 요구, 허위사실 유포 법적 책임 촉구, 회의장 밖 논의 요청",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3fa8677c-fc2e-4e7b-91bd-6dc84ab19c17:1",
+    "content_hash": "2eb73fba696e2fe4ea0a206ed3d21758e35c7594905d6181d9c34ff19556b17a",
+    "first_cursor": 1100364,
+    "last_cursor": 1100364,
+    "is_final": true,
+    "summary": "앞선 요청에 짧게 동의했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "답변 순서 확인",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "답변 순서 확인",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "14af02c0-f7ce-45b4-a1f5-14fad0a5fd3c:3",
+    "content_hash": "2eb73fba696e2fe4ea0a206ed3d21758e35c7594905d6181d9c34ff19556b17a",
+    "first_cursor": 1103173,
+    "last_cursor": 1103173,
+    "is_final": true,
+    "summary": "앞선 요청에 짧게 동의했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "답변 순서 확인",
+      "owners": [],
+      "status": "PROVISIONAL",
+      "task_kind": "NONE",
+      "topic_key": "답변 순서 확인",
+      "task_evidence_quote": "",
+      "discussion_group": {
+        "id": "fe8ffede-c56e-53cb-b370-2bbebf6cd8bc",
+        "title": "국정감사장 질서 및 의사진행 논란",
+        "scope": "위원 간 발언 권한·분야 판단 권한 공방, 발언 절차 및 회의장 내 질서 유지 관련 논의",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  },
+  {
+    "utterance_id": "3e44ad22-3c3a-4459-bff8-f2955f58175b:1",
+    "content_hash": "70ae9bc35b2d378b00ef6a136b9c1f990965c794f4fc40de16c1a3f2c2a2eeee",
+    "first_cursor": 1108345,
+    "last_cursor": 1108345,
+    "is_final": true,
+    "summary": "화자는 법원의 심신미약 기준과 교도소의 정신질환 기준이 다름을 설명하고, 선진국의 사법입원제는 전문의 진단에 법원이 수용 여부를 판단하는 제도임을 부연 설명했다.",
+    "live_insight": {
+      "role": "ANSWER",
+      "task": null,
+      "topic": "사법입원제 도입을 위한 기준 차이와 선진국 제도 비교",
+      "owners": [
+        "법원",
+        "교도소",
+        "정신과 전문의",
+        "정신건강복지법"
+      ],
+      "status": "PROVISIONAL",
+      "topic_key": "사법입원제, 심신미약, 심신상실, 전문의, 법원",
+      "discussion_group": {
+        "id": "5aa12dc4-b84d-58df-a8ce-65d8325e78a7",
+        "title": "정신질환 범죄자 치료·관리 제도 개선",
+        "scope": "이상동기 범죄·정신질환 문제 제기, 교정시설 정신질환 수용자 증가 추이·비율·전과율 통계, 치료감호 청구율 저조 및 원격감시 한계, 적극 청구·제도 보완 요청, 정신건강복지법 개정 영향, 심신미약 기준 차이·사법입원제 도입 논의·선진국 제도 비교, 인권·입원 절차 제도 정비 필요성, 정신질환자 범죄율·편견·위험군 관리, 친밀 관계 기반 살인 사례 분석",
+        "profile": "live-discussion-classification/1.0",
+        "authority_status": "PROVISIONAL"
+      }
+    }
+  }
+]

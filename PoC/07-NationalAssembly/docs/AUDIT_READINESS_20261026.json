@@ -1,0 +1,256 @@
+{
+  "checked_at_kst": "2026-10-26T08:59:17.302276+09:00",
+  "scope": "2026-10-26 Ministry of Interior and Safety parliamentary audit readiness",
+  "official_schedule": {
+    "start": "2026-10-26T10:00:00+09:00",
+    "title": "행정안전위원회 국정감사(행정안전부 등)",
+    "source": "https://assembly.webcast.go.kr/schedule.asp"
+  },
+  "runtime": {
+    "status": "ok",
+    "scope": "all",
+    "checks": [
+      {
+        "check": "poc07-national-assembly-db",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "db_network_alias",
+        "ok": true
+      },
+      {
+        "check": "db_persistent_volume",
+        "ok": true
+      },
+      {
+        "check": "poc07-national-assembly-api",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-openrouter-gateway",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-live-monitor",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-executive-caption-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-schedule-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-meeting-brief-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-minutes-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-official-integration-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-watch-summary-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-notification-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-topic-report-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "poc07-national-assembly-review-worker",
+        "ok": true,
+        "state": "running",
+        "restart": "unless-stopped",
+        "policy_repaired": false
+      },
+      {
+        "check": "postgres_ready",
+        "ok": true
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://kjon.aigov.go.kr/api/health",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/",
+        "ok": true,
+        "http_status": 200
+      },
+      {
+        "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+        "ok": true,
+        "http_status": 200
+      }
+    ]
+  },
+  "live_source": {
+    "last_verified_at": "2026-10-26T08:55:29+09:00",
+    "status": "10:00 중계예정",
+    "live_count": 0,
+    "monitor_interval_seconds": 30,
+    "caption_concurrency": 4
+  },
+  "resources": {
+    "disk_available_gb": 47,
+    "memory_available_mb": 10476
+  },
+  "alerts": {
+    "enabled_rules": 109,
+    "kakao_enabled_rules": 47,
+    "kakao_rules_active_connection": 42,
+    "kakao_rules_disconnected": 4,
+    "kakao_rules_no_account": 1,
+    "pending_or_failed_outbox_count": 0,
+    "test_messages_sent": 0
+  },
+  "model_paths": {
+    "meeting_report": "NIM -> OpenRouter -> OpenAI",
+    "live_utterance_summary": "OpenRouter only",
+    "openrouter_daily_operational_limit": 950,
+    "openai_daily_token_limit": 650000,
+    "reset": "00:00 UTC / 09:00 Asia/Seoul"
+  },
+  "priority": {
+    "schedule_source": "latest official schedule_entries via ScheduleRepository",
+    "pre_start_minutes": 30,
+    "post_start_grace_minutes": 30,
+    "public_live_defers_backfill": true,
+    "after_end_grace_minutes": 15,
+    "saved_progress_preserved": true,
+    "resume_automatically": true,
+    "image": "poc07-national-assembly-api:live-priority-db-20261026"
+  },
+  "tests_passed": 72,
+  "limitations": [
+    "Live transcript ingestion and downstream notification for this meeting cannot be confirmed before broadcast starts.",
+    "Five enabled Kakao rules require account reconnection.",
+    "Live utterance summaries have no direct NIM/OpenAI fallback when the OpenRouter daily limit is reached."
+  ],
+  "final_verification": {
+    "checked_at_kst": "2026-10-26T08:59:44.509163+09:00",
+    "current_background_defer_reason": null,
+    "today_0930_guard": "UPCOMING_MEETING",
+    "queue": [
+      [
+        "COMPLETE",
+        5
+      ],
+      [
+        "PENDING",
+        48
+      ]
+    ],
+    "openai_usage": {
+      "request_count": 43,
+      "input_tokens": 296774,
+      "output_tokens": 68454,
+      "total_tokens": 365228,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0
+    },
+    "openrouter": {
+      "reserved": 46,
+      "remaining": 904,
+      "operational_limit": 950
+    }
+  },
+  "reset_check": {
+    "at_kst": "2026-10-26T09:00:26.925791+09:00",
+    "openai": {
+      "request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0
+    },
+    "gateway": {
+      "reserved": 0,
+      "remaining": 950,
+      "operational_limit": 950
+    }
+  }
+}

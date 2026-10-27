@@ -1,0 +1,73 @@
+{
+  "checked_at": "2026-10-26T08:43:12.943473+00:00",
+  "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+  "scope": "행정안전위원회 LIVE 기존 과제 92개 원문 재검토",
+  "causes": [
+    "이전 법사위 정정은 행안위의 오래된 과제 캐시를 갱신하지 못함",
+    "주제 단어 누적으로 다른 논의가 개회 주제에 연쇄 병합됨"
+  ],
+  "review": {
+    "source_items": 92,
+    "nim_items_saved": 92,
+    "nim_failed_batches": 0,
+    "source_corrections_appended": 13,
+    "real_tasks_retained": 29,
+    "false_or_unsupported_task_labels_removed": 63,
+    "old_versions_minimum_per_hash": 2,
+    "unreviewed_tasks_remaining_in_scope": 0,
+    "source_and_previous_ai_versions_preserved": true,
+    "repair_provider": "NVIDIA NIM",
+    "openai_used_for_repair": false
+  },
+  "grouping_regression": {
+    "before_opening_turns": 301,
+    "before_opening_tasks": 55,
+    "after_opening_tasks": 0,
+    "all_final_turns_preserved": true
+  },
+  "source_snapshot_check": {
+    "before_unique_hashes": 595,
+    "unchanged_final_hashes": 594,
+    "ongoing_nonfinal_turn_replaced_by_new_live_version": 1
+  },
+  "deployment": {
+    "image": "poc07-national-assembly-api:live-topic-review-20261026",
+    "services": [
+      "api",
+      "summary-worker"
+    ],
+    "frontend_version": "20261026-live-topic-review-1",
+    "summary_contract": "assembly-conversation-summary/2.4",
+    "normal_pipeline_v24_saved_observed": 2
+  },
+  "verification": {
+    "python_tests_passed": 49,
+    "javascript_tests_passed": 3,
+    "runtime_checks_passed": 25,
+    "browsers": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "topics": 405,
+        "displayed_task_rows": 30,
+        "max_group_turns": 7,
+        "opening_tasks": 0,
+        "data_requests_and_source_dialog_verified": true,
+        "javascript_errors": []
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "topics": 405,
+        "displayed_task_rows": 30,
+        "max_group_turns": 7,
+        "opening_tasks": 0,
+        "data_requests_and_source_dialog_verified": true,
+        "javascript_errors": []
+      }
+    ]
+  },
+  "limits": [
+    "29건은 기존 과제 92건의 재검토 결과이며 전체 방송 과제 수와 다름. 브라우저에서는 신규 과제를 포함해 30행을 확인함.",
+    "현재 수집 중인 자료이며 AI 결과는 PROVISIONAL. 공식 회의록으로 확정한 값이 아님.",
+    "같은 개념의 여러 주제 표현을 합치는 의미 분류의 완전성까지 보장하는 검사는 아님."
+  ]
+}

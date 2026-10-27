@@ -1,0 +1,196 @@
+{
+  "checked_at": "2026-10-26T01:42:47.802943+00:00",
+  "method": "CODEX_SOURCE_REVIEW",
+  "external_model_calls": 0,
+  "repairs": [
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "809964d589e640796d275bbc562a6221ab71576a65b3c17ac4f5196cfdc2d384",
+      "previous_summary_id": "273a04fe-2c39-4644-83d5-d78e3a84f649",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "dba76588-30d7-4200-89fc-b67b7d490645:1",
+        "e3f951e9-a9a5-4fef-8a77-f557f4022577:0",
+        "903b34bf-5228-4971-bdb0-50170a18c74f:0",
+        "1014ae7a-62dc-47bf-94af-830525eb9b6a:0"
+      ],
+      "new_summary": "중앙선거관리위원회 위원장직무대행의 인사말을 듣고 관련 질의를 먼저 진행하겠다고 안내했다.",
+      "new_topic": "중앙선거관리위원회 위원장직무대행 인사말 및 질의 순서",
+      "task": null,
+      "inserted": 0
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "9cd80574b77e928db6e8e4f7c94fa9160beea6015f2b74e867d9b4b61c333a6a",
+      "previous_summary_id": "a911eddd-60e0-4be3-bb99-311e5d052614",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "1736f844-27bc-47cf-ac22-726a3e8b5e82:0",
+        "d6247134-4f0b-4940-8cd0-a34bd3da52b3:0",
+        "9ebc0a25-31ce-4285-8a58-0c8dfa2bc959:0",
+        "5bb014a2-f4d7-42ec-bb9c-187e13f7d391:0",
+        "77caa2ed-062f-4e03-966d-cb4ca496c905:0",
+        "496c18d3-929f-4f6a-a7c7-298f2d84b261:0",
+        "e9d61908-55b6-477c-8349-c4128d19cfea:0",
+        "73d47759-c2b8-4283-9a1d-ea039f2e4dac:0",
+        "b10a6f69-3e94-47aa-bbca-b0f8dad2588e:0",
+        "1a48c992-f1fc-4b4b-ac89-00ff8a40f056:0",
+        "0a0e4f29-a3e2-41de-85f6-22b9418692dd:0"
+      ],
+      "new_summary": "여야 간사 합의에 따른 종합감사 진행 순서를 설명했다. 위원들의 의사진행 발언과 자료 요청을 받은 뒤 중앙선관위 위원장직무대행의 인사말을 듣고, 중수청장 인사말 후 본격 질의를 진행하겠다고 안내했다.",
+      "new_topic": "종합감사 의사진행 발언·자료 요청 및 인사말 순서 안내",
+      "task": null,
+      "inserted": 0
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "690ef8313ae1126e987add65edd6e14a1c33013277661ad2b2e6eb40c7ed080d",
+      "previous_summary_id": "baedef30-f81f-4f1e-9c60-b0482609eb29",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "9bb1eb86-076e-4362-b73b-0408db3f0f94:0",
+        "57ddc4c9-2dfd-4cb1-9799-750be41f73ac:0",
+        "348cb981-e409-4bea-9ced-0e59e719cb88:0"
+      ],
+      "new_summary": "박덕흠 위원에게 의사진행 발언을 요청했다.",
+      "new_topic": "박덕흠 위원 의사진행 발언 안내",
+      "task": null,
+      "inserted": 0
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "d336e11d0967f65df4fabd832607921dae907f3a9e9e9f42c0fed9a56152d524",
+      "previous_summary_id": "1bd857b2-e796-4055-8739-4335f360ea2e",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "9ba2a8eb-5577-4b14-972e-dd9c97db7367:0"
+      ],
+      "new_summary": "다음 발언자로 박주민 위원을 지명하고 의사진행 발언을 요청했다.",
+      "new_topic": "박주민 위원 의사진행 발언 안내",
+      "task": null,
+      "inserted": 0
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "b6fe2beb74ebec177a5f0f67a156160026d4a077b14bfb2e0a9d393ab8d3e285",
+      "previous_summary_id": "ece3d510-3f67-4d01-b92b-9b202ed21ea4",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "1056139b-c91f-4f0a-aeb8-a46976fb81d0:0",
+        "6652e893-c512-4c97-970c-7c124b8f3f82:0",
+        "4ae57670-8e9a-4210-b519-9dcbc8d94d70:0",
+        "f9f08d95-edf7-424a-a76a-30746e1239bc:0",
+        "e587c4bb-c369-4833-b12d-8f4f7da48207:0",
+        "b28a7f1b-b674-4b5f-bdbb-534a1555f13f:0",
+        "bd239d4f-36f7-4f50-af8f-90cd59316d6c:0",
+        "d3e6b7da-c2d9-4282-bf69-5d93757d2f31:0",
+        "dd46b19f-97bd-4e7f-b569-76b6c54fe947:0",
+        "e804d69f-81fa-43aa-ac9a-b71177750f40:0",
+        "a6e6236d-fc03-44d2-b15d-dcaadce98d4b:0"
+      ],
+      "new_summary": "검찰총장의 국무회의 배석 전례가 없었다고 설명하며, 수사기관장이 대통령의 뜻을 살필 수 있다는 우려를 제기했다. 국회에 참석 판단의 검토·협의 내용을 제출하라고 요구했다.",
+      "new_topic": "수사기관장 국무회의 참석과 정치적 독립성",
+      "task": "국무회의 참석 판단의 검토·협의 내용 제출",
+      "inserted": 1
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "3d10aaea01c88261a5fe08bc8d138a76de1d013433236072334a79c0df27bd27",
+      "previous_summary_id": "b3e78de5-6203-409f-b5a2-b00de66ac282",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "dd9bc3a5-96a4-497e-96e6-504575a96039:0",
+        "ab952e59-2371-4c4c-83f1-4bde4c40ebc8:0",
+        "7b8e3290-a2ea-499d-9211-0b9c0ff53a01:0",
+        "d28ed91a-a48e-4b5d-97c0-fe906ff3f818:0",
+        "6ae284df-3d22-47e0-a88b-006fc2902eed:0",
+        "6f27caad-e94e-4c06-86a4-7a44390ec748:0",
+        "550fffb1-66d2-4374-9bab-9c7eea5c38b6:0",
+        "c53f993f-50f5-4153-b4ba-ffc4d7cee8d6:0"
+      ],
+      "new_summary": "서울시 예산이 투입되지 않는다는 오세훈 시장의 국정감사 답변이 예산 편성 현황과 다르다며, 위증 고발을 요청했다.",
+      "new_topic": "한강버스 예산 관련 오세훈 시장 답변의 위증 고발 요청",
+      "task": "오세훈 시장의 한강버스 예산 관련 국정감사 답변에 대한 위증 고발 요청",
+      "inserted": 1
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "7e0f2dfd572f8cdea960172da96e394d75df25aecc838d39a71b0c7b96f88aa2",
+      "previous_summary_id": "cc14bec8-32cf-4278-8bc8-50cdb5a51eb8",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "17169a67-27c1-42c7-8276-137f87062e66:0",
+        "ec15f3af-71f1-4133-bf8c-befd62af29dd:0",
+        "30afb267-e020-4fd6-b51c-2b8573a904f0:0"
+      ],
+      "new_summary": "권영진 위원은 여당 위원들의 오세훈 시장 관련 발언으로 국민에게 오해가 생길 수 있다며 사실관계를 바로잡겠다고 밝혔다.",
+      "new_topic": "오세훈 시장 관련 발언의 사실관계 정정 예고",
+      "task": null,
+      "inserted": 1
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "content_hash": "bcc66c2d3364160cbb7c152bf1ebbd719581d734813daa65007a704ae2445deb",
+      "previous_summary_id": "331f6253-f8ef-4217-ae0b-18b36ff665f6",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "3bc9eabc-a105-4c1c-8fba-712250c92f2d:0",
+        "88fe9c6c-8ca6-4475-bd4a-1aa995f12f39:0",
+        "5cba7bf8-78b2-4682-a1bc-c79bc22817f1:0"
+      ],
+      "new_summary": "여야 간사 합의로 중앙선거관리위원회 위원장직무대행을 기관증인으로 채택했다고 알렸다. 인사말 후 희망 위원들의 질의를 우선 진행하고, 질의 종료 후 이석하도록 하겠다고 안내했다.",
+      "new_topic": "중앙선거관리위원회 위원장직무대행 증인 채택 및 질의 순서",
+      "task": null,
+      "inserted": 1
+    },
+    {
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "content_hash": "191129e3c9c5ef981518a47f69d684c46c943716578d94c9cfb55dd658da4970",
+      "previous_summary_id": "9062eb4f-5f2b-4823-b6f4-f5dd3519b3d8",
+      "original_record_preserved": true,
+      "source_segment_ids": [
+        "c8380dd9-df6b-4066-bba0-bcddfe1b1494:0",
+        "2a9a2d09-a19d-460c-9e77-811bf1719b19:0",
+        "2e6336be-f2d3-4a1b-bcfe-5dcc16dcf4e6:0",
+        "07cacb55-f987-4a52-831c-1488c8828edf:0",
+        "27624b54-4a1e-4a74-88c3-064794e6b696:0",
+        "56eb33f1-ffd2-4d0a-a12d-db22f1698f8d:0",
+        "57ea75fc-e7cb-46d7-a50b-e59600fa1165:0",
+        "f301d9ae-a56e-427f-a907-8e2f9a9a9074:0",
+        "243713b0-f40f-4729-87f8-832da5f581ed:0",
+        "2eff1a2f-f8cf-4113-98c0-38b03007fae4:0",
+        "e7a0db56-f5eb-445b-88a6-7939742621a3:0",
+        "badcf3a5-a6ba-4b35-aaa4-f7722990c051:0",
+        "daf5855f-6652-447b-8773-9bc9dff5b4e0:0",
+        "fd1cd458-cec9-4269-ac86-116b33f244a4:0",
+        "ad1f43f5-b48a-4e9e-b92d-3c410bab231c:0",
+        "0e81b7b9-2ae5-4dc4-87d4-7c36c6b1d1b4:0",
+        "5bddf239-263f-47d8-b6f9-e79c3738d65f:0",
+        "bdfdbe38-84fa-4d00-a398-a60be091b6eb:0",
+        "6fd6e87d-4f62-483c-b12b-5f4a5d1bfaf9:0",
+        "72e5d10a-d6a3-4eeb-8f4e-9211c4b5b397:0",
+        "ac8b9a44-5a3d-4a33-8486-4357b51d1161:0",
+        "06dbf7a8-1d53-4675-a296-015d77bb48b1:0",
+        "04838606-df5d-45ae-af40-d9d3b9e025e1:0",
+        "a5d87152-4ed3-4d37-b3db-ece9fe976023:0",
+        "884f6b09-6586-40f2-8413-ada227461e22:0",
+        "f0958d10-1a66-4d42-a21c-fcf42e5102c1:0"
+      ],
+      "new_summary": "기관 증인 여든다섯 명의 출석과 일부 증인의 감사장 밖 대기를 안내했다. 질의할 증인은 행정실에 미리 알리도록 하고, 기존 증인 선서의 유효성과 성실한 답변 의무를 설명한 뒤 자료 제출 요청에 일 분을 부여했다.",
+      "new_topic": "기관 증인 출석·대기 및 자료 제출 요청 순서 안내",
+      "task": null,
+      "inserted": 0
+    }
+  ],
+  "verification": {
+    "unit_tests_passed": 47,
+    "runtime_checks_passed": 25,
+    "both_public_domains_status": 200,
+    "browser_js_errors": 0,
+    "original_rows_preserved": 9,
+    "raw_captions_changed": 0,
+    "historical_bulk_regeneration_complete": false,
+    "final_snapshot_utterances": 258,
+    "invalid_generated_summaries_in_both_domains": 0
+  }
+}

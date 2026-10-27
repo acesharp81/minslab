@@ -63,3 +63,15 @@ def test_mixed_basis_is_officer_completed_even_when_primary_url_is_official():
     assert r['group']=='OFFICER' and r['authority']=='OFFICIAL' and r['mixed_officer_basis']
     link['status']='REVIEW'
     assert review_state(link)['group']=='REVIEW'
+
+
+def test_focus_project_can_open_its_other_policy_without_changing_default_scope():
+ from backend.mapping_workbench import build
+ from copy import deepcopy
+ raw=dict(policies=[dict(policy_id='POL_2025_0907',name='9·7'),dict(policy_id='OTHER',name='다른 정책')],programs=[dict(id='program',policy_id='OTHER',name='다른 프로그램',status='REVIEW',project_count=1)],items=[dict(id='other-project',name='신길4',planned_units=100,mapping=dict(policy_id='OTHER',program_id='program',status='REVIEW',basis='기존 사유'))])
+ class Service:
+  def mappings(self):return deepcopy(raw)
+ assert build(Service())['items']==[]
+ selected=build(Service(),focus_project_id='other-project')
+ assert selected['active_policy_id']=='OTHER' and selected['items'][0]['id']=='other-project'
+ assert selected['programs'][0]['id']=='program' and selected['policies'][0]['policy_id']=='OTHER'

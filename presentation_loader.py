@@ -44,6 +44,9 @@ def _metadata_for(folder: Path) -> dict | None:
     slug = folder.name
     title = str(metadata.get("title") or slug).strip()[:120]
     created_at = str(metadata.get("created_at") or "")
+    position = metadata.get("position")
+    if type(position) is not int or position < 1:
+        position = None
     return {
         "id": slug,
         "title": title,
@@ -55,12 +58,13 @@ def _metadata_for(folder: Path) -> dict | None:
         "tags": ["HTML", "PRESENTATION"],
         "url": f"/presentations/view/{slug}/",
         "created_at": created_at,
+        "position": position,
         "size_bytes": html_path.stat().st_size,
     }
 
 
 def load_presentations() -> list[dict]:
-    """Return valid presentation folders, newest first."""
+    """Return newest-first presentations with optional one-based pinned positions."""
     if not PRESENTATIONS_DIR.exists():
         return []
     items = []
@@ -70,6 +74,10 @@ def load_presentations() -> list[dict]:
             if item:
                 items.append(item)
     items.sort(key=lambda item: (item.get("created_at", ""), item["title"]), reverse=True)
+    pinned = [item for item in items if item["position"] is not None]
+    items = [item for item in items if item["position"] is None]
+    for item in sorted(pinned, key=lambda item: (item["position"], item["id"])):
+        items.insert(min(item["position"] - 1, len(items)), item)
     for index, item in enumerate(items, start=1):
         item["no"] = f"{index:02d}"
     return items

@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-10-26T07:36:54.403312+00:00",
+  "legacy_count_preserved": 950,
+  "central_budget": {
+    "used": 609,
+    "limit": 950
+  },
+  "worker_usage": 609,
+  "worker_admitted": true,
+  "new_2_3_summaries_saved": 1,
+  "latest_saved_at": "2026-10-26 07:35:25.679601+00:00",
+  "initial_central_usage": 593,
+  "initial_completed": 500,
+  "initial_failed": 93,
+  "initial_remaining_to_operational_limit": 357,
+  "cause": "Legacy local attempt counter reached 950 while central gateway reserved count was 593. Gateway cache replays and pre-forward failures must not be charged again locally.",
+  "fix": "Gateway-routed workers use the central UTC ledger for admission and usage; actual reservation remains atomic at gateway forwarding. Local ledger is retained for direct requests and audit.",
+  "tests_passed": 43,
+  "runtime_checks_passed": 25,
+  "watch_daily_limit_retries_released": 4,
+  "image": "poc07-national-assembly-api:gateway-quota-20261026",
+  "deployed_workers": [
+    "summary",
+    "watch-summary",
+    "topic-report"
+  ],
+  "browser": [
+    {
+      "url": "https://kjon.aigov.go.kr/",
+      "used": 609,
+      "operational_limit": 950,
+      "operational_remaining": 341,
+      "javascript_errors": []
+    },
+    {
+      "url": "https://www.minslab.kr/poc/national-assembly/",
+      "used": 609,
+      "operational_limit": 950,
+      "operational_remaining": 341,
+      "javascript_errors": []
+    }
+  ]
+}

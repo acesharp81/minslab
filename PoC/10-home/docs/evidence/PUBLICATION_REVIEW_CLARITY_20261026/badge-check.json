@@ -1,0 +1,34 @@
+[
+  {
+    "width": 1440,
+    "count": "18",
+    "font": "10px",
+    "height": 18,
+    "inside": true,
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "count": "999",
+    "font": "10px",
+    "height": 18,
+    "inside": true,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "count": "18",
+    "font": "10px",
+    "height": 18,
+    "inside": true,
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "count": "999",
+    "font": "10px",
+    "height": 18,
+    "inside": true,
+    "overflow": false
+  }
+]

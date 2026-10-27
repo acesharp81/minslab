@@ -95,6 +95,8 @@ class OfficialChangeReportTests(unittest.TestCase):
         request = post.call_args.kwargs["json"]
         self.assertEqual("allow", request["provider"]["data_collection"])
         self.assertTrue(request["provider"]["allow_fallbacks"])
+        self.assertEqual({"effort": "low", "exclude": True}, request["reasoning"])
+        self.assertEqual(8192, request["max_tokens"])
 
     def test_snapshot_hash_is_stable_and_assigns_local_change_ids(self):
         integration_id = uuid.uuid4()

@@ -1,0 +1,113 @@
+{
+  "checked_at_kst": "2026-10-26T07:41:25+09:00",
+  "baseline": "2026-10-23 00:00 KST (직전 개발 마무리일)",
+  "scope_note": "운영 수집기 전수 설정·로그와 저장 자료 점검, 외부 공고 표본 대조. 모든 사이트의 전 공고를 독립 전수 대조한 결과는 아님.",
+  "route_count": 130,
+  "collectors": 76,
+  "automatic_collectors": 68,
+  "manual_collectors": 8,
+  "document_publisher_groups": 54,
+  "nonofficial_publisher_groups": 21,
+  "nonofficial_documents": 32,
+  "latest_nonofficial_registration_kst": "2026-10-22T14:39:27+09:00",
+  "batches_since": {
+    "SUCCESS": 1156,
+    "FAILED": 5
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "status": "PASS",
+      "title": "LH 10월23일 공고 2건 목록·상세 확보",
+      "evidence": "시흥거모 S-1, 시흥하중 A1. crosscheck.json 최초수집 시각 및 official URL 대조. evidence_bridge 상태 REVIEW; 실적 자동 증가로 해석하지 않음."
+    },
+    {
+      "id": "F02",
+      "status": "PASS_SCOPED",
+      "title": "청약홈 API 10월23일 게시 공고 6건 저장",
+      "evidence": "detail-check.json 최근 공고 표본. LH 동일 공고와 중복되는 경우 별도 사업이나 물량으로 합산하지 않음."
+    },
+    {
+      "id": "F03",
+      "status": "PASS_SCOPED",
+      "title": "GH·iH 최신 목록 표본 일치",
+      "evidence": "GH 공식 임대 게시판 253건, 최신10/16 공고 저장. iH 임대/분양 첫 페이지의 수집 대상 주택공고 모두 저장. 상가·토지·당첨자 발표는 주택모집공고 범위와 구분."
+    },
+    {
+      "id": "F04",
+      "status": "GAP",
+      "title": "비공식 신규자료 자동 탐색 미구현",
+      "evidence": "수집기 레지스트리에 비공식 언론·기업 기사 탐색기가 없음. 21개 출처그룹의 32개 문서는 검토·등록 자료이며 최종등록10/22. 10/23 뉴시스 모아주택 기사 등 신규보도의 자동 유입은 확인되지 않음."
+    },
+    {
+      "id": "F05",
+      "status": "PARTIAL",
+      "title": "토지이음 최신 목록과 상세·첨부 완료는 다름",
+      "evidence": "10/26 목록 확보. 최신배치 detail_remaining=209, details_deferred=90, attachments_text_pending=78 (78은 해당 배치만). 209는 미처리·재방문·첨부 재시도 포함, 신규 고시 누락209건이라는 뜻이 아님."
+    },
+    {
+      "id": "F06",
+      "status": "GAP",
+      "title": "고정 문서 재조회와 신규 공고 발견 범위 구분 필요",
+      "evidence": "정책 보도자료와 일부 기관 문서는 고정 URL 재조회. 등록 도메인54개는 각 사이트의 신규 게시물을 자동 탐색하는54개 수집기가 아님."
+    },
+    {
+      "id": "F07",
+      "status": "REVIEW",
+      "title": "동일 내용의 반복 판본 저장",
+      "evidence": {
+        "id": "DOC_ea0933409dbba622a1a6b767",
+        "current_revision": 434,
+        "previous_time": "2026-10-25 22:01:55.831950+00:00",
+        "current_time": "2026-10-25 22:32:37.869237+00:00",
+        "changed_fields": [
+          "original_sha256",
+          "original_file"
+        ]
+      },
+      "impact": "원문 파일·해시만 달라 새 판본이 누적된 표본 확인. 신규 공고·사업 증가 아님. 저장·후속 재계산 부담을 검토할 항목."
+    },
+    {
+      "id": "F08",
+      "status": "KNOWN_UNAVAILABLE",
+      "title": "iH 재고·계약·공가 API 접근 미확인",
+      "evidence": "ih_supply는 수동 경로, 마지막 시도10/19 실패·성공 이력 없음. 별도 ih_notice 웹 모집공고 수집은 정상. 재고 API 실패를 공고 수집 전체 실패로 해석하지 않음."
+    },
+    {
+      "id": "F09",
+      "status": "RECOVERED",
+      "title": "개발 마무리 이후 5회 일시 실패 후 복구",
+      "evidence": "건축HUB HTTP503 2회, 서울 정비사업 페이지 중복 감지3회. 이후 최신 성공 기록 확인. 68개 자동 경로는 캡처시각 기준 설정 주기 초과 미관측(15분 여유)."
+    }
+  ],
+  "database_mutations_by_audit": false,
+  "production_code_changes": false,
+  "priorities": [
+    "비공식 신규 기사와 기관 보도자료 목록의 자동 탐색 범위 확대",
+    "토지이음 첨부 미추출·실패 재시도를 상태별 분리해 해소",
+    "공고 본문·수량·일정 변화와 원문 파일 정보 변화의 구분",
+    "130개 표시 항목을 자동68·수동8·문서 출처그룹54로 구분해 설명"
+  ],
+  "external_checks": [
+    {
+      "title": "LH 시흥거모 S-1 공고",
+      "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061186&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+      "result": "10/23 공식 게시 확인 · DB 목록/상세 존재"
+    },
+    {
+      "title": "GH 공식 임대주택 목록",
+      "url": "https://apply.gh.or.kr/sb/sr/sr7150/selectPbancRentHouseList.do",
+      "result": "253건·최신10/16 · 배치253건과 최신 저장 공고 일치"
+    },
+    {
+      "title": "iH 공식 주택공고",
+      "url": "https://www.ih.co.kr/main/bbs/bbsMsgList.do?bcd=notice&cate1=general&pgdiv=general&pgno=1",
+      "result": "서버에서 기존 Fetcher·파서로 직접 조회; 수집대상 최신주택공고 저장 확인"
+    },
+    {
+      "title": "뉴시스 모아주택 보도 (10/23)",
+      "url": "https://mobile.newsis.com/view_amp.html?ar_id=NISX20261023_0003838261",
+      "result": "신규 기사 존재; 자동 비공식 수집기 미등록. 계획/심의 기사이며 실제 착공으로 반영하지 않음"
+    }
+  ]
+}

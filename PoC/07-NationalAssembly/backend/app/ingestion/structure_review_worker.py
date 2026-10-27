@@ -14,9 +14,9 @@ from ..db.topic_structure_repository import TopicStructureRepository
 from ..db.summary_repository import SummaryRepository
 from ..db.openai_daily_budget import DailyTokenLimitReached
 from ..services.structure_review import (
-    PROFILE, VERIFY_PROFILE, BATCH_START, review_candidates, review_prompt, review_schema, validated_review,
+    PROFILE, VERIFY_PROFILE, BATCH_START, review_candidates, review_prompt, review_schema, validated_review, valid_review_subset,
 )
-from ..services.structure_retry import retry_allowance
+from ..services.structure_retry import retry_allowance, retry_pool
 from ..services.topic_structure import materialize
 from .topic_structure_worker import clients, pace_nim
 
@@ -47,6 +47,22 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                     pending = review_candidates(brief, snapshot, prior)
                 if not pending:
                     return {'status': 'COMPLETED', 'broadcast_id': label, 'batches': completed}
+                for old in reversed(prior):
+                    if old.get('error') != 'REVIEW_TOPIC_SOURCE_MISMATCH':
+                        continue
+                    try:
+                        pending_ids = {i['atom']['id'] for i in pending if i['profile'] == old['request'].get('profile')}
+                        recovered = valid_review_subset(old['request'], old['response'], snapshot, pending_ids)
+                    except (KeyError, ValueError, TypeError):
+                        continue
+                    if recovered:
+                        index = max([BATCH_START - 1] + [h['index'] for h in prior if h['index'] >= BATCH_START]) + 1
+                        with connect(settings.database_url) as c:
+                            TopicStructureRepository(c).record(sid,index,1,*recovered,
+                                {'method':'VALIDATED_REVIEW_SUBSET','source_index':old['index'],
+                                 'source_attempt':old['attempt'],'additional_model_calls':0},None)
+                        return {'status':'PROCESSING','broadcast_id':label,'batches':completed,
+                                'recovered_atoms':len(recovered[0]['atoms'])}
                 profile = pending[0]['profile']
                 batch = [i for i in pending if i['profile'] == profile][:4]
                 request = {'profile': profile, 'schema_revision': 2,
@@ -57,17 +73,16 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                                if t['id'] in g['topic_ids']][:200]}
                 histories = [[h for h in prior if h['request'].get('profile') == profile
                               and i['atom']['id'] in [a['id'] for a in h['request'].get('atoms', [])]] for i in batch]
-                allowed = min(retry_allowance(h) for h in histories)
-                offset = max((len(h) % 3 for h in histories), default=0)
                 index = max([BATCH_START - 1] + [h['index'] for h in prior if h['index'] >= BATCH_START]) + 1
-                pool = clients()
+                pool = clients("verification")
                 if profile == VERIFY_PROFILE:
                     # A substantive source retained as uncertain gets one independent model pass.
                     pool = [p for p in pool if p.provider != 'nvidia'] or pool
                 if not pool:
                     return {'status': 'NO_PROVIDER', 'broadcast_id': label}
-                for attempt in range(1, allowed + 1):
-                    client = pool[min(offset + attempt - 1, len(pool) - 1)]
+                round_pool = retry_pool(pool, histories)
+                errors = []
+                for attempt, client in enumerate(round_pool, start=1):
                     response, usage, error = {}, {}, None
                     sent_request = deepcopy(request)
                     try:
@@ -84,7 +99,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                                 {'issue': f['issue'], 'reason': f['uncertainty_reason']} for f in unsupported]
                             raise ValueError('REVIEW_TOPIC_SOURCE_MISMATCH')
                     except DailyTokenLimitReached:
-                        return {'status': 'BUDGET_DEFERRED', 'broadcast_id': label, 'batches': completed}
+                        error = 'DAILY_TOKEN_LIMIT'
                     except Exception as exc:
                         error = str(exc) if isinstance(exc, ValueError) else safe_brief_error_code(exc)
                         usage = usage or getattr(exc, 'usage_metadata', {})
@@ -95,8 +110,9 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                                       'atoms': len(batch), 'provider': client.provider, 'error': error}), flush=True)
                     if not error:
                         break
+                    errors.append(error)
                 else:
-                    return {'status': 'RETRY_DEFERRED', 'broadcast_id': label, 'batches': completed}
+                    return {'status': 'BUDGET_DEFERRED' if errors and all(e == 'DAILY_TOKEN_LIMIT' for e in errors) else 'RETRY_DEFERRED', 'broadcast_id': label, 'batches': completed}
                 completed += 1
             return {'status': 'PROCESSING', 'broadcast_id': label, 'batches': completed}
         finally:

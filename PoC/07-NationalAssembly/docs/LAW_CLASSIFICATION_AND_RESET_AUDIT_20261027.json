@@ -1,0 +1,197 @@
+{
+  "checked_at": "2026-10-27T00:24:39.844587+00:00",
+  "scope": "Latest judiciary report classification and provider routing after UTC reset",
+  "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+  "findings": {
+    "previous_status": "COMPLETED with 62/62 narratives but semantically invalid placeholder topic",
+    "invalid_topic_title": "UNCERTAIN",
+    "reclassified_source_atoms": 17,
+    "root_cause": "Non-empty topic labels accepted role enum strings; unrelated substantive statements merged under the same placeholder title. Previously completed counters did not detect this.",
+    "display_issue": "Three partially linked clusters were counted as unmapped, although all 15 clusters had topic links.",
+    "preserved_ambiguous_source_fragments": 4
+  },
+  "repair": {
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 60,
+          "status": "COMPLETED",
+          "completed": 60
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 83,
+          "status": "COMPLETED",
+          "completed": 83
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 83,
+          "status": "COMPLETED",
+          "completed": 83
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-10-27T00:23:23.694912+00:00",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 4
+    },
+    "coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 83,
+      "summarized_issue_count": 83,
+      "status": "COMPLETE"
+    },
+    "automatic_review": {
+      "profile": "discussion-context-review/3",
+      "reviewed_atom_count": 60,
+      "completed_atom_count": 60,
+      "total_atom_count": 60,
+      "pending_atom_count": 0,
+      "invalid_label_atom_count": 0,
+      "pending_request_atom_count": 0,
+      "unresolved_request_atom_count": 0,
+      "failed_atom_count": 0,
+      "status": "COMPLETED"
+    },
+    "raw_sources_and_previous_responses_preserved": true,
+    "new_classifier_rejects_placeholder_labels": true,
+    "placeholder_topics_enter_automatic_review_and_completion_gate": true
+  },
+  "routing": {
+    "general": [
+      "nvidia",
+      "openrouter",
+      "gemini",
+      "groq"
+    ],
+    "openai_admission": "OpenRouter operational quota exhausted; integration or final verification only",
+    "openai_daily_tokens": 650000,
+    "openai_integration_reserved_tokens": 300000,
+    "nim_classification_and_final_five_narratives": "Actual successful calls confirmed in worker output",
+    "fallback": "Actual NIM validation rejection followed by OpenRouter success confirmed",
+    "groq_completed_after_reset": 1,
+    "reset_timezone": {
+      "openrouter": "UTC",
+      "openai": "UTC",
+      "groq": "UTC",
+      "gemini": "America/Los_Angeles",
+      "mistral": "monthly UTC"
+    },
+    "gemini_next_reset_kst": "2026-10-27T16:00:00+09:00"
+  },
+  "usage": {
+    "providers": [
+      {
+        "provider": "nvidia",
+        "limit": null
+      },
+      {
+        "provider": "openrouter",
+        "used": 123,
+        "limit": 1000,
+        "operational_limit": 950,
+        "remaining": 877,
+        "resets_at": "2026-10-28T09:00:00+09:00"
+      },
+      {
+        "provider": "openai",
+        "used": 0,
+        "limit": 650000,
+        "remaining": 650000,
+        "resets_at": "2026-10-28T09:00:00+09:00",
+        "request_count": 0,
+        "reserved_tokens": 0,
+        "unknown_tokens": 0
+      },
+      {
+        "provider": "mistral",
+        "resets_at": "2026-11-01T09:00:00+09:00",
+        "request_count": 0,
+        "cost_usd": 2.037775
+      }
+    ],
+    "auxiliary_models": [
+      {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "daily_token_cap": 100000,
+        "daily_request_cap": 400,
+        "reset_timezone": "UTC",
+        "scope": "POC7_SUB_BUDGET",
+        "request_count": 1,
+        "charged_tokens": 1517,
+        "completed_requests": 1,
+        "reserved_or_unknown_tokens": 0
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.1-flash-lite",
+        "daily_token_cap": 300000,
+        "daily_request_cap": 200,
+        "reset_timezone": "America/Los_Angeles",
+        "scope": "POC7_SUB_BUDGET",
+        "request_count": 22,
+        "charged_tokens": 288465,
+        "completed_requests": 15,
+        "reserved_or_unknown_tokens": 4096
+      }
+    ]
+  },
+  "request_compatibility": {
+    "observed_error": "HTTP400 Reasoning is mandatory for this endpoint and cannot be disabled",
+    "affected_paths": [
+      "watch_summary",
+      "utterance_summary",
+      "official_change_report"
+    ],
+    "fix": "Utterance summary Dots-only with reasoning disabled and original 8192 output budget; Nemotron separate low-effort route. Watch/change report low effort. Meeting pool unchanged.",
+    "watch_summary_runtime_limit": "No new watch summary job observed after deployment; request shape verified with offline test.",
+    "post_deploy_summary_observation": "2026-10-27 09:33–09:34 KST: five consecutive Dots gateway requests completed in 4–6 seconds; four new persisted summaries confirmed after 09:33.",
+    "second_observed_error": "Reasoning consumed the full output budget on long utterances both with unspecified effort/8192 and low effort/12000.",
+    "synthetic_smoke": "One fictional Korean request/answer returned a valid summary through production gateway. Not persisted as meeting content.",
+    "configured_utterance_model": "dots-studio/dots-3-note-preview:free",
+    "remaining_provider_limitation": "AtlasCloud also returned generic HTTP400 bad request intermittently between successful Dots calls; distinct from mandatory-reasoning error. No guarantee of zero upstream failures."
+  },
+  "deployments": {
+    "api": "classification-audit-20261027-v1",
+    "meeting": "classification-audit-20261027-v6",
+    "summary": "classification-audit-20261027-v7",
+    "watch_summary_official_integration": "classification-audit-20261027-v3"
+  },
+  "verification": {
+    "backend_initial_tests_passed": 85,
+    "backend_summary_compatibility_tests_passed": 13,
+    "backend_routing_budget_tests_passed": 46,
+    "frontend_tests_passed": 12,
+    "runtime_checks_passed": 25,
+    "both_public_domains_http200": true,
+    "browser": {
+      "default_details_closed": true,
+      "expanded_text": "15묶음 중 15묶음에 주제가 연결되어 있습니다. 이 중 3묶음에는 별도로 보존한 불명확 원문이 포함되어 있습니다. 불명확 원문 4건은 근거에서 확인할 수 있습니다.",
+      "law_card": "비공식 정리 완료",
+      "desktop_and_mobile_clipping": false,
+      "page_errors": []
+    },
+    "backend_request_compatibility_latest_tests_passed": 50
+  },
+  "other_reports": "Interior report repaired to 349/349; see INTERIOR_NARRATIVE_349_RECOVERY_20261027.json"
+}

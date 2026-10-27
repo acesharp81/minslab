@@ -1,0 +1,23 @@
+{
+  "live_deployment": true,
+  "nodes": 26,
+  "geometry": {
+    "overviewBottom": 758.515625,
+    "detailTop": 790.515625,
+    "viewport": 1180,
+    "bodyWidth": 1180,
+    "flowWidth": 1098,
+    "flowClient": 1098
+  },
+  "errors": [],
+  "details_below_overview": true,
+  "mobile_body_overflow": false,
+  "evidence_expand": true,
+  "keyboard_focus_preserved": true,
+  "app_tab_verified": true,
+  "dates_only_on_first_dataset": true,
+  "app_timeline": {
+    "width": 1096,
+    "scroll": 1096
+  }
+}

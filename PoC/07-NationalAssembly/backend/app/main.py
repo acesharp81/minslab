@@ -13,7 +13,9 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, RedirectResponse, Response, JSONResponse
+from fastapi.encoders import jsonable_encoder
+from .services.public_response_cache import PublicResponseCache
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.gzip import GZipMiddleware
@@ -102,6 +104,16 @@ from .services.web_security import (
 from .topic_report_api import router as topic_report_router
 
 ALLOWED_INSTITUTIONS = {"EXECUTIVE", "LEGISLATURE"}
+
+
+_public_responses = PublicResponseCache()
+
+
+def _public_json_response(key, build, *, ttl: float) -> Response:
+    # Run serialization in the sync endpoint's worker thread, not the ASGI loop.
+    body = _public_responses.get(key,
+        lambda: JSONResponse(jsonable_encoder(build())).body, ttl=ttl)
+    return Response(body, media_type='application/json', headers={'Cache-Control': 'no-store'})
 
 
 app = FastAPI(
@@ -214,7 +226,7 @@ def _public_meeting_brief(
             and progress.get("transcript_hash") != item["transcript_hash"]
         )
     )
-    is_ai_result = item["provider"] in {"mistral", "nvidia", "openrouter", "openai"}
+    is_ai_result = item["provider"] in {"mistral", "nvidia", "openrouter", "openai", "gemini", "groq"}
     analysis_outdated = bool(
         is_ai_result
         and item.get("prompt_version") != MEETING_BRIEF_PROMPT_VERSION
@@ -235,7 +247,25 @@ def _public_meeting_brief(
             "total_chunks": 0,
             "completed_chunks": 0,
         }
-    ready = is_ai_result and not result_pending
+    finalization = raw_brief.get("finalization") or {}
+    if finalization:
+        from .services.meeting_progress import stage_progress
+        progress['stages'] = [dict(s) for s in (finalization.get('stages') or stage_progress(finalization))]
+        if finalization.get('phase') == 'CONSOLIDATING':
+            for stage in progress['stages']:
+                if stage['key'] == 'INTEGRATION':
+                    stage.update(status='WAITING' if finalization.get('status') == 'DEFERRED' else 'PROCESSING',
+                                 completed=finalization.get('integration_batches_done', 0),
+                                 total=finalization.get('integration_batches_total'), unit='묶음')
+        progress['retry_after'] = finalization.get('retry_after')
+    finalizing = bool(finalization and finalization.get("status") != "COMPLETED")
+    if finalizing:
+        progress = {**progress, "status": "DEFERRED" if finalization.get("status") == "DEFERRED" else "PROCESSING",
+                    "phase": finalization.get("phase") or "FINALIZING"}
+    if finalizing and finalization.get("phase") in {"STRUCTURING", "CONSOLIDATING"} and finalization.get("integration_batches_total"):
+        progress = {**progress, "phase": "CONSOLIDATING", "completed_chunks": finalization.get("integration_batches_done", 0),
+                    "total_chunks": finalization["integration_batches_total"]}
+    ready = is_ai_result and not result_pending and not finalizing
     return {
         "brief_id": item["brief_id"],
         "broadcast_id": item["broadcast_id"],
@@ -250,6 +280,7 @@ def _public_meeting_brief(
         "brief_content_loaded": include_content,
         "brief_status": "READY" if ready else "PROCESSING",
         "brief_progress": progress,
+        "brief_finalization": finalization,
         "brief_is_stale": result_pending,
         "brief_upgrade_pending": analysis_outdated,
         "brief_upgrade_status": progress.get("status") if analysis_outdated else None,
@@ -319,6 +350,7 @@ def _present_transcript(
         provider=summary_provider,
         model=summary_model,
         prompt_version=prompt_version,
+        utterances=utterances,
     )
     cached_count = 0
     for utterance in utterances:
@@ -337,6 +369,8 @@ def _present_transcript(
         utterance["summary_generated_at"] = cached["created_at"]
         utterance["live_insight"] = cached.get("live_insight") or None
         cached_count += 1
+    from .db.live_discussion_repository import LiveDiscussionRepository
+    LiveDiscussionRepository(connection).attach(utterances)
     lifecycle_by_broadcast = {
         item["broadcast_id"]: str(item.get("lifecycle_status") or "")
         for item in snapshot.get("broadcasts", [])
@@ -665,6 +699,7 @@ def ai_usage() -> dict[str, object]:
         "total_tokens": 0, "unknown_tokens": 0, "reserved_tokens": 0,
     }
     monthly_model_usage: list[dict[str, object]] = []
+    auxiliaries = []
     status = "AVAILABLE"
     if settings.database_url:
         try:
@@ -674,6 +709,15 @@ def ai_usage() -> dict[str, object]:
                 local_openrouter = repository.daily_usage("openrouter")
                 openai_usage = OpenAIDailyBudget(connection).today()
                 monthly_model_usage = repository.monthly_model_usage()
+                from .db.auxiliary_model_budget import AuxiliaryModelBudget
+                for provider, zone in (("groq","UTC"),("gemini","America/Los_Angeles")):
+                    if getattr(settings, provider + "_aux_enabled", False):
+                        auxiliaries.append({"provider":provider,
+                            "model":getattr(settings,provider+"_aux_model"),
+                            "daily_token_cap":getattr(settings,provider+"_aux_daily_tokens"),
+                            "daily_request_cap":getattr(settings,provider+"_aux_daily_requests"),
+                            "reset_timezone":zone,"scope":"POC7_SUB_BUDGET",
+                            **AuxiliaryModelBudget(connection).today(provider,zone)})
         except Exception:
             status = "UNAVAILABLE"
     gateway: dict[str, object] = {}
@@ -697,6 +741,7 @@ def ai_usage() -> dict[str, object]:
     openrouter_official_limit = int(gateway.get("official_limit") or 1000)
     return {
         "provider": "combined",
+        "auxiliary_models": auxiliaries,
         "provider_label": "NVIDIA NIM + OpenRouter 보고서, OpenAI 예비, Mistral STT",
         "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",
         "used": openrouter_used, "limit": openrouter_official_limit,
@@ -1424,6 +1469,14 @@ def _validate_live_committee(committee: str | None) -> str | None:
 
 
 @app.get("/api/live/transcript/snapshot", tags=["live"])
+def live_transcript_snapshot_response(
+    committee: str | None = None, broadcast_id: UUID | None = None,
+) -> Response:
+    committee = _validate_live_committee(committee)
+    return _public_json_response(('snapshot', committee, broadcast_id),
+        lambda: live_transcript_snapshot(committee, broadcast_id), ttl=2)
+
+
 def live_transcript_snapshot(
     committee: str | None = None,
     broadcast_id: UUID | None = None,
@@ -1659,6 +1712,11 @@ def ended_live_broadcast_transcript(broadcast_id: UUID) -> dict[str, object]:
 
 
 @app.get("/api/live/broadcasts/{broadcast_id}/brief", tags=["live"])
+def ended_live_broadcast_brief_response(broadcast_id: UUID) -> Response:
+    return _public_json_response(('brief', broadcast_id),
+        lambda: ended_live_broadcast_brief(broadcast_id), ttl=5)
+
+
 def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
     try:
         with connect(get_settings().database_url) as connection:

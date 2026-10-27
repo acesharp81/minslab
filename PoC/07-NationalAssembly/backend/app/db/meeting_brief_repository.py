@@ -55,7 +55,7 @@ class MeetingBriefRepository:
                    provider, model, prompt_version, authority_status, review_status,
                    brief, usage_metadata, generated_at
             FROM meeting_briefs WHERE broadcast_id = %s
-            ORDER BY (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
+            ORDER BY (provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      generated_at DESC, id DESC LIMIT 1
             """,
             (broadcast_id,),
@@ -75,7 +75,7 @@ class MeetingBriefRepository:
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id,
-                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
+                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      generated_at DESC, id DESC
             """,
             (ids,),
@@ -104,7 +104,7 @@ class MeetingBriefRepository:
                 'poc07.replay.kakao'
               )
             ORDER BY brief.broadcast_id,
-                     (brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
+                     (brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      brief.generated_at DESC, brief.id DESC
             """,
             ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
@@ -124,13 +124,13 @@ class MeetingBriefRepository:
                    id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
                    jsonb_build_object(
-                       'utterance_count', brief->'utterance_count'
+                       'utterance_count', brief->'utterance_count', 'finalization', brief->'finalization'
                    ) AS brief,
                    '{}'::jsonb AS usage_metadata, generated_at
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id,
-                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai')) DESC,
+                     (provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      generated_at DESC, id DESC
             """,
             (ids,),
@@ -340,6 +340,12 @@ class MeetingBriefRepository:
 
     def update_brief(self, brief_id: Any, brief: dict[str, Any]) -> dict[str, Any]:
         from psycopg.types.json import Jsonb
+
+        self.connection.execute(
+            "INSERT INTO meeting_brief_revisions(meeting_brief_id,brief,reason) "
+            "SELECT id,brief,'AUTOMATIC_ENRICHMENT' FROM meeting_briefs WHERE id=%s AND brief IS DISTINCT FROM %s",
+            (brief_id, Jsonb(brief)),
+        )
 
         row = self.connection.execute(
             """

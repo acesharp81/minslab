@@ -10,7 +10,8 @@ from .sources import SOURCES
 
 ACTIVE = ('QUEUED', 'RUNNING', 'RETRY')
 # Public notice changes are checked separately from expensive historic backfill.
-FAST = {'lh_notice': 900, 'lh_notice_detail': 1800, 'gh_notice': 1800, 'ih_notice':3600,
+FAST = {'lh_press_watch':3600, 'ih_press_watch':3600, 'seoul_press_watch':3600, 'newsis_housing_watch':3600,
+        'lh_notice': 900, 'lh_notice_detail': 1800, 'gh_notice': 1800, 'ih_notice':3600,
         'sh_inventory': 3600, 'seoul_cleanup': 3600, 'gh_completion_evidence': 3600}
 
 
@@ -94,7 +95,8 @@ def run_next(service, lane=None):
                     row.run_after=now()+timedelta(seconds=60);row.lease_until=None;row.error=None
                 return dict(job,status='BUSY',next_stage='COLLECT')
             if result.get('status')!='SUCCESS':raise RuntimeError('원천 수집 미완료 · 배치 이력 참조')
-            next_stage='LINK'
+            # Discovery has no approved business facts to reconcile.
+            next_stage=None if source.get('discovery_only') else 'LINK'
         elif job['stage']=='LINK':
             from .stage_evidence import refresh
             from .project_collection import refresh_links

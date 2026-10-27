@@ -1,0 +1,242 @@
+{
+  "checked_at": "2026-10-25T23:05:15.021375+00:00",
+  "registered": 80,
+  "automatic": 72,
+  "manual": 8,
+  "sources": [
+    {
+      "id": "lh_press_watch",
+      "status": "SUCCESS",
+      "record_count": 6,
+      "last_success": "2026-10-25T23:02:20.669313+00:00",
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집",
+            "kind": "auto"
+          },
+          {
+            "label": "1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 게시물 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집",
+        "frequency": "1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.",
+        "parser": "HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      },
+      "stats": {
+        "discovery_only": true,
+        "latest_published": "2026-10-23"
+      }
+    },
+    {
+      "id": "ih_press_watch",
+      "status": "SUCCESS",
+      "record_count": 6,
+      "last_success": "2026-10-25T23:02:21.090996+00:00",
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집",
+            "kind": "auto"
+          },
+          {
+            "label": "1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 게시물 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집",
+        "frequency": "1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.",
+        "parser": "HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      },
+      "stats": {
+        "discovery_only": true,
+        "latest_published": "2026-10-23"
+      }
+    },
+    {
+      "id": "seoul_press_watch",
+      "status": "SUCCESS",
+      "record_count": 3,
+      "last_success": "2026-10-25T23:02:21.634549+00:00",
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집",
+            "kind": "auto"
+          },
+          {
+            "label": "1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 게시물 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집",
+        "frequency": "1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.",
+        "parser": "HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      },
+      "stats": {
+        "discovery_only": true,
+        "latest_published": "2026-10-23"
+      }
+    },
+    {
+      "id": "newsis_housing_watch",
+      "status": "SUCCESS",
+      "record_count": 3,
+      "last_success": "2026-10-25T23:02:22.156587+00:00",
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집",
+            "kind": "auto"
+          },
+          {
+            "label": "1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 게시물 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집",
+        "frequency": "1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.",
+        "parser": "HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      },
+      "stats": {
+        "discovery_only": true,
+        "latest_published": "2026-10-25"
+      }
+    },
+    {
+      "id": "eum_housing_notices",
+      "status": "SUCCESS",
+      "record_count": 8699,
+      "last_success": "2026-10-25T23:03:07.453549+00:00",
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집",
+            "kind": "auto"
+          },
+          {
+            "label": "1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 고시 탐색",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집",
+        "frequency": "1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 86400,
+        "backfill": true,
+        "schedule_note": "미조회 보충 중 1시간마다, 통상 매일. 정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "수도권 3개 시도, 2025-09-07 이후 고시의 최신 목록과 과거 이어받기 페이지를 조회합니다. 고시 ID로 상세·첨부를 추적하고, 최근 자료와 과거 대기를 나누어 배치당 최대 1건을 처리합니다. 실패 첨부는 미완료로 유지하고 다음날 재시도합니다.",
+        "parser": "PDF는 pypdf로 텍스트 추출, HWPX는 XML 본문·표 파싱을 수행합니다.",
+        "pdf": "보관 HWP·스캔 PDF·이미지를 배치당 최대 4개 복구합니다. HWP는 hwp5txt, OCR_REQUIRED는 한국어 OCR로 최대 4쪽을 추출하며 OCR_REVIEW_REQUIRED로 별도 검토합니다. 지형도면·변환 실패·미처리 자료는 대기로 유지하고 실패는 7일 후 재시도합니다.",
+        "manual": "이미지 표의 문자·수치 판독과 자동 추출되지 않은 항목의 입력은 별도 수동 보완 대상으로 관리합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      },
+      "stats": {
+        "detail_remaining": 206,
+        "text_recovery_attempted": 4,
+        "text_recovered": 0,
+        "ocr_review_pending": 4,
+        "attachments_text_pending": 19
+      }
+    }
+  ],
+  "attachment_statuses": {
+    "TEXT_EXTRACTED": 1109,
+    "ARCHIVED_TEXT_PENDING": 68,
+    "IMAGE_ARCHIVED": 2085,
+    "OCR_REQUIRED": 201,
+    "DOWNLOAD_FAILED": 429,
+    "OCR_REVIEW_REQUIRED": 4
+  },
+  "jobs": [
+    {
+      "source_id": "newsis_housing_watch",
+      "status": "SUCCESS",
+      "stage": "COLLECT",
+      "result_stages": [
+        "COLLECT"
+      ]
+    },
+    {
+      "source_id": "seoul_press_watch",
+      "status": "SUCCESS",
+      "stage": "COLLECT",
+      "result_stages": [
+        "COLLECT"
+      ]
+    },
+    {
+      "source_id": "ih_press_watch",
+      "status": "SUCCESS",
+      "stage": "COLLECT",
+      "result_stages": [
+        "COLLECT"
+      ]
+    },
+    {
+      "source_id": "lh_press_watch",
+      "status": "SUCCESS",
+      "stage": "COLLECT",
+      "result_stages": [
+        "COLLECT"
+      ]
+    }
+  ]
+}

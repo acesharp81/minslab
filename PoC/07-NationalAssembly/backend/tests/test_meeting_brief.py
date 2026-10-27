@@ -952,7 +952,7 @@ class MeetingBriefTests(unittest.TestCase):
 
         self.assertEqual("예산 심사 결과", result.brief["headline"])
         self.assertEqual([1002], cached_batches)
-        self.assertEqual([10011, 10012], saved_batches)
+        self.assertEqual([1001, 10011, 10012, 1001], saved_batches)
         self.assertEqual(6, post.call_count)
 
 

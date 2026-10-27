@@ -1,0 +1,36 @@
+{
+  "samples": [
+    {
+      "sample": "observed-construction",
+      "sections": 9,
+      "charts": 2,
+      "overflow_cells": 0
+    },
+    {
+      "sample": "changed-plan",
+      "sections": 9,
+      "charts": 2,
+      "overflow_cells": 0
+    },
+    {
+      "sample": "partial-scope",
+      "sections": 9,
+      "charts": 2,
+      "overflow_cells": 0
+    }
+  ],
+  "removed_sources": true,
+  "reliability_theme": true,
+  "browser_errors": [],
+  "live": {
+    "main_sections": 9,
+    "retained_graphics": 2,
+    "separate_appendices": 4,
+    "appendix_fetches": 0,
+    "same_input_hash": true,
+    "history_restore": true,
+    "historical_cutoff_verified": true,
+    "initial_generation_seconds": 5.44,
+    "browser_errors": []
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "checked_at": "2026-10-27T00:45:56.039018+00:00",
+  "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+  "initial_coverage": "347/349",
+  "causes": [
+    "Native Korean quantity 스물여덟 converted to 28, violating original-format number validation.",
+    "55.78 shortened to 55 in a score range; repeated output validation failure exhausted generic correction attempts.",
+    "Gemini daily sub-budget unavailable; original complete issue too large for Groq."
+  ],
+  "repair": [
+    "Bounded feedback with actual rejected response and unsupported numeric tokens.",
+    "Only numeric-invalid fields regenerated with directly related source; unchanged candidate summaries preserved and full merged response validated."
+  ],
+  "actual_providers": {
+    "first_remaining_issue": "NVIDIA NIM",
+    "last_remaining_field": "Groq openai/gpt-oss-120b after NIM/OpenRouter output validation failure"
+  },
+  "source_records_and_prior_responses_preserved": true,
+  "no_quality_gate_bypass": true,
+  "finalization": {
+    "phase": "COMPLETED",
+    "stages": [
+      {
+        "key": "ANALYZING",
+        "status": "COMPLETED"
+      },
+      {
+        "key": "INTEGRATION",
+        "unit": "묶음",
+        "total": 8,
+        "status": "COMPLETED",
+        "completed": 8
+      },
+      {
+        "key": "REVIEWING",
+        "unit": "발언",
+        "total": 5,
+        "status": "COMPLETED",
+        "completed": 5
+      },
+      {
+        "key": "ONTOLOGY",
+        "unit": "쟁점",
+        "total": 349,
+        "status": "COMPLETED",
+        "completed": 349
+      },
+      {
+        "key": "NARRATIVE",
+        "unit": "쟁점",
+        "total": 349,
+        "status": "COMPLETED",
+        "completed": 349
+      },
+      {
+        "key": "FINALIZING",
+        "status": "COMPLETED"
+      }
+    ],
+    "status": "COMPLETED",
+    "version": "meeting-finalization/1",
+    "updated_at": "2026-10-27T00:45:09.886266+00:00",
+    "source_limited_topics": 0,
+    "integration_batches_done": 8,
+    "integration_batches_total": 8,
+    "source_limited_discussions": 0
+  },
+  "coverage": {
+    "profile": "structured-narrative/1.2",
+    "issue_count": 349,
+    "summarized_issue_count": 349,
+    "status": "COMPLETE"
+  },
+  "unit_tests_passed": 38,
+  "runtime_checks_passed": 25,
+  "deployments": {
+    "meeting": "classification-audit-20261027-v6",
+    "summary": "classification-audit-20261027-v7"
+  },
+  "openai_usage": 0
+}

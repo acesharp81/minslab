@@ -1,0 +1,144 @@
+{
+  "worker_image": "poc07-national-assembly-api:narrative-queue-20261027-v1",
+  "image_id": "64b464570f81",
+  "backend_tests": 40,
+  "before": {
+    "행안위": [
+      323,
+      349
+    ],
+    "법사위": [
+      59,
+      62
+    ]
+  },
+  "observed_after": {
+    "행안위": {
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 349,
+        "summarized_issue_count": 325,
+        "status": "PENDING"
+      },
+      "finalization": {
+        "phase": "NARRATIVE",
+        "stages": [
+          {
+            "key": "ANALYZING",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "INTEGRATION",
+            "unit": "묶음",
+            "total": 8,
+            "status": "COMPLETED",
+            "completed": 8
+          },
+          {
+            "key": "REVIEWING",
+            "unit": "발언",
+            "total": 5,
+            "status": "COMPLETED",
+            "completed": 5
+          },
+          {
+            "key": "ONTOLOGY",
+            "unit": "쟁점",
+            "total": 349,
+            "status": "COMPLETED",
+            "completed": 349
+          },
+          {
+            "key": "NARRATIVE",
+            "unit": "쟁점",
+            "total": 349,
+            "status": "PROCESSING",
+            "completed": 325
+          },
+          {
+            "key": "FINALIZING",
+            "status": "PENDING"
+          }
+        ],
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T23:27:54.687626+00:00",
+        "integration_batches_done": 8,
+        "integration_batches_total": 8
+      }
+    },
+    "법사위": {
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 62,
+        "summarized_issue_count": 59,
+        "status": "PENDING"
+      },
+      "finalization": {
+        "phase": "NARRATIVE",
+        "stages": [
+          {
+            "key": "ANALYZING",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "INTEGRATION",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "REVIEWING",
+            "unit": "발언",
+            "total": 44,
+            "status": "COMPLETED",
+            "completed": 44
+          },
+          {
+            "key": "ONTOLOGY",
+            "unit": "쟁점",
+            "total": 62,
+            "status": "COMPLETED",
+            "completed": 62
+          },
+          {
+            "key": "NARRATIVE",
+            "unit": "쟁점",
+            "total": 62,
+            "status": "PROCESSING",
+            "completed": 59
+          },
+          {
+            "key": "FINALIZING",
+            "status": "PENDING"
+          }
+        ],
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T23:27:57.766305+00:00"
+      }
+    }
+  },
+  "fixes": [
+    "Runnable requests precede cooling requests before batch limit",
+    "Semantic errors trigger the bounded corrective round even if fallback is unavailable",
+    "Corrective prompt preserves source numeric notation, quantities, deadlines and promises"
+  ],
+  "unchanged": [
+    "Original sources and successful responses",
+    "Numeric/date validation",
+    "Provider quotas and pacing",
+    "Existing corrective round retry bounds"
+  ],
+  "confirmed_worker_log_after": {
+    "at": "2026-10-27T08:28:28+09:00",
+    "행안위": [
+      325,
+      349
+    ],
+    "법사위": [
+      61,
+      62
+    ],
+    "new_successes_provider": "nvidia",
+    "new_successes": 4
+  }
+}

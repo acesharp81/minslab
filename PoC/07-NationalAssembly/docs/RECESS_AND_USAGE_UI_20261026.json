@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-26",
+  "regression_tests_passed": 10,
+  "recess_recovery": [
+    {
+      "url": "https://kjon.aigov.go.kr/",
+      "live_cards": "정회 · 재개 대기\n누적 기록 보기\n국회\n법제사법위원회 국정감사(법무부 등) [10:00]\n20:55 계속예정\n국회\n상세보기\n정회 · 재개 대기\n누적 기록 보기\n국회\n행정안전위원회 국정감사(행정안전부 등) [10:00]\n20:30 계속예정\n국회\n상세보기",
+      "both_saved_reports_opened": true,
+      "usage_width": 560,
+      "errors": []
+    },
+    {
+      "url": "https://www.minslab.kr/poc/national-assembly/",
+      "live_cards": "정회 · 재개 대기\n누적 기록 보기\n국회\n법제사법위원회 국정감사(법무부 등) [10:00]\n20:55 계속예정\n국회\n상세보기\n정회 · 재개 대기\n누적 기록 보기\n국회\n행정안전위원회 국정감사(행정안전부 등) [10:00]\n20:30 계속예정\n국회\n상세보기",
+      "both_saved_reports_opened": true,
+      "usage_width": 560,
+      "errors": []
+    }
+  ],
+  "five_platform_strip": [
+    {
+      "url": "https://kjon.aigov.go.kr/",
+      "text": "OpenRouter\n소진\n일일 기준\nGemini\n98% 남음\n일일 기준\nGroq\n95% 남음\n일일 기준\nOpenAI\n10% 남음\n일일 기준\nMistral\n83% 남음\n이번 달 기준",
+      "sizes": [
+        {
+          "viewport": 1440,
+          "width": 560,
+          "height": 76.52,
+          "text_overflow": []
+        },
+        {
+          "viewport": 390,
+          "width": 358,
+          "height": 152.03,
+          "text_overflow": []
+        }
+      ],
+      "unknown_state_verified": true,
+      "javascript_errors": []
+    },
+    {
+      "url": "https://www.minslab.kr/poc/national-assembly/",
+      "text": "OpenRouter\n소진\n일일 기준\nGemini\n98% 남음\n일일 기준\nGroq\n95% 남음\n일일 기준\nOpenAI\n10% 남음\n일일 기준\nMistral\n83% 남음\n이번 달 기준",
+      "sizes": [
+        {
+          "viewport": 1440,
+          "width": 560,
+          "height": 76.52,
+          "text_overflow": []
+        },
+        {
+          "viewport": 390,
+          "width": 358,
+          "height": 152.03,
+          "text_overflow": []
+        }
+      ],
+      "unknown_state_verified": true,
+      "javascript_errors": []
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 from uuid import UUID
 
@@ -56,7 +57,8 @@ class OpenAILiveTopicMappingTests(unittest.TestCase):
                 f"{worker}.openai_mapping_budget_available",
                 return_value=True,
             ),
-            mock.patch(f"{worker}.get_settings"),
+            mock.patch(f"{worker}.get_settings", return_value=SimpleNamespace(gemini_aux_enabled=False, groq_aux_enabled=False)),
+            mock.patch(f"{worker}.openrouter_brief_has_capacity", return_value=False),
             mock.patch(
                 f"{worker}.map_existing_brief_one",
                 return_value={"status": "COMPLETED", "after_unresolved": 4},

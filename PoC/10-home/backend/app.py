@@ -7,6 +7,7 @@ import os
 import threading
 import time
 from contextlib import asynccontextmanager
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 from datetime import date, datetime
 from collections import Counter
 from pathlib import Path
@@ -251,6 +252,18 @@ class CollectionAssessment(BaseModel):
     basis: str = Field(min_length=1,max_length=2000)
 
 
+class PublicationReview(BaseModel):
+    source_revision_no: int = Field(ge=1)
+    review_revision_no: int = Field(ge=0)
+    status: str = Field(pattern='^(REVIEW|HOLD|EXCLUDED|APPROVED|REGISTRATION_REQUIRED)$')
+    policy_id: str | None = Field(default=None,max_length=80)
+    project_ids: list[str] = Field(default_factory=list,max_length=30)
+    new_project_names: list[str] = Field(default_factory=list,max_length=30)
+    actor: str = Field(min_length=1,max_length=100)
+    reason: str = Field(min_length=5,max_length=2000)
+    source_checked: bool = False
+
+
 class EvidenceBridgeReview(BaseModel):
     link_id: str = Field(min_length=1,max_length=80)
     revision_no: int = Field(ge=1)
@@ -274,7 +287,7 @@ def create_app(engine=None, auto_collect=None):
     # builders acquire the gate, so nested misses cannot exhaust both slots.
     nested_projections = {'project_information','housing_indicators','delivery_view','requirements_status'}
     delivery_cache = ProjectionCache(lambda: delivery_projection_version(service), build_guard=projection_builds)
-    delivery_screen_input = ProjectionCache(lambda: delivery_screen_projection_version(service), max_entries=2, build_guard=projection_builds)
+    delivery_screen_input = ProjectionCache(lambda: delivery_screen_projection_version(service), max_entries=2, ttl=86400, build_guard=projection_builds)
     indicator_input_cache = ProjectionCache(lambda: delivery_projection_version(service), max_entries=4, build_guard=projection_builds)
     read_caches = {name: ProjectionCache(lambda: projection_version(service), build_guard=None if name in nested_projections else projection_builds)
                    for name in ('overview', 'policy_metrics', 'supply_dashboard', 'map', 'project_collection', 'requirements_status', 'policy_monitor', 'mappings', 'tree', 'source_year_coverage', 'mapping_workbench', 'history', 'geometry', 'schematic', 'annual_supply', 'area_context', 'area_outlook', 'execution_insights', 'unsold', 'housing_indicators', 'project_workspace', 'project_locations', 'project_information', 'source_summary','delivery_view')}
@@ -287,6 +300,10 @@ def create_app(engine=None, auto_collect=None):
         read_caches[name] = ProjectionCache(lambda: delivery_projection_version(service), build_guard=None if name in nested_projections else projection_builds)
     read_caches['delivery_view'] = ProjectionCache(lambda:delivery_screen_projection_version(service))
     read_caches['policy_metrics'] = ProjectionCache(lambda:delivery_screen_projection_version(service),build_guard=projection_builds)
+    # These read models validate committed revisions on every hit. Do not
+    # discard an unchanged policy model every 30 minutes; day is part of key.
+    for name in ('delivery_view','policy_metrics','policy_monitor','mappings'):
+        read_caches[name].ttl = 86400
     def cached_json(name, parameters, build):
         # Relative "today" queries must not reuse yesterday's projection.
         body, status = read_caches[name].get((today(),tuple(sorted(parameters.items()))), build)
@@ -326,6 +343,7 @@ def create_app(engine=None, auto_collect=None):
                 threading.Thread(target=collection_worker, args=(lane,), name=f'home-source-worker-{lane}', daemon=True).start()
         yield
         stop.set()
+        project_report_executor.shutdown(wait=False, cancel_futures=True)
 
     app = FastAPI(title="HOME", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.service = service
@@ -748,6 +766,48 @@ def create_app(engine=None, auto_collect=None):
         try: return cached_json('project_information',{'project_id':project_id},build)
         except ValueError as error:raise HTTPException(404,str(error)) from None
 
+    project_report_jobs = {}
+    project_report_lock = threading.Lock()
+    project_report_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix='home-project-report')
+
+    @app.get(PREFIX + '/api/project-brief/{project_id}')
+    def project_brief(project_id: str, as_of_date: date | None = None):
+        from .project_brief import report_input
+        reference = as_of_date or today()
+        if reference > today():raise HTTPException(422, '보고 기준일은 오늘까지 선택할 수 있습니다')
+        def build():
+            # Share the cached policy input, including identity and quantity rules.
+            ledger = json.loads(policy_delivery_view(reference, 'policy', 'policy', True).body)
+            return report_input(service, project_id, reference, ledger)
+        key=(project_id,reference)
+        with project_report_lock:
+            future=project_report_jobs.get(key)
+            if future is None:
+                # Closed tabs may never poll completed jobs. Their results are
+                # already cached; only active work should occupy queue slots.
+                for finished_key, finished in list(project_report_jobs.items()):
+                    if finished.done():
+                        project_report_jobs.pop(finished_key, None)
+                if len(project_report_jobs)>=8:raise HTTPException(429,'보고서 준비 중입니다. 잠시 후 다시 조회하세요.')
+                future=project_report_executor.submit(cached_json,'project_information',dict(project_id=project_id,day=reference,report=True),build)
+                project_report_jobs[key]=future
+        try:
+            # Stay below the public proxy's 30-second response timeout. Polling
+            # attaches to the same Future and never launches duplicate builds.
+            response=future.result(timeout=15)
+            with project_report_lock:
+                if project_report_jobs.get(key) is future:
+                    project_report_jobs.pop(key, None)
+            return response
+        except FutureTimeout:
+            return Response(json.dumps(dict(status='PENDING',as_of_date=reference.isoformat(),project_id=project_id)),status_code=202,media_type='application/json',headers={'Retry-After':'2','Cache-Control':'no-store'})
+        except Exception as error:
+            with project_report_lock:
+                if project_report_jobs.get(key) is future:
+                    project_report_jobs.pop(key, None)
+            if isinstance(error,ValueError):raise HTTPException(404,str(error)) from None
+            raise
+
     @app.post(PREFIX + '/api/admin/project-information/{project_id}')
     def project_information_save(project_id: str,payload: ProjectProfileEdit,request: Request):
         if not authenticated(request):raise HTTPException(401,'관리자 로그인이 필요합니다')
@@ -991,9 +1051,9 @@ def create_app(engine=None, auto_collect=None):
         return cached_json('mappings',dict(f,compact=compact),build)
 
     @app.get(PREFIX + '/api/mapping-workbench')
-    def mapping_workbench():
+    def mapping_workbench(focus_project_id: str | None = Query(None,max_length=80)):
         from .mapping_workbench import build
-        return cached_json('mapping_workbench', {}, lambda: build(service))
+        return cached_json('mapping_workbench', {'focus_project_id':focus_project_id}, lambda: build(service,focus_project_id=focus_project_id))
 
     @app.get(PREFIX + "/api/programs")
     def programs(f=Depends(filters)):
@@ -1120,6 +1180,30 @@ def create_app(engine=None, auto_collect=None):
             with projection_reads():
                 return build_status(service, collection_matrix(service, policy_id='POL_2025_0907', include_link_history=False), json.loads(project_locations().body))
         return cached_json('requirements_status', {}, build)
+
+    @app.get(PREFIX + '/api/publication-reviews')
+    def publication_reviews_api():
+        from .publication_reviews import queue
+        return queue(service)
+
+    @app.get(PREFIX + '/api/publication-reviews/summary')
+    def publication_review_summary():
+        from .publication_reviews import queue
+        return {k:v for k,v in queue(service,include_options=False).items() if k in ('pending','total','counts')}
+
+    @app.get(PREFIX + '/api/publication-reviews/{document_id}/history')
+    def publication_review_history(document_id: str):
+        from .publication_reviews import history
+        return {'items':history(service,document_id)}
+
+    @app.post(PREFIX + '/api/admin/publication-reviews/{document_id}')
+    def publication_review_save(document_id: str,payload: PublicationReview,request: Request):
+        if not authenticated(request):raise HTTPException(401,'관리자 로그인이 필요합니다')
+        from .publication_reviews import save
+        try:result=save(service,document_id,**payload.model_dump())
+        except ValueError as error:raise HTTPException(422,str(error)) from None
+        if result.get('conflict'):raise HTTPException(409,'원문 또는 검토 기록이 변경됐습니다. 다시 조회한 뒤 검토하세요')
+        return result
 
     @app.post(PREFIX + '/api/admin/evidence-bridge')
     def evidence_bridge_review(payload: EvidenceBridgeReview,request: Request):

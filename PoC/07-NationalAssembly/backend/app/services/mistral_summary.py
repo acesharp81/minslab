@@ -92,10 +92,16 @@ class MistralSummaryClient:
         payload = response.json()
         message = ((payload.get("choices") or [{}])[0].get("message") or {})
         parsed = parse_summary_items(str(message.get("content") or ""))
+        items = validated_summary_items(parsed, utterances)
         return MistralSummaryResult(
-            items=validated_summary_items(parsed, utterances),
+            items=items,
             usage_metadata={
                 "request_id": str(payload.get("id") or ""),
+                "response_model": str(payload.get("model") or ""),
+                "raw_response": str(message.get("content") or ""),
+                "rejected_ids": [str(row.get('id')) for row in parsed if isinstance(row, dict)
+                    and row.get('id') in {u['content_hash'] for u in utterances}
+                    and row.get('id') not in {i['content_hash'] for i in items}],
                 "usage": payload.get("usage") or {},
             },
         )

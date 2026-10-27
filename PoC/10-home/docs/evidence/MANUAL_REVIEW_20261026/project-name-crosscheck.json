@@ -1,0 +1,139 @@
+{
+  "면목": [
+    {
+      "id": "PRO_df2b6ad28caa146e40165715",
+      "name": "중랑 면목행정복합타운",
+      "policy_id": "POL_2026_0129",
+      "status": "REVIEW",
+      "source_id": "policy_129",
+      "units": 712
+    },
+    {
+      "id": "PRO_1a2f7971d22b94d5210c83b2",
+      "name": "면목(용마터널)",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": null
+    },
+    {
+      "id": "PRO_81b3115095b754e7ec4ed14a",
+      "name": "면목(상봉터미널)",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": null
+    }
+  ],
+  "사당": [],
+  "제물포": [
+    {
+      "id": "PRO_a0d337124ee67a9f014a4b0f",
+      "name": "제물포 도심공공복합",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "policy_129",
+      "units": 3500
+    }
+  ],
+  "구월2": [],
+  "신길4": [
+    {
+      "id": "PRO_f6c0192892345ead1fe0e5de",
+      "name": "신길4",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": 1273
+    }
+  ],
+  "녹번": [
+    {
+      "id": "PRO_aeec29784fa6fefa3869f86a",
+      "name": "녹번동근린공원",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": 2676
+    },
+    {
+      "id": "PRO_2dfce86fe558681361a8c5ad",
+      "name": "녹번역",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": null
+    }
+  ],
+  "송중": [
+    {
+      "id": "PRO_879332d8d922f83dd0c8ba74",
+      "name": "송중동 주민센터",
+      "policy_id": "POL_2026_0813",
+      "status": "REVIEW",
+      "source_id": "urban_930",
+      "units": 1083
+    }
+  ],
+  "성북": [],
+  "수서": [
+    {
+      "id": "PRO_5b74fdf3cdf3e46eb1fdf2ba",
+      "name": "수서 노후 임대 재건축",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "policy_907",
+      "units": 3899
+    }
+  ],
+  "시흥거모": [
+    {
+      "id": "PRO_5fd2115e976e1d5bb4e90456",
+      "name": "시흥거모 S1",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_sale",
+      "units": 300
+    },
+    {
+      "id": "PRO_56c23b88a629f40dd3071afc",
+      "name": "시흥거모 A5",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_sale",
+      "units": 290
+    },
+    {
+      "id": "PRO_7d1b5e3e2b392b43d0c59a6b",
+      "name": "시흥거모 A6",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_sale",
+      "units": 480
+    },
+    {
+      "id": "PRO_53a9b7ec0a27d2d3f33aae2b",
+      "name": "시흥거모 A4",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_sale",
+      "units": 510
+    },
+    {
+      "id": "PRO_a2d73c8fd81adb49dfba0fa3",
+      "name": "시흥거모 A10",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_sale",
+      "units": 301
+    },
+    {
+      "id": "PRO_70da87e9fa493fcc566e02e3",
+      "name": "시흥거모 A-5BL 공동주택 건설공사 2공구 (",
+      "policy_id": "POL_2025_0907",
+      "status": "CONFIRMED",
+      "source_id": "lh_construction",
+      "units": 435
+    }
+  ]
+}

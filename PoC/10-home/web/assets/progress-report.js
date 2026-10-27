@@ -235,6 +235,7 @@ const ProgressReport=(()=>{
  let busy=false;
  async function create(){
   if(typeof state!=='undefined'&&state.view==='policy-progress'&&typeof PolicyBriefReport!=='undefined'){try{await PolicyBriefReport.open();}catch(error){document.getElementById('error').textContent=error.message;document.getElementById('error').hidden=false;}return;}
+  if(typeof state!=='undefined'&&state.view==='projects'&&typeof ProjectBriefReport!=='undefined'){if(busy)return;busy=true;try{await ProjectBriefReport.open();}catch(error){document.getElementById('error').textContent=error.message;document.getElementById('error').hidden=false;}finally{busy=false;}return;}
   if(busy)return;const button=document.getElementById('progress-report-create');busy=true;button.disabled=true;button.textContent='보고서 구성 중…';
   try{
    const captured=ReportMD.clean(await ReportMD.capture()),m=model(captured),dialog=document.createElement('dialog');dialog.className='progress-report-dialog';dialog.setAttribute('aria-label','추진현황 보고서 미리보기');
@@ -249,5 +250,5 @@ const ProgressReport=(()=>{
  }
  function syncView(view){document.getElementById('progress-report-create').hidden=!supported.has(view);}
  function start(){document.getElementById('progress-report-create').addEventListener('click',create);}
- return {model,markdown,html,reached,risks,start,syncView};
+ return {stageSchedule,scheduleHtml,chartHtml,model,markdown,html,reached,risks,start,syncView};
 })();

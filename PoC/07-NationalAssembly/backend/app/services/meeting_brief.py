@@ -1420,7 +1420,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 else OPENROUTER_STRUCTURED_RETRY_MODEL
             )
             max_attempts = (
-                1 if self.provider == "nvidia" and schema_name == "meeting_brief" else 3
+                (2 if schema_name == "meeting_brief" else 1) if self.provider == "nvidia" and schema_name in {"meeting_brief", "meeting_reduction"} else 3
             )
             for attempt in range(max_attempts):
                 callback()
@@ -1463,8 +1463,9 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                         else 5 * (attempt + 1)
                     )
                     time.sleep(delay)
-                except requests.Timeout:
-                    if attempt == max_attempts - 1:
+                except requests.Timeout as exc:
+                    exc.workload = schema_name
+                    if attempt == max_attempts - 1 or (self.provider == "nvidia" and schema_name in {"meeting_brief", "meeting_reduction"}):
                         raise
                     if self.provider == "openrouter":
                         model_override = retry_model
@@ -1472,6 +1473,7 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 except MalformedMeetingBriefResponse as exc:
                     # Count tokens from malformed responses before retrying so the
                     # monthly free-credit guard cannot be bypassed by parse failures.
+                    exc.workload = schema_name
                     usage_callback(exc.usage_metadata)
                     if attempt == max_attempts - 1:
                         raise
@@ -1540,40 +1542,56 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 cached_reduction = (
                     load_chunk(cache_index, batch_hash) if load_chunk else None
                 )
-                if cached_reduction is not None:
-                    return [
-                        validate_chunk_analysis(
-                            cached_reduction,
-                            valid_ids,
-                            speaker_map,
-                            max_topics=MAX_REDUCTION_TOPICS,
-                        )
+                if cached_reduction is not None and cached_reduction.get('reduction_parts'):
+                    return [validate_chunk_analysis(part, valid_ids, speaker_map, max_topics=MAX_REDUCTION_TOPICS)
+                            for part in cached_reduction['reduction_parts']]
+                if cached_reduction is not None and not cached_reduction.get('reduction_split'):
+                    return [validate_chunk_analysis(cached_reduction, valid_ids, speaker_map, max_topics=MAX_REDUCTION_TOPICS)]
+
+                def split_batch() -> list[dict[str, Any]]:
+                    if save_chunk:
+                        save_chunk(cache_index, batch_hash, {'reduction_split': True},
+                                   {'method': 'REDUCTION_SPLIT_PLAN', 'api_requests': 0})
+                    midpoint = len(batch) // 2
+                    parts = [
+                        *reduce_batch(batch[:midpoint], batch_index * 10 + 1, cache_index * 10 + 1),
+                        *reduce_batch(batch[midpoint:], batch_index * 10 + 2, cache_index * 10 + 2),
                     ]
+                    if save_chunk:
+                        save_chunk(cache_index, batch_hash, {'reduction_split': True, 'reduction_parts': parts},
+                                   {'method': 'VALIDATED_REDUCTION_PARTS', 'api_requests': 0})
+                    return parts
+
+                def has_saved_descendant(source, index):
+                    if not load_chunk or len(source) <= 1:
+                        return False
+                    middle = len(source) // 2
+                    for suffix, child in [(1, source[:middle]), (2, source[middle:])]:
+                        key = hashlib.sha256(json.dumps(child, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()
+                        if load_chunk(index * 10 + suffix, key) is not None or has_saved_descendant(child, index * 10 + suffix):
+                            return True
+                    return False
+
+                if len(batch) > 1 and (cached_reduction or has_saved_descendant(batch, cache_index)
+                        or (self.provider == 'nvidia' and len(build_reduction_prompt(batch, batch_index).encode()) > 32000)):
+                    return split_batch()
                 try:
                     data, metadata = request(
                         build_reduction_prompt(batch, batch_index),
                         reduction_response_schema(),
                         "meeting_reduction",
                     )
+                except requests.Timeout:
+                    if self.provider != "nvidia" or len(batch) <= 1:
+                        raise
+                    return split_batch()
                 except MalformedMeetingBriefResponse as exc:
                     finish_reason = str(
                         exc.usage_metadata.get("finish_reason") or ""
                     ).lower()
                     if finish_reason != "length" or len(batch) <= 1:
                         raise
-                    midpoint = len(batch) // 2
-                    return [
-                        *reduce_batch(
-                            batch[:midpoint],
-                            batch_index * 10 + 1,
-                            cache_index * 10 + 1,
-                        ),
-                        *reduce_batch(
-                            batch[midpoint:],
-                            batch_index * 10 + 2,
-                            cache_index * 10 + 2,
-                        ),
-                    ]
+                    return split_batch()
                 reduction = validate_chunk_analysis(
                     data,
                     valid_ids,
@@ -1611,22 +1629,31 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                 "completed_chunks": len(chunks),
             }
         )
-        synthesis_prompt = build_synthesis_prompt(
-            meeting,
-            analyses,
-            valid_ids,
-            live_topic_clusters,
-        )
+        wire_analyses, wire_clusters = analyses, live_topic_clusters
+        evidence_refs, cluster_refs = {}, {}
+        synthesis_schema = brief_response_schema()
+        if self.provider == 'nvidia':
+            from .compact_brief_ids import encode
+            wire_analyses, wire_clusters, evidence_refs, cluster_refs = encode(analyses, live_topic_clusters or [], valid_ids)
+            topic_fields = synthesis_schema['properties']['topics']['items']['properties']
+            topic_fields['summary']['maxLength'] = 180
+            topic_fields['speaker_points']['items']['properties']['summary']['maxLength'] = 120
+        synthesis_prompt = build_synthesis_prompt(meeting, wire_analyses, valid_ids, wire_clusters)
+        if evidence_refs:
+            synthesis_prompt += '\n근거 id는 입력의 짧은 e번호, 실시간 묶음은 c번호를 그대로 사용한다. 주제 수·근거를 줄이지 말고 문장만 간결하게 작성하라. 주제 요약은 180자 이내, 화자 요지는 120자 이내다.'
         required_topic_count = minimum_final_topic_count(analyses)
         required_task_count = minimum_final_task_count(analyses)
         brief: dict[str, Any] | None = None
         for quality_attempt in range(3):
             data, metadata = request(
                 synthesis_prompt,
-                brief_response_schema(),
+                synthesis_schema,
                 "meeting_brief",
             )
             usage.append(metadata)
+            if evidence_refs:
+                from .compact_brief_ids import transform
+                data = transform(data, evidence_refs, cluster_refs)
             data = _sanitize_final_display_language(data)
             try:
                 brief = validate_meeting_brief(
@@ -1800,6 +1827,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         reserve_tokens: Callable[[int], date],
         settle_tokens: Callable[[date, int, dict[str, Any] | None], None],
         timeout_seconds: float = 120.0,
+        reserve_for_workload: Callable[[int, str], date] | None = None,
     ) -> None:
         super().__init__(
             api_key, model=model, base_url=base_url,
@@ -1807,6 +1835,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         )
         self.reserve_tokens = reserve_tokens
         self.settle_tokens = settle_tokens
+        self.reserve_for_workload = reserve_for_workload
 
     def _post(
         self, prompt: str, schema: dict[str, Any], schema_name: str,
@@ -1832,9 +1861,13 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         body_bytes = len(json.dumps(body, ensure_ascii=False).encode("utf-8"))
         estimate = body_bytes + max_output_tokens + 2_048
         usage_metadata: dict[str, Any] | None = None
+        reserve = lambda tokens: (self.reserve_for_workload(tokens, schema_name)
+                                  if self.reserve_for_workload else self.reserve_tokens(tokens))
         try:
-            usage_date = self.reserve_tokens(estimate)
-        except DailyTokenLimitReached:
+            usage_date = reserve(estimate)
+        except DailyTokenLimitReached as exc:
+            if getattr(exc, 'skip_input_count', False):
+                raise
             # UTF-8 bytes can overstate Korean prompt tokens substantially.
             # Count the identical prompt and schema through OpenAI's official
             # input-token endpoint, then keep a large Chat/Responses margin.
@@ -1867,7 +1900,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                 ) from exc
             estimate = max(input_tokens + 8_192, (body_bytes + 1) // 2)
             estimate += max_output_tokens
-            usage_date = self.reserve_tokens(estimate)
+            usage_date = reserve(estimate)
         try:
             response = requests.post(
                 f"{self.base_url}/chat/completions",
@@ -1905,4 +1938,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                 raise MalformedMeetingBriefResponse(usage_metadata) from exc
             return parsed, usage_metadata
         finally:
+            if usage_metadata is None:
+                usage_metadata = {}
+            usage_metadata["workload"] = schema_name
             self.settle_tokens(usage_date, estimate, usage_metadata)

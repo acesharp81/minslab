@@ -28,6 +28,24 @@ body.meeting-summary-document-open { overflow: hidden; }
 .meeting-summary-paper-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 28px; padding-top: 12px; border-top: 1px solid #b8c4d4; color: #536277; font-size: 9pt; }
 .meeting-summary-paper-footer a { color: inherit; }
 .meeting-summary-paper-empty { color: #687286; }
+.meeting-summary-overview { margin: 0 0 28px; }
+.meeting-summary-introduction { padding: 18px 20px; border-left: 4px solid #2c629c; background: #f3f7fc; }
+.meeting-summary-introduction h2 { margin-bottom: 8px; padding: 0; border: 0; font-size: 13pt; }
+.meeting-summary-introduction-text { margin: 0; white-space: pre-line; color: #263c56; }
+.meeting-summary-charts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-top: 24px; }
+.meeting-summary-chart { min-width: 0; margin: 0; }
+.meeting-summary-chart h3 { margin: 0 0 3px; font-size: 11pt; }
+.meeting-summary-chart-note, .meeting-summary-overview-note { margin: 0; color: #64748b; font-size: 8.5pt; line-height: 1.6; }
+.meeting-summary-chart-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.meeting-summary-chart-list li { margin: 0 0 10px; break-inside: avoid; }
+.meeting-summary-chart-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 9pt; line-height: 1.5; }
+.meeting-summary-chart-label span { min-width: 0; }
+.meeting-summary-chart-label strong { flex-shrink: 0; font-size: 8pt; color: #405878; font-variant-numeric: tabular-nums; }
+.meeting-summary-chart-track { height: 6px; margin-top: 5px; border-radius: 3px; background: #edf1f6; }
+.meeting-summary-chart-bar { display: block; height: 100%; border-radius: inherit; background: #3e6da8; }
+.meeting-summary-chart.is-keywords .meeting-summary-chart-bar { background: #288575; }
+.meeting-summary-chart-list .is-other .meeting-summary-chart-bar { background: #a7b4c5; }
+.meeting-summary-overview-note { margin-top: 16px; padding-top: 10px; border-top: 1px solid #dce3ed; }
 @media (max-width: 640px) {
   .meeting-summary-document-dialog { width: calc(100vw - 12px); height: calc(100dvh - 12px); border-radius: 10px; }
   .meeting-summary-document-toolbar { flex-wrap: wrap; padding: 12px; gap: 10px; }
@@ -35,6 +53,8 @@ body.meeting-summary-document-open { overflow: hidden; }
   .meeting-summary-document-body { padding: 12px 8px; }
   .meeting-summary-paper { padding: 22px 18px; }
   .meeting-summary-paper h1 { font-size: 18pt; }
+  .meeting-summary-charts { grid-template-columns: minmax(0, 1fr); }
+  .meeting-summary-introduction { padding: 14px; }
 }
 @page meeting-summary {
   size: A4;
@@ -55,4 +75,7 @@ body.meeting-summary-document-open { overflow: hidden; }
   .meeting-summary-paper-header, .meeting-summary-paper-footer { break-inside: avoid; }
   .meeting-summary-paper-footer { break-before: avoid; }
   .meeting-summary-paper-group:last-of-type, .meeting-summary-paper-group:last-of-type .meeting-summary-paper-topic:last-child { break-after: avoid; }
+  .meeting-summary-charts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .meeting-summary-introduction, .meeting-summary-chart { break-inside: avoid; }
+  .meeting-summary-overview { break-after: page; }
 }

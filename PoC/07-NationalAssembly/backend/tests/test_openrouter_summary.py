@@ -60,7 +60,7 @@ class OpenRouterSummaryTests(unittest.TestCase):
             request.call_args.kwargs["headers"]["Authorization"], "Bearer secret"
         )
         self.assertNotIn("secret", request.call_args.args[0])
-        self.assertEqual(request.call_args.kwargs["json"]["reasoning"], {"enabled": False, "exclude": True})
+        self.assertEqual(request.call_args.kwargs["json"]["reasoning"], {"effort": "low", "exclude": True})
         self.assertNotIn("liquid/lfm-2.5-2.6b:free", request.call_args.kwargs["json"]["models"])
         self.assertGreaterEqual(request.call_args.kwargs["json"]["max_tokens"], 8192)
 
@@ -68,8 +68,17 @@ class OpenRouterSummaryTests(unittest.TestCase):
         response = FakeResponse({"choices": [{"message": {"content": '{"summaries": []}'}}]})
         with mock.patch("app.services.openrouter_summary.requests.post", return_value=response) as request:
             OpenRouterSummaryClient("fixture", model="liquid/lfm-2.5-2.6b:free").summarize([])
-        self.assertEqual({"exclude": True}, request.call_args.kwargs["json"]["reasoning"])
+        self.assertEqual({"effort": "low", "exclude": True}, request.call_args.kwargs["json"]["reasoning"])
         self.assertNotIn("models", request.call_args.kwargs["json"])
+
+    def test_dots_direct_json_does_not_fall_back_to_required_reasoning_model(self):
+        response = FakeResponse({"choices": [{"message": {"content": '{"summaries": []}'}}]})
+        with mock.patch("app.services.openrouter_summary.requests.post", return_value=response) as request:
+            OpenRouterSummaryClient("fixture", model="dots-studio/dots-3-note-preview:free").summarize([])
+        body = request.call_args.kwargs["json"]
+        self.assertEqual(["dots-studio/dots-3-note-preview:free"], body["models"])
+        self.assertEqual({"enabled": False, "exclude": True}, body["reasoning"])
+        self.assertEqual(8192, body["max_tokens"])
 
     def test_uses_complete_target_and_adjacent_turns_as_context(self):
         utterances = [
@@ -91,7 +100,7 @@ class OpenRouterSummaryTests(unittest.TestCase):
             [item["text"] for item in utterances],
         )
         self.assertEqual(target["text"], utterances[2]["text"])
-        self.assertEqual(PROMPT_VERSION, "assembly-conversation-summary/2.1")
+        self.assertEqual(PROMPT_VERSION, "assembly-conversation-summary/2.4")
 
 
 if __name__ == "__main__":

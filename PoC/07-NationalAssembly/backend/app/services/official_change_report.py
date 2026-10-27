@@ -259,7 +259,7 @@ class OpenRouterOfficialChangeReportClient:
                     {"role": "system", "content": "공개 공식 근거의 검증된 변경만 설명하는 한국어 회의 보고서 편집자다."},
                     {"role": "user", "content": prompt},
                 ],
-                "stream": False, "temperature": 0.0, "max_tokens": 2600,
+                "stream": False, "temperature": 0.0, "max_tokens": 8192,
                 "response_format": {
                     "type": "json_schema",
                     "json_schema": {
@@ -267,7 +267,7 @@ class OpenRouterOfficialChangeReportClient:
                         "strict": True, "schema": _schema(),
                     },
                 },
-                "reasoning": {"enabled": False, "exclude": True},
+                "reasoning": {"effort": "low", "exclude": True},
                 "provider": {
                     "data_collection": "allow",
                     "allow_fallbacks": True,

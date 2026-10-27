@@ -1,0 +1,4150 @@
+{
+  "items": [
+    {
+      "id": "lh_policy_followup",
+      "name": "LH 9·7 후속 민간참여 공모 · 블록별 착공계획",
+      "org": "한국토지주택공사",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0034&list_no=727339&mid=a10601020000",
+      "type": "PLAN",
+      "data_type": "DOCUMENT",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "refresh_days": 1,
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T13:18:04.558758+00:00",
+      "last_success": "2026-10-25T13:18:06.180813+00:00",
+      "error": null,
+      "record_count": 52,
+      "stats": {},
+      "snapshot_count": 5,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "지정 문서 재확인",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "검토·등록된 LH 보도자료 4건과 공모 1건을 재다운로드합니다. 게시판 전체의 신규 공모를 자동 발견하는 수집기는 아닙니다.",
+        "parser": "PDF는 pypdf PdfReader의 layout 텍스트 추출 후 지구·블록·호수·목표월 규칙으로 구조화합니다. HTML은 BeautifulSoup으로 읽습니다.",
+        "pdf": "표 구조나 수량 검증에 실패한 자료는 오류로 남겨 파서를 점검합니다. 스캔 PDF는 원문을 보관하고 별도 판독·추출 보완이 필요합니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_happy_plan_file",
+      "name": "LH 행복주택 공급계획 공개파일",
+      "org": "한국토지주택공사",
+      "url": "https://www.data.go.kr/data/15043330/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:22.997266+00:00",
+      "last_success": "2026-10-25T12:16:23.822343+00:00",
+      "error": null,
+      "record_count": 159,
+      "stats": {
+        "dataset_version": "2025-09-22"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_national_plan_file",
+      "name": "SH 국민임대주택 공급계획",
+      "org": "서울주택도시개발공사",
+      "url": "https://www.data.go.kr/data/15045310/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:24.840575+00:00",
+      "last_success": "2026-10-25T12:16:25.253971+00:00",
+      "error": null,
+      "record_count": 7,
+      "stats": {
+        "dataset_version": "2026-08-31"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_jeonse_plan_file",
+      "name": "SH 장기전세주택 공급계획",
+      "org": "서울주택도시개발공사",
+      "url": "https://www.data.go.kr/data/15045311/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:26.277588+00:00",
+      "last_success": "2026-10-25T12:16:26.740074+00:00",
+      "error": null,
+      "record_count": 30,
+      "stats": {
+        "dataset_version": "2026-08-31"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_happy_plan_file",
+      "name": "SH 행복주택·리츠 공급계획",
+      "org": "서울주택도시개발공사",
+      "url": "https://www.data.go.kr/data/15066029/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:27.761855+00:00",
+      "last_success": "2026-10-25T12:16:28.173941+00:00",
+      "error": null,
+      "record_count": 19,
+      "stats": {
+        "dataset_version": "2026-08-03"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "reb_movein_plan_file",
+      "name": "한국부동산원 입주예정물량",
+      "org": "한국부동산원",
+      "url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:29.189081+00:00",
+      "last_success": "2026-10-25T12:16:30.292920+00:00",
+      "error": null,
+      "record_count": 390,
+      "stats": {
+        "dataset_version": "2026-06-30"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_contract_file",
+      "name": "SH 공사계약 공개파일",
+      "org": "서울주택도시개발공사",
+      "url": "https://www.data.go.kr/data/3045249/fileData.do",
+      "type": "REFERENCE",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "collection_mode": "AGENCY_PLAN_FILE",
+      "refresh_days": 1,
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:16:31.306946+00:00",
+      "last_success": "2026-10-25T12:16:32.255111+00:00",
+      "error": null,
+      "record_count": 792,
+      "stats": {
+        "dataset_version": "2026-08-03"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "파일 링크·판본 감지",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.",
+        "parser": "CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_department_plans",
+      "name": "LH 부서별 연간 업무계획 · 원문·표",
+      "org": "한국토지주택공사",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654637&mid=a10103050000&nPage=1",
+      "type": "PLAN",
+      "data_type": "DOCUMENT",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "refresh_days": 1,
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:46:15.538942+00:00",
+      "last_success": "2026-10-25T09:46:18.119404+00:00",
+      "error": null,
+      "record_count": 12,
+      "stats": {},
+      "snapshot_count": 13,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 게시글 첨부 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 LH 업무계획 게시글의 첨부 링크·제목·연도를 다시 읽습니다. 2025년부터 현재 연도까지의 업무계획 첨부가 대상이며 모든 부서 게시판을 검색하지 않습니다.",
+        "parser": "HWPX ZIP 내부 XML에서 문단과 표를 추출합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "eum_housing_notices",
+      "name": "수도권 주택·정비·택지 고시 목록·변경 이력",
+      "org": "국토교통부 토지이음·고시기관",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiList.jsp",
+      "type": "ACTUAL_EVIDENCE",
+      "data_type": "DOCUMENT",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "refresh_days": 1,
+      "backfill_seconds": 3600,
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T21:41:02.476184+00:00",
+      "last_success": "2026-10-25T21:44:04.242092+00:00",
+      "error": null,
+      "record_count": 8699,
+      "stats": {},
+      "snapshot_count": 59,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "신규 고시 탐색",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 86400,
+        "backfill": true,
+        "schedule_note": "미조회 보충 중 1시간마다, 통상 매일. 정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "수도권 3개 시도, 2025-09-07 이후 고시의 최신 목록과 과거 이어받기 페이지를 조회합니다. 고시 ID로 상세·첨부를 추적하고, 배치당 최근 5건과 과거 대기 10건을 처리합니다.",
+        "parser": "PDF는 pypdf로 텍스트 추출, HWPX는 XML 본문·표 파싱을 수행합니다.",
+        "pdf": "이미지 PDF는 문자 추출 대기(OCR_REQUIRED), 구형 HWP는 원문 보관 상태로 남겨 별도 판독·추출 보완 대상으로 관리합니다.",
+        "manual": "이미지 표의 문자·수치 판독과 자동 추출되지 않은 항목의 입력은 별도 수동 보완 대상으로 관리합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "molit_monthly_release",
+      "name": "국토부 월별 주택통계 공식 PDF · 인허가 보완",
+      "org": "국토교통부 / e-나라지표",
+      "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=1229",
+      "type": "STATISTIC",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "MONTHLY_RELEASE",
+      "refresh_days": 1,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T07:22:51.876134+00:00",
+      "last_success": "2026-10-25T07:22:57.667450+00:00",
+      "error": null,
+      "record_count": 6,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "최신 월 PDF 탐색",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "e-나라지표의 첨부 목록에서 주택통계 제목·연월·PDF 링크를 찾아 가장 최신 월을 선택합니다.",
+        "parser": "pypdf layout 텍스트 추출 후 인허가 표의 연월·지역·열을 규칙으로 읽고 수도권 합계를 검산합니다.",
+        "pdf": "이미지 표나 형식이 변경된 표는 별도 판독·파서 점검 대상으로 남깁니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_general_permit",
+      "name": "건축HUB 일반 건축인허가",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "type": "ACTUAL_EVIDENCE",
+      "key_env": "POC10_GENERAL_BUILDING_SERVICE_KEY",
+      "fallback_key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "GENERAL_BUILDING_PERMIT",
+      "refresh_days": 1,
+      "backfill_seconds": 900,
+      "requires_key_for_schedule": true,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": {
+        "source_id": "building_general_permit",
+        "title": "일반 건축인허가 API 연결 확인",
+        "actor": "김민",
+        "reason": "담당자 확인(자동연결)",
+        "status": "CONNECTED",
+        "base_date": "2026-10-17",
+        "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+        "evidence_batch_ids": [
+          "407f286a-ae21-47ed-a59e-b66f4eefb0a8",
+          "dcf128e0-9c58-49e8-b202-77fe8140f732"
+        ],
+        "scope": "API 원천 연결 확인. 사업별 매칭·사건 확정을 뜻하지 않음.",
+        "recorded_at": "2026-10-16T17:21:04.833259+00:00"
+      },
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T18:39:17.750065+00:00",
+      "last_success": "2026-10-25T18:39:30.543617+00:00",
+      "error": null,
+      "record_count": 2429750,
+      "stats": {},
+      "snapshot_count": 3,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "ih_housing_inventory",
+      "name": "iH 공개 임대단지 명부·상세",
+      "org": "인천도시공사",
+      "url": "https://www.ih.co.kr/main/lease/leaseAptList.do",
+      "type": "PROJECT",
+      "key_env": null,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "implemented": true,
+      "refresh_days": 1,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T16:23:25.441458+00:00",
+      "last_success": "2026-10-25T16:23:30.026304+00:00",
+      "error": null,
+      "record_count": 19,
+      "stats": {},
+      "snapshot_count": 20,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "reb_apartment_price",
+      "name": "한국부동산원 수도권 아파트 매매가격지수",
+      "org": "한국부동산원 R-ONE",
+      "url": "https://www.reb.or.kr/r-one/portal/stat/easyStatPage/A_2024_00045.do",
+      "type": "STATISTIC",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "MARKET_INDICATORS",
+      "refresh_days": 1,
+      "show_key_card": false,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-24T23:07:14.837458+00:00",
+      "last_success": "2026-10-24T23:07:25.815800+00:00",
+      "error": null,
+      "record_count": 626,
+      "stats": {},
+      "snapshot_count": 3,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_age",
+      "name": "KOSIS 수도권 시군구 연령별 주민등록인구",
+      "org": "국가데이터처 KOSIS",
+      "url": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1B04005N",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "implemented": true,
+      "collection_mode": "AREA_AGE",
+      "refresh_days": 7,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-21T05:08:03.600426+00:00",
+      "last_success": "2026-10-21T05:08:09.867716+00:00",
+      "error": null,
+      "record_count": 70,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "unsold_statistics",
+      "name": "수도권 미분양·준공 후 미분양 월별 재고",
+      "org": "국토교통 통계누리",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "type": "MARKET_REFERENCE",
+      "key_env": "POC10_MOLIT_STAT_API_KEY",
+      "implemented": true,
+      "collection_mode": "UNSOLD_REFERENCE",
+      "refresh_days": 1,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:19:48.288468+00:00",
+      "last_success": "2026-10-25T12:20:01.350218+00:00",
+      "error": null,
+      "record_count": 418,
+      "stats": {},
+      "snapshot_count": 7,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "project_locations",
+      "name": "사업 대표 주소·지역 근사 좌표",
+      "org": "VWorld·공식 행정구역",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "type": "GIS",
+      "key_env": "POC10_VWORLD_API_KEY",
+      "collection_mode": "PROJECT_LOCATION",
+      "implemented": true,
+      "refresh_days": 7,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-19T23:04:46.538066+00:00",
+      "last_success": "2026-10-19T23:04:53.572914+00:00",
+      "error": null,
+      "record_count": 310,
+      "stats": {},
+      "snapshot_count": 177,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "seoul_cleanup",
+      "name": "서울 정비사업 정보몽땅·추진경과",
+      "org": "서울특별시",
+      "url": "https://cleanup.seoul.go.kr/cleanup/bsnssttus/lscrMainIndx.do",
+      "type": "PROJECT",
+      "key_env": null,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "implemented": true,
+      "refresh_days": 7,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:13:07.177272+00:00",
+      "last_success": "2026-10-25T22:13:30.893900+00:00",
+      "error": null,
+      "record_count": 1254,
+      "stats": {},
+      "snapshot_count": 213,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "national_statistics",
+      "name": "전국 주택 공급단계 통계 · 보관 원본 확대 추출",
+      "org": "국토교통부",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "type": "STATISTIC",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": true,
+      "collection_mode": "RAW_REPLAY",
+      "show_key_card": false,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-12T04:37:19.628007+00:00",
+      "last_success": "2026-10-12T04:37:32.192376+00:00",
+      "error": null,
+      "record_count": 4468,
+      "stats": {},
+      "snapshot_count": 164,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "보관 원문 재처리",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "이미 보관된 원문을 수동 실행으로 다시 추출합니다. 외부 신규 자료를 발견하는 수집은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 재처리 범위와 실행 시점을 결정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "ih_notice",
+      "name": "iH 공식 주택 사업·분양·임대 모집공고",
+      "org": "인천도시공사",
+      "url": "https://www.ih.co.kr/main/business/house.jsp",
+      "type": "PROJECT",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "show_key_card": false,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:01:05.772198+00:00",
+      "last_success": "2026-10-25T22:01:20.708635+00:00",
+      "error": null,
+      "record_count": 290,
+      "stats": {},
+      "snapshot_count": 50,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "ih_supply",
+      "name": "iH 임대 재고·계약·공가 API · 접근 미확인",
+      "org": "인천도시공사",
+      "url": "https://www.data.go.kr/data/15168460/openapi.do",
+      "type": "STOCK_REFERENCE",
+      "key_env": "POC10_IH_SERVICE_KEY",
+      "fallback_key_env": "POC10_LH_NOTICE_SERVICE_KEY",
+      "implemented": true,
+      "manual_only": true,
+      "collection_mode": "IH_STOCK",
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "FAILED",
+      "last_attempt": "2026-10-19T09:55:46.542166+00:00",
+      "last_success": null,
+      "error": "iH 기관 API 연결 실패(HTTP 504). 재시도 필요 · 데이터 존재 여부 미판정 · 0호 아님",
+      "record_count": 0,
+      "stats": {},
+      "snapshot_count": 0,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "incheon_legal_dongs",
+      "name": "9·7 인천 전체 법정동 코드",
+      "org": "행정안전부",
+      "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+      "type": "GIS",
+      "key_env": null,
+      "implemented": true,
+      "manual_only": true,
+      "collection_mode": "PUBLIC_FILE",
+      "region_prefixes": [
+        "28"
+      ],
+      "minimum_codes": 20,
+      "code_kind": "policy_legal_dong",
+      "show_key_card": false,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-12T00:03:36.829132+00:00",
+      "last_success": "2026-10-12T00:03:38.331915+00:00",
+      "error": null,
+      "record_count": 278,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_hub_incheon",
+      "name": "9·7 인천 주택인허가 원천",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "type": "ACTUAL",
+      "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+      "implemented": true,
+      "manual_only": false,
+      "collection_mode": "INCREMENTAL_INCHEON",
+      "backfill_seconds": 900,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T10:01:12.907575+00:00",
+      "last_success": "2026-10-25T10:01:19.736147+00:00",
+      "error": null,
+      "record_count": 18287,
+      "stats": {},
+      "snapshot_count": 22,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_register_recap",
+      "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15134735/openapi.do",
+      "type": "ACTUAL_EVIDENCE",
+      "key_env": "POC10_BUILDING_REGISTER_SERVICE_KEY",
+      "implemented": true,
+      "manual_only": false,
+      "backfill_seconds": 900,
+      "requires_key_for_schedule": true,
+      "collection_mode": "REGISTER_RECAP",
+      "register_kind": "register_recap",
+      "register_endpoint": "getBrRecapTitleInfo",
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T16:23:11.605343+00:00",
+      "last_success": "2026-10-25T16:23:24.354518+00:00",
+      "error": null,
+      "record_count": 58920,
+      "stats": {},
+      "snapshot_count": 0,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_907_plan",
+      "name": "9·7 전체 연도·유형별 착공 목표 원문",
+      "org": "국토교통부 / KDI 원문",
+      "url": "https://eiec.kdi.re.kr/policy/materialView.do?num=270716",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 7,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-19T03:44:51.052493+00:00",
+      "last_success": "2026-10-19T03:44:59.101930+00:00",
+      "error": null,
+      "record_count": 1,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "정책 원문 재확인",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 정책 본문·첨부 URL을 재조회합니다. 새로운 정책 게시물 전체를 자동 검색하는 경로가 아닙니다.",
+        "parser": "HTML·PDF 텍스트를 파싱하고 문서에 적힌 항목명과 수량을 자료별 추출 규칙으로 구조화합니다.",
+        "pdf": "PDF 텍스트는 pypdf로 읽습니다. 이미지 표 및 새로운 문서 구조는 별도 판독·파서 보완이 필요합니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_907_incheon_geometry",
+      "name": "9·7 인천 시군구 경계",
+      "org": "국토교통부 VWorld",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "type": "GIS",
+      "key_env": "POC10_VWORLD_API_KEY",
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 7,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-18T23:50:40.551355+00:00",
+      "last_success": "2026-10-18T23:50:42.374788+00:00",
+      "error": null,
+      "record_count": 11,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "incheon_statistics",
+      "name": "인천 주택 인허가·착공·준공·분양승인 통계",
+      "org": "국토교통 통계누리",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_MOLIT_STAT_API_KEY",
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 7,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-18T23:51:37.066521+00:00",
+      "last_success": "2026-10-18T23:51:47.964569+00:00",
+      "error": null,
+      "record_count": 320,
+      "stats": {},
+      "snapshot_count": 168,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_incheon_sale",
+      "name": "LH 인천 분양 공급계획",
+      "org": "LH청약플러스",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 1,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:00:11.559288+00:00",
+      "last_success": "2026-10-25T09:00:11.998075+00:00",
+      "error": null,
+      "record_count": 5,
+      "stats": {
+        "source_base_date": "2026"
+      },
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공급계획 표 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "현재 공개된 공급계획 표의 전체 페이지를 읽고 게시 총건수와 조회 행 수를 대조합니다. 블록·유형·면적·월로 중복을 검사하며 공개 전 계획은 가져올 수 없습니다.",
+        "parser": "BeautifulSoup HTML 표 파싱과 수량·월 검산을 사용합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_incheon_rent",
+      "name": "LH 인천 임대 공급계획",
+      "org": "LH청약플러스",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "type": "PLAN",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 1,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:00:13.399039+00:00",
+      "last_success": "2026-10-25T09:00:14.003256+00:00",
+      "error": null,
+      "record_count": 5,
+      "stats": {
+        "source_base_date": "2026"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공급계획 표 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "현재 공개된 공급계획 표의 전체 페이지를 읽고 게시 총건수와 조회 행 수를 대조합니다. 블록·유형·면적·월로 중복을 검사하며 공개 전 계획은 가져올 수 없습니다.",
+        "parser": "BeautifulSoup HTML 표 파싱과 수량·월 검산을 사용합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_incheon_construction",
+      "name": "LH 인천 실제 착공·공정 현황",
+      "org": "한국토지주택공사",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "type": "ACTUAL",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "POLICY_DELIVERY",
+      "manual_only": false,
+      "show_key_card": false,
+      "refresh_days": 1,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T16:58:54.805910+00:00",
+      "last_success": "2026-10-25T16:58:57.015010+00:00",
+      "error": null,
+      "record_count": 16,
+      "stats": {
+        "source_base_date": "2026-07-01"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공사현황 첨부 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록 게시글의 DOCX 첨부 제목에서 기준일을 읽고 가장 최신 파일을 선택합니다. 같은 게시글의 새 첨부는 감지하지만 다른 게시글까지 전수 검색하지 않습니다.",
+        "parser": "DOCX ZIP 내부 word/document.xml의 표를 읽고 공종·블록·호수·착공일·공정률 열을 검증합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "molit_demolition",
+      "name": "국토부 연도별 주택멸실현황 · 서울·경기",
+      "org": "국토교통부 / e-나라지표",
+      "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839",
+      "type": "STATISTIC",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "STATISTICS",
+      "data_type_label": "주택·인구·가격 공식 통계",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:50:42.788553+00:00",
+      "last_success": "2026-10-25T11:50:43.363081+00:00",
+      "error": null,
+      "record_count": 14,
+      "stats": {},
+      "snapshot_count": 8,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "seoul_plan_notice_pilot",
+      "name": "서울 공덕1 정비구역 변경 고시 원문",
+      "org": "서울특별시",
+      "url": "https://event.seoul.go.kr/seoulsibo/detailview.do?cn_seq=MTc1Mjc%3D&tr_code=snews",
+      "type": "PLAN",
+      "key_env": null,
+      "collection_mode": "LEGAL_PLAN_PILOT",
+      "implemented": true,
+      "manual_only": true,
+      "show_key_card": false,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-10T04:15:47.193021+00:00",
+      "last_success": "2026-10-10T04:15:47.721985+00:00",
+      "error": null,
+      "record_count": 1,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "gyeonggi_plan_notice_pilot",
+      "name": "경기 고양창릉 지구지정 변경 고시 원문",
+      "org": "국토교통부",
+      "url": "https://www.molit.go.kr/USR/I0204/m_45/dtl.jsp?idx=18272",
+      "type": "PLAN",
+      "key_env": null,
+      "collection_mode": "LEGAL_PLAN_PILOT",
+      "implemented": true,
+      "manual_only": true,
+      "show_key_card": false,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-10T04:15:52.009903+00:00",
+      "last_success": "2026-10-10T04:15:53.327417+00:00",
+      "error": null,
+      "record_count": 1,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_hub_details",
+      "name": "건축HUB 동별·대지위치 파일럿",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "type": "ACTUAL",
+      "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+      "collection_mode": "PILOT_DETAIL",
+      "backfill_seconds": 900,
+      "implemented": true,
+      "manual_only": false,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T19:07:17.218856+00:00",
+      "last_success": "2026-10-25T19:07:49.051101+00:00",
+      "error": null,
+      "record_count": 593738,
+      "stats": {},
+      "snapshot_count": 31,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "molit_renewal_inventory",
+      "name": "국토부 전국 정비사업 통합 현황 · 수도권 후보",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15160169/fileData.do",
+      "type": "CANDIDATE",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "manual_only": false,
+      "show_key_card": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:51:12.112436+00:00",
+      "last_success": "2026-10-25T09:51:12.991979+00:00",
+      "error": null,
+      "record_count": 952,
+      "stats": {
+        "dataset_version": "2026-05-18"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_completion_plan",
+      "name": "LH 공공주택 블록별 준공예정",
+      "org": "한국토지주택공사",
+      "url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "manual_only": false,
+      "show_key_card": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:43:17.241684+00:00",
+      "last_success": "2026-10-25T09:43:17.775427+00:00",
+      "error": null,
+      "record_count": 204,
+      "stats": {
+        "dataset_version": "2026-01-27"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_housing",
+      "name": "KOSIS 서울·경기 일반가구·다가구 반영 주택 재고",
+      "org": "국가데이터처 / 국토교통부",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "collection_mode": "AREA_SERIES",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:39:41.543225+00:00",
+      "last_success": "2026-10-25T11:40:08.161637+00:00",
+      "error": null,
+      "record_count": 552,
+      "stats": {},
+      "snapshot_count": 7,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_living",
+      "name": "KOSIS 소득·인구이동·거주기간·주거형태",
+      "org": "국가데이터처 / 국토교통부",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "collection_mode": "AREA_SERIES",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T10:29:26.217042+00:00",
+      "last_success": "2026-10-25T10:29:35.471472+00:00",
+      "error": null,
+      "record_count": 965,
+      "stats": {},
+      "snapshot_count": 13,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_household_size",
+      "name": "KOSIS 서울·경기 가구원수별 일반가구",
+      "org": "국가데이터처 KOSIS",
+      "url": "https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "collection_mode": "AREA_SERIES",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:42:36.073803+00:00",
+      "last_success": "2026-10-25T11:42:42.517111+00:00",
+      "error": null,
+      "record_count": 552,
+      "stats": {},
+      "snapshot_count": 8,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sgis_area",
+      "name": "SGIS 서울·경기·인천 인구·가구·사업체·산업 종사자",
+      "org": "국가데이터처 SGIS",
+      "url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html",
+      "type": "STATISTIC",
+      "key_env": "POC10_SGIS_CONSUMER_KEY",
+      "collection_mode": "AREA_SERIES",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:53:17.972169+00:00",
+      "last_success": "2026-10-25T09:53:19.287120+00:00",
+      "error": null,
+      "record_count": 553,
+      "stats": {},
+      "snapshot_count": 76,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_employment",
+      "name": "KOSIS 시군구별 반기 고용·취업자",
+      "org": "국가데이터처 KOSIS",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "collection_mode": "AREA_SERIES",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:42:43.535272+00:00",
+      "last_success": "2026-10-25T11:42:46.838699+00:00",
+      "error": null,
+      "record_count": 912,
+      "stats": {},
+      "snapshot_count": 3,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "kosis_household_forecast",
+      "name": "KOSIS 시도별 장래가구추계",
+      "org": "국가데이터처 KOSIS",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "collection_mode": "AREA_FORECAST",
+      "implemented": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:48:41.502269+00:00",
+      "last_success": "2026-10-25T11:48:41.849131+00:00",
+      "error": null,
+      "record_count": 33,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_block_location",
+      "name": "LH 공개 지도 블록 라벨 위치",
+      "org": "한국토지주택공사",
+      "url": "https://bizmap.lh.or.kr/lhmap.do",
+      "type": "GIS",
+      "key_env": null,
+      "collection_mode": "BLOCK_LABEL",
+      "implemented": true,
+      "manual_only": false,
+      "show_key_card": false,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T14:57:26.447121+00:00",
+      "last_success": "2026-10-25T14:57:32.702808+00:00",
+      "error": null,
+      "record_count": 288,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_reit_progress",
+      "name": "LH 공공임대리츠 실제 공정률 · 2018 투자보고서",
+      "org": "한국토지주택공사 / NHF 제6호",
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0028&list_no=651950&seq=1",
+      "type": "ACTUAL",
+      "key_env": null,
+      "collection_mode": "HISTORY",
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:28:31.164346+00:00",
+      "last_success": "2026-10-25T11:28:34.603514+00:00",
+      "error": null,
+      "record_count": 1,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_progress",
+      "name": "LH 블록별 실제 공정률 · 공개 상세 이력",
+      "org": "LH청약플러스",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttList.do",
+      "type": "ACTUAL",
+      "key_env": null,
+      "collection_mode": "HISTORY",
+      "implemented": true,
+      "manual_only": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:49:17.068560+00:00",
+      "last_success": "2026-10-25T09:49:44.503341+00:00",
+      "error": null,
+      "record_count": 813,
+      "stats": {},
+      "snapshot_count": 112,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_supply_history",
+      "name": "LH 공공분양 공급현황 2020~2025",
+      "org": "한국토지주택공사",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=727605&mid=a10103040000&nPage=1",
+      "type": "HISTORY",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:14:07.974395+00:00",
+      "last_success": "2026-10-25T12:14:09.691390+00:00",
+      "error": null,
+      "record_count": 87,
+      "stats": {
+        "source_base_date": "2025-11-13"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_movein_history",
+      "name": "LH 연도별 입주계획 공개본",
+      "org": "한국토지주택공사",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654827&mid=a10103010000&nPage=1",
+      "type": "PLAN",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:09:48.429813+00:00",
+      "last_success": "2026-10-25T12:09:55.583477+00:00",
+      "error": null,
+      "record_count": 252,
+      "stats": {},
+      "snapshot_count": 6,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_stock",
+      "name": "LH 단지정보 · 과거 준공·입주지정 일정",
+      "org": "한국토지주택공사 / 공공데이터포털",
+      "url": "https://www.data.go.kr/data/15080989/fileData.do",
+      "type": "STOCK",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:13:37.473501+00:00",
+      "last_success": "2026-10-25T12:14:01.237185+00:00",
+      "error": null,
+      "record_count": 2064,
+      "stats": {
+        "source_base_date": "2026-08-10"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "legal_dongs",
+      "name": "서울·경기 전체 법정동 코드",
+      "org": "행정안전부 행정표준코드관리시스템",
+      "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+      "type": "GIS",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "GIS",
+      "data_type_label": "지도 경계·위치·행정구역 자료",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:09:56.601635+00:00",
+      "last_success": "2026-10-25T12:11:14.504889+00:00",
+      "error": null,
+      "record_count": 2629,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_files",
+      "name": "SH 주택관리현황 2024~2026 공개본",
+      "org": "서울 열린데이터광장 / SH",
+      "url": "https://data.seoul.go.kr/dataList/OA-12027/S/1/datasetView.do",
+      "type": "STOCK",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:43:44.024291+00:00",
+      "last_success": "2026-10-25T11:44:01.549334+00:00",
+      "error": null,
+      "record_count": 2364,
+      "stats": {},
+      "snapshot_count": 4,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "gh_files",
+      "name": "GH 재건축 매입임대 현황",
+      "org": "경기주택도시공사 / 공공데이터포털",
+      "url": "https://www.data.go.kr/data/15112600/fileData.do",
+      "type": "STOCK",
+      "key_env": null,
+      "collection_mode": "PUBLIC_FILE",
+      "implemented": true,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:44:02.574517+00:00",
+      "last_success": "2026-10-25T11:44:03.304489+00:00",
+      "error": null,
+      "record_count": 21,
+      "stats": {
+        "source_base_date": "2026-08-21"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "gh_supply_plan",
+      "name": "GH 주택 분양·임대 공급계획",
+      "org": "경기주택도시공사",
+      "url": "https://www.gh.or.kr/gh/housing-stability-in-gyeonggi-do001.do",
+      "type": "PLAN",
+      "key_env": null,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:14:02.267163+00:00",
+      "last_success": "2026-10-25T12:14:02.521090+00:00",
+      "error": null,
+      "record_count": 2,
+      "stats": {
+        "source_base_date": "2026-04"
+      },
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "complex_approval_reference",
+      "name": "한국부동산원 공동주택 단지·필지 사용승인 참조",
+      "org": "한국부동산원 / 공공데이터포털",
+      "url": "https://www.data.go.kr/data/15106861/fileData.do",
+      "type": "ACTUAL_EVIDENCE",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "PUBLIC_FILE",
+      "refresh_days": 7,
+      "show_key_card": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-24T06:05:48.593892+00:00",
+      "last_success": "2026-10-24T06:06:12.170774+00:00",
+      "error": null,
+      "record_count": 24835,
+      "stats": {
+        "dataset_version": "2026-08-31"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "gh_completion_evidence",
+      "name": "GH 사용검사·사용승인 원문 증빙",
+      "org": "경기주택도시공사",
+      "url": "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeList.do",
+      "type": "ACTUAL_EVIDENCE",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "manual_only": false,
+      "show_key_card": false,
+      "data_type": "DOCUMENT",
+      "data_type_label": "사업계획·고시·추진현황 문서",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:19:02.299174+00:00",
+      "last_success": "2026-10-25T22:19:09.796739+00:00",
+      "error": null,
+      "record_count": 7,
+      "stats": {},
+      "snapshot_count": 15,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "gh_notice",
+      "name": "GH 주택 공고·과거 목록",
+      "org": "경기주택도시공사",
+      "url": "https://apply.gh.or.kr/sb/sr/sr7150/selectPbancRentHouseList.do",
+      "type": "NOTICE",
+      "key_env": null,
+      "implemented": true,
+      "collection_mode": "PUBLIC_DOCUMENT",
+      "manual_only": false,
+      "refresh_days": 7,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:19:10.818501+00:00",
+      "last_success": "2026-10-25T22:19:40.172797+00:00",
+      "error": null,
+      "record_count": 257,
+      "stats": {},
+      "snapshot_count": 34,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 30분마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 30분마다",
+        "interval_seconds": 1800,
+        "regular_interval_seconds": 1800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_907",
+      "name": "9·7 주택공급 확대방안",
+      "org": "관계부처 합동 / 국세청 전재",
+      "url": "https://d.nts.go.kr/cheonan/na/ntt/selectNttInfo.do?mi=4611&nttSn=1353601",
+      "type": "POLICY",
+      "key_env": null,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:44:04.323135+00:00",
+      "last_success": "2026-10-25T11:44:05.307231+00:00",
+      "error": null,
+      "record_count": 17,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "정책 원문 재확인",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 정책 본문·첨부 URL을 재조회합니다. 새로운 정책 게시물 전체를 자동 검색하는 경로가 아닙니다.",
+        "parser": "HTML·PDF 텍스트를 파싱하고 문서에 적힌 항목명과 수량을 자료별 추출 규칙으로 구조화합니다.",
+        "pdf": "PDF 텍스트는 pypdf로 읽습니다. 이미지 표 및 새로운 문서 구조는 별도 판독·파서 보완이 필요합니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_129",
+      "name": "1·29 도심 주택공급 확대 및 신속화",
+      "org": "국토교통부 / 정책브리핑",
+      "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156742030",
+      "type": "POLICY",
+      "key_env": null,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:28:47.101547+00:00",
+      "last_success": "2026-10-25T12:28:50.617722+00:00",
+      "error": null,
+      "record_count": 51,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "정책 원문 재확인",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 정책 본문·첨부 URL을 재조회합니다. 새로운 정책 게시물 전체를 자동 검색하는 경로가 아닙니다.",
+        "parser": "HTML·PDF 텍스트를 파싱하고 문서에 적힌 항목명과 수량을 자료별 추출 규칙으로 구조화합니다.",
+        "pdf": "PDF 텍스트는 pypdf로 읽습니다. 이미지 표 및 새로운 문서 구조는 별도 판독·파서 보완이 필요합니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_813",
+      "name": "8·13 주택 신속공급 방안",
+      "org": "관계부처 합동 / 정책브리핑",
+      "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156774369",
+      "type": "POLICY",
+      "key_env": null,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:28:51.964369+00:00",
+      "last_success": "2026-10-25T12:28:52.640653+00:00",
+      "error": null,
+      "record_count": 1,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "urban_930",
+      "name": "서울 도심복합사업 9·30 후속조치",
+      "org": "국토교통부 / 정책브리핑",
+      "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148972807",
+      "type": "POLICY",
+      "key_env": null,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:30:51.241343+00:00",
+      "last_success": "2026-10-25T12:30:53.977868+00:00",
+      "error": null,
+      "record_count": 52,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "정책 원문 재확인",
+            "kind": "scope"
+          },
+          {
+            "label": "PDF 텍스트 추출",
+            "kind": "parser"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 정책 본문·첨부 URL을 재조회합니다. 새로운 정책 게시물 전체를 자동 검색하는 경로가 아닙니다.",
+        "parser": "HTML·PDF 텍스트를 파싱하고 문서에 적힌 항목명과 수량을 자료별 추출 규칙으로 구조화합니다.",
+        "pdf": "PDF 텍스트는 pypdf로 읽습니다. 이미지 표 및 새로운 문서 구조는 별도 판독·파서 보완이 필요합니다.",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_sale",
+      "name": "LH 연간 분양주택 공급계획",
+      "org": "LH청약플러스",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "type": "PLAN",
+      "key_env": null,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:47:39.811010+00:00",
+      "last_success": "2026-10-25T11:47:40.272844+00:00",
+      "error": null,
+      "record_count": 34,
+      "stats": {
+        "source_base_date": "2026"
+      },
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공급계획 표 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "현재 공개된 공급계획 표의 전체 페이지를 읽고 게시 총건수와 조회 행 수를 대조합니다. 블록·유형·면적·월로 중복을 검사하며 공개 전 계획은 가져올 수 없습니다.",
+        "parser": "BeautifulSoup HTML 표 파싱과 수량·월 검산을 사용합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_rent",
+      "name": "LH 연간 임대주택 공급계획",
+      "org": "LH청약플러스",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "type": "PLAN",
+      "key_env": null,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:48:42.864017+00:00",
+      "last_success": "2026-10-25T11:48:43.585344+00:00",
+      "error": null,
+      "record_count": 15,
+      "stats": {
+        "source_base_date": "2026"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공급계획 표 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "현재 공개된 공급계획 표의 전체 페이지를 읽고 게시 총건수와 조회 행 수를 대조합니다. 블록·유형·면적·월로 중복을 검사하며 공개 전 계획은 가져올 수 없습니다.",
+        "parser": "BeautifulSoup HTML 표 파싱과 수량·월 검산을 사용합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_construction",
+      "name": "LH 건설공사 현황",
+      "org": "LH 주택품질안전처",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "type": "ACTUAL",
+      "key_env": null,
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T16:58:58.436798+00:00",
+      "last_success": "2026-10-25T16:59:00.476743+00:00",
+      "error": null,
+      "record_count": 87,
+      "stats": {
+        "source_base_date": "2026-07-01"
+      },
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공사현황 첨부 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록 게시글의 DOCX 첨부 제목에서 기준일을 읽고 가장 최신 파일을 선택합니다. 같은 게시글의 새 첨부는 감지하지만 다른 게시글까지 전수 검색하지 않습니다.",
+        "parser": "DOCX ZIP 내부 word/document.xml의 표를 읽고 공종·블록·호수·착공일·공정률 열을 검증합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "cheongyak",
+      "name": "청약홈 분양정보",
+      "org": "한국부동산원",
+      "url": "https://www.data.go.kr/data/15098547/openapi.do",
+      "type": "NOTICE",
+      "key_env": "POC10_CHEONGYAK_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "requires_key_for_schedule": true,
+      "refresh_days": 1,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T09:55:17.739282+00:00",
+      "last_success": "2026-10-25T09:55:29.370113+00:00",
+      "error": null,
+      "record_count": 1349,
+      "stats": {},
+      "snapshot_count": 34,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_hub",
+      "name": "건축HUB 주택인허가",
+      "org": "국토교통부",
+      "backfill_seconds": 900,
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "type": "ACTUAL",
+      "key_env": "POC10_BUILDING_HUB_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T07:45:54.491817+00:00",
+      "last_success": "2026-10-25T07:46:06.425539+00:00",
+      "error": null,
+      "record_count": 238053,
+      "stats": {},
+      "snapshot_count": 20,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "building_register",
+      "backfill_seconds": 900,
+      "name": "건축HUB 주거용 건축물대장",
+      "org": "국토교통부",
+      "url": "https://www.data.go.kr/data/15134735/openapi.do",
+      "type": "ACTUAL",
+      "key_env": "POC10_BUILDING_REGISTER_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T16:52:49.985372+00:00",
+      "last_success": "2026-10-25T16:58:21.533419+00:00",
+      "error": null,
+      "record_count": 1280189,
+      "stats": {},
+      "snapshot_count": 529,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_notice",
+      "name": "LH 분양·임대 공고",
+      "org": "한국토지주택공사",
+      "url": "https://www.data.go.kr/data/15058530/openapi.do",
+      "type": "NOTICE",
+      "key_env": "POC10_LH_NOTICE_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "refresh_days": 1,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:30:12.078889+00:00",
+      "last_success": "2026-10-25T22:30:24.828928+00:00",
+      "error": null,
+      "record_count": 4022,
+      "stats": {},
+      "snapshot_count": 48,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 15분마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 15분마다",
+        "interval_seconds": 900,
+        "regular_interval_seconds": 900,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_notice_detail",
+      "name": "LH 모집공고 상세 · 입주 예정월",
+      "org": "한국토지주택공사",
+      "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do",
+      "type": "NOTICE",
+      "key_env": null,
+      "implemented": true,
+      "refresh_days": 7,
+      "data_type": "NOTICE",
+      "data_type_label": "분양·임대 입주자 모집공고",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:32:07.656496+00:00",
+      "last_success": "2026-10-25T22:32:37.888236+00:00",
+      "error": null,
+      "record_count": 140,
+      "stats": {},
+      "snapshot_count": 128,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 30분마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 30분마다",
+        "interval_seconds": 1800,
+        "regular_interval_seconds": 1800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "molit_statistics",
+      "name": "서울·경기 주택건설 공식 통계",
+      "org": "국토교통 통계누리",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_MOLIT_STAT_API_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "requires_key_for_schedule": true,
+      "refresh_days": 1,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T07:32:53.300174+00:00",
+      "last_success": "2026-10-25T07:33:08.971478+00:00",
+      "error": null,
+      "record_count": 640,
+      "stats": {},
+      "snapshot_count": 168,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_supply_plan",
+      "name": "SH 주택분양 공급계획·과거 공개본",
+      "org": "서울주택도시공사",
+      "url": "https://www.data.go.kr/data/15008820/fileData.do",
+      "type": "PLAN",
+      "key_env": "POC10_SH_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "requires_key_for_schedule": true,
+      "refresh_days": 7,
+      "dataset_id": "15008820",
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-19T09:58:57.857654+00:00",
+      "last_success": "2026-10-19T09:58:58.605478+00:00",
+      "error": null,
+      "record_count": 20,
+      "stats": {},
+      "snapshot_count": 5,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_redevelopment",
+      "name": "SH 공공재개발·재건축 사업현황",
+      "org": "서울주택도시공사",
+      "url": "https://www.data.go.kr/data/15124798/fileData.do",
+      "type": "PLAN",
+      "key_env": "POC10_SH_SERVICE_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": false,
+      "requires_key_for_schedule": true,
+      "refresh_days": 7,
+      "dataset_id": "15124798",
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-19T09:58:59.640523+00:00",
+      "last_success": "2026-10-19T09:59:00.386910+00:00",
+      "error": null,
+      "record_count": 16,
+      "stats": {},
+      "snapshot_count": 2,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "vworld",
+      "name": "행정구역 경계·주소 좌표",
+      "org": "국토교통부 VWorld",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "type": "GIS",
+      "key_env": "POC10_VWORLD_API_KEY",
+      "implemented": true,
+      "collection_mode": "TEST_SAMPLE",
+      "manual_only": true,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-03T07:30:21.211634+00:00",
+      "last_success": "2026-10-03T07:30:24.390608+00:00",
+      "error": null,
+      "record_count": 100,
+      "stats": {},
+      "snapshot_count": 100,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "vworld_district",
+      "name": "VWorld 공공주택지구 공동주택용지",
+      "org": "국토교통부 VWorld",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "type": "GIS",
+      "key_env": "POC10_VWORLD_API_KEY",
+      "implemented": true,
+      "collection_mode": "MAP_LAYER",
+      "manual_only": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-02T14:58:05.511043+00:00",
+      "last_success": "2026-10-02T14:58:19.584893+00:00",
+      "error": null,
+      "record_count": 35,
+      "stats": {},
+      "snapshot_count": 58,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "vworld_municipality",
+      "name": "VWorld 서울·경기 시군구 경계",
+      "org": "국토교통부 VWorld",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "type": "GIS",
+      "key_env": "POC10_VWORLD_API_KEY",
+      "implemented": true,
+      "collection_mode": "MUNICIPALITY_LAYER",
+      "manual_only": true,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-02T23:36:12.442386+00:00",
+      "last_success": "2026-10-02T23:36:25.221720+00:00",
+      "error": null,
+      "record_count": 56,
+      "stats": {},
+      "snapshot_count": 1,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "수동 실행",
+            "kind": "manual"
+          },
+          {
+            "label": "필요 시 실행",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "수동 실행",
+        "frequency": "필요 시 실행",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "작업자가 수집 범위와 실행 시점을 정합니다.",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "policy_history",
+      "name": "정책 기원·후속조치 이력",
+      "org": "국토교통부 / 정책브리핑",
+      "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148856563",
+      "type": "HISTORY",
+      "key_env": null,
+      "collection_mode": "HISTORY",
+      "manual_only": false,
+      "data_type": "PRESS",
+      "data_type_label": "정부·공공기관 보도자료",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T12:30:55.360523+00:00",
+      "last_success": "2026-10-25T12:30:58.650918+00:00",
+      "error": null,
+      "record_count": 5,
+      "stats": {},
+      "snapshot_count": 5,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "lh_history",
+      "name": "LH 과거 건설공사 현황",
+      "org": "LH 주택품질안전처",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "type": "HISTORY",
+      "key_env": null,
+      "collection_mode": "HISTORY",
+      "manual_only": false,
+      "data_type": "FILE",
+      "data_type_label": "기관 공개 데이터 파일",
+      "access_method": "파일",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T11:50:44.467785+00:00",
+      "last_success": "2026-10-25T11:50:54.015649+00:00",
+      "error": null,
+      "record_count": 641,
+      "stats": {},
+      "snapshot_count": 11,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 매일",
+            "kind": "period"
+          },
+          {
+            "label": "공사현황 첨부 탐색",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 매일",
+        "interval_seconds": 86400,
+        "regular_interval_seconds": 86400,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록 게시글에서 날짜가 있는 DOCX 첨부 링크를 찾아 기간 내 판본을 누적 수집합니다.",
+        "parser": "DOCX ZIP 내부 word/document.xml의 표를 읽고 공종·블록·호수·착공일·공정률 열을 검증합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "sh_inventory",
+      "name": "SH 최신 공개본 사업 연결",
+      "org": "서울주택도시공사",
+      "url": "https://www.data.go.kr/data/15124798/fileData.do",
+      "type": "PLAN",
+      "key_env": null,
+      "collection_mode": "DERIVED_INVENTORY",
+      "data_type": "WEB",
+      "data_type_label": "기관 홈페이지 게시자료",
+      "access_method": "웹",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": false,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-25T22:20:33.964918+00:00",
+      "last_success": "2026-10-25T22:20:34.021446+00:00",
+      "error": null,
+      "record_count": 18,
+      "stats": {},
+      "snapshot_count": 0,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 1시간마다",
+            "kind": "period"
+          },
+          {
+            "label": "등록 범위 재조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 1시간마다",
+        "interval_seconds": 3600,
+        "regular_interval_seconds": 3600,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "등록된 원천·조회 조건을 재조회합니다. 전체 공개자료의 신규 게시물을 모두 탐색한다는 뜻은 아닙니다.",
+        "parser": "출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    },
+    {
+      "id": "area_national_benchmarks",
+      "name": "전국 연령·가구원수·산업 종사자 비교 기준",
+      "org": "KOSIS·SGIS",
+      "url": "https://kosis.kr/openapi/index/index.do",
+      "type": "STATISTIC",
+      "key_env": "POC10_KOSIS_API_KEY",
+      "implemented": true,
+      "collection_mode": "NATIONAL_BENCHMARK",
+      "refresh_days": 7,
+      "show_key_card": false,
+      "data_type": "API",
+      "data_type_label": "기관 시스템 직접 연계 (API)",
+      "access_method": "API",
+      "authority": "OFFICIAL",
+      "authority_label": "공식 출처",
+      "connection_confirmation": null,
+      "key_configured": true,
+      "status": "SUCCESS",
+      "last_attempt": "2026-10-21T05:32:10.055399+00:00",
+      "last_success": "2026-10-21T05:32:13.007536+00:00",
+      "error": null,
+      "record_count": 3,
+      "stats": {},
+      "snapshot_count": 25,
+      "snapshots": [],
+      "operations": {
+        "tags": [
+          {
+            "label": "자동 수집 일시 중지",
+            "kind": "auto"
+          },
+          {
+            "label": "설정 7일마다",
+            "kind": "period"
+          },
+          {
+            "label": "API 페이지 조회",
+            "kind": "scope"
+          }
+        ],
+        "mode": "자동 수집 일시 중지",
+        "frequency": "설정 7일마다",
+        "interval_seconds": 604800,
+        "regular_interval_seconds": 604800,
+        "backfill": false,
+        "schedule_note": "정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.",
+        "discovery": "설정된 API·지역·기간 조건의 페이지를 조회하고 원천 식별키를 비교합니다. 성공한 조회 범위만 완료로 기록하며, 조건 밖 자료나 원천 미입력 값은 자동 생성하지 않습니다.",
+        "parser": "API 응답에서 항목별 값을 읽고 식별키·수량·날짜 형식을 정리합니다.",
+        "pdf": "",
+        "manual": "",
+        "changes": "원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다."
+      }
+    }
+  ]
+}

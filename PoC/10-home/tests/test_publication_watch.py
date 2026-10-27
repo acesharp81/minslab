@@ -1,0 +1,92 @@
+from datetime import date,datetime,timezone
+import hashlib,json
+from pathlib import Path
+from unittest.mock import patch
+import pytest
+from sqlalchemy import create_engine,select,func
+from backend import publication_watch as watch
+from backend.sources import SOURCES
+from backend.db import Base,Revision,CollectionJob,upsert_revision
+from backend.service import HomeService
+from backend.collection_jobs import enqueue,run_next
+from backend.source_operations import operations
+
+ROOT=Path(__file__).parent/'fixtures/publication_watch'
+SOURCES_BY_ID={s['id']:s for s in SOURCES}
+
+@pytest.mark.parametrize('sid,file', [('lh_press_watch','lh.html'),('ih_press_watch','ih.html'),('seoul_press_watch','seoul.xml'),('newsis_housing_watch','newsis.xml')])
+def test_live_listing_samples_are_candidates_only(sid,file):
+    class Fetcher:
+        def get(self,url,*args):return (ROOT/('newsis-met.xml' if url.endswith('met.xml') else file)).read_bytes()
+    with patch.object(watch,'today',return_value=date(2026,10,26)):
+        records,stats=watch.collect(SOURCES_BY_ID[sid],Fetcher())
+    assert records and stats['provided']>=len(records)
+    assert not stats['complete_population'] and stats['actual_events_created']==0
+    assert all(p['facts']==[] and p['units'] is None and p['status']=='REVIEW' for _,_,p in records)
+    assert all('content_text' not in p and 'original_file' not in p for _,_,p in records)
+    assert all(p['authority']==('NONOFFICIAL' if sid.startswith('newsis') else 'OFFICIAL') for _,_,p in records)
+    assert len({key for _,key,_ in records})==len(records)
+
+
+def test_missing_date_untrusted_link_and_blocked_page_fail():
+    source=SOURCES_BY_ID['newsis_housing_watch']
+    for body in [b'<html>blocked</html>',b'<!DOCTYPE rss><rss><channel/></rss>',
+                 b'<rss><channel><item><title>x</title><link>https://attacker.test/</link><pubDate>2026-10-26</pubDate></item></channel></rss>',
+                 b'<rss><channel><item><title>x</title><link>https://newsis.com/1</link></item></channel></rss>']:
+        with pytest.raises(ValueError):watch.rss_rows(body,source)
+    assert not watch.housing_title('한국토지주택공사(LH), 금융 협약 체결')
+    assert watch.housing_title('한국토지주택공사(LH), 시흥거모 공공분양주택 공급')
+
+
+def test_discovery_job_never_enters_link_or_snapshot():
+    e=create_engine('sqlite://');Base.metadata.create_all(e);s=HomeService(e)
+    try:
+        jid=enqueue(s,'newsis_housing_watch',force=True)
+        with patch.object(s,'collect_one',return_value={'status':'SUCCESS'}):
+            result=run_next(s,'LATEST')
+        assert result['status']=='SUCCESS' and result['next_stage'] is None
+        with s.sessions() as db:
+            job=db.get(CollectionJob,jid)
+            assert set(job.result)=={'COLLECT'} and job.status=='SUCCESS'
+    finally:e.dispose()
+
+
+def test_lh_dynamic_html_does_not_create_fake_fact_revisions():
+    e=create_engine('sqlite://');Base.metadata.create_all(e);s=HomeService(e)
+    original=dict(source_object_id='test',original_file='raw/old.html',original_sha256='a',facts=[{'units':10}],source_date='2026-10-23')
+    try:
+        with s.sessions.begin() as db:
+            old,_=upsert_revision(db,'document_evidence','lh_notice_detail','test',original,'one')
+            newer=dict(original,original_file='raw/new.html',original_sha256='b')
+            same,state=upsert_revision(db,'document_evidence','lh_notice_detail','test',newer,'two')
+            assert state=='unchanged' and same.id==old.id and same.payload==original
+            assert same.payload_hash==hashlib.sha256(json.dumps(original,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+            updated,state=upsert_revision(db,'document_evidence','lh_notice_detail','test',dict(newer,facts=[{'units':11}]),'three')
+            assert state=='changed' and updated.revision_no==2
+            _,state=upsert_revision(db,'document_evidence','lh_notice_detail','test',dict(updated.payload,source_date='2026-10-24'),'four')
+            assert state=='changed'
+            upsert_revision(db,'document_evidence','other','test',original,'one')
+            _,state=upsert_revision(db,'document_evidence','other','test',newer,'two')
+            assert state=='changed'
+    finally:e.dispose()
+
+
+def test_live_worker_heartbeat_overrides_api_scheduler_disabled(tmp_path,monkeypatch):
+    monkeypatch.setenv('POC10_AUTO_COLLECT','false')
+    e=create_engine('sqlite://');Base.metadata.create_all(e);s=HomeService(e,tmp_path)
+    try:
+        (tmp_path/'runtime').mkdir()
+        (tmp_path/'runtime/collection-worker-health.json').write_text(json.dumps(dict(checked_at=datetime.now(timezone.utc).isoformat(),running_threads=['home-collector'])))
+        source=next(v for v in s.sources() if v['id']=='lh_press_watch')
+        assert source['operations']['mode']=='자동 수집'
+        assert source['operations']['frequency']=='1시간마다'
+        assert operations(SOURCES_BY_ID['lh_press_watch'])['mode']=='자동 수집 일시 중지'
+    finally:e.dispose()
+
+
+def test_new_badge_does_not_create_article_revision():
+    source=SOURCES_BY_ID['lh_press_watch']
+    body=(ROOT/'lh.html').read_bytes()
+    rows=watch.board_rows(body,source)
+    assert not any(r['name'].startswith('새글') for r in rows)
+    assert rows==watch.board_rows(body.replace('새글'.encode(),b''),source)

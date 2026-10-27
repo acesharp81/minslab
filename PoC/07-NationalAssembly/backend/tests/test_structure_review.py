@@ -213,3 +213,34 @@ def test_substantive_uncertain_result_gets_one_independent_model_pass():
     verification = {**request, 'profile': VERIFY_PROFILE}
     prior.append({'index':400001, 'attempt':1, 'status':'READY', 'request':verification})
     assert not review_candidates(result, snapshot, prior)
+
+
+def test_placeholder_topic_is_pending_and_reclassified_without_losing_sources():
+    from app.services.structure_review import LABEL_PROFILE, placeholder_facets
+    original,snapshot,facets,_=fixture()
+    facets[0].update(parent='UNCERTAIN',issue='UNCERTAIN')
+    result=materialize(original,snapshot,facets,[],'sid')
+    annotate_review_state(result,set())
+    assert result['topic_structure']['automatic_review']['invalid_label_atom_count']==1
+    pending=[p for p in review_candidates(result,snapshot,[]) if p['profile']==LABEL_PROFILE]
+    assert len(pending)==1
+    p=pending[0];request={'profile':LABEL_PROFILE,'atoms':[p['atom']],'targets':p['targets']}
+    aid=p['atom']['id'];response={'assignments':{aid:[{'parent':'실종자 보호','issue':'휴대전화 위치추적 정확도',
+                  'role':'QUESTION','span_index':0}]},'reasons':{aid:'휴대전화 위치추적 범위와 실종자 발견의 어려움을 질의한다.'}}
+    updated,_=apply_reviews(facets,[(400010,request,response)])
+    projected=materialize(original,snapshot,updated,[],'sid')
+    assert not placeholder_facets(projected)
+    assert {f['evidence_id'] for f in updated}=={f['evidence_id'] for f in facets}
+    assert facets[0]['issue']=='UNCERTAIN'
+    response['assignments'][aid][0]['issue']='UNCERTAIN'
+    with pytest.raises(ValueError,match='INVALID_TOPIC_LABEL'):
+        validated_review(request,response)
+
+
+def test_new_classifier_rejects_placeholder_while_legacy_response_is_readable():
+    _,snapshot,_,_=fixture()
+    response={'assignments':{a['id']:[{'parent':'UNCERTAIN','issue':'UNCERTAIN','role':'QUESTION','span_index':0}]
+                            for a in snapshot['atoms']}}
+    assert len(validate_response(response,snapshot['atoms']))==2
+    with pytest.raises(ValueError,match='INVALID_TOPIC_LABEL'):
+        validate_response(response,snapshot['atoms'],strict_labels=True)

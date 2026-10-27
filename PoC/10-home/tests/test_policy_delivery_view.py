@@ -128,3 +128,21 @@ def test_only_selected_comparisons_are_built_and_values_equal_full_report(pair):
         assert scope in selected['portfolio_comparisons']
     selected=screen_view(base,'program:P1','program:P1|project:new')
     assert set(selected['portfolio_comparisons'])=={'policy','program:P1','project:new','program:P1|project:new'}
+
+
+def test_unchanged_chart_survives_half_hour_but_officer_edit_invalidates_immediately(pair):
+    _,base=pair
+    e=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
+    Base.metadata.create_all(e);app=create_app(e,auto_collect=False)
+    try:
+        with TestClient(app) as client,patch('backend.app.build_delivery',return_value=base) as build,patch('backend.projection_cache.monotonic',return_value=100) as clock:
+            url='/poc/home/api/policy-delivery/view?as_of_date=2026-10-12'
+            first=client.get(url);assert first.status_code==200 and first.headers['x-home-cache']=='MISS'
+            clock.return_value=3700
+            repeated=client.get(url)
+            assert repeated.headers['x-home-cache']=='HIT' and repeated.json()==first.json() and build.call_count==1
+            with app.state.service.sessions.begin() as db:
+                upsert_revision(db,'goal','officer','new',dict(base_date='2026-10-12',units=12),'edit')
+            changed=client.get(url)
+            assert changed.headers['x-home-cache']=='MISS' and build.call_count==2
+    finally:e.dispose()

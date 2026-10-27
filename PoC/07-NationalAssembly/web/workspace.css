@@ -822,7 +822,7 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .meeting-card.broadcast-row {
   display: flex;
   flex: 0 0 calc((100% - 30px) / 4);
-  height: 120px;
+  height: auto;
   min-height: 120px;
   flex-direction: column;
   align-items: stretch;
@@ -852,7 +852,13 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
   background: #f8fbff;
   box-shadow: 0 0 0 2px rgba(47,110,211,.14), 0 7px 18px rgba(30,80,155,.1);
 }
-.meeting-card-tags { display: flex; min-width: 0; align-items: center; gap: 5px; overflow: hidden; white-space: nowrap; }
+.meeting-card-tags { display: flex; min-width: 0; align-items: center; gap: 5px; flex-wrap: wrap; }
+.meeting-stage-tags { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+.meeting-source-processing-details { margin:10px 0; font-size:12px; color:#667085; }
+.meeting-source-processing-details > summary { cursor:pointer; font-weight:700; }
+.meeting-card-tag.is-stage-done { color:#176347; background:#edf8f1; border-color:#b9dec9; }
+.meeting-card-tag.is-stage-pending { color:#667085; background:#f4f5f7; border-color:#dce1e8; }
+.meeting-card-tag.is-stage-waiting { color:#9a4d0a; background:#fff3e2; border-color:#efc38f; }
 .meeting-card-tag { flex: 0 0 auto; padding: 3px 7px; border: 1px solid #c9dcf7; border-radius: 999px; color: #24548f; background: #f0f6ff; font-size: 9px; font-style: normal; font-weight: 850; line-height: 1.3; }
 .meeting-card-tag.is-active,
 .meeting-card-tag.is-recording { border-color: #f4a3a8; color: #b4232c; background: #fff0f1; }
@@ -864,7 +870,7 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .meeting-card-tag.is-provisional { border-color: #f0cc72; color: #8a5a00; background: #fff7d6; }
 .meeting-card-tag.is-official { border-color: #9dbbe4; color: #103f7d; background: #e5effc; }
 .meeting-card-tag.is-institution { border-color: #9dbbe4; color: #103f7d; background: #e5effc; }
-.meeting-card-title { display: block; overflow: hidden; color: #102a4c; font-size: 14px; font-weight: 850; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.meeting-card-title { display: block; flex-shrink:0; overflow: hidden; color: #102a4c; font-size: 14px; font-weight: 850; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
 .meeting-card-bottom { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #e4edf8; }
 .meeting-card-meta { display: flex; min-width: 0; align-items: center; gap: 6px; overflow: hidden; }
 .meeting-card-meta small { color: #637995; font-size: 10px; white-space: nowrap; }
@@ -1000,7 +1006,7 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 @media (max-width: 760px) {
   .meeting-rail-arrow { display: none; }
   .meeting-rail { gap: 8px; padding: 8px; scroll-padding-inline: 8px; }
-  .meeting-card.broadcast-row { flex: 0 0 min(84vw, 320px); height: 116px; min-height: 116px; padding: 12px; }
+  .meeting-card.broadcast-row { flex: 0 0 min(84vw, 320px); height: auto; min-height: 116px; padding: 12px; }
   .meeting-card-title { font-size: 13px; }
   .meeting-result-workspace { grid-template-columns: 1fr; padding: 14px; }
   .meeting-evidence-panel { position: relative; top: auto; max-height: none; }
@@ -1880,3 +1886,28 @@ body.meeting-report-print-mode .meeting-source-quotes { display: none; }
 .user-guide-dialog > header button { min-height: 34px; padding: 6px 12px; border: 1px solid #c5d4e9; border-radius: 7px; color: #254f85; background: #fff; cursor: pointer; }
 .user-guide-dialog iframe { display: block; width: 100%; flex: 1 1 auto; min-height: 0; border: 0; }
 @media (max-width: 620px) { .user-guide-dialog { width: calc(100vw - 10px); height: calc(100dvh - 10px); border-radius: 10px; } .user-guide-dialog > header { padding: 9px 12px; } }
+
+/* Five providers in the existing quota strip width; values show remaining capacity. */
+.ai-usage { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ai-usage-provider { padding: 9px 7px 8px; gap: 5px; align-content: center; }
+.ai-usage-heading { justify-content: flex-start; }
+.ai-usage-heading strong { font-size: 9px; letter-spacing: -.02em; }
+.ai-usage-value, .ai-usage-openai .ai-usage-value { font-size: 12px; line-height: 1.2; }
+.ai-usage-meta { display: block; }
+.ai-usage-meta span { display: block; font-size: 8.5px; font-weight: 600; }
+.ai-usage-meter { height: 4px; }
+.ai-usage-gemini { background: #eff3ff; }
+.ai-usage-gemini .ai-usage-heading strong, .ai-usage-gemini .ai-usage-value { color: #3c59a5; }
+.ai-usage-gemini .ai-usage-meter i { background: #6683df; }
+.ai-usage-groq { background: #fff5ec; }
+.ai-usage-groq .ai-usage-heading strong, .ai-usage-groq .ai-usage-value { color: #9a531f; }
+.ai-usage-groq .ai-usage-meter i { background: #d88a4b; }
+.ai-usage-meter.is-unknown { background: repeating-linear-gradient(120deg,#dbe3e9 0,#dbe3e9 3px,#edf1f4 3px,#edf1f4 6px); }
+.ai-usage-provider.is-low .ai-usage-value { color: #a76a12; }
+.ai-usage-provider.is-low .ai-usage-meter i { background: #c69235; }
+.ai-usage-provider.is-exhausted .ai-usage-value { color: #a44b4b; }
+@media (max-width: 900px) {
+  .ai-usage { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ai-usage-provider:nth-child(3n + 1) { border-left: 0; }
+  .ai-usage-provider:nth-child(n + 4) { border-top: 1px solid #d6e3f5; }
+}

@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-27T10:18:52.238894+09:00",
+  "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+  "source": "Saved meeting summary and displayed report_summary topics; no new AI calls",
+  "topic_distribution": "Unique displayed subtopics per major topic; top six plus aggregate of all remaining topics",
+  "keywords": "Distinct subtopic titles containing identical whitespace/punctuation-delimited word; excludes common report words, top eight; not transcript token frequency",
+  "browser": {
+    "desktop": true,
+    "mobile_no_horizontal_overflow": true,
+    "page_errors": [],
+    "initial_snapshot_open_waits_for_full_narrative": true
+  },
+  "pdf": {
+    "format": "A4",
+    "pages": 87,
+    "overview_and_two_charts_on_page_one": true,
+    "subtopic_count": 350,
+    "all_subtopic_titles_found": true,
+    "detail_summaries": 648
+  },
+  "unit_tests_passed": 5,
+  "public_routes": [
+    {
+      "url": "https://kjon.aigov.go.kr/",
+      "status": 200,
+      "document_assets_updated": true,
+      "app_updated": true
+    },
+    {
+      "url": "https://www.minslab.kr/poc/national-assembly/",
+      "status": 200,
+      "document_assets_updated": true,
+      "app_updated": true
+    }
+  ]
+}

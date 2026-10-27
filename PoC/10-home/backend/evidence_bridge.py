@@ -4,6 +4,7 @@ from datetime import date
 import re
 from sqlalchemy import select, text
 from .api_samples import today
+from .read_scope import reuse_projection
 from .db import Revision, Audit, entity_id, upsert_revision
 from .supply_dashboard import block_key
 from .roadmap import source_events
@@ -201,13 +202,21 @@ def review(service,link_id,revision_no,status,basis):
         return dict(payload,id=row.entity_id,revision_no=row.revision_no)
 
 
+@reuse_projection
 def by_project(service,reference):
     result=defaultdict(list)
-    origins={r['id']:r['source_id'] for kind in ('project','lh_completion_plan') for r in service.rows(kind,reference)}
-    documents = (service.document_evidence_index(reference) if hasattr(service, 'document_evidence_index')
-                 else service.rows('document_evidence', reference))
-    origins.update({r['id']:r['source_id'] for r in documents})
-    for row in service.rows(KIND,reference):
+    bridges=service.rows(KIND,reference)
+    # Explicit provenance is already persisted on most bridges. Only resolve
+    # origins for links lacking it, and only load their referenced documents.
+    unresolved={r['source_entity_id'] for r in bridges if not r.get('evidence_source_id')}
+    origins={}
+    if unresolved:
+        origins={r['id']:r['source_id'] for kind in ('project','lh_completion_plan') for r in service.rows(kind,reference)
+                 if r['id'] in unresolved}
+        documents=(service.document_evidence_index(reference,entity_ids=tuple(sorted(unresolved)))
+                   if hasattr(service,'document_evidence_index') else service.rows('document_evidence',reference))
+        origins.update({r['id']:r['source_id'] for r in documents if r['id'] in unresolved})
+    for row in bridges:
         row=dict(row,source_id=row.get('evidence_source_id') or origins.get(row['source_entity_id'],row['source_id']))
         result[row['project_id']].append(row)
     return result

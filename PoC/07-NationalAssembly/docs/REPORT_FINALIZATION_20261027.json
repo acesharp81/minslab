@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-10-27T00:20:53.275805+09:00",
+  "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+  "initial_failure": {
+    "analysis_chunks": [
+      33,
+      33
+    ],
+    "phase": "DEFERRED/TOKEN_LIMIT",
+    "provider_errors": [
+      "NIM ReadTimeout",
+      "Gemini HTTP 400 on final schema",
+      "Groq input too large",
+      "OpenAI remaining reservation budget insufficient"
+    ]
+  },
+  "synthesis_recovery": {
+    "provider": "gemini",
+    "status": "GENERATED",
+    "generated_at": "2026-10-26T14:41:11.829561Z",
+    "cached_analysis_reused": true,
+    "synthesis_tokens": 44862,
+    "mapping_followup_error": "HTTP_503"
+  },
+  "reported_pending": {
+    "legacy_unmapped": 14,
+    "legacy_candidate": 3,
+    "same_pending_total": 17,
+    "policy_dictionary_unclassified": 9
+  },
+  "finalization": {
+    "phase": "STRUCTURING",
+    "status": "PROCESSING",
+    "version": "meeting-finalization/1",
+    "updated_at": "2026-10-26T15:15:58.270797+00:00"
+  },
+  "public_status": "PROCESSING",
+  "structure_progress": {
+    "status": "PROCESSING",
+    "completed_batches": 14,
+    "consolidation_attempts": 0
+  },
+  "latest_verified_batch": {
+    "event": "topic_structure.batch",
+    "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+    "batch": 14,
+    "total": 20,
+    "attempt": 2,
+    "provider": "gemini",
+    "error": null
+  },
+  "policy": {
+    "nim_priority": true,
+    "openai_daily_tokens": 650000,
+    "gemini_daily_tokens": 300000,
+    "gemini_daily_requests": 200,
+    "groq_daily_tokens": 100000,
+    "retry_ontology_next_day_kst": "09:00",
+    "preserve_prior_brief_revisions": true
+  },
+  "deployment": {
+    "image": "poc07-national-assembly-api:finalization-20261027-v2",
+    "api_and_regular_worker_running": true,
+    "controlled_current_report_job": "poc07-interior-finalization-20261027",
+    "duplicate_execution": "database advisory locks; regular worker returned BUSY for this report"
+  },
+  "validation": {
+    "backend_passed": 110,
+    "browser_unit_tests_passed": 16,
+    "public_browser": {
+      "kjon": "draft visible; verification tag visible; no JS errors",
+      "minslab": "draft visible; verification tag visible; no JS errors"
+    },
+    "runtime_check": "all passed",
+    "sql_migration": "0059_meeting_brief_revisions",
+    "audit_revision_count_at_check": 4
+  },
+  "remaining": "Current source verification, ambiguity review, ontology review and narrative checks run asynchronously from saved batches. Not yet declared finalized."
+}

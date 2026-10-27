@@ -403,6 +403,8 @@ class WatchSchemaTests(unittest.TestCase):
         self.assertTrue(request_body["provider"]["allow_fallbacks"])
         self.assertTrue(request_body["provider"]["require_parameters"])
         self.assertNotIn("plugins", request_body)
+        self.assertEqual({"effort": "low", "exclude": True}, request_body["reasoning"])
+        self.assertEqual(8192, request_body["max_tokens"])
 
     def test_watch_report_prioritizes_claims_and_collapses_full_evidence(self) -> None:
         project = Path(__file__).resolve().parents[2]

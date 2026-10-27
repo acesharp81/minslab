@@ -1,5 +1,15 @@
 # Data Model
 
+## 2026-10-27 — 내부 주제값 재분류
+
+기존 구조화 배치 테이블의 request_snapshot.profile에 `discussion-placeholder-review/1`을 추가한다. 정상 역할의 parent/issue에 내부 분류 코드가 들어간 원문만 targets로 지정하며, 근거 ID·원문 위치·기존 응답을 보존한다. 읽기 projection의 `topic_structure.automatic_review.invalid_label_atom_count`는 남은 잘못된 주제 제목의 고유 발언 수이며 pending_atom_count에도 합산된다. 스키마 마이그레이션은 없다.
+
+## 2026-10-27 — 비공식 보고서 단계별 진행 지표
+
+기존 `meeting_briefs.brief.finalization` JSON에 `stages` 배열을 추가한다. 단계의 `key`는 ANALYZING/INTEGRATION/REVIEWING/ONTOLOGY/NARRATIVE/FINALIZING, `status`는 COMPLETED/PROCESSING/PENDING/WAITING이며 `completed`, `total`, `unit`은 집계 가능할 때만 저장한다. API는 `brief_progress.stages`와 `retry_after`로 전달한다. 진행률 저장은 기존 원문 해시와 구조화 캐시의 유효성을 바꾸지 않는다. 별도 테이블·마이그레이션은 없다.
+
+`topic_structure.automatic_review`의 `total_atom_count`와 `completed_atom_count`는 검토·자료요구·독립 검증·대기·실패 발언 ID의 합집합과 남은 발언 집합 차이로 계산한다. 동일 발언의 2차 검토 대기를 완료 수에 중복 산정하지 않는다. 기존 `reviewed_atom_count` 등은 하위 호환을 위해 유지한다.
+
 ## 2026-10-22 — 인사이트 전체 목록 검색
 
 두 인사이트 API(`specific-issues`, `cross-institution-flow`)는 선택 `q`(최대 200자)를 받는다. 항목별 전체 집합에서 검색한 뒤 페이지를 나누며, 검색 단어는 모두 포함해야 한다. 기관 별칭과 대소문자를 비교용 텍스트에서 정규화한다. URL·내부 ID는 검색하지 않는다. 응답의 `query`는 적용 검색어, `total_count`는 검색 결과 수, `unfiltered_total_count`는 검색 전 해당 항목 전체 수다. 저장 자료 수정 없음.
@@ -273,3 +283,66 @@ DB migration 없이 `report.sections[].discussions[]`를 선택적으로 추가�
 - `watch_notifications.dispatch_id`, `TOPIC_COMPLETE` 유형 추가. 외부 발송 대기 기록은 자동 50건 정리 대상에서 제외.
 - 구형 frequency/digest/cooldown DB 컬럼은 이전 버전과의 배포 호환을 위해 보존하지만 새 API·로직에서는 사용하지 않음.
 - `watch_lifecycle_rollout`: 신규 생명주기 적용 시작 시각. 과거 회의를 소급 발송하지 않음.
+
+
+## 2026-10-26 · 상세 쟁점 요약 투영
+
+- 기존 `meeting_topic_structure_batches`에 `request_snapshot.profile=structured-narrative/1.2`과 쟁점 fingerprint/원문 구간, JSON 모델 응답 및 사용량을 추가 보존한다. 테이블 변경은 없다.
+- 구조화 브리프의 `narrative_coverage`는 `issue_count`, `summarized_issue_count`, `status`를 제공한다. 완료 전에는 기존 요약을 유지한다.
+- 완료된 `report_summary`는 쟁점별 `source_structured_topic_id`, 세부 요약의 `source_point_ids`, 기존 `evidence_ids`를 포함한다. 기존 `summary_topic`/`summary_speaker` 근거 조회 API를 그대로 사용한다. 원문이 바뀌면 해당 요약은 완료 수에서 제외한다.
+
+
+### 2026-10-26: 승인된 요약 보완 작업의 영속 재개
+
+`0055_structured_narrative_jobs`는 명시적으로 등록한 broadcast_id만 보유한다. `status`, `next_attempt_at`(timestamptz), `last_result`, `run_count`를 기록한다. 완료 배치는 기존 meeting_topic_structure_batches의 원문 fingerprint로 재사용한다. `WAITING_DAILY_LIMIT`은 다음 UTC 00:00, 일시 오류는 `RETRY_WAIT`, 전체 성공은 `COMPLETE`다. 품질 검증의 시도 소진은 `REVIEW_REQUIRED`로 남기며 성공으로 처리하지 않는다. 실행 프로세스의 PostgreSQL 세션 잠금은 종료 시 자동 해제되고 작업 행은 남는다.
+
+### 2026-10-26: 부분 요약 응답의 재사용
+
+검증 실패 응답도 기존 배치 이력에 남긴다. 각 쟁점을 동일 규칙으로 독립 검증한 뒤 통과한 부분만 새 READY 배치로 추가한다. request의 `salvaged_from: [batch_index, attempt]`가 원 응답을 가리키며 usage_metadata의 `method=VALIDATED_SUBSET`, `additional_model_calls=0`으로 중복 사용량 집계를 방지한다. 실패 쟁점의 단독 교정 요청은 `repair_round=1`로 구별한다.
+
+### 2026-10-26: 실시간 요약 언어 검증 이력
+
+`0056_transcript_summary_rejections`는 실시간 요약 검증에서 거부된 응답을 추가 기록한다. `request_snapshot`에는 발언 content_hash, 원문과 앞뒤 문맥이, `response`에는 응답 원문·거부된 발언 ID·실제 응답 모델·사용량이 포함된다. 원본 자막 및 기존 요약 행은 변경하지 않는다.
+
+`transcript_utterance_summaries`의 기존 계약별 유일 키는 유지한다. 신규 계약은 `assembly-conversation-summary/2.2`이며 조회 시 최신 작성 버전을 우선하고 명백한 한자·깨진 영문 혼입은 표시 및 캐시 재사용에서 제외한다. 이번 원문 대조 교정은 `provider=codex-source-review`, `model=codex`, usage_metadata의 `replaces_summary_id`, `source_segment_ids`, `source_revision_ids`, `source_text`, `original_record_hash`로 추적한다. `PROVISIONAL` 상태를 유지한다.
+
+### 2026-10-26: 실시간 후속 과제의 원문 근거 (JSON 계약 2.3)
+
+`transcript_utterance_summaries.live_insight`에 선택 필드 `task_kind` (`NONE`, `FOLLOW_UP_REQUEST`, `COMMITMENT`), `task_evidence_quote`, `task_evidence_start`, `task_evidence_end`, `task_validation`을 추가한다. 위치는 해당 content_hash의 target 원문 기준이다. 검증을 통과하지 못한 과제의 원래 문구는 `task_candidate`로 남기고 공개 과제 값은 null이다. 원래 모델 응답은 기존 usage_metadata에 보존한다. SQL 스키마 변경은 없다. 기존 행을 수정하지 않고 provider/model/prompt_version별 정정 행을 추가하며 사용량을 외부 모델 호출로 허위 기록하지 않는다.
+
+### 2026-10-26 LIVE 요약 계약 2.4
+
+과제 제목은 120자 이하의 요약이며, task_evidence_quote는 해당 target 원문의 연속된 600자 이하 구간이다. 원문 좌표와 검증 표시가 없는 기존 과제 캐시는 자동 재검토하며 생성 결과를 새 버전으로 저장한다. 테이블 변경은 없으며 질문/답변 요약, 원문 및 과거 생성 버전을 보존한다.
+
+### LIVE 논의 의미 분류 (0057)
+
+`live_discussion_classifications`는 `broadcast_id`, `profile`, `input_hash`, `state`, `request_snapshot`, `response`, `provider`, `model`, `usage_metadata`, `created_at`을 가진 추가 저장 원장이다. `state.groups`는 안정적인 논의 ID와 한국어 제목·범위, `state.assignments`는 발언 ID별 논의 ID·요약 지문·원문 내용 해시·시작/종료 커서를 저장한다. 입력 스냅샷에는 원문 segment/revision ID도 보존한다. 최신 유효 배정을 API `live_insight.discussion_group`으로 투영하며 권위는 PROVISIONAL이다. 원문과 요약 저장 테이블은 변경하지 않는다.
+
+### 무료 보조 모델 예약·정산 (0058)
+
+`auxiliary_model_calls`는 호출 UUID, provider/model, 공급자 기준 usage_date, reserved_tokens, charged_tokens, status, usage_metadata, 생성/정산 시점을 저장한다. 호출 전 예약량을 charged_tokens에 넣고 알려진 실제 총 토큰만 정산한다. 알 수 없는 호출·예약 중인 호출은 원래 예약량을 유지한다. 정산은 한 번만 적용한다. `auxiliary_model_pacing`은 공급자별 next_request_at을 기록한다. Groq 날짜는 UTC, Gemini는 America/Los_Angeles이며 원문 및 기존 AI 결과 저장소와 분리한다. 이 테이블은 PoC7 호출만 세며 PoC4 또는 공급자 전체 사용량이 아니다.
+
+
+## 0059 회의 보고서 자동 검증 이력
+
+- `meeting_brief_revisions`: 자동 보완 직전의 `meeting_briefs.brief` JSON을 별도 행으로 보존한다. `meeting_brief_id`, `reason`, `created_at`으로 추적하며 원문·이전 AI 결과를 삭제하지 않는다.
+- 새 보고서 `brief.finalization`에 버전, `PENDING/PROCESSING/DEFERRED/COMPLETED`, `STRUCTURING/REVIEWING/ONTOLOGY/NARRATIVE/FINALIZING`, `retry_after`, 원문 한계 수치를 저장한다. 이 필드는 구조화 source_hash에 포함하지 않으므로 단계 전환이 기존 배치를 무효화하지 않는다.
+- 최종화는 기존 `meeting_topic_structures` 및 `meeting_topic_structure_batches`의 검증된 응답을 재사용한다. API는 완료 전 초안 본문을 계속 제공하되 `brief_status=PROCESSING`, `brief_finalization` 및 단계별 태그를 반환한다. 기존 최종화 메타데이터가 없는 과거 보고서는 일괄 재생성하지 않는다.
+
+
+### 분할 쟁점 통합 캐시 (2026-10-27, 테이블 추가 없음)
+
+- `meeting_topic_structure_batches.batch_index=110000+부분번호`는 `indexed-partitions/3` 통합 부분 응답이다. request_snapshot은 전체 issues·대상 indices·partition_count를 담고 response는 원응답과 검증된 assignments를 보존한다. 일반 구조화 배치(<100000) 집계에 포함하지 않는다.
+- 모든 부분 완료 후 기존 통합 인덱스 100002에 전체 assignments를 저장하고 기존 의미 검증을 적용한다. 각 배정은 원래 쟁점 ID로 복원되며 원문 위치·발언 ID를 변경하지 않는다.
+- `brief.finalization.phase=CONSOLIDATING`, `integration_batches_done/total`이 진행률을 나타낸다. 이 메타데이터의 변경은 근거 snapshot 해시를 바꾸지 않는다. OpenAI 사용량 metadata에는 `workload`로 요청 스키마 이름을 남긴다.
+
+
+### 중간 통합 분할 재개 캐시 (2026-10-27, 테이블 추가 없음)
+
+`meeting_brief_chunk_cache.analysis`는 정상 단일 분석 외에 내부 분할 계획 `{"reduction_split": true}` 또는 검증된 하위 결과를 포함한 `reduction_parts`를 저장할 수 있다. 분할 전에 계획을 저장하고, 완료한 하위 결과는 각각의 기존 hash/index에 보존한다. 재개 시 계획 또는 과거 하위 캐시를 발견하면 실패했던 상위 요청을 다시 호출하지 않는다. 통합 완료 캐시를 읽을 때 각 하위 분석은 기존 원문 ID 검증을 다시 거친다. 사용자에게 제공하는 보고서 JSON과 원문 스키마는 변경하지 않는다.
+# 2026-10-27: 요약 교정 피드백
+
+`topic_structure_batches.request_snapshot`의 `structured-narrative/1.2` 요청은 선택적으로 `repair_round=2`와 `validation_feedback`을 가진다. 피드백은 쟁점 ID별 검증 오류, `unsupported_numbers`, `rejected_response`를 기록한다. 동일 source fingerprint와 요청에 대한 재시도 횟수를 재사용하며 원응답을 수정하지 않는다. 기존 JSON 필드 확장으로 DDL 변경은 없다.
+
+
+추가적인 `repair_round=3`의 `field_repair`에는 기반 응답(`base`), 기반 요청 번호(`source_attempt`), 교정 필드 목록과 해당 원문을 저장한다. 모델이 반환한 필드 교정 원응답은 `usage_metadata.field_repair_raw_response`에 보존하며, 최종 `response`는 기반 응답과 교정 문장을 합친 뒤 전체 근거 검증을 통과한 값이다.

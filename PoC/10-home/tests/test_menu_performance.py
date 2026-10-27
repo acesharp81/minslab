@@ -148,3 +148,35 @@ class MenuPerformanceTests(unittest.TestCase):
         with patch('backend.service.SOURCES',[source]),patch.object(self.service,'collect_one') as collect:
             self.service.collect_all(scheduled=True)
             collect.assert_not_called()
+
+
+def test_document_index_only_reads_requested_evidence_and_handles_empty_selection():
+    from backend.service import today
+    e=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
+    Base.metadata.create_all(e);s=HomeService(e)
+    try:
+        with s.sessions.begin() as db:
+            first,_=upsert_revision(db,'document_evidence','official_document','wanted',dict(base_date=today().isoformat(),text='원문\x00'),'test')
+            upsert_revision(db,'document_evidence','official_document','unrelated',dict(base_date=today().isoformat(),text='큰 원문'*10000),'test')
+        rows=s.document_evidence_index(entity_ids=(first.entity_id,))
+        assert [r['id'] for r in rows]==[first.entity_id]
+        assert s.document_evidence_index(entity_ids=())==[]
+        assert len(s.document_evidence_index())==2
+    finally:e.dispose()
+
+
+def test_project_enrichment_reused_across_filtered_views_without_mutation_leak():
+    from backend.read_scope import projection_reads
+    from backend.service import today
+    e=create_engine('sqlite://',connect_args={'check_same_thread':False},poolclass=StaticPool)
+    Base.metadata.create_all(e);s=HomeService(e)
+    try:
+        with patch.object(HomeService,'rows',return_value=[]) as rows:
+            with projection_reads():
+                assert s.projects(today(),policy_id='POL_2025_0907')==[]
+                count=rows.call_count
+                assert s.projects(today())==[]
+                assert rows.call_count==count
+            s.projects(today())
+            assert rows.call_count>count
+    finally:e.dispose()

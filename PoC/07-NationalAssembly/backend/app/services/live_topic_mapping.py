@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 
@@ -432,6 +433,7 @@ def mark_semantic_mapping_failed(
         {
             "semantic_mapping_version": MAPPING_VERSION,
             "semantic_mapping_status": "FAILED",
+            "semantic_mapping_retry_after": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
             "semantic_mapping_input_hash": input_hash,
             "semantic_mapping_model": model,
             "semantic_mapping_error": error[:120],

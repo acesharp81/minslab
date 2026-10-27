@@ -291,7 +291,7 @@ class WatchLifecycleRepository:
             "SELECT source_system FROM live_broadcasts WHERE id=%s", (broadcast_id,)
         ).fetchone()[0]
         cached = SummaryRepository(self.connection).summary_map(
-            [broadcast_id], provider="", model="", prompt_version=""
+            [broadcast_id], provider="", model="", prompt_version="", utterances=utterances
         )
         for u in utterances:
             summary = cached.get((broadcast_id, u["content_hash"]))

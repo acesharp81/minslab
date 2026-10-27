@@ -118,7 +118,8 @@ class TopicStructureRepository:
         from ..services.ontology_semantic import apply_reviews
         pending_ids = {t['id'] for t in projected.get('topics', []) if not _ontology_match(t)}
         projected = attach_ontology_source_context(projected, snapshot, pending_ids)
-        return apply_reviews(projected, responses, TARGET_ONTOLOGY)
+        from ..services.structured_narrative import apply as apply_narrative
+        return apply_narrative(apply_reviews(projected, responses, TARGET_ONTOLOGY), responses, snapshot)
 
     def start(self, item: dict[str, Any], snapshot: dict[str, Any]) -> Any:
         return self.connection.execute(

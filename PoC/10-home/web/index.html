@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/poc/home/assets/map-workspace.css?v=20261016-controls-view">
   <link rel="stylesheet" href="/poc/home/assets/policy-geo.css">
   <link rel="stylesheet" href="/poc/home/assets/policy-report.css">
+  <link rel="stylesheet" href="/poc/home/assets/project-brief-report.css?v=20261023-v1">
   <link rel="stylesheet" href="/poc/home/assets/policy-brief-report.css?v=20261023-wrap-v2">
   <link rel="stylesheet" href="/poc/home/assets/policy-907.css?v=20261022-gap-label-v15">
   <link rel="stylesheet" href="/poc/home/assets/delivery-operations.css?v=20261022-ui-refinement">
@@ -60,7 +61,7 @@
   <script src="/poc/home/assets/policy-907.js?v=20261022-visible-axis-v14" defer></script>
   <script src="/poc/home/assets/delivery-operations.js?v=20261022-ui-refinement" defer></script>
   <script src="/poc/home/assets/collected-records.js?v=20261022-records-r3" defer></script>
-  <script src="/poc/home/assets/mapping-workbench.js?v=20261022-ui-refinement" defer></script>
+  <script src="/poc/home/assets/mapping-workbench.js?v=20261026-publication-review" defer></script>
   <script src="/poc/home/assets/collection-repairs.js" defer></script>
   <script src="/poc/home/assets/collection-stage-lineage.js" defer></script>
   <script src="/poc/home/assets/collection-lineage.js" defer></script>
@@ -81,14 +82,17 @@
   <link rel="stylesheet" href="/poc/home/assets/source-preview.css?v=20261022-failed-cards">
   <script src="/poc/home/assets/source-preview.js?v=20261022-document-cards" defer></script>
   <script src="/poc/home/assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2" defer></script>
-  <script src="/poc/home/assets/policy-brief-report.js?v=20261023-v5-rates" defer></script>
-  <script src="/poc/home/assets/progress-report.js?v=20261023-policy-brief-v1" defer></script>
+  <script src="/poc/home/assets/policy-brief-report.js?v=20261023-shared-v6" defer></script>
+  <script src="/poc/home/assets/project-brief-report.js?v=20261023-v7" defer></script>
+  <script src="/poc/home/assets/progress-report.js?v=20261023-project-brief-v2" defer></script>
   <script src="/poc/home/assets/collection-schema.js?v=20261022-starmap-3d-v3" defer></script>
   <link rel="stylesheet" href="/poc/home/assets/report-collection.css?v=20261022">
   <link rel="stylesheet" href="/poc/home/assets/collection-starmap.css?v=20261022-starmap-3d-v3">
   <script src="/poc/home/assets/report-md.js?v=20261022-sequence-rule" defer></script>
   <script src="/poc/home/assets/source-years.js?v=20261022-ui-refinement" defer></script>
-  <script src="/poc/home/assets/app.js?v=20261023-integrity-loading" defer></script>
+  <link rel="stylesheet" href="/poc/home/assets/publication-reviews.css?v=20261026-3">
+  <script src="/poc/home/assets/publication-reviews.js?v=20261026-2" defer></script>
+  <script src="/poc/home/assets/app.js?v=20261026-publication-review" defer></script>
   <link rel="stylesheet" href="/poc/home/assets/policy-region-map.css?v=20261016-unit-share">
   <link rel="stylesheet" href="/poc/home/assets/policy-decision.css"><link rel="stylesheet" href="/poc/home/assets/policy-workspace.css?v=20261022-visible-axis-v14">
   <link rel="stylesheet" href="/poc/home/assets/report-md.css">
@@ -115,6 +119,7 @@
       <button class="nav-item nav-primary nav-group-toggle" type="button" data-nav-group="data" aria-controls="nav-data-children" aria-expanded="false"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="nav-text">데이터관리</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
       <div id="nav-data-children" class="nav-children" hidden>
         <button class="nav-item nav-child" data-view="sources" data-nav-category="data">출처와 수집현황</button>
+        <button class="nav-item nav-child" data-view="publication-reviews" data-nav-category="data">신규 자료 검토 <span id="publication-review-badge" class="pr-nav-badge" hidden></span></button>
         <button class="nav-item nav-child" data-view="tree" data-nav-category="data">정책-프로그램-사업 연결</button>
         <button class="nav-item nav-child" data-view="project-collection" data-nav-category="data">사업별 수집연계</button>
         <button class="nav-item nav-child" data-view="data-integrity" data-nav-category="data">데이터 정합성 확인</button>
@@ -147,9 +152,9 @@
             <button id="integrity-tab-history" type="button" role="tab" data-integrity-tab="history" aria-controls="integrity-panel-history" aria-selected="false" tabindex="-1">데이터셋 개선 과정</button>
             <button id="integrity-tab-assessment" type="button" role="tab" data-integrity-tab="assessment" aria-controls="integrity-panel-assessment" aria-selected="false" tabindex="-1" hidden>관리자 정합성 점검</button>
           </div>
-          <section id="integrity-panel-procedures" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-procedures"><iframe id="integrity-doc-procedures" class="di-document" title="공급유형별 추진절차" data-src="/poc/home/integrity-documents/procedures" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
-          <section id="integrity-panel-reliability" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-reliability" hidden><iframe id="integrity-doc-reliability" class="di-document" title="데이터 신뢰도 확인" data-src="/poc/home/integrity-documents/reliability" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
-          <section id="integrity-panel-history" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-history" hidden><iframe id="integrity-doc-history" class="di-document" title="데이터셋 개선 과정" data-src="/poc/home/assets/integrity-history/index.html?v=1" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-procedures" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-procedures"><iframe id="integrity-doc-procedures" class="di-document" title="공급유형별 추진절차" data-src="/poc/home/integrity-documents/procedures?v=20261023-clean" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-reliability" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-reliability" hidden><iframe id="integrity-doc-reliability" class="di-document" title="데이터 신뢰도 확인" data-src="/poc/home/integrity-documents/reliability?v=20261023-theme" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+          <section id="integrity-panel-history" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-history" hidden><iframe id="integrity-doc-history" class="di-document" title="데이터셋 개선 과정" data-src="/poc/home/assets/integrity-history/index.html?v=2" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
           <section id="integrity-panel-assessment" class="di-tab-panel" role="tabpanel" aria-labelledby="integrity-tab-assessment" hidden><div class="di-actions"><button id="integrity-refresh" class="button secondary" type="button">점검 결과 새로 조회</button></div><div id="integrity-content" aria-live="polite"></div></section>
         </section>
         <section id="pane-project-collection" class="pane" hidden>
@@ -194,6 +199,7 @@
           <article class="panel"><div class="panel-head"><div><p class="section-kicker">PROJECT MONITOR</p><h2>사업 진행 현황</h2></div><button class="text-button" data-view="projects">전체 사업 보기 ↗</button></div><div id="recent-projects" class="table-scroll"></div></article>
           <div class="method-note"><span>ⓘ</span><div><strong>숫자의 기준을 함께 확인하세요.</strong><p>공급계획은 예정 물량이며 실제 공급·준공을 의미하지 않습니다. 정책 귀속과 원천 간 동일 사업은 담당자 확인 전까지 검토 후보로 표시합니다.</p></div></div>
         </section>
+        <section id="pane-publication-reviews" class="pane" hidden><div id="publication-review-root"></div></section>
         <section id="pane-projects" class="pane" hidden><div class="section-title"><div><h2>사업 추진현황</h2><p>정책·프로그램에 포함된 사업의 목표, 수집 근거와 입지를 확인합니다.</p></div><a id="export" class="button secondary" href="/poc/home/api/export.csv">CSV 다운로드 ↓</a></div><div id="project-report-detail"></div><div hidden><div class="subfilters"><select id="source-filter" aria-label="사업 원천"><option value="">원천 전체</option></select><select id="stage-filter" aria-label="사업 단계"><option value="">단계 전체</option><option value="PLANNING">정책 발표·계획</option><option value="CANDIDATE">신규 후보지</option><option value="PLANNED_SUPPLY">공급계획</option><option value="CONSTRUCTION">원천상 공사 진행</option><option value="COMPLETED">원천상 공사 완료</option></select><select id="mapping-filter" aria-label="매핑 상태"><option value="">매핑 상태 전체</option><option value="REVIEW">검토 필요</option><option value="CONFIRMED">담당자 확정</option><option value="RELEASED">연결 해제</option></select><span id="project-total"></span></div><article class="panel"><div id="project-list" class="table-scroll"></div><div class="pagination"><button id="prev" class="button secondary">← 이전</button><span id="page-info"></span><button id="next" class="button secondary">다음 →</button></div></article></div></section>
         <section id="pane-tree" class="pane" hidden>
           <div id="mapping-review-counts" class="mr-counts" aria-label="연결 현황"></div>

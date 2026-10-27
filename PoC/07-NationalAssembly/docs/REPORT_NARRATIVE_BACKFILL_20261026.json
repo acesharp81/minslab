@@ -1,0 +1,1757 @@
+{
+  "reports": [
+    {
+      "broadcast_id": "0399600b-b268-4268-8cf3-f14078453b0b",
+      "brief_id": "a2b0563c-1fc7-4c36-b8e3-f36632aae87f",
+      "title": "행정안전위원회 국정감사(부산경찰청)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3168,
+      "original_hash": "5036edc69dec8fefe7a5fd2350f645a11514e490d352ba3b8d17fefa0634bbbf",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 158,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 158,
+      "source_points": 225,
+      "original_summary_topics": 24,
+      "canonical_hash": "07b38a90f5f9bc4a9141f26aff7bcc883163da15e7f9f839912d7af7a5624ae1"
+    },
+    {
+      "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "brief_id": "68a522cb-f971-4c1f-8d23-296d29344438",
+      "title": "제439회 국회(정기회) 제08차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2504,
+      "original_hash": "04fe1adfadd6dfe505d7653608edd80d71db8be17ba246cd756e434b1eeca13b",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 8,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 131,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 131,
+      "source_points": 257,
+      "original_summary_topics": 24,
+      "canonical_hash": "4b426f0fb5db88b72b0dda44d24008cdca58e0e132c49a9b68dc1a983ef8ec18"
+    },
+    {
+      "broadcast_id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "brief_id": "50fbdf82-5588-42c4-b3a4-07a2e46354a4",
+      "title": "제439회 국회(정기회) 제06차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2744,
+      "original_hash": "fb41692dc72a7688fe11f0d5397b7427f3f5184477707c6e541a646f3b8f60d6",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 151,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 151,
+      "source_points": 232,
+      "original_summary_topics": 24,
+      "canonical_hash": "3dcce117f4fb7751a5df02033473a47bfd378ae04337645aab9e2ed33c3cf39b"
+    },
+    {
+      "broadcast_id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "brief_id": "99d3e3e8-d893-469f-bd69-7e32fa7b5b0d",
+      "title": "행정안전위원회 국정감사(경기남부경찰청 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3867,
+      "original_hash": "4698d4ca3533cd6fae63cae074474077e552f0f1475d5e0abe9b75966b194013",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 8,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 151,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 151,
+      "source_points": 292,
+      "original_summary_topics": 24,
+      "canonical_hash": "acf3627eec9dba93ca878b8a5109e134cd0242230f7807cf715d65f41a044204"
+    },
+    {
+      "broadcast_id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "brief_id": "bc9b146a-bdc4-4c09-98fd-1b6f52f4d18b",
+      "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1068,
+      "original_hash": "fae5c080ac7f6cb0d3d4d6b3333f9b923b8cce9da2e51ef025b9ccf2fb5064e7",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 5,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 81,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 81,
+      "source_points": 170,
+      "original_summary_topics": 24,
+      "canonical_hash": "4c74b6616ee10ce87371c88ce9b1b15cda34c4ef4b28c654e53416286321e048"
+    },
+    {
+      "broadcast_id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "brief_id": "5381898d-6541-49e2-8d93-49cb9a7256d4",
+      "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1183,
+      "original_hash": "1da3f5660e9f8c023c986b66065e6a737e69548ed7327b07b648c6b160384a0e",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 78,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 78,
+      "source_points": 122,
+      "original_summary_topics": 24,
+      "canonical_hash": "0bbc91053f60b8a8efcd4b9ba77067504fab7383775d30ce1f384e87186d3538"
+    },
+    {
+      "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "brief_id": "a42b73d1-af02-44ab-9907-03ee773a5ca5",
+      "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 286,
+      "original_hash": "0fa19141f4ea5727b174d0d39db2b884eb82767435d0561f176181d7a819428a",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 7,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 7,
+      "source_points": 20,
+      "original_summary_topics": 9,
+      "canonical_hash": "93a69a4d2c179b8f0df09cda9a12f57c06a4d771425744e6317d3d0ecfe6b3e9"
+    },
+    {
+      "broadcast_id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "brief_id": "dc1f0d1b-c41b-43c1-91db-3beb4de57aa1",
+      "title": "법제사법위원회 국정감사(고위공직자범죄수사처)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3488,
+      "original_hash": "0b8b5af10ffab8f36ca72b2f2cbb5021bc93032f2be46fa73bb63ded56f6633e",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 101,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 101,
+      "source_points": 285,
+      "original_summary_topics": 24,
+      "canonical_hash": "ea1ba8e607c2bfafa47599d1076dd28184a17b16351f463adaac34d33c6a2695"
+    },
+    {
+      "broadcast_id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "brief_id": "1de56e9b-ea21-4bb3-9724-6ebc4e80f343",
+      "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 671,
+      "original_hash": "0536a27ac1cf5a03a2557c1902ec0ffba0b038f939d3ed45e18c86f7b661fa28",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 43,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 43,
+      "source_points": 118,
+      "original_summary_topics": 24,
+      "canonical_hash": "f3ed2b75e800dfb3998ebd3cf5f986d6f4ea5b346582566773bd0937f2aa1eeb"
+    },
+    {
+      "broadcast_id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "brief_id": "de74a687-269a-4410-a4ac-3db2958b2526",
+      "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4331,
+      "original_hash": "3edc49073ae8fbb3fc2c2e905f6556526b9bada71effd347673028c01e9c1326",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 11,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 224,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 224,
+      "source_points": 401,
+      "original_summary_topics": 24,
+      "canonical_hash": "399899f6a3c6c7ec9ae14ba2a34a94152d10cdcdc7f1076a479dc61498b94515"
+    },
+    {
+      "broadcast_id": "33fae667-d853-43be-9500-c7335df4771e",
+      "brief_id": "a5901e5c-f820-4dfc-8f4e-93e8f619009d",
+      "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 5389,
+      "original_hash": "118089ed35cca79d06f2364916a984e019dbde896a0b0f28452a2c917a87b6ec",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 13,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 318,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 318,
+      "source_points": 454,
+      "original_summary_topics": 24,
+      "canonical_hash": "df999a56923952fe7d3210f4ddd3453b8fddf5e88f48029a6fce767ad1b70778"
+    },
+    {
+      "broadcast_id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "brief_id": "84d008f6-46d5-4f09-bca0-47b17aec64a7",
+      "title": "행정안전위원회 국정감사(경찰청 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3034,
+      "original_hash": "dc65a731c09a342cb1546e5e2b5dc25881151e9440b7b484b50a4e70d07e1c04",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 121,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 121,
+      "source_points": 286,
+      "original_summary_topics": 24,
+      "canonical_hash": "92af24cc179d7ea5ee6191efcd3db4a981645df0795692f69d1eb15b9ea5f5e3"
+    },
+    {
+      "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "brief_id": "5c005bac-fce7-4754-8dc1-e416982d6b4b",
+      "title": "제44회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 845,
+      "original_hash": "f39f83e7ead4469f9f83a1a0d02920995afe331a75343f43c6758e74db169421",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 68,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 68,
+      "source_points": 79,
+      "original_summary_topics": 19,
+      "canonical_hash": "2495334d21f1140b38a8a79ee92bc65ed1ac8faf4faca47ea6ceb2372afd6081"
+    },
+    {
+      "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "brief_id": "a9ff620a-7cf7-492d-9e23-585eb070eb88",
+      "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1030,
+      "original_hash": "c2554afdb473bce1eb8ea0ad91750ab2ecd16a1ad2721f27850f0c5a37834c83",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 79,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 79,
+      "source_points": 106,
+      "original_summary_topics": 24,
+      "canonical_hash": "16a52e5a74cee6a3ab1f1b1ecf06a1b516eef2d135283f01659fd6556d8d615f"
+    },
+    {
+      "broadcast_id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "brief_id": "740101da-7ceb-497d-b53e-9b47f6f4927c",
+      "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1279,
+      "original_hash": "e1aa57c0d1b4df2053f96193eebf608e6d7673760e5f06e0b98ca1e7133f2ed8",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 5,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 150,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 150,
+      "source_points": 162,
+      "original_summary_topics": 24,
+      "canonical_hash": "ca36763c2b48fa001123243e207027e8f7ce525a193affdd6392b911794095af"
+    },
+    {
+      "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "brief_id": "91f141c9-385c-4f99-8d5d-3a82fae6fd0a",
+      "title": "제38회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 600,
+      "original_hash": "ef6ed64a972290285d407c67fd29a24864bcb1caf43896099007af2b3c793074",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 51,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 51,
+      "source_points": 79,
+      "original_summary_topics": 24,
+      "canonical_hash": "31c6078f5db7fdccac567c2565e0410453c3670922f8f11cc38d0d132dd38758"
+    },
+    {
+      "broadcast_id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+      "brief_id": "fe4db110-dbf8-4dee-98ed-68c8c72e329f",
+      "title": "행정안전위원회 국정감사(광주경찰청 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2249,
+      "original_hash": "dc71e033a438cae0a4bf881970d25c652ba3daae8a23a3dcca8678e11709a938",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 18,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 269,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 269,
+      "source_points": 527,
+      "original_summary_topics": 24,
+      "canonical_hash": "252d225405227c867e3e06b36034706db56860fd6dc73e55ac9d33febe0d5210"
+    },
+    {
+      "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "brief_id": "97ba0394-91ac-4fa1-bf3b-63431b27d5ca",
+      "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 681,
+      "original_hash": "ad44c95311947e30add016028f4df89dc29596c1146aa08d157b85091fe169ff",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 57,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 57,
+      "source_points": 71,
+      "original_summary_topics": 24,
+      "canonical_hash": "4e33354658d3e4eb20047cbdf343cee1924b59098add930757b34c37a5c604d7"
+    },
+    {
+      "broadcast_id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+      "brief_id": "a57b5383-80e2-4a7c-acb8-655ad664e468",
+      "title": "행정안전위원회 국정감사(제주경찰청)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1897,
+      "original_hash": "85ae25e805509ccee74c73558822665cbc84eaea49f388ad27bdab5893cf7924",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 12,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 144,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 144,
+      "source_points": 402,
+      "original_summary_topics": 24,
+      "canonical_hash": "34a30ad0b06f1464d83ee0b428013efeac8815089311f05ea5471246244180bb"
+    },
+    {
+      "broadcast_id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "brief_id": "8ce27f4f-3606-47c5-abe3-0003babf76b4",
+      "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3610,
+      "original_hash": "f2f628aaa750c6ab5d8cb6d40d653534b12c62438bbb014b16e163eb1314fa55",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 145,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 145,
+      "source_points": 281,
+      "original_summary_topics": 24,
+      "canonical_hash": "ceb416fb6b617bead1f77533509afc95e81d695250ecdaf2542382b5706b3158"
+    },
+    {
+      "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "brief_id": "39fe1954-723c-4e05-b205-c73939c659ec",
+      "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1031,
+      "original_hash": "d234e90ef037838416c64a43ab46a3679c6eaa2e921bfff16a22bff63ab6de27",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 59,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 59,
+      "source_points": 136,
+      "original_summary_topics": 24,
+      "canonical_hash": "2bb11408dc76012effb4ffeb06aedc693ccf514a6805190b49af56d030083a9f"
+    },
+    {
+      "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "brief_id": "00ecf4a8-8bb6-463e-acdb-d87c63bf3091",
+      "title": "법제사법위원회 국정감사(군사법원)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3596,
+      "original_hash": "4ca87752584403bbd862788572a1e5ac8f24e8357339b31dc884813f77c12a68",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 200,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 200,
+      "source_points": 331,
+      "original_summary_topics": 24,
+      "canonical_hash": "f33e1ce338a9e18841e1f568cb051b93e26398dc804c83f58a394947b87953e8"
+    },
+    {
+      "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+      "brief_id": "96116c2e-e451-43b4-b787-b8ec519b832b",
+      "title": "법제사법위원회 국정감사(공소청)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4136,
+      "original_hash": "4c59f19764f339eebafb6f481771a2a017aaae260e9de7cef001b4b7b73acbef",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 15,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 155,
+        "summarized_issue_count": 155,
+        "status": "COMPLETE"
+      },
+      "issues": 155,
+      "source_points": 475,
+      "original_summary_topics": 160,
+      "canonical_hash": "caac1dd4c63944769021a14343cba327b1e31c2abd3d0d849432241b7dd71b3d"
+    },
+    {
+      "broadcast_id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "brief_id": "39ac51ad-7398-4276-91f1-53fea51d8ea8",
+      "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2538,
+      "original_hash": "ef2bb7dd8f33200939bb89d91456890ac5f486d41e651b0a379bda6f5b178cea",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 70,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 70,
+      "source_points": 200,
+      "original_summary_topics": 24,
+      "canonical_hash": "c9d61df8e265a3e71dd65b405c4a396bea21e56319cf14ec4e8443142342ae3e"
+    },
+    {
+      "broadcast_id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "brief_id": "f688fdcd-dab3-4827-aece-282115eff27a",
+      "title": "행정안전위원회 국정감사(중앙선거관리위원회 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4024,
+      "original_hash": "6558edd7cc278e282c1b7ba6748652d4ba970b172d49af36b6b4be152bdb3c7f",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 148,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 148,
+      "source_points": 293,
+      "original_summary_topics": 24,
+      "canonical_hash": "df7c38ab14d9551f337d2d71a05114b49d0b8754ad6a984de672a73d839fe0ea"
+    },
+    {
+      "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "brief_id": "98662fda-12b0-4e81-bfd3-0f7b8bcbfe83",
+      "title": "제439회 국회(정기회) 제05차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2390,
+      "original_hash": "5f87d84ba313f701699089b0b70400ce36c43e2a41839f48e480a0be3bf0593a",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 6,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 149,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 149,
+      "source_points": 176,
+      "original_summary_topics": 24,
+      "canonical_hash": "f19b5eccf41c224422c08cc92973b4d20ce8de54258730684a4c38c5e717a1ab"
+    },
+    {
+      "broadcast_id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "brief_id": "ece0fe2f-49c6-49d9-bc6a-6ed205b1235c",
+      "title": "제439회 국회(정기회) 제10차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 994,
+      "original_hash": "ca3cb47fead419e64c4554ba18395355da72b6fe53e8411162583732d6fe626d",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 2,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 79,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 79,
+      "source_points": 104,
+      "original_summary_topics": 24,
+      "canonical_hash": "85f095ea15703e24713efd7ec3afce76951600e3d9f03653a30fcc86496b762e"
+    },
+    {
+      "broadcast_id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "brief_id": "9bd1edc4-438a-4a2d-a643-8431faa47374",
+      "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 507,
+      "original_hash": "0c3533fedec9618f87a63d1186eaf62712637d72f3fc8f90d877e1e9d994fd2b",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 59,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 59,
+      "source_points": 88,
+      "original_summary_topics": 24,
+      "canonical_hash": "58ba542f4eb5902dda428c80528c7b32df145ab87e4598a7974e791d1c3777e0"
+    },
+    {
+      "broadcast_id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "brief_id": "561e5d30-588f-488d-8c53-a2a1b3031e1c",
+      "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 410,
+      "original_hash": "a5324ec986674d44aa607a0511be36c170762bc8822e123a364ab01aca293dab",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 32,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 32,
+      "source_points": 67,
+      "original_summary_topics": 18,
+      "canonical_hash": "5a20a6b869e49b0a99affe59225f3d9dcea3de3608ebb1889fba553883850272"
+    },
+    {
+      "broadcast_id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "brief_id": "c6488bdf-d1f9-4895-a225-3b95b4cc76e8",
+      "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4965,
+      "original_hash": "4908e8a4e13b5e5a73b1d1a7b6be7d37817659f91a6e3cc2e8e280d6521852fd",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 156,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 156,
+      "source_points": 296,
+      "original_summary_topics": 24,
+      "canonical_hash": "4097f8884f81a50735870acf5043ed78ef0bf3a25c467a42733b22983656c6d1"
+    },
+    {
+      "broadcast_id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "brief_id": "ce69402c-5afc-4945-ac74-b2018b6f9cea",
+      "title": "법제사법위원회 국정감사(대법원 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 5630,
+      "original_hash": "409cd4ffd0a109174fdd0855fb1ea027719de10fb553468b048c5ba25fd2abeb",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 149,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 149,
+      "source_points": 310,
+      "original_summary_topics": 24,
+      "canonical_hash": "cd2548638eb95ea4c28e3afcec4b64a9985725eab7cd135b39378a16b772e2d9"
+    },
+    {
+      "broadcast_id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "brief_id": "7795ad77-a77a-40c1-a04e-4fb9495999f7",
+      "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4021,
+      "original_hash": "c581e9ce2e4a29e586740558d6b2195f609b3edc729218cdce7e719aa8590e09",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 11,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 190,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 190,
+      "source_points": 370,
+      "original_summary_topics": 24,
+      "canonical_hash": "d3ef325d0978159629ed2e77e49dd96436862b6103446454854cf64b0673be60"
+    },
+    {
+      "broadcast_id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "brief_id": "a9c51c0b-4e0d-4801-a67f-5152830ff6b8",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4715,
+      "original_hash": "6f9b4be88a9bd2f016f486ea68ef7d7ccb13094ef2faaa98f487eaf5adfc86bc",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 163,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 163,
+      "source_points": 273,
+      "original_summary_topics": 24,
+      "canonical_hash": "a5f87be8bd7eb21979f7122eade4adeaab985f4177529e1de3e9eb49484f241c"
+    },
+    {
+      "broadcast_id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "brief_id": "e251c122-7277-4259-ba18-5271c7430fba",
+      "title": "법제사법위원회 국정감사(서울광역공소청 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3641,
+      "original_hash": "e501552212631c13160e941daa878d5e66fd5959a77879d9c8e74d6dadbe881b",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 4
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 259,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 259,
+      "source_points": 343,
+      "original_summary_topics": 24,
+      "canonical_hash": "0b68a3cc07377a6f6048f81e00d3520ec165d92097339e1a621ecfd2458343e8"
+    },
+    {
+      "broadcast_id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "brief_id": "f2c76f0e-5621-455e-bcab-54995cc2f06f",
+      "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 905,
+      "original_hash": "4e8c95209e72779885f1294fdcbc9d33a930e0c4ebf54aab7752cd0b27e381ed",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 108,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 108,
+      "source_points": 131,
+      "original_summary_topics": 24,
+      "canonical_hash": "285967e87d03671ea936e39eb3d36d027f3cf2116959e5368ac979483b5ef7c4"
+    },
+    {
+      "broadcast_id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "brief_id": "a0d232c7-65a9-49fa-a215-1b249788f696",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4733,
+      "original_hash": "b638179de53ec9918722ee6c4047f6b6537c33eaa3a400d5331d2409cda8002e",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 13,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 188,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 188,
+      "source_points": 408,
+      "original_summary_topics": 24,
+      "canonical_hash": "3978d09aaba9db330c0e8eb06daf19e42419cfc6f9a255fd0892eac804f73128"
+    },
+    {
+      "broadcast_id": "c391ad71-008d-4544-a2b6-81709e344703",
+      "brief_id": "b0b2ec3e-0f81-49e0-8b27-7f382b7e98b6",
+      "title": "법제사법위원회 국정감사(대구고등법원 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1130,
+      "original_hash": "5967a053da3cdb52bdbb86324f6aaf0c44ddbe9cc8522dfa1a0a151cb8669cd8",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 86,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 86,
+      "source_points": 95,
+      "original_summary_topics": 24,
+      "canonical_hash": "a747a5964242ca2785db6556e6e1184520c20e4a05b8c7fa6e38cda062476dc3"
+    },
+    {
+      "broadcast_id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "brief_id": "4253c34d-fd84-46f9-ba23-9426ddaa8d29",
+      "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 5409,
+      "original_hash": "e99dad5c71a8b63b4b7782d5963cf8faa9ee54f8567d166188523cb22e2855a6",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 14,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 295,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 295,
+      "source_points": 489,
+      "original_summary_topics": 24,
+      "canonical_hash": "3cfbc70d300b57408f205b888c341da3ecf7a2fc94fa8cc90c2da6c33f9597c8"
+    },
+    {
+      "broadcast_id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "brief_id": "32a7abe0-0baf-4f1e-958d-a770c0603d26",
+      "title": "법제사법위원회 국정감사(서울고등법원 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 3986,
+      "original_hash": "f65569542a09d22a04a91dbcb0a5f326993ab795e967e4c43899feae09b498b3",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 9,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 129,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 129,
+      "source_points": 313,
+      "original_summary_topics": 24,
+      "canonical_hash": "9252a528d8aa1b4124fbe294949f2e5fb4d4cd14c589e09bf60fe021ce2560e3"
+    },
+    {
+      "broadcast_id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "brief_id": "86a76558-a239-4c88-bf28-a2cb2de28840",
+      "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2950,
+      "original_hash": "81338165ee47bf10ade50c780a1e4d2bf03df5ddd09ae620a65de9f632fdcce5",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 37,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 37,
+      "source_points": 37,
+      "original_summary_topics": 8,
+      "canonical_hash": "3a13abbd3a4499d193a89fb8e26449875e3686239f6ea42f479c705234cbf6bd"
+    },
+    {
+      "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "brief_id": "dc7b5242-f837-4890-8aca-79908aba939b",
+      "title": "제42회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 1306,
+      "original_hash": "0da772e501e7edc2436b91c3724ceee3f8ac3a44ff412932b6174de94a5a4253",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 50,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 50,
+      "source_points": 95,
+      "original_summary_topics": 24,
+      "canonical_hash": "00e1f1c0974bf9359cc783d7837193101c88e787e69332e9a953884928366a7c"
+    },
+    {
+      "broadcast_id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+      "brief_id": "25b989be-18dc-48dd-a079-37ac503ef87e",
+      "title": "행정안전위원회 국정감사(충청북도)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 908,
+      "original_hash": "df2fc28269f0b445214a072eb4cdfa6b7884bb5006d5faaa49cfd165544cba8c",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 6,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 131,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 131,
+      "source_points": 217,
+      "original_summary_topics": 24,
+      "canonical_hash": "4884d2258318fe7706b7f95f5d089a43d44edaa89683e3773cf2b6bd5d9e1eba"
+    },
+    {
+      "broadcast_id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "brief_id": "d885609a-7774-4caa-98d6-66f7edcbf150",
+      "title": "법제사법위원회 국정감사(감사원)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2211,
+      "original_hash": "0ae5043135a1124ace359ada6464203609dad04977b70e943c847e913a431e32",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 7,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 118,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 118,
+      "source_points": 239,
+      "original_summary_topics": 24,
+      "canonical_hash": "c1c2c68214d7bfa68fff518375c3340dcb06eb1ffd7668f053062012ffd3de2b"
+    },
+    {
+      "broadcast_id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "brief_id": "558fcb23-a980-4e2a-9aad-0ab1d6407b87",
+      "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4010,
+      "original_hash": "102e17fd2b78a9b75467400bc66cbca511321f8b0a9c8c0c544b1af83bebc3eb",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 1,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 37,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 37,
+      "source_points": 37,
+      "original_summary_topics": 8,
+      "canonical_hash": "93e6d0e584d40407460ad456a0f0e415e30d1531b36bb62bcc0d35ae5d4b2b29"
+    },
+    {
+      "broadcast_id": "e858014a-90c5-411c-a282-82e1ff8b094f",
+      "brief_id": "65252d27-088a-41f6-8ebf-4b50abefbb13",
+      "title": "법제사법위원회 국정감사(대전고등법원 등)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1441,
+      "original_hash": "01db5dbaf087892da3fdd355d6c642c39ce556bbf823d7f65e9f656075b4b879",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 112,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 112,
+      "source_points": 127,
+      "original_summary_topics": 24,
+      "canonical_hash": "b1cd4ecd6faf4c13de5996320abee7df1ea307ee1569e2d131681172a6c99c17"
+    },
+    {
+      "broadcast_id": "ebf050d7-171f-466a-8e71-c85336417170",
+      "brief_id": "8c55d2c5-6b80-4468-a2ca-9713a3984771",
+      "title": "행정안전위원회 국정감사(울산광역시)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 1291,
+      "original_hash": "b30150fbe8c2f3adf46545eccf7ac448cd26a20ef404bb1ab15e4106c8d5d994",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 63,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 63,
+      "source_points": 111,
+      "original_summary_topics": 20,
+      "canonical_hash": "d678233369fcfe627c5dc6cb00ac197bbe7646647c3d5a0c46a6f44848f46332"
+    },
+    {
+      "broadcast_id": "ee8e077e-aace-45f0-811c-02d348423947",
+      "brief_id": "0b3f12ff-ad8e-4254-aff0-9b117ff3927d",
+      "title": "제45회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 1235,
+      "original_hash": "a66b12a03a9ef594af1a9f853e7a4a0c2f16934ff49669c07be068af26c97a56",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 93,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 93,
+      "source_points": 137,
+      "original_summary_topics": 24,
+      "canonical_hash": "c7f468025662747c02eafe48e1ad7edfe1cb3283ccae1f45ab718c83ac084280"
+    },
+    {
+      "broadcast_id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "brief_id": "a6dee964-c2cb-4435-ab53-0896df5b7f2e",
+      "title": "행정안전위원회 국정감사(서울경찰청)",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 4516,
+      "original_hash": "335370b2489a3f3950aa879631f73474cd3436ae8f2a1ea8ce7b069e27ff36a6",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 12,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 180,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 180,
+      "source_points": 424,
+      "original_summary_topics": 24,
+      "canonical_hash": "4e956a1e9ad3e9a08cb8e0bb1eef83839894cf9602055b7d83268c05aa841051"
+    },
+    {
+      "broadcast_id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "brief_id": "468c0a13-cc39-46e5-8647-9c1a9e6f4076",
+      "title": "제439회 국회(정기회) 제07차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 2545,
+      "original_hash": "c364d6d04a734a8af8808b68b85617e921d882a8ae1ca861c8eb03757cea75ef",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 6,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 147,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 147,
+      "source_points": 194,
+      "original_summary_topics": 24,
+      "canonical_hash": "e30f7e765806e5cc486e9ae7dbd58313b3ac0e3afae76fdfcd8135bc197479ea"
+    },
+    {
+      "broadcast_id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "brief_id": "8af1d205-b403-4ff0-a8e1-6a17a26ad759",
+      "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 5206,
+      "original_hash": "77a8e92d755d8fc14e1b9294e671d5ced9d119170c2f6e14ccecf418c1b2a333",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 12,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 264,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 264,
+      "source_points": 387,
+      "original_summary_topics": 24,
+      "canonical_hash": "4be1099eb03cf56cecc9a500f056db491435743e97086e04f3ba9f3def4014b1"
+    },
+    {
+      "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "brief_id": "6070d881-3c41-4052-9ab9-361096062f6f",
+      "title": "제43회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 897,
+      "original_hash": "705d1bf30a158e38809f40103d275afe824759d69db0a3cd2d81b4bcf42937aa",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 72,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 72,
+      "source_points": 116,
+      "original_summary_topics": 24,
+      "canonical_hash": "ff55b2e937d958767d963563b61abd30a0b97aa88f18c432479e5cbadaaf807f"
+    },
+    {
+      "broadcast_id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "brief_id": "ffddc3aa-a102-43b4-a400-691c0d83550f",
+      "title": "제439회 국회(정기회) 제09차 본회의",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 964,
+      "original_hash": "6ea39a15a08b89fd6e3be1d30a7143a67f74aa439c45f6d315f08533f6d49bff",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 3,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 34,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 34,
+      "source_points": 44,
+      "original_summary_topics": 23,
+      "canonical_hash": "9a88a45445b3a4efebf31edc4d5cffe5c8dab16175f8edd7ef74641ed0cefe8e"
+    },
+    {
+      "broadcast_id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "brief_id": "818a59c9-5c9f-46da-9e3f-1989aa6a9ac3",
+      "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 582,
+      "original_hash": "e68966a972ffc32535c11a8167ab44ef880d084c846d83d57539e84736b16b44",
+      "structure": {
+        "status": "COMPLETED",
+        "completed_batches": 4,
+        "consolidation_attempts": 1
+      },
+      "coverage": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 23,
+        "summarized_issue_count": 0,
+        "status": "PENDING"
+      },
+      "issues": 23,
+      "source_points": 91,
+      "original_summary_topics": 24,
+      "canonical_hash": "9efbfd769f809d0df356410c7f4de0b20618199d708e04360c0b45caed1fa72a"
+    }
+  ],
+  "without_brief": [
+    {
+      "broadcast_id": "66442949-274e-407d-b3ab-9c6b3ee05a64",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.local",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "87c42daf-b0c3-4a50-b127-d30f1bb26003",
+      "title": "제438회 제1차 행정안전위원회 · 행정안전부 AI 업무보고 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 31
+    },
+    {
+      "broadcast_id": "a659c7a7-d4dd-4826-9224-396413772762",
+      "title": "제438회 제1차 행정안전위원회 · 행정안전부 AI 업무보고 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 31
+    },
+    {
+      "broadcast_id": "66265612-921e-432d-adae-36c3f164f0bf",
+      "title": "제37회 국무회의",
+      "institution": "EXECUTIVE",
+      "source": "ktv.go.kr",
+      "final_segments": 0
+    },
+    {
+      "broadcast_id": "76ea70b4-2f81-404d-838b-d0fb1afebe45",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "5436d394-affd-45d6-b528-f799fdab85dc",
+      "title": "제439회 국회(정기회) 제01차 국방위원회",
+      "institution": "LEGISLATURE",
+      "source": "assembly.webcast.go.kr",
+      "final_segments": 281
+    },
+    {
+      "broadcast_id": "72e74311-9fc8-4032-82cd-49c1a41572ce",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "aab6c9b4-83bf-42ec-9ca9-a6c83c76f456",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "966a53bc-6051-4cd6-a9bc-1aa662de0136",
+      "title": "관심주제 알림 가상방송 · 행정안전부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "bf0c9e73-1c80-47b0-af1d-7f8b3dec1736",
+      "title": "[테스트] 제900회 국무회의 · 5분 라이브",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 30
+    },
+    {
+      "broadcast_id": "6b798f70-8840-46a7-ad4c-dd9ce8a8bc3d",
+      "title": "제438회 제1차 행정안전위원회 · 행정안전부 AI 업무보고 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.local",
+      "final_segments": 31
+    },
+    {
+      "broadcast_id": "3fde8b20-dabf-4739-9b0e-7d60483f31f9",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "7fcfa854-b064-4d06-bb28-3dac57069093",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "e24da0fd-94ae-4718-8f27-8ed03b960413",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "c590d9dd-d853-48a5-b074-4ae25b34854a",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "d111bed2-08a0-4de3-b6ff-2575f0cd28bd",
+      "title": "[테스트] 제900회 국무회의 · 5분 라이브",
+      "institution": "EXECUTIVE",
+      "source": "poc07.demo",
+      "final_segments": 0
+    },
+    {
+      "broadcast_id": "c81bcf08-5428-4f06-8ef2-5b4af9082f89",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "64aed7e0-fe99-45df-8875-d7dfb06592e8",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "ad638f8e-3362-4af8-bd77-91cbb5e88d63",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "94db4755-25c1-40b2-a72f-fe66ecba1bf8",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "0e171d8b-22bf-437c-b0e1-2510cbefdcdb",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "576520eb-6564-41e9-adb6-e0a5b5f25c3c",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "a9682680-ace6-4a2e-b085-187696fd9665",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "8ec4a5ad-7e6a-4b21-b26f-688a2b22ab18",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "0b0ebe60-90b9-4111-b3f0-88f1c9de5520",
+      "title": "관심주제 알림 가상방송 · AI 정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "e1d18c98-c4fb-4b45-9b14-705c2f369196",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "d8e0f745-1fc6-42fc-bca9-1aa1d25cfb2f",
+      "title": "관심주제 알림 가상방송 · 지방교부세",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "e4538ff8-12ed-4971-938b-8afe20987cbb",
+      "title": "[테스트] 제900회 국무회의 · 5분 라이브",
+      "institution": "EXECUTIVE",
+      "source": "poc07.demo",
+      "final_segments": 18
+    },
+    {
+      "broadcast_id": "14691b94-3811-4279-879f-41985bae2be1",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "23e26154-9543-4537-b38a-a3907eeadcac",
+      "title": "관심주제 알림 가상방송 · 인공지능",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "a585713e-e3c0-4f0d-81b9-7c59811a1dd7",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "578765b3-1647-40c3-a085-e5246cc88cf9",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "bb87d9e1-cd8a-4400-904d-473c2b4926dd",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "9df87502-1f4a-42b1-b534-fde37e6dc56e",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "6e9a740a-621e-4f8f-b263-2a05ad58c5b6",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "6b41d64e-00b8-4853-8a82-59f789fbef40",
+      "title": "관심주제 알림 가상방송 · AI 민주정부",
+      "institution": "EXECUTIVE",
+      "source": "poc07.test",
+      "final_segments": 12
+    },
+    {
+      "broadcast_id": "d709a620-4fe2-4492-9e66-2096ba260060",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "3f0d7476-0878-44ef-b7d7-62d93daa4367",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "549299a8-bb9a-46a1-911d-3939e821d396",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    },
+    {
+      "broadcast_id": "c7c0348b-9986-4a38-b66a-064ccdf1f7e9",
+      "title": "제438회 제1차 행정안전위원회 · AI 데이터센터 질의답변 재현",
+      "institution": "LEGISLATURE",
+      "source": "poc07.replay.kakao",
+      "final_segments": 7
+    }
+  ],
+  "scope": "All currently published ended-meeting reports; explicit user authorization on 2026-10-26",
+  "enqueued_count": 52,
+  "pending_issue_count": 6407,
+  "non_report_exclusions": {
+    "test_and_replay": "Not public reports",
+    "national_defense_committee": "Outside configured public committee scope",
+    "37th_cabinet_meeting": "No captured final transcript; cannot fabricate summary"
+  },
+  "last_verified": {
+    "checked_at": "2026-10-26T08:33:49.980613+09:00",
+    "completed_reports": [
+      {
+        "broadcast_id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+        "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+        "coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 7,
+          "summarized_issue_count": 7,
+          "status": "COMPLETE"
+        }
+      },
+      {
+        "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+        "title": "법제사법위원회 국정감사(공소청)",
+        "coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 155,
+          "summarized_issue_count": 155,
+          "status": "COMPLETE"
+        }
+      }
+    ],
+    "pending_reports": 51,
+    "all_original_and_canonical_hashes_preserved": true,
+    "empty_source_issue_count": 0,
+    "tests_passed": 69,
+    "runtime_checks": {
+      "status": "ok",
+      "scope": "all",
+      "checks": [
+        {
+          "check": "poc07-national-assembly-db",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "db_network_alias",
+          "ok": true
+        },
+        {
+          "check": "db_persistent_volume",
+          "ok": true
+        },
+        {
+          "check": "poc07-national-assembly-api",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-openrouter-gateway",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-live-monitor",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-caption-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-executive-caption-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-schedule-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-summary-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-meeting-brief-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-official-minutes-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-official-integration-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-watch-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-watch-summary-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-notification-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-topic-report-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "poc07-national-assembly-review-worker",
+          "ok": true,
+          "state": "running",
+          "restart": "unless-stopped",
+          "policy_repaired": false
+        },
+        {
+          "check": "postgres_ready",
+          "ok": true
+        },
+        {
+          "check": "http://127.0.0.1:18070/api/health",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "http://127.0.0.1:18070/api/live/broadcasts?limit=1",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://kjon.aigov.go.kr/",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://kjon.aigov.go.kr/api/health",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://www.minslab.kr/poc/national-assembly/",
+          "ok": true,
+          "http_status": 200
+        },
+        {
+          "check": "https://www.minslab.kr/poc/national-assembly/api/health",
+          "ok": true,
+          "http_status": 200
+        }
+      ]
+    },
+    "status": "RUNNING",
+    "worker_image": "poc07-national-assembly-api:narrative-batch-20261026-final"
+  }
+}

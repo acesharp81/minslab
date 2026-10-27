@@ -1,0 +1,116 @@
+{
+  "verified_at": "2026-10-26T09:23:30.102924+00:00",
+  "cause": "발언별 제목의 문자열 비교 기준을 강화하면서 같은 논의의 질의·답변도 별도 주제로 표시됨",
+  "solution": "기존 주제 목록과 앞뒤 발언 문맥을 활용한 AI 논의 ID를 추가 저장하고 화면과 계보에서 동일하게 사용",
+  "profile": "live-discussion-classification/1.0",
+  "migration": "0057_live_discussion_classifications",
+  "deployment": {
+    "image": "poc07-national-assembly-api:semantic-live-groups-20261026",
+    "image_id_prefix": "377f4f7711dc",
+    "services": [
+      "api",
+      "meeting-brief-worker"
+    ],
+    "frontend_version": "20261026-semantic-live-groups-1"
+  },
+  "judiciary": {
+    "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+    "before_visible": {
+      "topics": 161,
+      "tasks": 20,
+      "evidence": 181
+    },
+    "after_visible": {
+      "topics": 14,
+      "tasks": 20,
+      "evidence": 181
+    },
+    "stored_turn_assignments": 182,
+    "browsers": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "metrics": "핵심 주제\n14\n도출 과제\n20\n근거 발언\n181",
+        "topics": 14,
+        "displayed_task_rows": 20,
+        "group_evidence_and_task_source_verified": true,
+        "javascript_errors": []
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "metrics": "핵심 주제\n14\n도출 과제\n20\n근거 발언\n181",
+        "topics": 14,
+        "displayed_task_rows": 20,
+        "group_evidence_and_task_source_verified": true,
+        "javascript_errors": []
+      }
+    ]
+  },
+  "interior": {
+    "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+    "after_visible": {
+      "topics": 54,
+      "tasks": 32,
+      "evidence": 613
+    },
+    "previous_source_review": {
+      "found": 92,
+      "real_tasks_preserved": 29
+    },
+    "opening_tasks": 0,
+    "procedure_misclassification_corrected": 2,
+    "browsers": [
+      {
+        "url": "https://kjon.aigov.go.kr/",
+        "topics": 54,
+        "displayed_task_rows": 32,
+        "max_group_turns": 82,
+        "display_metrics": "핵심 주제\n54\n도출 과제\n32\n근거 발언\n613",
+        "opening_tasks": 0,
+        "data_requests_and_source_dialog_verified": true,
+        "javascript_errors": []
+      },
+      {
+        "url": "https://www.minslab.kr/poc/national-assembly/",
+        "topics": 54,
+        "displayed_task_rows": 32,
+        "max_group_turns": 82,
+        "display_metrics": "핵심 주제\n54\n도출 과제\n32\n근거 발언\n613",
+        "opening_tasks": 0,
+        "data_requests_and_source_dialog_verified": true,
+        "javascript_errors": []
+      }
+    ]
+  },
+  "automatic_incremental_verified": {
+    "new_turns": 8,
+    "prior_topics": 52,
+    "next_topics": 53,
+    "provider": "nvidia",
+    "observed_event": "live_discussion.run"
+  },
+  "checks": {
+    "python_tests_passed": 38,
+    "javascript_tests_passed": 6,
+    "runtime_checks_passed": 25,
+    "diff_whitespace_errors": 0
+  },
+  "provenance": {
+    "original_transcripts_modified": false,
+    "existing_summaries_modified": false,
+    "tasks_modified": false,
+    "stored_input_and_raw_response": true,
+    "authority_status": "PROVISIONAL"
+  },
+  "provider_observation": {
+    "successful_nim_runs_at_check": 15,
+    "successful_openai_runs_at_check": 1,
+    "openai_scope": "행안위 진행 안내로 잘못 연결된 실제 과제 발언 2개의 재분류",
+    "openrouter_capacity_at_fallback_check": false,
+    "budget_policy": "기존 NIM 우선, OpenRouter 여유 확인, 소진 시 OpenAI 일일 토큰 예약/정산 유지"
+  },
+  "limits": [
+    "새 요약은 워커의 다음 분류 주기에 반영되므로 수치는 실시간으로 증가할 수 있음.",
+    "AI 분류는 공식 확정 판단이 아니며 원문 연결을 보존함.",
+    "한 발언이 여러 사안을 포함하면 모델에 중심 사안 하나를 배정하도록 요구하며 중복 배정은 임의 선택하지 않고 재처리함."
+  ]
+}

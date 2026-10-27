@@ -1,0 +1,23 @@
+[
+  {
+    "run": "before",
+    "graph_data_ready_seconds": 15.28,
+    "graph_request_ms": 13868.7,
+    "cache": "MISS",
+    "browser_errors": []
+  },
+  {
+    "run": "after-cold",
+    "graph_data_ready_seconds": 6.63,
+    "graph_request_ms": 5756.3,
+    "cache": "MISS",
+    "browser_errors": []
+  },
+  {
+    "run": "after-warm",
+    "graph_data_ready_seconds": 1.09,
+    "graph_request_ms": 195.2,
+    "cache": "HIT",
+    "browser_errors": []
+  }
+]

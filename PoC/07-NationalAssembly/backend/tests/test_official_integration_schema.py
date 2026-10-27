@@ -167,7 +167,7 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         )
         self.assertIn("candidate.status = 'RETRY_WAIT'", repository)
         self.assertIn("OfficialIntegrationJobRepository(connection).claim", worker)
-        self.assertIn("provider IN ('mistral', 'nvidia', 'openrouter', 'openai')", repository)
+        self.assertIn("provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')", repository)
         self.assertIn('meeting_brief_id=job["meeting_brief_id"]', worker)
         self.assertIn('official_document_id=job["official_document_id"]', worker)
         self.assertIn("--interval", worker)

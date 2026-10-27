@@ -45,6 +45,7 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
                                         or path.startswith(PREFIX + "/api/admin/targets/")
                                         or re.fullmatch(r"/poc/home/api/admin/program-information/[^/]+", path)
                                         or re.fullmatch(r"/poc/home/api/admin/project-information/[^/]+", path)
+                                        or re.fullmatch(r"/poc/home/api/admin/publication-reviews/[^/]+", path)
                                         or re.fullmatch(r"/poc/home/api/admin/programs/[^/]+/policy", path)
                                         or re.fullmatch(r"/poc/home/api/admin/projects/[^/]+/program", path))
     if method not in {"GET", "HEAD"} and not admin_write:

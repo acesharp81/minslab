@@ -58,6 +58,33 @@ class PresentationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(start["status"], 401)
         self.assertIn("관리자 로그인이 필요합니다".encode("utf-8"), body)
 
+    def test_pinned_fourth_preserves_existing_order_and_date(self):
+        for number in range(1, 5):
+            folder = Path(self.temp_dir.name) / f"item-{number}"
+            folder.mkdir()
+            (folder / "index.html").write_text("<html></html>", encoding="utf-8")
+            metadata = {"title": f"자료 {number}", "created_at": f"2026-10-{number:02d}T00:00:00+00:00"}
+            if number == 4:
+                metadata["position"] = 4
+            (folder / "presentation.json").write_text(json.dumps(metadata), encoding="utf-8")
+        items = presentation_loader.load_presentations()
+        self.assertEqual([item["id"] for item in items], ["item-3", "item-2", "item-1", "item-4"])
+        self.assertEqual(items[3]["no"], "04")
+        self.assertEqual(items[3]["date"], "2026-10-04")
+        presentation_loader.update_presentation("item-4", "수정된 자료")
+        self.assertEqual(presentation_loader.load_presentations()[3]["id"], "item-4")
+
+    def test_multiple_positions_and_invalid_position(self):
+        for number in range(1, 7):
+            folder = Path(self.temp_dir.name) / f"item-{number}"
+            folder.mkdir()
+            (folder / "index.html").write_text("<html></html>", encoding="utf-8")
+            metadata = {"title": f"자료 {number}", "created_at": f"2026-10-{number:02d}"}
+            metadata["position"] = {6: 2, 5: 4, 4: True, 3: "1", 2: -1}.get(number)
+            (folder / "presentation.json").write_text(json.dumps(metadata), encoding="utf-8")
+        items = presentation_loader.load_presentations()
+        self.assertEqual([item["id"] for item in items], ["item-4", "item-6", "item-3", "item-5", "item-2", "item-1"])
+
     async def test_upload_lists_and_serves_sandboxed_html(self):
         payload = {"title": "AI 추진계획", "filename": "slides.html", "html": "<!doctype html><html><body>발표 화면</body></html>"}
         with mock.patch.object(main, "admin_session", return_value={"exp": 1}):

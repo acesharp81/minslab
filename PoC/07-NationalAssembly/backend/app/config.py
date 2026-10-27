@@ -33,6 +33,16 @@ class Settings(BaseSettings):
     meeting_brief_nvidia_enabled: bool = False
     meeting_brief_nvidia_model: str = "nvidia/nemotron-3-ultra-550b-a55b"
     meeting_brief_nvidia_min_interval_seconds: float = 6.0
+    # Opt in only after account and Korean/source-preservation verification.
+    groq_aux_enabled: bool = False
+    groq_api_key: str = ""
+    groq_aux_model: str = "openai/gpt-oss-120b"
+    groq_aux_daily_tokens: int = 100_000
+    groq_aux_daily_requests: int = 400
+    gemini_aux_enabled: bool = False
+    gemini_aux_model: str = "gemini-3.1-flash-lite"
+    gemini_aux_daily_tokens: int = 300_000
+    gemini_aux_daily_requests: int = 200
     gemini_api_key: str = ""
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
@@ -42,6 +52,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     openai_daily_token_limit: int = 650_000
+    openai_integration_reserved_tokens: int = 300_000
     nvidia_api_key: str = ""
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     mistral_base_url: str = "https://api.mistral.ai/v1"

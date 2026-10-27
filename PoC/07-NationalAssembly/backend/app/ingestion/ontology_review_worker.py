@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -39,7 +40,11 @@ def is_rate_limited(error: Exception) -> bool:
 
 def pending_items(brief: dict[str, Any], prior: list[dict[str, Any]]) -> list[dict[str, Any]]:
     failed: dict[str, int] = {}
+    today = datetime.now(timezone.utc).date()
     for batch in prior:
+        created = batch.get('created_at')
+        if isinstance(created, datetime) and created.astimezone(timezone.utc).date() < today:
+            continue
         if batch['index'] >= BATCH_START and counts_failure(batch) and batch['request'].get('profile') == PROFILE:
             for item in batch['request'].get('items', []):
                 failed[item['fingerprint']] = failed.get(item['fingerprint'], 0) + 1
@@ -88,7 +93,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
             pending = pending_items(brief, prior)
             next_index = max([BATCH_START - 1] + [x['index'] for x in prior if BATCH_START <= x['index'] < 400000]) + 1
             completed = accepted = 0
-            base_pool = clients()
+            base_pool = clients("verification")
             nim_retry_at = time.monotonic() + 120 if cooldown else 0
             if pending and not base_pool:
                 return {'status': 'NO_PROVIDER', 'broadcast_id': label}
@@ -101,11 +106,12 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                 request = {'profile': PROFILE, 'catalog': catalog_snapshot(TARGET_ONTOLOGY), 'items': batch}
                 success = False
                 # Persist each response, including a proposal whose verification failed.
-                prior_failures = max((sum(counts_failure(x) and x['request'].get('profile') == PROFILE
+                prior_failures = max((sum(counts_failure(x) and (not isinstance(x.get('created_at'), datetime) or x['created_at'].astimezone(timezone.utc).date() == datetime.now(timezone.utc).date()) and x['request'].get('profile') == PROFILE
                                            and any(i.get('fingerprint') == b['fingerprint'] for i in x['request'].get('items', []))
                                           for x in prior if x['index'] >= BATCH_START) for b in batch), default=0)
-                for attempt in range(1, max(1, 3 - prior_failures) + 1):
-                    client = pool[min(prior_failures + attempt - 1, len(pool) - 1)]
+                errors = []
+                for attempt in range(1, len(pool) + 1):
+                    client = pool[(prior_failures + attempt - 1) % len(pool)]
                     response: dict[str, Any] = {}
                     metadata: dict[str, Any] = {'provider': client.provider, 'model': client.model}
                     error = None
@@ -143,8 +149,10 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                         metadata['failure_usage'] = getattr(exc, 'usage_metadata', {})
                     with connect(settings.database_url) as c:
                         TopicStructureRepository(c).record(structure_id, next_index, attempt * 2, request, response, metadata, error)
+                    if error:
+                        errors.append(error)
                     if error == 'DAILY_TOKEN_LIMIT':
-                        return {'status': 'BUDGET_DEFERRED', 'broadcast_id': label, 'reviewed': completed * 16}
+                        continue
                     if error == 'NIM_RATE_DEFERRED':
                         if len(pool) == 1:
                             return {'status': 'RATE_DEFERRED', 'broadcast_id': label}
@@ -164,7 +172,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                         success = True
                         break
                 if not success:
-                    return {'status': 'REVIEW_REQUIRED', 'broadcast_id': label, 'error': error}
+                    return {'status': 'BUDGET_DEFERRED' if errors and all(e == 'DAILY_TOKEN_LIMIT' for e in errors) else 'REVIEW_REQUIRED', 'broadcast_id': label, 'error': error}
                 pending = pending[len(batch):]
                 next_index += 1
                 completed += 1

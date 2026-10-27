@@ -38,10 +38,13 @@ def review_state(link, parent=None):
                 reason=reason, evidence_url=url, publisher=publisher_name(url))
 
 
-def build(service):
+def build(service, focus_project_id=None):
     data = service.mappings()
-    decisions = {(r['subject_kind'],r['subject_id']):r for r in service.rows('mapping_decision') if r.get('policy_id')=='POL_2025_0907'} if hasattr(service,'rows') else {}
     active='POL_2025_0907'
+    focused=next((r for r in data['items'] if r['id']==focus_project_id),None)
+    if focused and focused['mapping'].get('policy_id') not in (None,'','UNASSIGNED'):
+        active=focused['mapping']['policy_id']
+    decisions = {(r['subject_kind'],r['subject_id']):r for r in service.rows('mapping_decision') if r.get('policy_id')==active} if hasattr(service,'rows') else {}
     allowed={None,'','UNASSIGNED',active}
     data['programs']=[p for p in data['programs'] if p.get('policy_id') in allowed]
     data['items']=[r for r in data['items'] if r['mapping'].get('policy_id') in allowed]
@@ -66,9 +69,9 @@ def build(service):
                      'projects':sum(p['review']['group']==group for p in items),
                      'units':sum(p['confirmed_units'] or 0 for p in items if p['review']['group']==group),
                      'unknown_units':sum(p['confirmed_units'] is None for p in items if p['review']['group']==group)} for group in ('CONNECTED','OFFICER','REVIEW','UNLINKED','EXCLUDED')}
-    return dict(programs=programs, items=items, policies=[p for p in data['policies'] if p['policy_id']==active], counts=counts,
+    return dict(active_policy_id=active, programs=programs, items=items, policies=[p for p in data['policies'] if p['policy_id']==active], counts=counts,
                 official_domains=OFFICIAL_DOMAINS,
-                notice='9·7 정책과 정책 미지정 후보만 표시합니다. 호수는 사업 기록별 확인된 계획규모 합계이며 착공·공급 실적이 아닙니다. 공식 출처와 연결 승인 상태를 함께 확인합니다. 공식 근거는 확인 완료(자동), 비공식 근거의 검토 완료는 확인 완료(담당자), 아직 검토가 끝나지 않은 연결은 확인 필요로 구분합니다. 제외 확인된 후보는 일반 검토 목록과 후보 CSV에서 빠지며 별도 필터에서 확인·복원할 수 있습니다.')
+                notice=('9·7 정책' if active=='POL_2025_0907' else next((p['name'] for p in data['policies'] if p['policy_id']==active),active))+'과 정책 미지정 후보만 표시합니다. 호수는 사업 기록별 확인된 계획규모 합계이며 착공·공급 실적이 아닙니다. 공식 출처와 연결 승인 상태를 함께 확인합니다. 공식 근거는 확인 완료(자동), 비공식 근거의 검토 완료는 확인 완료(담당자), 아직 검토가 끝나지 않은 연결은 확인 필요로 구분합니다. 제외 확인된 후보는 일반 검토 목록과 후보 CSV에서 빠지며 별도 필터에서 확인·복원할 수 있습니다.')
 
 
 def apply_decision(row, decision):

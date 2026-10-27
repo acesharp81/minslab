@@ -34,6 +34,8 @@ class MistralSummaryTests(unittest.TestCase):
                         "topic_key": "추경 예산 집행",
                         "role": "QUESTION",
                         "task": "부처별 집행 일정을 제출한다.",
+                        "task_kind": "FOLLOW_UP_REQUEST",
+                        "task_evidence_quote": "부처별 집행 일정을 제출해 주십시오.",
                         "owners": ["기획재정부"],
                     },
                     {
@@ -48,7 +50,7 @@ class MistralSummaryTests(unittest.TestCase):
         utterance = {
             "content_hash": content_hash,
             "speaker_label": "화자 1",
-            "text": "국회 발언 원문 " * 30,
+            "text": "부처별 집행 일정을 제출해 주십시오.",
         }
         with mock.patch(
             "app.services.mistral_summary.requests.post", return_value=response,
@@ -62,8 +64,13 @@ class MistralSummaryTests(unittest.TestCase):
                 "topic_key": "추경 예산 집행",
                 "role": "QUESTION",
                 "task": "부처별 집행 일정을 제출한다.",
+                        "task_kind": "FOLLOW_UP_REQUEST",
+                        "task_evidence_quote": "부처별 집행 일정을 제출해 주십시오.",
                 "owners": ["기획재정부"],
                 "status": "PROVISIONAL",
+                "task_validation": "direct-follow-up/1",
+                "task_evidence_start": 0,
+                "task_evidence_end": len(utterance["text"]),
             },
         }])
         self.assertEqual(request.call_args.args[0], "https://api.mistral.ai/v1/chat/completions")
