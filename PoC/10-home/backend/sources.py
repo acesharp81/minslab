@@ -1,5 +1,15 @@
 """Explicit official source registry; no runtime dependency on other PoCs."""
 SOURCES = [
+    dict(id='molit_press_watch',name='국토교통부 주택 보도자료 신규 탐색',org='국토교통부',
+         url='https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp',
+         feed_urls=['https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage='+str(n) for n in range(1,4)],
+         watch_format='GOV_BOARD',type='POLICY',data_type='PRESS',collection_mode='PUBLICATION_WATCH',key_env=None,
+         implemented=True,manual_only=False,refresh_days=1/24,discovery_only=True),
+    dict(id='opm_press_watch',name='국무조정실 주택공급 점검 보도자료 신규 탐색',org='국무조정실',
+         url='https://www.opm.go.kr/opm/news/press-release.do',
+         feed_urls=['https://www.opm.go.kr/opm/news/press-release.do?article.offset='+str(n)+'&articleLimit=10' for n in (0,10,20)],
+         watch_format='GOV_BOARD',type='POLICY',data_type='PRESS',collection_mode='PUBLICATION_WATCH',key_env=None,
+         implemented=True,manual_only=False,refresh_days=1/24,discovery_only=True),
     dict(id='sh_notice_watch',name='SH 주택 모집·정정·입주안내 공고 신규 탐색',org='서울주택도시개발공사',
          url='https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2',
          feed_urls=[

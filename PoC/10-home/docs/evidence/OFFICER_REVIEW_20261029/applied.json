@@ -1,0 +1,419 @@
+{
+  "results": [
+    {
+      "document_id": "DOC_528c011f03ec6fac320df953",
+      "id": "PUB_0a829fbc4f9c7251c8504628",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_46a03e4451788c1ae845bd74",
+      "id": "PUB_c68d8e3a45ce93645924bae4",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_0b72cbf90519abd35e9e178b",
+      "id": "PUB_2551a41f029ff6b89bdccbe5",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_59441edec3fa19eaa987b929",
+      "id": "PUB_1d20c15ad46fcebbf7758f3d",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_1201bd9aa4095e67fc414d25",
+      "id": "PUB_2c0c4960364827ad0164134c",
+      "revision_no": 1,
+      "status": "APPROVED"
+    },
+    {
+      "document_id": "DOC_23b7fd8b3f9824f59b75c10c",
+      "id": "PUB_7b72c5125f6508b67692f886",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_2cba9efabc660d44351a98bf",
+      "id": "PUB_e380d4b0861c4b564ec4420e",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_2fe004543594ac878d61c5eb",
+      "id": "PUB_154e12fd02b18fe0948f13cf",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_309dfba4c0972e83c05baa3d",
+      "id": "PUB_9861306030189afba7ac1bd3",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_32771aaa039b60f07697e45d",
+      "id": "PUB_73c1d685b65633ff4f8d4259",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_4a01430ddd48b73356d7ad16",
+      "id": "PUB_872bbfcd7bc7ad500365f0d4",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_5d7ad3be78b1d4fa7e6e276b",
+      "id": "PUB_348562aa5baf7a1c43fb1cf7",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_838464d43188176ed03c2c01",
+      "id": "PUB_f3904be6b11122813a707847",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_92f5ad940ac566b68fcb46ab",
+      "id": "PUB_23e602acc3a47b61fd6f5444",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_9a919afbea477288c4285a21",
+      "id": "PUB_fef02f24f51551cc71a5116d",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_aab8e8046c141970effcd06c",
+      "id": "PUB_4941f7ec87561f72108317c9",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_bfdea83b3084e705b96c6f9a",
+      "id": "PUB_91a2dbbf8b450abc72e9c3d8",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_c935e91059298b2775cf8508",
+      "id": "PUB_861788dc732c0dfafe8a5a88",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_caa51ab7d2c78456b9f5eef6",
+      "id": "PUB_e1c3de60a671ae45c7b8865d",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_cb9581e09af328ef9d86afe0",
+      "id": "PUB_5352f05562b6968cce2fed0d",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_ec6e68fba72113f7462661d4",
+      "id": "PUB_7510a6a6d16d91c5a88de5b4",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_ee26ad8b10a0876225cb0ba7",
+      "id": "PUB_eba065d794abb2bb742e505b",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_feb854443d6b62633cdab43b",
+      "id": "PUB_eb9eaf779e695bd04ba21525",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_179b0bf6be074456396107d9",
+      "id": "PUB_86bc33e892942ed86887bb17",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_229e67522fa324e426611a2c",
+      "id": "PUB_90066bf3b7348f2d8ba747cb",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_67585a25498f745861e19db5",
+      "id": "PUB_094210adadbb92d193eb21f3",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_7bd95211951a0c7a192755b7",
+      "id": "PUB_108f2e26495337ddfaba39f5",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_8ac246e6296d2a37d2db8da8",
+      "id": "PUB_a1a3b4592b0f79587f14c955",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_c9bb50e13584cd02ea718861",
+      "id": "PUB_6508c5cadcf3d453c9d69b4a",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_cb455d8b37aa47a65e0e735b",
+      "id": "PUB_c4bbed8ef87cd0a336f4c725",
+      "revision_no": 1,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_20ef95086de8e89ae3532be4",
+      "id": "PUB_eb47b78835607f35fdcb47ab",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_370ccccf1b49a098e294d3b1",
+      "id": "PUB_ad737a4958ab5e10f3988a5c",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_40313ee5ee575ee5f833b9fd",
+      "id": "PUB_305e79b9ef12b6c176e18fc2",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_60609567055fcae5d67d8555",
+      "id": "PUB_4f20b16c3964f82b3c6b0eab",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_752ffa8c4afa0bf02cd2020e",
+      "id": "PUB_6b301559e29aa48e6e8a7f1b",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_cd55f6dfa043c0c65bfdd5e1",
+      "id": "PUB_20d18681f3d5901dce89fef9",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_d67e83e7ac43db647ce4ced1",
+      "id": "PUB_d39fc7bf93b87084fcda545f",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_f8e418dd1c6c6d46a0e25af0",
+      "id": "PUB_1ddd9032efc5728281199755",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_207a370134382e19914be4a7",
+      "id": "PUB_19503745b9e47d314e1c2576",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_085f9f04d44a8a5950fb0da1",
+      "id": "PUB_c3f79adab1d68abaf408983f",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_222ffa5be20f991296201e98",
+      "id": "PUB_4787e823233e99550ebcaf02",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_2fc8e5ba041834cb45112031",
+      "id": "PUB_0a4363867279715bf994b07e",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_3eb99c2d9ff0898d7f44fc9c",
+      "id": "PUB_b80e8352c39cade5c8aea052",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_62b5e068d783c9a64e8a4bfa",
+      "id": "PUB_6f4404aeda5e8e7aba4ac0e0",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_dfe856fabf99f8792c43023c",
+      "id": "PUB_56d28a00348e6ea9277acbf3",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_399cef64b0964d47871bb820",
+      "id": "PUB_93c1659f4c6d934a18da9521",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_4ffc89d2df92899aa341db4d",
+      "id": "PUB_518e37d53d42f60be1cd5402",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_7a1ec6af9f12b62cd9a679c8",
+      "id": "PUB_60eaa68599f7d0a321b8e508",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_c45f9c890c1f952db73a95a6",
+      "id": "PUB_dee8762109dcd5b116781679",
+      "revision_no": 3,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_376dd572e71726ae28982ea4",
+      "id": "PUB_f19669da89519ee878f3a569",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_a15ac1688f0ad3ac70c3f17f",
+      "id": "PUB_03ba5baa4082fe86b6663d1f",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_dc15b5e37f06ac93bec858d7",
+      "id": "PUB_09f197481bd0fff4d37d2fb6",
+      "revision_no": 1,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_fda929b8bcd161e45adeb2ea",
+      "id": "PUB_3e05f3e74d5a5bece86516a3",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_4b3de908d0e01bae0c7b984b",
+      "id": "PUB_59dcd7e02878a1f5761de0d1",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_44852d1e1a47eb2fc2a86468",
+      "id": "PUB_51eb2ad6e31c864eea1772f5",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_47c1fe723b89426ace3ff7a5",
+      "id": "PUB_f55dd53917e668bd452e9a74",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_a06a527d2c3e07f6efb823f2",
+      "id": "PUB_54e4d5701e714ee2b94e5705",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    },
+    {
+      "document_id": "DOC_6d057dab2fea19e2702fa60a",
+      "id": "PUB_f3475d40fa715fcfd5b54acf",
+      "revision_no": 2,
+      "status": "HOLD"
+    },
+    {
+      "document_id": "DOC_2e43ecfb6fe69f45bf6dc69f",
+      "id": "PUB_eb0091ec104f87418e1317b0",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_80cc5ac55e3dc29c0f4463f5",
+      "id": "PUB_b1f139481588d6b62f61cd7e",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_35b92d963a3f27fda9ef07a6",
+      "id": "PUB_3f8788974ab140b806dec258",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_2d1a68559b0ca58fdb516a4b",
+      "id": "PUB_80bd9b1047feb070a9ca8eac",
+      "revision_no": 2,
+      "status": "REGISTRATION_REQUIRED"
+    },
+    {
+      "document_id": "DOC_f0bed1e65cde1455c3937c16",
+      "id": "PUB_7253965f18879d44ea6a82f1",
+      "revision_no": 1,
+      "status": "EXCLUDED"
+    }
+  ],
+  "counts": {
+    "REGISTRATION_REQUIRED": 33,
+    "APPROVED": 11,
+    "EXCLUDED": 49,
+    "HOLD": 13
+  },
+  "existing_project_goal_schedule_policy_data_unchanged": true,
+  "existing_mappings_unchanged": true,
+  "existing_approved_reviews_preserved": 10,
+  "existing_evidence_bridges_preserved": 860,
+  "new_bridge": {
+    "project_id": "PRO_b0f7e7ded4e31142e5b39d02",
+    "name": "구리갈매역세권 A-1",
+    "region": "경기도",
+    "source_entity_id": "DOC_1201bd9aa4095e67fc414d25",
+    "source_revision_no": 1,
+    "source_id": "newsis_housing_watch",
+    "evidence_source_id": "newsis_housing_watch",
+    "source_name": "LH, 경기 구리갈매역세권 신혼희망타운 행복주택 609호 공급",
+    "evidence_url": "https://www.newsis.com/view/NISX20261028_0003844360",
+    "relation_type": "DOCUMENT_REFERENCE",
+    "units": null,
+    "facts": [],
+    "status": "CONFIRMED",
+    "reviewed": true,
+    "basis": "261029 업무담당자 확인(김민) · 사용자 위임에 따른 외부검토 #05 교차검증. LH 청약플러스 공고 panId=2015122300020936(2026-10-27), 구리갈매역세권A-1BL·갈매동10·행복주택609호·입주예정2028-09를 확인. 기존 PRO_b0f7e7ded4e31142e5b39d02는 LH 임대계획의 같은 지구/A-1블록·LH·행복주택609호(46형150+55형459)·입주2028-09로 일치. 기존 건설공사1,791호 및 공공분양1,182호와 범위를 구별하여 행복주택609호 사업 한 곳에만 언론 보조자료로 연결 승인. 기존 승인된 LH 4분기 계획 자료와 같은 공급대상을 재가산하지 않음. 기존 공급예정2026-12와 최초공고2026-10-27의 일정 차이는 확인사항으로 기록하며 공고일을 실제 입주일로 처리하지 않음. 근거: https://www.newsis.com/view/NISX20261028_0003844360 | https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=42&ccrCnntSysDsCd=03&mi=1026&panId=2015122300020936&uppAisTpCd=39 적용 범위: 자료 연결/검토판단 이력만 저장. 사업 생성·정책매핑 변경·호수·목표·실적 갱신 없음.",
+    "review_basis": "261029 업무담당자 확인(김민) · 사용자 위임에 따른 외부검토 #05 교차검증. LH 청약플러스 공고 panId=2015122300020936(2026-10-27), 구리갈매역세권A-1BL·갈매동10·행복주택609호·입주예정2028-09를 확인. 기존 PRO_b0f7e7ded4e31142e5b39d02는 LH 임대계획의 같은 지구/A-1블록·LH·행복주택609호(46형150+55형459)·입주2028-09로 일치. 기존 건설공사1,791호 및 공공분양1,182호와 범위를 구별하여 행복주택609호 사업 한 곳에만 언론 보조자료로 연결 승인. 기존 승인된 LH 4분기 계획 자료와 같은 공급대상을 재가산하지 않음. 기존 공급예정2026-12와 최초공고2026-10-27의 일정 차이는 확인사항으로 기록하며 공고일을 실제 입주일로 처리하지 않음. 근거: https://www.newsis.com/view/NISX20261028_0003844360 | https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=42&ccrCnntSysDsCd=03&mi=1026&panId=2015122300020936&uppAisTpCd=39 적용 범위: 자료 연결/검토판단 이력만 저장. 사업 생성·정책매핑 변경·호수·목표·실적 갱신 없음.",
+    "reviewed_on": "2026-10-28",
+    "actor": "261029 업무담당자 확인(김민)",
+    "base_date": "2026-10-28",
+    "review_owner": "publication_review",
+    "publication_review_id": "PUB_2c0c4960364827ad0164134c"
+  },
+  "protected_before_sha256": "83da8e346f27629ab2b6b3814633d019f6fbbb838e505f855da7eb548aafda44",
+  "protected_after_sha256": "83da8e346f27629ab2b6b3814633d019f6fbbb838e505f855da7eb548aafda44",
+  "review_history_rows": 101,
+  "audit_rows_for_reviewed_documents": 101
+}

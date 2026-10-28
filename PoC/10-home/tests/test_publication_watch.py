@@ -38,7 +38,7 @@ def test_missing_date_untrusted_link_and_blocked_page_fail():
     assert watch.housing_title('한국토지주택공사(LH), 시흥거모 공공분양주택 공급')
 
 
-@pytest.mark.parametrize('source_id', ['newsis_housing_watch', 'sh_notice_watch'])
+@pytest.mark.parametrize('source_id', ['newsis_housing_watch', 'sh_notice_watch', 'molit_press_watch', 'opm_press_watch'])
 def test_discovery_job_never_enters_link_or_snapshot(source_id):
     e=create_engine('sqlite://');Base.metadata.create_all(e);s=HomeService(e)
     try:
@@ -113,3 +113,21 @@ def test_sh_invalid_listing_cannot_be_reported_as_successful_empty_collection():
     for body in [b'<html>Access denied</html>',
                  b'<tr><td><a onclick="getDetailView(\'123\')">2026-10-27 title</a></td></tr>']:
         with pytest.raises(ValueError):watch.sh_board_rows(body)
+
+
+@pytest.mark.parametrize('sid,file,key,day', [
+    ('molit_press_watch','molit-press.html','95092532','2026-10-28'),
+    ('opm_press_watch','opm-list.html','163970','2026-10-27')])
+def test_government_board_real_rows_dates_and_overlap(sid,file,key,day):
+    body=(ROOT/file).read_bytes();source=SOURCES_BY_ID[sid]
+    class Fetcher:
+        def get(self,*args):return body
+    with patch.object(watch,'today',return_value=date(2026,10,29)):
+        records,stats=watch.collect(source,Fetcher())
+    p=next(p for _,k,p in records if k==key)
+    assert p['source_date']==day and p['facts']==[] and p['units'] is None
+    assert p['authority']=='OFFICIAL'
+    assert len({k for _,k,_ in records})==len(records)
+    assert stats['actual_events_created']==0 and not stats['complete_population']
+    with pytest.raises(ValueError):watch.government_board_rows(b'<html>blocked</html>',source)
+    with pytest.raises(ValueError):watch.government_board_rows(body.replace(day.encode(),b'unknown').replace(day.replace('-','.').encode(),b'unknown'),source)

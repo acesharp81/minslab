@@ -1,0 +1,5 @@
+{"source_id": "incheon_legal_dongs", "elapsed_seconds": 4.88, "status": "SUCCESS", "batch_id": null, "error": null, "stats": {}}
+{"source_id": "seoul_plan_notice_pilot", "elapsed_seconds": 1.55, "status": "SUCCESS", "batch_id": null, "error": null, "stats": {}}
+{"source_id": "gyeonggi_plan_notice_pilot", "elapsed_seconds": 1.4, "status": "SUCCESS", "batch_id": null, "error": null, "stats": {}}
+{"source_id": "vworld_district", "elapsed_seconds": 18.66, "status": "SUCCESS", "batch_id": null, "error": null, "stats": {}}
+{"source_id": "vworld_municipality", "elapsed_seconds": 14.83, "status": "SUCCESS", "batch_id": null, "error": null, "stats": {}}

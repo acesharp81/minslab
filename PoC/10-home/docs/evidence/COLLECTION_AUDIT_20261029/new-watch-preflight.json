@@ -1,0 +1,345 @@
+[
+  {
+    "source_id": "molit_press_watch",
+    "records": [
+      [
+        "document_evidence",
+        "95092499",
+        {
+          "source_object_id": "95092499",
+          "name": "“내 집 어디에, 언제 공급되나” 주택공급, 계획부터 성과까지 정례적으로 공개합니다",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092499",
+          "source_date": "2026-10-16",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-16",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "95092505",
+        {
+          "source_object_id": "95092505",
+          "name": "서울 동자동 쪽방촌 공공주택지구 지정, 도심 속 2,150호 규모의 주택공급 추진",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092505",
+          "source_date": "2026-10-20",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-20",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "95092507",
+        {
+          "source_object_id": "95092507",
+          "name": "「민간임대주택에 관한 특별법」 시행령 개정안, 20일 국무회의 의결",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092507",
+          "source_date": "2026-10-20",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-20",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "95092519",
+        {
+          "source_object_id": "95092519",
+          "name": "3기 신도시 교통대책 ‘직접 인·허가’로 속도 높인다",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092519",
+          "source_date": "2026-10-25",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-25",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "95092528",
+        {
+          "source_object_id": "95092528",
+          "name": "[차관동정] 김이탁 제1차관,모듈러주택 활성화를 위한 협의체 개최",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092528",
+          "source_date": "2026-10-27",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-27",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "95092532",
+        {
+          "source_object_id": "95092532",
+          "name": "3기 신도시 광역교통시설 적기 구축에 총력",
+          "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092532",
+          "source_date": "2026-10-28",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-28",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+            "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3"
+          ],
+          "publisher": "국토교통부",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ]
+    ],
+    "stats": {
+      "incremental": true,
+      "complete_query": true,
+      "complete_population": false,
+      "discovery_only": true,
+      "provided": 30,
+      "fetched": 6,
+      "feed_counts": [
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+          "listed": 10
+        },
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+          "listed": 10
+        },
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3",
+          "listed": 10
+        }
+      ],
+      "latest_published": "2026-10-28",
+      "actual_events_created": 0,
+      "period_start": "2026-09-29",
+      "period_end": "2026-10-29",
+      "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음."
+    }
+  },
+  {
+    "source_id": "opm_press_watch",
+    "records": [
+      [
+        "document_evidence",
+        "163888",
+        {
+          "source_object_id": "163888",
+          "name": "[보도자료] 제1차 주택공급 정례브리핑, '내 집 어디에 있나'",
+          "evidence_url": "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=163888",
+          "source_date": "2026-10-16",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-16",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=0&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=10&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=20&articleLimit=10"
+          ],
+          "publisher": "국무조정실",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "163926",
+        {
+          "source_object_id": "163926",
+          "name": "[보도자료] 한성숙 국무총리, 제7차 주택공급 현장점검(舊 공항고등학교 부지)",
+          "evidence_url": "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=163926",
+          "source_date": "2026-10-22",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-22",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=0&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=10&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=20&articleLimit=10"
+          ],
+          "publisher": "국무조정실",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ],
+      [
+        "document_evidence",
+        "163970",
+        {
+          "source_object_id": "163970",
+          "name": "[보도자료] 한성숙 국무총리 주재 제4차 범부처 주택 신속공급 점검회의",
+          "evidence_url": "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=163970",
+          "source_date": "2026-10-27",
+          "sample_kind": "document_evidence",
+          "base_date": "2026-10-27",
+          "date_precision": "DAY",
+          "document_role": "PUBLICATION_DISCOVERY",
+          "listing_urls": [
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=0&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=10&articleLimit=10",
+            "https://www.opm.go.kr/opm/news/press-release.do?article.offset=20&articleLimit=10"
+          ],
+          "publisher": "국무조정실",
+          "authority": "OFFICIAL",
+          "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+          "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+          "facts": [],
+          "matched_project_ids": [],
+          "planned_units": null,
+          "units": null,
+          "policy_candidate_only": true,
+          "proposed_policy": "UNASSIGNED",
+          "status": "REVIEW",
+          "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+        }
+      ]
+    ],
+    "stats": {
+      "incremental": true,
+      "complete_query": true,
+      "complete_population": false,
+      "discovery_only": true,
+      "provided": 30,
+      "fetched": 3,
+      "feed_counts": [
+        {
+          "url": "https://www.opm.go.kr/opm/news/press-release.do?article.offset=0&articleLimit=10",
+          "listed": 10
+        },
+        {
+          "url": "https://www.opm.go.kr/opm/news/press-release.do?article.offset=10&articleLimit=10",
+          "listed": 10
+        },
+        {
+          "url": "https://www.opm.go.kr/opm/news/press-release.do?article.offset=20&articleLimit=10",
+          "listed": 10
+        }
+      ],
+      "latest_published": "2026-10-27",
+      "actual_events_created": 0,
+      "period_start": "2026-09-29",
+      "period_end": "2026-10-29",
+      "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음."
+    }
+  }
+]

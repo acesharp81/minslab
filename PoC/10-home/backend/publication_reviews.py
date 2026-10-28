@@ -47,6 +47,8 @@ def queue(service, include_options=True):
    for r,m in db.execute(select(Revision,Mapping).outerjoin(Mapping,Mapping.project_id==Revision.entity_id).where(Revision.kind=='project',Revision.superseded_at.is_(None))):
     projects.append(dict(id=r.entity_id,name=r.payload.get('name',''),region=r.payload.get('region'),units=r.payload.get('planned_units'),revision_no=r.revision_no,
         mapping_status=m.status if m else None,policy_id=m.policy_id if m else None,policy_name=policy_names.get(m.policy_id, m.policy_id) if m else None,mapping_basis=m.basis if m else '',program_id=m.program_id if m else None))
+  from .publication_supplements import load as load_supplements, summary as supplement_summary
+  supplements=load_supplements(service,[d.entity_id for d in docs]) if include_options else {}
   items=[]
   for doc in docs:
    p=doc.payload;old=decisions.get(doc.entity_id);decision=old.payload if old else None
@@ -59,6 +61,8 @@ def queue(service, include_options=True):
        title=p.get('name'),source_date=p.get('source_date'),evidence_url=public_url(p.get('evidence_url')),authority=authority(p.get('evidence_url')),
        source_revision_no=doc.revision_no,review_revision_no=old.revision_no if old else 0,
        status=state,status_label=STATES[state],source_changed=stale,link_changed=link_changed,decision=decision,candidates=matches,guidance=guidance(p.get('name',''),matches,t['priority']) if include_options else None,**t))
+  for item in items:
+   if item['id'] in supplements:item['supplement']=supplement_summary(supplements[item['id']],item['source_revision_no'])
   items.sort(key=lambda r:(r['priority'],tuple(-ord(c) for c in (r['source_date'] or '')),r['id']))
   counts=dict(Counter(r['status'] for r in items))
   pending=sum(counts.get(k,0) for k in ('REVIEW','HOLD','REGISTRATION_REQUIRED'))

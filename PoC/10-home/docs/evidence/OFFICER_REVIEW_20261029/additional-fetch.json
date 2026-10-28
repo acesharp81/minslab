@@ -1,0 +1,32 @@
+[
+  {
+    "name": "06-resolved",
+    "url": "https://www.seoul.go.kr/news/news_report.do?nttNo=469078",
+    "sha256": "f68476463618cb63b044f90f1b1c90692e8a33ddc8eda5bdbc0a825d9846bff1",
+    "status": 200
+  },
+  {
+    "name": "16-resolved",
+    "url": "https://www.seoul.go.kr/news/news_report.do?nttNo=469091",
+    "sha256": "d1a386c870a2dbdb9f107274f6dddccb244be6ecb37723da21431726c4590399",
+    "status": 200
+  },
+  {
+    "name": "03-official",
+    "url": "https://www.seoul.go.kr/news/news_report.do?nttNo=458803",
+    "sha256": "e724c514f0e6510e839a5f2d860e61ba63cf5da1cbc335ef14cf4929019edd82",
+    "status": 200
+  },
+  {
+    "name": "20-official",
+    "url": "https://gangnam.go.kr/notice/view.do?mid=ID05_0402&not_ancmt_mgt_no=59103",
+    "sha256": "96e3fab2adfe988a18c653d3956a7d2b3a50bb08bb5c4bef380ea575c30b1168",
+    "status": 200
+  },
+  {
+    "name": "52-notice-search",
+    "url": "https://www.molit.go.kr/USR/I0204/m_45/lst.jsp?search=%EB%8F%99%EC%9E%90%EB%8F%99&search_dept_id=&psize=10&srch_usr_titl=Y",
+    "sha256": "6252cd800b8c2add7fffa0d0b4e25f8da1cbb0565cdca1a381d2e48628631ef0",
+    "status": 200
+  }
+]

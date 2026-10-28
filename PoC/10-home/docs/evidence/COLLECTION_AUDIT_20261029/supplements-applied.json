@@ -1,0 +1,32 @@
+{
+  "results": [
+    {
+      "document_id": "DOC_2cba9efabc660d44351a98bf",
+      "outcome": "already_collected"
+    },
+    {
+      "document_id": "DOC_ec6e68fba72113f7462661d4",
+      "outcome": "already_collected"
+    },
+    {
+      "document_id": "DOC_feb854443d6b62633cdab43b",
+      "outcome": "already_collected"
+    },
+    {
+      "document_id": "DOC_ee26ad8b10a0876225cb0ba7",
+      "outcome": "already_collected"
+    },
+    {
+      "document_id": "DOC_67585a25498f745861e19db5",
+      "outcome": "already_collected"
+    },
+    {
+      "document_id": "DOC_32771aaa039b60f07697e45d",
+      "id": "PUB_c2d9b07f7ca62ca564b71983",
+      "revision_no": 1,
+      "outcome": "new"
+    }
+  ],
+  "protected_before": "37d700fa4cd3afa74ac698649ba0816dc5d8587ffc4395f0c5805c0f0d029f8d",
+  "protected_after": "37d700fa4cd3afa74ac698649ba0816dc5d8587ffc4395f0c5805c0f0d029f8d"
+}

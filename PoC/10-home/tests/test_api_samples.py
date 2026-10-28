@@ -74,7 +74,7 @@ class SampleParserTests(unittest.TestCase):
             def get(self,*args,**kwargs):
                 calls.append(kwargs['params'])
                 return json.dumps({'response':{'status':'NOT_FOUND'}})
-        with patch.dict(os.environ,{'POC10_VWORLD_API_KEY':'fake-key'}):
+        with patch.dict(os.environ,{'POC10_VWORLD_API_KEY':'fake-key'}), patch('backend.api_samples.location_candidates',return_value=iter(Service().rows('notice')+Service().rows('permit'))):
             records,stats=collect_locations(SAMPLE_SOURCES['vworld'],Fetch(),Service())
         self.assertEqual(len(calls),40)
         self.assertEqual(stats['not_found'],40)

@@ -37,6 +37,32 @@ def test_discovery_is_visible_without_prior_mutation_and_candidate_not_preapprov
  with s.sessions() as db:assert before==db.scalar(select(func.count()).select_from(Revision))
 
 
+def test_manual_collection_preserves_decision_and_exports_revision_scope(env):
+ from backend.publication_supplements import save as collect_text
+ from backend.publication_review_export import export_csv
+ s,doc,pid=env
+ approve(s,doc,pid)
+ with s.sessions() as db:
+  before=[(r.entity_id,r.payload_hash) for r in db.scalars(select(Revision).where(Revision.kind.in_(['project','publication_review','evidence_bridge']),Revision.superseded_at.is_(None)).order_by(Revision.entity_id))]
+ collect_text(s,doc,1,'공식 본문 12호','재모집12호 · 신규 건설 아님',
+   [{'name':'공고문.pdf','url':'https://www.seoul.go.kr/notice.pdf','sha256':'b'*64}], '수집 점검','a'*64)
+ item=reviews.queue(s)['items'][0]
+ assert item['status']=='APPROVED' and not item['supplement']['stale']
+ assert 'body_text' not in item['supplement']
+ row,=csv_rows(export_csv(s))
+ assert row['수동수집본문']=='공식 본문 12호' and row['수동수집상태']=='현재 판본 원문·첨부 수집'
+ with s.sessions() as db:
+  after=[(r.entity_id,r.payload_hash) for r in db.scalars(select(Revision).where(Revision.kind.in_(['project','publication_review','evidence_bridge']),Revision.superseded_at.is_(None)).order_by(Revision.entity_id))]
+ assert before==after
+ with s.sessions.begin() as db:
+  old=db.scalar(select(Revision).where(Revision.entity_id==doc,Revision.superseded_at.is_(None)))
+  upsert_revision(db,'document_evidence','seoul_press_watch','case',dict(old.payload,name='변경된 주택 공고'),'next')
+ assert reviews.queue(s)['items'][0]['supplement']['stale']
+ row,=csv_rows(export_csv(s));assert row['수동수집상태']=='이전 판본 수집 · 재확인 필요'
+ with pytest.raises(ValueError,match='판본'):
+  collect_text(s,doc,1,'old','old',[],'수집 점검','a'*64)
+
+
 def test_sh_notices_are_visible_with_correction_and_followup_review_questions(env):
  s,doc,pid=env
  with s.sessions.begin() as db:

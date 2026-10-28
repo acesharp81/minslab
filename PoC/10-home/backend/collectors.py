@@ -23,7 +23,7 @@ ALLOWED_HOSTS = {"www.schoolinfo.go.kr", "iseoul.seoul.go.kr", "emartapp.emart.c
 SECRET_PARAMS = {"key", "servicekey", "apikey", "authkey", "access_token", "accesstoken", "consumer_key", "consumer_secret", "authorization"}
 ALLOWED_HOSTS.add('www.ih.co.kr')
 ALLOWED_HOSTS.add('www.eum.go.kr')
-ALLOWED_HOSTS.update({'www.newsis.com','seoulboard.seoul.go.kr'})
+ALLOWED_HOSTS.update({'www.newsis.com','seoulboard.seoul.go.kr','www.opm.go.kr'})
 GYEONGGI_CITIES = "수원 성남 의정부 안양 부천 광명 평택 동두천 안산 고양 과천 구리 남양주 오산 시흥 군포 의왕 하남 용인 파주 이천 안성 김포 화성 광주 양주 포천 여주 연천 가평 양평".split()
 
 

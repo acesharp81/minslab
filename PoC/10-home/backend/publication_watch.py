@@ -87,11 +87,37 @@ def sh_board_rows(body):
     return list(rows.values())
 
 
+def government_board_rows(body, source):
+    soup=BeautifulSoup(body,'html.parser');rows={}
+    molit=source['id']=='molit_press_watch'
+    expected=urlsplit(source['url'])
+    for tr in soup.select('tr'):
+        a=tr.select_one('td.bd_title a[href]' if molit else 'a.c-board-title[href]')
+        if not a:continue
+        parts=urlsplit(urljoin(source['url'],a['href']));q=parse_qs(parts.query)
+        key=(q.get('id' if molit else 'articleNo') or [''])[0]
+        if parts.hostname!=expected.hostname or parts.path!=('/USR/NEWS/m_71/dtl.jsp' if molit else expected.path) or not key.isdigit():
+            raise ValueError('정부 보도자료 출처·식별자 변경')
+        date_node=tr.select_one('.bd_date' if molit else '.c-board-info-m')
+        dates=re.findall(r'20\d{2}[-.]\d{2}[-.]\d{2}',date_node.get_text(' ',strip=True) if date_node else '')
+        title=clean(a.get_text(' ',strip=True))
+        if len(dates)!=1 or not title:raise ValueError('정부 보도자료 제목·게시일 미확보')
+        day=dates[0].replace('.','-');datetime.fromisoformat(day)
+        url=('https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id='+key if molit else
+             'https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo='+key)
+        row=dict(source_object_id=key,name=title,evidence_url=url,source_date=day)
+        if key in rows and rows[key]!=row:raise ValueError('정부 보도자료 동일 식별자 내용 상충')
+        rows[key]=row
+    if not rows:raise ValueError('정부 보도자료 목록 미발견 · 구조/접근 확인 필요')
+    return list(rows.values())
+
+
 def collect(source, fetcher):
     found={};counts=[]
     for url in source.get('feed_urls') or [source['url']]:
         body=fetcher.get(url,'xml' if source.get('watch_format')=='RSS' else 'html')
         rows=(rss_rows(body,source) if source.get('watch_format')=='RSS' else
+              government_board_rows(body,source) if source.get('watch_format')=='GOV_BOARD' else
               sh_board_rows(body) if source.get('watch_format')=='SH_BOARD' else board_rows(body,source))
         counts.append(dict(url=url,listed=len(rows)))
         for row in rows:

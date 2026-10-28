@@ -109,7 +109,7 @@ class CollectionCoverageTests(unittest.TestCase):
         class Fetch:
             def get(self,url,suffix,params,headers):
                 calls.append(params['address']);return json.dumps({'response':{'status':'NOT_FOUND'}})
-        with patch('backend.api_samples.key_for',return_value='fixture'):
+        with patch('backend.api_samples.key_for',return_value='fixture'), patch('backend.api_samples.location_candidates',return_value=iter([old,new])):
             rows,stats=collect_locations(BY_ID['vworld'],Fetch(),service)
         self.assertEqual(len(rows),1);self.assertEqual(rows[0][1],'second');self.assertEqual(calls,[new['address']])
         self.assertEqual(stats['remaining_parents'],0);self.assertTrue(stats['complete_query'])

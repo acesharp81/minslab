@@ -216,26 +216,35 @@ def collect_permits(source, fetcher, service=None):
                      "district_counts": counts, "scope_note": "서울·경기 6개 법정동 전체 페이지(기본). 과거 허가·착공일도 보존하며 생성일과 실제 사업 상태는 별도 확인"}
 
 
+def location_candidates(service):
+    """Stream only identity/address columns; permit payloads can be very large."""
+    from sqlalchemy import select, case
+    from .db import Revision
+    p=Revision.payload
+    address=p['address'].as_string()
+    query=select(Revision.entity_id.label('id'),Revision.kind.label('sample_kind'),
+        p['name'].as_string().label('name'),p['region'].as_string().label('region'),
+        p['source_object_id'].as_string().label('source_object_id'),address.label('address')).where(
+        Revision.kind.in_(('notice','permit')),Revision.superseded_at.is_(None),address.is_not(None),address!='').order_by(
+        case({region:i for i,region in enumerate(REGIONS.values())},value=p['region'].as_string(),else_=99),
+        Revision.kind,p['source_object_id'].as_string(),Revision.entity_id).execution_options(yield_per=500)
+    with service.sessions() as db:
+        for row in db.execute(query).mappings():
+            yield row
+
+
 def collect_locations(source, fetcher, service):
     inputs, seen = [], set()
     previous = service.rows('location')
     cache = {(r.get('parent_sample_id'),r.get('address')) for r in previous}
     limit = max(1, min(25, int(os.environ.get("POC10_GEOCODE_PER_KIND_REGION", "25"))))
-    candidates = [r for kind in ('notice','permit') for r in service.rows(kind) if r.get('address')]
-    pending = sum((r['id'],r['address']) not in cache for r in candidates)
-    for region in REGIONS.values():
-        for kind in ("notice", "permit"):
-            rows = sorted((r for r in service.rows(kind) if r["region"] == region), key=lambda r: r["source_object_id"])
-            selected = 0
-            for row in rows:
-                address = row.get("address", "")
-                if not address or address in seen or (row["id"],address) in cache:
-                    continue
-                seen.add(address)
-                inputs.append(row)
-                selected += 1
-                if selected == limit:
-                    break
+    pending=0;candidate_count=0;selected={}
+    for row in location_candidates(service):
+        candidate_count+=1;address=row['address'];group=(row['region'],row['sample_kind'])
+        if (row['id'],address) in cache:continue
+        pending+=1
+        if row['region'] not in REGIONS.values() or address in seen or selected.get(group,0)>=limit:continue
+        seen.add(address);inputs.append(dict(row));selected[group]=selected.get(group,0)+1
     if not inputs:
         if not previous: raise ValueError("좌표 조회 대상 없음: 청약홈·건축HUB 표본을 먼저 수집하세요")
         metadata={'id','source_id','revision_no','recorded_at','source_age_days'}
@@ -277,8 +286,8 @@ def collect_locations(source, fetcher, service):
         records.append(("location", row["id"], payload))
     return records, {"collection_mode": "TEST_SAMPLE", "complete_population": False, "complete_query":pending==len(inputs),
         "queried": len(inputs), "resolved": resolved, "not_found": len(inputs)-resolved,
-        "candidate_parent_count":len(candidates),"cached_parents":len(cache),"remaining_parents":pending-len(inputs),
-        "scope_note":"기존 조회 주소를 건너뛰고 유형·시도별 최대 25건씩 누적. 사업 경계·전체 좌표 확보 아님"}
+        "candidate_parent_count":candidate_count,"cached_parents":len(cache),"remaining_parents":pending-len(inputs),
+        "scope_note":f"기존 조회 주소를 건너뛰고 유형·시도별 최대 {limit}건씩 누적. 사업 경계·전체 좌표 확보 아님"}
 
 
 def collect_sample(source, fetcher, service):

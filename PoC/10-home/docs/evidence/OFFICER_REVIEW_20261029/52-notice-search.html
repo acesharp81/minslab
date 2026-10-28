@@ -1,0 +1,1247 @@
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]> <html lang="ko" class="ie8"> <![endif]-->
+<!--[if IE 9]> <html lang="ko" class="ie9"> <![endif]-->
+<!--[if !IE]><!--> <html lang="ko"> <!--<![endif]-->
+<head>
+	<title>행정규칙(훈령·예규·고시)
+	</title>
+	<meta charset="utf-8">
+	
+	<!--<meta name="description" content="">
+	<meta name="author" content="">	-->
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<meta http-equiv='X-UA-Compatible' content='IE=edge' />
+
+	
+	<link rel="apple-touch-icon" href="/html/images/main/favicon.ico" />
+	<link rel="shortcut icon" href="/html/images/main/favicon.ico" />
+	
+	<!--[if lte IE 10]>
+	<link rel="stylesheet" type="text/css" href="/css/www2019/main_ie10.css" />
+	<![endif]-->
+
+	
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-48QM7S5BVX"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-48QM7S5BVX');
+	</script>
+	<script type="text/javascript" src="/creator_resource/js/jquery.js"></script>
+	<script type="text/javascript" src="/portal/js/json2.js"></script>
+	<script type="text/javascript" src="/portal/js/mltmbp-common.js"></script>
+	<script type="text/javascript" src="/portal/js/mltmbp-jqcommon.js"></script>
+	<script type="text/javascript" src="/portal/js/mltmbp-dateutil.js"></script>
+	<script type="text/javascript" src="/portal/js/mltmbp-portal-search.js"></script><!-- 검색 -->
+	<script type="text/javascript" src="/portal/js/mltmbp-portal-send_socialmedia.js?d=20160512"></script><!-- 소셜미디어로 보내기 공통 함수 -->
+	
+	<script type="text/javascript" src="/js/lcms1.js"></script>
+	<script type="text/javascript" src="/LCMS/js/dg_calendar.js"></script>
+	<script type="text/javascript" src="/LCMS/js/calendar.js"></script>
+	<script type="text/javascript" src="/js/law.js"></script>
+	<script type="text/javascript" src="/js/common_v2013.js?d=20160106-1041"></script>
+	
+	
+	<!-- 신규추가 -- 2019.10.21 -->
+	<script type="text/javascript" src="/main2018/mltm.js"></script>
+	<script type="text/javascript" src="/search/js/search.js"></script>
+
+	<script type="text/javascript" src="/js/www2023/jquery-1.11.3.min.js"></script>	
+	<link rel="stylesheet" href="/css/www2024/css2024/import.css" />
+	<link rel="stylesheet" type="text/css" href="/css/www2023/style.css" />
+	<link rel="stylesheet" type="text/css" href="/css/www2023/layout.css" />
+	
+	<link rel="stylesheet" href="/css/www2024/js2024/swiper/swiper.css" />
+	<link rel="stylesheet" href="/css/www2024/css2024/import.css" />
+    <link rel="stylesheet" href="/css/www2026/krds_tokens.css" />
+    <link rel="stylesheet" href="/css/www2026/KRDS_style.css" />
+    
+    <script type="text/javascript" src="/js/www2024/js2024/common.js"></script>
+    <script type="text/javascript" src="/js/www2024/js2024/layout.js"></script>
+    <script type="text/javascript" src="/js/www2024/js2024/utill.js"></script>
+    <script type="text/javascript" src="/js/www2024/js2024/main.js"></script>
+    <script type="text/javascript" src="/js/www2024/js2024/jquery.easing.1.3.min.js"></script>
+    <script type="text/javascript" src="/js/www2024/js2024/swiper/swiper.min.js"></script>
+	
+	
+	<script type="text/javascript" src="/js/www2023/search.js"></script>
+
+	<script type="text/javascript" src="/portal/js/jq-plugins/jquery.cookie.js" ></script>
+	<script type="text/javascript" src="/js/www2023/jquery.rwdImageMaps.min.js"></script>
+	<script type="text/javascript" src="/js/www2026/KRDS_script.js"></script>
+
+	<script type="text/javascript">
+	//<![CDATA[
+	//var _MLTMBP_HOSTNAME = window.location.hostname; //(예) 127.0.0.1 or www.mltm.go.kr
+	//var _MLTMBP_COOKIE_NAME	= "mltmbp_portal";
+	//var _MLTMBP_COOKIE_OPTIONS = { expires: 7, path: '/', domain: _MLTMBP_HOSTNAME, secure: false };
+	//xmlDoc = importXML("/xml/www.xml");
+	
+	function showConfirm2() {
+		
+			//if(confirm('실명인증 후, 글 등록이 가능합니다.\n실명인증 페이지로 이동하시겠습니까?')){
+				location.href='/USR/LOGN/m_114/FRM.jsp?flag=3&amp;rtUrl='+ document.authFrm.rtUrl.value;
+			//}
+		
+	}
+	
+	//페이지가 로드될 때 jquery 초기화 함수 호출함.
+	//웹호환성 수정 : 2013.10.18. 김민정
+	function init()
+	{
+		//#1. 상단메뉴바 우측 '자주가는메뉴' 관련
+		//initFavMenuFromCookie();
+		//setFavmenuConfigDialog();
+	
+		//#2. 통합검색 초기화
+		initSearch();
+	
+		//#3. 우측하단 '오늘본 메뉴' 초기화
+		//displayRecentMenuFromCookie(); //@modified tail.inc.jsp 에서 html 렌더링하여 표시(2009-12-16)
+		//addRecentMenu();
+	
+		//#4. 하단 인증서 초기화
+		//initCertificateMarks();
+	
+		//날씨정보를 5초마다 갱신
+		//$("#weatherList").everyTime(5000, function(i) {
+		//	rotateWeather(); //@see -misc
+		//});
+	
+		//화면 확대,     축소 초기화
+		//zoomInit();
+	
+		//국민신문고 화면깨짐 방지 스크립트
+		//epeople_resize();
+	
+		//소셜미디어 보내기 초기화
+		initSendSocialMedia();
+	}
+	
+	
+	// https > http 처리
+	/*
+	if ( ( $(location).attr("href").indexOf('USR/NEWS/m_71/dtl.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/NEWS/m_72/dtl.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/law/m_46/dtl.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/BORD0201/m_34879/DTL.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/BORD0201/m_34722/DTL.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/I0204/m_45/dtl.jsp' ) > 0 ) || ( $(location).attr("href").indexOf('USR/WPGE0201/m_36367/DTL.jsp' ) > 0 )  || ( $(location).attr("href").indexOf('USR/policyData/m_34681/dtl.jsp' ) > 0 )  || ( $(location).attr("href").indexOf('USR/budget/m_90/lst.jsp' ) > 0 )  || ( $(location).attr("href").indexOf('USR/cmit/m_1146/dtl.jsp' ) > 0 ) ) {
+		//alert($(location).attr("href"));
+		if (window.location.protocol != "http:") {
+		    window.location.href = "http:" + window.location.href.substring(window.location.protocol.length);
+		}
+	} */
+	$(document).ready(function(){
+		
+		
+		var $chilrens = $('.file').children('span');
+		for (var i = 0 ; i < $chilrens.length ; i++) {
+			
+			
+			$chilrens.eq(i).children('a').children('img').removeAttr('width');
+			$chilrens.eq(i).children('a').children('img').removeAttr('height');
+			
+			var htm2 = $chilrens.eq(i).children('.attach_viewer').html();
+			$chilrens.eq(i).children('.attach_viewer').remove();
+			
+			
+			var htm3 = $chilrens.eq(i).children('a').children('img').attr('src');
+			if(htm3 == null){
+			    htm3 = $chilrens.eq(i).children('a').children('i').children('img').attr('src');
+			}
+			htm3 = htm3.replace("/dev/board/images/", "/images/www2019/board/");
+			$chilrens.eq(i).children('a').children('img').remove();
+			
+			var tmpAlt = 'alt="첨부문서"' ;
+			if (htm3.indexOf('hwp')>0) tmpAlt = 'alt="hwp"' ;
+			if (htm3.indexOf('pdf')>0) tmpAlt = 'alt="pdf"' ;
+			if (htm3.indexOf('xls')>0) tmpAlt = 'alt="xls"' ;
+			
+			$chilrens.eq(i).children('a').append(
+				'<i><img src="' + htm3 + '" '+ tmpAlt +' /></i>'
+			);
+
+			var htm = $chilrens.eq(i).html();
+		
+			htm = htm.replace("/dev/board/images/", "/images/www2019/board/");
+			
+			if (typeof htm2 == "undefined" || htm2 == null || htm2 == "")
+				htm = htm ;
+			else 
+				htm = htm + htm2 ;
+			
+			
+			$chilrens.eq(i).html(htm);
+		
+			$chilrens.eq(i).children('a').eq(1).addClass("icon_docu");
+			$chilrens.eq(i).children('a').eq(1).children('img').remove();
+			$chilrens.eq(i).children('a').eq(1).text("바로보기");
+		}
+		
+		$chilrens = $('.bd_pagination').children('li');
+		var tmpPageStr = "";
+		//alert($chilrens.length);
+		
+		
+		for (var i = 0 ; i < $chilrens.length ; i++) {
+			
+			var tmpHref ;
+			if ( $chilrens.eq(i).children('a').attr("href") ) {
+				tmpHref = $chilrens.eq(i).children('a').attr("href") ;
+			} else {
+				tmpHref = "#" ;
+			}
+			
+			
+			if (i==0) {
+				tmpPageStr += "<a href='" + tmpHref + "' class='direction first'>처음으로</a>";
+			} else if (i==1) {
+				tmpPageStr += "<a href='" + tmpHref + "' class='direction prev'>이전페이지</a>";
+			} else if (i == ($chilrens.length-2) ) {
+				tmpPageStr += "<a href='" + tmpHref + "' class='direction next'>다음페이지</a>";
+			} else if (i == ($chilrens.length-1) ) {
+				tmpPageStr += "<a href='" + tmpHref + "' class='direction last'>마지막으로</a>";
+			} else {
+			
+				if ( $chilrens.eq(i).attr("class")=="select" ) {
+					tmpPageStr += "<strong>"+$chilrens.eq(i).children('a').text()+"</strong>";
+				} else {
+			
+					if ( $chilrens.eq(i).children('a').attr("href") ) {
+						//tmpPageStr += "<a href='" + $chilrens.eq(i).children('a').attr("href") + "'>"+(i-1)+"</a>";
+						tmpPageStr += "<a href='" + $chilrens.eq(i).children('a').attr("href") + "'>"+$chilrens.eq(i).children('a').text()+"</a>";
+					} else {
+						//tmpPageStr += "<strong>"+(i-1)+"</strong>";
+						tmpPageStr += $chilrens.eq(i).children('span').html() ;
+					}
+				}
+			}
+			if ( i == ($chilrens.length-1) ) {
+				$('.bd_pagination').html(tmpPageStr);
+			}
+		}
+
+	});
+	//]]>
+	</script>	
+</head>
+<body onload="init();">
+
+<div class="skiptoContent">
+	<a href="#cont-body">본문 바로가기</a>
+</div>
+
+<!-- wrap s -->
+<div id="wrap" class="wrap">
+	<!-- header -->
+	
+
+
+<script>
+/*
+if (document.location.protocol == 'https:') {
+        document.location.href = document.location.href.replace('https:', 'http:');
+ }
+*/
+window.addEventListener("keydown", function (event){
+	if(event.keyCode == 9) {
+		$("#gnb").removeClass("fixed");
+	}
+});
+
+function enterkey(){
+	if(window.event.keyCode == 13){
+	location.href='/portal.do';
+	}
+}
+</script>
+<div class="krds_wrapper">
+	<header id="krds_header">
+	    <div class="krds_header_banner">
+	        <div class="krds_inner">
+	            <div class="krds_gov_id">
+	                <img src="/images/www2026/eg_logo.png;jsessionid=GahAanWdAtbN0Lwkh9rNN83W10Ea3xa97djSQ6RZKrZ6SaE1TsQuAZRFmUfALssw.mltmwas1_servlet_molit" alt="정부 로고">
+	                <span>이 누리집은 대한민국 공식 전자정부 누리집입니다.</span>
+	            </div>
+	        </div>
+	    </div>
+	
+	    <div class="krds_header_mid">
+	        <div class="krds_inner">
+	            <!-- Left: Logo -->
+	            <h1 class="krds_logo">
+	                <a href="/portal.do">
+	                    <picture>
+	                        <source media="(max-width: 768px)" srcset="/images/www2026/logo.png">
+	                        <img src="/images/www2026/logo.png" alt="국토교통부 Ministry of Land, Infrastructure and Transport">
+	                    </picture>
+	                </a>
+	            </h1>
+	
+	            <!-- Right: Utilities & Tools -->
+	            <div class="krds_mid_right">
+	                <!-- 2-1: Utils & SNS -->
+	                <div class="krds_mid_row1">
+	                    <div class="krds_util_menu">
+	                        <!-- Rendered by KRDS_script.js (Children/Youth, English) -->
+	                    </div>
+	                    <div class="krds_pc_sns krds_sns_dropdown">
+	                        <button type="button" class="krds_btn_sns_toggle" title="소셜 메뉴 바로가기 펼치기">소셜 메뉴 바로가기</button>
+	                        <div class="krds_sns_list">
+	                            <ul>
+	                                <li>
+	                                	<a href="https://www.youtube.com/korealand" target="_blank" rel="noopener noreferrer" title="새 창">
+	                                		<img src="/images/www2026/icon/ico_youtube.svg" alt="유튜브"> 
+	                                		<span>유튜브</span>
+	                                	</a>
+	                                </li>
+	                                <li>
+	                                	<a href="https://www.instagram.com/molit.go.kr/" target="_blank" rel="noopener noreferrer" title="새창">
+	                                 	<img src="/images/www2026/icon/ico_instagram.svg" alt="인스타그램">
+	                                     <span>인스타그램</span>
+	                                    </a>
+	                                </li>
+	                                <li>
+	                                	<a href="https://blog.naver.com/mltmkr" target="_blank" rel="noopener noreferrer" title="새 창">
+	                                		<img src="/images/www2026/icon/ico_blog.svg" alt="블로그"> 
+	                                		<span>블로그</span>
+	                                	</a>
+	                                </li>
+	                                <li>
+	                                	<a href="https://www.facebook.com/landkorea" target="_blank" rel="noopener noreferrer" title="새 창">
+	                                		<img src="/images/www2026/icon/ico_facebook.svg" alt="페이스북">
+	                                        <span>페이스북</span>
+	                                    </a>
+	                                </li>
+	                                <li>
+	                                	<a href="https://twitter.com/korea_land" target="_blank" rel="noopener noreferrer" title="새 창">
+	                                 	<img src="/images/www2026/icon/ico_sns_x.svg" alt="X"> 
+	                                 	<span>X</span>
+	                                	</a>
+	                                </li>
+	                                <li>
+	                                	<a href="https://story.kakao.com/ch/molit" target="_blank" rel="noopener noreferrer" title="새 창">
+	                                		<img src="/images/www2026/icon/ico_kakao.svg" alt="카카오스토리">
+	                                        <span>카카오스토리</span>
+	                                    </a>
+	                                </li>
+	                            </ul>
+	                        </div>
+	                    </div>
+	                </div>
+	
+	                <!-- 2-2: Search & Sitemap -->
+	                <div class="krds_mid_row2">
+	                    <button type="button" class="krds_btn_search" title="통합검색">
+	                        <img src="/images/www2026/icon/ico_sch.svg" alt="통합검색" style="width: 24px; height: 24px;">
+	                        <span>통합검색</span>
+	                    </button>
+	                    <button type="button" class="krds_btn_allmenu" title="전체메뉴">
+	                        <img src="/images/www2026/icon/ico_all.svg" alt="전체메뉴" style="width: 24px; height: 24px;">
+	                        <span>전체메뉴</span>
+	                    </button>
+	                </div>
+	                <div class="krds_modal_search_wrap" id="krds_modalSearch" aria-hidden="true" style="display: none;" tabindex="-1">
+					    <button type="button" class="krds_btn_search_close" aria-label="닫기">
+					        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5">
+					            <path d="M18 6L6 18M6 6l12 12"></path>
+					        </svg>
+					    </button>
+					    <div class="krds_search_inner">
+					        <label for="krds_globalSearch" class="krds_search_label">검색어를 입력해주세요</label>
+					        <div class="krds_search_input_box">
+					            <input type="text" name="searchWord" title="검색어를 입력하세요" id="krds_globalSearch" class="krds_search_input" style="ime-mode:active;" placeholder="검색어를 입력해주세요." onkeypress="return searchWordKeyPress(event);">
+					            <!-- X Clear Button (Hidden by default) -->
+					            <button type="button" class="krds_btn_search_clear" id="krds_btnSearchClear" aria-label="검색어 지우기">
+					                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+					                    <path d="M18 6L6 18M6 6l12 12"></path>
+					                </svg>
+					            </button>
+					            <button type="button" onclick="searchSubmit();" class="krds_btn_search_submit" aria-label="검색">
+					                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					                    <circle cx="11" cy="11" r="8"></circle>
+					                    <path d="M21 21L16.65 16.65"></path>
+					                </svg>
+					            </button>
+					        </div>
+					    </div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	
+	    <!-- 3. Bottom Area (GNB) -->
+	    <div class="krds_header_bot">
+	        <div class="krds_inner">
+	            <nav class="krds_gnb_wrap">
+	                <ul class="krds_gnb">
+	                    <!-- Dynamic Content Rendered by KRDS_script.js -->
+	                </ul>
+	            </nav>
+	        </div>
+	    </div>
+	</header>
+
+	<div class="krds_mobile_menu_wrap" id="krds_mobileMenu">
+	    <div class="krds_mobile_menu_container">
+	        <div class="krds_m_header">
+	            <h2 class="krds_m_logo"><img src="/images/www2026/logo.png" alt="국토교통부"></h2>
+	            <button type="button" class="krds_btn_close" id="krds_btnCloseMenu">✕<span
+	                    class="blind">닫기</span></button>
+	        </div>
+	
+	        <div class="krds_m_util">
+	            <div class="krds_m_util_links">
+	                <!-- Rendered by KRDS_script.js -->
+	            </div>
+	            <div class="krds_m_sns krds_sns_dropdown">
+	                <button type="button" class="krds_btn_sns_toggle" title="소셜 메뉴 바로가기 펼치기">소셜 메뉴 바로가기</button>
+	                <div class="krds_sns_list">
+	                    <ul>
+	                        <li>
+	                        	<a href="https://www.youtube.com/korealand" target="_blank" title="새 창">
+	                        		<img src="/images/www2026/icon/ico_youtube.svg" alt="유튜브"> 
+	                        		<span>유튜브</span>
+	                        	</a>
+	                        </li>
+	                        <li>
+	                        	<a href="https://www.instagram.com/molit.go.kr/" target="_blank" title="새창">
+	                        		<img src="/images/www2026/icon/ico_instagram.svg" alt="인스타그램"> 
+	                        		<span>인스타그램</span>
+	                        	</a>
+	                        </li>
+	                        <li>
+	                        	<a href="https://blog.naver.com/mltmkr" target="_blank" title="새 창">
+	                        		<img src="/images/www2026/icon/ico_blog.svg" alt="블로그"> 
+	                        		<span>블로그</span>
+	                        	</a>
+	                        </li>
+	                        <li>
+	                        	<a href="https://www.facebook.com/landkorea" target="_blank" title="새 창">
+	                        		<img src="/images/www2026/icon/ico_facebook.svg" alt="페이스북"> 
+	                        		<span>페이스북</span>
+	                        	</a>
+	                        </li>
+	                        <li>
+	                        	<a href="https://twitter.com/korea_land" target="_blank" title="새 창">
+	                        		<img src="/images/www2026/icon/ico_sns_x.svg" alt="X"> 
+	                        		<span>X (twitter)</span>
+	                        	</a>
+	                        </li>
+	                        <li>
+	                        	<a href="https://story.kakao.com/ch/molit" target="_blank" title="새 창">
+	                        		<img src="/images/www2026/icon/ico_kakao.svg" alt="카카오스토리"> 
+	                        		<span>카카오스토리</span>
+	                        	</a>
+	                        </li>
+	                    </ul>
+	                </div>
+	            </div>
+	        </div>
+	
+	        <nav class="krds_m_gnb_area">
+	            <!-- Dynamic Content Rendered by KRDS_script.js -->
+	        </nav>
+	    </div>
+	</div>	
+						
+<script type="text/javascript">
+function escapeHtml(str) {
+    if (typeof str !== 'string') {
+		return str;
+    }
+
+    const entityMap = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;',
+      '/': '&#x2F;'
+    };
+
+    // &, <, >, ", ', / 문자를 글로벌(/g)로 찾아 치환
+    return str.replace(/[&<>"'/]/g, (match) => entityMap[match]);
+}
+function searchSubmit() {
+    var searchWord = escapeHtml(document.getElementById('krds_globalSearch').value);
+    var searchType = '통합검색';
+
+    // URL 생성
+    var searchUrl = '/search/search2023.jsp?search_type=' 
+                    + encodeURIComponent(searchType)
+                    + '&searchWord=' + encodeURIComponent(searchWord)
+                    + '&query=' + encodeURIComponent(searchWord)
+                    + '&ADM_NM=';
+
+    // 새로운 URL로 이동
+    window.location.href = searchUrl;
+}
+
+function searchWordKeyPress(event) {
+    if (event.key === 'Enter') {
+        searchSubmit();
+        return false;
+    }
+    return true;
+}
+</script>
+		<!-- //header -->
+	<!-- //header -->
+	
+	<!-- sub visual common -->
+	<div class="wrap-visual-sub"></div>
+	<!-- //sub visual common -->
+	
+	<!-- container -->
+	<section id="wrap-container">
+		<!-- remote -->
+		<div class="wrap-remote">
+
+<!-- Gnb 현재 메뉴 -->
+		<script type="text/javascript">
+			$('#gnb .depth1 > li:nth-child(3) > a').addClass('on');
+		</script>
+
+
+			<h2 class="remote-tit"><i>정책자료</i></h2>
+			<nav class="wrap-snb">
+				<ul class="snb">
+				
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" title="">
+							
+								<a href="/USR/policyData/m_34681/lst.jsp" >
+									<i>정책정보</i>
+								</a>	
+					
+							
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" title="">
+							
+								<a href="/USR/policyTarget/m_24066/lst.jsp" >
+									<i>정책Q&A</i>
+								</a>	
+					
+							
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="is-on" aria-expanded="true">
+							
+								<a href="#left" >
+									<i>법령정보</i>
+								</a>	
+					
+							
+							
+							<!-- 2단계 메뉴 -->
+							<ul style="display:block">
+
+														
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_9302/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											최근 제·개정법령
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+										https://www.law.go.kr/LSW/lsAstSc.do?menuId=391&subMenuId=397&tabMenuId=437&cptOfiCd=1613000&eventGubun=060102#cptOfi1613000?TAB=Y"
+									
+									 target='_blank' title='새창'
+									
+										>
+									
+										<i>
+											법령
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/I0204/m_45/lst.jsp"
+									
+									
+									
+										class='on' title='선택됨'>
+									
+										<i>
+											행정규칙(훈령·예규·고시)
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/law/m_46/lst.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											입법예고·행정예고
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									http://www.gwanbo.go.kr/"
+									
+									 target='_blank' title='새창'
+									
+										>
+									
+										<i>
+											전자관보
+										</i>
+									</a>								
+								</li>
+								
+						</ul>
+
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" title="">
+							
+								<a href="/USR/BORD0201/m_34722/BRD.jsp" >
+									<i>감사결과공개</i>
+								</a>	
+					
+							
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" title="">
+							
+								<a href="/network/main.jsp"  target='_blank' title='새창'>
+									<i>국토교통 정보시스템</i>
+								</a>	
+					
+							
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" aria-expanded="false">
+							
+								<a href="#left" >
+									<i>항공교통서비스 보고서</i>
+								</a>	
+					
+							
+							
+							<!-- 2단계 메뉴 -->
+							<ul style="display:none">
+
+														
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37264/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2026년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37227/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2025년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37196/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2024년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37162/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2023년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37115/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2022년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37058/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2021년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37016/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2020년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37010/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2019년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37011/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2018년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37012/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2017년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37013/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2016년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37014/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2015년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+																
+									<li
+									
+									>
+									
+									
+									<a href="
+									
+									/USR/WPGE0201/m_37015/DTL.jsp"
+									
+									
+									
+										>
+									
+										<i>
+											2014년 항공교통서비스 보고서
+										</i>
+									</a>								
+								</li>
+								
+						</ul>
+
+					</li>
+
+
+							<!-- 1단계 메뉴 -->
+							
+							<li class="" title="">
+							
+								<a href="/USR/BORD0201/m_37266/LST.jsp" >
+									<i>국토교통 국정성과</i>
+								</a>	
+					
+							
+					</li>
+
+
+
+
+
+
+
+
+
+
+				</ul>
+				
+			</div>
+			
+<script type="text/javascript">
+	var lnbtext = $('#lnb .active > ul > li > a > i').text().replaceAll("\t", "").replaceAll("\n", "");
+	
+</script>
+
+			<div class="wrap-content">
+				<div class="wrap-breadcrumb">
+					<ul class="breadcrumb">
+						<li class='home'><a href="/portal.do" target="_self">Home</a></li><li><a href="/USR/ordinance/m_15019/lst.jsp" target="_self">정책자료</a></li><li><a href="/USR/ordinance/m_15019/lst.jsp" target="_self">법령정보</a></li><li class='on' title='선택됨'><a href="#" target="_self">행정규칙(훈령·예규·고시)</a></li>
+					</ul>
+				</div>
+				<div class="cont-head">            
+					<h3><i>행정규칙(훈령·예규·고시)</i></h3>
+					<button title="새 창 열림" class="print" onclick="window.open('/print_portal_2016.jsp?src_folder=content-area' + '&' + 'minwon', 'printPage', 'scrollbars=yes width=642 height=600');return false;" ><i>프린트</i></button>
+				</div>        
+				<article id="cont-body" class="cont-body">
+					
+
+
+
+
+
+
+
+
+
+
+
+		<script type="text/javascript" language="javascript">
+		//<![CDATA[
+			function sub_mit(flag){
+				var thisFrm = document.searchForm;
+				thisFrm.method = "POST";
+				thisFrm.action = "lst.jsp";
+				thisFrm.lcmspage.value="1";
+				thisFrm.submit();
+			}
+
+			function psize_sub_mit(){
+				var thisFrm = document.searchForm;
+				thisFrm.psize.value = thisFrm.r_psize.value;
+
+				sub_mit();
+			}
+
+			function chk_hidden(flag, Obj){
+				var values	= "";
+				var temp	= "";
+				var thisFrm = document.searchForm;
+
+				if (Obj!=undefined){
+
+					if (Obj.length!=undefined){
+
+						for(var i=0; i<Obj.length;i++){
+							if (Obj[i].checked){
+								if (values.length>0){
+									values += "," +Obj[i].value;
+								} else {
+									values += Obj[i].value;
+								}
+							}
+						}
+
+					} else {
+						values += Obj.value;
+					}
+
+					if (values.length>0){
+						if (flag=="hidden"){
+							temp = "숨김";
+						} else if (flag=="show") {
+							temp = "복구";
+						} else if (flag=="delete") {
+							temp = "삭제";
+						}
+
+						if(confirm('선택하신 게시물을 ' + temp + ' 처리하시겠습니까?')== true)
+						{
+						   thisFrm.flag.value="hidden";
+						   thisFrm.chkFlag.value=flag;
+						   thisFrm.chkValue.value=values;
+						   thisFrm.action="prc.jsp";
+						   thisFrm.method="POST";
+						   thisFrm.submit();
+						}
+
+					} else {
+						alert('선택하신 게시물이 없습니다.');
+						return;
+					}
+				} else {
+						alert('선택하신 게시물이 없습니다');
+						return;
+				}
+			}
+
+			function gubun(num){
+				document.searchForm.gubun.value = num;
+				document.searchForm.lcmspage.value="1";
+				document.searchForm.submit();
+			}
+			//]]>
+			</script>
+		
+
+
+
+
+
+
+
+<!-- tab 디자인 변경 -- 2019.10.25 -->
+<div class="tab_device">
+	<a href="#tab_device_ti" class="tab_device_ti"></a>
+	<ul class='tab_menu'>
+		<li class='on' title='선택됨'><a href="./lst.jsp?gubun=">전체</a></li>
+		<li ><a href="./lst.jsp?gubun=1">훈령</a></li>
+		<li ><a href="./lst.jsp?gubun=2">예규</a></li>
+		<li ><a href="./lst.jsp?gubun=3">지침</a></li>
+		
+		<li ><a href="./lst.jsp?gubun=4">고시</a></li>
+		<li ><a href="./lst.jsp?gubun=5">공고</a></li>
+		
+	</ul>
+</div>
+
+<!--검색-->
+<form name="searchForm" action="./lst.jsp" method="get">
+<input type="hidden" name="gubun" value="" />
+<input type="hidden" name="flag" value="I"/>
+<input type="hidden" name="r_id" value=""/>
+<input type="hidden" name="lcmspage" value="1"/>
+
+<div class="bd_search">
+	<fieldset>
+		<legend>검색</legend>
+		<div class="sear_part">
+			<label for="search_dept_nm">부서</label>
+			<input type="hidden" name="search_dept_id" id="search_dept_id" value="" /> 
+            <input type="text" name="search_dept_nm" id="search_dept_nm" value="" title="부서입력" /> 
+            <button type="button" title="새창열림" onclick="selectDept('searchForm', 'search_dept_id', 'search_dept_nm', '', '1613000', 'Y');return false;"><i>부서찾기</i></button>
+		</div>
+		
+		<div class="sear_date">
+			<label for="search_regdate_s">게시일자</label>
+			<span>
+				<input type="text" name="search_regdate_s" id="search_regdate_s" value="" title="게시일자 검색시작일" />
+				<a href="/LCMS/calendar/calendar_standard.jsp" onclick='window.open("/LCMS/calendar/calendar_standard.jsp?retObj=search_regdate_s","_calendar","width=220, height=230");return false;' target="_blank">달력</a>
+			</span>
+			<span>
+				<input type="text" name="search_regdate_e" id="search_regdate_e"  value="" title="게시일자 검색종료일" />
+				<a href="/LCMS/calendar/calendar_standard.jsp" onclick='window.open("/LCMS/calendar/calendar_standard.jsp?retObj=search_regdate_e","_calendar","width=220, height=230");return false;' target="_blank">달력</a>
+			</span>
+			( 예 : 2009-02-08 )
+		</div>
+		
+		<div class="sear_gosi">
+			<label for="srch_usr_year">고시번호</label>
+			<span><i>제</i><input type="number" id="srch_usr_year" name="srch_usr_year" value="" title="고시번호 첫번째번호 입력" maxlength="15" /></span>
+			<span><input type="number" id="srch_usr_num" name="srch_usr_num" value="" title="고시번호 두번째번호 입력" maxlength="15" /><i>호</i></span>
+		</div>
+		
+		<div class="sear_word">
+			<label for="searchBox">주제어</label>
+			<div class="sear_sel_btn">
+				<i><input type="checkbox" name="srch_usr_nm" id="srch_usr_nm" value="Y" /><label for="srch_usr_nm">작성자</label></i>
+				<i><input type="checkbox" name="srch_usr_titl" id="srch_usr_titl" value="Y" checked="checked"/><label for="srch_usr_titl">제목</label></i>
+				<i><input type="checkbox" name="srch_usr_ctnt" id="srch_usr_ctnt" value="Y" /><label for="srch_usr_ctnt">내용</label></i>
+			</div>		
+			<div class="sear_word_txt">
+				<input type="text" id="searchBox" name="search" value="&#46041;&#51088;&#46041;" title="주제어입력" />
+				<button type="submit"><i>검색</i></button>
+			</div>
+		</div>
+	</fieldset>	
+</div>
+<!--검색 끝-->
+
+
+<!-- 
+<ul class="list_box">
+
+	<li class="fl">총 <span id="point_color_b">0개</span>의 게시물이 있습니다.</li>
+    <li class="fr">
+    	<fieldset class="vm fl">
+        	<legend>화면당목록개수 설정</legend>
+            <label for="psize"><span class="list_icon mr5">화면당 목록개수</span></label>
+            <input name="psize" id="psize" type="text" class="w30" value="10" title="목록갯수입력"/>
+            <input type="image" src="/images/place/common/bt_change.gif" alt="변경" />
+        </fieldset>
+	</li>
+</ul> 
+ -->
+
+<div class="bd_info">전체 <strong>0</strong>건</div> 
+</form>
+
+<!--게시판-->
+				
+<table class="table line_no bd_tbl bd_tbl_ul">
+	<caption>행정규칙(훈령·예규·고시) 목록으로 번호, 제목, 담당부서, 게시일자, 조회정보가 확인되고, 제목을 선택시 선택한 정보의 상세페이지로 이동합니다.</caption>
+	<colgroup>
+		
+		<col class="bd_num" />
+		<col class="bd_title" />
+		<!-- <col class="attach_viewer" /> -->
+		<col class="bd_part" />
+		<col class="bd_date_publish" />
+		<col class="bd_inquiry" />
+	</colgroup>
+	<thead>
+		<tr>
+			
+			<th scope="col" class="bd_num">번호</th>
+			<th scope="col" class="bd_title">제목</th>
+			<!-- <th scope="col" class="attach_viewer"></th> -->
+			<th scope="col" class="bd_part">담당부서</th>
+			<th scope="col" class="bd_date_publish">게시일자</th>
+			<th scope="col" class="bd_inquiry">조회</th>
+		</tr>
+	</thead>
+	<tbody>
+	<tr>
+	<td colspan='5'>데이타가 존재하지 않습니다.</td>
+</tr>
+
+	</tbody>
+</table>
+	
+
+
+<!-- 페이징 -->
+<div class="bd_pagination">
+	<li class="start"><img src="/cyber/imgs/board/btn_start.gif" alt="맨 처음 페이지로"/></li><li class="prev"><img src="/cyber/imgs/board/btn_pre.gif" alt="이전 페이지로 "/></li>
+<li class="select"><a href="?gubun=&amp;search=&#46041;&#51088;&#46041;&amp;search_dept_id=&amp;search_dept_nm=&amp;old_search_dept_nm=&amp;psize=10&amp;search_regdate_s=&amp;search_regdate_e=&amp;srch_usr_nm=&amp;srch_usr_num=&amp;srch_usr_year=&amp;srch_usr_titl=Y&amp;srch_usr_ctnt=&amp;lcmspage=1" title="현재 페이지">1</a></li>
+<li class="next"><img src="/cyber/imgs/board/btn_next.gif" alt="다음 페이지로" /></li><li class="end"><img src="/cyber/imgs/board/btn_end.gif" alt="마지막 페이지로" /></li>
+
+</div>
+<!--게시판 끝-->
+									
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+					</article>
+				</div>
+				
+			</div>
+		</div>
+		<!-- //content -->
+	</div>
+	<!-- //container_wrap -->
+
+	<!-- footer -->
+	 <footer id="krds_footer">	<!-- 0. Related Sites Bar (MTC Style with Modal) -->	<div class="krds_related_site_wrap">	    <div class="krds_inner">	        <ul class="org-site">	            <li>	                <button type="button" class="krds-site-btn krds-modal-open" data-target="layer-site01"	                    aria-haspopup="dialog">	                    <span>주요사이트 바로가기</span>	                </button>	            </li>	            <li>	                <button type="button" class="krds-site-btn krds-modal-open" data-target="layer-site02"	                    aria-haspopup="dialog">	                    <span>소속기관 바로가기</span>	                </button>	            </li>	            <li>	                <button type="button" class="krds-site-btn krds-modal-open" data-target="layer-site03"	                    aria-haspopup="dialog">	                    <span>산하기관 바로가기</span>	                </button>	            </li>	        </ul>	    </div>	</div>		<!-- Modals -->	<!-- Modal 1: Related Sites -->	<div id="layer-site01" class="krds-wrap-modal full-modal" role="dialog" aria-modal="true"	    aria-labelledby="title-site01">	    <div class="modal-header-hidden">	        <h2 id="title-site01">주요사이트 바로가기</h2>	    </div>	    <div class="modal-body site-popup" tabindex="0">	        <div class="inner">	            <strong class="site-tit">주요사이트 바로가기</strong>	            <div class="krds-site-box">	                <ul>	                    <li><a href="https://data.molit.go.kr" target="_blank" title="데이터통합채널">데이터통합채널</a></li>	                    <li><a href="https://stat.molit.go.kr" target="_blank" title="통계누리">통계누리</a></li>	                    <li><a href="https://www.xn--vf4b41gp9bm8g.kr/" target="_blank" title="뉴:홈">뉴:홈</a></li>	                    <li><a href="https://www.renthome.go.kr" target="_blank" title="렌트홈">렌트홈</a></li>	                    <li><a href="https://www.myhome.go.kr" target="_blank" title="마이홈">마이홈</a></li>	                    <li><a href="https://onestop.khug.or.kr:18080/index.html" target="_blank" title="안심전세">안심전세</a></li>	                    <li><a href="https://rt.molit.go.kr" target="_blank" title="실거래공개">실거래공개</a></li>	                    <li><a href="https://www.realtyprice.kr" target="_blank" title="공시가격 알리미">공시가격 알리미</a></li>	                    <li><a href="https://www.car365.go.kr" target="_blank" title="자동차365">자동차365</a></li>	                    <li><a href="/USR/dca/m_37110/ist.jsp" target="_blank" title="콘텐츠 아카이브">콘텐츠 아카이브</a></li>	                    <li><a href="https://www.prism.go.kr/homepage" target="_blank" title="정책연구관리시스템 PRISM">정책연구관리시스템 PRISM</a></li>	                </ul>	            </div>	        </div>	        <button type="button" class="krds-modal-close" aria-label="닫기">×</button>	    </div>	    <div class="krds-modal-dimmed"></div>	</div>		<!-- Modal 2: Affiliated Organizations -->	<div id="layer-site02" class="krds-wrap-modal full-modal" role="dialog" aria-modal="true"	    aria-labelledby="title-site02">	    <div class="modal-header-hidden">	        <h2 id="title-site02">소속기관 바로가기</h2>	    </div>	    <div class="modal-body site-popup" tabindex="0">	        <div class="inner">	            <strong class="site-tit">소속기관 바로가기</strong>	            <div class="krds-site-box">	                <ul>	                    <li><a href="https://www.molit.go.kr/mtc/intro.do" target="_blank" title="대도시권광역교통위원회">대도시권광역교통위원회</a></li>	                    <li><a href="https://tilit.molit.go.kr/intro.do" target="_blank" title="국토교통인재개발원">국토교통인재개발원</a></li>	                    <li><a href="https://www.molit.go.kr/srocm/intro.do" target="_blank" title="서울지방국토관리청">서울지방국토관리청</a></li>	                    <li><a href="https://www.molit.go.kr/wrocm/intro.do" target="_blank" title="원주지방국토관리청">원주지방국토관리청</a></li>	                    <li><a href="https://www.molit.go.kr/drocm/intro.do" target="_blank" title="대전지방국토관리청">대전지방국토관리청</a></li>	                    <li><a href="https://www.molit.go.kr/irocm/intro.do" target="_blank" title="익산지방국토관리청">익산지방국토관리청</a></li>	                    <li><a href="https://www.molit.go.kr/brocm/intro.do" target="_blank" title="부산지방국토관리청">부산지방국토관리청</a></li>	                    <li><a href="https://www.molit.go.kr/sroa/intro.do" target="_blank" title="서울지방항공청">서울지방항공청</a></li>	                    <li><a href="https://www.molit.go.kr/broa/intro.do" target="_blank" title="부산지방항공청">부산지방항공청</a></li>	                    <li><a href="https://www.molit.go.kr/jroa/intro.do" target="_blank" title="제주지방항공청">제주지방항공청</a></li>	                    <li><a href="https://www.molit.go.kr/atmo/intro.do" target="_blank" title="항공교통본부">항공교통본부</a></li>	                    <li><a href="https://www.molit.go.kr/iatcro/intro.do" target="_blank" title="인천항공교통관제소">인천항공교통관제소</a></li>	                    <li><a href="https://oclt.molit.go.kr/intro.do" target="_blank" title="중앙토지수용위원회">중앙토지수용위원회</a></li>	                    <!-- <li><a href="https://araib.molit.go.kr/intro.do" target="_blank" title="항공철도사고조사위원회">항공철도사고조사위원회</a></li> -->	                    <li><a href="https://police.molit.go.kr/intro.do" target="_blank" title="철도특별사법경찰대">철도특별사법경찰대</a></li>	                    <li><a href="https://www.ngii.go.kr" target="_blank" title="국토지리정보원">국토지리정보원</a></li>	                </ul>	            </div>	        </div>	        <button type="button" class="krds-modal-close" aria-label="닫기">×</button>	    </div>	    <div class="krds-modal-dimmed"></div>	</div>		<!-- Modal 3: San-ha Organizations -->	<div id="layer-site03" class="krds-wrap-modal full-modal" role="dialog" aria-modal="true"	    aria-labelledby="title-site03">	    <div class="modal-header-hidden">	        <h2 id="title-site03">산하기관 바로가기</h2>	    </div>	    <div class="modal-body site-popup" tabindex="0">	        <div class="inner">	            <strong class="site-tit">산하기관 바로가기</strong>	            <div class="krds-site-box">	                <ul>	                    <li><a href="https://www.airport.co.kr/" target="_blank" title="한국공항공사">한국공항공사</a></li>	                    <li><a href="https://www.airport.kr/" target="_blank" title="인천국제공항공사">인천국제공항공사</a></li>	                    <li><a href="https://www.lh.or.kr/" target="_blank" title="한국토지주택공사">한국토지주택공사</a></li>	                    <li><a href="https://www.ex.co.kr/" target="_blank" title="한국도로공사">한국도로공사</a></li>	                    <li><a href="https://www.korail.com/" target="_blank" title="한국철도공사">한국철도공사</a></li>	                    <li><a href="https://www.reb.or.kr/reb/main.do" target="_blank" title="한국부동산원">한국부동산원</a></li>	                    <li><a href="https://www.khug.or.kr/" target="_blank" title="주택도시보증공사">주택도시보증공사</a></li>	                    <li><a href="https://www.jdcenter.com/" target="_blank" title="제주국제자유도시개발센터">제주국제자유도시개발센터</a></li>	                    <li><a href="https://www.kr.or.kr/" target="_blank" title="국가철도공단">국가철도공단</a></li>	                    <li><a href="https://www.kotsa.or.kr/main.do" target="_blank" title="한국교통안전공단">한국교통안전공단</a></li>	                    <li><a href="https://www.kalis.or.kr/" target="_blank" title="국토안전관리원">국토안전관리원</a></li>	                    <li><a href="https://www.kaia.re.kr/" target="_blank" title="국토교통과학기술진흥원">국토교통과학기술진흥원</a></li>	                    <li><a href="https://www.lx.or.kr/" target="_blank" title="한국국토정보공사">한국국토정보공사</a></li>	                    <li><a href="https://www.kohom.or.kr/web/main/index.do" target="_blank" title="주택관리공단">주택관리공단</a></li>	                    <li><a href="https://www.koraillogis.com/" target="_blank" title="코레일로지스">코레일로지스</a></li>	                    <li><a href="https://www.korailtravel.com/" target="_blank" title="코레일관광개발">코레일관광개발</a></li>	                    <li><a href="https://www.korailnetworks.com/" target="_blank" title="코레일네트웍스">코레일네트웍스</a></li>	                    <li><a href="https://www.korailretail.com/" target="_blank" title="코레일유통">코레일유통</a></li>	                    <li><a href="https://www.korailtech.com/main/mainPage.do" target="_blank" title="코레일테크">코레일테크</a></li>	                    <li><a href="https://www.srail.co.kr" target="_blank" title="주식회사 에스알">주식회사 에스알</a></li>	                    <li><a href="https://www.kiast.or.kr/kr/index.do" target="_blank" title="항공안전기술원">항공안전기술원</a></li>	                    <li><a href="https://www.kindkorea.or.kr" target="_blank" title="해외인프라도시개발지원공사">해외인프라도시개발지원공사</a></li>	                    <li><a href="https://www.sdco.or.kr/" target="_blank" title="새만금개발공사">새만금개발공사</a></li>	                    <li><a href="https://www.kicte.or.kr/portal/index/mainInitAction.do" target="_blank" title="건설기술교육원">건설기술교육원</a></li>	                    <li><a href="https://www.aviation.or.kr" target="_blank" title="국립항공박물관">국립항공박물관</a></li>	                    <li><a href="https://exservice.co.kr/main/" target="_blank" title="한국도로공사서비스">한국도로공사서비스</a></li>	                    <li><a href="http://www.siqms.or.kr" target="_blank" title="공간정보품질관리원">공간정보품질관리원</a></li>	                    <li><a href="https://www.kcesi.or.kr/index.do" target="_blank" title="대한건설기계안전관리원">대한건설기계안전관리원</a></li>	                    <li><a href="https://www.tacss.or.kr" target="_blank" title="자동차손해배상진흥원">자동차손해배상진흥원</a></li>	                    <li><a href="https://www.g-airport.or.kr/kor/index.do" target="_blank" title="가덕도신공항건설공단">가덕도신공항건설공단</a></li>	                    <li><a href="http://www.spacen.or.kr/main.do" target="_blank" title="공간정보산업진흥원">공간정보산업진흥원</a></li>	                </ul>	            </div>	        </div>	        <button type="button" class="krds-modal-close" aria-label="닫기">×</button>	    </div>	    <div class="krds-modal-dimmed"></div>	</div>	<div class="krds_footer_inner">	    <div class="krds_inner">	        <!-- 1. Top Logo -->	        <div class="krds_f_logo">	            <img src="/images/www2026/logo.png" alt="국토교통부">	        </div>		        <!-- 2. Middle Info & Family Sites -->	        <div class="krds_f_middle_wrap">	            <div class="krds_f_info">	                <div class="krds_f_info_item">						<strong>정부민원안내콜센터</strong> <span>국번없이 110 (무료, 평일 9시~18시)</span>	                </div>	                <div class="krds_f_info_item">						<strong>국토교통부 콜센터</strong> <span>1599-0001(유료, 평일 9시~18시)</span>	                </div>	                <div class="krds_f_info_item">	                    <strong>팩스</strong> <span>044-715-9500</span>	                </div>	                <div class="krds_f_info_item">	                    <strong>주소</strong> <span>(30103) 세종특별자치시 도움6로 11 국토교통부</span>	                </div>	            </div>		            <div class="krds_f_family_wrap">		            </div>	        </div>		        <hr class="krds_f_divider">		        <!-- 3. Bottom Links, Copy, Marks -->	        <div class="krds_f_bottom_wrap">	            <div class="krds_f_bottom_left">	                <ul class="krds_f_links">	                    <li><a href="/USR/WPGE0201/m_122/DTL.jsp" class="krds_privacy">개인정보처리방침</a></li>	                    <li><a href="/USR/WPGE0201/m_119/DTL.jsp">이용안내</a></li>	                    <li><a href="/USR/WPGE0201/m_121/DTL.jsp">저작권정책</a></li>	                    <li><a href="/USR/WPGE0201/m_35153/DTL.jsp">오시는길</a></li>	                    <li><a href="/survey/list.jsp" target="_blank">고객만족도조사</a></li>	                    <li><a href="https://data.molit.go.kr/systemQuality/list?system_id=S0056"	                            target="_blank">품질오류신고 및 확인</a></li>	                    <li><a href="/USR/commentImprove/m_120/lst.jsp?mode=write">누리집 개선의견</a></li>	                </ul>	                <p class="krds_f_copy">Copyright © Ministry of Land, Infrastructure and Transport. All Rights reserved.</p>	            </div>	            <div class="krds_f_bottom_right">	                <ul class="krds_footer-logo">	                    <li class="krds_gow-symbol">	                    	<a href="https://www.mois.go.kr/frt/sub/popup/p_taegugki_banner/screen.do" target="_blank" title="새창">국가상징<br>알아보기</a>	                    </li>	                    <li class="krds_acc-mark">	                    	<a href="https://www.wa.or.kr/waMark/status_new.asp" target="_blank" title="새창">웹접근성<br>품질마크 인증</a>	                    </li>	                </ul>	            </div>	        </div>	    </div></footer>	<!-- AceCounter Log Gathering Script V.8.0.2019080601 --><script language='javascript'>	var _AceGID=(function(){var Inf=['gtp5.acecounter.com','8080','AH6A47309598944','AW','0','NaPm,Ncisy','ALL','0']; var _CI=(!_AceGID)?[]:_AceGID.val;var _N=0;var _T=new Image(0,0);if(_CI.join('.').indexOf(Inf[3])<0){ _T.src ="https://"+Inf[0]+'/?cookie'; _CI.push(Inf);  _N=_CI.length; } return {o: _N,val:_CI}; })();	var _AceCounter=(function(){var G=_AceGID;var _sc=document.createElement('script');var _sm=document.getElementsByTagName('script')[0];if(G.o!=0){var _A=G.val[G.o-1];var _G=(_A[0]).substr(0,_A[0].indexOf('.'));var _C=(_A[7]!='0')?(_A[2]):_A[3];var _U=(_A[5]).replace(/\,/g,'_');_sc.src='https:'+'//cr.acecounter.com/Web/AceCounter_'+_C+'.js?gc='+_A[2]+'&py='+_A[4]+'&gd='+_G+'&gp='+_A[1]+'&up='+_U+'&rd='+(new Date().getTime());_sm.parentNode.insertBefore(_sc,_sm);return _sc.src;}})();</script><!-- AceCounter Log Gathering Script End -->
+	<!-- //footer -->
+</div>
+<!-- wrap e -->
+
+</body>
+</html>
+
+

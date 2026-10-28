@@ -1,0 +1,70 @@
+[
+  {
+    "name": "gh-press",
+    "url": "https://www.gh.or.kr/gh/press-release.do",
+    "error": "HTTPStatusError"
+  },
+  {
+    "name": "molit-press",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp",
+    "status": 200,
+    "sha256": "5348d06292554aac283fe0085e7f0fcc8d1147c070d442734e75c90406932863",
+    "bytes": 61908
+  },
+  {
+    "name": "molit-transport",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092532",
+    "status": 200,
+    "sha256": "109240b9b88ccecebf43ae0b6a6045fcb59d4eabb001ef68f2d8abf4cae97b62",
+    "bytes": 61413
+  },
+  {
+    "name": "lh-board",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&nPage=1",
+    "status": 200,
+    "sha256": "c3a074a7fac9f62c259bc9860ad0592374e73954be633bb6b48c480add42bac9",
+    "bytes": 90648
+  },
+  {
+    "name": "pm-news",
+    "url": "https://m.korea.kr/news/ministryNewsList.do?deptName=%EA%B5%AD%EB%AC%B4%EC%A1%B0%EC%A0%95%EC%8B%A4&repCode_Y=A00004",
+    "status": 200,
+    "sha256": "c4fa05994bdef63629b76c63081c57aec64c32c552d868aac958ef4f105c2cb0",
+    "bytes": 255442
+  },
+  {
+    "name": "sh-311962",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311962",
+    "status": 200,
+    "sha256": "7285e490c098a6f7340664b98d52ffc2caab28d91a88425c01fe8997edf56c43",
+    "bytes": 203414
+  },
+  {
+    "name": "sh-312325",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312325",
+    "status": 200,
+    "sha256": "32f8f69aa812bc999f5d280a78733eb0318c8c3416326f98f0f8ad964626ea0a",
+    "bytes": 202027
+  },
+  {
+    "name": "sh-312339",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312339",
+    "status": 200,
+    "sha256": "42df02e357faf428f76f2f558af3dc2f1d540288be8b091cb94299520ba272bc",
+    "bytes": 208377
+  },
+  {
+    "name": "sh-312054",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312054",
+    "status": 200,
+    "sha256": "3a976ef754012572f435ca9c849389c015e078f6cec100f0f7fe3f8c7ada5749",
+    "bytes": 216900
+  },
+  {
+    "name": "housing-specialist",
+    "url": "https://www.housingtimes.co.kr/news/articleView.html?idxno=2621",
+    "status": 200,
+    "sha256": "d651e49ac03ce35427ccb9f406c09f8749a3c8169ed05de93660627cf8fb05e1",
+    "bytes": 125382
+  }
+]
